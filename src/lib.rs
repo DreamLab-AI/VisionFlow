@@ -1,5 +1,6 @@
 pub mod ontology;
 pub mod actors;
+pub mod adapters;
 pub mod app_state;
 pub mod client;
 pub mod config;
@@ -8,6 +9,7 @@ pub mod gpu;
 pub mod handlers;
 pub mod models;
 pub mod physics;
+pub mod ports;
 pub mod services;
 pub mod telemetry;
 pub mod types;

@@ -96,9 +96,9 @@ pub async fn get_graph_data(state: web::Data<AppState>, req: HttpRequest) -> imp
     info!("Received request for graph data with positions");
 
     // Fetch graph structure AND physics state in parallel
-    let graph_data_future = state.graph_service_addr.send(GetGraphData);
-    let node_map_future = state.graph_service_addr.send(GetNodeMap);
-    let physics_state_future = state.graph_service_addr.send(GetPhysicsState);
+    let graph_data_future = state.graph_state_addr.send(GetGraphData);
+    let node_map_future = state.graph_state_addr.send(GetNodeMap);
+    let physics_state_future = state.graph_state_addr.send(GetPhysicsState);
 
     let (graph_result, node_map_result, physics_result) = tokio::join!(
         graph_data_future,
@@ -185,7 +185,7 @@ pub async fn get_paginated_graph_data(
     // This part is complex due to mutable access.
     // For now, let's assume get_graph_data_mut was for reading and we use GetGraphData.
     // If mutable access is truly needed, specific messages for modifications are required.
-    let graph_result = state.graph_service_addr.send(GetGraphData).await;
+    let graph_result = state.graph_state_addr.send(GetGraphData).await;
     let graph_data_owned = match graph_result { // graph_data_owned is GraphData
         Ok(Ok(g_owned)) => g_owned,
         _ => {
@@ -254,7 +254,7 @@ pub async fn refresh_graph(state: web::Data<AppState>) -> impl Responder {
     info!("Received request to refresh graph - returning current state");
     
     // Instead of rebuilding, just return the current graph data
-    let graph_data_result = state.graph_service_addr.send(GetGraphData).await;
+    let graph_data_result = state.graph_state_addr.send(GetGraphData).await;
     
     match graph_data_result {
         Ok(Ok(graph_data_owned)) => {
@@ -340,7 +340,7 @@ pub async fn update_graph(state: web::Data<AppState>) -> impl Responder {
             }
             
             // Send AddNodesFromMetadata for incremental updates instead of full rebuild
-            match state.graph_service_addr.send(AddNodesFromMetadata { metadata }).await {
+            match state.graph_state_addr.send(AddNodesFromMetadata { metadata }).await {
                 Ok(Ok(())) => {
                     // Position preservation logic would need to be handled by the actor or subsequent messages.
                     debug!("Graph updated successfully via GraphServiceActor after file processing");
@@ -384,8 +384,8 @@ pub async fn get_auto_balance_notifications(
         .and_then(|v| v.as_i64());
     
     let msg = GetAutoBalanceNotifications { since_timestamp };
-    
-    match state.graph_service_addr.send(msg).await {
+
+    match state.graph_state_addr.send(msg).await {
         Ok(Ok(notifications)) => {
             HttpResponse::Ok().json(serde_json::json!({
                 "success": true,

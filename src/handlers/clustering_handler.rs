@@ -300,7 +300,7 @@ async fn get_clustering_results(
         use crate::actors::messages::{GetClusteringResults, GetGraphData};
 
         // Get graph data for node count
-        let graph_data = match state.graph_service_addr.send(GetGraphData).await {
+        let graph_data = match state.graph_state_addr.send(GetGraphData).await {
             Ok(Ok(data)) => data,
             Ok(Err(e)) => {
                 error!("Failed to get graph data: {}", e);
@@ -510,7 +510,7 @@ async fn export_cluster_assignments(
     }
 
     // Fallback: try to get data from graph service
-    match state.graph_service_addr.send(crate::actors::messages::GetGraphData).await {
+    match state.graph_state_addr.send(crate::actors::messages::GetGraphData).await {
         Ok(Ok(graph_data)) => {
             if !graph_data.nodes.is_empty() {
                 info!("Using graph data for clustering export with {} nodes", graph_data.nodes.len());

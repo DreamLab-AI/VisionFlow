@@ -143,7 +143,7 @@ async fn check_service_metrics(
     // Check graph service
     let (nodes_count, edges_count) = match tokio::time::timeout(
         Duration::from_secs(5),
-        app_state.graph_service_addr.send(GetGraphData)
+        app_state.graph_state_addr.send(GetGraphData)
     ).await {
         Ok(Ok(Ok(graph_data))) => (graph_data.nodes.len(), graph_data.edges.len()),
         Ok(Ok(Err(_))) => {
@@ -275,7 +275,7 @@ async fn get_physics_diagnostics(app_state: &web::Data<AppState>) -> Result<(Str
     // Check graph service
     match tokio::time::timeout(
         Duration::from_secs(3),
-        app_state.graph_service_addr.send(GetGraphData)
+        app_state.graph_state_addr.send(GetGraphData)
     ).await {
         Ok(Ok(Ok(graph_data))) => {
             diagnostics.push(format!("Graph: {} nodes, {} edges", graph_data.nodes.len(), graph_data.edges.len()));

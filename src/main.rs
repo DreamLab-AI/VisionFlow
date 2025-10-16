@@ -317,7 +317,7 @@ async fn main() -> std::io::Result<()> {
     let content_api_clone = content_api.clone();
     let settings_clone = settings.clone();
     let metadata_addr_clone = app_state.metadata_addr.clone();
-    let graph_service_addr_clone = app_state.graph_service_addr.clone();
+    let graph_state_addr_clone = app_state.graph_state_addr.clone();
     
     tokio::spawn(async move {
         // Wait a bit for the server to fully initialize
@@ -375,7 +375,7 @@ async fn main() -> std::io::Result<()> {
                 // Update graph with new data
                 use webxr::actors::messages::AddNodesFromMetadata;
                 info!("Background GitHub sync: Updating graph with new data...");
-                match graph_service_addr_clone.send(AddNodesFromMetadata { metadata: metadata_store_copy }).await {
+                match graph_state_addr_clone.send(AddNodesFromMetadata { metadata: metadata_store_copy }).await {
                     Ok(Ok(())) => {
                         info!("Background GitHub sync: Graph updated successfully with new GitHub data");
                     }
@@ -431,14 +431,14 @@ async fn main() -> std::io::Result<()> {
     
     if let Some(graph_data) = graph_data_option {
         // If we have pre-computed graph data, send it directly to the GraphServiceSupervisor
-        match app_state.graph_service_addr.send(UpdateGraphData { graph_data: StdArc::new(graph_data) }).await {
+        match app_state.graph_state_addr.send(UpdateGraphData { graph_data: StdArc::new(graph_data) }).await {
             Ok(Ok(())) => {
                 info!("Pre-computed graph data loaded successfully into GraphServiceSupervisor");
             },
             Ok(Err(e)) => {
                 error!("Failed to load pre-computed graph data into actor: {}", e);
                 // Fall back to building from metadata
-                match app_state.graph_service_addr.send(BuildGraphFromMetadata { metadata: metadata_store.clone() }).await {
+                match app_state.graph_state_addr.send(BuildGraphFromMetadata { metadata: metadata_store.clone() }).await {
                     Ok(Ok(())) => {
                         info!("Fallback: Graph built from metadata successfully");
                     },
@@ -459,7 +459,7 @@ async fn main() -> std::io::Result<()> {
         }
     } else {
         // No pre-computed graph data, build from metadata
-        match app_state.graph_service_addr.send(BuildGraphFromMetadata { metadata: metadata_store.clone() }).await {
+        match app_state.graph_state_addr.send(BuildGraphFromMetadata { metadata: metadata_store.clone() }).await {
             Ok(Ok(())) => {
                 info!("Graph built successfully using GraphServiceSupervisor - GPU initialization is handled automatically by the supervisor");
             },
@@ -535,7 +535,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(app_state_data.clone()) // Add the complete AppState
             .app_data(pre_read_ws_settings_data.clone()) // Add pre-read WebSocket settings
             // Register actor addresses for handler access
-            .app_data(web::Data::new(app_state_data.graph_service_addr.clone()))
+            .app_data(web::Data::new(app_state_data.graph_state_addr.clone()))
             .app_data(web::Data::new(app_state_data.settings_addr.clone()))
             .app_data(web::Data::new(app_state_data.metadata_addr.clone()))
             .app_data(web::Data::new(app_state_data.client_manager_addr.clone()))

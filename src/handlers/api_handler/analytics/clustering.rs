@@ -65,7 +65,7 @@ pub async fn perform_clustering(
     
     // Get current graph data
     let graph_data = {
-        let graph_addr = app_state.get_graph_service_addr();
+        let graph_addr = app_state.get_graph_state_addr();
         match graph_addr.send(GetGraphData).await {
             Ok(Ok(data)) => data,
             Ok(Err(e)) => {

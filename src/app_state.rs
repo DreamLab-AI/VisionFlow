@@ -4,16 +4,18 @@ use actix_web::web;
 use log::{info, warn};
 
 use crate::actors::{OptimizedSettingsActor, MetadataActor, ClientCoordinatorActor, ProtectedSettingsActor, AgentMonitorActor, WorkspaceActor, TaskOrchestratorActor};
+use crate::actors::graph_state_actor::GraphStateActor;
+use crate::actors::semantic_processor_actor::SemanticProcessorActor;
+use crate::actors::physics_orchestrator_actor::PhysicsOrchestratorActor;
 #[cfg(feature = "gpu")]
 use crate::actors::GPUManagerActor;
-use crate::actors::graph_service_supervisor::GraphServiceSupervisor;
 #[cfg(feature = "ontology")]
 use crate::actors::ontology_actor::OntologyActor;
 #[cfg(feature = "gpu")]
 use crate::actors::gpu;
 #[cfg(feature = "gpu")]
 use cudarc::driver::CudaDevice;
-use crate::config::AppFullSettings; // Renamed for clarity, ClientFacingSettings removed
+use crate::config::AppFullSettings;
 use tokio::time::Duration;
 use crate::config::feature_access::FeatureAccess;
 use crate::models::metadata::MetadataStore;
@@ -30,11 +32,13 @@ use crate::utils::client_message_extractor::ClientMessage;
 
 #[derive(Clone)]
 pub struct AppState {
-    pub graph_service_addr: Addr<GraphServiceSupervisor>,
+    pub graph_state_addr: Addr<GraphStateActor>,
+    pub semantic_processor_addr: Addr<SemanticProcessorActor>,
+    pub physics_orchestrator_addr: Addr<PhysicsOrchestratorActor>,
     #[cfg(feature = "gpu")]
-    pub gpu_manager_addr: Option<Addr<GPUManagerActor>>, // Modular GPU manager system
+    pub gpu_manager_addr: Option<Addr<GPUManagerActor>>,
     #[cfg(feature = "gpu")]
-    pub gpu_compute_addr: Option<Addr<gpu::ForceComputeActor>>, // Force compute actor for physics
+    pub gpu_compute_addr: Option<Addr<gpu::ForceComputeActor>>,
     pub settings_addr: Addr<OptimizedSettingsActor>,
     pub protected_settings_addr: Addr<ProtectedSettingsActor>,
     pub metadata_addr: Addr<MetadataActor>,
@@ -68,68 +72,103 @@ impl AppState {
         speech_service: Option<Arc<SpeechService>>,
         ragflow_session_id: String,
     ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
-        info!("[AppState::new] Initializing actor system");
+        info!("[AppState::new] Initializing actor system with Hexagonal Architecture");
         tokio::time::sleep(Duration::from_millis(50)).await;
-
-        // Start actors
-        info!("[AppState::new] Starting ClientCoordinatorActor");
-        let client_manager_addr = ClientCoordinatorActor::new().start();
 
         // Extract physics settings from logseq graph before moving settings
         let physics_settings = settings.visualisation.graphs.logseq.physics.clone();
-        
+
         info!("[AppState::new] Starting MetadataActor");
         let metadata_addr = MetadataActor::new(MetadataStore::new()).start();
 
-        // Create GraphServiceSupervisor with refactored architecture
-        info!("[AppState::new] Starting GraphServiceSupervisor (refactored architecture)");
+        // Initialize Hexagonal Architecture actors
+        info!("[AppState::new] Starting GraphStateActor (Domain Layer)");
+        let graph_state_addr = GraphStateActor::new().start();
+
+        info!("[AppState::new] Starting SemanticProcessorActor (Domain Layer)");
+        let semantic_processor_addr = SemanticProcessorActor::new(None).start();
+
+        // Create the modular GPU manager system
         #[cfg(feature = "gpu")]
-        {
+        let (gpu_manager_addr, gpu_compute_addr) = {
+            info!("[AppState::new] Initializing GPU subsystem");
             let _device = CudaDevice::new(0).map_err(|e| {
                 log::error!("Failed to create CUDA device: {}", e);
                 format!("CUDA initialization failed: {}", e)
             })?;
-        }
-        let graph_service_addr = GraphServiceSupervisor::new().start();
 
-        info!("[AppState::new] GraphServiceSupervisor started successfully - will initialize child actors");
-        
-        // Create the modular GPU manager system
-        #[cfg(feature = "gpu")]
-        let gpu_manager_addr = {
-            info!("[AppState::new] Starting GPUManagerActor (modular architecture)");
-            Some(GPUManagerActor::new().start())
+            info!("[AppState::new] Starting GPUManagerActor");
+            let gpu_manager = GPUManagerActor::new().start();
+
+            // Request ForceComputeActor address from GPUManagerActor
+            info!("[AppState::new] Requesting ForceComputeActor address from GPUManagerActor");
+            let gpu_compute = match gpu_manager.send(crate::actors::messages::GetForceComputeActor).await {
+                Ok(Ok(addr)) => {
+                    info!("[AppState::new] ForceComputeActor address received");
+                    Some(addr)
+                }
+                Ok(Err(e)) => {
+                    warn!("[AppState::new] Failed to get ForceComputeActor address: {}", e);
+                    None
+                }
+                Err(e) => {
+                    warn!("[AppState::new] Mailbox error getting ForceComputeActor: {}", e);
+                    None
+                }
+            };
+
+            (Some(gpu_manager), gpu_compute)
         };
-        
-        // Initialize the connection between GraphServiceSupervisor and GPUManagerActor
-        #[cfg(feature = "gpu")]
-        {
-            use crate::actors::messages::InitializeGPUConnection;
-            // Send the GPUManagerActor address to GraphServiceSupervisor for proper message routing
-            info!("[AppState] Initializing GPU connection with GPUManagerActor for proper message delegation");
-            if let Some(ref gpu_manager) = gpu_manager_addr {
-                graph_service_addr.do_send(InitializeGPUConnection {
-                    gpu_manager: Some(gpu_manager.clone()),
-                });
-            } else {
-                warn!("[AppState] GPUManagerActor not available - GPU physics will be disabled");
-            }
-        }
+
         #[cfg(not(feature = "gpu"))]
         {
             info!("[AppState] GPU feature disabled - running in CPU-only mode");
         }
 
-        info!("[AppState::new] Starting OptimizedSettingsActor with actor addresses for physics forwarding");
+        // Convert physics settings to simulation parameters
+        let sim_params = crate::models::simulation_params::SimulationParams::from(&physics_settings);
+
+        // Start PhysicsOrchestratorActor with graph state dependency
+        info!("[AppState::new] Starting PhysicsOrchestratorActor with dependencies");
+        #[cfg(feature = "gpu")]
+        let physics_orchestrator_addr = {
+            let graph_data = match graph_state_addr.send(crate::actors::messages::GetGraphData).await {
+                Ok(Ok(data)) => Some(data),
+                _ => None,
+            };
+            PhysicsOrchestratorActor::new(
+                sim_params.clone(),
+                gpu_compute_addr.clone(),
+                graph_data,
+            ).start()
+        };
+
+        #[cfg(not(feature = "gpu"))]
+        let physics_orchestrator_addr = {
+            let graph_data = match graph_state_addr.send(crate::actors::messages::GetGraphData).await {
+                Ok(Ok(data)) => Some(data),
+                _ => None,
+            };
+            PhysicsOrchestratorActor::new(
+                sim_params.clone(),
+                None,
+                graph_data,
+            ).start()
+        };
+
+        info!("[AppState::new] Starting ClientCoordinatorActor");
+        let client_manager_addr = ClientCoordinatorActor::new().start();
+
+        info!("[AppState::new] Starting OptimizedSettingsActor");
         let settings_actor = OptimizedSettingsActor::with_actors(
-            Some(graph_service_addr.clone()),
+            None, // GraphServiceSupervisor replaced by Hexagonal Architecture
             None, // Legacy GPU compute actor removed
         ).map_err(|e| {
             log::error!("Failed to create OptimizedSettingsActor: {}", e);
             e
         })?;
         let settings_addr = settings_actor.start();
-        
+
         info!("[AppState::new] Starting AgentMonitorActor for MCP monitoring");
         let mcp_host = std::env::var("MCP_HOST")
             .unwrap_or_else(|_| "agentic-workstation".to_string());
@@ -145,26 +184,19 @@ impl AppState {
         );
         let agent_monitor_addr = AgentMonitorActor::new(
             claude_flow_client,
-            graph_service_addr.clone()
+            graph_state_addr.clone()
         ).start();
-        
-        // Send initial physics settings to both GraphServiceSupervisor and GPUComputeActor
-        // Use the From trait to convert PhysicsSettings to SimulationParams
-        // This ensures all fields are properly set from settings.yaml
-        let sim_params = crate::models::simulation_params::SimulationParams::from(&physics_settings);
-        
+
+        // Send initial physics settings to PhysicsOrchestratorActor
         let update_msg = crate::actors::messages::UpdateSimulationParams {
             params: sim_params,
         };
-        
-        // Send to GraphServiceSupervisor
-        graph_service_addr.do_send(update_msg.clone());
-        
+        physics_orchestrator_addr.do_send(update_msg.clone());
+
         // Send to GPUManagerActor if available
         #[cfg(feature = "gpu")]
         if let Some(ref gpu_addr) = gpu_manager_addr {
-            // TODO: GPUManagerActor needs to handle UpdateSimulationParams
-            // gpu_addr.do_send(update_msg);
+            gpu_addr.do_send(update_msg);
         }
 
         info!("[AppState::new] Starting ProtectedSettingsActor");
@@ -176,15 +208,23 @@ impl AppState {
         info!("[AppState::new] Starting OntologyActor");
         #[cfg(feature = "ontology")]
         let ontology_actor_addr = {
-            info!("[AppState] OntologyActor initialized successfully");
-            Some(OntologyActor::new().start())
+            let ontology_actor = OntologyActor::new().start();
+
+            // Connect OntologyActor to PhysicsOrchestratorActor for constraint generation
+            #[cfg(feature = "ontology")]
+            physics_orchestrator_addr.do_send(crate::actors::physics_orchestrator_actor::SetOntologyActor {
+                addr: ontology_actor.clone(),
+            });
+
+            info!("[AppState] OntologyActor initialized and connected to PhysicsOrchestratorActor");
+            Some(ontology_actor)
         };
 
         #[cfg(not(feature = "ontology"))]
         let ontology_actor_addr = None;
 
-        info!("[AppState::new] Initializing BotsClient with graph service");
-        let bots_client = Arc::new(BotsClient::with_graph_service(graph_service_addr.clone()));
+        info!("[AppState::new] Initializing BotsClient with graph state");
+        let bots_client = Arc::new(BotsClient::with_graph_service(graph_state_addr.clone()));
 
         info!("[AppState::new] Initializing TaskOrchestratorActor with Management API");
         let mgmt_api_host = std::env::var("MANAGEMENT_API_HOST")
@@ -202,26 +242,21 @@ impl AppState {
         let mgmt_client = ManagementApiClient::new(mgmt_api_host, mgmt_api_port, mgmt_api_key);
         let task_orchestrator_addr = TaskOrchestratorActor::new(mgmt_client).start();
 
-        // GPU initialization will be handled later by the actors themselves
-        // This avoids the tokio runtime panic during initialization
-        info!("[AppState] GPU manager will self-initialize when needed");
-
-        // Schedule GPU initialization to happen after actor system is ready
+        // Initialize GPU connection between actors
         #[cfg(feature = "gpu")]
         if let Some(ref gpu_manager) = gpu_manager_addr {
             use crate::actors::messages::InitializeGPUConnection;
-            let init_msg = InitializeGPUConnection {
+            info!("[AppState] Initializing GPU connection between Hexagonal Architecture actors");
+            graph_state_addr.do_send(InitializeGPUConnection {
                 gpu_manager: Some(gpu_manager.clone()),
-            };
-            graph_service_addr.do_send(init_msg);
-            info!("[AppState] Sent GPU initialization message to GraphServiceSupervisor");
+            });
         }
 
-        info!("[AppState::new] Actor system initialization complete");
+        info!("[AppState::new] Hexagonal Architecture initialization complete");
 
         // Read debug state from settings (can be overridden by env var)
         let debug_enabled = crate::utils::logging::is_debug_enabled();
-        
+
         info!("[AppState::new] Debug mode enabled: {}", debug_enabled);
 
         // Create client message channel for agent -> user communication
@@ -229,11 +264,13 @@ impl AppState {
         info!("[AppState::new] Client message channel created");
 
         Ok(Self {
-            graph_service_addr,
+            graph_state_addr,
+            semantic_processor_addr,
+            physics_orchestrator_addr,
             #[cfg(feature = "gpu")]
             gpu_manager_addr,
             #[cfg(feature = "gpu")]
-            gpu_compute_addr: None, // Will be set by GPUManagerActor
+            gpu_compute_addr,
             settings_addr,
             protected_settings_addr,
             metadata_addr,
@@ -323,8 +360,16 @@ impl AppState {
         &self.client_manager_addr
     }
 
-    pub fn get_graph_service_addr(&self) -> &Addr<GraphServiceSupervisor> {
-        &self.graph_service_addr
+    pub fn get_graph_state_addr(&self) -> &Addr<GraphStateActor> {
+        &self.graph_state_addr
+    }
+
+    pub fn get_semantic_processor_addr(&self) -> &Addr<SemanticProcessorActor> {
+        &self.semantic_processor_addr
+    }
+
+    pub fn get_physics_orchestrator_addr(&self) -> &Addr<PhysicsOrchestratorActor> {
+        &self.physics_orchestrator_addr
     }
 
     pub fn get_settings_addr(&self) -> &Addr<OptimizedSettingsActor> {
@@ -345,5 +390,10 @@ impl AppState {
 
     pub fn get_task_orchestrator_addr(&self) -> &Addr<TaskOrchestratorActor> {
         &self.task_orchestrator_addr
+    }
+
+    #[cfg(feature = "gpu")]
+    pub fn get_gpu_manager_addr(&self) -> Option<&Addr<GPUManagerActor>> {
+        self.gpu_manager_addr.as_ref()
     }
 }

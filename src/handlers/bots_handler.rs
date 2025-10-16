@@ -195,7 +195,7 @@ pub async fn update_bots_graph(request: web::Json<BotsDataRequest>, _state: web:
 
 pub async fn get_bots_data(state: web::Data<AppState>) -> Result<impl Responder> {
     // First try to get data from graph actor if available
-    if let Ok(graph_data) = state.graph_service_addr.send(GetBotsGraphData).await {
+    if let Ok(graph_data) = state.graph_state_addr.send(GetBotsGraphData).await {
         if let Ok(graph) = graph_data {
             let nodes = &graph.nodes;
             let edges = &graph.edges;

@@ -1,6 +1,7 @@
 //! Actor system modules for replacing Arc<RwLock<T>> patterns with Actix actors
 
 pub mod graph_actor;
+pub mod graph_state_actor;
 pub mod physics_orchestrator_actor;
 pub mod optimized_settings_actor;
 pub mod metadata_actor;
@@ -15,12 +16,12 @@ pub mod multi_mcp_visualization_actor;
 pub mod workspace_actor;
 pub mod semantic_processor_actor;
 pub mod ontology_actor;
-pub mod graph_service_supervisor;
 pub mod task_orchestrator_actor;
 pub mod messages;
 pub mod graph_messages;
 
 pub use graph_actor::GraphServiceActor;
+pub use graph_state_actor::GraphStateActor;
 pub use physics_orchestrator_actor::PhysicsOrchestratorActor;
 pub use optimized_settings_actor::OptimizedSettingsActor;
 pub use metadata_actor::MetadataActor;
@@ -35,9 +36,4 @@ pub use workspace_actor::WorkspaceActor;
 pub use semantic_processor_actor::{SemanticProcessorActor, SemanticProcessorConfig, SemanticStats, AISemanticFeatures};
 pub use ontology_actor::{OntologyActor, OntologyActorConfig, ValidationJob, JobPriority, JobStatus, ActorStatistics as OntologyActorStatistics};
 pub use task_orchestrator_actor::{TaskOrchestratorActor, CreateTask, GetTaskStatus, StopTask, ListActiveTasks, GetSystemStatus, SystemStatusInfo, TaskState};
-pub use graph_service_supervisor::{
-    GraphServiceSupervisor, GraphSupervisionStrategy, RestartPolicy, BackoffStrategy,
-    ActorHealth, ActorType, SupervisorStatus, SupervisorMessage, ActorHeartbeat,
-    GetSupervisorStatus, RestartActor, RestartAllActors
-};
 pub use messages::*;

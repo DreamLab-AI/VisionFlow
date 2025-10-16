@@ -201,7 +201,7 @@ impl SocketFlowServer {
         // Spawn async task to fetch and send state
         actix::spawn(async move {
             // Get graph state
-            if let Ok(Ok(graph_data)) = app_state.graph_service_addr.send(crate::actors::messages::GetGraphData).await {
+            if let Ok(Ok(graph_data)) = app_state.graph_state_addr.send(crate::actors::messages::GetGraphData).await {
                 // Get settings with version
                 if let Ok(Ok(settings)) = app_state.settings_addr.send(crate::actors::messages::GetSettings).await {
                     // Prepare state sync message
@@ -475,9 +475,9 @@ async fn fetch_nodes(
     app_state: Arc<AppState>,
     _settings_addr: actix::Addr<crate::actors::optimized_settings_actor::OptimizedSettingsActor>
 ) -> Option<(Vec<(u32, BinaryNodeData)>, bool)> {
-    // Fetch raw nodes asynchronously from GraphServiceActor
+    // Fetch raw nodes asynchronously from GraphStateActor
     use crate::actors::messages::GetGraphData;
-    let graph_data = match app_state.graph_service_addr.send(GetGraphData).await {
+    let graph_data = match app_state.graph_state_addr.send(GetGraphData).await {
         Ok(Ok(data)) => data,
         Ok(Err(e)) => {
             error!("[WebSocket] Failed to get graph data: {}", e);
@@ -576,7 +576,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                     .map_or(true, |arr| arr.iter().any(|v| v.as_str() == Some("agent")));
 
                                 // Request snapshot from graph actor
-                                let graph_addr = self.app_state.graph_service_addr.clone();
+                                let graph_addr = self.app_state.graph_state_addr.clone();
                                 let fut = async move {
                                     use crate::actors::messages::RequestPositionSnapshot;
                                     graph_addr.send(RequestPositionSnapshot {
@@ -651,7 +651,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                 info!("Client requested bots graph - returning optimized position data only");
 
                                 // Send position-only graph structure + REST API references
-                                let graph_addr = self.app_state.graph_service_addr.clone();
+                                let graph_addr = self.app_state.graph_state_addr.clone();
 
                                 ctx.spawn(actix::fut::wrap_future::<_, Self>(async move {
                                     // Get minimal graph data from GraphServiceActor
@@ -1084,9 +1084,9 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                     debug!("Updated position for node ID {} to [{:.3}, {:.3}, {:.3}]",
                                          node_id, node_data.x, node_data.y, node_data.z);
 
-                                    // Send update message to GraphServiceActor (now uses u32 directly)
+                                    // Send update message to GraphStateActor (now uses u32 directly)
                                     use crate::actors::messages::UpdateNodePosition;
-                                    if let Err(e) = app_state.graph_service_addr.send(UpdateNodePosition {
+                                    if let Err(e) = app_state.graph_state_addr.send(UpdateNodePosition {
                                         node_id: node_id,
                                         position: node_data.position().into(),
                                         velocity: node_data.velocity().into(),
@@ -1112,9 +1112,9 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                 if let Ok(Ok(_iterations_val)) = settings_addr.send(GetSettingByPath { path: "visualisation.graphs.logseq.physics.iterations".to_string() }).await {
                                     if let Ok(Ok(_spring_val)) = settings_addr.send(GetSettingByPath { path: "visualisation.graphs.logseq.physics.spring_k".to_string() }).await {
                                         if let Ok(Ok(_repulsion_val)) = settings_addr.send(GetSettingByPath { path: "visualisation.graphs.logseq.physics.repel_k".to_string() }).await {
-                                            // Send simulation step message to GraphServiceActor
+                                            // Send simulation step message to GraphStateActor
                                             use crate::actors::messages::SimulationStep;
-                                            if let Err(e) = app_state.graph_service_addr.send(SimulationStep).await {
+                                            if let Err(e) = app_state.graph_state_addr.send(SimulationStep).await {
                                                 error!("Failed to trigger simulation step: {}", e);
                                             } else {
                                                 info!("Successfully triggered layout recalculation");

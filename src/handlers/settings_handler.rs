@@ -2932,11 +2932,11 @@ async fn propagate_physics_to_gpu(
     }
     
     // Send to graph service actor
-    info!("[PHYSICS UPDATE] Sending to GraphServiceActor...");
-    if let Err(e) = state.graph_service_addr.send(update_msg).await {
-        error!("[PHYSICS UPDATE] FAILED to update GraphServiceActor: {}", e);
+    info!("[PHYSICS UPDATE] Sending to GraphStateActor...");
+    if let Err(e) = state.graph_state_addr.send(update_msg).await {
+        error!("[PHYSICS UPDATE] FAILED to update GraphStateActor: {}", e);
     } else {
-        info!("[PHYSICS UPDATE] GraphServiceActor updated successfully");
+        info!("[PHYSICS UPDATE] GraphStateActor updated successfully");
     }
 }
 
@@ -3321,7 +3321,7 @@ async fn get_cluster_analytics(
         use crate::actors::messages::{GetClusteringResults, GetGraphData};
 
         // First get graph data
-        let graph_data = match state.graph_service_addr.send(GetGraphData).await {
+        let graph_data = match state.graph_state_addr.send(GetGraphData).await {
             Ok(Ok(data)) => data,
             Ok(Err(e)) => {
                 error!("Failed to get graph data for clustering analytics: {}", e);
@@ -3343,7 +3343,7 @@ async fn get_cluster_analytics(
     } else {
         // Get graph data for CPU fallback
         use crate::actors::messages::GetGraphData;
-        match state.graph_service_addr.send(GetGraphData).await {
+        match state.graph_state_addr.send(GetGraphData).await {
             Ok(Ok(graph_data)) => get_cpu_fallback_analytics(&graph_data).await,
             Ok(Err(e)) => {
                 error!("Failed to get graph data: {}", e);

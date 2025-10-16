@@ -1,461 +1,154 @@
-//! Graph State Actor
+//! GraphStateActor - Pure state management for graph data
 //!
-//! This module implements a specialized actor focused exclusively on graph state management.
-//! It handles all graph data operations including node/edge CRUD operations, metadata-based
-//! updates, and path computation while maintaining separation of concerns from physics simulation.
-//!
-//! ## Core Responsibilities
-//!
-//! ### 1. Graph Data Management
-//! - **Primary Graph**: Maintains the main graph data structure with nodes and edges
-//! - **Node Map**: Provides efficient O(1) node lookup by ID
-//! - **Bots Graph**: Manages separate graph data for agent visualization
-//!
-//! ### 2. Node Operations
-//! - **AddNode**: Add new nodes to the graph with proper ID management
-//! - **RemoveNode**: Remove nodes and clean up associated edges
-//! - **UpdateNodeFromMetadata**: Update existing nodes based on metadata changes
-//!
-//! ### 3. Edge Operations
-//! - **AddEdge**: Create connections between nodes
-//! - **RemoveEdge**: Remove specific edges by ID
-//! - **Edge consistency**: Maintain edge integrity during node operations
-//!
-//! ### 4. Metadata Integration
-//! - **BuildGraphFromMetadata**: Rebuild entire graph from metadata store
-//! - **AddNodesFromMetadata**: Add multiple nodes from metadata
-//! - **RemoveNodeByMetadata**: Remove nodes by metadata ID
-//!
-//! ### 5. Path Computation
-//! - **ComputeShortestPaths**: Calculate shortest paths from source nodes
-//! - **Graph traversal**: Provide efficient path finding algorithms
-//!
-//! ## Usage Pattern
-//!
-//! The GraphStateActor serves as the authoritative source for all graph state:
-//!
-//! ```rust
-//! // Get current graph data
-//! let graph_data = graph_state_actor.send(GetGraphData).await?;
-//!
-//! // Add a new node
-//! graph_state_actor.send(AddNode { node }).await?;
-//!
-//! // Update from metadata
-//! graph_state_actor.send(BuildGraphFromMetadata { metadata }).await?;
-//! ```
+//! This actor manages the canonical graph state with thread-safe access
+//! and change tracking. It provides no physics computation or external
+//! actor dependencies - only pure state operations.
 
 use actix::prelude::*;
-use std::collections::HashMap;
-use std::sync::Arc;
-use log::{debug, info, warn, error, trace};
-
-use crate::actors::messages::*;
-use crate::errors::VisionFlowError;
+use std::collections::{HashMap, HashSet};
+use std::sync::{Arc, RwLock};
+use crate::models::graph::GraphData;
 use crate::models::node::Node;
 use crate::models::edge::Edge;
-use crate::models::metadata::{MetadataStore, FileMetadata};
-use crate::models::graph::GraphData;
-use crate::utils::socket_flow_messages::{BinaryNodeData, BinaryNodeDataClient, glam_to_vec3data};
+use crate::utils::socket_flow_messages::BinaryNodeData;
+use crate::models::metadata::MetadataStore;
 
-/// Graph State Actor - Manages all graph state operations
+// Import legacy messages for compatibility
+use crate::actors::messages::{
+    GetGraphData as LegacyGetGraphData,
+    AddNode,
+    AddNodesFromMetadata,
+    BuildGraphFromMetadata,
+    UpdateGraphData,
+    InitializeGPUConnection,
+    GetNodeMap,
+    GetPhysicsState,
+    GetAutoBalanceNotifications,
+    UpdateBotsGraph,
+    GetBotsGraphData,
+    UpdateSimulationParams,
+    ComputeShortestPaths,
+    AddEdge as LegacyAddEdge,
+    RemoveNode,
+    UpdateNodePositions as LegacyUpdateNodePositions,
+    RequestPositionSnapshot,
+    PositionSnapshot,
+    SimulationStep,
+};
+use crate::actors::graph_actor::{PhysicsState, AutoBalanceNotification};
+use crate::models::simulation_params::SimulationParams;
+
+// ============================================================================
+// Message Definitions
+// ============================================================================
+
+#[derive(Message)]
+#[rtype(result = "Result<Arc<GraphData>, String>")]
+pub struct GetGraphData;
+
+#[derive(Message)]
+#[rtype(result = "Result<Vec<u32>, String>")]
+pub struct AddNodes {
+    pub nodes: Vec<Node>,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<Vec<String>, String>")]
+pub struct AddEdges {
+    pub edges: Vec<Edge>,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct UpdateNodePositions {
+    pub updates: Vec<(u32, BinaryNodeData)>,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<HashSet<u32>, String>")]
+pub struct GetDirtyNodes;
+
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct ClearDirtyNodes;
+
+#[derive(Message)]
+#[rtype(result = "u64")]
+pub struct GetVersion;
+
+#[derive(Message)]
+#[rtype(result = "Result<Vec<Node>, String>")]
+pub struct GetNodes {
+    pub node_ids: Vec<u32>,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct RemoveNodes {
+    pub node_ids: Vec<u32>,
+}
+
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct Clear;
+
+// ============================================================================
+// Actor Definition
+// ============================================================================
+
 pub struct GraphStateActor {
-    /// Primary graph data containing nodes and edges
-    graph_data: Arc<GraphData>,
-    /// Efficient node lookup map by ID
-    node_map: Arc<HashMap<u32, Node>>,
-    /// Separate graph data for bot/agent visualization
-    bots_graph_data: Arc<GraphData>,
-    /// Next available node ID for auto-assignment
-    next_node_id: std::sync::atomic::AtomicU32,
+    /// Thread-safe graph data store
+    graph_data: Arc<RwLock<GraphData>>,
+
+    /// Fast node lookup by ID
+    node_index: HashMap<u32, usize>,
+
+    /// Tracks nodes with changes since last clear
+    dirty_nodes: HashSet<u32>,
+
+    /// Version counter for optimistic locking
+    version: u64,
 }
 
 impl GraphStateActor {
-    /// Create new GraphStateActor instance
     pub fn new() -> Self {
         Self {
-            graph_data: Arc::new(GraphData::new()),
-            node_map: Arc::new(HashMap::new()),
-            bots_graph_data: Arc::new(GraphData::new()),
-            next_node_id: std::sync::atomic::AtomicU32::new(1),
+            graph_data: Arc::new(RwLock::new(GraphData::new())),
+            node_index: HashMap::new(),
+            dirty_nodes: HashSet::new(),
+            version: 0,
         }
     }
 
-    /// Get reference to graph data
-    pub fn get_graph_data(&self) -> &GraphData {
-        &self.graph_data
+    /// Increment version and return new value
+    fn bump_version(&mut self) -> u64 {
+        self.version = self.version.wrapping_add(1);
+        self.version
     }
 
-    /// Get reference to node map
-    pub fn get_node_map(&self) -> &HashMap<u32, Node> {
-        &self.node_map
+    /// Mark node as dirty
+    fn mark_dirty(&mut self, node_id: u32) {
+        self.dirty_nodes.insert(node_id);
     }
 
-    /// Add a single node to the graph
-    fn add_node(&mut self, node: Node) {
-        let node_id = node.id;
+    /// Rebuild node index from current graph data
+    fn rebuild_index(&mut self) -> Result<(), String> {
+        self.node_index.clear();
 
-        // Add to node map
-        Arc::make_mut(&mut self.node_map).insert(node_id, node.clone());
+        let graph = self.graph_data.read()
+            .map_err(|e| format!("Failed to acquire read lock: {}", e))?;
 
-        // Add to graph data
-        Arc::make_mut(&mut self.graph_data).nodes.push(node);
-
-        info!("Added node {} to graph", node_id);
-    }
-
-    /// Remove a node and its associated edges
-    fn remove_node(&mut self, node_id: u32) {
-        // Remove from node map
-        if Arc::make_mut(&mut self.node_map).remove(&node_id).is_some() {
-            // Remove from graph data nodes
-            let graph_data_mut = Arc::make_mut(&mut self.graph_data);
-            graph_data_mut.nodes.retain(|n| n.id != node_id);
-
-            // Remove associated edges
-            graph_data_mut.edges.retain(|e| e.source != node_id && e.target != node_id);
-
-            info!("Removed node {} and its edges from graph", node_id);
-        } else {
-            warn!("Attempted to remove non-existent node {}", node_id);
+        for (idx, node) in graph.nodes.iter().enumerate() {
+            self.node_index.insert(node.id, idx);
         }
-    }
-
-    /// Add an edge to the graph
-    fn add_edge(&mut self, edge: Edge) {
-        // Verify source and target nodes exist
-        if !self.node_map.contains_key(&edge.source) {
-            warn!("Cannot add edge: source node {} does not exist", edge.source);
-            return;
-        }
-        if !self.node_map.contains_key(&edge.target) {
-            warn!("Cannot add edge: target node {} does not exist", edge.target);
-            return;
-        }
-
-        // Add to graph data
-        Arc::make_mut(&mut self.graph_data).edges.push(edge.clone());
-        info!("Added edge from {} to {} with weight {}", edge.source, edge.target, edge.weight);
-    }
-
-    /// Remove an edge by ID
-    fn remove_edge(&mut self, edge_id: &str) {
-        let graph_data_mut = Arc::make_mut(&mut self.graph_data);
-        let initial_count = graph_data_mut.edges.len();
-
-        graph_data_mut.edges.retain(|e| e.id != edge_id);
-
-        let removed_count = initial_count - graph_data_mut.edges.len();
-        if removed_count > 0 {
-            info!("Removed {} edge(s) with ID {}", removed_count, edge_id);
-        } else {
-            warn!("No edges found with ID {}", edge_id);
-        }
-    }
-
-    /// Build graph from metadata store
-    fn build_from_metadata(&mut self, metadata: MetadataStore) -> Result<(), String> {
-        let mut new_graph_data = GraphData::new();
-
-        // Save existing node positions to preserve layout
-        let mut existing_positions: HashMap<String, (crate::types::vec3::Vec3Data, crate::types::vec3::Vec3Data)> = HashMap::new();
-
-        for node in &self.graph_data.nodes {
-            existing_positions.insert(node.metadata_id.clone(), (node.data.position(), node.data.velocity()));
-        }
-
-        // Generate nodes from metadata
-        let mut new_node_map = HashMap::new();
-        let mut current_id = self.next_node_id.load(std::sync::atomic::Ordering::SeqCst);
-
-        for (metadata_id, file_metadata) in metadata.iter() {
-            let mut node = Node::new_with_id(metadata_id.clone(), Some(current_id));
-
-            // Restore position if it existed
-            if let Some((position, velocity)) = existing_positions.get(metadata_id) {
-                node.data.x = position.x;
-                node.data.y = position.y;
-                node.data.z = position.z;
-                node.data.vx = velocity.x;
-                node.data.vy = velocity.y;
-                node.data.vz = velocity.z;
-            } else {
-                // Generate random initial position
-                self.generate_random_position(&mut node);
-            }
-
-            // Set node properties from metadata
-            self.configure_node_from_metadata(&mut node, file_metadata);
-
-            new_node_map.insert(current_id, node.clone());
-            new_graph_data.nodes.push(node);
-            current_id += 1;
-        }
-
-        // Generate edges based on relationships in metadata
-        self.generate_edges_from_metadata(&mut new_graph_data, &metadata);
-
-        // Update actor state
-        self.graph_data = Arc::new(new_graph_data);
-        self.node_map = Arc::new(new_node_map);
-        self.next_node_id.store(current_id, std::sync::atomic::Ordering::SeqCst);
-
-        info!("Built graph from metadata: {} nodes, {} edges",
-              self.graph_data.nodes.len(), self.graph_data.edges.len());
 
         Ok(())
     }
+}
 
-    /// Generate random initial position for a node
-    fn generate_random_position(&self, node: &mut Node) {
-        use rand::{Rng, SeedableRng};
-        use rand::rngs::{StdRng, OsRng};
-
-        let mut rng = StdRng::from_seed(OsRng.gen());
-        let radius = 50.0 + rng.gen::<f32>() * 100.0;
-        let theta = rng.gen::<f32>() * 2.0 * std::f32::consts::PI;
-        let phi = rng.gen::<f32>() * std::f32::consts::PI;
-
-        node.data.x = radius * phi.sin() * theta.cos();
-        node.data.y = radius * phi.sin() * theta.sin();
-        node.data.z = radius * phi.cos();
-
-        // Small random initial velocity
-        node.data.vx = rng.gen_range(-1.0..1.0);
-        node.data.vy = rng.gen_range(-1.0..1.0);
-        node.data.vz = rng.gen_range(-1.0..1.0);
-    }
-
-    /// Configure node properties based on metadata
-    fn configure_node_from_metadata(&self, node: &mut Node, metadata: &FileMetadata) {
-        // Set label from filename
-        if let Some(filename) = metadata.path.file_name() {
-            node.label = filename.to_string_lossy().to_string();
-        }
-
-        // Set color based on file extension
-        node.color = Some(self.get_color_for_extension(&metadata.path));
-
-        // Set size based on file size (if available)
-        if let Some(size) = metadata.size {
-            node.size = Some(10.0 + (size as f32 / 1000.0).min(50.0));
-        }
-
-        // Store metadata
-        node.metadata.insert("path".to_string(), metadata.path.to_string_lossy().to_string());
-        if let Some(size) = metadata.size {
-            node.metadata.insert("size".to_string(), size.to_string());
-        }
-        if let Some(modified) = metadata.modified {
-            node.metadata.insert("modified".to_string(), modified.to_string());
-        }
-    }
-
-    /// Get color for file extension
-    fn get_color_for_extension(&self, path: &std::path::Path) -> String {
-        match path.extension().and_then(|s| s.to_str()) {
-            Some("rs") => "#CE422B".to_string(), // Rust orange
-            Some("js") | Some("ts") => "#F7DF1E".to_string(), // JavaScript yellow
-            Some("py") => "#3776AB".to_string(), // Python blue
-            Some("html") => "#E34F26".to_string(), // HTML orange
-            Some("css") => "#1572B6".to_string(), // CSS blue
-            Some("json") => "#000000".to_string(), // JSON black
-            Some("md") => "#083FA1".to_string(), // Markdown blue
-            Some("txt") => "#808080".to_string(), // Text gray
-            _ => "#95A5A6".to_string(), // Default gray
-        }
-    }
-
-    /// Generate edges from metadata relationships
-    fn generate_edges_from_metadata(&self, graph_data: &mut GraphData, metadata: &MetadataStore) {
-        // Create edges based on directory structure
-        let mut path_to_node: HashMap<std::path::PathBuf, u32> = HashMap::new();
-
-        // Map paths to node IDs
-        for node in &graph_data.nodes {
-            if let Some(path_str) = node.metadata.get("path") {
-                let path = std::path::PathBuf::from(path_str);
-                path_to_node.insert(path, node.id);
-            }
-        }
-
-        // Create edges between files in same directory
-        let mut directory_nodes: HashMap<std::path::PathBuf, Vec<u32>> = HashMap::new();
-
-        for (path, node_id) in &path_to_node {
-            if let Some(parent) = path.parent() {
-                directory_nodes.entry(parent.to_path_buf())
-                    .or_insert_with(Vec::new)
-                    .push(*node_id);
-            }
-        }
-
-        // Create edges within directories
-        for (_, nodes) in directory_nodes {
-            if nodes.len() > 1 {
-                for i in 0..nodes.len() {
-                    for j in i+1..nodes.len() {
-                        let edge = Edge::new(nodes[i], nodes[j], 0.3); // Weak directory connection
-                        graph_data.edges.push(edge);
-                    }
-                }
-            }
-        }
-
-        info!("Generated {} edges from metadata relationships", graph_data.edges.len());
-    }
-
-    /// Add nodes from metadata store
-    fn add_nodes_from_metadata(&mut self, metadata: MetadataStore) -> Result<(), String> {
-        let mut added_count = 0;
-        let mut current_id = self.next_node_id.load(std::sync::atomic::Ordering::SeqCst);
-
-        for (metadata_id, file_metadata) in metadata.iter() {
-            // Skip if node already exists
-            if self.node_map.values().any(|n| n.metadata_id == *metadata_id) {
-                continue;
-            }
-
-            let mut node = Node::new_with_id(metadata_id.clone(), Some(current_id));
-            self.generate_random_position(&mut node);
-            self.configure_node_from_metadata(&mut node, file_metadata);
-
-            self.add_node(node);
-            current_id += 1;
-            added_count += 1;
-        }
-
-        self.next_node_id.store(current_id, std::sync::atomic::Ordering::SeqCst);
-        info!("Added {} new nodes from metadata", added_count);
-        Ok(())
-    }
-
-    /// Update existing node from metadata
-    fn update_node_from_metadata(&mut self, metadata_id: String, metadata: FileMetadata) -> Result<(), String> {
-        // Find node by metadata_id
-        let mut node_found = false;
-        let node_map_mut = Arc::make_mut(&mut self.node_map);
-
-        for (_, node) in node_map_mut.iter_mut() {
-            if node.metadata_id == metadata_id {
-                self.configure_node_from_metadata(node, &metadata);
-                node_found = true;
-                break;
-            }
-        }
-
-        // Update in graph_data as well
-        if node_found {
-            let graph_data_mut = Arc::make_mut(&mut self.graph_data);
-            for node in &mut graph_data_mut.nodes {
-                if node.metadata_id == metadata_id {
-                    self.configure_node_from_metadata(node, &metadata);
-                    break;
-                }
-            }
-            info!("Updated node with metadata_id: {}", metadata_id);
-            Ok(())
-        } else {
-            warn!("Node with metadata_id {} not found for update", metadata_id);
-            Err(format!("Node with metadata_id {} not found", metadata_id))
-        }
-    }
-
-    /// Remove node by metadata ID
-    fn remove_node_by_metadata(&mut self, metadata_id: String) -> Result<(), String> {
-        // Find node ID by metadata_id
-        let node_id = self.node_map.values()
-            .find(|n| n.metadata_id == metadata_id)
-            .map(|n| n.id);
-
-        if let Some(id) = node_id {
-            self.remove_node(id);
-            Ok(())
-        } else {
-            warn!("Node with metadata_id {} not found for removal", metadata_id);
-            Err(format!("Node with metadata_id {} not found", metadata_id))
-        }
-    }
-
-    /// Compute shortest paths from a source node using Dijkstra's algorithm
-    fn compute_shortest_paths(&self, source_node_id: u32) -> Result<HashMap<u32, (f32, Vec<u32>)>, String> {
-        if !self.node_map.contains_key(&source_node_id) {
-            return Err(format!("Source node {} not found", source_node_id));
-        }
-
-        let mut distances: HashMap<u32, f32> = HashMap::new();
-        let mut predecessors: HashMap<u32, u32> = HashMap::new();
-        let mut unvisited: std::collections::BTreeSet<(ordered_float::OrderedFloat<f32>, u32)> = std::collections::BTreeSet::new();
-
-        // Initialize distances
-        for &node_id in self.node_map.keys() {
-            let distance = if node_id == source_node_id { 0.0 } else { f32::INFINITY };
-            distances.insert(node_id, distance);
-            unvisited.insert((ordered_float::OrderedFloat(distance), node_id));
-        }
-
-        while let Some((current_distance, current_node)) = unvisited.pop_first() {
-            let current_distance = current_distance.into_inner();
-
-            if current_distance == f32::INFINITY {
-                break; // No more reachable nodes
-            }
-
-            // Check all edges from current node
-            for edge in &self.graph_data.edges {
-                let (neighbor, edge_weight) = if edge.source == current_node {
-                    (edge.target, edge.weight)
-                } else if edge.target == current_node {
-                    (edge.source, edge.weight)
-                } else {
-                    continue;
-                };
-
-                let new_distance = current_distance + edge_weight;
-                let old_distance = distances.get(&neighbor).copied().unwrap_or(f32::INFINITY);
-
-                if new_distance < old_distance {
-                    // Remove old entry from unvisited
-                    unvisited.remove(&(ordered_float::OrderedFloat(old_distance), neighbor));
-
-                    // Update distance and predecessor
-                    distances.insert(neighbor, new_distance);
-                    predecessors.insert(neighbor, current_node);
-
-                    // Add new entry to unvisited
-                    unvisited.insert((ordered_float::OrderedFloat(new_distance), neighbor));
-                }
-            }
-        }
-
-        // Reconstruct paths
-        let mut result: HashMap<u32, (f32, Vec<u32>)> = HashMap::new();
-
-        for (&target_node, &distance) in &distances {
-            if distance != f32::INFINITY {
-                let mut path = Vec::new();
-                let mut current = target_node;
-
-                // Reconstruct path backwards
-                while current != source_node_id {
-                    path.push(current);
-                    if let Some(&prev) = predecessors.get(&current) {
-                        current = prev;
-                    } else {
-                        break;
-                    }
-                }
-                path.push(source_node_id);
-                path.reverse();
-
-                result.insert(target_node, (distance, path));
-            }
-        }
-
-        info!("Computed shortest paths from node {} to {} reachable nodes",
-              source_node_id, result.len());
-
-        Ok(result)
+impl Default for GraphStateActor {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -463,129 +156,484 @@ impl Actor for GraphStateActor {
     type Context = Context<Self>;
 
     fn started(&mut self, _ctx: &mut Self::Context) {
-        info!("GraphStateActor started");
+        log::info!("GraphStateActor started");
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
-        info!("GraphStateActor stopped");
+        log::info!("GraphStateActor stopped");
     }
 }
 
-// Handler implementations
+// ============================================================================
+// Message Handlers
+// ============================================================================
 
 impl Handler<GetGraphData> for GraphStateActor {
     type Result = Result<Arc<GraphData>, String>;
 
-    fn handle(&mut self, _msg: GetGraphData, _ctx: &mut Self::Context) -> Self::Result {
-        debug!("GraphStateActor handling GetGraphData with Arc reference");
-        Ok(Arc::clone(&self.graph_data))
+    fn handle(&mut self, _msg: GetGraphData, _ctx: &mut Context<Self>) -> Self::Result {
+        Ok(Arc::new(self.graph_data.read()
+            .map_err(|e| format!("Failed to acquire read lock: {}", e))?
+            .clone()))
     }
 }
 
-impl Handler<AddNode> for GraphStateActor {
+impl Handler<AddNodes> for GraphStateActor {
+    type Result = Result<Vec<u32>, String>;
+
+    fn handle(&mut self, msg: AddNodes, _ctx: &mut Context<Self>) -> Self::Result {
+        let mut added_ids = Vec::with_capacity(msg.nodes.len());
+
+        {
+            let mut graph = self.graph_data.write()
+                .map_err(|e| format!("Failed to acquire write lock: {}", e))?;
+
+            for node in msg.nodes {
+                let node_id = node.id;
+
+                // Check if node already exists
+                if self.node_index.contains_key(&node_id) {
+                    return Err(format!("Node with ID {} already exists", node_id));
+                }
+
+                // Add to graph
+                let idx = graph.nodes.len();
+                graph.nodes.push(node);
+
+                // Update index
+                self.node_index.insert(node_id, idx);
+
+                added_ids.push(node_id);
+            }
+        } // Drop write lock
+
+        // Mark as dirty and bump version
+        for &node_id in &added_ids {
+            self.mark_dirty(node_id);
+        }
+        self.bump_version();
+
+        Ok(added_ids)
+    }
+}
+
+impl Handler<AddEdges> for GraphStateActor {
+    type Result = Result<Vec<String>, String>;
+
+    fn handle(&mut self, msg: AddEdges, _ctx: &mut Context<Self>) -> Self::Result {
+        let mut added_ids = Vec::with_capacity(msg.edges.len());
+
+        {
+            let mut graph = self.graph_data.write()
+                .map_err(|e| format!("Failed to acquire write lock: {}", e))?;
+
+            for edge in msg.edges {
+                // Validate source and target nodes exist
+                if !self.node_index.contains_key(&edge.source) {
+                    return Err(format!("Source node {} does not exist", edge.source));
+                }
+                if !self.node_index.contains_key(&edge.target) {
+                    return Err(format!("Target node {} does not exist", edge.target));
+                }
+
+                let edge_id = edge.id.clone();
+                graph.edges.push(edge);
+
+                added_ids.push(edge_id);
+            }
+        } // Drop write lock
+
+        self.bump_version();
+
+        Ok(added_ids)
+    }
+}
+
+impl Handler<UpdateNodePositions> for GraphStateActor {
     type Result = Result<(), String>;
 
-    fn handle(&mut self, msg: AddNode, _ctx: &mut Self::Context) -> Self::Result {
-        self.add_node(msg.node);
+    fn handle(&mut self, msg: UpdateNodePositions, _ctx: &mut Context<Self>) -> Self::Result {
+        let mut dirty_nodes = Vec::new();
+
+        {
+            let mut graph = self.graph_data.write()
+                .map_err(|e| format!("Failed to acquire write lock: {}", e))?;
+
+            for (node_id, binary_data) in msg.updates {
+                // Find node index
+                let idx = self.node_index.get(&node_id)
+                    .ok_or_else(|| format!("Node {} not found", node_id))?;
+
+                // Update node data
+                if let Some(node) = graph.nodes.get_mut(*idx) {
+                    node.data = binary_data;
+                    dirty_nodes.push(node_id);
+                } else {
+                    return Err(format!("Node index {} out of bounds", idx));
+                }
+            }
+        } // Drop write lock
+
+        // Mark as dirty and bump version
+        for node_id in dirty_nodes {
+            self.mark_dirty(node_id);
+        }
+        self.bump_version();
+
         Ok(())
     }
 }
 
-impl Handler<RemoveNode> for GraphStateActor {
+impl Handler<GetDirtyNodes> for GraphStateActor {
+    type Result = Result<HashSet<u32>, String>;
+
+    fn handle(&mut self, _msg: GetDirtyNodes, _ctx: &mut Context<Self>) -> Self::Result {
+        Ok(self.dirty_nodes.clone())
+    }
+}
+
+impl Handler<ClearDirtyNodes> for GraphStateActor {
     type Result = Result<(), String>;
 
-    fn handle(&mut self, msg: RemoveNode, _ctx: &mut Self::Context) -> Self::Result {
-        self.remove_node(msg.node_id);
+    fn handle(&mut self, _msg: ClearDirtyNodes, _ctx: &mut Context<Self>) -> Self::Result {
+        self.dirty_nodes.clear();
         Ok(())
     }
 }
 
-impl Handler<AddEdge> for GraphStateActor {
+impl Handler<GetVersion> for GraphStateActor {
+    type Result = u64;
+
+    fn handle(&mut self, _msg: GetVersion, _ctx: &mut Context<Self>) -> Self::Result {
+        self.version
+    }
+}
+
+impl Handler<GetNodes> for GraphStateActor {
+    type Result = Result<Vec<Node>, String>;
+
+    fn handle(&mut self, msg: GetNodes, _ctx: &mut Context<Self>) -> Self::Result {
+        let graph = self.graph_data.read()
+            .map_err(|e| format!("Failed to acquire read lock: {}", e))?;
+
+        let mut nodes = Vec::with_capacity(msg.node_ids.len());
+
+        for node_id in msg.node_ids {
+            let idx = self.node_index.get(&node_id)
+                .ok_or_else(|| format!("Node {} not found", node_id))?;
+
+            if let Some(node) = graph.nodes.get(*idx) {
+                nodes.push(node.clone());
+            } else {
+                return Err(format!("Node index {} out of bounds", idx));
+            }
+        }
+
+        Ok(nodes)
+    }
+}
+
+impl Handler<RemoveNodes> for GraphStateActor {
     type Result = Result<(), String>;
 
-    fn handle(&mut self, msg: AddEdge, _ctx: &mut Self::Context) -> Self::Result {
-        self.add_edge(msg.edge);
+    fn handle(&mut self, msg: RemoveNodes, _ctx: &mut Context<Self>) -> Self::Result {
+        let mut graph = self.graph_data.write()
+            .map_err(|e| format!("Failed to acquire write lock: {}", e))?;
+
+        // Collect indices to remove
+        let mut indices_to_remove: Vec<usize> = Vec::new();
+        for node_id in &msg.node_ids {
+            if let Some(&idx) = self.node_index.get(node_id) {
+                indices_to_remove.push(idx);
+            }
+        }
+
+        // Sort in reverse order to remove from end first
+        indices_to_remove.sort_unstable_by(|a, b| b.cmp(a));
+
+        // Remove nodes
+        for idx in indices_to_remove {
+            if idx < graph.nodes.len() {
+                graph.nodes.remove(idx);
+            }
+        }
+
+        // Remove associated edges
+        let node_ids_set: HashSet<u32> = msg.node_ids.iter().copied().collect();
+        graph.edges.retain(|edge| {
+            !node_ids_set.contains(&edge.source) && !node_ids_set.contains(&edge.target)
+        });
+
+        // Rebuild index after removal
+        drop(graph);
+        self.rebuild_index()?;
+
+        // Remove from dirty set
+        for node_id in &msg.node_ids {
+            self.dirty_nodes.remove(node_id);
+        }
+
+        self.bump_version();
+
         Ok(())
     }
 }
 
-impl Handler<RemoveEdge> for GraphStateActor {
+impl Handler<Clear> for GraphStateActor {
     type Result = Result<(), String>;
 
-    fn handle(&mut self, msg: RemoveEdge, _ctx: &mut Self::Context) -> Self::Result {
-        self.remove_edge(&msg.edge_id);
+    fn handle(&mut self, _msg: Clear, _ctx: &mut Context<Self>) -> Self::Result {
+        {
+            let mut graph = self.graph_data.write()
+                .map_err(|e| format!("Failed to acquire write lock: {}", e))?;
+
+            graph.nodes.clear();
+            graph.edges.clear();
+            graph.metadata.clear();
+            graph.id_to_metadata.clear();
+        } // Drop write lock
+
+        self.node_index.clear();
+        self.dirty_nodes.clear();
+        self.bump_version();
+
         Ok(())
     }
 }
 
-impl Handler<GetNodeMap> for GraphStateActor {
-    type Result = Result<Arc<HashMap<u32, Node>>, String>;
+// ============================================================================
+// Legacy Message Handlers for Backward Compatibility
+// ============================================================================
 
-    fn handle(&mut self, _msg: GetNodeMap, _ctx: &mut Self::Context) -> Self::Result {
-        debug!("GraphStateActor handling GetNodeMap with Arc reference");
-        Ok(Arc::clone(&self.node_map))
-    }
-}
+impl Handler<LegacyGetGraphData> for GraphStateActor {
+    type Result = Result<Arc<GraphData>, String>;
 
-impl Handler<BuildGraphFromMetadata> for GraphStateActor {
-    type Result = Result<(), String>;
-
-    fn handle(&mut self, msg: BuildGraphFromMetadata, _ctx: &mut Self::Context) -> Self::Result {
-        info!("BuildGraphFromMetadata handler called with {} metadata entries", msg.metadata.len());
-        self.build_from_metadata(msg.metadata)
+    fn handle(&mut self, _msg: LegacyGetGraphData, _ctx: &mut Context<Self>) -> Self::Result {
+        Ok(Arc::new(self.graph_data.read()
+            .map_err(|e| format!("Failed to acquire read lock: {}", e))?
+            .clone()))
     }
 }
 
 impl Handler<AddNodesFromMetadata> for GraphStateActor {
     type Result = Result<(), String>;
 
-    fn handle(&mut self, msg: AddNodesFromMetadata, _ctx: &mut Self::Context) -> Self::Result {
-        self.add_nodes_from_metadata(msg.metadata)
+    fn handle(&mut self, msg: AddNodesFromMetadata, _ctx: &mut Context<Self>) -> Self::Result {
+        let mut nodes = Vec::new();
+
+        // Convert metadata to nodes
+        // MetadataStore is HashMap<String, Metadata> where key is filename
+        for (filename, _metadata) in msg.metadata.iter() {
+            // Create node with filename as metadata_id
+            // Metadata can be added separately via key-value pairs if needed
+            let node = Node::new(filename.clone());
+            nodes.push(node);
+        }
+
+        // Add nodes via existing handler logic
+        if nodes.is_empty() {
+            return Ok(());
+        }
+
+        let mut added_ids = Vec::new();
+
+        {
+            let mut graph = self.graph_data.write()
+                .map_err(|e| format!("Failed to acquire write lock: {}", e))?;
+
+            for node in nodes {
+                let node_id = node.id;
+
+                // Skip if node already exists
+                if self.node_index.contains_key(&node_id) {
+                    continue;
+                }
+
+                let idx = graph.nodes.len();
+                graph.nodes.push(node);
+                self.node_index.insert(node_id, idx);
+                added_ids.push(node_id);
+            }
+        } // Drop write lock
+
+        // Mark as dirty and bump version
+        for node_id in added_ids {
+            self.mark_dirty(node_id);
+        }
+        self.bump_version();
+
+        Ok(())
     }
 }
 
-impl Handler<UpdateNodeFromMetadata> for GraphStateActor {
+impl Handler<BuildGraphFromMetadata> for GraphStateActor {
     type Result = Result<(), String>;
 
-    fn handle(&mut self, msg: UpdateNodeFromMetadata, _ctx: &mut Self::Context) -> Self::Result {
-        self.update_node_from_metadata(msg.metadata_id, msg.metadata)
-    }
-}
+    fn handle(&mut self, msg: BuildGraphFromMetadata, _ctx: &mut Context<Self>) -> Self::Result {
+        // BuildGraphFromMetadata clears existing graph and builds from metadata
+        // This is different from AddNodesFromMetadata which adds to existing graph
 
-impl Handler<RemoveNodeByMetadata> for GraphStateActor {
-    type Result = Result<(), String>;
+        // Clear existing graph first
+        {
+            let mut graph = self.graph_data.write()
+                .map_err(|e| format!("Failed to acquire write lock: {}", e))?;
 
-    fn handle(&mut self, msg: RemoveNodeByMetadata, _ctx: &mut Self::Context) -> Self::Result {
-        self.remove_node_by_metadata(msg.metadata_id)
+            graph.nodes.clear();
+            graph.edges.clear();
+            graph.metadata.clear();
+            graph.id_to_metadata.clear();
+        } // Drop write lock
+
+        self.node_index.clear();
+        self.dirty_nodes.clear();
+
+        // Now add nodes from metadata (reuse AddNodesFromMetadata logic)
+        let mut nodes = Vec::new();
+
+        for (filename, _metadata) in msg.metadata.iter() {
+            let node = Node::new(filename.clone());
+            nodes.push(node);
+        }
+
+        if nodes.is_empty() {
+            return Ok(());
+        }
+
+        let mut added_ids = Vec::new();
+
+        {
+            let mut graph = self.graph_data.write()
+                .map_err(|e| format!("Failed to acquire write lock: {}", e))?;
+
+            for node in nodes {
+                let node_id = node.id;
+                let idx = graph.nodes.len();
+                graph.nodes.push(node);
+                self.node_index.insert(node_id, idx);
+                added_ids.push(node_id);
+            }
+        } // Drop write lock
+
+        // Mark as dirty and bump version
+        for node_id in added_ids {
+            self.mark_dirty(node_id);
+        }
+        self.bump_version();
+
+        Ok(())
     }
 }
 
 impl Handler<UpdateGraphData> for GraphStateActor {
     type Result = Result<(), String>;
 
-    fn handle(&mut self, msg: UpdateGraphData, _ctx: &mut Self::Context) -> Self::Result {
-        info!("Updating graph data with {} nodes, {} edges",
-              msg.graph_data.nodes.len(), msg.graph_data.edges.len());
+    fn handle(&mut self, msg: UpdateGraphData, _ctx: &mut Context<Self>) -> Self::Result {
+        // Replace entire graph with new data
+        {
+            let mut graph = self.graph_data.write()
+                .map_err(|e| format!("Failed to acquire write lock: {}", e))?;
 
-        // Update graph data with the provided Arc
-        self.graph_data = msg.graph_data;
+            // Extract data from Arc
+            let new_graph_data = (*msg.graph_data).clone();
 
-        // Rebuild node map
-        Arc::make_mut(&mut self.node_map).clear();
-        for node in &self.graph_data.nodes {
-            Arc::make_mut(&mut self.node_map).insert(node.id, node.clone());
+            // Replace all graph data
+            *graph = new_graph_data;
+        } // Drop write lock
+
+        // Rebuild index from new graph
+        self.rebuild_index()?;
+
+        // Mark all nodes as dirty
+        {
+            let graph_read = self.graph_data.read()
+                .map_err(|e| format!("Failed to acquire read lock: {}", e))?;
+
+            for node in &graph_read.nodes {
+                self.dirty_nodes.insert(node.id);
+            }
         }
 
-        info!("Graph data updated successfully");
+        self.bump_version();
+
         Ok(())
     }
 }
 
-impl Handler<GetBotsGraphData> for GraphStateActor {
-    type Result = Result<Arc<GraphData>, String>;
+impl Handler<InitializeGPUConnection> for GraphStateActor {
+    type Result = ();
 
-    fn handle(&mut self, _msg: GetBotsGraphData, _ctx: &mut Context<Self>) -> Self::Result {
-        Ok(Arc::clone(&self.bots_graph_data))
+    fn handle(&mut self, _msg: InitializeGPUConnection, _ctx: &mut Context<Self>) -> Self::Result {
+        // GraphStateActor doesn't manage GPU connections
+        // This is a no-op for pure state management
+        log::debug!("GraphStateActor: GPU connection message received (no-op for pure state)");
+    }
+}
+
+impl Handler<GetNodeMap> for GraphStateActor {
+    type Result = Result<Arc<HashMap<u32, Node>>, String>;
+
+    fn handle(&mut self, _msg: GetNodeMap, _ctx: &mut Context<Self>) -> Self::Result {
+        let graph = self.graph_data.read()
+            .map_err(|e| format!("Failed to acquire read lock: {}", e))?;
+
+        let mut node_map = HashMap::new();
+        for node in &graph.nodes {
+            node_map.insert(node.id, node.clone());
+        }
+
+        Ok(Arc::new(node_map))
+    }
+}
+
+impl Handler<GetPhysicsState> for GraphStateActor {
+    type Result = Result<PhysicsState, String>;
+
+    fn handle(&mut self, _msg: GetPhysicsState, _ctx: &mut Context<Self>) -> Self::Result {
+        // GraphStateActor doesn't manage physics state
+        // Return default state (consult PhysicsOrchestratorActor for actual physics)
+        Ok(PhysicsState {
+            is_settled: false,
+            stable_frame_count: 0,
+            kinetic_energy: 0.0,
+            current_state: "Not managed by GraphStateActor".to_string(),
+        })
+    }
+}
+
+impl Handler<GetAutoBalanceNotifications> for GraphStateActor {
+    type Result = Result<Vec<AutoBalanceNotification>, String>;
+
+    fn handle(&mut self, _msg: GetAutoBalanceNotifications, _ctx: &mut Context<Self>) -> Self::Result {
+        // GraphStateActor doesn't manage auto-balance notifications
+        // Return empty list (consult PhysicsOrchestratorActor for actual notifications)
+        Ok(Vec::new())
+    }
+}
+
+impl Handler<AddNode> for GraphStateActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: AddNode, _ctx: &mut Context<Self>) -> Self::Result {
+        let node_id = msg.node.id;
+
+        // Check if node already exists
+        if self.node_index.contains_key(&node_id) {
+            return Err(format!("Node with ID {} already exists", node_id));
+        }
+
+        {
+            let mut graph = self.graph_data.write()
+                .map_err(|e| format!("Failed to acquire write lock: {}", e))?;
+
+            let idx = graph.nodes.len();
+            graph.nodes.push(msg.node);
+            self.node_index.insert(node_id, idx);
+        } // Drop write lock
+
+        self.mark_dirty(node_id);
+        self.bump_version();
+
+        Ok(())
     }
 }
 
@@ -593,110 +641,437 @@ impl Handler<UpdateBotsGraph> for GraphStateActor {
     type Result = ();
 
     fn handle(&mut self, msg: UpdateBotsGraph, _ctx: &mut Context<Self>) -> Self::Result {
-        // Convert agents to graph structure
-        let mut nodes = vec![];
-        let mut edges = vec![];
+        let mut added_ids = Vec::new();
 
-        let bot_id_offset = 10000;
+        // Add nodes (ignore errors for backward compatibility)
+        if let Ok(mut graph) = self.graph_data.write() {
+            for agent in &msg.agents {
+                // Create node from agent data
+                let mut node = Node::new(agent.id.clone());
+                node.label = agent.name.clone();
+                node.node_type = Some(agent.agent_type.clone());
+                node.data.x = agent.x;
+                node.data.y = agent.y;
+                node.data.z = agent.z;
 
-        // Preserve existing agent positions
-        let mut existing_positions: HashMap<String, (crate::types::vec3::Vec3Data, crate::types::vec3::Vec3Data)> = HashMap::new();
-        for node in &self.bots_graph_data.nodes {
-            existing_positions.insert(node.metadata_id.clone(), (node.data.position(), node.data.velocity()));
-        }
+                let node_id = node.id;
 
-        // Create nodes for each agent
-        for (i, agent) in msg.agents.iter().enumerate() {
-            let node_id = bot_id_offset + i as u32;
-            let mut node = Node::new_with_id(agent.id.clone(), Some(node_id));
+                // Skip if already exists
+                if self.node_index.contains_key(&node_id) {
+                    continue;
+                }
 
-            if let Some((saved_position, saved_velocity)) = existing_positions.get(&agent.id) {
-                // Restore existing position
-                node.data.x = saved_position.x;
-                node.data.y = saved_position.y;
-                node.data.z = saved_position.z;
-                node.data.vx = saved_velocity.x;
-                node.data.vy = saved_velocity.y;
-                node.data.vz = saved_velocity.z;
-            } else {
-                self.generate_random_position(&mut node);
+                let idx = graph.nodes.len();
+                graph.nodes.push(node);
+                self.node_index.insert(node_id, idx);
+                added_ids.push(node_id);
             }
+        } // Drop write lock
 
-            // Set node properties based on agent type
-            node.color = Some(match agent.agent_type.as_str() {
-                "coordinator" => "#FF6B6B".to_string(),
-                "researcher" => "#4ECDC4".to_string(),
-                "coder" => "#45B7D1".to_string(),
-                "analyst" => "#FFA07A".to_string(),
-                "architect" => "#98D8C8".to_string(),
-                "tester" => "#F7DC6F".to_string(),
-                _ => "#95A5A6".to_string(),
-            });
+        // Mark as dirty and bump version
+        for node_id in added_ids {
+            self.mark_dirty(node_id);
+        }
+        self.bump_version();
+    }
+}
 
-            node.label = agent.name.clone();
-            node.size = Some(20.0 + (agent.workload * 25.0));
+impl Handler<GetBotsGraphData> for GraphStateActor {
+    type Result = Result<Arc<GraphData>, String>;
 
-            // Add metadata
-            node.metadata.insert("agent_type".to_string(), agent.agent_type.clone());
-            node.metadata.insert("status".to_string(), agent.status.clone());
-            node.metadata.insert("cpu_usage".to_string(), agent.cpu_usage.to_string());
-            node.metadata.insert("memory_usage".to_string(), agent.memory_usage.to_string());
-            node.metadata.insert("health".to_string(), agent.health.to_string());
-            node.metadata.insert("is_agent".to_string(), "true".to_string());
+    fn handle(&mut self, _msg: GetBotsGraphData, _ctx: &mut Context<Self>) -> Self::Result {
+        // Same as GetGraphData
+        Ok(Arc::new(self.graph_data.read()
+            .map_err(|e| format!("Failed to acquire read lock: {}", e))?
+            .clone()))
+    }
+}
 
-            nodes.push(node);
+impl Handler<UpdateSimulationParams> for GraphStateActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, _msg: UpdateSimulationParams, _ctx: &mut Context<Self>) -> Self::Result {
+        // GraphStateActor doesn't manage simulation parameters
+        // This should be sent to PhysicsOrchestratorActor instead
+        log::debug!("GraphStateActor: Received UpdateSimulationParams (no-op, delegate to PhysicsOrchestratorActor)");
+        Ok(())
+    }
+}
+
+impl Handler<ComputeShortestPaths> for GraphStateActor {
+    type Result = Result<HashMap<u32, Option<f32>>, String>;
+
+    fn handle(&mut self, _msg: ComputeShortestPaths, _ctx: &mut Context<Self>) -> Self::Result {
+        // GraphStateActor doesn't compute shortest paths
+        // This should be sent to SemanticProcessorActor instead
+        Err("GraphStateActor doesn't compute paths. Use SemanticProcessorActor instead.".to_string())
+    }
+}
+
+impl Handler<LegacyAddEdge> for GraphStateActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: LegacyAddEdge, _ctx: &mut Context<Self>) -> Self::Result {
+        // Validate source and target nodes exist
+        if !self.node_index.contains_key(&msg.edge.source) {
+            return Err(format!("Source node {} does not exist", msg.edge.source));
+        }
+        if !self.node_index.contains_key(&msg.edge.target) {
+            return Err(format!("Target node {} does not exist", msg.edge.target));
         }
 
-        // Create edges based on agent interactions
-        for (i, source_agent) in msg.agents.iter().enumerate() {
-            for (j, target_agent) in msg.agents.iter().enumerate() {
-                if i != j {
-                    let source_node_id = bot_id_offset + i as u32;
-                    let target_node_id = bot_id_offset + j as u32;
+        {
+            let mut graph = self.graph_data.write()
+                .map_err(|e| format!("Failed to acquire write lock: {}", e))?;
 
-                    let communication_intensity = if source_agent.agent_type == "coordinator" || target_agent.agent_type == "coordinator" {
-                        0.8
-                    } else if source_agent.status == "active" && target_agent.status == "active" {
-                        0.5
-                    } else {
-                        0.2
-                    };
+            graph.edges.push(msg.edge);
+        } // Drop write lock
 
-                    if communication_intensity > 0.1 {
-                        let mut edge = Edge::new(source_node_id, target_node_id, communication_intensity);
-                        let metadata = edge.metadata.get_or_insert_with(HashMap::new);
-                        metadata.insert("communication_type".to_string(), "agent_collaboration".to_string());
-                        metadata.insert("intensity".to_string(), communication_intensity.to_string());
-                        edges.push(edge);
+        self.bump_version();
+
+        Ok(())
+    }
+}
+
+impl Handler<RemoveNode> for GraphStateActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: RemoveNode, _ctx: &mut Context<Self>) -> Self::Result {
+        // Find node index
+        let idx = self.node_index.get(&msg.node_id)
+            .ok_or_else(|| format!("Node {} not found", msg.node_id))?;
+
+        let mut graph = self.graph_data.write()
+            .map_err(|e| format!("Failed to acquire write lock: {}", e))?;
+
+        // Remove node
+        if *idx < graph.nodes.len() {
+            graph.nodes.remove(*idx);
+        }
+
+        // Remove associated edges
+        graph.edges.retain(|edge| {
+            edge.source != msg.node_id && edge.target != msg.node_id
+        });
+
+        // Drop lock before rebuild
+        drop(graph);
+
+        // Rebuild index
+        self.rebuild_index()?;
+
+        // Remove from dirty set
+        self.dirty_nodes.remove(&msg.node_id);
+        self.bump_version();
+
+        Ok(())
+    }
+}
+
+impl Handler<LegacyUpdateNodePositions> for GraphStateActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: LegacyUpdateNodePositions, _ctx: &mut Context<Self>) -> Self::Result {
+        let mut dirty_nodes = Vec::new();
+
+        {
+            let mut graph = self.graph_data.write()
+                .map_err(|e| format!("Failed to acquire write lock: {}", e))?;
+
+            for (node_id, binary_data) in msg.positions {
+                // Find node index
+                let idx = self.node_index.get(&node_id)
+                    .ok_or_else(|| format!("Node {} not found", node_id))?;
+
+                // Update node data
+                if let Some(node) = graph.nodes.get_mut(*idx) {
+                    node.data = binary_data;
+                    dirty_nodes.push(node_id);
+                } else {
+                    return Err(format!("Node index {} out of bounds", idx));
+                }
+            }
+        } // Drop write lock
+
+        // Mark as dirty and bump version
+        for node_id in dirty_nodes {
+            self.mark_dirty(node_id);
+        }
+        self.bump_version();
+
+        Ok(())
+    }
+}
+
+impl Handler<RequestPositionSnapshot> for GraphStateActor {
+    type Result = Result<PositionSnapshot, String>;
+
+    fn handle(&mut self, msg: RequestPositionSnapshot, _ctx: &mut Context<Self>) -> Self::Result {
+        let graph = self.graph_data.read()
+            .map_err(|e| format!("Failed to acquire read lock: {}", e))?;
+
+        let mut knowledge_nodes = Vec::new();
+        let mut agent_nodes = Vec::new();
+
+        if msg.include_knowledge_graph {
+            // Include all nodes as knowledge nodes
+            for node in &graph.nodes {
+                knowledge_nodes.push((node.id, node.data));
+            }
+        }
+
+        if msg.include_agent_graph {
+            // Filter for agent nodes (node_type contains "agent" or "bot")
+            for node in &graph.nodes {
+                if let Some(ref node_type) = node.node_type {
+                    if node_type.contains("agent") || node_type.contains("bot") {
+                        agent_nodes.push((node.id, node.data));
                     }
                 }
             }
         }
 
-        // Update the bots graph data
-        let bots_graph_data_mut = Arc::make_mut(&mut self.bots_graph_data);
-        bots_graph_data_mut.nodes = nodes;
-        bots_graph_data_mut.edges = edges;
-
-        info!("Updated bots graph with {} agents and {} edges",
-             msg.agents.len(), self.bots_graph_data.edges.len());
+        Ok(PositionSnapshot {
+            knowledge_nodes,
+            agent_nodes,
+            timestamp: std::time::Instant::now(),
+        })
     }
 }
 
-impl Handler<ComputeShortestPaths> for GraphStateActor {
-    type Result = Result<u32, String>;
+impl Handler<SimulationStep> for GraphStateActor {
+    type Result = Result<(), String>;
 
-    fn handle(&mut self, msg: ComputeShortestPaths, _ctx: &mut Self::Context) -> Self::Result {
-        match self.compute_shortest_paths(msg.source_node_id) {
-            Ok(paths) => {
-                info!("Computed shortest paths from node {}: {} reachable nodes",
-                      msg.source_node_id, paths.len());
-                Ok(paths.len() as u32)
-            }
-            Err(e) => {
-                error!("Failed to compute shortest paths: {}", e);
-                Err(e)
-            }
-        }
+    fn handle(&mut self, _msg: SimulationStep, _ctx: &mut Context<Self>) -> Self::Result {
+        // GraphStateActor doesn't run simulation steps
+        // This should be sent to PhysicsOrchestratorActor instead
+        log::debug!("GraphStateActor: Received SimulationStep (no-op, delegate to PhysicsOrchestratorActor)");
+        Ok(())
+    }
+}
+
+// ============================================================================
+// Tests
+// ============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[actix::test]
+    async fn test_add_and_get_nodes() {
+        let actor = GraphStateActor::new().start();
+
+        let node1 = Node::new("test1.md".to_string());
+        let node2 = Node::new("test2.md".to_string());
+        let node1_id = node1.id;
+        let node2_id = node2.id;
+
+        // Add nodes
+        let result = actor.send(AddNodes {
+            nodes: vec![node1, node2],
+        }).await;
+
+        assert!(result.is_ok());
+        let ids = result.unwrap();
+        assert!(ids.is_ok());
+        let added_ids = ids.unwrap();
+        assert_eq!(added_ids.len(), 2);
+
+        // Get nodes
+        let result = actor.send(GetNodes {
+            node_ids: vec![node1_id, node2_id],
+        }).await;
+
+        assert!(result.is_ok());
+        let nodes = result.unwrap();
+        assert!(nodes.is_ok());
+        let fetched_nodes = nodes.unwrap();
+        assert_eq!(fetched_nodes.len(), 2);
+    }
+
+    #[actix::test]
+    async fn test_update_positions() {
+        let actor = GraphStateActor::new().start();
+
+        let node = Node::new("test.md".to_string());
+        let node_id = node.id;
+
+        // Add node
+        let _ = actor.send(AddNodes {
+            nodes: vec![node],
+        }).await;
+
+        // Update position
+        let new_data = BinaryNodeData {
+            node_id,
+            x: 10.0,
+            y: 20.0,
+            z: 30.0,
+            vx: 1.0,
+            vy: 2.0,
+            vz: 3.0,
+        };
+
+        let result = actor.send(UpdateNodePositions {
+            updates: vec![(node_id, new_data)],
+        }).await;
+
+        assert!(result.is_ok());
+        assert!(result.unwrap().is_ok());
+
+        // Verify position was updated
+        let nodes = actor.send(GetNodes {
+            node_ids: vec![node_id],
+        }).await.unwrap().unwrap();
+
+        assert_eq!(nodes[0].data.x, 10.0);
+        assert_eq!(nodes[0].data.y, 20.0);
+        assert_eq!(nodes[0].data.z, 30.0);
+    }
+
+    #[actix::test]
+    async fn test_dirty_tracking() {
+        let actor = GraphStateActor::new().start();
+
+        let node = Node::new("test.md".to_string());
+        let node_id = node.id;
+
+        // Add node
+        let _ = actor.send(AddNodes {
+            nodes: vec![node],
+        }).await;
+
+        // Check dirty nodes
+        let dirty = actor.send(GetDirtyNodes).await.unwrap().unwrap();
+        assert!(dirty.contains(&node_id));
+
+        // Clear dirty nodes
+        let _ = actor.send(ClearDirtyNodes).await;
+
+        // Verify cleared
+        let dirty = actor.send(GetDirtyNodes).await.unwrap().unwrap();
+        assert!(dirty.is_empty());
+    }
+
+    #[actix::test]
+    async fn test_version_tracking() {
+        let actor = GraphStateActor::new().start();
+
+        let v1 = actor.send(GetVersion).await.unwrap();
+        assert_eq!(v1, 0);
+
+        let node = Node::new("test.md".to_string());
+        let _ = actor.send(AddNodes {
+            nodes: vec![node],
+        }).await;
+
+        let v2 = actor.send(GetVersion).await.unwrap();
+        assert_eq!(v2, 1);
+    }
+
+    #[actix::test]
+    async fn test_remove_nodes() {
+        let actor = GraphStateActor::new().start();
+
+        let node = Node::new("test.md".to_string());
+        let node_id = node.id;
+
+        // Add node
+        let _ = actor.send(AddNodes {
+            nodes: vec![node],
+        }).await;
+
+        // Remove node
+        let result = actor.send(RemoveNodes {
+            node_ids: vec![node_id],
+        }).await;
+
+        assert!(result.is_ok());
+        assert!(result.unwrap().is_ok());
+
+        // Verify node was removed
+        let result = actor.send(GetNodes {
+            node_ids: vec![node_id],
+        }).await;
+
+        assert!(result.is_ok());
+        assert!(result.unwrap().is_err());
+    }
+
+    #[actix::test]
+    async fn test_clear() {
+        let actor = GraphStateActor::new().start();
+
+        let node1 = Node::new("test1.md".to_string());
+        let node2 = Node::new("test2.md".to_string());
+
+        // Add nodes
+        let _ = actor.send(AddNodes {
+            nodes: vec![node1, node2],
+        }).await;
+
+        // Clear
+        let result = actor.send(Clear).await;
+        assert!(result.is_ok());
+        assert!(result.unwrap().is_ok());
+
+        // Verify empty
+        let dirty = actor.send(GetDirtyNodes).await.unwrap().unwrap();
+        assert!(dirty.is_empty());
+
+        let graph = actor.send(GetGraphData).await.unwrap().unwrap();
+        let g = graph.read().unwrap();
+        assert_eq!(g.nodes.len(), 0);
+        assert_eq!(g.edges.len(), 0);
+    }
+
+    #[actix::test]
+    async fn test_add_edges() {
+        let actor = GraphStateActor::new().start();
+
+        let node1 = Node::new("test1.md".to_string());
+        let node2 = Node::new("test2.md".to_string());
+        let node1_id = node1.id;
+        let node2_id = node2.id;
+
+        // Add nodes
+        let _ = actor.send(AddNodes {
+            nodes: vec![node1, node2],
+        }).await;
+
+        // Add edge
+        let edge = Edge::new(node1_id, node2_id, 1.0);
+        let result = actor.send(AddEdges {
+            edges: vec![edge],
+        }).await;
+
+        assert!(result.is_ok());
+        let ids = result.unwrap();
+        assert!(ids.is_ok());
+        let added_ids = ids.unwrap();
+        assert_eq!(added_ids.len(), 1);
+
+        // Verify edge exists
+        let graph = actor.send(GetGraphData).await.unwrap().unwrap();
+        let g = graph.read().unwrap();
+        assert_eq!(g.edges.len(), 1);
+        assert_eq!(g.edges[0].source, node1_id);
+        assert_eq!(g.edges[0].target, node2_id);
+    }
+
+    #[actix::test]
+    async fn test_add_edge_invalid_nodes() {
+        let actor = GraphStateActor::new().start();
+
+        // Try to add edge with non-existent nodes
+        let edge = Edge::new(999, 1000, 1.0);
+        let result = actor.send(AddEdges {
+            edges: vec![edge],
+        }).await;
+
+        assert!(result.is_ok());
+        let ids = result.unwrap();
+        assert!(ids.is_err());
     }
 }

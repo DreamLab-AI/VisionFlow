@@ -1058,7 +1058,7 @@ async fn perform_clustering(
 
     // Get graph data for clustering
     let graph_data = {
-        match app_state.graph_service_addr.send(GetGraphData).await {
+        match app_state.graph_state_addr.send(GetGraphData).await {
             Ok(Ok(data)) => data,
             _ => return Err("Failed to get graph data".to_string()),
         }
@@ -1431,7 +1431,7 @@ pub async fn get_ai_insights(
     info!("Generating AI insights for graph analysis");
     
     // Get current graph data
-    let graph_data = match app_state.graph_service_addr.send(GetGraphData).await {
+    let graph_data = match app_state.graph_state_addr.send(GetGraphData).await {
         Ok(Ok(data)) => Some(data),
         _ => None,
     };
@@ -1933,7 +1933,7 @@ pub async fn get_realtime_insights(
     info!("Client requesting real-time AI insights");
     
     // Get current state for real-time analysis
-    let graph_data = app_state.graph_service_addr.send(GetGraphData).await
+    let graph_data = app_state.graph_state_addr.send(GetGraphData).await
         .map_err(|e| {
             error!("Failed to get graph data: {}", e);
             actix_web::error::ErrorInternalServerError("Failed to get graph data")
@@ -2094,14 +2094,14 @@ impl Default for FeatureFlags {
     fn default() -> Self {
         Self {
             gpu_clustering: true,
+            ontology_validation: false,
             gpu_anomaly_detection: true,
             real_time_insights: true,
             advanced_visualizations: true,
             performance_monitoring: true,
-            stress_majorization: false, // Disabled by default as per task.md
-            semantic_constraints: false, // Disabled by default
+            stress_majorization: false,
+            semantic_constraints: false,
             sssp_integration: true,
-            ontology_validation: false, // Disabled by default
         }
     }
 }
@@ -2448,7 +2448,7 @@ pub async fn compute_sssp(
 
     // Send SSSP computation request to graph service
     use crate::actors::messages::ComputeShortestPaths;
-    match app_state.graph_service_addr.send(ComputeShortestPaths {
+    match app_state.graph_state_addr.send(ComputeShortestPaths {
         source_node_id: source_node,
     }).await {
         Ok(Ok(_)) => {

@@ -3,7 +3,7 @@
 //! This actor focuses solely on:
 //! - Polling the Management API (port 9090) for active task statuses
 //! - Converting tasks to agent nodes
-//! - Forwarding updates to GraphServiceSupervisor
+//! - Forwarding updates to GraphStateActor
 //!
 //! All task management is handled by TaskOrchestratorActor.
 //! This actor only monitors and displays running agents.
@@ -17,11 +17,13 @@ use chrono::{Utc, DateTime};
 use crate::types::claude_flow::{ClaudeFlowClient, AgentStatus, AgentProfile, AgentType, PerformanceMetrics, TokenUsage};
 use crate::actors::messages::*;
 use crate::services::management_api_client::{ManagementApiClient, TaskInfo};
+use crate::actors::graph_state_actor::{GraphStateActor, AddNodes};
+use crate::models::node::Node;
+use crate::utils::socket_flow_messages::BinaryNodeData;
 
 /// Convert Management API TaskInfo to AgentStatus for graph visualization
 fn task_to_agent_status(task: TaskInfo) -> AgentStatus {
     use chrono::TimeZone;
-    use glam::Vec3;
 
     // Map agent type string to AgentType enum
     let agent_type_enum = match task.agent.as_str() {
@@ -89,10 +91,52 @@ fn task_to_agent_status(task: TaskInfo) -> AgentStatus {
         workload: Some(0.5),
     }
 }
+
+/// Convert AgentStatus to Node for GraphStateActor
+fn agent_status_to_node(status: &AgentStatus) -> Node {
+    // Use agent_id hash for consistent node ID
+    let node_id = {
+        use std::collections::hash_map::DefaultHasher;
+        use std::hash::{Hash, Hasher};
+        let mut hasher = DefaultHasher::new();
+        status.agent_id.hash(&mut hasher);
+        // Use high ID range (starting at 10000) to avoid conflicts with main graph
+        (hasher.finish() as u32 % 50000) + 10000
+    };
+
+    let mut node = Node::new(status.agent_id.clone());
+    node.id = node_id;
+
+    // Set position data
+    node.data = BinaryNodeData {
+        node_id,
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+        vx: 0.0,
+        vy: 0.0,
+        vz: 0.0,
+    };
+
+    // Add metadata
+    node.label = status.profile.name.clone();
+    node.size = Some(5.0);
+    node.color = Some(match status.profile.agent_type {
+        AgentType::Coder => "#00FF00",
+        AgentType::Coordinator => "#0000FF",
+        AgentType::Researcher => "#FFFF00",
+        AgentType::Analyst => "#FF00FF",
+        AgentType::Tester => "#00FFFF",
+        _ => "#FFFFFF",
+    }.to_string());
+
+    node
+}
+
 /// AgentMonitorActor - Monitoring via Management API
 pub struct AgentMonitorActor {
     _client: ClaudeFlowClient,
-    graph_service_addr: Addr<crate::actors::graph_service_supervisor::TransitionalGraphSupervisor>,
+    graph_state_addr: Addr<GraphStateActor>,
     management_api_client: ManagementApiClient,
 
     /// Connection state
@@ -105,13 +149,16 @@ pub struct AgentMonitorActor {
     /// Agent cache (task_id -> AgentStatus)
     agent_cache: HashMap<String, AgentStatus>,
 
+    /// Node ID mapping (agent_id -> node_id)
+    node_id_map: HashMap<String, u32>,
+
     /// Error tracking
     consecutive_poll_failures: u32,
     last_successful_poll: Option<DateTime<Utc>>,
 }
 
 impl AgentMonitorActor {
-    pub fn new(client: ClaudeFlowClient, graph_service_addr: Addr<crate::actors::graph_service_supervisor::TransitionalGraphSupervisor>) -> Self {
+    pub fn new(client: ClaudeFlowClient, graph_state_addr: Addr<GraphStateActor>) -> Self {
         info!("[AgentMonitorActor] Initializing with Management API monitoring");
 
         // Create Management API client
@@ -128,47 +175,48 @@ impl AgentMonitorActor {
 
         Self {
             _client: client,
-            graph_service_addr,
+            graph_state_addr,
             management_api_client,
             is_connected: false,
             polling_interval: Duration::from_secs(3), // Poll every 3 seconds
             last_poll: Utc::now(),
             agent_cache: HashMap::new(),
+            node_id_map: HashMap::new(),
             consecutive_poll_failures: 0,
             last_successful_poll: None,
         }
     }
 
     /// Poll agent statuses from Management API
-fn poll_agent_statuses(&mut self, ctx: &mut Context<Self>) {
-    debug!("[AgentMonitorActor] Polling active tasks from Management API");
+    fn poll_agent_statuses(&mut self, ctx: &mut Context<Self>) {
+        debug!("[AgentMonitorActor] Polling active tasks from Management API");
 
-    let api_client = self.management_api_client.clone();
-    let ctx_addr = ctx.address();
+        let api_client = self.management_api_client.clone();
+        let ctx_addr = ctx.address();
 
-    tokio::spawn(async move {
-        match api_client.list_tasks().await {
-            Ok(task_list) => {
-                let active_count = task_list.active_tasks.len();
-                debug!("[AgentMonitorActor] Retrieved {} active tasks from Management API", active_count);
+        tokio::spawn(async move {
+            match api_client.list_tasks().await {
+                Ok(task_list) => {
+                    let active_count = task_list.active_tasks.len();
+                    debug!("[AgentMonitorActor] Retrieved {} active tasks from Management API", active_count);
 
-                // Convert tasks to agent statuses
-                let agents: Vec<AgentStatus> = task_list.active_tasks.into_iter().map(|task| {
-                    task_to_agent_status(task)
-                }).collect();
+                    // Convert tasks to agent statuses
+                    let agents: Vec<AgentStatus> = task_list.active_tasks.into_iter().map(|task| {
+                        task_to_agent_status(task)
+                    }).collect();
 
-                ctx_addr.do_send(ProcessAgentStatuses { agents });
+                    ctx_addr.do_send(ProcessAgentStatuses { agents });
+                }
+                Err(e) => {
+                    error!("[AgentMonitorActor] Management API query failed: {}", e);
+                    ctx_addr.do_send(RecordPollFailure);
+                }
             }
-            Err(e) => {
-                error!("[AgentMonitorActor] Management API query failed: {}", e);
-                ctx_addr.do_send(RecordPollFailure);
-            }
-        }
-    });
-}
+        });
+    }
 }
 
-/// Message to process agent statuses from MCP
+/// Message to process agent statuses from Management API
 #[derive(Message)]
 #[rtype(result = "()")]
 struct ProcessAgentStatuses {
@@ -179,7 +227,7 @@ impl Actor for AgentMonitorActor {
     type Context = Context<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        info!("[AgentMonitorActor] Started - beginning MCP TCP polling");
+        info!("[AgentMonitorActor] Started - beginning Management API polling");
 
         self.is_connected = true;
 
@@ -200,31 +248,35 @@ impl Handler<ProcessAgentStatuses> for AgentMonitorActor {
     type Result = ();
 
     fn handle(&mut self, msg: ProcessAgentStatuses, _ctx: &mut Self::Context) {
-        info!("[AgentMonitorActor] Processing {} agent statuses from MCP", msg.agents.len());
+        info!("[AgentMonitorActor] Processing {} agent statuses", msg.agents.len());
 
-        // Convert AgentStatus to Agent for UpdateBotsGraph
-        let agents: Vec<crate::services::bots_client::Agent> = msg.agents.iter().map(|status| {
-            crate::services::bots_client::Agent {
-                id: status.agent_id.clone(),
-                name: status.profile.name.clone(),
-                agent_type: format!("{:?}", status.profile.agent_type).to_lowercase(),
-                status: status.status.clone(),
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-                cpu_usage: status.cpu_usage,
-                memory_usage: status.memory_usage,
-                health: status.health,
-                workload: status.activity,
-                created_at: Some(status.timestamp.to_rfc3339()),
-                age: Some((chrono::Utc::now().timestamp() - status.timestamp.timestamp()) as u64 * 1000),
-            }
+        // Convert AgentStatus to Node for GraphStateActor
+        let nodes: Vec<Node> = msg.agents.iter().map(|status| {
+            let node = agent_status_to_node(status);
+            // Store node ID mapping
+            self.node_id_map.insert(status.agent_id.clone(), node.id);
+            node
         }).collect();
 
-        // Send graph update
-        let message = UpdateBotsGraph { agents };
-        info!("[AgentMonitorActor] Sending graph update with {} agents", msg.agents.len());
-        self.graph_service_addr.do_send(message);
+        // Send to GraphStateActor
+        if !nodes.is_empty() {
+            info!("[AgentMonitorActor] Sending {} nodes to GraphStateActor", nodes.len());
+            let graph_state_addr = self.graph_state_addr.clone();
+
+            tokio::spawn(async move {
+                match graph_state_addr.send(AddNodes { nodes }).await {
+                    Ok(Ok(added_ids)) => {
+                        debug!("[AgentMonitorActor] Successfully added {} nodes to graph state", added_ids.len());
+                    }
+                    Ok(Err(e)) => {
+                        warn!("[AgentMonitorActor] Failed to add nodes: {}", e);
+                    }
+                    Err(e) => {
+                        error!("[AgentMonitorActor] Mailbox error sending to GraphStateActor: {}", e);
+                    }
+                }
+            });
+        }
 
         // Update cache
         if !msg.agents.is_empty() {

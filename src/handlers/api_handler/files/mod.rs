@@ -62,7 +62,7 @@ pub async fn fetch_and_process_files(state: web::Data<AppState>) -> HttpResponse
             }
 
             // Send AddNodesFromMetadata for incremental updates instead of full rebuild
-            match state.graph_service_addr.send(AddNodesFromMetadata { metadata: metadata_store.clone() }).await {
+            match state.graph_state_addr.send(AddNodesFromMetadata { metadata: metadata_store.clone() }).await {
                 Ok(Ok(())) => {
                     info!("Graph data structure updated successfully via GraphServiceActor");
 
@@ -134,7 +134,7 @@ pub async fn refresh_graph(state: web::Data<AppState>) -> HttpResponse {
     info!("Manually triggering graph refresh - returning current state");
 
     // Instead of rebuilding, just return the current graph data
-    match state.graph_service_addr.send(crate::actors::messages::GetGraphData).await {
+    match state.graph_state_addr.send(crate::actors::messages::GetGraphData).await {
         Ok(Ok(graph_data)) => {
             debug!("Retrieved current graph state with {} nodes and {} edges",
                 graph_data.nodes.len(),
@@ -177,7 +177,7 @@ pub async fn update_graph(state: web::Data<AppState>) -> Result<HttpResponse, Ac
         }
     };
 
-    match state.graph_service_addr.send(AddNodesFromMetadata { metadata: metadata_store.clone() }).await {
+    match state.graph_state_addr.send(AddNodesFromMetadata { metadata: metadata_store.clone() }).await {
         Ok(Ok(())) => {
             info!("Graph data structure updated successfully via GraphServiceActor in update_graph");
 

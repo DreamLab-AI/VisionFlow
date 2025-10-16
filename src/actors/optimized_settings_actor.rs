@@ -35,7 +35,7 @@ pub struct OptimizedSettingsActor {
     metrics: Arc<RwLock<PerformanceMetrics>>,
     compressor: Arc<RwLock<Compress>>,
     decompressor: Arc<RwLock<Decompress>>,
-    graph_service_addr: Option<Addr<crate::actors::graph_service_supervisor::TransitionalGraphSupervisor>>,
+    graph_service_addr: Option<Addr<GraphServiceActor>>,
     gpu_compute_addr: Option<Addr<ForceComputeActor>>,
 }
 
@@ -186,7 +186,7 @@ impl OptimizedSettingsActor {
     }
 
     pub fn with_actors(
-        graph_service_addr: Option<Addr<crate::actors::graph_service_supervisor::TransitionalGraphSupervisor>>,
+        graph_service_addr: Option<Addr<GraphServiceActor>>,
         gpu_compute_addr: Option<Addr<ForceComputeActor>>,
     ) -> VisionFlowResult<Self> {
         let mut actor = Self::new()?;

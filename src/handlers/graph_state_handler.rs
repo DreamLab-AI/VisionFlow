@@ -28,8 +28,8 @@ pub struct NodePosition {
 pub async fn get_graph_state(state: web::Data<AppState>) -> impl Responder {
     info!("Received request for complete graph state");
     
-    // Get graph data from GraphServiceActor
-    let graph_data_result = state.graph_service_addr.send(GetGraphData).await;
+    // Get graph data from GraphStateActor
+    let graph_data_result = state.graph_state_addr.send(GetGraphData).await;
     
     match graph_data_result {
         Ok(Ok(graph_data)) => {
