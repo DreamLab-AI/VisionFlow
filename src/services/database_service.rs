@@ -202,6 +202,55 @@ impl DatabaseService {
 
         Ok(())
     }
+
+    /// Save complete settings to database as JSON
+    /// Stores all settings categories (rendering, XR, system, auth, etc.)
+    pub fn save_all_settings(&self, settings: &crate::config::AppFullSettings) -> SqliteResult<()> {
+        let conn = self.conn.lock().unwrap();
+
+        // Serialize all settings as JSON
+        let settings_json = serde_json::to_string(settings)
+            .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
+
+        // Save as a single JSON blob for simplicity and atomicity
+        conn.execute(
+            "INSERT INTO settings (key, value_type, value_json, description)
+             VALUES ('app_full_settings', 'json', ?1, 'Complete application settings')
+             ON CONFLICT(key) DO UPDATE SET
+                value_json = excluded.value_json,
+                updated_at = CURRENT_TIMESTAMP",
+            params![settings_json]
+        )?;
+
+        // Also save physics settings to dedicated table for fast access
+        self.save_physics_settings("default", &settings.visualisation.graphs.logseq.physics)?;
+
+        Ok(())
+    }
+
+    /// Load complete settings from database
+    /// Returns None if settings not found in database
+    pub fn load_all_settings(&self) -> SqliteResult<Option<crate::config::AppFullSettings>> {
+        let conn = self.conn.lock().unwrap();
+
+        let settings_json: Option<String> = conn.query_row(
+            "SELECT value_json FROM settings WHERE key = 'app_full_settings'",
+            [],
+            |row| row.get(0)
+        ).optional()?;
+
+        if let Some(json_str) = settings_json {
+            let settings: crate::config::AppFullSettings = serde_json::from_str(&json_str)
+                .map_err(|e| rusqlite::Error::FromSqlConversionFailure(
+                    0,
+                    rusqlite::types::Type::Text,
+                    Box::new(e)
+                ))?;
+            Ok(Some(settings))
+        } else {
+            Ok(None)
+        }
+    }
 }
 
 // ================================================================

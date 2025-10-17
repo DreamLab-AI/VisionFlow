@@ -2371,7 +2371,7 @@ async fn reset_settings(
     }
 }
 
-/// Explicitly save current settings to file
+/// Explicitly save current settings to database
 async fn save_settings(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -2415,47 +2415,27 @@ async fn save_settings(
         }
     }
 
-    // Check if persist_settings is enabled
-    if !app_settings.system.persist_settings {
-        return Ok(HttpResponse::BadRequest().json(json!({
-            "error": "Settings persistence is disabled. Enable 'system.persist_settings' to save settings."
-        })));
-    }
-
-    // Save the settings to file
-    match app_settings.save() {
-        Ok(()) => {
-            info!("Settings successfully saved to file");
-            
-            // Update the settings in the actor to ensure consistency
-            match state.settings_addr.send(UpdateSettings { settings: app_settings.clone() }).await {
-                Ok(Ok(())) => {
-                    let response_dto: SettingsResponseDTO = (&app_settings).into();
-                    Ok(HttpResponse::Ok().json(json!({
-                        "message": "Settings saved successfully",
-                        "settings": response_dto
-                    })))
-                }
-                Ok(Err(e)) => {
-                    error!("Failed to update settings in actor after save: {}", e);
-                    Ok(HttpResponse::InternalServerError().json(json!({
-                        "error": "Settings saved to file but failed to update in memory",
-                        "details": e.to_string()
-                    })))
-                }
-                Err(e) => {
-                    error!("Settings actor communication error: {}", e);
-                    Ok(HttpResponse::ServiceUnavailable().json(json!({
-                        "error": "Settings saved to file but service is unavailable"
-                    })))
-                }
-            }
+    // Update the settings in the actor (which automatically saves to database)
+    match state.settings_addr.send(UpdateSettings { settings: app_settings.clone() }).await {
+        Ok(Ok(())) => {
+            info!("Settings successfully saved to database");
+            let response_dto: SettingsResponseDTO = (&app_settings).into();
+            Ok(HttpResponse::Ok().json(json!({
+                "message": "Settings saved successfully to database",
+                "settings": response_dto
+            })))
+        }
+        Ok(Err(e)) => {
+            error!("Failed to save settings to database: {}", e);
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Failed to save settings to database",
+                "details": e.to_string()
+            })))
         }
         Err(e) => {
-            error!("Failed to save settings to file: {}", e);
-            Ok(HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to save settings to file",
-                "details": e
+            error!("Settings actor communication error: {}", e);
+            Ok(HttpResponse::ServiceUnavailable().json(json!({
+                "error": "Settings service unavailable"
             })))
         }
     }

@@ -1733,10 +1733,7 @@ impl AppFullSettings {
     /// made through the SettingsService API which persists to SQLite automatically.
     #[deprecated(note = "Use SettingsService to persist settings to SQLite database")]
     pub fn save(&self) -> Result<(), String> {
-        log::warn!("AppFullSettings::save() is deprecated - settings now persisted to SQLite");
-        log::warn!("Use SettingsService API for settings persistence");
-        log::info!("Settings persistence is automatic via SQLite - no action needed");
-        Ok(())
+        Err("Settings persistence has been moved to SQLite database. Use SettingsService API instead.".to_string())
     }
     
     /// Get physics settings for a specific graph

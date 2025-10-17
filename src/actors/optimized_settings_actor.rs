@@ -205,23 +205,21 @@ impl OptimizedSettingsActor {
     }
 
     fn load_settings_from_database(db: &DatabaseService) -> VisionFlowResult<AppFullSettings> {
-        // Try to load physics settings from database
-        let mut settings = AppFullSettings::default();
-
-        match db.get_physics_settings("default") {
-            Ok(physics) => {
-                info!("Loaded physics settings from database");
-                settings.visualisation.graphs.logseq.physics = physics;
+        // Try to load complete settings from database
+        match db.load_all_settings() {
+            Ok(Some(settings)) => {
+                info!("Loaded complete settings from database");
+                Ok(settings)
+            }
+            Ok(None) => {
+                info!("No settings found in database, using defaults");
+                Ok(AppFullSettings::default())
             }
             Err(e) => {
-                warn!("Failed to load physics settings from database: {}", e);
+                warn!("Failed to load settings from database: {}, using defaults", e);
+                Ok(AppFullSettings::default())
             }
         }
-
-        // TODO: Load other settings from database
-        // For now, we prioritize physics settings as they're most critical
-
-        Ok(settings)
     }
 
     pub fn with_actors(
@@ -552,16 +550,16 @@ impl OptimizedSettingsActor {
             cache.clear();
         }
 
-        // Persist to database if available
+        // Persist ALL settings to database if available
         if let Some(ref db) = self.db_service {
-            if let Err(e) = db.save_physics_settings("default", &settings.visualisation.graphs.logseq.physics) {
-                error!("Failed to save physics settings to database: {}", e);
+            if let Err(e) = db.save_all_settings(&settings) {
+                error!("Failed to save settings to database: {}", e);
                 return Err(VisionFlowError::Settings(SettingsError::SaveFailed {
                     file_path: "database".to_string(),
                     reason: format!("Database error: {}", e),
                 }));
             }
-            info!("Settings updated and saved to database successfully");
+            info!("All settings updated and saved to database successfully");
         } else {
             warn!("No database service available, settings not persisted");
         }
@@ -851,6 +849,7 @@ impl Handler<SetSettingsByPaths> for OptimizedSettingsActor {
     
     fn handle(&mut self, msg: SetSettingsByPaths, _ctx: &mut Self::Context) -> Self::Result {
         let settings = self.settings.clone();
+        let db_service = self.db_service.clone();
         let path_lookup = self.path_lookup.clone();
         let path_cache = self.path_cache.clone();
         let metrics = self.metrics.clone();
@@ -988,17 +987,27 @@ impl Handler<SetSettingsByPaths> for OptimizedSettingsActor {
                         reason: format!("Batch validation failed: {:?}", e),
                     })
                 })?;
-                
-                // Save to file if persistence is enabled
-                if current.system.persist_settings {
-                    current.save().map_err(|e| {
-                        error!("Failed to save settings after batch update: {}", e);
-                        VisionFlowError::Settings(SettingsError::SaveFailed {
-                            file_path: "batch_settings".to_string(),
-                            reason: e,
-                        })
-                    })?;
-                }
+            }
+
+            // Save all settings to database after batch update
+            drop(current); // Release write lock before async db call
+            let actor = OptimizedSettingsActor {
+                settings: settings.clone(),
+                db_service: db_service.clone(),
+                #[cfg(feature = "redis")]
+                redis_client: redis_client.clone(),
+                path_cache: path_cache.clone(),
+                path_lookup: path_lookup.clone(),
+                metrics: metrics.clone(),
+                compressor: Arc::new(RwLock::new(Compress::new(Compression::default(), false))),
+                decompressor: Arc::new(RwLock::new(Decompress::new(false))),
+                graph_service_addr: None,
+                #[cfg(feature = "gpu")]
+                gpu_compute_addr: None,
+            };
+
+            if let Err(e) = actor.update_settings(settings.read().await.clone()).await {
+                error!("Failed to persist batch settings update to database: {}", e);
             }
             
             // Update performance metrics
@@ -1043,15 +1052,15 @@ impl Handler<UpdatePhysicsFromAutoBalance> for OptimizedSettingsActor {
             }
             
             info!("[AUTO-BALANCE] Physics parameters updated in settings from auto-tuning");
-            
+
             // Log final tuned values
             if let Some(physics) = msg.physics_update.get("visualisation")
                 .and_then(|v| v.get("graphs"))
                 .and_then(|g| g.get("logseq"))
                 .and_then(|l| l.get("physics")) {
-                
+
                 info!("[AUTO-BALANCE] Auto-tune complete - optimized settings updated");
-                
+
                 if let Some(repel_k) = physics.get("repelK").and_then(|v| v.as_f64()) {
                     info!("[AUTO-BALANCE] Final repelK: {:.3}", repel_k);
                 }
@@ -1061,17 +1070,6 @@ impl Handler<UpdatePhysicsFromAutoBalance> for OptimizedSettingsActor {
                 if let Some(max_vel) = physics.get("maxVelocity").and_then(|v| v.as_f64()) {
                     info!("[AUTO-BALANCE] Final maxVelocity: {:.3}", max_vel);
                 }
-            }
-            
-            // Save to file if persistence is enabled
-            if current.system.persist_settings {
-                if let Err(e) = current.save() {
-                    error!("[AUTO-BALANCE] Failed to save auto-tuned settings to file: {}", e);
-                } else {
-                    info!("[AUTO-BALANCE] Auto-tuned settings saved to settings.yaml");
-                }
-            } else {
-                info!("[AUTO-BALANCE] Settings persistence disabled, not saving to file");
             }
         }).into_actor(self));
     }
