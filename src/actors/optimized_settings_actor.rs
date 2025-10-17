@@ -4,7 +4,9 @@
 use actix::prelude::*;
 use crate::config::AppFullSettings;
 use crate::actors::messages::{GetSettings, UpdateSettings, GetSettingByPath, SetSettingByPath, GetSettingsByPaths, SetSettingsByPaths, UpdatePhysicsFromAutoBalance};
-use crate::actors::{GraphServiceActor, gpu::ForceComputeActor};
+use crate::actors::GraphServiceActor;
+#[cfg(feature = "gpu")]
+use crate::actors::gpu::ForceComputeActor;
 use crate::config::path_access::PathAccessible;
 use crate::errors::{VisionFlowError, VisionFlowResult, SettingsError, ActorError, ErrorContext};
 use std::collections::HashMap;
@@ -19,6 +21,7 @@ use std::num::NonZeroUsize;
 use blake3::Hasher;
 use flate2::{Compress, Decompress, Compression, FlushCompress, FlushDecompress};
 use flate2::Status;
+use crate::services::database_service::DatabaseService;
 
 #[cfg(feature = "redis")]
 use redis::{Client as RedisClient, AsyncCommands};
@@ -28,6 +31,7 @@ const CACHE_SIZE: usize = 1000;
 
 pub struct OptimizedSettingsActor {
     settings: Arc<RwLock<AppFullSettings>>,
+    db_service: Option<Arc<DatabaseService>>,
     #[cfg(feature = "redis")]
     redis_client: Option<RedisClient>,
     path_cache: Arc<RwLock<LruCache<String, CachedValue>>>,
@@ -36,6 +40,7 @@ pub struct OptimizedSettingsActor {
     compressor: Arc<RwLock<Compress>>,
     decompressor: Arc<RwLock<Decompress>>,
     graph_service_addr: Option<Addr<GraphServiceActor>>,
+    #[cfg(feature = "gpu")]
     gpu_compute_addr: Option<Addr<ForceComputeActor>>,
 }
 
@@ -124,16 +129,28 @@ const EXPECTED_PATH_SIZE: u64 = 500; // ~500B
 
 impl OptimizedSettingsActor {
     pub fn new() -> VisionFlowResult<Self> {
-        // Load settings from file or use defaults
-        let settings = AppFullSettings::new()
-            .map_err(|e| {
-                error!("Failed to load settings from file: {}", e);
-                VisionFlowError::Settings(SettingsError::ParseError {
-                    file_path: "settings".to_string(),
-                    reason: e.to_string(),
-                })
-            })?;
-        
+        Self::with_database(None)
+    }
+
+    pub fn with_database(db_service: Option<Arc<DatabaseService>>) -> VisionFlowResult<Self> {
+        // Load initial settings structure from database or defaults
+        let settings = if let Some(ref db) = db_service {
+            info!("Loading settings from SQLite database");
+            match Self::load_settings_from_database(db) {
+                Ok(s) => {
+                    info!("Settings loaded successfully from database");
+                    s
+                }
+                Err(e) => {
+                    warn!("Failed to load settings from database, using defaults: {}", e);
+                    AppFullSettings::default()
+                }
+            }
+        } else {
+            warn!("No database service provided, using default settings structure");
+            AppFullSettings::default()
+        };
+
         // Initialize Redis client (optional)
         #[cfg(feature = "redis")]
         let redis_client = match std::env::var("REDIS_URL") {
@@ -154,25 +171,26 @@ impl OptimizedSettingsActor {
                 None
             }
         };
-        
+
         // Initialize LRU cache
         let path_cache = Arc::new(RwLock::new(
             LruCache::new(NonZeroUsize::new(CACHE_SIZE).unwrap())
         ));
-        
+
         // Pre-compile common path patterns
         let mut path_lookup = HashMap::new();
         Self::initialize_path_patterns(&mut path_lookup);
-        
-        info!("OptimizedSettingsActor initialized with performance optimizations");
-        debug!("Logseq physics: damping={}, spring={}, repulsion={}", 
+
+        info!("OptimizedSettingsActor initialized with database-backed settings");
+        debug!("Logseq physics: damping={}, spring={}, repulsion={}",
             settings.visualisation.graphs.logseq.physics.damping,
             settings.visualisation.graphs.logseq.physics.spring_k,
             settings.visualisation.graphs.logseq.physics.repel_k
         );
-        
+
         Ok(Self {
             settings: Arc::new(RwLock::new(settings)),
+            db_service,
             #[cfg(feature = "redis")]
             redis_client,
             path_cache,
@@ -181,18 +199,59 @@ impl OptimizedSettingsActor {
             compressor: Arc::new(RwLock::new(Compress::new(Compression::default(), false))),
             decompressor: Arc::new(RwLock::new(Decompress::new(false))),
             graph_service_addr: None,
+            #[cfg(feature = "gpu")]
             gpu_compute_addr: None,
         })
     }
 
+    fn load_settings_from_database(db: &DatabaseService) -> VisionFlowResult<AppFullSettings> {
+        // Try to load physics settings from database
+        let mut settings = AppFullSettings::default();
+
+        match db.get_physics_settings("default") {
+            Ok(physics) => {
+                info!("Loaded physics settings from database");
+                settings.visualisation.graphs.logseq.physics = physics;
+            }
+            Err(e) => {
+                warn!("Failed to load physics settings from database: {}", e);
+            }
+        }
+
+        // TODO: Load other settings from database
+        // For now, we prioritize physics settings as they're most critical
+
+        Ok(settings)
+    }
+
     pub fn with_actors(
         graph_service_addr: Option<Addr<GraphServiceActor>>,
+        #[cfg(feature = "gpu")]
         gpu_compute_addr: Option<Addr<ForceComputeActor>>,
     ) -> VisionFlowResult<Self> {
         let mut actor = Self::new()?;
         actor.graph_service_addr = graph_service_addr;
-        actor.gpu_compute_addr = gpu_compute_addr;
+        #[cfg(feature = "gpu")]
+        {
+            actor.gpu_compute_addr = gpu_compute_addr;
+        }
         info!("OptimizedSettingsActor initialized with GPU and Graph actor addresses for physics forwarding and concurrent update batching");
+        Ok(actor)
+    }
+
+    pub fn with_database_and_actors(
+        db_service: Option<Arc<DatabaseService>>,
+        graph_service_addr: Option<Addr<GraphServiceActor>>,
+        #[cfg(feature = "gpu")]
+        gpu_compute_addr: Option<Addr<ForceComputeActor>>,
+    ) -> VisionFlowResult<Self> {
+        let mut actor = Self::with_database(db_service)?;
+        actor.graph_service_addr = graph_service_addr;
+        #[cfg(feature = "gpu")]
+        {
+            actor.gpu_compute_addr = gpu_compute_addr;
+        }
+        info!("OptimizedSettingsActor initialized with database + GPU and Graph actor addresses");
         Ok(actor)
     }
 
@@ -486,23 +545,27 @@ impl OptimizedSettingsActor {
     pub async fn update_settings(&self, new_settings: AppFullSettings) -> VisionFlowResult<()> {
         let mut settings = self.settings.write().await;
         *settings = new_settings;
-        
+
         // Clear all caches since settings changed
         {
             let mut cache = self.path_cache.write().await;
             cache.clear();
         }
-        
-        // Persist to file
-        settings.save().map_err(|e| {
-            error!("Failed to save settings to file: {}", e);
-            VisionFlowError::Settings(SettingsError::SaveFailed {
-                file_path: "settings".to_string(),
-                reason: e,
-            })
-        })?;
-        
-        info!("Settings updated, caches cleared, and saved successfully");
+
+        // Persist to database if available
+        if let Some(ref db) = self.db_service {
+            if let Err(e) = db.save_physics_settings("default", &settings.visualisation.graphs.logseq.physics) {
+                error!("Failed to save physics settings to database: {}", e);
+                return Err(VisionFlowError::Settings(SettingsError::SaveFailed {
+                    file_path: "database".to_string(),
+                    reason: format!("Database error: {}", e),
+                }));
+            }
+            info!("Settings updated and saved to database successfully");
+        } else {
+            warn!("No database service available, settings not persisted");
+        }
+
         Ok(())
     }
     
@@ -713,6 +776,7 @@ impl Clone for OptimizedSettingsActor {
     fn clone(&self) -> Self {
         Self {
             settings: self.settings.clone(),
+            db_service: self.db_service.clone(),
             #[cfg(feature = "redis")]
             redis_client: self.redis_client.clone(),
             path_cache: self.path_cache.clone(),
@@ -721,6 +785,7 @@ impl Clone for OptimizedSettingsActor {
             compressor: Arc::new(RwLock::new(Compress::new(Compression::default(), false))),
             decompressor: Arc::new(RwLock::new(Decompress::new(false))),
             graph_service_addr: self.graph_service_addr.clone(),
+            #[cfg(feature = "gpu")]
             gpu_compute_addr: self.gpu_compute_addr.clone(),
         }
     }

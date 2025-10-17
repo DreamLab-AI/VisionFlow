@@ -288,6 +288,7 @@ async fn main() -> std::io::Result<()> {
 
     let mut app_state = match AppState::new(
             settings_value,
+            db_service.clone(), // Pass database service for settings actor
             github_client.clone(),
             content_api.clone(),
             None, // Perplexity placeholder

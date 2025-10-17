@@ -27,6 +27,7 @@ use crate::services::ragflow_service::RAGFlowService;
 use crate::services::nostr_service::NostrService;
 use crate::services::bots_client::BotsClient;
 use crate::services::management_api_client::ManagementApiClient;
+use crate::services::database_service::DatabaseService;
 use tokio::sync::mpsc;
 use crate::utils::client_message_extractor::ClientMessage;
 
@@ -65,6 +66,7 @@ pub struct AppState {
 impl AppState {
     pub async fn new(
         settings: AppFullSettings,
+        db_service: Arc<DatabaseService>,
         github_client: Arc<GitHubClient>,
         content_api: Arc<ContentAPI>,
         perplexity_service: Option<Arc<PerplexityService>>,
@@ -159,8 +161,9 @@ impl AppState {
         info!("[AppState::new] Starting ClientCoordinatorActor");
         let client_manager_addr = ClientCoordinatorActor::new().start();
 
-        info!("[AppState::new] Starting OptimizedSettingsActor");
-        let settings_actor = OptimizedSettingsActor::with_actors(
+        info!("[AppState::new] Starting OptimizedSettingsActor with database service");
+        let settings_actor = OptimizedSettingsActor::with_database_and_actors(
+            Some(db_service.clone()),
             None, // GraphServiceSupervisor replaced by Hexagonal Architecture
             None, // Legacy GPU compute actor removed
         ).map_err(|e| {

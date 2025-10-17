@@ -9,7 +9,7 @@ The service is already integrated into the project with the `ontology` feature f
 ### 1. Set GitHub Token
 
 ```bash
-export GITHUB_TOKEN="xxxxxxxxxxxxxxxxxxxxx"
+export GITHUB_TOKEN="ghp_xxxxxxxxxxxxxxxx"
 ```
 
 Or create a `.env` file:

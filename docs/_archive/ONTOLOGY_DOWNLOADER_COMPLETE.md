@@ -181,7 +181,7 @@ sync_metadata
 ### Required Environment Variables
 
 ```bash
-export GITHUB_TOKEN="xxxxxxxxxxxxxxxxxxxxx"
+export GITHUB_TOKEN="ghp_xxxxxxxxxxxxxxxx"
 ```
 
 ### Default Configuration
