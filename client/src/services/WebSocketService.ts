@@ -141,30 +141,33 @@ class WebSocketService {
     // Default WebSocket URL
     this.url = this.determineWebSocketUrl();
 
-    // Update URL when settings change
-    this.updateFromSettings();
+    // Defer settings store access until after module initialization
+    setTimeout(() => {
+      // Update URL when settings change
+      this.updateFromSettings();
 
-    // Subscribe to store changes and manually check customBackendUrl
-    let previousCustomBackendUrl = useSettingsStore.getState().settings?.system?.customBackendUrl;
-    useSettingsStore.subscribe((state) => {
-      const newCustomBackendUrl = state.settings?.system?.customBackendUrl;
-      if (newCustomBackendUrl !== previousCustomBackendUrl) {
-        if (debugState.isEnabled()) {
-          logger.info(`customBackendUrl setting changed from "${previousCustomBackendUrl}" to "${newCustomBackendUrl}", re-evaluating WebSocket URL.`);
+      // Subscribe to store changes and manually check customBackendUrl
+      let previousCustomBackendUrl = useSettingsStore.getState().settings?.system?.customBackendUrl;
+      useSettingsStore.subscribe((state) => {
+        const newCustomBackendUrl = state.settings?.system?.customBackendUrl;
+        if (newCustomBackendUrl !== previousCustomBackendUrl) {
+          if (debugState.isEnabled()) {
+            logger.info(`customBackendUrl setting changed from "${previousCustomBackendUrl}" to "${newCustomBackendUrl}", re-evaluating WebSocket URL.`);
+          }
+          previousCustomBackendUrl = newCustomBackendUrl; // Update for next comparison
+          this.updateFromSettings(); // Sets this.url based on the latest state
+          if (this.isConnected || (this.socket && this.socket.readyState === WebSocket.CONNECTING)) {
+            logger.info('Reconnecting WebSocket due to customBackendUrl change.');
+            this.close();
+            setTimeout(() => {
+              this.connect().catch(error => {
+                logger.error('Failed to reconnect WebSocket after URL change:', createErrorMetadata(error));
+              });
+            }, 100);
+          }
         }
-        previousCustomBackendUrl = newCustomBackendUrl; // Update for next comparison
-        this.updateFromSettings(); // Sets this.url based on the latest state
-        if (this.isConnected || (this.socket && this.socket.readyState === WebSocket.CONNECTING)) {
-          logger.info('Reconnecting WebSocket due to customBackendUrl change.');
-          this.close();
-          setTimeout(() => {
-            this.connect().catch(error => {
-              logger.error('Failed to reconnect WebSocket after URL change:', createErrorMetadata(error));
-            });
-          }, 100);
-        }
-      }
-    });
+      });
+    }, 0);
   }
 
   private updateFromSettings(): void {

@@ -49,7 +49,7 @@ Unlike passive AI tools that wait for your prompts, VisionFlow's autonomous agen
 
 *   **🔌 Seamless Data Integration**: Connect to your existing knowledge sources with our powerful Markdown-based data management system, built on [Logseq](https://logseq.com/). Enjoy block-based organisation, bidirectional linking, and local-first privacy.
 
-*   **🦉 Ontology-Driven Validation**: Ensure logical consistency with OWL/RDF semantic validation. Automatically infer new relationships, detect contradictions, and visualize ontological constraints as physics forces for intuitive graph layouts.
+*   **🦉 Ontology-Driven Validation**: Ensure logical consistency with OWL 2 semantic validation powered by horned-owl 1.2.0. Automatically infer new relationships through transitive, symmetric, and inverse property reasoning. Validate cardinality, domain/range, and disjoint class constraints in real-time with <2s latency. Visualize ontological constraints as physics forces for intuitive graph layouts. Supports OWL Functional Syntax and OWL/XML formats with SQLite persistence.
 
 *   **⚡ GPU-Accelerated Performance**: 40 production CUDA kernels deliver 100x CPU speedup for physics simulation, clustering, and pathfinding—enabling 60 FPS rendering at 100k+ nodes with sub-10ms latency.
 
@@ -89,15 +89,19 @@ VisionFlow combines cutting-edge technologies for unmatched performance and scal
 | **Backend** | Rust + Actix | Supervised actor system, 1,000+ req/min |
 | **GPU Acceleration** | CUDA (40 Kernels) | Physics, clustering, pathfinding—100x speedup |
 | **AI Orchestration** | MCP Protocol + Claude | 50+ concurrent specialist agents |
-| **Semantic Layer** | OWL/RDF + Whelk Reasoner | Ontology validation, logical inference |
+| **Semantic Layer** | OWL 2 + Horned-OWL 1.2.0 | Ontology validation, reasoning, inference |
 | **Networking** | Binary WebSocket (34-byte protocol) | <10ms latency, 95% bandwidth reduction |
-| **Data Layer** | Git + Logseq (Markdown) | Version control, bidirectional linking, privacy |
+| **Data Layer** | SQLite + Git + Markdown | Ontology persistence, version control, graph data |
 
 **Advanced AI Architecture:**
 - **Microsoft GraphRAG** for hierarchical knowledge structures
 - **Leiden Clustering** for community detection
 - **Shortest Path Analysis** enabling multi-hop reasoning
-- **OWL Reasoning** for semantic validation and inference
+- **OWL 2 Reasoning** for semantic validation and inference
+  - Constraint validation (cardinality, domain/range, disjoint classes)
+  - Inference generation (transitive, symmetric, inverse properties)
+  - Real-time WebSocket validation updates
+  - SQLite persistence with <5ms query latency
 
 ---
 

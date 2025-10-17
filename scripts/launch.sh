@@ -259,9 +259,9 @@ start_environment() {
             build_args+=("--no-cache")
         fi
 
-        # Always build with GPU features
-        info "Building with GPU support enabled"
-        build_args+=("--build-arg" "FEATURES=gpu")
+        # Always build with GPU and ontology features
+        info "Building with GPU and ontology support enabled"
+        build_args+=("--build-arg" "FEATURES=gpu,ontology")
 
         DOCKER_BUILDKIT=1 docker_compose build "${build_args[@]}"
     fi
@@ -345,9 +345,9 @@ build_only() {
         build_args+=("--no-cache")
     fi
 
-    # Always build with GPU features
-    info "Building with GPU support enabled"
-    build_args+=("--build-arg" "FEATURES=gpu")
+    # Always build with GPU and ontology features
+    info "Building with GPU and ontology support enabled"
+    build_args+=("--build-arg" "FEATURES=gpu,ontology")
 
     DOCKER_BUILDKIT=1 docker_compose build "${build_args[@]}"
     success "Build complete"

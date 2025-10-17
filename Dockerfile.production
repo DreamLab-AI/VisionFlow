@@ -32,9 +32,10 @@ RUN mkdir -p /app/data/markdown \
 COPY --from=dev_image /app/target/release/webxr /app/webxr
 COPY --from=dev_image /app/client/dist /app/client/dist
 COPY --from=dev_image /app/src/utils/ptx /app/src/utils/ptx
+COPY --from=dev_image /app/schema /app/schema
 
 # Copy configuration files
-COPY data/settings.yaml /app/settings.yaml
+# Settings now managed via SQLite database (initialized from schema on first run)
 COPY nginx.production.conf /etc/nginx/nginx.conf
 COPY scripts/production-startup.sh /app/start.sh
 RUN chmod +x /app/start.sh

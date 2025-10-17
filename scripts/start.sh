@@ -53,17 +53,8 @@ if [ $# -gt 0 ] && [ "$1" = "--no-webxr" ]; then
     START_WEBXR=false
 fi
 
-# Verify settings file permissions and ensure accessibility
-log "Verifying settings.yaml permissions..."
-# Ensure the file is accessible by the current user before checking existence
-if [ -f "/app/settings.yaml" ]; then
-    chmod 666 /app/settings.yaml
-    log "settings.yaml permissions set to 666"
-else
-    log "Error: settings.yaml not found at /app/settings.yaml"
-    exit 1
-fi
-log "settings.yaml permissions verified"
+# Settings are now managed via internal SQLite database
+# No file validation needed - settings loaded from database on startup
 
 # Set up runtime environment
 # Start nginx

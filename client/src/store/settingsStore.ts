@@ -10,6 +10,7 @@ import { isViewportSetting } from '../features/settings/config/viewportSettings'
 import { settingsApi, BatchOperation } from '../api/settingsApi';
 import { AutoSaveManager } from './autoSaveManager';
 import { nostrAuth } from '../services/nostrAuthService';
+import { settingsCacheClient } from '../services/SettingsCacheClient';
 
 
 
@@ -294,6 +295,9 @@ export const useSettingsStore = create<SettingsState>()(
 
           // Initialize AutoSaveManager now that store is ready
           autoSaveManager.setInitialized(true);
+
+          // Setup WebSocket listener for settings changes from other clients
+          setupWebSocketListener();
 
           if (debugState.isEnabled()) {
             logger.info('Settings store initialized with essential paths')
@@ -1053,11 +1057,74 @@ function getAllAvailableSettingsPaths(): string[] {
   ];
 }
 
+// Setup WebSocket listener for real-time settings sync across clients
+let wsListenerInitialized = false;
+function setupWebSocketListener() {
+  if (wsListenerInitialized) return;
+  wsListenerInitialized = true;
+
+  // Listen to settingChanged events from cache client
+  window.addEventListener('settingChanged', ((event: CustomEvent) => {
+    const { path, value } = event.detail;
+
+    logger.debug(`Received settings change from WebSocket: ${path}`, value);
+
+    // Update local store with the new value from server
+    const state = useSettingsStore.getState();
+    const currentValue = state.get(path);
+
+    // Only update if value actually changed to avoid loops
+    if (JSON.stringify(currentValue) !== JSON.stringify(value)) {
+      state.set(path, value);
+
+      // Notify subscribers without triggering server update
+      const callbacks = state.subscribers.get(path);
+      if (callbacks) {
+        callbacks.forEach(callback => {
+          try {
+            callback();
+          } catch (error) {
+            logger.error(`Error in subscriber for ${path}:`, createErrorMetadata(error));
+          }
+        });
+      }
+    }
+  }) as EventListener);
+
+  // Listen to batch changes
+  window.addEventListener('settingsBatchChanged', ((event: CustomEvent) => {
+    const { updates } = event.detail;
+
+    logger.debug(`Received batch settings changes from WebSocket`, updates);
+
+    const state = useSettingsStore.getState();
+    updates.forEach(({ path, value }: any) => {
+      const currentValue = state.get(path);
+
+      if (JSON.stringify(currentValue) !== JSON.stringify(value)) {
+        state.set(path, value);
+
+        const callbacks = state.subscribers.get(path);
+        if (callbacks) {
+          callbacks.forEach(callback => {
+            try {
+              callback();
+            } catch (error) {
+              logger.error(`Error in subscriber for ${path}:`, createErrorMetadata(error));
+            }
+          });
+        }
+      }
+    });
+  }) as EventListener);
+}
+
 // Export for testing and direct access
 export const settingsStoreUtils = {
   autoSaveManager,
   getSectionPaths,
   setNestedValue,
   getAllSettingsPaths,
-  getAllAvailableSettingsPaths
+  getAllAvailableSettingsPaths,
+  settingsCacheClient
 };

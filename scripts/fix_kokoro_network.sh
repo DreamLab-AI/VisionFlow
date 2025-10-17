@@ -17,9 +17,12 @@ if [ -n "$KOKORO_IP" ]; then
     echo -e "\n✓ Kokoro is now accessible at: $KOKORO_IP:8880"
     echo "  Internal hostname: friendly_dewdney"
 
-    # Update the settings file
-    echo -e "\nUpdating settings.yaml with correct Kokoro URL..."
-    sed -i "s|apiUrl: http://pedantic_morse:8880|apiUrl: http://$KOKORO_IP:8880|" //data/settings.yaml
+    # Update settings via API
+    echo -e "\nUpdating Kokoro URL via Settings API..."
+    curl -X POST http://localhost:4000/api/settings/batch \
+        -H "Content-Type: application/json" \
+        -d "{\"updates\":[{\"path\":\"voice.tts.kokoro.apiUrl\",\"value\":\"http://$KOKORO_IP:8880\"}]}" \
+        -s -o /dev/null -w "API Response: %{http_code}\n"
 
     echo "✓ Settings updated!"
 

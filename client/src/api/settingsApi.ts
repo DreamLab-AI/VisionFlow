@@ -2,6 +2,7 @@
 import { Settings } from '../features/settings/config/settings';
 import { createLogger } from '../utils/loggerConfig';
 import { unifiedApiClient, isApiError } from '../services/api/UnifiedApiClient';
+import { settingsCacheClient } from '../services/SettingsCacheClient';
 
 const logger = createLogger('SettingsApi');
 const API_BASE = '/settings';
@@ -233,15 +234,14 @@ const updateManager = new SettingsUpdateManager();
 
 export const settingsApi = {
   /**
-   * Get a single setting by its dot-notation path
+   * Get a single setting by its dot-notation path with cache support
    * @param path - Dot notation path (e.g., "visualisation.nodes.baseColor")
+   * @param options - Optional cache configuration
    * @returns The setting value
    */
-  async getSettingByPath(path: string): Promise<any> {
+  async getSettingByPath(path: string, options?: { useCache?: boolean }): Promise<any> {
     try {
-      const encodedPath = encodeURIComponent(path);
-      const result = await unifiedApiClient.getData(`${API_BASE}/path?path=${encodedPath}`);
-      return result.value; // Backend returns { value: actualValue }
+      return await settingsCacheClient.get(path, options);
     } catch (error) {
       const errorMessage = isApiError(error)
         ? error.message
@@ -261,51 +261,21 @@ export const settingsApi = {
   },
   
   /**
-   * Get multiple settings by their paths in a single request using optimized batch endpoint
+   * Get multiple settings by their paths in a single request using optimized batch endpoint with cache support
    * @param paths - Array of dot notation paths
+   * @param options - Optional cache configuration
    * @returns Object mapping paths to their values
    */
-  async getSettingsByPaths(paths: string[]): Promise<Record<string, any>> {
+  async getSettingsByPaths(paths: string[], options?: { useCache?: boolean }): Promise<Record<string, any>> {
     if (!paths || paths.length === 0) {
       return {};
     }
 
     try {
-      // Use the optimized batch POST endpoint
-      const result = await unifiedApiClient.postData(`${API_BASE}/batch`, { paths });
-      logger.info(`Successfully fetched ${paths.length} settings using batch endpoint`);
-      return result; // Server returns { path: value } mapping
+      return await settingsCacheClient.getBatch(paths, options);
     } catch (error) {
-      logger.warn('Batch endpoint failed, falling back to individual requests:', error);
-      
-      // Fallback to individual path requests
-      const result: Record<string, any> = {};
-      const results = await Promise.allSettled(
-        paths.map(async (path) => {
-          try {
-            const value = await this.getSettingByPath(path);
-            return { path, value };
-          } catch (err) {
-            logger.error(`Failed to fetch path ${path}:`, err);
-            return { path, value: undefined };
-          }
-        })
-      );
-      
-      // Process results
-      for (const [index, promiseResult] of results.entries()) {
-        if (promiseResult.status === 'fulfilled') {
-          const { path, value } = promiseResult.value;
-          result[path] = value;
-        } else {
-          const path = paths[index];
-          logger.error(`Failed to process path ${path}:`, promiseResult.reason);
-          result[path] = undefined;
-        }
-      }
-      
-      logger.info(`Fallback completed: fetched ${Object.keys(result).length}/${paths.length} settings`);
-      return result;
+      logger.error('Failed to fetch settings batch:', error);
+      throw error;
     }
   },
   
@@ -407,6 +377,30 @@ export const settingsApi = {
    */
   async flushPendingUpdates(): Promise<void> {
     return updateManager.flush();
+  },
+
+  /**
+   * Subscribe to settings changes via WebSocket for real-time updates
+   * @param path - Setting path to watch (e.g., "visualisation.nodes.baseColor")
+   * @param callback - Function to call when setting changes
+   * @returns Unsubscribe function
+   */
+  subscribeToSettingChanges(path: string, callback: (path: string, value: any) => void): () => void {
+    return settingsCacheClient.subscribe(path, callback);
+  },
+
+  /**
+   * Get cache performance metrics
+   */
+  getCacheMetrics() {
+    return settingsCacheClient.getPerformanceMetrics();
+  },
+
+  /**
+   * Clear all cached settings
+   */
+  clearCache(): void {
+    settingsCacheClient.clearCache();
   },
   
   /**

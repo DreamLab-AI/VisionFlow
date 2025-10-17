@@ -161,11 +161,10 @@ async fn main() -> std::io::Result<()> {
         info!("Telemetry logger initialized with directory: {}", log_dir);
     }
 
-    // Load settings
+    // Load settings (returns default structure - actual settings managed via SQLite)
     let settings = match AppFullSettings::new() {
         Ok(s) => {
-            info!("✅ AppFullSettings loaded successfully from: {}",
-                std::env::var("SETTINGS_FILE_PATH").unwrap_or_else(|_| "/app/settings.yaml".to_string()));
+            info!("✅ AppFullSettings structure initialized (settings managed via SQLite database)");
             
             // Test JSON serialization to verify camelCase output works
             match serde_json::to_string(&s.visualisation.rendering) {
@@ -248,6 +247,36 @@ async fn main() -> std::io::Result<()> {
         info!("[main] ragflow_service_option is Some after RAGFlowService::new attempt.");
     } else {
         error!("[main] ragflow_service_option is None after RAGFlowService::new attempt. Chat functionality will be unavailable.");
+    }
+
+    // Initialize database and DevConfig before creating AppState
+    info!("Initializing database service...");
+    let db_path = std::env::var("DATA_ROOT")
+        .unwrap_or_else(|_| "/app/data".to_string());
+    let db_file = std::path::PathBuf::from(&db_path).join("ontology_db.sqlite3");
+
+    let db_service = match webxr::services::database_service::DatabaseService::new(&db_file) {
+        Ok(service) => {
+            info!("✅ Database initialized successfully");
+            std::sync::Arc::new(service)
+        }
+        Err(e) => {
+            error!("❌ Failed to initialize database: {}", e);
+            return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Database initialization failed: {}", e)));
+        }
+    };
+
+    // Initialize schema
+    if let Err(e) = db_service.initialize_schema() {
+        warn!("Schema initialization warning: {}", e);
+    }
+
+    // Initialize DevConfig from database
+    info!("Initializing DevConfig from database...");
+    if let Err(e) = webxr::config::dev_config::DevConfig::initialize(std::sync::Arc::clone(&db_service)) {
+        warn!("DevConfig initialization failed, using defaults: {}", e);
+    } else {
+        info!("✅ DevConfig initialized successfully");
     }
 
     // Initialize app state asynchronously
@@ -476,7 +505,32 @@ async fn main() -> std::io::Result<()> {
 
     info!("Waiting for initial physics layout calculation to complete...");
     tokio::time::sleep(Duration::from_millis(500)).await;
-    info!("Initial delay complete. Starting HTTP server...");
+    info!("Initial delay complete.");
+
+    // Initialize ontology system
+    #[cfg(feature = "ontology")]
+    {
+        info!("🔮 Initializing Ontology System...");
+        use webxr::services::ontology_init::initialize_ontology_system;
+
+        match initialize_ontology_system().await {
+            Ok(_db_service) => {
+                info!("✅ Ontology system initialized successfully");
+                info!("📥 Background GitHub sync task spawned - will begin in 10 seconds");
+            }
+            Err(e) => {
+                error!("❌ Ontology system initialization failed: {}", e);
+                info!("⚠️  Continuing without ontology features");
+            }
+        }
+    }
+
+    #[cfg(not(feature = "ontology"))]
+    {
+        info!("Ontology feature not enabled");
+    }
+
+    info!("Starting HTTP server...");
 
     // Start simulation in GraphServiceSupervisor (Second start attempt commented out for debugging stack overflow)
     // use webxr::actors::messages::StartSimulation;
@@ -494,8 +548,18 @@ async fn main() -> std::io::Result<()> {
     // Start the server
     let bind_address = {
         let settings_read = settings.read().await; // Reads AppFullSettings
-        // Access network settings correctly
-        format!("{}:{}", settings_read.system.network.bind_address, settings_read.system.network.port)
+        // Access network settings correctly, with fallback to env vars
+        let addr = if settings_read.system.network.bind_address.is_empty() {
+            std::env::var("BIND_ADDRESS").unwrap_or_else(|_| "0.0.0.0".to_string())
+        } else {
+            settings_read.system.network.bind_address.clone()
+        };
+        let port = if settings_read.system.network.port == 0 {
+            std::env::var("PORT").unwrap_or_else(|_| "4000".to_string()).parse().unwrap_or(4000)
+        } else {
+            settings_read.system.network.port
+        };
+        format!("{}:{}", addr, port)
     };
 
     // Pre-read WebSocket settings for SocketFlowServer

@@ -1,0 +1,825 @@
+{
+  "core_ontology_files": [
+    {
+      "name": "ETSIDomainClassification.md",
+      "path": "mainKnowledgeGraph/pages/ETSIDomainClassification.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/ETSIDomainClassification.md",
+      "size": 1027,
+      "sha": "6d45b3cd342af385319f7b832c5ef330e6cecf74",
+      "preview": "# ETSI Domain Classification Schema\n\n## Design\n\nThis file defines the ETSI functional domains as a formal class hierarchy. Concepts can be linked to these domains via the `belongsToDomain` object property.\n\n## OWL Functional Syntax\n\nowl:functional-syntax:: |\n\n# Root Domain Class\n\n  Declaration(Class(mv:ETSIDomain))\n  SubClassOf(mv:ETSIDomain mv:AbstractConcept)\n\n# Linking Property\n\n  Declaration(ObjectProperty(mv:belongsToDomain))\n  ObjectPropertyDomain(mv:belongsToDomain mv:En",
+      "description": "Defines ETSI functional domain class hierarchy with belongsToDomain property"
+    },
+    {
+      "name": "OntologyDefinition.md",
+      "path": "mainKnowledgeGraph/pages/OntologyDefinition.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/OntologyDefinition.md",
+      "size": 7149,
+      "sha": "ac80415d3df02689d2110f04bd11aa317b6752fc",
+      "preview": "# OntologyDefinition\n\n## Design Philosophy\n**Metaverse Ontology - Orthogonal Design**\nThis ontology uses two orthogonal dimensions for classification:\n\n1.  **Physicality Dimension:** `PhysicalEntity`, `VirtualEntity`, or `HybridEntity`\n2.  **Role Dimension:** `Agent`, `Object`, or `Process`\n\nThis allows for natural multiple inheritance, with a reasoner automatically inferring the nine intersection classes (e.g., `Avatar` \u2261 `VirtualEntity` \u2293 `Agent` \u2261 `VirtualAgent`).\n\n## Validat",
+      "description": "Core ontology design with orthogonal physicality and role dimensions"
+    },
+    {
+      "name": "PropertySchema.md",
+      "path": "mainKnowledgeGraph/pages/PropertySchema.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/PropertySchema.md",
+      "size": 4655,
+      "sha": "9d5901b3b9490831b0df95497dde559f11ea57f4",
+      "preview": "# Metaverse Ontology Property Schema\n\nThis file provides the formal OWL declarations for all Object, Data, and Annotation properties.\n\n## Object Properties\n\n### Mereological (Part-Whole)\n\n#### hasPart\n\nowl:iri:: mv:hasPart\nowl:type:: ObjectProperty\nowl:characteristics:: Transitive, Irreflexive, Asymmetric\nowl:inverse-of:: mv:isPartOf\nowl:functional-syntax:: |\n  Declaration(ObjectProperty(mv:hasPart))\n  TransitiveObjectProperty(mv:hasPart)\n  IrreflexiveObjectProperty(mv:hasPart)",
+      "description": "Formal OWL property declarations including mereological and other relationships"
+    }
+  ],
+  "ontology_block_files": [
+    {
+      "name": "ETSI_Domain_Data.md",
+      "path": "mainKnowledgeGraph/pages/ETSI_Domain_Data.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/ETSI_Domain_Data.md",
+      "size": 3604,
+      "sha": "065a8ac473954f860faed97d3cce6c274a220a78",
+      "preview": "- ### OntologyBlock\r\n  id:: etsi-domain-data-ontology\r\n  collapsed:: true\r\n\t- metaverseOntology:: true\r\n\t- term-id:: 20374\r\n\t- preferred-term:: ETSI Domain Data\r\n\t- definition:: Domain categorization for data management, storage, analytics, AI/ML systems, and intelligence capabilities processing information in metaverse environments.\r\n\t- maturity:: mature\r\n\t- source:: [[ETSI GR MEC 032]], [[ISO 23257]]\r\n\t- owl:class:: mv:ETSIDomainData\r\n\t- owl:physicality:: VirtualEntity\r\n\t- owl:role:: Object\r\n\t"
+    },
+    {
+      "name": "Haptics.md",
+      "path": "mainKnowledgeGraph/pages/Haptics.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Haptics.md",
+      "size": 5247,
+      "sha": "ac2921c5bc112c36b56a5cc643a82eb1e76dc7f1",
+      "preview": "- ### OntologyBlock\n  id:: haptics-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20153\n\t- preferred-term:: Haptics\n\t- definition:: Physical hardware systems that simulate tactile sensations and force feedback within virtual environments through actuators and sensors.\n\t- maturity:: mature\n\t- source:: [[ISO 9241-960]]\n\t- owl:class:: mv:Haptics\n\t- owl:physicality:: PhysicalEntity\n\t- owl:role:: Object\n\t- owl:inferred-class:: mv:PhysicalObject\n\t- owl:functional-syntax:: true\n\t-"
+    },
+    {
+      "name": "API Standard.md",
+      "path": "mainKnowledgeGraph/pages/API Standard.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/API%20Standard.md",
+      "size": 5481,
+      "sha": "6c3746cc23ef16a48d21fdabc6a31329cf30c3cf",
+      "preview": "- ### OntologyBlock\n  id:: api-standard-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20100\n\t- preferred-term:: API Standard\n\t- definition:: Specification defining how independent software components communicate within metaverse systems, establishing protocols and data formats for interoperability.\n\t- maturity:: mature\n\t- source:: [[ETSI GR ARF 010]], [[OMA3]], [[ISO/IEC 30170]]\n\t- owl:class:: mv:APIStandard\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Object\n\t- owl:in"
+    },
+    {
+      "name": "Cryptocurrency.md",
+      "path": "mainKnowledgeGraph/pages/Cryptocurrency.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Cryptocurrency.md",
+      "size": 9144,
+      "sha": "2fd95506e0d5d6c339e6d298b9b22b16ffa18f0c",
+      "preview": "- ### OntologyBlock\n  id:: cryptocurrency-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20134\n\t- preferred-term:: Cryptocurrency\n\t- definition:: A digital currency secured by cryptographic algorithms, operating on a decentralized blockchain network without central authority, enabling peer-to-peer value transfer.\n\t- maturity:: mature\n\t- source:: [[Reed Smith]], [[ISO 24165]]\n\t- owl:class:: mv:Cryptocurrency\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Object\n\t- owl:infe"
+    },
+    {
+      "name": "Immersion.md",
+      "path": "mainKnowledgeGraph/pages/Immersion.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Immersion.md",
+      "size": 6249,
+      "sha": "e19102a6982b7f6a3ae6bf7ac68303d385382bb6",
+      "preview": "- ### OntologyBlock\n  id:: immersion-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20255\n\t- preferred-term:: Immersion\n\t- definition:: Subjective experience of psychological engagement and sense of presence within a virtual environment, characterized by reduced awareness of physical surroundings and absorption in virtual context.\n\t- maturity:: mature\n\t- source:: [[ACM]]\n\t- owl:class:: mv:Immersion\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Process\n\t- owl:inferred-cla"
+    },
+    {
+      "name": "Data Fabric Architecture.md",
+      "path": "mainKnowledgeGraph/pages/Data Fabric Architecture.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Data%20Fabric%20Architecture.md",
+      "size": 10554,
+      "sha": "ff33ec985cd5254e3d83858bafec18aefcb2a177",
+      "preview": "- ### OntologyBlock\n  id:: data-fabric-architecture-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20105\n\t- preferred-term:: Data Fabric Architecture\n\t- definition:: An integrated data-management architecture that provides unified access, governance, security, and orchestration across distributed and heterogeneous data sources through active metadata management, automated data integration, and policy-driven controls.\n\t- maturity:: emerging\n\t- source:: [[W3C Data Fabric BP]]"
+    },
+    {
+      "name": "Digital Ritual.md",
+      "path": "mainKnowledgeGraph/pages/Digital Ritual.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Digital%20Ritual.md",
+      "size": 12913,
+      "sha": "c19c4e9ce45c5448fc07eca38e574d8168adc588",
+      "preview": "- ### OntologyBlock\n  id:: digital-ritual-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20302\n\t- preferred-term:: Digital Ritual\n\t- definition:: A structured virtual ceremonial process that recreates, adapts, or innovates traditional ritual practices in metaverse environments, enabling communities to perform symbolic cultural, religious, or social ceremonies through coordinated digital performances, shared virtual spaces, and meaningful participant interactions.\n\t- maturit"
+    },
+    {
+      "name": "Stablecoin.md",
+      "path": "mainKnowledgeGraph/pages/Stablecoin.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Stablecoin.md",
+      "size": 13011,
+      "sha": "bfe5b26acbe1fe690624a8daa3691342859b3250",
+      "preview": "- ### OntologyBlock\n  id:: stablecoin-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20190\n\t- preferred-term:: Stablecoin\n\t- definition:: A cryptocurrency whose value is algorithmically or institutionally pegged to a reserve asset to maintain price stability, enabling reliable medium of exchange and store of value in virtual economies.\n\t- maturity:: mature\n\t- source:: [[ISO 24165]], [[IMF CBDC Notes]]\n\t- owl:class:: mv:Stablecoin\n\t- owl:physicality:: VirtualEntity\n\t- owl:ro"
+    },
+    {
+      "name": "Deepfakes.md",
+      "path": "mainKnowledgeGraph/pages/Deepfakes.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Deepfakes.md",
+      "size": 8143,
+      "sha": "670ab5f63229c02b5d38a2c84aaf92288c3e2408",
+      "preview": "- ### OntologyBlock\n  id:: deepfakes-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20238\n\t- preferred-term:: Deepfakes\n\t- definition:: AI-generated or manipulated synthetic media content that convincingly alters a person's appearance, voice, or actions using deep learning techniques such as GANs, autoencoders, and voice synthesis models.\n\t- maturity:: mature\n\t- source:: [[Reed Smith]], [[ISO 29100]]\n\t- owl:class:: mv:Deepfakes\n\t- owl:physicality:: VirtualEntity\n\t- owl:role"
+    },
+    {
+      "name": "Non-Fungible Token (NFT).md",
+      "path": "mainKnowledgeGraph/pages/Non-Fungible Token (NFT).md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Non-Fungible%20Token%20%28NFT%29.md",
+      "size": 12186,
+      "sha": "d22f6b518dcb302f4511b256226886dafacd1d31",
+      "preview": "- ### OntologyBlock\n  id:: nft-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20002\n\t- preferred-term:: Non-Fungible Token (NFT)\n\t- definition:: A digital asset recorded on a distributed ledger that is uniquely identifiable and non-interchangeable, representing ownership or rights to specific digital or physical items.\n\t- maturity:: mature\n\t- source:: [[ETSI GR ARF 010]], [[ISO 24165]]\n\t- owl:class:: mv:NonFungibleToken\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Objec"
+    },
+    {
+      "name": "Identity Provider (IdP).md",
+      "path": "mainKnowledgeGraph/pages/Identity Provider (IdP).md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Identity%20Provider%20%28IdP%29.md",
+      "size": 8861,
+      "sha": "9977f521b869a5057f13c412f9769d1148bc68fc",
+      "preview": "- ### OntologyBlock\n  id:: identity-provider-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20283\n\t- preferred-term:: Identity Provider (IdP)\n\t- definition:: An authentication service system that creates, maintains, and manages identity information for principals while providing authentication services to relying party applications within a federation or distributed network.\n\t- maturity:: mature\n\t- source:: [[OASIS SAML]], [[OpenID Foundation]], [[IETF OAuth]]\n\t- owl:class:"
+    },
+    {
+      "name": "Fractionalized NFT.md",
+      "path": "mainKnowledgeGraph/pages/Fractionalized NFT.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Fractionalized%20NFT.md",
+      "size": 8774,
+      "sha": "25f2b50037b77bfd5cbd44625e6a460fff6ace41",
+      "preview": "- ### OntologyBlock\n  id:: fractionalizednft-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20135\n\t- preferred-term:: Fractionalized NFT\n\t- definition:: A non-fungible token whose ownership has been divided into multiple fungible token shares, enabling collective ownership and enhanced liquidity of high-value unique digital assets.\n\t- maturity:: mature\n\t- source:: [[MSF Use Cases]], [[OMA3]]\n\t- owl:class:: mv:FractionalizedNFT\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:"
+    },
+    {
+      "name": "AI Model Card.md",
+      "path": "mainKnowledgeGraph/pages/AI Model Card.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/AI%20Model%20Card.md",
+      "size": 9928,
+      "sha": "e01721c2cb4364222d3fc5ea6132324d2630cd6f",
+      "preview": "- ### OntologyBlock\n  id:: ai-model-card-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20120\n\t- preferred-term:: AI Model Card\n\t- definition:: A structured documentation format that describes an AI model's purpose, performance metrics, limitations, ethical considerations, and appropriate use cases to promote transparency and responsible deployment.\n\t- maturity:: mature\n\t- source:: [[Google Model Cards for Model Reporting]]\n\t- owl:class:: mv:AIModelCard\n\t- owl:physicality::"
+    },
+    {
+      "name": "Avatar.md",
+      "path": "mainKnowledgeGraph/pages/Avatar.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Avatar.md",
+      "size": 6964,
+      "sha": "d056ccf9faee2586754365b071d65fdf49fd815a",
+      "preview": "- ### OntologyBlock\n  id:: avatar-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20230\n\t- preferred-term:: Avatar\n\t- definition:: Digital representation of a person or agent used to interact within a virtual environment, providing embodiment and identity for users in virtual spaces.\n\t- maturity:: mature\n\t- source:: [[ACM Digital Library]], [[Web3D HAnim Working Group]]\n\t- owl:class:: mv:Avatar\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Agent\n\t- owl:inferred-class:: mv"
+    },
+    {
+      "name": "Metaverse Content Pipeline.md",
+      "path": "mainKnowledgeGraph/pages/Metaverse Content Pipeline.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Metaverse%20Content%20Pipeline.md",
+      "size": 9624,
+      "sha": "9c5a05916546cfa362aaaed8929c1cf23f7e41db",
+      "preview": "- ### OntologyBlock\n  id:: metaverse-content-pipeline-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20199\n\t- preferred-term:: Metaverse Content Pipeline\n\t- definition:: End-to-end workflow connecting asset creation, optimization, storage, distribution, and real-time rendering for metaverse experiences across platforms.\n\t- maturity:: draft\n\t- source:: [[OMA3 Content WG]], [[SMPTE ST 2128]]\n\t- owl:class:: mv:MetaverseContentPipeline\n\t- owl:physicality:: VirtualEntity\n\t- owl:"
+    },
+    {
+      "name": "glTF (3D File Format).md",
+      "path": "mainKnowledgeGraph/pages/glTF (3D File Format).md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/glTF%20%283D%20File%20Format%29.md",
+      "size": 10488,
+      "sha": "b578b94c4df6ce1796ea958338fb5f740fce45f5",
+      "preview": "- ### OntologyBlock\n  id:: gltf-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20110\n\t- preferred-term:: glTF (3D File Format)\n\t- definition:: A royalty-free, open-standard 3D asset transmission format developed by Khronos Group that efficiently specifies scene structure, geometry, materials, animations, and other properties for real-time rendering.\n\t- maturity:: mature\n\t- source:: [[Khronos Group]], [[EWG/MSF taxonomy]]\n\t- owl:class:: mv:glTFFormat\n\t- owl:physicality:: Vir"
+    },
+    {
+      "name": "Digital Asset Workflow.md",
+      "path": "mainKnowledgeGraph/pages/Digital Asset Workflow.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Digital%20Asset%20Workflow.md",
+      "size": 7026,
+      "sha": "3a91c706dbbdf2a019d0a1c943ff60b2eab4e4c8",
+      "preview": "- ### OntologyBlock\n  id:: digitalassetworkflow-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20263\n\t- preferred-term:: Digital Asset Workflow\n\t- definition:: Controlled process governing the creation, approval, distribution, and lifecycle management of digital content assets in virtual environments.\n\t- maturity:: mature\n\t- source:: [[SMPTE ST 2128]]\n\t- owl:class:: mv:DigitalAssetWorkflow\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Process\n\t- owl:inferred-class:: mv:V"
+    },
+    {
+      "name": "Digital Asset.md",
+      "path": "mainKnowledgeGraph/pages/Digital Asset.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Digital%20Asset.md",
+      "size": 9815,
+      "sha": "0d7dc7d03b442593f364b58e6733162f1e289ff8",
+      "preview": "- ### OntologyBlock\n  id:: digitalasset-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20109\n\t- preferred-term:: Digital Asset\n\t- definition:: An identifiable unit of digital information that possesses economic or functional value within a metaverse system, capable of being owned, transferred, or exchanged.\n\t- maturity:: mature\n\t- source:: [[MSF Use Cases]], [[ETSI GR ARF 010]]\n\t- owl:class:: mv:DigitalAsset\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Object\n\t- owl:inf"
+    },
+    {
+      "name": "Display Metrology.md",
+      "path": "mainKnowledgeGraph/pages/Display Metrology.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Display%20Metrology.md",
+      "size": 5018,
+      "sha": "66c6d207b75062edea0c22506c2cc12a08ac3c55",
+      "preview": "- ### OntologyBlock\n  id:: displaymetrology-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20156\n\t- preferred-term:: Display Metrology\n\t- definition:: Standardized measurement equipment and instruments for assessing visual performance parameters of XR displays, including colorimeters, photometers, and specialized testing hardware.\n\t- maturity:: mature\n\t- source:: [[ETSI GR ARF 010]]\n\t- owl:class:: mv:DisplayMetrology\n\t- owl:physicality:: PhysicalEntity\n\t- owl:role:: Object\n"
+    },
+    {
+      "name": "ETSI_Domain_Data_Management___Culture.md",
+      "path": "mainKnowledgeGraph/pages/ETSI_Domain_Data_Management___Culture.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/ETSI_Domain_Data_Management___Culture.md",
+      "size": 4970,
+      "sha": "3c8430f8a7a961978dd70309c69042758809da73",
+      "preview": "- ### OntologyBlock\n  id:: etsi-domain-datamgmt-culture-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20343\n\t- preferred-term:: ETSI Domain: Data Management + Cultural Heritage\n\t- definition:: Crossover domain for ETSI metaverse categorization addressing data preservation and management systems for cultural heritage digitization, archival, and accessibility.\n\t- maturity:: mature\n\t- source:: [[ETSI GR MEC 032]]\n\t- owl:class:: mv:ETSIDomain_DataMgmt_Culture\n\t- owl:physicalit"
+    },
+    {
+      "name": "Provenance Verification.md",
+      "path": "mainKnowledgeGraph/pages/Provenance Verification.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Provenance%20Verification.md",
+      "size": 8923,
+      "sha": "1b82b85178ba0a9b076283db771bb541f2d6bc0c",
+      "preview": "- ### OntologyBlock\n  id:: provenance-verification-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20204\n\t- preferred-term:: Provenance Verification\n\t- definition:: Computational process for validating the origin, authenticity, and chain of custody of digital assets through metadata analysis and distributed ledger records.\n\t- maturity:: draft\n\t- source:: [[ETSI ARF 010]], [[W3C PROV-O]], [[ISO 19115]]\n\t- owl:class:: mv:ProvenanceVerification\n\t- owl:physicality:: VirtualEntit"
+    },
+    {
+      "name": "Cultural Provenance Record.md",
+      "path": "mainKnowledgeGraph/pages/Cultural Provenance Record.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Cultural%20Provenance%20Record.md",
+      "size": 10766,
+      "sha": "d67091b3abc36fbbdc4cb35ce05b6fcd3b6e84f3",
+      "preview": "- ### OntologyBlock\n  id:: cultural-provenance-record-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20301\n\t- preferred-term:: Cultural Provenance Record\n\t- definition:: A structured metadata object that documents the origin, ownership history, authenticity verification, and cultural context of cultural artifacts, artworks, or digital cultural assets to establish legitimacy and preserve heritage lineage.\n\t- maturity:: draft\n\t- source:: [[CIDOC-CRM]], [[SPECTRUM Museum Stand"
+    },
+    {
+      "name": "Digital Ontology Repository.md",
+      "path": "mainKnowledgeGraph/pages/Digital Ontology Repository.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Digital%20Ontology%20Repository.md",
+      "size": 12786,
+      "sha": "923b117974b3da948e09dcc1a6298041a4221387",
+      "preview": "- ### OntologyBlock\n  id:: digital-ontology-repository-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20127\n\t- preferred-term:: Digital Ontology Repository\n\t- definition:: A structured collection system that stores, versions, and manages formal ontologies and semantic models to enable interoperability and shared understanding across metaverse domains.\n\t- maturity:: mature\n\t- source:: [[MSF Register WG]], [[ISO/IEC 11179]], [[W3C]]\n\t- owl:class:: mv:DigitalOntologyRepository"
+    },
+    {
+      "name": "Tokenization.md",
+      "path": "mainKnowledgeGraph/pages/Tokenization.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Tokenization.md",
+      "size": 6694,
+      "sha": "7454c278b1346395029a2a5527f6f8f470309df0",
+      "preview": "- ### OntologyBlock\n  id:: tokenization-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20212\n\t- preferred-term:: Tokenization\n\t- definition:: Process of representing real-world or virtual assets as digital tokens on a blockchain through cryptographic mechanisms and smart contract protocols.\n\t- maturity:: mature\n\t- source:: [[Reed Smith + OMA3]]\n\t- owl:class:: mv:Tokenization\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Process\n\t- owl:inferred-class:: mv:VirtualProcess\n\t"
+    },
+    {
+      "name": "Metaverse.md",
+      "path": "mainKnowledgeGraph/pages/Metaverse.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Metaverse.md",
+      "size": 10483,
+      "sha": "1cea40c9943cbde7a1a0b6267adaebe6b6695610",
+      "preview": "- ### OntologyBlock\n  id:: metaverse-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20315\n\t- preferred-term:: Metaverse\n\t- definition:: A convergent network of persistent, synchronous 3D virtual worlds, augmented reality environments, and internet platforms that enable shared spatial computing experiences with interoperable digital assets, persistent identity, and real-time social interaction.\n\t- maturity:: mature\n\t- source:: [[ISO 23257]], [[ETSI GR MEC 032]], [[IEEE P2048"
+    },
+    {
+      "name": "Creator Economy.md",
+      "path": "mainKnowledgeGraph/pages/Creator Economy.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Creator%20Economy.md",
+      "size": 6586,
+      "sha": "b361c816f24df374704039350eed6d283de8b71d",
+      "preview": "- ### OntologyBlock\n  id:: creatoreconomy-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20260\n\t- preferred-term:: Creator Economy\n\t- definition:: Ecosystem enabling individuals and organizations to design, build, and monetize virtual content and experiences through digital marketplaces, tokenization, and economic incentive structures.\n\t- maturity:: mature\n\t- source:: [[MSF Taxonomy 2025]]\n\t- owl:class:: mv:CreatorEconomy\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Obj"
+    },
+    {
+      "name": "Multiverse.md",
+      "path": "mainKnowledgeGraph/pages/Multiverse.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Multiverse.md",
+      "size": 10048,
+      "sha": "b54a3650904f35049ccbcdaf5b7dde9a85574295",
+      "preview": "- ### OntologyBlock\n  id:: multiverse-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20316\n\t- preferred-term:: Multiverse\n\t- definition:: A network of interconnected but distinct metaverses and virtual worlds that enable cross-platform identity, asset portability, and interoperability while maintaining individual world sovereignty and distinct governance models.\n\t- maturity:: draft\n\t- source:: [[OMA3]], [[Metaverse Standards Forum]]\n\t- owl:class:: mv:Multiverse\n\t- owl:physi"
+    },
+    {
+      "name": "AI Governance Framework.md",
+      "path": "mainKnowledgeGraph/pages/AI Governance Framework.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/AI%20Governance%20Framework.md",
+      "size": 5256,
+      "sha": "3b211677b4e820968846457d84564b521d489dbb",
+      "preview": "- ### OntologyBlock\n  id:: ai-governance-framework-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20181\n\t- preferred-term:: AI Governance Framework\n\t- definition:: Set of policies and procedures ensuring responsible development and operation of AI components in the metaverse.\n\t- maturity:: mature\n\t- source:: [[ISO/IEC 42001]], [[OECD AI Principles]]\n\t- owl:class:: mv:AIGovernanceFramework\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Object\n\t- owl:inferred-class:: mv:Vir"
+    },
+    {
+      "name": "Knowledge Graph.md",
+      "path": "mainKnowledgeGraph/pages/Knowledge Graph.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Knowledge%20Graph.md",
+      "size": 9300,
+      "sha": "4b2384bb590601477837ad3335336e947c04cbb4",
+      "preview": "- ### OntologyBlock\n  id:: knowledgegraph-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20308\n\t- preferred-term:: Knowledge Graph\n\t- definition:: A semantic knowledge network that represents entities, relationships, and attributes as an interconnected graph structure, enabling advanced reasoning, inference, and knowledge discovery across metaverse systems.\n\t- maturity:: mature\n\t- source:: [[W3C RDF]], [[W3C OWL]], [[Schema.org]]\n\t- owl:class:: mv:KnowledgeGraph\n\t- owl:phys"
+    },
+    {
+      "name": "Accessibility Standard.md",
+      "path": "mainKnowledgeGraph/pages/Accessibility Standard.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Accessibility%20Standard.md",
+      "size": 5756,
+      "sha": "558a47ea0485561efba32c7a34a1dc6eeff67cb9",
+      "preview": "- ### OntologyBlock\n  id:: accessibilitystandard-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20180\n\t- preferred-term:: Accessibility Standard\n\t- definition:: Specification ensuring equitable access to virtual content and experiences for users with diverse abilities and disabilities.\n\t- maturity:: mature\n\t- source:: [[ETSI GR ARF 010]], [[W3C XR Accessibility]], [[ISO 9241-112]]\n\t- owl:class:: mv:AccessibilityStandard\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Objec"
+    },
+    {
+      "name": "Token Bonding Curve.md",
+      "path": "mainKnowledgeGraph/pages/Token Bonding Curve.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Token%20Bonding%20Curve.md",
+      "size": 6981,
+      "sha": "d398ef30201953accd4249126a3dae548e576d9b",
+      "preview": "- ### OntologyBlock\n  id:: tokenbondingcurve-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20269\n\t- preferred-term:: Token Bonding Curve\n\t- definition:: Algorithmic pricing mechanism that defines token value as a mathematical function of circulating supply and reserve balance, providing continuous liquidity through automated market making.\n\t- maturity:: mature\n\t- source:: [[DeFi Standards Alliance]]\n\t- owl:class:: mv:TokenBondingCurve\n\t- owl:physicality:: VirtualEntity\n\t- "
+    },
+    {
+      "name": "Right to Be Forgotten.md",
+      "path": "mainKnowledgeGraph/pages/Right to Be Forgotten.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Right%20to%20Be%20Forgotten.md",
+      "size": 6679,
+      "sha": "f8bff4e1e20b0d121dc991f7b29d754b27342f46",
+      "preview": "- ### OntologyBlock\n  id:: righttobeforgotten-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20295\n\t- preferred-term:: Right to Be Forgotten\n\t- definition:: A privacy right framework enabling individuals to request deletion or removal of personal data from online platforms and databases, with verification and audit mechanisms.\n\t- maturity:: mature\n\t- source:: [[GDPR Article 17]], [[CCPA]]\n\t- owl:class:: mv:RightToBeForgotten\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: "
+    },
+    {
+      "name": "Trust Score Metric.md",
+      "path": "mainKnowledgeGraph/pages/Trust Score Metric.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Trust%20Score%20Metric.md",
+      "size": 8372,
+      "sha": "540f17c56c0dd06a97bd7d90c561ae427bed9ee4",
+      "preview": "- ### OntologyBlock\n  id:: trust-score-metric-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20289\n\t- preferred-term:: Trust Score Metric\n\t- definition:: A quantitative measurement representing an entity's trustworthiness, credibility, or risk level, expressed as a numerical value with associated confidence intervals and time validity, used to inform authorization decisions, transaction approvals, and access control policies.\n\t- maturity:: draft\n\t- source:: [[ETSI GS MEC]]\n"
+    },
+    {
+      "name": "Edge Orchestration.md",
+      "path": "mainKnowledgeGraph/pages/Edge Orchestration.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Edge%20Orchestration.md",
+      "size": 10189,
+      "sha": "57dfb723633ca1448ef9e97d4da1f956ceb9a3ab",
+      "preview": "- ### OntologyBlock\n  id:: edge-orchestration-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20144\n\t- preferred-term:: Edge Orchestration\n\t- definition:: The process of dynamically coordinating, allocating, and balancing computational tasks between edge nodes and cloud infrastructure to optimize latency, resource utilization, and quality of experience for immersive metaverse applications.\n\t- maturity:: mature\n\t- source:: [[IEEE P2048-3]], [[ETSI ENI 008]]\n\t- owl:class:: mv:"
+    },
+    {
+      "name": "Conversion Pipeline.md",
+      "path": "mainKnowledgeGraph/pages/Conversion Pipeline.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Conversion%20Pipeline.md",
+      "size": 9419,
+      "sha": "4c4a8f0d62dcd8f54413a93b905c6bd831044786",
+      "preview": "- ### OntologyBlock\n  id:: conversion-pipeline-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20104\n\t- preferred-term:: Conversion Pipeline\n\t- definition:: An automated workflow process that transforms digital data or assets from one format, schema, or representation to another, enabling interoperability and compatibility across heterogeneous systems and platforms.\n\t- maturity:: mature\n\t- source:: [[MSF Taxonomy 2025]], [[SIGGRAPH Pipeline WG]]\n\t- owl:class:: mv:ConversionP"
+    },
+    {
+      "name": "Data Protection.md",
+      "path": "mainKnowledgeGraph/pages/Data Protection.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Data%20Protection.md",
+      "size": 14715,
+      "sha": "e84f99cd7110238f3eccb1ae765d6aa2da73f5e3",
+      "preview": "- ### OntologyBlock\n  id:: data-protection-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20201\n\t- preferred-term:: Data Protection\n\t- definition:: A comprehensive set of processes and technologies that safeguard personal and system data in virtual environments through encryption, access control, privacy preservation, and regulatory compliance mechanisms.\n\t- maturity:: mature\n\t- source:: [[ETSI GR ARF 010]], [[GDPR]], [[ISO 27701]]\n\t- owl:class:: mv:DataProtection\n\t- owl:ph"
+    },
+    {
+      "name": "Extended Reality (XR).md",
+      "path": "mainKnowledgeGraph/pages/Extended Reality (XR).md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Extended%20Reality%20%28XR%29.md",
+      "size": 8161,
+      "sha": "a549ac5b73aff473b43b72a2a03a20d8ca1cfde0",
+      "preview": "- ### OntologyBlock\n  id:: extended-reality-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20245\n\t- preferred-term:: Extended Reality (XR)\n\t- definition:: Umbrella term encompassing all immersive technologies including Augmented Reality (AR), Virtual Reality (VR), and Mixed Reality (MR), representing the full spectrum from entirely physical to entirely virtual environments and all hybrid states between.\n\t- maturity:: mature\n\t- source:: [[ACM Glossary]], [[ISO 9241-940]]\n\t- "
+    },
+    {
+      "name": "Augmented Reality (AR).md",
+      "path": "mainKnowledgeGraph/pages/Augmented Reality (AR).md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Augmented%20Reality%20%28AR%29.md",
+      "size": 7727,
+      "sha": "00b9fdfae844e0ca9f5183632c5a3c33d76a7d56",
+      "preview": "- ### OntologyBlock\n  id:: augmented-reality-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20243\n\t- preferred-term:: Augmented Reality (AR)\n\t- definition:: Interactive system that overlays digital content (visual, audio, haptic) onto the physical environment in real time, enabling spatially-registered blended experiences where virtual information enhances physical perception.\n\t- maturity:: mature\n\t- source:: [[ISO 9241-940]], [[IEEE P2048-3]]\n\t- owl:class:: mv:AugmentedRea"
+    },
+    {
+      "name": "XR Accessibility Guideline.md",
+      "path": "mainKnowledgeGraph/pages/XR Accessibility Guideline.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/XR%20Accessibility%20Guideline.md",
+      "size": 6271,
+      "sha": "1a6d3cdce16db32362468e150e21399748a97c5e",
+      "preview": "- ### OntologyBlock\n  id:: xraccessibilityguideline-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20187\n\t- preferred-term:: XR Accessibility Guideline\n\t- definition:: Design recommendations and best practices ensuring XR applications and immersive experiences are usable by people with diverse abilities and disabilities.\n\t- maturity:: mature\n\t- source:: [[W3C XR Accessibility UR]], [[ISO 9241-112]], [[ETSI GR ARF 010]]\n\t- owl:class:: mv:XRAccessibilityGuideline\n\t- owl:physi"
+    },
+    {
+      "name": "Distributed Architecture.md",
+      "path": "mainKnowledgeGraph/pages/Distributed Architecture.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Distributed%20Architecture.md",
+      "size": 7543,
+      "sha": "b3a8ae5ce3f3c1ca1d2927ac6a7112e43e54a81a",
+      "preview": "- ### OntologyBlock\n  id:: distributedarchitecture-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20178\n\t- preferred-term:: Distributed Architecture\n\t- definition:: Network design pattern allowing multi-node operation of a shared virtual world with coordinated state management across geographic or logical boundaries.\n\t- maturity:: mature\n\t- source:: [[ETSI ARF 010]]\n\t- owl:class:: mv:DistributedArchitecture\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Object\n\t- owl:infe"
+    },
+    {
+      "name": "Virtual Lighting Model.md",
+      "path": "mainKnowledgeGraph/pages/Virtual Lighting Model.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Virtual%20Lighting%20Model.md",
+      "size": 8867,
+      "sha": "71bb6f608ec2516a22c947d75024602ee0de361a",
+      "preview": "- ### OntologyBlock\n  id:: virtuallighting-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20195\n\t- preferred-term:: Virtual Lighting Model\n\t- definition:: Mathematical description of light behavior for rendering realistic illumination in 3D scenes, simulating light emission, transport, and surface interaction.\n\t- maturity:: mature\n\t- source:: [[SIGGRAPH Standards]]\n\t- owl:class:: mv:VirtualLightingModel\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Process\n\t- owl:inferre"
+    },
+    {
+      "name": "Reputation Scoring Model.md",
+      "path": "mainKnowledgeGraph/pages/Reputation Scoring Model.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Reputation%20Scoring%20Model.md",
+      "size": 8347,
+      "sha": "52fd1b5858037746735d5842bdfc33eb7198f3b8",
+      "preview": "- ### OntologyBlock\n  id:: reputation-scoring-model-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20288\n\t- preferred-term:: Reputation Scoring Model\n\t- definition:: An algorithmic process that computes quantitative reputation scores by aggregating behavioral data, applying weighted scoring functions, implementing temporal decay, and evaluating threshold conditions to generate trust indicators for entities in virtual environments.\n\t- maturity:: draft\n\t- source:: [[ETSI GS M"
+    },
+    {
+      "name": "Digital Well-Being Index.md",
+      "path": "mainKnowledgeGraph/pages/Digital Well-Being Index.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Digital%20Well-Being%20Index.md",
+      "size": 8525,
+      "sha": "27a55c718c132c633bef41d9c2dfd6fbe272464b",
+      "preview": "- ### OntologyBlock\n  id:: digital-well-being-index-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20259\n\t- preferred-term:: Digital Well-Being Index\n\t- definition:: Composite indicator assessing psychological, social, physical, and temporal impacts of extended virtual engagement, providing quantitative measures of healthy metaverse usage patterns.\n\t- maturity:: mature\n\t- source:: [[WHO Digital Well-Being Metrics]]\n\t- owl:class:: mv:DigitalWellBeingIndex\n\t- owl:physicality:"
+    },
+    {
+      "name": "Smart Royalties Ledger.md",
+      "path": "mainKnowledgeGraph/pages/Smart Royalties Ledger.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Smart%20Royalties%20Ledger.md",
+      "size": 10552,
+      "sha": "7d4dd9d8a45f3962080a11da4e7bcde371a98dc5",
+      "preview": "- ### OntologyBlock\n  id:: smart-royalties-ledger-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20271\n\t- preferred-term:: Smart Royalties Ledger\n\t- definition:: An automated tracking and distribution system that records creator royalty obligations, calculates payment amounts, and executes compensation transfers for digital content and NFT sales in virtual economy environments.\n\t- maturity:: mature\n\t- source:: [[ETSI GS MEC 003]]\n\t- owl:class:: mv:SmartRoyaltiesLedger\n\t- ow"
+    },
+    {
+      "name": "Smart Royalty Contract.md",
+      "path": "mainKnowledgeGraph/pages/Smart Royalty Contract.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Smart%20Royalty%20Contract.md",
+      "size": 10973,
+      "sha": "537d62d7434499016bd295aa9004ebaa5d200de8",
+      "preview": "- ### OntologyBlock\n  id:: smart-royalty-contract-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20272\n\t- preferred-term:: Smart Royalty Contract\n\t- definition:: A programmable blockchain contract that automatically enforces royalty payment terms, calculates compensation amounts, and triggers distributions to creators and rights holders upon qualifying transactions in NFT and digital asset ecosystems.\n\t- maturity:: mature\n\t- source:: [[EIP-2981]]\n\t- owl:class:: mv:SmartRoya"
+    },
+    {
+      "name": "Synthetic Data Generator.md",
+      "path": "mainKnowledgeGraph/pages/Synthetic Data Generator.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Synthetic%20Data%20Generator.md",
+      "size": 9677,
+      "sha": "f1eed6578f27767e09eb66db4b9e1a9d1c62c6f6",
+      "preview": "- ### OntologyBlock\n  id:: synthetic-data-generator-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20205\n\t- preferred-term:: Synthetic Data Generator\n\t- definition:: AI-powered system that produces artificial datasets preserving statistical properties and structural characteristics of original data while protecting privacy and enabling testing scenarios.\n\t- maturity:: mature\n\t- source:: [[ISO/IEC 5259]], [[OECD AI]], [[IEEE P2048-9]]\n\t- owl:class:: mv:SyntheticDataGenerator"
+    },
+    {
+      "name": "Semantic Metadata Registry.md",
+      "path": "mainKnowledgeGraph/pages/Semantic Metadata Registry.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Semantic%20Metadata%20Registry.md",
+      "size": 8409,
+      "sha": "84c668d9f4bf8b204e325ce04b03a4f79f5322cf",
+      "preview": "- ### OntologyBlock\n  id:: semantic-metadata-registry-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20306\n\t- preferred-term:: Semantic Metadata Registry\n\t- definition:: A centralized catalog managing structured metadata schemas, controlled vocabularies, and semantic relationships to enable consistent asset description, cross-platform interoperability, and intelligent discovery.\n\t- maturity:: draft\n\t- source:: [[W3C Semantic Web Standards]]\n\t- owl:class:: mv:SemanticMetadat"
+    },
+    {
+      "name": "Digital Tax Compliance Node.md",
+      "path": "mainKnowledgeGraph/pages/Digital Tax Compliance Node.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Digital%20Tax%20Compliance%20Node.md",
+      "size": 8200,
+      "sha": "858d4a88d7c3ee3fc21407caa436650b998d3e02",
+      "preview": "- ### OntologyBlock\n  id:: digital-tax-compliance-node-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20275\n\t- preferred-term:: Digital Tax Compliance Node\n\t- definition:: An automated virtual system that calculates, reports, and ensures tax compliance for digital transactions across multiple jurisdictions in real-time.\n\t- maturity:: mature\n\t- source:: [[OECD Digital Tax Framework]], [[EU DAC7]]\n\t- owl:class:: mv:DigitalTaxComplianceNode\n\t- owl:physicality:: VirtualEntity\n\t"
+    },
+    {
+      "name": "Generative Design Tool.md",
+      "path": "mainKnowledgeGraph/pages/Generative Design Tool.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Generative%20Design%20Tool.md",
+      "size": 13456,
+      "sha": "d3ab0ee8f5f6ec6a19a12031dda7aa4c6e57d29c",
+      "preview": "- ### OntologyBlock\n  id:: generative-design-tool-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20116\n\t- preferred-term:: Generative Design Tool\n\t- definition:: AI-assisted software application that produces optimized 3D designs from functional constraints using machine learning and computational algorithms.\n\t- maturity:: mature\n\t- source:: [[Autodesk Design ML]], [[SIGGRAPH AI Design WG]]\n\t- owl:class:: mv:GenerativeDesignTool\n\t- owl:physicality:: VirtualEntity\n\t- owl:rol"
+    },
+    {
+      "name": "ETSI_Domain_Immersive___Reality_Capture.md",
+      "path": "mainKnowledgeGraph/pages/ETSI_Domain_Immersive___Reality_Capture.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/ETSI_Domain_Immersive___Reality_Capture.md",
+      "size": 4328,
+      "sha": "246a90f9165955b004b9fcad172c1b4e67d932b8",
+      "preview": "- ### OntologyBlock\n  id:: etsi-domain-immersive-reality-capture-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20360\n\t- preferred-term:: ETSI Domain Immersive + Reality Capture Crossover\n\t- definition:: Domain categorization marker indicating metaverse systems operating at the intersection of immersive interaction capabilities and reality capture technologies for photorealistic virtual environment creation.\n\t- maturity:: mature\n\t- source:: [[ETSI GR MEC 032]], [[ISO 23257]"
+    },
+    {
+      "name": "Verifiable Credential (VC).md",
+      "path": "mainKnowledgeGraph/pages/Verifiable Credential (VC).md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Verifiable%20Credential%20%28VC%29.md",
+      "size": 10118,
+      "sha": "72b8d135895471659ef51dd9da9bf7b19a44c209",
+      "preview": "- ### OntologyBlock\n  id:: verifiable-credential-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20282\n\t- preferred-term:: Verifiable Credential (VC)\n\t- definition:: A W3C standard for tamper-evident credentials that can be cryptographically verified, containing claims made by an issuer about a subject, enabling trustable digital attestations without requiring direct communication with the issuer.\n\t- maturity:: mature\n\t- source:: [[W3C Verifiable Credentials Data Model]]\n\t- "
+    },
+    {
+      "name": "Digital Goods Registry.md",
+      "path": "mainKnowledgeGraph/pages/Digital Goods Registry.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Digital%20Goods%20Registry.md",
+      "size": 17071,
+      "sha": "d91432014ed64d4ea187233fb414696c63b532fa",
+      "preview": "- ### OntologyBlock\n  id:: digital-goods-registry-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20125\n\t- preferred-term:: Digital Goods Registry\n\t- definition:: Centralized or distributed system for cataloging, tracking, and managing digital goods and virtual assets across metaverse platforms, providing authoritative records of existence, ownership, and provenance.\n\t- maturity:: mature\n\t- source:: [[ETSI ARF 010]], [[OMA3 Media WG]]\n\t- owl:class:: mv:DigitalGoodsRegistry\n\t"
+    },
+    {
+      "name": "Federated Credential Exchange.md",
+      "path": "mainKnowledgeGraph/pages/Federated Credential Exchange.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Federated%20Credential%20Exchange.md",
+      "size": 8195,
+      "sha": "e7f6bd48bc7448c98bc2d534407d72a41775c1f9",
+      "preview": "- ### OntologyBlock\n  id:: federated-credential-exchange-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20286\n\t- preferred-term:: Federated Credential Exchange\n\t- definition:: A cross-platform workflow process that enables secure sharing and translation of identity credentials between different identity providers using standardized protocols, attribute mapping, and user consent mechanisms.\n\t- maturity:: mature\n\t- source:: [[SAML 2.0]], [[OpenID Connect]], [[W3C Verifiable C"
+    },
+    {
+      "name": "Health Metaverse Application.md",
+      "path": "mainKnowledgeGraph/pages/Health Metaverse Application.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Health%20Metaverse%20Application.md",
+      "size": 8931,
+      "sha": "bc1c60c2c6387b7281a86ec507694f92e119e89e",
+      "preview": "- ### OntologyBlock\n  id:: health-metaverse-application-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20311\n\t- preferred-term:: Health Metaverse Application\n\t- definition:: A specialized virtual platform integrating healthcare delivery, medical training, therapeutic interventions, and patient engagement through immersive environments that comply with health data regulations and clinical standards.\n\t- maturity:: mature\n\t- source:: [[HL7 FHIR]], [[DICOM]], [[FDA Digital Heal"
+    },
+    {
+      "name": "Decentralized Identity (DID).md",
+      "path": "mainKnowledgeGraph/pages/Decentralized Identity (DID).md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Decentralized%20Identity%20%28DID%29.md",
+      "size": 8986,
+      "sha": "4c561a0da332e46472979d0803ad75169c738d51",
+      "preview": "- ### OntologyBlock\n  id:: decentralized-identity-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20280\n\t- preferred-term:: Decentralized Identity (DID)\n\t- definition:: A W3C standard for self-sovereign digital identities that are globally unique, cryptographically verifiable, and controlled by the identity subject without requiring centralized authorities.\n\t- maturity:: mature\n\t- source:: [[W3C DID Core Specification]]\n\t- owl:class:: mv:DecentralizedIdentity\n\t- owl:physical"
+    },
+    {
+      "name": "Cross-Platform Compliance Hub.md",
+      "path": "mainKnowledgeGraph/pages/Cross-Platform Compliance Hub.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Cross-Platform%20Compliance%20Hub.md",
+      "size": 8830,
+      "sha": "91181696e59289866a83f2254447b2dcf172ae55",
+      "preview": "- ### OntologyBlock\n  id:: crossplatformcompliancehub-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20296\n\t- preferred-term:: Cross-Platform Compliance Hub\n\t- definition:: A unified regulatory compliance system that harmonizes and coordinates compliance activities across multiple platforms, jurisdictions, and regulatory frameworks through centralized policy management and audit aggregation.\n\t- maturity:: draft\n\t- source:: [[ISO 27001]], [[GDPR]], [[SOC 2]]\n\t- owl:class:: m"
+    },
+    {
+      "name": "Data Integration Interface.md",
+      "path": "mainKnowledgeGraph/pages/Data Integration Interface.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Data%20Integration%20Interface.md",
+      "size": 12017,
+      "sha": "a083b542f7c93d3c396d0e7c0b1ecff91347825d",
+      "preview": "- ### OntologyBlock\n  id:: data-integration-interface-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20106\n\t- preferred-term:: Data Integration Interface\n\t- definition:: A standardized set of protocols, rules, and formats for unifying and mediating data flows across heterogeneous platforms, enabling seamless data exchange and interoperability.\n\t- maturity:: mature\n\t- source:: [[ETSI GR ARF 010]], [[ISO 23247]]\n\t- owl:class:: mv:DataIntegrationInterface\n\t- owl:physicality:: "
+    },
+    {
+      "name": "Content Delivery Network (CDN).md",
+      "path": "mainKnowledgeGraph/pages/Content Delivery Network (CDN).md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Content%20Delivery%20Network%20%28CDN%29.md",
+      "size": 8738,
+      "sha": "a8259f110ac5128455dd2a2899e860632423fd9f",
+      "preview": "- ### OntologyBlock\n  id:: content-delivery-network-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20103\n\t- preferred-term:: Content Delivery Network (CDN)\n\t- definition:: A geographically distributed network of proxy servers and data centers designed to provide high availability, high performance, and low latency content delivery by caching content closer to end-users.\n\t- maturity:: mature\n\t- source:: [[EWG/MSF taxonomy]], [[ETSI GR ARF 010]]\n\t- owl:class:: mv:ContentDeliv"
+    },
+    {
+      "name": "Digital Curation Platform.md",
+      "path": "mainKnowledgeGraph/pages/Digital Curation Platform.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Digital%20Curation%20Platform.md",
+      "size": 17168,
+      "sha": "4c64b36e22508daad89898a70a8ec29871e65128",
+      "preview": "- ### OntologyBlock\n  id:: digital-curation-platform-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20124\n\t- preferred-term:: Digital Curation Platform\n\t- definition:: Integrated system for organizing, preserving, managing, and providing long-term access to digital cultural artifacts, collections, and heritage materials in metaverse environments.\n\t- maturity:: mature\n\t- source:: [[UNESCO Digital Heritage]], [[ISO 21127]]\n\t- owl:class:: mv:DigitalCurationPlatform\n\t- owl:phys"
+    },
+    {
+      "name": "Digital Twin Synchronisation Bus.md",
+      "path": "mainKnowledgeGraph/pages/Digital Twin Synchronisation Bus.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Digital%20Twin%20Synchronisation%20Bus.md",
+      "size": 8306,
+      "sha": "e697e84570caaafd3e7f93d550abad7cbbf8d592",
+      "preview": "- ### OntologyBlock\n  id:: digitaltwinsynchbus-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20248\n\t- preferred-term:: Digital Twin Synchronisation Bus\n\t- definition:: Middleware infrastructure maintaining real-time state coherence and bidirectional synchronization among distributed digital twin instances through event streaming and conflict resolution.\n\t- maturity:: mature\n\t- source:: [[ISO 23247 Addendum]]\n\t- owl:class:: mv:DigitalTwinSynchronisationBus\n\t- owl:physicalit"
+    },
+    {
+      "name": "Digital Evidence Chain of Custody.md",
+      "path": "mainKnowledgeGraph/pages/Digital Evidence Chain of Custody.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Digital%20Evidence%20Chain%20of%20Custody.md",
+      "size": 7820,
+      "sha": "6626207168f5fdaac110187895253fd2eddbc842",
+      "preview": "- ### OntologyBlock\n  id:: digital-evidence-chain-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20218\n\t- preferred-term:: Digital Evidence Chain of Custody\n\t- definition:: Forensic procedure preserving integrity and authenticity of digital evidence through cryptographic sealing and immutable logging from capture to legal presentation.\n\t- maturity:: mature\n\t- source:: [[ISO 27037]]\n\t- owl:class:: mv:DigitalEvidenceChain\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Proce"
+    },
+    {
+      "name": "Data Anonymization Pipeline.md",
+      "path": "mainKnowledgeGraph/pages/Data Anonymization Pipeline.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Data%20Anonymization%20Pipeline.md",
+      "size": 15234,
+      "sha": "2c4139e809fc101768c0cde7537877b85a45e784",
+      "preview": "- ### OntologyBlock\n  id:: data-anonymization-pipeline-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20200\n\t- preferred-term:: Data Anonymization Pipeline\n\t- definition:: An automated, multi-stage process that systematically removes, masks, or generalizes personally identifiable information (PII) from datasets to protect individual privacy while preserving data utility for analysis.\n\t- maturity:: mature\n\t- source:: [[ISO 20889]], [[ENISA Anonymization Guide]]\n\t- owl:class:"
+    },
+    {
+      "name": "Digital Rights Management (Extended).md",
+      "path": "mainKnowledgeGraph/pages/Digital Rights Management (Extended).md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Digital%20Rights%20Management%20%28Extended%29.md",
+      "size": 9398,
+      "sha": "a4259c83cb86f863893fe42e10249d1e82b46651",
+      "preview": "- ### OntologyBlock\n  id:: digital-rights-management-extended-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20276\n\t- preferred-term:: Digital Rights Management (Extended)\n\t- definition:: A comprehensive virtual system for protecting, licensing, and enforcing usage rights for digital content through encryption, access control, and automated rights enforcement mechanisms.\n\t- maturity:: mature\n\t- source:: [[ISO/IEC 21000 MPEG-21]], [[W3C Web DRM]]\n\t- owl:class:: mv:DigitalRig"
+    },
+    {
+      "name": "Distributed Ledger Technology (DLT).md",
+      "path": "mainKnowledgeGraph/pages/Distributed Ledger Technology (DLT).md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Distributed%20Ledger%20Technology%20%28DLT%29.md",
+      "size": 10879,
+      "sha": "380a06ea09a8281301f3a636779b72e99eef7fe1",
+      "preview": "- ### OntologyBlock\n  id:: dlt-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20278\n\t- preferred-term:: Distributed Ledger Technology (DLT)\n\t- definition:: Distributed database infrastructure using cryptographic consensus mechanisms to maintain immutable, tamper-resistant records across decentralized peer-to-peer networks without centralized authority.\n\t- maturity:: mature\n\t- source:: [[ISO 22739]], [[NIST Blockchain Technology Overview]]\n\t- owl:class:: mv:DistributedLedger"
+    },
+    {
+      "name": "Central Bank Digital Currency (CBDC).md",
+      "path": "mainKnowledgeGraph/pages/Central Bank Digital Currency (CBDC).md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Central%20Bank%20Digital%20Currency%20%28CBDC%29.md",
+      "size": 20649,
+      "sha": "79ef3929e6018a920d175d692abf74258519b7d8",
+      "preview": "- ### OntologyBlock\n  id:: cbdc-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20131\n\t- preferred-term:: Central Bank Digital Currency (CBDC)\n\t- definition:: Sovereign digital currency issued and backed by a central bank for use in retail or wholesale payment systems, functioning as legal tender in digital form.\n\t- maturity:: mature\n\t- source:: [[BIS CBDC Blueprint]], [[IMF CBDC Notes]], [[ISO 24165]]\n\t- owl:class:: mv:CBDC\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: O"
+    },
+    {
+      "name": "Decentralized Autonomous Organization (DAO).md",
+      "path": "mainKnowledgeGraph/pages/Decentralized Autonomous Organization (DAO).md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Decentralized%20Autonomous%20Organization%20%28DAO%29.md",
+      "size": 9139,
+      "sha": "bf7ee812cf1aca087d6def24cfb1a1ce60bd1ab1",
+      "preview": "- ### OntologyBlock\n  id:: dao-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20261\n\t- preferred-term:: Decentralized Autonomous Organization (DAO)\n\t- definition:: Autonomous governance entity operating through rules encoded in smart contracts, enabling collective decision-making, treasury management, and organizational operations without centralized authority.\n\t- maturity:: mature\n\t- source:: [[Reed Smith]], [[Dentons]]\n\t- owl:class:: mv:DecentralizedAutonomousOrganization"
+    },
+    {
+      "name": "Presence.md",
+      "path": "mainKnowledgeGraph/pages/Presence.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Presence.md",
+      "size": 5788,
+      "sha": "bfe4396d735980b8e116645bad8a02536b25c5c7",
+      "preview": "- ### OntologyBlock\n  id:: presence-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20256\n\t- preferred-term:: Presence\n\t- definition:: Perceptual state in which a user feels located inside a virtual or mixed environment, experiencing spatial, social, and self presence.\n\t- maturity:: mature\n\t- source:: [[ACM]]\n\t- owl:class:: mv:Presence\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Object\n\t- owl:inferred-class:: mv:VirtualObject\n\t- owl:functional-syntax:: true\n\t- belongsTo"
+    },
+    {
+      "name": "ETSI_Domain_AI.md",
+      "path": "mainKnowledgeGraph/pages/ETSI_Domain_AI.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/ETSI_Domain_AI.md",
+      "size": 4645,
+      "sha": "96267ce09e703aaf53c6b7ebee46ebe93b5b9f2b",
+      "preview": "- ### OntologyBlock\n  id:: etsi-domain-ai-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20330\n\t- preferred-term:: ETSI Domain AI\n\t- definition:: Domain marker concept for categorizing metaverse components related to artificial intelligence, machine learning, and computational intelligence capabilities.\n\t- maturity:: mature\n\t- source:: [[ETSI GS MEC]]\n\t- owl:class:: mv:ETSIDomainAI\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Object\n\t- owl:inferred-class:: mv:VirtualObj"
+    },
+    {
+      "name": "Latency.md",
+      "path": "mainKnowledgeGraph/pages/Latency.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Latency.md",
+      "size": 7994,
+      "sha": "dc445dd35a16e1dad4f49d85968ab2c894d04b96",
+      "preview": "- ### OntologyBlock\n  id:: latency-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20148\n\t- preferred-term:: Latency\n\t- definition:: Virtual performance metric representing the time delay between a user action and corresponding system response within networked immersive environments.\n\t- maturity:: mature\n\t- source:: [[ETSI ARF 010]]\n\t- owl:class:: mv:Latency\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Object\n\t- owl:inferred-class:: mv:VirtualObject\n\t- owl:functional-syn"
+    },
+    {
+      "name": "NFT Renting.md",
+      "path": "mainKnowledgeGraph/pages/NFT Renting.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/NFT%20Renting.md",
+      "size": 6836,
+      "sha": "a0d13c1f7fd663b6b23b2c787b5b3a991ba6c2a7",
+      "preview": "- ### OntologyBlock\n  id:: nft-renting-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20213\n\t- preferred-term:: NFT Renting\n\t- definition:: Process of temporarily assigning usage rights for a non-fungible token without transferring ownership, enforced through smart contract time-bound licensing mechanisms.\n\t- maturity:: mature\n\t- source:: [[MSF Use Cases]]\n\t- owl:class:: mv:NFTRenting\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Process\n\t- owl:inferred-class:: mv:Virtua"
+    },
+    {
+      "name": "Platform Layer.md",
+      "path": "mainKnowledgeGraph/pages/Platform Layer.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Platform%20Layer.md",
+      "size": 6380,
+      "sha": "361abdf08264dde6d91f2398a9745553733abf55",
+      "preview": "- ### OntologyBlock\n  id:: platform-layer-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20171\n\t- preferred-term:: Platform Layer\n\t- definition:: Architectural tier providing core platform services including identity, world state management, and asset services upon which metaverse applications are built.\n\t- maturity:: mature\n\t- source:: [[EWG/MSF Taxonomy]]\n\t- owl:class:: mv:PlatformLayer\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Object\n\t- owl:inferred-class:: mv:Vir"
+    },
+    {
+      "name": "Networking Layer.md",
+      "path": "mainKnowledgeGraph/pages/Networking Layer.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Networking%20Layer.md",
+      "size": 5703,
+      "sha": "8a337cc7eba809607bc56c81e2a78a48fcff14d6",
+      "preview": "- ### OntologyBlock\n  id:: networking-layer-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20170\n\t- preferred-term:: Networking Layer\n\t- definition:: Communication systems that connect components and users across distributed metaverse environments through network protocols and software.\n\t- maturity:: mature\n\t- source:: [[MSF Taxonomy 2025]]\n\t- owl:class:: mv:NetworkingLayer\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Object\n\t- owl:inferred-class:: mv:VirtualObject\n\t- o"
+    },
+    {
+      "name": "Edge Network.md",
+      "path": "mainKnowledgeGraph/pages/Edge Network.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Edge%20Network.md",
+      "size": 7299,
+      "sha": "7ac2809e8893953c045f7fb54e69063cddf20d00",
+      "preview": "- ### OntologyBlock\n  id:: edge-network-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20143\n\t- preferred-term:: Edge Network\n\t- definition:: Distributed set of computing nodes providing local processing close to users to improve performance, reduce latency, and optimize bandwidth for immersive applications.\n\t- maturity:: draft\n\t- source:: [[ETSI ARF 010]], [[IEEE P2048-3]]\n\t- owl:class:: mv:EdgeNetwork\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Object\n\t- owl:inferred"
+    },
+    {
+      "name": "Ethical Framework.md",
+      "path": "mainKnowledgeGraph/pages/Ethical Framework.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Ethical%20Framework.md",
+      "size": 5756,
+      "sha": "dc6004b7f37ef0a8f3affc4d22b8aac8660cdde8",
+      "preview": "- ### OntologyBlock\n  id:: ethical-framework-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20182\n\t- preferred-term:: Ethical Framework\n\t- definition:: Structured set of principles guiding responsible conduct and design within virtual environments.\n\t- maturity:: mature\n\t- source:: [[ETSI GR ARF 010]], [[ACM]]\n\t- owl:class:: mv:EthicalFramework\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Object\n\t- owl:inferred-class:: mv:VirtualObject\n\t- owl:functional-syntax:: true\n\t- "
+    },
+    {
+      "name": "Compute Layer.md",
+      "path": "mainKnowledgeGraph/pages/Compute Layer.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Compute%20Layer.md",
+      "size": 7427,
+      "sha": "02c18ba1027aa13cd9d3ad7a9de9da749e3c6e6f",
+      "preview": "- ### OntologyBlock\n  id:: computelayer-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20161\n\t- preferred-term:: Compute Layer\n\t- definition:: Software layer managing computational resources and orchestration for rendering, simulation, physics, AI processing, and real-time processing within metaverse systems.\n\t- maturity:: mature\n\t- source:: [[MSF Taxonomy 2025]]\n\t- owl:class:: mv:ComputeLayer\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Object\n\t- owl:inferred-class:: m"
+    },
+    {
+      "name": "Crypto Token.md",
+      "path": "mainKnowledgeGraph/pages/Crypto Token.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Crypto%20Token.md",
+      "size": 8034,
+      "sha": "e8ce25f001c56ebdac3a72285aed7d59308e489b",
+      "preview": "- ### OntologyBlock\n  id:: cryptotoken-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20133\n\t- preferred-term:: Crypto Token\n\t- definition:: A blockchain-based programmable token representing assets, rights, or utility within a decentralized system, with transferability governed by smart contract logic.\n\t- maturity:: mature\n\t- source:: [[Reed Smith]], [[ISO 24165]]\n\t- owl:class:: mv:CryptoToken\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Object\n\t- owl:inferred-class:: "
+    },
+    {
+      "name": "Spatial Index.md",
+      "path": "mainKnowledgeGraph/pages/Spatial Index.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Spatial%20Index.md",
+      "size": 7890,
+      "sha": "fd30be83d675e2545cd03b19b6b2c557a0ba03b7",
+      "preview": "- ### OntologyBlock\n  id:: spatialindex-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20249\n\t- preferred-term:: Spatial Index\n\t- definition:: Data structure optimized for efficient storage, retrieval, and querying of 3D spatial objects within virtual worlds using hierarchical geometric partitioning.\n\t- maturity:: mature\n\t- source:: [[EWG/MSF taxonomy]]\n\t- owl:class:: mv:SpatialIndex\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Object\n\t- owl:inferred-class:: mv:VirtualO"
+    },
+    {
+      "name": "Identity Graph.md",
+      "path": "mainKnowledgeGraph/pages/Identity Graph.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Identity%20Graph.md",
+      "size": 7404,
+      "sha": "c53498c49e03e429de3f12d4fe785c7214fa957c",
+      "preview": "- ### OntologyBlock\n  id:: identity-graph-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20285\n\t- preferred-term:: Identity Graph\n\t- definition:: A network-based data structure representing entities, their digital identities, and relationships in a graph database optimized for identity resolution, trust scoring, and social network analysis.\n\t- maturity:: mature\n\t- source:: [[W3C Verifiable Credentials]], [[DIF Universal Resolver]]\n\t- owl:class:: mv:IdentityGraph\n\t- owl:phys"
+    },
+    {
+      "name": "Audit Trail.md",
+      "path": "mainKnowledgeGraph/pages/Audit Trail.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Audit%20Trail.md",
+      "size": 10154,
+      "sha": "3e87de998516b1116cca9834bbefb1331585c62e",
+      "preview": "- ### OntologyBlock\n  id:: audit-trail-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20121\n\t- preferred-term:: Audit Trail\n\t- definition:: A chronological, tamper-evident record of system activities, transactions, and events that enables reconstruction and verification of sequences of operations for compliance, security, and forensic analysis.\n\t- maturity:: mature\n\t- source:: [[ETSI GR ARF 010]]\n\t- owl:class:: mv:AuditTrail\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: "
+    },
+    {
+      "name": "Testing Process.md",
+      "path": "mainKnowledgeGraph/pages/Testing Process.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Testing%20Process.md",
+      "size": 7345,
+      "sha": "789c7978be8cbcf97610451b19e550930f759131",
+      "preview": "- ### OntologyBlock\n  id:: testing-process-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20207\n\t- preferred-term:: Testing Process\n\t- definition:: Systematic execution of verification and validation operations to detect faults, verify functionality, and ensure quality standards in metaverse systems and applications.\n\t- maturity:: mature\n\t- source:: [[MSF Taxonomy 2025]]\n\t- owl:class:: mv:TestingProcess\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Process\n\t- owl:inferre"
+    },
+    {
+      "name": "Motion Capture Rig.md",
+      "path": "mainKnowledgeGraph/pages/Motion Capture Rig.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Motion%20Capture%20Rig.md",
+      "size": 6204,
+      "sha": "2d170d8282504d7a28b11d5636a1860d11fdb4e2",
+      "preview": "- ### OntologyBlock\n  id:: motioncapturerig-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20155\n\t- preferred-term:: Motion Capture Rig\n\t- definition:: Physical hardware or software system capturing human motion for animation or simulation through cameras, markers, sensors, and tracking infrastructure.\n\t- maturity:: mature\n\t- source:: [[ISO/IEC 17820]]\n\t- owl:class:: mv:MotionCaptureRig\n\t- owl:physicality:: PhysicalEntity\n\t- owl:role:: Object\n\t- owl:inferred-class:: mv:Phys"
+    },
+    {
+      "name": "Voice Interaction.md",
+      "path": "mainKnowledgeGraph/pages/Voice Interaction.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Voice%20Interaction.md",
+      "size": 6659,
+      "sha": "83cc990f2c712b56b56e5f8cafed5f48422e8c49",
+      "preview": "- ### OntologyBlock\n  id:: voiceinteraction-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20257\n\t- preferred-term:: Voice Interaction\n\t- definition:: Communication method enabling control and conversation through speech recognition, natural language understanding, and text-to-speech synthesis.\n\t- maturity:: mature\n\t- source:: [[ACM + ETSI]]\n\t- owl:class:: mv:VoiceInteraction\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Process\n\t- owl:inferred-class:: mv:VirtualProcess\n"
+    },
+    {
+      "name": "Emotional Immersion.md",
+      "path": "mainKnowledgeGraph/pages/Emotional Immersion.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Emotional%20Immersion.md",
+      "size": 5939,
+      "sha": "e719edd05784011516b3a5876193c56dd54ca261",
+      "preview": "- ### OntologyBlock\n  id:: emotional-immersion-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20254\n\t- preferred-term:: Emotional Immersion\n\t- definition:: Psychological absorption and empathetic engagement experienced during virtual interaction, characterized by affective resonance with virtual content and reduced awareness of physical surroundings.\n\t- maturity:: mature\n\t- source:: [[ACM]]\n\t- owl:class:: mv:EmotionalImmersion\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:"
+    },
+    {
+      "name": "Spatial Computing Layer.md",
+      "path": "mainKnowledgeGraph/pages/Spatial Computing Layer.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Spatial%20Computing%20Layer.md",
+      "size": 4864,
+      "sha": "14fdccdba94609f64597a904882dc5d20691b69e",
+      "preview": "- ### OntologyBlock\r\n  id:: spatial-computing-layer-ontology\r\n  collapsed:: true\r\n\t- metaverseOntology:: true\r\n\t- term-id:: 20174\r\n\t- preferred-term:: Spatial Computing Layer\r\n\t- definition:: Computational layer linking digital and physical spaces through 3D mapping and context-aware processing for spatial awareness and interaction.\r\n\t- maturity:: mature\r\n\t- source:: [[MSF Taxonomy 2025]]\r\n\t- owl:class:: mv:SpatialComputingLayer\r\n\t- owl:physicality:: VirtualEntity\r\n\t- owl:role:: Object\r\n\t- owl:i"
+    },
+    {
+      "name": "Reputation Data.md",
+      "path": "mainKnowledgeGraph/pages/Reputation Data.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Reputation%20Data.md",
+      "size": 7811,
+      "sha": "c34408ae8d3a1f8be2ab33148e02d610ea9e1865",
+      "preview": "- ### OntologyBlock\n  id:: reputation-data-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20287\n\t- preferred-term:: Reputation Data\n\t- definition:: A structured dataset containing historical records of user behavior, transaction outcomes, peer feedback, and trust metrics used to calculate reputation scores in peer-to-peer systems and virtual communities.\n\t- maturity:: mature\n\t- source:: [[W3C Verifiable Credentials]], [[OpenReputation Protocol]]\n\t- owl:class:: mv:Reputation"
+    },
+    {
+      "name": "Infrastructure Layer.md",
+      "path": "mainKnowledgeGraph/pages/Infrastructure Layer.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Infrastructure%20Layer.md",
+      "size": 5723,
+      "sha": "b00789c0b3b2fe5995aa26b21aeb0ef85eb5eefa",
+      "preview": "- ### OntologyBlock\n  id:: infrastructurelayer-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20169\n\t- preferred-term:: Infrastructure Layer\n\t- definition:: Foundational base layer providing computing, storage, and network capabilities that enable metaverse applications and services to operate at scale.\n\t- maturity:: mature\n\t- source:: [[MSF Taxonomy 2025]]\n\t- owl:class:: mv:InfrastructureLayer\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Object\n\t- owl:inferred-class:: "
+    },
+    {
+      "name": "Middleware.md",
+      "path": "mainKnowledgeGraph/pages/Middleware.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Middleware.md",
+      "size": 12756,
+      "sha": "e6424c616ccc5d9f3bca74bda591c89ad1e15da5",
+      "preview": "- ### OntologyBlock\n  id:: middleware-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20117\n\t- preferred-term:: Middleware\n\t- definition:: Software layer that mediates between applications and underlying services or infrastructure to enable communication, resource access, and interoperability.\n\t- maturity:: mature\n\t- source:: [[EWG/MSF Taxonomy]], [[ISO/IEC 30170]], [[ETSI GR ARF 010]]\n\t- owl:class:: mv:Middleware\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Object\n\t- ow"
+    },
+    {
+      "name": "Cognitive Load Metric.md",
+      "path": "mainKnowledgeGraph/pages/Cognitive Load Metric.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Cognitive%20Load%20Metric.md",
+      "size": 5506,
+      "sha": "2ec93b011ce810e8784e44c2c464bbf88673f6c5",
+      "preview": "- ### OntologyBlock\n  id:: cognitive-load-metric-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20253\n\t- preferred-term:: Cognitive Load Metric\n\t- definition:: Quantitative measure of mental effort required during virtual interaction tasks, typically assessed using standardized scales like NASA-TLX.\n\t- maturity:: mature\n\t- source:: [[ISO 9241-112]]\n\t- owl:class:: mv:CognitiveLoadMetric\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Object\n\t- owl:inferred-class:: mv:Virtua"
+    },
+    {
+      "name": "ETSI_Domain_Ethics_&_Law.md",
+      "path": "mainKnowledgeGraph/pages/ETSI_Domain_Ethics_&_Law.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/ETSI_Domain_Ethics_%26_Law.md",
+      "size": 4799,
+      "sha": "d6d898bd86a6ee97dc70cc390f6ba88d21e03c79",
+      "preview": "- ### OntologyBlock\n  id:: etsi-domain-ethics-law-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20347\n\t- preferred-term:: ETSI Domain: Ethics & Law\n\t- definition:: Domain marker for ETSI metaverse categorization covering ethical frameworks, legal compliance, regulatory requirements, and responsible governance structures for virtual environments.\n\t- maturity:: mature\n\t- source:: [[ETSI GR MEC 032]]\n\t- owl:class:: mv:ETSIDomain_EthicsLaw\n\t- owl:physicality:: VirtualEntity\n\t-"
+    },
+    {
+      "name": "ETSI_Domain_AI___Data_Mgmt.md",
+      "path": "mainKnowledgeGraph/pages/ETSI_Domain_AI___Data_Mgmt.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/ETSI_Domain_AI___Data_Mgmt.md",
+      "size": 4427,
+      "sha": "3466c68a9e8eea4e995cad51bfe5870d003a6726",
+      "preview": "- ### OntologyBlock\n  id:: etsi-domain-ai-data-mgmt-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20332\n\t- preferred-term:: ETSI Domain AI + Data Mgmt\n\t- definition:: Cross-domain marker for metaverse components combining artificial intelligence with data management capabilities including ML pipelines, intelligent data processing, analytics, and AI-driven data governance.\n\t- maturity:: mature\n\t- source:: [[ETSI GS MEC]]\n\t- owl:class:: mv:ETSIDomainAIDataMgmt\n\t- owl:physica"
+    },
+    {
+      "name": "Play-to-Earn (P2E).md",
+      "path": "mainKnowledgeGraph/pages/Play-to-Earn (P2E).md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Play-to-Earn%20%28P2E%29.md",
+      "size": 6756,
+      "sha": "b3bd1a34b968cfef54a93c7d8bd8d52dacd74399",
+      "preview": "- ### OntologyBlock\n  id:: play-to-earn-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20267\n\t- preferred-term:: Play-to-Earn (P2E)\n\t- definition:: Economic model and gameplay process where users gain real-world value through virtual participation, task completion, and reward distribution mechanisms that convert in-game achievements into tradeable assets.\n\t- maturity:: mature\n\t- source:: [[Metaverse 101]]\n\t- owl:class:: mv:PlayToEarn\n\t- owl:physicality:: VirtualEntity\n\t- ow"
+    },
+    {
+      "name": "AI Ethics Checklist.md",
+      "path": "mainKnowledgeGraph/pages/AI Ethics Checklist.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/AI%20Ethics%20Checklist.md",
+      "size": 6411,
+      "sha": "44218e54cd4fa6ed603bc767e8448dcbb87e2d76",
+      "preview": "- ### OntologyBlock\n  id:: ai-ethics-checklist-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20220\n\t- preferred-term:: AI Ethics Checklist\n\t- definition:: Structured verification process evaluating fairness, accountability, transparency, and ethical compliance of AI systems against established governance frameworks.\n\t- maturity:: mature\n\t- source:: [[IEEE 7000]], [[UNESCO AI Ethics Recommendations]]\n\t- owl:class:: mv:AIEthicsChecklist\n\t- owl:physicality:: VirtualEntity\n\t- "
+    },
+    {
+      "name": "Application Layer.md",
+      "path": "mainKnowledgeGraph/pages/Application Layer.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Application%20Layer.md",
+      "size": 7315,
+      "sha": "3d95e934844444ddc17f3a52b8cc27328e9c4203",
+      "preview": "- ### OntologyBlock\n  id:: applicationlayer-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20160\n\t- preferred-term:: Application Layer\n\t- definition:: Software layer providing domain-specific application interfaces and services for metaverse experiences including education, commerce, healthcare, and entertainment applications.\n\t- maturity:: mature\n\t- source:: [[MSF Taxonomy 2025]]\n\t- owl:class:: mv:ApplicationLayer\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Object\n\t- "
+    },
+    {
+      "name": "Interoperability Framework.md",
+      "path": "mainKnowledgeGraph/pages/Interoperability Framework.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Interoperability%20Framework.md",
+      "size": 4513,
+      "sha": "230b0ed6fac2c319839ee98925b91e336845df3d",
+      "preview": "- ### OntologyBlock\n  id:: interoperability-framework-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20184\n\t- preferred-term:: Interoperability Framework\n\t- definition:: Coordinated set of standards and specifications enabling interaction between heterogeneous systems in metaverse environments.\n\t- maturity:: mature\n\t- source:: [[ETSI GR ARF 010]], [[MSF]]\n\t- owl:class:: mv:InteroperabilityFramework\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Object\n\t- owl:inferred-clas"
+    },
+    {
+      "name": "Royalty Mechanism.md",
+      "path": "mainKnowledgeGraph/pages/Royalty Mechanism.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Royalty%20Mechanism.md",
+      "size": 7406,
+      "sha": "c80af02babf09c8f2ab48fa97286efa0ad252196",
+      "preview": "- ### OntologyBlock\n  id:: royaltymechanism-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20217\n\t- preferred-term:: Royalty Mechanism\n\t- definition:: Automated process ensuring creators receive compensation when their assets are resold or used in secondary markets.\n\t- maturity:: mature\n\t- source:: [[MSF Use Cases]]\n\t- owl:class:: mv:RoyaltyMechanism\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Process\n\t- owl:inferred-class:: mv:VirtualProcess\n\t- owl:functional-syntax::"
+    },
+    {
+      "name": "Virtual World.md",
+      "path": "mainKnowledgeGraph/pages/Virtual World.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Virtual%20World.md",
+      "size": 10499,
+      "sha": "4e1baa73830589bd42fdc1d60179283777140a1c",
+      "preview": "- ### OntologyBlock\n  id:: virtual-world-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20314\n\t- preferred-term:: Virtual World\n\t- definition:: A self-contained digital environment with persistent state, spatial properties, user interaction capabilities, and internal rules that simulate physical or fantastical worlds, providing a shared space for multiple users to interact with each other and digital objects.\n\t- maturity:: mature\n\t- source:: [[IEEE VR Standards]], [[ISO/IEC"
+    },
+    {
+      "name": "ETSI_Domain_Data_Mgmt___AI.md",
+      "path": "mainKnowledgeGraph/pages/ETSI_Domain_Data_Mgmt___AI.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/ETSI_Domain_Data_Mgmt___AI.md",
+      "size": 4576,
+      "sha": "167e284c8259fc96c0ca4b7dc04d3363aa261e07",
+      "preview": "- ### OntologyBlock\n  id:: etsi-domain-datamgmt-ai-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20345\n\t- preferred-term:: ETSI Domain: Data Management + AI\n\t- definition:: Crossover domain for ETSI metaverse categorization addressing data infrastructure supporting AI/ML workflows, training data management, model versioning, and inference serving.\n\t- maturity:: mature\n\t- source:: [[ETSI GR MEC 032]]\n\t- owl:class:: mv:ETSIDomain_DataMgmt_AI\n\t- owl:physicality:: VirtualEntit"
+    },
+    {
+      "name": "Ethics & Law Layer.md",
+      "path": "mainKnowledgeGraph/pages/Ethics & Law Layer.md",
+      "download_url": "https://raw.githubusercontent.com/jjohare/logseq/main/mainKnowledgeGraph/pages/Ethics%20%26%20Law%20Layer.md",
+      "size": 7143,
+      "sha": "595ee7bd71ab1ebcabc87f8ee423f43a8fc44431",
+      "preview": "- ### OntologyBlock\n  id:: ethics-law-layer-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: 20165\n\t- preferred-term:: Ethics & Law Layer\n\t- definition:: Framework layer defining norms, rights, and regulations for responsible conduct in metaverse environments through compliance mechanisms, ethical AI governance, and legal frameworks.\n\t- maturity:: mature\n\t- source:: [[MSF Taxonomy 2025]]\n\t- owl:class:: mv:EthicsLawLayer\n\t- owl:physicality:: VirtualEntity\n\t- owl:role:: Object\n"
+    }
+  ],
+  "summary": {
+    "total_files": 101,
+    "core_files_count": 3,
+    "ontology_block_files_count": 98,
+    "repository": "jjohare/logseq",
+    "base_path": "mainKnowledgeGraph/pages",
+    "pattern_searched": "- ### OntologyBlock"
+  }
+}

@@ -1703,105 +1703,39 @@ impl Default for AppFullSettings {
 }
 
 impl AppFullSettings {
-    /// Load AppFullSettings from a YAML file with proper snake_case to camelCase conversion
-    pub fn from_yaml_file(path: &PathBuf) -> Result<Self, ConfigError> {
-        let yaml_content = std::fs::read_to_string(path)
-            .map_err(|e| ConfigError::Message(format!("Failed to read YAML file {:?}: {}", path, e)))?;
-            
-        // Try direct YAML deserialization first
-        match serde_yaml::from_str::<AppFullSettings>(&yaml_content) {
-            Ok(settings) => {
-                debug!("Successfully loaded settings using direct YAML deserialization");
-                return Ok(settings);
-            }
-            Err(yaml_err) => {
-                debug!("Direct YAML deserialization failed: {}, trying YAML->JSON conversion", yaml_err);
-                
-                // Parse as raw Value first
-                let raw_value = serde_yaml::from_str::<Value>(&yaml_content)
-                    .map_err(|e| ConfigError::Message(format!("Failed to parse YAML as Value: {}", e)))?;
-                
-                // Convert to JSON string (this preserves the structure)
-                let json_str = serde_json::to_string(&raw_value)
-                    .map_err(|e| ConfigError::Message(format!("Failed to convert YAML to JSON: {}", e)))?;
-                
-                // Deserialize from JSON (this will respect serde rename attributes)
-                serde_json::from_str::<AppFullSettings>(&json_str)
-                    .map_err(|e| ConfigError::Message(format!("Failed to deserialize JSON: {}", e)))
-            }
-        }
+    /// DEPRECATED: Use SettingsService for database-backed settings
+    /// Returns default settings - all settings now loaded from SQLite database
+    #[deprecated(note = "Settings are now stored in SQLite. Use SettingsService for runtime access.")]
+    pub fn from_yaml_file(_path: &PathBuf) -> Result<Self, ConfigError> {
+        log::warn!("from_yaml_file() is deprecated - settings now loaded from SQLite database");
+        log::warn!("Returning default AppFullSettings structure");
+        Ok(Self::default())
     }
 
+    /// Load AppFullSettings - returns defaults as all settings are now in SQLite database
+    ///
+    /// NOTE: This method exists for backward compatibility only. All settings are now
+    /// stored in and loaded from the SQLite database via SettingsService.
+    ///
+    /// The migration from YAML/TOML to SQLite happens automatically on first startup
+    /// via the SettingsMigration service in ontology_init.rs
     pub fn new() -> Result<Self, ConfigError> {
-        debug!("Initializing AppFullSettings from YAML");
+        log::info!("AppFullSettings::new() - returning default structure");
+        log::info!("All settings are now managed via SQLite database (see SettingsService)");
         dotenvy::dotenv().ok();
-
-        let settings_path = std::env::var("SETTINGS_FILE_PATH")
-            .map(PathBuf::from)
-            .unwrap_or_else(|_| PathBuf::from("data/settings.yaml"));
-        debug!("Loading AppFullSettings from YAML file: {:?}", settings_path);
-
-        // Use our improved YAML loading method
-        match Self::from_yaml_file(&settings_path) {
-            Ok(settings) => {
-                info!("Successfully loaded settings from YAML file");
-                return Ok(settings);
-            }
-            Err(yaml_err) => {
-                error!("YAML loading failed: {}", yaml_err);
-                debug!("Trying config crate fallback (this may fail due to case conversion issues)");
-            }
-        }
-
-        // Fallback to config crate approach (with environment variable support)
-        // NOTE: This fallback doesn't respect serde rename attributes, so it will likely fail
-        // with "missing field ambientLightIntensity" type errors
-        let builder = ConfigBuilder::<config::builder::DefaultState>::default()
-            .add_source(config::File::from(settings_path.clone()).required(true))
-            .add_source(
-                Environment::default()
-                    .separator("_")
-                    .list_separator(",")
-            );
-        let config = builder.build()?;
-        debug!("Configuration built successfully. Attempting deserialization...");
-
-        let settings: AppFullSettings = config.clone().try_deserialize()
-            .map_err(|e| {
-                error!("Config crate deserialization failed as expected: {}", e);
-                error!("This is because config crate doesn't respect #[serde(rename_all = \"camelCase\")] attributes");
-                e
-            })?;
-        
-        debug!("Unexpectedly succeeded with config crate fallback");
-        Ok(settings)
+        Ok(Self::default())
     }
     
 
+    /// DEPRECATED: Settings persistence now handled by SQLite database
+    ///
+    /// This method no longer writes to YAML files. All settings changes should be
+    /// made through the SettingsService API which persists to SQLite automatically.
+    #[deprecated(note = "Use SettingsService to persist settings to SQLite database")]
     pub fn save(&self) -> Result<(), String> {
-        // Check if persist_settings is enabled
-        if !self.system.persist_settings {
-            debug!("Settings persistence is disabled (persist_settings: false), skipping save");
-            return Ok(());
-        }
-
-        let settings_path = std::env::var("SETTINGS_FILE_PATH")
-            .map(PathBuf::from)
-            .unwrap_or_else(|_| PathBuf::from("data/settings.yaml"));
-        info!("Saving AppFullSettings to YAML file: {:?}", settings_path);
-
-        // Create parent directory if it doesn't exist
-        if let Some(parent) = settings_path.parent() {
-            std::fs::create_dir_all(parent)
-                .map_err(|e| format!("Failed to create directory {:?}: {}", parent, e))?;
-        }
-
-        let yaml = serde_yaml::to_string(&self)
-            .map_err(|e| format!("Failed to serialize AppFullSettings to YAML: {}", e))?;
-
-        std::fs::write(&settings_path, yaml)
-            .map_err(|e| format!("Failed to write settings file {:?}: {}", settings_path, e))?;
-        info!("Successfully saved AppFullSettings to {:?}", settings_path);
+        log::warn!("AppFullSettings::save() is deprecated - settings now persisted to SQLite");
+        log::warn!("Use SettingsService API for settings persistence");
+        log::info!("Settings persistence is automatic via SQLite - no action needed");
         Ok(())
     }
     

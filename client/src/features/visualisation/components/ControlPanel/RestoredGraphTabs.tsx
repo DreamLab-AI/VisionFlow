@@ -2,7 +2,7 @@
  * Restored Graph Feature Tabs - Inline Styles Version
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Eye, Zap, TrendingUp, MousePointer2, Download } from 'lucide-react';
 import { useSettingsStore } from '../../../../store/settingsStore';
 import type { GraphNode, GraphEdge } from '@/features/graph/types/graphTypes';
@@ -71,6 +71,19 @@ const SectionHeader: React.FC<{ icon: React.ComponentType<any>; title: string; c
 export const RestoredGraphVisualisationTab: React.FC<GraphTabProps> = () => {
   const settings = useSettingsStore(state => state.settings);
   const updateSettings = useSettingsStore(state => state.updateSettings);
+  const ensureLoaded = useSettingsStore(state => state.ensureLoaded);
+
+  // Preload visualization settings on mount
+  useEffect(() => {
+    ensureLoaded([
+      'visualization.sync.enabled',
+      'visualization.sync.camera',
+      'visualization.sync.selection',
+      'visualization.animations.enabled',
+      'visualization.effects.bloom',
+      'visualization.effects.glow',
+    ]);
+  }, [ensureLoaded]);
 
   const syncEnabled = settings?.visualization?.sync?.enabled ?? false;
   const cameraSync = settings?.visualization?.sync?.camera ?? true;
@@ -151,6 +164,16 @@ export const RestoredGraphVisualisationTab: React.FC<GraphTabProps> = () => {
 export const RestoredGraphOptimisationTab: React.FC<GraphTabProps> = ({ graphData }) => {
   const settings = useSettingsStore(state => state.settings);
   const updateSettings = useSettingsStore(state => state.updateSettings);
+  const ensureLoaded = useSettingsStore(state => state.ensureLoaded);
+
+  // Preload performance settings on mount
+  useEffect(() => {
+    ensureLoaded([
+      'performance.autoOptimize',
+      'performance.simplifyEdges',
+      'performance.cullDistance',
+    ]);
+  }, [ensureLoaded]);
 
   const autoOptimize = settings?.performance?.autoOptimize ?? false;
   const simplifyEdges = settings?.performance?.simplifyEdges ?? true;
@@ -231,6 +254,17 @@ export const RestoredGraphOptimisationTab: React.FC<GraphTabProps> = ({ graphDat
 export const RestoredGraphInteractionTab: React.FC<GraphTabProps> = () => {
   const settings = useSettingsStore(state => state.settings);
   const updateSettings = useSettingsStore(state => state.updateSettings);
+  const ensureLoaded = useSettingsStore(state => state.ensureLoaded);
+
+  // Preload interaction settings on mount
+  useEffect(() => {
+    ensureLoaded([
+      'interaction.enableHover',
+      'interaction.enableClick',
+      'interaction.enableDrag',
+      'interaction.hoverDelay',
+    ]);
+  }, [ensureLoaded]);
 
   const enableHover = settings?.interaction?.enableHover ?? true;
   const enableClick = settings?.interaction?.enableClick ?? true;
@@ -298,6 +332,15 @@ export const RestoredGraphInteractionTab: React.FC<GraphTabProps> = () => {
 export const RestoredGraphExportTab: React.FC<GraphTabProps> = ({ graphData }) => {
   const settings = useSettingsStore(state => state.settings);
   const updateSettings = useSettingsStore(state => state.updateSettings);
+  const ensureLoaded = useSettingsStore(state => state.ensureLoaded);
+
+  // Preload export settings on mount
+  useEffect(() => {
+    ensureLoaded([
+      'export.format',
+      'export.includeMetadata',
+    ]);
+  }, [ensureLoaded]);
 
   const format = settings?.export?.format ?? 'json';
   const includeMetadata = settings?.export?.includeMetadata ?? true;

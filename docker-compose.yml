@@ -17,7 +17,7 @@ services:
       - ./data/markdown:/app/data/markdown
       - ./data/metadata:/app/data/metadata
       - ./data/user_settings:/app/user_settings
-      - ./data/settings.yaml:/app/settings.yaml
+      # Settings now managed via internal SQLite database
       - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
       - ./logs/nginx:/var/log/nginx
       - ./logs:/app/logs
@@ -108,7 +108,7 @@ services:
       - ./data/markdown:/app/data/markdown
       - ./data/metadata:/app/data/metadata
       - ./data/user_settings:/app/user_settings
-      - ./data/settings.yaml:/app/settings.yaml
+      # Settings now managed via internal SQLite database
       - ./nginx.production.conf:/etc/nginx/nginx.conf:ro
       - ./logs/nginx:/var/log/nginx
       - ./logs:/app/logs

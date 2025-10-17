@@ -16,6 +16,7 @@ import {
   Hand,
   Download,
   Lock,
+  GitBranch,
 } from 'lucide-react';
 import type { TabConfig } from './types';
 
@@ -37,6 +38,7 @@ export const TAB_CONFIGS: TabConfig[] = [
   { id: 'graph-interaction', label: 'Interaction', icon: Hand, description: 'Interactive graph features', buttonKey: 'D' },
   { id: 'graph-export', label: 'Export', icon: Download, description: 'Export and sharing options', buttonKey: 'E' },
   { id: 'auth', label: 'Auth/Nostr', icon: Lock, description: 'Authentication & Nostr', buttonKey: 'F' },
+  { id: 'ontology', label: 'Ontology', icon: GitBranch, description: 'Ontology management', buttonKey: 'G' },
 ];
 
 // Group tabs by row for rendering

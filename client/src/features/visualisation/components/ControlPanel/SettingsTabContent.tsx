@@ -3,7 +3,7 @@
  * Renders settings fields based on configuration
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { useSettingsStore } from '../../../../store/settingsStore';
 import { SETTINGS_CONFIG } from './settingsConfig';
 import type { SettingField } from './types';
@@ -15,8 +15,18 @@ interface SettingsTabContentProps {
 export const SettingsTabContent: React.FC<SettingsTabContentProps> = ({ sectionId }) => {
   const settings = useSettingsStore(state => state.settings);
   const updateSettings = useSettingsStore(state => state.updateSettings);
+  const ensureLoaded = useSettingsStore(state => state.ensureLoaded);
   const [nostrConnected, setNostrConnected] = useState(false);
   const [nostrPublicKey, setNostrPublicKey] = useState('');
+
+  // Preload settings for this section on mount
+  useEffect(() => {
+    const sectionConfig = SETTINGS_CONFIG[sectionId];
+    if (sectionConfig) {
+      const paths = sectionConfig.fields.map(field => field.path);
+      ensureLoaded(paths);
+    }
+  }, [sectionId, ensureLoaded]);
 
   // Get value from settings path
   const getValueFromPath = useCallback((path: string): any => {

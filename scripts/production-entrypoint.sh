@@ -23,11 +23,8 @@ fi
 # Create log directory if it doesn't exist
 mkdir -p /app/logs
 
-# Ensure settings file exists
-if [ ! -f /app/settings.yaml ]; then
-    log "ERROR: settings.yaml not found at /app/settings.yaml"
-    exit 1
-fi
+# Settings are now managed via internal SQLite database
+# No file validation needed - settings loaded from database on startup
 
 # Set CUDA environment variables
 export CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}

@@ -14,7 +14,7 @@ services:
       - ./data/markdown:/app/data/markdown
       - ./data/metadata:/app/data/metadata
       - ./data/user_settings:/app/user_settings
-      - ./data/settings.yaml:/app/settings.yaml
+      # Settings now managed via internal SQLite database
       - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro # Mount dev Nginx config (read-only)
       - ./logs/nginx:/var/log/nginx # Mount nginx logs to host
       - ./logs:/app/logs
@@ -40,7 +40,7 @@ services:
       - VITE_API_PORT=4000
       - VITE_HMR_PORT=24678 # Internal HMR port, accessed via Nginx
       - RUST_LOG_REDIRECT=true
-      # Override the port from settings.yaml for development environment
+      # Port configuration for development environment
       # Ensure Rust backend listens on 4000, which Vite proxies to.
       - SYSTEM_NETWORK_PORT=4000
       # Claude Flow MCP WebSocket configuration

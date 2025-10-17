@@ -6,6 +6,8 @@ pub mod analytics;
 pub mod quest3;
 #[cfg(feature = "ontology")]
 pub mod ontology;
+#[cfg(feature = "ontology")]
+pub mod ontology_data;
 pub mod sessions;
 
 // Re-export specific types and functions
@@ -47,8 +49,11 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     );
 
     #[cfg(feature = "ontology")]
-    cfg.service(
-        web::scope("")
-            .configure(ontology::config)
-    );
+    {
+        cfg.service(
+            web::scope("")
+                .configure(ontology::config)
+                .configure(ontology_data::config)
+        );
+    }
 }

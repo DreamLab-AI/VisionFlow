@@ -74,10 +74,18 @@ check_propagation
 check_physics_values
 echo ""
 
-# Test 4: Check settings.yaml was updated
-echo "=== Test 4: Verify settings.yaml ==="
-echo -e "${YELLOW}Current values in settings.yaml:${NC}"
-grep -E "repelK|springK" /workspace/ext/data/settings.yaml | grep -A1 logseq | head -2
+# Test 4: Verify settings persisted in database
+echo "=== Test 4: Verify Settings Database ==="
+echo -e "${YELLOW}Current values from settings API:${NC}"
+curl -s http://localhost:4000/api/settings/visualisation.graphs.logseq.physics | python3 -c "
+import sys, json
+try:
+    data = json.load(sys.stdin)
+    if 'repelK' in data: print(f\"  repelK: {data['repelK']}\")
+    if 'springK' in data: print(f\"  springK: {data['springK']}\")
+except:
+    print('[API error]')
+" 2>/dev/null
 echo ""
 
 # Summary

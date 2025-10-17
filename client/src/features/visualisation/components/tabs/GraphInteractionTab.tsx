@@ -100,7 +100,17 @@ export const GraphInteractionTab: React.FC<GraphInteractionTabProps> = ({
 
   // Settings store for head tracking
   const { settings, updateSettings } = useSettingsStore();
+  const ensureLoaded = useSettingsStore(state => state.ensureLoaded);
   const headTrackingEnabled = settings?.visualisation?.interaction?.headTrackedParallax?.enabled ?? false;
+
+  // Preload head tracking settings on mount
+  useEffect(() => {
+    ensureLoaded([
+      'visualisation.interaction.headTrackedParallax.enabled',
+      'visualisation.interaction.headTrackedParallax.sensitivity',
+      'visualisation.interaction.headTrackedParallax.cameraMode',
+    ]);
+  }, [ensureLoaded]);
 
   const handleHeadTrackingToggle = useCallback((enabled: boolean) => {
     updateSettings(draft => {

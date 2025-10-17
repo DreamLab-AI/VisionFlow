@@ -1530,7 +1530,9 @@ impl EnhancedSettingsHandler {
         );
 
         // Get cache statistics
-        let (cache_entries, cache_ages) = crate::models::user_settings::UserSettings::get_cache_stats();
+        // TODO: Integrate with new user_service-based caching
+        let cache_entries = 0;
+        let cache_ages: Vec<(String, std::time::Duration)> = Vec::new();
 
         // Calculate cache metrics
         let cache_hit_rate = if cache_entries > 0 {

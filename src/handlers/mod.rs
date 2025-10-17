@@ -24,6 +24,10 @@ pub mod realtime_websocket_handler;
 pub mod websocket_settings_handler;
 pub mod client_log_handler;
 pub mod client_messages_handler;
+#[cfg(feature = "ontology")]
+pub mod admin_handler;
+#[cfg(feature = "ontology")]
+pub mod user_settings_handler;
 
 #[cfg(test)]
 pub mod tests;

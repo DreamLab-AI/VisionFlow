@@ -7,6 +7,7 @@ pub mod config;
 pub mod errors;
 pub mod gpu;
 pub mod handlers;
+pub mod middleware;
 pub mod models;
 pub mod physics;
 pub mod ports;
@@ -24,4 +25,3 @@ pub use models::metadata::MetadataStore;
 pub use models::protected_settings::ProtectedSettings;
 pub use models::simulation_params::SimulationParams;
 // pub use models::ui_settings::UISettings; // Removed - consolidated into AppFullSettings"
-pub use models::user_settings::UserSettings;

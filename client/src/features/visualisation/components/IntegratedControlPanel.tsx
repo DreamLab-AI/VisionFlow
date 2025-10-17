@@ -34,6 +34,7 @@ import {
   RestoredGraphExportTab
 } from './ControlPanel/RestoredGraphTabs';
 import { SettingsTabContent } from './ControlPanel/SettingsTabContent';
+import { OntologyPanel } from '../../ontology/components/OntologyPanel';
 
 export const IntegratedControlPanel: React.FC<ControlPanelProps> = ({
   showStats,
@@ -131,6 +132,9 @@ export const IntegratedControlPanel: React.FC<ControlPanelProps> = ({
             }}
           />
         );
+
+      case 'ontology':
+        return <OntologyPanel />;
 
       // Settings Tabs
       default:

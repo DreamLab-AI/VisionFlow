@@ -121,19 +121,26 @@ ENABLE_WASM_ACCELERATION=true
 NEURAL_BATCH_SIZE=128
 ```
 
-Update `data/settings.yaml` for agent-specific settings:
-```yaml
-system:
-  agent_management:
-    max_concurrent_agents: 50
-    agent_spawn_timeout: 60
-    agent_heartbeat_interval: 30
-    enable_agent_persistence: true
-    
-  performance:
-    enable_load_balancing: true
-    task_distribution_strategy: "adaptive"
-    resource_monitoring: true
+Update agent settings via API (requires power user permission):
+```bash
+curl -X PUT http://localhost:4000/api/settings \
+  -H "Authorization: Nostr <your_pubkey>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "system": {
+      "agentManagement": {
+        "maxConcurrentAgents": 50,
+        "agentSpawnTimeout": 60,
+        "agentHeartbeatInterval": 30,
+        "enableAgentPersistence": true
+      },
+      "performance": {
+        "enableLoadBalancing": true,
+        "taskDistributionStrategy": "adaptive",
+        "resourceMonitoring": true
+      }
+    }
+  }'
 ```
 
 ### XR/VR Configuration
@@ -149,25 +156,27 @@ XR_RENDER_SCALE=1.2
 XR_REFRESH_RATE=90
 ```
 
-Configure XR settings in `data/settings.yaml`:
-```yaml
-xr:
-  enabled: true
-  client_side_enable_xr: true
-  mode: "immersive-vr"
-  space_type: "local-floor"
-  quality: high
-  render_scale: 1.2
-  
-  # Hand tracking
-  enable_hand_tracking: true
-  hand_mesh_enabled: true
-  gesture_smoothing: 0.8
-  
-  # Comfort settings
-  locomotion_method: teleport
-  enable_passthrough_portal: true
-  passthrough_opacity: 0.8
+Configure XR settings via API:
+```bash
+curl -X PUT http://localhost:4000/api/settings \
+  -H "Authorization: Nostr <your_pubkey>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "xr": {
+      "enabled": true,
+      "clientSideEnableXr": true,
+      "mode": "immersive-vr",
+      "spaceType": "local-floor",
+      "quality": "high",
+      "renderScale": 1.2,
+      "enableHandTracking": true,
+      "handMeshEnabled": true,
+      "gestureSmoothing": 0.8,
+      "locomotionMethod": "teleport",
+      "enablePassthroughPortal": true,
+      "passthroughOpacity": 0.8
+    }
+  }'
 ```
 
 ### Knowledge Graph Integration
@@ -187,28 +196,37 @@ ENABLE_BLOCK_REFERENCES=true
 ENABLE_PAGE_PROPERTIES=true
 ```
 
-Set up graph-specific visualisation in `data/settings.yaml`:
-```yaml
-visualisation:
-  graphs:
-    logseq:
-      physics:
-        enabled: true
-        spring_strength: 0.005
-        repulsion_strength: 50.0
-        damping: 0.9
-        max_velocity: 1.0
-        iterations: 200
-      
-      nodes:
-        base_colour: '#a06522'
-        node_size: 1.8
-        enable_hologram: true
-      
-      labels:
-        enable_labels: true
-        show_metadata: true
-        desktop_font_size: 1.2
+Set up graph-specific visualisation via API:
+```bash
+curl -X PUT http://localhost:4000/api/settings \
+  -H "Authorization: Nostr <your_pubkey>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "visualisation": {
+      "graphs": {
+        "logseq": {
+          "physics": {
+            "enabled": true,
+            "springK": 5.0,
+            "repelK": 50.0,
+            "damping": 0.9,
+            "maxVelocity": 50.0,
+            "iterations": 200
+          },
+          "nodes": {
+            "baseColor": "#a06522",
+            "nodeSize": 1.8,
+            "enableHologram": true
+          },
+          "labels": {
+            "enableLabels": true,
+            "showMetadata": true,
+            "desktopFontSize": 1.2
+          }
+        }
+      }
+    }
+  }'
 ```
 
 ## Performance Tuning
@@ -287,22 +305,21 @@ AUTH_REQUIRED=true
 SESSION_TIMEOUT=86400
 ```
 
-Update authentication settings:
-```yaml
-auth:
-  enabled: true
-  provider: nostr
-  required: true
-  session_duration: 86400
-  
-  nostr:
-    relay_urls:
-      - "wss://relay.damus.io"
-      - "wss://nos.lol" 
-      - "wss://relay.snort.social"
-    event_kinds: [1, 30023]
-    max_event_size: 65536
+Update authentication settings via API:
+```bash
+curl -X PUT http://localhost:4000/api/settings \
+  -H "Authorization: Nostr <your_pubkey>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "auth": {
+      "enabled": true,
+      "provider": "nostr",
+      "required": true
+    }
+  }'
 ```
+
+Note: Nostr relay configuration is handled through environment variables for security.
 
 ### Security Hardening
 
@@ -365,29 +382,29 @@ LLM_MAX_TOKENS=4096
 LLM_TIMEOUT=30
 ```
 
-Configure model preferences in `data/settings.yaml`:
-```yaml
-# AI service settings
-openai:
-  model: "gpt-4o"
-  max_tokens: 4096
-  temperature: 0.7
-  timeout: 30
-  rate_limit: 1000
-
-perplexity:
-  model: "llama-3.1-sonar-small-128k-online"
-  max_tokens: 4096
-  temperature: 0.5
-  timeout: 30
-  rate_limit: 100
-
-ragflow:
-  agent_id: "your_ragflow_agent_id"
-  timeout: 30
-  max_retries: 3
-  chunk_size: 512
-  max_chunks: 100
+Configure model preferences via API:
+```bash
+curl -X PUT http://localhost:4000/api/settings \
+  -H "Authorization: Nostr <your_pubkey>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "openai": {
+      "timeout": 30,
+      "rateLimit": 1000
+    },
+    "perplexity": {
+      "model": "llama-3.1-sonar-small-128k-online",
+      "maxTokens": 4096,
+      "temperature": 0.5,
+      "timeout": 30,
+      "rateLimit": 100
+    },
+    "ragflow": {
+      "agentId": "your_ragflow_agent_id",
+      "timeout": 30,
+      "maxRetries": 3
+    }
+  }'
 ```
 
 ### Voice and Audio Services
@@ -498,23 +515,19 @@ TRACK_ERRORS=true
 TRACK_SECURITY_EVENTS=true
 ```
 
-Configure monitoring in `data/settings.yaml`:
-```yaml
-system:
-  monitoring:
-    enable_metrics: true
-    metrics_port: 9090
-    metrics_interval: 15
-    
-    # Health checks
-    health_check_interval: 30
-    health_check_timeout: 10
-    health_check_retries: 3
-    
-    # Performance monitoring
-    track_performance: true
-    track_resource_usage: true
-    track_agent_metrics: true
+Configure monitoring via API:
+```bash
+curl -X PUT http://localhost:4000/api/settings \
+  -H "Authorization: Nostr <your_pubkey>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "system": {
+      "network": {
+        "enableMetrics": true,
+        "metricsPort": 9090
+      }
+    }
+  }'
 ```
 
 ### Logging Configuration
@@ -559,24 +572,19 @@ BACKUP_CONFIGURATION=true
 
 ### Disaster Recovery
 
-Configure disaster recovery settings:
+Disaster recovery is configured through environment variables and system configuration:
 
-```yaml
-system:
-  disaster_recovery:
-    enable_automatic_backup: true
-    backup_interval: 86400          # 24 hours
-    backup_retention: 2592000       # 30 days
-    
-    # Recovery settings
-    enable_auto_recovery: true
-    max_recovery_attempts: 3
-    recovery_timeout: 300
-    
-    # Replication
-    enable_replication: false
-    replica_hosts: []
-    replication_lag_threshold: 60
+```bash
+# Backup configuration
+BACKUP_ENABLED=true
+BACKUP_SCHEDULE="0 2 * * *"
+BACKUP_RETENTION_DAYS=30
+BACKUP_LOCATION=/opt/backups/visionflow
+
+# Recovery settings
+ENABLE_AUTO_RECOVERY=true
+MAX_RECOVERY_ATTEMPTS=3
+RECOVERY_TIMEOUT=300
 ```
 
 ## Troubleshooting Common Issues
@@ -650,8 +658,10 @@ Use validation scripts to verify configuration:
 # Validate environment variables
 ./scripts/validate-env.sh
 
-# Validate YAML configuration
-./scripts/validate-yaml.sh data/settings.yaml
+# Validate settings via API
+curl -X POST http://localhost:4000/api/settings/validate \
+  -H "Content-Type: application/json" \
+  -d @proposed_settings.json
 
 # Test Docker configuration
 ./scripts/test-docker-config.sh
@@ -713,8 +723,12 @@ This guide covers the most common configuration scenarios for VisionFlow. For ad
 
 ## Related Topics
 
+- [Settings System Architecture](../settings-system.md) - SQLite-backed settings system
+- [Settings API Reference](../settings-api.md) - Complete API documentation
+- [Settings Validation Rules](../settings-validation.md) - All validation constraints
+- [Settings Migration Guide](../settings-migration-guide.md) - Developer guide
 - [Configuration Reference](../reference/configuration.md) - Comprehensive technical reference
-- [Installation Guide](../getting-started/installation.md) - Initial setup instructions  
+- [Installation Guide](../getting-started/installation.md) - Initial setup instructions
 - [Deployment Guide](../deployment/index.md) - Production deployment strategies
 - [Troubleshooting](../troubleshooting/configuration.md) - Configuration problem solving
 - [Security Guide](../security/index.md) - Security best practices

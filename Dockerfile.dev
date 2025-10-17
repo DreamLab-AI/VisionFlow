@@ -66,6 +66,7 @@ RUN mkdir -p /app/data/markdown \
 # These MUST be in the container for building on startup
 COPY Cargo.toml build.rs ./
 COPY src ./src
+COPY schema ./schema
 
 # Copy client directory with all frontend files
 COPY client ./client
@@ -82,8 +83,8 @@ RUN cargo fetch
 # Copy Nginx config for development
 COPY nginx.dev.conf /etc/nginx/nginx.conf
 
-# Copy settings file
-COPY data/settings.yaml /app/settings.yaml
+# Settings are now managed via SQLite database (initialized from schema on first run)
+# No need to copy settings.yaml - migration happens automatically on startup
 
 # Copy all scripts including the wrapper
 COPY scripts/dev-entrypoint.sh ./

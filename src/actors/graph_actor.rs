@@ -594,24 +594,11 @@ impl GraphServiceActor {
         );
         let stress_solver = StressMajorizationSolver::from_advanced_params(&advanced_params);
         
-        // Initialize with logseq (knowledge graph) physics from settings
-        // This will be updated when settings are loaded, but provides better defaults
+        // Initialize with default physics parameters
+        // Settings are loaded from SQLite database and applied via UpdateSettings message
         let simulation_params = {
-            // Try to get settings from the global config
-            if let Ok(settings_yaml) = std::fs::read_to_string("/app/settings.yaml")
-                .or_else(|_| std::fs::read_to_string("data/settings.yaml")) {
-                if let Ok(settings) = serde_yaml::from_str::<crate::config::AppFullSettings>(&settings_yaml) {
-                    // Use logseq physics as the default for knowledge graph
-                    let physics = settings.get_physics("logseq");
-                    SimulationParams::from(physics)
-                } else {
-                    warn!("Failed to parse settings.yaml, using defaults");
-                    SimulationParams::default()
-                }
-            } else {
-                info!("Settings file not found at startup, using defaults (will be updated when settings load)");
-                SimulationParams::default()
-            }
+            info!("Initializing with default physics parameters (settings loaded from database)");
+            SimulationParams::default()
         };
         
         // Clone simulation_params for target_params before moving it

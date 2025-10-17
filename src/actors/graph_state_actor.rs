@@ -454,6 +454,39 @@ impl Handler<AddNodesFromMetadata> for GraphStateActor {
                 self.node_index.insert(node_id, idx);
                 added_ids.push(node_id);
             }
+
+            // Create edges between new nodes and connect to existing graph
+            if !added_ids.is_empty() {
+                // Get all existing node IDs before the new additions
+                let existing_ids: Vec<u32> = self.node_index.keys()
+                    .filter(|id| !added_ids.contains(id))
+                    .copied()
+                    .collect();
+
+                // Connect new nodes to each other
+                for i in 0..added_ids.len() {
+                    for j in 1..=2 {
+                        if i + j < added_ids.len() {
+                            let edge = Edge::new(added_ids[i], added_ids[i + j], 1.0);
+                            graph.edges.push(edge);
+                        }
+                    }
+                }
+
+                // Connect new nodes to existing graph (2-3 edges each to existing nodes)
+                for &new_id in &added_ids {
+                    let num_connections = existing_ids.len().min(3);
+                    for i in 0..num_connections {
+                        if i < existing_ids.len() {
+                            let edge = Edge::new(new_id, existing_ids[i], 1.0);
+                            graph.edges.push(edge);
+                        }
+                    }
+                }
+
+                log::info!("Added {} new nodes and created edges to integrate with existing {} nodes",
+                          added_ids.len(), existing_ids.len());
+            }
         } // Drop write lock
 
         // Mark as dirty and bump version
@@ -512,6 +545,21 @@ impl Handler<BuildGraphFromMetadata> for GraphStateActor {
                 graph.nodes.push(node);
                 self.node_index.insert(node_id, idx);
                 added_ids.push(node_id);
+            }
+
+            // Create basic edges between nodes (fully connected for visualization)
+            // For now, create edges between consecutive nodes for a minimal graph structure
+            if added_ids.len() > 1 {
+                for i in 0..added_ids.len() {
+                    // Connect each node to next 2-3 nodes for a sparse mesh
+                    for j in 1..=2 {
+                        if i + j < added_ids.len() {
+                            let edge = Edge::new(added_ids[i], added_ids[i + j], 1.0);
+                            graph.edges.push(edge);
+                        }
+                    }
+                }
+                log::info!("Created {} edges between {} nodes", graph.edges.len(), added_ids.len());
             }
         } // Drop write lock
 
