@@ -7,7 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 echo "========================================"
-echo "  TURBO FLOW UNIFIED - BUILD & LAUNCH"
+echo "  AGENTIC WORKSTATION - BUILD & LAUNCH"
 echo "========================================"
 echo ""
 
@@ -30,11 +30,11 @@ fi
 
 # Build the container
 echo "[1/3] Building Docker image..."
-docker build -f Dockerfile.unified -t turbo-flow-unified:latest .
+docker build -f Dockerfile.unified -t agentic-workstation:latest .
 
 echo ""
 echo "[2/3] Launching container..."
-docker-compose -f docker-compose.unified.yml up -d
+docker compose -f docker-compose.unified.yml up -d
 
 echo ""
 echo "[3/3] Waiting for services to start..."
@@ -43,11 +43,11 @@ sleep 10
 # Check services
 echo ""
 echo "Service Status:"
-docker exec turbo-flow-unified supervisorctl status
+docker exec agentic-workstation supervisorctl status
 
 echo ""
 echo "========================================"
-echo "  ✅ TURBO FLOW UNIFIED RUNNING"
+echo "  ✅ AGENTIC WORKSTATION RUNNING"
 echo "========================================"
 echo ""
 echo "Access Methods:"
@@ -58,8 +58,8 @@ echo "  API:        http://localhost:9090/health"
 echo "  Swagger:    http://localhost:9090/documentation"
 echo ""
 echo "Management Commands:"
-echo "  View logs:  docker-compose -f docker-compose.unified.yml logs -f"
-echo "  Stop:       docker-compose -f docker-compose.unified.yml down"
-echo "  Restart:    docker-compose -f docker-compose.unified.yml restart"
-echo "  Shell:      docker exec -it turbo-flow-unified zsh"
+echo "  View logs:  docker compose -f docker-compose.unified.yml logs -f"
+echo "  Stop:       docker compose -f docker-compose.unified.yml down"
+echo "  Restart:    docker compose -f docker-compose.unified.yml restart"
+echo "  Shell:      docker exec -it agentic-workstation zsh"
 echo ""

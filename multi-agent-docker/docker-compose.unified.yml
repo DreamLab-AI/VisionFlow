@@ -1,13 +1,13 @@
 services:
-  turbo-flow-unified:
+  agentic-workstation:
     build:
       context: .
       dockerfile: Dockerfile.unified
       args:
         BUILDKIT_INLINE_CACHE: 1
 
-    container_name: turbo-flow-unified
-    hostname: turbo-devpod
+    container_name: agentic-workstation
+    hostname: agentic-workstation
 
     # NVIDIA GPU support
     runtime: nvidia
@@ -31,8 +31,8 @@ services:
     networks:
       docker_ragflow:
         aliases:
-          - turbo-devpod.ragflow
-          - turbo-unified.local
+          - agentic-workstation.ragflow
+          - agentic-workstation.local
 
     # Port mappings (exposed to LAN)
     ports:
@@ -115,6 +115,10 @@ services:
       - SYS_ADMIN      # Required for Chromium and some GUI apps
       - NET_ADMIN      # Network management
       - SYS_PTRACE     # Debugging
+
+    security_opt:
+      - apparmor:unconfined
+      - seccomp:unconfined
 
     # GPU device access
     devices:

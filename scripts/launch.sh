@@ -212,7 +212,18 @@ docker_compose() {
     fi
 
     cd "$PROJECT_ROOT"
-    docker compose --profile "$PROFILE" "${compose_args[@]}" "$@"
+
+    # Extract subcommand and its arguments
+    local subcommand="$1"
+    shift
+    local subcommand_args=("$@")
+
+    # Add scale flag after subcommand if needed
+    if [[ "$subcommand" == "up" && "${SKIP_CLOUDFLARED:-false}" == true ]]; then
+        subcommand_args=("--scale" "cloudflared=0" "${subcommand_args[@]}")
+    fi
+
+    docker compose --profile "$PROFILE" "${compose_args[@]}" "$subcommand" "${subcommand_args[@]}"
 }
 
 # Check cloudflared tunnel
