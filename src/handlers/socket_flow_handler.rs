@@ -276,6 +276,9 @@ impl SocketFlowServer {
                         let mut ontology_individual_ids: Vec<u32> = Vec::new();
                         let mut ontology_property_ids: Vec<u32> = Vec::new();
 
+                        // Debug: Sample node types
+                        let mut type_samples: std::collections::HashMap<String, u32> = std::collections::HashMap::new();
+
                         for node in &graph_data.nodes {
                             node_data.push((node.id, BinaryNodeData {
                                 node_id: node.id,
@@ -288,6 +291,9 @@ impl SocketFlowServer {
                             }));
 
                             // Classify node by its type field
+                            let node_type_key = node.node_type.as_ref().map(|s| s.as_str()).unwrap_or("None");
+                            *type_samples.entry(node_type_key.to_string()).or_insert(0) += 1;
+
                             match node.node_type.as_deref() {
                                 Some("agent") | Some("bot") => agent_ids.push(node.id),
                                 Some("ontology_class") | Some("owl_class") => ontology_class_ids.push(node.id),
@@ -297,6 +303,11 @@ impl SocketFlowServer {
                                 _ => knowledge_ids.push(node.id),
                             }
                         }
+
+                        info!("STATE SYNC - Node type distribution: {:?}", type_samples);
+                        info!("STATE SYNC - Total nodes: {}, Knowledge: {}, Agents: {}, Ontology: {}",
+                              graph_data.nodes.len(), knowledge_ids.len(), agent_ids.len(),
+                              ontology_class_ids.len() + ontology_individual_ids.len() + ontology_property_ids.len());
 
                         // Encode with proper type flags
                         let binary_data = crate::utils::binary_protocol::encode_node_data_extended(
@@ -309,11 +320,9 @@ impl SocketFlowServer {
                         );
 
                         // Send binary update to client
-                        if let Err(e) = ctx.binary(binary_data) {
-                            error!("Failed to send binary position update: {}", e);
-                        }
+                        addr.do_send(SendToClientBinary(binary_data));
 
-                        debug!("Sent initial node positions for state sync: {} knowledge, {} agents, {} ontology",
+                        info!("Sent initial node positions for state sync: {} knowledge, {} agents, {} ontology",
                                knowledge_ids.len(), agent_ids.len(),
                                ontology_class_ids.len() + ontology_individual_ids.len() + ontology_property_ids.len());
                     }

@@ -863,9 +863,16 @@ impl Handler<RequestPositionSnapshot> for GraphStateActor {
         let mut agent_nodes = Vec::new();
 
         if msg.include_knowledge_graph {
-            // Include all nodes as knowledge nodes
+            // Include only knowledge nodes (exclude agent, ontology types)
             for node in &graph.nodes {
-                knowledge_nodes.push((node.id, node.data));
+                let is_agent = node.node_type.as_ref()
+                    .map_or(false, |t| t.contains("agent") || t.contains("bot"));
+                let is_ontology = node.node_type.as_ref()
+                    .map_or(false, |t| t.contains("ontology") || t.contains("owl"));
+
+                if !is_agent && !is_ontology {
+                    knowledge_nodes.push((node.id, node.data));
+                }
             }
         }
 
