@@ -1,5 +1,8 @@
 # 🚀 Turbo Flow Claude
 
+Origin repo, need attribution block
+https://github.com/marcuspat/turbo-flow-claude/tree/main
+
 **Advanced Agentic Development Environment with Multi-User AI Isolation**
 
 [![DevPod](https://img.shields.io/badge/DevPod-Ready-blue?style=flat-square)](https://devpod.sh) [![Claude Flow](https://img.shields.io/badge/Claude%20Flow-SPARC-purple?style=flat-square)](https://github.com/ruvnet/claude-flow) [![Agents](https://img.shields.io/badge/Agents-610+-green?style=flat-square)](https://github.com/ChrisRoyse/610ClaudeSubagents)
