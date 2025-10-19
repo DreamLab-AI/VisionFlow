@@ -23,11 +23,10 @@ class RemoteLogger {
   private serverEndpoint: string;
 
   constructor() {
-    // Use the API URL from Vite environment or fallback to default
-    // @ts-ignore - import.meta is provided by Vite
-    const apiUrl = (import.meta?.env?.VITE_API_URL) || 'http://visionflow_container:4000';
-
-    this.serverEndpoint = `${apiUrl}/api/client-logs`;
+    // Use relative path - Nginx/Vite will proxy to backend
+    // In browser: goes through Nginx proxy on port 3001
+    // In Docker: Vite dev server proxies to visionflow_container:4000
+    this.serverEndpoint = '/api/client-logs';
     console.log('[RemoteLogger] Configured endpoint:', this.serverEndpoint);
 
     // Start flush timer

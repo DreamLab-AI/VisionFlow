@@ -1671,13 +1671,9 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.app_data(handler.clone())
         .service(
             web::scope("/settings")
-                // Modern path-based endpoints
-                .route("/path", web::get().to(get_setting_by_path))
-                .route("/path", web::put().to(update_setting_by_path))
-                // Batch endpoints moved to settings_paths.rs to avoid duplicate route conflicts
-                // .route("/batch", web::post().to(batch_get_settings))
-                // .route("/batch", web::put().to(batch_update_settings))
-                .route("/schema", web::get().to(get_settings_schema))
+                // Path-based batch endpoints from settings_paths module (includes /path, /batch, /schema)
+                .configure(crate::handlers::settings_paths::configure_settings_paths)
+                // Additional endpoints specific to this handler
                 .route("/current", web::get().to(get_current_settings))
                 // Legacy endpoints (kept for compatibility but deprecated)
                 .route("", web::get().to(get_settings))
