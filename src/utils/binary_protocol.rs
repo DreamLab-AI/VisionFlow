@@ -1,7 +1,7 @@
 use crate::utils::socket_flow_messages::BinaryNodeData;
 use crate::types::vec3::Vec3Data;
 use crate::models::constraints::{Constraint, AdvancedParams};
-use log::{trace, debug};
+use log::{trace, debug, warn};
 use serde::{Serialize, Deserialize};
 use serde_json;
 
@@ -263,6 +263,24 @@ pub fn encode_node_data_extended(
     for (node_id, node) in nodes {
         // Check node type and set the appropriate flag
         // Priority: Agent > Knowledge > Ontology types > None
+
+        // Validate exclusive type assignment in debug mode
+        #[cfg(debug_assertions)]
+        {
+            let type_count = [
+                agent_node_ids.contains(node_id),
+                knowledge_node_ids.contains(node_id),
+                ontology_class_ids.contains(node_id),
+                ontology_individual_ids.contains(node_id),
+                ontology_property_ids.contains(node_id),
+            ].iter().filter(|&&x| x).count();
+
+            if type_count > 1 {
+                warn!("Node {} appears in {} type lists - using priority order (Agent > Knowledge > Ontology)",
+                      node_id, type_count);
+            }
+        }
+
         let flagged_id = if agent_node_ids.contains(node_id) {
             set_agent_flag(*node_id)
         } else if knowledge_node_ids.contains(node_id) {

@@ -267,10 +267,17 @@ impl SocketFlowServer {
                         );
                     }
 
-                    // Send initial positions as binary data (for legacy compatibility)
+                    // Send initial positions as binary data with type classification
                     if !graph_data.nodes.is_empty() {
-                        let node_data: Vec<(u32, BinaryNodeData)> = graph_data.nodes.iter()
-                            .map(|node| (node.id, BinaryNodeData {
+                        let mut node_data: Vec<(u32, BinaryNodeData)> = Vec::new();
+                        let mut agent_ids: Vec<u32> = Vec::new();
+                        let mut knowledge_ids: Vec<u32> = Vec::new();
+                        let mut ontology_class_ids: Vec<u32> = Vec::new();
+                        let mut ontology_individual_ids: Vec<u32> = Vec::new();
+                        let mut ontology_property_ids: Vec<u32> = Vec::new();
+
+                        for node in &graph_data.nodes {
+                            node_data.push((node.id, BinaryNodeData {
                                 node_id: node.id,
                                 x: node.data.x,
                                 y: node.data.y,
@@ -278,12 +285,37 @@ impl SocketFlowServer {
                                 vx: node.data.vx,
                                 vy: node.data.vy,
                                 vz: node.data.vz,
-                            }))
-                            .collect();
+                            }));
 
-                        // Send position update through the actor
-                        addr.do_send(BroadcastPositionUpdate(node_data));
-                        debug!("Sent initial node positions for state sync");
+                            // Classify node by its type field
+                            match node.node_type.as_deref() {
+                                Some("agent") | Some("bot") => agent_ids.push(node.id),
+                                Some("ontology_class") | Some("owl_class") => ontology_class_ids.push(node.id),
+                                Some("ontology_individual") | Some("owl_individual") => ontology_individual_ids.push(node.id),
+                                Some("ontology_property") | Some("owl_property") => ontology_property_ids.push(node.id),
+                                // Default to knowledge graph for backward compatibility
+                                _ => knowledge_ids.push(node.id),
+                            }
+                        }
+
+                        // Encode with proper type flags
+                        let binary_data = crate::utils::binary_protocol::encode_node_data_extended(
+                            &node_data,
+                            &agent_ids,
+                            &knowledge_ids,
+                            &ontology_class_ids,
+                            &ontology_individual_ids,
+                            &ontology_property_ids
+                        );
+
+                        // Send binary update to client
+                        if let Err(e) = ctx.binary(binary_data) {
+                            error!("Failed to send binary position update: {}", e);
+                        }
+
+                        debug!("Sent initial node positions for state sync: {} knowledge, {} agents, {} ontology",
+                               knowledge_ids.len(), agent_ids.len(),
+                               ontology_class_ids.len() + ontology_individual_ids.len() + ontology_property_ids.len());
                     }
                 }
             }

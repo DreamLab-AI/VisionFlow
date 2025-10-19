@@ -43,12 +43,21 @@ export const BINARY_SSSP_PARENT_OFFSET = 32;   // After distance (28 + 4)
 
 // Node type flag constants (Protocol V2 - must match server)
 export const AGENT_NODE_FLAG = 0x80000000;     // Bit 31 indicates agent node
-export const KNOWLEDGE_NODE_FLAG = 0x40000000; // Bit 14 indicates knowledge graph node
+export const KNOWLEDGE_NODE_FLAG = 0x40000000; // Bit 30 indicates knowledge graph node
 export const NODE_ID_MASK = 0x3FFFFFFF;        // Mask to extract actual node ID (bits 0-29)
+
+// Ontology node type flags (bits 26-28, only valid when GraphType::Ontology)
+export const ONTOLOGY_TYPE_MASK = 0x1C000000;      // Bits 26-28: Ontology node types
+export const ONTOLOGY_CLASS_FLAG = 0x04000000;     // Bit 26: OWL Class
+export const ONTOLOGY_INDIVIDUAL_FLAG = 0x08000000; // Bit 27: OWL Individual
+export const ONTOLOGY_PROPERTY_FLAG = 0x10000000;   // Bit 28: OWL Property
 
 export enum NodeType {
   Knowledge = 'knowledge',
   Agent = 'agent',
+  OntologyClass = 'ontology_class',
+  OntologyIndividual = 'ontology_individual',
+  OntologyProperty = 'ontology_property',
   Unknown = 'unknown'
 }
 
@@ -57,6 +66,12 @@ export function getNodeType(nodeId: number): NodeType {
     return NodeType.Agent;
   } else if ((nodeId & KNOWLEDGE_NODE_FLAG) !== 0) {
     return NodeType.Knowledge;
+  } else if ((nodeId & ONTOLOGY_TYPE_MASK) === ONTOLOGY_CLASS_FLAG) {
+    return NodeType.OntologyClass;
+  } else if ((nodeId & ONTOLOGY_TYPE_MASK) === ONTOLOGY_INDIVIDUAL_FLAG) {
+    return NodeType.OntologyIndividual;
+  } else if ((nodeId & ONTOLOGY_TYPE_MASK) === ONTOLOGY_PROPERTY_FLAG) {
+    return NodeType.OntologyProperty;
   }
   return NodeType.Unknown;
 }
@@ -71,6 +86,22 @@ export function isAgentNode(nodeId: number): boolean {
 
 export function isKnowledgeNode(nodeId: number): boolean {
   return (nodeId & KNOWLEDGE_NODE_FLAG) !== 0;
+}
+
+export function isOntologyClass(nodeId: number): boolean {
+  return (nodeId & ONTOLOGY_TYPE_MASK) === ONTOLOGY_CLASS_FLAG;
+}
+
+export function isOntologyIndividual(nodeId: number): boolean {
+  return (nodeId & ONTOLOGY_TYPE_MASK) === ONTOLOGY_INDIVIDUAL_FLAG;
+}
+
+export function isOntologyProperty(nodeId: number): boolean {
+  return (nodeId & ONTOLOGY_TYPE_MASK) === ONTOLOGY_PROPERTY_FLAG;
+}
+
+export function isOntologyNode(nodeId: number): boolean {
+  return isOntologyClass(nodeId) || isOntologyIndividual(nodeId) || isOntologyProperty(nodeId);
 }
 
 /**

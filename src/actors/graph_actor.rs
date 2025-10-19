@@ -2082,24 +2082,36 @@ impl GraphServiceActor {
                 return; // Skip this broadcast
             }
 
-            // Create binary position data for BOTH knowledge graph AND agent graph
-            // Per dual-graph architecture: both types broadcast together with type flags
+            // Create binary position data for ALL three graphs: knowledge, agent, and ontology
+            // Per multi-graph architecture: all types broadcast together with type flags
             let mut position_data: Vec<(u32, BinaryNodeData)> = Vec::new();
             let mut knowledge_ids: Vec<u32> = Vec::new();
             let mut agent_ids: Vec<u32> = Vec::new();
+            let mut ontology_class_ids: Vec<u32> = Vec::new();
+            let mut ontology_individual_ids: Vec<u32> = Vec::new();
+            let mut ontology_property_ids: Vec<u32> = Vec::new();
 
-            // Collect knowledge graph nodes (from main graph)
+            // Collect nodes from main graph, classifying by node_type field
             for (node_id, node) in self.node_map.iter() {
                 position_data.push((*node_id, BinaryNodeDataClient::new(
                     *node_id,
                     node.data.position(),
                     node.data.velocity(),
                 )));
-                knowledge_ids.push(*node_id);
+
+                // Classify node by its type field
+                match node.node_type.as_deref() {
+                    Some("agent") | Some("bot") => agent_ids.push(*node_id),
+                    Some("ontology_class") | Some("owl_class") => ontology_class_ids.push(*node_id),
+                    Some("ontology_individual") | Some("owl_individual") => ontology_individual_ids.push(*node_id),
+                    Some("ontology_property") | Some("owl_property") => ontology_property_ids.push(*node_id),
+                    // Default to knowledge graph for backward compatibility
+                    _ => knowledge_ids.push(*node_id),
+                }
             }
 
             // ALSO collect agent graph nodes (from bots_graph_data)
-            // This ensures both graphs are broadcast together in one unified message
+            // This ensures all graphs are broadcast together in one unified message
             for node in &self.bots_graph_data.nodes {
                 position_data.push((node.id, BinaryNodeDataClient::new(
                     node.id,
@@ -2111,12 +2123,15 @@ impl GraphServiceActor {
 
             // Broadcast to all connected clients via client manager
             if !position_data.is_empty() {
-                // Encode with proper type flags: KNOWLEDGE_NODE_FLAG and AGENT_NODE_FLAG
+                // Encode with proper type flags: KNOWLEDGE_NODE_FLAG, AGENT_NODE_FLAG, and ONTOLOGY flags
                 // Client will separate them by checking flags
-                let binary_data = crate::utils::binary_protocol::encode_node_data_with_types(
+                let binary_data = crate::utils::binary_protocol::encode_node_data_extended(
                     &position_data,
                     &agent_ids,
-                    &knowledge_ids
+                    &knowledge_ids,
+                    &ontology_class_ids,
+                    &ontology_individual_ids,
+                    &ontology_property_ids
                 );
 
                 // Send to client manager for broadcasting
@@ -2129,18 +2144,19 @@ impl GraphServiceActor {
 
                 // Update broadcast time and mark initial positions as sent
                 self.last_broadcast_time = Some(now);
+                let ontology_count = ontology_class_ids.len() + ontology_individual_ids.len() + ontology_property_ids.len();
                 if !self.initial_positions_sent {
                     self.initial_positions_sent = true;
-                    info!("Sent initial unified graph positions to clients ({} nodes: {} knowledge + {} agents)",
-                          position_data.len(), knowledge_ids.len(), agent_ids.len());
+                    info!("Sent initial multi-graph positions to clients ({} nodes: {} knowledge + {} agents + {} ontology)",
+                          position_data.len(), knowledge_ids.len(), agent_ids.len(), ontology_count);
                 } else if force_broadcast {
-                    info!("Force broadcast unified graph positions to new clients ({} nodes: {} knowledge + {} agents)",
-                          position_data.len(), knowledge_ids.len(), agent_ids.len());
+                    info!("Force broadcast multi-graph positions to new clients ({} nodes: {} knowledge + {} agents + {} ontology)",
+                          position_data.len(), knowledge_ids.len(), agent_ids.len(), ontology_count);
                 }
 
                 if crate::utils::logging::is_debug_enabled() && !force_broadcast {
-                    debug!("Broadcast unified positions: {} total ({} knowledge + {} agents), stable: {}, pending: {}/{}",
-                           position_data.len(), knowledge_ids.len(), agent_ids.len(),
+                    debug!("Broadcast multi-graph positions: {} total ({} knowledge + {} agents + {} ontology), stable: {}, pending: {}/{}",
+                           position_data.len(), knowledge_ids.len(), agent_ids.len(), ontology_count,
                            self.current_state == AutoBalanceState::Stable,
                            self.pending_broadcasts,
                            self.max_pending_broadcasts);

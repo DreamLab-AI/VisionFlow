@@ -232,6 +232,14 @@ check_cloudflared() {
         # Check if cloudflared is running
         if ! docker ps | grep -q cloudflared-tunnel; then
             warning "Cloudflared tunnel is not running"
+
+            # If in detached mode or non-interactive, skip cloudflared by default
+            if [[ "$DETACHED" == true ]] || [[ ! -t 0 ]]; then
+                info "Non-interactive mode: Skipping cloudflared tunnel. Access will be local only."
+                export SKIP_CLOUDFLARED=true
+                return 0
+            fi
+
             read -p "Would you like to start the cloudflared tunnel for public access? (y/N) " -n 1 -r
             echo
             if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -274,7 +282,8 @@ start_environment() {
         info "Building with GPU and ontology support enabled"
         build_args+=("--build-arg" "FEATURES=gpu,ontology")
 
-        DOCKER_BUILDKIT=1 docker_compose build "${build_args[@]}"
+        # Disable BuildKit to avoid --allow flag issue
+        DOCKER_BUILDKIT=0 docker_compose build "${build_args[@]}"
     fi
 
     docker_compose up "${up_args[@]}" &
@@ -360,7 +369,8 @@ build_only() {
     info "Building with GPU and ontology support enabled"
     build_args+=("--build-arg" "FEATURES=gpu,ontology")
 
-    DOCKER_BUILDKIT=1 docker_compose build "${build_args[@]}"
+    # Disable BuildKit to avoid --allow flag issue
+    DOCKER_BUILDKIT=0 docker_compose build "${build_args[@]}"
     success "Build complete"
 }
 
