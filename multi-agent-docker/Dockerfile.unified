@@ -106,6 +106,9 @@ RUN npm install -g \
 # Install Playwright browsers (skip system deps - already installed via pacman)
 RUN npx -y playwright install chromium
 
+# Clear NPX cache to prevent corruption issues
+RUN rm -rf /root/.npm/_npx /home/devuser/.npm/_npx 2>/dev/null || true
+
 # ============================================================================
 # PHASE 6: Python Virtual Environment & Tools
 # ============================================================================

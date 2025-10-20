@@ -10,7 +10,7 @@
 /* @import statements must come first */
 @import '@radix-ui/themes/styles.css';
 @import './base.css';
-@import './tailwind-utilities.css';
+@import './tailwind-utilities.css' @reference;
 
 /* Tailwind directives */
 @tailwind base;

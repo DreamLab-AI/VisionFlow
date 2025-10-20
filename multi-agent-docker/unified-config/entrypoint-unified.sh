@@ -1,6 +1,6 @@
 #!/bin/bash
-# Unified Container Entrypoint
-# Handles multi-user setup, credential distribution, and service initialization
+# Unified Container Entrypoint - Enhanced Edition
+# Handles multi-user setup, credential distribution, service initialization, and CLAUDE.md enhancement
 
 set -e
 
@@ -13,7 +13,7 @@ echo ""
 # Phase 1: Directory Setup
 # ============================================================================
 
-echo "[1/9] Setting up directories..."
+echo "[1/10] Setting up directories..."
 
 # Ensure all required directories exist
 mkdir -p /home/devuser/{workspace,models,agents,.claude/skills,.config,.cache,logs}
@@ -31,13 +31,13 @@ chown -R gemini-user:gemini-user /home/gemini-user
 chown -R openai-user:openai-user /home/openai-user
 chown -R zai-user:zai-user /home/zai-user
 
-echo "✅ Directories created and permissions set"
+echo "✓ Directories created and permissions set"
 
 # ============================================================================
 # Phase 2: Credential Distribution from Environment
 # ============================================================================
 
-echo "[2/9] Distributing credentials to users..."
+echo "[2/10] Distributing credentials to users..."
 
 # devuser - Claude Code configuration
 if [ -n "$ANTHROPIC_API_KEY" ]; then
@@ -47,7 +47,7 @@ if [ -n "$ANTHROPIC_API_KEY" ]; then
   "defaultModel": "claude-sonnet-4"
 }
 EOF
-    echo "✅ Claude API key configured for devuser"
+    echo "✓ Claude API key configured for devuser"
 fi
 
 # devuser - Z.AI API key for web-summary skill
@@ -57,7 +57,7 @@ if [ -n "$ZAI_API_KEY" ]; then
   "apiKey": "$ZAI_API_KEY"
 }
 EOF
-    echo "✅ Z.AI API key configured for devuser (web-summary skill)"
+    echo "✓ Z.AI API key configured for devuser (web-summary skill)"
 fi
 
 # gemini-user - Google Gemini configuration
@@ -69,7 +69,7 @@ if [ -n "$GOOGLE_GEMINI_API_KEY" ]; then
 }
 EOF
     export GOOGLE_API_KEY="$GOOGLE_GEMINI_API_KEY"
-    echo "✅ Gemini API key configured for gemini-user"
+    echo "✓ Gemini API key configured for gemini-user"
 fi
 
 # openai-user - OpenAI configuration
@@ -80,7 +80,7 @@ if [ -n "$OPENAI_API_KEY" ]; then
   "organization": "$OPENAI_ORG_ID"
 }
 EOF
-    echo "✅ OpenAI API key configured for openai-user"
+    echo "✓ OpenAI API key configured for openai-user"
 fi
 
 # zai-user - Z.AI service configuration
@@ -94,7 +94,7 @@ if [ -n "$ANTHROPIC_API_KEY" ] && [ -n "$ANTHROPIC_BASE_URL" ]; then
   "maxQueueSize": ${CLAUDE_MAX_QUEUE_SIZE:-50}
 }
 EOF
-    echo "✅ Z.AI configuration created for zai-user"
+    echo "✓ Z.AI configuration created for zai-user"
 fi
 
 # GitHub token for all users
@@ -108,19 +108,19 @@ pager:
 oauth_token: $GITHUB_TOKEN
 EOF
     done
-    echo "✅ GitHub token configured for all users"
+    echo "✓ GitHub token configured for all users"
 fi
 
 # ============================================================================
 # Phase 3: Copy Host Claude Configuration (if available)
 # ============================================================================
 
-echo "[3/9] Checking for host Claude configuration..."
+echo "[3/10] Checking for host Claude configuration..."
 
 if [ -d "/mnt/host-claude" ] && [ -f "/mnt/host-claude/config.json" ]; then
     cp -r /mnt/host-claude/* /home/devuser/.claude/ 2>/dev/null || true
     chown -R devuser:devuser /home/devuser/.claude
-    echo "✅ Host Claude configuration copied"
+    echo "✓ Host Claude configuration copied"
 else
     echo "ℹ️  No host Claude configuration found (this is normal)"
 fi
@@ -129,19 +129,19 @@ fi
 # Phase 4: Initialize DBus
 # ============================================================================
 
-echo "[4/9] Initializing DBus..."
+echo "[4/10] Initializing DBus..."
 
 # Clean up any stale PID files from previous runs
 rm -f /run/dbus/pid /var/run/dbus/pid
 
 # DBus will be started by supervisord
-echo "✅ DBus configured (supervisord will start)"
+echo "✓ DBus configured (supervisord will start)"
 
 # ============================================================================
 # Phase 5: Setup Claude Skills
 # ============================================================================
 
-echo "[5/9] Setting up Claude Code skills..."
+echo "[5/10] Setting up Claude Code skills..."
 
 # Make skill tools executable
 find /home/devuser/.claude/skills -name "*.py" -exec chmod +x {} \;
@@ -150,43 +150,209 @@ find /home/devuser/.claude/skills -name "*.sh" -exec chmod +x {} \;
 
 # Count skills
 SKILL_COUNT=$(find /home/devuser/.claude/skills -name "SKILL.md" | wc -l)
-echo "✅ $SKILL_COUNT Claude Code skills available"
+echo "✓ $SKILL_COUNT Claude Code skills available"
 
 # ============================================================================
 # Phase 6: Setup Agents
 # ============================================================================
 
-echo "[6/9] Setting up Claude agents..."
+echo "[6/10] Setting up Claude agents..."
 
 AGENT_COUNT=$(find /home/devuser/agents -name "*.md" 2>/dev/null | wc -l)
 if [ "$AGENT_COUNT" -gt 0 ]; then
-    echo "✅ $AGENT_COUNT agent templates available"
+    echo "✓ $AGENT_COUNT agent templates available"
 else
-    echo "⚠️  No agent templates found"
+    echo "ℹ️  No agent templates found"
 fi
+
+# ============================================================================
+# Phase 6.5: Initialize Claude Flow & Clean NPX Cache
+# ============================================================================
+
+echo "[6.5/10] Initializing Claude Flow..."
+
+# Clean any stale NPX caches from all users to prevent corruption
+rm -rf /home/devuser/.npm/_npx/* 2>/dev/null || true
+rm -rf /home/gemini-user/.npm/_npx/* 2>/dev/null || true
+rm -rf /home/openai-user/.npm/_npx/* 2>/dev/null || true
+rm -rf /home/zai-user/.npm/_npx/* 2>/dev/null || true
+rm -rf /root/.npm/_npx/* 2>/dev/null || true
+
+# Run claude-flow init --force as devuser
+sudo -u devuser bash -c "cd /home/devuser && claude-flow init --force" 2>/dev/null || echo "ℹ️  Claude Flow init skipped (not critical)"
+
+# Fix hooks to use global claude-flow instead of npx (prevents cache corruption)
+if [ -f /home/devuser/.claude/settings.json ]; then
+    sed -i 's|npx claude-flow@alpha|claude-flow|g' /home/devuser/.claude/settings.json
+    chown devuser:devuser /home/devuser/.claude/settings.json
+    echo "✓ Hooks updated to use global claude-flow"
+fi
+
+echo "✓ Claude Flow initialized and NPX cache cleared"
 
 # ============================================================================
 # Phase 7: Generate SSH Host Keys
 # ============================================================================
 
-echo "[7/9] Generating SSH host keys..."
+echo "[7/10] Generating SSH host keys..."
 
 if [ ! -f /etc/ssh/ssh_host_rsa_key ]; then
     ssh-keygen -A
-    echo "✅ SSH host keys generated"
+    echo "✓ SSH host keys generated"
 else
     echo "ℹ️  SSH host keys already exist"
 fi
 
 # ============================================================================
-# Phase 8: Display Connection Information
+# Phase 8: Enhance CLAUDE.md with Project Context
 # ============================================================================
 
-echo "[8/9] Container ready! Connection information:"
+echo "[8/10] Enhancing CLAUDE.md with project-specific context..."
+
+# Append compact project documentation to system CLAUDE.md
+sudo -u devuser bash -c 'cat >> /home/devuser/CLAUDE.md' <<'CLAUDE_APPEND'
+
+---
+
+## 🚀 Project-Specific: Turbo Flow Claude
+
+### 610 Claude Sub-Agents
+- **Repository**: https://github.com/ChrisRoyse/610ClaudeSubagents
+- **Location**: `/home/devuser/agents/*.md` (610+ templates)
+- **Usage**: Load specific agents with `cat agents/<agent-name>.md`
+- **Key Agents**: doc-planner, microtask-breakdown, github-pr-manager, tdd-london-swarm
+
+### Z.AI Service (Cost-Effective Claude API)
+**Port**: 9600 (internal only) | **User**: zai-user | **Worker Pool**: 4 concurrent
+```bash
+# Health check
+curl http://localhost:9600/health
+
+# Chat request
+curl -X POST http://localhost:9600/chat \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Your prompt here", "timeout": 30000}'
+
+# Switch to zai-user
+as-zai
+```
+
+### Gemini Flow Commands
+```bash
+gf-init        # Initialize (protocols: a2a,mcp, topology: hierarchical)
+gf-swarm       # 66 agents with intelligent coordination
+gf-architect   # 5 system architects
+gf-coder       # 12 master coders
+gf-status      # Swarm status
+gf-monitor     # Protocols and performance
+gf-health      # Health check
+```
+
+### Multi-User System
+| User | UID | Purpose | Switch |
+|------|-----|---------|--------|
+| devuser | 1000 | Claude Code, primary dev | - |
+| gemini-user | 1001 | Google Gemini, gemini-flow | `as-gemini` |
+| openai-user | 1002 | OpenAI Codex | `as-openai` |
+| zai-user | 1003 | Z.AI service (port 9600) | `as-zai` |
+
+### tmux Workspace (8 Windows)
+**Attach**: `tmux attach -t workspace`
+| Win | Name | Purpose |
+|-----|------|---------|
+| 0 | Claude-Main | Primary workspace |
+| 1 | Claude-Agent | Agent execution |
+| 2 | Services | supervisord monitoring |
+| 3 | Development | Python/Rust/CUDA dev |
+| 4 | Logs | Service logs (split) |
+| 5 | System | htop monitoring |
+| 6 | VNC-Status | VNC info |
+| 7 | SSH-Shell | General shell |
+
+### Management API
+**Base**: http://localhost:9090 | **Auth**: `X-API-Key: <MANAGEMENT_API_KEY>`
+```bash
+GET  /health              # Health (no auth)
+GET  /api/status          # System status
+POST /api/tasks           # Create task
+GET  /api/tasks/:id       # Task status
+GET  /metrics             # Prometheus metrics
+GET  /documentation       # Swagger UI
+```
+
+### Diagnostic Commands
+```bash
+# Service status
+sudo supervisorctl status
+
+# Container diagnostics
+docker exec turbo-flow-unified supervisorctl status
+docker stats turbo-flow-unified
+
+# Logs
+sudo supervisorctl tail -f management-api
+sudo supervisorctl tail -f claude-zai
+tail -f /var/log/supervisord.log
+
+# User switching test
+as-gemini whoami  # Should output: gemini-user
+```
+
+### Service Ports
+| Port | Service | Access |
+|------|---------|--------|
+| 22 | SSH | Public (mapped to 2222) |
+| 5901 | VNC | Public |
+| 8080 | code-server | Public |
+| 9090 | Management API | Public |
+| 9600 | Z.AI | Internal only |
+
+**Security**: Default creds are DEVELOPMENT ONLY. Change before production:
+- SSH: `devuser:turboflow`
+- VNC: `turboflow`
+- Management API: `X-API-Key: change-this-secret-key`
+
+### Development Environment Notes
+
+**Container Modification Best Practices**:
+- ✅ **DO**: Modify Dockerfile and entrypoint scripts DIRECTLY in the project
+- ❌ **DON'T**: Create patching scripts or temporary fixes
+- ✅ **DO**: Edit /home/devuser/workspace/project/multi-agent-docker/ files
+- ❌ **DON'T**: Use workarounds - fix the root cause
+
+**Isolated Docker Environment**:
+- This container is isolated from external build systems
+- Only these validation tools work:
+  - \`cargo test\` - Rust project testing
+  - \`npm run check\` / \`npm test\` - Node.js validation
+  - \`pytest\` - Python testing
+- **DO NOT** attempt to:
+  - Build external projects directly
+  - Run production builds inside container
+  - Execute deployment scripts
+  - Access external build infrastructure
+- **Instead**: Test, validate, and export artifacts
+
+**File Organization**:
+- Never save working files to root (/)
+- Use appropriate subdirectories:
+  - /docs - Documentation
+  - /scripts - Helper scripts
+  - /tests - Test files
+  - /config - Configuration
+CLAUDE_APPEND
+
+echo "✓ CLAUDE.md enhanced with project context"
+
+# ============================================================================
+# Phase 9: Display Connection Information
+# ============================================================================
+
+echo "[9/10] Container ready! Connection information:"
 echo ""
-echo "┌─────────────────────────────────────────────────────────────┐"
+echo "+-------------------------------------------------------------+"
 echo "│                   CONNECTION DETAILS                        │"
-echo "├─────────────────────────────────────────────────────────────┤"
+echo "+-------------------------------------------------------------│"
 echo "│ SSH:             ssh devuser@<container-ip> -p 22           │"
 echo "│                  Password: turboflow                        │"
 echo "│                                                             │"
@@ -203,26 +369,26 @@ echo "│                  Status: /api/v1/status                     │"
 echo "│                                                             │"
 echo "│ Z.AI Service:    http://localhost:9600 (internal only)      │"
 echo "│                  Accessible via ragflow network            │"
-echo "├─────────────────────────────────────────────────────────────┤"
+echo "+-------------------------------------------------------------│"
 echo "│ Users:                                                      │"
 echo "│   devuser (1000)      - Claude Code, development           │"
 echo "│   gemini-user (1001)  - Google Gemini CLI, gemini-flow     │"
 echo "│   openai-user (1002)  - OpenAI Codex                       │"
 echo "│   zai-user (1003)     - Z.AI service                       │"
-echo "├─────────────────────────────────────────────────────────────┤"
+echo "+-------------------------------------------------------------│"
 echo "│ Skills:           $SKILL_COUNT custom Claude Code skills             │"
 echo "│ Agents:           $AGENT_COUNT agent templates                       │"
-echo "├─────────────────────────────────────────────────────────────┤"
+echo "+-------------------------------------------------------------│"
 echo "│ tmux Session:     workspace (8 windows)                     │"
 echo "│   Attach with:    tmux attach-session -t workspace         │"
-echo "└─────────────────────────────────────────────────────────────┘"
+echo "+-------------------------------------------------------------+"
 echo ""
 
 # ============================================================================
-# Phase 9: Start Supervisord
+# Phase 10: Start Supervisord
 # ============================================================================
 
-echo "[9/9] Starting supervisord (all services)..."
+echo "[10/10] Starting supervisord (all services)..."
 echo ""
 
 # Display what will start
