@@ -16,8 +16,8 @@ echo ""
 echo "[1/10] Setting up directories..."
 
 # Ensure all required directories exist
-mkdir -p /home/devuser/{workspace,models,agents,.claude/skills,.config,.cache,logs}
-mkdir -p /home/gemini-user/{workspace,.config,.cache}
+mkdir -p /home/devuser/{workspace,models,agents,.claude/skills,.config,.cache,logs,.local/share}
+mkdir -p /home/gemini-user/{workspace,.config,.cache,.gemini-flow}
 mkdir -p /home/openai-user/{workspace,.config,.cache}
 mkdir -p /home/zai-user/{workspace,.config,.cache}
 mkdir -p /var/log /var/log/supervisor /run/dbus /run/user/1000 /tmp/.X11-unix /tmp/.ICE-unix
@@ -189,6 +189,96 @@ if [ -f /home/devuser/.claude/settings.json ]; then
 fi
 
 echo "✓ Claude Flow initialized and NPX cache cleared"
+
+# ============================================================================
+# Phase 6.7: Configure Cross-User Service Access
+# ============================================================================
+
+echo "[6.7/10] Configuring cross-user service access..."
+
+# Create shared directory for inter-service sockets
+mkdir -p /var/run/agentic-services
+chmod 755 /var/run/agentic-services
+
+# Create symlinks for devuser to access isolated services
+mkdir -p /home/devuser/.local/share/agentic-sockets
+ln -sf /var/run/agentic-services/gemini-mcp.sock /home/devuser/.local/share/agentic-sockets/gemini-mcp.sock 2>/dev/null || true
+ln -sf http://localhost:9600 /home/devuser/.local/share/agentic-sockets/zai-api.txt 2>/dev/null || true
+
+# Add environment variable exports to devuser's zshrc for service discovery
+sudo -u devuser bash -c 'cat >> ~/.zshrc' <<'ENV_EXPORTS'
+
+# Cross-user service access (auto-configured)
+export GEMINI_MCP_SOCKET="/var/run/agentic-services/gemini-mcp.sock"
+export ZAI_API_URL="http://localhost:9600"
+export ZAI_CONTAINER_URL="http://localhost:9600"
+export OPENAI_CODEX_SOCKET="/var/run/agentic-services/openai-codex.sock"
+ENV_EXPORTS
+
+# Configure MCP settings for Claude Code
+sudo -u devuser bash -c 'mkdir -p ~/.config/claude && cat > ~/.config/claude/mcp_settings.json' <<'MCP_CONFIG'
+{
+  "mcpServers": {
+    "web-summary": {
+      "command": "node",
+      "args": ["/home/devuser/.claude/skills/web-summary/mcp-server/server.js"],
+      "env": {
+        "ZAI_CONTAINER_URL": "http://localhost:9600",
+        "WEB_SUMMARY_TOOL_PATH": "/home/devuser/.claude/skills/web-summary/tools/web_summary_tool.py"
+      }
+    },
+    "qgis": {
+      "command": "python3",
+      "args": ["-u", "/home/devuser/.claude/skills/qgis/tools/qgis_mcp.py"],
+      "env": {
+        "QGIS_HOST": "localhost",
+        "QGIS_PORT": "9877"
+      }
+    },
+    "blender": {
+      "command": "node",
+      "args": ["/home/devuser/.claude/skills/blender/tools/mcp-blender-client.js"],
+      "env": {
+        "BLENDER_HOST": "localhost",
+        "BLENDER_PORT": "9876"
+      }
+    },
+    "imagemagick": {
+      "command": "python3",
+      "args": ["-u", "/home/devuser/.claude/skills/imagemagick/tools/imagemagick_mcp.py"]
+    },
+    "kicad": {
+      "command": "python3",
+      "args": ["-u", "/home/devuser/.claude/skills/kicad/tools/kicad_mcp.py"]
+    },
+    "ngspice": {
+      "command": "python3",
+      "args": ["-u", "/home/devuser/.claude/skills/ngspice/tools/ngspice_mcp.py"]
+    },
+    "pbr-rendering": {
+      "command": "python3",
+      "args": ["-u", "/home/devuser/.claude/skills/pbr-rendering/tools/pbr_mcp_client.py"],
+      "env": {
+        "PBR_HOST": "localhost",
+        "PBR_PORT": "9878"
+      }
+    },
+    "playwright": {
+      "command": "node",
+      "args": ["/home/devuser/.claude/skills/playwright/tools/playwright-mcp-local.js"]
+    }
+  }
+}
+MCP_CONFIG
+
+chown -R devuser:devuser /home/devuser/.local/share/agentic-sockets
+chown -R devuser:devuser /home/devuser/.config/claude
+
+echo "✓ Cross-user service access configured"
+echo "  - Gemini MCP socket: /var/run/agentic-services/gemini-mcp.sock"
+echo "  - Z.AI API: http://localhost:9600"
+echo "  - MCP Servers: 8 skills registered (web-summary, qgis, blender, imagemagick, kicad, ngspice, pbr, playwright)"
+echo "  - Environment variables added to devuser's .zshrc"
 
 # ============================================================================
 # Phase 7: Generate SSH Host Keys

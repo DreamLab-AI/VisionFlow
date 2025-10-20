@@ -262,6 +262,22 @@ RUN echo "devuser:turboflow" | chpasswd
 # Copy skills
 COPY --chown=devuser:devuser skills/ /home/devuser/.claude/skills/
 
+# Install web-summary MCP server dependencies
+RUN cd /home/devuser/.claude/skills/web-summary/mcp-server && \
+    npm install --production && \
+    chmod +x server.js && \
+    chown -R devuser:devuser /home/devuser/.claude/skills/web-summary/mcp-server
+
+# Install Python dependencies for MCP tools (break-system-packages for Arch)
+RUN pip3 install --no-cache-dir --break-system-packages \
+    youtube-transcript-api beautifulsoup4 requests \
+    mcp
+
+# Make all MCP tools executable
+RUN find /home/devuser/.claude/skills -name "*.py" -path "*/tools/*" -exec chmod +x {} \; && \
+    find /home/devuser/.claude/skills -name "*.js" -path "*/tools/*" -exec chmod +x {} \; && \
+    chown -R devuser:devuser /home/devuser/.claude/skills
+
 # Copy Full Management API from multi-agent-docker
 COPY --chown=devuser:devuser multi-agent-docker/management-api/ /opt/management-api/
 RUN cd /opt/management-api && npm install --production && \
@@ -272,8 +288,11 @@ COPY --chown=zai-user:zai-user multi-agent-docker/claude-zai/wrapper/ /opt/claud
 RUN cd /opt/claude-zai && npm install --production && \
     chown -R zai-user:zai-user /opt/claude-zai
 
-# Install code-server (optional - native module may fail, fallback to skip)
-RUN npm install -g code-server || echo "code-server installation skipped (native build failure)"
+# Install code-server using standalone binary method (AUR requires non-root)
+RUN mkdir -p /usr/local/lib/code-server && \
+    curl -fsSL https://github.com/coder/code-server/releases/download/v4.96.2/code-server-4.96.2-linux-amd64.tar.gz | \
+    tar -xz -C /usr/local/lib/code-server --strip-components=1 && \
+    ln -s /usr/local/lib/code-server/bin/code-server /usr/bin/code-server
 
 # Install gemini-flow globally
 RUN npm install -g gemini-flow
