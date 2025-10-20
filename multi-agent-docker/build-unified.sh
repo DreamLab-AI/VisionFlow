@@ -6,6 +6,13 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# Parse arguments
+BUILD_ARGS=""
+if [[ "$*" == *"--no-cache"* ]]; then
+    BUILD_ARGS="--no-cache"
+    echo "🔄 Building without cache..."
+fi
+
 echo "========================================"
 echo "  AGENTIC WORKSTATION - BUILD & LAUNCH"
 echo "========================================"
@@ -30,7 +37,7 @@ fi
 
 # Build the container
 echo "[1/3] Building Docker image..."
-docker build -f Dockerfile.unified -t agentic-workstation:latest .
+docker build $BUILD_ARGS -f Dockerfile.unified -t agentic-workstation:latest .
 
 echo ""
 echo "[2/3] Launching container..."

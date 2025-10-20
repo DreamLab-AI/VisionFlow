@@ -17,8 +17,8 @@ RUN pacman -Syu --noconfirm && \
         jq yq bat exa fzf \
         # Build dependencies for node-gyp
         python make gcc \
-        # Development languages
-        nodejs npm python python-pip rustup \
+        # Development languages (skip nodejs from pacman, will install LTS via nvm)
+        python python-pip rustup \
         # Desktop environment
         xfce4 xfce4-goodies tigervnc \
         xorg-server xorg-xinit xorg-xauth \
@@ -41,6 +41,12 @@ RUN pacman -Syu --noconfirm && \
         docker docker-compose \
         direnv \
     && rm -rf /var/cache/pacman/pkg/*
+
+# Install Node.js LTS (v22) via official installer to avoid better-sqlite3 v24 incompatibility
+RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - || \
+    (curl -fsSL https://nodejs.org/dist/v22.11.0/node-v22.11.0-linux-x64.tar.xz | \
+     tar -xJ -C /usr/local --strip-components=1) && \
+    npm install -g npm@latest
 
 # ============================================================================
 # PHASE 2: CUDA Development Environment
