@@ -28,6 +28,8 @@ RUN pacman -Syu --noconfirm && \
         alsa-lib pipewire pipewire-pulse gtk4 \
         # Graphics
         mesa mesa-utils libva-mesa-driver \
+        libglvnd glew freeglut libxcursor libxi libxinerama libxrandr \
+        vulkan-icd-loader vulkan-tools \
         chromium firefox \
         # GUI Tools
         blender qgis kicad imagemagick \
@@ -56,12 +58,24 @@ RUN pacman -S --noconfirm \
         cuda cuda-tools \
         cudnn \
         nvidia-utils \
+        libglvnd \
     && rm -rf /var/cache/pacman/pkg/*
 
 # Set CUDA environment variables
 ENV CUDA_HOME=/opt/cuda
 ENV PATH=/opt/cuda/bin:${PATH}
-ENV LD_LIBRARY_PATH=/opt/cuda/lib64
+ENV LD_LIBRARY_PATH=/opt/cuda/lib64:${LD_LIBRARY_PATH}
+
+# Configure NVIDIA OpenGL libraries
+ENV __GLX_VENDOR_LIBRARY_NAME=nvidia
+ENV __NV_PRIME_RENDER_OFFLOAD=1
+ENV __VK_LAYER_NV_optimus=NVIDIA_only
+ENV LIBGL_ALWAYS_INDIRECT=0
+
+# Ensure GLX uses NVIDIA
+RUN mkdir -p /usr/share/glvnd/egl_vendor.d && \
+    echo '{"file_format_version":"1.0.0","ICD":{"library_path":"libEGL_nvidia.so.0"}}' \
+    > /usr/share/glvnd/egl_vendor.d/10_nvidia.json
 
 # ============================================================================
 # PHASE 3: Rust Toolchain Setup
