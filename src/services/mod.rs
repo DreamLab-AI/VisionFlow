@@ -4,6 +4,7 @@ pub mod multi_mcp_agent_discovery;
 pub mod topology_visualization_engine;
 pub mod real_mcp_integration_bridge;
 pub mod bots_client;
+pub mod database_service;
 pub mod edge_generation;
 pub mod file_service;
 pub mod github;
@@ -11,6 +12,7 @@ pub mod management_api_client;
 // graph_service module removed - functionality moved to GraphServiceActor
 pub mod mcp_relay_manager;
 pub mod nostr_service;
+pub mod settings_service;
 #[cfg(feature = "ontology")]
 pub mod owl_validator;
 pub mod perplexity_service;

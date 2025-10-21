@@ -66,6 +66,7 @@ RUN mkdir -p /app/data/markdown \
 # These MUST be in the container for building on startup
 COPY Cargo.toml build.rs ./
 COPY src ./src
+COPY schema ./schema
 
 # Copy client directory with all frontend files
 COPY client ./client

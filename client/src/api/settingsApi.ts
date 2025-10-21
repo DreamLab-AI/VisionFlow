@@ -89,7 +89,9 @@ class SettingsUpdateManager {
 
   private async processCriticalUpdate(update: DebouncedUpdate): Promise<void> {
     try {
-      await unifiedApiClient.putData(`${API_BASE}/path`, { path: update.path, value: update.value });
+      const encodedPath = encodeURIComponent(update.path);
+      // NEW: Path is now in URL (database-backed API)
+      await unifiedApiClient.putData(`${API_BASE}/path/${encodedPath}`, update.value);
 
       logger.info(`[DEBOUNCE] Critical update processed immediately: ${update.path}`);
 
@@ -161,61 +163,31 @@ class SettingsUpdateManager {
   }
 
   private async processBatchChunk(chunk: BatchOperation[]): Promise<void> {
-    try {
-      const responseData = await unifiedApiClient.putData(`${API_BASE}/batch`, {
-        updates: chunk
-      });
+    // NEW: Database backend doesn't have batch update endpoint yet
+    // Use individual PUT calls for each path (database handles them efficiently)
+    logger.info(`[DEBOUNCE] Processing chunk of ${chunk.length} updates via individual database writes`);
 
-      // Process the results from the server to ensure client state matches
-      if (responseData.results && Array.isArray(responseData.results)) {
-        logger.info(`[DEBOUNCE] Server batch update response:`, responseData);
-
-        // Check if any values were modified by the server
-        responseData.results.forEach((result: any) => {
-          if (result.success) {
-            // Find the original value we sent
-            const originalUpdate = chunk.find(u => u.path === result.path);
-            if (originalUpdate && JSON.stringify(originalUpdate.value) !== JSON.stringify(result.value)) {
-              logger.warn(`[DEBOUNCE] Server modified value for ${result.path}:`, {
-                sent: originalUpdate.value,
-                received: result.value
-              });
-              // TODO: Update the local store with the server's value without triggering another update
-              // This needs a new store method like setLocalOnly() that doesn't call autoSaveManager
-            }
-          }
-        });
-      }
-
-      logger.info(`[DEBOUNCE] Successfully processed batch chunk of ${chunk.length} updates`);
-    } catch (error) {
-      if (isApiError(error)) {
-        logger.warn(`Batch chunk failed (${error.status}), falling back to individual updates`);
-
-        // Fallback to individual updates
-        const results = await Promise.allSettled(
-          chunk.map(async ({ path, value }) => {
-            try {
-              await unifiedApiClient.putData(`${API_BASE}/path`, { path, value });
-              return { path, success: true };
-            } catch (err) {
-              const errorMessage = isApiError(err) ? err.message : `Failed to update: ${path}`;
-              throw new Error(errorMessage);
-            }
-          })
-        );
-
-        const failures = results.filter(result => result.status === 'rejected');
-        if (failures.length > 0) {
-          throw new Error(`${failures.length} out of ${chunk.length} individual updates failed in fallback`);
+    const results = await Promise.allSettled(
+      chunk.map(async ({ path, value }) => {
+        try {
+          const encodedPath = encodeURIComponent(path);
+          // NEW: Path in URL, value as body (database-backed API)
+          await unifiedApiClient.putData(`${API_BASE}/path/${encodedPath}`, value);
+          return { path, success: true };
+        } catch (err) {
+          const errorMessage = isApiError(err) ? err.message : `Failed to update: ${path}`;
+          logger.error(`[DEBOUNCE] Individual update failed for ${path}:`, err);
+          throw new Error(errorMessage);
         }
+      })
+    );
 
-        logger.info(`[DEBOUNCE] Successfully processed chunk of ${chunk.length} updates via individual fallback`);
-      } else {
-        logger.error(`[DEBOUNCE] Batch chunk processing failed:`, error);
-        throw error;
-      }
+    const failures = results.filter(result => result.status === 'rejected');
+    if (failures.length > 0) {
+      throw new Error(`${failures.length} out of ${chunk.length} individual updates failed`);
     }
+
+    logger.info(`[DEBOUNCE] Successfully processed chunk of ${chunk.length} updates`);
   }
 
   // Force process all pending updates immediately
@@ -240,8 +212,9 @@ export const settingsApi = {
   async getSettingByPath(path: string): Promise<any> {
     try {
       const encodedPath = encodeURIComponent(path);
-      const result = await unifiedApiClient.getData(`${API_BASE}/path?path=${encodedPath}`);
-      return result.value; // Backend returns { value: actualValue }
+      // NEW: Path is now in URL, not query param (database-backed API)
+      const result = await unifiedApiClient.getData(`${API_BASE}/path/${encodedPath}`);
+      return result.value; // Backend returns { path, value }
     } catch (error) {
       const errorMessage = isApiError(error)
         ? error.message
@@ -310,7 +283,8 @@ export const settingsApi = {
   },
   
   /**
-   * Update multiple settings by their paths in a single transaction
+   * Update multiple settings by their paths
+   * NEW: Database backend handles individual updates efficiently
    * @param updates - Array of path-value updates
    */
   async updateSettingsByPaths(updates: BatchOperation[]): Promise<void> {
@@ -318,43 +292,34 @@ export const settingsApi = {
       return;
     }
 
-    try {
-      // Try the server's batch endpoint first
-      await unifiedApiClient.putData(`${API_BASE}/batch`, { updates });
-      logger.info(`Successfully updated ${updates.length} settings using batch endpoint`);
-      return;
-    } catch (error) {
-      logger.warn('Error with batch endpoint, attempting individual updates fallback:', error);
-      
-      // Fallback: Use individual path updates for better reliability
-      const results = await Promise.allSettled(
-        updates.map(async ({ path, value }) => {
-          try {
-            await this.updateSettingByPath(path, value);
-            return { path, success: true };
-          } catch (err) {
-            logger.error(`Failed to update path ${path}:`, err);
-            return { path, success: false, error: err };
-          }
-        })
-      );
-      
-      // Check if any individual updates failed
-      const failures = results
-        .map((result, index) => ({
-          result,
-          update: updates[index]
-        }))
-        .filter(({ result }) => result.status === 'rejected' || (result.status === 'fulfilled' && !result.value.success));
-      
-      if (failures.length > 0) {
-        logger.error(`${failures.length} out of ${updates.length} settings updates failed`);
-        
-        // If individual updates fail, we don't have a fallback since we're removing legacy bulk updates
-        throw new Error(`Failed to update settings: ${failures.length} out of ${updates.length} individual path updates failed`);
-      } else {
-        logger.info(`Successfully updated ${updates.length} settings using individual path updates`);
-      }
+    logger.info(`Updating ${updates.length} settings via database-backed API`);
+
+    // Use individual path updates (database backend is optimized for this)
+    const results = await Promise.allSettled(
+      updates.map(async ({ path, value }) => {
+        try {
+          await this.updateSettingByPath(path, value);
+          return { path, success: true };
+        } catch (err) {
+          logger.error(`Failed to update path ${path}:`, err);
+          return { path, success: false, error: err };
+        }
+      })
+    );
+
+    // Check if any individual updates failed
+    const failures = results
+      .map((result, index) => ({
+        result,
+        update: updates[index]
+      }))
+      .filter(({ result }) => result.status === 'rejected' || (result.status === 'fulfilled' && !result.value.success));
+
+    if (failures.length > 0) {
+      logger.error(`${failures.length} out of ${updates.length} settings updates failed`);
+      throw new Error(`Failed to update settings: ${failures.length} out of ${updates.length} individual path updates failed`);
+    } else {
+      logger.info(`Successfully updated ${updates.length} settings`);
     }
   },
   
@@ -416,7 +381,9 @@ export const settingsApi = {
    */
   async updateSettingImmediately(path: string, value: any): Promise<void> {
     try {
-      await unifiedApiClient.putData(`${API_BASE}/path`, { path, value });
+      const encodedPath = encodeURIComponent(path);
+      // NEW: Path in URL (database-backed API)
+      await unifiedApiClient.putData(`${API_BASE}/path/${encodedPath}`, value);
     } catch (error) {
       const errorMessage = isApiError(error)
         ? error.message
@@ -424,7 +391,111 @@ export const settingsApi = {
       throw new Error(errorMessage);
     }
   },
-  
+
+  /**
+   * Get physics settings for a specific graph
+   * CRITICAL: Maintains separation between logseq and visionflow graphs
+   * @param graphName - 'logseq', 'visionflow', or 'default'
+   * @returns Physics settings for the specified graph
+   */
+  async getPhysicsSettings(graphName: 'logseq' | 'visionflow' | 'default'): Promise<any> {
+    try {
+      const result = await unifiedApiClient.getData(`${API_BASE}/physics/${graphName}`);
+      logger.info(`[PHYSICS] Loaded physics settings for graph: ${graphName}`);
+      return result;
+    } catch (error) {
+      const errorMessage = isApiError(error)
+        ? error.message
+        : `Failed to get physics settings for graph: ${graphName}`;
+      throw new Error(errorMessage);
+    }
+  },
+
+  /**
+   * Update physics settings for a specific graph
+   * CRITICAL: Validates graph name to prevent conflation bug
+   * @param graphName - 'logseq', 'visionflow', or 'default'
+   * @param physicsSettings - Physics configuration object
+   */
+  async updatePhysicsSettings(
+    graphName: 'logseq' | 'visionflow' | 'default',
+    physicsSettings: any
+  ): Promise<void> {
+    // Validate graph name to prevent conflation
+    if (graphName !== 'logseq' && graphName !== 'visionflow' && graphName !== 'default') {
+      const error = `Invalid graph name: ${graphName}. Must be 'logseq', 'visionflow', or 'default'`;
+      logger.error(`[PHYSICS] ${error}`);
+      throw new Error(error);
+    }
+
+    try {
+      await unifiedApiClient.putData(`${API_BASE}/physics/${graphName}`, physicsSettings);
+      logger.info(`[PHYSICS] Updated physics settings for graph: ${graphName}`);
+    } catch (error) {
+      const errorMessage = isApiError(error)
+        ? error.message
+        : `Failed to update physics settings for graph: ${graphName}`;
+      logger.error(`[PHYSICS] ${errorMessage}`, error);
+      throw new Error(errorMessage);
+    }
+  },
+
+  /**
+   * Validate that logseq and visionflow graphs have separate physics settings
+   * CRITICAL: Prevents the graph conflation bug mentioned by user
+   * @returns true if graphs are properly separated, false if conflated
+   */
+  async validateGraphSeparation(): Promise<{ valid: boolean; message?: string }> {
+    try {
+      const logseqPhysics = await this.getPhysicsSettings('logseq');
+      const visionflowPhysics = await this.getPhysicsSettings('visionflow');
+
+      // Check if physics settings are identical (sign of conflation)
+      const logseqStr = JSON.stringify(logseqPhysics);
+      const visionflowStr = JSON.stringify(visionflowPhysics);
+
+      if (logseqStr === visionflowStr) {
+        const message = 'WARNING: Logseq and Visionflow graphs have identical physics settings - possible conflation!';
+        logger.warn(`[PHYSICS] ${message}`);
+        return { valid: false, message };
+      }
+
+      logger.info('[PHYSICS] Graph separation validated - logseq and visionflow have distinct settings');
+      return { valid: true };
+    } catch (error) {
+      logger.error('[PHYSICS] Failed to validate graph separation:', error);
+      return { valid: false, message: 'Failed to validate graph separation' };
+    }
+  },
+
+  /**
+   * Health check for settings service
+   * @returns Health status and cache information
+   */
+  async getHealth(): Promise<any> {
+    try {
+      const result = await unifiedApiClient.getData(`${API_BASE}/health`);
+      logger.info('[SETTINGS] Health check successful', result);
+      return result;
+    } catch (error) {
+      logger.error('[SETTINGS] Health check failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Clear settings cache on backend
+   */
+  async clearCache(): Promise<void> {
+    try {
+      await unifiedApiClient.postData(`${API_BASE}/cache/clear`, {});
+      logger.info('[SETTINGS] Cache cleared successfully');
+    } catch (error) {
+      logger.error('[SETTINGS] Failed to clear cache:', error);
+      throw error;
+    }
+  },
+
 };
 
 // Export types for use by other modules

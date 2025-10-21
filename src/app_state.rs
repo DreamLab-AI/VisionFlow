@@ -25,6 +25,8 @@ use crate::services::ragflow_service::RAGFlowService;
 use crate::services::nostr_service::NostrService;
 use crate::services::bots_client::BotsClient;
 use crate::services::management_api_client::ManagementApiClient;
+use crate::services::database_service::DatabaseService;
+use crate::services::settings_service::SettingsService;
 use tokio::sync::mpsc;
 use crate::utils::client_message_extractor::ClientMessage;
 
@@ -35,6 +37,10 @@ pub struct AppState {
     pub gpu_manager_addr: Option<Addr<GPUManagerActor>>, // Modular GPU manager system
     #[cfg(feature = "gpu")]
     pub gpu_compute_addr: Option<Addr<gpu::ForceComputeActor>>, // Force compute actor for physics
+    // Database-backed settings (NEW - direct UI → Database connection)
+    pub db_service: Arc<DatabaseService>,
+    pub settings_service: Arc<SettingsService>,
+    // Legacy actor-based settings (will be phased out)
     pub settings_addr: Addr<OptimizedSettingsActor>,
     pub protected_settings_addr: Addr<ProtectedSettingsActor>,
     pub metadata_addr: Addr<MetadataActor>,
@@ -70,6 +76,30 @@ impl AppState {
     ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
         info!("[AppState::new] Initializing actor system");
         tokio::time::sleep(Duration::from_millis(50)).await;
+
+        // CRITICAL: Initialize database FIRST - this is the new source of truth for settings
+        info!("[AppState::new] Initializing SQLite database (NEW architecture)");
+        let db_path = std::env::var("DATABASE_PATH").unwrap_or_else(|_| "data/visionflow.db".to_string());
+        let db_service = Arc::new(DatabaseService::new(&db_path)
+            .map_err(|e| format!("Failed to create database: {}", e))?);
+
+        // Initialize database schema
+        info!("[AppState::new] Initializing database schema");
+        db_service.initialize_schema()
+            .map_err(|e| format!("Failed to initialize schema: {}", e))?;
+
+        // Save current settings to database (migration from YAML/in-memory)
+        info!("[AppState::new] Migrating settings to database");
+        db_service.save_all_settings(&settings)
+            .map_err(|e| format!("Failed to save settings to database: {}", e))?;
+
+        // Create settings service (provides direct access to database for handlers)
+        info!("[AppState::new] Creating SettingsService (UI → Database direct connection)");
+        let settings_service = Arc::new(SettingsService::new(db_service.clone())
+            .map_err(|e| format!("Failed to create settings service: {}", e))?);
+
+        info!("[AppState::new] Database and settings service initialized successfully");
+        info!("[AppState::new] IMPORTANT: UI now connects directly to database via SettingsService");
 
         // Start actors
         info!("[AppState::new] Starting ClientCoordinatorActor");
@@ -255,6 +285,10 @@ impl AppState {
             gpu_manager_addr,
             #[cfg(feature = "gpu")]
             gpu_compute_addr: None, // Will be set by GPUManagerActor
+            // NEW: Database-backed settings (direct UI connection)
+            db_service,
+            settings_service,
+            // Legacy actor-based settings
             settings_addr,
             protected_settings_addr,
             metadata_addr,

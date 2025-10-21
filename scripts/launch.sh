@@ -211,6 +211,11 @@ docker_compose() {
         export DOCKER_DEFAULT_RUNTIME="nvidia"
     fi
 
+    # Workaround for Docker Compose 2.40.x --allow flag bug
+    # Disable BuildKit for compose build operations
+    export DOCKER_BUILDKIT=0
+    export COMPOSE_DOCKER_CLI_BUILD=0
+
     cd "$PROJECT_ROOT"
     docker compose --profile "$PROFILE" "${compose_args[@]}" "$@"
 }
@@ -263,10 +268,16 @@ start_environment() {
         info "Building with GPU support enabled"
         build_args+=("--build-arg" "FEATURES=gpu")
 
-        DOCKER_BUILDKIT=1 docker_compose build "${build_args[@]}"
+        # Use default buildkit (DOCKER_BUILDKIT=1 causes --allow flag issues in Docker 28.x)
+        docker_compose build "${build_args[@]}"
     fi
 
-    docker_compose up "${up_args[@]}" &
+    # Handle cloudflared skip
+    if [[ "${SKIP_CLOUDFLARED:-false}" == "true" ]]; then
+        docker_compose up "${up_args[@]}" --scale cloudflared=0 &
+    else
+        docker_compose up "${up_args[@]}" &
+    fi
     local compose_pid=$!
     
     # Wait for container to be fully ready
@@ -349,7 +360,8 @@ build_only() {
     info "Building with GPU support enabled"
     build_args+=("--build-arg" "FEATURES=gpu")
 
-    DOCKER_BUILDKIT=1 docker_compose build "${build_args[@]}"
+    # Use default buildkit (DOCKER_BUILDKIT=1 causes --allow flag issues in Docker 28.x)
+    docker_compose build "${build_args[@]}"
     success "Build complete"
 }
 
