@@ -1,0 +1,178 @@
+services:
+  agentic-workstation:
+    build:
+      context: .
+      dockerfile: Dockerfile.unified
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+
+    container_name: agentic-workstation
+    hostname: agentic-workstation
+
+    # NVIDIA GPU support
+    runtime: nvidia
+    shm_size: 32gb
+
+    # Resource allocation for powerful host
+    deploy:
+      resources:
+        limits:
+          memory: 64G
+          cpus: '32'
+        reservations:
+          memory: 16G
+          cpus: '8'
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu, compute, utility, graphics, display]
+
+    # Network configuration - join ragflow network
+    networks:
+      docker_ragflow:
+        aliases:
+          - agentic-workstation.ragflow
+          - agentic-workstation.local
+
+    # Port mappings (exposed to LAN)
+    ports:
+      - "2222:22"      # SSH (host 2222 -> container 22 to avoid conflicts)
+      - "5901:5901"    # VNC
+      - "8080:8080"    # code-server (Web IDE)
+      - "9090:9090"    # Management API
+      # Port 9600 (Z.AI) is NOT exposed - internal ragflow network only
+
+    # Volume mounts for persistence
+    volumes:
+      # Primary workspaces
+      - workspace:/home/devuser/workspace:rw
+      - agents:/home/devuser/agents:rw
+      - claude-config:/home/devuser/.claude:rw
+
+      # User-specific workspaces
+      - gemini-workspace:/home/gemini-user/workspace:rw
+      - openai-workspace:/home/openai-user/workspace:rw
+
+      # Shared resources
+      - model-cache:/home/devuser/models:rw
+      - logs:/var/log:rw
+
+      # Host Claude config (read-only mount from host)
+      - ${HOST_CLAUDE_DIR:-${HOME}/.claude}:/mnt/host-claude:ro
+
+      # External project directory (if PROJECT_DIR is set)
+      - ${PROJECT_DIR:-/tmp/empty}:/home/devuser/workspace/project:rw
+
+      # X11 socket for GUI apps (if needed)
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+
+    # Environment variables from .env
+    environment:
+      # Display
+      DISPLAY: ":1"
+
+      # API Keys
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_ORG_ID: ${OPENAI_ORG_ID:-}
+      GOOGLE_GEMINI_API_KEY: ${GOOGLE_GEMINI_API_KEY:-}
+      GOOGLE_API_KEY: ${GOOGLE_GEMINI_API_KEY:-}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      CONTEXT7_API_KEY: ${CONTEXT7_API_KEY:-}
+      BRAVE_API_KEY: ${BRAVE_API_KEY:-}
+
+      # Z.AI Configuration (separate from Claude CLI)
+      ZAI_ANTHROPIC_API_KEY: ${ZAI_ANTHROPIC_API_KEY:-}
+      ZAI_BASE_URL: ${ZAI_BASE_URL:-https://api.z.ai/api/anthropic}
+      ZAI_API_KEY: ${ZAI_API_KEY:-}
+      ZAI_CONTAINER_URL: http://localhost:9600
+      CLAUDE_WORKER_POOL_SIZE: ${CLAUDE_WORKER_POOL_SIZE:-4}
+      CLAUDE_MAX_QUEUE_SIZE: ${CLAUDE_MAX_QUEUE_SIZE:-50}
+
+      # Management API
+      MANAGEMENT_API_KEY: ${MANAGEMENT_API_KEY:-change-this-secret-key}
+      MANAGEMENT_API_PORT: 9090
+      MANAGEMENT_API_HOST: 0.0.0.0
+
+      # System Configuration
+      WORKSPACE: /home/devuser/workspace
+      AGENTS_DIR: /home/devuser/agents
+      ENABLE_DESKTOP: "true"
+      GPU_ACCELERATION: "true"
+      CUDA_VISIBLE_DEVICES: ${CUDA_VISIBLE_DEVICES:-all}
+
+      # Service toggles (all true by default)
+      ENABLE_VNC: "true"
+      ENABLE_SSH: "true"
+      ENABLE_MANAGEMENT_API: "true"
+
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      NODE_ENV: ${NODE_ENV:-production}
+
+    # Security capabilities
+    cap_add:
+      - SYS_ADMIN      # Required for Chromium and some GUI apps
+      - NET_ADMIN      # Network management
+      - SYS_PTRACE     # Debugging
+
+    security_opt:
+      - apparmor:unconfined
+      - seccomp:unconfined
+
+    # GPU device access
+    devices:
+      - /dev/dri:/dev/dri                           # Intel/AMD GPU
+      - /dev/nvidia0:/dev/nvidia0                   # NVIDIA GPU 0
+      - /dev/nvidiactl:/dev/nvidiactl               # NVIDIA control
+      - /dev/nvidia-uvm:/dev/nvidia-uvm             # NVIDIA unified memory
+      - /dev/nvidia-modeset:/dev/nvidia-modeset     # NVIDIA modesetting
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    # Restart policy
+    restart: unless-stopped
+
+    # DNS configuration
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+
+    # Extra hosts
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+# ============================================================================
+# Networks
+# ============================================================================
+
+networks:
+  docker_ragflow:
+    external: true
+    name: docker_ragflow
+
+# ============================================================================
+# Volumes
+# ============================================================================
+
+volumes:
+  workspace:
+    driver: local
+  agents:
+    driver: local
+  claude-config:
+    driver: local
+  gemini-workspace:
+    driver: local
+  openai-workspace:
+    driver: local
+  model-cache:
+    driver: local
+  logs:
+    driver: local

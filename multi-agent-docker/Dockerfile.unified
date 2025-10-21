@@ -1,0 +1,386 @@
+# ============================================================================
+# Unified CachyOS Development Container
+# Combines devpod + multi-agent-docker with multi-user isolation
+# ============================================================================
+
+FROM archlinux:latest
+
+# ============================================================================
+# PHASE 1: Base System Packages
+# ============================================================================
+
+RUN pacman -Syu --noconfirm && \
+    pacman -S --noconfirm \
+        # Core system
+        base-devel git vim nano zsh curl wget \
+        sudo openssh tmux htop btop ripgrep fd \
+        jq yq bat exa fzf \
+        # Build dependencies for node-gyp
+        python make gcc \
+        # Development languages (skip nodejs from pacman, will install LTS via nvm)
+        python python-pip rustup \
+        # Desktop environment
+        xfce4 xfce4-goodies tigervnc \
+        xorg-server xorg-xinit xorg-xauth \
+        dbus nss freetype2 harfbuzz \
+        ttf-liberation ttf-dejavu ttf-font-awesome \
+        # Audio/Video
+        alsa-lib pipewire pipewire-pulse gtk4 \
+        # Graphics
+        mesa mesa-utils libva-mesa-driver \
+        libglvnd glew freeglut libxcursor libxi libxinerama libxrandr \
+        vulkan-icd-loader vulkan-tools \
+        chromium firefox \
+        # GUI Tools
+        blender qgis kicad imagemagick \
+        # Python development
+        python-virtualenv python-poetry \
+        # LaTeX (basic installation - full TeX Live is very large)
+        texlive-basic texlive-bin texlive-binextra \
+        texlive-fontsrecommended texlive-latexrecommended \
+        biber \
+        # Additional tools
+        docker docker-compose \
+        direnv \
+    && rm -rf /var/cache/pacman/pkg/*
+
+# Install Node.js LTS (v22) via official installer to avoid better-sqlite3 v24 incompatibility
+RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - || \
+    (curl -fsSL https://nodejs.org/dist/v22.11.0/node-v22.11.0-linux-x64.tar.xz | \
+     tar -xJ -C /usr/local --strip-components=1) && \
+    npm install -g npm@latest
+
+# ============================================================================
+# PHASE 2: CUDA Development Environment
+# ============================================================================
+
+RUN pacman -S --noconfirm \
+        cuda cuda-tools \
+        cudnn \
+        nvidia-utils \
+        libglvnd \
+    && rm -rf /var/cache/pacman/pkg/*
+
+# Set CUDA environment variables
+ENV CUDA_HOME=/opt/cuda
+ENV PATH=/opt/cuda/bin:${PATH}
+ENV LD_LIBRARY_PATH=/opt/cuda/lib64:${LD_LIBRARY_PATH}
+
+# Configure NVIDIA OpenGL libraries
+ENV __GLX_VENDOR_LIBRARY_NAME=nvidia
+ENV __NV_PRIME_RENDER_OFFLOAD=1
+ENV __VK_LAYER_NV_optimus=NVIDIA_only
+ENV LIBGL_ALWAYS_INDIRECT=0
+
+# Ensure GLX uses NVIDIA
+RUN mkdir -p /usr/share/glvnd/egl_vendor.d && \
+    echo '{"file_format_version":"1.0.0","ICD":{"library_path":"libEGL_nvidia.so.0"}}' \
+    > /usr/share/glvnd/egl_vendor.d/10_nvidia.json
+
+# ============================================================================
+# PHASE 3: Rust Toolchain Setup
+# ============================================================================
+
+RUN rustup default stable && \
+    rustup component add rustfmt clippy rust-analyzer && \
+    rustup target add wasm32-unknown-unknown
+
+# ============================================================================
+# PHASE 4: Multi-User Setup
+# ============================================================================
+
+# Create devuser (primary Claude Code user)
+RUN useradd -m -u 1000 -G wheel,video,audio,docker -s /usr/bin/zsh devuser && \
+    echo "devuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
+    mkdir -p /home/devuser/{workspace,models,.config,.cache,logs,agents,.claude/skills}
+
+# Create gemini-user (Google Gemini tools)
+RUN useradd -m -u 1001 -s /usr/bin/zsh gemini-user && \
+    mkdir -p /home/gemini-user/{workspace,.config,.cache}
+
+# Create openai-user (OpenAI Codex tools)
+RUN useradd -m -u 1002 -s /usr/bin/zsh openai-user && \
+    mkdir -p /home/openai-user/{workspace,.config,.cache}
+
+# Create zai-user (Z.AI service)
+RUN useradd -m -u 1003 -s /usr/bin/zsh zai-user && \
+    mkdir -p /home/zai-user/{workspace,.config,.cache}
+
+# Configure sudo for devuser to switch to other users
+RUN echo "devuser ALL=(gemini-user,openai-user,zai-user) NOPASSWD: ALL" >> /etc/sudoers
+
+# ============================================================================
+# PHASE 5: Node.js Global Packages (as root)
+# ============================================================================
+
+RUN npm install -g \
+    @anthropic-ai/claude-code \
+    claude-usage-cli \
+    claude-flow \
+    pm2 \
+    typescript \
+    ts-node \
+    @types/node \
+    playwright
+
+# Install Playwright browsers (skip system deps - already installed via pacman)
+RUN npx -y playwright install chromium
+
+# Clear NPX cache to prevent corruption issues
+RUN rm -rf /root/.npm/_npx /home/devuser/.npm/_npx 2>/dev/null || true
+
+# ============================================================================
+# PHASE 6: Python Virtual Environment & Tools
+# ============================================================================
+
+RUN python -m venv /opt/venv && \
+    /opt/venv/bin/pip install --upgrade pip && \
+    /opt/venv/bin/pip install \
+        supervisor \
+        google-generativeai \
+        youtube_transcript_api \
+        httpx \
+        google-api-python-client \
+        anthropic \
+        openai \
+        # Data science stack
+        numpy pandas scipy matplotlib seaborn \
+        scikit-learn jupyter jupyterlab \
+        # Deep learning
+        torch torchvision torchaudio \
+        # Additional tools
+        black flake8 mypy pylint \
+        pytest pytest-cov \
+        requests beautifulsoup4 \
+        pyyaml toml
+
+# ============================================================================
+# PHASE 7: devuser Setup (Primary Development User)
+# ============================================================================
+
+USER devuser
+WORKDIR /home/devuser
+
+# Install Oh-My-Zsh for devuser
+RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+
+# Install uv package manager (skip fish config, use fallback for claude-monitor)
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh || true
+
+# Install Rust tools for devuser (as devuser, with proper environment)
+USER devuser
+ENV PATH="/home/devuser/.cargo/bin:${PATH}"
+RUN cargo install bat exa ripgrep fd-find tokei || echo "Rust tools installation skipped"
+USER root
+
+# Clone 610+ Claude subagents
+RUN cd /home/devuser/agents && \
+    git clone --depth 1 https://github.com/ChrisRoyse/610ClaudeSubagents.git temp-agents && \
+    mv temp-agents/agents/*.md . && \
+    rm -rf temp-agents
+
+USER root
+
+# ============================================================================
+# PHASE 8: gemini-user Setup
+# ============================================================================
+
+USER gemini-user
+WORKDIR /home/gemini-user
+
+# Install Oh-My-Zsh for gemini-user
+RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+
+# Install gemini-flow (will be configured with API key at runtime)
+RUN npm install --prefix /home/gemini-user/.local gemini-flow
+
+USER root
+
+# ============================================================================
+# PHASE 9: openai-user Setup
+# ============================================================================
+
+USER openai-user
+WORKDIR /home/openai-user
+
+# Install Oh-My-Zsh for openai-user
+RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+
+# Install OpenAI tools (no --user flag with venv)
+RUN /opt/venv/bin/pip install openai || echo "OpenAI install skipped"
+
+USER root
+
+# ============================================================================
+# PHASE 10: zai-user Setup (Z.AI Service)
+# ============================================================================
+
+USER zai-user
+WORKDIR /home/zai-user
+
+# Install Oh-My-Zsh for zai-user
+RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+
+USER root
+
+# ============================================================================
+# PHASE 11: VNC & Desktop Configuration
+# ============================================================================
+
+# Configure VNC for devuser
+RUN mkdir -p /home/devuser/.vnc && \
+    echo "turboflow" | vncpasswd -f > /home/devuser/.vnc/passwd && \
+    chmod 600 /home/devuser/.vnc/passwd && \
+    chown -R devuser:devuser /home/devuser/.vnc
+
+# Create VNC startup script
+RUN mkdir -p /home/devuser/.config/autostart && \
+    echo '#!/bin/sh' > /home/devuser/.vnc/xstartup && \
+    echo 'unset SESSION_MANAGER' >> /home/devuser/.vnc/xstartup && \
+    echo 'unset DBUS_SESSION_BUS_ADDRESS' >> /home/devuser/.vnc/xstartup && \
+    echo 'exec startxfce4' >> /home/devuser/.vnc/xstartup && \
+    chmod +x /home/devuser/.vnc/xstartup
+
+# Disable screensaver and screen lock
+RUN mkdir -p /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml && \
+    echo '<?xml version="1.0" encoding="UTF-8"?>' > /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-screensaver.xml && \
+    echo '<channel name="xfce4-screensaver" version="1.0">' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-screensaver.xml && \
+    echo '  <property name="saver" type="empty">' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-screensaver.xml && \
+    echo '    <property name="enabled" type="bool" value="false"/>' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-screensaver.xml && \
+    echo '    <property name="mode" type="int" value="0"/>' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-screensaver.xml && \
+    echo '  </property>' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-screensaver.xml && \
+    echo '  <property name="lock" type="empty">' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-screensaver.xml && \
+    echo '    <property name="enabled" type="bool" value="false"/>' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-screensaver.xml && \
+    echo '  </property>' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-screensaver.xml && \
+    echo '</channel>' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-screensaver.xml && \
+    echo '<?xml version="1.0" encoding="UTF-8"?>' > /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml && \
+    echo '<channel name="xfce4-power-manager" version="1.0">' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml && \
+    echo '  <property name="xfce4-power-manager" type="empty">' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml && \
+    echo '    <property name="blank-on-ac" type="int" value="0"/>' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml && \
+    echo '    <property name="dpms-enabled" type="bool" value="false"/>' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml && \
+    echo '    <property name="lock-screen-suspend-hibernate" type="bool" value="false"/>' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml && \
+    echo '  </property>' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml && \
+    echo '</channel>' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml && \
+    chown -R devuser:devuser /home/devuser/.config
+
+# ============================================================================
+# PHASE 12: SSH Server Configuration
+# ============================================================================
+
+RUN mkdir -p /var/run/sshd && \
+    sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config && \
+    sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
+    echo "AllowUsers devuser" >> /etc/ssh/sshd_config
+
+# Set password for devuser (default: turboflow)
+RUN echo "devuser:turboflow" | chpasswd
+
+# ============================================================================
+# PHASE 13: Copy Application Files
+# ============================================================================
+
+# Copy skills
+COPY --chown=devuser:devuser skills/ /home/devuser/.claude/skills/
+
+# Install web-summary MCP server dependencies
+RUN cd /home/devuser/.claude/skills/web-summary/mcp-server && \
+    npm install --production && \
+    chmod +x server.js && \
+    chown -R devuser:devuser /home/devuser/.claude/skills/web-summary/mcp-server
+
+# Install Python dependencies for MCP tools (break-system-packages for Arch)
+RUN pip3 install --no-cache-dir --break-system-packages \
+    youtube-transcript-api beautifulsoup4 requests \
+    mcp
+
+# Make all MCP tools executable
+RUN find /home/devuser/.claude/skills -name "*.py" -path "*/tools/*" -exec chmod +x {} \; && \
+    find /home/devuser/.claude/skills -name "*.js" -path "*/tools/*" -exec chmod +x {} \; && \
+    chown -R devuser:devuser /home/devuser/.claude/skills
+
+# Copy Full Management API from multi-agent-docker
+COPY --chown=devuser:devuser multi-agent-docker/management-api/ /opt/management-api/
+RUN cd /opt/management-api && npm install --production && \
+    chown -R devuser:devuser /opt/management-api
+
+# Copy Z.AI Service (runs as zai-user on port 9600)
+COPY --chown=zai-user:zai-user multi-agent-docker/claude-zai/wrapper/ /opt/claude-zai/
+RUN cd /opt/claude-zai && npm install --production && \
+    chown -R zai-user:zai-user /opt/claude-zai
+
+# Install code-server using standalone binary method (AUR requires non-root)
+RUN mkdir -p /usr/local/lib/code-server && \
+    curl -fsSL https://github.com/coder/code-server/releases/download/v4.96.2/code-server-4.96.2-linux-amd64.tar.gz | \
+    tar -xz -C /usr/local/lib/code-server --strip-components=1 && \
+    ln -s /usr/local/lib/code-server/bin/code-server /usr/bin/code-server
+
+# Install gemini-flow globally
+RUN npm install -g gemini-flow
+
+# Copy helper scripts
+COPY --chown=root:root unified-config/scripts/ /usr/local/bin/
+RUN chmod +x /usr/local/bin/*.sh
+
+# Copy tmux configuration
+COPY --chown=devuser:devuser unified-config/tmux-autostart.sh /home/devuser/.config/tmux-autostart.sh
+RUN chmod +x /home/devuser/.config/tmux-autostart.sh
+
+# Copy CLAUDE.md for reference
+COPY --chown=devuser:devuser CLAUDE.md /home/devuser/CLAUDE.md
+
+# ============================================================================
+# PHASE 14: Supervisord Configuration
+# ============================================================================
+
+COPY --chown=root:root unified-config/supervisord.unified.conf /etc/supervisord.conf
+
+# ============================================================================
+# PHASE 15: Environment & Runtime Configuration
+# ============================================================================
+
+USER devuser
+
+# Set up environment variables in .zshrc
+RUN echo 'export WORKSPACE=/home/devuser/workspace' >> ~/.zshrc && \
+    echo 'export AGENTS_DIR=/home/devuser/agents' >> ~/.zshrc && \
+    echo 'export DEVPOD_WORKSPACE_FOLDER=/home/devuser/workspace' >> ~/.zshrc && \
+    echo 'export PATH=$HOME/.cargo/bin:$HOME/.local/bin:/opt/cuda/bin:$PATH' >> ~/.zshrc && \
+    echo 'export LD_LIBRARY_PATH=/opt/cuda/lib64:$LD_LIBRARY_PATH' >> ~/.zshrc && \
+    echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc && \
+    echo '' >> ~/.zshrc && \
+    echo '# User switching aliases' >> ~/.zshrc && \
+    echo 'alias as-gemini="sudo -u gemini-user -i"' >> ~/.zshrc && \
+    echo 'alias as-openai="sudo -u openai-user -i"' >> ~/.zshrc && \
+    echo 'alias as-zai="sudo -u zai-user -i"' >> ~/.zshrc && \
+    echo '' >> ~/.zshrc && \
+    echo '# Claude Code aliases' >> ~/.zshrc && \
+    echo 'alias dsp="claude --dangerously-skip-permissions"' >> ~/.zshrc && \
+    echo 'alias claude-monitor="~/.cargo/bin/claude-monitor"' >> ~/.zshrc
+
+USER root
+
+# ============================================================================
+# PHASE 16: Ports & Volumes
+# ============================================================================
+
+# SSH, VNC, code-server, Management API, Z.AI Service
+EXPOSE 22 5901 8080 9090 9600
+
+# Volume mount points
+VOLUME ["/home/devuser/workspace", \
+        "/home/devuser/agents", \
+        "/home/devuser/.claude", \
+        "/home/gemini-user/workspace", \
+        "/home/openai-user/workspace", \
+        "/home/devuser/models", \
+        "/var/log"]
+
+# ============================================================================
+# PHASE 17: Entrypoint
+# ============================================================================
+
+COPY --chown=root:root unified-config/entrypoint-unified.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD []
