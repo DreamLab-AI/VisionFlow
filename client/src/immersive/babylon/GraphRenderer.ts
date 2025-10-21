@@ -5,9 +5,7 @@ import {
   MeshBuilder,
   StandardMaterial,
   Color3,
-  Vector3,
-  LineSystem,
-  Matrix
+  Vector3
 } from '@babylonjs/core';
 import { AdvancedDynamicTexture, TextBlock } from '@babylonjs/gui';
 
@@ -19,7 +17,8 @@ export class GraphRenderer {
   private scene: Scene;
   private nodeMasterMesh: Mesh | null = null;
   private nodeInstances: InstancedMesh[] = [];
-  private edgeLineSystem: LineSystem | null = null;
+  private nodeInstanceMap = new Map<string, InstancedMesh>(); // Track nodes by ID for incremental updates
+  private edgeLineSystem: Mesh | null = null;
   private labelTexture: AdvancedDynamicTexture | null = null;
   private labelBlocks: Map<string, TextBlock> = new Map();
 
@@ -61,18 +60,64 @@ export class GraphRenderer {
       }));
     }
 
-    console.log('GraphRenderer: Updating nodes', nodeList.length, 'positions:', positions?.length);
+    // DEDUPLICATION: Remove duplicate nodes by ID (HIGH PRIORITY FIX)
+    const uniqueNodes = new Map<string, any>();
+    let duplicateCount = 0;
+    nodeList.forEach(node => {
+      if (!uniqueNodes.has(node.id)) {
+        uniqueNodes.set(node.id, node);
+      } else {
+        duplicateCount++;
+        console.warn(`GraphRenderer: Duplicate node ID detected: ${node.id}`);
+      }
+    });
 
-    // Clear existing instances
-    this.nodeInstances.forEach(instance => instance.dispose());
-    this.nodeInstances = [];
+    const deduplicatedNodes = Array.from(uniqueNodes.values());
 
-    // Create new instances for each node
-    for (let i = 0; i < nodeList.length; i++) {
-      const node = nodeList[i];
+    console.log(
+      `GraphRenderer: Updating nodes - Input: ${nodeList.length}, Unique: ${deduplicatedNodes.length}` +
+      (duplicateCount > 0 ? `, Duplicates removed: ${duplicateCount}` : '')
+    );
 
-      // Create instance
-      const instance = this.nodeMasterMesh.createInstance(`node_${node.id}`);
+    // INCREMENTAL UPDATES: Track which nodes to keep, update, or create
+    const newNodeIds = new Set(deduplicatedNodes.map(n => n.id));
+
+    // Remove nodes that no longer exist
+    const nodesToRemove: string[] = [];
+    this.nodeInstanceMap.forEach((instance, nodeId) => {
+      if (!newNodeIds.has(nodeId)) {
+        instance.dispose();
+        nodesToRemove.push(nodeId);
+        // Remove from instances array
+        const idx = this.nodeInstances.indexOf(instance);
+        if (idx !== -1) {
+          this.nodeInstances.splice(idx, 1);
+        }
+      }
+    });
+
+    nodesToRemove.forEach(nodeId => this.nodeInstanceMap.delete(nodeId));
+
+    if (nodesToRemove.length > 0) {
+      console.log(`GraphRenderer: Removed ${nodesToRemove.length} obsolete nodes`);
+    }
+
+    // Update existing nodes or create new ones
+    let createdCount = 0;
+    let updatedCount = 0;
+
+    deduplicatedNodes.forEach((node, i) => {
+      let instance = this.nodeInstanceMap.get(node.id);
+
+      if (!instance) {
+        // Create new instance
+        instance = this.nodeMasterMesh!.createInstance(`node_${node.id}`);
+        this.nodeInstanceMap.set(node.id, instance);
+        this.nodeInstances.push(instance);
+        createdCount++;
+      } else {
+        updatedCount++;
+      }
 
       // Set position from physics simulation or node data
       let x = node.position?.x || node.x || 0;
@@ -85,16 +130,17 @@ export class GraphRenderer {
         z = positions[i * 3 + 2];
       }
 
-      // Set position directly
+      // Update position (for both new and existing nodes)
       instance.position.x = x;
       instance.position.y = y;
       instance.position.z = z;
 
-      // Store instance metadata for interaction
+      // Update metadata
       instance.metadata = { nodeId: node.id, nodeData: node };
+    });
 
-      // Add to instances array
-      this.nodeInstances.push(instance);
+    if (createdCount > 0 || updatedCount > 0) {
+      console.log(`GraphRenderer: Created ${createdCount} new nodes, updated ${updatedCount} existing nodes`);
     }
   }
 
@@ -179,6 +225,13 @@ export class GraphRenderer {
       }
     }
 
+    // Improved error handling: Log warning for debugging
+    console.warn(
+      `GraphRenderer: Node position not found for ID "${nodeId}" ` +
+      `(index: ${nodeIndex}, positions array length: ${positions?.length || 0}). ` +
+      `Using fallback random position.`
+    );
+
     // Fallback to a random position if not found
     return new Vector3(
       (Math.random() - 0.5) * 10,
@@ -191,6 +244,7 @@ export class GraphRenderer {
     // Dispose all node instances
     this.nodeInstances.forEach(instance => instance.dispose());
     this.nodeInstances = [];
+    this.nodeInstanceMap.clear();
 
     if (this.nodeMasterMesh) {
       this.nodeMasterMesh.dispose();

@@ -15,6 +15,7 @@ use webxr::{
         workspace_handler,
         graph_export_handler,
         client_log_handler,
+        client_logs,
         client_messages_handler,
     },
     services::{
@@ -253,7 +254,7 @@ async fn main() -> std::io::Result<()> {
     info!("Initializing database service...");
     let db_path = std::env::var("DATA_ROOT")
         .unwrap_or_else(|_| "/app/data".to_string());
-    let db_file = std::path::PathBuf::from(&db_path).join("ontology_db.sqlite3");
+    let db_file = std::path::PathBuf::from(&db_path).join("settings.db");
 
     let db_service = match webxr::services::database_service::DatabaseService::new(&db_file) {
         Ok(service) => {
@@ -268,7 +269,41 @@ async fn main() -> std::io::Result<()> {
 
     // Initialize schema
     if let Err(e) = db_service.initialize_schema() {
-        warn!("Schema initialization warning: {}", e);
+        error!("❌ Failed to initialize database schema: {}", e);
+        return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Schema initialization failed: {}", e)));
+    }
+
+    // Seed default settings if database is empty
+    info!("Checking if database needs default settings...");
+    match db_service.get_setting("app_full_settings") {
+        Ok(None) => {
+            info!("Database is empty, seeding default settings...");
+            let default_settings = AppFullSettings::default();
+            let settings_json = match serde_json::to_value(&default_settings) {
+                Ok(json) => json,
+                Err(e) => {
+                    error!("❌ Failed to serialize default settings: {}", e);
+                    return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to serialize default settings: {}", e)));
+                }
+            };
+
+            if let Err(e) = db_service.set_setting(
+                "app_full_settings",
+                webxr::services::database_service::SettingValue::Json(settings_json),
+                Some("Default application settings in camelCase format")
+            ) {
+                error!("❌ Failed to seed default settings: {}", e);
+                return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to seed default settings: {}", e)));
+            }
+            info!("✅ Default settings seeded successfully");
+        }
+        Ok(Some(_)) => {
+            info!("✅ Settings already exist in database");
+        }
+        Err(e) => {
+            error!("❌ Failed to check database settings: {}", e);
+            return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to check database settings: {}", e)));
+        }
     }
 
     // Initialize DevConfig from database
@@ -621,7 +656,8 @@ async fn main() -> std::io::Result<()> {
                     .service(web::scope("/bots").configure(api_handler::bots::config)) // This will now serve /api/bots/data and /api/bots/update
                     .configure(bots_visualization_handler::configure_routes) // Agent visualization endpoints
                     .configure(graph_export_handler::configure_routes) // Graph export and sharing endpoints
-                    .route("/client-logs", web::post().to(client_log_handler::handle_client_logs)) // Client browser logs endpoint
+                    .route("/client-logs", web::post().to(client_log_handler::handle_client_logs)) // Client browser logs endpoint (full telemetry)
+                    .route("/client-logs-simple", web::post().to(client_logs::post_client_logs)) // Simplified client logs endpoint (server logger only)
                     // DEPRECATED: hybrid health routes removed
             );
 

@@ -24,7 +24,7 @@ interface Settings {
     showLabels?: boolean;
     edgeOpacity?: number;
   };
-  visualization?: {
+  visualisation?: {
     showBots?: boolean;
     showEdges?: boolean;
   };
@@ -180,12 +180,12 @@ export class XRUI {
     showBotsCheck.heightInPixels = 30;
     showBotsCheck.color = 'white';
     showBotsCheck.background = 'gray';
-    showBotsCheck.isChecked = this.settings.visualization?.showBots !== false;
+    showBotsCheck.isChecked = this.settings.visualisation?.showBots !== false;
     this.mainPanel.addControl(showBotsCheck);
 
     showBotsCheck.onIsCheckedChangedObservable.add((value) => {
       if (this.onSettingsChange) {
-        this.onSettingsChange('visualization.showBots', value);
+        this.onSettingsChange('visualisation.showBots', value);
       }
     });
   }
@@ -247,8 +247,8 @@ export class XRUI {
 
     // Update show bots checkbox
     const showBotsCheck = this.uiTexture.getControlByName('showBots') as Checkbox;
-    if (showBotsCheck && this.settings.visualization?.showBots !== undefined) {
-      showBotsCheck.isChecked = this.settings.visualization.showBots;
+    if (showBotsCheck && this.settings.visualisation?.showBots !== undefined) {
+      showBotsCheck.isChecked = this.settings.visualisation.showBots;
     }
   }
 

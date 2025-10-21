@@ -71,8 +71,29 @@ impl DatabaseService {
 // ================================================================
 
 impl DatabaseService {
-    /// Get hierarchical settings by key path
-    pub fn get_setting(&self, key: &str) -> SqliteResult<Option<SettingValue>> {
+    /// Convert snake_case to camelCase
+    /// Examples: "spring_k" -> "springK", "max_velocity" -> "maxVelocity"
+    fn to_camel_case(s: &str) -> String {
+        let parts: Vec<&str> = s.split('_').collect();
+        if parts.len() == 1 {
+            return s.to_string();
+        }
+
+        let mut result = parts[0].to_string();
+        for part in &parts[1..] {
+            if !part.is_empty() {
+                let mut chars = part.chars();
+                if let Some(first) = chars.next() {
+                    result.push(first.to_ascii_uppercase());
+                    result.push_str(chars.as_str());
+                }
+            }
+        }
+        result
+    }
+
+    /// Get setting value with exact key match (no fallback)
+    fn get_setting_exact(&self, key: &str) -> SqliteResult<Option<SettingValue>> {
         let conn = self.conn.lock().unwrap();
         let mut stmt = conn.prepare(
             "SELECT value_type, value_text, value_integer, value_float, value_boolean, value_json
@@ -94,6 +115,34 @@ impl DatabaseService {
             };
             Ok(value)
         }).optional()
+    }
+
+    /// Get hierarchical settings by key path with intelligent camelCase/snake_case fallback
+    ///
+    /// This method provides smart lookup:
+    /// 1. First tries exact match with the provided key
+    /// 2. If not found and key contains underscore, converts to camelCase and retries
+    ///
+    /// Examples:
+    /// - Database has "springK" = 150.0
+    /// - `get_setting("springK")` -> Direct hit, returns 150.0
+    /// - `get_setting("spring_k")` -> Converts to "springK", returns 150.0
+    pub fn get_setting(&self, key: &str) -> SqliteResult<Option<SettingValue>> {
+        // Try exact match first
+        if let Some(value) = self.get_setting_exact(key)? {
+            return Ok(Some(value));
+        }
+
+        // If not found and key contains underscore, try camelCase conversion
+        if key.contains('_') {
+            let camel_key = Self::to_camel_case(key);
+            if let Some(value) = self.get_setting_exact(&camel_key)? {
+                return Ok(Some(value));
+            }
+        }
+
+        // Not found with either key format
+        Ok(None)
     }
 
     /// Set a setting value
@@ -681,6 +730,120 @@ mod tests {
             assert_eq!(s, "value");
         } else {
             panic!("Expected string value");
+        }
+    }
+
+    #[test]
+    fn test_to_camel_case() {
+        // Test snake_case to camelCase conversion
+        assert_eq!(DatabaseService::to_camel_case("spring_k"), "springK");
+        assert_eq!(DatabaseService::to_camel_case("max_velocity"), "maxVelocity");
+        assert_eq!(DatabaseService::to_camel_case("repulsion_cutoff"), "repulsionCutoff");
+        assert_eq!(DatabaseService::to_camel_case("center_gravity_k"), "centerGravityK");
+
+        // Test no conversion needed
+        assert_eq!(DatabaseService::to_camel_case("springK"), "springK");
+        assert_eq!(DatabaseService::to_camel_case("damping"), "damping");
+
+        // Test edge cases
+        assert_eq!(DatabaseService::to_camel_case("a_b"), "aB");
+        assert_eq!(DatabaseService::to_camel_case("a_b_c"), "aBC");
+        assert_eq!(DatabaseService::to_camel_case(""), "");
+    }
+
+    #[test]
+    fn test_camel_snake_fallback_lookup() {
+        let db = DatabaseService::new(":memory:").expect("Failed to create database");
+        let schema = include_str!("../../schema/ontology_db.sql");
+        db.execute_schema(schema).expect("Failed to initialize schema");
+
+        // Store setting in camelCase format (preferred format)
+        db.set_setting("springK", SettingValue::Float(150.0), Some("Spring constant"))
+            .expect("Failed to set springK");
+
+        // Test direct camelCase lookup (exact match)
+        let value = db.get_setting("springK").expect("Failed to get springK");
+        assert!(value.is_some());
+        if let Some(SettingValue::Float(f)) = value {
+            assert_eq!(f, 150.0);
+        } else {
+            panic!("Expected float value for springK");
+        }
+
+        // Test snake_case lookup with camelCase fallback
+        let value = db.get_setting("spring_k").expect("Failed to get spring_k");
+        assert!(value.is_some());
+        if let Some(SettingValue::Float(f)) = value {
+            assert_eq!(f, 150.0);
+        } else {
+            panic!("Expected float value for spring_k");
+        }
+
+        // Test non-existent key returns None
+        let value = db.get_setting("nonexistent_key").expect("Failed to get nonexistent");
+        assert!(value.is_none());
+    }
+
+    #[test]
+    fn test_multiple_physics_settings_fallback() {
+        let db = DatabaseService::new(":memory:").expect("Failed to create database");
+        let schema = include_str!("../../schema/ontology_db.sql");
+        db.execute_schema(schema).expect("Failed to initialize schema");
+
+        // Store multiple physics settings in camelCase
+        db.set_setting("repelK", SettingValue::Float(50.0), None).unwrap();
+        db.set_setting("maxVelocity", SettingValue::Float(10.0), None).unwrap();
+        db.set_setting("centerGravityK", SettingValue::Float(0.1), None).unwrap();
+
+        // Test snake_case lookups
+        assert_eq!(
+            match db.get_setting("repel_k").unwrap() {
+                Some(SettingValue::Float(f)) => f,
+                _ => panic!("Expected float"),
+            },
+            50.0
+        );
+
+        assert_eq!(
+            match db.get_setting("max_velocity").unwrap() {
+                Some(SettingValue::Float(f)) => f,
+                _ => panic!("Expected float"),
+            },
+            10.0
+        );
+
+        assert_eq!(
+            match db.get_setting("center_gravity_k").unwrap() {
+                Some(SettingValue::Float(f)) => f,
+                _ => panic!("Expected float"),
+            },
+            0.1
+        );
+    }
+
+    #[test]
+    fn test_exact_match_priority() {
+        let db = DatabaseService::new(":memory:").expect("Failed to create database");
+        let schema = include_str!("../../schema/ontology_db.sql");
+        db.execute_schema(schema).expect("Failed to initialize schema");
+
+        // Store both snake_case and camelCase versions
+        db.set_setting("spring_k", SettingValue::Float(100.0), None).unwrap();
+        db.set_setting("springK", SettingValue::Float(150.0), None).unwrap();
+
+        // Exact match should always take priority
+        let value1 = db.get_setting("spring_k").unwrap();
+        if let Some(SettingValue::Float(f)) = value1 {
+            assert_eq!(f, 100.0); // Gets exact match
+        } else {
+            panic!("Expected float");
+        }
+
+        let value2 = db.get_setting("springK").unwrap();
+        if let Some(SettingValue::Float(f)) = value2 {
+            assert_eq!(f, 150.0); // Gets exact match
+        } else {
+            panic!("Expected float");
         }
     }
 }

@@ -73,24 +73,24 @@ export const RestoredGraphVisualisationTab: React.FC<GraphTabProps> = () => {
   const updateSettings = useSettingsStore(state => state.updateSettings);
   const ensureLoaded = useSettingsStore(state => state.ensureLoaded);
 
-  // Preload visualization settings on mount
+  // Preload visualisation settings on mount
   useEffect(() => {
     ensureLoaded([
-      'visualization.sync.enabled',
-      'visualization.sync.camera',
-      'visualization.sync.selection',
-      'visualization.animations.enabled',
-      'visualization.effects.bloom',
-      'visualization.effects.glow',
+      'visualisation.sync.enabled',
+      'visualisation.sync.camera',
+      'visualisation.sync.selection',
+      'visualisation.animations.enabled',
+      'visualisation.effects.bloom',
+      'visualisation.effects.glow',
     ]);
   }, [ensureLoaded]);
 
-  const syncEnabled = settings?.visualization?.sync?.enabled ?? false;
-  const cameraSync = settings?.visualization?.sync?.camera ?? true;
-  const selectionSync = settings?.visualization?.sync?.selection ?? true;
-  const animationsEnabled = settings?.visualization?.animations?.enabled ?? true;
-  const bloomEffect = settings?.visualization?.effects?.bloom ?? false;
-  const glowEffect = settings?.visualization?.effects?.glow ?? true;
+  const syncEnabled = settings?.visualisation?.sync?.enabled ?? false;
+  const cameraSync = settings?.visualisation?.sync?.camera ?? true;
+  const selectionSync = settings?.visualisation?.sync?.selection ?? true;
+  const animationsEnabled = settings?.visualisation?.animations?.enabled ?? true;
+  const bloomEffect = settings?.visualisation?.effects?.bloom ?? false;
+  const glowEffect = settings?.visualisation?.effects?.glow ?? true;
 
   return (
     <div style={{ padding: '4px', color: 'white' }}>
@@ -98,9 +98,9 @@ export const RestoredGraphVisualisationTab: React.FC<GraphTabProps> = () => {
       <Toggle
         checked={syncEnabled}
         onChange={(val) => updateSettings((draft) => {
-          if (!draft.visualization) draft.visualization = {};
-          if (!draft.visualization.sync) draft.visualization.sync = {};
-          draft.visualization.sync.enabled = val;
+          if (!draft.visualisation) draft.visualisation = {};
+          if (!draft.visualisation.sync) draft.visualisation.sync = {};
+          draft.visualisation.sync.enabled = val;
         })}
         label="Enable Sync"
       />
@@ -109,18 +109,18 @@ export const RestoredGraphVisualisationTab: React.FC<GraphTabProps> = () => {
           <Toggle
             checked={cameraSync}
             onChange={(val) => updateSettings((draft) => {
-              if (!draft.visualization) draft.visualization = {};
-              if (!draft.visualization.sync) draft.visualization.sync = {};
-              draft.visualization.sync.camera = val;
+              if (!draft.visualisation) draft.visualisation = {};
+              if (!draft.visualisation.sync) draft.visualisation.sync = {};
+              draft.visualisation.sync.camera = val;
             })}
             label="Camera"
           />
           <Toggle
             checked={selectionSync}
             onChange={(val) => updateSettings((draft) => {
-              if (!draft.visualization) draft.visualization = {};
-              if (!draft.visualization.sync) draft.visualization.sync = {};
-              draft.visualization.sync.selection = val;
+              if (!draft.visualisation) draft.visualisation = {};
+              if (!draft.visualisation.sync) draft.visualisation.sync = {};
+              draft.visualisation.sync.selection = val;
             })}
             label="Selection"
           />
@@ -131,9 +131,9 @@ export const RestoredGraphVisualisationTab: React.FC<GraphTabProps> = () => {
       <Toggle
         checked={animationsEnabled}
         onChange={(val) => updateSettings((draft) => {
-          if (!draft.visualization) draft.visualization = {};
-          if (!draft.visualization.animations) draft.visualization.animations = {};
-          draft.visualization.animations.enabled = val;
+          if (!draft.visualisation) draft.visualisation = {};
+          if (!draft.visualisation.animations) draft.visualisation.animations = {};
+          draft.visualisation.animations.enabled = val;
         })}
         label="Enable Animations"
       />
@@ -142,18 +142,18 @@ export const RestoredGraphVisualisationTab: React.FC<GraphTabProps> = () => {
       <Toggle
         checked={bloomEffect}
         onChange={(val) => updateSettings((draft) => {
-          if (!draft.visualization) draft.visualization = {};
-          if (!draft.visualization.effects) draft.visualization.effects = {};
-          draft.visualization.effects.bloom = val;
+          if (!draft.visualisation) draft.visualisation = {};
+          if (!draft.visualisation.effects) draft.visualisation.effects = {};
+          draft.visualisation.effects.bloom = val;
         })}
         label="Bloom"
       />
       <Toggle
         checked={glowEffect}
         onChange={(val) => updateSettings((draft) => {
-          if (!draft.visualization) draft.visualization = {};
-          if (!draft.visualization.effects) draft.visualization.effects = {};
-          draft.visualization.effects.glow = val;
+          if (!draft.visualisation) draft.visualisation = {};
+          if (!draft.visualisation.effects) draft.visualisation.effects = {};
+          draft.visualisation.effects.glow = val;
         })}
         label="Glow"
       />

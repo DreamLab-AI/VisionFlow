@@ -125,6 +125,7 @@ export interface RenderingSettings {
 
 // Animation settings
 export interface AnimationSettings {
+  enabled: boolean; // Global animation toggle
   enableMotionBlur: boolean;
   enableNodeAnimations: boolean;
   motionBlurStrength: number;
@@ -211,6 +212,25 @@ export interface HologramSettings {
   ringRotationSpeed: number;
   enableRingParticles: boolean;
   particleDensity: number;
+}
+
+// Sync settings for multi-view synchronization
+export interface SyncSettings {
+  enabled: boolean;
+  camera: boolean;
+  selection: boolean;
+}
+
+// Visual effects settings
+export interface EffectsSettings {
+  bloom: boolean;
+  glow: boolean;
+}
+
+// Export configuration settings
+export interface ExportSettings {
+  format: string;
+  includeMetadata: boolean;
 }
 
 // WebSocket settings
@@ -321,9 +341,13 @@ export interface HeadTrackedParallaxSettings {
   cameraMode: 'offset' | 'asymmetricFrustum';
 }
 
-// Interaction settings
+// Interaction behavior settings
 export interface InteractionSettings {
   headTrackedParallax: HeadTrackedParallaxSettings;
+  enableHover: boolean;
+  enableClick: boolean;
+  enableDrag: boolean;
+  hoverDelay: number;
 }
 
 // Visualisation settings
@@ -355,6 +379,8 @@ export interface VisualisationSettings {
   animations: AnimationSettings;
   glow: GlowSettings;
   hologram: HologramSettings;
+  sync: SyncSettings;
+  effects: EffectsSettings;
   spacePilot?: SpacePilotConfig;
   camera?: CameraSettings;
   interaction?: InteractionSettings;
@@ -473,6 +499,9 @@ export interface PerformanceSettings {
   warmupDuration: number;
   convergenceThreshold: number;
   enableAdaptiveCooling: boolean;
+  autoOptimize: boolean;
+  simplifyEdges: boolean;
+  cullDistance: number;
 }
 
 // Developer GPU debug settings
@@ -520,6 +549,8 @@ export interface Settings {
   analytics?: AnalyticsSettings;
   performance?: PerformanceSettings;
   developer?: DeveloperSettings;
+  interaction: InteractionSettings;
+  export: ExportSettings;
 }
 
 // Partial update types for settings mutations

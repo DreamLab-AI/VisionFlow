@@ -26,6 +26,10 @@ pub mod ontology_init;
 #[cfg(feature = "ontology")]
 pub mod settings_migration;
 #[cfg(feature = "ontology")]
+pub mod settings_service;
+#[cfg(feature = "ontology")]
+pub mod settings_validator;
+#[cfg(feature = "ontology")]
 pub mod user_service;
 pub mod perplexity_service;
 pub mod ragflow_service;

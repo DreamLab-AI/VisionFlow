@@ -839,6 +839,7 @@ pub struct RenderingSettings {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct AnimationSettings {
+    pub enabled: bool,
     #[serde(alias = "enable_motion_blur")]
     pub enable_motion_blur: bool,
     #[serde(alias = "enable_node_animations")]
@@ -1085,6 +1086,95 @@ pub struct Sensitivity {
     pub rotation: f32,
 }
 
+// Additional Settings Structs
+#[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct SyncSettings {
+    pub enabled: bool,
+    pub camera: bool,
+    pub selection: bool,
+}
+
+impl Default for SyncSettings {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            camera: true,
+            selection: true,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct EffectsSettings {
+    pub bloom: bool,
+    pub glow: bool,
+}
+
+impl Default for EffectsSettings {
+    fn default() -> Self {
+        Self {
+            bloom: false,
+            glow: true,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct PerformanceSettings {
+    pub auto_optimize: bool,
+    pub simplify_edges: bool,
+    pub cull_distance: f32,
+}
+
+impl Default for PerformanceSettings {
+    fn default() -> Self {
+        Self {
+            auto_optimize: false,
+            simplify_edges: true,
+            cull_distance: 50.0,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct InteractionSettings {
+    pub enable_hover: bool,
+    pub enable_click: bool,
+    pub enable_drag: bool,
+    pub hover_delay: u32,
+}
+
+impl Default for InteractionSettings {
+    fn default() -> Self {
+        Self {
+            enable_hover: true,
+            enable_click: true,
+            enable_drag: true,
+            hover_delay: 300,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
+#[serde(rename_all = "camelCase")]
+pub struct ExportSettings {
+    pub format: String,
+    pub include_metadata: bool,
+}
+
+impl Default for ExportSettings {
+    fn default() -> Self {
+        Self {
+            format: "json".to_string(),
+            include_metadata: true,
+        }
+    }
+}
+
 // Graph-specific settings
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
@@ -1112,7 +1202,7 @@ pub struct GraphsSettings {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct VisualisationSettings {
-    
+
     // Global settings
     #[validate(nested)]
     pub rendering: RenderingSettings,
@@ -1126,6 +1216,10 @@ pub struct VisualisationSettings {
     pub hologram: HologramSettings,
     #[validate(nested)]
     pub graphs: GraphsSettings,
+    #[validate(nested)]
+    pub sync: SyncSettings,
+    #[validate(nested)]
+    pub effects: EffectsSettings,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub camera: Option<CameraSettings>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1667,6 +1761,12 @@ pub struct AppFullSettings {
     #[validate(nested)]
     #[serde(alias = "auth")]
     pub auth: AuthSettings,
+    #[validate(nested)]
+    pub performance: PerformanceSettings,
+    #[validate(nested)]
+    pub interaction: InteractionSettings,
+    #[validate(nested)]
+    pub export: ExportSettings,
     #[serde(skip_serializing_if = "Option::is_none", alias = "ragflow")]
     pub ragflow: Option<RagFlowSettings>,
     #[serde(skip_serializing_if = "Option::is_none", alias = "perplexity")]
@@ -1692,6 +1792,9 @@ impl Default for AppFullSettings {
             system: SystemSettings::default(),
             xr: XRSettings::default(),
             auth: AuthSettings::default(),
+            performance: PerformanceSettings::default(),
+            interaction: InteractionSettings::default(),
+            export: ExportSettings::default(),
             ragflow: None,
             perplexity: None,
             openai: None,
@@ -1898,6 +2001,27 @@ impl PathAccessible for AppFullSettings {
                     Err("Auth fields are not deeply accessible".to_string())
                 }
             }
+            "performance" => {
+                if segments.len() == 1 {
+                    Ok(Box::new(self.performance.clone()))
+                } else {
+                    Err("Performance fields are not deeply accessible".to_string())
+                }
+            }
+            "interaction" => {
+                if segments.len() == 1 {
+                    Ok(Box::new(self.interaction.clone()))
+                } else {
+                    Err("Interaction fields are not deeply accessible".to_string())
+                }
+            }
+            "export" => {
+                if segments.len() == 1 {
+                    Ok(Box::new(self.export.clone()))
+                } else {
+                    Err("Export fields are not deeply accessible".to_string())
+                }
+            }
             _ => Err(format!("Unknown top-level field: {}", segments[0]))
         }
     }
@@ -1959,6 +2083,45 @@ impl PathAccessible for AppFullSettings {
                     }
                 } else {
                     Err("Auth nested fields are not modifiable".to_string())
+                }
+            }
+            "performance" => {
+                if segments.len() == 1 {
+                    match value.downcast::<PerformanceSettings>() {
+                        Ok(v) => {
+                            self.performance = *v;
+                            Ok(())
+                        }
+                        Err(_) => Err("Type mismatch for performance field".to_string())
+                    }
+                } else {
+                    Err("Performance fields are not deeply settable".to_string())
+                }
+            }
+            "interaction" => {
+                if segments.len() == 1 {
+                    match value.downcast::<InteractionSettings>() {
+                        Ok(v) => {
+                            self.interaction = *v;
+                            Ok(())
+                        }
+                        Err(_) => Err("Type mismatch for interaction field".to_string())
+                    }
+                } else {
+                    Err("Interaction fields are not deeply settable".to_string())
+                }
+            }
+            "export" => {
+                if segments.len() == 1 {
+                    match value.downcast::<ExportSettings>() {
+                        Ok(v) => {
+                            self.export = *v;
+                            Ok(())
+                        }
+                        Err(_) => Err("Type mismatch for export field".to_string())
+                    }
+                } else {
+                    Err("Export fields are not deeply settable".to_string())
                 }
             }
             _ => Err(format!("Unknown top-level field: {}", segments[0]))

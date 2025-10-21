@@ -32,11 +32,11 @@ export const settingsHelpContent: Record<string, HelpContent> = {
     detailedHelp: 'When enabled, settings are saved automatically after each change. Disable this to manually control when settings are persisted.',
   },
 
-  // Visualization Settings
-  'settings.visualization.theme': {
-    id: 'settings.visualization.theme',
-    title: 'Visualization Theme',
-    description: 'Choose the color theme for the graph visualization',
+  // Visualisation Settings
+  'settings.visualisation.theme': {
+    id: 'settings.visualisation.theme',
+    title: 'Visualisation Theme',
+    description: 'Choose the color theme for the graph visualisation',
     detailedHelp: 'Different themes optimize visibility for various lighting conditions and personal preferences.',
     examples: [
       'Dark theme for reduced eye strain',
@@ -44,14 +44,14 @@ export const settingsHelpContent: Record<string, HelpContent> = {
       'High contrast for better visibility'
     ]
   },
-  'settings.visualization.nodeSize': {
-    id: 'settings.visualization.nodeSize',
+  'settings.visualisation.nodeSize': {
+    id: 'settings.visualisation.nodeSize',
     title: 'Node Size',
     description: 'Adjust the size of nodes in the graph',
     detailedHelp: 'Larger nodes are easier to click but may overlap in dense graphs. Smaller nodes allow viewing more connections at once.',
   },
-  'settings.visualization.linkOpacity': {
-    id: 'settings.visualization.linkOpacity',
+  'settings.visualisation.linkOpacity': {
+    id: 'settings.visualisation.linkOpacity',
     title: 'Link Opacity',
     description: 'Control the transparency of connections between nodes',
     detailedHelp: 'Lower opacity helps see through dense connection networks, while higher opacity makes individual connections clearer.',

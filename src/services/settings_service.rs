@@ -56,28 +56,27 @@ impl SettingsService {
         })
     }
 
-    /// Get setting by key (supports both camelCase and snake_case)
+    /// Get setting by key (uses camelCase format, database handles snake_case fallback)
     pub async fn get_setting(&self, key: &str) -> Result<Option<SettingValue>, String> {
-        // Normalize key to snake_case
-        let normalized_key = self.normalize_key(key);
+        // Use key as-is (camelCase) - database service has smart lookup with fallback
 
         // Check cache first
         {
             let cache = self.cache.read().await;
-            if let Some(cached) = cache.settings.get(&normalized_key) {
+            if let Some(cached) = cache.settings.get(key) {
                 if cached.timestamp.elapsed().as_secs() < 300 { // 5 min TTL
-                    debug!("Cache hit for setting: {}", normalized_key);
+                    debug!("Cache hit for setting: {}", key);
                     return Ok(Some(cached.value.clone()));
                 }
             }
         }
 
-        // Query database
-        match self.db.get_setting(&normalized_key) {
+        // Query database (smart lookup handles both camelCase and snake_case)
+        match self.db.get_setting(key) {
             Ok(Some(value)) => {
                 // Update cache
                 let mut cache = self.cache.write().await;
-                cache.settings.insert(normalized_key.clone(), CachedSetting {
+                cache.settings.insert(key.to_string(), CachedSetting {
                     value: value.clone(),
                     timestamp: std::time::Instant::now(),
                 });
@@ -85,7 +84,7 @@ impl SettingsService {
             }
             Ok(None) => Ok(None),
             Err(e) => {
-                error!("Database error getting setting {}: {}", normalized_key, e);
+                error!("Database error getting setting {}: {}", key, e);
                 Err(format!("Database error: {}", e))
             }
         }
@@ -98,51 +97,51 @@ impl SettingsService {
         value: SettingValue,
         user_id: Option<&str>,
     ) -> Result<(), String> {
-        let normalized_key = self.normalize_key(key);
+        // Use key as-is (camelCase format) - no normalization needed
 
         // Validate the setting
-        let validation = self.validator.validate_setting(&normalized_key, &value)?;
+        let validation = self.validator.validate_setting(key, &value)?;
         if !validation.is_valid {
             return Err(format!(
                 "Validation failed for {}: {}",
-                normalized_key,
+                key,
                 validation.errors.join(", ")
             ));
         }
 
-        // Store in database
-        self.db.set_setting(&normalized_key, value.clone(), None)
+        // Store in database (camelCase format)
+        self.db.set_setting(key, value.clone(), None)
             .map_err(|e| format!("Database error: {}", e))?;
 
         // Invalidate cache
         {
             let mut cache = self.cache.write().await;
-            cache.settings.remove(&normalized_key);
+            cache.settings.remove(key);
             cache.last_updated = std::time::Instant::now();
         }
 
         // Notify listeners
-        self.notify_change(&normalized_key, &value, user_id).await;
+        self.notify_change(key, &value, user_id).await;
 
-        info!("Setting updated: {} by user {:?}", normalized_key, user_id);
+        info!("Setting updated: {} by user {:?}", key, user_id);
         Ok(())
     }
 
     /// Get settings tree by prefix
     pub async fn get_settings_tree(&self, prefix: &str) -> Result<SettingsTreeNode, String> {
-        let normalized_prefix = self.normalize_key(prefix);
+        // Use prefix as-is (camelCase format)
         let all_settings = self.list_all_settings().await?;
 
         let mut root = SettingsTreeNode {
-            key: normalized_prefix.clone(),
+            key: prefix.to_string(),
             value: None,
             children: HashMap::new(),
         };
 
         // Build tree from flat settings
         for (key, value) in all_settings {
-            if key.starts_with(&normalized_prefix) {
-                self.insert_into_tree(&mut root, &key, value, &normalized_prefix);
+            if key.starts_with(prefix) {
+                self.insert_into_tree(&mut root, &key, value, prefix);
             }
         }
 
@@ -257,13 +256,13 @@ impl SettingsService {
 
     /// Reset setting to default
     pub async fn reset_to_default(&self, key: &str, user_id: Option<&str>) -> Result<(), String> {
-        let normalized_key = self.normalize_key(key);
+        // Use key as-is (camelCase format)
 
         // Get default value from AppFullSettings
         let defaults = AppFullSettings::default();
-        let default_value = self.extract_default_value(&defaults, &normalized_key)?;
+        let default_value = self.extract_default_value(&defaults, key)?;
 
-        self.set_setting(&normalized_key, default_value, user_id).await
+        self.set_setting(key, default_value, user_id).await
     }
 
     /// Register change listener for WebSocket broadcasts
@@ -281,21 +280,6 @@ impl SettingsService {
         for listener in listeners.iter() {
             listener(key, value, user_id);
         }
-    }
-
-    /// Normalize key to snake_case (convert camelCase if needed)
-    fn normalize_key(&self, key: &str) -> String {
-        // Simple camelCase to snake_case conversion
-        let mut result = String::new();
-        for (i, ch) in key.chars().enumerate() {
-            if ch.is_uppercase() && i > 0 {
-                result.push('_');
-                result.push(ch.to_lowercase().next().unwrap());
-            } else {
-                result.push(ch);
-            }
-        }
-        result
     }
 
     /// Extract default value from AppFullSettings
@@ -371,12 +355,22 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn test_normalize_key() {
+    async fn test_camel_case_keys() {
+        // Verify that settings service uses camelCase keys directly
         let db = Arc::new(DatabaseService::new(":memory:").unwrap());
+        db.initialize_schema().unwrap();
+
         let service = SettingsService::new(db).unwrap();
 
-        assert_eq!(service.normalize_key("camelCase"), "camel_case");
-        assert_eq!(service.normalize_key("snake_case"), "snake_case");
-        assert_eq!(service.normalize_key("PascalCase"), "pascal_case");
+        // Set a camelCase setting
+        service.set_setting(
+            "testSetting",
+            SettingValue::String("test_value".to_string()),
+            None
+        ).await.unwrap();
+
+        // Should retrieve with same camelCase key
+        let value = service.get_setting("testSetting").await.unwrap();
+        assert!(value.is_some());
     }
 }

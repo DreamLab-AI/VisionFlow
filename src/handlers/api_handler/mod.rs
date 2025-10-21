@@ -9,6 +9,7 @@ pub mod ontology;
 #[cfg(feature = "ontology")]
 pub mod ontology_data;
 pub mod sessions;
+// pub mod settings; // Disabled - incompatible with current SettingsService API
 
 // Re-export specific types and functions
 // Re-export specific types and functions
@@ -42,6 +43,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .configure(quest3::config)
             .configure(crate::handlers::nostr_handler::config)
             .configure(crate::handlers::settings_handler::config) // Includes settings_paths via internal configure
+            .configure(settings::configure_routes) // REST API for settings management
             .configure(crate::handlers::ragflow_handler::config)
             .configure(crate::handlers::clustering_handler::config)
             .configure(crate::handlers::constraints_handler::config)

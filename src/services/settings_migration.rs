@@ -184,25 +184,16 @@ impl SettingsMigration {
         result
     }
 
-    /// Migrate a single setting with dual key format
+    /// Migrate a single setting to database
     fn migrate_setting(&self, key: &str, value: &YamlValue) -> Result<(), String> {
         // Convert YAML value to SettingValue
         let setting_value = self.yaml_to_setting_value(value)?;
 
-        // Store with camelCase key (original format)
-        self.db_service.set_setting(key, setting_value.clone(), None)
-            .map_err(|e| format!("Failed to store camelCase key: {}", e))?;
+        // Store with camelCase key only
+        self.db_service.set_setting(key, setting_value, None)
+            .map_err(|e| format!("Failed to store setting: {}", e))?;
 
-        // Generate snake_case equivalent
-        let snake_key = self.to_snake_case_key(key);
-
-        // Store with snake_case key if different
-        if snake_key != key {
-            self.db_service.set_setting(&snake_key, setting_value, None)
-                .map_err(|e| format!("Failed to store snake_case key: {}", e))?;
-        }
-
-        debug!("Migrated: {} (and {})", key, snake_key);
+        debug!("Migrated: {}", key);
         Ok(())
     }
 
@@ -376,8 +367,8 @@ impl SettingsMigration {
 
     /// Check if migration has been run
     pub fn is_migrated(&self) -> bool {
-        // Check if any settings exist
-        match self.db_service.get_setting("version") {
+        // Check if migrated settings exist (use full settings key instead of version)
+        match self.db_service.get_setting("app_full_settings") {
             Ok(Some(_)) => true,
             _ => false,
         }
@@ -471,15 +462,9 @@ impl SettingsMigration {
             // Convert TOML value to SettingValue
             let setting_value = self.toml_to_setting_value(value)?;
 
-            // Store with both camelCase and snake_case
-            self.db_service.set_setting(&full_key, setting_value.clone(), None)
+            // Store with camelCase key only
+            self.db_service.set_setting(&full_key, setting_value, None)
                 .map_err(|e| format!("Failed to store key '{}': {}", full_key, e))?;
-
-            let snake_key = self.to_snake_case_key(&full_key);
-            if snake_key != full_key {
-                self.db_service.set_setting(&snake_key, setting_value, None)
-                    .map_err(|e| format!("Failed to store snake_case key '{}': {}", snake_key, e))?;
-            }
 
             count += 1;
             debug!("Migrated dev_config parameter: {}", full_key);
