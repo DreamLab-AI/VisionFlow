@@ -33,13 +33,13 @@ impl GitHubConfig {
     pub fn from_env() -> Result<Self, GitHubConfigError> {
         let token = env::var("GITHUB_TOKEN")
             .map_err(|_| GitHubConfigError::MissingEnvVar("GITHUB_TOKEN".to_string()))?;
-            
+
         let owner = env::var("GITHUB_OWNER")
             .map_err(|_| GitHubConfigError::MissingEnvVar("GITHUB_OWNER".to_string()))?;
-            
+
         let repo = env::var("GITHUB_REPO")
             .map_err(|_| GitHubConfigError::MissingEnvVar("GITHUB_REPO".to_string()))?;
-            
+
         let base_path = env::var("GITHUB_BASE_PATH")
             .map_err(|_| GitHubConfigError::MissingEnvVar("GITHUB_BASE_PATH".to_string()))?;
 
@@ -48,8 +48,7 @@ impl GitHubConfig {
             .map(|v| v.parse::<bool>().unwrap_or(true))
             .unwrap_or(true);
 
-        let version = env::var("GITHUB_API_VERSION")
-            .unwrap_or_else(|_| "v3".to_string());
+        let version = env::var("GITHUB_API_VERSION").unwrap_or_else(|_| "v3".to_string());
 
         let config = Self {
             token,

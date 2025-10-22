@@ -1,18 +1,18 @@
+use log::{info, warn};
 use std::env;
 use std::fs;
 use std::path::PathBuf;
-use log::{info, warn};
 
 /// Represents the access control configuration for various features and user roles
 pub struct FeatureAccess {
     // Base access control
     pub approved_pubkeys: Vec<String>,
-    
+
     // Feature-specific access
     pub perplexity_enabled: Vec<String>,
     pub openai_enabled: Vec<String>,
     pub ragflow_enabled: Vec<String>,
-    
+
     // Role-based access control
     pub power_users: Vec<String>,
     pub settings_sync_enabled: Vec<String>,
@@ -24,12 +24,12 @@ impl FeatureAccess {
         Self {
             // Base access
             approved_pubkeys: Self::load_pubkeys_from_env("APPROVED_PUBKEYS"),
-            
+
             // Feature access
             perplexity_enabled: Self::load_pubkeys_from_env("PERPLEXITY_ENABLED_PUBKEYS"),
             openai_enabled: Self::load_pubkeys_from_env("OPENAI_ENABLED_PUBKEYS"),
             ragflow_enabled: Self::load_pubkeys_from_env("RAGFLOW_ENABLED_PUBKEYS"),
-            
+
             // Role-based access
             power_users: Self::load_pubkeys_from_env("POWER_USER_PUBKEYS"),
             settings_sync_enabled: Self::load_pubkeys_from_env("SETTINGS_SYNC_ENABLED_PUBKEYS"),
@@ -49,7 +49,7 @@ impl FeatureAccess {
     /// Registers a new user with basic access and default features
     pub fn register_new_user(&mut self, pubkey: &str) -> bool {
         let pubkey = pubkey.to_string();
-        
+
         // Don't register if already approved
         if self.approved_pubkeys.contains(&pubkey) {
             return false;
@@ -57,10 +57,10 @@ impl FeatureAccess {
 
         // Add to approved pubkeys
         self.approved_pubkeys.push(pubkey.clone());
-        
+
         // Grant RAGFlow access by default
         self.ragflow_enabled.push(pubkey.clone());
-        
+
         // Grant OpenAI (Kokoros) access by default
         self.openai_enabled.push(pubkey.clone());
 
@@ -75,10 +75,7 @@ impl FeatureAccess {
     fn save_to_env_file(&self) {
         let env_path = PathBuf::from(".env");
         if let Ok(content) = fs::read_to_string(&env_path) {
-            let mut lines: Vec<String> = content
-                .lines()
-                .map(|line| line.to_string())
-                .collect();
+            let mut lines: Vec<String> = content.lines().map(|line| line.to_string()).collect();
 
             // Update the relevant lines
             self.update_env_line(&mut lines, "APPROVED_PUBKEYS", &self.approved_pubkeys);
@@ -145,7 +142,7 @@ impl FeatureAccess {
     /// Gets all features available to a pubkey
     pub fn get_available_features(&self, pubkey: &str) -> Vec<String> {
         let mut features = Vec::new();
-        
+
         if self.has_perplexity_access(pubkey) {
             features.push("perplexity".to_string());
         }
@@ -161,7 +158,7 @@ impl FeatureAccess {
         if self.is_power_user(pubkey) {
             features.push("power_user".to_string());
         }
-        
+
         features
     }
 }
@@ -183,7 +180,7 @@ mod tests {
     fn test_basic_access() {
         setup_test_env();
         let access = FeatureAccess::from_env();
-        
+
         assert!(access.has_access("pub1"));
         assert!(access.has_access("pub2"));
         assert!(!access.has_access("pub3"));
@@ -193,7 +190,7 @@ mod tests {
     fn test_power_user_status() {
         setup_test_env();
         let access = FeatureAccess::from_env();
-        
+
         assert!(access.is_power_user("pub1"));
         assert!(!access.is_power_user("pub2"));
     }
@@ -202,12 +199,12 @@ mod tests {
     fn test_feature_access() {
         setup_test_env();
         let access = FeatureAccess::from_env();
-        
+
         // Test pub1 (power user)
         assert!(access.has_perplexity_access("pub1"));
         assert!(access.has_openai_access("pub1"));
         assert!(access.can_sync_settings("pub1")); // Power users can always sync
-        
+
         // Test pub2 (regular user with some features)
         assert!(access.has_perplexity_access("pub2"));
         assert!(!access.has_openai_access("pub2"));
@@ -218,13 +215,13 @@ mod tests {
     fn test_available_features() {
         setup_test_env();
         let access = FeatureAccess::from_env();
-        
+
         let pub1_features = access.get_available_features("pub1");
         assert!(pub1_features.contains(&"power_user".to_string()));
         assert!(pub1_features.contains(&"perplexity".to_string()));
         assert!(pub1_features.contains(&"openai".to_string()));
         assert!(pub1_features.contains(&"settings_sync".to_string()));
-        
+
         let pub2_features = access.get_available_features("pub2");
         assert!(!pub2_features.contains(&"power_user".to_string()));
         assert!(pub2_features.contains(&"perplexity".to_string()));

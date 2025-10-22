@@ -1,8 +1,8 @@
-use serde::{Deserialize, Serialize};
-use bytemuck::{Pod, Zeroable};
 use crate::types::vec3::Vec3Data;
+use bytemuck::{Pod, Zeroable};
 use cudarc::driver::{DeviceRepr, ValidAsZeroBits};
 use glam::Vec3;
+use serde::{Deserialize, Serialize};
 
 // ===== CLIENT-SIDE BINARY DATA (28 bytes) =====
 // Optimized for network transmission - contains only what clients need
@@ -13,13 +13,13 @@ use glam::Vec3;
 /// Contains only position and velocity for real-time updates.
 /// SSSP and other algorithm results are sent via REST/JSON when needed.
 pub struct BinaryNodeDataClient {
-    pub node_id: u32,      // 4 bytes - Node identifier
-    pub x: f32,            // 4 bytes - X position
-    pub y: f32,            // 4 bytes - Y position
-    pub z: f32,            // 4 bytes - Z position
-    pub vx: f32,           // 4 bytes - X velocity
-    pub vy: f32,           // 4 bytes - Y velocity
-    pub vz: f32,           // 4 bytes - Z velocity
+    pub node_id: u32, // 4 bytes - Node identifier
+    pub x: f32,       // 4 bytes - X position
+    pub y: f32,       // 4 bytes - Y position
+    pub z: f32,       // 4 bytes - Z position
+    pub vx: f32,      // 4 bytes - X velocity
+    pub vy: f32,      // 4 bytes - Y velocity
+    pub vz: f32,      // 4 bytes - Z velocity
 }
 
 // Compile-time assertion to ensure client format is exactly 28 bytes
@@ -36,18 +36,18 @@ pub type BinaryNodeData = BinaryNodeDataClient;
 /// Binary node data for GPU computation (48 bytes)
 /// Includes all client fields plus algorithm-specific data that stays server-side.
 pub struct BinaryNodeDataGPU {
-    pub node_id: u32,      // 4 bytes - Node identifier
-    pub x: f32,            // 4 bytes - X position
-    pub y: f32,            // 4 bytes - Y position
-    pub z: f32,            // 4 bytes - Z position
-    pub vx: f32,           // 4 bytes - X velocity
-    pub vy: f32,           // 4 bytes - Y velocity
-    pub vz: f32,           // 4 bytes - Z velocity
-    pub sssp_distance: f32,// 4 bytes - Shortest path distance
-    pub sssp_parent: i32,  // 4 bytes - Parent node for path reconstruction
-    pub cluster_id: i32,   // 4 bytes - Cluster assignment
-    pub centrality: f32,   // 4 bytes - Node centrality score
-    pub mass: f32,         // 4 bytes - Node mass for physics
+    pub node_id: u32,       // 4 bytes - Node identifier
+    pub x: f32,             // 4 bytes - X position
+    pub y: f32,             // 4 bytes - Y position
+    pub z: f32,             // 4 bytes - Z position
+    pub vx: f32,            // 4 bytes - X velocity
+    pub vy: f32,            // 4 bytes - Y velocity
+    pub vz: f32,            // 4 bytes - Z velocity
+    pub sssp_distance: f32, // 4 bytes - Shortest path distance
+    pub sssp_parent: i32,   // 4 bytes - Parent node for path reconstruction
+    pub cluster_id: i32,    // 4 bytes - Cluster assignment
+    pub centrality: f32,    // 4 bytes - Node centrality score
+    pub mass: f32,          // 4 bytes - Node mass for physics
 }
 
 // Compile-time assertion to ensure GPU format is exactly 48 bytes
@@ -138,10 +138,10 @@ fn default_timestamp() -> u64 {
 pub enum Message {
     #[serde(rename = "ping")]
     Ping { timestamp: u64 },
-    
+
     #[serde(rename = "pong")]
     Pong { timestamp: u64 },
-    
+
     #[serde(rename = "enableRandomization")]
     EnableRandomization { enabled: bool },
 }

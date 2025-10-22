@@ -3,20 +3,20 @@
 //! This module provides a TCP client for connecting to MCP (Model Context Protocol) servers
 //! and executing agent discovery queries. It replaces mock data with real TCP connections.
 
-use std::collections::HashMap;
-use std::time::Duration;
-use std::sync::Arc;
-use serde_json::{json, Value};
+use chrono::Utc;
 use log::{debug, error, info, warn};
-use chrono::{DateTime, Utc};
-use tokio::sync::Mutex;
-use tokio::net::TcpStream;
-use tokio::io::{AsyncReadExt, AsyncWriteExt, AsyncBufReadExt, BufReader};
 use once_cell::sync::Lazy;
+use serde_json::{json, Value};
+use std::collections::HashMap;
+use std::sync::Arc;
+use std::time::Duration;
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::net::TcpStream;
+use tokio::sync::Mutex;
 
 use crate::services::agent_visualization_protocol::{
-    McpServerInfo, McpServerType, MultiMcpAgentStatus, AgentExtendedMetadata,
-    AgentPerformanceData, TopologyPosition, SwarmTopologyData
+    AgentExtendedMetadata, AgentPerformanceData, McpServerInfo, McpServerType, MultiMcpAgentStatus,
+    SwarmTopologyData, TopologyPosition,
 };
 
 /// MCP TCP Client for real server communication with connection pooling
@@ -36,8 +36,7 @@ pub struct McpConnectionPool {
     max_connections_per_server: usize,
 }
 
-static CONNECTION_POOL: Lazy<McpConnectionPool> =
-    Lazy::new(|| McpConnectionPool::new(5));
+static CONNECTION_POOL: Lazy<McpConnectionPool> = Lazy::new(|| McpConnectionPool::new(5));
 
 /// MCP JSON-RPC request structure
 #[derive(Debug, serde::Serialize)]
@@ -96,7 +95,10 @@ impl McpTcpClient {
     /// Establish async TCP connection to MCP server with retry logic
     async fn connect(&self) -> Result<TcpStream, Box<dyn std::error::Error + Send + Sync>> {
         let addr_str = format!("{}:{}", self.host, self.port);
-        debug!("Connecting to MCP server at {} with {} retries", addr_str, self.max_retries);
+        debug!(
+            "Connecting to MCP server at {} with {} retries",
+            addr_str, self.max_retries
+        );
 
         let mut last_error = None;
 
@@ -109,9 +111,17 @@ impl McpTcpClient {
                     }
 
                     if attempt > 0 {
-                        info!("Successfully connected to MCP server at {}:{} on attempt {}", self.host, self.port, attempt + 1);
+                        info!(
+                            "Successfully connected to MCP server at {}:{} on attempt {}",
+                            self.host,
+                            self.port,
+                            attempt + 1
+                        );
                     } else {
-                        debug!("Successfully connected to MCP server at {}:{}", self.host, self.port);
+                        debug!(
+                            "Successfully connected to MCP server at {}:{}",
+                            self.host, self.port
+                        );
                     }
                     return Ok(stream);
                 }
@@ -124,17 +134,30 @@ impl McpTcpClient {
             }
 
             if attempt < self.max_retries {
-                warn!("Connection attempt {} failed, retrying in {:?}: {}", attempt + 1, self.retry_delay, last_error.as_ref().unwrap());
+                warn!(
+                    "Connection attempt {} failed, retrying in {:?}: {}",
+                    attempt + 1,
+                    self.retry_delay,
+                    last_error.as_ref().unwrap()
+                );
                 tokio::time::sleep(self.retry_delay).await;
             }
         }
 
-        Err(format!("Failed to connect after {} attempts: {}", self.max_retries + 1,
-                   last_error.unwrap_or_else(|| "Unknown error".to_string())).into())
+        Err(format!(
+            "Failed to connect after {} attempts: {}",
+            self.max_retries + 1,
+            last_error.unwrap_or_else(|| "Unknown error".to_string())
+        )
+        .into())
     }
 
     /// Send MCP JSON-RPC request and receive response with improved error handling
-    async fn send_request(&self, method: &str, params: Value) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
+    async fn send_request(
+        &self,
+        method: &str,
+        params: Value,
+    ) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
         let mut last_error = None;
 
         for attempt in 0..=self.max_retries {
@@ -148,30 +171,45 @@ impl McpTcpClient {
                 Err(e) => {
                     last_error = Some(e);
                     if attempt < self.max_retries {
-                        warn!("Request attempt {} failed, retrying: {}", attempt + 1, last_error.as_ref().unwrap());
+                        warn!(
+                            "Request attempt {} failed, retrying: {}",
+                            attempt + 1,
+                            last_error.as_ref().unwrap()
+                        );
                         tokio::time::sleep(self.retry_delay).await;
                     }
                 }
             }
         }
 
-        Err(format!("Request failed after {} attempts: {}", self.max_retries + 1,
-                   last_error.unwrap_or_else(|| "Unknown error".into())).into())
+        Err(format!(
+            "Request failed after {} attempts: {}",
+            self.max_retries + 1,
+            last_error.unwrap_or_else(|| "Unknown error".into())
+        )
+        .into())
     }
 
     /// Send MCP tool call through tools/call wrapper
-    async fn send_tool_call(&self, tool_name: &str, arguments: Value) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
+    async fn send_tool_call(
+        &self,
+        tool_name: &str,
+        arguments: Value,
+    ) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
         // Wrap the tool call in the MCP tools/call format
         let wrapped_params = json!({
             "name": tool_name,
             "arguments": arguments
         });
-        
-        debug!("Sending tool call '{}' with arguments: {}", tool_name, arguments);
-        
+
+        debug!(
+            "Sending tool call '{}' with arguments: {}",
+            tool_name, arguments
+        );
+
         // Send through tools/call method
         let response = self.send_request("tools/call", wrapped_params).await?;
-        
+
         // Extract the content from the response
         if let Some(content) = response.get("content") {
             if let Some(content_array) = content.as_array() {
@@ -192,12 +230,16 @@ impl McpTcpClient {
                 }
             }
         }
-        
+
         Err("Invalid tool call response format".into())
     }
 
     /// Internal method to try sending a request once
-    async fn try_send_request(&self, method: &str, params: Value) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
+    async fn try_send_request(
+        &self,
+        method: &str,
+        params: Value,
+    ) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
         let mut stream = self.connect().await?;
 
         // Create JSON-RPC request with unique ID
@@ -215,9 +257,13 @@ impl McpTcpClient {
 
         // MCP protocol sends newline-delimited JSON
         let request_data = format!("{}\n", request_json);
-        stream.write_all(request_data.as_bytes()).await
+        stream
+            .write_all(request_data.as_bytes())
+            .await
             .map_err(|e| format!("Failed to send request: {}", e))?;
-        stream.flush().await
+        stream
+            .flush()
+            .await
             .map_err(|e| format!("Failed to flush stream: {}", e))?;
 
         // Read response with timeout handling
@@ -229,14 +275,23 @@ impl McpTcpClient {
             .map_err(|e| format!("Failed to parse response: {}", e))?;
 
         if let Some(error) = response.error {
-            return Err(format!("MCP Error {}: {} (data: {:?})", error.code, error.message, error.data).into());
+            return Err(format!(
+                "MCP Error {}: {} (data: {:?})",
+                error.code, error.message, error.data
+            )
+            .into());
         }
 
-        response.result.ok_or_else(|| "No result in MCP response".into())
+        response
+            .result
+            .ok_or_else(|| "No result in MCP response".into())
     }
 
     /// Read response from stream with proper timeout handling
-    async fn read_response(&self, stream: &mut TcpStream) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+    async fn read_response(
+        &self,
+        stream: &mut TcpStream,
+    ) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
         let mut reader = BufReader::new(stream);
         let mut response_line = String::new();
 
@@ -249,17 +304,15 @@ impl McpTcpClient {
                 debug!("Read {} bytes from MCP server", bytes_read);
                 Ok(response_line)
             }
-            Ok(Err(e)) => {
-                Err(format!("Read error: {}", e).into())
-            }
-            Err(_) => {
-                Err("Read timeout".into())
-            }
+            Ok(Err(e)) => Err(format!("Read error: {}", e).into()),
+            Err(_) => Err("Read timeout".into()),
         }
     }
 
     /// Query agent list from MCP server
-    pub async fn query_agent_list(&self) -> Result<Vec<MultiMcpAgentStatus>, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn query_agent_list(
+        &self,
+    ) -> Result<Vec<MultiMcpAgentStatus>, Box<dyn std::error::Error + Send + Sync>> {
         debug!("Querying agent list from MCP server");
 
         let params = json!({
@@ -272,13 +325,18 @@ impl McpTcpClient {
 
         // Parse agent data from MCP response
         let agents = self.parse_agent_list_response(&result)?;
-        info!("Successfully retrieved {} agents from MCP server", agents.len());
+        info!(
+            "Successfully retrieved {} agents from MCP server",
+            agents.len()
+        );
 
         Ok(agents)
     }
 
     /// Query swarm status from MCP server
-    pub async fn query_swarm_status(&self) -> Result<SwarmTopologyData, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn query_swarm_status(
+        &self,
+    ) -> Result<SwarmTopologyData, Box<dyn std::error::Error + Send + Sync>> {
         debug!("Querying swarm status from MCP server");
 
         let params = json!({
@@ -297,7 +355,9 @@ impl McpTcpClient {
     }
 
     /// Query server information and capabilities
-    pub async fn query_server_info(&self) -> Result<McpServerInfo, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn query_server_info(
+        &self,
+    ) -> Result<McpServerInfo, Box<dyn std::error::Error + Send + Sync>> {
         debug!("Querying server info from MCP server");
 
         let params = json!({});
@@ -313,8 +373,12 @@ impl McpTcpClient {
     }
 
     /// Parse agent list response from MCP
-    fn parse_agent_list_response(&self, response: &Value) -> Result<Vec<MultiMcpAgentStatus>, Box<dyn std::error::Error + Send + Sync>> {
-        let agents_array = response.get("agents")
+    fn parse_agent_list_response(
+        &self,
+        response: &Value,
+    ) -> Result<Vec<MultiMcpAgentStatus>, Box<dyn std::error::Error + Send + Sync>> {
+        let agents_array = response
+            .get("agents")
             .and_then(|a| a.as_array())
             .ok_or("No 'agents' array in response")?;
 
@@ -334,36 +398,49 @@ impl McpTcpClient {
     }
 
     /// Parse single agent from MCP response
-    fn parse_single_agent(&self, agent_data: &Value) -> Result<MultiMcpAgentStatus, Box<dyn std::error::Error + Send + Sync>> {
-        let agent_id = agent_data.get("id")
+    fn parse_single_agent(
+        &self,
+        agent_data: &Value,
+    ) -> Result<MultiMcpAgentStatus, Box<dyn std::error::Error + Send + Sync>> {
+        let agent_id = agent_data
+            .get("id")
             .and_then(|v| v.as_str())
             .ok_or("Missing agent ID")?
             .to_string();
 
-        let name = agent_data.get("name")
+        let name = agent_data
+            .get("name")
             .and_then(|v| v.as_str())
             .unwrap_or(&agent_id)
             .to_string();
 
-        let agent_type = agent_data.get("type")
+        let agent_type = agent_data
+            .get("type")
             .and_then(|v| v.as_str())
             .unwrap_or("unknown")
             .to_string();
 
-        let status = agent_data.get("status")
+        let status = agent_data
+            .get("status")
             .and_then(|v| v.as_str())
             .unwrap_or("unknown")
             .to_string();
 
-        let swarm_id = agent_data.get("swarm_id")
+        let swarm_id = agent_data
+            .get("swarm_id")
             .and_then(|v| v.as_str())
             .unwrap_or("default")
             .to_string();
 
         // Parse capabilities
-        let capabilities = agent_data.get("capabilities")
+        let capabilities = agent_data
+            .get("capabilities")
             .and_then(|v| v.as_array())
-            .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect()
+            })
             .unwrap_or_else(Vec::new);
 
         // Parse performance data
@@ -373,7 +450,8 @@ impl McpTcpClient {
         let metadata = self.parse_agent_metadata(agent_data.get("metadata"))?;
 
         // Parse neural info if available
-        let neural_info = agent_data.get("neural")
+        let neural_info = agent_data
+            .get("neural")
             .map(|neural_data| self.parse_neural_data(neural_data))
             .transpose()?;
 
@@ -396,93 +474,216 @@ impl McpTcpClient {
     }
 
     /// Parse performance data from agent response
-    fn parse_performance_data(&self, perf_data: Option<&Value>) -> Result<AgentPerformanceData, Box<dyn std::error::Error + Send + Sync>> {
+    fn parse_performance_data(
+        &self,
+        perf_data: Option<&Value>,
+    ) -> Result<AgentPerformanceData, Box<dyn std::error::Error + Send + Sync>> {
         let default_json = json!({});
         let perf = perf_data.unwrap_or(&default_json);
 
         Ok(AgentPerformanceData {
-            cpu_usage: perf.get("cpu_usage").and_then(|v| v.as_f64()).unwrap_or(25.0) as f32,
-            memory_usage: perf.get("memory_usage").and_then(|v| v.as_f64()).unwrap_or(35.0) as f32,
-            health_score: perf.get("health_score").and_then(|v| v.as_f64()).unwrap_or(100.0) as f32,
-            activity_level: perf.get("activity_level").and_then(|v| v.as_f64()).unwrap_or(50.0) as f32,
-            tasks_active: perf.get("tasks_active").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-            tasks_completed: perf.get("tasks_completed").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-            tasks_failed: perf.get("tasks_failed").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-            success_rate: perf.get("success_rate").and_then(|v| v.as_f64()).unwrap_or(100.0) as f32,
-            token_usage: perf.get("token_usage").and_then(|v| v.as_u64()).unwrap_or(1000),
-            token_rate: perf.get("token_rate").and_then(|v| v.as_f64()).unwrap_or(0.0) as f32,
-            response_time_ms: perf.get("response_time_ms").and_then(|v| v.as_f64()).unwrap_or(150.0) as f32,
-            throughput: perf.get("throughput").and_then(|v| v.as_f64()).unwrap_or(10.0) as f32,
+            cpu_usage: perf
+                .get("cpu_usage")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(25.0) as f32,
+            memory_usage: perf
+                .get("memory_usage")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(35.0) as f32,
+            health_score: perf
+                .get("health_score")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(100.0) as f32,
+            activity_level: perf
+                .get("activity_level")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(50.0) as f32,
+            tasks_active: perf
+                .get("tasks_active")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0) as u32,
+            tasks_completed: perf
+                .get("tasks_completed")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0) as u32,
+            tasks_failed: perf
+                .get("tasks_failed")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0) as u32,
+            success_rate: perf
+                .get("success_rate")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(100.0) as f32,
+            token_usage: perf
+                .get("token_usage")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(1000),
+            token_rate: perf
+                .get("token_rate")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(0.0) as f32,
+            response_time_ms: perf
+                .get("response_time_ms")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(150.0) as f32,
+            throughput: perf
+                .get("throughput")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(10.0) as f32,
         })
     }
 
     /// Parse agent metadata
-    fn parse_agent_metadata(&self, meta_data: Option<&Value>) -> Result<AgentExtendedMetadata, Box<dyn std::error::Error + Send + Sync>> {
+    fn parse_agent_metadata(
+        &self,
+        meta_data: Option<&Value>,
+    ) -> Result<AgentExtendedMetadata, Box<dyn std::error::Error + Send + Sync>> {
         let default_json = json!({});
         let meta = meta_data.unwrap_or(&default_json);
 
-        let topology_position = meta.get("topology_position")
-            .map(|pos| TopologyPosition {
-                layer: pos.get("layer").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-                index_in_layer: pos.get("index_in_layer").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-                connections: pos.get("connections")
-                    .and_then(|v| v.as_array())
-                    .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect())
-                    .unwrap_or_else(Vec::new),
-                is_coordinator: pos.get("is_coordinator").and_then(|v| v.as_bool()).unwrap_or(false),
-                coordination_level: pos.get("coordination_level").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-            });
+        let topology_position = meta.get("topology_position").map(|pos| TopologyPosition {
+            layer: pos.get("layer").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
+            index_in_layer: pos
+                .get("index_in_layer")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0) as u32,
+            connections: pos
+                .get("connections")
+                .and_then(|v| v.as_array())
+                .map(|arr| {
+                    arr.iter()
+                        .filter_map(|v| v.as_str().map(String::from))
+                        .collect()
+                })
+                .unwrap_or_else(Vec::new),
+            is_coordinator: pos
+                .get("is_coordinator")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false),
+            coordination_level: pos
+                .get("coordination_level")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0) as u32,
+        });
 
-        let tags = meta.get("tags")
+        let tags = meta
+            .get("tags")
             .and_then(|v| v.as_array())
-            .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect()
+            })
             .unwrap_or_else(Vec::new);
 
         Ok(AgentExtendedMetadata {
-            session_id: meta.get("session_id").and_then(|v| v.as_str()).map(String::from),
-            parent_id: meta.get("parent_id").and_then(|v| v.as_str()).map(String::from),
+            session_id: meta
+                .get("session_id")
+                .and_then(|v| v.as_str())
+                .map(String::from),
+            parent_id: meta
+                .get("parent_id")
+                .and_then(|v| v.as_str())
+                .map(String::from),
             topology_position,
-            coordination_role: meta.get("coordination_role").and_then(|v| v.as_str()).map(String::from),
-            task_queue_size: meta.get("task_queue_size").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-            error_count: meta.get("error_count").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-            warning_count: meta.get("warning_count").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
+            coordination_role: meta
+                .get("coordination_role")
+                .and_then(|v| v.as_str())
+                .map(String::from),
+            task_queue_size: meta
+                .get("task_queue_size")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0) as u32,
+            error_count: meta
+                .get("error_count")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0) as u32,
+            warning_count: meta
+                .get("warning_count")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0) as u32,
             tags,
         })
     }
 
     /// Parse neural data from agent response
-    fn parse_neural_data(&self, neural_data: &Value) -> Result<crate::services::agent_visualization_protocol::NeuralAgentData, Box<dyn std::error::Error + Send + Sync>> {
-        Ok(crate::services::agent_visualization_protocol::NeuralAgentData {
-            model_type: neural_data.get("model_type").and_then(|v| v.as_str()).unwrap_or("unknown").to_string(),
-            model_size: neural_data.get("model_size").and_then(|v| v.as_str()).unwrap_or("medium").to_string(),
-            training_status: neural_data.get("training_status").and_then(|v| v.as_str()).unwrap_or("idle").to_string(),
-            cognitive_pattern: neural_data.get("cognitive_pattern").and_then(|v| v.as_str()).unwrap_or("default").to_string(),
-            learning_rate: neural_data.get("learning_rate").and_then(|v| v.as_f64()).unwrap_or(0.01) as f32,
-            adaptation_score: neural_data.get("adaptation_score").and_then(|v| v.as_f64()).unwrap_or(0.5) as f32,
-            memory_capacity: neural_data.get("memory_capacity").and_then(|v| v.as_u64()).unwrap_or(1024000),
-            knowledge_domains: neural_data.get("knowledge_domains")
-                .and_then(|v| v.as_array())
-                .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect())
-                .unwrap_or_else(Vec::new),
-        })
+    fn parse_neural_data(
+        &self,
+        neural_data: &Value,
+    ) -> Result<
+        crate::services::agent_visualization_protocol::NeuralAgentData,
+        Box<dyn std::error::Error + Send + Sync>,
+    > {
+        Ok(
+            crate::services::agent_visualization_protocol::NeuralAgentData {
+                model_type: neural_data
+                    .get("model_type")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("unknown")
+                    .to_string(),
+                model_size: neural_data
+                    .get("model_size")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("medium")
+                    .to_string(),
+                training_status: neural_data
+                    .get("training_status")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("idle")
+                    .to_string(),
+                cognitive_pattern: neural_data
+                    .get("cognitive_pattern")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("default")
+                    .to_string(),
+                learning_rate: neural_data
+                    .get("learning_rate")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.01) as f32,
+                adaptation_score: neural_data
+                    .get("adaptation_score")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.5) as f32,
+                memory_capacity: neural_data
+                    .get("memory_capacity")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(1024000),
+                knowledge_domains: neural_data
+                    .get("knowledge_domains")
+                    .and_then(|v| v.as_array())
+                    .map(|arr| {
+                        arr.iter()
+                            .filter_map(|v| v.as_str().map(String::from))
+                            .collect()
+                    })
+                    .unwrap_or_else(Vec::new),
+            },
+        )
     }
 
     /// Parse swarm topology response
-    fn parse_swarm_topology_response(&self, response: &Value) -> Result<SwarmTopologyData, Box<dyn std::error::Error + Send + Sync>> {
-        let topology_type = response.get("topology_type")
+    fn parse_swarm_topology_response(
+        &self,
+        response: &Value,
+    ) -> Result<SwarmTopologyData, Box<dyn std::error::Error + Send + Sync>> {
+        let topology_type = response
+            .get("topology_type")
             .and_then(|v| v.as_str())
             .unwrap_or("mesh")
             .to_string();
 
-        let total_agents = response.get("total_agents")
+        let total_agents = response
+            .get("total_agents")
             .and_then(|v| v.as_u64())
             .unwrap_or(0) as u32;
 
-        let coordination_layers = response.get("coordination_layers")
+        let coordination_layers = response
+            .get("coordination_layers")
             .and_then(|v| v.as_u64())
             .unwrap_or(1) as u32;
 
-        let efficiency_score = response.get("efficiency_score")
+        let efficiency_score = response
+            .get("efficiency_score")
             .and_then(|v| v.as_f64())
             .unwrap_or(0.85) as f32;
 
@@ -498,8 +699,12 @@ impl McpTcpClient {
     }
 
     /// Parse server info response
-    fn parse_server_info_response(&self, response: &Value) -> Result<McpServerInfo, Box<dyn std::error::Error + Send + Sync>> {
-        let server_id = response.get("server_id")
+    fn parse_server_info_response(
+        &self,
+        response: &Value,
+    ) -> Result<McpServerInfo, Box<dyn std::error::Error + Send + Sync>> {
+        let server_id = response
+            .get("server_id")
             .and_then(|v| v.as_str())
             .unwrap_or("claude-flow")
             .to_string();
@@ -512,16 +717,24 @@ impl McpTcpClient {
             None => McpServerType::ClaudeFlow,
         };
 
-        let supported_tools = response.get("supported_tools")
+        let supported_tools = response
+            .get("supported_tools")
             .and_then(|v| v.as_array())
-            .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect())
-            .unwrap_or_else(|| vec![
-                "agent_list".to_string(),
-                "swarm_status".to_string(),
-                "server_info".to_string(),
-            ]);
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect()
+            })
+            .unwrap_or_else(|| {
+                vec![
+                    "agent_list".to_string(),
+                    "swarm_status".to_string(),
+                    "server_info".to_string(),
+                ]
+            });
 
-        let agent_count = response.get("agent_count")
+        let agent_count = response
+            .get("agent_count")
             .and_then(|v| v.as_u64())
             .unwrap_or(0) as u32;
 
@@ -594,7 +807,10 @@ impl McpConnectionPool {
             debug!("Reusing existing MCP client for {}", server_id);
             client.clone()
         } else {
-            debug!("Creating new MCP client for {} at {}:{}", server_id, host, port);
+            debug!(
+                "Creating new MCP client for {} at {}:{}",
+                server_id, host, port
+            );
             let client = McpTcpClient::new(host.to_string(), port)
                 .with_timeout(Duration::from_secs(10))
                 .with_retry_config(3, Duration::from_millis(500));
@@ -617,27 +833,39 @@ impl McpConnectionPool {
         let servers = self.servers.lock().await;
         let mut stats = HashMap::new();
         stats.insert("total_clients".to_string(), servers.len());
-        stats.insert("max_per_server".to_string(), self.max_connections_per_server);
+        stats.insert(
+            "max_per_server".to_string(),
+            self.max_connections_per_server,
+        );
         stats
     }
 }
 
 /// Create MCP TCP client for a specific server configuration using connection pool
 pub fn create_mcp_client(server_type: &McpServerType, host: &str, port: u16) -> McpTcpClient {
-    info!("Creating MCP TCP client for {:?} at {}:{}", server_type, host, port);
+    info!(
+        "Creating MCP TCP client for {:?} at {}:{}",
+        server_type, host, port
+    );
     McpTcpClient::new(host.to_string(), port)
         .with_timeout(Duration::from_secs(15)) // Increased timeout for reliability
         .with_retry_config(5, Duration::from_millis(1000)) // More retries with longer delay
 }
 
 /// Get MCP client from connection pool
-pub async fn get_pooled_mcp_client(server_type: &McpServerType, host: &str, port: u16) -> McpTcpClient {
+pub async fn get_pooled_mcp_client(
+    server_type: &McpServerType,
+    host: &str,
+    port: u16,
+) -> McpTcpClient {
     let server_id = format!("{:?}_{}_{})", server_type, host, port);
     CONNECTION_POOL.get_client(&server_id, host, port).await
 }
 
 /// Test MCP TCP connectivity for multiple servers
-pub async fn test_mcp_connectivity(servers: &HashMap<String, (String, u16)>) -> HashMap<String, bool> {
+pub async fn test_mcp_connectivity(
+    servers: &HashMap<String, (String, u16)>,
+) -> HashMap<String, bool> {
     let mut results = HashMap::new();
 
     for (server_id, (host, port)) in servers {
@@ -646,9 +874,15 @@ pub async fn test_mcp_connectivity(servers: &HashMap<String, (String, u16)>) -> 
             Ok(connected) => {
                 results.insert(server_id.clone(), connected);
                 if connected {
-                    info!("✓ MCP server {} is reachable at {}:{}", server_id, host, port);
+                    info!(
+                        "✓ MCP server {} is reachable at {}:{}",
+                        server_id, host, port
+                    );
                 } else {
-                    warn!("✗ MCP server {} is not reachable at {}:{}", server_id, host, port);
+                    warn!(
+                        "✗ MCP server {} is not reachable at {}:{}",
+                        server_id, host, port
+                    );
                 }
             }
             Err(e) => {

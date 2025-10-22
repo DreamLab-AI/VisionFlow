@@ -2,7 +2,7 @@ use actix::prelude::*;
 use log::info;
 use serde_json::Value;
 
-use crate::models::protected_settings::{ProtectedSettings, NostrUser, ApiKeys};
+use crate::models::protected_settings::{ApiKeys, NostrUser, ProtectedSettings};
 
 pub struct ProtectedSettingsActor {
     settings: ProtectedSettings,
@@ -17,7 +17,7 @@ impl ProtectedSettingsActor {
 
 impl Actor for ProtectedSettingsActor {
     type Context = Context<Self>;
-    
+
     fn started(&mut self, _ctx: &mut Self::Context) {
         info!("ProtectedSettingsActor started");
     }
@@ -32,7 +32,7 @@ pub struct GetApiKeys {
 
 impl Handler<GetApiKeys> for ProtectedSettingsActor {
     type Result = MessageResult<GetApiKeys>;
-    
+
     fn handle(&mut self, msg: GetApiKeys, _ctx: &mut Self::Context) -> Self::Result {
         MessageResult(self.settings.get_api_keys(&msg.pubkey))
     }
@@ -48,7 +48,7 @@ pub struct ValidateClientToken {
 
 impl Handler<ValidateClientToken> for ProtectedSettingsActor {
     type Result = bool;
-    
+
     fn handle(&mut self, msg: ValidateClientToken, _ctx: &mut Self::Context) -> Self::Result {
         self.settings.validate_client_token(&msg.pubkey, &msg.token)
     }
@@ -64,7 +64,7 @@ pub struct StoreClientToken {
 
 impl Handler<StoreClientToken> for ProtectedSettingsActor {
     type Result = ();
-    
+
     fn handle(&mut self, msg: StoreClientToken, _ctx: &mut Self::Context) -> Self::Result {
         self.settings.store_client_token(msg.pubkey, msg.token);
     }
@@ -80,9 +80,10 @@ pub struct UpdateUserApiKeys {
 
 impl Handler<UpdateUserApiKeys> for ProtectedSettingsActor {
     type Result = Result<NostrUser, String>;
-    
+
     fn handle(&mut self, msg: UpdateUserApiKeys, _ctx: &mut Self::Context) -> Self::Result {
-        self.settings.update_user_api_keys(&msg.pubkey, msg.api_keys)
+        self.settings
+            .update_user_api_keys(&msg.pubkey, msg.api_keys)
     }
 }
 
@@ -95,7 +96,7 @@ pub struct CleanupExpiredTokens {
 
 impl Handler<CleanupExpiredTokens> for ProtectedSettingsActor {
     type Result = ();
-    
+
     fn handle(&mut self, msg: CleanupExpiredTokens, _ctx: &mut Self::Context) -> Self::Result {
         self.settings.cleanup_expired_tokens(msg.max_age_hours);
     }
@@ -110,7 +111,7 @@ pub struct MergeSettings {
 
 impl Handler<MergeSettings> for ProtectedSettingsActor {
     type Result = Result<(), String>;
-    
+
     fn handle(&mut self, msg: MergeSettings, _ctx: &mut Self::Context) -> Self::Result {
         self.settings.merge(msg.settings)
     }
@@ -125,7 +126,7 @@ pub struct SaveSettings {
 
 impl Handler<SaveSettings> for ProtectedSettingsActor {
     type Result = Result<(), String>;
-    
+
     fn handle(&mut self, msg: SaveSettings, _ctx: &mut Self::Context) -> Self::Result {
         self.settings.save(&msg.path)
     }
@@ -140,7 +141,7 @@ pub struct GetUser {
 
 impl Handler<GetUser> for ProtectedSettingsActor {
     type Result = Option<NostrUser>;
-    
+
     fn handle(&mut self, msg: GetUser, _ctx: &mut Self::Context) -> Self::Result {
         self.settings.users.get(&msg.pubkey).cloned()
     }

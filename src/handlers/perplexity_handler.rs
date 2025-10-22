@@ -1,8 +1,8 @@
 use crate::AppState;
 use actix_web::{post, web, HttpResponse, Responder};
+use log::{error, info};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use log::{error, info};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -27,13 +27,18 @@ pub async fn handle_perplexity(
 
     let perplexity_service = match &state.perplexity_service {
         Some(service) => service,
-        None => return HttpResponse::ServiceUnavailable().json(json!({
-            "error": "Perplexity service is not available"
-        }))
+        None => {
+            return HttpResponse::ServiceUnavailable().json(json!({
+                "error": "Perplexity service is not available"
+            }))
+        }
     };
 
     let conversation_id = state.ragflow_session_id.clone();
-    match perplexity_service.query(&request.query, &conversation_id).await {
+    match perplexity_service
+        .query(&request.query, &conversation_id)
+        .await
+    {
         Ok(answer) => {
             let response = PerplexityResponse {
                 answer,

@@ -24,6 +24,8 @@ import { Slider } from '@/features/design-system/components/Slider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/features/design-system/components/Card';
 import { Separator } from '@/features/design-system/components/Separator';
 import { toast } from '@/features/design-system/components/Toast';
+import { OntologyModeToggle } from '@/features/ontology/components/OntologyModeToggle';
+import type { GraphMode } from '@/features/ontology/components/OntologyModeToggle';
 
 interface GraphVisualisationTabProps {
   graphId?: string;
@@ -115,8 +117,29 @@ export const GraphVisualisationTab: React.FC<GraphVisualisationTabProps> = ({
     });
   }, [onFeatureUpdate]);
 
+  const handleModeChange = useCallback((mode: GraphMode) => {
+    onFeatureUpdate?.('graphMode', { mode });
+    toast({
+      title: `Switched to ${mode === 'ontology' ? 'Ontology' : 'Knowledge Graph'} mode`,
+      description: `Now displaying ${mode === 'ontology' ? 'ontology' : 'knowledge graph'} data`
+    });
+  }, [onFeatureUpdate]);
+
   return (
     <div className="space-y-4">
+      {/* Graph Mode Selection */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <Palette className="h-4 w-4" />
+            Graph Mode
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <OntologyModeToggle onModeChange={handleModeChange} className="w-full" />
+        </CardContent>
+      </Card>
+
       {/* Graph Synchronisation */}
       <Card>
         <CardHeader className="pb-3">

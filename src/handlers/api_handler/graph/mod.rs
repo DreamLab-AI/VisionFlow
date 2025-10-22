@@ -1,16 +1,19 @@
-use actix_web::{web, HttpRequest, HttpResponse, Responder};
-use crate::AppState;
-use serde::{Serialize, Deserialize};
-use log::{info, debug, error, warn};
-use std::collections::HashMap;
-use std::sync::Arc;
 use crate::models::metadata::Metadata;
 use crate::models::node::Node; // Changed from socket_flow_messages::Node
 use crate::services::file_service::FileService;
 use crate::types::vec3::Vec3Data;
+use crate::AppState;
+use actix_web::{web, HttpRequest, HttpResponse, Responder};
+use log::{debug, error, info, warn};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::sync::Arc;
 // GraphService direct import is no longer needed as we use actors
 // use crate::services::graph_service::GraphService;
-use crate::actors::messages::{GetGraphData, GetSettings, AddNodesFromMetadata, GetAutoBalanceNotifications, InitialClientSync, GetNodeMap, GetPhysicsState};
+use crate::actors::messages::{
+    AddNodesFromMetadata, GetAutoBalanceNotifications, GetGraphData, GetNodeMap, GetPhysicsState,
+    GetSettings,
+};
 
 /// Settlement state information for client optimization
 #[derive(Serialize, Debug, Clone)]
@@ -100,44 +103,46 @@ pub async fn get_graph_data(state: web::Data<AppState>, req: HttpRequest) -> imp
     let node_map_future = state.graph_service_addr.send(GetNodeMap);
     let physics_state_future = state.graph_service_addr.send(GetPhysicsState);
 
-    let (graph_result, node_map_result, physics_result) = tokio::join!(
-        graph_data_future,
-        node_map_future,
-        physics_state_future
-    );
+    let (graph_result, node_map_result, physics_result) =
+        tokio::join!(graph_data_future, node_map_future, physics_state_future);
 
     match (graph_result, node_map_result, physics_result) {
         (Ok(Ok(graph_data)), Ok(Ok(node_map)), Ok(Ok(physics_state))) => {
-            debug!("Preparing enhanced graph response with {} nodes, {} edges, physics state: {:?}",
+            debug!(
+                "Preparing enhanced graph response with {} nodes, {} edges, physics state: {:?}",
                 graph_data.nodes.len(),
                 graph_data.edges.len(),
                 physics_state
             );
 
             // Build nodes with CURRENT physics positions from node_map
-            let nodes_with_positions: Vec<NodeWithPosition> = graph_data.nodes.iter().map(|node| {
-                // Get current position from physics-simulated node_map
-                let (position, velocity) = if let Some(physics_node) = node_map.get(&node.id) {
-                    (physics_node.data.position(), physics_node.data.velocity())
-                } else {
-                    // Fallback to original position if not in node_map yet
-                    (node.data.position(), node.data.velocity())
-                };
+            let nodes_with_positions: Vec<NodeWithPosition> = graph_data
+                .nodes
+                .iter()
+                .map(|node| {
+                    // Get current position from physics-simulated node_map
+                    let (position, velocity) = if let Some(physics_node) = node_map.get(&node.id) {
+                        (physics_node.data.position(), physics_node.data.velocity())
+                    } else {
+                        // Fallback to original position if not in node_map yet
+                        (node.data.position(), node.data.velocity())
+                    };
 
-                NodeWithPosition {
-                    id: node.id,
-                    metadata_id: node.metadata_id.clone(),
-                    label: node.label.clone(),
-                    position,  // ← ACTUAL physics-settled position!
-                    velocity,
-                    metadata: node.metadata.clone(),
-                    node_type: node.node_type.clone(),
-                    size: node.size,
-                    color: node.color.clone(),
-                    weight: node.weight,
-                    group: node.group.clone(),
-                }
-            }).collect();
+                    NodeWithPosition {
+                        id: node.id,
+                        metadata_id: node.metadata_id.clone(),
+                        label: node.label.clone(),
+                        position, // ← ACTUAL physics-settled position!
+                        velocity,
+                        metadata: node.metadata.clone(),
+                        node_type: node.node_type.clone(),
+                        size: node.size,
+                        color: node.color.clone(),
+                        weight: node.weight,
+                        group: node.group.clone(),
+                    }
+                })
+                .collect();
 
             let response = GraphResponseWithPositions {
                 nodes: nodes_with_positions,
@@ -150,18 +155,23 @@ pub async fn get_graph_data(state: web::Data<AppState>, req: HttpRequest) -> imp
                 },
             };
 
-            info!("Sending graph data with {} nodes at physics-settled positions (settled: {})",
-                  response.nodes.len(), physics_state.is_settled);
+            info!(
+                "Sending graph data with {} nodes at physics-settled positions (settled: {})",
+                response.nodes.len(),
+                physics_state.is_settled
+            );
 
             HttpResponse::Ok().json(response)
         }
         (Err(e), _, _) | (_, Err(e), _) | (_, _, Err(e)) => {
             error!("Mailbox error fetching graph data: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({"error": "Graph service unavailable"}))
+            HttpResponse::InternalServerError()
+                .json(serde_json::json!({"error": "Graph service unavailable"}))
         }
         (Ok(Err(e)), _, _) | (_, Ok(Err(e)), _) | (_, _, Ok(Err(e))) => {
             error!("Failed to fetch graph data: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({"error": "Failed to retrieve graph data"}))
+            HttpResponse::InternalServerError()
+                .json(serde_json::json!({"error": "Failed to retrieve graph data"}))
         }
     }
 }
@@ -170,7 +180,10 @@ pub async fn get_paginated_graph_data(
     state: web::Data<AppState>,
     query: web::Query<GraphQuery>,
 ) -> impl Responder {
-    info!("Received request for paginated graph data with params: {:?}", query);
+    info!(
+        "Received request for paginated graph data with params: {:?}",
+        query
+    );
 
     let page = query.page.map(|p| p.saturating_sub(1)).unwrap_or(0);
     let page_size = query.page_size.unwrap_or(100);
@@ -186,15 +199,17 @@ pub async fn get_paginated_graph_data(
     // For now, let's assume get_graph_data_mut was for reading and we use GetGraphData.
     // If mutable access is truly needed, specific messages for modifications are required.
     let graph_result = state.graph_service_addr.send(GetGraphData).await;
-    let graph_data_owned = match graph_result { // graph_data_owned is GraphData
+    let graph_data_owned = match graph_result {
+        // graph_data_owned is GraphData
         Ok(Ok(g_owned)) => g_owned,
         _ => {
             error!("Failed to get graph data for pagination");
-            return HttpResponse::InternalServerError().json(serde_json::json!({"error": "Failed to retrieve graph data"}));
+            return HttpResponse::InternalServerError()
+                .json(serde_json::json!({"error": "Failed to retrieve graph data"}));
         }
     };
     let total_items = graph_data_owned.nodes.len();
-    
+
     if total_items == 0 {
         debug!("Graph is empty");
         return HttpResponse::Ok().json(PaginatedGraphResponse {
@@ -211,7 +226,11 @@ pub async fn get_paginated_graph_data(
     let total_pages = (total_items + page_size - 1) / page_size;
 
     if page >= total_pages {
-        warn!("Requested page {} exceeds total pages {}", page + 1, total_pages);
+        warn!(
+            "Requested page {} exceeds total pages {}",
+            page + 1,
+            total_pages
+        );
         return HttpResponse::BadRequest().json(serde_json::json!({
             "error": format!("Page {} exceeds total available pages {}", page + 1, total_pages)
         }));
@@ -220,23 +239,28 @@ pub async fn get_paginated_graph_data(
     let start = page * page_size;
     let end = std::cmp::min(start + page_size, total_items);
 
-    debug!("Calculating slice from {} to {} out of {} total items", start, end, total_items);
- 
+    debug!(
+        "Calculating slice from {} to {} out of {} total items",
+        start, end, total_items
+    );
+
     let page_nodes = graph_data_owned.nodes[start..end].to_vec();
- 
-    let node_ids: std::collections::HashSet<_> = page_nodes.iter()
-        .map(|node| node.id)
-        .collect();
- 
-    let relevant_edges: Vec<_> = graph_data_owned.edges.iter()
-        .filter(|edge| {
-            node_ids.contains(&edge.source) || node_ids.contains(&edge.target)
-        })
+
+    let node_ids: std::collections::HashSet<_> = page_nodes.iter().map(|node| node.id).collect();
+
+    let relevant_edges: Vec<_> = graph_data_owned
+        .edges
+        .iter()
+        .filter(|edge| node_ids.contains(&edge.source) || node_ids.contains(&edge.target))
         .cloned()
         .collect();
- 
-    debug!("Found {} relevant edges for {} nodes", relevant_edges.len(), page_nodes.len());
- 
+
+    debug!(
+        "Found {} relevant edges for {} nodes",
+        relevant_edges.len(),
+        page_nodes.len()
+    );
+
     let response = PaginatedGraphResponse {
         nodes: page_nodes,
         edges: relevant_edges,
@@ -252,23 +276,24 @@ pub async fn get_paginated_graph_data(
 
 pub async fn refresh_graph(state: web::Data<AppState>) -> impl Responder {
     info!("Received request to refresh graph - returning current state");
-    
+
     // Instead of rebuilding, just return the current graph data
     let graph_data_result = state.graph_service_addr.send(GetGraphData).await;
-    
+
     match graph_data_result {
         Ok(Ok(graph_data_owned)) => {
-            debug!("Returning current graph state with {} nodes and {} edges",
+            debug!(
+                "Returning current graph state with {} nodes and {} edges",
                 graph_data_owned.nodes.len(),
                 graph_data_owned.edges.len()
             );
-            
+
             let response = GraphResponse {
                 nodes: graph_data_owned.nodes.clone(),
                 edges: graph_data_owned.edges.clone(),
                 metadata: graph_data_owned.metadata.clone(),
             };
-            
+
             HttpResponse::Ok().json(serde_json::json!({
                 "success": true,
                 "message": "Graph data retrieved successfully",
@@ -294,7 +319,7 @@ pub async fn refresh_graph(state: web::Data<AppState>) -> impl Responder {
 
 pub async fn update_graph(state: web::Data<AppState>) -> impl Responder {
     info!("Received request to update graph");
-    
+
     let mut metadata = match FileService::load_or_create_metadata() {
         Ok(m) => m,
         Err(e) => {
@@ -305,7 +330,7 @@ pub async fn update_graph(state: web::Data<AppState>) -> impl Responder {
             }));
         }
     };
-    
+
     let settings_result = state.settings_addr.send(GetSettings).await;
     let settings = match settings_result {
         Ok(Ok(s)) => Arc::new(tokio::sync::RwLock::new(s)),
@@ -317,9 +342,12 @@ pub async fn update_graph(state: web::Data<AppState>) -> impl Responder {
             }));
         }
     };
-    
+
     let file_service = FileService::new(settings.clone());
-    match file_service.fetch_and_process_files(state.content_api.clone(), settings.clone(), &mut metadata).await {
+    match file_service
+        .fetch_and_process_files(state.content_api.clone(), settings.clone(), &mut metadata)
+        .await
+    {
         Ok(processed_files) => {
             if processed_files.is_empty() {
                 debug!("No new files to process");
@@ -328,34 +356,49 @@ pub async fn update_graph(state: web::Data<AppState>) -> impl Responder {
                     "message": "No updates needed"
                 }));
             }
-            
+
             debug!("Processing {} new files", processed_files.len());
-            
+
             {
                 // Send UpdateMetadata message to MetadataActor
-                if let Err(e) = state.metadata_addr.send(crate::actors::messages::UpdateMetadata { metadata: metadata.clone() }).await {
-                     error!("Failed to send UpdateMetadata to MetadataActor: {}", e);
-                     // Potentially return error if this is critical
+                if let Err(e) = state
+                    .metadata_addr
+                    .send(crate::actors::messages::UpdateMetadata {
+                        metadata: metadata.clone(),
+                    })
+                    .await
+                {
+                    error!("Failed to send UpdateMetadata to MetadataActor: {}", e);
+                    // Potentially return error if this is critical
                 }
             }
-            
+
             // Send AddNodesFromMetadata for incremental updates instead of full rebuild
-            match state.graph_service_addr.send(AddNodesFromMetadata { metadata }).await {
+            match state
+                .graph_service_addr
+                .send(AddNodesFromMetadata { metadata })
+                .await
+            {
                 Ok(Ok(())) => {
                     // Position preservation logic would need to be handled by the actor or subsequent messages.
-                    debug!("Graph updated successfully via GraphServiceActor after file processing");
+                    debug!(
+                        "Graph updated successfully via GraphServiceActor after file processing"
+                    );
                     HttpResponse::Ok().json(serde_json::json!({
                         "success": true,
                         "message": format!("Graph updated with {} new files", processed_files.len())
                     }))
-                },
+                }
                 Ok(Err(e)) => {
-                    error!("GraphServiceActor failed to build graph from metadata: {}", e);
+                    error!(
+                        "GraphServiceActor failed to build graph from metadata: {}",
+                        e
+                    );
                     HttpResponse::InternalServerError().json(serde_json::json!({
                         "success": false,
                         "error": format!("Failed to build graph: {}", e)
                     }))
-                },
+                }
                 Err(e) => {
                     error!("Failed to build new graph: {}", e);
                     HttpResponse::InternalServerError().json(serde_json::json!({
@@ -364,7 +407,7 @@ pub async fn update_graph(state: web::Data<AppState>) -> impl Responder {
                     }))
                 }
             }
-        },
+        }
         Err(e) => {
             error!("Failed to fetch and process files: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
@@ -380,18 +423,15 @@ pub async fn get_auto_balance_notifications(
     state: web::Data<AppState>,
     query: web::Query<serde_json::Value>,
 ) -> impl Responder {
-    let since_timestamp = query.get("since")
-        .and_then(|v| v.as_i64());
-    
+    let since_timestamp = query.get("since").and_then(|v| v.as_i64());
+
     let msg = GetAutoBalanceNotifications { since_timestamp };
-    
+
     match state.graph_service_addr.send(msg).await {
-        Ok(Ok(notifications)) => {
-            HttpResponse::Ok().json(serde_json::json!({
-                "success": true,
-                "notifications": notifications
-            }))
-        }
+        Ok(Ok(notifications)) => HttpResponse::Ok().json(serde_json::json!({
+            "success": true,
+            "notifications": notifications
+        })),
         Ok(Err(e)) => {
             error!("Failed to get auto-balance notifications: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
@@ -420,6 +460,9 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             // Keep refresh endpoint for admin/maintenance
             .route("/refresh", web::post().to(refresh_graph))
             // Auto-balance notifications
-            .route("/auto-balance-notifications", web::get().to(get_auto_balance_notifications))
+            .route(
+                "/auto-balance-notifications",
+                web::get().to(get_auto_balance_notifications),
+            ),
     );
 }

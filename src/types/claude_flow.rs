@@ -1,10 +1,9 @@
 //! Types for claude flow integration via TCP
 //! These replace the local claude_flow module types
 
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use chrono::{DateTime, Utc};
-use std::collections::HashMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Vec3 {
@@ -194,9 +193,11 @@ impl ClaudeFlowClient {
         Ok(())
     }
 
-    pub async fn get_agent_statuses(&self) -> Result<Vec<AgentStatus>, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn get_agent_statuses(
+        &self,
+    ) -> Result<Vec<AgentStatus>, Box<dyn std::error::Error + Send + Sync>> {
+        use tokio::io::{AsyncReadExt, AsyncWriteExt};
         use tokio::net::TcpStream;
-        use tokio::io::{AsyncWriteExt, AsyncReadExt};
         use tokio::time::{timeout, Duration};
 
         let addr = format!("{}:{}", self.host, self.port);
@@ -239,18 +240,37 @@ impl ClaudeFlowClient {
         Ok(vec![])
     }
 
-    fn parse_agent_status(&self, agent_data: &serde_json::Value) -> Result<AgentStatus, Box<dyn std::error::Error + Send + Sync>> {
-        let agent_id = agent_data.get("id").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
-        let agent_type = agent_data.get("type").and_then(|v| v.as_str()).unwrap_or("generic").to_string();
-        let status = agent_data.get("status").and_then(|v| v.as_str()).unwrap_or("idle").to_string();
+    fn parse_agent_status(
+        &self,
+        agent_data: &serde_json::Value,
+    ) -> Result<AgentStatus, Box<dyn std::error::Error + Send + Sync>> {
+        let agent_id = agent_data
+            .get("id")
+            .and_then(|v| v.as_str())
+            .unwrap_or("unknown")
+            .to_string();
+        let agent_type = agent_data
+            .get("type")
+            .and_then(|v| v.as_str())
+            .unwrap_or("generic")
+            .to_string();
+        let status = agent_data
+            .get("status")
+            .and_then(|v| v.as_str())
+            .unwrap_or("idle")
+            .to_string();
 
         // Extract position data
         let position = if let (Some(x), Some(y), Some(z)) = (
             agent_data.get("x").and_then(|v| v.as_f64()),
             agent_data.get("y").and_then(|v| v.as_f64()),
-            agent_data.get("z").and_then(|v| v.as_f64())
+            agent_data.get("z").and_then(|v| v.as_f64()),
         ) {
-            Some(Vec3 { x: x as f32, y: y as f32, z: z as f32 })
+            Some(Vec3 {
+                x: x as f32,
+                y: y as f32,
+                z: z as f32,
+            })
         } else if let Some(pos) = agent_data.get("position") {
             Some(Vec3 {
                 x: pos.get("x").and_then(|v| v.as_f64()).unwrap_or(0.0) as f32,
@@ -262,27 +282,60 @@ impl ClaudeFlowClient {
         };
 
         // Extract current task description
-        let current_task_description = agent_data.get("current_task")
+        let current_task_description = agent_data
+            .get("current_task")
             .and_then(|v| v.as_str())
             .map(|s| s.to_string())
-            .or_else(|| agent_data.get("currentTask").and_then(|v| v.as_str()).map(|s| s.to_string()));
+            .or_else(|| {
+                agent_data
+                    .get("currentTask")
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string())
+            });
 
         // Extract capabilities
-        let capabilities = agent_data.get("capabilities")
+        let capabilities = agent_data
+            .get("capabilities")
             .and_then(|v| v.as_array())
-            .map(|arr| arr.iter().filter_map(|v| v.as_str()).map(|s| s.to_string()).collect())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str())
+                    .map(|s| s.to_string())
+                    .collect()
+            })
             .unwrap_or_else(|| vec![agent_type.clone()]);
 
         // Normalize success rate to 0-1 range
-        let success_rate_raw = agent_data.get("success_rate").and_then(|v| v.as_f64()).unwrap_or(0.95) as f32;
-        let success_rate_normalized = if success_rate_raw > 1.0 { success_rate_raw / 100.0 } else { success_rate_raw };
+        let success_rate_raw = agent_data
+            .get("success_rate")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.95) as f32;
+        let success_rate_normalized = if success_rate_raw > 1.0 {
+            success_rate_raw / 100.0
+        } else {
+            success_rate_raw
+        };
 
         // Normalize CPU/memory usage to percentage (0-1 range)
-        let cpu_usage_raw = agent_data.get("cpu_usage").and_then(|v| v.as_f64()).unwrap_or(25.0) as f32;
-        let cpu_usage = if cpu_usage_raw > 1.0 { cpu_usage_raw / 100.0 } else { cpu_usage_raw };
+        let cpu_usage_raw = agent_data
+            .get("cpu_usage")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(25.0) as f32;
+        let cpu_usage = if cpu_usage_raw > 1.0 {
+            cpu_usage_raw / 100.0
+        } else {
+            cpu_usage_raw
+        };
 
-        let memory_usage_raw = agent_data.get("memory_usage").and_then(|v| v.as_f64()).unwrap_or(128.0) as f32;
-        let memory_usage = if memory_usage_raw > 1.0 { memory_usage_raw / 100.0 } else { memory_usage_raw };
+        let memory_usage_raw = agent_data
+            .get("memory_usage")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(128.0) as f32;
+        let memory_usage = if memory_usage_raw > 1.0 {
+            memory_usage_raw / 100.0
+        } else {
+            memory_usage_raw
+        };
 
         let now = chrono::Utc::now();
         let created_at = now.to_rfc3339();
@@ -311,16 +364,27 @@ impl ClaudeFlowClient {
             status: status.clone(),
 
             // Original fields
-            active_tasks_count: agent_data.get("active_tasks").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-            completed_tasks_count: agent_data.get("completed_tasks").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-            failed_tasks_count: agent_data.get("failed_tasks").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
+            active_tasks_count: agent_data
+                .get("active_tasks")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0) as u32,
+            completed_tasks_count: agent_data
+                .get("completed_tasks")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0) as u32,
+            failed_tasks_count: agent_data
+                .get("failed_tasks")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0) as u32,
             success_rate: success_rate_raw,
             timestamp: now,
-            current_task: current_task_description.as_ref().map(|task_desc| TaskReference {
-                task_id: format!("task_{}", uuid::Uuid::new_v4()),
-                description: task_desc.clone(),
-                priority: TaskPriority::Medium,
-            }),
+            current_task: current_task_description
+                .as_ref()
+                .map(|task_desc| TaskReference {
+                    task_id: format!("task_{}", uuid::Uuid::new_v4()),
+                    description: task_desc.clone(),
+                    priority: TaskPriority::Medium,
+                }),
 
             // Client compatibility fields
             agent_type: agent_type.clone(),
@@ -329,37 +393,79 @@ impl ClaudeFlowClient {
             position,
             cpu_usage,
             memory_usage,
-            health: agent_data.get("health").and_then(|v| v.as_f64()).unwrap_or(0.9) as f32,
-            activity: agent_data.get("activity").and_then(|v| v.as_f64()).unwrap_or(0.5) as f32,
-            tasks_active: agent_data.get("tasks_active").and_then(|v| v.as_u64()).unwrap_or(1) as u32,
-            tasks_completed: agent_data.get("completed_tasks").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
+            health: agent_data
+                .get("health")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(0.9) as f32,
+            activity: agent_data
+                .get("activity")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(0.5) as f32,
+            tasks_active: agent_data
+                .get("tasks_active")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(1) as u32,
+            tasks_completed: agent_data
+                .get("completed_tasks")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0) as u32,
             success_rate_normalized,
-            tokens: agent_data.get("total_tokens").and_then(|v| v.as_u64()).unwrap_or(1500),
-            token_rate: agent_data.get("token_rate").and_then(|v| v.as_f64()).unwrap_or(0.1) as f32,
+            tokens: agent_data
+                .get("total_tokens")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(1500),
+            token_rate: agent_data
+                .get("token_rate")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(0.1) as f32,
 
             // Additional fields
             performance_metrics: PerformanceMetrics {
-                tasks_completed: agent_data.get("completed_tasks").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
+                tasks_completed: agent_data
+                    .get("completed_tasks")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(0) as u32,
                 success_rate: success_rate_normalized,
             },
             token_usage: TokenUsage {
-                total: agent_data.get("total_tokens").and_then(|v| v.as_u64()).unwrap_or(1500),
-                token_rate: agent_data.get("token_rate").and_then(|v| v.as_f64()).unwrap_or(0.1) as f32,
+                total: agent_data
+                    .get("total_tokens")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(1500),
+                token_rate: agent_data
+                    .get("token_rate")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.1) as f32,
             },
-            swarm_id: agent_data.get("swarm_id").and_then(|v| v.as_str()).map(|s| s.to_string()),
-            agent_mode: agent_data.get("agent_mode").and_then(|v| v.as_str()).map(|s| s.to_string()),
-            parent_queen_id: agent_data.get("parent_queen_id").and_then(|v| v.as_str()).map(|s| s.to_string()),
+            swarm_id: agent_data
+                .get("swarm_id")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string()),
+            agent_mode: agent_data
+                .get("agent_mode")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string()),
+            parent_queen_id: agent_data
+                .get("parent_queen_id")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string()),
             processing_logs: Some(vec![]),
             created_at,
             age: 0, // Will be calculated based on created_at vs current time
-            workload: agent_data.get("workload").and_then(|v| v.as_f64()).map(|v| v as f32),
+            workload: agent_data
+                .get("workload")
+                .and_then(|v| v.as_f64())
+                .map(|v| v as f32),
         })
     }
 
     // Method to send MCP request via TCP
-    pub async fn send_mcp_request(&self, request: &McpRequest) -> Result<serde_json::Value, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn send_mcp_request(
+        &self,
+        request: &McpRequest,
+    ) -> Result<serde_json::Value, Box<dyn std::error::Error + Send + Sync>> {
+        use tokio::io::{AsyncReadExt, AsyncWriteExt};
         use tokio::net::TcpStream;
-        use tokio::io::{AsyncWriteExt, AsyncReadExt};
         use tokio::time::{timeout, Duration};
 
         let addr = format!("{}:{}", self.host, self.port);
@@ -392,10 +498,17 @@ impl ClaudeFlowClient {
                 if let Some(error) = json_response.get("error") {
                     return Err(format!("MCP request failed: {}", error).into());
                 }
-                Ok(json_response.get("result").cloned().unwrap_or(serde_json::Value::Null))
+                Ok(json_response
+                    .get("result")
+                    .cloned()
+                    .unwrap_or(serde_json::Value::Null))
             }
             Err(e) => {
-                log::error!("Failed to parse TCP response: {} (raw: {})", e, response_str);
+                log::error!(
+                    "Failed to parse TCP response: {} (raw: {})",
+                    e,
+                    response_str
+                );
                 Err(format!("Invalid JSON response: {}", e).into())
             }
         }

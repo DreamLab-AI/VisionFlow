@@ -21,7 +21,11 @@ mod tests {
 
         for module in modules {
             let source = module.source_file();
-            assert!(source.ends_with(".cu"), "Source file should be .cu: {}", source);
+            assert!(
+                source.ends_with(".cu"),
+                "Source file should be .cu: {}",
+                source
+            );
             assert!(!source.is_empty(), "Source file should not be empty");
         }
     }
@@ -32,7 +36,11 @@ mod tests {
 
         for module in modules {
             let env_var = module.env_var();
-            assert!(env_var.ends_with("_PTX_PATH"), "Env var should end with _PTX_PATH: {}", env_var);
+            assert!(
+                env_var.ends_with("_PTX_PATH"),
+                "Env var should end with _PTX_PATH: {}",
+                env_var
+            );
             assert!(!env_var.is_empty(), "Env var should not be empty");
         }
     }
@@ -95,12 +103,22 @@ mod tests {
             match load_ptx_module_sync(module) {
                 Ok(content) => {
                     println!("✓ Loaded {:?}: {} bytes", module, content.len());
-                    assert!(!content.is_empty(), "PTX content should not be empty for {:?}", module);
-                    assert!(validate_ptx(&content).is_ok(), "PTX should be valid for {:?}", module);
+                    assert!(
+                        !content.is_empty(),
+                        "PTX content should not be empty for {:?}",
+                        module
+                    );
+                    assert!(
+                        validate_ptx(&content).is_ok(),
+                        "PTX should be valid for {:?}",
+                        module
+                    );
                 }
                 Err(e) => {
                     println!("⚠ Could not load {:?}: {}", module, e);
-                    println!("  This is expected if running outside Docker or without pre-compiled PTX");
+                    println!(
+                        "  This is expected if running outside Docker or without pre-compiled PTX"
+                    );
                 }
             }
         }
@@ -113,8 +131,16 @@ mod tests {
                 println!("✓ Loaded {} modules", modules.len());
 
                 for (module, content) in modules {
-                    assert!(!content.is_empty(), "PTX content should not be empty for {:?}", module);
-                    assert!(validate_ptx(&content).is_ok(), "PTX should be valid for {:?}", module);
+                    assert!(
+                        !content.is_empty(),
+                        "PTX content should not be empty for {:?}",
+                        module
+                    );
+                    assert!(
+                        validate_ptx(&content).is_ok(),
+                        "PTX should be valid for {:?}",
+                        module
+                    );
                     println!("  {:?}: {} bytes", module, content.len());
                 }
             }

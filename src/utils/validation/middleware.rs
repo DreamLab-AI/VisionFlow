@@ -1,15 +1,18 @@
-use actix_web::{
-    dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
-    Error, HttpResponse,
-    body::{MessageBody, BoxBody},
+use crate::utils::validation::rate_limit::{
+    create_rate_limit_response, extract_client_id_from_service_request, RateLimitConfig,
+    RateLimiter,
 };
-use futures_util::future::LocalBoxFuture;
-use std::rc::Rc;
-use log::{warn, debug, info};
-use crate::utils::validation::sanitization::{Sanitizer, CSPUtils};
-use crate::utils::validation::rate_limit::{RateLimiter, RateLimitConfig, extract_client_id_from_service_request, create_rate_limit_response};
+use crate::utils::validation::sanitization::{CSPUtils, Sanitizer};
 use crate::utils::validation::{ValidationError, MAX_REQUEST_SIZE};
 use actix_web::web::Bytes;
+use actix_web::{
+    body::{BoxBody, MessageBody},
+    dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
+    Error, HttpResponse,
+};
+use futures_util::future::LocalBoxFuture;
+use log::{debug, info, warn};
+use std::rc::Rc;
 
 /// Request size validation middleware
 pub struct RequestSizeLimit {
@@ -73,15 +76,18 @@ where
             if let Ok(length_str) = content_length.to_str() {
                 if let Ok(length) = length_str.parse::<usize>() {
                     if length > max_size {
-                        warn!("Request rejected: Content-Length {} exceeds limit {}", length, max_size);
-                        
+                        warn!(
+                            "Request rejected: Content-Length {} exceeds limit {}",
+                            length, max_size
+                        );
+
                         let response = HttpResponse::PayloadTooLarge()
                             .json(serde_json::json!({
                                 "error": "request_too_large",
                                 "message": format!("Request size {} bytes exceeds limit of {} bytes", length, max_size),
                                 "max_size": max_size
                             }));
-                        
+
                         return Box::pin(async move {
                             Ok(req.into_response(response).map_into_boxed_body())
                         });
@@ -136,14 +142,16 @@ where
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
         let fut = self.service.call(req);
-        
+
         Box::pin(async move {
             let mut res = fut.await?;
-            
+
             // Add security headers to response
             let headers = CSPUtils::security_headers();
             for (name, value) in headers {
-                let header_name = match actix_web::http::header::HeaderName::from_bytes(name.to_lowercase().as_bytes()) {
+                let header_name = match actix_web::http::header::HeaderName::from_bytes(
+                    name.to_lowercase().as_bytes(),
+                ) {
                     Ok(name) => name,
                     Err(_) => continue,
                 };
@@ -151,14 +159,16 @@ where
                     res.headers_mut().insert(header_name, header_value);
                 }
             }
-            
+
             // Add CSP header
             res.headers_mut().insert(
                 actix_web::http::header::CONTENT_SECURITY_POLICY,
                 actix_web::http::header::HeaderValue::from_str(&CSPUtils::generate_csp_header())
-                    .unwrap_or_else(|_| actix_web::http::header::HeaderValue::from_static("default-src 'self'")),
+                    .unwrap_or_else(|_| {
+                        actix_web::http::header::HeaderValue::from_static("default-src 'self'")
+                    }),
             );
-            
+
             Ok(res)
         })
     }
@@ -220,34 +230,33 @@ where
     fn call(&self, req: ServiceRequest) -> Self::Future {
         let client_id = extract_client_id_from_service_request(&req);
         let limiter = self.limiter.clone();
-        
+
         if !limiter.is_allowed(&client_id) {
             let response = create_rate_limit_response(&client_id, &limiter)
                 .unwrap_or_else(|_| HttpResponse::TooManyRequests().finish());
-            
-            return Box::pin(async move {
-                Ok(req.into_response(response).map_into_boxed_body())
-            });
+
+            return Box::pin(async move { Ok(req.into_response(response).map_into_boxed_body()) });
         }
 
         let fut = self.service.call(req);
         Box::pin(async move {
             let mut res = fut.await?;
-            
+
             // Add rate limit headers to response
             let remaining = limiter.remaining_tokens(&client_id);
             let reset_time = limiter.reset_time(&client_id);
-            
+
             res.headers_mut().insert(
                 actix_web::http::header::HeaderName::from_static("x-ratelimit-remaining"),
                 actix_web::http::header::HeaderValue::from_str(&remaining.to_string()).unwrap(),
             );
-            
+
             res.headers_mut().insert(
                 actix_web::http::header::HeaderName::from_static("x-ratelimit-reset"),
-                actix_web::http::header::HeaderValue::from_str(&reset_time.as_secs().to_string()).unwrap(),
+                actix_web::http::header::HeaderValue::from_str(&reset_time.as_secs().to_string())
+                    .unwrap(),
             );
-            
+
             Ok(res.map_into_boxed_body())
         })
     }
@@ -291,7 +300,8 @@ where
 
     fn call(&self, mut req: ServiceRequest) -> Self::Future {
         // Only process JSON payloads
-        let is_json = req.headers()
+        let is_json = req
+            .headers()
             .get("content-type")
             .and_then(|v| v.to_str().ok())
             .map(|s| s.contains("application/json"))
@@ -299,16 +309,14 @@ where
 
         if !is_json {
             let fut = self.service.call(req);
-            return Box::pin(async move {
-                fut.await.map(|res| res.map_into_boxed_body())
-            });
+            return Box::pin(async move { fut.await.map(|res| res.map_into_boxed_body()) });
         }
 
         let service = self.service.clone();
         Box::pin(async move {
             // Extract the payload
             let payload = req.extract::<Bytes>().await;
-            
+
             match payload {
                 Ok(bytes) => {
                     // Try to parse as JSON
@@ -321,31 +329,38 @@ where
                                     match serde_json::to_vec(&json_value) {
                                         Ok(sanitized_bytes) => {
                                             // Create new payload with sanitized data
-                                            let new_payload = actix_web::dev::Payload::from(sanitized_bytes);
+                                            let new_payload =
+                                                actix_web::dev::Payload::from(sanitized_bytes);
                                             req.set_payload(new_payload.into());
-                                            
+
                                             debug!("Request payload sanitized successfully");
                                         }
                                         Err(e) => {
                                             warn!("Failed to re-serialize sanitized JSON: {}", e);
-                                            let response = HttpResponse::BadRequest()
-                                                .json(ValidationError::new(
+                                            let response = HttpResponse::BadRequest().json(
+                                                ValidationError::new(
                                                     "payload",
                                                     "Failed to process request payload",
-                                                    "SERIALIZATION_ERROR"
-                                                ));
+                                                    "SERIALIZATION_ERROR",
+                                                ),
+                                            );
                                             return Ok(req.into_response(response));
                                         }
                                     }
                                 }
                                 Err(validation_error) => {
                                     warn!("Input sanitization failed: {}", validation_error);
-                                    return Ok(req.into_response(validation_error.to_http_response()));
+                                    return Ok(
+                                        req.into_response(validation_error.to_http_response())
+                                    );
                                 }
                             }
                         }
                         Err(e) => {
-                            debug!("Request payload is not valid JSON ({}), skipping sanitization", e);
+                            debug!(
+                                "Request payload is not valid JSON ({}), skipping sanitization",
+                                e
+                            );
                         }
                     }
                 }
@@ -372,14 +387,14 @@ impl ValidationMiddlewareFactory {
     /// Create middleware for settings endpoints (with stricter rate limits)
     pub fn create_settings_middleware() -> RateLimit {
         use crate::utils::validation::rate_limit::EndpointRateLimits;
-        
+
         RateLimit::new(EndpointRateLimits::settings_update())
     }
 
     /// Create middleware for RAGFlow endpoints
     pub fn create_ragflow_middleware() -> RateLimit {
         use crate::utils::validation::rate_limit::EndpointRateLimits;
-        
+
         RateLimit::new(EndpointRateLimits::ragflow_chat())
     }
 }
@@ -424,33 +439,54 @@ where
         let method = req.method().clone();
         let uri = req.uri().clone();
         let client_id = extract_client_id_from_service_request(&req);
-        
-        debug!("Validation middleware processing request: {} {} from {}", method, uri, client_id);
-        
+
+        debug!(
+            "Validation middleware processing request: {} {} from {}",
+            method, uri, client_id
+        );
+
         let fut = self.service.call(req);
-        
+
         Box::pin(async move {
             let start_time = std::time::Instant::now();
             let res = fut.await;
             let duration = start_time.elapsed();
-            
+
             match &res {
                 Ok(response) => {
                     let status = response.status();
                     if status.is_client_error() || status.is_server_error() {
-                        warn!("Request failed: {} {} -> {} ({}ms) from {}", 
-                              method, uri, status, duration.as_millis(), client_id);
+                        warn!(
+                            "Request failed: {} {} -> {} ({}ms) from {}",
+                            method,
+                            uri,
+                            status,
+                            duration.as_millis(),
+                            client_id
+                        );
                     } else {
-                        info!("Request processed: {} {} -> {} ({}ms) from {}", 
-                              method, uri, status, duration.as_millis(), client_id);
+                        info!(
+                            "Request processed: {} {} -> {} ({}ms) from {}",
+                            method,
+                            uri,
+                            status,
+                            duration.as_millis(),
+                            client_id
+                        );
                     }
                 }
                 Err(error) => {
-                    warn!("Request error: {} {} -> error: {} ({}ms) from {}", 
-                          method, uri, error, duration.as_millis(), client_id);
+                    warn!(
+                        "Request error: {} {} -> error: {} ({}ms) from {}",
+                        method,
+                        uri,
+                        error,
+                        duration.as_millis(),
+                        client_id
+                    );
                 }
             }
-            
+
             res
         })
     }

@@ -1,13 +1,9 @@
-use actix_web::web;
 use crate::handlers::bots_handler::{
+    get_bots_agents, get_bots_connection_status, get_bots_data as bots_get,
+    initialize_hive_mind_swarm as initialize_swarm, remove_task, spawn_agent_hybrid,
     update_bots_graph as bots_update,
-    get_bots_data as bots_get,
-    initialize_hive_mind_swarm as initialize_swarm,
-    get_bots_connection_status,
-    get_bots_agents,
-    spawn_agent_hybrid,
-    remove_task,
 };
+use actix_web::web;
 
 // Configure bots API routes
 pub fn config(cfg: &mut web::ServiceConfig) {
@@ -20,6 +16,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .route("/status", web::get().to(get_bots_connection_status))
             .route("/agents", web::get().to(get_bots_agents))
             .route("/spawn-agent-hybrid", web::post().to(spawn_agent_hybrid))
-            .route("/remove-task/{id}", web::delete().to(remove_task))
+            .route("/remove-task/{id}", web::delete().to(remove_task)),
     );
 }

@@ -17,7 +17,7 @@ mod tests {
     use webxr::handlers::api_handler::ontology::config as ontology_config;
 
     #[cfg(feature = "ontology")]
-    use webxr::services::owl_validator::{PropertyGraph, GraphNode, GraphEdge};
+    use webxr::services::owl_validator::{GraphEdge, GraphNode, PropertyGraph};
 
     #[cfg(feature = "ontology")]
     fn create_test_graph() -> PropertyGraph {
@@ -40,17 +40,15 @@ mod tests {
                         props.insert("name".to_string(), serde_json::json!("ACME"));
                         props
                     },
-                }
+                },
             ],
-            edges: vec![
-                GraphEdge {
-                    id: "edge1".to_string(),
-                    source: "person1".to_string(),
-                    target: "company1".to_string(),
-                    relationship_type: "employedBy".to_string(),
-                    properties: HashMap::new(),
-                }
-            ],
+            edges: vec![GraphEdge {
+                id: "edge1".to_string(),
+                source: "person1".to_string(),
+                target: "company1".to_string(),
+                relationship_type: "employedBy".to_string(),
+                properties: HashMap::new(),
+            }],
             metadata: HashMap::new(),
         }
     }
@@ -58,10 +56,7 @@ mod tests {
     #[cfg(feature = "ontology")]
     #[actix_rt::test]
     async fn test_validate_ontology_endpoint() {
-        let app = test::init_service(
-            App::new()
-                .configure(ontology_config)
-        ).await;
+        let app = test::init_service(App::new().configure(ontology_config)).await;
 
         let req = test::TestRequest::post()
             .uri("/api/ontology/validate")
@@ -81,10 +76,7 @@ mod tests {
     #[cfg(feature = "ontology")]
     #[actix_rt::test]
     async fn test_get_validation_report_endpoint() {
-        let app = test::init_service(
-            App::new()
-                .configure(ontology_config)
-        ).await;
+        let app = test::init_service(App::new().configure(ontology_config)).await;
 
         let req = test::TestRequest::get()
             .uri("/api/ontology/report")
@@ -99,10 +91,7 @@ mod tests {
     #[cfg(feature = "ontology")]
     #[actix_rt::test]
     async fn test_validate_endpoint_with_invalid_data() {
-        let app = test::init_service(
-            App::new()
-                .configure(ontology_config)
-        ).await;
+        let app = test::init_service(App::new().configure(ontology_config)).await;
 
         let req = test::TestRequest::post()
             .uri("/api/ontology/validate")
@@ -120,10 +109,7 @@ mod tests {
     #[cfg(feature = "ontology")]
     #[actix_rt::test]
     async fn test_missing_endpoint_404() {
-        let app = test::init_service(
-            App::new()
-                .configure(ontology_config)
-        ).await;
+        let app = test::init_service(App::new().configure(ontology_config)).await;
 
         let req = test::TestRequest::get()
             .uri("/api/ontology/nonexistent")
@@ -137,10 +123,7 @@ mod tests {
     #[cfg(feature = "ontology")]
     #[actix_rt::test]
     async fn test_validate_with_empty_graph() {
-        let app = test::init_service(
-            App::new()
-                .configure(ontology_config)
-        ).await;
+        let app = test::init_service(App::new().configure(ontology_config)).await;
 
         let empty_graph = PropertyGraph {
             nodes: vec![],
@@ -159,16 +142,17 @@ mod tests {
         let resp = test::call_service(&app, req).await;
 
         // Should handle empty graph gracefully
-        assert!(resp.status().is_success() || resp.status().as_u16() == 202 || resp.status().is_client_error());
+        assert!(
+            resp.status().is_success()
+                || resp.status().as_u16() == 202
+                || resp.status().is_client_error()
+        );
     }
 
     #[cfg(feature = "ontology")]
     #[actix_rt::test]
     async fn test_validate_with_different_modes() {
-        let app = test::init_service(
-            App::new()
-                .configure(ontology_config)
-        ).await;
+        let app = test::init_service(App::new().configure(ontology_config)).await;
 
         let graph = create_test_graph();
 
@@ -185,18 +169,19 @@ mod tests {
             let resp = test::call_service(&app, req).await;
 
             println!("Testing mode '{}': status {}", mode, resp.status());
-            assert!(resp.status().is_success() || resp.status().as_u16() == 202,
-                    "Mode '{}' failed with status {}", mode, resp.status());
+            assert!(
+                resp.status().is_success() || resp.status().as_u16() == 202,
+                "Mode '{}' failed with status {}",
+                mode,
+                resp.status()
+            );
         }
     }
 
     #[cfg(feature = "ontology")]
     #[actix_rt::test]
     async fn test_cors_headers() {
-        let app = test::init_service(
-            App::new()
-                .configure(ontology_config)
-        ).await;
+        let app = test::init_service(App::new().configure(ontology_config)).await;
 
         let req = test::TestRequest::options()
             .uri("/api/ontology/validate")
@@ -212,10 +197,7 @@ mod tests {
     #[cfg(feature = "ontology")]
     #[actix_rt::test]
     async fn test_content_type_validation() {
-        let app = test::init_service(
-            App::new()
-                .configure(ontology_config)
-        ).await;
+        let app = test::init_service(App::new().configure(ontology_config)).await;
 
         // Test with missing Content-Type
         let req = test::TestRequest::post()
@@ -232,10 +214,7 @@ mod tests {
     #[cfg(feature = "ontology")]
     #[actix_rt::test]
     async fn test_large_graph_validation() {
-        let app = test::init_service(
-            App::new()
-                .configure(ontology_config)
-        ).await;
+        let app = test::init_service(App::new().configure(ontology_config)).await;
 
         // Create a larger graph
         let mut nodes = vec![];
@@ -288,10 +267,7 @@ mod tests {
     async fn test_concurrent_api_requests() {
         use futures::future::join_all;
 
-        let app = test::init_service(
-            App::new()
-                .configure(ontology_config)
-        ).await;
+        let app = test::init_service(App::new().configure(ontology_config)).await;
 
         // Send multiple concurrent requests
         let mut futures = vec![];
@@ -330,10 +306,7 @@ mod tests {
         // This test would verify rate limiting if implemented
         // Currently just a placeholder
 
-        let app = test::init_service(
-            App::new()
-                .configure(ontology_config)
-        ).await;
+        let app = test::init_service(App::new().configure(ontology_config)).await;
 
         // Send many requests rapidly
         for _i in 0..20 {
@@ -360,10 +333,7 @@ mod tests {
     #[cfg(feature = "ontology")]
     #[actix_rt::test]
     async fn test_malformed_json() {
-        let app = test::init_service(
-            App::new()
-                .configure(ontology_config)
-        ).await;
+        let app = test::init_service(App::new().configure(ontology_config)).await;
 
         let req = test::TestRequest::post()
             .uri("/api/ontology/validate")
@@ -380,10 +350,7 @@ mod tests {
     #[cfg(feature = "ontology")]
     #[actix_rt::test]
     async fn test_method_not_allowed() {
-        let app = test::init_service(
-            App::new()
-                .configure(ontology_config)
-        ).await;
+        let app = test::init_service(App::new().configure(ontology_config)).await;
 
         // Try to use GET on a POST-only endpoint
         let req = test::TestRequest::get()
@@ -400,10 +367,7 @@ mod tests {
     #[cfg(feature = "ontology")]
     #[actix_rt::test]
     async fn test_report_endpoint_query_params() {
-        let app = test::init_service(
-            App::new()
-                .configure(ontology_config)
-        ).await;
+        let app = test::init_service(App::new().configure(ontology_config)).await;
 
         // Test with report ID query parameter
         let req = test::TestRequest::get()
@@ -420,23 +384,21 @@ mod tests {
     #[cfg(feature = "ontology")]
     #[actix_rt::test]
     async fn test_special_characters_in_graph() {
-        let app = test::init_service(
-            App::new()
-                .configure(ontology_config)
-        ).await;
+        let app = test::init_service(App::new().configure(ontology_config)).await;
 
         let graph = PropertyGraph {
-            nodes: vec![
-                GraphNode {
-                    id: "node/with/slashes".to_string(),
-                    labels: vec!["Type:With:Colons".to_string()],
-                    properties: {
-                        let mut props = HashMap::new();
-                        props.insert("special<>chars".to_string(), serde_json::json!("value&with&ampersands"));
-                        props
-                    },
-                }
-            ],
+            nodes: vec![GraphNode {
+                id: "node/with/slashes".to_string(),
+                labels: vec!["Type:With:Colons".to_string()],
+                properties: {
+                    let mut props = HashMap::new();
+                    props.insert(
+                        "special<>chars".to_string(),
+                        serde_json::json!("value&with&ampersands"),
+                    );
+                    props
+                },
+            }],
             edges: vec![],
             metadata: HashMap::new(),
         };
@@ -459,10 +421,7 @@ mod tests {
     #[cfg(feature = "ontology")]
     #[actix_rt::test]
     async fn test_response_format() {
-        let app = test::init_service(
-            App::new()
-                .configure(ontology_config)
-        ).await;
+        let app = test::init_service(App::new().configure(ontology_config)).await;
 
         let req = test::TestRequest::get()
             .uri("/api/ontology/report")

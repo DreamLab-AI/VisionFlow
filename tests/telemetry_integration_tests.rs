@@ -1,20 +1,19 @@
+use log::{error, info, warn, Level};
+use serde_json::{json, Value};
 use std::{
     collections::HashMap,
     fs,
     path::PathBuf,
     sync::{Arc, Mutex},
     thread,
-    time::{Duration, Instant}
+    time::{Duration, Instant},
 };
 use tempfile::tempdir;
-use serde_json::{json, Value};
-use log::{info, warn, error, Level};
 
 use super::super::src::utils::advanced_logging::{
-    AdvancedLogger, LogComponent, LogEntry, GPULogMetrics,
-    init_advanced_logging, log_gpu_kernel, log_gpu_error,
-    log_memory_event, log_performance, log_structured,
-    get_performance_summary
+    get_performance_summary, init_advanced_logging, log_gpu_error, log_gpu_kernel,
+    log_memory_event, log_performance, log_structured, AdvancedLogger, GPULogMetrics, LogComponent,
+    LogEntry,
 };
 
 /// Test suite for telemetry integration
@@ -37,16 +36,22 @@ mod telemetry_tests {
 
         // Verify all log files were created
         let expected_files = vec![
-            "server.log", "client.log", "gpu.log", "analytics.log",
-            "memory.log", "network.log", "performance.log", "error.log"
+            "server.log",
+            "client.log",
+            "gpu.log",
+            "analytics.log",
+            "memory.log",
+            "network.log",
+            "performance.log",
+            "error.log",
         ];
 
         for file in expected_files {
             let log_file_path = log_dir.join(file);
             assert!(log_file_path.exists(), "Log file {} should exist", file);
 
-            let content = fs::read_to_string(&log_file_path)
-                .expect("Should be able to read log file");
+            let content =
+                fs::read_to_string(&log_file_path).expect("Should be able to read log file");
             assert!(!content.is_empty(), "Log file {} should not be empty", file);
         }
     }
@@ -66,8 +71,8 @@ mod telemetry_tests {
             "Docker volume test",
             Some(HashMap::from([
                 ("container_id".to_string(), json!("test-container-123")),
-                ("volume_mount".to_string(), json!("/app/logs"))
-            ]))
+                ("volume_mount".to_string(), json!("/app/logs")),
+            ])),
         );
 
         // Verify file persistence across container restarts
@@ -97,7 +102,7 @@ mod telemetry_tests {
             LogComponent::Server,
             LogComponent::Analytics,
             LogComponent::GPU,
-            LogComponent::Memory
+            LogComponent::Memory,
         ];
 
         for (i, component) in services.iter().enumerate() {
@@ -105,14 +110,14 @@ mod telemetry_tests {
                 ("correlation_id".to_string(), json!(correlation_id)),
                 ("session_id".to_string(), json!(session_id)),
                 ("step".to_string(), json!(i + 1)),
-                ("service".to_string(), json!(component.as_str()))
+                ("service".to_string(), json!(component.as_str())),
             ]);
 
             logger.log_structured(
                 *component,
                 Level::Info,
                 &format!("Processing step {} for request", i + 1),
-                Some(metadata)
+                Some(metadata),
             );
         }
 
@@ -121,10 +126,16 @@ mod telemetry_tests {
             let log_file = log_dir.join(component.log_file_name());
             let content = fs::read_to_string(&log_file).expect("Should read log file");
 
-            assert!(content.contains(correlation_id),
-                "Log file {} should contain correlation ID", component.as_str());
-            assert!(content.contains(session_id),
-                "Log file {} should contain session ID", component.as_str());
+            assert!(
+                content.contains(correlation_id),
+                "Log file {} should contain correlation ID",
+                component.as_str()
+            );
+            assert!(
+                content.contains(session_id),
+                "Log file {} should contain session ID",
+                component.as_str()
+            );
         }
     }
 
@@ -156,8 +167,8 @@ mod telemetry_tests {
             Some(HashMap::from([
                 ("agent_id".to_string(), json!("agent-123")),
                 ("error_type".to_string(), json!("coordination_timeout")),
-                ("recovery_action".to_string(), json!("restart_agent"))
-            ]))
+                ("recovery_action".to_string(), json!("restart_agent")),
+            ])),
         );
 
         // Verify data completeness in each log file
@@ -176,10 +187,10 @@ mod telemetry_tests {
 
         // Simulate position clustering issue and resolution
         let cluster_positions = vec![
-            (0.0, 0.0, 0.0),   // Origin cluster issue
-            (0.1, 0.1, 0.1),   // Near origin
+            (0.0, 0.0, 0.0),      // Origin cluster issue
+            (0.1, 0.1, 0.1),      // Near origin
             (100.0, 200.0, 50.0), // Properly dispersed
-            (150.0, 180.0, 75.0)  // Properly dispersed
+            (150.0, 180.0, 75.0), // Properly dispersed
         ];
 
         for (i, (x, y, z)) in cluster_positions.iter().enumerate() {
@@ -190,8 +201,14 @@ mod telemetry_tests {
                 ("position_x".to_string(), json!(x)),
                 ("position_y".to_string(), json!(y)),
                 ("position_z".to_string(), json!(z)),
-                ("origin_cluster_detected".to_string(), json!(is_origin_cluster)),
-                ("clustering_fix_applied".to_string(), json!(is_origin_cluster))
+                (
+                    "origin_cluster_detected".to_string(),
+                    json!(is_origin_cluster),
+                ),
+                (
+                    "clustering_fix_applied".to_string(),
+                    json!(is_origin_cluster),
+                ),
             ]);
 
             if is_origin_cluster {
@@ -199,31 +216,39 @@ mod telemetry_tests {
                     LogComponent::Analytics,
                     Level::Warn,
                     "Origin clustering detected, applying position fix",
-                    Some(metadata)
+                    Some(metadata),
                 );
 
                 // Log the fix application
                 let fix_metadata = HashMap::from([
                     ("agent_id".to_string(), json!(format!("agent-{}", i))),
-                    ("original_position".to_string(), json!(format!("({}, {}, {})", x, y, z))),
-                    ("corrected_position".to_string(), json!(format!("({}, {}, {})",
-                        x + 10.0 + (i as f64) * 5.0,
-                        y + 15.0 + (i as f64) * 7.0,
-                        z + 8.0 + (i as f64) * 3.0)))
+                    (
+                        "original_position".to_string(),
+                        json!(format!("({}, {}, {})", x, y, z)),
+                    ),
+                    (
+                        "corrected_position".to_string(),
+                        json!(format!(
+                            "({}, {}, {})",
+                            x + 10.0 + (i as f64) * 5.0,
+                            y + 15.0 + (i as f64) * 7.0,
+                            z + 8.0 + (i as f64) * 3.0
+                        )),
+                    ),
                 ]);
 
                 logger.log_structured(
                     LogComponent::Analytics,
                     Level::Info,
                     "Position fix applied successfully",
-                    Some(fix_metadata)
+                    Some(fix_metadata),
                 );
             } else {
                 logger.log_structured(
                     LogComponent::Analytics,
                     Level::Info,
                     "Agent position validated, no clustering issues",
-                    Some(metadata)
+                    Some(metadata),
                 );
             }
         }
@@ -304,9 +329,12 @@ mod telemetry_tests {
         info!("Logging duration: {:?}", logging_duration);
         info!("Overhead: {} ms", overhead);
 
-        assert!(overhead <= MAX_ACCEPTABLE_OVERHEAD_MS,
+        assert!(
+            overhead <= MAX_ACCEPTABLE_OVERHEAD_MS,
             "Logging overhead {} ms exceeds maximum acceptable {} ms",
-            overhead, MAX_ACCEPTABLE_OVERHEAD_MS);
+            overhead,
+            MAX_ACCEPTABLE_OVERHEAD_MS
+        );
     }
 
     #[test]
@@ -326,8 +354,8 @@ mod telemetry_tests {
                 &format!("{} - iteration {}", large_message, i),
                 Some(HashMap::from([
                     ("iteration".to_string(), json!(i)),
-                    ("size_mb".to_string(), json!(1.0))
-                ]))
+                    ("size_mb".to_string(), json!(1.0)),
+                ])),
             );
 
             // Small delay to ensure different timestamps
@@ -352,7 +380,10 @@ mod telemetry_tests {
 
         let metadata = fs::metadata(&current_log).expect("Should get file metadata");
         let size_mb = metadata.len() / (1024 * 1024);
-        assert!(size_mb < 50, "Current log file should be under rotation limit");
+        assert!(
+            size_mb < 50,
+            "Current log file should be under rotation limit"
+        );
     }
 
     // Helper functions for specific test scenarios
@@ -363,8 +394,8 @@ mod telemetry_tests {
             "Agent system initializing",
             Some(HashMap::from([
                 ("startup_phase".to_string(), json!("initialization")),
-                ("agent_count".to_string(), json!(5))
-            ]))
+                ("agent_count".to_string(), json!(5)),
+            ])),
         );
     }
 
@@ -382,8 +413,8 @@ mod telemetry_tests {
             "Agent coordination timeout",
             Some(HashMap::from([
                 ("agent_id".to_string(), json!("agent-456")),
-                ("timeout_duration_ms".to_string(), json!(5000))
-            ]))
+                ("timeout_duration_ms".to_string(), json!(5000)),
+            ])),
         );
     }
 
@@ -394,8 +425,8 @@ mod telemetry_tests {
             "Agent system shutting down gracefully",
             Some(HashMap::from([
                 ("shutdown_reason".to_string(), json!("user_requested")),
-                ("cleanup_completed".to_string(), json!(true))
-            ]))
+                ("cleanup_completed".to_string(), json!(true)),
+            ])),
         );
     }
 
@@ -407,8 +438,8 @@ mod telemetry_tests {
             "GPU memory exhaustion detected",
             Some(HashMap::from([
                 ("error_type".to_string(), json!("gpu_memory_exhausted")),
-                ("recovery_strategy".to_string(), json!("reduce_batch_size"))
-            ]))
+                ("recovery_strategy".to_string(), json!("reduce_batch_size")),
+            ])),
         );
         logger.log_structured(
             LogComponent::GPU,
@@ -416,8 +447,8 @@ mod telemetry_tests {
             "GPU recovery completed successfully",
             Some(HashMap::from([
                 ("recovery_successful".to_string(), json!(true)),
-                ("new_batch_size".to_string(), json!(512))
-            ]))
+                ("new_batch_size".to_string(), json!(512)),
+            ])),
         );
     }
 
@@ -427,9 +458,15 @@ mod telemetry_tests {
             Level::Error,
             "Network partition detected between agents",
             Some(HashMap::from([
-                ("error_type".to_string(), json!("network_partition_detected")),
-                ("affected_agents".to_string(), json!(["agent-1", "agent-2", "agent-3"]))
-            ]))
+                (
+                    "error_type".to_string(),
+                    json!("network_partition_detected"),
+                ),
+                (
+                    "affected_agents".to_string(),
+                    json!(["agent-1", "agent-2", "agent-3"]),
+                ),
+            ])),
         );
         logger.log_structured(
             LogComponent::Network,
@@ -437,8 +474,8 @@ mod telemetry_tests {
             "Network partition recovered",
             Some(HashMap::from([
                 ("recovery_successful".to_string(), json!(true)),
-                ("reconnected_agents".to_string(), json!(3))
-            ]))
+                ("reconnected_agents".to_string(), json!(3)),
+            ])),
         );
     }
 
@@ -450,8 +487,8 @@ mod telemetry_tests {
             Some(HashMap::from([
                 ("error_type".to_string(), json!("agent_crash_detected")),
                 ("agent_id".to_string(), json!("agent-789")),
-                ("crash_reason".to_string(), json!("segmentation_fault"))
-            ]))
+                ("crash_reason".to_string(), json!("segmentation_fault")),
+            ])),
         );
         logger.log_structured(
             LogComponent::Server,
@@ -459,8 +496,8 @@ mod telemetry_tests {
             "Agent restarted successfully",
             Some(HashMap::from([
                 ("recovery_successful".to_string(), json!(true)),
-                ("restart_time_ms".to_string(), json!(1250))
-            ]))
+                ("restart_time_ms".to_string(), json!(1250)),
+            ])),
         );
     }
 
@@ -471,8 +508,8 @@ mod telemetry_tests {
             "Log file corruption detected",
             Some(HashMap::from([
                 ("error_type".to_string(), json!("log_file_corrupted")),
-                ("affected_file".to_string(), json!("gpu.log"))
-            ]))
+                ("affected_file".to_string(), json!("gpu.log")),
+            ])),
         );
         logger.log_structured(
             LogComponent::Server,
@@ -480,8 +517,8 @@ mod telemetry_tests {
             "New log file created after corruption",
             Some(HashMap::from([
                 ("recovery_successful".to_string(), json!(true)),
-                ("backup_created".to_string(), json!(true))
-            ]))
+                ("backup_created".to_string(), json!(true)),
+            ])),
         );
     }
 

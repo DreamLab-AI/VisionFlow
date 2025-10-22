@@ -4,13 +4,13 @@
 //! for multi-agent systems and MCP server networks. It implements various layout
 //! algorithms optimized for different network topologies and visualization requirements.
 
+use log::{debug, info, warn};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::f32::consts::PI;
-use log::{info, warn, debug};
 
-use crate::types::Vec3Data;
 use crate::services::agent_visualization_protocol::{Position, SwarmTopologyData};
+use crate::types::Vec3Data;
 
 /// Topology Visualization Engine for computing graph layouts
 #[derive(Debug, Clone)]
@@ -399,7 +399,8 @@ impl TopologyVisualizationEngine {
     pub fn remove_node(&mut self, node_id: &str) {
         if self.nodes.remove(node_id).is_some() {
             // Remove edges connected to this node
-            self.edges.retain(|_, edge| edge.source != node_id && edge.target != node_id);
+            self.edges
+                .retain(|_, edge| edge.source != node_id && edge.target != node_id);
             self.invalidate_cache();
             debug!("Removed topology node: {}", node_id);
         }
@@ -446,7 +447,10 @@ impl TopologyVisualizationEngine {
             return Ok(cached.positions.clone());
         }
 
-        info!("Computing layout with algorithm: {:?}", self.layout_config.algorithm);
+        info!(
+            "Computing layout with algorithm: {:?}",
+            self.layout_config.algorithm
+        );
 
         // Clone the algorithm config to avoid borrow conflicts
         let algorithm = self.layout_config.algorithm.clone();
@@ -455,8 +459,12 @@ impl TopologyVisualizationEngine {
             LayoutAlgorithm::Hierarchical(config) => self.compute_hierarchical_layout(&config),
             LayoutAlgorithm::Circular(config) => self.compute_circular_layout(&config),
             LayoutAlgorithm::Grid(config) => self.compute_grid_layout(&config),
-            LayoutAlgorithm::SpringElectrical(config) => self.compute_spring_electrical_layout(&config),
-            LayoutAlgorithm::StressMajorization(config) => self.compute_stress_majorization_layout(&config),
+            LayoutAlgorithm::SpringElectrical(config) => {
+                self.compute_spring_electrical_layout(&config)
+            }
+            LayoutAlgorithm::StressMajorization(config) => {
+                self.compute_stress_majorization_layout(&config)
+            }
             LayoutAlgorithm::MultiLevel(config) => self.compute_multi_level_layout(&config),
             LayoutAlgorithm::Geographic(config) => self.compute_geographic_layout(&config),
             LayoutAlgorithm::Custom(config) => self.compute_custom_layout(&config),
@@ -489,14 +497,19 @@ impl TopologyVisualizationEngine {
             self.update_node_position(node_id, *position);
         }
 
-        info!("Layout computation completed in {:.2}ms with quality score: {:.3}",
-              self.metrics.computation_time_ms, self.metrics.layout_quality_score);
+        info!(
+            "Layout computation completed in {:.2}ms with quality score: {:.3}",
+            self.metrics.computation_time_ms, self.metrics.layout_quality_score
+        );
 
         Ok(final_positions)
     }
 
     /// Compute force-directed layout using Fruchterman-Reingold algorithm
-    fn compute_force_directed_layout(&mut self, config: &ForceDirectedConfig) -> Result<HashMap<String, Position>, String> {
+    fn compute_force_directed_layout(
+        &mut self,
+        config: &ForceDirectedConfig,
+    ) -> Result<HashMap<String, Position>, String> {
         let mut positions = HashMap::new();
         let mut velocities = HashMap::new();
 
@@ -507,7 +520,8 @@ impl TopologyVisualizationEngine {
         }
 
         let k = config.optimal_distance;
-        let area = (self.bounds.max_x - self.bounds.min_x) * (self.bounds.max_y - self.bounds.min_y);
+        let area =
+            (self.bounds.max_x - self.bounds.min_x) * (self.bounds.max_y - self.bounds.min_y);
         let temperature = config.optimal_distance * (area / self.nodes.len() as f32).sqrt();
 
         for iteration in 0..self.layout_config.iterations {
@@ -539,7 +553,9 @@ impl TopologyVisualizationEngine {
 
             // Calculate attractive forces for connected nodes
             for edge in self.edges.values() {
-                if let (Some(pos1), Some(pos2)) = (positions.get(&edge.source), positions.get(&edge.target)) {
+                if let (Some(pos1), Some(pos2)) =
+                    (positions.get(&edge.source), positions.get(&edge.target))
+                {
                     let dx = pos2.x - pos1.x;
                     let dy = pos2.y - pos1.y;
                     let distance = (dx * dx + dy * dy).sqrt().max(0.01);
@@ -548,10 +564,22 @@ impl TopologyVisualizationEngine {
                     let fx = (dx / distance) * attractive_force * edge.strength;
                     let fy = (dy / distance) * attractive_force * edge.strength;
 
-                    forces.entry(edge.source.clone()).or_insert_with(Vec3Data::zero).x += fx;
-                    forces.entry(edge.source.clone()).or_insert_with(Vec3Data::zero).y += fy;
-                    forces.entry(edge.target.clone()).or_insert_with(Vec3Data::zero).x -= fx;
-                    forces.entry(edge.target.clone()).or_insert_with(Vec3Data::zero).y -= fy;
+                    forces
+                        .entry(edge.source.clone())
+                        .or_insert_with(Vec3Data::zero)
+                        .x += fx;
+                    forces
+                        .entry(edge.source.clone())
+                        .or_insert_with(Vec3Data::zero)
+                        .y += fy;
+                    forces
+                        .entry(edge.target.clone())
+                        .or_insert_with(Vec3Data::zero)
+                        .x -= fx;
+                    forces
+                        .entry(edge.target.clone())
+                        .or_insert_with(Vec3Data::zero)
+                        .y -= fy;
                 }
             }
 
@@ -569,8 +597,14 @@ impl TopologyVisualizationEngine {
                     let fx = (dx / distance) * gravity_force;
                     let fy = (dy / distance) * gravity_force;
 
-                    forces.entry(node_id.clone()).or_insert_with(Vec3Data::zero).x += fx;
-                    forces.entry(node_id.clone()).or_insert_with(Vec3Data::zero).y += fy;
+                    forces
+                        .entry(node_id.clone())
+                        .or_insert_with(Vec3Data::zero)
+                        .x += fx;
+                    forces
+                        .entry(node_id.clone())
+                        .or_insert_with(Vec3Data::zero)
+                        .y += fy;
                 }
             }
 
@@ -612,9 +646,7 @@ impl TopologyVisualizationEngine {
             }
 
             // Check convergence
-            let total_energy: f32 = velocities.values()
-                .map(|v| v.x * v.x + v.y * v.y)
-                .sum();
+            let total_energy: f32 = velocities.values().map(|v| v.x * v.x + v.y * v.y).sum();
 
             if total_energy < self.physics.energy_threshold {
                 self.metrics.convergence_achieved = true;
@@ -623,15 +655,16 @@ impl TopologyVisualizationEngine {
             }
         }
 
-        self.metrics.final_energy = velocities.values()
-            .map(|v| v.x * v.x + v.y * v.y)
-            .sum();
+        self.metrics.final_energy = velocities.values().map(|v| v.x * v.x + v.y * v.y).sum();
 
         Ok(positions)
     }
 
     /// Compute hierarchical layout using Sugiyama algorithm
-    fn compute_hierarchical_layout(&mut self, config: &HierarchicalConfig) -> Result<HashMap<String, Position>, String> {
+    fn compute_hierarchical_layout(
+        &mut self,
+        config: &HierarchicalConfig,
+    ) -> Result<HashMap<String, Position>, String> {
         let mut positions = HashMap::new();
 
         // Step 1: Assign nodes to layers (rank assignment)
@@ -651,14 +684,18 @@ impl TopologyVisualizationEngine {
         for (layer_index, layer_nodes) in ordered_layers.iter().enumerate() {
             let y = match config.direction {
                 HierarchicalDirection::TopToBottom => layer_index as f32 * layer_height,
-                HierarchicalDirection::BottomToTop => (ordered_layers.len() - 1 - layer_index) as f32 * layer_height,
+                HierarchicalDirection::BottomToTop => {
+                    (ordered_layers.len() - 1 - layer_index) as f32 * layer_height
+                }
                 HierarchicalDirection::LeftToRight | HierarchicalDirection::RightToLeft => 0.0,
             };
 
             for (node_index, node_id) in layer_nodes.iter().enumerate() {
                 let x = match config.direction {
                     HierarchicalDirection::LeftToRight => layer_index as f32 * layer_height,
-                    HierarchicalDirection::RightToLeft => (ordered_layers.len() - 1 - layer_index) as f32 * layer_height,
+                    HierarchicalDirection::RightToLeft => {
+                        (ordered_layers.len() - 1 - layer_index) as f32 * layer_height
+                    }
                     HierarchicalDirection::TopToBottom | HierarchicalDirection::BottomToTop => {
                         (node_index as f32 - (layer_nodes.len() as f32 - 1.0) / 2.0) * node_width
                     }
@@ -671,7 +708,14 @@ impl TopologyVisualizationEngine {
                     _ => y,
                 };
 
-                positions.insert(node_id.clone(), Position { x, y: final_y, z: 0.0 });
+                positions.insert(
+                    node_id.clone(),
+                    Position {
+                        x,
+                        y: final_y,
+                        z: 0.0,
+                    },
+                );
             }
         }
 
@@ -679,7 +723,10 @@ impl TopologyVisualizationEngine {
     }
 
     /// Compute circular layout
-    fn compute_circular_layout(&mut self, config: &CircularConfig) -> Result<HashMap<String, Position>, String> {
+    fn compute_circular_layout(
+        &mut self,
+        config: &CircularConfig,
+    ) -> Result<HashMap<String, Position>, String> {
         let mut positions = HashMap::new();
         let node_count = self.nodes.len();
 
@@ -698,7 +745,8 @@ impl TopologyVisualizationEngine {
                 let angle_step = 2.0 * PI / group_nodes.len() as f32;
 
                 for (i, node_id) in group_nodes.iter().enumerate() {
-                    let angle = current_angle + i as f32 * angle_step * if config.clockwise { 1.0 } else { -1.0 };
+                    let angle = current_angle
+                        + i as f32 * angle_step * if config.clockwise { 1.0 } else { -1.0 };
                     let x = radius * angle.cos();
                     let y = radius * angle.sin();
 
@@ -712,7 +760,8 @@ impl TopologyVisualizationEngine {
             let angle_step = 2.0 * PI / node_count as f32;
 
             for (i, node_id) in self.nodes.keys().enumerate() {
-                let angle = current_angle + i as f32 * angle_step * if config.clockwise { 1.0 } else { -1.0 };
+                let angle = current_angle
+                    + i as f32 * angle_step * if config.clockwise { 1.0 } else { -1.0 };
                 let x = config.radius * angle.cos();
                 let y = config.radius * angle.sin();
 
@@ -724,7 +773,10 @@ impl TopologyVisualizationEngine {
     }
 
     /// Compute grid layout
-    fn compute_grid_layout(&mut self, config: &GridConfig) -> Result<HashMap<String, Position>, String> {
+    fn compute_grid_layout(
+        &mut self,
+        config: &GridConfig,
+    ) -> Result<HashMap<String, Position>, String> {
         let mut positions = HashMap::new();
         let node_count = self.nodes.len();
 
@@ -746,8 +798,16 @@ impl TopologyVisualizationEngine {
         let total_width = cols as f32 * config.cell_width;
         let total_height = rows as f32 * config.cell_height;
 
-        let start_x = if config.align_center { -total_width / 2.0 } else { 0.0 };
-        let start_y = if config.align_center { -total_height / 2.0 } else { 0.0 };
+        let start_x = if config.align_center {
+            -total_width / 2.0
+        } else {
+            0.0
+        };
+        let start_y = if config.align_center {
+            -total_height / 2.0
+        } else {
+            0.0
+        };
 
         for (i, node_id) in self.nodes.keys().enumerate() {
             let col = i as u32 % cols;
@@ -763,7 +823,10 @@ impl TopologyVisualizationEngine {
     }
 
     /// Compute spring-electrical layout (similar to force-directed but with electrical model)
-    fn compute_spring_electrical_layout(&mut self, config: &SpringElectricalConfig) -> Result<HashMap<String, Position>, String> {
+    fn compute_spring_electrical_layout(
+        &mut self,
+        config: &SpringElectricalConfig,
+    ) -> Result<HashMap<String, Position>, String> {
         // This is similar to force-directed but uses a different force model
         // For brevity, using simplified implementation
         self.compute_force_directed_layout(&ForceDirectedConfig {
@@ -778,18 +841,24 @@ impl TopologyVisualizationEngine {
     }
 
     /// Compute stress majorization layout
-    fn compute_stress_majorization_layout(&mut self, config: &StressConfig) -> Result<HashMap<String, Position>, String> {
+    fn compute_stress_majorization_layout(
+        &mut self,
+        config: &StressConfig,
+    ) -> Result<HashMap<String, Position>, String> {
         // Simplified stress majorization implementation
         // In practice, this would involve computing shortest path distances and optimizing positions
         let mut positions = HashMap::new();
 
         // Initialize with random positions
         for node_id in self.nodes.keys() {
-            positions.insert(node_id.clone(), Position {
-                x: (rand::random::<f32>() - 0.5) * 100.0,
-                y: (rand::random::<f32>() - 0.5) * 100.0,
-                z: 0.0,
-            });
+            positions.insert(
+                node_id.clone(),
+                Position {
+                    x: (rand::random::<f32>() - 0.5) * 100.0,
+                    y: (rand::random::<f32>() - 0.5) * 100.0,
+                    z: 0.0,
+                },
+            );
         }
 
         // Iteratively improve positions to minimize stress
@@ -814,25 +883,37 @@ impl TopologyVisualizationEngine {
     }
 
     /// Compute multi-level layout
-    fn compute_multi_level_layout(&mut self, config: &MultiLevelConfig) -> Result<HashMap<String, Position>, String> {
+    fn compute_multi_level_layout(
+        &mut self,
+        config: &MultiLevelConfig,
+    ) -> Result<HashMap<String, Position>, String> {
         // Simplified multi-level implementation
         // This would involve graph coarsening, layout computation, and refinement
         match config.base_algorithm.as_ref() {
-            LayoutAlgorithm::ForceDirected(fd_config) => self.compute_force_directed_layout(fd_config),
+            LayoutAlgorithm::ForceDirected(fd_config) => {
+                self.compute_force_directed_layout(fd_config)
+            }
             _ => self.compute_force_directed_layout(&ForceDirectedConfig::default()),
         }
     }
 
     /// Compute geographic layout
-    fn compute_geographic_layout(&mut self, config: &GeographicConfig) -> Result<HashMap<String, Position>, String> {
+    fn compute_geographic_layout(
+        &mut self,
+        config: &GeographicConfig,
+    ) -> Result<HashMap<String, Position>, String> {
         let mut positions = HashMap::new();
 
         // Extract geographic coordinates from node metadata
         for (node_id, node) in &self.nodes {
-            let lat = node.metadata.get("latitude")
+            let lat = node
+                .metadata
+                .get("latitude")
                 .and_then(|v| v.as_f64())
                 .unwrap_or(0.0) as f32;
-            let lon = node.metadata.get("longitude")
+            let lon = node
+                .metadata
+                .get("longitude")
                 .and_then(|v| v.as_f64())
                 .unwrap_or(0.0) as f32;
 
@@ -851,9 +932,15 @@ impl TopologyVisualizationEngine {
     }
 
     /// Compute custom layout
-    fn compute_custom_layout(&mut self, config: &CustomLayoutConfig) -> Result<HashMap<String, Position>, String> {
+    fn compute_custom_layout(
+        &mut self,
+        config: &CustomLayoutConfig,
+    ) -> Result<HashMap<String, Position>, String> {
         // Placeholder for custom layout implementations
-        warn!("Custom layout '{}' not implemented, falling back to force-directed", config.name);
+        warn!(
+            "Custom layout '{}' not implemented, falling back to force-directed",
+            config.name
+        );
         self.compute_force_directed_layout(&ForceDirectedConfig::default())
     }
 
@@ -888,7 +975,9 @@ impl TopologyVisualizationEngine {
                 }
 
                 // Check if all predecessors are in visited set
-                let all_predecessors_visited = self.edges.values()
+                let all_predecessors_visited = self
+                    .edges
+                    .values()
                     .filter(|edge| &edge.target == node_id)
                     .all(|edge| visited.contains(&edge.source));
 
@@ -932,7 +1021,9 @@ impl TopologyVisualizationEngine {
                     // Find positions of predecessors in previous layer
                     for edge in self.edges.values() {
                         if &edge.target == node_id {
-                            if let Some(pos) = layers[i-1].iter().position(|id| id == &edge.source) {
+                            if let Some(pos) =
+                                layers[i - 1].iter().position(|id| id == &edge.source)
+                            {
                                 sum += pos as f32;
                                 count += 1;
                             }
@@ -944,7 +1035,8 @@ impl TopologyVisualizationEngine {
                 }
 
                 // Sort by barycenter
-                positions.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal));
+                positions
+                    .sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal));
                 layers[i] = positions.into_iter().map(|(id, _)| id).collect();
             }
         }
@@ -956,12 +1048,21 @@ impl TopologyVisualizationEngine {
         let mut groups = HashMap::new();
 
         for (node_id, node) in &self.nodes {
-            let group_name = node.group
+            let group_name = node
+                .group
                 .clone()
-                .or_else(|| node.metadata.get("group").and_then(|v| v.as_str()).map(|s| s.to_string()))
+                .or_else(|| {
+                    node.metadata
+                        .get("group")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string())
+                })
                 .unwrap_or_else(|| "default".to_string());
 
-            groups.entry(group_name).or_insert_with(Vec::new).push(node_id.clone());
+            groups
+                .entry(group_name)
+                .or_insert_with(Vec::new)
+                .push(node_id.clone());
         }
 
         groups
@@ -988,11 +1089,18 @@ impl TopologyVisualizationEngine {
         let center_lon_rad = config.center_point.1.to_radians();
 
         let x = lon_rad.cos() * lat_rad.sin() * config.scale_factor;
-        let y = (center_lat_rad.cos() * lat_rad.sin() - center_lat_rad.sin() * lat_rad.cos() * (lon_rad - center_lon_rad).cos()) * config.scale_factor;
+        let y = (center_lat_rad.cos() * lat_rad.sin()
+            - center_lat_rad.sin() * lat_rad.cos() * (lon_rad - center_lon_rad).cos())
+            * config.scale_factor;
         (x, y)
     }
 
-    fn stereographic_projection(&self, lat: f32, lon: f32, config: &GeographicConfig) -> (f32, f32) {
+    fn stereographic_projection(
+        &self,
+        lat: f32,
+        lon: f32,
+        config: &GeographicConfig,
+    ) -> (f32, f32) {
         let lat_rad = lat.to_radians();
         let lon_rad = lon.to_radians();
         let k = 2.0 / (1.0 + lat_rad.sin());
@@ -1042,7 +1150,9 @@ impl TopologyVisualizationEngine {
 
         // Score based on edge length uniformity
         for edge in self.edges.values() {
-            if let (Some(pos1), Some(pos2)) = (positions.get(&edge.source), positions.get(&edge.target)) {
+            if let (Some(pos1), Some(pos2)) =
+                (positions.get(&edge.source), positions.get(&edge.target))
+            {
                 let dx = pos2.x - pos1.x;
                 let dy = pos2.y - pos1.y;
                 let distance = (dx * dx + dy * dy).sqrt();
@@ -1065,7 +1175,9 @@ impl TopologyVisualizationEngine {
     fn invalidate_cache(&mut self) {
         // Remove old cache entries (keep most recent 10)
         if self.layout_cache.len() > 10 {
-            let mut cache_entries: Vec<(String, i64)> = self.layout_cache.iter()
+            let mut cache_entries: Vec<(String, i64)> = self
+                .layout_cache
+                .iter()
                 .map(|(k, v)| (k.clone(), v.created_at))
                 .collect();
             cache_entries.sort_by_key(|(_, created_at)| *created_at);
@@ -1090,24 +1202,30 @@ impl TopologyVisualizationEngine {
             coordination_layers: self.group_nodes_by_metadata().len() as u32,
             efficiency_score: if self.nodes.len() > 0 {
                 1.0 - (self.edges.len() as f32 / (self.nodes.len() * self.nodes.len()) as f32)
-            } else { 1.0 },
+            } else {
+                1.0
+            },
             load_distribution: self.compute_layer_loads(),
             critical_paths: Vec::new(), // Would be computed from pathfinding
-            bottlenecks: Vec::new(), // Would be computed from network analysis
+            bottlenecks: Vec::new(),    // Would be computed from network analysis
         }
     }
 
     fn compute_layer_loads(&self) -> Vec<crate::services::agent_visualization_protocol::LayerLoad> {
         let groups = self.group_nodes_by_metadata();
-        groups.into_iter().enumerate().map(|(index, (_, nodes))| {
-            crate::services::agent_visualization_protocol::LayerLoad {
-                layer_id: index as u32,
-                agent_count: nodes.len() as u32,
-                average_load: 0.5, // Default load
-                max_capacity: (nodes.len() * 2) as u32, // 2x current capacity
-                utilization: if nodes.len() > 0 { 0.5 } else { 0.0 }, // 50% utilization
-            }
-        }).collect()
+        groups
+            .into_iter()
+            .enumerate()
+            .map(|(index, (_, nodes))| {
+                crate::services::agent_visualization_protocol::LayerLoad {
+                    layer_id: index as u32,
+                    agent_count: nodes.len() as u32,
+                    average_load: 0.5,                      // Default load
+                    max_capacity: (nodes.len() * 2) as u32, // 2x current capacity
+                    utilization: if nodes.len() > 0 { 0.5 } else { 0.0 }, // 50% utilization
+                }
+            })
+            .collect()
     }
 
     fn count_cross_server_connections(&self) -> u32 {
@@ -1115,10 +1233,14 @@ impl TopologyVisualizationEngine {
 
         for edge in self.edges.values() {
             let default_group = "default".to_string();
-            let source_group = self.nodes.get(&edge.source)
+            let source_group = self
+                .nodes
+                .get(&edge.source)
                 .and_then(|n| n.group.as_ref())
                 .unwrap_or(&default_group);
-            let target_group = self.nodes.get(&edge.target)
+            let target_group = self
+                .nodes
+                .get(&edge.target)
                 .and_then(|n| n.group.as_ref())
                 .unwrap_or(&default_group);
 

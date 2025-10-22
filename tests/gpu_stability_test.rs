@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod gpu_stability_tests {
+    use std::fs;
     use unified_compute::models::simulation_params::SimParams;
     use unified_compute::utils::unified_gpu_compute::UnifiedGPUCompute;
-    use std::fs;
 
     #[test]
     #[ignore] // Only run when GPU is available
@@ -25,7 +25,8 @@ mod gpu_stability_tests {
             })
             .collect();
 
-        gpu_compute.upload_node_data(&positions, None)
+        gpu_compute
+            .upload_node_data(&positions, None)
             .expect("Failed to upload node data");
 
         // Create simple ring topology
@@ -37,30 +38,38 @@ mod gpu_stability_tests {
             weights.push(1.0);
         }
 
-        gpu_compute.upload_edge_data(&edges, &weights)
+        gpu_compute
+            .upload_edge_data(&edges, &weights)
             .expect("Failed to upload edge data");
 
         // Run simulation with stability gates enabled
         let mut params = SimParams::new();
-        params.stability_threshold = 1e-5;  // More aggressive threshold for testing
+        params.stability_threshold = 1e-5; // More aggressive threshold for testing
         params.min_velocity_threshold = 1e-3;
-        params.damping = 0.95;  // High damping to reach stability faster
+        params.damping = 0.95; // High damping to reach stability faster
 
         // Run for multiple iterations and track when stability is reached
         let mut stability_reached = false;
         let max_iterations = 1000;
-        
+
         for i in 0..max_iterations {
             params.iteration = i;
-            gpu_compute.execute(params).expect("Failed to execute physics step");
+            gpu_compute
+                .execute(params)
+                .expect("Failed to execute physics step");
 
             // Check system kinetic energy
             let mut system_ke = vec![0.0f32; 1];
-            gpu_compute.system_kinetic_energy.copy_to(&mut system_ke)
+            gpu_compute
+                .system_kinetic_energy
+                .copy_to(&mut system_ke)
                 .expect("Failed to copy kinetic energy");
 
             if system_ke[0] < params.stability_threshold * (num_nodes as f32) {
-                println!("Stability reached at iteration {}: KE = {:.8}", i, system_ke[0]);
+                println!(
+                    "Stability reached at iteration {}: KE = {:.8}",
+                    i, system_ke[0]
+                );
                 stability_reached = true;
                 break;
             }
@@ -70,7 +79,11 @@ mod gpu_stability_tests {
             }
         }
 
-        assert!(stability_reached, "System should reach stability within {} iterations", max_iterations);
+        assert!(
+            stability_reached,
+            "System should reach stability within {} iterations",
+            max_iterations
+        );
     }
 
     #[test]
@@ -102,7 +115,8 @@ mod gpu_stability_tests {
             })
             .collect();
 
-        gpu_compute.upload_node_data(&positions, Some(&velocities))
+        gpu_compute
+            .upload_node_data(&positions, Some(&velocities))
             .expect("Failed to upload node data");
 
         // Run physics with per-node stability checking
@@ -110,17 +124,27 @@ mod gpu_stability_tests {
         params.min_velocity_threshold = 0.1; // Threshold between stationary and moving
         params.stability_threshold = 1e-6;
 
-        gpu_compute.execute(params).expect("Failed to execute physics step");
+        gpu_compute
+            .execute(params)
+            .expect("Failed to execute physics step");
 
         // Check active node count
         let mut active_count = vec![0i32; 1];
-        gpu_compute.active_node_count.copy_to(&mut active_count)
+        gpu_compute
+            .active_node_count
+            .copy_to(&mut active_count)
             .expect("Failed to copy active node count");
 
         println!("Active nodes: {} out of {}", active_count[0], num_nodes);
-        
+
         // Should detect approximately half the nodes as active
-        assert!(active_count[0] > (num_nodes as i32 * 4 / 10), "Too few active nodes detected");
-        assert!(active_count[0] < (num_nodes as i32 * 6 / 10), "Too many active nodes detected");
+        assert!(
+            active_count[0] > (num_nodes as i32 * 4 / 10),
+            "Too few active nodes detected"
+        );
+        assert!(
+            active_count[0] < (num_nodes as i32 * 6 / 10),
+            "Too many active nodes detected"
+        );
     }
 }

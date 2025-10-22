@@ -39,7 +39,12 @@ serde_yaml = "0.9"
 validator = { version = "0.18", features = ["derive"] }
 
 # Database
-rusqlite = { version = "0.34.0", features = ["bundled"] }
+rusqlite = { version = "0.37", features = ["bundled"] }
+r2d2 = "0.8"
+r2d2_sqlite = "0.31"
+
+# Redis (optional distributed caching)
+redis = { version = "0.27", features = ["aio", "tokio-comp", "connection-manager"], optional = true }
 
 # TypeScript type generation
 specta = { version = "2.0.0-rc.22", features = ["derive", "export"] }
@@ -109,10 +114,16 @@ sysinfo = "0.37.0"
 # Parallel processing
 rayon = "1.11.0"
 
+# Hexagonal Architecture
+hexser = { version = "0.4.7", features = ["full"] }
+
+# Ontology Reasoning - using local path dependency
+whelk = { path = "./whelk-rs", optional = true }
+
 # Ontology dependencies (optional)
-horned-owl = { version = "1.2.0", optional = true }
+# Note: Using 1.2.0 for ArcStr support (thread-safe string type)
+horned-owl = { version = "1.2.0", features = ["remote"], optional = true }
 horned-functional = { version = "0.4.0", optional = true }
-# whelk-rs = { version = "0.1", optional = true, git = "https://github.com/pchampin/whelk-rs.git" } # Using git repo as it's not on crates.io - temporarily disabled due to auth issues
 walkdir = { version = "2.4", optional = true }
 clap = { version = "4.5", features = ["derive"], optional = true }
 
@@ -139,7 +150,8 @@ default = ["gpu", "ontology"]
 gpu = ["cudarc", "cust", "cust_core"]  # Enable GPU support with CUDA dependencies
 gpu-safe = []  # Feature for GPU-safe types
 cpu = []  # CPU-only mode
-ontology = ["horned-owl", "horned-functional", "walkdir", "clap"]  # Enable ontology validation (whelk-rs temporarily disabled)
+ontology = ["horned-owl", "horned-functional", "whelk", "walkdir", "clap"]  # Enable ontology validation with local whelk-rs
+redis = ["dep:redis"]  # Enable Redis distributed caching
 
 [profile.release]
 opt-level = 3

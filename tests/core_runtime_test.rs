@@ -3,9 +3,9 @@
 
 #[cfg(test)]
 mod tests {
-    use tokio::time::{timeout, Duration};
     use std::sync::Arc;
     use tokio::sync::RwLock;
+    use tokio::time::{timeout, Duration};
 
     // Test basic actor system startup
     #[tokio::test]
@@ -17,9 +17,13 @@ mod tests {
                 tokio::time::sleep(Duration::from_millis(100)).await;
                 Ok::<(), Box<dyn std::error::Error>>(())
             })
-        }).await;
+        })
+        .await;
 
-        assert!(result.is_ok(), "Actix system failed to start within timeout");
+        assert!(
+            result.is_ok(),
+            "Actix system failed to start within timeout"
+        );
     }
 
     // Test settings loading without panics
@@ -43,7 +47,8 @@ mod tests {
                     Ok(())
                 }
             }
-        }).await;
+        })
+        .await;
 
         assert!(result.is_ok(), "Settings loading caused timeout or panic");
     }
@@ -51,8 +56,8 @@ mod tests {
     // Test GPU manager initialization
     #[tokio::test]
     async fn test_gpu_manager_initialization() {
-        use webxr::actors::gpu::gpu_manager_actor::GPUManagerActor;
         use actix::Actor;
+        use webxr::actors::gpu::gpu_manager_actor::GPUManagerActor;
 
         let result = timeout(Duration::from_secs(5), async {
             // Try to start GPU manager actor
@@ -62,17 +67,21 @@ mod tests {
             // Give it time to initialize
             tokio::time::sleep(Duration::from_millis(500)).await;
             Ok(())
-        }).await;
+        })
+        .await;
 
-        assert!(result.is_ok(), "GPU manager initialization failed or timed out");
+        assert!(
+            result.is_ok(),
+            "GPU manager initialization failed or timed out"
+        );
     }
 
     // Test graph service actor initialization
     #[tokio::test]
     async fn test_graph_service_initialization() {
+        use actix::Actor;
         use webxr::actors::graph_actor::GraphServiceActor;
         use webxr::config::AppFullSettings;
-        use actix::Actor;
 
         let result = timeout(Duration::from_secs(5), async {
             // Create minimal settings for graph service
@@ -87,16 +96,20 @@ mod tests {
             // Give it time to initialize
             tokio::time::sleep(Duration::from_millis(500)).await;
             Ok(())
-        }).await;
+        })
+        .await;
 
-        assert!(result.is_ok(), "Graph service initialization failed or timed out");
+        assert!(
+            result.is_ok(),
+            "Graph service initialization failed or timed out"
+        );
     }
 
     // Test metadata actor stability
     #[tokio::test]
     async fn test_metadata_actor_stability() {
-        use webxr::actors::metadata_actor::MetadataActor;
         use actix::Actor;
+        use webxr::actors::metadata_actor::MetadataActor;
 
         let result = timeout(Duration::from_secs(5), async {
             let metadata_actor = MetadataActor::new();
@@ -104,16 +117,20 @@ mod tests {
 
             tokio::time::sleep(Duration::from_millis(500)).await;
             Ok(())
-        }).await;
+        })
+        .await;
 
-        assert!(result.is_ok(), "Metadata actor initialization failed or timed out");
+        assert!(
+            result.is_ok(),
+            "Metadata actor initialization failed or timed out"
+        );
     }
 
     // Test client manager actor
     #[tokio::test]
     async fn test_client_manager_stability() {
-        use webxr::actors::client_manager_actor::ClientManagerActor;
         use actix::Actor;
+        use webxr::actors::client_manager_actor::ClientManagerActor;
 
         let result = timeout(Duration::from_secs(5), async {
             let client_manager = ClientManagerActor::new();
@@ -121,16 +138,20 @@ mod tests {
 
             tokio::time::sleep(Duration::from_millis(500)).await;
             Ok(())
-        }).await;
+        })
+        .await;
 
-        assert!(result.is_ok(), "Client manager initialization failed or timed out");
+        assert!(
+            result.is_ok(),
+            "Client manager initialization failed or timed out"
+        );
     }
 
     // Test TCP connection actor stability
     #[tokio::test]
     async fn test_tcp_connection_actor_stability() {
-        use webxr::actors::tcp_connection_actor::TcpConnectionActor;
         use actix::Actor;
+        use webxr::actors::tcp_connection_actor::TcpConnectionActor;
 
         let result = timeout(Duration::from_secs(5), async {
             let tcp_actor = TcpConnectionActor::new("127.0.0.1".to_string(), 9500);
@@ -138,9 +159,13 @@ mod tests {
 
             tokio::time::sleep(Duration::from_millis(500)).await;
             Ok(())
-        }).await;
+        })
+        .await;
 
-        assert!(result.is_ok(), "TCP connection actor initialization failed or timed out");
+        assert!(
+            result.is_ok(),
+            "TCP connection actor initialization failed or timed out"
+        );
     }
 
     // Test voice context manager
@@ -158,9 +183,13 @@ mod tests {
             let _context = context_manager.get_context(&session_id).await?;
 
             Ok::<(), Box<dyn std::error::Error>>(())
-        }).await;
+        })
+        .await;
 
-        assert!(result.is_ok(), "Voice context manager operations failed or timed out");
+        assert!(
+            result.is_ok(),
+            "Voice context manager operations failed or timed out"
+        );
     }
 
     // Test GPU compute initialization without CUDA
@@ -179,13 +208,20 @@ mod tests {
                 }
                 Err(e) => {
                     // GPU compute failed, but this should be handled gracefully
-                    eprintln!("GPU compute initialization failed (expected without CUDA): {}", e);
+                    eprintln!(
+                        "GPU compute initialization failed (expected without CUDA): {}",
+                        e
+                    );
                     Ok(())
                 }
             }
-        }).await;
+        })
+        .await;
 
-        assert!(result.is_ok(), "GPU compute initialization caused timeout or unhandled panic");
+        assert!(
+            result.is_ok(),
+            "GPU compute initialization caused timeout or unhandled panic"
+        );
     }
 
     // Test memory allocation patterns for large data structures
@@ -211,7 +247,8 @@ mod tests {
             }
 
             Ok::<(), Box<dyn std::error::Error>>(())
-        }).await;
+        })
+        .await;
 
         assert!(result.is_ok(), "Memory allocation test failed or timed out");
     }
@@ -219,10 +256,10 @@ mod tests {
     // Test concurrent actor message passing
     #[tokio::test]
     async fn test_concurrent_actor_messaging() {
-        use webxr::actors::metadata_actor::MetadataActor;
-        use webxr::actors::messages::UpdateMetadata;
         use actix::Actor;
         use std::collections::HashMap;
+        use webxr::actors::messages::UpdateMetadata;
+        use webxr::actors::metadata_actor::MetadataActor;
 
         let result = timeout(Duration::from_secs(10), async {
             let metadata_actor = MetadataActor::new();
@@ -245,8 +282,12 @@ mod tests {
             }
 
             Ok::<(), Box<dyn std::error::Error>>(())
-        }).await;
+        })
+        .await;
 
-        assert!(result.is_ok(), "Concurrent actor messaging failed or timed out");
+        assert!(
+            result.is_ok(),
+            "Concurrent actor messaging failed or timed out"
+        );
     }
 }

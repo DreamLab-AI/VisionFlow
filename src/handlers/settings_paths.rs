@@ -1,17 +1,17 @@
 // Path-based Settings API Handler
 // Provides efficient field-level access to settings without full serialization overhead
 
-use actix_web::{web, HttpResponse, HttpRequest, Result as ActixResult};
+use crate::actors::messages::{GetSettings, UpdateSettings};
 use crate::app_state::AppState;
 use crate::config::path_access::JsonPathAccessible;
 use crate::config::AppFullSettings;
-use crate::actors::messages::{GetSettings, UpdateSettings};
 use crate::utils::validation::rate_limit::extract_client_id;
+use actix_web::{web, HttpRequest, HttpResponse, Result as ActixResult};
 use log::{debug, error, info, warn};
 use serde_json::{json, Value};
 
 /// Get a specific settings value by path
-/// 
+///
 /// GET /api/settings/path?path=visualisation.physics.damping
 /// Returns: { "value": 0.95, "path": "visualisation.physics.damping" }
 pub async fn get_settings_by_path(
@@ -20,7 +20,7 @@ pub async fn get_settings_by_path(
     state: web::Data<AppState>,
 ) -> ActixResult<HttpResponse> {
     let _client_id = extract_client_id(&req);
-    
+
     // Rate limiting - would need to be implemented if rate_limiter exists in AppState
     // Currently commented out as rate_limiter field doesn't exist in current AppState
     /*
@@ -93,7 +93,7 @@ pub async fn get_settings_by_path(
 }
 
 /// Update a specific settings value by path
-/// 
+///
 /// PUT /api/settings/path
 /// Body: { "path": "visualisation.physics.damping", "value": 0.98 }
 /// Returns: { "success": true, "path": "visualisation.physics.damping", "previousValue": 0.95 }
@@ -103,7 +103,7 @@ pub async fn update_settings_by_path(
     state: web::Data<AppState>,
 ) -> ActixResult<HttpResponse> {
     let _client_id = extract_client_id(&req);
-    
+
     // Rate limiting - commented out (rate_limiter field doesn't exist in AppState)
     /*
     if let Some(rate_limiter) = &state.rate_limiter {
@@ -124,8 +124,11 @@ pub async fn update_settings_by_path(
 
     let path = &body.path;
     let new_value = &body.value;
-    
-    debug!("Updating settings value by path: {} = {:?}", path, new_value);
+
+    debug!(
+        "Updating settings value by path: {} = {:?}",
+        path, new_value
+    );
 
     // Validate path format
     if path.is_empty() {
@@ -141,15 +144,19 @@ pub async fn update_settings_by_path(
         Ok(Ok(mut settings)) => {
             // Get previous value for response
             let previous_value = settings.get_json_by_path(path).ok();
-            
+
             // Attempt to set the new value using JsonPathAccessible
             match settings.set_json_by_path(path, new_value.clone()) {
                 Ok(()) => {
                     // Validate the updated settings
                     if let Err(validation_errors) = settings.validate_config_camel_case() {
-                        let error_details = AppFullSettings::get_validation_errors_camel_case(&validation_errors);
-                        warn!("Settings validation failed for path '{}': {:?}", path, error_details);
-                        
+                        let error_details =
+                            AppFullSettings::get_validation_errors_camel_case(&validation_errors);
+                        warn!(
+                            "Settings validation failed for path '{}': {:?}",
+                            path, error_details
+                        );
+
                         return Ok(HttpResponse::BadRequest().json(json!({
                             "error": "Validation failed",
                             "path": path,
@@ -157,12 +164,15 @@ pub async fn update_settings_by_path(
                             "success": false
                         })));
                     }
-                    
+
                     // Send updated settings back to actor
                     match state.settings_addr.send(UpdateSettings { settings }).await {
                         Ok(Ok(())) => {
-                            info!("Successfully updated settings at path: {} = {:?}", path, new_value);
-                            
+                            info!(
+                                "Successfully updated settings at path: {} = {:?}",
+                                path, new_value
+                            );
+
                             // Notify WebSocket clients of the change - commented out (websocket_connections field doesn't exist)
                             /*
                             let change_notification = json!({
@@ -172,14 +182,14 @@ pub async fn update_settings_by_path(
                                 "previousValue": previous_value,
                                 "timestamp": chrono::Utc::now().timestamp_millis()
                             });
-                            
+
                             if let Err(err) = state.websocket_connections.do_send(
                                 crate::actors::messages::BroadcastMessage::new(change_notification.clone())
                             ) {
                                 warn!("Failed to notify WebSocket clients: {}", err);
                             }
                             */
-                            
+
                             Ok(HttpResponse::Ok().json(json!({
                                 "success": true,
                                 "path": path,
@@ -234,7 +244,7 @@ pub async fn update_settings_by_path(
 }
 
 /// Batch read multiple settings values by path
-/// 
+///
 /// POST /api/settings/batch
 /// Body: { "paths": ["visualisation.physics.damping", "visualisation.physics.gravity"] }
 /// Returns: { "values": [{"path": "...", "value": ...}, ...] }
@@ -244,7 +254,7 @@ pub async fn batch_read_settings_by_path(
     state: web::Data<AppState>,
 ) -> ActixResult<HttpResponse> {
     let _client_id = extract_client_id(&req);
-    
+
     debug!("Batch reading {} settings paths", body.paths.len());
 
     if body.paths.is_empty() {
@@ -267,7 +277,7 @@ pub async fn batch_read_settings_by_path(
         Ok(Ok(settings)) => {
             // Use a Map for direct key-value results (client expectation)
             let mut results = serde_json::Map::new();
-            
+
             // Read all requested paths
             for path in &body.paths {
                 if let Ok(value) = settings.get_json_by_path(path) {
@@ -277,7 +287,7 @@ pub async fn batch_read_settings_by_path(
                     results.insert(path.clone(), serde_json::Value::Null);
                 }
             }
-            
+
             // Return the map directly as the JSON body (simple key-value format)
             Ok(HttpResponse::Ok().json(results))
         }
@@ -292,7 +302,7 @@ pub async fn batch_read_settings_by_path(
         Err(err) => {
             error!("Failed to communicate with settings actor: {}", err);
             Ok(HttpResponse::InternalServerError().json(json!({
-                "error": "Internal server error", 
+                "error": "Internal server error",
                 "success": false
             })))
         }
@@ -300,9 +310,9 @@ pub async fn batch_read_settings_by_path(
 }
 
 /// Batch update multiple settings values by path
-/// 
+///
 /// PUT /api/settings/batch
-/// Body: { 
+/// Body: {
 ///   "updates": [
 ///     { "path": "visualisation.physics.damping", "value": 0.98 },
 ///     { "path": "visualisation.physics.gravity", "value": 0.001 }
@@ -314,7 +324,7 @@ pub async fn batch_update_settings_by_path(
     state: web::Data<AppState>,
 ) -> ActixResult<HttpResponse> {
     let _client_id = extract_client_id(&req);
-    
+
     // Rate limiting - commented out (rate_limiter field doesn't exist in AppState)
     /*
     if let Some(rate_limiter) = &state.rate_limiter {
@@ -355,11 +365,11 @@ pub async fn batch_update_settings_by_path(
         Ok(Ok(mut settings)) => {
             let mut results = Vec::new();
             let mut has_errors = false;
-            
+
             // Apply all updates
             for update in &body.updates {
                 let previous_value = settings.get_json_by_path(&update.path).ok();
-                
+
                 match settings.set_json_by_path(&update.path, update.value.clone()) {
                     Ok(()) => {
                         results.push(json!({
@@ -379,7 +389,7 @@ pub async fn batch_update_settings_by_path(
                     }
                 }
             }
-            
+
             if has_errors {
                 return Ok(HttpResponse::BadRequest().json(json!({
                     "success": false,
@@ -387,24 +397,28 @@ pub async fn batch_update_settings_by_path(
                     "results": results
                 })));
             }
-            
+
             // Validate the updated settings
             if let Err(validation_errors) = settings.validate_config_camel_case() {
-                let error_details = AppFullSettings::get_validation_errors_camel_case(&validation_errors);
+                let error_details =
+                    AppFullSettings::get_validation_errors_camel_case(&validation_errors);
                 warn!("Batch settings validation failed: {:?}", error_details);
-                
+
                 return Ok(HttpResponse::BadRequest().json(json!({
                     "error": "Validation failed after batch update",
                     "validationErrors": error_details,
                     "success": false
                 })));
             }
-            
+
             // Send updated settings back to actor
             match state.settings_addr.send(UpdateSettings { settings }).await {
                 Ok(Ok(())) => {
-                    info!("Successfully applied {} batch settings updates", body.updates.len());
-                    
+                    info!(
+                        "Successfully applied {} batch settings updates",
+                        body.updates.len()
+                    );
+
                     // Notify WebSocket clients of the changes - commented out (websocket_connections field doesn't exist)
                     /*
                     let change_notification = json!({
@@ -412,14 +426,14 @@ pub async fn batch_update_settings_by_path(
                         "updates": results,
                         "timestamp": chrono::Utc::now().timestamp_millis()
                     });
-                    
+
                     if let Err(err) = state.websocket_connections.do_send(
                         crate::actors::messages::BroadcastMessage::new(change_notification.clone())
                     ) {
                         warn!("Failed to notify WebSocket clients: {}", err);
                     }
                     */
-                    
+
                     Ok(HttpResponse::Ok().json(json!({
                         "success": true,
                         "message": format!("Successfully updated {} settings", body.updates.len()),
@@ -454,7 +468,7 @@ pub async fn batch_update_settings_by_path(
         Err(err) => {
             error!("Failed to communicate with settings actor: {}", err);
             Ok(HttpResponse::InternalServerError().json(json!({
-                "error": "Internal server error", 
+                "error": "Internal server error",
                 "success": false
             })))
         }
@@ -462,7 +476,7 @@ pub async fn batch_update_settings_by_path(
 }
 
 /// Get the schema/structure of settings for a given path
-/// 
+///
 /// GET /api/settings/schema?path=visualisation.physics
 /// Returns the structure and validation rules for the specified path
 pub async fn get_settings_schema(
@@ -471,7 +485,7 @@ pub async fn get_settings_schema(
     state: web::Data<AppState>,
 ) -> ActixResult<HttpResponse> {
     let _client_id = extract_client_id(&req);
-    
+
     // Rate limiting - commented out (rate_limiter field doesn't exist in AppState)
     /*
     if let Some(rate_limiter) = &state.rate_limiter {
@@ -495,25 +509,21 @@ pub async fn get_settings_schema(
 
     // Get current settings to extract schema
     match state.settings_addr.send(GetSettings).await {
-        Ok(Ok(settings)) => {
-            match settings.get_json_by_path(path) {
-                Ok(value) => {
-                    let schema = generate_value_schema(&value, path);
-                    Ok(HttpResponse::Ok().json(json!({
-                        "path": path,
-                        "schema": schema,
-                        "success": true
-                    })))
-                }
-                Err(err) => {
-                    Ok(HttpResponse::NotFound().json(json!({
-                        "error": format!("Path not found: {}", err),
-                        "path": path,
-                        "success": false
-                    })))
-                }
+        Ok(Ok(settings)) => match settings.get_json_by_path(path) {
+            Ok(value) => {
+                let schema = generate_value_schema(&value, path);
+                Ok(HttpResponse::Ok().json(json!({
+                    "path": path,
+                    "schema": schema,
+                    "success": true
+                })))
             }
-        }
+            Err(err) => Ok(HttpResponse::NotFound().json(json!({
+                "error": format!("Path not found: {}", err),
+                "path": path,
+                "success": false
+            }))),
+        },
         Ok(Err(err)) => {
             error!("Settings actor returned error: {}", err);
             Ok(HttpResponse::InternalServerError().json(json!({
@@ -581,7 +591,7 @@ fn generate_value_schema(value: &Value, path: &str) -> Value {
                     "path": path
                 })
             }
-        },
+        }
         Value::String(_) => json!({
             "type": "string",
             "path": path
@@ -597,22 +607,25 @@ fn generate_value_schema(value: &Value, path: &str) -> Value {
                 "items": item_type,
                 "path": path
             })
-        },
+        }
         Value::Object(obj) => {
             let mut properties = serde_json::Map::new();
             for (key, val) in obj {
-                properties.insert(key.clone(), generate_value_schema(val, &format!("{}.{}", path, key)));
+                properties.insert(
+                    key.clone(),
+                    generate_value_schema(val, &format!("{}.{}", path, key)),
+                );
             }
             json!({
                 "type": "object",
                 "properties": properties,
                 "path": path
             })
-        },
+        }
         Value::Null => json!({
             "type": "null",
             "path": path
-        })
+        }),
     }
 }
 
@@ -624,6 +637,6 @@ pub fn configure_settings_paths(cfg: &mut web::ServiceConfig) {
             .route("/path", web::put().to(update_settings_by_path))
             .route("/batch", web::post().to(batch_read_settings_by_path))
             .route("/batch", web::put().to(batch_update_settings_by_path))
-            .route("/schema", web::get().to(get_settings_schema))
+            .route("/schema", web::get().to(get_settings_schema)),
     );
 }

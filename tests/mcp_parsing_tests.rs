@@ -17,14 +17,14 @@ mod tests {
         });
 
         let content: McpTextContent = serde_json::from_value(json_data).unwrap();
-        
+
         // The text field should now be parsed as a JSON Value, not a string
         let agents = content.text.get("agents").unwrap();
         assert!(agents.is_array());
-        
+
         let agents_array = agents.as_array().unwrap();
         assert_eq!(agents_array.len(), 1);
-        
+
         let agent = &agents_array[0];
         assert_eq!(agent.get("id").unwrap().as_str().unwrap(), "agent1");
         assert_eq!(agent.get("name").unwrap().as_str().unwrap(), "Test Agent");
@@ -43,18 +43,19 @@ mod tests {
         });
 
         // Single deserialization instead of double-parsing
-        let response: McpResponse<McpContentResult> = serde_json::from_value(mcp_response_json).unwrap();
-        
+        let response: McpResponse<McpContentResult> =
+            serde_json::from_value(mcp_response_json).unwrap();
+
         assert!(response.is_success());
-        
+
         if let McpResponse::Success(success) = response {
             let agent_list: AgentListResponse = success.result.extract_data().unwrap();
             assert_eq!(agent_list.agents.len(), 2);
-            
+
             assert_eq!(agent_list.agents[0].id, "agent1");
             assert_eq!(agent_list.agents[0].name, "Coordinator");
             assert_eq!(agent_list.agents[0].agent_type, "coordinator");
-            
+
             assert_eq!(agent_list.agents[1].id, "agent2");
             assert_eq!(agent_list.agents[1].name, "Worker");
             assert_eq!(agent_list.agents[1].agent_type, "coder");
@@ -71,9 +72,10 @@ mod tests {
             }
         });
 
-        let response: McpResponse<McpContentResult> = serde_json::from_value(error_response_json).unwrap();
+        let response: McpResponse<McpContentResult> =
+            serde_json::from_value(error_response_json).unwrap();
         assert!(response.is_error());
-        
+
         match response {
             McpResponse::Error(error) => {
                 assert_eq!(error.error.code, -32601);
@@ -95,8 +97,9 @@ mod tests {
             }
         });
 
-        let response: Result<McpResponse<McpContentResult>, _> = serde_json::from_value(invalid_json);
-        
+        let response: Result<McpResponse<McpContentResult>, _> =
+            serde_json::from_value(invalid_json);
+
         // Should fail gracefully at the deserialization level
         assert!(response.is_err());
     }
@@ -109,12 +112,13 @@ mod tests {
             }
         });
 
-        let response: McpResponse<McpContentResult> = serde_json::from_value(empty_content_json).unwrap();
-        
+        let response: McpResponse<McpContentResult> =
+            serde_json::from_value(empty_content_json).unwrap();
+
         if let McpResponse::Success(success) = response {
             let result: Result<AgentListResponse, McpParseError> = success.result.extract_data();
             assert!(result.is_err());
-            
+
             match result {
                 Err(McpParseError::MissingContent) => {
                     // This is the expected error
@@ -149,20 +153,22 @@ mod tests {
                         "text": "{\"agents\": [{\"id\": \"agent1\", \"name\": \"Agent 1\", \"type\": \"coder\", \"status\": \"active\"}]}"
                     },
                     {
-                        "type": "text", 
+                        "type": "text",
                         "text": "{\"agents\": [{\"id\": \"agent2\", \"name\": \"Agent 2\", \"type\": \"tester\", \"status\": \"idle\"}]}"
                     }
                 ]
             }
         });
 
-        let response: McpResponse<McpContentResult> = serde_json::from_value(multi_content_json).unwrap();
-        
+        let response: McpResponse<McpContentResult> =
+            serde_json::from_value(multi_content_json).unwrap();
+
         if let McpResponse::Success(success) = response {
             // Test extracting all data (not just first)
-            let all_agent_lists: Vec<AgentListResponse> = success.result.extract_all_data().unwrap();
+            let all_agent_lists: Vec<AgentListResponse> =
+                success.result.extract_all_data().unwrap();
             assert_eq!(all_agent_lists.len(), 2);
-            
+
             assert_eq!(all_agent_lists[0].agents[0].id, "agent1");
             assert_eq!(all_agent_lists[1].agents[0].id, "agent2");
         }
@@ -171,7 +177,7 @@ mod tests {
     #[test]
     fn test_performance_vs_double_parsing() {
         use std::time::Instant;
-        
+
         let test_response = json!({
             "result": {
                 "content": [{
@@ -184,7 +190,8 @@ mod tests {
         // Measure new single-pass parsing
         let start = Instant::now();
         for _ in 0..1000 {
-            let _response: McpResponse<McpContentResult> = serde_json::from_value(test_response.clone()).unwrap();
+            let _response: McpResponse<McpContentResult> =
+                serde_json::from_value(test_response.clone()).unwrap();
         }
         let single_pass_time = start.elapsed();
 
@@ -206,7 +213,7 @@ mod tests {
 
         println!("Single-pass parsing: {:?}", single_pass_time);
         println!("Double-pass parsing: {:?}", double_pass_time);
-        
+
         // Single-pass should be faster or at least not significantly slower
         assert!(single_pass_time <= double_pass_time * 2); // Allow 2x tolerance
     }
@@ -222,9 +229,9 @@ mod integration_tests {
     fn test_brittle_parsing_elimination() {
         // This is the problematic pattern we're fixing:
         // 1. Parse JSON response
-        // 2. Extract "text" field as string  
+        // 2. Extract "text" field as string
         // 3. Parse that string as JSON again
-        
+
         let nested_json_response = json!({
             "result": {
                 "content": [{
@@ -244,16 +251,18 @@ mod integration_tests {
         // let agents = second_parse.get("agents").unwrap();
 
         // NEW ROBUST WAY (type-safe single pass):
-        let mcp_response: McpResponse<McpContentResult> = serde_json::from_value(nested_json_response).unwrap();
-        let agent_list: AgentListResponse = mcp_response.into_result().unwrap().extract_data().unwrap();
-        
+        let mcp_response: McpResponse<McpContentResult> =
+            serde_json::from_value(nested_json_response).unwrap();
+        let agent_list: AgentListResponse =
+            mcp_response.into_result().unwrap().extract_data().unwrap();
+
         assert_eq!(agent_list.agents.len(), 1);
         assert_eq!(agent_list.agents[0].id, "robust_test");
         assert_eq!(agent_list.agents[0].name, "Robust Agent");
-        
+
         // Key improvements:
         // 1. Single deserialization pass
-        // 2. Type-safe structures  
+        // 2. Type-safe structures
         // 3. Proper error handling
         // 4. No string manipulation
         // 5. Works with any JSON formatting

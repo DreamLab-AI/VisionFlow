@@ -1,11 +1,10 @@
 /// RAII GPU Memory Management
 /// Provides automatic cleanup of CUDA memory allocations to prevent leaks
-
 use cust::memory::DeviceBuffer;
-use std::sync::Arc;
-use std::collections::HashMap;
-use log::{debug, warn, error};
+use log::{debug, error, warn};
 use once_cell::sync::Lazy;
+use std::collections::HashMap;
+use std::sync::Arc;
 
 /// RAII wrapper for GPU memory buffers with automatic cleanup
 pub struct ManagedDeviceBuffer<T: cust_core::DeviceCopy> {
@@ -38,7 +37,10 @@ impl<T: cust_core::DeviceCopy> ManagedDeviceBuffer<T> {
 
 impl<T: cust_core::DeviceCopy> Drop for ManagedDeviceBuffer<T> {
     fn drop(&mut self) {
-        debug!("Freeing GPU buffer '{}': {} bytes", self.name, self.size_bytes);
+        debug!(
+            "Freeing GPU buffer '{}': {} bytes",
+            self.name, self.size_bytes
+        );
         GPU_MEMORY_TRACKER.track_deallocation(self.name.clone(), self.size_bytes);
     }
 }
@@ -61,9 +63,15 @@ impl GPUMemoryTracker {
         // Direct synchronous update (no task spawning)
         if let Ok(mut alloc_map) = self.allocations.lock() {
             alloc_map.insert(name.clone(), size);
-            let total = self.total_allocated.fetch_add(size, std::sync::atomic::Ordering::Relaxed);
-            debug!("GPU Memory: +{} bytes for '{}', total: {} bytes",
-                   size, name, total + size);
+            let total = self
+                .total_allocated
+                .fetch_add(size, std::sync::atomic::Ordering::Relaxed);
+            debug!(
+                "GPU Memory: +{} bytes for '{}', total: {} bytes",
+                size,
+                name,
+                total + size
+            );
         }
     }
 
@@ -71,9 +79,15 @@ impl GPUMemoryTracker {
         // Direct synchronous update (no task spawning)
         if let Ok(mut alloc_map) = self.allocations.lock() {
             if alloc_map.remove(&name).is_some() {
-                let total = self.total_allocated.fetch_sub(size, std::sync::atomic::Ordering::Relaxed);
-                debug!("GPU Memory: -{} bytes for '{}', total: {} bytes",
-                       size, name, total - size);
+                let total = self
+                    .total_allocated
+                    .fetch_sub(size, std::sync::atomic::Ordering::Relaxed);
+                debug!(
+                    "GPU Memory: -{} bytes for '{}', total: {} bytes",
+                    size,
+                    name,
+                    total - size
+                );
             } else {
                 warn!("Attempted to free untracked GPU buffer: {}", name);
             }
@@ -82,7 +96,9 @@ impl GPUMemoryTracker {
 
     pub fn get_memory_usage(&self) -> (usize, HashMap<String, usize>) {
         let allocations = self.allocations.lock().unwrap();
-        let total = self.total_allocated.load(std::sync::atomic::Ordering::Relaxed);
+        let total = self
+            .total_allocated
+            .load(std::sync::atomic::Ordering::Relaxed);
         (total, allocations.clone())
     }
 
@@ -90,7 +106,10 @@ impl GPUMemoryTracker {
         let allocations = self.allocations.lock().unwrap();
         if !allocations.is_empty() {
             let leaks: Vec<String> = allocations.keys().cloned().collect();
-            error!("GPU memory leaks detected: {} buffers still allocated", leaks.len());
+            error!(
+                "GPU memory leaks detected: {} buffers still allocated",
+                leaks.len()
+            );
             for (name, size) in allocations.iter() {
                 error!("  Leaked buffer '{}': {} bytes", name, size);
             }
@@ -105,7 +124,10 @@ impl GPUMemoryTracker {
 static GPU_MEMORY_TRACKER: Lazy<GPUMemoryTracker> = Lazy::new(|| GPUMemoryTracker::new());
 
 /// Convenience functions for creating managed GPU buffers
-pub fn create_managed_buffer<T>(capacity: usize, name: &str) -> Result<ManagedDeviceBuffer<T>, cust::error::CudaError>
+pub fn create_managed_buffer<T>(
+    capacity: usize,
+    name: &str,
+) -> Result<ManagedDeviceBuffer<T>, cust::error::CudaError>
 where
     T: cust_core::DeviceCopy + Default,
 {
@@ -113,12 +135,19 @@ where
     Ok(ManagedDeviceBuffer::new(buffer, name.to_string(), capacity))
 }
 
-pub fn create_managed_buffer_from_slice<T>(data: &[T], name: &str) -> Result<ManagedDeviceBuffer<T>, cust::error::CudaError>
+pub fn create_managed_buffer_from_slice<T>(
+    data: &[T],
+    name: &str,
+) -> Result<ManagedDeviceBuffer<T>, cust::error::CudaError>
 where
     T: cust_core::DeviceCopy + Clone,
 {
     let buffer = DeviceBuffer::from_slice(data)?;
-    Ok(ManagedDeviceBuffer::new(buffer, name.to_string(), data.len()))
+    Ok(ManagedDeviceBuffer::new(
+        buffer,
+        name.to_string(),
+        data.len(),
+    ))
 }
 
 /// Check for memory leaks and report
@@ -142,9 +171,18 @@ pub struct MultiStreamManager {
 impl MultiStreamManager {
     pub fn new() -> Result<Self, cust::error::CudaError> {
         Ok(Self {
-            compute_stream: cust::stream::Stream::new(cust::stream::StreamFlags::NON_BLOCKING, None)?,
-            memory_stream: cust::stream::Stream::new(cust::stream::StreamFlags::NON_BLOCKING, None)?,
-            analysis_stream: cust::stream::Stream::new(cust::stream::StreamFlags::NON_BLOCKING, None)?,
+            compute_stream: cust::stream::Stream::new(
+                cust::stream::StreamFlags::NON_BLOCKING,
+                None,
+            )?,
+            memory_stream: cust::stream::Stream::new(
+                cust::stream::StreamFlags::NON_BLOCKING,
+                None,
+            )?,
+            analysis_stream: cust::stream::Stream::new(
+                cust::stream::StreamFlags::NON_BLOCKING,
+                None,
+            )?,
             current_stream: 0,
         })
     }
@@ -194,9 +232,18 @@ impl MultiStreamManager {
 
         // Poll for completion asynchronously
         loop {
-            let compute_done = compute_event.query().map(|status| status == cust::event::EventStatus::Ready).unwrap_or(false);
-            let memory_done = memory_event.query().map(|status| status == cust::event::EventStatus::Ready).unwrap_or(false);
-            let analysis_done = analysis_event.query().map(|status| status == cust::event::EventStatus::Ready).unwrap_or(false);
+            let compute_done = compute_event
+                .query()
+                .map(|status| status == cust::event::EventStatus::Ready)
+                .unwrap_or(false);
+            let memory_done = memory_event
+                .query()
+                .map(|status| status == cust::event::EventStatus::Ready)
+                .unwrap_or(false);
+            let analysis_done = analysis_event
+                .query()
+                .map(|status| status == cust::event::EventStatus::Ready)
+                .unwrap_or(false);
 
             if compute_done && memory_done && analysis_done {
                 break;
@@ -237,13 +284,15 @@ impl LabelMappingCache {
         // Try to read from cache first
         if let Ok(cache) = self.cached_mappings.read() {
             if let Some(cached_result) = cache.get(&key) {
-                self.cache_hits.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                self.cache_hits
+                    .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
                 return cached_result.clone();
             }
         }
 
         // Cache miss - compute and store
-        self.cache_misses.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        self.cache_misses
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         let result = compute_fn(labels);
 
         if let Ok(mut cache) = self.cached_mappings.write() {

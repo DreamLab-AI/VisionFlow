@@ -356,12 +356,13 @@ auth:
 "#;
 
     // Test deserialization
-    let settings: AppFullSettings = serde_yaml::from_str(yaml_with_bloom).expect("Should deserialize successfully");
-    
+    let settings: AppFullSettings =
+        serde_yaml::from_str(yaml_with_bloom).expect("Should deserialize successfully");
+
     // Verify that glow settings were properly deserialized from bloom field
     assert_eq!(settings.visualisation.glow.enabled, true);
     assert_eq!(settings.visualisation.glow.intensity, 0.5);
-    
+
     println!("Test passed: bloom field successfully deserialized into glow field");
 }
 
@@ -717,25 +718,26 @@ auth:
 "#;
 
     // Test deserialization
-    let settings: AppFullSettings = serde_yaml::from_str(yaml_with_glow).expect("Should deserialize successfully with glow field");
-    
+    let settings: AppFullSettings = serde_yaml::from_str(yaml_with_glow)
+        .expect("Should deserialize successfully with glow field");
+
     // Verify that glow settings were properly deserialized
     assert_eq!(settings.visualisation.glow.enabled, false);
     assert_eq!(settings.visualisation.glow.intensity, 0.8);
-    
+
     println!("Test passed: glow field successfully deserialized");
 }
 
 #[test]
 fn test_serialization_uses_bloom_name() {
     let settings = AppFullSettings::default();
-    
+
     // Serialize to YAML
     let yaml = serde_yaml::to_string(&settings).expect("Should serialize successfully");
-    
+
     // Check that the serialized YAML contains 'bloom' not 'glow'
     assert!(yaml.contains("bloom:"));
     assert!(!yaml.contains("glow:"));
-    
+
     println!("Test passed: serialization uses 'bloom' field name");
 }

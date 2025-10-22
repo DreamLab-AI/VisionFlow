@@ -1,13 +1,12 @@
+use log::{debug, warn};
+use std::collections::HashMap;
+use std::sync::Arc;
+use std::time::{Duration, Instant};
+use tokio::net::TcpStream;
+use tokio::sync::{RwLock, Semaphore};
 /// Async improvements for performance optimization
 /// Includes cancellation tokens and connection pooling
-
 use tokio_util::sync::CancellationToken;
-use tokio::sync::{Semaphore, RwLock};
-use tokio::net::TcpStream;
-use std::sync::Arc;
-use std::collections::HashMap;
-use std::time::{Duration, Instant};
-use log::{debug, warn, error};
 
 /// Connection pool for MCP connections
 pub struct MCPConnectionPool {
@@ -25,7 +24,11 @@ struct PooledConnection {
 }
 
 impl MCPConnectionPool {
-    pub fn new(max_connections_per_host: usize, connection_timeout: Duration, idle_timeout: Duration) -> Self {
+    pub fn new(
+        max_connections_per_host: usize,
+        connection_timeout: Duration,
+        idle_timeout: Duration,
+    ) -> Self {
         Self {
             connections: Arc::new(RwLock::new(HashMap::new())),
             max_connections_per_host,
@@ -35,7 +38,11 @@ impl MCPConnectionPool {
         }
     }
 
-    pub async fn get_connection(&self, host: &str, port: u16) -> Result<TcpStream, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn get_connection(
+        &self,
+        host: &str,
+        port: u16,
+    ) -> Result<TcpStream, Box<dyn std::error::Error + Send + Sync>> {
         let _permit = self.semaphore.acquire().await?;
         let key = format!("{}:{}", host, port);
 
@@ -59,12 +66,13 @@ impl MCPConnectionPool {
         debug!("Creating new connection to {}", key);
         let stream = tokio::time::timeout(
             self.connection_timeout,
-            TcpStream::connect(format!("{}:{}", host, port))
-        ).await??;
+            TcpStream::connect(format!("{}:{}", host, port)),
+        )
+        .await??;
 
         // Store in pool (using a placeholder - this is a design issue that needs proper connection management)
         {
-            let mut connections = self.connections.write().await;
+            let _connections = self.connections.write().await;
             // For now, we'll return the stream directly without pooling the individual connection
             // A proper solution would need Arc<Mutex<TcpStream>> or a different approach
         }
@@ -252,7 +260,10 @@ impl TaskManager {
     pub async fn wait_for_all_tasks(&self, timeout: Option<Duration>) {
         let tasks = {
             let mut tasks_guard = self.tasks.write().await;
-            tasks_guard.drain().map(|(_, handle)| handle).collect::<Vec<_>>()
+            tasks_guard
+                .drain()
+                .map(|(_, handle)| handle)
+                .collect::<Vec<_>>()
         };
 
         if let Some(timeout_duration) = timeout {
@@ -260,7 +271,8 @@ impl TaskManager {
                 for handle in tasks {
                     let _ = handle.await;
                 }
-            }).await;
+            })
+            .await;
         } else {
             for handle in tasks {
                 let _ = handle.await;
@@ -275,9 +287,9 @@ impl TaskManager {
 static GLOBAL_TASK_MANAGER: tokio::sync::OnceCell<TaskManager> = tokio::sync::OnceCell::const_new();
 
 pub async fn get_global_task_manager() -> &'static TaskManager {
-    GLOBAL_TASK_MANAGER.get_or_init(|| async {
-        TaskManager::new()
-    }).await
+    GLOBAL_TASK_MANAGER
+        .get_or_init(|| async { TaskManager::new() })
+        .await
 }
 
 /// Convenience function for spawning tasks with automatic registration

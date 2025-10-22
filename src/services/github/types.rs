@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fmt;
 
@@ -39,8 +39,11 @@ impl fmt::Display for GitHubError {
             GitHubError::ValidationError(msg) => write!(f, "Validation error: {}", msg),
             GitHubError::Base64Error(e) => write!(f, "Base64 encoding error: {}", e),
             GitHubError::RateLimitExceeded(info) => {
-                write!(f, "Rate limit exceeded. Remaining: {}/{}, Reset time: {}",
-                    info.remaining, info.limit, info.reset_time)
+                write!(
+                    f,
+                    "Rate limit exceeded. Remaining: {}/{}, Reset time: {}",
+                    info.remaining, info.limit, info.reset_time
+                )
             }
             GitHubError::NotFound(path) => {
                 write!(f, "Resource not found: {}", path)

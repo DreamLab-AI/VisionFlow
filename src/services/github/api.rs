@@ -1,11 +1,11 @@
-use reqwest::Client;
-use std::time::Duration;
-use log::{debug, info};
 use super::config::GitHubConfig;
-use std::sync::Arc;
-use tokio::sync::RwLock;
 use crate::config::AppFullSettings; // Changed from Settings to AppFullSettings
 use crate::errors::VisionFlowResult;
+use log::{debug, info};
+use reqwest::Client;
+use std::sync::Arc;
+use std::time::Duration;
+use tokio::sync::RwLock;
 
 // const GITHUB_API_DELAY: Duration = Duration::from_millis(500); // Unused
 // const MAX_RETRIES: u32 = 3; // Unused
@@ -30,8 +30,10 @@ impl GitHubClient {
         let debug_enabled = crate::utils::logging::is_debug_enabled();
 
         if debug_enabled {
-            debug!("Initializing GitHub client - Owner: '{}', Repo: '{}', Base path: '{}'",
-                config.owner, config.repo, config.base_path);
+            debug!(
+                "Initializing GitHub client - Owner: '{}', Repo: '{}', Base path: '{}'",
+                config.owner, config.repo, config.base_path
+            );
         }
 
         // Build HTTP client with configuration
@@ -52,19 +54,22 @@ impl GitHubClient {
         let decoded_path = urlencoding::decode(&config.base_path)
             .unwrap_or(std::borrow::Cow::Owned(config.base_path.clone()))
             .into_owned();
-        
+
         if debug_enabled {
             debug!("Decoded base path: '{}'", decoded_path);
         }
-        
+
         // Clean the path
         let base_path = decoded_path
             .trim_matches('/')
             .replace("//", "/")
             .replace('\\', "/");
-        
+
         if debug_enabled {
-            debug!("Cleaned base path: '{}' (original: '{}')", base_path, base_path);
+            debug!(
+                "Cleaned base path: '{}' (original: '{}')",
+                base_path, base_path
+            );
             debug!("GitHub client initialization complete");
         }
 
@@ -98,11 +103,11 @@ impl GitHubClient {
         }
 
         let trimmed_path = decoded_path.trim_matches('/');
-        
+
         if debug_enabled {
             log::debug!("Trimmed path: '{}'", trimmed_path);
         }
-        
+
         if trimmed_path.is_empty() {
             if debug_enabled {
                 log::debug!("Path is empty, returning empty string");
@@ -111,7 +116,7 @@ impl GitHubClient {
         } else {
             let encoded = url::form_urlencoded::byte_serialize(trimmed_path.as_bytes())
                 .collect::<String>();
-            
+
             if debug_enabled {
                 log::debug!("Final encoded API path: '{}'", encoded);
             }
@@ -127,8 +132,10 @@ impl GitHubClient {
         drop(settings);
 
         if debug_enabled {
-            debug!("Getting full path - Base: '{}', Input path: '{}'",
-                self.base_path, path);
+            debug!(
+                "Getting full path - Base: '{}', Input path: '{}'",
+                self.base_path, path
+            );
         }
 
         let base = self.base_path.trim_matches('/');
@@ -137,7 +144,7 @@ impl GitHubClient {
         if debug_enabled {
             log::debug!("Trimmed paths - Base: '{}', Path: '{}'", base, path);
         }
-        
+
         // First decode any existing encoding to prevent double-encoding
         let decoded_path = urlencoding::decode(path)
             .unwrap_or(std::borrow::Cow::Owned(path.to_string()))
@@ -145,15 +152,21 @@ impl GitHubClient {
         let decoded_base = urlencoding::decode(base)
             .unwrap_or(std::borrow::Cow::Owned(base.to_string()))
             .into_owned();
-        
+
         if debug_enabled {
-            log::debug!("Decoded paths - Base: '{}', Path: '{}'",
-                decoded_base, decoded_path);
+            log::debug!(
+                "Decoded paths - Base: '{}', Path: '{}'",
+                decoded_base,
+                decoded_path
+            );
         }
-        
+
         let full_path = if decoded_base.is_empty() {
             if debug_enabled {
-                log::debug!("Base path is empty, using decoded path only: '{}'", decoded_path);
+                log::debug!(
+                    "Base path is empty, using decoded path only: '{}'",
+                    decoded_path
+                );
             }
             decoded_path
         } else {
@@ -165,7 +178,10 @@ impl GitHubClient {
             } else if decoded_path.starts_with(&decoded_base) {
                 // Path already contains base path, don't duplicate it
                 if debug_enabled {
-                    log::debug!("Path already contains base path, using as-is: '{}'", decoded_path);
+                    log::debug!(
+                        "Path already contains base path, using as-is: '{}'",
+                        decoded_path
+                    );
                 }
                 decoded_path
             } else {
@@ -190,21 +206,22 @@ impl GitHubClient {
     /// Get the base URL for contents API
     pub(crate) async fn get_contents_url(&self, path: &str) -> String {
         let settings = self.settings.read().await;
-        let debug_enabled = crate::utils::logging::is_debug_enabled();
+        let _debug_enabled = crate::utils::logging::is_debug_enabled();
         drop(settings);
 
         info!("get_contents_url: Building GitHub API URL - Owner: '{}', Repo: '{}', Base path: '{}', Input path: '{}'",
             self.owner, self.repo, self.base_path, path);
 
         let full_path = self.get_full_path(path).await;
-        
-        info!("get_contents_url: Full path after encoding: '{}'", full_path);
+
+        info!(
+            "get_contents_url: Full path after encoding: '{}'",
+            full_path
+        );
 
         let url = format!(
             "https://api.github.com/repos/{}/{}/contents/{}",
-            self.owner,
-            self.repo,
-            full_path
+            self.owner, self.repo, full_path
         );
 
         info!("get_contents_url: Final GitHub API URL: '{}'", url);
@@ -239,7 +256,8 @@ impl GitHubClient {
 
     /// Get settings
     #[allow(dead_code)]
-    pub(crate) fn settings(&self) -> &Arc<RwLock<AppFullSettings>> { // Changed from Settings to AppFullSettings
+    pub(crate) fn settings(&self) -> &Arc<RwLock<AppFullSettings>> {
+        // Changed from Settings to AppFullSettings
         &self.settings
     }
 

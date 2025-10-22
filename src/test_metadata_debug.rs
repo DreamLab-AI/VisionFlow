@@ -9,13 +9,13 @@ async fn main() {
     match FileService::load_or_create_metadata() {
         Ok(metadata) => {
             println!("Loaded {} metadata entries", metadata.len());
-            
+
             // Show first 3 entries
             for (i, (key, value)) in metadata.iter().enumerate() {
                 if i >= 3 { break; }
                 println!("  {}: {} (size: {})", i+1, key, value.file_size);
             }
-            
+
             // Create a graph actor and build from metadata
             let mut actor = GraphServiceActor::new();
             match actor.build_from_metadata(metadata) {

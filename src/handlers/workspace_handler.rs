@@ -14,14 +14,15 @@ use log::{debug, error, info, warn};
 use serde_json::json;
 use validator::Validate;
 
-use crate::actors::workspace_actor::WorkspaceActor;
 use crate::actors::messages::{
-    GetWorkspaces, GetWorkspace, CreateWorkspace, UpdateWorkspace, DeleteWorkspace,
-    ToggleFavoriteWorkspace, ArchiveWorkspace, GetWorkspaceCount,
+    ArchiveWorkspace, CreateWorkspace, DeleteWorkspace, GetWorkspace, GetWorkspaceCount,
+    GetWorkspaces, ToggleFavoriteWorkspace, UpdateWorkspace,
 };
+use crate::actors::workspace_actor::WorkspaceActor;
 use crate::models::workspace::{
-    CreateWorkspaceRequest, UpdateWorkspaceRequest, WorkspaceQuery, WorkspaceResponse,
-    WorkspaceListResponse, WorkspaceFilter, WorkspaceSortBy, SortDirection, WorkspaceType, WorkspaceStatus,
+    CreateWorkspaceRequest, SortDirection, UpdateWorkspaceRequest, WorkspaceFilter,
+    WorkspaceListResponse, WorkspaceQuery, WorkspaceResponse, WorkspaceSortBy, WorkspaceStatus,
+    WorkspaceType,
 };
 
 /// Configuration function to register workspace routes
@@ -35,7 +36,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .route("/{id}", web::put().to(update_workspace))
             .route("/{id}", web::delete().to(delete_workspace))
             .route("/{id}/favorite", web::post().to(toggle_favorite_workspace))
-            .route("/{id}/archive", web::post().to(archive_workspace))
+            .route("/{id}/archive", web::post().to(archive_workspace)),
     );
 }
 
@@ -70,22 +71,35 @@ async fn list_workspaces(
     }
 
     // Send request to workspace actor
-    match workspace_actor.send(GetWorkspaces { query: workspace_query }).await {
+    match workspace_actor
+        .send(GetWorkspaces {
+            query: workspace_query,
+        })
+        .await
+    {
         Ok(Ok(response)) => {
-            info!("Successfully retrieved {} workspaces", response.workspaces.len());
+            info!(
+                "Successfully retrieved {} workspaces",
+                response.workspaces.len()
+            );
             Ok(HttpResponse::Ok().json(response))
         }
         Ok(Err(e)) => {
             error!("Workspace actor error: {}", e);
-            Ok(HttpResponse::InternalServerError().json(
-                WorkspaceListResponse::error(format!("Failed to retrieve workspaces: {}", e))
-            ))
+            Ok(
+                HttpResponse::InternalServerError().json(WorkspaceListResponse::error(format!(
+                    "Failed to retrieve workspaces: {}",
+                    e
+                ))),
+            )
         }
         Err(e) => {
             error!("Failed to communicate with workspace actor: {}", e);
-            Ok(HttpResponse::InternalServerError().json(
-                WorkspaceListResponse::error("Service temporarily unavailable")
-            ))
+            Ok(
+                HttpResponse::InternalServerError().json(WorkspaceListResponse::error(
+                    "Service temporarily unavailable",
+                )),
+            )
         }
     }
 }
@@ -100,29 +114,31 @@ async fn get_workspace(
     debug!("Received get workspace request for ID: {}", workspace_id);
 
     if workspace_id.trim().is_empty() {
-        return Ok(HttpResponse::BadRequest().json(
-            WorkspaceResponse::error("Workspace ID cannot be empty")
-        ));
+        return Ok(HttpResponse::BadRequest()
+            .json(WorkspaceResponse::error("Workspace ID cannot be empty")));
     }
 
-    match workspace_actor.send(GetWorkspace { workspace_id: workspace_id.clone() }).await {
+    match workspace_actor
+        .send(GetWorkspace {
+            workspace_id: workspace_id.clone(),
+        })
+        .await
+    {
         Ok(Ok(workspace)) => {
             info!("Successfully retrieved workspace: {}", workspace.name);
-            Ok(HttpResponse::Ok().json(
-                WorkspaceResponse::success(workspace, "Workspace retrieved successfully")
-            ))
+            Ok(HttpResponse::Ok().json(WorkspaceResponse::success(
+                workspace,
+                "Workspace retrieved successfully",
+            )))
         }
         Ok(Err(e)) => {
             warn!("Workspace not found or error: {}", e);
-            Ok(HttpResponse::NotFound().json(
-                WorkspaceResponse::error(e)
-            ))
+            Ok(HttpResponse::NotFound().json(WorkspaceResponse::error(e)))
         }
         Err(e) => {
             error!("Failed to communicate with workspace actor: {}", e);
-            Ok(HttpResponse::InternalServerError().json(
-                WorkspaceResponse::error("Service temporarily unavailable")
-            ))
+            Ok(HttpResponse::InternalServerError()
+                .json(WorkspaceResponse::error("Service temporarily unavailable")))
         }
     }
 }
@@ -137,32 +153,44 @@ async fn create_workspace(
 
     // Validate the request
     if let Err(validation_errors) = payload.validate() {
-        warn!("Workspace creation validation failed: {:?}", validation_errors);
-        return Ok(HttpResponse::BadRequest().json(
-            WorkspaceResponse::error(format!("Validation error: {}", validation_errors))
-        ));
+        warn!(
+            "Workspace creation validation failed: {:?}",
+            validation_errors
+        );
+        return Ok(
+            HttpResponse::BadRequest().json(WorkspaceResponse::error(format!(
+                "Validation error: {}",
+                validation_errors
+            ))),
+        );
     }
 
     let request = payload.into_inner();
 
     match workspace_actor.send(CreateWorkspace { request }).await {
         Ok(Ok(workspace)) => {
-            info!("Successfully created workspace: {} (ID: {})", workspace.name, workspace.id);
-            Ok(HttpResponse::Created().json(
-                WorkspaceResponse::success(workspace, "Workspace created successfully")
-            ))
+            info!(
+                "Successfully created workspace: {} (ID: {})",
+                workspace.name, workspace.id
+            );
+            Ok(HttpResponse::Created().json(WorkspaceResponse::success(
+                workspace,
+                "Workspace created successfully",
+            )))
         }
         Ok(Err(e)) => {
             error!("Failed to create workspace: {}", e);
-            Ok(HttpResponse::InternalServerError().json(
-                WorkspaceResponse::error(format!("Failed to create workspace: {}", e))
-            ))
+            Ok(
+                HttpResponse::InternalServerError().json(WorkspaceResponse::error(format!(
+                    "Failed to create workspace: {}",
+                    e
+                ))),
+            )
         }
         Err(e) => {
             error!("Failed to communicate with workspace actor: {}", e);
-            Ok(HttpResponse::InternalServerError().json(
-                WorkspaceResponse::error("Service temporarily unavailable")
-            ))
+            Ok(HttpResponse::InternalServerError()
+                .json(WorkspaceResponse::error("Service temporarily unavailable")))
         }
     }
 }
@@ -178,45 +206,60 @@ async fn update_workspace(
     debug!("Received update workspace request for ID: {}", workspace_id);
 
     if workspace_id.trim().is_empty() {
-        return Ok(HttpResponse::BadRequest().json(
-            WorkspaceResponse::error("Workspace ID cannot be empty")
-        ));
+        return Ok(HttpResponse::BadRequest()
+            .json(WorkspaceResponse::error("Workspace ID cannot be empty")));
     }
 
     // Validate the request
     if let Err(validation_errors) = payload.validate() {
-        warn!("Workspace update validation failed: {:?}", validation_errors);
-        return Ok(HttpResponse::BadRequest().json(
-            WorkspaceResponse::error(format!("Validation error: {}", validation_errors))
-        ));
+        warn!(
+            "Workspace update validation failed: {:?}",
+            validation_errors
+        );
+        return Ok(
+            HttpResponse::BadRequest().json(WorkspaceResponse::error(format!(
+                "Validation error: {}",
+                validation_errors
+            ))),
+        );
     }
 
     let request = payload.into_inner();
 
-    match workspace_actor.send(UpdateWorkspace { workspace_id: workspace_id.clone(), request }).await {
+    match workspace_actor
+        .send(UpdateWorkspace {
+            workspace_id: workspace_id.clone(),
+            request,
+        })
+        .await
+    {
         Ok(Ok(workspace)) => {
-            info!("Successfully updated workspace: {} (ID: {})", workspace.name, workspace.id);
-            Ok(HttpResponse::Ok().json(
-                WorkspaceResponse::success(workspace, "Workspace updated successfully")
-            ))
+            info!(
+                "Successfully updated workspace: {} (ID: {})",
+                workspace.name, workspace.id
+            );
+            Ok(HttpResponse::Ok().json(WorkspaceResponse::success(
+                workspace,
+                "Workspace updated successfully",
+            )))
         }
         Ok(Err(e)) => {
             if e.contains("not found") {
-                Ok(HttpResponse::NotFound().json(
-                    WorkspaceResponse::error(e)
-                ))
+                Ok(HttpResponse::NotFound().json(WorkspaceResponse::error(e)))
             } else {
                 error!("Failed to update workspace: {}", e);
-                Ok(HttpResponse::InternalServerError().json(
-                    WorkspaceResponse::error(format!("Failed to update workspace: {}", e))
-                ))
+                Ok(
+                    HttpResponse::InternalServerError().json(WorkspaceResponse::error(format!(
+                        "Failed to update workspace: {}",
+                        e
+                    ))),
+                )
             }
         }
         Err(e) => {
             error!("Failed to communicate with workspace actor: {}", e);
-            Ok(HttpResponse::InternalServerError().json(
-                WorkspaceResponse::error("Service temporarily unavailable")
-            ))
+            Ok(HttpResponse::InternalServerError()
+                .json(WorkspaceResponse::error("Service temporarily unavailable")))
         }
     }
 }
@@ -231,35 +274,42 @@ async fn delete_workspace(
     debug!("Received delete workspace request for ID: {}", workspace_id);
 
     if workspace_id.trim().is_empty() {
-        return Ok(HttpResponse::BadRequest().json(
-            WorkspaceResponse::error("Workspace ID cannot be empty")
-        ));
+        return Ok(HttpResponse::BadRequest()
+            .json(WorkspaceResponse::error("Workspace ID cannot be empty")));
     }
 
-    match workspace_actor.send(DeleteWorkspace { workspace_id: workspace_id.clone() }).await {
+    match workspace_actor
+        .send(DeleteWorkspace {
+            workspace_id: workspace_id.clone(),
+        })
+        .await
+    {
         Ok(Ok(())) => {
-            info!("Successfully deleted (archived) workspace with ID: {}", workspace_id);
-            Ok(HttpResponse::Ok().json(
-                WorkspaceResponse::success_no_data("Workspace deleted successfully")
-            ))
+            info!(
+                "Successfully deleted (archived) workspace with ID: {}",
+                workspace_id
+            );
+            Ok(HttpResponse::Ok().json(WorkspaceResponse::success_no_data(
+                "Workspace deleted successfully",
+            )))
         }
         Ok(Err(e)) => {
             if e.contains("not found") {
-                Ok(HttpResponse::NotFound().json(
-                    WorkspaceResponse::error(e)
-                ))
+                Ok(HttpResponse::NotFound().json(WorkspaceResponse::error(e)))
             } else {
                 error!("Failed to delete workspace: {}", e);
-                Ok(HttpResponse::InternalServerError().json(
-                    WorkspaceResponse::error(format!("Failed to delete workspace: {}", e))
-                ))
+                Ok(
+                    HttpResponse::InternalServerError().json(WorkspaceResponse::error(format!(
+                        "Failed to delete workspace: {}",
+                        e
+                    ))),
+                )
             }
         }
         Err(e) => {
             error!("Failed to communicate with workspace actor: {}", e);
-            Ok(HttpResponse::InternalServerError().json(
-                WorkspaceResponse::error("Service temporarily unavailable")
-            ))
+            Ok(HttpResponse::InternalServerError()
+                .json(WorkspaceResponse::error("Service temporarily unavailable")))
         }
     }
 }
@@ -271,7 +321,10 @@ async fn toggle_favorite_workspace(
     path: web::Path<String>,
 ) -> ActixResult<HttpResponse> {
     let workspace_id = path.into_inner();
-    debug!("Received toggle favorite request for workspace ID: {}", workspace_id);
+    debug!(
+        "Received toggle favorite request for workspace ID: {}",
+        workspace_id
+    );
 
     if workspace_id.trim().is_empty() {
         return Ok(HttpResponse::BadRequest().json(json!({
@@ -281,14 +334,22 @@ async fn toggle_favorite_workspace(
         })));
     }
 
-    match workspace_actor.send(ToggleFavoriteWorkspace { workspace_id: workspace_id.clone() }).await {
+    match workspace_actor
+        .send(ToggleFavoriteWorkspace {
+            workspace_id: workspace_id.clone(),
+        })
+        .await
+    {
         Ok(Ok(is_favorite)) => {
             let message = if is_favorite {
                 "Workspace added to favorites"
             } else {
                 "Workspace removed from favorites"
             };
-            info!("Successfully toggled favorite for workspace {}: {}", workspace_id, is_favorite);
+            info!(
+                "Successfully toggled favorite for workspace {}: {}",
+                workspace_id, is_favorite
+            );
             Ok(HttpResponse::Ok().json(json!({
                 "success": true,
                 "message": message,
@@ -331,43 +392,53 @@ async fn archive_workspace(
 ) -> ActixResult<HttpResponse> {
     let workspace_id = path.into_inner();
     let archive = payload.archive;
-    debug!("Received archive request for workspace ID: {}, archive: {}", workspace_id, archive);
+    debug!(
+        "Received archive request for workspace ID: {}, archive: {}",
+        workspace_id, archive
+    );
 
     if workspace_id.trim().is_empty() {
-        return Ok(HttpResponse::BadRequest().json(
-            WorkspaceResponse::error("Workspace ID cannot be empty")
-        ));
+        return Ok(HttpResponse::BadRequest()
+            .json(WorkspaceResponse::error("Workspace ID cannot be empty")));
     }
 
-    match workspace_actor.send(ArchiveWorkspace { workspace_id: workspace_id.clone(), archive }).await {
+    match workspace_actor
+        .send(ArchiveWorkspace {
+            workspace_id: workspace_id.clone(),
+            archive,
+        })
+        .await
+    {
         Ok(Ok(())) => {
             let message = if archive {
                 "Workspace archived successfully"
             } else {
                 "Workspace unarchived successfully"
             };
-            info!("Successfully {} workspace with ID: {}", if archive { "archived" } else { "unarchived" }, workspace_id);
-            Ok(HttpResponse::Ok().json(
-                WorkspaceResponse::success_no_data(message)
-            ))
+            info!(
+                "Successfully {} workspace with ID: {}",
+                if archive { "archived" } else { "unarchived" },
+                workspace_id
+            );
+            Ok(HttpResponse::Ok().json(WorkspaceResponse::success_no_data(message)))
         }
         Ok(Err(e)) => {
             if e.contains("not found") {
-                Ok(HttpResponse::NotFound().json(
-                    WorkspaceResponse::error(e)
-                ))
+                Ok(HttpResponse::NotFound().json(WorkspaceResponse::error(e)))
             } else {
                 error!("Failed to archive workspace: {}", e);
-                Ok(HttpResponse::InternalServerError().json(
-                    WorkspaceResponse::error(format!("Failed to archive workspace: {}", e))
-                ))
+                Ok(
+                    HttpResponse::InternalServerError().json(WorkspaceResponse::error(format!(
+                        "Failed to archive workspace: {}",
+                        e
+                    ))),
+                )
             }
         }
         Err(e) => {
             error!("Failed to communicate with workspace actor: {}", e);
-            Ok(HttpResponse::InternalServerError().json(
-                WorkspaceResponse::error("Service temporarily unavailable")
-            ))
+            Ok(HttpResponse::InternalServerError()
+                .json(WorkspaceResponse::error("Service temporarily unavailable")))
         }
     }
 }
@@ -452,7 +523,8 @@ fn build_filter_from_query(query: &WorkspaceQueryParams) -> Option<WorkspaceFilt
         && query.workspace_type.is_none()
         && query.is_favorite.is_none()
         && query.owner_id.is_none()
-        && query.search.is_none() {
+        && query.search.is_none()
+    {
         return None;
     }
 
@@ -471,7 +543,8 @@ fn build_filter_from_count_query(query: &WorkspaceCountQuery) -> Option<Workspac
         && query.workspace_type.is_none()
         && query.is_favorite.is_none()
         && query.owner_id.is_none()
-        && query.search.is_none() {
+        && query.search.is_none()
+    {
         return None;
     }
 
@@ -487,7 +560,7 @@ fn build_filter_from_count_query(query: &WorkspaceCountQuery) -> Option<Workspac
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::workspace::{WorkspaceType, WorkspaceStatus};
+    use crate::models::workspace::{WorkspaceStatus, WorkspaceType};
 
     #[test]
     fn test_build_filter_from_query_empty() {

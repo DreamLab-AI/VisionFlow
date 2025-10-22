@@ -361,8 +361,11 @@ auth:
         Ok(settings) => {
             println!("✅ Direct YAML deserialization successful!");
             println!("   - Glow enabled: {}", settings.visualisation.glow.enabled);
-            println!("   - Glow strength: {}", settings.visualisation.glow.edge_glow_strength);
-            
+            println!(
+                "   - Glow strength: {}",
+                settings.visualisation.glow.edge_glow_strength
+            );
+
             // Test serialization back to ensure bidirectional conversion works
             match serde_yaml::to_string(&settings) {
                 Ok(serialized) => {
@@ -385,7 +388,7 @@ auth:
     println!("\nTesting JSON serialization for client using DTO...");
     let default_settings = AppFullSettings::default();
     let response_dto: SettingsResponseDTO = (&default_settings).into();
-    
+
     match serde_json::to_value(&response_dto) {
         Ok(json) => {
             if let Some(vis) = json.get("visualisation") {

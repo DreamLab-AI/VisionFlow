@@ -24,12 +24,12 @@ mod validation_fixes_tests {
     #[test]
     fn test_string_to_number_conversion() {
         let string_val = Value::String("1.35".to_string());
-        
+
         // Extract string and parse
         if let Value::String(s) = &string_val {
             let parsed: f64 = s.parse().unwrap();
             let number_val = Value::Number(serde_json::Number::from_f64(parsed).unwrap());
-            
+
             assert!(number_val.is_number());
             assert_eq!(number_val.as_f64().unwrap(), 1.35);
         }
@@ -40,15 +40,16 @@ mod validation_fixes_tests {
     fn test_compatible_types_with_conversion() {
         let existing = json!(1.0);
         let new_string = json!("1.35");
-        
+
         // Should be compatible if we allow string-to-number conversion
         let compatible = match (&existing, &new_string) {
-            (Value::Number(_), Value::String(s)) => {
-                s.parse::<f64>().is_ok()
-            }
-            _ => false
+            (Value::Number(_), Value::String(s)) => s.parse::<f64>().is_ok(),
+            _ => false,
         };
-        
-        assert!(compatible, "String '1.35' should be compatible with number type");
+
+        assert!(
+            compatible,
+            "String '1.35' should be compatible with number type"
+        );
     }
 }

@@ -68,6 +68,9 @@ COPY Cargo.toml build.rs ./
 COPY src ./src
 COPY schema ./schema
 
+# Copy whelk-rs local dependency (required for cargo fetch)
+COPY whelk-rs ./whelk-rs
+
 # Copy client directory with all frontend files
 COPY client ./client
 

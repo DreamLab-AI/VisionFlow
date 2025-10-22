@@ -1,11 +1,11 @@
+use crate::utils::client_message_extractor::{extract_client_messages, ClientMessage};
+use log::{debug, error, warn};
 use std::path::PathBuf;
 use std::sync::Arc;
-use tokio::sync::mpsc;
 use tokio::fs::File;
-use tokio::io::{AsyncBufReadExt, BufReader, AsyncSeekExt};
+use tokio::io::{AsyncBufReadExt, AsyncSeekExt, BufReader};
+use tokio::sync::mpsc;
 use tokio::time::{interval, Duration};
-use log::{debug, warn, error};
-use crate::utils::client_message_extractor::{ClientMessage, extract_client_messages};
 
 /// Monitor session log files for client messages
 pub struct SessionLogMonitor {
@@ -33,7 +33,10 @@ impl SessionLogMonitor {
     pub async fn start(self: Arc<Self>) {
         let log_file = self.session_dir.join("session.log");
 
-        debug!("Starting log monitor for session {}: {:?}", self.session_id, log_file);
+        debug!(
+            "Starting log monitor for session {}: {:?}",
+            self.session_id, log_file
+        );
 
         let mut ticker = interval(self.poll_interval);
         let mut last_position: u64 = 0;
@@ -47,7 +50,10 @@ impl SessionLogMonitor {
                 Ok(mut file) => {
                     // Seek to last read position
                     if let Err(e) = file.seek(std::io::SeekFrom::Start(last_position)).await {
-                        warn!("Failed to seek log file for session {}: {}", self.session_id, e);
+                        warn!(
+                            "Failed to seek log file for session {}: {}",
+                            self.session_id, e
+                        );
                         continue;
                     }
 
@@ -65,15 +71,14 @@ impl SessionLogMonitor {
 
                     // Extract messages from buffer if we have content
                     if !buffer.is_empty() {
-                        let messages = extract_client_messages(
-                            &buffer,
-                            Some(self.session_id.clone()),
-                            None,
-                        );
+                        let messages =
+                            extract_client_messages(&buffer, Some(self.session_id.clone()), None);
 
                         for msg in messages {
-                            debug!("Extracted client message from session {}: {}",
-                                   self.session_id, msg.content);
+                            debug!(
+                                "Extracted client message from session {}: {}",
+                                self.session_id, msg.content
+                            );
 
                             if let Err(e) = self.message_sender.send(msg) {
                                 error!("Failed to send client message: {}", e);
@@ -87,10 +92,16 @@ impl SessionLogMonitor {
                 }
                 Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
                     // Log file doesn't exist yet, continue waiting
-                    debug!("Log file not found for session {}, waiting...", self.session_id);
+                    debug!(
+                        "Log file not found for session {}, waiting...",
+                        self.session_id
+                    );
                 }
                 Err(e) => {
-                    warn!("Error opening log file for session {}: {}", self.session_id, e);
+                    warn!(
+                        "Error opening log file for session {}: {}",
+                        self.session_id, e
+                    );
                 }
             }
         }
@@ -104,11 +115,7 @@ impl SessionLogMonitor {
         let mut handles = Vec::new();
 
         for (session_id, session_dir) in sessions {
-            let monitor = Arc::new(Self::new(
-                session_dir,
-                session_id,
-                message_sender.clone(),
-            ));
+            let monitor = Arc::new(Self::new(session_dir, session_id, message_sender.clone()));
 
             let handle = tokio::spawn(async move {
                 monitor.start().await;
@@ -176,7 +183,8 @@ impl TCPServerLogMonitor {
                     }
 
                     if !buffer.is_empty() {
-                        let messages = extract_client_messages(&buffer, None, Some("tcp-server".to_string()));
+                        let messages =
+                            extract_client_messages(&buffer, None, Some("tcp-server".to_string()));
 
                         for msg in messages {
                             debug!("Extracted client message from TCP server: {}", msg.content);
@@ -197,8 +205,8 @@ impl TCPServerLogMonitor {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tokio::fs;
     use tempfile::TempDir;
+    use tokio::fs;
 
     #[tokio::test]
     async fn test_log_monitor_extracts_messages() {

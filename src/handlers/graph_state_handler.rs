@@ -1,8 +1,37 @@
-use actix_web::{web, HttpResponse, Responder};
+// CQRS-Based Graph State Handler
+// Uses Knowledge Graph application layer for all graph operations
+
 use crate::AppState;
-use serde::Serialize;
-use log::{info, debug, error};
-use crate::actors::messages::{GetGraphData, GetSettings};
+use actix_web::{web, HttpResponse, Responder};
+use log::{debug, error, info};
+use serde::{Deserialize, Serialize};
+
+// Import CQRS handlers
+use crate::application::knowledge_graph::{
+    AddEdge,
+    AddEdgeHandler,
+    // Directives
+    AddNode,
+    AddNodeHandler,
+    BatchUpdatePositions,
+    BatchUpdatePositionsHandler,
+    GetGraphStatistics,
+    GetGraphStatisticsHandler,
+    GetNode,
+    GetNodeHandler,
+    // Queries
+    LoadGraph,
+    LoadGraphHandler,
+    RemoveNode,
+    RemoveNodeHandler,
+    UpdateEdge,
+    UpdateEdgeHandler,
+    UpdateNode,
+    UpdateNodeHandler,
+};
+use crate::models::edge::Edge;
+use crate::models::node::Node;
+use hexser::{DirectiveHandler, QueryHandler};
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -24,27 +53,56 @@ pub struct NodePosition {
     pub z: f32,
 }
 
-/// Get complete graph state including counts, positions, and settings version
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AddNodeRequest {
+    pub node: Node,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateNodeRequest {
+    pub node: Node,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AddEdgeRequest {
+    pub edge: Edge,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BatchPositionsRequest {
+    pub positions: Vec<(u32, f32, f32, f32)>,
+}
+
+/// Get complete graph state including counts, positions, and statistics
 pub async fn get_graph_state(state: web::Data<AppState>) -> impl Responder {
-    info!("Received request for complete graph state");
-    
-    // Get graph data from GraphServiceActor
-    let graph_data_result = state.graph_service_addr.send(GetGraphData).await;
-    
-    match graph_data_result {
-        Ok(Ok(graph_data)) => {
-            // Get current settings to include version info
-            let settings_version = match state.settings_addr.send(GetSettings).await {
-                Ok(Ok(_settings)) => {
-                    // In a real implementation, you'd extract version from settings
-                    // For now, using a static version
-                    "1.0.0".to_string()
+    info!("Received request for complete graph state via CQRS");
+
+    // Create query handler for loading graph
+    let load_handler = LoadGraphHandler::new(state.knowledge_graph_repository.clone());
+
+    // Execute query
+    match load_handler.handle(LoadGraph) {
+        Ok(query_result) => {
+            // Extract GraphData from QueryResult::Graph variant
+            let graph_data = match query_result {
+                crate::application::knowledge_graph::QueryResult::Graph(graph_arc) => graph_arc,
+                _ => {
+                    error!("Unexpected query result type");
+                    return HttpResponse::InternalServerError().json(serde_json::json!({
+                        "error": "Unexpected query result type"
+                    }));
                 }
-                _ => "unknown".to_string()
             };
-            
-            // Extract node positions
-            let positions: Vec<NodePosition> = graph_data.nodes.iter()
+
+            // Extract node positions (dereference Arc)
+            let graph_ref = graph_data.as_ref();
+            let positions: Vec<NodePosition> = graph_ref
+                .nodes
+                .iter()
                 .map(|node| NodePosition {
                     id: node.id,
                     x: node.data.x,
@@ -52,47 +110,307 @@ pub async fn get_graph_state(state: web::Data<AppState>) -> impl Responder {
                     z: node.data.z,
                 })
                 .collect();
-            
+
             let response = GraphStateResponse {
-                nodes_count: graph_data.nodes.len(),
-                edges_count: graph_data.edges.len(),
-                metadata_count: graph_data.metadata.len(),
+                nodes_count: graph_ref.nodes.len(),
+                edges_count: graph_ref.edges.len(),
+                metadata_count: graph_ref.metadata.len(),
                 positions,
-                settings_version,
+                settings_version: "1.0.0".to_string(), // TODO: Extract from settings
                 timestamp: std::time::SystemTime::now()
                     .duration_since(std::time::UNIX_EPOCH)
                     .unwrap_or_default()
                     .as_secs(),
             };
-            
+
             debug!(
-                "Returning graph state: {} nodes, {} edges, {} metadata entries",
-                response.nodes_count,
-                response.edges_count,
-                response.metadata_count
+                "Returning graph state via CQRS: {} nodes, {} edges, {} metadata entries",
+                response.nodes_count, response.edges_count, response.metadata_count
             );
-            
+
             HttpResponse::Ok().json(response)
         }
-        Ok(Err(e)) => {
-            error!("Failed to get graph data from actor: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to retrieve graph state"
-            }))
-        }
         Err(e) => {
-            error!("Mailbox error getting graph data: {}", e);
+            error!("CQRS query failed to get graph data: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Graph service unavailable"
+                "error": "Failed to retrieve graph state",
+                "message": e.to_string()
             }))
         }
     }
 }
 
-/// Configure routes for graph state endpoints
+/// Get graph statistics
+pub async fn get_graph_statistics(state: web::Data<AppState>) -> impl Responder {
+    info!("Received request for graph statistics via CQRS");
+
+    // Create query handler
+    let handler = GetGraphStatisticsHandler::new(state.knowledge_graph_repository.clone());
+
+    // Execute query
+    match handler.handle(GetGraphStatistics) {
+        Ok(query_result) => {
+            // Extract Statistics from QueryResult::Statistics variant
+            let statistics = match query_result {
+                crate::application::knowledge_graph::QueryResult::Statistics(stats) => stats,
+                _ => {
+                    error!("Unexpected query result type");
+                    return HttpResponse::InternalServerError().json(serde_json::json!({
+                        "error": "Unexpected query result type"
+                    }));
+                }
+            };
+
+            info!("Graph statistics retrieved successfully via CQRS");
+            HttpResponse::Ok().json(statistics)
+        }
+        Err(e) => {
+            error!("CQRS query failed to get statistics: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Failed to retrieve statistics",
+                "message": e.to_string()
+            }))
+        }
+    }
+}
+
+/// Add a new node using CQRS directive
+pub async fn add_node(
+    state: web::Data<AppState>,
+    request: web::Json<AddNodeRequest>,
+) -> impl Responder {
+    let node = request.into_inner().node;
+    info!(
+        "Adding node via CQRS directive: metadata_id={}",
+        node.metadata_id
+    );
+
+    // Create directive handler
+    let handler = AddNodeHandler::new(state.knowledge_graph_repository.clone());
+
+    // Execute directive
+    match handler.handle(AddNode { node: node.clone() }) {
+        Ok(()) => {
+            info!("Node added successfully via CQRS: id={}", node.id);
+            HttpResponse::Ok().json(serde_json::json!({
+                "success": true,
+                "node_id": node.id
+            }))
+        }
+        Err(e) => {
+            error!("CQRS directive failed to add node: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Failed to add node",
+                "message": e.to_string()
+            }))
+        }
+    }
+}
+
+/// Update an existing node using CQRS directive
+pub async fn update_node(
+    state: web::Data<AppState>,
+    request: web::Json<UpdateNodeRequest>,
+) -> impl Responder {
+    let node = request.into_inner().node;
+    info!("Updating node via CQRS directive: id={}", node.id);
+
+    // Create directive handler
+    let handler = UpdateNodeHandler::new(state.knowledge_graph_repository.clone());
+
+    // Execute directive
+    match handler.handle(UpdateNode { node }) {
+        Ok(()) => {
+            info!("Node updated successfully via CQRS");
+            HttpResponse::Ok().json(serde_json::json!({
+                "success": true
+            }))
+        }
+        Err(e) => {
+            error!("CQRS directive failed to update node: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Failed to update node",
+                "message": e.to_string()
+            }))
+        }
+    }
+}
+
+/// Remove a node using CQRS directive
+pub async fn remove_node(state: web::Data<AppState>, node_id: web::Path<u32>) -> impl Responder {
+    let id = node_id.into_inner();
+    info!("Removing node via CQRS directive: id={}", id);
+
+    // Create directive handler
+    let handler = RemoveNodeHandler::new(state.knowledge_graph_repository.clone());
+
+    // Execute directive
+    match handler.handle(RemoveNode { node_id: id }) {
+        Ok(()) => {
+            info!("Node removed successfully via CQRS");
+            HttpResponse::Ok().json(serde_json::json!({
+                "success": true
+            }))
+        }
+        Err(e) => {
+            error!("CQRS directive failed to remove node: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Failed to remove node",
+                "message": e.to_string()
+            }))
+        }
+    }
+}
+
+/// Get a node by ID using CQRS query
+pub async fn get_node(state: web::Data<AppState>, node_id: web::Path<u32>) -> impl Responder {
+    let id = node_id.into_inner();
+    info!("Getting node via CQRS query: id={}", id);
+
+    // Create query handler
+    let handler = GetNodeHandler::new(state.knowledge_graph_repository.clone());
+
+    // Execute query
+    match handler.handle(GetNode { node_id: id }) {
+        Ok(query_result) => {
+            // Extract Node from QueryResult::Node variant
+            let node_opt = match query_result {
+                crate::application::knowledge_graph::QueryResult::Node(node) => node,
+                _ => {
+                    error!("Unexpected query result type");
+                    return HttpResponse::InternalServerError().json(serde_json::json!({
+                        "error": "Unexpected query result type"
+                    }));
+                }
+            };
+
+            match node_opt {
+                Some(node) => {
+                    info!("Node found via CQRS: id={}", id);
+                    HttpResponse::Ok().json(node)
+                }
+                None => {
+                    info!("Node not found: id={}", id);
+                    HttpResponse::NotFound().json(serde_json::json!({
+                        "error": "Node not found",
+                        "node_id": id
+                    }))
+                }
+            }
+        }
+        Err(e) => {
+            error!("CQRS query failed to get node: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Failed to get node",
+                "message": e.to_string()
+            }))
+        }
+    }
+}
+
+/// Add an edge using CQRS directive
+pub async fn add_edge(
+    state: web::Data<AppState>,
+    request: web::Json<AddEdgeRequest>,
+) -> impl Responder {
+    let edge = request.into_inner().edge;
+    info!(
+        "Adding edge via CQRS directive: source={}, target={}",
+        edge.source, edge.target
+    );
+
+    // Create directive handler
+    let handler = AddEdgeHandler::new(state.knowledge_graph_repository.clone());
+
+    // Execute directive
+    match handler.handle(AddEdge { edge: edge.clone() }) {
+        Ok(()) => {
+            info!("Edge added successfully via CQRS: id={}", edge.id);
+            HttpResponse::Ok().json(serde_json::json!({
+                "success": true,
+                "edge_id": edge.id
+            }))
+        }
+        Err(e) => {
+            error!("CQRS directive failed to add edge: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Failed to add edge",
+                "message": e.to_string()
+            }))
+        }
+    }
+}
+
+/// Update edge using CQRS directive
+pub async fn update_edge(state: web::Data<AppState>, request: web::Json<Edge>) -> impl Responder {
+    let edge = request.into_inner();
+    info!("Updating edge via CQRS directive: id={}", edge.id);
+
+    // Create directive handler
+    let handler = UpdateEdgeHandler::new(state.knowledge_graph_repository.clone());
+
+    // Execute directive
+    match handler.handle(UpdateEdge { edge }) {
+        Ok(()) => {
+            info!("Edge updated successfully via CQRS");
+            HttpResponse::Ok().json(serde_json::json!({
+                "success": true
+            }))
+        }
+        Err(e) => {
+            error!("CQRS directive failed to update edge: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Failed to update edge",
+                "message": e.to_string()
+            }))
+        }
+    }
+}
+
+/// Batch update node positions using CQRS directive
+pub async fn batch_update_positions(
+    state: web::Data<AppState>,
+    request: web::Json<BatchPositionsRequest>,
+) -> impl Responder {
+    let positions = request.into_inner().positions;
+    info!(
+        "Batch updating {} positions via CQRS directive",
+        positions.len()
+    );
+
+    // Create directive handler
+    let handler = BatchUpdatePositionsHandler::new(state.knowledge_graph_repository.clone());
+
+    // Execute directive
+    match handler.handle(BatchUpdatePositions { positions }) {
+        Ok(()) => {
+            info!("Positions updated successfully via CQRS");
+            HttpResponse::Ok().json(serde_json::json!({
+                "success": true
+            }))
+        }
+        Err(e) => {
+            error!("CQRS directive failed to batch update positions: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Failed to update positions",
+                "message": e.to_string()
+            }))
+        }
+    }
+}
+
+/// Configure routes for graph endpoints
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/graph")
             .route("/state", web::get().to(get_graph_state))
+            .route("/statistics", web::get().to(get_graph_statistics))
+            .route("/nodes", web::post().to(add_node))
+            .route("/nodes/{id}", web::get().to(get_node))
+            .route("/nodes/{id}", web::put().to(update_node))
+            .route("/nodes/{id}", web::delete().to(remove_node))
+            .route("/edges", web::post().to(add_edge))
+            .route("/edges/{id}", web::put().to(update_edge))
+            .route("/positions/batch", web::post().to(batch_update_positions)),
     );
 }

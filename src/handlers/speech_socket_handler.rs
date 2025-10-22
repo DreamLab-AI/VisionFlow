@@ -1,18 +1,17 @@
+use crate::actors::messages::GetSettings;
+use crate::app_state::AppState;
+use crate::types::speech::SpeechOptions;
 use actix::prelude::*;
 use actix_web::{web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
 use log::{debug, error, info};
-use std::sync::Arc;
-use std::time::{Duration, Instant};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use crate::app_state::AppState;
-use crate::actors::messages::GetSettings;
-use crate::types::speech::SpeechOptions;
-use crate::actors::voice_commands::VoiceCommand;
+use std::sync::Arc;
+use std::time::{Duration, Instant};
 // DEPRECATED: HybridHealthManager removed - use TaskOrchestratorActor instead
-use tokio::sync::broadcast;
 use futures::FutureExt;
+use tokio::sync::broadcast;
 
 // Constants for heartbeat
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
@@ -64,7 +63,7 @@ impl SpeechSocket {
         let (audio_rx, transcription_rx) = if let Some(speech_service) = &app_state.speech_service {
             (
                 Some(speech_service.subscribe_to_audio()),
-                Some(speech_service.subscribe_to_transcriptions())
+                Some(speech_service.subscribe_to_transcriptions()),
             )
         } else {
             (None, None)
@@ -93,19 +92,27 @@ impl SpeechSocket {
     }
 
     // Process text-to-speech request
-    async fn process_tts_request(app_state: Arc<AppState>, req: TextToSpeechRequest) -> Result<(), String> {
+    async fn process_tts_request(
+        app_state: Arc<AppState>,
+        req: TextToSpeechRequest,
+    ) -> Result<(), String> {
         if let Some(speech_service) = &app_state.speech_service {
             // Get default settings from app state, handling optional Kokoro settings
-            let settings = app_state.settings_addr.send(GetSettings).await
+            let settings = app_state
+                .settings_addr
+                .send(GetSettings)
+                .await
                 .map_err(|e| format!("Settings actor mailbox error: {}", e))?
                 .map_err(|e| format!("Failed to get settings: {}", e))?;
             let kokoro_config = settings.kokoro.as_ref(); // Get Option<&KokoroSettings>
 
             // Provide defaults if Kokoro config or specific fields are None
-            let default_voice = kokoro_config.and_then(|k| k.default_voice.clone()).unwrap_or_else(|| {
-                // Use actual Kokoro voice IDs instead of placeholder
-                "af_sarah".to_string() // Default to Sarah voice which is standard in Kokoro TTS
-            });
+            let default_voice = kokoro_config
+                .and_then(|k| k.default_voice.clone())
+                .unwrap_or_else(|| {
+                    // Use actual Kokoro voice IDs instead of placeholder
+                    "af_sarah".to_string() // Default to Sarah voice which is standard in Kokoro TTS
+                });
             let default_speed = kokoro_config.and_then(|k| k.default_speed).unwrap_or(1.0);
             let default_stream = kokoro_config.and_then(|k| k.stream).unwrap_or(true); // Default to streaming?
 
@@ -129,13 +136,13 @@ impl SpeechSocket {
     /// Check if a voice command is related to swarm operations
     fn is_swarm_command(&self, text: &str) -> bool {
         let text_lower = text.to_lowercase();
-        text_lower.contains("swarm") ||
-        text_lower.contains("spawn agents") ||
-        text_lower.contains("create hive") ||
-        text_lower.contains("start swarm") ||
-        text_lower.contains("stop swarm") ||
-        text_lower.contains("agent status") ||
-        text_lower.contains("docker hive")
+        text_lower.contains("swarm")
+            || text_lower.contains("spawn agents")
+            || text_lower.contains("create hive")
+            || text_lower.contains("start swarm")
+            || text_lower.contains("stop swarm")
+            || text_lower.contains("agent status")
+            || text_lower.contains("docker hive")
     }
 
     /// Handle swarm-related voice commands (DEPRECATED)
@@ -144,7 +151,8 @@ impl SpeechSocket {
         let error_msg = json!({
             "type": "error",
             "message": "Swarm voice commands deprecated - use API endpoints instead"
-        }).to_string();
+        })
+        .to_string();
         ctx.text(error_msg);
 
         /*
@@ -277,28 +285,37 @@ impl Actor for SpeechSocket {
         if let Some(mut rx) = self.audio_rx.take() {
             let addr = ctx.address();
 
-            ctx.spawn(Box::pin(async move {
-                while let Ok(audio_data) = rx.recv().await {
-                    // Send audio data to the client
-                    if addr.try_send(AudioChunkMessage(audio_data)).is_err() {
-                        break;
+            ctx.spawn(Box::pin(
+                async move {
+                    while let Ok(audio_data) = rx.recv().await {
+                        // Send audio data to the client
+                        if addr.try_send(AudioChunkMessage(audio_data)).is_err() {
+                            break;
+                        }
                     }
                 }
-            }.into_actor(self)));
+                .into_actor(self),
+            ));
         }
 
         // Start listening for transcription data
         if let Some(mut rx) = self.transcription_rx.take() {
             let addr = ctx.address();
 
-            ctx.spawn(Box::pin(async move {
-                while let Ok(transcription_text) = rx.recv().await {
-                    // Send transcription to the client
-                    if addr.try_send(TranscriptionMessage(transcription_text)).is_err() {
-                        break;
+            ctx.spawn(Box::pin(
+                async move {
+                    while let Ok(transcription_text) = rx.recv().await {
+                        // Send transcription to the client
+                        if addr
+                            .try_send(TranscriptionMessage(transcription_text))
+                            .is_err()
+                        {
+                            break;
+                        }
                     }
                 }
-            }.into_actor(self)));
+                .into_actor(self),
+            ));
         }
     }
 }
@@ -384,17 +401,22 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SpeechSocket {
                         match msg_type {
                             Some("tts") => {
                                 // Parse as TextToSpeechRequest
-                                if let Ok(tts_req) = serde_json::from_value::<TextToSpeechRequest>(msg) {
+                                if let Ok(tts_req) =
+                                    serde_json::from_value::<TextToSpeechRequest>(msg)
+                                {
                                     // Process TTS request
                                     let app_state = self.app_state.clone();
                                     let addr = ctx.address();
                                     let fut = async move {
-                                        if let Err(e) = Self::process_tts_request(app_state, tts_req).await {
+                                        if let Err(e) =
+                                            Self::process_tts_request(app_state, tts_req).await
+                                        {
                                             let error_msg = json!({
                                                 "type": "error",
                                                 "message": e
                                             });
-                                            let _ = addr.try_send(ErrorMessage(error_msg.to_string()));
+                                            let _ =
+                                                addr.try_send(ErrorMessage(error_msg.to_string()));
                                         }
                                     };
                                     ctx.spawn(fut.into_actor(self));
@@ -404,10 +426,13 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SpeechSocket {
                             }
                             Some("stt") => {
                                 // Parse as STT action request
-                                if let Ok(stt_req) = serde_json::from_value::<STTActionRequest>(msg) {
+                                if let Ok(stt_req) = serde_json::from_value::<STTActionRequest>(msg)
+                                {
                                     match stt_req.action.as_str() {
                                         "start" => {
-                                            if let Some(speech_service) = &self.app_state.speech_service {
+                                            if let Some(speech_service) =
+                                                &self.app_state.speech_service
+                                            {
                                                 use crate::types::speech::TranscriptionOptions;
                                                 let options = TranscriptionOptions {
                                                     language: stt_req.language,
@@ -419,51 +444,63 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SpeechSocket {
                                                 let speech_service = speech_service.clone();
                                                 let addr = ctx.address();
                                                 let fut = async move {
-                                                    match speech_service.start_transcription(options).await {
+                                                    match speech_service
+                                                        .start_transcription(options)
+                                                        .await
+                                                    {
                                                         Ok(_) => {
                                                             let msg = json!({
                                                                 "type": "stt_started",
                                                                 "message": "Transcription started"
-                                                            }).to_string();
-                                                            let _ = addr.try_send(ErrorMessage(msg));
-                                                        },
+                                                            })
+                                                            .to_string();
+                                                            let _ =
+                                                                addr.try_send(ErrorMessage(msg));
+                                                        }
                                                         Err(e) => {
                                                             let msg = json!({
                                                                 "type": "error",
                                                                 "message": format!("Failed to start transcription: {}", e)
                                                             }).to_string();
-                                                            let _ = addr.try_send(ErrorMessage(msg));
+                                                            let _ =
+                                                                addr.try_send(ErrorMessage(msg));
                                                         }
                                                     }
                                                 };
                                                 ctx.spawn(fut.into_actor(self));
                                             }
-                                        },
+                                        }
                                         "stop" => {
-                                            if let Some(speech_service) = &self.app_state.speech_service {
+                                            if let Some(speech_service) =
+                                                &self.app_state.speech_service
+                                            {
                                                 let speech_service = speech_service.clone();
                                                 let addr = ctx.address();
                                                 let fut = async move {
-                                                    match speech_service.stop_transcription().await {
+                                                    match speech_service.stop_transcription().await
+                                                    {
                                                         Ok(_) => {
                                                             let msg = json!({
                                                                 "type": "stt_stopped",
                                                                 "message": "Transcription stopped"
-                                                            }).to_string();
-                                                            let _ = addr.try_send(ErrorMessage(msg));
-                                                        },
+                                                            })
+                                                            .to_string();
+                                                            let _ =
+                                                                addr.try_send(ErrorMessage(msg));
+                                                        }
                                                         Err(e) => {
                                                             let msg = json!({
                                                                 "type": "error",
                                                                 "message": format!("Failed to stop transcription: {}", e)
                                                             }).to_string();
-                                                            let _ = addr.try_send(ErrorMessage(msg));
+                                                            let _ =
+                                                                addr.try_send(ErrorMessage(msg));
                                                         }
                                                     }
                                                 };
                                                 ctx.spawn(fut.into_actor(self));
                                             }
-                                        },
+                                        }
                                         _ => {
                                             ctx.text(json!({"type": "error", "message": "Invalid STT action"}).to_string());
                                         }
@@ -474,18 +511,31 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SpeechSocket {
                             }
                             Some("voice_command") => {
                                 // Handle direct voice command execution
-                                if let Ok(voice_req) = serde_json::from_value::<VoiceCommandRequest>(msg) {
+                                if let Ok(voice_req) =
+                                    serde_json::from_value::<VoiceCommandRequest>(msg)
+                                {
                                     // Check if it's a swarm command first
                                     if self.is_swarm_command(&voice_req.text) {
                                         self.handle_swarm_voice_command(&voice_req.text, ctx);
-                                    } else if let Some(speech_service) = &self.app_state.speech_service {
+                                    } else if let Some(speech_service) =
+                                        &self.app_state.speech_service
+                                    {
                                         let speech_service = speech_service.clone();
                                         let addr = ctx.address();
                                         let fut = async move {
                                             // Try to use tagged voice command processing first
-                                            let session_id = voice_req.session_id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+                                            let session_id =
+                                                voice_req.session_id.unwrap_or_else(|| {
+                                                    uuid::Uuid::new_v4().to_string()
+                                                });
 
-                                            match speech_service.process_voice_command_with_tags(voice_req.text.clone(), session_id).await {
+                                            match speech_service
+                                                .process_voice_command_with_tags(
+                                                    voice_req.text.clone(),
+                                                    session_id,
+                                                )
+                                                .await
+                                            {
                                                 Ok(response) => {
                                                     let msg = json!({
                                                         "type": "voice_response",
@@ -499,10 +549,13 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SpeechSocket {
                                                         }
                                                     }).to_string();
                                                     let _ = addr.try_send(ErrorMessage(msg));
-                                                },
+                                                }
                                                 Err(_) => {
                                                     // Fallback to legacy voice command processing
-                                                    match speech_service.process_voice_command(voice_req.text).await {
+                                                    match speech_service
+                                                        .process_voice_command(voice_req.text)
+                                                        .await
+                                                    {
                                                         Ok(response) => {
                                                             let msg = json!({
                                                                 "type": "voice_response",
@@ -515,14 +568,16 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SpeechSocket {
                                                                         .as_millis()
                                                                 }
                                                             }).to_string();
-                                                            let _ = addr.try_send(ErrorMessage(msg));
-                                                        },
+                                                            let _ =
+                                                                addr.try_send(ErrorMessage(msg));
+                                                        }
                                                         Err(e) => {
                                                             let msg = json!({
                                                                 "type": "error",
                                                                 "message": format!("Voice command failed: {}", e)
                                                             }).to_string();
-                                                            let _ = addr.try_send(ErrorMessage(msg));
+                                                            let _ =
+                                                                addr.try_send(ErrorMessage(msg));
                                                         }
                                                     }
                                                 }
@@ -537,17 +592,26 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SpeechSocket {
                                 }
                             }
                             _ => {
-                                ctx.text(json!({"type": "error", "message": "Unknown message type"}).to_string());
+                                ctx.text(
+                                    json!({"type": "error", "message": "Unknown message type"})
+                                        .to_string(),
+                                );
                             }
                         }
                     }
                     Err(e) => {
-                        ctx.text(json!({"type": "error", "message": format!("Invalid JSON: {}", e)}).to_string());
+                        ctx.text(
+                            json!({"type": "error", "message": format!("Invalid JSON: {}", e)})
+                                .to_string(),
+                        );
                     }
                 }
             }
             Ok(ws::Message::Binary(bin)) => {
-                debug!("[SpeechSocket] Received binary audio data: {} bytes", bin.len());
+                debug!(
+                    "[SpeechSocket] Received binary audio data: {} bytes",
+                    bin.len()
+                );
                 self.heartbeat = Instant::now();
 
                 // Process audio chunk for STT
@@ -560,7 +624,9 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SpeechSocket {
                         if let Err(e) = speech_service.process_audio_chunk(audio_data).await {
                             error!("Failed to process audio chunk: {}", e);
                         }
-                    }.boxed().into_actor(self);
+                    }
+                    .boxed()
+                    .into_actor(self);
 
                     ctx.spawn(fut);
                 }

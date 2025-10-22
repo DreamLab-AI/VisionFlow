@@ -1,13 +1,13 @@
-use std::path::Path;
-use std::fs;
 use regex::Regex;
+use std::fs;
+use std::path::Path;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("🔧 Generating TypeScript types from Rust structs...");
 
     // Create the comprehensive TypeScript interfaces based on the Rust structs
     let typescript_interfaces = generate_typescript_interfaces();
-    
+
     // Create header with metadata
     let header = format!(
         "// Auto-generated TypeScript types from Rust structs\n\
@@ -31,18 +31,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Write the generated types
     fs::write(output_path, &camel_case_code)?;
-    
-    println!("✅ Successfully generated TypeScript types at: {}", output_path.display());
-    
+
+    println!(
+        "✅ Successfully generated TypeScript types at: {}",
+        output_path.display()
+    );
+
     // Verify the file was created and has content
     let metadata = fs::metadata(output_path)?;
     println!("📊 Generated file size: {} bytes", metadata.len());
-    
+
     if metadata.len() > 1000 {
         println!("🎉 Type generation completed successfully!");
-        
+
         // Show a preview of the generated content
-        let preview: String = camel_case_code.lines().take(20).collect::<Vec<_>>().join("\n");
+        let preview: String = camel_case_code
+            .lines()
+            .take(20)
+            .collect::<Vec<_>>()
+            .join("\n");
         println!("📋 Preview of generated types:");
         println!("{}", preview);
         if camel_case_code.lines().count() > 20 {
@@ -53,7 +60,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     println!("📦 Type generation complete! Run 'npm run build' in client to use new types.");
-    
+
     Ok(())
 }
 
@@ -72,7 +79,7 @@ export interface Position {
   z: number;
 }
 
-// Sensitivity controls  
+// Sensitivity controls
 export interface Sensitivity {
   translation: number;
   rotation: number;
@@ -570,17 +577,17 @@ export type SettingsPath = string;
 
 // Type guards for runtime type checking
 export function isAppFullSettings(obj: any): obj is AppFullSettings {
-    return obj && typeof obj === 'object' && 
-           'visualisation' in obj && 
-           'system' in obj && 
-           'xr' in obj && 
+    return obj && typeof obj === 'object' &&
+           'visualisation' in obj &&
+           'system' in obj &&
+           'xr' in obj &&
            'auth' in obj;
 }
 
 export function isPosition(obj: any): obj is Position {
-    return obj && typeof obj === 'object' && 
-           typeof obj.x === 'number' && 
-           typeof obj.y === 'number' && 
+    return obj && typeof obj === 'object' &&
+           typeof obj.x === 'number' &&
+           typeof obj.y === 'number' &&
            typeof obj.z === 'number';
 }
 
@@ -593,30 +600,33 @@ export type NestedSettings = DeepPartial<AppFullSettings>;
 
 // Default export
 export default AppFullSettings;
-"#.to_string()
+"#
+    .to_string()
 }
 
 /// Convert snake_case field names to camelCase for TypeScript
 fn convert_to_camel_case(typescript_code: String) -> String {
     let field_regex = Regex::new(r"(\s+)([a-z][a-z0-9_]*[a-z0-9])(\s*:\s*)").unwrap();
-    
-    field_regex.replace_all(&typescript_code, |caps: &regex::Captures| {
-        let indent = &caps[1];
-        let field_name = &caps[2];
-        let colon_and_space = &caps[3];
-        
-        // Convert snake_case to camelCase
-        let camel_case = snake_to_camel_case(field_name);
-        
-        format!("{}{}{}", indent, camel_case, colon_and_space)
-    }).to_string()
+
+    field_regex
+        .replace_all(&typescript_code, |caps: &regex::Captures| {
+            let indent = &caps[1];
+            let field_name = &caps[2];
+            let colon_and_space = &caps[3];
+
+            // Convert snake_case to camelCase
+            let camel_case = snake_to_camel_case(field_name);
+
+            format!("{}{}{}", indent, camel_case, colon_and_space)
+        })
+        .to_string()
 }
 
 /// Convert a snake_case string to camelCase
 fn snake_to_camel_case(snake_str: &str) -> String {
     let mut result = String::new();
     let mut capitalize_next = false;
-    
+
     for (i, c) in snake_str.chars().enumerate() {
         if c == '_' {
             capitalize_next = true;
@@ -627,7 +637,7 @@ fn snake_to_camel_case(snake_str: &str) -> String {
             result.push(c);
         }
     }
-    
+
     result
 }
 
@@ -638,7 +648,10 @@ mod tests {
     #[test]
     fn test_snake_to_camel_case() {
         assert_eq!(snake_to_camel_case("hello_world"), "helloWorld");
-        assert_eq!(snake_to_camel_case("auto_balance_interval_ms"), "autoBalanceIntervalMs");
+        assert_eq!(
+            snake_to_camel_case("auto_balance_interval_ms"),
+            "autoBalanceIntervalMs"
+        );
         assert_eq!(snake_to_camel_case("enable_bounds"), "enableBounds");
         assert_eq!(snake_to_camel_case("api_key"), "apiKey");
         assert_eq!(snake_to_camel_case("simple"), "simple");
@@ -654,7 +667,7 @@ export interface TestInterface {
   simple: boolean;
 }
 "#;
-        
+
         let expected = r#"
 export interface TestInterface {
   fieldOne: string;
@@ -662,7 +675,7 @@ export interface TestInterface {
   simple: boolean;
 }
 "#;
-        
+
         let result = convert_to_camel_case(typescript_input.to_string());
         assert_eq!(result, expected);
     }

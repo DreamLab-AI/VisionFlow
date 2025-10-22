@@ -17,11 +17,7 @@ pub fn logseq_properties_to_owl(page: &LogseqPage) -> Result<Vec<String>> {
         // Skip definition, maturity, source, etc. (these are annotations)
         if matches!(
             property.as_str(),
-            "definition"
-                | "maturity"
-                | "source"
-                | "preferred-term"
-                | "synonyms"
+            "definition" | "maturity" | "source" | "preferred-term" | "synonyms"
         ) {
             continue;
         }

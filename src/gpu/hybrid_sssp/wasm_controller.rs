@@ -1,9 +1,9 @@
 // WASM Controller for Recursive BMSSP Orchestration
 // Handles the complex recursive structure that doesn't map well to GPU
 
-use super::{HybridSSPConfig, SSPMetrics};
-use super::communication_bridge::GPUBridge;
 use super::adaptive_heap::AdaptiveHeap;
+use super::communication_bridge::GPUBridge;
+use super::{HybridSSPConfig, SSPMetrics};
 use std::collections::VecDeque;
 
 /// WASM Controller for recursive BMSSP algorithm
@@ -57,13 +57,14 @@ impl WASMController {
         // Execute recursive BMSSP with initial bound B = ∞
         // Use iterative approach to avoid recursive async issues
         self.bmssp_iterative(
-            f32::INFINITY,  // Initial bound
+            f32::INFINITY, // Initial bound
             initial_frontier,
             &mut distances,
             &mut parents,
             gpu_bridge,
             metrics,
-        ).await?;
+        )
+        .await?;
 
         metrics.cpu_time_ms = start_time.elapsed().as_secs_f32() * 1000.0;
         Ok((distances, parents))
@@ -84,55 +85,49 @@ impl WASMController {
 
         // Start with the initial problem
         work_queue.push_back((
-            self.config.max_recursion_depth,  // Start at max level
+            self.config.max_recursion_depth, // Start at max level
             initial_bound,
             initial_frontier,
         ));
 
         while let Some((level, bound, frontier)) = work_queue.pop_front() {
-            metrics.recursion_levels = metrics.recursion_levels.max(
-                self.config.max_recursion_depth - level + 1
-            );
+            metrics.recursion_levels = metrics
+                .recursion_levels
+                .max(self.config.max_recursion_depth - level + 1);
 
             // Base case: level 0 or empty frontier - use GPU Dijkstra
             if level == 0 || frontier.is_empty() {
                 self.base_case_gpu_dijkstra(
-                    bound,
-                    frontier,
-                    distances,
-                    parents,
-                    gpu_bridge,
-                    metrics,
-                ).await?;
+                    bound, frontier, distances, parents, gpu_bridge, metrics,
+                )
+                .await?;
                 continue;
             }
 
-            log::debug!("BMSSP Level {}: frontier_size={}, bound={}",
-                level, frontier.len(), bound);
+            log::debug!(
+                "BMSSP Level {}: frontier_size={}, bound={}",
+                level,
+                frontier.len(),
+                bound
+            );
 
             // Step 1: FindPivots - identify pivot vertices
-            let pivots = self.find_pivots(
-                &frontier,
-                distances,
-                gpu_bridge,
-                metrics,
-            ).await?;
+            let pivots = self
+                .find_pivots(&frontier, distances, gpu_bridge, metrics)
+                .await?;
 
             metrics.pivots_selected += pivots.len() as u32;
 
             // Step 2: Partition frontier based on pivots
-            let partitions = self.partition_frontier(
-                &frontier,
-                &pivots,
-                distances,
-            );
+            let partitions = self.partition_frontier(&frontier, &pivots, distances);
 
             // Step 3: Add subproblems to work queue (simulating recursive calls)
             let t = self.config.branching_t as usize;
             let num_partitions = partitions.len().min(t);
 
             // Add partitions in reverse order so they're processed in correct order
-            for (i, partition) in partitions.into_iter()
+            for (i, partition) in partitions
+                .into_iter()
                 .take(num_partitions)
                 .enumerate()
                 .rev()
@@ -142,11 +137,7 @@ impl WASMController {
                     let sub_bound = bound / (2_f32.powi(i as i32));
 
                     // Add to work queue (simulating recursive call)
-                    work_queue.push_front((
-                        level - 1,
-                        sub_bound,
-                        partition,
-                    ));
+                    work_queue.push_front((level - 1, sub_bound, partition));
                 }
             }
         }
@@ -165,12 +156,9 @@ impl WASMController {
         let k = self.config.pivot_k;
 
         // Step 1: Perform k-step relaxation from frontier on GPU
-        let (temp_distances, spt_sizes) = gpu_bridge.k_step_relaxation(
-            frontier,
-            distances,
-            k,
-            metrics,
-        ).await?;
+        let (temp_distances, spt_sizes) = gpu_bridge
+            .k_step_relaxation(frontier, distances, k, metrics)
+            .await?;
 
         // Step 2: Identify vertices with SPT size >= k
         let mut pivots = Vec::new();
@@ -188,8 +176,12 @@ impl WASMController {
             pivots.truncate(max_pivots);
         }
 
-        log::debug!("FindPivots: frontier_size={}, k={}, pivots_found={}",
-            frontier.len(), k, pivots.len());
+        log::debug!(
+            "FindPivots: frontier_size={}, k={}, pivots_found={}",
+            frontier.len(),
+            k,
+            pivots.len()
+        );
 
         Ok(pivots)
     }
@@ -217,8 +209,9 @@ impl WASMController {
 
             for (i, &pivot) in pivots.iter().enumerate() {
                 // Use graph distance if available, otherwise use vertex ID difference
-                let dist = if distances[vertex as usize] < f32::INFINITY &&
-                              distances[pivot as usize] < f32::INFINITY {
+                let dist = if distances[vertex as usize] < f32::INFINITY
+                    && distances[pivot as usize] < f32::INFINITY
+                {
                     (distances[vertex as usize] - distances[pivot as usize]).abs()
                 } else {
                     (vertex as f32 - pivot as f32).abs()
@@ -226,7 +219,7 @@ impl WASMController {
 
                 if dist < min_dist {
                     min_dist = dist;
-                    best_partition = (i % t);
+                    best_partition = i % t;
                 }
             }
 
@@ -252,16 +245,16 @@ impl WASMController {
             return Ok(());
         }
 
-        log::debug!("Base case GPU Dijkstra: frontier_size={}, bound={}",
-            frontier.len(), bound);
+        log::debug!(
+            "Base case GPU Dijkstra: frontier_size={}, bound={}",
+            frontier.len(),
+            bound
+        );
 
         // Execute bounded Dijkstra on GPU
-        let (new_distances, new_parents, relaxations) = gpu_bridge.bounded_dijkstra(
-            &frontier,
-            distances,
-            bound,
-            metrics,
-        ).await?;
+        let (new_distances, new_parents, relaxations) = gpu_bridge
+            .bounded_dijkstra(&frontier, distances, bound, metrics)
+            .await?;
 
         // Update distances and parents for affected vertices
         for i in 0..distances.len() {
@@ -293,7 +286,8 @@ mod wasm_helpers {
             // Initialize WASM controller
             let config = super::HybridSSPConfig::default();
             Ok(WASMSSPSolver {
-                controller: super::WASMController::new(&config).await
+                controller: super::WASMController::new(&config)
+                    .await
                     .map_err(|e| JsValue::from_str(&e))?,
             })
         }
@@ -311,7 +305,8 @@ mod wasm_helpers {
             // For now, returning placeholder
             Ok(JsValue::from_str(&format!(
                 "WASM SSSP solver ready for {} nodes with {} sources",
-                num_nodes, sources.len()
+                num_nodes,
+                sources.len()
             )))
         }
     }

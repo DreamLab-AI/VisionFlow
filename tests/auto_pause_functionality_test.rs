@@ -1,5 +1,5 @@
 //! Test cases for the auto-pause functionality
-//! 
+//!
 //! This module tests the equilibrium detection and auto-pause features
 //! that automatically pause physics when the graph reaches equilibrium
 //! and resume when user interaction occurs.
@@ -15,7 +15,7 @@ mod tests {
     #[test]
     fn test_auto_pause_config_default() {
         let config = AutoPauseConfig::default();
-        
+
         assert!(config.enabled);
         assert_eq!(config.equilibrium_velocity_threshold, 0.1);
         assert_eq!(config.equilibrium_check_frames, 30);
@@ -28,8 +28,8 @@ mod tests {
     fn test_simulation_params_auto_pause_initialization() {
         let mut params = SimulationParams::new();
         params.auto_pause_config = AutoPauseConfig::default();
-        
-        assert!(!params.is_physics_paused);  // Should start unpaused
+
+        assert!(!params.is_physics_paused); // Should start unpaused
         assert_eq!(params.equilibrium_stability_counter, 0);
         assert!(params.auto_pause_config.enabled);
     }
@@ -38,44 +38,47 @@ mod tests {
     async fn test_equilibrium_detection_logic() {
         // This test verifies the equilibrium detection algorithm
         // by simulating low velocity/energy scenarios
-        
+
         // Create test values for a stable system
-        let total_kinetic_energy = 0.005f32;  // Very low energy
+        let total_kinetic_energy = 0.005f32; // Very low energy
         let node_count = 100;
-        
+
         // Calculate expected average velocity
         let avg_kinetic_energy = total_kinetic_energy / node_count as f32;
         let avg_velocity = (2.0 * avg_kinetic_energy).sqrt();
-        
+
         // Verify values are below threshold
-        assert!(avg_velocity < 0.1);  // Below default threshold
-        assert!(avg_kinetic_energy < 0.01);  // Below default threshold
-        
-        println!("Test equilibrium values: velocity={:.6}, energy={:.6}", avg_velocity, avg_kinetic_energy);
+        assert!(avg_velocity < 0.1); // Below default threshold
+        assert!(avg_kinetic_energy < 0.01); // Below default threshold
+
+        println!(
+            "Test equilibrium values: velocity={:.6}, energy={:.6}",
+            avg_velocity, avg_kinetic_energy
+        );
     }
 
     #[test]
     fn test_node_interaction_types() {
-        use crate::actors::messages::{NodeInteractionType, NodeInteractionMessage};
-        
+        use crate::actors::messages::{NodeInteractionMessage, NodeInteractionType};
+
         let drag_msg = NodeInteractionMessage {
             node_id: 1,
             interaction_type: NodeInteractionType::Dragged,
             position: None,
         };
-        
+
         let select_msg = NodeInteractionMessage {
             node_id: 2,
             interaction_type: NodeInteractionType::Selected,
             position: None,
         };
-        
+
         let release_msg = NodeInteractionMessage {
             node_id: 3,
             interaction_type: NodeInteractionType::Released,
             position: None,
         };
-        
+
         // Test that message types are correctly defined
         assert_eq!(drag_msg.node_id, 1);
         assert_eq!(select_msg.node_id, 2);
@@ -88,12 +91,12 @@ mod tests {
             pause: true,
             reason: "Equilibrium reached".to_string(),
         };
-        
+
         let resume_msg = PhysicsPauseMessage {
             pause: false,
             reason: "User interaction".to_string(),
         };
-        
+
         assert!(pause_msg.pause);
         assert!(!resume_msg.pause);
         assert_eq!(pause_msg.reason, "Equilibrium reached");
@@ -105,14 +108,14 @@ mod tests {
         // Test that auto-pause logic is skipped when disabled
         let mut config = AutoPauseConfig::default();
         config.enabled = false;
-        
+
         // With disabled config, equilibrium detection should not trigger
         assert!(!config.enabled);
-        
+
         // Even with ideal equilibrium conditions, pause should not occur
         let low_velocity = 0.001f32;
         let low_energy = 0.0001f32;
-        
+
         // These values are well below thresholds, but with disabled config
         // the system should not pause
         assert!(low_velocity < config.equilibrium_velocity_threshold);
@@ -124,11 +127,11 @@ mod tests {
         // Test the stability counter mechanism
         let config = AutoPauseConfig::default();
         let mut stability_counter = 0u32;
-        
+
         // Simulate multiple frames of stability
         for frame in 0..config.equilibrium_check_frames {
             stability_counter += 1;
-            
+
             if frame < config.equilibrium_check_frames - 1 {
                 // Should not pause yet
                 assert!(stability_counter < config.equilibrium_check_frames);
@@ -142,18 +145,18 @@ mod tests {
     #[test]
     fn test_velocity_calculation_from_kinetic_energy() {
         // Test the velocity calculation algorithm used in equilibrium detection
-        
+
         // Test case 1: Zero kinetic energy = zero velocity
         let zero_ke = 0.0f32;
         let zero_velocity = (2.0 * zero_ke).sqrt();
         assert_eq!(zero_velocity, 0.0);
-        
+
         // Test case 2: Known kinetic energy
         // KE = 0.5 * m * v^2, with m=1, so v = sqrt(2 * KE)
-        let ke = 0.5f32;  // KE = 0.5
-        let expected_velocity = 1.0f32;  // sqrt(2 * 0.5) = sqrt(1) = 1
+        let ke = 0.5f32; // KE = 0.5
+        let expected_velocity = 1.0f32; // sqrt(2 * 0.5) = sqrt(1) = 1
         let calculated_velocity = (2.0 * ke).sqrt();
-        
+
         assert!((calculated_velocity - expected_velocity).abs() < 0.001);
     }
 }

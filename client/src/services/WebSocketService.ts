@@ -17,6 +17,7 @@ import {
   SubscriptionFilters,
   MessageHandler
 } from '../types/websocketTypes';
+import { binaryProtocol, MessageType, GraphTypeFlag } from './BinaryWebSocketProtocol';
 
 const logger = createLogger('WebSocketService');
 
@@ -415,41 +416,32 @@ class WebSocketService {
         logger.debug(`Processing binary data: ${data.byteLength} bytes`);
       }
 
-      // Check if binary data contains bots nodes (agent flag 0x80)
-      const hasBotsData = this.detectBotsData(data);
-      
-      if (hasBotsData) {
-        // Emit bots-position-update event for bots visualization
-        this.emit('bots-position-update', data);
-        if (debugState.isDataDebugEnabled()) {
-          logger.debug('Emitted bots-position-update event');
-        }
+      // Parse message header to determine type and routing
+      const header = binaryProtocol.parseHeader(data);
+      if (!header) {
+        logger.error('Failed to parse binary message header');
+        return;
       }
 
-      // Only process binary data for Logseq graphs (check graph type)
-      const graphType = graphDataManager.getGraphType();
-      
-      // Log only occasionally to avoid spam
-      this.binaryMessageCount = (this.binaryMessageCount || 0) + 1;
-      if (this.binaryMessageCount % 100 === 1) { // Log first message and every 100th message
-        logger.debug('Binary data received', { graphType, dataSize: data.byteLength, msgCount: this.binaryMessageCount });
-      }
-      
-      if (graphType === 'logseq') {
-        try {
-          await graphDataManager.updateNodePositions(data);
-          if (this.binaryMessageCount % 100 === 1) {
-            logger.debug('Node positions updated successfully');
-          }
-        } catch (error) {
-          console.error('[WebSocketService] Error updating positions:', error);
-          logger.error('Error processing binary data in graphDataManager:', createErrorMetadata(error));
-        }
-      } else if (this.binaryMessageCount % 100 === 1) {
-        logger.debug('Skipping binary - graph type is', { graphType });
-        if (debugState.isDataDebugEnabled()) {
-          logger.debug('Skipping binary data processing - not a Logseq graph');
-        }
+      // Route based on message type
+      switch (header.type) {
+        case MessageType.GRAPH_UPDATE:
+          await this.handleGraphUpdate(data, header);
+          break;
+
+        case MessageType.VOICE_DATA:
+          await this.handleVoiceData(data, header);
+          break;
+
+        case MessageType.POSITION_UPDATE:
+        case MessageType.AGENT_POSITIONS:
+          await this.handlePositionUpdate(data, header);
+          break;
+
+        default:
+          // Legacy binary data processing (no header)
+          await this.handleLegacyBinaryData(data);
+          break;
       }
 
       // Notify binary message handlers
@@ -462,6 +454,117 @@ class WebSocketService {
       });
     } catch (error) {
       logger.error('Error processing binary data:', createErrorMetadata(error));
+    }
+  }
+
+  private async handleGraphUpdate(data: ArrayBuffer, header: any): Promise<void> {
+    const graphTypeFlag = header.graphTypeFlag as GraphTypeFlag;
+    const currentMode = useSettingsStore.getState().get<'knowledge_graph' | 'ontology'>('visualisation.graphs.mode') || 'knowledge_graph';
+
+    // Filter updates based on current mode
+    const shouldProcess =
+      (currentMode === 'knowledge_graph' && graphTypeFlag === GraphTypeFlag.KNOWLEDGE_GRAPH) ||
+      (currentMode === 'ontology' && graphTypeFlag === GraphTypeFlag.ONTOLOGY);
+
+    if (!shouldProcess) {
+      if (debugState.isDataDebugEnabled()) {
+        logger.debug(`Skipping graph update - mode mismatch: current=${currentMode}, flag=${graphTypeFlag}`);
+      }
+      return;
+    }
+
+    const payload = binaryProtocol.extractPayload(data, header);
+
+    // Emit graph update event
+    this.emit('graph-update', {
+      graphType: graphTypeFlag === GraphTypeFlag.ONTOLOGY ? 'ontology' : 'knowledge_graph',
+      data: payload
+    });
+
+    if (debugState.isDataDebugEnabled()) {
+      logger.debug(`Processed graph update: mode=${currentMode}, size=${payload.byteLength}`);
+    }
+  }
+
+  private async handleVoiceData(data: ArrayBuffer, header: any): Promise<void> {
+    const payload = binaryProtocol.extractPayload(data, header);
+
+    // Emit voice data event
+    this.emit('voice-data', payload);
+
+    if (debugState.isDataDebugEnabled()) {
+      logger.debug(`Processed voice data: size=${payload.byteLength}`);
+    }
+  }
+
+  private async handlePositionUpdate(data: ArrayBuffer, header: any): Promise<void> {
+    const payload = binaryProtocol.extractPayload(data, header);
+
+    // Check if binary data contains bots nodes (agent flag 0x80)
+    const hasBotsData = this.detectBotsData(payload);
+
+    if (hasBotsData) {
+      // Emit bots-position-update event for bots visualization
+      this.emit('bots-position-update', payload);
+      if (debugState.isDataDebugEnabled()) {
+        logger.debug('Emitted bots-position-update event');
+      }
+    }
+
+    // Only process binary data for Logseq graphs (check graph type)
+    const graphType = graphDataManager.getGraphType();
+
+    // Log only occasionally to avoid spam
+    this.binaryMessageCount = (this.binaryMessageCount || 0) + 1;
+    if (this.binaryMessageCount % 100 === 1) { // Log first message and every 100th message
+      logger.debug('Position update received', { graphType, dataSize: payload.byteLength, msgCount: this.binaryMessageCount });
+    }
+
+    if (graphType === 'logseq') {
+      try {
+        await graphDataManager.updateNodePositions(payload);
+        if (this.binaryMessageCount % 100 === 1) {
+          logger.debug('Node positions updated successfully');
+        }
+      } catch (error) {
+        console.error('[WebSocketService] Error updating positions:', error);
+        logger.error('Error processing position data in graphDataManager:', createErrorMetadata(error));
+      }
+    } else if (this.binaryMessageCount % 100 === 1) {
+      logger.debug('Skipping position update - graph type is', { graphType });
+      if (debugState.isDataDebugEnabled()) {
+        logger.debug('Skipping position data processing - not a Logseq graph');
+      }
+    }
+  }
+
+  private async handleLegacyBinaryData(data: ArrayBuffer): Promise<void> {
+    // Legacy binary data processing (for backward compatibility)
+    const hasBotsData = this.detectBotsData(data);
+
+    if (hasBotsData) {
+      this.emit('bots-position-update', data);
+      if (debugState.isDataDebugEnabled()) {
+        logger.debug('Emitted bots-position-update event (legacy)');
+      }
+    }
+
+    const graphType = graphDataManager.getGraphType();
+    this.binaryMessageCount = (this.binaryMessageCount || 0) + 1;
+
+    if (this.binaryMessageCount % 100 === 1) {
+      logger.debug('Legacy binary data received', { graphType, dataSize: data.byteLength, msgCount: this.binaryMessageCount });
+    }
+
+    if (graphType === 'logseq') {
+      try {
+        await graphDataManager.updateNodePositions(data);
+        if (this.binaryMessageCount % 100 === 1) {
+          logger.debug('Node positions updated successfully (legacy)');
+        }
+      } catch (error) {
+        logger.error('Error processing legacy binary data:', createErrorMetadata(error));
+      }
     }
   }
 

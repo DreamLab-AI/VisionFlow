@@ -51,14 +51,35 @@ fn test_ontology_graph_type_serialization() {
 #[test]
 fn test_all_graph_types_parsing() {
     // Verify all graph types can be parsed from strings
-    assert_eq!(GraphType::from_str("standard").unwrap(), GraphType::Standard);
-    assert_eq!(GraphType::from_str("multi-agent").unwrap(), GraphType::MultiAgent);
-    assert_eq!(GraphType::from_str("multiagent").unwrap(), GraphType::MultiAgent);
-    assert_eq!(GraphType::from_str("force-directed").unwrap(), GraphType::ForceDirected);
-    assert_eq!(GraphType::from_str("forcedirected").unwrap(), GraphType::ForceDirected);
-    assert_eq!(GraphType::from_str("hierarchical").unwrap(), GraphType::Hierarchical);
+    assert_eq!(
+        GraphType::from_str("standard").unwrap(),
+        GraphType::Standard
+    );
+    assert_eq!(
+        GraphType::from_str("multi-agent").unwrap(),
+        GraphType::MultiAgent
+    );
+    assert_eq!(
+        GraphType::from_str("multiagent").unwrap(),
+        GraphType::MultiAgent
+    );
+    assert_eq!(
+        GraphType::from_str("force-directed").unwrap(),
+        GraphType::ForceDirected
+    );
+    assert_eq!(
+        GraphType::from_str("forcedirected").unwrap(),
+        GraphType::ForceDirected
+    );
+    assert_eq!(
+        GraphType::from_str("hierarchical").unwrap(),
+        GraphType::Hierarchical
+    );
     assert_eq!(GraphType::from_str("network").unwrap(), GraphType::Network);
-    assert_eq!(GraphType::from_str("ontology").unwrap(), GraphType::Ontology);
+    assert_eq!(
+        GraphType::from_str("ontology").unwrap(),
+        GraphType::Ontology
+    );
 }
 
 #[test]

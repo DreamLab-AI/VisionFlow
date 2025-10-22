@@ -1,12 +1,12 @@
-use actix_web::{web, HttpRequest, HttpResponse, Error};
+use actix_web::{web, Error, HttpRequest, HttpResponse};
+use chrono::Local;
+use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
 use std::fs::OpenOptions;
 use std::io::Write;
-use chrono::Local;
-use log::{debug, error, info};
 use uuid::Uuid;
 
-use crate::telemetry::agent_telemetry::{CorrelationId, get_telemetry_logger};
+use crate::telemetry::agent_telemetry::{get_telemetry_logger, CorrelationId};
 use crate::AppState;
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -34,28 +34,29 @@ pub struct ClientLogsPayload {
 pub async fn handle_client_logs(
     req: HttpRequest,
     payload: web::Json<ClientLogsPayload>,
-    app_state: web::Data<AppState>,
+    _app_state: web::Data<AppState>,
 ) -> Result<HttpResponse, Error> {
     let log_file_path = "/app/logs/client.log";
 
     // Extract session ID from header or payload
-    let header_session_id = req.headers()
+    let header_session_id = req
+        .headers()
         .get("X-Session-ID")
         .and_then(|h| h.to_str().ok())
         .map(|s| s.to_string());
 
-    let client_session_id = header_session_id
-        .as_ref()
-        .unwrap_or(&payload.session_id);
+    let client_session_id = header_session_id.as_ref().unwrap_or(&payload.session_id);
 
     // DEPRECATED: SessionCorrelationBridge removed - using client session ID directly
-    let correlation_id = Uuid::parse_str(client_session_id)
-        .unwrap_or_else(|_| {
-            // If not a valid UUID, create one from the session ID
-            let new_corr_id = Uuid::new_v4();
-            debug!("Created new correlation ID for session {}: {}", client_session_id, new_corr_id);
-            new_corr_id
-        });
+    let correlation_id = Uuid::parse_str(client_session_id).unwrap_or_else(|_| {
+        // If not a valid UUID, create one from the session ID
+        let new_corr_id = Uuid::new_v4();
+        debug!(
+            "Created new correlation ID for session {}: {}",
+            client_session_id, new_corr_id
+        );
+        new_corr_id
+    });
 
     // Log telemetry event with correlation ID
     if let Some(telemetry) = get_telemetry_logger() {
@@ -64,13 +65,22 @@ pub async fn handle_client_logs(
             crate::telemetry::agent_telemetry::LogLevel::INFO,
             "client_logs",
             "logs_received",
-            &format!("Received {} log entries from client session", payload.logs.len()),
-            "client_log_handler"
+            &format!(
+                "Received {} log entries from client session",
+                payload.logs.len()
+            ),
+            "client_log_handler",
         )
         .with_client_session_id(client_session_id)
         .with_metadata("log_count", serde_json::json!(payload.logs.len()))
-        .with_metadata("has_x_session_id_header", serde_json::json!(header_session_id.is_some()))
-        .with_metadata("correlation_id", serde_json::json!(correlation_id.to_string()));
+        .with_metadata(
+            "has_x_session_id_header",
+            serde_json::json!(header_session_id.is_some()),
+        )
+        .with_metadata(
+            "correlation_id",
+            serde_json::json!(correlation_id.to_string()),
+        );
 
         telemetry.log_event(event);
     }
@@ -101,47 +111,68 @@ pub async fn handle_client_logs(
             entry.user_agent.as_ref().unwrap_or(&"unknown".to_string()),
             entry.url.as_ref().unwrap_or(&"unknown".to_string()),
             if let Some(data) = &entry.data {
-                format!(" | Data: {}", serde_json::to_string(data).unwrap_or_default())
+                format!(
+                    " | Data: {}",
+                    serde_json::to_string(data).unwrap_or_default()
+                )
             } else {
                 String::new()
             }
         );
 
         // Write to file
-        file.write_all(log_line.as_bytes())
-            .map_err(|e| {
-                error!("Failed to write to client.log: {}", e);
-                actix_web::error::ErrorInternalServerError(format!("Failed to write log: {}", e))
-            })?;
+        file.write_all(log_line.as_bytes()).map_err(|e| {
+            error!("Failed to write to client.log: {}", e);
+            actix_web::error::ErrorInternalServerError(format!("Failed to write log: {}", e))
+        })?;
 
         // Also log to server console for debugging with correlation ID
         match entry.level.as_str() {
-            "error" => error!("[CLIENT:{}] {} - {}", correlation_id, entry.namespace, entry.message),
-            "warn" => log::warn!("[CLIENT:{}] {} - {}", correlation_id, entry.namespace, entry.message),
-            "info" => info!("[CLIENT:{}] {} - {}", correlation_id, entry.namespace, entry.message),
-            _ => debug!("[CLIENT:{}] {} - {}", correlation_id, entry.namespace, entry.message),
+            "error" => error!(
+                "[CLIENT:{}] {} - {}",
+                correlation_id, entry.namespace, entry.message
+            ),
+            "warn" => log::warn!(
+                "[CLIENT:{}] {} - {}",
+                correlation_id,
+                entry.namespace,
+                entry.message
+            ),
+            "info" => info!(
+                "[CLIENT:{}] {} - {}",
+                correlation_id, entry.namespace, entry.message
+            ),
+            _ => debug!(
+                "[CLIENT:{}] {} - {}",
+                correlation_id, entry.namespace, entry.message
+            ),
         }
 
         // If there's a stack trace, write it separately
         if let Some(stack) = &entry.stack {
-            let stack_line = format!("[{}] [STACK] [corr:{}] {}\n{}\n", timestamp, correlation_id, payload.session_id, stack);
-            file.write_all(stack_line.as_bytes())
-                .map_err(|e| {
-                    error!("Failed to write stack trace: {}", e);
-                    actix_web::error::ErrorInternalServerError(format!("Failed to write stack: {}", e))
-                })?;
+            let stack_line = format!(
+                "[{}] [STACK] [corr:{}] {}\n{}\n",
+                timestamp, correlation_id, payload.session_id, stack
+            );
+            file.write_all(stack_line.as_bytes()).map_err(|e| {
+                error!("Failed to write stack trace: {}", e);
+                actix_web::error::ErrorInternalServerError(format!("Failed to write stack: {}", e))
+            })?;
         }
     }
 
     // Flush to ensure data is written
-    file.flush()
-        .map_err(|e| {
-            error!("Failed to flush client.log: {}", e);
-            actix_web::error::ErrorInternalServerError(format!("Failed to flush log file: {}", e))
-        })?;
+    file.flush().map_err(|e| {
+        error!("Failed to flush client.log: {}", e);
+        actix_web::error::ErrorInternalServerError(format!("Failed to flush log file: {}", e))
+    })?;
 
-    debug!("Received {} log entries from client session {} (correlation: {})",
-           payload.logs.len(), payload.session_id, correlation_id);
+    debug!(
+        "Received {} log entries from client session {} (correlation: {})",
+        payload.logs.len(),
+        payload.session_id,
+        correlation_id
+    );
 
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "status": "success",

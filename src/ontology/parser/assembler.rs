@@ -87,10 +87,9 @@ impl OntologyAssembler {
     /// Validate the ontology using horned-owl
     pub fn validate(&self) -> Result<()> {
         use horned_owl::io::ofn::reader::read as read_ofn;
-        use horned_owl::io::ParserConfiguration;
         use horned_owl::ontology::set::SetOntology;
-        use std::sync::Arc;
         use std::io::Cursor;
+        use std::sync::Arc;
 
         let ontology_text = self.to_string();
         let cursor = Cursor::new(ontology_text.as_bytes());
@@ -103,7 +102,9 @@ impl OntologyAssembler {
 
                 // Basic consistency checks
                 // Note: For full reasoning, you'd need to integrate with whelk or another reasoner
-                println!("  ℹ For full reasoning/consistency checking, use a DL reasoner like whelk-rs");
+                println!(
+                    "  ℹ For full reasoning/consistency checking, use a DL reasoner like whelk-rs"
+                );
 
                 Ok(())
             }
@@ -122,13 +123,11 @@ mod tests {
     fn test_basic_assembly() {
         let mut assembler = OntologyAssembler::new();
 
-        let header = vec![
-            r#"Prefix(mv:=<https://metaverse-ontology.org/>)
+        let header = vec![r#"Prefix(mv:=<https://metaverse-ontology.org/>)
 Ontology(<https://metaverse-ontology.org/>
   Declaration(Class(mv:Entity))
 )"#
-            .to_string(),
-        ];
+        .to_string()];
 
         assembler.set_header(&header).unwrap();
 

@@ -3,10 +3,10 @@
 //! This binary tests the MCP TCP client implementation to verify it can connect
 //! to and query real MCP servers.
 
-use log::{info, error};
+use log::{error, info};
 use std::collections::HashMap;
-use webxr::utils::mcp_tcp_client::{create_mcp_client, test_mcp_connectivity};
 use webxr::services::agent_visualization_protocol::McpServerType;
+use webxr::utils::mcp_tcp_client::{create_mcp_client, test_mcp_connectivity};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -17,8 +17,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Test servers to check
     let mut servers = HashMap::new();
-    servers.insert("localhost-9500".to_string(), ("localhost".to_string(), 9500));
-    servers.insert("multi-agent-container-9500".to_string(), ("multi-agent-container".to_string(), 9500));
+    servers.insert(
+        "localhost-9500".to_string(),
+        ("localhost".to_string(), 9500),
+    );
+    servers.insert(
+        "multi-agent-container-9500".to_string(),
+        ("multi-agent-container".to_string(), 9500),
+    );
 
     // Test connectivity to all servers
     let connectivity_results = test_mcp_connectivity(&servers).await;

@@ -77,6 +77,17 @@ docker-compose up -d
 
 **[📚 Full Documentation](docs/index.md)** | **[🎯 Getting Started Guide](docs/getting-started/02-quick-start.md)** | **[🔧 Installation Details](docs/getting-started/01-installation.md)**
 
+### 📖 Architecture Documentation
+
+**Core Documentation:**
+- **[Architecture Overview](docs/ARCHITECTURE.md)** - Hexagonal architecture with three-database design
+- **[Developer Guide](docs/DEVELOPER_GUIDE.md)** - Complete guide to adding features using hexser
+- **[API Reference](docs/API.md)** - REST and WebSocket API endpoints with CQRS handlers
+- **[Database Guide](docs/DATABASE.md)** - Three-database system with schemas and migration procedures
+- **[Client Integration](docs/CLIENT_INTEGRATION.md)** - Frontend integration with server-authoritative state
+
+**Migration Status:** ⚠️ In Progress (Phase 2 - Database Expansion)
+
 ---
 
 ## 🛠️ Technology Stack
@@ -86,18 +97,24 @@ VisionFlow combines cutting-edge technologies for unmatched performance and scal
 | Layer | Technology | Highlights |
 | :--- | :--- | :--- |
 | **Frontend** | React + Three.js (React Three Fiber) | 60 FPS @ 100k+ nodes, WebGL 3D rendering |
-| **Backend** | Rust + Actix | Supervised actor system, 1,000+ req/min |
+| **Backend** | Rust + Actix + Hexagonal Architecture | Database-first, CQRS pattern, ports & adapters |
 | **GPU Acceleration** | CUDA (40 Kernels) | Physics, clustering, pathfinding—100x speedup |
 | **AI Orchestration** | MCP Protocol + Claude | 50+ concurrent specialist agents |
 | **Semantic Layer** | OWL/RDF + Whelk Reasoner | Ontology validation, logical inference |
-| **Networking** | Binary WebSocket (34-byte protocol) | <10ms latency, 95% bandwidth reduction |
-| **Data Layer** | Git + Logseq (Markdown) | Version control, bidirectional linking, privacy |
+| **Networking** | Binary WebSocket (36-byte protocol V2) | <10ms latency, 80% bandwidth reduction |
+| **Data Layer** | Three SQLite Databases | Settings, Knowledge Graph, Ontology (WAL mode) |
 
 **Advanced AI Architecture:**
 - **Microsoft GraphRAG** for hierarchical knowledge structures
 - **Leiden Clustering** for community detection
 - **Shortest Path Analysis** enabling multi-hop reasoning
 - **OWL Reasoning** for semantic validation and inference
+
+**Hexagonal Architecture Migration:**
+- **Database-First Design**: All state persists in three separate databases (settings, knowledge_graph, ontology)
+- **CQRS Pattern**: Directives (write) and Queries (read) with hexser
+- **Ports & Adapters**: Clean separation between business logic and infrastructure
+- **Server-Authoritative**: Single source of truth, no client-side caching
 
 ---
 

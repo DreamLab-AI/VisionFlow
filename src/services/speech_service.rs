@@ -1,29 +1,32 @@
-use tokio::sync::{mpsc, Mutex, RwLock};
-use tokio_tungstenite::{connect_async, WebSocketStream, MaybeTlsStream, tungstenite};
-use tungstenite::http::Request;
+use crate::config::AppFullSettings;
 use serde_json::json;
 use std::sync::Arc;
-use tokio::task;
 use tokio::sync::broadcast;
-use crate::config::AppFullSettings;
+use tokio::sync::{mpsc, Mutex, RwLock};
+use tokio::task;
+use tokio_tungstenite::{connect_async, tungstenite, MaybeTlsStream, WebSocketStream};
+use tungstenite::http::Request;
 // use crate::config::Settings; // AppFullSettings is used from self.settings
-use crate::errors::{VisionFlowError, VisionFlowResult, SpeechError as VisionSpeechError};
-use log::{info, error, debug};
+use crate::actors::voice_commands::VoiceCommand;
+use crate::errors::{SpeechError as VisionSpeechError, VisionFlowError, VisionFlowResult};
+use crate::types::speech::{
+    STTProvider, SpeechCommand, SpeechOptions, TTSProvider, TranscriptionOptions,
+};
+use crate::utils::mcp_connection::{
+    call_agent_list, call_agent_spawn, call_swarm_init, call_task_orchestrate,
+};
+use base64::engine::general_purpose::STANDARD as BASE64;
+use base64::Engine as _;
 use futures::{SinkExt, StreamExt};
+use log::{debug, error, info};
 use tokio::net::TcpStream;
 use url::Url;
-use base64::Engine as _;
-use base64::engine::general_purpose::{STANDARD as BASE64};
-use crate::types::speech::{SpeechCommand, TTSProvider, STTProvider, SpeechOptions, TranscriptionOptions};
-use crate::actors::voice_commands::VoiceCommand;
-use crate::utils::mcp_connection::{call_task_orchestrate, call_agent_list, call_swarm_init, call_agent_spawn};
 // DEPRECATED: call_task_orchestrate_docker removed - use TaskOrchestratorActor
 use crate::services::voice_context_manager::VoiceContextManager;
-use crate::services::voice_tag_manager::{VoiceTagManager, TaggedVoiceResponse};
+use crate::services::voice_tag_manager::{TaggedVoiceResponse, VoiceTagManager};
+use chrono;
 use reqwest::Client;
 use uuid::Uuid;
-use chrono;
-
 
 /// Centralized speech service managing both Text-to-Speech (TTS) and Speech-to-Text (STT) operations
 ///
@@ -145,7 +148,11 @@ impl SpeechService {
                         let settings_read = settings.read().await;
 
                         // Safely get OpenAI API key
-                        let openai_api_key = match settings_read.openai.as_ref().and_then(|o| o.api_key.as_ref()) {
+                        let openai_api_key = match settings_read
+                            .openai
+                            .as_ref()
+                            .and_then(|o| o.api_key.as_ref())
+                        {
                             Some(key) if !key.is_empty() => key.clone(),
                             _ => {
                                 error!("OpenAI API key not configured or empty. Cannot initialize OpenAI Realtime API.");
@@ -169,16 +176,20 @@ impl SpeechService {
                             .header("Content-Type", "application/json")
                             .header("User-Agent", "WebXR Graph")
                             .header("Sec-WebSocket-Version", "13")
-                            .header("Sec-WebSocket-Key", tungstenite::handshake::client::generate_key())
+                            .header(
+                                "Sec-WebSocket-Key",
+                                tungstenite::handshake::client::generate_key(),
+                            )
                             .header("Connection", "Upgrade")
                             .header("Upgrade", "websocket")
-                            .body(()) {
-                                Ok(req) => req,
-                                Err(e) => {
-                                    error!("Failed to build request: {}", e);
-                                    continue;
-                                }
-                            };
+                            .body(())
+                        {
+                            Ok(req) => req,
+                            Err(e) => {
+                                error!("Failed to build request: {}", e);
+                                continue;
+                            }
+                        };
 
                         match connect_async(request).await {
                             Ok((mut stream, _)) => {
@@ -192,16 +203,19 @@ impl SpeechService {
                                     }
                                 });
 
-                                if let Err(e) = stream.send(tungstenite::Message::Text(init_event.to_string())).await {
+                                if let Err(e) = stream
+                                    .send(tungstenite::Message::Text(init_event.to_string()))
+                                    .await
+                                {
                                     error!("Failed to send initial response.create event: {}", e);
                                     continue;
                                 }
 
                                 ws_stream = Some(stream);
-                            },
+                            }
                             Err(e) => error!("Failed to connect to OpenAI Realtime API: {}", e),
                         }
-                    },
+                    }
                     SpeechCommand::SendMessage(msg) => {
                         if let Some(stream) = &mut ws_stream {
                             let msg_event = json!({
@@ -216,7 +230,10 @@ impl SpeechService {
                                 }
                             });
 
-                            if let Err(e) = stream.send(tungstenite::Message::Text(msg_event.to_string())).await {
+                            if let Err(e) = stream
+                                .send(tungstenite::Message::Text(msg_event.to_string()))
+                                .await
+                            {
                                 error!("Failed to send message to OpenAI: {}", e);
                                 continue;
                             }
@@ -225,7 +242,10 @@ impl SpeechService {
                                 "type": "response.create"
                             });
 
-                            if let Err(e) = stream.send(tungstenite::Message::Text(response_event.to_string())).await {
+                            if let Err(e) = stream
+                                .send(tungstenite::Message::Text(response_event.to_string()))
+                                .await
+                            {
                                 error!("Failed to request response from OpenAI: {}", e);
                                 continue;
                             }
@@ -233,7 +253,9 @@ impl SpeechService {
                             while let Some(message) = stream.next().await {
                                 match message {
                                     Ok(tungstenite::Message::Text(text)) => {
-                                        let event = match serde_json::from_str::<serde_json::Value>(&text) {
+                                        let event = match serde_json::from_str::<serde_json::Value>(
+                                            &text,
+                                        ) {
                                             Ok(event) => event,
                                             Err(e) => {
                                                 error!("Failed to parse server event: {}", e);
@@ -243,10 +265,14 @@ impl SpeechService {
 
                                         match event["type"].as_str() {
                                             Some("conversation.item.created") => {
-                                                if let Some(content) = event["item"]["content"].as_array() {
+                                                if let Some(content) =
+                                                    event["item"]["content"].as_array()
+                                                {
                                                     for item in content {
                                                         if item["type"] == "audio" {
-                                                            if let Some(audio_data) = item["audio"].as_str() {
+                                                            if let Some(audio_data) =
+                                                                item["audio"].as_str()
+                                                            {
                                                                 match BASE64.decode(audio_data) {
                                                                     Ok(audio_bytes) => {
                                                                         debug!("Received audio data of size: {}", audio_bytes.len());
@@ -257,27 +283,27 @@ impl SpeechService {
                                                         }
                                                     }
                                                 }
-                                            },
+                                            }
                                             Some("error") => {
                                                 error!("OpenAI Realtime API error: {:?}", event);
                                                 break;
-                                            },
+                                            }
                                             Some("response.completed") => break,
                                             _ => {}
                                         }
-                                    },
+                                    }
                                     Ok(tungstenite::Message::Close(_)) => break,
                                     Err(e) => {
                                         error!("Error receiving from OpenAI: {}", e);
                                         break;
-                                    },
+                                    }
                                     _ => {}
                                 }
                             }
                         } else {
                             error!("OpenAI WebSocket not initialized");
                         }
-                    },
+                    }
                     SpeechCommand::Close => {
                         if let Some(mut stream) = ws_stream.take() {
                             if let Err(e) = stream.send(tungstenite::Message::Close(None)).await {
@@ -285,12 +311,12 @@ impl SpeechService {
                             }
                         }
                         break;
-                    },
+                    }
                     SpeechCommand::SetTTSProvider(provider) => {
                         let mut current_provider = tts_provider.write().await;
                         *current_provider = provider.clone();
                         info!("TTS provider updated to: {:?}", provider);
-                    },
+                    }
                     SpeechCommand::TextToSpeech(text, options) => {
                         let provider = tts_provider.read().await.clone();
 
@@ -326,14 +352,21 @@ impl SpeechService {
                                             Ok(response) => {
                                                 if !response.status().is_success() {
                                                     let status = response.status();
-                                                    let error_text = response.text().await.unwrap_or_default();
-                                                    error!("OpenAI TTS API error {}: {}", status, error_text);
+                                                    let error_text =
+                                                        response.text().await.unwrap_or_default();
+                                                    error!(
+                                                        "OpenAI TTS API error {}: {}",
+                                                        status, error_text
+                                                    );
                                                     continue;
                                                 }
                                                 response
                                             }
                                             Err(e) => {
-                                                error!("Failed to connect to OpenAI TTS API: {}", e);
+                                                error!(
+                                                    "Failed to connect to OpenAI TTS API: {}",
+                                                    e
+                                                );
                                                 continue;
                                             }
                                         };
@@ -341,9 +374,15 @@ impl SpeechService {
                                         match response.bytes().await {
                                             Ok(bytes) => {
                                                 if let Err(e) = audio_tx.send(bytes.to_vec()) {
-                                                    error!("Failed to send OpenAI audio data: {}", e);
+                                                    error!(
+                                                        "Failed to send OpenAI audio data: {}",
+                                                        e
+                                                    );
                                                 } else {
-                                                    debug!("Sent {} bytes of OpenAI audio data", bytes.len());
+                                                    debug!(
+                                                        "Sent {} bytes of OpenAI audio data",
+                                                        bytes.len()
+                                                    );
                                                 }
                                             }
                                             Err(e) => {
@@ -356,7 +395,7 @@ impl SpeechService {
                                 } else {
                                     error!("OpenAI configuration not found");
                                 }
-                            },
+                            }
                             TTSProvider::Kokoro => {
                                 info!("Processing TextToSpeech command with Kokoro provider");
                                 let kokoro_config = {
@@ -373,10 +412,14 @@ impl SpeechService {
                                             "http://kokoro-tts-container:8880"
                                         }
                                     };
-                                    let api_url = format!("{}/v1/audio/speech", api_url_base.trim_end_matches('/'));
+                                    let api_url = format!(
+                                        "{}/v1/audio/speech",
+                                        api_url_base.trim_end_matches('/')
+                                    );
                                     info!("Sending TTS request to Kokoro API: {}", api_url);
 
-                                    let response_format = config.default_format.as_deref().unwrap_or("mp3");
+                                    let response_format =
+                                        config.default_format.as_deref().unwrap_or("mp3");
 
                                     let request_body = json!({
                                         "model": "kokoro",
@@ -397,8 +440,12 @@ impl SpeechService {
                                         Ok(response) => {
                                             if !response.status().is_success() {
                                                 let status = response.status();
-                                                let error_text = response.text().await.unwrap_or_default();
-                                                error!("Kokoro API error {}: {}", status, error_text);
+                                                let error_text =
+                                                    response.text().await.unwrap_or_default();
+                                                error!(
+                                                    "Kokoro API error {}: {}",
+                                                    status, error_text
+                                                );
                                                 continue;
                                             }
                                             response
@@ -419,12 +466,17 @@ impl SpeechService {
                                             while let Some(item) = stream.next().await {
                                                 match item {
                                                     Ok(bytes) => {
-                                                        if let Err(e) = audio_broadcaster.send(bytes.to_vec()) {
+                                                        if let Err(e) =
+                                                            audio_broadcaster.send(bytes.to_vec())
+                                                        {
                                                             error!("Failed to broadcast audio chunk: {}", e);
                                                         }
                                                     }
                                                     Err(e) => {
-                                                        error!("Error receiving audio stream: {}", e);
+                                                        error!(
+                                                            "Error receiving audio stream: {}",
+                                                            e
+                                                        );
                                                         break;
                                                     }
                                                 }
@@ -437,7 +489,10 @@ impl SpeechService {
                                                 if let Err(e) = audio_tx.send(bytes.to_vec()) {
                                                     error!("Failed to send audio data: {}", e);
                                                 } else {
-                                                    debug!("Sent {} bytes of audio data", bytes.len());
+                                                    debug!(
+                                                        "Sent {} bytes of audio data",
+                                                        bytes.len()
+                                                    );
                                                 }
                                             }
                                             Err(e) => {
@@ -450,12 +505,12 @@ impl SpeechService {
                                 }
                             }
                         }
-                    },
+                    }
                     SpeechCommand::SetSTTProvider(provider) => {
                         let mut current_provider = stt_provider.write().await;
                         *current_provider = provider.clone();
                         info!("STT provider updated to: {:?}", provider);
-                    },
+                    }
                     SpeechCommand::StartTranscription(options) => {
                         let provider = stt_provider.read().await.clone();
 
@@ -469,15 +524,19 @@ impl SpeechService {
                                 };
 
                                 if let Some(config) = whisper_config {
-                                    let api_url = config.api_url.as_deref().unwrap_or("http://whisper-webui-backend:8000");
+                                    let api_url = config
+                                        .api_url
+                                        .as_deref()
+                                        .unwrap_or("http://whisper-webui-backend:8000");
                                     info!("Whisper STT initialized with API URL: {}", api_url);
 
                                     let _ = transcription_tx.send("Whisper STT ready".to_string());
                                 } else {
                                     error!("Whisper configuration not found");
-                                    let _ = transcription_tx.send("Whisper STT configuration missing".to_string());
+                                    let _ = transcription_tx
+                                        .send("Whisper STT configuration missing".to_string());
                                 }
-                            },
+                            }
                             STTProvider::OpenAI => {
                                 info!("Starting OpenAI transcription with options: {:?}", options);
                                 let openai_config = {
@@ -488,18 +547,21 @@ impl SpeechService {
                                 if let Some(config) = openai_config {
                                     if config.api_key.is_some() {
                                         info!("OpenAI STT initialized with API key configured");
-                                        let _ = transcription_tx.send("OpenAI STT ready".to_string());
+                                        let _ =
+                                            transcription_tx.send("OpenAI STT ready".to_string());
                                     } else {
                                         error!("OpenAI API key not configured for STT");
-                                        let _ = transcription_tx.send("OpenAI STT API key missing".to_string());
+                                        let _ = transcription_tx
+                                            .send("OpenAI STT API key missing".to_string());
                                     }
                                 } else {
                                     error!("OpenAI configuration not found for STT");
-                                    let _ = transcription_tx.send("OpenAI STT configuration missing".to_string());
+                                    let _ = transcription_tx
+                                        .send("OpenAI STT configuration missing".to_string());
                                 }
                             }
                         }
-                    },
+                    }
                     SpeechCommand::StopTranscription => {
                         info!("Stopping transcription");
 
@@ -510,12 +572,12 @@ impl SpeechService {
                         match stt_provider.read().await.clone() {
                             STTProvider::Whisper => {
                                 debug!("Whisper transcription stopped");
-                            },
+                            }
                             STTProvider::OpenAI => {
                                 debug!("OpenAI transcription stopped");
                             }
                         }
-                    },
+                    }
                     SpeechCommand::ProcessAudioChunk(audio_data) => {
                         debug!("Processing audio chunk of size: {} bytes", audio_data.len());
 
@@ -529,8 +591,14 @@ impl SpeechService {
                                 };
 
                                 if let Some(config) = whisper_config {
-                                    let api_url_base = config.api_url.as_deref().unwrap_or("http://whisper-webui-backend:8000");
-                                    let api_url = format!("{}/transcription/", api_url_base.trim_end_matches('/'));
+                                    let api_url_base = config
+                                        .api_url
+                                        .as_deref()
+                                        .unwrap_or("http://whisper-webui-backend:8000");
+                                    let api_url = format!(
+                                        "{}/transcription/",
+                                        api_url_base.trim_end_matches('/')
+                                    );
 
                                     // Detect audio format from the data
                                     // WebM files start with 0x1A45DFA3 (EBML header)
@@ -552,13 +620,23 @@ impl SpeechService {
                                         ("audio/webm", "audio.webm")
                                     };
 
-                                    info!("Detected audio format: {} for upload to Whisper", mime_type);
+                                    info!(
+                                        "Detected audio format: {} for upload to Whisper",
+                                        mime_type
+                                    );
 
                                     // Build the form with all required fields
-                                    let mut form = reqwest::multipart::Form::new()
-                                        .part("file", reqwest::multipart::Part::bytes(audio_data)
+                                    let mut form = reqwest::multipart::Form::new().part(
+                                        "file",
+                                        reqwest::multipart::Part::bytes(audio_data)
                                             .file_name(file_ext)
-                                            .mime_str(mime_type).unwrap_or_else(|_| reqwest::multipart::Part::bytes(vec![]).mime_str("audio/webm").unwrap()));
+                                            .mime_str(mime_type)
+                                            .unwrap_or_else(|_| {
+                                                reqwest::multipart::Part::bytes(vec![])
+                                                    .mime_str("audio/webm")
+                                                    .unwrap()
+                                            }),
+                                    );
 
                                     // Add optional parameters
                                     if let Some(model) = config.default_model.clone() {
@@ -574,7 +652,8 @@ impl SpeechService {
                                         form = form.text("vad_filter", vad_filter.to_string());
                                     }
                                     if let Some(word_timestamps) = config.word_timestamps {
-                                        form = form.text("word_timestamps", word_timestamps.to_string());
+                                        form = form
+                                            .text("word_timestamps", word_timestamps.to_string());
                                     }
                                     if let Some(initial_prompt) = config.initial_prompt.clone() {
                                         form = form.text("initial_prompt", initial_prompt);
@@ -596,30 +675,47 @@ impl SpeechService {
                                         {
                                             Ok(response) => {
                                                 if response.status().is_success() {
-                                                    match response.json::<serde_json::Value>().await {
+                                                    match response.json::<serde_json::Value>().await
+                                                    {
                                                         Ok(json) => {
                                                             // Whisper returns a task ID, not the transcription directly
-                                                            if let Some(identifier) = json.get("identifier").and_then(|t| t.as_str()) {
+                                                            if let Some(identifier) = json
+                                                                .get("identifier")
+                                                                .and_then(|t| t.as_str())
+                                                            {
                                                                 info!("Whisper task queued with ID: {}", identifier);
-                                                                
+
                                                                 // Poll for task completion
-                                                                let task_url = format!("{}/task/{}", api_url_clone.trim_end_matches("/transcription/"), identifier);
+                                                                let task_url = format!(
+                                                                    "{}/task/{}",
+                                                                    api_url_clone.trim_end_matches(
+                                                                        "/transcription/"
+                                                                    ),
+                                                                    identifier
+                                                                );
                                                                 let mut attempts = 0;
                                                                 const MAX_ATTEMPTS: u32 = 30;
                                                                 const POLL_DELAY_MS: u64 = 200;
-                                                                
+
                                                                 loop {
                                                                     attempts += 1;
                                                                     if attempts > MAX_ATTEMPTS {
                                                                         error!("Timeout waiting for Whisper task {}", identifier);
                                                                         break;
                                                                     }
-                                                                    
+
                                                                     tokio::time::sleep(tokio::time::Duration::from_millis(POLL_DELAY_MS)).await;
-                                                                    
-                                                                    match http_client_clone.get(&task_url).send().await {
+
+                                                                    match http_client_clone
+                                                                        .get(&task_url)
+                                                                        .send()
+                                                                        .await
+                                                                    {
                                                                         Ok(task_response) => {
-                                                                            if task_response.status().is_success() {
+                                                                            if task_response
+                                                                                .status()
+                                                                                .is_success()
+                                                                            {
                                                                                 if let Ok(task_json) = task_response.json::<serde_json::Value>().await {
                                                                                     if let Some(status) = task_json.get("status").and_then(|s| s.as_str()) {
                                                                                         match status {
@@ -633,12 +729,12 @@ impl SpeechService {
                                                                                                             full_text.push(' ');
                                                                                                         }
                                                                                                     }
-                                                                                                    
+
                                                                                                     let transcription_text = full_text.trim().to_string();
                                                                                                     if !transcription_text.is_empty() {
                                                                                                         info!("Whisper transcription: {}", transcription_text);
                                                                                                         let _ = transcription_broadcaster.send(transcription_text.clone());
-                                                                                                        
+
                                                                                                         // Check if this is a voice command and process it
                                                                                                         if Self::is_voice_command(&transcription_text) {
                                                                                                             let session_id = Uuid::new_v4().to_string();
@@ -675,7 +771,7 @@ impl SpeechService {
                                                                                     }
                                                                                 }
                                                                             }
-                                                                        },
+                                                                        }
                                                                         Err(e) => {
                                                                             error!("Failed to poll Whisper task {}: {}", identifier, e);
                                                                             break;
@@ -692,8 +788,12 @@ impl SpeechService {
                                                     }
                                                 } else {
                                                     let status = response.status();
-                                                    let error_text = response.text().await.unwrap_or_default();
-                                                    error!("Whisper API error {}: {}", status, error_text);
+                                                    let error_text =
+                                                        response.text().await.unwrap_or_default();
+                                                    error!(
+                                                        "Whisper API error {}: {}",
+                                                        status, error_text
+                                                    );
                                                 }
                                             }
                                             Err(e) => {
@@ -704,7 +804,7 @@ impl SpeechService {
                                 } else {
                                     error!("Whisper configuration not found for audio processing");
                                 }
-                            },
+                            }
                             STTProvider::OpenAI => {
                                 debug!("Processing audio chunk with OpenAI STT");
                                 let openai_config = {
@@ -714,12 +814,21 @@ impl SpeechService {
 
                                 if let Some(config) = openai_config {
                                     if let Some(api_key) = config.api_key.as_ref() {
-                                        let api_url = "https://api.openai.com/v1/audio/transcriptions";
+                                        let api_url =
+                                            "https://api.openai.com/v1/audio/transcriptions";
 
                                         let form = reqwest::multipart::Form::new()
-                                            .part("file", reqwest::multipart::Part::bytes(audio_data)
-                                                .file_name("audio.wav")
-                                                .mime_str("audio/wav").unwrap_or_else(|_| reqwest::multipart::Part::bytes(vec![]).mime_str("audio/wav").unwrap()))
+                                            .part(
+                                                "file",
+                                                reqwest::multipart::Part::bytes(audio_data)
+                                                    .file_name("audio.wav")
+                                                    .mime_str("audio/wav")
+                                                    .unwrap_or_else(|_| {
+                                                        reqwest::multipart::Part::bytes(vec![])
+                                                            .mime_str("audio/wav")
+                                                            .unwrap()
+                                                    }),
+                                            )
                                             .text("model", "whisper-1")
                                             .text("response_format", "json");
 
@@ -730,16 +839,25 @@ impl SpeechService {
                                         tokio::spawn(async move {
                                             match http_client_clone
                                                 .post(api_url)
-                                                .header("Authorization", format!("Bearer {}", api_key_clone))
+                                                .header(
+                                                    "Authorization",
+                                                    format!("Bearer {}", api_key_clone),
+                                                )
                                                 .multipart(form)
                                                 .send()
                                                 .await
                                             {
                                                 Ok(response) => {
                                                     if response.status().is_success() {
-                                                        match response.json::<serde_json::Value>().await {
+                                                        match response
+                                                            .json::<serde_json::Value>()
+                                                            .await
+                                                        {
                                                             Ok(json) => {
-                                                                if let Some(text) = json.get("text").and_then(|t| t.as_str()) {
+                                                                if let Some(text) = json
+                                                                    .get("text")
+                                                                    .and_then(|t| t.as_str())
+                                                                {
                                                                     if !text.trim().is_empty() {
                                                                         debug!("OpenAI transcription: {}", text);
                                                                         let _ = transcription_broadcaster.send(text.to_string());
@@ -754,17 +872,28 @@ impl SpeechService {
                                                         }
                                                     } else {
                                                         let status = response.status();
-                                                        let error_text = response.text().await.unwrap_or_default();
-                                                        error!("OpenAI STT API error {}: {}", status, error_text);
+                                                        let error_text = response
+                                                            .text()
+                                                            .await
+                                                            .unwrap_or_default();
+                                                        error!(
+                                                            "OpenAI STT API error {}: {}",
+                                                            status, error_text
+                                                        );
                                                     }
                                                 }
                                                 Err(e) => {
-                                                    error!("Failed to connect to OpenAI STT API: {}", e);
+                                                    error!(
+                                                        "Failed to connect to OpenAI STT API: {}",
+                                                        e
+                                                    );
                                                 }
                                             }
                                         });
                                     } else {
-                                        error!("OpenAI API key not configured for audio processing");
+                                        error!(
+                                            "OpenAI API key not configured for audio processing"
+                                        );
                                     }
                                 } else {
                                     error!("OpenAI configuration not found for audio processing");
@@ -788,8 +917,11 @@ impl SpeechService {
                 let mut receiver = rx.lock().await;
 
                 while let Some(tagged_response) = receiver.recv().await {
-                    info!("Processing tagged TTS response: {} (tag: {})",
-                          tagged_response.response.text, tagged_response.tag.short_id());
+                    info!(
+                        "Processing tagged TTS response: {} (tag: {})",
+                        tagged_response.response.text,
+                        tagged_response.tag.short_id()
+                    );
 
                     // Convert tagged response to regular TTS command
                     let tts_command = SpeechCommand::TextToSpeech(
@@ -801,8 +933,10 @@ impl SpeechService {
                     if let Err(e) = sender.lock().await.send(tts_command).await {
                         error!("Failed to send tagged response to TTS: {}", e);
                     } else {
-                        debug!("Successfully routed tagged response {} to TTS",
-                               tagged_response.tag.short_id());
+                        debug!(
+                            "Successfully routed tagged response {} to TTS",
+                            tagged_response.tag.short_id()
+                        );
                     }
 
                     // Clean up expired tags periodically
@@ -816,16 +950,20 @@ impl SpeechService {
 
     pub async fn initialize(&self) -> VisionFlowResult<()> {
         let command = SpeechCommand::Initialize;
-        self.sender.lock().await.send(command).await.map_err(|e| VisionFlowError::Speech(VisionSpeechError::InitializationFailed(e.to_string())))?;
+        self.sender.lock().await.send(command).await.map_err(|e| {
+            VisionFlowError::Speech(VisionSpeechError::InitializationFailed(e.to_string()))
+        })?;
         Ok(())
     }
 
     pub async fn send_message(&self, message: String) -> VisionFlowResult<()> {
         let command = SpeechCommand::SendMessage(message);
-        self.sender.lock().await.send(command).await.map_err(|e| VisionFlowError::Speech(VisionSpeechError::TTSFailed { 
-            text: "message".to_string(), 
-            reason: e.to_string() 
-        }))?;
+        self.sender.lock().await.send(command).await.map_err(|e| {
+            VisionFlowError::Speech(VisionSpeechError::TTSFailed {
+                text: "message".to_string(),
+                reason: e.to_string(),
+            })
+        })?;
         Ok(())
     }
 
@@ -844,27 +982,40 @@ impl SpeechService {
     /// - Audio output is broadcast to all subscribers via the audio channel
     /// - Supports both streaming and non-streaming audio generation
     /// - Uses Kokoro API by default with fallback error handling
-    pub async fn text_to_speech(&self, text: String, options: SpeechOptions) -> VisionFlowResult<()> {
+    pub async fn text_to_speech(
+        &self,
+        text: String,
+        options: SpeechOptions,
+    ) -> VisionFlowResult<()> {
         let command = SpeechCommand::TextToSpeech(text.clone(), options);
-        self.sender.lock().await.send(command).await.map_err(|e| VisionFlowError::Speech(VisionSpeechError::TTSFailed { 
-            text, 
-            reason: e.to_string() 
-        }))?;
+        self.sender.lock().await.send(command).await.map_err(|e| {
+            VisionFlowError::Speech(VisionSpeechError::TTSFailed {
+                text,
+                reason: e.to_string(),
+            })
+        })?;
         Ok(())
     }
 
     pub async fn close(&self) -> VisionFlowResult<()> {
         let command = SpeechCommand::Close;
-        self.sender.lock().await.send(command).await.map_err(|e| VisionFlowError::Speech(VisionSpeechError::InitializationFailed(format!("Failed to close speech service: {}", e))))?;
+        self.sender.lock().await.send(command).await.map_err(|e| {
+            VisionFlowError::Speech(VisionSpeechError::InitializationFailed(format!(
+                "Failed to close speech service: {}",
+                e
+            )))
+        })?;
         Ok(())
     }
 
     pub async fn set_tts_provider(&self, provider: TTSProvider) -> VisionFlowResult<()> {
         let command = SpeechCommand::SetTTSProvider(provider.clone());
-        self.sender.lock().await.send(command).await.map_err(|e| VisionFlowError::Speech(VisionSpeechError::ProviderConfigError { 
-            provider: format!("{:?}", provider), 
-            reason: e.to_string() 
-        }))?;
+        self.sender.lock().await.send(command).await.map_err(|e| {
+            VisionFlowError::Speech(VisionSpeechError::ProviderConfigError {
+                provider: format!("{:?}", provider),
+                reason: e.to_string(),
+            })
+        })?;
         Ok(())
     }
 
@@ -888,26 +1039,32 @@ impl SpeechService {
 
     pub async fn set_stt_provider(&self, provider: STTProvider) -> VisionFlowResult<()> {
         let command = SpeechCommand::SetSTTProvider(provider.clone());
-        self.sender.lock().await.send(command).await.map_err(|e| VisionFlowError::Speech(VisionSpeechError::ProviderConfigError { 
-            provider: format!("{:?}", provider), 
-            reason: e.to_string() 
-        }))?;
+        self.sender.lock().await.send(command).await.map_err(|e| {
+            VisionFlowError::Speech(VisionSpeechError::ProviderConfigError {
+                provider: format!("{:?}", provider),
+                reason: e.to_string(),
+            })
+        })?;
         Ok(())
     }
 
     pub async fn start_transcription(&self, options: TranscriptionOptions) -> VisionFlowResult<()> {
         let command = SpeechCommand::StartTranscription(options);
-        self.sender.lock().await.send(command).await.map_err(|e| VisionFlowError::Speech(VisionSpeechError::STTFailed { 
-            reason: format!("Failed to start transcription: {}", e) 
-        }))?;
+        self.sender.lock().await.send(command).await.map_err(|e| {
+            VisionFlowError::Speech(VisionSpeechError::STTFailed {
+                reason: format!("Failed to start transcription: {}", e),
+            })
+        })?;
         Ok(())
     }
 
     pub async fn stop_transcription(&self) -> VisionFlowResult<()> {
         let command = SpeechCommand::StopTranscription;
-        self.sender.lock().await.send(command).await.map_err(|e| VisionFlowError::Speech(VisionSpeechError::STTFailed { 
-            reason: format!("Failed to stop transcription: {}", e) 
-        }))?;
+        self.sender.lock().await.send(command).await.map_err(|e| {
+            VisionFlowError::Speech(VisionSpeechError::STTFailed {
+                reason: format!("Failed to stop transcription: {}", e),
+            })
+        })?;
         Ok(())
     }
 
@@ -928,9 +1085,11 @@ impl SpeechService {
     /// - Handles multipart form upload format required by Whisper-WebUI-Backend
     pub async fn process_audio_chunk(&self, audio_data: Vec<u8>) -> VisionFlowResult<()> {
         let command = SpeechCommand::ProcessAudioChunk(audio_data);
-        self.sender.lock().await.send(command).await.map_err(|e| VisionFlowError::Speech(VisionSpeechError::AudioProcessingFailed { 
-            reason: format!("Failed to process audio chunk: {}", e) 
-        }))?;
+        self.sender.lock().await.send(command).await.map_err(|e| {
+            VisionFlowError::Speech(VisionSpeechError::AudioProcessingFailed {
+                reason: format!("Failed to process audio chunk: {}", e),
+            })
+        })?;
         Ok(())
     }
 
@@ -956,21 +1115,25 @@ impl SpeechService {
                 let response = Self::execute_voice_command_with_context(
                     voice_cmd.clone(),
                     Arc::clone(&self.context_manager),
-                ).await;
+                )
+                .await;
 
                 // Add conversation turn to context
-                let _ = self.context_manager.add_conversation_turn(
-                    &voice_cmd.session_id,
-                    text,
-                    response.clone(),
-                    Some(voice_cmd.parsed_intent),
-                ).await;
+                let _ = self
+                    .context_manager
+                    .add_conversation_turn(
+                        &voice_cmd.session_id,
+                        text,
+                        response.clone(),
+                        Some(voice_cmd.parsed_intent),
+                    )
+                    .await;
 
                 // Generate contextual response
-                let contextual_response = self.context_manager.generate_contextual_response(
-                    &voice_cmd.session_id,
-                    &response,
-                ).await;
+                let contextual_response = self
+                    .context_manager
+                    .generate_contextual_response(&voice_cmd.session_id, &response)
+                    .await;
 
                 Ok(contextual_response)
             } else {
@@ -982,7 +1145,10 @@ impl SpeechService {
     }
 
     /// Get conversation context for a session
-    pub async fn get_conversation_context(&self, session_id: &str) -> Option<crate::actors::voice_commands::ConversationContext> {
+    pub async fn get_conversation_context(
+        &self,
+        session_id: &str,
+    ) -> Option<crate::actors::voice_commands::ConversationContext> {
         self.context_manager.get_context(session_id).await
     }
 
@@ -1002,32 +1168,65 @@ impl SpeechService {
     }
 
     /// Process voice command with tag tracking through hive mind
-    pub async fn process_voice_command_with_tags(&self, text: String, session_id: String) -> VisionFlowResult<String> {
+    pub async fn process_voice_command_with_tags(
+        &self,
+        text: String,
+        session_id: String,
+    ) -> VisionFlowResult<String> {
         use crate::services::speech_voice_integration::VoiceSwarmIntegration;
 
-        match VoiceSwarmIntegration::process_voice_command_with_tags(self, text, session_id, Arc::clone(&self.tag_manager)).await {
-            Ok(tag) => {
-                Ok(format!("Voice command processed with tag: {}", tag.short_id()))
-            }
+        match VoiceSwarmIntegration::process_voice_command_with_tags(
+            self,
+            text,
+            session_id,
+            Arc::clone(&self.tag_manager),
+        )
+        .await
+        {
+            Ok(tag) => Ok(format!(
+                "Voice command processed with tag: {}",
+                tag.short_id()
+            )),
             Err(e) => {
                 error!("Failed to process tagged voice command: {}", e);
-                Err(VisionFlowError::Speech(VisionSpeechError::AudioProcessingFailed {
-                    reason: format!("Tagged voice command failed: {}", e)
-                }))
+                Err(VisionFlowError::Speech(
+                    VisionSpeechError::AudioProcessingFailed {
+                        reason: format!("Tagged voice command failed: {}", e),
+                    },
+                ))
             }
         }
     }
-    
+
     /// Check if text looks like a voice command for the swarm
     fn is_voice_command(text: &str) -> bool {
         let command_keywords = [
-            "spawn", "agent", "status", "list", "stop", "add", "remove",
-            "help", "show", "create", "delete", "query", "execute", "run",
-            "node", "graph", "connect", "researcher", "coder", "analyst"
+            "spawn",
+            "agent",
+            "status",
+            "list",
+            "stop",
+            "add",
+            "remove",
+            "help",
+            "show",
+            "create",
+            "delete",
+            "query",
+            "execute",
+            "run",
+            "node",
+            "graph",
+            "connect",
+            "researcher",
+            "coder",
+            "analyst",
         ];
 
         let lower = text.to_lowercase();
-        command_keywords.iter().any(|keyword| lower.contains(keyword))
+        command_keywords
+            .iter()
+            .any(|keyword| lower.contains(keyword))
     }
 
     /// Execute voice command via MCP task orchestration with context management
@@ -1035,14 +1234,14 @@ impl SpeechService {
         voice_cmd: VoiceCommand,
         context_manager: Arc<VoiceContextManager>,
     ) -> String {
-        let mcp_host = std::env::var("MCP_HOST").unwrap_or_else(|_| "multi-agent-container".to_string());
+        let mcp_host =
+            std::env::var("MCP_HOST").unwrap_or_else(|_| "multi-agent-container".to_string());
         let mcp_port = std::env::var("MCP_TCP_PORT").unwrap_or_else(|_| "9500".to_string());
 
         // Get or create session for context
-        let session_id = context_manager.get_or_create_session(
-            Some(voice_cmd.session_id.clone()),
-            None,
-        ).await;
+        let session_id = context_manager
+            .get_or_create_session(Some(voice_cmd.session_id.clone()), None)
+            .await;
 
         match voice_cmd.parsed_intent {
             crate::actors::voice_commands::SwarmIntent::SpawnAgent { agent_type, .. } => {

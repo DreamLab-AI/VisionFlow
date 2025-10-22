@@ -1,34 +1,32 @@
-use config::{ConfigBuilder, ConfigError, Environment};
+use config::ConfigError;
 use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use serde_yaml;
-use std::path::PathBuf;
 use std::collections::HashMap;
 
 // New imports for enhanced validation and type generation
+use lazy_static::lazy_static;
+use regex::Regex;
 use specta::Type;
 use validator::{Validate, ValidationError};
-use regex::Regex;
-use lazy_static::lazy_static;
 
 pub mod dev_config;
 pub mod path_access;
 
 // Import the trait and functions we need
-use path_access::{PathAccessible, parse_path};
+use path_access::{parse_path, PathAccessible};
 
 // Centralized validation patterns
 lazy_static! {
     /// Validates hex color format (#RRGGBB or #RRGGBBAA)
     static ref HEX_COLOR_REGEX: Regex = Regex::new(r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$").unwrap();
-    
+
     /// Validates URL format (http/https)
     static ref URL_REGEX: Regex = Regex::new(r"^https?://[^\s/$.?#].[^\s]*$").unwrap();
-    
+
     /// Validates file path format (Unix/Windows compatible)
     static ref FILE_PATH_REGEX: Regex = Regex::new(r"^[a-zA-Z0-9._/\\-]+$").unwrap();
-    
+
     /// Validates domain name format
     static ref DOMAIN_REGEX: Regex = Regex::new(r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$").unwrap();
 }
@@ -71,7 +69,10 @@ pub fn validate_percentage(value: f32) -> Result<(), ValidationError> {
 
 /// Validates bloom/glow settings to prevent GPU kernel crashes
 /// This function checks ranges for intensity, threshold, radius, and validates hex colors
-pub fn validate_bloom_glow_settings(glow: &GlowSettings, bloom: &BloomSettings) -> Result<(), ValidationError> {
+pub fn validate_bloom_glow_settings(
+    glow: &GlowSettings,
+    bloom: &BloomSettings,
+) -> Result<(), ValidationError> {
     // Validate glow settings
     if glow.intensity < 0.0 || glow.intensity > 10.0 {
         return Err(ValidationError::new("glow_intensity_out_of_range"));
@@ -140,7 +141,7 @@ pub fn validate_bloom_glow_settings(glow: &GlowSettings, bloom: &BloomSettings) 
 fn to_camel_case(snake_str: &str) -> String {
     let mut result = String::new();
     let mut capitalize_next = false;
-    
+
     for ch in snake_str.chars() {
         if ch == '_' {
             capitalize_next = true;
@@ -151,7 +152,7 @@ fn to_camel_case(snake_str: &str) -> String {
             result.push(ch);
         }
     }
-    
+
     result
 }
 
@@ -160,11 +161,11 @@ fn default_auto_balance_interval() -> u32 {
 }
 
 fn default_constraint_ramp_frames() -> u32 {
-    60  // 1 second at 60 FPS for full activation
+    60 // 1 second at 60 FPS for full activation
 }
 
 fn default_constraint_max_force_per_node() -> f32 {
-    50.0  // Default constraint force limit per node
+    50.0 // Default constraint force limit per node
 }
 
 fn default_glow_color() -> String {
@@ -188,36 +189,57 @@ pub mod feature_access;
 fn convert_empty_strings_to_null(value: Value) -> Value {
     match value {
         Value::Object(map) => {
-            let new_map = map.into_iter().map(|(k, v)| {
-                let new_v = match v {
-                    Value::String(s) if s.is_empty() => {
-                        // For required String fields, keep empty strings
-                        // For optional fields, convert to null
-                        // List of required string fields that should NOT be null
-                        let required_string_fields = vec![
-                            "base_color", "color", "background_color", "text_color",
-                            "text_outline_color", "billboard_mode", "quality", "mode",
-                            "context", "cookie_samesite", "audit_log_path", "bind_address",
-                            "domain", "min_tls_version", "tunnel_id", "provider",
-                            "ring_color", "hand_mesh_color", "hand_ray_color",
-                            "teleport_ray_color", "controller_ray_color", "plane_color",
-                            "portal_edge_color", "space_type", "locomotion_method"
-                        ];
-                        
-                        if required_string_fields.contains(&k.as_str()) {
-                            // Keep empty string for required fields
-                            Value::String(s)
-                        } else {
-                            // Convert to null for optional fields
-                            Value::Null
+            let new_map = map
+                .into_iter()
+                .map(|(k, v)| {
+                    let new_v = match v {
+                        Value::String(s) if s.is_empty() => {
+                            // For required String fields, keep empty strings
+                            // For optional fields, convert to null
+                            // List of required string fields that should NOT be null
+                            let required_string_fields = vec![
+                                "base_color",
+                                "color",
+                                "background_color",
+                                "text_color",
+                                "text_outline_color",
+                                "billboard_mode",
+                                "quality",
+                                "mode",
+                                "context",
+                                "cookie_samesite",
+                                "audit_log_path",
+                                "bind_address",
+                                "domain",
+                                "min_tls_version",
+                                "tunnel_id",
+                                "provider",
+                                "ring_color",
+                                "hand_mesh_color",
+                                "hand_ray_color",
+                                "teleport_ray_color",
+                                "controller_ray_color",
+                                "plane_color",
+                                "portal_edge_color",
+                                "space_type",
+                                "locomotion_method",
+                            ];
+
+                            if required_string_fields.contains(&k.as_str()) {
+                                // Keep empty string for required fields
+                                Value::String(s)
+                            } else {
+                                // Convert to null for optional fields
+                                Value::Null
+                            }
                         }
-                    },
-                    Value::Object(_) => convert_empty_strings_to_null(v),
-                    Value::Array(_) => convert_empty_strings_to_null(v),
-                    _ => v,
-                };
-                (k, new_v)
-            }).collect();
+                        Value::Object(_) => convert_empty_strings_to_null(v),
+                        Value::Array(_) => convert_empty_strings_to_null(v),
+                        _ => v,
+                    };
+                    (k, new_v)
+                })
+                .collect();
             Value::Object(new_map)
         }
         Value::Array(arr) => {
@@ -226,7 +248,6 @@ fn convert_empty_strings_to_null(value: Value) -> Value {
         _ => value,
     }
 }
-
 
 // Helper function to merge two JSON values
 fn merge_json_values(base: Value, update: Value) -> Value {
@@ -263,7 +284,10 @@ static FIELD_MAPPINGS: std::sync::LazyLock<std::collections::HashMap<&'static st
         field_mappings.insert("enable_instancing", "enableInstancing");
         field_mappings.insert("enable_hologram", "enableHologram");
         field_mappings.insert("enable_metadata_shape", "enableMetadataShape");
-        field_mappings.insert("enable_metadata_visualisation", "enableMetadataVisualisation");
+        field_mappings.insert(
+            "enable_metadata_visualisation",
+            "enableMetadataVisualisation",
+        );
 
         // Edge settings fields
         field_mappings.insert("arrow_size", "arrowSize");
@@ -292,7 +316,10 @@ static FIELD_MAPPINGS: std::sync::LazyLock<std::collections::HashMap<&'static st
         field_mappings.insert("animation_speed", "animationSpeed");
 
         // Auto-pause config fields
-        field_mappings.insert("equilibrium_velocity_threshold", "equilibriumVelocityThreshold");
+        field_mappings.insert(
+            "equilibrium_velocity_threshold",
+            "equilibriumVelocityThreshold",
+        );
         field_mappings.insert("equilibrium_check_frames", "equilibriumCheckFrames");
         field_mappings.insert("equilibrium_energy_threshold", "equilibriumEnergyThreshold");
         field_mappings.insert("pause_on_equilibrium", "pauseOnEquilibrium");
@@ -301,7 +328,10 @@ static FIELD_MAPPINGS: std::sync::LazyLock<std::collections::HashMap<&'static st
         // Auto-balance config fields (extensive physics parameters)
         field_mappings.insert("stability_variance_threshold", "stabilityVarianceThreshold");
         field_mappings.insert("stability_frame_count", "stabilityFrameCount");
-        field_mappings.insert("clustering_distance_threshold", "clusteringDistanceThreshold");
+        field_mappings.insert(
+            "clustering_distance_threshold",
+            "clusteringDistanceThreshold",
+        );
         field_mappings.insert("clustering_hysteresis_buffer", "clusteringHysteresisBuffer");
         field_mappings.insert("bouncing_node_percentage", "bouncingNodePercentage");
         field_mappings.insert("boundary_min_distance", "boundaryMinDistance");
@@ -328,9 +358,15 @@ static FIELD_MAPPINGS: std::sync::LazyLock<std::collections::HashMap<&'static st
         field_mappings.insert("repulsion_softening_max", "repulsionSofteningMax");
         field_mappings.insert("center_gravity_min", "centerGravityMin");
         field_mappings.insert("center_gravity_max", "centerGravityMax");
-        field_mappings.insert("spatial_hash_efficiency_threshold", "spatialHashEfficiencyThreshold");
+        field_mappings.insert(
+            "spatial_hash_efficiency_threshold",
+            "spatialHashEfficiencyThreshold",
+        );
         field_mappings.insert("cluster_density_threshold", "clusterDensityThreshold");
-        field_mappings.insert("numerical_instability_threshold", "numericalInstabilityThreshold");
+        field_mappings.insert(
+            "numerical_instability_threshold",
+            "numericalInstabilityThreshold",
+        );
 
         // Physics settings fields
         field_mappings.insert("bounds_size", "boundsSize");
@@ -357,7 +393,10 @@ static FIELD_MAPPINGS: std::sync::LazyLock<std::collections::HashMap<&'static st
         field_mappings.insert("warmup_iterations", "warmupIterations");
         field_mappings.insert("cooling_rate", "coolingRate");
         field_mappings.insert("boundary_extreme_multiplier", "boundaryExtremeMultiplier");
-        field_mappings.insert("boundary_extreme_force_multiplier", "boundaryExtremeForceMultiplier");
+        field_mappings.insert(
+            "boundary_extreme_force_multiplier",
+            "boundaryExtremeForceMultiplier",
+        );
         field_mappings.insert("boundary_velocity_damping", "boundaryVelocityDamping");
         field_mappings.insert("min_distance", "minDistance");
         field_mappings.insert("max_repulsion_dist", "maxRepulsionDist");
@@ -390,7 +429,10 @@ fn normalize_field_names_to_camel_case(value: Value) -> Result<Value, String> {
 }
 
 /// Recursively normalize field names in a JSON object using the provided mapping
-fn normalize_object_fields(value: Value, mappings: &std::collections::HashMap<&str, &str>) -> Result<Value, String> {
+fn normalize_object_fields(
+    value: Value,
+    mappings: &std::collections::HashMap<&str, &str>,
+) -> Result<Value, String> {
     match value {
         Value::Object(map) => {
             let mut new_map = serde_json::Map::new();
@@ -423,7 +465,6 @@ fn normalize_object_fields(value: Value, mappings: &std::collections::HashMap<&s
         _ => Ok(value),
     }
 }
-
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type)]
 #[serde(rename_all = "camelCase")]
@@ -552,7 +593,7 @@ pub struct AutoBalanceConfig {
     pub oscillation_change_threshold: f32,
     #[serde(alias = "min_oscillation_changes")]
     pub min_oscillation_changes: usize,
-    
+
     // Parameter adjustment and cooldown configuration
     #[serde(alias = "parameter_adjustment_rate")]
     pub parameter_adjustment_rate: f32,
@@ -568,7 +609,7 @@ pub struct AutoBalanceConfig {
     pub parameter_dampening_factor: f32,
     #[serde(alias = "hysteresis_delay_frames")]
     pub hysteresis_delay_frames: u32,
-    
+
     // New CUDA kernel parameter tuning thresholds
     #[serde(alias = "grid_cell_size_min")]
     pub grid_cell_size_min: f32,
@@ -586,7 +627,7 @@ pub struct AutoBalanceConfig {
     pub center_gravity_min: f32,
     #[serde(alias = "center_gravity_max")]
     pub center_gravity_max: f32,
-    
+
     // Spatial hashing effectiveness thresholds
     #[serde(alias = "spatial_hash_efficiency_threshold")]
     pub spatial_hash_efficiency_threshold: f32,
@@ -613,7 +654,7 @@ impl AutoBalanceConfig {
             oscillation_detection_frames: 20,
             oscillation_change_threshold: 10.0,
             min_oscillation_changes: 8,
-            
+
             // Parameter adjustment and cooldown defaults
             parameter_adjustment_rate: 0.1,
             max_adjustment_factor: 0.2,
@@ -622,7 +663,7 @@ impl AutoBalanceConfig {
             state_change_cooldown_ms: 1000,
             parameter_dampening_factor: 0.05,
             hysteresis_delay_frames: 30,
-            
+
             // New CUDA kernel parameter defaults for tuning ranges
             grid_cell_size_min: 1.0,
             grid_cell_size_max: 50.0,
@@ -632,11 +673,11 @@ impl AutoBalanceConfig {
             repulsion_softening_max: 1.0,
             center_gravity_min: 0.0,
             center_gravity_max: 0.1,
-            
+
             // Spatial hashing and numerical stability thresholds
             spatial_hash_efficiency_threshold: 0.3, // Below 30% efficiency triggers grid_cell_size adjustment
-            cluster_density_threshold: 50.0, // Nodes per unit area that indicates clustering
-            numerical_instability_threshold: 1e-3, // Threshold for detecting numerical issues
+            cluster_density_threshold: 50.0,        // Nodes per unit area that indicates clustering
+            numerical_instability_threshold: 1e-3,  // Threshold for detecting numerical issues
         }
     }
 }
@@ -646,7 +687,10 @@ impl AutoBalanceConfig {
 pub struct PhysicsSettings {
     #[serde(default, alias = "auto_balance")]
     pub auto_balance: bool,
-    #[serde(default = "default_auto_balance_interval", alias = "auto_balance_interval_ms")]
+    #[serde(
+        default = "default_auto_balance_interval",
+        alias = "auto_balance_interval_ms"
+    )]
     pub auto_balance_interval_ms: u32,
     #[serde(default, alias = "auto_balance_config")]
     #[validate(nested)]
@@ -699,7 +743,7 @@ pub struct PhysicsSettings {
     pub cluster_strength: f32,
     #[serde(alias = "compute_mode")]
     pub compute_mode: i32,
-    
+
     // CUDA kernel parameters from dev_config.toml
     #[serde(alias = "rest_length")]
     pub rest_length: f32,
@@ -734,13 +778,19 @@ pub struct PhysicsSettings {
     pub warmup_curve: String,
     #[serde(alias = "zero_velocity_iterations")]
     pub zero_velocity_iterations: u32,
-    
+
     // Constraint progressive activation parameters
-    #[serde(alias = "constraint_ramp_frames", default = "default_constraint_ramp_frames")]
+    #[serde(
+        alias = "constraint_ramp_frames",
+        default = "default_constraint_ramp_frames"
+    )]
     pub constraint_ramp_frames: u32,
-    #[serde(alias = "constraint_max_force_per_node", default = "default_constraint_max_force_per_node")]
+    #[serde(
+        alias = "constraint_max_force_per_node",
+        default = "default_constraint_max_force_per_node"
+    )]
     pub constraint_max_force_per_node: f32,
-    
+
     // Clustering parameters
     #[serde(alias = "clustering_algorithm")]
     pub clustering_algorithm: String,
@@ -906,10 +956,18 @@ pub struct GlowSettings {
     #[serde(default, alias = "volumetric_intensity")]
     pub volumetric_intensity: f32,
     #[validate(custom(function = "validate_hex_color"))]
-    #[serde(skip_serializing_if = "String::is_empty", default = "default_glow_color", alias = "base_color")]
+    #[serde(
+        skip_serializing_if = "String::is_empty",
+        default = "default_glow_color",
+        alias = "base_color"
+    )]
     pub base_color: String,
     #[validate(custom(function = "validate_hex_color"))]
-    #[serde(skip_serializing_if = "String::is_empty", default = "default_glow_color", alias = "emission_color")]
+    #[serde(
+        skip_serializing_if = "String::is_empty",
+        default = "default_glow_color",
+        alias = "emission_color"
+    )]
     pub emission_color: String,
     #[validate(range(min = 0.0, max = 1.0))]
     #[serde(default = "default_glow_opacity", alias = "opacity")]
@@ -936,7 +994,7 @@ fn default_bloom_intensity() -> f32 {
     1.0
 }
 
-/// Default function for bloom radius  
+/// Default function for bloom radius
 fn default_bloom_radius() -> f32 {
     0.8
 }
@@ -966,10 +1024,18 @@ pub struct BloomSettings {
     #[serde(default = "default_bloom_threshold", alias = "threshold")]
     pub threshold: f32,
     #[validate(custom(function = "validate_hex_color"))]
-    #[serde(skip_serializing_if = "String::is_empty", default = "default_bloom_color", alias = "color")]
+    #[serde(
+        skip_serializing_if = "String::is_empty",
+        default = "default_bloom_color",
+        alias = "color"
+    )]
     pub color: String,
     #[validate(custom(function = "validate_hex_color"))]
-    #[serde(skip_serializing_if = "String::is_empty", default = "default_bloom_color", alias = "tint_color")]
+    #[serde(
+        skip_serializing_if = "String::is_empty",
+        default = "default_bloom_color",
+        alias = "tint_color"
+    )]
     pub tint_color: String,
     #[validate(range(min = 0.0, max = 1.0))]
     #[serde(default, alias = "strength")]
@@ -987,7 +1053,7 @@ impl Default for BloomSettings {
         Self {
             enabled: true,
             intensity: default_bloom_intensity(),
-            radius: default_bloom_radius(), 
+            radius: default_bloom_radius(),
             threshold: default_bloom_threshold(),
             color: default_bloom_color(),
             tint_color: default_bloom_color(),
@@ -1112,7 +1178,6 @@ pub struct GraphsSettings {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct VisualisationSettings {
-    
     // Global settings
     #[validate(nested)]
     pub rendering: RenderingSettings,
@@ -1132,7 +1197,7 @@ pub struct VisualisationSettings {
     pub space_pilot: Option<SpacePilotSettings>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
+#[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct NetworkSettings {
     #[serde(alias = "bind_address")]
@@ -1169,6 +1234,30 @@ pub struct NetworkSettings {
     pub metrics_port: u16,
     #[serde(alias = "retry_delay")]
     pub retry_delay: u32,
+}
+
+impl Default for NetworkSettings {
+    fn default() -> Self {
+        Self {
+            bind_address: "0.0.0.0".to_string(),  // Valid bind address (all interfaces)
+            port: 8080,                            // Valid default HTTP port
+            domain: String::new(),
+            enable_http2: false,
+            enable_rate_limiting: false,
+            enable_tls: false,
+            max_request_size: 10485760,            // 10MB
+            min_tls_version: "1.2".to_string(),
+            rate_limit_requests: 100,
+            rate_limit_window: 60,
+            tunnel_id: String::new(),
+            api_client_timeout: 30,
+            enable_metrics: true,
+            max_concurrent_requests: 1000,
+            max_retries: 3,
+            metrics_port: 9090,
+            retry_delay: 1000,                     // 1 second
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Type, Validate)]
@@ -1264,9 +1353,7 @@ pub struct DebugSettings {
 
 impl Default for DebugSettings {
     fn default() -> Self {
-        Self {
-            enabled: false,
-        }
+        Self { enabled: false }
     }
 }
 
@@ -1309,7 +1396,10 @@ impl Default for SystemSettings {
 pub struct XRSettings {
     #[serde(skip_serializing_if = "Option::is_none", alias = "enabled")]
     pub enabled: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none", alias = "client_side_enable_xr")]
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        alias = "client_side_enable_xr"
+    )]
     pub client_side_enable_xr: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none", alias = "mode")]
     pub mode: Option<String>,
@@ -1331,7 +1421,7 @@ pub struct XRSettings {
     pub controller_ray_color: String,
     #[serde(skip_serializing_if = "Option::is_none", alias = "controller_model")]
     pub controller_model: Option<String>,
-    
+
     #[serde(alias = "enable_hand_tracking")]
     pub enable_hand_tracking: bool,
     #[serde(alias = "hand_mesh_enabled")]
@@ -1350,7 +1440,7 @@ pub struct XRSettings {
     pub hand_ray_width: f32,
     #[serde(alias = "gesture_smoothing")]
     pub gesture_smoothing: f32,
-    
+
     #[serde(alias = "enable_haptics")]
     pub enable_haptics: bool,
     #[serde(alias = "haptic_intensity")]
@@ -1369,7 +1459,7 @@ pub struct XRSettings {
     pub dead_zone: f32,
     #[serde(alias = "movement_axes")]
     pub movement_axes: MovementAxes,
-    
+
     #[serde(alias = "enable_light_estimation")]
     pub enable_light_estimation: bool,
     #[serde(alias = "enable_plane_detection")]
@@ -1386,7 +1476,7 @@ pub struct XRSettings {
     pub show_plane_overlay: bool,
     #[serde(alias = "snap_to_floor")]
     pub snap_to_floor: bool,
-    
+
     #[serde(alias = "enable_passthrough_portal")]
     pub enable_passthrough_portal: bool,
     #[serde(alias = "passthrough_opacity")]
@@ -1522,7 +1612,7 @@ pub struct WhisperSettings {
 #[serde(rename_all = "camelCase")]
 pub struct LegacyConstraintData {
     #[serde(alias = "constraint_type")]
-    pub constraint_type: i32,  // 0=none, 1=separation, 2=boundary, 3=alignment, 4=cluster
+    pub constraint_type: i32, // 0=none, 1=separation, 2=boundary, 3=alignment, 4=cluster
     #[serde(alias = "strength")]
     pub strength: f32,
     #[serde(alias = "param1")]
@@ -1530,7 +1620,7 @@ pub struct LegacyConstraintData {
     #[serde(alias = "param2")]
     pub param2: f32,
     #[serde(alias = "node_mask")]
-    pub node_mask: i32,  // Bit mask for selective application
+    pub node_mask: i32, // Bit mask for selective application
     #[serde(alias = "enabled")]
     pub enabled: bool,
 }
@@ -1651,6 +1741,62 @@ pub struct PhysicsUpdate {
     pub rest_length: Option<f32>,
 }
 
+// User preferences configuration
+#[derive(Debug, Clone, Deserialize, Serialize, Type, Validate, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct UserPreferences {
+    #[serde(default)]
+    pub comfort_level: Option<f32>, // 0.0 to 1.0
+    #[serde(default)]
+    pub interaction_style: Option<String>, // "hands" | "controllers" | "mixed"
+    #[serde(default)]
+    pub ar_preference: Option<bool>, // Prefer AR over VR when possible
+    #[serde(default)]
+    pub theme: Option<String>, // UI theme preference
+    #[serde(default)]
+    pub language: Option<String>, // Language preference
+}
+
+// Feature flags for experimental or optional features
+#[derive(Debug, Clone, Deserialize, Serialize, Type, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct FeatureFlags {
+    #[serde(default)]
+    pub gpu_clustering: bool,
+    #[serde(default)]
+    pub ontology_validation: bool,
+    #[serde(default)]
+    pub gpu_anomaly_detection: bool,
+    #[serde(default)]
+    pub real_time_insights: bool,
+    #[serde(default)]
+    pub advanced_visualizations: bool,
+    #[serde(default)]
+    pub performance_monitoring: bool,
+    #[serde(default)]
+    pub stress_majorization: bool,
+    #[serde(default)]
+    pub semantic_constraints: bool,
+    #[serde(default)]
+    pub sssp_integration: bool,
+}
+
+// Developer and debugging configuration
+#[derive(Debug, Clone, Deserialize, Serialize, Type, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct DeveloperConfig {
+    #[serde(default)]
+    pub debug_mode: bool,
+    #[serde(default)]
+    pub show_performance_stats: bool,
+    #[serde(default)]
+    pub enable_profiling: bool,
+    #[serde(default)]
+    pub verbose_logging: bool,
+    #[serde(default)]
+    pub dev_tools_enabled: bool,
+}
+
 // Single unified settings struct
 #[derive(Debug, Clone, Deserialize, Serialize, Type, Validate)]
 #[serde(rename_all = "camelCase")]
@@ -1679,6 +1825,17 @@ pub struct AppFullSettings {
     pub whisper: Option<WhisperSettings>,
     #[serde(default = "default_version", alias = "version")]
     pub version: String,
+    // New fields for enhanced configuration
+    #[serde(default, alias = "user_preferences")]
+    #[validate(nested)]
+    pub user_preferences: UserPreferences,
+    #[serde(default, alias = "physics")]
+    #[validate(nested)]
+    pub physics: PhysicsSettings,
+    #[serde(default, alias = "feature_flags")]
+    pub feature_flags: FeatureFlags,
+    #[serde(default, alias = "developer_config")]
+    pub developer_config: DeveloperConfig,
 }
 
 fn default_version() -> String {
@@ -1698,113 +1855,34 @@ impl Default for AppFullSettings {
             kokoro: None,
             whisper: None,
             version: default_version(),
+            user_preferences: UserPreferences::default(),
+            physics: PhysicsSettings::default(),
+            feature_flags: FeatureFlags::default(),
+            developer_config: DeveloperConfig::default(),
         }
     }
 }
 
 impl AppFullSettings {
-    /// Load AppFullSettings from a YAML file with proper snake_case to camelCase conversion
-    pub fn from_yaml_file(path: &PathBuf) -> Result<Self, ConfigError> {
-        let yaml_content = std::fs::read_to_string(path)
-            .map_err(|e| ConfigError::Message(format!("Failed to read YAML file {:?}: {}", path, e)))?;
-            
-        // Try direct YAML deserialization first
-        match serde_yaml::from_str::<AppFullSettings>(&yaml_content) {
-            Ok(settings) => {
-                debug!("Successfully loaded settings using direct YAML deserialization");
-                return Ok(settings);
-            }
-            Err(yaml_err) => {
-                debug!("Direct YAML deserialization failed: {}, trying YAML->JSON conversion", yaml_err);
-                
-                // Parse as raw Value first
-                let raw_value = serde_yaml::from_str::<Value>(&yaml_content)
-                    .map_err(|e| ConfigError::Message(format!("Failed to parse YAML as Value: {}", e)))?;
-                
-                // Convert to JSON string (this preserves the structure)
-                let json_str = serde_json::to_string(&raw_value)
-                    .map_err(|e| ConfigError::Message(format!("Failed to convert YAML to JSON: {}", e)))?;
-                
-                // Deserialize from JSON (this will respect serde rename attributes)
-                serde_json::from_str::<AppFullSettings>(&json_str)
-                    .map_err(|e| ConfigError::Message(format!("Failed to deserialize JSON: {}", e)))
-            }
-        }
-    }
-
+    /// Create default settings (YAML file loading removed - use database instead)
+    /// This method is kept for backward compatibility but now returns defaults only
     pub fn new() -> Result<Self, ConfigError> {
-        debug!("Initializing AppFullSettings from YAML");
-        dotenvy::dotenv().ok();
+        debug!("Initializing AppFullSettings with defaults (database-first architecture)");
+        info!("IMPORTANT: Settings should be loaded from database via DatabaseService");
+        info!("Legacy YAML file loading has been removed - all settings are now in SQLite");
 
-        let settings_path = std::env::var("SETTINGS_FILE_PATH")
-            .map(PathBuf::from)
-            .unwrap_or_else(|_| PathBuf::from("data/settings.yaml"));
-        debug!("Loading AppFullSettings from YAML file: {:?}", settings_path);
-
-        // Use our improved YAML loading method
-        match Self::from_yaml_file(&settings_path) {
-            Ok(settings) => {
-                info!("Successfully loaded settings from YAML file");
-                return Ok(settings);
-            }
-            Err(yaml_err) => {
-                error!("YAML loading failed: {}", yaml_err);
-                debug!("Trying config crate fallback (this may fail due to case conversion issues)");
-            }
-        }
-
-        // Fallback to config crate approach (with environment variable support)
-        // NOTE: This fallback doesn't respect serde rename attributes, so it will likely fail
-        // with "missing field ambientLightIntensity" type errors
-        let builder = ConfigBuilder::<config::builder::DefaultState>::default()
-            .add_source(config::File::from(settings_path.clone()).required(true))
-            .add_source(
-                Environment::default()
-                    .separator("_")
-                    .list_separator(",")
-            );
-        let config = builder.build()?;
-        debug!("Configuration built successfully. Attempting deserialization...");
-
-        let settings: AppFullSettings = config.clone().try_deserialize()
-            .map_err(|e| {
-                error!("Config crate deserialization failed as expected: {}", e);
-                error!("This is because config crate doesn't respect #[serde(rename_all = \"camelCase\")] attributes");
-                e
-            })?;
-        
-        debug!("Unexpectedly succeeded with config crate fallback");
-        Ok(settings)
+        // Return default settings
+        Ok(Self::default())
     }
-    
 
+    /// Save method removed - settings are now persisted to database only
+    /// This is kept as a no-op for backward compatibility
     pub fn save(&self) -> Result<(), String> {
-        // Check if persist_settings is enabled
-        if !self.system.persist_settings {
-            debug!("Settings persistence is disabled (persist_settings: false), skipping save");
-            return Ok(());
-        }
-
-        let settings_path = std::env::var("SETTINGS_FILE_PATH")
-            .map(PathBuf::from)
-            .unwrap_or_else(|_| PathBuf::from("data/settings.yaml"));
-        info!("Saving AppFullSettings to YAML file: {:?}", settings_path);
-
-        // Create parent directory if it doesn't exist
-        if let Some(parent) = settings_path.parent() {
-            std::fs::create_dir_all(parent)
-                .map_err(|e| format!("Failed to create directory {:?}: {}", parent, e))?;
-        }
-
-        let yaml = serde_yaml::to_string(&self)
-            .map_err(|e| format!("Failed to serialize AppFullSettings to YAML: {}", e))?;
-
-        std::fs::write(&settings_path, yaml)
-            .map_err(|e| format!("Failed to write settings file {:?}: {}", settings_path, e))?;
-        info!("Successfully saved AppFullSettings to {:?}", settings_path);
+        debug!("save() called but ignored - settings are now automatically persisted to database");
+        info!("Legacy YAML file saving has been removed - all settings are now in SQLite");
         Ok(())
     }
-    
+
     /// Get physics settings for a specific graph
     /// - "logseq": Knowledge graph (primary) - for visualizing knowledge/data relationships
     /// - "visionflow": Agent graph (secondary) - for visualizing AI agents and their interactions
@@ -1815,26 +1893,37 @@ impl AppFullSettings {
             "logseq" | "knowledge" => &self.visualisation.graphs.logseq.physics,
             "visionflow" | "agent" | "bots" => &self.visualisation.graphs.visionflow.physics,
             _ => {
-                log::debug!("Unknown graph type '{}', defaulting to logseq (knowledge graph)", graph);
+                log::debug!(
+                    "Unknown graph type '{}', defaulting to logseq (knowledge graph)",
+                    graph
+                );
                 &self.visualisation.graphs.logseq.physics
             }
         }
     }
-    
+
     // Physics updates now handled through the general merge_update method
     // which provides better validation and consistency
-    
+
     /// Deep merge partial update into settings
     pub fn merge_update(&mut self, update: serde_json::Value) -> Result<(), String> {
         // Debug: Log the incoming update (only if debug is enabled)
         if crate::utils::logging::is_debug_enabled() {
-            debug!("merge_update: Incoming update (camelCase): {}", serde_json::to_string_pretty(&update).unwrap_or_else(|_| "Could not serialize".to_string()));
+            debug!(
+                "merge_update: Incoming update (camelCase): {}",
+                serde_json::to_string_pretty(&update)
+                    .unwrap_or_else(|_| "Could not serialize".to_string())
+            );
         }
 
         // Convert empty strings to null for Option<String> fields
         let processed_update = convert_empty_strings_to_null(update.clone());
         if crate::utils::logging::is_debug_enabled() {
-            debug!("merge_update: After null conversion: {}", serde_json::to_string_pretty(&processed_update).unwrap_or_else(|_| "Could not serialize".to_string()));
+            debug!(
+                "merge_update: After null conversion: {}",
+                serde_json::to_string_pretty(&processed_update)
+                    .unwrap_or_else(|_| "Could not serialize".to_string())
+            );
         }
 
         // CRITICAL FIX: Normalize field names before merging to prevent duplicate field errors
@@ -1847,94 +1936,122 @@ impl AppFullSettings {
         let normalized_update = normalize_field_names_to_camel_case(processed_update)?;
 
         if crate::utils::logging::is_debug_enabled() {
-            debug!("merge_update: After field normalization (current): {}", serde_json::to_string_pretty(&normalized_current).unwrap_or_else(|_| "Could not serialize".to_string()));
-            debug!("merge_update: After field normalization (update): {}", serde_json::to_string_pretty(&normalized_update).unwrap_or_else(|_| "Could not serialize".to_string()));
+            debug!(
+                "merge_update: After field normalization (current): {}",
+                serde_json::to_string_pretty(&normalized_current)
+                    .unwrap_or_else(|_| "Could not serialize".to_string())
+            );
+            debug!(
+                "merge_update: After field normalization (update): {}",
+                serde_json::to_string_pretty(&normalized_update)
+                    .unwrap_or_else(|_| "Could not serialize".to_string())
+            );
         }
 
         let merged = merge_json_values(normalized_current, normalized_update);
         if crate::utils::logging::is_debug_enabled() {
-            debug!("merge_update: After merge: {}", serde_json::to_string_pretty(&merged).unwrap_or_else(|_| "Could not serialize".to_string()));
+            debug!(
+                "merge_update: After merge: {}",
+                serde_json::to_string_pretty(&merged)
+                    .unwrap_or_else(|_| "Could not serialize".to_string())
+            );
         }
 
         // Deserialize back to AppFullSettings
-        *self = serde_json::from_value(merged.clone())
-            .map_err(|e| {
-                if crate::utils::logging::is_debug_enabled() {
-                    error!("merge_update: Failed to deserialize merged JSON: {}", serde_json::to_string_pretty(&merged).unwrap_or_else(|_| "Could not serialize".to_string()));
-                    error!("merge_update: Original update was: {}", serde_json::to_string_pretty(&update).unwrap_or_else(|_| "Could not serialize".to_string()));
-                }
-                format!("Failed to deserialize merged settings: {}", e)
-            })?;
+        *self = serde_json::from_value(merged.clone()).map_err(|e| {
+            if crate::utils::logging::is_debug_enabled() {
+                error!(
+                    "merge_update: Failed to deserialize merged JSON: {}",
+                    serde_json::to_string_pretty(&merged)
+                        .unwrap_or_else(|_| "Could not serialize".to_string())
+                );
+                error!(
+                    "merge_update: Original update was: {}",
+                    serde_json::to_string_pretty(&update)
+                        .unwrap_or_else(|_| "Could not serialize".to_string())
+                );
+            }
+            format!("Failed to deserialize merged settings: {}", e)
+        })?;
 
         Ok(())
     }
-    
+
     /// Validates the entire configuration with camelCase field names for frontend compatibility
     pub fn validate_config_camel_case(&self) -> Result<(), validator::ValidationErrors> {
         // Validate the entire struct
         self.validate()?;
-        
+
         // Additional cross-field validation
         self.validate_cross_field_constraints()?;
-        
+
         Ok(())
     }
-    
+
     /// Validates constraints that span multiple fields
     fn validate_cross_field_constraints(&self) -> Result<(), validator::ValidationErrors> {
         let mut errors = validator::ValidationErrors::new();
-        
+
         // Example: Check that physics simulation is enabled if physics settings are configured
-        if self.visualisation.graphs.logseq.physics.gravity != 0.0 && !self.visualisation.graphs.logseq.physics.enabled {
+        if self.visualisation.graphs.logseq.physics.gravity != 0.0
+            && !self.visualisation.graphs.logseq.physics.enabled
+        {
             errors.add("physics", ValidationError::new("physics_enabled_required"));
         }
-        
+
         // Validate bloom/glow settings to prevent GPU kernel crashes
-        if let Err(validation_error) = validate_bloom_glow_settings(&self.visualisation.glow, &self.visualisation.bloom) {
+        if let Err(validation_error) =
+            validate_bloom_glow_settings(&self.visualisation.glow, &self.visualisation.bloom)
+        {
             errors.add("visualisation.bloom_glow", validation_error);
         }
-        
+
         if errors.is_empty() {
             Ok(())
         } else {
             Err(errors)
         }
     }
-    
+
     /// Gets user-friendly error messages in camelCase format
     pub fn get_validation_errors_camel_case(
-        errors: &validator::ValidationErrors
+        errors: &validator::ValidationErrors,
     ) -> HashMap<String, Vec<String>> {
         let mut result = HashMap::new();
-        
+
         for (field, field_errors) in errors.field_errors() {
             let camel_case_field = to_camel_case(field);
             let messages: Vec<String> = field_errors
                 .iter()
                 .map(|error| match error.code.as_ref() {
-                    "invalid_hex_color" => "Must be a valid hex color (#RRGGBB or #RRGGBBAA)".to_string(),
+                    "invalid_hex_color" => {
+                        "Must be a valid hex color (#RRGGBB or #RRGGBBAA)".to_string()
+                    }
                     "width_range_length" => "Width range must have exactly 2 values".to_string(),
-                    "width_range_order" => "Width range minimum must be less than maximum".to_string(),
+                    "width_range_order" => {
+                        "Width range minimum must be less than maximum".to_string()
+                    }
                     "invalid_port" => "Port must be between 1 and 65535".to_string(),
                     "invalid_percentage" => "Value must be between 0 and 100".to_string(),
-                    "physics_enabled_required" => "Physics must be enabled when gravity is configured".to_string(),
+                    "physics_enabled_required" => {
+                        "Physics must be enabled when gravity is configured".to_string()
+                    }
                     _ => format!("Invalid value for {}", camel_case_field),
                 })
                 .collect();
-            
+
             result.insert(camel_case_field, messages);
         }
-        
+
         result
     }
-    
 }
 
 // PathAccessible implementation for AppFullSettings
 impl PathAccessible for AppFullSettings {
     fn get_by_path(&self, path: &str) -> Result<Box<dyn std::any::Any>, String> {
         let segments = parse_path(path)?;
-        
+
         match segments[0] {
             "visualisation" => {
                 if segments.len() == 1 {
@@ -1967,13 +2084,13 @@ impl PathAccessible for AppFullSettings {
                     Err("Auth fields are not deeply accessible".to_string())
                 }
             }
-            _ => Err(format!("Unknown top-level field: {}", segments[0]))
+            _ => Err(format!("Unknown top-level field: {}", segments[0])),
         }
     }
-    
+
     fn set_by_path(&mut self, path: &str, value: Box<dyn std::any::Any>) -> Result<(), String> {
         let segments = parse_path(path)?;
-        
+
         match segments[0] {
             "visualisation" => {
                 if segments.len() == 1 {
@@ -1982,7 +2099,7 @@ impl PathAccessible for AppFullSettings {
                             self.visualisation = *v;
                             Ok(())
                         }
-                        Err(_) => Err("Type mismatch for visualisation field".to_string())
+                        Err(_) => Err("Type mismatch for visualisation field".to_string()),
                     }
                 } else {
                     let remaining = segments[1..].join(".");
@@ -1996,7 +2113,7 @@ impl PathAccessible for AppFullSettings {
                             self.system = *v;
                             Ok(())
                         }
-                        Err(_) => Err("Type mismatch for system field".to_string())
+                        Err(_) => Err("Type mismatch for system field".to_string()),
                     }
                 } else {
                     let remaining = segments[1..].join(".");
@@ -2010,7 +2127,7 @@ impl PathAccessible for AppFullSettings {
                             self.xr = *v;
                             Ok(())
                         }
-                        Err(_) => Err("Type mismatch for xr field".to_string())
+                        Err(_) => Err("Type mismatch for xr field".to_string()),
                     }
                 } else {
                     let remaining = segments[1..].join(".");
@@ -2024,13 +2141,13 @@ impl PathAccessible for AppFullSettings {
                             self.auth = *v;
                             Ok(())
                         }
-                        Err(_) => Err("Type mismatch for auth field".to_string())
+                        Err(_) => Err("Type mismatch for auth field".to_string()),
                     }
                 } else {
                     Err("Auth nested fields are not modifiable".to_string())
                 }
             }
-            _ => Err(format!("Unknown top-level field: {}", segments[0]))
+            _ => Err(format!("Unknown top-level field: {}", segments[0])),
         }
     }
 }
@@ -2039,7 +2156,7 @@ impl PathAccessible for AppFullSettings {
 impl PathAccessible for VisualisationSettings {
     fn get_by_path(&self, path: &str) -> Result<Box<dyn std::any::Any>, String> {
         let segments = parse_path(path)?;
-        
+
         match segments[0] {
             "graphs" => {
                 if segments.len() == 1 {
@@ -2049,26 +2166,32 @@ impl PathAccessible for VisualisationSettings {
                     self.graphs.get_by_path(&remaining)
                 }
             }
-            _ => Err(format!("Only graphs field is currently supported: {}", segments[0]))
+            _ => Err(format!(
+                "Only graphs field is currently supported: {}",
+                segments[0]
+            )),
         }
     }
-    
+
     fn set_by_path(&mut self, path: &str, value: Box<dyn std::any::Any>) -> Result<(), String> {
         let segments = parse_path(path)?;
-        
+
         match segments[0] {
             "graphs" => {
                 if segments.len() == 1 {
                     match value.downcast::<GraphsSettings>() {
-                        Ok(v) => { self.graphs = *v; Ok(()) }
-                        Err(_) => Err("Type mismatch for graphs field".to_string())
+                        Ok(v) => {
+                            self.graphs = *v;
+                            Ok(())
+                        }
+                        Err(_) => Err("Type mismatch for graphs field".to_string()),
                     }
                 } else {
                     let remaining = segments[1..].join(".");
                     self.graphs.set_by_path(&remaining, value)
                 }
             }
-            _ => Err("Only graphs field is currently supported for modification".to_string())
+            _ => Err("Only graphs field is currently supported for modification".to_string()),
         }
     }
 }
@@ -2076,7 +2199,7 @@ impl PathAccessible for VisualisationSettings {
 impl PathAccessible for GraphsSettings {
     fn get_by_path(&self, path: &str) -> Result<Box<dyn std::any::Any>, String> {
         let segments = parse_path(path)?;
-        
+
         match segments[0] {
             "logseq" => {
                 if segments.len() == 1 {
@@ -2094,19 +2217,22 @@ impl PathAccessible for GraphsSettings {
                     self.visionflow.get_by_path(&remaining)
                 }
             }
-            _ => Err(format!("Unknown graph type: {}", segments[0]))
+            _ => Err(format!("Unknown graph type: {}", segments[0])),
         }
     }
-    
+
     fn set_by_path(&mut self, path: &str, value: Box<dyn std::any::Any>) -> Result<(), String> {
         let segments = parse_path(path)?;
-        
+
         match segments[0] {
             "logseq" => {
                 if segments.len() == 1 {
                     match value.downcast::<GraphSettings>() {
-                        Ok(v) => { self.logseq = *v; Ok(()) }
-                        Err(_) => Err("Type mismatch for logseq field".to_string())
+                        Ok(v) => {
+                            self.logseq = *v;
+                            Ok(())
+                        }
+                        Err(_) => Err("Type mismatch for logseq field".to_string()),
                     }
                 } else {
                     let remaining = segments[1..].join(".");
@@ -2116,15 +2242,18 @@ impl PathAccessible for GraphsSettings {
             "visionflow" => {
                 if segments.len() == 1 {
                     match value.downcast::<GraphSettings>() {
-                        Ok(v) => { self.visionflow = *v; Ok(()) }
-                        Err(_) => Err("Type mismatch for visionflow field".to_string())
+                        Ok(v) => {
+                            self.visionflow = *v;
+                            Ok(())
+                        }
+                        Err(_) => Err("Type mismatch for visionflow field".to_string()),
                     }
                 } else {
                     let remaining = segments[1..].join(".");
                     self.visionflow.set_by_path(&remaining, value)
                 }
             }
-            _ => Err(format!("Unknown graph type: {}", segments[0]))
+            _ => Err(format!("Unknown graph type: {}", segments[0])),
         }
     }
 }
@@ -2132,7 +2261,7 @@ impl PathAccessible for GraphsSettings {
 impl PathAccessible for GraphSettings {
     fn get_by_path(&self, path: &str) -> Result<Box<dyn std::any::Any>, String> {
         let segments = parse_path(path)?;
-        
+
         match segments[0] {
             "physics" => {
                 if segments.len() == 1 {
@@ -2142,26 +2271,32 @@ impl PathAccessible for GraphSettings {
                     self.physics.get_by_path(&remaining)
                 }
             }
-            _ => Err(format!("Only physics is supported currently: {}", segments[0]))
+            _ => Err(format!(
+                "Only physics is supported currently: {}",
+                segments[0]
+            )),
         }
     }
-    
+
     fn set_by_path(&mut self, path: &str, value: Box<dyn std::any::Any>) -> Result<(), String> {
         let segments = parse_path(path)?;
-        
+
         match segments[0] {
             "physics" => {
                 if segments.len() == 1 {
                     match value.downcast::<PhysicsSettings>() {
-                        Ok(v) => { self.physics = *v; Ok(()) }
-                        Err(_) => Err("Type mismatch for physics field".to_string())
+                        Ok(v) => {
+                            self.physics = *v;
+                            Ok(())
+                        }
+                        Err(_) => Err("Type mismatch for physics field".to_string()),
                     }
                 } else {
                     let remaining = segments[1..].join(".");
                     self.physics.set_by_path(&remaining, value)
                 }
             }
-            _ => Err("Only physics field is currently supported for modification".to_string())
+            _ => Err("Only physics field is currently supported for modification".to_string()),
         }
     }
 }
@@ -2170,7 +2305,7 @@ impl PathAccessible for GraphSettings {
 impl PathAccessible for PhysicsSettings {
     fn get_by_path(&self, path: &str) -> Result<Box<dyn std::any::Any>, String> {
         let segments = parse_path(path)?;
-        
+
         match segments[0] {
             "damping" => Ok(Box::new(self.damping)),
             "springK" => Ok(Box::new(self.spring_k)),
@@ -2181,51 +2316,78 @@ impl PathAccessible for PhysicsSettings {
             "boundsSize" => Ok(Box::new(self.bounds_size)),
             "gravity" => Ok(Box::new(self.gravity)),
             "temperature" => Ok(Box::new(self.temperature)),
-            _ => Err(format!("Unknown physics field: {}", segments[0]))
+            _ => Err(format!("Unknown physics field: {}", segments[0])),
         }
     }
-    
+
     fn set_by_path(&mut self, path: &str, value: Box<dyn std::any::Any>) -> Result<(), String> {
         let segments = parse_path(path)?;
-        
+
         match segments[0] {
             "damping" => match value.downcast::<f32>() {
-                Ok(v) => { self.damping = *v; Ok(()) }
-                Err(_) => Err("Type mismatch for damping field".to_string())
+                Ok(v) => {
+                    self.damping = *v;
+                    Ok(())
+                }
+                Err(_) => Err("Type mismatch for damping field".to_string()),
             },
             "springK" => match value.downcast::<f32>() {
-                Ok(v) => { self.spring_k = *v; Ok(()) }
-                Err(_) => Err("Type mismatch for springK field".to_string())
+                Ok(v) => {
+                    self.spring_k = *v;
+                    Ok(())
+                }
+                Err(_) => Err("Type mismatch for springK field".to_string()),
             },
             "repelK" => match value.downcast::<f32>() {
-                Ok(v) => { self.repel_k = *v; Ok(()) }
-                Err(_) => Err("Type mismatch for repelK field".to_string())
+                Ok(v) => {
+                    self.repel_k = *v;
+                    Ok(())
+                }
+                Err(_) => Err("Type mismatch for repelK field".to_string()),
             },
             "enabled" => match value.downcast::<bool>() {
-                Ok(v) => { self.enabled = *v; Ok(()) }
-                Err(_) => Err("Type mismatch for enabled field".to_string())
+                Ok(v) => {
+                    self.enabled = *v;
+                    Ok(())
+                }
+                Err(_) => Err("Type mismatch for enabled field".to_string()),
             },
             "iterations" => match value.downcast::<u32>() {
-                Ok(v) => { self.iterations = *v; Ok(()) }
-                Err(_) => Err("Type mismatch for iterations field".to_string())
+                Ok(v) => {
+                    self.iterations = *v;
+                    Ok(())
+                }
+                Err(_) => Err("Type mismatch for iterations field".to_string()),
             },
             "maxVelocity" => match value.downcast::<f32>() {
-                Ok(v) => { self.max_velocity = *v; Ok(()) }
-                Err(_) => Err("Type mismatch for maxVelocity field".to_string())
+                Ok(v) => {
+                    self.max_velocity = *v;
+                    Ok(())
+                }
+                Err(_) => Err("Type mismatch for maxVelocity field".to_string()),
             },
             "boundsSize" => match value.downcast::<f32>() {
-                Ok(v) => { self.bounds_size = *v; Ok(()) }
-                Err(_) => Err("Type mismatch for boundsSize field".to_string())
+                Ok(v) => {
+                    self.bounds_size = *v;
+                    Ok(())
+                }
+                Err(_) => Err("Type mismatch for boundsSize field".to_string()),
             },
             "gravity" => match value.downcast::<f32>() {
-                Ok(v) => { self.gravity = *v; Ok(()) }
-                Err(_) => Err("Type mismatch for gravity field".to_string())
+                Ok(v) => {
+                    self.gravity = *v;
+                    Ok(())
+                }
+                Err(_) => Err("Type mismatch for gravity field".to_string()),
             },
             "temperature" => match value.downcast::<f32>() {
-                Ok(v) => { self.temperature = *v; Ok(()) }
-                Err(_) => Err("Type mismatch for temperature field".to_string())
+                Ok(v) => {
+                    self.temperature = *v;
+                    Ok(())
+                }
+                Err(_) => Err("Type mismatch for temperature field".to_string()),
             },
-            _ => Err(format!("Unknown physics field: {}", segments[0]))
+            _ => Err(format!("Unknown physics field: {}", segments[0])),
         }
     }
 }
@@ -2240,7 +2402,7 @@ impl PathAccessible for SystemSettings {
             "debug" => Ok(Box::new(self.debug.clone())),
             "persist_settings" => Ok(Box::new(self.persist_settings)),
             "custom_backend_url" => Ok(Box::new(self.custom_backend_url.clone())),
-            _ => Err(format!("Unknown SystemSettings field: {}", path))
+            _ => Err(format!("Unknown SystemSettings field: {}", path)),
         }
     }
 
@@ -2262,7 +2424,7 @@ impl PathAccessible for SystemSettings {
                     Err("Invalid type for custom_backend_url, expected Option<String>".to_string())
                 }
             }
-            _ => Err(format!("Setting {} not supported for SystemSettings", path))
+            _ => Err(format!("Setting {} not supported for SystemSettings", path)),
         }
     }
 }
@@ -2281,7 +2443,7 @@ impl PathAccessible for XRSettings {
             "locomotion_method" => Ok(Box::new(self.locomotion_method.clone())),
             "teleport_ray_color" => Ok(Box::new(self.teleport_ray_color.clone())),
             "controller_ray_color" => Ok(Box::new(self.controller_ray_color.clone())),
-            _ => Err(format!("Unknown XRSettings field: {}", path))
+            _ => Err(format!("Unknown XRSettings field: {}", path)),
         }
     }
 
@@ -2335,8 +2497,7 @@ impl PathAccessible for XRSettings {
                     Err("Invalid type for locomotion_method, expected String".to_string())
                 }
             }
-            _ => Err(format!("Setting {} not supported for XRSettings", path))
+            _ => Err(format!("Setting {} not supported for XRSettings", path)),
         }
     }
 }
-

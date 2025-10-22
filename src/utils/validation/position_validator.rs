@@ -1,6 +1,6 @@
-use serde_json::Value;
-use super::{ValidationResult, ValidationError};
 use super::errors::DetailedValidationError;
+use super::ValidationResult;
+use serde_json::Value;
 
 /// Validate position data with lenient numeric handling
 pub struct PositionValidator;
@@ -16,7 +16,7 @@ impl PositionValidator {
                         return Err(DetailedValidationError::new(
                             field,
                             "Position value cannot be NaN or Infinity",
-                            "INVALID_POSITION"
+                            "INVALID_POSITION",
                         ));
                     }
                     // Reasonable bounds for position values
@@ -24,7 +24,7 @@ impl PositionValidator {
                         return Err(DetailedValidationError::new(
                             field,
                             "Position value exceeds reasonable bounds",
-                            "POSITION_OUT_OF_BOUNDS"
+                            "POSITION_OUT_OF_BOUNDS",
                         ));
                     }
                     Ok(f as f32)
@@ -32,7 +32,7 @@ impl PositionValidator {
                     Err(DetailedValidationError::new(
                         field,
                         "Invalid numeric value",
-                        "INVALID_NUMBER"
+                        "INVALID_NUMBER",
                     ))
                 }
             }
@@ -44,14 +44,14 @@ impl PositionValidator {
                             return Err(DetailedValidationError::new(
                                 field,
                                 "Position value cannot be NaN or Infinity",
-                                "INVALID_POSITION"
+                                "INVALID_POSITION",
                             ));
                         }
                         if f.abs() > 1_000_000.0 {
                             return Err(DetailedValidationError::new(
                                 field,
                                 "Position value exceeds reasonable bounds",
-                                "POSITION_OUT_OF_BOUNDS"
+                                "POSITION_OUT_OF_BOUNDS",
                             ));
                         }
                         Ok(f as f32)
@@ -59,33 +59,43 @@ impl PositionValidator {
                     Err(_) => Err(DetailedValidationError::new(
                         field,
                         "Invalid numeric string",
-                        "INVALID_NUMBER_FORMAT"
-                    ))
+                        "INVALID_NUMBER_FORMAT",
+                    )),
                 }
             }
             _ => Err(DetailedValidationError::new(
                 field,
                 "Position must be a number or numeric string",
-                "INVALID_TYPE"
-            ))
+                "INVALID_TYPE",
+            )),
         }
     }
 
     /// Validate a complete position object (x, y, z)
     pub fn validate_position_object(position: &Value) -> ValidationResult<(f32, f32, f32)> {
-        let obj = position.as_object()
-            .ok_or_else(|| DetailedValidationError::new("position", "Position must be an object", "INVALID_TYPE"))?;
+        let obj = position.as_object().ok_or_else(|| {
+            DetailedValidationError::new("position", "Position must be an object", "INVALID_TYPE")
+        })?;
 
-        let x = obj.get("x")
-            .ok_or_else(|| DetailedValidationError::new("position.x", "Missing x coordinate", "MISSING_FIELD"))
+        let x = obj
+            .get("x")
+            .ok_or_else(|| {
+                DetailedValidationError::new("position.x", "Missing x coordinate", "MISSING_FIELD")
+            })
             .and_then(|v| Self::validate_position_value(v, "position.x"))?;
 
-        let y = obj.get("y")
-            .ok_or_else(|| DetailedValidationError::new("position.y", "Missing y coordinate", "MISSING_FIELD"))
+        let y = obj
+            .get("y")
+            .ok_or_else(|| {
+                DetailedValidationError::new("position.y", "Missing y coordinate", "MISSING_FIELD")
+            })
             .and_then(|v| Self::validate_position_value(v, "position.y"))?;
 
-        let z = obj.get("z")
-            .ok_or_else(|| DetailedValidationError::new("position.z", "Missing z coordinate", "MISSING_FIELD"))
+        let z = obj
+            .get("z")
+            .ok_or_else(|| {
+                DetailedValidationError::new("position.z", "Missing z coordinate", "MISSING_FIELD")
+            })
             .and_then(|v| Self::validate_position_value(v, "position.z"))?;
 
         Ok((x, y, z))
@@ -100,7 +110,7 @@ impl PositionValidator {
                         return Err(DetailedValidationError::new(
                             field,
                             "Velocity value cannot be NaN or Infinity",
-                            "INVALID_VELOCITY"
+                            "INVALID_VELOCITY",
                         ));
                     }
                     // Reasonable bounds for velocity
@@ -108,7 +118,7 @@ impl PositionValidator {
                         return Err(DetailedValidationError::new(
                             field,
                             "Velocity value exceeds reasonable bounds",
-                            "VELOCITY_OUT_OF_BOUNDS"
+                            "VELOCITY_OUT_OF_BOUNDS",
                         ));
                     }
                     Ok(f as f32)
@@ -116,7 +126,7 @@ impl PositionValidator {
                     Err(DetailedValidationError::new(
                         field,
                         "Invalid numeric value",
-                        "INVALID_NUMBER"
+                        "INVALID_NUMBER",
                     ))
                 }
             }
@@ -128,14 +138,14 @@ impl PositionValidator {
                             return Err(DetailedValidationError::new(
                                 field,
                                 "Velocity value cannot be NaN or Infinity",
-                                "INVALID_VELOCITY"
+                                "INVALID_VELOCITY",
                             ));
                         }
                         if f.abs() > 10_000.0 {
                             return Err(DetailedValidationError::new(
                                 field,
                                 "Velocity value exceeds reasonable bounds",
-                                "VELOCITY_OUT_OF_BOUNDS"
+                                "VELOCITY_OUT_OF_BOUNDS",
                             ));
                         }
                         Ok(f as f32)
@@ -143,15 +153,15 @@ impl PositionValidator {
                     Err(_) => Err(DetailedValidationError::new(
                         field,
                         "Invalid numeric string",
-                        "INVALID_NUMBER_FORMAT"
-                    ))
+                        "INVALID_NUMBER_FORMAT",
+                    )),
                 }
             }
             _ => Err(DetailedValidationError::new(
                 field,
                 "Velocity must be a number or numeric string",
-                "INVALID_TYPE"
-            ))
+                "INVALID_TYPE",
+            )),
         }
     }
 }

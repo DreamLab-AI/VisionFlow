@@ -1,20 +1,21 @@
 // MCP Integration Tests for WebXR
 // Run these in the WebXR container to verify MCP TCP connection
 
-use std::io::{Write, Read, BufReader, BufRead};
-use std::net::TcpStream;
 use serde_json::{json, Value};
+use std::io::{BufRead, BufReader, Read, Write};
+use std::net::TcpStream;
 use std::time::Duration;
 
 /// Test basic MCP server connectivity
 #[test]
 fn test_mcp_server_connection() {
-    let result = TcpStream::connect_timeout(
-        &"localhost:9500".parse().unwrap(),
-        Duration::from_secs(5)
-    );
+    let result =
+        TcpStream::connect_timeout(&"localhost:9500".parse().unwrap(), Duration::from_secs(5));
 
-    assert!(result.is_ok(), "Failed to connect to MCP server on port 9500");
+    assert!(
+        result.is_ok(),
+        "Failed to connect to MCP server on port 9500"
+    );
     println!("✅ MCP server is reachable on port 9500");
 }
 
@@ -22,7 +23,9 @@ fn test_mcp_server_connection() {
 #[test]
 fn test_mcp_initialization() {
     let mut stream = TcpStream::connect("localhost:9500").expect("Failed to connect");
-    stream.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
+    stream
+        .set_read_timeout(Some(Duration::from_secs(5)))
+        .unwrap();
 
     // Send initialize request
     let init_req = json!({
@@ -46,7 +49,9 @@ fn test_mcp_initialization() {
     // Read response
     let mut reader = BufReader::new(stream.try_clone().unwrap());
     let mut response = String::new();
-    reader.read_line(&mut response).expect("Failed to read response");
+    reader
+        .read_line(&mut response)
+        .expect("Failed to read response");
 
     let parsed: Value = serde_json::from_str(&response).expect("Invalid JSON response");
 
@@ -59,7 +64,9 @@ fn test_mcp_initialization() {
 #[test]
 fn test_agent_spawn() {
     let mut stream = TcpStream::connect("localhost:9500").expect("Failed to connect");
-    stream.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
+    stream
+        .set_read_timeout(Some(Duration::from_secs(5)))
+        .unwrap();
 
     // Initialize first
     let init_req = json!({
@@ -96,14 +103,19 @@ fn test_agent_spawn() {
 
     // Read spawn response
     response.clear();
-    reader.read_line(&mut response).expect("Failed to read spawn response");
+    reader
+        .read_line(&mut response)
+        .expect("Failed to read spawn response");
 
     let parsed: Value = serde_json::from_str(&response).expect("Invalid JSON");
     let content = &parsed["result"]["content"][0]["text"];
     let agent_data: Value = serde_json::from_str(content.as_str().unwrap()).unwrap();
 
     assert!(agent_data["success"].as_bool().unwrap());
-    assert!(agent_data["agentId"].as_str().unwrap().starts_with("agent_"));
+    assert!(agent_data["agentId"]
+        .as_str()
+        .unwrap()
+        .starts_with("agent_"));
     assert_eq!(agent_data["type"], "researcher");
     assert_eq!(agent_data["status"], "active");
 
@@ -114,7 +126,9 @@ fn test_agent_spawn() {
 #[test]
 fn test_agent_list() {
     let mut stream = TcpStream::connect("localhost:9500").expect("Failed to connect");
-    stream.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
+    stream
+        .set_read_timeout(Some(Duration::from_secs(5)))
+        .unwrap();
 
     // Initialize
     let init_req = json!({
@@ -148,7 +162,9 @@ fn test_agent_list() {
 
     // Read list response
     response.clear();
-    reader.read_line(&mut response).expect("Failed to read list response");
+    reader
+        .read_line(&mut response)
+        .expect("Failed to read list response");
 
     let parsed: Value = serde_json::from_str(&response).expect("Invalid JSON");
     let content = &parsed["result"]["content"][0]["text"];
@@ -165,7 +181,9 @@ fn test_agent_list() {
 #[test]
 fn test_swarm_init() {
     let mut stream = TcpStream::connect("localhost:9500").expect("Failed to connect");
-    stream.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
+    stream
+        .set_read_timeout(Some(Duration::from_secs(5)))
+        .unwrap();
 
     // Initialize MCP
     let init_req = json!({
@@ -203,14 +221,19 @@ fn test_swarm_init() {
 
     // Read response
     response.clear();
-    reader.read_line(&mut response).expect("Failed to read swarm response");
+    reader
+        .read_line(&mut response)
+        .expect("Failed to read swarm response");
 
     let parsed: Value = serde_json::from_str(&response).expect("Invalid JSON");
     let content = &parsed["result"]["content"][0]["text"];
     let swarm_data: Value = serde_json::from_str(content.as_str().unwrap()).unwrap();
 
     assert!(swarm_data["success"].as_bool().unwrap());
-    assert!(swarm_data["swarmId"].as_str().unwrap().starts_with("swarm_"));
+    assert!(swarm_data["swarmId"]
+        .as_str()
+        .unwrap()
+        .starts_with("swarm_"));
 
     println!("✅ Swarm initialized: {}", swarm_data["swarmId"]);
 }
@@ -219,7 +242,9 @@ fn test_swarm_init() {
 #[test]
 fn test_performance_metrics() {
     let mut stream = TcpStream::connect("localhost:9500").expect("Failed to connect");
-    stream.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
+    stream
+        .set_read_timeout(Some(Duration::from_secs(5)))
+        .unwrap();
 
     // Initialize
     let init_req = json!({
@@ -256,7 +281,9 @@ fn test_performance_metrics() {
 
     // Read response
     response.clear();
-    reader.read_line(&mut response).expect("Failed to read performance response");
+    reader
+        .read_line(&mut response)
+        .expect("Failed to read performance response");
 
     let parsed: Value = serde_json::from_str(&response).expect("Invalid JSON");
     assert!(parsed["result"].is_object());
@@ -268,7 +295,9 @@ fn test_performance_metrics() {
 #[test]
 fn test_full_agent_lifecycle() {
     let mut stream = TcpStream::connect("localhost:9500").expect("Failed to connect");
-    stream.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
+    stream
+        .set_read_timeout(Some(Duration::from_secs(5)))
+        .unwrap();
 
     // Initialize
     let init_req = json!({
@@ -363,16 +392,15 @@ fn test_full_agent_lifecycle() {
 
 // Helper function to parse MCP responses
 fn parse_mcp_response(response: &str) -> Result<Value, String> {
-    let parsed: Value = serde_json::from_str(response)
-        .map_err(|e| format!("Failed to parse JSON: {}", e))?;
+    let parsed: Value =
+        serde_json::from_str(response).map_err(|e| format!("Failed to parse JSON: {}", e))?;
 
     if let Some(error) = parsed.get("error") {
         return Err(format!("MCP error: {}", error));
     }
 
     if let Some(content) = parsed["result"]["content"][0]["text"].as_str() {
-        serde_json::from_str(content)
-            .map_err(|e| format!("Failed to parse content: {}", e))
+        serde_json::from_str(content).map_err(|e| format!("Failed to parse content: {}", e))
     } else {
         Ok(parsed["result"].clone())
     }
@@ -389,9 +417,7 @@ mod integration_tests {
     }
 
     fn test_mcp_connection_health() -> bool {
-        TcpStream::connect_timeout(
-            &"localhost:9500".parse().unwrap(),
-            Duration::from_secs(2)
-        ).is_ok()
+        TcpStream::connect_timeout(&"localhost:9500".parse().unwrap(), Duration::from_secs(2))
+            .is_ok()
     }
 }

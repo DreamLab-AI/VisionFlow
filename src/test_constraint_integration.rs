@@ -11,10 +11,10 @@ pub fn test_constraint_integration() {
 
     // Create a mock graph service actor
     let mut actor = GraphServiceActor::new_test_instance();
-    
+
     // Create sample metadata with different domains
     let mut metadata = MetadataStore::new();
-    
+
     // Add sample metadata entries
     metadata.add_entry("file1.rs".to_string(), MetadataEntry {
         id: "file1".to_string(),
@@ -24,7 +24,7 @@ pub fn test_constraint_integration() {
         last_modified: 0,
         content: Some("struct Example {}".to_string()),
     });
-    
+
     metadata.add_entry("file2.rs".to_string(), MetadataEntry {
         id: "file2".to_string(),
         path: "src/models/file2.rs".to_string(),
@@ -33,7 +33,7 @@ pub fn test_constraint_integration() {
         last_modified: 0,
         content: Some("impl Example {}".to_string()),
     });
-    
+
     metadata.add_entry("file3.js".to_string(), MetadataEntry {
         id: "file3".to_string(),
         path: "src/ui/file3.js".to_string(),
@@ -51,15 +51,15 @@ pub fn test_constraint_integration() {
     // Check if constraints were generated
     let initial_constraint_count = actor.constraint_set.constraints.len();
     println!("Initial constraints generated: {}", initial_constraint_count);
-    
+
     if initial_constraint_count == 0 {
         println!("WARNING: No constraints were generated from metadata");
     } else {
         println!("SUCCESS: {} constraints generated", initial_constraint_count);
-        
+
         // Print constraint details
         for (i, constraint) in actor.constraint_set.constraints.iter().enumerate() {
-            println!("Constraint {}: {:?} affecting {} nodes", 
+            println!("Constraint {}: {:?} affecting {} nodes",
                      i, constraint.kind, constraint.node_indices.len());
         }
     }

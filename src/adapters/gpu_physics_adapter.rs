@@ -5,9 +5,11 @@
 
 use async_trait::async_trait;
 
-use crate::ports::physics_simulator::{PhysicsSimulator, Result, PhysicsSimulatorError, SimulationParams, Constraint};
-use crate::ports::physics_simulator::BinaryNodeData;
 use crate::models::graph::GraphData;
+use crate::ports::physics_simulator::BinaryNodeData;
+use crate::ports::physics_simulator::{
+    Constraint, PhysicsSimulator, PhysicsSimulatorError, Result, SimulationParams,
+};
 
 /// Adapter that implements PhysicsSimulator using GPU compute
 pub struct GpuPhysicsAdapter {
@@ -24,27 +26,37 @@ impl GpuPhysicsAdapter {
 impl PhysicsSimulator for GpuPhysicsAdapter {
     async fn run_simulation_step(&self, _graph: &GraphData) -> Result<Vec<(u32, BinaryNodeData)>> {
         // Placeholder - will call ForceComputeActor
-        Err(PhysicsSimulatorError::SimulationError("Not yet implemented".to_string()))
+        Err(PhysicsSimulatorError::SimulationError(
+            "Not yet implemented".to_string(),
+        ))
     }
 
     async fn update_params(&self, _params: SimulationParams) -> Result<()> {
         // Placeholder - will call ForceComputeActor
-        Err(PhysicsSimulatorError::SimulationError("Not yet implemented".to_string()))
+        Err(PhysicsSimulatorError::SimulationError(
+            "Not yet implemented".to_string(),
+        ))
     }
 
     async fn apply_constraints(&self, _constraints: Vec<Constraint>) -> Result<()> {
         // Placeholder - will call ForceComputeActor
-        Err(PhysicsSimulatorError::SimulationError("Not yet implemented".to_string()))
+        Err(PhysicsSimulatorError::SimulationError(
+            "Not yet implemented".to_string(),
+        ))
     }
 
     async fn start_simulation(&self) -> Result<()> {
         // Placeholder - will call ForceComputeActor
-        Err(PhysicsSimulatorError::SimulationError("Not yet implemented".to_string()))
+        Err(PhysicsSimulatorError::SimulationError(
+            "Not yet implemented".to_string(),
+        ))
     }
 
     async fn stop_simulation(&self) -> Result<()> {
         // Placeholder - will call ForceComputeActor
-        Err(PhysicsSimulatorError::SimulationError("Not yet implemented".to_string()))
+        Err(PhysicsSimulatorError::SimulationError(
+            "Not yet implemented".to_string(),
+        ))
     }
 
     async fn is_running(&self) -> Result<bool> {

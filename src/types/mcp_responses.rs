@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize, Deserializer};
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 use std::fmt;
-use chrono::{DateTime, Utc};
 
 /// Type-safe MCP (Model Context Protocol) response structures
 /// This eliminates brittle double-parsing of nested JSON strings
@@ -21,7 +21,7 @@ pub struct McpSuccessResponse<T> {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct McpErrorResponse {
-    pub id: Option<Value>, 
+    pub id: Option<Value>,
     pub error: McpError,
 }
 
@@ -150,21 +150,18 @@ impl<T> McpResponse<T> {
 
 impl McpContentResult {
     /// Extract parsed data from the first text content
-    pub fn extract_data<T>(&self) -> Result<T, McpParseError> 
+    pub fn extract_data<T>(&self) -> Result<T, McpParseError>
     where
         T: for<'a> Deserialize<'a>,
     {
-        let first_content = self.content.first()
-            .ok_or(McpParseError::MissingContent)?;
+        let first_content = self.content.first().ok_or(McpParseError::MissingContent)?;
 
         match first_content {
             McpContent::Text(text_content) => {
-                serde_json::from_value(text_content.text.clone())
-                    .map_err(McpParseError::from)
+                serde_json::from_value(text_content.text.clone()).map_err(McpParseError::from)
             }
             McpContent::Object(obj_content) => {
-                serde_json::from_value(obj_content.data.clone())
-                    .map_err(McpParseError::from)
+                serde_json::from_value(obj_content.data.clone()).map_err(McpParseError::from)
             }
         }
     }
@@ -175,7 +172,7 @@ impl McpContentResult {
         T: for<'a> Deserialize<'a>,
     {
         let mut results = Vec::new();
-        
+
         for content in &self.content {
             let data = match content {
                 McpContent::Text(text_content) => {
@@ -187,7 +184,7 @@ impl McpContentResult {
             };
             results.push(data);
         }
-        
+
         Ok(results)
     }
 }
@@ -214,7 +211,7 @@ mod tests {
         let json = json!({
             "result": {
                 "content": [{
-                    "type": "text", 
+                    "type": "text",
                     "text": "{\"agents\": []}"
                 }]
             }
@@ -222,7 +219,7 @@ mod tests {
 
         let response: McpResponse<McpContentResult> = serde_json::from_value(json).unwrap();
         assert!(response.is_success());
-        
+
         if let McpResponse::Success(success) = response {
             let agent_list: AgentListResponse = success.result.extract_data().unwrap();
             assert!(agent_list.agents.is_empty());

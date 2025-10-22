@@ -1,26 +1,19 @@
-use actix_web::{web, HttpResponse, Responder, Result};
-use crate::AppState;
+use crate::actors::messages::GetBotsGraphData;
+use crate::actors::{CreateTask, StopTask};
+use crate::models::edge::Edge;
 use crate::models::graph::GraphData;
 use crate::models::metadata::MetadataStore;
-use crate::utils::socket_flow_messages::BinaryNodeData;
 use crate::models::node::Node;
-use crate::types::vec3::Vec3Data;
-use crate::models::edge::Edge;
-use crate::models::simulation_params::{SimulationParams};
-use crate::actors::messages::{GetSettings, GetBotsGraphData};
-use crate::services::bots_client::{BotsClient, Agent};
-// DEPRECATED: HybridHealthManager removed - use TaskOrchestratorActor
-use crate::actors::{CreateTask, StopTask};
+use crate::services::bots_client::{Agent, BotsClient};
+use crate::utils::socket_flow_messages::BinaryNodeData;
+use crate::AppState;
+use actix_web::{web, HttpResponse, Responder, Result};
+use log::{error, info};
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::json;
 use std::collections::HashMap;
-use log::{info, debug, error, warn};
-use tokio::sync::RwLock;
 use std::sync::Arc;
-use tokio::time::timeout;
-use std::time::Duration;
-use chrono;
-use glam::Vec3;
+use tokio::sync::RwLock;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -107,75 +100,85 @@ pub async fn fetch_hive_mind_agents(
 
 // Enhanced agent to nodes conversion with hive-mind properties and Queen agent special handling
 fn convert_agents_to_nodes(agents: Vec<Agent>) -> Vec<Node> {
-    agents.into_iter().enumerate().map(|(idx, agent)| {
-        // Map agent ID to numeric ID for physics processing
-        let node_id = (idx + 1000) as u32; // Start at 1000 to avoid conflicts
+    agents
+        .into_iter()
+        .enumerate()
+        .map(|(idx, agent)| {
+            // Map agent ID to numeric ID for physics processing
+            let node_id = (idx + 1000) as u32; // Start at 1000 to avoid conflicts
 
-        // Enhanced positioning based on agent type and hierarchy
-        let (_radius, vertical_offset) = match agent.agent_type.as_str() {
-            "queen" => (0.0, 0.0), // Queen at center
-            "coordinator" => (20.0, 2.0),
-            "researcher" => (30.0, 0.0),
-            "analyst" => (30.0, 0.0),
-            "coder" => (40.0, -1.0),
-            "optimizer" => (40.0, -1.0),
-            "tester" => (50.0, -2.0),
-            _ => (60.0, -3.0),
-        };
+            // Enhanced positioning based on agent type and hierarchy
+            let (_radius, vertical_offset) = match agent.agent_type.as_str() {
+                "queen" => (0.0, 0.0), // Queen at center
+                "coordinator" => (20.0, 2.0),
+                "researcher" => (30.0, 0.0),
+                "analyst" => (30.0, 0.0),
+                "coder" => (40.0, -1.0),
+                "optimizer" => (40.0, -1.0),
+                "tester" => (50.0, -2.0),
+                _ => (60.0, -3.0),
+            };
 
-        // Node color and size based on agent type
-        let (color, size) = match agent.agent_type.as_str() {
-            "queen" => ("#FFD700", 25.0), // Gold for Queen
-            "coordinator" => ("#FF6B6B", 20.0), // Red for coordinators
-            "researcher" => ("#4ECDC4", 18.0), // Teal for researchers
-            "analyst" => ("#45B7D1", 18.0), // Blue for analysts
-            "coder" => ("#95E1D3", 16.0), // Mint for coders
-            "optimizer" => ("#F38181", 16.0), // Coral for optimizers
-            "tester" => ("#F6B93B", 14.0), // Orange for testers
-            "worker" => ("#B8E994", 12.0), // Light green for workers
-            _ => ("#DFE4EA", 10.0), // Gray for unknown types
-        };
+            // Node color and size based on agent type
+            let (color, size) = match agent.agent_type.as_str() {
+                "queen" => ("#FFD700", 25.0),       // Gold for Queen
+                "coordinator" => ("#FF6B6B", 20.0), // Red for coordinators
+                "researcher" => ("#4ECDC4", 18.0),  // Teal for researchers
+                "analyst" => ("#45B7D1", 18.0),     // Blue for analysts
+                "coder" => ("#95E1D3", 16.0),       // Mint for coders
+                "optimizer" => ("#F38181", 16.0),   // Coral for optimizers
+                "tester" => ("#F6B93B", 14.0),      // Orange for testers
+                "worker" => ("#B8E994", 12.0),      // Light green for workers
+                _ => ("#DFE4EA", 10.0),             // Gray for unknown types
+            };
 
-        Node {
-            id: node_id,
-            metadata_id: agent.id.clone(),
-            label: format!("{} ({})", agent.name, agent.agent_type),
-            data: BinaryNodeData {
-                node_id,
-                x: agent.x,
-                y: agent.y + vertical_offset,
-                z: agent.z,
-                vx: 0.0,
-                vy: 0.0,
-                vz: 0.0,
-            },
-            metadata: {
-                let mut meta = HashMap::new();
-                meta.insert("agent_type".to_string(), agent.agent_type.clone());
-                meta.insert("name".to_string(), agent.name.clone());
-                meta.insert("status".to_string(), agent.status.clone());
-                meta.insert("cpu_usage".to_string(), agent.cpu_usage.to_string());
-                meta.insert("memory_usage".to_string(), agent.memory_usage.to_string());
-                meta.insert("health".to_string(), agent.health.to_string());
-                meta.insert("workload".to_string(), agent.workload.to_string());
-                if let Some(age) = agent.age {
-                    meta.insert("age".to_string(), age.to_string());
-                }
-                meta
-            },
-            file_size: 0,
-            node_type: Some("agent".to_string()),
-            size: Some(size),
-            color: Some(color.to_string()),
-            group: None,
-            user_data: None,
-            weight: Some(1.0),
-        }
-    }).collect()
+            Node {
+                id: node_id,
+                metadata_id: agent.id.clone(),
+                label: format!("{} ({})", agent.name, agent.agent_type),
+                data: BinaryNodeData {
+                    node_id,
+                    x: agent.x,
+                    y: agent.y + vertical_offset,
+                    z: agent.z,
+                    vx: 0.0,
+                    vy: 0.0,
+                    vz: 0.0,
+                },
+                metadata: {
+                    let mut meta = HashMap::new();
+                    meta.insert("agent_type".to_string(), agent.agent_type.clone());
+                    meta.insert("name".to_string(), agent.name.clone());
+                    meta.insert("status".to_string(), agent.status.clone());
+                    meta.insert("cpu_usage".to_string(), agent.cpu_usage.to_string());
+                    meta.insert("memory_usage".to_string(), agent.memory_usage.to_string());
+                    meta.insert("health".to_string(), agent.health.to_string());
+                    meta.insert("workload".to_string(), agent.workload.to_string());
+                    if let Some(age) = agent.age {
+                        meta.insert("age".to_string(), age.to_string());
+                    }
+                    meta
+                },
+                file_size: 0,
+                node_type: Some("agent".to_string()),
+                size: Some(size),
+                color: Some(color.to_string()),
+                group: None,
+                user_data: None,
+                weight: Some(1.0),
+            }
+        })
+        .collect()
 }
 
-pub async fn update_bots_graph(request: web::Json<BotsDataRequest>, _state: web::Data<AppState>) -> Result<impl Responder> {
-    info!("Received bots graph update with {} nodes", request.nodes.len());
+pub async fn update_bots_graph(
+    request: web::Json<BotsDataRequest>,
+    _state: web::Data<AppState>,
+) -> Result<impl Responder> {
+    info!(
+        "Received bots graph update with {} nodes",
+        request.nodes.len()
+    );
 
     let nodes = convert_agents_to_nodes(request.nodes.clone());
     let edges = vec![]; // TODO: Extract edges from request
@@ -200,7 +203,10 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> Result<impl Responder>
             let nodes = &graph.nodes;
             let edges = &graph.edges;
             if !nodes.is_empty() {
-                info!("Retrieved bots data from graph actor: {} nodes", nodes.len());
+                info!(
+                    "Retrieved bots data from graph actor: {} nodes",
+                    nodes.len()
+                );
                 return Ok(HttpResponse::Ok().json(json!({
                     "success": true,
                     "nodes": nodes,
@@ -212,7 +218,10 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> Result<impl Responder>
 
     // Fall back to static storage
     let graph = BOTS_GRAPH.read().await;
-    info!("Retrieved bots data from static storage: {} nodes", graph.nodes.len());
+    info!(
+        "Retrieved bots data from static storage: {} nodes",
+        graph.nodes.len()
+    );
 
     Ok(HttpResponse::Ok().json(json!({
         "success": true,
@@ -222,14 +231,15 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> Result<impl Responder>
     })))
 }
 
-
-
 pub async fn initialize_hive_mind_swarm(
     request: web::Json<InitializeSwarmRequest>,
     state: web::Data<AppState>,
     _hybrid_manager: Option<()>, // DEPRECATED
 ) -> Result<impl Responder> {
-    info!("🐝 Initializing hive mind swarm via Management API with topology: {}", request.topology);
+    info!(
+        "🐝 Initializing hive mind swarm via Management API with topology: {}",
+        request.topology
+    );
 
     // Build task description
     let base_task = if let Some(custom_prompt) = &request.custom_prompt {
@@ -269,10 +279,10 @@ pub async fn initialize_hive_mind_swarm(
     // Determine agent type and provider based on strategy
     // Maps UI strategy selection to actual agent names from agentic-flow container
     let agent_type = match request.strategy.as_str() {
-        "strategic" => "planner",  // Strategic planning → planner agent
-        "tactical" => "coder",     // Tactical execution → coder agent
+        "strategic" => "planner",   // Strategic planning → planner agent
+        "tactical" => "coder",      // Tactical execution → coder agent
         "adaptive" => "researcher", // Adaptive research → researcher agent
-        _ => "coder",              // Default to coder for general tasks
+        _ => "coder",               // Default to coder for general tasks
     };
 
     let provider = std::env::var("PRIMARY_PROVIDER").unwrap_or_else(|_| "gemini".to_string());
@@ -284,9 +294,16 @@ pub async fn initialize_hive_mind_swarm(
         provider: provider.clone(),
     };
 
-    match state.get_task_orchestrator_addr().send(create_task_msg).await {
+    match state
+        .get_task_orchestrator_addr()
+        .send(create_task_msg)
+        .await
+    {
         Ok(Ok(task_response)) => {
-            info!("✓ Successfully created task via Management API - Task ID: {}", task_response.task_id);
+            info!(
+                "✓ Successfully created task via Management API - Task ID: {}",
+                task_response.task_id
+            );
 
             // Store the task ID for reference
             {
@@ -385,37 +402,50 @@ pub async fn spawn_agent_hybrid(
         provider: provider.clone(),
     };
 
-    match state.get_task_orchestrator_addr().send(create_task_msg).await {
+    match state
+        .get_task_orchestrator_addr()
+        .send(create_task_msg)
+        .await
+    {
         Ok(Ok(task_response)) => {
-            info!("Successfully spawned {} agent via Management API - Task ID: {}",
-                  req.agent_type, task_response.task_id);
+            info!(
+                "Successfully spawned {} agent via Management API - Task ID: {}",
+                req.agent_type, task_response.task_id
+            );
             Ok(HttpResponse::Accepted().json(SpawnAgentResponse {
                 success: true,
                 swarm_id: Some(task_response.task_id),
                 error: None,
                 method_used: Some("management-api".to_string()),
-                message: Some(format!("Successfully spawned {} agent via Management API", req.agent_type)),
+                message: Some(format!(
+                    "Successfully spawned {} agent via Management API",
+                    req.agent_type
+                )),
             }))
         }
         Ok(Err(e)) => {
             error!("Failed to spawn {} agent: {}", req.agent_type, e);
-            Ok(HttpResponse::InternalServerError().json(SpawnAgentResponse {
-                success: false,
-                swarm_id: None,
-                error: Some(format!("Failed to create task: {}", e)),
-                method_used: None,
-                message: None,
-            }))
+            Ok(
+                HttpResponse::InternalServerError().json(SpawnAgentResponse {
+                    success: false,
+                    swarm_id: None,
+                    error: Some(format!("Failed to create task: {}", e)),
+                    method_used: None,
+                    message: None,
+                }),
+            )
         }
         Err(e) => {
             error!("Actor communication error: {}", e);
-            Ok(HttpResponse::InternalServerError().json(SpawnAgentResponse {
-                success: false,
-                swarm_id: None,
-                error: Some(format!("Actor communication error: {}", e)),
-                method_used: None,
-                message: None,
-            }))
+            Ok(
+                HttpResponse::InternalServerError().json(SpawnAgentResponse {
+                    success: false,
+                    swarm_id: None,
+                    error: Some(format!("Actor communication error: {}", e)),
+                    method_used: None,
+                    message: None,
+                }),
+            )
         }
     }
 }
@@ -481,19 +511,23 @@ pub async fn remove_task(
 pub async fn get_bots_positions(bots_client: &Arc<BotsClient>) -> Vec<BotsNodeData> {
     match bots_client.get_agents_snapshot().await {
         Ok(agents) => {
-            agents.into_iter().enumerate().map(|(idx, agent)| {
-                BotsNodeData {
-                    id: (idx as u32) + 1000, // Convert to numeric ID
-                    data: BotData {
-                        x: agent.x,
-                        y: agent.y,
-                        z: agent.z,
-                        vx: 0.0, // No velocity data from agents yet
-                        vy: 0.0,
-                        vz: 0.0,
-                    },
-                }
-            }).collect()
+            agents
+                .into_iter()
+                .enumerate()
+                .map(|(idx, agent)| {
+                    BotsNodeData {
+                        id: (idx as u32) + 1000, // Convert to numeric ID
+                        data: BotData {
+                            x: agent.x,
+                            y: agent.y,
+                            z: agent.z,
+                            vx: 0.0, // No velocity data from agents yet
+                            vy: 0.0,
+                            vz: 0.0,
+                        },
+                    }
+                })
+                .collect()
         }
         Err(e) => {
             error!("Failed to get bots positions: {}", e);

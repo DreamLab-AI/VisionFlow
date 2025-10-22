@@ -17,8 +17,8 @@ mod tests {
     // Import the validator service
     #[cfg(feature = "ontology")]
     use webxr::services::owl_validator::{
-        OwlValidatorService, ValidationConfig, ValidationReport, PropertyGraph,
-        GraphNode, GraphEdge, RdfTriple, Severity
+        GraphEdge, GraphNode, OwlValidatorService, PropertyGraph, RdfTriple, Severity,
+        ValidationConfig, ValidationReport,
     };
 
     const TEST_ONTOLOGY_PATH: &str = "tests/fixtures/ontology/sample.ttl";
@@ -29,18 +29,25 @@ mod tests {
     async fn test_parse_turtle_ontology() {
         let validator = OwlValidatorService::new();
 
-        let ontology_content = fs::read_to_string(TEST_ONTOLOGY_PATH)
-            .expect("Failed to read test ontology");
+        let ontology_content =
+            fs::read_to_string(TEST_ONTOLOGY_PATH).expect("Failed to read test ontology");
 
         let result = validator.load_ontology(&ontology_content).await;
 
         // Due to Turtle parser limitations in current horned-owl 1.2.0 implementation,
         // this may return an empty ontology but should not fail
-        assert!(result.is_ok(), "Failed to parse Turtle ontology: {:?}", result.err());
+        assert!(
+            result.is_ok(),
+            "Failed to parse Turtle ontology: {:?}",
+            result.err()
+        );
 
         let ontology_id = result.unwrap();
         assert!(!ontology_id.is_empty(), "Ontology ID should not be empty");
-        assert!(ontology_id.starts_with("ontology_"), "Ontology ID should start with 'ontology_'");
+        assert!(
+            ontology_id.starts_with("ontology_"),
+            "Ontology ID should start with 'ontology_'"
+        );
     }
 
     #[cfg(feature = "ontology")]
@@ -65,7 +72,11 @@ Ontology(<http://example.org/test>
         "#;
 
         let result = validator.load_ontology(functional_ontology).await;
-        assert!(result.is_ok(), "Failed to parse Functional Syntax: {:?}", result.err());
+        assert!(
+            result.is_ok(),
+            "Failed to parse Functional Syntax: {:?}",
+            result.err()
+        );
     }
 
     #[cfg(feature = "ontology")]
@@ -94,7 +105,11 @@ Ontology(<http://example.org/test>
         "#;
 
         let result = validator.load_ontology(owx_ontology).await;
-        assert!(result.is_ok(), "Failed to parse OWL/XML: {:?}", result.err());
+        assert!(
+            result.is_ok(),
+            "Failed to parse OWL/XML: {:?}",
+            result.err()
+        );
     }
 
     #[cfg(feature = "ontology")]
@@ -122,17 +137,15 @@ Ontology(<http://example.org/test>
                         props.insert("name".to_string(), serde_json::json!("ACME Corp"));
                         props
                     },
-                }
+                },
             ],
-            edges: vec![
-                GraphEdge {
-                    id: "edge1".to_string(),
-                    source: "person1".to_string(),
-                    target: "company1".to_string(),
-                    relationship_type: "employedBy".to_string(),
-                    properties: HashMap::new(),
-                }
-            ],
+            edges: vec![GraphEdge {
+                id: "edge1".to_string(),
+                source: "person1".to_string(),
+                target: "company1".to_string(),
+                relationship_type: "employedBy".to_string(),
+                properties: HashMap::new(),
+            }],
             metadata: HashMap::new(),
         };
 
@@ -142,19 +155,31 @@ Ontology(<http://example.org/test>
         // - 2 type triples (one for each node)
         // - 2+ data property triples (name, age)
         // - 1 object property triple (employedBy)
-        assert!(triples.len() >= 5, "Expected at least 5 triples, got {}", triples.len());
+        assert!(
+            triples.len() >= 5,
+            "Expected at least 5 triples, got {}",
+            triples.len()
+        );
 
         // Verify type triples exist
-        let type_triples: Vec<_> = triples.iter()
+        let type_triples: Vec<_> = triples
+            .iter()
             .filter(|t| t.predicate.contains("type"))
             .collect();
-        assert!(type_triples.len() >= 2, "Should have at least 2 type triples");
+        assert!(
+            type_triples.len() >= 2,
+            "Should have at least 2 type triples"
+        );
 
         // Verify employedBy relationship exists
-        let relationship_triples: Vec<_> = triples.iter()
+        let relationship_triples: Vec<_> = triples
+            .iter()
             .filter(|t| t.predicate.contains("employedBy"))
             .collect();
-        assert!(!relationship_triples.is_empty(), "Should have employedBy relationship");
+        assert!(
+            !relationship_triples.is_empty(),
+            "Should have employedBy relationship"
+        );
     }
 
     #[cfg(feature = "ontology")]
@@ -181,13 +206,11 @@ Ontology(<http://example.org/test>
 
         // Create a graph that violates the disjoint classes constraint
         let graph = PropertyGraph {
-            nodes: vec![
-                GraphNode {
-                    id: "entity1".to_string(),
-                    labels: vec!["Person".to_string(), "Company".to_string()],
-                    properties: HashMap::new(),
-                }
-            ],
+            nodes: vec![GraphNode {
+                id: "entity1".to_string(),
+                labels: vec!["Person".to_string(), "Company".to_string()],
+                properties: HashMap::new(),
+            }],
             edges: vec![],
             metadata: HashMap::new(),
         };
@@ -235,17 +258,15 @@ Ontology(<http://example.org/test>
                     id: "person1".to_string(),
                     labels: vec!["Person".to_string()],
                     properties: HashMap::new(),
-                }
+                },
             ],
-            edges: vec![
-                GraphEdge {
-                    id: "edge1".to_string(),
-                    source: "org1".to_string(),
-                    target: "person1".to_string(),
-                    relationship_type: "employs".to_string(),
-                    properties: HashMap::new(),
-                }
-            ],
+            edges: vec![GraphEdge {
+                id: "edge1".to_string(),
+                source: "org1".to_string(),
+                target: "person1".to_string(),
+                relationship_type: "employs".to_string(),
+                properties: HashMap::new(),
+            }],
             metadata: HashMap::new(),
         };
 
@@ -260,24 +281,25 @@ Ontology(<http://example.org/test>
     fn test_inference_inverse_properties() {
         let validator = OwlValidatorService::new();
 
-        let triples = vec![
-            RdfTriple {
-                subject: "http://example.org/person1".to_string(),
-                predicate: "http://example.org/employs".to_string(),
-                object: "http://example.org/person2".to_string(),
-                is_literal: false,
-                datatype: None,
-                language: None,
-            }
-        ];
+        let triples = vec![RdfTriple {
+            subject: "http://example.org/person1".to_string(),
+            predicate: "http://example.org/employs".to_string(),
+            object: "http://example.org/person2".to_string(),
+            is_literal: false,
+            datatype: None,
+            language: None,
+        }];
 
         let inferred = validator.infer(&triples).unwrap();
 
         // Should infer the inverse relationship (worksFor)
-        let inverse_triples: Vec<_> = inferred.iter()
-            .filter(|t| t.subject == "http://example.org/person2"
-                     && t.object == "http://example.org/person1"
-                     && t.predicate.contains("worksFor"))
+        let inverse_triples: Vec<_> = inferred
+            .iter()
+            .filter(|t| {
+                t.subject == "http://example.org/person2"
+                    && t.object == "http://example.org/person1"
+                    && t.predicate.contains("worksFor")
+            })
             .collect();
 
         assert!(!inverse_triples.is_empty(), "Should infer inverse property");
@@ -288,27 +310,31 @@ Ontology(<http://example.org/test>
     fn test_inference_symmetric_properties() {
         let validator = OwlValidatorService::new();
 
-        let triples = vec![
-            RdfTriple {
-                subject: "http://example.org/person1".to_string(),
-                predicate: "http://example.org/knows".to_string(),
-                object: "http://example.org/person2".to_string(),
-                is_literal: false,
-                datatype: None,
-                language: None,
-            }
-        ];
+        let triples = vec![RdfTriple {
+            subject: "http://example.org/person1".to_string(),
+            predicate: "http://example.org/knows".to_string(),
+            object: "http://example.org/person2".to_string(),
+            is_literal: false,
+            datatype: None,
+            language: None,
+        }];
 
         let inferred = validator.infer(&triples).unwrap();
 
         // Should infer the symmetric relationship
-        let symmetric_triples: Vec<_> = inferred.iter()
-            .filter(|t| t.subject == "http://example.org/person2"
-                     && t.object == "http://example.org/person1"
-                     && t.predicate.contains("knows"))
+        let symmetric_triples: Vec<_> = inferred
+            .iter()
+            .filter(|t| {
+                t.subject == "http://example.org/person2"
+                    && t.object == "http://example.org/person1"
+                    && t.predicate.contains("knows")
+            })
             .collect();
 
-        assert!(!symmetric_triples.is_empty(), "Should infer symmetric property");
+        assert!(
+            !symmetric_triples.is_empty(),
+            "Should infer symmetric property"
+        );
     }
 
     #[cfg(feature = "ontology")]
@@ -332,19 +358,25 @@ Ontology(<http://example.org/test>
                 is_literal: false,
                 datatype: None,
                 language: None,
-            }
+            },
         ];
 
         let inferred = validator.infer(&triples).unwrap();
 
         // Should infer transitive relationship (a partOf c)
-        let transitive_triples: Vec<_> = inferred.iter()
-            .filter(|t| t.subject == "http://example.org/a"
-                     && t.object == "http://example.org/c"
-                     && t.predicate.contains("partOf"))
+        let transitive_triples: Vec<_> = inferred
+            .iter()
+            .filter(|t| {
+                t.subject == "http://example.org/a"
+                    && t.object == "http://example.org/c"
+                    && t.predicate.contains("partOf")
+            })
             .collect();
 
-        assert!(!transitive_triples.is_empty(), "Should infer transitive property");
+        assert!(
+            !transitive_triples.is_empty(),
+            "Should infer transitive property"
+        );
     }
 
     #[cfg(feature = "ontology")]
@@ -370,17 +402,15 @@ Ontology(<http://example.org/test>
 
         // Create graph with cardinality violation (multiple SSN values)
         let graph = PropertyGraph {
-            nodes: vec![
-                GraphNode {
-                    id: "person1".to_string(),
-                    labels: vec!["Person".to_string()],
-                    properties: {
-                        let mut props = HashMap::new();
-                        props.insert("hasSSN".to_string(), serde_json::json!("123-45-6789"));
-                        props
-                    },
-                }
-            ],
+            nodes: vec![GraphNode {
+                id: "person1".to_string(),
+                labels: vec!["Person".to_string()],
+                properties: {
+                    let mut props = HashMap::new();
+                    props.insert("hasSSN".to_string(), serde_json::json!("123-45-6789"));
+                    props
+                },
+            }],
             edges: vec![],
             metadata: HashMap::new(),
         };
@@ -398,7 +428,10 @@ Ontology(<http://example.org/test>
         // Test various IRI formats
         let test_cases = vec![
             ("foaf:Person", "http://xmlns.com/foaf/0.1/Person"),
-            ("rdf:type", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+            (
+                "rdf:type",
+                "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+            ),
             ("owl:Class", "http://www.w3.org/2002/07/owl#Class"),
             ("xsd:string", "http://www.w3.org/2001/XMLSchema#string"),
         ];
@@ -406,19 +439,18 @@ Ontology(<http://example.org/test>
         for (prefixed, expected) in test_cases {
             // Use map_graph_to_rdf to indirectly test IRI expansion
             let graph = PropertyGraph {
-                nodes: vec![
-                    GraphNode {
-                        id: "test".to_string(),
-                        labels: vec![prefixed.to_string()],
-                        properties: HashMap::new(),
-                    }
-                ],
+                nodes: vec![GraphNode {
+                    id: "test".to_string(),
+                    labels: vec![prefixed.to_string()],
+                    properties: HashMap::new(),
+                }],
                 edges: vec![],
                 metadata: HashMap::new(),
             };
 
             let triples = validator.map_graph_to_rdf(&graph).unwrap();
-            let has_expanded_iri = triples.iter()
+            let has_expanded_iri = triples
+                .iter()
                 .any(|t| t.object.contains(expected) || t.predicate.contains("type"));
 
             assert!(has_expanded_iri, "Failed to expand IRI: {}", prefixed);
@@ -431,20 +463,18 @@ Ontology(<http://example.org/test>
         let validator = OwlValidatorService::new();
 
         let graph = PropertyGraph {
-            nodes: vec![
-                GraphNode {
-                    id: "test".to_string(),
-                    labels: vec!["Thing".to_string()],
-                    properties: {
-                        let mut props = HashMap::new();
-                        props.insert("stringProp".to_string(), serde_json::json!("test string"));
-                        props.insert("intProp".to_string(), serde_json::json!(42));
-                        props.insert("boolProp".to_string(), serde_json::json!(true));
-                        props.insert("floatProp".to_string(), serde_json::json!(3.14));
-                        props
-                    },
-                }
-            ],
+            nodes: vec![GraphNode {
+                id: "test".to_string(),
+                labels: vec!["Thing".to_string()],
+                properties: {
+                    let mut props = HashMap::new();
+                    props.insert("stringProp".to_string(), serde_json::json!("test string"));
+                    props.insert("intProp".to_string(), serde_json::json!(42));
+                    props.insert("boolProp".to_string(), serde_json::json!(true));
+                    props.insert("floatProp".to_string(), serde_json::json!(3.14));
+                    props
+                },
+            }],
             edges: vec![],
             metadata: HashMap::new(),
         };
@@ -455,17 +485,32 @@ Ontology(<http://example.org/test>
         let string_triple = triples.iter().find(|t| t.object == "test string");
         assert!(string_triple.is_some());
         assert!(string_triple.unwrap().is_literal);
-        assert!(string_triple.unwrap().datatype.as_ref().unwrap().contains("string"));
+        assert!(string_triple
+            .unwrap()
+            .datatype
+            .as_ref()
+            .unwrap()
+            .contains("string"));
 
         let int_triple = triples.iter().find(|t| t.object == "42");
         assert!(int_triple.is_some());
         assert!(int_triple.unwrap().is_literal);
-        assert!(int_triple.unwrap().datatype.as_ref().unwrap().contains("integer"));
+        assert!(int_triple
+            .unwrap()
+            .datatype
+            .as_ref()
+            .unwrap()
+            .contains("integer"));
 
         let bool_triple = triples.iter().find(|t| t.object == "true");
         assert!(bool_triple.is_some());
         assert!(bool_triple.unwrap().is_literal);
-        assert!(bool_triple.unwrap().datatype.as_ref().unwrap().contains("boolean"));
+        assert!(bool_triple
+            .unwrap()
+            .datatype
+            .as_ref()
+            .unwrap()
+            .contains("boolean"));
     }
 
     #[cfg(feature = "ontology")]
@@ -485,13 +530,11 @@ Ontology(<http://example.org/test>
         let ontology_id = validator.load_ontology(functional_ontology).await.unwrap();
 
         let graph = PropertyGraph {
-            nodes: vec![
-                GraphNode {
-                    id: "thing1".to_string(),
-                    labels: vec!["Thing".to_string()],
-                    properties: HashMap::new(),
-                }
-            ],
+            nodes: vec![GraphNode {
+                id: "thing1".to_string(),
+                labels: vec!["Thing".to_string()],
+                properties: HashMap::new(),
+            }],
             edges: vec![],
             metadata: HashMap::new(),
         };
@@ -508,7 +551,10 @@ Ontology(<http://example.org/test>
 
         // Cached validation should be faster (though not guaranteed in tests)
         assert_eq!(report1.graph_signature, report2.graph_signature);
-        println!("First validation: {:?}, Second validation: {:?}", duration1, duration2);
+        println!(
+            "First validation: {:?}, Second validation: {:?}",
+            duration1, duration2
+        );
     }
 
     #[cfg(feature = "ontology")]

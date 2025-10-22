@@ -1,18 +1,18 @@
+use log::{debug, error, info, warn};
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
-use std::collections::HashMap;
 use std::time::{Duration, Instant};
-use log::{info, error, debug, warn};
 use tracing::{debug as trace_debug, info as trace_info};
-use once_cell::sync::Lazy;
 use uuid::Uuid;
 
 use crate::config::AppFullSettings;
 
 // Global cache for user settings
-static USER_SETTINGS_CACHE: Lazy<Arc<RwLock<HashMap<String, CachedUserSettings>>>> = 
+static USER_SETTINGS_CACHE: Lazy<Arc<RwLock<HashMap<String, CachedUserSettings>>>> =
     Lazy::new(|| Arc::new(RwLock::new(HashMap::new())));
 
 // Cache expiration time (10 minutes)
@@ -85,7 +85,7 @@ impl UserSettings {
                 );
             }
         }
-        
+
         // Not in cache or expired, load from disk
         let path = Self::get_settings_path(pubkey);
         match fs::read_to_string(&path) {
@@ -103,10 +103,13 @@ impl UserSettings {
                                     return Some(settings);
                                 }
                             };
-                            cache.insert(pubkey.to_string(), CachedUserSettings {
-                                settings: settings_clone,
-                                timestamp: Instant::now(),
-                            });
+                            cache.insert(
+                                pubkey.to_string(),
+                                CachedUserSettings {
+                                    settings: settings_clone,
+                                    timestamp: Instant::now(),
+                                },
+                            );
                         }
                         info!("Loaded settings for user {} and added to cache", pubkey);
                         Some(settings)
@@ -120,13 +123,13 @@ impl UserSettings {
             Err(e) => {
                 debug!("No settings file found for user {}: {}", pubkey, e);
                 None
-            },
+            }
         }
     }
 
     pub fn save(&self) -> Result<(), String> {
         let path = Self::get_settings_path(&self.pubkey);
-        
+
         // Update cache first (this is fast and ensures immediate availability)
         {
             let mut cache = match USER_SETTINGS_CACHE.write() {
@@ -137,13 +140,16 @@ impl UserSettings {
                     return self.save_to_disk();
                 }
             };
-            cache.insert(self.pubkey.clone(), CachedUserSettings {
-                settings: self.clone(),
-                timestamp: Instant::now(),
-            });
+            cache.insert(
+                self.pubkey.clone(),
+                CachedUserSettings {
+                    settings: self.clone(),
+                    timestamp: Instant::now(),
+                },
+            );
             debug!("Updated cache for user {}", self.pubkey);
         }
-        
+
         // Ensure directory exists
         if let Some(parent) = path.parent() {
             if let Err(e) = fs::create_dir_all(parent) {
@@ -156,59 +162,58 @@ impl UserSettings {
         // For now we'll use a simple thread, but this could be improved with a proper async task
         let pubkey = self.pubkey.clone();
         let settings_clone = self.clone();
-        
+
         std::thread::spawn(move || {
             debug!("Background thread saving settings for user {}", pubkey);
             match serde_yaml::to_string(&settings_clone) {
-                Ok(yaml) => {
-                    match fs::write(&path, yaml) {
-                        Ok(_) => info!("Saved settings for user {} to disk", pubkey),
-                        Err(e) => error!("Failed to write settings file for {}: {}", pubkey, e)
-                    }
-                }
+                Ok(yaml) => match fs::write(&path, yaml) {
+                    Ok(_) => info!("Saved settings for user {} to disk", pubkey),
+                    Err(e) => error!("Failed to write settings file for {}: {}", pubkey, e),
+                },
                 Err(e) => error!("Failed to serialize settings for {}: {}", pubkey, e),
             }
         });
-        
+
         // Return success immediately since we've updated the cache
         Ok(())
     }
-    
+
     fn save_to_disk(&self) -> Result<(), String> {
         let path = Self::get_settings_path(&self.pubkey);
-        
+
         // Ensure directory exists
         if let Some(parent) = path.parent() {
             if let Err(e) = std::fs::create_dir_all(parent) {
                 return Err(format!("Failed to create settings directory: {}", e));
             }
         }
-        
+
         // Serialize and save settings
         match serde_yaml::to_string(self) {
-            Ok(content) => {
-                match std::fs::write(&path, content) {
-                    Ok(_) => {
-                        debug!("Saved settings to disk for user {}", self.pubkey);
-                        Ok(())
-                    }
-                    Err(e) => Err(format!("Failed to write settings file: {}", e))
+            Ok(content) => match std::fs::write(&path, content) {
+                Ok(_) => {
+                    debug!("Saved settings to disk for user {}", self.pubkey);
+                    Ok(())
                 }
-            }
-            Err(e) => Err(format!("Failed to serialize settings: {}", e))
+                Err(e) => Err(format!("Failed to write settings file: {}", e)),
+            },
+            Err(e) => Err(format!("Failed to serialize settings: {}", e)),
         }
     }
 
     fn get_settings_path(pubkey: &str) -> PathBuf {
         PathBuf::from("/app/user_settings").join(format!("{}.yaml", pubkey))
     }
-    
+
     // Clear the cache entry for a specific user
     pub fn clear_cache(pubkey: &str) {
         let mut cache = match USER_SETTINGS_CACHE.write() {
             Ok(cache) => cache,
             Err(e) => {
-                error!("Failed to write to cache for clearing user {}: {}", pubkey, e);
+                error!(
+                    "Failed to write to cache for clearing user {}: {}",
+                    pubkey, e
+                );
                 return;
             }
         };
@@ -233,10 +238,7 @@ impl UserSettings {
         let count = cache.len();
         cache.clear();
         debug!("Cleared all cached settings ({} entries)", count);
-        trace_info!(
-            entries_cleared = count,
-            "All user settings cache cleared"
-        );
+        trace_info!(entries_cleared = count, "All user settings cache cleared");
     }
 
     // Invalidate cache on authentication state change

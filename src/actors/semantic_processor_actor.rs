@@ -7,28 +7,37 @@
 //! - Stress majorization optimization for semantic layouts
 //! - Advanced semantic parameter management
 
+use actix::dev::{MessageResponse, OneshotSender};
+use actix::prelude::*;
+use actix_web::web;
+use futures_util::FutureExt;
+use log::{debug, error, info, warn};
+use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Instant;
-use actix::prelude::*;
-use actix::dev::{MessageResponse, OneshotSender};
-use actix_web::web;
-use futures_util::FutureExt;
-use log::{info, debug, warn, error};
-use serde_json::Value;
 
 // Core models and services
-use crate::models::constraints::{ConstraintSet, Constraint, AdvancedParams};
-use crate::models::metadata::FileMetadata;
+use crate::models::constraints::{AdvancedParams, Constraint, ConstraintSet};
 use crate::models::graph::GraphData;
+use crate::models::metadata::FileMetadata;
 use crate::models::node::Node;
-use crate::services::semantic_analyzer::{SemanticAnalyzer, SemanticAnalyzerConfig, SemanticFeatures};
-use crate::physics::stress_majorization::{StressMajorizationSolver, OptimizationResult};
+use crate::physics::stress_majorization::{OptimizationResult, StressMajorizationSolver};
+use crate::services::semantic_analyzer::{
+    SemanticAnalyzer, SemanticAnalyzerConfig, SemanticFeatures,
+};
 
 // Message types
 use crate::actors::messages::{
-    UpdateConstraints, GetConstraints, TriggerStressMajorization,
-    RegenerateSemanticConstraints, UpdateAdvancedParams
+    ComputeAllPairsShortestPaths, ComputeShortestPaths, GetConstraints,
+    RegenerateSemanticConstraints, TriggerStressMajorization, UpdateAdvancedParams,
+    UpdateConstraints,
+};
+
+// GPU semantic analyzer
+use crate::adapters::gpu_semantic_analyzer::GpuSemanticAnalyzerAdapter;
+use crate::ports::gpu_semantic_analyzer::{
+    GpuSemanticAnalyzer as GpuSemanticAnalyzerPort, PathfindingResult,
 };
 
 /// Configuration for semantic processing
@@ -170,6 +179,9 @@ pub struct SemanticProcessorActor {
 
     /// Performance metrics for optimization
     performance_metrics: HashMap<String, f32>,
+
+    /// GPU semantic analyzer for pathfinding
+    gpu_analyzer: Option<GpuSemanticAnalyzerAdapter>,
 }
 
 /// Semantic task tracking for concurrent processing
@@ -230,7 +242,7 @@ impl SemanticProcessorActor {
         metadata_id: &str,
         metadata: &FileMetadata,
         semantic_analyzer: Option<SemanticAnalyzer>,
-        config: SemanticProcessorConfig
+        config: SemanticProcessorConfig,
     ) -> Result<(), String> {
         let start_time = Instant::now();
 
@@ -246,7 +258,10 @@ impl SemanticProcessorActor {
         }
 
         let duration = start_time.elapsed();
-        debug!("Processed semantic metadata for {} in thread pool: {:?}", metadata_id, duration);
+        debug!(
+            "Processed semantic metadata for {} in thread pool: {:?}",
+            metadata_id, duration
+        );
         Ok(())
     }
 
@@ -255,7 +270,7 @@ impl SemanticProcessorActor {
         graph_data: Option<Arc<GraphData>>,
         semantic_features_cache: HashMap<String, SemanticFeatures>,
         ai_features_cache: HashMap<String, AISemanticFeatures>,
-        config: SemanticProcessorConfig
+        config: SemanticProcessorConfig,
     ) -> Result<Vec<Constraint>, String> {
         let start_time = Instant::now();
 
@@ -273,7 +288,11 @@ impl SemanticProcessorActor {
         constraints.truncate(config.max_constraints_per_cycle);
 
         let duration = start_time.elapsed();
-        info!("Generated {} semantic constraints in thread pool in {:?}", constraints.len(), duration);
+        info!(
+            "Generated {} semantic constraints in thread pool in {:?}",
+            constraints.len(),
+            duration
+        );
 
         Ok(constraints)
     }
@@ -282,7 +301,7 @@ impl SemanticProcessorActor {
     fn execute_stress_optimization_blocking(
         graph_data: Option<Arc<GraphData>>,
         constraint_set: ConstraintSet,
-        stress_solver: Option<StressMajorizationSolver>
+        stress_solver: Option<StressMajorizationSolver>,
     ) -> Result<OptimizationResult, String> {
         let graph_data = match graph_data {
             Some(data) => data,
@@ -297,7 +316,8 @@ impl SemanticProcessorActor {
         let start_time = Instant::now();
         let mut graph_clone = graph_data.as_ref().clone();
 
-        let result = solver.optimize(&mut graph_clone, &constraint_set)
+        let result = solver
+            .optimize(&mut graph_clone, &constraint_set)
             .map_err(|e| format!("Stress optimization failed: {:?}", e))?;
 
         let duration = start_time.elapsed();
@@ -308,34 +328,44 @@ impl SemanticProcessorActor {
     }
 
     /// Extract AI features in a static context (for thread pool)
-    fn extract_ai_features_static(metadata: &FileMetadata, base_features: &SemanticFeatures) -> Result<AISemanticFeatures, String> {
+    fn extract_ai_features_static(
+        metadata: &FileMetadata,
+        base_features: &SemanticFeatures,
+    ) -> Result<AISemanticFeatures, String> {
         let mut ai_features = AISemanticFeatures::default();
 
         // Generate content embedding (simulated advanced AI processing)
-        ai_features.content_embedding = Self::generate_content_embedding_static(&metadata.file_name)?;
+        ai_features.content_embedding =
+            Self::generate_content_embedding_static(&metadata.file_name)?;
 
         // Topic classification
-        ai_features.topic_classifications = Self::classify_topics_static(&metadata.file_name, base_features)?;
+        ai_features.topic_classifications =
+            Self::classify_topics_static(&metadata.file_name, base_features)?;
 
         // Calculate importance score
-        ai_features.importance_score = Self::calculate_importance_score_static(metadata, base_features);
+        ai_features.importance_score =
+            Self::calculate_importance_score_static(metadata, base_features);
 
         // Extract conceptual relationships
-        ai_features.conceptual_links = Self::extract_conceptual_relationships_static(metadata, base_features)?;
+        ai_features.conceptual_links =
+            Self::extract_conceptual_relationships_static(metadata, base_features)?;
 
         // Language complexity analysis
-        ai_features.complexity_metrics = Self::analyze_language_complexity_static(&metadata.file_name)?;
+        ai_features.complexity_metrics =
+            Self::analyze_language_complexity_static(&metadata.file_name)?;
 
         // Sentiment analysis
         if metadata.file_name.len() > 3 {
-            ai_features.sentiment_analysis = Some(Self::analyze_sentiment_static(&metadata.file_name)?);
+            ai_features.sentiment_analysis =
+                Some(Self::analyze_sentiment_static(&metadata.file_name)?);
         }
 
         // Named entity recognition
         ai_features.named_entities = Self::extract_named_entities_static(&metadata.file_name)?;
 
         // Cluster assignments
-        ai_features.cluster_assignments = Self::determine_cluster_assignments_static(metadata, base_features)?;
+        ai_features.cluster_assignments =
+            Self::determine_cluster_assignments_static(metadata, base_features)?;
 
         Ok(ai_features)
     }
@@ -364,22 +394,74 @@ impl SemanticProcessorActor {
 
     /// Simple hash function for embedding generation (static version)
     fn simple_hash_static(s: &str) -> usize {
-        s.chars().fold(0, |acc, c| acc.wrapping_mul(31).wrapping_add(c as usize))
+        s.chars()
+            .fold(0, |acc, c| acc.wrapping_mul(31).wrapping_add(c as usize))
     }
 
     /// Classify content topics (static version)
-    fn classify_topics_static(content: &str, _features: &SemanticFeatures) -> Result<HashMap<String, f32>, String> {
+    fn classify_topics_static(
+        content: &str,
+        _features: &SemanticFeatures,
+    ) -> Result<HashMap<String, f32>, String> {
         let mut topics = HashMap::new();
         let content_lower = content.to_lowercase();
 
         // Simple topic classification based on keywords
         let topic_keywords = vec![
-            ("technology", vec!["code", "software", "programming", "algorithm", "data", "computer"]),
-            ("science", vec!["research", "experiment", "hypothesis", "analysis", "theory", "study"]),
-            ("business", vec!["market", "strategy", "revenue", "customer", "product", "sales"]),
-            ("education", vec!["learn", "teach", "student", "course", "knowledge", "skill"]),
-            ("health", vec!["medical", "health", "treatment", "patient", "disease", "therapy"]),
-            ("art", vec!["creative", "design", "visual", "artistic", "aesthetic", "culture"]),
+            (
+                "technology",
+                vec![
+                    "code",
+                    "software",
+                    "programming",
+                    "algorithm",
+                    "data",
+                    "computer",
+                ],
+            ),
+            (
+                "science",
+                vec![
+                    "research",
+                    "experiment",
+                    "hypothesis",
+                    "analysis",
+                    "theory",
+                    "study",
+                ],
+            ),
+            (
+                "business",
+                vec![
+                    "market", "strategy", "revenue", "customer", "product", "sales",
+                ],
+            ),
+            (
+                "education",
+                vec!["learn", "teach", "student", "course", "knowledge", "skill"],
+            ),
+            (
+                "health",
+                vec![
+                    "medical",
+                    "health",
+                    "treatment",
+                    "patient",
+                    "disease",
+                    "therapy",
+                ],
+            ),
+            (
+                "art",
+                vec![
+                    "creative",
+                    "design",
+                    "visual",
+                    "artistic",
+                    "aesthetic",
+                    "culture",
+                ],
+            ),
         ];
 
         for (topic, keywords) in topic_keywords {
@@ -398,7 +480,10 @@ impl SemanticProcessorActor {
     }
 
     /// Calculate content importance score (static version)
-    fn calculate_importance_score_static(metadata: &FileMetadata, features: &SemanticFeatures) -> f32 {
+    fn calculate_importance_score_static(
+        metadata: &FileMetadata,
+        features: &SemanticFeatures,
+    ) -> f32 {
         let mut score: f32 = 0.5; // Base score
 
         // Factor in content length (use file_size)
@@ -422,7 +507,10 @@ impl SemanticProcessorActor {
     }
 
     /// Extract conceptual relationships (static version)
-    fn extract_conceptual_relationships_static(_metadata: &FileMetadata, _features: &SemanticFeatures) -> Result<Vec<(u32, f32)>, String> {
+    fn extract_conceptual_relationships_static(
+        _metadata: &FileMetadata,
+        _features: &SemanticFeatures,
+    ) -> Result<Vec<(u32, f32)>, String> {
         // Placeholder for advanced relationship extraction
         Ok(Vec::new())
     }
@@ -436,17 +524,24 @@ impl SemanticProcessorActor {
 
         // Basic complexity metrics
         if !sentences.is_empty() {
-            metrics.insert("avg_words_per_sentence".to_string(), words.len() as f32 / sentences.len() as f32);
+            metrics.insert(
+                "avg_words_per_sentence".to_string(),
+                words.len() as f32 / sentences.len() as f32,
+            );
         }
 
         let unique_words: std::collections::HashSet<&str> = words.iter().cloned().collect();
         if !words.is_empty() {
-            metrics.insert("vocabulary_diversity".to_string(), unique_words.len() as f32 / words.len() as f32);
+            metrics.insert(
+                "vocabulary_diversity".to_string(),
+                unique_words.len() as f32 / words.len() as f32,
+            );
         }
 
         // Average word length
         if !words.is_empty() {
-            let avg_word_length = words.iter().map(|w| w.len()).sum::<usize>() as f32 / words.len() as f32;
+            let avg_word_length =
+                words.iter().map(|w| w.len()).sum::<usize>() as f32 / words.len() as f32;
             metrics.insert("avg_word_length".to_string(), avg_word_length);
         }
 
@@ -454,7 +549,10 @@ impl SemanticProcessorActor {
         if !sentences.is_empty() && !words.is_empty() {
             let avg_sentence_length = words.len() as f32 / sentences.len() as f32;
             let readability = 206.835 - (1.015 * avg_sentence_length);
-            metrics.insert("readability_score".to_string(), readability.max(0.0).min(100.0));
+            metrics.insert(
+                "readability_score".to_string(),
+                readability.max(0.0).min(100.0),
+            );
         }
 
         Ok(metrics)
@@ -466,8 +564,19 @@ impl SemanticProcessorActor {
         let content_lower = content.to_lowercase();
 
         // Simple sentiment analysis based on word lists
-        let positive_words = vec!["good", "great", "excellent", "amazing", "wonderful", "fantastic", "successful", "efficient"];
-        let negative_words = vec!["bad", "terrible", "awful", "horrible", "failed", "error", "problem", "issue"];
+        let positive_words = vec![
+            "good",
+            "great",
+            "excellent",
+            "amazing",
+            "wonderful",
+            "fantastic",
+            "successful",
+            "efficient",
+        ];
+        let negative_words = vec![
+            "bad", "terrible", "awful", "horrible", "failed", "error", "problem", "issue",
+        ];
 
         let mut positive_score = 0.0;
         let mut negative_score = 0.0;
@@ -494,7 +603,10 @@ impl SemanticProcessorActor {
         // Calculate compound sentiment
         let compound: f32 = positive_score - negative_score;
         sentiment.insert("compound".to_string(), compound.tanh()); // Normalize to -1 to 1
-        sentiment.insert("neutral".to_string(), 1.0 - (positive_score + negative_score).min(1.0));
+        sentiment.insert(
+            "neutral".to_string(),
+            1.0 - (positive_score + negative_score).min(1.0),
+        );
 
         Ok(sentiment)
     }
@@ -520,11 +632,17 @@ impl SemanticProcessorActor {
     }
 
     /// Determine cluster assignments (static version)
-    fn determine_cluster_assignments_static(metadata: &FileMetadata, features: &SemanticFeatures) -> Result<Vec<String>, String> {
+    fn determine_cluster_assignments_static(
+        metadata: &FileMetadata,
+        features: &SemanticFeatures,
+    ) -> Result<Vec<String>, String> {
         let mut clusters = Vec::new();
 
         // File type clustering
-        if let Some(extension) = std::path::Path::new(&metadata.file_name).extension().and_then(|e| e.to_str()) {
+        if let Some(extension) = std::path::Path::new(&metadata.file_name)
+            .extension()
+            .and_then(|e| e.to_str())
+        {
             clusters.push(format!("filetype_{}", extension));
         }
 
@@ -555,13 +673,16 @@ impl SemanticProcessorActor {
         let config = config.unwrap_or_default();
         let advanced_params = AdvancedParams::default();
 
-        let semantic_analyzer = Some(SemanticAnalyzer::new(
-            SemanticAnalyzerConfig::default()
+        let semantic_analyzer = Some(SemanticAnalyzer::new(SemanticAnalyzerConfig::default()));
+
+        let stress_solver = Some(StressMajorizationSolver::from_advanced_params(
+            &advanced_params,
         ));
 
-        let stress_solver = Some(StressMajorizationSolver::from_advanced_params(&advanced_params));
-
-        info!("Initializing SemanticProcessorActor with AI features: {}", config.enable_ai_features);
+        info!(
+            "Initializing SemanticProcessorActor with AI features: {}",
+            config.enable_ai_features
+        );
 
         Self {
             semantic_analyzer,
@@ -580,6 +701,7 @@ impl SemanticProcessorActor {
             enable_ai_processing: true,
             clustering_params: SemanticClusteringParams::default(),
             performance_metrics: HashMap::new(),
+            gpu_analyzer: Some(GpuSemanticAnalyzerAdapter::new()),
         }
     }
 
@@ -590,18 +712,24 @@ impl SemanticProcessorActor {
     }
 
     /// Process metadata for semantic features extraction
-    pub fn process_metadata(&mut self, metadata_id: &str, metadata: &FileMetadata) -> Result<(), String> {
+    pub fn process_metadata(
+        &mut self,
+        metadata_id: &str,
+        metadata: &FileMetadata,
+    ) -> Result<(), String> {
         let start_time = Instant::now();
 
         // Extract basic semantic features
         if let Some(ref mut analyzer) = self.semantic_analyzer {
             let features = analyzer.analyze_metadata(metadata);
-            self.semantic_features_cache.insert(metadata_id.to_string(), features.clone());
+            self.semantic_features_cache
+                .insert(metadata_id.to_string(), features.clone());
 
             // Process AI features if enabled
             if self.config.enable_ai_features {
                 if let Ok(ai_features) = self.extract_ai_features(metadata, &features) {
-                    self.ai_features_cache.insert(metadata_id.to_string(), ai_features);
+                    self.ai_features_cache
+                        .insert(metadata_id.to_string(), ai_features);
                     self.stats.ai_features_processed += 1;
                 }
             }
@@ -611,25 +739,34 @@ impl SemanticProcessorActor {
 
         self.stats.last_analysis_duration = Some(start_time.elapsed());
 
-        debug!("Processed semantic metadata for {}: {:?}", metadata_id, self.stats.last_analysis_duration);
+        debug!(
+            "Processed semantic metadata for {}: {:?}",
+            metadata_id, self.stats.last_analysis_duration
+        );
         Ok(())
     }
 
     /// Extract AI-driven semantic features
-    fn extract_ai_features(&self, metadata: &FileMetadata, base_features: &SemanticFeatures) -> Result<AISemanticFeatures, String> {
+    fn extract_ai_features(
+        &self,
+        metadata: &FileMetadata,
+        base_features: &SemanticFeatures,
+    ) -> Result<AISemanticFeatures, String> {
         let mut ai_features = AISemanticFeatures::default();
 
         // Generate content embedding (simulated advanced AI processing)
         ai_features.content_embedding = self.generate_content_embedding(&metadata.file_name)?;
 
         // Topic classification
-        ai_features.topic_classifications = self.classify_topics(&metadata.file_name, base_features)?;
+        ai_features.topic_classifications =
+            self.classify_topics(&metadata.file_name, base_features)?;
 
         // Calculate importance score
         ai_features.importance_score = self.calculate_importance_score(metadata, base_features);
 
         // Extract conceptual relationships
-        ai_features.conceptual_links = self.extract_conceptual_relationships(metadata, base_features)?;
+        ai_features.conceptual_links =
+            self.extract_conceptual_relationships(metadata, base_features)?;
 
         // Language complexity analysis
         ai_features.complexity_metrics = self.analyze_language_complexity(&metadata.file_name)?;
@@ -643,7 +780,8 @@ impl SemanticProcessorActor {
         ai_features.named_entities = self.extract_named_entities(&metadata.file_name)?;
 
         // Cluster assignments
-        ai_features.cluster_assignments = self.determine_cluster_assignments(metadata, base_features)?;
+        ai_features.cluster_assignments =
+            self.determine_cluster_assignments(metadata, base_features)?;
 
         Ok(ai_features)
     }
@@ -673,22 +811,75 @@ impl SemanticProcessorActor {
 
     /// Simple hash function for embedding generation
     fn simple_hash(&self, s: &str) -> usize {
-        s.chars().fold(0, |acc, c| acc.wrapping_mul(31).wrapping_add(c as usize))
+        s.chars()
+            .fold(0, |acc, c| acc.wrapping_mul(31).wrapping_add(c as usize))
     }
 
     /// Classify content topics
-    fn classify_topics(&self, content: &str, _features: &SemanticFeatures) -> Result<HashMap<String, f32>, String> {
+    fn classify_topics(
+        &self,
+        content: &str,
+        _features: &SemanticFeatures,
+    ) -> Result<HashMap<String, f32>, String> {
         let mut topics = HashMap::new();
         let content_lower = content.to_lowercase();
 
         // Simple topic classification based on keywords
         let topic_keywords = vec![
-            ("technology", vec!["code", "software", "programming", "algorithm", "data", "computer"]),
-            ("science", vec!["research", "experiment", "hypothesis", "analysis", "theory", "study"]),
-            ("business", vec!["market", "strategy", "revenue", "customer", "product", "sales"]),
-            ("education", vec!["learn", "teach", "student", "course", "knowledge", "skill"]),
-            ("health", vec!["medical", "health", "treatment", "patient", "disease", "therapy"]),
-            ("art", vec!["creative", "design", "visual", "artistic", "aesthetic", "culture"]),
+            (
+                "technology",
+                vec![
+                    "code",
+                    "software",
+                    "programming",
+                    "algorithm",
+                    "data",
+                    "computer",
+                ],
+            ),
+            (
+                "science",
+                vec![
+                    "research",
+                    "experiment",
+                    "hypothesis",
+                    "analysis",
+                    "theory",
+                    "study",
+                ],
+            ),
+            (
+                "business",
+                vec![
+                    "market", "strategy", "revenue", "customer", "product", "sales",
+                ],
+            ),
+            (
+                "education",
+                vec!["learn", "teach", "student", "course", "knowledge", "skill"],
+            ),
+            (
+                "health",
+                vec![
+                    "medical",
+                    "health",
+                    "treatment",
+                    "patient",
+                    "disease",
+                    "therapy",
+                ],
+            ),
+            (
+                "art",
+                vec![
+                    "creative",
+                    "design",
+                    "visual",
+                    "artistic",
+                    "aesthetic",
+                    "culture",
+                ],
+            ),
         ];
 
         for (topic, keywords) in topic_keywords {
@@ -707,7 +898,11 @@ impl SemanticProcessorActor {
     }
 
     /// Calculate content importance score
-    fn calculate_importance_score(&self, metadata: &FileMetadata, features: &SemanticFeatures) -> f32 {
+    fn calculate_importance_score(
+        &self,
+        metadata: &FileMetadata,
+        features: &SemanticFeatures,
+    ) -> f32 {
         let mut score: f32 = 0.5; // Base score
 
         // Factor in content length (use file_size instead)
@@ -731,7 +926,11 @@ impl SemanticProcessorActor {
     }
 
     /// Extract conceptual relationships to other nodes
-    fn extract_conceptual_relationships(&self, _metadata: &FileMetadata, _features: &SemanticFeatures) -> Result<Vec<(u32, f32)>, String> {
+    fn extract_conceptual_relationships(
+        &self,
+        _metadata: &FileMetadata,
+        _features: &SemanticFeatures,
+    ) -> Result<Vec<(u32, f32)>, String> {
         // Placeholder for advanced relationship extraction
         // Would use graph neural networks or knowledge graphs in production
         Ok(Vec::new())
@@ -746,17 +945,24 @@ impl SemanticProcessorActor {
 
         // Basic complexity metrics
         if !sentences.is_empty() {
-            metrics.insert("avg_words_per_sentence".to_string(), words.len() as f32 / sentences.len() as f32);
+            metrics.insert(
+                "avg_words_per_sentence".to_string(),
+                words.len() as f32 / sentences.len() as f32,
+            );
         }
 
         let unique_words: std::collections::HashSet<&str> = words.iter().cloned().collect();
         if !words.is_empty() {
-            metrics.insert("vocabulary_diversity".to_string(), unique_words.len() as f32 / words.len() as f32);
+            metrics.insert(
+                "vocabulary_diversity".to_string(),
+                unique_words.len() as f32 / words.len() as f32,
+            );
         }
 
         // Average word length
         if !words.is_empty() {
-            let avg_word_length = words.iter().map(|w| w.len()).sum::<usize>() as f32 / words.len() as f32;
+            let avg_word_length =
+                words.iter().map(|w| w.len()).sum::<usize>() as f32 / words.len() as f32;
             metrics.insert("avg_word_length".to_string(), avg_word_length);
         }
 
@@ -764,7 +970,10 @@ impl SemanticProcessorActor {
         if !sentences.is_empty() && !words.is_empty() {
             let avg_sentence_length = words.len() as f32 / sentences.len() as f32;
             let readability = 206.835 - (1.015 * avg_sentence_length);
-            metrics.insert("readability_score".to_string(), readability.max(0.0).min(100.0));
+            metrics.insert(
+                "readability_score".to_string(),
+                readability.max(0.0).min(100.0),
+            );
         }
 
         Ok(metrics)
@@ -776,8 +985,19 @@ impl SemanticProcessorActor {
         let content_lower = content.to_lowercase();
 
         // Simple sentiment analysis based on word lists
-        let positive_words = vec!["good", "great", "excellent", "amazing", "wonderful", "fantastic", "successful", "efficient"];
-        let negative_words = vec!["bad", "terrible", "awful", "horrible", "failed", "error", "problem", "issue"];
+        let positive_words = vec![
+            "good",
+            "great",
+            "excellent",
+            "amazing",
+            "wonderful",
+            "fantastic",
+            "successful",
+            "efficient",
+        ];
+        let negative_words = vec![
+            "bad", "terrible", "awful", "horrible", "failed", "error", "problem", "issue",
+        ];
 
         let mut positive_score = 0.0;
         let mut negative_score = 0.0;
@@ -804,7 +1024,10 @@ impl SemanticProcessorActor {
         // Calculate compound sentiment
         let compound: f32 = positive_score - negative_score;
         sentiment.insert("compound".to_string(), compound.tanh()); // Normalize to -1 to 1
-        sentiment.insert("neutral".to_string(), 1.0 - (positive_score + negative_score).min(1.0));
+        sentiment.insert(
+            "neutral".to_string(),
+            1.0 - (positive_score + negative_score).min(1.0),
+        );
 
         Ok(sentiment)
     }
@@ -833,11 +1056,18 @@ impl SemanticProcessorActor {
     }
 
     /// Determine cluster assignments for content
-    fn determine_cluster_assignments(&self, metadata: &FileMetadata, features: &SemanticFeatures) -> Result<Vec<String>, String> {
+    fn determine_cluster_assignments(
+        &self,
+        metadata: &FileMetadata,
+        features: &SemanticFeatures,
+    ) -> Result<Vec<String>, String> {
         let mut clusters = Vec::new();
 
         // File type clustering based on file name
-        if let Some(extension) = std::path::Path::new(&metadata.file_name).extension().and_then(|e| e.to_str()) {
+        if let Some(extension) = std::path::Path::new(&metadata.file_name)
+            .extension()
+            .and_then(|e| e.to_str())
+        {
             clusters.push(format!("filetype_{}", extension));
         }
 
@@ -885,14 +1115,20 @@ impl SemanticProcessorActor {
         self.stats.constraints_generated = constraints.len();
         self.stats.last_analysis_duration = Some(start_time.elapsed());
 
-        info!("Generated {} semantic constraints in {:?}",
-              constraints.len(), self.stats.last_analysis_duration);
+        info!(
+            "Generated {} semantic constraints in {:?}",
+            constraints.len(),
+            self.stats.last_analysis_duration
+        );
 
         Ok(constraints)
     }
 
     /// Generate constraints based on semantic similarity
-    fn generate_similarity_constraints(&self, graph_data: &GraphData) -> Result<Vec<Constraint>, String> {
+    fn generate_similarity_constraints(
+        &self,
+        graph_data: &GraphData,
+    ) -> Result<Vec<Constraint>, String> {
         let mut constraints = Vec::new();
 
         for node_pair in self.get_node_pairs(&graph_data.nodes) {
@@ -900,16 +1136,14 @@ impl SemanticProcessorActor {
 
             if let (Some(features1), Some(features2)) = (
                 self.get_node_semantic_features(node1.id),
-                self.get_node_semantic_features(node2.id)
+                self.get_node_semantic_features(node2.id),
             ) {
                 let similarity = self.calculate_semantic_similarity(features1, features2);
 
                 if similarity > self.config.similarity_threshold {
                     let attraction_strength = similarity * 0.5; // Scale to reasonable force
                     let constraint = Constraint::separation(
-                        node1.id,
-                        node2.id,
-                        100.0 // Min distance
+                        node1.id, node2.id, 100.0, // Min distance
                     );
                     constraints.push(constraint);
                 }
@@ -920,7 +1154,10 @@ impl SemanticProcessorActor {
     }
 
     /// Generate constraints based on semantic clustering
-    fn generate_clustering_constraints(&self, graph_data: &GraphData) -> Result<Vec<Constraint>, String> {
+    fn generate_clustering_constraints(
+        &self,
+        graph_data: &GraphData,
+    ) -> Result<Vec<Constraint>, String> {
         let mut constraints = Vec::new();
         let clusters = self.identify_semantic_clusters(&graph_data.nodes)?;
 
@@ -928,11 +1165,8 @@ impl SemanticProcessorActor {
             if node_ids.len() >= self.clustering_params.min_cluster_size {
                 // Create cluster constraint
                 let centroid_strength = 0.3;
-                let cluster_constraint = Constraint::cluster(
-                    node_ids.clone(),
-                    cluster_id as f32,
-                    centroid_strength
-                );
+                let cluster_constraint =
+                    Constraint::cluster(node_ids.clone(), cluster_id as f32, centroid_strength);
                 constraints.push(cluster_constraint);
 
                 // Create inter-cluster repulsion
@@ -941,7 +1175,7 @@ impl SemanticProcessorActor {
                         let repulsion_constraint = Constraint::separation(
                             node_ids[0], // Use first node as representative
                             other_node.id,
-                            200.0 // Minimum distance
+                            200.0, // Minimum distance
                         );
                         constraints.push(repulsion_constraint);
                     }
@@ -953,7 +1187,10 @@ impl SemanticProcessorActor {
     }
 
     /// Generate constraints based on content importance
-    fn generate_importance_constraints(&self, graph_data: &GraphData) -> Result<Vec<Constraint>, String> {
+    fn generate_importance_constraints(
+        &self,
+        graph_data: &GraphData,
+    ) -> Result<Vec<Constraint>, String> {
         let mut constraints = Vec::new();
 
         for node in &graph_data.nodes {
@@ -961,10 +1198,9 @@ impl SemanticProcessorActor {
                 if ai_features.importance_score > 0.8 {
                     // Important nodes should be positioned centrally
                     let central_constraint = Constraint::fixed_position(
-                        node.id,
-                        0.0, // Center X
+                        node.id, 0.0, // Center X
                         0.0, // Center Y
-                        0.0  // Center Z
+                        0.0, // Center Z
                     );
                     constraints.push(central_constraint);
                 }
@@ -975,16 +1211,21 @@ impl SemanticProcessorActor {
     }
 
     /// Generate constraints based on topic relationships
-    fn generate_topic_constraints(&self, graph_data: &GraphData) -> Result<Vec<Constraint>, String> {
+    fn generate_topic_constraints(
+        &self,
+        graph_data: &GraphData,
+    ) -> Result<Vec<Constraint>, String> {
         let mut constraints = Vec::new();
         let mut topic_groups: HashMap<String, Vec<u32>> = HashMap::new();
 
         // Group nodes by primary topic
         for node in &graph_data.nodes {
             if let Some(ai_features) = self.ai_features_cache.get(&node.id.to_string()) {
-                if let Some((topic, confidence)) = ai_features.topic_classifications.iter()
-                    .max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal)) {
-
+                if let Some((topic, confidence)) = ai_features
+                    .topic_classifications
+                    .iter()
+                    .max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal))
+                {
                     if *confidence > 0.5 {
                         topic_groups.entry(topic.clone()).or_default().push(node.id);
                     }
@@ -998,7 +1239,7 @@ impl SemanticProcessorActor {
                 let cluster_constraint = Constraint::cluster(
                     node_ids,
                     self.simple_hash(&topic) as f32,
-                    0.4 // Medium clustering strength
+                    0.4, // Medium clustering strength
                 );
                 constraints.push(cluster_constraint);
             }
@@ -1013,14 +1254,26 @@ impl SemanticProcessorActor {
     }
 
     /// Calculate semantic similarity between two feature sets
-    fn calculate_semantic_similarity(&self, features1: &SemanticFeatures, features2: &SemanticFeatures) -> f32 {
+    fn calculate_semantic_similarity(
+        &self,
+        features1: &SemanticFeatures,
+        features2: &SemanticFeatures,
+    ) -> f32 {
         let mut similarity = 0.0;
         let mut comparisons = 0;
 
         // Compare structural elements (simplified approach)
-        let struct_sim = if features1.structural.complexity_score > 0.0 || features2.structural.complexity_score > 0.0 {
-            let max_complexity = features1.structural.complexity_score.max(features2.structural.complexity_score);
-            let min_complexity = features1.structural.complexity_score.min(features2.structural.complexity_score);
+        let struct_sim = if features1.structural.complexity_score > 0.0
+            || features2.structural.complexity_score > 0.0
+        {
+            let max_complexity = features1
+                .structural
+                .complexity_score
+                .max(features2.structural.complexity_score);
+            let min_complexity = features1
+                .structural
+                .complexity_score
+                .min(features2.structural.complexity_score);
             if max_complexity > 0.0 {
                 similarity += min_complexity / max_complexity;
                 comparisons += 1;
@@ -1028,9 +1281,17 @@ impl SemanticProcessorActor {
         };
 
         // Compare content patterns (simplified approach)
-        let content_sim = if features1.content.documentation_score > 0.0 || features2.content.documentation_score > 0.0 {
-            let max_doc_score = features1.content.documentation_score.max(features2.content.documentation_score);
-            let min_doc_score = features1.content.documentation_score.min(features2.content.documentation_score);
+        let content_sim = if features1.content.documentation_score > 0.0
+            || features2.content.documentation_score > 0.0
+        {
+            let max_doc_score = features1
+                .content
+                .documentation_score
+                .max(features2.content.documentation_score);
+            let min_doc_score = features1
+                .content
+                .documentation_score
+                .min(features2.content.documentation_score);
             if max_doc_score > 0.0 {
                 similarity += min_doc_score / max_doc_score;
                 comparisons += 1;
@@ -1066,7 +1327,10 @@ impl SemanticProcessorActor {
     }
 
     /// Identify semantic clusters in the graph
-    fn identify_semantic_clusters(&self, nodes: &[Node]) -> Result<HashMap<usize, Vec<u32>>, String> {
+    fn identify_semantic_clusters(
+        &self,
+        nodes: &[Node],
+    ) -> Result<HashMap<usize, Vec<u32>>, String> {
         let mut clusters = HashMap::new();
 
         // Simple clustering based on AI features
@@ -1074,7 +1338,10 @@ impl SemanticProcessorActor {
             if let Some(ai_features) = self.ai_features_cache.get(&node.id.to_string()) {
                 for cluster in &ai_features.cluster_assignments {
                     let cluster_id = self.simple_hash(cluster) % 100; // Limit cluster IDs
-                    clusters.entry(cluster_id).or_insert_with(Vec::new).push(node.id);
+                    clusters
+                        .entry(cluster_id)
+                        .or_insert_with(Vec::new)
+                        .push(node.id);
                 }
             }
         }
@@ -1097,24 +1364,31 @@ impl SemanticProcessorActor {
         let start_time = Instant::now();
         let mut graph_clone = graph_data.as_ref().clone();
 
-        let result = solver.optimize(&mut graph_clone, &self.constraint_set)
+        let result = solver
+            .optimize(&mut graph_clone, &self.constraint_set)
             .map_err(|e| format!("Stress optimization failed: {:?}", e))?;
 
         self.stats.stress_iterations = result.iterations;
         self.stats.stress_final_value = result.final_stress;
 
         let duration = start_time.elapsed();
-        self.performance_metrics.insert("stress_optimization_ms".to_string(), duration.as_millis() as f32);
+        self.performance_metrics.insert(
+            "stress_optimization_ms".to_string(),
+            duration.as_millis() as f32,
+        );
 
-        info!("Completed stress optimization: {} iterations, final stress: {:.6}, duration: {:?}",
-              result.iterations, result.final_stress, duration);
+        info!(
+            "Completed stress optimization: {} iterations, final stress: {:.6}, duration: {:?}",
+            result.iterations, result.final_stress, duration
+        );
 
         Ok(result)
     }
 
     /// Update constraint data from external input
     pub fn handle_constraint_update(&mut self, constraint_data: Value) -> Result<(), String> {
-        let constraint_type = constraint_data.get("type")
+        let constraint_type = constraint_data
+            .get("type")
             .and_then(|v| v.as_str())
             .unwrap_or("unknown");
 
@@ -1122,24 +1396,29 @@ impl SemanticProcessorActor {
             "semantic_similarity" => {
                 if let (Some(threshold), Some(enabled)) = (
                     constraint_data.get("threshold").and_then(|v| v.as_f64()),
-                    constraint_data.get("enabled").and_then(|v| v.as_bool())
+                    constraint_data.get("enabled").and_then(|v| v.as_bool()),
                 ) {
                     self.config.similarity_threshold = threshold as f32;
                     if enabled {
                         self.regenerate_similarity_constraints()?;
                     }
-                    info!("Updated semantic similarity constraints: threshold={}, enabled={}", threshold, enabled);
+                    info!(
+                        "Updated semantic similarity constraints: threshold={}, enabled={}",
+                        threshold, enabled
+                    );
                 }
             }
             "clustering" => {
                 if let Some(enabled) = constraint_data.get("enabled").and_then(|v| v.as_bool()) {
-                    self.constraint_set.set_group_active("semantic_clustering", enabled);
+                    self.constraint_set
+                        .set_group_active("semantic_clustering", enabled);
                     info!("Toggled semantic clustering constraints: {}", enabled);
                 }
             }
             "importance_weighting" => {
                 if let Some(enabled) = constraint_data.get("enabled").and_then(|v| v.as_bool()) {
-                    self.constraint_set.set_group_active("importance_based", enabled);
+                    self.constraint_set
+                        .set_group_active("importance_based", enabled);
                     info!("Toggled importance-based constraints: {}", enabled);
                 }
             }
@@ -1160,12 +1439,14 @@ impl SemanticProcessorActor {
         };
 
         // Clear existing similarity constraints
-        self.constraint_set.set_group_active("semantic_similarity", false);
+        self.constraint_set
+            .set_group_active("semantic_similarity", false);
 
         // Generate new similarity constraints
         let constraints = self.generate_similarity_constraints(graph_data)?;
         for constraint in constraints {
-            self.constraint_set.add_to_group("semantic_similarity", constraint);
+            self.constraint_set
+                .add_to_group("semantic_similarity", constraint);
         }
 
         info!("Regenerated semantic similarity constraints");
@@ -1194,11 +1475,17 @@ impl Actor for SemanticProcessorActor {
     type Context = Context<Self>;
 
     fn started(&mut self, _ctx: &mut Self::Context) {
-        info!("SemanticProcessorActor started with AI features: {}", self.config.enable_ai_features);
+        info!(
+            "SemanticProcessorActor started with AI features: {}",
+            self.config.enable_ai_features
+        );
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
-        info!("SemanticProcessorActor stopped. Final stats: {:?}", self.stats);
+        info!(
+            "SemanticProcessorActor stopped. Final stats: {:?}",
+            self.stats
+        );
     }
 }
 
@@ -1217,7 +1504,10 @@ impl Handler<GetConstraints> for SemanticProcessorActor {
     type Result = Result<ConstraintSet, String>;
 
     fn handle(&mut self, _msg: GetConstraints, _ctx: &mut Self::Context) -> Self::Result {
-        debug!("Returning constraint set with {} constraints", self.constraint_set.constraints.len());
+        debug!(
+            "Returning constraint set with {} constraints",
+            self.constraint_set.constraints.len()
+        );
         Ok(self.constraint_set.clone())
     }
 }
@@ -1225,7 +1515,11 @@ impl Handler<GetConstraints> for SemanticProcessorActor {
 impl Handler<TriggerStressMajorization> for SemanticProcessorActor {
     type Result = actix::ResponseFuture<Result<(), String>>;
 
-    fn handle(&mut self, _msg: TriggerStressMajorization, _ctx: &mut Self::Context) -> Self::Result {
+    fn handle(
+        &mut self,
+        _msg: TriggerStressMajorization,
+        _ctx: &mut Self::Context,
+    ) -> Self::Result {
         info!("Triggering stress majorization optimization");
 
         let graph_data = self.graph_data.clone();
@@ -1235,19 +1529,20 @@ impl Handler<TriggerStressMajorization> for SemanticProcessorActor {
         // Move CPU-intensive stress optimization to thread pool
         let fut = web::block(move || {
             Self::execute_stress_optimization_blocking(graph_data, constraint_set, stress_solver)
-        }).map(|result| {
-            match result {
-                Ok(Ok(optimization_result)) => {
-                    info!("Stress optimization completed: converged={}, final_stress={:.6}",
-                          optimization_result.converged, optimization_result.final_stress);
-                    Ok(())
-                }
-                Ok(Err(e)) => {
-                    error!("Stress optimization failed: {}", e);
-                    Err(e)
-                }
-                Err(e) => Err(format!("Thread pool error: {}", e))
+        })
+        .map(|result| match result {
+            Ok(Ok(optimization_result)) => {
+                info!(
+                    "Stress optimization completed: converged={}, final_stress={:.6}",
+                    optimization_result.converged, optimization_result.final_stress
+                );
+                Ok(())
             }
+            Ok(Err(e)) => {
+                error!("Stress optimization failed: {}", e);
+                Err(e)
+            }
+            Err(e) => Err(format!("Thread pool error: {}", e)),
         });
 
         Box::pin(fut)
@@ -1257,13 +1552,20 @@ impl Handler<TriggerStressMajorization> for SemanticProcessorActor {
 impl Handler<RegenerateSemanticConstraints> for SemanticProcessorActor {
     type Result = actix::ResponseFuture<Result<(), String>>;
 
-    fn handle(&mut self, _msg: RegenerateSemanticConstraints, _ctx: &mut Self::Context) -> Self::Result {
+    fn handle(
+        &mut self,
+        _msg: RegenerateSemanticConstraints,
+        _ctx: &mut Self::Context,
+    ) -> Self::Result {
         info!("Regenerating semantic constraints");
 
         // Clear existing semantic constraints
-        self.constraint_set.set_group_active("semantic_similarity", false);
-        self.constraint_set.set_group_active("semantic_clustering", false);
-        self.constraint_set.set_group_active("importance_based", false);
+        self.constraint_set
+            .set_group_active("semantic_similarity", false);
+        self.constraint_set
+            .set_group_active("semantic_clustering", false);
+        self.constraint_set
+            .set_group_active("importance_based", false);
         self.constraint_set.set_group_active("topic_based", false);
 
         let graph_data = self.graph_data.clone();
@@ -1277,21 +1579,25 @@ impl Handler<RegenerateSemanticConstraints> for SemanticProcessorActor {
                 graph_data,
                 semantic_features_cache,
                 ai_features_cache,
-                config
+                config,
             )
-        }).map(move |result| {
+        })
+        .map(move |result| {
             match result {
                 Ok(Ok(constraints)) => {
                     // Note: In a real implementation, we'd need to update the constraint_set
                     // through a message back to the actor since this closure runs in a thread pool
-                    info!("Generated {} semantic constraints in thread pool", constraints.len());
+                    info!(
+                        "Generated {} semantic constraints in thread pool",
+                        constraints.len()
+                    );
                     Ok(())
                 }
                 Ok(Err(e)) => {
                     error!("Failed to regenerate semantic constraints: {}", e);
                     Err(e)
                 }
-                Err(e) => Err(format!("Thread pool error: {}", e))
+                Err(e) => Err(format!("Thread pool error: {}", e)),
             }
         });
 
@@ -1313,8 +1619,10 @@ impl Handler<UpdateAdvancedParams> for SemanticProcessorActor {
         // Update processing thresholds based on parameters
         self.relationship_threshold = msg.params.semantic_force_weight * 0.1;
 
-        info!("Updated semantic processor with advanced parameters - semantic_force_weight: {}",
-              msg.params.semantic_force_weight);
+        info!(
+            "Updated semantic processor with advanced parameters - semantic_force_weight: {}",
+            msg.params.semantic_force_weight
+        );
 
         Ok(())
     }
@@ -1348,7 +1656,10 @@ impl Handler<ProcessMetadata> for SemanticProcessorActor {
     type Result = actix::ResponseFuture<Result<(), String>>;
 
     fn handle(&mut self, msg: ProcessMetadata, _ctx: &mut Self::Context) -> Self::Result {
-        debug!("Processing metadata for semantic analysis: {}", msg.metadata_id);
+        debug!(
+            "Processing metadata for semantic analysis: {}",
+            msg.metadata_id
+        );
 
         let metadata_id = msg.metadata_id.clone();
         let metadata = msg.metadata.clone();
@@ -1358,12 +1669,11 @@ impl Handler<ProcessMetadata> for SemanticProcessorActor {
         // Move CPU-intensive metadata processing to thread pool
         let fut = web::block(move || {
             Self::process_metadata_blocking(&metadata_id, &metadata, semantic_analyzer, config)
-        }).map(|result| {
-            match result {
-                Ok(Ok(())) => Ok(()),
-                Ok(Err(e)) => Err(e),
-                Err(e) => Err(format!("Thread pool error: {}", e)),
-            }
+        })
+        .map(|result| match result {
+            Ok(Ok(())) => Ok(()),
+            Ok(Err(e)) => Err(e),
+            Err(e) => Err(format!("Thread pool error: {}", e)),
         });
 
         Box::pin(fut)
@@ -1396,5 +1706,102 @@ impl Handler<UpdateSemanticConfig> for SemanticProcessorActor {
     fn handle(&mut self, msg: UpdateSemanticConfig, _ctx: &mut Self::Context) -> Self::Result {
         info!("Updating semantic processor configuration");
         self.update_config(msg.config);
+    }
+}
+
+/// Message handler for GPU pathfinding - compute shortest paths from source
+impl Handler<ComputeShortestPaths> for SemanticProcessorActor {
+    type Result = actix::ResponseFuture<Result<PathfindingResult, String>>;
+
+    fn handle(&mut self, msg: ComputeShortestPaths, _ctx: &mut Self::Context) -> Self::Result {
+        info!(
+            "Computing shortest paths from node {} using GPU",
+            msg.source_node_id
+        );
+
+        let graph_data = self.graph_data.clone();
+        let mut gpu_analyzer = match self.gpu_analyzer.take() {
+            Some(analyzer) => analyzer,
+            None => {
+                return Box::pin(async move { Err("GPU analyzer not available".to_string()) });
+            }
+        };
+
+        Box::pin(async move {
+            // Initialize GPU analyzer if needed
+            if let Some(graph) = graph_data {
+                if let Err(e) = gpu_analyzer.initialize(graph).await {
+                    return Err(format!("Failed to initialize GPU analyzer: {:?}", e));
+                }
+            } else {
+                return Err("No graph data available for pathfinding".to_string());
+            }
+
+            // Compute shortest paths using GPU SSSP
+            match gpu_analyzer
+                .compute_shortest_paths(msg.source_node_id)
+                .await
+            {
+                Ok(result) => {
+                    info!(
+                        "GPU SSSP completed: {} reachable nodes in {:.2}ms",
+                        result.distances.len(),
+                        result.computation_time_ms
+                    );
+                    Ok(result)
+                }
+                Err(e) => {
+                    error!("GPU SSSP failed: {:?}", e);
+                    Err(format!("Pathfinding failed: {:?}", e))
+                }
+            }
+        })
+    }
+}
+
+/// Message handler for GPU pathfinding - compute all-pairs shortest paths
+impl Handler<ComputeAllPairsShortestPaths> for SemanticProcessorActor {
+    type Result = actix::ResponseFuture<Result<HashMap<(u32, u32), Vec<u32>>, String>>;
+
+    fn handle(
+        &mut self,
+        msg: ComputeAllPairsShortestPaths,
+        _ctx: &mut Self::Context,
+    ) -> Self::Result {
+        info!("Computing all-pairs shortest paths using GPU landmark approximation");
+
+        let graph_data = self.graph_data.clone();
+        let mut gpu_analyzer = match self.gpu_analyzer.take() {
+            Some(analyzer) => analyzer,
+            None => {
+                return Box::pin(async move { Err("GPU analyzer not available".to_string()) });
+            }
+        };
+
+        Box::pin(async move {
+            // Initialize GPU analyzer if needed
+            if let Some(graph) = graph_data {
+                if let Err(e) = gpu_analyzer.initialize(graph).await {
+                    return Err(format!("Failed to initialize GPU analyzer: {:?}", e));
+                }
+            } else {
+                return Err("No graph data available for pathfinding".to_string());
+            }
+
+            // Compute APSP using landmark approximation
+            match gpu_analyzer.compute_all_pairs_shortest_paths().await {
+                Ok(paths) => {
+                    info!(
+                        "GPU landmark APSP completed: {} path pairs computed",
+                        paths.len()
+                    );
+                    Ok(paths)
+                }
+                Err(e) => {
+                    error!("GPU APSP failed: {:?}", e);
+                    Err(format!("APSP failed: {:?}", e))
+                }
+            }
+        })
     }
 }

@@ -3,17 +3,17 @@
 
 use std::collections::HashMap;
 
-use crate::physics::ontology_constraints::{
-    OWLAxiom, OWLAxiomType, OntologyConstraintTranslator, OntologyInference,
-    OntologyReasoningReport, ConsistencyCheck
-};
 use crate::models::{
-    constraints::{Constraint, ConstraintSet, ConstraintKind},
+    constraints::{Constraint, ConstraintKind, ConstraintSet},
     graph::GraphData,
     node::Node,
 };
-use crate::utils::socket_flow_messages::BinaryNodeData;
+use crate::physics::ontology_constraints::{
+    ConsistencyCheck, OWLAxiom, OWLAxiomType, OntologyConstraintTranslator, OntologyInference,
+    OntologyReasoningReport,
+};
 use crate::types::vec3::Vec3Data;
+use crate::utils::socket_flow_messages::BinaryNodeData;
 
 /// Example function showing how to create and use the ontology constraints translator
 pub fn demonstrate_ontology_constraints() -> Result<(), Box<dyn std::error::Error>> {
@@ -30,13 +30,11 @@ pub fn demonstrate_ontology_constraints() -> Result<(), Box<dyn std::error::Erro
     let reasoning_report = OntologyReasoningReport {
         axioms,
         inferences,
-        consistency_checks: vec![
-            ConsistencyCheck {
-                is_consistent: true,
-                conflicting_axioms: vec![],
-                suggested_resolution: None,
-            }
-        ],
+        consistency_checks: vec![ConsistencyCheck {
+            is_consistent: true,
+            conflicting_axioms: vec![],
+            suggested_resolution: None,
+        }],
         reasoning_time_ms: 150,
     };
 
@@ -56,14 +54,20 @@ pub fn demonstrate_ontology_constraints() -> Result<(), Box<dyn std::error::Erro
     // Apply ontology constraints to generate physics constraints
     let constraint_set = translator.apply_ontology_constraints(&graph_data, &reasoning_report)?;
 
-    println!("✅ Generated {} constraints from {} axioms and {} inferences",
-             constraint_set.constraints.len(),
-             reasoning_report.axioms.len(),
-             reasoning_report.inferences.len());
+    println!(
+        "✅ Generated {} constraints from {} axioms and {} inferences",
+        constraint_set.constraints.len(),
+        reasoning_report.axioms.len(),
+        reasoning_report.inferences.len()
+    );
 
     // Display constraint groups
     for (group_name, indices) in &constraint_set.groups {
-        println!("📦 Group '{}' contains {} constraints", group_name, indices.len());
+        println!(
+            "📦 Group '{}' contains {} constraints",
+            group_name,
+            indices.len()
+        );
     }
 
     // Analyze constraint types
@@ -71,9 +75,10 @@ pub fn demonstrate_ontology_constraints() -> Result<(), Box<dyn std::error::Erro
 
     // Show cache statistics
     let cache_stats = translator.get_cache_stats();
-    println!("📊 Cache Stats: {} entries, {} cached constraints",
-             cache_stats.total_cache_entries,
-             cache_stats.total_cached_constraints);
+    println!(
+        "📊 Cache Stats: {} entries, {} cached constraints",
+        cache_stats.total_cache_entries, cache_stats.total_cached_constraints
+    );
 
     Ok(())
 }
@@ -87,9 +92,21 @@ fn create_sample_nodes() -> Vec<Node> {
             metadata_id: "dog1".to_string(),
             label: "Buddy (Dog)".to_string(),
             data: BinaryNodeData {
-                position: Vec3Data { x: 0.0, y: 0.0, z: 0.0 },
-                velocity: Vec3Data { x: 0.0, y: 0.0, z: 0.0 },
-                acceleration: Vec3Data { x: 0.0, y: 0.0, z: 0.0 },
+                position: Vec3Data {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+                velocity: Vec3Data {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+                acceleration: Vec3Data {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
                 mass: 1.0,
                 radius: 5.0,
             },
@@ -111,9 +128,21 @@ fn create_sample_nodes() -> Vec<Node> {
             metadata_id: "cat1".to_string(),
             label: "Whiskers (Cat)".to_string(),
             data: BinaryNodeData {
-                position: Vec3Data { x: 10.0, y: 0.0, z: 0.0 },
-                velocity: Vec3Data { x: 0.0, y: 0.0, z: 0.0 },
-                acceleration: Vec3Data { x: 0.0, y: 0.0, z: 0.0 },
+                position: Vec3Data {
+                    x: 10.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+                velocity: Vec3Data {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+                acceleration: Vec3Data {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
                 mass: 1.0,
                 radius: 5.0,
             },
@@ -136,9 +165,21 @@ fn create_sample_nodes() -> Vec<Node> {
             metadata_id: "oak1".to_string(),
             label: "Old Oak".to_string(),
             data: BinaryNodeData {
-                position: Vec3Data { x: 0.0, y: 20.0, z: 0.0 },
-                velocity: Vec3Data { x: 0.0, y: 0.0, z: 0.0 },
-                acceleration: Vec3Data { x: 0.0, y: 0.0, z: 0.0 },
+                position: Vec3Data {
+                    x: 0.0,
+                    y: 20.0,
+                    z: 0.0,
+                },
+                velocity: Vec3Data {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+                acceleration: Vec3Data {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
                 mass: 1.0,
                 radius: 8.0,
             },
@@ -160,9 +201,21 @@ fn create_sample_nodes() -> Vec<Node> {
             metadata_id: "rose1".to_string(),
             label: "Garden Rose".to_string(),
             data: BinaryNodeData {
-                position: Vec3Data { x: 15.0, y: 25.0, z: 0.0 },
-                velocity: Vec3Data { x: 0.0, y: 0.0, z: 0.0 },
-                acceleration: Vec3Data { x: 0.0, y: 0.0, z: 0.0 },
+                position: Vec3Data {
+                    x: 15.0,
+                    y: 25.0,
+                    z: 0.0,
+                },
+                velocity: Vec3Data {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+                acceleration: Vec3Data {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
                 mass: 1.0,
                 radius: 3.0,
             },
@@ -185,9 +238,21 @@ fn create_sample_nodes() -> Vec<Node> {
             metadata_id: "john_smith".to_string(),
             label: "John Smith".to_string(),
             data: BinaryNodeData {
-                position: Vec3Data { x: -10.0, y: -10.0, z: 0.0 },
-                velocity: Vec3Data { x: 0.0, y: 0.0, z: 0.0 },
-                acceleration: Vec3Data { x: 0.0, y: 0.0, z: 0.0 },
+                position: Vec3Data {
+                    x: -10.0,
+                    y: -10.0,
+                    z: 0.0,
+                },
+                velocity: Vec3Data {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+                acceleration: Vec3Data {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
                 mass: 1.0,
                 radius: 6.0,
             },
@@ -210,9 +275,21 @@ fn create_sample_nodes() -> Vec<Node> {
             metadata_id: "jane_doe".to_string(),
             label: "Jane Doe".to_string(),
             data: BinaryNodeData {
-                position: Vec3Data { x: -5.0, y: -15.0, z: 0.0 },
-                velocity: Vec3Data { x: 0.0, y: 0.0, z: 0.0 },
-                acceleration: Vec3Data { x: 0.0, y: 0.0, z: 0.0 },
+                position: Vec3Data {
+                    x: -5.0,
+                    y: -15.0,
+                    z: 0.0,
+                },
+                velocity: Vec3Data {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+                acceleration: Vec3Data {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
                 mass: 1.0,
                 radius: 6.0,
             },
@@ -340,12 +417,22 @@ fn analyze_constraint_types(constraints: &[Constraint]) {
         println!("  • {:?}: {} constraints ({:.1}%)", kind, count, percentage);
     }
 
-    let avg_weight = if constraints.is_empty() { 0.0 } else { total_weight / constraints.len() as f32 };
+    let avg_weight = if constraints.is_empty() {
+        0.0
+    } else {
+        total_weight / constraints.len() as f32
+    };
     println!("  • Average weight: {:.3}", avg_weight);
 
     // Find strongest constraints
-    if let Some(strongest) = constraints.iter().max_by(|a, b| a.weight.partial_cmp(&b.weight).unwrap()) {
-        println!("  • Strongest constraint: {:?} (weight: {:.3})", strongest.kind, strongest.weight);
+    if let Some(strongest) = constraints
+        .iter()
+        .max_by(|a, b| a.weight.partial_cmp(&b.weight).unwrap())
+    {
+        println!(
+            "  • Strongest constraint: {:?} (weight: {:.3})",
+            strongest.kind, strongest.weight
+        );
     }
 
     // Count nodes affected
@@ -381,11 +468,15 @@ mod tests {
             confidence: 1.0,
         };
 
-        let constraints = translator.axioms_to_constraints(&[disjoint_axiom], &nodes).unwrap();
+        let constraints = translator
+            .axioms_to_constraints(&[disjoint_axiom], &nodes)
+            .unwrap();
 
         // Should create separation constraints between Animal and Plant instances
         assert!(!constraints.is_empty());
-        assert!(constraints.iter().all(|c| c.kind == ConstraintKind::Separation));
+        assert!(constraints
+            .iter()
+            .all(|c| c.kind == ConstraintKind::Separation));
 
         // Should have 2 Animal nodes * 2 Plant nodes = 4 separation constraints
         assert_eq!(constraints.len(), 4);
@@ -404,11 +495,15 @@ mod tests {
             confidence: 1.0,
         };
 
-        let constraints = translator.axioms_to_constraints(&[subclass_axiom], &nodes).unwrap();
+        let constraints = translator
+            .axioms_to_constraints(&[subclass_axiom], &nodes)
+            .unwrap();
 
         // Should create clustering constraints to group mammals with animals
         assert!(!constraints.is_empty());
-        assert!(constraints.iter().all(|c| c.kind == ConstraintKind::Clustering));
+        assert!(constraints
+            .iter()
+            .all(|c| c.kind == ConstraintKind::Clustering));
     }
 
     #[test]

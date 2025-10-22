@@ -8,29 +8,29 @@
 //! test data and scenarios.
 
 use std::collections::{HashMap, HashSet};
+use std::fs;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use std::fs;
 
-use tokio_test;
 use mockall::{mock, predicate::*};
 use pretty_assertions::assert_eq;
+use tokio_test;
 
 use webxr::models::{
-    constraints::{Constraint, ConstraintSet, ConstraintKind},
+    constraints::{Constraint, ConstraintKind, ConstraintSet},
     graph::GraphData,
     node::Node,
 };
 use webxr::physics::ontology_constraints::{
-    OntologyConstraintTranslator, OWLAxiom, OWLAxiomType, OntologyConstraintConfig,
-    OntologyInference, OntologyReasoningReport, ConsistencyCheck
+    ConsistencyCheck, OWLAxiom, OWLAxiomType, OntologyConstraintConfig,
+    OntologyConstraintTranslator, OntologyInference, OntologyReasoningReport,
 };
 use webxr::services::owl_validator::{
-    OwlValidatorService, ValidationConfig, ValidationReport, ValidationError,
-    PropertyGraph, GraphNode, GraphEdge, RdfTriple, Violation, Severity
+    GraphEdge, GraphNode, OwlValidatorService, PropertyGraph, RdfTriple, Severity,
+    ValidationConfig, ValidationError, ValidationReport, Violation,
 };
-use webxr::utils::socket_flow_messages::BinaryNodeData;
 use webxr::types::vec3::Vec3Data;
+use webxr::utils::socket_flow_messages::BinaryNodeData;
 
 // Mock implementations for external dependencies
 mock! {
@@ -60,7 +60,12 @@ mod test_fixtures {
         Ok(content)
     }
 
-    pub fn create_test_node(id: u32, metadata_id: String, node_type: Option<String>, position: (f32, f32, f32)) -> Node {
+    pub fn create_test_node(
+        id: u32,
+        metadata_id: String,
+        node_type: Option<String>,
+        position: (f32, f32, f32),
+    ) -> Node {
         let mut metadata = HashMap::new();
         if let Some(ref nt) = node_type {
             metadata.insert("type".to_string(), nt.clone());
@@ -71,9 +76,21 @@ mod test_fixtures {
             metadata_id,
             label: format!("Test Node {}", id),
             data: BinaryNodeData {
-                position: Vec3Data { x: position.0, y: position.1, z: position.2 },
-                velocity: Vec3Data { x: 0.0, y: 0.0, z: 0.0 },
-                acceleration: Vec3Data { x: 0.0, y: 0.0, z: 0.0 },
+                position: Vec3Data {
+                    x: position.0,
+                    y: position.1,
+                    z: position.2,
+                },
+                velocity: Vec3Data {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+                acceleration: Vec3Data {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
                 mass: 1.0,
                 radius: 1.0,
             },
@@ -96,9 +113,18 @@ mod test_fixtures {
                     labels: vec!["Person".to_string()],
                     properties: {
                         let mut props = HashMap::new();
-                        props.insert("name".to_string(), serde_json::Value::String("John Doe".to_string()));
-                        props.insert("age".to_string(), serde_json::Value::Number(serde_json::Number::from(30)));
-                        props.insert("email".to_string(), serde_json::Value::String("john@example.com".to_string()));
+                        props.insert(
+                            "name".to_string(),
+                            serde_json::Value::String("John Doe".to_string()),
+                        );
+                        props.insert(
+                            "age".to_string(),
+                            serde_json::Value::Number(serde_json::Number::from(30)),
+                        );
+                        props.insert(
+                            "email".to_string(),
+                            serde_json::Value::String("john@example.com".to_string()),
+                        );
                         props
                     },
                 },
@@ -107,25 +133,32 @@ mod test_fixtures {
                     labels: vec!["Company".to_string()],
                     properties: {
                         let mut props = HashMap::new();
-                        props.insert("name".to_string(), serde_json::Value::String("ACME Corp".to_string()));
-                        props.insert("industry".to_string(), serde_json::Value::String("Technology".to_string()));
+                        props.insert(
+                            "name".to_string(),
+                            serde_json::Value::String("ACME Corp".to_string()),
+                        );
+                        props.insert(
+                            "industry".to_string(),
+                            serde_json::Value::String("Technology".to_string()),
+                        );
                         props
                     },
-                }
+                },
             ],
-            edges: vec![
-                GraphEdge {
-                    id: "edge1".to_string(),
-                    source: "person1".to_string(),
-                    target: "company1".to_string(),
-                    relationship_type: "worksFor".to_string(),
-                    properties: {
-                        let mut props = HashMap::new();
-                        props.insert("since".to_string(), serde_json::Value::String("2020".to_string()));
-                        props
-                    },
-                }
-            ],
+            edges: vec![GraphEdge {
+                id: "edge1".to_string(),
+                source: "person1".to_string(),
+                target: "company1".to_string(),
+                relationship_type: "worksFor".to_string(),
+                properties: {
+                    let mut props = HashMap::new();
+                    props.insert(
+                        "since".to_string(),
+                        serde_json::Value::String("2020".to_string()),
+                    );
+                    props
+                },
+            }],
             metadata: HashMap::new(),
         }
     }
@@ -152,7 +185,7 @@ mod test_fixtures {
                 object: Some("employee1".to_string()),
                 property: None,
                 confidence: 0.8,
-            }
+            },
         ]
     }
 }
@@ -192,7 +225,10 @@ mod unit_tests {
             };
 
             let validator = OwlValidatorService::with_config(config.clone());
-            assert_eq!(validator.config.reasoning_timeout_seconds, config.reasoning_timeout_seconds);
+            assert_eq!(
+                validator.config.reasoning_timeout_seconds,
+                config.reasoning_timeout_seconds
+            );
             assert_eq!(validator.config.enable_reasoning, config.enable_reasoning);
             assert_eq!(validator.config.enable_inference, config.enable_inference);
         }
@@ -237,29 +273,42 @@ mod unit_tests {
 
             // Test string value
             let string_val = serde_json::Value::String("test".to_string());
-            let (object, is_literal, datatype, language) = validator.serialize_property_value(&string_val).unwrap();
+            let (object, is_literal, datatype, language) =
+                validator.serialize_property_value(&string_val).unwrap();
             assert_eq!(object, "test");
             assert!(is_literal);
-            assert_eq!(datatype, Some("http://www.w3.org/2001/XMLSchema#string".to_string()));
+            assert_eq!(
+                datatype,
+                Some("http://www.w3.org/2001/XMLSchema#string".to_string())
+            );
             assert_eq!(language, None);
 
             // Test integer value
             let int_val = serde_json::Value::Number(serde_json::Number::from(42));
-            let (object, is_literal, datatype, _) = validator.serialize_property_value(&int_val).unwrap();
+            let (object, is_literal, datatype, _) =
+                validator.serialize_property_value(&int_val).unwrap();
             assert_eq!(object, "42");
             assert!(is_literal);
-            assert_eq!(datatype, Some("http://www.w3.org/2001/XMLSchema#integer".to_string()));
+            assert_eq!(
+                datatype,
+                Some("http://www.w3.org/2001/XMLSchema#integer".to_string())
+            );
 
             // Test boolean value
             let bool_val = serde_json::Value::Bool(true);
-            let (object, is_literal, datatype, _) = validator.serialize_property_value(&bool_val).unwrap();
+            let (object, is_literal, datatype, _) =
+                validator.serialize_property_value(&bool_val).unwrap();
             assert_eq!(object, "true");
             assert!(is_literal);
-            assert_eq!(datatype, Some("http://www.w3.org/2001/XMLSchema#boolean".to_string()));
+            assert_eq!(
+                datatype,
+                Some("http://www.w3.org/2001/XMLSchema#boolean".to_string())
+            );
 
             // Test URL value (should be treated as IRI)
             let url_val = serde_json::Value::String("http://example.org/resource".to_string());
-            let (object, is_literal, datatype, _) = validator.serialize_property_value(&url_val).unwrap();
+            let (object, is_literal, datatype, _) =
+                validator.serialize_property_value(&url_val).unwrap();
             assert_eq!(object, "http://example.org/resource");
             assert!(!is_literal);
             assert_eq!(datatype, None);
@@ -275,25 +324,25 @@ mod unit_tests {
             assert!(!triples.is_empty());
 
             // Check that we have type triples for nodes
-            let type_triples: Vec<&RdfTriple> = triples.iter()
+            let type_triples: Vec<&RdfTriple> = triples
+                .iter()
                 .filter(|t| t.predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
                 .collect();
 
             assert!(!type_triples.is_empty());
 
             // Check that we have property triples
-            let property_triples: Vec<&RdfTriple> = triples.iter()
+            let property_triples: Vec<&RdfTriple> = triples
+                .iter()
                 .filter(|t| t.predicate != "http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
                 .collect();
 
             assert!(!property_triples.is_empty());
 
             // Verify specific mappings
-            assert!(triples.iter().any(|t|
-                t.subject.contains("person1") &&
-                t.predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" &&
-                t.object.contains("Person")
-            ));
+            assert!(triples.iter().any(|t| t.subject.contains("person1")
+                && t.predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+                && t.object.contains("Person")));
         }
 
         #[test]
@@ -320,25 +369,23 @@ mod unit_tests {
         async fn test_inference_basic() {
             let validator = OwlValidatorService::new();
 
-            let triples = vec![
-                RdfTriple {
-                    subject: "http://example.org/john".to_string(),
-                    predicate: "http://example.org/employs".to_string(),
-                    object: "http://example.org/mary".to_string(),
-                    is_literal: false,
-                    datatype: None,
-                    language: None,
-                }
-            ];
+            let triples = vec![RdfTriple {
+                subject: "http://example.org/john".to_string(),
+                predicate: "http://example.org/employs".to_string(),
+                object: "http://example.org/mary".to_string(),
+                is_literal: false,
+                datatype: None,
+                language: None,
+            }];
 
             let inferred = validator.infer(&triples).unwrap();
 
             // Should infer inverse relationship
-            assert!(inferred.iter().any(|t|
-                t.subject == "http://example.org/mary" &&
-                t.predicate == "http://example.org/worksFor" &&
-                t.object == "http://example.org/john"
-            ));
+            assert!(inferred
+                .iter()
+                .any(|t| t.subject == "http://example.org/mary"
+                    && t.predicate == "http://example.org/worksFor"
+                    && t.object == "http://example.org/john"));
         }
 
         #[test]
@@ -380,16 +427,26 @@ mod unit_tests {
             };
 
             let translator = OntologyConstraintTranslator::with_config(config.clone());
-            assert_eq!(translator.config.disjoint_separation_strength, config.disjoint_separation_strength);
-            assert_eq!(translator.config.max_separation_distance, config.max_separation_distance);
-            assert_eq!(translator.config.enable_constraint_caching, config.enable_constraint_caching);
+            assert_eq!(
+                translator.config.disjoint_separation_strength,
+                config.disjoint_separation_strength
+            );
+            assert_eq!(
+                translator.config.max_separation_distance,
+                config.max_separation_distance
+            );
+            assert_eq!(
+                translator.config.enable_constraint_caching,
+                config.enable_constraint_caching
+            );
         }
 
         #[test]
         fn test_constraint_strength_calculation() {
             let translator = OntologyConstraintTranslator::new();
 
-            let disjoint_strength = translator.get_constraint_strength(&OWLAxiomType::DisjointClasses);
+            let disjoint_strength =
+                translator.get_constraint_strength(&OWLAxiomType::DisjointClasses);
             let sameas_strength = translator.get_constraint_strength(&OWLAxiomType::SameAs);
             let subclass_strength = translator.get_constraint_strength(&OWLAxiomType::SubClassOf);
 
@@ -398,7 +455,8 @@ mod unit_tests {
             assert_eq!(subclass_strength, 0.6);
 
             // Test default case
-            let default_strength = translator.get_constraint_strength(&OWLAxiomType::TransitiveProperty);
+            let default_strength =
+                translator.get_constraint_strength(&OWLAxiomType::TransitiveProperty);
             assert_eq!(default_strength, 0.5);
         }
 
@@ -407,9 +465,24 @@ mod unit_tests {
             let mut translator = OntologyConstraintTranslator::new();
 
             let nodes = vec![
-                create_test_node(1, "animal1".to_string(), Some("Animal".to_string()), (0.0, 0.0, 0.0)),
-                create_test_node(2, "plant1".to_string(), Some("Plant".to_string()), (10.0, 0.0, 0.0)),
-                create_test_node(3, "animal2".to_string(), Some("Animal".to_string()), (5.0, 5.0, 0.0)),
+                create_test_node(
+                    1,
+                    "animal1".to_string(),
+                    Some("Animal".to_string()),
+                    (0.0, 0.0, 0.0),
+                ),
+                create_test_node(
+                    2,
+                    "plant1".to_string(),
+                    Some("Plant".to_string()),
+                    (10.0, 0.0, 0.0),
+                ),
+                create_test_node(
+                    3,
+                    "animal2".to_string(),
+                    Some("Animal".to_string()),
+                    (5.0, 5.0, 0.0),
+                ),
             ];
 
             let axiom = OWLAxiom {
@@ -424,7 +497,9 @@ mod unit_tests {
 
             // Should create separation constraints between Animal and Plant instances
             assert!(!constraints.is_empty());
-            assert!(constraints.iter().all(|c| c.kind == ConstraintKind::Separation));
+            assert!(constraints
+                .iter()
+                .all(|c| c.kind == ConstraintKind::Separation));
 
             // Should have 2 constraints (animal1-plant1, animal2-plant1)
             assert_eq!(constraints.len(), 2);
@@ -460,9 +535,24 @@ mod unit_tests {
             let mut translator = OntologyConstraintTranslator::new();
 
             let nodes = vec![
-                create_test_node(1, "employee1".to_string(), Some("Employee".to_string()), (0.0, 0.0, 0.0)),
-                create_test_node(2, "person1".to_string(), Some("Person".to_string()), (10.0, 0.0, 0.0)),
-                create_test_node(3, "employee2".to_string(), Some("Employee".to_string()), (5.0, 5.0, 0.0)),
+                create_test_node(
+                    1,
+                    "employee1".to_string(),
+                    Some("Employee".to_string()),
+                    (0.0, 0.0, 0.0),
+                ),
+                create_test_node(
+                    2,
+                    "person1".to_string(),
+                    Some("Person".to_string()),
+                    (10.0, 0.0, 0.0),
+                ),
+                create_test_node(
+                    3,
+                    "employee2".to_string(),
+                    Some("Employee".to_string()),
+                    (5.0, 5.0, 0.0),
+                ),
             ];
 
             let axiom = OWLAxiom {
@@ -477,7 +567,9 @@ mod unit_tests {
 
             // Should create clustering constraints to align Employee instances toward Person centroid
             assert!(!constraints.is_empty());
-            assert!(constraints.iter().all(|c| c.kind == ConstraintKind::Clustering));
+            assert!(constraints
+                .iter()
+                .all(|c| c.kind == ConstraintKind::Clustering));
 
             // Should have constraints for both employee nodes
             assert_eq!(constraints.len(), 2);
@@ -487,7 +579,12 @@ mod unit_tests {
         fn test_cache_management() {
             let mut translator = OntologyConstraintTranslator::new();
 
-            let nodes = vec![create_test_node(1, "test".to_string(), Some("TestType".to_string()), (0.0, 0.0, 0.0))];
+            let nodes = vec![create_test_node(
+                1,
+                "test".to_string(),
+                Some("TestType".to_string()),
+                (0.0, 0.0, 0.0),
+            )];
             translator.update_node_type_cache(&nodes);
 
             let stats = translator.get_cache_stats();
@@ -504,8 +601,18 @@ mod unit_tests {
             let mut translator = OntologyConstraintTranslator::new();
 
             let nodes = vec![
-                create_test_node(1, "person1".to_string(), Some("Person".to_string()), (0.0, 0.0, 0.0)),
-                create_test_node(2, "person2".to_string(), Some("Person".to_string()), (10.0, 0.0, 0.0)),
+                create_test_node(
+                    1,
+                    "person1".to_string(),
+                    Some("Person".to_string()),
+                    (0.0, 0.0, 0.0),
+                ),
+                create_test_node(
+                    2,
+                    "person2".to_string(),
+                    Some("Person".to_string()),
+                    (10.0, 0.0, 0.0),
+                ),
             ];
 
             let graph = GraphData {
@@ -526,7 +633,9 @@ mod unit_tests {
                 is_derived: true,
             };
 
-            let constraints = translator.inferences_to_constraints(&[inference], &graph).unwrap();
+            let constraints = translator
+                .inferences_to_constraints(&[inference], &graph)
+                .unwrap();
 
             // Should create constraints with adjusted confidence
             assert!(!constraints.is_empty());
@@ -549,10 +658,11 @@ mod integration_tests {
         let validator = OwlValidatorService::new();
 
         // Load the sample ontology file
-        let ontology_content = load_sample_ontology()
-            .expect("Should load sample ontology from fixtures");
+        let ontology_content =
+            load_sample_ontology().expect("Should load sample ontology from fixtures");
 
-        let ontology_id = validator.load_ontology(&ontology_content)
+        let ontology_id = validator
+            .load_ontology(&ontology_content)
             .await
             .expect("Should successfully load ontology");
 
@@ -576,7 +686,10 @@ mod integration_tests {
         let property_graph = convert_json_to_property_graph(&graph_data).unwrap();
 
         // Perform validation
-        let report = validator.validate(&ontology_id, &property_graph).await.unwrap();
+        let report = validator
+            .validate(&ontology_id, &property_graph)
+            .await
+            .unwrap();
 
         assert!(!report.id.is_empty());
         assert!(report.duration_ms > 0);
@@ -598,7 +711,10 @@ mod integration_tests {
         // Create graph with intentional violations
         let violating_graph = create_violating_property_graph();
 
-        let report = validator.validate(&ontology_id, &violating_graph).await.unwrap();
+        let report = validator
+            .validate(&ontology_id, &violating_graph)
+            .await
+            .unwrap();
 
         // Should detect some violations
         // Note: Actual violations depend on the ontology and validation rules
@@ -627,10 +743,16 @@ mod integration_tests {
         let report = validator.validate(&ontology_id, &graph).await.unwrap();
 
         // Should generate some inferences
-        println!("Generated {} inferred triples", report.inferred_triples.len());
+        println!(
+            "Generated {} inferred triples",
+            report.inferred_triples.len()
+        );
 
         for inference in &report.inferred_triples {
-            println!("Inferred: {} -> {} -> {}", inference.subject, inference.predicate, inference.object);
+            println!(
+                "Inferred: {} -> {} -> {}",
+                inference.subject, inference.predicate, inference.object
+            );
         }
     }
 
@@ -648,7 +770,10 @@ mod integration_tests {
 
         // Create mock graph data structure
         let nodes = create_nodes_from_property_graph(&property_graph);
-        let graph = GraphData { nodes, edges: vec![] };
+        let graph = GraphData {
+            nodes,
+            edges: vec![],
+        };
 
         // Create reasoning report
         let reasoning_report = OntologyReasoningReport {
@@ -658,14 +783,18 @@ mod integration_tests {
             reasoning_time_ms: 100,
         };
 
-        let constraint_set = translator.apply_ontology_constraints(&graph, &reasoning_report).unwrap();
+        let constraint_set = translator
+            .apply_ontology_constraints(&graph, &reasoning_report)
+            .unwrap();
 
         assert!(!constraint_set.constraints.is_empty());
         assert!(!constraint_set.groups.is_empty());
 
-        println!("Generated {} constraints in {} groups",
-                constraint_set.constraints.len(),
-                constraint_set.groups.len());
+        println!(
+            "Generated {} constraints in {} groups",
+            constraint_set.constraints.len(),
+            constraint_set.groups.len()
+        );
     }
 
     #[tokio::test]
@@ -695,7 +824,9 @@ mod integration_tests {
 
     // Helper functions for integration tests
 
-    fn convert_json_to_property_graph(json_data: &serde_json::Value) -> Result<PropertyGraph, Box<dyn std::error::Error>> {
+    fn convert_json_to_property_graph(
+        json_data: &serde_json::Value,
+    ) -> Result<PropertyGraph, Box<dyn std::error::Error>> {
         let nodes_json = json_data["nodes"].as_array().ok_or("Missing nodes array")?;
         let edges_json = json_data["edges"].as_array().ok_or("Missing edges array")?;
 
@@ -704,7 +835,8 @@ mod integration_tests {
             let node = GraphNode {
                 id: node_json["id"].as_str().unwrap().to_string(),
                 labels: vec![node_json["type"].as_str().unwrap().to_string()],
-                properties: node_json["properties"].as_object()
+                properties: node_json["properties"]
+                    .as_object()
                     .unwrap_or(&serde_json::Map::new())
                     .iter()
                     .map(|(k, v)| (k.clone(), v.clone()))
@@ -716,7 +848,11 @@ mod integration_tests {
         let mut edges = Vec::new();
         for edge_json in edges_json {
             let edge = GraphEdge {
-                id: format!("{}_{}", edge_json["from"].as_str().unwrap(), edge_json["to"].as_str().unwrap()),
+                id: format!(
+                    "{}_{}",
+                    edge_json["from"].as_str().unwrap(),
+                    edge_json["to"].as_str().unwrap()
+                ),
                 source: edge_json["from"].as_str().unwrap().to_string(),
                 target: edge_json["to"].as_str().unwrap().to_string(),
                 relationship_type: edge_json["type"].as_str().unwrap().to_string(),
@@ -734,17 +870,18 @@ mod integration_tests {
 
     fn create_violating_property_graph() -> PropertyGraph {
         PropertyGraph {
-            nodes: vec![
-                GraphNode {
-                    id: "violation_person".to_string(),
-                    labels: vec!["Person".to_string(), "Company".to_string()], // Disjoint classes violation
-                    properties: {
-                        let mut props = HashMap::new();
-                        props.insert("age".to_string(), serde_json::Value::Number(serde_json::Number::from(-5))); // Invalid age
-                        props
-                    },
-                }
-            ],
+            nodes: vec![GraphNode {
+                id: "violation_person".to_string(),
+                labels: vec!["Person".to_string(), "Company".to_string()], // Disjoint classes violation
+                properties: {
+                    let mut props = HashMap::new();
+                    props.insert(
+                        "age".to_string(),
+                        serde_json::Value::Number(serde_json::Number::from(-5)),
+                    ); // Invalid age
+                    props
+                },
+            }],
             edges: vec![],
             metadata: HashMap::new(),
         }
@@ -767,7 +904,7 @@ mod integration_tests {
                     id: "acme".to_string(),
                     labels: vec!["Company".to_string()],
                     properties: HashMap::new(),
-                }
+                },
             ],
             edges: vec![
                 GraphEdge {
@@ -776,22 +913,26 @@ mod integration_tests {
                     target: "john".to_string(),
                     relationship_type: "employs".to_string(),
                     properties: HashMap::new(),
-                }
-                // Should infer: john worksFor acme
+                }, // Should infer: john worksFor acme
             ],
             metadata: HashMap::new(),
         }
     }
 
     fn create_nodes_from_property_graph(graph: &PropertyGraph) -> Vec<Node> {
-        graph.nodes.iter().enumerate().map(|(i, graph_node)| {
-            create_test_node(
-                i as u32,
-                graph_node.id.clone(),
-                graph_node.labels.first().cloned(),
-                (i as f32 * 10.0, 0.0, 0.0)
-            )
-        }).collect()
+        graph
+            .nodes
+            .iter()
+            .enumerate()
+            .map(|(i, graph_node)| {
+                create_test_node(
+                    i as u32,
+                    graph_node.id.clone(),
+                    graph_node.labels.first().cloned(),
+                    (i as f32 * 10.0, 0.0, 0.0),
+                )
+            })
+            .collect()
     }
 }
 
@@ -802,9 +943,9 @@ mod integration_tests {
 #[cfg(test)]
 mod e2e_tests {
     use super::*;
-    use test_fixtures::*;
     use std::sync::mpsc;
     use std::thread;
+    use test_fixtures::*;
 
     #[tokio::test]
     async fn test_full_validation_workflow() {
@@ -821,26 +962,32 @@ mod e2e_tests {
         let property_graph = convert_json_to_property_graph(&graph_data).unwrap();
 
         // 4. Perform validation
-        let validation_report = validator.validate(&ontology_id, &property_graph).await.unwrap();
+        let validation_report = validator
+            .validate(&ontology_id, &property_graph)
+            .await
+            .unwrap();
 
         // 5. Convert to constraints
         let nodes = create_nodes_from_property_graph(&property_graph);
-        let graph = GraphData { nodes, edges: vec![] };
+        let graph = GraphData {
+            nodes,
+            edges: vec![],
+        };
 
         let reasoning_report = OntologyReasoningReport {
             axioms: create_sample_axioms(),
             inferences: vec![],
-            consistency_checks: vec![
-                ConsistencyCheck {
-                    is_consistent: true,
-                    conflicting_axioms: vec![],
-                    suggested_resolution: None,
-                }
-            ],
+            consistency_checks: vec![ConsistencyCheck {
+                is_consistent: true,
+                conflicting_axioms: vec![],
+                suggested_resolution: None,
+            }],
             reasoning_time_ms: validation_report.duration_ms,
         };
 
-        let constraint_set = translator.apply_ontology_constraints(&graph, &reasoning_report).unwrap();
+        let constraint_set = translator
+            .apply_ontology_constraints(&graph, &reasoning_report)
+            .unwrap();
 
         // 6. Validate results
         assert!(!validation_report.id.is_empty());
@@ -850,9 +997,18 @@ mod e2e_tests {
         println!("✅ Full workflow completed:");
         println!("  - Loaded ontology: {}", ontology_id);
         println!("  - Validated {} triples", validation_report.total_triples);
-        println!("  - Found {} violations", validation_report.violations.len());
-        println!("  - Generated {} inferences", validation_report.inferred_triples.len());
-        println!("  - Created {} constraints", constraint_set.constraints.len());
+        println!(
+            "  - Found {} violations",
+            validation_report.violations.len()
+        );
+        println!(
+            "  - Generated {} inferences",
+            validation_report.inferred_triples.len()
+        );
+        println!(
+            "  - Created {} constraints",
+            constraint_set.constraints.len()
+        );
     }
 
     #[tokio::test]
@@ -872,10 +1028,16 @@ mod e2e_tests {
                 match message.as_str() {
                     "validate_graph" => {
                         let ontology_content = load_sample_ontology().unwrap();
-                        let ontology_id = validator_clone.load_ontology(&ontology_content).await.unwrap();
+                        let ontology_id = validator_clone
+                            .load_ontology(&ontology_content)
+                            .await
+                            .unwrap();
 
                         let graph = create_property_graph();
-                        let _report = validator_clone.validate(&ontology_id, &graph).await.unwrap();
+                        let _report = validator_clone
+                            .validate(&ontology_id, &graph)
+                            .await
+                            .unwrap();
 
                         println!("✅ WebSocket validation completed");
                     }
@@ -915,7 +1077,10 @@ mod e2e_tests {
 
         let validator_full = OwlValidatorService::with_config(full_config);
         let ontology_content = load_sample_ontology().unwrap();
-        let ontology_id = validator_full.load_ontology(&ontology_content).await.unwrap();
+        let ontology_id = validator_full
+            .load_ontology(&ontology_content)
+            .await
+            .unwrap();
         let graph = create_property_graph();
 
         let full_report = validator_full.validate(&ontology_id, &graph).await.unwrap();
@@ -931,21 +1096,35 @@ mod e2e_tests {
         };
 
         let validator_minimal = OwlValidatorService::with_config(minimal_config);
-        let ontology_id2 = validator_minimal.load_ontology(&ontology_content).await.unwrap();
-        let minimal_report = validator_minimal.validate(&ontology_id2, &graph).await.unwrap();
+        let ontology_id2 = validator_minimal
+            .load_ontology(&ontology_content)
+            .await
+            .unwrap();
+        let minimal_report = validator_minimal
+            .validate(&ontology_id2, &graph)
+            .await
+            .unwrap();
 
         // Full validation should produce more results
-        println!("Full validation: {} violations, {} inferences",
-               full_report.violations.len(), full_report.inferred_triples.len());
-        println!("Minimal validation: {} violations, {} inferences",
-               minimal_report.violations.len(), minimal_report.inferred_triples.len());
+        println!(
+            "Full validation: {} violations, {} inferences",
+            full_report.violations.len(),
+            full_report.inferred_triples.len()
+        );
+        println!(
+            "Minimal validation: {} violations, {} inferences",
+            minimal_report.violations.len(),
+            minimal_report.inferred_triples.len()
+        );
 
         // Full validation should take longer
         assert!(full_report.duration_ms >= minimal_report.duration_ms);
     }
 
     // Helper function for E2E tests
-    fn convert_json_to_property_graph(json_data: &serde_json::Value) -> Result<PropertyGraph, Box<dyn std::error::Error>> {
+    fn convert_json_to_property_graph(
+        json_data: &serde_json::Value,
+    ) -> Result<PropertyGraph, Box<dyn std::error::Error>> {
         let nodes_json = json_data["nodes"].as_array().ok_or("Missing nodes array")?;
         let edges_json = json_data["edges"].as_array().ok_or("Missing edges array")?;
 
@@ -954,7 +1133,8 @@ mod e2e_tests {
             let node = GraphNode {
                 id: node_json["id"].as_str().unwrap().to_string(),
                 labels: vec![node_json["type"].as_str().unwrap().to_string()],
-                properties: node_json["properties"].as_object()
+                properties: node_json["properties"]
+                    .as_object()
                     .unwrap_or(&serde_json::Map::new())
                     .iter()
                     .map(|(k, v)| (k.clone(), v.clone()))
@@ -966,7 +1146,11 @@ mod e2e_tests {
         let mut edges = Vec::new();
         for edge_json in edges_json {
             let edge = GraphEdge {
-                id: format!("{}_{}", edge_json["from"].as_str().unwrap(), edge_json["to"].as_str().unwrap()),
+                id: format!(
+                    "{}_{}",
+                    edge_json["from"].as_str().unwrap(),
+                    edge_json["to"].as_str().unwrap()
+                ),
                 source: edge_json["from"].as_str().unwrap().to_string(),
                 target: edge_json["to"].as_str().unwrap().to_string(),
                 relationship_type: edge_json["type"].as_str().unwrap().to_string(),
@@ -983,14 +1167,19 @@ mod e2e_tests {
     }
 
     fn create_nodes_from_property_graph(graph: &PropertyGraph) -> Vec<Node> {
-        graph.nodes.iter().enumerate().map(|(i, graph_node)| {
-            create_test_node(
-                i as u32,
-                graph_node.id.clone(),
-                graph_node.labels.first().cloned(),
-                (i as f32 * 10.0, 0.0, 0.0)
-            )
-        }).collect()
+        graph
+            .nodes
+            .iter()
+            .enumerate()
+            .map(|(i, graph_node)| {
+                create_test_node(
+                    i as u32,
+                    graph_node.id.clone(),
+                    graph_node.labels.first().cloned(),
+                    (i as f32 * 10.0, 0.0, 0.0),
+                )
+            })
+            .collect()
     }
 }
 
@@ -1001,8 +1190,8 @@ mod e2e_tests {
 #[cfg(test)]
 mod performance_tests {
     use super::*;
-    use test_fixtures::*;
     use std::time::Instant;
+    use test_fixtures::*;
 
     #[tokio::test]
     async fn test_large_graph_validation_performance() {
@@ -1016,16 +1205,28 @@ mod performance_tests {
         let large_graph = create_large_property_graph(1000, 5000);
 
         let start = Instant::now();
-        let report = validator.validate(&ontology_id, &large_graph).await.unwrap();
+        let report = validator
+            .validate(&ontology_id, &large_graph)
+            .await
+            .unwrap();
         let duration = start.elapsed();
 
         println!("Large graph validation completed in {:?}", duration);
-        println!("Processed {} triples, found {} violations",
-               report.total_triples, report.violations.len());
+        println!(
+            "Processed {} triples, found {} violations",
+            report.total_triples,
+            report.violations.len()
+        );
 
         // Performance assertions
-        assert!(duration < Duration::from_secs(30), "Validation should complete within 30 seconds");
-        assert!(report.total_triples > 1000, "Should process significant number of triples");
+        assert!(
+            duration < Duration::from_secs(30),
+            "Validation should complete within 30 seconds"
+        );
+        assert!(
+            report.total_triples > 1000,
+            "Should process significant number of triples"
+        );
     }
 
     #[tokio::test]
@@ -1050,10 +1251,16 @@ mod performance_tests {
         let _report2 = validator.validate(&ontology_id, &graph).await.unwrap();
         let warm_cache_time = start.elapsed();
 
-        println!("Cold cache: {:?}, Warm cache: {:?}", cold_cache_time, warm_cache_time);
+        println!(
+            "Cold cache: {:?}, Warm cache: {:?}",
+            cold_cache_time, warm_cache_time
+        );
 
         // Warm cache should be faster
-        assert!(warm_cache_time <= cold_cache_time, "Cached validation should be faster");
+        assert!(
+            warm_cache_time <= cold_cache_time,
+            "Cached validation should be faster"
+        );
     }
 
     #[tokio::test]
@@ -1078,21 +1285,27 @@ mod performance_tests {
 
             performance_data.push((size, duration.as_millis(), report.total_triples));
 
-            println!("Size {}: {:?} ({} triples)", size, duration, report.total_triples);
+            println!(
+                "Size {}: {:?} ({} triples)",
+                size, duration, report.total_triples
+            );
         }
 
         // Check that performance scales reasonably
         for i in 1..performance_data.len() {
-            let (prev_size, prev_time, _) = performance_data[i-1];
+            let (prev_size, prev_time, _) = performance_data[i - 1];
             let (curr_size, curr_time, _) = performance_data[i];
 
             let size_ratio = curr_size as f64 / prev_size as f64;
             let time_ratio = curr_time as f64 / prev_time as f64;
 
             // Time should not increase faster than O(n²)
-            assert!(time_ratio < size_ratio * size_ratio + 1.0,
-                   "Performance should scale reasonably: size ratio {:.2}, time ratio {:.2}",
-                   size_ratio, time_ratio);
+            assert!(
+                time_ratio < size_ratio * size_ratio + 1.0,
+                "Performance should scale reasonably: size ratio {:.2}, time ratio {:.2}",
+                size_ratio,
+                time_ratio
+            );
         }
     }
 
@@ -1101,38 +1314,55 @@ mod performance_tests {
         let mut translator = OntologyConstraintTranslator::new();
 
         // Create many nodes
-        let nodes: Vec<Node> = (0..1000).map(|i| {
-            create_test_node(
-                i,
-                format!("node_{}", i),
-                Some(if i % 3 == 0 { "TypeA".to_string() } else { "TypeB".to_string() }),
-                (i as f32, i as f32, 0.0)
-            )
-        }).collect();
+        let nodes: Vec<Node> = (0..1000)
+            .map(|i| {
+                create_test_node(
+                    i,
+                    format!("node_{}", i),
+                    Some(if i % 3 == 0 {
+                        "TypeA".to_string()
+                    } else {
+                        "TypeB".to_string()
+                    }),
+                    (i as f32, i as f32, 0.0),
+                )
+            })
+            .collect();
 
         // Create axioms that will generate many constraints
-        let axioms = vec![
-            OWLAxiom {
-                axiom_type: OWLAxiomType::DisjointClasses,
-                subject: "TypeA".to_string(),
-                object: Some("TypeB".to_string()),
-                property: None,
-                confidence: 1.0,
-            }
-        ];
+        let axioms = vec![OWLAxiom {
+            axiom_type: OWLAxiomType::DisjointClasses,
+            subject: "TypeA".to_string(),
+            object: Some("TypeB".to_string()),
+            property: None,
+            confidence: 1.0,
+        }];
 
         let start = Instant::now();
         let constraints = translator.axioms_to_constraints(&axioms, &nodes).unwrap();
         let duration = start.elapsed();
 
-        println!("Generated {} constraints in {:?}", constraints.len(), duration);
+        println!(
+            "Generated {} constraints in {:?}",
+            constraints.len(),
+            duration
+        );
 
         // Should complete within reasonable time
-        assert!(duration < Duration::from_secs(5), "Constraint generation should be fast");
+        assert!(
+            duration < Duration::from_secs(5),
+            "Constraint generation should be fast"
+        );
 
         // Should generate expected number of constraints
-        let type_a_count = nodes.iter().filter(|n| n.node_type.as_ref() == Some(&"TypeA".to_string())).count();
-        let type_b_count = nodes.iter().filter(|n| n.node_type.as_ref() == Some(&"TypeB".to_string())).count();
+        let type_a_count = nodes
+            .iter()
+            .filter(|n| n.node_type.as_ref() == Some(&"TypeA".to_string()))
+            .count();
+        let type_b_count = nodes
+            .iter()
+            .filter(|n| n.node_type.as_ref() == Some(&"TypeB".to_string()))
+            .count();
         let expected_constraints = type_a_count * type_b_count;
 
         assert_eq!(constraints.len(), expected_constraints);
@@ -1153,8 +1383,14 @@ mod performance_tests {
                 labels: vec![node_type.to_string()],
                 properties: {
                     let mut props = HashMap::new();
-                    props.insert("id".to_string(), serde_json::Value::Number(serde_json::Number::from(i)));
-                    props.insert("name".to_string(), serde_json::Value::String(format!("{} {}", node_type, i)));
+                    props.insert(
+                        "id".to_string(),
+                        serde_json::Value::Number(serde_json::Number::from(i)),
+                    );
+                    props.insert(
+                        "name".to_string(),
+                        serde_json::Value::String(format!("{} {}", node_type, i)),
+                    );
                     props
                 },
             };
@@ -1209,8 +1445,10 @@ mod error_handling_tests {
         assert!(result.is_err(), "Should reject invalid ontology");
 
         if let Err(e) = result {
-            assert!(e.to_string().contains("Unknown ontology format") ||
-                   e.to_string().contains("ParseError"));
+            assert!(
+                e.to_string().contains("Unknown ontology format")
+                    || e.to_string().contains("ParseError")
+            );
         }
     }
 
@@ -1224,22 +1462,18 @@ mod error_handling_tests {
 
         // Create graph with malformed data
         let malformed_graph = PropertyGraph {
-            nodes: vec![
-                GraphNode {
-                    id: "".to_string(), // Empty ID
-                    labels: vec![],      // No labels
-                    properties: HashMap::new(),
-                }
-            ],
-            edges: vec![
-                GraphEdge {
-                    id: "edge1".to_string(),
-                    source: "nonexistent".to_string(), // Reference to non-existent node
-                    target: "also_nonexistent".to_string(),
-                    relationship_type: "".to_string(), // Empty relationship type
-                    properties: HashMap::new(),
-                }
-            ],
+            nodes: vec![GraphNode {
+                id: "".to_string(), // Empty ID
+                labels: vec![],     // No labels
+                properties: HashMap::new(),
+            }],
+            edges: vec![GraphEdge {
+                id: "edge1".to_string(),
+                source: "nonexistent".to_string(), // Reference to non-existent node
+                target: "also_nonexistent".to_string(),
+                relationship_type: "".to_string(), // Empty relationship type
+                properties: HashMap::new(),
+            }],
             metadata: HashMap::new(),
         };
 
@@ -1280,7 +1514,10 @@ mod error_handling_tests {
         // Should either complete or timeout gracefully
         match result {
             Ok(report) => {
-                println!("Validation completed: {} violations", report.violations.len());
+                println!(
+                    "Validation completed: {} violations",
+                    report.violations.len()
+                );
             }
             Err(e) => {
                 assert!(e.to_string().contains("Timeout") || e.to_string().contains("timeout"));
@@ -1302,17 +1539,20 @@ mod error_handling_tests {
         assert!(constraints.is_empty() || constraints.len() < create_sample_axioms().len());
 
         // Test with axiom missing required fields
-        let incomplete_axioms = vec![
-            OWLAxiom {
-                axiom_type: OWLAxiomType::DisjointClasses,
-                subject: "ClassA".to_string(),
-                object: None, // Missing required object
-                property: None,
-                confidence: 1.0,
-            }
-        ];
+        let incomplete_axioms = vec![OWLAxiom {
+            axiom_type: OWLAxiomType::DisjointClasses,
+            subject: "ClassA".to_string(),
+            object: None, // Missing required object
+            property: None,
+            confidence: 1.0,
+        }];
 
-        let nodes = vec![create_test_node(1, "test".to_string(), None, (0.0, 0.0, 0.0))];
+        let nodes = vec![create_test_node(
+            1,
+            "test".to_string(),
+            None,
+            (0.0, 0.0, 0.0),
+        )];
         let result = translator.axioms_to_constraints(&incomplete_axioms, &nodes);
 
         // Should handle incomplete axioms gracefully
@@ -1324,12 +1564,7 @@ mod error_handling_tests {
         let validator = OwlValidatorService::new();
 
         // Test with invalid IRIs
-        let invalid_iris = [
-            "not:a:valid:iri:",
-            "http://",
-            "",
-            ":::",
-        ];
+        let invalid_iris = ["not:a:valid:iri:", "http://", "", ":::"];
 
         for invalid_iri in &invalid_iris {
             let result = validator.expand_iri(invalid_iri);
@@ -1371,7 +1606,11 @@ mod error_handling_tests {
 
                 match result {
                     Ok(report) => {
-                        println!("Task {}: Validation completed with {} violations", i, report.violations.len());
+                        println!(
+                            "Task {}: Validation completed with {} violations",
+                            i,
+                            report.violations.len()
+                        );
                         true
                     }
                     Err(e) => {
@@ -1388,8 +1627,15 @@ mod error_handling_tests {
         let results = futures::future::join_all(handles).await;
 
         // Most tasks should succeed
-        let success_count = results.into_iter().filter_map(|r| r.ok()).filter(|&success| success).count();
-        assert!(success_count >= 8, "Most concurrent validations should succeed");
+        let success_count = results
+            .into_iter()
+            .filter_map(|r| r.ok())
+            .filter(|&success| success)
+            .count();
+        assert!(
+            success_count >= 8,
+            "Most concurrent validations should succeed"
+        );
     }
 
     #[test]
@@ -1398,14 +1644,16 @@ mod error_handling_tests {
 
         // Test with extremely large numbers to see if it handles memory pressure
         let large_number_of_nodes = 10000;
-        let nodes: Vec<Node> = (0..large_number_of_nodes).map(|i| {
-            create_test_node(
-                i as u32,
-                format!("node_{}", i),
-                Some("TestType".to_string()),
-                (0.0, 0.0, 0.0)
-            )
-        }).collect();
+        let nodes: Vec<Node> = (0..large_number_of_nodes)
+            .map(|i| {
+                create_test_node(
+                    i as u32,
+                    format!("node_{}", i),
+                    Some("TestType".to_string()),
+                    (0.0, 0.0, 0.0),
+                )
+            })
+            .collect();
 
         let axiom = OWLAxiom {
             axiom_type: OWLAxiomType::FunctionalProperty,
@@ -1420,8 +1668,11 @@ mod error_handling_tests {
 
         match result {
             Ok(constraints) => {
-                println!("Successfully generated {} constraints for {} nodes",
-                        constraints.len(), nodes.len());
+                println!(
+                    "Successfully generated {} constraints for {} nodes",
+                    constraints.len(),
+                    nodes.len()
+                );
             }
             Err(e) => {
                 println!("Handled memory pressure gracefully: {}", e);
@@ -1459,24 +1710,38 @@ mod fixture_integration_tests {
         let mut translator = OntologyConstraintTranslator::new();
 
         // 3. Load and validate ontology
-        let ontology_id = validator.load_ontology(&ontology_content).await.expect("Load ontology");
+        let ontology_id = validator
+            .load_ontology(&ontology_content)
+            .await
+            .expect("Load ontology");
         println!("✅ Ontology loaded: {}", ontology_id);
 
         // 4. Convert JSON graph to property graph
         let property_graph = convert_json_to_property_graph(&graph_data).expect("Convert graph");
-        println!("✅ Converted graph: {} nodes, {} edges",
-               property_graph.nodes.len(), property_graph.edges.len());
+        println!(
+            "✅ Converted graph: {} nodes, {} edges",
+            property_graph.nodes.len(),
+            property_graph.edges.len()
+        );
 
         // 5. Perform validation
-        let validation_report = validator.validate(&ontology_id, &property_graph).await.expect("Validate graph");
-        println!("✅ Validation completed: {} triples, {} violations, {} inferences",
-               validation_report.total_triples,
-               validation_report.violations.len(),
-               validation_report.inferred_triples.len());
+        let validation_report = validator
+            .validate(&ontology_id, &property_graph)
+            .await
+            .expect("Validate graph");
+        println!(
+            "✅ Validation completed: {} triples, {} violations, {} inferences",
+            validation_report.total_triples,
+            validation_report.violations.len(),
+            validation_report.inferred_triples.len()
+        );
 
         // 6. Generate physics constraints
         let nodes = create_nodes_from_property_graph(&property_graph);
-        let graph = GraphData { nodes, edges: vec![] };
+        let graph = GraphData {
+            nodes,
+            edges: vec![],
+        };
 
         let reasoning_report = OntologyReasoningReport {
             axioms: create_sample_axioms(),
@@ -1485,13 +1750,19 @@ mod fixture_integration_tests {
             reasoning_time_ms: validation_report.duration_ms,
         };
 
-        let constraint_set = translator.apply_ontology_constraints(&graph, &reasoning_report).expect("Generate constraints");
-        println!("✅ Generated {} physics constraints in {} groups",
-               constraint_set.constraints.len(),
-               constraint_set.groups.len());
+        let constraint_set = translator
+            .apply_ontology_constraints(&graph, &reasoning_report)
+            .expect("Generate constraints");
+        println!(
+            "✅ Generated {} physics constraints in {} groups",
+            constraint_set.constraints.len(),
+            constraint_set.groups.len()
+        );
 
         // 7. Verify all test scenarios from fixture
-        let test_scenarios = graph_data["test_scenarios"].as_array().expect("Get test scenarios");
+        let test_scenarios = graph_data["test_scenarios"]
+            .as_array()
+            .expect("Get test scenarios");
 
         for scenario in test_scenarios {
             let scenario_name = scenario["name"].as_str().unwrap();
@@ -1500,33 +1771,56 @@ mod fixture_integration_tests {
             match scenario_type {
                 "constraint_violation" => {
                     // Check that we detected the expected violation
-                    let expected_violation = scenario["expected_result"]["violation_type"].as_str().unwrap();
-                    let found_violation = validation_report.violations.iter()
-                        .any(|v| v.rule.contains(expected_violation) || v.message.contains(expected_violation));
+                    let expected_violation = scenario["expected_result"]["violation_type"]
+                        .as_str()
+                        .unwrap();
+                    let found_violation = validation_report.violations.iter().any(|v| {
+                        v.rule.contains(expected_violation)
+                            || v.message.contains(expected_violation)
+                    });
 
                     if found_violation {
-                        println!("✅ Test scenario '{}': Found expected violation", scenario_name);
+                        println!(
+                            "✅ Test scenario '{}': Found expected violation",
+                            scenario_name
+                        );
                     } else {
-                        println!("⚠️  Test scenario '{}': Expected violation not found", scenario_name);
+                        println!(
+                            "⚠️  Test scenario '{}': Expected violation not found",
+                            scenario_name
+                        );
                     }
                 }
                 "inference_test" => {
                     // Check that we generated expected inference
-                    let expected_inference = scenario["expected_result"]["inferred_relationship"].as_str().unwrap();
-                    let found_inference = validation_report.inferred_triples.iter()
+                    let expected_inference = scenario["expected_result"]["inferred_relationship"]
+                        .as_str()
+                        .unwrap();
+                    let found_inference = validation_report
+                        .inferred_triples
+                        .iter()
                         .any(|t| t.predicate.contains(expected_inference));
 
                     if found_inference {
-                        println!("✅ Test scenario '{}': Found expected inference", scenario_name);
+                        println!(
+                            "✅ Test scenario '{}': Found expected inference",
+                            scenario_name
+                        );
                     } else {
-                        println!("⚠️  Test scenario '{}': Expected inference not found", scenario_name);
+                        println!(
+                            "⚠️  Test scenario '{}': Expected inference not found",
+                            scenario_name
+                        );
                     }
                 }
                 "valid_case" => {
                     println!("✅ Test scenario '{}': Valid case processed", scenario_name);
                 }
                 _ => {
-                    println!("ℹ️  Test scenario '{}': Unknown type {}", scenario_name, scenario_type);
+                    println!(
+                        "ℹ️  Test scenario '{}': Unknown type {}",
+                        scenario_name, scenario_type
+                    );
                 }
             }
         }
@@ -1542,25 +1836,51 @@ mod fixture_integration_tests {
         let config: toml::Value = toml::from_str(&mapping_config).expect("Parse mapping config");
 
         // Verify structure
-        assert!(config["metadata"].is_table(), "Should have metadata section");
-        assert!(config["node_mappings"].is_table(), "Should have node_mappings section");
-        assert!(config["edge_mappings"].is_table(), "Should have edge_mappings section");
-        assert!(config["validation_rules"].is_table(), "Should have validation_rules section");
+        assert!(
+            config["metadata"].is_table(),
+            "Should have metadata section"
+        );
+        assert!(
+            config["node_mappings"].is_table(),
+            "Should have node_mappings section"
+        );
+        assert!(
+            config["edge_mappings"].is_table(),
+            "Should have edge_mappings section"
+        );
+        assert!(
+            config["validation_rules"].is_table(),
+            "Should have validation_rules section"
+        );
 
         // Test that mapping config can be used for actual mapping
         let node_mappings = &config["node_mappings"];
-        assert!(node_mappings["person"].is_table(), "Should have person mapping");
-        assert!(node_mappings["company"].is_table(), "Should have company mapping");
+        assert!(
+            node_mappings["person"].is_table(),
+            "Should have person mapping"
+        );
+        assert!(
+            node_mappings["company"].is_table(),
+            "Should have company mapping"
+        );
 
         let person_mapping = &node_mappings["person"];
-        assert!(person_mapping["ontology_class"].is_str(), "Person should have ontology class");
-        assert!(person_mapping["properties"].is_table(), "Person should have properties");
+        assert!(
+            person_mapping["ontology_class"].is_str(),
+            "Person should have ontology class"
+        );
+        assert!(
+            person_mapping["properties"].is_table(),
+            "Person should have properties"
+        );
 
         println!("✅ Mapping configuration is valid and complete");
     }
 
     // Helper functions
-    fn convert_json_to_property_graph(json_data: &serde_json::Value) -> Result<PropertyGraph, Box<dyn std::error::Error>> {
+    fn convert_json_to_property_graph(
+        json_data: &serde_json::Value,
+    ) -> Result<PropertyGraph, Box<dyn std::error::Error>> {
         let nodes_json = json_data["nodes"].as_array().ok_or("Missing nodes array")?;
         let edges_json = json_data["edges"].as_array().ok_or("Missing edges array")?;
 
@@ -1569,7 +1889,8 @@ mod fixture_integration_tests {
             let node = GraphNode {
                 id: node_json["id"].as_str().unwrap().to_string(),
                 labels: vec![node_json["type"].as_str().unwrap().to_string()],
-                properties: node_json["properties"].as_object()
+                properties: node_json["properties"]
+                    .as_object()
                     .unwrap_or(&serde_json::Map::new())
                     .iter()
                     .map(|(k, v)| (k.clone(), v.clone()))
@@ -1581,7 +1902,11 @@ mod fixture_integration_tests {
         let mut edges = Vec::new();
         for edge_json in edges_json {
             let edge = GraphEdge {
-                id: format!("{}_{}", edge_json["from"].as_str().unwrap(), edge_json["to"].as_str().unwrap()),
+                id: format!(
+                    "{}_{}",
+                    edge_json["from"].as_str().unwrap(),
+                    edge_json["to"].as_str().unwrap()
+                ),
                 source: edge_json["from"].as_str().unwrap().to_string(),
                 target: edge_json["to"].as_str().unwrap().to_string(),
                 relationship_type: edge_json["type"].as_str().unwrap().to_string(),
@@ -1598,14 +1923,19 @@ mod fixture_integration_tests {
     }
 
     fn create_nodes_from_property_graph(graph: &PropertyGraph) -> Vec<Node> {
-        graph.nodes.iter().enumerate().map(|(i, graph_node)| {
-            create_test_node(
-                i as u32,
-                graph_node.id.clone(),
-                graph_node.labels.first().cloned(),
-                (i as f32 * 10.0, 0.0, 0.0)
-            )
-        }).collect()
+        graph
+            .nodes
+            .iter()
+            .enumerate()
+            .map(|(i, graph_node)| {
+                create_test_node(
+                    i as u32,
+                    graph_node.id.clone(),
+                    graph_node.labels.first().cloned(),
+                    (i as f32 * 10.0, 0.0, 0.0),
+                )
+            })
+            .collect()
     }
 }
 

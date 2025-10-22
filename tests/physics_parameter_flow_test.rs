@@ -1,8 +1,8 @@
 // Physics Parameter Flow Verification Test
-use std::process::{Command, Output};
-use std::fs;
-use std::time::Duration;
 use serde_json::Value;
+use std::fs;
+use std::process::{Command, Output};
+use std::time::Duration;
 
 #[tokio::test]
 async fn test_complete_physics_parameter_flow() {
@@ -10,14 +10,25 @@ async fn test_complete_physics_parameter_flow() {
 
     // Step 1: Verify settings.yaml exists and has physics settings
     let settings_path = "/data/settings.yaml";
-    assert!(fs::metadata(settings_path).is_ok(), "settings.yaml not found");
+    assert!(
+        fs::metadata(settings_path).is_ok(),
+        "settings.yaml not found"
+    );
 
-    let settings_content = fs::read_to_string(settings_path)
-        .expect("Failed to read settings.yaml");
+    let settings_content = fs::read_to_string(settings_path).expect("Failed to read settings.yaml");
 
-    assert!(settings_content.contains("physics:"), "Physics section missing from settings.yaml");
-    assert!(settings_content.contains("spring_strength:"), "spring_strength missing");
-    assert!(settings_content.contains("repulsion_strength:"), "repulsion_strength missing");
+    assert!(
+        settings_content.contains("physics:"),
+        "Physics section missing from settings.yaml"
+    );
+    assert!(
+        settings_content.contains("spring_strength:"),
+        "spring_strength missing"
+    );
+    assert!(
+        settings_content.contains("repulsion_strength:"),
+        "repulsion_strength missing"
+    );
     assert!(settings_content.contains("damping:"), "damping missing");
 
     println!("✅ Step 1: settings.yaml validation passed");
@@ -144,7 +155,10 @@ fn test_parameter_conversion() {
     assert_eq!(gpu_params.damping, 0.9, "Damping not preserved");
     assert_eq!(gpu_params.dt, 0.01, "Time step not preserved");
     assert_eq!(gpu_params.max_velocity, 1.0, "Max velocity not preserved");
-    assert_eq!(gpu_params.separation_radius, 0.15, "Collision radius not preserved");
+    assert_eq!(
+        gpu_params.separation_radius, 0.15,
+        "Collision radius not preserved"
+    );
     assert_eq!(gpu_params.temperature, 0.5, "Temperature not preserved");
 
     println!("✅ Step 5: Parameter conversion chain validated");
@@ -220,17 +234,27 @@ async fn test_backend_to_gpu_flow() {
     println!("📥 Backend receives: {}", received_update);
 
     // 2. Test parameter validation ranges
-    let physics = received_update["visualisation"]["graphs"]["logseq"]["physics"].as_object().unwrap();
+    let physics = received_update["visualisation"]["graphs"]["logseq"]["physics"]
+        .as_object()
+        .unwrap();
 
     if let Some(spring) = physics.get("springStrength") {
         let val = spring.as_f64().unwrap();
-        assert!(val >= 0.0 && val <= 10.0, "Spring strength out of range: {}", val);
+        assert!(
+            val >= 0.0 && val <= 10.0,
+            "Spring strength out of range: {}",
+            val
+        );
         println!("✅ Spring strength validation passed: {}", val);
     }
 
     if let Some(repulsion) = physics.get("repulsionStrength") {
         let val = repulsion.as_f64().unwrap();
-        assert!(val >= 0.0 && val <= 10000.0, "Repulsion strength out of range: {}", val);
+        assert!(
+            val >= 0.0 && val <= 10000.0,
+            "Repulsion strength out of range: {}",
+            val
+        );
         println!("✅ Repulsion strength validation passed: {}", val);
     }
 
@@ -293,16 +317,31 @@ fn test_gpu_kernel_parameter_usage() {
     };
 
     // Verify node collapse prevention parameters
-    assert!(test_params.separation_radius > 0.0, "Separation radius must be positive");
-    assert!(test_params.repel_k > 0.0, "Repulsion must be positive to prevent collapse");
-    assert!(test_params.damping < 1.0, "Damping must be < 1.0 for stability");
-    assert!(test_params.max_velocity > 0.0, "Max velocity must be positive");
+    assert!(
+        test_params.separation_radius > 0.0,
+        "Separation radius must be positive"
+    );
+    assert!(
+        test_params.repel_k > 0.0,
+        "Repulsion must be positive to prevent collapse"
+    );
+    assert!(
+        test_params.damping < 1.0,
+        "Damping must be < 1.0 for stability"
+    );
+    assert!(
+        test_params.max_velocity > 0.0,
+        "Max velocity must be positive"
+    );
 
     // Test minimum distance enforcement (from CUDA kernel)
     const MIN_DISTANCE: f32 = 0.15;
-    assert!(test_params.separation_radius >= MIN_DISTANCE,
-            "Separation radius {} should be >= MIN_DISTANCE {}",
-            test_params.separation_radius, MIN_DISTANCE);
+    assert!(
+        test_params.separation_radius >= MIN_DISTANCE,
+        "Separation radius {} should be >= MIN_DISTANCE {}",
+        test_params.separation_radius,
+        MIN_DISTANCE
+    );
 
     println!("✅ GPU kernel parameter structure validated");
     println!("✅ Node collapse prevention parameters validated");

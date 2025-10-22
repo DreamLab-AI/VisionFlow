@@ -1,6 +1,6 @@
 /*!
  * Integration tests for Analytics API endpoints
- * 
+ *
  * Tests the new clustering, anomaly detection, and insights endpoints
  * to ensure they match client expectations and function correctly.
  */
@@ -29,7 +29,10 @@ mod analytics_api_tests {
 
         // This should deserialize without error
         let parsed: Result<serde_json::Value, _> = serde_json::from_value(clustering_request);
-        assert!(parsed.is_ok(), "Clustering request structure should be valid");
+        assert!(
+            parsed.is_ok(),
+            "Clustering request structure should be valid"
+        );
     }
 
     #[tokio::test]
@@ -133,7 +136,10 @@ mod analytics_api_tests {
         });
 
         let parsed: Result<serde_json::Value, _> = serde_json::from_value(insights_response);
-        assert!(parsed.is_ok(), "Insights response structure should be valid");
+        assert!(
+            parsed.is_ok(),
+            "Insights response structure should be valid"
+        );
     }
 
     #[tokio::test]
@@ -158,11 +164,11 @@ mod analytics_api_tests {
         // Test that all clustering methods mentioned in client are supported
         let supported_methods = vec![
             "spectral",
-            "hierarchical", 
+            "hierarchical",
             "dbscan",
             "kmeans",
             "louvain",
-            "affinity"
+            "affinity",
         ];
 
         // This test ensures we haven't missed any methods
@@ -174,9 +180,12 @@ mod analytics_api_tests {
                     "numClusters": 5
                 }
             });
-            
-            assert!(request.get("method").is_some(), 
-                "Method {} should be supported", method);
+
+            assert!(
+                request.get("method").is_some(),
+                "Method {} should be supported",
+                method
+            );
         }
     }
 
@@ -186,9 +195,9 @@ mod analytics_api_tests {
         let supported_methods = vec![
             "isolation_forest",
             "lof",
-            "autoencoder", 
+            "autoencoder",
             "statistical",
-            "temporal"
+            "temporal",
         ];
 
         for method in supported_methods {
@@ -199,30 +208,37 @@ mod analytics_api_tests {
                 "windowSize": 100,
                 "updateInterval": 5000
             });
-            
-            assert!(config.get("method").is_some(),
-                "Anomaly method {} should be supported", method);
+
+            assert!(
+                config.get("method").is_some(),
+                "Anomaly method {} should be supported",
+                method
+            );
         }
     }
 
-    #[tokio::test]  
+    #[tokio::test]
     async fn test_severity_levels() {
         // Test that all severity levels used in client are supported
         let severity_levels = vec!["low", "medium", "high", "critical"];
-        
+
         for severity in severity_levels {
             let anomaly = json!({
                 "id": "test-id",
-                "nodeId": "node-1", 
+                "nodeId": "node-1",
                 "type": "test_anomaly",
                 "severity": severity,
                 "score": 0.5,
                 "description": "Test anomaly",
                 "timestamp": 1640995200
             });
-            
-            assert_eq!(anomaly.get("severity").unwrap(), severity,
-                "Severity level {} should be properly handled", severity);
+
+            assert_eq!(
+                anomaly.get("severity").unwrap(),
+                severity,
+                "Severity level {} should be properly handled",
+                severity
+            );
         }
     }
 
@@ -231,18 +247,21 @@ mod analytics_api_tests {
         // Test that expected API endpoint paths are documented
         let expected_endpoints = vec![
             "/api/analytics/clustering/run",
-            "/api/analytics/clustering/status", 
+            "/api/analytics/clustering/status",
             "/api/analytics/clustering/focus",
             "/api/analytics/anomaly/toggle",
             "/api/analytics/anomaly/current",
-            "/api/analytics/insights"
+            "/api/analytics/insights",
         ];
 
         // This is a documentation test - in a real integration test,
         // we'd make actual HTTP requests to these endpoints
         for endpoint in expected_endpoints {
-            assert!(endpoint.starts_with("/api/analytics/"),
-                "Endpoint {} should be under /api/analytics/ namespace", endpoint);
+            assert!(
+                endpoint.starts_with("/api/analytics/"),
+                "Endpoint {} should be under /api/analytics/ namespace",
+                endpoint
+            );
         }
     }
 }
@@ -270,7 +289,7 @@ mod mock_data {
             "label": "Mock Cluster",
             "nodeCount": 25,
             "coherence": 0.85,
-            "color": "#4F46E5", 
+            "color": "#4F46E5",
             "keywords": ["mock", "test", "cluster"],
             "nodes": [1, 2, 3, 4, 5],
             "centroid": [0.0, 0.0, 0.0]

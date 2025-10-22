@@ -1,15 +1,15 @@
 // Real-Time WebSocket Handler for All Feature Updates
 // Handles workspace events, analysis progress, optimization status, and export notifications
 
+use crate::app_state::AppState;
 use actix::prelude::*;
 use actix_web_actors::ws;
-use serde::{Serialize, Deserialize};
-use serde_json::{Value, json};
+use log::{debug, error, info, warn};
+use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
 use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
-use log::{info, error, debug, warn};
 use uuid::Uuid;
-use crate::app_state::AppState;
 
 // Enhanced WebSocket message types
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -143,7 +143,7 @@ pub struct SystemNotificationEvent {
 #[derive(Debug, Clone)]
 pub struct ClientSubscription {
     pub client_id: String,
-    pub subscriptions: HashSet<String>, // Set of event types
+    pub subscriptions: HashSet<String>,   // Set of event types
     pub filters: HashMap<String, String>, // Key-value filters
     pub last_activity: Instant,
 }
@@ -218,8 +218,8 @@ impl ConnectionManager {
 }
 
 // Static connection manager instance
-use tokio::sync::Mutex;
 use lazy_static::lazy_static;
+use tokio::sync::Mutex;
 
 lazy_static! {
     static ref CONNECTION_MANAGER: Mutex<ConnectionManager> = Mutex::new(ConnectionManager::new());
@@ -251,7 +251,11 @@ impl RealtimeWebSocketHandler {
             .as_millis() as u64
     }
 
-    fn send_message(&mut self, ctx: &mut ws::WebsocketContext<Self>, message: RealtimeWebSocketMessage) {
+    fn send_message(
+        &mut self,
+        ctx: &mut ws::WebsocketContext<Self>,
+        message: RealtimeWebSocketMessage,
+    ) {
         match serde_json::to_string(&message) {
             Ok(json_str) => {
                 ctx.text(json_str.clone());
@@ -268,12 +272,18 @@ impl RealtimeWebSocketHandler {
         }
     }
 
-    fn handle_subscription(&mut self, ctx: &mut ws::WebsocketContext<Self>, event_type: String, filters: Option<HashMap<String, String>>) {
+    fn handle_subscription(
+        &mut self,
+        ctx: &mut ws::WebsocketContext<Self>,
+        event_type: String,
+        filters: Option<HashMap<String, String>>,
+    ) {
         self.subscriptions.insert(event_type.clone());
 
         if let Some(filter_map) = filters {
             for (key, value) in filter_map {
-                self.filters.insert(format!("{}:{}", event_type, key), value);
+                self.filters
+                    .insert(format!("{}:{}", event_type, key), value);
             }
         }
 
@@ -306,7 +316,8 @@ impl RealtimeWebSocketHandler {
         self.subscriptions.remove(&event_type);
 
         // Remove filters for this event type
-        self.filters.retain(|key, _| !key.starts_with(&format!("{}:", event_type)));
+        self.filters
+            .retain(|key, _| !key.starts_with(&format!("{}:", event_type)));
 
         // Unregister from global connection manager
         let client_id = self.client_id.clone();
@@ -345,7 +356,10 @@ impl Actor for RealtimeWebSocketHandler {
     type Context = ws::WebsocketContext<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        info!("Real-time WebSocket handler started for client: {}", self.client_id);
+        info!(
+            "Real-time WebSocket handler started for client: {}",
+            self.client_id
+        );
 
         // Register with connection manager
         let client_id = self.client_id.clone();
@@ -363,7 +377,10 @@ impl Actor for RealtimeWebSocketHandler {
         // Connection timeout check
         ctx.run_interval(Duration::from_secs(10), |act, ctx| {
             if Instant::now().duration_since(act.heartbeat) > Duration::from_secs(120) {
-                warn!("Client {} heartbeat timeout, closing connection", act.client_id);
+                warn!(
+                    "Client {} heartbeat timeout, closing connection",
+                    act.client_id
+                );
                 ctx.stop();
                 return;
             }
@@ -394,7 +411,10 @@ impl Actor for RealtimeWebSocketHandler {
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
-        info!("Real-time WebSocket handler stopped for client: {}", self.client_id);
+        info!(
+            "Real-time WebSocket handler stopped for client: {}",
+            self.client_id
+        );
 
         // Remove from connection manager
         let client_id = self.client_id.clone();
@@ -419,52 +439,65 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for RealtimeWebSocket
                 self.bytes_received += text.len() as u64;
 
                 match serde_json::from_str::<RealtimeWebSocketMessage>(&text) {
-                    Ok(ws_message) => {
-                        match ws_message.msg_type.as_str() {
-                            "subscribe" => {
-                                if let (Ok(event_type), filters) = (
-                                    serde_json::from_value::<String>(ws_message.data.get("event_type").unwrap_or(&Value::Null).clone()),
-                                    ws_message.data.get("filters").and_then(|f| serde_json::from_value::<HashMap<String, String>>(f.clone()).ok())
-                                ) {
-                                    self.handle_subscription(ctx, event_type, filters);
-                                }
-                            }
-                            "unsubscribe" => {
-                                if let Ok(event_type) = serde_json::from_value::<String>(ws_message.data.get("event_type").unwrap_or(&Value::Null).clone()) {
-                                    self.handle_unsubscription(ctx, event_type);
-                                }
-                            }
-                            "ping" => {
-                                let pong = RealtimeWebSocketMessage {
-                                    msg_type: "pong".to_string(),
-                                    data: json!({
-                                        "server_time": Self::current_timestamp(),
-                                        "client_time": ws_message.timestamp
-                                    }),
-                                    timestamp: Self::current_timestamp(),
-                                    client_id: Some(self.client_id.clone()),
-                                    session_id: Some(self.session_id.clone()),
-                                };
-                                self.send_message(ctx, pong);
-                            }
-                            "get_subscriptions" => {
-                                let subscriptions_msg = RealtimeWebSocketMessage {
-                                    msg_type: "subscriptions".to_string(),
-                                    data: json!({
-                                        "subscriptions": self.subscriptions.iter().collect::<Vec<_>>(),
-                                        "filters": self.filters
-                                    }),
-                                    timestamp: Self::current_timestamp(),
-                                    client_id: Some(self.client_id.clone()),
-                                    session_id: Some(self.session_id.clone()),
-                                };
-                                self.send_message(ctx, subscriptions_msg);
-                            }
-                            _ => {
-                                debug!("Unhandled message type: {}", ws_message.msg_type);
+                    Ok(ws_message) => match ws_message.msg_type.as_str() {
+                        "subscribe" => {
+                            if let (Ok(event_type), filters) = (
+                                serde_json::from_value::<String>(
+                                    ws_message
+                                        .data
+                                        .get("event_type")
+                                        .unwrap_or(&Value::Null)
+                                        .clone(),
+                                ),
+                                ws_message.data.get("filters").and_then(|f| {
+                                    serde_json::from_value::<HashMap<String, String>>(f.clone())
+                                        .ok()
+                                }),
+                            ) {
+                                self.handle_subscription(ctx, event_type, filters);
                             }
                         }
-                    }
+                        "unsubscribe" => {
+                            if let Ok(event_type) = serde_json::from_value::<String>(
+                                ws_message
+                                    .data
+                                    .get("event_type")
+                                    .unwrap_or(&Value::Null)
+                                    .clone(),
+                            ) {
+                                self.handle_unsubscription(ctx, event_type);
+                            }
+                        }
+                        "ping" => {
+                            let pong = RealtimeWebSocketMessage {
+                                msg_type: "pong".to_string(),
+                                data: json!({
+                                    "server_time": Self::current_timestamp(),
+                                    "client_time": ws_message.timestamp
+                                }),
+                                timestamp: Self::current_timestamp(),
+                                client_id: Some(self.client_id.clone()),
+                                session_id: Some(self.session_id.clone()),
+                            };
+                            self.send_message(ctx, pong);
+                        }
+                        "get_subscriptions" => {
+                            let subscriptions_msg = RealtimeWebSocketMessage {
+                                msg_type: "subscriptions".to_string(),
+                                data: json!({
+                                    "subscriptions": self.subscriptions.iter().collect::<Vec<_>>(),
+                                    "filters": self.filters
+                                }),
+                                timestamp: Self::current_timestamp(),
+                                client_id: Some(self.client_id.clone()),
+                                session_id: Some(self.session_id.clone()),
+                            };
+                            self.send_message(ctx, subscriptions_msg);
+                        }
+                        _ => {
+                            debug!("Unhandled message type: {}", ws_message.msg_type);
+                        }
+                    },
                     Err(e) => {
                         error!("Failed to parse WebSocket message: {}", e);
                     }
@@ -481,17 +514,26 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for RealtimeWebSocket
             }
 
             Ok(ws::Message::Close(reason)) => {
-                info!("WebSocket closing for client {}: {:?}", self.client_id, reason);
+                info!(
+                    "WebSocket closing for client {}: {:?}",
+                    self.client_id, reason
+                );
                 ctx.stop();
             }
 
             Err(e) => {
-                error!("WebSocket protocol error for client {}: {}", self.client_id, e);
+                error!(
+                    "WebSocket protocol error for client {}: {}",
+                    self.client_id, e
+                );
                 ctx.stop();
             }
 
             _ => {
-                debug!("Unhandled WebSocket message type for client {}", self.client_id);
+                debug!(
+                    "Unhandled WebSocket message type for client {}",
+                    self.client_id
+                );
             }
         }
     }
@@ -536,7 +578,12 @@ impl Handler<BroadcastMessage> for RealtimeWebSocketHandler {
 }
 
 // Public API functions for broadcasting events
-pub async fn broadcast_workspace_update(workspace_id: String, changes: Value, operation: String, user_id: Option<String>) {
+pub async fn broadcast_workspace_update(
+    workspace_id: String,
+    changes: Value,
+    operation: String,
+    user_id: Option<String>,
+) {
     let event = WorkspaceUpdateEvent {
         workspace_id,
         changes,
@@ -676,7 +723,8 @@ pub async fn broadcast_export_ready(
         format,
         download_url,
         size,
-        expires_at: chrono::Utc::now().checked_add_signed(chrono::Duration::hours(24))
+        expires_at: chrono::Utc::now()
+            .checked_add_signed(chrono::Duration::hours(24))
             .unwrap_or_else(chrono::Utc::now)
             .to_rfc3339(),
         metadata: json!({}),
@@ -704,11 +752,7 @@ pub async fn realtime_websocket(
     stream: actix_web::web::Payload,
     app_state: actix_web::web::Data<AppState>,
 ) -> Result<actix_web::HttpResponse, actix_web::Error> {
-    let resp = ws::start(
-        RealtimeWebSocketHandler::new(app_state),
-        &req,
-        stream,
-    );
+    let resp = ws::start(RealtimeWebSocketHandler::new(app_state), &req, stream);
 
     info!("New real-time WebSocket connection established");
     resp

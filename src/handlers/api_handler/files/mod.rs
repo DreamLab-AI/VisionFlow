@@ -1,11 +1,13 @@
+use crate::actors::messages::{
+    AddNodesFromMetadata, GetNodeData as GetGpuNodeData, GetSettings, UpdateMetadata,
+};
 use actix_web::{web, Error as ActixError, HttpResponse};
-use std::sync::Arc;
-use crate::actors::messages::{GetSettings, UpdateMetadata, AddNodesFromMetadata, GetNodeData as GetGpuNodeData};
+use log::{debug, error, info};
 use serde_json::json;
-use log::{info, debug, error};
+use std::sync::Arc;
 
-use crate::AppState;
 use crate::services::file_service::{FileService, MARKDOWN_DIR};
+use crate::AppState;
 
 pub async fn fetch_and_process_files(state: web::Data<AppState>) -> HttpResponse {
     info!("Initiating optimized file fetch and processing");
@@ -20,7 +22,7 @@ pub async fn fetch_and_process_files(state: web::Data<AppState>) -> HttpResponse
             }));
         }
     };
-    
+
     let settings = match state.settings_addr.send(GetSettings).await {
         Ok(Ok(s)) => Arc::new(tokio::sync::RwLock::new(s)),
         _ => {
@@ -31,21 +33,41 @@ pub async fn fetch_and_process_files(state: web::Data<AppState>) -> HttpResponse
             }));
         }
     };
-    
+
     let file_service = FileService::new(settings.clone());
-    
-    match file_service.fetch_and_process_files(state.content_api.clone(), settings.clone(), &mut metadata_store).await {
+
+    match file_service
+        .fetch_and_process_files(
+            state.content_api.clone(),
+            settings.clone(),
+            &mut metadata_store,
+        )
+        .await
+    {
         Ok(processed_files) => {
-            let file_names: Vec<String> = processed_files.iter()
+            let file_names: Vec<String> = processed_files
+                .iter()
                 .map(|pf| pf.file_name.clone())
                 .collect();
 
-            info!("Successfully processed {} public markdown files", processed_files.len());
+            info!(
+                "Successfully processed {} public markdown files",
+                processed_files.len()
+            );
 
             {
                 // Send UpdateMetadata message to MetadataActor
-                if let Err(e) = state.metadata_addr.send(UpdateMetadata { metadata: metadata_store.clone() }).await {
-                    error!("Failed to send UpdateMetadata message to MetadataActor: {}", e);
+                if let Err(e) = state
+                    .metadata_addr
+                    .send(UpdateMetadata {
+                        metadata: metadata_store.clone(),
+                    })
+                    .await
+                {
+                    error!(
+                        "Failed to send UpdateMetadata message to MetadataActor: {}",
+                        e
+                    );
                     // Decide if this is a critical error to return
                 }
             }
@@ -62,7 +84,13 @@ pub async fn fetch_and_process_files(state: web::Data<AppState>) -> HttpResponse
             }
 
             // Send AddNodesFromMetadata for incremental updates instead of full rebuild
-            match state.graph_service_addr.send(AddNodesFromMetadata { metadata: metadata_store.clone() }).await {
+            match state
+                .graph_service_addr
+                .send(AddNodesFromMetadata {
+                    metadata: metadata_store.clone(),
+                })
+                .await
+            {
                 Ok(Ok(())) => {
                     info!("Graph data structure updated successfully via GraphServiceActor");
 
@@ -89,14 +117,17 @@ pub async fn fetch_and_process_files(state: web::Data<AppState>) -> HttpResponse
                         "status": "success",
                         "processed_files": file_names
                     }))
-                },
+                }
                 Ok(Err(e)) => {
-                    error!("GraphServiceActor failed to build graph from metadata: {}", e);
+                    error!(
+                        "GraphServiceActor failed to build graph from metadata: {}",
+                        e
+                    );
                     HttpResponse::InternalServerError().json(json!({
                         "status": "error",
                         "message": format!("Failed to build graph: {}", e)
                     }))
-                },
+                }
                 Err(e) => {
                     error!("Failed to build graph data: {}", e);
                     HttpResponse::InternalServerError().json(json!({
@@ -105,7 +136,7 @@ pub async fn fetch_and_process_files(state: web::Data<AppState>) -> HttpResponse
                     }))
                 }
             }
-        },
+        }
         Err(e) => {
             error!("Error processing files: {}", e);
             HttpResponse::InternalServerError().json(json!({
@@ -116,7 +147,10 @@ pub async fn fetch_and_process_files(state: web::Data<AppState>) -> HttpResponse
     }
 }
 
-pub async fn get_file_content(_state: web::Data<AppState>, file_name: web::Path<String>) -> HttpResponse {
+pub async fn get_file_content(
+    _state: web::Data<AppState>,
+    file_name: web::Path<String>,
+) -> HttpResponse {
     let file_path = format!("{}/{}", MARKDOWN_DIR, file_name);
     match std::fs::read_to_string(&file_path) {
         Ok(content) => HttpResponse::Ok().body(content),
@@ -134,9 +168,14 @@ pub async fn refresh_graph(state: web::Data<AppState>) -> HttpResponse {
     info!("Manually triggering graph refresh - returning current state");
 
     // Instead of rebuilding, just return the current graph data
-    match state.graph_service_addr.send(crate::actors::messages::GetGraphData).await {
+    match state
+        .graph_service_addr
+        .send(crate::actors::messages::GetGraphData)
+        .await
+    {
         Ok(Ok(graph_data)) => {
-            debug!("Retrieved current graph state with {} nodes and {} edges",
+            debug!(
+                "Retrieved current graph state with {} nodes and {} edges",
                 graph_data.nodes.len(),
                 graph_data.edges.len()
             );
@@ -147,14 +186,14 @@ pub async fn refresh_graph(state: web::Data<AppState>) -> HttpResponse {
                 "nodes_count": graph_data.nodes.len(),
                 "edges_count": graph_data.edges.len()
             }))
-        },
+        }
         Ok(Err(e)) => {
             error!("Failed to get current graph data: {}", e);
             HttpResponse::InternalServerError().json(json!({
                 "status": "error",
                 "message": format!("Failed to retrieve current graph data: {}", e)
             }))
-        },
+        }
         Err(e) => {
             error!("Mailbox error getting graph data: {}", e);
             HttpResponse::InternalServerError().json(json!({
@@ -177,14 +216,24 @@ pub async fn update_graph(state: web::Data<AppState>) -> Result<HttpResponse, Ac
         }
     };
 
-    match state.graph_service_addr.send(AddNodesFromMetadata { metadata: metadata_store.clone() }).await {
+    match state
+        .graph_service_addr
+        .send(AddNodesFromMetadata {
+            metadata: metadata_store.clone(),
+        })
+        .await
+    {
         Ok(Ok(())) => {
-            info!("Graph data structure updated successfully via GraphServiceActor in update_graph");
+            info!(
+                "Graph data structure updated successfully via GraphServiceActor in update_graph"
+            );
 
             if let Some(gpu_addr) = &state.gpu_compute_addr {
                 match gpu_addr.send(GetGpuNodeData).await {
                     Ok(Ok(_nodes)) => {
-                        debug!("GPU node data fetched successfully after graph update in update_graph");
+                        debug!(
+                            "GPU node data fetched successfully after graph update in update_graph"
+                        );
                     }
                     Ok(Err(e)) => {
                         error!("Failed to get node data from GPU actor after update in update_graph: {}", e);
@@ -194,21 +243,24 @@ pub async fn update_graph(state: web::Data<AppState>) -> Result<HttpResponse, Ac
                     }
                 }
             }
-            
+
             Ok(HttpResponse::Ok().json(json!({
                 "status": "success",
                 "message": "Graph updated successfully"
             })))
-        },
+        }
         Err(e) => {
             error!("Failed to build graph: {}", e);
             Ok(HttpResponse::InternalServerError().json(json!({
                 "status": "error",
                 "message": format!("Failed to build graph: {}", e)
             })))
-        },
+        }
         Ok(Err(e)) => {
-            error!("GraphServiceActor failed to build graph from metadata: {}", e);
+            error!(
+                "GraphServiceActor failed to build graph from metadata: {}",
+                e
+            );
             Ok(HttpResponse::InternalServerError().json(json!({
                 "status": "error",
                 "message": format!("Failed to build graph: {}", e)
@@ -224,6 +276,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .route("/process", web::post().to(fetch_and_process_files))
             .route("/get_content/{filename}", web::get().to(get_file_content))
             .route("/refresh_graph", web::post().to(refresh_graph))
-            .route("/update_graph", web::post().to(update_graph))
+            .route("/update_graph", web::post().to(update_graph)),
     );
 }

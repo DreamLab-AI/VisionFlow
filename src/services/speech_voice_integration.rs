@@ -1,17 +1,14 @@
 //! Voice-to-swarm integration for SpeechService
-//! 
+//!
 //! This module connects the SpeechService with the swarm orchestration system,
 //! enabling voice commands to control agents through the Queen (Supervisor).
 
-use actix::prelude::*;
-use log::{info, debug, error, warn};
-use std::sync::Arc;
-use tokio::sync::mpsc;
+use crate::actors::voice_commands::{SwarmVoiceResponse, VoiceCommand};
 use crate::services::speech_service::SpeechService;
-use crate::services::voice_tag_manager::{VoiceTagManager, TaggedVoiceResponse, VoiceTag};
-use crate::actors::supervisor::SupervisorActor;
-use crate::actors::voice_commands::{VoiceCommand, SwarmVoiceResponse};
+use crate::services::voice_tag_manager::{TaggedVoiceResponse, VoiceTag, VoiceTagManager};
 use crate::types::speech::SpeechOptions;
+use log::{debug, info, warn};
+use std::sync::Arc;
 
 /// Extension trait for SpeechService to add voice-to-swarm capabilities with tagging
 pub trait VoiceSwarmIntegration {
@@ -20,11 +17,14 @@ pub trait VoiceSwarmIntegration {
         &self,
         text: String,
         session_id: String,
-        tag_manager: Arc<VoiceTagManager>
+        tag_manager: Arc<VoiceTagManager>,
     ) -> Result<VoiceTag, String>;
 
     /// Handle tagged swarm response and convert to speech
-    async fn handle_tagged_swarm_response(&self, response: TaggedVoiceResponse) -> Result<(), String>;
+    async fn handle_tagged_swarm_response(
+        &self,
+        response: TaggedVoiceResponse,
+    ) -> Result<(), String>;
 
     /// Legacy method for backwards compatibility
     async fn process_voice_command(&self, text: String, session_id: String) -> Result<(), String>;
@@ -38,7 +38,7 @@ impl VoiceSwarmIntegration for SpeechService {
         &self,
         text: String,
         session_id: String,
-        tag_manager: Arc<VoiceTagManager>
+        tag_manager: Arc<VoiceTagManager>,
     ) -> Result<VoiceTag, String> {
         info!("Processing tagged voice command: '{}'", text);
 
@@ -48,12 +48,14 @@ impl VoiceSwarmIntegration for SpeechService {
                 debug!("Parsed voice command: {:?}", voice_cmd.parsed_intent);
 
                 // Create tagged command
-                let tagged_cmd = tag_manager.create_tagged_command(
-                    voice_cmd.clone(),
-                    true, // expect voice response
-                    SpeechOptions::default(),
-                    None, // use default timeout
-                ).await?;
+                let tagged_cmd = tag_manager
+                    .create_tagged_command(
+                        voice_cmd.clone(),
+                        true, // expect voice response
+                        SpeechOptions::default(),
+                        None, // use default timeout
+                    )
+                    .await?;
 
                 let tag = tagged_cmd.tag.clone();
 
@@ -88,9 +90,15 @@ impl VoiceSwarmIntegration for SpeechService {
         }
     }
 
-    async fn handle_tagged_swarm_response(&self, response: TaggedVoiceResponse) -> Result<(), String> {
-        info!("Handling tagged swarm response: {} (tag: {})",
-              response.response.text, response.tag.short_id());
+    async fn handle_tagged_swarm_response(
+        &self,
+        response: TaggedVoiceResponse,
+    ) -> Result<(), String> {
+        info!(
+            "Handling tagged swarm response: {} (tag: {})",
+            response.response.text,
+            response.tag.short_id()
+        );
 
         // Convert tagged response to TTS
         if response.response.use_voice {
@@ -103,7 +111,9 @@ impl VoiceSwarmIntegration for SpeechService {
 
             // Send to TTS with default options
             let options = SpeechOptions::default();
-            self.text_to_speech(full_text, options).await.map_err(|e| e.to_string())?;
+            self.text_to_speech(full_text, options)
+                .await
+                .map_err(|e| e.to_string())?;
         }
 
         // Broadcast the transcription response as well for UI display
@@ -116,7 +126,7 @@ impl VoiceSwarmIntegration for SpeechService {
 
     async fn process_voice_command(&self, text: String, session_id: String) -> Result<(), String> {
         info!("Processing voice command: '{}'", text);
-        
+
         // Parse the text into a voice command
         match VoiceCommand::parse(&text, session_id.clone()) {
             Ok(voice_cmd) => {
@@ -137,7 +147,7 @@ impl VoiceSwarmIntegration for SpeechService {
             }
             Err(e) => {
                 warn!("Failed to parse voice command '{}': {}", text, e);
-                
+
                 // Send helpful error via TTS
                 let help_response = SwarmVoiceResponse {
                     text: "I didn't understand that command. Try saying something like 'spawn a researcher agent' or 'show status'.".to_string(),
@@ -151,10 +161,10 @@ impl VoiceSwarmIntegration for SpeechService {
             }
         }
     }
-    
+
     async fn handle_swarm_response(&self, response: SwarmVoiceResponse) -> Result<(), String> {
         info!("Handling swarm response: {}", response.text);
-        
+
         // If voice response is requested, send to TTS
         if response.use_voice {
             // Build the full response with follow-up if present
@@ -163,17 +173,19 @@ impl VoiceSwarmIntegration for SpeechService {
             } else {
                 response.text.clone()
             };
-            
+
             // Send to TTS with default options
             let options = SpeechOptions::default();
-            self.text_to_speech(full_text, options).await.map_err(|e| e.to_string())?;
+            self.text_to_speech(full_text, options)
+                .await
+                .map_err(|e| e.to_string())?;
         }
 
         // Broadcast the transcription response as well for UI display
         if let Err(e) = self.get_transcription_sender().send(response.text) {
             debug!("Failed to broadcast response text: {}", e);
         }
-        
+
         Ok(())
     }
 }
@@ -184,11 +196,13 @@ impl SpeechService {
     pub async fn process_audio_chunk_with_voice_commands(
         &self,
         audio_data: Vec<u8>,
-        session_id: String,
+        _session_id: String,
         _options: crate::types::speech::TranscriptionOptions,
     ) -> Result<String, String> {
         // Process audio chunk (note: this doesn't return transcription directly)
-        self.process_audio_chunk(audio_data).await.map_err(|e| e.to_string())?;
+        self.process_audio_chunk(audio_data)
+            .await
+            .map_err(|e| e.to_string())?;
 
         // Wait for transcription result with timeout
         use tokio::time::{timeout, Duration};
@@ -208,15 +222,19 @@ impl SpeechService {
             }
             Err(_) => {
                 warn!("Transcription timed out, falling back to async processing");
-                Ok("Audio processing initiated. Transcription will be available via subscription.".to_string())
+                Ok(
+                    "Audio processing initiated. Transcription will be available via subscription."
+                        .to_string(),
+                )
             }
         }
     }
 
     /// Wait for transcription result from the processing pipeline
-    async fn wait_for_transcription_result(&self) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+    async fn wait_for_transcription_result(
+        &self,
+    ) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
         use tokio::time::{sleep, Duration};
-        use std::sync::atomic::{AtomicBool, Ordering};
 
         // Poll for transcription result with exponential backoff
         let mut attempts = 0;
@@ -238,7 +256,9 @@ impl SpeechService {
     }
 
     /// Check if transcription result is ready (placeholder for actual implementation)
-    async fn check_transcription_result(&self) -> Result<Option<String>, Box<dyn std::error::Error + Send + Sync>> {
+    async fn check_transcription_result(
+        &self,
+    ) -> Result<Option<String>, Box<dyn std::error::Error + Send + Sync>> {
         // In a real implementation, this would check shared state, database,
         // or communicate with the transcription service
 
@@ -246,8 +266,10 @@ impl SpeechService {
         use rand::Rng;
         let mut rng = rand::thread_rng();
 
-        if rng.gen_bool(0.7) { // 70% chance of having result ready
-            if rng.gen_bool(0.8) { // 80% chance of successful transcription
+        if rng.gen_bool(0.7) {
+            // 70% chance of having result ready
+            if rng.gen_bool(0.8) {
+                // 80% chance of successful transcription
                 Ok(Some("Sample transcribed speech text".to_string()))
             } else {
                 Ok(Some("".to_string())) // Empty transcription (no speech)
@@ -256,13 +278,12 @@ impl SpeechService {
             Ok(None) // Not ready yet
         }
     }
-
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_is_voice_command() {
         assert!(SpeechService::is_voice_command("spawn a researcher agent"));

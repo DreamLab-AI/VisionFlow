@@ -1,16 +1,13 @@
-use crate::models::protected_settings::{NostrUser, ApiKeys};
 use crate::config::feature_access::FeatureAccess;
-use nostr_sdk::{
-    prelude::*,
-    event::Error as EventError
-};
+use crate::models::protected_settings::{ApiKeys, NostrUser};
+use chrono::Utc;
+use log::{debug, error, info};
+use nostr_sdk::{event::Error as EventError, prelude::*};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::sync::RwLock;
-use chrono::Utc;
 use thiserror::Error;
-use log::{debug, error, info};
+use tokio::sync::RwLock;
 use uuid::Uuid;
 
 #[derive(Debug, Error)]
@@ -77,7 +74,10 @@ impl NostrService {
     pub async fn verify_auth_event(&self, event: AuthEvent) -> Result<NostrUser, NostrError> {
         // Convert to Nostr Event for verification
         // Convert to JSON string and parse as Nostr Event
-        debug!("Verifying auth event with id: {} and pubkey: {}", event.id, event.pubkey);
+        debug!(
+            "Verifying auth event with id: {} and pubkey: {}",
+            event.id, event.pubkey
+        );
 
         let json_str = match serde_json::to_string(&event) {
             Ok(s) => s,
@@ -87,19 +87,34 @@ impl NostrService {
             }
         };
 
-        debug!("Event JSON for verification (truncated): {}...", 
-               if json_str.len() > 100 { &json_str[0..100] } else { &json_str });
+        debug!(
+            "Event JSON for verification (truncated): {}...",
+            if json_str.len() > 100 {
+                &json_str[0..100]
+            } else {
+                &json_str
+            }
+        );
 
         let nostr_event = match Event::from_json(&json_str) {
             Ok(e) => e,
             Err(e) => {
-                error!("Failed to parse Nostr event for pubkey {}: {}", event.pubkey, e);
-                return Err(NostrError::InvalidEvent(format!("Parse error for event {}: {}", event.id, e)));
+                error!(
+                    "Failed to parse Nostr event for pubkey {}: {}",
+                    event.pubkey, e
+                );
+                return Err(NostrError::InvalidEvent(format!(
+                    "Parse error for event {}: {}",
+                    event.id, e
+                )));
             }
         };
 
         if let Err(e) = nostr_event.verify() {
-            error!("Signature verification failed for pubkey {}: {}", event.pubkey, e);
+            error!(
+                "Signature verification failed for pubkey {}: {}",
+                event.pubkey, e
+            );
             return Err(NostrError::InvalidSignature);
         }
 
@@ -117,7 +132,9 @@ impl NostrService {
 
         let user = NostrUser {
             pubkey: event.pubkey.clone(),
-            npub: nostr_event.pubkey.to_bech32()
+            npub: nostr_event
+                .pubkey
+                .to_bech32()
                 .map_err(|_| NostrError::NostrError(EventError::InvalidId))?,
             is_power_user,
             api_keys: ApiKeys::default(),
@@ -126,7 +143,10 @@ impl NostrService {
         };
 
         // Log successful user creation
-        info!("Created/updated user: pubkey={}, is_power_user={}", user.pubkey, user.is_power_user);
+        info!(
+            "Created/updated user: pubkey={}, is_power_user={}",
+            user.pubkey, user.is_power_user
+        );
 
         // Store or update user
         let mut users = self.users.write().await;
@@ -140,9 +160,13 @@ impl NostrService {
         users.get(pubkey).cloned()
     }
 
-    pub async fn update_user_api_keys(&self, pubkey: &str, api_keys: ApiKeys) -> Result<NostrUser, NostrError> {
+    pub async fn update_user_api_keys(
+        &self,
+        pubkey: &str,
+        api_keys: ApiKeys,
+    ) -> Result<NostrUser, NostrError> {
         let mut users = self.users.write().await;
-        
+
         if let Some(user) = users.get_mut(pubkey) {
             if user.is_power_user {
                 return Err(NostrError::PowerUserOperation);
@@ -169,7 +193,7 @@ impl NostrService {
 
     pub async fn refresh_session(&self, pubkey: &str) -> Result<String, NostrError> {
         let mut users = self.users.write().await;
-        
+
         if let Some(user) = users.get_mut(pubkey) {
             let now = Utc::now().timestamp();
             let new_token = Uuid::new_v4().to_string();
@@ -183,7 +207,7 @@ impl NostrService {
 
     pub async fn logout(&self, pubkey: &str) -> Result<(), NostrError> {
         let mut users = self.users.write().await;
-        
+
         if let Some(user) = users.get_mut(pubkey) {
             user.session_token = None;
             user.last_seen = Utc::now().timestamp();
@@ -196,7 +220,7 @@ impl NostrService {
     pub async fn cleanup_sessions(&self, max_age_hours: i64) {
         let now = Utc::now();
         let mut users = self.users.write().await;
-        
+
         users.retain(|_, user| {
             let age = now.timestamp() - user.last_seen;
             age < (max_age_hours * 3600)

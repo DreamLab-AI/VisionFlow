@@ -1,34 +1,46 @@
-use std::sync::{Arc, atomic::{AtomicUsize, Ordering}};
 use actix::prelude::*;
 use actix_web::web;
 use log::{info, warn};
+use std::sync::{
+    atomic::{AtomicUsize, Ordering},
+    Arc,
+};
 
-use crate::actors::{GraphServiceActor, OptimizedSettingsActor, MetadataActor, ClientCoordinatorActor, ProtectedSettingsActor, AgentMonitorActor, WorkspaceActor, TaskOrchestratorActor};
 #[cfg(feature = "gpu")]
-use crate::actors::GPUManagerActor;
-use crate::actors::graph_service_supervisor::{GraphServiceSupervisor, TransitionalGraphSupervisor};
+use crate::actors::gpu;
+use crate::actors::graph_service_supervisor::TransitionalGraphSupervisor;
 #[cfg(feature = "ontology")]
 use crate::actors::ontology_actor::OntologyActor;
 #[cfg(feature = "gpu")]
-use crate::actors::gpu;
+use crate::actors::GPUManagerActor;
+use crate::actors::{
+    AgentMonitorActor, ClientCoordinatorActor, MetadataActor, OptimizedSettingsActor,
+    ProtectedSettingsActor, TaskOrchestratorActor, WorkspaceActor,
+};
+use crate::config::feature_access::FeatureAccess;
+use crate::config::AppFullSettings; // Renamed for clarity, ClientFacingSettings removed
+use crate::models::metadata::MetadataStore;
+use crate::models::protected_settings::{ApiKeys, NostrUser, ProtectedSettings};
+use crate::services::bots_client::BotsClient;
+use crate::services::database_service::DatabaseService;
+use crate::services::github::{ContentAPI, GitHubClient};
+use crate::services::management_api_client::ManagementApiClient;
+use crate::services::nostr_service::NostrService;
+use crate::services::perplexity_service::PerplexityService;
+use crate::services::ragflow_service::RAGFlowService;
+use crate::services::settings_service::SettingsService;
+use crate::services::speech_service::SpeechService;
+use crate::utils::client_message_extractor::ClientMessage;
 #[cfg(feature = "gpu")]
 use cudarc::driver::CudaDevice;
-use crate::config::AppFullSettings; // Renamed for clarity, ClientFacingSettings removed
-use tokio::time::Duration;
-use crate::config::feature_access::FeatureAccess;
-use crate::models::metadata::MetadataStore;
-use crate::models::protected_settings::{ProtectedSettings, ApiKeys, NostrUser};
-use crate::services::github::{GitHubClient, ContentAPI};
-use crate::services::perplexity_service::PerplexityService;
-use crate::services::speech_service::SpeechService;
-use crate::services::ragflow_service::RAGFlowService;
-use crate::services::nostr_service::NostrService;
-use crate::services::bots_client::BotsClient;
-use crate::services::management_api_client::ManagementApiClient;
-use crate::services::database_service::DatabaseService;
-use crate::services::settings_service::SettingsService;
 use tokio::sync::mpsc;
-use crate::utils::client_message_extractor::ClientMessage;
+use tokio::time::Duration;
+
+// Repository trait imports for hexagonal architecture
+use crate::adapters::sqlite_knowledge_graph_repository::SqliteKnowledgeGraphRepository;
+use crate::adapters::sqlite_ontology_repository::SqliteOntologyRepository;
+use crate::adapters::sqlite_settings_repository::SqliteSettingsRepository;
+use crate::ports::settings_repository::SettingsRepository;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -37,7 +49,13 @@ pub struct AppState {
     pub gpu_manager_addr: Option<Addr<GPUManagerActor>>, // Modular GPU manager system
     #[cfg(feature = "gpu")]
     pub gpu_compute_addr: Option<Addr<gpu::ForceComputeActor>>, // Force compute actor for physics
-    // Database-backed settings (NEW - direct UI → Database connection)
+    // HEXAGONAL ARCHITECTURE: Repository adapters
+    // Settings uses trait object (non-generic handlers)
+    pub settings_repository: Arc<dyn SettingsRepository>,
+    // Knowledge graph and ontology use concrete types (generic handlers)
+    pub knowledge_graph_repository: Arc<SqliteKnowledgeGraphRepository>,
+    pub ontology_repository: Arc<SqliteOntologyRepository>,
+    // Database-backed settings (legacy - for backward compatibility)
     pub db_service: Arc<DatabaseService>,
     pub settings_service: Arc<SettingsService>,
     // Legacy actor-based settings (will be phased out)
@@ -79,27 +97,56 @@ impl AppState {
 
         // CRITICAL: Initialize database FIRST - this is the new source of truth for settings
         info!("[AppState::new] Initializing SQLite database (NEW architecture)");
-        let db_path = std::env::var("DATABASE_PATH").unwrap_or_else(|_| "data/visionflow.db".to_string());
-        let db_service = Arc::new(DatabaseService::new(&db_path)
-            .map_err(|e| format!("Failed to create database: {}", e))?);
+        let db_path =
+            std::env::var("DATABASE_PATH").unwrap_or_else(|_| "data/visionflow.db".to_string());
+        let db_service = Arc::new(
+            DatabaseService::new(&db_path)
+                .map_err(|e| format!("Failed to create database: {}", e))?,
+        );
 
         // Initialize database schema
         info!("[AppState::new] Initializing database schema");
-        db_service.initialize_schema()
+        db_service
+            .initialize_schema()
             .map_err(|e| format!("Failed to initialize schema: {}", e))?;
 
         // Save current settings to database (migration from YAML/in-memory)
         info!("[AppState::new] Migrating settings to database");
-        db_service.save_all_settings(&settings)
+        db_service
+            .save_all_settings(&settings)
             .map_err(|e| format!("Failed to save settings to database: {}", e))?;
 
         // Create settings service (provides direct access to database for handlers)
         info!("[AppState::new] Creating SettingsService (UI → Database direct connection)");
-        let settings_service = Arc::new(SettingsService::new(db_service.clone())
-            .map_err(|e| format!("Failed to create settings service: {}", e))?);
+        let settings_service = Arc::new(
+            SettingsService::new(db_service.clone())
+                .map_err(|e| format!("Failed to create settings service: {}", e))?,
+        );
 
+        // HEXAGONAL ARCHITECTURE: Create repository adapters (port implementations)
+        info!("[AppState::new] Creating repository adapters for hexagonal architecture");
+
+        // Settings repository as trait object (handlers accept Arc<dyn SettingsRepository>)
+        let settings_repository: Arc<dyn SettingsRepository> =
+            Arc::new(SqliteSettingsRepository::new(db_service.clone()));
+
+        // Knowledge graph repository as concrete type (handlers are generic)
+        let knowledge_graph_repository: Arc<SqliteKnowledgeGraphRepository> = Arc::new(
+            SqliteKnowledgeGraphRepository::new("data/knowledge_graph.db")
+                .map_err(|e| format!("Failed to create knowledge graph repository: {}", e))?,
+        );
+
+        // Ontology repository as concrete type (handlers are generic)
+        let ontology_repository: Arc<SqliteOntologyRepository> = Arc::new(
+            SqliteOntologyRepository::new("data/ontology.db")
+                .map_err(|e| format!("Failed to create ontology repository: {}", e))?,
+        );
+
+        info!("[AppState::new] Repository adapters initialized successfully");
         info!("[AppState::new] Database and settings service initialized successfully");
-        info!("[AppState::new] IMPORTANT: UI now connects directly to database via SettingsService");
+        info!(
+            "[AppState::new] IMPORTANT: UI now connects directly to database via SettingsService"
+        );
 
         // Start actors
         info!("[AppState::new] Starting ClientCoordinatorActor");
@@ -107,7 +154,7 @@ impl AppState {
 
         // Extract physics settings from logseq graph before moving settings
         let physics_settings = settings.visualisation.graphs.logseq.physics.clone();
-        
+
         info!("[AppState::new] Starting MetadataActor");
         let metadata_addr = MetadataActor::new(MetadataStore::new()).start();
 
@@ -122,9 +169,10 @@ impl AppState {
         }
         let graph_service_addr = TransitionalGraphSupervisor::new(
             Some(client_manager_addr.clone()),
-            None // GPU manager will be linked later
-        ).start();
-        
+            None, // GPU manager will be linked later
+        )
+        .start();
+
         // WEBSOCKET SETTLING FIX: Set graph service supervisor address in client manager for force broadcasts
         info!("[AppState::new] Linking ClientCoordinatorActor to TransitionalGraphSupervisor for settling fix");
         // Get the internal GraphServiceActor from the supervisor and set it in ClientManagerActor
@@ -135,23 +183,25 @@ impl AppState {
             tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
 
             // Get the internal GraphServiceActor address
-            if let Ok(Some(graph_actor)) = graph_supervisor_clone.send(crate::actors::messages::GetGraphServiceActor).await {
+            if let Ok(Some(graph_actor)) = graph_supervisor_clone
+                .send(crate::actors::messages::GetGraphServiceActor)
+                .await
+            {
                 info!("Retrieved GraphServiceActor from supervisor, setting in ClientManagerActor");
-                client_manager_clone.do_send(crate::actors::messages::SetGraphServiceAddress {
-                    addr: graph_actor,
-                });
+                client_manager_clone
+                    .do_send(crate::actors::messages::SetGraphServiceAddress { addr: graph_actor });
             } else {
                 warn!("Could not retrieve GraphServiceActor from supervisor");
             }
         });
-        
+
         // Create the modular GPU manager system
         #[cfg(feature = "gpu")]
         let gpu_manager_addr = {
             info!("[AppState::new] Starting GPUManagerActor (modular architecture)");
             Some(GPUManagerActor::new().start())
         };
-        
+
         // Initialize the connection between GraphServiceSupervisor and GPUManagerActor
         #[cfg(feature = "gpu")]
         {
@@ -171,55 +221,59 @@ impl AppState {
             info!("[AppState] GPU feature disabled - running in CPU-only mode");
         }
 
-        info!("[AppState::new] Starting OptimizedSettingsActor with actor addresses for physics forwarding");
+        info!("[AppState::new] Starting OptimizedSettingsActor with repository injection (hexagonal architecture)");
+        // Create settings repository adapter for OptimizedSettingsActor (separate from CQRS repositories)
+        let actor_settings_repository = Arc::new(SqliteSettingsRepository::new(db_service.clone()));
+
         let settings_actor = OptimizedSettingsActor::with_actors(
+            actor_settings_repository,
             Some(graph_service_addr.clone()),
             None, // Legacy GPU compute actor removed
-        ).map_err(|e| {
+        )
+        .map_err(|e| {
             log::error!("Failed to create OptimizedSettingsActor: {}", e);
             e
         })?;
         let settings_addr = settings_actor.start();
-        
+
         info!("[AppState::new] Starting AgentMonitorActor for MCP monitoring");
-        let mcp_host = std::env::var("MCP_HOST")
-            .unwrap_or_else(|_| "agentic-workstation".to_string());
+        let mcp_host =
+            std::env::var("MCP_HOST").unwrap_or_else(|_| "agentic-workstation".to_string());
         let mcp_port = std::env::var("MCP_TCP_PORT")
             .unwrap_or_else(|_| "9500".to_string())
             .parse::<u16>()
             .unwrap_or(9500);
 
-        info!("[AppState::new] AgentMonitorActor will poll MCP at {}:{}", mcp_host, mcp_port);
-        let claude_flow_client = crate::types::claude_flow::ClaudeFlowClient::new(
-            mcp_host,
-            mcp_port
+        info!(
+            "[AppState::new] AgentMonitorActor will poll MCP at {}:{}",
+            mcp_host, mcp_port
         );
-        let agent_monitor_addr = AgentMonitorActor::new(
-            claude_flow_client,
-            graph_service_addr.clone()
-        ).start();
-        
+        let claude_flow_client =
+            crate::types::claude_flow::ClaudeFlowClient::new(mcp_host, mcp_port);
+        let agent_monitor_addr =
+            AgentMonitorActor::new(claude_flow_client, graph_service_addr.clone()).start();
+
         // Send initial physics settings to both GraphServiceSupervisor and GPUComputeActor
         // Use the From trait to convert PhysicsSettings to SimulationParams
         // This ensures all fields are properly set from settings.yaml
-        let sim_params = crate::models::simulation_params::SimulationParams::from(&physics_settings);
-        
-        let update_msg = crate::actors::messages::UpdateSimulationParams {
-            params: sim_params,
-        };
-        
+        let sim_params =
+            crate::models::simulation_params::SimulationParams::from(&physics_settings);
+
+        let update_msg = crate::actors::messages::UpdateSimulationParams { params: sim_params };
+
         // Send to GraphServiceSupervisor
         graph_service_addr.do_send(update_msg.clone());
-        
+
         // Send to GPUManagerActor if available
         #[cfg(feature = "gpu")]
-        if let Some(ref gpu_addr) = gpu_manager_addr {
+        if let Some(ref _gpu_addr) = gpu_manager_addr {
             // TODO: GPUManagerActor needs to handle UpdateSimulationParams
             // gpu_addr.do_send(update_msg);
         }
 
         info!("[AppState::new] Starting ProtectedSettingsActor");
-        let protected_settings_addr = ProtectedSettingsActor::new(ProtectedSettings::default()).start();
+        let protected_settings_addr =
+            ProtectedSettingsActor::new(ProtectedSettings::default()).start();
 
         info!("[AppState::new] Starting WorkspaceActor");
         let workspace_addr = WorkspaceActor::new().start();
@@ -244,11 +298,10 @@ impl AppState {
             .unwrap_or_else(|_| "9090".to_string())
             .parse::<u16>()
             .unwrap_or(9090);
-        let mgmt_api_key = std::env::var("MANAGEMENT_API_KEY")
-            .unwrap_or_else(|_| {
-                warn!("[AppState] MANAGEMENT_API_KEY not set, using default");
-                "change-this-secret-key".to_string()
-            });
+        let mgmt_api_key = std::env::var("MANAGEMENT_API_KEY").unwrap_or_else(|_| {
+            warn!("[AppState] MANAGEMENT_API_KEY not set, using default");
+            "change-this-secret-key".to_string()
+        });
 
         let mgmt_client = ManagementApiClient::new(mgmt_api_host, mgmt_api_port, mgmt_api_key);
         let task_orchestrator_addr = TaskOrchestratorActor::new(mgmt_client).start();
@@ -272,7 +325,7 @@ impl AppState {
 
         // Read debug state from settings (can be overridden by env var)
         let debug_enabled = crate::utils::logging::is_debug_enabled();
-        
+
         info!("[AppState::new] Debug mode enabled: {}", debug_enabled);
 
         // Create client message channel for agent -> user communication
@@ -285,6 +338,10 @@ impl AppState {
             gpu_manager_addr,
             #[cfg(feature = "gpu")]
             gpu_compute_addr: None, // Will be set by GPUManagerActor
+            // HEXAGONAL ARCHITECTURE: Repository trait objects
+            settings_repository,
+            knowledge_graph_repository,
+            ontology_repository,
             // NEW: Database-backed settings (direct UI connection)
             db_service,
             settings_service,
@@ -323,9 +380,12 @@ impl AppState {
 
     pub async fn get_api_keys(&self, pubkey: &str) -> ApiKeys {
         use crate::actors::protected_settings_actor::GetApiKeys;
-        self.protected_settings_addr.send(GetApiKeys {
-            pubkey: pubkey.to_string(),
-        }).await.unwrap_or_else(|_| ApiKeys::default())
+        self.protected_settings_addr
+            .send(GetApiKeys {
+                pubkey: pubkey.to_string(),
+            })
+            .await
+            .unwrap_or_else(|_| ApiKeys::default())
     }
 
     pub async fn get_nostr_user(&self, pubkey: &str) -> Option<NostrUser> {
@@ -344,9 +404,14 @@ impl AppState {
         }
     }
 
-    pub async fn update_nostr_user_api_keys(&self, pubkey: &str, api_keys: ApiKeys) -> Result<NostrUser, String> {
+    pub async fn update_nostr_user_api_keys(
+        &self,
+        pubkey: &str,
+        api_keys: ApiKeys,
+    ) -> Result<NostrUser, String> {
         if let Some(nostr_service) = &self.nostr_service {
-            nostr_service.update_user_api_keys(pubkey, api_keys)
+            nostr_service
+                .update_user_api_keys(pubkey, api_keys)
                 .await
                 .map_err(|e| e.to_string())
         } else {

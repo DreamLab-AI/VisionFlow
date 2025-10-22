@@ -1,6 +1,6 @@
-use crate::models::node::Node;
 use super::edge::Edge;
 use super::metadata::MetadataStore;
+use crate::models::node::Node;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 

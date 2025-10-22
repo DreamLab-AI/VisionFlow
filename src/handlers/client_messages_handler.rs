@@ -1,12 +1,11 @@
+use actix::{Actor, ActorContext, AsyncContext, StreamHandler};
 use actix_web::{web, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
-use actix::{Actor, StreamHandler, AsyncContext, ActorContext};
+use log::{debug, info, warn};
 use serde_json::json;
 use std::time::{Duration, Instant};
-use log::{info, debug, warn};
 
 use crate::AppState;
-use crate::utils::client_message_extractor::ClientMessage;
 
 /// WebSocket actor for streaming client messages from agents to frontend
 pub struct ClientMessagesWs {
@@ -116,11 +115,7 @@ pub async fn websocket_client_messages(
 ) -> Result<HttpResponse, actix_web::Error> {
     info!("New client messages WebSocket connection request");
 
-    let resp = ws::start(
-        ClientMessagesWs::new(app_state),
-        &req,
-        stream,
-    );
+    let resp = ws::start(ClientMessagesWs::new(app_state), &req, stream);
 
     match resp {
         Ok(response) => Ok(response),

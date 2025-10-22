@@ -1,23 +1,21 @@
 //! Multi-MCP Agent Discovery Service
-//! 
+//!
 //! This service discovers and monitors agents across multiple MCP servers:
 //! - Claude Flow (claude-flow MCP server)
-//! - RuvSwarm (ruv-swarm MCP server) 
+//! - RuvSwarm (ruv-swarm MCP server)
 //! - DAA (Decentralized Autonomous Agents)
 //! - Custom MCP implementations
 //!
 //! It provides unified agent discovery, real-time monitoring, and topology analysis.
 
+use chrono::{DateTime, Utc};
+use log::{debug, error, info, warn};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use chrono::{DateTime, Utc};
-use log::{info, warn, error, debug};
 
 use crate::services::agent_visualization_protocol::{
-    McpServerInfo, McpServerType, MultiMcpAgentStatus,
-    SwarmTopologyData,
-    GlobalPerformanceMetrics
+    GlobalPerformanceMetrics, McpServerInfo, McpServerType, MultiMcpAgentStatus, SwarmTopologyData,
 };
 use crate::utils::mcp_tcp_client::create_mcp_client;
 
@@ -43,7 +41,7 @@ impl Default for McpServerConfig {
             port: 9500,
             enabled: true,
             discovery_interval_ms: 5000, // 5 seconds
-            timeout_ms: 10000, // 10 seconds
+            timeout_ms: 10000,           // 10 seconds
             retry_attempts: 3,
         }
     }
@@ -88,50 +86,74 @@ impl MultiMcpAgentDiscovery {
     /// Initialize with default MCP server configurations
     pub async fn initialize_default_servers(&self) {
         let mut servers = self.servers.write().await;
-        
-        // Claude Flow MCP server
-        servers.insert("claude-flow".to_string(), McpServerConfig {
-            server_id: "claude-flow".to_string(),
-            server_type: McpServerType::ClaudeFlow,
-            host: std::env::var("CLAUDE_FLOW_HOST").unwrap_or_else(|_| "localhost".to_string()),
-            port: std::env::var("MCP_TCP_PORT").unwrap_or_else(|_| "9500".to_string()).parse().unwrap_or(9500),
-            enabled: true,
-            discovery_interval_ms: 3000,
-            timeout_ms: 10000,
-            retry_attempts: 3,
-        });
 
-        // RuvSwarm MCP server  
-        servers.insert("ruv-swarm".to_string(), McpServerConfig {
-            server_id: "ruv-swarm".to_string(),
-            server_type: McpServerType::RuvSwarm,
-            host: std::env::var("RUV_SWARM_HOST").unwrap_or_else(|_| "localhost".to_string()),
-            port: std::env::var("RUV_SWARM_PORT").unwrap_or_else(|_| "9501".to_string()).parse().unwrap_or(9501),
-            enabled: true,
-            discovery_interval_ms: 3000,
-            timeout_ms: 10000,
-            retry_attempts: 3,
-        });
+        // Claude Flow MCP server
+        servers.insert(
+            "claude-flow".to_string(),
+            McpServerConfig {
+                server_id: "claude-flow".to_string(),
+                server_type: McpServerType::ClaudeFlow,
+                host: std::env::var("CLAUDE_FLOW_HOST").unwrap_or_else(|_| "localhost".to_string()),
+                port: std::env::var("MCP_TCP_PORT")
+                    .unwrap_or_else(|_| "9500".to_string())
+                    .parse()
+                    .unwrap_or(9500),
+                enabled: true,
+                discovery_interval_ms: 3000,
+                timeout_ms: 10000,
+                retry_attempts: 3,
+            },
+        );
+
+        // RuvSwarm MCP server
+        servers.insert(
+            "ruv-swarm".to_string(),
+            McpServerConfig {
+                server_id: "ruv-swarm".to_string(),
+                server_type: McpServerType::RuvSwarm,
+                host: std::env::var("RUV_SWARM_HOST").unwrap_or_else(|_| "localhost".to_string()),
+                port: std::env::var("RUV_SWARM_PORT")
+                    .unwrap_or_else(|_| "9501".to_string())
+                    .parse()
+                    .unwrap_or(9501),
+                enabled: true,
+                discovery_interval_ms: 3000,
+                timeout_ms: 10000,
+                retry_attempts: 3,
+            },
+        );
 
         // DAA MCP server
-        servers.insert("daa".to_string(), McpServerConfig {
-            server_id: "daa".to_string(),
-            server_type: McpServerType::Daa,
-            host: std::env::var("DAA_HOST").unwrap_or_else(|_| "localhost".to_string()),
-            port: std::env::var("DAA_PORT").unwrap_or_else(|_| "9502".to_string()).parse().unwrap_or(9502),
-            enabled: true,
-            discovery_interval_ms: 5000,
-            timeout_ms: 15000,
-            retry_attempts: 2,
-        });
+        servers.insert(
+            "daa".to_string(),
+            McpServerConfig {
+                server_id: "daa".to_string(),
+                server_type: McpServerType::Daa,
+                host: std::env::var("DAA_HOST").unwrap_or_else(|_| "localhost".to_string()),
+                port: std::env::var("DAA_PORT")
+                    .unwrap_or_else(|_| "9502".to_string())
+                    .parse()
+                    .unwrap_or(9502),
+                enabled: true,
+                discovery_interval_ms: 5000,
+                timeout_ms: 15000,
+                retry_attempts: 2,
+            },
+        );
 
-        info!("Initialized {} default MCP servers for discovery", servers.len());
+        info!(
+            "Initialized {} default MCP servers for discovery",
+            servers.len()
+        );
     }
 
     /// Add or update MCP server configuration
     pub async fn add_server(&self, config: McpServerConfig) {
         let mut servers = self.servers.write().await;
-        info!("Adding MCP server: {} ({}:{})", config.server_id, config.host, config.port);
+        info!(
+            "Adding MCP server: {} ({}:{})",
+            config.server_id, config.host, config.port
+        );
         servers.insert(config.server_id.clone(), config);
     }
 
@@ -140,15 +162,15 @@ impl MultiMcpAgentDiscovery {
         let mut servers = self.servers.write().await;
         if servers.remove(server_id).is_some() {
             info!("Removed MCP server: {}", server_id);
-            
+
             // Also remove discovered agents from this server
             let mut agents = self.discovered_agents.write().await;
             agents.retain(|_, agent| {
                 !matches!(
                     (&agent.server_source, server_id),
-                    (McpServerType::ClaudeFlow, "claude-flow") |
-                    (McpServerType::RuvSwarm, "ruv-swarm") |
-                    (McpServerType::Daa, "daa")
+                    (McpServerType::ClaudeFlow, "claude-flow")
+                        | (McpServerType::RuvSwarm, "ruv-swarm")
+                        | (McpServerType::Daa, "daa")
                 )
             });
         }
@@ -176,14 +198,14 @@ impl MultiMcpAgentDiscovery {
         tokio::spawn(async move {
             while *discovery_running.read().await {
                 let servers_config = servers.read().await.clone();
-                
+
                 for (server_id, config) in servers_config {
                     if !config.enabled {
                         continue;
                     }
 
                     let start_time = std::time::Instant::now();
-                    
+
                     match Self::discover_server_agents(&config).await {
                         Ok((server_info, agents, topology)) => {
                             let mut server_statuses_guard = server_statuses.write().await;
@@ -206,11 +228,14 @@ impl MultiMcpAgentDiscovery {
                             let mut stats_guard = stats.write().await;
                             stats_guard.successful_discoveries += 1;
                             stats_guard.last_discovery_time = Some(Utc::now());
-                            stats_guard.average_discovery_time_ms = 
+                            stats_guard.average_discovery_time_ms =
                                 (stats_guard.average_discovery_time_ms + discovery_time) / 2.0;
                             drop(stats_guard);
 
-                            debug!("Successfully discovered agents from {} in {}ms", server_id, discovery_time);
+                            debug!(
+                                "Successfully discovered agents from {} in {}ms",
+                                server_id, discovery_time
+                            );
                         }
                         Err(e) => {
                             error!("Failed to discover agents from {}: {}", server_id, e);
@@ -229,7 +254,10 @@ impl MultiMcpAgentDiscovery {
                     }
 
                     // Wait before next discovery for this server
-                    tokio::time::sleep(tokio::time::Duration::from_millis(config.discovery_interval_ms)).await;
+                    tokio::time::sleep(tokio::time::Duration::from_millis(
+                        config.discovery_interval_ms,
+                    ))
+                    .await;
                 }
 
                 // Overall discovery cycle delay
@@ -250,12 +278,22 @@ impl MultiMcpAgentDiscovery {
     /// Discover agents from a specific MCP server
     async fn discover_server_agents(
         config: &McpServerConfig,
-    ) -> Result<(McpServerInfo, Vec<MultiMcpAgentStatus>, Option<SwarmTopologyData>), Box<dyn std::error::Error + Send + Sync>> {
+    ) -> Result<
+        (
+            McpServerInfo,
+            Vec<MultiMcpAgentStatus>,
+            Option<SwarmTopologyData>,
+        ),
+        Box<dyn std::error::Error + Send + Sync>,
+    > {
         let start_time = Utc::now();
         // Use start_time for performance metrics
         let _discovery_duration = start_time;
-        
-        debug!("Discovering agents from {} server at {}:{}", config.server_id, config.host, config.port);
+
+        debug!(
+            "Discovering agents from {} server at {}:{}",
+            config.server_id, config.host, config.port
+        );
 
         match &config.server_type {
             McpServerType::ClaudeFlow => Self::discover_claude_flow_agents(config).await,
@@ -271,15 +309,29 @@ impl MultiMcpAgentDiscovery {
     /// Discover agents from Claude Flow MCP server
     async fn discover_claude_flow_agents(
         config: &McpServerConfig,
-    ) -> Result<(McpServerInfo, Vec<MultiMcpAgentStatus>, Option<SwarmTopologyData>), Box<dyn std::error::Error + Send + Sync>> {
-        debug!("Discovering Claude Flow agents from real MCP server at {}:{}", config.host, config.port);
+    ) -> Result<
+        (
+            McpServerInfo,
+            Vec<MultiMcpAgentStatus>,
+            Option<SwarmTopologyData>,
+        ),
+        Box<dyn std::error::Error + Send + Sync>,
+    > {
+        debug!(
+            "Discovering Claude Flow agents from real MCP server at {}:{}",
+            config.host, config.port
+        );
 
         let client = create_mcp_client(&config.server_type, &config.host, config.port);
 
         // Test connection first
         let is_connected = client.test_connection().await.unwrap_or(false);
         if !is_connected {
-            return Err(format!("Cannot connect to Claude Flow MCP server at {}:{}", config.host, config.port).into());
+            return Err(format!(
+                "Cannot connect to Claude Flow MCP server at {}:{}",
+                config.host, config.port
+            )
+            .into());
         }
 
         // Initialize MCP session
@@ -312,12 +364,18 @@ impl MultiMcpAgentDiscovery {
         // Query agents from real MCP server
         let agents = match client.query_agent_list().await {
             Ok(agent_list) => {
-                info!("Retrieved {} agents from Claude Flow MCP server", agent_list.len());
+                info!(
+                    "Retrieved {} agents from Claude Flow MCP server",
+                    agent_list.len()
+                );
                 // Update server source for all agents
-                agent_list.into_iter().map(|mut agent| {
-                    agent.server_source = McpServerType::ClaudeFlow;
-                    agent
-                }).collect()
+                agent_list
+                    .into_iter()
+                    .map(|mut agent| {
+                        agent.server_source = McpServerType::ClaudeFlow;
+                        agent
+                    })
+                    .collect()
             }
             Err(e) => {
                 error!("Failed to query agent list from Claude Flow MCP: {}", e);
@@ -346,15 +404,29 @@ impl MultiMcpAgentDiscovery {
     /// Discover agents from RuvSwarm MCP server
     async fn discover_ruv_swarm_agents(
         config: &McpServerConfig,
-    ) -> Result<(McpServerInfo, Vec<MultiMcpAgentStatus>, Option<SwarmTopologyData>), Box<dyn std::error::Error + Send + Sync>> {
-        debug!("Discovering RuvSwarm agents from real MCP server at {}:{}", config.host, config.port);
+    ) -> Result<
+        (
+            McpServerInfo,
+            Vec<MultiMcpAgentStatus>,
+            Option<SwarmTopologyData>,
+        ),
+        Box<dyn std::error::Error + Send + Sync>,
+    > {
+        debug!(
+            "Discovering RuvSwarm agents from real MCP server at {}:{}",
+            config.host, config.port
+        );
 
         let client = create_mcp_client(&config.server_type, &config.host, config.port);
 
         // Test connection first
         let is_connected = client.test_connection().await.unwrap_or(false);
         if !is_connected {
-            return Err(format!("Cannot connect to RuvSwarm MCP server at {}:{}", config.host, config.port).into());
+            return Err(format!(
+                "Cannot connect to RuvSwarm MCP server at {}:{}",
+                config.host, config.port
+            )
+            .into());
         }
 
         // Initialize MCP session
@@ -392,12 +464,18 @@ impl MultiMcpAgentDiscovery {
         // Query agents from real MCP server
         let agents = match client.query_agent_list().await {
             Ok(agent_list) => {
-                info!("Retrieved {} agents from RuvSwarm MCP server", agent_list.len());
+                info!(
+                    "Retrieved {} agents from RuvSwarm MCP server",
+                    agent_list.len()
+                );
                 // Update server source for all agents
-                agent_list.into_iter().map(|mut agent| {
-                    agent.server_source = McpServerType::RuvSwarm;
-                    agent
-                }).collect()
+                agent_list
+                    .into_iter()
+                    .map(|mut agent| {
+                        agent.server_source = McpServerType::RuvSwarm;
+                        agent
+                    })
+                    .collect()
             }
             Err(e) => {
                 error!("Failed to query agent list from RuvSwarm MCP: {}", e);
@@ -426,15 +504,29 @@ impl MultiMcpAgentDiscovery {
     /// Discover agents from DAA MCP server
     async fn discover_daa_agents(
         config: &McpServerConfig,
-    ) -> Result<(McpServerInfo, Vec<MultiMcpAgentStatus>, Option<SwarmTopologyData>), Box<dyn std::error::Error + Send + Sync>> {
-        debug!("Discovering DAA agents from real MCP server at {}:{}", config.host, config.port);
+    ) -> Result<
+        (
+            McpServerInfo,
+            Vec<MultiMcpAgentStatus>,
+            Option<SwarmTopologyData>,
+        ),
+        Box<dyn std::error::Error + Send + Sync>,
+    > {
+        debug!(
+            "Discovering DAA agents from real MCP server at {}:{}",
+            config.host, config.port
+        );
 
         let client = create_mcp_client(&config.server_type, &config.host, config.port);
 
         // Test connection first
         let is_connected = client.test_connection().await.unwrap_or(false);
         if !is_connected {
-            return Err(format!("Cannot connect to DAA MCP server at {}:{}", config.host, config.port).into());
+            return Err(format!(
+                "Cannot connect to DAA MCP server at {}:{}",
+                config.host, config.port
+            )
+            .into());
         }
 
         // Initialize MCP session
@@ -473,10 +565,13 @@ impl MultiMcpAgentDiscovery {
             Ok(agent_list) => {
                 info!("Retrieved {} agents from DAA MCP server", agent_list.len());
                 // Update server source for all agents
-                agent_list.into_iter().map(|mut agent| {
-                    agent.server_source = McpServerType::Daa;
-                    agent
-                }).collect()
+                agent_list
+                    .into_iter()
+                    .map(|mut agent| {
+                        agent.server_source = McpServerType::Daa;
+                        agent
+                    })
+                    .collect()
             }
             Err(e) => {
                 error!("Failed to query agent list from DAA MCP: {}", e);
@@ -504,21 +599,38 @@ impl MultiMcpAgentDiscovery {
 
     /// Get all discovered agents
     pub async fn get_all_agents(&self) -> Vec<MultiMcpAgentStatus> {
-        self.discovered_agents.read().await.values().cloned().collect()
+        self.discovered_agents
+            .read()
+            .await
+            .values()
+            .cloned()
+            .collect()
     }
 
     /// Get agents by server type
-    pub async fn get_agents_by_server(&self, server_type: &McpServerType) -> Vec<MultiMcpAgentStatus> {
-        self.discovered_agents.read().await
+    pub async fn get_agents_by_server(
+        &self,
+        server_type: &McpServerType,
+    ) -> Vec<MultiMcpAgentStatus> {
+        self.discovered_agents
+            .read()
+            .await
             .values()
-            .filter(|agent| std::mem::discriminant(&agent.server_source) == std::mem::discriminant(server_type))
+            .filter(|agent| {
+                std::mem::discriminant(&agent.server_source) == std::mem::discriminant(server_type)
+            })
             .cloned()
             .collect()
     }
 
     /// Get all server statuses
     pub async fn get_server_statuses(&self) -> Vec<McpServerInfo> {
-        self.server_statuses.read().await.values().cloned().collect()
+        self.server_statuses
+            .read()
+            .await
+            .values()
+            .cloned()
+            .collect()
     }
 
     /// Get discovery statistics
@@ -548,12 +660,27 @@ impl MultiMcpAgentDiscovery {
         }
 
         let total_throughput: f32 = agent_list.iter().map(|a| a.performance.throughput).sum();
-        let average_latency: f32 = agent_list.iter().map(|a| a.performance.response_time_ms).sum::<f32>() / agent_list.len() as f32;
-        let resource_utilization: f32 = agent_list.iter().map(|a| (a.performance.cpu_usage + a.performance.memory_usage) / 2.0).sum::<f32>() / agent_list.len() as f32;
-        
-        let total_tasks: u32 = agent_list.iter().map(|a| a.performance.tasks_completed + a.performance.tasks_failed).sum();
+        let average_latency: f32 = agent_list
+            .iter()
+            .map(|a| a.performance.response_time_ms)
+            .sum::<f32>()
+            / agent_list.len() as f32;
+        let resource_utilization: f32 = agent_list
+            .iter()
+            .map(|a| (a.performance.cpu_usage + a.performance.memory_usage) / 2.0)
+            .sum::<f32>()
+            / agent_list.len() as f32;
+
+        let total_tasks: u32 = agent_list
+            .iter()
+            .map(|a| a.performance.tasks_completed + a.performance.tasks_failed)
+            .sum();
         let failed_tasks: u32 = agent_list.iter().map(|a| a.performance.tasks_failed).sum();
-        let error_rate = if total_tasks > 0 { failed_tasks as f32 / total_tasks as f32 } else { 0.0 };
+        let error_rate = if total_tasks > 0 {
+            failed_tasks as f32 / total_tasks as f32
+        } else {
+            0.0
+        };
 
         GlobalPerformanceMetrics {
             total_throughput,
@@ -577,9 +704,11 @@ impl MultiMcpAgentDiscovery {
         // 3. Agent distribution across servers (cross-server coordination is more expensive)
 
         let agent_count = agents.len() as f32;
-        let avg_queue_size = agents.iter()
+        let avg_queue_size = agents
+            .iter()
             .map(|a| a.metadata.task_queue_size as f32)
-            .sum::<f32>() / agent_count;
+            .sum::<f32>()
+            / agent_count;
 
         // Count unique server types
         let mut server_types = std::collections::HashSet::new();
@@ -606,7 +735,9 @@ impl MultiMcpAgentDiscovery {
 
     /// Check if any server is online
     pub async fn is_any_server_online(&self) -> bool {
-        self.server_statuses.read().await
+        self.server_statuses
+            .read()
+            .await
             .values()
             .any(|server| server.is_connected)
     }

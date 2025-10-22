@@ -1,9 +1,9 @@
 // Test suite for node ID truncation bug fix
 // Verifies that V2 protocol correctly handles node IDs > 16383
 
+use crate::types::vec3::Vec3Data;
 use crate::utils::binary_protocol::*;
 use crate::utils::socket_flow_messages::BinaryNodeData;
-use crate::types::vec3::Vec3Data;
 
 #[test]
 fn test_v1_truncation_bug() {
@@ -44,13 +44,9 @@ fn test_v2_no_truncation() {
 fn test_collision_scenarios() {
     // Test that different node IDs don't collide in V2
     let node_ids = vec![
-        100u32,
-        16383u32,  // Maximum V1 safe ID
-        16384u32,  // First ID that would be truncated in V1
-        20000u32,
-        50000u32,
-        100000u32,
-        1000000u32,
+        100u32, 16383u32, // Maximum V1 safe ID
+        16384u32, // First ID that would be truncated in V1
+        20000u32, 50000u32, 100000u32, 1000000u32,
     ];
 
     let mut wire_ids = Vec::new();
@@ -65,7 +61,7 @@ fn test_collision_scenarios() {
 
     // Verify no collisions
     for i in 0..wire_ids.len() {
-        for j in (i+1)..wire_ids.len() {
+        for j in (i + 1)..wire_ids.len() {
             assert_ne!(
                 wire_ids[i] & 0x3FFFFFFF,
                 wire_ids[j] & 0x3FFFFFFF,
@@ -93,7 +89,12 @@ fn test_v1_collision_demonstration() {
     // These should collide in V1 (both truncate to 100)
     assert_eq!(wire1 & 0x3FFF, wire2 & 0x3FFF);
 
-    println!("✓ V1 collision demonstrated: {} and {} both truncate to {}", id1, id2, wire1 & 0x3FFF);
+    println!(
+        "✓ V1 collision demonstrated: {} and {} both truncate to {}",
+        id1,
+        id2,
+        wire1 & 0x3FFF
+    );
 }
 
 #[test]
@@ -101,8 +102,8 @@ fn test_v2_encode_decode_large_ids() {
     // Test full encode/decode with large node IDs
     let nodes = vec![
         (100u32, create_test_node(1.0, 2.0, 3.0)),
-        (16383u32, create_test_node(4.0, 5.0, 6.0)),  // V1 max
-        (16384u32, create_test_node(7.0, 8.0, 9.0)),  // V1 would fail
+        (16383u32, create_test_node(4.0, 5.0, 6.0)), // V1 max
+        (16384u32, create_test_node(7.0, 8.0, 9.0)), // V1 would fail
         (50000u32, create_test_node(10.0, 11.0, 12.0)),
         (100000u32, create_test_node(13.0, 14.0, 15.0)),
     ];
@@ -179,14 +180,16 @@ fn test_v2_with_flags() {
 #[test]
 fn test_v2_wire_format_size() {
     // Verify V2 wire format is exactly 38 bytes per node
-    let nodes = vec![
-        (50000u32, create_test_node(1.0, 2.0, 3.0)),
-    ];
+    let nodes = vec![(50000u32, create_test_node(1.0, 2.0, 3.0))];
 
     let encoded = encode_node_data(&nodes);
 
     // 1 byte version + 38 bytes per node
-    assert_eq!(encoded.len(), 1 + 38, "V2 wire format should be 39 bytes total (1 version + 38 data)");
+    assert_eq!(
+        encoded.len(),
+        1 + 38,
+        "V2 wire format should be 39 bytes total (1 version + 38 data)"
+    );
 
     println!("✓ V2 wire format size is correct");
 }
@@ -302,9 +305,7 @@ fn test_stress_large_node_count() {
 #[test]
 fn test_performance_comparison() {
     // Compare V1 vs V2 encoding size
-    let nodes = vec![
-        (100u32, create_test_node(1.0, 2.0, 3.0)),
-    ];
+    let nodes = vec![(100u32, create_test_node(1.0, 2.0, 3.0))];
 
     // V2 encoding
     let v2_encoded = encode_node_data(&nodes);
@@ -319,6 +320,9 @@ fn test_performance_comparison() {
     let overhead_per_node = 4;
     let overhead_percentage = (overhead_per_node as f32 / 34.0) * 100.0;
 
-    println!("✓ V2 overhead: {} bytes per node ({:.1}% increase)", overhead_per_node, overhead_percentage);
+    println!(
+        "✓ V2 overhead: {} bytes per node ({:.1}% increase)",
+        overhead_per_node, overhead_percentage
+    );
     println!("  Trade-off: +4 bytes/node for 65536x more unique IDs");
 }

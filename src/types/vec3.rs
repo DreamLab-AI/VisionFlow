@@ -1,6 +1,6 @@
-use glam::Vec3;
 use bytemuck::{Pod, Zeroable};
-use serde::{Serialize, Deserialize};
+use glam::Vec3;
+use serde::{Deserialize, Serialize};
 
 /// A 3D vector type that is compatible with both CUDA and WebSocket binary protocol
 #[repr(C)]

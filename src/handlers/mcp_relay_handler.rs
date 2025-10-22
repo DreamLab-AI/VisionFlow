@@ -1,17 +1,16 @@
+use crate::utils::network::{
+    CircuitBreaker, HealthCheckConfig, HealthCheckManager, ServiceEndpoint, TimeoutConfig,
+};
 use actix::{Actor, ActorContext, Addr, AsyncContext, Handler, Message, StreamHandler};
 use actix_web::{web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
+use futures_util::{stream::SplitSink, SinkExt, StreamExt};
+use log::{debug, error, info, warn};
 use serde_json;
 use std::sync::Arc;
+use std::time::{Duration, Instant};
 use tokio::sync::Mutex;
 use tokio_tungstenite::{connect_async, tungstenite::Message as TungsteniteMessage};
-use futures_util::{SinkExt, StreamExt, stream::SplitSink};
-use log::{debug, error, info, warn};
-use std::time::{Duration, Instant};
-use crate::utils::network::{
-    CircuitBreaker, HealthCheckManager, TimeoutConfig,
-    ServiceEndpoint, HealthCheckConfig
-};
 
 #[allow(dead_code)]
 #[derive(Message)]
@@ -33,7 +32,18 @@ struct OrchestratorBinary(Vec<u8>);
 
 pub struct MCPRelayActor {
     client_id: String,
-    orchestrator_tx: Option<Arc<Mutex<SplitSink<tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>, TungsteniteMessage>>>>,
+    orchestrator_tx: Option<
+        Arc<
+            Mutex<
+                SplitSink<
+                    tokio_tungstenite::WebSocketStream<
+                        tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>,
+                    >,
+                    TungsteniteMessage,
+                >,
+            >,
+        >,
+    >,
     self_addr: Option<Addr<Self>>,
     // Resilience components
     circuit_breaker: Arc<CircuitBreaker>,
@@ -50,11 +60,14 @@ impl MCPRelayActor {
         let circuit_breaker = Arc::new(CircuitBreaker::mcp_operations());
         let health_manager = Arc::new(HealthCheckManager::new());
         let timeout_config = TimeoutConfig::mcp_operations();
-        
+
         // Service will be registered in started() method
-        
-        info!("[MCP Relay] Creating new actor with resilience features: {}", client_id);
-        
+
+        info!(
+            "[MCP Relay] Creating new actor with resilience features: {}",
+            client_id
+        );
+
         Self {
             client_id,
             orchestrator_tx: None,
@@ -67,48 +80,63 @@ impl MCPRelayActor {
             is_orchestrator_healthy: true,
         }
     }
-    
+
     fn connect_to_orchestrator(&mut self, ctx: &mut <Self as Actor>::Context) {
         let orchestrator_url = std::env::var("ORCHESTRATOR_WS_URL")
             .unwrap_or_else(|_| "ws://multi-agent-container:3002/ws".to_string());
-        
+
         self.connection_attempts += 1;
-        info!("[MCP Relay] Connecting to orchestrator at: {} (attempt {})", orchestrator_url, self.connection_attempts);
-        
+        info!(
+            "[MCP Relay] Connecting to orchestrator at: {} (attempt {})",
+            orchestrator_url, self.connection_attempts
+        );
+
         let addr = ctx.address();
         self.self_addr = Some(addr.clone());
         let circuit_breaker = self.circuit_breaker.clone();
         let health_manager = self.health_manager.clone();
         let timeout_config = self.timeout_config.clone();
         let connection_attempts = self.connection_attempts;
-        
+
         actix::spawn(async move {
             // Use circuit breaker for connection attempt
-            let connection_result = circuit_breaker.execute(async {
-                let conn_timeout = timeout_config.connect_timeout;
-                match tokio::time::timeout(conn_timeout, connect_async(orchestrator_url.as_str())).await {
-                    Ok(Ok(stream)) => Ok(stream),
-                    Ok(Err(e)) => Err(Box::new(e) as Box<dyn std::error::Error + Send + Sync>),
-                    Err(_) => Err(Box::new(std::io::Error::new(
-                        std::io::ErrorKind::TimedOut,
-                        "Connection timeout"
-                    )) as Box<dyn std::error::Error + Send + Sync>),
-                }
-            }).await;
-            
+            let connection_result = circuit_breaker
+                .execute(async {
+                    let conn_timeout = timeout_config.connect_timeout;
+                    match tokio::time::timeout(
+                        conn_timeout,
+                        connect_async(orchestrator_url.as_str()),
+                    )
+                    .await
+                    {
+                        Ok(Ok(stream)) => Ok(stream),
+                        Ok(Err(e)) => Err(Box::new(e) as Box<dyn std::error::Error + Send + Sync>),
+                        Err(_) => Err(Box::new(std::io::Error::new(
+                            std::io::ErrorKind::TimedOut,
+                            "Connection timeout",
+                        ))
+                            as Box<dyn std::error::Error + Send + Sync>),
+                    }
+                })
+                .await;
+
             match connection_result {
                 Ok((ws_stream, _)) => {
-                    info!("[MCP Relay] Connected to orchestrator on attempt {}", connection_attempts);
+                    info!(
+                        "[MCP Relay] Connected to orchestrator on attempt {}",
+                        connection_attempts
+                    );
                     let (tx, mut rx) = ws_stream.split();
                     let tx = Arc::new(Mutex::new(tx));
-                    
+
                     // Update health status
-                    let _health_check_result = health_manager.check_service_now("orchestrator").await;
+                    let _health_check_result =
+                        health_manager.check_service_now("orchestrator").await;
                     debug!("[MCP Relay] Health check performed for orchestrator");
-                    
+
                     // Send connection success to actor
                     addr.do_send(OrchestratorText("connected".to_string()));
-                    
+
                     // Forward messages from orchestrator to client
                     while let Some(msg) = rx.next().await {
                         match msg {
@@ -128,12 +156,19 @@ impl MCPRelayActor {
                                 actix::spawn(async move {
                                     // Respond to ping and update health status
                                     let mut tx_guard = tx_clone.lock().await;
-                                    match tx_guard.send(TungsteniteMessage::Pong(data)).await { Err(e) => {
-                                        error!("[MCP Relay] Failed to send pong: {}", e);
-                                        let _ = health_manager_clone.check_service_now("orchestrator").await;
-                                    } _ => {
-                                        let _ = health_manager_clone.check_service_now("orchestrator").await;
-                                    }}
+                                    match tx_guard.send(TungsteniteMessage::Pong(data)).await {
+                                        Err(e) => {
+                                            error!("[MCP Relay] Failed to send pong: {}", e);
+                                            let _ = health_manager_clone
+                                                .check_service_now("orchestrator")
+                                                .await;
+                                        }
+                                        _ => {
+                                            let _ = health_manager_clone
+                                                .check_service_now("orchestrator")
+                                                .await;
+                                        }
+                                    }
                                 });
                             }
                             Ok(TungsteniteMessage::Pong(_)) => {
@@ -148,21 +183,24 @@ impl MCPRelayActor {
                             }
                         }
                     }
-                    
+
                     info!("[MCP Relay] Orchestrator connection handler ended");
                 }
                 Err(e) => {
-                    error!("[MCP Relay] Failed to connect to orchestrator on attempt {}: {:?}", connection_attempts, e);
-                    
+                    error!(
+                        "[MCP Relay] Failed to connect to orchestrator on attempt {}: {:?}",
+                        connection_attempts, e
+                    );
+
                     // Mark orchestrator as unhealthy
                     let _ = health_manager.check_service_now("orchestrator").await;
-                    
+
                     // Use exponential backoff for retries
                     let retry_delay = std::cmp::min(
                         Duration::from_secs(5) * 2_u32.pow(connection_attempts.saturating_sub(1)),
-                        Duration::from_secs(60)
+                        Duration::from_secs(60),
                     );
-                    
+
                     info!("[MCP Relay] Retrying connection in {:?}", retry_delay);
                     tokio::time::sleep(retry_delay).await;
                     addr.do_send(OrchestratorText("retry".to_string()));
@@ -174,10 +212,13 @@ impl MCPRelayActor {
 
 impl Actor for MCPRelayActor {
     type Context = ws::WebsocketContext<Self>;
-    
+
     fn started(&mut self, ctx: &mut Self::Context) {
-        info!("[MCP Relay] Actor started for client: {} with resilience features", self.client_id);
-        
+        info!(
+            "[MCP Relay] Actor started for client: {} with resilience features",
+            self.client_id
+        );
+
         // Register orchestrator service for health monitoring
         let health_manager = self.health_manager.clone();
         actix::spawn(async move {
@@ -190,22 +231,23 @@ impl Actor for MCPRelayActor {
             };
             health_manager.register_service(endpoint).await;
         });
-        
+
         // Start heartbeat with health monitoring
         ctx.run_interval(Duration::from_secs(30), |act, ctx| {
             ctx.ping(b"");
-            
+
             // Perform health check on orchestrator
             let health_manager = act.health_manager.clone();
             actix::spawn(async move {
                 let health_result = health_manager.check_service_now("orchestrator").await;
-                
-                if health_result.is_none() || !health_result.map_or(false, |r| r.status.is_usable()) {
+
+                if health_result.is_none() || !health_result.map_or(false, |r| r.status.is_usable())
+                {
                     warn!("[MCP Relay] Orchestrator health check failed");
                 }
             });
         });
-        
+
         // Start periodic health monitoring
         ctx.run_interval(Duration::from_secs(60), |act, _ctx| {
             act.last_health_check = Instant::now();
@@ -214,19 +256,21 @@ impl Actor for MCPRelayActor {
             actix::spawn(async move {
                 let _health = health_manager.get_service_health("orchestrator").await;
             });
-            
+
             let circuit_breaker = act.circuit_breaker.clone();
             actix::spawn(async move {
                 let stats = circuit_breaker.stats().await;
-                debug!("[MCP Relay] Circuit breaker stats - State: {:?}, Failures: {}, Successes: {}", 
-                       stats.state, stats.failed_requests, stats.successful_requests);
+                debug!(
+                    "[MCP Relay] Circuit breaker stats - State: {:?}, Failures: {}, Successes: {}",
+                    stats.state, stats.failed_requests, stats.successful_requests
+                );
             });
         });
-        
+
         // Connect to orchestrator
         self.connect_to_orchestrator(ctx);
     }
-    
+
     fn stopped(&mut self, _ctx: &mut Self::Context) {
         info!("[MCP Relay] Actor stopped for client: {}", self.client_id);
     }
@@ -235,15 +279,18 @@ impl Actor for MCPRelayActor {
 // Handle messages from orchestrator
 impl Handler<OrchestratorText> for MCPRelayActor {
     type Result = ();
-    
+
     fn handle(&mut self, msg: OrchestratorText, ctx: &mut Self::Context) {
         match msg.0.as_str() {
             "connected" => {
                 // Store orchestrator connection
-                ctx.text(serde_json::json!({
-                    "type": "orchestrator_connected",
-                    "timestamp": chrono::Utc::now().timestamp_millis()
-                }).to_string());
+                ctx.text(
+                    serde_json::json!({
+                        "type": "orchestrator_connected",
+                        "timestamp": chrono::Utc::now().timestamp_millis()
+                    })
+                    .to_string(),
+                );
             }
             "retry" => {
                 // Retry connection
@@ -259,7 +306,7 @@ impl Handler<OrchestratorText> for MCPRelayActor {
 
 impl Handler<OrchestratorBinary> for MCPRelayActor {
     type Result = ();
-    
+
     fn handle(&mut self, msg: OrchestratorBinary, ctx: &mut Self::Context) {
         // Forward binary message to client
         ctx.binary(msg.0);
@@ -278,44 +325,54 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MCPRelayActor {
             }
             Ok(ws::Message::Text(text)) => {
                 debug!("[MCP Relay] Received text from client: {}", text);
-                
+
                 // Parse and handle message
                 if let Ok(msg) = serde_json::from_str::<serde_json::Value>(&text) {
                     // Handle control messages
                     if let Some(msg_type) = msg.get("type").and_then(|t| t.as_str()) {
                         match msg_type {
                             "ping" => {
-                                ctx.text(serde_json::json!({
-                                    "type": "pong",
-                                    "timestamp": chrono::Utc::now().timestamp_millis()
-                                }).to_string());
+                                ctx.text(
+                                    serde_json::json!({
+                                        "type": "pong",
+                                        "timestamp": chrono::Utc::now().timestamp_millis()
+                                    })
+                                    .to_string(),
+                                );
                                 return;
                             }
                             _ => {}
                         }
                     }
                 }
-                
+
                 // Forward to orchestrator if connected and healthy
                 if let Some(tx) = &self.orchestrator_tx {
                     if !self.is_orchestrator_healthy {
                         warn!("[MCP Relay] Orchestrator unhealthy, dropping message");
-                        ctx.text(serde_json::json!({
-                            "type": "error",
-                            "message": "Orchestrator unhealthy",
-                            "timestamp": chrono::Utc::now().timestamp_millis()
-                        }).to_string());
+                        ctx.text(
+                            serde_json::json!({
+                                "type": "error",
+                                "message": "Orchestrator unhealthy",
+                                "timestamp": chrono::Utc::now().timestamp_millis()
+                            })
+                            .to_string(),
+                        );
                         return;
                     }
-                    
+
                     let tx = tx.clone();
                     let text_clone = text.to_string();
                     let health_manager = self.health_manager.clone();
-                    
+
                     actix::spawn(async move {
                         let mut tx_guard = tx.lock().await;
-                        match tokio::time::timeout(Duration::from_secs(5), 
-                                                 tx_guard.send(TungsteniteMessage::Text(text_clone))).await {
+                        match tokio::time::timeout(
+                            Duration::from_secs(5),
+                            tx_guard.send(TungsteniteMessage::Text(text_clone)),
+                        )
+                        .await
+                        {
                             Ok(Ok(_)) => {
                                 // Message sent successfully
                                 let _ = health_manager.check_service_now("orchestrator").await;
@@ -332,31 +389,41 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MCPRelayActor {
                     });
                 } else {
                     warn!("[MCP Relay] Client message received but orchestrator not connected");
-                    ctx.text(serde_json::json!({
-                        "type": "error",
-                        "message": "Orchestrator not connected",
-                        "timestamp": chrono::Utc::now().timestamp_millis()
-                    }).to_string());
+                    ctx.text(
+                        serde_json::json!({
+                            "type": "error",
+                            "message": "Orchestrator not connected",
+                            "timestamp": chrono::Utc::now().timestamp_millis()
+                        })
+                        .to_string(),
+                    );
                 }
             }
             Ok(ws::Message::Binary(bin)) => {
-                debug!("[MCP Relay] Received binary from client: {} bytes", bin.len());
-                
+                debug!(
+                    "[MCP Relay] Received binary from client: {} bytes",
+                    bin.len()
+                );
+
                 // Forward to orchestrator if connected and healthy
                 if let Some(tx) = &self.orchestrator_tx {
                     if !self.is_orchestrator_healthy {
                         warn!("[MCP Relay] Orchestrator unhealthy, dropping binary message");
                         return;
                     }
-                    
+
                     let tx = tx.clone();
                     let bin_vec = bin.to_vec();
                     let health_manager = self.health_manager.clone();
-                    
+
                     actix::spawn(async move {
                         let mut tx_guard = tx.lock().await;
-                        match tokio::time::timeout(Duration::from_secs(5), 
-                                                 tx_guard.send(TungsteniteMessage::Binary(bin_vec))).await {
+                        match tokio::time::timeout(
+                            Duration::from_secs(5),
+                            tx_guard.send(TungsteniteMessage::Binary(bin_vec)),
+                        )
+                        .await
+                        {
                             Ok(Ok(_)) => {
                                 let _ = health_manager.check_service_now("orchestrator").await;
                             }

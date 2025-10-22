@@ -8,9 +8,9 @@ use async_trait::async_trait;
 use std::collections::HashSet;
 use std::sync::Arc;
 
+use crate::models::edge::Edge;
 use crate::models::graph::GraphData;
 use crate::models::node::Node;
-use crate::models::edge::Edge;
 
 // Placeholder for BinaryNodeData - will use actual type from GPU module
 pub type BinaryNodeData = (f32, f32, f32);

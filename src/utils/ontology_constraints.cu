@@ -5,6 +5,7 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 #include <math_constants.h>
+#include <cstdint>
 
 // 64-byte aligned data structures for optimal GPU memory access
 struct OntologyNode {

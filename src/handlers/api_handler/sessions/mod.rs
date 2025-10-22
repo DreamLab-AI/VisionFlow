@@ -2,8 +2,8 @@
 // All session management now handled by Management API (port 9090)
 
 use actix_web::{web, HttpResponse, Responder, Result};
-use serde_json::json;
 use log::warn;
+use serde_json::json;
 
 /// GET /api/sessions/list - List all sessions (DEPRECATED)
 pub async fn list_sessions() -> Result<impl Responder> {
@@ -40,6 +40,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         web::scope("/sessions")
             .route("/list", web::get().to(list_sessions))
             .route("/{uuid}/status", web::get().to(get_session_status))
-            .route("/{uuid}/telemetry", web::get().to(get_session_telemetry))
+            .route("/{uuid}/telemetry", web::get().to(get_session_telemetry)),
     );
 }

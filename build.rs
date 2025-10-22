@@ -20,6 +20,7 @@ fn main() {
         "src/utils/gpu_landmark_apsp.cu",
         "src/utils/sssp_compact.cu",
         "src/utils/visionflow_unified_stability.cu",
+        "src/utils/ontology_constraints.cu",
     ];
 
     // Only rebuild if CUDA files change
@@ -46,14 +47,20 @@ fn main() {
         let ptx_output = PathBuf::from(&out_dir).join(format!("{}.ptx", file_name));
 
         println!("Compiling {} to PTX...", file_name);
-        println!("NVCC Command: nvcc -ptx -arch sm_{} -o {} {} --use_fast_math -O3",
-                 cuda_arch, ptx_output.display(), cuda_src.display());
+        println!(
+            "NVCC Command: nvcc -ptx -arch sm_{} -o {} {} --use_fast_math -O3",
+            cuda_arch,
+            ptx_output.display(),
+            cuda_src.display()
+        );
 
         let nvcc_output = Command::new("nvcc")
             .args([
                 "-ptx",
-                "-arch", &format!("sm_{}", cuda_arch),
-                "-o", ptx_output.to_str().unwrap(),
+                "-arch",
+                &format!("sm_{}", cuda_arch),
+                "-o",
+                ptx_output.to_str().unwrap(),
                 cuda_src.to_str().unwrap(),
                 "--use_fast_math",
                 "-O3",
@@ -62,8 +69,14 @@ fn main() {
             .expect("Failed to execute nvcc - is CUDA toolkit installed and in PATH?");
 
         if !nvcc_output.status.success() {
-            eprintln!("NVCC STDOUT: {}", String::from_utf8_lossy(&nvcc_output.stdout));
-            eprintln!("NVCC STDERR: {}", String::from_utf8_lossy(&nvcc_output.stderr));
+            eprintln!(
+                "NVCC STDOUT: {}",
+                String::from_utf8_lossy(&nvcc_output.stdout)
+            );
+            eprintln!(
+                "NVCC STDERR: {}",
+                String::from_utf8_lossy(&nvcc_output.stderr)
+            );
             panic!("CUDA PTX compilation failed for {} with exit code: {:?}. Check CUDA installation and source file.",
                    file_name, nvcc_output.status.code());
         }
@@ -71,7 +84,11 @@ fn main() {
         // Verify the PTX file was created
         match std::fs::metadata(&ptx_output) {
             Ok(metadata) => {
-                println!("PTX Build: {} created, size: {} bytes", file_name, metadata.len());
+                println!(
+                    "PTX Build: {} created, size: {} bytes",
+                    file_name,
+                    metadata.len()
+                );
                 if metadata.len() == 0 {
                     panic!("PTX file {} was created but is empty - CUDA compilation may have failed silently", file_name);
                 }
@@ -80,9 +97,12 @@ fn main() {
                 let env_var = format!("{}_PTX_PATH", file_name.to_uppercase());
                 println!("cargo:rustc-env={}={}", env_var, ptx_output.display());
                 println!("PTX Build: Exported {}={}", env_var, ptx_output.display());
-            },
+            }
             Err(e) => {
-                panic!("PTX file {} was not created despite successful nvcc status: {}", file_name, e);
+                panic!(
+                    "PTX file {} was not created despite successful nvcc status: {}",
+                    file_name, e
+                );
             }
         }
     }
@@ -98,13 +118,16 @@ fn main() {
     let obj_status = Command::new("nvcc")
         .args([
             "-c",
-            "-arch", &format!("sm_{}", cuda_arch),
-            "-o", obj_output.to_str().unwrap(),
+            "-arch",
+            &format!("sm_{}", cuda_arch),
+            "-o",
+            obj_output.to_str().unwrap(),
             cuda_src.to_str().unwrap(),
             "--use_fast_math",
             "-O3",
-            "-Xcompiler", "-fPIC",
-            "-dc",  // Enable device code linking for Thrust
+            "-Xcompiler",
+            "-fPIC",
+            "-dc", // Enable device code linking for Thrust
         ])
         .status()
         .expect("Failed to compile Thrust wrapper");
@@ -119,9 +142,11 @@ fn main() {
     let dlink_status = Command::new("nvcc")
         .args([
             "-dlink",
-            "-arch", &format!("sm_{}", cuda_arch),
+            "-arch",
+            &format!("sm_{}", cuda_arch),
             obj_output.to_str().unwrap(),
-            "-o", dlink_output.to_str().unwrap(),
+            "-o",
+            dlink_output.to_str().unwrap(),
         ])
         .status()
         .expect("Failed to device link");
@@ -156,7 +181,7 @@ fn main() {
     println!("cargo:rustc-link-search=native={}/lib64/stubs", cuda_path);
     println!("cargo:rustc-link-lib=cudart");
     println!("cargo:rustc-link-lib=cuda");
-    println!("cargo:rustc-link-lib=cudadevrt");  // Device runtime for Thrust
+    println!("cargo:rustc-link-lib=cudadevrt"); // Device runtime for Thrust
 
     // Link C++ standard library for Thrust
     println!("cargo:rustc-link-lib=stdc++");

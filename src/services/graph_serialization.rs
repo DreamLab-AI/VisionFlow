@@ -1,17 +1,15 @@
-use crate::models::graph_export::*;
 use crate::models::graph::GraphData;
+use crate::models::graph_export::*;
 use anyhow::{anyhow, Result};
 use chrono::Utc;
-use flate2::Compression;
 use flate2::write::GzEncoder;
+use flate2::Compression;
 use serde_json;
-use std::collections::HashMap;
 use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use uuid::Uuid;
 use xml::writer::{EmitterConfig, XmlEvent};
-use xml::EventWriter;
 
 /// Graph serialization service for converting graphs to various formats
 pub struct GraphSerializationService {
@@ -26,7 +24,7 @@ impl GraphSerializationService {
         Self {
             storage_path,
             max_file_size: 100 * 1024 * 1024, // 100MB default
-            compression_level: 6, // Balanced compression
+            compression_level: 6,             // Balanced compression
         }
     }
 
@@ -37,7 +35,12 @@ impl GraphSerializationService {
         request: &ExportRequest,
     ) -> Result<ExportResponse> {
         let export_id = Uuid::new_v4().to_string();
-        let filename = format!("{}_{}.{}", export_id, Utc::now().timestamp(), request.format);
+        let filename = format!(
+            "{}_{}.{}",
+            export_id,
+            Utc::now().timestamp(),
+            request.format
+        );
         let file_path = self.storage_path.join("exports").join(&filename);
 
         // Ensure export directory exists
@@ -66,7 +69,10 @@ impl GraphSerializationService {
 
         // Check file size limits
         if file_size > self.max_file_size {
-            return Err(anyhow!("Export file size exceeds limit: {} bytes", file_size));
+            return Err(anyhow!(
+                "Export file size exceeds limit: {} bytes",
+                file_size
+            ));
         }
 
         // Write to file
@@ -101,23 +107,24 @@ impl GraphSerializationService {
         };
 
         let export_response = self.export_graph(graph, &export_request).await?;
-        
+
         // Move exported file to shared directory
         let share_id = Uuid::new_v4();
         let shared_filename = format!("{}.{}", share_id, request.export_format);
         let shared_path = self.storage_path.join("shared").join(&shared_filename);
-        
+
         // Ensure shared directory exists
         if let Some(parent) = shared_path.parent() {
             fs::create_dir_all(parent)?;
         }
 
         // Move file from exports to shared
-        let export_path = self.storage_path.join("exports").join(
-            format!("{}_{}.{}", export_response.export_id, 
-                   export_response.expires_at.timestamp(), 
-                   export_response.format)
-        );
+        let export_path = self.storage_path.join("exports").join(format!(
+            "{}_{}.{}",
+            export_response.export_id,
+            export_response.expires_at.timestamp(),
+            export_response.format
+        ));
         fs::rename(export_path, &shared_path)?;
 
         // Create shared graph metadata
@@ -146,9 +153,7 @@ impl GraphSerializationService {
 
         // Hash password if provided
         if let Some(password) = &request.password {
-            shared_graph.password_hash = Some(
-                bcrypt::hash(password, bcrypt::DEFAULT_COST)?
-            );
+            shared_graph.password_hash = Some(bcrypt::hash(password, bcrypt::DEFAULT_COST)?);
         }
 
         let share_url = format!("/api/graph/shared/{}", share_id);
@@ -173,26 +178,29 @@ impl GraphSerializationService {
     /// Serialize graph to JSON format
     fn serialize_to_json(&self, graph: &GraphData, request: &ExportRequest) -> Result<String> {
         let mut export_data = serde_json::Map::new();
-        
+
         // Basic graph structure
         export_data.insert("nodes".to_string(), serde_json::to_value(&graph.nodes)?);
         export_data.insert("edges".to_string(), serde_json::to_value(&graph.edges)?);
-        
+
         // Include metadata if requested
         if request.include_metadata {
             let mut metadata = serde_json::Map::new();
-            metadata.insert("node_count".to_string(), serde_json::Value::Number(
-                serde_json::Number::from(graph.nodes.len())
-            ));
-            metadata.insert("edge_count".to_string(), serde_json::Value::Number(
-                serde_json::Number::from(graph.edges.len())
-            ));
-            metadata.insert("exported_at".to_string(), serde_json::Value::String(
-                Utc::now().to_rfc3339()
-            ));
+            metadata.insert(
+                "node_count".to_string(),
+                serde_json::Value::Number(serde_json::Number::from(graph.nodes.len())),
+            );
+            metadata.insert(
+                "edge_count".to_string(),
+                serde_json::Value::Number(serde_json::Number::from(graph.edges.len())),
+            );
+            metadata.insert(
+                "exported_at".to_string(),
+                serde_json::Value::String(Utc::now().to_rfc3339()),
+            );
             export_data.insert("metadata".to_string(), serde_json::Value::Object(metadata));
         }
-        
+
         Ok(serde_json::to_string_pretty(&export_data)?)
     }
 
@@ -205,21 +213,27 @@ impl GraphSerializationService {
                 .create_writer(&mut buffer);
 
             // XML declaration
-            writer.write(XmlEvent::start_element("gexf")
-                .attr("xmlns", "http://www.gexf.net/1.2draft")
-                .attr("version", "1.2"))?;
+            writer.write(
+                XmlEvent::start_element("gexf")
+                    .attr("xmlns", "http://www.gexf.net/1.2draft")
+                    .attr("version", "1.2"),
+            )?;
 
             // Graph element
-            writer.write(XmlEvent::start_element("graph")
-                .attr("mode", "static")
-                .attr("defaultedgetype", "undirected"))?;
+            writer.write(
+                XmlEvent::start_element("graph")
+                    .attr("mode", "static")
+                    .attr("defaultedgetype", "undirected"),
+            )?;
 
             // Nodes
             writer.write(XmlEvent::start_element("nodes"))?;
             for node in &graph.nodes {
-                writer.write(XmlEvent::start_element("node")
-                    .attr("id", &node.id.to_string())
-                    .attr("label", &node.label))?;
+                writer.write(
+                    XmlEvent::start_element("node")
+                        .attr("id", &node.id.to_string())
+                        .attr("label", &node.label),
+                )?;
                 writer.write(XmlEvent::end_element())?; // node
             }
             writer.write(XmlEvent::end_element())?; // nodes
@@ -227,11 +241,13 @@ impl GraphSerializationService {
             // Edges
             writer.write(XmlEvent::start_element("edges"))?;
             for (idx, edge) in graph.edges.iter().enumerate() {
-                writer.write(XmlEvent::start_element("edge")
-                    .attr("id", &idx.to_string())
-                    .attr("source", &edge.source.to_string())
-                    .attr("target", &edge.target.to_string())
-                    .attr("weight", &edge.weight.to_string()))?;
+                writer.write(
+                    XmlEvent::start_element("edge")
+                        .attr("id", &idx.to_string())
+                        .attr("source", &edge.source.to_string())
+                        .attr("target", &edge.target.to_string())
+                        .attr("weight", &edge.weight.to_string()),
+                )?;
                 writer.write(XmlEvent::end_element())?; // edge
             }
             writer.write(XmlEvent::end_element())?; // edges
@@ -258,36 +274,41 @@ impl GraphSerializationService {
                 .attr("xsi:schemaLocation", "http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd"))?;
 
             // Key definitions
-            writer.write(XmlEvent::start_element("key")
-                .attr("id", "weight")
-                .attr("for", "edge")
-                .attr("attr.name", "weight")
-                .attr("attr.type", "double"))?;
+            writer.write(
+                XmlEvent::start_element("key")
+                    .attr("id", "weight")
+                    .attr("for", "edge")
+                    .attr("attr.name", "weight")
+                    .attr("attr.type", "double"),
+            )?;
             writer.write(XmlEvent::end_element())?;
 
             // Graph element
-            writer.write(XmlEvent::start_element("graph")
-                .attr("id", "G")
-                .attr("edgedefault", "undirected"))?;
+            writer.write(
+                XmlEvent::start_element("graph")
+                    .attr("id", "G")
+                    .attr("edgedefault", "undirected"),
+            )?;
 
             // Nodes
             for node in &graph.nodes {
-                writer.write(XmlEvent::start_element("node")
-                    .attr("id", &node.id.to_string()))?;
+                writer.write(XmlEvent::start_element("node").attr("id", &node.id.to_string()))?;
                 writer.write(XmlEvent::end_element())?;
             }
 
             // Edges
             for edge in &graph.edges {
-                writer.write(XmlEvent::start_element("edge")
-                    .attr("source", &edge.source.to_string())
-                    .attr("target", &edge.target.to_string()))?;
-                
+                writer.write(
+                    XmlEvent::start_element("edge")
+                        .attr("source", &edge.source.to_string())
+                        .attr("target", &edge.target.to_string()),
+                )?;
+
                 let weight = edge.weight;
                 writer.write(XmlEvent::start_element("data").attr("key", "weight"))?;
                 writer.write(XmlEvent::characters(&weight.to_string()))?;
                 writer.write(XmlEvent::end_element())?;
-                
+
                 writer.write(XmlEvent::end_element())?;
             }
 
@@ -301,29 +322,27 @@ impl GraphSerializationService {
     /// Serialize graph to CSV format (adjacency list)
     fn serialize_to_csv(&self, graph: &GraphData, _request: &ExportRequest) -> Result<String> {
         let mut csv_data = String::from("source,target,weight\n");
-        
+
         for edge in &graph.edges {
             csv_data.push_str(&format!(
                 "{},{},{}\n",
-                edge.source,
-                edge.target,
-                edge.weight
+                edge.source, edge.target, edge.weight
             ));
         }
-        
+
         Ok(csv_data)
     }
 
     /// Serialize graph to DOT format (Graphviz)
     fn serialize_to_dot(&self, graph: &GraphData, _request: &ExportRequest) -> Result<String> {
         let mut dot_data = String::from("graph G {\n");
-        
+
         // Add nodes
         for node in &graph.nodes {
             let label = &node.label;
             dot_data.push_str(&format!("  {} [label=\"{}\"];\n", node.id, label));
         }
-        
+
         // Add edges
         for edge in &graph.edges {
             let weight = edge.weight;
@@ -332,7 +351,7 @@ impl GraphSerializationService {
                 edge.source, edge.target, weight
             ));
         }
-        
+
         dot_data.push_str("}\n");
         Ok(dot_data)
     }
@@ -340,22 +359,23 @@ impl GraphSerializationService {
     /// Clean up expired exports and shared graphs
     pub async fn cleanup_expired_files(&self) -> Result<u64> {
         let mut cleaned_count = 0;
-        
+
         // Clean exports directory
         let exports_dir = self.storage_path.join("exports");
         if exports_dir.exists() {
-            cleaned_count += self.cleanup_directory(&exports_dir, 24 * 60 * 60).await?; // 24 hours
+            cleaned_count += self.cleanup_directory(&exports_dir, 24 * 60 * 60).await?;
+            // 24 hours
         }
-        
+
         Ok(cleaned_count)
     }
 
     /// Clean up files older than specified seconds
     async fn cleanup_directory(&self, dir: &Path, max_age_seconds: u64) -> Result<u64> {
         let mut count = 0;
-        let cutoff_time = std::time::SystemTime::now() - 
-            std::time::Duration::from_secs(max_age_seconds);
-        
+        let cutoff_time =
+            std::time::SystemTime::now() - std::time::Duration::from_secs(max_age_seconds);
+
         if let Ok(entries) = fs::read_dir(dir) {
             for entry in entries {
                 if let Ok(entry) = entry {
@@ -371,7 +391,7 @@ impl GraphSerializationService {
                 }
             }
         }
-        
+
         Ok(count)
     }
 }
@@ -385,19 +405,19 @@ mod tests {
     async fn test_json_serialization() {
         let temp_dir = tempdir().unwrap();
         let service = GraphSerializationService::new(temp_dir.path().to_path_buf());
-        
+
         let mut graph = GraphData::new();
         let mut node = crate::models::node::Node::new("node_1".to_string())
             .with_label("Node 1".to_string())
             .with_position(0.0, 0.0, 0.0);
         node.id = 1;
         graph.nodes.push(node);
-        
+
         let request = ExportRequest {
             format: ExportFormat::Json,
             ..Default::default()
         };
-        
+
         let result = service.export_graph(&graph, &request).await;
         assert!(result.is_ok());
     }

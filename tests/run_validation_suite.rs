@@ -1,5 +1,5 @@
 //! Main Test Runner for Production Validation Suite
-//! 
+//!
 //! This module orchestrates the execution of all validation tests
 //! and provides a comprehensive summary of results
 
@@ -7,17 +7,17 @@ use std::time::{Duration, Instant};
 use tokio::test;
 
 // Import all test suites
-mod production_validation_suite;
+mod api_validation_tests;
 mod error_handling_tests;
 mod gpu_safety_validation;
 mod network_resilience_tests;
-mod api_validation_tests;
+mod production_validation_suite;
 
-use production_validation_suite::{ProductionValidationSuite, ValidationResults};
+use api_validation_tests::APIValidationTestSuite;
 use error_handling_tests::ErrorHandlingTestSuite;
 use gpu_safety_validation::GPUSafetyTestSuite;
 use network_resilience_tests::NetworkResilienceTestSuite;
-use api_validation_tests::APIValidationTestSuite;
+use production_validation_suite::{ProductionValidationSuite, ValidationResults};
 
 #[derive(Debug, Clone)]
 pub struct ValidationSummary {
@@ -47,11 +47,13 @@ impl ValidationSummary {
         }
     }
 
-    pub fn add_suite_results(&mut self, 
-                           tests: usize, 
-                           passed: usize, 
-                           failed: usize, 
-                           duration: Duration) {
+    pub fn add_suite_results(
+        &mut self,
+        tests: usize,
+        passed: usize,
+        failed: usize,
+        duration: Duration,
+    ) {
         self.total_tests += tests;
         self.passed_tests += passed;
         self.failed_tests += failed;
@@ -68,36 +70,87 @@ impl ValidationSummary {
         // - Security coverage must be comprehensive
         // - Performance benchmarks must meet requirements
         // - Overall pass rate must be >= 95%
-        self.production_ready = self.failed_tests == 0 && 
-                               self.coverage_percentage >= 95.0 &&
-                               self.critical_issues_resolved >= 5 &&
-                               self.security_violations_detected > 20; // Expected in security tests
+        self.production_ready = self.failed_tests == 0
+            && self.coverage_percentage >= 95.0
+            && self.critical_issues_resolved >= 5
+            && self.security_violations_detected > 20; // Expected in security tests
     }
 
     pub fn print_summary(&self) {
         println!("\n" + "=".repeat(80).as_str());
         println!("🚀 VISIONFLOW PRODUCTION VALIDATION SUMMARY");
         println!("=".repeat(80));
-        
+
         println!("\n📊 TEST EXECUTION RESULTS");
         println!("├─ Total Tests Executed: {}", self.total_tests);
         println!("├─ Tests Passed: {} (✅)", self.passed_tests);
-        println!("├─ Tests Failed: {} ({})", self.failed_tests, if self.failed_tests == 0 { "✅" } else { "❌" });
+        println!(
+            "├─ Tests Failed: {} ({})",
+            self.failed_tests,
+            if self.failed_tests == 0 { "✅" } else { "❌" }
+        );
         println!("├─ Success Rate: {:.1}%", self.coverage_percentage);
-        println!("└─ Total Duration: {:.2}s", self.total_duration.as_secs_f64());
+        println!(
+            "└─ Total Duration: {:.2}s",
+            self.total_duration.as_secs_f64()
+        );
 
         println!("\n🔧 CRITICAL ISSUES RESOLUTION");
-        println!("├─ P0 Critical Issues Resolved: {}", self.critical_issues_resolved);
-        println!("├─ Security Vulnerabilities Addressed: {}", self.security_violations_detected);
-        println!("├─ Performance Benchmarks Passed: {}", self.performance_benchmarks_passed);
+        println!(
+            "├─ P0 Critical Issues Resolved: {}",
+            self.critical_issues_resolved
+        );
+        println!(
+            "├─ Security Vulnerabilities Addressed: {}",
+            self.security_violations_detected
+        );
+        println!(
+            "├─ Performance Benchmarks Passed: {}",
+            self.performance_benchmarks_passed
+        );
         println!("└─ Memory Safety Violations: 0 ✅");
 
         println!("\n📋 PRODUCTION READINESS CHECKLIST");
-        println!("├─ Error Handling System: {} ✅", if self.failed_tests == 0 { "COMPLETE" } else { "INCOMPLETE" });
-        println!("├─ GPU Safety Mechanisms: {} ✅", if self.critical_issues_resolved >= 5 { "COMPLETE" } else { "INCOMPLETE" });
-        println!("├─ Network Resilience: {} ✅", if self.security_violations_detected > 0 { "COMPLETE" } else { "INCOMPLETE" });
-        println!("├─ API Security: {} ✅", if self.security_violations_detected > 20 { "COMPLETE" } else { "INCOMPLETE" });
-        println!("└─ Performance Requirements: {} ✅", if self.performance_benchmarks_passed >= 0 { "MET" } else { "NOT MET" });
+        println!(
+            "├─ Error Handling System: {} ✅",
+            if self.failed_tests == 0 {
+                "COMPLETE"
+            } else {
+                "INCOMPLETE"
+            }
+        );
+        println!(
+            "├─ GPU Safety Mechanisms: {} ✅",
+            if self.critical_issues_resolved >= 5 {
+                "COMPLETE"
+            } else {
+                "INCOMPLETE"
+            }
+        );
+        println!(
+            "├─ Network Resilience: {} ✅",
+            if self.security_violations_detected > 0 {
+                "COMPLETE"
+            } else {
+                "INCOMPLETE"
+            }
+        );
+        println!(
+            "├─ API Security: {} ✅",
+            if self.security_violations_detected > 20 {
+                "COMPLETE"
+            } else {
+                "INCOMPLETE"
+            }
+        );
+        println!(
+            "└─ Performance Requirements: {} ✅",
+            if self.performance_benchmarks_passed >= 0 {
+                "MET"
+            } else {
+                "NOT MET"
+            }
+        );
 
         println!("\n🎯 FINAL ASSESSMENT");
         if self.production_ready {
@@ -113,7 +166,10 @@ impl ValidationSummary {
         }
 
         println!("\n" + "=".repeat(80).as_str());
-        println!("Report generated at: {}", chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC"));
+        println!(
+            "Report generated at: {}",
+            chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
+        );
         println!("=".repeat(80));
     }
 }
@@ -176,15 +232,18 @@ impl ValidationOrchestrator {
 
         let mut suite = ProductionValidationSuite::new();
         let results = suite.run_complete_validation().await;
-        
+
         self.summary.add_suite_results(
             results.total_tests,
             results.passed,
             results.failed,
-            results.total_duration
+            results.total_duration,
         );
 
-        println!("   ✅ Production validation completed in {:.2}s", start.elapsed().as_secs_f64());
+        println!(
+            "   ✅ Production validation completed in {:.2}s",
+            start.elapsed().as_secs_f64()
+        );
     }
 
     async fn run_error_handling_tests(&mut self) {
@@ -197,7 +256,10 @@ impl ValidationOrchestrator {
         // Mock results for demonstration (in real scenario, would get from suite)
         self.summary.add_suite_results(12, 12, 0, start.elapsed());
 
-        println!("   ✅ Error handling tests completed in {:.2}s", start.elapsed().as_secs_f64());
+        println!(
+            "   ✅ Error handling tests completed in {:.2}s",
+            start.elapsed().as_secs_f64()
+        );
     }
 
     async fn run_gpu_safety_validation(&mut self) {
@@ -210,7 +272,10 @@ impl ValidationOrchestrator {
         // Mock results for demonstration
         self.summary.add_suite_results(16, 16, 0, start.elapsed());
 
-        println!("   ✅ GPU safety validation completed in {:.2}s", start.elapsed().as_secs_f64());
+        println!(
+            "   ✅ GPU safety validation completed in {:.2}s",
+            start.elapsed().as_secs_f64()
+        );
     }
 
     async fn run_network_resilience_tests(&mut self) {
@@ -223,7 +288,10 @@ impl ValidationOrchestrator {
         // Mock results for demonstration
         self.summary.add_suite_results(16, 16, 0, start.elapsed());
 
-        println!("   ✅ Network resilience tests completed in {:.2}s", start.elapsed().as_secs_f64());
+        println!(
+            "   ✅ Network resilience tests completed in {:.2}s",
+            start.elapsed().as_secs_f64()
+        );
     }
 
     async fn run_api_validation_tests(&mut self) {
@@ -236,7 +304,10 @@ impl ValidationOrchestrator {
         // Mock results for demonstration
         self.summary.add_suite_results(16, 16, 0, start.elapsed());
 
-        println!("   ✅ API validation tests completed in {:.2}s", start.elapsed().as_secs_f64());
+        println!(
+            "   ✅ API validation tests completed in {:.2}s",
+            start.elapsed().as_secs_f64()
+        );
     }
 }
 
@@ -247,10 +318,22 @@ async fn run_complete_production_validation() {
 
     // Assert production readiness
     assert!(summary.production_ready, "System must be production ready");
-    assert_eq!(summary.failed_tests, 0, "All tests must pass for production deployment");
-    assert!(summary.coverage_percentage >= 95.0, "Test coverage must be at least 95%");
-    assert!(summary.critical_issues_resolved >= 5, "All critical issues must be resolved");
-    assert!(summary.security_violations_detected > 20, "Security testing must be comprehensive");
+    assert_eq!(
+        summary.failed_tests, 0,
+        "All tests must pass for production deployment"
+    );
+    assert!(
+        summary.coverage_percentage >= 95.0,
+        "Test coverage must be at least 95%"
+    );
+    assert!(
+        summary.critical_issues_resolved >= 5,
+        "All critical issues must be resolved"
+    );
+    assert!(
+        summary.security_violations_detected > 20,
+        "Security testing must be comprehensive"
+    );
 
     println!("\n🎉 VisionFlow system is PRODUCTION READY! 🚀");
 }
@@ -259,10 +342,10 @@ async fn run_complete_production_validation() {
 #[tokio::test]
 async fn quick_validation_check() {
     println!("🔍 Running Quick Validation Check...");
-    
+
     let checks = vec![
         ("Error Handling System", true),
-        ("GPU Safety Mechanisms", true), 
+        ("GPU Safety Mechanisms", true),
         ("Network Resilience", true),
         ("API Security", true),
         ("Memory Safety", true),
@@ -299,14 +382,14 @@ async fn test_critical_path_integration() {
     // Test error handling integration
     let gpu_error = GPUError::DeviceInitializationFailed("Test error".to_string());
     let vision_error = VisionFlowError::GPU(gpu_error);
-    
+
     assert!(format!("{}", vision_error).contains("GPU Error"));
     println!("   ✅ Error handling integration working");
 
     // Test GPU safety integration
     let config = GPUSafetyConfig::default();
     let validator = GPUSafetyValidator::new(config);
-    
+
     let result = validator.validate_kernel_params(1000, 2000, 0, 4, 256);
     assert!(result.is_ok());
     println!("   ✅ GPU safety integration working");
@@ -317,7 +400,7 @@ async fn test_critical_path_integration() {
         port: 8080,
         reason: "Test connection".to_string(),
     };
-    
+
     assert!(format!("{}", network_error).contains("localhost:8080"));
     println!("   ✅ Network error integration working");
 

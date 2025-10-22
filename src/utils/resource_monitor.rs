@@ -1,12 +1,12 @@
-use log::{info, warn, error, debug};
+use log::{debug, error, info, warn};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::sync::RwLock;
 use std::time::Duration;
+use tokio::sync::RwLock;
 
 /// Resource monitoring and management utility to prevent "Too many open files" errors
-/// 
+///
 /// This module provides comprehensive resource monitoring including:
 /// - File descriptor tracking and limits
 /// - Memory usage monitoring
@@ -34,11 +34,11 @@ impl Default for ResourceLimits {
     fn default() -> Self {
         Self {
             max_file_descriptors: 1000, // Conservative limit
-            fd_warning_threshold: 0.7,   // 70% warning
-            fd_error_threshold: 0.9,     // 90% error
-            max_memory_mb: 1024,         // 1GB default
+            fd_warning_threshold: 0.7,  // 70% warning
+            fd_error_threshold: 0.9,    // 90% error
+            max_memory_mb: 1024,        // 1GB default
             max_tcp_connections: 100,
-            max_zombie_age_secs: 300,    // 5 minutes
+            max_zombie_age_secs: 300, // 5 minutes
         }
     }
 }
@@ -55,7 +55,7 @@ impl ResourceLimits {
             max_zombie_age_secs: 60, // 1 minute
         }
     }
-    
+
     /// Create limits for resource-constrained environments
     pub fn constrained() -> Self {
         Self {
@@ -106,7 +106,17 @@ pub struct ResourceMonitor {
     current_usage: Arc<RwLock<ResourceUsage>>,
     connection_registry: Arc<RwLock<HashMap<String, Vec<String>>>>,
     monitoring_active: Arc<std::sync::atomic::AtomicBool>,
-    cleanup_callbacks: Arc<RwLock<Vec<Box<dyn Fn() -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>> + Send + Sync>>>>,
+    cleanup_callbacks: Arc<
+        RwLock<
+            Vec<
+                Box<
+                    dyn Fn() -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>>
+                        + Send
+                        + Sync,
+                >,
+            >,
+        >,
+    >,
     alert_history: Arc<RwLock<Vec<ResourceAlert>>>,
 }
 
@@ -129,28 +139,32 @@ impl ResourceMonitor {
             alert_history: Arc::new(RwLock::new(Vec::new())),
         }
     }
-    
+
     /// Start continuous resource monitoring
     pub async fn start_monitoring(&self, interval: Duration) -> Result<(), String> {
-        if self.monitoring_active.load(std::sync::atomic::Ordering::Relaxed) {
+        if self
+            .monitoring_active
+            .load(std::sync::atomic::Ordering::Relaxed)
+        {
             return Err("Resource monitoring is already active".to_string());
         }
-        
+
         info!("Starting resource monitoring with interval: {:?}", interval);
-        self.monitoring_active.store(true, std::sync::atomic::Ordering::Relaxed);
-        
+        self.monitoring_active
+            .store(true, std::sync::atomic::Ordering::Relaxed);
+
         let current_usage = self.current_usage.clone();
         let limits = self.limits.clone();
         let monitoring_active = self.monitoring_active.clone();
         let cleanup_callbacks = self.cleanup_callbacks.clone();
         let alert_history = self.alert_history.clone();
-        
+
         tokio::spawn(async move {
             let mut monitoring_interval = tokio::time::interval(interval);
-            
+
             while monitoring_active.load(std::sync::atomic::Ordering::Relaxed) {
                 monitoring_interval.tick().await;
-                
+
                 // Collect resource usage
                 let usage = match Self::collect_resource_usage().await {
                     Ok(usage) => usage,
@@ -159,27 +173,27 @@ impl ResourceMonitor {
                         continue;
                     }
                 };
-                
+
                 // Check for resource exhaustion and trigger alerts
                 let alerts = Self::check_resource_limits(&usage, &limits);
-                
+
                 // Store usage and alerts
                 {
                     let mut current_usage_guard = current_usage.write().await;
                     *current_usage_guard = usage.clone();
                 }
-                
+
                 if !alerts.is_empty() {
                     let mut alert_history_guard = alert_history.write().await;
                     alert_history_guard.extend(alerts.clone());
-                    
+
                     // Keep only recent alerts (last 100)
                     if alert_history_guard.len() > 100 {
                         let drain_count = alert_history_guard.len() - 100;
                         alert_history_guard.drain(..drain_count);
                     }
                 }
-                
+
                 // Trigger cleanup if needed
                 for alert in &alerts {
                     match alert.alert_type {
@@ -194,7 +208,7 @@ impl ResourceMonitor {
                         }
                     }
                 }
-                
+
                 // Log periodic status
                 if usage.file_descriptors > 0 {
                     debug!(
@@ -207,27 +221,34 @@ impl ResourceMonitor {
                     );
                 }
             }
-            
+
             info!("Resource monitoring stopped");
         });
-        
+
         Ok(())
     }
-    
+
     /// Stop resource monitoring
     pub fn stop_monitoring(&self) {
         info!("Stopping resource monitoring");
-        self.monitoring_active.store(false, std::sync::atomic::Ordering::Relaxed);
+        self.monitoring_active
+            .store(false, std::sync::atomic::Ordering::Relaxed);
     }
-    
+
     /// Register a connection for tracking
     pub async fn register_connection(&self, service: String, connection_id: String) {
         let mut registry = self.connection_registry.write().await;
         let service_clone = service.clone();
-        registry.entry(service).or_insert_with(Vec::new).push(connection_id.clone());
-        debug!("Registered connection {} for service {}", connection_id, service_clone);
+        registry
+            .entry(service)
+            .or_insert_with(Vec::new)
+            .push(connection_id.clone());
+        debug!(
+            "Registered connection {} for service {}",
+            connection_id, service_clone
+        );
     }
-    
+
     /// Unregister a connection
     pub async fn unregister_connection(&self, service: &str, connection_id: &str) {
         let mut registry = self.connection_registry.write().await;
@@ -237,9 +258,12 @@ impl ResourceMonitor {
                 registry.remove(service);
             }
         }
-        debug!("Unregistered connection {} for service {}", connection_id, service);
+        debug!(
+            "Unregistered connection {} for service {}",
+            connection_id, service
+        );
     }
-    
+
     /// Add a cleanup callback to be triggered on resource exhaustion
     pub async fn add_cleanup_callback<F, Fut>(&self, callback: F)
     where
@@ -249,24 +273,25 @@ impl ResourceMonitor {
         let mut callbacks = self.cleanup_callbacks.write().await;
         callbacks.push(Box::new(move || Box::pin(callback())));
     }
-    
+
     /// Get current resource usage
     pub async fn get_current_usage(&self) -> ResourceUsage {
         self.current_usage.read().await.clone()
     }
-    
+
     /// Get recent alerts
     pub async fn get_recent_alerts(&self, limit: usize) -> Vec<ResourceAlert> {
         let alerts = self.alert_history.read().await;
         alerts.iter().rev().take(limit).cloned().collect()
     }
-    
+
     /// Check if resources are available for a new operation
     pub async fn check_resource_availability(&self) -> Result<(), String> {
         let usage = self.current_usage.read().await;
-        
+
         // Check file descriptors
-        let fd_threshold = (self.limits.max_file_descriptors as f32 * self.limits.fd_error_threshold) as usize;
+        let fd_threshold =
+            (self.limits.max_file_descriptors as f32 * self.limits.fd_error_threshold) as usize;
         if usage.file_descriptors >= fd_threshold {
             return Err(format!(
                 "File descriptor limit exceeded: {} >= {} ({}% of max {})",
@@ -276,66 +301,64 @@ impl ResourceMonitor {
                 self.limits.max_file_descriptors
             ));
         }
-        
+
         // Check memory
         if usage.memory_usage_mb >= self.limits.max_memory_mb {
             return Err(format!(
                 "Memory limit exceeded: {}MB >= {}MB",
-                usage.memory_usage_mb,
-                self.limits.max_memory_mb
+                usage.memory_usage_mb, self.limits.max_memory_mb
             ));
         }
-        
+
         // Check connections
         if usage.tcp_connections >= self.limits.max_tcp_connections {
             return Err(format!(
                 "Connection limit exceeded: {} >= {}",
-                usage.tcp_connections,
-                self.limits.max_tcp_connections
+                usage.tcp_connections, self.limits.max_tcp_connections
             ));
         }
-        
+
         Ok(())
     }
-    
+
     /// Force cleanup of resources
     pub async fn force_cleanup(&self) {
         info!("Forcing resource cleanup");
         Self::trigger_cleanup(&self.cleanup_callbacks).await;
-        
+
         // Additional system cleanup
         Self::cleanup_zombie_processes().await;
         Self::trigger_garbage_collection().await;
     }
-    
+
     // Private methods
-    
+
     /// Collect current system resource usage
     async fn collect_resource_usage() -> Result<ResourceUsage, String> {
         let timestamp = std::time::SystemTime::now();
-        
+
         // Count file descriptors
         let file_descriptors = Self::count_file_descriptors().await?;
-        
+
         // Get memory usage
         let memory_usage_mb = Self::get_memory_usage().await?;
-        
+
         // Count TCP connections
         let tcp_connections = Self::count_tcp_connections().await?;
-        
+
         // Count zombie processes
         let zombie_processes = Self::count_zombie_processes().await?;
-        
+
         Ok(ResourceUsage {
             timestamp,
             file_descriptors,
             memory_usage_mb,
             tcp_connections,
             zombie_processes,
-            active_connections: Self::get_active_connections().await.unwrap_or_default()
+            active_connections: Self::get_active_connections().await.unwrap_or_default(),
         })
     }
-    
+
     /// Count open file descriptors for current process
     async fn count_file_descriptors() -> Result<usize, String> {
         #[cfg(target_os = "linux")]
@@ -351,7 +374,7 @@ impl ResourceMonitor {
                 Err(e) => Err(format!("Failed to read /proc/self/fd: {}", e)),
             }
         }
-        
+
         #[cfg(not(target_os = "linux"))]
         {
             // For non-Linux systems, use lsof as fallback
@@ -371,7 +394,7 @@ impl ResourceMonitor {
             }
         }
     }
-    
+
     /// Get current memory usage in MB
     async fn get_memory_usage() -> Result<u64, String> {
         #[cfg(target_os = "linux")]
@@ -392,14 +415,14 @@ impl ResourceMonitor {
                 Err(e) => Err(format!("Failed to read /proc/self/status: {}", e)),
             }
         }
-        
+
         #[cfg(not(target_os = "linux"))]
         {
             // For non-Linux systems, return conservative estimate
             Ok(100) // 100MB estimate
         }
     }
-    
+
     /// Count active TCP connections
     async fn count_tcp_connections() -> Result<usize, String> {
         #[cfg(target_os = "linux")]
@@ -412,13 +435,13 @@ impl ResourceMonitor {
                 Err(_) => Ok(0), // Fallback if /proc/net/tcp isn't readable
             }
         }
-        
+
         #[cfg(not(target_os = "linux"))]
         {
             Ok(0) // No reliable way on other platforms without external tools
         }
     }
-    
+
     /// Count zombie processes
     async fn count_zombie_processes() -> Result<usize, String> {
         match tokio::process::Command::new("ps")
@@ -436,23 +459,28 @@ impl ResourceMonitor {
             Err(_) => Ok(0), // Fallback if ps isn't available
         }
     }
-    
+
     /// Check resource usage against limits and generate alerts
     fn check_resource_limits(usage: &ResourceUsage, limits: &ResourceLimits) -> Vec<ResourceAlert> {
         let mut alerts = Vec::new();
         let timestamp = std::time::SystemTime::now();
-        
+
         // Check file descriptors
-        let fd_warning_threshold = (limits.max_file_descriptors as f32 * limits.fd_warning_threshold) as usize;
-        let fd_error_threshold = (limits.max_file_descriptors as f32 * limits.fd_error_threshold) as usize;
-        
+        let fd_warning_threshold =
+            (limits.max_file_descriptors as f32 * limits.fd_warning_threshold) as usize;
+        let fd_error_threshold =
+            (limits.max_file_descriptors as f32 * limits.fd_error_threshold) as usize;
+
         if usage.file_descriptors >= fd_error_threshold {
             alerts.push(ResourceAlert {
                 alert_type: ResourceAlertType::FileDescriptorError,
-                message: format!("Critical: {} file descriptors open ({}% of limit {})", 
-                               usage.file_descriptors, 
-                               (usage.file_descriptors as f32 / limits.max_file_descriptors as f32 * 100.0) as u8,
-                               limits.max_file_descriptors),
+                message: format!(
+                    "Critical: {} file descriptors open ({}% of limit {})",
+                    usage.file_descriptors,
+                    (usage.file_descriptors as f32 / limits.max_file_descriptors as f32 * 100.0)
+                        as u8,
+                    limits.max_file_descriptors
+                ),
                 current_value: usage.file_descriptors as u64,
                 threshold: fd_error_threshold as u64,
                 timestamp,
@@ -460,51 +488,61 @@ impl ResourceMonitor {
         } else if usage.file_descriptors >= fd_warning_threshold {
             alerts.push(ResourceAlert {
                 alert_type: ResourceAlertType::FileDescriptorWarning,
-                message: format!("Warning: {} file descriptors open ({}% of limit {})", 
-                               usage.file_descriptors,
-                               (usage.file_descriptors as f32 / limits.max_file_descriptors as f32 * 100.0) as u8,
-                               limits.max_file_descriptors),
+                message: format!(
+                    "Warning: {} file descriptors open ({}% of limit {})",
+                    usage.file_descriptors,
+                    (usage.file_descriptors as f32 / limits.max_file_descriptors as f32 * 100.0)
+                        as u8,
+                    limits.max_file_descriptors
+                ),
                 current_value: usage.file_descriptors as u64,
                 threshold: fd_warning_threshold as u64,
                 timestamp,
             });
         }
-        
+
         // Check memory
         if usage.memory_usage_mb >= limits.max_memory_mb {
             alerts.push(ResourceAlert {
                 alert_type: ResourceAlertType::MemoryError,
-                message: format!("Memory limit exceeded: {}MB >= {}MB", 
-                               usage.memory_usage_mb, limits.max_memory_mb),
+                message: format!(
+                    "Memory limit exceeded: {}MB >= {}MB",
+                    usage.memory_usage_mb, limits.max_memory_mb
+                ),
                 current_value: usage.memory_usage_mb,
                 threshold: limits.max_memory_mb,
                 timestamp,
             });
-        } else if usage.memory_usage_mb >= limits.max_memory_mb * 8 / 10 { // 80% warning
+        } else if usage.memory_usage_mb >= limits.max_memory_mb * 8 / 10 {
+            // 80% warning
             alerts.push(ResourceAlert {
                 alert_type: ResourceAlertType::MemoryWarning,
-                message: format!("High memory usage: {}MB ({}% of limit {}MB)", 
-                               usage.memory_usage_mb,
-                               (usage.memory_usage_mb * 100 / limits.max_memory_mb),
-                               limits.max_memory_mb),
+                message: format!(
+                    "High memory usage: {}MB ({}% of limit {}MB)",
+                    usage.memory_usage_mb,
+                    (usage.memory_usage_mb * 100 / limits.max_memory_mb),
+                    limits.max_memory_mb
+                ),
                 current_value: usage.memory_usage_mb,
                 threshold: limits.max_memory_mb * 8 / 10,
                 timestamp,
             });
         }
-        
+
         // Check connections
         if usage.tcp_connections >= limits.max_tcp_connections {
             alerts.push(ResourceAlert {
                 alert_type: ResourceAlertType::ConnectionError,
-                message: format!("Connection limit exceeded: {} >= {}", 
-                               usage.tcp_connections, limits.max_tcp_connections),
+                message: format!(
+                    "Connection limit exceeded: {} >= {}",
+                    usage.tcp_connections, limits.max_tcp_connections
+                ),
                 current_value: usage.tcp_connections as u64,
                 threshold: limits.max_tcp_connections as u64,
                 timestamp,
             });
         }
-        
+
         // Check zombie processes
         if usage.zombie_processes > 0 {
             alerts.push(ResourceAlert {
@@ -515,18 +553,30 @@ impl ResourceMonitor {
                 timestamp,
             });
         }
-        
+
         alerts
     }
-    
+
     /// Trigger all cleanup callbacks
-    async fn trigger_cleanup(cleanup_callbacks: &Arc<RwLock<Vec<Box<dyn Fn() -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>> + Send + Sync>>>>) {
+    async fn trigger_cleanup(
+        cleanup_callbacks: &Arc<
+            RwLock<
+                Vec<
+                    Box<
+                        dyn Fn() -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>>
+                            + Send
+                            + Sync,
+                    >,
+                >,
+            >,
+        >,
+    ) {
         let callbacks = cleanup_callbacks.read().await;
         for callback in callbacks.iter() {
             callback().await;
         }
     }
-    
+
     /// Clean up zombie processes
     async fn cleanup_zombie_processes() {
         match tokio::process::Command::new("pkill")
@@ -538,13 +588,13 @@ impl ResourceMonitor {
             Err(e) => debug!("Failed to clean zombie processes: {}", e),
         }
     }
-    
+
     /// Trigger garbage collection
     async fn trigger_garbage_collection() {
         // Force Rust garbage collection
         // Note: Rust doesn't have a GC, but we can drop unused allocations
         debug!("Triggering garbage collection");
-        
+
         // In a real implementation, you might:
         // 1. Clear internal caches
         // 2. Compact data structures
@@ -603,36 +653,42 @@ impl Drop for ResourceMonitor {
 mod tests {
     use super::*;
     use tokio::time::{sleep, Duration};
-    
+
     #[tokio::test]
     async fn test_resource_monitor_creation() {
         let limits = ResourceLimits::default();
         let monitor = ResourceMonitor::new(limits);
-        
+
         let usage = monitor.get_current_usage().await;
         assert_eq!(usage.file_descriptors, 0); // Initial empty usage
     }
-    
+
     #[tokio::test]
     async fn test_connection_registration() {
         let monitor = ResourceMonitor::new(ResourceLimits::default());
-        
-        monitor.register_connection("test-service".to_string(), "conn-1".to_string()).await;
-        monitor.register_connection("test-service".to_string(), "conn-2".to_string()).await;
-        
+
+        monitor
+            .register_connection("test-service".to_string(), "conn-1".to_string())
+            .await;
+        monitor
+            .register_connection("test-service".to_string(), "conn-2".to_string())
+            .await;
+
         let registry = monitor.connection_registry.read().await;
         let connections = registry.get("test-service").unwrap();
         assert_eq!(connections.len(), 2);
-        
+
         drop(registry);
-        
-        monitor.unregister_connection("test-service", "conn-1").await;
-        
+
+        monitor
+            .unregister_connection("test-service", "conn-1")
+            .await;
+
         let registry = monitor.connection_registry.read().await;
         let connections = registry.get("test-service").unwrap();
         assert_eq!(connections.len(), 1);
     }
-    
+
     #[tokio::test]
     async fn test_resource_limits() {
         let usage = ResourceUsage {
@@ -643,7 +699,7 @@ mod tests {
             zombie_processes: 2,
             active_connections: HashMap::new(),
         };
-        
+
         let limits = ResourceLimits {
             max_file_descriptors: 1000,
             fd_warning_threshold: 0.7,
@@ -652,19 +708,25 @@ mod tests {
             max_tcp_connections: 100,
             max_zombie_age_secs: 300,
         };
-        
+
         let alerts = ResourceMonitor::check_resource_limits(&usage, &limits);
-        
+
         // Should generate multiple alerts
         assert!(!alerts.is_empty());
-        
+
         // Check for file descriptor error
-        assert!(alerts.iter().any(|a| matches!(a.alert_type, ResourceAlertType::FileDescriptorError)));
-        
+        assert!(alerts
+            .iter()
+            .any(|a| matches!(a.alert_type, ResourceAlertType::FileDescriptorError)));
+
         // Check for memory error
-        assert!(alerts.iter().any(|a| matches!(a.alert_type, ResourceAlertType::MemoryError)));
-        
+        assert!(alerts
+            .iter()
+            .any(|a| matches!(a.alert_type, ResourceAlertType::MemoryError)));
+
         // Check for connection error
-        assert!(alerts.iter().any(|a| matches!(a.alert_type, ResourceAlertType::ConnectionError)));
+        assert!(alerts
+            .iter()
+            .any(|a| matches!(a.alert_type, ResourceAlertType::ConnectionError)));
     }
 }

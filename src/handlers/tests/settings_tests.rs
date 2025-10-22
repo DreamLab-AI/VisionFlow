@@ -4,14 +4,13 @@
 #[cfg(test)]
 mod settings_api_tests {
     use super::*;
+    use crate::actors::settings_actor::SettingsActor;
     use crate::app_state::AppState;
     use crate::config::AppFullSettings;
-    use crate::actors::settings_actor::SettingsActor;
     use crate::handlers::settings_paths::{
-        get_settings_by_path, update_settings_by_path,
-        batch_read_settings_by_path, batch_update_settings_by_path,
-        get_settings_schema, PathQuery, PathUpdateRequest,
-        BatchPathReadRequest, BatchPathUpdateRequest
+        batch_read_settings_by_path, batch_update_settings_by_path, get_settings_by_path,
+        get_settings_schema, update_settings_by_path, BatchPathReadRequest, BatchPathUpdateRequest,
+        PathQuery, PathUpdateRequest,
     };
     use actix::Actor;
     use actix_web::{test, web, App, HttpResponse, Result as ActixResult};
@@ -44,17 +43,16 @@ mod settings_api_tests {
         let app_state = create_test_app_state().await;
 
         test::init_service(
-            App::new()
-                .app_data(app_state)
-                .service(
-                    web::scope("/api/settings")
-                        .route("/path", web::get().to(get_settings_by_path))
-                        .route("/path", web::put().to(update_settings_by_path))
-                        .route("/batch", web::post().to(batch_read_settings_by_path))
-                        .route("/batch", web::put().to(batch_update_settings_by_path))
-                        .route("/schema", web::get().to(get_settings_schema))
-                )
-        ).await
+            App::new().app_data(app_state).service(
+                web::scope("/api/settings")
+                    .route("/path", web::get().to(get_settings_by_path))
+                    .route("/path", web::put().to(update_settings_by_path))
+                    .route("/batch", web::post().to(batch_read_settings_by_path))
+                    .route("/batch", web::put().to(batch_update_settings_by_path))
+                    .route("/schema", web::get().to(get_settings_schema)),
+            ),
+        )
+        .await
     }
 
     #[actix_web::test]
@@ -148,7 +146,10 @@ mod settings_api_tests {
             .to_request();
 
         let resp = test::call_service(&app, req).await;
-        assert!(resp.status().is_success(), "baseColor update should succeed after normalization fix");
+        assert!(
+            resp.status().is_success(),
+            "baseColor update should succeed after normalization fix"
+        );
 
         let body: Value = test::read_body_json(resp).await;
         assert_eq!(body["success"], true);
@@ -171,7 +172,10 @@ mod settings_api_tests {
             .to_request();
 
         let resp = test::call_service(&app, req).await;
-        assert!(resp.status().is_success(), "ambientLightIntensity update should succeed after normalization fix");
+        assert!(
+            resp.status().is_success(),
+            "ambientLightIntensity update should succeed after normalization fix"
+        );
 
         let body: Value = test::read_body_json(resp).await;
         assert_eq!(body["success"], true);
@@ -194,7 +198,10 @@ mod settings_api_tests {
             .to_request();
 
         let resp = test::call_service(&app, req).await;
-        assert!(resp.status().is_success(), "emissionColor update should succeed");
+        assert!(
+            resp.status().is_success(),
+            "emissionColor update should succeed"
+        );
     }
 
     #[actix_web::test]
@@ -213,7 +220,10 @@ mod settings_api_tests {
             .to_request();
 
         let resp = test::call_service(&app, req).await;
-        assert!(resp.status().is_success(), "Complex nested field update should succeed");
+        assert!(
+            resp.status().is_success(),
+            "Complex nested field update should succeed"
+        );
 
         let body: Value = test::read_body_json(resp).await;
         assert_eq!(body["success"], true);
@@ -295,7 +305,10 @@ mod settings_api_tests {
         assert_eq!(resp.status(), 400);
 
         let body: Value = test::read_body_json(resp).await;
-        assert!(body["error"].as_str().unwrap().contains("exceeds maximum of 50"));
+        assert!(body["error"]
+            .as_str()
+            .unwrap()
+            .contains("exceeds maximum of 50"));
     }
 
     #[actix_web::test]
@@ -326,7 +339,10 @@ mod settings_api_tests {
             .to_request();
 
         let resp = test::call_service(&app, req).await;
-        assert!(resp.status().is_success(), "Batch update should succeed with field normalization");
+        assert!(
+            resp.status().is_success(),
+            "Batch update should succeed with field normalization"
+        );
 
         let body: Value = test::read_body_json(resp).await;
         assert_eq!(body["success"], true);
@@ -387,7 +403,10 @@ mod settings_api_tests {
         assert_eq!(resp.status(), 400);
 
         let body: Value = test::read_body_json(resp).await;
-        assert!(body["error"].as_str().unwrap().contains("exceeds maximum of 50"));
+        assert!(body["error"]
+            .as_str()
+            .unwrap()
+            .contains("exceeds maximum of 50"));
     }
 
     #[actix_web::test]
@@ -421,8 +440,14 @@ mod settings_api_tests {
             ("visualisation.graphs.logseq.physics.maxVelocity", 10.0),
             ("visualisation.graphs.logseq.physics.repelK", 1000.0),
             ("visualisation.graphs.logseq.physics.springK", 0.002),
-            ("visualisation.graphs.logseq.physics.autoPause.equilibriumVelocityThreshold", 0.01),
-            ("visualisation.graphs.logseq.physics.autoBalance.stabilityFrameCount", 30u32),
+            (
+                "visualisation.graphs.logseq.physics.autoPause.equilibriumVelocityThreshold",
+                0.01,
+            ),
+            (
+                "visualisation.graphs.logseq.physics.autoBalance.stabilityFrameCount",
+                30u32,
+            ),
         ];
 
         for (path, value) in test_cases {
@@ -437,10 +462,18 @@ mod settings_api_tests {
                 .to_request();
 
             let resp = test::call_service(&app, req).await;
-            assert!(resp.status().is_success(), "Field normalization should work for path: {}", path);
+            assert!(
+                resp.status().is_success(),
+                "Field normalization should work for path: {}",
+                path
+            );
 
             let body: Value = test::read_body_json(resp).await;
-            assert_eq!(body["success"], true, "Update should succeed for path: {}", path);
+            assert_eq!(
+                body["success"], true,
+                "Update should succeed for path: {}",
+                path
+            );
         }
     }
 
@@ -460,7 +493,11 @@ mod settings_api_tests {
             .to_request();
 
         let resp = test::call_service(&app, req).await;
-        assert_eq!(resp.status(), 400, "Invalid color should trigger validation error");
+        assert_eq!(
+            resp.status(),
+            400,
+            "Invalid color should trigger validation error"
+        );
 
         let body: Value = test::read_body_json(resp).await;
         assert_eq!(body["error"], "Validation failed");
@@ -483,7 +520,11 @@ mod settings_api_tests {
             .to_request();
 
         let resp = test::call_service(&app, req).await;
-        assert_eq!(resp.status(), 400, "Out of range value should trigger validation error");
+        assert_eq!(
+            resp.status(),
+            400,
+            "Out of range value should trigger validation error"
+        );
     }
 
     #[actix_web::test]
@@ -512,10 +553,18 @@ mod settings_api_tests {
                 .to_request();
 
             let resp = test::call_service(&app, req).await;
-            assert!(resp.status().is_success(), "Problematic field should now work: {}", path);
+            assert!(
+                resp.status().is_success(),
+                "Problematic field should now work: {}",
+                path
+            );
 
             let body: Value = test::read_body_json(resp).await;
-            assert_eq!(body["success"], true, "Update should succeed for problematic field: {}", path);
+            assert_eq!(
+                body["success"], true,
+                "Update should succeed for problematic field: {}",
+                path
+            );
         }
     }
 
@@ -551,7 +600,10 @@ mod settings_api_tests {
             .to_request();
 
         let resp = test::call_service(&app, req).await;
-        assert!(resp.status().is_success(), "Concurrent field updates should succeed");
+        assert!(
+            resp.status().is_success(),
+            "Concurrent field updates should succeed"
+        );
 
         let body: Value = test::read_body_json(resp).await;
         assert_eq!(body["success"], true);
@@ -559,7 +611,10 @@ mod settings_api_tests {
         // Verify all updates succeeded
         let results = body["results"].as_array().unwrap();
         for result in results {
-            assert_eq!(result["success"], true, "Each concurrent update should succeed");
+            assert_eq!(
+                result["success"], true,
+                "Each concurrent update should succeed"
+            );
         }
     }
 }
@@ -575,17 +630,19 @@ mod integration_tests {
     async fn test_complete_settings_workflow() {
         let app_state = super::settings_api_tests::create_test_app_state().await;
         let app = test::init_service(
-            App::new()
-                .app_data(app_state)
-                .service(
-                    web::scope("/api/settings")
-                        .route("/path", web::get().to(super::get_settings_by_path))
-                        .route("/path", web::put().to(super::update_settings_by_path))
-                        .route("/batch", web::post().to(super::batch_read_settings_by_path))
-                        .route("/batch", web::put().to(super::batch_update_settings_by_path))
-                        .route("/schema", web::get().to(super::get_settings_schema))
-                )
-        ).await;
+            App::new().app_data(app_state).service(
+                web::scope("/api/settings")
+                    .route("/path", web::get().to(super::get_settings_by_path))
+                    .route("/path", web::put().to(super::update_settings_by_path))
+                    .route("/batch", web::post().to(super::batch_read_settings_by_path))
+                    .route(
+                        "/batch",
+                        web::put().to(super::batch_update_settings_by_path),
+                    )
+                    .route("/schema", web::get().to(super::get_settings_schema)),
+            ),
+        )
+        .await;
 
         // Step 1: Get initial settings
         let req = test::TestRequest::get()
@@ -647,7 +704,10 @@ mod integration_tests {
             .to_request();
         let resp = test::call_service(&app, req).await;
         let body: serde_json::Value = test::read_body_json(resp).await;
-        assert_eq!(body["visualisation.graphs.logseq.nodes.baseColor"], "#BATCH1");
+        assert_eq!(
+            body["visualisation.graphs.logseq.nodes.baseColor"],
+            "#BATCH1"
+        );
         assert_eq!(body["visualisation.rendering.ambientLightIntensity"], 0.75);
     }
 }

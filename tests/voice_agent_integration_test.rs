@@ -9,10 +9,10 @@ mod tests {
     use tokio::sync::RwLock;
     use uuid::Uuid;
 
+    use crate::actors::voice_commands::{SwarmIntent, VoiceCommand};
     use crate::config::AppFullSettings;
     use crate::services::speech_service::SpeechService;
     use crate::services::voice_context_manager::VoiceContextManager;
-    use crate::actors::voice_commands::{VoiceCommand, SwarmIntent};
 
     #[tokio::test]
     async fn test_voice_command_to_agent_execution() {
@@ -31,7 +31,10 @@ mod tests {
         for command in test_commands {
             println!("Testing voice command: '{}'", command);
 
-            match speech_service.process_voice_command(command.to_string()).await {
+            match speech_service
+                .process_voice_command(command.to_string())
+                .await
+            {
                 Ok(response) => {
                     println!("Response: {}", response);
                     assert!(!response.is_empty());
@@ -50,19 +53,24 @@ mod tests {
         let context_manager = VoiceContextManager::new();
 
         // Create a session
-        let session_id = context_manager.get_or_create_session(None, Some("test_user".to_string())).await;
+        let session_id = context_manager
+            .get_or_create_session(None, Some("test_user".to_string()))
+            .await;
         assert!(!session_id.is_empty());
 
         // Add conversation turns
-        context_manager.add_conversation_turn(
-            &session_id,
-            "spawn a researcher agent".to_string(),
-            "I've spawned a researcher agent for you.".to_string(),
-            Some(SwarmIntent::SpawnAgent {
-                agent_type: "researcher".to_string(),
-                capabilities: vec![]
-            }),
-        ).await.unwrap();
+        context_manager
+            .add_conversation_turn(
+                &session_id,
+                "spawn a researcher agent".to_string(),
+                "I've spawned a researcher agent for you.".to_string(),
+                Some(SwarmIntent::SpawnAgent {
+                    agent_type: "researcher".to_string(),
+                    capabilities: vec![],
+                }),
+            )
+            .await
+            .unwrap();
 
         // Check context
         let context = context_manager.get_context(&session_id).await;
@@ -76,12 +84,10 @@ mod tests {
         let mut params = std::collections::HashMap::new();
         params.insert("agent_type".to_string(), "researcher".to_string());
 
-        let operation_id = context_manager.add_pending_operation(
-            &session_id,
-            "spawn_agent".to_string(),
-            params,
-            None,
-        ).await.unwrap();
+        let operation_id = context_manager
+            .add_pending_operation(&session_id, "spawn_agent".to_string(), params, None)
+            .await
+            .unwrap();
 
         // Check pending operations
         let operations = context_manager.get_pending_operations(&session_id).await;
@@ -117,7 +123,11 @@ mod tests {
                         SwarmIntent::Help => "Help",
                         _ => "Other",
                     };
-                    assert_eq!(intent_name, expected_intent, "Failed for input: '{}'", input);
+                    assert_eq!(
+                        intent_name, expected_intent,
+                        "Failed for input: '{}'",
+                        input
+                    );
                 }
                 Err(e) => {
                     panic!("Failed to parse command '{}': {}", input, e);
@@ -144,7 +154,9 @@ mod tests {
             let settings = Arc::new(RwLock::new(AppFullSettings::default()));
             let speech_service = SpeechService::new(settings);
 
-            let result = speech_service.process_voice_command(input.to_string()).await;
+            let result = speech_service
+                .process_voice_command(input.to_string())
+                .await;
 
             if expected {
                 // Should not return the "not a voice command" message
@@ -167,7 +179,9 @@ mod tests {
         // Create multiple sessions
         for i in 0..5 {
             let session_id = format!("test_session_{}", i);
-            context_manager.get_or_create_session(Some(session_id), None).await;
+            context_manager
+                .get_or_create_session(Some(session_id), None)
+                .await;
         }
 
         // Check session count

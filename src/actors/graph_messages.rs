@@ -8,15 +8,15 @@
 //! - **Semantic Messages**: AI features, constraint management, semantic analysis
 //! - **Client Messages**: WebSocket communication, position broadcasting
 
-use actix::prelude::*;
-use crate::models::node::Node;
+use crate::errors::VisionFlowError;
+use crate::models::constraints::{AdvancedParams, ConstraintSet};
 use crate::models::edge::Edge;
 use crate::models::graph::GraphData;
 use crate::models::metadata::FileMetadata;
-use crate::models::constraints::{ConstraintSet, AdvancedParams};
+use crate::models::node::Node;
 use crate::models::simulation_params::SimulationParams;
 use crate::utils::socket_flow_messages::{BinaryNodeData, BinaryNodeDataClient};
-use crate::errors::VisionFlowError;
+use actix::prelude::*;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -496,7 +496,10 @@ pub trait ClientToGraphStateProtocol {
 
 /// Unified message routing interface for the GraphServiceSupervisor
 pub trait MessageRouter {
-    fn route_graph_state_message(&self, msg: GraphStateMessages) -> Result<GraphStateResponse, String>;
+    fn route_graph_state_message(
+        &self,
+        msg: GraphStateMessages,
+    ) -> Result<GraphStateResponse, String>;
     fn route_physics_message(&self, msg: PhysicsMessages) -> Result<PhysicsResponse, String>;
     fn route_semantic_message(&self, msg: SemanticMessages) -> Result<SemanticResponse, String>;
     fn route_client_message(&self, msg: ClientMessages) -> Result<ClientResponse, String>;

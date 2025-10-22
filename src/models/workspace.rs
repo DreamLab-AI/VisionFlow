@@ -46,7 +46,11 @@ pub struct Workspace {
     pub id: String,
 
     /// Display name of the workspace
-    #[validate(length(min = 1, max = 100, message = "Name must be between 1 and 100 characters"))]
+    #[validate(length(
+        min = 1,
+        max = 100,
+        message = "Name must be between 1 and 100 characters"
+    ))]
     pub name: String,
 
     /// Optional description of the workspace
@@ -121,7 +125,12 @@ impl Workspace {
     }
 
     /// Update the workspace with new information
-    pub fn update(&mut self, name: Option<String>, description: Option<String>, workspace_type: Option<WorkspaceType>) {
+    pub fn update(
+        &mut self,
+        name: Option<String>,
+        description: Option<String>,
+        workspace_type: Option<WorkspaceType>,
+    ) {
         if let Some(new_name) = name {
             self.name = new_name;
         }
@@ -189,7 +198,11 @@ impl Workspace {
 /// Request structure for creating a new workspace
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Validate)]
 pub struct CreateWorkspaceRequest {
-    #[validate(length(min = 1, max = 100, message = "Name must be between 1 and 100 characters"))]
+    #[validate(length(
+        min = 1,
+        max = 100,
+        message = "Name must be between 1 and 100 characters"
+    ))]
     pub name: String,
 
     #[validate(length(max = 500, message = "Description cannot exceed 500 characters"))]
@@ -205,7 +218,11 @@ pub struct CreateWorkspaceRequest {
 /// Request structure for updating a workspace
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Validate)]
 pub struct UpdateWorkspaceRequest {
-    #[validate(length(min = 1, max = 100, message = "Name must be between 1 and 100 characters"))]
+    #[validate(length(
+        min = 1,
+        max = 100,
+        message = "Name must be between 1 and 100 characters"
+    ))]
     pub name: Option<String>,
 
     #[validate(length(max = 500, message = "Description cannot exceed 500 characters"))]
@@ -263,7 +280,12 @@ pub struct WorkspaceListResponse {
 }
 
 impl WorkspaceListResponse {
-    pub fn success(workspaces: Vec<Workspace>, total_count: usize, page: usize, page_size: usize) -> Self {
+    pub fn success(
+        workspaces: Vec<Workspace>,
+        total_count: usize,
+        page: usize,
+        page_size: usize,
+    ) -> Self {
         Self {
             success: true,
             message: "Workspaces retrieved successfully".to_string(),

@@ -1,5 +1,5 @@
 // Node and graph constants
-pub const NODE_SIZE: f32 = 1.0;  // Base node size in world units
+pub const NODE_SIZE: f32 = 1.0; // Base node size in world units
 pub const EDGE_WIDTH: f32 = 0.1; // Base edge width
 pub const MIN_DISTANCE: f32 = 0.75; // Minimum distance between nodes - reduced to prevent overcrowding
 pub const MAX_DISTANCE: f32 = 10.0; // Maximum distance - reduced to keep nodes closer to center
