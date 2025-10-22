@@ -1,21 +1,21 @@
 /*!
  * Quest 3 Optimization API
- * 
+ *
  * REST API endpoints for Quest 3 specific optimization and calibration.
  * Provides optimized settings profiles and user-specific calibration for
  * Quest 3 AR/VR experiences.
- * 
+ *
  * Endpoints:
  * - GET /api/quest3/defaults - Get Quest 3 optimized settings
  * - POST /api/quest3/calibrate - Calibrate for user's Quest 3
  */
 
 use actix_web::{web, HttpResponse, Result};
-use serde::{Deserialize, Serialize};
 use log::{info, warn};
+use serde::{Deserialize, Serialize};
 
-use crate::AppState;
 use crate::actors::messages::{GetSettings, UpdateSettings};
+use crate::AppState;
 
 /// Quest 3 optimized settings profile
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -45,7 +45,7 @@ pub struct Quest3XRSettings {
     pub locomotion_method: String, // "teleport" | "smooth" | "room-scale"
     pub movement_speed: f32,
     pub interaction_distance: f32,
-    pub quality: String, // "high" | "medium" | "low"
+    pub quality: String,   // "high" | "medium" | "low"
     pub refresh_rate: u32, // 72, 90, 120 Hz
 }
 
@@ -56,7 +56,7 @@ pub struct Quest3VisualizationSettings {
     pub rendering_context: String, // "quest3-ar" | "quest3-vr"
     pub enable_antialiasing: bool,
     pub enable_shadows: bool,
-    pub shadow_quality: String, // "high" | "medium" | "low"
+    pub shadow_quality: String,   // "high" | "medium" | "low"
     pub background_color: String, // "transparent" for AR, solid for VR
     pub bounds_size: f32,
     pub max_velocity: f32,
@@ -153,11 +153,11 @@ pub struct Quest3CalibrationRequest {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UserProfile {
-    pub ipd: Option<f32>, // Interpupillary distance in mm
-    pub height: Option<f32>, // User height in meters
-    pub dominant_hand: Option<String>, // "left" | "right"
+    pub ipd: Option<f32>,                 // Interpupillary distance in mm
+    pub height: Option<f32>,              // User height in meters
+    pub dominant_hand: Option<String>,    // "left" | "right"
     pub experience_level: Option<String>, // "beginner" | "intermediate" | "expert"
-    pub motion_sensitivity: Option<f32>, // 0.0 to 1.0
+    pub motion_sensitivity: Option<f32>,  // 0.0 to 1.0
 }
 
 /// Environment profile for optimization
@@ -165,16 +165,16 @@ pub struct UserProfile {
 #[serde(rename_all = "camelCase")]
 pub struct EnvironmentProfile {
     pub lighting_conditions: Option<String>, // "bright" | "normal" | "dim"
-    pub space_size: Option<String>, // "small" | "medium" | "large"
-    pub tracking_quality: Option<String>, // "excellent" | "good" | "poor"
-    pub wifi_quality: Option<String>, // "excellent" | "good" | "poor"
+    pub space_size: Option<String>,          // "small" | "medium" | "large"
+    pub tracking_quality: Option<String>,    // "excellent" | "good" | "poor"
+    pub wifi_quality: Option<String>,        // "excellent" | "good" | "poor"
 }
 
 /// Performance targets for calibration
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PerformanceTarget {
-    pub target_framerate: Option<u32>, // 72, 90, 120
+    pub target_framerate: Option<u32>,      // 72, 90, 120
     pub quality_preference: Option<String>, // "performance" | "balanced" | "quality"
     pub battery_priority: Option<bool>,
     pub thermal_priority: Option<bool>,
@@ -184,9 +184,9 @@ pub struct PerformanceTarget {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UserPreferences {
-    pub comfort_level: Option<f32>, // 0.0 to 1.0
+    pub comfort_level: Option<f32>,        // 0.0 to 1.0
     pub interaction_style: Option<String>, // "hands" | "controllers" | "mixed"
-    pub ar_preference: Option<bool>, // Prefer AR over VR when possible
+    pub ar_preference: Option<bool>,       // Prefer AR over VR when possible
 }
 
 /// Response for Quest 3 calibration
@@ -220,8 +220,8 @@ pub struct PerformanceEstimate {
     pub expected_framerate: u32,
     pub battery_life_hours: f32,
     pub thermal_rating: String, // "cool" | "warm" | "hot"
-    pub comfort_score: f32, // 0.0 to 1.0
-    pub quality_score: f32, // 0.0 to 1.0
+    pub comfort_score: f32,     // 0.0 to 1.0
+    pub quality_score: f32,     // 0.0 to 1.0
 }
 
 /// GET /api/quest3/defaults - Get Quest 3 optimized settings
@@ -260,7 +260,11 @@ pub async fn calibrate_quest3(
 
     // Apply user profile optimizations
     if let Some(user_profile) = &request.user_profile {
-        apply_user_profile_optimizations(&mut calibrated_settings, &mut optimizations, user_profile);
+        apply_user_profile_optimizations(
+            &mut calibrated_settings,
+            &mut optimizations,
+            user_profile,
+        );
     }
 
     // Apply environment optimizations
@@ -270,12 +274,21 @@ pub async fn calibrate_quest3(
 
     // Apply performance target optimizations
     if let Some(performance_target) = &request.performance_target {
-        apply_performance_optimizations(&mut calibrated_settings, &mut optimizations, performance_target);
+        apply_performance_optimizations(
+            &mut calibrated_settings,
+            &mut optimizations,
+            performance_target,
+        );
     }
 
     // Apply user preferences
     if let Some(preferences) = &request.preferences {
-        apply_user_preferences(&mut calibrated_settings, &mut optimizations, &mut recommendations, preferences);
+        apply_user_preferences(
+            &mut calibrated_settings,
+            &mut optimizations,
+            &mut recommendations,
+            preferences,
+        );
     }
 
     // Generate calibration ID
@@ -285,20 +298,25 @@ pub async fn calibrate_quest3(
     let performance_estimate = estimate_performance(&calibrated_settings);
 
     // Try to apply settings to the system
-    let settings_applied = match apply_quest3_settings_to_system(app_state, &calibrated_settings).await {
-        Ok(()) => {
-            info!("Quest 3 calibrated settings applied successfully");
-            true
-        }
-        Err(e) => {
-            warn!("Failed to apply Quest 3 settings to system: {}", e);
-            recommendations.push("Settings generated but not applied - manual configuration may be required".to_string());
-            false
-        }
-    };
+    let settings_applied =
+        match apply_quest3_settings_to_system(app_state, &calibrated_settings).await {
+            Ok(()) => {
+                info!("Quest 3 calibrated settings applied successfully");
+                true
+            }
+            Err(e) => {
+                warn!("Failed to apply Quest 3 settings to system: {}", e);
+                recommendations.push(
+                    "Settings generated but not applied - manual configuration may be required"
+                        .to_string(),
+                );
+                false
+            }
+        };
 
     if !settings_applied {
-        recommendations.push("Restart the application to ensure all settings take effect".to_string());
+        recommendations
+            .push("Restart the application to ensure all settings take effect".to_string());
     }
 
     Ok(HttpResponse::Ok().json(Quest3CalibrationResponse {
@@ -378,14 +396,11 @@ fn create_quest3_defaults() -> Quest3Settings {
                 temperature: 0.8,
                 max_velocity: 15.0,
             },
-            constraints: vec![
-                "boundary".to_string(),
-                "collision".to_string(),
-            ],
+            constraints: vec!["boundary".to_string(), "collision".to_string()],
             isolation_layers: vec!["focus".to_string()],
-            trajectories_enabled: false,  // Disabled for performance on Quest 3
+            trajectories_enabled: false, // Disabled for performance on Quest 3
             clustering_enabled: true,
-            anomaly_detection: false,  // Disabled for performance on Quest 3
+            anomaly_detection: false, // Disabled for performance on Quest 3
         },
     }
 }
@@ -427,7 +442,10 @@ fn apply_user_profile_optimizations(
 
     if let Some(motion_sensitivity) = profile.motion_sensitivity {
         if motion_sensitivity > 0.7 {
-            settings.interaction.comfort_settings.motion_sickness_reduction = true;
+            settings
+                .interaction
+                .comfort_settings
+                .motion_sickness_reduction = true;
             settings.interaction.comfort_settings.vignetting = true;
             settings.interaction.comfort_settings.comfort_mode_intensity = motion_sensitivity;
             optimizations.push(OptimizationApplied {
@@ -463,7 +481,8 @@ fn apply_environment_optimizations(
                 settings.xr.passthrough_contrast = 0.9;
                 optimizations.push(OptimizationApplied {
                     category: "Display".to_string(),
-                    optimization: "Reduced passthrough brightness for bright conditions".to_string(),
+                    optimization: "Reduced passthrough brightness for bright conditions"
+                        .to_string(),
                     reason: "Prevent washout in bright lighting".to_string(),
                     impact: "medium".to_string(),
                 });
@@ -511,7 +530,7 @@ fn apply_performance_optimizations(
     if let Some(framerate) = target.target_framerate {
         settings.performance.target_framerate = framerate;
         settings.xr.refresh_rate = framerate;
-        
+
         match framerate {
             120 => {
                 settings.performance.gpu_priority = "performance".to_string();
@@ -582,7 +601,10 @@ fn apply_user_preferences(
     if let Some(comfort_level) = preferences.comfort_level {
         settings.interaction.comfort_settings.comfort_mode_intensity = comfort_level;
         if comfort_level > 0.7 {
-            settings.interaction.comfort_settings.motion_sickness_reduction = true;
+            settings
+                .interaction
+                .comfort_settings
+                .motion_sickness_reduction = true;
             settings.interaction.comfort_settings.vignetting = true;
             settings.interaction.comfort_settings.teleport_fade = true;
         }
@@ -594,7 +616,8 @@ fn apply_user_preferences(
                 settings.xr.enable_hand_tracking = true;
                 settings.interaction.hand_tracking_confidence = 0.6;
                 settings.interaction.gesture_recognition = true;
-                recommendations.push("Consider enabling voice commands for backup interaction".to_string());
+                recommendations
+                    .push("Consider enabling voice commands for backup interaction".to_string());
             }
             "controllers" => {
                 settings.xr.enable_hand_tracking = false;
@@ -653,9 +676,10 @@ fn estimate_performance(settings: &Quest3Settings) -> PerformanceEstimate {
         battery_multiplier *= 0.8;
     }
 
-    let expected_framerate = (settings.performance.target_framerate as f32 * performance_score) as u32;
+    let expected_framerate =
+        (settings.performance.target_framerate as f32 * performance_score) as u32;
     let battery_life = 2.5 * battery_multiplier; // Base 2.5 hours for Quest 3
-    
+
     let thermal_rating = if performance_score < 0.8 && settings.performance.target_framerate >= 90 {
         "hot"
     } else if performance_score < 0.9 {
@@ -665,7 +689,9 @@ fn estimate_performance(settings: &Quest3Settings) -> PerformanceEstimate {
     };
 
     let comfort_score = settings.interaction.comfort_settings.comfort_mode_intensity;
-    let quality_score = if settings.visualisation.enable_shadows && settings.visualisation.enable_antialiasing {
+    let quality_score = if settings.visualisation.enable_shadows
+        && settings.visualisation.enable_antialiasing
+    {
         0.9
     } else if settings.visualisation.enable_shadows || settings.visualisation.enable_antialiasing {
         0.7
@@ -697,7 +723,7 @@ async fn apply_quest3_settings_to_system(
 
     // Map Quest 3 settings to system settings
     settings.xr.enabled = Some(quest3_settings.xr.enabled);
-    
+
     // Map XR settings - using string fields directly since XRSettings uses Option<String>
     settings.xr.mode = Some(quest3_settings.xr.display_mode.clone());
     settings.xr.space_type = quest3_settings.xr.space_type.clone();
@@ -712,13 +738,23 @@ async fn apply_quest3_settings_to_system(
     settings.xr.interaction_radius = quest3_settings.xr.interaction_distance;
 
     // Map visualization settings to both graphs
-    settings.visualisation.graphs.logseq.physics.bounds_size = quest3_settings.visualisation.bounds_size;
-    settings.visualisation.graphs.logseq.physics.max_velocity = quest3_settings.visualisation.max_velocity;
-    settings.visualisation.graphs.logseq.physics.enabled = quest3_settings.visualisation.physics_enabled;
-    
-    settings.visualisation.graphs.visionflow.physics.bounds_size = quest3_settings.visualisation.bounds_size;
-    settings.visualisation.graphs.visionflow.physics.max_velocity = quest3_settings.visualisation.max_velocity;
-    settings.visualisation.graphs.visionflow.physics.enabled = quest3_settings.visualisation.physics_enabled;
+    settings.visualisation.graphs.logseq.physics.bounds_size =
+        quest3_settings.visualisation.bounds_size;
+    settings.visualisation.graphs.logseq.physics.max_velocity =
+        quest3_settings.visualisation.max_velocity;
+    settings.visualisation.graphs.logseq.physics.enabled =
+        quest3_settings.visualisation.physics_enabled;
+
+    settings.visualisation.graphs.visionflow.physics.bounds_size =
+        quest3_settings.visualisation.bounds_size;
+    settings
+        .visualisation
+        .graphs
+        .visionflow
+        .physics
+        .max_velocity = quest3_settings.visualisation.max_velocity;
+    settings.visualisation.graphs.visionflow.physics.enabled =
+        quest3_settings.visualisation.physics_enabled;
 
     // Apply updated settings
     app_state
@@ -736,6 +772,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/quest3")
             .route("/defaults", web::get().to(get_quest3_defaults))
-            .route("/calibrate", web::post().to(calibrate_quest3))
+            .route("/calibrate", web::post().to(calibrate_quest3)),
     );
 }

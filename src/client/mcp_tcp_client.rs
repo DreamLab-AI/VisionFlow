@@ -1,9 +1,9 @@
-use tokio::net::TcpStream;
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use log::{debug, info, warn};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::time::Duration;
-use log::{debug, error, info, warn};
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::net::TcpStream;
 
 /// MCP TCP Client for querying multi-agent-container MCP server on port 9500
 #[derive(Debug, Clone)]
@@ -41,10 +41,8 @@ impl McpTelemetryClient {
         let addr = format!("{}:{}", self.host, self.port);
         debug!("Connecting to MCP TCP server at {}", addr);
 
-        let stream = tokio::time::timeout(
-            self.request_timeout,
-            TcpStream::connect(&addr)
-        ).await??;
+        let stream =
+            tokio::time::timeout(self.request_timeout, TcpStream::connect(&addr)).await??;
 
         info!("Connected to MCP TCP server at {}", addr);
         Ok(stream)
@@ -81,10 +79,7 @@ impl McpTelemetryClient {
         let mut reader = BufReader::new(stream);
         let mut response_line = String::new();
 
-        tokio::time::timeout(
-            self.request_timeout,
-            reader.read_line(&mut response_line)
-        ).await??;
+        tokio::time::timeout(self.request_timeout, reader.read_line(&mut response_line)).await??;
 
         debug!("Received MCP response: {}", response_line);
 
@@ -99,12 +94,13 @@ impl McpTelemetryClient {
     }
 
     /// List all available MCP tools
-    pub async fn list_tools(&mut self) -> Result<Vec<McpTool>, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn list_tools(
+        &mut self,
+    ) -> Result<Vec<McpTool>, Box<dyn std::error::Error + Send + Sync>> {
         let result = self.send_request("tools/list", json!({})).await?;
 
-        let tools: Vec<McpTool> = serde_json::from_value(
-            result.get("tools").cloned().unwrap_or(json!([]))
-        )?;
+        let tools: Vec<McpTool> =
+            serde_json::from_value(result.get("tools").cloned().unwrap_or(json!([])))?;
 
         Ok(tools)
     }
@@ -130,10 +126,9 @@ impl McpTelemetryClient {
     ) -> Result<SessionStatus, Box<dyn std::error::Error + Send + Sync>> {
         debug!("Querying session status for UUID: {}", session_uuid);
 
-        let result = self.call_tool(
-            "session_status",
-            json!({ "session_id": session_uuid })
-        ).await?;
+        let result = self
+            .call_tool("session_status", json!({ "session_id": session_uuid }))
+            .await?;
 
         Ok(serde_json::from_value(result)?)
     }
@@ -145,14 +140,12 @@ impl McpTelemetryClient {
     ) -> Result<Vec<AgentInfo>, Box<dyn std::error::Error + Send + Sync>> {
         debug!("Querying session agents for UUID: {}", session_uuid);
 
-        let result = self.call_tool(
-            "session_agents",
-            json!({ "session_id": session_uuid })
-        ).await?;
+        let result = self
+            .call_tool("session_agents", json!({ "session_id": session_uuid }))
+            .await?;
 
-        let agents: Vec<AgentInfo> = serde_json::from_value(
-            result.get("agents").cloned().unwrap_or(json!([]))
-        )?;
+        let agents: Vec<AgentInfo> =
+            serde_json::from_value(result.get("agents").cloned().unwrap_or(json!([])))?;
 
         Ok(agents)
     }
@@ -164,23 +157,23 @@ impl McpTelemetryClient {
     ) -> Result<SessionMetrics, Box<dyn std::error::Error + Send + Sync>> {
         debug!("Querying session metrics for UUID: {}", session_uuid);
 
-        let result = self.call_tool(
-            "session_metrics",
-            json!({ "session_id": session_uuid })
-        ).await?;
+        let result = self
+            .call_tool("session_metrics", json!({ "session_id": session_uuid }))
+            .await?;
 
         Ok(serde_json::from_value(result)?)
     }
 
     /// List all active swarms
-    pub async fn query_swarm_list(&mut self) -> Result<Vec<SwarmInfo>, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn query_swarm_list(
+        &mut self,
+    ) -> Result<Vec<SwarmInfo>, Box<dyn std::error::Error + Send + Sync>> {
         debug!("Querying all swarms");
 
         let result = self.call_tool("swarm_list", json!({})).await?;
 
-        let swarms: Vec<SwarmInfo> = serde_json::from_value(
-            result.get("swarms").cloned().unwrap_or(json!([]))
-        )?;
+        let swarms: Vec<SwarmInfo> =
+            serde_json::from_value(result.get("swarms").cloned().unwrap_or(json!([])))?;
 
         Ok(swarms)
     }
@@ -192,10 +185,9 @@ impl McpTelemetryClient {
     ) -> Result<SwarmMetrics, Box<dyn std::error::Error + Send + Sync>> {
         debug!("Querying swarm metrics for: {}", swarm_id);
 
-        let result = self.call_tool(
-            "swarm_monitor",
-            json!({ "swarm_id": swarm_id })
-        ).await?;
+        let result = self
+            .call_tool("swarm_monitor", json!({ "swarm_id": swarm_id }))
+            .await?;
 
         Ok(serde_json::from_value(result)?)
     }
@@ -207,16 +199,17 @@ impl McpTelemetryClient {
     ) -> Result<AgentMetrics, Box<dyn std::error::Error + Send + Sync>> {
         debug!("Querying agent metrics for: {}", agent_id);
 
-        let result = self.call_tool(
-            "agent_metrics",
-            json!({ "agent_id": agent_id })
-        ).await?;
+        let result = self
+            .call_tool("agent_metrics", json!({ "agent_id": agent_id }))
+            .await?;
 
         Ok(serde_json::from_value(result)?)
     }
 
     /// Get system-wide performance summary
-    pub async fn query_performance_summary(&mut self) -> Result<PerformanceSummary, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn query_performance_summary(
+        &mut self,
+    ) -> Result<PerformanceSummary, Box<dyn std::error::Error + Send + Sync>> {
         debug!("Querying performance summary");
 
         let result = self.call_tool("performance_summary", json!({})).await?;
@@ -369,8 +362,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_mcp_client_with_timeout() {
-        let client = McpTelemetryClient::for_multi_agent_container()
-            .with_timeout(Duration::from_secs(5));
+        let client =
+            McpTelemetryClient::for_multi_agent_container().with_timeout(Duration::from_secs(5));
         assert_eq!(client.request_timeout, Duration::from_secs(5));
     }
 }

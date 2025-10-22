@@ -1,9 +1,9 @@
+use log::{debug, info, warn};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
-use log::{debug, warn, info};
-use serde::{Deserialize, Serialize};
 
 use super::{HealthStatus, ServiceHealthInfo};
 
@@ -55,23 +55,34 @@ pub struct GracefulDegradationConfig {
 impl Default for GracefulDegradationConfig {
     fn default() -> Self {
         let mut strategies = HashMap::new();
-        
-        strategies.insert(DegradationLevel::Degraded, vec![
-            DegradationStrategy::UseCachedData { max_age: Duration::from_secs(300) },
-        ]);
-        
-        strategies.insert(DegradationLevel::SeverelyDegraded, vec![
-            DegradationStrategy::UseCachedData { max_age: Duration::from_secs(600) },
-            DegradationStrategy::ReducedFunctionality { 
-                features_disabled: vec!["non-essential".to_string()] 
-            },
-        ]);
-        
-        strategies.insert(DegradationLevel::Unavailable, vec![
-            DegradationStrategy::UseDefaults,
-            DegradationStrategy::FailFast,
-        ]);
-        
+
+        strategies.insert(
+            DegradationLevel::Degraded,
+            vec![DegradationStrategy::UseCachedData {
+                max_age: Duration::from_secs(300),
+            }],
+        );
+
+        strategies.insert(
+            DegradationLevel::SeverelyDegraded,
+            vec![
+                DegradationStrategy::UseCachedData {
+                    max_age: Duration::from_secs(600),
+                },
+                DegradationStrategy::ReducedFunctionality {
+                    features_disabled: vec!["non-essential".to_string()],
+                },
+            ],
+        );
+
+        strategies.insert(
+            DegradationLevel::Unavailable,
+            vec![
+                DegradationStrategy::UseDefaults,
+                DegradationStrategy::FailFast,
+            ],
+        );
+
         Self {
             strategies,
             degradation_threshold: 0.7,
@@ -122,21 +133,25 @@ impl GracefulDegradationManager {
     pub async fn update_service_health(&self, service_name: &str, health: &ServiceHealthInfo) {
         let new_level = self.calculate_degradation_level(health);
         let mut levels = self.service_levels.write().await;
-        
+
         if let Some(current_level) = levels.get(service_name) {
             if *current_level != new_level {
                 info!(
                     "Service {} degradation level changed from {:?} to {:?}",
                     service_name, current_level, new_level
                 );
-                
+
                 // Apply degradation strategies
-                self.apply_degradation_strategies(service_name, new_level).await;
+                self.apply_degradation_strategies(service_name, new_level)
+                    .await;
             }
         } else {
-            info!("Setting initial degradation level for service {}: {:?}", service_name, new_level);
+            info!(
+                "Setting initial degradation level for service {}: {:?}",
+                service_name, new_level
+            );
         }
-        
+
         levels.insert(service_name.to_string(), new_level);
     }
 
@@ -161,7 +176,7 @@ impl GracefulDegradationManager {
         T: serde::Serialize + serde::de::DeserializeOwned + Clone + Default,
     {
         let degradation_level = self.get_degradation_level(service_name).await;
-        
+
         match degradation_level {
             DegradationLevel::Normal => {
                 // Execute normally and cache result
@@ -181,13 +196,15 @@ impl GracefulDegradationManager {
                         Ok(result)
                     }
                     Err(_) => {
-                        self.apply_fallback_strategies(service_name, request_key, degradation_level).await
+                        self.apply_fallback_strategies(service_name, request_key, degradation_level)
+                            .await
                     }
                 }
             }
             DegradationLevel::Unavailable => {
                 // Skip operation, use degradation strategies directly
-                self.apply_fallback_strategies(service_name, request_key, degradation_level).await
+                self.apply_fallback_strategies(service_name, request_key, degradation_level)
+                    .await
             }
         }
     }
@@ -203,8 +220,11 @@ impl GracefulDegradationManager {
                 timestamp: Instant::now(),
                 ttl: Duration::from_secs(300), // Default 5 minutes
             };
-            
-            self.cached_data.write().await.insert(key.to_string(), cached);
+
+            self.cached_data
+                .write()
+                .await
+                .insert(key.to_string(), cached);
             debug!("Cached response for key: {}", key);
         }
     }
@@ -215,7 +235,7 @@ impl GracefulDegradationManager {
         T: serde::de::DeserializeOwned,
     {
         let cache = self.cached_data.read().await;
-        
+
         if let Some(cached) = cache.get(key) {
             if cached.timestamp.elapsed() <= max_age {
                 if let Ok(data) = serde_json::from_value(cached.data.clone()) {
@@ -226,7 +246,7 @@ impl GracefulDegradationManager {
                 debug!("Cached response for key {} is too old", key);
             }
         }
-        
+
         None
     }
 
@@ -238,8 +258,10 @@ impl GracefulDegradationManager {
         data: serde_json::Value,
     ) -> Result<(), String> {
         let mut queues = self.request_queues.write().await;
-        let queue = queues.entry(service_name.to_string()).or_insert_with(Vec::new);
-        
+        let queue = queues
+            .entry(service_name.to_string())
+            .or_insert_with(Vec::new);
+
         // Check queue size limits
         if let Some(strategies) = self.config.strategies.get(&DegradationLevel::Degraded) {
             for strategy in strategies {
@@ -251,14 +273,14 @@ impl GracefulDegradationManager {
                 }
             }
         }
-        
+
         let request = QueuedRequest {
             id: request_id.clone(),
             data,
             timestamp: Instant::now(),
             callback: None,
         };
-        
+
         queue.push(request);
         info!("Queued request {} for service {}", request_id, service_name);
         Ok(())
@@ -267,10 +289,14 @@ impl GracefulDegradationManager {
     /// Process queued requests when service recovers
     pub async fn process_queued_requests(&self, service_name: &str) {
         let mut queues = self.request_queues.write().await;
-        
+
         if let Some(queue) = queues.remove(service_name) {
-            info!("Processing {} queued requests for service {}", queue.len(), service_name);
-            
+            info!(
+                "Processing {} queued requests for service {}",
+                queue.len(),
+                service_name
+            );
+
             for request in queue {
                 // In a real implementation, you would process these requests
                 // For now, we just log them
@@ -306,7 +332,7 @@ impl GracefulDegradationManager {
                 queue.retain(|req| {
                     req.timestamp.elapsed() < Duration::from_secs(3600) // 1 hour max
                 });
-                
+
                 if queue.len() != original_len {
                     debug!(
                         "Cleaned up {} expired requests for service {}",
@@ -375,7 +401,8 @@ impl GracefulDegradationManager {
             for strategy in strategies {
                 match strategy {
                     DegradationStrategy::UseCachedData { max_age } => {
-                        if let Some(cached) = self.get_cached_response(request_key, *max_age).await {
+                        if let Some(cached) = self.get_cached_response(request_key, *max_age).await
+                        {
                             info!("Using cached data for service: {}", service_name);
                             return Ok(cached);
                         }
@@ -385,7 +412,10 @@ impl GracefulDegradationManager {
                         return Ok(T::default());
                     }
                     DegradationStrategy::FailFast => {
-                        warn!("Fast-failing request for unavailable service: {}", service_name);
+                        warn!(
+                            "Fast-failing request for unavailable service: {}",
+                            service_name
+                        );
                         return Err(format!("Service {} is unavailable", service_name));
                     }
                     _ => {
@@ -395,8 +425,11 @@ impl GracefulDegradationManager {
                 }
             }
         }
-        
-        Err(format!("No fallback strategy available for service: {}", service_name))
+
+        Err(format!(
+            "No fallback strategy available for service: {}",
+            service_name
+        ))
     }
 }
 
@@ -421,13 +454,13 @@ mod tests {
     async fn test_cache_and_retrieve() {
         let manager = GracefulDegradationManager::default();
         let test_data = "test response";
-        
+
         manager.cache_response("test-key", &test_data).await;
-        
+
         let cached: Option<String> = manager
             .get_cached_response("test-key", Duration::from_secs(60))
             .await;
-        
+
         assert_eq!(cached, Some(test_data.to_string()));
     }
 
@@ -435,11 +468,11 @@ mod tests {
     async fn test_queue_request() {
         let manager = GracefulDegradationManager::default();
         let request_data = serde_json::json!({"test": "data"});
-        
+
         let result = manager
             .queue_request("test-service", "req-1".to_string(), request_data)
             .await;
-        
+
         assert!(result.is_ok());
     }
 }

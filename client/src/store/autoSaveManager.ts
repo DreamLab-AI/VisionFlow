@@ -178,3 +178,6 @@ export class AutoSaveManager {
     return this.pendingChanges.size;
   }
 }
+
+// Export singleton instance
+export const autoSaveManager = new AutoSaveManager();

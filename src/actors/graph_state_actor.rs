@@ -1,8 +1,13 @@
-//! Graph State Actor
+//! Graph State Actor - Refactored with Hexagonal Architecture
 //!
 //! This module implements a specialized actor focused exclusively on graph state management.
-//! It handles all graph data operations including node/edge CRUD operations, metadata-based
-//! updates, and path computation while maintaining separation of concerns from physics simulation.
+//! Now uses KnowledgeGraphRepository port for persistence operations.
+//!
+//! ## Hexagonal Architecture
+//!
+//! - **Port**: KnowledgeGraphRepository (in-memory interface)
+//! - **Adapter**: SqliteKnowledgeGraphRepository (database implementation)
+//! - **Actor**: Maintains in-memory state and coordinates operations
 //!
 //! ## Core Responsibilities
 //!
@@ -10,13 +15,14 @@
 //! - **Primary Graph**: Maintains the main graph data structure with nodes and edges
 //! - **Node Map**: Provides efficient O(1) node lookup by ID
 //! - **Bots Graph**: Manages separate graph data for agent visualization
+//! - **Persistence**: Uses repository port for database operations
 //!
-//! ### 2. Node Operations
+//! ### 2. Node Operations (via Repository)
 //! - **AddNode**: Add new nodes to the graph with proper ID management
 //! - **RemoveNode**: Remove nodes and clean up associated edges
 //! - **UpdateNodeFromMetadata**: Update existing nodes based on metadata changes
 //!
-//! ### 3. Edge Operations
+//! ### 3. Edge Operations (via Repository)
 //! - **AddEdge**: Create connections between nodes
 //! - **RemoveEdge**: Remove specific edges by ID
 //! - **Edge consistency**: Maintain edge integrity during node operations
@@ -32,13 +38,11 @@
 //!
 //! ## Usage Pattern
 //!
-//! The GraphStateActor serves as the authoritative source for all graph state:
-//!
 //! ```rust
 //! // Get current graph data
 //! let graph_data = graph_state_actor.send(GetGraphData).await?;
 //!
-//! // Add a new node
+//! // Add a new node (persisted via repository)
 //! graph_state_actor.send(AddNode { node }).await?;
 //!
 //! // Update from metadata
@@ -58,9 +62,14 @@ use crate::models::metadata::{MetadataStore, FileMetadata};
 use crate::models::graph::GraphData;
 use crate::utils::socket_flow_messages::{BinaryNodeData, BinaryNodeDataClient, glam_to_vec3data};
 
-/// Graph State Actor - Manages all graph state operations
+// Ports (hexagonal architecture)
+use crate::ports::knowledge_graph_repository::KnowledgeGraphRepository;
+
+/// Graph State Actor - Manages all graph state operations with repository injection
 pub struct GraphStateActor {
-    /// Primary graph data containing nodes and edges
+    /// Hexagonal architecture: repository port for persistence
+    repository: Arc<dyn KnowledgeGraphRepository>,
+    /// Primary graph data containing nodes and edges (in-memory cache)
     graph_data: Arc<GraphData>,
     /// Efficient node lookup map by ID
     node_map: Arc<HashMap<u32, Node>>,
@@ -71,9 +80,11 @@ pub struct GraphStateActor {
 }
 
 impl GraphStateActor {
-    /// Create new GraphStateActor instance
-    pub fn new() -> Self {
+    /// Create new GraphStateActor instance with injected repository (hexagonal architecture)
+    pub fn new(repository: Arc<dyn KnowledgeGraphRepository>) -> Self {
+        info!("Initializing GraphStateActor with repository injection");
         Self {
+            repository,
             graph_data: Arc::new(GraphData::new()),
             node_map: Arc::new(HashMap::new()),
             bots_graph_data: Arc::new(GraphData::new()),

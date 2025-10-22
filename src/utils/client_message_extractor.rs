@@ -79,7 +79,8 @@ impl ClientMessageStream {
         self.buffer.push_str(chunk);
 
         // Extract messages from buffer
-        let messages = extract_client_messages(&self.buffer, self.session_id.clone(), self.agent_id.clone());
+        let messages =
+            extract_client_messages(&self.buffer, self.session_id.clone(), self.agent_id.clone());
 
         // Remove extracted message content from buffer to prevent reprocessing
         if !messages.is_empty() {
@@ -113,7 +114,8 @@ mod tests {
 
     #[test]
     fn test_extract_basic_message() {
-        let text = "Some output **[CLIENT_MESSAGE]** Hello from agent **[/CLIENT_MESSAGE]** more output";
+        let text =
+            "Some output **[CLIENT_MESSAGE]** Hello from agent **[/CLIENT_MESSAGE]** more output";
         let messages = extract_client_messages(text, None, None);
         assert_eq!(messages.len(), 1);
         assert_eq!(messages[0].content, "Hello from agent");

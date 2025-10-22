@@ -59,7 +59,8 @@ async fn test_bidirectional_mapping_consistency() {
         assert_eq!(
             swarm_id.as_deref(),
             Some(*expected_swarm),
-            "Forward mapping failed for UUID: {}", uuid
+            "Forward mapping failed for UUID: {}",
+            uuid
         );
     }
 
@@ -69,7 +70,8 @@ async fn test_bidirectional_mapping_consistency() {
         assert_eq!(
             uuid.as_deref(),
             Some(*expected_uuid),
-            "Reverse mapping failed for swarm: {}", swarm_id
+            "Reverse mapping failed for swarm: {}",
+            swarm_id
         );
     }
 }
@@ -113,7 +115,9 @@ async fn test_concurrent_mapping_operations() {
 
     // Wait for all tasks to complete
     for handle in handles {
-        handle.await.expect("Concurrent task should complete successfully");
+        handle
+            .await
+            .expect("Concurrent task should complete successfully");
     }
 
     // Verify all mappings persisted
@@ -125,7 +129,8 @@ async fn test_concurrent_mapping_operations() {
         assert_eq!(
             swarm_id.as_deref(),
             Some(expected_swarm.as_str()),
-            "Concurrent mapping should persist for UUID: {}", uuid
+            "Concurrent mapping should persist for UUID: {}",
+            uuid
         );
     }
 }
@@ -223,7 +228,8 @@ async fn test_uuid_format_patterns() {
         assert_eq!(
             retrieved.as_deref(),
             Some(swarm_id),
-            "UUID format '{}' should be handled correctly", uuid
+            "UUID format '{}' should be handled correctly",
+            uuid
         );
     }
 }
@@ -234,15 +240,22 @@ async fn test_cleanup_completed_sessions() {
     let bridge = McpSessionBridge::new("test-container".to_string());
 
     // Create several mappings
-    bridge.link_session_to_swarm("active-session", "swarm-active").await;
-    bridge.link_session_to_swarm("completed-session", "swarm-completed").await;
+    bridge
+        .link_session_to_swarm("active-session", "swarm-active")
+        .await;
+    bridge
+        .link_session_to_swarm("completed-session", "swarm-completed")
+        .await;
 
     // Simulate cleanup (note: actual cleanup requires status = "Completed")
     // This test verifies the cleanup method can be called without errors
     let cleaned = bridge.cleanup_completed_sessions().await;
 
     // Since we haven't marked any as completed in this test, should be 0
-    assert_eq!(cleaned, 0, "No sessions should be cleaned if none are completed");
+    assert_eq!(
+        cleaned, 0,
+        "No sessions should be cleaned if none are completed"
+    );
 }
 
 /// Test swarm ID retrieval with special characters
@@ -262,7 +275,8 @@ async fn test_special_characters_in_identifiers() {
         assert_eq!(
             bridge.get_swarm_id_for_session(uuid).await.as_deref(),
             Some(swarm_id),
-            "Special character handling failed for: {}", uuid
+            "Special character handling failed for: {}",
+            uuid
         );
     }
 }
@@ -283,7 +297,8 @@ async fn test_mapping_persistence() {
         assert_eq!(
             result.as_deref(),
             Some(swarm_id),
-            "Mapping should persist across query #{}", i + 1
+            "Mapping should persist across query #{}",
+            i + 1
         );
     }
 }

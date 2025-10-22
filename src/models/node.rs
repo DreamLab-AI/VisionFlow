@@ -1,19 +1,18 @@
+use crate::config::dev_config;
+use crate::utils::socket_flow_messages::BinaryNodeData;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU32, Ordering};
-use crate::utils::socket_flow_messages::BinaryNodeData;
-use crate::types::vec3::Vec3Data;
-use crate::config::dev_config;
 
 // Static counter for generating unique numeric IDs
-static NEXT_NODE_ID: AtomicU32 = AtomicU32::new(1);  // Start from 1 (0 could be reserved)
+static NEXT_NODE_ID: AtomicU32 = AtomicU32::new(1); // Start from 1 (0 could be reserved)
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Node {
     // Core data
     pub id: u32,
-    pub metadata_id: String,  // Store the original filename for lookup
+    pub metadata_id: String, // Store the original filename for lookup
     pub label: String,
     pub data: BinaryNodeData,
 
@@ -51,12 +50,10 @@ impl Node {
             Some(id) if id != 0 => {
                 // Use the provided ID only if it's a valid non-zero ID
                 id
-            },
-            _ => {
-                NEXT_NODE_ID.fetch_add(1, Ordering::SeqCst)
             }
+            _ => NEXT_NODE_ID.fetch_add(1, Ordering::SeqCst),
         };
-        
+
         // BREADCRUMB: Use random initial positions for force-directed graph
         // This ensures truly random starting positions for better force-directed layout
         use rand::Rng;
@@ -80,8 +77,8 @@ impl Node {
                 x: radius * phi.sin() * theta.cos(),
                 y: radius * phi.sin() * theta.sin(),
                 z: radius * phi.cos(),
-                vx: 0.0,  // Start with zero velocity
-                vy: 0.0,  // Physics will handle the movement
+                vx: 0.0, // Start with zero velocity
+                vy: 0.0, // Physics will handle the movement
                 vz: 0.0,
             },
             metadata: HashMap::new(),
@@ -98,11 +95,12 @@ impl Node {
     pub fn set_file_size(&mut self, size: u64) {
         self.file_size = size;
         // Note: Mass is no longer stored in BinaryNodeDataClient - handled separately
-        
+
         // Add the file_size to the metadata HashMap so it gets serialized to the client
         // This is our workaround since we can't directly serialize the file_size field
         if size > 0 {
-            self.metadata.insert("fileSize".to_string(), size.to_string());
+            self.metadata
+                .insert("fileSize".to_string(), size.to_string());
         }
     }
 
@@ -162,12 +160,12 @@ impl Node {
             Some(stored_id) => stored_id,
             None => NEXT_NODE_ID.fetch_add(1, Ordering::SeqCst),
         };
-        
+
         // Use similar position initialization logic as the main constructor
         let id_hash = id as f32;
         let angle = id_hash * 0.618033988749895; // Golden ratio for good distribution
         let radius = (id_hash * 0.1).min(100.0); // Spread nodes up to radius 100
-        
+
         Self {
             id,
             metadata_id: metadata_id.clone(),
@@ -202,19 +200,43 @@ impl Node {
     }
 
     // Convenience getters/setters for position and velocity
-    pub fn x(&self) -> f32 { self.data.x }
-    pub fn y(&self) -> f32 { self.data.y }
-    pub fn z(&self) -> f32 { self.data.z }
-    pub fn vx(&self) -> f32 { self.data.vx }
-    pub fn vy(&self) -> f32 { self.data.vy }
-    pub fn vz(&self) -> f32 { self.data.vz }
-    
-    pub fn set_x(&mut self, val: f32) { self.data.x = val; }
-    pub fn set_y(&mut self, val: f32) { self.data.y = val; }
-    pub fn set_z(&mut self, val: f32) { self.data.z = val; }
-    pub fn set_vx(&mut self, val: f32) { self.data.vx = val; }
-    pub fn set_vy(&mut self, val: f32) { self.data.vy = val; }
-    pub fn set_vz(&mut self, val: f32) { self.data.vz = val; }
+    pub fn x(&self) -> f32 {
+        self.data.x
+    }
+    pub fn y(&self) -> f32 {
+        self.data.y
+    }
+    pub fn z(&self) -> f32 {
+        self.data.z
+    }
+    pub fn vx(&self) -> f32 {
+        self.data.vx
+    }
+    pub fn vy(&self) -> f32 {
+        self.data.vy
+    }
+    pub fn vz(&self) -> f32 {
+        self.data.vz
+    }
+
+    pub fn set_x(&mut self, val: f32) {
+        self.data.x = val;
+    }
+    pub fn set_y(&mut self, val: f32) {
+        self.data.y = val;
+    }
+    pub fn set_z(&mut self, val: f32) {
+        self.data.z = val;
+    }
+    pub fn set_vx(&mut self, val: f32) {
+        self.data.vx = val;
+    }
+    pub fn set_vy(&mut self, val: f32) {
+        self.data.vy = val;
+    }
+    pub fn set_vz(&mut self, val: f32) {
+        self.data.vz = val;
+    }
 
     /// Get the node ID as a string for socket/wire protocol compatibility
     pub fn id_as_string(&self) -> String {
@@ -222,7 +244,10 @@ impl Node {
     }
 
     /// Create a Node from a string ID (for socket/wire protocol compatibility)
-    pub fn from_string_id(id_str: &str, metadata_id: String) -> Result<Self, std::num::ParseIntError> {
+    pub fn from_string_id(
+        id_str: &str,
+        metadata_id: String,
+    ) -> Result<Self, std::num::ParseIntError> {
         let id: u32 = id_str.parse()?;
         Ok(Self::new_with_stored_id(metadata_id, Some(id)))
     }
@@ -230,28 +255,28 @@ impl Node {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::atomic::Ordering;
     use super::*;
+    use std::sync::atomic::Ordering;
 
     #[test]
     fn test_numeric_id_generation() {
         // Read the current value of the counter (it might have been incremented elsewhere)
         let start_value = NEXT_NODE_ID.load(Ordering::SeqCst);
-        
+
         // Create two nodes with different metadata IDs
         let node1 = Node::new("test-file-1.md".to_string());
         let node2 = Node::new("test-file-2.md".to_string());
-        
+
         // Verify each node has a unique numeric ID
         assert_ne!(node1.id, node2.id);
-        
+
         // Verify metadata_id is stored correctly
         assert_eq!(node1.metadata_id, "test-file-1.md");
         assert_eq!(node2.metadata_id, "test-file-2.md");
-        
+
         // Verify IDs are consecutive numbers
         assert_eq!(node1.id + 1, node2.id);
-        
+
         // Verify final counter value
         let end_value = NEXT_NODE_ID.load(Ordering::SeqCst);
         assert_eq!(end_value, start_value + 2);
@@ -289,7 +314,7 @@ mod tests {
     #[test]
     fn test_position_velocity_getters_setters() {
         let mut node = Node::new("test".to_string());
-        
+
         node.set_x(1.0);
         node.set_y(2.0);
         node.set_z(3.0);

@@ -1,10 +1,10 @@
+use log::{debug, error, info, warn};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use tokio::sync::{Mutex, RwLock, Semaphore};
 use tokio::net::TcpStream;
-use log::{debug, warn, error, info};
-use serde::{Deserialize, Serialize};
+use tokio::sync::{Mutex, RwLock, Semaphore};
 use uuid::Uuid;
 
 /// Configuration for connection pooling
@@ -185,7 +185,7 @@ impl ConnectionPool {
 
         let handle = tokio::spawn(async move {
             let mut interval = tokio::time::interval(config.cleanup_interval);
-            
+
             loop {
                 interval.tick().await;
                 Self::cleanup_connections(&connections, &stats, &config).await;
@@ -196,15 +196,18 @@ impl ConnectionPool {
     }
 
     /// Get a connection from the pool or create a new one
-    pub async fn get_connection(&self, endpoint: &str) -> Result<PooledConnection, ConnectionPoolError> {
+    pub async fn get_connection(
+        &self,
+        endpoint: &str,
+    ) -> Result<PooledConnection, ConnectionPoolError> {
         let _start_time = Instant::now();
-        
+
         // Check file descriptor usage before attempting connection
         if let Err(fd_error) = self.check_file_descriptor_usage().await {
             warn!("{}", fd_error);
             return Err(ConnectionPoolError::ConnectionFailed(fd_error));
         }
-        
+
         // Update stats
         {
             let mut stats = self.stats.lock().await;
@@ -215,7 +218,9 @@ impl ConnectionPool {
         let permit = match tokio::time::timeout(
             self.config.connection_timeout,
             self.connection_semaphore.acquire(),
-        ).await {
+        )
+        .await
+        {
             Ok(Ok(permit)) => permit,
             Ok(Err(_)) => {
                 self.record_timeout().await;
@@ -249,7 +254,10 @@ impl ConnectionPool {
     }
 
     /// Return a connection to the pool
-    pub async fn return_connection(&self, mut connection: PooledConnection) -> Result<(), ConnectionPoolError> {
+    pub async fn return_connection(
+        &self,
+        mut connection: PooledConnection,
+    ) -> Result<(), ConnectionPoolError> {
         connection.mark_used();
 
         // Validate connection if configured
@@ -261,7 +269,10 @@ impl ConnectionPool {
 
         // Check if connection is expired
         if connection.is_expired(self.config.max_connection_lifetime) {
-            debug!("Connection {} expired, not returning to pool", connection.id);
+            debug!(
+                "Connection {} expired, not returning to pool",
+                connection.id
+            );
             self.connection_semaphore.add_permits(1);
             return Ok(());
         }
@@ -269,18 +280,21 @@ impl ConnectionPool {
         // Check connection limit for this endpoint
         let endpoint = connection.endpoint.clone();
         let mut connections = self.connections.write().await;
-        
+
         let endpoint_connections = connections.entry(endpoint.clone()).or_insert_with(Vec::new);
-        
+
         if endpoint_connections.len() >= self.config.max_connections_per_endpoint {
-            debug!("Endpoint {} at connection limit, not returning connection", endpoint);
+            debug!(
+                "Endpoint {} at connection limit, not returning connection",
+                endpoint
+            );
             self.connection_semaphore.add_permits(1);
             return Ok(());
         }
 
         endpoint_connections.push(connection);
         self.update_connection_stats().await;
-        
+
         debug!("Returned connection to pool for endpoint: {}", endpoint);
         Ok(())
     }
@@ -293,7 +307,7 @@ impl ConnectionPool {
     /// Close all connections and shutdown the pool
     pub async fn shutdown(&mut self) {
         info!("Shutting down connection pool");
-        
+
         // Cancel cleanup task
         if let Some(handle) = self.cleanup_handle.take() {
             handle.abort();
@@ -302,7 +316,11 @@ impl ConnectionPool {
         // Close all connections
         let mut connections = self.connections.write().await;
         for (endpoint, conn_list) in connections.drain() {
-            debug!("Closing {} connections for endpoint: {}", conn_list.len(), endpoint);
+            debug!(
+                "Closing {} connections for endpoint: {}",
+                conn_list.len(),
+                endpoint
+            );
         }
 
         info!("Connection pool shutdown complete");
@@ -310,9 +328,12 @@ impl ConnectionPool {
 
     // Private methods
 
-    async fn borrow_existing_connection(&self, endpoint: &str) -> Result<Option<PooledConnection>, ConnectionPoolError> {
+    async fn borrow_existing_connection(
+        &self,
+        endpoint: &str,
+    ) -> Result<Option<PooledConnection>, ConnectionPoolError> {
         let mut connections = self.connections.write().await;
-        
+
         if let Some(endpoint_connections) = connections.get_mut(endpoint) {
             // Try to find a valid connection
             while let Some(mut connection) = endpoint_connections.pop() {
@@ -330,7 +351,10 @@ impl ConnectionPool {
 
                 // Check if connection is idle for too long
                 if connection.is_idle(self.config.idle_timeout) {
-                    debug!("Connection {} idle for too long, creating new one", connection.id);
+                    debug!(
+                        "Connection {} idle for too long, creating new one",
+                        connection.id
+                    );
                     continue;
                 }
 
@@ -338,8 +362,11 @@ impl ConnectionPool {
                 self.record_validation_passed().await;
                 self.record_successful_borrow().await;
                 self.update_connection_stats().await;
-                
-                debug!("Reusing existing connection {} for endpoint: {}", connection.id, endpoint);
+
+                debug!(
+                    "Reusing existing connection {} for endpoint: {}",
+                    connection.id, endpoint
+                );
                 return Ok(Some(connection));
             }
         }
@@ -347,13 +374,18 @@ impl ConnectionPool {
         Ok(None)
     }
 
-    async fn create_new_connection(&self, endpoint: &str) -> Result<PooledConnection, ConnectionPoolError> {
+    async fn create_new_connection(
+        &self,
+        endpoint: &str,
+    ) -> Result<PooledConnection, ConnectionPoolError> {
         debug!("Creating new connection to: {}", endpoint);
-        
+
         let stream = match tokio::time::timeout(
             self.config.connection_timeout,
             TcpStream::connect(endpoint),
-        ).await {
+        )
+        .await
+        {
             Ok(Ok(stream)) => stream,
             Ok(Err(err)) => {
                 error!("Failed to connect to {}: {}", endpoint, err);
@@ -371,10 +403,10 @@ impl ConnectionPool {
         }
 
         let connection = PooledConnection::new(stream, endpoint.to_string());
-        
+
         self.record_connection_created().await;
         self.update_connection_stats().await;
-        
+
         debug!("Created new connection {} to: {}", connection.id, endpoint);
         Ok(connection)
     }
@@ -389,16 +421,19 @@ impl ConnectionPool {
 
         for (endpoint, endpoint_connections) in connections_guard.iter_mut() {
             let original_len = endpoint_connections.len();
-            
+
             endpoint_connections.retain(|conn| {
-                let should_keep = !conn.is_expired(config.max_connection_lifetime) 
+                let should_keep = !conn.is_expired(config.max_connection_lifetime)
                     && !conn.is_idle(config.idle_timeout);
-                
+
                 if !should_keep {
                     closed_count += 1;
-                    debug!("Cleaning up connection {} for endpoint {}", conn.id, endpoint);
+                    debug!(
+                        "Cleaning up connection {} for endpoint {}",
+                        conn.id, endpoint
+                    );
                 }
-                
+
                 should_keep
             });
 
@@ -433,10 +468,10 @@ impl ConnectionPool {
                         count += 1;
                     }
                     let fd_count = count.saturating_sub(1); // Subtract dir handle
-                    
+
                     const FD_WARNING_THRESHOLD: usize = 700;
                     const FD_ERROR_THRESHOLD: usize = 900;
-                    
+
                     if fd_count > FD_ERROR_THRESHOLD {
                         return Err(format!(
                             "File descriptor limit approaching: {} open FDs (limit: {})",
@@ -453,7 +488,7 @@ impl ConnectionPool {
         }
         Ok(())
     }
-    
+
     // Statistics methods
     async fn record_successful_borrow(&self) {
         let mut stats = self.stats.lock().await;
@@ -488,14 +523,16 @@ impl ConnectionPool {
     async fn update_connection_stats(&self) {
         let connections = self.connections.read().await;
         let mut stats = self.stats.lock().await;
-        
+
         stats.total_connections = connections.values().map(|v| v.len()).sum();
         stats.idle_connections = stats.total_connections; // All pooled connections are idle
         stats.active_connections = 0; // Active connections are not in the pool
-        
+
         stats.connections_per_endpoint.clear();
         for (endpoint, conns) in connections.iter() {
-            stats.connections_per_endpoint.insert(endpoint.clone(), conns.len());
+            stats
+                .connections_per_endpoint
+                .insert(endpoint.clone(), conns.len());
         }
     }
 }
@@ -536,9 +573,13 @@ impl ConnectionPoolRegistry {
     }
 
     /// Get or create a connection pool for a specific service
-    pub async fn get_or_create_pool(&self, service_name: &str, config: ConnectionPoolConfig) -> Arc<Mutex<ConnectionPool>> {
+    pub async fn get_or_create_pool(
+        &self,
+        service_name: &str,
+        config: ConnectionPoolConfig,
+    ) -> Arc<Mutex<ConnectionPool>> {
         let mut pools = self.pools.write().await;
-        
+
         if let Some(pool) = pools.get(service_name) {
             pool.clone()
         } else {
@@ -555,12 +596,12 @@ impl ConnectionPoolRegistry {
     pub async fn get_all_stats(&self) -> HashMap<String, ConnectionPoolStats> {
         let pools = self.pools.read().await;
         let mut all_stats = HashMap::new();
-        
+
         for (name, pool) in pools.iter() {
             let pool_guard = pool.lock().await;
             all_stats.insert(name.clone(), pool_guard.stats().await);
         }
-        
+
         all_stats
     }
 
@@ -591,10 +632,10 @@ mod tests {
         let config = ConnectionPoolConfig::default();
         let mut pool = ConnectionPool::new(config);
         pool.start_cleanup_task();
-        
+
         let stats = pool.stats().await;
         assert_eq!(stats.total_connections, 0);
-        
+
         pool.shutdown().await;
     }
 
@@ -607,21 +648,21 @@ mod tests {
     #[tokio::test]
     async fn test_connection_expiry() {
         let stream = tokio::net::TcpStream::connect("127.0.0.1:80").await;
-        
+
         // Skip test if we can't connect (no server running)
         if stream.is_err() {
             return;
         }
-        
+
         let mut connection = PooledConnection::new(stream.unwrap(), "127.0.0.1:80".to_string());
-        
+
         // Test that new connection is not expired
         assert!(!connection.is_expired(Duration::from_secs(60)));
-        
+
         // Test that connection becomes idle
         sleep(Duration::from_millis(10)).await;
         assert!(connection.is_idle(Duration::from_millis(5)));
-        
+
         // Mark as used and check it's no longer idle
         connection.mark_used();
         assert!(!connection.is_idle(Duration::from_millis(5)));
@@ -630,13 +671,17 @@ mod tests {
     #[tokio::test]
     async fn test_connection_pool_registry() {
         let registry = ConnectionPoolRegistry::new();
-        
-        let pool1 = registry.get_or_create_pool("service1", ConnectionPoolConfig::default()).await;
-        let pool2 = registry.get_or_create_pool("service1", ConnectionPoolConfig::default()).await;
-        
+
+        let pool1 = registry
+            .get_or_create_pool("service1", ConnectionPoolConfig::default())
+            .await;
+        let pool2 = registry
+            .get_or_create_pool("service1", ConnectionPoolConfig::default())
+            .await;
+
         // Should return the same pool instance
         assert!(Arc::ptr_eq(&pool1, &pool2));
-        
+
         registry.shutdown_all().await;
     }
 }

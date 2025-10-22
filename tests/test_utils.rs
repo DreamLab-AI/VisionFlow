@@ -209,7 +209,7 @@ impl TestAppSettings {
                 }
             }
         }
-        
+
         if let Some(system) = overrides.get("system") {
             if let Some(debug) = system.get("debugMode") {
                 if let Some(val) = debug.as_bool() {
@@ -222,7 +222,7 @@ impl TestAppSettings {
                 }
             }
         }
-        
+
         self
     }
 }
@@ -311,7 +311,7 @@ pub fn validate_path_update(
             if let Some(method) = value.as_str() {
                 if !["teleport", "smooth", "dash"].contains(&method) {
                     return Err(TestValidationError::InvalidValue(
-                        "Invalid locomotion method".to_string()
+                        "Invalid locomotion method".to_string(),
                     ));
                 }
                 settings.xr.locomotion_method = method.to_string();
@@ -329,7 +329,7 @@ pub fn validate_path_update(
             return Err(TestValidationError::PathNotFound);
         }
     }
-    
+
     Ok(())
 }
 
@@ -343,12 +343,22 @@ pub fn is_valid_hex_color(color: &str) -> bool {
 
 pub fn contains_dangerous_content(content: &str) -> bool {
     let dangerous_patterns = [
-        "<script", "DROP TABLE", "javascript:", "../", "..\\",
-        "'; --", "\"; --", "<?php", "<%", "%3Cscript"
+        "<script",
+        "DROP TABLE",
+        "javascript:",
+        "../",
+        "..\\",
+        "'; --",
+        "\"; --",
+        "<?php",
+        "<%",
+        "%3Cscript",
     ];
-    
+
     let content_lower = content.to_lowercase();
-    dangerous_patterns.iter().any(|pattern| content_lower.contains(&pattern.to_lowercase()))
+    dangerous_patterns
+        .iter()
+        .any(|pattern| content_lower.contains(&pattern.to_lowercase()))
 }
 
 pub fn parse_dot_notation_path(path: &str) -> Vec<&str> {
@@ -369,15 +379,15 @@ impl PerformanceTimer {
             start_time: Instant::now(),
         }
     }
-    
+
     pub fn elapsed(&self) -> Duration {
         self.start_time.elapsed()
     }
-    
+
     pub fn elapsed_ms(&self) -> u128 {
         self.elapsed().as_millis()
     }
-    
+
     pub fn elapsed_micros(&self) -> u128 {
         self.elapsed().as_micros()
     }
@@ -396,48 +406,48 @@ impl<T: Send + Sync + 'static> ConcurrentTestHarness<T> {
             thread_count,
         }
     }
-    
+
     pub fn run_concurrent_readers<F, R>(&self, reader_fn: F) -> Vec<std::thread::JoinHandle<R>>
     where
         F: Fn(&T) -> R + Send + 'static + Clone,
         R: Send + 'static,
     {
         let mut handles = Vec::new();
-        
+
         for i in 0..self.thread_count {
             let data_clone = self.data.clone();
             let reader_fn_clone = reader_fn.clone();
-            
+
             let handle = std::thread::spawn(move || {
                 let guard = data_clone.read().unwrap();
                 reader_fn_clone(&*guard)
             });
-            
+
             handles.push(handle);
         }
-        
+
         handles
     }
-    
+
     pub fn run_concurrent_writers<F, R>(&self, writer_fn: F) -> Vec<std::thread::JoinHandle<R>>
     where
         F: Fn(&mut T, usize) -> R + Send + 'static + Clone,
         R: Send + 'static,
     {
         let mut handles = Vec::new();
-        
+
         for i in 0..self.thread_count {
             let data_clone = self.data.clone();
             let writer_fn_clone = writer_fn.clone();
-            
+
             let handle = std::thread::spawn(move || {
                 let mut guard = data_clone.write().unwrap();
                 writer_fn_clone(&mut *guard, i)
             });
-            
+
             handles.push(handle);
         }
-        
+
         handles
     }
 }
@@ -461,7 +471,7 @@ impl MockHttpResponse {
             body: serde_json::to_string(&body).unwrap_or_default(),
         }
     }
-    
+
     pub fn bad_request(error: &str) -> Self {
         Self {
             status_code: 400,
@@ -473,10 +483,11 @@ impl MockHttpResponse {
             body: json!({
                 "success": false,
                 "error": error
-            }).to_string(),
+            })
+            .to_string(),
         }
     }
-    
+
     pub fn internal_error(error: &str) -> Self {
         Self {
             status_code: 500,
@@ -488,23 +499,21 @@ impl MockHttpResponse {
             body: json!({
                 "success": false,
                 "error": error
-            }).to_string(),
+            })
+            .to_string(),
         }
     }
 }
 
 // Async testing utilities
-pub async fn run_concurrent_async_tasks<F, Fut, R>(
-    task_count: usize,
-    task_fn: F,
-) -> Vec<R>
+pub async fn run_concurrent_async_tasks<F, Fut, R>(task_count: usize, task_fn: F) -> Vec<R>
 where
     F: Fn(usize) -> Fut + Send + Sync,
     Fut: std::future::Future<Output = R> + Send,
     R: Send,
 {
     use futures::future::join_all;
-    
+
     let tasks = (0..task_count).map(|i| task_fn(i)).collect::<Vec<_>>();
     join_all(tasks).await
 }
@@ -520,13 +529,13 @@ impl MemoryTracker {
             initial_usage: Self::get_memory_usage(),
         }
     }
-    
+
     pub fn get_memory_usage() -> Option<usize> {
         // In a real implementation, this would use system APIs
         // For testing purposes, we'll simulate memory usage
         None
     }
-    
+
     pub fn memory_increase(&self) -> Option<usize> {
         if let (Some(initial), Some(current)) = (self.initial_usage, Self::get_memory_usage()) {
             Some(current.saturating_sub(initial))
@@ -539,12 +548,10 @@ impl MemoryTracker {
 // Test data generators
 pub fn generate_large_settings_object(size: usize) -> TestAppSettings {
     let mut settings = TestAppSettings::new();
-    
+
     // Generate large color schemes array
-    settings.visualisation.color_schemes = (0..size)
-        .map(|i| format!("scheme_{}", i))
-        .collect();
-    
+    settings.visualisation.color_schemes = (0..size).map(|i| format!("scheme_{}", i)).collect();
+
     settings
 }
 
@@ -552,7 +559,7 @@ pub fn generate_complex_nested_value(depth: usize) -> Value {
     if depth == 0 {
         return json!("leaf_value");
     }
-    
+
     json!({
         "level": depth,
         "data": format!("data_at_level_{}", depth),
@@ -566,9 +573,13 @@ pub fn assert_camel_case_keys(value: &Value, path: &str) {
     match value {
         Value::Object(map) => {
             for (key, val) in map {
-                assert!(is_camel_case(key), 
-                    "Key '{}' at path '{}' is not camelCase", key, path);
-                
+                assert!(
+                    is_camel_case(key),
+                    "Key '{}' at path '{}' is not camelCase",
+                    key,
+                    path
+                );
+
                 let new_path = if path.is_empty() {
                     key.clone()
                 } else {
@@ -591,14 +602,14 @@ pub fn is_camel_case(s: &str) -> bool {
     if s.is_empty() {
         return false;
     }
-    
+
     // First character should be lowercase
     let mut chars = s.chars();
     let first = chars.next().unwrap();
     if !first.is_ascii_lowercase() {
         return false;
     }
-    
+
     // Rest should be alphanumeric (can include uppercase for camelCase)
     chars.all(|c| c.is_ascii_alphanumeric())
 }
@@ -606,51 +617,56 @@ pub fn is_camel_case(s: &str) -> bool {
 #[cfg(test)]
 mod test_utils_tests {
     use super::*;
-    
+
     #[test]
     fn test_camel_case_validation() {
         assert!(is_camel_case("camelCase"));
         assert!(is_camel_case("simple"));
         assert!(is_camel_case("nodeGlowStrength"));
-        
+
         assert!(!is_camel_case("PascalCase"));
         assert!(!is_camel_case("snake_case"));
         assert!(!is_camel_case("kebab-case"));
         assert!(!is_camel_case(""));
         assert!(!is_camel_case("123invalid"));
     }
-    
+
     #[test]
     fn test_hex_color_validation() {
         assert!(is_valid_hex_color("#ff0000"));
         assert!(is_valid_hex_color("#00FF00"));
         assert!(is_valid_hex_color("#123abc"));
-        
+
         assert!(!is_valid_hex_color("ff0000"));
         assert!(!is_valid_hex_color("#gg0000"));
         assert!(!is_valid_hex_color("#ff00"));
         assert!(!is_valid_hex_color("#ff00000"));
         assert!(!is_valid_hex_color(""));
     }
-    
+
     #[test]
     fn test_dangerous_content_detection() {
         assert!(contains_dangerous_content("<script>alert('xss')</script>"));
         assert!(contains_dangerous_content("'; DROP TABLE users; --"));
         assert!(contains_dangerous_content("../../../etc/passwd"));
         assert!(contains_dangerous_content("javascript:alert(1)"));
-        
+
         assert!(!contains_dangerous_content("normal text"));
         assert!(!contains_dangerous_content("email@domain.com"));
         assert!(!contains_dangerous_content("file.txt"));
     }
-    
+
     #[test]
     fn test_dot_notation_parsing() {
         assert_eq!(parse_dot_notation_path("simple"), vec!["simple"]);
-        assert_eq!(parse_dot_notation_path("nested.field"), vec!["nested", "field"]);
-        assert_eq!(parse_dot_notation_path("deep.nested.field.value"), 
-                   vec!["deep", "nested", "field", "value"]);
+        assert_eq!(
+            parse_dot_notation_path("nested.field"),
+            vec!["nested", "field"]
+        );
+        assert_eq!(
+            parse_dot_notation_path("deep.nested.field.value"),
+            vec!["deep", "nested", "field", "value"]
+        );
         assert_eq!(parse_dot_notation_path(""), Vec::<&str>::new());
         assert_eq!(parse_dot_notation_path("."), Vec::<&str>::new());
     }

@@ -1,10 +1,10 @@
 //! GPU Safety Validation Module
-//! 
+//!
 //! Provides comprehensive bounds checking, memory validation, and safety measures
 //! for all GPU operations in the VisionFlow system.
 
+use log::{debug, error, info, warn};
 use std::collections::HashMap;
-use log::{error, warn, info, debug};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
@@ -30,10 +30,10 @@ pub struct GPUSafetyConfig {
 impl Default for GPUSafetyConfig {
     fn default() -> Self {
         Self {
-            max_nodes: 1_000_000,           // 1M nodes max
-            max_edges: 5_000_000,           // 5M edges max
+            max_nodes: 1_000_000,            // 1M nodes max
+            max_edges: 5_000_000,            // 5M edges max
             max_memory_bytes: 8_589_934_592, // 8GB max
-            max_kernel_time_ms: 5000,       // 5 second timeout
+            max_kernel_time_ms: 5000,        // 5 second timeout
             strict_bounds_checking: true,
             memory_tracking: true,
             cpu_fallback_threshold: 3,
@@ -64,7 +64,7 @@ impl GPUMemoryTracker {
         self.allocations.insert(name, size);
         self.total_allocated += size;
         self.allocation_count += 1;
-        
+
         if self.total_allocated > self.max_allocated {
             self.max_allocated = self.total_allocated;
         }
@@ -117,20 +117,21 @@ impl KernelTracker {
     }
 
     pub fn track_execution(&mut self, kernel_name: String, duration_ms: u64, success: bool) {
-        let stats = self.executions.entry(kernel_name.clone()).or_insert_with(|| {
-            KernelStats {
+        let stats = self
+            .executions
+            .entry(kernel_name.clone())
+            .or_insert_with(|| KernelStats {
                 name: kernel_name,
                 executions: 0,
                 failures: 0,
                 total_time_ms: 0,
                 average_time_ms: 0.0,
                 last_execution: None,
-            }
-        });
+            });
 
         stats.executions += 1;
         self.total_executions += 1;
-        
+
         if success {
             stats.total_time_ms += duration_ms;
             stats.average_time_ms = stats.total_time_ms as f64 / stats.executions as f64;
@@ -138,7 +139,7 @@ impl KernelTracker {
             stats.failures += 1;
             self.total_failures += 1;
         }
-        
+
         stats.last_execution = Some(Instant::now());
     }
 
@@ -170,13 +171,19 @@ pub enum GPUSafetyError {
     BufferBoundsExceeded { index: usize, size: usize },
 
     #[error("Invalid buffer size: requested {requested}, max allowed {max_allowed}")]
-    InvalidBufferSize { requested: usize, max_allowed: usize },
+    InvalidBufferSize {
+        requested: usize,
+        max_allowed: usize,
+    },
 
     #[error("Invalid kernel parameters: {reason}")]
     InvalidKernelParams { reason: String },
 
     #[error("Kernel execution timeout: {kernel_name} exceeded {timeout_ms}ms")]
-    KernelTimeout { kernel_name: String, timeout_ms: u64 },
+    KernelTimeout {
+        kernel_name: String,
+        timeout_ms: u64,
+    },
 
     #[error("GPU device error: {message}")]
     DeviceError { message: String },
@@ -200,7 +207,11 @@ pub enum GPUSafetyError {
     ValidationFailed { message: String },
 
     #[error("Resource exhaustion: {resource} count {current} exceeds limit {limit}")]
-    ResourceExhaustion { resource: String, current: usize, limit: usize },
+    ResourceExhaustion {
+        resource: String,
+        current: usize,
+        limit: usize,
+    },
 }
 
 /// Main GPU safety validator
@@ -270,8 +281,10 @@ impl GPUSafetyValidator {
             });
         }
 
-        debug!("Buffer bounds validated: {} ({} elements, {} bytes)", 
-               buffer_name, requested_size, total_bytes);
+        debug!(
+            "Buffer bounds validated: {} ({} elements, {} bytes)",
+            buffer_name, requested_size, total_bytes
+        );
         Ok(())
     }
 
@@ -287,21 +300,29 @@ impl GPUSafetyValidator {
         // Check for negative values
         if num_nodes < 0 || num_edges < 0 || num_constraints < 0 {
             return Err(GPUSafetyError::InvalidKernelParams {
-                reason: format!("Negative values detected: nodes={}, edges={}, constraints={}", 
-                               num_nodes, num_edges, num_constraints),
+                reason: format!(
+                    "Negative values detected: nodes={}, edges={}, constraints={}",
+                    num_nodes, num_edges, num_constraints
+                ),
             });
         }
 
         // Check reasonable bounds
         if num_nodes as usize > self.config.max_nodes {
             return Err(GPUSafetyError::InvalidKernelParams {
-                reason: format!("Node count {} exceeds maximum {}", num_nodes, self.config.max_nodes),
+                reason: format!(
+                    "Node count {} exceeds maximum {}",
+                    num_nodes, self.config.max_nodes
+                ),
             });
         }
 
         if num_edges as usize > self.config.max_edges {
             return Err(GPUSafetyError::InvalidKernelParams {
-                reason: format!("Edge count {} exceeds maximum {}", num_edges, self.config.max_edges),
+                reason: format!(
+                    "Edge count {} exceeds maximum {}",
+                    num_edges, self.config.max_edges
+                ),
             });
         }
 
@@ -314,14 +335,17 @@ impl GPUSafetyValidator {
 
         // Check for reasonable grid/block sizes (prevent resource exhaustion)
         let total_threads = grid_size as u64 * block_size as u64;
-        if total_threads > 1_000_000_000 {  // 1B thread limit
+        if total_threads > 1_000_000_000 {
+            // 1B thread limit
             return Err(GPUSafetyError::InvalidKernelParams {
                 reason: format!("Total thread count {} exceeds 1B limit", total_threads),
             });
         }
 
-        debug!("Kernel parameters validated: nodes={}, edges={}, constraints={}, grid={}, block={}",
-               num_nodes, num_edges, num_constraints, grid_size, block_size);
+        debug!(
+            "Kernel parameters validated: nodes={}, edges={}, constraints={}, grid={}, block={}",
+            num_nodes, num_edges, num_constraints, grid_size, block_size
+        );
         Ok(())
     }
 
@@ -338,8 +362,11 @@ impl GPUSafetyValidator {
             }
 
             tracker.track_allocation(name, size);
-            debug!("Memory allocation tracked: {} bytes (total: {} bytes)", 
-                   size, tracker.get_total_allocated());
+            debug!(
+                "Memory allocation tracked: {} bytes (total: {} bytes)",
+                size,
+                tracker.get_total_allocated()
+            );
         }
         Ok(())
     }
@@ -348,8 +375,11 @@ impl GPUSafetyValidator {
     pub fn track_deallocation(&self, name: &str) {
         if let Ok(mut tracker) = self.memory_tracker.lock() {
             tracker.track_deallocation(name);
-            debug!("Memory deallocation tracked: {} (total: {} bytes)", 
-                   name, tracker.get_total_allocated());
+            debug!(
+                "Memory deallocation tracked: {} (total: {} bytes)",
+                name,
+                tracker.get_total_allocated()
+            );
         }
     }
 
@@ -357,11 +387,14 @@ impl GPUSafetyValidator {
     pub fn track_kernel_execution(&self, kernel_name: String, duration_ms: u64, success: bool) {
         if let Ok(mut tracker) = self.kernel_tracker.lock() {
             tracker.track_execution(kernel_name.clone(), duration_ms, success);
-            
+
             if !success {
                 if let Ok(mut count) = self.failure_count.lock() {
                     *count += 1;
-                    warn!("Kernel execution failed: {} (failure count: {})", kernel_name, *count);
+                    warn!(
+                        "Kernel execution failed: {} (failure count: {})",
+                        kernel_name, *count
+                    );
                 }
             }
         }
@@ -377,11 +410,10 @@ impl GPUSafetyValidator {
 
     /// Check if CPU fallback should be triggered
     pub fn should_fallback_to_cpu(&self) -> bool {
-        match self.failure_count.lock() { Ok(count) => {
-            *count >= self.config.cpu_fallback_threshold
-        } _ => {
-            false
-        }}
+        match self.failure_count.lock() {
+            Ok(count) => *count >= self.config.cpu_fallback_threshold,
+            _ => false,
+        }
     }
 
     /// Check if we should use CPU fallback - alias for compatibility
@@ -399,24 +431,22 @@ impl GPUSafetyValidator {
 
     /// Get memory usage statistics
     pub fn get_memory_stats(&self) -> Option<(usize, usize, u64)> {
-        match self.memory_tracker.lock() { Ok(tracker) => {
-            Some((
+        match self.memory_tracker.lock() {
+            Ok(tracker) => Some((
                 tracker.get_total_allocated(),
                 tracker.get_max_allocated(),
                 tracker.get_allocation_count(),
-            ))
-        } _ => {
-            None
-        }}
+            )),
+            _ => None,
+        }
     }
 
     /// Get kernel execution statistics
     pub fn get_kernel_stats(&self, kernel_name: &str) -> Option<f64> {
-        match self.kernel_tracker.lock() { Ok(tracker) => {
-            Some(tracker.get_failure_rate(kernel_name))
-        } _ => {
-            None
-        }}
+        match self.kernel_tracker.lock() {
+            Ok(tracker) => Some(tracker.get_failure_rate(kernel_name)),
+            _ => None,
+        }
     }
 
     /// Comprehensive validation for a complete GPU operation
@@ -449,7 +479,7 @@ impl GPUSafetyValidator {
         // Validate kernel parameters (using reasonable defaults)
         let grid_size = ((node_count + 255) / 256) as u32;
         let block_size = 256u32;
-        
+
         self.validate_kernel_params(
             node_count as i32,
             edge_count as i32,
@@ -458,9 +488,11 @@ impl GPUSafetyValidator {
             block_size,
         )?;
 
-        info!("GPU operation validated: {} (nodes: {}, edges: {}, memory: {} bytes)",
-              operation_name, node_count, edge_count, memory_required);
-        
+        info!(
+            "GPU operation validated: {} (nodes: {}, edges: {}, memory: {} bytes)",
+            operation_name, node_count, edge_count, memory_required
+        );
+
         Ok(())
     }
 }
@@ -540,48 +572,64 @@ mod tests {
     #[test]
     fn test_buffer_bounds_validation() {
         let validator = GPUSafetyValidator::default();
-        
+
         // Valid buffer
-        assert!(validator.validate_buffer_bounds("test_nodes", 1000, 4).is_ok());
-        
+        assert!(validator
+            .validate_buffer_bounds("test_nodes", 1000, 4)
+            .is_ok());
+
         // Zero size
-        assert!(validator.validate_buffer_bounds("test_nodes", 0, 4).is_err());
-        
+        assert!(validator
+            .validate_buffer_bounds("test_nodes", 0, 4)
+            .is_err());
+
         // Too large
-        assert!(validator.validate_buffer_bounds("test_nodes", 2_000_000, 4).is_err());
+        assert!(validator
+            .validate_buffer_bounds("test_nodes", 2_000_000, 4)
+            .is_err());
     }
 
     #[test]
     fn test_kernel_params_validation() {
         let validator = GPUSafetyValidator::default();
-        
+
         // Valid parameters
-        assert!(validator.validate_kernel_params(1000, 5000, 100, 4, 256).is_ok());
-        
+        assert!(validator
+            .validate_kernel_params(1000, 5000, 100, 4, 256)
+            .is_ok());
+
         // Negative values
-        assert!(validator.validate_kernel_params(-1, 5000, 100, 4, 256).is_err());
-        
+        assert!(validator
+            .validate_kernel_params(-1, 5000, 100, 4, 256)
+            .is_err());
+
         // Zero grid/block size
-        assert!(validator.validate_kernel_params(1000, 5000, 100, 0, 256).is_err());
-        
+        assert!(validator
+            .validate_kernel_params(1000, 5000, 100, 0, 256)
+            .is_err());
+
         // Too many nodes
-        assert!(validator.validate_kernel_params(2_000_000, 5000, 100, 4, 256).is_err());
+        assert!(validator
+            .validate_kernel_params(2_000_000, 5000, 100, 4, 256)
+            .is_err());
     }
 
     #[test]
     fn test_memory_tracking() {
         let validator = GPUSafetyValidator::default();
-        
+
         // Track allocation
-        assert!(validator.track_allocation("test_buffer".to_string(), 1024).is_ok());
-        
+        assert!(validator
+            .track_allocation("test_buffer".to_string(), 1024)
+            .is_ok());
+
         let (total, _, count) = validator.get_memory_stats().unwrap();
         assert_eq!(total, 1024);
         assert_eq!(count, 1);
-        
+
         // Track deallocation
         validator.track_deallocation("test_buffer");
-        
+
         let (total, _, _) = validator.get_memory_stats().unwrap();
         assert_eq!(total, 0);
     }
@@ -591,17 +639,17 @@ mod tests {
         let mut config = GPUSafetyConfig::default();
         config.cpu_fallback_threshold = 2;
         let validator = GPUSafetyValidator::new(config);
-        
+
         // Should not fallback initially
         assert!(!validator.should_fallback_to_cpu());
-        
+
         // Record failures
         validator.record_failure();
         assert!(!validator.should_fallback_to_cpu());
-        
+
         validator.record_failure();
         assert!(validator.should_fallback_to_cpu());
-        
+
         // Reset
         validator.reset_failure_count();
         assert!(!validator.should_fallback_to_cpu());

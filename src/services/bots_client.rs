@@ -1,14 +1,14 @@
+use crate::actors::graph_service_supervisor::TransitionalGraphSupervisor;
+use crate::actors::messages::UpdateBotsGraph;
+use crate::services::agent_visualization_protocol::{McpServerType, MultiMcpAgentStatus};
+use crate::utils::mcp_connection::call_agent_spawn;
+use crate::utils::mcp_tcp_client::{create_mcp_client, McpTcpClient};
+use actix::Addr;
 use anyhow::Result;
+use log::{debug, error, info, warn};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use log::{info, error, debug, warn};
-use actix::Addr;
-use crate::actors::graph_service_supervisor::TransitionalGraphSupervisor;
-use crate::actors::messages::UpdateBotsGraph;
-use crate::utils::mcp_tcp_client::{McpTcpClient, create_mcp_client};
-use crate::services::agent_visualization_protocol::{McpServerType, MultiMcpAgentStatus};
-use crate::utils::mcp_connection::call_agent_spawn;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Agent {
@@ -37,10 +37,18 @@ pub struct Agent {
     pub age: Option<u64>, // milliseconds
 }
 
-fn default_cpu_usage() -> f32 { 50.0 }
-fn default_health() -> f32 { 90.0 }
-fn default_workload() -> f32 { 0.7 }
-fn default_memory_usage() -> f32 { 30.0 }
+fn default_cpu_usage() -> f32 {
+    50.0
+}
+fn default_health() -> f32 {
+    90.0
+}
+fn default_workload() -> f32 {
+    0.7
+}
+fn default_memory_usage() -> f32 {
+    30.0
+}
 
 impl From<MultiMcpAgentStatus> for Agent {
     fn from(mcp_agent: MultiMcpAgentStatus) -> Self {
@@ -56,9 +64,11 @@ impl From<MultiMcpAgentStatus> for Agent {
             health: mcp_agent.performance.health_score,
             workload: mcp_agent.performance.activity_level / 100.0,
             memory_usage: mcp_agent.performance.memory_usage,
-            created_at: Some(chrono::DateTime::from_timestamp(mcp_agent.created_at, 0)
-                .map(|dt| dt.to_rfc3339())
-                .unwrap_or_default()),
+            created_at: Some(
+                chrono::DateTime::from_timestamp(mcp_agent.created_at, 0)
+                    .map(|dt| dt.to_rfc3339())
+                    .unwrap_or_default(),
+            ),
             age: Some((chrono::Utc::now().timestamp() - mcp_agent.created_at) as u64 * 1000),
         }
     }
@@ -83,14 +93,14 @@ impl BotsClient {
             .unwrap_or(9500);
 
         let mcp_client = create_mcp_client(&McpServerType::ClaudeFlow, &host, port);
-        
+
         Self {
             mcp_client,
             graph_service_addr: None,
             agents: Arc::new(RwLock::new(Vec::new())),
         }
     }
-    
+
     pub fn with_graph_service(graph_addr: Addr<TransitionalGraphSupervisor>) -> Self {
         let mut client = Self::new();
         client.graph_service_addr = Some(graph_addr);
@@ -98,13 +108,16 @@ impl BotsClient {
     }
 
     pub async fn connect(&self, _bots_url: &str) -> Result<()> {
-        info!("Initializing MCP connection to {}:{}", self.mcp_client.host, self.mcp_client.port);
+        info!(
+            "Initializing MCP connection to {}:{}",
+            self.mcp_client.host, self.mcp_client.port
+        );
 
         // Test connection
         match self.mcp_client.test_connection().await {
             Ok(true) => {
                 info!("✓ MCP server is reachable");
-                
+
                 // Initialize MCP session
                 match self.mcp_client.initialize_session().await {
                     Ok(_) => {
@@ -149,10 +162,8 @@ impl BotsClient {
                             info!("📊 Received {} agents from MCP server", mcp_agents.len());
 
                             // Convert MCP agents to our Agent format
-                            let converted_agents: Vec<Agent> = mcp_agents
-                                .into_iter()
-                                .map(Agent::from)
-                                .collect();
+                            let converted_agents: Vec<Agent> =
+                                mcp_agents.into_iter().map(Agent::from).collect();
 
                             // Update stored agents
                             {
@@ -162,10 +173,15 @@ impl BotsClient {
 
                             // Send to graph if connected
                             if let Some(ref graph_addr) = graph_service_addr {
-                                info!("📨 BotsClient sending {} agents to graph", converted_agents.len());
+                                info!(
+                                    "📨 BotsClient sending {} agents to graph",
+                                    converted_agents.len()
+                                );
 
                                 // Send agents directly without conversion
-                                graph_addr.do_send(UpdateBotsGraph { agents: converted_agents.clone() });
+                                graph_addr.do_send(UpdateBotsGraph {
+                                    agents: converted_agents.clone(),
+                                });
                             }
                         } else {
                             // Clear stored agents if MCP returns empty list
@@ -214,12 +230,15 @@ impl BotsClient {
     pub async fn test_connection(&self) -> Result<bool> {
         match self.mcp_client.test_connection().await {
             Ok(result) => Ok(result),
-            Err(e) => Err(anyhow::anyhow!("Connection test failed: {}", e))
+            Err(e) => Err(anyhow::anyhow!("Connection test failed: {}", e)),
         }
     }
 
     pub async fn spawn_agent_mcp(&self, agent_type: &str, swarm_id: &str) -> Result<String> {
-        info!("Spawning MCP agent: type={}, swarm={}", agent_type, swarm_id);
+        info!(
+            "Spawning MCP agent: type={}, swarm={}",
+            agent_type, swarm_id
+        );
 
         // Use the MCP connection utility to spawn an agent
         let port_str = self.mcp_client.port.to_string();
@@ -238,7 +257,10 @@ impl BotsClient {
                     format!("mcp_{}_{}", agent_type, swarm_id)
                 };
 
-                info!("Successfully spawned MCP agent {} of type {}", agent_id, agent_type);
+                info!(
+                    "Successfully spawned MCP agent {} of type {}",
+                    agent_id, agent_type
+                );
                 Ok(agent_id)
             }
             Err(e) => {

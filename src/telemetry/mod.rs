@@ -9,6 +9,6 @@ pub mod agent_telemetry;
 pub mod test_logging;
 
 pub use agent_telemetry::{
-    AgentTelemetryLogger, CorrelationId, Position3D, TelemetryEvent, LogLevel,
-    init_telemetry_logger, get_telemetry_logger
+    get_telemetry_logger, init_telemetry_logger, AgentTelemetryLogger, CorrelationId, LogLevel,
+    Position3D, TelemetryEvent,
 };

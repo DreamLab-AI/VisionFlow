@@ -5,8 +5,8 @@
 
 #![allow(unused_imports)]
 
-use cust::device::Device;
 use cust::context::Context;
+use cust::device::Device;
 use cust::module::Module;
 
 fn should_run() -> bool {
@@ -39,7 +39,11 @@ fn ptx_module_loads_and_kernels_present() {
     // 1) Load PTX (build-time path or runtime nvcc fallback)
     let ptx = match webxr::utils::ptx::load_ptx_sync() {
         Ok(s) => {
-            println!("[PTX-SMOKE] PTX loaded ({} bytes), arch=sm_{}", s.len(), webxr::utils::ptx::effective_cuda_arch());
+            println!(
+                "[PTX-SMOKE] PTX loaded ({} bytes), arch=sm_{}",
+                s.len(),
+                webxr::utils::ptx::effective_cuda_arch()
+            );
             s
         }
         Err(e) => {
@@ -63,7 +67,9 @@ fn ptx_module_loads_and_kernels_present() {
         }
         Err(e) => {
             // Surface diagnosis like the runtime does
-            let diag = webxr::utils::gpu_diagnostics::diagnose_ptx_error(&format!("Module::from_ptx error: {e}"));
+            let diag = webxr::utils::gpu_diagnostics::diagnose_ptx_error(&format!(
+                "Module::from_ptx error: {e}"
+            ));
             panic!("[PTX-SMOKE] Module::from_ptx failed: {e}\n{diag}");
         }
     };

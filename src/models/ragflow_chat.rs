@@ -7,7 +7,7 @@ pub struct RagflowChatRequest {
     pub question: String,
     pub session_id: Option<String>, // Client might send existing session ID
     pub stream: Option<bool>,       // Add stream parameter, optional
-    // Add any other RAGFlow specific params client might send
+                                    // Add any other RAGFlow specific params client might send
 }
 
 #[derive(Serialize, Debug)]
@@ -15,5 +15,5 @@ pub struct RagflowChatRequest {
 pub struct RagflowChatResponse {
     pub answer: String,
     pub session_id: String, // Server returns session_id for future requests
-    // Add any other RAGFlow specific response fields
+                            // Add any other RAGFlow specific response fields
 }

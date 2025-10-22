@@ -32,23 +32,20 @@
 //! - Semantic analysis → SemanticProcessorActor
 //! - Client management → ClientCoordinatorActor
 
-use actix::prelude::*;
 use actix::dev::{MessageResponse, OneshotSender};
+use actix::prelude::*;
+use log::{debug, error, info, warn};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
-use serde::{Serialize, Deserialize};
-use log::{info, warn, error, debug};
 
 use crate::actors::{
-    GraphServiceActor,
-    PhysicsOrchestratorActor,
-    SemanticProcessorActor,
-    ClientCoordinatorActor,
+    ClientCoordinatorActor, GraphServiceActor, PhysicsOrchestratorActor, SemanticProcessorActor,
 };
 // Removed unused import - we don't use graph_messages types for handlers
 use crate::actors::messages as msgs;
 // Removed graph_messages::GetGraphData import - not used
-use crate::errors::{VisionFlowError, ActorError};
+use crate::errors::{ActorError, VisionFlowError};
 
 /// Graph service supervision strategy for handling actor failures
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -134,8 +131,14 @@ pub struct OperationResult {
 impl From<Result<(), VisionFlowError>> for OperationResult {
     fn from(result: Result<(), VisionFlowError>) -> Self {
         match result {
-            Ok(()) => OperationResult { success: true, error: None },
-            Err(e) => OperationResult { success: false, error: Some(e.to_string()) },
+            Ok(()) => OperationResult {
+                success: true,
+                error: None,
+            },
+            Err(e) => OperationResult {
+                success: false,
+                error: Some(e.to_string()),
+            },
         }
     }
 }
@@ -274,49 +277,61 @@ impl GraphServiceSupervisor {
         info!("Initializing supervised actors");
 
         // Initialize actor info structures
-        self.actor_info.insert(ActorType::GraphState, ActorInfo {
-            name: "GraphState".to_string(),
-            actor_type: ActorType::GraphState,
-            health: ActorHealth::Unknown,
-            last_heartbeat: None,
-            restart_count: 0,
-            last_restart: None,
-            message_buffer: Vec::new(),
-            stats: ActorStats::default(),
-        });
+        self.actor_info.insert(
+            ActorType::GraphState,
+            ActorInfo {
+                name: "GraphState".to_string(),
+                actor_type: ActorType::GraphState,
+                health: ActorHealth::Unknown,
+                last_heartbeat: None,
+                restart_count: 0,
+                last_restart: None,
+                message_buffer: Vec::new(),
+                stats: ActorStats::default(),
+            },
+        );
 
-        self.actor_info.insert(ActorType::PhysicsOrchestrator, ActorInfo {
-            name: "PhysicsOrchestrator".to_string(),
-            actor_type: ActorType::PhysicsOrchestrator,
-            health: ActorHealth::Unknown,
-            last_heartbeat: None,
-            restart_count: 0,
-            last_restart: None,
-            message_buffer: Vec::new(),
-            stats: ActorStats::default(),
-        });
+        self.actor_info.insert(
+            ActorType::PhysicsOrchestrator,
+            ActorInfo {
+                name: "PhysicsOrchestrator".to_string(),
+                actor_type: ActorType::PhysicsOrchestrator,
+                health: ActorHealth::Unknown,
+                last_heartbeat: None,
+                restart_count: 0,
+                last_restart: None,
+                message_buffer: Vec::new(),
+                stats: ActorStats::default(),
+            },
+        );
 
-        self.actor_info.insert(ActorType::SemanticProcessor, ActorInfo {
-            name: "SemanticProcessor".to_string(),
-            actor_type: ActorType::SemanticProcessor,
-            health: ActorHealth::Unknown,
-            last_heartbeat: None,
-            restart_count: 0,
-            last_restart: None,
-            message_buffer: Vec::new(),
-            stats: ActorStats::default(),
-        });
+        self.actor_info.insert(
+            ActorType::SemanticProcessor,
+            ActorInfo {
+                name: "SemanticProcessor".to_string(),
+                actor_type: ActorType::SemanticProcessor,
+                health: ActorHealth::Unknown,
+                last_heartbeat: None,
+                restart_count: 0,
+                last_restart: None,
+                message_buffer: Vec::new(),
+                stats: ActorStats::default(),
+            },
+        );
 
-        self.actor_info.insert(ActorType::ClientCoordinator, ActorInfo {
-            name: "ClientCoordinator".to_string(),
-            actor_type: ActorType::ClientCoordinator,
-            health: ActorHealth::Unknown,
-            last_heartbeat: None,
-            restart_count: 0,
-            last_restart: None,
-            message_buffer: Vec::new(),
-            stats: ActorStats::default(),
-        });
+        self.actor_info.insert(
+            ActorType::ClientCoordinator,
+            ActorInfo {
+                name: "ClientCoordinator".to_string(),
+                actor_type: ActorType::ClientCoordinator,
+                health: ActorHealth::Unknown,
+                last_heartbeat: None,
+                restart_count: 0,
+                last_restart: None,
+                message_buffer: Vec::new(),
+                stats: ActorStats::default(),
+            },
+        );
 
         // Start actors in dependency order
         // ClientCoordinator must start first as GraphState depends on it
@@ -353,28 +368,31 @@ impl GraphServiceSupervisor {
                         client_addr,
                         None, // GPU compute will be linked later
                         None, // Settings actor will be linked later
-                    ).start();
+                    )
+                    .start();
                     self.graph_state = Some(actor);
                     info!("GraphServiceActor started successfully as GraphState manager");
                 } else {
                     warn!("Cannot start GraphServiceActor without ClientCoordinator - will retry after client actor starts");
                 }
-            },
+            }
             ActorType::PhysicsOrchestrator => {
                 use crate::models::simulation_params::SimulationParams;
                 let params = SimulationParams::default();
                 let actor = PhysicsOrchestratorActor::new(params, None, None).start();
                 self.physics = Some(actor);
-            },
+            }
             ActorType::SemanticProcessor => {
-                let config = Some(crate::actors::semantic_processor_actor::SemanticProcessorConfig::default());
+                let config = Some(
+                    crate::actors::semantic_processor_actor::SemanticProcessorConfig::default(),
+                );
                 let actor = SemanticProcessorActor::new(config).start();
                 self.semantic = Some(actor);
-            },
+            }
             ActorType::ClientCoordinator => {
                 let actor = ClientCoordinatorActor::new().start();
                 self.client = Some(actor);
-            },
+            }
         }
 
         // Update actor info
@@ -397,8 +415,10 @@ impl GraphServiceSupervisor {
 
             // Check restart limits
             if info.restart_count > self.restart_policy.max_restarts {
-                error!("Actor {:?} exceeded maximum restarts ({}), escalating",
-                       actor_type, self.restart_policy.max_restarts);
+                error!(
+                    "Actor {:?} exceeded maximum restarts ({}), escalating",
+                    actor_type, self.restart_policy.max_restarts
+                );
                 self.escalate_failure(actor_type, ctx);
                 return;
             }
@@ -422,13 +442,11 @@ impl GraphServiceSupervisor {
         if let Some(info) = self.actor_info.get(actor_type) {
             match &self.restart_policy.backoff_strategy {
                 BackoffStrategy::Fixed(duration) => *duration,
-                BackoffStrategy::Linear(duration) => {
-                    *duration * info.restart_count
-                },
+                BackoffStrategy::Linear(duration) => *duration * info.restart_count,
                 BackoffStrategy::Exponential { initial, max } => {
                     let exponential = *initial * 2_u32.pow(info.restart_count.min(10));
                     exponential.min(*max)
-                },
+                }
             }
         } else {
             Duration::from_secs(1)
@@ -443,12 +461,12 @@ impl GraphServiceSupervisor {
             GraphSupervisionStrategy::OneForAll => {
                 warn!("Restarting all actors due to escalation");
                 self.restart_all_actors(ctx);
-            },
+            }
             GraphSupervisionStrategy::Escalate => {
                 error!("Escalating to parent supervisor");
                 // TODO: Send escalation message to parent
                 ctx.stop();
-            },
+            }
             _ => {
                 error!("Actor {:?} failed beyond recovery limits", actor_type);
                 if let Some(info) = self.actor_info.get_mut(&actor_type) {
@@ -482,7 +500,10 @@ impl GraphServiceSupervisor {
                 info.message_buffer.push(message);
                 self.supervision_stats.messages_buffered += 1;
             } else {
-                warn!("Message buffer full for actor {:?}, dropping message", actor_type);
+                warn!(
+                    "Message buffer full for actor {:?}, dropping message",
+                    actor_type
+                );
             }
         }
     }
@@ -491,8 +512,11 @@ impl GraphServiceSupervisor {
     fn replay_buffered_messages(&mut self, actor_type: ActorType) {
         if let Some(info) = self.actor_info.get_mut(&actor_type) {
             let messages = std::mem::take(&mut info.message_buffer);
-            info!("Replaying {} buffered messages for actor {:?}",
-                  messages.len(), actor_type);
+            info!(
+                "Replaying {} buffered messages for actor {:?}",
+                messages.len(),
+                actor_type
+            );
 
             // TODO: Replay messages to restarted actor
             // This would require message serialization/deserialization
@@ -524,7 +548,11 @@ impl GraphServiceSupervisor {
     }
 
     /// Route message to appropriate actor
-    fn route_message(&mut self, message: SupervisorMessage, _ctx: &mut Context<Self>) -> Result<(), VisionFlowError> {
+    fn route_message(
+        &mut self,
+        message: SupervisorMessage,
+        _ctx: &mut Context<Self>,
+    ) -> Result<(), VisionFlowError> {
         let start_time = Instant::now();
 
         let result = match message {
@@ -535,33 +563,41 @@ impl GraphServiceSupervisor {
                     debug!("Forwarding graph operation to GraphState actor");
                     Ok(())
                 } else {
-                    Err(VisionFlowError::Actor(ActorError::ActorNotAvailable("GraphState".to_string())))
+                    Err(VisionFlowError::Actor(ActorError::ActorNotAvailable(
+                        "GraphState".to_string(),
+                    )))
                 }
-            },
+            }
             SupervisorMessage::PhysicsOperation(_msg) => {
                 if let Some(ref _addr) = self.physics {
                     debug!("Forwarding physics operation to Physics actor");
                     Ok(())
                 } else {
-                    Err(VisionFlowError::Actor(ActorError::ActorNotAvailable("Physics".to_string())))
+                    Err(VisionFlowError::Actor(ActorError::ActorNotAvailable(
+                        "Physics".to_string(),
+                    )))
                 }
-            },
+            }
             SupervisorMessage::SemanticOperation(_msg) => {
                 if let Some(ref _addr) = self.semantic {
                     debug!("Forwarding semantic operation to Semantic actor");
                     Ok(())
                 } else {
-                    Err(VisionFlowError::Actor(ActorError::ActorNotAvailable("Semantic".to_string())))
+                    Err(VisionFlowError::Actor(ActorError::ActorNotAvailable(
+                        "Semantic".to_string(),
+                    )))
                 }
-            },
+            }
             SupervisorMessage::ClientOperation(_msg) => {
                 if let Some(ref _addr) = self.client {
                     debug!("Forwarding client operation to Client actor");
                     Ok(())
                 } else {
-                    Err(VisionFlowError::Actor(ActorError::ActorNotAvailable("Client".to_string())))
+                    Err(VisionFlowError::Actor(ActorError::ActorNotAvailable(
+                        "Client".to_string(),
+                    )))
                 }
-            },
+            }
         };
 
         // Update routing statistics
@@ -581,9 +617,11 @@ impl GraphServiceSupervisor {
     pub fn get_status(&self) -> SupervisorStatus {
         SupervisorStatus {
             strategy: self.strategy.clone(),
-            actor_health: self.actor_info.iter().map(|(actor_type, info)| {
-                (actor_type.clone(), info.health.clone())
-            }).collect(),
+            actor_health: self
+                .actor_info
+                .iter()
+                .map(|(actor_type, info)| (actor_type.clone(), info.health.clone()))
+                .collect(),
             supervision_stats: self.supervision_stats.clone(),
             last_health_check: self.last_health_check,
             total_messages_routed: self.total_messages_routed,
@@ -756,7 +794,11 @@ impl Handler<msgs::UpdateGraphData> for GraphServiceSupervisor {
 impl Handler<msgs::AddNodesFromMetadata> for GraphServiceSupervisor {
     type Result = ResponseActFuture<Self, Result<(), String>>;
 
-    fn handle(&mut self, _msg: msgs::AddNodesFromMetadata, _ctx: &mut Self::Context) -> Self::Result {
+    fn handle(
+        &mut self,
+        _msg: msgs::AddNodesFromMetadata,
+        _ctx: &mut Self::Context,
+    ) -> Self::Result {
         warn!("AddNodesFromMetadata: Supervisor not fully implemented");
         let result = Err("Supervisor not yet fully implemented".to_string());
         Box::pin(actix::fut::ready(result))
@@ -787,7 +829,8 @@ impl Handler<msgs::SimulationStep> for GraphServiceSupervisor {
 }
 
 impl Handler<msgs::GetBotsGraphData> for GraphServiceSupervisor {
-    type Result = ResponseActFuture<Self, Result<std::sync::Arc<crate::models::graph::GraphData>, String>>;
+    type Result =
+        ResponseActFuture<Self, Result<std::sync::Arc<crate::models::graph::GraphData>, String>>;
 
     fn handle(&mut self, _msg: msgs::GetBotsGraphData, _ctx: &mut Self::Context) -> Self::Result {
         warn!("GetBotsGraphData: Supervisor not fully implemented");
@@ -799,7 +842,11 @@ impl Handler<msgs::GetBotsGraphData> for GraphServiceSupervisor {
 impl Handler<msgs::UpdateSimulationParams> for GraphServiceSupervisor {
     type Result = Result<(), String>;
 
-    fn handle(&mut self, _msg: msgs::UpdateSimulationParams, _ctx: &mut Self::Context) -> Self::Result {
+    fn handle(
+        &mut self,
+        _msg: msgs::UpdateSimulationParams,
+        _ctx: &mut Self::Context,
+    ) -> Self::Result {
         warn!("UpdateSimulationParams: Supervisor not fully implemented");
         // This is a fire-and-forget message, so we just log and return
         Ok(())
@@ -809,7 +856,11 @@ impl Handler<msgs::UpdateSimulationParams> for GraphServiceSupervisor {
 impl Handler<msgs::InitializeGPUConnection> for GraphServiceSupervisor {
     type Result = ();
 
-    fn handle(&mut self, _msg: msgs::InitializeGPUConnection, _ctx: &mut Self::Context) -> Self::Result {
+    fn handle(
+        &mut self,
+        _msg: msgs::InitializeGPUConnection,
+        _ctx: &mut Self::Context,
+    ) -> Self::Result {
         warn!("InitializeGPUConnection: Supervisor not fully implemented");
         // This is a fire-and-forget message, so we just log and return
     }
@@ -849,7 +900,10 @@ impl TransitionalGraphSupervisor {
     }
 
     /// Get or create the wrapped GraphServiceActor
-    fn get_or_create_actor(&mut self, _ctx: &mut Context<Self>) -> Option<&Addr<GraphServiceActor>> {
+    fn get_or_create_actor(
+        &mut self,
+        _ctx: &mut Context<Self>,
+    ) -> Option<&Addr<GraphServiceActor>> {
         if self.graph_service_actor.is_none() {
             // Create the GraphServiceActor with the provided dependencies
             if let Some(ref client_manager) = self.client_manager_addr {
@@ -858,7 +912,8 @@ impl TransitionalGraphSupervisor {
                     client_manager.clone(),
                     None, // GPU compute actor will be linked later
                     None, // Settings actor will be linked later
-                ).start();
+                )
+                .start();
                 self.graph_service_actor = Some(actor);
             } else {
                 warn!("TransitionalGraphSupervisor: Cannot create GraphServiceActor without client manager");
@@ -873,7 +928,11 @@ impl TransitionalGraphSupervisor {
 impl Handler<msgs::GetGraphServiceActor> for TransitionalGraphSupervisor {
     type Result = Option<Addr<GraphServiceActor>>;
 
-    fn handle(&mut self, _msg: msgs::GetGraphServiceActor, ctx: &mut Self::Context) -> Self::Result {
+    fn handle(
+        &mut self,
+        _msg: msgs::GetGraphServiceActor,
+        ctx: &mut Self::Context,
+    ) -> Self::Result {
         self.get_or_create_actor(ctx).cloned()
     }
 }
@@ -904,42 +963,56 @@ impl Actor for TransitionalGraphSupervisor {
 
 // Handler for messages::GetGraphData (different from graph_messages::GetGraphData)
 impl Handler<msgs::GetGraphData> for TransitionalGraphSupervisor {
-    type Result = ResponseActFuture<Self, Result<std::sync::Arc<crate::models::graph::GraphData>, String>>;
+    type Result =
+        ResponseActFuture<Self, Result<std::sync::Arc<crate::models::graph::GraphData>, String>>;
 
     fn handle(&mut self, msg: msgs::GetGraphData, ctx: &mut Self::Context) -> Self::Result {
         let actor_result = self.get_or_create_actor(ctx);
         if let Some(actor) = actor_result {
             let addr = actor.clone();
             self.messages_forwarded += 1;
-            Box::pin(async move {
-                match addr.send(msg).await {
-                    Ok(result) => result,
-                    Err(e) => Err(format!("Actor communication error: {}", e)),
+            Box::pin(
+                async move {
+                    match addr.send(msg).await {
+                        Ok(result) => result,
+                        Err(e) => Err(format!("Actor communication error: {}", e)),
+                    }
                 }
-            }.into_actor(self))
+                .into_actor(self),
+            )
         } else {
-            Box::pin(actix::fut::ready(Err("Failed to create GraphServiceActor".to_string())))
+            Box::pin(actix::fut::ready(Err(
+                "Failed to create GraphServiceActor".to_string()
+            )))
         }
     }
 }
 
 // Handler for GetNodeMap - NEW for position-aware initialization
 impl Handler<msgs::GetNodeMap> for TransitionalGraphSupervisor {
-    type Result = ResponseActFuture<Self, Result<std::sync::Arc<std::collections::HashMap<u32, crate::models::node::Node>>, String>>;
+    type Result = ResponseActFuture<
+        Self,
+        Result<std::sync::Arc<std::collections::HashMap<u32, crate::models::node::Node>>, String>,
+    >;
 
     fn handle(&mut self, msg: msgs::GetNodeMap, ctx: &mut Self::Context) -> Self::Result {
         let actor_result = self.get_or_create_actor(ctx);
         if let Some(actor) = actor_result {
             let addr = actor.clone();
             self.messages_forwarded += 1;
-            Box::pin(async move {
-                match addr.send(msg).await {
-                    Ok(result) => result,
-                    Err(e) => Err(format!("Actor communication error: {}", e)),
+            Box::pin(
+                async move {
+                    match addr.send(msg).await {
+                        Ok(result) => result,
+                        Err(e) => Err(format!("Actor communication error: {}", e)),
+                    }
                 }
-            }.into_actor(self))
+                .into_actor(self),
+            )
         } else {
-            Box::pin(actix::fut::ready(Err("Failed to create GraphServiceActor".to_string())))
+            Box::pin(actix::fut::ready(Err(
+                "Failed to create GraphServiceActor".to_string()
+            )))
         }
     }
 }
@@ -953,14 +1026,19 @@ impl Handler<msgs::GetPhysicsState> for TransitionalGraphSupervisor {
         if let Some(actor) = actor_result {
             let addr = actor.clone();
             self.messages_forwarded += 1;
-            Box::pin(async move {
-                match addr.send(msg).await {
-                    Ok(result) => result,
-                    Err(e) => Err(format!("Actor communication error: {}", e)),
+            Box::pin(
+                async move {
+                    match addr.send(msg).await {
+                        Ok(result) => result,
+                        Err(e) => Err(format!("Actor communication error: {}", e)),
+                    }
                 }
-            }.into_actor(self))
+                .into_actor(self),
+            )
         } else {
-            Box::pin(actix::fut::ready(Err("Failed to create GraphServiceActor".to_string())))
+            Box::pin(actix::fut::ready(Err(
+                "Failed to create GraphServiceActor".to_string()
+            )))
         }
     }
 }
@@ -969,19 +1047,28 @@ impl Handler<msgs::GetPhysicsState> for TransitionalGraphSupervisor {
 impl Handler<msgs::BuildGraphFromMetadata> for TransitionalGraphSupervisor {
     type Result = ResponseActFuture<Self, Result<(), String>>;
 
-    fn handle(&mut self, msg: msgs::BuildGraphFromMetadata, ctx: &mut Self::Context) -> Self::Result {
+    fn handle(
+        &mut self,
+        msg: msgs::BuildGraphFromMetadata,
+        ctx: &mut Self::Context,
+    ) -> Self::Result {
         let actor_result = self.get_or_create_actor(ctx);
         if let Some(actor) = actor_result {
             let addr = actor.clone();
             self.messages_forwarded += 1;
-            Box::pin(async move {
-                match addr.send(msg).await {
-                    Ok(result) => result,
-                    Err(e) => Err(format!("Actor communication error: {}", e)),
+            Box::pin(
+                async move {
+                    match addr.send(msg).await {
+                        Ok(result) => result,
+                        Err(e) => Err(format!("Actor communication error: {}", e)),
+                    }
                 }
-            }.into_actor(self))
+                .into_actor(self),
+            )
         } else {
-            Box::pin(actix::fut::ready(Err("Failed to create GraphServiceActor".to_string())))
+            Box::pin(actix::fut::ready(Err(
+                "Failed to create GraphServiceActor".to_string()
+            )))
         }
     }
 }
@@ -994,14 +1081,19 @@ impl Handler<msgs::UpdateGraphData> for TransitionalGraphSupervisor {
         if let Some(actor) = actor_result {
             let addr = actor.clone();
             self.messages_forwarded += 1;
-            Box::pin(async move {
-                match addr.send(msg).await {
-                    Ok(result) => result,
-                    Err(e) => Err(format!("Actor communication error: {}", e)),
+            Box::pin(
+                async move {
+                    match addr.send(msg).await {
+                        Ok(result) => result,
+                        Err(e) => Err(format!("Actor communication error: {}", e)),
+                    }
                 }
-            }.into_actor(self))
+                .into_actor(self),
+            )
         } else {
-            Box::pin(actix::fut::ready(Err("Failed to create GraphServiceActor".to_string())))
+            Box::pin(actix::fut::ready(Err(
+                "Failed to create GraphServiceActor".to_string()
+            )))
         }
     }
 }
@@ -1014,14 +1106,19 @@ impl Handler<msgs::AddNodesFromMetadata> for TransitionalGraphSupervisor {
         if let Some(actor) = actor_result {
             let addr = actor.clone();
             self.messages_forwarded += 1;
-            Box::pin(async move {
-                match addr.send(msg).await {
-                    Ok(result) => result,
-                    Err(e) => Err(format!("Actor communication error: {}", e)),
+            Box::pin(
+                async move {
+                    match addr.send(msg).await {
+                        Ok(result) => result,
+                        Err(e) => Err(format!("Actor communication error: {}", e)),
+                    }
                 }
-            }.into_actor(self))
+                .into_actor(self),
+            )
         } else {
-            Box::pin(actix::fut::ready(Err("Failed to create GraphServiceActor".to_string())))
+            Box::pin(actix::fut::ready(Err(
+                "Failed to create GraphServiceActor".to_string()
+            )))
         }
     }
 }
@@ -1035,14 +1132,19 @@ impl Handler<msgs::StartSimulation> for TransitionalGraphSupervisor {
         if let Some(actor) = self.get_or_create_actor(ctx) {
             let addr = actor.clone();
             self.messages_forwarded += 1;
-            Box::pin(async move {
-                match addr.send(msg).await {
-                    Ok(result) => result,
-                    Err(e) => Err(format!("Actor communication error: {}", e)),
+            Box::pin(
+                async move {
+                    match addr.send(msg).await {
+                        Ok(result) => result,
+                        Err(e) => Err(format!("Actor communication error: {}", e)),
+                    }
                 }
-            }.into_actor(self))
+                .into_actor(self),
+            )
         } else {
-            Box::pin(actix::fut::ready(Err("Failed to create GraphServiceActor".to_string())))
+            Box::pin(actix::fut::ready(Err(
+                "Failed to create GraphServiceActor".to_string()
+            )))
         }
     }
 }
@@ -1054,33 +1156,44 @@ impl Handler<msgs::SimulationStep> for TransitionalGraphSupervisor {
         if let Some(actor) = self.get_or_create_actor(ctx) {
             let addr = actor.clone();
             self.messages_forwarded += 1;
-            Box::pin(async move {
-                match addr.send(msg).await {
-                    Ok(result) => result,
-                    Err(e) => Err(format!("Actor communication error: {}", e)),
+            Box::pin(
+                async move {
+                    match addr.send(msg).await {
+                        Ok(result) => result,
+                        Err(e) => Err(format!("Actor communication error: {}", e)),
+                    }
                 }
-            }.into_actor(self))
+                .into_actor(self),
+            )
         } else {
-            Box::pin(actix::fut::ready(Err("Failed to create GraphServiceActor".to_string())))
+            Box::pin(actix::fut::ready(Err(
+                "Failed to create GraphServiceActor".to_string()
+            )))
         }
     }
 }
 
 impl Handler<msgs::GetBotsGraphData> for TransitionalGraphSupervisor {
-    type Result = ResponseActFuture<Self, Result<std::sync::Arc<crate::models::graph::GraphData>, String>>;
+    type Result =
+        ResponseActFuture<Self, Result<std::sync::Arc<crate::models::graph::GraphData>, String>>;
 
     fn handle(&mut self, msg: msgs::GetBotsGraphData, ctx: &mut Self::Context) -> Self::Result {
         if let Some(actor) = self.get_or_create_actor(ctx) {
             let addr = actor.clone();
             self.messages_forwarded += 1;
-            Box::pin(async move {
-                match addr.send(msg).await {
-                    Ok(result) => result,
-                    Err(e) => Err(format!("Actor communication error: {}", e)),
+            Box::pin(
+                async move {
+                    match addr.send(msg).await {
+                        Ok(result) => result,
+                        Err(e) => Err(format!("Actor communication error: {}", e)),
+                    }
                 }
-            }.into_actor(self))
+                .into_actor(self),
+            )
         } else {
-            Box::pin(actix::fut::ready(Err("Failed to create GraphServiceActor".to_string())))
+            Box::pin(actix::fut::ready(Err(
+                "Failed to create GraphServiceActor".to_string()
+            )))
         }
     }
 }
@@ -1088,7 +1201,11 @@ impl Handler<msgs::GetBotsGraphData> for TransitionalGraphSupervisor {
 impl Handler<msgs::UpdateSimulationParams> for TransitionalGraphSupervisor {
     type Result = Result<(), String>;
 
-    fn handle(&mut self, msg: msgs::UpdateSimulationParams, ctx: &mut Self::Context) -> Self::Result {
+    fn handle(
+        &mut self,
+        msg: msgs::UpdateSimulationParams,
+        ctx: &mut Self::Context,
+    ) -> Self::Result {
         if let Some(actor) = self.get_or_create_actor(ctx) {
             actor.do_send(msg);
             self.messages_forwarded += 1;
@@ -1102,7 +1219,11 @@ impl Handler<msgs::UpdateSimulationParams> for TransitionalGraphSupervisor {
 impl Handler<msgs::InitializeGPUConnection> for TransitionalGraphSupervisor {
     type Result = ();
 
-    fn handle(&mut self, msg: msgs::InitializeGPUConnection, ctx: &mut Self::Context) -> Self::Result {
+    fn handle(
+        &mut self,
+        msg: msgs::InitializeGPUConnection,
+        ctx: &mut Self::Context,
+    ) -> Self::Result {
         let actor_result = self.get_or_create_actor(ctx);
         if let Some(actor) = actor_result {
             actor.do_send(msg);
@@ -1136,14 +1257,19 @@ macro_rules! forward_message {
                 if let Some(actor) = actor_result {
                     let addr = actor.clone();
                     self.messages_forwarded += 1;
-                    Box::pin(async move {
-                        match addr.send(msg).await {
-                            Ok(result) => result,
-                            Err(e) => Err(format!("Actor communication error: {}", e)),
+                    Box::pin(
+                        async move {
+                            match addr.send(msg).await {
+                                Ok(result) => result,
+                                Err(e) => Err(format!("Actor communication error: {}", e)),
+                            }
                         }
-                    }.into_actor(self))
+                        .into_actor(self),
+                    )
                 } else {
-                    Box::pin(actix::fut::ready(Err("Failed to create GraphServiceActor".to_string())))
+                    Box::pin(actix::fut::ready(Err(
+                        "Failed to create GraphServiceActor".to_string()
+                    )))
                 }
             }
         }
@@ -1152,10 +1278,14 @@ macro_rules! forward_message {
 
 // Forward common messages that the GraphServiceActor handles
 // Note: Some types may be private to graph_actor.rs, so we use String for now
-forward_message!(msgs::ComputeShortestPaths, Result<std::collections::HashMap<u32, Option<f32>>, String>);
+forward_message!(msgs::ComputeShortestPaths, Result<msgs::PathfindingResult, String>);
 forward_message!(msgs::RequestPositionSnapshot, Result<crate::actors::messages::PositionSnapshot, String>);
-forward_message!(msgs::GetAutoBalanceNotifications, Result<Vec<crate::actors::graph_actor::AutoBalanceNotification>, String>);
+forward_message!(
+    msgs::GetAutoBalanceNotifications,
+    Result<Vec<crate::actors::graph_actor::AutoBalanceNotification>, String>
+);
 forward_message!(msgs::InitialClientSync, Result<(), String>);
+forward_message!(msgs::UpdateNodePosition, Result<(), String>);
 
 #[cfg(test)]
 mod tests {

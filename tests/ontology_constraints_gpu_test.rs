@@ -12,21 +12,21 @@ mod tests {
 
     #[cfg(all(feature = "ontology", feature = "gpu"))]
     use webxr::physics::ontology_constraints::{
-        OntologyConstraintTranslator, OntologyConstraintConfig, OWLAxiom, OWLAxiomType,
-        OntologyInference, OntologyReasoningReport, ConsistencyCheck
+        ConsistencyCheck, OWLAxiom, OWLAxiomType, OntologyConstraintConfig,
+        OntologyConstraintTranslator, OntologyInference, OntologyReasoningReport,
     };
 
     #[cfg(all(feature = "ontology", feature = "gpu"))]
     use webxr::models::{
         constraints::{Constraint, ConstraintKind, ConstraintSet},
-        node::Node,
         graph::GraphData,
+        node::Node,
     };
 
     #[cfg(all(feature = "ontology", feature = "gpu"))]
-    use webxr::utils::socket_flow_messages::BinaryNodeData;
-    #[cfg(all(feature = "ontology", feature = "gpu"))]
     use webxr::types::vec3::Vec3Data;
+    #[cfg(all(feature = "ontology", feature = "gpu"))]
+    use webxr::utils::socket_flow_messages::BinaryNodeData;
 
     #[cfg(all(feature = "ontology", feature = "gpu"))]
     fn create_test_node(id: u32, metadata_id: String, node_type: Option<String>) -> Node {
@@ -35,9 +35,21 @@ mod tests {
             metadata_id,
             label: format!("Test Node {}", id),
             data: BinaryNodeData {
-                position: Vec3Data { x: 0.0, y: 0.0, z: 0.0 },
-                velocity: Vec3Data { x: 0.0, y: 0.0, z: 0.0 },
-                acceleration: Vec3Data { x: 0.0, y: 0.0, z: 0.0 },
+                position: Vec3Data {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+                velocity: Vec3Data {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+                acceleration: Vec3Data {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
                 mass: 1.0,
                 radius: 1.0,
             },
@@ -87,7 +99,11 @@ mod tests {
 
         // Should create separation constraints between all Person-Company pairs
         // 2 persons * 2 companies = 4 separation constraints
-        assert_eq!(constraints.len(), 4, "Should create 4 separation constraints");
+        assert_eq!(
+            constraints.len(),
+            4,
+            "Should create 4 separation constraints"
+        );
 
         for constraint in &constraints {
             assert_eq!(constraint.kind, ConstraintKind::Separation);
@@ -121,7 +137,10 @@ mod tests {
         let constraints = translator.axioms_to_constraints(&[axiom], &nodes).unwrap();
 
         // Should create clustering constraints for employees toward person centroid
-        assert!(!constraints.is_empty(), "Should create alignment constraints");
+        assert!(
+            !constraints.is_empty(),
+            "Should create alignment constraints"
+        );
 
         for constraint in &constraints {
             assert_eq!(constraint.kind, ConstraintKind::Clustering);
@@ -219,19 +238,25 @@ mod tests {
         let nodes = vec![
             create_test_node(1, "graph1_person1".to_string(), Some("Person".to_string())),
             create_test_node(2, "graph1_person2".to_string(), Some("Person".to_string())),
-            create_test_node(3, "graph2_company1".to_string(), Some("Company".to_string())),
-            create_test_node(4, "graph2_company2".to_string(), Some("Company".to_string())),
+            create_test_node(
+                3,
+                "graph2_company1".to_string(),
+                Some("Company".to_string()),
+            ),
+            create_test_node(
+                4,
+                "graph2_company2".to_string(),
+                Some("Company".to_string()),
+            ),
         ];
 
-        let axioms = vec![
-            OWLAxiom {
-                axiom_type: OWLAxiomType::DisjointClasses,
-                subject: "Person".to_string(),
-                object: Some("Company".to_string()),
-                property: None,
-                confidence: 1.0,
-            }
-        ];
+        let axioms = vec![OWLAxiom {
+            axiom_type: OWLAxiomType::DisjointClasses,
+            subject: "Person".to_string(),
+            object: Some("Company".to_string()),
+            property: None,
+            confidence: 1.0,
+        }];
 
         let constraints = translator.axioms_to_constraints(&axioms, &nodes).unwrap();
 
@@ -252,19 +277,17 @@ mod tests {
     fn test_memory_alignment() {
         let mut translator = OntologyConstraintTranslator::new();
 
-        let nodes: Vec<Node> = (0..100).map(|i| {
-            create_test_node(i, format!("node{}", i), Some("TestType".to_string()))
-        }).collect();
+        let nodes: Vec<Node> = (0..100)
+            .map(|i| create_test_node(i, format!("node{}", i), Some("TestType".to_string())))
+            .collect();
 
-        let axioms = vec![
-            OWLAxiom {
-                axiom_type: OWLAxiomType::DisjointClasses,
-                subject: "TestType".to_string(),
-                object: Some("OtherType".to_string()),
-                property: None,
-                confidence: 1.0,
-            }
-        ];
+        let axioms = vec![OWLAxiom {
+            axiom_type: OWLAxiomType::DisjointClasses,
+            subject: "TestType".to_string(),
+            object: Some("OtherType".to_string()),
+            property: None,
+            confidence: 1.0,
+        }];
 
         let constraints = translator.axioms_to_constraints(&axioms, &nodes).unwrap();
 
@@ -296,7 +319,8 @@ mod tests {
         let disjoint_strength = translator.get_constraint_strength(&OWLAxiomType::DisjointClasses);
         let subclass_strength = translator.get_constraint_strength(&OWLAxiomType::SubClassOf);
         let sameas_strength = translator.get_constraint_strength(&OWLAxiomType::SameAs);
-        let functional_strength = translator.get_constraint_strength(&OWLAxiomType::FunctionalProperty);
+        let functional_strength =
+            translator.get_constraint_strength(&OWLAxiomType::FunctionalProperty);
 
         // Verify reasonable strength values
         assert!(disjoint_strength > 0.0 && disjoint_strength <= 1.0);
@@ -334,7 +358,7 @@ mod tests {
                 object: Some("Person".to_string()),
                 property: None,
                 confidence: 1.0,
-            }
+            },
         ];
 
         let graph = create_test_graph(nodes);
@@ -345,7 +369,9 @@ mod tests {
             reasoning_time_ms: 0,
         };
 
-        let constraint_set = translator.apply_ontology_constraints(&graph, &reasoning_report).unwrap();
+        let constraint_set = translator
+            .apply_ontology_constraints(&graph, &reasoning_report)
+            .unwrap();
 
         // Verify constraint groups exist
         assert!(!constraint_set.constraints.is_empty());
@@ -355,7 +381,10 @@ mod tests {
         let has_separation_group = constraint_set.groups.contains_key("ontology_separation");
         let has_alignment_group = constraint_set.groups.contains_key("ontology_alignment");
 
-        assert!(has_separation_group || has_alignment_group, "Should have at least one ontology constraint group");
+        assert!(
+            has_separation_group || has_alignment_group,
+            "Should have at least one ontology constraint group"
+        );
     }
 
     #[cfg(all(feature = "ontology", feature = "gpu"))]
@@ -370,22 +399,22 @@ mod tests {
 
         let graph = create_test_graph(nodes);
 
-        let inferences = vec![
-            OntologyInference {
-                inferred_axiom: OWLAxiom {
-                    axiom_type: OWLAxiomType::SameAs,
-                    subject: "entity1".to_string(),
-                    object: Some("entity2".to_string()),
-                    property: None,
-                    confidence: 0.8,
-                },
-                premise_axioms: vec!["axiom1".to_string()],
-                reasoning_confidence: 0.8,
-                is_derived: true,
-            }
-        ];
+        let inferences = vec![OntologyInference {
+            inferred_axiom: OWLAxiom {
+                axiom_type: OWLAxiomType::SameAs,
+                subject: "entity1".to_string(),
+                object: Some("entity2".to_string()),
+                property: None,
+                confidence: 0.8,
+            },
+            premise_axioms: vec!["axiom1".to_string()],
+            reasoning_confidence: 0.8,
+            is_derived: true,
+        }];
 
-        let constraints = translator.inferences_to_constraints(&inferences, &graph).unwrap();
+        let constraints = translator
+            .inferences_to_constraints(&inferences, &graph)
+            .unwrap();
 
         assert!(!constraints.is_empty());
 
@@ -427,10 +456,12 @@ mod tests {
         let mut translator = OntologyConstraintTranslator::new();
 
         // Create a large graph
-        let nodes: Vec<Node> = (0..1000).map(|i| {
-            let node_type = if i % 2 == 0 { "TypeA" } else { "TypeB" };
-            create_test_node(i, format!("node{}", i), Some(node_type.to_string()))
-        }).collect();
+        let nodes: Vec<Node> = (0..1000)
+            .map(|i| {
+                let node_type = if i % 2 == 0 { "TypeA" } else { "TypeB" };
+                create_test_node(i, format!("node{}", i), Some(node_type.to_string()))
+            })
+            .collect();
 
         let axiom = OWLAxiom {
             axiom_type: OWLAxiomType::DisjointClasses,
@@ -444,10 +475,18 @@ mod tests {
         let constraints = translator.axioms_to_constraints(&[axiom], &nodes).unwrap();
         let duration = start.elapsed();
 
-        println!("Generated {} constraints in {:?}", constraints.len(), duration);
+        println!(
+            "Generated {} constraints in {:?}",
+            constraints.len(),
+            duration
+        );
 
         // Should complete in reasonable time
-        assert!(duration.as_secs() < 5, "Performance test took too long: {:?}", duration);
+        assert!(
+            duration.as_secs() < 5,
+            "Performance test took too long: {:?}",
+            duration
+        );
         assert!(!constraints.is_empty());
     }
 

@@ -1,20 +1,20 @@
-use actix_web::{web, HttpResponse, ResponseError, Responder, Result};
-use crate::AppState;
 use crate::handlers::validation_handler::ValidationService;
-use crate::utils::validation::rate_limit::{RateLimiter, EndpointRateLimits, extract_client_id};
-use crate::utils::validation::sanitization::Sanitizer;
-use crate::utils::validation::errors::DetailedValidationError;
-use crate::utils::validation::MAX_REQUEST_SIZE;
-use serde::{Serialize, Deserialize};
-use log::{error, info, warn, debug};
-use serde_json::{json, Value};
-use futures::StreamExt;
-use actix_web::web::Bytes;
-use crate::services::ragflow_service::RAGFlowError;
-use actix_web::web::ServiceConfig;
-use crate::types::speech::SpeechOptions;
 use crate::models::ragflow_chat::{RagflowChatRequest, RagflowChatResponse};
+use crate::services::ragflow_service::RAGFlowError;
+use crate::types::speech::SpeechOptions;
+use crate::utils::validation::errors::DetailedValidationError;
+use crate::utils::validation::rate_limit::{extract_client_id, EndpointRateLimits, RateLimiter};
+use crate::utils::validation::sanitization::Sanitizer;
+use crate::utils::validation::MAX_REQUEST_SIZE;
+use crate::AppState;
+use actix_web::web::Bytes;
+use actix_web::web::ServiceConfig;
 use actix_web::HttpRequest;
+use actix_web::{web, HttpResponse, Responder, ResponseError, Result};
+use futures::StreamExt;
+use log::{debug, error, info, warn};
+use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
 use std::sync::Arc;
 
 #[derive(Debug, Deserialize)]
@@ -43,8 +43,7 @@ pub struct SendMessageRequest {
 // Implement ResponseError for RAGFlowError
 impl ResponseError for RAGFlowError {
     fn error_response(&self) -> HttpResponse {
-        HttpResponse::InternalServerError()
-            .json(json!({"error": self.to_string()}))
+        HttpResponse::InternalServerError().json(json!({"error": self.to_string()}))
     }
 }
 
@@ -55,9 +54,11 @@ pub async fn send_message(
 ) -> impl Responder {
     let ragflow_service = match &state.ragflow_service {
         Some(service) => service,
-        None => return HttpResponse::ServiceUnavailable().json(json!({
-            "error": "RAGFlow service is not available"
-        }))
+        None => {
+            return HttpResponse::ServiceUnavailable().json(json!({
+                "error": "RAGFlow service is not available"
+            }))
+        }
     };
 
     // Get session ID from request or use the default one from app state if not provided
@@ -68,13 +69,16 @@ pub async fn send_message(
 
     let enable_tts = request.enable_tts.unwrap_or(false);
     // The quote and doc_ids parameters are not used in the new API
-    match ragflow_service.send_message(
-        session_id,
-        request.question.clone(),
-        false, // quote parameter (unused)
-        None,  // doc_ids parameter (unused)
-        request.stream.unwrap_or(true),
-    ).await {
+    match ragflow_service
+        .send_message(
+            session_id,
+            request.question.clone(),
+            false, // quote parameter (unused)
+            None,  // doc_ids parameter (unused)
+            request.stream.unwrap_or(true),
+        )
+        .await
+    {
         Ok(response_stream) => {
             // Check if TTS is enabled and speech service exists
             if enable_tts {
@@ -86,7 +90,10 @@ pub async fn send_message(
                     actix_web::rt::spawn(async move {
                         let speech_options = SpeechOptions::default();
                         // The exact question will be sent to TTS
-                        if let Err(e) = speech_service.text_to_speech(question, speech_options).await {
+                        if let Err(e) = speech_service
+                            .text_to_speech(question, speech_options)
+                            .await
+                        {
                             error!("Error processing TTS: {:?}", e);
                         }
                     });
@@ -96,36 +103,40 @@ pub async fn send_message(
             // Continue with normal text response handling
             let enable_tts = enable_tts; // Clone for capture in closure
             let mapped_stream = response_stream.map(move |result| {
-                result.map(|answer| {
-                    // Skip empty messages (like the end marker)
-                    if answer.is_empty() {
-                        return Bytes::new();
-                    }
-
-                    // If TTS is enabled, send answer to speech service
-                    if enable_tts {
-                        if let Some(speech_service) = &state.speech_service {
-                            let speech_service = speech_service.clone();
-                            let speech_options = SpeechOptions::default();
-                            let answer_clone = answer.clone();
-                            actix_web::rt::spawn(async move {
-                                if let Err(e) = speech_service.text_to_speech(answer_clone, speech_options).await {
-                                    error!("Error processing TTS for answer: {:?}", e);
-                                }
-                            });
+                result
+                    .map(|answer| {
+                        // Skip empty messages (like the end marker)
+                        if answer.is_empty() {
+                            return Bytes::new();
                         }
-                    }
 
-                    let json_response = json!({
-                        "answer": answer,
-                        "success": true
-                    });
-                    Bytes::from(json_response.to_string())
-                })
-                .map_err(|e| actix_web::error::ErrorInternalServerError(e))
+                        // If TTS is enabled, send answer to speech service
+                        if enable_tts {
+                            if let Some(speech_service) = &state.speech_service {
+                                let speech_service = speech_service.clone();
+                                let speech_options = SpeechOptions::default();
+                                let answer_clone = answer.clone();
+                                actix_web::rt::spawn(async move {
+                                    if let Err(e) = speech_service
+                                        .text_to_speech(answer_clone, speech_options)
+                                        .await
+                                    {
+                                        error!("Error processing TTS for answer: {:?}", e);
+                                    }
+                                });
+                            }
+                        }
+
+                        let json_response = json!({
+                            "answer": answer,
+                            "success": true
+                        });
+                        Bytes::from(json_response.to_string())
+                    })
+                    .map_err(|e| actix_web::error::ErrorInternalServerError(e))
             });
             HttpResponse::Ok().streaming(mapped_stream)
-        },
+        }
         Err(e) => {
             error!("Error sending message: {}", e);
             HttpResponse::InternalServerError().json(json!({
@@ -143,9 +154,11 @@ pub async fn create_session(
     let user_id = request.user_id.clone();
     let ragflow_service = match &state.ragflow_service {
         Some(service) => service,
-        None => return HttpResponse::ServiceUnavailable().json(json!({
-            "error": "RAGFlow service is not available"
-        }))
+        None => {
+            return HttpResponse::ServiceUnavailable().json(json!({
+                "error": "RAGFlow service is not available"
+            }))
+        }
     };
 
     match ragflow_service.create_session(user_id.clone()).await {
@@ -165,7 +178,7 @@ pub async fn create_session(
                 session_id,
                 message: None,
             })
-        },
+        }
         Err(e) => {
             error!("Failed to initialize chat: {}", e);
             HttpResponse::InternalServerError().json(json!({
@@ -182,12 +195,17 @@ pub async fn get_session_history(
 ) -> impl Responder {
     let ragflow_service = match &state.ragflow_service {
         Some(service) => service,
-        None => return HttpResponse::ServiceUnavailable().json(json!({
-            "error": "RAGFlow service is not available"
-        }))
+        None => {
+            return HttpResponse::ServiceUnavailable().json(json!({
+                "error": "RAGFlow service is not available"
+            }))
+        }
     };
 
-    match ragflow_service.get_session_history(session_id.to_string()).await {
+    match ragflow_service
+        .get_session_history(session_id.to_string())
+        .await
+    {
         Ok(history) => HttpResponse::Ok().json(history),
         Err(e) => {
             error!("Failed to get session history: {}", e);
@@ -205,13 +223,27 @@ async fn handle_ragflow_chat(
     payload: web::Json<RagflowChatRequest>,
 ) -> HttpResponse {
     // Authentication: Check for power user
-    let pubkey = match req.headers().get("X-Nostr-Pubkey").and_then(|v| v.to_str().ok()) {
+    let pubkey = match req
+        .headers()
+        .get("X-Nostr-Pubkey")
+        .and_then(|v| v.to_str().ok())
+    {
         Some(pk) => pk.to_string(),
-        None => return HttpResponse::Unauthorized().json(json!({"error": "Missing X-Nostr-Pubkey header"})),
+        None => {
+            return HttpResponse::Unauthorized()
+                .json(json!({"error": "Missing X-Nostr-Pubkey header"}))
+        }
     };
-    let token = match req.headers().get("Authorization").and_then(|v| v.to_str().ok().map(|s| s.trim_start_matches("Bearer "))) {
+    let token = match req
+        .headers()
+        .get("Authorization")
+        .and_then(|v| v.to_str().ok().map(|s| s.trim_start_matches("Bearer ")))
+    {
         Some(t) => t.to_string(),
-        None => return HttpResponse::Unauthorized().json(json!({"error": "Missing Authorization token"})),
+        None => {
+            return HttpResponse::Unauthorized()
+                .json(json!({"error": "Missing Authorization token"}))
+        }
     };
 
     if let Some(nostr_service) = &state.nostr_service {
@@ -228,17 +260,25 @@ async fn handle_ragflow_chat(
     } else {
         // This case should ideally not be reached if nostr_service is integral
         // and initialized properly. Consider logging a warning or error.
-        error!("Nostr service not available during chat handling for pubkey: {}", pubkey);
-        return HttpResponse::InternalServerError().json(json!({"error": "Nostr service not available"}));
+        error!(
+            "Nostr service not available during chat handling for pubkey: {}",
+            pubkey
+        );
+        return HttpResponse::InternalServerError()
+            .json(json!({"error": "Nostr service not available"}));
     }
 
-    info!("[handle_ragflow_chat] Checking RAGFlow service availability. Is Some: {}", state.ragflow_service.is_some()); // ADDED LOG
+    info!(
+        "[handle_ragflow_chat] Checking RAGFlow service availability. Is Some: {}",
+        state.ragflow_service.is_some()
+    ); // ADDED LOG
 
     let ragflow_service = match &state.ragflow_service {
         Some(service) => service,
         None => {
             error!("[handle_ragflow_chat] RAGFlow service is None, returning 503."); // ADDED LOG
-            return HttpResponse::ServiceUnavailable().json(json!({"error": "RAGFlow service not available"}));
+            return HttpResponse::ServiceUnavailable()
+                .json(json!({"error": "RAGFlow service not available"}));
         }
     };
 
@@ -249,12 +289,19 @@ async fn handle_ragflow_chat(
         // Create a new session if none provided. Using pubkey as user_id for RAGFlow session.
         match ragflow_service.create_session(pubkey.clone()).await {
             Ok(new_sid) => {
-                info!("Created new RAGFlow session {} for pubkey {}", new_sid, pubkey);
+                info!(
+                    "Created new RAGFlow session {} for pubkey {}",
+                    new_sid, pubkey
+                );
                 session_id = Some(new_sid);
             }
             Err(e) => {
-                error!("Failed to create RAGFlow session for pubkey {}: {}", pubkey, e);
-                return HttpResponse::InternalServerError().json(json!({"error": format!("Failed to create RAGFlow session: {}", e)}));
+                error!(
+                    "Failed to create RAGFlow session for pubkey {}: {}",
+                    pubkey, e
+                );
+                return HttpResponse::InternalServerError()
+                    .json(json!({"error": format!("Failed to create RAGFlow session: {}", e)}));
             }
         }
     }
@@ -263,7 +310,14 @@ async fn handle_ragflow_chat(
     let current_session_id = session_id.expect("Session ID should be Some at this point");
 
     let stream_preference = payload.stream.unwrap_or(false); // Default to false if not provided
-    match ragflow_service.send_chat_message(current_session_id.clone(), payload.question.clone(), stream_preference).await {
+    match ragflow_service
+        .send_chat_message(
+            current_session_id.clone(),
+            payload.question.clone(),
+            stream_preference,
+        )
+        .await
+    {
         Ok((answer, final_session_id)) => {
             HttpResponse::Ok().json(RagflowChatResponse {
                 answer,
@@ -271,8 +325,12 @@ async fn handle_ragflow_chat(
             })
         }
         Err(e) => {
-            error!("Error communicating with RAGFlow for session {}: {}", current_session_id, e);
-            HttpResponse::InternalServerError().json(json!({"error": format!("RAGFlow communication error: {}", e)}))
+            error!(
+                "Error communicating with RAGFlow for session {}: {}",
+                current_session_id, e
+            );
+            HttpResponse::InternalServerError()
+                .json(json!({"error": format!("RAGFlow communication error: {}", e)}))
         }
     }
 }
@@ -304,7 +362,10 @@ impl EnhancedRagFlowHandler {
 
         // Rate limiting check
         if !self.rate_limiter.is_allowed(&client_id) {
-            warn!("Rate limit exceeded for RAGFlow chat from client: {}", client_id);
+            warn!(
+                "Rate limit exceeded for RAGFlow chat from client: {}",
+                client_id
+            );
             return Ok(HttpResponse::TooManyRequests().json(json!({
                 "error": "rate_limit_exceeded",
                 "message": "Too many chat requests. Please wait before sending another message.",
@@ -323,10 +384,17 @@ impl EnhancedRagFlowHandler {
             })));
         }
 
-        info!("Processing enhanced RAGFlow chat from client: {} (size: {} bytes)", client_id, payload_size);
+        info!(
+            "Processing enhanced RAGFlow chat from client: {} (size: {} bytes)",
+            client_id, payload_size
+        );
 
         // Authentication validation
-        let pubkey = match req.headers().get("X-Nostr-Pubkey").and_then(|v| v.to_str().ok()) {
+        let pubkey = match req
+            .headers()
+            .get("X-Nostr-Pubkey")
+            .and_then(|v| v.to_str().ok())
+        {
             Some(pk) => pk.to_string(),
             None => {
                 warn!("Missing authentication header from client: {}", client_id);
@@ -337,9 +405,12 @@ impl EnhancedRagFlowHandler {
             }
         };
 
-        let token = match req.headers().get("Authorization")
+        let token = match req
+            .headers()
+            .get("Authorization")
             .and_then(|v| v.to_str().ok())
-            .map(|s| s.trim_start_matches("Bearer ")) {
+            .map(|s| s.trim_start_matches("Bearer "))
+        {
             Some(t) => t.to_string(),
             None => {
                 warn!("Missing authorization token from client: {}", client_id);
@@ -353,7 +424,10 @@ impl EnhancedRagFlowHandler {
         // Validate session and permissions
         if let Some(nostr_service) = &state.nostr_service {
             if !nostr_service.validate_session(&pubkey, &token).await {
-                warn!("Invalid session for pubkey: {} from client: {}", pubkey, client_id);
+                warn!(
+                    "Invalid session for pubkey: {} from client: {}",
+                    pubkey, client_id
+                );
                 return Ok(HttpResponse::Unauthorized().json(json!({
                     "error": "invalid_session",
                     "message": "Invalid session token"
@@ -364,7 +438,10 @@ impl EnhancedRagFlowHandler {
             let is_power_user = state.is_power_user(&pubkey);
 
             if !is_power_user && !has_ragflow_access {
-                warn!("Insufficient permissions for pubkey: {} from client: {}", pubkey, client_id);
+                warn!(
+                    "Insufficient permissions for pubkey: {} from client: {}",
+                    pubkey, client_id
+                );
                 return Ok(HttpResponse::Forbidden().json(json!({
                     "error": "insufficient_permissions",
                     "message": "RAGFlow access requires power user privileges or specific permission"
@@ -382,7 +459,10 @@ impl EnhancedRagFlowHandler {
         let validated_payload = match self.validation_service.validate_ragflow_chat(&payload) {
             Ok(sanitized) => sanitized,
             Err(validation_error) => {
-                warn!("RAGFlow chat validation failed for client {}: {}", client_id, validation_error);
+                warn!(
+                    "RAGFlow chat validation failed for client {}: {}",
+                    client_id, validation_error
+                );
                 return Ok(validation_error.to_http_response());
             }
         };
@@ -390,22 +470,26 @@ impl EnhancedRagFlowHandler {
         debug!("RAGFlow chat validation passed for client: {}", client_id);
 
         // Extract validated parameters
-        let question = validated_payload.get("question")
+        let question = validated_payload
+            .get("question")
             .and_then(|q| q.as_str())
             .ok_or_else(|| {
                 error!("Question field missing from validated payload");
                 DetailedValidationError::missing_required_field("question")
             })?;
 
-        let session_id = validated_payload.get("session_id")
+        let session_id = validated_payload
+            .get("session_id")
             .and_then(|s| s.as_str())
             .map(String::from);
 
-        let stream = validated_payload.get("stream")
+        let stream = validated_payload
+            .get("stream")
             .and_then(|s| s.as_bool())
             .unwrap_or(false);
 
-        let enable_tts = validated_payload.get("enable_tts")
+        let enable_tts = validated_payload
+            .get("enable_tts")
             .and_then(|t| t.as_bool())
             .unwrap_or(false);
 
@@ -430,7 +514,10 @@ impl EnhancedRagFlowHandler {
                 debug!("Creating new RAGFlow session for pubkey: {}", pubkey);
                 match ragflow_service.create_session(pubkey.clone()).await {
                     Ok(new_session_id) => {
-                        info!("Created new RAGFlow session {} for pubkey {}", new_session_id, pubkey);
+                        info!(
+                            "Created new RAGFlow session {} for pubkey {}",
+                            new_session_id, pubkey
+                        );
                         new_session_id
                     }
                     Err(e) => {
@@ -450,9 +537,15 @@ impl EnhancedRagFlowHandler {
         }
 
         // Send message to RAGFlow
-        match ragflow_service.send_chat_message(current_session_id.clone(), question.to_string(), stream).await {
+        match ragflow_service
+            .send_chat_message(current_session_id.clone(), question.to_string(), stream)
+            .await
+        {
             Ok((answer, final_session_id)) => {
-                info!("RAGFlow response received for client: {} (session: {})", client_id, final_session_id);
+                info!(
+                    "RAGFlow response received for client: {} (session: {})",
+                    client_id, final_session_id
+                );
 
                 // Process TTS for response if requested
                 if enable_tts {
@@ -465,7 +558,10 @@ impl EnhancedRagFlowHandler {
                 }))
             }
             Err(e) => {
-                error!("RAGFlow communication error for session {}: {}", current_session_id, e);
+                error!(
+                    "RAGFlow communication error for session {}: {}",
+                    current_session_id, e
+                );
                 Ok(HttpResponse::InternalServerError().json(json!({
                     "error": "ragflow_communication_failed",
                     "message": "Failed to communicate with RAGFlow service",
@@ -492,19 +588,22 @@ impl EnhancedRagFlowHandler {
             })));
         }
 
-        info!("Processing enhanced session creation from client: {}", client_id);
+        info!(
+            "Processing enhanced session creation from client: {}",
+            client_id
+        );
 
         // Validate user_id field
-        let user_id = payload.get("user_id")
+        let user_id = payload
+            .get("user_id")
             .and_then(|u| u.as_str())
             .ok_or_else(|| DetailedValidationError::missing_required_field("user_id"))?;
 
         // Sanitize user_id
-        let sanitized_user_id = Sanitizer::sanitize_string(user_id)
-            .map_err(|e| {
-                warn!("User ID sanitization failed: {}", e);
-                e
-            })?;
+        let sanitized_user_id = Sanitizer::sanitize_string(user_id).map_err(|e| {
+            warn!("User ID sanitization failed: {}", e);
+            e
+        })?;
 
         let ragflow_service = match &state.ragflow_service {
             Some(service) => service,
@@ -516,9 +615,15 @@ impl EnhancedRagFlowHandler {
             }
         };
 
-        match ragflow_service.create_session(sanitized_user_id.clone()).await {
+        match ragflow_service
+            .create_session(sanitized_user_id.clone())
+            .await
+        {
             Ok(session_id) => {
-                info!("RAGFlow session created: {} for user: {} (client: {})", session_id, sanitized_user_id, client_id);
+                info!(
+                    "RAGFlow session created: {} for user: {} (client: {})",
+                    session_id, sanitized_user_id, client_id
+                );
                 Ok(HttpResponse::Ok().json(json!({
                     "success": true,
                     "session_id": session_id,
@@ -527,7 +632,10 @@ impl EnhancedRagFlowHandler {
                 })))
             }
             Err(e) => {
-                error!("Failed to create RAGFlow session for user {}: {}", sanitized_user_id, e);
+                error!(
+                    "Failed to create RAGFlow session for user {}: {}",
+                    sanitized_user_id, e
+                );
                 Ok(HttpResponse::InternalServerError().json(json!({
                     "error": "session_creation_failed",
                     "message": "Failed to create new session"
@@ -551,7 +659,7 @@ impl EnhancedRagFlowHandler {
                 requests_per_minute: 30,
                 burst_size: 10,
                 ..Default::default()
-            }
+            },
         ));
 
         if !history_rate_limiter.is_allowed(&client_id) {
@@ -562,13 +670,15 @@ impl EnhancedRagFlowHandler {
         }
 
         // Validate and sanitize session ID
-        let sanitized_session_id = Sanitizer::sanitize_string(&session_id)
-            .map_err(|e| {
-                warn!("Session ID sanitization failed: {}", e);
-                e
-            })?;
+        let sanitized_session_id = Sanitizer::sanitize_string(&session_id).map_err(|e| {
+            warn!("Session ID sanitization failed: {}", e);
+            e
+        })?;
 
-        debug!("Getting session history for session: {} (client: {})", sanitized_session_id, client_id);
+        debug!(
+            "Getting session history for session: {} (client: {})",
+            sanitized_session_id, client_id
+        );
 
         let ragflow_service = match &state.ragflow_service {
             Some(service) => service,
@@ -580,9 +690,15 @@ impl EnhancedRagFlowHandler {
             }
         };
 
-        match ragflow_service.get_session_history(sanitized_session_id.clone()).await {
+        match ragflow_service
+            .get_session_history(sanitized_session_id.clone())
+            .await
+        {
             Ok(history) => {
-                debug!("Session history retrieved for session: {}", sanitized_session_id);
+                debug!(
+                    "Session history retrieved for session: {}",
+                    sanitized_session_id
+                );
                 Ok(HttpResponse::Ok().json(json!({
                     "session_id": sanitized_session_id,
                     "history": history,
@@ -590,7 +706,10 @@ impl EnhancedRagFlowHandler {
                 })))
             }
             Err(e) => {
-                error!("Failed to get session history for {}: {}", sanitized_session_id, e);
+                error!(
+                    "Failed to get session history for {}: {}",
+                    sanitized_session_id, e
+                );
                 Ok(HttpResponse::InternalServerError().json(json!({
                     "error": "history_retrieval_failed",
                     "message": "Failed to retrieve session history"
@@ -610,7 +729,7 @@ impl EnhancedRagFlowHandler {
             "\\n\\nUser:",
             "\\n\\nAssistant:",
             "<|im_star|>", // Fixed: was im_star, should be im_start
-            "<|im_en|>", // Fixed: was im_en, should be im_end
+            "<|im_en|>",   // Fixed: was im_en, should be im_end
         ];
 
         let question_lower = question.to_lowercase();
@@ -619,7 +738,7 @@ impl EnhancedRagFlowHandler {
                 warn!("Potential prompt injection detected: {}", pattern);
                 return Err(DetailedValidationError::malicious_content(
                     "question",
-                    "prompt_injection"
+                    "prompt_injection",
                 ));
             }
         }
@@ -629,7 +748,7 @@ impl EnhancedRagFlowHandler {
             return Err(DetailedValidationError::new(
                 "question",
                 "Question contains excessive repetition",
-                "EXCESSIVE_REPETITION"
+                "EXCESSIVE_REPETITION",
             ));
         }
 
@@ -638,7 +757,7 @@ impl EnhancedRagFlowHandler {
             return Err(DetailedValidationError::new(
                 "question",
                 "Question is too long",
-                "QUESTION_TOO_LONG"
+                "QUESTION_TOO_LONG",
             ));
         }
 
@@ -660,7 +779,9 @@ impl EnhancedRagFlowHandler {
 
         // Check if any word appears more than 30% of total words
         let total_words = words.len();
-        word_counts.values().any(|&count| count as f64 / total_words as f64 > 0.3)
+        word_counts
+            .values()
+            .any(|&count| count as f64 / total_words as f64 > 0.3)
     }
 
     /// Process TTS request asynchronously
@@ -670,7 +791,10 @@ impl EnhancedRagFlowHandler {
             let text = text.to_string();
 
             tokio::spawn(async move {
-                if let Err(e) = speech_service.text_to_speech(text, Default::default()).await {
+                if let Err(e) = speech_service
+                    .text_to_speech(text, Default::default())
+                    .await
+                {
                     error!("TTS processing failed: {}", e);
                 }
             });

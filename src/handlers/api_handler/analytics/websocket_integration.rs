@@ -1,19 +1,19 @@
 /*!
  * WebSocket Integration for GPU Analytics
- * 
+ *
  * Provides real-time GPU metrics, progress updates, and streaming analytics data
  * to clients via WebSocket connections with efficient delta compression.
  */
 
 use actix::prelude::*;
 use actix_web_actors::ws;
+use log::{debug, error, info, warn};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::time::Instant;
-use log::{debug, error, info, warn};
 
-use crate::handlers::api_handler::analytics::{CLUSTERING_TASKS, ANOMALY_STATE};
 use crate::app_state::AppState;
+use crate::handlers::api_handler::analytics::{ANOMALY_STATE, CLUSTERING_TASKS};
 
 /// WebSocket message types for GPU analytics
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -122,7 +122,11 @@ impl GpuAnalyticsWebSocket {
         }
     }
 
-    fn send_message(&self, ctx: &mut ws::WebsocketContext<Self>, message: AnalyticsWebSocketMessage) {
+    fn send_message(
+        &self,
+        ctx: &mut ws::WebsocketContext<Self>,
+        message: AnalyticsWebSocketMessage,
+    ) {
         if let Ok(json) = serde_json::to_string(&message) {
             ctx.text(json);
         }
@@ -139,7 +143,10 @@ impl GpuAnalyticsWebSocket {
         let fut = async move {
             // Get GPU metrics from GPU compute actor
             if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
-                match gpu_addr.send(crate::actors::messages::GetPhysicsStats).await {
+                match gpu_addr
+                    .send(crate::actors::messages::GetPhysicsStats)
+                    .await
+                {
                     Ok(Ok(stats)) => {
                         let metrics = GpuMetricsUpdate {
                             gpu_utilization: 75.0, // Would be from NVIDIA-ML in production
@@ -149,10 +156,10 @@ impl GpuAnalyticsWebSocket {
                             active_kernels: 3, // Estimate based on active features
                             compute_nodes: 1000, // Default estimate
                             compute_edges: stats.num_edges,
-                            fps: None, // PhysicsStats doesn't have fps
+                            fps: None,           // PhysicsStats doesn't have fps
                             frame_time_ms: None, // PhysicsStats doesn't have frame_time_ms
                         };
-                        
+
                         Some(metrics)
                     }
                     _ => None,
@@ -171,7 +178,7 @@ impl GpuAnalyticsWebSocket {
                     timestamp: chrono::Utc::now().timestamp_millis() as u64,
                     client_id: Some(client_id),
                 };
-                
+
                 act.send_message(ctx, message);
                 act.last_gpu_metrics = Some(metrics);
             }
@@ -220,7 +227,7 @@ impl GpuAnalyticsWebSocket {
                     timestamp: chrono::Utc::now().timestamp_millis() as u64,
                     client_id: Some(client_id.clone()),
                 };
-                
+
                 act.send_message(ctx, message);
             }
         }));
@@ -265,7 +272,7 @@ impl GpuAnalyticsWebSocket {
                     timestamp: chrono::Utc::now().timestamp_millis() as u64,
                     client_id: Some(client_id.clone()),
                 };
-                
+
                 act.send_message(ctx, message);
             }
         }));
@@ -288,16 +295,28 @@ impl GpuAnalyticsWebSocket {
 
             // Check GPU performance
             if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
-                if let Ok(Ok(stats)) = gpu_addr.send(crate::actors::messages::GetPhysicsStats).await {
+                if let Ok(Ok(stats)) = gpu_addr
+                    .send(crate::actors::messages::GetPhysicsStats)
+                    .await
+                {
                     if stats.gpu_failure_count > 0 {
-                        performance_warnings.push(format!("{} GPU failures detected", stats.gpu_failure_count));
-                        recommendations.push("Check GPU health and restart compute service if needed".to_string());
+                        performance_warnings
+                            .push(format!("{} GPU failures detected", stats.gpu_failure_count));
+                        recommendations.push(
+                            "Check GPU health and restart compute service if needed".to_string(),
+                        );
                         urgency_level = "medium";
                     }
 
-                    if stats.total_force_calculations > 500000 { // Use available field
-                        insights.push(format!("Processing large graph with {} force calculations", stats.total_force_calculations));
-                        recommendations.push("Consider using batch processing for better performance".to_string());
+                    if stats.total_force_calculations > 500000 {
+                        // Use available field
+                        insights.push(format!(
+                            "Processing large graph with {} force calculations",
+                            stats.total_force_calculations
+                        ));
+                        recommendations.push(
+                            "Consider using batch processing for better performance".to_string(),
+                        );
                     }
                 }
             }
@@ -315,10 +334,16 @@ impl GpuAnalyticsWebSocket {
             {
                 let state = ANOMALY_STATE.lock().await;
                 if state.stats.critical > 0 {
-                    insights.push(format!("CRITICAL: {} critical anomalies detected", state.stats.critical));
+                    insights.push(format!(
+                        "CRITICAL: {} critical anomalies detected",
+                        state.stats.critical
+                    ));
                     urgency_level = "critical";
                 } else if state.stats.high > 3 {
-                    insights.push(format!("High alert: {} high-severity anomalies", state.stats.high));
+                    insights.push(format!(
+                        "High alert: {} high-severity anomalies",
+                        state.stats.high
+                    ));
                     urgency_level = "high";
                 }
             }
@@ -340,16 +365,18 @@ impl GpuAnalyticsWebSocket {
                 timestamp: chrono::Utc::now().timestamp_millis() as u64,
                 client_id: Some(client_id),
             };
-            
+
             act.send_message(ctx, message);
         }));
     }
 
     fn start_periodic_updates(&self, ctx: &mut ws::WebsocketContext<Self>) {
         let interval = std::time::Duration::from_millis(self.subscription_prefs.update_interval_ms);
-        
+
         ctx.run_interval(interval, |act, ctx| {
-            if std::time::Instant::now().duration_since(act.heartbeat) > std::time::Duration::from_secs(60) {
+            if std::time::Instant::now().duration_since(act.heartbeat)
+                > std::time::Duration::from_secs(60)
+            {
                 info!("GPU analytics WebSocket client timeout: {}", act.client_id);
                 ctx.stop();
                 return;
@@ -368,7 +395,10 @@ impl Actor for GpuAnalyticsWebSocket {
     type Context = ws::WebsocketContext<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        info!("GPU Analytics WebSocket client connected: {}", self.client_id);
+        info!(
+            "GPU Analytics WebSocket client connected: {}",
+            self.client_id
+        );
 
         // Send welcome message with capabilities
         let welcome = AnalyticsWebSocketMessage {
@@ -395,7 +425,10 @@ impl Actor for GpuAnalyticsWebSocket {
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
-        info!("GPU Analytics WebSocket client disconnected: {}", self.client_id);
+        info!(
+            "GPU Analytics WebSocket client disconnected: {}",
+            self.client_id
+        );
     }
 }
 
@@ -411,13 +444,19 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for GpuAnalyticsWebSo
 
                         match ws_msg.message_type.as_str() {
                             "updateSubscriptions" => {
-                                if let Ok(prefs) = serde_json::from_value::<SubscriptionPreferences>(ws_msg.data) {
+                                if let Ok(prefs) =
+                                    serde_json::from_value::<SubscriptionPreferences>(ws_msg.data)
+                                {
                                     self.subscription_prefs = prefs;
-                                    info!("Updated subscription preferences for client: {}", self.client_id);
+                                    info!(
+                                        "Updated subscription preferences for client: {}",
+                                        self.client_id
+                                    );
 
                                     let response = AnalyticsWebSocketMessage {
                                         message_type: "subscriptionsUpdated".to_string(),
-                                        data: serde_json::to_value(&self.subscription_prefs).unwrap_or_default(),
+                                        data: serde_json::to_value(&self.subscription_prefs)
+                                            .unwrap_or_default(),
                                         timestamp: chrono::Utc::now().timestamp_millis() as u64,
                                         client_id: Some(self.client_id.clone()),
                                     };
@@ -479,10 +518,6 @@ pub async fn gpu_analytics_websocket(
     app_state: actix_web::web::Data<AppState>,
 ) -> Result<actix_web::HttpResponse, actix_web::Error> {
     info!("New GPU Analytics WebSocket connection requested");
-    
-    ws::start(
-        GpuAnalyticsWebSocket::new(app_state),
-        &req,
-        stream,
-    )
+
+    ws::start(GpuAnalyticsWebSocket::new(app_state), &req, stream)
 }

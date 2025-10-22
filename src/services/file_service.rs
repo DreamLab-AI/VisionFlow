@@ -1,23 +1,23 @@
-use crate::models::metadata::{Metadata, MetadataStore, MetadataOps};
-use crate::models::graph::GraphData;
+use super::github::{ContentAPI, GitHubClient, GitHubConfig};
 use crate::config::AppFullSettings; // Use AppFullSettings, ClientFacingSettings removed
-use serde::{Deserialize, Serialize};
-use log::{info, debug, error, warn};
-use std::sync::atomic::{AtomicU32, Ordering};
-use regex::Regex;
-use std::fs;
-use std::path::Path;
-use chrono::Utc;
-use std::sync::Arc;
-use tokio::sync::RwLock;
-use std::error::Error as StdError;
-use std::time::Duration;
-use tokio::time::sleep;
+use crate::models::graph::GraphData;
+use crate::models::metadata::{Metadata, MetadataOps, MetadataStore};
 use actix_web::web;
+use chrono::Utc;
+use log::{debug, error, info, warn};
+use regex::Regex;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::error::Error as StdError;
+use std::fs;
 use std::fs::File;
 use std::io::Error;
-use super::github::{GitHubClient, ContentAPI, GitHubConfig};
+use std::path::Path;
+use std::sync::atomic::{AtomicU32, Ordering};
+use std::sync::Arc;
+use std::time::Duration;
+use tokio::sync::RwLock;
+use tokio::time::sleep;
 
 // Constants
 const METADATA_PATH: &str = "/workspace/ext/data/metadata/metadata.json";
@@ -39,31 +39,35 @@ pub struct FileService {
 }
 
 impl FileService {
-    pub fn new(_settings: Arc<RwLock<AppFullSettings>>) -> Self { // Changed to AppFullSettings, parameter prefixed
+    pub fn new(_settings: Arc<RwLock<AppFullSettings>>) -> Self {
+        // Changed to AppFullSettings, parameter prefixed
         // Initialize with a default counter
         let service = Self {
             _settings, // Prefixed with underscore
             node_id_counter: AtomicU32::new(1),
         };
-        
+
         // Try to initialize the counter based on existing metadata
         if let Ok(metadata) = Self::load_or_create_metadata() {
             let max_id = metadata.get_max_node_id();
             if max_id > 0 {
                 // Start from the next ID after the maximum
                 service.node_id_counter.store(max_id + 1, Ordering::SeqCst);
-                info!("Initialized node ID counter to {} based on existing metadata", max_id + 1);
+                info!(
+                    "Initialized node ID counter to {} based on existing metadata",
+                    max_id + 1
+                );
             }
         }
-        
+
         service
     }
-    
+
     /// Get the next unique node ID
     fn get_next_node_id(&self) -> u32 {
         self.node_id_counter.fetch_add(1, Ordering::SeqCst)
     }
-    
+
     /// Update node IDs for processed files
     fn update_node_ids(&self, processed_files: &mut Vec<ProcessedFile>) {
         for processed_file in processed_files {
@@ -80,7 +84,7 @@ impl FileService {
         let metadata = Self::load_or_create_metadata()
             .map_err(|e| Error::new(std::io::ErrorKind::Other, e))?;
         let mut graph_data = GraphData::new();
-        
+
         // Create a temporary file to process
         let temp_filename = format!("temp_{}.md", Utc::now().timestamp());
         let temp_path = format!("{}/{}", MARKDOWN_DIR, temp_filename);
@@ -89,7 +93,8 @@ impl FileService {
         }
 
         // Extract references and create metadata
-        let valid_nodes: Vec<String> = metadata.keys()
+        let valid_nodes: Vec<String> = metadata
+            .keys()
             .map(|name| name.trim_end_matches(".md").to_string())
             .collect();
 
@@ -110,7 +115,7 @@ impl FileService {
             last_content_change: Some(Utc::now()), // Uploaded files have content change same as upload time
             last_commit: Some(Utc::now()),
             change_count: Some(1), // First upload counts as 1 change
-            file_blob_sha: None, // No GitHub blob SHA for uploaded files
+            file_blob_sha: None,   // No GitHub blob SHA for uploaded files
             perplexity_link: String::new(),
             last_perplexity_process: None,
             topic_counts,
@@ -121,7 +126,9 @@ impl FileService {
         file_metadata.node_id = self.get_next_node_id().to_string();
 
         // Update graph data
-        graph_data.metadata.insert(temp_filename.clone(), file_metadata);
+        graph_data
+            .metadata
+            .insert(temp_filename.clone(), file_metadata);
 
         // Clean up temporary file
         if let Err(e) = fs::remove_file(&temp_path) {
@@ -142,7 +149,10 @@ impl FileService {
     pub async fn load_file(&self, filename: &str) -> Result<GraphData, Error> {
         let file_path = format!("{}/{}", MARKDOWN_DIR, filename);
         if !Path::new(&file_path).exists() {
-            return Err(Error::new(std::io::ErrorKind::NotFound, format!("File not found: {}", filename)));
+            return Err(Error::new(
+                std::io::ErrorKind::NotFound,
+                format!("File not found: {}", filename),
+            ));
         }
 
         let content = fs::read_to_string(&file_path)
@@ -152,7 +162,8 @@ impl FileService {
         let mut graph_data = GraphData::new();
 
         // Extract references and update metadata
-        let valid_nodes: Vec<String> = metadata.keys()
+        let valid_nodes: Vec<String> = metadata
+            .keys()
             .map(|name| name.trim_end_matches(".md").to_string())
             .collect();
 
@@ -184,8 +195,10 @@ impl FileService {
         file_metadata.node_id = self.get_next_node_id().to_string();
 
         // Update graph data
-        graph_data.metadata.insert(filename.to_string(), file_metadata);
-        
+        graph_data
+            .metadata
+            .insert(filename.to_string(), file_metadata);
+
         Ok(graph_data)
     }
 
@@ -194,38 +207,41 @@ impl FileService {
         // Ensure metadata directory exists
         std::fs::create_dir_all("/app/data/metadata")
             .map_err(|e| format!("Failed to create metadata directory: {}", e))?;
-        
+
         let metadata_path = "/app/data/metadata/metadata.json";
-        
-        match File::open(metadata_path) { Ok(file) => {
-            info!("Loading existing metadata from {}", metadata_path);
-            serde_json::from_reader(file)
-                .map_err(|e| format!("Failed to parse metadata: {}", e))
-        } _ => {
-            info!("Creating new metadata file at {}", metadata_path);
-            let empty_store = MetadataStore::default();
-            let file = File::create(metadata_path)
-                .map_err(|e| format!("Failed to create metadata file: {}", e))?;
-                
-            serde_json::to_writer_pretty(file, &empty_store)
-                .map_err(|e| format!("Failed to write metadata: {}", e))?;
-                
-            // Verify file was created with correct permissions
-            let metadata = std::fs::metadata(metadata_path)
-                .map_err(|e| format!("Failed to verify metadata file: {}", e))?;
-            
-            if !metadata.is_file() {
-                return Err("Metadata file was not created properly".to_string());
+
+        match File::open(metadata_path) {
+            Ok(file) => {
+                info!("Loading existing metadata from {}", metadata_path);
+                serde_json::from_reader(file)
+                    .map_err(|e| format!("Failed to parse metadata: {}", e))
             }
-            
-            Ok(empty_store)
-        }}
+            _ => {
+                info!("Creating new metadata file at {}", metadata_path);
+                let empty_store = MetadataStore::default();
+                let file = File::create(metadata_path)
+                    .map_err(|e| format!("Failed to create metadata file: {}", e))?;
+
+                serde_json::to_writer_pretty(file, &empty_store)
+                    .map_err(|e| format!("Failed to write metadata: {}", e))?;
+
+                // Verify file was created with correct permissions
+                let metadata = std::fs::metadata(metadata_path)
+                    .map_err(|e| format!("Failed to verify metadata file: {}", e))?;
+
+                if !metadata.is_file() {
+                    return Err("Metadata file was not created properly".to_string());
+                }
+
+                Ok(empty_store)
+            }
+        }
     }
-    
+
     /// Load pre-computed graph data with positions from graph.json
     pub fn load_graph_data() -> Result<Option<GraphData>, String> {
         let graph_path = "/app/data/metadata/graph.json";
-        
+
         match File::open(graph_path) {
             Ok(file) => {
                 info!("Loading existing graph data from {}", graph_path);
@@ -241,7 +257,10 @@ impl FileService {
                 }
             }
             Err(e) => {
-                info!("No existing graph.json found: {}. Will generate positions.", e);
+                info!(
+                    "No existing graph.json found: {}. Will generate positions.",
+                    e
+                );
                 Ok(None)
             }
         }
@@ -250,7 +269,7 @@ impl FileService {
     /// Calculate node size based on file size
     fn calculate_node_size(file_size: usize) -> f64 {
         const BASE_SIZE: f64 = 1000.0; // Base file size for scaling
-        const MIN_SIZE: f64 = 5.0;  // Minimum node size
+        const MIN_SIZE: f64 = 5.0; // Minimum node size
         const MAX_SIZE: f64 = 50.0; // Maximum node size
 
         let size = (file_size as f64 / BASE_SIZE).min(5.0);
@@ -261,16 +280,16 @@ impl FileService {
     fn extract_references(content: &str, valid_nodes: &[String]) -> Vec<String> {
         let mut references = Vec::new();
         let content_lower = content.to_lowercase();
-        
+
         for node_name in valid_nodes {
             let node_name_lower = node_name.to_lowercase();
-            
+
             // Create a regex pattern with word boundaries
             let pattern = format!(r"\b{}\b", regex::escape(&node_name_lower));
             if let Ok(re) = Regex::new(&pattern) {
                 // Count case-insensitive matches of the filename
                 let count = re.find_iter(&content_lower).count();
-                
+
                 // If we found any references, add them to the map
                 if count > 0 {
                     debug!("Found {} references to {} in content", count, node_name);
@@ -281,7 +300,7 @@ impl FileService {
                 }
             }
         }
-        
+
         references
     }
 
@@ -298,9 +317,9 @@ impl FileService {
         settings: Arc<RwLock<AppFullSettings>>, // Changed to AppFullSettings
     ) -> Result<(), Box<dyn StdError + Send + Sync>> {
         // Create GitHub client using environment variables
-        let github_config = GitHubConfig::from_env()
-            .map_err(|e| Box::new(e) as Box<dyn StdError + Send + Sync>)?;
-            
+        let github_config =
+            GitHubConfig::from_env().map_err(|e| Box::new(e) as Box<dyn StdError + Send + Sync>)?;
+
         let github = GitHubClient::new(github_config, Arc::clone(&settings)).await?;
         let content_api = ContentAPI::new(Arc::new(github));
 
@@ -317,7 +336,10 @@ impl FileService {
 
         // Get all markdown files from GitHub
         let basic_github_files = content_api.list_markdown_files("").await?;
-        info!("Found {} markdown files in GitHub", basic_github_files.len());
+        info!(
+            "Found {} markdown files in GitHub",
+            basic_github_files.len()
+        );
 
         let mut metadata_store = MetadataStore::new();
 
@@ -325,23 +347,32 @@ impl FileService {
         const BATCH_SIZE: usize = 5;
         for chunk in basic_github_files.chunks(BATCH_SIZE) {
             let mut futures = Vec::new();
-            
+
             for file_basic_meta in chunk {
                 let file_basic_meta = file_basic_meta.clone();
                 let content_api = content_api.clone();
-                
+
                 futures.push(async move {
                     // Fetch extended metadata for the file
-                    let file_extended_meta = match content_api.get_file_metadata_extended(&file_basic_meta.path).await {
+                    let file_extended_meta = match content_api
+                        .get_file_metadata_extended(&file_basic_meta.path)
+                        .await
+                    {
                         Ok(meta) => meta,
                         Err(e) => {
-                            error!("Failed to get extended metadata for {}: {}", file_basic_meta.name, e);
+                            error!(
+                                "Failed to get extended metadata for {}: {}",
+                                file_basic_meta.name, e
+                            );
                             return Err(e);
                         }
                     };
 
                     // Fetch content to check "public:: true"
-                    match content_api.fetch_file_content(&file_extended_meta.download_url).await {
+                    match content_api
+                        .fetch_file_content(&file_extended_meta.download_url)
+                        .await
+                    {
                         Ok(content) => {
                             // Check if first line contains "public:: true"
                             let is_public = if let Some(first_line) = content.lines().next() {
@@ -351,7 +382,10 @@ impl FileService {
                             };
 
                             if !is_public {
-                                debug!("Skipping file without 'public:: true': {}", file_basic_meta.name);
+                                debug!(
+                                    "Skipping file without 'public:: true': {}",
+                                    file_basic_meta.name
+                                );
                                 return Ok(None);
                             }
 
@@ -360,13 +394,19 @@ impl FileService {
                                 error!("Failed to write file {}: {}", file_path, e);
                                 return Err(e.into());
                             }
-                            
-                            info!("fetch_and_process_files: Successfully wrote {} to {}", file_extended_meta.name, file_path);
+
+                            info!(
+                                "fetch_and_process_files: Successfully wrote {} to {}",
+                                file_extended_meta.name, file_path
+                            );
 
                             Ok(Some((file_extended_meta, content)))
                         }
                         Err(e) => {
-                            error!("Failed to fetch content for {}: {}", file_extended_meta.name, e);
+                            error!(
+                                "Failed to fetch content for {}: {}",
+                                file_extended_meta.name, e
+                            );
                             Err(e)
                         }
                     }
@@ -375,11 +415,12 @@ impl FileService {
 
             // Wait for batch to complete
             let results = futures::future::join_all(futures).await;
-            
+
             for result in results {
                 match result {
                     Ok(Some((file_extended_meta, content))) => {
-                        let _node_name = file_extended_meta.name.trim_end_matches(".md").to_string();
+                        let _node_name =
+                            file_extended_meta.name.trim_end_matches(".md").to_string();
                         let file_size = content.len();
                         let node_size = Self::calculate_node_size(file_size);
 
@@ -420,13 +461,17 @@ impl FileService {
         info!("Saving metadata for {} public files", metadata_store.len());
         Self::save_metadata(&metadata_store)?;
 
-        info!("Initialization complete. Processed {} public files", metadata_store.len());
+        info!(
+            "Initialization complete. Processed {} public files",
+            metadata_store.len()
+        );
         Ok(())
     }
 
     /// Update topic counts for all files
     fn update_topic_counts(metadata_store: &mut MetadataStore) -> Result<(), Error> {
-        let valid_nodes: Vec<String> = metadata_store.keys()
+        let valid_nodes: Vec<String> = metadata_store
+            .keys()
             .map(|name| name.trim_end_matches(".md").to_string())
             .collect();
 
@@ -435,7 +480,7 @@ impl FileService {
             if let Ok(content) = fs::read_to_string(&file_path) {
                 let references = Self::extract_references(&content, &valid_nodes);
                 let topic_counts = Self::convert_references_to_topic_counts(references);
-                
+
                 if let Some(metadata) = metadata_store.get_mut(&file_name) {
                     metadata.topic_counts = topic_counts;
                 }
@@ -451,7 +496,7 @@ impl FileService {
             if metadata_content.trim().is_empty() {
                 return false;
             }
-            
+
             if let Ok(metadata) = serde_json::from_str::<MetadataStore>(&metadata_content) {
                 return metadata.validate_files(MARKDOWN_DIR);
             }
@@ -465,14 +510,24 @@ impl FileService {
         let markdown_dir = Path::new(MARKDOWN_DIR);
         if !markdown_dir.exists() {
             info!("Creating markdown directory at {:?}", markdown_dir);
-            fs::create_dir_all(markdown_dir)
-                .map_err(|e| Error::new(std::io::ErrorKind::Other, format!("Failed to create markdown directory: {}", e)))?;
+            fs::create_dir_all(markdown_dir).map_err(|e| {
+                Error::new(
+                    std::io::ErrorKind::Other,
+                    format!("Failed to create markdown directory: {}", e),
+                )
+            })?;
             // Set permissions to allow writing
             #[cfg(unix)]
             {
                 use std::os::unix::fs::PermissionsExt;
-                fs::set_permissions(markdown_dir, fs::Permissions::from_mode(0o777))
-                    .map_err(|e| Error::new(std::io::ErrorKind::Other, format!("Failed to set markdown directory permissions: {}", e)))?;
+                fs::set_permissions(markdown_dir, fs::Permissions::from_mode(0o777)).map_err(
+                    |e| {
+                        Error::new(
+                            std::io::ErrorKind::Other,
+                            format!("Failed to set markdown directory permissions: {}", e),
+                        )
+                    },
+                )?;
             }
         }
 
@@ -480,13 +535,23 @@ impl FileService {
         let metadata_dir = Path::new(METADATA_PATH).parent().unwrap();
         if !metadata_dir.exists() {
             info!("Creating metadata directory at {:?}", metadata_dir);
-            fs::create_dir_all(metadata_dir)
-                .map_err(|e| Error::new(std::io::ErrorKind::Other, format!("Failed to create metadata directory: {}", e)))?;
+            fs::create_dir_all(metadata_dir).map_err(|e| {
+                Error::new(
+                    std::io::ErrorKind::Other,
+                    format!("Failed to create metadata directory: {}", e),
+                )
+            })?;
             #[cfg(unix)]
             {
                 use std::os::unix::fs::PermissionsExt;
-                fs::set_permissions(metadata_dir, fs::Permissions::from_mode(0o777))
-                    .map_err(|e| Error::new(std::io::ErrorKind::Other, format!("Failed to set metadata directory permissions: {}", e)))?;
+                fs::set_permissions(metadata_dir, fs::Permissions::from_mode(0o777)).map_err(
+                    |e| {
+                        Error::new(
+                            std::io::ErrorKind::Other,
+                            format!("Failed to set metadata directory permissions: {}", e),
+                        )
+                    },
+                )?;
             }
         }
 
@@ -495,12 +560,16 @@ impl FileService {
         match fs::write(&test_file, "test") {
             Ok(_) => {
                 info!("Successfully wrote test file to {}", test_file);
-                fs::remove_file(&test_file)
-                    .map_err(|e| Error::new(std::io::ErrorKind::Other, format!("Failed to remove test file: {}", e)))?;
+                fs::remove_file(&test_file).map_err(|e| {
+                    Error::new(
+                        std::io::ErrorKind::Other,
+                        format!("Failed to remove test file: {}", e),
+                    )
+                })?;
                 info!("Successfully removed test file");
                 info!("Directory permissions verified");
                 Ok(())
-            },
+            }
             Err(e) => {
                 error!("Failed to verify directory permissions: {}", e);
                 if let Ok(current_dir) = std::env::current_dir() {
@@ -509,7 +578,10 @@ impl FileService {
                 if let Ok(dir_contents) = fs::read_dir(MARKDOWN_DIR) {
                     error!("Directory contents: {:?}", dir_contents);
                 }
-                Err(Error::new(std::io::ErrorKind::PermissionDenied, format!("Failed to verify directory permissions: {}", e)))
+                Err(Error::new(
+                    std::io::ErrorKind::PermissionDenied,
+                    format!("Failed to verify directory permissions: {}", e),
+                ))
             }
         }
     }
@@ -525,7 +597,7 @@ impl FileService {
 
     /// Calculate SHA1 hash of content
     fn calculate_sha1(content: &str) -> String {
-        use sha1::{Sha1, Digest};
+        use sha1::{Digest, Sha1};
         let mut hasher = Sha1::new();
         hasher.update(content.as_bytes());
         format!("{:x}", hasher.finalize())
@@ -551,20 +623,35 @@ impl FileService {
             // Compare GitHub blob SHA with stored SHA
             if let Some(stored_sha) = &existing_metadata.file_blob_sha {
                 if stored_sha == github_blob_sha {
-                    info!("should_process_file: File {} has unchanged SHA, skipping", file_name);
+                    info!(
+                        "should_process_file: File {} has unchanged SHA, skipping",
+                        file_name
+                    );
                     return Ok(false);
                 } else {
-                    info!("should_process_file: File {} SHA changed (old: {}, new: {})", file_name, stored_sha, github_blob_sha);
+                    info!(
+                        "should_process_file: File {} SHA changed (old: {}, new: {})",
+                        file_name, stored_sha, github_blob_sha
+                    );
                 }
             } else {
-                info!("should_process_file: File {} has no stored SHA, will check content", file_name);
+                info!(
+                    "should_process_file: File {} has no stored SHA, will check content",
+                    file_name
+                );
             }
         } else {
-            info!("should_process_file: File {} is new, will check content", file_name);
+            info!(
+                "should_process_file: File {} is new, will check content",
+                file_name
+            );
         }
 
         // File is new or changed, download content to check first line
-        info!("should_process_file: Downloading content for {} to check public tag", file_name);
+        info!(
+            "should_process_file: Downloading content for {} to check public tag",
+            file_name
+        );
         match content_api.fetch_file_content(download_url).await {
             Ok(content) => {
                 // Check if first line contains "public:: true"
@@ -573,7 +660,10 @@ impl FileService {
                     if !is_public {
                         info!("should_process_file: File {} does not have 'public:: true' on first line (found: '{}'), skipping", file_name, first_line.trim());
                     } else {
-                        info!("should_process_file: File {} has 'public:: true' tag, will process", file_name);
+                        info!(
+                            "should_process_file: File {} has 'public:: true' tag, will process",
+                            file_name
+                        );
                     }
                     Ok(is_public)
                 } else {
@@ -604,8 +694,14 @@ impl FileService {
         info!("fetch_and_process_files: Calling list_markdown_files...");
         let basic_github_files = match content_api.list_markdown_files("").await {
             Ok(files) => {
-                info!("fetch_and_process_files: Successfully retrieved {} file entries from GitHub", files.len());
-                debug!("GitHub API returned {} potential markdown files.", files.len());
+                info!(
+                    "fetch_and_process_files: Successfully retrieved {} file entries from GitHub",
+                    files.len()
+                );
+                debug!(
+                    "GitHub API returned {} potential markdown files.",
+                    files.len()
+                );
                 if files.is_empty() {
                     warn!("fetch_and_process_files: No markdown files found in GitHub repository");
                     warn!("fetch_and_process_files: Check GITHUB_OWNER, GITHUB_REPO, and GITHUB_BASE_PATH in .env");
@@ -613,29 +709,46 @@ impl FileService {
                 files
             }
             Err(e) => {
-                error!("fetch_and_process_files: Failed to list markdown files from GitHub: {}", e);
+                error!(
+                    "fetch_and_process_files: Failed to list markdown files from GitHub: {}",
+                    e
+                );
                 return Err(Box::new(e));
             }
         };
-        
-        info!("fetch_and_process_files: Processing {} markdown files from GitHub", basic_github_files.len());
+
+        info!(
+            "fetch_and_process_files: Processing {} markdown files from GitHub",
+            basic_github_files.len()
+        );
 
         // Process files in batches to prevent timeouts
         const BATCH_SIZE: usize = 5;
         let total_batches = (basic_github_files.len() + BATCH_SIZE - 1) / BATCH_SIZE;
-        info!("fetch_and_process_files: Processing files in {} batches of up to {} files each", total_batches, BATCH_SIZE);
-        
+        info!(
+            "fetch_and_process_files: Processing files in {} batches of up to {} files each",
+            total_batches, BATCH_SIZE
+        );
+
         for (batch_idx, chunk) in basic_github_files.chunks(BATCH_SIZE).enumerate() {
-            info!("fetch_and_process_files: Processing batch {}/{} with {} files", batch_idx + 1, total_batches, chunk.len());
+            info!(
+                "fetch_and_process_files: Processing batch {}/{} with {} files",
+                batch_idx + 1,
+                total_batches,
+                chunk.len()
+            );
             let mut futures = Vec::new();
-            
+
             for file_basic_meta in chunk {
                 let file_basic_meta = file_basic_meta.clone();
                 let content_api = content_api.clone();
                 let metadata_store_clone = metadata_store.clone();
-                
-                info!("fetch_and_process_files: Checking file: {}", file_basic_meta.name);
-                
+
+                info!(
+                    "fetch_and_process_files: Checking file: {}",
+                    file_basic_meta.name
+                );
+
                 futures.push(async move {
                     // Fetch extended metadata for the file first
                     let file_extended_meta = match content_api.get_file_metadata_extended(&file_basic_meta.path).await {
@@ -653,7 +766,7 @@ impl FileService {
                                 info!("fetch_and_process_files: File {} has unchanged SHA, skipping download", file_extended_meta.name);
                                 false
                             } else {
-                                info!("fetch_and_process_files: File {} SHA changed (old: {}, new: {})", 
+                                info!("fetch_and_process_files: File {} SHA changed (old: {}, new: {})",
                                      file_extended_meta.name, stored_sha, file_extended_meta.sha);
                                 true
                             }
@@ -676,13 +789,13 @@ impl FileService {
                             // Check if first line contains "public:: true"
                             let first_line = content.lines().next().unwrap_or("");
                             let is_public = first_line.trim().to_lowercase() == "public:: true";
-                            
+
                             if !is_public {
-                                info!("fetch_and_process_files: File {} does not have 'public:: true' on first line (found: '{}')", 
+                                info!("fetch_and_process_files: File {} does not have 'public:: true' on first line (found: '{}')",
                                      file_extended_meta.name, first_line.trim());
                                 return Ok(None);
                             }
-                            
+
                             info!("fetch_and_process_files: File {} is marked as public, writing to disk", file_extended_meta.name);
 
                             let file_path = format!("{}/{}", MARKDOWN_DIR, file_extended_meta.name);
@@ -690,7 +803,7 @@ impl FileService {
                                 error!("Failed to write file {}: {}", file_path, e);
                                 return Err(e.into());
                             }
-                            
+
                             info!("fetch_and_process_files: Successfully wrote {} to {}", file_extended_meta.name, file_path);
 
                             let file_size = content.len();
@@ -730,7 +843,7 @@ impl FileService {
 
             // Wait for batch to complete
             let results = futures::future::join_all(futures).await;
-            
+
             for result in results {
                 match result {
                     Ok(Some(processed_file)) => {
@@ -751,7 +864,10 @@ impl FileService {
 
         // Update metadata store with processed files
         for processed_file in &processed_files {
-            metadata_store.insert(processed_file.file_name.clone(), processed_file.metadata.clone());
+            metadata_store.insert(
+                processed_file.file_name.clone(),
+                processed_file.metadata.clone(),
+            );
         }
 
         // Update topic counts after all files are processed

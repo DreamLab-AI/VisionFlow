@@ -1,7 +1,7 @@
-use serde::{Serialize, Deserialize};
-use tokio::sync::mpsc;
+use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fmt;
+use tokio::sync::mpsc;
 
 #[derive(Debug)]
 pub enum SpeechError {

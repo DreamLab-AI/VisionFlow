@@ -50,11 +50,11 @@ impl PathRegistry {
             id_to_path: HashMap::new(),
             next_id: 1,
         };
-        
+
         // Pre-register common physics paths for optimal performance
         let common_paths = vec![
             "visualisation.graphs.logseq.physics.damping",
-            "visualisation.graphs.logseq.physics.spring_k", 
+            "visualisation.graphs.logseq.physics.spring_k",
             "visualisation.graphs.logseq.physics.repel_k",
             "visualisation.graphs.logseq.physics.max_velocity",
             "visualisation.graphs.logseq.physics.gravity",
@@ -63,33 +63,33 @@ impl PathRegistry {
             "visualisation.graphs.logseq.physics.iterations",
             "visualisation.graphs.logseq.physics.enabled",
         ];
-        
+
         for path in common_paths {
             registry.register_path(path.to_string());
         }
-        
+
         registry
     }
-    
+
     pub fn register_path(&mut self, path: String) -> u32 {
         if let Some(&id) = self.path_to_id.get(&path) {
             return id;
         }
-        
+
         let id = self.next_id;
         self.next_id += 1;
-        
+
         self.path_to_id.insert(path.clone(), id);
         self.id_to_path.insert(id, path);
-        
+
         debug!("Registered path '{}' with ID {}", self.id_to_path[&id], id);
         id
     }
-    
+
     pub fn get_path_id(&self, path: &str) -> Option<u32> {
         self.path_to_id.get(path).copied()
     }
-    
+
     pub fn get_path_by_id(&self, id: u32) -> Option<&String> {
         self.id_to_path.get(&id)
     }
@@ -111,7 +111,7 @@ impl BinarySettingsProtocol {
             compression_threshold: 256, // Compress messages > 256 bytes
         }
     }
-    
+
     /// Convert JSON Value to optimized binary representation
     pub fn json_to_binary_value(&self, value: &Value) -> BinaryValue {
         match value {
@@ -150,7 +150,7 @@ impl BinarySettingsProtocol {
             }
         }
     }
-    
+
     /// Convert binary value back to JSON
     pub fn binary_value_to_json(&self, value: &BinaryValue) -> Value {
         match value {
@@ -176,11 +176,11 @@ impl BinarySettingsProtocol {
             }
         }
     }
-    
+
     /// Serialize binary message to bytes with optional compression
     pub fn serialize_message(&mut self, message: &BinaryMessage) -> Result<Vec<u8>, String> {
         let mut buffer = Vec::new();
-        
+
         // Write message type
         match message {
             BinaryMessage::GetSetting { path_id } => {
@@ -210,7 +210,7 @@ impl BinarySettingsProtocol {
             BinaryMessage::Delta { path_id, old_value, new_value } => {
                 buffer.write_u8(0x05).map_err(|e| e.to_string())?;
                 buffer.write_u32::<LittleEndian>(*path_id).map_err(|e| e.to_string())?;
-                
+
                 // Compute and serialize delta
                 let delta = self.compute_value_delta(old_value, new_value)?;
                 self.serialize_binary_value(&mut buffer, &delta)?;
@@ -235,7 +235,7 @@ impl BinarySettingsProtocol {
                 buffer.write_u8(0x09).map_err(|e| e.to_string())?;
             }
         }
-        
+
         // Apply compression if message is large enough
         if buffer.len() > self.compression_threshold {
             let compressed = self.compress_data(&buffer)?;
@@ -243,28 +243,28 @@ impl BinarySettingsProtocol {
                 // Prepend compression flag
                 let mut final_buffer = vec![0xFF]; // Compression marker
                 final_buffer.extend(compressed);
-                debug!("Compressed message: {} -> {} bytes ({:.1}% reduction)", 
-                       buffer.len(), final_buffer.len(), 
+                debug!("Compressed message: {} -> {} bytes ({:.1}% reduction)",
+                       buffer.len(), final_buffer.len(),
                        (1.0 - final_buffer.len() as f64 / buffer.len() as f64) * 100.0);
                 return Ok(final_buffer);
             }
         }
-        
+
         // Prepend no-compression flag
         let mut final_buffer = vec![0x00];
         final_buffer.extend(buffer);
         Ok(final_buffer)
     }
-    
+
     /// Deserialize bytes to binary message
     pub fn deserialize_message(&mut self, data: &[u8]) -> Result<BinaryMessage, String> {
         if data.is_empty() {
             return Err("Empty message data".to_string());
         }
-        
+
         let mut cursor = Cursor::new(data);
         let compression_flag = cursor.read_u8().map_err(|e| e.to_string())?;
-        
+
         let payload = if compression_flag == 0xFF {
             // Decompress the rest of the data
             let mut compressed = Vec::new();
@@ -276,10 +276,10 @@ impl BinarySettingsProtocol {
             cursor.read_to_end(&mut uncompressed).map_err(|e| e.to_string())?;
             uncompressed
         };
-        
+
         let mut cursor = Cursor::new(payload);
         let msg_type = cursor.read_u8().map_err(|e| e.to_string())?;
-        
+
         match msg_type {
             0x01 => {
                 let path_id = cursor.read_u32::<LittleEndian>().map_err(|e| e.to_string())?;
@@ -334,7 +334,7 @@ impl BinarySettingsProtocol {
             _ => Err(format!("Unknown message type: {}", msg_type))
         }
     }
-    
+
     fn serialize_binary_value(&self, buffer: &mut Vec<u8>, value: &BinaryValue) -> Result<(), String> {
         match value {
             BinaryValue::Null => {
@@ -391,10 +391,10 @@ impl BinarySettingsProtocol {
         }
         Ok(())
     }
-    
+
     fn deserialize_binary_value(&self, cursor: &mut Cursor<Vec<u8>>) -> Result<BinaryValue, String> {
         let value_type = cursor.read_u8().map_err(|e| e.to_string())?;
-        
+
         match value_type {
             0x00 => Ok(BinaryValue::Null),
             0x01 => {
@@ -454,16 +454,16 @@ impl BinarySettingsProtocol {
             _ => Err(format!("Unknown value type: {}", value_type))
         }
     }
-    
+
     fn compute_value_delta(&self, old: &BinaryValue, new: &BinaryValue) -> Result<BinaryValue, String> {
         // For now, return the new value as delta (could implement proper diffing)
         Ok(new.clone())
     }
-    
+
     fn compress_data(&mut self, data: &[u8]) -> Result<Vec<u8>, String> {
         let mut compressed = Vec::new();
         let mut output_buffer = vec![0u8; data.len() * 2];
-        
+
         match self.compressor.compress_vec(data, &mut output_buffer, flate2::FlushCompress::Finish) {
             Ok(flate2::Status::StreamEnd) => {
                 let compressed_size = self.compressor.total_out() as usize;
@@ -474,11 +474,11 @@ impl BinarySettingsProtocol {
             _ => Err("Compression failed".to_string())
         }
     }
-    
+
     fn decompress_data(&mut self, compressed: &[u8]) -> Result<Vec<u8>, String> {
         let mut decompressed = Vec::new();
         let mut output_buffer = vec![0u8; compressed.len() * 4];
-        
+
         match self.decompressor.decompress_vec(compressed, &mut output_buffer, flate2::FlushDecompress::Finish) {
             Ok(flate2::Status::StreamEnd) => {
                 let decompressed_size = self.decompressor.total_out() as usize;
@@ -489,7 +489,7 @@ impl BinarySettingsProtocol {
             _ => Err("Decompression failed".to_string())
         }
     }
-    
+
     /// Get or register path ID for efficient transmission
     pub fn get_or_register_path(&mut self, path: &str) -> u32 {
         if let Some(id) = self.path_registry.get_path_id(path) {
@@ -497,12 +497,12 @@ impl BinarySettingsProtocol {
         }
         self.path_registry.register_path(path.to_string())
     }
-    
+
     /// Get path by ID
     pub fn get_path_by_id(&self, id: u32) -> Option<&String> {
         self.path_registry.get_path_by_id(id)
     }
-    
+
     /// Calculate compression efficiency
     pub fn calculate_compression_ratio(&self, original_size: usize, compressed_size: usize) -> f64 {
         if original_size == 0 {
@@ -515,28 +515,28 @@ impl BinarySettingsProtocol {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_path_registry() {
         let mut registry = PathRegistry::new();
-        
+
         let path1 = "test.path.1";
         let path2 = "test.path.2";
-        
+
         let id1 = registry.register_path(path1.to_string());
         let id2 = registry.register_path(path2.to_string());
-        
+
         assert_ne!(id1, id2);
         assert_eq!(registry.get_path_id(path1), Some(id1));
         assert_eq!(registry.get_path_id(path2), Some(id2));
         assert_eq!(registry.get_path_by_id(id1), Some(&path1.to_string()));
         assert_eq!(registry.get_path_by_id(id2), Some(&path2.to_string()));
     }
-    
+
     #[test]
     fn test_binary_value_conversion() {
         let protocol = BinarySettingsProtocol::new();
-        
+
         let json_value = serde_json::json!({
             "float": 3.14159,
             "integer": 42,
@@ -545,36 +545,36 @@ mod tests {
             "array": [1, 2, 3],
             "null": null
         });
-        
+
         let binary_value = protocol.json_to_binary_value(&json_value);
         let converted_back = protocol.binary_value_to_json(&binary_value);
-        
+
         // Note: Some precision may be lost in float conversion
         assert_eq!(converted_back["integer"], json_value["integer"]);
         assert_eq!(converted_back["boolean"], json_value["boolean"]);
         assert_eq!(converted_back["string"], json_value["string"]);
         assert_eq!(converted_back["null"], json_value["null"]);
     }
-    
+
     #[test]
     fn test_message_serialization() {
         let mut protocol = BinarySettingsProtocol::new();
-        
+
         let original_msg = BinaryMessage::SetSetting {
             path_id: 1,
             value: BinaryValue::F32(3.14159),
         };
-        
+
         let serialized = protocol.serialize_message(&original_msg).unwrap();
         let deserialized = protocol.deserialize_message(&serialized).unwrap();
-        
+
         assert_eq!(original_msg, deserialized);
     }
-    
-    #[test] 
+
+    #[test]
     fn test_batch_operations() {
         let mut protocol = BinarySettingsProtocol::new();
-        
+
         let batch_msg = BinaryMessage::BatchSet {
             updates: vec![
                 (1, BinaryValue::F32(1.0)),
@@ -582,10 +582,10 @@ mod tests {
                 (3, BinaryValue::String("test".to_string())),
             ],
         };
-        
+
         let serialized = protocol.serialize_message(&batch_msg).unwrap();
         let deserialized = protocol.deserialize_message(&serialized).unwrap();
-        
+
         assert_eq!(batch_msg, deserialized);
     }
 }

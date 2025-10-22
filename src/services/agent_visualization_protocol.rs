@@ -8,19 +8,19 @@ pub enum AgentVisualizationMessage {
     /// Initial complete state - sent once on connection
     #[serde(rename = "init")]
     Initialize(InitializeMessage),
-    
+
     /// Incremental position updates - sent frequently
     #[serde(rename = "positions")]
     PositionUpdate(PositionUpdateMessage),
-    
+
     /// Agent state changes - sent on status/health changes
     #[serde(rename = "state")]
     StateUpdate(StateUpdateMessage),
-    
+
     /// Connection changes - sent when edges are added/removed
     #[serde(rename = "connections")]
     ConnectionUpdate(ConnectionUpdateMessage),
-    
+
     /// Performance metrics - sent periodically
     #[serde(rename = "metrics")]
     MetricsUpdate(MetricsUpdateMessage),
@@ -58,27 +58,27 @@ pub struct AgentInit {
     #[serde(rename = "type")]
     pub agent_type: String,
     pub status: String,
-    
+
     /// Visual properties
     pub color: String,
-    pub shape: String,  // "sphere", "cube", "cone", etc.
+    pub shape: String, // "sphere", "cube", "cone", etc.
     pub size: f32,
-    
+
     /// Performance metrics (0-1 normalized)
     pub health: f32,
     pub cpu: f32,
     pub memory: f32,
     pub activity: f32,
-    
+
     /// Task information
     pub tasks_active: u32,
     pub tasks_completed: u32,
     pub success_rate: f32,
-    
+
     /// Token usage
     pub tokens: u64,
     pub token_rate: f32,
-    
+
     /// Additional metadata
     pub capabilities: Vec<String>,
     pub created_at: i64,
@@ -90,8 +90,8 @@ pub struct ConnectionInit {
     pub id: String,
     pub source: String,
     pub target: String,
-    pub strength: f32,      // 0-1
-    pub flow_rate: f32,     // 0-1
+    pub strength: f32,  // 0-1
+    pub flow_rate: f32, // 0-1
     pub color: String,
     pub active: bool,
 }
@@ -228,7 +228,7 @@ impl Default for PhysicsConfig {
             spring_k: 0.05,
             link_distance: 50.0,
             damping: 0.9,
-            repel_k: 5000.0,              // Increased from 1000.0 for better agent separation
+            repel_k: 5000.0, // Increased from 1000.0 for better agent separation
             gravity_k: 0.01,
             max_velocity: 10.0,
         }
@@ -368,23 +368,23 @@ pub enum MultiMcpVisualizationMessage {
     /// Full discovery of all MCP servers and agents
     #[serde(rename = "discovery")]
     Discovery(DiscoveryMessage),
-    
+
     /// Agent status updates from multiple servers
     #[serde(rename = "multi_agent_update")]
     MultiAgentUpdate(MultiAgentUpdateMessage),
-    
+
     /// Topology changes and coordination updates
     #[serde(rename = "topology_update")]
     TopologyUpdate(TopologyUpdateMessage),
-    
+
     /// Neural agent learning and adaptation updates
     #[serde(rename = "neural_update")]
     NeuralUpdate(NeuralUpdateMessage),
-    
+
     /// Performance and bottleneck analysis
     #[serde(rename = "performance_analysis")]
     PerformanceAnalysis(PerformanceAnalysisMessage),
-    
+
     /// Real-time coordination events
     #[serde(rename = "coordination_event")]
     CoordinationEvent(CoordinationEventMessage),
@@ -640,7 +640,8 @@ impl AgentVisualizationProtocol {
     /// Link swarm ID to session UUID
     pub fn link_swarm_to_session(&mut self, swarm_id: String, session_uuid: String) {
         log::info!("Linking swarm {} to session {}", swarm_id, session_uuid);
-        self.session_uuid_map.insert(swarm_id.clone(), session_uuid.clone());
+        self.session_uuid_map
+            .insert(swarm_id.clone(), session_uuid.clone());
 
         // Update session metadata with swarm_id
         if let Some(metadata) = self.session_metadata.get_mut(&session_uuid) {
@@ -657,79 +658,121 @@ impl AgentVisualizationProtocol {
     pub fn get_session_metadata(&self, uuid: &str) -> Option<&SessionMetadata> {
         self.session_metadata.get(uuid)
     }
-    
+
     /// Register an MCP server for agent discovery
     pub fn register_mcp_server(&mut self, server_info: McpServerInfo) {
-        log::info!("Registering MCP server: {} ({}:{})", server_info.server_id, server_info.host, server_info.port);
-        self.mcp_servers.insert(server_info.server_id.clone(), server_info);
+        log::info!(
+            "Registering MCP server: {} ({}:{})",
+            server_info.server_id,
+            server_info.host,
+            server_info.port
+        );
+        self.mcp_servers
+            .insert(server_info.server_id.clone(), server_info);
     }
-    
+
     /// Update agent data from MCP server
-    pub fn update_agents_from_server(&mut self, server_type: McpServerType, agents: Vec<MultiMcpAgentStatus>) {
+    pub fn update_agents_from_server(
+        &mut self,
+        server_type: McpServerType,
+        agents: Vec<MultiMcpAgentStatus>,
+    ) {
         for agent in agents {
             self.agent_cache.insert(agent.agent_id.clone(), agent);
         }
-        log::debug!("Updated {} agents from {:?} server", self.agent_cache.len(), server_type);
+        log::debug!(
+            "Updated {} agents from {:?} server",
+            self.agent_cache.len(),
+            server_type
+        );
     }
-    
+
     /// Create discovery message with all MCP servers and agents
     pub fn create_discovery_message(&mut self) -> String {
         let timestamp = chrono::Utc::now();
         self.last_discovery = Some(timestamp);
-        
+
         let servers: Vec<McpServerInfo> = self.mcp_servers.values().cloned().collect();
         let total_agents = self.agent_cache.len() as u32;
-        
+
         // Group agents by swarm
-        let mut swarms: std::collections::HashMap<String, Vec<&MultiMcpAgentStatus>> = std::collections::HashMap::new();
+        let mut swarms: std::collections::HashMap<String, Vec<&MultiMcpAgentStatus>> =
+            std::collections::HashMap::new();
         for agent in self.agent_cache.values() {
-            swarms.entry(agent.swarm_id.clone()).or_insert_with(Vec::new).push(agent);
+            swarms
+                .entry(agent.swarm_id.clone())
+                .or_insert_with(Vec::new)
+                .push(agent);
         }
-        
-        let swarm_infos: Vec<SwarmInfo> = swarms.into_iter().map(|(swarm_id, agents)| {
-            let total_health: f32 = agents.iter().map(|a| a.performance.health_score).sum();
-            let avg_health = if !agents.is_empty() { total_health / agents.len() as f32 } else { 0.0 };
-            
-            SwarmInfo {
-                swarm_id,
-                server_source: agents.first().map(|a| a.server_source.clone()).unwrap_or(McpServerType::Custom("unknown".to_string())),
-                topology: agents.first()
-                    .and_then(|a| a.metadata.topology_position.as_ref())
-                    .map(|tp| if tp.is_coordinator { "hierarchical" } else { "mesh" })
-                    .unwrap_or("mesh").to_string(),
-                agent_count: agents.len() as u32,
-                health_score: avg_health,
-                coordination_efficiency: {
-                    let active_tasks: u32 = agents.iter().map(|a| a.performance.tasks_active).sum();
-                    let total_agents = agents.len() as u32;
-                    if total_agents > 0 {
-                        let load_balance = 1.0 - (active_tasks as f32 / (total_agents as f32 * 5.0)).min(1.0);
-                        let health_factor = avg_health;
-                        (load_balance * 0.6 + health_factor * 0.4).clamp(0.0, 1.0)
-                    } else {
-                        0.0
-                    }
-                },
-            }
-        }).collect();
-        
+
+        let swarm_infos: Vec<SwarmInfo> = swarms
+            .into_iter()
+            .map(|(swarm_id, agents)| {
+                let total_health: f32 = agents.iter().map(|a| a.performance.health_score).sum();
+                let avg_health = if !agents.is_empty() {
+                    total_health / agents.len() as f32
+                } else {
+                    0.0
+                };
+
+                SwarmInfo {
+                    swarm_id,
+                    server_source: agents
+                        .first()
+                        .map(|a| a.server_source.clone())
+                        .unwrap_or(McpServerType::Custom("unknown".to_string())),
+                    topology: agents
+                        .first()
+                        .and_then(|a| a.metadata.topology_position.as_ref())
+                        .map(|tp| {
+                            if tp.is_coordinator {
+                                "hierarchical"
+                            } else {
+                                "mesh"
+                            }
+                        })
+                        .unwrap_or("mesh")
+                        .to_string(),
+                    agent_count: agents.len() as u32,
+                    health_score: avg_health,
+                    coordination_efficiency: {
+                        let active_tasks: u32 =
+                            agents.iter().map(|a| a.performance.tasks_active).sum();
+                        let total_agents = agents.len() as u32;
+                        if total_agents > 0 {
+                            let load_balance =
+                                1.0 - (active_tasks as f32 / (total_agents as f32 * 5.0)).min(1.0);
+                            let health_factor = avg_health;
+                            (load_balance * 0.6 + health_factor * 0.4).clamp(0.0, 1.0)
+                        } else {
+                            0.0
+                        }
+                    },
+                }
+            })
+            .collect();
+
         let global_topology = GlobalTopology {
             inter_swarm_connections: self.discover_inter_swarm_connections(),
             coordination_hierarchy: self.build_coordination_hierarchy(),
             data_flow_patterns: self.analyze_data_flow_patterns(),
         };
-        
+
         // Build session registry
-        let session_registry: std::collections::HashMap<String, SessionInfo> = self.session_metadata
+        let session_registry: std::collections::HashMap<String, SessionInfo> = self
+            .session_metadata
             .iter()
             .map(|(uuid, metadata)| {
-                (uuid.clone(), SessionInfo {
-                    uuid: uuid.clone(),
-                    swarm_id: metadata.swarm_id.clone(),
-                    task: metadata.task.clone(),
-                    created_at: metadata.created_at.timestamp(),
-                    status: "running".to_string(), // Can be enhanced with actual status
-                })
+                (
+                    uuid.clone(),
+                    SessionInfo {
+                        uuid: uuid.clone(),
+                        swarm_id: metadata.swarm_id.clone(),
+                        task: metadata.task.clone(),
+                        created_at: metadata.created_at.timestamp(),
+                        status: "running".to_string(), // Can be enhanced with actual status
+                    },
+                )
             })
             .collect();
 
@@ -741,47 +784,61 @@ impl AgentVisualizationProtocol {
             global_topology,
             session_registry,
         };
-        
+
         let message = MultiMcpVisualizationMessage::Discovery(discovery);
         serde_json::to_string(&message).unwrap_or_default()
     }
-    
+
     /// Create differential agent update message
     pub fn create_agent_update_message(&self, updated_agents: Vec<MultiMcpAgentStatus>) -> String {
-        let differential_updates: Vec<AgentDifferentialUpdate> = updated_agents.iter().map(|agent| {
-            let mut field_updates = std::collections::HashMap::new();
-            field_updates.insert("status".to_string(), serde_json::json!(agent.status));
-            field_updates.insert("last_active".to_string(), serde_json::json!(agent.last_active));
-            
-            let performance_delta = PerformanceDelta {
-                cpu_change: self.calculate_cpu_delta(&agent.agent_id, agent.performance.cpu_usage),
-                memory_change: self.calculate_memory_delta(&agent.agent_id, agent.performance.memory_usage),
-                task_completion_rate: agent.performance.success_rate,
-                error_rate_change: self.calculate_error_rate_delta(&agent.agent_id, &agent.performance),
-            };
-            
-            AgentDifferentialUpdate {
-                agent_id: agent.agent_id.clone(),
-                field_updates,
-                performance_delta: Some(performance_delta),
-            }
-        }).collect();
-        
+        let differential_updates: Vec<AgentDifferentialUpdate> = updated_agents
+            .iter()
+            .map(|agent| {
+                let mut field_updates = std::collections::HashMap::new();
+                field_updates.insert("status".to_string(), serde_json::json!(agent.status));
+                field_updates.insert(
+                    "last_active".to_string(),
+                    serde_json::json!(agent.last_active),
+                );
+
+                let performance_delta = PerformanceDelta {
+                    cpu_change: self
+                        .calculate_cpu_delta(&agent.agent_id, agent.performance.cpu_usage),
+                    memory_change: self
+                        .calculate_memory_delta(&agent.agent_id, agent.performance.memory_usage),
+                    task_completion_rate: agent.performance.success_rate,
+                    error_rate_change: self
+                        .calculate_error_rate_delta(&agent.agent_id, &agent.performance),
+                };
+
+                AgentDifferentialUpdate {
+                    agent_id: agent.agent_id.clone(),
+                    field_updates,
+                    performance_delta: Some(performance_delta),
+                }
+            })
+            .collect();
+
         let update_msg = MultiAgentUpdateMessage {
             timestamp: chrono::Utc::now().timestamp_millis(),
             agents: updated_agents,
             differential_updates,
             removed_agents: self.get_removed_agents(),
         };
-        
+
         let message = MultiMcpVisualizationMessage::MultiAgentUpdate(update_msg);
         serde_json::to_string(&message).unwrap_or_default()
     }
-    
+
     /// Create topology update message
-    pub fn create_topology_update(&mut self, swarm_id: String, topology_data: SwarmTopologyData) -> String {
-        self.topology_cache.insert(swarm_id.clone(), topology_data.clone());
-        
+    pub fn create_topology_update(
+        &mut self,
+        swarm_id: String,
+        topology_data: SwarmTopologyData,
+    ) -> String {
+        self.topology_cache
+            .insert(swarm_id.clone(), topology_data.clone());
+
         let topology_update = TopologyUpdateMessage {
             timestamp: chrono::Utc::now().timestamp_millis(),
             swarm_id,
@@ -790,45 +847,72 @@ impl AgentVisualizationProtocol {
             removed_connections: self.get_removed_connections(),
             coordination_updates: self.get_coordination_updates(),
         };
-        
+
         let message = MultiMcpVisualizationMessage::TopologyUpdate(topology_update);
         serde_json::to_string(&message).unwrap_or_default()
     }
-    
+
     /// Create performance analysis message
     pub fn create_performance_analysis(&self) -> String {
         let agents: Vec<&MultiMcpAgentStatus> = self.agent_cache.values().collect();
-        
+
         let total_throughput: f32 = agents.iter().map(|a| a.performance.throughput).sum();
         let avg_latency: f32 = if !agents.is_empty() {
-            agents.iter().map(|a| a.performance.response_time_ms).sum::<f32>() / agents.len() as f32
-        } else { 0.0 };
-        
+            agents
+                .iter()
+                .map(|a| a.performance.response_time_ms)
+                .sum::<f32>()
+                / agents.len() as f32
+        } else {
+            0.0
+        };
+
         let global_metrics = GlobalPerformanceMetrics {
             total_throughput,
             average_latency: avg_latency,
             system_efficiency: self.calculate_system_efficiency(&agents),
-            resource_utilization: agents.iter().map(|a| (a.performance.cpu_usage + a.performance.memory_usage) / 2.0).sum::<f32>() / agents.len().max(1) as f32,
-            error_rate: agents.iter().map(|a| a.performance.tasks_failed as f32 / (a.performance.tasks_completed + a.performance.tasks_failed).max(1) as f32).sum::<f32>() / agents.len().max(1) as f32,
+            resource_utilization: agents
+                .iter()
+                .map(|a| (a.performance.cpu_usage + a.performance.memory_usage) / 2.0)
+                .sum::<f32>()
+                / agents.len().max(1) as f32,
+            error_rate: agents
+                .iter()
+                .map(|a| {
+                    a.performance.tasks_failed as f32
+                        / (a.performance.tasks_completed + a.performance.tasks_failed).max(1) as f32
+                })
+                .sum::<f32>()
+                / agents.len().max(1) as f32,
             coordination_overhead: self.calculate_coordination_overhead(&agents),
         };
-        
+
         // Identify bottlenecks
-        let bottlenecks: Vec<Bottleneck> = agents.iter().filter_map(|agent| {
-            if agent.performance.cpu_usage > 0.9 || agent.performance.memory_usage > 0.9 {
-                Some(Bottleneck {
-                    agent_id: agent.agent_id.clone(),
-                    bottleneck_type: if agent.performance.cpu_usage > 0.9 { "cpu" } else { "memory" }.to_string(),
-                    severity: (agent.performance.cpu_usage + agent.performance.memory_usage) / 2.0,
-                    impact_agents: self.calculate_bottleneck_impact(&agent.agent_id),
-                    suggested_action: "Scale resources or redistribute workload".to_string(),
-                })
-            } else {
-                None
-            }
-        }).collect();
-        
-        let optimization_suggestions = self.generate_optimization_suggestions(&agents, &bottlenecks);
+        let bottlenecks: Vec<Bottleneck> = agents
+            .iter()
+            .filter_map(|agent| {
+                if agent.performance.cpu_usage > 0.9 || agent.performance.memory_usage > 0.9 {
+                    Some(Bottleneck {
+                        agent_id: agent.agent_id.clone(),
+                        bottleneck_type: if agent.performance.cpu_usage > 0.9 {
+                            "cpu"
+                        } else {
+                            "memory"
+                        }
+                        .to_string(),
+                        severity: (agent.performance.cpu_usage + agent.performance.memory_usage)
+                            / 2.0,
+                        impact_agents: self.calculate_bottleneck_impact(&agent.agent_id),
+                        suggested_action: "Scale resources or redistribute workload".to_string(),
+                    })
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        let optimization_suggestions =
+            self.generate_optimization_suggestions(&agents, &bottlenecks);
         let trend_analysis = self.analyze_performance_trends(&agents);
 
         let performance_analysis = PerformanceAnalysisMessage {
@@ -838,25 +922,28 @@ impl AgentVisualizationProtocol {
             optimization_suggestions,
             trend_analysis,
         };
-        
+
         let message = MultiMcpVisualizationMessage::PerformanceAnalysis(performance_analysis);
         serde_json::to_string(&message).unwrap_or_default()
     }
-    
+
     /// Get current agent count by server type
     pub fn get_agent_count_by_server(&self, server_type: &McpServerType) -> u32 {
-        self.agent_cache.values()
-            .filter(|agent| std::mem::discriminant(&agent.server_source) == std::mem::discriminant(server_type))
+        self.agent_cache
+            .values()
+            .filter(|agent| {
+                std::mem::discriminant(&agent.server_source) == std::mem::discriminant(server_type)
+            })
             .count() as u32
     }
-    
+
     /// Check if discovery is needed (every 30 seconds)
     pub fn needs_discovery(&self) -> bool {
         self.last_discovery.map_or(true, |last| {
             chrono::Utc::now().signed_duration_since(last).num_seconds() > 30
         })
     }
-    
+
     /// Create initial JSON message for new client (legacy compatibility)
     pub fn create_init_message(
         swarm_id: &str,
@@ -864,13 +951,19 @@ impl AgentVisualizationProtocol {
         agents: Vec<crate::types::claude_flow::AgentStatus>,
     ) -> String {
         use crate::services::agent_visualization_processor::AgentVisualizationProcessor;
-        
+
         let mut processor = AgentVisualizationProcessor::new();
-        let viz_data = processor.create_visualization_packet(agents, swarm_id.to_string(), topology.to_string());
-        
+        let viz_data = processor.create_visualization_packet(
+            agents,
+            swarm_id.to_string(),
+            topology.to_string(),
+        );
+
         // Convert to init message format
-        let init_agents: Vec<AgentInit> = viz_data.agents.into_iter().map(|agent| {
-            AgentInit {
+        let init_agents: Vec<AgentInit> = viz_data
+            .agents
+            .into_iter()
+            .map(|agent| AgentInit {
                 id: agent.id,
                 name: agent.name,
                 agent_type: agent.agent_type,
@@ -879,12 +972,17 @@ impl AgentVisualizationProtocol {
                 shape: match agent.shape_type {
                     crate::services::agent_visualization_processor::ShapeType::Sphere => "sphere",
                     crate::services::agent_visualization_processor::ShapeType::Cube => "cube",
-                    crate::services::agent_visualization_processor::ShapeType::Octahedron => "octahedron",
-                    crate::services::agent_visualization_processor::ShapeType::Cylinder => "cylinder",
+                    crate::services::agent_visualization_processor::ShapeType::Octahedron => {
+                        "octahedron"
+                    }
+                    crate::services::agent_visualization_processor::ShapeType::Cylinder => {
+                        "cylinder"
+                    }
                     crate::services::agent_visualization_processor::ShapeType::Torus => "torus",
                     crate::services::agent_visualization_processor::ShapeType::Cone => "cone",
                     crate::services::agent_visualization_processor::ShapeType::Pyramid => "pyramid",
-                }.to_string(),
+                }
+                .to_string(),
                 size: agent.size,
                 health: agent.health,
                 cpu: agent.cpu_usage,
@@ -897,11 +995,13 @@ impl AgentVisualizationProtocol {
                 token_rate: agent.token_rate,
                 capabilities: agent.metadata.capabilities,
                 created_at: agent.metadata.created_at.timestamp(),
-            }
-        }).collect();
-        
-        let init_connections: Vec<ConnectionInit> = viz_data.connections.into_iter().map(|conn| {
-            ConnectionInit {
+            })
+            .collect();
+
+        let init_connections: Vec<ConnectionInit> = viz_data
+            .connections
+            .into_iter()
+            .map(|conn| ConnectionInit {
                 id: conn.id,
                 source: conn.source_id,
                 target: conn.target_id,
@@ -909,29 +1009,38 @@ impl AgentVisualizationProtocol {
                 flow_rate: conn.flow_rate,
                 color: conn.color,
                 active: conn.is_active,
-            }
-        }).collect();
-        
+            })
+            .collect();
+
         let visual_config = VisualConfig {
             colors: viz_data.visual_config.color_scheme,
             sizes: viz_data.visual_config.size_multipliers,
             animations: {
                 let mut anims = HashMap::new();
-                anims.insert("pulse".to_string(), AnimationConfig {
-                    speed: 1.0,
-                    amplitude: 0.8,
-                    enabled: true,
-                });
-                anims.insert("glow".to_string(), AnimationConfig {
-                    speed: 0.8,
-                    amplitude: 0.6,
-                    enabled: true,
-                });
-                anims.insert("rotate".to_string(), AnimationConfig {
-                    speed: 0.5,
-                    amplitude: 1.0,
-                    enabled: true,
-                });
+                anims.insert(
+                    "pulse".to_string(),
+                    AnimationConfig {
+                        speed: 1.0,
+                        amplitude: 0.8,
+                        enabled: true,
+                    },
+                );
+                anims.insert(
+                    "glow".to_string(),
+                    AnimationConfig {
+                        speed: 0.8,
+                        amplitude: 0.6,
+                        enabled: true,
+                    },
+                );
+                anims.insert(
+                    "rotate".to_string(),
+                    AnimationConfig {
+                        speed: 0.5,
+                        amplitude: 1.0,
+                        enabled: true,
+                    },
+                );
                 anims
             },
             effects: EffectsConfig {
@@ -941,7 +1050,7 @@ impl AgentVisualizationProtocol {
                 shadows: false,
             },
         };
-        
+
         let init_msg = InitializeMessage {
             timestamp: chrono::Utc::now().timestamp(),
             swarm_id: swarm_id.to_string(),
@@ -953,13 +1062,22 @@ impl AgentVisualizationProtocol {
             physics_config: viz_data.physics_config,
             positions: HashMap::new(), // Let client calculate initial positions
         };
-        
+
         let message = AgentVisualizationMessage::Initialize(init_msg);
         serde_json::to_string(&message).unwrap_or_default()
     }
-    
+
     /// Buffer position update
-    pub fn add_position_update(&mut self, id: String, x: f32, y: f32, z: f32, vx: f32, vy: f32, vz: f32) {
+    pub fn add_position_update(
+        &mut self,
+        id: String,
+        x: f32,
+        y: f32,
+        z: f32,
+        vx: f32,
+        vy: f32,
+        vz: f32,
+    ) {
         self.position_buffer.push(PositionUpdate {
             id,
             x,
@@ -970,29 +1088,29 @@ impl AgentVisualizationProtocol {
             vz: Some(vz),
         });
     }
-    
+
     /// Create position update message and clear buffer
     pub fn create_position_update(&mut self) -> Option<String> {
         if self.position_buffer.is_empty() {
             return None;
         }
-        
+
         let msg = PositionUpdateMessage {
             timestamp: chrono::Utc::now().timestamp_millis(),
             positions: std::mem::take(&mut self.position_buffer),
         };
-        
+
         let message = AgentVisualizationMessage::PositionUpdate(msg);
         Some(serde_json::to_string(&message).unwrap_or_default())
     }
-    
+
     /// Create state update message (legacy compatibility)
     pub fn create_state_update(updates: Vec<AgentStateUpdate>) -> String {
         let msg = StateUpdateMessage {
             timestamp: chrono::Utc::now().timestamp_millis(),
             updates,
         };
-        
+
         let message = AgentVisualizationMessage::StateUpdate(msg);
         serde_json::to_string(&message).unwrap_or_default()
     }
@@ -1000,7 +1118,9 @@ impl AgentVisualizationProtocol {
     // Implementation methods for real functionality
     fn discover_inter_swarm_connections(&self) -> Vec<InterSwarmConnection> {
         let mut connections = Vec::new();
-        let swarm_ids: std::collections::HashSet<String> = self.agent_cache.values()
+        let swarm_ids: std::collections::HashSet<String> = self
+            .agent_cache
+            .values()
             .map(|a| a.swarm_id.clone())
             .collect();
 
@@ -1012,7 +1132,7 @@ impl AgentVisualizationProtocol {
                     source_swarm: swarm_list[i].clone(),
                     target_swarm: swarm_list[j].clone(),
                     connection_strength: 0.3, // Based on shared agents or coordinators
-                    message_rate: 1.5, // Messages per second
+                    message_rate: 1.5,        // Messages per second
                     coordination_type: "peer".to_string(),
                 });
             }
@@ -1021,20 +1141,35 @@ impl AgentVisualizationProtocol {
     }
 
     fn build_coordination_hierarchy(&self) -> Vec<CoordinationLevel> {
-        let coordinators: Vec<_> = self.agent_cache.values()
-            .filter(|a| a.metadata.coordination_role.as_ref().map_or(false, |r| r == "coordinator"))
+        let coordinators: Vec<_> = self
+            .agent_cache
+            .values()
+            .filter(|a| {
+                a.metadata
+                    .coordination_role
+                    .as_ref()
+                    .map_or(false, |r| r == "coordinator")
+            })
             .collect();
 
         let mut levels = Vec::new();
 
         // Level 0: Top coordinators
-        let top_coordinators: Vec<String> = coordinators.iter()
-            .filter(|c| c.metadata.topology_position.as_ref().map_or(false, |tp| tp.coordination_level == 0))
+        let top_coordinators: Vec<String> = coordinators
+            .iter()
+            .filter(|c| {
+                c.metadata
+                    .topology_position
+                    .as_ref()
+                    .map_or(false, |tp| tp.coordination_level == 0)
+            })
             .map(|c| c.agent_id.clone())
             .collect();
 
         if !top_coordinators.is_empty() {
-            let managed: Vec<String> = self.agent_cache.values()
+            let managed: Vec<String> = self
+                .agent_cache
+                .values()
                 .filter(|a| !coordinators.iter().any(|c| c.agent_id == a.agent_id))
                 .map(|a| a.agent_id.clone())
                 .collect();
@@ -1054,14 +1189,24 @@ impl AgentVisualizationProtocol {
         let mut patterns = Vec::new();
 
         // Analyze communication patterns between agents
-        let coordinators: Vec<_> = self.agent_cache.values()
-            .filter(|a| a.metadata.coordination_role.as_ref().map_or(false, |r| r == "coordinator"))
+        let coordinators: Vec<_> = self
+            .agent_cache
+            .values()
+            .filter(|a| {
+                a.metadata
+                    .coordination_role
+                    .as_ref()
+                    .map_or(false, |r| r == "coordinator")
+            })
             .collect();
 
         for coordinator in coordinators {
-            let workers: Vec<String> = self.agent_cache.values()
-                .filter(|a| a.agent_id != coordinator.agent_id &&
-                           a.swarm_id == coordinator.swarm_id)
+            let workers: Vec<String> = self
+                .agent_cache
+                .values()
+                .filter(|a| {
+                    a.agent_id != coordinator.agent_id && a.swarm_id == coordinator.swarm_id
+                })
                 .map(|a| a.agent_id.clone())
                 .collect();
 
@@ -1090,9 +1235,14 @@ impl AgentVisualizationProtocol {
         (current_memory - 0.4).clamp(-0.1, 0.1)
     }
 
-    fn calculate_error_rate_delta(&self, _agent_id: &str, performance: &AgentPerformanceData) -> f32 {
+    fn calculate_error_rate_delta(
+        &self,
+        _agent_id: &str,
+        performance: &AgentPerformanceData,
+    ) -> f32 {
         let current_error_rate = if performance.tasks_completed + performance.tasks_failed > 0 {
-            performance.tasks_failed as f32 / (performance.tasks_completed + performance.tasks_failed) as f32
+            performance.tasks_failed as f32
+                / (performance.tasks_completed + performance.tasks_failed) as f32
         } else {
             0.0
         };
@@ -1123,25 +1273,39 @@ impl AgentVisualizationProtocol {
     }
 
     fn get_coordination_updates(&self) -> Vec<CoordinationUpdate> {
-        let coordinators: Vec<_> = self.agent_cache.values()
-            .filter(|a| a.metadata.coordination_role.as_ref().map_or(false, |r| r == "coordinator"))
+        let coordinators: Vec<_> = self
+            .agent_cache
+            .values()
+            .filter(|a| {
+                a.metadata
+                    .coordination_role
+                    .as_ref()
+                    .map_or(false, |r| r == "coordinator")
+            })
             .collect();
 
-        coordinators.into_iter().map(|coord| {
-            let managed_count = self.agent_cache.values()
-                .filter(|a| a.swarm_id == coord.swarm_id && a.agent_id != coord.agent_id)
-                .count();
-
-            CoordinationUpdate {
-                coordinator_id: coord.agent_id.clone(),
-                managed_agents: self.agent_cache.values()
+        coordinators
+            .into_iter()
+            .map(|coord| {
+                let managed_count = self
+                    .agent_cache
+                    .values()
                     .filter(|a| a.swarm_id == coord.swarm_id && a.agent_id != coord.agent_id)
-                    .map(|a| a.agent_id.clone())
-                    .collect(),
-                coordination_load: (managed_count as f32 * 0.1).min(1.0),
-                efficiency_score: coord.performance.health_score,
-            }
-        }).collect()
+                    .count();
+
+                CoordinationUpdate {
+                    coordinator_id: coord.agent_id.clone(),
+                    managed_agents: self
+                        .agent_cache
+                        .values()
+                        .filter(|a| a.swarm_id == coord.swarm_id && a.agent_id != coord.agent_id)
+                        .map(|a| a.agent_id.clone())
+                        .collect(),
+                    coordination_load: (managed_count as f32 * 0.1).min(1.0),
+                    efficiency_score: coord.performance.health_score,
+                }
+            })
+            .collect()
     }
 
     fn calculate_system_efficiency(&self, agents: &[&MultiMcpAgentStatus]) -> f32 {
@@ -1150,16 +1314,29 @@ impl AgentVisualizationProtocol {
         }
 
         let total_throughput: f32 = agents.iter().map(|a| a.performance.throughput).sum();
-        let avg_health: f32 = agents.iter().map(|a| a.performance.health_score).sum::<f32>() / agents.len() as f32;
-        let resource_efficiency = 1.0 - (agents.iter().map(|a| (a.performance.cpu_usage + a.performance.memory_usage) / 2.0).sum::<f32>() / agents.len() as f32);
+        let avg_health: f32 = agents
+            .iter()
+            .map(|a| a.performance.health_score)
+            .sum::<f32>()
+            / agents.len() as f32;
+        let resource_efficiency = 1.0
+            - (agents
+                .iter()
+                .map(|a| (a.performance.cpu_usage + a.performance.memory_usage) / 2.0)
+                .sum::<f32>()
+                / agents.len() as f32);
 
-        ((total_throughput / agents.len() as f32) * 0.4 + avg_health * 0.3 + resource_efficiency * 0.3).min(1.0)
+        ((total_throughput / agents.len() as f32) * 0.4
+            + avg_health * 0.3
+            + resource_efficiency * 0.3)
+            .min(1.0)
     }
 
     fn calculate_bottleneck_impact(&self, agent_id: &str) -> Vec<String> {
         // Find agents in the same swarm that might be affected
         if let Some(agent) = self.agent_cache.get(agent_id) {
-            self.agent_cache.values()
+            self.agent_cache
+                .values()
                 .filter(|a| a.swarm_id == agent.swarm_id && a.agent_id != agent_id)
                 .map(|a| a.agent_id.clone())
                 .take(3) // Limit to avoid huge lists
@@ -1174,8 +1351,14 @@ impl AgentVisualizationProtocol {
             return 0.0;
         }
 
-        let coordinator_count = agents.iter()
-            .filter(|a| a.metadata.coordination_role.as_ref().map_or(false, |r| r == "coordinator"))
+        let coordinator_count = agents
+            .iter()
+            .filter(|a| {
+                a.metadata
+                    .coordination_role
+                    .as_ref()
+                    .map_or(false, |r| r == "coordinator")
+            })
             .count() as f32;
 
         let total_agents = agents.len() as f32;
@@ -1185,7 +1368,11 @@ impl AgentVisualizationProtocol {
         (coordinator_ratio * 0.3 + 0.05).min(0.8)
     }
 
-    fn generate_optimization_suggestions(&self, agents: &[&MultiMcpAgentStatus], bottlenecks: &[Bottleneck]) -> Vec<OptimizationSuggestion> {
+    fn generate_optimization_suggestions(
+        &self,
+        agents: &[&MultiMcpAgentStatus],
+        bottlenecks: &[Bottleneck],
+    ) -> Vec<OptimizationSuggestion> {
         let mut suggestions = Vec::new();
 
         // Suggest scaling for bottlenecks
@@ -1201,8 +1388,10 @@ impl AgentVisualizationProtocol {
         }
 
         // Suggest load balancing if agents are unevenly loaded
-        let avg_cpu: f32 = agents.iter().map(|a| a.performance.cpu_usage).sum::<f32>() / agents.len() as f32;
-        let high_load_agents: Vec<_> = agents.iter()
+        let avg_cpu: f32 =
+            agents.iter().map(|a| a.performance.cpu_usage).sum::<f32>() / agents.len() as f32;
+        let high_load_agents: Vec<_> = agents
+            .iter()
             .filter(|a| a.performance.cpu_usage > avg_cpu * 1.5)
             .collect();
 
@@ -1224,12 +1413,22 @@ impl AgentVisualizationProtocol {
         let mut trends = Vec::new();
 
         if !agents.is_empty() {
-            let avg_cpu: f32 = agents.iter().map(|a| a.performance.cpu_usage).sum::<f32>() / agents.len() as f32;
-            let avg_memory: f32 = agents.iter().map(|a| a.performance.memory_usage).sum::<f32>() / agents.len() as f32;
+            let avg_cpu: f32 =
+                agents.iter().map(|a| a.performance.cpu_usage).sum::<f32>() / agents.len() as f32;
+            let avg_memory: f32 = agents
+                .iter()
+                .map(|a| a.performance.memory_usage)
+                .sum::<f32>()
+                / agents.len() as f32;
 
             trends.push(TrendAnalysis {
                 metric_name: "cpu_usage".to_string(),
-                trend_direction: if avg_cpu > 0.7 { "increasing" } else { "stable" }.to_string(),
+                trend_direction: if avg_cpu > 0.7 {
+                    "increasing"
+                } else {
+                    "stable"
+                }
+                .to_string(),
                 rate_of_change: (avg_cpu - 0.5) * 0.1,
                 confidence: 0.75,
                 prediction_horizon_minutes: 15,
@@ -1237,7 +1436,12 @@ impl AgentVisualizationProtocol {
 
             trends.push(TrendAnalysis {
                 metric_name: "memory_usage".to_string(),
-                trend_direction: if avg_memory > 0.6 { "increasing" } else { "stable" }.to_string(),
+                trend_direction: if avg_memory > 0.6 {
+                    "increasing"
+                } else {
+                    "stable"
+                }
+                .to_string(),
                 rate_of_change: (avg_memory - 0.4) * 0.08,
                 confidence: 0.80,
                 prediction_horizon_minutes: 20,

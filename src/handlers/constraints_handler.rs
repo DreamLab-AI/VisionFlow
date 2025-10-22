@@ -1,10 +1,10 @@
-use actix_web::{web, Error, HttpResponse, HttpRequest};
-use crate::app_state::AppState;
 use crate::actors::messages::{GetSettings, UpdateSettings};
-use log::{info, error, debug, warn};
-use serde_json::{json, Value};
+use crate::app_state::AppState;
 use crate::config::{ConstraintSystem, LegacyConstraintData};
-use crate::models::constraints::{Constraint, ConstraintSet, ConstraintKind};
+use actix_web::{web, Error, HttpRequest, HttpResponse};
+use log::{debug, error, info, warn};
+use serde_json::{json, Value};
+// Note: Constraint imports available but currently unused - keeping for future enhancements
 use crate::handlers::settings_validation_fix::validate_constraint;
 
 /// Configure constraint-specific routes
@@ -15,7 +15,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .route("/apply", web::post().to(apply_constraints))
             .route("/remove", web::post().to(remove_constraints))
             .route("/list", web::get().to(list_constraints))
-            .route("/validate", web::post().to(validate_constraint_definition))
+            .route("/validate", web::post().to(validate_constraint_definition)),
     );
 }
 
@@ -26,17 +26,17 @@ async fn define_constraints(
     payload: web::Json<ConstraintSystem>,
 ) -> Result<HttpResponse, Error> {
     let constraints = payload.into_inner();
-    
+
     info!("Constraint definition request received");
     debug!("Constraints: {:?}", constraints);
-    
+
     // Validate all constraints
     if let Err(e) = validate_constraint_system(&constraints) {
         return Ok(HttpResponse::BadRequest().json(json!({
             "error": format!("Invalid constraint system: {}", e)
         })));
     }
-    
+
     // Enable constraints mode in physics settings
     let settings_update = json!({
         "visualisation": {
@@ -54,7 +54,7 @@ async fn define_constraints(
             }
         }
     });
-    
+
     // Get and update settings
     let mut app_settings = match state.settings_addr.send(GetSettings).await {
         Ok(Ok(s)) => s,
@@ -71,32 +71,42 @@ async fn define_constraints(
             })));
         }
     };
-    
+
     if let Err(e) = app_settings.merge_update(settings_update) {
         error!("Failed to merge constraint settings: {}", e);
         return Ok(HttpResponse::InternalServerError().json(json!({
             "error": format!("Failed to update constraint settings: {}", e)
         })));
     }
-    
+
     // Save updated settings
-    match state.settings_addr.send(UpdateSettings { settings: app_settings }).await {
+    match state
+        .settings_addr
+        .send(UpdateSettings {
+            settings: app_settings,
+        })
+        .await
+    {
         Ok(Ok(())) => {
             info!("Constraints defined successfully");
-            
+
             // Send constraints to GPU compute actor if available
             if let Some(gpu_addr) = &state.gpu_compute_addr {
                 info!("Sending constraints to GPU compute actor");
 
                 // Convert constraint system to GPU format
                 use crate::actors::messages::UpdateConstraints;
-                let gpu_constraints_json = serde_json::to_value(&constraints)
-                    .unwrap_or_else(|e| {
-                        error!("Failed to serialize constraints: {}", e);
-                        json!({})
-                    });
+                let gpu_constraints_json = serde_json::to_value(&constraints).unwrap_or_else(|e| {
+                    error!("Failed to serialize constraints: {}", e);
+                    json!({})
+                });
 
-                match gpu_addr.send(UpdateConstraints { constraint_data: gpu_constraints_json }).await {
+                match gpu_addr
+                    .send(UpdateConstraints {
+                        constraint_data: gpu_constraints_json,
+                    })
+                    .await
+                {
                     Ok(Ok(())) => {
                         info!("Successfully sent constraints to GPU compute actor");
                     }
@@ -112,7 +122,7 @@ async fn define_constraints(
             } else {
                 info!("GPU compute actor not available - constraints saved to settings only");
             }
-            
+
             Ok(HttpResponse::Ok().json(json!({
                 "status": "Constraints defined successfully",
                 "constraints": constraints
@@ -140,35 +150,37 @@ async fn apply_constraints(
     payload: web::Json<Value>,
 ) -> Result<HttpResponse, Error> {
     let apply_request = payload.into_inner();
-    
+
     info!("Constraint application request received");
-    debug!("Apply request: {}", serde_json::to_string_pretty(&apply_request).unwrap_or_default());
-    
+    debug!(
+        "Apply request: {}",
+        serde_json::to_string_pretty(&apply_request).unwrap_or_default()
+    );
+
     // Validate application request
-    let constraint_type = apply_request.get("constraintType")
+    let constraint_type = apply_request
+        .get("constraintType")
         .and_then(|v| v.as_str())
-        .ok_or_else(|| {
-            actix_web::error::ErrorBadRequest("constraintType is required")
-        })?;
-    
-    let node_ids = apply_request.get("nodeIds")
+        .ok_or_else(|| actix_web::error::ErrorBadRequest("constraintType is required"))?;
+
+    let node_ids = apply_request
+        .get("nodeIds")
         .and_then(|v| v.as_array())
-        .ok_or_else(|| {
-            actix_web::error::ErrorBadRequest("nodeIds array is required")
-        })?;
-    
+        .ok_or_else(|| actix_web::error::ErrorBadRequest("nodeIds array is required"))?;
+
     if !["separation", "boundary", "alignment", "cluster"].contains(&constraint_type) {
         return Ok(HttpResponse::BadRequest().json(json!({
             "error": "constraintType must be separation, boundary, alignment, or cluster"
         })));
     }
-    
+
     // Convert node IDs
-    let nodes: Result<Vec<u32>, _> = node_ids.iter()
+    let nodes: Result<Vec<u32>, _> = node_ids
+        .iter()
         .map(|v| v.as_u64().map(|n| n as u32))
         .collect::<Option<Vec<_>>>()
         .ok_or_else(|| "Invalid node IDs");
-    
+
     let nodes = match nodes {
         Ok(n) => n,
         Err(e) => {
@@ -177,15 +189,20 @@ async fn apply_constraints(
             })));
         }
     };
-    
+
     // For now, store constraint application request
-    let strength = apply_request.get("strength")
+    let strength = apply_request
+        .get("strength")
         .and_then(|v| v.as_f64())
         .unwrap_or(1.0) as f32;
-    
-    info!("Constraint application recorded: {} to {} nodes with strength {}", 
-        constraint_type, nodes.len(), strength);
-    
+
+    info!(
+        "Constraint application recorded: {} to {} nodes with strength {}",
+        constraint_type,
+        nodes.len(),
+        strength
+    );
+
     Ok(HttpResponse::Ok().json(json!({
         "status": "Constraints recorded successfully",
         "constraintType": constraint_type,
@@ -203,22 +220,27 @@ async fn remove_constraints(
     payload: web::Json<Value>,
 ) -> Result<HttpResponse, Error> {
     let remove_request = payload.into_inner();
-    
+
     info!("Constraint removal request received");
-    debug!("Remove request: {}", serde_json::to_string_pretty(&remove_request).unwrap_or_default());
-    
-    let constraint_type = remove_request.get("constraintType")
+    debug!(
+        "Remove request: {}",
+        serde_json::to_string_pretty(&remove_request).unwrap_or_default()
+    );
+
+    let constraint_type = remove_request
+        .get("constraintType")
         .and_then(|v| v.as_str());
-    
-    let node_ids = remove_request.get("nodeIds")
-        .and_then(|v| v.as_array());
-    
+
+    let node_ids = remove_request.get("nodeIds").and_then(|v| v.as_array());
+
     // For now, record constraint removal request
     let removal_count = node_ids.map(|arr| arr.len()).unwrap_or(0);
-    
-    info!("Constraint removal recorded: {:?} affecting {} nodes", 
-        constraint_type, removal_count);
-    
+
+    info!(
+        "Constraint removal recorded: {:?} affecting {} nodes",
+        constraint_type, removal_count
+    );
+
     Ok(HttpResponse::Ok().json(json!({
         "status": "Constraint removal recorded successfully",
         "removedCount": removal_count,
@@ -239,7 +261,10 @@ async fn list_constraints(
         use crate::actors::messages::GetConstraints;
         match gpu_addr.send(GetConstraints).await {
             Ok(Ok(gpu_constraints)) => {
-                info!("Retrieved {} constraints from GPU compute actor", gpu_constraints.constraints.len());
+                info!(
+                    "Retrieved {} constraints from GPU compute actor",
+                    gpu_constraints.constraints.len()
+                );
                 return Ok(HttpResponse::Ok().json(json!({
                     "constraints": gpu_constraints,
                     "count": gpu_constraints.constraints.len(),
@@ -264,7 +289,12 @@ async fn list_constraints(
 
             // Check if constraints mode is enabled
             let logseq_mode = settings.visualisation.graphs.logseq.physics.compute_mode;
-            let visionflow_mode = settings.visualisation.graphs.visionflow.physics.compute_mode;
+            let visionflow_mode = settings
+                .visualisation
+                .graphs
+                .visionflow
+                .physics
+                .compute_mode;
 
             if logseq_mode == 2 || visionflow_mode == 2 {
                 constraints_list.push(json!({
@@ -316,18 +346,14 @@ async fn validate_constraint_definition(
     debug!("Constraint to validate: {:?}", constraint);
 
     match validate_single_constraint(&constraint) {
-        Ok(()) => {
-            Ok(HttpResponse::Ok().json(json!({
-                "valid": true,
-                "message": "Constraint definition is valid"
-            })))
-        }
-        Err(e) => {
-            Ok(HttpResponse::BadRequest().json(json!({
-                "valid": false,
-                "error": e
-            })))
-        }
+        Ok(()) => Ok(HttpResponse::Ok().json(json!({
+            "valid": true,
+            "message": "Constraint definition is valid"
+        }))),
+        Err(e) => Ok(HttpResponse::BadRequest().json(json!({
+            "valid": false,
+            "error": e
+        }))),
     }
 }
 
@@ -337,7 +363,7 @@ fn validate_constraint_system(system: &ConstraintSystem) -> Result<(), String> {
     validate_single_constraint(&system.boundary)?;
     validate_single_constraint(&system.alignment)?;
     validate_single_constraint(&system.cluster)?;
-    
+
     Ok(())
 }
 
@@ -357,27 +383,35 @@ fn validate_single_constraint(constraint: &LegacyConstraintData) -> Result<(), S
     if constraint.strength < 0.0 || constraint.strength > 10.0 {
         return Err("strength must be between 0.0 and 10.0".to_string());
     }
-    
+
     // Validate parameters based on constraint type
     match constraint.constraint_type {
-        1 => { // Separation constraint
+        1 => {
+            // Separation constraint
             if constraint.param1 <= 0.0 {
                 return Err("separation distance (param1) must be positive".to_string());
             }
         }
-        2 => { // Boundary constraint
+        2 => {
+            // Boundary constraint
             if constraint.param1 <= 0.0 || constraint.param2 <= 0.0 {
                 return Err("boundary dimensions (param1, param2) must be positive".to_string());
             }
         }
-        3 => { // Alignment constraint
+        3 => {
+            // Alignment constraint
             if constraint.param1 < 0.0 || constraint.param1 > 360.0 {
-                return Err("alignment angle (param1) must be between 0 and 360 degrees".to_string());
+                return Err(
+                    "alignment angle (param1) must be between 0 and 360 degrees".to_string()
+                );
             }
         }
-        4 => { // Cluster constraint
+        4 => {
+            // Cluster constraint
             if constraint.param1.abs() > 1000.0 || constraint.param2.abs() > 1000.0 {
-                return Err("cluster center coordinates must be within reasonable bounds".to_string());
+                return Err(
+                    "cluster center coordinates must be within reasonable bounds".to_string(),
+                );
             }
         }
         _ => {} // Type 0 (none) requires no validation
@@ -385,4 +419,3 @@ fn validate_single_constraint(constraint: &LegacyConstraintData) -> Result<(), S
 
     Ok(())
 }
-

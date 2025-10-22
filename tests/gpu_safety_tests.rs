@@ -6,18 +6,18 @@
 use std::sync::Arc;
 use tokio::sync::mpsc;
 
-use crate::utils::gpu_safety::{
-    GPUSafetyValidator, GPUSafetyConfig, GPUSafetyError, SafeKernelExecutor,
-};
-use crate::utils::memory_bounds::{
-    ThreadSafeMemoryBoundsChecker, MemoryBounds, SafeArrayAccess, MemoryBoundsError,
-};
 use crate::gpu::safe_streaming_pipeline::{
-    SafeStreamingPipeline, SafeSimplifiedNode, SafeCompressedEdge, SafeClientLOD, RenderData,
+    RenderData, SafeClientLOD, SafeCompressedEdge, SafeSimplifiedNode, SafeStreamingPipeline,
 };
 use crate::gpu::safe_visual_analytics::{
-    SafeVec4, SafeTSNode, SafeTSEdge, SafeIsolationLayer, SafeVisualAnalyticsParams,
-    SafeVisualAnalyticsGPU, SafeRenderData,
+    SafeIsolationLayer, SafeRenderData, SafeTSEdge, SafeTSNode, SafeVec4, SafeVisualAnalyticsGPU,
+    SafeVisualAnalyticsParams,
+};
+use crate::utils::gpu_safety::{
+    GPUSafetyConfig, GPUSafetyError, GPUSafetyValidator, SafeKernelExecutor,
+};
+use crate::utils::memory_bounds::{
+    MemoryBounds, MemoryBoundsError, SafeArrayAccess, ThreadSafeMemoryBoundsChecker,
 };
 
 #[cfg(test)]
@@ -30,17 +30,27 @@ mod gpu_safety_validator_tests {
         let validator = GPUSafetyValidator::new(config);
 
         // Test valid buffer bounds
-        assert!(validator.validate_buffer_bounds("test_nodes", 1000, 12).is_ok());
-        assert!(validator.validate_buffer_bounds("test_edges", 5000, 16).is_ok());
+        assert!(validator
+            .validate_buffer_bounds("test_nodes", 1000, 12)
+            .is_ok());
+        assert!(validator
+            .validate_buffer_bounds("test_edges", 5000, 16)
+            .is_ok());
 
         // Test exceeding node limits
-        assert!(validator.validate_buffer_bounds("test_nodes", 2_000_000, 12).is_err());
+        assert!(validator
+            .validate_buffer_bounds("test_nodes", 2_000_000, 12)
+            .is_err());
 
         // Test exceeding edge limits
-        assert!(validator.validate_buffer_bounds("test_edges", 10_000_000, 16).is_err());
+        assert!(validator
+            .validate_buffer_bounds("test_edges", 10_000_000, 16)
+            .is_err());
 
         // Test memory overflow
-        assert!(validator.validate_buffer_bounds("test_huge", usize::MAX / 2, 8).is_err());
+        assert!(validator
+            .validate_buffer_bounds("test_huge", usize::MAX / 2, 8)
+            .is_err());
     }
 
     #[test]
@@ -49,25 +59,47 @@ mod gpu_safety_validator_tests {
         let validator = GPUSafetyValidator::new(config);
 
         // Valid parameters
-        assert!(validator.validate_kernel_params(1000, 2000, 10, 4, 256).is_ok());
+        assert!(validator
+            .validate_kernel_params(1000, 2000, 10, 4, 256)
+            .is_ok());
 
         // Negative values
-        assert!(validator.validate_kernel_params(-1, 2000, 10, 4, 256).is_err());
-        assert!(validator.validate_kernel_params(1000, -1, 10, 4, 256).is_err());
-        assert!(validator.validate_kernel_params(1000, 2000, -1, 4, 256).is_err());
+        assert!(validator
+            .validate_kernel_params(-1, 2000, 10, 4, 256)
+            .is_err());
+        assert!(validator
+            .validate_kernel_params(1000, -1, 10, 4, 256)
+            .is_err());
+        assert!(validator
+            .validate_kernel_params(1000, 2000, -1, 4, 256)
+            .is_err());
 
         // Exceeding limits
-        assert!(validator.validate_kernel_params(2_000_000, 2000, 10, 4, 256).is_err());
-        assert!(validator.validate_kernel_params(1000, 10_000_000, 10, 4, 256).is_err());
+        assert!(validator
+            .validate_kernel_params(2_000_000, 2000, 10, 4, 256)
+            .is_err());
+        assert!(validator
+            .validate_kernel_params(1000, 10_000_000, 10, 4, 256)
+            .is_err());
 
         // Invalid grid/block sizes
-        assert!(validator.validate_kernel_params(1000, 2000, 10, 0, 256).is_err());
-        assert!(validator.validate_kernel_params(1000, 2000, 10, 4, 0).is_err());
-        assert!(validator.validate_kernel_params(1000, 2000, 10, 4, 2048).is_err());
-        assert!(validator.validate_kernel_params(1000, 2000, 10, 100000, 256).is_err());
+        assert!(validator
+            .validate_kernel_params(1000, 2000, 10, 0, 256)
+            .is_err());
+        assert!(validator
+            .validate_kernel_params(1000, 2000, 10, 4, 0)
+            .is_err());
+        assert!(validator
+            .validate_kernel_params(1000, 2000, 10, 4, 2048)
+            .is_err());
+        assert!(validator
+            .validate_kernel_params(1000, 2000, 10, 100000, 256)
+            .is_err());
 
         // Thread count overflow
-        assert!(validator.validate_kernel_params(1000, 2000, 10, 65535, 1024).is_err());
+        assert!(validator
+            .validate_kernel_params(1000, 2000, 10, 65535, 1024)
+            .is_err());
     }
 
     #[test]
@@ -82,7 +114,9 @@ mod gpu_safety_validator_tests {
 
         // Misaligned pointers
         let misaligned_ptr = 0x1001 as *const u8;
-        assert!(validator.validate_memory_alignment(misaligned_ptr, 16).is_err());
+        assert!(validator
+            .validate_memory_alignment(misaligned_ptr, 16)
+            .is_err());
 
         // Null pointer
         let null_ptr = std::ptr::null();
@@ -121,8 +155,12 @@ mod gpu_safety_validator_tests {
         let validator = GPUSafetyValidator::new(config);
 
         // Track allocations
-        assert!(validator.track_allocation("test1".to_string(), 1024).is_ok());
-        assert!(validator.track_allocation("test2".to_string(), 2048).is_ok());
+        assert!(validator
+            .track_allocation("test1".to_string(), 1024)
+            .is_ok());
+        assert!(validator
+            .track_allocation("test2".to_string(), 2048)
+            .is_ok());
 
         let stats = validator.get_memory_stats().unwrap();
         assert_eq!(stats.current_allocated, 1024 + 2048);
@@ -139,41 +177,38 @@ mod gpu_safety_validator_tests {
         let validator = GPUSafetyValidator::new(config);
 
         // Valid data
-        let nodes = vec![
-            (1.0, 2.0, 3.0),
-            (4.0, 5.0, 6.0),
-            (7.0, 8.0, 9.0),
-        ];
-        let edges = vec![
-            (0, 1, 1.0),
-            (1, 2, 1.5),
-        ];
+        let nodes = vec![(1.0, 2.0, 3.0), (4.0, 5.0, 6.0), (7.0, 8.0, 9.0)];
+        let edges = vec![(0, 1, 1.0), (1, 2, 1.5)];
 
-        assert!(validator.pre_kernel_validation(&nodes, &edges, 1, 256).is_ok());
+        assert!(validator
+            .pre_kernel_validation(&nodes, &edges, 1, 256)
+            .is_ok());
 
         // Invalid edge references
         let invalid_edges = vec![
             (0, 5, 1.0), // Index 5 doesn't exist
         ];
-        assert!(validator.pre_kernel_validation(&nodes, &invalid_edges, 1, 256).is_err());
+        assert!(validator
+            .pre_kernel_validation(&nodes, &invalid_edges, 1, 256)
+            .is_err());
 
         // Negative edge indices
-        let negative_edges = vec![
-            (-1, 1, 1.0),
-        ];
-        assert!(validator.pre_kernel_validation(&nodes, &negative_edges, 1, 256).is_err());
+        let negative_edges = vec![(-1, 1, 1.0)];
+        assert!(validator
+            .pre_kernel_validation(&nodes, &negative_edges, 1, 256)
+            .is_err());
 
         // Invalid weights
-        let nan_edges = vec![
-            (0, 1, f32::NAN),
-        ];
-        assert!(validator.pre_kernel_validation(&nodes, &nan_edges, 1, 256).is_err());
+        let nan_edges = vec![(0, 1, f32::NAN)];
+        assert!(validator
+            .pre_kernel_validation(&nodes, &nan_edges, 1, 256)
+            .is_err());
 
         // Invalid positions
-        let invalid_nodes = vec![
-            (f32::INFINITY, 2.0, 3.0),
-        ];
-        assert!(validator.pre_kernel_validation(&invalid_nodes, &edges, 1, 256).is_err());
+        let invalid_nodes = vec![(f32::INFINITY, 2.0, 3.0)];
+        assert!(validator
+            .pre_kernel_validation(&invalid_nodes, &edges, 1, 256)
+            .is_err());
     }
 }
 
@@ -225,8 +260,8 @@ mod memory_bounds_tests {
         assert!(registry.check_element_access("test", 300, false).is_err());
 
         // Check readonly
-        let readonly_bounds = MemoryBounds::new("readonly".to_string(), 500, 4, 4)
-            .with_readonly(true);
+        let readonly_bounds =
+            MemoryBounds::new("readonly".to_string(), 500, 4, 4).with_readonly(true);
         assert!(registry.register_allocation(readonly_bounds).is_ok());
 
         assert!(registry.check_element_access("readonly", 50, false).is_ok());
@@ -271,9 +306,8 @@ mod memory_bounds_tests {
 
         // Check access from multiple threads
         let checker_clone = checker.clone();
-        let handle = std::thread::spawn(move || {
-            checker_clone.check_element_access("test", 100, false)
-        });
+        let handle =
+            std::thread::spawn(move || checker_clone.check_element_access("test", 100, false));
 
         assert!(handle.join().unwrap().is_ok());
 
@@ -311,14 +345,24 @@ mod safe_streaming_pipeline_tests {
     #[test]
     fn test_safe_compressed_edge_validation() {
         // Valid edge
-        let edge = SafeCompressedEdge { source: 0, target: 1, weight: 128, bundling_id: 5 };
+        let edge = SafeCompressedEdge {
+            source: 0,
+            target: 1,
+            weight: 128,
+            bundling_id: 5,
+        };
         assert!(edge.validate(10).is_ok());
 
         // Out of bounds
         assert!(edge.validate(1).is_err());
 
         // Self-loop
-        let self_loop = SafeCompressedEdge { source: 5, target: 5, weight: 128, bundling_id: 5 };
+        let self_loop = SafeCompressedEdge {
+            source: 5,
+            target: 5,
+            weight: 128,
+            bundling_id: 5,
+        };
         assert!(self_loop.validate(10).is_err());
     }
 
@@ -355,30 +399,41 @@ mod safe_streaming_pipeline_tests {
     #[test]
     async fn test_safe_frame_buffer() {
         let bounds_checker = Arc::new(ThreadSafeMemoryBoundsChecker::new(1024 * 1024 * 1024));
-        let mut buffer = crate::gpu::safe_streaming_pipeline::SafeFrameBuffer::new(100, bounds_checker).unwrap();
+        let mut buffer =
+            crate::gpu::safe_streaming_pipeline::SafeFrameBuffer::new(100, bounds_checker).unwrap();
 
         let positions = vec![1.0f32; 400]; // 100 nodes * 4 components
         let colors = vec![0.5f32; 400];
         let importance = vec![0.8f32; 100];
 
         // Valid update
-        assert!(buffer.update_data(&positions, &colors, &importance, 1).is_ok());
+        assert!(buffer
+            .update_data(&positions, &colors, &importance, 1)
+            .is_ok());
         assert_eq!(buffer.get_current_frame(), 1);
         assert_eq!(buffer.get_node_count(), 100);
 
         // Invalid data sizes
         let invalid_positions = vec![1.0f32; 399]; // Not divisible by 4
-        assert!(buffer.update_data(&invalid_positions, &colors, &importance, 2).is_err());
+        assert!(buffer
+            .update_data(&invalid_positions, &colors, &importance, 2)
+            .is_err());
 
         let mismatched_importance = vec![0.8f32; 50]; // Wrong count
-        assert!(buffer.update_data(&positions, &colors, &mismatched_importance, 2).is_err());
+        assert!(buffer
+            .update_data(&positions, &colors, &mismatched_importance, 2)
+            .is_err());
 
         // Invalid values
         let invalid_positions = vec![f32::NAN; 400];
-        assert!(buffer.update_data(&invalid_positions, &colors, &importance, 2).is_err());
+        assert!(buffer
+            .update_data(&invalid_positions, &colors, &importance, 2)
+            .is_err());
 
         let negative_importance = vec![-1.0f32; 100];
-        assert!(buffer.update_data(&positions, &colors, &negative_importance, 2).is_err());
+        assert!(buffer
+            .update_data(&positions, &colors, &negative_importance, 2)
+            .is_err());
 
         // Access tests
         assert!(buffer.get_position(50, 0).is_ok());
@@ -459,7 +514,12 @@ mod safe_visual_analytics_tests {
         assert!(node.validate().is_ok());
 
         // Invalid position
-        node.position = SafeVec4 { x: f32::NAN, y: 0.0, z: 0.0, t: 0.0 };
+        node.position = SafeVec4 {
+            x: f32::NAN,
+            y: 0.0,
+            z: 0.0,
+            t: 0.0,
+        };
         assert!(node.validate().is_err());
 
         // Reset and test invalid temporal coherence
@@ -573,7 +633,12 @@ mod safe_visual_analytics_tests {
             drift_threshold: 0.1,
             embedding_dims: 16,
             camera_position: SafeVec4::zero(),
-            viewport_bounds: SafeVec4 { x: 2000.0, y: 2000.0, z: 1000.0, t: 100.0 },
+            viewport_bounds: SafeVec4 {
+                x: 2000.0,
+                y: 2000.0,
+                z: 1000.0,
+                t: 100.0,
+            },
             zoom_level: 1.0,
             time_window: 100.0,
         };
@@ -660,15 +725,20 @@ mod cpu_fallback_tests {
             &mut positions,
             &mut velocities,
             &edges,
-            0.1, 0.1, 0.9, 0.01
+            0.1,
+            0.1,
+            0.9,
+            0.01,
         );
 
         assert!(result.is_ok());
 
         // Positions should have changed
-        assert!(positions[0] != (0.0, 0.0, 0.0) ||
-                positions[1] != (1.0, 0.0, 0.0) ||
-                positions[2] != (0.0, 1.0, 0.0));
+        assert!(
+            positions[0] != (0.0, 0.0, 0.0)
+                || positions[1] != (1.0, 0.0, 0.0)
+                || positions[2] != (0.0, 1.0, 0.0)
+        );
 
         // Velocities should be updated
         assert!(velocities.iter().any(|&v| v != (0.0, 0.0, 0.0)));
@@ -685,7 +755,10 @@ mod cpu_fallback_tests {
             &mut positions,
             &mut velocities,
             &edges,
-            0.1, 0.1, 0.9, 0.01
+            0.1,
+            0.1,
+            0.9,
+            0.01,
         );
 
         assert!(result.is_err());
@@ -699,7 +772,10 @@ mod cpu_fallback_tests {
             &mut positions,
             &mut velocities,
             &edges,
-            0.1, 0.1, 0.9, 0.01
+            0.1,
+            0.1,
+            0.9,
+            0.01,
         );
 
         assert!(result.is_ok()); // Should skip invalid edges, not fail
@@ -716,7 +792,10 @@ mod cpu_fallback_tests {
             &mut positions,
             &mut velocities,
             &edges,
-            0.1, 1.0, 0.9, 0.01
+            0.1,
+            1.0,
+            0.9,
+            0.01,
         );
 
         assert!(result.is_ok());
@@ -736,14 +815,17 @@ mod cpu_fallback_tests {
             &mut positions,
             &mut velocities,
             &edges,
-            100.0, 100.0, 0.9, 0.1
+            100.0,
+            100.0,
+            0.9,
+            0.1,
         );
 
         assert!(result.is_ok());
 
         // Velocities should be clamped
         for &(vx, vy, vz) in &velocities {
-            let mag = (vx*vx + vy*vy + vz*vz).sqrt();
+            let mag = (vx * vx + vy * vy + vz * vz).sqrt();
             assert!(mag <= 10.0 + 1e-6); // Allow for floating point error
         }
     }
@@ -764,9 +846,7 @@ mod integration_tests {
         let executor = SafeKernelExecutor::new(validator);
 
         // Test successful execution
-        let result = executor.execute_with_timeout(|| {
-            Ok("success")
-        }).await;
+        let result = executor.execute_with_timeout(|| Ok("success")).await;
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), "success");
 
@@ -778,10 +858,12 @@ mod integration_tests {
         let validator = Arc::new(GPUSafetyValidator::new(config));
         let executor = SafeKernelExecutor::new(validator);
 
-        let result = executor.execute_with_timeout(|| {
-            std::thread::sleep(std::time::Duration::from_millis(50));
-            Ok("should timeout")
-        }).await;
+        let result = executor
+            .execute_with_timeout(|| {
+                std::thread::sleep(std::time::Duration::from_millis(50));
+                Ok("should timeout")
+            })
+            .await;
         assert!(result.is_err());
     }
 
@@ -796,8 +878,12 @@ mod integration_tests {
         assert!(bounds_checker.register_allocation(bounds).is_ok());
 
         // Test access validation
-        assert!(bounds_checker.check_element_access("test_complete", 100, false).is_ok());
-        assert!(bounds_checker.check_element_access("test_complete", 300, false).is_err());
+        assert!(bounds_checker
+            .check_element_access("test_complete", 100, false)
+            .is_ok());
+        assert!(bounds_checker
+            .check_element_access("test_complete", 300, false)
+            .is_err());
 
         // Test safe array with bounds checker
         let data = vec![1.0f32; 250]; // 250 elements * 4 bytes = 1000 bytes
@@ -808,7 +894,9 @@ mod integration_tests {
         assert!(safe_array.get(300).is_err());
 
         // Cleanup
-        assert!(bounds_checker.unregister_allocation("test_complete").is_ok());
+        assert!(bounds_checker
+            .unregister_allocation("test_complete")
+            .is_ok());
     }
 
     #[test]
@@ -820,18 +908,27 @@ mod integration_tests {
         // Test buffer bounds error
         let result = validator.validate_buffer_bounds("test", usize::MAX, 8);
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), GPUSafetyError::InvalidBufferSize { .. }));
+        assert!(matches!(
+            result.unwrap_err(),
+            GPUSafetyError::InvalidBufferSize { .. }
+        ));
 
         // Test kernel params error
         let result = validator.validate_kernel_params(-1, 0, 0, 1, 256);
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), GPUSafetyError::InvalidKernelParams { .. }));
+        assert!(matches!(
+            result.unwrap_err(),
+            GPUSafetyError::InvalidKernelParams { .. }
+        ));
 
         // Test memory alignment error
         let misaligned_ptr = 0x1001 as *const u8;
         let result = validator.validate_memory_alignment(misaligned_ptr, 16);
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), GPUSafetyError::MisalignedAccess { .. }));
+        assert!(matches!(
+            result.unwrap_err(),
+            GPUSafetyError::MisalignedAccess { .. }
+        ));
     }
 
     #[test]
@@ -846,22 +943,28 @@ mod integration_tests {
         // Try to allocate more memory than allowed
         let result = validator.track_allocation("huge_allocation".to_string(), 2000);
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), GPUSafetyError::MemoryLimitExceeded { .. }));
+        assert!(matches!(
+            result.unwrap_err(),
+            GPUSafetyError::MemoryLimitExceeded { .. }
+        ));
     }
 }
 
 #[cfg(test)]
 mod ptx_pipeline_tests {
     use super::*;
-    use std::time::Instant;
     use std::path::Path;
+    use std::time::Instant;
 
     #[test]
     fn test_ptx_discovery_mechanism() {
         println!("🔍 Testing PTX file discovery mechanism...");
 
         // Test 1: Environment variable discovery
-        std::env::set_var("VISIONFLOW_PTX_PATH", "//target/debug/build/webxr-*/out/visionflow_unified.ptx");
+        std::env::set_var(
+            "VISIONFLOW_PTX_PATH",
+            "//target/debug/build/webxr-*/out/visionflow_unified.ptx",
+        );
 
         let ptx_path = std::env::var("VISIONFLOW_PTX_PATH");
         assert!(ptx_path.is_ok(), "VISIONFLOW_PTX_PATH should be readable");
@@ -869,7 +972,10 @@ mod ptx_pipeline_tests {
         // Test 2: Fallback when env var is missing
         std::env::remove_var("VISIONFLOW_PTX_PATH");
         let fallback_triggered = std::env::var("VISIONFLOW_PTX_PATH").is_err();
-        assert!(fallback_triggered, "Should trigger fallback when env var missing");
+        assert!(
+            fallback_triggered,
+            "Should trigger fallback when env var missing"
+        );
 
         println!("✓ PTX discovery mechanism validated");
     }
@@ -886,7 +992,7 @@ mod ptx_pipeline_tests {
             "compute_cell_bounds_kernel",
             "force_pass_kernel",
             "integrate_pass_kernel",
-            "relaxation_step_kernel"
+            "relaxation_step_kernel",
         ];
 
         for kernel_name in kernel_names {
@@ -896,7 +1002,10 @@ mod ptx_pipeline_tests {
         }
 
         let init_time = start_time.elapsed();
-        assert!(init_time.as_secs() < 5, "Cold start should complete within 5 seconds");
+        assert!(
+            init_time.as_secs() < 5,
+            "Cold start should complete within 5 seconds"
+        );
 
         println!("✓ Cold start validation completed in {:?}", init_time);
     }
@@ -916,7 +1025,10 @@ mod ptx_pipeline_tests {
             std::thread::sleep(std::time::Duration::from_millis(100));
 
             let compilation_time = compilation_start.elapsed();
-            assert!(compilation_time.as_secs() < 30, "Fallback compilation should complete within 30s");
+            assert!(
+                compilation_time.as_secs() < 30,
+                "Fallback compilation should complete within 30s"
+            );
 
             println!("✓ Fallback compilation simulated in {:?}", compilation_time);
         }
@@ -927,9 +1039,9 @@ mod ptx_pipeline_tests {
         println!("🚀 Testing kernel launch success under CI conditions...");
 
         let test_configs = vec![
-            (32, 256),   // Small config
-            (64, 512),   // Medium config
-            (128, 256),  // Large blocks
+            (32, 256),  // Small config
+            (64, 512),  // Medium config
+            (128, 256), // Large blocks
         ];
 
         for (grid_size, block_size) in test_configs {
@@ -939,7 +1051,10 @@ mod ptx_pipeline_tests {
             assert!(block_size <= 1024, "Block size should not exceed 1024");
             assert!(grid_size <= 65535, "Grid size should not exceed 65535");
 
-            println!("✓ Kernel config validated: grid={}, block={}", grid_size, block_size);
+            println!(
+                "✓ Kernel config validated: grid={}, block={}",
+                grid_size, block_size
+            );
         }
     }
 }
@@ -980,19 +1095,34 @@ mod phase1_stability_tests {
                 let computation_time = start_time.elapsed();
 
                 // Validate stability criteria
-                assert!(displacement_ratio < 0.05, "Displacement should be < 5% of layout extent");
-                assert!(stress_improvement >= 10.0, "Stress improvement should be >= 10%");
+                assert!(
+                    displacement_ratio < 0.05,
+                    "Displacement should be < 5% of layout extent"
+                );
+                assert!(
+                    stress_improvement >= 10.0,
+                    "Stress improvement should be >= 10%"
+                );
                 assert!(frame_overhead < 10.0, "Frame overhead should be < 10ms");
-                assert!(!max_displacement.is_nan() && !max_displacement.is_infinite(), "No NaN/Inf values");
+                assert!(
+                    !max_displacement.is_nan() && !max_displacement.is_infinite(),
+                    "No NaN/Inf values"
+                );
 
                 stability_scores.push(0.95); // Mock stability score
 
-                println!("    Run {}: stable, improvement={:.1}%, overhead={:.1}ms",
-                       run, stress_improvement, frame_overhead);
+                println!(
+                    "    Run {}: stable, improvement={:.1}%, overhead={:.1}ms",
+                    run, stress_improvement, frame_overhead
+                );
             }
 
-            let avg_stability = stability_scores.iter().sum::<f32>() / stability_scores.len() as f32;
-            assert!(avg_stability > 0.9, "Average stability score should be > 0.9");
+            let avg_stability =
+                stability_scores.iter().sum::<f32>() / stability_scores.len() as f32;
+            assert!(
+                avg_stability > 0.9,
+                "Average stability score should be > 0.9"
+            );
         }
 
         println!("✓ Stress majorization stability validated across 5 runs");
@@ -1012,19 +1142,22 @@ mod phase1_stability_tests {
             println!("  Testing {} constraints...", scenario);
 
             // Simulate kinetic energy over time (should decrease monotonically)
-            let kinetic_energy_samples = vec![
-                1.0, 0.9, 0.8, 0.7, 0.65, 0.62, 0.61, 0.60, 0.60, 0.60
-            ];
+            let kinetic_energy_samples =
+                vec![1.0, 0.9, 0.8, 0.7, 0.65, 0.62, 0.61, 0.60, 0.60, 0.60];
 
             // Check for oscillation (high variance indicates oscillation)
             let mut has_oscillation = false;
             for window in kinetic_energy_samples.windows(3) {
                 if window[1] > window[0] && window[1] > window[2] {
                     // Peak detected - potential oscillation
-                    let variance = window.iter().map(|&x| {
-                        let mean = window.iter().sum::<f32>() / window.len() as f32;
-                        (x - mean).powi(2)
-                    }).sum::<f32>() / window.len() as f32;
+                    let variance = window
+                        .iter()
+                        .map(|&x| {
+                            let mean = window.iter().sum::<f32>() / window.len() as f32;
+                            (x - mean).powi(2)
+                        })
+                        .sum::<f32>()
+                        / window.len() as f32;
 
                     if variance > 0.1 * window[0] {
                         has_oscillation = true;
@@ -1033,22 +1166,32 @@ mod phase1_stability_tests {
                 }
             }
 
-            assert!(!has_oscillation, "No oscillation should be detected for {}", scenario);
+            assert!(
+                !has_oscillation,
+                "No oscillation should be detected for {}",
+                scenario
+            );
 
             // Check constraint violations decrease monotonically
             let constraint_violations = vec![10, 8, 6, 5, 3, 2, 1, 1, 0, 0];
-            let violations_decreasing = constraint_violations.windows(2)
+            let violations_decreasing = constraint_violations
+                .windows(2)
                 .all(|pair| pair[1] <= pair[0]);
 
-            assert!(violations_decreasing, "Constraint violations should decrease monotonically");
+            assert!(
+                violations_decreasing,
+                "Constraint violations should decrease monotonically"
+            );
 
             // Check return to baseline within 2 seconds (120 frames at 60fps)
             let frames_to_baseline = 120;
             let final_energy = kinetic_energy_samples.last().unwrap();
             let baseline_energy = 0.6;
 
-            assert!((final_energy - baseline_energy).abs() < 0.1,
-                   "Should return to baseline within 2 seconds");
+            assert!(
+                (final_energy - baseline_energy).abs() < 0.1,
+                "Should return to baseline within 2 seconds"
+            );
 
             println!("    ✓ {} constraints stable, no oscillation", scenario);
         }
@@ -1073,22 +1216,36 @@ mod phase1_stability_tests {
             let gpu_distances = vec![0.0, 1.0, 2.0, 3.0, 4.0];
             let cpu_distances = vec![0.0, 1.0000001, 2.0, 2.9999999, 4.0000001];
 
-            let max_error = gpu_distances.iter()
+            let max_error = gpu_distances
+                .iter()
                 .zip(cpu_distances.iter())
                 .map(|(gpu, cpu)| (gpu - cpu).abs())
                 .fold(0.0f32, f32::max);
 
-            assert!(max_error < tolerance,
-                   "SSSP error {:.2e} should be < {:.2e} for {}", max_error, tolerance, graph_name);
+            assert!(
+                max_error < tolerance,
+                "SSSP error {:.2e} should be < {:.2e} for {}",
+                max_error,
+                tolerance,
+                graph_name
+            );
 
             // Test spring adjustment improvement
             let edge_length_variance_before = 2.5;
             let edge_length_variance_after = 2.0;
-            let improvement = (edge_length_variance_before - edge_length_variance_after) / edge_length_variance_before;
+            let improvement = (edge_length_variance_before - edge_length_variance_after)
+                / edge_length_variance_before;
 
-            assert!(improvement >= 0.1, "SSSP spring adjustment should improve variance by >= 10%");
+            assert!(
+                improvement >= 0.1,
+                "SSSP spring adjustment should improve variance by >= 10%"
+            );
 
-            println!("    ✓ SSSP accurate within {:.2e}, improvement: {:.1}%", tolerance, improvement * 100.0);
+            println!(
+                "    ✓ SSSP accurate within {:.2e}, improvement: {:.1}%",
+                tolerance,
+                improvement * 100.0
+            );
         }
     }
 
@@ -1111,18 +1268,30 @@ mod phase1_stability_tests {
             let efficiency = non_empty_cells as f32 / total_cells as f32;
 
             // Check efficiency target (0.2-0.6)
-            assert!(efficiency >= 0.2 && efficiency <= 0.6,
-                   "Hashing efficiency {:.3} should be between 0.2-0.6 for {}", efficiency, name);
+            assert!(
+                efficiency >= 0.2 && efficiency <= 0.6,
+                "Hashing efficiency {:.3} should be between 0.2-0.6 for {}",
+                efficiency,
+                name
+            );
 
             // Test timing variance under node doubling
             let baseline_time = 5.0; // ms
             let doubled_time = 9.5; // Should be close to 2x
             let expected_doubled_time = baseline_time * 2.0;
-            let time_variance = (doubled_time - expected_doubled_time).abs() / expected_doubled_time;
+            let time_variance =
+                (doubled_time - expected_doubled_time).abs() / expected_doubled_time;
 
-            assert!(time_variance < 0.2, "Time variance {:.3} should be < 20% for node doubling", time_variance);
+            assert!(
+                time_variance < 0.2,
+                "Time variance {:.3} should be < 20% for node doubling",
+                time_variance
+            );
 
-            println!("    ✓ {} efficiency: {:.3}, variance: {:.3}", name, efficiency, time_variance);
+            println!(
+                "    ✓ {} efficiency: {:.3}, variance: {:.3}",
+                name, efficiency, time_variance
+            );
         }
     }
 
@@ -1130,15 +1299,11 @@ mod phase1_stability_tests {
     fn test_buffer_resizing_live_data() {
         println!("📈 Testing buffer resizing with live data preservation...");
 
-        let initial_positions = vec![
-            (1.0, 2.0, 3.0),
-            (4.0, 5.0, 6.0),
-            (7.0, 8.0, 9.0),
-        ];
+        let initial_positions = vec![(1.0, 2.0, 3.0), (4.0, 5.0, 6.0), (7.0, 8.0, 9.0)];
 
         let resize_scenarios = vec![
-            ("grow", 5),      // Growth
-            ("shrink", 2),    // Shrinkage
+            ("grow", 5),        // Growth
+            ("shrink", 2),      // Shrinkage
             ("large_grow", 10), // Large growth
         ];
 
@@ -1160,22 +1325,31 @@ mod phase1_stability_tests {
                     let dx = original.0 - current.0;
                     let dy = original.1 - current.1;
                     let dz = original.2 - current.2;
-                    (dx*dx + dy*dy + dz*dz).sqrt()
+                    (dx * dx + dy * dy + dz * dz).sqrt()
                 };
 
-                assert!(position_error < 1e-6,
-                       "Position error {:.2e} should be < 1e-6 for node {} in {}",
-                       position_error, i, scenario);
+                assert!(
+                    position_error < 1e-6,
+                    "Position error {:.2e} should be < 1e-6 for node {} in {}",
+                    position_error,
+                    i,
+                    scenario
+                );
             }
 
             // Check for NaN/panic conditions
             for (i, &(x, y, z)) in current_positions.iter().enumerate() {
-                assert!(x.is_finite() && y.is_finite() && z.is_finite(),
-                       "Position at index {} should be finite after resize", i);
+                assert!(
+                    x.is_finite() && y.is_finite() && z.is_finite(),
+                    "Position at index {} should be finite after resize",
+                    i
+                );
             }
 
-            println!("    ✓ {} resize successful, {} nodes preserved within 1e-6 tolerance",
-                   scenario, preserved_count);
+            println!(
+                "    ✓ {} resize successful, {} nodes preserved within 1e-6 tolerance",
+                scenario, preserved_count
+            );
         }
     }
 }
@@ -1196,7 +1370,10 @@ mod phase2_analytics_tests {
         ];
 
         for (dataset_name, points, k) in test_datasets {
-            println!("  Testing K-means on {} ({} points, k={})...", dataset_name, points, k);
+            println!(
+                "  Testing K-means on {} ({} points, k={})...",
+                dataset_name, points, k
+            );
 
             // Test deterministic seeding
             let seed = 42;
@@ -1211,10 +1388,18 @@ mod phase2_analytics_tests {
             let nmi_difference = (gpu_nmi - cpu_nmi).abs();
 
             // Check accuracy requirement (within 2% of CPU reference)
-            assert!(ari_difference <= 0.02,
-                   "ARI difference {:.3} should be <= 2% for {}", ari_difference, dataset_name);
-            assert!(nmi_difference <= 0.02,
-                   "NMI difference {:.3} should be <= 2% for {}", nmi_difference, dataset_name);
+            assert!(
+                ari_difference <= 0.02,
+                "ARI difference {:.3} should be <= 2% for {}",
+                ari_difference,
+                dataset_name
+            );
+            assert!(
+                nmi_difference <= 0.02,
+                "NMI difference {:.3} should be <= 2% for {}",
+                nmi_difference,
+                dataset_name
+            );
 
             // Test performance requirement (10-50x speedup for 100k nodes)
             let gpu_time_ms = 20.0;
@@ -1222,8 +1407,11 @@ mod phase2_analytics_tests {
             let speedup = cpu_time_ms / gpu_time_ms;
 
             if points >= 100000 {
-                assert!(speedup >= 10.0 && speedup <= 50.0,
-                       "Speedup {:.1}x should be 10-50x for large datasets", speedup);
+                assert!(
+                    speedup >= 10.0 && speedup <= 50.0,
+                    "Speedup {:.1}x should be 10-50x for large datasets",
+                    speedup
+                );
             }
 
             // Test stability across 3 seeds
@@ -1234,10 +1422,15 @@ mod phase2_analytics_tests {
             ];
 
             // All should be deterministic with same seed
-            assert_eq!(seed_results[0].1, seed_results[1].1, "Results should be deterministic");
+            assert_eq!(
+                seed_results[0].1, seed_results[1].1,
+                "Results should be deterministic"
+            );
 
-            println!("    ✓ {} - ARI: {:.3}, NMI: {:.3}, speedup: {:.1}x",
-                   dataset_name, gpu_ari, gpu_nmi, speedup);
+            println!(
+                "    ✓ {} - ARI: {:.3}, NMI: {:.3}, speedup: {:.1}x",
+                dataset_name, gpu_ari, gpu_nmi, speedup
+            );
         }
     }
 
@@ -1252,8 +1445,10 @@ mod phase2_analytics_tests {
         ];
 
         for (scenario_name, total_nodes, anomaly_count) in anomaly_scenarios {
-            println!("  Testing {} ({} nodes, {} anomalies)...",
-                   scenario_name, total_nodes, anomaly_count);
+            println!(
+                "  Testing {} ({} nodes, {} anomalies)...",
+                scenario_name, total_nodes, anomaly_count
+            );
 
             let start_time = Instant::now();
 
@@ -1271,18 +1466,29 @@ mod phase2_analytics_tests {
             let auc_score = 0.87; // Should be >= 0.85
 
             // Check AUC requirement
-            assert!(auc_score >= 0.85,
-                   "AUC {:.3} should be >= 0.85 for {}", auc_score, scenario_name);
+            assert!(
+                auc_score >= 0.85,
+                "AUC {:.3} should be >= 0.85 for {}",
+                auc_score,
+                scenario_name
+            );
 
             // Check latency requirement (< 100ms for 100k nodes)
             let nodes_per_ms = total_nodes as f32 / detection_time.as_millis() as f32;
             if total_nodes >= 100000 {
-                assert!(nodes_per_ms >= 1000.0,
-                       "Should process >= 1000 nodes/ms for large graphs, got {:.1}", nodes_per_ms);
+                assert!(
+                    nodes_per_ms >= 1000.0,
+                    "Should process >= 1000 nodes/ms for large graphs, got {:.1}",
+                    nodes_per_ms
+                );
             }
 
-            println!("    ✓ {} - AUC: {:.3}, latency: {:.1}ms",
-                   scenario_name, auc_score, detection_time.as_millis());
+            println!(
+                "    ✓ {} - AUC: {:.3}, latency: {:.1}ms",
+                scenario_name,
+                auc_score,
+                detection_time.as_millis()
+            );
         }
     }
 
@@ -1304,14 +1510,19 @@ mod phase2_analytics_tests {
 
         // Verify deterministic behavior
         for i in 1..results.len() {
-            assert_eq!(results[0], results[i],
-                      "Run {} should match run 0 with same seed", i);
+            assert_eq!(
+                results[0], results[i],
+                "Run {} should match run 0 with same seed",
+                i
+            );
         }
 
         // Test different seed produces different result
         let different_seed_result = vec![1, 0, 1, 0]; // Mock different result
-        assert_ne!(results[0], different_seed_result,
-                  "Different seeds should produce different results");
+        assert_ne!(
+            results[0], different_seed_result,
+            "Different seeds should produce different results"
+        );
 
         println!("✓ Deterministic seeding verified - same seed gives identical results");
         println!("✓ Different seeds produce different clustering results");
@@ -1348,11 +1559,18 @@ mod enhanced_safety_tests {
             if has_nan || has_inf {
                 // Should trigger safety protocol
                 let safety_triggered = true;
-                assert!(safety_triggered, "Safety protocol should trigger for {}", test_name);
+                assert!(
+                    safety_triggered,
+                    "Safety protocol should trigger for {}",
+                    test_name
+                );
 
                 // Should not crash or propagate invalid values
                 let sanitized_value = if value.is_finite() { value } else { 0.0 };
-                assert!(sanitized_value.is_finite(), "Should sanitize invalid values");
+                assert!(
+                    sanitized_value.is_finite(),
+                    "Should sanitize invalid values"
+                );
             }
 
             println!("    ✓ {} detected and handled", test_name);
@@ -1364,9 +1582,9 @@ mod enhanced_safety_tests {
         println!("💾 Testing OOM handling scenarios...");
 
         let memory_scenarios = vec![
-            ("gradual_increase", 1000, 10000),    // Growing allocation
-            ("large_allocation", 1000000, 0),     // Single large allocation
-            ("fragmentation", 100, 1000),         // Many small allocations
+            ("gradual_increase", 1000, 10000), // Growing allocation
+            ("large_allocation", 1000000, 0),  // Single large allocation
+            ("fragmentation", 100, 1000),      // Many small allocations
         ];
 
         for (scenario_name, base_size, increment) in memory_scenarios {
@@ -1382,17 +1600,30 @@ mod enhanced_safety_tests {
             if total_allocated + allocation_size > memory_limit {
                 // Should trigger OOM handling
                 let oom_handled = true;
-                assert!(oom_handled, "OOM should be handled gracefully for {}", scenario_name);
+                assert!(
+                    oom_handled,
+                    "OOM should be handled gracefully for {}",
+                    scenario_name
+                );
 
                 // Should provide clear error message
-                let error_message = format!("Memory allocation failed: requested {} bytes, available {}",
-                                           allocation_size, memory_limit - total_allocated);
-                assert!(!error_message.is_empty(), "Should provide clear error message");
+                let error_message = format!(
+                    "Memory allocation failed: requested {} bytes, available {}",
+                    allocation_size,
+                    memory_limit - total_allocated
+                );
+                assert!(
+                    !error_message.is_empty(),
+                    "Should provide clear error message"
+                );
 
                 println!("    ✓ {} - OOM handled: {}", scenario_name, error_message);
             } else {
                 total_allocated += allocation_size;
-                println!("    ✓ {} - Allocation succeeded: {} bytes", scenario_name, allocation_size);
+                println!(
+                    "    ✓ {} - Allocation succeeded: {} bytes",
+                    scenario_name, allocation_size
+                );
             }
         }
     }
@@ -1462,12 +1693,18 @@ mod enhanced_safety_tests {
         let final_count = *execution_count.lock().unwrap();
         let expected_count = num_threads * operations_per_thread;
 
-        assert_eq!(final_count, expected_count,
-                  "Final count {} should equal expected {}", final_count, expected_count);
+        assert_eq!(
+            final_count, expected_count,
+            "Final count {} should equal expected {}",
+            final_count, expected_count
+        );
 
         assert!(all_successful, "All concurrent operations should succeed");
 
-        println!("✓ {} concurrent operations completed successfully", final_count);
+        println!(
+            "✓ {} concurrent operations completed successfully",
+            final_count
+        );
     }
 }
 
@@ -1489,7 +1726,11 @@ mod performance_tests {
         let elapsed = start.elapsed();
 
         // Should complete in reasonable time (< 100ms for 10k validations)
-        assert!(elapsed.as_millis() < 100, "Validation too slow: {:?}", elapsed);
+        assert!(
+            elapsed.as_millis() < 100,
+            "Validation too slow: {:?}",
+            elapsed
+        );
     }
 
     #[test]
@@ -1511,7 +1752,11 @@ mod performance_tests {
         let elapsed = start.elapsed();
 
         // Should complete in reasonable time
-        assert!(elapsed.as_millis() < 1000, "Access checking too slow: {:?}", elapsed);
+        assert!(
+            elapsed.as_millis() < 1000,
+            "Access checking too slow: {:?}",
+            elapsed
+        );
 
         // Cleanup
         for i in 0..1000 {
@@ -1553,13 +1798,20 @@ mod performance_tests {
             &mut positions,
             &mut velocities,
             &edges,
-            0.1, 0.1, 0.9, 0.01
+            0.1,
+            0.1,
+            0.9,
+            0.01,
         );
         let elapsed = start.elapsed();
 
         assert!(result.is_ok());
 
         // Should complete in reasonable time (< 1s for 1000 nodes, 5000 edges)
-        assert!(elapsed.as_secs() < 1, "CPU fallback too slow: {:?}", elapsed);
+        assert!(
+            elapsed.as_secs() < 1,
+            "CPU fallback too slow: {:?}",
+            elapsed
+        );
     }
 }

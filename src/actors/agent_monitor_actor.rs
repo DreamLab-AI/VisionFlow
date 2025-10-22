@@ -9,19 +9,20 @@
 //! This actor only monitors and displays running agents.
 
 use actix::prelude::*;
-use std::time::Duration;
-use log::{info, error, debug, warn};
+use chrono::{DateTime, Utc};
+use log::{debug, error, info, warn};
 use std::collections::HashMap;
-use chrono::{Utc, DateTime};
+use std::time::Duration;
 
-use crate::types::claude_flow::{ClaudeFlowClient, AgentStatus, AgentProfile, AgentType, PerformanceMetrics, TokenUsage};
 use crate::actors::messages::*;
 use crate::services::management_api_client::{ManagementApiClient, TaskInfo};
+use crate::types::claude_flow::{
+    AgentProfile, AgentStatus, AgentType, ClaudeFlowClient, PerformanceMetrics, TokenUsage,
+};
 
 /// Convert Management API TaskInfo to AgentStatus for graph visualization
 fn task_to_agent_status(task: TaskInfo) -> AgentStatus {
     use chrono::TimeZone;
-    use glam::Vec3;
 
     // Map agent type string to AgentType enum
     let agent_type_enum = match task.agent.as_str() {
@@ -34,7 +35,8 @@ fn task_to_agent_status(task: TaskInfo) -> AgentStatus {
     };
 
     // Create timestamp
-    let timestamp = chrono::Utc.timestamp_millis_opt(task.start_time as i64)
+    let timestamp = chrono::Utc
+        .timestamp_millis_opt(task.start_time as i64)
         .single()
         .unwrap_or_else(|| chrono::Utc::now());
 
@@ -111,7 +113,12 @@ pub struct AgentMonitorActor {
 }
 
 impl AgentMonitorActor {
-    pub fn new(client: ClaudeFlowClient, graph_service_addr: Addr<crate::actors::graph_service_supervisor::TransitionalGraphSupervisor>) -> Self {
+    pub fn new(
+        client: ClaudeFlowClient,
+        graph_service_addr: Addr<
+            crate::actors::graph_service_supervisor::TransitionalGraphSupervisor,
+        >,
+    ) -> Self {
         info!("[AgentMonitorActor] Initializing with Management API monitoring");
 
         // Create Management API client
@@ -140,32 +147,37 @@ impl AgentMonitorActor {
     }
 
     /// Poll agent statuses from Management API
-fn poll_agent_statuses(&mut self, ctx: &mut Context<Self>) {
-    debug!("[AgentMonitorActor] Polling active tasks from Management API");
+    fn poll_agent_statuses(&mut self, ctx: &mut Context<Self>) {
+        debug!("[AgentMonitorActor] Polling active tasks from Management API");
 
-    let api_client = self.management_api_client.clone();
-    let ctx_addr = ctx.address();
+        let api_client = self.management_api_client.clone();
+        let ctx_addr = ctx.address();
 
-    tokio::spawn(async move {
-        match api_client.list_tasks().await {
-            Ok(task_list) => {
-                let active_count = task_list.active_tasks.len();
-                debug!("[AgentMonitorActor] Retrieved {} active tasks from Management API", active_count);
+        tokio::spawn(async move {
+            match api_client.list_tasks().await {
+                Ok(task_list) => {
+                    let active_count = task_list.active_tasks.len();
+                    debug!(
+                        "[AgentMonitorActor] Retrieved {} active tasks from Management API",
+                        active_count
+                    );
 
-                // Convert tasks to agent statuses
-                let agents: Vec<AgentStatus> = task_list.active_tasks.into_iter().map(|task| {
-                    task_to_agent_status(task)
-                }).collect();
+                    // Convert tasks to agent statuses
+                    let agents: Vec<AgentStatus> = task_list
+                        .active_tasks
+                        .into_iter()
+                        .map(|task| task_to_agent_status(task))
+                        .collect();
 
-                ctx_addr.do_send(ProcessAgentStatuses { agents });
+                    ctx_addr.do_send(ProcessAgentStatuses { agents });
+                }
+                Err(e) => {
+                    error!("[AgentMonitorActor] Management API query failed: {}", e);
+                    ctx_addr.do_send(RecordPollFailure);
+                }
             }
-            Err(e) => {
-                error!("[AgentMonitorActor] Management API query failed: {}", e);
-                ctx_addr.do_send(RecordPollFailure);
-            }
-        }
-    });
-}
+        });
+    }
 }
 
 /// Message to process agent statuses from MCP
@@ -200,11 +212,16 @@ impl Handler<ProcessAgentStatuses> for AgentMonitorActor {
     type Result = ();
 
     fn handle(&mut self, msg: ProcessAgentStatuses, _ctx: &mut Self::Context) {
-        info!("[AgentMonitorActor] Processing {} agent statuses from MCP", msg.agents.len());
+        info!(
+            "[AgentMonitorActor] Processing {} agent statuses from MCP",
+            msg.agents.len()
+        );
 
         // Convert AgentStatus to Agent for UpdateBotsGraph
-        let agents: Vec<crate::services::bots_client::Agent> = msg.agents.iter().map(|status| {
-            crate::services::bots_client::Agent {
+        let agents: Vec<crate::services::bots_client::Agent> = msg
+            .agents
+            .iter()
+            .map(|status| crate::services::bots_client::Agent {
                 id: status.agent_id.clone(),
                 name: status.profile.name.clone(),
                 agent_type: format!("{:?}", status.profile.agent_type).to_lowercase(),
@@ -217,13 +234,18 @@ impl Handler<ProcessAgentStatuses> for AgentMonitorActor {
                 health: status.health,
                 workload: status.activity,
                 created_at: Some(status.timestamp.to_rfc3339()),
-                age: Some((chrono::Utc::now().timestamp() - status.timestamp.timestamp()) as u64 * 1000),
-            }
-        }).collect();
+                age: Some(
+                    (chrono::Utc::now().timestamp() - status.timestamp.timestamp()) as u64 * 1000,
+                ),
+            })
+            .collect();
 
         // Send graph update
         let message = UpdateBotsGraph { agents };
-        info!("[AgentMonitorActor] Sending graph update with {} agents", msg.agents.len());
+        info!(
+            "[AgentMonitorActor] Sending graph update with {} agents",
+            msg.agents.len()
+        );
         self.graph_service_addr.do_send(message);
 
         // Update cache
@@ -245,8 +267,10 @@ impl Handler<RecordPollFailure> for AgentMonitorActor {
 
     fn handle(&mut self, _: RecordPollFailure, _ctx: &mut Self::Context) {
         self.consecutive_poll_failures += 1;
-        warn!("[AgentMonitorActor] Poll failure recorded - {} consecutive failures",
-              self.consecutive_poll_failures);
+        warn!(
+            "[AgentMonitorActor] Poll failure recorded - {} consecutive failures",
+            self.consecutive_poll_failures
+        );
     }
 }
 
@@ -254,13 +278,19 @@ impl Handler<UpdateAgentCache> for AgentMonitorActor {
     type Result = ();
 
     fn handle(&mut self, msg: UpdateAgentCache, _ctx: &mut Self::Context) {
-        debug!("[AgentMonitorActor] Updating agent cache with {} agents", msg.agents.len());
+        debug!(
+            "[AgentMonitorActor] Updating agent cache with {} agents",
+            msg.agents.len()
+        );
 
         self.agent_cache.clear();
         for agent in msg.agents {
             self.agent_cache.insert(agent.agent_id.clone(), agent);
         }
 
-        debug!("[AgentMonitorActor] Agent cache updated: {} agents", self.agent_cache.len());
+        debug!(
+            "[AgentMonitorActor] Agent cache updated: {} agents",
+            self.agent_cache.len()
+        );
     }
 }

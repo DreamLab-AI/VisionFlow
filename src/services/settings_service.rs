@@ -8,13 +8,13 @@
 //! - Broadcasts change notifications to listeners
 //! - Uses camelCase format (database handles snake_case fallback)
 
+use log::{debug, error, info};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use log::{debug, error, info};
 
-use crate::services::database_service::{DatabaseService, SettingValue};
 use crate::config::{AppFullSettings, PhysicsSettings};
+use crate::services::database_service::{DatabaseService, SettingValue};
 
 #[derive(Clone)]
 pub struct SettingsService {
@@ -56,7 +56,8 @@ impl SettingsService {
         {
             let cache = self.cache.read().await;
             if let Some(cached) = cache.settings.get(key) {
-                if cached.timestamp.elapsed().as_secs() < 300 { // 5 min TTL
+                if cached.timestamp.elapsed().as_secs() < 300 {
+                    // 5 min TTL
                     debug!("Cache hit for setting: {}", key);
                     return Ok(Some(cached.value.clone()));
                 }
@@ -68,10 +69,13 @@ impl SettingsService {
             Ok(Some(value)) => {
                 // Update cache
                 let mut cache = self.cache.write().await;
-                cache.settings.insert(key.to_string(), CachedSetting {
-                    value: value.clone(),
-                    timestamp: std::time::Instant::now(),
-                });
+                cache.settings.insert(
+                    key.to_string(),
+                    CachedSetting {
+                        value: value.clone(),
+                        timestamp: std::time::Instant::now(),
+                    },
+                );
                 Ok(Some(value))
             }
             Ok(None) => Ok(None),
@@ -83,13 +87,10 @@ impl SettingsService {
     }
 
     /// Set setting value
-    pub async fn set_setting(
-        &self,
-        key: &str,
-        value: SettingValue,
-    ) -> Result<(), String> {
+    pub async fn set_setting(&self, key: &str, value: SettingValue) -> Result<(), String> {
         // Store in database (camelCase format)
-        self.db.set_setting(key, value.clone(), None)
+        self.db
+            .set_setting(key, value.clone(), None)
             .map_err(|e| format!("Database error: {}", e))?;
 
         // Invalidate cache
@@ -105,7 +106,10 @@ impl SettingsService {
     }
 
     /// Get batch of settings by keys
-    pub async fn get_settings_batch(&self, keys: &[String]) -> Result<HashMap<String, SettingValue>, String> {
+    pub async fn get_settings_batch(
+        &self,
+        keys: &[String],
+    ) -> Result<HashMap<String, SettingValue>, String> {
         let mut results = HashMap::new();
 
         for key in keys {
@@ -118,7 +122,10 @@ impl SettingsService {
     }
 
     /// Set batch of settings atomically
-    pub async fn set_settings_batch(&self, updates: HashMap<String, SettingValue>) -> Result<(), String> {
+    pub async fn set_settings_batch(
+        &self,
+        updates: HashMap<String, SettingValue>,
+    ) -> Result<(), String> {
         for (key, value) in updates {
             self.set_setting(&key, value).await?;
         }
@@ -128,7 +135,8 @@ impl SettingsService {
 
     /// Load complete settings from database
     pub fn load_all_settings(&self) -> Result<Option<AppFullSettings>, String> {
-        self.db.load_all_settings()
+        self.db
+            .load_all_settings()
             .map_err(|e| format!("Database error: {}", e))
     }
 
@@ -136,22 +144,29 @@ impl SettingsService {
     /// IMPORTANT: This preserves separate graph configurations (logseq, visionflow)
     /// DO NOT conflate graphs - each maintains its own settings
     pub fn save_all_settings(&self, settings: &AppFullSettings) -> Result<(), String> {
-        self.db.save_all_settings(settings)
+        self.db
+            .save_all_settings(settings)
             .map_err(|e| format!("Database error: {}", e))
     }
 
     /// Get physics settings for a specific graph profile
     /// CRITICAL: Maintains separation between logseq and visionflow physics
     pub fn get_physics_settings(&self, graph_name: &str) -> Result<PhysicsSettings, String> {
-        self.db.get_physics_settings(graph_name)
+        self.db
+            .get_physics_settings(graph_name)
             .map_err(|e| format!("Database error: {}", e))
     }
 
     /// Save physics settings for a specific graph profile
     /// CRITICAL: Ensures graph-specific physics settings don't leak across graphs
-    pub fn save_physics_settings(&self, graph_name: &str, settings: &PhysicsSettings) -> Result<(), String> {
+    pub fn save_physics_settings(
+        &self,
+        graph_name: &str,
+        settings: &PhysicsSettings,
+    ) -> Result<(), String> {
         info!("Saving physics settings for graph: {}", graph_name);
-        self.db.save_physics_settings(graph_name, settings)
+        self.db
+            .save_physics_settings(graph_name, settings)
             .map_err(|e| format!("Database error: {}", e))
     }
 

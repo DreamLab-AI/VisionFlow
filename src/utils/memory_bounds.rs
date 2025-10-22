@@ -1,11 +1,11 @@
 //! Memory Bounds Checking Utilities
-//! 
+//!
 //! Provides comprehensive memory bounds checking and validation for GPU operations.
 //! Includes overflow protection, alignment validation, and safe memory access patterns.
 
+use log::{debug, error};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use log::{debug, error};
 
 /// Memory bounds descriptor for tracking allocations
 #[derive(Debug, Clone)]
@@ -21,8 +21,12 @@ pub struct MemoryBounds {
 
 impl MemoryBounds {
     pub fn new(name: String, size: usize, element_size: usize, alignment: usize) -> Self {
-        let element_count = if element_size > 0 { size / element_size } else { 0 };
-        
+        let element_count = if element_size > 0 {
+            size / element_size
+        } else {
+            0
+        };
+
         Self {
             base_address: 0, // Will be set when allocated
             size,
@@ -68,7 +72,7 @@ impl MemoryBounds {
         if start_element >= self.element_count {
             return false;
         }
-        
+
         start_element.saturating_add(element_count) <= self.element_count
     }
 
@@ -82,26 +86,45 @@ impl MemoryBounds {
 #[derive(Debug, thiserror::Error)]
 pub enum MemoryBoundsError {
     #[error("Element index {index} out of bounds for buffer '{name}' (size: {size} elements)")]
-    ElementOutOfBounds { index: usize, size: usize, name: String },
-    
+    ElementOutOfBounds {
+        index: usize,
+        size: usize,
+        name: String,
+    },
+
     #[error("Byte offset {offset} out of bounds for buffer '{name}' (size: {size} bytes)")]
-    ByteOutOfBounds { offset: usize, size: usize, name: String },
-    
-    #[error("Memory range [{start}..{end}] out of bounds for buffer '{name}' (size: {size} elements)")]
-    RangeOutOfBounds { start: usize, end: usize, size: usize, name: String },
-    
+    ByteOutOfBounds {
+        offset: usize,
+        size: usize,
+        name: String,
+    },
+
+    #[error(
+        "Memory range [{start}..{end}] out of bounds for buffer '{name}' (size: {size} elements)"
+    )]
+    RangeOutOfBounds {
+        start: usize,
+        end: usize,
+        size: usize,
+        name: String,
+    },
+
     #[error("Unaligned memory access at address {address:#x} for buffer '{name}' (required alignment: {alignment})")]
-    UnalignedAccess { address: usize, alignment: usize, name: String },
-    
+    UnalignedAccess {
+        address: usize,
+        alignment: usize,
+        name: String,
+    },
+
     #[error("Attempt to write to readonly buffer '{name}'")]
     WriteToReadonly { name: String },
-    
+
     #[error("Buffer '{name}' not found in bounds registry")]
     BufferNotFound { name: String },
-    
+
     #[error("Integer overflow in bounds calculation for buffer '{name}': {operation}")]
     IntegerOverflow { name: String, operation: String },
-    
+
     #[error("Invalid element size {element_size} for buffer '{name}' (must be > 0)")]
     InvalidElementSize { element_size: usize, name: String },
 }
@@ -129,8 +152,10 @@ impl MemoryBoundsRegistry {
         if self.total_allocated.saturating_add(bounds.size) > self.max_allocation_size {
             return Err(MemoryBoundsError::IntegerOverflow {
                 name: bounds.name.clone(),
-                operation: format!("total allocation {} + {} > {}", 
-                                 self.total_allocated, bounds.size, self.max_allocation_size),
+                operation: format!(
+                    "total allocation {} + {} > {}",
+                    self.total_allocated, bounds.size, self.max_allocation_size
+                ),
             });
         }
 
@@ -143,9 +168,11 @@ impl MemoryBoundsRegistry {
         }
 
         self.total_allocated += bounds.size;
-        debug!("Registered memory allocation: {} ({} bytes, {} elements)", 
-               bounds.name, bounds.size, bounds.element_count);
-        
+        debug!(
+            "Registered memory allocation: {} ({} bytes, {} elements)",
+            bounds.name, bounds.size, bounds.element_count
+        );
+
         self.bounds.insert(bounds.name.clone(), bounds);
         Ok(())
     }
@@ -154,22 +181,34 @@ impl MemoryBoundsRegistry {
     pub fn unregister_allocation(&mut self, name: &str) -> Result<(), MemoryBoundsError> {
         if let Some(bounds) = self.bounds.remove(name) {
             self.total_allocated = self.total_allocated.saturating_sub(bounds.size);
-            debug!("Unregistered memory allocation: {} ({} bytes)", name, bounds.size);
+            debug!(
+                "Unregistered memory allocation: {} ({} bytes)",
+                name, bounds.size
+            );
             Ok(())
         } else {
-            Err(MemoryBoundsError::BufferNotFound { name: name.to_string() })
+            Err(MemoryBoundsError::BufferNotFound {
+                name: name.to_string(),
+            })
         }
     }
 
     /// Get bounds for a buffer
     pub fn get_bounds(&self, name: &str) -> Result<&MemoryBounds, MemoryBoundsError> {
-        self.bounds.get(name).ok_or_else(|| MemoryBoundsError::BufferNotFound {
-            name: name.to_string()
-        })
+        self.bounds
+            .get(name)
+            .ok_or_else(|| MemoryBoundsError::BufferNotFound {
+                name: name.to_string(),
+            })
     }
 
     /// Check element access bounds
-    pub fn check_element_access(&self, buffer_name: &str, element_index: usize, is_write: bool) -> Result<(), MemoryBoundsError> {
+    pub fn check_element_access(
+        &self,
+        buffer_name: &str,
+        element_index: usize,
+        is_write: bool,
+    ) -> Result<(), MemoryBoundsError> {
         let bounds = self.get_bounds(buffer_name)?;
 
         if is_write && bounds.is_readonly {
@@ -190,7 +229,12 @@ impl MemoryBoundsRegistry {
     }
 
     /// Check byte access bounds
-    pub fn check_byte_access(&self, buffer_name: &str, byte_offset: usize, is_write: bool) -> Result<(), MemoryBoundsError> {
+    pub fn check_byte_access(
+        &self,
+        buffer_name: &str,
+        byte_offset: usize,
+        is_write: bool,
+    ) -> Result<(), MemoryBoundsError> {
         let bounds = self.get_bounds(buffer_name)?;
 
         if is_write && bounds.is_readonly {
@@ -211,7 +255,13 @@ impl MemoryBoundsRegistry {
     }
 
     /// Check range access bounds
-    pub fn check_range_access(&self, buffer_name: &str, start_element: usize, element_count: usize, is_write: bool) -> Result<(), MemoryBoundsError> {
+    pub fn check_range_access(
+        &self,
+        buffer_name: &str,
+        start_element: usize,
+        element_count: usize,
+        is_write: bool,
+    ) -> Result<(), MemoryBoundsError> {
         let bounds = self.get_bounds(buffer_name)?;
 
         if is_write && bounds.is_readonly {
@@ -234,7 +284,11 @@ impl MemoryBoundsRegistry {
     }
 
     /// Check memory alignment
-    pub fn check_alignment(&self, buffer_name: &str, address: usize) -> Result<(), MemoryBoundsError> {
+    pub fn check_alignment(
+        &self,
+        buffer_name: &str,
+        address: usize,
+    ) -> Result<(), MemoryBoundsError> {
         let bounds = self.get_bounds(buffer_name)?;
 
         if !bounds.is_properly_aligned(address) {
@@ -265,7 +319,7 @@ impl MemoryBoundsRegistry {
 
         for bounds in self.bounds.values() {
             largest_allocation = largest_allocation.max(bounds.size);
-            
+
             let buffer_type = if bounds.name.contains("node") {
                 "nodes"
             } else if bounds.name.contains("edge") {
@@ -275,7 +329,7 @@ impl MemoryBoundsRegistry {
             } else {
                 "other"
             };
-            
+
             *buffer_types.entry(buffer_type.to_string()).or_insert(0) += bounds.size;
         }
 
@@ -311,21 +365,33 @@ impl MemoryUsageReport {
     pub fn format_report(&self) -> String {
         let mut report = String::new();
         report.push_str(&format!("Memory Usage Report:\n"));
-        report.push_str(&format!("  Total Allocated: {} bytes ({:.1}% of limit)\n", 
-                                self.total_allocated, self.usage_percentage()));
-        report.push_str(&format!("  Active Allocations: {}\n", self.allocation_count));
-        report.push_str(&format!("  Largest Allocation: {} bytes\n", self.largest_allocation));
+        report.push_str(&format!(
+            "  Total Allocated: {} bytes ({:.1}% of limit)\n",
+            self.total_allocated,
+            self.usage_percentage()
+        ));
+        report.push_str(&format!(
+            "  Active Allocations: {}\n",
+            self.allocation_count
+        ));
+        report.push_str(&format!(
+            "  Largest Allocation: {} bytes\n",
+            self.largest_allocation
+        ));
         report.push_str("  By Buffer Type:\n");
-        
+
         for (buffer_type, size) in &self.buffer_types {
             let percentage = if self.total_allocated > 0 {
                 (*size as f64 / self.total_allocated as f64) * 100.0
             } else {
                 0.0
             };
-            report.push_str(&format!("    {}: {} bytes ({:.1}%)\n", buffer_type, size, percentage));
+            report.push_str(&format!(
+                "    {}: {} bytes ({:.1}%)\n",
+                buffer_type, size, percentage
+            ));
         }
-        
+
         report
     }
 }
@@ -343,7 +409,8 @@ impl ThreadSafeMemoryBoundsChecker {
     }
 
     pub fn register_allocation(&self, bounds: MemoryBounds) -> Result<(), MemoryBoundsError> {
-        self.registry.lock()
+        self.registry
+            .lock()
             .map_err(|_| MemoryBoundsError::IntegerOverflow {
                 name: bounds.name.clone(),
                 operation: "failed to acquire registry lock".to_string(),
@@ -352,23 +419,37 @@ impl ThreadSafeMemoryBoundsChecker {
     }
 
     pub fn unregister_allocation(&self, name: &str) -> Result<(), MemoryBoundsError> {
-        self.registry.lock()
+        self.registry
+            .lock()
             .map_err(|_| MemoryBoundsError::BufferNotFound {
                 name: name.to_string(),
             })?
             .unregister_allocation(name)
     }
 
-    pub fn check_element_access(&self, buffer_name: &str, element_index: usize, is_write: bool) -> Result<(), MemoryBoundsError> {
-        self.registry.lock()
+    pub fn check_element_access(
+        &self,
+        buffer_name: &str,
+        element_index: usize,
+        is_write: bool,
+    ) -> Result<(), MemoryBoundsError> {
+        self.registry
+            .lock()
             .map_err(|_| MemoryBoundsError::BufferNotFound {
                 name: buffer_name.to_string(),
             })?
             .check_element_access(buffer_name, element_index, is_write)
     }
 
-    pub fn check_range_access(&self, buffer_name: &str, start_element: usize, element_count: usize, is_write: bool) -> Result<(), MemoryBoundsError> {
-        self.registry.lock()
+    pub fn check_range_access(
+        &self,
+        buffer_name: &str,
+        start_element: usize,
+        element_count: usize,
+        is_write: bool,
+    ) -> Result<(), MemoryBoundsError> {
+        self.registry
+            .lock()
             .map_err(|_| MemoryBoundsError::BufferNotFound {
                 name: buffer_name.to_string(),
             })?
@@ -376,7 +457,10 @@ impl ThreadSafeMemoryBoundsChecker {
     }
 
     pub fn get_usage_report(&self) -> Option<MemoryUsageReport> {
-        self.registry.lock().ok().map(|registry| registry.get_usage_report())
+        self.registry
+            .lock()
+            .ok()
+            .map(|registry| registry.get_usage_report())
     }
 }
 
@@ -406,11 +490,13 @@ impl<T: Clone> SafeArrayAccess<T> {
             checker.check_element_access(&self.buffer_name, index, false)?;
         }
 
-        self.data.get(index).ok_or_else(|| MemoryBoundsError::ElementOutOfBounds {
-            index,
-            size: self.data.len(),
-            name: self.buffer_name.clone(),
-        })
+        self.data
+            .get(index)
+            .ok_or_else(|| MemoryBoundsError::ElementOutOfBounds {
+                index,
+                size: self.data.len(),
+                name: self.buffer_name.clone(),
+            })
     }
 
     pub fn get_mut(&mut self, index: usize) -> Result<&mut T, MemoryBoundsError> {
@@ -419,11 +505,13 @@ impl<T: Clone> SafeArrayAccess<T> {
         }
 
         let len = self.data.len();
-        self.data.get_mut(index).ok_or_else(|| MemoryBoundsError::ElementOutOfBounds {
-            index,
-            size: len,
-            name: self.buffer_name.clone(),
-        })
+        self.data
+            .get_mut(index)
+            .ok_or_else(|| MemoryBoundsError::ElementOutOfBounds {
+                index,
+                size: len,
+                name: self.buffer_name.clone(),
+            })
     }
 
     pub fn slice(&self, start: usize, count: usize) -> Result<&[T], MemoryBoundsError> {
@@ -460,15 +548,15 @@ mod tests {
     #[test]
     fn test_memory_bounds_validation() {
         let bounds = MemoryBounds::new("test_buffer".to_string(), 1000, 4, 4);
-        
+
         assert!(bounds.is_element_in_bounds(0));
         assert!(bounds.is_element_in_bounds(249)); // 1000/4 - 1
         assert!(!bounds.is_element_in_bounds(250));
-        
+
         assert!(bounds.is_byte_in_bounds(0));
         assert!(bounds.is_byte_in_bounds(999));
         assert!(!bounds.is_byte_in_bounds(1000));
-        
+
         assert!(bounds.is_range_valid(0, 100));
         assert!(bounds.is_range_valid(200, 50));
         assert!(!bounds.is_range_valid(200, 100)); // Would exceed bounds
@@ -477,13 +565,13 @@ mod tests {
     #[test]
     fn test_bounds_registry() {
         let mut registry = MemoryBoundsRegistry::new(10000);
-        
+
         let bounds = MemoryBounds::new("test".to_string(), 1000, 4, 4);
         assert!(registry.register_allocation(bounds).is_ok());
-        
+
         assert!(registry.check_element_access("test", 100, false).is_ok());
         assert!(registry.check_element_access("test", 300, false).is_err());
-        
+
         assert!(registry.unregister_allocation("test").is_ok());
         assert!(registry.check_element_access("test", 100, false).is_err());
     }
@@ -492,24 +580,24 @@ mod tests {
     fn test_safe_array_access() {
         let data = vec![1, 2, 3, 4, 5];
         let mut safe_array = SafeArrayAccess::new(data, "test_array".to_string());
-        
+
         assert_eq!(*safe_array.get(0).unwrap(), 1);
         assert_eq!(*safe_array.get(4).unwrap(), 5);
         assert!(safe_array.get(5).is_err());
-        
+
         *safe_array.get_mut(0).unwrap() = 10;
         assert_eq!(*safe_array.get(0).unwrap(), 10);
-        
+
         let slice = safe_array.slice(1, 3).unwrap();
         assert_eq!(slice, &[2, 3, 4]);
-        
+
         assert!(safe_array.slice(3, 5).is_err()); // Would exceed bounds
     }
 
     #[test]
     fn test_alignment_checking() {
         let bounds = MemoryBounds::new("aligned_buffer".to_string(), 1000, 4, 16);
-        
+
         assert!(bounds.is_properly_aligned(0));
         assert!(bounds.is_properly_aligned(16));
         assert!(bounds.is_properly_aligned(32));

@@ -38,12 +38,12 @@
 //! let constraint_set = translator.apply_ontology_constraints(&graph, &reasoning_report)?;
 //! ```
 
-use std::collections::{HashMap, HashSet};
-use log::{info, debug, trace, warn};
+use log::{debug, info, trace, warn};
 use serde::{Deserialize, Serialize};
+use std::collections::{HashMap, HashSet};
 
 use crate::models::{
-    constraints::{Constraint, ConstraintSet, ConstraintKind},
+    constraints::{Constraint, ConstraintKind, ConstraintSet},
     graph::GraphData,
     node::Node,
 };
@@ -177,10 +177,14 @@ impl OntologyConstraintTranslator {
         axioms: &[OWLAxiom],
         nodes: &[Node],
     ) -> Result<Vec<Constraint>, Box<dyn std::error::Error>> {
-        info!("Converting {} OWL axioms to physics constraints", axioms.len());
+        info!(
+            "Converting {} OWL axioms to physics constraints",
+            axioms.len()
+        );
 
         // Build node lookup maps
-        let node_by_id: HashMap<String, &Node> = nodes.iter()
+        let node_by_id: HashMap<String, &Node> = nodes
+            .iter()
             .map(|node| (node.metadata_id.clone(), node))
             .collect();
 
@@ -201,7 +205,11 @@ impl OntologyConstraintTranslator {
             }
         }
 
-        info!("Generated {} constraints from {} axioms", constraints.len(), axioms.len());
+        info!(
+            "Generated {} constraints from {} axioms",
+            constraints.len(),
+            axioms.len()
+        );
         Ok(constraints)
     }
 
@@ -211,7 +219,10 @@ impl OntologyConstraintTranslator {
         inferences: &[OntologyInference],
         graph: &GraphData,
     ) -> Result<Vec<Constraint>, Box<dyn std::error::Error>> {
-        info!("Converting {} ontology inferences to constraints", inferences.len());
+        info!(
+            "Converting {} ontology inferences to constraints",
+            inferences.len()
+        );
 
         let mut constraints = Vec::new();
 
@@ -219,10 +230,8 @@ impl OntologyConstraintTranslator {
         let mut inference_constraints = Vec::new();
 
         for inference in inferences {
-            let mut single_inference_constraints = self.axioms_to_constraints(
-                &[inference.inferred_axiom.clone()],
-                &graph.nodes,
-            )?;
+            let mut single_inference_constraints =
+                self.axioms_to_constraints(&[inference.inferred_axiom.clone()], &graph.nodes)?;
 
             // Adjust constraint weights based on inference confidence
             for constraint in &mut single_inference_constraints {
@@ -236,7 +245,11 @@ impl OntologyConstraintTranslator {
             constraints.append(&mut batch);
         }
 
-        info!("Generated {} constraints from {} inferences", constraints.len(), inferences.len());
+        info!(
+            "Generated {} constraints from {} inferences",
+            constraints.len(),
+            inferences.len()
+        );
         Ok(constraints)
     }
 
@@ -246,22 +259,21 @@ impl OntologyConstraintTranslator {
         graph: &GraphData,
         reasoning_report: &OntologyReasoningReport,
     ) -> Result<ConstraintSet, Box<dyn std::error::Error>> {
-        info!("Applying ontology constraints to graph with {} nodes", graph.nodes.len());
+        info!(
+            "Applying ontology constraints to graph with {} nodes",
+            graph.nodes.len()
+        );
 
         let mut all_constraints = Vec::new();
 
         // Process axioms
-        let mut axiom_constraints = self.axioms_to_constraints(
-            &reasoning_report.axioms,
-            &graph.nodes,
-        )?;
+        let mut axiom_constraints =
+            self.axioms_to_constraints(&reasoning_report.axioms, &graph.nodes)?;
         all_constraints.append(&mut axiom_constraints);
 
         // Process inferences
-        let mut inference_constraints = self.inferences_to_constraints(
-            &reasoning_report.inferences,
-            graph,
-        )?;
+        let mut inference_constraints =
+            self.inferences_to_constraints(&reasoning_report.inferences, graph)?;
         all_constraints.append(&mut inference_constraints);
 
         // Create constraint set with groups
@@ -279,10 +291,15 @@ impl OntologyConstraintTranslator {
                 OntologyConstraintGroup::OntologyBoundaries => "ontology_boundaries",
                 OntologyConstraintGroup::OntologyIdentity => "ontology_identity",
             };
-            constraint_set.groups.insert(group_name.to_string(), indices);
+            constraint_set
+                .groups
+                .insert(group_name.to_string(), indices);
         }
 
-        info!("Applied {} total ontology constraints", constraint_set.constraints.len());
+        info!(
+            "Applied {} total ontology constraints",
+            constraint_set.constraints.len()
+        );
         Ok(constraint_set)
     }
 
@@ -292,9 +309,7 @@ impl OntologyConstraintTranslator {
             OWLAxiomType::DisjointClasses | OWLAxiomType::DifferentFrom => {
                 self.config.disjoint_separation_strength
             }
-            OWLAxiomType::SubClassOf => {
-                self.config.hierarchy_alignment_strength
-            }
+            OWLAxiomType::SubClassOf => self.config.hierarchy_alignment_strength,
             OWLAxiomType::SameAs | OWLAxiomType::EquivalentClasses => {
                 self.config.sameas_colocation_strength
             }
@@ -315,7 +330,9 @@ impl OntologyConstraintTranslator {
     /// Update statistics about cache usage and performance
     pub fn get_cache_stats(&self) -> OntologyConstraintCacheStats {
         let total_entries = self.constraint_cache.len();
-        let total_cached_constraints: usize = self.constraint_cache.values()
+        let total_cached_constraints: usize = self
+            .constraint_cache
+            .values()
             .map(|entry| entry.constraints.len())
             .sum();
 
@@ -394,7 +411,10 @@ impl OntologyConstraintTranslator {
         node_lookup: &HashMap<String, &Node>,
         strength: f32,
     ) -> Result<Vec<Constraint>, Box<dyn std::error::Error>> {
-        let object = axiom.object.as_ref().ok_or("DisjointClasses axiom missing object")?;
+        let object = axiom
+            .object
+            .as_ref()
+            .ok_or("DisjointClasses axiom missing object")?;
 
         // Find all nodes of class A and class B
         let class_a_nodes = self.find_nodes_of_type(&axiom.subject, node_lookup);
@@ -415,8 +435,12 @@ impl OntologyConstraintTranslator {
             }
         }
 
-        debug!("Created {} disjoint class constraints between {} and {} nodes",
-               constraints.len(), class_a_nodes.len(), class_b_nodes.len());
+        debug!(
+            "Created {} disjoint class constraints between {} and {} nodes",
+            constraints.len(),
+            class_a_nodes.len(),
+            class_b_nodes.len()
+        );
 
         Ok(constraints)
     }
@@ -428,7 +452,10 @@ impl OntologyConstraintTranslator {
         node_lookup: &HashMap<String, &Node>,
         strength: f32,
     ) -> Result<Vec<Constraint>, Box<dyn std::error::Error>> {
-        let superclass = axiom.object.as_ref().ok_or("SubClassOf axiom missing superclass")?;
+        let superclass = axiom
+            .object
+            .as_ref()
+            .ok_or("SubClassOf axiom missing superclass")?;
 
         let subclass_nodes = self.find_nodes_of_type(&axiom.subject, node_lookup);
         let superclass_nodes = self.find_nodes_of_type(superclass, node_lookup);
@@ -457,7 +484,10 @@ impl OntologyConstraintTranslator {
             }
         }
 
-        debug!("Created {} subclass alignment constraints", constraints.len());
+        debug!(
+            "Created {} subclass alignment constraints",
+            constraints.len()
+        );
         Ok(constraints)
     }
 
@@ -470,10 +500,9 @@ impl OntologyConstraintTranslator {
     ) -> Result<Vec<Constraint>, Box<dyn std::error::Error>> {
         let object = axiom.object.as_ref().ok_or("SameAs axiom missing object")?;
 
-        if let (Some(&node_a), Some(&node_b)) = (
-            node_lookup.get(&axiom.subject),
-            node_lookup.get(object)
-        ) {
+        if let (Some(&node_a), Some(&node_b)) =
+            (node_lookup.get(&axiom.subject), node_lookup.get(object))
+        {
             // Create a clustering constraint to pull the nodes together
             Ok(vec![Constraint {
                 kind: ConstraintKind::Clustering,
@@ -499,12 +528,14 @@ impl OntologyConstraintTranslator {
         node_lookup: &HashMap<String, &Node>,
         _strength: f32,
     ) -> Result<Vec<Constraint>, Box<dyn std::error::Error>> {
-        let object = axiom.object.as_ref().ok_or("DifferentFrom axiom missing object")?;
+        let object = axiom
+            .object
+            .as_ref()
+            .ok_or("DifferentFrom axiom missing object")?;
 
-        if let (Some(&node_a), Some(&node_b)) = (
-            node_lookup.get(&axiom.subject),
-            node_lookup.get(object)
-        ) {
+        if let (Some(&node_a), Some(&node_b)) =
+            (node_lookup.get(&axiom.subject), node_lookup.get(object))
+        {
             Ok(vec![Constraint::separation(
                 node_a.id,
                 node_b.id,
@@ -528,11 +559,12 @@ impl OntologyConstraintTranslator {
         // For now, create boundary constraints to limit clustering
 
         let property_name = &axiom.subject;
-        let affected_nodes: Vec<&Node> = node_lookup.values()
+        let affected_nodes: Vec<&Node> = node_lookup
+            .values()
             .filter(|node| {
                 // Check if node uses this property
-                node.metadata.contains_key(property_name) ||
-                node.metadata.values().any(|v| v.contains(property_name))
+                node.metadata.contains_key(property_name)
+                    || node.metadata.values().any(|v| v.contains(property_name))
             })
             .cloned()
             .collect();
@@ -554,7 +586,10 @@ impl OntologyConstraintTranslator {
             });
         }
 
-        debug!("Created {} functional property boundary constraints", constraints.len());
+        debug!(
+            "Created {} functional property boundary constraints",
+            constraints.len()
+        );
         Ok(constraints)
     }
 
@@ -579,13 +614,14 @@ impl OntologyConstraintTranslator {
         type_name: &str,
         node_lookup: &HashMap<String, &'a Node>,
     ) -> Vec<&'a Node> {
-        node_lookup.values()
+        node_lookup
+            .values()
             .filter(|node| {
                 // Check various ways a node might indicate its type
-                node.node_type.as_ref().map_or(false, |t| t == type_name) ||
-                node.group.as_ref().map_or(false, |g| g == type_name) ||
-                node.metadata.values().any(|v| v == type_name) ||
-                node.metadata_id.contains(type_name)
+                node.node_type.as_ref().map_or(false, |t| t == type_name)
+                    || node.group.as_ref().map_or(false, |g| g == type_name)
+                    || node.metadata.values().any(|v| v == type_name)
+                    || node.metadata_id.contains(type_name)
             })
             .cloned()
             .collect()
@@ -607,7 +643,10 @@ impl OntologyConstraintTranslator {
     }
 
     /// Group constraints by their ontology category
-    fn group_constraints_by_category(&self, constraints: &[Constraint]) -> HashMap<OntologyConstraintGroup, Vec<usize>> {
+    fn group_constraints_by_category(
+        &self,
+        constraints: &[Constraint],
+    ) -> HashMap<OntologyConstraintGroup, Vec<usize>> {
         let mut groups: HashMap<OntologyConstraintGroup, Vec<usize>> = HashMap::new();
 
         for (idx, constraint) in constraints.iter().enumerate() {
@@ -622,8 +661,10 @@ impl OntologyConstraintTranslator {
             groups.entry(group).or_insert_with(Vec::new).push(idx);
         }
 
-        debug!("Grouped constraints: {:?}",
-               groups.iter().map(|(k, v)| (k, v.len())).collect::<Vec<_>>());
+        debug!(
+            "Grouped constraints: {:?}",
+            groups.iter().map(|(k, v)| (k, v.len())).collect::<Vec<_>>()
+        );
 
         groups
     }
@@ -664,8 +705,8 @@ pub struct OntologyConstraintCacheStats {
 mod tests {
     use super::*;
     use crate::models::node::Node;
-    use crate::utils::socket_flow_messages::BinaryNodeData;
     use crate::types::vec3::Vec3Data;
+    use crate::utils::socket_flow_messages::BinaryNodeData;
 
     fn create_test_node(id: u32, metadata_id: String, node_type: Option<String>) -> Node {
         Node {
@@ -673,9 +714,21 @@ mod tests {
             metadata_id,
             label: format!("Test Node {}", id),
             data: BinaryNodeData {
-                position: Vec3Data { x: 0.0, y: 0.0, z: 0.0 },
-                velocity: Vec3Data { x: 0.0, y: 0.0, z: 0.0 },
-                acceleration: Vec3Data { x: 0.0, y: 0.0, z: 0.0 },
+                position: Vec3Data {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+                velocity: Vec3Data {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
+                acceleration: Vec3Data {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 0.0,
+                },
                 mass: 1.0,
                 radius: 1.0,
             },
@@ -712,7 +765,9 @@ mod tests {
 
         // Should create separation constraints between Animal and Plant instances
         assert!(!constraints.is_empty());
-        assert!(constraints.iter().all(|c| c.kind == ConstraintKind::Separation));
+        assert!(constraints
+            .iter()
+            .all(|c| c.kind == ConstraintKind::Separation));
     }
 
     #[test]

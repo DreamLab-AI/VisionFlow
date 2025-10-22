@@ -8,15 +8,12 @@ import { produce } from 'immer';
 import { toast } from '../features/design-system/components/Toast';
 import { isViewportSetting } from '../features/settings/config/viewportSettings';
 import { settingsApi, BatchOperation } from '../api/settingsApi';
-import { AutoSaveManager } from './autoSaveManager';
 import { nostrAuth } from '../services/nostrAuthService';
+import { autoSaveManager } from './autoSaveManager';
 
 
 
 const logger = createLogger('SettingsStore')
-
-// Create AutoSaveManager instance for debounced batch saving with retry logic
-const autoSaveManager = new AutoSaveManager();
 
 // Helper to wait for authentication to be ready
 async function waitForAuthReady(maxWaitMs: number = 3000): Promise<void> {
@@ -385,8 +382,10 @@ export const useSettingsStore = create<SettingsState>()(
           };
         });
 
-        // Schedule server update (will be batched and debounced)
-        autoSaveManager.queueChange(path, value);
+        // Update server directly via REST API
+        settingsApi.updateSettingByPath(path, value).catch(error => {
+          logger.error(`Failed to update setting ${path}:`, createErrorMetadata(error));
+        });
 
         if (debugState.isEnabled()) {
           logger.info('Setting updated:', { path, value });
@@ -533,14 +532,16 @@ export const useSettingsStore = create<SettingsState>()(
           };
         });
 
-        // Schedule batch updates to server for all changed paths
+        // Update server directly via REST API for all changed paths
         changedPaths.forEach(path => {
           const pathParts = path.split('.');
           let current: any = newSettings;
           for (const part of pathParts) {
             current = current[part];
           }
-          autoSaveManager.queueChange(path, current);
+          settingsApi.updateSettingByPath(path, current).catch(error => {
+            logger.error(`Failed to update setting ${path}:`, createErrorMetadata(error));
+          });
         });
 
         if (debugState.isEnabled()) {
@@ -767,32 +768,33 @@ export const useSettingsStore = create<SettingsState>()(
       
       setByPath: <T>(path: SettingsPath, value: T) => {
         const state = get();
-        
+
         // Update local state immediately for responsive UI
         state.set(path, value);
-        
-        // Schedule server update (will be batched and debounced)
-        autoSaveManager.queueChange(path, value);
+
+        // Update server directly via REST API
+        settingsApi.updateSettingByPath(path, value).catch(error => {
+          logger.error(`Failed to update setting ${path}:`, createErrorMetadata(error));
+        });
       },
       
       batchUpdate: (updates: Array<{path: SettingsPath, value: any}>) => {
         const state = get();
-        
+
         // Update all local state immediately
         updates.forEach(({ path, value }) => {
           state.set(path, value);
         });
-        
-        // Schedule all server updates (will be batched and debounced)
-        const changes = new Map();
-        updates.forEach(({ path, value }) => {
-          changes.set(path, value);
+
+        // Update server directly via REST API batch operation
+        settingsApi.updateSettingsByPaths(updates.map(u => ({ path: u.path, value: u.value }))).catch(error => {
+          logger.error('Failed to batch update settings:', createErrorMetadata(error));
         });
-        autoSaveManager.queueChanges(changes);
       },
       
       flushPendingUpdates: async (): Promise<void> => {
-        await autoSaveManager.forceFlush();
+        // Flush any pending updates in the settings API
+        await settingsApi.flushPendingUpdates();
       },
       
       // Settings management methods using path-based API
@@ -857,11 +859,8 @@ export const useSettingsStore = create<SettingsState>()(
             }
           }
           
-          // Apply all updates using our batch update system
+          // Apply all updates using batch update (goes directly to server)
           get().batchUpdate(updates);
-          
-          // Force immediate flush to server
-          await get().flushPendingUpdates();
           
           logger.info(`Successfully imported ${updates.length} settings using path-based updates`);
         } catch (error) {
@@ -1055,7 +1054,6 @@ function getAllAvailableSettingsPaths(): string[] {
 
 // Export for testing and direct access
 export const settingsStoreUtils = {
-  autoSaveManager,
   getSectionPaths,
   setNestedValue,
   getAllSettingsPaths,

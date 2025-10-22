@@ -5,34 +5,34 @@
 
 use actix::prelude::*;
 use actix::MessageResult;
-use glam::Vec3;
-use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
-use std::time::{Duration, Instant};
-use std::collections::HashMap;
 use log::{debug, info, warn};
+use std::collections::HashMap;
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc,
+};
+use std::time::{Duration, Instant};
 
-use crate::errors::VisionFlowError;
 use crate::actors::messages::PositionSnapshot;
+use crate::errors::VisionFlowError;
 
+#[cfg(feature = "gpu")]
 use crate::actors::gpu::force_compute_actor::ForceComputeActor;
-use crate::actors::gpu::force_compute_actor::{
-    PhysicsStats
-};
-use crate::actors::messages::{
-    InitializeGPU, UpdateGPUGraphData
-};
+#[cfg(feature = "gpu")]
+use crate::actors::gpu::force_compute_actor::PhysicsStats;
+#[cfg(feature = "gpu")]
+use crate::actors::messages::{InitializeGPU, UpdateGPUGraphData};
 // GraphStateActor will be implemented separately - using direct graph data access
-use crate::models::simulation_params::SimulationParams;
-use crate::models::graph::GraphData;
-use crate::utils::socket_flow_messages::BinaryNodeData;
-use crate::models::constraints::ConstraintSet;
 use crate::actors::messages::{
-    StartSimulation, StopSimulation, SimulationStep, UpdateNodePosition,
-    RequestPositionSnapshot, PhysicsPauseMessage, NodeInteractionMessage,
-    ForceResumePhysics, StoreGPUComputeAddress, UpdateSimulationParams,
-    UpdateNodePositions, ApplyOntologyConstraints, ConstraintMergeMode,
-    SetConstraintGroupActive, GetConstraintStats, ConstraintStats
+    ApplyOntologyConstraints, ConstraintMergeMode, ConstraintStats, ForceResumePhysics,
+    GetConstraintStats, NodeInteractionMessage, PhysicsPauseMessage, RequestPositionSnapshot,
+    SetConstraintGroupActive, SimulationStep, StartSimulation, StopSimulation,
+    StoreGPUComputeAddress, UpdateNodePosition, UpdateNodePositions, UpdateSimulationParams,
 };
+use crate::models::constraints::ConstraintSet;
+use crate::models::graph::GraphData;
+use crate::models::simulation_params::SimulationParams;
+use crate::utils::socket_flow_messages::BinaryNodeData;
 
 /// Physics orchestration actor responsible for managing all physics simulation
 /// This actor coordinates between GPU compute, graph state, and simulation parameters
@@ -47,6 +47,7 @@ pub struct PhysicsOrchestratorActor {
     target_params: SimulationParams,
 
     /// GPU compute actor address for hardware acceleration
+    #[cfg(feature = "gpu")]
     gpu_compute_addr: Option<Addr<ForceComputeActor>>,
 
     /// Ontology actor address for constraint generation
@@ -66,6 +67,7 @@ pub struct PhysicsOrchestratorActor {
     last_step_time: Option<Instant>,
 
     /// Current physics statistics
+    #[cfg(feature = "gpu")]
     physics_stats: Option<PhysicsStats>,
 
     /// Parameter interpolation rate for smooth transitions
@@ -108,7 +110,7 @@ impl PhysicsOrchestratorActor {
     /// Create a new physics orchestrator
     pub fn new(
         simulation_params: SimulationParams,
-        gpu_compute_addr: Option<Addr<ForceComputeActor>>,
+        #[cfg(feature = "gpu")] gpu_compute_addr: Option<Addr<ForceComputeActor>>,
         graph_data: Option<Arc<GraphData>>,
     ) -> Self {
         let target_params = simulation_params.clone();
@@ -117,6 +119,7 @@ impl PhysicsOrchestratorActor {
             simulation_running: AtomicBool::new(false),
             simulation_params,
             target_params,
+            #[cfg(feature = "gpu")]
             gpu_compute_addr,
             #[cfg(feature = "ontology")]
             ontology_actor_addr: None,
@@ -124,6 +127,7 @@ impl PhysicsOrchestratorActor {
             gpu_initialized: false,
             gpu_init_in_progress: false,
             last_step_time: None,
+            #[cfg(feature = "gpu")]
             physics_stats: None,
             param_interpolation_rate: 0.1, // Smooth parameter transitions
             auto_balance_last_check: None,
@@ -154,7 +158,8 @@ impl PhysicsOrchestratorActor {
         info!("Starting physics simulation loop");
 
         // Schedule recurring physics steps
-        ctx.run_interval(Duration::from_millis(16), |act, ctx| { // ~60 FPS
+        ctx.run_interval(Duration::from_millis(16), |act, ctx| {
+            // ~60 FPS
             if !act.simulation_running.load(Ordering::SeqCst) {
                 return; // Stop if simulation disabled
             }
@@ -183,6 +188,7 @@ impl PhysicsOrchestratorActor {
         self.interpolate_parameters();
 
         // Ensure GPU is initialized
+        #[cfg(feature = "gpu")]
         if !self.gpu_initialized && self.gpu_compute_addr.is_some() {
             self.initialize_gpu_if_needed(ctx);
             return;
@@ -194,10 +200,13 @@ impl PhysicsOrchestratorActor {
         }
 
         // Execute physics computation
+        #[cfg(feature = "gpu")]
         if let Some(gpu_addr) = self.gpu_compute_addr.clone() {
             // GPU-accelerated physics step
             self.execute_gpu_physics_step(&gpu_addr, ctx);
-        } else {
+        }
+        #[cfg(not(feature = "gpu"))]
+        {
             // CPU fallback (if implemented)
             self.execute_cpu_physics_step(ctx);
         }
@@ -228,33 +237,40 @@ impl PhysicsOrchestratorActor {
         let rate = self.param_interpolation_rate;
 
         // Interpolate core physics parameters
-        self.simulation_params.repel_k = self.simulation_params.repel_k * (1.0 - rate)
-            + self.target_params.repel_k * rate;
-        self.simulation_params.damping = self.simulation_params.damping * (1.0 - rate)
-            + self.target_params.damping * rate;
+        self.simulation_params.repel_k =
+            self.simulation_params.repel_k * (1.0 - rate) + self.target_params.repel_k * rate;
+        self.simulation_params.damping =
+            self.simulation_params.damping * (1.0 - rate) + self.target_params.damping * rate;
         self.simulation_params.max_velocity = self.simulation_params.max_velocity * (1.0 - rate)
             + self.target_params.max_velocity * rate;
-        self.simulation_params.spring_k = self.simulation_params.spring_k * (1.0 - rate)
-            + self.target_params.spring_k * rate;
-        self.simulation_params.viewport_bounds = self.simulation_params.viewport_bounds * (1.0 - rate)
+        self.simulation_params.spring_k =
+            self.simulation_params.spring_k * (1.0 - rate) + self.target_params.spring_k * rate;
+        self.simulation_params.viewport_bounds = self.simulation_params.viewport_bounds
+            * (1.0 - rate)
             + self.target_params.viewport_bounds * rate;
 
         // Additional parameter interpolations
-        self.simulation_params.max_repulsion_dist = self.simulation_params.max_repulsion_dist * (1.0 - rate)
+        self.simulation_params.max_repulsion_dist = self.simulation_params.max_repulsion_dist
+            * (1.0 - rate)
             + self.target_params.max_repulsion_dist * rate;
-        self.simulation_params.boundary_force_strength = self.simulation_params.boundary_force_strength * (1.0 - rate)
-            + self.target_params.boundary_force_strength * rate;
+        self.simulation_params.boundary_force_strength =
+            self.simulation_params.boundary_force_strength * (1.0 - rate)
+                + self.target_params.boundary_force_strength * rate;
         self.simulation_params.cooling_rate = self.simulation_params.cooling_rate * (1.0 - rate)
             + self.target_params.cooling_rate * rate;
 
         // Boolean parameters snap immediately
-        if (self.target_params.enable_bounds as i32 - self.simulation_params.enable_bounds as i32).abs() > 0 {
+        if (self.target_params.enable_bounds as i32 - self.simulation_params.enable_bounds as i32)
+            .abs()
+            > 0
+        {
             self.simulation_params.enable_bounds = self.target_params.enable_bounds;
         }
     }
 
     /// Initialize GPU compute if available and needed
-    fn initialize_gpu_if_needed(&mut self, ctx: &mut Context<Self>) {
+    #[cfg(feature = "gpu")]
+    fn initialize_gpu_if_needed(&mut self, _ctx: &mut Context<Self>) {
         if self.gpu_init_in_progress || self.gpu_initialized {
             return;
         }
@@ -268,12 +284,12 @@ impl PhysicsOrchestratorActor {
                 gpu_addr.do_send(InitializeGPU {
                     graph: Arc::clone(graph_data),
                     graph_service_addr: None, // Will be set later if needed
-                    gpu_manager_addr: None,  // Will be filled by GPUManagerActor
+                    gpu_manager_addr: None,   // Will be filled by GPUManagerActor
                 });
 
                 // Update GPU with current graph data
                 gpu_addr.do_send(UpdateGPUGraphData {
-                    graph: Arc::clone(graph_data)
+                    graph: Arc::clone(graph_data),
                 });
 
                 self.gpu_initialized = true;
@@ -289,7 +305,12 @@ impl PhysicsOrchestratorActor {
     }
 
     /// Execute GPU-accelerated physics step
-    fn execute_gpu_physics_step(&mut self, gpu_addr: &Addr<ForceComputeActor>, _ctx: &mut Context<Self>) {
+    #[cfg(feature = "gpu")]
+    fn execute_gpu_physics_step(
+        &mut self,
+        gpu_addr: &Addr<ForceComputeActor>,
+        _ctx: &mut Context<Self>,
+    ) {
         if !self.gpu_initialized {
             return;
         }
@@ -317,7 +338,11 @@ impl PhysicsOrchestratorActor {
     }
 
     /// Broadcast position updates to interested actors
-    fn broadcast_position_updates(&self, _positions: Vec<(u32, BinaryNodeData)>, _ctx: &mut Context<Self>) {
+    fn broadcast_position_updates(
+        &self,
+        _positions: Vec<(u32, BinaryNodeData)>,
+        _ctx: &mut Context<Self>,
+    ) {
         // Implementation for broadcasting position updates
         // This could notify UI, WebSocket handlers, etc.
     }
@@ -328,7 +353,8 @@ impl PhysicsOrchestratorActor {
 
         // Check if enough time has elapsed since last auto-balance check
         if let Some(last_check) = self.auto_balance_last_check {
-            let interval = Duration::from_millis(self.simulation_params.auto_balance_interval_ms as u64);
+            let interval =
+                Duration::from_millis(self.simulation_params.auto_balance_interval_ms as u64);
             if now.duration_since(last_check) < interval {
                 return;
             }
@@ -345,11 +371,13 @@ impl PhysicsOrchestratorActor {
         let config = &self.simulation_params.auto_balance_config;
 
         // Get current physics stats for decision making
+        #[cfg(feature = "gpu")]
         if let Some(ref stats) = self.physics_stats {
             let mut new_target = self.target_params.clone();
 
             // Analyze kinetic energy and adjust parameters
-            if stats.kinetic_energy > 1000.0 { // Placeholder threshold
+            if stats.kinetic_energy > 1000.0 {
+                // Placeholder threshold
                 // High energy - increase damping, reduce forces
                 let damping_factor = 1.0 + config.min_adjustment_factor;
                 let force_factor = 1.0 - config.max_adjustment_factor;
@@ -358,7 +386,8 @@ impl PhysicsOrchestratorActor {
                 new_target.repel_k = self.simulation_params.repel_k * force_factor;
 
                 info!("Auto-balance: Reducing forces due to high energy");
-            } else if stats.kinetic_energy < 10.0 { // Placeholder threshold
+            } else if stats.kinetic_energy < 10.0 {
+                // Placeholder threshold
                 // Low energy - decrease damping, increase forces
                 let damping_factor = 1.0 - config.min_adjustment_factor;
                 let force_factor = 1.0 + config.max_adjustment_factor;
@@ -372,7 +401,8 @@ impl PhysicsOrchestratorActor {
             // Apply clustering-based adjustments
             if stats.kinetic_energy < config.clustering_distance_threshold {
                 // Low clustering - increase attraction
-                new_target.spring_k = self.simulation_params.spring_k * (1.0 + config.min_adjustment_factor);
+                new_target.spring_k =
+                    self.simulation_params.spring_k * (1.0 + config.min_adjustment_factor);
             }
 
             // Update target parameters
@@ -382,7 +412,11 @@ impl PhysicsOrchestratorActor {
 
     /// Check for equilibrium conditions and auto-pause if configured
     fn check_equilibrium_and_auto_pause(&mut self) {
-        let node_count = self.graph_data_ref.as_ref().map(|g| g.nodes.len()).unwrap_or(0);
+        let node_count = self
+            .graph_data_ref
+            .as_ref()
+            .map(|g| g.nodes.len())
+            .unwrap_or(0);
 
         if !self.simulation_params.auto_pause_config.enabled || node_count == 0 {
             return;
@@ -391,17 +425,23 @@ impl PhysicsOrchestratorActor {
         let config = &self.simulation_params.auto_pause_config;
 
         // Check if system is in equilibrium based on kinetic energy
+        #[cfg(feature = "gpu")]
         let is_equilibrium = if let Some(ref stats) = self.physics_stats {
             stats.kinetic_energy < config.equilibrium_energy_threshold
         } else {
             false
         };
 
+        #[cfg(not(feature = "gpu"))]
+        let is_equilibrium = false; // Without GPU stats, can't detect equilibrium
+
         if is_equilibrium {
             self.simulation_params.equilibrium_stability_counter += 1;
 
             // Check if equilibrium has been stable long enough
-            if self.simulation_params.equilibrium_stability_counter >= config.equilibrium_check_frames {
+            if self.simulation_params.equilibrium_stability_counter
+                >= config.equilibrium_check_frames
+            {
                 if !self.simulation_params.is_physics_paused && config.pause_on_equilibrium {
                     info!("Auto-pause: System reached equilibrium, pausing physics");
                     self.simulation_params.is_physics_paused = true;
@@ -451,8 +491,9 @@ impl PhysicsOrchestratorActor {
             self.performance_metrics.average_step_time_ms = step_time_ms;
         } else {
             let alpha = 0.1; // Smoothing factor
-            self.performance_metrics.average_step_time_ms =
-                (1.0 - alpha) * self.performance_metrics.average_step_time_ms + alpha * step_time_ms;
+            self.performance_metrics.average_step_time_ms = (1.0 - alpha)
+                * self.performance_metrics.average_step_time_ms
+                + alpha * step_time_ms;
         }
 
         // Calculate FPS
@@ -463,6 +504,7 @@ impl PhysicsOrchestratorActor {
         };
 
         // Update GPU metrics if available
+        #[cfg(feature = "gpu")]
         if let Some(ref stats) = self.physics_stats {
             // GPU metrics would be extracted from available stats fields
             self.performance_metrics.gpu_utilization = 0.0; // Placeholder
@@ -496,8 +538,10 @@ impl PhysicsOrchestratorActor {
                 let constraints_len = constraint_set.constraints.len();
                 let groups_len = constraint_set.groups.len();
                 self.ontology_constraints = Some(constraint_set);
-                info!("Replaced ontology constraints: {} constraints in {} groups",
-                      constraints_len, groups_len);
+                info!(
+                    "Replaced ontology constraints: {} constraints in {} groups",
+                    constraints_len, groups_len
+                );
             }
             ConstraintMergeMode::Merge => {
                 // Merge with existing ontology constraints
@@ -508,17 +552,20 @@ impl PhysicsOrchestratorActor {
                     // Merge groups
                     for (group_name, indices) in constraint_set.groups {
                         let offset = start_count;
-                        let adjusted_indices: Vec<usize> = indices.iter()
-                            .map(|&idx| idx + offset)
-                            .collect();
+                        let adjusted_indices: Vec<usize> =
+                            indices.iter().map(|&idx| idx + offset).collect();
 
-                        existing.groups.entry(group_name)
+                        existing
+                            .groups
+                            .entry(group_name)
                             .or_insert_with(Vec::new)
                             .extend(adjusted_indices);
                     }
 
-                    info!("Merged ontology constraints: {} total constraints",
-                          existing.constraints.len());
+                    info!(
+                        "Merged ontology constraints: {} total constraints",
+                        existing.constraints.len()
+                    );
                 } else {
                     self.ontology_constraints = Some(constraint_set);
                 }
@@ -532,8 +579,7 @@ impl PhysicsOrchestratorActor {
                     for constraint in constraint_set.constraints {
                         // Simple conflict check: don't add if same nodes are already constrained
                         let has_conflict = existing.constraints.iter().any(|c| {
-                            c.kind == constraint.kind &&
-                            c.node_indices == constraint.node_indices
+                            c.kind == constraint.kind && c.node_indices == constraint.node_indices
                         });
 
                         if !has_conflict {
@@ -544,7 +590,8 @@ impl PhysicsOrchestratorActor {
 
                     // Update groups for added constraints
                     for (group_name, indices) in constraint_set.groups {
-                        let adjusted_indices: Vec<usize> = indices.iter()
+                        let adjusted_indices: Vec<usize> = indices
+                            .iter()
                             .filter_map(|&idx| {
                                 if idx < added {
                                     Some(idx + start_count)
@@ -555,7 +602,9 @@ impl PhysicsOrchestratorActor {
                             .collect();
 
                         if !adjusted_indices.is_empty() {
-                            existing.groups.entry(group_name)
+                            existing
+                                .groups
+                                .entry(group_name)
                                 .or_insert_with(Vec::new)
                                 .extend(adjusted_indices);
                         }
@@ -597,11 +646,12 @@ impl PhysicsOrchestratorActor {
         }
 
         // Convert to GPU format
-        let gpu_constraints: Vec<_> = all_constraints.iter()
-            .map(|c| c.to_gpu_format())
-            .collect();
+        let gpu_constraints: Vec<_> = all_constraints.iter().map(|c| c.to_gpu_format()).collect();
 
-        info!("Uploading {} active constraints to GPU", gpu_constraints.len());
+        info!(
+            "Uploading {} active constraints to GPU",
+            gpu_constraints.len()
+        );
 
         // Send to GPU actor
         if let Some(ref gpu_addr) = self.gpu_compute_addr {
@@ -627,10 +677,7 @@ impl PhysicsOrchestratorActor {
             active_constraints += ont.active_constraints().len();
 
             for (group_name, indices) in &ont.groups {
-                constraint_groups.insert(
-                    format!("ontology_{}", group_name),
-                    indices.len()
-                );
+                constraint_groups.insert(format!("ontology_{}", group_name), indices.len());
             }
         }
 
@@ -641,10 +688,7 @@ impl PhysicsOrchestratorActor {
             active_constraints += user.active_constraints().len();
 
             for (group_name, indices) in &user.groups {
-                constraint_groups.insert(
-                    format!("user_{}", group_name),
-                    indices.len()
-                );
+                constraint_groups.insert(format!("user_{}", group_name), indices.len());
             }
         }
 
@@ -658,7 +702,11 @@ impl PhysicsOrchestratorActor {
     }
 
     /// Set constraint group active/inactive status
-    fn set_constraint_group_active(&mut self, group_name: &str, active: bool) -> Result<(), String> {
+    fn set_constraint_group_active(
+        &mut self,
+        group_name: &str,
+        active: bool,
+    ) -> Result<(), String> {
         let mut found = false;
 
         // Check in ontology constraints
@@ -706,6 +754,7 @@ impl Actor for PhysicsOrchestratorActor {
         info!("Physics Orchestrator Actor started");
 
         // Initialize GPU if available
+        #[cfg(feature = "gpu")]
         if self.gpu_compute_addr.is_some() {
             self.initialize_gpu_if_needed(ctx);
         }
@@ -754,10 +803,11 @@ impl Handler<UpdateNodePositions> for PhysicsOrchestratorActor {
 
     fn handle(&mut self, _msg: UpdateNodePositions, _ctx: &mut Self::Context) -> Self::Result {
         // Update GPU with new positions if needed
+        #[cfg(feature = "gpu")]
         if let Some(ref gpu_addr) = self.gpu_compute_addr {
             if let Some(ref graph_data) = self.graph_data_ref {
                 gpu_addr.do_send(UpdateGPUGraphData {
-                    graph: Arc::clone(graph_data)
+                    graph: Arc::clone(graph_data),
                 });
             }
         }
@@ -781,11 +831,12 @@ impl Handler<RequestPositionSnapshot> for PhysicsOrchestratorActor {
 
     fn handle(&mut self, msg: RequestPositionSnapshot, _ctx: &mut Self::Context) -> Self::Result {
         use crate::actors::messages::PositionSnapshot;
-        use crate::utils::socket_flow_messages::BinaryNodeDataClient;
 
         // Return current node positions from graph data
         if let Some(ref graph_data) = self.graph_data_ref {
-            let knowledge_nodes: Vec<(u32, BinaryNodeData)> = graph_data.nodes.iter()
+            let knowledge_nodes: Vec<(u32, BinaryNodeData)> = graph_data
+                .nodes
+                .iter()
                 .map(|node| (node.id, node.data.clone()))
                 .collect();
 
@@ -825,7 +876,11 @@ impl Handler<NodeInteractionMessage> for PhysicsOrchestratorActor {
         info!("Node interaction detected: {:?}", msg.interaction_type);
 
         // Resume physics on user interaction if configured
-        if self.simulation_params.auto_pause_config.resume_on_interaction {
+        if self
+            .simulation_params
+            .auto_pause_config
+            .resume_on_interaction
+        {
             if self.simulation_params.is_physics_paused {
                 self.resume_physics();
             }
@@ -873,7 +928,8 @@ impl Handler<UpdateSimulationParams> for PhysicsOrchestratorActor {
         info!("Updating simulation parameters");
 
         // Check if auto-balance was just enabled
-        let auto_balance_just_enabled = !self.simulation_params.auto_balance && msg.params.auto_balance;
+        let auto_balance_just_enabled =
+            !self.simulation_params.auto_balance && msg.params.auto_balance;
 
         // Update target parameters for smooth transition
         self.target_params = msg.params.clone();
@@ -890,18 +946,21 @@ impl Handler<UpdateSimulationParams> for PhysicsOrchestratorActor {
         }
 
         // Update GPU parameters if initialized
+        #[cfg(feature = "gpu")]
         if let Some(ref gpu_addr) = self.gpu_compute_addr {
             if self.gpu_initialized {
                 if let Some(ref graph_data) = self.graph_data_ref {
                     gpu_addr.do_send(UpdateGPUGraphData {
-                        graph: Arc::clone(graph_data)
+                        graph: Arc::clone(graph_data),
                     });
                 }
             }
         }
 
-        info!("Physics parameters updated - repel_k: {}, damping: {}",
-              self.target_params.repel_k, self.target_params.damping);
+        info!(
+            "Physics parameters updated - repel_k: {}, damping: {}",
+            self.target_params.repel_k, self.target_params.damping
+        );
 
         Ok(())
     }
@@ -921,12 +980,14 @@ impl Handler<GetPhysicsStatus> for PhysicsOrchestratorActor {
 }
 
 /// Message to update physics statistics from GPU
+#[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct UpdatePhysicsStats {
     pub stats: PhysicsStats,
 }
 
+#[cfg(feature = "gpu")]
 impl Handler<UpdatePhysicsStats> for PhysicsOrchestratorActor {
     type Result = ();
 
@@ -958,7 +1019,11 @@ pub struct FlushParameterTransitions;
 impl Handler<FlushParameterTransitions> for PhysicsOrchestratorActor {
     type Result = ();
 
-    fn handle(&mut self, _msg: FlushParameterTransitions, _ctx: &mut Self::Context) -> Self::Result {
+    fn handle(
+        &mut self,
+        _msg: FlushParameterTransitions,
+        _ctx: &mut Self::Context,
+    ) -> Self::Result {
         // Immediately apply target parameters
         self.simulation_params = self.target_params.clone();
         info!("Parameter transitions flushed");
@@ -975,9 +1040,16 @@ pub struct SetParameterInterpolationRate {
 impl Handler<SetParameterInterpolationRate> for PhysicsOrchestratorActor {
     type Result = ();
 
-    fn handle(&mut self, msg: SetParameterInterpolationRate, _ctx: &mut Self::Context) -> Self::Result {
+    fn handle(
+        &mut self,
+        msg: SetParameterInterpolationRate,
+        _ctx: &mut Self::Context,
+    ) -> Self::Result {
         self.param_interpolation_rate = msg.rate.clamp(0.01, 1.0);
-        info!("Parameter interpolation rate set to: {}", self.param_interpolation_rate);
+        info!(
+            "Parameter interpolation rate set to: {}",
+            self.param_interpolation_rate
+        );
     }
 }
 
@@ -986,8 +1058,11 @@ impl Handler<ApplyOntologyConstraints> for PhysicsOrchestratorActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: ApplyOntologyConstraints, _ctx: &mut Self::Context) -> Self::Result {
-        info!("Applying ontology constraints: {} constraints, merge mode: {:?}",
-              msg.constraint_set.constraints.len(), msg.merge_mode);
+        info!(
+            "Applying ontology constraints: {} constraints, merge mode: {:?}",
+            msg.constraint_set.constraints.len(),
+            msg.merge_mode
+        );
 
         self.apply_ontology_constraints_internal(msg.constraint_set, &msg.merge_mode)
     }

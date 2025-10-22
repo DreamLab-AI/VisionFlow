@@ -13,8 +13,8 @@ pub struct LogseqPage {
 
 /// Parse a Logseq markdown file and extract properties and OWL blocks
 pub fn parse_logseq_file(path: &Path) -> Result<LogseqPage> {
-    let content = fs::read_to_string(path)
-        .context(format!("Failed to read file: {}", path.display()))?;
+    let content =
+        fs::read_to_string(path).context(format!("Failed to read file: {}", path.display()))?;
 
     let title = extract_title(path, &content);
     let properties = extract_properties(&content);
@@ -61,7 +61,10 @@ fn extract_properties(content: &str) -> HashMap<String, Vec<String>> {
                 .filter(|v| !v.is_empty())
                 .collect();
 
-            properties.entry(key).or_insert_with(Vec::new).extend(values);
+            properties
+                .entry(key)
+                .or_insert_with(Vec::new)
+                .extend(values);
         }
     }
 
@@ -91,7 +94,7 @@ fn extract_owl_blocks(content: &str) -> Result<Vec<String>> {
         let fence_match = if line.starts_with("```") {
             Some(line)
         } else if line.starts_with("- ```") {
-            Some(&line[2..])  // Skip "- " prefix
+            Some(&line[2..]) // Skip "- " prefix
         } else {
             None
         };
@@ -131,7 +134,8 @@ fn extract_owl_blocks(content: &str) -> Result<Vec<String>> {
                         if !trimmed.is_empty()
                             && !trimmed.starts_with(";;")
                             && !trimmed.starts_with("#")
-                            && trimmed != "|" {
+                            && trimmed != "|"
+                        {
                             block_lines.push(trimmed);
                         }
                         i += 1;

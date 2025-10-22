@@ -1,15 +1,15 @@
-pub mod schemas;
-pub mod sanitization;
-pub mod rate_limit;
-pub mod middleware;
 pub mod errors;
+pub mod middleware;
 pub mod position_validator;
+pub mod rate_limit;
+pub mod sanitization;
+pub mod schemas;
 
 use errors::DetailedValidationError;
 
+use actix_web::HttpResponse;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use actix_web::HttpResponse;
 
 /// Maximum request size in bytes (16MB)
 pub const MAX_REQUEST_SIZE: usize = 16 * 1024 * 1024;
@@ -74,7 +74,11 @@ impl ValidationError {
     }
 
     pub fn malicious_content(field: &str) -> Self {
-        Self::new(field, "Content contains potentially malicious data", "MALICIOUS_CONTENT")
+        Self::new(
+            field,
+            "Content contains potentially malicious data",
+            "MALICIOUS_CONTENT",
+        )
     }
 
     pub fn to_http_response(&self) -> HttpResponse {
@@ -90,7 +94,11 @@ impl ValidationError {
 
 impl std::fmt::Display for ValidationError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Validation error in field '{}': {}", self.field, self.message)
+        write!(
+            f,
+            "Validation error in field '{}': {}",
+            self.field, self.message
+        )
     }
 }
 
@@ -141,7 +149,7 @@ impl ValidationContext {
             return Err(DetailedValidationError::new(
                 &self.get_path(),
                 "Maximum nesting depth exceeded",
-                "MAX_DEPTH_EXCEEDED"
+                "MAX_DEPTH_EXCEEDED",
             ));
         }
         self.field_path.push(field.to_string());
@@ -181,20 +189,33 @@ pub struct ValidationUtils;
 
 impl ValidationUtils {
     /// Validate string length
-    pub fn validate_string_length(value: &str, max_length: usize, field: &str) -> ValidationResult<()> {
+    pub fn validate_string_length(
+        value: &str,
+        max_length: usize,
+        field: &str,
+    ) -> ValidationResult<()> {
         if value.len() > max_length {
-            return Err(DetailedValidationError::new(field, &format!("Maximum length is {} characters", max_length), "TOO_LONG"));
+            return Err(DetailedValidationError::new(
+                field,
+                &format!("Maximum length is {} characters", max_length),
+                "TOO_LONG",
+            ));
         }
         Ok(())
     }
 
     /// Validate numeric range
-    pub fn validate_numeric_range<T>(value: T, min: T, max: T, field: &str) -> ValidationResult<()> 
-    where 
-        T: PartialOrd + Copy + Into<f64>
+    pub fn validate_numeric_range<T>(value: T, min: T, max: T, field: &str) -> ValidationResult<()>
+    where
+        T: PartialOrd + Copy + Into<f64>,
     {
         if value < min || value > max {
-            return Err(DetailedValidationError::out_of_range(field, value.into(), min.into(), max.into()));
+            return Err(DetailedValidationError::out_of_range(
+                field,
+                value.into(),
+                min.into(),
+                max.into(),
+            ));
         }
         Ok(())
     }
@@ -203,17 +224,21 @@ impl ValidationUtils {
     pub fn validate_required<'a, T>(value: &'a Option<T>, field: &str) -> ValidationResult<&'a T> {
         match value {
             Some(v) => Ok(v),
-            None => Err(DetailedValidationError::missing_required_field(field))
+            None => Err(DetailedValidationError::missing_required_field(field)),
         }
     }
 
     /// Validate array size
-    pub fn validate_array_size<T>(array: &[T], max_size: usize, field: &str) -> ValidationResult<()> {
+    pub fn validate_array_size<T>(
+        array: &[T],
+        max_size: usize,
+        field: &str,
+    ) -> ValidationResult<()> {
         if array.len() > max_size {
             return Err(DetailedValidationError::new(
                 field,
                 &format!("Array exceeds maximum size of {}", max_size),
-                "ARRAY_TOO_LARGE"
+                "ARRAY_TOO_LARGE",
             ));
         }
         Ok(())
@@ -222,10 +247,16 @@ impl ValidationUtils {
     /// Validate email format
     pub fn validate_email(email: &str, field: &str) -> ValidationResult<()> {
         let email_regex = regex::Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
-            .map_err(|_| DetailedValidationError::new(field, "Invalid email regex", "REGEX_ERROR"))?;
-        
+            .map_err(|_| {
+                DetailedValidationError::new(field, "Invalid email regex", "REGEX_ERROR")
+            })?;
+
         if !email_regex.is_match(email) {
-            return Err(DetailedValidationError::pattern_mismatch(field, "valid email address", email));
+            return Err(DetailedValidationError::pattern_mismatch(
+                field,
+                "valid email address",
+                email,
+            ));
         }
         Ok(())
     }
@@ -233,18 +264,27 @@ impl ValidationUtils {
     /// Validate URL format
     pub fn validate_url(url: &str, field: &str) -> ValidationResult<()> {
         if url.parse::<url::Url>().is_err() {
-            return Err(DetailedValidationError::pattern_mismatch(field, "valid URL", url));
+            return Err(DetailedValidationError::pattern_mismatch(
+                field,
+                "valid URL",
+                url,
+            ));
         }
         Ok(())
     }
 
     /// Validate hex color
     pub fn validate_hex_color(color: &str, field: &str) -> ValidationResult<()> {
-        let hex_regex = regex::Regex::new(r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")
-            .map_err(|_| DetailedValidationError::new(field, "Invalid color regex", "REGEX_ERROR"))?;
-        
+        let hex_regex = regex::Regex::new(r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$").map_err(|_| {
+            DetailedValidationError::new(field, "Invalid color regex", "REGEX_ERROR")
+        })?;
+
         if !hex_regex.is_match(color) {
-            return Err(DetailedValidationError::pattern_mismatch(field, "hex color (e.g., #ffffff)", color));
+            return Err(DetailedValidationError::pattern_mismatch(
+                field,
+                "hex color (e.g., #ffffff)",
+                color,
+            ));
         }
         Ok(())
     }
@@ -252,7 +292,11 @@ impl ValidationUtils {
     /// Validate UUID format
     pub fn validate_uuid(uuid: &str, field: &str) -> ValidationResult<()> {
         if uuid::Uuid::parse_str(uuid).is_err() {
-            return Err(DetailedValidationError::pattern_mismatch(field, "valid UUID", uuid));
+            return Err(DetailedValidationError::pattern_mismatch(
+                field,
+                "valid UUID",
+                uuid,
+            ));
         }
         Ok(())
     }

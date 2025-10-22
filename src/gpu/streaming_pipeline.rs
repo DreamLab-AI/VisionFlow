@@ -1,17 +1,17 @@
 //! Streaming Pipeline - Optimized for headless GPU compute to lightweight clients
-//! 
+//!
 //! Enhanced version with comprehensive GPU safety measures, memory bounds checking,
 //! overflow protection, and Quest 3/VR client optimization.
 
+use bytes::{BufMut, Bytes, BytesMut};
+use log::{debug, error, info, warn};
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tokio::sync::{RwLock, mpsc};
-use bytes::{Bytes, BytesMut, BufMut};
-use serde::{Serialize, Deserialize};
-use log::{debug, warn, error, info};
 use std::time::Instant;
+use tokio::sync::{mpsc, RwLock};
 
-use crate::utils::gpu_safety::{GPUSafetyValidator, GPUSafetyConfig, GPUSafetyError};
-use crate::utils::memory_bounds::{ThreadSafeMemoryBoundsChecker, MemoryBounds, SafeArrayAccess};
+use crate::utils::gpu_safety::{GPUSafetyConfig, GPUSafetyError, GPUSafetyValidator};
+use crate::utils::memory_bounds::{MemoryBounds, SafeArrayAccess, ThreadSafeMemoryBoundsChecker};
 
 /// Safe simplified render packet with validation
 #[repr(C)]
@@ -32,7 +32,10 @@ impl SimplifiedNode {
         // Check for infinite or NaN values
         if !self.x.is_finite() || !self.y.is_finite() || !self.z.is_finite() {
             return Err(GPUSafetyError::InvalidKernelParams {
-                reason: format!("Invalid position coordinates: ({}, {}, {})", self.x, self.y, self.z),
+                reason: format!(
+                    "Invalid position coordinates: ({}, {}, {})",
+                    self.x, self.y, self.z
+                ),
             });
         }
 
@@ -40,7 +43,10 @@ impl SimplifiedNode {
         const MAX_COORD: f32 = 1e6;
         if self.x.abs() > MAX_COORD || self.y.abs() > MAX_COORD || self.z.abs() > MAX_COORD {
             return Err(GPUSafetyError::InvalidKernelParams {
-                reason: format!("Coordinates exceed safe bounds: ({}, {}, {})", self.x, self.y, self.z),
+                reason: format!(
+                    "Coordinates exceed safe bounds: ({}, {}, {})",
+                    self.x, self.y, self.z
+                ),
             });
         }
 
@@ -48,8 +54,24 @@ impl SimplifiedNode {
     }
 
     /// Create from raw values with validation
-    pub fn new(x: f32, y: f32, z: f32, color_index: u8, size: u8, importance: u8, flags: u8) -> Result<Self, GPUSafetyError> {
-        let node = Self { x, y, z, color_index, size, importance, flags };
+    pub fn new(
+        x: f32,
+        y: f32,
+        z: f32,
+        color_index: u8,
+        size: u8,
+        importance: u8,
+        flags: u8,
+    ) -> Result<Self, GPUSafetyError> {
+        let node = Self {
+            x,
+            y,
+            z,
+            color_index,
+            size,
+            importance,
+            flags,
+        };
         node.validate()?;
         Ok(node)
     }
@@ -85,7 +107,10 @@ impl CompressedEdge {
         // Prevent self-loops in compressed format
         if self.source == self.target {
             return Err(GPUSafetyError::InvalidKernelParams {
-                reason: format!("Self-loop detected in compressed edge: {} -> {}", self.source, self.target),
+                reason: format!(
+                    "Self-loop detected in compressed edge: {} -> {}",
+                    self.source, self.target
+                ),
             });
         }
 
@@ -119,9 +144,24 @@ pub enum ClientLOD {
 impl ClientLOD {
     pub fn validate(&self) -> Result<(), GPUSafetyError> {
         let (max_nodes, max_edges, update_rate) = match self {
-            ClientLOD::Mobile { max_nodes, max_edges, update_rate, .. } => (*max_nodes, *max_edges, *update_rate),
-            ClientLOD::DesktopVR { max_nodes, max_edges, update_rate, .. } => (*max_nodes, *max_edges, *update_rate),
-            ClientLOD::Workstation { max_nodes, max_edges, update_rate, .. } => (*max_nodes, *max_edges, *update_rate),
+            ClientLOD::Mobile {
+                max_nodes,
+                max_edges,
+                update_rate,
+                ..
+            } => (*max_nodes, *max_edges, *update_rate),
+            ClientLOD::DesktopVR {
+                max_nodes,
+                max_edges,
+                update_rate,
+                ..
+            } => (*max_nodes, *max_edges, *update_rate),
+            ClientLOD::Workstation {
+                max_nodes,
+                max_edges,
+                update_rate,
+                ..
+            } => (*max_nodes, *max_edges, *update_rate),
         };
 
         // Validate reasonable limits
@@ -195,7 +235,10 @@ pub struct FrameBuffer {
 }
 
 impl FrameBuffer {
-    pub fn new(max_nodes: usize, bounds_checker: Arc<ThreadSafeMemoryBoundsChecker>) -> Result<Self, GPUSafetyError> {
+    pub fn new(
+        max_nodes: usize,
+        bounds_checker: Arc<ThreadSafeMemoryBoundsChecker>,
+    ) -> Result<Self, GPUSafetyError> {
         // Validate buffer sizes
         if max_nodes > 10_000_000 {
             return Err(GPUSafetyError::ResourceExhaustion {
@@ -206,17 +249,21 @@ impl FrameBuffer {
         }
 
         // Check for potential overflow in allocation size
-        let positions_size = max_nodes.checked_mul(4)
-            .ok_or_else(|| GPUSafetyError::InvalidBufferSize {
-                requested: max_nodes,
-                max_allowed: usize::MAX / 4,
-            })?;
+        let positions_size =
+            max_nodes
+                .checked_mul(4)
+                .ok_or_else(|| GPUSafetyError::InvalidBufferSize {
+                    requested: max_nodes,
+                    max_allowed: usize::MAX / 4,
+                })?;
 
-        let colors_size = max_nodes.checked_mul(4)
-            .ok_or_else(|| GPUSafetyError::InvalidBufferSize {
-                requested: max_nodes,
-                max_allowed: usize::MAX / 4,
-            })?;
+        let colors_size =
+            max_nodes
+                .checked_mul(4)
+                .ok_or_else(|| GPUSafetyError::InvalidBufferSize {
+                    requested: max_nodes,
+                    max_allowed: usize::MAX / 4,
+                })?;
 
         // Register memory allocations
         bounds_checker.register_allocation(MemoryBounds::new(
@@ -240,14 +287,21 @@ impl FrameBuffer {
             std::mem::align_of::<f32>(),
         ))?;
 
-        let positions = SafeArrayAccess::new(vec![0.0f32; positions_size], "frame_buffer_positions".to_string())
-            .with_bounds_checker(bounds_checker.clone());
+        let positions = SafeArrayAccess::new(
+            vec![0.0f32; positions_size],
+            "frame_buffer_positions".to_string(),
+        )
+        .with_bounds_checker(bounds_checker.clone());
 
-        let colors = SafeArrayAccess::new(vec![0.0f32; colors_size], "frame_buffer_colors".to_string())
-            .with_bounds_checker(bounds_checker.clone());
+        let colors =
+            SafeArrayAccess::new(vec![0.0f32; colors_size], "frame_buffer_colors".to_string())
+                .with_bounds_checker(bounds_checker.clone());
 
-        let importance = SafeArrayAccess::new(vec![0.0f32; max_nodes], "frame_buffer_importance".to_string())
-            .with_bounds_checker(bounds_checker.clone());
+        let importance = SafeArrayAccess::new(
+            vec![0.0f32; max_nodes],
+            "frame_buffer_importance".to_string(),
+        )
+        .with_bounds_checker(bounds_checker.clone());
 
         Ok(Self {
             current_frame: 0,
@@ -259,11 +313,20 @@ impl FrameBuffer {
         })
     }
 
-    pub fn update_data(&mut self, positions: &[f32], colors: &[f32], importance: &[f32], frame: u32) -> Result<(), GPUSafetyError> {
+    pub fn update_data(
+        &mut self,
+        positions: &[f32],
+        colors: &[f32],
+        importance: &[f32],
+        frame: u32,
+    ) -> Result<(), GPUSafetyError> {
         // Validate input sizes
         if positions.len() % 4 != 0 {
             return Err(GPUSafetyError::InvalidKernelParams {
-                reason: format!("Position array length {} is not divisible by 4", positions.len()),
+                reason: format!(
+                    "Position array length {} is not divisible by 4",
+                    positions.len()
+                ),
             });
         }
 
@@ -274,18 +337,24 @@ impl FrameBuffer {
         }
 
         let node_count = positions.len() / 4;
-        
+
         if colors.len() / 4 != node_count {
             return Err(GPUSafetyError::InvalidKernelParams {
-                reason: format!("Color array represents {} nodes but position array represents {} nodes", 
-                               colors.len() / 4, node_count),
+                reason: format!(
+                    "Color array represents {} nodes but position array represents {} nodes",
+                    colors.len() / 4,
+                    node_count
+                ),
             });
         }
 
         if importance.len() != node_count {
             return Err(GPUSafetyError::InvalidKernelParams {
-                reason: format!("Importance array length {} doesn't match node count {}", 
-                               importance.len(), node_count),
+                reason: format!(
+                    "Importance array length {} doesn't match node count {}",
+                    importance.len(),
+                    node_count
+                ),
             });
         }
 
@@ -342,24 +411,36 @@ impl FrameBuffer {
 
         // Copy data with bounds checking (this is done implicitly by SafeArrayAccess)
         for i in 0..positions.len() {
-            *self.positions.get_mut(i).map_err(|e| GPUSafetyError::DeviceError {
-                message: format!("Failed to update position {}: {}", i, e),
-            })? = positions[i];
+            *self
+                .positions
+                .get_mut(i)
+                .map_err(|e| GPUSafetyError::DeviceError {
+                    message: format!("Failed to update position {}: {}", i, e),
+                })? = positions[i];
         }
 
         for i in 0..colors.len() {
-            *self.colors.get_mut(i).map_err(|e| GPUSafetyError::DeviceError {
-                message: format!("Failed to update color {}: {}", i, e),
-            })? = colors[i];
+            *self
+                .colors
+                .get_mut(i)
+                .map_err(|e| GPUSafetyError::DeviceError {
+                    message: format!("Failed to update color {}: {}", i, e),
+                })? = colors[i];
         }
 
         for i in 0..importance.len() {
-            *self.importance.get_mut(i).map_err(|e| GPUSafetyError::DeviceError {
-                message: format!("Failed to update importance {}: {}", i, e),
-            })? = importance[i];
+            *self
+                .importance
+                .get_mut(i)
+                .map_err(|e| GPUSafetyError::DeviceError {
+                    message: format!("Failed to update importance {}: {}", i, e),
+                })? = importance[i];
         }
 
-        debug!("Frame buffer updated: frame={}, nodes={}", frame, node_count);
+        debug!(
+            "Frame buffer updated: frame={}, nodes={}",
+            frame, node_count
+        );
         Ok(())
     }
 
@@ -380,7 +461,8 @@ impl FrameBuffer {
         }
 
         let pos_index = node_index * 4 + component;
-        self.positions.get(pos_index)
+        self.positions
+            .get(pos_index)
             .map(|&val| val)
             .map_err(|e| GPUSafetyError::DeviceError {
                 message: format!("Failed to get position: {}", e),
@@ -388,7 +470,8 @@ impl FrameBuffer {
     }
 
     pub fn get_importance(&self, node_index: usize) -> Result<f32, GPUSafetyError> {
-        self.importance.get(node_index)
+        self.importance
+            .get(node_index)
             .map(|&val| val)
             .map_err(|e| GPUSafetyError::DeviceError {
                 message: format!("Failed to get importance: {}", e),
@@ -409,9 +492,13 @@ pub struct ClientConnection {
 }
 
 impl ClientConnection {
-    pub fn new(id: String, lod: ClientLOD, sender: mpsc::Sender<Bytes>) -> Result<Self, GPUSafetyError> {
+    pub fn new(
+        id: String,
+        lod: ClientLOD,
+        sender: mpsc::Sender<Bytes>,
+    ) -> Result<Self, GPUSafetyError> {
         lod.validate()?;
-        
+
         if id.is_empty() {
             return Err(GPUSafetyError::InvalidKernelParams {
                 reason: "Client ID cannot be empty".to_string(),
@@ -467,10 +554,15 @@ impl ClientConnection {
                 self.packet_count += 1;
                 self.bytes_sent += packet.len() as u64;
                 self.last_packet_time = Some(Instant::now());
-                debug!("Sent packet to client {}: {} bytes (total: {} packets, {} bytes)", 
-                       self.id, packet.len(), self.packet_count, self.bytes_sent);
+                debug!(
+                    "Sent packet to client {}: {} bytes (total: {} packets, {} bytes)",
+                    self.id,
+                    packet.len(),
+                    self.packet_count,
+                    self.bytes_sent
+                );
                 Ok(())
-            },
+            }
             Err(e) => {
                 error!("Failed to send packet to client {}: {}", self.id, e);
                 Err(GPUSafetyError::DeviceError {
@@ -482,16 +574,16 @@ impl ClientConnection {
 
     pub fn should_update(&self, current_frame: u32) -> bool {
         let frame_delta = current_frame.saturating_sub(self.last_frame);
-        
+
         match &self.lod {
             ClientLOD::Mobile { update_rate, .. } => {
                 let threshold = 120 / update_rate.max(&1);
                 frame_delta >= threshold
-            },
+            }
             ClientLOD::DesktopVR { update_rate, .. } => {
                 let threshold = 120 / update_rate.max(&1);
                 frame_delta >= threshold
-            },
+            }
             ClientLOD::Workstation { .. } => true,
         }
     }
@@ -578,29 +670,41 @@ impl RenderData {
         // Check array sizes
         if self.positions.len() % 4 != 0 {
             return Err(GPUSafetyError::InvalidKernelParams {
-                reason: format!("Position array length {} is not divisible by 4", self.positions.len()),
+                reason: format!(
+                    "Position array length {} is not divisible by 4",
+                    self.positions.len()
+                ),
             });
         }
 
         if self.colors.len() % 4 != 0 {
             return Err(GPUSafetyError::InvalidKernelParams {
-                reason: format!("Color array length {} is not divisible by 4", self.colors.len()),
+                reason: format!(
+                    "Color array length {} is not divisible by 4",
+                    self.colors.len()
+                ),
             });
         }
 
         let node_count = self.positions.len() / 4;
-        
+
         if self.colors.len() / 4 != node_count {
             return Err(GPUSafetyError::InvalidKernelParams {
-                reason: format!("Color array represents {} nodes but position array represents {} nodes", 
-                               self.colors.len() / 4, node_count),
+                reason: format!(
+                    "Color array represents {} nodes but position array represents {} nodes",
+                    self.colors.len() / 4,
+                    node_count
+                ),
             });
         }
 
         if self.importance.len() != node_count {
             return Err(GPUSafetyError::InvalidKernelParams {
-                reason: format!("Importance array length {} doesn't match node count {}", 
-                               self.importance.len(), node_count),
+                reason: format!(
+                    "Importance array length {} doesn't match node count {}",
+                    self.importance.len(),
+                    node_count
+                ),
             });
         }
 
@@ -631,11 +735,16 @@ impl StreamingPipeline {
         max_nodes: usize,
         safety_config: GPUSafetyConfig,
     ) -> Result<Self, GPUSafetyError> {
-        let bounds_checker = Arc::new(ThreadSafeMemoryBoundsChecker::new(safety_config.max_memory_bytes));
+        let bounds_checker = Arc::new(ThreadSafeMemoryBoundsChecker::new(
+            safety_config.max_memory_bytes,
+        ));
         let safety_validator = Arc::new(GPUSafetyValidator::new(safety_config));
-        
-        let frame_buffer = Arc::new(RwLock::new(FrameBuffer::new(max_nodes, bounds_checker.clone())?));
-        
+
+        let frame_buffer = Arc::new(RwLock::new(FrameBuffer::new(
+            max_nodes,
+            bounds_checker.clone(),
+        )?));
+
         Ok(Self {
             gpu_receiver,
             clients: Arc::new(RwLock::new(Vec::new())),
@@ -647,24 +756,28 @@ impl StreamingPipeline {
         })
     }
 
-    pub async fn add_client(&self, id: String, lod: ClientLOD) -> Result<mpsc::Receiver<Bytes>, GPUSafetyError> {
+    pub async fn add_client(
+        &self,
+        id: String,
+        lod: ClientLOD,
+    ) -> Result<mpsc::Receiver<Bytes>, GPUSafetyError> {
         let (tx, rx) = mpsc::channel(10);
-        
+
         let client = ClientConnection::new(id.clone(), lod, tx)?;
-        
+
         let mut clients = self.clients.write().await;
         clients.push(client);
-        
+
         info!("Added safe client: {}", id);
         Ok(rx)
     }
 
     pub async fn run(&mut self) -> Result<(), GPUSafetyError> {
         info!("Starting safe streaming pipeline");
-        
+
         while let Some(render_data) = self.gpu_receiver.recv().await {
             let frame_start = Instant::now();
-            
+
             // Validate incoming data
             if let Err(e) = render_data.validate() {
                 error!("Invalid render data received: {}", e);
@@ -704,7 +817,7 @@ impl StreamingPipeline {
     async fn process_clients(&self) -> Result<(), GPUSafetyError> {
         let mut clients = self.clients.write().await;
         let buffer = self.frame_buffer.read().await;
-        
+
         let current_frame = buffer.get_current_frame();
         let node_count = buffer.get_node_count();
 
@@ -715,14 +828,16 @@ impl StreamingPipeline {
 
             let packet = match &client.lod {
                 ClientLOD::Mobile { max_nodes, .. } => {
-                    self.create_mobile_packet(&*buffer, *max_nodes, client.position, node_count).await?
-                },
+                    self.create_mobile_packet(&*buffer, *max_nodes, client.position, node_count)
+                        .await?
+                }
                 ClientLOD::DesktopVR { max_nodes, .. } => {
-                    self.create_desktop_packet(&*buffer, *max_nodes, client.position, node_count).await?
-                },
+                    self.create_desktop_packet(&*buffer, *max_nodes, client.position, node_count)
+                        .await?
+                }
                 ClientLOD::Workstation { .. } => {
                     self.create_workstation_packet(&*buffer, node_count).await?
-                },
+                }
             };
 
             if let Err(e) = client.send_packet(packet).await {
@@ -744,40 +859,39 @@ impl StreamingPipeline {
         node_count: usize,
     ) -> Result<Bytes, GPUSafetyError> {
         let mut packet = BytesMut::new();
-        
+
         // Header with validation
-        packet.put_u8(1);  // Packet version
+        packet.put_u8(1); // Packet version
         packet.put_u32_le(buffer.get_current_frame());
-        
+
         // Safely collect importance-based culling
         let mut nodes: Vec<(usize, f32)> = Vec::new();
-        
+
         for i in 0..node_count {
             let importance = buffer.get_importance(i)?;
             if importance > self.importance_threshold {
                 nodes.push((i, importance));
             }
         }
-        
+
         // Sort by importance and take top N
         nodes.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
         nodes.truncate(max_nodes);
-        
+
         // Apply distance culling if client position available
         if let Some(cam_pos) = client_position {
             nodes.retain(|(idx, _)| {
                 let x = buffer.get_position(*idx, 0).unwrap_or(0.0);
                 let y = buffer.get_position(*idx, 1).unwrap_or(0.0);
                 let z = buffer.get_position(*idx, 2).unwrap_or(0.0);
-                
-                let dist_sq = (x - cam_pos[0]).powi(2) + 
-                             (y - cam_pos[1]).powi(2) + 
-                             (z - cam_pos[2]).powi(2);
-                
-                dist_sq < 10000.0  // 100 unit radius
+
+                let dist_sq =
+                    (x - cam_pos[0]).powi(2) + (y - cam_pos[1]).powi(2) + (z - cam_pos[2]).powi(2);
+
+                dist_sq < 10000.0 // 100 unit radius
             });
         }
-        
+
         // Validate node count fits in packet
         if nodes.len() > u16::MAX as usize {
             return Err(GPUSafetyError::ResourceExhaustion {
@@ -786,34 +900,34 @@ impl StreamingPipeline {
                 limit: u16::MAX as usize,
             });
         }
-        
+
         packet.put_u16_le(nodes.len() as u16);
-        
+
         // Write simplified nodes with bounds checking
         for (idx, importance) in nodes {
             let x = buffer.get_position(idx, 0)?;
             let y = buffer.get_position(idx, 1)?;
             let z = buffer.get_position(idx, 2)?;
-            
+
             // Quantize position to 16-bit per component (6 bytes instead of 12)
             let quantized_x = (x * 100.0).clamp(i16::MIN as f32, i16::MAX as f32) as i16;
             let quantized_y = (y * 100.0).clamp(i16::MIN as f32, i16::MAX as f32) as i16;
             let quantized_z = (z * 100.0).clamp(i16::MIN as f32, i16::MAX as f32) as i16;
-            
+
             packet.put_i16_le(quantized_x);
             packet.put_i16_le(quantized_y);
             packet.put_i16_le(quantized_z);
-            
+
             // Quantize color to palette index (simplified)
             let hue = buffer.get_position(idx, 0).unwrap_or(0.0);
             let color_index = (hue.abs() * 255.0).clamp(0.0, 255.0) as u8;
             packet.put_u8(color_index);
-            
+
             // Quantize importance
             let importance_quantized = (importance * 255.0).clamp(0.0, 255.0) as u8;
             packet.put_u8(importance_quantized);
         }
-        
+
         Ok(packet.freeze())
     }
 
@@ -825,31 +939,30 @@ impl StreamingPipeline {
         node_count: usize,
     ) -> Result<Bytes, GPUSafetyError> {
         let mut packet = BytesMut::new();
-        
+
         // Header
-        packet.put_u8(2);  // Packet version
+        packet.put_u8(2); // Packet version
         packet.put_u32_le(buffer.get_current_frame());
-        
+
         // Apply LOD based on importance
         let mut nodes: Vec<usize> = (0..node_count.min(max_nodes))
             .filter(|&i| buffer.get_importance(i).unwrap_or(0.0) > self.importance_threshold * 0.5)
             .collect();
-        
+
         // Spatial culling if camera position available
         if let Some(cam_pos) = client_position {
             nodes.retain(|&idx| {
                 let x = buffer.get_position(idx, 0).unwrap_or(0.0);
                 let y = buffer.get_position(idx, 1).unwrap_or(0.0);
                 let z = buffer.get_position(idx, 2).unwrap_or(0.0);
-                
-                let dist_sq = (x - cam_pos[0]).powi(2) + 
-                             (y - cam_pos[1]).powi(2) + 
-                             (z - cam_pos[2]).powi(2);
-                
-                dist_sq < 40000.0  // 200 unit radius
+
+                let dist_sq =
+                    (x - cam_pos[0]).powi(2) + (y - cam_pos[1]).powi(2) + (z - cam_pos[2]).powi(2);
+
+                dist_sq < 40000.0 // 200 unit radius
             });
         }
-        
+
         // Validate node count
         if nodes.len() > u32::MAX as usize {
             return Err(GPUSafetyError::ResourceExhaustion {
@@ -858,27 +971,27 @@ impl StreamingPipeline {
                 limit: u32::MAX as usize,
             });
         }
-        
+
         packet.put_u32_le(nodes.len() as u32);
-        
+
         // Write nodes with moderate compression
         for idx in nodes {
             // Position (full precision)
             packet.put_f32_le(buffer.get_position(idx, 0)?);
             packet.put_f32_le(buffer.get_position(idx, 1)?);
             packet.put_f32_le(buffer.get_position(idx, 2)?);
-            
+
             // Color (simplified - using position as hue)
             let hue = buffer.get_position(idx, 0).unwrap_or(0.0);
             packet.put_u8((hue.abs() * 255.0).clamp(0.0, 255.0) as u8);
             packet.put_u8(128); // Fixed saturation
             packet.put_u8(255); // Fixed value
-            
+
             // Importance
             let importance = buffer.get_importance(idx)?;
             packet.put_u8((importance * 255.0).clamp(0.0, 255.0) as u8);
         }
-        
+
         Ok(packet.freeze())
     }
 
@@ -888,12 +1001,12 @@ impl StreamingPipeline {
         node_count: usize,
     ) -> Result<Bytes, GPUSafetyError> {
         let mut packet = BytesMut::new();
-        
+
         // Header
-        packet.put_u8(3);  // Packet version
+        packet.put_u8(3); // Packet version
         packet.put_u32_le(buffer.get_current_frame());
         packet.put_u32_le(node_count as u32);
-        
+
         // Write full precision data
         for i in 0..node_count {
             // Position (x, y, z, w)
@@ -901,37 +1014,37 @@ impl StreamingPipeline {
             packet.put_f32_le(buffer.get_position(i, 1)?);
             packet.put_f32_le(buffer.get_position(i, 2)?);
             packet.put_f32_le(buffer.get_position(i, 3).unwrap_or(1.0)); // w component
-            
+
             // Color (simplified RGBA)
             let hue = buffer.get_position(i, 0).unwrap_or(0.0);
             packet.put_f32_le(hue.abs()); // R
             packet.put_f32_le(0.5); // G
             packet.put_f32_le(1.0); // B
             packet.put_f32_le(1.0); // A
-            
+
             // Importance
             packet.put_f32_le(buffer.get_importance(i)?);
         }
-        
+
         Ok(packet.freeze())
     }
 
     async fn update_stats(&self, frame_start: Instant) {
         let mut stats = self.stats.write().await;
         stats.frames_processed += 1;
-        
+
         let frame_time = frame_start.elapsed();
         let frame_time_ms = frame_time.as_secs_f64() * 1000.0;
-        
+
         if stats.frames_processed == 1 {
             stats.average_frame_time_ms = frame_time_ms;
         } else {
             // Exponential moving average
             stats.average_frame_time_ms = stats.average_frame_time_ms * 0.9 + frame_time_ms * 0.1;
         }
-        
+
         stats.last_frame_time = Some(frame_start);
-        
+
         // Update client count
         let clients = self.clients.read().await;
         stats.active_clients = clients.len();
@@ -973,24 +1086,25 @@ impl DeltaCompressor {
             current_frame: 0,
         }
     }
-    
+
     pub fn compress(&mut self, nodes: Vec<SimplifiedNode>) -> Result<Bytes, GPUSafetyError> {
         self.current_frame += 1;
-        
+
         let mut packet = BytesMut::new();
-        
+
         // Validate input nodes
         for (i, node) in nodes.iter().enumerate() {
-            node.validate().map_err(|e| GPUSafetyError::InvalidKernelParams {
-                reason: format!("Node {} validation failed: {}", i, e),
-            })?;
+            node.validate()
+                .map_err(|e| GPUSafetyError::InvalidKernelParams {
+                    reason: format!("Node {} validation failed: {}", i, e),
+                })?;
         }
-        
+
         // Check if keyframe needed
         if self.current_frame % self.keyframe_interval == 0 || self.previous_frame.is_none() {
             // Send keyframe
-            packet.put_u8(0xFF);  // Keyframe marker
-            
+            packet.put_u8(0xFF); // Keyframe marker
+
             // Validate node count fits in u32
             if nodes.len() > u32::MAX as usize {
                 return Err(GPUSafetyError::ResourceExhaustion {
@@ -999,9 +1113,9 @@ impl DeltaCompressor {
                     limit: u32::MAX as usize,
                 });
             }
-            
+
             packet.put_u32_le(nodes.len() as u32);
-            
+
             for node in &nodes {
                 packet.put_f32_le(node.x);
                 packet.put_f32_le(node.y);
@@ -1011,20 +1125,20 @@ impl DeltaCompressor {
                 packet.put_u8(node.importance);
                 packet.put_u8(node.flags);
             }
-            
+
             self.previous_frame = Some(nodes);
         } else {
             // Send delta frame
-            packet.put_u8(0xFE);  // Delta marker
-            
+            packet.put_u8(0xFE); // Delta marker
+
             let prev = match self.previous_frame.as_ref() {
                 Some(frame) => frame,
                 None => {
                     warn!("Delta frame requested but no previous frame available, falling back to full frame");
                     // Fall back to full frame instead of panicking
                     packet.clear();
-                    packet.put_u8(0xFF);  // Full frame marker
-                    
+                    packet.put_u8(0xFF); // Full frame marker
+
                     if nodes.len() > u32::MAX as usize {
                         return Err(GPUSafetyError::ResourceExhaustion {
                             resource: "fallback_keyframe_nodes".to_string(),
@@ -1032,9 +1146,9 @@ impl DeltaCompressor {
                             limit: u32::MAX as usize,
                         });
                     }
-                    
+
                     packet.put_u32_le(nodes.len() as u32);
-                    
+
                     for node in &nodes {
                         packet.put_f32_le(node.x);
                         packet.put_f32_le(node.y);
@@ -1044,49 +1158,58 @@ impl DeltaCompressor {
                         packet.put_u8(node.importance);
                         packet.put_u8(node.flags);
                     }
-                    
+
                     self.previous_frame = Some(nodes);
                     return Ok(packet.freeze());
                 }
             };
-            
+
             // Validate both frames have same length
             if nodes.len() != prev.len() {
                 return Err(GPUSafetyError::InvalidKernelParams {
-                    reason: format!("Frame size mismatch: current={}, previous={}", nodes.len(), prev.len()),
+                    reason: format!(
+                        "Frame size mismatch: current={}, previous={}",
+                        nodes.len(),
+                        prev.len()
+                    ),
                 });
             }
-            
+
             let mut deltas = Vec::new();
-            
+
             for (i, (curr, prev)) in nodes.iter().zip(prev.iter()).enumerate() {
                 let dx = curr.x - prev.x;
                 let dy = curr.y - prev.y;
                 let dz = curr.z - prev.z;
-                
+
                 // Validate delta values
                 if !dx.is_finite() || !dy.is_finite() || !dz.is_finite() {
                     return Err(GPUSafetyError::InvalidKernelParams {
-                        reason: format!("Invalid delta values at node {}: dx={}, dy={}, dz={}", i, dx, dy, dz),
+                        reason: format!(
+                            "Invalid delta values at node {}: dx={}, dy={}, dz={}",
+                            i, dx, dy, dz
+                        ),
                     });
                 }
-                
+
                 // Only send if changed significantly
-                if dx.abs() > 0.01 || dy.abs() > 0.01 || dz.abs() > 0.01 ||
-                   curr.color_index != prev.color_index ||
-                   curr.importance != prev.importance {
-                    
+                if dx.abs() > 0.01
+                    || dy.abs() > 0.01
+                    || dz.abs() > 0.01
+                    || curr.color_index != prev.color_index
+                    || curr.importance != prev.importance
+                {
                     if i > u16::MAX as usize {
                         return Err(GPUSafetyError::BufferBoundsExceeded {
                             index: i,
                             size: u16::MAX as usize,
                         });
                     }
-                    
+
                     deltas.push((i as u16, dx, dy, dz, curr.color_index, curr.importance));
                 }
             }
-            
+
             // Validate delta count
             if deltas.len() > u16::MAX as usize {
                 return Err(GPUSafetyError::ResourceExhaustion {
@@ -1095,27 +1218,27 @@ impl DeltaCompressor {
                     limit: u16::MAX as usize,
                 });
             }
-            
+
             packet.put_u16_le(deltas.len() as u16);
-            
+
             for (idx, dx, dy, dz, color, importance) in deltas {
                 packet.put_u16_le(idx);
-                
+
                 // Clamp quantized deltas to prevent overflow
                 let quantized_dx = (dx * 1000.0).clamp(i16::MIN as f32, i16::MAX as f32) as i16;
                 let quantized_dy = (dy * 1000.0).clamp(i16::MIN as f32, i16::MAX as f32) as i16;
                 let quantized_dz = (dz * 1000.0).clamp(i16::MIN as f32, i16::MAX as f32) as i16;
-                
+
                 packet.put_i16_le(quantized_dx);
                 packet.put_i16_le(quantized_dy);
                 packet.put_i16_le(quantized_dz);
                 packet.put_u8(color);
                 packet.put_u8(importance);
             }
-            
+
             self.previous_frame = Some(nodes);
         }
-        
+
         Ok(packet.freeze())
     }
 }
@@ -1130,14 +1253,14 @@ pub enum StreamMessage {
         lod: ClientLOD,
         position: Option<[f32; 3]>,
     },
-    
+
     /// Focus request from client
     FocusRequest {
         node_id: Option<u32>,
         position: [f32; 3],
         radius: f32,
     },
-    
+
     /// Performance metrics
     Metrics {
         fps: f32,
@@ -1205,7 +1328,9 @@ mod tests {
         let colors = vec![0.5f32; 400];
         let importance = vec![0.8f32; 100];
 
-        assert!(buffer.update_data(&positions, &colors, &importance, 1).is_ok());
+        assert!(buffer
+            .update_data(&positions, &colors, &importance, 1)
+            .is_ok());
         assert_eq!(buffer.get_current_frame(), 1);
         assert_eq!(buffer.get_node_count(), 100);
 
@@ -1247,19 +1372,21 @@ mod tests {
         };
         assert!(mismatched_data.validate().is_err());
     }
-    
+
     #[test]
     fn test_delta_compression() {
         let mut compressor = DeltaCompressor::new(30);
-        
+
         let nodes = vec![SimplifiedNode {
-            x: 1.0, y: 2.0, z: 3.0,
+            x: 1.0,
+            y: 2.0,
+            z: 3.0,
             color_index: 10,
             size: 50,
             importance: 128,
             flags: 0,
         }];
-        
+
         let compressed = compressor.compress(nodes);
         assert!(compressed.is_ok());
         assert!(compressed.unwrap().len() > 0);

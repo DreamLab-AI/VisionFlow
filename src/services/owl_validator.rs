@@ -1,10 +1,10 @@
-use anyhow::{Result, Context};
+use anyhow::{Context, Result};
 use chrono::{DateTime, Utc};
 use dashmap::DashMap;
-use horned_owl::ontology::set::SetOntology;
-use horned_owl::io::owx::reader::read as read_owx;
 use horned_owl::io::ofn::reader::read as read_ofn;
-use log::{debug, info, error};
+use horned_owl::io::owx::reader::read as read_owx;
+use horned_owl::ontology::set::SetOntology;
+use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::io::Cursor;
@@ -172,10 +172,20 @@ pub struct OwlValidatorService {
 /// Represents different types of inference rules
 #[derive(Debug, Clone)]
 enum InferenceRule {
-    InverseProperty { property: String, inverse: String },
-    TransitiveProperty { property: String },
-    SymmetricProperty { property: String },
-    SubClassOf { subclass: String, superclass: String },
+    InverseProperty {
+        property: String,
+        inverse: String,
+    },
+    TransitiveProperty {
+        property: String,
+    },
+    SymmetricProperty {
+        property: String,
+    },
+    SubClassOf {
+        subclass: String,
+        superclass: String,
+    },
 }
 
 impl OwlValidatorService {
@@ -187,10 +197,22 @@ impl OwlValidatorService {
     /// Create a new OWL validator service with custom configuration
     pub fn with_config(config: ValidationConfig) -> Self {
         let mut default_namespaces = HashMap::new();
-        default_namespaces.insert("rdf".to_string(), "http://www.w3.org/1999/02/22-rdf-syntax-ns#".to_string());
-        default_namespaces.insert("rdfs".to_string(), "http://www.w3.org/2000/01/rdf-schema#".to_string());
-        default_namespaces.insert("owl".to_string(), "http://www.w3.org/2002/07/owl#".to_string());
-        default_namespaces.insert("xsd".to_string(), "http://www.w3.org/2001/XMLSchema#".to_string());
+        default_namespaces.insert(
+            "rdf".to_string(),
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#".to_string(),
+        );
+        default_namespaces.insert(
+            "rdfs".to_string(),
+            "http://www.w3.org/2000/01/rdf-schema#".to_string(),
+        );
+        default_namespaces.insert(
+            "owl".to_string(),
+            "http://www.w3.org/2002/07/owl#".to_string(),
+        );
+        default_namespaces.insert(
+            "xsd".to_string(),
+            "http://www.w3.org/2001/XMLSchema#".to_string(),
+        );
         default_namespaces.insert("foaf".to_string(), "http://xmlns.com/foaf/0.1/".to_string());
 
         let inference_rules = vec![
@@ -222,11 +244,14 @@ impl OwlValidatorService {
     pub async fn load_ontology(&self, source: &str) -> Result<String> {
         let start_time = Instant::now();
 
-        info!("Loading ontology from: {}", if source.len() > 100 {
-            &source[..100]
-        } else {
-            source
-        });
+        info!(
+            "Loading ontology from: {}",
+            if source.len() > 100 {
+                &source[..100]
+            } else {
+                source
+            }
+        );
 
         // Determine source type and load content
         let ontology_content = if source.starts_with("http://") || source.starts_with("https://") {
@@ -302,7 +327,8 @@ impl OwlValidatorService {
 
             // Add property triples
             for (prop_name, prop_value) in &node.properties {
-                let (object, is_literal, datatype, language) = self.serialize_property_value(prop_value)?;
+                let (object, is_literal, datatype, language) =
+                    self.serialize_property_value(prop_value)?;
                 triples.push(RdfTriple {
                     subject: self.expand_iri(&node.id)?,
                     predicate: self.expand_iri(prop_name)?,
@@ -327,7 +353,8 @@ impl OwlValidatorService {
 
             // Add edge properties as reified statements or use edge IRI
             for (prop_name, prop_value) in &edge.properties {
-                let (object, is_literal, datatype, language) = self.serialize_property_value(prop_value)?;
+                let (object, is_literal, datatype, language) =
+                    self.serialize_property_value(prop_value)?;
                 triples.push(RdfTriple {
                     subject: self.expand_iri(&edge.id)?,
                     predicate: self.expand_iri(prop_name)?,
@@ -339,14 +366,22 @@ impl OwlValidatorService {
             }
         }
 
-        debug!("Mapped {} nodes and {} edges to {} RDF triples",
-               graph_data.nodes.len(), graph_data.edges.len(), triples.len());
+        debug!(
+            "Mapped {} nodes and {} edges to {} RDF triples",
+            graph_data.nodes.len(),
+            graph_data.edges.len(),
+            triples.len()
+        );
 
         Ok(triples)
     }
 
     /// Validate property graph against loaded ontology
-    pub async fn validate(&self, ontology_id: &str, graph_data: &PropertyGraph) -> Result<ValidationReport> {
+    pub async fn validate(
+        &self,
+        ontology_id: &str,
+        graph_data: &PropertyGraph,
+    ) -> Result<ValidationReport> {
         let start_time = Instant::now();
         let graph_signature = self.calculate_graph_signature(graph_data);
 
@@ -362,12 +397,16 @@ impl OwlValidatorService {
             }
         }
 
-        info!("Starting validation for graph with {} nodes, {} edges",
-              graph_data.nodes.len(), graph_data.edges.len());
+        info!(
+            "Starting validation for graph with {} nodes, {} edges",
+            graph_data.nodes.len(),
+            graph_data.edges.len()
+        );
 
         // Get cached ontology
-        let cached_ontology = self.ontology_cache.get(ontology_id)
-            .ok_or_else(|| ValidationError::CacheError(format!("Ontology not found: {}", ontology_id)))?;
+        let cached_ontology = self.ontology_cache.get(ontology_id).ok_or_else(|| {
+            ValidationError::CacheError(format!("Ontology not found: {}", ontology_id))
+        })?;
 
         // Convert graph to RDF triples
         let rdf_triples = self.map_graph_to_rdf(graph_data)?;
@@ -386,7 +425,8 @@ impl OwlValidatorService {
 
         // Perform different types of validation
         if self.config.validate_disjoint_classes {
-            violations.extend(self.validate_disjoint_classes(&cached_ontology.ontology, &rdf_triples)?);
+            violations
+                .extend(self.validate_disjoint_classes(&cached_ontology.ontology, &rdf_triples)?);
             statistics.constraints_evaluated += 1;
         }
 
@@ -424,8 +464,12 @@ impl OwlValidatorService {
             self.validation_cache.insert(cache_key, report.clone());
         }
 
-        info!("Validation completed in {:?}: {} violations, {} inferred triples",
-              duration, report.violations.len(), report.inferred_triples.len());
+        info!(
+            "Validation completed in {:?}: {} violations, {} inferred triples",
+            duration,
+            report.violations.len(),
+            report.inferred_triples.len()
+        );
 
         Ok(report)
     }
@@ -458,21 +502,26 @@ impl OwlValidatorService {
 
     async fn load_from_url(&self, url: &str) -> Result<String> {
         let client = reqwest::Client::new();
-        let response = client.get(url)
-            .header("Accept", "application/rdf+xml, text/turtle, application/n-triples")
+        let response = client
+            .get(url)
+            .header(
+                "Accept",
+                "application/rdf+xml, text/turtle, application/n-triples",
+            )
             .send()
             .await
             .context("Failed to fetch ontology from URL")?;
 
-        let content = response.text().await
+        let content = response
+            .text()
+            .await
             .context("Failed to read ontology content")?;
 
         Ok(content)
     }
 
     fn load_from_file(&self, path: &str) -> Result<String> {
-        std::fs::read_to_string(path)
-            .context("Failed to read ontology file")
+        std::fs::read_to_string(path).context("Failed to read ontology file")
     }
 
     fn parse_ontology(&self, content: &str) -> Result<SetOntology<Arc<str>>> {
@@ -481,10 +530,15 @@ impl OwlValidatorService {
         debug!("Detecting ontology format...");
 
         // Detect format based on content
-        if trimmed.starts_with("@prefix") || trimmed.starts_with("@base") || trimmed.contains("@prefix") {
+        if trimmed.starts_with("@prefix")
+            || trimmed.starts_with("@base")
+            || trimmed.contains("@prefix")
+        {
             error!("Turtle format not supported. Please use OWL Functional Syntax or OWL/XML.");
             Err(ValidationError::ParseError("Turtle format not supported. Use OWL Functional Syntax (starts with 'Prefix(' or 'Ontology(') or OWL/XML.".to_string()).into())
-        } else if trimmed.starts_with("<?xml") || (trimmed.starts_with("<") && trimmed.contains("rdf:RDF")) {
+        } else if trimmed.starts_with("<?xml")
+            || (trimmed.starts_with("<") && trimmed.contains("rdf:RDF"))
+        {
             error!("RDF/XML format not supported. Please use OWL Functional Syntax or OWL/XML.");
             Err(ValidationError::ParseError("RDF/XML format not supported. Use OWL Functional Syntax (starts with 'Prefix(' or 'Ontology(') or OWL/XML.".to_string()).into())
         } else if trimmed.starts_with("Prefix(") || trimmed.starts_with("Ontology(") {
@@ -511,7 +565,10 @@ impl OwlValidatorService {
             }
             Err(e) => {
                 error!("Failed to parse Functional Syntax: {}", e);
-                Err(ValidationError::ParseError(format!("Functional Syntax parse error: {}", e)).into())
+                Err(
+                    ValidationError::ParseError(format!("Functional Syntax parse error: {}", e))
+                        .into(),
+                )
             }
         }
     }
@@ -585,7 +642,10 @@ impl OwlValidatorService {
         }
     }
 
-    fn serialize_property_value(&self, value: &serde_json::Value) -> Result<(String, bool, Option<String>, Option<String>)> {
+    fn serialize_property_value(
+        &self,
+        value: &serde_json::Value,
+    ) -> Result<(String, bool, Option<String>, Option<String>)> {
         match value {
             serde_json::Value::String(s) => {
                 if s.starts_with("http://") || s.starts_with("https://") {
@@ -593,34 +653,62 @@ impl OwlValidatorService {
                     Ok((s.clone(), false, None, None))
                 } else {
                     // String literal
-                    Ok((s.clone(), true, Some("http://www.w3.org/2001/XMLSchema#string".to_string()), None))
+                    Ok((
+                        s.clone(),
+                        true,
+                        Some("http://www.w3.org/2001/XMLSchema#string".to_string()),
+                        None,
+                    ))
                 }
-            },
+            }
             serde_json::Value::Number(n) => {
                 if n.is_i64() {
-                    Ok((n.to_string(), true, Some("http://www.w3.org/2001/XMLSchema#integer".to_string()), None))
+                    Ok((
+                        n.to_string(),
+                        true,
+                        Some("http://www.w3.org/2001/XMLSchema#integer".to_string()),
+                        None,
+                    ))
                 } else {
-                    Ok((n.to_string(), true, Some("http://www.w3.org/2001/XMLSchema#double".to_string()), None))
+                    Ok((
+                        n.to_string(),
+                        true,
+                        Some("http://www.w3.org/2001/XMLSchema#double".to_string()),
+                        None,
+                    ))
                 }
-            },
-            serde_json::Value::Bool(b) => {
-                Ok((b.to_string(), true, Some("http://www.w3.org/2001/XMLSchema#boolean".to_string()), None))
-            },
-            _ => {
-                Ok((value.to_string(), true, Some("http://www.w3.org/2001/XMLSchema#string".to_string()), None))
             }
+            serde_json::Value::Bool(b) => Ok((
+                b.to_string(),
+                true,
+                Some("http://www.w3.org/2001/XMLSchema#boolean".to_string()),
+                None,
+            )),
+            _ => Ok((
+                value.to_string(),
+                true,
+                Some("http://www.w3.org/2001/XMLSchema#string".to_string()),
+                None,
+            )),
         }
     }
 
-    fn validate_disjoint_classes(&self, _ontology: &SetOntology<Arc<str>>, triples: &[RdfTriple]) -> Result<Vec<Violation>> {
+    fn validate_disjoint_classes(
+        &self,
+        _ontology: &SetOntology<Arc<str>>,
+        triples: &[RdfTriple],
+    ) -> Result<Vec<Violation>> {
         let mut violations = Vec::new();
 
         // Extract type assertions from triples
         let mut individual_types: HashMap<String, Vec<String>> = HashMap::new();
 
         for triple in triples {
-            if triple.predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" && !triple.is_literal {
-                individual_types.entry(triple.subject.clone())
+            if triple.predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+                && !triple.is_literal
+            {
+                individual_types
+                    .entry(triple.subject.clone())
                     .or_insert_with(Vec::new)
                     .push(triple.object.clone());
             }
@@ -641,10 +729,14 @@ impl OwlValidatorService {
                         id: Uuid::new_v4().to_string(),
                         severity: Severity::Error,
                         rule: "DisjointClasses".to_string(),
-                        message: format!("Individual {} cannot be both {} and {} (disjoint classes)",
-                                       individual, class1, class2),
+                        message: format!(
+                            "Individual {} cannot be both {} and {} (disjoint classes)",
+                            individual, class1, class2
+                        ),
                         subject: Some(individual.clone()),
-                        predicate: Some("http://www.w3.org/1999/02/22-rdf-syntax-ns#type".to_string()),
+                        predicate: Some(
+                            "http://www.w3.org/1999/02/22-rdf-syntax-ns#type".to_string(),
+                        ),
                         object: None,
                         timestamp: Utc::now(),
                     });
@@ -655,21 +747,36 @@ impl OwlValidatorService {
         Ok(violations)
     }
 
-    fn validate_domain_range(&self, _ontology: &SetOntology<Arc<str>>, triples: &[RdfTriple]) -> Result<Vec<Violation>> {
+    fn validate_domain_range(
+        &self,
+        _ontology: &SetOntology<Arc<str>>,
+        triples: &[RdfTriple],
+    ) -> Result<Vec<Violation>> {
         let mut violations = Vec::new();
 
         // Define some example domain/range constraints
         // In practice, these would be extracted from the ontology
         let constraints = vec![
-            ("http://example.org/employs", "http://example.org/Organization", "http://example.org/Person"),
-            ("http://example.org/hasAge", "http://example.org/Person", "http://www.w3.org/2001/XMLSchema#integer"),
+            (
+                "http://example.org/employs",
+                "http://example.org/Organization",
+                "http://example.org/Person",
+            ),
+            (
+                "http://example.org/hasAge",
+                "http://example.org/Person",
+                "http://www.w3.org/2001/XMLSchema#integer",
+            ),
         ];
 
         // Get type information for validation
         let mut individual_types: HashMap<String, Vec<String>> = HashMap::new();
         for triple in triples {
-            if triple.predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" && !triple.is_literal {
-                individual_types.entry(triple.subject.clone())
+            if triple.predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+                && !triple.is_literal
+            {
+                individual_types
+                    .entry(triple.subject.clone())
                     .or_insert_with(Vec::new)
                     .push(triple.object.clone());
             }
@@ -686,8 +793,10 @@ impl OwlValidatorService {
                                 id: Uuid::new_v4().to_string(),
                                 severity: Severity::Error,
                                 rule: "DomainViolation".to_string(),
-                                message: format!("Subject {} must be of type {} for property {}",
-                                               triple.subject, domain, property),
+                                message: format!(
+                                    "Subject {} must be of type {} for property {}",
+                                    triple.subject, domain, property
+                                ),
                                 subject: Some(triple.subject.clone()),
                                 predicate: Some(triple.predicate.clone()),
                                 object: Some(triple.object.clone()),
@@ -704,8 +813,10 @@ impl OwlValidatorService {
                                     id: Uuid::new_v4().to_string(),
                                     severity: Severity::Error,
                                     rule: "RangeViolation".to_string(),
-                                    message: format!("Object {} must be of type {} for property {}",
-                                                   triple.object, range, property),
+                                    message: format!(
+                                        "Object {} must be of type {} for property {}",
+                                        triple.object, range, property
+                                    ),
                                     subject: Some(triple.subject.clone()),
                                     predicate: Some(triple.predicate.clone()),
                                     object: Some(triple.object.clone()),
@@ -713,14 +824,18 @@ impl OwlValidatorService {
                                 });
                             }
                         }
-                    } else if triple.is_literal && triple.datatype.as_ref() != Some(&range.to_string()) {
+                    } else if triple.is_literal
+                        && triple.datatype.as_ref() != Some(&range.to_string())
+                    {
                         // Check datatype for literals
                         violations.push(Violation {
                             id: Uuid::new_v4().to_string(),
                             severity: Severity::Error,
                             rule: "RangeViolation".to_string(),
-                            message: format!("Literal {} must have datatype {} for property {}",
-                                           triple.object, range, property),
+                            message: format!(
+                                "Literal {} must have datatype {} for property {}",
+                                triple.object, range, property
+                            ),
                             subject: Some(triple.subject.clone()),
                             predicate: Some(triple.predicate.clone()),
                             object: Some(triple.object.clone()),
@@ -734,14 +849,18 @@ impl OwlValidatorService {
         Ok(violations)
     }
 
-    fn validate_cardinality(&self, _ontology: &SetOntology<Arc<str>>, triples: &[RdfTriple]) -> Result<Vec<Violation>> {
+    fn validate_cardinality(
+        &self,
+        _ontology: &SetOntology<Arc<str>>,
+        triples: &[RdfTriple],
+    ) -> Result<Vec<Violation>> {
         let mut violations = Vec::new();
 
         // Define cardinality constraints
         // In practice, these would be extracted from the ontology
         let cardinality_constraints = vec![
             ("http://example.org/hasSSN", 1, Some(1)), // exactly 1
-            ("http://example.org/hasChild", 0, None),   // minimum 0, no maximum
+            ("http://example.org/hasChild", 0, None),  // minimum 0, no maximum
         ];
 
         // Count property occurrences per subject
@@ -755,21 +874,26 @@ impl OwlValidatorService {
         // Check cardinality constraints
         for (property, min_card, max_card) in cardinality_constraints {
             // Group subjects by property usage
-            let subjects_using_property: HashSet<String> = triples.iter()
+            let subjects_using_property: HashSet<String> = triples
+                .iter()
                 .filter(|t| t.predicate == property)
                 .map(|t| t.subject.clone())
                 .collect();
 
             for subject in subjects_using_property {
-                let count = property_counts.get(&(subject.clone(), property.to_string())).unwrap_or(&0);
+                let count = property_counts
+                    .get(&(subject.clone(), property.to_string()))
+                    .unwrap_or(&0);
 
                 if *count < min_card {
                     violations.push(Violation {
                         id: Uuid::new_v4().to_string(),
                         severity: Severity::Error,
                         rule: "MinCardinalityViolation".to_string(),
-                        message: format!("Subject {} must have at least {} values for property {} (found {})",
-                                       subject, min_card, property, count),
+                        message: format!(
+                            "Subject {} must have at least {} values for property {} (found {})",
+                            subject, min_card, property, count
+                        ),
                         subject: Some(subject.clone()),
                         predicate: Some(property.to_string()),
                         object: None,
@@ -783,8 +907,10 @@ impl OwlValidatorService {
                             id: Uuid::new_v4().to_string(),
                             severity: Severity::Error,
                             rule: "MaxCardinalityViolation".to_string(),
-                            message: format!("Subject {} must have at most {} values for property {} (found {})",
-                                           subject, max_card, property, count),
+                            message: format!(
+                                "Subject {} must have at most {} values for property {} (found {})",
+                                subject, max_card, property, count
+                            ),
                             subject: Some(subject.clone()),
                             predicate: Some(property.to_string()),
                             object: None,
@@ -798,7 +924,11 @@ impl OwlValidatorService {
         Ok(violations)
     }
 
-    fn infer_triples(&self, original_triples: &[RdfTriple], statistics: &mut ValidationStatistics) -> Result<Vec<RdfTriple>> {
+    fn infer_triples(
+        &self,
+        original_triples: &[RdfTriple],
+        statistics: &mut ValidationStatistics,
+    ) -> Result<Vec<RdfTriple>> {
         let mut inferred = Vec::new();
         let timeout = Duration::from_secs(self.config.reasoning_timeout_seconds);
         let start_time = Instant::now();
@@ -812,16 +942,17 @@ impl OwlValidatorService {
             let new_triples = match rule {
                 InferenceRule::InverseProperty { property, inverse } => {
                     self.apply_inverse_property_rule(original_triples, property, inverse)
-                },
+                }
                 InferenceRule::TransitiveProperty { property } => {
                     self.apply_transitive_property_rule(original_triples, property)
-                },
+                }
                 InferenceRule::SymmetricProperty { property } => {
                     self.apply_symmetric_property_rule(original_triples, property)
-                },
-                InferenceRule::SubClassOf { subclass, superclass } => {
-                    self.apply_subclass_rule(original_triples, subclass, superclass)
-                },
+                }
+                InferenceRule::SubClassOf {
+                    subclass,
+                    superclass,
+                } => self.apply_subclass_rule(original_triples, subclass, superclass),
             };
 
             inferred.extend(new_triples);
@@ -831,7 +962,12 @@ impl OwlValidatorService {
         Ok(inferred)
     }
 
-    fn apply_inverse_property_rule(&self, triples: &[RdfTriple], property: &str, inverse: &str) -> Vec<RdfTriple> {
+    fn apply_inverse_property_rule(
+        &self,
+        triples: &[RdfTriple],
+        property: &str,
+        inverse: &str,
+    ) -> Vec<RdfTriple> {
         let mut inferred = Vec::new();
 
         for triple in triples {
@@ -850,11 +986,16 @@ impl OwlValidatorService {
         inferred
     }
 
-    fn apply_transitive_property_rule(&self, triples: &[RdfTriple], property: &str) -> Vec<RdfTriple> {
+    fn apply_transitive_property_rule(
+        &self,
+        triples: &[RdfTriple],
+        property: &str,
+    ) -> Vec<RdfTriple> {
         let mut inferred = Vec::new();
 
         // Find all triples with the transitive property
-        let property_triples: Vec<_> = triples.iter()
+        let property_triples: Vec<_> = triples
+            .iter()
             .filter(|t| t.predicate == property && !t.is_literal)
             .collect();
 
@@ -877,7 +1018,11 @@ impl OwlValidatorService {
         inferred
     }
 
-    fn apply_symmetric_property_rule(&self, triples: &[RdfTriple], property: &str) -> Vec<RdfTriple> {
+    fn apply_symmetric_property_rule(
+        &self,
+        triples: &[RdfTriple],
+        property: &str,
+    ) -> Vec<RdfTriple> {
         let mut inferred = Vec::new();
 
         for triple in triples {
@@ -896,13 +1041,20 @@ impl OwlValidatorService {
         inferred
     }
 
-    fn apply_subclass_rule(&self, triples: &[RdfTriple], subclass: &str, superclass: &str) -> Vec<RdfTriple> {
+    fn apply_subclass_rule(
+        &self,
+        triples: &[RdfTriple],
+        subclass: &str,
+        superclass: &str,
+    ) -> Vec<RdfTriple> {
         let mut inferred = Vec::new();
 
         // If X is of type Subclass, then X is also of type Superclass
         for triple in triples {
             if triple.predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
-                && triple.object == subclass && !triple.is_literal {
+                && triple.object == subclass
+                && !triple.is_literal
+            {
                 inferred.push(RdfTriple {
                     subject: triple.subject.clone(),
                     predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type".to_string(),
@@ -932,7 +1084,9 @@ pub fn validation_report_to_reasoning_report(
     report: &ValidationReport,
     _ontology: &SetOntology<Arc<str>>,
 ) -> crate::physics::ontology_constraints::OntologyReasoningReport {
-    use crate::physics::ontology_constraints::{OntologyReasoningReport, OWLAxiom, OWLAxiomType, OntologyInference, ConsistencyCheck};
+    use crate::physics::ontology_constraints::{
+        ConsistencyCheck, OWLAxiom, OWLAxiomType, OntologyInference, OntologyReasoningReport,
+    };
 
     let axioms = Vec::new(); // TODO: Extract axioms using horned-owl 1.2.0 API
     let mut inferences = Vec::new();
@@ -964,8 +1118,13 @@ pub fn validation_report_to_reasoning_report(
     }
 
     // Create consistency checks based on violations
-    let is_consistent = report.violations.iter().all(|v| v.severity != Severity::Error);
-    let conflicting_axioms: Vec<String> = report.violations.iter()
+    let is_consistent = report
+        .violations
+        .iter()
+        .all(|v| v.severity != Severity::Error);
+    let conflicting_axioms: Vec<String> = report
+        .violations
+        .iter()
         .filter(|v| v.severity == Severity::Error)
         .map(|v| v.rule.clone())
         .collect();
@@ -998,18 +1157,22 @@ mod tests {
 
         // Create a simple property graph
         let graph = PropertyGraph {
-            nodes: vec![
-                GraphNode {
-                    id: "person1".to_string(),
-                    labels: vec!["Person".to_string()],
-                    properties: {
-                        let mut props = HashMap::new();
-                        props.insert("name".to_string(), serde_json::Value::String("John".to_string()));
-                        props.insert("age".to_string(), serde_json::Value::Number(serde_json::Number::from(30)));
-                        props
-                    },
-                }
-            ],
+            nodes: vec![GraphNode {
+                id: "person1".to_string(),
+                labels: vec!["Person".to_string()],
+                properties: {
+                    let mut props = HashMap::new();
+                    props.insert(
+                        "name".to_string(),
+                        serde_json::Value::String("John".to_string()),
+                    );
+                    props.insert(
+                        "age".to_string(),
+                        serde_json::Value::Number(serde_json::Number::from(30)),
+                    );
+                    props
+                },
+            }],
             edges: vec![],
             metadata: HashMap::new(),
         };
@@ -1043,14 +1206,22 @@ mod tests {
 
         // Test string value
         let string_val = serde_json::Value::String("test".to_string());
-        let (object, is_literal, datatype, _) = validator.serialize_property_value(&string_val).unwrap();
+        let (object, is_literal, datatype, _) =
+            validator.serialize_property_value(&string_val).unwrap();
         assert!(is_literal);
-        assert_eq!(datatype, Some("http://www.w3.org/2001/XMLSchema#string".to_string()));
+        assert_eq!(
+            datatype,
+            Some("http://www.w3.org/2001/XMLSchema#string".to_string())
+        );
 
         // Test integer value
         let int_val = serde_json::Value::Number(serde_json::Number::from(42));
-        let (object, is_literal, datatype, _) = validator.serialize_property_value(&int_val).unwrap();
+        let (object, is_literal, datatype, _) =
+            validator.serialize_property_value(&int_val).unwrap();
         assert!(is_literal);
-        assert_eq!(datatype, Some("http://www.w3.org/2001/XMLSchema#integer".to_string()));
+        assert_eq!(
+            datatype,
+            Some("http://www.w3.org/2001/XMLSchema#integer".to_string())
+        );
     }
 }

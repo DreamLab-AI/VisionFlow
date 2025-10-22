@@ -12,6 +12,16 @@
 
 This comprehensive documentation index provides complete navigation for the VisionFlow platform, an advanced augmented reality and artificial intelligence knowledge graph visualisation system. VisionFlow combines real-time 3D rendering, GPU-accelerated physics simulation, and distributed multi-agent orchestration to deliver immersive knowledge exploration experiences.
 
+**🎯 NEW: Hexagonal Architecture Documentation**
+
+VisionFlow is migrating to a **hexagonal (ports and adapters) architecture** with **database-first** design. Key new documentation:
+
+- **[Architecture Overview](ARCHITECTURE.md)** - Complete hexagonal architecture with three-database system
+- **[Developer Guide](DEVELOPER_GUIDE.md)** - Comprehensive guide to hexser development patterns
+- **[API Reference](API.md)** - REST and WebSocket APIs with CQRS handlers
+- **[Database Guide](DATABASE.md)** - Three-database system (settings, knowledge_graph, ontology)
+- **[Client Integration](CLIENT_INTEGRATION.md)** - Server-authoritative state management
+
 The documentation is organised according to the Diátaxis framework, providing clear learning paths through tutorials, task-oriented guides, conceptual explanations, and technical reference materials.
 
 ---
@@ -888,3 +898,25 @@ For documentation issues, corrections, or enhancement suggestions, please open a
 ---
 
 **End of Documentation Index**
+
+---
+
+## ⚠️ Legacy Documentation Notice
+
+The following documentation references **legacy file-based configuration** and **actor-based architecture**. These are being replaced by the new hexagonal architecture:
+
+### Superseded Documentation
+- `/docs/_archive/` - Archived legacy documentation
+- `/docs/DATABASE_REFACTOR_COMPLETE.md` - Partial refactor documentation (superseded by DATABASE.md)
+- `/docs/QUEEN_ARCHITECTURAL_ANALYSIS.md` - Migration analysis (superseded by ARCHITECTURE.md)
+- Any references to YAML/TOML configuration files
+- Any references to `GraphServiceSupervisor` or `OptimizedSettingsActor`
+
+### Current Valid Documentation
+- **NEW**: [ARCHITECTURE.md](ARCHITECTURE.md), [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md), [API.md](API.md)
+- **NEW**: [DATABASE.md](DATABASE.md), [CLIENT_INTEGRATION.md](CLIENT_INTEGRATION.md)
+- Architecture documents in `/docs/architecture/` (ports, adapters, CQRS designs)
+- Getting started guides in `/docs/getting-started/`
+- Reference documentation in `/docs/reference/` (agents, API specs)
+
+---

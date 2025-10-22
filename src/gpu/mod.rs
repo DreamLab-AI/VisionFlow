@@ -12,16 +12,14 @@ pub mod hybrid_sssp;
 
 // Primary exports (safe by default)
 pub use visual_analytics::{
-    VisualAnalyticsGPU, VisualAnalyticsParams, VisualAnalyticsBuilder, VisualAnalyticsEngine,
-    TSNode, TSEdge, IsolationLayer, Vec4, RenderData, PerformanceMetrics
+    IsolationLayer, PerformanceMetrics, RenderData, TSEdge, TSNode, Vec4, VisualAnalyticsBuilder,
+    VisualAnalyticsEngine, VisualAnalyticsGPU, VisualAnalyticsParams,
 };
 
 pub use streaming_pipeline::{
-    StreamingPipeline, SimplifiedNode, CompressedEdge, ClientLOD, FrameBuffer,
-    ClientConnection, ClientStats, PipelineStats, DeltaCompressor, StreamMessage
+    ClientConnection, ClientLOD, ClientStats, CompressedEdge, DeltaCompressor, FrameBuffer,
+    PipelineStats, SimplifiedNode, StreamMessage, StreamingPipeline,
 };
 
 // Hybrid SSSP exports
-pub use hybrid_sssp::{
-    HybridSSPExecutor, HybridSSPConfig, HybridSSPResult, SSPMetrics
-};
+pub use hybrid_sssp::{HybridSSPConfig, HybridSSPExecutor, HybridSSPResult, SSPMetrics};

@@ -1,16 +1,15 @@
+use actix::{Actor, ActorContext, AsyncContext, Handler, Message, StreamHandler};
 use actix_web::{web, HttpResponse, Responder};
 use actix_web_actors::ws;
-use actix::{Actor, StreamHandler, AsyncContext, Handler, ActorContext, Message};
+use log::{debug, info, warn};
 use serde::Deserialize;
 use serde_json::json;
 use std::time::{Duration, Instant};
-use log::{info, debug, warn};
 
-use crate::AppState;
 use crate::services::agent_visualization_protocol::{
-    AgentVisualizationProtocol,
-    AgentStateUpdate, PositionUpdate
+    AgentStateUpdate, AgentVisualizationProtocol, PositionUpdate,
 };
+use crate::AppState;
 
 /// WebSocket actor for agent visualization streaming
 pub struct AgentVisualizationWs {
@@ -31,7 +30,9 @@ impl AgentVisualizationWs {
     }
 
     /// Get real agent data from MCP services or bots client
-    fn get_real_agent_data(&self) -> Vec<crate::services::agent_visualization_protocol::AgentStateUpdate> {
+    fn get_real_agent_data(
+        &self,
+    ) -> Vec<crate::services::agent_visualization_protocol::AgentStateUpdate> {
         // For now, return a basic agent list - this would connect to MCP in a real implementation
         // This is a simplified version that creates agent updates from available data
         vec![
@@ -44,36 +45,37 @@ impl AgentVisualizationWs {
                 activity: Some(0.3),
                 tasks_active: Some(1),
                 current_task: Some("Managing swarm coordination".to_string()),
-            }
+            },
         ]
     }
-    
+
     /// Send initial state to client
     fn send_init_state(&self, ctx: &mut ws::WebsocketContext<Self>) {
         // For now, create empty agent list for compilation - this needs proper implementation
         let agents: Vec<crate::types::claude_flow::AgentStatus> = Vec::new();
 
-        let init_json = AgentVisualizationProtocol::create_init_message(
-            "swarm-001",
-            "hierarchical",
-            agents
-        );
+        let init_json =
+            AgentVisualizationProtocol::create_init_message("swarm-001", "hierarchical", agents);
 
         let agent_count = init_json.matches("agentId").count();
         ctx.text(init_json);
-        info!("Sent initialization message with {} agents to client", agent_count);
+        info!(
+            "Sent initialization message with {} agents to client",
+            agent_count
+        );
     }
-    
+
     /// Start position update stream
     fn start_position_updates(&self, ctx: &mut ws::WebsocketContext<Self>) {
-        ctx.run_interval(Duration::from_millis(16), |act, ctx| { // ~60fps
+        ctx.run_interval(Duration::from_millis(16), |act, ctx| {
+            // ~60fps
             // Only send if we have updates
             if let Some(update_json) = act.protocol.create_position_update() {
                 ctx.text(update_json);
             }
         });
     }
-    
+
     /// Start heartbeat
     fn start_heartbeat(&self, ctx: &mut ws::WebsocketContext<Self>) {
         ctx.run_interval(Duration::from_secs(5), |act, ctx| {
@@ -82,7 +84,7 @@ impl AgentVisualizationWs {
                 ctx.stop();
                 return;
             }
-            
+
             ctx.ping(b"ping");
         });
     }
@@ -90,20 +92,20 @@ impl AgentVisualizationWs {
 
 impl Actor for AgentVisualizationWs {
     type Context = ws::WebsocketContext<Self>;
-    
+
     fn started(&mut self, ctx: &mut Self::Context) {
         info!("Agent visualization WebSocket connection established");
-        
+
         // Send initial state
         ctx.address().do_send(InitConnection);
-        
+
         // Start heartbeat
         self.start_heartbeat(ctx);
-        
+
         // Start position updates
         self.start_position_updates(ctx);
     }
-    
+
     fn stopped(&mut self, _: &mut Self::Context) {
         info!("Agent visualization WebSocket connection closed");
     }
@@ -130,7 +132,7 @@ impl Message for UpdateStates {
 
 impl Handler<InitConnection> for AgentVisualizationWs {
     type Result = ();
-    
+
     fn handle(&mut self, _: InitConnection, ctx: &mut Self::Context) {
         self.send_init_state(ctx);
     }
@@ -138,7 +140,7 @@ impl Handler<InitConnection> for AgentVisualizationWs {
 
 impl Handler<UpdatePositions> for AgentVisualizationWs {
     type Result = ();
-    
+
     fn handle(&mut self, msg: UpdatePositions, _ctx: &mut Self::Context) {
         // Buffer position updates
         for update in msg.0 {
@@ -149,7 +151,7 @@ impl Handler<UpdatePositions> for AgentVisualizationWs {
                 update.z,
                 update.vx.unwrap_or(0.0),
                 update.vy.unwrap_or(0.0),
-                update.vz.unwrap_or(0.0)
+                update.vz.unwrap_or(0.0),
             );
         }
     }
@@ -157,7 +159,7 @@ impl Handler<UpdatePositions> for AgentVisualizationWs {
 
 impl Handler<UpdateStates> for AgentVisualizationWs {
     type Result = ();
-    
+
     fn handle(&mut self, msg: UpdateStates, ctx: &mut Self::Context) {
         let state_json = AgentVisualizationProtocol::create_state_update(msg.0);
         ctx.text(state_json);
@@ -228,74 +230,77 @@ pub async fn agent_visualization_ws(
 }
 
 /// Get current agent visualization snapshot (for debugging)
-pub async fn get_agent_visualization_snapshot(
-    app_state: web::Data<AppState>,
-) -> impl Responder {
+pub async fn get_agent_visualization_snapshot(app_state: web::Data<AppState>) -> impl Responder {
     // Get real agent data from app state
     let agents = get_real_agents_from_app_state(&app_state).await;
 
     // Convert agent updates to agent status for visualization
-    let agent_statuses: Vec<crate::types::claude_flow::AgentStatus> = agents.into_iter().map(|update| {
-        crate::types::claude_flow::AgentStatus {
-            agent_id: update.id.clone(),
-            profile: crate::types::claude_flow::AgentProfile {
-                name: update.id.clone(),
-                agent_type: crate::types::claude_flow::AgentType::Generic,
-                capabilities: vec!["general".to_string()],
-                description: Some("Agent".to_string()),
-                version: "1.0".to_string(),
-                tags: vec![],
-            },
-            status: update.status.unwrap_or_else(|| "active".to_string()),
-            active_tasks_count: update.tasks_active.unwrap_or(0),
-            completed_tasks_count: 0,
-            failed_tasks_count: 0,
-            success_rate: 1.0,
-            timestamp: chrono::Utc::now(),
-            current_task: update.current_task.as_ref().map(|task| crate::types::claude_flow::TaskReference {
-                task_id: "current".to_string(),
-                description: task.clone(),
-                priority: crate::types::claude_flow::TaskPriority::Medium,
-            }),
-
-            // Client compatibility fields
-            agent_type: "generic".to_string(),
-            current_task_description: update.current_task.clone(),
-            capabilities: vec!["general".to_string()],
-            position: None,
-            cpu_usage: update.cpu.unwrap_or(0.0),
-            memory_usage: update.memory.unwrap_or(0.0),
-            health: update.health.unwrap_or(1.0),
-            activity: update.activity.unwrap_or(0.0),
-            tasks_active: update.tasks_active.unwrap_or(0),
-            tasks_completed: 0,
-            success_rate_normalized: 1.0,
-            tokens: 0,
-            token_rate: 0.0,
-            created_at: chrono::Utc::now().to_rfc3339(),
-            age: 0,
-            workload: Some(0.5),
-
-            // Other fields
-            performance_metrics: crate::types::claude_flow::PerformanceMetrics {
-                tasks_completed: 0,
+    let agent_statuses: Vec<crate::types::claude_flow::AgentStatus> = agents
+        .into_iter()
+        .map(|update| {
+            crate::types::claude_flow::AgentStatus {
+                agent_id: update.id.clone(),
+                profile: crate::types::claude_flow::AgentProfile {
+                    name: update.id.clone(),
+                    agent_type: crate::types::claude_flow::AgentType::Generic,
+                    capabilities: vec!["general".to_string()],
+                    description: Some("Agent".to_string()),
+                    version: "1.0".to_string(),
+                    tags: vec![],
+                },
+                status: update.status.unwrap_or_else(|| "active".to_string()),
+                active_tasks_count: update.tasks_active.unwrap_or(0),
+                completed_tasks_count: 0,
+                failed_tasks_count: 0,
                 success_rate: 1.0,
-            },
-            token_usage: crate::types::claude_flow::TokenUsage {
-                total: 0,
+                timestamp: chrono::Utc::now(),
+                current_task: update.current_task.as_ref().map(|task| {
+                    crate::types::claude_flow::TaskReference {
+                        task_id: "current".to_string(),
+                        description: task.clone(),
+                        priority: crate::types::claude_flow::TaskPriority::Medium,
+                    }
+                }),
+
+                // Client compatibility fields
+                agent_type: "generic".to_string(),
+                current_task_description: update.current_task.clone(),
+                capabilities: vec!["general".to_string()],
+                position: None,
+                cpu_usage: update.cpu.unwrap_or(0.0),
+                memory_usage: update.memory.unwrap_or(0.0),
+                health: update.health.unwrap_or(1.0),
+                activity: update.activity.unwrap_or(0.0),
+                tasks_active: update.tasks_active.unwrap_or(0),
+                tasks_completed: 0,
+                success_rate_normalized: 1.0,
+                tokens: 0,
                 token_rate: 0.0,
-            },
-            swarm_id: None,
-            agent_mode: Some("agent".to_string()),
-            parent_queen_id: None,
-            processing_logs: None,
-        }
-    }).collect();
+                created_at: chrono::Utc::now().to_rfc3339(),
+                age: 0,
+                workload: Some(0.5),
+
+                // Other fields
+                performance_metrics: crate::types::claude_flow::PerformanceMetrics {
+                    tasks_completed: 0,
+                    success_rate: 1.0,
+                },
+                token_usage: crate::types::claude_flow::TokenUsage {
+                    total: 0,
+                    token_rate: 0.0,
+                },
+                swarm_id: None,
+                agent_mode: Some("agent".to_string()),
+                parent_queen_id: None,
+                processing_logs: None,
+            }
+        })
+        .collect();
 
     let init_json = AgentVisualizationProtocol::create_init_message(
         "swarm-001",
         "hierarchical",
-        agent_statuses
+        agent_statuses,
     );
 
     HttpResponse::Ok()
@@ -316,10 +321,13 @@ pub async fn initialize_swarm_visualization(
     req: web::Json<InitializeSwarmRequest>,
     _app_state: web::Data<AppState>,
 ) -> impl Responder {
-    info!("Initializing swarm visualization with topology: {}", req.topology);
-    
+    info!(
+        "Initializing swarm visualization with topology: {}",
+        req.topology
+    );
+
     // TODO: Forward to Claude Flow actor to actually initialize swarm
-    
+
     HttpResponse::Ok().json(json!({
         "success": true,
         "message": "Swarm initialization started",
@@ -334,8 +342,14 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api/visualization")
             .route("/agents/ws", web::get().to(agent_visualization_ws))
-            .route("/agents/snapshot", web::get().to(get_agent_visualization_snapshot))
-            .route("/swarm/initialize", web::post().to(initialize_swarm_visualization))
+            .route(
+                "/agents/snapshot",
+                web::get().to(get_agent_visualization_snapshot),
+            )
+            .route(
+                "/swarm/initialize",
+                web::post().to(initialize_swarm_visualization),
+            ),
     );
 }
 
@@ -345,18 +359,21 @@ async fn get_real_agents_from_app_state(
 ) -> Vec<crate::services::agent_visualization_protocol::AgentStateUpdate> {
     // Try to get agents from bots client first
     if let Ok(agents) = app_state.bots_client.get_agents_snapshot().await {
-        return agents.into_iter().map(|agent| {
-            crate::services::agent_visualization_protocol::AgentStateUpdate {
-                id: agent.id,
-                status: Some(agent.status),
-                health: Some(agent.health),
-                cpu: Some(agent.cpu_usage),
-                memory: Some(agent.memory_usage),
-                activity: Some(agent.workload),
-                tasks_active: Some(1), // Default active tasks
-                current_task: Some(format!("Agent running")),
-            }
-        }).collect();
+        return agents
+            .into_iter()
+            .map(|agent| {
+                crate::services::agent_visualization_protocol::AgentStateUpdate {
+                    id: agent.id,
+                    status: Some(agent.status),
+                    health: Some(agent.health),
+                    cpu: Some(agent.cpu_usage),
+                    memory: Some(agent.memory_usage),
+                    activity: Some(agent.workload),
+                    tasks_active: Some(1), // Default active tasks
+                    current_task: Some(format!("Agent running")),
+                }
+            })
+            .collect();
     }
 
     // Fallback: Try to get from MCP services or return minimal active agent
@@ -370,6 +387,6 @@ async fn get_real_agents_from_app_state(
             activity: Some(0.1),
             tasks_active: Some(1),
             current_task: Some("System coordination and monitoring".to_string()),
-        }
+        },
     ]
 }

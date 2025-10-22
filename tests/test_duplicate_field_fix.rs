@@ -37,19 +37,28 @@ async fn test_duplicate_field_fix() {
     });
 
     // These should all succeed now that field normalization is implemented
-    assert!(settings.merge_update(update_with_base_color).is_ok(),
-        "baseColor update should succeed");
+    assert!(
+        settings.merge_update(update_with_base_color).is_ok(),
+        "baseColor update should succeed"
+    );
 
-    assert!(settings.merge_update(update_with_ambient_light).is_ok(),
-        "ambientLightIntensity update should succeed");
+    assert!(
+        settings.merge_update(update_with_ambient_light).is_ok(),
+        "ambientLightIntensity update should succeed"
+    );
 
-    assert!(settings.merge_update(combined_update).is_ok(),
-        "Combined update with multiple fields should succeed");
+    assert!(
+        settings.merge_update(combined_update).is_ok(),
+        "Combined update with multiple fields should succeed"
+    );
 
     // Verify the values were actually applied
     assert_eq!(settings.visualisation.nodes.base_color, "#00FF00");
     assert_eq!(settings.visualisation.nodes.opacity, 0.9);
-    assert_eq!(settings.visualisation.rendering.ambient_light_intensity, 0.7);
+    assert_eq!(
+        settings.visualisation.rendering.ambient_light_intensity,
+        0.7
+    );
     assert!(settings.visualisation.rendering.enable_shadows);
 }
 
@@ -71,5 +80,9 @@ async fn test_field_normalization_edge_cases() {
     // The fix should handle this by normalizing both to camelCase
     // The camelCase version should win since it appears later in processing
     let result = settings.merge_update(mixed_naming_update);
-    assert!(result.is_ok(), "Mixed naming convention update should succeed: {:?}", result);
+    assert!(
+        result.is_ok(),
+        "Mixed naming convention update should succeed: {:?}",
+        result
+    );
 }

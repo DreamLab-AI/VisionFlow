@@ -1,9 +1,9 @@
+use log::{debug, error, info, warn};
+use serde::{Deserialize, Serialize};
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant, SystemTime};
 use tokio::sync::RwLock;
-use log::{debug, warn, error, info};
-use serde::{Deserialize, Serialize};
 
 /// Circuit breaker states
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -198,7 +198,7 @@ impl CircuitBreaker {
     /// Check if a request should be allowed
     pub async fn can_execute(&self) -> bool {
         let state = *self.state.read().await;
-        
+
         match state {
             CircuitBreakerState::Closed => true,
             CircuitBreakerState::Open => {
@@ -222,38 +222,41 @@ impl CircuitBreaker {
     pub async fn record_request(&self, outcome: RequestOutcome) {
         let now = Instant::now();
         let state = *self.state.read().await;
-        
+
         self.total_requests.fetch_add(1, Ordering::Release);
-        
+
         match outcome {
             RequestOutcome::Success => {
                 self.successful_requests.fetch_add(1, Ordering::Release);
                 self.consecutive_failures.store(0, Ordering::Release);
-                
+
                 // Add to history
                 self.add_to_history(now, true).await;
-                
+
                 if state == CircuitBreakerState::HalfOpen {
                     let successes = self.half_open_successes.fetch_add(1, Ordering::Release) + 1;
                     if successes >= self.config.success_threshold {
                         self.transition_to_closed().await;
                     }
                 }
-                
+
                 debug!("Circuit breaker: Request succeeded");
             }
             RequestOutcome::Failure | RequestOutcome::Timeout => {
                 self.failed_requests.fetch_add(1, Ordering::Release);
                 let consecutive = self.consecutive_failures.fetch_add(1, Ordering::Release) + 1;
-                
+
                 // Update last failure time
                 *self.last_failure_time.write().await = Some(now);
-                
+
                 // Add to history
                 self.add_to_history(now, false).await;
-                
-                warn!("Circuit breaker: Request failed (consecutive: {})", consecutive);
-                
+
+                warn!(
+                    "Circuit breaker: Request failed (consecutive: {})",
+                    consecutive
+                );
+
                 // Check if we should open the circuit
                 if state != CircuitBreakerState::Open {
                     if self.should_open_circuit().await {
@@ -300,7 +303,7 @@ impl CircuitBreaker {
         let state = *self.state.read().await;
         let state_changed_at = *self.state_changed_at.read().await;
         let failure_rate = self.calculate_current_failure_rate().await;
-        
+
         CircuitBreakerStats {
             state,
             total_requests: self.total_requests.load(Ordering::Acquire),
@@ -309,9 +312,11 @@ impl CircuitBreaker {
             rejected_requests: self.rejected_requests.load(Ordering::Acquire),
             failure_rate,
             consecutive_failures: self.consecutive_failures.load(Ordering::Acquire),
-            last_failure_time: self.last_failure_time.read().await.map(|instant| {
-                SystemTime::now() - instant.elapsed()
-            }),
+            last_failure_time: self
+                .last_failure_time
+                .read()
+                .await
+                .map(|instant| SystemTime::now() - instant.elapsed()),
             state_changed_at: SystemTime::now() - state_changed_at.elapsed(),
             time_since_state_change: state_changed_at.elapsed(),
         }
@@ -339,8 +344,8 @@ impl CircuitBreaker {
 
         let failure_rate = self.calculate_current_failure_rate().await;
         let total_in_window = self.count_requests_in_window().await;
-        
-        failure_rate >= self.config.failure_rate_threshold 
+
+        failure_rate >= self.config.failure_rate_threshold
             && total_in_window >= self.config.minimum_request_threshold
     }
 
@@ -388,7 +393,7 @@ impl CircuitBreaker {
     async fn add_to_history(&self, timestamp: Instant, success: bool) {
         let mut history = self.request_history.write().await;
         history.push(RequestRecord { timestamp, success });
-        
+
         // Clean old records outside the time window
         let cutoff = timestamp - self.config.time_window;
         history.retain(|record| record.timestamp > cutoff);
@@ -432,9 +437,13 @@ impl CircuitBreakerRegistry {
     }
 
     /// Get or create a circuit breaker with the given name and configuration
-    pub async fn get_or_create(&self, name: &str, config: CircuitBreakerConfig) -> Arc<CircuitBreaker> {
+    pub async fn get_or_create(
+        &self,
+        name: &str,
+        config: CircuitBreakerConfig,
+    ) -> Arc<CircuitBreaker> {
         let mut breakers = self.breakers.write().await;
-        
+
         if let Some(breaker) = breakers.get(name) {
             breaker.clone()
         } else {
@@ -449,11 +458,11 @@ impl CircuitBreakerRegistry {
     pub async fn get_all_stats(&self) -> std::collections::HashMap<String, CircuitBreakerStats> {
         let breakers = self.breakers.read().await;
         let mut stats = std::collections::HashMap::new();
-        
+
         for (name, breaker) in breakers.iter() {
             stats.insert(name.clone(), breaker.stats().await);
         }
-        
+
         stats
     }
 
@@ -486,7 +495,7 @@ mod tests {
         });
 
         assert!(breaker.can_execute().await);
-        
+
         // Record success
         breaker.record_request(RequestOutcome::Success).await;
         let stats = breaker.stats().await;
@@ -550,8 +559,13 @@ mod tests {
         assert_eq!(result.unwrap(), 42);
 
         // Failed operation should open circuit
-        let result = breaker.execute(async { Err::<i32, &'static str>("error") }).await;
-        assert!(matches!(result, Err(CircuitBreakerError::OperationFailed(_))));
+        let result = breaker
+            .execute(async { Err::<i32, &'static str>("error") })
+            .await;
+        assert!(matches!(
+            result,
+            Err(CircuitBreakerError::OperationFailed(_))
+        ));
 
         // Next request should be rejected
         let result = breaker.execute(async { Ok::<i32, &'static str>(42) }).await;

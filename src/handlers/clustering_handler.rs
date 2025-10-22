@@ -1,9 +1,9 @@
-use actix_web::{web, Error, HttpResponse, HttpRequest};
-use crate::app_state::AppState;
 use crate::actors::messages::{GetSettings, UpdateSettings};
-use log::{info, error, debug, warn};
-use serde_json::{json, Value};
+use crate::app_state::AppState;
 use crate::config::ClusteringConfiguration;
+use actix_web::{web, Error, HttpRequest, HttpResponse};
+use log::{debug, error, info, warn};
+use serde_json::{json, Value};
 use std::collections::HashMap;
 
 /// Configure clustering-specific routes
@@ -14,7 +14,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .route("/start", web::post().to(start_clustering))
             .route("/status", web::get().to(get_clustering_status))
             .route("/results", web::get().to(get_clustering_results))
-            .route("/export", web::post().to(export_cluster_assignments))
+            .route("/export", web::post().to(export_cluster_assignments)),
     );
 }
 
@@ -25,17 +25,19 @@ async fn configure_clustering(
     payload: web::Json<ClusteringConfiguration>,
 ) -> Result<HttpResponse, Error> {
     let config = payload.into_inner();
-    
-    info!("Clustering configuration request: algorithm={}, clusters={}", 
-        config.algorithm, config.num_clusters);
-    
+
+    info!(
+        "Clustering configuration request: algorithm={}, clusters={}",
+        config.algorithm, config.num_clusters
+    );
+
     // Validate configuration
     if let Err(e) = validate_clustering_config(&config) {
         return Ok(HttpResponse::BadRequest().json(json!({
             "error": format!("Invalid clustering configuration: {}", e)
         })));
     }
-    
+
     // Store configuration in settings
     let settings_update = json!({
         "visualisation": {
@@ -59,7 +61,7 @@ async fn configure_clustering(
             }
         }
     });
-    
+
     // Get and update settings
     let mut app_settings = match state.settings_addr.send(GetSettings).await {
         Ok(Ok(s)) => s,
@@ -76,16 +78,22 @@ async fn configure_clustering(
             })));
         }
     };
-    
+
     if let Err(e) = app_settings.merge_update(settings_update) {
         error!("Failed to merge clustering configuration: {}", e);
         return Ok(HttpResponse::InternalServerError().json(json!({
             "error": format!("Failed to update clustering configuration: {}", e)
         })));
     }
-    
+
     // Save updated settings
-    match state.settings_addr.send(UpdateSettings { settings: app_settings }).await {
+    match state
+        .settings_addr
+        .send(UpdateSettings {
+            settings: app_settings,
+        })
+        .await
+    {
         Ok(Ok(())) => {
             info!("Clustering configuration saved successfully");
             Ok(HttpResponse::Ok().json(json!({
@@ -117,19 +125,27 @@ async fn start_clustering(
     let request = payload.into_inner();
 
     info!("Starting real GPU clustering analysis");
-    debug!("Clustering request: {}", serde_json::to_string_pretty(&request).unwrap_or_default());
+    debug!(
+        "Clustering request: {}",
+        serde_json::to_string_pretty(&request).unwrap_or_default()
+    );
 
-    let algorithm = request.get("algorithm")
+    let algorithm = request
+        .get("algorithm")
         .and_then(|v| v.as_str())
         .unwrap_or("louvain");
 
-    let cluster_count = request.get("clusterCount")
+    let cluster_count = request
+        .get("clusterCount")
         .and_then(|v| v.as_u64())
         .unwrap_or(5) as u32;
 
     let task_id = uuid::Uuid::new_v4().to_string();
 
-    info!("Starting GPU clustering with algorithm: {}, clusters: {}", algorithm, cluster_count);
+    info!(
+        "Starting GPU clustering with algorithm: {}, clusters: {}",
+        algorithm, cluster_count
+    );
 
     // Check if GPU compute actor is available
     if let Some(gpu_addr) = &state.gpu_compute_addr {
@@ -164,7 +180,10 @@ async fn start_clustering(
 
         match clustering_result {
             Ok(Ok(cluster_results)) => {
-                info!("GPU clustering completed successfully with {} clusters", cluster_results.len());
+                info!(
+                    "GPU clustering completed successfully with {} clusters",
+                    cluster_results.len()
+                );
                 Ok(HttpResponse::Ok().json(json!({
                     "status": "completed",
                     "taskId": task_id,
@@ -224,18 +243,22 @@ async fn get_clustering_status(
         match gpu_addr.send(GetClusteringResults).await {
             Ok(Ok(cluster_results)) => {
                 // Extract fields from JSON value safely
-                let algorithm = cluster_results.get("algorithm_used")
+                let algorithm = cluster_results
+                    .get("algorithm_used")
                     .and_then(|v| v.as_str())
                     .unwrap_or("adaptive")
                     .to_string();
-                let clusters_len = cluster_results.get("clusters")
+                let clusters_len = cluster_results
+                    .get("clusters")
                     .and_then(|v| v.as_array())
                     .map(|arr| arr.len())
                     .unwrap_or(0);
-                let modularity = cluster_results.get("modularity")
+                let modularity = cluster_results
+                    .get("modularity")
                     .and_then(|v| v.as_f64())
                     .unwrap_or(0.0) as f32;
-                let computation_time = cluster_results.get("computation_time_ms")
+                let computation_time = cluster_results
+                    .get("computation_time_ms")
                     .and_then(|v| v.as_u64())
                     .unwrap_or(0);
 
@@ -320,7 +343,9 @@ async fn get_clustering_results(
         match gpu_addr.send(GetClusteringResults).await {
             Ok(Ok(cluster_results)) => {
                 // Extract clusters array from JSON value safely
-                let clusters = if let Some(clusters_array) = cluster_results.get("clusters").and_then(|v| v.as_array()) {
+                let clusters = if let Some(clusters_array) =
+                    cluster_results.get("clusters").and_then(|v| v.as_array())
+                {
                     clusters_array.iter().map(|cluster| {
                         json!({
                             "id": cluster.get("id").and_then(|v| v.as_u64()).unwrap_or(0),
@@ -336,14 +361,17 @@ async fn get_clustering_results(
                 };
 
                 // Extract other fields from JSON value safely
-                let algorithm = cluster_results.get("algorithm_used")
+                let algorithm = cluster_results
+                    .get("algorithm_used")
                     .and_then(|v| v.as_str())
                     .unwrap_or("adaptive")
                     .to_string();
-                let modularity = cluster_results.get("modularity")
+                let modularity = cluster_results
+                    .get("modularity")
                     .and_then(|v| v.as_f64())
                     .unwrap_or(0.0) as f32;
-                let computation_time = cluster_results.get("computation_time_ms")
+                let computation_time = cluster_results
+                    .get("computation_time_ms")
                     .and_then(|v| v.as_u64())
                     .unwrap_or(0);
 
@@ -403,26 +431,33 @@ async fn export_cluster_assignments(
     payload: web::Json<Value>,
 ) -> Result<HttpResponse, Error> {
     let export_request = payload.into_inner();
-    
+
     info!("Cluster assignment export request");
-    debug!("Export request: {}", serde_json::to_string_pretty(&export_request).unwrap_or_default());
-    
-    let format = export_request.get("format")
+    debug!(
+        "Export request: {}",
+        serde_json::to_string_pretty(&export_request).unwrap_or_default()
+    );
+
+    let format = export_request
+        .get("format")
         .and_then(|v| v.as_str())
         .unwrap_or("json");
-    
+
     if !["json", "csv", "graphml"].contains(&format) {
         return Ok(HttpResponse::BadRequest().json(json!({
             "error": "format must be 'json', 'csv', or 'graphml'"
         })));
     }
-    
+
     // Get real clustering data from GPU compute actor if available
     if let Some(gpu_addr) = &state.gpu_compute_addr {
         info!("Attempting to get clustering data from GPU compute actor");
 
         // Try to get clustering results from GPU
-        match gpu_addr.send(crate::actors::messages::GetClusteringResults).await {
+        match gpu_addr
+            .send(crate::actors::messages::GetClusteringResults)
+            .await
+        {
             Ok(Ok(clustering_results)) => {
                 info!("Successfully retrieved clustering results from GPU");
 
@@ -496,13 +531,15 @@ async fn export_cluster_assignments(
 
                 return Ok(HttpResponse::Ok()
                     .content_type(content_type)
-                    .insert_header(("Content-Disposition",
-                        format!("attachment; filename=\"clusters.{}\"", format)))
+                    .insert_header((
+                        "Content-Disposition",
+                        format!("attachment; filename=\"clusters.{}\"", format),
+                    ))
                     .body(export_data));
-            },
+            }
             Ok(Err(e)) => {
                 warn!("GPU compute actor failed to get clustering results: {}", e);
-            },
+            }
             Err(e) => {
                 warn!("Failed to communicate with GPU compute actor: {}", e);
             }
@@ -510,59 +547,83 @@ async fn export_cluster_assignments(
     }
 
     // Fallback: try to get data from graph service
-    match state.graph_service_addr.send(crate::actors::messages::GetGraphData).await {
+    match state
+        .graph_service_addr
+        .send(crate::actors::messages::GetGraphData)
+        .await
+    {
         Ok(Ok(graph_data)) => {
             if !graph_data.nodes.is_empty() {
-                info!("Using graph data for clustering export with {} nodes", graph_data.nodes.len());
+                info!(
+                    "Using graph data for clustering export with {} nodes",
+                    graph_data.nodes.len()
+                );
 
                 // Generate basic clustering based on node metadata
                 let mut clusters = HashMap::new();
                 for node in &graph_data.nodes {
                     // Simple clustering by node type or group
-                    let cluster_key = node.node_type.as_ref()
+                    let cluster_key = node
+                        .node_type
+                        .as_ref()
                         .or(node.group.as_ref())
                         .cloned()
                         .unwrap_or_else(|| "default".to_string());
 
-                    clusters.entry(cluster_key).or_insert_with(Vec::new).push(node.id);
+                    clusters
+                        .entry(cluster_key)
+                        .or_insert_with(Vec::new)
+                        .push(node.id);
                 }
 
                 let export_data = match format {
                     "csv" => {
                         let mut csv_content = "node_id,cluster_id\n".to_string();
                         for (cluster_name, node_ids) in clusters {
-                            let cluster_id = cluster_name.chars().map(|c| c as u32).sum::<u32>() % 100;
+                            let cluster_id =
+                                cluster_name.chars().map(|c| c as u32).sum::<u32>() % 100;
                             for node_id in node_ids {
                                 csv_content.push_str(&format!("{},{}\n", node_id, cluster_id));
                             }
                         }
                         csv_content
-                    },
+                    }
                     "graphml" => {
-                        let mut graphml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n".to_string();
-                        graphml.push_str("<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\">\n");
+                        let mut graphml =
+                            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n".to_string();
+                        graphml.push_str(
+                            "<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\">\n",
+                        );
                         graphml.push_str("  <key id=\"cluster\" for=\"node\" attr.name=\"cluster\" attr.type=\"string\"/>\n");
                         graphml.push_str("  <graph id=\"clusters\" edgedefault=\"undirected\">\n");
 
                         for (cluster_name, node_ids) in clusters {
                             for node_id in node_ids {
                                 graphml.push_str(&format!("    <node id=\"{}\">\n", node_id));
-                                graphml.push_str(&format!("      <data key=\"cluster\">{}</data>\n", cluster_name));
+                                graphml.push_str(&format!(
+                                    "      <data key=\"cluster\">{}</data>\n",
+                                    cluster_name
+                                ));
                                 graphml.push_str("    </node>\n");
                             }
                         }
 
                         graphml.push_str("  </graph>\n</graphml>\n");
                         graphml
-                    },
+                    }
                     _ => {
-                        let cluster_objects: Vec<serde_json::Value> = clusters.into_iter().enumerate()
-                            .map(|(idx, (name, nodes))| json!({
-                                "id": idx,
-                                "name": name,
-                                "node_ids": nodes,
-                                "size": nodes.len()
-                            })).collect();
+                        let cluster_objects: Vec<serde_json::Value> = clusters
+                            .into_iter()
+                            .enumerate()
+                            .map(|(idx, (name, nodes))| {
+                                json!({
+                                    "id": idx,
+                                    "name": name,
+                                    "node_ids": nodes,
+                                    "size": nodes.len()
+                                })
+                            })
+                            .collect();
 
                         json!({
                             "clusters": cluster_objects,
@@ -570,7 +631,8 @@ async fn export_cluster_assignments(
                             "node_count": graph_data.nodes.len(),
                             "timestamp": chrono::Utc::now().to_rfc3339(),
                             "data_source": "graph_service_metadata"
-                        }).to_string()
+                        })
+                        .to_string()
                     }
                 };
 
@@ -582,11 +644,13 @@ async fn export_cluster_assignments(
 
                 return Ok(HttpResponse::Ok()
                     .content_type(content_type)
-                    .insert_header(("Content-Disposition",
-                        format!("attachment; filename=\"clusters.{}\"", format)))
+                    .insert_header((
+                        "Content-Disposition",
+                        format!("attachment; filename=\"clusters.{}\"", format),
+                    ))
                     .body(export_data));
             }
-        },
+        }
         _ => {
             warn!("Failed to get graph data for clustering export");
         }
@@ -625,24 +689,33 @@ async fn export_cluster_assignments(
 /// Validate clustering configuration
 fn validate_clustering_config(config: &ClusteringConfiguration) -> Result<(), String> {
     // Validate algorithm
-    if !["none", "kmeans", "spectral", "louvain", "hierarchical", "dbscan"].contains(&config.algorithm.as_str()) {
+    if ![
+        "none",
+        "kmeans",
+        "spectral",
+        "louvain",
+        "hierarchical",
+        "dbscan",
+    ]
+    .contains(&config.algorithm.as_str())
+    {
         return Err("algorithm must be 'none', 'kmeans', 'spectral', 'louvain', 'hierarchical', or 'dbscan'".to_string());
     }
-    
+
     // Validate cluster count
     if config.num_clusters < 2 || config.num_clusters > 50 {
         return Err("num_clusters must be between 2 and 50".to_string());
     }
-    
+
     // Validate resolution
     if config.resolution < 0.1 || config.resolution > 5.0 {
         return Err("resolution must be between 0.1 and 5.0".to_string());
     }
-    
+
     // Validate iterations
     if config.iterations < 10 || config.iterations > 1000 {
         return Err("iterations must be between 10 and 1000".to_string());
     }
-    
+
     Ok(())
 }

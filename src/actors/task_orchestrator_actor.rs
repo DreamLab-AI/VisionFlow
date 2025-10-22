@@ -19,14 +19,14 @@
 //! ```
 
 use actix::prelude::*;
-use std::collections::HashMap;
-use std::time::{Duration, Instant};
-use log::{debug, info, warn, error};
 use chrono::{DateTime, Utc};
+use log::{debug, error, info, warn};
+use std::collections::HashMap;
+use std::time::Duration;
 
 use crate::services::management_api_client::{
-    ManagementApiClient, TaskResponse, TaskStatus as ApiTaskStatus, TaskState as ApiTaskState,
-    TaskInfo, ManagementApiError,
+    ManagementApiClient, ManagementApiError, TaskInfo, TaskResponse, TaskState as ApiTaskState,
+    TaskStatus as ApiTaskStatus,
 };
 
 /// Task state tracked by orchestrator
@@ -74,7 +74,10 @@ impl TaskOrchestratorActor {
         loop {
             match self.api_client.create_task(&agent, &task, &provider).await {
                 Ok(response) => {
-                    info!("[TaskOrchestratorActor] Task created successfully: {}", response.task_id);
+                    info!(
+                        "[TaskOrchestratorActor] Task created successfully: {}",
+                        response.task_id
+                    );
 
                     // Add to active tasks cache
                     self.active_tasks.insert(
@@ -96,11 +99,17 @@ impl TaskOrchestratorActor {
                 Err(e) => {
                     attempts += 1;
                     if attempts >= self.max_retries {
-                        error!("[TaskOrchestratorActor] Task creation failed after {} attempts: {}", attempts, e);
+                        error!(
+                            "[TaskOrchestratorActor] Task creation failed after {} attempts: {}",
+                            attempts, e
+                        );
                         return Err(e);
                     }
 
-                    warn!("[TaskOrchestratorActor] Task creation attempt {} failed: {}, retrying...", attempts, e);
+                    warn!(
+                        "[TaskOrchestratorActor] Task creation attempt {} failed: {}, retrying...",
+                        attempts, e
+                    );
                     tokio::time::sleep(self.retry_delay * attempts).await;
                 }
             }
@@ -114,8 +123,13 @@ impl TaskOrchestratorActor {
             task.last_updated = Utc::now();
 
             // Remove from active tasks if completed or failed
-            if task_status.status == ApiTaskState::Completed || task_status.status == ApiTaskState::Failed {
-                debug!("[TaskOrchestratorActor] Task {} finished with status: {:?}", task_status.task_id, task_status.status);
+            if task_status.status == ApiTaskState::Completed
+                || task_status.status == ApiTaskState::Failed
+            {
+                debug!(
+                    "[TaskOrchestratorActor] Task {} finished with status: {:?}",
+                    task_status.task_id, task_status.status
+                );
             }
         }
     }
@@ -142,7 +156,10 @@ impl Actor for TaskOrchestratorActor {
             }
 
             for task_id in to_remove {
-                debug!("[TaskOrchestratorActor] Removing old task from cache: {}", task_id);
+                debug!(
+                    "[TaskOrchestratorActor] Removing old task from cache: {}",
+                    task_id
+                );
                 act.active_tasks.remove(&task_id);
             }
         });
@@ -202,7 +219,10 @@ impl Handler<CreateTask> for TaskOrchestratorActor {
     type Result = ResponseFuture<Result<TaskResponse, String>>;
 
     fn handle(&mut self, msg: CreateTask, _ctx: &mut Self::Context) -> Self::Result {
-        info!("[TaskOrchestratorActor] Received CreateTask: agent={}, provider={}", msg.agent, msg.provider);
+        info!(
+            "[TaskOrchestratorActor] Received CreateTask: agent={}, provider={}",
+            msg.agent, msg.provider
+        );
 
         let mut actor = self.clone_for_async();
 
@@ -219,7 +239,10 @@ impl Handler<GetTaskStatus> for TaskOrchestratorActor {
     type Result = ResponseFuture<Result<ApiTaskStatus, String>>;
 
     fn handle(&mut self, msg: GetTaskStatus, _ctx: &mut Self::Context) -> Self::Result {
-        debug!("[TaskOrchestratorActor] Received GetTaskStatus: {}", msg.task_id);
+        debug!(
+            "[TaskOrchestratorActor] Received GetTaskStatus: {}",
+            msg.task_id
+        );
 
         let client = self.api_client.clone();
         let task_id = msg.task_id.clone();
@@ -242,12 +265,7 @@ impl Handler<StopTask> for TaskOrchestratorActor {
         let client = self.api_client.clone();
         let task_id = msg.task_id.clone();
 
-        Box::pin(async move {
-            client
-                .stop_task(&task_id)
-                .await
-                .map_err(|e| e.to_string())
-        })
+        Box::pin(async move { client.stop_task(&task_id).await.map_err(|e| e.to_string()) })
     }
 }
 
@@ -280,13 +298,11 @@ impl Handler<GetSystemStatus> for TaskOrchestratorActor {
 
         Box::pin(async move {
             match client.get_system_status().await {
-                Ok(status) => {
-                    Ok(SystemStatusInfo {
-                        active_tasks: status.tasks.active as usize,
-                        cached_tasks,
-                        api_available: true,
-                    })
-                }
+                Ok(status) => Ok(SystemStatusInfo {
+                    active_tasks: status.tasks.active as usize,
+                    cached_tasks,
+                    api_available: true,
+                }),
                 Err(e) => {
                     warn!("[TaskOrchestratorActor] Failed to get system status: {}", e);
                     Ok(SystemStatusInfo {

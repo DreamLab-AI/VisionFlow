@@ -1,11 +1,11 @@
+use log::{debug, info, warn};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, Instant, SystemTime};
-use tokio::sync::{RwLock, Mutex};
 use tokio::net::TcpStream;
+use tokio::sync::{Mutex, RwLock};
 use tokio::time::timeout;
-use log::{debug, warn, info};
-use serde::{Deserialize, Serialize};
 
 /// Health check status for a service
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -123,7 +123,12 @@ impl HealthCheckResult {
         }
     }
 
-    pub fn unhealthy(service_name: String, check_type: String, response_time: Duration, message: String) -> Self {
+    pub fn unhealthy(
+        service_name: String,
+        check_type: String,
+        response_time: Duration,
+        message: String,
+    ) -> Self {
         Self {
             service_name,
             check_type,
@@ -217,10 +222,16 @@ impl HealthCheckManager {
     /// Register a service for health monitoring
     pub async fn register_service(&self, endpoint: ServiceEndpoint) {
         let service_name = endpoint.name.clone();
-        info!("Registering service for health monitoring: {}", service_name);
+        info!(
+            "Registering service for health monitoring: {}",
+            service_name
+        );
 
         // Add service to registry
-        self.services.write().await.insert(service_name.clone(), endpoint.clone());
+        self.services
+            .write()
+            .await
+            .insert(service_name.clone(), endpoint.clone());
 
         // Initialize health info
         let health_info = ServiceHealthInfo {
@@ -240,7 +251,10 @@ impl HealthCheckManager {
             check_types: self.get_enabled_check_types(&endpoint.config),
         };
 
-        self.health_info.write().await.insert(service_name.clone(), health_info);
+        self.health_info
+            .write()
+            .await
+            .insert(service_name.clone(), health_info);
 
         // Start health check task
         self.start_health_check_task(service_name, endpoint).await;
@@ -248,7 +262,10 @@ impl HealthCheckManager {
 
     /// Unregister a service from health monitoring
     pub async fn unregister_service(&self, service_name: &str) {
-        info!("Unregistering service from health monitoring: {}", service_name);
+        info!(
+            "Unregistering service from health monitoring: {}",
+            service_name
+        );
 
         // Remove from registries
         self.services.write().await.remove(service_name);
@@ -286,34 +303,39 @@ impl HealthCheckManager {
     pub async fn check_service_now(&self, service_name: &str) -> Option<HealthCheckResult> {
         let services = self.services.read().await;
         let endpoint = services.get(service_name)?;
-        
+
         let result = self.perform_health_check(endpoint).await;
         self.update_health_info(&result).await;
-        
+
         Some(result)
     }
 
     /// Check if all critical services are healthy
     pub async fn are_critical_services_healthy(&self) -> bool {
         let health_info = self.health_info.read().await;
-        
+
         // For now, consider all services as potentially critical
         // In a real implementation, you'd mark services as critical in their config
-        health_info.values().all(|info| info.current_status.is_usable())
+        health_info
+            .values()
+            .all(|info| info.current_status.is_usable())
     }
 
     /// Get overall system health summary
     pub async fn get_system_health_summary(&self) -> SystemHealthSummary {
         let health_info = self.health_info.read().await;
-        
+
         let total_services = health_info.len();
-        let healthy_services = health_info.values()
+        let healthy_services = health_info
+            .values()
             .filter(|info| info.current_status == HealthStatus::Healthy)
             .count();
-        let degraded_services = health_info.values()
+        let degraded_services = health_info
+            .values()
             .filter(|info| info.current_status == HealthStatus::Degraded)
             .count();
-        let unhealthy_services = health_info.values()
+        let unhealthy_services = health_info
+            .values()
             .filter(|info| info.current_status == HealthStatus::Unhealthy)
             .count();
 
@@ -341,7 +363,7 @@ impl HealthCheckManager {
     /// Shutdown all health check tasks
     pub async fn shutdown(&self) {
         info!("Shutting down health check manager");
-        
+
         let mut handles = self.check_handles.lock().await;
         for (service_name, handle) in handles.drain() {
             debug!("Stopping health check for service: {}", service_name);
@@ -359,12 +381,12 @@ impl HealthCheckManager {
         let handle = tokio::spawn(async move {
             // Wait for startup grace period
             tokio::time::sleep(endpoint.config.startup_grace_period).await;
-            
+
             let mut interval = tokio::time::interval(endpoint.config.check_interval);
-            
+
             loop {
                 interval.tick().await;
-                
+
                 // Get current endpoint config (may have been updated)
                 let current_endpoint = {
                     let services_guard = services.read().await;
@@ -375,7 +397,7 @@ impl HealthCheckManager {
                         break;
                     }
                 };
-                
+
                 // Perform health check
                 let manager = HealthCheckManager {
                     services: services.clone(),
@@ -383,7 +405,7 @@ impl HealthCheckManager {
                     check_handles: Arc::new(Mutex::new(HashMap::new())),
                     started_at: Instant::now(),
                 };
-                
+
                 let result = manager.perform_health_check(&current_endpoint).await;
                 manager.update_health_info(&result).await;
             }
@@ -454,7 +476,10 @@ impl HealthCheckManager {
         match timeout(endpoint.config.check_timeout, TcpStream::connect(&address)).await {
             Ok(Ok(_stream)) => {
                 let response_time = start_time.elapsed();
-                debug!("TCP health check successful for {}: {:?}", endpoint.name, response_time);
+                debug!(
+                    "TCP health check successful for {}: {:?}",
+                    endpoint.name, response_time
+                );
                 Ok(response_time)
             }
             Ok(Err(err)) => {
@@ -472,13 +497,15 @@ impl HealthCheckManager {
 
     async fn http_health_check(&self, endpoint: &ServiceEndpoint) -> Result<Duration, String> {
         let _start_time = Instant::now();
-        
+
         // For now, we'll implement a basic HTTP check
         // In a real implementation, you'd use an HTTP client like reqwest
-        let health_path = endpoint.config.http_health_path
+        let health_path = endpoint
+            .config
+            .http_health_path
             .as_deref()
             .unwrap_or("/health");
-        
+
         let url = if endpoint.additional_endpoints.is_empty() {
             format!("http://{}:{}{}", endpoint.host, endpoint.port, health_path)
         } else {
@@ -487,14 +514,14 @@ impl HealthCheckManager {
 
         // Placeholder implementation - in practice you'd make an actual HTTP request
         debug!("HTTP health check would connect to: {}", url);
-        
+
         // Simulate HTTP check with TCP connection for now
         self.tcp_health_check(endpoint).await
     }
 
     async fn update_health_info(&self, result: &HealthCheckResult) {
         let mut health_info = self.health_info.write().await;
-        
+
         if let Some(info) = health_info.get_mut(&result.service_name) {
             info.last_check = Some(result.timestamp);
             info.total_checks += 1;
@@ -525,8 +552,10 @@ impl HealthCheckManager {
                     if let Some(endpoint) = services.get(&result.service_name) {
                         if info.consecutive_failures >= endpoint.config.unhealthy_threshold {
                             if info.current_status != HealthStatus::Unhealthy {
-                                warn!("Service {} is now unhealthy: {:?}", 
-                                     result.service_name, result.message);
+                                warn!(
+                                    "Service {} is now unhealthy: {:?}",
+                                    result.service_name, result.message
+                                );
                                 info.current_status = HealthStatus::Unhealthy;
                             }
                         }
@@ -537,7 +566,8 @@ impl HealthCheckManager {
 
             // Update average response time
             if info.total_checks > 0 {
-                let total_time = info.average_response_time.as_millis() as u64 * (info.total_checks - 1);
+                let total_time =
+                    info.average_response_time.as_millis() as u64 * (info.total_checks - 1);
                 let new_total = total_time + result.response_time.as_millis() as u64;
                 info.average_response_time = Duration::from_millis(new_total / info.total_checks);
             }
@@ -553,19 +583,19 @@ impl HealthCheckManager {
 
     fn get_enabled_check_types(&self, config: &HealthCheckConfig) -> Vec<String> {
         let mut types = Vec::new();
-        
+
         if config.enable_tcp_check {
             types.push("tcp".to_string());
         }
-        
+
         if config.enable_http_check {
             types.push("http".to_string());
         }
-        
+
         if types.is_empty() {
             types.push("none".to_string());
         }
-        
+
         types
     }
 }
@@ -597,7 +627,7 @@ mod tests {
     async fn test_health_check_manager_creation() {
         let manager = HealthCheckManager::new();
         let summary = manager.get_system_health_summary().await;
-        
+
         assert_eq!(summary.total_services, 0);
         assert_eq!(summary.overall_status, HealthStatus::Unknown);
     }
@@ -605,24 +635,21 @@ mod tests {
     #[tokio::test]
     async fn test_service_registration() {
         let manager = HealthCheckManager::new();
-        
-        let endpoint = ServiceEndpoint::new(
-            "test-service".to_string(),
-            "127.0.0.1".to_string(),
-            8080,
-        );
-        
+
+        let endpoint =
+            ServiceEndpoint::new("test-service".to_string(), "127.0.0.1".to_string(), 8080);
+
         manager.register_service(endpoint).await;
-        
+
         let health = manager.get_service_health("test-service").await;
         assert!(health.is_some());
-        
+
         let health_info = health.unwrap();
         assert_eq!(health_info.service_name, "test-service");
         assert_eq!(health_info.current_status, HealthStatus::Unknown);
-        
+
         manager.unregister_service("test-service").await;
-        
+
         let health_after = manager.get_service_health("test-service").await;
         assert!(health_after.is_none());
     }
@@ -633,7 +660,7 @@ mod tests {
         assert!(HealthStatus::Degraded.is_usable());
         assert!(!HealthStatus::Unhealthy.is_usable());
         assert!(!HealthStatus::Unknown.is_usable());
-        
+
         assert!(!HealthStatus::Healthy.is_critical());
         assert!(!HealthStatus::Degraded.is_critical());
         assert!(HealthStatus::Unhealthy.is_critical());
@@ -642,14 +669,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_service_endpoint_creation() {
-        let endpoint = ServiceEndpoint::new(
-            "test".to_string(),
-            "localhost".to_string(),
-            9000,
-        )
-        .with_config(HealthCheckConfig::critical_service())
-        .with_http_endpoint("http://localhost:9000".to_string());
-        
+        let endpoint = ServiceEndpoint::new("test".to_string(), "localhost".to_string(), 9000)
+            .with_config(HealthCheckConfig::critical_service())
+            .with_http_endpoint("http://localhost:9000".to_string());
+
         assert_eq!(endpoint.name, "test");
         assert_eq!(endpoint.tcp_address(), "localhost:9000");
         assert_eq!(endpoint.additional_endpoints.len(), 1);

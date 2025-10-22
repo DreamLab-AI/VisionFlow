@@ -9,16 +9,16 @@
 //! 3. Agents process and respond with the same tag
 //! 4. Tagged response → Routed back to TTS → User hears response
 
+use chrono::{DateTime, Duration as ChronoDuration, Utc};
+use log::{debug, error, info, warn};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::sync::{RwLock, mpsc};
-use chrono::{DateTime, Utc, Duration as ChronoDuration};
-use serde::{Deserialize, Serialize};
-use log::{info, debug, warn, error};
+use tokio::sync::{mpsc, RwLock};
 use uuid::Uuid;
 
+use crate::actors::voice_commands::{SwarmVoiceResponse, VoiceCommand};
 use crate::types::speech::SpeechOptions;
-use crate::actors::voice_commands::{VoiceCommand, SwarmVoiceResponse};
 
 /// Unique tag for tracking voice commands through the system
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -122,7 +122,7 @@ impl VoiceTagManager {
             active_commands: Arc::new(RwLock::new(HashMap::new())),
             tts_sender: None,
             default_timeout: ChronoDuration::minutes(5), // 5 minute timeout
-            max_active_commands: 100, // Track up to 100 concurrent commands
+            max_active_commands: 100,                    // Track up to 100 concurrent commands
         }
     }
 
@@ -166,18 +166,25 @@ impl VoiceTagManager {
 
         // Clean up old commands if at capacity
         if active_commands.len() >= self.max_active_commands {
-            self.cleanup_expired_commands_internal(&mut active_commands).await;
+            self.cleanup_expired_commands_internal(&mut active_commands)
+                .await;
         }
 
-        active_commands.insert(tag.tag_id.clone(), ActiveVoiceCommand {
-            command: tagged_command.clone(),
-            status: TaggedCommandStatus::Pending,
-            response_count: 0,
-            last_activity: Utc::now(),
-        });
+        active_commands.insert(
+            tag.tag_id.clone(),
+            ActiveVoiceCommand {
+                command: tagged_command.clone(),
+                status: TaggedCommandStatus::Pending,
+                response_count: 0,
+                last_activity: Utc::now(),
+            },
+        );
 
-        info!("Created tagged voice command {} for session {}",
-              tag.short_id(), tag.session_id);
+        info!(
+            "Created tagged voice command {} for session {}",
+            tag.short_id(),
+            tag.session_id
+        );
 
         Ok(tagged_command)
     }
@@ -202,8 +209,12 @@ impl VoiceTagManager {
                 TaggedCommandStatus::Processing
             };
 
-            debug!("Processing tagged response {} (count: {}, final: {})",
-                   response.tag.short_id(), active_cmd.response_count, response.is_final);
+            debug!(
+                "Processing tagged response {} (count: {}, final: {})",
+                response.tag.short_id(),
+                active_cmd.response_count,
+                response.is_final
+            );
 
             // Check if this command expects voice response
             if active_cmd.command.expect_voice_response {
@@ -218,17 +229,15 @@ impl VoiceTagManager {
                         }
                         Err(e) => {
                             error!("Failed to send tagged response to TTS: {}", e);
-                            active_cmd.status = TaggedCommandStatus::Failed(
-                                format!("TTS routing failed: {}", e)
-                            );
+                            active_cmd.status =
+                                TaggedCommandStatus::Failed(format!("TTS routing failed: {}", e));
                             return Err(format!("Failed to route response to TTS: {}", e));
                         }
                     }
                 } else {
                     warn!("No TTS sender configured, cannot route voice response");
-                    active_cmd.status = TaggedCommandStatus::Failed(
-                        "No TTS sender configured".to_string()
-                    );
+                    active_cmd.status =
+                        TaggedCommandStatus::Failed("No TTS sender configured".to_string());
                     return Err("No TTS sender configured".to_string());
                 }
             }
@@ -236,12 +245,18 @@ impl VoiceTagManager {
             // Clean up completed commands
             if response.is_final {
                 active_commands.remove(&tag_id);
-                debug!("Cleaned up completed tagged command {}", response.tag.short_id());
+                debug!(
+                    "Cleaned up completed tagged command {}",
+                    response.tag.short_id()
+                );
             }
 
             Ok(())
         } else {
-            warn!("Received response for unknown tag: {}", response.tag.short_id());
+            warn!(
+                "Received response for unknown tag: {}",
+                response.tag.short_id()
+            );
             Err(format!("Unknown tag: {}", tag_id))
         }
     }
@@ -261,7 +276,8 @@ impl VoiceTagManager {
     /// Get all active command tags
     pub async fn get_active_tags(&self) -> Vec<VoiceTag> {
         let active_commands = self.active_commands.read().await;
-        active_commands.values()
+        active_commands
+            .values()
             .map(|cmd| cmd.command.tag.clone())
             .collect()
     }
@@ -269,7 +285,8 @@ impl VoiceTagManager {
     /// Clean up expired and timed out commands
     pub async fn cleanup_expired_commands(&self) {
         let mut active_commands = self.active_commands.write().await;
-        self.cleanup_expired_commands_internal(&mut active_commands).await;
+        self.cleanup_expired_commands_internal(&mut active_commands)
+            .await;
     }
 
     /// Internal cleanup implementation
@@ -304,12 +321,16 @@ impl VoiceTagManager {
             if let Some(cmd) = active_commands.remove(&tag_id) {
                 match cmd.status {
                     TaggedCommandStatus::TimedOut => {
-                        warn!("Cleaned up timed out voice command {}",
-                              cmd.command.tag.short_id());
+                        warn!(
+                            "Cleaned up timed out voice command {}",
+                            cmd.command.tag.short_id()
+                        );
                     }
                     _ => {
-                        debug!("Cleaned up expired voice command {}",
-                               cmd.command.tag.short_id());
+                        debug!(
+                            "Cleaned up expired voice command {}",
+                            cmd.command.tag.short_id()
+                        );
                     }
                 }
             }
@@ -402,12 +423,10 @@ mod tests {
             session_id: "test_session".to_string(),
         };
 
-        let tagged_cmd = manager.create_tagged_command(
-            command,
-            true,
-            SpeechOptions::default(),
-            None,
-        ).await.unwrap();
+        let tagged_cmd = manager
+            .create_tagged_command(command, true, SpeechOptions::default(), None)
+            .await
+            .unwrap();
 
         assert!(!tagged_cmd.tag.tag_id.is_empty());
         assert_eq!(tagged_cmd.tag.session_id, "test_session");
@@ -427,12 +446,10 @@ mod tests {
             session_id: "test_session".to_string(),
         };
 
-        let tagged_cmd = manager.create_tagged_command(
-            command,
-            true,
-            SpeechOptions::default(),
-            None,
-        ).await.unwrap();
+        let tagged_cmd = manager
+            .create_tagged_command(command, true, SpeechOptions::default(), None)
+            .await
+            .unwrap();
 
         // Verify tag is active
         assert!(manager.is_tag_active(&tagged_cmd.tag.tag_id).await);
@@ -469,12 +486,15 @@ mod tests {
         };
 
         // Create command with very short timeout
-        let tagged_cmd = manager.create_tagged_command(
-            command,
-            true,
-            SpeechOptions::default(),
-            Some(ChronoDuration::milliseconds(1)),
-        ).await.unwrap();
+        let tagged_cmd = manager
+            .create_tagged_command(
+                command,
+                true,
+                SpeechOptions::default(),
+                Some(ChronoDuration::milliseconds(1)),
+            )
+            .await
+            .unwrap();
 
         // Wait for timeout
         tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;

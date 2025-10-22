@@ -1,20 +1,18 @@
+use log::Level;
+use serde_json::json;
 use std::{
     collections::HashMap,
     fs,
     path::PathBuf,
     sync::{Arc, Barrier},
     thread,
-    time::{Duration, Instant}
+    time::{Duration, Instant},
 };
 use tempfile::tempdir;
-use serde_json::json;
-use log::Level;
 
 use super::super::src::utils::advanced_logging::{
-    AdvancedLogger, LogComponent,
-    log_gpu_kernel, log_gpu_error,
-    log_memory_event, log_performance, log_structured,
-    get_performance_summary
+    get_performance_summary, log_gpu_error, log_gpu_kernel, log_memory_event, log_performance,
+    log_structured, AdvancedLogger, LogComponent,
 };
 
 /// Performance validation tests for telemetry system
@@ -38,7 +36,7 @@ mod performance_tests {
                 LogComponent::Performance,
                 Level::Info,
                 &format!("Benchmark log entry {}", i),
-                None
+                None,
             );
         }
         let simple_log_duration = start_time.elapsed();
@@ -51,26 +49,35 @@ mod performance_tests {
             ("data_size_mb".to_string(), json!(1.5)),
             ("processing_time_ms".to_string(), json!(42.7)),
             ("status".to_string(), json!("processing")),
-            ("tags".to_string(), json!(["performance", "benchmark", "complex"])),
-            ("nested_data".to_string(), json!({
-                "sub_field_1": "value1",
-                "sub_field_2": 123,
-                "sub_field_3": true,
-                "sub_array": [1, 2, 3, 4, 5]
-            }))
+            (
+                "tags".to_string(),
+                json!(["performance", "benchmark", "complex"]),
+            ),
+            (
+                "nested_data".to_string(),
+                json!({
+                    "sub_field_1": "value1",
+                    "sub_field_2": 123,
+                    "sub_field_3": true,
+                    "sub_array": [1, 2, 3, 4, 5]
+                }),
+            ),
         ]);
 
         let start_time = Instant::now();
         for i in 0..BENCHMARK_ITERATIONS {
             let mut metadata = complex_metadata.clone();
             metadata.insert("iteration".to_string(), json!(i));
-            metadata.insert("timestamp".to_string(), json!(start_time.elapsed().as_millis()));
+            metadata.insert(
+                "timestamp".to_string(),
+                json!(start_time.elapsed().as_millis()),
+            );
 
             logger.log_structured(
                 LogComponent::Performance,
                 Level::Info,
                 &format!("Complex benchmark log entry {}", i),
-                Some(metadata)
+                Some(metadata),
             );
         }
         let complex_log_duration = start_time.elapsed();
@@ -82,7 +89,7 @@ mod performance_tests {
                 &format!("benchmark_kernel_{}", i % 10),
                 (i as f64) * 1.5,
                 128.0 + (i as f64) * 0.1,
-                256.0 + (i as f64) * 0.2
+                256.0 + (i as f64) * 0.2,
             );
         }
         let gpu_log_duration = start_time.elapsed();
@@ -102,17 +109,26 @@ mod performance_tests {
         const MAX_COMPLEX_LATENCY_NS: u128 = 100_000; // 100 microseconds
         const MAX_GPU_LATENCY_NS: u128 = 75_000; // 75 microseconds
 
-        assert!(simple_latency_ns < MAX_SIMPLE_LATENCY_NS,
+        assert!(
+            simple_latency_ns < MAX_SIMPLE_LATENCY_NS,
             "Simple logging latency {} ns exceeds maximum {} ns",
-            simple_latency_ns, MAX_SIMPLE_LATENCY_NS);
+            simple_latency_ns,
+            MAX_SIMPLE_LATENCY_NS
+        );
 
-        assert!(complex_latency_ns < MAX_COMPLEX_LATENCY_NS,
+        assert!(
+            complex_latency_ns < MAX_COMPLEX_LATENCY_NS,
             "Complex logging latency {} ns exceeds maximum {} ns",
-            complex_latency_ns, MAX_COMPLEX_LATENCY_NS);
+            complex_latency_ns,
+            MAX_COMPLEX_LATENCY_NS
+        );
 
-        assert!(gpu_latency_ns < MAX_GPU_LATENCY_NS,
+        assert!(
+            gpu_latency_ns < MAX_GPU_LATENCY_NS,
             "GPU logging latency {} ns exceeds maximum {} ns",
-            gpu_latency_ns, MAX_GPU_LATENCY_NS);
+            gpu_latency_ns,
+            MAX_GPU_LATENCY_NS
+        );
     }
 
     #[test]
@@ -159,8 +175,8 @@ mod performance_tests {
                             Some(HashMap::from([
                                 ("thread_id".to_string(), json!(thread_id)),
                                 ("log_index".to_string(), json!(i)),
-                                ("scalability_test".to_string(), json!(true))
-                            ]))
+                                ("scalability_test".to_string(), json!(true)),
+                            ])),
                         );
 
                         // Add some GPU logs for realistic workload
@@ -169,7 +185,7 @@ mod performance_tests {
                                 &format!("scalability_kernel_{}", thread_id),
                                 (i as f64) * 1.2,
                                 64.0,
-                                128.0
+                                128.0,
                             );
                         }
                     }
@@ -195,9 +211,11 @@ mod performance_tests {
             let max_thread_duration = thread_durations.iter().max().unwrap();
             let min_thread_duration = thread_durations.iter().min().unwrap();
             let avg_thread_duration = Duration::from_nanos(
-                thread_durations.iter()
+                thread_durations
+                    .iter()
                     .map(|d| d.as_nanos() as u64)
-                    .sum::<u64>() / num_threads as u64
+                    .sum::<u64>()
+                    / num_threads as u64,
             );
 
             println!("Concurrency Test - {} threads:", num_threads);
@@ -205,17 +223,23 @@ mod performance_tests {
             println!("  Average thread duration: {:?}", avg_thread_duration);
             println!("  Min thread duration: {:?}", min_thread_duration);
             println!("  Max thread duration: {:?}", max_thread_duration);
-            println!("  Throughput: {:.2} logs/sec",
-                (num_threads * LOGS_PER_THREAD) as f64 / total_duration.as_secs_f64());
+            println!(
+                "  Throughput: {:.2} logs/sec",
+                (num_threads * LOGS_PER_THREAD) as f64 / total_duration.as_secs_f64()
+            );
 
             // Verify reasonable scalability (shouldn't get dramatically worse with more threads)
             if num_threads > 1 {
                 const MAX_ACCEPTABLE_DEGRADATION: f64 = 3.0; // 3x slowdown max
-                let slowdown_factor = max_thread_duration.as_secs_f64() / min_thread_duration.as_secs_f64();
+                let slowdown_factor =
+                    max_thread_duration.as_secs_f64() / min_thread_duration.as_secs_f64();
 
-                assert!(slowdown_factor < MAX_ACCEPTABLE_DEGRADATION,
+                assert!(
+                    slowdown_factor < MAX_ACCEPTABLE_DEGRADATION,
                     "Thread performance degradation too high: {:.2}x with {} threads",
-                    slowdown_factor, num_threads);
+                    slowdown_factor,
+                    num_threads
+                );
             }
         }
     }
@@ -245,7 +269,11 @@ mod performance_tests {
 
             // Add performance logs
             if i % 100 == 0 {
-                logger.log_performance(&format!("memory_op_{}", i % 20), (i as f64) * 0.8, Some(50.0));
+                logger.log_performance(
+                    &format!("memory_op_{}", i % 20),
+                    (i as f64) * 0.8,
+                    Some(50.0),
+                );
             }
 
             // Periodically check memory doesn't grow unbounded
@@ -253,12 +281,18 @@ mod performance_tests {
                 let current_summary = get_performance_summary();
                 let tracked_items = current_summary.len();
 
-                println!("After {} iterations: {} tracked performance items", i, tracked_items);
+                println!(
+                    "After {} iterations: {} tracked performance items",
+                    i, tracked_items
+                );
 
                 // Memory usage should be bounded (not grow linearly with iterations)
-                assert!(tracked_items < 2000,
+                assert!(
+                    tracked_items < 2000,
                     "Too many items tracked in memory: {}. Possible memory leak at iteration {}",
-                    tracked_items, i);
+                    tracked_items,
+                    i
+                );
             }
         }
 
@@ -266,8 +300,11 @@ mod performance_tests {
         println!("Final performance summary items: {}", final_summary.len());
 
         // Verify memory usage is reasonable
-        assert!(final_summary.len() < 1500,
-            "Final tracked items {} indicates possible memory leak", final_summary.len());
+        assert!(
+            final_summary.len() < 1500,
+            "Final tracked items {} indicates possible memory leak",
+            final_summary.len()
+        );
     }
 
     #[test]
@@ -290,14 +327,14 @@ mod performance_tests {
                 ("large_data".to_string(), json!(large_data)),
                 ("iteration".to_string(), json!(i)),
                 ("io_pressure_test".to_string(), json!(true)),
-                ("data_size_kb".to_string(), json!(LARGE_DATA_SIZE / 1024))
+                ("data_size_kb".to_string(), json!(LARGE_DATA_SIZE / 1024)),
             ]);
 
             logger.log_structured(
                 LogComponent::Performance,
                 Level::Info,
                 &format!("I/O pressure test iteration {}", i),
-                Some(metadata)
+                Some(metadata),
             );
 
             // Mix in other log types
@@ -316,15 +353,21 @@ mod performance_tests {
         println!("I/O Pressure Test Results:");
         println!("Total data written: {:.2} MB", total_data_mb);
         println!("Total duration: {:?}", total_duration);
-        println!("Write throughput: {:.2} MB/s", total_data_mb / total_duration.as_secs_f64());
+        println!(
+            "Write throughput: {:.2} MB/s",
+            total_data_mb / total_duration.as_secs_f64()
+        );
 
         // Verify reasonable I/O performance
         const MIN_THROUGHPUT_MBS: f64 = 5.0; // 5 MB/s minimum
         let throughput = total_data_mb / total_duration.as_secs_f64();
 
-        assert!(throughput > MIN_THROUGHPUT_MBS,
+        assert!(
+            throughput > MIN_THROUGHPUT_MBS,
             "I/O throughput too low: {:.2} MB/s < {} MB/s",
-            throughput, MIN_THROUGHPUT_MBS);
+            throughput,
+            MIN_THROUGHPUT_MBS
+        );
 
         // Verify all data was written correctly
         let perf_log = log_dir.join("performance.log");
@@ -332,14 +375,18 @@ mod performance_tests {
 
         let log_size = fs::metadata(&perf_log)
             .expect("Should get file metadata")
-            .len() as f64 / (1024.0 * 1024.0);
+            .len() as f64
+            / (1024.0 * 1024.0);
 
         println!("Final log file size: {:.2} MB", log_size);
 
         // Should have written significant amount of data
-        assert!(log_size > total_data_mb * 0.8,
+        assert!(
+            log_size > total_data_mb * 0.8,
             "Log file size {:.2} MB is too small compared to expected {:.2} MB",
-            log_size, total_data_mb);
+            log_size,
+            total_data_mb
+        );
     }
 
     #[test]
@@ -365,8 +412,8 @@ mod performance_tests {
                 Some(HashMap::from([
                     ("large_data".to_string(), json!(large_log_data)),
                     ("rotation_test".to_string(), json!(true)),
-                    ("iteration".to_string(), json!(i))
-                ]))
+                    ("iteration".to_string(), json!(i)),
+                ])),
             );
 
             let iteration_duration = iteration_start.elapsed();
@@ -374,7 +421,10 @@ mod performance_tests {
             // Track operations that take unusually long (might indicate rotation)
             if iteration_duration.as_millis() > 10 {
                 rotation_times.push((i, iteration_duration));
-                println!("Potential rotation at iteration {}: {:?}", i, iteration_duration);
+                println!(
+                    "Potential rotation at iteration {}: {:?}",
+                    i, iteration_duration
+                );
             }
 
             // Check if rotation occurred
@@ -392,20 +442,27 @@ mod performance_tests {
             }
         }
 
-        println!("Detected {} potential rotation events", rotation_times.len());
+        println!(
+            "Detected {} potential rotation events",
+            rotation_times.len()
+        );
 
         // Verify that rotation doesn't cause excessive performance degradation
         if !rotation_times.is_empty() {
-            let max_rotation_time = rotation_times.iter()
+            let max_rotation_time = rotation_times
+                .iter()
                 .map(|(_, duration)| duration.as_millis())
                 .max()
                 .unwrap();
 
             const MAX_ACCEPTABLE_ROTATION_TIME_MS: u128 = 1000; // 1 second
 
-            assert!(max_rotation_time < MAX_ACCEPTABLE_ROTATION_TIME_MS,
+            assert!(
+                max_rotation_time < MAX_ACCEPTABLE_ROTATION_TIME_MS,
                 "Log rotation took too long: {} ms > {} ms",
-                max_rotation_time, MAX_ACCEPTABLE_ROTATION_TIME_MS);
+                max_rotation_time,
+                MAX_ACCEPTABLE_ROTATION_TIME_MS
+            );
         }
 
         // Verify that archived files were created
@@ -416,7 +473,10 @@ mod performance_tests {
                 .collect();
 
             println!("Final archived files count: {}", archived_files.len());
-            assert!(!archived_files.is_empty(), "Should have created archived files");
+            assert!(
+                !archived_files.is_empty(),
+                "Should have created archived files"
+            );
         }
 
         // Verify current log file exists and is reasonable size
@@ -425,13 +485,17 @@ mod performance_tests {
 
         let current_size_mb = fs::metadata(&server_log)
             .expect("Should get metadata")
-            .len() as f64 / (1024.0 * 1024.0);
+            .len() as f64
+            / (1024.0 * 1024.0);
 
         println!("Current log file size: {:.2} MB", current_size_mb);
 
         // Should be under rotation limit (50MB by default)
-        assert!(current_size_mb < 50.0,
-            "Current log file too large: {:.2} MB", current_size_mb);
+        assert!(
+            current_size_mb < 50.0,
+            "Current log file too large: {:.2} MB",
+            current_size_mb
+        );
     }
 
     #[test]
@@ -451,7 +515,7 @@ mod performance_tests {
                     &format!("perf_summary_kernel_{}", kernel_type),
                     (iteration as f64) * 1.5 + (kernel_type as f64) * 10.0,
                     128.0 + (kernel_type as f64),
-                    256.0 + (kernel_type as f64) * 2.0
+                    256.0 + (kernel_type as f64) * 2.0,
                 );
             }
         }
@@ -465,31 +529,50 @@ mod performance_tests {
         }
         let summary_generation_duration = start_time.elapsed();
 
-        let avg_summary_time = summary_generation_duration.as_micros() / SUMMARY_BENCHMARK_ITERATIONS as u128;
+        let avg_summary_time =
+            summary_generation_duration.as_micros() / SUMMARY_BENCHMARK_ITERATIONS as u128;
 
         println!("Performance Summary Generation Benchmark:");
-        println!("Total time for {} summaries: {:?}", SUMMARY_BENCHMARK_ITERATIONS, summary_generation_duration);
+        println!(
+            "Total time for {} summaries: {:?}",
+            SUMMARY_BENCHMARK_ITERATIONS, summary_generation_duration
+        );
         println!("Average time per summary: {} μs", avg_summary_time);
 
         // Verify performance summary generation is efficient
         const MAX_SUMMARY_TIME_US: u128 = 10000; // 10 milliseconds
 
-        assert!(avg_summary_time < MAX_SUMMARY_TIME_US,
+        assert!(
+            avg_summary_time < MAX_SUMMARY_TIME_US,
             "Performance summary generation too slow: {} μs > {} μs",
-            avg_summary_time, MAX_SUMMARY_TIME_US);
+            avg_summary_time,
+            MAX_SUMMARY_TIME_US
+        );
 
         // Verify the summary contains expected data
         let final_summary = get_performance_summary();
-        assert!(!final_summary.is_empty(), "Performance summary should not be empty");
-        assert_eq!(final_summary.len(), KERNEL_TYPES + 2, // +2 for gpu_errors and recovery_attempts
-            "Summary should contain all kernel types");
+        assert!(
+            !final_summary.is_empty(),
+            "Performance summary should not be empty"
+        );
+        assert_eq!(
+            final_summary.len(),
+            KERNEL_TYPES + 2, // +2 for gpu_errors and recovery_attempts
+            "Summary should contain all kernel types"
+        );
 
         // Verify summary data quality
         for (kernel_name, data) in &final_summary {
             if kernel_name.starts_with("perf_summary_kernel_") {
-                let sample_count = data.get("sample_count").and_then(|v| v.as_u64()).unwrap_or(0);
-                assert_eq!(sample_count, ITERATIONS_PER_KERNEL as u64,
-                    "Kernel {} should have {} samples", kernel_name, ITERATIONS_PER_KERNEL);
+                let sample_count = data
+                    .get("sample_count")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(0);
+                assert_eq!(
+                    sample_count, ITERATIONS_PER_KERNEL as u64,
+                    "Kernel {} should have {} samples",
+                    kernel_name, ITERATIONS_PER_KERNEL
+                );
             }
         }
     }

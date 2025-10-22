@@ -28,13 +28,13 @@ impl MetadataActor {
         // This would typically reload metadata from disk/database
         // For now, we'll just log that a refresh was requested
         info!("Metadata refresh requested");
-        
+
         // TODO: Implement actual metadata refresh logic
         // This might involve:
         // 1. Re-scanning the file system
         // 2. Re-parsing markdown files
         // 3. Updating the metadata store
-        
+
         Ok(())
     }
 

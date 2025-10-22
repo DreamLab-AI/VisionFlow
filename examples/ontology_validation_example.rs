@@ -9,8 +9,7 @@
 use std::collections::HashMap;
 
 use crate::services::owl_validator::{
-    OwlValidatorService, PropertyGraph, GraphNode, GraphEdge,
-    ValidationConfig, RdfTriple, Severity,
+    GraphEdge, GraphNode, OwlValidatorService, PropertyGraph, RdfTriple, Severity, ValidationConfig,
 };
 
 /// Main example function demonstrating ontology validation workflow
@@ -42,8 +41,11 @@ pub async fn demonstrate_ontology_validation() -> Result<(), Box<dyn std::error:
     // Step 3: Create a property graph to validate
     println!("📋 Step 3: Creating sample property graph...");
     let graph = create_sample_graph();
-    println!("✅ Graph created with {} nodes and {} edges\n",
-             graph.nodes.len(), graph.edges.len());
+    println!(
+        "✅ Graph created with {} nodes and {} edges\n",
+        graph.nodes.len(),
+        graph.edges.len()
+    );
 
     // Step 4: Validate the graph against the ontology
     println!("📋 Step 4: Running validation...");
@@ -54,11 +56,26 @@ pub async fn demonstrate_ontology_validation() -> Result<(), Box<dyn std::error:
     println!("📋 Step 5: Analyzing validation results...");
     println!("📊 Validation Statistics:");
     println!("   • Total triples: {}", report.total_triples);
-    println!("   • Classes checked: {}", report.statistics.classes_checked);
-    println!("   • Properties checked: {}", report.statistics.properties_checked);
-    println!("   • Individuals checked: {}", report.statistics.individuals_checked);
-    println!("   • Constraints evaluated: {}", report.statistics.constraints_evaluated);
-    println!("   • Inference rules applied: {}", report.statistics.inference_rules_applied);
+    println!(
+        "   • Classes checked: {}",
+        report.statistics.classes_checked
+    );
+    println!(
+        "   • Properties checked: {}",
+        report.statistics.properties_checked
+    );
+    println!(
+        "   • Individuals checked: {}",
+        report.statistics.individuals_checked
+    );
+    println!(
+        "   • Constraints evaluated: {}",
+        report.statistics.constraints_evaluated
+    );
+    println!(
+        "   • Inference rules applied: {}",
+        report.statistics.inference_rules_applied
+    );
     println!("   • Cache hits: {}", report.statistics.cache_hits);
     println!();
 
@@ -74,8 +91,13 @@ pub async fn demonstrate_ontology_validation() -> Result<(), Box<dyn std::error:
                 Severity::Warning => "⚠️ ",
                 Severity::Info => "ℹ️ ",
             };
-            println!("   {}. {} [{:?}] {}",
-                     idx + 1, severity_icon, violation.severity, violation.rule);
+            println!(
+                "   {}. {} [{:?}] {}",
+                idx + 1,
+                severity_icon,
+                violation.severity,
+                violation.rule
+            );
             println!("      Message: {}", violation.message);
             if let Some(subject) = &violation.subject {
                 println!("      Subject: {}", subject);
@@ -92,13 +114,18 @@ pub async fn demonstrate_ontology_validation() -> Result<(), Box<dyn std::error:
     if report.inferred_triples.is_empty() {
         println!("ℹ️  No new relationships inferred\n");
     } else {
-        println!("🔍 Inferred {} new relationships:\n", report.inferred_triples.len());
+        println!(
+            "🔍 Inferred {} new relationships:\n",
+            report.inferred_triples.len()
+        );
         for (idx, triple) in report.inferred_triples.iter().take(5).enumerate() {
-            println!("   {}. {} --[{}]--> {}",
-                     idx + 1,
-                     shorten_iri(&triple.subject),
-                     shorten_iri(&triple.predicate),
-                     shorten_iri(&triple.object));
+            println!(
+                "   {}. {} --[{}]--> {}",
+                idx + 1,
+                shorten_iri(&triple.subject),
+                shorten_iri(&triple.predicate),
+                shorten_iri(&triple.object)
+            );
         }
         if report.inferred_triples.len() > 5 {
             println!("   ... and {} more", report.inferred_triples.len() - 5);
@@ -198,7 +225,8 @@ ex:email a owl:DatatypeProperty, owl:FunctionalProperty ;
 ex:age a owl:DatatypeProperty, owl:FunctionalProperty ;
     rdfs:domain ex:Person ;
     rdfs:range xsd:integer .
-"#.to_string()
+"#
+    .to_string()
 }
 
 /// Create a sample property graph for validation
@@ -224,7 +252,11 @@ fn create_sample_graph() -> PropertyGraph {
 
     graph.nodes.push(GraphNode {
         id: "person_jane".to_string(),
-        labels: vec!["Person".to_string(), "Employee".to_string(), "Manager".to_string()],
+        labels: vec![
+            "Person".to_string(),
+            "Employee".to_string(),
+            "Manager".to_string(),
+        ],
         properties: {
             let mut props = HashMap::new();
             props.insert("name".to_string(), serde_json::json!("Jane Doe"));
@@ -363,12 +395,16 @@ mod tests {
         assert_eq!(graph.edges.len(), 7);
 
         // Verify we have the expected node types
-        let person_nodes = graph.nodes.iter()
+        let person_nodes = graph
+            .nodes
+            .iter()
             .filter(|n| n.labels.contains(&"Person".to_string()))
             .count();
         assert_eq!(person_nodes, 3);
 
-        let company_nodes = graph.nodes.iter()
+        let company_nodes = graph
+            .nodes
+            .iter()
             .filter(|n| n.labels.contains(&"Company".to_string()))
             .count();
         assert_eq!(company_nodes, 1);

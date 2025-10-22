@@ -1,5 +1,5 @@
 //! Multi-MCP Agent Visualization Integration Demo
-//! 
+//!
 //! This example demonstrates how to use the comprehensive agent visualization system
 //! to discover, monitor, and visualize agents across multiple MCP servers.
 //!
@@ -29,25 +29,25 @@ use visionflow_ext::handlers::multi_mcp_websocket_handler;
 async fn main() -> std::io::Result<()> {
     // Initialize logging
     env_logger::init();
-    
+
     info!("🚀 Starting Multi-MCP Agent Visualization Demo");
-    
+
     // Start actor system
     let graph_service = GraphServiceActor::new().start();
     let visualization_actor = MultiMcpVisualizationActor::new(graph_service.clone()).start();
-    
+
     // Demonstrate the discovery service
     demo_discovery_service().await;
-    
+
     // Demonstrate topology visualization
     demo_topology_visualization().await;
-    
+
     // Demonstrate real-time monitoring
     demo_realtime_monitoring().await;
-    
+
     // Start HTTP server with WebSocket endpoints
     info!("🌐 Starting HTTP server with WebSocket endpoints on http://127.0.0.1:8080");
-    
+
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(DemoAppState {
@@ -72,12 +72,12 @@ struct DemoAppState {
 /// Demonstrate the multi-MCP discovery service
 async fn demo_discovery_service() {
     info!("📡 Demonstrating Multi-MCP Discovery Service");
-    
+
     let discovery = MultiMcpAgentDiscovery::new();
-    
+
     // Initialize with default servers
     discovery.initialize_default_servers().await;
-    
+
     // Add a custom MCP server
     let custom_config = McpServerConfig {
         server_id: "demo-server".to_string(),
@@ -89,28 +89,28 @@ async fn demo_discovery_service() {
         timeout_ms: 5000,
         retry_attempts: 2,
     };
-    
+
     discovery.add_server(custom_config).await;
-    
+
     // Start discovery (won't actually find agents without real MCP servers)
     discovery.start_discovery().await;
-    
+
     // Wait a bit to let discovery attempt to run
     sleep(Duration::from_secs(2)).await;
-    
+
     // Get discovery statistics
     let stats = discovery.get_discovery_stats().await;
-    info!("📊 Discovery Stats: successful={}, failed={}, total={}", 
+    info!("📊 Discovery Stats: successful={}, failed={}, total={}",
           stats.successful_discoveries, stats.failed_discoveries, stats.total_discoveries);
-    
+
     // Get server statuses
     let server_statuses = discovery.get_server_statuses().await;
     info!("🖥️ Found {} MCP servers", server_statuses.len());
     for server in server_statuses {
-        info!("  - {}: {}:{} (connected: {})", 
+        info!("  - {}: {}:{} (connected: {})",
               server.server_id, server.host, server.port, server.is_connected);
     }
-    
+
     // Stop discovery for demo
     discovery.stop_discovery().await;
 }
@@ -118,18 +118,18 @@ async fn demo_discovery_service() {
 /// Demonstrate topology visualization engine
 async fn demo_topology_visualization() {
     info!("🕸️ Demonstrating Topology Visualization Engine");
-    
+
     // Create mock agents for visualization
     let mock_agents = create_mock_agents();
-    
+
     let config = TopologyConfig {
         topology_type: TopologyType::Hierarchical,
         layout_params: Default::default(),
         visual_params: Default::default(),
     };
-    
+
     let mut engine = TopologyVisualizationEngine::new(config);
-    
+
     // Generate layouts for different topologies
     let topologies = vec![
         TopologyType::Hierarchical,
@@ -137,7 +137,7 @@ async fn demo_topology_visualization() {
         TopologyType::Ring,
         TopologyType::Star,
     ];
-    
+
     for topology in topologies {
         info!("  📐 Generating {:?} topology layout", topology);
         let layout = engine.generate_layout(
@@ -145,11 +145,11 @@ async fn demo_topology_visualization() {
             mock_agents.clone(),
             topology,
         );
-        
+
         info!("    - {} agents positioned", layout.agent_positions.len());
         info!("    - {} connections created", layout.connections.len());
         info!("    - {} coordination layers", layout.coordination_layers.len());
-        info!("    - Performance metrics: efficiency={:.2}, fault_tolerance={:.2}", 
+        info!("    - Performance metrics: efficiency={:.2}, fault_tolerance={:.2}",
               layout.performance_metrics.coordination_efficiency,
               layout.performance_metrics.fault_tolerance);
     }
@@ -158,9 +158,9 @@ async fn demo_topology_visualization() {
 /// Demonstrate real-time monitoring
 async fn demo_realtime_monitoring() {
     info!("📈 Demonstrating Real-time Monitoring");
-    
+
     let mut protocol = AgentVisualizationProtocol::new();
-    
+
     // Register mock MCP servers
     let claude_flow_server = visionflow_ext::services::agent_visualization_protocol::McpServerInfo {
         server_id: "claude-flow".to_string(),
@@ -172,21 +172,21 @@ async fn demo_realtime_monitoring() {
         supported_tools: vec!["swarm_init".to_string(), "agent_list".to_string()],
         agent_count: 4,
     };
-    
+
     protocol.register_mcp_server(claude_flow_server);
-    
+
     // Simulate agent updates
     let mock_agents = create_mock_agents();
     protocol.update_agents_from_server(McpServerType::ClaudeFlow, mock_agents.clone());
-    
+
     // Generate discovery message
     let discovery_message = protocol.create_discovery_message();
     info!("  📤 Generated discovery message ({} bytes)", discovery_message.len());
-    
+
     // Generate agent update message
     let update_message = protocol.create_agent_update_message(mock_agents);
     info!("  📤 Generated agent update message ({} bytes)", update_message.len());
-    
+
     // Generate performance analysis
     let performance_message = protocol.create_performance_analysis();
     info!("  📤 Generated performance analysis ({} bytes)", performance_message.len());
@@ -195,7 +195,7 @@ async fn demo_realtime_monitoring() {
 /// Create mock agents for demonstration
 fn create_mock_agents() -> Vec<visionflow_ext::services::agent_visualization_protocol::MultiMcpAgentStatus> {
     use visionflow_ext::services::agent_visualization_protocol::*;
-    
+
     vec![
         MultiMcpAgentStatus {
             agent_id: "coordinator-001".to_string(),
@@ -356,9 +356,9 @@ async fn serve_demo_page() -> impl actix_web::Responder {
 <body>
     <div class="container">
         <h1>🚀 Multi-MCP Agent Visualization Demo</h1>
-        
+
         <p>This demo showcases the comprehensive agent visualization system that discovers and monitors agents across multiple MCP servers.</p>
-        
+
         <div class="server-status">
             <h3>📡 MCP Server Status</h3>
             <div id="server-list">
@@ -367,7 +367,7 @@ async fn serve_demo_page() -> impl actix_web::Responder {
                 <div>🔴 <span class="offline">DAA</span> - localhost:9502 (0 agents)</div>
             </div>
         </div>
-        
+
         <div>
             <h3>🎮 Demo Controls</h3>
             <button class="button" onclick="connectWebSocket()">Connect WebSocket</button>
@@ -376,36 +376,36 @@ async fn serve_demo_page() -> impl actix_web::Responder {
             <button class="button" onclick="requestPerformance()">Request Performance</button>
             <button class="button" onclick="clearLog()">Clear Log</button>
         </div>
-        
+
         <div id="log"></div>
     </div>
 
     <script>
         let ws = null;
-        
+
         function log(message) {
             const logDiv = document.getElementById('log');
             const timestamp = new Date().toLocaleTimeString();
             logDiv.innerHTML += `[${timestamp}] ${message}\n`;
             logDiv.scrollTop = logDiv.scrollHeight;
         }
-        
+
         function connectWebSocket() {
             if (ws) {
                 ws.close();
             }
-            
+
             ws = new WebSocket('ws://127.0.0.1:8080/api/multi-mcp/ws');
-            
+
             ws.onopen = function() {
                 log('🟢 WebSocket connected');
             };
-            
+
             ws.onmessage = function(event) {
                 try {
                     const data = JSON.parse(event.data);
                     log(`📥 Received: ${data.type || 'unknown'} (${event.data.length} bytes)`);
-                    
+
                     if (data.type === 'discovery') {
                         log(`   📡 Found ${data.total_agents} agents across ${data.servers.length} servers`);
                     } else if (data.type === 'multi_agent_update') {
@@ -417,16 +417,16 @@ async fn serve_demo_page() -> impl actix_web::Responder {
                     log(`📥 Raw message: ${event.data.substring(0, 100)}...`);
                 }
             };
-            
+
             ws.onclose = function() {
                 log('🔴 WebSocket disconnected');
             };
-            
+
             ws.onerror = function(error) {
                 log(`❌ WebSocket error: ${error}`);
             };
         }
-        
+
         function requestDiscovery() {
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({action: 'request_discovery'}));
@@ -435,7 +435,7 @@ async fn serve_demo_page() -> impl actix_web::Responder {
                 log('❌ WebSocket not connected');
             }
         }
-        
+
         function requestAgents() {
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({action: 'request_agents'}));
@@ -444,7 +444,7 @@ async fn serve_demo_page() -> impl actix_web::Responder {
                 log('❌ WebSocket not connected');
             }
         }
-        
+
         function requestPerformance() {
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({action: 'request_performance'}));
@@ -453,11 +453,11 @@ async fn serve_demo_page() -> impl actix_web::Responder {
                 log('❌ WebSocket not connected');
             }
         }
-        
+
         function clearLog() {
             document.getElementById('log').innerHTML = '';
         }
-        
+
         // Auto-connect on page load
         log('🚀 Multi-MCP Agent Visualization Demo loaded');
         log('💡 Click "Connect WebSocket" to start monitoring');
@@ -465,7 +465,7 @@ async fn serve_demo_page() -> impl actix_web::Responder {
 </body>
 </html>
     "#;
-    
+
     actix_web::HttpResponse::Ok()
         .content_type("text/html")
         .body(html)

@@ -102,9 +102,12 @@ impl Constraint {
     /// Create a boundary constraint for all specified nodes
     pub fn boundary(
         node_indices: Vec<u32>,
-        min_x: f32, max_x: f32,
-        min_y: f32, max_y: f32,
-        min_z: f32, max_z: f32,
+        min_x: f32,
+        max_x: f32,
+        min_y: f32,
+        max_y: f32,
+        min_z: f32,
+        max_z: f32,
     ) -> Self {
         Self {
             kind: ConstraintKind::Boundary,
@@ -273,12 +276,12 @@ impl ConstraintData {
         for (i, &idx) in constraint.node_indices.iter().take(4).enumerate() {
             node_idx[i] = idx as i32;
         }
-        
+
         let mut params = [0.0f32; 8];
         for (i, &param) in constraint.params.iter().take(8).enumerate() {
             params[i] = param;
         }
-        
+
         Self {
             kind: constraint.kind as i32,
             count: constraint.node_indices.len().min(4) as i32,
@@ -306,15 +309,16 @@ impl ConstraintSet {
         self.constraints.push(constraint);
         idx
     }
-    
+
     /// Add a constraint to a named group
     pub fn add_to_group(&mut self, group_name: &str, constraint: Constraint) {
         let idx = self.add(constraint);
-        self.groups.entry(group_name.to_string())
+        self.groups
+            .entry(group_name.to_string())
             .or_insert_with(Vec::new)
             .push(idx);
     }
-    
+
     /// Enable/disable all constraints in a group
     pub fn set_group_active(&mut self, group_name: &str, active: bool) {
         if let Some(indices) = self.groups.get(group_name) {
@@ -325,14 +329,12 @@ impl ConstraintSet {
             }
         }
     }
-    
+
     /// Get all active constraints
     pub fn active_constraints(&self) -> Vec<&Constraint> {
-        self.constraints.iter()
-            .filter(|c| c.active)
-            .collect()
+        self.constraints.iter().filter(|c| c.active).collect()
     }
-    
+
     /// Convert to GPU-compatible format
     pub fn to_gpu_data(&self) -> Vec<ConstraintData> {
         self.active_constraints()
@@ -345,25 +347,25 @@ impl ConstraintSet {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_constraint_creation() {
         let fixed = Constraint::fixed_position(0, 100.0, 200.0, 300.0);
         assert_eq!(fixed.kind, ConstraintKind::FixedPosition);
         assert_eq!(fixed.node_indices, vec![0]);
         assert_eq!(fixed.params, vec![100.0, 200.0, 300.0]);
-        
+
         let sep = Constraint::separation(1, 2, 50.0);
         assert_eq!(sep.kind, ConstraintKind::Separation);
         assert_eq!(sep.node_indices, vec![1, 2]);
         assert_eq!(sep.params, vec![50.0]);
     }
-    
+
     #[test]
     fn test_constraint_to_gpu_data() {
         let constraint = Constraint::cluster(vec![1, 2, 3], 1.0, 0.8);
         let gpu_data = ConstraintData::from_constraint(&constraint);
-        
+
         assert_eq!(gpu_data.kind, ConstraintKind::Clustering as i32);
         assert_eq!(gpu_data.count, 3);
         assert_eq!(gpu_data.node_idx[0], 1);
@@ -372,18 +374,18 @@ mod tests {
         assert_eq!(gpu_data.params[0], 1.0);
         assert_eq!(gpu_data.params[1], 0.8);
     }
-    
+
     #[test]
     fn test_constraint_set() {
         let mut set = ConstraintSet::default();
-        
+
         set.add_to_group("fixed", Constraint::fixed_position(0, 0.0, 0.0, 0.0));
         set.add_to_group("fixed", Constraint::fixed_position(1, 100.0, 0.0, 0.0));
         set.add_to_group("separation", Constraint::separation(2, 3, 75.0));
-        
+
         assert_eq!(set.constraints.len(), 3);
         assert_eq!(set.groups.get("fixed").unwrap().len(), 2);
-        
+
         set.set_group_active("fixed", false);
         assert_eq!(set.active_constraints().len(), 1);
     }

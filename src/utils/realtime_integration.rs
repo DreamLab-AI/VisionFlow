@@ -1,17 +1,14 @@
 // Real-time WebSocket Integration Layer
 // Connects existing analytics, optimization, and export systems with WebSocket broadcasting
 
+use log::{debug, error, info};
+use serde_json::{json, Value};
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use serde_json::{Value, json};
-use log::{info, debug, error};
 
 use crate::handlers::realtime_websocket_handler::{
-    broadcast_workspace_update,
-    broadcast_analysis_progress,
-    broadcast_optimization_update,
-    broadcast_export_progress,
-    broadcast_export_ready,
+    broadcast_analysis_progress, broadcast_export_progress, broadcast_export_ready,
+    broadcast_optimization_update, broadcast_workspace_update,
 };
 
 // Integration traits for different systems
@@ -24,14 +21,27 @@ pub trait AnalyticsProgressReporter: Send + Sync {
 
 #[async_trait::async_trait]
 pub trait OptimizationProgressReporter: Send + Sync {
-    async fn report_progress(&self, optimization_id: &str, progress: f64, algorithm: &str, iteration: u64, metrics: Value);
+    async fn report_progress(
+        &self,
+        optimization_id: &str,
+        progress: f64,
+        algorithm: &str,
+        iteration: u64,
+        metrics: Value,
+    );
     async fn report_completion(&self, optimization_id: &str, results: Value);
 }
 
 #[async_trait::async_trait]
 pub trait ExportProgressReporter: Send + Sync {
     async fn report_progress(&self, export_id: &str, progress: f64, stage: &str, format: &str);
-    async fn report_completion(&self, export_id: &str, download_url: String, size: u64, format: &str);
+    async fn report_completion(
+        &self,
+        export_id: &str,
+        download_url: String,
+        size: u64,
+        format: &str,
+    );
 }
 
 #[async_trait::async_trait]
@@ -53,8 +63,17 @@ impl RealtimeProgressReporter {
 
 #[async_trait::async_trait]
 impl AnalyticsProgressReporter for RealtimeProgressReporter {
-    async fn report_progress(&self, analysis_id: &str, progress: f64, stage: &str, operation: &str) {
-        debug!("Reporting analysis progress: {} - {}% - {}", analysis_id, progress, stage);
+    async fn report_progress(
+        &self,
+        analysis_id: &str,
+        progress: f64,
+        stage: &str,
+        operation: &str,
+    ) {
+        debug!(
+            "Reporting analysis progress: {} - {}% - {}",
+            analysis_id, progress, stage
+        );
 
         broadcast_analysis_progress(
             analysis_id.to_string(),
@@ -63,14 +82,18 @@ impl AnalyticsProgressReporter for RealtimeProgressReporter {
             stage.to_string(),
             operation.to_string(),
             None,
-        ).await;
+        )
+        .await;
     }
 
     async fn report_completion(&self, analysis_id: &str, results: Value, success: bool) {
-        info!("Analysis {} completed with success: {}", analysis_id, success);
+        info!(
+            "Analysis {} completed with success: {}",
+            analysis_id, success
+        );
 
         // Create analysis complete message
-        let message = json!({
+        let _message = json!({
             "type": "analysis_complete",
             "data": {
                 "analysis_id": analysis_id,
@@ -91,7 +114,8 @@ impl AnalyticsProgressReporter for RealtimeProgressReporter {
             "completed".to_string(),
             "Analysis finished".to_string(),
             Some(results),
-        ).await;
+        )
+        .await;
     }
 
     async fn report_error(&self, analysis_id: &str, error: &str) {
@@ -104,14 +128,25 @@ impl AnalyticsProgressReporter for RealtimeProgressReporter {
             "error".to_string(),
             format!("Error: {}", error),
             Some(json!({"error": error})),
-        ).await;
+        )
+        .await;
     }
 }
 
 #[async_trait::async_trait]
 impl OptimizationProgressReporter for RealtimeProgressReporter {
-    async fn report_progress(&self, optimization_id: &str, progress: f64, algorithm: &str, iteration: u64, metrics: Value) {
-        debug!("Reporting optimization progress: {} - {}% - iteration {}", optimization_id, progress, iteration);
+    async fn report_progress(
+        &self,
+        optimization_id: &str,
+        progress: f64,
+        algorithm: &str,
+        iteration: u64,
+        metrics: Value,
+    ) {
+        debug!(
+            "Reporting optimization progress: {} - {}% - iteration {}",
+            optimization_id, progress, iteration
+        );
 
         broadcast_optimization_update(
             optimization_id.to_string(),
@@ -121,17 +156,31 @@ impl OptimizationProgressReporter for RealtimeProgressReporter {
             iteration,
             1000, // Default total iterations
             metrics,
-        ).await;
+        )
+        .await;
     }
 
     async fn report_completion(&self, optimization_id: &str, results: Value) {
         info!("Optimization {} completed", optimization_id);
 
         // Extract key metrics from results for the broadcast
-        let algorithm = results.get("algorithm").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
-        let confidence = results.get("confidence").and_then(|v| v.as_f64()).unwrap_or(0.0);
-        let performance_gain = results.get("performance_gain").and_then(|v| v.as_f64()).unwrap_or(0.0);
-        let clusters = results.get("clusters").and_then(|v| v.as_u64()).unwrap_or(0);
+        let algorithm = results
+            .get("algorithm")
+            .and_then(|v| v.as_str())
+            .unwrap_or("unknown")
+            .to_string();
+        let confidence = results
+            .get("confidence")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0);
+        let performance_gain = results
+            .get("performance_gain")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0);
+        let clusters = results
+            .get("clusters")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(0);
 
         // Create optimization result message - you'd implement broadcast_optimization_result
         broadcast_optimization_update(
@@ -147,14 +196,18 @@ impl OptimizationProgressReporter for RealtimeProgressReporter {
                 "clusters": clusters,
                 "completed": true
             }),
-        ).await;
+        )
+        .await;
     }
 }
 
 #[async_trait::async_trait]
 impl ExportProgressReporter for RealtimeProgressReporter {
     async fn report_progress(&self, export_id: &str, progress: f64, stage: &str, format: &str) {
-        debug!("Reporting export progress: {} - {}% - {}", export_id, progress, stage);
+        debug!(
+            "Reporting export progress: {} - {}% - {}",
+            export_id, progress, stage
+        );
 
         broadcast_export_progress(
             export_id.to_string(),
@@ -162,10 +215,17 @@ impl ExportProgressReporter for RealtimeProgressReporter {
             format.to_string(),
             progress,
             stage.to_string(),
-        ).await;
+        )
+        .await;
     }
 
-    async fn report_completion(&self, export_id: &str, download_url: String, size: u64, format: &str) {
+    async fn report_completion(
+        &self,
+        export_id: &str,
+        download_url: String,
+        size: u64,
+        format: &str,
+    ) {
         info!("Export {} completed: {} bytes", export_id, size);
 
         broadcast_export_ready(
@@ -174,7 +234,8 @@ impl ExportProgressReporter for RealtimeProgressReporter {
             format.to_string(),
             download_url,
             size,
-        ).await;
+        )
+        .await;
     }
 }
 
@@ -188,11 +249,15 @@ impl WorkspaceEventReporter for RealtimeProgressReporter {
             changes,
             operation.to_string(),
             None, // No specific user ID for now
-        ).await;
+        )
+        .await;
     }
 
     async fn report_user_activity(&self, workspace_id: &str, user_id: &str, action: &str) {
-        debug!("User activity in workspace {}: {} - {}", workspace_id, user_id, action);
+        debug!(
+            "User activity in workspace {}: {} - {}",
+            workspace_id, user_id, action
+        );
 
         // You could create a user activity broadcast function
         broadcast_workspace_update(
@@ -200,20 +265,27 @@ impl WorkspaceEventReporter for RealtimeProgressReporter {
             json!({"user_activity": {"user_id": user_id, "action": action}}),
             "user_activity".to_string(),
             Some(user_id.to_string()),
-        ).await;
+        )
+        .await;
     }
 }
 
 // Factory functions for creating reporters
-pub fn create_analytics_reporter(graph_id: Option<String>) -> Arc<dyn AnalyticsProgressReporter + Send + Sync> {
+pub fn create_analytics_reporter(
+    graph_id: Option<String>,
+) -> Arc<dyn AnalyticsProgressReporter + Send + Sync> {
     Arc::new(RealtimeProgressReporter::new(graph_id))
 }
 
-pub fn create_optimization_reporter(graph_id: Option<String>) -> Arc<dyn OptimizationProgressReporter + Send + Sync> {
+pub fn create_optimization_reporter(
+    graph_id: Option<String>,
+) -> Arc<dyn OptimizationProgressReporter + Send + Sync> {
     Arc::new(RealtimeProgressReporter::new(graph_id))
 }
 
-pub fn create_export_reporter(graph_id: Option<String>) -> Arc<dyn ExportProgressReporter + Send + Sync> {
+pub fn create_export_reporter(
+    graph_id: Option<String>,
+) -> Arc<dyn ExportProgressReporter + Send + Sync> {
     Arc::new(RealtimeProgressReporter::new(graph_id))
 }
 
@@ -301,9 +373,14 @@ lazy_static! {
 #[macro_export]
 macro_rules! report_analysis_progress {
     ($analysis_id:expr, $progress:expr, $stage:expr, $operation:expr) => {
-        if let Some(graph_id) = $crate::utils::realtime_integration::get_graph_id_for_analysis($analysis_id).await {
-            let reporter = $crate::utils::realtime_integration::create_analytics_reporter(Some(graph_id));
-            reporter.report_progress($analysis_id, $progress, $stage, $operation).await;
+        if let Some(graph_id) =
+            $crate::utils::realtime_integration::get_graph_id_for_analysis($analysis_id).await
+        {
+            let reporter =
+                $crate::utils::realtime_integration::create_analytics_reporter(Some(graph_id));
+            reporter
+                .report_progress($analysis_id, $progress, $stage, $operation)
+                .await;
         }
     };
 }
@@ -311,9 +388,21 @@ macro_rules! report_analysis_progress {
 #[macro_export]
 macro_rules! report_optimization_progress {
     ($optimization_id:expr, $progress:expr, $algorithm:expr, $iteration:expr, $metrics:expr) => {
-        if let Some(graph_id) = $crate::utils::realtime_integration::get_graph_id_for_optimization($optimization_id).await {
-            let reporter = $crate::utils::realtime_integration::create_optimization_reporter(Some(graph_id));
-            reporter.report_progress($optimization_id, $progress, $algorithm, $iteration, $metrics).await;
+        if let Some(graph_id) =
+            $crate::utils::realtime_integration::get_graph_id_for_optimization($optimization_id)
+                .await
+        {
+            let reporter =
+                $crate::utils::realtime_integration::create_optimization_reporter(Some(graph_id));
+            reporter
+                .report_progress(
+                    $optimization_id,
+                    $progress,
+                    $algorithm,
+                    $iteration,
+                    $metrics,
+                )
+                .await;
         }
     };
 }
@@ -321,9 +410,14 @@ macro_rules! report_optimization_progress {
 #[macro_export]
 macro_rules! report_export_progress {
     ($export_id:expr, $progress:expr, $stage:expr, $format:expr) => {
-        if let Some(graph_id) = $crate::utils::realtime_integration::get_graph_id_for_export($export_id).await {
-            let reporter = $crate::utils::realtime_integration::create_export_reporter(Some(graph_id));
-            reporter.report_progress($export_id, $progress, $stage, $format).await;
+        if let Some(graph_id) =
+            $crate::utils::realtime_integration::get_graph_id_for_export($export_id).await
+        {
+            let reporter =
+                $crate::utils::realtime_integration::create_export_reporter(Some(graph_id));
+            reporter
+                .report_progress($export_id, $progress, $stage, $format)
+                .await;
         }
     };
 }

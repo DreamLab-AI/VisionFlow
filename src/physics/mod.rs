@@ -59,19 +59,22 @@
 //! solver.optimize(&mut graph_data, &final_constraint_set)?;
 //! ```
 
-pub mod stress_majorization;
-pub mod semantic_constraints;
 pub mod ontology_constraints;
+pub mod semantic_constraints;
+pub mod stress_majorization;
 
 #[cfg(test)]
 mod integration_tests;
 
-pub use stress_majorization::StressMajorizationSolver;
+pub use ontology_constraints::{
+    OWLAxiom, OWLAxiomType, OntologyConstraintTranslator, OntologyInference,
+    OntologyReasoningReport,
+};
 pub use semantic_constraints::SemanticConstraintGenerator;
-pub use ontology_constraints::{OntologyConstraintTranslator, OWLAxiom, OWLAxiomType, OntologyInference, OntologyReasoningReport};
+pub use stress_majorization::StressMajorizationSolver;
 
 /// Re-export core types for convenience
-pub use crate::models::constraints::{Constraint, ConstraintSet, ConstraintKind, AdvancedParams};
+pub use crate::models::constraints::{AdvancedParams, Constraint, ConstraintKind, ConstraintSet};
 pub use crate::models::graph::GraphData;
-pub use crate::models::node::Node;
 pub use crate::models::metadata::Metadata;
+pub use crate::models::node::Node;

@@ -2,15 +2,15 @@
 
 //! Core service for OWL/RDF validation, reasoning, and graph mapping.
 
-use anyhow::{Result, Context, bail};
-use serde::{Deserialize, Serialize};
+use anyhow::{bail, Context, Result};
+use serde::Deserialize;
 use std::collections::HashMap;
 use std::sync::Arc;
 
 // Re-export types from services module
 pub use crate::services::owl_validator::{
-    PropertyGraph, GraphNode, GraphEdge, RdfTriple,
-    ValidationConfig, ValidationReport, ValidationError, Violation, Severity
+    GraphEdge, GraphNode, PropertyGraph, RdfTriple, Severity, ValidationConfig, ValidationError,
+    ValidationReport, Violation,
 };
 
 /// Mapping configuration loaded from mapping.toml
@@ -131,8 +131,8 @@ impl OwlValidatorService {
         let mapping_toml = std::fs::read_to_string("ontology/mapping.toml")
             .context("Failed to read ontology/mapping.toml")?;
 
-        let mapping_config: MappingConfig = toml::from_str(&mapping_toml)
-            .context("Failed to parse mapping.toml")?;
+        let mapping_config: MappingConfig =
+            toml::from_str(&mapping_toml).context("Failed to parse mapping.toml")?;
 
         Ok(Self {
             mapping_config: Arc::new(mapping_config),
@@ -188,7 +188,8 @@ impl OwlValidatorService {
                 triples.push(RdfTriple {
                     subject: node_iri.clone(),
                     predicate: self.expand_prefixed_iri("rdf:type")?,
-                    object: self.expand_prefixed_iri(&self.mapping_config.defaults.default_node_class)?,
+                    object: self
+                        .expand_prefixed_iri(&self.mapping_config.defaults.default_node_class)?,
                     is_literal: false,
                     datatype: None,
                     language: None,
@@ -198,7 +199,9 @@ impl OwlValidatorService {
 
         // Map node properties to data properties
         for (prop_name, prop_value) in &node.properties {
-            if let Some(data_prop_mapping) = self.mapping_config.data_property_mappings.get(prop_name) {
+            if let Some(data_prop_mapping) =
+                self.mapping_config.data_property_mappings.get(prop_name)
+            {
                 let prop_iri = self.expand_prefixed_iri(&data_prop_mapping.owl_property)?;
 
                 // Handle multi-valued properties
@@ -209,10 +212,8 @@ impl OwlValidatorService {
                 };
 
                 for value in values {
-                    let (object_str, datatype) = self.serialize_literal_value(
-                        value,
-                        &data_prop_mapping.rdfs_range
-                    )?;
+                    let (object_str, datatype) =
+                        self.serialize_literal_value(value, &data_prop_mapping.rdfs_range)?;
 
                     triples.push(RdfTriple {
                         subject: node_iri.clone(),
@@ -237,7 +238,11 @@ impl OwlValidatorService {
         let target_iri = self.generate_node_iri_from_id(&edge.target)?;
 
         // Map edge relationship to object property
-        if let Some(obj_prop_mapping) = self.mapping_config.object_property_mappings.get(&edge.relationship_type) {
+        if let Some(obj_prop_mapping) = self
+            .mapping_config
+            .object_property_mappings
+            .get(&edge.relationship_type)
+        {
             let prop_iri = self.expand_prefixed_iri(&obj_prop_mapping.owl_property)?;
 
             triples.push(RdfTriple {
@@ -265,7 +270,8 @@ impl OwlValidatorService {
             }
         } else {
             // Use default edge property
-            let default_prop = self.expand_prefixed_iri(&self.mapping_config.defaults.default_edge_property)?;
+            let default_prop =
+                self.expand_prefixed_iri(&self.mapping_config.defaults.default_edge_property)?;
             triples.push(RdfTriple {
                 subject: source_iri,
                 predicate: default_prop,
@@ -278,14 +284,14 @@ impl OwlValidatorService {
 
         // Map edge properties
         for (prop_name, prop_value) in &edge.properties {
-            if let Some(data_prop_mapping) = self.mapping_config.data_property_mappings.get(prop_name) {
+            if let Some(data_prop_mapping) =
+                self.mapping_config.data_property_mappings.get(prop_name)
+            {
                 let edge_iri = self.generate_edge_iri(edge)?;
                 let prop_iri = self.expand_prefixed_iri(&data_prop_mapping.owl_property)?;
 
-                let (object_str, datatype) = self.serialize_literal_value(
-                    prop_value,
-                    &data_prop_mapping.rdfs_range
-                )?;
+                let (object_str, datatype) =
+                    self.serialize_literal_value(prop_value, &data_prop_mapping.rdfs_range)?;
 
                 triples.push(RdfTriple {
                     subject: edge_iri,
@@ -312,12 +318,18 @@ impl OwlValidatorService {
         }
 
         // Fallback to base IRI + node ID
-        Ok(format!("{}{}", self.mapping_config.global.base_iri, node.id))
+        Ok(format!(
+            "{}{}",
+            self.mapping_config.global.base_iri, node.id
+        ))
     }
 
     /// Generates IRI for a node from just its ID
     fn generate_node_iri_from_id(&self, node_id: &str) -> Result<String> {
-        Ok(format!("{}{}", self.mapping_config.global.base_iri, node_id))
+        Ok(format!(
+            "{}{}",
+            self.mapping_config.global.base_iri, node_id
+        ))
     }
 
     /// Generates IRI for an edge using templates
@@ -332,7 +344,10 @@ impl OwlValidatorService {
         }
 
         // Fallback
-        Ok(format!("{}edge/{}", self.mapping_config.global.base_iri, edge.id))
+        Ok(format!(
+            "{}edge/{}",
+            self.mapping_config.global.base_iri, edge.id
+        ))
     }
 
     /// Applies a template string with variables
@@ -380,11 +395,18 @@ impl OwlValidatorService {
         }
 
         // No prefix, use default vocabulary
-        Ok(format!("{}{}", self.mapping_config.global.default_vocabulary, prefixed))
+        Ok(format!(
+            "{}{}",
+            self.mapping_config.global.default_vocabulary, prefixed
+        ))
     }
 
     /// Serializes a JSON value to a literal with appropriate datatype
-    fn serialize_literal_value(&self, value: &serde_json::Value, expected_range: &str) -> Result<(String, String)> {
+    fn serialize_literal_value(
+        &self,
+        value: &serde_json::Value,
+        expected_range: &str,
+    ) -> Result<(String, String)> {
         let full_range_iri = self.expand_prefixed_iri(expected_range)?;
 
         match value {
@@ -489,16 +511,14 @@ mod tests {
         let triples = service.map_node_to_triples(&node).unwrap();
 
         // Should have at least rdf:type triple
-        assert!(triples.iter().any(|t|
-            t.predicate.contains("rdf-syntax-ns#type") &&
-            t.object.contains("Person")
-        ));
+        assert!(triples
+            .iter()
+            .any(|t| t.predicate.contains("rdf-syntax-ns#type") && t.object.contains("Person")));
 
         // Should have name property
-        assert!(triples.iter().any(|t|
-            t.predicate.contains("foaf") &&
-            t.object == "John Doe"
-        ));
+        assert!(triples
+            .iter()
+            .any(|t| t.predicate.contains("foaf") && t.object == "John Doe"));
     }
 
     #[test]
@@ -525,17 +545,15 @@ mod tests {
                         props.insert("name".to_string(), json!("ACME Corp"));
                         props
                     },
-                }
+                },
             ],
-            edges: vec![
-                GraphEdge {
-                    id: "edge1".to_string(),
-                    source: "person1".to_string(),
-                    target: "company1".to_string(),
-                    relationship_type: "employedBy".to_string(),
-                    properties: HashMap::new(),
-                }
-            ],
+            edges: vec![GraphEdge {
+                id: "edge1".to_string(),
+                source: "person1".to_string(),
+                target: "company1".to_string(),
+                relationship_type: "employedBy".to_string(),
+                properties: HashMap::new(),
+            }],
             metadata: HashMap::new(),
         };
 
@@ -544,14 +562,13 @@ mod tests {
         assert!(!triples.is_empty());
 
         // Verify we have type triples
-        let type_triples: Vec<_> = triples.iter()
+        let type_triples: Vec<_> = triples
+            .iter()
             .filter(|t| t.predicate.contains("rdf-syntax-ns#type"))
             .collect();
         assert!(!type_triples.is_empty());
 
         // Verify we have the employedBy relationship
-        assert!(triples.iter().any(|t|
-            t.predicate.contains("employedBy")
-        ));
+        assert!(triples.iter().any(|t| t.predicate.contains("employedBy")));
     }
 }

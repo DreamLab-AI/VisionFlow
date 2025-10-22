@@ -1,25 +1,30 @@
 //! Message definitions for actor system communication
 
+#[cfg(feature = "gpu")]
+use crate::actors::gpu::force_compute_actor::PhysicsStats;
+use crate::config::AppFullSettings;
+use crate::errors::VisionFlowError;
+#[cfg(feature = "gpu")]
+use crate::gpu::visual_analytics::{IsolationLayer, VisualAnalyticsParams};
+use crate::models::constraints::{AdvancedParams, ConstraintSet};
+use crate::models::edge::Edge;
+use crate::models::graph::GraphData as ServiceGraphData;
+use crate::models::graph::GraphData as ModelsGraphData;
+use crate::models::metadata::{FileMetadata, MetadataStore};
+use crate::models::node::Node;
+use crate::models::simulation_params::SimulationParams;
+use crate::models::workspace::{
+    CreateWorkspaceRequest, UpdateWorkspaceRequest, Workspace, WorkspaceFilter, WorkspaceQuery,
+};
+use crate::utils::socket_flow_messages::BinaryNodeData;
+#[cfg(feature = "gpu")]
+use crate::utils::unified_gpu_compute::ComputeMode;
 use actix::prelude::*;
+use chrono::{DateTime, Utc};
 use glam::Vec3;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
-use crate::models::node::Node;
-use crate::models::edge::Edge;
-use crate::models::metadata::{MetadataStore, FileMetadata};
-use crate::config::AppFullSettings;
-use crate::models::graph::GraphData as ServiceGraphData;
-use crate::utils::socket_flow_messages::BinaryNodeData;
-use crate::models::simulation_params::SimulationParams;
-use crate::models::graph::GraphData as ModelsGraphData;
-use chrono::{DateTime, Utc};
-use serde::{Serialize, Deserialize};
-use crate::models::constraints::{AdvancedParams, ConstraintSet};
-use crate::utils::unified_gpu_compute::ComputeMode;
-use crate::gpu::visual_analytics::{VisualAnalyticsParams, IsolationLayer};
-use crate::errors::VisionFlowError;
-use crate::actors::gpu::force_compute_actor::PhysicsStats;
-use crate::models::workspace::{Workspace, CreateWorkspaceRequest, UpdateWorkspaceRequest, WorkspaceQuery, WorkspaceFilter};
 
 // K-means clustering results
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -64,12 +69,12 @@ pub struct AnomalyDetectionStats {
 // Community detection results
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommunityDetectionResult {
-    pub node_labels: Vec<i32>,        // Community assignment for each node
-    pub num_communities: usize,        // Total number of communities found
-    pub modularity: f32,               // Quality metric (higher is better)
-    pub iterations: u32,               // Number of iterations until convergence
-    pub community_sizes: Vec<i32>,     // Size of each community
-    pub converged: bool,               // Whether algorithm converged
+    pub node_labels: Vec<i32>,     // Community assignment for each node
+    pub num_communities: usize,    // Total number of communities found
+    pub modularity: f32,           // Quality metric (higher is better)
+    pub iterations: u32,           // Number of iterations until convergence
+    pub community_sizes: Vec<i32>, // Size of each community
+    pub converged: bool,           // Whether algorithm converged
     pub communities: Vec<crate::actors::gpu::clustering_actor::Community>,
     pub stats: crate::actors::gpu::clustering_actor::CommunityDetectionStats,
     pub algorithm: CommunityDetectionAlgorithm,
@@ -110,8 +115,8 @@ pub struct CommunityDetectionParams {
     pub algorithm: CommunityDetectionAlgorithm,
     pub max_iterations: Option<u32>,
     pub convergence_tolerance: Option<f32>,
-    pub synchronous: Option<bool>,     // True for sync, false for async propagation
-    pub seed: Option<u32>,            // Random seed for tie-breaking
+    pub synchronous: Option<bool>, // True for sync, false for async propagation
+    pub seed: Option<u32>,         // Random seed for tie-breaking
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -277,7 +282,9 @@ pub struct SpawnAgentCommand {
 }
 
 #[derive(Message)]
-#[rtype(result = "Result<crate::actors::gpu::stress_majorization_actor::StressMajorizationStats, String>")]
+#[rtype(
+    result = "Result<crate::actors::gpu::stress_majorization_actor::StressMajorizationStats, String>"
+)]
 pub struct GetStressMajorizationStats;
 
 #[derive(Message)]
@@ -414,10 +421,10 @@ pub struct SetSettingsByPaths {
 // Priority-based update for concurrent update handling
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum UpdatePriority {
-    Critical = 1,  // Physics parameters that affect GPU simulation
-    High = 2,      // Visual settings that impact rendering
-    Normal = 3,    // General configuration changes
-    Low = 4,       // Non-critical settings like UI preferences
+    Critical = 1, // Physics parameters that affect GPU simulation
+    High = 2,     // Visual settings that impact rendering
+    Normal = 3,   // General configuration changes
+    Low = 4,      // Non-critical settings like UI preferences
 }
 
 impl PartialOrd for UpdatePriority {
@@ -458,7 +465,7 @@ impl Ord for PriorityUpdate {
                 // If priorities are equal, compare by timestamp (earlier first)
                 self.timestamp.cmp(&other.timestamp)
             }
-            other => other
+            other => other,
         }
     }
 }
@@ -474,12 +481,12 @@ impl PriorityUpdate {
             client_id: None,
         }
     }
-    
+
     pub fn with_client_id(mut self, client_id: String) -> Self {
         self.client_id = Some(client_id);
         self
     }
-    
+
     fn determine_priority(path: &str) -> UpdatePriority {
         if path.contains(".physics.") {
             // Physics parameters are critical for GPU simulation
@@ -514,23 +521,26 @@ impl BatchedUpdate {
             timeout_ms: 100,    // Default 100ms timeout for batching
         }
     }
-    
+
     pub fn with_batch_config(mut self, max_batch_size: usize, timeout_ms: u64) -> Self {
         self.max_batch_size = max_batch_size;
         self.timeout_ms = timeout_ms;
         self
     }
-    
+
     /// Sort updates by priority (Critical first, Low last)
     pub fn sort_by_priority(&mut self) {
         self.updates.sort_by(|a, b| a.priority.cmp(&b.priority));
     }
-    
+
     /// Group updates by priority level
     pub fn group_by_priority(&self) -> HashMap<UpdatePriority, Vec<&PriorityUpdate>> {
         let mut groups = HashMap::new();
         for update in &self.updates {
-            groups.entry(update.priority.clone()).or_insert_with(Vec::new).push(update);
+            groups
+                .entry(update.priority.clone())
+                .or_insert_with(Vec::new)
+                .push(update);
         }
         groups
     }
@@ -824,8 +834,8 @@ pub struct SwarmMonitorData {
 #[derive(Message, Debug, Clone, Serialize, Deserialize)]
 #[rtype(result = "Result<(), VisionFlowError>")]
 pub struct PhysicsPauseMessage {
-    pub pause: bool,  // true to pause, false to resume
-    pub reason: String,  // reason for pause/resume
+    pub pause: bool,    // true to pause, false to resume
+    pub reason: String, // reason for pause/resume
 }
 
 #[derive(Message, Debug, Clone, Serialize, Deserialize)]
@@ -838,9 +848,9 @@ pub struct NodeInteractionMessage {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum NodeInteractionType {
-    Dragged,   // Node is being dragged
-    Selected,  // Node was selected
-    Released,  // Node drag ended
+    Dragged,  // Node is being dragged
+    Selected, // Node was selected
+    Released, // Node drag ended
 }
 
 #[derive(Message, Debug, Clone, Serialize, Deserialize)]
@@ -870,7 +880,7 @@ pub struct CoordinationPattern {
     pub pattern_type: String, // hierarchy, mesh, consensus, pipeline
     pub participants: Vec<String>,
     pub status: String, // forming, active, completing, completed
-    pub progress: f32, // 0.0 to 1.0
+    pub progress: f32,  // 0.0 to 1.0
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -902,12 +912,12 @@ pub struct Bottleneck {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct SystemMetrics {
     pub active_agents: u32,
-    pub message_rate: f32, // messages per second
-    pub average_latency: f32, // milliseconds
-    pub error_rate: f32, // 0.0 to 1.0
-    pub network_health: f32, // 0.0 to 1.0
-    pub cpu_usage: f32, // 0.0 to 1.0
-    pub memory_usage: f32, // 0.0 to 1.0
+    pub message_rate: f32,      // messages per second
+    pub average_latency: f32,   // milliseconds
+    pub error_rate: f32,        // 0.0 to 1.0
+    pub network_health: f32,    // 0.0 to 1.0
+    pub cpu_usage: f32,         // 0.0 to 1.0
+    pub memory_usage: f32,      // 0.0 to 1.0
     pub gpu_usage: Option<f32>, // 0.0 to 1.0
 }
 
@@ -1102,8 +1112,9 @@ pub struct ApplyConstraintsToNodes {
 }
 
 // SSSP (Single-Source Shortest Path) Message
+/// Compute shortest paths from a source node using GPU SSSP
 #[derive(Message)]
-#[rtype(result = "Result<std::collections::HashMap<u32, Option<f32>>, String>")]
+#[rtype(result = "Result<PathfindingResult, String>")]
 pub struct ComputeShortestPaths {
     pub source_node_id: u32,
 }
@@ -1124,7 +1135,7 @@ pub struct GetActiveConstraints;
 #[rtype(result = "Result<(), String>")]
 pub struct UploadPositions {
     pub positions_x: Vec<f32>,
-    pub positions_y: Vec<f32>, 
+    pub positions_y: Vec<f32>,
     pub positions_z: Vec<f32>,
 }
 
@@ -1179,7 +1190,7 @@ pub struct RequestGraphUpdate {
 #[derive(Message)]
 #[rtype(result = "Result<String, String>")]
 pub struct LoadOntologyAxioms {
-    pub source: String, // File path, URL, or direct ontology content
+    pub source: String,         // File path, URL, or direct ontology content
     pub format: Option<String>, // "turtle", "rdf-xml", "n-triples" - auto-detect if None
 }
 
@@ -1202,8 +1213,8 @@ pub struct ValidateOntology {
 /// Validation mode for ontology validation
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ValidationMode {
-    Quick,      // Basic constraints only
-    Full,       // Complete validation with inference
+    Quick,       // Basic constraints only
+    Full,        // Complete validation with inference
     Incremental, // Only validate changes since last run
 }
 
@@ -1353,7 +1364,6 @@ pub enum WorkspaceChangeType {
     Unarchived,
 }
 
-
 // ============================================================================
 // Ontology Actor Messages
 // ============================================================================
@@ -1449,3 +1459,19 @@ pub struct ConstraintStats {
     pub ontology_constraints: usize,
     pub user_constraints: usize,
 }
+
+// ============================================================================
+// GPU Pathfinding Messages (SemanticProcessorActor)
+// ============================================================================
+// Note: ComputeShortestPaths already defined above at line ~1107
+// Note: PathfindingResult is defined in ports::gpu_semantic_analyzer
+
+/// Compute all-pairs shortest paths using landmark approximation
+#[derive(Message)]
+#[rtype(result = "Result<HashMap<(u32, u32), Vec<u32>>, String>")]
+pub struct ComputeAllPairsShortestPaths {
+    pub num_landmarks: Option<usize>,
+}
+
+// Re-export PathfindingResult from the port for convenience
+pub use crate::ports::gpu_semantic_analyzer::PathfindingResult;

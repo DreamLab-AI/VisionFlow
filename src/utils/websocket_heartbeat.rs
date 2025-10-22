@@ -1,9 +1,9 @@
 use actix::{Actor, AsyncContext};
 use actix_web_actors::ws;
-use std::time::{Duration, Instant};
+use chrono::Utc;
 use log::warn;
 use serde_json::json;
-use chrono::Utc;
+use std::time::{Duration, Instant};
 
 /// Shared WebSocket heartbeat functionality
 pub trait WebSocketHeartbeat: Actor<Context = ws::WebsocketContext<Self>>
@@ -20,8 +20,12 @@ where
     fn update_last_heartbeat(&mut self);
 
     /// Start the heartbeat mechanism with configurable intervals
-    fn start_heartbeat(&self, ctx: &mut ws::WebsocketContext<Self>, ping_interval_secs: u64, timeout_secs: u64)
-    where
+    fn start_heartbeat(
+        &self,
+        ctx: &mut ws::WebsocketContext<Self>,
+        ping_interval_secs: u64,
+        timeout_secs: u64,
+    ) where
         Self: actix::Actor<Context = ws::WebsocketContext<Self>> + 'static,
     {
         let ping_duration = Duration::from_secs(ping_interval_secs);
@@ -29,7 +33,10 @@ where
 
         ctx.run_interval(ping_duration, move |act, ctx| {
             if Instant::now().duration_since(act.get_last_heartbeat()) > timeout_duration {
-                warn!("WebSocket client {} heartbeat timeout, disconnecting", act.get_client_id());
+                warn!(
+                    "WebSocket client {} heartbeat timeout, disconnecting",
+                    act.get_client_id()
+                );
                 // Close the WebSocket connection - this will trigger cleanup
                 ctx.close(Some(ws::CloseReason {
                     code: ws::CloseCode::Abnormal,
@@ -93,7 +100,7 @@ where
                 self.update_last_heartbeat();
                 true // Message handled
             }
-            _ => false // Message not handled
+            _ => false, // Message not handled
         }
     }
 }
@@ -107,8 +114,8 @@ pub struct HeartbeatConfig {
 impl Default for HeartbeatConfig {
     fn default() -> Self {
         Self {
-            ping_interval_secs: 5,  // Send ping every 5 seconds
-            timeout_secs: 30,       // Disconnect after 30 seconds of no response
+            ping_interval_secs: 5, // Send ping every 5 seconds
+            timeout_secs: 30,      // Disconnect after 30 seconds of no response
         }
     }
 }

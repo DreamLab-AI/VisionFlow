@@ -1,5 +1,5 @@
-use serde::{Serialize, Deserialize};
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Standard WebSocket message envelope for all WebSocket connections
@@ -355,17 +355,27 @@ pub struct OntologyMetrics {
 
 /// Helper trait for converting messages to standard format
 pub trait ToStandardMessage {
-    fn to_standard_envelope(&self, client_id: Option<String>) -> WebSocketEnvelope<serde_json::Value>;
+    fn to_standard_envelope(
+        &self,
+        client_id: Option<String>,
+    ) -> WebSocketEnvelope<serde_json::Value>;
 }
 
 impl ToStandardMessage for StandardWebSocketMessage {
-    fn to_standard_envelope(&self, client_id: Option<String>) -> WebSocketEnvelope<serde_json::Value> {
+    fn to_standard_envelope(
+        &self,
+        client_id: Option<String>,
+    ) -> WebSocketEnvelope<serde_json::Value> {
         WebSocketEnvelope {
             message_type: match self {
                 StandardWebSocketMessage::Ping { .. } => "ping".to_string(),
                 StandardWebSocketMessage::Pong { .. } => "pong".to_string(),
-                StandardWebSocketMessage::ConnectionEstablished { .. } => "connection_established".to_string(),
-                StandardWebSocketMessage::ConnectionClosed { .. } => "connection_closed".to_string(),
+                StandardWebSocketMessage::ConnectionEstablished { .. } => {
+                    "connection_established".to_string()
+                }
+                StandardWebSocketMessage::ConnectionClosed { .. } => {
+                    "connection_closed".to_string()
+                }
                 StandardWebSocketMessage::Subscribe { .. } => "subscribe".to_string(),
                 StandardWebSocketMessage::Unsubscribe { .. } => "unsubscribe".to_string(),
                 StandardWebSocketMessage::SubscriptionAck { .. } => "subscription_ack".to_string(),
@@ -389,7 +399,9 @@ pub fn serialize_message<T: Serialize>(message: &T) -> Result<String, serde_json
     serde_json::to_string(message)
 }
 
-pub fn deserialize_message<T: for<'de> Deserialize<'de>>(data: &str) -> Result<T, serde_json::Error> {
+pub fn deserialize_message<T: for<'de> Deserialize<'de>>(
+    data: &str,
+) -> Result<T, serde_json::Error> {
     serde_json::from_str(data)
 }
 
@@ -456,7 +468,8 @@ impl ChannelManager {
     }
 
     pub fn validate_channels(&self, channels: &[String]) -> Vec<String> {
-        channels.iter()
+        channels
+            .iter()
             .filter(|&channel| self.validate_channel(channel))
             .cloned()
             .collect()

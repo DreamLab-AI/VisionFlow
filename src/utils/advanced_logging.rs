@@ -1,15 +1,15 @@
+use chrono::{DateTime, Utc};
+use crossbeam_channel::{unbounded, Receiver, Sender};
 use log::{info, warn, Level};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::{
     collections::HashMap,
-    fs::{File, OpenOptions, create_dir_all, metadata, remove_file, rename},
-    io::{self, Write, BufWriter},
+    fs::{create_dir_all, metadata, remove_file, rename, File, OpenOptions},
+    io::{self, BufWriter, Write},
     path::{Path, PathBuf},
     sync::{Arc, Mutex, RwLock},
 };
-use chrono::{DateTime, Utc};
-use crossbeam_channel::{Receiver, Sender, unbounded};
 
 // Structured log entry for JSON logging
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -54,7 +54,7 @@ impl LogComponent {
     pub fn as_str(&self) -> &'static str {
         match self {
             LogComponent::Server => "server",
-            LogComponent::Client => "client", 
+            LogComponent::Client => "client",
             LogComponent::GPU => "gpu",
             LogComponent::Analytics => "analytics",
             LogComponent::Memory => "memory",
@@ -63,7 +63,7 @@ impl LogComponent {
             LogComponent::Error => "error",
         }
     }
-    
+
     pub fn log_file_name(&self) -> String {
         format!("{}.log", self.as_str())
     }
@@ -106,11 +106,11 @@ impl AdvancedLogger {
         let log_dir = log_dir.as_ref().to_path_buf();
         create_dir_all(&log_dir)?;
         create_dir_all(log_dir.join("archived"))?;
-        
+
         let (log_sender, _) = unbounded();
         let log_receivers = Arc::new(Mutex::new(HashMap::new()));
         let log_writers = Arc::new(RwLock::new(HashMap::new()));
-        
+
         // Initialize component-specific channels and writers
         let components = [
             LogComponent::Server,
@@ -122,7 +122,7 @@ impl AdvancedLogger {
             LogComponent::Performance,
             LogComponent::Error,
         ];
-        
+
         let mut writers_map = HashMap::new();
         for component in &components {
             let file_path = log_dir.join(component.log_file_name());
@@ -132,13 +132,16 @@ impl AdvancedLogger {
                 .open(file_path)?;
             writers_map.insert(*component, BufWriter::new(file));
         }
-        
+
         if let Ok(mut writers_guard) = log_writers.write() {
             *writers_guard = writers_map;
         } else {
-            return Err(io::Error::new(io::ErrorKind::Other, "Failed to acquire log writers lock"));
+            return Err(io::Error::new(
+                io::ErrorKind::Other,
+                "Failed to acquire log writers lock",
+            ));
         }
-        
+
         Ok(Self {
             _log_sender: log_sender,
             _log_receivers: log_receivers,
@@ -150,8 +153,14 @@ impl AdvancedLogger {
             recovery_attempts: Arc::new(Mutex::new(0)),
         })
     }
-    
-    pub fn log_structured(&self, component: LogComponent, level: Level, message: &str, metadata: Option<HashMap<String, serde_json::Value>>) {
+
+    pub fn log_structured(
+        &self,
+        component: LogComponent,
+        level: Level,
+        message: &str,
+        metadata: Option<HashMap<String, serde_json::Value>>,
+    ) {
         let entry = LogEntry {
             timestamp: Utc::now(),
             level: level.to_string(),
@@ -162,11 +171,17 @@ impl AdvancedLogger {
             memory_usage_mb: None,
             gpu_metrics: None,
         };
-        
+
         self.write_log_entry(component, &entry);
     }
-    
-    pub fn log_gpu_kernel(&self, kernel_name: &str, execution_time_us: f64, memory_allocated_mb: f64, memory_peak_mb: f64) {
+
+    pub fn log_gpu_kernel(
+        &self,
+        kernel_name: &str,
+        execution_time_us: f64,
+        memory_allocated_mb: f64,
+        memory_peak_mb: f64,
+    ) {
         // Acquire all mutexes at once to prevent deadlocks
         let gpu_error_count = self.gpu_error_count.lock().unwrap_or_else(|poisoned| {
             warn!("GPU error count mutex was poisoned, recovering");
@@ -180,27 +195,34 @@ impl AdvancedLogger {
             warn!("Performance metrics mutex was poisoned, recovering");
             poisoned.into_inner()
         });
-        
+
         // Get current metric values while holding the locks
         let current_error_count = *gpu_error_count;
         let current_recovery_attempts = *recovery_attempts;
-        
+
         // Detect anomaly using the locked metrics (pass as parameter to avoid re-locking)
-        let performance_anomaly = self.detect_performance_anomaly_with_metrics(kernel_name, execution_time_us, &metrics_guard);
-        
+        let performance_anomaly = self.detect_performance_anomaly_with_metrics(
+            kernel_name,
+            execution_time_us,
+            &metrics_guard,
+        );
+
         // Update performance metrics while we have the lock
-        metrics_guard.entry(kernel_name.to_string()).or_insert_with(Vec::new).push(execution_time_us);
-        
+        metrics_guard
+            .entry(kernel_name.to_string())
+            .or_insert_with(Vec::new)
+            .push(execution_time_us);
+
         // Keep only last 100 measurements for rolling average
         if let Some(kernel_metrics) = metrics_guard.get_mut(kernel_name) {
             if kernel_metrics.len() > 100 {
                 kernel_metrics.remove(0);
             }
         }
-        
+
         // Release metrics lock before creating GPU metrics
         drop(metrics_guard);
-        
+
         let gpu_metrics = GPULogMetrics {
             kernel_name: Some(kernel_name.to_string()),
             execution_time_us: Some(execution_time_us),
@@ -211,50 +233,54 @@ impl AdvancedLogger {
             recovery_attempts: Some(current_recovery_attempts),
             performance_anomaly: Some(performance_anomaly),
         };
-        
+
         // Release remaining locks before logging
         drop(gpu_error_count);
         drop(recovery_attempts);
-        
+
         let entry = LogEntry {
             timestamp: Utc::now(),
             level: "INFO".to_string(),
             component: "gpu".to_string(),
-            message: format!("Kernel {} executed in {:.2}μs", kernel_name, execution_time_us),
+            message: format!(
+                "Kernel {} executed in {:.2}μs",
+                kernel_name, execution_time_us
+            ),
             metadata: None,
             execution_time_ms: Some(execution_time_us / 1000.0),
             memory_usage_mb: Some(memory_allocated_mb),
             gpu_metrics: Some(gpu_metrics),
         };
-        
+
         self.write_log_entry(LogComponent::GPU, &entry);
     }
-    
+
     pub fn log_gpu_error(&self, error_msg: &str, recovery_attempted: bool) {
         // Acquire both mutexes at once to prevent deadlocks
         let mut gpu_error_count_guard = self.gpu_error_count.lock().unwrap_or_else(|poisoned| {
             warn!("GPU error count mutex was poisoned, recovering");
             poisoned.into_inner()
         });
-        let mut recovery_attempts_guard = self.recovery_attempts.lock().unwrap_or_else(|poisoned| {
-            warn!("Recovery attempts mutex was poisoned, recovering");
-            poisoned.into_inner()
-        });
-        
+        let mut recovery_attempts_guard =
+            self.recovery_attempts.lock().unwrap_or_else(|poisoned| {
+                warn!("Recovery attempts mutex was poisoned, recovering");
+                poisoned.into_inner()
+            });
+
         // Update counters
         *gpu_error_count_guard += 1;
         if recovery_attempted {
             *recovery_attempts_guard += 1;
         }
-        
+
         // Get current values
         let current_error_count = *gpu_error_count_guard;
         let current_recovery_attempts = *recovery_attempts_guard;
-        
+
         // Release locks before creating metrics
         drop(gpu_error_count_guard);
         drop(recovery_attempts_guard);
-        
+
         let gpu_metrics = GPULogMetrics {
             kernel_name: None,
             execution_time_us: None,
@@ -265,43 +291,52 @@ impl AdvancedLogger {
             recovery_attempts: Some(current_recovery_attempts),
             performance_anomaly: None,
         };
-        
+
         let entry = LogEntry {
             timestamp: Utc::now(),
             level: "ERROR".to_string(),
             component: "gpu".to_string(),
             message: error_msg.to_string(),
-            metadata: Some([("recovery_attempted".to_string(), json!(recovery_attempted))].into_iter().collect()),
+            metadata: Some(
+                [("recovery_attempted".to_string(), json!(recovery_attempted))]
+                    .into_iter()
+                    .collect(),
+            ),
             execution_time_ms: None,
             memory_usage_mb: None,
             gpu_metrics: Some(gpu_metrics),
         };
-        
+
         self.write_log_entry(LogComponent::GPU, &entry);
         self.write_log_entry(LogComponent::Error, &entry);
     }
-    
+
     pub fn log_memory_event(&self, event_type: &str, allocated_mb: f64, peak_mb: f64) {
         let metadata = [
             ("event_type".to_string(), json!(event_type)),
             ("allocated_mb".to_string(), json!(allocated_mb)),
             ("peak_mb".to_string(), json!(peak_mb)),
-        ].into_iter().collect();
-        
+        ]
+        .into_iter()
+        .collect();
+
         let entry = LogEntry {
             timestamp: Utc::now(),
             level: "INFO".to_string(),
             component: "memory".to_string(),
-            message: format!("Memory {} - Allocated: {:.2}MB, Peak: {:.2}MB", event_type, allocated_mb, peak_mb),
+            message: format!(
+                "Memory {} - Allocated: {:.2}MB, Peak: {:.2}MB",
+                event_type, allocated_mb, peak_mb
+            ),
             metadata: Some(metadata),
             execution_time_ms: None,
             memory_usage_mb: Some(allocated_mb),
             gpu_metrics: None,
         };
-        
+
         self.write_log_entry(LogComponent::Memory, &entry);
     }
-    
+
     pub fn log_performance(&self, operation: &str, duration_ms: f64, throughput: Option<f64>) {
         let mut metadata = HashMap::new();
         metadata.insert("operation".to_string(), json!(operation));
@@ -309,7 +344,7 @@ impl AdvancedLogger {
         if let Some(tp) = throughput {
             metadata.insert("throughput".to_string(), json!(tp));
         }
-        
+
         let entry = LogEntry {
             timestamp: Utc::now(),
             level: "INFO".to_string(),
@@ -320,13 +355,14 @@ impl AdvancedLogger {
             memory_usage_mb: None,
             gpu_metrics: None,
         };
-        
+
         self.write_log_entry(LogComponent::Performance, &entry);
     }
-    
+
     fn write_log_entry(&self, component: LogComponent, entry: &LogEntry) {
-        let json_line = serde_json::to_string(entry).unwrap_or_else(|_| "Invalid log entry".to_string());
-        
+        let json_line =
+            serde_json::to_string(entry).unwrap_or_else(|_| "Invalid log entry".to_string());
+
         // Use try_write to avoid blocking if another thread is rotating logs
         if let Ok(mut writers) = self.log_writers.try_write() {
             if let Some(writer) = writers.get_mut(&component) {
@@ -335,14 +371,14 @@ impl AdvancedLogger {
             }
         }
         // If we can't get the write lock immediately, skip this log entry to prevent deadlock
-        
+
         // Check if rotation is needed
         self.check_and_rotate_logs(component);
     }
-    
+
     fn check_and_rotate_logs(&self, component: LogComponent) {
         let file_path = self.log_dir.join(component.log_file_name());
-        
+
         if let Ok(metadata) = metadata(&file_path) {
             let size_mb = metadata.len() / (1024 * 1024);
             if size_mb >= self.rotation_config.max_file_size_mb {
@@ -350,30 +386,37 @@ impl AdvancedLogger {
             }
         }
     }
-    
+
     fn rotate_log_file(&self, component: LogComponent) {
         let base_name = component.log_file_name();
         let current_path = self.log_dir.join(&base_name);
         let timestamp = Utc::now().format("%Y%m%d_%H%M%S");
         let archived_name = format!("{}_{}.log", component.as_str(), timestamp);
         let archived_path = self.log_dir.join("archived").join(archived_name);
-        
+
         // Rotate the file
         if rename(&current_path, &archived_path).is_ok() {
             // Create new log file
-            if let Ok(new_file) = OpenOptions::new().create(true).append(true).open(&current_path) {
+            if let Ok(new_file) = OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open(&current_path)
+            {
                 if let Ok(mut writers) = self.log_writers.write() {
                     writers.insert(component, BufWriter::new(new_file));
                 } else {
-                    warn!("Failed to acquire writers lock during log rotation for {:?}", component);
+                    warn!(
+                        "Failed to acquire writers lock during log rotation for {:?}",
+                        component
+                    );
                 }
             }
-            
+
             // Clean up old files if needed
             self.cleanup_old_logs(component);
         }
     }
-    
+
     fn cleanup_old_logs(&self, component: LogComponent) {
         let archived_dir = self.log_dir.join("archived");
         if let Ok(entries) = std::fs::read_dir(&archived_dir) {
@@ -385,26 +428,31 @@ impl AdvancedLogger {
                         .starts_with(&format!("{}_", component.as_str()))
                 })
                 .collect();
-            
+
             if log_files.len() > self.rotation_config.max_files {
                 log_files.sort_by(|a, b| {
-                    let a_time = a.metadata()
+                    let a_time = a
+                        .metadata()
                         .and_then(|m| m.modified())
                         .unwrap_or(std::time::SystemTime::UNIX_EPOCH);
-                    let b_time = b.metadata()
+                    let b_time = b
+                        .metadata()
                         .and_then(|m| m.modified())
                         .unwrap_or(std::time::SystemTime::UNIX_EPOCH);
                     a_time.cmp(&b_time)
                 });
-                
+
                 // Remove oldest files
-                for file_entry in log_files.iter().take(log_files.len() - self.rotation_config.max_files) {
+                for file_entry in log_files
+                    .iter()
+                    .take(log_files.len() - self.rotation_config.max_files)
+                {
                     let _ = remove_file(file_entry.path());
                 }
             }
         }
     }
-    
+
     fn detect_performance_anomaly(&self, kernel_name: &str, execution_time_us: f64) -> bool {
         if let Ok(metrics) = self.performance_metrics.try_lock() {
             self.detect_performance_anomaly_with_metrics(kernel_name, execution_time_us, &metrics)
@@ -413,14 +461,23 @@ impl AdvancedLogger {
             false
         }
     }
-    
-    fn detect_performance_anomaly_with_metrics(&self, kernel_name: &str, execution_time_us: f64, metrics: &HashMap<String, Vec<f64>>) -> bool {
+
+    fn detect_performance_anomaly_with_metrics(
+        &self,
+        kernel_name: &str,
+        execution_time_us: f64,
+        metrics: &HashMap<String, Vec<f64>>,
+    ) -> bool {
         if let Some(kernel_metrics) = metrics.get(kernel_name) {
             if kernel_metrics.len() > 10 {
                 let avg: f64 = kernel_metrics.iter().sum::<f64>() / kernel_metrics.len() as f64;
-                let variance: f64 = kernel_metrics.iter().map(|x| (x - avg).powi(2)).sum::<f64>() / kernel_metrics.len() as f64;
+                let variance: f64 = kernel_metrics
+                    .iter()
+                    .map(|x| (x - avg).powi(2))
+                    .sum::<f64>()
+                    / kernel_metrics.len() as f64;
                 let std_dev = variance.sqrt();
-                
+
                 // Flag as anomaly if execution time is more than 3 standard deviations from mean
                 execution_time_us > avg + (3.0 * std_dev)
             } else {
@@ -430,15 +487,15 @@ impl AdvancedLogger {
             false
         }
     }
-    
+
     pub fn get_performance_summary(&self) -> HashMap<String, serde_json::Value> {
         let mut summary = HashMap::new();
-        
+
         // Acquire all mutexes at once to prevent deadlocks
         let metrics_result = self.performance_metrics.try_lock();
         let gpu_error_result = self.gpu_error_count.try_lock();
         let recovery_result = self.recovery_attempts.try_lock();
-        
+
         // Process metrics if available
         if let Ok(metrics) = metrics_result {
             for (kernel_name, times) in metrics.iter() {
@@ -446,52 +503,72 @@ impl AdvancedLogger {
                     let avg = times.iter().sum::<f64>() / times.len() as f64;
                     let min = times.iter().fold(f64::INFINITY, |a, &b| a.min(b));
                     let max = times.iter().fold(f64::NEG_INFINITY, |a, &b| a.max(b));
-                    
-                    summary.insert(kernel_name.clone(), json!({
-                        "avg_time_us": avg,
-                        "min_time_us": min,
-                        "max_time_us": max,
-                        "sample_count": times.len(),
-                        "total_time_us": times.iter().sum::<f64>()
-                    }));
+
+                    summary.insert(
+                        kernel_name.clone(),
+                        json!({
+                            "avg_time_us": avg,
+                            "min_time_us": min,
+                            "max_time_us": max,
+                            "sample_count": times.len(),
+                            "total_time_us": times.iter().sum::<f64>()
+                        }),
+                    );
                 }
             }
         } else {
-            summary.insert("metrics_unavailable".to_string(), json!("Performance metrics locked, try again later"));
+            summary.insert(
+                "metrics_unavailable".to_string(),
+                json!("Performance metrics locked, try again later"),
+            );
         }
-        
+
         // Add error counts if available
         if let Ok(gpu_errors) = gpu_error_result {
             summary.insert("gpu_errors".to_string(), json!(*gpu_errors));
         }
-        
+
         if let Ok(recovery_attempts) = recovery_result {
             summary.insert("recovery_attempts".to_string(), json!(*recovery_attempts));
         }
-        
+
         summary
     }
 }
 
 // Global logger instance
-static ADVANCED_LOGGER: once_cell::sync::OnceCell<AdvancedLogger> = once_cell::sync::OnceCell::new();
+static ADVANCED_LOGGER: once_cell::sync::OnceCell<AdvancedLogger> =
+    once_cell::sync::OnceCell::new();
 
 pub fn init_advanced_logging() -> io::Result<()> {
     let log_dir = std::env::var("LOG_DIR").unwrap_or_else(|_| "./logs".to_string());
     let advanced_logger = AdvancedLogger::new(&log_dir)?;
-    
+
     if ADVANCED_LOGGER.set(advanced_logger).is_err() {
         warn!("Advanced logger was already initialized");
     }
-    
-    info!("Advanced logging system initialized with log directory: {}", log_dir);
+
+    info!(
+        "Advanced logging system initialized with log directory: {}",
+        log_dir
+    );
     Ok(())
 }
 
 // Public API functions
-pub fn log_gpu_kernel(kernel_name: &str, execution_time_us: f64, memory_allocated_mb: f64, memory_peak_mb: f64) {
+pub fn log_gpu_kernel(
+    kernel_name: &str,
+    execution_time_us: f64,
+    memory_allocated_mb: f64,
+    memory_peak_mb: f64,
+) {
     if let Some(logger) = ADVANCED_LOGGER.get() {
-        logger.log_gpu_kernel(kernel_name, execution_time_us, memory_allocated_mb, memory_peak_mb);
+        logger.log_gpu_kernel(
+            kernel_name,
+            execution_time_us,
+            memory_allocated_mb,
+            memory_peak_mb,
+        );
     }
 }
 
@@ -513,7 +590,12 @@ pub fn log_performance(operation: &str, duration_ms: f64, throughput: Option<f64
     }
 }
 
-pub fn log_structured(component: LogComponent, level: Level, message: &str, metadata: Option<HashMap<String, serde_json::Value>>) {
+pub fn log_structured(
+    component: LogComponent,
+    level: Level,
+    message: &str,
+    metadata: Option<HashMap<String, serde_json::Value>>,
+) {
     if let Some(logger) = ADVANCED_LOGGER.get() {
         logger.log_structured(component, level, message, metadata);
     }
@@ -541,6 +623,10 @@ macro_rules! log_perf {
         $crate::utils::advanced_logging::log_performance($operation, $duration_ms, None);
     };
     ($operation:expr, $duration_ms:expr, $throughput:expr) => {
-        $crate::utils::advanced_logging::log_performance($operation, $duration_ms, Some($throughput));
+        $crate::utils::advanced_logging::log_performance(
+            $operation,
+            $duration_ms,
+            Some($throughput),
+        );
     };
 }

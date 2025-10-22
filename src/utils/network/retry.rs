@@ -1,8 +1,8 @@
-use std::time::Duration;
-use std::future::Future;
-use log::{debug, warn, error};
+use log::{debug, error, warn};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
+use std::future::Future;
+use std::time::Duration;
 
 /// Configuration for exponential backoff retry logic
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -169,10 +169,10 @@ fn calculate_delay(config: &RetryConfig, attempt: usize) -> Duration {
 
     let base_delay = config.initial_delay.as_millis() as f64;
     let exponential_delay = base_delay * config.backoff_multiplier.powi((attempt - 1) as i32);
-    
+
     // Apply maximum delay cap
     let capped_delay = exponential_delay.min(config.max_delay.as_millis() as f64);
-    
+
     // Add jitter to prevent thundering herd
     let jitter = if config.jitter_factor > 0.0 {
         let mut rng = rand::thread_rng();
@@ -181,7 +181,7 @@ fn calculate_delay(config: &RetryConfig, attempt: usize) -> Duration {
     } else {
         0.0
     };
-    
+
     let final_delay = (capped_delay + jitter).max(0.0) as u64;
     Duration::from_millis(final_delay)
 }
@@ -197,16 +197,22 @@ where
     E: RetryableError + std::fmt::Debug + Clone,
 {
     let mut last_error = None;
-    
+
     for attempt in 0..config.max_attempts {
         debug!("Retry attempt {} of {}", attempt + 1, config.max_attempts);
-        
+
         // Check system resources before attempting operation
         if let Err(resource_error) = check_system_resources().await {
-            warn!("System resources exhausted, aborting retry: {:?}", resource_error);
-            return Err(RetryError::ConfigError(format!("Resource exhausted: {}", resource_error)));
+            warn!(
+                "System resources exhausted, aborting retry: {:?}",
+                resource_error
+            );
+            return Err(RetryError::ConfigError(format!(
+                "Resource exhausted: {}",
+                resource_error
+            )));
         }
-        
+
         match operation().await {
             Ok(result) => {
                 if attempt > 0 {
@@ -219,18 +225,21 @@ where
                     warn!("Non-retryable error encountered: {:?}", error);
                     return Err(RetryError::AllAttemptsFailed(error));
                 }
-                
+
                 // Check if error is due to resource exhaustion
                 if is_resource_exhaustion_error(&error) {
-                    error!("Resource exhaustion detected, aborting retries: {:?}", error);
+                    error!(
+                        "Resource exhaustion detected, aborting retries: {:?}",
+                        error
+                    );
                     return Err(RetryError::AllAttemptsFailed(error));
                 }
-                
+
                 if attempt + 1 >= config.max_attempts {
                     error!("All retry attempts exhausted. Final error: {:?}", error);
                     return Err(RetryError::AllAttemptsFailed(error));
                 }
-                
+
                 let delay = calculate_delay(&config, attempt + 1);
                 warn!(
                     "Attempt {} failed: {:?}. Retrying in {:?}",
@@ -238,16 +247,16 @@ where
                     error,
                     delay
                 );
-                
+
                 last_error = Some(error);
-                
+
                 if delay > Duration::from_millis(0) {
                     tokio::time::sleep(delay).await;
                 }
             }
         }
     }
-    
+
     // This should never be reached due to the loop logic above, but included for safety
     Err(RetryError::AllAttemptsFailed(
         last_error.expect("Should have at least one error"),
@@ -258,20 +267,29 @@ where
 async fn check_system_resources() -> Result<(), String> {
     // Check available file descriptors
     if let Ok(fd_count) = count_open_file_descriptors() {
-        const FD_WARNING_THRESHOLD: usize = 800;  // Warning at 80% of typical limit
-        const FD_ERROR_THRESHOLD: usize = 950;    // Error at 95% of typical limit
-        
+        const FD_WARNING_THRESHOLD: usize = 800; // Warning at 80% of typical limit
+        const FD_ERROR_THRESHOLD: usize = 950; // Error at 95% of typical limit
+
         if fd_count > FD_ERROR_THRESHOLD {
-            return Err(format!("Too many open file descriptors: {} > {}", fd_count, FD_ERROR_THRESHOLD));
+            return Err(format!(
+                "Too many open file descriptors: {} > {}",
+                fd_count, FD_ERROR_THRESHOLD
+            ));
         } else if fd_count > FD_WARNING_THRESHOLD {
-            warn!("High file descriptor usage: {} (threshold: {})", fd_count, FD_WARNING_THRESHOLD);
+            warn!(
+                "High file descriptor usage: {} (threshold: {})",
+                fd_count, FD_WARNING_THRESHOLD
+            );
         }
     }
-    
+
     // Check available memory (basic check)
     #[cfg(target_os = "linux")]
     if let Ok(meminfo) = std::fs::read_to_string("/proc/meminfo") {
-        if let Some(available_line) = meminfo.lines().find(|line| line.starts_with("MemAvailable:")) {
+        if let Some(available_line) = meminfo
+            .lines()
+            .find(|line| line.starts_with("MemAvailable:"))
+        {
             if let Some(available_kb) = available_line.split_whitespace().nth(1) {
                 if let Ok(available_kb) = available_kb.parse::<u64>() {
                     const MIN_AVAILABLE_MB: u64 = 100; // Minimum 100MB available
@@ -283,7 +301,7 @@ async fn check_system_resources() -> Result<(), String> {
             }
         }
     }
-    
+
     Ok(())
 }
 
@@ -297,7 +315,7 @@ fn count_open_file_descriptors() -> Result<usize, std::io::Error> {
             Err(e) => Err(e),
         }
     }
-    
+
     #[cfg(not(target_os = "linux"))]
     {
         // For non-Linux systems, return a conservative estimate
@@ -308,12 +326,12 @@ fn count_open_file_descriptors() -> Result<usize, std::io::Error> {
 /// Check if an error indicates resource exhaustion
 fn is_resource_exhaustion_error<E: std::fmt::Debug>(error: &E) -> bool {
     let error_str = format!("{:?}", error).to_lowercase();
-    error_str.contains("too many open files") ||
-    error_str.contains("resource temporarily unavailable") ||
-    error_str.contains("no buffer space available") ||
-    error_str.contains("out of memory") ||
-    error_str.contains("enfile") ||
-    error_str.contains("emfile")
+    error_str.contains("too many open files")
+        || error_str.contains("resource temporarily unavailable")
+        || error_str.contains("no buffer space available")
+        || error_str.contains("out of memory")
+        || error_str.contains("enfile")
+        || error_str.contains("emfile")
 }
 
 /// Convenience function for retrying operations with default network configuration
@@ -369,7 +387,7 @@ where
     E: RetryableError + std::fmt::Debug + Clone + Send,
 {
     let retry_future = retry_with_backoff(config, operation);
-    
+
     match tokio::time::timeout(timeout, retry_future).await {
         Ok(result) => result,
         Err(_) => Err(RetryError::Cancelled),
@@ -405,7 +423,8 @@ mod tests {
     async fn test_successful_operation() {
         let result = retry_with_backoff(RetryConfig::default(), || async {
             Ok::<i32, TestError>(42)
-        }).await;
+        })
+        .await;
 
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), 42);
@@ -433,7 +452,8 @@ mod tests {
                     }
                 }
             },
-        ).await;
+        )
+        .await;
 
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), 42);
@@ -444,7 +464,8 @@ mod tests {
     async fn test_non_retryable_error() {
         let result = retry_with_backoff(RetryConfig::default(), || async {
             Err::<i32, TestError>(TestError { retryable: false })
-        }).await;
+        })
+        .await;
 
         assert!(result.is_err());
         match result {
@@ -471,7 +492,8 @@ mod tests {
                     Err::<i32, TestError>(TestError { retryable: true })
                 }
             },
-        ).await;
+        )
+        .await;
 
         assert!(result.is_err());
         assert_eq!(counter.load(Ordering::SeqCst), 2);

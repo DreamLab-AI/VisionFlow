@@ -1,8 +1,8 @@
-use super::{ValidationResult, ValidationError, MAX_STRING_LENGTH};
 use super::errors::DetailedValidationError;
+use super::{ValidationError, ValidationResult, MAX_STRING_LENGTH};
+use regex::Regex;
 use serde_json::Value;
 use std::collections::HashMap;
-use regex::Regex;
 
 /// Input sanitization utilities to prevent XSS, injection, and other attacks
 pub struct Sanitizer;
@@ -16,7 +16,12 @@ impl Sanitizer {
                 if let Some(f) = n.as_f64() {
                     // Check for special values that might cause issues
                     if f.is_nan() || f.is_infinite() {
-                        return Err(ValidationError::new(field, "Invalid numeric value (NaN or Infinity)", "INVALID_NUMBER").into());
+                        return Err(ValidationError::new(
+                            field,
+                            "Invalid numeric value (NaN or Infinity)",
+                            "INVALID_NUMBER",
+                        )
+                        .into());
                     }
                 }
                 Ok(())
@@ -27,17 +32,30 @@ impl Sanitizer {
                     Ok(f) => {
                         // Check for special values
                         if f.is_nan() || f.is_infinite() {
-                            return Err(ValidationError::new(field, "Invalid numeric value (NaN or Infinity)", "INVALID_NUMBER").into());
+                            return Err(ValidationError::new(
+                                field,
+                                "Invalid numeric value (NaN or Infinity)",
+                                "INVALID_NUMBER",
+                            )
+                            .into());
                         }
                         Ok(())
                     }
                     Err(_) => {
                         // Only reject if it's truly not a valid number
-                        Err(ValidationError::new(field, "Invalid numeric format", "INVALID_NUMBER").into())
+                        Err(
+                            ValidationError::new(field, "Invalid numeric format", "INVALID_NUMBER")
+                                .into(),
+                        )
                     }
                 }
             }
-            _ => Err(ValidationError::new(field, "Expected number or numeric string", "INVALID_TYPE").into())
+            _ => Err(ValidationError::new(
+                field,
+                "Expected number or numeric string",
+                "INVALID_TYPE",
+            )
+            .into()),
         }
     }
 
@@ -107,11 +125,16 @@ impl Sanitizer {
         ];
 
         let result = input.to_string();
-        
+
         for pattern in &xss_patterns {
-            let regex = Regex::new(pattern)
-                .map_err(|_| DetailedValidationError::from(ValidationError::new("string", "Invalid sanitization regex", "REGEX_ERROR")))?;
-            
+            let regex = Regex::new(pattern).map_err(|_| {
+                DetailedValidationError::from(ValidationError::new(
+                    "string",
+                    "Invalid sanitization regex",
+                    "REGEX_ERROR",
+                ))
+            })?;
+
             if regex.is_match(&result) {
                 return Err(ValidationError::malicious_content("string").into());
             }
@@ -144,9 +167,14 @@ impl Sanitizer {
         ];
 
         for pattern in &sql_injection_patterns {
-            let regex = Regex::new(pattern)
-                .map_err(|_| DetailedValidationError::from(ValidationError::new("string", "Invalid SQL regex", "REGEX_ERROR")))?;
-            
+            let regex = Regex::new(pattern).map_err(|_| {
+                DetailedValidationError::from(ValidationError::new(
+                    "string",
+                    "Invalid SQL regex",
+                    "REGEX_ERROR",
+                ))
+            })?;
+
             if regex.is_match(input) {
                 return Err(ValidationError::malicious_content("string").into());
             }
@@ -167,9 +195,14 @@ impl Sanitizer {
         ];
 
         for pattern in &traversal_patterns {
-            let regex = Regex::new(&format!("(?i){}", pattern))
-                .map_err(|_| DetailedValidationError::from(ValidationError::new("string", "Invalid path regex", "REGEX_ERROR")))?;
-            
+            let regex = Regex::new(&format!("(?i){}", pattern)).map_err(|_| {
+                DetailedValidationError::from(ValidationError::new(
+                    "string",
+                    "Invalid path regex",
+                    "REGEX_ERROR",
+                ))
+            })?;
+
             if regex.is_match(input) {
                 return Err(ValidationError::malicious_content("string").into());
             }
@@ -181,7 +214,7 @@ impl Sanitizer {
     /// Limit dangerous Unicode control characters
     fn limit_unicode_control_chars(input: &str) -> ValidationResult<String> {
         let mut result = String::with_capacity(input.len());
-        
+
         for ch in input.chars() {
             match ch {
                 // Allow common whitespace
@@ -202,34 +235,35 @@ impl Sanitizer {
     fn is_suspicious_key(key: &str) -> bool {
         // Only check for actual dangerous prototype pollution patterns
         // Don't flag legitimate words that happen to contain "function" or "script"
-        let dangerous_exact_keys = [
-            "__proto__",
-            "constructor", 
-            "prototype",
-        ];
-        
+        let dangerous_exact_keys = ["__proto__", "constructor", "prototype"];
+
         // Check for exact matches of dangerous keys
         if dangerous_exact_keys.iter().any(|&k| key == k) {
             return true;
         }
-        
+
         // Check for obvious code injection attempts (standalone eval/script tags)
         if key == "eval" || key == "<script>" || key.starts_with("<script") {
             return true;
         }
-        
+
         // Allow double underscores only for actual proto pollution attempts
         if key == "__proto__" || key == "__defineGetter__" || key == "__defineSetter__" {
             return true;
         }
-        
+
         false
     }
 
     /// Sanitize filename for safe file operations
     pub fn sanitize_filename(filename: &str) -> ValidationResult<String> {
         if filename.is_empty() {
-            return Err(ValidationError::new("filename", "Filename cannot be empty", "EMPTY_FILENAME").into());
+            return Err(ValidationError::new(
+                "filename",
+                "Filename cannot be empty",
+                "EMPTY_FILENAME",
+            )
+            .into());
         }
 
         if filename.len() > 255 {
@@ -238,20 +272,22 @@ impl Sanitizer {
 
         // Remove dangerous characters
         let dangerous_chars = ['/', '\\', ':', '*', '?', '"', '<', '>', '|', '\0'];
-        
+
         if filename.chars().any(|c| dangerous_chars.contains(&c)) {
             return Err(ValidationError::malicious_content("filename").into());
         }
 
         // Check for reserved names on Windows
         let reserved_names = [
-            "CON", "PRN", "AUX", "NUL",
-            "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
-            "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
+            "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7",
+            "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
         ];
 
         let name_upper = filename.to_uppercase();
-        if reserved_names.iter().any(|&name| name_upper == name || name_upper.starts_with(&format!("{}.", name))) {
+        if reserved_names
+            .iter()
+            .any(|&name| name_upper == name || name_upper.starts_with(&format!("{}.", name)))
+        {
             return Err(ValidationError::malicious_content("filename").into());
         }
 
@@ -266,9 +302,10 @@ impl Sanitizer {
     /// Sanitize and validate email addresses
     pub fn sanitize_email(email: &str) -> ValidationResult<String> {
         let sanitized = Self::sanitize_string(email)?;
-        
+
         // Additional email-specific checks
-        if sanitized.len() > 254 { // RFC 5321 limit
+        if sanitized.len() > 254 {
+            // RFC 5321 limit
             return Err(ValidationError::too_long("email", 254).into());
         }
 
@@ -321,8 +358,9 @@ impl Sanitizer {
             return Err(ValidationError::new(
                 "url",
                 "Only http, https, ftp, and ftps URLs are allowed",
-                "INVALID_SCHEME"
-            ).into());
+                "INVALID_SCHEME",
+            )
+            .into());
         }
 
         // Block private/local network addresses
@@ -331,8 +369,9 @@ impl Sanitizer {
                 return Err(ValidationError::new(
                     "url",
                     "Private IP addresses and localhost are not allowed",
-                    "PRIVATE_URL"
-                ).into());
+                    "PRIVATE_URL",
+                )
+                .into());
             }
         }
 
@@ -351,7 +390,7 @@ impl Sanitizer {
                 std::net::IpAddr::V4(ipv4) => {
                     let octets = ipv4.octets();
                     // 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
-                    octets[0] == 10 
+                    octets[0] == 10
                         || (octets[0] == 172 && (octets[1] >= 16 && octets[1] <= 31))
                         || (octets[0] == 192 && octets[1] == 168)
                         || octets[0] == 127 // loopback
@@ -386,21 +425,25 @@ impl CSPUtils {
             "form-action 'self'",
             "frame-ancestors 'none'",
             "upgrade-insecure-requests",
-        ].join("; ")
+        ]
+        .join("; ")
     }
 
     /// Generate security headers
     pub fn security_headers() -> HashMap<&'static str, &'static str> {
         let mut headers = HashMap::new();
-        
+
         headers.insert("X-Content-Type-Options", "nosniff");
         headers.insert("X-Frame-Options", "DENY");
         headers.insert("X-XSS-Protection", "1; mode=block");
         headers.insert("Referrer-Policy", "strict-origin-when-cross-origin");
-        headers.insert("Permissions-Policy", "geolocation=(), microphone=(), camera=()");
+        headers.insert(
+            "Permissions-Policy",
+            "geolocation=(), microphone=(), camera=()",
+        );
         headers.insert("Cross-Origin-Embedder-Policy", "require-corp");
         headers.insert("Cross-Origin-Opener-Policy", "same-origin");
-        
+
         headers
     }
 }
@@ -415,7 +458,7 @@ mod tests {
         assert!(Sanitizer::sanitize_string("javascript:alert(1)").is_err());
         assert!(Sanitizer::sanitize_string("' OR 1=1 --").is_err());
         assert!(Sanitizer::sanitize_string("../../../etc/passwd").is_err());
-        
+
         let safe = Sanitizer::sanitize_string("Hello World!").unwrap();
         assert_eq!(safe, "Hello World!");
     }
@@ -426,7 +469,7 @@ mod tests {
         assert!(Sanitizer::sanitize_filename("file<>name").is_err());
         assert!(Sanitizer::sanitize_filename("CON").is_err());
         assert!(Sanitizer::sanitize_filename(".hidden").is_err());
-        
+
         let safe = Sanitizer::sanitize_filename("document.pdf").unwrap();
         assert_eq!(safe, "document.pdf");
     }
@@ -436,7 +479,7 @@ mod tests {
         assert!(Sanitizer::sanitize_url("javascript:alert(1)").is_err());
         assert!(Sanitizer::sanitize_url("http://localhost/api").is_err());
         assert!(Sanitizer::sanitize_url("http://192.168.1.1/").is_err());
-        
+
         let safe = Sanitizer::sanitize_url("https://example.com/api").unwrap();
         assert_eq!(safe, "https://example.com/api");
     }

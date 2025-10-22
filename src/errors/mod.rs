@@ -1,13 +1,16 @@
 //! Comprehensive error handling for the VisionFlow system
-//! 
+//!
 //! This module provides a unified error handling approach to replace
 //! all panic! and unwrap() calls with proper error propagation.
 
-use std::fmt;
 use serde::ser::{Serialize, Serializer};
+use std::fmt;
 
 /// Serialize std::io::Error as a string since it's not directly serializable
-fn serialize_io_error<S>(error: &std::sync::Arc<std::io::Error>, serializer: S) -> Result<S::Ok, S::Error>
+fn serialize_io_error<S>(
+    error: &std::sync::Arc<std::io::Error>,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
@@ -43,10 +46,10 @@ pub enum VisionFlowError {
     /// Binary protocol errors
     Protocol(ProtocolError),
     /// Generic error with context
-    Generic { 
+    Generic {
         message: String,
         #[serde(skip)]
-        source: Option<std::sync::Arc<dyn std::error::Error + Send + Sync + 'static>>
+        source: Option<std::sync::Arc<dyn std::error::Error + Send + Sync + 'static>>,
     },
 }
 
@@ -58,9 +61,16 @@ pub enum ActorError {
     /// Actor crashed during operation
     RuntimeFailure { actor_name: String, reason: String },
     /// Message handling failed
-    MessageHandlingFailed { message_type: String, reason: String },
+    MessageHandlingFailed {
+        message_type: String,
+        reason: String,
+    },
     /// Actor supervision failure
-    SupervisionFailed { supervisor: String, supervised: String, reason: String },
+    SupervisionFailed {
+        supervisor: String,
+        supervised: String,
+        reason: String,
+    },
     /// Actor mailbox full or inaccessible
     MailboxError { actor_name: String, reason: String },
     /// Actor not available or not found
@@ -73,11 +83,17 @@ pub enum GPUError {
     /// CUDA device initialization failed
     DeviceInitializationFailed(String),
     /// GPU memory allocation failed
-    MemoryAllocationFailed { requested_bytes: usize, reason: String },
+    MemoryAllocationFailed {
+        requested_bytes: usize,
+        reason: String,
+    },
     /// Kernel execution failed
     KernelExecutionFailed { kernel_name: String, reason: String },
     /// Data transfer between CPU and GPU failed
-    DataTransferFailed { direction: DataTransferDirection, reason: String },
+    DataTransferFailed {
+        direction: DataTransferDirection,
+        reason: String,
+    },
     /// GPU compute fallback to CPU
     FallbackToCPU { reason: String },
     /// GPU driver or runtime error
@@ -98,7 +114,10 @@ pub enum SettingsError {
     /// Settings parsing failed
     ParseError { file_path: String, reason: String },
     /// Settings validation failed
-    ValidationFailed { setting_path: String, reason: String },
+    ValidationFailed {
+        setting_path: String,
+        reason: String,
+    },
     /// Settings save failed
     SaveFailed { file_path: String, reason: String },
     /// Cache access failed
@@ -109,13 +128,21 @@ pub enum SettingsError {
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum NetworkError {
     /// TCP connection failed
-    ConnectionFailed { host: String, port: u16, reason: String },
+    ConnectionFailed {
+        host: String,
+        port: u16,
+        reason: String,
+    },
     /// WebSocket connection issues
     WebSocketError(String),
     /// MCP protocol errors
     MCPError { method: String, reason: String },
     /// HTTP request/response errors
-    HTTPError { url: String, status: Option<u16>, reason: String },
+    HTTPError {
+        url: String,
+        status: Option<u16>,
+        reason: String,
+    },
     /// HTTP request failed
     RequestFailed { url: String, reason: String },
     /// Timeout errors
@@ -141,11 +168,19 @@ pub enum SpeechError {
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum GitHubError {
     /// API request failed
-    APIRequestFailed { url: String, status: Option<u16>, reason: String },
+    APIRequestFailed {
+        url: String,
+        status: Option<u16>,
+        reason: String,
+    },
     /// Authentication failed
     AuthenticationFailed(String),
     /// File operation failed
-    FileOperationFailed { path: String, operation: String, reason: String },
+    FileOperationFailed {
+        path: String,
+        operation: String,
+        reason: String,
+    },
     /// Branch operation failed
     BranchOperationFailed { branch: String, reason: String },
     /// Pull request operation failed
@@ -184,7 +219,10 @@ pub enum ResourceError {
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum PerformanceError {
     /// Benchmark execution failed
-    BenchmarkFailed { benchmark_name: String, reason: String },
+    BenchmarkFailed {
+        benchmark_name: String,
+        reason: String,
+    },
     /// Performance report generation failed
     ReportGenerationFailed(String),
     /// Metric collection failed
@@ -229,18 +267,31 @@ impl fmt::Display for VisionFlowError {
 impl fmt::Display for ActorError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            ActorError::StartupFailed { actor_name, reason } => 
-                write!(f, "Actor '{}' failed to start: {}", actor_name, reason),
-            ActorError::RuntimeFailure { actor_name, reason } => 
-                write!(f, "Actor '{}' runtime failure: {}", actor_name, reason),
-            ActorError::MessageHandlingFailed { message_type, reason } => 
-                write!(f, "Failed to handle '{}' message: {}", message_type, reason),
-            ActorError::SupervisionFailed { supervisor, supervised, reason } => 
-                write!(f, "Supervisor '{}' failed to supervise '{}': {}", supervisor, supervised, reason),
-            ActorError::MailboxError { actor_name, reason } =>
-                write!(f, "Mailbox error for actor '{}': {}", actor_name, reason),
-            ActorError::ActorNotAvailable(actor_name) =>
-                write!(f, "Actor '{}' is not available", actor_name),
+            ActorError::StartupFailed { actor_name, reason } => {
+                write!(f, "Actor '{}' failed to start: {}", actor_name, reason)
+            }
+            ActorError::RuntimeFailure { actor_name, reason } => {
+                write!(f, "Actor '{}' runtime failure: {}", actor_name, reason)
+            }
+            ActorError::MessageHandlingFailed {
+                message_type,
+                reason,
+            } => write!(f, "Failed to handle '{}' message: {}", message_type, reason),
+            ActorError::SupervisionFailed {
+                supervisor,
+                supervised,
+                reason,
+            } => write!(
+                f,
+                "Supervisor '{}' failed to supervise '{}': {}",
+                supervisor, supervised, reason
+            ),
+            ActorError::MailboxError { actor_name, reason } => {
+                write!(f, "Mailbox error for actor '{}': {}", actor_name, reason)
+            }
+            ActorError::ActorNotAvailable(actor_name) => {
+                write!(f, "Actor '{}' is not available", actor_name)
+            }
         }
     }
 }
@@ -248,18 +299,32 @@ impl fmt::Display for ActorError {
 impl fmt::Display for GPUError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            GPUError::DeviceInitializationFailed(reason) => 
-                write!(f, "GPU device initialization failed: {}", reason),
-            GPUError::MemoryAllocationFailed { requested_bytes, reason } => 
-                write!(f, "GPU memory allocation failed ({} bytes): {}", requested_bytes, reason),
-            GPUError::KernelExecutionFailed { kernel_name, reason } => 
-                write!(f, "GPU kernel '{}' execution failed: {}", kernel_name, reason),
-            GPUError::DataTransferFailed { direction, reason } => 
-                write!(f, "GPU data transfer failed ({:?}): {}", direction, reason),
-            GPUError::FallbackToCPU { reason } => 
-                write!(f, "Falling back to CPU computation: {}", reason),
-            GPUError::DriverError(reason) => 
-                write!(f, "GPU driver error: {}", reason),
+            GPUError::DeviceInitializationFailed(reason) => {
+                write!(f, "GPU device initialization failed: {}", reason)
+            }
+            GPUError::MemoryAllocationFailed {
+                requested_bytes,
+                reason,
+            } => write!(
+                f,
+                "GPU memory allocation failed ({} bytes): {}",
+                requested_bytes, reason
+            ),
+            GPUError::KernelExecutionFailed {
+                kernel_name,
+                reason,
+            } => write!(
+                f,
+                "GPU kernel '{}' execution failed: {}",
+                kernel_name, reason
+            ),
+            GPUError::DataTransferFailed { direction, reason } => {
+                write!(f, "GPU data transfer failed ({:?}): {}", direction, reason)
+            }
+            GPUError::FallbackToCPU { reason } => {
+                write!(f, "Falling back to CPU computation: {}", reason)
+            }
+            GPUError::DriverError(reason) => write!(f, "GPU driver error: {}", reason),
         }
     }
 }
@@ -267,16 +332,24 @@ impl fmt::Display for GPUError {
 impl fmt::Display for SettingsError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            SettingsError::FileNotFound(path) => 
-                write!(f, "Settings file not found: {}", path),
-            SettingsError::ParseError { file_path, reason } => 
-                write!(f, "Failed to parse settings file '{}': {}", file_path, reason),
-            SettingsError::ValidationFailed { setting_path, reason } => 
-                write!(f, "Settings validation failed for '{}': {}", setting_path, reason),
-            SettingsError::SaveFailed { file_path, reason } => 
-                write!(f, "Failed to save settings to '{}': {}", file_path, reason),
-            SettingsError::CacheError(reason) => 
-                write!(f, "Settings cache error: {}", reason),
+            SettingsError::FileNotFound(path) => write!(f, "Settings file not found: {}", path),
+            SettingsError::ParseError { file_path, reason } => write!(
+                f,
+                "Failed to parse settings file '{}': {}",
+                file_path, reason
+            ),
+            SettingsError::ValidationFailed {
+                setting_path,
+                reason,
+            } => write!(
+                f,
+                "Settings validation failed for '{}': {}",
+                setting_path, reason
+            ),
+            SettingsError::SaveFailed { file_path, reason } => {
+                write!(f, "Failed to save settings to '{}': {}", file_path, reason)
+            }
+            SettingsError::CacheError(reason) => write!(f, "Settings cache error: {}", reason),
         }
     }
 }
@@ -284,18 +357,33 @@ impl fmt::Display for SettingsError {
 impl fmt::Display for NetworkError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            NetworkError::ConnectionFailed { host, port, reason } => 
-                write!(f, "Connection to {}:{} failed: {}", host, port, reason),
-            NetworkError::WebSocketError(reason) => 
-                write!(f, "WebSocket error: {}", reason),
-            NetworkError::MCPError { method, reason } => 
-                write!(f, "MCP method '{}' failed: {}", method, reason),
-            NetworkError::HTTPError { url, status, reason } => 
-                write!(f, "HTTP error for '{}' (status: {:?}): {}", url, status, reason),
-            NetworkError::Timeout { operation, timeout_ms } => 
-                write!(f, "Timeout after {}ms for operation: {}", timeout_ms, operation),
-            NetworkError::RequestFailed { url, reason } => 
-                write!(f, "Request to '{}' failed: {}", url, reason),
+            NetworkError::ConnectionFailed { host, port, reason } => {
+                write!(f, "Connection to {}:{} failed: {}", host, port, reason)
+            }
+            NetworkError::WebSocketError(reason) => write!(f, "WebSocket error: {}", reason),
+            NetworkError::MCPError { method, reason } => {
+                write!(f, "MCP method '{}' failed: {}", method, reason)
+            }
+            NetworkError::HTTPError {
+                url,
+                status,
+                reason,
+            } => write!(
+                f,
+                "HTTP error for '{}' (status: {:?}): {}",
+                url, status, reason
+            ),
+            NetworkError::Timeout {
+                operation,
+                timeout_ms,
+            } => write!(
+                f,
+                "Timeout after {}ms for operation: {}",
+                timeout_ms, operation
+            ),
+            NetworkError::RequestFailed { url, reason } => {
+                write!(f, "Request to '{}' failed: {}", url, reason)
+            }
         }
     }
 }
@@ -303,16 +391,21 @@ impl fmt::Display for NetworkError {
 impl fmt::Display for SpeechError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            SpeechError::InitializationFailed(reason) => 
-                write!(f, "Speech service initialization failed: {}", reason),
-            SpeechError::TTSFailed { text, reason } => 
-                write!(f, "Text-to-speech failed for '{}': {}", text, reason),
-            SpeechError::STTFailed { reason } => 
-                write!(f, "Speech-to-text failed: {}", reason),
-            SpeechError::AudioProcessingFailed { reason } => 
-                write!(f, "Audio processing failed: {}", reason),
-            SpeechError::ProviderConfigError { provider, reason } => 
-                write!(f, "Speech provider '{}' configuration error: {}", provider, reason),
+            SpeechError::InitializationFailed(reason) => {
+                write!(f, "Speech service initialization failed: {}", reason)
+            }
+            SpeechError::TTSFailed { text, reason } => {
+                write!(f, "Text-to-speech failed for '{}': {}", text, reason)
+            }
+            SpeechError::STTFailed { reason } => write!(f, "Speech-to-text failed: {}", reason),
+            SpeechError::AudioProcessingFailed { reason } => {
+                write!(f, "Audio processing failed: {}", reason)
+            }
+            SpeechError::ProviderConfigError { provider, reason } => write!(
+                f,
+                "Speech provider '{}' configuration error: {}",
+                provider, reason
+            ),
         }
     }
 }
@@ -320,16 +413,35 @@ impl fmt::Display for SpeechError {
 impl fmt::Display for GitHubError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            GitHubError::APIRequestFailed { url, status, reason } => 
-                write!(f, "GitHub API request to '{}' failed (status: {:?}): {}", url, status, reason),
-            GitHubError::AuthenticationFailed(reason) => 
-                write!(f, "GitHub authentication failed: {}", reason),
-            GitHubError::FileOperationFailed { path, operation, reason } => 
-                write!(f, "GitHub file operation '{}' on '{}' failed: {}", operation, path, reason),
-            GitHubError::BranchOperationFailed { branch, reason } => 
-                write!(f, "GitHub branch operation on '{}' failed: {}", branch, reason),
-            GitHubError::PullRequestFailed { reason } => 
-                write!(f, "GitHub pull request failed: {}", reason),
+            GitHubError::APIRequestFailed {
+                url,
+                status,
+                reason,
+            } => write!(
+                f,
+                "GitHub API request to '{}' failed (status: {:?}): {}",
+                url, status, reason
+            ),
+            GitHubError::AuthenticationFailed(reason) => {
+                write!(f, "GitHub authentication failed: {}", reason)
+            }
+            GitHubError::FileOperationFailed {
+                path,
+                operation,
+                reason,
+            } => write!(
+                f,
+                "GitHub file operation '{}' on '{}' failed: {}",
+                operation, path, reason
+            ),
+            GitHubError::BranchOperationFailed { branch, reason } => write!(
+                f,
+                "GitHub branch operation on '{}' failed: {}",
+                branch, reason
+            ),
+            GitHubError::PullRequestFailed { reason } => {
+                write!(f, "GitHub pull request failed: {}", reason)
+            }
         }
     }
 }
@@ -337,14 +449,18 @@ impl fmt::Display for GitHubError {
 impl fmt::Display for AudioError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            AudioError::FormatValidationFailed { format, reason } => 
-                write!(f, "Audio format '{}' validation failed: {}", format, reason),
-            AudioError::WAVHeaderValidationFailed(reason) => 
-                write!(f, "WAV header validation failed: {}", reason),
-            AudioError::DataProcessingFailed(reason) => 
-                write!(f, "Audio data processing failed: {}", reason),
-            AudioError::JSONProcessingFailed(reason) => 
-                write!(f, "Audio JSON processing failed: {}", reason),
+            AudioError::FormatValidationFailed { format, reason } => {
+                write!(f, "Audio format '{}' validation failed: {}", format, reason)
+            }
+            AudioError::WAVHeaderValidationFailed(reason) => {
+                write!(f, "WAV header validation failed: {}", reason)
+            }
+            AudioError::DataProcessingFailed(reason) => {
+                write!(f, "Audio data processing failed: {}", reason)
+            }
+            AudioError::JSONProcessingFailed(reason) => {
+                write!(f, "Audio JSON processing failed: {}", reason)
+            }
         }
     }
 }
@@ -352,16 +468,21 @@ impl fmt::Display for AudioError {
 impl fmt::Display for ResourceError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            ResourceError::MonitoringFailed(reason) => 
-                write!(f, "Resource monitoring failed: {}", reason),
-            ResourceError::AvailabilityCheckFailed(reason) => 
-                write!(f, "Resource availability check failed: {}", reason),
-            ResourceError::FileDescriptorLimit { current, limit } => 
-                write!(f, "File descriptor limit reached: {}/{}", current, limit),
-            ResourceError::MemoryLimit { current, limit } => 
-                write!(f, "Memory limit reached: {} bytes/{} bytes", current, limit),
-            ResourceError::ProcessLimit { current, limit } => 
-                write!(f, "Process limit reached: {}/{}", current, limit),
+            ResourceError::MonitoringFailed(reason) => {
+                write!(f, "Resource monitoring failed: {}", reason)
+            }
+            ResourceError::AvailabilityCheckFailed(reason) => {
+                write!(f, "Resource availability check failed: {}", reason)
+            }
+            ResourceError::FileDescriptorLimit { current, limit } => {
+                write!(f, "File descriptor limit reached: {}/{}", current, limit)
+            }
+            ResourceError::MemoryLimit { current, limit } => {
+                write!(f, "Memory limit reached: {} bytes/{} bytes", current, limit)
+            }
+            ResourceError::ProcessLimit { current, limit } => {
+                write!(f, "Process limit reached: {}/{}", current, limit)
+            }
         }
     }
 }
@@ -369,14 +490,21 @@ impl fmt::Display for ResourceError {
 impl fmt::Display for PerformanceError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            PerformanceError::BenchmarkFailed { benchmark_name, reason } => 
-                write!(f, "Benchmark '{}' failed: {}", benchmark_name, reason),
-            PerformanceError::ReportGenerationFailed(reason) => 
-                write!(f, "Performance report generation failed: {}", reason),
-            PerformanceError::MetricCollectionFailed { metric, reason } => 
-                write!(f, "Performance metric '{}' collection failed: {}", metric, reason),
-            PerformanceError::ComparisonFailed(reason) => 
-                write!(f, "Performance comparison failed: {}", reason),
+            PerformanceError::BenchmarkFailed {
+                benchmark_name,
+                reason,
+            } => write!(f, "Benchmark '{}' failed: {}", benchmark_name, reason),
+            PerformanceError::ReportGenerationFailed(reason) => {
+                write!(f, "Performance report generation failed: {}", reason)
+            }
+            PerformanceError::MetricCollectionFailed { metric, reason } => write!(
+                f,
+                "Performance metric '{}' collection failed: {}",
+                metric, reason
+            ),
+            PerformanceError::ComparisonFailed(reason) => {
+                write!(f, "Performance comparison failed: {}", reason)
+            }
         }
     }
 }
@@ -384,14 +512,22 @@ impl fmt::Display for PerformanceError {
 impl fmt::Display for ProtocolError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            ProtocolError::EncodingFailed { data_type, reason } => 
-                write!(f, "Protocol encoding failed for '{}': {}", data_type, reason),
-            ProtocolError::DecodingFailed { data_type, reason } => 
-                write!(f, "Protocol decoding failed for '{}': {}", data_type, reason),
-            ProtocolError::ValidationFailed(reason) => 
-                write!(f, "Protocol validation failed: {}", reason),
-            ProtocolError::BinaryFormatError(reason) => 
-                write!(f, "Binary format error: {}", reason),
+            ProtocolError::EncodingFailed { data_type, reason } => write!(
+                f,
+                "Protocol encoding failed for '{}': {}",
+                data_type, reason
+            ),
+            ProtocolError::DecodingFailed { data_type, reason } => write!(
+                f,
+                "Protocol decoding failed for '{}': {}",
+                data_type, reason
+            ),
+            ProtocolError::ValidationFailed(reason) => {
+                write!(f, "Protocol validation failed: {}", reason)
+            }
+            ProtocolError::BinaryFormatError(reason) => {
+                write!(f, "Binary format error: {}", reason)
+            }
         }
     }
 }
@@ -400,7 +536,10 @@ impl std::error::Error for VisionFlowError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             VisionFlowError::IO(e) => Some(e),
-            VisionFlowError::Generic { source: Some(source), .. } => Some(&**source),
+            VisionFlowError::Generic {
+                source: Some(source),
+                ..
+            } => Some(&**source),
             _ => None,
         }
     }
@@ -518,9 +657,9 @@ pub trait ErrorContext<T> {
     fn with_context<F>(self, f: F) -> VisionFlowResult<T>
     where
         F: FnOnce() -> String;
-    
+
     fn with_actor_context(self, actor_name: &str) -> VisionFlowResult<T>;
-    
+
     fn with_gpu_context(self, operation: &str) -> VisionFlowResult<T>;
 }
 
@@ -537,19 +676,23 @@ where
             source: Some(std::sync::Arc::new(e)),
         })
     }
-    
+
     fn with_actor_context(self, actor_name: &str) -> VisionFlowResult<T> {
-        self.map_err(|e| VisionFlowError::Actor(ActorError::RuntimeFailure {
-            actor_name: actor_name.to_string(),
-            reason: e.to_string(),
-        }))
+        self.map_err(|e| {
+            VisionFlowError::Actor(ActorError::RuntimeFailure {
+                actor_name: actor_name.to_string(),
+                reason: e.to_string(),
+            })
+        })
     }
-    
+
     fn with_gpu_context(self, operation: &str) -> VisionFlowResult<T> {
-        self.map_err(|e| VisionFlowError::GPU(GPUError::KernelExecutionFailed {
-            kernel_name: operation.to_string(),
-            reason: e.to_string(),
-        }))
+        self.map_err(|e| {
+            VisionFlowError::GPU(GPUError::KernelExecutionFailed {
+                kernel_name: operation.to_string(),
+                reason: e.to_string(),
+            })
+        })
     }
 }
 
@@ -563,7 +706,7 @@ mod tests {
             actor_name: "TestActor".to_string(),
             reason: "Init failed".to_string(),
         });
-        
+
         assert!(actor_error.to_string().contains("TestActor"));
         assert!(actor_error.to_string().contains("Init failed"));
     }
@@ -571,13 +714,13 @@ mod tests {
     #[test]
     fn test_error_context() {
         let result: Result<(), std::io::Error> = Err(std::io::Error::new(
-            std::io::ErrorKind::NotFound, 
-            "File not found"
+            std::io::ErrorKind::NotFound,
+            "File not found",
         ));
-        
+
         let with_context = result.with_context(|| "Failed to read configuration".to_string());
         assert!(with_context.is_err());
-        
+
         if let Err(VisionFlowError::Generic { message, .. }) = with_context {
             assert_eq!(message, "Failed to read configuration");
         } else {

@@ -1,21 +1,19 @@
+use log::{error, info, warn, Level};
+use serde_json::{json, Value};
 use std::{
     collections::HashMap,
     fs::{self, File, OpenOptions},
     io::{self, Write},
     path::PathBuf,
-    sync::{Arc, Mutex, mpsc},
+    sync::{mpsc, Arc, Mutex},
     thread,
-    time::{Duration, Instant}
+    time::{Duration, Instant},
 };
 use tempfile::tempdir;
-use serde_json::{json, Value};
-use log::{info, warn, error, Level};
 
 use super::super::src::utils::advanced_logging::{
-    AdvancedLogger, LogComponent, LogEntry,
-    init_advanced_logging, log_gpu_kernel, log_gpu_error,
-    log_memory_event, log_performance, log_structured,
-    get_performance_summary
+    get_performance_summary, init_advanced_logging, log_gpu_error, log_gpu_kernel,
+    log_memory_event, log_performance, log_structured, AdvancedLogger, LogComponent, LogEntry,
 };
 
 /// Comprehensive error scenario and recovery testing for telemetry system
@@ -54,14 +52,14 @@ mod error_recovery_tests {
                     let metadata = HashMap::from([
                         ("thread_id".to_string(), json!(thread_id)),
                         ("iteration".to_string(), json!(i)),
-                        ("concurrent_test".to_string(), json!(true))
+                        ("concurrent_test".to_string(), json!(true)),
                     ]);
 
                     logger_clone.log_structured(
                         component,
                         Level::Info,
                         &format!("Concurrent log from thread {} iteration {}", thread_id, i),
-                        Some(metadata)
+                        Some(metadata),
                     );
 
                     // Add some GPU and performance logs for variety
@@ -70,7 +68,7 @@ mod error_recovery_tests {
                             &format!("concurrent_kernel_{}", thread_id),
                             (i as f64) * 1.5,
                             64.0,
-                            128.0
+                            128.0,
                         );
                     }
 
@@ -78,12 +76,14 @@ mod error_recovery_tests {
                         logger_clone.log_performance(
                             &format!("concurrent_op_{}", thread_id),
                             (i as f64) * 0.8,
-                            Some(50.0)
+                            Some(50.0),
                         );
                     }
                 }
 
-                tx_clone.send(thread_id).expect("Failed to send completion signal");
+                tx_clone
+                    .send(thread_id)
+                    .expect("Failed to send completion signal");
             });
 
             handles.push(handle);
@@ -102,7 +102,10 @@ mod error_recovery_tests {
             handle.join().expect("Thread should complete successfully");
         }
 
-        assert_eq!(completed_threads, NUM_THREADS, "All threads should complete");
+        assert_eq!(
+            completed_threads, NUM_THREADS,
+            "All threads should complete"
+        );
 
         // Verify log integrity
         verify_concurrent_log_integrity(&log_dir, NUM_THREADS, LOGS_PER_THREAD);
@@ -118,7 +121,7 @@ mod error_recovery_tests {
         // Simulate disk space exhaustion by writing large logs
         let large_metadata = HashMap::from([
             ("large_data".to_string(), json!("X".repeat(1024 * 1024))), // 1MB
-            ("disk_stress_test".to_string(), json!(true))
+            ("disk_stress_test".to_string(), json!(true)),
         ]);
 
         let mut successful_writes = 0;
@@ -129,7 +132,7 @@ mod error_recovery_tests {
                 LogComponent::Server,
                 Level::Info,
                 &format!("Large log entry {}", i),
-                Some(large_metadata.clone())
+                Some(large_metadata.clone()),
             );
             successful_writes += 1;
 
@@ -148,7 +151,10 @@ mod error_recovery_tests {
             }
         }
 
-        info!("Successful writes before disk cleanup: {}", successful_writes);
+        info!(
+            "Successful writes before disk cleanup: {}",
+            successful_writes
+        );
 
         // Verify system recovers after cleanup
         logger.log_structured(
@@ -157,8 +163,8 @@ mod error_recovery_tests {
             "Recovery test after disk cleanup",
             Some(HashMap::from([
                 ("recovery_test".to_string(), json!(true)),
-                ("post_cleanup".to_string(), json!(true))
-            ]))
+                ("post_cleanup".to_string(), json!(true)),
+            ])),
         );
 
         let server_log = log_dir.join("server.log");
@@ -178,7 +184,7 @@ mod error_recovery_tests {
             LogComponent::Server,
             Level::Info,
             "Initial log before permission test",
-            None
+            None,
         );
 
         // Simulate permission issue by making log file read-only
@@ -201,8 +207,8 @@ mod error_recovery_tests {
                 &format!("Permission test log {}", i),
                 Some(HashMap::from([
                     ("permission_test".to_string(), json!(true)),
-                    ("iteration".to_string(), json!(i))
-                ]))
+                    ("iteration".to_string(), json!(i)),
+                ])),
             );
         }
 
@@ -219,9 +225,10 @@ mod error_recovery_tests {
             LogComponent::Server,
             Level::Info,
             "Recovery after permission fix",
-            Some(HashMap::from([
-                ("recovery_successful".to_string(), json!(true))
-            ]))
+            Some(HashMap::from([(
+                "recovery_successful".to_string(),
+                json!(true),
+            )])),
         );
 
         let content = fs::read_to_string(&server_log).expect("Should read server log");
@@ -263,11 +270,17 @@ mod error_recovery_tests {
         info!("Final tracked kernels: {}", final_kernel_count);
 
         // Should have at most 100 different kernels tracked (due to cycling)
-        assert!(final_kernel_count <= 150,
-            "Too many kernels tracked: {}. Memory leak suspected.", final_kernel_count);
+        assert!(
+            final_kernel_count <= 150,
+            "Too many kernels tracked: {}. Memory leak suspected.",
+            final_kernel_count
+        );
 
         // Verify performance metrics are properly summarized
-        assert!(!final_summary.is_empty(), "Performance summary should not be empty");
+        assert!(
+            !final_summary.is_empty(),
+            "Performance summary should not be empty"
+        );
     }
 
     #[test]
@@ -282,9 +295,7 @@ mod error_recovery_tests {
             LogComponent::Analytics,
             Level::Info,
             "Valid log before corruption",
-            Some(HashMap::from([
-                ("valid_entry".to_string(), json!(true))
-            ]))
+            Some(HashMap::from([("valid_entry".to_string(), json!(true))])),
         );
 
         // Simulate log corruption by writing invalid JSON
@@ -305,8 +316,8 @@ mod error_recovery_tests {
             "Log after corruption injection",
             Some(HashMap::from([
                 ("post_corruption".to_string(), json!(true)),
-                ("recovery_test".to_string(), json!(true))
-            ]))
+                ("recovery_test".to_string(), json!(true)),
+            ])),
         );
 
         // Verify the file contains both valid and corrupted data
@@ -320,9 +331,7 @@ mod error_recovery_tests {
             LogComponent::Analytics,
             Level::Info,
             "Final recovery test",
-            Some(HashMap::from([
-                ("final_test".to_string(), json!(true))
-            ]))
+            Some(HashMap::from([("final_test".to_string(), json!(true))])),
         );
 
         let final_content = fs::read_to_string(&analytics_log).expect("Should read final content");
@@ -358,24 +367,22 @@ mod error_recovery_tests {
                 // Occasional complex logs with metadata
                 let metadata = HashMap::from([
                     ("iteration".to_string(), json!(i)),
-                    ("timestamp".to_string(), json!(start_time.elapsed().as_millis())),
-                    ("high_frequency_test".to_string(), json!(true))
+                    (
+                        "timestamp".to_string(),
+                        json!(start_time.elapsed().as_millis()),
+                    ),
+                    ("high_frequency_test".to_string(), json!(true)),
                 ]);
 
                 logger.log_structured(
                     component,
                     Level::Info,
                     &format!("High frequency log {}", i),
-                    Some(metadata)
+                    Some(metadata),
                 );
             } else {
                 // Simple logs
-                logger.log_structured(
-                    component,
-                    Level::Info,
-                    &format!("Fast log {}", i),
-                    None
-                );
+                logger.log_structured(component, Level::Info, &format!("Fast log {}", i), None);
             }
 
             // Add GPU kernel logs occasionally
@@ -387,11 +394,17 @@ mod error_recovery_tests {
         let total_duration = start_time.elapsed();
 
         info!("High frequency logging completed in {:?}", total_duration);
-        info!("Average time per log: {:?}", total_duration / HIGH_FREQUENCY_LOGS as u32);
+        info!(
+            "Average time per log: {:?}",
+            total_duration / HIGH_FREQUENCY_LOGS as u32
+        );
 
-        assert!(total_duration.as_secs() <= MAX_DURATION_SECONDS,
+        assert!(
+            total_duration.as_secs() <= MAX_DURATION_SECONDS,
             "High frequency logging took too long: {:?} > {}s",
-            total_duration, MAX_DURATION_SECONDS);
+            total_duration,
+            MAX_DURATION_SECONDS
+        );
 
         // Verify all logs were written
         verify_high_frequency_log_integrity(&log_dir, HIGH_FREQUENCY_LOGS);
@@ -412,12 +425,21 @@ mod error_recovery_tests {
                 &format!("Application running - step {}", i),
                 Some(HashMap::from([
                     ("step".to_string(), json!(i)),
-                    ("application_state".to_string(), json!("running"))
-                ]))
+                    ("application_state".to_string(), json!("running")),
+                ])),
             );
 
-            logger.log_gpu_kernel(&format!("app_kernel_{}", i % 10), i as f64 * 1.2, 128.0, 256.0);
-            logger.log_performance(&format!("app_operation_{}", i % 5), i as f64 * 0.5, Some(75.0));
+            logger.log_gpu_kernel(
+                &format!("app_kernel_{}", i % 10),
+                i as f64 * 1.2,
+                128.0,
+                256.0,
+            );
+            logger.log_performance(
+                &format!("app_operation_{}", i % 5),
+                i as f64 * 0.5,
+                Some(75.0),
+            );
         }
 
         // Simulate graceful shutdown
@@ -427,8 +449,8 @@ mod error_recovery_tests {
             "Application shutdown initiated",
             Some(HashMap::from([
                 ("shutdown_type".to_string(), json!("graceful")),
-                ("cleanup_started".to_string(), json!(true))
-            ]))
+                ("cleanup_started".to_string(), json!(true)),
+            ])),
         );
 
         // Log final performance summary
@@ -439,8 +461,8 @@ mod error_recovery_tests {
             "Final performance summary",
             Some(HashMap::from([
                 ("performance_data".to_string(), json!(final_summary)),
-                ("shutdown_complete".to_string(), json!(true))
-            ]))
+                ("shutdown_complete".to_string(), json!(true)),
+            ])),
         );
 
         // Verify shutdown logs are present
@@ -460,7 +482,7 @@ mod error_recovery_tests {
     fn verify_concurrent_log_integrity(
         log_dir: &PathBuf,
         num_threads: usize,
-        logs_per_thread: usize
+        logs_per_thread: usize,
     ) {
         let components = vec![
             LogComponent::Server,
@@ -471,7 +493,11 @@ mod error_recovery_tests {
 
         for component in components {
             let log_file = log_dir.join(component.log_file_name());
-            assert!(log_file.exists(), "Log file {} should exist", component.as_str());
+            assert!(
+                log_file.exists(),
+                "Log file {} should exist",
+                component.as_str()
+            );
 
             let content = fs::read_to_string(&log_file)
                 .expect(&format!("Should read {}", component.as_str()));
@@ -480,7 +506,11 @@ mod error_recovery_tests {
             let line_count = content.lines().count();
 
             // Should have logs from multiple threads (exact count depends on component assignment)
-            assert!(line_count > 0, "Log file {} should not be empty", component.as_str());
+            assert!(
+                line_count > 0,
+                "Log file {} should not be empty",
+                component.as_str()
+            );
 
             // Verify concurrent_test metadata is present
             assert!(content.contains("concurrent_test"));
@@ -498,8 +528,8 @@ mod error_recovery_tests {
             "Disk space low, performing cleanup",
             Some(HashMap::from([
                 ("cleanup_initiated".to_string(), json!(true)),
-                ("reason".to_string(), json!("disk_space_exhausted"))
-            ]))
+                ("reason".to_string(), json!("disk_space_exhausted")),
+            ])),
         );
 
         // Simulate cleanup by truncating the large log file
@@ -519,20 +549,30 @@ mod error_recovery_tests {
             LogComponent::Server,
             Level::Info,
             "Disk cleanup completed",
-            Some(HashMap::from([
-                ("cleanup_completed".to_string(), json!(true))
-            ]))
+            Some(HashMap::from([(
+                "cleanup_completed".to_string(),
+                json!(true),
+            )])),
         );
     }
 
     fn count_tracked_kernels(summary: &HashMap<String, serde_json::Value>) -> usize {
-        summary.keys().filter(|k| !k.contains("error") && !k.contains("recovery")).count()
+        summary
+            .keys()
+            .filter(|k| !k.contains("error") && !k.contains("recovery"))
+            .count()
     }
 
     fn verify_high_frequency_log_integrity(log_dir: &PathBuf, expected_logs: usize) {
         let log_files = vec![
-            "server.log", "client.log", "gpu.log", "analytics.log",
-            "memory.log", "network.log", "performance.log", "error.log"
+            "server.log",
+            "client.log",
+            "gpu.log",
+            "analytics.log",
+            "memory.log",
+            "network.log",
+            "performance.log",
+            "error.log",
         ];
 
         let mut total_lines = 0;
@@ -540,8 +580,8 @@ mod error_recovery_tests {
         for log_file in &log_files {
             let path = log_dir.join(log_file);
             if path.exists() {
-                let content = fs::read_to_string(&path)
-                    .expect(&format!("Should read {}", log_file));
+                let content =
+                    fs::read_to_string(&path).expect(&format!("Should read {}", log_file));
                 let lines = content.lines().count();
                 total_lines += lines;
                 info!("{}: {} lines", log_file, lines);
@@ -551,8 +591,11 @@ mod error_recovery_tests {
         info!("Total log lines across all files: {}", total_lines);
 
         // Should have at least the expected number of logs (may have more due to GPU/performance logs)
-        assert!(total_lines >= expected_logs / 8, // Distributed across 8 components
+        assert!(
+            total_lines >= expected_logs / 8, // Distributed across 8 components
             "Not enough log lines found. Expected at least {}, got {}",
-            expected_logs / 8, total_lines);
+            expected_logs / 8,
+            total_lines
+        );
     }
 }

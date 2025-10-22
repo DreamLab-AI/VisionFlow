@@ -1,86 +1,311 @@
 // src/services/database_service.rs
-//! Database service for SQLite-based ontology and metadata storage
+//! Database service for SQLite-based storage across three separate databases
 //!
 //! Provides centralized database access for:
-//! - Application settings and physics configuration
-//! - Ontology framework metadata (OWL classes, properties, axioms)
-//! - Markdown file metadata with ontology blocks
-//! - Validation reports and inference results
-//! - Physics constraint generation
+//! - Application settings and physics configuration (settings.db)
+//! - Knowledge graph nodes, edges, and file metadata (knowledge_graph.db)
+//! - Ontology framework metadata (OWL classes, properties, axioms) (ontology.db)
 
-use rusqlite::{Connection, OptionalExtension, params, Result as SqliteResult};
-use std::path::Path;
-use std::sync::{Arc, Mutex};
+use log::info;
+use r2d2::{Pool, PooledConnection};
+use r2d2_sqlite::SqliteConnectionManager;
+use rusqlite::{params, Connection, OptionalExtension, Result as SqliteResult};
 use serde_json::Value as JsonValue;
+use std::path::{Path, PathBuf};
+use std::time::{Duration, Instant};
 
 use crate::config::PhysicsSettings;
 
-/// Setting value types for database storage
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-#[serde(untagged)]
-pub enum SettingValue {
-    String(String),
-    Integer(i64),
-    Float(f64),
-    Boolean(bool),
-    Json(JsonValue),
+// Re-export SettingValue for backward compatibility
+pub use crate::ports::settings_repository::SettingValue;
+
+/// Health status for a single database
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct DatabaseHealth {
+    pub name: String,
+    pub is_connected: bool,
+    pub pool_size: u32,
+    pub idle_connections: u32,
+    pub schema_version: Option<i32>,
+    pub last_error: Option<String>,
 }
 
-/// Main database service providing thread-safe access to SQLite
+/// Overall health status for all databases
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct OverallDatabaseHealth {
+    pub settings: DatabaseHealth,
+    pub knowledge_graph: DatabaseHealth,
+    pub ontology: DatabaseHealth,
+    pub all_healthy: bool,
+}
+
+/// Main database service providing thread-safe access to three SQLite databases
 pub struct DatabaseService {
-    conn: Arc<Mutex<Connection>>,
+    settings_pool: Pool<SqliteConnectionManager>,
+    knowledge_graph_pool: Pool<SqliteConnectionManager>,
+    ontology_pool: Pool<SqliteConnectionManager>,
+    base_path: PathBuf,
 }
 
 impl DatabaseService {
-    /// Create new database service, initializing schema if needed
-    pub fn new<P: AsRef<Path>>(db_path: P) -> SqliteResult<Self> {
-        let conn = Connection::open(db_path)?;
+    /// Create new database service with three separate databases
+    pub fn new<P: AsRef<Path>>(base_path: P) -> SqliteResult<Self> {
+        let base_path = base_path.as_ref().to_path_buf();
 
-        // Configure SQLite for optimal performance
-        conn.pragma_update(None, "journal_mode", "WAL")?;
-        conn.pragma_update(None, "synchronous", "NORMAL")?;
-        conn.pragma_update(None, "cache_size", 10000)?;
-        conn.pragma_update(None, "foreign_keys", true)?;
+        // Ensure base directory exists
+        if let Some(parent) = base_path.parent() {
+            std::fs::create_dir_all(parent).map_err(|e| {
+                rusqlite::Error::SqliteFailure(
+                    rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_CANTOPEN),
+                    Some(format!("Failed to create directory: {}", e)),
+                )
+            })?;
+        }
+
+        info!("[DatabaseService] Initializing three-database architecture");
+        info!("[DatabaseService] Base path: {}", base_path.display());
+
+        // Create connection pools for each database
+        let settings_path = base_path.with_file_name("settings.db");
+        let knowledge_graph_path = base_path.with_file_name("knowledge_graph.db");
+        let ontology_path = base_path.with_file_name("ontology.db");
+
+        info!("[DatabaseService] Settings DB: {}", settings_path.display());
+        info!(
+            "[DatabaseService] Knowledge Graph DB: {}",
+            knowledge_graph_path.display()
+        );
+        info!("[DatabaseService] Ontology DB: {}", ontology_path.display());
+
+        let settings_pool = Self::create_pool(&settings_path)?;
+        let knowledge_graph_pool = Self::create_pool(&knowledge_graph_path)?;
+        let ontology_pool = Self::create_pool(&ontology_path)?;
 
         Ok(Self {
-            conn: Arc::new(Mutex::new(conn)),
+            settings_pool,
+            knowledge_graph_pool,
+            ontology_pool,
+            base_path,
         })
     }
 
-    /// Execute schema initialization from SQL file
-    pub fn execute_schema(&self, schema_sql: &str) -> SqliteResult<()> {
-        let conn = self.conn.lock().unwrap();
+    /// Create a connection pool for a database
+    fn create_pool(db_path: &Path) -> SqliteResult<Pool<SqliteConnectionManager>> {
+        let manager = SqliteConnectionManager::file(db_path).with_init(|conn| {
+            // Configure SQLite for optimal performance
+            conn.pragma_update(None, "journal_mode", "WAL")?;
+            conn.pragma_update(None, "synchronous", "NORMAL")?;
+            conn.pragma_update(None, "cache_size", 10000)?;
+            conn.pragma_update(None, "foreign_keys", true)?;
+            conn.pragma_update(None, "temp_store", "MEMORY")?;
+            Ok(())
+        });
+
+        Pool::builder()
+            .max_size(10)
+            .min_idle(Some(2))
+            .connection_timeout(Duration::from_secs(30))
+            .build(manager)
+            .map_err(|e| {
+                rusqlite::Error::SqliteFailure(
+                    rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_ERROR),
+                    Some(format!("Failed to create pool: {}", e)),
+                )
+            })
+    }
+
+    /// Get a connection to the settings database
+    pub fn get_settings_connection(
+        &self,
+    ) -> Result<PooledConnection<SqliteConnectionManager>, String> {
+        self.settings_pool
+            .get()
+            .map_err(|e| format!("Failed to get settings connection: {}", e))
+    }
+
+    /// Get a connection to the knowledge graph database
+    pub fn get_knowledge_graph_connection(
+        &self,
+    ) -> Result<PooledConnection<SqliteConnectionManager>, String> {
+        self.knowledge_graph_pool
+            .get()
+            .map_err(|e| format!("Failed to get knowledge graph connection: {}", e))
+    }
+
+    /// Get a connection to the ontology database
+    pub fn get_ontology_connection(
+        &self,
+    ) -> Result<PooledConnection<SqliteConnectionManager>, String> {
+        self.ontology_pool
+            .get()
+            .map_err(|e| format!("Failed to get ontology connection: {}", e))
+    }
+
+    /// Execute schema SQL on a specific database
+    fn execute_schema(conn: &Connection, schema_sql: &str, db_name: &str) -> SqliteResult<()> {
+        info!("[DatabaseService] Executing schema for {}", db_name);
+        let start = Instant::now();
+
         conn.execute_batch(schema_sql)?;
+
+        let duration = start.elapsed();
+        info!(
+            "[DatabaseService] Schema execution for {} completed in {:?}",
+            db_name, duration
+        );
         Ok(())
     }
 
-    /// Get current schema version
-    pub fn get_schema_version(&self) -> SqliteResult<i32> {
-        let conn = self.conn.lock().unwrap();
+    /// Initialize all database schemas from embedded SQL files
+    pub fn initialize_schema(&self) -> SqliteResult<()> {
+        info!("[DatabaseService] Initializing all database schemas");
+
+        // Load schemas from embedded SQL files
+        const SETTINGS_SCHEMA: &str = include_str!("../../schema/settings_db.sql");
+        const KNOWLEDGE_GRAPH_SCHEMA: &str = include_str!("../../schema/knowledge_graph_db.sql");
+        const ONTOLOGY_SCHEMA: &str = include_str!("../../schema/ontology_metadata_db.sql");
+
+        // Initialize settings database
+        let settings_conn = self.get_settings_connection().map_err(|e| {
+            rusqlite::Error::SqliteFailure(
+                rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_ERROR),
+                Some(e),
+            )
+        })?;
+        Self::execute_schema(&settings_conn, SETTINGS_SCHEMA, "settings")?;
+
+        // Initialize knowledge graph database
+        let kg_conn = self.get_knowledge_graph_connection().map_err(|e| {
+            rusqlite::Error::SqliteFailure(
+                rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_ERROR),
+                Some(e),
+            )
+        })?;
+        Self::execute_schema(&kg_conn, KNOWLEDGE_GRAPH_SCHEMA, "knowledge_graph")?;
+
+        // Initialize ontology database
+        let ontology_conn = self.get_ontology_connection().map_err(|e| {
+            rusqlite::Error::SqliteFailure(
+                rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_ERROR),
+                Some(e),
+            )
+        })?;
+        Self::execute_schema(&ontology_conn, ONTOLOGY_SCHEMA, "ontology")?;
+
+        info!("[DatabaseService] All schemas initialized successfully");
+        Ok(())
+    }
+
+    /// Migrate all databases (execute schema updates)
+    pub fn migrate_all(&self) -> SqliteResult<()> {
+        info!("[DatabaseService] Running migrations for all databases");
+
+        // For now, migrations are handled by schema initialization
+        // In the future, we can add migration logic here based on schema_version table
+
+        let settings_version = self.get_schema_version("settings")?;
+        let kg_version = self.get_schema_version("knowledge_graph")?;
+        let ontology_version = self.get_schema_version("ontology")?;
+
+        info!(
+            "[DatabaseService] Current schema versions - Settings: {}, KG: {}, Ontology: {}",
+            settings_version, kg_version, ontology_version
+        );
+
+        Ok(())
+    }
+
+    /// Get schema version for a specific database
+    fn get_schema_version(&self, db_name: &str) -> SqliteResult<i32> {
+        let conn = match db_name {
+            "settings" => self.get_settings_connection(),
+            "knowledge_graph" => self.get_knowledge_graph_connection(),
+            "ontology" => self.get_ontology_connection(),
+            _ => return Err(rusqlite::Error::InvalidQuery),
+        }
+        .map_err(|e| {
+            rusqlite::Error::SqliteFailure(
+                rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_ERROR),
+                Some(e),
+            )
+        })?;
+
         let version: i32 = conn.query_row(
             "SELECT version FROM schema_version WHERE id = 1",
             [],
-            |row| row.get(0)
+            |row| row.get(0),
         )?;
+
         Ok(version)
     }
 
-    /// Initialize database schema from embedded SQL file
-    pub fn initialize_schema(&self) -> SqliteResult<()> {
-        // Load schema from embedded SQL file
-        const SCHEMA_SQL: &str = include_str!("../../schema/ontology_db.sql");
-        self.execute_schema(SCHEMA_SQL)?;
+    /// Perform health check on all databases
+    pub fn health_check(&self) -> Result<OverallDatabaseHealth, String> {
+        let settings_health = self.check_database_health("settings", &self.settings_pool);
+        let kg_health = self.check_database_health("knowledge_graph", &self.knowledge_graph_pool);
+        let ontology_health = self.check_database_health("ontology", &self.ontology_pool);
+
+        let all_healthy =
+            settings_health.is_connected && kg_health.is_connected && ontology_health.is_connected;
+
+        Ok(OverallDatabaseHealth {
+            settings: settings_health,
+            knowledge_graph: kg_health,
+            ontology: ontology_health,
+            all_healthy,
+        })
+    }
+
+    /// Check health of a single database
+    fn check_database_health(
+        &self,
+        name: &str,
+        pool: &Pool<SqliteConnectionManager>,
+    ) -> DatabaseHealth {
+        let state = pool.state();
+
+        let (is_connected, schema_version, last_error) = match pool.get() {
+            Ok(conn) => {
+                let version = conn
+                    .query_row(
+                        "SELECT version FROM schema_version WHERE id = 1",
+                        [],
+                        |row| row.get::<_, i32>(0),
+                    )
+                    .ok();
+                (true, version, None)
+            }
+            Err(e) => (false, None, Some(e.to_string())),
+        };
+
+        DatabaseHealth {
+            name: name.to_string(),
+            is_connected,
+            pool_size: state.connections,
+            idle_connections: state.idle_connections,
+            schema_version,
+            last_error,
+        }
+    }
+
+    /// Gracefully close all database connections
+    pub fn close(&self) -> Result<(), String> {
+        info!("[DatabaseService] Closing all database connections");
+
+        // Connection pools will be automatically dropped and cleaned up
+        // We just need to log the action
+
+        info!("[DatabaseService] All database connections closed");
         Ok(())
     }
 }
 
 // ================================================================
-// SETTINGS QUERIES
+// SETTINGS QUERIES (Settings Database)
 // ================================================================
 
 impl DatabaseService {
     /// Convert snake_case to camelCase
-    /// Examples: "spring_k" -> "springK", "max_velocity" -> "maxVelocity"
     fn to_camel_case(s: &str) -> String {
         let parts: Vec<&str> = s.split('_').collect();
         if parts.len() == 1 {
@@ -102,10 +327,16 @@ impl DatabaseService {
 
     /// Get setting value with exact key match (no fallback)
     fn get_setting_exact(&self, key: &str) -> SqliteResult<Option<SettingValue>> {
-        let conn = self.conn.lock().unwrap();
+        let conn = self.get_settings_connection().map_err(|e| {
+            rusqlite::Error::SqliteFailure(
+                rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_ERROR),
+                Some(e),
+            )
+        })?;
+
         let mut stmt = conn.prepare(
             "SELECT value_type, value_text, value_integer, value_float, value_boolean, value_json
-             FROM settings WHERE key = ?1"
+             FROM settings WHERE key = ?1",
         )?;
 
         stmt.query_row(params![key], |row| {
@@ -118,23 +349,15 @@ impl DatabaseService {
                 "json" => {
                     let json_str: String = row.get(5)?;
                     SettingValue::Json(serde_json::from_str(&json_str).unwrap_or(JsonValue::Null))
-                },
+                }
                 _ => SettingValue::String(String::new()),
             };
             Ok(value)
-        }).optional()
+        })
+        .optional()
     }
 
-    /// Get hierarchical settings by key path with intelligent camelCase/snake_case fallback
-    ///
-    /// This method provides smart lookup:
-    /// 1. First tries exact match with the provided key
-    /// 2. If not found and key contains underscore, converts to camelCase and retries
-    ///
-    /// Examples:
-    /// - Database has "springK" = 150.0
-    /// - `get_setting("springK")` -> Direct hit, returns 150.0
-    /// - `get_setting("spring_k")` -> Converts to "springK", returns 150.0
+    /// Get setting value with intelligent camelCase/snake_case fallback
     pub fn get_setting(&self, key: &str) -> SqliteResult<Option<SettingValue>> {
         // Try exact match first
         if let Some(value) = self.get_setting_exact(key)? {
@@ -149,19 +372,35 @@ impl DatabaseService {
             }
         }
 
-        // Not found with either key format
         Ok(None)
     }
 
     /// Set a setting value
-    pub fn set_setting(&self, key: &str, value: SettingValue, description: Option<&str>) -> SqliteResult<()> {
-        let conn = self.conn.lock().unwrap();
+    pub fn set_setting(
+        &self,
+        key: &str,
+        value: SettingValue,
+        description: Option<&str>,
+    ) -> SqliteResult<()> {
+        let conn = self.get_settings_connection().map_err(|e| {
+            rusqlite::Error::SqliteFailure(
+                rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_ERROR),
+                Some(e),
+            )
+        })?;
 
         let (value_type, text, int, float, bool_val, json) = match value {
             SettingValue::String(s) => ("string", Some(s), None, None, None, None),
             SettingValue::Integer(i) => ("integer", None, Some(i), None, None, None),
             SettingValue::Float(f) => ("float", None, None, Some(f), None, None),
-            SettingValue::Boolean(b) => ("boolean", None, None, None, Some(if b { 1 } else { 0 }), None),
+            SettingValue::Boolean(b) => (
+                "boolean",
+                None,
+                None,
+                None,
+                Some(if b { 1 } else { 0 }),
+                None,
+            ),
             SettingValue::Json(j) => ("json", None, None, None, None, Some(j.to_string())),
         };
 
@@ -185,14 +424,20 @@ impl DatabaseService {
 
     /// Get physics settings for a specific profile
     pub fn get_physics_settings(&self, profile_name: &str) -> SqliteResult<PhysicsSettings> {
-        let conn = self.conn.lock().unwrap();
+        let conn = self.get_settings_connection().map_err(|e| {
+            rusqlite::Error::SqliteFailure(
+                rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_ERROR),
+                Some(e),
+            )
+        })?;
+
         let mut stmt = conn.prepare(
             "SELECT damping, dt, iterations, max_velocity, max_force, repel_k, spring_k,
                     mass_scale, boundary_damping, temperature, gravity, bounds_size, enable_bounds,
                     rest_length, repulsion_cutoff, repulsion_softening_epsilon, center_gravity_k,
                     grid_cell_size, warmup_iterations, cooling_rate, constraint_ramp_frames,
                     constraint_max_force_per_node
-             FROM physics_settings WHERE profile_name = ?1"
+             FROM physics_settings WHERE profile_name = ?1",
         )?;
 
         stmt.query_row(params![profile_name], |row| {
@@ -225,8 +470,17 @@ impl DatabaseService {
     }
 
     /// Save physics settings profile
-    pub fn save_physics_settings(&self, profile_name: &str, settings: &PhysicsSettings) -> SqliteResult<()> {
-        let conn = self.conn.lock().unwrap();
+    pub fn save_physics_settings(
+        &self,
+        profile_name: &str,
+        settings: &PhysicsSettings,
+    ) -> SqliteResult<()> {
+        let conn = self.get_settings_connection().map_err(|e| {
+            rusqlite::Error::SqliteFailure(
+                rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_ERROR),
+                Some(e),
+            )
+        })?;
 
         conn.execute(
             "INSERT INTO physics_settings (
@@ -261,77 +515,60 @@ impl DatabaseService {
     }
 
     /// Save complete settings to database as JSON
-    /// Stores all settings categories (rendering, XR, system, auth, etc.)
     pub fn save_all_settings(&self, settings: &crate::config::AppFullSettings) -> SqliteResult<()> {
-        let conn = self.conn.lock().unwrap();
+        let conn = self.get_settings_connection().map_err(|e| {
+            rusqlite::Error::SqliteFailure(
+                rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_ERROR),
+                Some(e),
+            )
+        })?;
 
         // Serialize all settings as JSON
         let settings_json = serde_json::to_string(settings)
             .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
 
-        // Save as a single JSON blob for simplicity and atomicity
         conn.execute(
             "INSERT INTO settings (key, value_type, value_json, description)
              VALUES ('app_full_settings', 'json', ?1, 'Complete application settings')
              ON CONFLICT(key) DO UPDATE SET
                 value_json = excluded.value_json,
                 updated_at = CURRENT_TIMESTAMP",
-            params![settings_json]
+            params![settings_json],
         )?;
 
-        // Also save physics settings to dedicated table for fast access
-        // Inline the physics save to avoid deadlock from double-locking
+        // Also save physics settings to dedicated table
         let physics = &settings.visualisation.graphs.logseq.physics;
-        conn.execute(
-            "INSERT INTO physics_settings (
-                profile_name, damping, dt, iterations, max_velocity, max_force,
-                repel_k, spring_k, mass_scale, boundary_damping, temperature, gravity,
-                bounds_size, enable_bounds, rest_length, repulsion_cutoff,
-                repulsion_softening_epsilon, center_gravity_k, grid_cell_size,
-                warmup_iterations, cooling_rate, constraint_ramp_frames,
-                constraint_max_force_per_node
-             ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23)
-             ON CONFLICT(profile_name) DO UPDATE SET
-                damping = excluded.damping,
-                dt = excluded.dt,
-                iterations = excluded.iterations,
-                max_velocity = excluded.max_velocity,
-                max_force = excluded.max_force,
-                repel_k = excluded.repel_k,
-                spring_k = excluded.spring_k,
-                updated_at = CURRENT_TIMESTAMP",
-            params![
-                "default", physics.damping, physics.dt, physics.iterations,
-                physics.max_velocity, physics.max_force, physics.repel_k, physics.spring_k,
-                physics.mass_scale, physics.boundary_damping, physics.temperature,
-                physics.gravity, physics.bounds_size, if physics.enable_bounds { 1 } else { 0 },
-                physics.rest_length, physics.repulsion_cutoff, physics.repulsion_softening_epsilon,
-                physics.center_gravity_k, physics.grid_cell_size, physics.warmup_iterations,
-                physics.cooling_rate, physics.constraint_ramp_frames, physics.constraint_max_force_per_node
-            ]
-        )?;
+        self.save_physics_settings("default", physics)?;
 
         Ok(())
     }
 
     /// Load complete settings from database
-    /// Returns None if settings not found in database
     pub fn load_all_settings(&self) -> SqliteResult<Option<crate::config::AppFullSettings>> {
-        let conn = self.conn.lock().unwrap();
+        let conn = self.get_settings_connection().map_err(|e| {
+            rusqlite::Error::SqliteFailure(
+                rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_ERROR),
+                Some(e),
+            )
+        })?;
 
-        let settings_json: Option<String> = conn.query_row(
-            "SELECT value_json FROM settings WHERE key = 'app_full_settings'",
-            [],
-            |row| row.get(0)
-        ).optional()?;
+        let settings_json: Option<String> = conn
+            .query_row(
+                "SELECT value_json FROM settings WHERE key = 'app_full_settings'",
+                [],
+                |row| row.get(0),
+            )
+            .optional()?;
 
         if let Some(json_str) = settings_json {
             let settings: crate::config::AppFullSettings = serde_json::from_str(&json_str)
-                .map_err(|e| rusqlite::Error::FromSqlConversionFailure(
-                    0,
-                    rusqlite::types::Type::Text,
-                    Box::new(e)
-                ))?;
+                .map_err(|e| {
+                    rusqlite::Error::FromSqlConversionFailure(
+                        0,
+                        rusqlite::types::Type::Text,
+                        Box::new(e),
+                    )
+                })?;
             Ok(Some(settings))
         } else {
             Ok(None)

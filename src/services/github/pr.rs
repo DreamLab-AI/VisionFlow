@@ -1,9 +1,11 @@
 use super::api::GitHubClient;
-use super::types::{CreateBranchRequest, CreatePullRequest, UpdateFileRequest, PullRequestResponse};
-use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
-use log::{error, info};
-use chrono::Utc;
+use super::types::{
+    CreateBranchRequest, CreatePullRequest, PullRequestResponse, UpdateFileRequest,
+};
 use crate::errors::VisionFlowResult;
+use base64::{engine::general_purpose::STANDARD as BASE64, Engine as _};
+use chrono::Utc;
+use log::{error, info};
 
 /// Handles GitHub Pull Request operations
 use std::sync::Arc;
@@ -27,16 +29,19 @@ impl PullRequestAPI {
     ) -> VisionFlowResult<String> {
         let timestamp = Utc::now().timestamp();
         let branch_name = format!("update-{}-{}", file_name.replace(".md", ""), timestamp);
-        
+
         let main_sha = self.get_main_branch_sha().await?;
         self.create_branch(&branch_name, &main_sha).await?;
-        
+
         let file_path = format!("{}/{}", self.client.base_path(), file_name);
-        let new_sha = self.update_file(&file_path, content, &branch_name, original_sha).await?;
-        
+        let new_sha = self
+            .update_file(&file_path, content, &branch_name, original_sha)
+            .await?;
+
         let url = format!(
             "https://api.github.com/repos/{}/{}/pulls",
-            self.client.owner(), self.client.repo()
+            self.client.owner(),
+            self.client.repo()
         );
 
         let pr_body = CreatePullRequest {
@@ -49,7 +54,9 @@ impl PullRequestAPI {
             ),
         };
 
-        let response = self.client.client()
+        let response = self
+            .client
+            .client()
             .post(&url)
             .header("Authorization", format!("Bearer {}", self.client.token()))
             .header("Accept", "application/vnd.github+json")
@@ -72,10 +79,13 @@ impl PullRequestAPI {
     async fn get_main_branch_sha(&self) -> VisionFlowResult<String> {
         let url = format!(
             "https://api.github.com/repos/{}/{}/git/ref/heads/main",
-            self.client.owner(), self.client.repo()
+            self.client.owner(),
+            self.client.repo()
         );
 
-        let response = self.client.client()
+        let response = self
+            .client
+            .client()
             .get(&url)
             .header("Authorization", format!("Bearer {}", self.client.token()))
             .header("Accept", "application/vnd.github+json")
@@ -99,7 +109,8 @@ impl PullRequestAPI {
     async fn create_branch(&self, branch_name: &str, sha: &str) -> VisionFlowResult<()> {
         let url = format!(
             "https://api.github.com/repos/{}/{}/git/refs",
-            self.client.owner(), self.client.repo()
+            self.client.owner(),
+            self.client.repo()
         );
 
         let body = CreateBranchRequest {
@@ -107,7 +118,9 @@ impl PullRequestAPI {
             sha: sha.to_string(),
         };
 
-        let response = self.client.client()
+        let response = self
+            .client
+            .client()
             .post(&url)
             .header("Authorization", format!("Bearer {}", self.client.token()))
             .header("Accept", "application/vnd.github+json")
@@ -134,11 +147,13 @@ impl PullRequestAPI {
     ) -> VisionFlowResult<String> {
         let url = format!(
             "https://api.github.com/repos/{}/{}/contents/{}",
-            self.client.owner(), self.client.repo(), file_path
+            self.client.owner(),
+            self.client.repo(),
+            file_path
         );
 
         let encoded_content = BASE64.encode(content);
-        
+
         let body = UpdateFileRequest {
             message: format!("Update {}", file_path),
             content: encoded_content,
@@ -146,7 +161,9 @@ impl PullRequestAPI {
             branch: branch_name.to_string(),
         };
 
-        let response = self.client.client()
+        let response = self
+            .client
+            .client()
             .put(&url)
             .header("Authorization", format!("Bearer {}", self.client.token()))
             .header("Accept", "application/vnd.github+json")

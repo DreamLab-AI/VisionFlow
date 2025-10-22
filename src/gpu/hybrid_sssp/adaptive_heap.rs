@@ -1,8 +1,8 @@
 // Adaptive Heap for WASM - Implements Pull/Insert/BatchPrepend operations
 // This is the sophisticated data structure required by the paper's algorithm
 
-use std::collections::{BinaryHeap, HashMap};
 use std::cmp::Ordering;
+use std::collections::{BinaryHeap, HashMap};
 
 /// Block-based adaptive heap structure for efficient operations
 /// Implements the paper's required O(log(N/M)) operations
@@ -157,7 +157,11 @@ impl AdaptiveHeap {
         }
 
         // Sort by distance for efficient insertion
-        all_entries.sort_by(|a, b| a.distance.partial_cmp(&b.distance).unwrap_or(Ordering::Equal));
+        all_entries.sort_by(|a, b| {
+            a.distance
+                .partial_cmp(&b.distance)
+                .unwrap_or(Ordering::Equal)
+        });
 
         // Add to main heap
         for entry in all_entries {
@@ -191,7 +195,9 @@ impl AdaptiveHeap {
     pub fn peek_min(&self) -> Option<f32> {
         // Check both heap and blocks
         let heap_min = self.primary_heap.peek().map(|e| e.distance);
-        let block_min = self.blocks.iter()
+        let block_min = self
+            .blocks
+            .iter()
             .map(|b| b.min_distance)
             .min_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal));
 
@@ -208,7 +214,9 @@ impl AdaptiveHeap {
 impl Ord for HeapEntry {
     fn cmp(&self, other: &Self) -> Ordering {
         // Reverse for min-heap
-        other.distance.partial_cmp(&self.distance)
+        other
+            .distance
+            .partial_cmp(&self.distance)
             .unwrap_or(Ordering::Equal)
             .then_with(|| other.vertex.cmp(&self.vertex))
     }
@@ -301,7 +309,7 @@ mod tests {
 
         // Verify sorted order
         for i in 1..result.len() {
-            assert!(result[i].1 >= result[i-1].1);
+            assert!(result[i].1 >= result[i - 1].1);
         }
     }
 }

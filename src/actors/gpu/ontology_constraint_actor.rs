@@ -11,20 +11,18 @@
 //! - Memory pooling for constraint buffers
 //! - Integration with ontology validation system
 
-use std::sync::Arc;
-use std::time::Instant;
 use actix::prelude::*;
 use log::{debug, error, info, warn};
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
+use std::time::Instant;
 
+use super::shared::{GPUState, SharedGPUContext};
 use crate::actors::messages::*;
-use crate::models::constraints::{Constraint, ConstraintSet, ConstraintData};
+use crate::models::constraints::{Constraint, ConstraintData, ConstraintSet};
 use crate::physics::ontology_constraints::{
-    OntologyConstraintTranslator,
-    OntologyReasoningReport,
-    OWLAxiom,
+    OWLAxiom, OntologyConstraintTranslator, OntologyReasoningReport,
 };
-use super::shared::{SharedGPUContext, GPUState};
 
 /// Statistics for ontology constraint evaluation
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -117,18 +115,24 @@ impl OntologyConstraintActor {
     ) -> Result<(), String> {
         let start_time = Instant::now();
 
-        info!("OntologyConstraintActor: Applying ontology constraints - {} axioms, {} inferences",
-              reasoning_report.axioms.len(), reasoning_report.inferences.len());
+        info!(
+            "OntologyConstraintActor: Applying ontology constraints - {} axioms, {} inferences",
+            reasoning_report.axioms.len(),
+            reasoning_report.inferences.len()
+        );
 
         // Translate ontology axioms to physics constraints
-        let constraint_set = self.translator
+        let constraint_set = self
+            .translator
             .apply_ontology_constraints(graph_data, reasoning_report)
             .map_err(|e| format!("Failed to translate ontology constraints: {}", e))?;
 
         // Update local constraint storage
         self.ontology_constraints = constraint_set.constraints.clone();
         self.stats.total_axioms_processed += reasoning_report.axioms.len() as u32;
-        self.stats.active_ontology_constraints = self.ontology_constraints.iter()
+        self.stats.active_ontology_constraints = self
+            .ontology_constraints
+            .iter()
             .filter(|c| c.active)
             .count() as u32;
 
@@ -139,18 +143,25 @@ impl OntologyConstraintActor {
         if self.gpu_initialized && self.shared_context.is_some() {
             match self.upload_constraints_to_gpu() {
                 Ok(_) => {
-                    info!("OntologyConstraintActor: Successfully uploaded {} constraints to GPU",
-                          self.constraint_buffer.len());
+                    info!(
+                        "OntologyConstraintActor: Successfully uploaded {} constraints to GPU",
+                        self.constraint_buffer.len()
+                    );
                 }
                 Err(e) => {
-                    warn!("OntologyConstraintActor: GPU upload failed, using CPU fallback: {}", e);
+                    warn!(
+                        "OntologyConstraintActor: GPU upload failed, using CPU fallback: {}",
+                        e
+                    );
                     self.stats.gpu_failure_count += 1;
                     self.stats.cpu_fallback_count += 1;
                     // Continue with CPU processing
                 }
             }
         } else {
-            debug!("OntologyConstraintActor: GPU not available, constraints stored for CPU processing");
+            debug!(
+                "OntologyConstraintActor: GPU not available, constraints stored for CPU processing"
+            );
             self.stats.cpu_fallback_count += 1;
         }
 
@@ -158,15 +169,20 @@ impl OntologyConstraintActor {
         self.stats.last_update_time_ms = start_time.elapsed().as_secs_f32() * 1000.0;
         self.stats.constraint_evaluation_count += 1;
 
-        info!("OntologyConstraintActor: Constraint application completed in {:.2}ms",
-              self.stats.last_update_time_ms);
+        info!(
+            "OntologyConstraintActor: Constraint application completed in {:.2}ms",
+            self.stats.last_update_time_ms
+        );
 
         Ok(())
     }
 
     /// Update constraints dynamically
     fn update_constraints(&mut self, axioms: &[OWLAxiom]) -> Result<(), String> {
-        info!("OntologyConstraintActor: Updating constraints with {} new axioms", axioms.len());
+        info!(
+            "OntologyConstraintActor: Updating constraints with {} new axioms",
+            axioms.len()
+        );
 
         // For dynamic updates, we need graph data - this should be fetched from GraphServiceActor
         // For now, log a warning that dynamic updates require graph context
@@ -180,20 +196,26 @@ impl OntologyConstraintActor {
 
     /// Upload constraints to GPU
     fn upload_constraints_to_gpu(&self) -> Result<(), String> {
-        let shared_context = self.shared_context.as_ref()
+        let shared_context = self
+            .shared_context
+            .as_ref()
             .ok_or("GPU context not available")?;
 
         // Acquire GPU compute lock
-        let mut unified_compute = shared_context.unified_compute.lock()
+        let mut unified_compute = shared_context
+            .unified_compute
+            .lock()
             .map_err(|e| format!("Failed to acquire GPU compute lock: {}", e))?;
 
         // Upload constraints using unified GPU compute
         if self.constraint_buffer.is_empty() {
             debug!("OntologyConstraintActor: No constraints to upload, clearing GPU constraints");
-            unified_compute.clear_constraints()
+            unified_compute
+                .clear_constraints()
                 .map_err(|e| format!("Failed to clear GPU constraints: {}", e))?;
         } else {
-            unified_compute.upload_constraints(&self.constraint_buffer)
+            unified_compute
+                .upload_constraints(&self.constraint_buffer)
                 .map_err(|e| format!("Failed to upload constraints to GPU: {}", e))?;
         }
 
@@ -250,7 +272,10 @@ impl Handler<ApplyOntologyConstraints> for OntologyConstraintActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: ApplyOntologyConstraints, _ctx: &mut Self::Context) -> Self::Result {
-        info!("OntologyConstraintActor: Received ApplyOntologyConstraints message for graph_id {}", msg.graph_id);
+        info!(
+            "OntologyConstraintActor: Received ApplyOntologyConstraints message for graph_id {}",
+            msg.graph_id
+        );
 
         // Store the constraint set based on merge mode
         let constraint_count = msg.constraint_set.constraints.len();
@@ -258,13 +283,16 @@ impl Handler<ApplyOntologyConstraints> for OntologyConstraintActor {
             ConstraintMergeMode::Replace => {
                 // Replace all existing ontology constraints
                 self.ontology_constraints = msg.constraint_set.constraints.clone();
-                info!("OntologyConstraintActor: Replaced all constraints with {} new constraints",
-                      self.ontology_constraints.len());
+                info!(
+                    "OntologyConstraintActor: Replaced all constraints with {} new constraints",
+                    self.ontology_constraints.len()
+                );
             }
             ConstraintMergeMode::Merge => {
                 // Merge with existing constraints
                 let existing_count = self.ontology_constraints.len();
-                self.ontology_constraints.extend(msg.constraint_set.constraints.clone());
+                self.ontology_constraints
+                    .extend(msg.constraint_set.constraints.clone());
                 info!("OntologyConstraintActor: Merged {} new constraints with {} existing (total: {})",
                       constraint_count, existing_count, self.ontology_constraints.len());
             }
@@ -274,8 +302,8 @@ impl Handler<ApplyOntologyConstraints> for OntologyConstraintActor {
                 for constraint in msg.constraint_set.constraints.clone() {
                     // Check for conflicts by comparing node_indices
                     let has_conflict = self.ontology_constraints.iter().any(|existing| {
-                        existing.node_indices == constraint.node_indices &&
-                        existing.kind == constraint.kind
+                        existing.node_indices == constraint.node_indices
+                            && existing.kind == constraint.kind
                     });
 
                     if !has_conflict {
@@ -283,14 +311,19 @@ impl Handler<ApplyOntologyConstraints> for OntologyConstraintActor {
                     }
                 }
                 let added_count = self.ontology_constraints.len() - initial_count;
-                info!("OntologyConstraintActor: Added {} non-conflicting constraints (skipped {})",
-                      added_count, constraint_count - added_count);
+                info!(
+                    "OntologyConstraintActor: Added {} non-conflicting constraints (skipped {})",
+                    added_count,
+                    constraint_count - added_count
+                );
             }
         }
 
         self.constraint_buffer = msg.constraint_set.to_gpu_data();
 
-        self.stats.active_ontology_constraints = self.ontology_constraints.iter()
+        self.stats.active_ontology_constraints = self
+            .ontology_constraints
+            .iter()
             .filter(|c| c.active)
             .count() as u32;
 
@@ -344,7 +377,11 @@ impl Handler<GetOntologyStats> for OntologyConstraintActor {
 impl Handler<GetOntologyConstraintStats> for OntologyConstraintActor {
     type Result = Result<crate::actors::messages::OntologyConstraintStats, String>;
 
-    fn handle(&mut self, _msg: GetOntologyConstraintStats, _ctx: &mut Self::Context) -> Self::Result {
+    fn handle(
+        &mut self,
+        _msg: GetOntologyConstraintStats,
+        _ctx: &mut Self::Context,
+    ) -> Self::Result {
         info!("OntologyConstraintActor: Received GetOntologyConstraintStats message");
 
         // Return statistics in the messages.rs format
@@ -401,7 +438,7 @@ impl Handler<GetConstraintStats> for OntologyConstraintActor {
         // Group constraints by type
         stats.constraint_groups.insert(
             "ontology_derived".to_string(),
-            self.ontology_constraints.len()
+            self.ontology_constraints.len(),
         );
 
         Ok(stats)
@@ -416,22 +453,28 @@ impl Handler<UpdateConstraints> for OntologyConstraintActor {
         info!("OntologyConstraintActor: Received UpdateConstraints message");
 
         // Parse constraint data and apply
-        let constraints = match serde_json::from_value::<Vec<Constraint>>(msg.constraint_data.clone()) {
-            Ok(constraints) => constraints,
-            Err(e) => {
-                // Try parsing as ConstraintSet
-                match serde_json::from_value::<ConstraintSet>(msg.constraint_data) {
-                    Ok(constraint_set) => constraint_set.constraints,
-                    Err(_) => {
-                        error!("OntologyConstraintActor: Failed to parse constraint_data: {}", e);
-                        return Err(format!("Failed to parse constraints: {}", e));
+        let constraints =
+            match serde_json::from_value::<Vec<Constraint>>(msg.constraint_data.clone()) {
+                Ok(constraints) => constraints,
+                Err(e) => {
+                    // Try parsing as ConstraintSet
+                    match serde_json::from_value::<ConstraintSet>(msg.constraint_data) {
+                        Ok(constraint_set) => constraint_set.constraints,
+                        Err(_) => {
+                            error!(
+                                "OntologyConstraintActor: Failed to parse constraint_data: {}",
+                                e
+                            );
+                            return Err(format!("Failed to parse constraints: {}", e));
+                        }
                     }
                 }
-            }
-        };
+            };
 
         self.ontology_constraints = constraints;
-        self.constraint_buffer = self.ontology_constraints.iter()
+        self.constraint_buffer = self
+            .ontology_constraints
+            .iter()
             .filter(|c| c.active)
             .map(|c| ConstraintData::from_constraint(c))
             .collect();
@@ -455,8 +498,10 @@ impl Handler<InitializeGPU> for OntologyConstraintActor {
         self.gpu_state.num_nodes = msg.graph.nodes.len() as u32;
         self.gpu_state.num_edges = msg.graph.edges.len() as u32;
 
-        info!("OntologyConstraintActor: Graph dimensions stored - {} nodes, {} edges",
-              self.gpu_state.num_nodes, self.gpu_state.num_edges);
+        info!(
+            "OntologyConstraintActor: Graph dimensions stored - {} nodes, {} edges",
+            self.gpu_state.num_nodes, self.gpu_state.num_edges
+        );
 
         Ok(())
     }
@@ -493,7 +538,9 @@ mod tests {
         ];
 
         actor.ontology_constraints = constraints;
-        actor.constraint_buffer = actor.ontology_constraints.iter()
+        actor.constraint_buffer = actor
+            .ontology_constraints
+            .iter()
             .map(|c| ConstraintData::from_constraint(c))
             .collect();
 

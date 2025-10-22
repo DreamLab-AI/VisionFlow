@@ -19,13 +19,13 @@ mod tests {
 
     #[cfg(feature = "ontology")]
     use webxr::actors::messages::{
-        LoadOntologyAxioms, ValidateOntology, ValidationMode, ApplyInferences,
-        GetOntologyReport, GetOntologyHealth, ClearOntologyCaches, UpdateOntologyMapping
+        ApplyInferences, ClearOntologyCaches, GetOntologyHealth, GetOntologyReport,
+        LoadOntologyAxioms, UpdateOntologyMapping, ValidateOntology, ValidationMode,
     };
 
     #[cfg(feature = "ontology")]
     use webxr::services::owl_validator::{
-        PropertyGraph, GraphNode, GraphEdge, ValidationConfig, RdfTriple
+        GraphEdge, GraphNode, PropertyGraph, RdfTriple, ValidationConfig,
     };
 
     #[cfg(feature = "ontology")]
@@ -50,17 +50,15 @@ mod tests {
                         props.insert("name".to_string(), serde_json::json!("ACME Corp"));
                         props
                     },
-                }
+                },
             ],
-            edges: vec![
-                GraphEdge {
-                    id: "edge1".to_string(),
-                    source: "person1".to_string(),
-                    target: "company1".to_string(),
-                    relationship_type: "employedBy".to_string(),
-                    properties: HashMap::new(),
-                }
-            ],
+            edges: vec![GraphEdge {
+                id: "edge1".to_string(),
+                source: "person1".to_string(),
+                target: "company1".to_string(),
+                relationship_type: "employedBy".to_string(),
+                properties: HashMap::new(),
+            }],
             metadata: HashMap::new(),
         }
     }
@@ -109,7 +107,11 @@ Ontology(<http://example.org/test>
 
         assert!(result.is_ok(), "Message send failed: {:?}", result.err());
         let ontology_id = result.unwrap();
-        assert!(ontology_id.is_ok(), "Load ontology failed: {:?}", ontology_id.err());
+        assert!(
+            ontology_id.is_ok(),
+            "Load ontology failed: {:?}",
+            ontology_id.err()
+        );
         assert!(!ontology_id.unwrap().is_empty());
     }
 
@@ -146,7 +148,11 @@ Ontology(<http://example.org/test>
 
         let result = addr.send(validate_msg).await;
 
-        assert!(result.is_ok(), "Validation message failed: {:?}", result.err());
+        assert!(
+            result.is_ok(),
+            "Validation message failed: {:?}",
+            result.err()
+        );
         let report = result.unwrap();
         assert!(report.is_ok(), "Validation failed: {:?}", report.err());
 
@@ -160,16 +166,14 @@ Ontology(<http://example.org/test>
         let actor = OntologyActor::new();
         let addr = actor.start();
 
-        let triples = vec![
-            RdfTriple {
-                subject: "http://example.org/person1".to_string(),
-                predicate: "http://example.org/knows".to_string(),
-                object: "http://example.org/person2".to_string(),
-                is_literal: false,
-                datatype: None,
-                language: None,
-            }
-        ];
+        let triples = vec![RdfTriple {
+            subject: "http://example.org/person1".to_string(),
+            predicate: "http://example.org/knows".to_string(),
+            object: "http://example.org/person2".to_string(),
+            is_literal: false,
+            datatype: None,
+            language: None,
+        }];
 
         let msg = ApplyInferences {
             rdf_triples: triples,
@@ -177,7 +181,11 @@ Ontology(<http://example.org/test>
 
         let result = addr.send(msg).await;
 
-        assert!(result.is_ok(), "Inference message failed: {:?}", result.err());
+        assert!(
+            result.is_ok(),
+            "Inference message failed: {:?}",
+            result.err()
+        );
         let inferred = result.unwrap();
         assert!(inferred.is_ok(), "Inference failed: {:?}", inferred.err());
 
@@ -198,7 +206,11 @@ Ontology(<http://example.org/test>
 
         let result = addr.send(msg).await;
 
-        assert!(result.is_ok(), "Get report message failed: {:?}", result.err());
+        assert!(
+            result.is_ok(),
+            "Get report message failed: {:?}",
+            result.err()
+        );
         let report_opt = result.unwrap();
         assert!(report_opt.is_ok());
 
@@ -216,7 +228,11 @@ Ontology(<http://example.org/test>
 
         let result = addr.send(msg).await;
 
-        assert!(result.is_ok(), "Get health message failed: {:?}", result.err());
+        assert!(
+            result.is_ok(),
+            "Get health message failed: {:?}",
+            result.err()
+        );
         let health = result.unwrap();
         assert!(health.is_ok(), "Get health failed: {:?}", health.err());
 
@@ -237,9 +253,17 @@ Ontology(<http://example.org/test>
 
         let result = addr.send(msg).await;
 
-        assert!(result.is_ok(), "Clear caches message failed: {:?}", result.err());
+        assert!(
+            result.is_ok(),
+            "Clear caches message failed: {:?}",
+            result.err()
+        );
         let clear_result = result.unwrap();
-        assert!(clear_result.is_ok(), "Clear caches failed: {:?}", clear_result.err());
+        assert!(
+            clear_result.is_ok(),
+            "Clear caches failed: {:?}",
+            clear_result.err()
+        );
     }
 
     #[cfg(feature = "ontology")]
@@ -260,15 +284,21 @@ Ontology(<http://example.org/test>
             validate_disjoint_classes: true,
         };
 
-        let msg = UpdateOntologyMapping {
-            config,
-        };
+        let msg = UpdateOntologyMapping { config };
 
         let result = addr.send(msg).await;
 
-        assert!(result.is_ok(), "Update mapping message failed: {:?}", result.err());
+        assert!(
+            result.is_ok(),
+            "Update mapping message failed: {:?}",
+            result.err()
+        );
         let update_result = result.unwrap();
-        assert!(update_result.is_ok(), "Update mapping failed: {:?}", update_result.err());
+        assert!(
+            update_result.is_ok(),
+            "Update mapping failed: {:?}",
+            update_result.err()
+        );
     }
 
     #[cfg(feature = "ontology")]
@@ -389,7 +419,10 @@ Ontology(<http://example.org/test>
         let result = addr.send(validate_msg).await;
 
         // Should not panic, but may return an error or placeholder report
-        assert!(result.is_ok(), "Actor should handle invalid ontology gracefully");
+        assert!(
+            result.is_ok(),
+            "Actor should handle invalid ontology gracefully"
+        );
     }
 
     #[cfg(feature = "ontology")]
@@ -470,9 +503,12 @@ Ontology(<http://example.org/test>
 )
         "#;
 
-        let load_result = addr.send(LoadOntologyAxioms {
-            source: ontology_content.to_string(),
-        }).await.unwrap();
+        let load_result = addr
+            .send(LoadOntologyAxioms {
+                source: ontology_content.to_string(),
+            })
+            .await
+            .unwrap();
 
         assert!(load_result.is_ok());
         let ontology_id = load_result.unwrap();
@@ -480,33 +516,40 @@ Ontology(<http://example.org/test>
         // Step 2: Validate graph
         let graph = create_test_graph();
 
-        let validate_result = addr.send(ValidateOntology {
-            ontology_id: ontology_id.clone(),
-            graph_data: graph.clone(),
-            mode: ValidationMode::Full,
-        }).await.unwrap();
+        let validate_result = addr
+            .send(ValidateOntology {
+                ontology_id: ontology_id.clone(),
+                graph_data: graph.clone(),
+                mode: ValidationMode::Full,
+            })
+            .await
+            .unwrap();
 
         assert!(validate_result.is_ok());
         let report = validate_result.unwrap();
 
-        println!("Validation report: {} violations, {} inferred triples",
-                 report.violations.len(), report.inferred_triples.len());
+        println!(
+            "Validation report: {} violations, {} inferred triples",
+            report.violations.len(),
+            report.inferred_triples.len()
+        );
 
         // Step 3: Apply inferences
-        let triples = vec![
-            RdfTriple {
-                subject: "http://example.org/person1".to_string(),
-                predicate: "http://example.org/employedBy".to_string(),
-                object: "http://example.org/company1".to_string(),
-                is_literal: false,
-                datatype: None,
-                language: None,
-            }
-        ];
+        let triples = vec![RdfTriple {
+            subject: "http://example.org/person1".to_string(),
+            predicate: "http://example.org/employedBy".to_string(),
+            object: "http://example.org/company1".to_string(),
+            is_literal: false,
+            datatype: None,
+            language: None,
+        }];
 
-        let inference_result = addr.send(ApplyInferences {
-            rdf_triples: triples,
-        }).await.unwrap();
+        let inference_result = addr
+            .send(ApplyInferences {
+                rdf_triples: triples,
+            })
+            .await
+            .unwrap();
 
         assert!(inference_result.is_ok());
         let inferred = inference_result.unwrap();
@@ -517,8 +560,10 @@ Ontology(<http://example.org/test>
         assert!(health_result.is_ok());
 
         let health = health_result.unwrap();
-        println!("Actor health: {} cached reports, queue size {}",
-                 health.cached_reports, health.validation_queue_size);
+        println!(
+            "Actor health: {} cached reports, queue size {}",
+            health.cached_reports, health.validation_queue_size
+        );
 
         // Step 5: Clear caches
         let clear_result = addr.send(ClearOntologyCaches).await.unwrap();

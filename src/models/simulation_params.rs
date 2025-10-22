@@ -1,14 +1,14 @@
-use serde::{Deserialize, Serialize};
+use crate::config::{AutoBalanceConfig, AutoPauseConfig, PhysicsSettings};
 use bytemuck::{Pod, Zeroable};
-use crate::config::{PhysicsSettings, AutoBalanceConfig, AutoPauseConfig};
 use cudarc::driver::DeviceRepr;
 use cust_core;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum SimulationMode {
-    Remote,  // GPU-accelerated remote computation (default)
-    Local,   // CPU-based computation (fallback only)
+    Remote, // GPU-accelerated remote computation (default)
+    Local,  // CPU-based computation (fallback only)
 }
 
 impl Default for SimulationMode {
@@ -20,9 +20,9 @@ impl Default for SimulationMode {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum SimulationPhase {
-    Initial,    // Heavy computation for initial layout
-    Dynamic,    // Lighter computation for dynamic updates
-    Finalize,   // Final positioning and cleanup
+    Initial,  // Heavy computation for initial layout
+    Dynamic,  // Lighter computation for dynamic updates
+    Finalize, // Final positioning and cleanup
 }
 
 impl Default for SimulationPhase {
@@ -62,38 +62,38 @@ pub struct SimParams {
     pub feature_flags: u32,
     pub seed: u32,
     pub iteration: i32,
-    
+
     // Additional fields for compatibility
     pub separation_radius: f32,
     pub cluster_strength: f32,
     pub alignment_strength: f32,
     pub temperature: f32,
     pub viewport_bounds: f32,
-    pub sssp_alpha: f32,  // SSSP influence on spring forces
+    pub sssp_alpha: f32,       // SSSP influence on spring forces
     pub boundary_damping: f32, // Damping applied at boundaries
-    
+
     // Constraint progressive activation parameters
-    pub constraint_ramp_frames: u32,  // Number of frames to fully activate constraints
-    pub constraint_max_force_per_node: f32,  // Maximum force per node from all constraints
+    pub constraint_ramp_frames: u32, // Number of frames to fully activate constraints
+    pub constraint_max_force_per_node: f32, // Maximum force per node from all constraints
 
     // GPU Stability Gates - Fix for KE=0 bug
-    pub stability_threshold: f32,  // Kinetic energy threshold below which physics is skipped
-    pub min_velocity_threshold: f32,  // Minimum node velocity to consider for physics
+    pub stability_threshold: f32, // Kinetic energy threshold below which physics is skipped
+    pub min_velocity_threshold: f32, // Minimum node velocity to consider for physics
 
     // GPU clustering and analytics parameters
-    pub world_bounds_min: f32,      // Minimum world coordinate
-    pub world_bounds_max: f32,      // Maximum world coordinate
-    pub cell_size_lod: f32,         // Level of detail cell size
-    pub k_neighbors_max: u32,       // Maximum k-neighbors for LOF
+    pub world_bounds_min: f32,         // Minimum world coordinate
+    pub world_bounds_max: f32,         // Maximum world coordinate
+    pub cell_size_lod: f32,            // Level of detail cell size
+    pub k_neighbors_max: u32,          // Maximum k-neighbors for LOF
     pub anomaly_detection_radius: f32, // Default radius for anomaly detection
-    pub learning_rate_default: f32, // Default learning rate for GPU algorithms
+    pub learning_rate_default: f32,    // Default learning rate for GPU algorithms
 
     // Additional kernel constants for fine-tuning
-    pub norm_delta_cap: f32,                   // Cap for SSSP delta normalization
-    pub position_constraint_attraction: f32,   // Gentle attraction factor for position constraints
-    pub lof_score_min: f32,                    // Minimum LOF score clamp
-    pub lof_score_max: f32,                    // Maximum LOF score clamp
-    pub weight_precision_multiplier: f32,      // Weight precision multiplier for integer operations
+    pub norm_delta_cap: f32, // Cap for SSSP delta normalization
+    pub position_constraint_attraction: f32, // Gentle attraction factor for position constraints
+    pub lof_score_min: f32,  // Minimum LOF score clamp
+    pub lof_score_max: f32,  // Maximum LOF score clamp
+    pub weight_precision_multiplier: f32, // Weight precision multiplier for integer operations
 }
 
 // SAFETY: SimParams is repr(C) with only POD types, safe for GPU transfer
@@ -111,52 +111,51 @@ impl FeatureFlags {
     pub const ENABLE_SPRINGS: u32 = 1 << 1;
     pub const ENABLE_CENTERING: u32 = 1 << 2;
     pub const ENABLE_TEMPORAL_COHERENCE: u32 = 1 << 3;
-    pub const ENABLE_CONSTRAINTS: u32 = 1 << 4;  // Enable semantic constraints
+    pub const ENABLE_CONSTRAINTS: u32 = 1 << 4; // Enable semantic constraints
     pub const ENABLE_STRESS_MAJORIZATION: u32 = 1 << 5;
-    pub const ENABLE_SSSP_SPRING_ADJUST: u32 = 1 << 6;  // Enable SSSP-based spring adjustment
+    pub const ENABLE_SSSP_SPRING_ADJUST: u32 = 1 << 6; // Enable SSSP-based spring adjustment
 }
-
 
 #[derive(Default, Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct SimulationParams {
     // Master enable flag
-    pub enabled: bool,             // FIX: Added to allow disabling physics entirely
-    
+    pub enabled: bool, // FIX: Added to allow disabling physics entirely
+
     // Auto-balance parameters
-    pub auto_balance: bool,        // Enable neural auto-balancing
-    pub auto_balance_interval_ms: u32, // Interval between auto-balance checks
+    pub auto_balance: bool,                     // Enable neural auto-balancing
+    pub auto_balance_interval_ms: u32,          // Interval between auto-balance checks
     pub auto_balance_config: AutoBalanceConfig, // Configuration for auto-balance thresholds
-    
+
     // Auto-pause parameters for equilibrium detection
-    pub auto_pause_config: AutoPauseConfig,  // Configuration for auto-pause functionality
-    pub is_physics_paused: bool,             // Current pause state (not enabled/disabled)
-    pub equilibrium_stability_counter: u32,  // Counter for equilibrium detection
-    
+    pub auto_pause_config: AutoPauseConfig, // Configuration for auto-pause functionality
+    pub is_physics_paused: bool,            // Current pause state (not enabled/disabled)
+    pub equilibrium_stability_counter: u32, // Counter for equilibrium detection
+
     // Core iteration parameters
-    pub iterations: u32,           // Range: 1-500, Default: varies by phase
-    pub dt: f32,                  // Range: 0.01-1, Default: 0.2 (5fps)
-    
+    pub iterations: u32, // Range: 1-500, Default: varies by phase
+    pub dt: f32,         // Range: 0.01-1, Default: 0.2 (5fps)
+
     // Force parameters
-    pub spring_k: f32,            // Range: 0.1-10, Default: 0.5
-    pub repel_k: f32,             // Default: 100
-    
+    pub spring_k: f32, // Range: 0.1-10, Default: 0.5
+    pub repel_k: f32,  // Default: 100
+
     // Mass and damping
-    pub mass_scale: f32,          // Default: 1.0, Affects force scaling
-    pub damping: f32,             // Range: 0-1, Default: 0.5
-    pub boundary_damping: f32,    // Range: 0.5-1, Default: 0.9
-    
+    pub mass_scale: f32,       // Default: 1.0, Affects force scaling
+    pub damping: f32,          // Range: 0-1, Default: 0.5
+    pub boundary_damping: f32, // Range: 0.5-1, Default: 0.9
+
     // Boundary control
-    pub viewport_bounds: f32,     // Range: 100-5000, Default: 1000
-    pub enable_bounds: bool,      // Default: true
-    
+    pub viewport_bounds: f32, // Range: 100-5000, Default: 1000
+    pub enable_bounds: bool,  // Default: true
+
     // Additional physics parameters
-    pub max_velocity: f32,        // Maximum velocity for nodes
-    pub max_force: f32,           // Maximum force magnitude to prevent instability
-    pub separation_radius: f32,   // Minimum separation between nodes
-    pub temperature: f32,          // System temperature for simulated annealing
-    pub center_gravity_k: f32,    // Center gravity force constant
-    
+    pub max_velocity: f32,      // Maximum velocity for nodes
+    pub max_force: f32,         // Maximum force magnitude to prevent instability
+    pub separation_radius: f32, // Minimum separation between nodes
+    pub temperature: f32,       // System temperature for simulated annealing
+    pub center_gravity_k: f32,  // Center gravity force constant
+
     // GPU-specific parameters
     pub stress_weight: f32,
     pub stress_alpha: f32,
@@ -170,20 +169,19 @@ pub struct SimulationParams {
     pub boundary_force_strength: f32,
     pub warmup_iterations: u32,
     pub cooling_rate: f32,
-    
-    // SSSP (Single-Source Shortest Path) parameters
-    pub use_sssp_distances: bool,  // Enable SSSP-based distance computation
-    pub sssp_alpha: Option<f32>,   // Weight factor for SSSP distances (0.0-1.0)
-    
-    // Constraint progressive activation parameters
-    pub constraint_ramp_frames: u32,  // Number of frames to fully activate constraints
-    pub constraint_max_force_per_node: f32,  // Maximum constraint force per node
-    
-    // Simulation state
-    pub phase: SimulationPhase,   // Current simulation phase
-    pub mode: SimulationMode,     // Computation mode
-}
 
+    // SSSP (Single-Source Shortest Path) parameters
+    pub use_sssp_distances: bool, // Enable SSSP-based distance computation
+    pub sssp_alpha: Option<f32>,  // Weight factor for SSSP distances (0.0-1.0)
+
+    // Constraint progressive activation parameters
+    pub constraint_ramp_frames: u32, // Number of frames to fully activate constraints
+    pub constraint_max_force_per_node: f32, // Maximum constraint force per node
+
+    // Simulation state
+    pub phase: SimulationPhase, // Current simulation phase
+    pub mode: SimulationMode,   // Computation mode
+}
 
 impl SimulationParams {
     pub fn new() -> Self {
@@ -195,7 +193,7 @@ impl SimulationParams {
     pub fn with_phase(phase: SimulationPhase) -> Self {
         let mut params = Self::new();
         params.phase = phase;
-        
+
         // Phase-specific adjustments are minimal - most values come from settings
         // Only adjust critical parameters that need to vary by phase
         match phase {
@@ -203,16 +201,16 @@ impl SimulationParams {
                 // Initial phase may need more iterations for settling
                 params.iterations = params.iterations.max(500);
                 params.warmup_iterations = params.warmup_iterations.max(300);
-            },
+            }
             SimulationPhase::Dynamic => {
                 // Dynamic phase uses default settings
-            },
+            }
             SimulationPhase::Finalize => {
                 // Finalize phase may need more iterations to stabilize
                 params.iterations = params.iterations.max(300);
-            },
+            }
         }
-        
+
         params
     }
 
@@ -276,13 +274,14 @@ impl SimulationParams {
 
             // Additional kernel constants for fine-tuning
             norm_delta_cap: crate::config::dev_config::physics().norm_delta_cap,
-            position_constraint_attraction: crate::config::dev_config::physics().position_constraint_attraction,
+            position_constraint_attraction: crate::config::dev_config::physics()
+                .position_constraint_attraction,
             lof_score_min: crate::config::dev_config::physics().lof_score_min,
             lof_score_max: crate::config::dev_config::physics().lof_score_max,
-            weight_precision_multiplier: crate::config::dev_config::physics().weight_precision_multiplier,
+            weight_precision_multiplier: crate::config::dev_config::physics()
+                .weight_precision_multiplier,
         }
     }
-
 }
 
 // Implementation for SimParams (GPU-aligned struct)
@@ -340,7 +339,7 @@ impl SimParams {
             boundary_force_strength: 1.0,
             warmup_iterations: self.warmup_iterations,
             cooling_rate: self.cooling_rate,
-            use_sssp_distances: false,  // Default to false for backwards compatibility
+            use_sssp_distances: false, // Default to false for backwards compatibility
             sssp_alpha: Some(self.sssp_alpha),
             constraint_ramp_frames: self.constraint_ramp_frames,
             constraint_max_force_per_node: self.constraint_max_force_per_node,
@@ -400,7 +399,7 @@ impl From<&PhysicsSettings> for SimParams {
             alignment_strength: physics.alignment_strength,
             temperature: physics.temperature,
             viewport_bounds: physics.bounds_size,
-            sssp_alpha: 0.0,  // Default to no SSSP influence
+            sssp_alpha: 0.0, // Default to no SSSP influence
             boundary_damping: physics.boundary_damping,
             constraint_ramp_frames: physics.constraint_ramp_frames,
             constraint_max_force_per_node: physics.constraint_max_force_per_node,
@@ -418,10 +417,12 @@ impl From<&PhysicsSettings> for SimParams {
 
             // Additional kernel constants for fine-tuning
             norm_delta_cap: crate::config::dev_config::physics().norm_delta_cap,
-            position_constraint_attraction: crate::config::dev_config::physics().position_constraint_attraction,
+            position_constraint_attraction: crate::config::dev_config::physics()
+                .position_constraint_attraction,
             lof_score_min: crate::config::dev_config::physics().lof_score_min,
             lof_score_max: crate::config::dev_config::physics().lof_score_max,
-            weight_precision_multiplier: crate::config::dev_config::physics().weight_precision_multiplier,
+            weight_precision_multiplier: crate::config::dev_config::physics()
+                .weight_precision_multiplier,
         }
     }
 }
@@ -435,7 +436,7 @@ impl From<&PhysicsSettings> for SimulationParams {
             auto_balance_interval_ms: physics.auto_balance_interval_ms,
             auto_balance_config: physics.auto_balance_config.clone(),
             auto_pause_config: physics.auto_pause.clone(),
-            is_physics_paused: false,  // Start unpaused
+            is_physics_paused: false, // Start unpaused
             equilibrium_stability_counter: 0,
             iterations: physics.iterations,
             dt: physics.dt,
@@ -447,7 +448,7 @@ impl From<&PhysicsSettings> for SimulationParams {
             viewport_bounds: physics.bounds_size,
             enable_bounds: physics.enable_bounds,
             max_velocity: physics.max_velocity,
-            max_force: physics.max_force,  // Use from settings
+            max_force: physics.max_force, // Use from settings
             separation_radius: physics.separation_radius,
             temperature: physics.temperature,
             center_gravity_k: physics.center_gravity_k,
@@ -464,8 +465,8 @@ impl From<&PhysicsSettings> for SimulationParams {
             boundary_force_strength: physics.boundary_force_strength,
             warmup_iterations: physics.warmup_iterations,
             cooling_rate: physics.cooling_rate,
-            use_sssp_distances: false,  // Default to disabled
-            sssp_alpha: None,  // Default to no SSSP influence
+            use_sssp_distances: false, // Default to disabled
+            sssp_alpha: None,          // Default to no SSSP influence
             constraint_ramp_frames: physics.constraint_ramp_frames,
             constraint_max_force_per_node: physics.constraint_max_force_per_node,
             phase: SimulationPhase::Dynamic,

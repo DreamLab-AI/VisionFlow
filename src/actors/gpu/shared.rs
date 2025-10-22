@@ -1,17 +1,17 @@
 //! Shared data structures and utilities for GPU actors
 
-use std::sync::{Arc, Mutex};
-use std::collections::HashMap;
-use std::time::{Duration, Instant};
+use super::cuda_stream_wrapper::SafeCudaStream;
 use actix::Addr;
 use cudarc::driver::CudaDevice;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
-use super::cuda_stream_wrapper::SafeCudaStream;
 
-use crate::utils::unified_gpu_compute::{UnifiedGPUCompute, SimParams};
-use crate::models::simulation_params::SimulationParams;
 use crate::models::constraints::Constraint;
+use crate::models::simulation_params::SimulationParams;
+use crate::utils::unified_gpu_compute::{SimParams, UnifiedGPUCompute};
 
 // Import the child actors for address storage
 // use super::{GPUResourceActor, ForceComputeActor, ClusteringActor,
@@ -84,8 +84,8 @@ impl GPUOperationBatch {
     }
 
     pub fn should_flush(&self) -> bool {
-        self.operations.len() >= self.batch_size_limit ||
-        self.created_at.elapsed().as_millis() >= self.flush_timeout_ms as u128
+        self.operations.len() >= self.batch_size_limit
+            || self.created_at.elapsed().as_millis() >= self.flush_timeout_ms as u128
     }
 
     pub fn add_operation(&mut self, operation: GPUOperation) {
@@ -229,7 +229,7 @@ impl StressMajorizationSafety {
         self.total_computation_time_ms += computation_time_ms;
     }
 
-    pub fn record_iteration(&mut self, stress: f32, displacement: f32, converged: bool) {
+    pub fn record_iteration(&mut self, stress: f32, displacement: f32, _converged: bool) {
         self.last_stress_values.push(stress);
         if self.last_stress_values.len() > 10 {
             self.last_stress_values.remove(0);
@@ -264,7 +264,9 @@ impl StressMajorizationSafety {
         }
     }
 
-    pub fn get_stats(&self) -> crate::actors::gpu::stress_majorization_actor::StressMajorizationStats {
+    pub fn get_stats(
+        &self,
+    ) -> crate::actors::gpu::stress_majorization_actor::StressMajorizationStats {
         crate::actors::gpu::stress_majorization_actor::StressMajorizationStats {
             stress_value: 0.0, // Default value
             iterations_performed: self.total_runs as u32,
@@ -290,12 +292,19 @@ impl StressMajorizationSafety {
 
 impl SharedGPUContext {
     /// Acquire GPU access with proper synchronization and metrics tracking
-    pub async fn acquire_gpu_access_qos(&self, operation: GPUOperation, priority: GPUOperationPriority) -> Result<(), String> {
+    pub async fn acquire_gpu_access_qos(
+        &self,
+        operation: GPUOperation,
+        priority: GPUOperationPriority,
+    ) -> Result<(), String> {
         let start_time = Instant::now();
 
         // Update resource metrics - concurrent access tracking
         {
-            let mut metrics = self.resource_metrics.lock().map_err(|e| format!("Failed to lock metrics: {}", e))?;
+            let mut metrics = self
+                .resource_metrics
+                .lock()
+                .map_err(|e| format!("Failed to lock metrics: {}", e))?;
             metrics.concurrent_access_attempts += 1;
         }
 
@@ -308,7 +317,6 @@ impl SharedGPUContext {
             drop(_guard);
         }
 
-
         // Check if we should batch this operation
         let should_batch = self.should_batch_operation(&operation);
         if should_batch {
@@ -319,7 +327,10 @@ impl SharedGPUContext {
         // Update metrics with wait time
         let wait_time = start_time.elapsed();
         {
-            let mut metrics = self.resource_metrics.lock().map_err(|e| format!("Failed to lock metrics: {}", e))?;
+            let mut metrics = self
+                .resource_metrics
+                .lock()
+                .map_err(|e| format!("Failed to lock metrics: {}", e))?;
             metrics.total_wait_time_ms += wait_time.as_millis() as u64;
             metrics.kernel_launch_count += 1;
             metrics.last_operation_timestamp = Some(Instant::now());
@@ -342,7 +353,10 @@ impl SharedGPUContext {
 
     /// Add operation to batch queue
     fn add_to_batch(&self, operation: GPUOperation) -> Result<(), String> {
-        let mut batch = self.operation_batch.lock().map_err(|e| format!("Failed to lock batch: {}", e))?;
+        let mut batch = self
+            .operation_batch
+            .lock()
+            .map_err(|e| format!("Failed to lock batch: {}", e))?;
         batch.push(operation);
 
         // Update batched operations count
@@ -355,7 +369,10 @@ impl SharedGPUContext {
 
     /// Flush batched operations if needed
     pub fn try_flush_batch(&self) -> Result<Vec<GPUOperation>, String> {
-        let mut batch = self.operation_batch.lock().map_err(|e| format!("Failed to lock batch: {}", e))?;
+        let mut batch = self
+            .operation_batch
+            .lock()
+            .map_err(|e| format!("Failed to lock batch: {}", e))?;
 
         if !batch.is_empty() {
             let operations = batch.clone();
@@ -368,13 +385,17 @@ impl SharedGPUContext {
 
     /// Update GPU utilization metrics
     pub fn update_utilization(&self, utilization_percent: f32) -> Result<(), String> {
-        let mut metrics = self.resource_metrics.lock().map_err(|e| format!("Failed to lock metrics: {}", e))?;
+        let mut metrics = self
+            .resource_metrics
+            .lock()
+            .map_err(|e| format!("Failed to lock metrics: {}", e))?;
 
         // Update average utilization with exponential moving average
         if metrics.average_utilization_percent == 0.0 {
             metrics.average_utilization_percent = utilization_percent;
         } else {
-            metrics.average_utilization_percent = metrics.average_utilization_percent * 0.9 + utilization_percent * 0.1;
+            metrics.average_utilization_percent =
+                metrics.average_utilization_percent * 0.9 + utilization_percent * 0.1;
         }
 
         Ok(())
@@ -419,7 +440,9 @@ impl SharedGPUContext {
 
     /// Acquire exclusive access to GPU for critical operations
     /// This method provides serialized access for operations that cannot be run concurrently
-    pub async fn acquire_exclusive_access(&self) -> Result<tokio::sync::RwLockWriteGuard<()>, String> {
+    pub async fn acquire_exclusive_access(
+        &self,
+    ) -> Result<tokio::sync::RwLockWriteGuard<()>, String> {
         let start_time = Instant::now();
 
         // Acquire write lock for exclusive access (blocks all readers and other writers)
@@ -445,15 +468,29 @@ impl GPUState {
 
     /// Remove operation from active operations list
     pub fn complete_operation(&mut self, operation: &GPUOperation) {
-        self.active_operations.retain(|op| !matches!((op, operation),
-            (GPUOperation::ForceComputation, GPUOperation::ForceComputation) |
-            (GPUOperation::PositionUpdate, GPUOperation::PositionUpdate) |
-            (GPUOperation::VelocityUpdate, GPUOperation::VelocityUpdate) |
-            (GPUOperation::Clustering, GPUOperation::Clustering) |
-            (GPUOperation::AnomalyDetection, GPUOperation::AnomalyDetection) |
-            (GPUOperation::StressMajorization, GPUOperation::StressMajorization) |
-            (GPUOperation::OntologyConstraints, GPUOperation::OntologyConstraints)
-        ));
+        self.active_operations.retain(|op| {
+            !matches!(
+                (op, operation),
+                (
+                    GPUOperation::ForceComputation,
+                    GPUOperation::ForceComputation
+                ) | (GPUOperation::PositionUpdate, GPUOperation::PositionUpdate)
+                    | (GPUOperation::VelocityUpdate, GPUOperation::VelocityUpdate)
+                    | (GPUOperation::Clustering, GPUOperation::Clustering)
+                    | (
+                        GPUOperation::AnomalyDetection,
+                        GPUOperation::AnomalyDetection
+                    )
+                    | (
+                        GPUOperation::StressMajorization,
+                        GPUOperation::StressMajorization
+                    )
+                    | (
+                        GPUOperation::OntologyConstraints,
+                        GPUOperation::OntologyConstraints
+                    )
+            )
+        });
         if self.concurrent_access_count > 0 {
             self.concurrent_access_count -= 1;
         }
@@ -473,7 +510,8 @@ impl GPUState {
         if self.gpu_utilization_history.is_empty() {
             0.0
         } else {
-            self.gpu_utilization_history.iter().sum::<f32>() / self.gpu_utilization_history.len() as f32
+            self.gpu_utilization_history.iter().sum::<f32>()
+                / self.gpu_utilization_history.len() as f32
         }
     }
 

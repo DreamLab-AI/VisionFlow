@@ -2,7 +2,7 @@
 mod settings_path_fix_tests {
     use serde::{Deserialize, Serialize};
     use serde_json::{json, Value};
-    
+
     // Import the path access trait (assuming it's in the webxr crate)
     use webxr::config::path_access::JsonPathAccessible;
 
@@ -67,13 +67,21 @@ mod settings_path_fix_tests {
         // Apply all updates
         for (path, value) in &updates {
             let result = settings.set_json_by_path(path, value.clone());
-            assert!(result.is_ok(), "Failed to update path '{}': {:?}", path, result);
+            assert!(
+                result.is_ok(),
+                "Failed to update path '{}': {:?}",
+                path,
+                result
+            );
         }
 
         // Verify all updates were applied correctly
         assert_eq!(settings.visualisation.enable_hologram, true);
         assert_eq!(settings.visualisation.hologram_settings.ring_count, 5);
-        assert_eq!(settings.visualisation.hologram_settings.ring_color, "#00FF00");
+        assert_eq!(
+            settings.visualisation.hologram_settings.ring_color,
+            "#00FF00"
+        );
         assert_eq!(settings.visualisation.hologram_settings.ring_opacity, 0.6);
         assert_eq!(settings.visualisation.nodes.base_color, "#0000FF");
         assert_eq!(settings.visualisation.nodes.metalness, 0.8);
@@ -114,7 +122,8 @@ mod settings_path_fix_tests {
         assert!(result.unwrap_err().contains("does not exist"));
 
         // Test path to non-existent nested field
-        let result = settings.set_json_by_path("visualisation.hologramSettings.nonExistent", json!(42));
+        let result =
+            settings.set_json_by_path("visualisation.hologramSettings.nonExistent", json!(42));
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("does not exist"));
     }
@@ -138,7 +147,8 @@ mod settings_path_fix_tests {
         };
 
         // Try to set boolean where number is expected
-        let result = settings.set_json_by_path("visualisation.hologramSettings.ringCount", json!(true));
+        let result =
+            settings.set_json_by_path("visualisation.hologramSettings.ringCount", json!(true));
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("Type mismatch"));
 
@@ -203,13 +213,19 @@ mod settings_path_fix_tests {
         };
 
         // Test getting values with camelCase paths
-        let value = settings.get_json_by_path("visualisation.enableHologram").unwrap();
+        let value = settings
+            .get_json_by_path("visualisation.enableHologram")
+            .unwrap();
         assert_eq!(value, json!(true));
 
-        let value = settings.get_json_by_path("visualisation.hologramSettings.ringCount").unwrap();
+        let value = settings
+            .get_json_by_path("visualisation.hologramSettings.ringCount")
+            .unwrap();
         assert_eq!(value, json!(5));
 
-        let value = settings.get_json_by_path("visualisation.nodes.metalness").unwrap();
+        let value = settings
+            .get_json_by_path("visualisation.nodes.metalness")
+            .unwrap();
         assert_eq!(value, json!(0.9));
 
         // Test invalid path

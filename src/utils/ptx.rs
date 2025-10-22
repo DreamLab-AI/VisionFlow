@@ -5,11 +5,11 @@
 // 2) If unavailable, corrupted, or in Docker (DOCKER_ENV set), compile on-the-fly via nvcc -ptx.
 // 3) Support multiple PTX modules for different kernel sets.
 
+use log::{error, info, warn};
+use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::collections::HashMap;
-use log::{info, error, warn};
 
 pub const DEFAULT_CUDA_ARCH: &str = "75";
 pub const CUDA_ARCH_ENV: &str = "CUDA_ARCH";
@@ -121,14 +121,22 @@ pub fn load_ptx_module_sync(module: PTXModule) -> Result<String, String> {
         match fs::read_to_string(&path) {
             Ok(content) => {
                 if let Err(e) = validate_ptx(&content) {
-                    warn!("Build-time PTX at {} failed validation: {}. Trying alternatives.", path.display(), e);
+                    warn!(
+                        "Build-time PTX at {} failed validation: {}. Trying alternatives.",
+                        path.display(),
+                        e
+                    );
                 } else {
                     info!("Loaded build-time PTX from {}", path.display());
                     return Ok(content);
                 }
             }
             Err(read_err) => {
-                warn!("Failed to read build-time PTX at {}: {}. Trying alternatives.", path.display(), read_err);
+                warn!(
+                    "Failed to read build-time PTX at {}: {}. Trying alternatives.",
+                    path.display(),
+                    read_err
+                );
             }
         }
     }
@@ -139,7 +147,10 @@ pub fn load_ptx_module_sync(module: PTXModule) -> Result<String, String> {
     }
 
     // Fall back to runtime compilation
-    warn!("No pre-compiled PTX found for {:?}. Falling back to runtime compile.", module);
+    warn!(
+        "No pre-compiled PTX found for {:?}. Falling back to runtime compile.",
+        module
+    );
     compile_ptx_fallback_sync_module(module)
 }
 
@@ -149,7 +160,9 @@ fn load_precompiled_ptx(module: PTXModule) -> Result<String, String> {
     let ptx_file = module.source_file().replace(".cu", ".ptx");
 
     let ptx_paths = vec![
-        PathBuf::from(manifest_dir).join("src/utils/ptx").join(&ptx_file),
+        PathBuf::from(manifest_dir)
+            .join("src/utils/ptx")
+            .join(&ptx_file),
         PathBuf::from("/app/src/utils/ptx").join(&ptx_file),
         PathBuf::from("./src/utils/ptx").join(&ptx_file),
     ];
@@ -179,7 +192,11 @@ pub fn load_all_ptx_modules_sync() -> Result<HashMap<PTXModule, String>, String>
     for module in PTXModule::all_modules() {
         match load_ptx_module_sync(module) {
             Ok(content) => {
-                info!("Successfully loaded PTX for {:?}, size: {} bytes", module, content.len());
+                info!(
+                    "Successfully loaded PTX for {:?}, size: {} bytes",
+                    module,
+                    content.len()
+                );
                 modules.insert(module, content);
             }
             Err(e) => {
@@ -201,7 +218,10 @@ pub async fn load_ptx() -> Result<String, String> {
 
 /// Compile a specific CUDA module to PTX on-the-fly using nvcc
 pub fn compile_ptx_fallback_sync_module(module: PTXModule) -> Result<String, String> {
-    info!("compile_ptx_fallback_sync_module: Starting runtime PTX compilation for {:?}", module);
+    info!(
+        "compile_ptx_fallback_sync_module: Starting runtime PTX compilation for {:?}",
+        module
+    );
     let arch = effective_cuda_arch();
     info!("Using CUDA architecture: sm_{}", arch);
 
@@ -249,11 +269,20 @@ pub fn compile_ptx_fallback_sync_module(module: PTXModule) -> Result<String, Str
         ));
     }
 
-    let ptx_content = fs::read_to_string(&out_path)
-        .map_err(|e| format!("Failed to read generated PTX at {}: {}", out_path.display(), e))?;
+    let ptx_content = fs::read_to_string(&out_path).map_err(|e| {
+        format!(
+            "Failed to read generated PTX at {}: {}",
+            out_path.display(),
+            e
+        )
+    })?;
 
     validate_ptx(&ptx_content)?;
-    info!("Successfully compiled PTX for {:?}, size: {} bytes", module, ptx_content.len());
+    info!(
+        "Successfully compiled PTX for {:?}, size: {} bytes",
+        module,
+        ptx_content.len()
+    );
     Ok(ptx_content)
 }
 

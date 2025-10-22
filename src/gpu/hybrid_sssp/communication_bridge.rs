@@ -38,14 +38,14 @@ impl GPUBridge {
     pub async fn upload_graph(
         &mut self,
         num_nodes: usize,
-        csr_row_offsets: &[u32],
-        csr_col_indices: &[u32],
-        csr_weights: &[f32],
+        _csr_row_offsets: &[u32],
+        _csr_col_indices: &[u32],
+        _csr_weights: &[f32],
     ) -> Result<(), String> {
         let start = Instant::now();
 
         self.num_nodes = num_nodes;
-        self.num_edges = csr_col_indices.len();
+        self.num_edges = _csr_col_indices.len();
 
         // Allocate pinned memory if enabled
         if self.use_pinned_memory {
@@ -94,7 +94,7 @@ impl GPUBridge {
 
         // In real implementation, this would call CUDA kernel
         // For now, simulate with simple result
-        let mut temp_distances = distances.to_vec();
+        let temp_distances = distances.to_vec();
         let mut spt_sizes = vec![1u32; self.num_nodes];
 
         // Simulate k-step relaxation
@@ -153,7 +153,7 @@ impl GPUBridge {
         // In real implementation, would call CUDA kernel
         // For now, simulate with placeholder
         let mut distances = initial_distances.to_vec();
-        let mut parents = vec![-1i32; self.num_nodes];
+        let parents = vec![-1i32; self.num_nodes];
         let mut relaxations = 0u64;
 
         // Set source distances
@@ -169,7 +169,8 @@ impl GPUBridge {
             relaxations += sources.len() as u64 * 20; // Simulated relaxations
 
             // Check if any distance exceeds bound
-            let max_dist = distances.iter()
+            let max_dist = distances
+                .iter()
                 .filter(|&&d| d < f32::INFINITY)
                 .fold(0.0f32, |a, &b| a.max(b));
 
@@ -264,12 +265,12 @@ pub struct MemoryStats {
 pub mod gpu_kernels {
     /// K-step relaxation kernel signature
     pub fn k_step_relaxation_kernel(
-        frontier: &[u32],
+        _frontier: &[u32],
         distances: &[f32],
         k: u32,
-        csr_row_offsets: &[u32],
-        csr_col_indices: &[u32],
-        csr_weights: &[f32],
+        _csr_row_offsets: &[u32],
+        _csr_col_indices: &[u32],
+        _csr_weights: &[f32],
     ) -> (Vec<f32>, Vec<u32>) {
         // Placeholder - would be implemented in CUDA
         (distances.to_vec(), vec![k; distances.len()])
@@ -277,12 +278,12 @@ pub mod gpu_kernels {
 
     /// Bounded Dijkstra kernel signature
     pub fn bounded_dijkstra_kernel(
-        sources: &[u32],
+        _sources: &[u32],
         initial_distances: &[f32],
-        bound: f32,
-        csr_row_offsets: &[u32],
-        csr_col_indices: &[u32],
-        csr_weights: &[f32],
+        _bound: f32,
+        _csr_row_offsets: &[u32],
+        _csr_col_indices: &[u32],
+        _csr_weights: &[f32],
     ) -> (Vec<f32>, Vec<i32>, u64) {
         // Placeholder - would be implemented in CUDA
         let distances = initial_distances.to_vec();
@@ -311,7 +312,10 @@ mod tests {
         let col_indices = vec![1, 2, 0, 2, 0, 1];
         let weights = vec![1.0; 6];
 
-        bridge.upload_graph(3, &row_offsets, &col_indices, &weights).await.unwrap();
+        bridge
+            .upload_graph(3, &row_offsets, &col_indices, &weights)
+            .await
+            .unwrap();
 
         assert!(bridge.graph_uploaded);
         assert_eq!(bridge.num_nodes, 3);
@@ -326,7 +330,10 @@ mod tests {
         let col_indices = vec![0; 10000];
         let weights = vec![1.0; 10000];
 
-        bridge.upload_graph(1000, &row_offsets, &col_indices, &weights).await.unwrap();
+        bridge
+            .upload_graph(1000, &row_offsets, &col_indices, &weights)
+            .await
+            .unwrap();
 
         let stats = bridge.get_memory_stats();
         assert!(stats.graph_memory_mb > 0.0);

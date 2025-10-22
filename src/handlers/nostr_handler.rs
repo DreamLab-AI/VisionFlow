@@ -1,7 +1,7 @@
 use crate::app_state::AppState;
-use crate::models::protected_settings::ApiKeys;
-use crate::services::nostr_service::{NostrService, AuthEvent, NostrError};
 use crate::config::feature_access::FeatureAccess;
+use crate::models::protected_settings::ApiKeys;
+use crate::services::nostr_service::{AuthEvent, NostrError, NostrService};
 use actix_web::{web, Error, HttpRequest, HttpResponse};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -49,7 +49,7 @@ pub struct ValidateRequest {
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::scope("/auth/nostr")  // Now mounted under /api/auth/nostr due to API handler configuration
+        web::scope("/auth/nostr") // Now mounted under /api/auth/nostr due to API handler configuration
             .route("", web::post().to(login))
             .route("", web::delete().to(logout))
             .route("/verify", web::post().to(verify))
@@ -58,7 +58,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .route("/api-keys", web::get().to(get_api_keys))
             .route("/power-user-status", web::get().to(check_power_user_status))
             .route("/features", web::get().to(get_available_features))
-            .route("/features/{feature}", web::get().to(check_feature_access))
+            .route("/features/{feature}", web::get().to(check_feature_access)),
     );
 }
 
@@ -66,7 +66,8 @@ async fn check_power_user_status(
     req: HttpRequest,
     feature_access: web::Data<FeatureAccess>,
 ) -> Result<HttpResponse, Error> {
-    let pubkey = req.headers()
+    let pubkey = req
+        .headers()
         .get("X-Nostr-Pubkey")
         .and_then(|h| h.to_str().ok())
         .unwrap_or("");
@@ -86,7 +87,8 @@ async fn get_available_features(
     req: HttpRequest,
     feature_access: web::Data<FeatureAccess>,
 ) -> Result<HttpResponse, Error> {
-    let pubkey = req.headers()
+    let pubkey = req
+        .headers()
         .get("X-Nostr-Pubkey")
         .and_then(|h| h.to_str().ok())
         .unwrap_or("");
@@ -108,7 +110,8 @@ async fn check_feature_access(
     feature_access: web::Data<FeatureAccess>,
     feature: web::Path<String>,
 ) -> Result<HttpResponse, Error> {
-    let pubkey = req.headers()
+    let pubkey = req
+        .headers()
         .get("X-Nostr-Pubkey")
         .and_then(|h| h.to_str().ok())
         .unwrap_or("");
@@ -132,10 +135,11 @@ async fn login(
     match nostr_service.verify_auth_event(event.into_inner()).await {
         Ok(user) => {
             let token = user.session_token.clone().unwrap_or_default();
-            let expires_at = user.last_seen + std::env::var("AUTH_TOKEN_EXPIRY")
-                .unwrap_or_else(|_| "3600".to_string())
-                .parse::<i64>()
-                .unwrap_or(3600);
+            let expires_at = user.last_seen
+                + std::env::var("AUTH_TOKEN_EXPIRY")
+                    .unwrap_or_else(|_| "3600".to_string())
+                    .parse::<i64>()
+                    .unwrap_or(3600);
 
             // Get available features for the user
             let features = feature_access.get_available_features(&user.pubkey);
@@ -154,16 +158,12 @@ async fn login(
                 features,
             }))
         }
-        Err(NostrError::InvalidSignature) => {
-            Ok(HttpResponse::Unauthorized().json(json!({
-                "error": "Invalid signature"
-            })))
-        }
-        Err(e) => {
-            Ok(HttpResponse::InternalServerError().json(json!({
-                "error": format!("Authentication error: {}", e)
-            })))
-        }
+        Err(NostrError::InvalidSignature) => Ok(HttpResponse::Unauthorized().json(json!({
+            "error": "Invalid signature"
+        }))),
+        Err(e) => Ok(HttpResponse::InternalServerError().json(json!({
+            "error": format!("Authentication error: {}", e)
+        }))),
     }
 }
 
@@ -172,7 +172,10 @@ async fn logout(
     nostr_service: web::Data<NostrService>,
 ) -> Result<HttpResponse, Error> {
     // Validate session before logout
-    if !nostr_service.validate_session(&req.pubkey, &req.token).await {
+    if !nostr_service
+        .validate_session(&req.pubkey, &req.token)
+        .await
+    {
         return Ok(HttpResponse::Unauthorized().json(json!({
             "error": "Invalid session"
         })));
@@ -193,14 +196,18 @@ async fn verify(
     nostr_service: web::Data<NostrService>,
     feature_access: web::Data<FeatureAccess>,
 ) -> Result<HttpResponse, Error> {
-    let is_valid = nostr_service.validate_session(&req.pubkey, &req.token).await;
+    let is_valid = nostr_service
+        .validate_session(&req.pubkey, &req.token)
+        .await;
     let user = if is_valid {
-        nostr_service.get_user(&req.pubkey).await
-                .map(|u| UserResponseDTO {
-                    pubkey: u.pubkey,
-                    npub: Some(u.npub),
-                    is_power_user: u.is_power_user,
-                })
+        nostr_service
+            .get_user(&req.pubkey)
+            .await
+            .map(|u| UserResponseDTO {
+                pubkey: u.pubkey,
+                npub: Some(u.npub),
+                is_power_user: u.is_power_user,
+            })
     } else {
         None
     };
@@ -225,7 +232,10 @@ async fn refresh(
     feature_access: web::Data<FeatureAccess>,
 ) -> Result<HttpResponse, Error> {
     // First validate the current session
-    if !nostr_service.validate_session(&req.pubkey, &req.token).await {
+    if !nostr_service
+        .validate_session(&req.pubkey, &req.token)
+        .await
+    {
         return Ok(HttpResponse::Unauthorized().json(json!({
             "error": "Invalid session"
         })));
@@ -234,24 +244,25 @@ async fn refresh(
     match nostr_service.refresh_session(&req.pubkey).await {
         Ok(new_token) => {
             if let Some(user) = nostr_service.get_user(&req.pubkey).await {
-                let expires_at = user.last_seen + std::env::var("AUTH_TOKEN_EXPIRY")
-                    .unwrap_or_else(|_| "3600".to_string())
-                    .parse::<i64>()
-                    .unwrap_or(3600);
-// Get available features for the refreshed session
-let features = feature_access.get_available_features(&req.pubkey);
+                let expires_at = user.last_seen
+                    + std::env::var("AUTH_TOKEN_EXPIRY")
+                        .unwrap_or_else(|_| "3600".to_string())
+                        .parse::<i64>()
+                        .unwrap_or(3600);
+                // Get available features for the refreshed session
+                let features = feature_access.get_available_features(&req.pubkey);
 
-Ok(HttpResponse::Ok().json(AuthResponse {
-    user: UserResponseDTO {
-        pubkey: user.pubkey.clone(),
-        npub: Some(user.npub.clone()),
-        is_power_user: user.is_power_user,
-    },
-    token: new_token,
-    expires_at,
-    features,
-}))
-} else {
+                Ok(HttpResponse::Ok().json(AuthResponse {
+                    user: UserResponseDTO {
+                        pubkey: user.pubkey.clone(),
+                        npub: Some(user.npub.clone()),
+                        is_power_user: user.is_power_user,
+                    },
+                    token: new_token,
+                    expires_at,
+                    features,
+                }))
+            } else {
                 Ok(HttpResponse::InternalServerError().json(json!({
                     "error": "User not found after refresh"
                 })))
@@ -282,22 +293,16 @@ async fn update_api_keys(
                 is_power_user: user.is_power_user,
             };
             Ok(HttpResponse::Ok().json(user_dto))
-        },
-        Err(NostrError::UserNotFound) => {
-            Ok(HttpResponse::NotFound().json(json!({
-                "error": "User not found"
-            })))
         }
-        Err(NostrError::PowerUserOperation) => {
-            Ok(HttpResponse::Forbidden().json(json!({
-                "error": "Cannot update API keys for power users"
-            })))
-        }
-        Err(e) => {
-            Ok(HttpResponse::InternalServerError().json(json!({
-                "error": format!("Failed to update API keys: {}", e)
-            })))
-        }
+        Err(NostrError::UserNotFound) => Ok(HttpResponse::NotFound().json(json!({
+            "error": "User not found"
+        }))),
+        Err(NostrError::PowerUserOperation) => Ok(HttpResponse::Forbidden().json(json!({
+            "error": "Cannot update API keys for power users"
+        }))),
+        Err(e) => Ok(HttpResponse::InternalServerError().json(json!({
+            "error": format!("Failed to update API keys: {}", e)
+        }))),
     }
 }
 
@@ -306,14 +311,14 @@ async fn get_api_keys(
     pubkey: web::Path<String>,
 ) -> Result<HttpResponse, Error> {
     let api_keys = state.get_api_keys(&pubkey).await;
-    
+
     Ok(HttpResponse::Ok().json(api_keys))
 }
 
 // Add the handler to app_state initialization
 pub fn init_nostr_service(app_state: &mut AppState) {
     let nostr_service = NostrService::new();
-    
+
     // Start session cleanup task
     let service_clone = nostr_service.clone();
     tokio::spawn(async move {

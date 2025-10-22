@@ -1,7 +1,6 @@
 // GPU Kernel Enhancements for Hybrid SSSP
 // These kernels are designed to work efficiently with CPU orchestration
 
-
 /// GPU kernel specifications for hybrid SSSP
 pub struct HybridGPUKernels;
 
@@ -305,18 +304,19 @@ extern "C" {
     }
 
     /// Link with existing CUDA kernels
-    pub fn link_with_existing_kernels(
-        existing_ptx_path: &str,
-    ) -> Result<Vec<u8>, String> {
+    pub fn link_with_existing_kernels(_existing_ptx_path: &str) -> Result<Vec<u8>, String> {
         // In real implementation, would use NVRTC to compile and link
-        log::info!("Linking hybrid kernels with existing GPU code at: {}", existing_ptx_path);
+        log::info!(
+            "Linking hybrid kernels with existing GPU code at: {}",
+            _existing_ptx_path
+        );
 
         // Placeholder - would return compiled PTX
         Ok(Vec::new())
     }
 
     /// Get kernel launch parameters based on graph size
-    pub fn get_launch_params(num_nodes: usize, num_edges: usize) -> KernelLaunchParams {
+    pub fn get_launch_params(num_nodes: usize, _num_edges: usize) -> KernelLaunchParams {
         // Calculate optimal block and grid sizes
         let block_size = if num_nodes < 1024 { 128 } else { 256 };
         let grid_size = ((num_nodes + block_size - 1) / block_size).min(65535);

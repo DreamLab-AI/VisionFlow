@@ -26,29 +26,41 @@ export const PROTOCOL_VERSION = PROTOCOL_V2;  // Default to V2
 
 // Message types (1 byte header)
 export enum MessageType {
-  // Position/movement data
-  POSITION_UPDATE = 0x01,     // Client -> Server: User moved nodes
-  AGENT_POSITIONS = 0x02,     // Server -> Client: Agent position batch
-  VELOCITY_UPDATE = 0x03,     // Bi-directional: Velocity changes
-
-  // Agent metadata
-  AGENT_STATE_FULL = 0x10,    // Server -> Client: Complete agent state
-  AGENT_STATE_DELTA = 0x11,   // Server -> Client: Partial state updates
-  AGENT_HEALTH = 0x12,        // Server -> Client: Health/resources only
-
-  // Control and coordination
-  CONTROL_BITS = 0x20,        // Bi-directional: Control flags
-  SSSP_DATA = 0x21,          // Server -> Client: Pathfinding data
-  HANDSHAKE = 0x22,          // Bi-directional: Protocol negotiation
-  HEARTBEAT = 0x23,          // Bi-directional: Connection keepalive
+  // Graph updates (knowledge graph or ontology)
+  GRAPH_UPDATE = 0x01,        // Server -> Client: Graph data updates (includes graph_type_flag)
 
   // Voice/audio streaming
-  VOICE_CHUNK = 0x30,        // Bi-directional: Audio data chunks
-  VOICE_START = 0x31,        // Client -> Server: Start voice transmission
-  VOICE_END = 0x32,          // Client -> Server: End voice transmission
+  VOICE_DATA = 0x02,          // Bi-directional: Audio data chunks
+
+  // Position/movement data (legacy)
+  POSITION_UPDATE = 0x10,     // Client -> Server: User moved nodes
+  AGENT_POSITIONS = 0x11,     // Server -> Client: Agent position batch
+  VELOCITY_UPDATE = 0x12,     // Bi-directional: Velocity changes
+
+  // Agent metadata
+  AGENT_STATE_FULL = 0x20,    // Server -> Client: Complete agent state
+  AGENT_STATE_DELTA = 0x21,   // Server -> Client: Partial state updates
+  AGENT_HEALTH = 0x22,        // Server -> Client: Health/resources only
+
+  // Control and coordination
+  CONTROL_BITS = 0x30,        // Bi-directional: Control flags
+  SSSP_DATA = 0x31,          // Server -> Client: Pathfinding data
+  HANDSHAKE = 0x32,          // Bi-directional: Protocol negotiation
+  HEARTBEAT = 0x33,          // Bi-directional: Connection keepalive
+
+  // Voice/audio streaming (legacy)
+  VOICE_CHUNK = 0x40,        // Bi-directional: Audio data chunks
+  VOICE_START = 0x41,        // Client -> Server: Start voice transmission
+  VOICE_END = 0x42,          // Client -> Server: End voice transmission
 
   // Error handling
   ERROR = 0xFF               // Bi-directional: Error messages
+}
+
+// Graph type flags for GRAPH_UPDATE messages
+export enum GraphTypeFlag {
+  KNOWLEDGE_GRAPH = 0x01,    // Standard knowledge graph
+  ONTOLOGY = 0x02            // Ontology mode
 }
 
 // Agent state flags (bit field)
@@ -131,16 +143,26 @@ export interface VoiceChunk {
 
 /**
  * Message header for all binary messages
- * Size: 4 bytes
+ * Size: 5 bytes (updated to include graph type flag)
  */
 export interface MessageHeader {
-  type: MessageType;     // 1 byte
-  version: number;       // 1 byte
-  payloadLength: number; // 2 bytes (uint16) - excludes header
+  type: MessageType;      // 1 byte
+  version: number;        // 1 byte
+  payloadLength: number;  // 2 bytes (uint16) - excludes header
+  graphTypeFlag?: GraphTypeFlag; // 1 byte (only for GRAPH_UPDATE messages)
+}
+
+/**
+ * Extended header for GRAPH_UPDATE messages
+ * Size: 5 bytes
+ */
+export interface GraphUpdateHeader extends MessageHeader {
+  graphTypeFlag: GraphTypeFlag; // 1 byte - required for graph updates
 }
 
 // Constants for binary layout (V1 - Legacy)
 export const MESSAGE_HEADER_SIZE = 4;
+export const GRAPH_UPDATE_HEADER_SIZE = 5; // With graph type flag
 export const AGENT_POSITION_SIZE_V1 = 19;  // u16 ID
 export const AGENT_STATE_SIZE_V1 = 47;     // u16 ID
 export const SSSP_DATA_SIZE_V1 = 10;       // u16 ID
@@ -181,8 +203,10 @@ export class BinaryWebSocketProtocol {
   /**
    * Create a binary message with header
    */
-  public createMessage(type: MessageType, payload: ArrayBuffer): ArrayBuffer {
-    const totalSize = MESSAGE_HEADER_SIZE + payload.byteLength;
+  public createMessage(type: MessageType, payload: ArrayBuffer, graphTypeFlag?: GraphTypeFlag): ArrayBuffer {
+    const isGraphUpdate = type === MessageType.GRAPH_UPDATE;
+    const headerSize = isGraphUpdate ? GRAPH_UPDATE_HEADER_SIZE : MESSAGE_HEADER_SIZE;
+    const totalSize = headerSize + payload.byteLength;
     const buffer = new ArrayBuffer(totalSize);
     const view = new DataView(buffer);
 
@@ -191,8 +215,13 @@ export class BinaryWebSocketProtocol {
     view.setUint8(1, PROTOCOL_VERSION);
     view.setUint16(2, payload.byteLength, true);
 
+    // Write graph type flag for GRAPH_UPDATE messages
+    if (isGraphUpdate && graphTypeFlag !== undefined) {
+      view.setUint8(4, graphTypeFlag);
+    }
+
     // Copy payload
-    new Uint8Array(buffer, MESSAGE_HEADER_SIZE).set(new Uint8Array(payload));
+    new Uint8Array(buffer, headerSize).set(new Uint8Array(payload));
 
     return buffer;
   }
@@ -207,21 +236,32 @@ export class BinaryWebSocketProtocol {
     }
 
     const view = new DataView(buffer);
-    return {
-      type: view.getUint8(0) as MessageType,
+    const type = view.getUint8(0) as MessageType;
+    const header: MessageHeader = {
+      type,
       version: view.getUint8(1),
       payloadLength: view.getUint16(2, true)
     };
+
+    // Parse graph type flag for GRAPH_UPDATE messages
+    if (type === MessageType.GRAPH_UPDATE && buffer.byteLength >= GRAPH_UPDATE_HEADER_SIZE) {
+      header.graphTypeFlag = view.getUint8(4) as GraphTypeFlag;
+    }
+
+    return header;
   }
 
   /**
    * Extract payload from binary message
    */
-  public extractPayload(buffer: ArrayBuffer): ArrayBuffer {
-    if (buffer.byteLength <= MESSAGE_HEADER_SIZE) {
+  public extractPayload(buffer: ArrayBuffer, header?: MessageHeader): ArrayBuffer {
+    const isGraphUpdate = header?.type === MessageType.GRAPH_UPDATE;
+    const headerSize = isGraphUpdate ? GRAPH_UPDATE_HEADER_SIZE : MESSAGE_HEADER_SIZE;
+
+    if (buffer.byteLength <= headerSize) {
       return new ArrayBuffer(0);
     }
-    return buffer.slice(MESSAGE_HEADER_SIZE);
+    return buffer.slice(headerSize);
   }
 
   /**
@@ -502,7 +542,7 @@ export class BinaryWebSocketProtocol {
    */
   public decodeControlBits(payload: ArrayBuffer): ControlFlags {
     if (payload.byteLength < 1) {
-      return 0;
+      return 0 as ControlFlags;
     }
     const view = new DataView(payload);
     return view.getUint8(0) as ControlFlags;
@@ -643,8 +683,8 @@ export function estimateDataSize(agentCount: number): {
 
   return {
     perUpdate,
-    perSecondAt10Hz,
-    perSecondAt60Hz,
+    perSecondAt10Hz: perSecond10Hz,
+    perSecondAt60Hz: perSecond60Hz,
     comparison
   };
 }

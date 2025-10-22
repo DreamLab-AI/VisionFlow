@@ -92,7 +92,7 @@ impl SettingsBenchmark {
     pub fn new(config: BenchmarkConfig) -> Self {
         Self { config }
     }
-    
+
     /// Run comprehensive benchmark comparing old and new systems
     pub async fn run_comparison_benchmark(
         &self,
@@ -100,62 +100,62 @@ impl SettingsBenchmark {
         new_actor_addr: Addr<OptimizedSettingsActor>,
     ) -> Result<ComparisonReport, String> {
         info!("Starting comprehensive settings performance benchmark");
-        
+
         // Warmup both systems
         self.warmup_system(&old_actor_addr, &new_actor_addr).await?;
-        
+
         // Benchmark old system
         let old_suite = self.benchmark_old_system(old_actor_addr).await?;
-        
-        // Benchmark new system  
+
+        // Benchmark new system
         let new_suite = self.benchmark_new_system(new_actor_addr).await?;
-        
+
         // Calculate improvements
         let improvements = self.calculate_improvements(&old_suite, &new_suite);
-        
+
         // Generate recommendations
         let recommendations = self.generate_recommendations(&improvements);
-        
+
         let report = ComparisonReport {
             old_system: old_suite,
             new_system: new_suite,
             improvements,
             recommendations,
         };
-        
+
         self.print_benchmark_report(&report);
-        
+
         Ok(report)
     }
-    
+
     async fn warmup_system(
         &self,
         old_addr: &Addr<SettingsActor>,
         new_addr: &Addr<OptimizedSettingsActor>,
     ) -> Result<(), String> {
         info!("Warming up benchmark systems...");
-        
+
         for _ in 0..self.config.warmup_iterations {
             // Warmup old system
             let _ = old_addr.send(GetSettings).await;
-            
+
             // Warmup new system
             let _ = new_addr.send(GetSettings).await;
-            
+
             // Test a few path operations
             for path in &self.config.test_paths[..3] {
                 let _ = old_addr.send(GetSettingByPath { path: path.clone() }).await;
                 let _ = new_addr.send(GetSettingByPath { path: path.clone() }).await;
             }
         }
-        
+
         info!("Warmup completed");
         Ok(())
     }
-    
+
     async fn benchmark_old_system(&self, addr: Addr<SettingsActor>) -> Result<BenchmarkSuite, String> {
         info!("Benchmarking old settings system...");
-        
+
         Ok(BenchmarkSuite {
             single_path_fetch: self.benchmark_single_path_old(&addr).await?,
             batch_path_fetch: self.benchmark_batch_path_old(&addr).await?,
@@ -165,10 +165,10 @@ impl SettingsBenchmark {
             cache_performance: self.benchmark_cache_old(&addr).await?,
         })
     }
-    
+
     async fn benchmark_new_system(&self, addr: Addr<OptimizedSettingsActor>) -> Result<BenchmarkSuite, String> {
         info!("Benchmarking optimized settings system...");
-        
+
         Ok(BenchmarkSuite {
             single_path_fetch: self.benchmark_single_path_new(&addr).await?,
             batch_path_fetch: self.benchmark_batch_path_new(&addr).await?,
@@ -178,15 +178,15 @@ impl SettingsBenchmark {
             cache_performance: self.benchmark_cache_new(&addr).await?,
         })
     }
-    
+
     async fn benchmark_single_path_old(&self, addr: &Addr<SettingsActor>) -> Result<BenchmarkResult, String> {
         let start_time = Instant::now();
         let mut successful_ops = 0;
         let mut total_bytes = 0u64;
-        
+
         for _ in 0..self.config.iterations {
             let path = &self.config.test_paths[successful_ops % self.config.test_paths.len()];
-            
+
             match addr.send(GetSettingByPath { path: path.clone() }).await {
                 Ok(Ok(value)) => {
                     successful_ops += 1;
@@ -195,10 +195,10 @@ impl SettingsBenchmark {
                 _ => {}
             }
         }
-        
+
         let duration = start_time.elapsed();
         let duration_ms = duration.as_millis() as f64;
-        
+
         Ok(BenchmarkResult {
             test_name: "Single Path Fetch (Old)".to_string(),
             duration_ms,
@@ -210,15 +210,15 @@ impl SettingsBenchmark {
             timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
         })
     }
-    
+
     async fn benchmark_single_path_new(&self, addr: &Addr<OptimizedSettingsActor>) -> Result<BenchmarkResult, String> {
         let start_time = Instant::now();
         let mut successful_ops = 0;
         let mut total_bytes = 0u64;
-        
+
         for _ in 0..self.config.iterations {
             let path = &self.config.test_paths[successful_ops % self.config.test_paths.len()];
-            
+
             match addr.send(GetSettingByPath { path: path.clone() }).await {
                 Ok(Ok(value)) => {
                     successful_ops += 1;
@@ -227,15 +227,15 @@ impl SettingsBenchmark {
                 _ => {}
             }
         }
-        
+
         let duration = start_time.elapsed();
         let duration_ms = duration.as_millis() as f64;
-        
+
         // Get performance metrics from optimized actor
         let metrics = addr.send(crate::actors::optimized_settings_actor::GetPerformanceMetrics)
             .await
             .unwrap_or_default();
-        
+
         Ok(BenchmarkResult {
             test_name: "Single Path Fetch (Optimized)".to_string(),
             duration_ms,
@@ -247,18 +247,18 @@ impl SettingsBenchmark {
             timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
         })
     }
-    
+
     async fn benchmark_batch_path_old(&self, addr: &Addr<SettingsActor>) -> Result<BenchmarkResult, String> {
         let start_time = Instant::now();
         let mut successful_ops = 0;
         let mut total_bytes = 0u64;
         let batch_size = 10;
-        
+
         for i in 0..(self.config.iterations / batch_size) {
             let paths: Vec<String> = (0..batch_size)
                 .map(|j| self.config.test_paths[(i + j) % self.config.test_paths.len()].clone())
                 .collect();
-            
+
             match addr.send(GetSettingsByPaths { paths: paths.clone() }).await {
                 Ok(Ok(results)) => {
                     successful_ops += results.len();
@@ -269,10 +269,10 @@ impl SettingsBenchmark {
                 _ => {}
             }
         }
-        
+
         let duration = start_time.elapsed();
         let duration_ms = duration.as_millis() as f64;
-        
+
         Ok(BenchmarkResult {
             test_name: "Batch Path Fetch (Old)".to_string(),
             duration_ms,
@@ -284,18 +284,18 @@ impl SettingsBenchmark {
             timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
         })
     }
-    
+
     async fn benchmark_batch_path_new(&self, addr: &Addr<OptimizedSettingsActor>) -> Result<BenchmarkResult, String> {
         let start_time = Instant::now();
         let mut successful_ops = 0;
         let mut total_bytes = 0u64;
         let batch_size = 10;
-        
+
         for i in 0..(self.config.iterations / batch_size) {
             let paths: Vec<String> = (0..batch_size)
                 .map(|j| self.config.test_paths[(i + j) % self.config.test_paths.len()].clone())
                 .collect();
-            
+
             match addr.send(GetSettingsByPaths { paths: paths.clone() }).await {
                 Ok(Ok(results)) => {
                     successful_ops += results.len();
@@ -306,14 +306,14 @@ impl SettingsBenchmark {
                 _ => {}
             }
         }
-        
+
         let duration = start_time.elapsed();
         let duration_ms = duration.as_millis() as f64;
-        
+
         let metrics = addr.send(crate::actors::optimized_settings_actor::GetPerformanceMetrics)
             .await
             .unwrap_or_default();
-        
+
         Ok(BenchmarkResult {
             test_name: "Batch Path Fetch (Optimized)".to_string(),
             duration_ms,
@@ -325,12 +325,12 @@ impl SettingsBenchmark {
             timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
         })
     }
-    
+
     async fn benchmark_full_settings_old(&self, addr: &Addr<SettingsActor>) -> Result<BenchmarkResult, String> {
         let start_time = Instant::now();
         let mut successful_ops = 0;
         let mut total_bytes = 0u64;
-        
+
         for _ in 0..100 { // Fewer iterations for full settings fetch
             match addr.send(GetSettings).await {
                 Ok(Ok(settings)) => {
@@ -341,10 +341,10 @@ impl SettingsBenchmark {
                 _ => {}
             }
         }
-        
+
         let duration = start_time.elapsed();
         let duration_ms = duration.as_millis() as f64;
-        
+
         Ok(BenchmarkResult {
             test_name: "Full Settings Fetch (Old)".to_string(),
             duration_ms,
@@ -356,12 +356,12 @@ impl SettingsBenchmark {
             timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
         })
     }
-    
+
     async fn benchmark_full_settings_new(&self, addr: &Addr<OptimizedSettingsActor>) -> Result<BenchmarkResult, String> {
         let start_time = Instant::now();
         let mut successful_ops = 0;
         let mut total_bytes = 0u64;
-        
+
         for _ in 0..100 {
             match addr.send(GetSettings).await {
                 Ok(Ok(settings)) => {
@@ -371,14 +371,14 @@ impl SettingsBenchmark {
                 _ => {}
             }
         }
-        
+
         let duration = start_time.elapsed();
         let duration_ms = duration.as_millis() as f64;
-        
+
         let metrics = addr.send(crate::actors::optimized_settings_actor::GetPerformanceMetrics)
             .await
             .unwrap_or_default();
-        
+
         Ok(BenchmarkResult {
             test_name: "Full Settings Fetch (Optimized)".to_string(),
             duration_ms,
@@ -390,32 +390,32 @@ impl SettingsBenchmark {
             timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
         })
     }
-    
+
     async fn benchmark_concurrent_reads_old(&self, addr: &Addr<SettingsActor>) -> Result<BenchmarkResult, String> {
         let start_time = Instant::now();
         let mut handles = Vec::new();
-        
+
         // Spawn concurrent read operations
         for _ in 0..self.config.concurrent_requests {
             let addr_clone = addr.clone();
             let path = self.config.test_paths[0].clone();
-            
+
             let handle = tokio::spawn(async move {
                 addr_clone.send(GetSettingByPath { path }).await
             });
-            
+
             handles.push(handle);
         }
-        
+
         // Wait for all to complete
         let results = join_all(handles).await;
         let successful_ops = results.into_iter()
             .filter(|r| r.is_ok() && r.as_ref().unwrap().is_ok())
             .count();
-        
+
         let duration = start_time.elapsed();
         let duration_ms = duration.as_millis() as f64;
-        
+
         Ok(BenchmarkResult {
             test_name: "Concurrent Reads (Old)".to_string(),
             duration_ms,
@@ -427,34 +427,34 @@ impl SettingsBenchmark {
             timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
         })
     }
-    
+
     async fn benchmark_concurrent_reads_new(&self, addr: &Addr<OptimizedSettingsActor>) -> Result<BenchmarkResult, String> {
         let start_time = Instant::now();
         let mut handles = Vec::new();
-        
+
         for _ in 0..self.config.concurrent_requests {
             let addr_clone = addr.clone();
             let path = self.config.test_paths[0].clone();
-            
+
             let handle = tokio::spawn(async move {
                 addr_clone.send(GetSettingByPath { path }).await
             });
-            
+
             handles.push(handle);
         }
-        
+
         let results = join_all(handles).await;
         let successful_ops = results.into_iter()
             .filter(|r| r.is_ok() && r.as_ref().unwrap().is_ok())
             .count();
-        
+
         let duration = start_time.elapsed();
         let duration_ms = duration.as_millis() as f64;
-        
+
         let metrics = addr.send(crate::actors::optimized_settings_actor::GetPerformanceMetrics)
             .await
             .unwrap_or_default();
-        
+
         Ok(BenchmarkResult {
             test_name: "Concurrent Reads (Optimized)".to_string(),
             duration_ms,
@@ -466,25 +466,25 @@ impl SettingsBenchmark {
             timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
         })
     }
-    
+
     async fn benchmark_write_ops_old(&self, addr: &Addr<SettingsActor>) -> Result<BenchmarkResult, String> {
         let start_time = Instant::now();
         let mut successful_ops = 0;
-        
+
         let updates: HashMap<String, Value> = self.config.test_paths.iter()
             .map(|path| (path.clone(), serde_json::Value::Number(serde_json::Number::from_f64(0.5).unwrap())))
             .collect();
-        
+
         for _ in 0..10 { // Fewer iterations for writes
             match addr.send(SetSettingsByPaths { updates: updates.clone() }).await {
                 Ok(Ok(_)) => successful_ops += updates.len(),
                 _ => {}
             }
         }
-        
+
         let duration = start_time.elapsed();
         let duration_ms = duration.as_millis() as f64;
-        
+
         Ok(BenchmarkResult {
             test_name: "Write Operations (Old)".to_string(),
             duration_ms,
@@ -496,29 +496,29 @@ impl SettingsBenchmark {
             timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
         })
     }
-    
+
     async fn benchmark_write_ops_new(&self, addr: &Addr<OptimizedSettingsActor>) -> Result<BenchmarkResult, String> {
         let start_time = Instant::now();
         let mut successful_ops = 0;
-        
+
         let updates: HashMap<String, Value> = self.config.test_paths.iter()
             .map(|path| (path.clone(), serde_json::Value::Number(serde_json::Number::from_f64(0.5).unwrap())))
             .collect();
-        
+
         for _ in 0..10 {
             match addr.send(SetSettingsByPaths { updates: updates.clone() }).await {
                 Ok(Ok(_)) => successful_ops += updates.len(),
                 _ => {}
             }
         }
-        
+
         let duration = start_time.elapsed();
         let duration_ms = duration.as_millis() as f64;
-        
+
         let metrics = addr.send(crate::actors::optimized_settings_actor::GetPerformanceMetrics)
             .await
             .unwrap_or_default();
-        
+
         Ok(BenchmarkResult {
             test_name: "Write Operations (Optimized)".to_string(),
             duration_ms,
@@ -530,7 +530,7 @@ impl SettingsBenchmark {
             timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
         })
     }
-    
+
     async fn benchmark_cache_old(&self, _addr: &Addr<SettingsActor>) -> Result<BenchmarkResult, String> {
         // Old system has no cache, return baseline
         Ok(BenchmarkResult {
@@ -544,33 +544,33 @@ impl SettingsBenchmark {
             timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
         })
     }
-    
+
     async fn benchmark_cache_new(&self, addr: &Addr<OptimizedSettingsActor>) -> Result<BenchmarkResult, String> {
         // Warm up cache first
         for path in &self.config.test_paths {
             let _ = addr.send(GetSettingByPath { path: path.clone() }).await;
         }
-        
+
         let start_time = Instant::now();
         let mut successful_ops = 0;
-        
+
         // Now test cached reads
         for _ in 0..self.config.iterations {
             let path = &self.config.test_paths[successful_ops % self.config.test_paths.len()];
-            
+
             match addr.send(GetSettingByPath { path: path.clone() }).await {
                 Ok(Ok(_)) => successful_ops += 1,
                 _ => {}
             }
         }
-        
+
         let duration = start_time.elapsed();
         let duration_ms = duration.as_millis() as f64;
-        
+
         let metrics = addr.send(crate::actors::optimized_settings_actor::GetPerformanceMetrics)
             .await
             .unwrap_or_default();
-        
+
         Ok(BenchmarkResult {
             test_name: "Cache Performance (Optimized)".to_string(),
             duration_ms,
@@ -582,20 +582,20 @@ impl SettingsBenchmark {
             timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
         })
     }
-    
+
     fn calculate_improvements(&self, old: &BenchmarkSuite, new: &BenchmarkSuite) -> ImprovementMetrics {
         let response_time_improvement = self.calculate_percentage_improvement(
-            old.single_path_fetch.duration_ms, 
+            old.single_path_fetch.duration_ms,
             new.single_path_fetch.duration_ms
         );
-        
+
         let throughput_improvement = self.calculate_percentage_improvement(
-            new.single_path_fetch.throughput_ops_per_sec, 
+            new.single_path_fetch.throughput_ops_per_sec,
             old.single_path_fetch.throughput_ops_per_sec
         ) - 100.0; // Convert from ratio to improvement percentage
-        
+
         let bandwidth_savings = self.calculate_bandwidth_savings(old, new);
-        
+
         let memory_efficiency = if old.single_path_fetch.memory_usage_mb > 0.0 {
             self.calculate_percentage_improvement(
                 old.single_path_fetch.memory_usage_mb,
@@ -604,13 +604,13 @@ impl SettingsBenchmark {
         } else {
             0.0
         };
-        
+
         // Calculate overall score (weighted average)
-        let overall_score = (response_time_improvement * 0.3) + 
-                           (throughput_improvement * 0.3) + 
-                           (bandwidth_savings * 0.25) + 
+        let overall_score = (response_time_improvement * 0.3) +
+                           (throughput_improvement * 0.3) +
+                           (bandwidth_savings * 0.25) +
                            (memory_efficiency * 0.15);
-        
+
         ImprovementMetrics {
             response_time_improvement,
             throughput_improvement,
@@ -619,28 +619,28 @@ impl SettingsBenchmark {
             overall_score,
         }
     }
-    
+
     fn calculate_percentage_improvement(&self, old_value: f64, new_value: f64) -> f64 {
         if old_value == 0.0 {
             return 0.0;
         }
         ((old_value - new_value) / old_value) * 100.0
     }
-    
+
     fn calculate_bandwidth_savings(&self, old: &BenchmarkSuite, new: &BenchmarkSuite) -> f64 {
         let old_bandwidth = old.single_path_fetch.bandwidth_bytes + old.batch_path_fetch.bandwidth_bytes;
         let new_bandwidth = new.single_path_fetch.bandwidth_bytes + new.batch_path_fetch.bandwidth_bytes;
-        
+
         if old_bandwidth == 0 {
             return 0.0;
         }
-        
+
         ((old_bandwidth as f64 - new_bandwidth as f64) / old_bandwidth as f64) * 100.0
     }
-    
+
     fn generate_recommendations(&self, improvements: &ImprovementMetrics) -> Vec<String> {
         let mut recommendations = Vec::new();
-        
+
         if improvements.response_time_improvement > 50.0 {
             recommendations.push("✅ Excellent response time improvement achieved".to_string());
         } else if improvements.response_time_improvement > 20.0 {
@@ -648,7 +648,7 @@ impl SettingsBenchmark {
         } else {
             recommendations.push("⚠️ Consider further caching optimizations".to_string());
         }
-        
+
         if improvements.bandwidth_savings > 90.0 {
             recommendations.push("✅ Outstanding bandwidth savings (>90%)".to_string());
         } else if improvements.bandwidth_savings > 70.0 {
@@ -656,7 +656,7 @@ impl SettingsBenchmark {
         } else {
             recommendations.push("💡 Consider implementing compression for larger payloads".to_string());
         }
-        
+
         if improvements.throughput_improvement > 100.0 {
             recommendations.push("✅ Throughput more than doubled".to_string());
         } else if improvements.throughput_improvement > 50.0 {
@@ -664,12 +664,12 @@ impl SettingsBenchmark {
         } else {
             recommendations.push("💡 Consider connection pooling or async optimizations".to_string());
         }
-        
+
         recommendations.push(format!("📊 Overall performance score: {:.1}/100", improvements.overall_score));
-        
+
         recommendations
     }
-    
+
     fn print_benchmark_report(&self, report: &ComparisonReport) {
         info!("=== SETTINGS PERFORMANCE BENCHMARK REPORT ===");
         info!("");
@@ -681,10 +681,10 @@ impl SettingsBenchmark {
         info!("  Overall Score: {:.1}/100", report.improvements.overall_score);
         info!("");
         info!("📋 Detailed Results:");
-        info!("  Old System - Single Path: {:.2}ms avg, {:.0} ops/sec", 
+        info!("  Old System - Single Path: {:.2}ms avg, {:.0} ops/sec",
               report.old_system.single_path_fetch.duration_ms / self.config.iterations as f64,
               report.old_system.single_path_fetch.throughput_ops_per_sec);
-        info!("  New System - Single Path: {:.2}ms avg, {:.0} ops/sec", 
+        info!("  New System - Single Path: {:.2}ms avg, {:.0} ops/sec",
               report.new_system.single_path_fetch.duration_ms / self.config.iterations as f64,
               report.new_system.single_path_fetch.throughput_ops_per_sec);
         info!("  Cache Hit Rate: {:.1}%", report.new_system.single_path_fetch.cache_hit_rate);
@@ -695,7 +695,7 @@ impl SettingsBenchmark {
         }
         info!("===============================================");
     }
-    
+
     fn estimate_payload_size(&self, value: &Value) -> u64 {
         serde_json::to_string(value)
             .map(|s| s.len() as u64)
@@ -710,6 +710,6 @@ pub async fn run_performance_benchmark(
 ) -> Result<ComparisonReport, String> {
     let config = BenchmarkConfig::default();
     let benchmark = SettingsBenchmark::new(config);
-    
+
     benchmark.run_comparison_benchmark(old_actor, new_actor).await
 }

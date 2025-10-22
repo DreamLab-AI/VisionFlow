@@ -3,12 +3,12 @@
 //! This module manages conversation state and context for voice commands,
 //! enabling multi-turn conversations and context-aware responses.
 
+use chrono::{DateTime, Duration as ChronoDuration, Utc};
+use log::{debug, info};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use chrono::{DateTime, Utc, Duration as ChronoDuration};
-use serde::{Deserialize, Serialize};
-use log::{info, debug, warn};
 use uuid::Uuid;
 
 use crate::actors::voice_commands::{ConversationContext, SwarmIntent};
@@ -77,12 +77,16 @@ impl VoiceContextManager {
         Self {
             sessions: Arc::new(RwLock::new(HashMap::new())),
             max_session_duration: ChronoDuration::hours(2), // 2 hour session timeout
-            max_sessions: 100, // Maximum 100 concurrent sessions
+            max_sessions: 100,                              // Maximum 100 concurrent sessions
         }
     }
 
     /// Create or get an existing voice session
-    pub async fn get_or_create_session(&self, session_id: Option<String>, user_id: Option<String>) -> String {
+    pub async fn get_or_create_session(
+        &self,
+        session_id: Option<String>,
+        user_id: Option<String>,
+    ) -> String {
         let session_id = session_id.unwrap_or_else(|| Uuid::new_v4().to_string());
 
         let mut sessions = self.sessions.write().await;
@@ -135,8 +139,13 @@ impl VoiceContextManager {
         let mut sessions = self.sessions.write().await;
 
         if let Some(session) = sessions.get_mut(session_id) {
-            session.conversation_history.push((user_input.clone(), assistant_response.clone()));
-            session.context.history.push((user_input, assistant_response));
+            session
+                .conversation_history
+                .push((user_input.clone(), assistant_response.clone()));
+            session
+                .context
+                .history
+                .push((user_input, assistant_response));
             session.context.turn_count += 1;
             session.last_activity = Utc::now();
 
@@ -145,12 +154,15 @@ impl VoiceContextManager {
                 match intent {
                     SwarmIntent::SpawnAgent { agent_type, .. } => {
                         session.context.current_agents.push(agent_type);
-                    },
+                    }
                     _ => {}
                 }
             }
 
-            debug!("Added conversation turn to session {}: {} turns total", session_id, session.context.turn_count);
+            debug!(
+                "Added conversation turn to session {}: {} turns total",
+                session_id, session.context.turn_count
+            );
             Ok(())
         } else {
             Err(format!("Session {} not found", session_id))
@@ -181,7 +193,10 @@ impl VoiceContextManager {
             session.pending_operations.push(operation);
             session.last_activity = Utc::now();
 
-            debug!("Added pending operation {} to session {}", operation_id, session_id);
+            debug!(
+                "Added pending operation {} to session {}",
+                operation_id, session_id
+            );
             Ok(operation_id)
         } else {
             Err(format!("Session {} not found", session_id))
@@ -198,14 +213,23 @@ impl VoiceContextManager {
         let mut sessions = self.sessions.write().await;
 
         if let Some(session) = sessions.get_mut(session_id) {
-            if let Some(operation) = session.pending_operations.iter_mut()
-                .find(|op| op.operation_id == operation_id) {
+            if let Some(operation) = session
+                .pending_operations
+                .iter_mut()
+                .find(|op| op.operation_id == operation_id)
+            {
                 operation.status = status;
                 session.last_activity = Utc::now();
-                debug!("Updated operation {} status in session {}", operation_id, session_id);
+                debug!(
+                    "Updated operation {} status in session {}",
+                    operation_id, session_id
+                );
                 Ok(())
             } else {
-                Err(format!("Operation {} not found in session {}", operation_id, session_id))
+                Err(format!(
+                    "Operation {} not found in session {}",
+                    operation_id, session_id
+                ))
             }
         } else {
             Err(format!("Session {} not found", session_id))
@@ -215,13 +239,17 @@ impl VoiceContextManager {
     /// Get conversation context for a session
     pub async fn get_context(&self, session_id: &str) -> Option<ConversationContext> {
         let sessions = self.sessions.read().await;
-        sessions.get(session_id).map(|session| session.context.clone())
+        sessions
+            .get(session_id)
+            .map(|session| session.context.clone())
     }
 
     /// Get session metadata
     pub async fn get_session_metadata(&self, session_id: &str) -> Option<HashMap<String, String>> {
         let sessions = self.sessions.read().await;
-        sessions.get(session_id).map(|session| session.metadata.clone())
+        sessions
+            .get(session_id)
+            .map(|session| session.metadata.clone())
     }
 
     /// Add metadata to a session
@@ -245,7 +273,8 @@ impl VoiceContextManager {
     /// Get pending operations for a session
     pub async fn get_pending_operations(&self, session_id: &str) -> Vec<PendingOperation> {
         let sessions = self.sessions.read().await;
-        sessions.get(session_id)
+        sessions
+            .get(session_id)
             .map(|session| session.pending_operations.clone())
             .unwrap_or_default()
     }
@@ -322,12 +351,22 @@ impl VoiceContextManager {
 
             // Add context from recent operations
             if !session.pending_operations.is_empty() {
-                let pending_count = session.pending_operations.iter()
-                    .filter(|op| matches!(op.status, OperationStatus::Pending | OperationStatus::InProgress))
+                let pending_count = session
+                    .pending_operations
+                    .iter()
+                    .filter(|op| {
+                        matches!(
+                            op.status,
+                            OperationStatus::Pending | OperationStatus::InProgress
+                        )
+                    })
                     .count();
 
                 if pending_count > 0 {
-                    response.push_str(&format!(" You have {} operations in progress.", pending_count));
+                    response.push_str(&format!(
+                        " You have {} operations in progress.",
+                        pending_count
+                    ));
                 }
             }
 
@@ -356,7 +395,9 @@ mod tests {
     #[tokio::test]
     async fn test_session_creation() {
         let manager = VoiceContextManager::new();
-        let session_id = manager.get_or_create_session(None, Some("user123".to_string())).await;
+        let session_id = manager
+            .get_or_create_session(None, Some("user123".to_string()))
+            .await;
 
         assert!(!session_id.is_empty());
 
@@ -370,12 +411,15 @@ mod tests {
         let manager = VoiceContextManager::new();
         let session_id = manager.get_or_create_session(None, None).await;
 
-        manager.add_conversation_turn(
-            &session_id,
-            "spawn a researcher agent".to_string(),
-            "I've spawned a researcher agent for you.".to_string(),
-            None,
-        ).await.unwrap();
+        manager
+            .add_conversation_turn(
+                &session_id,
+                "spawn a researcher agent".to_string(),
+                "I've spawned a researcher agent for you.".to_string(),
+                None,
+            )
+            .await
+            .unwrap();
 
         let context = manager.get_context(&session_id).await.unwrap();
         assert_eq!(context.turn_count, 1);
@@ -390,12 +434,10 @@ mod tests {
         let mut params = HashMap::new();
         params.insert("agent_type".to_string(), "researcher".to_string());
 
-        let operation_id = manager.add_pending_operation(
-            &session_id,
-            "spawn_agent".to_string(),
-            params,
-            None,
-        ).await.unwrap();
+        let operation_id = manager
+            .add_pending_operation(&session_id, "spawn_agent".to_string(), params, None)
+            .await
+            .unwrap();
 
         let operations = manager.get_pending_operations(&session_id).await;
         assert_eq!(operations.len(), 1);

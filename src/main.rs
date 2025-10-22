@@ -1,48 +1,48 @@
 // Rebuild: KE velocity fix applied
 use webxr::services::nostr_service::NostrService;
 use webxr::{
-    AppState,
     config::AppFullSettings, // Import AppFullSettings only
     handlers::{
         api_handler,
+        bots_visualization_handler,
+        client_log_handler,
+        client_messages_handler,
+        graph_export_handler,
+        mcp_relay_handler::mcp_relay_handler,
+        nostr_handler,
         pages_handler,
         socket_flow_handler::{socket_flow_handler, PreReadSocketSettings}, // Import PreReadSocketSettings
         speech_socket_handler::speech_socket_handler,
-        mcp_relay_handler::mcp_relay_handler,
-        nostr_handler,
-        bots_visualization_handler,
         // DEPRECATED: hybrid_health_handler removed
         workspace_handler,
-        graph_export_handler,
-        client_log_handler,
-        client_messages_handler,
     },
+    services::speech_service::SpeechService,
     services::{
         file_service::FileService,
         // graph_service::GraphService removed - now using GraphServiceSupervisor
-        github::{GitHubClient, ContentAPI, GitHubConfig},
+        github::{ContentAPI, GitHubClient, GitHubConfig},
         ragflow_service::RAGFlowService, // ADDED IMPORT
     },
-    services::speech_service::SpeechService,
     // DEPRECATED: docker_hive_mind, HybridHealthManager removed
     utils::mcp_connection::MCPConnectionPool,
+    AppState,
 };
 
-use actix_web::{web, App, HttpServer, middleware, Error as ActixError};
 use actix_cors::Cors;
+use actix_web::{middleware, web, App, Error as ActixError, HttpServer};
 // DEPRECATED: std::future imports removed (were for ErrorRecoveryMiddleware)
 // DEPRECATED: Actix dev imports removed (were for ErrorRecoveryMiddleware)
 // DEPRECATED: LocalBoxFuture import removed (was for ErrorRecoveryMiddleware)
 // use actix_files::Files; // Removed unused import
+use dotenvy::dotenv;
+use log::{debug, error, info, warn};
 use std::sync::Arc;
+use tokio::signal::unix::{signal, SignalKind};
 use tokio::sync::RwLock;
 use tokio::time::Duration;
-use dotenvy::dotenv;
-use log::{error, info, debug, warn};
-use webxr::utils::logging::init_logging;
-use webxr::utils::advanced_logging::init_advanced_logging;
 use webxr::telemetry::agent_telemetry::init_telemetry_logger;
-use tokio::signal::unix::{signal, SignalKind};
+use webxr::utils::advanced_logging::init_advanced_logging;
+use webxr::utils::logging::init_logging;
 
 // DEPRECATED: ErrorRecoveryMiddleware removed - NetworkRecoveryManager deleted
 /*
@@ -134,7 +134,7 @@ async fn main() -> std::io::Result<()> {
 
     // Initialize logging with env_logger (reads RUST_LOG environment variable)
     init_logging()?;
-    
+
     // Initialize advanced logging system
     if let Err(e) = init_advanced_logging() {
         error!("Failed to initialize advanced logging: {}", e);
@@ -150,7 +150,10 @@ async fn main() -> std::io::Result<()> {
         "/workspace/ext/logs".to_string()
     } else {
         // Fallback to temp directory for development
-        std::env::temp_dir().join("webxr_telemetry").to_string_lossy().to_string()
+        std::env::temp_dir()
+            .join("webxr_telemetry")
+            .to_string_lossy()
+            .to_string()
     };
 
     let log_dir = std::env::var("TELEMETRY_LOG_DIR").unwrap_or(log_dir);
@@ -164,36 +167,56 @@ async fn main() -> std::io::Result<()> {
     // Load settings
     let settings = match AppFullSettings::new() {
         Ok(s) => {
-            info!("✅ AppFullSettings loaded successfully from: {}",
-                std::env::var("SETTINGS_FILE_PATH").unwrap_or_else(|_| "/app/settings.yaml".to_string()));
-            
+            info!(
+                "✅ AppFullSettings loaded successfully from: {}",
+                std::env::var("SETTINGS_FILE_PATH")
+                    .unwrap_or_else(|_| "/app/settings.yaml".to_string())
+            );
+
             // Test JSON serialization to verify camelCase output works
             match serde_json::to_string(&s.visualisation.rendering) {
                 Ok(json_output) => {
-                    info!("✅ SERDE ALIAS FIX WORKS! JSON serialization (camelCase): {}", json_output);
-                    
+                    info!(
+                        "✅ SERDE ALIAS FIX WORKS! JSON serialization (camelCase): {}",
+                        json_output
+                    );
+
                     // Verify the JSON contains camelCase fields, not snake_case
-                    if json_output.contains("ambientLightIntensity") && !json_output.contains("ambient_light_intensity") {
+                    if json_output.contains("ambientLightIntensity")
+                        && !json_output.contains("ambient_light_intensity")
+                    {
                         info!("✅ CONFIRMED: JSON uses camelCase field names for REST API compatibility");
                     }
-                    
+
                     // Log some key values that were loaded from snake_case YAML
                     info!("✅ CONFIRMED: Values loaded from snake_case YAML:");
-                    info!("   - ambient_light_intensity -> {}", s.visualisation.rendering.ambient_light_intensity);
-                    info!("   - enable_ambient_occlusion -> {}", s.visualisation.rendering.enable_ambient_occlusion);
-                    info!("   - background_color -> {}", s.visualisation.rendering.background_color);
+                    info!(
+                        "   - ambient_light_intensity -> {}",
+                        s.visualisation.rendering.ambient_light_intensity
+                    );
+                    info!(
+                        "   - enable_ambient_occlusion -> {}",
+                        s.visualisation.rendering.enable_ambient_occlusion
+                    );
+                    info!(
+                        "   - background_color -> {}",
+                        s.visualisation.rendering.background_color
+                    );
                     info!("🎉 SERDE ALIAS FIX IS WORKING: YAML (snake_case) loads successfully, JSON serializes as camelCase!");
                 }
                 Err(e) => {
                     error!("❌ JSON serialization failed: {}", e);
                 }
             }
-            
+
             Arc::new(RwLock::new(s)) // Now holds Arc<RwLock<AppFullSettings>>
-        },
+        }
         Err(e) => {
             error!("❌ Failed to load AppFullSettings: {:?}", e);
-            return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to initialize AppFullSettings: {:?}", e)));
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Failed to initialize AppFullSettings: {:?}", e),
+            ));
         }
     };
 
@@ -212,14 +235,24 @@ async fn main() -> std::io::Result<()> {
     // Initialize services
     let github_config = match GitHubConfig::from_env() {
         Ok(config) => config,
-        Err(e) => return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to load GitHub config: {}", e)))
+        Err(e) => {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Failed to load GitHub config: {}", e),
+            ))
+        }
     };
 
     // GitHubClient::new might need adjustment if it expects client-facing Settings
     // Assuming it can work with AppFullSettings for now.
     let github_client = match GitHubClient::new(github_config, settings.clone()).await {
         Ok(client) => Arc::new(client),
-        Err(e) => return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to initialize GitHub client: {}", e)))
+        Err(e) => {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Failed to initialize GitHub client: {}", e),
+            ))
+        }
     };
 
     let content_api = Arc::new(ContentAPI::new(github_client.clone()));
@@ -258,17 +291,24 @@ async fn main() -> std::io::Result<()> {
     };
 
     let mut app_state = match AppState::new(
-            settings_value,
-            github_client.clone(),
-            content_api.clone(),
-            None, // Perplexity placeholder
-            ragflow_service_option, // Pass the initialized RAGFlow service
-            speech_service,
-            "default_session".to_string() // RAGFlow session ID placeholder
-        ).await {
-            Ok(state) => state,
-            Err(e) => return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to initialize app state: {}", e)))
-        };
+        settings_value,
+        github_client.clone(),
+        content_api.clone(),
+        None,                   // Perplexity placeholder
+        ragflow_service_option, // Pass the initialized RAGFlow service
+        speech_service,
+        "default_session".to_string(), // RAGFlow session ID placeholder
+    )
+    .await
+    {
+        Ok(state) => state,
+        Err(e) => {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Failed to initialize app state: {}", e),
+            ))
+        }
+    };
 
     // Initialize Nostr service
     nostr_handler::init_nostr_service(&mut app_state);
@@ -285,25 +325,30 @@ async fn main() -> std::io::Result<()> {
     // to avoid tokio::spawn outside of Actix runtime
     let bots_client = app_state.bots_client.clone();
     info!("Connecting to bots orchestrator at {}...", bots_url);
-    
+
     // Try to connect once without spawning
     match bots_client.connect(&bots_url).await {
         Ok(()) => {
-            info!("Successfully connected to bots orchestrator at {}", bots_url);
+            info!(
+                "Successfully connected to bots orchestrator at {}",
+                bots_url
+            );
         }
         Err(e) => {
             // Log the error but don't fail startup - connection can be retried later
-            error!("Failed to connect to bots orchestrator: {}. Will use fallback mode.", e);
+            error!(
+                "Failed to connect to bots orchestrator: {}. Will use fallback mode.",
+                e
+            );
         }
     }
 
     // First, try to load existing metadata without waiting for GitHub download
     info!("Loading existing metadata for quick initialization");
-    let metadata_store = FileService::load_or_create_metadata()
-        .map_err(|e| {
-            error!("Failed to load existing metadata: {}", e);
-            std::io::Error::new(std::io::ErrorKind::Other, e.to_string())
-        })?;
+    let metadata_store = FileService::load_or_create_metadata().map_err(|e| {
+        error!("Failed to load existing metadata: {}", e);
+        std::io::Error::new(std::io::ErrorKind::Other, e.to_string())
+    })?;
 
     if metadata_store.is_empty() {
         warn!("No metadata found, starting with empty metadata store");
@@ -311,29 +356,32 @@ async fn main() -> std::io::Result<()> {
     }
 
     info!("Loaded {} items from metadata store", metadata_store.len());
-    
+
     // Spawn background task to fetch GitHub data after server starts
     info!("Spawning background task to fetch and process GitHub markdown files");
     let content_api_clone = content_api.clone();
     let settings_clone = settings.clone();
     let metadata_addr_clone = app_state.metadata_addr.clone();
     let graph_service_addr_clone = app_state.graph_service_addr.clone();
-    
+
     tokio::spawn(async move {
         // Wait a bit for the server to fully initialize
         info!("Background GitHub sync: Waiting 5 seconds for server initialization...");
         tokio::time::sleep(Duration::from_secs(5)).await;
-        
+
         info!("Background GitHub sync: Starting markdown synchronization process");
-        
+
         // Get settings for FileService
         let file_service = FileService::new(settings_clone.clone());
         info!("Background GitHub sync: FileService created");
-        
+
         // Create a mutable copy for the fetch operation
         let mut metadata_store_copy = match FileService::load_or_create_metadata() {
             Ok(store) => {
-                info!("Background GitHub sync: Loaded metadata store with {} existing entries", store.len());
+                info!(
+                    "Background GitHub sync: Loaded metadata store with {} existing entries",
+                    store.len()
+                );
                 store
             }
             Err(e) => {
@@ -341,29 +389,48 @@ async fn main() -> std::io::Result<()> {
                 return;
             }
         };
-        
+
         info!("Background GitHub sync: Starting fetch_and_process_files...");
-        match file_service.fetch_and_process_files(content_api_clone, settings_clone.clone(), &mut metadata_store_copy).await {
+        match file_service
+            .fetch_and_process_files(
+                content_api_clone,
+                settings_clone.clone(),
+                &mut metadata_store_copy,
+            )
+            .await
+        {
             Ok(processed_files) => {
-                info!("Background GitHub sync: Successfully processed {} markdown files", processed_files.len());
-                
+                info!(
+                    "Background GitHub sync: Successfully processed {} markdown files",
+                    processed_files.len()
+                );
+
                 if processed_files.is_empty() {
                     warn!("Background GitHub sync: No files were processed - check GitHub configuration");
                 } else {
-                    let file_names: Vec<String> = processed_files.iter()
+                    let file_names: Vec<String> = processed_files
+                        .iter()
                         .map(|pf| pf.file_name.clone())
                         .collect();
                     info!("Background GitHub sync: Processed files: {:?}", file_names);
                 }
-                
+
                 // Update metadata actor
                 info!("Background GitHub sync: Updating metadata actor...");
-                if let Err(e) = metadata_addr_clone.send(UpdateMetadata { metadata: metadata_store_copy.clone() }).await {
-                    error!("Background GitHub sync: Failed to update metadata actor: {}", e);
+                if let Err(e) = metadata_addr_clone
+                    .send(UpdateMetadata {
+                        metadata: metadata_store_copy.clone(),
+                    })
+                    .await
+                {
+                    error!(
+                        "Background GitHub sync: Failed to update metadata actor: {}",
+                        e
+                    );
                 } else {
                     info!("Background GitHub sync: Metadata actor updated successfully");
                 }
-                
+
                 // Save metadata to disk
                 info!("Background GitHub sync: Saving metadata to disk...");
                 if let Err(e) = FileService::save_metadata(&metadata_store_copy) {
@@ -371,11 +438,16 @@ async fn main() -> std::io::Result<()> {
                 } else {
                     info!("Background GitHub sync: Metadata saved successfully");
                 }
-                
+
                 // Update graph with new data
                 use webxr::actors::messages::AddNodesFromMetadata;
                 info!("Background GitHub sync: Updating graph with new data...");
-                match graph_service_addr_clone.send(AddNodesFromMetadata { metadata: metadata_store_copy }).await {
+                match graph_service_addr_clone
+                    .send(AddNodesFromMetadata {
+                        metadata: metadata_store_copy,
+                    })
+                    .await
+                {
                     Ok(Ok(())) => {
                         info!("Background GitHub sync: Graph updated successfully with new GitHub data");
                     }
@@ -392,15 +464,24 @@ async fn main() -> std::io::Result<()> {
                 error!("Background GitHub sync: Check GitHub token and repository configuration");
             }
         }
-        
+
         info!("Background GitHub sync: Process completed");
     });
 
     // Update metadata in app state using actor
     use webxr::actors::messages::UpdateMetadata;
-    if let Err(e) = app_state.metadata_addr.send(UpdateMetadata { metadata: metadata_store.clone() }).await {
+    if let Err(e) = app_state
+        .metadata_addr
+        .send(UpdateMetadata {
+            metadata: metadata_store.clone(),
+        })
+        .await
+    {
         error!("Failed to update metadata in actor: {}", e);
-        return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to update metadata in actor: {}", e)));
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            format!("Failed to update metadata in actor: {}", e),
+        ));
     }
     info!("Loaded metadata into app state actor");
 
@@ -411,8 +492,11 @@ async fn main() -> std::io::Result<()> {
     let graph_data_option = match FileService::load_graph_data() {
         Ok(graph_data) => {
             if let Some(graph) = graph_data {
-                info!("Loaded pre-computed graph data with {} nodes and {} edges", 
-                      graph.nodes.len(), graph.edges.len());
+                info!(
+                    "Loaded pre-computed graph data with {} nodes and {} edges",
+                    graph.nodes.len(),
+                    graph.edges.len()
+                );
                 Some(graph)
             } else {
                 info!("No pre-computed graph data found, will build from metadata");
@@ -426,50 +510,83 @@ async fn main() -> std::io::Result<()> {
     };
 
     // Use GraphServiceSupervisor to build or update the graph
-    use webxr::actors::messages::{BuildGraphFromMetadata, UpdateGraphData};
     use std::sync::Arc as StdArc;
-    
+    use webxr::actors::messages::{BuildGraphFromMetadata, UpdateGraphData};
+
     if let Some(graph_data) = graph_data_option {
         // If we have pre-computed graph data, send it directly to the GraphServiceSupervisor
-        match app_state.graph_service_addr.send(UpdateGraphData { graph_data: StdArc::new(graph_data) }).await {
+        match app_state
+            .graph_service_addr
+            .send(UpdateGraphData {
+                graph_data: StdArc::new(graph_data),
+            })
+            .await
+        {
             Ok(Ok(())) => {
                 info!("Pre-computed graph data loaded successfully into GraphServiceSupervisor");
-            },
+            }
             Ok(Err(e)) => {
                 error!("Failed to load pre-computed graph data into actor: {}", e);
                 // Fall back to building from metadata
-                match app_state.graph_service_addr.send(BuildGraphFromMetadata { metadata: metadata_store.clone() }).await {
+                match app_state
+                    .graph_service_addr
+                    .send(BuildGraphFromMetadata {
+                        metadata: metadata_store.clone(),
+                    })
+                    .await
+                {
                     Ok(Ok(())) => {
                         info!("Fallback: Graph built from metadata successfully");
-                    },
+                    }
                     Ok(Err(e)) => {
                         error!("Failed to build graph from metadata: {}", e);
-                        return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to build graph: {}", e)));
-                    },
+                        return Err(std::io::Error::new(
+                            std::io::ErrorKind::Other,
+                            format!("Failed to build graph: {}", e),
+                        ));
+                    }
                     Err(e) => {
                         error!("Graph service actor communication error: {}", e);
-                        return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Graph service unavailable: {}", e)));
+                        return Err(std::io::Error::new(
+                            std::io::ErrorKind::Other,
+                            format!("Graph service unavailable: {}", e),
+                        ));
                     }
                 }
-            },
+            }
             Err(e) => {
                 error!("Graph service actor communication error: {}", e);
-                return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Graph service unavailable: {}", e)));
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    format!("Graph service unavailable: {}", e),
+                ));
             }
         }
     } else {
         // No pre-computed graph data, build from metadata
-        match app_state.graph_service_addr.send(BuildGraphFromMetadata { metadata: metadata_store.clone() }).await {
+        match app_state
+            .graph_service_addr
+            .send(BuildGraphFromMetadata {
+                metadata: metadata_store.clone(),
+            })
+            .await
+        {
             Ok(Ok(())) => {
                 info!("Graph built successfully using GraphServiceSupervisor - GPU initialization is handled automatically by the supervisor");
-            },
+            }
             Ok(Err(e)) => {
                 error!("Failed to build graph from metadata using actor: {}", e);
-                return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Failed to build graph: {}", e)));
-            },
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    format!("Failed to build graph: {}", e),
+                ));
+            }
             Err(e) => {
                 error!("Graph service actor communication error: {}", e);
-                return Err(std::io::Error::new(std::io::ErrorKind::Other, format!("Graph service unavailable: {}", e)));
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    format!("Graph service unavailable: {}", e),
+                ));
             }
         }
     }
@@ -491,12 +608,13 @@ async fn main() -> std::io::Result<()> {
     let app_state_data = web::Data::new(app_state);
     // DEPRECATED: hybrid_health_manager_data, mcp_session_bridge, session_correlation_bridge removed
 
-    // Start the server
-    let bind_address = {
-        let settings_read = settings.read().await; // Reads AppFullSettings
-        // Access network settings correctly
-        format!("{}:{}", settings_read.system.network.bind_address, settings_read.system.network.port)
-    };
+    // Start the server - read from environment (set by docker-compose)
+    let bind_address = std::env::var("BIND_ADDRESS").unwrap_or_else(|_| "0.0.0.0".to_string());
+    let port = std::env::var("SYSTEM_NETWORK_PORT")
+        .ok()
+        .and_then(|p| p.parse::<u16>().ok())
+        .unwrap_or(4000);
+    let bind_address = format!("{}:{}", bind_address, port);
 
     // Pre-read WebSocket settings for SocketFlowServer
     let pre_read_ws_settings = {
@@ -515,15 +633,16 @@ async fn main() -> std::io::Result<()> {
     info!("Starting HTTP server on {}", bind_address);
 
     info!("main: All services and actors initialized. Configuring HTTP server.");
-    let server = HttpServer::new(move || {
-        let cors = Cors::default()
-            .allow_any_origin()
-            .allow_any_method()
-            .allow_any_header()
-            .max_age(3600)
-            .supports_credentials();
+    let server =
+        HttpServer::new(move || {
+            let cors = Cors::default()
+                .allow_any_origin()
+                .allow_any_method()
+                .allow_any_header()
+                .max_age(3600)
+                .supports_credentials();
 
-        let app = App::new()
+            let app = App::new()
             .wrap(middleware::Logger::default())
             .wrap(cors)
             .wrap(middleware::Compress::default())
@@ -560,11 +679,11 @@ async fn main() -> std::io::Result<()> {
                     // DEPRECATED: hybrid health routes removed
             );
 
-        app
-    })
-    .bind(&bind_address)?
-    .workers(4) // Explicitly set the number of worker threads
-    .run();
+            app
+        })
+        .bind(&bind_address)?
+        .workers(4) // Explicitly set the number of worker threads
+        .run();
 
     let server_handle = server.handle();
 

@@ -17,10 +17,10 @@
 //! - Automatic retry with exponential backoff
 //! - Bearer token authentication
 
+use log::{debug, info};
+use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
-use log::{debug, info, warn, error};
-use reqwest::{Client, StatusCode};
 
 /// HTTP client for Management API
 #[derive(Clone)]
@@ -132,8 +132,12 @@ impl std::fmt::Display for ManagementApiError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ManagementApiError::NetworkError(msg) => write!(f, "Network error: {}", msg),
-            ManagementApiError::ApiError(msg, status) => write!(f, "API error ({}): {}", status, msg),
-            ManagementApiError::DeserializationError(msg) => write!(f, "Deserialization error: {}", msg),
+            ManagementApiError::ApiError(msg, status) => {
+                write!(f, "API error ({}): {}", status, msg)
+            }
+            ManagementApiError::DeserializationError(msg) => {
+                write!(f, "Deserialization error: {}", msg)
+            }
             ManagementApiError::Timeout => write!(f, "Request timeout"),
         }
     }
@@ -158,7 +162,10 @@ impl ManagementApiClient {
             .build()
             .expect("Failed to create HTTP client");
 
-        info!("[ManagementApiClient] Initialized with base_url: {}", base_url);
+        info!(
+            "[ManagementApiClient] Initialized with base_url: {}",
+            base_url
+        );
 
         Self {
             base_url,
@@ -188,9 +195,13 @@ impl ManagementApiClient {
             "provider": provider,
         });
 
-        debug!("[ManagementApiClient] Creating task: agent={}, provider={}", agent, provider);
+        debug!(
+            "[ManagementApiClient] Creating task: agent={}, provider={}",
+            agent, provider
+        );
 
-        let response = self.client
+        let response = self
+            .client
             .post(&url)
             .header("Authorization", format!("Bearer {}", self.api_key))
             .header("Content-Type", "application/json")
@@ -202,13 +213,21 @@ impl ManagementApiClient {
         let status = response.status();
 
         if status == StatusCode::ACCEPTED || status == StatusCode::OK {
-            let task_response: TaskResponse = response.json().await
+            let task_response: TaskResponse = response
+                .json()
+                .await
                 .map_err(|e| ManagementApiError::DeserializationError(e.to_string()))?;
 
-            info!("[ManagementApiClient] Task created: {}", task_response.task_id);
+            info!(
+                "[ManagementApiClient] Task created: {}",
+                task_response.task_id
+            );
             Ok(task_response)
         } else {
-            let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
             Err(ManagementApiError::ApiError(error_text, status))
         }
     }
@@ -219,7 +238,8 @@ impl ManagementApiClient {
 
         debug!("[ManagementApiClient] Getting task status: {}", task_id);
 
-        let response = self.client
+        let response = self
+            .client
             .get(&url)
             .header("Authorization", format!("Bearer {}", self.api_key))
             .send()
@@ -229,11 +249,16 @@ impl ManagementApiClient {
         let status = response.status();
 
         if status == StatusCode::OK {
-            let task_status: TaskStatus = response.json().await
+            let task_status: TaskStatus = response
+                .json()
+                .await
                 .map_err(|e| ManagementApiError::DeserializationError(e.to_string()))?;
             Ok(task_status)
         } else {
-            let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
             Err(ManagementApiError::ApiError(error_text, status))
         }
     }
@@ -244,7 +269,8 @@ impl ManagementApiClient {
 
         debug!("[ManagementApiClient] Listing tasks");
 
-        let response = self.client
+        let response = self
+            .client
             .get(&url)
             .header("Authorization", format!("Bearer {}", self.api_key))
             .send()
@@ -254,11 +280,16 @@ impl ManagementApiClient {
         let status = response.status();
 
         if status == StatusCode::OK {
-            let task_list: TaskListResponse = response.json().await
+            let task_list: TaskListResponse = response
+                .json()
+                .await
                 .map_err(|e| ManagementApiError::DeserializationError(e.to_string()))?;
             Ok(task_list)
         } else {
-            let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
             Err(ManagementApiError::ApiError(error_text, status))
         }
     }
@@ -269,7 +300,8 @@ impl ManagementApiClient {
 
         info!("[ManagementApiClient] Stopping task: {}", task_id);
 
-        let response = self.client
+        let response = self
+            .client
             .delete(&url)
             .header("Authorization", format!("Bearer {}", self.api_key))
             .send()
@@ -282,7 +314,10 @@ impl ManagementApiClient {
             info!("[ManagementApiClient] Task stopped: {}", task_id);
             Ok(())
         } else {
-            let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
             Err(ManagementApiError::ApiError(error_text, status))
         }
     }
@@ -293,7 +328,8 @@ impl ManagementApiClient {
 
         debug!("[ManagementApiClient] Getting system status");
 
-        let response = self.client
+        let response = self
+            .client
             .get(&url)
             .header("Authorization", format!("Bearer {}", self.api_key))
             .send()
@@ -303,11 +339,16 @@ impl ManagementApiClient {
         let status = response.status();
 
         if status == StatusCode::OK {
-            let system_status: SystemStatus = response.json().await
+            let system_status: SystemStatus = response
+                .json()
+                .await
                 .map_err(|e| ManagementApiError::DeserializationError(e.to_string()))?;
             Ok(system_status)
         } else {
-            let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
             Err(ManagementApiError::ApiError(error_text, status))
         }
     }
@@ -316,7 +357,8 @@ impl ManagementApiClient {
     pub async fn health_check(&self) -> Result<bool, ManagementApiError> {
         let url = format!("{}/health", self.base_url);
 
-        let response = self.client
+        let response = self
+            .client
             .get(&url)
             .send()
             .await

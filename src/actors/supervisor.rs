@@ -1,17 +1,16 @@
 //! Actor supervision system to replace panic! calls with graceful recovery
-//! 
+//!
 //! This module provides supervision trees that can restart failed actors
 //! and implement exponential backoff retry strategies.
 
-use actix::prelude::*;
-use log::{error, info, warn, debug};
-use std::collections::HashMap;
-use std::time::{Duration, Instant};
-use chrono::{DateTime, Utc};
-use crate::errors::VisionFlowError;
-use crate::actors::voice_commands::{VoiceCommand, SwarmVoiceResponse};
 #[cfg(test)]
 use crate::errors::ActorError;
+use crate::errors::VisionFlowError;
+use actix::prelude::*;
+use chrono::{DateTime, Utc};
+use log::{debug, error, info, warn};
+use std::collections::HashMap;
+use std::time::{Duration, Instant};
 
 /// Supervision strategy for handling actor failures
 #[derive(Debug, Clone)]
@@ -118,8 +117,12 @@ impl SupervisorActor {
         if state.restart_count >= state.actor_info.max_restart_count {
             if let Some(last_restart) = state.last_restart {
                 if last_restart.elapsed() < state.actor_info.restart_window {
-                    warn!("Actor '{}' has exceeded max restart count ({}) within window ({:?})", 
-                          actor_name, state.actor_info.max_restart_count, state.actor_info.restart_window);
+                    warn!(
+                        "Actor '{}' has exceeded max restart count ({}) within window ({:?})",
+                        actor_name,
+                        state.actor_info.max_restart_count,
+                        state.actor_info.restart_window
+                    );
                     return false;
                 }
                 // Window has passed, reset restart count
@@ -130,9 +133,13 @@ impl SupervisorActor {
 
     fn calculate_restart_delay(&self, state: &ActorState) -> Duration {
         match &state.actor_info.strategy {
-            SupervisionStrategy::RestartWithBackoff { initial_delay: _, max_delay, multiplier } => {
+            SupervisionStrategy::RestartWithBackoff {
+                initial_delay: _,
+                max_delay,
+                multiplier,
+            } => {
                 let delay = Duration::from_millis(
-                    (state.current_delay.as_millis() as f64 * multiplier) as u64
+                    (state.current_delay.as_millis() as f64 * multiplier) as u64,
                 );
                 std::cmp::min(delay, *max_delay)
             }
@@ -146,21 +153,23 @@ impl SupervisorActor {
         } else {
             return;
         };
-        
+
         if let Some(state) = self.supervised_actors.get_mut(actor_name) {
             state.restart_count += 1;
             state.last_restart = Some(Instant::now());
             state.current_delay = delay;
-            
-            info!("Scheduling restart for actor '{}' in {:?} (attempt {})", 
-                  actor_name, delay, state.restart_count);
+
+            info!(
+                "Scheduling restart for actor '{}' in {:?} (attempt {})",
+                actor_name, delay, state.restart_count
+            );
 
             let actor_name_clone = actor_name.to_string();
             let supervisor_name = self.supervisor_name.clone();
-            
+
             ctx.run_later(delay, move |_act, ctx| {
                 info!("Attempting to restart actor '{}'", actor_name_clone);
-                
+
                 // In a real implementation, this would call a factory method
                 // to recreate the specific actor type. For now, we just mark
                 // the restart attempt.
@@ -229,7 +238,7 @@ impl Handler<ActorFailed> for SupervisorActor {
         if let Some(state) = self.supervised_actors.get_mut(&msg.actor_name) {
             state.is_running = false;
             let strategy = state.actor_info.strategy.clone();
-            
+
             // FIX: Simplified logic to avoid borrowing issues and incorrect drop
             let should_restart = match &strategy {
                 SupervisionStrategy::Restart | SupervisionStrategy::RestartWithBackoff { .. } => {
@@ -237,8 +246,8 @@ impl Handler<ActorFailed> for SupervisorActor {
                     if state.restart_count >= state.actor_info.max_restart_count {
                         if let Some(last_restart) = state.last_restart {
                             if last_restart.elapsed() < state.actor_info.restart_window {
-                                warn!("Actor '{}' has exceeded max restart count ({}) within window ({:?})", 
-                                      &msg.actor_name, state.actor_info.max_restart_count, 
+                                warn!("Actor '{}' has exceeded max restart count ({}) within window ({:?})",
+                                      &msg.actor_name, state.actor_info.max_restart_count,
                                       state.actor_info.restart_window);
                                 false
                             } else {
@@ -255,36 +264,51 @@ impl Handler<ActorFailed> for SupervisorActor {
                 }
                 _ => false,
             };
-            
+
             // Now handle the strategy
             match strategy {
                 SupervisionStrategy::Restart => {
                     if should_restart {
                         self.restart_actor(&msg.actor_name, ctx);
                     } else {
-                        error!("Actor '{}' will not be restarted (too many failures)", msg.actor_name);
+                        error!(
+                            "Actor '{}' will not be restarted (too many failures)",
+                            msg.actor_name
+                        );
                     }
                 }
                 SupervisionStrategy::RestartWithBackoff { .. } => {
                     if should_restart {
                         self.restart_actor(&msg.actor_name, ctx);
                     } else {
-                        error!("Actor '{}' will not be restarted (too many failures)", msg.actor_name);
+                        error!(
+                            "Actor '{}' will not be restarted (too many failures)",
+                            msg.actor_name
+                        );
                     }
                 }
                 SupervisionStrategy::Escalate => {
-                    warn!("Escalating failure of actor '{}' to parent supervisor", msg.actor_name);
+                    warn!(
+                        "Escalating failure of actor '{}' to parent supervisor",
+                        msg.actor_name
+                    );
                     // In a real implementation, this would notify a parent supervisor
                 }
                 SupervisionStrategy::Stop => {
-                    info!("Actor '{}' stopped permanently due to supervision strategy", msg.actor_name);
+                    info!(
+                        "Actor '{}' stopped permanently due to supervision strategy",
+                        msg.actor_name
+                    );
                     if let Some(state) = self.supervised_actors.get_mut(&msg.actor_name) {
                         state.is_running = false;
                     }
                 }
             }
         } else {
-            warn!("Received failure notification for unregistered actor '{}'", msg.actor_name);
+            warn!(
+                "Received failure notification for unregistered actor '{}'",
+                msg.actor_name
+            );
         }
     }
 }
@@ -305,18 +329,24 @@ impl Handler<GetSupervisionStatus> for SupervisorActor {
 
     fn handle(&mut self, _msg: GetSupervisionStatus, _ctx: &mut Self::Context) -> Self::Result {
         let total_actors = self.supervised_actors.len();
-        let running_actors = self.supervised_actors.values().filter(|s| s.is_running).count();
+        let running_actors = self
+            .supervised_actors
+            .values()
+            .filter(|s| s.is_running)
+            .count();
         let failed_actors = total_actors - running_actors;
 
-        let actors = self.supervised_actors.iter().map(|(name, state)| {
-            ActorStatusInfo {
+        let actors = self
+            .supervised_actors
+            .iter()
+            .map(|(name, state)| ActorStatusInfo {
                 name: name.clone(),
                 is_running: state.is_running,
                 restart_count: state.restart_count,
                 last_restart: state.last_restart,
                 strategy: state.actor_info.strategy.clone(),
-            }
-        }).collect();
+            })
+            .collect();
 
         Ok(SupervisionStatus {
             total_actors,
@@ -535,7 +565,7 @@ impl Handler<VoiceCommand> for SupervisorActor {
 /// Helper trait for actors to integrate with supervision
 pub trait SupervisedActorTrait: Actor {
     fn actor_name() -> &'static str;
-    
+
     fn supervision_strategy() -> SupervisionStrategy {
         SupervisionStrategy::RestartWithBackoff {
             initial_delay: Duration::from_secs(1),
@@ -543,15 +573,15 @@ pub trait SupervisedActorTrait: Actor {
             multiplier: 2.0,
         }
     }
-    
+
     fn max_restart_count() -> u32 {
         5
     }
-    
+
     fn restart_window() -> Duration {
         Duration::from_secs(300) // 5 minutes
     }
-    
+
     /// Called when the actor encounters an error that might require supervision
     fn report_error(&self, supervisor: &Addr<SupervisorActor>, error: VisionFlowError) {
         supervisor.do_send(ActorFailed {
@@ -569,18 +599,22 @@ mod tests {
     #[actix::test]
     async fn test_actor_registration() {
         let supervisor = SupervisorActor::new("TestSupervisor".to_string()).start();
-        
+
         let register_msg = RegisterActor {
             actor_name: "TestActor".to_string(),
             strategy: SupervisionStrategy::Restart,
             max_restart_count: 3,
             restart_window: Duration::from_secs(60),
         };
-        
+
         let result = supervisor.send(register_msg).await.unwrap();
         assert!(result.is_ok());
-        
-        let status = supervisor.send(GetSupervisionStatus).await.unwrap().unwrap();
+
+        let status = supervisor
+            .send(GetSupervisionStatus)
+            .await
+            .unwrap()
+            .unwrap();
         assert_eq!(status.total_actors, 1);
         assert_eq!(status.running_actors, 1);
     }
@@ -588,7 +622,7 @@ mod tests {
     #[actix::test]
     async fn test_actor_failure_handling() {
         let supervisor = SupervisorActor::new("TestSupervisor".to_string()).start();
-        
+
         // Register an actor
         let register_msg = RegisterActor {
             actor_name: "TestActor".to_string(),
@@ -596,9 +630,9 @@ mod tests {
             max_restart_count: 3,
             restart_window: Duration::from_secs(60),
         };
-        
+
         supervisor.send(register_msg).await.unwrap().unwrap();
-        
+
         // Simulate actor failure
         let failure_msg = ActorFailed {
             actor_name: "TestActor".to_string(),
@@ -607,13 +641,17 @@ mod tests {
                 reason: "Test failure".to_string(),
             }),
         };
-        
+
         supervisor.send(failure_msg).await.unwrap();
-        
+
         // Give some time for processing
         sleep(Duration::from_millis(100)).await;
-        
-        let status = supervisor.send(GetSupervisionStatus).await.unwrap().unwrap();
+
+        let status = supervisor
+            .send(GetSupervisionStatus)
+            .await
+            .unwrap()
+            .unwrap();
         assert_eq!(status.total_actors, 1);
     }
 }

@@ -1,12 +1,12 @@
-use std::sync::Arc;
-use tokio::sync::{RwLock, Mutex};
-use tokio::net::TcpStream;
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader, AsyncReadExt};
+use log::{debug, error, info, warn};
 use serde_json::{json, Value};
-use uuid::Uuid;
-use log::{info, warn, error, debug};
-use std::time::Duration;
 use std::collections::HashMap;
+use std::sync::Arc;
+use std::time::Duration;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::TcpStream;
+use tokio::sync::{Mutex, RwLock};
+use uuid::Uuid;
 
 /// Persistent MCP Connection that maintains the stream
 pub struct PersistentMCPConnection {
@@ -17,7 +17,10 @@ pub struct PersistentMCPConnection {
 
 impl PersistentMCPConnection {
     /// Create and initialize a new MCP connection
-    pub async fn new(host: &str, port: &str) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn new(
+        host: &str,
+        port: &str,
+    ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
         let addr = format!("{}:{}", host, port);
         info!("Connecting to MCP server at {}", addr);
 
@@ -60,7 +63,9 @@ impl PersistentMCPConnection {
 
             // Read line byte by byte
             loop {
-                match tokio::time::timeout(Duration::from_secs(5), stream.read_exact(&mut byte)).await {
+                match tokio::time::timeout(Duration::from_secs(5), stream.read_exact(&mut byte))
+                    .await
+                {
                     Ok(Ok(_)) => {
                         if byte[0] == b'\n' {
                             break;
@@ -142,7 +147,9 @@ impl PersistentMCPConnection {
 
             // Read line byte by byte
             loop {
-                match tokio::time::timeout(Duration::from_secs(10), stream.read_exact(&mut byte)).await {
+                match tokio::time::timeout(Duration::from_secs(10), stream.read_exact(&mut byte))
+                    .await
+                {
                     Ok(Ok(_)) => {
                         if byte[0] == b'\n' {
                             break;
@@ -216,7 +223,10 @@ impl MCPConnectionPool {
     }
 
     /// Get or create a connection for a specific purpose
-    pub async fn get_connection(&self, purpose: &str) -> Result<Arc<PersistentMCPConnection>, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn get_connection(
+        &self,
+        purpose: &str,
+    ) -> Result<Arc<PersistentMCPConnection>, Box<dyn std::error::Error + Send + Sync>> {
         // Check if we have an existing connection
         {
             let connections = self.connections.read().await;
@@ -296,7 +306,8 @@ pub async fn call_swarm_init(
         }
     });
 
-    pool.execute_command("swarm_init", "tools/call", params).await
+    pool.execute_command("swarm_init", "tools/call", params)
+        .await
 }
 
 /// Simplified function to list agents
@@ -314,7 +325,8 @@ pub async fn call_agent_list(
         }
     });
 
-    pool.execute_command("agent_list", "tools/call", params).await
+    pool.execute_command("agent_list", "tools/call", params)
+        .await
 }
 
 /// Simplified function to destroy a swarm
@@ -334,7 +346,8 @@ pub async fn call_swarm_destroy(
         }
     });
 
-    pool.execute_command("swarm_destroy", "tools/call", params).await
+    pool.execute_command("swarm_destroy", "tools/call", params)
+        .await
 }
 
 /// Simplified function to spawn an agent
@@ -346,7 +359,10 @@ pub async fn call_agent_spawn(
 ) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
     let pool = MCPConnectionPool::new(host.to_string(), port.to_string());
 
-    info!("Spawning agent of type: {} in swarm: {}", agent_type, swarm_id);
+    info!(
+        "Spawning agent of type: {} in swarm: {}",
+        agent_type, swarm_id
+    );
 
     let params = json!({
         "name": "agent_spawn",
@@ -356,7 +372,8 @@ pub async fn call_agent_spawn(
         }
     });
 
-    pool.execute_command("agent_spawn", "tools/call", params).await
+    pool.execute_command("agent_spawn", "tools/call", params)
+        .await
 }
 
 /// Simplified function to orchestrate a task
@@ -388,15 +405,16 @@ pub async fn call_task_orchestrate(
         "arguments": args
     });
 
-    pool.execute_command("task_orchestrate", "tools/call", params).await
+    pool.execute_command("task_orchestrate", "tools/call", params)
+        .await
 }
 
 /// Hybrid task orchestration supporting both Docker exec and MCP fallback
 #[derive(Debug, Clone)]
 pub enum TaskMethod {
-    Docker,     // Primary method via Docker exec
-    MCP,        // Fallback via TCP/MCP
-    Hybrid,     // Try Docker first, fallback to MCP
+    Docker, // Primary method via Docker exec
+    MCP,    // Fallback via TCP/MCP
+    Hybrid, // Try Docker first, fallback to MCP
 }
 
 // DEPRECATED: Legacy Docker orchestration functions removed
@@ -621,5 +639,6 @@ pub async fn call_task_status(
         "arguments": args
     });
 
-    pool.execute_command("task_status", "tools/call", params).await
+    pool.execute_command("task_status", "tools/call", params)
+        .await
 }

@@ -1,14 +1,38 @@
-// NEW: Database-Backed Settings Handler
-// Direct connection: UI → Handler → SettingsService → Database
+// NEW: CQRS-Based Settings Handler
+// Direct connection: UI → Handler → CQRS Application Layer → Database
 //
-// This replaces the old actor-based approach with direct database access
-// All settings operations go through SettingsService which handles caching and persistence
+// This replaces direct service calls with CQRS directives/queries
+// All settings operations go through application layer handlers
 
-use actix_web::{web, Error, HttpResponse, HttpRequest};
 use crate::app_state::AppState;
 use crate::config::AppFullSettings;
+use actix_web::{web, Error, HttpResponse};
+use log::{error, info, warn};
 use serde_json::{json, Value};
-use log::{info, warn, error};
+
+// Import CQRS handlers
+use crate::application::settings::{
+    ClearSettingsCache,
+    ClearSettingsCacheHandler,
+    GetPhysicsSettings,
+    GetPhysicsSettingsHandler,
+    GetSetting,
+    GetSettingHandler,
+    GetSettingsBatch,
+    GetSettingsBatchHandler,
+    // Queries
+    LoadAllSettings,
+    LoadAllSettingsHandler,
+    // Directives
+    SaveAllSettings,
+    SaveAllSettingsHandler,
+    UpdatePhysicsSettings,
+    UpdatePhysicsSettingsHandler,
+    UpdateSetting,
+    UpdateSettingHandler,
+};
+use crate::ports::settings_repository::SettingValue;
+use hexser::{DirectiveHandler, QueryHandler};
 
 /// Configure settings routes
 pub fn config(cfg: &mut web::ServiceConfig) {
@@ -25,34 +49,42 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .route("/path/{path:.*}", web::put().to(update_setting_by_path))
             .route("/batch", web::post().to(get_settings_batch))
             .route("/physics/{graph_name}", web::get().to(get_physics_settings))
-            .route("/physics/{graph_name}", web::put().to(update_physics_settings))
+            .route(
+                "/physics/{graph_name}",
+                web::put().to(update_physics_settings),
+            ),
     );
 }
 
-/// Get all settings from database
-pub async fn get_settings(
-    state: web::Data<AppState>,
-) -> Result<HttpResponse, Error> {
-    info!("[Settings Handler] GET /settings - Loading from database");
+/// Get all settings from database using CQRS query
+pub async fn get_settings(state: web::Data<AppState>) -> Result<HttpResponse, Error> {
+    info!("[Settings Handler] GET /settings - Loading via CQRS");
 
-    match state.settings_service.load_all_settings() {
+    // Create query handler using repository from AppState
+    let handler = LoadAllSettingsHandler::new(state.settings_repository.clone());
+
+    // Execute query
+    match handler.handle(LoadAllSettings) {
         Ok(Some(settings)) => {
-            info!("[Settings Handler] Settings loaded successfully from database");
+            info!("[Settings Handler] Settings loaded successfully via CQRS");
             Ok(HttpResponse::Ok().json(settings))
         }
         Ok(None) => {
-            warn!("[Settings Handler] No settings found in database, using defaults");
+            warn!("[Settings Handler] No settings found, using defaults");
             let default_settings = AppFullSettings::default();
 
-            // Save defaults to database for next time
-            if let Err(e) = state.settings_service.save_all_settings(&default_settings) {
-                error!("[Settings Handler] Failed to save default settings: {}", e);
+            // Save defaults using directive
+            let save_handler = SaveAllSettingsHandler::new(state.settings_repository.clone());
+            if let Err(e) = save_handler.handle(SaveAllSettings {
+                settings: default_settings.clone(),
+            }) {
+                error!("[Settings Handler] Failed to save defaults: {}", e);
             }
 
             Ok(HttpResponse::Ok().json(default_settings))
         }
         Err(e) => {
-            error!("[Settings Handler] Database error loading settings: {}", e);
+            error!("[Settings Handler] CQRS query error: {}", e);
             Ok(HttpResponse::InternalServerError().json(json!({
                 "error": "database_error",
                 "message": format!("Failed to load settings: {}", e)
@@ -61,31 +93,35 @@ pub async fn get_settings(
     }
 }
 
-/// Update settings in database
+/// Update settings in database using CQRS directive
 pub async fn update_settings(
     state: web::Data<AppState>,
     payload: web::Json<AppFullSettings>,
 ) -> Result<HttpResponse, Error> {
-    info!("[Settings Handler] POST /settings - Updating database");
+    info!("[Settings Handler] POST /settings - Updating via CQRS");
 
     let settings = payload.into_inner();
 
     // CRITICAL: Validate that graph settings are separate (logseq vs visionflow)
-    // This prevents the conflation bug mentioned by user
-    if settings.visualisation.graphs.logseq.nodes == settings.visualisation.graphs.visionflow.nodes {
-        warn!("[Settings Handler] WARNING: Logseq and Visionflow graphs have identical node settings - possible conflation!");
+    if settings.visualisation.graphs.logseq.nodes == settings.visualisation.graphs.visionflow.nodes
+    {
+        warn!("[Settings Handler] WARNING: Logseq and Visionflow graphs have identical node settings!");
     }
 
-    match state.settings_service.save_all_settings(&settings) {
+    // Create directive handler
+    let handler = SaveAllSettingsHandler::new(state.settings_repository.clone());
+
+    // Execute directive
+    match handler.handle(SaveAllSettings { settings }) {
         Ok(()) => {
-            info!("[Settings Handler] Settings saved successfully to database");
+            info!("[Settings Handler] Settings saved successfully via CQRS");
             Ok(HttpResponse::Ok().json(json!({
                 "success": true,
                 "message": "Settings saved to database"
             })))
         }
         Err(e) => {
-            error!("[Settings Handler] Database error saving settings: {}", e);
+            error!("[Settings Handler] CQRS directive error: {}", e);
             Ok(HttpResponse::InternalServerError().json(json!({
                 "error": "database_error",
                 "message": format!("Failed to save settings: {}", e)
@@ -94,25 +130,31 @@ pub async fn update_settings(
     }
 }
 
-/// Get a single setting by path (supports camelCase and snake_case)
+/// Get a single setting by path using CQRS query
 pub async fn get_setting_by_path(
     state: web::Data<AppState>,
     path: web::Path<String>,
 ) -> Result<HttpResponse, Error> {
     let setting_path = path.into_inner();
-    info!("[Settings Handler] GET /settings/path/{} - Direct database lookup", setting_path);
+    info!(
+        "[Settings Handler] GET /settings/path/{} - CQRS query",
+        setting_path
+    );
 
-    match state.settings_service.get_setting(&setting_path).await {
+    // Create query handler
+    let handler = GetSettingHandler::new(state.settings_repository.clone());
+
+    // Execute query
+    match handler.handle(GetSetting {
+        key: setting_path.clone(),
+    }) {
         Ok(Some(value)) => {
-            info!("[Settings Handler] Setting '{}' found in database", setting_path);
+            info!(
+                "[Settings Handler] Setting '{}' found via CQRS",
+                setting_path
+            );
             // Convert SettingValue to JSON
-            let json_value = match value {
-                crate::services::database_service::SettingValue::String(s) => json!(s),
-                crate::services::database_service::SettingValue::Integer(i) => json!(i),
-                crate::services::database_service::SettingValue::Float(f) => json!(f),
-                crate::services::database_service::SettingValue::Boolean(b) => json!(b),
-                crate::services::database_service::SettingValue::Json(j) => j,
-            };
+            let json_value = setting_value_to_json(&value);
             Ok(HttpResponse::Ok().json(json!({
                 "path": setting_path,
                 "value": json_value
@@ -126,7 +168,10 @@ pub async fn get_setting_by_path(
             })))
         }
         Err(e) => {
-            error!("[Settings Handler] Database error getting setting '{}': {}", setting_path, e);
+            error!(
+                "[Settings Handler] CQRS query error for '{}': {}",
+                setting_path, e
+            );
             Ok(HttpResponse::InternalServerError().json(json!({
                 "error": "database_error",
                 "message": format!("Failed to get setting: {}", e)
@@ -135,7 +180,7 @@ pub async fn get_setting_by_path(
     }
 }
 
-/// Update a single setting by path
+/// Update a single setting by path using CQRS directive
 pub async fn update_setting_by_path(
     state: web::Data<AppState>,
     path: web::Path<String>,
@@ -144,21 +189,28 @@ pub async fn update_setting_by_path(
     let setting_path = path.into_inner();
     let value = payload.into_inner();
 
-    info!("[Settings Handler] PUT /settings/path/{} - Direct database update", setting_path);
+    info!(
+        "[Settings Handler] PUT /settings/path/{} - CQRS directive",
+        setting_path
+    );
 
     // Convert JSON value to SettingValue
-    use crate::services::database_service::SettingValue;
-    let setting_value = match &value {
-        Value::String(s) => SettingValue::String(s.clone()),
-        Value::Number(n) if n.is_f64() => SettingValue::Float(n.as_f64().unwrap()),
-        Value::Number(n) if n.is_i64() => SettingValue::Integer(n.as_i64().unwrap()),
-        Value::Bool(b) => SettingValue::Boolean(*b),
-        _ => SettingValue::Json(value.clone()),
-    };
+    let setting_value = json_to_setting_value(&value);
 
-    match state.settings_service.set_setting(&setting_path, setting_value).await {
+    // Create directive handler
+    let handler = UpdateSettingHandler::new(state.settings_repository.clone());
+
+    // Execute directive
+    match handler.handle(UpdateSetting {
+        key: setting_path.clone(),
+        value: setting_value,
+        description: None,
+    }) {
         Ok(()) => {
-            info!("[Settings Handler] Setting '{}' updated in database", setting_path);
+            info!(
+                "[Settings Handler] Setting '{}' updated via CQRS",
+                setting_path
+            );
             Ok(HttpResponse::Ok().json(json!({
                 "success": true,
                 "path": setting_path,
@@ -166,7 +218,10 @@ pub async fn update_setting_by_path(
             })))
         }
         Err(e) => {
-            error!("[Settings Handler] Database error updating setting '{}': {}", setting_path, e);
+            error!(
+                "[Settings Handler] CQRS directive error for '{}': {}",
+                setting_path, e
+            );
             Ok(HttpResponse::InternalServerError().json(json!({
                 "error": "database_error",
                 "message": format!("Failed to update setting: {}", e)
@@ -175,32 +230,39 @@ pub async fn update_setting_by_path(
     }
 }
 
-/// Get batch of settings by paths
+/// Get batch of settings by paths using CQRS query
 pub async fn get_settings_batch(
     state: web::Data<AppState>,
     payload: web::Json<Vec<String>>,
 ) -> Result<HttpResponse, Error> {
     let paths = payload.into_inner();
-    info!("[Settings Handler] POST /settings/batch - Getting {} settings from database", paths.len());
+    info!(
+        "[Settings Handler] POST /settings/batch - Getting {} settings via CQRS",
+        paths.len()
+    );
 
-    match state.settings_service.get_settings_batch(&paths).await {
+    // Create query handler
+    let handler = GetSettingsBatchHandler::new(state.settings_repository.clone());
+
+    // Execute query
+    match handler.handle(GetSettingsBatch {
+        keys: paths.clone(),
+    }) {
         Ok(results) => {
-            info!("[Settings Handler] Batch get successful: {}/{} settings found", results.len(), paths.len());
+            info!(
+                "[Settings Handler] Batch get successful: {}/{} settings found",
+                results.len(),
+                paths.len()
+            );
             // Convert SettingValue map to JSON map
-            let json_results: std::collections::HashMap<String, Value> = results.into_iter().map(|(k, v)| {
-                let json_value = match v {
-                    crate::services::database_service::SettingValue::String(s) => json!(s),
-                    crate::services::database_service::SettingValue::Integer(i) => json!(i),
-                    crate::services::database_service::SettingValue::Float(f) => json!(f),
-                    crate::services::database_service::SettingValue::Boolean(b) => json!(b),
-                    crate::services::database_service::SettingValue::Json(j) => j,
-                };
-                (k, json_value)
-            }).collect();
+            let json_results: std::collections::HashMap<String, Value> = results
+                .into_iter()
+                .map(|(k, v)| (k, setting_value_to_json(&v)))
+                .collect();
             Ok(HttpResponse::Ok().json(json_results))
         }
         Err(e) => {
-            error!("[Settings Handler] Database error in batch get: {}", e);
+            error!("[Settings Handler] CQRS batch query error: {}", e);
             Ok(HttpResponse::InternalServerError().json(json!({
                 "error": "database_error",
                 "message": format!("Failed to get settings batch: {}", e)
@@ -209,24 +271,28 @@ pub async fn get_settings_batch(
     }
 }
 
-/// Reset settings to defaults
-pub async fn reset_settings(
-    state: web::Data<AppState>,
-) -> Result<HttpResponse, Error> {
-    info!("[Settings Handler] POST /settings/reset - Resetting to defaults in database");
+/// Reset settings to defaults using CQRS directive
+pub async fn reset_settings(state: web::Data<AppState>) -> Result<HttpResponse, Error> {
+    info!("[Settings Handler] POST /settings/reset - CQRS directive");
 
     let default_settings = AppFullSettings::default();
 
-    match state.settings_service.save_all_settings(&default_settings) {
+    // Create directive handler
+    let handler = SaveAllSettingsHandler::new(state.settings_repository.clone());
+
+    // Execute directive
+    match handler.handle(SaveAllSettings {
+        settings: default_settings,
+    }) {
         Ok(()) => {
-            info!("[Settings Handler] Settings reset to defaults in database");
+            info!("[Settings Handler] Settings reset via CQRS");
             Ok(HttpResponse::Ok().json(json!({
                 "success": true,
                 "message": "Settings reset to defaults"
             })))
         }
         Err(e) => {
-            error!("[Settings Handler] Database error resetting settings: {}", e);
+            error!("[Settings Handler] CQRS reset directive error: {}", e);
             Ok(HttpResponse::InternalServerError().json(json!({
                 "error": "database_error",
                 "message": format!("Failed to reset settings: {}", e)
@@ -236,11 +302,11 @@ pub async fn reset_settings(
 }
 
 /// Health check for settings service
-pub async fn settings_health(
-    state: web::Data<AppState>,
-) -> Result<HttpResponse, Error> {
-    // Try to load settings from database
-    let healthy = state.settings_service.load_all_settings().is_ok();
+pub async fn settings_health(state: web::Data<AppState>) -> Result<HttpResponse, Error> {
+    // Try to load settings using CQRS query
+    let handler = LoadAllSettingsHandler::new(state.settings_repository.clone());
+
+    let healthy = handler.handle(LoadAllSettings).is_ok();
 
     // Get cache stats
     let cache_stats = state.settings_service.get_cache_stats().await;
@@ -260,13 +326,16 @@ pub async fn settings_health(
     }
 }
 
-/// Get physics settings for a specific graph
+/// Get physics settings for a specific graph using CQRS query
 pub async fn get_physics_settings(
     state: web::Data<AppState>,
     graph_name: web::Path<String>,
 ) -> Result<HttpResponse, Error> {
     let graph = graph_name.into_inner();
-    info!("[Settings Handler] GET /settings/physics/{} - Loading from database", graph);
+    info!(
+        "[Settings Handler] GET /settings/physics/{} - CQRS query",
+        graph
+    );
 
     // CRITICAL: Ensure graph separation (logseq vs visionflow)
     if graph != "logseq" && graph != "visionflow" && graph != "default" {
@@ -276,13 +345,25 @@ pub async fn get_physics_settings(
         })));
     }
 
-    match state.settings_service.get_physics_settings(&graph) {
+    // Create query handler
+    let handler = GetPhysicsSettingsHandler::new(state.settings_repository.clone());
+
+    // Execute query
+    match handler.handle(GetPhysicsSettings {
+        profile_name: graph.clone(),
+    }) {
         Ok(settings) => {
-            info!("[Settings Handler] Physics settings for '{}' loaded from database", graph);
+            info!(
+                "[Settings Handler] Physics settings for '{}' loaded via CQRS",
+                graph
+            );
             Ok(HttpResponse::Ok().json(settings))
         }
         Err(e) => {
-            error!("[Settings Handler] Database error getting physics for '{}': {}", graph, e);
+            error!(
+                "[Settings Handler] CQRS physics query error for '{}': {}",
+                graph, e
+            );
             Ok(HttpResponse::InternalServerError().json(json!({
                 "error": "database_error",
                 "message": format!("Failed to get physics settings: {}", e)
@@ -291,7 +372,7 @@ pub async fn get_physics_settings(
     }
 }
 
-/// Update physics settings for a specific graph
+/// Update physics settings for a specific graph using CQRS directive
 pub async fn update_physics_settings(
     state: web::Data<AppState>,
     graph_name: web::Path<String>,
@@ -300,7 +381,10 @@ pub async fn update_physics_settings(
     let graph = graph_name.into_inner();
     let physics_settings = payload.into_inner();
 
-    info!("[Settings Handler] PUT /settings/physics/{} - Updating database", graph);
+    info!(
+        "[Settings Handler] PUT /settings/physics/{} - CQRS directive",
+        graph
+    );
 
     // CRITICAL: Validate graph name to prevent conflation
     if graph != "logseq" && graph != "visionflow" && graph != "default" {
@@ -310,9 +394,19 @@ pub async fn update_physics_settings(
         })));
     }
 
-    match state.settings_service.save_physics_settings(&graph, &physics_settings) {
+    // Create directive handler
+    let handler = UpdatePhysicsSettingsHandler::new(state.settings_repository.clone());
+
+    // Execute directive
+    match handler.handle(UpdatePhysicsSettings {
+        profile_name: graph.clone(),
+        settings: physics_settings,
+    }) {
         Ok(()) => {
-            info!("[Settings Handler] Physics settings for '{}' saved to database", graph);
+            info!(
+                "[Settings Handler] Physics settings for '{}' saved via CQRS",
+                graph
+            );
             Ok(HttpResponse::Ok().json(json!({
                 "success": true,
                 "graph": graph,
@@ -320,7 +414,10 @@ pub async fn update_physics_settings(
             })))
         }
         Err(e) => {
-            error!("[Settings Handler] Database error saving physics for '{}': {}", graph, e);
+            error!(
+                "[Settings Handler] CQRS physics directive error for '{}': {}",
+                graph, e
+            );
             Ok(HttpResponse::InternalServerError().json(json!({
                 "error": "database_error",
                 "message": format!("Failed to save physics settings: {}", e)
@@ -329,36 +426,35 @@ pub async fn update_physics_settings(
     }
 }
 
-/// Export settings as JSON
-pub async fn export_settings(
-    state: web::Data<AppState>,
-) -> Result<HttpResponse, Error> {
-    info!("[Settings Handler] GET /settings/export - Exporting from database");
+/// Export settings as JSON using CQRS query
+pub async fn export_settings(state: web::Data<AppState>) -> Result<HttpResponse, Error> {
+    info!("[Settings Handler] GET /settings/export - CQRS query");
 
-    match state.settings_service.load_all_settings() {
-        Ok(Some(settings)) => {
-            match serde_json::to_string_pretty(&settings) {
-                Ok(json_string) => {
-                    Ok(HttpResponse::Ok()
-                        .content_type("application/json")
-                        .insert_header(("Content-Disposition", "attachment; filename=\"settings.json\""))
-                        .body(json_string))
-                }
-                Err(e) => {
-                    error!("[Settings Handler] Failed to serialize settings: {}", e);
-                    Ok(HttpResponse::InternalServerError().json(json!({
-                        "error": "serialization_error"
-                    })))
-                }
+    // Create query handler
+    let handler = LoadAllSettingsHandler::new(state.settings_repository.clone());
+
+    // Execute query
+    match handler.handle(LoadAllSettings) {
+        Ok(Some(settings)) => match serde_json::to_string_pretty(&settings) {
+            Ok(json_string) => Ok(HttpResponse::Ok()
+                .content_type("application/json")
+                .insert_header((
+                    "Content-Disposition",
+                    "attachment; filename=\"settings.json\"",
+                ))
+                .body(json_string)),
+            Err(e) => {
+                error!("[Settings Handler] Failed to serialize settings: {}", e);
+                Ok(HttpResponse::InternalServerError().json(json!({
+                    "error": "serialization_error"
+                })))
             }
-        }
-        Ok(None) => {
-            Ok(HttpResponse::NotFound().json(json!({
-                "error": "no_settings"
-            })))
-        }
+        },
+        Ok(None) => Ok(HttpResponse::NotFound().json(json!({
+            "error": "no_settings"
+        }))),
         Err(e) => {
-            error!("[Settings Handler] Database error exporting settings: {}", e);
+            error!("[Settings Handler] CQRS export query error: {}", e);
             Ok(HttpResponse::InternalServerError().json(json!({
                 "error": "database_error",
                 "message": format!("Failed to export settings: {}", e)
@@ -367,25 +463,29 @@ pub async fn export_settings(
     }
 }
 
-/// Import settings from JSON
+/// Import settings from JSON using CQRS directive
 pub async fn import_settings(
     state: web::Data<AppState>,
     payload: web::Json<AppFullSettings>,
 ) -> Result<HttpResponse, Error> {
-    info!("[Settings Handler] POST /settings/import - Importing to database");
+    info!("[Settings Handler] POST /settings/import - CQRS directive");
 
     let settings = payload.into_inner();
 
-    match state.settings_service.save_all_settings(&settings) {
+    // Create directive handler
+    let handler = SaveAllSettingsHandler::new(state.settings_repository.clone());
+
+    // Execute directive
+    match handler.handle(SaveAllSettings { settings }) {
         Ok(()) => {
-            info!("[Settings Handler] Settings imported successfully to database");
+            info!("[Settings Handler] Settings imported successfully via CQRS");
             Ok(HttpResponse::Ok().json(json!({
                 "success": true,
                 "message": "Settings imported"
             })))
         }
         Err(e) => {
-            error!("[Settings Handler] Database error importing settings: {}", e);
+            error!("[Settings Handler] CQRS import directive error: {}", e);
             Ok(HttpResponse::InternalServerError().json(json!({
                 "error": "database_error",
                 "message": format!("Failed to import settings: {}", e)
@@ -394,16 +494,47 @@ pub async fn import_settings(
     }
 }
 
-/// Clear settings cache
-pub async fn clear_cache(
-    state: web::Data<AppState>,
-) -> Result<HttpResponse, Error> {
-    info!("[Settings Handler] POST /settings/cache/clear - Clearing cache");
+/// Clear settings cache using CQRS directive
+pub async fn clear_cache(state: web::Data<AppState>) -> Result<HttpResponse, Error> {
+    info!("[Settings Handler] POST /settings/cache/clear - CQRS directive");
 
-    state.settings_service.clear_cache().await;
+    // Create directive handler
+    let handler = ClearSettingsCacheHandler::new(state.settings_repository.clone());
 
-    Ok(HttpResponse::Ok().json(json!({
-        "success": true,
-        "message": "Cache cleared"
-    })))
+    // Execute directive
+    match handler.handle(ClearSettingsCache) {
+        Ok(()) => Ok(HttpResponse::Ok().json(json!({
+            "success": true,
+            "message": "Cache cleared"
+        }))),
+        Err(e) => {
+            error!("[Settings Handler] CQRS cache clear error: {}", e);
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "cache_error",
+                "message": format!("Failed to clear cache: {}", e)
+            })))
+        }
+    }
+}
+
+// Helper functions for SettingValue conversion
+
+fn setting_value_to_json(value: &SettingValue) -> Value {
+    match value {
+        SettingValue::String(s) => json!(s),
+        SettingValue::Integer(i) => json!(i),
+        SettingValue::Float(f) => json!(f),
+        SettingValue::Boolean(b) => json!(b),
+        SettingValue::Json(j) => j.clone(),
+    }
+}
+
+fn json_to_setting_value(value: &Value) -> SettingValue {
+    match value {
+        Value::String(s) => SettingValue::String(s.clone()),
+        Value::Number(n) if n.is_f64() => SettingValue::Float(n.as_f64().unwrap()),
+        Value::Number(n) if n.is_i64() => SettingValue::Integer(n.as_i64().unwrap()),
+        Value::Bool(b) => SettingValue::Boolean(*b),
+        _ => SettingValue::Json(value.clone()),
+    }
 }

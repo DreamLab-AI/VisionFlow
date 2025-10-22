@@ -1,7 +1,7 @@
-use actix_web::{HttpResponse, Result, Error};
-use serde::{Serialize, Deserialize};
+use actix_web::{HttpResponse, Result};
 use chrono::{DateTime, Utc};
 use log::{error, warn};
+use serde::{Deserialize, Serialize};
 
 /// Standard response wrapper for all API endpoints
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -55,13 +55,15 @@ pub trait HandlerResponse<T: Serialize> {
     /// Create an error response with internal server error status
     fn internal_error(message: String) -> Result<HttpResponse> {
         error!("Internal server error: {}", message);
-        Ok(HttpResponse::InternalServerError().json(StandardResponse::<()> {
-            success: false,
-            data: None,
-            error: Some(message),
-            timestamp: Utc::now(),
-            request_id: None,
-        }))
+        Ok(
+            HttpResponse::InternalServerError().json(StandardResponse::<()> {
+                success: false,
+                data: None,
+                error: Some(message),
+                timestamp: Utc::now(),
+                request_id: None,
+            }),
+        )
     }
 
     /// Create a bad request error response
@@ -210,14 +212,10 @@ pub enum StandardWebSocketMessage<T> {
     },
 
     #[serde(rename = "ping")]
-    Ping {
-        timestamp: DateTime<Utc>,
-    },
+    Ping { timestamp: DateTime<Utc> },
 
     #[serde(rename = "pong")]
-    Pong {
-        timestamp: DateTime<Utc>,
-    },
+    Pong { timestamp: DateTime<Utc> },
 
     #[serde(rename = "subscribe")]
     Subscribe {

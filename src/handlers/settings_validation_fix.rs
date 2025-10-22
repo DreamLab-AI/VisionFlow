@@ -9,7 +9,8 @@ pub fn validate_physics_settings_complete(physics: &Value) -> Result<(), String>
     // dt (time step) - CRITICAL for stability
     if let Some(dt) = physics.get("dt").or_else(|| physics.get("timeStep")) {
         let val = dt.as_f64().ok_or("dt must be a number")?;
-        if val <= 0.0 || val > 0.1 {  // Strict upper bound for stability
+        if val <= 0.0 || val > 0.1 {
+            // Strict upper bound for stability
             return Err("dt must be between 0.001 and 0.1 for GPU stability".to_string());
         }
     }
@@ -17,7 +18,8 @@ pub fn validate_physics_settings_complete(physics: &Value) -> Result<(), String>
     // maxVelocity - Prevent position explosions
     if let Some(max_vel) = physics.get("maxVelocity") {
         let val = max_vel.as_f64().ok_or("maxVelocity must be a number")?;
-        if val <= 0.0 || val > 100.0 {  // Reduced from 1000 to prevent instability
+        if val <= 0.0 || val > 100.0 {
+            // Reduced from 1000 to prevent instability
             return Err("maxVelocity must be between 0.1 and 100.0".to_string());
         }
     }
@@ -25,7 +27,8 @@ pub fn validate_physics_settings_complete(physics: &Value) -> Result<(), String>
     // repelK - Must be positive to prevent NaN
     if let Some(repel_k) = physics.get("repelK") {
         let val = repel_k.as_f64().ok_or("repelK must be a number")?;
-        if val <= 0.0 || val > 500.0 {  // Strictly positive, capped at 500
+        if val <= 0.0 || val > 500.0 {
+            // Strictly positive, capped at 500
             return Err("repelK must be between 0.001 and 500.0".to_string());
         }
     }
@@ -41,7 +44,8 @@ pub fn validate_physics_settings_complete(physics: &Value) -> Result<(), String>
     // damping - Critical for convergence
     if let Some(damping) = physics.get("damping") {
         let val = damping.as_f64().ok_or("damping must be a number")?;
-        if val < 0.0 || val >= 1.0 {  // Must be less than 1 for stability
+        if val < 0.0 || val >= 1.0 {
+            // Must be less than 1 for stability
             return Err("damping must be between 0.0 and 0.999".to_string());
         }
     }
@@ -64,7 +68,9 @@ pub fn validate_physics_settings_complete(physics: &Value) -> Result<(), String>
 
     // Constraint parameters
     if let Some(constraint_strength) = physics.get("constraintStrength") {
-        let val = constraint_strength.as_f64().ok_or("constraintStrength must be a number")?;
+        let val = constraint_strength
+            .as_f64()
+            .ok_or("constraintStrength must be a number")?;
         if val < 0.0 || val > 10.0 {
             return Err("constraintStrength must be between 0.0 and 10.0".to_string());
         }
@@ -77,10 +83,12 @@ pub fn validate_physics_settings_complete(physics: &Value) -> Result<(), String>
 pub fn validate_constraint(constraint: &Value) -> Result<(), String> {
     // Validate constraint type
     if let Some(kind) = constraint.get("kind") {
-        let val = kind.as_u64()
+        let val = kind
+            .as_u64()
             .or_else(|| kind.as_i64().map(|i| i as u64))
             .ok_or("constraint kind must be an integer")?;
-        if val > 10 {  // Assuming max 10 constraint types
+        if val > 10 {
+            // Assuming max 10 constraint types
             return Err("Invalid constraint kind".to_string());
         }
     }
@@ -89,8 +97,11 @@ pub fn validate_constraint(constraint: &Value) -> Result<(), String> {
     if let Some(nodes) = constraint.get("nodeIndices") {
         let indices = nodes.as_array().ok_or("nodeIndices must be an array")?;
         for (i, idx) in indices.iter().enumerate() {
-            let val = idx.as_u64().ok_or(format!("nodeIndices[{}] must be a positive integer", i))?;
-            if val > 1_000_000 {  // Sanity check
+            let val = idx
+                .as_u64()
+                .ok_or(format!("nodeIndices[{}] must be a positive integer", i))?;
+            if val > 1_000_000 {
+                // Sanity check
                 return Err(format!("nodeIndices[{}] is too large", i));
             }
         }
@@ -158,7 +169,7 @@ fn camel_to_snake_case(s: &str) -> String {
     match result.as_str() {
         "s_s_s_p_alpha" => "sssp_alpha".to_string(),
         "s_s_s_p_enabled" => "sssp_enabled".to_string(),
-        _ => result
+        _ => result,
     }
 }
 
@@ -175,22 +186,46 @@ pub fn get_complete_field_mappings() -> HashMap<String, String> {
     mappings.insert("maxForce".to_string(), "max_force".to_string());
     mappings.insert("timeStep".to_string(), "dt".to_string());
     mappings.insert("boundsSize".to_string(), "bounds_size".to_string());
-    mappings.insert("boundaryDamping".to_string(), "boundary_damping".to_string());
+    mappings.insert(
+        "boundaryDamping".to_string(),
+        "boundary_damping".to_string(),
+    );
     mappings.insert("massScale".to_string(), "mass_scale".to_string());
-    mappings.insert("separationRadius".to_string(), "separation_radius".to_string());
-    mappings.insert("updateThreshold".to_string(), "update_threshold".to_string());
+    mappings.insert(
+        "separationRadius".to_string(),
+        "separation_radius".to_string(),
+    );
+    mappings.insert(
+        "updateThreshold".to_string(),
+        "update_threshold".to_string(),
+    );
     mappings.insert("stressWeight".to_string(), "stress_weight".to_string());
     mappings.insert("stressAlpha".to_string(), "stress_alpha".to_string());
-    mappings.insert("alignmentStrength".to_string(), "alignment_strength".to_string());
-    mappings.insert("clusterStrength".to_string(), "cluster_strength".to_string());
+    mappings.insert(
+        "alignmentStrength".to_string(),
+        "alignment_strength".to_string(),
+    );
+    mappings.insert(
+        "clusterStrength".to_string(),
+        "cluster_strength".to_string(),
+    );
     mappings.insert("computeMode".to_string(), "compute_mode".to_string());
     mappings.insert("minDistance".to_string(), "min_distance".to_string());
-    mappings.insert("maxRepulsionDist".to_string(), "max_repulsion_dist".to_string());
+    mappings.insert(
+        "maxRepulsionDist".to_string(),
+        "max_repulsion_dist".to_string(),
+    );
     mappings.insert("boundaryMargin".to_string(), "boundary_margin".to_string());
     mappings.insert("ssspAlpha".to_string(), "sssp_alpha".to_string());
     mappings.insert("ssspEnabled".to_string(), "sssp_enabled".to_string());
-    mappings.insert("ssspSourceNodes".to_string(), "sssp_source_nodes".to_string());
-    mappings.insert("constraintStrength".to_string(), "constraint_strength".to_string());
+    mappings.insert(
+        "ssspSourceNodes".to_string(),
+        "sssp_source_nodes".to_string(),
+    );
+    mappings.insert(
+        "constraintStrength".to_string(),
+        "constraint_strength".to_string(),
+    );
 
     // Visual fields previously missing
     mappings.insert("enableHologram".to_string(), "enable_hologram".to_string());
@@ -198,31 +233,73 @@ pub fn get_complete_field_mappings() -> HashMap<String, String> {
     mappings.insert("nodeSize".to_string(), "node_size".to_string());
     mappings.insert("edgeWidth".to_string(), "edge_width".to_string());
     mappings.insert("labelSize".to_string(), "label_size".to_string());
-    mappings.insert("showMetadataShape".to_string(), "show_metadata_shape".to_string());
-    mappings.insert("enableMetadataVisualisation".to_string(), "enable_metadata_visualisation".to_string());
-    mappings.insert("enableNodeAnimations".to_string(), "enable_node_animations".to_string());
-    mappings.insert("enableMotionBlur".to_string(), "enable_motion_blur".to_string());
-    mappings.insert("motionBlurStrength".to_string(), "motion_blur_strength".to_string());
-    mappings.insert("selectionWaveEnabled".to_string(), "selection_wave_enabled".to_string());
+    mappings.insert(
+        "showMetadataShape".to_string(),
+        "show_metadata_shape".to_string(),
+    );
+    mappings.insert(
+        "enableMetadataVisualisation".to_string(),
+        "enable_metadata_visualisation".to_string(),
+    );
+    mappings.insert(
+        "enableNodeAnimations".to_string(),
+        "enable_node_animations".to_string(),
+    );
+    mappings.insert(
+        "enableMotionBlur".to_string(),
+        "enable_motion_blur".to_string(),
+    );
+    mappings.insert(
+        "motionBlurStrength".to_string(),
+        "motion_blur_strength".to_string(),
+    );
+    mappings.insert(
+        "selectionWaveEnabled".to_string(),
+        "selection_wave_enabled".to_string(),
+    );
     mappings.insert("pulseEnabled".to_string(), "pulse_enabled".to_string());
     mappings.insert("pulseSpeed".to_string(), "pulse_speed".to_string());
     mappings.insert("pulseStrength".to_string(), "pulse_strength".to_string());
     mappings.insert("waveSpeed".to_string(), "wave_speed".to_string());
-    mappings.insert("ambientLightIntensity".to_string(), "ambient_light_intensity".to_string());
-    mappings.insert("backgroundColor".to_string(), "background_color".to_string());
-    mappings.insert("directionalLightIntensity".to_string(), "directional_light_intensity".to_string());
-    mappings.insert("enableAmbientOcclusion".to_string(), "enable_ambient_occlusion".to_string());
-    mappings.insert("enableAntialiasing".to_string(), "enable_antialiasing".to_string());
+    mappings.insert(
+        "ambientLightIntensity".to_string(),
+        "ambient_light_intensity".to_string(),
+    );
+    mappings.insert(
+        "backgroundColor".to_string(),
+        "background_color".to_string(),
+    );
+    mappings.insert(
+        "directionalLightIntensity".to_string(),
+        "directional_light_intensity".to_string(),
+    );
+    mappings.insert(
+        "enableAmbientOcclusion".to_string(),
+        "enable_ambient_occlusion".to_string(),
+    );
+    mappings.insert(
+        "enableAntialiasing".to_string(),
+        "enable_antialiasing".to_string(),
+    );
     mappings.insert("enableShadows".to_string(), "enable_shadows".to_string());
-    mappings.insert("environmentIntensity".to_string(), "environment_intensity".to_string());
+    mappings.insert(
+        "environmentIntensity".to_string(),
+        "environment_intensity".to_string(),
+    );
     mappings.insert("shadowMapSize".to_string(), "shadow_map_size".to_string());
     mappings.insert("shadowBias".to_string(), "shadow_bias".to_string());
     mappings.insert("agentColors".to_string(), "agent_colors".to_string());
 
     // Auto-balance fields
     mappings.insert("autoBalance".to_string(), "auto_balance".to_string());
-    mappings.insert("autoBalanceIntervalMs".to_string(), "auto_balance_interval_ms".to_string());
-    mappings.insert("autoBalanceConfig".to_string(), "auto_balance_config".to_string());
+    mappings.insert(
+        "autoBalanceIntervalMs".to_string(),
+        "auto_balance_interval_ms".to_string(),
+    );
+    mappings.insert(
+        "autoBalanceConfig".to_string(),
+        "auto_balance_config".to_string(),
+    );
 
     mappings
 }
@@ -281,10 +358,10 @@ mod tests {
         });
         assert!(validate_physics_settings_complete(&valid).is_ok());
 
-        let invalid_dt = json!({"dt": 1.0});  // Too large
+        let invalid_dt = json!({"dt": 1.0}); // Too large
         assert!(validate_physics_settings_complete(&invalid_dt).is_err());
 
-        let invalid_repel = json!({"repelK": -10.0});  // Negative
+        let invalid_repel = json!({"repelK": -10.0}); // Negative
         assert!(validate_physics_settings_complete(&invalid_repel).is_err());
     }
 

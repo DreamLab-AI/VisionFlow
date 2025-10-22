@@ -3,10 +3,10 @@
 //! This module contains tests and examples for the telemetry system.
 
 use super::agent_telemetry::{
-    AgentTelemetryLogger, CorrelationId, Position3D, TelemetryEvent, LogLevel
+    AgentTelemetryLogger, CorrelationId, LogLevel, Position3D, TelemetryEvent,
 };
-use std::collections::HashMap;
 use serde_json;
+use std::collections::HashMap;
 
 /// Test telemetry logging functionality
 #[cfg(test)]
@@ -41,7 +41,10 @@ pub fn test_telemetry_logging() -> Result<(), Box<dyn std::error::Error>> {
 
     // Test 5: Graph state change
     let mut graph_details = HashMap::new();
-    graph_details.insert("layout_algorithm".to_string(), serde_json::json!("force_directed"));
+    graph_details.insert(
+        "layout_algorithm".to_string(),
+        serde_json::json!("force_directed"),
+    );
     graph_details.insert("convergence_threshold".to_string(), serde_json::json!(0.01));
     logger.log_graph_state_change("node_added", 50, 75, graph_details);
 
@@ -69,7 +72,10 @@ pub fn example_usage() {
         let correlation_id = CorrelationId::from_agent_id("example_agent");
         let position = Position3D::new(150.0, 200.0, 100.0);
         let mut metadata = HashMap::new();
-        metadata.insert("spawn_method".to_string(), serde_json::json!("websocket_connection"));
+        metadata.insert(
+            "spawn_method".to_string(),
+            serde_json::json!("websocket_connection"),
+        );
 
         logger.log_agent_spawn("example_agent", position, metadata);
 
@@ -80,7 +86,7 @@ pub fn example_usage() {
             "custom_category",
             "custom_event",
             "This is a custom telemetry event",
-            "example_component"
+            "example_component",
         )
         .with_metadata("custom_field", serde_json::json!("custom_value"))
         .with_duration(42.5);
@@ -123,7 +129,7 @@ mod tests {
             "test_category",
             "test_event",
             "Test message",
-            "test_component"
+            "test_component",
         )
         .with_agent_id("test_agent")
         .with_position(Position3D::new(1.0, 2.0, 3.0))

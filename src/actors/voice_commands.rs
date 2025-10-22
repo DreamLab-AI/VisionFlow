@@ -1,5 +1,5 @@
 //! Voice command integration for swarm orchestration
-//! 
+//!
 //! This module provides voice-to-swarm command parsing and response formatting
 //! with automatic preamble injection for voice-appropriate responses.
 
@@ -46,23 +46,23 @@ pub struct SwarmVoiceResponse {
 /// Parsed intent from voice commands
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum SwarmIntent {
-    SpawnAgent { 
-        agent_type: String, 
-        capabilities: Vec<String> 
+    SpawnAgent {
+        agent_type: String,
+        capabilities: Vec<String>,
     },
-    QueryStatus { 
-        target: Option<String> 
+    QueryStatus {
+        target: Option<String>,
     },
-    ExecuteTask { 
-        description: String, 
-        priority: TaskPriority 
+    ExecuteTask {
+        description: String,
+        priority: TaskPriority,
     },
-    UpdateGraph { 
-        action: GraphAction 
+    UpdateGraph {
+        action: GraphAction,
     },
     ListAgents,
-    StopAgent { 
-        agent_id: String 
+    StopAgent {
+        agent_id: String,
     },
     Help,
 }
@@ -98,15 +98,16 @@ pub struct VoicePreamble;
 
 impl VoicePreamble {
     /// Generate a compact preamble for swarm messages to ensure voice-appropriate responses
-    /// 
+    ///
     /// This preamble instructs the swarm/agents to format responses for speech synthesis:
     /// - Short, conversational sentences
     /// - No special characters or formatting
     /// - Natural speech patterns
     pub fn generate(intent: &SwarmIntent) -> String {
         // Compact preamble that gets prepended to every swarm instruction
-        let base_preamble = "[VOICE_MODE: Reply in 1-2 short sentences. Be conversational. No special chars.]";
-        
+        let base_preamble =
+            "[VOICE_MODE: Reply in 1-2 short sentences. Be conversational. No special chars.]";
+
         // Intent-specific additions
         let intent_hint = match intent {
             SwarmIntent::SpawnAgent { .. } => " Confirm agent creation.",
@@ -117,10 +118,10 @@ impl VoicePreamble {
             SwarmIntent::StopAgent { .. } => " Confirm stopping.",
             SwarmIntent::Help => " Give brief help.",
         };
-        
+
         format!("{}{}", base_preamble, intent_hint)
     }
-    
+
     /// Wrap a swarm instruction with voice preamble
     pub fn wrap_instruction(instruction: &str, intent: &SwarmIntent) -> String {
         format!("{}\n{}", Self::generate(intent), instruction)
@@ -131,13 +132,13 @@ impl VoiceCommand {
     /// Parse raw text into a voice command with intent
     pub fn parse(text: &str, session_id: String) -> Result<Self, String> {
         let lower = text.to_lowercase();
-        
+
         // Parse intent from text using simple patterns
         let parsed_intent = if lower.contains("add agent") || lower.contains("spawn") {
             let agent_type = Self::extract_agent_type(&lower)?;
-            SwarmIntent::SpawnAgent { 
+            SwarmIntent::SpawnAgent {
                 agent_type,
-                capabilities: vec![]
+                capabilities: vec![],
             }
         } else if lower.contains("status") {
             let target = Self::extract_target(&lower);
@@ -149,8 +150,8 @@ impl VoiceCommand {
             SwarmIntent::StopAgent { agent_id }
         } else if lower.contains("add node") {
             let label = Self::extract_label(&lower)?;
-            SwarmIntent::UpdateGraph { 
-                action: GraphAction::AddNode { label }
+            SwarmIntent::UpdateGraph {
+                action: GraphAction::AddNode { label },
             }
         } else if lower.contains("help") {
             SwarmIntent::Help
@@ -161,7 +162,7 @@ impl VoiceCommand {
                 priority: TaskPriority::Medium,
             }
         };
-        
+
         Ok(VoiceCommand {
             raw_text: text.to_string(),
             parsed_intent,
@@ -171,7 +172,7 @@ impl VoiceCommand {
             voice_tag: None,
         })
     }
-    
+
     /// Extract agent type from text
     fn extract_agent_type(text: &str) -> Result<String, String> {
         // Common agent types
@@ -180,7 +181,7 @@ impl VoiceCommand {
                 return Ok(agent.to_string());
             }
         }
-        
+
         // Try to extract word after "agent"
         if let Some(pos) = text.find("agent ") {
             let after = &text[pos + 6..];
@@ -188,33 +189,33 @@ impl VoiceCommand {
                 return Ok(word.to_string());
             }
         }
-        
+
         Err("Could not determine agent type".to_string())
     }
-    
+
     /// Extract target for status query
     fn extract_target(text: &str) -> Option<String> {
         // Look for specific agent names or "all"
         if text.contains("all") {
             return Some("all".to_string());
         }
-        
+
         // Try to find agent reference
         for agent in &["researcher", "coder", "analyst", "coordinator"] {
             if text.contains(agent) {
                 return Some(agent.to_string());
             }
         }
-        
+
         None
     }
-    
+
     /// Extract agent ID for stop command
     fn extract_agent_id(text: &str) -> Result<String, String> {
         // Look for agent reference
         Self::extract_agent_type(text)
     }
-    
+
     /// Extract label for graph operations
     fn extract_label(text: &str) -> Result<String, String> {
         // Try to extract text after "node" or "called"
@@ -226,10 +227,10 @@ impl VoiceCommand {
                 }
             }
         }
-        
+
         Ok("node".to_string()) // Default label
     }
-    
+
     /// Format swarm response for voice output
     pub fn format_response(response: &str) -> SwarmVoiceResponse {
         // Clean up response for TTS
@@ -240,14 +241,14 @@ impl VoiceCommand {
             .replace("##", "")
             .replace("- ", "")
             .replace("* ", "");
-        
+
         // Truncate if too long for natural speech
         let text = if cleaned.len() > 200 {
             format!("{}...", &cleaned[..197])
         } else {
             cleaned
         };
-        
+
         SwarmVoiceResponse {
             text,
             use_voice: true,
@@ -262,7 +263,7 @@ impl VoiceCommand {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_parse_spawn_agent() {
         let cmd = VoiceCommand::parse("spawn a researcher agent", "test".to_string()).unwrap();
@@ -273,10 +274,11 @@ mod tests {
             _ => panic!("Wrong intent"),
         }
     }
-    
+
     #[test]
     fn test_parse_status_query() {
-        let cmd = VoiceCommand::parse("what's the status of all agents", "test".to_string()).unwrap();
+        let cmd =
+            VoiceCommand::parse("what's the status of all agents", "test".to_string()).unwrap();
         match cmd.parsed_intent {
             SwarmIntent::QueryStatus { target } => {
                 assert_eq!(target, Some("all".to_string()));
@@ -284,7 +286,7 @@ mod tests {
             _ => panic!("Wrong intent"),
         }
     }
-    
+
     #[test]
     fn test_voice_preamble() {
         let intent = SwarmIntent::SpawnAgent {
@@ -295,7 +297,7 @@ mod tests {
         assert!(preamble.contains("VOICE_MODE"));
         assert!(preamble.contains("Confirm agent creation"));
     }
-    
+
     #[test]
     fn test_wrap_instruction() {
         let intent = SwarmIntent::QueryStatus { target: None };
