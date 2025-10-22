@@ -1,17 +1,17 @@
-// Unified Settings Panel - The single control center for all settings (ENHANCED WITH SEARCH)
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+// Unified Settings Panel - The single control center for all settings
+import React, { useState, useEffect, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../design-system/components/Tabs';
 import { Input } from '../../../design-system/components/Input';
 import { Button } from '../../../design-system/components/Button';
 import { ScrollArea } from '../../../design-system/components/ScrollArea';
-import {
-  Settings,
-  Monitor,
-  Palette,
-  Activity,
-  Database,
-  Code,
-  Shield,
+import { 
+  Settings, 
+  Monitor, 
+  Palette, 
+  Activity, 
+  Database, 
+  Code, 
+  Shield, 
   Headphones,
   Search,
   Save,
@@ -28,36 +28,28 @@ import {
 import { useSettingsStore, settingsSelectors } from '../../../../store/settingsStore';
 import { settingsUIDefinition } from '../../config/settingsUIDefinition';
 import { SettingControlComponent } from '../SettingControlComponent';
-import { SettingsSearch } from '../SettingsSearch';
 import { toast } from '../../../../utils/toast';
 import { createLogger } from '../../../../utils/loggerConfig';
 import { AgentControlPanel } from './AgentControlPanel';
-import {
-  buildSearchIndex,
-  searchSettings,
-  SearchableSettingField,
-  SearchResult
-} from '../../../../utils/settingsSearch';
 
 interface SettingsPanelRedesignProps {
   isOpen?: boolean;
   onClose?: () => void;
 }
 
-export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
-  isOpen = true,
-  onClose
+export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({ 
+  isOpen = true, 
+  onClose 
 }) => {
   const [activeTab, setActiveTab] = useState('visualization');
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-
+  
   // Settings store
-  const {
-    settings,
-    saving,
-    loading,
+  const { 
+    settings, 
+    saving, 
+    loading, 
     updateSettings,
     saveSettings,
     resetSettings,
@@ -65,48 +57,13 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
     loadFromFile,
     hasUnsavedChanges: checkUnsavedChanges
   } = useSettingsStore();
-
+  
   // Undo/redo support (disabled - not implemented yet)
   const canUndo = false;
   const canRedo = false;
   const undo = () => toast.info('Undo not yet implemented');
   const redo = () => toast.info('Redo not yet implemented');
-
-  // Build search index once on mount (1,061 settings indexed)
-  const searchIndex = useMemo(() => {
-    return buildSearchIndex(settingsUIDefinition);
-  }, []);
-
-  // Total settings count
-  const totalSettingsCount = useMemo(() => searchIndex.length, [searchIndex]);
-
-  // Handle search with performance optimization
-  const handleSearch = useCallback((query: string) => {
-    setSearchQuery(query);
-
-    if (!query.trim()) {
-      setSearchResults([]);
-      return;
-    }
-
-    // Perform fuzzy search with scoring
-    const results = searchSettings(searchIndex, query, {
-      minScore: 15, // Lower threshold for better recall
-      maxResults: 100,
-      includeAdvanced: true,
-      includePowerUser: true
-    });
-
-    setSearchResults(results);
-
-    // Log search performance for monitoring
-    if (results.length > 0) {
-      console.debug(`Search: "${query}" found ${results.length} results (avg score: ${
-        (results.reduce((sum, r) => sum + r.score, 0) / results.length).toFixed(1)
-      })`);
-    }
-  }, [searchIndex]);
-
+  
   // Check for unsaved changes
   useEffect(() => {
     const interval = setInterval(() => {
@@ -114,30 +71,28 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
     }, 1000);
     return () => clearInterval(interval);
   }, [checkUnsavedChanges]);
-
-  // Filter settings based on search results
+  
+  // Filter settings based on search
   const filteredUIDefinition = useMemo(() => {
-    if (!searchQuery || searchResults.length === 0) {
-      return settingsUIDefinition;
-    }
-
-    // Build a set of matching paths for O(1) lookup
-    const matchingPaths = new Set(searchResults.map(r => r.path));
+    if (!searchQuery) return settingsUIDefinition;
+    
+    const query = searchQuery.toLowerCase();
     const filtered: typeof settingsUIDefinition = {};
-
+    
     Object.entries(settingsUIDefinition).forEach(([category, categoryDef]) => {
       const filteredSubsections: typeof categoryDef.subsections = {};
-
+      
       Object.entries(categoryDef.subsections || {}).forEach(([sectionKey, section]) => {
         const filteredSettings: Record<string, any> = {};
-
+        
         Object.entries(section.settings || {}).forEach(([settingKey, setting]) => {
-          // Include if path matches search results
-          if (matchingPaths.has(setting.path)) {
+          if (setting.label.toLowerCase().includes(query) ||
+              setting.path.toLowerCase().includes(query) ||
+              setting.description?.toLowerCase().includes(query)) {
             filteredSettings[settingKey] = setting;
           }
         });
-
+        
         if (Object.keys(filteredSettings).length > 0) {
           filteredSubsections[sectionKey] = {
             ...section,
@@ -145,7 +100,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
           };
         }
       });
-
+      
       if (Object.keys(filteredSubsections).length > 0) {
         filtered[category] = {
           ...categoryDef,
@@ -153,10 +108,10 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
         };
       }
     });
-
+    
     return filtered;
-  }, [searchQuery, searchResults]);
-
+  }, [searchQuery]);
+  
   // Handle file import
   const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -165,7 +120,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
       event.target.value = ''; // Reset input
     }
   };
-
+  
   // Tab definitions - comprehensive settings categories
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: Monitor, category: 'dashboard' },
@@ -181,7 +136,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
     { id: 'developer', label: 'Developer', icon: Code, category: 'developer' },
     { id: 'auth', label: 'Auth', icon: Shield, category: 'auth' },
   ];
-
+  
   return (
     <div className="h-full flex flex-col bg-background">
       {/* Header */}
@@ -193,17 +148,20 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
             <span className="text-xs text-orange-500 ml-2">(Unsaved changes)</span>
           )}
         </div>
-
+        
         <div className="flex items-center gap-2">
-          {/* Enhanced Search with Fuzzy Matching & Result Count */}
-          <SettingsSearch
-            onSearch={handleSearch}
-            resultCount={searchQuery ? searchResults.length : undefined}
-            totalCount={totalSettingsCount}
-            placeholder={`Search ${totalSettingsCount} settings...`}
-            className="w-80"
-          />
-
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search settings..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 w-64"
+            />
+          </div>
+          
           {/* Undo/Redo */}
           <div className="flex gap-1">
             <Button
@@ -225,7 +183,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
               <Redo className="w-4 h-4" />
             </Button>
           </div>
-
+          
           {/* Import/Export */}
           <div className="flex gap-1">
             <Button
@@ -252,7 +210,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
               <Download className="w-4 h-4" />
             </Button>
           </div>
-
+          
           {/* Save/Reset */}
           <div className="flex gap-1">
             <Button
@@ -273,7 +231,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
               <RotateCcw className="w-4 h-4" />
             </Button>
           </div>
-
+          
           {onClose && (
             <Button variant="ghost" size="sm" onClick={onClose}>
               Close
@@ -281,7 +239,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
           )}
         </div>
       </div>
-
+      
       {/* Content */}
       <div className="flex-1 overflow-hidden">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
@@ -293,7 +251,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
               </TabsTrigger>
             ))}
           </TabsList>
-
+          
           <ScrollArea className="flex-1 h-[calc(100%-3rem)]">
             {tabs.map(tab => {
               // Handle custom panels (like Agents)
@@ -347,7 +305,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
           </ScrollArea>
         </Tabs>
       </div>
-
+      
       {/* Status bar */}
       {(loading || saving) && (
         <div className="px-4 py-2 border-t text-xs text-muted-foreground">

@@ -236,6 +236,19 @@ impl AppState {
         })?;
         let settings_addr = settings_actor.start();
 
+        // Start settings hot-reload watcher
+        info!("[AppState::new] Starting settings hot-reload watcher");
+        let settings_db_path = std::env::var("SETTINGS_DB_PATH")
+            .unwrap_or_else(|_| "data/settings.db".to_string());
+        let settings_watcher =
+            crate::services::settings_watcher::SettingsWatcher::new(settings_db_path, settings_addr.clone());
+        tokio::spawn(async move {
+            if let Err(e) = settings_watcher.start().await {
+                log::error!("Settings watcher failed to start: {}", e);
+            }
+        });
+        info!("[AppState::new] Settings hot-reload watcher started successfully");
+
         info!("[AppState::new] Starting AgentMonitorActor for MCP monitoring");
         let mcp_host =
             std::env::var("MCP_HOST").unwrap_or_else(|_| "agentic-workstation".to_string());

@@ -5,7 +5,7 @@
 #[cfg(feature = "gpu")]
 use crate::actors::gpu::ForceComputeActor;
 use crate::actors::messages::{
-    GetSettingByPath, GetSettings, GetSettingsByPaths, SetSettingsByPaths,
+    GetSettingByPath, GetSettings, GetSettingsByPaths, ReloadSettings, SetSettingsByPaths,
     UpdatePhysicsFromAutoBalance, UpdateSettings,
 };
 use crate::config::AppFullSettings;
@@ -1168,5 +1168,58 @@ impl Handler<ClearCaches> for OptimizedSettingsActor {
         Box::pin(async move {
             actor.clear_caches().await;
         })
+    }
+}
+
+// Hot-reload handler for settings changes detected by file watcher
+impl Handler<ReloadSettings> for OptimizedSettingsActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, _msg: ReloadSettings, ctx: &mut Self::Context) -> Self::Result {
+        info!("🔄 Hot-reload triggered: reloading settings from database...");
+
+        let repository = self.repository.clone();
+        let settings = self.settings.clone();
+        let path_cache = self.path_cache.clone();
+        let metrics = self.metrics.clone();
+
+        // Spawn async reload operation
+        ctx.spawn(
+            Box::pin(async move {
+                // Clear all caches to force reload
+                {
+                    let mut cache = path_cache.write().await;
+                    cache.clear();
+                    debug!("Cleared path cache for hot-reload");
+                }
+
+                // Load fresh settings from database via repository
+                match repository.load_all_settings().await {
+                    Ok(Some(new_settings)) => {
+                        // Update in-memory settings
+                        let mut current = settings.write().await;
+                        *current = new_settings;
+                        drop(current);
+
+                        // Update metrics
+                        {
+                            let mut m = metrics.write().await;
+                            m.cache_misses += 1; // Count reload as cache miss
+                        }
+
+                        info!("✓ Settings hot-reloaded successfully from database");
+                    }
+                    Ok(None) => {
+                        warn!("⚠️  No settings found in database during hot-reload");
+                    }
+                    Err(e) => {
+                        error!("❌ Failed to reload settings from database: {}", e);
+                    }
+                }
+            })
+            .into_actor(self),
+        );
+
+        Ok(())
     }
 }

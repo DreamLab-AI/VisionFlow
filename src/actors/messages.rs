@@ -375,6 +375,10 @@ pub struct UpdateSettings {
 }
 
 #[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct ReloadSettings;
+
+#[derive(Message)]
 #[rtype(result = "Result<(), VisionFlowError>")]
 pub struct MergeSettingsUpdate {
     pub update: serde_json::Value,

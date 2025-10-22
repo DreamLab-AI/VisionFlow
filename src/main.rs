@@ -301,7 +301,10 @@ async fn main() -> std::io::Result<()> {
     )
     .await
     {
-        Ok(state) => state,
+        Ok(state) => {
+            info!("[main] AppState::new completed successfully");
+            state
+        }
         Err(e) => {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::Other,
@@ -310,38 +313,17 @@ async fn main() -> std::io::Result<()> {
         }
     };
 
+    info!("[main] About to initialize Nostr service");
     // Initialize Nostr service
     nostr_handler::init_nostr_service(&mut app_state);
+    info!("[main] Nostr service initialized");
 
     // DEPRECATED: HybridHealthManager removed - use TaskOrchestratorActor
     // Docker exec architecture replaced by HTTP Management API
 
-    // Initialize BotsClient connection with proper WebSocket protocol
-    info!("Connecting to bots orchestrator via WebSocket...");
-    let bots_url = std::env::var("BOTS_ORCHESTRATOR_URL")
-        .unwrap_or_else(|_| "ws://multi-agent-container:3002/ws".to_string());
-
-    // Connect to bots orchestrator synchronously during startup
-    // to avoid tokio::spawn outside of Actix runtime
-    let bots_client = app_state.bots_client.clone();
-    info!("Connecting to bots orchestrator at {}...", bots_url);
-
-    // Try to connect once without spawning
-    match bots_client.connect(&bots_url).await {
-        Ok(()) => {
-            info!(
-                "Successfully connected to bots orchestrator at {}",
-                bots_url
-            );
-        }
-        Err(e) => {
-            // Log the error but don't fail startup - connection can be retried later
-            error!(
-                "Failed to connect to bots orchestrator: {}. Will use fallback mode.",
-                e
-            );
-        }
-    }
+    // Skip bots orchestrator connection during startup to prevent blocking
+    // Connection will be established on-demand when bots features are used
+    info!("Skipping bots orchestrator connection during startup (will connect on-demand)");
 
     // First, try to load existing metadata without waiting for GitHub download
     info!("Loading existing metadata for quick initialization");
@@ -468,22 +450,24 @@ async fn main() -> std::io::Result<()> {
         info!("Background GitHub sync: Process completed");
     });
 
-    // Update metadata in app state using actor
+    // Update metadata in app state using actor (with timeout to prevent startup hang)
     use webxr::actors::messages::UpdateMetadata;
-    if let Err(e) = app_state
-        .metadata_addr
-        .send(UpdateMetadata {
+    match tokio::time::timeout(
+        Duration::from_secs(2),
+        app_state.metadata_addr.send(UpdateMetadata {
             metadata: metadata_store.clone(),
         })
-        .await
-    {
-        error!("Failed to update metadata in actor: {}", e);
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            format!("Failed to update metadata in actor: {}", e),
-        ));
+    ).await {
+        Ok(Ok(_)) => {
+            info!("Loaded metadata into app state actor");
+        }
+        Ok(Err(e)) => {
+            warn!("Failed to update metadata in actor: {}. Continuing anyway.", e);
+        }
+        Err(_) => {
+            warn!("Metadata actor update timed out after 2 seconds. Continuing anyway.");
+        }
     }
-    info!("Loaded metadata into app state actor");
 
     // Build initial graph from metadata and initialize GPU compute
     info!("Building initial graph from existing metadata for physics simulation");
@@ -563,30 +547,24 @@ async fn main() -> std::io::Result<()> {
             }
         }
     } else {
-        // No pre-computed graph data, build from metadata
-        match app_state
-            .graph_service_addr
-            .send(BuildGraphFromMetadata {
+        // No pre-computed graph data, build from metadata (with timeout to prevent startup hang)
+        match tokio::time::timeout(
+            Duration::from_secs(5),
+            app_state.graph_service_addr.send(BuildGraphFromMetadata {
                 metadata: metadata_store.clone(),
             })
-            .await
-        {
-            Ok(Ok(())) => {
+        ).await {
+            Ok(Ok(Ok(()))) => {
                 info!("Graph built successfully using GraphServiceSupervisor - GPU initialization is handled automatically by the supervisor");
             }
-            Ok(Err(e)) => {
-                error!("Failed to build graph from metadata using actor: {}", e);
-                return Err(std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    format!("Failed to build graph: {}", e),
-                ));
+            Ok(Ok(Err(e))) => {
+                warn!("Failed to build graph from metadata: {}. Continuing with empty graph.", e);
             }
-            Err(e) => {
-                error!("Graph service actor communication error: {}", e);
-                return Err(std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    format!("Graph service unavailable: {}", e),
-                ));
+            Ok(Err(e)) => {
+                warn!("Graph service actor communication error: {}. Continuing with empty graph.", e);
+            }
+            Err(_) => {
+                warn!("Graph build timed out after 5 seconds. Continuing with empty graph.");
             }
         }
     }

@@ -97,24 +97,22 @@ export const SETTINGS_CONFIG: Record<string, SectionConfig> = {
     ]
   },
 
-  // analytics section commented out - these paths don't exist in server settings
-  // Use physics.clusteringAlgorithm, physics.clusterCount, etc. instead
-  // analytics: {
-  //   title: 'Analytics Settings',
-  //   fields: [
-  //     { key: 'enableMetrics', label: 'Enable Metrics', type: 'toggle', path: 'analytics.enableMetrics' },
-  //     { key: 'updateInterval', label: 'Update Interval (s)', type: 'slider', min: 1, max: 60, path: 'analytics.updateInterval' },
-  //     { key: 'showDegreeDistribution', label: 'Degree Distribution', type: 'toggle', path: 'analytics.showDegreeDistribution' },
-  //     { key: 'showClustering', label: 'Clustering Coefficient', type: 'toggle', path: 'analytics.showClusteringCoefficient' },
-  //     { key: 'showCentrality', label: 'Centrality Metrics', type: 'toggle', path: 'analytics.showCentrality' },
-  //     { key: 'clusteringAlgorithm', label: 'Clustering Algorithm', type: 'select', options: ['none', 'kmeans', 'spectral', 'louvain'], path: 'analytics.clustering.algorithm' },
-  //     { key: 'clusterCount', label: 'Cluster Count', type: 'slider', min: 2, max: 20, path: 'analytics.clustering.clusterCount' },
-  //     { key: 'clusterResolution', label: 'Resolution', type: 'slider', min: 0.1, max: 2, path: 'analytics.clustering.resolution' },
-  //     { key: 'clusterIterations', label: 'Cluster Iterations', type: 'slider', min: 10, max: 100, path: 'analytics.clustering.iterations' },
-  //     { key: 'exportClusters', label: 'Export Clusters', type: 'toggle', path: 'analytics.clustering.exportEnabled' },
-  //     { key: 'importDistances', label: 'Import Distances', type: 'toggle', path: 'analytics.clustering.importEnabled' }
-  //   ]
-  // },
+analytics: {
+  title: 'Analytics Settings',
+  fields: [
+    { key: 'enableMetrics', label: 'Enable Metrics', type: 'toggle', path: 'analytics.enableMetrics' },
+    { key: 'updateInterval', label: 'Update Interval (s)', type: 'slider', min: 1, max: 60, path: 'analytics.updateInterval' },
+    { key: 'showDegreeDistribution', label: 'Degree Distribution', type: 'toggle', path: 'analytics.showDegreeDistribution' },
+    { key: 'showClustering', label: 'Clustering Coefficient', type: 'toggle', path: 'analytics.showClusteringCoefficient' },
+    { key: 'showCentrality', label: 'Centrality Metrics', type: 'toggle', path: 'analytics.showCentrality' },
+    { key: 'clusteringAlgorithm', label: 'Clustering Algorithm', type: 'select', options: ['none', 'kmeans', 'spectral', 'louvain'], path: 'analytics.clustering.algorithm' },
+    { key: 'clusterCount', label: 'Cluster Count', type: 'slider', min: 2, max: 20, path: 'analytics.clustering.clusterCount' },
+    { key: 'clusterResolution', label: 'Resolution', type: 'slider', min: 0.1, max: 2, path: 'analytics.clustering.resolution' },
+    { key: 'clusterIterations', label: 'Cluster Iterations', type: 'slider', min: 10, max: 100, path: 'analytics.clustering.iterations' },
+    { key: 'exportClusters', label: 'Export Clusters', type: 'toggle', path: 'analytics.clustering.exportEnabled' },
+    { key: 'importDistances', label: 'Import Distances', type: 'toggle', path: 'analytics.clustering.importEnabled' }
+  ]
+},
 
   // performance section commented out - these paths don't exist in server settings
   // performance: {

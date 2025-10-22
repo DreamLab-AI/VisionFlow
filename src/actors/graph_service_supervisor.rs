@@ -779,7 +779,7 @@ impl Handler<RestartAllActors> for GraphServiceSupervisor {
 
 // Removed GetGraphData handler from graph_messages - GraphServiceActor doesn't implement it
 
-// Removed BuildGraphFromMetadata handler from graph_messages - GraphServiceActor doesn't implement it
+// BuildGraphFromMetadata handler is already implemented below for TransitionalGraphSupervisor (line 1078)
 
 impl Handler<msgs::UpdateGraphData> for GraphServiceSupervisor {
     type Result = ResponseActFuture<Self, Result<(), String>>;
@@ -1052,20 +1052,30 @@ impl Handler<msgs::BuildGraphFromMetadata> for TransitionalGraphSupervisor {
         msg: msgs::BuildGraphFromMetadata,
         ctx: &mut Self::Context,
     ) -> Self::Result {
+        info!("[TransitionalGraphSupervisor] BuildGraphFromMetadata handler invoked with {} entries", msg.metadata.len());
         let actor_result = self.get_or_create_actor(ctx);
         if let Some(actor) = actor_result {
+            info!("[TransitionalGraphSupervisor] Forwarding BuildGraphFromMetadata to GraphServiceActor");
             let addr = actor.clone();
             self.messages_forwarded += 1;
             Box::pin(
                 async move {
+                    info!("[TransitionalGraphSupervisor] Sending BuildGraphFromMetadata to actor...");
                     match addr.send(msg).await {
-                        Ok(result) => result,
-                        Err(e) => Err(format!("Actor communication error: {}", e)),
+                        Ok(result) => {
+                            info!("[TransitionalGraphSupervisor] BuildGraphFromMetadata response received: {:?}", result);
+                            result
+                        }
+                        Err(e) => {
+                            error!("[TransitionalGraphSupervisor] BuildGraphFromMetadata actor communication error: {}", e);
+                            Err(format!("Actor communication error: {}", e))
+                        }
                     }
                 }
                 .into_actor(self),
             )
         } else {
+            error!("[TransitionalGraphSupervisor] No GraphServiceActor available to handle BuildGraphFromMetadata");
             Box::pin(actix::fut::ready(Err(
                 "Failed to create GraphServiceActor".to_string()
             )))

@@ -19,6 +19,7 @@ pub mod perplexity_service;
 pub mod ragflow_service;
 pub mod semantic_analyzer;
 pub mod settings_service;
+pub mod settings_watcher;
 pub mod speech_service;
 pub mod speech_voice_integration;
 pub mod voice_context_manager;

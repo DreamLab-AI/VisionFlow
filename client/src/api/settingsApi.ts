@@ -4,7 +4,7 @@ import { createLogger } from '../utils/loggerConfig';
 import { unifiedApiClient, isApiError } from '../services/api/UnifiedApiClient';
 
 const logger = createLogger('SettingsApi');
-const API_BASE = '/settings';
+const API_BASE = '/api/settings';
 
 // Debouncing and batching configuration
 const DEBOUNCE_DELAY_MS = 50; // 50ms debounce for UI responsiveness
