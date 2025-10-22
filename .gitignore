@@ -11,7 +11,7 @@ claude-flow
 .roomodes
 CLAUDE.md
 workspace
-
+webxr.long-type*
 
 # Dependencies
 node_modules
@@ -166,8 +166,13 @@ claude-flow
 claude-flow.bat
 claude-flow.ps1
 hive-mind-prompt-*.txt
+agentdb.db
+agentdb.db-shm
+.mcp.json
+
 
 # Claude Flow metrics directories
 .claude-flow/
 **/.claude-flow/
 multi-agent-docker/gui-tools-assets/blender-*.tar.xz
+.claude/
