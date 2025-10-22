@@ -1,4 +1,5 @@
 // Rebuild: KE velocity fix applied
+use webxr::actors::messages::{UpdateMetadata, BuildGraphFromMetadata, AddNodesFromMetadata, UpdateGraphData};
 use webxr::services::nostr_service::NostrService;
 use webxr::{
     config::AppFullSettings, // Import AppFullSettings only
@@ -450,24 +451,11 @@ async fn main() -> std::io::Result<()> {
         info!("Background GitHub sync: Process completed");
     });
 
-    // Update metadata in app state using actor (with timeout to prevent startup hang)
-    use webxr::actors::messages::UpdateMetadata;
-    match tokio::time::timeout(
-        Duration::from_secs(2),
-        app_state.metadata_addr.send(UpdateMetadata {
-            metadata: metadata_store.clone(),
-        })
-    ).await {
-        Ok(Ok(_)) => {
-            info!("Loaded metadata into app state actor");
-        }
-        Ok(Err(e)) => {
-            warn!("Failed to update metadata in actor: {}. Continuing anyway.", e);
-        }
-        Err(_) => {
-            warn!("Metadata actor update timed out after 2 seconds. Continuing anyway.");
-        }
-    }
+    info!("[main] Background GitHub sync task spawned, continuing main thread...");
+
+    // Skip metadata actor update during startup to prevent blocking
+    // The background GitHub sync task will update metadata when ready
+    info!("Skipping metadata actor update during startup (will be updated by background task)");
 
     // Build initial graph from metadata and initialize GPU compute
     info!("Building initial graph from existing metadata for physics simulation");
@@ -547,31 +535,15 @@ async fn main() -> std::io::Result<()> {
             }
         }
     } else {
-        // No pre-computed graph data, build from metadata (with timeout to prevent startup hang)
-        match tokio::time::timeout(
-            Duration::from_secs(5),
-            app_state.graph_service_addr.send(BuildGraphFromMetadata {
-                metadata: metadata_store.clone(),
-            })
-        ).await {
-            Ok(Ok(Ok(()))) => {
-                info!("Graph built successfully using GraphServiceSupervisor - GPU initialization is handled automatically by the supervisor");
-            }
-            Ok(Ok(Err(e))) => {
-                warn!("Failed to build graph from metadata: {}. Continuing with empty graph.", e);
-            }
-            Ok(Err(e)) => {
-                warn!("Graph service actor communication error: {}. Continuing with empty graph.", e);
-            }
-            Err(_) => {
-                warn!("Graph build timed out after 5 seconds. Continuing with empty graph.");
-            }
-        }
+        // Build graph from metadata using fire-and-forget to avoid blocking startup
+        info!("Triggering async graph build from {} metadata entries", metadata_store.len());
+        app_state.graph_service_addr.do_send(BuildGraphFromMetadata {
+            metadata: metadata_store.clone(),
+        });
+        info!("Graph build triggered (async)");
     }
 
-    info!("Waiting for initial physics layout calculation to complete...");
-    tokio::time::sleep(Duration::from_millis(500)).await;
-    info!("Initial delay complete. Starting HTTP server...");
+    info!("Starting HTTP server...");
 
     // Start simulation in GraphServiceSupervisor (Second start attempt commented out for debugging stack overflow)
     // use webxr::actors::messages::StartSimulation;
