@@ -121,7 +121,8 @@ RUN npm install -g \
     typescript \
     ts-node \
     @types/node \
-    playwright
+    playwright \
+    chrome-devtools-mcp@latest
 
 # Install Playwright browsers (skip system deps - already installed via pacman)
 RUN npx -y playwright install chromium
@@ -282,6 +283,12 @@ RUN echo "devuser:turboflow" | chpasswd
 # Copy skills
 COPY --chown=devuser:devuser skills/ /home/devuser/.claude/skills/
 
+# Copy docker-manager skill from multi-agent-docker
+COPY --chown=devuser:devuser multi-agent-docker/skills/docker-manager/ /home/devuser/.claude/skills/docker-manager/
+
+# Copy chrome-devtools skill from multi-agent-docker
+COPY --chown=devuser:devuser multi-agent-docker/skills/chrome-devtools/ /home/devuser/.claude/skills/chrome-devtools/
+
 # Install web-summary MCP server dependencies
 RUN cd /home/devuser/.claude/skills/web-summary/mcp-server && \
     npm install --production && \
@@ -291,7 +298,8 @@ RUN cd /home/devuser/.claude/skills/web-summary/mcp-server && \
 # Install Python dependencies for MCP tools (break-system-packages for Arch)
 RUN pip3 install --no-cache-dir --break-system-packages \
     youtube-transcript-api beautifulsoup4 requests \
-    mcp
+    mcp \
+    docker
 
 # Make all MCP tools executable
 RUN find /home/devuser/.claude/skills -name "*.py" -path "*/tools/*" -exec chmod +x {} \; && \
