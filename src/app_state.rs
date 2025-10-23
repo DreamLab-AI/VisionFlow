@@ -160,13 +160,14 @@ impl AppState {
 
         // Create GraphServiceSupervisor instead of the monolithic GraphServiceActor
         info!("[AppState::new] Starting GraphServiceSupervisor (refactored architecture)");
-        #[cfg(feature = "gpu")]
-        {
-            let _device = CudaDevice::new(0).map_err(|e| {
-                log::error!("Failed to create CUDA device: {}", e);
-                format!("CUDA initialization failed: {}", e)
-            })?;
-        }
+        // CUDA initialization moved to GPU compute actor to avoid blocking actor startup
+        // #[cfg(feature = "gpu")]
+        // {
+        //     let _device = CudaDevice::new(0).map_err(|e| {
+        //         log::error!("Failed to create CUDA device: {}", e);
+        //         format!("CUDA initialization failed: {}", e)
+        //     })?;
+        // }
         let graph_service_addr = TransitionalGraphSupervisor::new(
             Some(client_manager_addr.clone()),
             None, // GPU manager will be linked later

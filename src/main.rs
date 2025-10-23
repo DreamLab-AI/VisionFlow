@@ -485,55 +485,14 @@ async fn main() -> std::io::Result<()> {
     use std::sync::Arc as StdArc;
     use webxr::actors::messages::{BuildGraphFromMetadata, UpdateGraphData};
 
+    // Use fire-and-forget for all graph initialization to avoid blocking startup
     if let Some(graph_data) = graph_data_option {
         // If we have pre-computed graph data, send it directly to the GraphServiceSupervisor
-        match app_state
-            .graph_service_addr
-            .send(UpdateGraphData {
-                graph_data: StdArc::new(graph_data),
-            })
-            .await
-        {
-            Ok(Ok(())) => {
-                info!("Pre-computed graph data loaded successfully into GraphServiceSupervisor");
-            }
-            Ok(Err(e)) => {
-                error!("Failed to load pre-computed graph data into actor: {}", e);
-                // Fall back to building from metadata
-                match app_state
-                    .graph_service_addr
-                    .send(BuildGraphFromMetadata {
-                        metadata: metadata_store.clone(),
-                    })
-                    .await
-                {
-                    Ok(Ok(())) => {
-                        info!("Fallback: Graph built from metadata successfully");
-                    }
-                    Ok(Err(e)) => {
-                        error!("Failed to build graph from metadata: {}", e);
-                        return Err(std::io::Error::new(
-                            std::io::ErrorKind::Other,
-                            format!("Failed to build graph: {}", e),
-                        ));
-                    }
-                    Err(e) => {
-                        error!("Graph service actor communication error: {}", e);
-                        return Err(std::io::Error::new(
-                            std::io::ErrorKind::Other,
-                            format!("Graph service unavailable: {}", e),
-                        ));
-                    }
-                }
-            }
-            Err(e) => {
-                error!("Graph service actor communication error: {}", e);
-                return Err(std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    format!("Graph service unavailable: {}", e),
-                ));
-            }
-        }
+        info!("Triggering async graph data load with {} nodes and {} edges", graph_data.nodes.len(), graph_data.edges.len());
+        app_state.graph_service_addr.do_send(UpdateGraphData {
+            graph_data: StdArc::new(graph_data),
+        });
+        info!("Pre-computed graph data load triggered (async)");
     } else {
         // Build graph from metadata using fire-and-forget to avoid blocking startup
         info!("Triggering async graph build from {} metadata entries", metadata_store.len());
