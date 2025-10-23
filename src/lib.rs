@@ -7,6 +7,7 @@ pub mod config;
 pub mod errors;
 pub mod gpu;
 pub mod handlers;
+pub mod middleware;
 pub mod models;
 pub mod ontology;
 pub mod physics;

@@ -30,7 +30,7 @@ use webxr::{
 };
 
 use actix_cors::Cors;
-use actix_web::{middleware, web, App, Error as ActixError, HttpServer};
+use actix_web::{middleware, web, App, HttpServer};
 // DEPRECATED: std::future imports removed (were for ErrorRecoveryMiddleware)
 // DEPRECATED: Actix dev imports removed (were for ErrorRecoveryMiddleware)
 // DEPRECATED: LocalBoxFuture import removed (was for ErrorRecoveryMiddleware)
@@ -41,6 +41,7 @@ use std::sync::Arc;
 use tokio::signal::unix::{signal, SignalKind};
 use tokio::sync::RwLock;
 use tokio::time::Duration;
+use webxr::middleware::TimeoutMiddleware;
 use webxr::telemetry::agent_telemetry::init_telemetry_logger;
 use webxr::utils::advanced_logging::init_advanced_logging;
 use webxr::utils::logging::init_logging;
@@ -555,6 +556,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::Logger::default())
             .wrap(cors)
             .wrap(middleware::Compress::default())
+            .wrap(TimeoutMiddleware::new(Duration::from_secs(30))) // Add 30s timeout middleware
             // DEPRECATED: ErrorRecoveryMiddleware removed
             // Pass AppFullSettings wrapped in Data
             .app_data(settings_data.clone())

@@ -1311,7 +1311,7 @@ impl GraphServiceActor {
     /// # Returns
     /// * `Ok(())` if the graph was built successfully
     /// * `Err(String)` if there was an error during graph construction
-    pub fn build_from_metadata(&mut self, metadata: MetadataStore) -> Result<(), String> {
+    pub fn build_from_metadata(&mut self, metadata: MetadataStore, ctx: &mut Context<Self>) -> Result<(), String> {
         let mut new_graph_data = GraphData::new();
 
         // BREADCRUMB: Save existing node positions before clearing node_map
@@ -1531,7 +1531,7 @@ impl GraphServiceActor {
 
         // Generate constraints based on semantic analysis
         let graph_data_clone = Arc::clone(&self.graph_data);
-        self.generate_initial_semantic_constraints(&graph_data_clone);
+        self.generate_initial_semantic_constraints(&graph_data_clone, ctx);
 
         // Phase 4: Initialize advanced GPU context if needed (async context not available in message handler)
         // Note: Advanced GPU context initialization will be attempted on first physics step
@@ -1669,7 +1669,7 @@ impl GraphServiceActor {
         }
     }
 
-    fn update_dynamic_constraints(&mut self) {
+    fn update_dynamic_constraints(&mut self, ctx: &mut Context<Self>) {
         // Update dynamic constraints based on semantic analysis
         trace!("Updating dynamic constraints based on semantic analysis");
 
@@ -1712,10 +1712,10 @@ impl GraphServiceActor {
         }
 
         // Upload updated constraints to GPU
-        self.upload_constraints_to_gpu();
+        self.upload_constraints_to_gpu(ctx);
     }
 
-    fn generate_initial_semantic_constraints(&mut self, graph_data: &std::sync::Arc<GraphData>) {
+    fn generate_initial_semantic_constraints(&mut self, graph_data: &std::sync::Arc<GraphData>, ctx: &mut Context<Self>) {
         // Generate domain-based clustering constraints from semantic analysis
         let mut domain_clusters: HashMap<String, Vec<u32>> = HashMap::new();
 
@@ -1749,7 +1749,7 @@ impl GraphServiceActor {
         }
 
         // Upload constraints to GPU if available
-        self.upload_constraints_to_gpu();
+        self.upload_constraints_to_gpu(ctx);
 
         info!(
             "Generated {} initial semantic constraints",
@@ -1822,7 +1822,7 @@ impl GraphServiceActor {
     }
 
     /// Upload current constraints to GPU via ForceComputeActor
-    fn upload_constraints_to_gpu(&mut self) {
+    fn upload_constraints_to_gpu(&mut self, ctx: &mut Context<Self>) {
         if let Some(ref gpu_addr) = self.gpu_compute_addr {
             // Convert constraints to GPU format
             let active_constraints = self.constraint_set.active_constraints();
@@ -1838,16 +1838,19 @@ impl GraphServiceActor {
             };
 
             let gpu_addr_clone = gpu_addr.clone();
-            actix::spawn(async move {
-                if let Err(e) = gpu_addr_clone.send(upload_msg).await {
-                    error!("Failed to send constraints to ForceComputeActor: {}", e);
-                } else {
-                    trace!(
-                        "Successfully sent {} constraints to ForceComputeActor",
-                        constraint_data.len()
-                    );
+            ctx.spawn(
+                async move {
+                    if let Err(e) = gpu_addr_clone.send(upload_msg).await {
+                        error!("Failed to send constraints to ForceComputeActor: {}", e);
+                    } else {
+                        trace!(
+                            "Successfully sent {} constraints to ForceComputeActor",
+                            constraint_data.len()
+                        );
+                    }
                 }
-            });
+                .into_actor(self)
+            );
         } else {
             trace!("No GPU compute actor available for constraint upload");
         }
@@ -1857,6 +1860,7 @@ impl GraphServiceActor {
     pub fn handle_constraint_update(
         &mut self,
         constraint_data: serde_json::Value,
+        ctx: &mut Context<Self>,
     ) -> Result<(), String> {
         match constraint_data.get("action").and_then(|v| v.as_str()) {
             Some("add_fixed_position") => {
@@ -1920,7 +1924,7 @@ impl GraphServiceActor {
         }
 
         // Upload updated constraints to GPU after any modification
-        self.upload_constraints_to_gpu();
+        self.upload_constraints_to_gpu(ctx);
 
         Ok(())
     }
@@ -2548,69 +2552,74 @@ impl GraphServiceActor {
 
             // Attempt to initialize advanced GPU context
             let graph_data_clone = Arc::clone(&self.graph_data);
-            let self_addr = ctx.address();
 
-            actix::spawn(async move {
-                // Add initialization delay as suggested
-                info!("Waiting 2 seconds before GPU initialization to ensure system is ready...");
-                tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+            ctx.run_later(Duration::from_secs(2), |actor, ctx| {
+                let self_addr = ctx.address();
+                let graph_data_clone = Arc::clone(&actor.graph_data);
 
-                // Enhanced PTX loading with proper fallback logic
-                let ptx_content = match crate::utils::ptx::load_ptx().await {
-                    Ok(content) => {
-                        info!("PTX content loaded successfully");
-                        content
-                    }
-                    Err(e) => {
-                        error!("Failed to load PTX content: {}", e);
-                        error!("PTX load error details: {:?}", e);
-                        // Reset the init flag so we can retry
-                        self_addr.do_send(ResetGPUInitFlag {});
-                        return;
-                    }
-                };
+                ctx.spawn(
+                    async move {
+                        info!("Starting GPU initialization...");
 
-                // For CSR format, each undirected edge becomes 2 directed edges
-                let num_directed_edges = graph_data_clone.edges.len() * 2;
-                info!("Creating UnifiedGPUCompute with {} nodes and {} directed edges (from {} undirected edges)",
-                      graph_data_clone.nodes.len(), num_directed_edges, graph_data_clone.edges.len());
-                info!("PTX content size: {} bytes", ptx_content.len());
+                        // Enhanced PTX loading with proper fallback logic
+                        let ptx_content = match crate::utils::ptx::load_ptx().await {
+                            Ok(content) => {
+                                info!("PTX content loaded successfully");
+                                content
+                            }
+                            Err(e) => {
+                                error!("Failed to load PTX content: {}", e);
+                                error!("PTX load error details: {:?}", e);
+                                // Reset the init flag so we can retry
+                                self_addr.do_send(ResetGPUInitFlag {});
+                                return;
+                            }
+                        };
 
-                match UnifiedGPUCompute::new(
-                    graph_data_clone.nodes.len(),
-                    num_directed_edges,
-                    &ptx_content,
-                ) {
-                    Ok(_context) => {
-                        info!("✅ Successfully initialized advanced GPU context with {} nodes and {} edges",
-                              graph_data_clone.nodes.len(), num_directed_edges);
-                        info!("GPU physics simulation is now active for knowledge graph");
-                        // GPU context now managed by ForceComputeActor, no need to store locally
-                    }
-                    Err(e) => {
-                        error!("❌ Failed to initialize advanced GPU context: {}", e);
-                        error!(
-                            "GPU Details: {} nodes, {} directed edges, PTX size: {} bytes",
+                        // For CSR format, each undirected edge becomes 2 directed edges
+                        let num_directed_edges = graph_data_clone.edges.len() * 2;
+                        info!("Creating UnifiedGPUCompute with {} nodes and {} directed edges (from {} undirected edges)",
+                              graph_data_clone.nodes.len(), num_directed_edges, graph_data_clone.edges.len());
+                        info!("PTX content size: {} bytes", ptx_content.len());
+
+                        match UnifiedGPUCompute::new(
                             graph_data_clone.nodes.len(),
                             num_directed_edges,
-                            ptx_content.len()
-                        );
-                        error!("Full error: {:?}", e);
+                            &ptx_content,
+                        ) {
+                            Ok(_context) => {
+                                info!("✅ Successfully initialized advanced GPU context with {} nodes and {} edges",
+                                      graph_data_clone.nodes.len(), num_directed_edges);
+                                info!("GPU physics simulation is now active for knowledge graph");
+                                // GPU context now managed by ForceComputeActor, no need to store locally
+                            }
+                            Err(e) => {
+                                error!("❌ Failed to initialize advanced GPU context: {}", e);
+                                error!(
+                                    "GPU Details: {} nodes, {} directed edges, PTX size: {} bytes",
+                                    graph_data_clone.nodes.len(),
+                                    num_directed_edges,
+                                    ptx_content.len()
+                                );
+                                error!("Full error: {:?}", e);
 
-                        // Log specific error details
-                        let error_str = e.to_string();
-                        if error_str.contains("PTX") {
-                            error!("PTX compilation or loading issue detected");
-                        } else if error_str.contains("memory") {
-                            error!("GPU memory allocation issue - may need to reduce graph size");
-                        } else if error_str.contains("device") {
-                            error!("CUDA device issue - check GPU availability");
+                                // Log specific error details
+                                let error_str = e.to_string();
+                                if error_str.contains("PTX") {
+                                    error!("PTX compilation or loading issue detected");
+                                } else if error_str.contains("memory") {
+                                    error!("GPU memory allocation issue - may need to reduce graph size");
+                                } else if error_str.contains("device") {
+                                    error!("CUDA device issue - check GPU availability");
+                                }
+
+                                // Reset the flag on failure so we can retry later
+                                self_addr.do_send(ResetGPUInitFlag {});
+                            }
                         }
-
-                        // Reset the flag on failure so we can retry later
-                        self_addr.do_send(ResetGPUInitFlag {});
                     }
-                }
+                    .into_actor(actor)
+                );
             });
         }
 
@@ -2663,36 +2672,39 @@ impl GraphServiceActor {
             let gpu_addr_clone = _gpu_addr.clone();
             let ctx_addr = Context::address(ctx).recipient();
 
-            actix::spawn(async move {
-                match gpu_addr_clone
-                    .send(crate::actors::messages::ComputeForces)
-                    .await
-                {
-                    Ok(Ok(())) => {
-                        // GPU computation successful, now get the updated node data
-                        match gpu_addr_clone
-                            .send(crate::actors::messages::GetNodeData)
-                            .await
-                        {
-                            Ok(Ok(node_data)) => {
-                                // Send positions back to GraphServiceActor for processing
-                                let update_msg = crate::actors::messages::UpdateNodePositions {
-                                    positions: node_data
-                                        .iter()
-                                        .enumerate()
-                                        .map(|(i, data)| (i as u32, data.clone()))
-                                        .collect(),
-                                };
-                                let _ = ctx_addr.do_send(update_msg);
+            ctx.spawn(
+                async move {
+                    match gpu_addr_clone
+                        .send(crate::actors::messages::ComputeForces)
+                        .await
+                    {
+                        Ok(Ok(())) => {
+                            // GPU computation successful, now get the updated node data
+                            match gpu_addr_clone
+                                .send(crate::actors::messages::GetNodeData)
+                                .await
+                            {
+                                Ok(Ok(node_data)) => {
+                                    // Send positions back to GraphServiceActor for processing
+                                    let update_msg = crate::actors::messages::UpdateNodePositions {
+                                        positions: node_data
+                                            .iter()
+                                            .enumerate()
+                                            .map(|(i, data)| (i as u32, data.clone()))
+                                            .collect(),
+                                    };
+                                    let _ = ctx_addr.do_send(update_msg);
+                                }
+                                Ok(Err(e)) => error!("Failed to get node data from GPU: {}", e),
+                                Err(e) => error!("Failed to send GetNodeData message: {}", e),
                             }
-                            Ok(Err(e)) => error!("Failed to get node data from GPU: {}", e),
-                            Err(e) => error!("Failed to send GetNodeData message: {}", e),
                         }
+                        Ok(Err(e)) => error!("GPU force computation failed: {}", e),
+                        Err(e) => error!("Failed to send ComputeForces message: {}", e),
                     }
-                    Ok(Err(e)) => error!("GPU force computation failed: {}", e),
-                    Err(e) => error!("Failed to send ComputeForces message: {}", e),
                 }
-            });
+                .into_actor(self)
+            );
 
             // Return early - the async block will handle position updates
             return;
@@ -3104,7 +3116,8 @@ impl Actor for GraphServiceActor {
             let report = crate::utils::gpu_diagnostics::ptx_module_smoke_test();
             info!("{}", report);
         }
-        self.start_simulation_loop(ctx);
+        // Defer simulation start to avoid reactor panic
+        ctx.address().do_send(crate::actors::messages::InitializeActor);
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
@@ -3115,6 +3128,15 @@ impl Actor for GraphServiceActor {
 }
 
 // Message handlers
+impl Handler<crate::actors::messages::InitializeActor> for GraphServiceActor {
+    type Result = ();
+
+    fn handle(&mut self, _msg: crate::actors::messages::InitializeActor, ctx: &mut Self::Context) -> Self::Result {
+        info!("GraphServiceActor: Initializing simulation loop (deferred from started)");
+        self.start_simulation_loop(ctx);
+    }
+}
+
 impl Handler<GetGraphData> for GraphServiceActor {
     type Result = Result<std::sync::Arc<GraphData>, String>;
 
@@ -3359,7 +3381,7 @@ impl Handler<BuildGraphFromMetadata> for GraphServiceActor {
             msg.metadata.len()
         );
         // Build the graph from metadata
-        let result = self.build_from_metadata(msg.metadata);
+        let result = self.build_from_metadata(msg.metadata, ctx);
 
         // If successful, handle GPU initialization
         if result.is_ok() {
@@ -3537,7 +3559,7 @@ impl Handler<UpdateGraphData> for GraphServiceActor {
 
         // Generate initial semantic constraints for the new graph data
         let graph_data_clone = Arc::clone(&self.graph_data);
-        self.generate_initial_semantic_constraints(&graph_data_clone);
+        self.generate_initial_semantic_constraints(&graph_data_clone, ctx);
 
         // Send data to GPU compute if available
         if let Some(ref gpu_compute_addr) = self.gpu_compute_addr {
@@ -3953,8 +3975,8 @@ impl Handler<UpdateAdvancedParams> for GraphServiceActor {
 impl Handler<UpdateConstraints> for GraphServiceActor {
     type Result = Result<(), String>;
 
-    fn handle(&mut self, msg: UpdateConstraints, _ctx: &mut Self::Context) -> Self::Result {
-        self.handle_constraint_update(msg.constraint_data)
+    fn handle(&mut self, msg: UpdateConstraints, ctx: &mut Self::Context) -> Self::Result {
+        self.handle_constraint_update(msg.constraint_data, ctx)
     }
 }
 
@@ -3986,7 +4008,7 @@ impl Handler<RegenerateSemanticConstraints> for GraphServiceActor {
     fn handle(
         &mut self,
         _msg: RegenerateSemanticConstraints,
-        _ctx: &mut Self::Context,
+        ctx: &mut Self::Context,
     ) -> Self::Result {
         // Clear existing semantic constraints
         self.constraint_set
@@ -3998,11 +4020,11 @@ impl Handler<RegenerateSemanticConstraints> for GraphServiceActor {
 
         // Regenerate initial semantic constraints
         let graph_data_clone = Arc::clone(&self.graph_data);
-        self.generate_initial_semantic_constraints(&graph_data_clone);
+        self.generate_initial_semantic_constraints(&graph_data_clone, ctx);
 
         // Regenerate dynamic constraints if semantic analysis is available
         if self.last_semantic_analysis.is_some() {
-            self.update_dynamic_constraints();
+            self.update_dynamic_constraints(ctx);
         }
 
         info!(
@@ -4286,10 +4308,11 @@ mod tests {
 
     /// Test that node positions are preserved across multiple BuildGraphFromMetadata calls
     /// This addresses the issue where positions were reset every time a client connected
-    #[test]
-    fn test_position_preservation_across_rebuilds() {
-        // Create a test GraphServiceActor
+    #[actix::test]
+    async fn test_position_preservation_across_rebuilds() {
+        // Create a test GraphServiceActor and context
         let mut actor = GraphServiceActor::new();
+        let mut ctx = actix::Context::new();
 
         // Create initial metadata
         let mut metadata = MetadataStore::new();
@@ -4323,7 +4346,7 @@ mod tests {
         );
 
         // First build - nodes will get initial positions
-        assert!(actor.build_from_metadata(metadata.clone()).is_ok());
+        assert!(actor.build_from_metadata(metadata.clone(), &mut ctx).is_ok());
 
         // Store the positions after first build
         let initial_positions: HashMap<String, (Vec3Data, Vec3Data)> = actor
@@ -4371,7 +4394,7 @@ mod tests {
         }
 
         // Second build - should preserve modified positions
-        assert!(actor.build_from_metadata(metadata.clone()).is_ok());
+        assert!(actor.build_from_metadata(metadata.clone(), &mut ctx).is_ok());
 
         // Verify positions were preserved
         let file1_node = actor
@@ -4403,9 +4426,10 @@ mod tests {
     }
 
     /// Test that new nodes still get proper initial positions
-    #[test]
-    fn test_new_nodes_get_initial_positions() {
+    #[actix::test]
+    async fn test_new_nodes_get_initial_positions() {
         let mut actor = GraphServiceActor::new();
+        let mut ctx = actix::Context::new();
 
         // First build with one file
         let mut metadata1 = MetadataStore::new();
@@ -4424,7 +4448,7 @@ mod tests {
             },
         );
 
-        assert!(actor.build_from_metadata(metadata1).is_ok());
+        assert!(actor.build_from_metadata(metadata1, &mut ctx).is_ok());
         assert_eq!(
             actor.node_map.len(),
             1,
@@ -4462,7 +4486,7 @@ mod tests {
             },
         );
 
-        assert!(actor.build_from_metadata(metadata2).is_ok());
+        assert!(actor.build_from_metadata(metadata2, &mut ctx).is_ok());
         assert_eq!(
             actor.node_map.len(),
             2,

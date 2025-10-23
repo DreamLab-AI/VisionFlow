@@ -397,7 +397,7 @@ impl OptimizedSettingsActor {
             let path = path.to_string();
             let value = value.clone();
 
-            tokio::spawn(async move {
+            actix::spawn(async move {
                 if let Ok(mut conn) = redis_client.get_async_connection().await {
                     if let Ok(json_str) = serde_json::to_string(&value) {
                         // Compress data before storing in Redis
@@ -1018,7 +1018,7 @@ impl Handler<SetSettingsByPaths> for OptimizedSettingsActor {
             // Asynchronous Redis cache invalidation
             #[cfg(feature = "redis")]
             if let Some(redis_client) = redis_client {
-                tokio::spawn(async move {
+                actix::spawn(async move {
                     if let Ok(mut conn) = redis_client.get_async_connection().await {
                         for path in cache_invalidations {
                             let redis_key = format!("settings:{}", path);

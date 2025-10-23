@@ -312,7 +312,7 @@ impl OntologyActor {
     }
 
     /// Process next job in the queue
-    async fn process_next_job(&mut self, ctx: &mut Context<Self>) {
+    fn process_next_job(&mut self, ctx: &mut Context<Self>) {
         if self.active_jobs.len() >= self.config.max_active_jobs {
             debug!("Max active jobs reached, deferring job processing");
             return;
@@ -499,7 +499,7 @@ impl OntologyActor {
     }
 
     /// Perform health check and maintenance
-    async fn perform_health_check(&mut self) {
+    fn perform_health_check(&mut self) {
         let now = Utc::now();
 
         // Clean up expired reports
@@ -598,6 +598,25 @@ impl Actor for OntologyActor {
     fn started(&mut self, ctx: &mut Self::Context) {
         info!("OntologyActor started");
 
+        // Defer interval setup to avoid reactor panic
+        ctx.address().do_send(crate::actors::messages::InitializeActor);
+    }
+
+    fn stopped(&mut self, _ctx: &mut Self::Context) {
+        info!("OntologyActor stopped");
+
+        // Clear validator caches on shutdown
+        self.validator_service.clear_caches();
+    }
+}
+
+// Message handlers
+impl Handler<crate::actors::messages::InitializeActor> for OntologyActor {
+    type Result = ();
+
+    fn handle(&mut self, _msg: crate::actors::messages::InitializeActor, ctx: &mut Self::Context) -> Self::Result {
+        info!("OntologyActor: Initializing periodic tasks (deferred from started)");
+
         // Schedule periodic job processing
         ctx.run_interval(Duration::from_secs(1), |actor, ctx| {
             actor.process_next_job(ctx);
@@ -609,14 +628,7 @@ impl Actor for OntologyActor {
             actor.perform_health_check();
         });
 
-        debug!("OntologyActor scheduled periodic tasks");
-    }
-
-    fn stopped(&mut self, _ctx: &mut Self::Context) {
-        info!("OntologyActor stopped");
-
-        // Clear validator caches on shutdown
-        self.validator_service.clear_caches();
+        debug!("OntologyActor: Periodic tasks scheduled successfully");
     }
 }
 

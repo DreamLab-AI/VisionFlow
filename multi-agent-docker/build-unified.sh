@@ -6,6 +6,10 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# Disable BuildKit to avoid --allow flag bug in Docker Compose 2.40.x
+export DOCKER_BUILDKIT=0
+export COMPOSE_DOCKER_CLI_BUILD=0
+
 # Parse arguments
 BUILD_ARGS=""
 if [[ "$*" == *"--no-cache"* ]]; then
@@ -35,6 +39,22 @@ if [ ! -f .env ]; then
     fi
 fi
 
+# Verify skills exist
+echo "Verifying skills..."
+if [[ ! -d "skills/docker-manager" ]]; then
+    echo "⚠️  Warning: Docker Manager skill not found"
+else
+    echo "✅ Docker Manager skill found"
+fi
+
+if [[ ! -d "skills/chrome-devtools" ]]; then
+    echo "⚠️  Warning: Chrome DevTools skill not found"
+else
+    echo "✅ Chrome DevTools skill found"
+fi
+
+echo ""
+
 # Build the container
 echo "[1/3] Building Docker image..."
 docker build $BUILD_ARGS -f Dockerfile.unified -t agentic-workstation:latest .
@@ -57,12 +77,39 @@ echo "========================================"
 echo "  ✅ AGENTIC WORKSTATION RUNNING"
 echo "========================================"
 echo ""
+
+# Verify skills installation
+echo "Verifying skills installation..."
+if docker exec agentic-workstation test -f /home/devuser/.claude/skills/docker-manager/SKILL.md 2>/dev/null; then
+    echo "✅ Docker Manager skill installed"
+else
+    echo "⚠️  Docker Manager skill not found in container"
+fi
+
+if docker exec agentic-workstation test -f /home/devuser/.claude/skills/chrome-devtools/SKILL.md 2>/dev/null; then
+    echo "✅ Chrome DevTools skill installed"
+else
+    echo "⚠️  Chrome DevTools skill not found in container"
+fi
+
+# Verify Docker socket
+if docker exec agentic-workstation test -S /var/run/docker.sock 2>/dev/null; then
+    echo "✅ Docker socket mounted"
+else
+    echo "⚠️  Docker socket not found - Docker Manager will not work"
+fi
+
+echo ""
 echo "Access Methods:"
 echo "  SSH:        ssh -p 2222 devuser@localhost  (password: turboflow)"
 echo "  VNC:        vnc://localhost:5901           (password: turboflow)"
 echo "  code-server: http://localhost:8080"
 echo "  API:        http://localhost:9090/health"
 echo "  Swagger:    http://localhost:9090/documentation"
+echo ""
+echo "Skills:"
+echo "  Test Docker Manager: docker exec -it agentic-workstation /home/devuser/.claude/skills/docker-manager/test-skill.sh"
+echo "  From Claude:        'Use Docker Manager to check VisionFlow status'"
 echo ""
 echo "Management Commands:"
 echo "  View logs:  docker compose -f docker-compose.unified.yml logs -f"

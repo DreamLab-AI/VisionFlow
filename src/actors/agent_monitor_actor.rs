@@ -153,30 +153,33 @@ impl AgentMonitorActor {
         let api_client = self.management_api_client.clone();
         let ctx_addr = ctx.address();
 
-        tokio::spawn(async move {
-            match api_client.list_tasks().await {
-                Ok(task_list) => {
-                    let active_count = task_list.active_tasks.len();
-                    debug!(
-                        "[AgentMonitorActor] Retrieved {} active tasks from Management API",
-                        active_count
-                    );
+        ctx.spawn(
+            async move {
+                match api_client.list_tasks().await {
+                    Ok(task_list) => {
+                        let active_count = task_list.active_tasks.len();
+                        debug!(
+                            "[AgentMonitorActor] Retrieved {} active tasks from Management API",
+                            active_count
+                        );
 
-                    // Convert tasks to agent statuses
-                    let agents: Vec<AgentStatus> = task_list
-                        .active_tasks
-                        .into_iter()
-                        .map(|task| task_to_agent_status(task))
-                        .collect();
+                        // Convert tasks to agent statuses
+                        let agents: Vec<AgentStatus> = task_list
+                            .active_tasks
+                            .into_iter()
+                            .map(|task| task_to_agent_status(task))
+                            .collect();
 
-                    ctx_addr.do_send(ProcessAgentStatuses { agents });
-                }
-                Err(e) => {
-                    error!("[AgentMonitorActor] Management API query failed: {}", e);
-                    ctx_addr.do_send(RecordPollFailure);
+                        ctx_addr.do_send(ProcessAgentStatuses { agents });
+                    }
+                    Err(e) => {
+                        error!("[AgentMonitorActor] Management API query failed: {}", e);
+                        ctx_addr.do_send(RecordPollFailure);
+                    }
                 }
             }
-        });
+            .into_actor(self)
+        );
     }
 }
 
@@ -195,16 +198,26 @@ impl Actor for AgentMonitorActor {
 
         self.is_connected = true;
 
-        // Start periodic polling
+        // Defer polling start to avoid reactor panic
+        ctx.address().do_send(crate::actors::messages::InitializeActor);
+    }
+
+    fn stopped(&mut self, _: &mut Self::Context) {
+        info!("[AgentMonitorActor] Stopped");
+    }
+}
+
+impl Handler<crate::actors::messages::InitializeActor> for AgentMonitorActor {
+    type Result = ();
+
+    fn handle(&mut self, _msg: crate::actors::messages::InitializeActor, ctx: &mut Self::Context) -> Self::Result {
+        info!("[AgentMonitorActor] Initializing periodic polling (deferred from started)");
+        // Start periodic polling with deferred interval setup
         ctx.run_later(Duration::from_millis(100), |act, ctx| {
             ctx.run_interval(act.polling_interval, |act, ctx| {
                 act.poll_agent_statuses(ctx);
             });
         });
-    }
-
-    fn stopped(&mut self, _: &mut Self::Context) {
-        info!("[AgentMonitorActor] Stopped");
     }
 }
 

@@ -17,7 +17,7 @@ RUN pacman -Syu --noconfirm && \
         jq yq bat exa fzf \
         # Build dependencies for node-gyp
         python make gcc \
-        # Development languages (skip nodejs from pacman, will install LTS via nvm)
+        # Development languages (skip nodejs from pacman, will install v23.11.1 directly)
         python python-pip rustup \
         # Desktop environment
         xfce4 xfce4-goodies tigervnc \
@@ -44,10 +44,9 @@ RUN pacman -Syu --noconfirm && \
         direnv \
     && rm -rf /var/cache/pacman/pkg/*
 
-# Install Node.js LTS (v22) via official installer to avoid better-sqlite3 v24 incompatibility
-RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - || \
-    (curl -fsSL https://nodejs.org/dist/v22.11.0/node-v22.11.0-linux-x64.tar.xz | \
-     tar -xJ -C /usr/local --strip-components=1) && \
+# Install Node.js v23.11.1 (required for chrome-devtools-mcp compatibility)
+RUN curl -fsSL https://nodejs.org/dist/v23.11.1/node-v23.11.1-linux-x64.tar.xz | \
+     tar -xJ -C /usr/local --strip-components=1 && \
     npm install -g npm@latest
 
 # ============================================================================
@@ -280,14 +279,11 @@ RUN echo "devuser:turboflow" | chpasswd
 # PHASE 13: Copy Application Files
 # ============================================================================
 
-# Copy skills
+# Copy skills (build context is multi-agent-docker/, so paths are relative to that)
 COPY --chown=devuser:devuser skills/ /home/devuser/.claude/skills/
 
-# Copy docker-manager skill from multi-agent-docker
-COPY --chown=devuser:devuser multi-agent-docker/skills/docker-manager/ /home/devuser/.claude/skills/docker-manager/
-
-# Copy chrome-devtools skill from multi-agent-docker
-COPY --chown=devuser:devuser multi-agent-docker/skills/chrome-devtools/ /home/devuser/.claude/skills/chrome-devtools/
+# Docker manager and chrome-devtools are already in skills/ directory
+# No separate copy needed - they're included in the skills/ copy above
 
 # Install web-summary MCP server dependencies
 RUN cd /home/devuser/.claude/skills/web-summary/mcp-server && \
@@ -296,10 +292,11 @@ RUN cd /home/devuser/.claude/skills/web-summary/mcp-server && \
     chown -R devuser:devuser /home/devuser/.claude/skills/web-summary/mcp-server
 
 # Install Python dependencies for MCP tools (break-system-packages for Arch)
+# Includes docker>=7.0.0 for docker-manager skill compatibility
 RUN pip3 install --no-cache-dir --break-system-packages \
     youtube-transcript-api beautifulsoup4 requests \
     mcp \
-    docker
+    docker>=7.0.0
 
 # Make all MCP tools executable
 RUN find /home/devuser/.claude/skills -name "*.py" -path "*/tools/*" -exec chmod +x {} \; && \

@@ -10,10 +10,10 @@ echo "========================================"
 echo ""
 
 # ============================================================================
-# Phase 1: Directory Setup
+# Phase 1: Directory Setup & Docker Socket Configuration
 # ============================================================================
 
-echo "[1/10] Setting up directories..."
+echo "[1/10] Setting up directories and Docker socket..."
 
 # Ensure all required directories exist
 mkdir -p /home/devuser/{workspace,models,agents,.claude/skills,.config,.cache,logs,.local/share}
@@ -30,6 +30,14 @@ chown -R devuser:devuser /home/devuser
 chown -R gemini-user:gemini-user /home/gemini-user
 chown -R openai-user:openai-user /home/openai-user
 chown -R zai-user:zai-user /home/zai-user
+
+# Configure Docker socket permissions for docker-manager skill
+if [ -S /var/run/docker.sock ]; then
+    chmod 666 /var/run/docker.sock
+    echo "✓ Docker socket permissions configured for docker-manager skill"
+else
+    echo "ℹ️  Docker socket not found (this is normal if not mounting host socket)"
+fi
 
 echo "✓ Directories created and permissions set"
 
@@ -266,6 +274,16 @@ sudo -u devuser bash -c 'mkdir -p ~/.config/claude && cat > ~/.config/claude/mcp
     "playwright": {
       "command": "node",
       "args": ["/home/devuser/.claude/skills/playwright/tools/playwright-mcp-local.js"]
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": [
+        "chrome-devtools-mcp",
+        "--executablePath",
+        "/usr/lib/chromium/chromium",
+        "--isolated"
+      ],
+      "env": {}
     }
   }
 }
@@ -277,7 +295,7 @@ chown -R devuser:devuser /home/devuser/.config/claude
 echo "✓ Cross-user service access configured"
 echo "  - Gemini MCP socket: /var/run/agentic-services/gemini-mcp.sock"
 echo "  - Z.AI API: http://localhost:9600"
-echo "  - MCP Servers: 8 skills registered (web-summary, qgis, blender, imagemagick, kicad, ngspice, pbr, playwright)"
+echo "  - MCP Servers: 9 skills registered (web-summary, qgis, blender, imagemagick, kicad, ngspice, pbr, playwright, chrome-devtools)"
 echo "  - Environment variables added to devuser's .zshrc"
 
 # ============================================================================

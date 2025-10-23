@@ -1,5 +1,10 @@
 //! Message definitions for actor system communication
 
+// Actor initialization messages (sent after started() to avoid reactor panics)
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct InitializeActor;
+
 #[cfg(feature = "gpu")]
 use crate::actors::gpu::force_compute_actor::PhysicsStats;
 use crate::config::AppFullSettings;

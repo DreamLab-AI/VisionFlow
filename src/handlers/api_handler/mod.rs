@@ -16,12 +16,106 @@ pub use graph::{get_graph_data, get_paginated_graph_data, refresh_graph, update_
 
 pub use visualisation::get_visualisation_settings;
 
-use actix_web::web;
+use actix_web::{web, HttpResponse, Responder};
+use serde_json::json;
+use log::info;
+
+/// GET /api/health - Simple health check endpoint for UI
+async fn health_check() -> impl Responder {
+    info!("Health check requested");
+    HttpResponse::Ok().json(json!({
+        "status": "ok",
+        "version": env!("CARGO_PKG_VERSION"),
+        "timestamp": chrono::Utc::now().to_rfc3339()
+    }))
+}
+
+/// GET /api/config - Return app configuration for UI (CQRS-based)
+async fn get_app_config(state: web::Data<crate::AppState>) -> impl Responder {
+    info!("App config requested via CQRS");
+
+    // Use CQRS to load settings from database
+    use crate::application::settings::{LoadAllSettings, LoadAllSettingsHandler};
+    use hexser::QueryHandler;
+
+    let handler = LoadAllSettingsHandler::new(state.settings_repository.clone());
+    match handler.handle(LoadAllSettings) {
+        Ok(Some(settings)) => {
+            HttpResponse::Ok().json(json!({
+                "version": env!("CARGO_PKG_VERSION"),
+                "features": {
+                    "ragflow": settings.ragflow.is_some(),
+                    "perplexity": settings.perplexity.is_some(),
+                    "openai": settings.openai.is_some(),
+                    "kokoro": settings.kokoro.is_some(),
+                    "whisper": settings.whisper.is_some(),
+                },
+                "websocket": {
+                    "minUpdateRate": settings.system.websocket.min_update_rate,
+                    "maxUpdateRate": settings.system.websocket.max_update_rate,
+                    "motionThreshold": settings.system.websocket.motion_threshold,
+                    "motionDamping": settings.system.websocket.motion_damping,
+                },
+                "rendering": {
+                    "ambientLightIntensity": settings.visualisation.rendering.ambient_light_intensity,
+                    "enableAmbientOcclusion": settings.visualisation.rendering.enable_ambient_occlusion,
+                    "backgroundColor": settings.visualisation.rendering.background_color,
+                },
+                "xr": {
+                    "enabled": settings.xr.enabled.unwrap_or(false),
+                    "roomScale": settings.xr.room_scale,
+                    "spaceType": settings.xr.space_type,
+                }
+            }))
+        }
+        Ok(None) => {
+            log::warn!("No settings found, using defaults");
+            use crate::config::AppFullSettings;
+            let settings = AppFullSettings::default();
+            HttpResponse::Ok().json(json!({
+                "version": env!("CARGO_PKG_VERSION"),
+                "features": {
+                    "ragflow": settings.ragflow.is_some(),
+                    "perplexity": settings.perplexity.is_some(),
+                    "openai": settings.openai.is_some(),
+                    "kokoro": settings.kokoro.is_some(),
+                    "whisper": settings.whisper.is_some(),
+                },
+                "websocket": {
+                    "minUpdateRate": settings.system.websocket.min_update_rate,
+                    "maxUpdateRate": settings.system.websocket.max_update_rate,
+                    "motionThreshold": settings.system.websocket.motion_threshold,
+                    "motionDamping": settings.system.websocket.motion_damping,
+                },
+                "rendering": {
+                    "ambientLightIntensity": settings.visualisation.rendering.ambient_light_intensity,
+                    "enableAmbientOcclusion": settings.visualisation.rendering.enable_ambient_occlusion,
+                    "backgroundColor": settings.visualisation.rendering.background_color,
+                },
+                "xr": {
+                    "enabled": settings.xr.enabled.unwrap_or(false),
+                    "roomScale": settings.xr.room_scale,
+                    "spaceType": settings.xr.space_type,
+                }
+            }))
+        }
+        Err(e) => {
+            log::error!("Failed to load settings via CQRS: {}", e);
+            HttpResponse::InternalServerError().json(json!({
+                "error": "Failed to retrieve configuration"
+            }))
+        }
+    }
+}
 
 // Configure all API routes
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("") // Removed redundant /api prefix
+            // Core API endpoints
+            .route("/health", web::get().to(health_check))
+            .route("/config", web::get().to(get_app_config))
+            // Existing module routes
             .configure(files::config)
             .configure(graph::config)
             .configure(crate::handlers::graph_state_handler::config) // CQRS-refactored graph state
