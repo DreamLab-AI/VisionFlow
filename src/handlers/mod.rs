@@ -22,6 +22,7 @@ pub mod settings_paths;
 pub mod settings_validation_fix;
 pub mod socket_flow_handler;
 pub mod speech_socket_handler;
+pub mod utils; // Helper utilities for handlers
 pub mod validation_handler;
 pub mod websocket_settings_handler;
 pub mod workspace_handler;

@@ -10,26 +10,24 @@ services:
       args:
         CUDA_ARCH: ${CUDA_ARCH:-86}
     volumes:
-      - ./client:/app/client
-      - ./src:/app/src
-      - ./Cargo.toml:/app/Cargo.toml
-      - ./Cargo.lock:/app/Cargo.lock
-      - ./data/markdown:/app/data/markdown
-      - ./data/metadata:/app/data/metadata
+      # Named volumes for databases (no bind mount conflicts)
+      - visionflow-data:/app/data
+      # Subdirectories as bind mounts (safe)
       - ./data/user_settings:/app/user_settings
-      - ./data/settings.yaml:/app/settings.yaml
-      - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
+      # Logs (safe to mount)
       - ./logs/nginx:/var/log/nginx
       - ./logs:/app/logs
-      - ./scripts/dev-exec-proxy.sh:/usr/local/bin/dev-exec:ro
-      - ./scripts/check-rust-rebuild.sh:/app/scripts/check-rust-rebuild.sh:ro
-      - ./scripts/dev-rebuild-rust.sh:/app/scripts/dev-rebuild-rust.sh:ro
-      - ./supervisord.dev.conf:/app/supervisord.dev.conf:ro
+      # NOTE: settings.yaml copied into image, not mounted
+      # Docker socket for container management
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Caches (volumes only, no file mounts)
       - npm-cache:/root/.npm
       - cargo-cache:/root/.cargo/registry
       - cargo-git-cache:/root/.cargo/git
       - cargo-target-cache:/app/target
+      # NOTE: Source code (src, client, Cargo.*) copied during build
+      # To update code: docker-compose build && docker-compose up -d
+      # For hot reload, use: docker cp ./src visionflow_container:/app/
     env_file:
       - .env
     deploy:
@@ -64,6 +62,7 @@ services:
       - MANAGEMENT_API_PORT=9090
     ports:
       - "3001:3001"  # Nginx entry point for dev
+      - "4000:4000"  # API port for direct access
     networks:
       docker_ragflow:
         aliases:
@@ -160,6 +159,7 @@ networks:
     external: true
 
 volumes:
+  visionflow-data:
   npm-cache:
   cargo-cache:
   cargo-git-cache:

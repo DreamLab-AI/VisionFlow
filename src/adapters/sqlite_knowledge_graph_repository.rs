@@ -6,7 +6,7 @@
 
 use async_trait::async_trait;
 use rusqlite::{params, Connection};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use tracing::{debug, info, instrument};
 
 use crate::models::edge::Edge;
@@ -18,7 +18,7 @@ use crate::ports::knowledge_graph_repository::{
 
 /// SQLite-backed knowledge graph repository
 pub struct SqliteKnowledgeGraphRepository {
-    conn: Arc<tokio::sync::Mutex<Connection>>,
+    conn: Arc<Mutex<Connection>>,
 }
 
 impl SqliteKnowledgeGraphRepository {
@@ -78,7 +78,7 @@ impl SqliteKnowledgeGraphRepository {
         info!("Initialized SqliteKnowledgeGraphRepository at {}", db_path);
 
         Ok(Self {
-            conn: Arc::new(tokio::sync::Mutex::new(conn)),
+            conn: Arc::new(Mutex::new(conn)),
         })
     }
 
@@ -119,7 +119,7 @@ impl SqliteKnowledgeGraphRepository {
 impl KnowledgeGraphRepository for SqliteKnowledgeGraphRepository {
     #[instrument(skip(self), level = "debug")]
     async fn load_graph(&self) -> RepoResult<Arc<GraphData>> {
-        let conn = self.conn.lock().await;
+        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
 
         // Load all nodes
         let mut stmt = conn.prepare("SELECT id, metadata_id, label, x, y, z, vx, vy, vz, color, size, metadata FROM kg_nodes")
@@ -194,7 +194,7 @@ impl KnowledgeGraphRepository for SqliteKnowledgeGraphRepository {
 
     #[instrument(skip(self, graph), fields(nodes = graph.nodes.len(), edges = graph.edges.len()), level = "debug")]
     async fn save_graph(&self, graph: &GraphData) -> RepoResult<()> {
-        let conn = self.conn.lock().await;
+        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
 
         // Begin transaction
         conn.execute("BEGIN TRANSACTION", []).map_err(|e| {
@@ -296,7 +296,7 @@ impl KnowledgeGraphRepository for SqliteKnowledgeGraphRepository {
     }
 
     async fn add_node(&self, node: &Node) -> RepoResult<u32> {
-        let conn = self.conn.lock().await;
+        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
         let metadata_json = serde_json::to_string(&node.metadata).map_err(|e| {
             KnowledgeGraphRepositoryError::DatabaseError(format!(
                 "Failed to serialize metadata: {}",
@@ -333,7 +333,7 @@ impl KnowledgeGraphRepository for SqliteKnowledgeGraphRepository {
     }
 
     async fn remove_node(&self, node_id: u32) -> RepoResult<()> {
-        let conn = self.conn.lock().await;
+        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
         conn.execute("DELETE FROM kg_nodes WHERE id = ?1", params![node_id])
             .map_err(|e| {
                 KnowledgeGraphRepositoryError::DatabaseError(format!(
@@ -345,7 +345,7 @@ impl KnowledgeGraphRepository for SqliteKnowledgeGraphRepository {
     }
 
     async fn get_node(&self, node_id: u32) -> RepoResult<Option<Node>> {
-        let conn = self.conn.lock().await;
+        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
         let result = conn.query_row(
             "SELECT id, metadata_id, label, x, y, z, vx, vy, vz, color, size, metadata FROM kg_nodes WHERE id = ?1",
             params![node_id],
@@ -363,7 +363,7 @@ impl KnowledgeGraphRepository for SqliteKnowledgeGraphRepository {
     }
 
     async fn get_nodes_by_metadata_id(&self, metadata_id: &str) -> RepoResult<Vec<Node>> {
-        let conn = self.conn.lock().await;
+        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
         let mut stmt = conn.prepare(
             "SELECT id, metadata_id, label, x, y, z, vx, vy, vz, color, size, metadata FROM kg_nodes WHERE metadata_id = ?1"
         ).map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to prepare statement: {}", e)))?;
@@ -388,7 +388,7 @@ impl KnowledgeGraphRepository for SqliteKnowledgeGraphRepository {
     }
 
     async fn add_edge(&self, edge: &Edge) -> RepoResult<String> {
-        let conn = self.conn.lock().await;
+        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
         let metadata_json = edge
             .metadata
             .as_ref()
@@ -404,7 +404,7 @@ impl KnowledgeGraphRepository for SqliteKnowledgeGraphRepository {
     }
 
     async fn update_edge(&self, edge: &Edge) -> RepoResult<()> {
-        let conn = self.conn.lock().await;
+        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
         let metadata_json = edge
             .metadata
             .as_ref()
@@ -420,7 +420,7 @@ impl KnowledgeGraphRepository for SqliteKnowledgeGraphRepository {
     }
 
     async fn remove_edge(&self, edge_id: &str) -> RepoResult<()> {
-        let conn = self.conn.lock().await;
+        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
         conn.execute("DELETE FROM kg_edges WHERE id = ?1", params![edge_id])
             .map_err(|e| {
                 KnowledgeGraphRepositoryError::DatabaseError(format!(
@@ -432,7 +432,7 @@ impl KnowledgeGraphRepository for SqliteKnowledgeGraphRepository {
     }
 
     async fn get_node_edges(&self, node_id: u32) -> RepoResult<Vec<Edge>> {
-        let conn = self.conn.lock().await;
+        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
         let mut stmt = conn.prepare(
             "SELECT id, source, target, weight, metadata FROM kg_edges WHERE source = ?1 OR target = ?1"
         ).map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to prepare statement: {}", e)))?;
@@ -472,7 +472,7 @@ impl KnowledgeGraphRepository for SqliteKnowledgeGraphRepository {
 
     #[instrument(skip(self, positions), fields(count = positions.len()), level = "debug")]
     async fn batch_update_positions(&self, positions: Vec<(u32, f32, f32, f32)>) -> RepoResult<()> {
-        let conn = self.conn.lock().await;
+        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
         conn.execute("BEGIN TRANSACTION", []).map_err(|e| {
             KnowledgeGraphRepositoryError::DatabaseError(format!(
                 "Failed to begin transaction: {}",
@@ -503,7 +503,7 @@ impl KnowledgeGraphRepository for SqliteKnowledgeGraphRepository {
     }
 
     async fn query_nodes(&self, query: &str) -> RepoResult<Vec<Node>> {
-        let conn = self.conn.lock().await;
+        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
 
         let sql_query = format!(
             "SELECT id, metadata_id, label, x, y, z, vx, vy, vz, color, size, metadata FROM kg_nodes WHERE {}",
@@ -534,7 +534,7 @@ impl KnowledgeGraphRepository for SqliteKnowledgeGraphRepository {
     }
 
     async fn get_statistics(&self) -> RepoResult<GraphStatistics> {
-        let conn = self.conn.lock().await;
+        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
 
         let node_count: usize = conn
             .query_row("SELECT COUNT(*) FROM kg_nodes", [], |row| row.get(0))

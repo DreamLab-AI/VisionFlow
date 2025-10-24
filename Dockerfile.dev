@@ -54,10 +54,8 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
 WORKDIR /app
 
 # Create necessary directories
-RUN mkdir -p /app/data/markdown \
-    /app/data/metadata \
-    /app/data/runtime \
-    /app/user_settings \
+# NOTE: /app/data will be mounted from host, so don't create subdirectories here
+RUN mkdir -p /app/user_settings \
     /app/client \
     /app/logs \
     /app/scripts
@@ -83,19 +81,15 @@ WORKDIR /app
 # Pre-download Rust dependencies to speed up first build
 RUN cargo fetch
 
-# Copy Nginx config for development
+# Copy runtime configuration files (no longer mounted to avoid conflicts)
 COPY nginx.dev.conf /etc/nginx/nginx.conf
-
-# Copy settings file
 COPY data/settings.yaml /app/settings.yaml
+COPY supervisord.dev.conf ./supervisord.dev.conf
 
-# Copy all scripts including the wrapper
+# Copy entrypoint scripts
 COPY scripts/dev-entrypoint.sh ./
 COPY scripts/rust-backend-wrapper.sh ./scripts/
 RUN chmod +x ./dev-entrypoint.sh ./scripts/rust-backend-wrapper.sh
-
-# Copy supervisord configuration
-COPY supervisord.dev.conf ./
 
 EXPOSE 3001 4000 5173 24678
 

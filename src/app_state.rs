@@ -130,19 +130,29 @@ impl AppState {
         let settings_repository: Arc<dyn SettingsRepository> =
             Arc::new(SqliteSettingsRepository::new(db_service.clone()));
 
-        // Knowledge graph repository as concrete type (handlers are generic)
-        let knowledge_graph_repository: Arc<SqliteKnowledgeGraphRepository> = Arc::new(
-            SqliteKnowledgeGraphRepository::new("data/knowledge_graph.db")
-                .map_err(|e| format!("Failed to create knowledge graph repository: {}", e))?,
-        );
+        // Knowledge graph and ontology repositories use spawn_blocking to avoid blocking tokio runtime
+        // during schema creation (12+ CREATE statements can take 500ms-3s)
+        info!("[AppState::new] Creating knowledge graph repository in blocking context...");
+        let knowledge_graph_repository: Arc<SqliteKnowledgeGraphRepository> =
+            tokio::task::spawn_blocking(|| {
+                SqliteKnowledgeGraphRepository::new("data/knowledge_graph.db")
+            })
+            .await
+            .map_err(|e| format!("Failed to spawn blocking task: {}", e))?
+            .map_err(|e| format!("Failed to create knowledge graph repository: {}", e))
+            .map(Arc::new)?;
 
-        // Ontology repository as concrete type (handlers are generic)
-        let ontology_repository: Arc<SqliteOntologyRepository> = Arc::new(
-            SqliteOntologyRepository::new("data/ontology.db")
-                .map_err(|e| format!("Failed to create ontology repository: {}", e))?,
-        );
+        info!("[AppState::new] Creating ontology repository in blocking context...");
+        let ontology_repository: Arc<SqliteOntologyRepository> =
+            tokio::task::spawn_blocking(|| {
+                SqliteOntologyRepository::new("data/ontology.db")
+            })
+            .await
+            .map_err(|e| format!("Failed to spawn blocking task: {}", e))?
+            .map_err(|e| format!("Failed to create ontology repository: {}", e))
+            .map(Arc::new)?;
 
-        info!("[AppState::new] Repository adapters initialized successfully");
+        info!("[AppState::new] Repository adapters initialized successfully (via spawn_blocking)");
         info!("[AppState::new] Database and settings service initialized successfully");
         info!(
             "[AppState::new] IMPORTANT: UI now connects directly to database via SettingsService"

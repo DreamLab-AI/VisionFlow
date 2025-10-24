@@ -8,6 +8,7 @@ use crate::app_state::AppState;
 use crate::config::AppFullSettings;
 use actix_web::{web, Error, HttpResponse};
 use log::{error, info, warn};
+use crate::handlers::utils::execute_in_thread;
 use serde_json::{json, Value};
 
 // Import CQRS handlers
@@ -64,30 +65,45 @@ pub async fn get_settings(state: web::Data<AppState>) -> Result<HttpResponse, Er
     let handler = LoadAllSettingsHandler::new(state.settings_repository.clone());
 
     // Execute query
-    match handler.handle(LoadAllSettings) {
-        Ok(Some(settings)) => {
+    let result = execute_in_thread(move || handler.handle(LoadAllSettings)).await;
+
+
+    match result {
+        Ok(Ok(Some(settings))) => {
             info!("[Settings Handler] Settings loaded successfully via CQRS");
             Ok(HttpResponse::Ok().json(settings))
         }
-        Ok(None) => {
+        Ok(Ok(None)) => {
             warn!("[Settings Handler] No settings found, using defaults");
             let default_settings = AppFullSettings::default();
 
             // Save defaults using directive
             let save_handler = SaveAllSettingsHandler::new(state.settings_repository.clone());
-            if let Err(e) = save_handler.handle(SaveAllSettings {
-                settings: default_settings.clone(),
-            }) {
-                error!("[Settings Handler] Failed to save defaults: {}", e);
+            let settings_clone = default_settings.clone();
+            let result = execute_in_thread(move || save_handler.handle(SaveAllSettings {
+                settings: settings_clone,
+            })).await;
+
+
+            match result {
+                Ok(Ok(())) => { /* Success */ }
+                Ok(Err(e)) => error!("[Settings Handler] Failed to save defaults: {}", e),
+                Err(e) => error!("[Settings Handler] Thread error saving defaults: {}", e),
             }
 
             Ok(HttpResponse::Ok().json(default_settings))
         }
-        Err(e) => {
+        Ok(Err(e)) => {
             error!("[Settings Handler] CQRS query error: {}", e);
             Ok(HttpResponse::InternalServerError().json(json!({
                 "error": "database_error",
                 "message": format!("Failed to load settings: {}", e)
+            })))
+        }
+        Err(e) => {
+            error!("Thread execution error: {}", e);
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Internal server error"
             })))
         }
     }
@@ -112,19 +128,28 @@ pub async fn update_settings(
     let handler = SaveAllSettingsHandler::new(state.settings_repository.clone());
 
     // Execute directive
-    match handler.handle(SaveAllSettings { settings }) {
-        Ok(()) => {
+    let result = execute_in_thread(move || handler.handle(SaveAllSettings { settings })).await;
+
+
+    match result {
+        Ok(Ok(())) => {
             info!("[Settings Handler] Settings saved successfully via CQRS");
             Ok(HttpResponse::Ok().json(json!({
                 "success": true,
                 "message": "Settings saved to database"
             })))
         }
-        Err(e) => {
+        Ok(Err(e)) => {
             error!("[Settings Handler] CQRS directive error: {}", e);
             Ok(HttpResponse::InternalServerError().json(json!({
                 "error": "database_error",
                 "message": format!("Failed to save settings: {}", e)
+            })))
+        }
+        Err(e) => {
+            error!("Thread execution error: {}", e);
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Internal server error"
             })))
         }
     }
@@ -143,12 +168,16 @@ pub async fn get_setting_by_path(
 
     // Create query handler
     let handler = GetSettingHandler::new(state.settings_repository.clone());
+    let path_clone = setting_path.clone();
 
     // Execute query
-    match handler.handle(GetSetting {
-        key: setting_path.clone(),
-    }) {
-        Ok(Some(value)) => {
+    let result = execute_in_thread(move || handler.handle(GetSetting {
+        key: path_clone,
+    })).await;
+
+
+    match result {
+        Ok(Ok(Some(value))) => {
             info!(
                 "[Settings Handler] Setting '{}' found via CQRS",
                 setting_path
@@ -160,14 +189,14 @@ pub async fn get_setting_by_path(
                 "value": json_value
             })))
         }
-        Ok(None) => {
+        Ok(Ok(None)) => {
             info!("[Settings Handler] Setting '{}' not found", setting_path);
             Ok(HttpResponse::NotFound().json(json!({
                 "error": "not_found",
                 "path": setting_path
             })))
         }
-        Err(e) => {
+        Ok(Err(e)) => {
             error!(
                 "[Settings Handler] CQRS query error for '{}': {}",
                 setting_path, e
@@ -175,6 +204,12 @@ pub async fn get_setting_by_path(
             Ok(HttpResponse::InternalServerError().json(json!({
                 "error": "database_error",
                 "message": format!("Failed to get setting: {}", e)
+            })))
+        }
+        Err(e) => {
+            error!("Thread execution error: {}", e);
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Internal server error"
             })))
         }
     }
@@ -199,14 +234,18 @@ pub async fn update_setting_by_path(
 
     // Create directive handler
     let handler = UpdateSettingHandler::new(state.settings_repository.clone());
+    let path_clone = setting_path.clone();
 
     // Execute directive
-    match handler.handle(UpdateSetting {
-        key: setting_path.clone(),
+    let result = execute_in_thread(move || handler.handle(UpdateSetting {
+        key: path_clone,
         value: setting_value,
         description: None,
-    }) {
-        Ok(()) => {
+    })).await;
+
+
+    match result {
+        Ok(Ok(())) => {
             info!(
                 "[Settings Handler] Setting '{}' updated via CQRS",
                 setting_path
@@ -217,7 +256,7 @@ pub async fn update_setting_by_path(
                 "value": value
             })))
         }
-        Err(e) => {
+        Ok(Err(e)) => {
             error!(
                 "[Settings Handler] CQRS directive error for '{}': {}",
                 setting_path, e
@@ -225,6 +264,12 @@ pub async fn update_setting_by_path(
             Ok(HttpResponse::InternalServerError().json(json!({
                 "error": "database_error",
                 "message": format!("Failed to update setting: {}", e)
+            })))
+        }
+        Err(e) => {
+            error!("Thread execution error: {}", e);
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Internal server error"
             })))
         }
     }
@@ -243,16 +288,20 @@ pub async fn get_settings_batch(
 
     // Create query handler
     let handler = GetSettingsBatchHandler::new(state.settings_repository.clone());
+    let paths_len = paths.len();
 
     // Execute query
-    match handler.handle(GetSettingsBatch {
+    let result = execute_in_thread(move || handler.handle(GetSettingsBatch {
         keys: paths.clone(),
-    }) {
-        Ok(results) => {
+    })).await;
+
+
+    match result {
+        Ok(Ok(results)) => {
             info!(
                 "[Settings Handler] Batch get successful: {}/{} settings found",
                 results.len(),
-                paths.len()
+                paths_len
             );
             // Convert SettingValue map to JSON map
             let json_results: std::collections::HashMap<String, Value> = results
@@ -261,11 +310,17 @@ pub async fn get_settings_batch(
                 .collect();
             Ok(HttpResponse::Ok().json(json_results))
         }
-        Err(e) => {
+        Ok(Err(e)) => {
             error!("[Settings Handler] CQRS batch query error: {}", e);
             Ok(HttpResponse::InternalServerError().json(json!({
                 "error": "database_error",
                 "message": format!("Failed to get settings batch: {}", e)
+            })))
+        }
+        Err(e) => {
+            error!("Thread execution error: {}", e);
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Internal server error"
             })))
         }
     }
@@ -280,22 +335,30 @@ pub async fn reset_settings(state: web::Data<AppState>) -> Result<HttpResponse, 
     // Create directive handler
     let handler = SaveAllSettingsHandler::new(state.settings_repository.clone());
 
-    // Execute directive
-    match handler.handle(SaveAllSettings {
+    // Execute directive in a separate OS thread to escape Tokio runtime
+    let result = execute_in_thread(move || handler.handle(SaveAllSettings {
         settings: default_settings,
-    }) {
-        Ok(()) => {
+    })).await;
+
+    match result {
+        Ok(Ok(())) => {
             info!("[Settings Handler] Settings reset via CQRS");
             Ok(HttpResponse::Ok().json(json!({
                 "success": true,
                 "message": "Settings reset to defaults"
             })))
         }
-        Err(e) => {
+        Ok(Err(e)) => {
             error!("[Settings Handler] CQRS reset directive error: {}", e);
             Ok(HttpResponse::InternalServerError().json(json!({
                 "error": "database_error",
                 "message": format!("Failed to reset settings: {}", e)
+            })))
+        }
+        Err(e) => {
+            error!("Thread execution error: {}", e);
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Internal server error"
             })))
         }
     }
@@ -306,7 +369,12 @@ pub async fn settings_health(state: web::Data<AppState>) -> Result<HttpResponse,
     // Try to load settings using CQRS query
     let handler = LoadAllSettingsHandler::new(state.settings_repository.clone());
 
-    let healthy = handler.handle(LoadAllSettings).is_ok();
+    let result = execute_in_thread(move || handler.handle(LoadAllSettings)).await;
+
+    let healthy = match result {
+        Ok(Ok(_)) => true,
+        _ => false,
+    };
 
     // Get cache stats
     let cache_stats = state.settings_service.get_cache_stats().await;
@@ -347,19 +415,23 @@ pub async fn get_physics_settings(
 
     // Create query handler
     let handler = GetPhysicsSettingsHandler::new(state.settings_repository.clone());
+    let graph_clone = graph.clone();
 
     // Execute query
-    match handler.handle(GetPhysicsSettings {
-        profile_name: graph.clone(),
-    }) {
-        Ok(settings) => {
+    let result = execute_in_thread(move || handler.handle(GetPhysicsSettings {
+        profile_name: graph_clone,
+    })).await;
+
+
+    match result {
+        Ok(Ok(settings)) => {
             info!(
                 "[Settings Handler] Physics settings for '{}' loaded via CQRS",
                 graph
             );
             Ok(HttpResponse::Ok().json(settings))
         }
-        Err(e) => {
+        Ok(Err(e)) => {
             error!(
                 "[Settings Handler] CQRS physics query error for '{}': {}",
                 graph, e
@@ -367,6 +439,12 @@ pub async fn get_physics_settings(
             Ok(HttpResponse::InternalServerError().json(json!({
                 "error": "database_error",
                 "message": format!("Failed to get physics settings: {}", e)
+            })))
+        }
+        Err(e) => {
+            error!("Thread execution error: {}", e);
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Internal server error"
             })))
         }
     }
@@ -396,13 +474,17 @@ pub async fn update_physics_settings(
 
     // Create directive handler
     let handler = UpdatePhysicsSettingsHandler::new(state.settings_repository.clone());
+    let graph_clone = graph.clone();
 
     // Execute directive
-    match handler.handle(UpdatePhysicsSettings {
-        profile_name: graph.clone(),
+    let result = execute_in_thread(move || handler.handle(UpdatePhysicsSettings {
+        profile_name: graph_clone,
         settings: physics_settings,
-    }) {
-        Ok(()) => {
+    })).await;
+
+
+    match result {
+        Ok(Ok(())) => {
             info!(
                 "[Settings Handler] Physics settings for '{}' saved via CQRS",
                 graph
@@ -413,7 +495,7 @@ pub async fn update_physics_settings(
                 "message": "Physics settings saved"
             })))
         }
-        Err(e) => {
+        Ok(Err(e)) => {
             error!(
                 "[Settings Handler] CQRS physics directive error for '{}': {}",
                 graph, e
@@ -421,6 +503,12 @@ pub async fn update_physics_settings(
             Ok(HttpResponse::InternalServerError().json(json!({
                 "error": "database_error",
                 "message": format!("Failed to save physics settings: {}", e)
+            })))
+        }
+        Err(e) => {
+            error!("Thread execution error: {}", e);
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Internal server error"
             })))
         }
     }
@@ -434,8 +522,11 @@ pub async fn export_settings(state: web::Data<AppState>) -> Result<HttpResponse,
     let handler = LoadAllSettingsHandler::new(state.settings_repository.clone());
 
     // Execute query
-    match handler.handle(LoadAllSettings) {
-        Ok(Some(settings)) => match serde_json::to_string_pretty(&settings) {
+    let result = execute_in_thread(move || handler.handle(LoadAllSettings)).await;
+
+
+    match result {
+        Ok(Ok(Some(settings))) => match serde_json::to_string_pretty(&settings) {
             Ok(json_string) => Ok(HttpResponse::Ok()
                 .content_type("application/json")
                 .insert_header((
@@ -450,14 +541,20 @@ pub async fn export_settings(state: web::Data<AppState>) -> Result<HttpResponse,
                 })))
             }
         },
-        Ok(None) => Ok(HttpResponse::NotFound().json(json!({
+        Ok(Ok(None)) => Ok(HttpResponse::NotFound().json(json!({
             "error": "no_settings"
         }))),
-        Err(e) => {
+        Ok(Err(e)) => {
             error!("[Settings Handler] CQRS export query error: {}", e);
             Ok(HttpResponse::InternalServerError().json(json!({
                 "error": "database_error",
                 "message": format!("Failed to export settings: {}", e)
+            })))
+        }
+        Err(e) => {
+            error!("Thread execution error: {}", e);
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Internal server error"
             })))
         }
     }
@@ -476,19 +573,28 @@ pub async fn import_settings(
     let handler = SaveAllSettingsHandler::new(state.settings_repository.clone());
 
     // Execute directive
-    match handler.handle(SaveAllSettings { settings }) {
-        Ok(()) => {
+    let result = execute_in_thread(move || handler.handle(SaveAllSettings { settings })).await;
+
+
+    match result {
+        Ok(Ok(())) => {
             info!("[Settings Handler] Settings imported successfully via CQRS");
             Ok(HttpResponse::Ok().json(json!({
                 "success": true,
                 "message": "Settings imported"
             })))
         }
-        Err(e) => {
+        Ok(Err(e)) => {
             error!("[Settings Handler] CQRS import directive error: {}", e);
             Ok(HttpResponse::InternalServerError().json(json!({
                 "error": "database_error",
                 "message": format!("Failed to import settings: {}", e)
+            })))
+        }
+        Err(e) => {
+            error!("Thread execution error: {}", e);
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Internal server error"
             })))
         }
     }
@@ -502,16 +608,25 @@ pub async fn clear_cache(state: web::Data<AppState>) -> Result<HttpResponse, Err
     let handler = ClearSettingsCacheHandler::new(state.settings_repository.clone());
 
     // Execute directive
-    match handler.handle(ClearSettingsCache) {
-        Ok(()) => Ok(HttpResponse::Ok().json(json!({
+    let result = execute_in_thread(move || handler.handle(ClearSettingsCache)).await;
+
+
+    match result {
+        Ok(Ok(())) => Ok(HttpResponse::Ok().json(json!({
             "success": true,
             "message": "Cache cleared"
         }))),
-        Err(e) => {
+        Ok(Err(e)) => {
             error!("[Settings Handler] CQRS cache clear error: {}", e);
             Ok(HttpResponse::InternalServerError().json(json!({
                 "error": "cache_error",
                 "message": format!("Failed to clear cache: {}", e)
+            })))
+        }
+        Err(e) => {
+            error!("Thread execution error: {}", e);
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "error": "Internal server error"
             })))
         }
     }

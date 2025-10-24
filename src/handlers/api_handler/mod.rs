@@ -16,9 +16,10 @@ pub use graph::{get_graph_data, get_paginated_graph_data, refresh_graph, update_
 
 pub use visualisation::get_visualisation_settings;
 
+use crate::handlers::utils::execute_in_thread;
 use actix_web::{web, HttpResponse, Responder};
 use serde_json::json;
-use log::info;
+use log::{error, info};
 
 /// GET /api/health - Simple health check endpoint for UI
 async fn health_check() -> impl Responder {
@@ -39,8 +40,12 @@ async fn get_app_config(state: web::Data<crate::AppState>) -> impl Responder {
     use hexser::QueryHandler;
 
     let handler = LoadAllSettingsHandler::new(state.settings_repository.clone());
-    match handler.handle(LoadAllSettings) {
-        Ok(Some(settings)) => {
+
+    // Execute query in a separate OS thread to escape Tokio runtime
+    let result = execute_in_thread(move || handler.handle(LoadAllSettings)).await;
+
+    match result {
+        Ok(Ok(Some(settings))) => {
             HttpResponse::Ok().json(json!({
                 "version": env!("CARGO_PKG_VERSION"),
                 "features": {
@@ -68,7 +73,7 @@ async fn get_app_config(state: web::Data<crate::AppState>) -> impl Responder {
                 }
             }))
         }
-        Ok(None) => {
+        Ok(Ok(None)) => {
             log::warn!("No settings found, using defaults");
             use crate::config::AppFullSettings;
             let settings = AppFullSettings::default();
@@ -99,10 +104,16 @@ async fn get_app_config(state: web::Data<crate::AppState>) -> impl Responder {
                 }
             }))
         }
-        Err(e) => {
-            log::error!("Failed to load settings via CQRS: {}", e);
+        Ok(Err(e)) => {
+            error!("Failed to load settings via CQRS: {}", e);
             HttpResponse::InternalServerError().json(json!({
                 "error": "Failed to retrieve configuration"
+            }))
+        }
+        Err(e) => {
+            error!("Thread execution error: {}", e);
+            HttpResponse::InternalServerError().json(json!({
+                "error": "Internal server error"
             }))
         }
     }

@@ -7,7 +7,7 @@
 use async_trait::async_trait;
 use rusqlite::{params, Connection};
 use std::collections::HashMap;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use tracing::{debug, info, instrument};
 
 use crate::models::edge::Edge;
@@ -21,7 +21,7 @@ use crate::ports::ontology_repository::{
 
 /// SQLite-backed ontology repository
 pub struct SqliteOntologyRepository {
-    conn: Arc<tokio::sync::Mutex<Connection>>,
+    conn: Arc<Mutex<Connection>>,
 }
 
 impl SqliteOntologyRepository {
@@ -99,7 +99,7 @@ impl SqliteOntologyRepository {
         info!("Initialized SqliteOntologyRepository at {}", db_path);
 
         Ok(Self {
-            conn: Arc::new(tokio::sync::Mutex::new(conn)),
+            conn: Arc::new(Mutex::new(conn)),
         })
     }
 }
@@ -108,8 +108,7 @@ impl SqliteOntologyRepository {
 impl OntologyRepository for SqliteOntologyRepository {
     #[instrument(skip(self), level = "debug")]
     async fn load_ontology_graph(&self) -> RepoResult<Arc<GraphData>> {
-        let conn = self.conn.lock().await;
-
+        // Load classes first (releases lock after)
         let classes = self.list_owl_classes().await?;
         let mut graph = GraphData::new();
 
@@ -156,7 +155,7 @@ impl OntologyRepository for SqliteOntologyRepository {
 
     #[instrument(skip(self, class), fields(iri = %class.iri), level = "debug")]
     async fn add_owl_class(&self, class: &OwlClass) -> RepoResult<String> {
-        let conn = self.conn.lock().await;
+        let conn = self.conn.lock().expect("Failed to acquire ontology repository mutex");
 
         let properties_json = serde_json::to_string(&class.properties).map_err(|e| {
             OntologyRepositoryError::DatabaseError(format!("Failed to serialize properties: {}", e))
@@ -184,7 +183,7 @@ impl OntologyRepository for SqliteOntologyRepository {
     }
 
     async fn get_owl_class(&self, iri: &str) -> RepoResult<Option<OwlClass>> {
-        let conn = self.conn.lock().await;
+        let conn = self.conn.lock().expect("Failed to acquire ontology repository mutex");
 
         let result = conn.query_row(
             "SELECT iri, label, description, source_file, properties FROM owl_classes WHERE iri = ?1",
@@ -247,7 +246,7 @@ impl OntologyRepository for SqliteOntologyRepository {
     }
 
     async fn list_owl_classes(&self) -> RepoResult<Vec<OwlClass>> {
-        let conn = self.conn.lock().await;
+        let conn = self.conn.lock().expect("Failed to acquire ontology repository mutex");
 
         let mut stmt = conn
             .prepare("SELECT iri, label, description, source_file, properties FROM owl_classes")
@@ -320,7 +319,7 @@ impl OntologyRepository for SqliteOntologyRepository {
     }
 
     async fn add_owl_property(&self, property: &OwlProperty) -> RepoResult<String> {
-        let conn = self.conn.lock().await;
+        let conn = self.conn.lock().expect("Failed to acquire ontology repository mutex");
 
         let property_type_str = match property.property_type {
             PropertyType::ObjectProperty => "ObjectProperty",
@@ -346,7 +345,7 @@ impl OntologyRepository for SqliteOntologyRepository {
     }
 
     async fn get_owl_property(&self, iri: &str) -> RepoResult<Option<OwlProperty>> {
-        let conn = self.conn.lock().await;
+        let conn = self.conn.lock().expect("Failed to acquire ontology repository mutex");
 
         let result = conn.query_row(
             "SELECT iri, label, property_type, domain, range FROM owl_properties WHERE iri = ?1",
@@ -396,7 +395,7 @@ impl OntologyRepository for SqliteOntologyRepository {
     }
 
     async fn list_owl_properties(&self) -> RepoResult<Vec<OwlProperty>> {
-        let conn = self.conn.lock().await;
+        let conn = self.conn.lock().expect("Failed to acquire ontology repository mutex");
 
         let mut stmt = conn
             .prepare("SELECT iri, label, property_type, domain, range FROM owl_properties")
@@ -448,7 +447,7 @@ impl OntologyRepository for SqliteOntologyRepository {
     }
 
     async fn add_axiom(&self, axiom: &OwlAxiom) -> RepoResult<u64> {
-        let conn = self.conn.lock().await;
+        let conn = self.conn.lock().expect("Failed to acquire ontology repository mutex");
 
         let axiom_type_str = match axiom.axiom_type {
             AxiomType::SubClassOf => "SubClassOf",
@@ -476,7 +475,7 @@ impl OntologyRepository for SqliteOntologyRepository {
     }
 
     async fn get_class_axioms(&self, class_iri: &str) -> RepoResult<Vec<OwlAxiom>> {
-        let conn = self.conn.lock().await;
+        let conn = self.conn.lock().expect("Failed to acquire ontology repository mutex");
 
         let mut stmt = conn.prepare(
             "SELECT id, axiom_type, subject, object, annotations FROM owl_axioms WHERE subject = ?1 OR object = ?1"
@@ -521,7 +520,7 @@ impl OntologyRepository for SqliteOntologyRepository {
     }
 
     async fn store_inference_results(&self, results: &InferenceResults) -> RepoResult<()> {
-        let conn = self.conn.lock().await;
+        let conn = self.conn.lock().expect("Failed to acquire ontology repository mutex");
 
         let result_json = serde_json::to_string(&results.inferred_axioms).map_err(|e| {
             OntologyRepositoryError::DatabaseError(format!("Failed to serialize results: {}", e))
@@ -559,7 +558,7 @@ impl OntologyRepository for SqliteOntologyRepository {
     }
 
     async fn get_inference_results(&self) -> RepoResult<Option<InferenceResults>> {
-        let conn = self.conn.lock().await;
+        let conn = self.conn.lock().expect("Failed to acquire ontology repository mutex");
 
         let result = conn.query_row(
             "SELECT timestamp, inference_time_ms, reasoner_version, result_data FROM inference_results ORDER BY id DESC LIMIT 1",
@@ -626,7 +625,7 @@ impl OntologyRepository for SqliteOntologyRepository {
     }
 
     async fn get_metrics(&self) -> RepoResult<OntologyMetrics> {
-        let conn = self.conn.lock().await;
+        let conn = self.conn.lock().expect("Failed to acquire ontology repository mutex");
 
         let class_count: usize = conn
             .query_row("SELECT COUNT(*) FROM owl_classes", [], |row| row.get(0))

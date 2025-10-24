@@ -334,27 +334,19 @@ pub async fn remove_owl_class(
     // Create directive handler
     let handler = RemoveOwlClassHandler::new(state.ontology_repository.clone());
 
-    // Execute directive in a separate OS thread to escape Tokio runtime
-    let result = execute_in_thread(move || handler.handle(RemoveOwlClass { iri: class_iri })).await;
-
-    match result {
-        Ok(Ok(())) => {
+    // Execute directive
+    match handler.handle(RemoveOwlClass { iri: class_iri }) {
+        Ok(()) => {
             info!("OWL class removed successfully via CQRS");
             HttpResponse::Ok().json(serde_json::json!({
                 "success": true
             }))
         }
-        Ok(Err(e)) => {
+        Err(e) => {
             error!("CQRS directive failed to remove OWL class: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to remove OWL class",
                 "message": e.to_string()
-            }))
-        }
-        Err(e) => {
-            error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
             }))
         }
     }
@@ -403,28 +395,20 @@ pub async fn list_owl_properties(state: web::Data<AppState>) -> impl Responder {
     // Create query handler
     let handler = ListOwlPropertiesHandler::new(state.ontology_repository.clone());
 
-    // Execute query in a separate OS thread to escape Tokio runtime
-    let result = execute_in_thread(move || handler.handle(ListOwlProperties)).await;
-
-    match result {
-        Ok(Ok(properties)) => {
+    // Execute query
+    match handler.handle(ListOwlProperties) {
+        Ok(properties) => {
             info!(
                 "OWL properties listed successfully via CQRS: {} properties",
                 properties.len()
             );
             HttpResponse::Ok().json(properties)
         }
-        Ok(Err(e)) => {
+        Err(e) => {
             error!("CQRS query failed to list OWL properties: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to list OWL properties",
                 "message": e.to_string()
-            }))
-        }
-        Err(e) => {
-            error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
             }))
         }
     }
@@ -481,27 +465,19 @@ pub async fn update_owl_property(
     // Create directive handler
     let handler = UpdateOwlPropertyHandler::new(state.ontology_repository.clone());
 
-    // Execute directive in a separate OS thread to escape Tokio runtime
-    let result = execute_in_thread(move || handler.handle(UpdateOwlProperty { property })).await;
-
-    match result {
-        Ok(Ok(())) => {
+    // Execute directive
+    match handler.handle(UpdateOwlProperty { property }) {
+        Ok(()) => {
             info!("OWL property updated successfully via CQRS");
             HttpResponse::Ok().json(serde_json::json!({
                 "success": true
             }))
         }
-        Ok(Err(e)) => {
+        Err(e) => {
             error!("CQRS directive failed to update OWL property: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to update OWL property",
                 "message": e.to_string()
-            }))
-        }
-        Err(e) => {
-            error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
             }))
         }
     }
@@ -518,28 +494,20 @@ pub async fn get_class_axioms(
     // Create query handler
     let handler = GetClassAxiomsHandler::new(state.ontology_repository.clone());
 
-    // Execute query in a separate OS thread to escape Tokio runtime
-    let result = execute_in_thread(move || handler.handle(GetClassAxioms { class_iri })).await;
-
-    match result {
-        Ok(Ok(axioms)) => {
+    // Execute query
+    match handler.handle(GetClassAxioms { class_iri }) {
+        Ok(axioms) => {
             info!(
                 "Class axioms retrieved successfully via CQRS: {} axioms",
                 axioms.len()
             );
             HttpResponse::Ok().json(axioms)
         }
-        Ok(Err(e)) => {
+        Err(e) => {
             error!("CQRS query failed to get class axioms: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to get class axioms",
                 "message": e.to_string()
-            }))
-        }
-        Err(e) => {
-            error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
             }))
         }
     }
@@ -587,27 +555,19 @@ pub async fn remove_axiom(state: web::Data<AppState>, axiom_id: web::Path<u64>) 
     // Create directive handler
     let handler = RemoveAxiomHandler::new(state.ontology_repository.clone());
 
-    // Execute directive in a separate OS thread to escape Tokio runtime
-    let result = execute_in_thread(move || handler.handle(RemoveAxiom { axiom_id: id })).await;
-
-    match result {
-        Ok(Ok(())) => {
+    // Execute directive
+    match handler.handle(RemoveAxiom { axiom_id: id }) {
+        Ok(()) => {
             info!("Axiom removed successfully via CQRS");
             HttpResponse::Ok().json(serde_json::json!({
                 "success": true
             }))
         }
-        Ok(Err(e)) => {
+        Err(e) => {
             error!("CQRS directive failed to remove axiom: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to remove axiom",
                 "message": e.to_string()
-            }))
-        }
-        Err(e) => {
-            error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
             }))
         }
     }
@@ -620,31 +580,23 @@ pub async fn get_inference_results(state: web::Data<AppState>) -> impl Responder
     // Create query handler
     let handler = GetInferenceResultsHandler::new(state.ontology_repository.clone());
 
-    // Execute query in a separate OS thread to escape Tokio runtime
-    let result = execute_in_thread(move || handler.handle(GetInferenceResults)).await;
-
-    match result {
-        Ok(Ok(Some(results))) => {
+    // Execute query
+    match handler.handle(GetInferenceResults) {
+        Ok(Some(results)) => {
             info!("Inference results retrieved successfully via CQRS");
             HttpResponse::Ok().json(results)
         }
-        Ok(Ok(None)) => {
+        Ok(None) => {
             info!("No inference results found");
             HttpResponse::NotFound().json(serde_json::json!({
                 "error": "No inference results available"
             }))
         }
-        Ok(Err(e)) => {
+        Err(e) => {
             error!("CQRS query failed to get inference results: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to get inference results",
                 "message": e.to_string()
-            }))
-        }
-        Err(e) => {
-            error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
             }))
         }
     }
@@ -664,27 +616,19 @@ pub async fn store_inference_results(
     // Create directive handler
     let handler = StoreInferenceResultsHandler::new(state.ontology_repository.clone());
 
-    // Execute directive in a separate OS thread to escape Tokio runtime
-    let result = execute_in_thread(move || handler.handle(StoreInferenceResults { results })).await;
-
-    match result {
-        Ok(Ok(())) => {
+    // Execute directive
+    match handler.handle(StoreInferenceResults { results }) {
+        Ok(()) => {
             info!("Inference results stored successfully via CQRS");
             HttpResponse::Ok().json(serde_json::json!({
                 "success": true
             }))
         }
-        Ok(Err(e)) => {
+        Err(e) => {
             error!("CQRS directive failed to store inference results: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to store inference results",
                 "message": e.to_string()
-            }))
-        }
-        Err(e) => {
-            error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
             }))
         }
     }
@@ -697,28 +641,20 @@ pub async fn validate_ontology(state: web::Data<AppState>) -> impl Responder {
     // Create query handler
     let handler = ValidateOntologyHandler::new(state.ontology_repository.clone());
 
-    // Execute query in a separate OS thread to escape Tokio runtime
-    let result = execute_in_thread(move || handler.handle(ValidateOntology)).await;
-
-    match result {
-        Ok(Ok(report)) => {
+    // Execute query
+    match handler.handle(ValidateOntology) {
+        Ok(report) => {
             info!(
                 "Ontology validation completed via CQRS: is_valid={}",
                 report.is_valid
             );
             HttpResponse::Ok().json(report)
         }
-        Ok(Err(e)) => {
+        Err(e) => {
             error!("CQRS query failed to validate ontology: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to validate ontology",
                 "message": e.to_string()
-            }))
-        }
-        Err(e) => {
-            error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
             }))
         }
     }
@@ -735,28 +671,20 @@ pub async fn query_ontology(
     // Create query handler
     let handler = QueryOntologyHandler::new(state.ontology_repository.clone());
 
-    // Execute query in a separate OS thread to escape Tokio runtime
-    let result = execute_in_thread(move || handler.handle(QueryOntology { query })).await;
-
-    match result {
-        Ok(Ok(results)) => {
+    // Execute query
+    match handler.handle(QueryOntology { query }) {
+        Ok(results) => {
             info!(
                 "Ontology query successful via CQRS: {} results",
                 results.len()
             );
             HttpResponse::Ok().json(results)
         }
-        Ok(Err(e)) => {
+        Err(e) => {
             error!("CQRS query failed to query ontology: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to query ontology",
                 "message": e.to_string()
-            }))
-        }
-        Err(e) => {
-            error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
             }))
         }
     }
@@ -769,25 +697,17 @@ pub async fn get_ontology_metrics(state: web::Data<AppState>) -> impl Responder 
     // Create query handler
     let handler = GetOntologyMetricsHandler::new(state.ontology_repository.clone());
 
-    // Execute query in a separate OS thread to escape Tokio runtime
-    let result = execute_in_thread(move || handler.handle(GetOntologyMetrics)).await;
-
-    match result {
-        Ok(Ok(metrics)) => {
+    // Execute query
+    match handler.handle(GetOntologyMetrics) {
+        Ok(metrics) => {
             info!("Ontology metrics retrieved successfully via CQRS");
             HttpResponse::Ok().json(metrics)
         }
-        Ok(Err(e)) => {
+        Err(e) => {
             error!("CQRS query failed to get ontology metrics: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to get ontology metrics",
                 "message": e.to_string()
-            }))
-        }
-        Err(e) => {
-            error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
             }))
         }
     }

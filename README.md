@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/License-Mozilla%202.0-blue.svg)](LICENSE)
 [![Performance](https://img.shields.io/badge/Performance-60FPS%20@%20100k%20nodes-red.svg)](docs/)
 [![Agents](https://img.shields.io/badge/AI%20Agents-50%2B%20Concurrent-orange.svg)](docs/)
-[![CUDA](https://img.shields.io/badge/CUDA-40%20Kernels-green.svg)](docs/)
+[![CUDA](https://img.shields.io/badge/CUDA-39%20Kernels-green.svg)](docs/)
 
 ### **Immersive Multi-User Multi-Agent Knowledge Graphing**
 
@@ -51,7 +51,7 @@ Unlike passive AI tools that wait for your prompts, VisionFlow's autonomous agen
 
 *   **🦉 Ontology-Driven Validation**: Ensure logical consistency with OWL/RDF semantic validation. Automatically infer new relationships, detect contradictions, and visualize ontological constraints as physics forces for intuitive graph layouts.
 
-*   **⚡ GPU-Accelerated Performance**: 40 production CUDA kernels deliver 100x CPU speedup for physics simulation, clustering, and pathfinding—enabling 60 FPS rendering at 100k+ nodes with sub-10ms latency.
+*   **⚡ GPU-Accelerated Performance**: 39 production CUDA kernels deliver 100x CPU speedup for physics simulation, clustering, and pathfinding—enabling 60 FPS rendering at 100k+ nodes with sub-10ms latency.
 
 ---
 
@@ -59,7 +59,7 @@ Unlike passive AI tools that wait for your prompts, VisionFlow's autonomous agen
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/yourusername/VisionFlow.git
+git clone <repository-url>
 cd VisionFlow
 
 # 2. Configure your environment
@@ -67,10 +67,11 @@ cp .env.example .env
 # Edit .env to add your data sources and API keys
 
 # 3. Deploy with Docker
-docker-compose up -d
+docker-compose -f docker-compose.yml up -d
 
 # 4. Access your AI research universe
-# Open http://localhost:3001 in your browser
+# Development: http://localhost:3001 (Nginx reverse proxy)
+# Production: http://localhost:4000 (Direct API access)
 ```
 
 **That's it!** Your AI agent teams will begin analysing your data immediately.
@@ -98,11 +99,11 @@ VisionFlow combines cutting-edge technologies for unmatched performance and scal
 | :--- | :--- | :--- |
 | **Frontend** | React + Three.js (React Three Fiber) | 60 FPS @ 100k+ nodes, WebGL 3D rendering |
 | **Backend** | Rust + Actix + Hexagonal Architecture | Database-first, CQRS pattern, ports & adapters |
-| **GPU Acceleration** | CUDA (40 Kernels) | Physics, clustering, pathfinding—100x speedup |
+| **GPU Acceleration** | CUDA (39 Kernels) | Physics, clustering, pathfinding—100x speedup |
 | **AI Orchestration** | MCP Protocol + Claude | 50+ concurrent specialist agents |
 | **Semantic Layer** | OWL/RDF + Whelk Reasoner | Ontology validation, logical inference |
 | **Networking** | Binary WebSocket (36-byte protocol V2) | <10ms latency, 80% bandwidth reduction |
-| **Data Layer** | Three SQLite Databases | Settings, Knowledge Graph, Ontology (WAL mode) |
+| **Data Layer** | Three SQLite Databases | data/settings.db, data/knowledge_graph.db, data/ontology.db (WAL mode) |
 
 **Advanced AI Architecture:**
 - **Microsoft GraphRAG** for hierarchical knowledge structures

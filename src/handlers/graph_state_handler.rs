@@ -4,6 +4,7 @@
 use crate::AppState;
 use actix_web::{web, HttpResponse, Responder};
 use log::{debug, error, info};
+use crate::handlers::utils::execute_in_thread;
 use serde::{Deserialize, Serialize};
 
 // Import CQRS handlers
@@ -85,8 +86,10 @@ pub async fn get_graph_state(state: web::Data<AppState>) -> impl Responder {
     let load_handler = LoadGraphHandler::new(state.knowledge_graph_repository.clone());
 
     // Execute query
-    match load_handler.handle(LoadGraph) {
-        Ok(query_result) => {
+    let result = execute_in_thread(move || load_handler.handle(LoadGraph)).await;
+
+    match result {
+        Ok(Ok(query_result)) => {
             // Extract GraphData from QueryResult::Graph variant
             let graph_data = match query_result {
                 crate::application::knowledge_graph::QueryResult::Graph(graph_arc) => graph_arc,
@@ -130,11 +133,17 @@ pub async fn get_graph_state(state: web::Data<AppState>) -> impl Responder {
 
             HttpResponse::Ok().json(response)
         }
-        Err(e) => {
+        Ok(Err(e)) => {
             error!("CQRS query failed to get graph data: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to retrieve graph state",
                 "message": e.to_string()
+            }))
+        }
+        Err(e) => {
+            error!("Thread execution error: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Internal server error"
             }))
         }
     }
@@ -148,8 +157,10 @@ pub async fn get_graph_statistics(state: web::Data<AppState>) -> impl Responder 
     let handler = GetGraphStatisticsHandler::new(state.knowledge_graph_repository.clone());
 
     // Execute query
-    match handler.handle(GetGraphStatistics) {
-        Ok(query_result) => {
+    let result = execute_in_thread(move || handler.handle(GetGraphStatistics)).await;
+
+    match result {
+        Ok(Ok(query_result)) => {
             // Extract Statistics from QueryResult::Statistics variant
             let statistics = match query_result {
                 crate::application::knowledge_graph::QueryResult::Statistics(stats) => stats,
@@ -164,11 +175,17 @@ pub async fn get_graph_statistics(state: web::Data<AppState>) -> impl Responder 
             info!("Graph statistics retrieved successfully via CQRS");
             HttpResponse::Ok().json(statistics)
         }
-        Err(e) => {
+        Ok(Err(e)) => {
             error!("CQRS query failed to get statistics: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to retrieve statistics",
                 "message": e.to_string()
+            }))
+        }
+        Err(e) => {
+            error!("Thread execution error: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Internal server error"
             }))
         }
     }
@@ -180,6 +197,7 @@ pub async fn add_node(
     request: web::Json<AddNodeRequest>,
 ) -> impl Responder {
     let node = request.into_inner().node;
+    let node_id = node.id;
     info!(
         "Adding node via CQRS directive: metadata_id={}",
         node.metadata_id
@@ -189,19 +207,27 @@ pub async fn add_node(
     let handler = AddNodeHandler::new(state.knowledge_graph_repository.clone());
 
     // Execute directive
-    match handler.handle(AddNode { node: node.clone() }) {
-        Ok(()) => {
-            info!("Node added successfully via CQRS: id={}", node.id);
+    let result = execute_in_thread(move || handler.handle(AddNode { node })).await;
+
+    match result {
+        Ok(Ok(())) => {
+            info!("Node added successfully via CQRS: id={}", node_id);
             HttpResponse::Ok().json(serde_json::json!({
                 "success": true,
-                "node_id": node.id
+                "node_id": node_id
             }))
         }
-        Err(e) => {
+        Ok(Err(e)) => {
             error!("CQRS directive failed to add node: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to add node",
                 "message": e.to_string()
+            }))
+        }
+        Err(e) => {
+            error!("Thread execution error: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Internal server error"
             }))
         }
     }
@@ -219,18 +245,26 @@ pub async fn update_node(
     let handler = UpdateNodeHandler::new(state.knowledge_graph_repository.clone());
 
     // Execute directive
-    match handler.handle(UpdateNode { node }) {
-        Ok(()) => {
+    let result = execute_in_thread(move || handler.handle(UpdateNode { node })).await;
+
+    match result {
+        Ok(Ok(())) => {
             info!("Node updated successfully via CQRS");
             HttpResponse::Ok().json(serde_json::json!({
                 "success": true
             }))
         }
-        Err(e) => {
+        Ok(Err(e)) => {
             error!("CQRS directive failed to update node: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to update node",
                 "message": e.to_string()
+            }))
+        }
+        Err(e) => {
+            error!("Thread execution error: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Internal server error"
             }))
         }
     }
@@ -245,18 +279,26 @@ pub async fn remove_node(state: web::Data<AppState>, node_id: web::Path<u32>) ->
     let handler = RemoveNodeHandler::new(state.knowledge_graph_repository.clone());
 
     // Execute directive
-    match handler.handle(RemoveNode { node_id: id }) {
-        Ok(()) => {
+    let result = execute_in_thread(move || handler.handle(RemoveNode { node_id: id })).await;
+
+    match result {
+        Ok(Ok(())) => {
             info!("Node removed successfully via CQRS");
             HttpResponse::Ok().json(serde_json::json!({
                 "success": true
             }))
         }
-        Err(e) => {
+        Ok(Err(e)) => {
             error!("CQRS directive failed to remove node: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to remove node",
                 "message": e.to_string()
+            }))
+        }
+        Err(e) => {
+            error!("Thread execution error: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Internal server error"
             }))
         }
     }
@@ -271,8 +313,10 @@ pub async fn get_node(state: web::Data<AppState>, node_id: web::Path<u32>) -> im
     let handler = GetNodeHandler::new(state.knowledge_graph_repository.clone());
 
     // Execute query
-    match handler.handle(GetNode { node_id: id }) {
-        Ok(query_result) => {
+    let result = execute_in_thread(move || handler.handle(GetNode { node_id: id })).await;
+
+    match result {
+        Ok(Ok(query_result)) => {
             // Extract Node from QueryResult::Node variant
             let node_opt = match query_result {
                 crate::application::knowledge_graph::QueryResult::Node(node) => node,
@@ -298,11 +342,17 @@ pub async fn get_node(state: web::Data<AppState>, node_id: web::Path<u32>) -> im
                 }
             }
         }
-        Err(e) => {
+        Ok(Err(e)) => {
             error!("CQRS query failed to get node: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to get node",
                 "message": e.to_string()
+            }))
+        }
+        Err(e) => {
+            error!("Thread execution error: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Internal server error"
             }))
         }
     }
@@ -314,28 +364,39 @@ pub async fn add_edge(
     request: web::Json<AddEdgeRequest>,
 ) -> impl Responder {
     let edge = request.into_inner().edge;
+    let edge_id = edge.id.clone();
+    let edge_source = edge.source;
+    let edge_target = edge.target;
     info!(
         "Adding edge via CQRS directive: source={}, target={}",
-        edge.source, edge.target
+        edge_source, edge_target
     );
 
     // Create directive handler
     let handler = AddEdgeHandler::new(state.knowledge_graph_repository.clone());
 
     // Execute directive
-    match handler.handle(AddEdge { edge: edge.clone() }) {
-        Ok(()) => {
-            info!("Edge added successfully via CQRS: id={}", edge.id);
+    let result = execute_in_thread(move || handler.handle(AddEdge { edge })).await;
+
+    match result {
+        Ok(Ok(())) => {
+            info!("Edge added successfully via CQRS: id={}", edge_id);
             HttpResponse::Ok().json(serde_json::json!({
                 "success": true,
-                "edge_id": edge.id
+                "edge_id": edge_id
             }))
         }
-        Err(e) => {
+        Ok(Err(e)) => {
             error!("CQRS directive failed to add edge: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to add edge",
                 "message": e.to_string()
+            }))
+        }
+        Err(e) => {
+            error!("Thread execution error: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Internal server error"
             }))
         }
     }
@@ -350,18 +411,26 @@ pub async fn update_edge(state: web::Data<AppState>, request: web::Json<Edge>) -
     let handler = UpdateEdgeHandler::new(state.knowledge_graph_repository.clone());
 
     // Execute directive
-    match handler.handle(UpdateEdge { edge }) {
-        Ok(()) => {
+    let result = execute_in_thread(move || handler.handle(UpdateEdge { edge })).await;
+
+    match result {
+        Ok(Ok(())) => {
             info!("Edge updated successfully via CQRS");
             HttpResponse::Ok().json(serde_json::json!({
                 "success": true
             }))
         }
-        Err(e) => {
+        Ok(Err(e)) => {
             error!("CQRS directive failed to update edge: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to update edge",
                 "message": e.to_string()
+            }))
+        }
+        Err(e) => {
+            error!("Thread execution error: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Internal server error"
             }))
         }
     }
@@ -382,18 +451,26 @@ pub async fn batch_update_positions(
     let handler = BatchUpdatePositionsHandler::new(state.knowledge_graph_repository.clone());
 
     // Execute directive
-    match handler.handle(BatchUpdatePositions { positions }) {
-        Ok(()) => {
+    let result = execute_in_thread(move || handler.handle(BatchUpdatePositions { positions })).await;
+
+    match result {
+        Ok(Ok(())) => {
             info!("Positions updated successfully via CQRS");
             HttpResponse::Ok().json(serde_json::json!({
                 "success": true
             }))
         }
-        Err(e) => {
+        Ok(Err(e)) => {
             error!("CQRS directive failed to batch update positions: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to update positions",
                 "message": e.to_string()
+            }))
+        }
+        Err(e) => {
+            error!("Thread execution error: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Internal server error"
             }))
         }
     }
