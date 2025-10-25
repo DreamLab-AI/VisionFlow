@@ -88,7 +88,14 @@ impl GitHubSyncService {
         };
 
         // Accumulate all knowledge graph data before saving
-        let mut accumulated_graph = crate::models::graph::GraphData::new();
+        // Use HashMap for automatic node deduplication by ID
+        let mut accumulated_nodes: std::collections::HashMap<u32, crate::models::node::Node> = std::collections::HashMap::new();
+        let mut accumulated_edges: Vec<crate::models::edge::Edge> = Vec::new();
+
+        // Accumulate all ontology data before saving
+        let mut accumulated_classes: Vec<crate::ports::ontology_repository::OwlClass> = Vec::new();
+        let mut accumulated_properties: Vec<crate::ports::ontology_repository::OwlProperty> = Vec::new();
+        let mut accumulated_axioms: Vec<crate::ports::ontology_repository::OwlAxiom> = Vec::new();
 
         // Fetch all markdown files from repository
         let files = match self.fetch_all_markdown_files().await {
@@ -113,7 +120,7 @@ impl GitHubSyncService {
                 info!("Progress: {}/{} files processed", index, files.len());
             }
 
-            match self.process_file(file, &mut accumulated_graph).await {
+            match self.process_file(file, &mut accumulated_nodes, &mut accumulated_edges, &mut accumulated_classes, &mut accumulated_properties, &mut accumulated_axioms).await {
                 FileProcessResult::KnowledgeGraph { nodes, edges } => {
                     stats.kg_files_processed += 1;
                     stats.total_nodes += nodes;
@@ -147,14 +154,35 @@ impl GitHubSyncService {
             }
         }
 
-        // Save all accumulated knowledge graph data in ONE transaction
-        if !accumulated_graph.nodes.is_empty() {
-            info!("Saving accumulated knowledge graph: {} nodes, {} edges",
-                  accumulated_graph.nodes.len(), accumulated_graph.edges.len());
-            match self.kg_repo.save_graph(&accumulated_graph).await {
+        // Convert HashMap to Vec and create GraphData for saving
+        if !accumulated_nodes.is_empty() {
+            let node_vec: Vec<crate::models::node::Node> = accumulated_nodes.into_values().collect();
+            info!("Saving accumulated knowledge graph: {} unique nodes, {} edges",
+                  node_vec.len(), accumulated_edges.len());
+
+            let mut final_graph = crate::models::graph::GraphData::new();
+            final_graph.nodes = node_vec;
+            final_graph.edges = accumulated_edges;
+
+            match self.kg_repo.save_graph(&final_graph).await {
                 Ok(_) => info!("✅ Knowledge graph saved successfully"),
                 Err(e) => {
                     let error_msg = format!("Failed to save accumulated knowledge graph: {}", e);
+                    error!("{}", error_msg);
+                    stats.errors.push(error_msg);
+                }
+            }
+        }
+
+        // Save accumulated ontology data in a single batch operation
+        if !accumulated_classes.is_empty() || !accumulated_properties.is_empty() || !accumulated_axioms.is_empty() {
+            info!("Saving accumulated ontology: {} classes, {} properties, {} axioms",
+                  accumulated_classes.len(), accumulated_properties.len(), accumulated_axioms.len());
+
+            match self.onto_repo.save_ontology(&accumulated_classes, &accumulated_properties, &accumulated_axioms).await {
+                Ok(_) => info!("✅ Ontology data saved successfully"),
+                Err(e) => {
+                    let error_msg = format!("Failed to save accumulated ontology: {}", e);
                     error!("{}", error_msg);
                     stats.errors.push(error_msg);
                 }
@@ -186,7 +214,15 @@ impl GitHubSyncService {
     }
 
     /// Process a single file
-    async fn process_file(&self, file: &GitHubFileBasicMetadata, accumulated_graph: &mut crate::models::graph::GraphData) -> FileProcessResult {
+    async fn process_file(
+        &self,
+        file: &GitHubFileBasicMetadata,
+        accumulated_nodes: &mut std::collections::HashMap<u32, crate::models::node::Node>,
+        accumulated_edges: &mut Vec<crate::models::edge::Edge>,
+        accumulated_classes: &mut Vec<crate::ports::ontology_repository::OwlClass>,
+        accumulated_properties: &mut Vec<crate::ports::ontology_repository::OwlProperty>,
+        accumulated_axioms: &mut Vec<crate::ports::ontology_repository::OwlAxiom>,
+    ) -> FileProcessResult {
         // Fetch file content
         let content = match self.fetch_file_content_with_retry(&file.download_url, 3).await {
             Ok(content) => content,
@@ -201,8 +237,8 @@ impl GitHubSyncService {
         let file_type = self.detect_file_type(&content);
 
         match file_type {
-            FileType::KnowledgeGraph => self.process_knowledge_graph_file(file, &content, accumulated_graph).await,
-            FileType::Ontology => self.process_ontology_file(file, &content).await,
+            FileType::KnowledgeGraph => self.process_knowledge_graph_file(file, &content, accumulated_nodes, accumulated_edges).await,
+            FileType::Ontology => self.process_ontology_file(file, &content, accumulated_classes, accumulated_properties, accumulated_axioms).await,
             FileType::Skip => FileProcessResult::Skipped {
                 reason: "No public:: true or OntologyBlock marker found".to_string(),
             },
@@ -214,7 +250,8 @@ impl GitHubSyncService {
         &self,
         file: &GitHubFileBasicMetadata,
         content: &str,
-        accumulated_graph: &mut crate::models::graph::GraphData,
+        accumulated_nodes: &mut std::collections::HashMap<u32, crate::models::node::Node>,
+        accumulated_edges: &mut Vec<crate::models::edge::Edge>,
     ) -> FileProcessResult {
         // Parse the file
         let graph_data = match self.kg_parser.parse(content, &file.name) {
@@ -229,9 +266,13 @@ impl GitHubSyncService {
         let node_count = graph_data.nodes.len();
         let edge_count = graph_data.edges.len();
 
-        // Accumulate nodes and edges instead of saving immediately
-        accumulated_graph.nodes.extend(graph_data.nodes);
-        accumulated_graph.edges.extend(graph_data.edges);
+        // Accumulate nodes in HashMap for automatic deduplication by ID
+        for node in graph_data.nodes {
+            accumulated_nodes.insert(node.id, node);
+        }
+
+        // Accumulate edges in Vec (no deduplication needed)
+        accumulated_edges.extend(graph_data.edges);
 
         FileProcessResult::KnowledgeGraph {
             nodes: node_count,
@@ -244,6 +285,9 @@ impl GitHubSyncService {
         &self,
         file: &GitHubFileBasicMetadata,
         content: &str,
+        accumulated_classes: &mut Vec<crate::ports::ontology_repository::OwlClass>,
+        accumulated_properties: &mut Vec<crate::ports::ontology_repository::OwlProperty>,
+        accumulated_axioms: &mut Vec<crate::ports::ontology_repository::OwlAxiom>,
     ) -> FileProcessResult {
         // Parse the file
         let ontology_data = match self.onto_parser.parse(content, &file.name) {
@@ -259,36 +303,10 @@ impl GitHubSyncService {
         let property_count = ontology_data.properties.len();
         let axiom_count = ontology_data.axioms.len();
 
-        // Store in database - repositories use spawn_blocking internally
-        // Store classes
-        for class in &ontology_data.classes {
-            if let Err(e) = self.onto_repo.add_owl_class(class).await {
-                return FileProcessResult::Error {
-                    error: format!("Failed to store class {}: {}", class.iri, e),
-                };
-            }
-        }
-
-        // Store properties
-        for property in &ontology_data.properties {
-            if let Err(e) = self.onto_repo.add_owl_property(property).await {
-                return FileProcessResult::Error {
-                    error: format!("Failed to store property {}: {}", property.iri, e),
-                };
-            }
-        }
-
-        // Store axioms
-        for axiom in &ontology_data.axioms {
-            if let Err(e) = self.onto_repo.add_axiom(axiom).await {
-                return FileProcessResult::Error {
-                    error: format!("Failed to store axiom: {}", e),
-                };
-            }
-        }
-
-        // Note: class_hierarchy is already stored via axioms (SubClassOf type)
-        // No separate add_class_hierarchy method exists
+        // Accumulate ontology data (will be saved in batch at end)
+        accumulated_classes.extend(ontology_data.classes);
+        accumulated_properties.extend(ontology_data.properties);
+        accumulated_axioms.extend(ontology_data.axioms);
 
         FileProcessResult::Ontology {
             classes: class_count,

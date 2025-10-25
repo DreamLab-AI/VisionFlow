@@ -5,6 +5,7 @@
 //! and efficient graph structure storage.
 
 use async_trait::async_trait;
+use log::error;
 use rusqlite::{params, Connection};
 use std::sync::{Arc, Mutex};
 use tracing::{debug, info, instrument};
@@ -205,40 +206,39 @@ impl KnowledgeGraphRepository for SqliteKnowledgeGraphRepository {
         let graph_clone = graph.clone();
 
         tokio::task::spawn_blocking(move || {
-            let conn = conn_arc.lock().expect("Failed to acquire knowledge graph repository mutex");
+            let mut conn = conn_arc.lock().expect("Failed to acquire knowledge graph repository mutex");
 
-            // Begin transaction
-            conn.execute("BEGIN TRANSACTION", []).map_err(|e| {
-                KnowledgeGraphRepositoryError::DatabaseError(format!(
-                    "Failed to begin transaction: {}",
-                    e
-                ))
-            })?;
+            // Use a closure to handle transaction and rollback automatically
+            let tx_result = conn.transaction().and_then(|tx| {
+                info!("[save_graph] Transaction started.");
 
-            // Clear existing data
-            conn.execute("DELETE FROM kg_edges", []).map_err(|e| {
-                KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to clear edges: {}", e))
-            })?;
-            conn.execute("DELETE FROM kg_nodes", []).map_err(|e| {
-                KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to clear nodes: {}", e))
-            })?;
+                // Clear existing data
+                info!("[save_graph] Clearing existing data from kg_edges and kg_nodes.");
+                tx.execute("DELETE FROM kg_edges", [])?;
+                tx.execute("DELETE FROM kg_nodes", [])?;
+                info!("[save_graph] Data cleared successfully.");
 
-            // Insert nodes
-            let mut node_stmt = conn.prepare(
-                "INSERT INTO kg_nodes (id, metadata_id, label, x, y, z, vx, vy, vz, color, size, metadata)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)"
-            ).map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to prepare node insert: {}", e)))?;
+                // Insert nodes
+                info!("[save_graph] Preparing to insert {} nodes.", graph_clone.nodes.len());
+                let mut node_stmt = tx.prepare(
+                    "INSERT OR REPLACE INTO kg_nodes (id, metadata_id, label, x, y, z, vx, vy, vz, color, size, metadata)
+                     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)"
+                )?;
 
-            for node in &graph_clone.nodes {
-                let metadata_json = serde_json::to_string(&node.metadata).map_err(|e| {
-                    KnowledgeGraphRepositoryError::DatabaseError(format!(
-                        "Failed to serialize metadata: {}",
-                        e
-                    ))
-                })?;
+                for (i, node) in graph_clone.nodes.iter().enumerate() {
+                    let metadata_json = serde_json::to_string(&node.metadata).map_err(|e| {
+                        rusqlite::Error::FromSqlConversionFailure(
+                            i,
+                            rusqlite::types::Type::Text,
+                            Box::new(e),
+                        )
+                    })?;
+                    
+                    if i % 100 == 0 {
+                        debug!("[save_graph] Inserting node {}/{}", i, graph_clone.nodes.len());
+                    }
 
-                node_stmt
-                    .execute(params![
+                    node_stmt.execute(params![
                         node.id,
                         &node.metadata_id,
                         &node.label,
@@ -251,59 +251,56 @@ impl KnowledgeGraphRepository for SqliteKnowledgeGraphRepository {
                         &node.color,
                         &node.size,
                         metadata_json,
-                    ])
-                    .map_err(|e| {
-                        KnowledgeGraphRepositoryError::DatabaseError(format!(
-                            "Failed to insert node: {}",
-                            e
-                        ))
-                    })?;
-            }
+                    ])?;
+                }
+                info!("[save_graph] All nodes inserted successfully.");
 
-            drop(node_stmt);
+                // Insert edges
+                info!("[save_graph] Preparing to insert {} edges.", graph_clone.edges.len());
+                let mut edge_stmt = tx.prepare(
+                    "INSERT OR REPLACE INTO kg_edges (id, source, target, weight, metadata) VALUES (?1, ?2, ?3, ?4, ?5)"
+                )?;
 
-            // Insert edges
-            let mut edge_stmt = conn.prepare(
-                "INSERT INTO kg_edges (id, source, target, weight, metadata) VALUES (?1, ?2, ?3, ?4, ?5)"
-            ).map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to prepare edge insert: {}", e)))?;
+                for (i, edge) in graph_clone.edges.iter().enumerate() {
+                    let metadata_json = edge
+                        .metadata
+                        .as_ref()
+                        .and_then(|m| serde_json::to_string(m).ok());
+                    
+                    if i % 100 == 0 {
+                        debug!("[save_graph] Inserting edge {}/{}", i, graph_clone.edges.len());
+                    }
 
-            for edge in &graph_clone.edges {
-                let metadata_json = edge
-                    .metadata
-                    .as_ref()
-                    .and_then(|m| serde_json::to_string(m).ok());
-
-                edge_stmt
-                    .execute(params![
+                    edge_stmt.execute(params![
                         &edge.id,
                         edge.source,
                         edge.target,
                         edge.weight,
                         metadata_json,
-                    ])
-                    .map_err(|e| {
-                        KnowledgeGraphRepositoryError::DatabaseError(format!(
-                            "Failed to insert edge: {}",
-                            e
-                        ))
-                    })?;
+                    ])?;
+                }
+                info!("[save_graph] All edges inserted successfully.");
+
+                Ok(())
+            });
+
+            match tx_result {
+                Ok(_) => {
+                    info!(
+                        "✅ [save_graph] Transaction committed successfully. Saved {} nodes and {} edges.",
+                        graph_clone.nodes.len(),
+                        graph_clone.edges.len()
+                    );
+                    Ok(())
+                }
+                Err(e) => {
+                    error!("❌ [save_graph] Transaction failed and was rolled back: {}", e);
+                    Err(KnowledgeGraphRepositoryError::DatabaseError(format!(
+                        "Transaction failed: {}",
+                        e
+                    )))
+                }
             }
-
-            // Commit transaction
-            conn.execute("COMMIT", []).map_err(|e| {
-                KnowledgeGraphRepositoryError::DatabaseError(format!(
-                    "Failed to commit transaction: {}",
-                    e
-                ))
-            })?;
-
-            info!(
-                "Saved graph with {} nodes and {} edges",
-                graph_clone.nodes.len(),
-                graph_clone.edges.len()
-            );
-
-            Ok(())
         })
         .await
         .map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Join error: {}", e)))?

@@ -20,10 +20,19 @@ use webxr::{
     },
     services::speech_service::SpeechService,
     services::{
-        file_service::FileService,
         // graph_service::GraphService removed - now using GraphServiceSupervisor
-        github::{ContentAPI, GitHubClient, GitHubConfig},
+        github::{
+            content_enhanced::EnhancedContentAPI,
+            ContentAPI,
+            GitHubClient,
+            GitHubConfig,
+        },
+        github_sync_service::GitHubSyncService, // NEW: Direct database sync service
         ragflow_service::RAGFlowService, // ADDED IMPORT
+    },
+    adapters::{
+        sqlite_knowledge_graph_repository::SqliteKnowledgeGraphRepository,
+        sqlite_ontology_repository::SqliteOntologyRepository,
     },
     // DEPRECATED: docker_hive_mind, HybridHealthManager removed
     AppState,
@@ -327,136 +336,6 @@ async fn main() -> std::io::Result<()> {
     // Connection will be established on-demand when bots features are used
     info!("Skipping bots orchestrator connection during startup (will connect on-demand)");
 
-    // First, try to load existing metadata without waiting for GitHub download
-    info!("Loading existing metadata for quick initialization");
-    let metadata_store = FileService::load_or_create_metadata().map_err(|e| {
-        error!("Failed to load existing metadata: {}", e);
-        std::io::Error::new(std::io::ErrorKind::Other, e.to_string())
-    })?;
-
-    if metadata_store.is_empty() {
-        warn!("No metadata found, starting with empty metadata store");
-        // Continue with empty metadata - the app can still function
-    }
-
-    info!("Loaded {} items from metadata store", metadata_store.len());
-
-    // Spawn background task to fetch GitHub data after server starts
-    info!("Spawning background task to fetch and process GitHub markdown files");
-    let content_api_clone = content_api.clone();
-    let settings_clone = settings.clone();
-    let metadata_addr_clone = app_state.metadata_addr.clone();
-    let graph_service_addr_clone = app_state.graph_service_addr.clone();
-
-    tokio::spawn(async move {
-        // Wait a bit for the server to fully initialize
-        info!("Background GitHub sync: Waiting 5 seconds for server initialization...");
-        tokio::time::sleep(Duration::from_secs(5)).await;
-
-        info!("Background GitHub sync: Starting markdown synchronization process");
-
-        // Get settings for FileService
-        let file_service = FileService::new(settings_clone.clone());
-        info!("Background GitHub sync: FileService created");
-
-        // Create a mutable copy for the fetch operation
-        let mut metadata_store_copy = match FileService::load_or_create_metadata() {
-            Ok(store) => {
-                info!(
-                    "Background GitHub sync: Loaded metadata store with {} existing entries",
-                    store.len()
-                );
-                store
-            }
-            Err(e) => {
-                error!("Background GitHub sync: Failed to load metadata: {}", e);
-                return;
-            }
-        };
-
-        info!("Background GitHub sync: Starting fetch_and_process_files...");
-        match file_service
-            .fetch_and_process_files(
-                content_api_clone,
-                settings_clone.clone(),
-                &mut metadata_store_copy,
-            )
-            .await
-        {
-            Ok(processed_files) => {
-                info!(
-                    "Background GitHub sync: Successfully processed {} markdown files",
-                    processed_files.len()
-                );
-
-                if processed_files.is_empty() {
-                    warn!("Background GitHub sync: No files were processed - check GitHub configuration");
-                } else {
-                    let file_names: Vec<String> = processed_files
-                        .iter()
-                        .map(|pf| pf.file_name.clone())
-                        .collect();
-                    info!("Background GitHub sync: Processed files: {:?}", file_names);
-                }
-
-                // Update metadata actor
-                info!("Background GitHub sync: Updating metadata actor...");
-                if let Err(e) = metadata_addr_clone
-                    .send(UpdateMetadata {
-                        metadata: metadata_store_copy.clone(),
-                    })
-                    .await
-                {
-                    error!(
-                        "Background GitHub sync: Failed to update metadata actor: {}",
-                        e
-                    );
-                } else {
-                    info!("Background GitHub sync: Metadata actor updated successfully");
-                }
-
-                // Save metadata to disk
-                info!("Background GitHub sync: Saving metadata to disk...");
-                if let Err(e) = FileService::save_metadata(&metadata_store_copy) {
-                    error!("Background GitHub sync: Failed to save metadata: {}", e);
-                } else {
-                    info!("Background GitHub sync: Metadata saved successfully");
-                }
-
-                // Update graph with new data
-                use webxr::actors::messages::AddNodesFromMetadata;
-                info!("Background GitHub sync: Updating graph with new data...");
-                match graph_service_addr_clone
-                    .send(AddNodesFromMetadata {
-                        metadata: metadata_store_copy,
-                    })
-                    .await
-                {
-                    Ok(Ok(())) => {
-                        info!("Background GitHub sync: Graph updated successfully with new GitHub data");
-                    }
-                    Ok(Err(e)) => {
-                        error!("Background GitHub sync: Failed to update graph: {}", e);
-                    }
-                    Err(e) => {
-                        error!("Background GitHub sync: Actor communication error: {}", e);
-                    }
-                }
-            }
-            Err(e) => {
-                error!("Background GitHub sync: Error processing files: {}", e);
-                error!("Background GitHub sync: Check GitHub token and repository configuration");
-            }
-        }
-
-        info!("Background GitHub sync: Process completed");
-    });
-
-    info!("[main] Background GitHub sync task spawned, continuing main thread...");
-
-    // Skip metadata actor update during startup to prevent blocking
-    // The background GitHub sync task will update metadata when ready
-    info!("Skipping metadata actor update during startup (will be updated by background task)");
 
     // Load graph from database (NEW: database-first architecture)
     info!("Loading graph from knowledge_graph.db...");

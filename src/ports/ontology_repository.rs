@@ -131,6 +131,16 @@ pub trait OntologyRepository: Send + Sync {
     /// Save ontology graph structure
     async fn save_ontology_graph(&self, graph: &GraphData) -> Result<()>;
 
+    /// Save complete ontology data in a single transaction
+    /// This is the preferred method for batch imports from GitHub sync
+    /// Clears existing ontology data and replaces it with the provided data
+    async fn save_ontology(
+        &self,
+        classes: &[OwlClass],
+        properties: &[OwlProperty],
+        axioms: &[OwlAxiom],
+    ) -> Result<()>;
+
     /// Add an OWL class definition
     /// Returns the class IRI
     async fn add_owl_class(&self, class: &OwlClass) -> Result<String>;

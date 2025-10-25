@@ -30,3 +30,10 @@ tests/
 
 # Cloudflared
 config.yml
+
+# Runtime data directories
+data/*.db
+data/*.db.*
+data/visionflow.db*
+logs/
+qdrant_data/

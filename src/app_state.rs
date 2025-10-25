@@ -114,10 +114,16 @@ impl AppState {
             .map_err(|e| format!("Failed to initialize schema: {}", e))?;
 
         // Save current settings to database (migration from YAML/in-memory)
-        info!("[AppState::new] Migrating settings to database");
-        db_service
-            .save_all_settings(&settings)
-            .map_err(|e| format!("Failed to save settings to database: {}", e))?;
+        info!("[AppState::new] Migrating settings to database in blocking context...");
+        let db_service_clone = db_service.clone();
+        let settings_clone = settings.clone();
+        tokio::task::spawn_blocking(move || {
+            db_service_clone
+                .save_all_settings(&settings_clone)
+        })
+        .await
+        .map_err(|e| format!("Failed to spawn blocking task for settings migration: {}", e))?
+        .map_err(|e| format!("Failed to save settings to database: {}", e))?;
 
         // Create settings service (provides direct access to database for handlers)
         info!("[AppState::new] Creating SettingsService (UI → Database direct connection)");
@@ -224,6 +230,7 @@ impl AppState {
         let graph_service_addr = TransitionalGraphSupervisor::new(
             Some(client_manager_addr.clone()),
             None, // GPU manager will be linked later
+            knowledge_graph_repository.clone(),
         )
         .start();
 

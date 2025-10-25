@@ -84,12 +84,14 @@ use crate::services::semantic_analyzer::{SemanticAnalyzer, SemanticFeatures};
 use crate::utils::unified_gpu_compute::UnifiedGPUCompute;
 // use crate::models::simulation_params::SimParams; // Unused
 use crate::physics::stress_majorization::StressMajorizationSolver;
+use crate::ports::knowledge_graph_repository::KnowledgeGraphRepository;
 use std::sync::Mutex;
 
 pub struct GraphServiceActor {
     graph_data: Arc<GraphData>,        // Changed to Arc<GraphData>
     node_map: Arc<HashMap<u32, Node>>, // Changed to Arc for shared access
     gpu_compute_addr: Option<Addr<GPUManagerActor>>, // GPUManagerActor for coordinated GPU computation
+    kg_repo: Arc<dyn KnowledgeGraphRepository>,      // Knowledge graph repository for database operations
     client_manager: Addr<ClientCoordinatorActor>,
     simulation_running: AtomicBool,
     shutdown_complete: Arc<AtomicBool>,
@@ -632,6 +634,7 @@ impl GraphServiceActor {
     pub fn new(
         client_manager: Addr<ClientCoordinatorActor>,
         gpu_compute_addr: Option<Addr<GPUManagerActor>>,
+        kg_repo: Arc<dyn KnowledgeGraphRepository>,
         settings_addr: Option<
             Addr<crate::actors::optimized_settings_actor::OptimizedSettingsActor>,
         >,
@@ -658,6 +661,7 @@ impl GraphServiceActor {
             graph_data: Arc::new(GraphData::new()), // Changed to Arc::new
             node_map: Arc::new(HashMap::new()),     // Changed to Arc::new for shared access
             gpu_compute_addr,
+            kg_repo,
             client_manager,
             simulation_running: AtomicBool::new(false),
             shutdown_complete: Arc::new(AtomicBool::new(false)),
@@ -3584,6 +3588,57 @@ impl Handler<UpdateGraphData> for GraphServiceActor {
 
         info!("Graph data updated successfully with constraint generation and GPU initialization");
         Ok(())
+    }
+}
+
+impl Handler<ReloadGraphFromDatabase> for GraphServiceActor {
+    type Result = ResponseActFuture<Self, Result<(), String>>;
+
+    fn handle(&mut self, _msg: ReloadGraphFromDatabase, _ctx: &mut Self::Context) -> Self::Result {
+        let kg_repo = self.kg_repo.clone();
+
+        Box::pin(
+            async move {
+                // Load fresh graph data from database
+                match kg_repo.load_graph().await {
+                    Ok(graph_data) => {
+                        info!("ReloadGraphFromDatabase: Loaded {} nodes from database", graph_data.nodes.len());
+                        Ok(graph_data)
+                    }
+                    Err(e) => {
+                        error!("ReloadGraphFromDatabase: Failed to load graph: {}", e);
+                        Err(format!("Failed to load graph from database: {}", e))
+                    }
+                }
+            }
+            .into_actor(self)
+            .map(|result, actor, ctx| {
+                match result {
+                    Ok(graph_data) => {
+                        // Update actor state with fresh data
+                        actor.graph_data = graph_data;
+
+                        // Rebuild node map
+                        Arc::make_mut(&mut actor.node_map).clear();
+                        for node in &actor.graph_data.nodes {
+                            Arc::make_mut(&mut actor.node_map).insert(node.id, node.clone());
+                        }
+
+                        // Notify GPU service if available
+                        if let Some(ref gpu_addr) = actor.gpu_compute_addr {
+                            gpu_addr.do_send(UpdateGPUGraphData {
+                                graph: Arc::clone(&actor.graph_data),
+                            });
+                            info!("ReloadGraphFromDatabase: Updated GPU with fresh graph data");
+                        }
+
+                        info!("ReloadGraphFromDatabase: Successfully reloaded graph from database");
+                        Ok(())
+                    }
+                    Err(e) => Err(e)
+                }
+            })
+        )
     }
 }
 

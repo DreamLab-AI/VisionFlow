@@ -153,6 +153,136 @@ impl OntologyRepository for SqliteOntologyRepository {
         Ok(())
     }
 
+    #[instrument(skip(self, classes, properties, axioms), level = "info")]
+    async fn save_ontology(
+        &self,
+        classes: &[OwlClass],
+        properties: &[OwlProperty],
+        axioms: &[OwlAxiom],
+    ) -> RepoResult<()> {
+        let conn_arc = self.conn.clone();
+        let classes_vec = classes.to_vec();
+        let properties_vec = properties.to_vec();
+        let axioms_vec = axioms.to_vec();
+
+        tokio::task::spawn_blocking(move || {
+            let conn = conn_arc.lock().expect("Failed to acquire ontology repository mutex");
+
+            // Start transaction
+            conn.execute("BEGIN TRANSACTION", [])
+                .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to begin transaction: {}", e)))?;
+
+            // Delete existing data (clean slate)
+            conn.execute("DELETE FROM owl_class_hierarchy", [])
+                .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to clear hierarchy: {}", e)))?;
+            conn.execute("DELETE FROM owl_axioms", [])
+                .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to clear axioms: {}", e)))?;
+            conn.execute("DELETE FROM owl_properties", [])
+                .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to clear properties: {}", e)))?;
+            conn.execute("DELETE FROM owl_classes", [])
+                .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to clear classes: {}", e)))?;
+
+            // Insert classes
+            let mut class_stmt = conn.prepare(
+                "INSERT INTO owl_classes (iri, label, description, source_file, properties, updated_at)
+                 VALUES (?1, ?2, ?3, ?4, ?5, CURRENT_TIMESTAMP)"
+            ).map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to prepare class insert: {}", e)))?;
+
+            for class in &classes_vec {
+                let properties_json = serde_json::to_string(&class.properties)
+                    .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to serialize properties: {}", e)))?;
+
+                class_stmt.execute(params![
+                    &class.iri,
+                    &class.label,
+                    &class.description,
+                    &class.source_file,
+                    properties_json
+                ]).map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to insert class {}: {}", class.iri, e)))?;
+            }
+            drop(class_stmt);
+
+            // Insert class hierarchies
+            let mut hierarchy_stmt = conn.prepare(
+                "INSERT INTO owl_class_hierarchy (class_iri, parent_iri) VALUES (?1, ?2)"
+            ).map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to prepare hierarchy insert: {}", e)))?;
+
+            for class in &classes_vec {
+                for parent_iri in &class.parent_classes {
+                    hierarchy_stmt.execute(params![&class.iri, parent_iri])
+                        .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to insert hierarchy: {}", e)))?;
+                }
+            }
+            drop(hierarchy_stmt);
+
+            // Insert properties
+            let mut property_stmt = conn.prepare(
+                "INSERT INTO owl_properties (iri, label, property_type, domain, range, updated_at)
+                 VALUES (?1, ?2, ?3, ?4, ?5, CURRENT_TIMESTAMP)"
+            ).map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to prepare property insert: {}", e)))?;
+
+            for property in &properties_vec {
+                let property_type_str = match property.property_type {
+                    PropertyType::ObjectProperty => "ObjectProperty",
+                    PropertyType::DataProperty => "DataProperty",
+                    PropertyType::AnnotationProperty => "AnnotationProperty",
+                };
+
+                let domain_json = serde_json::to_string(&property.domain)
+                    .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to serialize domain: {}", e)))?;
+                let range_json = serde_json::to_string(&property.range)
+                    .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to serialize range: {}", e)))?;
+
+                property_stmt.execute(params![
+                    &property.iri,
+                    &property.label,
+                    property_type_str,
+                    domain_json,
+                    range_json
+                ]).map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to insert property {}: {}", property.iri, e)))?;
+            }
+            drop(property_stmt);
+
+            // Insert axioms
+            let mut axiom_stmt = conn.prepare(
+                "INSERT INTO owl_axioms (axiom_type, subject, object, annotations)
+                 VALUES (?1, ?2, ?3, ?4)"
+            ).map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to prepare axiom insert: {}", e)))?;
+
+            for axiom in &axioms_vec {
+                let axiom_type_str = match axiom.axiom_type {
+                    AxiomType::SubClassOf => "SubClassOf",
+                    AxiomType::EquivalentClass => "EquivalentClass",
+                    AxiomType::DisjointWith => "DisjointWith",
+                    AxiomType::ObjectPropertyAssertion => "ObjectPropertyAssertion",
+                    AxiomType::DataPropertyAssertion => "DataPropertyAssertion",
+                };
+
+                let annotations_json = serde_json::to_string(&axiom.annotations)
+                    .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to serialize annotations: {}", e)))?;
+
+                axiom_stmt.execute(params![
+                    axiom_type_str,
+                    &axiom.subject,
+                    &axiom.object,
+                    annotations_json
+                ]).map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to insert axiom: {}", e)))?;
+            }
+            drop(axiom_stmt);
+
+            // Commit transaction
+            conn.execute("COMMIT", [])
+                .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to commit transaction: {}", e)))?;
+
+            info!("✅ Saved ontology: {} classes, {} properties, {} axioms",
+                  classes_vec.len(), properties_vec.len(), axioms_vec.len());
+
+            Ok(())
+        })
+        .await
+        .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Spawn blocking error: {}", e)))?
+    }
+
     #[instrument(skip(self, class), fields(iri = %class.iri), level = "debug")]
     async fn add_owl_class(&self, class: &OwlClass) -> RepoResult<String> {
         let conn_arc = self.conn.clone();

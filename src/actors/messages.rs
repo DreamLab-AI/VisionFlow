@@ -245,6 +245,10 @@ pub struct UpdateGraphData {
     pub graph_data: std::sync::Arc<ServiceGraphData>,
 }
 
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct ReloadGraphFromDatabase;
+
 // Advanced Physics and Constraint Messages
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]

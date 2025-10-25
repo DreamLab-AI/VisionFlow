@@ -37,6 +37,7 @@ use actix::prelude::*;
 use log::{debug, error, info, warn};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use crate::actors::{
@@ -168,6 +169,9 @@ pub struct GraphServiceSupervisor {
     semantic: Option<Addr<SemanticProcessorActor>>,
     client: Option<Addr<ClientCoordinatorActor>>,
 
+    // Knowledge graph repository
+    kg_repo: Option<Arc<dyn crate::ports::knowledge_graph_repository::KnowledgeGraphRepository>>,
+
     // Supervision configuration
     strategy: GraphSupervisionStrategy,
     restart_policy: RestartPolicy,
@@ -235,6 +239,7 @@ impl GraphServiceSupervisor {
             physics: None,
             semantic: None,
             client: None,
+            kg_repo: None,
             strategy: GraphSupervisionStrategy::OneForOne,
             restart_policy: RestartPolicy::default(),
             actor_info: HashMap::new(),
@@ -265,11 +270,12 @@ impl GraphServiceSupervisor {
     pub fn with_dependencies(
         client_manager_addr: Option<Addr<crate::actors::ClientCoordinatorActor>>,
         gpu_manager_addr: Option<Addr<crate::actors::GPUManagerActor>>,
+        kg_repo: Arc<dyn crate::ports::knowledge_graph_repository::KnowledgeGraphRepository>,
     ) -> TransitionalGraphSupervisor {
         info!("Creating TransitionalGraphSupervisor with GraphServiceActor as managed child");
 
         // Create the transitional supervisor that wraps GraphServiceActor
-        TransitionalGraphSupervisor::new(client_manager_addr, gpu_manager_addr)
+        TransitionalGraphSupervisor::new(client_manager_addr, gpu_manager_addr, kg_repo)
     }
 
     /// Initialize all child actors
@@ -364,14 +370,20 @@ impl GraphServiceSupervisor {
                 // The supervisor will coordinate message routing
                 let client_manager = self.client.as_ref().map(|addr| addr.clone());
                 if let Some(client_addr) = client_manager {
-                    let actor = GraphServiceActor::new(
-                        client_addr,
-                        None, // GPU compute will be linked later
-                        None, // Settings actor will be linked later
-                    )
-                    .start();
-                    self.graph_state = Some(actor);
-                    info!("GraphServiceActor started successfully as GraphState manager");
+                    // For backward compatibility, we need kg_repo. If not available, we'll need to handle this gracefully
+                    if let Some(ref kg_repo) = self.kg_repo {
+                        let actor = GraphServiceActor::new(
+                            client_addr,
+                            None, // GPU compute will be linked later
+                            kg_repo.clone(),
+                            None, // Settings actor will be linked later
+                        )
+                        .start();
+                        self.graph_state = Some(actor);
+                        info!("GraphServiceActor started successfully as GraphState manager");
+                    } else {
+                        error!("Cannot start GraphServiceActor without kg_repo - this is required");
+                    }
                 } else {
                     warn!("Cannot start GraphServiceActor without ClientCoordinator - will retry after client actor starts");
                 }
@@ -880,6 +892,8 @@ pub struct TransitionalGraphSupervisor {
     client_manager_addr: Option<Addr<crate::actors::ClientCoordinatorActor>>,
     /// GPU manager dependency
     gpu_manager_addr: Option<Addr<crate::actors::GPUManagerActor>>,
+    /// Knowledge graph repository
+    kg_repo: Arc<dyn crate::ports::knowledge_graph_repository::KnowledgeGraphRepository>,
     /// Supervisor statistics
     start_time: Instant,
     messages_forwarded: u64,
@@ -889,11 +903,13 @@ impl TransitionalGraphSupervisor {
     pub fn new(
         client_manager_addr: Option<Addr<crate::actors::ClientCoordinatorActor>>,
         gpu_manager_addr: Option<Addr<crate::actors::GPUManagerActor>>,
+        kg_repo: Arc<dyn crate::ports::knowledge_graph_repository::KnowledgeGraphRepository>,
     ) -> Self {
         Self {
             graph_service_actor: None,
             client_manager_addr,
             gpu_manager_addr,
+            kg_repo,
             start_time: Instant::now(),
             messages_forwarded: 0,
         }
@@ -911,6 +927,7 @@ impl TransitionalGraphSupervisor {
                 let actor = GraphServiceActor::new(
                     client_manager.clone(),
                     None, // GPU compute actor will be linked later
+                    self.kg_repo.clone(),
                     None, // Settings actor will be linked later
                 )
                 .start();
@@ -1296,6 +1313,7 @@ forward_message!(
 );
 forward_message!(msgs::InitialClientSync, Result<(), String>);
 forward_message!(msgs::UpdateNodePosition, Result<(), String>);
+forward_message!(msgs::ReloadGraphFromDatabase, Result<(), String>);
 
 #[cfg(test)]
 mod tests {
