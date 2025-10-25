@@ -17,7 +17,8 @@
 7. [Database Operations](#database-operations)
 8. [Testing Strategies](#testing-strategies)
 9. [Common Patterns](#common-patterns)
-10. [Troubleshooting](#troubleshooting)
+10. [Integrating with the Agent System](#integrating-with-the-agent-system)
+11. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -1080,6 +1081,74 @@ impl<R: Repository> Repository for CachingRepository<R> {
     }
 }
 ```
+
+---
+
+## Integrating with the Agent System
+
+The agent system is managed through a user-facing control layer that abstracts away the internal mechanics of the agent containers (Claude with claude-flow orchestration). Developers interact with this system via a defined set of APIs and data structures.
+
+### Key Data Structures
+
+#### AgentTelemetry
+Polled by the frontend to get the real-time status of all active agents.
+
+```typescript
+interface AgentTelemetry {
+  id: string;
+  type: string; // "researcher", "coder", etc.
+  status: "active" | "idle" | "error" | "warning";
+  health: number; // 0-100%
+  cpuUsage: number;
+  memoryUsage: number;
+  workload: number;
+  currentTask?: string;
+}
+```
+
+#### SpawnAgentRequest
+Used to request the creation of a new agent.
+
+```typescript
+interface SpawnAgentRequest {
+  agent_type: string;
+  swarm_id: string;
+  method: "docker" | "mcp-fallback";
+  priority?: "low" | "medium" | "high" | "critical";
+  strategy?: "parallel" | "sequential" | "adaptive";
+}
+```
+
+### Core API Endpoints
+
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/api/bots/agents` | GET | List all active agents with telemetry. |
+| `/api/bots/spawn-agent-hybrid` | POST | Spawn a new agent with a `SpawnAgentRequest`. |
+| `/api/bots/remove-task/{id}` | DELETE | Cancel or remove an agent's task. |
+| `/api/bots/status` | GET | Get the overall connection status and health of the agent system. |
+
+### User-Controllable Settings
+
+Agent behavior is configured through the settings system, not by directly modifying agent containers. These settings are accessible via the Settings API (e.g., `GET /api/settings/path/agents.spawn.max_concurrent`).
+
+#### Spawning Controls
+- `agents.spawn.auto_scale` (boolean): Automatically spawn agents based on workload.
+- `agents.spawn.max_concurrent` (number): Maximum number of concurrent agents.
+- `agents.spawn.default_provider` (string): "gemini", "openai", or "claude".
+
+#### Lifecycle Management
+- `agents.lifecycle.idle_timeout` (number): Seconds before an idle agent is cleaned up.
+- `agents.lifecycle.auto_restart` (boolean): Automatically restart failed agents.
+
+#### Monitoring Settings
+- `agents.monitoring.telemetry_enabled` (boolean): Enable or disable telemetry collection.
+- `agents.monitoring.telemetry_poll_interval` (number): Seconds between frontend telemetry polls.
+
+#### Visualization Settings
+- `agents.visualization.show_in_graph` (boolean): Display agents as nodes in the main graph.
+- `agents.visualization.node_size` (number): Visual size of agent nodes.
+- `agents.visualization.node_color` (string): Hex color for agent nodes.
 
 ---
 

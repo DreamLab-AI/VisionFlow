@@ -24,8 +24,11 @@ use crate::models::protected_settings::{ApiKeys, NostrUser, ProtectedSettings};
 use crate::services::bots_client::BotsClient;
 use crate::services::database_service::DatabaseService;
 use crate::services::github::{ContentAPI, GitHubClient};
+use crate::services::github::content_enhanced::EnhancedContentAPI;
+use crate::services::github_sync_service::GitHubSyncService;
 use crate::services::management_api_client::ManagementApiClient;
 use crate::services::nostr_service::NostrService;
+use crate::services::parsers::{KnowledgeGraphParser, OntologyParser};
 use crate::services::perplexity_service::PerplexityService;
 use crate::services::ragflow_service::RAGFlowService;
 use crate::services::settings_service::SettingsService;
@@ -158,6 +161,46 @@ impl AppState {
             "[AppState::new] IMPORTANT: UI now connects directly to database via SettingsService"
         );
 
+        // ========================================================================
+        // CRITICAL: GitHub Data Sync - Populate databases before starting actors
+        // ========================================================================
+        info!("[AppState::new] Initializing GitHubSyncService for data ingestion");
+
+        let enhanced_content_api = Arc::new(EnhancedContentAPI::new(github_client.clone()));
+        let github_sync_service = Arc::new(GitHubSyncService::new(
+            enhanced_content_api,
+            knowledge_graph_repository.clone(),
+            ontology_repository.clone(),
+        ));
+
+        info!("[AppState::new] Starting GitHub data sync (may take 30-60 seconds)...");
+        match github_sync_service.sync_graphs().await {
+            Ok(stats) => {
+                info!("✅ GitHub sync complete!");
+                info!("  📊 Total files scanned: {}", stats.total_files);
+                info!("  🔗 Knowledge graph files: {}", stats.kg_files_processed);
+                info!("  🏛️  Ontology files: {}", stats.ontology_files_processed);
+                info!("  ⏱️  Duration: {:?}", stats.duration);
+                if !stats.errors.is_empty() {
+                    warn!("  ⚠️  Errors encountered: {}", stats.errors.len());
+                    for (i, error) in stats.errors.iter().enumerate().take(5) {
+                        warn!("    {}. {}", i + 1, error);
+                    }
+                    if stats.errors.len() > 5 {
+                        warn!("    ... and {} more errors", stats.errors.len() - 5);
+                    }
+                }
+            }
+            Err(e) => {
+                // Non-fatal: log error but continue startup
+                // This allows manual data import via API if GitHub is down
+                log::error!("❌ GitHub sync failed: {}", e);
+                log::error!("⚠️  Databases may be empty - use manual import API or check GitHub token");
+            }
+        }
+        info!("[AppState::new] GitHub sync phase complete, proceeding with actor initialization");
+        // ========================================================================
+
         // Start actors
         info!("[AppState::new] Starting ClientCoordinatorActor");
         let client_manager_addr = ClientCoordinatorActor::new().start();
@@ -249,16 +292,17 @@ impl AppState {
 
         // Start settings hot-reload watcher
         info!("[AppState::new] Starting settings hot-reload watcher");
-        let settings_db_path = std::env::var("SETTINGS_DB_PATH")
-            .unwrap_or_else(|_| "data/settings.db".to_string());
-        let settings_watcher =
-            crate::services::settings_watcher::SettingsWatcher::new(settings_db_path, settings_addr.clone());
-        tokio::spawn(async move {
-            if let Err(e) = settings_watcher.start().await {
-                log::error!("Settings watcher failed to start: {}", e);
-            }
-        });
-        info!("[AppState::new] Settings hot-reload watcher started successfully");
+        // DISABLED: SettingsWatcher blocks Tokio threads with sync recv(), causing db connection pool exhaustion
+        // let settings_db_path = std::env::var("SETTINGS_DB_PATH")
+        //     .unwrap_or_else(|_| "data/settings.db".to_string());
+        // let settings_watcher =
+        //     crate::services::settings_watcher::SettingsWatcher::new(settings_db_path, settings_addr.clone());
+        // tokio::spawn(async move {
+        //     if let Err(e) = settings_watcher.start().await {
+        //         log::error!("Settings watcher failed to start: {}", e);
+        //     }
+        // });
+        info!("[AppState::new] Settings hot-reload watcher DISABLED (was causing database deadlocks)");
 
         info!("[AppState::new] Starting AgentMonitorActor for MCP monitoring");
         let mcp_host =

@@ -635,8 +635,9 @@ pub fn configure_settings_paths(cfg: &mut web::ServiceConfig) {
         web::scope("/settings")
             .route("/path", web::get().to(get_settings_by_path))
             .route("/path", web::put().to(update_settings_by_path))
-            .route("/batch", web::post().to(batch_read_settings_by_path))
-            .route("/batch", web::put().to(batch_update_settings_by_path))
+            // DISABLED: Conflicts with settings_handler.rs /batch routes (CQRS version is preferred)
+            // .route("/batch", web::post().to(batch_read_settings_by_path))
+            // .route("/batch", web::put().to(batch_update_settings_by_path))
             .route("/schema", web::get().to(get_settings_schema)),
     );
 }

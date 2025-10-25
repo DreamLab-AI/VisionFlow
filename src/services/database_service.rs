@@ -102,9 +102,9 @@ impl DatabaseService {
         });
 
         Pool::builder()
-            .max_size(10)
-            .min_idle(Some(2))
-            .connection_timeout(Duration::from_secs(30))
+            .max_size(1)  // SQLite doesn't benefit from connection pooling - use single connection
+            .min_idle(Some(1))
+            .connection_timeout(Duration::from_secs(5))
             .build(manager)
             .map_err(|e| {
                 rusqlite::Error::SqliteFailure(

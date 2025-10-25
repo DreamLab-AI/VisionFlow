@@ -49,8 +49,7 @@ impl DirectiveHandler<UpdateSetting> for UpdateSettingHandler {
         let value = directive.value.clone();
         let description = directive.description.clone();
 
-        tokio::runtime::Runtime::new()
-            .map_err(|e| Hexserror::adapter("E_HEX_200", &format!("Failed to create runtime: {}", e)))?
+        tokio::runtime::Handle::current()
             .block_on(async move {
                 repository
                     .set_setting(
@@ -109,8 +108,7 @@ impl DirectiveHandler<UpdateSettingsBatch> for UpdateSettingsBatchHandler {
         let repository = self.repository.clone();
         let updates = directive.updates.clone();
 
-        tokio::runtime::Runtime::new()
-            .map_err(|e| Hexserror::adapter("E_HEX_200", &format!("Failed to create runtime: {}", e)))?
+        tokio::runtime::Handle::current()
             .block_on(async move {
                 repository
                     .set_settings_batch(updates)
@@ -161,8 +159,7 @@ impl DirectiveHandler<SaveAllSettings> for SaveAllSettingsHandler {
         let repository = self.repository.clone();
         let settings = directive.settings.clone();
 
-        tokio::runtime::Runtime::new()
-            .map_err(|e| Hexserror::adapter("E_HEX_200", &format!("Failed to create runtime: {}", e)))?
+        tokio::runtime::Handle::current()
             .block_on(async move {
                 repository
                     .save_all_settings(&settings)
@@ -219,8 +216,7 @@ impl DirectiveHandler<UpdatePhysicsSettings> for UpdatePhysicsSettingsHandler {
         let profile_name = directive.profile_name.clone();
         let settings = directive.settings.clone();
 
-        tokio::runtime::Runtime::new()
-            .map_err(|e| Hexserror::adapter("E_HEX_200", &format!("Failed to create runtime: {}", e)))?
+        tokio::runtime::Handle::current()
             .block_on(async move {
                 repository
                     .save_physics_settings(&profile_name, &settings)
@@ -279,8 +275,7 @@ impl DirectiveHandler<DeletePhysicsProfile> for DeletePhysicsProfileHandler {
         let repository = self.repository.clone();
         let profile_name = directive.profile_name.clone();
 
-        tokio::runtime::Runtime::new()
-            .map_err(|e| Hexserror::adapter("E_HEX_200", &format!("Failed to create runtime: {}", e)))?
+        tokio::runtime::Handle::current()
             .block_on(async move {
                 repository
                     .delete_physics_profile(&profile_name)
@@ -331,8 +326,7 @@ impl DirectiveHandler<ClearSettingsCache> for ClearSettingsCacheHandler {
 
         let repository = self.repository.clone();
 
-        tokio::runtime::Runtime::new()
-            .map_err(|e| Hexserror::adapter("E_HEX_200", &format!("Failed to create runtime: {}", e)))?
+        tokio::runtime::Handle::current()
             .block_on(async move {
                 repository.clear_cache().await.map_err(|e| {
                     Hexserror::adapter("E_HEX_200", &format!("Failed to clear cache: {}", e))

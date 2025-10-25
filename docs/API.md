@@ -1,7 +1,7 @@
 # VisionFlow API Reference
 
-**Version:** 3.0.0
-**Last Updated:** 2025-10-22
+**Version:** 3.1.0
+**Last Updated:** 2025-10-25
 **Base URL:** `http://localhost:8080` (development)
 
 ---
@@ -13,10 +13,16 @@
 3. [Knowledge Graph API](#knowledge-graph-api)
 4. [Ontology API](#ontology-api)
 5. [Physics API](#physics-api)
-6. [WebSocket Protocol](#websocket-protocol)
-7. [Binary Protocol Specification](#binary-protocol-specification)
-8. [Error Handling](#error-handling)
-9. [Rate Limiting](#rate-limiting)
+6. [Agent Control API](#agent-control-api)
+7. [Analytics API](#analytics-api)
+8. [Workspace API](#workspace-api)
+9. [File Processing API](#file-processing-api)
+10. [Client Logs API](#client-logs-api)
+11. [Health & Monitoring API](#health--monitoring-api)
+12. [WebSocket Protocol](#websocket-protocol)
+13. [Binary Protocol Specification](#binary-protocol-specification)
+14. [Error Handling](#error-handling)
+15. [Rate Limiting](#rate-limiting)
 
 ---
 
@@ -855,6 +861,157 @@ X-RateLimit-Reset: 1729591200
 
 ---
 
+## Agent Control API
+
+Manages the lifecycle and orchestration of AI agents.
+
+### Spawn Agent
+**Endpoint:** `POST /api/bots/spawn-agent-hybrid`
+**Authentication:** User
+
+**Request Body:**
+```json
+{
+  "agent_type": "researcher",
+  "swarm_id": "main-swarm",
+  "method": "mcp-fallback",
+  "priority": "medium",
+  "strategy": "adaptive",
+  "config": {
+    "auto_scale": true,
+    "monitor": true
+  }
+}
+```
+
+### List Agents
+**Endpoint:** `GET /api/bots/agents`
+**Authentication:** User
+
+**Response:** An array of `AgentTelemetry` objects.
+
+### Get Agent Visualization Data
+**Endpoint:** `GET /api/bots/data`
+**Authentication:** User
+
+**Response:** `AgentGraphData` object for visualization.
+
+### Remove Agent Task
+**Endpoint:** `DELETE /api/bots/remove-task/{id}`
+**Authentication:** User
+
+---
+
+## Analytics API
+
+Provides access to GPU-accelerated graph analytics.
+
+### Run Community Detection
+**Endpoint:** `POST /api/analytics/community/detect`
+**Authentication:** User
+
+### Get Community Detection Results
+**Endpoint:** `GET /api/analytics/community/results`
+**Authentication:** User
+
+### Run Anomaly Detection
+**Endpoint:** `POST /api/analytics/anomaly/detect`
+**Authentication:** User
+
+### Get Anomaly Detection Results
+**Endpoint:** `GET /api/analytics/anomaly/results`
+**Authentication:** User
+
+---
+
+## Workspace API
+
+Manages user workspaces for graph data.
+
+### List Workspaces
+**Endpoint:** `GET /api/workspace/list`
+**Authentication:** User
+
+### Create Workspace
+**Endpoint:** `POST /api/workspace/create`
+**Authentication:** User
+
+### Get Workspace
+**Endpoint:** `GET /api/workspace/{id}`
+**Authentication:** User
+
+### Update Workspace
+**Endpoint:** `PUT /api/workspace/{id}`
+**Authentication:** User
+
+### Delete Workspace
+**Endpoint:** `DELETE /api/workspace/{id}`
+**Authentication:** User
+
+---
+
+## File Processing API
+
+Handles ingestion of data from external sources like GitHub.
+
+### Process GitHub Markdown
+**Endpoint:** `POST /api/files/process`
+**Authentication:** Developer
+
+**Request Body:**
+```json
+{
+  "repo_url": "https://github.com/user/repo",
+  "branch": "main"
+}
+```
+
+### Refresh Graph from Files
+**Endpoint:** `POST /api/files/refresh_graph`
+**Authentication:** Developer
+
+---
+
+## Client Logs API
+
+Receives and stores logs from frontend clients (web, Quest 3).
+
+### Submit Client Log
+**Endpoint:** `POST /api/client-logs`
+**Authentication:** Public
+
+**Request Body:**
+```json
+{
+  "level": "error",
+  "message": "Uncaught TypeError: Cannot read properties of null",
+  "stack": "...",
+  "url": "/session/xyz",
+  "user_agent": "Mozilla/5.0 ...",
+  "session_id": "uuid-1234"
+}
+```
+
+---
+
+## Health & Monitoring API
+
+Provides endpoints for system health checks.
+
+### Unified Health Check
+**Endpoint:** `GET /api/health`
+**Authentication:** Public
+
+### Physics Simulation Health
+**Endpoint:** `GET /api/health/physics`
+**Authentication:** Public
+
+### MCP Relay Logs
+**Endpoint:** `GET /api/health/mcp/logs`
+**Authentication:** Developer
+
+---
+
 ## Additional Resources
 
 - [VisionFlow Architecture](/docs/ARCHITECTURE.md)
@@ -865,6 +1022,6 @@ X-RateLimit-Reset: 1729591200
 ---
 
 **Document Maintained By:** VisionFlow API Team
-**Last Review:** 2025-10-22
-**Next Review:** 2025-11-22
+**Last Review:** 2025-10-25
+**Next Review:** 2025-11-25
 

@@ -12,6 +12,7 @@ claude-flow
 CLAUDE.md
 workspace
 webxr.long-type*
+qdrant_data/
 
 # Dependencies
 node_modules

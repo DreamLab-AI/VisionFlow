@@ -119,212 +119,233 @@ impl SqliteKnowledgeGraphRepository {
 impl KnowledgeGraphRepository for SqliteKnowledgeGraphRepository {
     #[instrument(skip(self), level = "debug")]
     async fn load_graph(&self) -> RepoResult<Arc<GraphData>> {
-        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
+        let conn_arc = self.conn.clone();
 
-        // Load all nodes
-        let mut stmt = conn.prepare("SELECT id, metadata_id, label, x, y, z, vx, vy, vz, color, size, metadata FROM kg_nodes")
-            .map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to prepare statement: {}", e)))?;
+        // Move all synchronous database work to blocking thread pool
+        tokio::task::spawn_blocking(move || {
+            let conn = conn_arc.lock().expect("Failed to acquire knowledge graph repository mutex");
 
-        let nodes = stmt
-            .query_map([], Self::deserialize_node)
-            .map_err(|e| {
-                KnowledgeGraphRepositoryError::DatabaseError(format!(
-                    "Failed to query nodes: {}",
-                    e
-                ))
-            })?
-            .collect::<Result<Vec<Node>, _>>()
-            .map_err(|e| {
-                KnowledgeGraphRepositoryError::DatabaseError(format!(
-                    "Failed to collect nodes: {}",
-                    e
-                ))
-            })?;
+            // Load all nodes
+            let mut stmt = conn.prepare("SELECT id, metadata_id, label, x, y, z, vx, vy, vz, color, size, metadata FROM kg_nodes")
+                .map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to prepare statement: {}", e)))?;
 
-        debug!("Loaded {} nodes from database", nodes.len());
+            let nodes = stmt
+                .query_map([], Self::deserialize_node)
+                .map_err(|e| {
+                    KnowledgeGraphRepositoryError::DatabaseError(format!(
+                        "Failed to query nodes: {}",
+                        e
+                    ))
+                })?
+                .collect::<Result<Vec<Node>, _>>()
+                .map_err(|e| {
+                    KnowledgeGraphRepositoryError::DatabaseError(format!(
+                        "Failed to collect nodes: {}",
+                        e
+                    ))
+                })?;
 
-        // Load all edges
-        let mut edge_stmt = conn
-            .prepare("SELECT id, source, target, weight, metadata FROM kg_edges")
-            .map_err(|e| {
-                KnowledgeGraphRepositoryError::DatabaseError(format!(
-                    "Failed to prepare edge statement: {}",
-                    e
-                ))
-            })?;
+            debug!("Loaded {} nodes from database", nodes.len());
 
-        let edges = edge_stmt
-            .query_map([], |row| {
-                let id: String = row.get(0)?;
-                let source: u32 = row.get(1)?;
-                let target: u32 = row.get(2)?;
-                let weight: f32 = row.get(3)?;
-                let metadata_json: Option<String> = row.get(4)?;
+            // Load all edges
+            let mut edge_stmt = conn
+                .prepare("SELECT id, source, target, weight, metadata FROM kg_edges")
+                .map_err(|e| {
+                    KnowledgeGraphRepositoryError::DatabaseError(format!(
+                        "Failed to prepare edge statement: {}",
+                        e
+                    ))
+                })?;
 
-                let metadata = metadata_json.and_then(|json| serde_json::from_str(&json).ok());
+            let edges = edge_stmt
+                .query_map([], |row| {
+                    let id: String = row.get(0)?;
+                    let source: u32 = row.get(1)?;
+                    let target: u32 = row.get(2)?;
+                    let weight: f32 = row.get(3)?;
+                    let metadata_json: Option<String> = row.get(4)?;
 
-                let mut edge = Edge::new(source, target, weight);
-                edge.id = id;
-                edge.metadata = metadata;
+                    let metadata = metadata_json.and_then(|json| serde_json::from_str(&json).ok());
 
-                Ok(edge)
-            })
-            .map_err(|e| {
-                KnowledgeGraphRepositoryError::DatabaseError(format!(
-                    "Failed to query edges: {}",
-                    e
-                ))
-            })?
-            .collect::<Result<Vec<Edge>, _>>()
-            .map_err(|e| {
-                KnowledgeGraphRepositoryError::DatabaseError(format!(
-                    "Failed to collect edges: {}",
-                    e
-                ))
-            })?;
+                    let mut edge = Edge::new(source, target, weight);
+                    edge.id = id;
+                    edge.metadata = metadata;
 
-        debug!("Loaded {} edges from database", edges.len());
+                    Ok(edge)
+                })
+                .map_err(|e| {
+                    KnowledgeGraphRepositoryError::DatabaseError(format!(
+                        "Failed to query edges: {}",
+                        e
+                    ))
+                })?
+                .collect::<Result<Vec<Edge>, _>>()
+                .map_err(|e| {
+                    KnowledgeGraphRepositoryError::DatabaseError(format!(
+                        "Failed to collect edges: {}",
+                        e
+                    ))
+                })?;
 
-        let mut graph = GraphData::new();
-        graph.nodes = nodes;
-        graph.edges = edges;
+            debug!("Loaded {} edges from database", edges.len());
 
-        Ok(Arc::new(graph))
+            let mut graph = GraphData::new();
+            graph.nodes = nodes;
+            graph.edges = edges;
+
+            Ok(Arc::new(graph))
+        })
+        .await
+        .map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Join error: {}", e)))?
     }
 
     #[instrument(skip(self, graph), fields(nodes = graph.nodes.len(), edges = graph.edges.len()), level = "debug")]
     async fn save_graph(&self, graph: &GraphData) -> RepoResult<()> {
-        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
+        let conn_arc = self.conn.clone();
+        let graph_clone = graph.clone();
 
-        // Begin transaction
-        conn.execute("BEGIN TRANSACTION", []).map_err(|e| {
-            KnowledgeGraphRepositoryError::DatabaseError(format!(
-                "Failed to begin transaction: {}",
-                e
-            ))
-        })?;
+        tokio::task::spawn_blocking(move || {
+            let conn = conn_arc.lock().expect("Failed to acquire knowledge graph repository mutex");
 
-        // Clear existing data
-        conn.execute("DELETE FROM kg_edges", []).map_err(|e| {
-            KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to clear edges: {}", e))
-        })?;
-        conn.execute("DELETE FROM kg_nodes", []).map_err(|e| {
-            KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to clear nodes: {}", e))
-        })?;
+            // Begin transaction
+            conn.execute("BEGIN TRANSACTION", []).map_err(|e| {
+                KnowledgeGraphRepositoryError::DatabaseError(format!(
+                    "Failed to begin transaction: {}",
+                    e
+                ))
+            })?;
 
-        // Insert nodes
-        let mut node_stmt = conn.prepare(
-            "INSERT INTO kg_nodes (id, metadata_id, label, x, y, z, vx, vy, vz, color, size, metadata)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)"
-        ).map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to prepare node insert: {}", e)))?;
+            // Clear existing data
+            conn.execute("DELETE FROM kg_edges", []).map_err(|e| {
+                KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to clear edges: {}", e))
+            })?;
+            conn.execute("DELETE FROM kg_nodes", []).map_err(|e| {
+                KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to clear nodes: {}", e))
+            })?;
 
-        for node in &graph.nodes {
-            let metadata_json = serde_json::to_string(&node.metadata).map_err(|e| {
+            // Insert nodes
+            let mut node_stmt = conn.prepare(
+                "INSERT INTO kg_nodes (id, metadata_id, label, x, y, z, vx, vy, vz, color, size, metadata)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)"
+            ).map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to prepare node insert: {}", e)))?;
+
+            for node in &graph_clone.nodes {
+                let metadata_json = serde_json::to_string(&node.metadata).map_err(|e| {
+                    KnowledgeGraphRepositoryError::DatabaseError(format!(
+                        "Failed to serialize metadata: {}",
+                        e
+                    ))
+                })?;
+
+                node_stmt
+                    .execute(params![
+                        node.id,
+                        &node.metadata_id,
+                        &node.label,
+                        node.data.x,
+                        node.data.y,
+                        node.data.z,
+                        node.data.vx,
+                        node.data.vy,
+                        node.data.vz,
+                        &node.color,
+                        &node.size,
+                        metadata_json,
+                    ])
+                    .map_err(|e| {
+                        KnowledgeGraphRepositoryError::DatabaseError(format!(
+                            "Failed to insert node: {}",
+                            e
+                        ))
+                    })?;
+            }
+
+            drop(node_stmt);
+
+            // Insert edges
+            let mut edge_stmt = conn.prepare(
+                "INSERT INTO kg_edges (id, source, target, weight, metadata) VALUES (?1, ?2, ?3, ?4, ?5)"
+            ).map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to prepare edge insert: {}", e)))?;
+
+            for edge in &graph_clone.edges {
+                let metadata_json = edge
+                    .metadata
+                    .as_ref()
+                    .and_then(|m| serde_json::to_string(m).ok());
+
+                edge_stmt
+                    .execute(params![
+                        &edge.id,
+                        edge.source,
+                        edge.target,
+                        edge.weight,
+                        metadata_json,
+                    ])
+                    .map_err(|e| {
+                        KnowledgeGraphRepositoryError::DatabaseError(format!(
+                            "Failed to insert edge: {}",
+                            e
+                        ))
+                    })?;
+            }
+
+            // Commit transaction
+            conn.execute("COMMIT", []).map_err(|e| {
+                KnowledgeGraphRepositoryError::DatabaseError(format!(
+                    "Failed to commit transaction: {}",
+                    e
+                ))
+            })?;
+
+            info!(
+                "Saved graph with {} nodes and {} edges",
+                graph_clone.nodes.len(),
+                graph_clone.edges.len()
+            );
+
+            Ok(())
+        })
+        .await
+        .map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Join error: {}", e)))?
+    }
+
+    async fn add_node(&self, node: &Node) -> RepoResult<u32> {
+        let conn_arc = self.conn.clone();
+        let node_clone = node.clone();
+
+        tokio::task::spawn_blocking(move || {
+            let conn = conn_arc.lock().expect("Failed to acquire knowledge graph repository mutex");
+            let metadata_json = serde_json::to_string(&node_clone.metadata).map_err(|e| {
                 KnowledgeGraphRepositoryError::DatabaseError(format!(
                     "Failed to serialize metadata: {}",
                     e
                 ))
             })?;
 
-            node_stmt
-                .execute(params![
-                    node.id,
-                    &node.metadata_id,
-                    &node.label,
-                    node.data.x,
-                    node.data.y,
-                    node.data.z,
-                    node.data.vx,
-                    node.data.vy,
-                    node.data.vz,
-                    &node.color,
-                    &node.size,
+            conn.execute(
+                "INSERT OR REPLACE INTO kg_nodes (id, metadata_id, label, x, y, z, vx, vy, vz, color, size, metadata, updated_at)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, CURRENT_TIMESTAMP)",
+                params![
+                    node_clone.id,
+                    &node_clone.metadata_id,
+                    &node_clone.label,
+                    node_clone.data.x,
+                    node_clone.data.y,
+                    node_clone.data.z,
+                    node_clone.data.vx,
+                    node_clone.data.vy,
+                    node_clone.data.vz,
+                    &node_clone.color,
+                    &node_clone.size,
                     metadata_json,
-                ])
-                .map_err(|e| {
-                    KnowledgeGraphRepositoryError::DatabaseError(format!(
-                        "Failed to insert node: {}",
-                        e
-                    ))
-                })?;
-        }
+                ]
+            )
+            .map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to insert node: {}", e)))?;
 
-        drop(node_stmt);
-
-        // Insert edges
-        let mut edge_stmt = conn.prepare(
-            "INSERT INTO kg_edges (id, source, target, weight, metadata) VALUES (?1, ?2, ?3, ?4, ?5)"
-        ).map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to prepare edge insert: {}", e)))?;
-
-        for edge in &graph.edges {
-            let metadata_json = edge
-                .metadata
-                .as_ref()
-                .and_then(|m| serde_json::to_string(m).ok());
-
-            edge_stmt
-                .execute(params![
-                    &edge.id,
-                    edge.source,
-                    edge.target,
-                    edge.weight,
-                    metadata_json,
-                ])
-                .map_err(|e| {
-                    KnowledgeGraphRepositoryError::DatabaseError(format!(
-                        "Failed to insert edge: {}",
-                        e
-                    ))
-                })?;
-        }
-
-        // Commit transaction
-        conn.execute("COMMIT", []).map_err(|e| {
-            KnowledgeGraphRepositoryError::DatabaseError(format!(
-                "Failed to commit transaction: {}",
-                e
-            ))
-        })?;
-
-        info!(
-            "Saved graph with {} nodes and {} edges",
-            graph.nodes.len(),
-            graph.edges.len()
-        );
-
-        Ok(())
-    }
-
-    async fn add_node(&self, node: &Node) -> RepoResult<u32> {
-        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
-        let metadata_json = serde_json::to_string(&node.metadata).map_err(|e| {
-            KnowledgeGraphRepositoryError::DatabaseError(format!(
-                "Failed to serialize metadata: {}",
-                e
-            ))
-        })?;
-
-        conn.execute(
-            "INSERT OR REPLACE INTO kg_nodes (id, metadata_id, label, x, y, z, vx, vy, vz, color, size, metadata, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, CURRENT_TIMESTAMP)",
-            params![
-                node.id,
-                &node.metadata_id,
-                &node.label,
-                node.data.x,
-                node.data.y,
-                node.data.z,
-                node.data.vx,
-                node.data.vy,
-                node.data.vz,
-                &node.color,
-                &node.size,
-                metadata_json,
-            ]
-        )
-        .map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to insert node: {}", e)))?;
-
-        Ok(node.id)
+            Ok(node_clone.id)
+        })
+        .await
+        .map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Join error: {}", e)))?
     }
 
     async fn update_node(&self, node: &Node) -> RepoResult<()> {
@@ -333,239 +354,304 @@ impl KnowledgeGraphRepository for SqliteKnowledgeGraphRepository {
     }
 
     async fn remove_node(&self, node_id: u32) -> RepoResult<()> {
-        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
-        conn.execute("DELETE FROM kg_nodes WHERE id = ?1", params![node_id])
-            .map_err(|e| {
-                KnowledgeGraphRepositoryError::DatabaseError(format!(
-                    "Failed to delete node: {}",
-                    e
-                ))
-            })?;
-        Ok(())
+        let conn_arc = self.conn.clone();
+
+        tokio::task::spawn_blocking(move || {
+            let conn = conn_arc.lock().expect("Failed to acquire knowledge graph repository mutex");
+            conn.execute("DELETE FROM kg_nodes WHERE id = ?1", params![node_id])
+                .map_err(|e| {
+                    KnowledgeGraphRepositoryError::DatabaseError(format!(
+                        "Failed to delete node: {}",
+                        e
+                    ))
+                })?;
+            Ok(())
+        })
+        .await
+        .map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Join error: {}", e)))?
     }
 
     async fn get_node(&self, node_id: u32) -> RepoResult<Option<Node>> {
-        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
-        let result = conn.query_row(
-            "SELECT id, metadata_id, label, x, y, z, vx, vy, vz, color, size, metadata FROM kg_nodes WHERE id = ?1",
-            params![node_id],
-            Self::deserialize_node
-        );
+        let conn_arc = self.conn.clone();
 
-        match result {
-            Ok(node) => Ok(Some(node)),
-            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
-            Err(e) => Err(KnowledgeGraphRepositoryError::DatabaseError(format!(
-                "Database error: {}",
-                e
-            ))),
-        }
+        tokio::task::spawn_blocking(move || {
+            let conn = conn_arc.lock().expect("Failed to acquire knowledge graph repository mutex");
+            let result = conn.query_row(
+                "SELECT id, metadata_id, label, x, y, z, vx, vy, vz, color, size, metadata FROM kg_nodes WHERE id = ?1",
+                params![node_id],
+                Self::deserialize_node
+            );
+
+            match result {
+                Ok(node) => Ok(Some(node)),
+                Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+                Err(e) => Err(KnowledgeGraphRepositoryError::DatabaseError(format!(
+                    "Database error: {}",
+                    e
+                ))),
+            }
+        })
+        .await
+        .map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Join error: {}", e)))?
     }
 
     async fn get_nodes_by_metadata_id(&self, metadata_id: &str) -> RepoResult<Vec<Node>> {
-        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
-        let mut stmt = conn.prepare(
-            "SELECT id, metadata_id, label, x, y, z, vx, vy, vz, color, size, metadata FROM kg_nodes WHERE metadata_id = ?1"
-        ).map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to prepare statement: {}", e)))?;
+        let conn_arc = self.conn.clone();
+        let metadata_id_owned = metadata_id.to_string();
 
-        let nodes = stmt
-            .query_map(params![metadata_id], Self::deserialize_node)
-            .map_err(|e| {
-                KnowledgeGraphRepositoryError::DatabaseError(format!(
-                    "Failed to query nodes: {}",
-                    e
-                ))
-            })?
-            .collect::<Result<Vec<Node>, _>>()
-            .map_err(|e| {
-                KnowledgeGraphRepositoryError::DatabaseError(format!(
-                    "Failed to collect nodes: {}",
-                    e
-                ))
-            })?;
+        tokio::task::spawn_blocking(move || {
+            let conn = conn_arc.lock().expect("Failed to acquire knowledge graph repository mutex");
+            let mut stmt = conn.prepare(
+                "SELECT id, metadata_id, label, x, y, z, vx, vy, vz, color, size, metadata FROM kg_nodes WHERE metadata_id = ?1"
+            ).map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to prepare statement: {}", e)))?;
 
-        Ok(nodes)
+            let nodes = stmt
+                .query_map(params![metadata_id_owned], Self::deserialize_node)
+                .map_err(|e| {
+                    KnowledgeGraphRepositoryError::DatabaseError(format!(
+                        "Failed to query nodes: {}",
+                        e
+                    ))
+                })?
+                .collect::<Result<Vec<Node>, _>>()
+                .map_err(|e| {
+                    KnowledgeGraphRepositoryError::DatabaseError(format!(
+                        "Failed to collect nodes: {}",
+                        e
+                    ))
+                })?;
+
+            Ok(nodes)
+        })
+        .await
+        .map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Join error: {}", e)))?
     }
 
     async fn add_edge(&self, edge: &Edge) -> RepoResult<String> {
-        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
-        let metadata_json = edge
-            .metadata
-            .as_ref()
-            .and_then(|m| serde_json::to_string(m).ok());
+        let conn_arc = self.conn.clone();
+        let edge_clone = edge.clone();
 
-        conn.execute(
-            "INSERT INTO kg_edges (id, source, target, weight, metadata) VALUES (?1, ?2, ?3, ?4, ?5)",
-            params![&edge.id, edge.source, edge.target, edge.weight, metadata_json]
-        )
-        .map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to insert edge: {}", e)))?;
+        tokio::task::spawn_blocking(move || {
+            let conn = conn_arc.lock().expect("Failed to acquire knowledge graph repository mutex");
+            let metadata_json = edge_clone
+                .metadata
+                .as_ref()
+                .and_then(|m| serde_json::to_string(m).ok());
 
-        Ok(edge.id.clone())
+            conn.execute(
+                "INSERT INTO kg_edges (id, source, target, weight, metadata) VALUES (?1, ?2, ?3, ?4, ?5)",
+                params![&edge_clone.id, edge_clone.source, edge_clone.target, edge_clone.weight, metadata_json]
+            )
+            .map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to insert edge: {}", e)))?;
+
+            Ok(edge_clone.id.clone())
+        })
+        .await
+        .map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Join error: {}", e)))?
     }
 
     async fn update_edge(&self, edge: &Edge) -> RepoResult<()> {
-        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
-        let metadata_json = edge
-            .metadata
-            .as_ref()
-            .and_then(|m| serde_json::to_string(m).ok());
+        let conn_arc = self.conn.clone();
+        let edge_clone = edge.clone();
 
-        conn.execute(
-            "UPDATE kg_edges SET source = ?1, target = ?2, weight = ?3, metadata = ?4 WHERE id = ?5",
-            params![edge.source, edge.target, edge.weight, metadata_json, &edge.id]
-        )
-        .map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to update edge: {}", e)))?;
+        tokio::task::spawn_blocking(move || {
+            let conn = conn_arc.lock().expect("Failed to acquire knowledge graph repository mutex");
+            let metadata_json = edge_clone
+                .metadata
+                .as_ref()
+                .and_then(|m| serde_json::to_string(m).ok());
 
-        Ok(())
+            conn.execute(
+                "UPDATE kg_edges SET source = ?1, target = ?2, weight = ?3, metadata = ?4 WHERE id = ?5",
+                params![edge_clone.source, edge_clone.target, edge_clone.weight, metadata_json, &edge_clone.id]
+            )
+            .map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to update edge: {}", e)))?;
+
+            Ok(())
+        })
+        .await
+        .map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Join error: {}", e)))?
     }
 
     async fn remove_edge(&self, edge_id: &str) -> RepoResult<()> {
-        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
-        conn.execute("DELETE FROM kg_edges WHERE id = ?1", params![edge_id])
-            .map_err(|e| {
-                KnowledgeGraphRepositoryError::DatabaseError(format!(
-                    "Failed to delete edge: {}",
-                    e
-                ))
-            })?;
-        Ok(())
+        let conn_arc = self.conn.clone();
+        let edge_id_owned = edge_id.to_string();
+
+        tokio::task::spawn_blocking(move || {
+            let conn = conn_arc.lock().expect("Failed to acquire knowledge graph repository mutex");
+            conn.execute("DELETE FROM kg_edges WHERE id = ?1", params![edge_id_owned])
+                .map_err(|e| {
+                    KnowledgeGraphRepositoryError::DatabaseError(format!(
+                        "Failed to delete edge: {}",
+                        e
+                    ))
+                })?;
+            Ok(())
+        })
+        .await
+        .map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Join error: {}", e)))?
     }
 
     async fn get_node_edges(&self, node_id: u32) -> RepoResult<Vec<Edge>> {
-        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
-        let mut stmt = conn.prepare(
-            "SELECT id, source, target, weight, metadata FROM kg_edges WHERE source = ?1 OR target = ?1"
-        ).map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to prepare statement: {}", e)))?;
+        let conn_arc = self.conn.clone();
 
-        let edges = stmt
-            .query_map(params![node_id], |row| {
-                let id: String = row.get(0)?;
-                let source: u32 = row.get(1)?;
-                let target: u32 = row.get(2)?;
-                let weight: f32 = row.get(3)?;
-                let metadata_json: Option<String> = row.get(4)?;
+        tokio::task::spawn_blocking(move || {
+            let conn = conn_arc.lock().expect("Failed to acquire knowledge graph repository mutex");
+            let mut stmt = conn.prepare(
+                "SELECT id, source, target, weight, metadata FROM kg_edges WHERE source = ?1 OR target = ?1"
+            ).map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to prepare statement: {}", e)))?;
 
-                let metadata = metadata_json.and_then(|json| serde_json::from_str(&json).ok());
+            let edges = stmt
+                .query_map(params![node_id], |row| {
+                    let id: String = row.get(0)?;
+                    let source: u32 = row.get(1)?;
+                    let target: u32 = row.get(2)?;
+                    let weight: f32 = row.get(3)?;
+                    let metadata_json: Option<String> = row.get(4)?;
 
-                let mut edge = Edge::new(source, target, weight);
-                edge.id = id;
-                edge.metadata = metadata;
+                    let metadata = metadata_json.and_then(|json| serde_json::from_str(&json).ok());
 
-                Ok(edge)
-            })
-            .map_err(|e| {
-                KnowledgeGraphRepositoryError::DatabaseError(format!(
-                    "Failed to query edges: {}",
-                    e
-                ))
-            })?
-            .collect::<Result<Vec<Edge>, _>>()
-            .map_err(|e| {
-                KnowledgeGraphRepositoryError::DatabaseError(format!(
-                    "Failed to collect edges: {}",
-                    e
-                ))
-            })?;
+                    let mut edge = Edge::new(source, target, weight);
+                    edge.id = id;
+                    edge.metadata = metadata;
 
-        Ok(edges)
+                    Ok(edge)
+                })
+                .map_err(|e| {
+                    KnowledgeGraphRepositoryError::DatabaseError(format!(
+                        "Failed to query edges: {}",
+                        e
+                    ))
+                })?
+                .collect::<Result<Vec<Edge>, _>>()
+                .map_err(|e| {
+                    KnowledgeGraphRepositoryError::DatabaseError(format!(
+                        "Failed to collect edges: {}",
+                        e
+                    ))
+                })?;
+
+            Ok(edges)
+        })
+        .await
+        .map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Join error: {}", e)))?
     }
 
     #[instrument(skip(self, positions), fields(count = positions.len()), level = "debug")]
     async fn batch_update_positions(&self, positions: Vec<(u32, f32, f32, f32)>) -> RepoResult<()> {
-        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
-        conn.execute("BEGIN TRANSACTION", []).map_err(|e| {
-            KnowledgeGraphRepositoryError::DatabaseError(format!(
-                "Failed to begin transaction: {}",
-                e
-            ))
-        })?;
+        let conn_arc = self.conn.clone();
 
-        let mut stmt = conn.prepare("UPDATE kg_nodes SET x = ?2, y = ?3, z = ?4, updated_at = CURRENT_TIMESTAMP WHERE id = ?1")
-            .map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to prepare statement: {}", e)))?;
-
-        for (node_id, x, y, z) in positions {
-            stmt.execute(params![node_id, x, y, z]).map_err(|e| {
+        tokio::task::spawn_blocking(move || {
+            let conn = conn_arc.lock().expect("Failed to acquire knowledge graph repository mutex");
+            conn.execute("BEGIN TRANSACTION", []).map_err(|e| {
                 KnowledgeGraphRepositoryError::DatabaseError(format!(
-                    "Failed to update position: {}",
+                    "Failed to begin transaction: {}",
                     e
                 ))
             })?;
-        }
 
-        conn.execute("COMMIT", []).map_err(|e| {
-            KnowledgeGraphRepositoryError::DatabaseError(format!(
-                "Failed to commit transaction: {}",
-                e
-            ))
-        })?;
+            let mut stmt = conn.prepare("UPDATE kg_nodes SET x = ?2, y = ?3, z = ?4, updated_at = CURRENT_TIMESTAMP WHERE id = ?1")
+                .map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to prepare statement: {}", e)))?;
 
-        Ok(())
+            for (node_id, x, y, z) in positions {
+                stmt.execute(params![node_id, x, y, z]).map_err(|e| {
+                    KnowledgeGraphRepositoryError::DatabaseError(format!(
+                        "Failed to update position: {}",
+                        e
+                    ))
+                })?;
+            }
+
+            conn.execute("COMMIT", []).map_err(|e| {
+                KnowledgeGraphRepositoryError::DatabaseError(format!(
+                    "Failed to commit transaction: {}",
+                    e
+                ))
+            })?;
+
+            Ok(())
+        })
+        .await
+        .map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Join error: {}", e)))?
     }
 
     async fn query_nodes(&self, query: &str) -> RepoResult<Vec<Node>> {
-        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
+        let conn_arc = self.conn.clone();
+        let query_owned = query.to_string();
 
-        let sql_query = format!(
-            "SELECT id, metadata_id, label, x, y, z, vx, vy, vz, color, size, metadata FROM kg_nodes WHERE {}",
-            query
-        );
+        tokio::task::spawn_blocking(move || {
+            let conn = conn_arc.lock().expect("Failed to acquire knowledge graph repository mutex");
 
-        let mut stmt = conn.prepare(&sql_query).map_err(|e| {
-            KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to prepare query: {}", e))
-        })?;
+            let sql_query = format!(
+                "SELECT id, metadata_id, label, x, y, z, vx, vy, vz, color, size, metadata FROM kg_nodes WHERE {}",
+                query_owned
+            );
 
-        let nodes = stmt
-            .query_map([], Self::deserialize_node)
-            .map_err(|e| {
-                KnowledgeGraphRepositoryError::DatabaseError(format!(
-                    "Failed to execute query: {}",
-                    e
-                ))
-            })?
-            .collect::<Result<Vec<Node>, _>>()
-            .map_err(|e| {
-                KnowledgeGraphRepositoryError::DatabaseError(format!(
-                    "Failed to collect results: {}",
-                    e
-                ))
+            let mut stmt = conn.prepare(&sql_query).map_err(|e| {
+                KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to prepare query: {}", e))
             })?;
 
-        Ok(nodes)
+            let nodes = stmt
+                .query_map([], Self::deserialize_node)
+                .map_err(|e| {
+                    KnowledgeGraphRepositoryError::DatabaseError(format!(
+                        "Failed to execute query: {}",
+                        e
+                    ))
+                })?
+                .collect::<Result<Vec<Node>, _>>()
+                .map_err(|e| {
+                    KnowledgeGraphRepositoryError::DatabaseError(format!(
+                        "Failed to collect results: {}",
+                        e
+                    ))
+                })?;
+
+            Ok(nodes)
+        })
+        .await
+        .map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Join error: {}", e)))?
     }
 
     async fn get_statistics(&self) -> RepoResult<GraphStatistics> {
-        let conn = self.conn.lock().expect("Failed to acquire knowledge graph repository mutex");
+        let conn_arc = self.conn.clone();
 
-        let node_count: usize = conn
-            .query_row("SELECT COUNT(*) FROM kg_nodes", [], |row| row.get(0))
-            .map_err(|e| {
-                KnowledgeGraphRepositoryError::DatabaseError(format!(
-                    "Failed to count nodes: {}",
-                    e
-                ))
-            })?;
+        tokio::task::spawn_blocking(move || {
+            let conn = conn_arc.lock().expect("Failed to acquire knowledge graph repository mutex");
 
-        let edge_count: usize = conn
-            .query_row("SELECT COUNT(*) FROM kg_edges", [], |row| row.get(0))
-            .map_err(|e| {
-                KnowledgeGraphRepositoryError::DatabaseError(format!(
-                    "Failed to count edges: {}",
-                    e
-                ))
-            })?;
+            let node_count: usize = conn
+                .query_row("SELECT COUNT(*) FROM kg_nodes", [], |row| row.get(0))
+                .map_err(|e| {
+                    KnowledgeGraphRepositoryError::DatabaseError(format!(
+                        "Failed to count nodes: {}",
+                        e
+                    ))
+                })?;
 
-        let average_degree = if node_count > 0 {
-            (edge_count as f32 * 2.0) / node_count as f32
-        } else {
-            0.0
-        };
+            let edge_count: usize = conn
+                .query_row("SELECT COUNT(*) FROM kg_edges", [], |row| row.get(0))
+                .map_err(|e| {
+                    KnowledgeGraphRepositoryError::DatabaseError(format!(
+                        "Failed to count edges: {}",
+                        e
+                    ))
+                })?;
 
-        Ok(GraphStatistics {
-            node_count,
-            edge_count,
-            average_degree,
-            connected_components: 1, // TODO: Implement connected components analysis
-            last_updated: chrono::Utc::now(),
+            let average_degree = if node_count > 0 {
+                (edge_count as f32 * 2.0) / node_count as f32
+            } else {
+                0.0
+            };
+
+            Ok(GraphStatistics {
+                node_count,
+                edge_count,
+                average_degree,
+                connected_components: 1, // TODO: Implement connected components analysis
+                last_updated: chrono::Utc::now(),
+            })
         })
+        .await
+        .map_err(|e| KnowledgeGraphRepositoryError::DatabaseError(format!("Join error: {}", e)))?
     }
 }

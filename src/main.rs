@@ -1,5 +1,6 @@
 // Rebuild: KE velocity fix applied
-use webxr::actors::messages::{UpdateMetadata, BuildGraphFromMetadata, AddNodesFromMetadata, UpdateGraphData};
+use webxr::actors::messages::UpdateMetadata;
+use webxr::ports::knowledge_graph_repository::KnowledgeGraphRepository;
 use webxr::services::nostr_service::NostrService;
 use webxr::{
     config::AppFullSettings, // Import AppFullSettings only
@@ -25,7 +26,6 @@ use webxr::{
         ragflow_service::RAGFlowService, // ADDED IMPORT
     },
     // DEPRECATED: docker_hive_mind, HybridHealthManager removed
-    utils::mcp_connection::MCPConnectionPool,
     AppState,
 };
 
@@ -458,49 +458,48 @@ async fn main() -> std::io::Result<()> {
     // The background GitHub sync task will update metadata when ready
     info!("Skipping metadata actor update during startup (will be updated by background task)");
 
-    // Build initial graph from metadata and initialize GPU compute
-    info!("Building initial graph from existing metadata for physics simulation");
+    // Load graph from database (NEW: database-first architecture)
+    info!("Loading graph from knowledge_graph.db...");
 
-    // First, try to load pre-computed graph data with positions
-    let graph_data_option = match FileService::load_graph_data() {
-        Ok(graph_data) => {
-            if let Some(graph) = graph_data {
+    let graph_data_option = match app_state.knowledge_graph_repository.load_graph().await {
+        Ok(graph_arc) => {
+            let graph = graph_arc.as_ref();
+            if !graph.nodes.is_empty() {
                 info!(
-                    "Loaded pre-computed graph data with {} nodes and {} edges",
+                    "✅ Loaded graph from database: {} nodes, {} edges",
                     graph.nodes.len(),
                     graph.edges.len()
                 );
-                Some(graph)
+                Some((*graph_arc).clone())
             } else {
-                info!("No pre-computed graph data found, will build from metadata");
+                info!("📂 Database is empty - waiting for GitHub sync to complete");
+                info!("ℹ️  Graph will be loaded after sync finishes");
                 None
             }
         }
         Err(e) => {
-            error!("Error loading graph data: {}", e);
+            error!("⚠️  Failed to load graph from database: {}", e);
+            error!("⚠️  Graph will be empty until GitHub sync completes");
             None
         }
     };
 
-    // Use GraphServiceSupervisor to build or update the graph
+    // Send graph data to GraphServiceActor
     use std::sync::Arc as StdArc;
-    use webxr::actors::messages::{BuildGraphFromMetadata, UpdateGraphData};
+    use webxr::actors::messages::UpdateGraphData;
 
-    // Use fire-and-forget for all graph initialization to avoid blocking startup
     if let Some(graph_data) = graph_data_option {
-        // If we have pre-computed graph data, send it directly to the GraphServiceSupervisor
-        info!("Triggering async graph data load with {} nodes and {} edges", graph_data.nodes.len(), graph_data.edges.len());
+        // We have graph data from database - send to actor
+        info!("📤 Sending graph data to GraphServiceActor: {} nodes, {} edges",
+              graph_data.nodes.len(), graph_data.edges.len());
         app_state.graph_service_addr.do_send(UpdateGraphData {
             graph_data: StdArc::new(graph_data),
         });
-        info!("Pre-computed graph data load triggered (async)");
+        info!("✅ Graph data sent to actor");
     } else {
-        // Build graph from metadata using fire-and-forget to avoid blocking startup
-        info!("Triggering async graph build from {} metadata entries", metadata_store.len());
-        app_state.graph_service_addr.do_send(BuildGraphFromMetadata {
-            metadata: metadata_store.clone(),
-        });
-        info!("Graph build triggered (async)");
+        // Database is empty - actor will remain empty until GitHub sync completes
+        info!("⏳ GraphServiceActor will remain empty until GitHub sync finishes");
+        info!("ℹ️  You can manually trigger sync via /api/admin/sync endpoint");
     }
 
     info!("Starting HTTP server...");

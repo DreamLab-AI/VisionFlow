@@ -126,6 +126,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             // Core API endpoints
             .route("/health", web::get().to(health_check))
             .route("/config", web::get().to(get_app_config))
+            .route("/settings-test", web::get().to(|| async { HttpResponse::Ok().json(json!({"test": "works"})) }))
             // Existing module routes
             .configure(files::config)
             .configure(graph::config)
@@ -137,8 +138,9 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .configure(analytics::config)
             .configure(quest3::config)
             .configure(crate::handlers::nostr_handler::config)
-            .configure(crate::handlers::settings_handler::config) // CQRS-refactored settings
-            .configure(crate::handlers::settings_paths::configure_settings_paths)
+            .configure(crate::handlers::settings_handler::config)
+            // DISABLED: Causes route conflicts/timeouts with settings_handler
+            // .configure(crate::handlers::settings_paths::configure_settings_paths)
             .configure(crate::handlers::ragflow_handler::config)
             .configure(crate::handlers::clustering_handler::config)
             .configure(crate::handlers::constraints_handler::config),

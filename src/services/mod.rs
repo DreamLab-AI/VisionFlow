@@ -5,8 +5,10 @@ pub mod database_service;
 pub mod edge_generation;
 pub mod file_service;
 pub mod github;
+pub mod github_sync_service;
 pub mod management_api_client;
 pub mod multi_mcp_agent_discovery;
+pub mod parsers;
 pub mod real_mcp_integration_bridge;
 pub mod topology_visualization_engine;
 // graph_service module removed - functionality moved to GraphServiceActor

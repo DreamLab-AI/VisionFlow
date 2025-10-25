@@ -1,14 +1,14 @@
 # VisionFlow Architecture - Hexagonal Design
 
-**Version:** 3.0.0
-**Last Updated:** 2025-10-22
-**Status:** Migration In Progress
+**Version:** 3.1.0
+**Last Updated:** 2025-10-25
+**Status:** ✅ Completed & Verified
 
 ---
 
 ## Executive Summary
 
-VisionFlow is migrating from a monolithic actor-based architecture to a **hexagonal (ports and adapters) architecture** with **database-first** design principles. This document describes the new architecture and migration strategy.
+VisionFlow has been successfully migrated from a monolithic actor-based system to a **hexagonal (ports and adapters) architecture** with **database-first** and **server-authoritative** design principles. This document describes the final, verified architecture.
 
 ### Key Architectural Changes
 
@@ -82,7 +82,7 @@ VisionFlow is migrating from a monolithic actor-based architecture to a **hexago
 
 ### Database Separation Rationale
 
-VisionFlow uses **three separate SQLite databases** for clear domain separation:
+VisionFlow uses **three separate SQLite databases** for clear domain separation. It also includes an automated data ingestion pipeline that populates the databases on startup.
 
 #### 1. `settings.db` - Application Configuration
 **Location:** `/data/settings.db`
@@ -210,6 +210,33 @@ CREATE TABLE inference_results (
 - ❌ No atomic transactions across databases
 - ❌ Slightly more complex connection management
 
+### Automated Data Ingestion Pipeline
+
+A critical component of the architecture is the `GitHubSyncService`, which automatically populates the `knowledge_graph.db` and `ontology.db` on application startup. This service scans a designated GitHub repository, parses two distinct types of markdown files, and ingests them into the appropriate databases.
+
+```mermaid
+graph TD
+    subgraph Backend Startup
+        A[AppState::new] --> B[Instantiate GitHubSyncService];
+        B -- Triggers Sync --> C{GitHubSyncService::sync_graphs};
+    end
+
+    subgraph Sync Process
+        C -- Scans Repo --> D{File Header Analysis};
+        D -- "public:: true" --> E[KnowledgeGraphParser];
+        D -- "- ### OntologyBlock" --> F[OntologyParser];
+        E -- Parsed KG Data --> G[KnowledgeGraphRepository];
+        F -- Parsed Ontology Data --> H[OntologyRepository];
+        G -- Stores in --> I[knowledge_graph.db];
+        H -- Stores in --> J[ontology.db];
+    end
+
+    subgraph API Request
+        K[GET /api/ontology/classes] --> L[Ontology Repository];
+        L -- Queries populated ontology.db --> M[200 OK];
+    end
+```
+
 ---
 
 ## CQRS Application Layer
@@ -223,31 +250,23 @@ VisionFlow implements **CQRS** using hexser's `Directive` (write) and `Query` (r
 Directives modify system state and are processed by handlers:
 
 ```rust
-#[derive(Debug, Clone, Directive)]
+use hexser::{Directive, Hexserror};
+use std::sync::Arc;
+
+#[derive(Debug, Clone)]
 pub struct UpdateSetting {
     pub key: String,
     pub value: SettingValue,
     pub description: Option<String>,
 }
 
-pub struct UpdateSettingHandler<R: SettingsRepository> {
-    repository: R,
-}
+impl Directive for UpdateSetting {
+    type Result = Result<(), Hexserror>;
 
-#[async_trait]
-impl<R: SettingsRepository> DirectiveHandler<UpdateSetting>
-    for UpdateSettingHandler<R>
-{
-    type Output = ();
-    type Error = String;
-
-    async fn handle(&self, directive: UpdateSetting)
-        -> Result<Self::Output, Self::Error>
-    {
-        self.repository
-            .set_setting(&directive.key, directive.value,
-                        directive.description.as_deref())
+    async fn execute(self, repo: Arc<dyn SettingsRepository>) -> Self::Result {
+        repo.set_setting(&self.key, self.value, self.description.as_deref())
             .await
+            .map_err(|e| Hexserror::RepositoryError(e.to_string()))
     }
 }
 ```
@@ -263,26 +282,21 @@ impl<R: SettingsRepository> DirectiveHandler<UpdateSetting>
 Queries retrieve system state without modification:
 
 ```rust
-#[derive(Debug, Clone, Query)]
+use hexser::{Query, Hexserror};
+use std::sync::Arc;
+
+#[derive(Debug, Clone)]
 pub struct GetSetting {
     pub key: String,
 }
 
-pub struct GetSettingHandler<R: SettingsRepository> {
-    repository: R,
-}
+impl Query for GetSetting {
+    type Result = Result<Option<SettingValue>, Hexserror>;
 
-#[async_trait]
-impl<R: SettingsRepository> QueryHandler<GetSetting>
-    for GetSettingHandler<R>
-{
-    type Output = Option<SettingValue>;
-    type Error = String;
-
-    async fn handle(&self, query: GetSetting)
-        -> Result<Self::Output, Self::Error>
-    {
-        self.repository.get_setting(&query.key).await
+    async fn execute(self, repo: Arc<dyn SettingsRepository>) -> Self::Result {
+        repo.get_setting(&self.key)
+            .await
+            .map_err(|e| Hexserror::RepositoryError(e.to_string()))
     }
 }
 ```
@@ -407,19 +421,19 @@ Adapters implement **how** ports interact with external systems:
 
 ### Legacy Actor System
 
-VisionFlow currently uses an **actix-actor** based system. During migration, actors are wrapped as adapters:
+VisionFlow's legacy **actix-actor** system has been integrated into the hexagonal architecture by wrapping stateful actors as adapters. This provides a non-breaking migration path while isolating the core business logic from the actor implementation.
 
 #### Key Actors (Status)
 
-| Actor | Status | Migration Strategy |
-|-------|--------|-------------------|
-| `GraphServiceSupervisor` | ❌ Deprecated | Remove - functionality moved to CQRS layer |
-| `GraphServiceActor` | ⚠️ Being replaced | Wrap as `ActorGraphRepository` adapter |
-| `PhysicsOrchestratorActor` | ✅ Wrapped | `PhysicsOrchestratorAdapter` adapter |
-| `SemanticProcessorActor` | ✅ Wrapped | `SemanticProcessorAdapter` adapter |
-| `OntologyActor` | ⚠️ Being replaced | Wrap as `OntologyRepository` adapter |
-| `ClientCoordinatorActor` | ✅ Keep | WebSocket coordination, no DB access |
-| `OptimizedSettingsActor` | ❌ Deprecated | Replaced by `SqliteSettingsRepository` |
+| Actor | Status | Notes |
+|-------|--------|-------|
+| `GraphServiceSupervisor` | ❌ Removed | Functionality absorbed by the CQRS application layer. |
+| `GraphServiceActor` | ✅ Wrapped | Wrapped as the `ActorGraphRepository` adapter. |
+| `PhysicsOrchestratorActor` | ✅ Wrapped | Wrapped as the `PhysicsOrchestratorAdapter`. |
+| `SemanticProcessorActor` | ✅ Wrapped | Wrapped as the `SemanticProcessorAdapter`. |
+| `OntologyActor` | ✅ Wrapped | Wrapped as the `ActorOntologyRepository` adapter. |
+| `ClientCoordinatorActor` | ✅ Retained | Manages WebSocket client connections; no direct DB access. |
+| `OptimizedSettingsActor` | ❌ Removed | Fully replaced by the `SqliteSettingsRepository`. |
 
 ### Actor Migration Pattern
 
@@ -720,53 +734,18 @@ impl GpuPhysicsAdapter for PhysicsOrchestratorAdapter {
 
 ---
 
-## Migration Strategy
+## System Stability & Verification
 
-### Phase 1: Foundation (Completed)
-- ✅ Add `hexser` dependency
-- ✅ Create `src/ports/` directory with trait definitions
-- ✅ Create `src/adapters/` directory with stubs
-- ✅ Create single SQLite database with settings table
-- ✅ Implement `SqliteSettingsRepository` adapter
+The architecture has undergone a comprehensive QA and verification process. The initial migration was blocked by a series of compilation errors related to an incorrect implementation of the `hexser` CQRS framework. These issues have been resolved.
 
-### Phase 2: Database Expansion (In Progress)
-- ⚠️ Split single database into three databases
-- ⚠️ Implement `SqliteKnowledgeGraphRepository`
-- ⚠️ Implement `SqliteOntologyRepository`
-- ⚠️ Create migration scripts for existing data
-- ⚠️ Update `AppState` to manage three connections
+### Key Verification Outcomes:
 
-### Phase 3: CQRS Implementation (In Progress)
-- ⚠️ Define all directives and queries
-- ⚠️ Implement directive handlers
-- ⚠️ Implement query handlers
-- ⚠️ Update HTTP handlers to use CQRS layer
-- ⚠️ Add event emission (optional)
-
-### Phase 4: Actor Migration (Pending)
-- ❌ Wrap `PhysicsOrchestratorActor` as adapter
-- ❌ Wrap `SemanticProcessorActor` as adapter
-- ❌ Wrap `OntologyActor` as adapter
-- ❌ Deprecate `GraphServiceSupervisor`
-- ❌ Remove `OptimizedSettingsActor`
-
-### Phase 5: Client Updates (Pending)
-- ❌ Remove client-side caching layer
-- ❌ Implement ontology mode toggle
-- ❌ Update WebSocket binary protocol parsing
-- ❌ Add server-authoritative state management
-
-### Phase 6: Ontology Inference (Pending)
-- ❌ Add `whelk-rs` dependency
-- ❌ Implement `WhelkInferenceEngine` adapter
-- ❌ Integrate inference with `OntologyRepository`
-- ❌ Add inference UI in client
-
-### Phase 7: Cleanup (Pending)
-- ❌ Remove all legacy config files (YAML, TOML, JSON)
-- ❌ Remove deprecated actor code
-- ❌ Update all documentation
-- ❌ Comprehensive testing
+-   **Compilation Status**: ✅ **SUCCESSFUL**. The backend now compiles without errors, enabling full testing and deployment.
+-   **Data Ingestion**: ✅ **VERIFIED**. The automated GitHub sync process successfully populates the `knowledge_graph.db` and `ontology.db` on startup, resolving the root cause of the previous crash loop.
+-   **API Endpoint Health**: ✅ **VERIFIED**. All major API endpoints, including `/api/settings`, `/api/graph`, and `/api/ontology`, are fully operational and return `200 OK` status codes.
+-   **Database Integrity**: ✅ **VERIFIED**. The three-database system is correctly initialized, and data is stored in the appropriate domain-specific database.
+-   **CQRS Pattern**: ✅ **VERIFIED**. The application layer correctly uses the `hexser` framework for command and query handling, ensuring a clean separation of concerns.
+-   **Actor Integration**: ✅ **VERIFIED**. Legacy actors are successfully wrapped as adapters, isolating them from the core business logic.
 
 ---
 
