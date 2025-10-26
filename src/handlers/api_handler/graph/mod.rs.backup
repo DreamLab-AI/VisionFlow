@@ -11,13 +11,10 @@ use std::sync::Arc;
 // GraphService direct import is no longer needed as we use actors
 // use crate::services::graph_service::GraphService;
 use crate::actors::messages::{
-    AddNodesFromMetadata, GetSettings,
-};
-use crate::application::graph::queries::{
-    GetGraphData, GetNodeMap, GetPhysicsState, GetAutoBalanceNotifications,
+    AddNodesFromMetadata, GetAutoBalanceNotifications, GetGraphData, GetNodeMap, GetPhysicsState,
+    GetSettings,
 };
 use crate::handlers::utils::execute_in_thread;
-use hexser::QueryHandler;
 
 /// Settlement state information for client optimization
 #[derive(Serialize, Debug, Clone)]
@@ -99,21 +96,16 @@ pub struct GraphQuery {
     pub filter: Option<String>,
 }
 
-pub async fn get_graph_data(state: web::Data<AppState>, _req: HttpRequest) -> impl Responder {
-    info!("Received request for graph data (CQRS Phase 1D)");
+pub async fn get_graph_data(state: web::Data<AppState>, req: HttpRequest) -> impl Responder {
+    info!("Received request for graph data with positions");
 
-    // Use CQRS query handlers instead of actor messages
-    let graph_handler = state.graph_query_handlers.get_graph_data.clone();
-    let node_map_handler = state.graph_query_handlers.get_node_map.clone();
-    let physics_handler = state.graph_query_handlers.get_physics_state.clone();
-
-    // Execute queries in separate OS threads to avoid Tokio runtime blocking
-    let graph_future = execute_in_thread(move || graph_handler.handle(GetGraphData));
-    let node_map_future = execute_in_thread(move || node_map_handler.handle(GetNodeMap));
-    let physics_future = execute_in_thread(move || physics_handler.handle(GetPhysicsState));
+    // Fetch graph structure AND physics state in parallel
+    let graph_data_future = state.graph_service_addr.send(GetGraphData);
+    let node_map_future = state.graph_service_addr.send(GetNodeMap);
+    let physics_state_future = state.graph_service_addr.send(GetPhysicsState);
 
     let (graph_result, node_map_result, physics_result) =
-        tokio::join!(graph_future, node_map_future, physics_future);
+        tokio::join!(graph_data_future, node_map_future, physics_state_future);
 
     match (graph_result, node_map_result, physics_result) {
         (Ok(Ok(graph_data)), Ok(Ok(node_map)), Ok(Ok(physics_state))) => {
@@ -141,7 +133,7 @@ pub async fn get_graph_data(state: web::Data<AppState>, _req: HttpRequest) -> im
                         id: node.id,
                         metadata_id: node.metadata_id.clone(),
                         label: node.label.clone(),
-                        position,
+                        position, // ← ACTUAL physics-settled position!
                         velocity,
                         metadata: node.metadata.clone(),
                         node_type: node.node_type.clone(),
@@ -165,25 +157,25 @@ pub async fn get_graph_data(state: web::Data<AppState>, _req: HttpRequest) -> im
             };
 
             info!(
-                "Sending graph data with {} nodes (CQRS query handlers)",
-                response.nodes.len()
+                "Sending graph data with {} nodes at physics-settled positions (settled: {})",
+                response.nodes.len(),
+                physics_state.is_settled
             );
 
             HttpResponse::Ok().json(response)
         }
         (Err(e), _, _) | (_, Err(e), _) | (_, _, Err(e)) => {
-            error!("Thread execution error: {}", e);
+            error!("Mailbox error fetching graph data: {}", e);
             HttpResponse::InternalServerError()
-                .json(serde_json::json!({"error": "Internal server error"}))
+                .json(serde_json::json!({"error": "Graph service unavailable"}))
         }
         (Ok(Err(e)), _, _) | (_, Ok(Err(e)), _) | (_, _, Ok(Err(e))) => {
-            error!("Failed to fetch graph data (CQRS): {}", e);
+            error!("Failed to fetch graph data: {}", e);
             HttpResponse::InternalServerError()
                 .json(serde_json::json!({"error": "Failed to retrieve graph data"}))
         }
     }
 }
-
 
 pub async fn get_paginated_graph_data(
     state: web::Data<AppState>,
@@ -469,8 +461,6 @@ pub async fn get_auto_balance_notifications(
         }
     }
 }
-
-
 
 // Configure routes using snake_case
 pub fn config(cfg: &mut web::ServiceConfig) {

@@ -6,6 +6,10 @@ use std::sync::{
     Arc,
 };
 
+// CQRS Phase 1D: Graph domain imports
+use crate::adapters::actor_graph_repository::ActorGraphRepository;
+use crate::application::graph::*;
+
 #[cfg(feature = "gpu")]
 use crate::actors::gpu;
 use crate::actors::graph_service_supervisor::TransitionalGraphSupervisor;
@@ -45,6 +49,19 @@ use crate::adapters::sqlite_ontology_repository::SqliteOntologyRepository;
 use crate::adapters::sqlite_settings_repository::SqliteSettingsRepository;
 use crate::ports::settings_repository::SettingsRepository;
 
+// CQRS Phase 1D: Graph query handlers struct
+#[derive(Clone)]
+pub struct GraphQueryHandlers {
+    pub get_graph_data: Arc<GetGraphDataHandler>,
+    pub get_node_map: Arc<GetNodeMapHandler>,
+    pub get_physics_state: Arc<GetPhysicsStateHandler>,
+    pub get_auto_balance_notifications: Arc<GetAutoBalanceNotificationsHandler>,
+    pub get_bots_graph_data: Arc<GetBotsGraphDataHandler>,
+    pub get_constraints: Arc<GetConstraintsHandler>,
+    pub get_equilibrium_status: Arc<GetEquilibriumStatusHandler>,
+    pub compute_shortest_paths: Arc<ComputeShortestPathsHandler>,
+}
+
 #[derive(Clone)]
 pub struct AppState {
     pub graph_service_addr: Addr<TransitionalGraphSupervisor>,
@@ -58,6 +75,9 @@ pub struct AppState {
     // Knowledge graph and ontology use concrete types (generic handlers)
     pub knowledge_graph_repository: Arc<SqliteKnowledgeGraphRepository>,
     pub ontology_repository: Arc<SqliteOntologyRepository>,
+    // Graph CQRS (Phase 1D migration)
+    pub graph_repository: Arc<ActorGraphRepository>,
+    pub graph_query_handlers: GraphQueryHandlers,
     // Database-backed settings (legacy - for backward compatibility)
     pub db_service: Arc<DatabaseService>,
     pub settings_service: Arc<SettingsService>,
@@ -233,6 +253,29 @@ impl AppState {
             knowledge_graph_repository.clone(),
         )
         .start();
+
+        // Phase 1D: Create graph repository adapter and CQRS query handlers
+        info!("[AppState::new] Retrieving GraphServiceActor from TransitionalGraphSupervisor for CQRS");
+        let graph_actor_addr = graph_service_addr
+            .send(crate::actors::messages::GetGraphServiceActor)
+            .await
+            .map_err(|e| format!("Failed to send GetGraphServiceActor message: {}", e))?
+            .ok_or_else(|| "GraphServiceActor not initialized in supervisor".to_string())?;
+
+        info!("[AppState::new] Creating graph repository adapter (CQRS Phase 1D)");
+        let graph_repository = Arc::new(ActorGraphRepository::new(graph_actor_addr));
+
+        info!("[AppState::new] Initializing CQRS query handlers for graph domain");
+        let graph_query_handlers = GraphQueryHandlers {
+            get_graph_data: Arc::new(GetGraphDataHandler::new(graph_repository.clone())),
+            get_node_map: Arc::new(GetNodeMapHandler::new(graph_repository.clone())),
+            get_physics_state: Arc::new(GetPhysicsStateHandler::new(graph_repository.clone())),
+            get_auto_balance_notifications: Arc::new(GetAutoBalanceNotificationsHandler::new(graph_repository.clone())),
+            get_bots_graph_data: Arc::new(GetBotsGraphDataHandler::new(graph_repository.clone())),
+            get_constraints: Arc::new(GetConstraintsHandler::new(graph_repository.clone())),
+            get_equilibrium_status: Arc::new(GetEquilibriumStatusHandler::new(graph_repository.clone())),
+            compute_shortest_paths: Arc::new(ComputeShortestPathsHandler::new(graph_repository.clone())),
+        };
 
         // WEBSOCKET SETTLING FIX: Set graph service supervisor address in client manager for force broadcasts
         info!("[AppState::new] Linking ClientCoordinatorActor to TransitionalGraphSupervisor for settling fix");
@@ -417,6 +460,9 @@ impl AppState {
             settings_repository,
             knowledge_graph_repository,
             ontology_repository,
+            // Graph CQRS (Phase 1D)
+            graph_repository,
+            graph_query_handlers,
             // NEW: Database-backed settings (direct UI connection)
             db_service,
             settings_service,

@@ -91,7 +91,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use actix_web::{test, web, App};
+    use actix_web::{test, web, App, HttpResponse};
 
     #[actix_web::test]
     async fn test_timeout_middleware_success() {

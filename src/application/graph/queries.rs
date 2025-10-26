@@ -117,7 +117,9 @@ impl QueryHandler<GetPhysicsState, PhysicsState> for GetPhysicsStateHandler {
 // ============================================================================
 
 #[derive(Debug, Clone)]
-pub struct GetAutoBalanceNotifications;
+pub struct GetAutoBalanceNotifications {
+    pub since_timestamp: Option<i64>,
+}
 
 pub struct GetAutoBalanceNotificationsHandler {
     repository: Arc<dyn GraphRepository>,
@@ -130,8 +132,8 @@ impl GetAutoBalanceNotificationsHandler {
 }
 
 impl QueryHandler<GetAutoBalanceNotifications, Vec<AutoBalanceNotification>> for GetAutoBalanceNotificationsHandler {
-    fn handle(&self, _query: GetAutoBalanceNotifications) -> HexResult<Vec<AutoBalanceNotification>> {
-        log::debug!("Executing GetAutoBalanceNotifications query");
+    fn handle(&self, query: GetAutoBalanceNotifications) -> HexResult<Vec<AutoBalanceNotification>> {
+        log::debug!("Executing GetAutoBalanceNotifications query (since_timestamp: {:?})", query.since_timestamp);
 
         let repository = self.repository.clone();
 
