@@ -53,11 +53,107 @@ The GitHub sync service was failing to populate the `knowledge_graph.db`. The AP
     -   Task fa4d4d: Checking node count after 210 seconds
     -   Task aab791: Getting recent container logs after 30 seconds
 
-## 5. Next Steps
+## 5. Container Communication Fix (2025-10-25 22:25)
 
-**Immediate** (automated): Wait for GitHub sync to trigger save_graph and capture the detailed error messages showing:
--   Exact SQLite error code and extended code
--   Which constraint failed (FOREIGN KEY or UNIQUE)
--   Which specific node IDs or edge IDs caused the failure
+**Issue**: agentic-workstation Management API was not running, causing connection failures.
 
-**After Error Identified**: Implement fix based on the specific constraint violation captured in logs.
+**Fix Applied**:
+```bash
+docker exec agentic-workstation bash -c "cd /opt/management-api && node server.js" &
+```
+
+**Verification**:
+- ✅ Management API responding on http://agentic-workstation:9090
+- ✅ AgentMonitorActor successfully polling every 3 seconds
+- ✅ Logs show: `reuse idle connection for ("http", agentic-workstation:9090)`
+- ✅ No more network errors
+
+**Documentation**: `/home/devuser/workspace/project/CONTAINER_COMMUNICATION_FIX.md`
+
+## 6. Current Status (2025-10-25 22:28)
+
+**Database Status**:
+- Files exist: `/app/data/knowledge_graph.db` (4KB), WAL file (840KB)
+- **EMPTY**: No tables (`no such table: kg_nodes`)
+- Database created at: Oct 25 21:36 (container start time)
+
+**GitHub Sync Status**:
+- ❌ NO sync has run since container start
+- ❌ No "GitHub sync" messages in logs
+- API returns 529 nodes (source unknown - possibly in-memory defaults)
+
+**Application Status**:
+- ✅ webxr process running (PID 23)
+- ✅ API responding on port 4000
+- ✅ AgentMonitorActor working correctly
+
+## 7. Root Cause Identified (2025-10-25 22:35)
+
+**Issue**: UNIQUE constraint violation on `kg_edges.id`
+
+**Error Message**:
+```
+Failed to save accumulated knowledge graph: Database error: Failed to insert edge 3: UNIQUE constraint failed: kg_edges.id
+```
+
+**Root Cause**:
+- Edge IDs are generated as `format!("{}_{}", source_id, target_id)` in `knowledge_graph_parser.rs:154`
+- When multiple markdown files link to the same target from the same source, they create duplicate edge IDs
+- Example: If files A and B both link from node 1 to node 2, both create edge ID "1_2"
+- Database has UNIQUE constraint on `kg_edges.id` (schema shows `id TEXT PRIMARY KEY`)
+- Nodes are deduplicated using HashMap, but edges are accumulated in a Vec without deduplication
+
+**Sync Statistics**:
+- Duration: 201 seconds (~3.5 minutes)
+- Files scanned: 731 total (188 knowledge graph, 241 ontology, 300 skipped)
+- Nodes found: 529 unique nodes (deduplicated successfully)
+- Edges found: 1263 edges (includes duplicates - PROBLEM!)
+- Failed at: Database save step
+
+**Fix Required**: Deduplicate edges using HashMap by edge ID before saving to database
+
+## 8. Fix Implemented and Verified (2025-10-25 22:44)
+
+**Changes Made**:
+1. ✅ Modified `src/services/github_sync_service.rs:93-94` to use HashMap for edge deduplication
+2. ✅ Updated edge accumulation logic to use `HashMap<String, Edge>` instead of `Vec<Edge>`
+3. ✅ Converted HashMap to Vec before saving: `let edge_vec = accumulated_edges.into_values().collect()`
+4. ✅ Updated log message from "edges" to "unique edges" for clarity
+
+**Build and Deploy**:
+- Backend rebuilt successfully in 37.64 seconds
+- Database cleared and container restarted
+- Fresh GitHub sync completed at 22:44:15 UTC
+
+**Results**:
+- ✅ **Before fix**: 1263 edges (with duplicates) → UNIQUE constraint error
+- ✅ **After fix**: 839 unique edges → Saved successfully
+- ✅ **Duplicates removed**: 424 edges (33% reduction)
+- ✅ **Database**: knowledge_graph.db contains all 529 nodes and 839 edges
+- ✅ **API**: Returns 529 nodes and 839 edges correctly
+
+**File**: `src/services/github_sync_service.rs:90-278`
+
+## 9. Permanent Fix Applied (2025-10-25 23:00)
+
+**Management API Autostart** - ✅ COMPLETED:
+- **Status**: Permanent fix applied to multi-agent-docker source
+- **Changes**:
+  1. Created health check script: `unified-config/scripts/verify-management-api.sh`
+  2. Updated supervisord config: Added `management-api-healthcheck` program
+  3. Updated entrypoint: Added Phase 7.5 to install health check script
+- **How it works**:
+  - Supervisord starts Management API (priority 300)
+  - Health check runs after all services start (priority 950)
+  - Verifies API responds on port 9090 within 60 seconds
+  - Automatically restarts service if not running
+  - Logs detailed diagnostics on failure
+- **Documentation**: See `CONTAINER_COMMUNICATION_FIX.md` for complete details
+- **Testing**: Next agentic-workstation container rebuild will test the fix
+
+**Files Modified**:
+- `multi-agent-docker/unified-config/scripts/verify-management-api.sh` (created)
+- `multi-agent-docker/unified-config/supervisord.unified.conf` (lines 226-240 added)
+- `multi-agent-docker/unified-config/entrypoint-unified.sh` (lines 314-363 added)
+- `CONTAINER_COMMUNICATION_FIX.md` (documented permanent fix)
+- `task-debug.md` (this file - marked task complete)

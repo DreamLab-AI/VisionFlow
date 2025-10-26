@@ -312,6 +312,57 @@ else
 fi
 
 # ============================================================================
+# Phase 7.5: Install Management API Health Check Script
+# ============================================================================
+
+echo "[7.5/10] Installing Management API health check script..."
+
+# Create scripts directory
+mkdir -p /opt/scripts
+
+# Copy verification script if available in unified-config
+if [ -f "/unified-config/scripts/verify-management-api.sh" ]; then
+    cp /unified-config/scripts/verify-management-api.sh /opt/scripts/
+    chmod +x /opt/scripts/verify-management-api.sh
+    echo "✓ Management API health check script installed"
+else
+    # Create inline if not available (fallback)
+    cat > /opt/scripts/verify-management-api.sh <<'HEALTHCHECK_SCRIPT'
+#!/bin/bash
+# Management API Health Check Script
+set -e
+MANAGEMENT_API_HOST="${MANAGEMENT_API_HOST:-localhost}"
+MANAGEMENT_API_PORT="${MANAGEMENT_API_PORT:-9090}"
+MAX_RETRIES=30
+RETRY_DELAY=2
+echo "=== Management API Health Check ==="
+echo "Target: http://${MANAGEMENT_API_HOST}:${MANAGEMENT_API_PORT}/health"
+for i in $(seq 1 $MAX_RETRIES); do
+    if curl -s -f "http://${MANAGEMENT_API_HOST}:${MANAGEMENT_API_PORT}/health" > /dev/null 2>&1; then
+        RESPONSE=$(curl -s "http://${MANAGEMENT_API_HOST}:${MANAGEMENT_API_PORT}/health")
+        echo "✅ Management API is healthy (attempt $i/$MAX_RETRIES)"
+        echo "   Response: $RESPONSE"
+        exit 0
+    else
+        echo "⏳ Attempt $i/$MAX_RETRIES: Management API not ready..."
+        if supervisorctl status management-api | grep -q "RUNNING"; then
+            echo "   Process status: RUNNING"
+        else
+            echo "   ⚠️  Process not running! Restarting..."
+            supervisorctl restart management-api
+        fi
+        sleep $RETRY_DELAY
+    fi
+done
+echo "❌ Management API health check FAILED"
+supervisorctl status management-api
+exit 1
+HEALTHCHECK_SCRIPT
+    chmod +x /opt/scripts/verify-management-api.sh
+    echo "✓ Management API health check script created inline"
+fi
+
+# ============================================================================
 # Phase 8: Enhance CLAUDE.md with Project Context
 # ============================================================================
 

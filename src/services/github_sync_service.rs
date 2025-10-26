@@ -90,7 +90,8 @@ impl GitHubSyncService {
         // Accumulate all knowledge graph data before saving
         // Use HashMap for automatic node deduplication by ID
         let mut accumulated_nodes: std::collections::HashMap<u32, crate::models::node::Node> = std::collections::HashMap::new();
-        let mut accumulated_edges: Vec<crate::models::edge::Edge> = Vec::new();
+        // Use HashMap for automatic edge deduplication by ID to prevent UNIQUE constraint violations
+        let mut accumulated_edges: std::collections::HashMap<String, crate::models::edge::Edge> = std::collections::HashMap::new();
 
         // Accumulate all ontology data before saving
         let mut accumulated_classes: Vec<crate::ports::ontology_repository::OwlClass> = Vec::new();
@@ -157,12 +158,13 @@ impl GitHubSyncService {
         // Convert HashMap to Vec and create GraphData for saving
         if !accumulated_nodes.is_empty() {
             let node_vec: Vec<crate::models::node::Node> = accumulated_nodes.into_values().collect();
-            info!("Saving accumulated knowledge graph: {} unique nodes, {} edges",
-                  node_vec.len(), accumulated_edges.len());
+            let edge_vec: Vec<crate::models::edge::Edge> = accumulated_edges.into_values().collect();
+            info!("Saving accumulated knowledge graph: {} unique nodes, {} unique edges",
+                  node_vec.len(), edge_vec.len());
 
             let mut final_graph = crate::models::graph::GraphData::new();
             final_graph.nodes = node_vec;
-            final_graph.edges = accumulated_edges;
+            final_graph.edges = edge_vec;
 
             match self.kg_repo.save_graph(&final_graph).await {
                 Ok(_) => info!("✅ Knowledge graph saved successfully"),
@@ -218,7 +220,7 @@ impl GitHubSyncService {
         &self,
         file: &GitHubFileBasicMetadata,
         accumulated_nodes: &mut std::collections::HashMap<u32, crate::models::node::Node>,
-        accumulated_edges: &mut Vec<crate::models::edge::Edge>,
+        accumulated_edges: &mut std::collections::HashMap<String, crate::models::edge::Edge>,
         accumulated_classes: &mut Vec<crate::ports::ontology_repository::OwlClass>,
         accumulated_properties: &mut Vec<crate::ports::ontology_repository::OwlProperty>,
         accumulated_axioms: &mut Vec<crate::ports::ontology_repository::OwlAxiom>,
@@ -251,7 +253,7 @@ impl GitHubSyncService {
         file: &GitHubFileBasicMetadata,
         content: &str,
         accumulated_nodes: &mut std::collections::HashMap<u32, crate::models::node::Node>,
-        accumulated_edges: &mut Vec<crate::models::edge::Edge>,
+        accumulated_edges: &mut std::collections::HashMap<String, crate::models::edge::Edge>,
     ) -> FileProcessResult {
         // Parse the file
         let graph_data = match self.kg_parser.parse(content, &file.name) {
@@ -271,8 +273,10 @@ impl GitHubSyncService {
             accumulated_nodes.insert(node.id, node);
         }
 
-        // Accumulate edges in Vec (no deduplication needed)
-        accumulated_edges.extend(graph_data.edges);
+        // Accumulate edges in HashMap for automatic deduplication by edge ID
+        for edge in graph_data.edges {
+            accumulated_edges.insert(edge.id.clone(), edge);
+        }
 
         FileProcessResult::KnowledgeGraph {
             nodes: node_count,
