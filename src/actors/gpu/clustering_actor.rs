@@ -625,82 +625,6 @@ impl Actor for ClusteringActor {
 
 // === Message Handlers ===
 
-impl Handler<RunKMeans> for ClusteringActor {
-    type Result = actix::ResponseFuture<Result<KMeansResult, String>>;
-
-    fn handle(&mut self, msg: RunKMeans, _ctx: &mut Self::Context) -> Self::Result {
-        info!("ClusteringActor: K-means clustering request received");
-
-        // Check GPU initialization
-        if self.shared_context.is_none() {
-            error!("ClusteringActor: GPU not initialized for K-means");
-            return Box::pin(async move { Err("GPU not initialized".to_string()) });
-        }
-
-        if self.gpu_state.num_nodes == 0 {
-            error!("ClusteringActor: No nodes available for clustering");
-            return Box::pin(async move { Err("No nodes available for clustering".to_string()) });
-        }
-
-        let _params = msg.params;
-
-        Box::pin(ready(Err(
-            "KMeans clustering not yet implemented".to_string()
-        )))
-    }
-}
-
-impl Handler<RunCommunityDetection> for ClusteringActor {
-    type Result = actix::ResponseFuture<Result<CommunityDetectionResult, String>>;
-
-    fn handle(&mut self, msg: RunCommunityDetection, _ctx: &mut Self::Context) -> Self::Result {
-        info!("ClusteringActor: Community detection request received");
-
-        // Check GPU initialization
-        if self.shared_context.is_none() {
-            error!("ClusteringActor: GPU not initialized for community detection");
-            return Box::pin(async move { Err("GPU not initialized".to_string()) });
-        }
-
-        if self.gpu_state.num_nodes == 0 {
-            error!("ClusteringActor: No nodes available for community detection");
-            return Box::pin(async move {
-                Err("No nodes available for community detection".to_string())
-            });
-        }
-
-        let _params = msg.params;
-
-        Box::pin(ready(Err(
-            "Community detection not yet implemented".to_string()
-        )))
-    }
-}
-
-impl Handler<PerformGPUClustering> for ClusteringActor {
-    type Result = actix::ResponseFuture<
-        Result<Vec<crate::handlers::api_handler::analytics::Cluster>, String>,
-    >;
-
-    fn handle(&mut self, msg: PerformGPUClustering, _ctx: &mut Self::Context) -> Self::Result {
-        info!("ClusteringActor: GPU clustering request received");
-
-        if self.shared_context.is_none() {
-            return Box::pin(async move { Err("GPU not initialized".to_string()) });
-        }
-
-        // Convert to K-means parameters and delegate
-        let _kmeans_params = KMeansParams {
-            num_clusters: msg.params.num_clusters.unwrap_or(5) as usize,
-            max_iterations: Some(100),
-            tolerance: Some(0.001),
-            seed: Some(42),
-        };
-
-        Box::pin(ready(Err("GPU clustering not yet implemented".to_string())))
-    }
-}
-
 /// Handler for receiving SharedGPUContext from ResourceActor
 impl Handler<SetSharedGPUContext> for ClusteringActor {
     type Result = Result<(), String>;
@@ -711,5 +635,75 @@ impl Handler<SetSharedGPUContext> for ClusteringActor {
         // msg.graph_service_addr is ignored - only ForceComputeActor needs it
         info!("ClusteringActor: SharedGPUContext stored successfully");
         Ok(())
+    }
+}
+
+/// Handler for K-means clustering
+impl Handler<RunKMeans> for ClusteringActor {
+    type Result = actix::ResponseFuture<Result<KMeansResult, String>>;
+
+    fn handle(&mut self, msg: RunKMeans, _ctx: &mut Self::Context) -> Self::Result {
+        info!("ClusteringActor: Received RunKMeans request with {} clusters", msg.params.num_clusters);
+
+        // Clone self state for async block
+        let mut actor_clone = Self {
+            gpu_state: self.gpu_state.clone(),
+            shared_context: self.shared_context.clone(),
+        };
+
+        Box::pin(async move {
+            actor_clone.perform_kmeans_clustering(msg.params).await
+        })
+    }
+}
+
+/// Handler for community detection
+impl Handler<RunCommunityDetection> for ClusteringActor {
+    type Result = actix::ResponseFuture<Result<CommunityDetectionResult, String>>;
+
+    fn handle(&mut self, msg: RunCommunityDetection, _ctx: &mut Self::Context) -> Self::Result {
+        info!("ClusteringActor: Received RunCommunityDetection request");
+
+        // Clone self state for async block
+        let mut actor_clone = Self {
+            gpu_state: self.gpu_state.clone(),
+            shared_context: self.shared_context.clone(),
+        };
+
+        Box::pin(async move {
+            actor_clone.perform_community_detection(msg.params).await
+        })
+    }
+}
+
+/// Handler for generic GPU clustering
+impl Handler<PerformGPUClustering> for ClusteringActor {
+    type Result = actix::ResponseFuture<Result<Vec<crate::handlers::api_handler::analytics::Cluster>, String>>;
+
+    fn handle(&mut self, msg: PerformGPUClustering, _ctx: &mut Self::Context) -> Self::Result {
+        info!("ClusteringActor: Received PerformGPUClustering request with method: {}", msg.method);
+
+        // Clone self state for async block
+        let mut actor_clone = Self {
+            gpu_state: self.gpu_state.clone(),
+            shared_context: self.shared_context.clone(),
+        };
+
+        Box::pin(async move {
+            // Convert generic clustering request to K-means
+            let params = KMeansParams {
+                num_clusters: msg.num_clusters.unwrap_or(5),
+                max_iterations: Some(msg.max_iterations.unwrap_or(100)),
+                convergence_threshold: Some(msg.convergence_threshold.unwrap_or(0.001)),
+                initialization_method: Some("kmeans++".to_string()),
+                seed: msg.seed,
+            };
+
+            // Perform K-means clustering
+            let result = actor_clone.perform_kmeans_clustering(params).await?;
+
+            // Return the clusters from the result
+            Ok(result.clusters)
+        })
     }
 }

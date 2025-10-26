@@ -43,24 +43,3 @@ impl SafeCudaStream {
 // The CUDA driver handles synchronization internally.
 unsafe impl Send for SafeCudaStream {}
 unsafe impl Sync for SafeCudaStream {}
-
-/// Alternative: Wrapper that keeps stream in an Arc
-pub struct ArcCudaStream {
-    inner: Arc<CudaStream>,
-}
-
-impl ArcCudaStream {
-    pub fn new(stream: CudaStream) -> Self {
-        Self {
-            inner: Arc::new(stream),
-        }
-    }
-
-    pub fn clone_ref(&self) -> Arc<CudaStream> {
-        Arc::clone(&self.inner)
-    }
-}
-
-// SAFETY: CUDA streams are thread-safe at the driver level
-unsafe impl Send for ArcCudaStream {}
-unsafe impl Sync for ArcCudaStream {}

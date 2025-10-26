@@ -15,8 +15,8 @@ pub mod gpu_diagnostics;
 pub mod gpu_memory;
 pub mod gpu_safety;
 pub mod handler_commons;
-pub mod hybrid_fault_tolerance;
-pub mod hybrid_performance_optimizer;
+// pub mod hybrid_fault_tolerance; // REMOVED: Deprecated legacy utility
+// pub mod hybrid_performance_optimizer; // REMOVED: Deprecated legacy utility
 pub mod logging;
 pub mod mcp_connection;
 pub mod mcp_tcp_client;

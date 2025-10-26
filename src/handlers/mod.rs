@@ -18,7 +18,7 @@ pub mod perplexity_handler;
 pub mod ragflow_handler;
 pub mod realtime_websocket_handler;
 pub mod settings_handler; // CQRS-refactored
-pub mod settings_paths;
+// pub mod settings_paths; // REMOVED: Redundant, superseded by settings_handler
 pub mod settings_validation_fix;
 pub mod socket_flow_handler;
 pub mod speech_socket_handler;

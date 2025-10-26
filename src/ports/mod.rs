@@ -17,7 +17,7 @@ pub mod ontology_repository;
 pub mod settings_repository;
 
 // GPU port trait definitions
-pub mod gpu_physics_adapter;
+// pub mod gpu_physics_adapter; // REMOVED: Orphaned port with no implementations
 pub mod gpu_semantic_analyzer;
 
 // Legacy exports
@@ -32,9 +32,9 @@ pub use ontology_repository::OntologyRepository;
 pub use settings_repository::SettingsRepository;
 
 // GPU port trait exports (these are the TRAITS, not the implementations)
-pub use gpu_physics_adapter::{
-    GpuDeviceInfo, GpuPhysicsAdapter, GpuPhysicsAdapterError, PhysicsStatistics, PhysicsStepResult,
-};
+// pub use gpu_physics_adapter::{
+//     GpuDeviceInfo, GpuPhysicsAdapter, GpuPhysicsAdapterError, PhysicsStatistics, PhysicsStepResult,
+// }; // REMOVED: Orphaned port with no implementations
 pub use gpu_semantic_analyzer::{
     ClusteringAlgorithm, CommunityDetectionResult, GpuSemanticAnalyzer, GpuSemanticAnalyzerError,
     ImportanceAlgorithm, OptimizationResult, PathfindingResult, SemanticConstraintConfig,
