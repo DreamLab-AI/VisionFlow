@@ -18,6 +18,7 @@
 //! - **Knowledge Graph**: Main graph structure from local markdown files
 //! - **Ontology**: OWL-based ontology graph from GitHub markdown
 
+pub mod graph;
 pub mod knowledge_graph;
 pub mod ontology;
 pub mod settings;
@@ -127,4 +128,25 @@ pub use ontology::{
     UpdateOwlPropertyHandler,
     ValidateOntology,
     ValidateOntologyHandler,
+};
+
+// Re-export graph domain
+pub use graph::{
+    // Queries
+    ComputeShortestPaths,
+    ComputeShortestPathsHandler,
+    GetAutoBalanceNotifications,
+    GetAutoBalanceNotificationsHandler,
+    GetBotsGraphData,
+    GetBotsGraphDataHandler,
+    GetConstraints,
+    GetConstraintsHandler,
+    GetEquilibriumStatus,
+    GetEquilibriumStatusHandler,
+    GetGraphData,
+    GetGraphDataHandler,
+    GetNodeMap,
+    GetNodeMapHandler,
+    GetPhysicsState,
+    GetPhysicsStateHandler,
 };

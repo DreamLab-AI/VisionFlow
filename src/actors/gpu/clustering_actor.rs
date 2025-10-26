@@ -1,6 +1,5 @@
 //! Clustering Actor - Handles K-means clustering and community detection algorithms
 
-use actix::fut::ready;
 use actix::prelude::*;
 use log::{error, info};
 use rand::Rng;
@@ -692,11 +691,10 @@ impl Handler<PerformGPUClustering> for ClusteringActor {
         Box::pin(async move {
             // Convert generic clustering request to K-means
             let params = KMeansParams {
-                num_clusters: msg.num_clusters.unwrap_or(5),
-                max_iterations: Some(msg.max_iterations.unwrap_or(100)),
-                convergence_threshold: Some(msg.convergence_threshold.unwrap_or(0.001)),
-                initialization_method: Some("kmeans++".to_string()),
-                seed: msg.seed,
+                num_clusters: msg.params.num_clusters.unwrap_or(5) as usize,
+                max_iterations: msg.params.max_iterations,
+                tolerance: msg.params.convergence_threshold,
+                seed: None,
             };
 
             // Perform K-means clustering

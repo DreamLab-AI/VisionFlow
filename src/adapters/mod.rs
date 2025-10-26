@@ -4,8 +4,10 @@
 //! This module contains adapters that implement the port interfaces
 //! using concrete technologies (actors, GPU compute, SQLite, etc.)
 
+// CQRS Phase 1: Actor-based adapter for gradual migration
+pub mod actor_graph_repository;
+
 // Legacy adapters
-// pub mod actor_graph_repository;  // REMOVED: Incomplete stub adapter
 // pub mod gpu_physics_adapter;  // REMOVED: Incomplete stub adapter
 pub mod gpu_semantic_analyzer;
 
@@ -15,8 +17,8 @@ pub mod sqlite_ontology_repository;
 pub mod sqlite_settings_repository;
 pub mod whelk_inference_engine;
 
-// Legacy exports
-// pub use actor_graph_repository::ActorGraphRepository;  // REMOVED: Incomplete stub
+// CQRS Phase 1: Actor-based adapter exports
+pub use actor_graph_repository::ActorGraphRepository;
 
 // GPU adapter implementation exports (these implement the traits from crate::ports)
 // pub use gpu_physics_adapter::GpuPhysicsAdapter as GpuPhysicsAdapterImpl;  // REMOVED: Incomplete stub
