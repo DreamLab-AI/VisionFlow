@@ -8,7 +8,7 @@ pub mod consolidated_health_handler; // Replaces health_handler and mcp_health_h
 pub mod constraints_handler;
 pub mod graph_export_handler;
 pub mod graph_state_handler; // CQRS-refactored
-pub mod hybrid_health_handler;
+// pub mod hybrid_health_handler; // REMOVED: Deprecated hybrid health system
 pub mod mcp_relay_handler;
 pub mod multi_mcp_websocket_handler;
 pub mod nostr_handler;

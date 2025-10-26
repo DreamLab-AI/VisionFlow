@@ -6,6 +6,7 @@ pub mod edge_generation;
 pub mod file_service;
 pub mod github;
 pub mod github_sync_service;
+pub mod local_markdown_sync;
 pub mod management_api_client;
 pub mod multi_mcp_agent_discovery;
 pub mod parsers;

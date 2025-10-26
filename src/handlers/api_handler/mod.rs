@@ -5,7 +5,7 @@ pub mod graph;
 #[cfg(feature = "ontology")]
 pub mod ontology;
 pub mod quest3;
-pub mod sessions;
+// pub mod sessions; // REMOVED: Deprecated sessions API (returns 410 Gone)
 pub mod visualisation;
 
 // Re-export specific types and functions
@@ -134,7 +134,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .configure(crate::handlers::ontology_handler::config) // CQRS-based ontology handler
             .configure(visualisation::config)
             .configure(bots::config)
-            .configure(sessions::config)
+            // .configure(sessions::config)  // REMOVED: Deprecated sessions API (returns 410 Gone)
             .configure(analytics::config)
             .configure(quest3::config)
             .configure(crate::handlers::nostr_handler::config)

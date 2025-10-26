@@ -1,0 +1,228 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    GRAPHSERVICEACTOR DEPENDENCY DIAGRAM
+                          (Monolithic Architecture)
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              API HANDLERS LAYER                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  /api/graph/*          /api/analytics/*        /api/files/upload            │
+│  ┌──────────┐         ┌──────────────┐        ┌─────────────┐              │
+│  │ 6 calls  │────┐    │   3 calls    │───┐    │   1 call    │──┐           │
+│  └──────────┘    │    └──────────────┘   │    └─────────────┘  │           │
+│                  │                       │                      │           │
+│  /clustering/*   │    /bots/graph        │    /health/*         │           │
+│  ┌──────────┐   │    ┌──────────┐       │    ┌──────────┐      │           │
+│  │ 2 calls  │───┤    │ 1 call   │───────┤    │ 1 call   │──────┤           │
+│  └──────────┘   │    └──────────┘       │    └──────────┘      │           │
+│                 │                       │                      │           │
+│                 ▼                       ▼                      ▼           │
+└─────────────────┼───────────────────────┼──────────────────────┼───────────┘
+                  │                       │                      │
+                  │    ┌──────────────────┴──────────────────────┘
+                  │    │
+                  ▼    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         WEBSOCKET HANDLER LAYER                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│                     socket_flow_handler.rs (CRITICAL)                        │
+│                     ┌───────────────────────────┐                           │
+│                     │   7+ SYNCHRONOUS CALLS    │                           │
+│                     │   • GetGraphData          │                           │
+│                     │   • RequestPositionSnapshot│                          │
+│                     │   • UpdateNodePosition    │                           │
+│                     │   • SimulationStep        │                           │
+│                     │   • InitialClientSync     │                           │
+│                     └─────────────┬─────────────┘                           │
+│                                   │                                         │
+└───────────────────────────────────┼─────────────────────────────────────────┘
+                                    │
+                                    ▼
+╔═════════════════════════════════════════════════════════════════════════════╗
+║                     GRAPHSERVICEACTOR (GOD OBJECT)                          ║
+║                          4,566 LINES OF CODE                                ║
+╠═════════════════════════════════════════════════════════════════════════════╣
+║                                                                              ║
+║  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐          ║
+║  │  Graph Structure │  │  Physics System  │  │ GPU Integration  │          ║
+║  │   (10 handlers)  │  │  (12 handlers)   │  │  (8 handlers)    │          ║
+║  └──────────────────┘  └──────────────────┘  └──────────────────┘          ║
+║                                                                              ║
+║  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐          ║
+║  │ Metadata/Content │  │ Bot Integration  │  │    Analytics     │          ║
+║  │   (6 handlers)   │  │   (2 handlers)   │  │  (4 handlers)    │          ║
+║  └──────────────────┘  └──────────────────┘  └──────────────────┘          ║
+║                                                                              ║
+║  ┌──────────────────────────────────────────────────────────────┐           ║
+║  │              Client Sync (4 handlers)                        │           ║
+║  └──────────────────────────────────────────────────────────────┘           ║
+║                                                                              ║
+║  Internal State:                                                            ║
+║    • graph_data: Arc<GraphData>                                             ║
+║    • node_map: HashMap<u32, Node>                                           ║
+║    • physics_state: PhysicsState                                            ║
+║    • gpu_initialized: bool                                                  ║
+║    • 15+ more fields...                                                     ║
+║                                                                              ║
+╚═════════════════════════════════════════════════════════════════════════════╝
+           │                        │                        │
+           │ InitializeGPU          │ UpdateGraphData        │ Position Updates
+           │ UpdateGPUGraphData     │                        │ (CIRCULAR!)
+           │                        │                        │
+           ▼                        ▼                        ▼
+┌─────────────────────┐  ┌─────────────────────┐  ┌─────────────────────┐
+│  GPUManagerActor    │  │ PhysicsOrchestrator │  │ ClientCoordinator   │
+│    (657 lines)      │  │    (1,105 lines)    │  │      Actor          │
+├─────────────────────┤  ├─────────────────────┤  ├─────────────────────┤
+│ • GPU Resource      │  │ • Simulation Loop   │  │ • Force Broadcasts  │
+│ • Force Compute     │  │ • Auto-balance      │  │ • WebSocket Mgmt    │
+│ • Clustering        │  │ • Equilibrium       │  │                     │
+│ • Anomaly Detection │  │ • Constraints       │  │                     │
+│ • Stress Major.     │  │                     │  │                     │
+│ • Constraints       │  │                     │  │                     │
+│ • Ontology Constr.  │  │                     │  │                     │
+└─────────────────────┘  └─────────────────────┘  └─────────────────────┘
+           │                                                 │
+           │                                                 │
+           └─────────────────┐               ┌───────────────┘
+                             │               │
+                             ▼               ▼
+                    ┌─────────────────────────────┐
+                    │   CIRCULAR DEPENDENCY!      │
+                    │   GPU needs GraphServiceActor│
+                    │   for position callbacks    │
+                    └─────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+                         DEPENDENCY STATISTICS
+═══════════════════════════════════════════════════════════════════════════════
+
+  Total Handler Dependencies:        47
+  API Route Dependencies:            9 handlers
+  WebSocket Dependencies:            1 handler (7+ calls - HIGHEST)
+  Actor-to-Actor Dependencies:       3 actors
+  Service Dependencies:              3 services
+  Test Dependencies:                 2 test files
+
+  Message Handlers:                  46 total
+    ├─ Graph Structure:              10 handlers
+    ├─ Physics:                      12 handlers
+    ├─ GPU Integration:              8 handlers
+    ├─ Metadata/Content:             6 handlers
+    ├─ Bot Integration:              2 handlers
+    ├─ Analytics:                    4 handlers
+    └─ Client Sync:                  4 handlers
+
+  Circular Dependencies:             1 (GPU ↔ Graph)
+  God Object Lines:                  4,566 lines
+  Migration Complexity:              9/10 (VERY HIGH)
+  Estimated Migration Time:          200 hours
+
+═══════════════════════════════════════════════════════════════════════════════
+                      TARGET HEXAGONAL ARCHITECTURE
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              API HANDLERS LAYER                              │
+│  (No direct actor dependencies - use repositories instead)                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  /api/graph/*          /api/analytics/*        /api/files/upload            │
+│       │                      │                        │                     │
+│       └──────────┬───────────┴────────────────────────┘                     │
+│                  │                                                           │
+│                  ▼                                                           │
+│         Arc<dyn GraphRepository>                                            │
+│         Arc<dyn AnalyticsRepository>                                        │
+│         Arc<dyn FileRepository>                                             │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          DOMAIN SERVICES LAYER                               │
+│                    (Business Logic - No Actors)                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐          │
+│  │  GraphService    │  │  PhysicsService  │  │  AnalyticsService│          │
+│  │  (Graph ops)     │  │  (Simulation)    │  │  (GPU analytics) │          │
+│  └──────────────────┘  └──────────────────┘  └──────────────────┘          │
+│                                                                              │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐          │
+│  │  MetadataService │  │    BotService    │  │  ConstraintSvc   │          │
+│  └──────────────────┘  └──────────────────┘  └──────────────────┘          │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         REPOSITORY LAYER (PORTS)                             │
+│                    (Data Access Abstractions)                                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  trait GraphRepository        trait PhysicsRepository                       │
+│  trait AnalyticsRepository    trait MetadataRepository                      │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        ADAPTERS LAYER (IMPLEMENTATIONS)                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  SqliteGraphRepository       RedisGraphRepository                           │
+│  SqliteAnalyticsRepository   MemoryPhysicsRepository                        │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         INFRASTRUCTURE LAYER                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  SQLite Database          GPU Manager          Event Bus                    │
+│  (Graph storage)          (Physics compute)    (Async events)               │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+BENEFITS:
+  ✅ No circular dependencies
+  ✅ All dependencies point inward
+  ✅ 10x faster queries (direct DB access)
+  ✅ Testable without actors
+  ✅ Scalable (connection pooling)
+  ✅ Maintainable (separated concerns)
+
+═══════════════════════════════════════════════════════════════════════════════
+                            MIGRATION STRATEGY
+═══════════════════════════════════════════════════════════════════════════════
+
+PHASE 1: Foundation (Week 1-2)
+  → Create GraphRepository trait
+  → Implement SqliteGraphRepository
+  → Migrate 2-3 simple handlers as proof-of-concept
+
+PHASE 2: Query Path (Week 3-4)
+  → Migrate all read-only handlers to repositories (CQRS Query side)
+  → Keep actor system for mutations (CQRS Command side)
+  → Performance testing (expect 10x speedup)
+
+PHASE 3: Event Bus (Week 4-5)
+  → Implement event bus for GPU position updates
+  → Break circular GPU ↔ Graph dependency
+  → Async event-driven architecture
+
+PHASE 4: WebSocket (Week 5-6)
+  → Replace synchronous actor calls with async queue
+  → Sub-millisecond position updates
+  → 60 FPS real-time updates
+
+PHASE 5: Consolidation (Week 7-8)
+  → Split GraphServiceActor into domain services
+  → Keep lightweight command orchestrator
+  → Complete hexagonal architecture
+
+═══════════════════════════════════════════════════════════════════════════════

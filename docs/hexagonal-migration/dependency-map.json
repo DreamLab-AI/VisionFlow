@@ -1,0 +1,529 @@
+{
+  "audit_metadata": {
+    "generated": "2025-10-26",
+    "auditor": "Code Quality Analyzer Agent",
+    "codebase_version": "transitional-architecture",
+    "total_files_analyzed": 26
+  },
+  "graph_service_actor": {
+    "file_path": "src/actors/graph_actor.rs",
+    "lines_of_code": 4566,
+    "total_dependencies": 47,
+    "message_handlers": 46,
+    "migration_complexity": 9,
+    "estimated_hours": 200,
+    "blast_radius": "CRITICAL",
+    "api_routes": [
+      {
+        "handler": "src/handlers/api_handler/graph/mod.rs",
+        "endpoints": [
+          "GET /api/graph",
+          "POST /api/graph/nodes",
+          "DELETE /api/graph/nodes/:id",
+          "GET /api/graph/refresh",
+          "GET /api/graph/auto-balance"
+        ],
+        "message_sends": 6,
+        "messages_used": [
+          "GetGraphData",
+          "GetNodeMap",
+          "GetPhysicsState",
+          "AddNodesFromMetadata",
+          "GetAutoBalanceNotifications"
+        ],
+        "criticality": "HIGH"
+      },
+      {
+        "handler": "src/handlers/api_handler/analytics/mod.rs",
+        "endpoints": [
+          "POST /api/analytics/clustering",
+          "POST /api/analytics/anomaly",
+          "POST /api/analytics/community"
+        ],
+        "message_sends": 3,
+        "messages_used": [
+          "GetGraphData",
+          "GPU routing via GraphServiceActor"
+        ],
+        "criticality": "HIGH"
+      },
+      {
+        "handler": "src/handlers/api_handler/files/mod.rs",
+        "endpoints": [
+          "POST /api/files/upload"
+        ],
+        "message_sends": 1,
+        "messages_used": [
+          "AddNodesFromMetadata"
+        ],
+        "criticality": "MEDIUM"
+      },
+      {
+        "handler": "src/handlers/clustering_handler.rs",
+        "endpoints": [
+          "GET /clustering/*"
+        ],
+        "message_sends": 2,
+        "messages_used": [
+          "GetGraphData"
+        ],
+        "criticality": "MEDIUM"
+      },
+      {
+        "handler": "src/handlers/bots_handler.rs",
+        "endpoints": [
+          "GET /bots/graph"
+        ],
+        "message_sends": 1,
+        "messages_used": [
+          "GetBotsGraphData"
+        ],
+        "criticality": "LOW"
+      }
+    ],
+    "websocket_handlers": [
+      {
+        "handler": "src/handlers/socket_flow_handler.rs",
+        "message_sends": 7,
+        "messages_used": [
+          "GetGraphData",
+          "RequestPositionSnapshot",
+          "UpdateNodePosition",
+          "SimulationStep",
+          "InitialClientSync"
+        ],
+        "criticality": "CRITICAL",
+        "notes": "Real-time physics updates - highest coupling, bidirectional dependency"
+      }
+    ],
+    "services": [
+      {
+        "service": "src/app_state.rs",
+        "dependency_type": "Direct Address Storage",
+        "field": "graph_service_addr: Addr<TransitionalGraphSupervisor>",
+        "impact": "ALL handlers receive this address",
+        "criticality": "CRITICAL"
+      },
+      {
+        "service": "src/services/bots_client.rs",
+        "dependency_type": "Actor Address Storage",
+        "usage": "Bot metadata → graph node creation",
+        "criticality": "MEDIUM"
+      },
+      {
+        "service": "src/actors/client_coordinator_actor.rs",
+        "dependency_type": "Force Broadcast Recipient",
+        "message": "SetGraphServiceAddress",
+        "usage": "WebSocket settling fix",
+        "criticality": "HIGH"
+      }
+    ],
+    "actor_dependencies": [
+      {
+        "actor": "GPUManagerActor",
+        "dependency_type": "CIRCULAR",
+        "messages_to_graph": [
+          "Position update broadcasts"
+        ],
+        "messages_from_graph": [
+          "InitializeGPU",
+          "UpdateGPUGraphData",
+          "SetSharedGPUContext"
+        ],
+        "criticality": "HIGH",
+        "notes": "Circular dependency prevents clean separation"
+      },
+      {
+        "actor": "PhysicsOrchestratorActor",
+        "dependency_type": "DATA_REFERENCE",
+        "messages_to_graph": [
+          "UpdateGraphData (via GPU)"
+        ],
+        "messages_from_graph": [
+          "Graph data via Arc<GraphData>"
+        ],
+        "criticality": "MEDIUM",
+        "notes": "Already partially decoupled - uses data reference pattern"
+      },
+      {
+        "actor": "ClientCoordinatorActor",
+        "dependency_type": "BROADCAST_RECIPIENT",
+        "messages_from_graph": [
+          "ForcePositionBroadcast"
+        ],
+        "criticality": "HIGH",
+        "notes": "Required for WebSocket real-time updates"
+      }
+    ],
+    "tests": [
+      {
+        "test_file": "src/test_constraint_integration.rs",
+        "dependency_type": "Integration test",
+        "criticality": "LOW"
+      },
+      {
+        "test_file": "src/test_metadata_debug.rs",
+        "dependency_type": "Debug test",
+        "criticality": "LOW"
+      }
+    ],
+    "message_handler_categories": {
+      "graph_structure": {
+        "count": 10,
+        "handlers": [
+          "GetGraphData",
+          "GetNodeMap",
+          "AddNode",
+          "RemoveNode",
+          "AddEdge",
+          "RemoveEdge",
+          "BatchAddNodes",
+          "BatchAddEdges",
+          "BatchGraphUpdate",
+          "UpdateNodePositions"
+        ]
+      },
+      "physics": {
+        "count": 12,
+        "handlers": [
+          "StartSimulation",
+          "StopSimulation",
+          "SimulationStep",
+          "UpdateNodePosition",
+          "GetPhysicsState",
+          "UpdateSimulationParams",
+          "UpdateAdvancedParams",
+          "PhysicsPauseMessage",
+          "NodeInteractionMessage",
+          "ForceResumePhysics",
+          "GetEquilibriumStatus",
+          "RequestPositionSnapshot"
+        ]
+      },
+      "gpu_integration": {
+        "count": 8,
+        "handlers": [
+          "InitializeGPUConnection",
+          "StoreGPUComputeAddress",
+          "GPUInitialized",
+          "SetAdvancedGPUContext",
+          "ResetGPUInitFlag",
+          "UpdateConstraints",
+          "GetConstraints",
+          "TriggerStressMajorization"
+        ]
+      },
+      "metadata_content": {
+        "count": 6,
+        "handlers": [
+          "BuildGraphFromMetadata",
+          "AddNodesFromMetadata",
+          "UpdateNodeFromMetadata",
+          "RemoveNodeByMetadata",
+          "UpdateGraphData",
+          "ReloadGraphFromDatabase"
+        ]
+      },
+      "bot_integration": {
+        "count": 2,
+        "handlers": [
+          "UpdateBotsGraph",
+          "GetBotsGraphData"
+        ]
+      },
+      "analytics": {
+        "count": 4,
+        "handlers": [
+          "GetAutoBalanceNotifications",
+          "RegenerateSemanticConstraints",
+          "ComputeShortestPaths",
+          "UpdateQueue operations"
+        ]
+      },
+      "sync": {
+        "count": 4,
+        "handlers": [
+          "InitialClientSync",
+          "ForcePositionBroadcast",
+          "FlushUpdateQueue",
+          "ConfigureUpdateQueue"
+        ]
+      }
+    },
+    "breaking_removal_impact": [
+      "All graph visualization APIs broken",
+      "WebSocket real-time updates fail",
+      "Physics simulation halts",
+      "GPU-accelerated analytics unavailable",
+      "Bot graph integration breaks",
+      "Auto-balance notifications stop",
+      "Metadata-driven graph building fails"
+    ]
+  },
+  "gpu_manager_actor": {
+    "file_path": "src/actors/gpu/gpu_manager_actor.rs",
+    "lines_of_code": 657,
+    "total_dependencies": 18,
+    "message_handlers": 18,
+    "migration_complexity": 5,
+    "estimated_hours": 60,
+    "blast_radius": "MEDIUM",
+    "child_actors": [
+      {
+        "actor": "GPUResourceActor",
+        "responsibility": "GPU buffer management",
+        "criticality": "HIGH"
+      },
+      {
+        "actor": "ForceComputeActor",
+        "responsibility": "Physics force calculations",
+        "criticality": "CRITICAL"
+      },
+      {
+        "actor": "ClusteringActor",
+        "responsibility": "K-means, community detection",
+        "criticality": "MEDIUM"
+      },
+      {
+        "actor": "AnomalyDetectionActor",
+        "responsibility": "LOF, Z-score anomaly detection",
+        "criticality": "MEDIUM"
+      },
+      {
+        "actor": "StressMajorizationActor",
+        "responsibility": "Graph layout optimization",
+        "criticality": "LOW"
+      },
+      {
+        "actor": "ConstraintActor",
+        "responsibility": "Physics constraints",
+        "criticality": "MEDIUM"
+      },
+      {
+        "actor": "OntologyConstraintActor",
+        "responsibility": "Ontology-driven constraints",
+        "criticality": "LOW"
+      }
+    ],
+    "graph_service_dependency": {
+      "type": "CALLBACK_ADDRESS",
+      "message": "SetSharedGPUContext",
+      "field": "graph_service_addr: Option<Addr<GraphServiceActor>>",
+      "purpose": "GPU actors send position updates back to graph",
+      "circular_dependency": true,
+      "blocking_migration": true
+    },
+    "message_routing": [
+      "InitializeGPU → GPUResourceActor",
+      "UpdateGPUGraphData → GPUResourceActor + ForceComputeActor",
+      "ComputeForces → ForceComputeActor",
+      "RunKMeans → ClusteringActor",
+      "RunCommunityDetection → ClusteringActor",
+      "RunAnomalyDetection → AnomalyDetectionActor",
+      "PerformGPUClustering → ClusteringActor (with method routing)",
+      "TriggerStressMajorization → StressMajorizationActor",
+      "UpdateConstraints → ConstraintActor",
+      "GetGPUStatus → Internal state (no delegation)",
+      "GetForceComputeActor → Returns child actor address",
+      "UploadConstraintsToGPU → ConstraintActor",
+      "GetNodeData → ForceComputeActor",
+      "UpdateSimulationParams → ForceComputeActor",
+      "UpdateAdvancedParams → ForceComputeActor",
+      "SetSharedGPUContext → ALL child actors",
+      "ApplyOntologyConstraints → OntologyConstraintActor"
+    ],
+    "breaking_removal_impact": [
+      "GPU-accelerated physics stops",
+      "Clustering analytics fail",
+      "Anomaly detection unavailable",
+      "Constraint-based layouts broken",
+      "Ontology physics constraints ignored"
+    ]
+  },
+  "physics_orchestrator_actor": {
+    "file_path": "src/actors/physics_orchestrator_actor.rs",
+    "lines_of_code": 1105,
+    "total_dependencies": 15,
+    "message_handlers": 15,
+    "migration_complexity": 3,
+    "estimated_hours": 60,
+    "blast_radius": "LOW",
+    "current_state": "PARTIALLY_DECOUPLED",
+    "positive_findings": [
+      "Uses Arc<GraphData> instead of actor queries",
+      "Parameter interpolation for smooth transitions",
+      "Auto-balance well-isolated",
+      "Equilibrium detection decoupled"
+    ],
+    "dependencies": {
+      "graph_data": {
+        "type": "DATA_REFERENCE",
+        "field": "graph_data_ref: Option<Arc<GraphData>>",
+        "access_pattern": "Read-only reference",
+        "coupling": "LOW"
+      },
+      "gpu_compute": {
+        "type": "ACTOR_ADDRESS",
+        "field": "gpu_compute_addr: Option<Addr<ForceComputeActor>>",
+        "usage": "Physics step delegation",
+        "coupling": "MEDIUM"
+      },
+      "ontology": {
+        "type": "ACTOR_ADDRESS",
+        "field": "ontology_actor_addr: Option<Addr<OntologyActor>>",
+        "usage": "Constraint generation",
+        "coupling": "LOW"
+      }
+    },
+    "message_handlers_by_category": {
+      "simulation_control": [
+        "StartSimulation",
+        "StopSimulation",
+        "SimulationStep"
+      ],
+      "node_updates": [
+        "UpdateNodePositions",
+        "UpdateNodePosition"
+      ],
+      "state_queries": [
+        "RequestPositionSnapshot",
+        "GetPhysicsStatus"
+      ],
+      "physics_control": [
+        "PhysicsPauseMessage",
+        "NodeInteractionMessage",
+        "ForceResumePhysics"
+      ],
+      "parameters": [
+        "UpdateSimulationParams",
+        "FlushParameterTransitions",
+        "SetParameterInterpolationRate"
+      ],
+      "constraints": [
+        "ApplyOntologyConstraints",
+        "SetConstraintGroupActive",
+        "GetConstraintStats"
+      ],
+      "gpu": [
+        "StoreGPUComputeAddress",
+        "UpdateGraphData"
+      ],
+      "ontology": [
+        "SetOntologyActor"
+      ]
+    },
+    "breaking_removal_impact": [
+      "Physics simulation orchestration stops",
+      "Auto-balance features fail",
+      "Equilibrium detection unavailable",
+      "Constraint management broken"
+    ]
+  },
+  "migration_roadmap": {
+    "total_estimated_hours": 320,
+    "total_estimated_weeks": 8,
+    "recommended_team_size": 2,
+    "phases": [
+      {
+        "phase": 1,
+        "name": "Foundation",
+        "hours": 80,
+        "tasks": [
+          "Create GraphRepository trait",
+          "Implement SQLite GraphRepository",
+          "Add repository to AppState",
+          "Refactor 2-3 simple API handlers",
+          "Add integration tests"
+        ]
+      },
+      {
+        "phase": 2,
+        "name": "API Handler Migration",
+        "hours": 60,
+        "tasks": [
+          "Migrate all /api/graph/* handlers",
+          "Implement CQRS pattern",
+          "Performance testing",
+          "Maintain actor system for mutations"
+        ]
+      },
+      {
+        "phase": 3,
+        "name": "Event Bus Implementation",
+        "hours": 40,
+        "tasks": [
+          "Design and implement event bus",
+          "GPU position update via events",
+          "Remove GraphServiceActor from GPU actors",
+          "Break circular dependency"
+        ]
+      },
+      {
+        "phase": 4,
+        "name": "WebSocket Optimization",
+        "hours": 60,
+        "tasks": [
+          "Replace synchronous actor calls",
+          "Implement async message queue",
+          "Async position broadcasting",
+          "Target <16ms latency"
+        ]
+      },
+      {
+        "phase": 5,
+        "name": "Actor Consolidation",
+        "hours": 80,
+        "tasks": [
+          "Split GraphServiceActor into services",
+          "Keep lightweight command orchestration",
+          "Move business logic to services",
+          "Final cleanup and testing"
+        ]
+      }
+    ]
+  },
+  "critical_findings": {
+    "blockers": [
+      "GraphServiceActor is 4,566 lines (God Object)",
+      "Circular GPU ↔ Graph dependency",
+      "WebSocket handler has 7+ synchronous actor calls",
+      "No repository layer exists",
+      "AppState exposes raw actor addresses to all handlers"
+    ],
+    "quick_wins": [
+      "Implement GraphRepository trait (40h)",
+      "Migrate read-only API handlers to repository",
+      "Extract PhysicsService (30h)",
+      "Event bus for GPU position updates (25h)"
+    ],
+    "risks": [
+      "Breaking WebSocket real-time updates",
+      "GPU position callback failures",
+      "Performance regression if repository not optimized",
+      "Data loss during migration"
+    ],
+    "mitigation": [
+      "Feature flags for gradual rollout",
+      "Parallel running of old and new systems",
+      "Extensive integration testing",
+      "Performance benchmarks before/after"
+    ]
+  },
+  "success_metrics": {
+    "performance": {
+      "api_response_time": "<10ms (currently 50-100ms)",
+      "websocket_latency": "<16ms for 60 FPS",
+      "query_speedup": "10x faster reads via repository"
+    },
+    "quality": {
+      "test_coverage": "100% for new repositories",
+      "data_integrity": "Zero data loss during migration",
+      "backward_compatibility": "All existing APIs continue working"
+    },
+    "architecture": {
+      "separation_of_concerns": "8+ domain services instead of 1 God Object",
+      "dependency_direction": "All dependencies point inward (hexagonal)",
+      "circular_dependencies": "Zero (currently 1)"
+    }
+  }
+}

@@ -37,6 +37,8 @@ impl KnowledgeGraphParser {
         id_to_metadata.insert(nodes[0].id.to_string(), page_name.clone());
 
         // Extract linked nodes and edges
+        // ⚠️ NOTE: Linked nodes will be filtered in github_sync_service
+        // Only linked pages with public:: true will be retained
         let (linked_nodes, file_edges) = self.extract_links(content, &nodes[0].id);
         for node in &linked_nodes {
             id_to_metadata.insert(node.id.to_string(), node.metadata_id.clone());
@@ -47,7 +49,7 @@ impl KnowledgeGraphParser {
         let metadata = self.extract_metadata_store(content);
 
         debug!(
-            "Parsed {}: {} nodes, {} edges",
+            "Parsed {}: {} nodes, {} edges (linked nodes will be filtered)",
             filename,
             nodes.len(),
             file_edges.len()
@@ -66,6 +68,7 @@ impl KnowledgeGraphParser {
         let mut metadata = HashMap::new();
         metadata.insert("type".to_string(), "page".to_string());
         metadata.insert("source_file".to_string(), format!("{}.md", page_name));
+        metadata.insert("public".to_string(), "true".to_string()); // ✅ FIX: Mark as public
 
         // Extract tags if present
         let tags = self.extract_tags(content);
@@ -178,10 +181,8 @@ impl KnowledgeGraphParser {
                 let key_str = key.as_str().to_string();
                 let value_str = value.as_str().trim().to_string();
 
-                // Skip the "public" property as it's just a marker
-                if key_str != "public" {
-                    properties.insert(key_str, value_str);
-                }
+                // ✅ FIX: Store ALL properties including "public" for verification
+                properties.insert(key_str, value_str);
             }
         }
 

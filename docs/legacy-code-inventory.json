@@ -1,0 +1,316 @@
+{
+  "analysis_date": "2025-10-26",
+  "legacy_actors": {
+    "GraphServiceActor": {
+      "file": "src/actors/graph_actor.rs",
+      "lines": 4566,
+      "type": "monolithic_actor",
+      "severity": "CRITICAL",
+      "references_count": 190,
+      "external_references": 127,
+      "import_locations": [
+        "src/actors/gpu/force_compute_actor.rs",
+        "src/actors/graph_messages.rs",
+        "src/actors/graph_service_supervisor.rs",
+        "src/actors/mod.rs",
+        "src/test_constraint_integration.rs",
+        "src/test_metadata_debug.rs"
+      ],
+      "usage_in_appstate": {
+        "field": "graph_service_addr",
+        "type": "Addr<TransitionalGraphSupervisor>",
+        "note": "Currently wrapped in TransitionalGraphSupervisor, still using legacy actor internally"
+      },
+      "main_responsibilities": [
+        "Graph data management (nodes, edges)",
+        "Physics simulation coordination",
+        "GPU computation coordination",
+        "WebSocket broadcasting",
+        "Batch operations",
+        "Message routing",
+        "State management"
+      ],
+      "hexagonal_replacement": {
+        "repositories": [
+          "src/adapters/sqlite_knowledge_graph_repository.rs",
+          "src/domain/knowledge_graph/repository.rs"
+        ],
+        "commands": [
+          "src/application/graph/commands.rs (to be created)",
+          "src/application/knowledge_graph/directives.rs (partial)"
+        ],
+        "queries": [
+          "src/application/graph/queries.rs (to be created)",
+          "src/application/knowledge_graph/queries.rs (partial)"
+        ]
+      },
+      "migration_complexity": "VERY_HIGH",
+      "migration_estimate_hours": 120
+    },
+    "GPUManagerActor": {
+      "file": "src/actors/gpu/gpu_manager_actor.rs",
+      "lines": 657,
+      "type": "coordination_actor",
+      "severity": "HIGH",
+      "references_count": 89,
+      "dependencies": [
+        "ForceComputeActor",
+        "ClusteringActor",
+        "AnomalyDetectionActor",
+        "GPUResourceActor",
+        "StressMajorizationActor",
+        "OntologyConstraintActor",
+        "ConstraintActor"
+      ],
+      "usage_in_appstate": {
+        "field": "gpu_manager_addr",
+        "type": "Option<Addr<GPUManagerActor>>"
+      },
+      "hexagonal_replacement": {
+        "service": "src/services/gpu_compute_service.rs (to be created)",
+        "utilities": [
+          "src/utils/unified_gpu_compute.rs (keep, refactor)",
+          "src/adapters/gpu_semantic_analyzer.rs (keep, refactor)"
+        ]
+      },
+      "migration_complexity": "HIGH",
+      "migration_estimate_hours": 40
+    },
+    "ForceComputeActor": {
+      "file": "src/actors/gpu/force_compute_actor.rs",
+      "lines": 1047,
+      "type": "gpu_worker",
+      "severity": "MEDIUM",
+      "references_count": 67,
+      "hexagonal_replacement": {
+        "service": "src/services/physics_service.rs (to be created)",
+        "utilities": "src/utils/unified_gpu_compute.rs (refactor force computation methods)"
+      },
+      "migration_complexity": "MEDIUM",
+      "migration_estimate_hours": 24
+    },
+    "ClusteringActor": {
+      "file": "src/actors/gpu/clustering_actor.rs",
+      "lines": 715,
+      "type": "gpu_worker",
+      "severity": "MEDIUM",
+      "references_count": 54,
+      "hexagonal_replacement": {
+        "service": "src/services/clustering_service.rs (to be created)",
+        "utilities": "src/utils/unified_gpu_compute.rs (keep kmeans, community detection)"
+      },
+      "migration_complexity": "MEDIUM",
+      "migration_estimate_hours": 18
+    },
+    "AnomalyDetectionActor": {
+      "file": "src/actors/gpu/anomaly_detection_actor.rs",
+      "lines": 918,
+      "type": "gpu_worker",
+      "severity": "MEDIUM",
+      "references_count": 42,
+      "hexagonal_replacement": {
+        "service": "src/services/anomaly_detection_service.rs (to be created)",
+        "algorithms": "Keep GPU implementations in utils, wrap in service"
+      },
+      "migration_complexity": "MEDIUM",
+      "migration_estimate_hours": 20
+    },
+    "GPUResourceActor": {
+      "file": "src/actors/gpu/gpu_resource_actor.rs",
+      "lines": 606,
+      "type": "resource_manager",
+      "severity": "MEDIUM",
+      "references_count": 31,
+      "hexagonal_replacement": {
+        "service": "src/services/gpu_resource_manager.rs (to be created)",
+        "note": "Manage GPU memory, context, device allocation without actors"
+      },
+      "migration_complexity": "MEDIUM",
+      "migration_estimate_hours": 16
+    },
+    "StressMajorizationActor": {
+      "file": "src/actors/gpu/stress_majorization_actor.rs",
+      "lines": 452,
+      "type": "gpu_worker",
+      "severity": "LOW",
+      "references_count": 18,
+      "hexagonal_replacement": {
+        "service": "src/services/layout_service.rs (to be created)",
+        "utilities": "Keep GPU stress majorization in utils"
+      },
+      "migration_complexity": "LOW",
+      "migration_estimate_hours": 12
+    },
+    "OntologyConstraintActor": {
+      "file": "src/actors/gpu/ontology_constraint_actor.rs",
+      "lines": 549,
+      "type": "gpu_worker",
+      "severity": "LOW",
+      "references_count": 15,
+      "hexagonal_replacement": {
+        "service": "src/application/ontology/constraint_service.rs (to be created)",
+        "utilities": "Keep GPU constraint solving in utils"
+      },
+      "migration_complexity": "LOW",
+      "migration_estimate_hours": 14
+    },
+    "ConstraintActor": {
+      "file": "src/actors/gpu/constraint_actor.rs",
+      "lines": 327,
+      "type": "gpu_worker",
+      "severity": "LOW",
+      "references_count": 12,
+      "hexagonal_replacement": {
+        "service": "Merge with ontology constraint service"
+      },
+      "migration_complexity": "LOW",
+      "migration_estimate_hours": 8
+    },
+    "PhysicsOrchestratorActor": {
+      "file": "src/actors/physics_orchestrator_actor.rs",
+      "lines": 1105,
+      "type": "coordination_actor",
+      "severity": "HIGH",
+      "references_count": 34,
+      "potential_duplication": "May overlap with GraphServiceActor physics coordination and ForceComputeActor",
+      "usage_in_appstate": "Not directly in AppState, likely managed by GraphServiceActor",
+      "hexagonal_replacement": {
+        "service": "src/services/physics_service.rs (to be created)",
+        "note": "Consolidate with ForceComputeActor replacement"
+      },
+      "migration_complexity": "HIGH",
+      "migration_estimate_hours": 32
+    }
+  },
+  "supporting_legacy_files": {
+    "graph_messages.rs": {
+      "file": "src/actors/graph_messages.rs",
+      "purpose": "Message definitions for GraphServiceActor",
+      "action": "DELETE after migration",
+      "replacement": "Direct service calls, domain events"
+    },
+    "graph_service_supervisor.rs": {
+      "file": "src/actors/graph_service_supervisor.rs",
+      "purpose": "Supervisor for GraphServiceActor (transitional)",
+      "action": "DELETE after migration",
+      "note": "Already marked as transitional, wraps legacy actor"
+    },
+    "messages.rs": {
+      "file": "src/actors/messages.rs",
+      "action": "REFACTOR - remove legacy actor messages",
+      "keep": "Generic message types if needed",
+      "remove": "GraphServiceActor, GPU actor specific messages"
+    },
+    "supervisor.rs": {
+      "file": "src/actors/supervisor.rs",
+      "action": "EVALUATE - may be deletable if no actors remain",
+      "note": "Generic supervisor, but if no actors exist, not needed"
+    }
+  },
+  "handler_dependencies": {
+    "total_handler_references": 74,
+    "affected_handlers": [
+      "src/handlers/api_handler/graph/mod.rs",
+      "src/handlers/api_handler/analytics/mod.rs",
+      "src/handlers/settings_handler.rs",
+      "src/handlers/api_handler/ontology/mod.rs",
+      "src/handlers/api_handler/analytics/clustering.rs",
+      "src/handlers/api_handler/analytics/anomaly.rs",
+      "src/handlers/api_handler/analytics/community.rs"
+    ],
+    "migration_pattern": "Replace actor.send() calls with service method calls"
+  },
+  "appstate_changes_required": {
+    "remove_fields": [
+      "graph_service_addr: Addr<TransitionalGraphSupervisor>",
+      "gpu_manager_addr: Option<Addr<GPUManagerActor>>",
+      "gpu_compute_addr: Option<Addr<gpu::ForceComputeActor>>"
+    ],
+    "add_fields": [
+      "graph_repository: Arc<dyn KnowledgeGraphRepository>",
+      "graph_command_service: Arc<GraphCommandService>",
+      "graph_query_service: Arc<GraphQueryService>",
+      "physics_service: Arc<PhysicsService>",
+      "gpu_compute_service: Arc<GPUComputeService>",
+      "clustering_service: Arc<ClusteringService>",
+      "anomaly_service: Arc<AnomalyDetectionService>"
+    ],
+    "note": "Services use repositories and utilities, no actors"
+  },
+  "statistics": {
+    "total_legacy_actors": 10,
+    "total_legacy_lines": 12588,
+    "total_references": 502,
+    "critical_actors": 1,
+    "high_priority_actors": 2,
+    "medium_priority_actors": 5,
+    "low_priority_actors": 2,
+    "estimated_migration_hours": 304,
+    "estimated_migration_weeks": 7.6
+  },
+  "cargo_warnings": {
+    "unused_imports": 8,
+    "unused_variables": 48,
+    "unused_methods": 65,
+    "dead_code_warnings": 112,
+    "note": "High number of dead code warnings indicates much legacy code is already unused"
+  },
+  "migration_priority": [
+    {
+      "actor": "GraphServiceActor",
+      "priority": 1,
+      "reason": "4566 lines, 190 references, blocks everything else"
+    },
+    {
+      "actor": "PhysicsOrchestratorActor",
+      "priority": 2,
+      "reason": "Coordination actor, may duplicate GraphServiceActor logic"
+    },
+    {
+      "actor": "GPUManagerActor",
+      "priority": 3,
+      "reason": "Coordinates all GPU actors, remove after workers migrated"
+    },
+    {
+      "actor": "ForceComputeActor",
+      "priority": 4,
+      "reason": "Physics computation, high usage"
+    },
+    {
+      "actor": "ClusteringActor",
+      "priority": 5,
+      "reason": "Analytics feature"
+    },
+    {
+      "actor": "AnomalyDetectionActor",
+      "priority": 6,
+      "reason": "Analytics feature"
+    },
+    {
+      "actor": "GPUResourceActor",
+      "priority": 7,
+      "reason": "Resource management"
+    },
+    {
+      "actor": "StressMajorizationActor",
+      "priority": 8,
+      "reason": "Layout algorithm, lower priority"
+    },
+    {
+      "actor": "OntologyConstraintActor",
+      "priority": 9,
+      "reason": "Specialized feature"
+    },
+    {
+      "actor": "ConstraintActor",
+      "priority": 10,
+      "reason": "Merge with OntologyConstraintActor service"
+    }
+  ],
+  "verification_commands": {
+    "check_graphservice_refs": "grep -rn 'GraphServiceActor' src/ --include='*.rs' | grep -v '^src/actors/graph_actor.rs:' | wc -l",
+    "check_gpu_refs": "grep -rn 'GPUManagerActor\\|ForceComputeActor' src/ --include='*.rs' | wc -l",
+    "check_physics_refs": "grep -rn 'PhysicsOrchestratorActor' src/ --include='*.rs' | wc -l",
+    "success_criteria": "All commands return 0 (no references found)"
+  }
+}

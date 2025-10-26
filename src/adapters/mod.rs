@@ -5,8 +5,8 @@
 //! using concrete technologies (actors, GPU compute, SQLite, etc.)
 
 // Legacy adapters
-pub mod actor_graph_repository;
-pub mod gpu_physics_adapter;
+// pub mod actor_graph_repository;  // REMOVED: Incomplete stub adapter
+// pub mod gpu_physics_adapter;  // REMOVED: Incomplete stub adapter
 pub mod gpu_semantic_analyzer;
 
 // New hexser-based adapters
@@ -16,10 +16,10 @@ pub mod sqlite_settings_repository;
 pub mod whelk_inference_engine;
 
 // Legacy exports
-pub use actor_graph_repository::ActorGraphRepository;
+// pub use actor_graph_repository::ActorGraphRepository;  // REMOVED: Incomplete stub
 
 // GPU adapter implementation exports (these implement the traits from crate::ports)
-pub use gpu_physics_adapter::GpuPhysicsAdapter as GpuPhysicsAdapterImpl;
+// pub use gpu_physics_adapter::GpuPhysicsAdapter as GpuPhysicsAdapterImpl;  // REMOVED: Incomplete stub
 pub use gpu_semantic_analyzer::GpuSemanticAnalyzerAdapter;
 
 // New hexser-based adapter exports

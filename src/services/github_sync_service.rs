@@ -93,6 +93,9 @@ impl GitHubSyncService {
         // Use HashMap for automatic edge deduplication by ID to prevent UNIQUE constraint violations
         let mut accumulated_edges: std::collections::HashMap<String, crate::models::edge::Edge> = std::collections::HashMap::new();
 
+        // ✅ FIX: Track which page names have public:: true for filtering linked pages
+        let mut public_page_names: std::collections::HashSet<String> = std::collections::HashSet::new();
+
         // Accumulate all ontology data before saving
         let mut accumulated_classes: Vec<crate::ports::ontology_repository::OwlClass> = Vec::new();
         let mut accumulated_properties: Vec<crate::ports::ontology_repository::OwlProperty> = Vec::new();
@@ -121,7 +124,8 @@ impl GitHubSyncService {
                 info!("Progress: {}/{} files processed", index, files.len());
             }
 
-            match self.process_file(file, &mut accumulated_nodes, &mut accumulated_edges, &mut accumulated_classes, &mut accumulated_properties, &mut accumulated_axioms).await {
+            // ✅ FIX: Pass public_page_names to process_file
+            match self.process_file(file, &mut accumulated_nodes, &mut accumulated_edges, &mut public_page_names, &mut accumulated_classes, &mut accumulated_properties, &mut accumulated_axioms).await {
                 FileProcessResult::KnowledgeGraph { nodes, edges } => {
                     stats.kg_files_processed += 1;
                     stats.total_nodes += nodes;
@@ -154,6 +158,36 @@ impl GitHubSyncService {
                 sleep(Duration::from_millis(100)).await;
             }
         }
+
+        // ✅ FIX: NOW filter linked_page nodes after ALL files processed and HashSet is complete
+        info!("Filtering linked_page nodes against {} public pages", public_page_names.len());
+        let node_count_before_filter = accumulated_nodes.len();
+        accumulated_nodes.retain(|_id, node| {
+            match node.metadata.get("type").map(|s| s.as_str()) {
+                Some("page") => true, // Keep all page nodes (already verified public)
+                Some("linked_page") => {
+                    // Only keep if the linked page is in our public set
+                    let is_public = public_page_names.contains(&node.metadata_id);
+                    if !is_public {
+                        debug!("Filtered out linked_page '{}' - not in public pages", node.metadata_id);
+                    }
+                    is_public
+                },
+                _ => true, // Keep unknown types
+            }
+        });
+        let nodes_filtered = node_count_before_filter - accumulated_nodes.len();
+        info!("Filtered {} linked_page nodes (kept {} of {} total nodes)",
+              nodes_filtered, accumulated_nodes.len(), node_count_before_filter);
+
+        // ✅ FIX: Filter edges to only include those connecting retained nodes
+        let edge_count_before_filter = accumulated_edges.len();
+        accumulated_edges.retain(|_id, edge| {
+            accumulated_nodes.contains_key(&edge.source) && accumulated_nodes.contains_key(&edge.target)
+        });
+        let edges_filtered = edge_count_before_filter - accumulated_edges.len();
+        info!("Filtered {} orphan edges (kept {} of {} total edges)",
+              edges_filtered, accumulated_edges.len(), edge_count_before_filter);
 
         // Convert HashMap to Vec and create GraphData for saving
         if !accumulated_nodes.is_empty() {
@@ -221,6 +255,7 @@ impl GitHubSyncService {
         file: &GitHubFileBasicMetadata,
         accumulated_nodes: &mut std::collections::HashMap<u32, crate::models::node::Node>,
         accumulated_edges: &mut std::collections::HashMap<String, crate::models::edge::Edge>,
+        public_page_names: &mut std::collections::HashSet<String>, // ✅ FIX: Add parameter
         accumulated_classes: &mut Vec<crate::ports::ontology_repository::OwlClass>,
         accumulated_properties: &mut Vec<crate::ports::ontology_repository::OwlProperty>,
         accumulated_axioms: &mut Vec<crate::ports::ontology_repository::OwlAxiom>,
@@ -239,7 +274,8 @@ impl GitHubSyncService {
         let file_type = self.detect_file_type(&content);
 
         match file_type {
-            FileType::KnowledgeGraph => self.process_knowledge_graph_file(file, &content, accumulated_nodes, accumulated_edges).await,
+            // ✅ FIX: Pass public_page_names to knowledge graph processor
+            FileType::KnowledgeGraph => self.process_knowledge_graph_file(file, &content, accumulated_nodes, accumulated_edges, public_page_names).await,
             FileType::Ontology => self.process_ontology_file(file, &content, accumulated_classes, accumulated_properties, accumulated_axioms).await,
             FileType::Skip => FileProcessResult::Skipped {
                 reason: "No public:: true or OntologyBlock marker found".to_string(),
@@ -254,7 +290,13 @@ impl GitHubSyncService {
         content: &str,
         accumulated_nodes: &mut std::collections::HashMap<u32, crate::models::node::Node>,
         accumulated_edges: &mut std::collections::HashMap<String, crate::models::edge::Edge>,
+        public_page_names: &mut std::collections::HashSet<String>, // ✅ FIX: Add parameter
     ) -> FileProcessResult {
+        // ✅ FIX: Add this page to public set (strip .md extension)
+        let page_name = file.name.strip_suffix(".md").unwrap_or(&file.name);
+        public_page_names.insert(page_name.to_string());
+        debug!("Added '{}' to public pages set (total: {})", page_name, public_page_names.len());
+
         // Parse the file
         let graph_data = match self.kg_parser.parse(content, &file.name) {
             Ok(data) => data,
@@ -265,22 +307,41 @@ impl GitHubSyncService {
             }
         };
 
+        // ✅ FIX: Accumulate ALL nodes first - filtering happens after all files processed
         let node_count = graph_data.nodes.len();
-        let edge_count = graph_data.edges.len();
-
-        // Accumulate nodes in HashMap for automatic deduplication by ID
         for node in graph_data.nodes {
             accumulated_nodes.insert(node.id, node);
         }
 
-        // Accumulate edges in HashMap for automatic deduplication by edge ID
+        // ✅ FIX: Filter edges to only include those where both source AND target nodes exist
+        // This prevents FOREIGN KEY constraint violations when nodes are filtered out
+        let edge_count_before_filter = graph_data.edges.len();
+        let mut filtered_edge_count = 0;
+
         for edge in graph_data.edges {
-            accumulated_edges.insert(edge.id.clone(), edge);
+            // Only add edge if both source and target nodes exist in accumulated_nodes
+            if accumulated_nodes.contains_key(&edge.source) && accumulated_nodes.contains_key(&edge.target) {
+                accumulated_edges.insert(edge.id.clone(), edge);
+                filtered_edge_count += 1;
+            } else {
+                debug!(
+                    "Filtered out edge {} -> {}: references non-public node(s)",
+                    edge.source, edge.target
+                );
+            }
         }
+
+        debug!(
+            "Processed {}: {} nodes accumulated, {} edges added ({} filtered out)",
+            file.name,
+            node_count,
+            filtered_edge_count,
+            edge_count_before_filter - filtered_edge_count
+        );
 
         FileProcessResult::KnowledgeGraph {
             nodes: node_count,
-            edges: edge_count,
+            edges: filtered_edge_count,
         }
     }
 
