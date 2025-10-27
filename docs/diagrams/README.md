@@ -276,9 +276,10 @@ All legacy file-based configuration has been migrated to database-backed storage
 ## Related Documentation
 
 ### Core Architecture
-- [ARCHITECTURE.md](../ARCHITECTURE.md) - Hexagonal design details
+- [ARCHITECTURE.md](../reference/architecture/README.md) - Hexagonal design details
 - [DATABASE.md](../DATABASE.md) - Database schemas and migrations
-- [API.md](../API.md) - REST and WebSocket API reference
+- [REST API](../reference/api/rest-api.md) - REST API endpoints
+- [WebSocket API](../reference/api/websocket-api.md) - Real-time communication
 - [DEVELOPER_GUIDE.md](../DEVELOPER_GUIDE.md) - Development workflows
 
 ### Turbo Flow Integration

@@ -128,7 +128,7 @@ This architecture analysis consists of three comprehensive documents that provid
 | **Architecture pattern?** | Hexagonal + CQRS (Phase 1D) | `Cargo.toml` line 119, `app_state.rs` |
 | **Database system?** | 3 SQLite databases | `app_state.rs` lines 124, 167, 177 |
 | **Binary protocol version?** | v2.0 (28-byte client, 48-byte GPU) | `socket_flow_messages.rs` |
-| **API version?** | v3.1.0 (no URL versioning) | `docs/API.md`, `main.rs` |
+| **API version?** | v3.1.0 (no URL versioning) | `docs/reference/api/rest-api.md`, `main.rs` |
 | **Testing status?** | Enabled, 23+ tests, compiling ✅ | `cargo test` output |
 | **Deployment?** | Docker multi-container | `docker-compose.yml` |
 | **CQRS status?** | Partial (graph ✅, settings 🚧) | `application/graph/queries.rs` |
@@ -274,7 +274,7 @@ $ cargo test -- --list
 ✅ Read src/main.rs routes (lines 454-468)
 ✅ Checked src/handlers/api_handler/ modules
 ✅ Confirmed no /v1 or /v2 versioning
-✅ Cross-referenced docs/API.md
+✅ Cross-referenced docs/reference/api/rest-api.md
 ```
 
 **Step 6: Testing Verification**
@@ -325,7 +325,10 @@ $ cargo test -- --list
 └── docs/
     ├── ARCHITECTURE.md             - Official architecture docs
     ├── DATABASE.md                 - Database documentation
-    ├── API.md                      - API reference
+    ├── reference/
+    │   └── api/
+    │       ├── rest-api.md         - REST API reference
+    │       └── websocket-api.md    - WebSocket API reference
     └── architecture/
         ├── GROUND_TRUTH_ARCHITECTURE_ANALYSIS.md  (THIS ANALYSIS)
         ├── ARCHITECTURE_EXECUTIVE_SUMMARY.md
@@ -443,4 +446,5 @@ $ cargo test -- --list
 - [Architecture Executive Summary](./ARCHITECTURE_EXECUTIVE_SUMMARY.md)
 - [Official Architecture Documentation](../ARCHITECTURE.md)
 - [Database Documentation](../DATABASE.md)
-- [API Reference](../API.md)
+- [REST API Reference](../reference/api/rest-api.md)
+- [WebSocket API Reference](../reference/api/websocket-api.md)

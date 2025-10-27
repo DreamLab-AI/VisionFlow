@@ -104,7 +104,7 @@ graph TD
 ### System Integration
 
 For complete multi-agent architecture documentation, see:
-- [Multi-Agent Docker Architecture](/mnt/mldata/githubs/AR-AI-Knowledge-Graph/docs/multi-agent-docker/ARCHITECTURE.md)
+- [Multi-Agent Docker Architecture](../reference/architecture/database-schema.md)
 - [MCP Tool Reference](/mnt/mldata/githubs/AR-AI-Knowledge-Graph/docs/multi-agent-docker/TOOLS.md)
 
 ## Available GUI Tools

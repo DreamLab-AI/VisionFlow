@@ -17,8 +17,8 @@ Goal-oriented guides for specific tasks. Use these when you know what you want t
 - [XR Setup & Configuration](./guides/user/xr-setup.md)
 
 **For Developers:**
-- [Development Setup](./guides/developer/development-setup.md)
-- [Adding a Feature](./guides/developer/adding-a-feature.md)
+- [Development Setup](./guides/developer/01-development-setup.md)
+- [Adding a Feature](./guides/developer/04-adding-features.md)
 - [Testing Guide](./guides/developer/testing-guide.md)
 
 ### [Concepts](./concepts/) - Understanding the System
@@ -54,8 +54,8 @@ Complete technical specifications. Use these for detailed information and API do
 3. [Architecture Overview](./concepts/architecture.md) *(optional but helpful)*
 
 ### I'm a **Developer** - What should I read?
-1. [Development Setup](./guides/developer/development-setup.md)
-2. [Adding a Feature](./guides/developer/adding-a-feature.md)
+1. [Development Setup](./guides/developer/01-development-setup.md)
+2. [Adding a Feature](./guides/developer/04-adding-features.md)
 3. [Architecture Reference](./reference/architecture/)
 4. [API Documentation](./reference/api/)
 
@@ -100,8 +100,8 @@ docs/
 │   │   ├── working-with-agents.md
 │   │   └── xr-setup.md
 │   └── developer/
-│       ├── development-setup.md
-│       ├── adding-a-feature.md
+│       ├── 01-development-setup.md
+│       ├── 04-adding-features.md
 │       └── testing-guide.md
 ├── concepts/           (Explanations)
 │   ├── architecture.md

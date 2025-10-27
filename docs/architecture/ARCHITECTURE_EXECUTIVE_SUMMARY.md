@@ -491,6 +491,7 @@ This document is based on **direct inspection of source code**, not assumptions 
 - `/home/devuser/workspace/project/src/application/graph/queries.rs` - CQRS
 - `/home/devuser/workspace/project/schema/*.sql` - Database schemas
 - `/home/devuser/workspace/project/docs/ARCHITECTURE.md` - Official docs
+- `/home/devuser/workspace/project/docs/reference/api/rest-api.md` - API documentation
 
 ---
 

@@ -126,7 +126,7 @@ SqliteOntologyRepository::new("data/ontology.db")
 
 ### 3.1 API Architecture
 
-**Evidence:** `/home/devuser/workspace/project/docs/API.md` line 3: `Version: 3.1.0`
+**Evidence:** `/home/devuser/workspace/project/docs/reference/api/rest-api.md` line 3: `Version: 3.1.0`
 
 **No explicit /v1 or /v2 versioning in URLs** - uses feature-based versioning instead.
 
@@ -548,7 +548,7 @@ info!("Settings hot-reload watcher DISABLED (was causing database deadlocks)");
 | **Hexagonal Arch** | ✅ Yes | ✅ Yes | ✅ 100% | `Cargo.toml` line 119, `app_state.rs` |
 | **CQRS Queries** | ✅ Yes | ✅ Yes | ✅ 100% | `application/graph/queries.rs` |
 | **Binary Protocol** | ✅ 28+48 bytes | ✅ 28+48 bytes | ✅ 100% | `socket_flow_messages.rs` |
-| **API Version** | ✅ 3.1.0 | ✅ 3.1.0 | ✅ 100% | `docs/API.md`, no /v1 routes |
+| **API Version** | ✅ 3.1.0 | ✅ 3.1.0 | ✅ 100% | `docs/reference/api/rest-api.md`, no /v1 routes |
 | **Docker Deploy** | ✅ Yes | ✅ Yes | ✅ 100% | `docker-compose.yml` |
 | **Tests Enabled** | ✅ Yes | ✅ Yes | ✅ 100% | `cargo test` compiles |
 | **GPU Features** | ✅ Optional | ✅ Optional | ✅ 100% | `Cargo.toml` features |
@@ -592,7 +592,7 @@ info!("Settings hot-reload watcher DISABLED (was causing database deadlocks)");
 ### Documentation
 - **Architecture:** `/home/devuser/workspace/project/docs/ARCHITECTURE.md`
 - **Database:** `/home/devuser/workspace/project/docs/DATABASE.md`
-- **API Reference:** `/home/devuser/workspace/project/docs/API.md`
+- **API Reference:** `/home/devuser/workspace/project/docs/reference/api/rest-api.md`
 
 ---
 

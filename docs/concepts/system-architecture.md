@@ -1219,7 +1219,7 @@ graph LR
 - **[MCP Protocol](../reference/api/mcp-protocol.md)**: Agent communication protocol
 
 ### Integration Guides
-- **[Multi-Agent Docker](../../multi-agent-docker/ARCHITECTURE.md)**: Docker environment setup
+- **[Multi-Agent Docker](../reference/architecture/README.md)**: Docker environment setup
 - **[Hybrid Docker+MCP Architecture](../architecture/hybrid_docker_mcp_architecture.md)**: Task orchestration patterns
 - **[GPU Compute Setup](../guides/gpu-setup.md)**: CUDA environment configuration
 
