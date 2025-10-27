@@ -31,7 +31,7 @@ multi-agent-docker/pbr_outputs/
 multi-agent-docker/workspace/
 #multi-agent-docker/gui-based-tools-docker/tessellating-pbr-generator/src/
 multi-agent-docker/.git
-docs/archive
+# docs/archive
 
 # .claude
 .npm
