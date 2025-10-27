@@ -712,11 +712,170 @@ xrHelper.onStateChangedObservable.add((state) => {
 
 ---
 
+## Force-Directed Graph Engine
+
+### ForceDirectedEngine
+
+Physics-based graph layout engine for 3D knowledge graph visualization.
+
+**📚 See Also:** [Complete Vircadia XR Guide](/docs/guides/vircadia-xr-complete-guide.md#force-directed-graph-physics-engine) for detailed implementation and Vircadia integration patterns.
+
+#### Constructor
+
+```typescript
+new ForceDirectedEngine(initialNodes: Node[], initialEdges: Edge[])
+```
+
+Creates a new force-directed physics engine.
+
+**Parameters:**
+- `initialNodes` - Initial set of graph nodes
+- `initialEdges` - Initial set of graph edges
+
+**Example:**
+```typescript
+const engine = new ForceDirectedEngine(
+  graphData.nodes,
+  graphData.edges
+);
+```
+
+#### Methods
+
+##### `tick(): void`
+
+Advances physics simulation by one time step (16ms).
+
+Should be called from the render loop for real-time animation:
+```typescript
+scene.onBeforeRenderObservable.add(() => {
+  forceEngine.tick();
+  const positions = forceEngine.getPositionsArray();
+  graphRenderer.updateNodes(nodes, positions);
+});
+```
+
+##### `getPositionsArray(): Float32Array`
+
+Returns node positions as a flat Float32Array.
+
+**Returns:** `Float32Array` - Positions in format [x1, y1, z1, x2, y2, z2, ...]
+
+**Example:**
+```typescript
+const positions = engine.getPositionsArray();
+// positions[0], positions[1], positions[2] = x, y, z of node 0
+// positions[3], positions[4], positions[5] = x, y, z of node 1
+```
+
+##### `updateNodes(nodes: Node[]): void`
+
+Updates engine with new node data.
+
+**Parameters:**
+- `nodes` - Updated node array
+
+##### `updateEdges(edges: Edge[]): void`
+
+Updates engine with new edge connections.
+
+**Parameters:**
+- `edges` - Updated edge array
+
+##### `setConstants(constants: Partial<PhysicsConstants>): void`
+
+Adjusts physics simulation parameters.
+
+**Parameters:**
+- `constants` - Physics constants to override
+
+**Constants Structure:**
+```typescript
+interface PhysicsConstants {
+  REPULSION_STRENGTH: number;    // Default: 1000
+  SPRING_STRENGTH: number;        // Default: 0.1
+  SPRING_LENGTH: number;          // Default: 5.0 meters
+  DAMPING: number;                // Default: 0.9
+  CENTERING_STRENGTH: number;     // Default: 0.01
+  MAX_VELOCITY: number;           // Default: 2.0 m/s
+  TIME_STEP: number;              // Default: 0.016 (60 FPS)
+}
+```
+
+**Example:**
+```typescript
+// Tighter graph layout
+engine.setConstants({
+  REPULSION_STRENGTH: 500,
+  SPRING_LENGTH: 3.0
+});
+
+// Faster stabilization
+engine.setConstants({
+  DAMPING: 0.95
+});
+```
+
+##### `reset(): void`
+
+Resets all node velocities to zero and randomizes positions.
+
+##### `pause(): void`
+
+Pauses physics simulation.
+
+##### `resume(): void`
+
+Resumes physics simulation.
+
+##### `isPaused(): boolean`
+
+Checks if simulation is paused.
+
+**Returns:** `boolean` - True if paused
+
+---
+
+### Physics Algorithm
+
+The force-directed engine uses three primary forces:
+
+**Repulsion Force** (Coulomb's law for separation):
+```
+F_repulsion = k * (1 / distance²) * direction
+```
+
+**Spring Attraction** (Hooke's law for connected nodes):
+```
+F_spring = k * (distance - restLength) * direction
+```
+
+**Centering Force** (prevents drift):
+```
+F_center = -k * position
+```
+
+**Integration** uses Verlet method for stable simulation:
+```typescript
+velocity = (velocity + acceleration * dt) * damping
+position = position + velocity * dt
+```
+
+For detailed physics implementation and Vircadia real-time synchronization, see the [Force-Directed Graph Physics Engine](/docs/guides/vircadia-xr-complete-guide.md#force-directed-graph-physics-engine) section.
+
+---
+
 ## Vircadia Integration
 
 ### Multi-User XR Platform
 
-VisionFlow integrates with **Vircadia**, an open-source metaverse platform, to enable collaborative multi-user XR experiences beyond the single-user Quest 3 implementation.
+VisionFlow integrates with **[Vircadia](https://vircadia.com)**, an open-source metaverse platform, to enable collaborative multi-user XR experiences beyond the single-user Quest 3 implementation.
+
+**📚 Official Documentation:**
+- [Vircadia Main Docs](https://docs.vircadia.com)
+- [Developer Guide](https://docs.vircadia.com/developer.html)
+- [API Reference](https://apidocs.vircadia.dev)
+- [Complete Integration Guide](/docs/guides/vircadia-xr-complete-guide.md)
 
 #### Architecture
 

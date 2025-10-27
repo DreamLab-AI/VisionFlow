@@ -309,9 +309,17 @@ performance:
 
 ## Vircadia Multi-User Integration
 
+**📚 Complete Integration Guide:** See [Vircadia XR Complete Guide](/docs/guides/vircadia-xr-complete-guide.md) for detailed implementation, force-directed graph physics engine, real-time synchronization patterns, Quest 3 optimizations, and deployment instructions.
+
+**🔗 Official Vircadia Documentation:**
+- [Vircadia Main Docs](https://docs.vircadia.com) - Platform overview and getting started
+- [Developer Guide](https://docs.vircadia.com/developer.html) - Development resources and API guides
+- [API Reference](https://apidocs.vircadia.dev) - Complete API documentation
+- [Vircadia GitHub](https://github.com/vircadia/vircadia) - Source code and community
+
 ### Overview
 
-The XR system is designed for future integration with **Vircadia**, an open-source metaverse platform that enables multi-user collaborative experiences in virtual worlds.
+The XR system is designed for integration with **[Vircadia](https://vircadia.com)**, an open-source metaverse platform that enables multi-user collaborative experiences in virtual worlds with force-directed 3D knowledge graph visualization.
 
 ### Architecture Integration
 

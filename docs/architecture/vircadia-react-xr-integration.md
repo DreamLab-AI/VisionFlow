@@ -2,9 +2,16 @@
 
 **VisionFlow Knowledge Graph - Meta Quest 3 Multi-User XR System**
 
-*Last Updated: 2025-10-03*
+*Last Updated: 2025-10-27*
 *Version: 2.0.0*
 *Status: Production-Ready*
+
+**📚 Complete Integration Guide:** See [Vircadia XR Complete Guide](/docs/guides/vircadia-xr-complete-guide.md) for detailed implementation, force-directed graph physics, and deployment instructions.
+
+**🔗 Official Documentation:**
+- [Vircadia Main Docs](https://docs.vircadia.com)
+- [Developer Guide](https://docs.vircadia.com/developer.html)
+- [API Reference](https://apidocs.vircadia.dev)
 
 ---
 

@@ -54,6 +54,7 @@ services:
       - vircadia-data:/app/data
       - vircadia-logs:/app/logs
       - ./data/vircadia/worlds:/app/worlds:ro
+      - ./sdk:/sdk:ro
 
     depends_on:
       - postgres

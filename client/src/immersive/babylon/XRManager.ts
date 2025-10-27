@@ -22,6 +22,13 @@ export class XRManager {
   private xrHelper: WebXRExperienceHelper | null = null;
   private handTracking: WebXRHandTracking | null = null;
 
+  // Node interaction tracking
+  private pinnedNode: string | null = null;
+  private activeInputSource: WebXRInputSource | null = null;
+
+  // UI panel reference (to be set externally)
+  private uiPanel: any | null = null;
+
   constructor(scene: Scene, camera: UniversalCamera) {
     this.scene = scene;
     this.camera = camera;
@@ -280,22 +287,124 @@ export class XRManager {
     // Start dragging the currently selected node
     console.log('Starting node interaction with', inputSource.uniqueId);
 
-    // TODO: Pin node in physics simulation
-    // TODO: Track input source for continuous position updates
+    // Pin node in physics simulation
+    // When physics is integrated, this will prevent physics engine from moving the node
+    if (this.scene.onNodeSelectedObservable) {
+      const selectedNodeEvent = this.scene.onNodeSelectedObservable as any;
+      if (selectedNodeEvent._observers && selectedNodeEvent._observers.length > 0) {
+        const lastEvent = selectedNodeEvent._lastNotified;
+        if (lastEvent && lastEvent.nodeId) {
+          this.pinnedNode = lastEvent.nodeId;
+          console.log('XRManager: Pinned node for dragging:', this.pinnedNode);
+
+          // Emit pin event for physics system integration
+          if (this.scene.onPhysicsPinObservable) {
+            (this.scene.onPhysicsPinObservable as any).notifyObservers({
+              nodeId: this.pinnedNode,
+              pinned: true,
+              timestamp: Date.now()
+            });
+          }
+        }
+      }
+    }
+
+    // Track input source for continuous position updates
+    this.activeInputSource = inputSource;
+
+    // Start render loop observer for continuous updates
+    const updateObserver = this.scene.onBeforeRenderObservable.add(() => {
+      if (this.activeInputSource && this.pinnedNode) {
+        // Get input source position
+        const grip = this.activeInputSource.grip || this.activeInputSource.pointer;
+        if (grip) {
+          const position = grip.position;
+
+          // Update node position via observable
+          if (this.scene.onNodePositionUpdateObservable) {
+            (this.scene.onNodePositionUpdateObservable as any).notifyObservers({
+              nodeId: this.pinnedNode,
+              position: { x: position.x, y: position.y, z: position.z },
+              source: 'xr-input',
+              timestamp: Date.now()
+            });
+          }
+        }
+      }
+    });
+
+    // Store observer for cleanup
+    (this.scene as any)._xrDragUpdateObserver = updateObserver;
   }
 
   private endNodeInteraction(inputSource: any): void {
     // End dragging interaction
     console.log('Ending node interaction with', inputSource.uniqueId);
 
-    // TODO: Unpin node in physics simulation
+    // Unpin node in physics simulation
+    if (this.pinnedNode) {
+      console.log('XRManager: Unpinning node:', this.pinnedNode);
+
+      // Emit unpin event for physics system integration
+      if (this.scene.onPhysicsPinObservable) {
+        (this.scene.onPhysicsPinObservable as any).notifyObservers({
+          nodeId: this.pinnedNode,
+          pinned: false,
+          timestamp: Date.now()
+        });
+      }
+
+      this.pinnedNode = null;
+    }
+
+    // Stop tracking input source
+    this.activeInputSource = null;
+
+    // Remove render loop observer
+    if ((this.scene as any)._xrDragUpdateObserver) {
+      this.scene.onBeforeRenderObservable.remove((this.scene as any)._xrDragUpdateObserver);
+      (this.scene as any)._xrDragUpdateObserver = null;
+    }
   }
 
   private toggleUIPanel(): void {
     // Toggle the 3D UI panel visibility
-    console.log('Toggling UI panel');
+    console.log('XRManager: Toggling UI panel');
 
-    // TODO: Communicate with XRUI component
+    // Communicate with XRUI component
+    if (this.uiPanel) {
+      // Call toggle method on XRUI instance
+      if (typeof this.uiPanel.toggle === 'function') {
+        this.uiPanel.toggle();
+        console.log('XRManager: UI panel toggled via direct method');
+      } else if (typeof this.uiPanel.setVisibility === 'function') {
+        // Alternative: toggle via visibility setter
+        const currentVisibility = this.uiPanel.isVisible || false;
+        this.uiPanel.setVisibility(!currentVisibility);
+        console.log('XRManager: UI panel toggled via setVisibility:', !currentVisibility);
+      } else {
+        console.warn('XRManager: UI panel does not have toggle or setVisibility method');
+      }
+    } else {
+      console.warn('XRManager: UI panel reference not set. Use setUIPanel() to connect XRUI instance.');
+    }
+
+    // Emit UI toggle event for other components
+    if (this.scene.onUIToggleObservable) {
+      (this.scene.onUIToggleObservable as any).notifyObservers({
+        source: 'xr-manager',
+        timestamp: Date.now()
+      });
+    }
+  }
+
+  /**
+   * Set the XRUI panel reference for interaction
+   * Call this from the parent component to connect XRUI instance
+   */
+  public setUIPanel(uiPanel: any): void {
+    this.uiPanel = uiPanel;
+    console.log('XRManager: UI panel reference set');
   }
 
   /**
