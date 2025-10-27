@@ -1,6 +1,6 @@
 # Configuration Guide
 
-*[Guides](index.md)*
+*[Guides](README.md)*
 
 This practical guide covers common configuration scenarios and use cases for VisionFlow. For comprehensive technical reference, see the [Configuration Reference](../reference/configuration.md).
 

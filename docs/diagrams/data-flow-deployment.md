@@ -577,5 +577,5 @@ flowchart LR
 
 **For implementation details, see:**
 - [ARCHITECTURE.md](../reference/architecture/README.md) - Hexagonal architecture
-- [DATABASE.md](../DATABASE.md) - Database schemas
+- [DATABASE.md](../reference/architecture/database-schema.md) - Database schemas
 - [DEVELOPER_GUIDE.md](../DEVELOPER_GUIDE.md) - Development workflows

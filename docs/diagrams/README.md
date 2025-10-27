@@ -277,7 +277,7 @@ All legacy file-based configuration has been migrated to database-backed storage
 
 ### Core Architecture
 - [ARCHITECTURE.md](../reference/architecture/README.md) - Hexagonal design details
-- [DATABASE.md](../DATABASE.md) - Database schemas and migrations
+- [DATABASE.md](../reference/architecture/database-schema.md) - Database schemas and migrations
 - [REST API](../reference/api/rest-api.md) - REST API endpoints
 - [WebSocket API](../reference/api/websocket-api.md) - Real-time communication
 - [DEVELOPER_GUIDE.md](../DEVELOPER_GUIDE.md) - Development workflows

@@ -2278,4 +2278,4 @@ async def batch_process_tasks(agent, tasks: list[Task]):
 
 ---
 
-*[Back to Guides](index.md) | [Development Workflow →](development-workflow.md)*
+*[Back to Guides](README.md) | [Development Workflow →](development-workflow.md)*

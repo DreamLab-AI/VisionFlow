@@ -1193,8 +1193,8 @@ main();
 ## Related Documentation
 
 - [Programmatic Control Guide](programmatic-control.md) - Complete API integration guide
-- [Architecture Documentation](../architecture/FINAL-ARCHITECTURE.md) - System architecture
-- [Deployment Guide](../DEPLOYMENT.md) - Production deployment
+- [Architecture Documentation](../reference/architecture/README.md) - System architecture
+- [Deployment Guide](../guides/deployment.md) - Production deployment
 - [API Reference](http://localhost:9090/docs) - OpenAPI documentation
 
 ---

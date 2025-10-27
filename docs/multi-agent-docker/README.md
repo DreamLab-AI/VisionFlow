@@ -238,7 +238,7 @@ The setup automatically provides Claude with MCP tool knowledge. To use tools wi
 
 ### 📚 Next Steps
 
-- Read the [Architecture Documentation](./ARCHITECTURE.md)
+- Read the [Architecture Documentation](../reference/architecture/README.md)
 - Explore the [Agent Briefing](./AGENT-BRIEFING.md) for Claude
 - Check out available [MCP Tools](#available-mcp-tools)
 - Start building with the multi-agent environment!
@@ -260,7 +260,7 @@ The setup automatically provides Claude with MCP tool knowledge. To use tools wi
 
 ---
 
-**Need help?** Use `./mcp-helper.sh claude-instructions` or check the [Architecture Guide](./ARCHITECTURE.md)!
+**Need help?** Use `./mcp-helper.sh claude-instructions` or check the [Architecture Guide](../reference/architecture/README.md)!
 
 ## ⚙️ Resource Configuration
 
@@ -375,7 +375,7 @@ Explore the following documents for a deeper understanding of the project:
 |---|---|
 | 🚀 **[Quick Start Guide](./QUICKSTART.md)** | Step-by-step instructions to get the environment running. |
 | 🛠️ **[Available Tooling Reference](./TOOLS.md)** | A complete reference for all integrated tools, libraries, and runtimes. |
-| 🏗️ **[Architecture Overview](./ARCHITECTURE.md)** | Detailed explanation of the system's dual-container architecture and MCP tool layers. |
+| 🏗️ **[Architecture Overview](../reference/architecture/README.md)** | Detailed explanation of the system's dual-container architecture and MCP tool layers. |
 | 🌐 **[Networking Deep Dive](./NETWORKING.md)** | Comprehensive guide to the Docker networking model and service communication. |
 | 🤖 **[Agent Technical Briefing](./AGENT-BRIEFING.md)** | Documentation specifically for AI agents, detailing their capabilities and interaction patterns. |
 | 🔍 **[Troubleshooting Guide](./TROUBLESHOOTING.md)** | Solutions for common issues related to networking, VNC, and tool connectivity. |

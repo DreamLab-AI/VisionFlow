@@ -1014,9 +1014,9 @@ Provides endpoints for system health checks.
 
 ## Additional Resources
 
-- [VisionFlow Architecture](/docs/ARCHITECTURE.md)
+- [VisionFlow Architecture](../reference/architecture/README.md)
 - [Developer Guide](/docs/DEVELOPER_GUIDE.md)
-- [Database Documentation](/docs/DATABASE.md)
+- [Database Documentation](../reference/architecture/database-schema.md)
 - [Client Integration Guide](/docs/CLIENT_INTEGRATION.md)
 
 ---

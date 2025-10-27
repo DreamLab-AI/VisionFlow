@@ -514,10 +514,10 @@ navigator.mediaDevices.getUserMedia({ audio: true })
 
 ## Related Documentation
 
-- [MCP Protocol](mcp-protocol.md) - Agent orchestration protocol
-- [WebSocket API](websocket-api.md) - Real-time communication
+- [MCP Protocol](../reference/api/mcp-protocol.md) - Agent orchestration protocol
+- [WebSocket API](../reference/api/websocket-api.md) - Real-time communication
 - [Voice Integration Summary](../../VOICE_INTEGRATION_SUMMARY.md) - Implementation details
 
 ---
 
-**[← WebSocket API](websocket-api.md)** | **[Back to API Index →](index.md)**
+**[← WebSocket API](../reference/api/websocket-api.md)** | **[Back to API Index →](README.md)**

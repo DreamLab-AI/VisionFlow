@@ -989,8 +989,8 @@ sudo apt-get install --only-upgrade nvidia-driver-XXX
    - [GitHub Issues](https://github.com/ruvnet/agentic-flow/issues)
 
 2. **Verify Setup:** Ensure you've followed the documentation
-   - [Getting Started](GETTING_STARTED.md)
-   - [Deployment Guide](DEPLOYMENT.md)
+   - [Getting Started](../getting-started/README.md)
+   - [Deployment Guide](../guides/deployment.md)
 
 3. **Collect Information:**
    ```bash
@@ -1122,10 +1122,10 @@ cp .env.backup .env
 ## Support Resources
 
 ### Documentation
-- [Architecture Overview](ARCHITECTURE.md)
-- [Getting Started Guide](GETTING_STARTED.md)
+- [Architecture Overview](../reference/architecture/README.md)
+- [Getting Started Guide](../getting-started/README.md)
 - [API Reference](API_REFERENCE.md)
-- [Deployment Guide](DEPLOYMENT.md)
+- [Deployment Guide](../guides/deployment.md)
 
 ### Community
 - [GitHub Issues](https://github.com/ruvnet/agentic-flow/issues)

@@ -2228,4 +2228,4 @@ stats.print_stats(10)
 
 ---
 
-*[← Orchestrating Agents](04-orchestrating-agents.md) | [Back to Guides](index.md) | [Troubleshooting →](06-troubleshooting.md)*
+*[← Orchestrating Agents](04-orchestrating-agents.md) | [Back to Guides](README.md) | [Troubleshooting →](06-troubleshooting.md)*

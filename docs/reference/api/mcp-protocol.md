@@ -727,11 +727,11 @@ MCP_LOG_FILE=/app/logs/mcp.log
 
 ## Related Documentation
 
-- [REST API](rest-api.md) - Agent management via REST
-- [WebSocket API](websocket-api.md) - Real-time updates
+- [REST API](../reference/api/rest-api.md) - Agent management via REST
+- [WebSocket API](../reference/api/websocket-api.md) - Real-time updates
 - [Agent Architecture](../../agents/README.md) - Agent system design
 - [Multi-Agent Docker](../../../multi-agent-docker/README.md) - Container setup
 
 ---
 
-**[← Binary Protocol](binary-protocol.md)** | **[Back to API Index →](index.md)**
+**[← Binary Protocol](../reference/api/binary-protocol.md)** | **[Back to API Index →](README.md)**

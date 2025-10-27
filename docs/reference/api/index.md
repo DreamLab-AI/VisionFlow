@@ -4,12 +4,12 @@
 
 VisionFlow provides multiple API interfaces for different use cases:
 
-- **[REST API](rest-api.md)** - Traditional HTTP endpoints for data management and control
-- **[WebSocket API](websocket-api.md)** - Real-time bidirectional communication
+- **[REST API](../reference/api/rest-api.md)** - Traditional HTTP endpoints for data management and control
+- **[WebSocket API](../reference/api/websocket-api.md)** - Real-time bidirectional communication
 - **[Voice API](voice-api.md)** - Speech-to-agent integration with real MCP orchestration
 - **[GPU Algorithms](gpu-algorithms.md)** - CUDA-accelerated clustering and anomaly detection
-- **[Binary Protocol](binary-protocol.md)** - High-performance position updates
-- **[MCP Protocol](mcp-protocol.md)** - Multi-agent system integration
+- **[Binary Protocol](../reference/api/binary-protocol.md)** - High-performance position updates
+- **[MCP Protocol](../reference/api/mcp-protocol.md)** - Multi-agent system integration
 
 ## Quick Start
 
@@ -154,4 +154,4 @@ Future versions will be available at:
 
 ---
 
-**[← Back to Reference](../index.md)** | **[REST API →](rest-api.md)**
+**[← Back to Reference](../index.md)** | **[REST API →](../reference/api/rest-api.md)**

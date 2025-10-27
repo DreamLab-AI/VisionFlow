@@ -1676,7 +1676,7 @@ scrape_configs:
 - [Installation Guide](../getting-started/01-installation.md)
 - [Deployment Guide](./01-deployment.md)
 - [Configuration Reference](../reference/configuration.md)
-- [Multi-Agent Docker Architecture](../multi-agent-docker/ARCHITECTURE.md)
+- [Multi-Agent Docker Architecture](../reference/architecture/README.md)
 - [API Reference](../reference/api/index.md)
 
 ### Community & Support
@@ -1781,4 +1781,4 @@ What you've already tried
 
 ---
 
-[← Extending the System](05-extending-the-system.md) | [Back to Guides](index.md)
+[← Extending the System](05-extending-the-system.md) | [Back to Guides](README.md)

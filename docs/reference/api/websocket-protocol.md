@@ -1377,12 +1377,12 @@ ws.onmessage = (event) => {
 
 ## Related Documentation
 
-- **[Binary Protocol V2 Specification](binary-protocol.md)** - Complete wire format details
+- **[Binary Protocol V2 Specification](../reference/api/binary-protocol.md)** - Complete wire format details
 - **[Dual-Graph Architecture](../../architecture/core/visualization.md)** - Knowledge + agent graph visualization
-- **[REST API](rest-api.md)** - HTTP endpoint documentation
-- **[MCP Protocol](mcp-protocol.md)** - Agent communication protocol
+- **[REST API](../reference/api/rest-api.md)** - HTTP endpoint documentation
+- **[MCP Protocol](../reference/api/mcp-protocol.md)** - Agent communication protocol
 - **[Performance Benchmarks](../../reports/performance-benchmarks.md)** - Bandwidth and latency metrics
 
 ---
 
-**[← REST API](rest-api.md)** | **[Binary Protocol →](binary-protocol.md)**
+**[← REST API](../reference/api/rest-api.md)** | **[Binary Protocol →](../reference/api/binary-protocol.md)**

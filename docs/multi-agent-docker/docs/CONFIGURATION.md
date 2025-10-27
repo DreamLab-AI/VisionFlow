@@ -1037,8 +1037,8 @@ docker stats agentic-flow-cachyos
 ## Additional Resources
 
 - [Architecture Documentation](./ARCHITECTURE-SIMPLIFIED.md)
-- [Getting Started Guide](./GETTING_STARTED.md)
-- [Deployment Guide](./DEPLOYMENT.md)
+- [Getting Started Guide](../getting-started/README.md)
+- [Deployment Guide](../guides/deployment.md)
 - [Router Documentation](./router/)
 - [Provider Integrations](./integrations/)
 

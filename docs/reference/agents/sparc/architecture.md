@@ -475,16 +475,16 @@ Remember: Good architecture enables change. Design systems that can evolve with 
 
 ## Related Topics
 
-- [Agent Orchestration Architecture](../../../features/agent-orchestration.md)
-- [Agent Type Conventions and Mapping](../../../AGENT_TYPE_CONVENTIONS.md)
-- [Agent Visualisation Architecture](../../../agent-visualization-architecture.md)
-- [Agentic Alliance](../../../archive/legacy/old_markdown/Agentic Alliance.md)
-- [Agentic Metaverse for Global Creatives](../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-- [Agentic Mycelia](../../../archive/legacy/old_markdown/Agentic Mycelia.md)
-- [Agents](../../../archive/legacy/old_markdown/Agents.md)
+
+
+
+
+
+
+
 - [Architecture Documentation](../../../architecture/README.md)
 - [Architecture Migration Guide](../../../architecture/migration-guide.md)
-- [Benchmark Suite Agent](../../../reference/agents/optimisation/benchmark-suite.md)
+
 - [Bots Visualisation Architecture](../../../architecture/bots-visualization.md)
 - [Bots/VisionFlow System Architecture](../../../architecture/bots-visionflow-system.md)
 - [Case Conversion Architecture](../../../architecture/case-conversion.md)
@@ -495,26 +495,26 @@ Remember: Good architecture enables change. Design systems that can evolve with 
 - [Decoupled Graph Architecture](../../../technical/decoupled-graph-architecture.md)
 - [Distributed Consensus Builder Agents](../../../reference/agents/consensus/README.md)
 - [Dynamic Agent Architecture (DAA) Setup Guide](../../../architecture/daa-setup-guide.md)
-- [Financialised Agentic Memetics](../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md)
+
 - [GPU Compute Improvements & Troubleshooting Guide](../../../architecture/gpu-compute-improvements.md)
-- [Load Balancing Coordinator Agent](../../../reference/agents/optimisation/load-balancer.md)
+
 - [MCP Connection Architecture](../../../architecture/mcp-connection.md)
 - [MCP Integration Architecture](../../../architecture/mcp-integration.md)
 - [MCP WebSocket Relay Architecture](../../../architecture/mcp-websocket-relay.md)
 - [Managing the Claude-Flow System](../../../architecture/managing-claude-flow.md)
-- [Multi Agent Orchestration](../../../server/agent-swarm.md)
-- [Multi Agent RAG scrapbook](../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-- [Multi-Agent Container Setup](../../../deployment/multi-agent-setup.md)
-- [Multi-MCP Agent Visualisation System](../../../MCP_AGENT_VISUALIZATION.md)
-- [Multi-MCP Agent Visualisation System](../../../multi-mcp-agent-visualization.md)
+
+
+
+
+
 - [Parallel Graph Architecture](../../../architecture/parallel-graphs.md)
-- [Performance Monitor Agent](../../../reference/agents/optimisation/performance-monitor.md)
-- [Performance Optimisation Agents](../../../reference/agents/optimisation/README.md)
-- [Resource Allocator Agent](../../../reference/agents/optimisation/resource-allocator.md)
+
+
+
 - [Server Architecture](../../../server/architecture.md)
 - [Settings Architecture Analysis Report](../../../architecture_analysis_report.md)
 - [Swarm Coordination Agents](../../../reference/agents/swarm/README.md)
-- [Topology Optimizer Agent](../../../reference/agents/optimisation/topology-optimiser.md)
+
 - [VisionFlow Component Architecture](../../../architecture/components.md)
 - [VisionFlow Data Flow Architecture](../../../architecture/data-flow.md)
 - [VisionFlow GPU Compute Integration](../../../architecture/gpu-compute.md)

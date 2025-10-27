@@ -237,7 +237,7 @@ services:
 
 ## Related Documentation
 
-- [Multi-Agent Docker Architecture](../multi-agent-docker/ARCHITECTURE.md)
+- [Multi-Agent Docker Architecture](../reference/architecture/README.md)
 - [Configuration Guide](./configuration.md)
 - [Deployment Guide](./deployment.md)
 

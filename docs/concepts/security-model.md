@@ -1112,7 +1112,7 @@ Annual third-party penetration testing covering:
 
 - [Deployment Guide](../guides/deployment.md) - Production deployment security
 - [Configuration Guide](../guides/configuration.md) - Security configuration
-- [Multi-Agent Docker Architecture](../multi-agent-docker/ARCHITECTURE.md) - Container security
+- [Multi-Agent Docker Architecture](../reference/architecture/README.md) - Container security
 
 ## External Resources
 

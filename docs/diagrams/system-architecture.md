@@ -635,5 +635,5 @@ All legacy file-based configuration has been migrated to database-backed storage
 ---
 
 **For detailed migration history, see:** [MIGRATION_PLAN.md](../MIGRATION_PLAN.md)
-**For database schemas, see:** [DATABASE.md](../DATABASE.md)
+**For database schemas, see:** [DATABASE.md](../reference/architecture/database-schema.md)
 **For API documentation, see:** [REST API](../reference/api/rest-api.md) and [WebSocket API](../reference/api/websocket-api.md)

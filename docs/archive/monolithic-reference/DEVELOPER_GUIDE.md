@@ -1221,9 +1221,9 @@ sqlite3 data/settings.db "PRAGMA page_count; PRAGMA page_size;"
 
 ## Additional Resources
 
-- [VisionFlow Architecture Overview](/docs/ARCHITECTURE.md)
-- [API Documentation](/docs/API.md)
-- [Database Documentation](/docs/DATABASE.md)
+- [VisionFlow Architecture Overview](../reference/architecture/README.md)
+- [API Documentation](../reference/api/README.md)
+- [Database Documentation](../reference/architecture/database-schema.md)
 - [Client Integration Guide](/docs/CLIENT_INTEGRATION.md)
 - [hexser Documentation](https://docs.rs/hexser)
 - [actix-web Documentation](https://actix.rs/docs/)

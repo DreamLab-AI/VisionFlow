@@ -1014,10 +1014,10 @@ useEffect(() => {
 
 ## Next Steps
 
-- See [WebSocket API Reference](websocket-api.md) for real-time communication
+- See [WebSocket API Reference](../reference/api/websocket-api.md) for real-time communication
 - See [Analytics API Guide](../../guides/analytics-api.md) for GPU-accelerated graph algorithms
 - See [Authentication Guide](../../guides/authentication.md) for secure API access patterns
 
 ---
 
-*[← Back to API Reference](../README.md) | [WebSocket API →](websocket-api.md)*
+*[← Back to API Reference](../README.md) | [WebSocket API →](../reference/api/websocket-api.md)*

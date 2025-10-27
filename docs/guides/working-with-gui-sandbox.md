@@ -801,7 +801,7 @@ DEBUG=1 ./mcp-helper.sh run-tool blender-mcp '{"tool":"get_scene_info"}'
 
 ## Related Documentation
 
-- [Multi-Agent Docker Architecture](/mnt/mldata/githubs/AR-AI-Knowledge-Graph/docs/multi-agent-docker/ARCHITECTURE.md) - Complete system architecture
+- [Multi-Agent Docker Architecture](../reference/architecture/README.md) - Complete system architecture
 - [MCP Tools Reference](/mnt/mldata/githubs/AR-AI-Knowledge-Graph/docs/multi-agent-docker/TOOLS.md) - Detailed tool specifications
 - [Development Workflow](./02-development-workflow.md) - Development best practices
 - [Orchestrating Agents](./04-orchestrating-agents.md) - Agent coordination patterns

@@ -423,7 +423,7 @@ A: Not yet. Currently uses anonymous sessions with auto-generated IDs.
 
 - **[Vircadia Integration Analysis](../architecture/vircadia-integration-analysis.md)** - Technical architecture
 - **[WebRTC Migration Plan](../architecture/voice-webrtc-migration-plan.md)** - Voice system upgrade path
-- **[Multi-Agent Docker Environment](../multi-agent-docker/ARCHITECTURE.md)** - Overall system architecture
+- **[Multi-Agent Docker Environment](../reference/architecture/README.md)** - Overall system architecture
 
 ---
 

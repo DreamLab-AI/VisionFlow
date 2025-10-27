@@ -547,10 +547,10 @@ Content-Type: application/json
 
 ## Related Documentation
 
-- [REST API](rest-api.md) - HTTP endpoints for GPU operations
+- [REST API](../reference/api/rest-api.md) - HTTP endpoints for GPU operations
 - [CUDA Parameters](../cuda-parameters.md) - Detailed CUDA configuration
 - [Performance Benchmarks](../../guides/performance.md) - Algorithm performance analysis
 
 ---
 
-**[← MCP Protocol](mcp-protocol.md)** | **[Back to API Index →](index.md)**
+**[← MCP Protocol](../reference/api/mcp-protocol.md)** | **[Back to API Index →](README.md)**

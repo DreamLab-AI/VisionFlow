@@ -8,22 +8,18 @@
 ================================================================================
 
 📊 STATISTICS:
-  • Total markdown files: 252
-  • Total forward links: 5613
-  • Total backward links: 5577
-  • Files with links: 179
-  • Files linked to: 520
+  • Total markdown files: 257
+  • Total forward links: 4381
+  • Total backward links: 4351
+  • Files with links: 180
+  • Files linked to: 505
 
 🔗 LINK VALIDATION RESULTS:
-  ❌ BROKEN LINKS (1950):
+  ❌ BROKEN LINKS (757):
      • CONTRIBUTING_DOCS.md
        └─> ../../README.md (target not found: /home/devuser/workspace/README.md)
      • README.md
        └─> ./getting-started/02-first-graph.md (target not found: getting-started/02-first-graph.md)
-     • architecture/ARCHITECTURE_ANALYSIS_INDEX.md
-       └─> ../ARCHITECTURE.md (target not found: ARCHITECTURE.md)
-     • architecture/ARCHITECTURE_ANALYSIS_INDEX.md
-       └─> ../DATABASE.md (target not found: DATABASE.md)
      • architecture/ARCHITECTURE_INDEX.md
        └─> /multi-agent-docker/management-api/README.md (target not found: /multi-agent-docker/management-api/README.md)
      • architecture/ARCHITECTURE_INDEX.md
@@ -159,21 +155,21 @@
      • archive/migration-legacy/index.md
        └─> ./research/owl_rdf_ontology_integration_research.md (target not found: archive/migration-legacy/research/owl_rdf_ontology_integration_research.md)
      • archive/monolithic-reference/API.md
-       └─> /docs/ARCHITECTURE.md (target not found: /docs/ARCHITECTURE.md)
-     • archive/monolithic-reference/API.md
        └─> /docs/CLIENT_INTEGRATION.md (target not found: /docs/CLIENT_INTEGRATION.md)
-     • archive/monolithic-reference/API.md
-       └─> /docs/DATABASE.md (target not found: /docs/DATABASE.md)
      • archive/monolithic-reference/API.md
        └─> /docs/DEVELOPER_GUIDE.md (target not found: /docs/DEVELOPER_GUIDE.md)
-     • archive/monolithic-reference/DEVELOPER_GUIDE.md
-       └─> /docs/API.md (target not found: /docs/API.md)
-     • archive/monolithic-reference/DEVELOPER_GUIDE.md
-       └─> /docs/ARCHITECTURE.md (target not found: /docs/ARCHITECTURE.md)
+     • archive/monolithic-reference/API.md
+       └─> ../reference/architecture/README.md (target not found: archive/reference/architecture/README.md)
+     • archive/monolithic-reference/API.md
+       └─> ../reference/architecture/database-schema.md (target not found: archive/reference/architecture/database-schema.md)
      • archive/monolithic-reference/DEVELOPER_GUIDE.md
        └─> /docs/CLIENT_INTEGRATION.md (target not found: /docs/CLIENT_INTEGRATION.md)
      • archive/monolithic-reference/DEVELOPER_GUIDE.md
-       └─> /docs/DATABASE.md (target not found: /docs/DATABASE.md)
+       └─> ../reference/api/README.md (target not found: archive/reference/api/README.md)
+     • archive/monolithic-reference/DEVELOPER_GUIDE.md
+       └─> ../reference/architecture/README.md (target not found: archive/reference/architecture/README.md)
+     • archive/monolithic-reference/DEVELOPER_GUIDE.md
+       └─> ../reference/architecture/database-schema.md (target not found: archive/reference/architecture/database-schema.md)
      • concepts/agentic-workers.md
        └─> ../../multi-agent-docker/README.md (target not found: /home/devuser/workspace/project/multi-agent-docker/README.md)
      • concepts/agentic-workers.md
@@ -273,43 +269,23 @@
      • diagrams/README.md
        └─> ../../agents/microtask-breakdown.md (target not found: /home/devuser/workspace/project/agents/microtask-breakdown.md)
      • diagrams/README.md
-       └─> ../DATABASE.md (target not found: DATABASE.md)
-     • diagrams/README.md
        └─> ../DEVELOPER_GUIDE.md (target not found: DEVELOPER_GUIDE.md)
      • diagrams/README.md
        └─> ../MIGRATION_PLAN.md (target not found: MIGRATION_PLAN.md)
      • diagrams/data-flow-deployment.md
-       └─> ../DATABASE.md (target not found: DATABASE.md)
-     • diagrams/data-flow-deployment.md
        └─> ../DEVELOPER_GUIDE.md (target not found: DEVELOPER_GUIDE.md)
-     • diagrams/sparc-turboflow-architecture.md
-       └─> ../ARCHITECTURE.md (target not found: ARCHITECTURE.md)
      • diagrams/sparc-turboflow-architecture.md
        └─> ../multi-agent-docker/CLAUDE.md (target not found: multi-agent-docker/CLAUDE.md)
      • diagrams/sparc-turboflow-architecture.md
        └─> ../multi-agent-docker/devpods/claude-flow-quick-reference.md (target not found: multi-agent-docker/devpods/claude-flow-quick-reference.md)
      • diagrams/system-architecture.md
-       └─> ../DATABASE.md (target not found: DATABASE.md)
-     • diagrams/system-architecture.md
        └─> ../MIGRATION_PLAN.md (target not found: MIGRATION_PLAN.md)
      • getting-started/01-installation.md
-       └─> 00-index.md (target not found: 00-index.md)
-     • getting-started/01-installation.md
-       └─> 02-quick-start.md (target not found: 02-quick-start.md)
-     • getting-started/01-installation.md
-       └─> ../api/index.md (target not found: api/index.md)
-     • getting-started/01-installation.md
-       └─> configuration.md (target not found: configuration.md)
-     • getting-started/01-installation.md
-       └─> ../index.md (target not found: index.md)
-     • getting-started/01-installation.md
-       └─> ../troubleshooting.md (target not found: troubleshooting.md)
+       └─> 02-first-graph-and-agents.md (target not found: 02-first-graph-and-agents.md)
      • getting-started/02-first-graph-and-agents.md
        └─> 01-installation.md (target not found: 01-installation.md)
      • getting-started/02-first-graph-and-agents.md
-       └─> ../index.md (target not found: index.md)
-     • guides/configuration.md
-       └─> index.md (target not found: index.md)
+       └─> ../reference/agents/templates/README.md (target not found: reference/agents/templates/README.md)
      • guides/deployment.md
        └─> ../index.md (target not found: index.md)
      • guides/developer/development-setup.md
@@ -344,8 +320,6 @@
        └─> ../contributing.md (target not found: contributing.md)
      • guides/extending-the-system.md
        └─> ../index.md (target not found: index.md)
-     • guides/extending-the-system.md
-       └─> index.md (target not found: index.md)
      • guides/index.md
        └─> agent-orchestration.md (target not found: agent-orchestration.md)
      • guides/index.md
@@ -364,8 +338,6 @@
        └─> development-workflow.md (target not found: development-workflow.md)
      • guides/orchestrating-agents.md
        └─> ../index.md (target not found: index.md)
-     • guides/orchestrating-agents.md
-       └─> index.md (target not found: index.md)
      • guides/testing-guide.md
        └─> ../archive/legacy-docs-2025-10/troubleshooting/SECURITY_ALERT.md (target not found: archive/legacy-docs-2025-10/troubleshooting/SECURITY_ALERT.md)
      • guides/testing-guide.md
@@ -376,10 +348,6 @@
        └─> ./01-deployment.md (target not found: guides/01-deployment.md)
      • guides/troubleshooting.md
        └─> ../index.md (target not found: index.md)
-     • guides/troubleshooting.md
-       └─> index.md (target not found: index.md)
-     • guides/working-with-gui-sandbox.md
-       └─> /mnt/mldata/githubs/AR-AI-Knowledge-Graph/docs/multi-agent-docker/ARCHITECTURE.md (target not found: /mnt/mldata/githubs/AR-AI-Knowledge-Graph/docs/multi-agent-docker/ARCHITECTURE.md)
      • guides/working-with-gui-sandbox.md
        └─> /mnt/mldata/githubs/AR-AI-Knowledge-Graph/docs/multi-agent-docker/TOOLS.md (target not found: /mnt/mldata/githubs/AR-AI-Knowledge-Graph/docs/multi-agent-docker/TOOLS.md)
      • guides/working-with-gui-sandbox.md
@@ -404,10 +372,12 @@
        └─> ./QUICKSTART.md (target not found: multi-agent-docker/QUICKSTART.md)
      • multi-agent-docker/docs/CONFIGURATION.md
        └─> ./ARCHITECTURE-SIMPLIFIED.md (target not found: multi-agent-docker/docs/ARCHITECTURE-SIMPLIFIED.md)
+     • multi-agent-docker/docs/CONFIGURATION.md
+       └─> ../getting-started/README.md (target not found: multi-agent-docker/getting-started/README.md)
+     • multi-agent-docker/docs/CONFIGURATION.md
+       └─> ../guides/deployment.md (target not found: multi-agent-docker/guides/deployment.md)
      • multi-agent-docker/docs/GETTING_STARTED.md
        └─> ARCHITECTURE-SIMPLIFIED.md (target not found: ARCHITECTURE-SIMPLIFIED.md)
-     • multi-agent-docker/docs/GETTING_STARTED.md
-       └─> DEPLOYMENT.md (target not found: DEPLOYMENT.md)
      • multi-agent-docker/docs/GETTING_STARTED.md
        └─> GEMINI-FLOW.md (target not found: GEMINI-FLOW.md)
      • multi-agent-docker/docs/GETTING_STARTED.md
@@ -416,16 +386,12 @@
        └─> README.workstation.md (target not found: README.workstation.md)
      • multi-agent-docker/docs/GETTING_STARTED.md
        └─> TEST-FRAMEWORK.md (target not found: TEST-FRAMEWORK.md)
+     • multi-agent-docker/docs/GETTING_STARTED.md
+       └─> ../guides/deployment.md (target not found: multi-agent-docker/guides/deployment.md)
      • multi-agent-docker/docs/README.md
        └─> API_REFERENCE.md (target not found: API_REFERENCE.md)
      • multi-agent-docker/docs/README.md
-       └─> ARCHITECTURE.md (target not found: ARCHITECTURE.md)
-     • multi-agent-docker/docs/README.md
        └─> CONFIGURATION.md (target not found: CONFIGURATION.md)
-     • multi-agent-docker/docs/README.md
-       └─> DEPLOYMENT.md (target not found: DEPLOYMENT.md)
-     • multi-agent-docker/docs/README.md
-       └─> GETTING_STARTED.md (target not found: GETTING_STARTED.md)
      • multi-agent-docker/docs/README.md
        └─> TROUBLESHOOTING.md (target not found: TROUBLESHOOTING.md)
      • multi-agent-docker/docs/README.md
@@ -439,6 +405,12 @@
      • multi-agent-docker/docs/README.md
        └─> guides/TASK_MANAGEMENT.md (target not found: guides/TASK_MANAGEMENT.md)
      • multi-agent-docker/docs/README.md
+       └─> ../getting-started/README.md (target not found: multi-agent-docker/getting-started/README.md)
+     • multi-agent-docker/docs/README.md
+       └─> ../guides/deployment.md (target not found: multi-agent-docker/guides/deployment.md)
+     • multi-agent-docker/docs/README.md
+       └─> ../reference/architecture/README.md (target not found: multi-agent-docker/reference/architecture/README.md)
+     • multi-agent-docker/docs/README.md
        └─> reference/DOCKER.md (target not found: reference/DOCKER.md)
      • multi-agent-docker/docs/README.md
        └─> reference/ENVIRONMENT_VARIABLES.md (target not found: reference/ENVIRONMENT_VARIABLES.md)
@@ -449,11 +421,13 @@
      • multi-agent-docker/docs/TROUBLESHOOTING.md
        └─> API_REFERENCE.md (target not found: API_REFERENCE.md)
      • multi-agent-docker/docs/TROUBLESHOOTING.md
-       └─> ARCHITECTURE.md (target not found: ARCHITECTURE.md)
+       └─> ../getting-started/README.md (target not found: multi-agent-docker/getting-started/README.md)
      • multi-agent-docker/docs/TROUBLESHOOTING.md
-       └─> DEPLOYMENT.md (target not found: DEPLOYMENT.md)
+       └─> ../guides/deployment.md (target not found: multi-agent-docker/guides/deployment.md)
      • multi-agent-docker/docs/TROUBLESHOOTING.md
-       └─> GETTING_STARTED.md (target not found: GETTING_STARTED.md)
+       └─> ../reference/architecture/README.md (target not found: multi-agent-docker/reference/architecture/README.md)
+     • multi-agent-docker/docs/guides/DESKTOP_ENVIRONMENT.md
+       └─> ../getting-started/README.md (target not found: multi-agent-docker/docs/getting-started/README.md)
      • multi-agent-docker/docs/guides/DESKTOP_ENVIRONMENT.md
        └─> ../../minimaldocs/MCP_TOOLS.md (target not found: multi-agent-docker/minimaldocs/MCP_TOOLS.md)
      • multi-agent-docker/docs/guides/README.md
@@ -467,131 +441,29 @@
      • multi-agent-docker/docs/guides/README.md
        └─> agent-sdk.md (target not found: agent-sdk.md)
      • multi-agent-docker/docs/guides/TASK_MANAGEMENT.md
-       └─> ../architecture/FINAL-ARCHITECTURE.md (target not found: multi-agent-docker/docs/architecture/FINAL-ARCHITECTURE.md)
+       └─> ../guides/deployment.md (target not found: multi-agent-docker/docs/guides/deployment.md)
+     • multi-agent-docker/docs/guides/TASK_MANAGEMENT.md
+       └─> ../reference/architecture/README.md (target not found: multi-agent-docker/docs/reference/architecture/README.md)
      • multi-agent-docker/docs/guides/TASK_MANAGEMENT.md
        └─> programmatic-control.md (target not found: programmatic-control.md)
      • multi-agent-docker/docs/reference/ENVIRONMENT_VARIABLES.md
+       └─> ../getting-started/README.md (target not found: multi-agent-docker/docs/getting-started/README.md)
+     • multi-agent-docker/docs/reference/ENVIRONMENT_VARIABLES.md
        └─> ../guides/SECURITY.md (target not found: multi-agent-docker/docs/guides/SECURITY.md)
+     • multi-agent-docker/docs/reference/ENVIRONMENT_VARIABLES.md
+       └─> ../guides/deployment.md (target not found: multi-agent-docker/docs/guides/deployment.md)
      • multi-agent-docker/docs/reference/ENVIRONMENT_VARIABLES.md
        └─> ../../reference/api/README.md (target not found: multi-agent-docker/reference/api/README.md)
      • reference/README.md
        └─> ../index.md (target not found: index.md)
-     • reference/agents/README.md
-       └─> ../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/README.md
-       └─> ../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/README.md
-       └─> ../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/README.md
-       └─> ../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/README.md
-       └─> ../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/README.md
-       └─> ../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/README.md
-       └─> ../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/README.md
-       └─> ../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/README.md
-       └─> ../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/README.md
-       └─> ../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/README.md
-       └─> ../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/README.md
-       └─> ../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
-     • reference/agents/README.md
-       └─> ../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
-     • reference/agents/README.md
-       └─> ../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/README.md
-       └─> ../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/README.md
-       └─> ../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/README.md
-       └─> ../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/README.md
-       └─> ../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/README.md
-       └─> ../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/README.md
-       └─> ../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
-     • reference/agents/README.md
-       └─> ../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
-     • reference/agents/README.md
-       └─> ../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/README.md
-       └─> ../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/analysis/code-analyzer.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/analysis/code-analyzer.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/analysis/code-analyzer.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/analysis/code-analyzer.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/analysis/code-analyzer.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/analysis/code-analyzer.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/analysis/code-analyzer.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/analysis/code-analyzer.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/analysis/code-analyzer.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/analysis/code-analyzer.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/analysis/code-analyzer.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/analysis/code-analyzer.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/analysis/code-analyzer.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/analysis/code-analyzer.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/analysis/code-analyzer.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/analysis/code-analyzer.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/analysis/code-analyzer.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/analysis/code-analyzer.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/analysis/code-analyzer.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/analysis/code-analyzer.md
        └─> ../reference/agents/analysis/index.md (target not found: reference/agents/reference/agents/analysis/index.md)
      • reference/agents/analysis/code-analyzer.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/analysis/code-analyzer.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/analysis/code-analyzer.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/analysis/code-review/analyze-code-quality.md
-       └─> ../../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/analysis/code-review/analyze-code-quality.md
-       └─> ../../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/analysis/code-review/analyze-code-quality.md
-       └─> ../../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/analysis/code-review/analyze-code-quality.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/analysis/code-review/analyze-code-quality.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/analysis/code-review/analyze-code-quality.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/analysis/code-review/analyze-code-quality.md
-       └─> ../../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/analysis/code-review/analyze-code-quality.md
-       └─> ../../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/analysis/code-review/analyze-code-quality.md
-       └─> ../../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/analysis/code-review/analyze-code-quality.md
-       └─> ../../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/analysis/code-review/analyze-code-quality.md
-       └─> ../../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/analysis/code-review/analyze-code-quality.md
-       └─> ../../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/analysis/code-review/analyze-code-quality.md
        └─> ../../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/analysis/code-review/analyze-code-quality.md
@@ -599,31 +471,11 @@
      • reference/agents/analysis/code-review/analyze-code-quality.md
        └─> ../reference/agents/analysis/code-review/index.md (target not found: reference/agents/analysis/reference/agents/analysis/code-review/index.md)
      • reference/agents/analysis/code-review/analyze-code-quality.md
-       └─> ../../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/analysis/code-review/analyze-code-quality.md
-       └─> ../../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/analysis/code-review/analyze-code-quality.md
-       └─> ../../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/analysis/code-review/analyze-code-quality.md
-       └─> ../../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/analysis/code-review/analyze-code-quality.md
-       └─> ../../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/analysis/code-review/analyze-code-quality.md
-       └─> ../../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
-     • reference/agents/analysis/code-review/analyze-code-quality.md
        └─> ../../reference/agents/analysis/index.md (target not found: reference/agents/reference/agents/analysis/index.md)
      • reference/agents/analysis/code-review/analyze-code-quality.md
        └─> ../../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/analysis/code-review/analyze-code-quality.md
        └─> ../../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/analysis/code-review/analyze-code-quality.md
-       └─> ../../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/architecture/system-design/arch-system-design.md
-       └─> ../../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/architecture/system-design/arch-system-design.md
-       └─> ../../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/architecture/system-design/arch-system-design.md
-       └─> ../../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
      • reference/agents/architecture/system-design/arch-system-design.md
        └─> ../../../../architecture/bots-visionflow-system.md (target not found: architecture/bots-visionflow-system.md)
      • reference/agents/architecture/system-design/arch-system-design.md
@@ -661,25 +513,7 @@
      • reference/agents/architecture/system-design/arch-system-design.md
        └─> ../../../../architecture_analysis_report.md (target not found: architecture_analysis_report.md)
      • reference/agents/architecture/system-design/arch-system-design.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/architecture/system-design/arch-system-design.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/architecture/system-design/arch-system-design.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/architecture/system-design/arch-system-design.md
-       └─> ../../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/architecture/system-design/arch-system-design.md
-       └─> ../../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/architecture/system-design/arch-system-design.md
-       └─> ../../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/architecture/system-design/arch-system-design.md
        └─> ../../../../client/architecture.md (target not found: client/architecture.md)
-     • reference/agents/architecture/system-design/arch-system-design.md
-       └─> ../../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/architecture/system-design/arch-system-design.md
-       └─> ../../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/architecture/system-design/arch-system-design.md
-       └─> ../../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/architecture/system-design/arch-system-design.md
        └─> ../../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/architecture/system-design/arch-system-design.md
@@ -689,267 +523,63 @@
      • reference/agents/architecture/system-design/arch-system-design.md
        └─> ../reference/agents/architecture/system-design/index.md (target not found: reference/agents/architecture/reference/agents/architecture/system-design/index.md)
      • reference/agents/architecture/system-design/arch-system-design.md
-       └─> ../../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/architecture/system-design/arch-system-design.md
-       └─> ../../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/architecture/system-design/arch-system-design.md
-       └─> ../../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/architecture/system-design/arch-system-design.md
-       └─> ../../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/architecture/system-design/arch-system-design.md
-       └─> ../../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/architecture/system-design/arch-system-design.md
-       └─> ../../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
-     • reference/agents/architecture/system-design/arch-system-design.md
        └─> ../../reference/agents/architecture/index.md (target not found: reference/agents/reference/agents/architecture/index.md)
      • reference/agents/architecture/system-design/arch-system-design.md
        └─> ../../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/architecture/system-design/arch-system-design.md
        └─> ../../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
      • reference/agents/architecture/system-design/arch-system-design.md
-       └─> ../../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/architecture/system-design/arch-system-design.md
        └─> ../../../../server/architecture.md (target not found: server/architecture.md)
      • reference/agents/architecture/system-design/arch-system-design.md
        └─> ../../../../technical/decoupled-graph-architecture.md (target not found: technical/decoupled-graph-architecture.md)
-     • reference/agents/base-template-generator.md
-       └─> ../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/base-template-generator.md
-       └─> ../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/base-template-generator.md
-       └─> ../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/base-template-generator.md
-       └─> ../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/base-template-generator.md
-       └─> ../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/base-template-generator.md
-       └─> ../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/base-template-generator.md
-       └─> ../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/base-template-generator.md
-       └─> ../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/base-template-generator.md
-       └─> ../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/base-template-generator.md
-       └─> ../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/base-template-generator.md
-       └─> ../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/base-template-generator.md
-       └─> ../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/base-template-generator.md
        └─> ../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/base-template-generator.md
        └─> ../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
      • reference/agents/base-template-generator.md
-       └─> ../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/base-template-generator.md
-       └─> ../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/base-template-generator.md
-       └─> ../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/base-template-generator.md
-       └─> ../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/base-template-generator.md
-       └─> ../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/base-template-generator.md
-       └─> ../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
-     • reference/agents/base-template-generator.md
        └─> ../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/base-template-generator.md
        └─> ../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/base-template-generator.md
-       └─> ../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/consensus/README.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/consensus/README.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/consensus/README.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/consensus/README.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/consensus/README.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/consensus/README.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/consensus/README.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/consensus/README.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/consensus/README.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/consensus/README.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/consensus/README.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/consensus/README.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/consensus/README.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/consensus/README.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/consensus/README.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/consensus/README.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/consensus/README.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/consensus/README.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/consensus/README.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/consensus/README.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/consensus/README.md
        └─> ../reference/agents/consensus/index.md (target not found: reference/agents/reference/agents/consensus/index.md)
      • reference/agents/consensus/README.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/consensus/README.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/consensus/README.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/consensus/byzantine-coordinator.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/consensus/byzantine-coordinator.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/consensus/byzantine-coordinator.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/consensus/byzantine-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/consensus/byzantine-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/consensus/byzantine-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/consensus/byzantine-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/consensus/byzantine-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/consensus/byzantine-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/consensus/byzantine-coordinator.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/consensus/byzantine-coordinator.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/consensus/byzantine-coordinator.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/consensus/byzantine-coordinator.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/consensus/byzantine-coordinator.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/consensus/byzantine-coordinator.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/consensus/byzantine-coordinator.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/consensus/byzantine-coordinator.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/consensus/byzantine-coordinator.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/consensus/byzantine-coordinator.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/consensus/byzantine-coordinator.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/consensus/byzantine-coordinator.md
        └─> ../reference/agents/consensus/index.md (target not found: reference/agents/reference/agents/consensus/index.md)
      • reference/agents/consensus/byzantine-coordinator.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/consensus/byzantine-coordinator.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/consensus/byzantine-coordinator.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/consensus/crdt-synchronizer.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/consensus/crdt-synchronizer.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/consensus/crdt-synchronizer.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/consensus/crdt-synchronizer.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/consensus/crdt-synchronizer.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/consensus/crdt-synchronizer.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/consensus/crdt-synchronizer.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/consensus/crdt-synchronizer.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/consensus/crdt-synchronizer.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/consensus/crdt-synchronizer.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/consensus/crdt-synchronizer.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/consensus/crdt-synchronizer.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/consensus/crdt-synchronizer.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/consensus/crdt-synchronizer.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/consensus/crdt-synchronizer.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/consensus/crdt-synchronizer.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/consensus/crdt-synchronizer.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/consensus/crdt-synchronizer.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/consensus/crdt-synchronizer.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/consensus/crdt-synchronizer.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/consensus/crdt-synchronizer.md
        └─> ../reference/agents/consensus/index.md (target not found: reference/agents/reference/agents/consensus/index.md)
      • reference/agents/consensus/crdt-synchronizer.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/consensus/crdt-synchronizer.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/consensus/crdt-synchronizer.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/consensus/gossip-coordinator.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/consensus/gossip-coordinator.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/consensus/gossip-coordinator.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/consensus/gossip-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/consensus/gossip-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/consensus/gossip-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/consensus/gossip-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/consensus/gossip-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/consensus/gossip-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/consensus/gossip-coordinator.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/consensus/gossip-coordinator.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/consensus/gossip-coordinator.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/consensus/gossip-coordinator.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/consensus/gossip-coordinator.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/consensus/gossip-coordinator.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/consensus/gossip-coordinator.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/consensus/gossip-coordinator.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/consensus/gossip-coordinator.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/consensus/gossip-coordinator.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/consensus/gossip-coordinator.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/consensus/gossip-coordinator.md
        └─> ../reference/agents/consensus/index.md (target not found: reference/agents/reference/agents/consensus/index.md)
      • reference/agents/consensus/gossip-coordinator.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/consensus/gossip-coordinator.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/consensus/gossip-coordinator.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
      • reference/agents/consensus/index.md
        └─> byzantine-coordinator.md (target not found: byzantine-coordinator.md)
      • reference/agents/consensus/index.md
@@ -965,193 +595,43 @@
      • reference/agents/consensus/index.md
        └─> security-manager.md (target not found: security-manager.md)
      • reference/agents/consensus/performance-benchmarker.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/consensus/performance-benchmarker.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/consensus/performance-benchmarker.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/consensus/performance-benchmarker.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/consensus/performance-benchmarker.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/consensus/performance-benchmarker.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/consensus/performance-benchmarker.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/consensus/performance-benchmarker.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/consensus/performance-benchmarker.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/consensus/performance-benchmarker.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/consensus/performance-benchmarker.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/consensus/performance-benchmarker.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
-     • reference/agents/consensus/performance-benchmarker.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/consensus/performance-benchmarker.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/consensus/performance-benchmarker.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/consensus/performance-benchmarker.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/consensus/performance-benchmarker.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/consensus/performance-benchmarker.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/consensus/performance-benchmarker.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/consensus/performance-benchmarker.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/consensus/performance-benchmarker.md
        └─> ../reference/agents/consensus/index.md (target not found: reference/agents/reference/agents/consensus/index.md)
      • reference/agents/consensus/performance-benchmarker.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/consensus/performance-benchmarker.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/consensus/performance-benchmarker.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/consensus/quorum-manager.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/consensus/quorum-manager.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/consensus/quorum-manager.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/consensus/quorum-manager.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/consensus/quorum-manager.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/consensus/quorum-manager.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/consensus/quorum-manager.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/consensus/quorum-manager.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/consensus/quorum-manager.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/consensus/quorum-manager.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/consensus/quorum-manager.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/consensus/quorum-manager.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/consensus/quorum-manager.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/consensus/quorum-manager.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/consensus/quorum-manager.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/consensus/quorum-manager.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/consensus/quorum-manager.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/consensus/quorum-manager.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/consensus/quorum-manager.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/consensus/quorum-manager.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/consensus/quorum-manager.md
        └─> ../reference/agents/consensus/index.md (target not found: reference/agents/reference/agents/consensus/index.md)
      • reference/agents/consensus/quorum-manager.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/consensus/quorum-manager.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/consensus/quorum-manager.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/consensus/raft-manager.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/consensus/raft-manager.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/consensus/raft-manager.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/consensus/raft-manager.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/consensus/raft-manager.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/consensus/raft-manager.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/consensus/raft-manager.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/consensus/raft-manager.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/consensus/raft-manager.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/consensus/raft-manager.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/consensus/raft-manager.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/consensus/raft-manager.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/consensus/raft-manager.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/consensus/raft-manager.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/consensus/raft-manager.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/consensus/raft-manager.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/consensus/raft-manager.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/consensus/raft-manager.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/consensus/raft-manager.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/consensus/raft-manager.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/consensus/raft-manager.md
        └─> ../reference/agents/consensus/index.md (target not found: reference/agents/reference/agents/consensus/index.md)
      • reference/agents/consensus/raft-manager.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/consensus/raft-manager.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/consensus/raft-manager.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/consensus/security-manager.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/consensus/security-manager.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/consensus/security-manager.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/consensus/security-manager.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/consensus/security-manager.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/consensus/security-manager.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/consensus/security-manager.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
      • reference/agents/consensus/security-manager.md
        └─> ../../../archive/legacy/old_markdown/Cyber Security and Military.md (target not found: archive/legacy/old_markdown/Cyber Security and Military.md)
      • reference/agents/consensus/security-manager.md
        └─> ../../../archive/legacy/old_markdown/Cyber security and Cryptography.md (target not found: archive/legacy/old_markdown/Cyber security and Cryptography.md)
      • reference/agents/consensus/security-manager.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/consensus/security-manager.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/consensus/security-manager.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/consensus/security-manager.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/consensus/security-manager.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
-     • reference/agents/consensus/security-manager.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/consensus/security-manager.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/consensus/security-manager.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/consensus/security-manager.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/consensus/security-manager.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/consensus/security-manager.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/consensus/security-manager.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/consensus/security-manager.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/consensus/security-manager.md
        └─> ../reference/agents/consensus/index.md (target not found: reference/agents/reference/agents/consensus/index.md)
      • reference/agents/consensus/security-manager.md
@@ -1162,60 +642,20 @@
        └─> ../../../security/authentication.md (target not found: security/authentication.md)
      • reference/agents/consensus/security-manager.md
        └─> ../../../security/index.md (target not found: security/index.md)
-     • reference/agents/consensus/security-manager.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
      • reference/agents/conventions.md
        └─> ../../architecture/index.md (target not found: architecture/index.md)
      • reference/agents/conventions.md
        └─> ../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
      • reference/agents/core/coder.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/core/coder.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/core/coder.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/core/coder.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/core/coder.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/core/coder.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/core/coder.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/core/coder.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/core/coder.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/core/coder.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/core/coder.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/core/coder.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
-     • reference/agents/core/coder.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/core/coder.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/core/coder.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/core/coder.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/core/coder.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/core/coder.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/core/coder.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/core/coder.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/core/coder.md
        └─> ../reference/agents/core/index.md (target not found: reference/agents/reference/agents/core/index.md)
      • reference/agents/core/coder.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/core/coder.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/core/coder.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
      • reference/agents/core/index.md
        └─> coder.md (target not found: coder.md)
      • reference/agents/core/index.md
@@ -1227,221 +667,45 @@
      • reference/agents/core/index.md
        └─> tester.md (target not found: tester.md)
      • reference/agents/core/planner.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/core/planner.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/core/planner.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/core/planner.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/core/planner.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/core/planner.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/core/planner.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/core/planner.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/core/planner.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/core/planner.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/core/planner.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/core/planner.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
-     • reference/agents/core/planner.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/core/planner.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/core/planner.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/core/planner.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/core/planner.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/core/planner.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/core/planner.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/core/planner.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/core/planner.md
        └─> ../reference/agents/core/index.md (target not found: reference/agents/reference/agents/core/index.md)
      • reference/agents/core/planner.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/core/planner.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/core/planner.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/core/researcher.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/core/researcher.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/core/researcher.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/core/researcher.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/core/researcher.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/core/researcher.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/core/researcher.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/core/researcher.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/core/researcher.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/core/researcher.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/core/researcher.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/core/researcher.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/core/researcher.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/core/researcher.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/core/researcher.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/core/researcher.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/core/researcher.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/core/researcher.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/core/researcher.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/core/researcher.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/core/researcher.md
        └─> ../reference/agents/core/index.md (target not found: reference/agents/reference/agents/core/index.md)
      • reference/agents/core/researcher.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/core/researcher.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/core/researcher.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/core/reviewer.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/core/reviewer.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/core/reviewer.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/core/reviewer.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/core/reviewer.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/core/reviewer.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/core/reviewer.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/core/reviewer.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/core/reviewer.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/core/reviewer.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/core/reviewer.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/core/reviewer.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/core/reviewer.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/core/reviewer.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/core/reviewer.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/core/reviewer.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/core/reviewer.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/core/reviewer.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/core/reviewer.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/core/reviewer.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/core/reviewer.md
        └─> ../reference/agents/core/index.md (target not found: reference/agents/reference/agents/core/index.md)
      • reference/agents/core/reviewer.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/core/reviewer.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/core/reviewer.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/core/tester.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/core/tester.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/core/tester.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/core/tester.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/core/tester.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/core/tester.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/core/tester.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/core/tester.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/core/tester.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/core/tester.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/core/tester.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/core/tester.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/core/tester.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/core/tester.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/core/tester.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/core/tester.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/core/tester.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/core/tester.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/core/tester.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/core/tester.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/core/tester.md
        └─> ../reference/agents/core/index.md (target not found: reference/agents/reference/agents/core/index.md)
      • reference/agents/core/tester.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/core/tester.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/core/tester.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/data/ml/data-ml-model.md
-       └─> ../../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/data/ml/data-ml-model.md
-       └─> ../../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/data/ml/data-ml-model.md
-       └─> ../../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/data/ml/data-ml-model.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/data/ml/data-ml-model.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/data/ml/data-ml-model.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/data/ml/data-ml-model.md
-       └─> ../../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/data/ml/data-ml-model.md
-       └─> ../../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/data/ml/data-ml-model.md
-       └─> ../../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/data/ml/data-ml-model.md
-       └─> ../../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/data/ml/data-ml-model.md
-       └─> ../../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/data/ml/data-ml-model.md
-       └─> ../../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/data/ml/data-ml-model.md
        └─> ../../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/data/ml/data-ml-model.md
@@ -1451,39 +715,17 @@
      • reference/agents/data/ml/data-ml-model.md
        └─> ../reference/agents/data/ml/index.md (target not found: reference/agents/data/reference/agents/data/ml/index.md)
      • reference/agents/data/ml/data-ml-model.md
-       └─> ../../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/data/ml/data-ml-model.md
-       └─> ../../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/data/ml/data-ml-model.md
-       └─> ../../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/data/ml/data-ml-model.md
-       └─> ../../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/data/ml/data-ml-model.md
-       └─> ../../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/data/ml/data-ml-model.md
-       └─> ../../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
-     • reference/agents/data/ml/data-ml-model.md
        └─> ../../reference/agents/data/index.md (target not found: reference/agents/reference/agents/data/index.md)
      • reference/agents/data/ml/data-ml-model.md
        └─> ../../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/data/ml/data-ml-model.md
        └─> ../../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/data/ml/data-ml-model.md
-       └─> ../../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/development/backend/dev-backend-api.md
-       └─> ../../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
      • reference/agents/development/backend/dev-backend-api.md
        └─> ../../../../DEV_CONFIG.md (target not found: DEV_CONFIG.md)
-     • reference/agents/development/backend/dev-backend-api.md
-       └─> ../../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/development/backend/dev-backend-api.md
-       └─> ../../../../MODERN_SETTINGS_API.md (target not found: MODERN_SETTINGS_API.md)
      • reference/agents/development/backend/dev-backend-api.md
        └─> ../../../../REST_API_BLOOM_GLOW_VALIDATION_FIX.md (target not found: REST_API_BLOOM_GLOW_VALIDATION_FIX.md)
      • reference/agents/development/backend/dev-backend-api.md
        └─> ../../../../VITE_DEV_ROUTING_EXPLAINED.md (target not found: VITE_DEV_ROUTING_EXPLAINED.md)
-     • reference/agents/development/backend/dev-backend-api.md
-       └─> ../../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
      • reference/agents/development/backend/dev-backend-api.md
        └─> ../../../../api/analytics-endpoints.md (target not found: api/analytics-endpoints.md)
      • reference/agents/development/backend/dev-backend-api.md
@@ -1506,20 +748,6 @@
        └─> ../../../../api/websocket.md (target not found: api/websocket.md)
      • reference/agents/development/backend/dev-backend-api.md
        └─> ../../../../api/websocket/index.md (target not found: api/websocket/index.md)
-     • reference/agents/development/backend/dev-backend-api.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/development/backend/dev-backend-api.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/development/backend/dev-backend-api.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/development/backend/dev-backend-api.md
-       └─> ../../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/development/backend/dev-backend-api.md
-       └─> ../../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/development/backend/dev-backend-api.md
-       └─> ../../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/development/backend/dev-backend-api.md
-       └─> ../../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
      • reference/agents/development/backend/dev-backend-api.md
        └─> ../../../../development/debugging.md (target not found: development/debugging.md)
      • reference/agents/development/backend/dev-backend-api.md
@@ -1529,10 +757,6 @@
      • reference/agents/development/backend/dev-backend-api.md
        └─> ../../../../development/testing.md (target not found: development/testing.md)
      • reference/agents/development/backend/dev-backend-api.md
-       └─> ../../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/development/backend/dev-backend-api.md
-       └─> ../../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
-     • reference/agents/development/backend/dev-backend-api.md
        └─> ../../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/development/backend/dev-backend-api.md
        └─> ../../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
@@ -1541,49 +765,13 @@
      • reference/agents/development/backend/dev-backend-api.md
        └─> ../reference/agents/development/backend/index.md (target not found: reference/agents/development/reference/agents/development/backend/index.md)
      • reference/agents/development/backend/dev-backend-api.md
-       └─> ../../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/development/backend/dev-backend-api.md
-       └─> ../../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/development/backend/dev-backend-api.md
-       └─> ../../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/development/backend/dev-backend-api.md
-       └─> ../../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/development/backend/dev-backend-api.md
-       └─> ../../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/development/backend/dev-backend-api.md
-       └─> ../../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
+       └─> ../reference/api/README.md (target not found: reference/agents/development/reference/api/README.md)
      • reference/agents/development/backend/dev-backend-api.md
        └─> ../../reference/agents/development/index.md (target not found: reference/agents/reference/agents/development/index.md)
      • reference/agents/development/backend/dev-backend-api.md
        └─> ../../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/development/backend/dev-backend-api.md
        └─> ../../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/development/backend/dev-backend-api.md
-       └─> ../../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/devops/ci-cd/ops-cicd-github.md
-       └─> ../../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/devops/ci-cd/ops-cicd-github.md
-       └─> ../../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/devops/ci-cd/ops-cicd-github.md
-       └─> ../../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/devops/ci-cd/ops-cicd-github.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/devops/ci-cd/ops-cicd-github.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/devops/ci-cd/ops-cicd-github.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/devops/ci-cd/ops-cicd-github.md
-       └─> ../../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/devops/ci-cd/ops-cicd-github.md
-       └─> ../../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/devops/ci-cd/ops-cicd-github.md
-       └─> ../../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/devops/ci-cd/ops-cicd-github.md
-       └─> ../../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/devops/ci-cd/ops-cicd-github.md
-       └─> ../../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/devops/ci-cd/ops-cicd-github.md
-       └─> ../../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/devops/ci-cd/ops-cicd-github.md
        └─> ../../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/devops/ci-cd/ops-cicd-github.md
@@ -1593,35 +781,13 @@
      • reference/agents/devops/ci-cd/ops-cicd-github.md
        └─> ../reference/agents/devops/ci-cd/index.md (target not found: reference/agents/devops/reference/agents/devops/ci-cd/index.md)
      • reference/agents/devops/ci-cd/ops-cicd-github.md
-       └─> ../../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/devops/ci-cd/ops-cicd-github.md
-       └─> ../../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/devops/ci-cd/ops-cicd-github.md
-       └─> ../../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/devops/ci-cd/ops-cicd-github.md
-       └─> ../../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/devops/ci-cd/ops-cicd-github.md
-       └─> ../../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/devops/ci-cd/ops-cicd-github.md
-       └─> ../../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
-     • reference/agents/devops/ci-cd/ops-cicd-github.md
        └─> ../../reference/agents/devops/index.md (target not found: reference/agents/reference/agents/devops/index.md)
      • reference/agents/devops/ci-cd/ops-cicd-github.md
        └─> ../../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/devops/ci-cd/ops-cicd-github.md
        └─> ../../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/devops/ci-cd/ops-cicd-github.md
-       └─> ../../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/documentation/api-docs/docs-api-openapi.md
-       └─> ../../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/documentation/api-docs/docs-api-openapi.md
-       └─> ../../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/documentation/api-docs/docs-api-openapi.md
-       └─> ../../../../MODERN_SETTINGS_API.md (target not found: MODERN_SETTINGS_API.md)
      • reference/agents/documentation/api-docs/docs-api-openapi.md
        └─> ../../../../REST_API_BLOOM_GLOW_VALIDATION_FIX.md (target not found: REST_API_BLOOM_GLOW_VALIDATION_FIX.md)
-     • reference/agents/documentation/api-docs/docs-api-openapi.md
-       └─> ../../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
      • reference/agents/documentation/api-docs/docs-api-openapi.md
        └─> ../../../../api/analytics-endpoints.md (target not found: api/analytics-endpoints.md)
      • reference/agents/documentation/api-docs/docs-api-openapi.md
@@ -1645,24 +811,6 @@
      • reference/agents/documentation/api-docs/docs-api-openapi.md
        └─> ../../../../api/websocket/index.md (target not found: api/websocket/index.md)
      • reference/agents/documentation/api-docs/docs-api-openapi.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/documentation/api-docs/docs-api-openapi.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/documentation/api-docs/docs-api-openapi.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/documentation/api-docs/docs-api-openapi.md
-       └─> ../../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/documentation/api-docs/docs-api-openapi.md
-       └─> ../../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/documentation/api-docs/docs-api-openapi.md
-       └─> ../../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/documentation/api-docs/docs-api-openapi.md
-       └─> ../../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/documentation/api-docs/docs-api-openapi.md
-       └─> ../../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/documentation/api-docs/docs-api-openapi.md
-       └─> ../../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
-     • reference/agents/documentation/api-docs/docs-api-openapi.md
        └─> ../../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/documentation/api-docs/docs-api-openapi.md
        └─> ../../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
@@ -1671,121 +819,33 @@
      • reference/agents/documentation/api-docs/docs-api-openapi.md
        └─> ../reference/agents/documentation/api-docs/index.md (target not found: reference/agents/documentation/reference/agents/documentation/api-docs/index.md)
      • reference/agents/documentation/api-docs/docs-api-openapi.md
-       └─> ../../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/documentation/api-docs/docs-api-openapi.md
-       └─> ../../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/documentation/api-docs/docs-api-openapi.md
-       └─> ../../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/documentation/api-docs/docs-api-openapi.md
-       └─> ../../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/documentation/api-docs/docs-api-openapi.md
-       └─> ../../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/documentation/api-docs/docs-api-openapi.md
-       └─> ../../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
+       └─> ../reference/api/README.md (target not found: reference/agents/documentation/reference/api/README.md)
      • reference/agents/documentation/api-docs/docs-api-openapi.md
        └─> ../../reference/agents/documentation/index.md (target not found: reference/agents/reference/agents/documentation/index.md)
      • reference/agents/documentation/api-docs/docs-api-openapi.md
        └─> ../../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/documentation/api-docs/docs-api-openapi.md
        └─> ../../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/documentation/api-docs/docs-api-openapi.md
-       └─> ../../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/github/code-review-swarm.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/github/code-review-swarm.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/github/code-review-swarm.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/github/code-review-swarm.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/github/code-review-swarm.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/github/code-review-swarm.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/github/code-review-swarm.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/github/code-review-swarm.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/github/code-review-swarm.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/github/code-review-swarm.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/github/code-review-swarm.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/github/code-review-swarm.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/github/code-review-swarm.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/github/code-review-swarm.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/github/code-review-swarm.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/github/code-review-swarm.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/github/code-review-swarm.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/github/code-review-swarm.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/github/code-review-swarm.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/github/code-review-swarm.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/github/code-review-swarm.md
        └─> ../reference/agents/github/index.md (target not found: reference/agents/reference/agents/github/index.md)
      • reference/agents/github/code-review-swarm.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/github/code-review-swarm.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/github/code-review-swarm.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/github/github-modes.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/github/github-modes.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/github/github-modes.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/github/github-modes.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/github/github-modes.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/github/github-modes.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/github/github-modes.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/github/github-modes.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/github/github-modes.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/github/github-modes.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/github/github-modes.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/github/github-modes.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/github/github-modes.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/github/github-modes.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/github/github-modes.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/github/github-modes.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/github/github-modes.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/github/github-modes.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/github/github-modes.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/github/github-modes.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/github/github-modes.md
        └─> ../reference/agents/github/index.md (target not found: reference/agents/reference/agents/github/index.md)
      • reference/agents/github/github-modes.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/github/github-modes.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/github/github-modes.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
      • reference/agents/github/index.md
        └─> code-review-swarm.md (target not found: code-review-swarm.md)
      • reference/agents/github/index.md
@@ -1813,533 +873,115 @@
      • reference/agents/github/index.md
        └─> workflow-automation.md (target not found: workflow-automation.md)
      • reference/agents/github/issue-tracker.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/github/issue-tracker.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/github/issue-tracker.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/github/issue-tracker.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/github/issue-tracker.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/github/issue-tracker.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/github/issue-tracker.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/github/issue-tracker.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/github/issue-tracker.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/github/issue-tracker.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/github/issue-tracker.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/github/issue-tracker.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
-     • reference/agents/github/issue-tracker.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/github/issue-tracker.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/github/issue-tracker.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/github/issue-tracker.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/github/issue-tracker.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/github/issue-tracker.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/github/issue-tracker.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/github/issue-tracker.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/github/issue-tracker.md
        └─> ../reference/agents/github/index.md (target not found: reference/agents/reference/agents/github/index.md)
      • reference/agents/github/issue-tracker.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/github/issue-tracker.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/github/issue-tracker.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/github/multi-repo-swarm.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/github/multi-repo-swarm.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/github/multi-repo-swarm.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/github/multi-repo-swarm.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/github/multi-repo-swarm.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/github/multi-repo-swarm.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/github/multi-repo-swarm.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/github/multi-repo-swarm.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/github/multi-repo-swarm.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/github/multi-repo-swarm.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/github/multi-repo-swarm.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/github/multi-repo-swarm.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/github/multi-repo-swarm.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/github/multi-repo-swarm.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/github/multi-repo-swarm.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/github/multi-repo-swarm.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/github/multi-repo-swarm.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/github/multi-repo-swarm.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/github/multi-repo-swarm.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/github/multi-repo-swarm.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/github/multi-repo-swarm.md
        └─> ../reference/agents/github/index.md (target not found: reference/agents/reference/agents/github/index.md)
      • reference/agents/github/multi-repo-swarm.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/github/multi-repo-swarm.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/github/multi-repo-swarm.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/github/pr-manager.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/github/pr-manager.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/github/pr-manager.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/github/pr-manager.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/github/pr-manager.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/github/pr-manager.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/github/pr-manager.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/github/pr-manager.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/github/pr-manager.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/github/pr-manager.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/github/pr-manager.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/github/pr-manager.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/github/pr-manager.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/github/pr-manager.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/github/pr-manager.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/github/pr-manager.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/github/pr-manager.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/github/pr-manager.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/github/pr-manager.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/github/pr-manager.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/github/pr-manager.md
        └─> ../reference/agents/github/index.md (target not found: reference/agents/reference/agents/github/index.md)
      • reference/agents/github/pr-manager.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/github/pr-manager.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/github/pr-manager.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/github/project-board-sync.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/github/project-board-sync.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/github/project-board-sync.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/github/project-board-sync.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/github/project-board-sync.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/github/project-board-sync.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/github/project-board-sync.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/github/project-board-sync.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/github/project-board-sync.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/github/project-board-sync.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/github/project-board-sync.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/github/project-board-sync.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/github/project-board-sync.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/github/project-board-sync.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/github/project-board-sync.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/github/project-board-sync.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/github/project-board-sync.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/github/project-board-sync.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/github/project-board-sync.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/github/project-board-sync.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/github/project-board-sync.md
        └─> ../reference/agents/github/index.md (target not found: reference/agents/reference/agents/github/index.md)
      • reference/agents/github/project-board-sync.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/github/project-board-sync.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/github/project-board-sync.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/github/release-manager.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/github/release-manager.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/github/release-manager.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/github/release-manager.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/github/release-manager.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/github/release-manager.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/github/release-manager.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/github/release-manager.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/github/release-manager.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/github/release-manager.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/github/release-manager.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/github/release-manager.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/github/release-manager.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/github/release-manager.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/github/release-manager.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/github/release-manager.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/github/release-manager.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/github/release-manager.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/github/release-manager.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/github/release-manager.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/github/release-manager.md
        └─> ../reference/agents/github/index.md (target not found: reference/agents/reference/agents/github/index.md)
      • reference/agents/github/release-manager.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/github/release-manager.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/github/release-manager.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/github/release-swarm.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/github/release-swarm.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/github/release-swarm.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/github/release-swarm.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/github/release-swarm.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/github/release-swarm.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/github/release-swarm.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/github/release-swarm.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/github/release-swarm.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/github/release-swarm.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/github/release-swarm.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/github/release-swarm.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/github/release-swarm.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/github/release-swarm.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/github/release-swarm.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/github/release-swarm.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/github/release-swarm.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/github/release-swarm.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/github/release-swarm.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/github/release-swarm.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/github/release-swarm.md
        └─> ../reference/agents/github/index.md (target not found: reference/agents/reference/agents/github/index.md)
      • reference/agents/github/release-swarm.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/github/release-swarm.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/github/release-swarm.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/github/repo-architect.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/github/repo-architect.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/github/repo-architect.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/github/repo-architect.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/github/repo-architect.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/github/repo-architect.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/github/repo-architect.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/github/repo-architect.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/github/repo-architect.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/github/repo-architect.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/github/repo-architect.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/github/repo-architect.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/github/repo-architect.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/github/repo-architect.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/github/repo-architect.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/github/repo-architect.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/github/repo-architect.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/github/repo-architect.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/github/repo-architect.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/github/repo-architect.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/github/repo-architect.md
        └─> ../reference/agents/github/index.md (target not found: reference/agents/reference/agents/github/index.md)
      • reference/agents/github/repo-architect.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/github/repo-architect.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/github/repo-architect.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/github/swarm-issue.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/github/swarm-issue.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/github/swarm-issue.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/github/swarm-issue.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/github/swarm-issue.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/github/swarm-issue.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/github/swarm-issue.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/github/swarm-issue.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/github/swarm-issue.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/github/swarm-issue.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/github/swarm-issue.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/github/swarm-issue.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/github/swarm-issue.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/github/swarm-issue.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/github/swarm-issue.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/github/swarm-issue.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/github/swarm-issue.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/github/swarm-issue.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/github/swarm-issue.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/github/swarm-issue.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/github/swarm-issue.md
        └─> ../reference/agents/github/index.md (target not found: reference/agents/reference/agents/github/index.md)
      • reference/agents/github/swarm-issue.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/github/swarm-issue.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/github/swarm-issue.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/github/swarm-pr.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/github/swarm-pr.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/github/swarm-pr.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/github/swarm-pr.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/github/swarm-pr.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/github/swarm-pr.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/github/swarm-pr.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/github/swarm-pr.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/github/swarm-pr.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/github/swarm-pr.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/github/swarm-pr.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/github/swarm-pr.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/github/swarm-pr.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/github/swarm-pr.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/github/swarm-pr.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/github/swarm-pr.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/github/swarm-pr.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/github/swarm-pr.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/github/swarm-pr.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/github/swarm-pr.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/github/swarm-pr.md
        └─> ../reference/agents/github/index.md (target not found: reference/agents/reference/agents/github/index.md)
      • reference/agents/github/swarm-pr.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/github/swarm-pr.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/github/swarm-pr.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/github/sync-coordinator.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/github/sync-coordinator.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/github/sync-coordinator.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/github/sync-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/github/sync-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/github/sync-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/github/sync-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/github/sync-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/github/sync-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/github/sync-coordinator.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/github/sync-coordinator.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/github/sync-coordinator.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/github/sync-coordinator.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/github/sync-coordinator.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/github/sync-coordinator.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/github/sync-coordinator.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/github/sync-coordinator.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/github/sync-coordinator.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/github/sync-coordinator.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/github/sync-coordinator.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/github/sync-coordinator.md
        └─> ../reference/agents/github/index.md (target not found: reference/agents/reference/agents/github/index.md)
      • reference/agents/github/sync-coordinator.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/github/sync-coordinator.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/github/sync-coordinator.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/github/workflow-automation.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/github/workflow-automation.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/github/workflow-automation.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/github/workflow-automation.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/github/workflow-automation.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/github/workflow-automation.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/github/workflow-automation.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/github/workflow-automation.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/github/workflow-automation.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/github/workflow-automation.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/github/workflow-automation.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/github/workflow-automation.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/github/workflow-automation.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/github/workflow-automation.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/github/workflow-automation.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/github/workflow-automation.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/github/workflow-automation.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/github/workflow-automation.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/github/workflow-automation.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/github/workflow-automation.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/github/workflow-automation.md
        └─> ../reference/agents/github/index.md (target not found: reference/agents/reference/agents/github/index.md)
      • reference/agents/github/workflow-automation.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/github/workflow-automation.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/github/workflow-automation.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
      • reference/agents/index.md
        └─> ../../../multi-agent-docker/README.md (target not found: /home/devuser/workspace/project/multi-agent-docker/README.md)
      • reference/agents/index.md
@@ -2351,143 +993,33 @@
      • reference/agents/index.md
        └─> ./templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/migration-summary.md
-       └─> ../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/migration-summary.md
-       └─> ../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/migration-summary.md
-       └─> ../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/migration-summary.md
-       └─> ../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/migration-summary.md
-       └─> ../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/migration-summary.md
-       └─> ../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/migration-summary.md
-       └─> ../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/migration-summary.md
-       └─> ../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/migration-summary.md
-       └─> ../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/migration-summary.md
-       └─> ../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/migration-summary.md
-       └─> ../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/migration-summary.md
-       └─> ../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
-     • reference/agents/migration-summary.md
        └─> ../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/migration-summary.md
        └─> ../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
      • reference/agents/migration-summary.md
-       └─> ../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/migration-summary.md
-       └─> ../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/migration-summary.md
-       └─> ../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/migration-summary.md
-       └─> ../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/migration-summary.md
-       └─> ../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/migration-summary.md
-       └─> ../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
-     • reference/agents/migration-summary.md
        └─> ../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/migration-summary.md
        └─> ../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/migration-summary.md
-       └─> ../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/optimization/README.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/optimization/README.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/optimization/README.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/optimization/README.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/optimization/README.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/optimization/README.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/optimization/README.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/optimization/README.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/optimization/README.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/optimization/README.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/optimization/README.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/optimization/README.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/optimization/README.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/optimization/README.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/optimization/README.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/optimization/README.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/optimization/README.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/optimization/README.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/optimization/README.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/optimization/README.md
        └─> ../reference/agents/optimisation/index.md (target not found: reference/agents/reference/agents/optimisation/index.md)
      • reference/agents/optimization/README.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/optimization/README.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/optimization/README.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/optimization/benchmark-suite.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/optimization/benchmark-suite.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/optimization/benchmark-suite.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/optimization/benchmark-suite.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/optimization/benchmark-suite.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/optimization/benchmark-suite.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/optimization/benchmark-suite.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/optimization/benchmark-suite.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/optimization/benchmark-suite.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/optimization/benchmark-suite.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/optimization/benchmark-suite.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/optimization/benchmark-suite.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/optimization/benchmark-suite.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/optimization/benchmark-suite.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/optimization/benchmark-suite.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/optimization/benchmark-suite.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/optimization/benchmark-suite.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/optimization/benchmark-suite.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/optimization/benchmark-suite.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/optimization/benchmark-suite.md
        └─> ../reference/agents/optimisation/index.md (target not found: reference/agents/reference/agents/optimisation/index.md)
      • reference/agents/optimization/benchmark-suite.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/optimization/benchmark-suite.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/optimization/benchmark-suite.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
      • reference/agents/optimization/index.md
        └─> benchmark-suite.md (target not found: benchmark-suite.md)
      • reference/agents/optimization/index.md
@@ -2499,195 +1031,45 @@
      • reference/agents/optimization/index.md
        └─> topology-optimiser.md (target not found: topology-optimiser.md)
      • reference/agents/optimization/load-balancer.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/optimization/load-balancer.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/optimization/load-balancer.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/optimization/load-balancer.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/optimization/load-balancer.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/optimization/load-balancer.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/optimization/load-balancer.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/optimization/load-balancer.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/optimization/load-balancer.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/optimization/load-balancer.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/optimization/load-balancer.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/optimization/load-balancer.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
-     • reference/agents/optimization/load-balancer.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/optimization/load-balancer.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/optimization/load-balancer.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/optimization/load-balancer.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/optimization/load-balancer.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/optimization/load-balancer.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/optimization/load-balancer.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/optimization/load-balancer.md
        └─> ../reference/agents/optimisation/index.md (target not found: reference/agents/reference/agents/optimisation/index.md)
      • reference/agents/optimization/load-balancer.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/optimization/load-balancer.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/optimization/load-balancer.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/optimization/performance-monitor.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/optimization/performance-monitor.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/optimization/performance-monitor.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/optimization/performance-monitor.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/optimization/performance-monitor.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/optimization/performance-monitor.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/optimization/performance-monitor.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/optimization/performance-monitor.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/optimization/performance-monitor.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/optimization/performance-monitor.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/optimization/performance-monitor.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/optimization/performance-monitor.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/optimization/performance-monitor.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/optimization/performance-monitor.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/optimization/performance-monitor.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/optimization/performance-monitor.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/optimization/performance-monitor.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/optimization/performance-monitor.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/optimization/performance-monitor.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/optimization/performance-monitor.md
        └─> ../reference/agents/optimisation/index.md (target not found: reference/agents/reference/agents/optimisation/index.md)
      • reference/agents/optimization/performance-monitor.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/optimization/performance-monitor.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/optimization/performance-monitor.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/optimization/resource-allocator.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/optimization/resource-allocator.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/optimization/resource-allocator.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/optimization/resource-allocator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/optimization/resource-allocator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/optimization/resource-allocator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/optimization/resource-allocator.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/optimization/resource-allocator.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/optimization/resource-allocator.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/optimization/resource-allocator.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/optimization/resource-allocator.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/optimization/resource-allocator.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/optimization/resource-allocator.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/optimization/resource-allocator.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/optimization/resource-allocator.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/optimization/resource-allocator.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/optimization/resource-allocator.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/optimization/resource-allocator.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/optimization/resource-allocator.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/optimization/resource-allocator.md
        └─> ../reference/agents/optimisation/index.md (target not found: reference/agents/reference/agents/optimisation/index.md)
      • reference/agents/optimization/resource-allocator.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/optimization/resource-allocator.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/optimization/resource-allocator.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/optimization/topology-optimizer.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/optimization/topology-optimizer.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/optimization/topology-optimizer.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/optimization/topology-optimizer.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/optimization/topology-optimizer.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/optimization/topology-optimizer.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/optimization/topology-optimizer.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/optimization/topology-optimizer.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/optimization/topology-optimizer.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/optimization/topology-optimizer.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/optimization/topology-optimizer.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/optimization/topology-optimizer.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/optimization/topology-optimizer.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/optimization/topology-optimizer.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/optimization/topology-optimizer.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/optimization/topology-optimizer.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/optimization/topology-optimizer.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/optimization/topology-optimizer.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/optimization/topology-optimizer.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
      • reference/agents/optimization/topology-optimizer.md
        └─> ../reference/agents/optimisation/index.md (target not found: reference/agents/reference/agents/optimisation/index.md)
      • reference/agents/optimization/topology-optimizer.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/optimization/topology-optimizer.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/optimization/topology-optimizer.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/sparc/architecture.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/sparc/architecture.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/sparc/architecture.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
      • reference/agents/sparc/architecture.md
        └─> ../../../architecture/bots-visionflow-system.md (target not found: architecture/bots-visionflow-system.md)
      • reference/agents/sparc/architecture.md
@@ -2725,49 +1107,17 @@
      • reference/agents/sparc/architecture.md
        └─> ../../../architecture_analysis_report.md (target not found: architecture_analysis_report.md)
      • reference/agents/sparc/architecture.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/sparc/architecture.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/sparc/architecture.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/sparc/architecture.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/sparc/architecture.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/sparc/architecture.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/sparc/architecture.md
        └─> ../../../client/architecture.md (target not found: client/architecture.md)
-     • reference/agents/sparc/architecture.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/sparc/architecture.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/sparc/architecture.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/sparc/architecture.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/sparc/architecture.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/sparc/architecture.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/sparc/architecture.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/sparc/architecture.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/sparc/architecture.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/sparc/architecture.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/sparc/architecture.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/sparc/architecture.md
        └─> ../reference/agents/sparc/index.md (target not found: reference/agents/reference/agents/sparc/index.md)
      • reference/agents/sparc/architecture.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/sparc/architecture.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/sparc/architecture.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
      • reference/agents/sparc/architecture.md
        └─> ../../../server/architecture.md (target not found: server/architecture.md)
      • reference/agents/sparc/architecture.md
@@ -2781,189 +1131,39 @@
      • reference/agents/sparc/index.md
        └─> specification.md (target not found: specification.md)
      • reference/agents/sparc/pseudocode.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/sparc/pseudocode.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/sparc/pseudocode.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/sparc/pseudocode.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/sparc/pseudocode.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/sparc/pseudocode.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/sparc/pseudocode.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/sparc/pseudocode.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/sparc/pseudocode.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/sparc/pseudocode.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/sparc/pseudocode.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/sparc/pseudocode.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
-     • reference/agents/sparc/pseudocode.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/sparc/pseudocode.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/sparc/pseudocode.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/sparc/pseudocode.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/sparc/pseudocode.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/sparc/pseudocode.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/sparc/pseudocode.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/sparc/pseudocode.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/sparc/pseudocode.md
        └─> ../reference/agents/sparc/index.md (target not found: reference/agents/reference/agents/sparc/index.md)
      • reference/agents/sparc/pseudocode.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/sparc/pseudocode.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/sparc/pseudocode.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/sparc/refinement.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/sparc/refinement.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/sparc/refinement.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/sparc/refinement.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/sparc/refinement.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/sparc/refinement.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/sparc/refinement.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/sparc/refinement.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/sparc/refinement.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/sparc/refinement.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/sparc/refinement.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/sparc/refinement.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/sparc/refinement.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/sparc/refinement.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/sparc/refinement.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/sparc/refinement.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/sparc/refinement.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/sparc/refinement.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/sparc/refinement.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/sparc/refinement.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/sparc/refinement.md
        └─> ../reference/agents/sparc/index.md (target not found: reference/agents/reference/agents/sparc/index.md)
      • reference/agents/sparc/refinement.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/sparc/refinement.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/sparc/refinement.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/sparc/specification.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/sparc/specification.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/sparc/specification.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/sparc/specification.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/sparc/specification.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/sparc/specification.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/sparc/specification.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/sparc/specification.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/sparc/specification.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/sparc/specification.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/sparc/specification.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/sparc/specification.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/sparc/specification.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/sparc/specification.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/sparc/specification.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/sparc/specification.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/sparc/specification.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/sparc/specification.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/sparc/specification.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/sparc/specification.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/sparc/specification.md
        └─> ../reference/agents/sparc/index.md (target not found: reference/agents/reference/agents/sparc/index.md)
      • reference/agents/sparc/specification.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/sparc/specification.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/sparc/specification.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/specialized/mobile/spec-mobile-react-native.md
-       └─> ../../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/specialized/mobile/spec-mobile-react-native.md
-       └─> ../../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/specialized/mobile/spec-mobile-react-native.md
-       └─> ../../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/specialized/mobile/spec-mobile-react-native.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/specialized/mobile/spec-mobile-react-native.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/specialized/mobile/spec-mobile-react-native.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/specialized/mobile/spec-mobile-react-native.md
-       └─> ../../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/specialized/mobile/spec-mobile-react-native.md
-       └─> ../../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/specialized/mobile/spec-mobile-react-native.md
-       └─> ../../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/specialized/mobile/spec-mobile-react-native.md
-       └─> ../../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/specialized/mobile/spec-mobile-react-native.md
-       └─> ../../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/specialized/mobile/spec-mobile-react-native.md
-       └─> ../../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/specialized/mobile/spec-mobile-react-native.md
        └─> ../../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/specialized/mobile/spec-mobile-react-native.md
        └─> ../../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/specialized/mobile/spec-mobile-react-native.md
-       └─> ../../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/specialized/mobile/spec-mobile-react-native.md
-       └─> ../../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/specialized/mobile/spec-mobile-react-native.md
-       └─> ../../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/specialized/mobile/spec-mobile-react-native.md
-       └─> ../../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/specialized/mobile/spec-mobile-react-native.md
-       └─> ../../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/specialized/mobile/spec-mobile-react-native.md
-       └─> ../../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/specialized/mobile/spec-mobile-react-native.md
        └─> ../../reference/agents/specialized/index.md (target not found: reference/agents/reference/agents/specialized/index.md)
      • reference/agents/specialized/mobile/spec-mobile-react-native.md
@@ -2974,152 +1174,36 @@
        └─> ../../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/specialized/mobile/spec-mobile-react-native.md
        └─> ../../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/specialized/mobile/spec-mobile-react-native.md
-       └─> ../../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/swarm/README.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/swarm/README.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/swarm/README.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/swarm/README.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/swarm/README.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/swarm/README.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/swarm/README.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/swarm/README.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/swarm/README.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/swarm/README.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/swarm/README.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/swarm/README.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/swarm/README.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/swarm/README.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/swarm/README.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/swarm/README.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/swarm/README.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/swarm/README.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/swarm/README.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/swarm/README.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/swarm/README.md
        └─> ../reference/agents/swarm/index.md (target not found: reference/agents/reference/agents/swarm/index.md)
      • reference/agents/swarm/README.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/swarm/README.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/swarm/README.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/swarm/adaptive-coordinator.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/swarm/adaptive-coordinator.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/swarm/adaptive-coordinator.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/swarm/adaptive-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/swarm/adaptive-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/swarm/adaptive-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/swarm/adaptive-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/swarm/adaptive-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/swarm/adaptive-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/swarm/adaptive-coordinator.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/swarm/adaptive-coordinator.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/swarm/adaptive-coordinator.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/swarm/adaptive-coordinator.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/swarm/adaptive-coordinator.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/swarm/adaptive-coordinator.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/swarm/adaptive-coordinator.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/swarm/adaptive-coordinator.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/swarm/adaptive-coordinator.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/swarm/adaptive-coordinator.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/swarm/adaptive-coordinator.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/swarm/adaptive-coordinator.md
        └─> ../reference/agents/swarm/index.md (target not found: reference/agents/reference/agents/swarm/index.md)
      • reference/agents/swarm/adaptive-coordinator.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/swarm/adaptive-coordinator.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/swarm/adaptive-coordinator.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/swarm/hierarchical-coordinator.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/swarm/hierarchical-coordinator.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/swarm/hierarchical-coordinator.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/swarm/hierarchical-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/swarm/hierarchical-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/swarm/hierarchical-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/swarm/hierarchical-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/swarm/hierarchical-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/swarm/hierarchical-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/swarm/hierarchical-coordinator.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/swarm/hierarchical-coordinator.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/swarm/hierarchical-coordinator.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/swarm/hierarchical-coordinator.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/swarm/hierarchical-coordinator.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/swarm/hierarchical-coordinator.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/swarm/hierarchical-coordinator.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/swarm/hierarchical-coordinator.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/swarm/hierarchical-coordinator.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/swarm/hierarchical-coordinator.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/swarm/hierarchical-coordinator.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/swarm/hierarchical-coordinator.md
        └─> ../reference/agents/swarm/index.md (target not found: reference/agents/reference/agents/swarm/index.md)
      • reference/agents/swarm/hierarchical-coordinator.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/swarm/hierarchical-coordinator.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/swarm/hierarchical-coordinator.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
      • reference/agents/swarm/index.md
        └─> adaptive-coordinator.md (target not found: adaptive-coordinator.md)
      • reference/agents/swarm/index.md
@@ -3127,245 +1211,55 @@
      • reference/agents/swarm/index.md
        └─> mesh-coordinator.md (target not found: mesh-coordinator.md)
      • reference/agents/swarm/mesh-coordinator.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/swarm/mesh-coordinator.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/swarm/mesh-coordinator.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/swarm/mesh-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/swarm/mesh-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/swarm/mesh-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/swarm/mesh-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/swarm/mesh-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/swarm/mesh-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/swarm/mesh-coordinator.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/swarm/mesh-coordinator.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/swarm/mesh-coordinator.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
-     • reference/agents/swarm/mesh-coordinator.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/swarm/mesh-coordinator.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/swarm/mesh-coordinator.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/swarm/mesh-coordinator.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/swarm/mesh-coordinator.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/swarm/mesh-coordinator.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/swarm/mesh-coordinator.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/swarm/mesh-coordinator.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/swarm/mesh-coordinator.md
        └─> ../reference/agents/swarm/index.md (target not found: reference/agents/reference/agents/swarm/index.md)
      • reference/agents/swarm/mesh-coordinator.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/swarm/mesh-coordinator.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/swarm/mesh-coordinator.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/templates/automation-smart-agent.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/templates/automation-smart-agent.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/templates/automation-smart-agent.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/templates/automation-smart-agent.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/templates/automation-smart-agent.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/templates/automation-smart-agent.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/templates/automation-smart-agent.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/templates/automation-smart-agent.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/templates/automation-smart-agent.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/templates/automation-smart-agent.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/templates/automation-smart-agent.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/templates/automation-smart-agent.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/templates/automation-smart-agent.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/templates/automation-smart-agent.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/templates/automation-smart-agent.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/templates/automation-smart-agent.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/templates/automation-smart-agent.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/templates/automation-smart-agent.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/templates/automation-smart-agent.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/templates/automation-smart-agent.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/templates/automation-smart-agent.md
        └─> ../reference/agents/templates/index.md (target not found: reference/agents/reference/agents/templates/index.md)
      • reference/agents/templates/automation-smart-agent.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/templates/automation-smart-agent.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/templates/automation-smart-agent.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/templates/coordinator-swarm-init.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/templates/coordinator-swarm-init.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/templates/coordinator-swarm-init.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/templates/coordinator-swarm-init.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/templates/coordinator-swarm-init.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/templates/coordinator-swarm-init.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/templates/coordinator-swarm-init.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/templates/coordinator-swarm-init.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/templates/coordinator-swarm-init.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/templates/coordinator-swarm-init.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/templates/coordinator-swarm-init.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/templates/coordinator-swarm-init.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/templates/coordinator-swarm-init.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/templates/coordinator-swarm-init.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/templates/coordinator-swarm-init.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/templates/coordinator-swarm-init.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/templates/coordinator-swarm-init.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/templates/coordinator-swarm-init.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/templates/coordinator-swarm-init.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/templates/coordinator-swarm-init.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/templates/coordinator-swarm-init.md
        └─> ../reference/agents/templates/index.md (target not found: reference/agents/reference/agents/templates/index.md)
      • reference/agents/templates/coordinator-swarm-init.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/templates/coordinator-swarm-init.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/templates/coordinator-swarm-init.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/templates/github-pr-manager.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/templates/github-pr-manager.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/templates/github-pr-manager.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/templates/github-pr-manager.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/templates/github-pr-manager.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/templates/github-pr-manager.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/templates/github-pr-manager.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/templates/github-pr-manager.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/templates/github-pr-manager.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/templates/github-pr-manager.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/templates/github-pr-manager.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/templates/github-pr-manager.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/templates/github-pr-manager.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/templates/github-pr-manager.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/templates/github-pr-manager.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/templates/github-pr-manager.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/templates/github-pr-manager.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/templates/github-pr-manager.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/templates/github-pr-manager.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/templates/github-pr-manager.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/templates/github-pr-manager.md
        └─> ../reference/agents/templates/index.md (target not found: reference/agents/reference/agents/templates/index.md)
      • reference/agents/templates/github-pr-manager.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/templates/github-pr-manager.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/templates/github-pr-manager.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/templates/implementer-sparc-coder.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/templates/implementer-sparc-coder.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/templates/implementer-sparc-coder.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/templates/implementer-sparc-coder.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/templates/implementer-sparc-coder.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/templates/implementer-sparc-coder.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/templates/implementer-sparc-coder.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/templates/implementer-sparc-coder.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/templates/implementer-sparc-coder.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/templates/implementer-sparc-coder.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/templates/implementer-sparc-coder.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/templates/implementer-sparc-coder.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/templates/implementer-sparc-coder.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/templates/implementer-sparc-coder.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/templates/implementer-sparc-coder.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/templates/implementer-sparc-coder.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/templates/implementer-sparc-coder.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/templates/implementer-sparc-coder.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/templates/implementer-sparc-coder.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/templates/implementer-sparc-coder.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/templates/implementer-sparc-coder.md
        └─> ../reference/agents/templates/index.md (target not found: reference/agents/reference/agents/templates/index.md)
      • reference/agents/templates/implementer-sparc-coder.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/templates/implementer-sparc-coder.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/templates/implementer-sparc-coder.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
      • reference/agents/templates/index.md
        └─> automation-smart-agent.md (target not found: automation-smart-agent.md)
      • reference/agents/templates/index.md
@@ -3385,291 +1279,65 @@
      • reference/agents/templates/index.md
        └─> sparc-coordinator.md (target not found: sparc-coordinator.md)
      • reference/agents/templates/memory-coordinator.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/templates/memory-coordinator.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/templates/memory-coordinator.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/templates/memory-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/templates/memory-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/templates/memory-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/templates/memory-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/templates/memory-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/templates/memory-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/templates/memory-coordinator.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/templates/memory-coordinator.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/templates/memory-coordinator.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
-     • reference/agents/templates/memory-coordinator.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/templates/memory-coordinator.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/templates/memory-coordinator.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/templates/memory-coordinator.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/templates/memory-coordinator.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/templates/memory-coordinator.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/templates/memory-coordinator.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/templates/memory-coordinator.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/templates/memory-coordinator.md
        └─> ../reference/agents/templates/index.md (target not found: reference/agents/reference/agents/templates/index.md)
      • reference/agents/templates/memory-coordinator.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/templates/memory-coordinator.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/templates/memory-coordinator.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/templates/migration-plan.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/templates/migration-plan.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/templates/migration-plan.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/templates/migration-plan.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/templates/migration-plan.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/templates/migration-plan.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/templates/migration-plan.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/templates/migration-plan.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/templates/migration-plan.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/templates/migration-plan.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/templates/migration-plan.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/templates/migration-plan.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/templates/migration-plan.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/templates/migration-plan.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/templates/migration-plan.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/templates/migration-plan.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/templates/migration-plan.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/templates/migration-plan.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/templates/migration-plan.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/templates/migration-plan.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/templates/migration-plan.md
        └─> ../reference/agents/templates/index.md (target not found: reference/agents/reference/agents/templates/index.md)
      • reference/agents/templates/migration-plan.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/templates/migration-plan.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/templates/migration-plan.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/templates/orchestrator-task.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/templates/orchestrator-task.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/templates/orchestrator-task.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/templates/orchestrator-task.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/templates/orchestrator-task.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/templates/orchestrator-task.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/templates/orchestrator-task.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/templates/orchestrator-task.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/templates/orchestrator-task.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/templates/orchestrator-task.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/templates/orchestrator-task.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/templates/orchestrator-task.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/templates/orchestrator-task.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/templates/orchestrator-task.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/templates/orchestrator-task.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/templates/orchestrator-task.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/templates/orchestrator-task.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/templates/orchestrator-task.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/templates/orchestrator-task.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/templates/orchestrator-task.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/templates/orchestrator-task.md
        └─> ../reference/agents/templates/index.md (target not found: reference/agents/reference/agents/templates/index.md)
      • reference/agents/templates/orchestrator-task.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/templates/orchestrator-task.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/templates/orchestrator-task.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/templates/performance-analyzer.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/templates/performance-analyzer.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/templates/performance-analyzer.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/templates/performance-analyzer.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/templates/performance-analyzer.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/templates/performance-analyzer.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/templates/performance-analyzer.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/templates/performance-analyzer.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/templates/performance-analyzer.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/templates/performance-analyzer.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/templates/performance-analyzer.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/templates/performance-analyzer.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/templates/performance-analyzer.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/templates/performance-analyzer.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/templates/performance-analyzer.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/templates/performance-analyzer.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/templates/performance-analyzer.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/templates/performance-analyzer.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/templates/performance-analyzer.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/templates/performance-analyzer.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/templates/performance-analyzer.md
        └─> ../reference/agents/templates/index.md (target not found: reference/agents/reference/agents/templates/index.md)
      • reference/agents/templates/performance-analyzer.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/templates/performance-analyzer.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/templates/sparc-coordinator.md
-       └─> ../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
-     • reference/agents/templates/sparc-coordinator.md
-       └─> ../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/templates/sparc-coordinator.md
-       └─> ../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/templates/sparc-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/templates/sparc-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/templates/sparc-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/templates/sparc-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
-     • reference/agents/templates/sparc-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/templates/sparc-coordinator.md
-       └─> ../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/templates/sparc-coordinator.md
-       └─> ../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/templates/sparc-coordinator.md
-       └─> ../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/templates/sparc-coordinator.md
-       └─> ../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/templates/sparc-coordinator.md
        └─> ../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/templates/sparc-coordinator.md
        └─> ../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/templates/sparc-coordinator.md
-       └─> ../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/templates/sparc-coordinator.md
-       └─> ../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/templates/sparc-coordinator.md
-       └─> ../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/templates/sparc-coordinator.md
-       └─> ../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/templates/sparc-coordinator.md
-       └─> ../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/templates/sparc-coordinator.md
-       └─> ../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/templates/sparc-coordinator.md
        └─> ../reference/agents/templates/index.md (target not found: reference/agents/reference/agents/templates/index.md)
      • reference/agents/templates/sparc-coordinator.md
        └─> ../../../reference/agents/templates/performance-analyser.md (target not found: reference/agents/templates/performance-analyser.md)
      • reference/agents/templates/sparc-coordinator.md
        └─> ../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
-     • reference/agents/templates/sparc-coordinator.md
-       └─> ../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/testing/unit/tdd-london-swarm.md
-       └─> ../../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
      • reference/agents/testing/unit/tdd-london-swarm.md
        └─> ../../../../INTEGRATION_TEST_SUMMARY.md (target not found: INTEGRATION_TEST_SUMMARY.md)
      • reference/agents/testing/unit/tdd-london-swarm.md
-       └─> ../../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/testing/unit/tdd-london-swarm.md
-       └─> ../../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/testing/unit/tdd-london-swarm.md
        └─> ../../../../api/shortest-path-api.md (target not found: api/shortest-path-api.md)
-     • reference/agents/testing/unit/tdd-london-swarm.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/testing/unit/tdd-london-swarm.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/testing/unit/tdd-london-swarm.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/testing/unit/tdd-london-swarm.md
-       └─> ../../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
      • reference/agents/testing/unit/tdd-london-swarm.md
        └─> ../../../../archive/legacy/old_markdown/Debug Test Page.md (target not found: archive/legacy/old_markdown/Debug Test Page.md)
      • reference/agents/testing/unit/tdd-london-swarm.md
-       └─> ../../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/testing/unit/tdd-london-swarm.md
-       └─> ../../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/testing/unit/tdd-london-swarm.md
-       └─> ../../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/testing/unit/tdd-london-swarm.md
        └─> ../../../../development/testing.md (target not found: development/testing.md)
-     • reference/agents/testing/unit/tdd-london-swarm.md
-       └─> ../../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/testing/unit/tdd-london-swarm.md
-       └─> ../../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/testing/unit/tdd-london-swarm.md
        └─> ../../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/testing/unit/tdd-london-swarm.md
        └─> ../../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/testing/unit/tdd-london-swarm.md
-       └─> ../../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/testing/unit/tdd-london-swarm.md
-       └─> ../../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/testing/unit/tdd-london-swarm.md
-       └─> ../../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/testing/unit/tdd-london-swarm.md
-       └─> ../../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/testing/unit/tdd-london-swarm.md
-       └─> ../../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/testing/unit/tdd-london-swarm.md
-       └─> ../../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/testing/unit/tdd-london-swarm.md
        └─> ../../reference/agents/testing/index.md (target not found: reference/agents/reference/agents/testing/index.md)
      • reference/agents/testing/unit/tdd-london-swarm.md
@@ -3681,57 +1349,19 @@
      • reference/agents/testing/unit/tdd-london-swarm.md
        └─> ../../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
      • reference/agents/testing/unit/tdd-london-swarm.md
-       └─> ../../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/testing/unit/tdd-london-swarm.md
        └─> ../../../../testing/SETTINGS_SYNC_INTEGRATION_TESTS.md (target not found: testing/SETTINGS_SYNC_INTEGRATION_TESTS.md)
-     • reference/agents/testing/validation/production-validator.md
-       └─> ../../../../AGENT_TYPE_CONVENTIONS.md (target not found: AGENT_TYPE_CONVENTIONS.md)
      • reference/agents/testing/validation/production-validator.md
        └─> ../../../../INTEGRATION_TEST_SUMMARY.md (target not found: INTEGRATION_TEST_SUMMARY.md)
      • reference/agents/testing/validation/production-validator.md
-       └─> ../../../../MCP_AGENT_VISUALIZATION.md (target not found: MCP_AGENT_VISUALIZATION.md)
-     • reference/agents/testing/validation/production-validator.md
-       └─> ../../../../agent-visualization-architecture.md (target not found: agent-visualization-architecture.md)
-     • reference/agents/testing/validation/production-validator.md
        └─> ../../../../api/shortest-path-api.md (target not found: api/shortest-path-api.md)
-     • reference/agents/testing/validation/production-validator.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Alliance.md (target not found: archive/legacy/old_markdown/Agentic Alliance.md)
-     • reference/agents/testing/validation/production-validator.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md (target not found: archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-     • reference/agents/testing/validation/production-validator.md
-       └─> ../../../../archive/legacy/old_markdown/Agentic Mycelia.md (target not found: archive/legacy/old_markdown/Agentic Mycelia.md)
-     • reference/agents/testing/validation/production-validator.md
-       └─> ../../../../archive/legacy/old_markdown/Agents.md (target not found: archive/legacy/old_markdown/Agents.md)
      • reference/agents/testing/validation/production-validator.md
        └─> ../../../../archive/legacy/old_markdown/Debug Test Page.md (target not found: archive/legacy/old_markdown/Debug Test Page.md)
      • reference/agents/testing/validation/production-validator.md
-       └─> ../../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md (target not found: archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-     • reference/agents/testing/validation/production-validator.md
-       └─> ../../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md (target not found: archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-     • reference/agents/testing/validation/production-validator.md
-       └─> ../../../../deployment/multi-agent-setup.md (target not found: deployment/multi-agent-setup.md)
-     • reference/agents/testing/validation/production-validator.md
        └─> ../../../../development/testing.md (target not found: development/testing.md)
-     • reference/agents/testing/validation/production-validator.md
-       └─> ../../../../features/agent-orchestration.md (target not found: features/agent-orchestration.md)
-     • reference/agents/testing/validation/production-validator.md
-       └─> ../../../../multi-mcp-agent-visualization.md (target not found: multi-mcp-agent-visualization.md)
      • reference/agents/testing/validation/production-validator.md
        └─> ../../../../reference/agents/analysis/code-analyser.md (target not found: reference/agents/analysis/code-analyser.md)
      • reference/agents/testing/validation/production-validator.md
        └─> ../../../../reference/agents/analysis/code-review/analyse-code-quality.md (target not found: reference/agents/analysis/code-review/analyse-code-quality.md)
-     • reference/agents/testing/validation/production-validator.md
-       └─> ../../../../reference/agents/optimisation/README.md (target not found: reference/agents/optimisation/README.md)
-     • reference/agents/testing/validation/production-validator.md
-       └─> ../../../../reference/agents/optimisation/benchmark-suite.md (target not found: reference/agents/optimisation/benchmark-suite.md)
-     • reference/agents/testing/validation/production-validator.md
-       └─> ../../../../reference/agents/optimisation/load-balancer.md (target not found: reference/agents/optimisation/load-balancer.md)
-     • reference/agents/testing/validation/production-validator.md
-       └─> ../../../../reference/agents/optimisation/performance-monitor.md (target not found: reference/agents/optimisation/performance-monitor.md)
-     • reference/agents/testing/validation/production-validator.md
-       └─> ../../../../reference/agents/optimisation/resource-allocator.md (target not found: reference/agents/optimisation/resource-allocator.md)
-     • reference/agents/testing/validation/production-validator.md
-       └─> ../../../../reference/agents/optimisation/topology-optimiser.md (target not found: reference/agents/optimisation/topology-optimiser.md)
      • reference/agents/testing/validation/production-validator.md
        └─> ../../reference/agents/testing/index.md (target not found: reference/agents/reference/agents/testing/index.md)
      • reference/agents/testing/validation/production-validator.md
@@ -3743,25 +1373,19 @@
      • reference/agents/testing/validation/production-validator.md
        └─> ../../../reference/agents/index.md (target not found: reference/reference/agents/index.md)
      • reference/agents/testing/validation/production-validator.md
-       └─> ../../../../server/agent-swarm.md (target not found: server/agent-swarm.md)
-     • reference/agents/testing/validation/production-validator.md
        └─> ../../../../testing/SETTINGS_SYNC_INTEGRATION_TESTS.md (target not found: testing/SETTINGS_SYNC_INTEGRATION_TESTS.md)
      • reference/api/client-api.md
        └─> ../../guides/analytics-api.md (target not found: guides/analytics-api.md)
      • reference/api/client-api.md
        └─> ../../guides/authentication.md (target not found: guides/authentication.md)
      • reference/api/client-api.md
-       └─> websocket-api.md (target not found: websocket-api.md)
+       └─> ../reference/api/websocket-api.md (target not found: reference/reference/api/websocket-api.md)
      • reference/api/gpu-algorithms.md
        └─> ../../guides/performance.md (target not found: guides/performance.md)
      • reference/api/gpu-algorithms.md
-       └─> index.md (target not found: index.md)
+       └─> ../reference/api/mcp-protocol.md (target not found: reference/reference/api/mcp-protocol.md)
      • reference/api/gpu-algorithms.md
-       └─> mcp-protocol.md (target not found: mcp-protocol.md)
-     • reference/api/gpu-algorithms.md
-       └─> rest-api.md (target not found: rest-api.md)
-     • reference/api/index.md
-       └─> binary-protocol.md (target not found: binary-protocol.md)
+       └─> ../reference/api/rest-api.md (target not found: reference/reference/api/rest-api.md)
      • reference/api/index.md
        └─> gpu-algorithms.md (target not found: gpu-algorithms.md)
      • reference/api/index.md
@@ -3769,41 +1393,39 @@
      • reference/api/index.md
        └─> ../../guides/integration.md (target not found: guides/integration.md)
      • reference/api/index.md
-       └─> mcp-protocol.md (target not found: mcp-protocol.md)
+       └─> ../reference/api/binary-protocol.md (target not found: reference/reference/api/binary-protocol.md)
      • reference/api/index.md
-       └─> rest-api.md (target not found: rest-api.md)
+       └─> ../reference/api/mcp-protocol.md (target not found: reference/reference/api/mcp-protocol.md)
+     • reference/api/index.md
+       └─> ../reference/api/rest-api.md (target not found: reference/reference/api/rest-api.md)
+     • reference/api/index.md
+       └─> ../reference/api/websocket-api.md (target not found: reference/reference/api/websocket-api.md)
      • reference/api/index.md
        └─> voice-api.md (target not found: voice-api.md)
-     • reference/api/index.md
-       └─> websocket-api.md (target not found: websocket-api.md)
      • reference/api/mcp-protocol.md
        └─> ../../../multi-agent-docker/README.md (target not found: /home/devuser/workspace/project/multi-agent-docker/README.md)
      • reference/api/mcp-protocol.md
        └─> ../../agents/README.md (target not found: agents/README.md)
      • reference/api/mcp-protocol.md
-       └─> binary-protocol.md (target not found: binary-protocol.md)
+       └─> ../reference/api/binary-protocol.md (target not found: reference/reference/api/binary-protocol.md)
      • reference/api/mcp-protocol.md
-       └─> index.md (target not found: index.md)
+       └─> ../reference/api/rest-api.md (target not found: reference/reference/api/rest-api.md)
      • reference/api/mcp-protocol.md
-       └─> rest-api.md (target not found: rest-api.md)
-     • reference/api/mcp-protocol.md
-       └─> websocket-api.md (target not found: websocket-api.md)
+       └─> ../reference/api/websocket-api.md (target not found: reference/reference/api/websocket-api.md)
      • reference/api/voice-api.md
        └─> ../../VOICE_INTEGRATION_SUMMARY.md (target not found: VOICE_INTEGRATION_SUMMARY.md)
      • reference/api/voice-api.md
-       └─> index.md (target not found: index.md)
+       └─> ../reference/api/mcp-protocol.md (target not found: reference/reference/api/mcp-protocol.md)
      • reference/api/voice-api.md
-       └─> mcp-protocol.md (target not found: mcp-protocol.md)
-     • reference/api/voice-api.md
-       └─> websocket-api.md (target not found: websocket-api.md)
+       └─> ../reference/api/websocket-api.md (target not found: reference/reference/api/websocket-api.md)
      • reference/api/websocket-protocol.md
-       └─> binary-protocol.md (target not found: binary-protocol.md)
+       └─> ../reference/api/binary-protocol.md (target not found: reference/reference/api/binary-protocol.md)
      • reference/api/websocket-protocol.md
-       └─> mcp-protocol.md (target not found: mcp-protocol.md)
+       └─> ../reference/api/mcp-protocol.md (target not found: reference/reference/api/mcp-protocol.md)
+     • reference/api/websocket-protocol.md
+       └─> ../reference/api/rest-api.md (target not found: reference/reference/api/rest-api.md)
      • reference/api/websocket-protocol.md
        └─> ../../reports/performance-benchmarks.md (target not found: reports/performance-benchmarks.md)
-     • reference/api/websocket-protocol.md
-       └─> rest-api.md (target not found: rest-api.md)
      • reference/architecture/README.md
        └─> ./architecture.md (target not found: reference/architecture/architecture.md)
      • reference/architecture/actor-system.md
@@ -3820,26 +1442,6 @@
        └─> ../guides/06-troubleshooting.md (target not found: guides/06-troubleshooting.md)
      • reference/configuration.md
        └─> ../index.md (target not found: index.md)
-     • reference/glossary.md
-       └─> index.md (target not found: index.md)
-     • reference/index.md
-       └─> api/binary-protocol.md (target not found: api/binary-protocol.md)
-     • reference/index.md
-       └─> api/index.md (target not found: api/index.md)
-     • reference/index.md
-       └─> api/mcp-protocol.md (target not found: api/mcp-protocol.md)
-     • reference/index.md
-       └─> api/rest-api.md (target not found: api/rest-api.md)
-     • reference/index.md
-       └─> api/websocket-api.md (target not found: api/websocket-api.md)
-     • reference/index.md
-       └─> binary-protocol.md (target not found: binary-protocol.md)
-     • reference/index.md
-       └─> configuration.md (target not found: configuration.md)
-     • reference/index.md
-       └─> cuda-parameters.md (target not found: cuda-parameters.md)
-     • reference/index.md
-       └─> glossary.md (target not found: glossary.md)
      • reference/index.md
        └─> ../index.md (target not found: index.md)
      • reference/polling-system.md
@@ -3848,6 +1450,18 @@
        └─> api/websocket-api.md (target not found: api/websocket-api.md)
      • reference/xr-api.md
        └─> /docs/architecture/VircadiaIntegration.md (target not found: /docs/architecture/VircadiaIntegration.md)
+     • reports/reference-fix-checklist.md
+       └─> ./actor-system.md (target not found: reports/actor-system.md)
+     • reports/reference-fix-checklist.md
+       └─> ./agents/sparc/architecture.md (target not found: reports/agents/sparc/architecture.md)
+     • reports/reference-fix-checklist.md
+       └─> ./agents/sparc/index.md (target not found: reports/agents/sparc/index.md)
+     • reports/reference-fix-checklist.md
+       └─> ./agents/sparc/specification.md (target not found: reports/agents/sparc/specification.md)
+     • reports/reference-fix-checklist.md
+       └─> ./database-schema.md (target not found: reports/database-schema.md)
+     • reports/reference-fix-checklist.md
+       └─> ./hexagonal-cqrs.md (target not found: reports/hexagonal-cqrs.md)
      • specialized/ontology/README.md
        └─> hornedowl.md (target not found: hornedowl.md)
      • specialized/ontology/README.md
@@ -3919,33 +1533,33 @@
 
 📍 FILES BY FORWARD LINK COUNT:
   Top 10 files with most links:
-    • reference/agents/architecture/system-design/arch-system-design.md: 101 links
-    • reference/agents/sparc/architecture.md: 100 links
-    • reference/agents/development/backend/dev-backend-api.md: 97 links
-    • reference/agents/documentation/api-docs/docs-api-openapi.md: 91 links
-    • reference/agents/testing/validation/production-validator.md: 83 links
-    • reference/agents/testing/unit/tdd-london-swarm.md: 83 links
-    • reference/agents/consensus/security-manager.md: 81 links
-    • reference/agents/github/swarm-issue.md: 80 links
-    • reference/agents/github/swarm-pr.md: 80 links
-    • reference/agents/github/workflow-automation.md: 80 links
+    • reference/agents/architecture/system-design/arch-system-design.md: 82 links
+    • reference/agents/sparc/architecture.md: 81 links
+    • reference/agents/development/backend/dev-backend-api.md: 78 links
+    • reference/agents/documentation/api-docs/docs-api-openapi.md: 72 links
+    • reference/agents/testing/unit/tdd-london-swarm.md: 64 links
+    • reference/agents/testing/validation/production-validator.md: 64 links
+    • reference/agents/index.md: 63 links
+    • reference/agents/consensus/security-manager.md: 62 links
+    • reference/agents/github/workflow-automation.md: 61 links
+    • reference/agents/github/swarm-pr.md: 61 links
 
 🎯 MOST REFERENCED FILES (Entry Points):
   Top 10 most referenced files:
-    • reference/agents/github/workflow-automation.md: referenced by 66 files
-    • reference/agents/github/swarm-pr.md: referenced by 65 files
-    • reference/agents/github/sync-coordinator.md: referenced by 65 files
-    • features/agent-orchestration.md: referenced by 64 files
-    • reference/agents/github/multi-repo-swarm.md: referenced by 64 files
-    • reference/agents/github/swarm-issue.md: referenced by 64 files
-    • server/agent-swarm.md: referenced by 63 files
-    • reference/agents/templates/automation-smart-agent.md: referenced by 63 files
-    • reference/agents/templates/github-pr-manager.md: referenced by 63 files
-    • reference/agents/swarm/hierarchical-coordinator.md: referenced by 63 files
+    • reference/agents/github/workflow-automation.md: referenced by 65 files
+    • reference/agents/github/swarm-pr.md: referenced by 64 files
+    • reference/agents/github/sync-coordinator.md: referenced by 64 files
+    • reference/agents/github/multi-repo-swarm.md: referenced by 63 files
+    • reference/agents/github/swarm-issue.md: referenced by 63 files
+    • reference/agents/README.md: referenced by 62 files
+    • reference/agents/templates/automation-smart-agent.md: referenced by 62 files
+    • reference/agents/templates/github-pr-manager.md: referenced by 62 files
+    • reference/agents/swarm/hierarchical-coordinator.md: referenced by 62 files
+    • reference/agents/templates/implementer-sparc-coder.md: referenced by 62 files
 
 🗺️  NAVIGATION STRUCTURE VALIDATION:
   ✅ README.md
-     └─ 20 outgoing links, 4 incoming links
+     └─ 20 outgoing links, 15 incoming links
   ❌ docs/concepts/README.md (MISSING)
   ❌ docs/reference/README.md (MISSING)
   ❌ docs/reference/api/README.md (MISSING)
@@ -3954,8 +1568,10 @@
   ❌ docs/guides/developer/README.md (MISSING)
 
 👻 POTENTIALLY ORPHANED FILES (no incoming links):
-  ⚠️  77 orphaned files (showing first 20)
+  ⚠️  85 orphaned files (showing first 20)
+    • LINK_FIXING_COMPLETION_REPORT.md
     • LINK_VALIDATION_REPORT.md
+    • PHASE_3_REFERENCE_FIXES_GUIDE.md
     • api/01-authentication.md
     • api/02-endpoints.md
     • api/03-websocket.md
@@ -3973,10 +1589,8 @@
     • architecture/interface.md
     • architecture/phase3-ports-complete.md
     • architecture/security.md
-    • archive/monolithic-reference/API.md
-    • archive/monolithic-reference/ARCHITECTURE.md
 
 📈 OVERALL HEALTH:
-  ⚠️  ISSUES FOUND: 1950 broken link(s)
+  ⚠️  ISSUES FOUND: 757 broken link(s)
 
 ================================================================================

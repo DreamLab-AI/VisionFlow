@@ -634,5 +634,5 @@ graph LR
 
 **For detailed implementation:**
 - [CLAUDE.md](../multi-agent-docker/CLAUDE.md) - Turbo Flow configuration
-- [ARCHITECTURE.md](../ARCHITECTURE.md) - VisionFlow hexagonal design
+- [ARCHITECTURE.md](../reference/architecture/README.md) - VisionFlow hexagonal design
 - [claude-flow-quick-reference.md](../multi-agent-docker/devpods/claude-flow-quick-reference.md) - CLI commands

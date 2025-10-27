@@ -586,29 +586,29 @@ See also: [workflow-automation.md](./workflow-automation.md), [multi-repo-swarm.
 
 ## Related Topics
 
-- [Agent Orchestration Architecture](../../../features/agent-orchestration.md)
-- [Agent Type Conventions and Mapping](../../../AGENT_TYPE_CONVENTIONS.md)
-- [Agent Visualisation Architecture](../../../agent-visualization-architecture.md)
-- [Agentic Alliance](../../../archive/legacy/old_markdown/Agentic Alliance.md)
-- [Agentic Metaverse for Global Creatives](../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-- [Agentic Mycelia](../../../archive/legacy/old_markdown/Agentic Mycelia.md)
-- [Agents](../../../archive/legacy/old_markdown/Agents.md)
-- [Benchmark Suite Agent](../../../reference/agents/optimisation/benchmark-suite.md)
+
+
+
+
+
+
+
+
 - [Claude Code Agents Directory Structure](../../../reference/agents/README.md)
 - [Claude Flow Commands to Agent System Migration Summary](../../../reference/agents/migration-summary.md)
 - [Distributed Consensus Builder Agents](../../../reference/agents/consensus/README.md)
-- [Financialised Agentic Memetics](../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md)
-- [Load Balancing Coordinator Agent](../../../reference/agents/optimisation/load-balancer.md)
-- [Multi Agent Orchestration](../../../server/agent-swarm.md)
-- [Multi Agent RAG scrapbook](../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-- [Multi-Agent Container Setup](../../../deployment/multi-agent-setup.md)
-- [Multi-MCP Agent Visualisation System](../../../MCP_AGENT_VISUALIZATION.md)
-- [Multi-MCP Agent Visualisation System](../../../multi-mcp-agent-visualization.md)
-- [Performance Monitor Agent](../../../reference/agents/optimisation/performance-monitor.md)
-- [Performance Optimisation Agents](../../../reference/agents/optimisation/README.md)
-- [Resource Allocator Agent](../../../reference/agents/optimisation/resource-allocator.md)
+
+
+
+
+
+
+
+
+
+
 - [Swarm Coordination Agents](../../../reference/agents/swarm/README.md)
-- [Topology Optimizer Agent](../../../reference/agents/optimisation/topology-optimiser.md)
+
 - [adaptive-coordinator](../../../reference/agents/swarm/adaptive-coordinator.md)
 - [analyse-code-quality](../../../reference/agents/analysis/code-review/analyse-code-quality.md)
 - [arch-system-design](../../../reference/agents/architecture/system-design/arch-system-design.md)

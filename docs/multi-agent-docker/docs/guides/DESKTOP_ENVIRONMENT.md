@@ -748,7 +748,7 @@ When reporting issues, include:
 
 ## Related Guides
 
-- [Getting Started](../GETTING_STARTED.md) - Initial setup
+- [Getting Started](../getting-started/README.md) - Initial setup
 - [Configuration](../CONFIGURATION.md) - Environment variables
 - [Troubleshooting](../TROUBLESHOOTING.md) - General issues
 - [MCP Tools](../../minimaldocs/MCP_TOOLS.md) - MCP server setup

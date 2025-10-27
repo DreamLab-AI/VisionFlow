@@ -701,7 +701,7 @@ docker volume ls | grep agentic
 
 **Core Documentation:**
 - [Architecture Overview](ARCHITECTURE-SIMPLIFIED.md) - System design
-- [Deployment Guide](DEPLOYMENT.md) - Production deployment
+- [Deployment Guide](../guides/deployment.md) - Production deployment
 - [Workstation Guide](README.workstation.md) - Full workstation features
 - [API Reference](http://localhost:9090/docs) - Management API docs (when running)
 

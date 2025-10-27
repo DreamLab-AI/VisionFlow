@@ -631,9 +631,9 @@ docker-compose exec workstation env | grep CUDA
 
 ## Related Documentation
 
-- [Getting Started](../GETTING_STARTED.md) - Initial setup guide
+- [Getting Started](../getting-started/README.md) - Initial setup guide
 - [Architecture](../../reference/api/README.md) - System architecture
-- [Deployment](../DEPLOYMENT.md) - Production deployment
+- [Deployment](../guides/deployment.md) - Production deployment
 - [Security](../guides/SECURITY.md) - Security best practices
 
 ---

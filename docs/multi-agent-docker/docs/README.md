@@ -102,14 +102,14 @@ graph TD
 ## Documentation Structure
 
 ### Getting Started
-- [**Getting Started Guide**](GETTING_STARTED.md) - Detailed setup and first steps
+- [**Getting Started Guide**](../getting-started/README.md) - Detailed setup and first steps
 - [**Quick Reference**](reference/QUICK_REFERENCE.md) - Command cheat sheet
 
 ### Core Documentation
-- [**Architecture**](ARCHITECTURE.md) - System design and components
+- [**Architecture**](../reference/architecture/README.md) - System design and components
 - [**API Reference**](API_REFERENCE.md) - Complete API documentation
 - [**Configuration**](CONFIGURATION.md) - All configuration options
-- [**Deployment**](DEPLOYMENT.md) - Production deployment guide
+- [**Deployment**](../guides/deployment.md) - Production deployment guide
 - [**Troubleshooting**](TROUBLESHOOTING.md) - Common issues and solutions
 
 ### User Guides
@@ -324,8 +324,8 @@ See main repository for license information.
 
 ## Next Steps
 
-1. [Set up your environment](GETTING_STARTED.md)
-2. [Understand the architecture](ARCHITECTURE.md)
+1. [Set up your environment](../getting-started/README.md)
+2. [Understand the architecture](../reference/architecture/README.md)
 3. [Configure the model router](guides/MULTI_MODEL_ROUTER.md)
 4. [Explore the API](API_REFERENCE.md)
-5. [Deploy to production](DEPLOYMENT.md)
+5. [Deploy to production](../guides/deployment.md)

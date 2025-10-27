@@ -177,37 +177,37 @@ components:
 
 ## Related Topics
 
-- [Agent Orchestration Architecture](../../../../features/agent-orchestration.md)
-- [Agent Type Conventions and Mapping](../../../../AGENT_TYPE_CONVENTIONS.md)
-- [Agent Visualisation Architecture](../../../../agent-visualization-architecture.md)
-- [Agentic Alliance](../../../../archive/legacy/old_markdown/Agentic Alliance.md)
-- [Agentic Metaverse for Global Creatives](../../../../archive/legacy/old_markdown/Agentic Metaverse for Global Creatives.md)
-- [Agentic Mycelia](../../../../archive/legacy/old_markdown/Agentic Mycelia.md)
-- [Agents](../../../../archive/legacy/old_markdown/Agents.md)
+
+
+
+
+
+
+
 - [Analytics API Endpoints](../../../../api/analytics-endpoints.md)
-- [Benchmark Suite Agent](../../../../reference/agents/optimisation/benchmark-suite.md)
+
 - [Claude Code Agents Directory Structure](../../../../reference/agents/README.md)
 - [Claude Flow Commands to Agent System Migration Summary](../../../../reference/agents/migration-summary.md)
 - [Distributed Consensus Builder Agents](../../../../reference/agents/consensus/README.md)
-- [Financialised Agentic Memetics](../../../../archive/legacy/old_markdown/Financialised Agentic Memetics.md)
+
 - [Graph API Reference](../../../../api/rest/graph.md)
-- [Load Balancing Coordinator Agent](../../../../reference/agents/optimisation/load-balancer.md)
-- [Modern Settings API - Path-Based Architecture](../../../../MODERN_SETTINGS_API.md)
-- [Multi Agent Orchestration](../../../../server/agent-swarm.md)
-- [Multi Agent RAG scrapbook](../../../../archive/legacy/old_markdown/Multi Agent RAG scrapbook.md)
-- [Multi-Agent Container Setup](../../../../deployment/multi-agent-setup.md)
+
+- [Modern Settings API - Path-Based Architecture](../reference/api/README.md)
+
+
+
 - [Multi-MCP Agent Visualisation API Reference](../../../../api/multi-mcp-visualization-api.md)
-- [Multi-MCP Agent Visualisation System](../../../../MCP_AGENT_VISUALIZATION.md)
-- [Multi-MCP Agent Visualisation System](../../../../multi-mcp-agent-visualization.md)
-- [Performance Monitor Agent](../../../../reference/agents/optimisation/performance-monitor.md)
-- [Performance Optimisation Agents](../../../../reference/agents/optimisation/README.md)
+
+
+
+
 - [REST API Bloom/Glow Field Validation Fix](../../../../REST_API_BLOOM_GLOW_VALIDATION_FIX.md)
 - [REST API Reference](../../../../api/rest/index.md)
-- [Resource Allocator Agent](../../../../reference/agents/optimisation/resource-allocator.md)
+
 - [Settings API Reference](../../../../api/rest/settings.md)
 - [Single-Source Shortest Path (SSSP) API](../../../../api/shortest-path-api.md)
 - [Swarm Coordination Agents](../../../../reference/agents/swarm/README.md)
-- [Topology Optimizer Agent](../../../../reference/agents/optimisation/topology-optimiser.md)
+
 - [VisionFlow API Documentation](../../../../api/index.md)
 - [VisionFlow MCP Integration Documentation](../../../../api/mcp/index.md)
 - [VisionFlow WebSocket API Documentation](../../../../api/websocket/index.md)
