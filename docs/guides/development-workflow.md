@@ -116,7 +116,7 @@ docker compose --profile core up -d
 docker compose ps
 
 # Check service health
-curl http://localhost:3001/health
+curl http://localhost:3030/health
 ```
 
 ### VS Code Configuration
@@ -1008,11 +1008,11 @@ For performance-critical changes:
 
 ```bash
 # Using Apache Bench
-ab -n 1000 -c 10 http://localhost:3001/api/agents
+ab -n 1000 -c 10 http://localhost:3030/api/agents
 
 # Using curl in loop
 for i in {1..100}; do
-  curl http://localhost:3001/api/health
+  curl http://localhost:3030/api/health
 done
 
 # Monitor with docker stats during load

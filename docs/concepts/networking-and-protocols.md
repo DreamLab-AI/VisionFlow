@@ -82,10 +82,10 @@ stateDiagram-v2
 
 ```javascript
 // Basic WebSocket connection
-const ws = new WebSocket('ws://localhost:3001/ws');
+const ws = new WebSocket('ws://localhost:3030/ws');
 
 // Authenticated connection with JWT
-const ws = new WebSocket(`ws://localhost:3001/ws?token=${jwtToken}`);
+const ws = new WebSocket(`ws://localhost:3030/ws?token=${jwtToken}`);
 
 // Connection event handlers
 ws.onopen = (event) => {
@@ -651,7 +651,7 @@ sequenceDiagram
     participant MCP
 
     Note over Client,MCP: Initial Connection Setup
-    Client->>WebSocket: Connect ws://localhost:3001/ws
+    Client->>WebSocket: Connect ws://localhost:3030/ws
     WebSocket-->>Client: Connection Established
     Backend->>MCP: Connect TCP:9500
     MCP-->>Backend: Initialisation Response
@@ -1155,7 +1155,7 @@ MCP_LOG_FILE=/app/logs/mcp.log
 
 ```bash
 # WebSocket health check
-wscat -c ws://localhost:3001/ws
+wscat -c ws://localhost:3030/ws
 
 # MCP health check
 echo '{"jsonrpc":"2.0","id":1,"method":"ping","params":{}}' | nc multi-agent-container 9500

@@ -92,13 +92,13 @@ describe('Projects API Integration', () => {
 describe('Project Creation Workflow', () => {
   it('should create and process project', async () => {
     // Login
-    await page.goto('http://localhost:8080/login');
+    await page.goto('http://localhost:3030/login');
     await page.fill('[name="email"]', 'user@example.com');
     await page.fill('[name="password"]', 'password');
     await page.click('button[type="submit"]');
 
     // Create project
-    await page.goto('http://localhost:8080/projects/new');
+    await page.goto('http://localhost:3030/projects/new');
     await page.fill('[name="name"]', 'E2E Test Project');
     await page.click('button:has-text("Create")');
 

@@ -618,12 +618,12 @@ valgrind --leak-check=full ./target/debug/visionflow
 **Solution**:
 ```bash
 # Find process using port
-sudo lsof -i :3001
+sudo lsof -i :3030
 sudo netstat -tulpn | grep 3001
 sudo ss -tulpn | grep 3001
 
 # Kill process (if safe)
-sudo kill -9 $(sudo lsof -t -i:3001)
+sudo kill -9 $(sudo lsof -t -i:3030)
 
 # Or change port in .env
 echo "VITE_API_PORT=3002" >> .env
@@ -748,7 +748,7 @@ sudo ufw allow 5901/tcp  # VNC
 docker ps --format "table {{.Names}}\t{{.Ports}}"
 
 # Test locally first
-curl http://localhost:3001/
+curl http://localhost:3030/
 curl http://localhost:5901
 
 # Check if service is listening on correct interface
@@ -762,13 +762,13 @@ sudo iptables -L -n | grep 3001
 ```bash
 # Test from different locations
 # Local machine
-curl http://localhost:3001
+curl http://localhost:3030
 
 # From container
-docker exec visionflow_container curl http://localhost:3001
+docker exec visionflow_container curl http://localhost:3030
 
 # From another machine on network
-curl http://<host-ip>:3001
+curl http://<host-ip>:3030
 
 # Check nginx configuration
 docker exec visionflow_container cat /etc/nginx/nginx.conf
@@ -962,10 +962,10 @@ navigator.xr.isSessionSupported('immersive-vr').then(supported => {
 **Diagnostic**:
 ```bash
 # Check if HTTPS is enabled
-curl -I https://localhost:3001
+curl -I https://localhost:3030
 
 # Verify certificate
-openssl s_client -connect localhost:3001 -showcerts
+openssl s_client -connect localhost:3030 -showcerts
 
 # Check browser console for WebXR errors
 # Press F12, look for WebXR or immersive-related messages
@@ -991,8 +991,8 @@ openssl s_client -connect localhost:3001 -showcerts
 ping <quest-ip-address>
 
 # Use correct URL with immersive parameter
-https://<your-ip>:3001?immersive=true
-https://<your-ip>:3001?force=quest3
+https://<your-ip>:3030?immersive=true
+https://<your-ip>:3030?force=quest3
 
 # Accept security warning for self-signed certificate
 # Quest Browser → Advanced → Proceed anyway

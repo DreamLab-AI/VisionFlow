@@ -1568,7 +1568,7 @@ graph TB
 
 1. **VisionFlow Container**: Main application container with CUDA support
    - **Purpose**: Hosts web interface, API server, and GPU compute
-   - **Nginx**: Development reverse proxy (port 3001)
+   - **Nginx**: Development reverse proxy (port 3030)
    - **Vite Server**: Hot-reload React/TypeScript development
    - **Rust Backend**: Actix-Web API server with actor system
    - **CUDA Integration**: GPU computation via cudarc library

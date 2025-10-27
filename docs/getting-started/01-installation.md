@@ -137,7 +137,7 @@ docker-compose up -d
 docker-compose logs -f
 
 # 4. Open VisionFlow in your browser
-open http://localhost:3001
+open http://localhost:3030
 ```
 
 ### Method 2: Custom Configuration
@@ -181,7 +181,7 @@ DEBUG_MODE=false                 # Debug logging
 
 # Security
 JWT_SECRET=your_random_secret
-CORS_ORIGINS=http://localhost:3001
+CORS_ORIGINS=http://localhost:3030
 
 # Database
 POSTGRES_USER=visionflow
@@ -225,7 +225,7 @@ docker-compose ps
 docker-compose logs --tail=50
 
 # Test API endpoint
-curl http://localhost:3001/api/health
+curl http://localhost:3030/api/health
 
 # Expected response:
 # {"status":"healthy","version":"0.1.0","timestamp":"2024-01-01T12:00:00Z"}
@@ -444,7 +444,7 @@ sudo docker-compose up
 ```bash
 # Error: port is already allocated
 # Check what's using the port
-sudo lsof -i :3001
+sudo lsof -i :3030
 
 # Kill the process or change port in .env
 HOST_PORT=3002
@@ -506,7 +506,7 @@ sudo ufw allow 3001
 sudo ufw allow 4001
 
 # Test WebSocket endpoint
-wscat -c ws://localhost:3001/ws
+wscat -c ws://localhost:3030/ws
 ```
 
 ### Performance Issues
@@ -554,7 +554,7 @@ VISIONFLOW_HOST=127.0.0.1
 After installation, verify these components:
 
 ### ✅ Basic Functionality
-- [ ] VisionFlow web interface loads at `http://localhost:3001`
+- [ ] VisionFlow web interface loads at `http://localhost:3030`
 - [ ] API health check returns successful response
 - [ ] WebSocket connection establishes successfully
 - [ ] Sample graph data loads and displays

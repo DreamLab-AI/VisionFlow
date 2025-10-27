@@ -5,10 +5,10 @@
 VisionFlow uses WebSocket connections for real-time bidirectional communication between clients and the server. The WebSocket API handles high-frequency position updates, real-time graph changes, and live system events.
 
 **WebSocket Endpoints**:
-- General: `ws://localhost:3001/ws` - Binary position updates + JSON messages
-- Voice Commands: `ws://localhost:3001/ws/voice` - Voice command streaming
-- Agent Visualization: `ws://localhost:3001/ws/agents` - Agent status updates
-- Real-time Analytics: `ws://localhost:3001/ws/analytics` - GPU computation results
+- General: `ws://localhost:3030/ws` - Binary position updates + JSON messages
+- Voice Commands: `ws://localhost:3030/ws/voice` - Voice command streaming
+- Agent Visualization: `ws://localhost:3030/ws/agents` - Agent status updates
+- Real-time Analytics: `ws://localhost:3030/ws/analytics` - GPU computation results
 
 ## Connection
 
@@ -16,10 +16,10 @@ VisionFlow uses WebSocket connections for real-time bidirectional communication 
 
 ```javascript
 // Basic connection
-const ws = new WebSocket('ws://localhost:3001/ws');
+const ws = new WebSocket('ws://localhost:3030/ws');
 
 // Authenticated connection
-const ws = new WebSocket(`ws://localhost:3001/ws?token=${jwtToken}`);
+const ws = new WebSocket(`ws://localhost:3030/ws?token=${jwtToken}`);
 
 // Connection event handlers
 ws.onopen = (event) => {
@@ -627,7 +627,7 @@ ws.onmessage = (event) => {
 ```javascript
 // Simple test client
 const testWebSocket = async () => {
-  const ws = new WebSocket('ws://localhost:3001/ws');
+  const ws = new WebSocket('ws://localhost:3030/ws');
   
   ws.onopen = () => {
     console.log('Connected');

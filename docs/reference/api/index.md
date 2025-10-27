@@ -16,17 +16,17 @@ VisionFlow provides multiple API interfaces for different use cases:
 ### REST API Example
 ```bash
 # Get agent data
-curl http://localhost:3001/api/bots/data
+curl http://localhost:3030/api/bots/data
 
 # Submit a task
-curl -X POST http://localhost:3001/api/bots/submit-task \
+curl -X POST http://localhost:3030/api/bots/submit-task \
   -H "Content-Type: application/json" \
   -d '{"task": "Analyze codebase", "priority": "high"}'
 ```
 
 ### WebSocket Connection
 ```javascript
-const ws = new WebSocket('ws://localhost:3001/ws');
+const ws = new WebSocket('ws://localhost:3030/ws');
 ws.onmessage = (event) => {
   if (event.data instanceof ArrayBuffer) {
     // Binary protocol message
@@ -111,7 +111,7 @@ const headers = {
 };
 
 // WebSocket Authentication
-const ws = new WebSocket(`ws://localhost:3001/ws?token=${jwtToken}`);
+const ws = new WebSocket(`ws://localhost:3030/ws?token=${jwtToken}`);
 ```
 
 ## Rate Limiting

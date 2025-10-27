@@ -4,7 +4,7 @@
 
 The VisionFlow REST API provides HTTP endpoints for managing agents, graphs, settings, and system operations. All endpoints return JSON responses and follow RESTful conventions.
 
-**Base URL**: `http://localhost:3001/api`
+**Base URL**: `http://localhost:3030/api`
 
 ## Authentication
 
@@ -877,17 +877,17 @@ Version is included in the URL path. Future versions:
 
 ```bash
 # Get agent data
-curl -X GET http://localhost:3001/api/bots/data \
+curl -X GET http://localhost:3030/api/bots/data \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 
 # Submit task
-curl -X POST http://localhost:3001/api/bots/submit-task \
+curl -X POST http://localhost:3030/api/bots/submit-task \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{"task": "Test task", "priority": "medium"}'
 
 # Update settings
-curl -X POST http://localhost:3001/api/settings \
+curl -X POST http://localhost:3030/api/settings \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{"visualisation": {"rendering": {"enable_shadows": true}}}'

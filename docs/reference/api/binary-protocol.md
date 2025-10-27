@@ -534,7 +534,7 @@ function inspectBinaryFrame(buffer: ArrayBuffer): void {
 
 ```bash
 # Capture binary WebSocket frame (Protocol V2)
-websocat ws://localhost:3001/ws --binary | head -c 36 | xxd
+websocat ws://localhost:3030/ws --binary | head -c 36 | xxd
 
 # Expected output for single node (ID=5, Agent flag set):
 # Offset   Hex bytes                                    ASCII

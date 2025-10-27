@@ -14,10 +14,10 @@
 The WebSocket protocol provides high-performance real-time communication between the Rust backend and TypeScript clients. Binary Protocol V2 uses 36-byte node frames with u32 IDs and dual-graph type flags, fixing the V1 node ID truncation bug while supporting unified knowledge + agent graph broadcasting.
 
 **WebSocket Endpoints**:
-- General: `ws://localhost:3001/ws` - Binary position updates + JSON messages
-- Voice Commands: `ws://localhost:3001/ws/voice` - Voice command streaming
-- Agent Visualisation: `ws://localhost:3001/ws/agents` - Agent status updates
-- Real-time Analytics: `ws://localhost:3001/ws/analytics` - GPU computation results
+- General: `ws://localhost:3030/ws` - Binary position updates + JSON messages
+- Voice Commands: `ws://localhost:3030/ws/voice` - Voice command streaming
+- Agent Visualisation: `ws://localhost:3030/ws/agents` - Agent status updates
+- Real-time Analytics: `ws://localhost:3030/ws/analytics` - GPU computation results
 
 ---
 
@@ -46,10 +46,10 @@ stateDiagram-v2
 
 ```javascript
 // Basic connection
-const ws = new WebSocket('ws://localhost:3001/ws');
+const ws = new WebSocket('ws://localhost:3030/ws');
 
 // Authenticated connection
-const ws = new WebSocket(`ws://localhost:3001/ws?token=${jwtToken}`);
+const ws = new WebSocket(`ws://localhost:3030/ws?token=${jwtToken}`);
 
 // Connection event handlers
 ws.onopen = (event) => {
@@ -71,7 +71,7 @@ WebSocket connections support two authentication methods:
 
 **1. Query Parameter Authentication**:
 ```javascript
-const ws = new WebSocket(`ws://localhost:3001/ws?token=${jwtToken}`);
+const ws = new WebSocket(`ws://localhost:3030/ws?token=${jwtToken}`);
 ```
 
 **2. First Message Authentication**:
@@ -1255,7 +1255,7 @@ describe('BinaryProtocol', () => {
 ```javascript
 // Simple test client
 const testWebSocket = async () => {
-  const ws = new WebSocket('ws://localhost:3001/ws');
+  const ws = new WebSocket('ws://localhost:3030/ws');
 
   ws.onopen = () => {
     console.log('Connected');

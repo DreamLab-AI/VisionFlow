@@ -28,7 +28,7 @@ Before starting, ensure you've completed the [Installation Guide](01-installatio
 Open your web browser and navigate to:
 
 ```
-http://localhost:3001
+http://localhost:3030
 ```
 
 **Expected Interface:**
@@ -39,7 +39,7 @@ http://localhost:3001
 
 **Troubleshooting:**
 - **Blank page?** Check Docker services: `docker-compose logs -f`
-- **Connection error?** Verify port 3001 is not blocked: `sudo lsof -i :3001`
+- **Connection error?** Verify port 3030 is not blocked: `sudo lsof -i :3030`
 - **Slow loading?** Wait 60 seconds for initial asset loading
 
 ### Step 2: Load or Create Your Graph (2 minutes)
@@ -389,7 +389,7 @@ See [XR Setup Guide](../guides/xr-setup.md) for detailed configuration.
 **Graph not loading:**
 ```bash
 # Check backend health
-curl http://localhost:3001/api/health
+curl http://localhost:3030/api/health
 
 # Check logs
 docker-compose logs visionflow_container

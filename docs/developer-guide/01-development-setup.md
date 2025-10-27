@@ -227,7 +227,7 @@ npm run dev:worker # Background worker only
 
 | Service | URL | Purpose |
 |---------|-----|---------|
-| **Web UI** | http://localhost:8080 | Main interface |
+| **Web UI** | http://localhost:3030 | Main interface |
 | **API** | http://localhost:9090 | REST API |
 | **API Docs** | http://localhost:9090/docs | Swagger UI |
 | **GraphQL** | http://localhost:9090/graphql | GraphQL playground |

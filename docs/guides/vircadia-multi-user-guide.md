@@ -59,7 +59,7 @@ Default world initialized: VisionFlow World
 
 ### 2. Enable Multi-User Mode in VisionFlow
 
-1. Open VisionFlow: `http://localhost:3001`
+1. Open VisionFlow: `http://localhost:3030`
 2. Navigate to **Settings** → **Multi-User XR**
 3. Toggle **"Enable Multi-User Mode"** to ON
 4. Server URL should auto-populate: `ws://vircadia-world-server:3020/world/ws`
@@ -74,7 +74,7 @@ Default world initialized: VisionFlow World
 
 Share your VisionFlow URL with teammates:
 ```
-http://your-server-ip:3001
+http://your-server-ip:3030
 ```
 
 Each user should:

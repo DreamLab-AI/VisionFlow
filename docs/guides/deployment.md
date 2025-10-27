@@ -938,7 +938,7 @@ docker volume rm vircadia_world_server_postgres_data
 
 ```bash
 # VisionFlow health
-curl http://localhost:3001/health
+curl http://localhost:3030/health
 
 # Multi-agent container health
 curl http://localhost:3002/health

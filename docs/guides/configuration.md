@@ -97,7 +97,7 @@ Verify GPU is working:
 docker exec -it visionflow_container nvidia-smi
 
 # Check GPU utilisation
-curl http://localhost:3001/api/analytics/gpu-metrics
+curl http://localhost:3030/api/analytics/gpu-metrics
 ```
 
 ### Multi-Agent System Optimisation
@@ -586,8 +586,8 @@ system:
 Resolve port conflicts:
 ```bash
 # Check for port conflicts
-sudo netstat -tulpn | grep :3001
-sudo lsof -i :3001
+sudo netstat -tulpn | grep :3030
+sudo lsof -i :3030
 
 # Change ports if needed
 HOST_PORT=3002
@@ -666,10 +666,10 @@ Manually verify key components:
 
 ```bash
 # Test API health
-curl http://localhost:3001/api/health
+curl http://localhost:3030/api/health
 
 # Test WebSocket connection
-wscat -c ws://localhost:3001/ws
+wscat -c ws://localhost:3030/ws
 
 # Test MCP connection
 telnet localhost 9500

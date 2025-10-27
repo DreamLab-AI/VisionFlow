@@ -4,7 +4,7 @@
 
 VisionFlow implements real GPU-accelerated algorithms using CUDA kernels for clustering, anomaly detection, and graph analysis. All algorithms perform actual computations with no mock data or placeholders.
 
-**Base URL**: `http://localhost:3001/api`
+**Base URL**: `http://localhost:3030/api`
 
 ## Supported GPU Algorithms
 

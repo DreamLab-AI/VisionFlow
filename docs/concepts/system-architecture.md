@@ -69,7 +69,7 @@ graph TB
 graph TB
     subgraph "Docker Network: docker_ragflow"
         subgraph "VisionFlow Container"
-            Nginx["Nginx Reverse Proxy<br/>:3001<br/>SSL Termination & Routing"]
+            Nginx["Nginx Reverse Proxy<br/>:3030<br/>SSL Termination & Routing"]
             Backend["Rust Backend<br/>:4000<br/>190 Rust files<br/>Actor-based Architecture"]
             Frontend["React Frontend<br/>:5173<br/>404 TypeScript files<br/>Vite Dev Server"]
             Supervisor["Supervisord<br/>Process Management"]
@@ -99,7 +99,7 @@ graph TB
         Browser[Web Browser<br/>Chrome / Firefox / Safari]
         Quest3[Meta Quest 3<br/>WebXR Session]
         CloudFlare["CloudFlare Tunnel<br/>Production HTTPS"]
-        LocalDev["Local Development<br/>:3001"]
+        LocalDev["Local Development<br/>:3030"]
     end
 
     Browser & Quest3 -->|HTTP/WS| LocalDev
@@ -890,7 +890,7 @@ graph TB
 │  ┌─────────────────────────────────┐  │
 │  │  Docker Compose Stack           │  │
 │  │  ├─ visionflow-container        │  │
-│  │  │  ├─ Nginx :3001              │  │
+│  │  │  ├─ Nginx :3030              │  │
 │  │  │  ├─ Rust Backend :4000       │  │
 │  │  │  └─ Vite Dev Server :5173    │  │
 │  │  ├─ multi-agent-container       │  │

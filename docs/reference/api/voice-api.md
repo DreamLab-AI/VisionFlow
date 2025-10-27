@@ -5,8 +5,8 @@
 The VisionFlow Voice System provides a complete voice-to-agent integration pipeline, enabling users to control agent swarms through natural speech commands. The system integrates Whisper STT, Kokoro TTS, and real MCP task orchestration.
 
 **Base Endpoints**:
-- WebSocket: `ws://localhost:3001/ws/voice`
-- REST: `http://localhost:3001/api/voice`
+- WebSocket: `ws://localhost:3030/ws/voice`
+- REST: `http://localhost:3030/api/voice`
 
 ## Architecture
 
@@ -27,7 +27,7 @@ Voice Input → Whisper STT → Intent Parser → MCP Orchestration → Agent Ex
 ### Connection Setup
 
 ```javascript
-const voiceWs = new WebSocket('ws://localhost:3001/ws/voice');
+const voiceWs = new WebSocket('ws://localhost:3030/ws/voice');
 
 voiceWs.onopen = () => {
     console.log('Voice WebSocket connected');
@@ -447,7 +447,7 @@ DELETE /api/voice/session/{sessionId}
 ```javascript
 class VoiceAgentController {
     constructor() {
-        this.ws = new WebSocket('ws://localhost:3001/ws/voice');
+        this.ws = new WebSocket('ws://localhost:3030/ws/voice');
         this.sessionId = this.generateSessionId();
         this.setupEventHandlers();
     }

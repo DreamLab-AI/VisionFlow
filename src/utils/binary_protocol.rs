@@ -7,7 +7,7 @@ use serde_json;
 
 // Protocol versions for wire format
 const PROTOCOL_V1: u8 = 1; // Legacy 16-bit node IDs (34 bytes per node)
-const PROTOCOL_V2: u8 = 2; // Full 32-bit node IDs (38 bytes per node)
+const PROTOCOL_V2: u8 = 2; // Full 32-bit node IDs (36 bytes per node)
 
 // Node type flag constants for u32 (server-side)
 const AGENT_NODE_FLAG: u32 = 0x80000000; // Bit 31 indicates agent node
@@ -45,7 +45,7 @@ pub struct WireNodeDataItemV1 {
                             // Total: 34 bytes
 }
 
-/// Wire format v2 struct (FIXED - 38 bytes)
+/// Wire format v2 struct (FIXED - 36 bytes)
 /// FIXES: Uses full 32-bit node IDs (30 bits + 2 flag bits)
 /// Supports node IDs up to 1,073,741,823 (2^30 - 1)
 pub struct WireNodeDataItemV2 {
@@ -54,7 +54,7 @@ pub struct WireNodeDataItemV2 {
     pub velocity: Vec3Data, // 12 bytes
     pub sssp_distance: f32, // 4 bytes - SSSP distance from source
     pub sssp_parent: i32,   // 4 bytes - Parent node for path reconstruction
-                            // Total: 38 bytes
+                            // Total: 36 bytes (4+12+12+4+4)
 }
 
 // Backwards compatibility alias - DEPRECATED
@@ -555,7 +555,7 @@ fn decode_node_data_v1(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String
     Ok(updates)
 }
 
-/// Decode V2 protocol (FIXED - 38 bytes per node, u32 IDs)
+/// Decode V2 protocol (FIXED - 36 bytes per node, u32 IDs)
 fn decode_node_data_v2(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String> {
     // Check if data is properly sized
     if data.len() % WIRE_V2_ITEM_SIZE != 0 {
@@ -707,12 +707,12 @@ mod tests {
     fn test_wire_format_size() {
         // Verify V1 format is 34 bytes (legacy)
         assert_eq!(WIRE_V1_ITEM_SIZE, 34);
-        // Verify V2 format is 38 bytes (current)
-        assert_eq!(WIRE_V2_ITEM_SIZE, 38);
+        // Verify V2 format is 36 bytes (current)
+        assert_eq!(WIRE_V2_ITEM_SIZE, 36);
         assert_eq!(WIRE_ITEM_SIZE, WIRE_V2_ITEM_SIZE); // Default is V2
         assert_eq!(
             WIRE_ID_SIZE + WIRE_VEC3_SIZE + WIRE_VEC3_SIZE + WIRE_F32_SIZE + WIRE_I32_SIZE,
-            38
+            36
         );
     }
 
@@ -762,9 +762,9 @@ mod tests {
 
     #[test]
     fn test_decode_invalid_data() {
-        // Test with V2 protocol marker but invalid data size (not multiple of 38 bytes)
+        // Test with V2 protocol marker but invalid data size (not multiple of 36 bytes)
         let mut data = vec![PROTOCOL_V2]; // Version byte
-        data.extend_from_slice(&[0u8; 37]); // 37 bytes (not multiple of 38)
+        data.extend_from_slice(&[0u8; 37]); // 37 bytes (not multiple of 36)
         let result = decode_node_data(&data);
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("not a multiple of"));
@@ -791,8 +791,8 @@ mod tests {
         )];
 
         let size = calculate_message_size(&nodes);
-        // V2 format: 1 byte version + 38 bytes per node
-        assert_eq!(size, 1 + 38);
+        // V2 format: 1 byte version + 36 bytes per node
+        assert_eq!(size, 1 + 36);
 
         let encoded = encode_node_data(&nodes);
         assert_eq!(encoded.len(), size);
