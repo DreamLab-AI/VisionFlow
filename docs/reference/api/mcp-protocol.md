@@ -8,19 +8,27 @@ VisionFlow integrates with Claude's Model Context Protocol (MCP) to enable multi
 
 ## Architecture
 
-```
-┌─────────────────────┐     ┌─────────────────────┐
-│   VisionFlow/Rust   │────▶│  MCP TCP Server     │
-│   (logseq container)│ TCP │ (multi-agent)       │
-└─────────────────────┘     └─────────────────────┘
-                                     │
-                                     ▼
-                            ┌─────────────────────┐
-                            │   Agent Swarms      │
-                            │ ┌─────┬─────┬─────┐│
-                            │ │Agent│Agent│Agent││
-                            │ └─────┴─────┴─────┘│
-                            └─────────────────────┘
+```mermaid
+graph TB
+    VisionFlow["VisionFlow/Rust<br/>(logseq container)"]
+    MCPServer["MCP TCP Server<br/>(multi-agent container)"]
+    Swarms["Agent Swarms"]
+    Agent1["Agent 1<br/>Coordinator"]
+    Agent2["Agent 2<br/>Researcher"]
+    Agent3["Agent 3<br/>Coder"]
+
+    VisionFlow -->|"TCP :9500<br/>JSON-RPC"| MCPServer
+    MCPServer --> Swarms
+    Swarms --> Agent1
+    Swarms --> Agent2
+    Swarms --> Agent3
+
+    style VisionFlow fill:#e1f5ff
+    style MCPServer fill:#fff4e1
+    style Swarms fill:#f0f0ff
+    style Agent1 fill:#e1ffe1
+    style Agent2 fill:#e1ffe1
+    style Agent3 fill:#e1ffe1
 ```
 
 ## Connection Setup
@@ -65,8 +73,22 @@ async fn connect_to_mcp() -> Result<Framed<TcpStream, LinesCodec>> {
 
 ### Initialization Handshake
 
+```mermaid
+sequenceDiagram
+    participant Client as VisionFlow Client
+    participant Server as MCP Server
+
+    Client->>Server: initialize(protocol: 2024-11-05)
+    Note over Client,Server: Handshake with client info
+    Server-->>Client: result(capabilities, serverInfo)
+    Note over Client,Server: Server confirms protocol<br/>and advertises capabilities
+    Client->>Server: tools/list
+    Server-->>Client: Available tools list
+    Note over Client,Server: Ready for agent operations
+```
+
+**Client Request:**
 ```json
-// Client → Server
 {
     "jsonrpc": "2.0",
     "id": 1,
@@ -79,8 +101,10 @@ async fn connect_to_mcp() -> Result<Framed<TcpStream, LinesCodec>> {
         }
     }
 }
+```
 
-// Server → Client
+**Server Response:**
+```json
 {
     "jsonrpc": "2.0",
     "id": 1,

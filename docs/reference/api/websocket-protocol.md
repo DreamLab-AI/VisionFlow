@@ -102,18 +102,40 @@ impl WebSocketActor {
 
 All WebSocket messages follow this binary frame structure:
 
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': {'fontSize':'14px'}}}%%
+graph TB
+    subgraph Frame["WebSocket Message Frame"]
+        Header["Frame Header (8 bytes)"]
+        V["Version (1 byte)"]
+        T["Type (1 byte)"]
+        F["Flags (2 bytes)"]
+        L["Length (4 bytes)"]
+        Payload["Payload (Variable)<br/>Binary Data"]
+
+        Header --> V
+        Header --> T
+        Header --> F
+        Header --> L
+        Header --> Payload
+    end
+
+    style Header fill:#e1f5ff
+    style Payload fill:#fff4e1
+    style V fill:#f0f0f0
+    style T fill:#f0f0f0
+    style F fill:#f0f0f0
+    style L fill:#f0f0f0
 ```
-┌─────────────────────────────────────────┐
-│          Frame Header (8 bytes)         │
-├─────────┬────────┬─────────┬────────────┤
-│ Version │  Type  │ Flags   │   Length   │
-│ 1 byte  │ 1 byte │ 2 bytes │  4 bytes   │
-├─────────┴────────┴─────────┴────────────┤
-│          Payload (Variable)             │
-│                                         │
-│         (Binary Data)                   │
-└─────────────────────────────────────────┘
-```
+
+**Binary Layout:**
+| Offset | Size | Field | Description |
+|--------|------|-------|-------------|
+| 0 | 1 byte | Version | Protocol version (current: 2) |
+| 1 | 1 byte | Type | Message type identifier |
+| 2 | 2 bytes | Flags | Compression, priority flags |
+| 4 | 4 bytes | Length | Payload size in bytes |
+| 8 | Variable | Payload | Binary message data |
 
 **Header Fields**:
 - **Version** (1 byte): Protocol version (current: 2)
@@ -163,12 +185,12 @@ struct WireNodeDataItemV2 {
 
 3D vectors are serialised as three consecutive 32-bit floats:
 
-```
-┌────────┬────────┬────────┐
-│   X    │   Y    │   Z    │
-│ 4 bytes│ 4 bytes│ 4 bytes│
-└────────┴────────┴────────┘
-```
+**Binary Layout (12 bytes total):**
+| Offset | Size | Field | Type | Description |
+|--------|------|-------|------|-------------|
+| 0 | 4 bytes | X | f32 | X coordinate (IEEE 754) |
+| 4 | 4 bytes | Y | f32 | Y coordinate (IEEE 754) |
+| 8 | 4 bytes | Z | f32 | Z coordinate (IEEE 754) |
 
 **Byte order**: Little-endian
 **Precision**: IEEE 754 single precision
@@ -177,12 +199,13 @@ struct WireNodeDataItemV2 {
 
 Settings use a variable-length format with path compression:
 
-```
-┌──────────┬────────────┬─────────────┬──────────┐
-│ Path ID  │ Value Type │ Value Length│  Value   │
-│ 2 bytes  │  1 byte    │  2 bytes    │ Variable │
-└──────────┴────────────┴─────────────┴──────────┘
-```
+**Binary Layout:**
+| Offset | Size | Field | Description |
+|--------|------|-------|-------------|
+| 0 | 2 bytes | Path ID | Pre-registered path identifier |
+| 2 | 1 byte | Value Type | Type code (0x01-0x08) |
+| 3 | 2 bytes | Value Length | Size of value data |
+| 5 | Variable | Value | Actual value bytes |
 
 **Path ID**: Pre-registered common paths (e.g., physics parameters)
 **Value Types**:
@@ -199,12 +222,12 @@ Settings use a variable-length format with path compression:
 
 Batch updates combine multiple node updates:
 
-```
-┌────────────┬──────────┬─────────────────┐
-│ Node Count │ Flags    │  Node Updates   │
-│  2 bytes   │ 2 bytes  │  N × 36 bytes   │
-└────────────┴──────────┴─────────────────┘
-```
+**Binary Layout:**
+| Offset | Size | Field | Description |
+|--------|------|-------|-------------|
+| 0 | 2 bytes | Node Count | Number of nodes (N) |
+| 2 | 2 bytes | Flags | Batch-level flags |
+| 4 | N × 36 bytes | Node Updates | Array of node data |
 
 **Batch size**: Up to 50 nodes per batch (default)
 **Frequency**: Adaptive (60 FPS active, 5 Hz settled)
@@ -801,12 +824,13 @@ class WebSocketService {
 
 ### Error Frame Format
 
-```
-┌──────────┬──────────┬───────────────┬────────────┐
-│Error Code│ Severity │ Message Length│  Message   │
-│ 2 bytes  │  1 byte  │   2 bytes     │  Variable  │
-└──────────┴──────────┴───────────────┴────────────┘
-```
+**Binary Layout:**
+| Offset | Size | Field | Description |
+|--------|------|-------|-------------|
+| 0 | 2 bytes | Error Code | Error code (0x0001-0x0005) |
+| 2 | 1 byte | Severity | Severity level (0x01-0x04) |
+| 3 | 2 bytes | Message Length | Error message size |
+| 5 | Variable | Message | Error message string |
 
 ### Error Codes
 

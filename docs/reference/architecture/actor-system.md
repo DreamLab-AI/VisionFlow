@@ -69,22 +69,33 @@ VisionFlow leverages NVIDIA CUDA for GPU-accelerated physics simulation of large
 
 ### Force Calculation Pipeline
 
-```
-Input: Node Positions & Velocities
-    │
-    ├─→ [CUDA Kernel] Repulsion Forces
-    │   └─ Coulomb-like repulsion between all node pairs
-    │
-    ├─→ [CUDA Kernel] Attraction Forces
-    │   └─ Spring-like attraction along edges
-    │
-    ├─→ [CUDA Kernel] Damping
-    │   └─ Velocity friction (0-1 damping coefficient)
-    │
-    ├─→ [CUDA Kernel] Position Update
-    │   └─ Integrate velocity over timestep
-    │
-    └─→ Output: Updated Positions & Velocities
+```mermaid
+graph TB
+    Input["Input:<br/>Node Positions & Velocities"]
+
+    Repulsion["CUDA Kernel: Repulsion Forces<br/>Coulomb-like repulsion between all node pairs"]
+    Attraction["CUDA Kernel: Attraction Forces<br/>Spring-like attraction along edges"]
+    Damping["CUDA Kernel: Damping<br/>Velocity friction (0-1 damping coefficient)"]
+    Integration["CUDA Kernel: Position Update<br/>Integrate velocity over timestep"]
+
+    Output["Output:<br/>Updated Positions & Velocities"]
+
+    Input --> Repulsion
+    Input --> Attraction
+    Input --> Damping
+
+    Repulsion --> Integration
+    Attraction --> Integration
+    Damping --> Integration
+
+    Integration --> Output
+
+    style Input fill:#e1f5ff
+    style Output fill:#e1ffe1
+    style Repulsion fill:#ffe1e1
+    style Attraction fill:#ffe1e1
+    style Damping fill:#ffe1e1
+    style Integration fill:#fff4e1
 ```
 
 ### CUDA Kernel Implementations
@@ -275,24 +286,30 @@ impl PhysicsSimulation {
 
 #### Memory Usage
 
-```
-Node Count | GPU Memory | CPU Memory | Transfer/Step
------------|------------|------------|---------------
-10k        | 128 MB     | 64 MB      | 1.2 MB
-100k       | 1.2 GB     | 640 MB     | 12 MB
-1M         | 12 GB      | 6.4 GB     | 120 MB (@ 60 FPS = 7.2 GB/s)
-```
+| Node Count | GPU Memory | CPU Memory | Transfer/Step |
+|------------|------------|------------|---------------|
+| 10k | 128 MB | 64 MB | 1.2 MB |
+| 100k | 1.2 GB | 640 MB | 12 MB |
+| 1M | 12 GB | 6.4 GB | 120 MB (@ 60 FPS = 7.2 GB/s) |
 
 #### FPS at Different Scales
 
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': {'fontSize':'14px'}}}%%
+xychart-beta
+    title "GPU vs CPU Performance at Scale"
+    x-axis [1k, 10k, 100k, 500k]
+    y-axis "FPS" 0 --> 120
+    bar [120, 90, 60, 15]
+    bar [120, 45, 8, 1]
 ```
-Node Count | FPS (GPU) | FPS (CPU) | GPU Advantage
------------|-----------|-----------|---------------
-1k         | 120       | 120       | None (bottleneck is I/O)
-10k        | 90        | 45        | 2x
-100k       | 60        | 8         | 7.5x
-500k       | 15        | <1        | 15x
-```
+
+| Node Count | FPS (GPU) | FPS (CPU) | GPU Advantage |
+|------------|-----------|-----------|---------------|
+| 1k | 120 | 120 | None (I/O bottleneck) |
+| 10k | 90 | 45 | 2x |
+| 100k | 60 | 8 | 7.5x |
+| 500k | 15 | <1 | 15x |
 
 ### GPU Memory Management
 

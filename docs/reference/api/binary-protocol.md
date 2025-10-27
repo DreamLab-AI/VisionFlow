@@ -21,22 +21,22 @@ VisionFlow uses a highly optimized **36-byte binary protocol** for real-time nod
 
 ### Node Update Message (0x01)
 
-```
-Offset | Size | Type  | Field         | Description
--------|------|-------|---------------|----------------------------------
-0      | 1    | u8    | msg_type      | 0x01 = NodeUpdate
-1      | 4    | u32   | node_id       | Node identifier with graph bits
-5      | 4    | f32   | position_x    | X coordinate (IEEE 754)
-9      | 4    | f32   | position_y    | Y coordinate (IEEE 754)
-13     | 4    | f32   | position_z    | Z coordinate (IEEE 754)
-17     | 4    | f32   | velocity_x    | X velocity (IEEE 754)
-21     | 4    | f32   | velocity_y    | Y velocity (IEEE 754)
-25     | 4    | f32   | velocity_z    | Z velocity (IEEE 754)
-29     | 4    | u32   | color_rgba    | Packed RGBA (8 bits each)
-33     | 1    | u8    | flags[0]      | State and type flags
-34     | 1    | u8    | flags[1]      | Node type (0-255)
-35     | 1    | u8    | flags[2]      | Reserved
-```
+**Binary Wire Format (36 bytes total):**
+
+| Offset | Size | Type | Field | Description |
+|--------|------|------|-------|-------------|
+| 0 | 1 | u8 | msg_type | 0x01 = NodeUpdate |
+| 1 | 4 | u32 | node_id | Node identifier with graph bits |
+| 5 | 4 | f32 | position_x | X coordinate (IEEE 754) |
+| 9 | 4 | f32 | position_y | Y coordinate (IEEE 754) |
+| 13 | 4 | f32 | position_z | Z coordinate (IEEE 754) |
+| 17 | 4 | f32 | velocity_x | X velocity (IEEE 754) |
+| 21 | 4 | f32 | velocity_y | Y velocity (IEEE 754) |
+| 25 | 4 | f32 | velocity_z | Z velocity (IEEE 754) |
+| 29 | 4 | u32 | color_rgba | Packed RGBA (8 bits each) |
+| 33 | 1 | u8 | flags[0] | State and type flags |
+| 34 | 1 | u8 | flags[1] | Node type (0-255) |
+| 35 | 1 | u8 | flags[2] | Reserved |
 
 **Total:** 36 bytes per message
 
@@ -44,21 +44,29 @@ Offset | Size | Type  | Field         | Description
 
 ## Node ID Encoding
 
-### Format
+**Bit Layout (32-bit u32):**
 
-```
-Bit 31-30: Graph type flags
-Bit 29-0:  Actual node ID
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': {'fontSize':'14px'}}}%%
+graph LR
+    subgraph NodeID["Node ID (u32 - 32 bits)"]
+        Bits3130["Bits 31-30<br/>Graph Type<br/>2 bits"]
+        Bits290["Bits 29-0<br/>Actual Node ID<br/>30 bits"]
+    end
+
+    Bits3130 --> Bits290
+
+    style Bits3130 fill:#ffe1e1
+    style Bits290 fill:#e1f5ff
 ```
 
-### Graph Type Flags
-
-```
-00 (0): Knowledge graph node (local markdown)
-01 (1): Ontology graph node (GitHub markdown)
-10 (2): Agent visualization node
-11 (3): Reserved for future use
-```
+**Graph Type Flags (Bits 31-30):**
+| Value | Binary | Graph Type | Description |
+|-------|--------|------------|-------------|
+| 0 | 00 | Knowledge | Local markdown files |
+| 1 | 01 | Ontology | GitHub markdown files |
+| 2 | 10 | Agent | Agent visualization nodes |
+| 3 | 11 | Reserved | Future use |
 
 ### Example
 
@@ -76,12 +84,32 @@ let actual_id = node_id & 0x3FFFFFFF;     // Result: 12345
 
 ## Color Format (RGBA)
 
+**Bit Layout (32-bit u32):**
+
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': {'fontSize':'14px'}}}%%
+graph LR
+    subgraph ColorRGBA["Color RGBA (u32 - 32 bits)"]
+        Red["Bits 31-24<br/>Red<br/>8 bits<br/>0-255"]
+        Green["Bits 23-16<br/>Green<br/>8 bits<br/>0-255"]
+        Blue["Bits 15-8<br/>Blue<br/>8 bits<br/>0-255"]
+        Alpha["Bits 7-0<br/>Alpha<br/>8 bits<br/>0-255"]
+    end
+
+    Red --> Green --> Blue --> Alpha
+
+    style Red fill:#ffcccc
+    style Green fill:#ccffcc
+    style Blue fill:#ccccff
+    style Alpha fill:#f0f0f0
 ```
-Bit 31-24: Red channel (0-255)
-Bit 23-16: Green channel (0-255)
-Bit 15-8:  Blue channel (0-255)
-Bit 7-0:   Alpha channel (0-255)
-```
+
+| Bits | Channel | Range | Description |
+|------|---------|-------|-------------|
+| 31-24 | Red | 0-255 | Red color component |
+| 23-16 | Green | 0-255 | Green color component |
+| 15-8 | Blue | 0-255 | Blue color component |
+| 7-0 | Alpha | 0-255 | Transparency (255=opaque) |
 
 ### Packing
 

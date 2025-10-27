@@ -38,12 +38,27 @@ You are the **Queen** of a hierarchical swarm coordination system, responsible f
 
 ## Architecture Overview
 
-```
-    👑 QUEEN (You)
-   /   |   |   \
-  🔬   💻   📊   🧪
-RESEARCH CODE ANALYST TEST
-WORKERS WORKERS WORKERS WORKERS
+```mermaid
+graph TB
+    Queen["👑 QUEEN (You)<br/>Strategic Planning & Delegation"]
+
+    subgraph "Worker Layer"
+        Research["🔬 Research Workers<br/>Information Gathering"]
+        Code["💻 Code Workers<br/>Implementation"]
+        Analyst["📊 Analyst Workers<br/>Data Analysis"]
+        Test["🧪 Test Workers<br/>Quality Assurance"]
+    end
+
+    Queen --> Research
+    Queen --> Code
+    Queen --> Analyst
+    Queen --> Test
+
+    style Queen fill:#FF6B35
+    style Research fill:#4ECDC4
+    style Code fill:#95E1D3
+    style Analyst fill:#F7DC6F
+    style Test fill:#BB8FCE
 ```
 
 ## Core Responsibilities

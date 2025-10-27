@@ -15,6 +15,38 @@ VisionFlow is an enterprise-grade 3D graph visualisation and multi-agent orchest
 ## System Context (C4 Level 1)
 
 ```mermaid
+C4Context
+    title System Context Diagram - VisionFlow Platform
+
+    Person(users, "End Users", "Web browsers, Quest 3 headsets")
+    Person(developers, "Developers", "IDE, CLI, API integration")
+    System_Ext(ai_services, "External AI", "Claude, GPT-4, LLMs")
+
+    System_Boundary(visionflow, "VisionFlow Platform") {
+        System(vf_core, "VisionFlow Core", "Real-time 3D graph visualization<br/>Multi-agent orchestration<br/>GPU-accelerated compute")
+    }
+
+    System_Ext(ragflow, "RAGFlow", "Knowledge retrieval & chat")
+    System_Ext(whisper, "Whisper STT", "Speech-to-text")
+    System_Ext(kokoro, "Kokoro TTS", "Text-to-speech")
+    System_Ext(vircadia, "Vircadia", "Virtual worlds platform")
+    System_Ext(supabase, "Supabase", "Authentication & storage")
+
+    Rel(users, vf_core, "Visualizes graphs, spawns agents", "HTTPS/WSS, WebXR")
+    Rel(developers, vf_core, "Integrates systems", "REST API, CLI")
+    Rel(ai_services, vf_core, "Coordinates agents", "MCP Protocol")
+
+    Rel(vf_core, ragflow, "Queries documents", "HTTP/REST")
+    Rel(vf_core, whisper, "Transcribes audio", "HTTP/REST")
+    Rel(vf_core, kokoro, "Synthesizes speech", "HTTP/REST")
+    Rel(vf_core, vircadia, "Fetches world data", "HTTP/REST")
+    Rel(vf_core, supabase, "Authenticates, persists", "PostgreSQL, Auth")
+
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
+```
+
+**Alternative View (Graph Format)**:
+```mermaid
 graph TB
     subgraph "External Users & Systems"
         Users[Human Users<br/>Web Browser / Quest 3]
@@ -497,19 +529,28 @@ sequenceDiagram
 
 **34-byte Binary Format**:
 ```mermaid
-graph TD
-    subgraph "34-byte Binary Format"
-        A["4 bytes: node_id"]
-        B["4 bytes: x position (f32)"]
-        C["4 bytes: y position (f32)"]
-        D["4 bytes: z position (f32)"]
-        E["4 bytes: velocity_x (f32)"]
-        F["4 bytes: velocity_y (f32)"]
-        G["4 bytes: velocity_z (f32)"]
-        H["1 byte: flags"]
-        I["3 bytes: RGB colour"]
-        J["2 bytes: reserved"]
+graph LR
+    subgraph "34-byte Binary Wire Format"
+        A["node_id<br/>u32<br/>4 bytes"]
+        B["x position<br/>f32<br/>4 bytes"]
+        C["y position<br/>f32<br/>4 bytes"]
+        D["z position<br/>f32<br/>4 bytes"]
+        E["velocity_x<br/>f32<br/>4 bytes"]
+        F["velocity_y<br/>f32<br/>4 bytes"]
+        G["velocity_z<br/>f32<br/>4 bytes"]
+        H["flags<br/>u8<br/>1 byte"]
+        I["RGB colour<br/>u8×3<br/>3 bytes"]
+        J["reserved<br/>u16<br/>2 bytes"]
     end
+
+    A --> B --> C --> D --> E --> F --> G --> H --> I --> J
+
+    style A fill:#e3f2fd,stroke:#1565C0
+    style B fill:#c8e6c9,stroke:#2E7D32
+    style C fill:#c8e6c9,stroke:#2E7D32
+    style D fill:#c8e6c9,stroke:#2E7D32
+    style H fill:#fff3e0,stroke:#F57F17
+    style I fill:#ffccbc,stroke:#E65100
 ```
 
 ### Agent Spawn Flow (Hybrid Docker + MCP)
@@ -545,7 +586,45 @@ sequenceDiagram
     Backend-->>User: Agent Created (JSON)
 ```
 
-**SwarmMetadata**:
+**SwarmMetadata Structure**:
+
+```mermaid
+classDiagram
+    class SwarmMetadata {
+        +String swarm_id
+        +String task_description
+        +DateTime~Utc~ spawn_time
+        +SwarmStatus status
+        +String priority
+        +Option~u32~ docker_pid
+        +DateTime~Utc~ last_heartbeat
+    }
+
+    class SwarmStatus {
+        <<enumeration>>
+        Spawning
+        Active
+        Paused
+        Completed
+        Failed
+    }
+
+    class Priority {
+        <<enumeration>>
+        Critical
+        High
+        Medium
+        Low
+    }
+
+    SwarmMetadata --> SwarmStatus
+    SwarmMetadata --> Priority
+
+    style SwarmMetadata fill:#e3f2fd,stroke:#1565C0
+    style SwarmStatus fill:#fff9c4,stroke:#F57F17
+    style Priority fill:#ffccbc,stroke:#E65100
+```
+
 ```rust
 struct SwarmMetadata {
     swarm_id: String,

@@ -25,6 +25,94 @@ Event-driven architecture where:
 
 ## Current State Analysis
 
+### Architecture Comparison: Before vs After
+
+```mermaid
+graph TB
+    subgraph Before["❌ BEFORE: Monolithic Actor (THE PROBLEM)"]
+        B_API["API Handlers"]
+        B_ACTOR["GraphServiceActor<br/>━━━━━━━━━━━<br/>48,000+ tokens!<br/>━━━━━━━━━━━<br/>• In-memory cache (STALE!)<br/>• Physics simulation<br/>• WebSocket broadcasting<br/>• Semantic analysis<br/>• Settings management<br/>• GitHub sync data"]
+
+        B_WS["WebSocket<br/>Server"]
+        B_PHYSICS["Physics<br/>Engine"]
+        B_DB["SQLite DB"]
+
+        B_API --> B_ACTOR
+        B_ACTOR --> B_WS
+        B_ACTOR --> B_PHYSICS
+        B_ACTOR -.->|reads once| B_DB
+
+        B_PROBLEM["🐛 PROBLEM:<br/>After GitHub sync writes<br/>316 nodes to SQLite,<br/>actor cache still shows<br/>63 nodes (STALE!)"]
+
+        B_DB -.->|no invalidation| B_PROBLEM
+    end
+
+    subgraph After["✅ AFTER: Hexagonal/CQRS/Event Sourcing (THE SOLUTION)"]
+        A_API["API Handlers<br/>(Thin)"]
+
+        A_CMD["Command<br/>Handlers"]
+        A_QRY["Query<br/>Handlers"]
+
+        A_BUS["Event Bus"]
+        A_REPO["Graph<br/>Repository"]
+
+        A_CACHE["Cache<br/>Invalidator"]
+        A_WS["WebSocket<br/>Broadcaster"]
+
+        A_DB["SQLite DB<br/>(Source of Truth)"]
+
+        A_API --> A_CMD
+        A_API --> A_QRY
+
+        A_CMD --> A_REPO
+        A_CMD --> A_BUS
+        A_QRY --> A_REPO
+
+        A_REPO --> A_DB
+
+        A_BUS --> A_CACHE
+        A_BUS --> A_WS
+
+        A_SOLUTION["✅ SOLUTION:<br/>GitHub sync emits event<br/>→ Cache invalidator clears all<br/>→ Next query reads fresh 316 nodes<br/>→ WebSocket notifies clients"]
+
+        A_BUS --> A_SOLUTION
+    end
+
+    classDef problemStyle fill:#ffcdd2,stroke:#c62828,stroke-width:3px
+    classDef solutionStyle fill:#c8e6c9,stroke:#2e7d32,stroke-width:3px
+    classDef actorStyle fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef cqrsStyle fill:#e1f5ff,stroke:#01579b,stroke-width:2px
+
+    class B_PROBLEM problemStyle
+    class A_SOLUTION solutionStyle
+    class B_ACTOR actorStyle
+    class A_CMD,A_QRY,A_BUS,A_CACHE,A_WS cqrsStyle
+```
+
+### Key Architectural Improvements
+
+```mermaid
+graph LR
+    subgraph Improvements["🎯 Architectural Benefits"]
+        I1["1️⃣ Separation of Concerns<br/>━━━━━━━━━━━<br/>Commands ≠ Queries<br/>Write ≠ Read"]
+
+        I2["2️⃣ Event-Driven<br/>━━━━━━━━━━━<br/>Loosely coupled<br/>subscribers"]
+
+        I3["3️⃣ Cache Coherency<br/>━━━━━━━━━━━<br/>Events trigger<br/>invalidation"]
+
+        I4["4️⃣ Testability<br/>━━━━━━━━━━━<br/>Pure functions<br/>No actors needed"]
+
+        I5["5️⃣ Scalability<br/>━━━━━━━━━━━<br/>Horizontal scaling<br/>Event replay"]
+
+        I6["6️⃣ Maintainability<br/>━━━━━━━━━━━<br/>Small focused modules<br/>vs 48K token monolith"]
+    end
+
+    I1 --> I2 --> I3 --> I4 --> I5 --> I6
+
+    classDef benefitStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    class I1,I2,I3,I4,I5,I6 benefitStyle
+```
+
 ### Monolithic GraphServiceActor Responsibilities
 ```rust
 // src/actors/graph_actor.rs (48,000+ tokens!)
@@ -59,65 +147,155 @@ pub struct GraphServiceActor {
 ## Target Hexagonal Architecture
 
 ### Layer Overview
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│                     HTTP/WebSocket Layer                             │
-│            (Actix-web handlers - thin controllers)                   │
-│                                                                       │
-│  GET  /api/graph/data     → GetGraphDataQuery                       │
-│  POST /api/graph/nodes    → CreateNodeCommand                       │
-│  WS   /ws/graph           → GraphUpdateEvent subscription           │
-└─────────────────────┬────────────────────┬───────────────────────────┘
-                      │                    │
-                      ▼                    ▼
-      ┌───────────────────────┐  ┌────────────────────────┐
-      │     Commands          │  │      Queries           │
-      │   (Write Side)        │  │    (Read Side)         │
-      │                       │  │                        │
-      │ - CreateNodeCommand   │  │ - GetGraphDataQuery    │
-      │ - UpdateNodeCommand   │  │ - GetNodeByIdQuery     │
-      │ - DeleteNodeCommand   │  │ - GetSemanticQuery     │
-      │ - TriggerPhysicsCmd   │  │ - GetPhysicsStateQuery │
-      └───────────┬───────────┘  └──────────┬─────────────┘
-                  │                          │
-                  │ Executes via             │ Executes via
-                  ▼                          ▼
-      ┌───────────────────────────────────────────────────────┐
-      │           Application Handlers                        │
-      │         (Business Logic - Pure Rust)                  │
-      │                                                        │
-      │ - Command Handlers: Validate, Execute, Emit Events    │
-      │ - Query Handlers: Read from repositories, Return DTOs │
-      │ - Domain Services: Physics, Semantic Analysis         │
-      └────────────┬──────────────────┬──────────────────────┘
-                   │                  │
-                   │ Uses Ports       │ Publishes Events
-                   ▼                  ▼
-      ┌─────────────────────┐  ┌──────────────────────┐
-      │   Repository Ports  │  │   Event Bus          │
-      │   (Interfaces)      │  │   (Event Sourcing)   │
-      │                     │  │                      │
-      │ - GraphRepository   │  │ - EventStore         │
-      │ - PhysicsSimulator  │  │ - EventBus           │
-      │ - WebSocketGateway  │  │ - Event Subscribers  │
-      └──────────┬──────────┘  └──────────┬───────────┘
-                 │                        │
-                 │ Implemented by         │ Subscribed by
-                 ▼                        ▼
-      ┌──────────────────────────────────────────────────────┐
-      │                  Adapters                            │
-      │         (Infrastructure Implementations)             │
-      │                                                       │
-      │ - SqliteGraphRepository (already exists!)            │
-      │ - ActixWebSocketAdapter (thin wrapper)               │
-      │ - InMemoryEventStore (for event sourcing)            │
-      │ - GpuPhysicsAdapter (already exists!)                │
-      └──────────────────────────────────────────────────────┘
+
+```mermaid
+graph TB
+    subgraph HTTP["🌐 HTTP/WebSocket Layer (Actix-web - Thin Controllers)"]
+        API1["GET /api/graph/data<br/>→ GetGraphDataQuery"]
+        API2["POST /api/graph/nodes<br/>→ CreateNodeCommand"]
+        API3["WS /ws/graph<br/>→ GraphUpdateEvent subscription"]
+    end
+
+    subgraph CQRS["⚡ CQRS Pattern"]
+        subgraph Commands["📝 Commands (Write Side)"]
+            CMD1["CreateNodeCommand"]
+            CMD2["UpdateNodeCommand"]
+            CMD3["DeleteNodeCommand"]
+            CMD4["TriggerPhysicsCmd"]
+        end
+
+        subgraph Queries["🔍 Queries (Read Side)"]
+            QRY1["GetGraphDataQuery"]
+            QRY2["GetNodeByIdQuery"]
+            QRY3["GetSemanticQuery"]
+            QRY4["GetPhysicsStateQuery"]
+        end
+    end
+
+    subgraph Application["🧠 Application Handlers (Business Logic - Pure Rust)"]
+        CMDH["Command Handlers<br/>✓ Validate<br/>✓ Execute<br/>✓ Emit Events"]
+        QRYH["Query Handlers<br/>✓ Read from repositories<br/>✓ Return DTOs"]
+        DOMSVC["Domain Services<br/>✓ Physics<br/>✓ Semantic Analysis"]
+    end
+
+    subgraph Ports["🔌 Ports (Interfaces)"]
+        PORT1["GraphRepository"]
+        PORT2["PhysicsSimulator"]
+        PORT3["WebSocketGateway"]
+    end
+
+    subgraph Events["📡 Event Bus (Event Sourcing)"]
+        EVTBUS["EventStore"]
+        EVTSUB["EventBus"]
+        EVTHAND["Event Subscribers"]
+    end
+
+    subgraph Adapters["🔧 Adapters (Infrastructure Implementations)"]
+        ADAPT1["SqliteGraphRepository<br/>(already exists!)"]
+        ADAPT2["ActixWebSocketAdapter<br/>(thin wrapper)"]
+        ADAPT3["InMemoryEventStore<br/>(for event sourcing)"]
+        ADAPT4["GpuPhysicsAdapter<br/>(already exists!)"]
+    end
+
+    API1 & API2 & API3 --> CQRS
+    CMD1 & CMD2 & CMD3 & CMD4 --> CMDH
+    QRY1 & QRY2 & QRY3 & QRY4 --> QRYH
+    CMDH --> Ports
+    QRYH --> Ports
+    CMDH --> Events
+    DOMSVC --> Ports
+    PORT1 & PORT2 & PORT3 --> Adapters
+    EVTBUS & EVTSUB & EVTHAND --> Adapters
+
+    classDef httpLayer fill:#e1f5ff,stroke:#01579b,stroke-width:3px
+    classDef cqrsLayer fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef appLayer fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef portLayer fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
+    classDef eventLayer fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    classDef adapterLayer fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+
+    class API1,API2,API3 httpLayer
+    class CMD1,CMD2,CMD3,CMD4,QRY1,QRY2,QRY3,QRY4 cqrsLayer
+    class CMDH,QRYH,DOMSVC appLayer
+    class PORT1,PORT2,PORT3 portLayer
+    class EVTBUS,EVTSUB,EVTHAND eventLayer
+    class ADAPT1,ADAPT2,ADAPT3,ADAPT4 adapterLayer
 ```
 
 ---
 
 ## CQRS Architecture Details
+
+### CQRS Data Flow
+
+```mermaid
+graph TB
+    subgraph Client["👥 Client Layer"]
+        USER["User Actions"]
+        API["API Requests"]
+        WS["WebSocket Connections"]
+    end
+
+    subgraph WriteSide["📝 WRITE SIDE (Commands)"]
+        CMD1["CreateNodeCommand"]
+        CMD2["UpdateNodePositionCommand"]
+        CMD3["TriggerPhysicsStepCommand"]
+        CMD4["BroadcastGraphUpdateCommand"]
+
+        CMDH["Command Handlers<br/>━━━━━━━━━━━<br/>1. Validate<br/>2. Execute Domain Logic<br/>3. Persist via Repository<br/>4. Emit Events"]
+    end
+
+    subgraph ReadSide["🔍 READ SIDE (Queries)"]
+        QRY1["GetGraphDataQuery"]
+        QRY2["GetNodeByIdQuery"]
+        QRY3["GetSemanticAnalysisQuery"]
+        QRY4["GetPhysicsStateQuery"]
+
+        QRYH["Query Handlers<br/>━━━━━━━━━━━<br/>1. Read from Repository<br/>2. Apply Filters<br/>3. Return DTOs"]
+    end
+
+    subgraph Domain["🎯 Domain Layer"]
+        REPO["GraphRepository Port<br/>━━━━━━━━━━━<br/>• get_graph<br/>• add_node<br/>• update_node_position<br/>• batch_update_positions"]
+
+        EVENTS["Event Bus<br/>━━━━━━━━━━━<br/>• publish<br/>• subscribe"]
+    end
+
+    subgraph Infrastructure["🔧 Infrastructure Layer"]
+        SQLITE["SqliteGraphRepository<br/>(Adapter)"]
+        EVENTSTORE["InMemoryEventBus<br/>(Adapter)"]
+
+        SUBSCRIBERS["Event Subscribers<br/>━━━━━━━━━━━<br/>• WebSocket Broadcaster<br/>• Cache Invalidator<br/>• Metrics Tracker"]
+    end
+
+    USER --> API
+    API --> CMD1 & CMD2 & CMD3 & CMD4
+    API --> QRY1 & QRY2 & QRY3 & QRY4
+
+    CMD1 & CMD2 & CMD3 & CMD4 --> CMDH
+    QRY1 & QRY2 & QRY3 & QRY4 --> QRYH
+
+    CMDH --> REPO
+    CMDH --> EVENTS
+    QRYH --> REPO
+
+    REPO --> SQLITE
+    EVENTS --> EVENTSTORE
+    EVENTSTORE --> SUBSCRIBERS
+
+    SUBSCRIBERS --> WS
+
+    classDef clientLayer fill:#e3f2fd,stroke:#0277bd,stroke-width:2px
+    classDef writeLayer fill:#fff3e0,stroke:#e65100,stroke-width:3px
+    classDef readLayer fill:#e8f5e9,stroke:#2e7d32,stroke-width:3px
+    classDef domainLayer fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    classDef infraLayer fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+
+    class USER,API,WS clientLayer
+    class CMD1,CMD2,CMD3,CMD4,CMDH writeLayer
+    class QRY1,QRY2,QRY3,QRY4,QRYH readLayer
+    class REPO,EVENTS domainLayer
+    class SQLITE,EVENTSTORE,SUBSCRIBERS infraLayer
+```
 
 ### Command Side (Write Operations)
 
@@ -247,6 +425,110 @@ impl GetGraphDataQueryHandler {
 ---
 
 ## Event Sourcing Architecture
+
+### Event Sourcing Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant API as API Handler
+    participant CMD as Command Handler
+    participant REPO as Graph Repository
+    participant BUS as Event Bus
+    participant STORE as Event Store
+    participant SUB1 as WebSocket Subscriber
+    participant SUB2 as Cache Invalidator
+    participant SUB3 as Metrics Tracker
+
+    User->>API: POST /api/graph/nodes<br/>{id: 1, label: "Node"}
+    API->>CMD: CreateNodeCommand
+
+    activate CMD
+    CMD->>CMD: 1. Validate command
+    CMD->>REPO: 2. add_node(node)
+    REPO-->>CMD: ✓ Persisted to SQLite
+
+    CMD->>BUS: 3. publish(NodeCreatedEvent)
+    deactivate CMD
+
+    activate BUS
+    BUS->>STORE: append_event(event)
+    STORE-->>BUS: ✓ Event stored
+
+    par Parallel Event Handling
+        BUS->>SUB1: handle(NodeCreatedEvent)
+        activate SUB1
+        SUB1->>SUB1: Broadcast to WebSocket clients
+        SUB1-->>BUS: ✓ Broadcasted
+        deactivate SUB1
+    and
+        BUS->>SUB2: handle(NodeCreatedEvent)
+        activate SUB2
+        SUB2->>SUB2: Invalidate graph cache
+        SUB2-->>BUS: ✓ Cache cleared
+        deactivate SUB2
+    and
+        BUS->>SUB3: handle(NodeCreatedEvent)
+        activate SUB3
+        SUB3->>SUB3: Track performance metrics
+        SUB3-->>BUS: ✓ Metrics recorded
+        deactivate SUB3
+    end
+    deactivate BUS
+
+    API-->>User: 200 OK<br/>{success: true}
+
+    Note over SUB1,User: WebSocket clients receive<br/>real-time update
+```
+
+### GitHub Sync Event Flow (Bug Fix)
+
+```mermaid
+sequenceDiagram
+    participant GH as GitHub API
+    participant SYNC as GitHub Sync Service
+    participant REPO as Graph Repository
+    participant BUS as Event Bus
+    participant CACHE as Cache Invalidator
+    participant WS as WebSocket Subscriber
+    participant CLIENT as API Client
+
+    GH->>SYNC: Fetch markdown files
+    SYNC->>SYNC: Parse 316 nodes + edges
+    SYNC->>REPO: save_graph(GraphData)
+    activate REPO
+    REPO->>REPO: Write to SQLite<br/>knowledge_graph.db
+    REPO-->>SYNC: ✓ 316 nodes saved
+    deactivate REPO
+
+    Note over SYNC: ⭐ THIS IS THE FIX!
+    SYNC->>BUS: publish(GitHubSyncCompletedEvent)
+
+    activate BUS
+    par Event Subscribers
+        BUS->>CACHE: handle(GitHubSyncCompletedEvent)
+        activate CACHE
+        CACHE->>CACHE: invalidate_all()
+        Note over CACHE: Clear ALL caches<br/>(old 63 nodes gone!)
+        CACHE-->>BUS: ✓ Cache cleared
+        deactivate CACHE
+    and
+        BUS->>WS: handle(GitHubSyncCompletedEvent)
+        activate WS
+        WS->>WS: broadcast({<br/>  type: "graphReloaded",<br/>  totalNodes: 316<br/>})
+        WS-->>BUS: ✓ Broadcasted
+        deactivate WS
+    end
+    deactivate BUS
+
+    CLIENT->>REPO: GET /api/graph/data
+    activate REPO
+    Note over REPO: Read from SQLite<br/>(cache was invalidated!)
+    REPO-->>CLIENT: ✅ 316 nodes (fresh data!)
+    deactivate REPO
+
+    Note over CLIENT: BUG FIXED!<br/>Shows 316 nodes instead of 63
+```
 
 ### Domain Events
 ```rust
@@ -701,24 +983,46 @@ pub async fn sync_graphs(&self) -> Result<SyncStatistics, String> {
 ```
 
 ### Event Flow After Fix
-```
-GitHub Sync Completes
-         │
-         ▼
-  Emit GitHubSyncCompletedEvent
-         │
-         ├─────────────────┬─────────────────┐
-         ▼                 ▼                 ▼
- Cache Invalidation   WebSocket Notify   Logging
-   Subscriber         Subscriber         Subscriber
-         │                 │                 │
-         ▼                 ▼                 ▼
-  Clear all caches    Broadcast to     Log sync stats
-                      all clients
-         │                 │
-         ▼                 ▼
-  Next API call      Clients reload
-  reads fresh data   and see 316 nodes! ✅
+
+```mermaid
+graph TB
+    START["🔄 GitHub Sync Completes"]
+    EVENT["📡 Emit GitHubSyncCompletedEvent"]
+
+    CACHE_SUB["🗄️ Cache Invalidation<br/>Subscriber"]
+    WS_SUB["🌐 WebSocket Notify<br/>Subscriber"]
+    LOG_SUB["📝 Logging<br/>Subscriber"]
+
+    CACHE_ACTION["Clear all caches"]
+    WS_ACTION["Broadcast to<br/>all clients"]
+    LOG_ACTION["Log sync stats"]
+
+    API_RESULT["📊 Next API call<br/>reads fresh data"]
+    CLIENT_RESULT["✅ Clients reload<br/>and see 316 nodes!"]
+
+    START --> EVENT
+    EVENT --> CACHE_SUB
+    EVENT --> WS_SUB
+    EVENT --> LOG_SUB
+
+    CACHE_SUB --> CACHE_ACTION
+    WS_SUB --> WS_ACTION
+    LOG_SUB --> LOG_ACTION
+
+    CACHE_ACTION --> API_RESULT
+    WS_ACTION --> CLIENT_RESULT
+
+    classDef startNode fill:#c8e6c9,stroke:#2e7d32,stroke-width:3px
+    classDef eventNode fill:#fff59d,stroke:#f57f17,stroke-width:3px
+    classDef subscriberNode fill:#bbdefb,stroke:#1565c0,stroke-width:2px
+    classDef actionNode fill:#f8bbd0,stroke:#c2185b,stroke-width:2px
+    classDef resultNode fill:#a5d6a7,stroke:#388e3c,stroke-width:3px
+
+    class START startNode
+    class EVENT eventNode
+    class CACHE_SUB,WS_SUB,LOG_SUB subscriberNode
+    class CACHE_ACTION,WS_ACTION,LOG_ACTION actionNode
+    class API_RESULT,CLIENT_RESULT resultNode
 ```
 
 ---
@@ -726,45 +1030,156 @@ GitHub Sync Completes
 ## Real-Time Updates Flow
 
 ### Physics Simulation Example
-```
-User starts physics simulation
-         │
-         ▼
-  TriggerPhysicsStepCommand
-         │
-         ▼
-  PhysicsCommandHandler
-         │
-         ├─> PhysicsSimulator.simulate_step()
-         │        │
-         │        ▼
-         │   Compute new positions (GPU)
-         │        │
-         │        ▼
-         ├─> GraphRepository.batch_update_positions()
-         │        │
-         │        ▼
-         │   Write to SQLite
-         │
-         ▼
-  Emit PhysicsStepCompletedEvent
-         │
-         ├─────────────────┬─────────────────┐
-         ▼                 ▼                 ▼
- WebSocket Subscriber  Cache Invalidation  Metrics
-         │                 │                 │
-         ▼                 ▼                 ▼
-  Broadcast positions Clear cache      Track performance
-  to all clients
-         │
-         ▼
-  Clients see smooth
-  real-time animation ✅
+
+```mermaid
+graph TB
+    USER["👤 User starts physics simulation"]
+    CMD["📝 TriggerPhysicsStepCommand"]
+    HANDLER["⚙️ PhysicsCommandHandler"]
+
+    SIM["🖥️ PhysicsSimulator.simulate_step"]
+    GPU["⚡ Compute new positions<br/>(GPU)"]
+    REPO["💾 GraphRepository.batch_update_positions"]
+    DB["📊 Write to SQLite"]
+
+    EVENT["📡 Emit PhysicsStepCompletedEvent"]
+
+    WS_SUB["🌐 WebSocket Subscriber"]
+    CACHE_SUB["🗄️ Cache Invalidation"]
+    METRICS_SUB["📈 Metrics"]
+
+    WS_ACTION["Broadcast positions<br/>to all clients"]
+    CACHE_ACTION["Clear cache"]
+    METRICS_ACTION["Track performance"]
+
+    RESULT["✅ Clients see smooth<br/>real-time animation"]
+
+    USER --> CMD --> HANDLER
+    HANDLER --> SIM
+    SIM --> GPU
+    GPU --> REPO
+    REPO --> DB
+    HANDLER --> EVENT
+
+    EVENT --> WS_SUB
+    EVENT --> CACHE_SUB
+    EVENT --> METRICS_SUB
+
+    WS_SUB --> WS_ACTION
+    CACHE_SUB --> CACHE_ACTION
+    METRICS_SUB --> METRICS_ACTION
+
+    WS_ACTION --> RESULT
+
+    classDef userNode fill:#e1bee7,stroke:#6a1b9a,stroke-width:3px
+    classDef commandNode fill:#fff59d,stroke:#f57f17,stroke-width:2px
+    classDef handlerNode fill:#b39ddb,stroke:#512da8,stroke-width:2px
+    classDef processNode fill:#90caf9,stroke:#1565c0,stroke-width:2px
+    classDef eventNode fill:#ffcc80,stroke:#e65100,stroke-width:3px
+    classDef subscriberNode fill:#a5d6a7,stroke:#2e7d32,stroke-width:2px
+    classDef actionNode fill:#f8bbd0,stroke:#c2185b,stroke-width:2px
+    classDef resultNode fill:#c5e1a5,stroke:#558b2f,stroke-width:3px
+
+    class USER userNode
+    class CMD commandNode
+    class HANDLER handlerNode
+    class SIM,GPU,REPO,DB processNode
+    class EVENT eventNode
+    class WS_SUB,CACHE_SUB,METRICS_SUB subscriberNode
+    class WS_ACTION,CACHE_ACTION,METRICS_ACTION actionNode
+    class RESULT resultNode
 ```
 
 ---
 
 ## Migration Strategy
+
+### Migration Phases Overview
+
+```mermaid
+gantt
+    title Hexagonal/CQRS Migration Timeline
+    dateFormat YYYY-MM-DD
+    section Phase 1: Reads
+    Create Query DTOs           :p1a, 2025-10-27, 2d
+    Implement Query Handlers    :p1b, after p1a, 3d
+    Update API Handlers         :p1c, after p1b, 2d
+    Parallel Testing            :p1d, after p1c, 2d
+    section Phase 2: Writes
+    Implement Event Bus         :p2a, after p1d, 3d
+    Create Command DTOs         :p2b, after p2a, 2d
+    Implement Command Handlers  :p2c, after p2b, 4d
+    WebSocket Event Subscribers :p2d, after p2c, 3d
+    section Phase 3: Real-Time
+    Physics Service Events      :p3a, after p2d, 4d
+    GitHub Sync Events          :p3b, after p3a, 3d
+    Cache Invalidation          :p3c, after p3b, 3d
+    Verify Bug Fix (316 nodes)  :p3d, after p3c, 2d
+    section Phase 4: Cleanup
+    Remove GraphServiceActor    :p4a, after p3d, 3d
+    Update Documentation        :p4b, after p4a, 2d
+    Final Testing               :p4c, after p4b, 2d
+```
+
+### Migration Phases Detail
+
+```mermaid
+graph TB
+    subgraph Phase1["🟢 Phase 1: Read Operations (1 week, LOW RISK)"]
+        P1_1["Create query DTOs<br/>and handlers"]
+        P1_2["Implement<br/>GetGraphDataQueryHandler"]
+        P1_3["Update API handlers<br/>to use queries"]
+        P1_4["Keep actor running<br/>in parallel"]
+        P1_5["Monitor for<br/>differences"]
+        P1_6["✅ Success: All GET<br/>endpoints use CQRS"]
+
+        P1_1 --> P1_2 --> P1_3 --> P1_4 --> P1_5 --> P1_6
+    end
+
+    subgraph Phase2["🟡 Phase 2: Write Operations (2 weeks, MEDIUM RISK)"]
+        P2_1["Implement<br/>event bus"]
+        P2_2["Create command DTOs<br/>and handlers"]
+        P2_3["Emit events after<br/>command execution"]
+        P2_4["Subscribe WebSocket<br/>adapter to events"]
+        P2_5["Update API handlers<br/>to use commands"]
+        P2_6["✅ Success: All POST/PUT/DELETE<br/>use CQRS + Events"]
+
+        P2_1 --> P2_2 --> P2_3 --> P2_4 --> P2_5 --> P2_6
+    end
+
+    subgraph Phase3["🟠 Phase 3: Real-Time Features (2 weeks, HIGH RISK)"]
+        P3_1["Implement Physics<br/>domain service"]
+        P3_2["Update GitHub sync<br/>to emit events"]
+        P3_3["Implement cache<br/>invalidation subscriber"]
+        P3_4["Test cache<br/>invalidation"]
+        P3_5["🎯 Verify 316 nodes<br/>after sync (BUG FIXED!)"]
+        P3_6["✅ Success: Real-time<br/>updates work"]
+
+        P3_1 --> P3_2 --> P3_3 --> P3_4 --> P3_5 --> P3_6
+    end
+
+    subgraph Phase4["🔵 Phase 4: Legacy Removal (1 week, LOW RISK)"]
+        P4_1["Delete<br/>GraphServiceActor"]
+        P4_2["Remove actor<br/>message types"]
+        P4_3["Update<br/>documentation"]
+        P4_4["Final testing"]
+        P4_5["🎉 Success: Clean<br/>architecture achieved"]
+
+        P4_1 --> P4_2 --> P4_3 --> P4_4 --> P4_5
+    end
+
+    Phase1 --> Phase2 --> Phase3 --> Phase4
+
+    classDef phase1 fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
+    classDef phase2 fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    classDef phase3 fill:#ffccbc,stroke:#d84315,stroke-width:2px
+    classDef phase4 fill:#bbdefb,stroke:#1565c0,stroke-width:2px
+
+    class P1_1,P1_2,P1_3,P1_4,P1_5,P1_6 phase1
+    class P2_1,P2_2,P2_3,P2_4,P2_5,P2_6 phase2
+    class P3_1,P3_2,P3_3,P3_4,P3_5,P3_6 phase3
+    class P4_1,P4_2,P4_3,P4_4,P4_5 phase4
+```
 
 ### Phase 1: Read Operations (SAFEST - Start Here)
 **Goal**: Move queries from actor to CQRS handlers
@@ -1081,6 +1496,68 @@ impl GitHubSyncService {
 
 ## Directory Structure
 
+### Hexagonal Architecture Layers
+
+```mermaid
+graph TB
+    subgraph Presentation["🌐 Presentation Layer (HTTP/WebSocket)"]
+        H1["handlers/api_handler/<br/>graph_data.rs<br/>nodes.rs<br/>physics.rs"]
+    end
+
+    subgraph Application["⚡ Application Layer (CQRS)"]
+        APP1["application/graph/<br/>• commands.rs<br/>• command_handlers.rs<br/>• queries.rs<br/>• query_handlers.rs"]
+
+        APP2["application/physics/<br/>• commands.rs<br/>• queries.rs"]
+    end
+
+    subgraph Domain["🎯 Domain Layer (Business Logic)"]
+        DOM1["domain/<br/>• events.rs<br/>• models.rs"]
+
+        DOM2["domain/services/<br/>• physics_service.rs<br/>• semantic_service.rs"]
+    end
+
+    subgraph Ports["🔌 Ports (Interfaces)"]
+        PORT1["ports/<br/>• graph_repository.rs<br/>• event_store.rs<br/>• websocket_gateway.rs<br/>• physics_simulator.rs"]
+    end
+
+    subgraph Adapters["🔧 Adapters (Implementations)"]
+        ADAPT1["adapters/<br/>• sqlite_graph_repository.rs<br/>• actix_websocket_adapter.rs<br/>• inmemory_event_store.rs<br/>• gpu_physics_adapter.rs"]
+    end
+
+    subgraph Infrastructure["🏗️ Infrastructure (Cross-Cutting)"]
+        INFRA1["infrastructure/<br/>• event_bus.rs<br/>• cache_service.rs<br/>• websocket_event_subscriber.rs<br/>• cache_invalidation_subscriber.rs"]
+    end
+
+    subgraph Legacy["❌ Legacy (DELETE IN PHASE 4)"]
+        LEG1["actors/<br/>• graph_actor.rs (48K tokens!)<br/>• graph_messages.rs"]
+    end
+
+    H1 --> APP1 & APP2
+    APP1 & APP2 --> DOM1 & DOM2
+    APP1 & APP2 --> PORT1
+    DOM1 & DOM2 --> PORT1
+    PORT1 --> ADAPT1
+    ADAPT1 --> INFRA1
+
+    classDef presentationLayer fill:#e1f5ff,stroke:#01579b,stroke-width:3px
+    classDef applicationLayer fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef domainLayer fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    classDef portsLayer fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    classDef adaptersLayer fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    classDef infraLayer fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    classDef legacyLayer fill:#ffcdd2,stroke:#c62828,stroke-width:3px,stroke-dasharray: 5 5
+
+    class H1 presentationLayer
+    class APP1,APP2 applicationLayer
+    class DOM1,DOM2 domainLayer
+    class PORT1 portsLayer
+    class ADAPT1 adaptersLayer
+    class INFRA1 infraLayer
+    class LEG1 legacyLayer
+```
+
+### File Structure Detail
+
 ```
 src/
 ├── application/              # Application layer (CQRS)
@@ -1293,12 +1770,123 @@ async fn test_github_sync_emits_event() {
 
 ## Conclusion
 
+### Architecture Benefits Summary
+
+```mermaid
+mindmap
+  root((Hexagonal/CQRS<br/>Architecture))
+    Separation of Concerns
+      Commands vs Queries
+      Write vs Read
+      Domain vs Infrastructure
+      Ports vs Adapters
+    Testability
+      Pure functions
+      No actors needed
+      Mock repositories
+      Isolated unit tests
+    Scalability
+      Event-driven
+      Horizontal scaling
+      Event replay
+      CQRS read replicas
+    Maintainability
+      Small focused modules
+      Clear boundaries
+      Self-documenting
+      48K → modular files
+    Bug Fix
+      Cache invalidation
+      Event sourcing
+      316 nodes ✅
+      Real-time updates
+    Performance
+      Optimized queries
+      Batch operations
+      GPU physics
+      WebSocket efficiency
+```
+
+### Success Verification Checklist
+
+```mermaid
+graph TB
+    subgraph Phase1Check["✅ Phase 1: Read Operations"]
+        P1C1["☐ All GET endpoints use query handlers"]
+        P1C2["☐ Query latency <50ms (p95)"]
+        P1C3["☐ Test coverage >80%"]
+        P1C4["☐ Zero performance regression"]
+        P1C5["☐ Documentation updated"]
+    end
+
+    subgraph Phase2Check["✅ Phase 2: Write Operations"]
+        P2C1["☐ All POST/PUT/DELETE use command handlers"]
+        P2C2["☐ Events emitted for all state changes"]
+        P2C3["☐ WebSocket clients receive updates"]
+        P2C4["☐ Command latency <100ms (p95)"]
+        P2C5["☐ Zero data loss"]
+    end
+
+    subgraph Phase3Check["✅ Phase 3: Real-Time Features"]
+        P3C1["☐ Physics simulation works via events"]
+        P3C2["☐ GitHub sync triggers cache invalidation"]
+        P3C3["☐ API returns 316 nodes after sync"]
+        P3C4["☐ Real-time updates work smoothly"]
+        P3C5["☐ Event dispatch latency <10ms"]
+    end
+
+    subgraph Phase4Check["✅ Phase 4: Legacy Removal"]
+        P4C1["☐ GraphServiceActor deleted"]
+        P4C2["☐ Zero actor references in codebase"]
+        P4C3["☐ All tests passing"]
+        P4C4["☐ Documentation complete"]
+        P4C5["☐ Team trained on new architecture"]
+    end
+
+    Phase1Check --> Phase2Check --> Phase3Check --> Phase4Check
+
+    FINAL["🎉 MIGRATION COMPLETE!<br/>━━━━━━━━━━━<br/>• Clean hexagonal architecture<br/>• CQRS + Event Sourcing<br/>• Bug fixed (316 nodes)<br/>• Maintainable codebase<br/>• Scalable system"]
+
+    Phase4Check --> FINAL
+
+    classDef checklistStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    classDef finalStyle fill:#c8e6c9,stroke:#1b5e20,stroke-width:3px
+
+    class P1C1,P1C2,P1C3,P1C4,P1C5,P2C1,P2C2,P2C3,P2C4,P2C5,P3C1,P3C2,P3C3,P3C4,P3C5,P4C1,P4C2,P4C3,P4C4,P4C5 checklistStyle
+    class FINAL finalStyle
+```
+
+### Final Architecture Summary
+
 This hexagonal/CQRS architecture provides:
+
+**🎯 Core Benefits**:
 - **Separation of Concerns**: Clear boundaries between layers
 - **Testability**: Easy to unit test without actors
 - **Scalability**: Event-driven architecture scales horizontally
 - **Maintainability**: Small, focused components instead of 48K token monolith
 - **Bug Fix**: GitHub sync events trigger cache invalidation (316 nodes ✅)
+
+**📊 Performance Targets**:
+- Query latency: <50ms (p95)
+- Command latency: <100ms (p95)
+- Event dispatch: <10ms
+- WebSocket broadcast: <20ms
+- Test coverage: >80%
+
+**🏗️ Architecture Layers**:
+1. **Presentation**: HTTP/WebSocket handlers (thin)
+2. **Application**: CQRS commands/queries/handlers
+3. **Domain**: Business logic, events, services
+4. **Ports**: Repository/gateway interfaces
+5. **Adapters**: SQLite, WebSocket, event store implementations
+6. **Infrastructure**: Event bus, cache, cross-cutting concerns
+
+**🔄 Migration Path**:
+- **Phase 1** (1 week): Read operations → CQRS queries
+- **Phase 2** (2 weeks): Write operations → CQRS commands + events
+- **Phase 3** (2 weeks): Real-time features → event sourcing
+- **Phase 4** (1 week): Legacy removal → delete actor
 
 **Next Steps**:
 1. Review architecture with team
@@ -1310,4 +1898,15 @@ This hexagonal/CQRS architecture provides:
 
 **Architecture designed by**: Hive Mind Architecture Planner
 **Date**: 2025-10-26
+**Status**: Ready for Implementation
 **Queen's Approval**: Pending review 👑
+
+**Document contains**: 8 comprehensive Mermaid diagrams covering:
+- ✅ Hexagonal architecture layers (with ports & adapters)
+- ✅ CQRS data flow (command/query separation)
+- ✅ Event sourcing patterns (with sequence diagrams)
+- ✅ GitHub sync bug fix flow (316 nodes solution)
+- ✅ Physics simulation real-time updates
+- ✅ Migration phases timeline (Gantt chart)
+- ✅ Before/After architecture comparison
+- ✅ Success verification checklist

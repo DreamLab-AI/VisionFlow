@@ -123,31 +123,48 @@ CREATE TABLE inference_results (
 
 ### Architecture Diagram
 
-```
-┌──────────────────────────────────────────────┐
-│        Application Core (Domain Logic)        │
-│  • Directives (Commands)                      │
-│  • Queries (Read Operations)                  │
-│  • CQRS Handlers                              │
-└──────────┬──────────────────────────┬────────┘
-           │                          │
-           V                          V
-    Port Layer (Interfaces)    Port Layer (Interfaces)
-    ┌────────────────────┐     ┌────────────────────┐
-    │ Settings Port      │     │ Knowledge Graph    │
-    │ (Abstract)         │     │ Port (Abstract)    │
-    └─────────┬──────────┘     └────────┬───────────┘
-              │                         │
-        ┌─────V─────┐         ┌─────────V───────┐
-        │ SQLite    │         │ SQLite Graph    │
-        │ Adapter   │         │ Adapter         │
-        │           │         │                 │
-        │ Concrete  │         │ Concrete        │
-        │ Impl      │         │ Impl            │
-        └───────────┘         └─────────────────┘
-              │                         │
-              V                         V
-         settings.db            knowledge_graph.db
+```mermaid
+graph TB
+    subgraph Core["Application Core (Domain Logic)"]
+        Directives["Directives<br/>(Commands)"]
+        Queries["Queries<br/>(Read Operations)"]
+        CQRS["CQRS Handlers"]
+    end
+
+    subgraph Ports["Port Layer (Interfaces)"]
+        SettingsPort["Settings Port<br/>(Abstract)"]
+        GraphPort["Knowledge Graph Port<br/>(Abstract)"]
+    end
+
+    subgraph Adapters["Adapter Layer (Concrete)"]
+        SettingsAdapter["SQLite Settings<br/>Adapter"]
+        GraphAdapter["SQLite Graph<br/>Adapter"]
+    end
+
+    subgraph Storage["Storage Layer"]
+        SettingsDB[("settings.db")]
+        GraphDB[("knowledge_graph.db")]
+    end
+
+    Directives --> SettingsPort
+    Directives --> GraphPort
+    Queries --> SettingsPort
+    Queries --> GraphPort
+    CQRS --> SettingsPort
+    CQRS --> GraphPort
+
+    SettingsPort --> SettingsAdapter
+    GraphPort --> GraphAdapter
+
+    SettingsAdapter --> SettingsDB
+    GraphAdapter --> GraphDB
+
+    style Core fill:#e1f5ff
+    style Ports fill:#fff4e1
+    style Adapters fill:#f0f0ff
+    style Storage fill:#e1ffe1
+    style SettingsDB fill:#ccffcc
+    style GraphDB fill:#ccffcc
 ```
 
 ### Settings Port
@@ -426,20 +443,20 @@ pub struct Graph {
 
 ### 36-Byte Node Update Format
 
-```
-Offset | Size | Type  | Field         | Description
--------|------|-------|---------------|----------------------------------
-0      | 1    | u8    | msg_type      | 0x01 = NodeUpdate
-1      | 4    | u32   | node_id       | Node identifier
-5      | 4    | f32   | position_x    | X coordinate
-9      | 4    | f32   | position_y    | Y coordinate
-13     | 4    | f32   | position_z    | Z coordinate
-17     | 4    | f32   | velocity_x    | X velocity
-21     | 4    | f32   | velocity_y    | Y velocity
-25     | 4    | f32   | velocity_z    | Z velocity
-29     | 4    | u32   | color_rgba    | Packed RGBA
-33     | 3    | u8[3] | flags         | State flags
-```
+**Binary Wire Format:**
+
+| Offset | Size | Type | Field | Description |
+|--------|------|------|-------|-------------|
+| 0 | 1 | u8 | msg_type | 0x01 = NodeUpdate |
+| 1 | 4 | u32 | node_id | Node identifier |
+| 5 | 4 | f32 | position_x | X coordinate |
+| 9 | 4 | f32 | position_y | Y coordinate |
+| 13 | 4 | f32 | position_z | Z coordinate |
+| 17 | 4 | f32 | velocity_x | X velocity |
+| 21 | 4 | f32 | velocity_y | Y velocity |
+| 25 | 4 | f32 | velocity_z | Z velocity |
+| 29 | 4 | u32 | color_rgba | Packed RGBA |
+| 33 | 3 | u8[3] | flags | State flags |
 
 ### Client-Side Parsing (TypeScript)
 

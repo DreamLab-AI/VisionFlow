@@ -118,6 +118,34 @@ This document provides a complete architectural blueprint for migrating the Visi
 
 ## Implementation Roadmap
 
+```mermaid
+gantt
+    title Hexagonal Architecture Migration Timeline
+    dateFormat YYYY-MM-DD
+    section Foundation
+    Database Setup           :2025-11-01, 7d
+    Port Definitions         :2025-11-01, 7d
+    Migration Scripts        :2025-11-08, 7d
+    section Adapters
+    Repository Adapters      :2025-11-15, 7d
+    Actor Adapters          :2025-11-22, 7d
+    Integration Tests       :2025-11-29, 7d
+    section CQRS Layer
+    Settings Domain         :2025-12-06, 7d
+    Graph Domain           :2025-12-13, 7d
+    Ontology Domain        :2025-12-20, 7d
+    section Integration
+    HTTP Handlers          :2026-01-03, 7d
+    WebSocket Updates      :2026-01-10, 7d
+    End-to-End Tests       :2026-01-17, 7d
+    section Actors
+    Actor Integration      :2026-01-24, 14d
+    section Cleanup
+    Legacy Removal         :2026-02-07, 14d
+    section Inference
+    Whelk Integration      :2026-02-21, 14d
+```
+
 ### Phase 1: Foundation (Week 1-2)
 
 **Goal**: Set up database infrastructure and port definitions.

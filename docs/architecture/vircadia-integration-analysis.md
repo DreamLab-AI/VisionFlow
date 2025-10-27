@@ -192,10 +192,32 @@ const { client, isConnected } = useVircadia();
 
 ### Gap 1: Missing Link to Bots System
 
-**Current State:**
-- **Bots System:** Uses REST polling + WebSocket binary protocol
-- **Vircadia System:** Separate entity sync with its own protocol
-- **Issue:** Agent positions exist in both systems independently
+```mermaid
+graph TB
+    subgraph "Bots System"
+        BotsREST[REST Polling]
+        BotsWS[WebSocket Binary]
+        BotsData[(Agent Positions)]
+    end
+
+    subgraph "Vircadia System"
+        VircEntity[Entity Sync]
+        VircProtocol[Vircadia Protocol]
+        VircData[(Entity Positions)]
+    end
+
+    BotsREST --> BotsData
+    BotsWS --> BotsData
+    VircEntity --> VircData
+    VircProtocol --> VircData
+
+    BotsData -.❌ Not Connected.-> VircData
+
+    style BotsData fill:#f96
+    style VircData fill:#f96
+```
+
+**Issue:** Agent positions exist in both systems independently
 
 **What's Missing:**
 ```typescript
@@ -215,10 +237,28 @@ class BotsVircadiaBridge {
 
 ### Gap 2: Missing Link to Graph System
 
-**Current State:**
-- **Graph System:** Renders knowledge graph with Three.js/Babylon.js
-- **Vircadia System:** Has CollaborativeGraphSync for multi-user interaction
-- **Issue:** No connection between graph nodes and Vircadia entities
+```mermaid
+graph TB
+    subgraph "Graph System"
+        GraphRender[Three.js/Babylon.js Renderer]
+        GraphNodes[(Graph Nodes)]
+    end
+
+    subgraph "Vircadia System"
+        CollabSync[CollaborativeGraphSync]
+        VircEntities[(Vircadia Entities)]
+    end
+
+    GraphRender --> GraphNodes
+    CollabSync --> VircEntities
+
+    GraphNodes -.❌ Not Connected.-> VircEntities
+
+    style GraphNodes fill:#f96
+    style VircEntities fill:#f96
+```
+
+**Issue:** No connection between graph nodes and Vircadia entities
 
 **What's Missing:**
 ```typescript
@@ -237,10 +277,31 @@ class GraphVircadiaBridge {
 
 ### Gap 3: Server Infrastructure Not Running
 
-**Current State:**
-- VisionFlow backend: Rust server on port 4000
-- Client expects: Vircadia World Server on port 3020
-- **Issue:** No Vircadia server running or configured
+```mermaid
+graph LR
+    subgraph "VisionFlow Backend"
+        RustServer[Rust Server<br/>Port 4000]
+    end
+
+    subgraph "Expected Vircadia"
+        WorldServer[Vircadia World Server<br/>Port 3020<br/>❌ NOT RUNNING]
+    end
+
+    subgraph "Required Infrastructure"
+        Docker[docker-compose.yml<br/>❌ MISSING]
+        Network[Network Bridge<br/>❌ MISSING]
+    end
+
+    RustServer -.❌ No Connection.-> WorldServer
+    WorldServer -.needs.-> Docker
+    RustServer -.needs.-> Network
+
+    style WorldServer fill:#f96
+    style Docker fill:#f96
+    style Network fill:#f96
+```
+
+**Issue:** No Vircadia server running or configured
 
 **What's Missing:**
 - Vircadia World Server deployment
