@@ -5,20 +5,20 @@ Welcome to the VisionFlow guides section. These practical, task-oriented guides 
 ## Quick Navigation
 
 ### 🚀 Getting Started
-- **[01. Deployment Guide](01-deployment.md)** - Deploy VisionFlow in various environments
-- **[02. Development Workflow](02-development-workflow.md)** - Best practices for developing with VisionFlow
+- **[Deployment Guide](deployment.md)** - Deploy VisionFlow in various environments
+- **[Development Workflow](development-workflow.md)** - Best practices for developing with VisionFlow
+- **[Configuration Guide](configuration.md)** - Configuration scenarios and use cases
 
-### 🛠️ Working with Tools
-- **[03. Using the GUI Sandbox](03-using-the-gui-sandbox.md)** - Leverage MCP tools and GUI applications
-- **[04. Orchestrating Agents](04-orchestrating-agents.md)** - Manage and coordinate AI agents
+### 🛠️ Working with Agents
+- **[Orchestrating Agents](orchestrating-agents.md)** - Manage and coordinate AI agents
+- **[Agent Control Panel](agent-orchestration.md)** - Agent control panel user guide
 
-### 🔧 Advanced Topics
-- **[05. Extending the System](05-extending-the-system.md)** - Add custom tools and capabilities
-- **[06. Troubleshooting](06-troubleshooting.md)** - Solve common issues and problems
+### 🔧 XR and Immersive
+- **[XR Setup](xr-setup.md)** - Extended reality setup and configuration
 
 ## Guide Overview
 
-### [Deployment Guide](01-deployment.md)
+### [Deployment Guide](deployment.md)
 Learn how to deploy VisionFlow in different environments:
 - Local development setup
 - Docker-based deployment
@@ -26,7 +26,7 @@ Learn how to deploy VisionFlow in different environments:
 - Cloud deployment strategies
 - Multi-agent container orchestration
 
-### [Development Workflow](02-development-workflow.md)
+### [Development Workflow](development-workflow.md)
 Master the development workflow:
 - Setting up your development environment
 - Code organization and best practices
@@ -34,15 +34,15 @@ Master the development workflow:
 - Debugging techniques
 - Contributing guidelines
 
-### [Using the GUI Sandbox](03-using-the-gui-sandbox.md)
-Explore the GUI sandbox capabilities:
-- MCP tool ecosystem
-- Blender integration for 3D modeling
-- QGIS for geospatial analysis
-- ImageMagick for image processing
-- PBR texture generation
+### [Configuration Guide](configuration.md)
+Configure VisionFlow for your needs:
+- Development setup
+- Production deployment
+- Performance tuning
+- Security hardening
+- AI service configuration
 
-### [Orchestrating Agents](04-orchestrating-agents.md)
+### [Orchestrating Agents](orchestrating-agents.md)
 Manage AI agent systems:
 - Agent architecture overview
 - Spawning and managing agents
@@ -50,21 +50,21 @@ Manage AI agent systems:
 - Task distribution strategies
 - Monitoring agent performance
 
-### [Extending the System](05-extending-the-system.md)
-Customize and extend VisionFlow:
-- Creating custom MCP tools
-- Adding new agent types
-- Integrating external services
-- Building plugins
-- API extensions
+### [Agent Control Panel](agent-orchestration.md)
+Use the agent control panel:
+- Agent spawner
+- Active agents monitor
+- Agent settings (20+ configuration options)
+- Agent telemetry stream
+- GOAP mode
 
-### [Troubleshooting](06-troubleshooting.md)
-Resolve common issues:
-- Installation problems
-- Network connectivity issues
-- Performance optimisation
-- GPU configuration
-- Agent coordination problems
+### [XR Setup](xr-setup.md)
+Set up extended reality environments:
+- Hardware and software requirements
+- Supported XR platforms
+- Spatial code visualization
+- Agent visualization in 3D
+- Interaction methods
 
 ## Prerequisites
 
@@ -77,11 +77,10 @@ Before starting with these guides, ensure you have:
 ## Getting Help
 
 If you encounter issues not covered in these guides:
-1. Check the [Troubleshooting Guide](06-troubleshooting.md)
-2. Review the [Reference Documentation](../reference/README.md)
-3. Search existing GitHub issues
-4. Join our community Discord
-5. Submit a new issue with detailed information
+1. Review the [Reference Documentation](../reference/README.md)
+2. Search existing GitHub issues
+3. Join our community Discord
+4. Submit a new issue with detailed information
 
 ## Contributing to Guides
 
@@ -95,4 +94,4 @@ See our [Contributing Guide](../contributing.md) for details.
 
 ---
 
-Ready to get started? Begin with the [Deployment Guide](01-deployment.md) →
+Ready to get started? Begin with the [Deployment Guide](deployment.md) →

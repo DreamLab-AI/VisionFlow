@@ -1090,10 +1090,9 @@ impl GPUProfiler {
 
 ### Related Documentation
 
-- [System Architecture Overview](../architecture/system-overview.md) - Overall system design
-- [System Overview Concept](./01-system-overview.md) - High-level architecture patterns
-- [Networking and Protocols](./04-networking.md) - Binary WebSocket protocol details
-- [Data Flow Patterns](./06-data-flow.md) - GPU data flow within the system
+- [System Architecture](./system-architecture.md) - Overall system design and high-level architecture patterns
+- [Networking and Protocols](./networking.md) - Binary WebSocket protocol details
+- [Data Flow Patterns](./data-flow.md) - GPU data flow within the system
 
 ### Reference Documentation
 
@@ -1103,9 +1102,9 @@ impl GPUProfiler {
 
 ### Architecture Details
 
-- [GPU Communication Flow](../architecture/gpu/communication-flow.md) - Actor message patterns
-- [GPU Optimisations](../architecture/gpu/optimizations.md) - GraphActor performance techniques
-- [GPU Stability](../architecture/gpu-stability.md) - Stability gates and error handling
+- [GPU Communication Flow](../reference/architecture/gpu/communication-flow.md) - Actor message patterns
+- [GPU Optimisations](../reference/architecture/gpu/optimizations.md) - GraphActor performance techniques
+- [GPU Stability](../reference/architecture/gpu-stability.md) - Stability gates and error handling
 
 ### External Resources
 

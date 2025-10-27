@@ -1207,25 +1207,25 @@ graph LR
 ## Related Articles
 
 ### Core Concepts
-- **[Agentic Workers](./02-agentic-workers.md)**: Multi-agent orchestration, MCP protocol, swarm coordination
-- **[GPU Compute](./03-gpu-compute.md)**: CUDA kernels, physics simulation, hybrid SSSP algorithm
-- **[Networking & Protocols](./04-networking.md)**: WebSocket infrastructure, binary protocols, real-time sync
-- **[Data Flow](./06-data-flow.md)**: Agent creation, task execution, visualisation updates
+- **[Agentic Workers](./agentic-workers.md)**: Multi-agent orchestration, MCP protocol, swarm coordination
+- **[GPU Compute](./gpu-compute.md)**: CUDA kernels, physics simulation, hybrid SSSP algorithm
+- **[Networking & Protocols](./networking.md)**: WebSocket infrastructure, binary protocols, real-time sync
+- **[Data Flow](./data-flow.md)**: Agent creation, task execution, visualisation updates
 
 ### Reference Documentation
-- **[Client Architecture](../architecture/core/client.md)**: Detailed React/TypeScript architecture (404 files)
+- **[Client Architecture](../reference/architecture/client.md)**: Detailed React/TypeScript architecture (404 files)
 - **[API Reference](../reference/api/rest-api.md)**: Complete REST API documentation
 - **[Binary Protocol Specification](../reference/api/binary-protocol.md)**: 34-byte wire format details
 - **[MCP Protocol](../reference/api/mcp-protocol.md)**: Agent communication protocol
 
 ### Integration Guides
-- **[Multi-Agent Docker](../reference/architecture/README.md)**: Docker environment setup
-- **[Hybrid Docker+MCP Architecture](../architecture/hybrid_docker_mcp_architecture.md)**: Task orchestration patterns
-- **[GPU Compute Setup](../guides/gpu-setup.md)**: CUDA environment configuration
+- **[Multi-Agent Docker](../getting-started/multi-agent-docker.md)**: Docker environment setup
+- **[Hybrid Docker+MCP Architecture](../reference/architecture/hybrid-docker-mcp.md)**: Task orchestration patterns
+- **[GPU Compute Setup](../getting-started/gpu-setup.md)**: CUDA environment configuration
 
 ### Architectural Decisions
-- **[ADR-001: Unified API Client](./decisions/adr-001-unified-api-client.md)**: API consolidation
-- **[ADR-003: Code Pruning](./decisions/adr-003-code-pruning-2025-10.md)**: Codebase optimisation
+- **[ADR-001: Unified API Client](../reference/decisions/adr-001-unified-api-client.md)**: API consolidation
+- **[ADR-003: Code Pruning](../reference/decisions/adr-003-code-pruning-2025-10.md)**: Codebase optimisation
 
 ---
 

@@ -762,7 +762,7 @@ agent_templates:
 ## Related Articles
 
 - [System Architecture](./system-architecture.md) - Overall VisionFlow system design
-- [GPU Compute](./03-gpu-compute.md) - GPU-accelerated graph processing
+- [GPU Compute](./gpu-compute.md) - GPU-accelerated graph processing
 - [Orchestrating Agents](../guides/orchestrating-agents.md) - Practical agent orchestration guide
 - [Agent Reference](../reference/agents/index.md) - Detailed agent API documentation
 - [Core Agents](../reference/agents/core/index.md) - Core agent type specifications

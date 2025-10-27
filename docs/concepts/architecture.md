@@ -320,11 +320,11 @@ This allows gradual migration from actor-based to CQRS-based architecture.
 
 ## Related Documentation
 
-- **[Hexagonal & CQRS Details](./reference/architecture/hexagonal-cqrs.md)** - Deep dive into ports, adapters, and CQRS patterns
-- **[Actor System Integration](./reference/architecture/actor-system.md)** - Legacy system compatibility
-- **[Database Schema](./reference/architecture/database-schema.md)** - Schema details and optimization
-- **[API Reference](./reference/api/)** - REST and WebSocket specifications
-- **[Developer Guides](./guides/developer/)** - How to implement features
+- **[Hexagonal & CQRS Details](../reference/architecture/hexagonal-cqrs.md)** - Deep dive into ports, adapters, and CQRS patterns
+- **[Actor System Integration](../reference/architecture/actor-system.md)** - Legacy system compatibility
+- **[Database Schema](../reference/architecture/database-schema.md)** - Schema details and optimization
+- **[API Reference](../reference/api/)** - REST and WebSocket specifications
+- **[Developer Guides](../guides/developer/)** - How to implement features
 
 ---
 

@@ -1046,11 +1046,9 @@ curl -f https://yourdomain.com/health
 ## Related Articles
 
 - [Configuration Reference](../reference/configuration.md) - Comprehensive environment variable and settings documentation
-- [Troubleshooting Guide](./06-troubleshooting.md) - Detailed problem-solving procedures
-- [Development Workflow](./02-development-workflow.md) - Development best practices and workflows
-- [System Architecture](../architecture/overview.md) - Technical architecture overview
-- [Voice API Reference](../reference/api/voice-api.md) - Voice system integration details
-- [Multi-Agent Docker](../multi-agent-docker/README.md) - MCP tools and agent orchestration
+- [Configuration Guide](./configuration.md) - Practical configuration scenarios
+- [Development Workflow](./development-workflow.md) - Development best practices and workflows
+- [Orchestrating Agents](./orchestrating-agents.md) - Multi-agent coordination guide
 
 ---
 

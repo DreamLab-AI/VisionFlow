@@ -6,9 +6,9 @@ tags: [xr, vr, ar, setup, immersive, spatial-computing]
 difficulty: intermediate
 last_updated: 2025-10-27
 related:
-  - /docs/guides/user/working-with-agents.md
-  - /docs/getting-started/README.md
-  - /docs/tutorials/xr-development.md
+  - ./working-with-agents.md
+  - ../index.md
+  - ../../reference/README.md
 ---
 
 # XR Setup Guide
@@ -631,15 +631,15 @@ TurboFlowXR.enableAIAssistant({
 
 After setting up XR:
 1. Practice basic gestures and navigation
-2. Try [Working with Agents in XR](/docs/guides/user/working-with-agents.md)
-3. Explore [XR Development Tutorial](/docs/tutorials/xr-development.md)
+2. Try [Working with Agents in XR](./working-with-agents.md)
+3. Review [Development Workflow](../development-workflow.md)
 4. Join XR development community
 
 ## Related Resources
 
-- [Working with Agents](/docs/guides/user/working-with-agents.md)
-- [Getting Started](/docs/getting-started/README.md)
-- [XR Development Tutorial](/docs/tutorials/xr-development.md)
+- [Working with Agents](./working-with-agents.md)
+- [Getting Started](../index.md)
+- [XR Setup Guide](../xr-setup.md)
 - WebXR Spec: https://www.w3.org/TR/webxr/
 - Three.js XR: https://threejs.org/docs/#manual/en/introduction/How-to-create-VR-content
 

@@ -6,9 +6,9 @@ tags: [agents, coordination, workflow, collaboration]
 difficulty: beginner
 last_updated: 2025-10-27
 related:
-  - /docs/guides/user/xr-setup.md
-  - /docs/getting-started/README.md
-  - /docs/tutorials/first-swarm.md
+  - ./xr-setup.md
+  - ../index.md
+  - ../../reference/README.md
 ---
 
 # Working with Agents
@@ -515,17 +515,17 @@ Task("Code Review Swarm",
 ## Next Steps
 
 After mastering basic agent coordination:
-1. Explore [XR Setup](/docs/guides/user/xr-setup.md) for immersive development
-2. Read [First Swarm Tutorial](/docs/tutorials/first-swarm.md)
-3. Learn advanced [SPARC Methodology](/docs/reference/sparc-methodology.md)
+1. Explore [XR Setup](./xr-setup.md) for immersive development
+2. Review [Development Workflow](../development-workflow.md)
+3. Check [Reference Documentation](../../reference/README.md)
 4. Join the community and share experiences
 
 ## Related Resources
 
-- [Getting Started](/docs/getting-started/README.md)
-- [XR Setup Guide](/docs/guides/user/xr-setup.md)
-- [First Swarm Tutorial](/docs/tutorials/first-swarm.md)
-- [SPARC Methodology](/docs/reference/sparc-methodology.md)
+- [Getting Started](../index.md)
+- [XR Setup Guide](./xr-setup.md)
+- [Development Workflow](../development-workflow.md)
+- [Reference Documentation](../../reference/README.md)
 
 ## Support
 

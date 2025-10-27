@@ -1,6 +1,6 @@
 # Installation Guide
 
-*[Getting-Started](../index.md)*
+*[Getting-Started](../README.md)*
 
 This comprehensive guide covers everything you need to install and configure VisionFlow, from basic setup to advanced GPU-accelerated deployments.
 
@@ -581,19 +581,19 @@ After installation, verify these components:
 
 Now that VisionFlow is installed, proceed to:
 
-1. **[Quick Start Guide](02-quick-start.md)** - Create your first graph in 5 minutes
-2. **[Configuration Guide](configuration.md)** - Customise VisionFlow for your needs
-3. **[API Documentation](../api/index.md)** - Integrate with your applications
-4. **[Architecture Overview](../architecture/system-overview.md)** - Understand the system design
+1. **[Quick Start Guide](02-first-graph-and-agents.md)** - Create your first graph in 5 minutes
+2. **[Configuration Guide](../reference/configuration.md)** - Customise VisionFlow for your needs
+3. **[API Documentation](../reference/api/README.md)** - Integrate with your applications
+4. **[Architecture Overview](../concepts/system-architecture.md)** - Understand the system design
 
 ## Getting Help
 
 If you encounter issues during installation:
 
-- **[Troubleshooting Guide](../troubleshooting.md)** - Common problems and solutions
+- **[Troubleshooting Guide](../guides/troubleshooting.md)** - Common problems and solutions
 - **[GitHub Issues](https://github.com/visionflow/visionflow/issues)** - Report bugs or request help
 - **[Discord Community](https://discord.gg/visionflow)** - Get real-time support
-- **[Documentation Hub](../index.md)** - Comprehensive documentation
+- **[Documentation Hub](../README.md)** - Comprehensive documentation
 
 ---
 
@@ -601,6 +601,6 @@ If you encounter issues during installation:
 
 ## Related Topics
 
-- [Configuration Guide](configuration.md)
-- [Getting Started with VisionFlow](00-index.md)
-- [Quick Start Guide](02-quick-start.md)
+- [Configuration Guide](../reference/configuration.md)
+- [Getting Started with VisionFlow](README.md)
+- [Quick Start Guide](02-first-graph-and-agents.md)

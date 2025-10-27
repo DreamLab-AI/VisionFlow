@@ -7,10 +7,10 @@ User and developer guides, tutorials, and how-to documentation.
 ## Available Guides
 
 ### Security
-- **[Security Best Practices](security.md)** - WebSocket authentication, rate limiting, Docker security
+*Coming soon* - Security best practices documentation
 
 ### System Monitoring
-- **[Telemetry and Logging](telemetry-logging.md)** - Component-based logging, performance monitoring, Docker volume integration
+*Coming soon* - Telemetry and logging documentation
 
 ## Guide Categories
 

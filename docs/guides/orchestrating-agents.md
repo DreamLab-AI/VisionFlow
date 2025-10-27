@@ -141,7 +141,7 @@ mcp__claude-flow__task_orchestrate \
   --priority=high
 ```
 
-See: [Hierarchical Coordinator Reference](../reference/agents/swarm/hierarchical-coordinator.md)
+See: Reference documentation for hierarchical coordination patterns
 
 #### 2. Researcher Agent
 
@@ -183,7 +183,7 @@ task = Task(
 result = await researcher.process_task(task)
 ```
 
-See: [Researcher Agent Reference](../reference/agents/core/researcher.md)
+See: Reference documentation for agent types and capabilities
 
 #### 3. Coder Agent
 
@@ -227,7 +227,7 @@ class CoderAgent {
 }
 ```
 
-See: [Coder Agent Reference](../reference/agents/core/coder.md)
+See: Reference documentation for coder agent capabilities
 
 #### 4. Architect Agent
 
@@ -259,7 +259,7 @@ mcp__claude-flow__task_orchestrate \
   --strategy=sequential
 ```
 
-See: [Architecture Agent Reference](../reference/agents/architecture/system-design/arch-system-design.md)
+See: Reference documentation for architecture agent capabilities
 
 #### 5. Tester Agent
 
@@ -307,7 +307,7 @@ class TesterAgent:
         )
 ```
 
-See: [Tester Agent Reference](../reference/agents/core/tester.md)
+See: Reference documentation for tester agent capabilities
 
 #### 6. Reviewer Agent
 
@@ -356,7 +356,7 @@ class ReviewerAgent:
         )
 ```
 
-See: [Reviewer Agent Reference](../reference/agents/core/reviewer.md)
+See: Reference documentation for reviewer agent capabilities
 
 ## Spawning and Managing Agents
 
@@ -773,7 +773,7 @@ mcp__claude-flow__swarm_monitor \
   --metrics="connectivity,latency,throughput"
 ```
 
-See: [Mesh Coordinator Reference](../reference/agents/swarm/mesh-coordinator.md)
+See: Reference documentation for mesh coordination patterns
 
 ### 3. Sequential (Pipeline) Topology
 
@@ -1318,7 +1318,7 @@ asyncio.run(main())
 }
 ```
 
-See: [MCP Protocol Reference](../reference/api/mcp-protocol.md)
+See: Reference documentation for MCP protocol details
 
 ## Multi-Agent Container Integration
 
@@ -1385,7 +1385,7 @@ await blender_client.execute_code(
 )
 ```
 
-See: [Multi-Agent Docker Documentation](../../multi-agent-docker/README.md)
+See: Multi-agent Docker documentation for container setup
 
 ## Inter-Agent Communication
 
@@ -2271,13 +2271,11 @@ async def batch_process_tasks(agent, tasks: list[Task]):
 
 ## Related Documentation
 
-- [Agent Reference Documentation](../reference/agents/README.md)
-- [Core Agents](../reference/agents/core/index.md)
-- [Swarm Coordinators](../reference/agents/swarm/index.md)
-- [MCP Protocol Reference](../reference/api/mcp-protocol.md)
-- [Multi-Agent Docker Setup](../../multi-agent-docker/README.md)
-- [Troubleshooting Guide](06-troubleshooting.md)
+- [Development Workflow](./development-workflow.md)
+- [Configuration Guide](./configuration.md)
+- [Agent Control Panel](./agent-orchestration.md)
+- [Reference Documentation](../reference/README.md)
 
 ---
 
-*[← Using the GUI Sandbox](03-using-the-gui-sandbox.md) | [Back to Guides](index.md) | [Extending the System →](05-extending-the-system.md)*
+*[Back to Guides](index.md) | [Development Workflow →](development-workflow.md)*

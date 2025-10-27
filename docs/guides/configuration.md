@@ -714,7 +714,5 @@ This guide covers the most common configuration scenarios for VisionFlow. For ad
 ## Related Topics
 
 - [Configuration Reference](../reference/configuration.md) - Comprehensive technical reference
-- [Installation Guide](../getting-started/installation.md) - Initial setup instructions  
-- [Deployment Guide](../deployment/index.md) - Production deployment strategies
-- [Troubleshooting](../troubleshooting/configuration.md) - Configuration problem solving
-- [Security Guide](../security/index.md) - Security best practices
+- [Deployment Guide](./deployment.md) - Production deployment strategies
+- [Development Workflow](./development-workflow.md) - Development best practices

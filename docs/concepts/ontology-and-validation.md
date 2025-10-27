@@ -415,20 +415,16 @@ Clients can subscribe to real-time validation events for immediate feedback duri
 
 For in-depth technical documentation and implementation details:
 
-- **[Ontology System Overview](../specialized/ontology/ontology-system-overview.md)** - Complete architecture diagrams, component descriptions, and data flow explanations
-- **[Ontology API Reference](../specialized/ontology/ontology-api-reference.md)** - Full REST and WebSocket API documentation with request/response examples
-- **[Ontology User Guide](../specialized/ontology/ontology-user-guide.md)** - Configuration guide, use case examples, and best practices
-- **[HornedOWL Integration](../specialized/ontology/hornedowl.md)** - Technical details of OWL processing library integration
-- **[Integration Summary](../specialized/ontology/ontology-integration-summary.md)** - Implementation status and deployment checklist
-
-**Note:** In Phase 5 of the documentation restructure, the specialised ontology documentation will be reorganised from `docs/specialized/ontology/` to `docs/reference/ontology/` for improved navigation and discoverability.
+- **[Ontology System Overview](../reference/ontology/system-overview.md)** - Complete architecture diagrams, component descriptions, and data flow explanations
+- **[Ontology API Reference](../reference/ontology/api-reference.md)** - Full REST and WebSocket API documentation with request/response examples
+- **[Ontology User Guide](../guides/ontology/user-guide.md)** - Configuration guide, use case examples, and best practices
+- **[HornedOWL Integration](../reference/ontology/hornedowl.md)** - Technical details of OWL processing library integration
+- **[Integration Summary](../reference/ontology/integration-summary.md)** - Implementation status and deployment checklist
 
 ## Related Concepts
 
-- [Semantic Analysis](./semantic-analysis.md) - Natural language processing and entity extraction
-- [Physics Engine](./physics-engine.md) - Force-directed graph layout and constraint systems
 - [GPU Compute](./gpu-compute.md) - Hardware-accelerated graph processing
-- [Actor System](./actor-system.md) - Asynchronous message-passing architecture
+- [System Architecture](./system-architecture.md) - Asynchronous message-passing architecture
 
 ---
 

@@ -1314,9 +1314,9 @@ The system's thoughtful design ensures data integrity whilst maintaining the per
 
 ## Related Documentation
 
-- [Networking and Protocols](./04-networking.md) - WebSocket infrastructure and binary protocols
-- [GPU Compute Architecture](./03-gpu-compute.md) - Physics engine and position updates
-- [Agentic Workers](./02-agentic-workers.md) - Agent system and task execution
-- [System Overview](./01-system-overview.md) - Complete architecture overview
+- [Networking and Protocols](./networking.md) - WebSocket infrastructure and binary protocols
+- [GPU Compute Architecture](./gpu-compute.md) - Physics engine and position updates
+- [Agentic Workers](./agentic-workers.md) - Agent system and task execution
+- [System Architecture](./system-architecture.md) - Complete architecture overview
 - [API Reference: Graph Types](../reference/api/graph.md) - Complete data structure specifications
 - [API Reference: WebSocket Messages](../reference/api/websocket.md) - Message type definitions

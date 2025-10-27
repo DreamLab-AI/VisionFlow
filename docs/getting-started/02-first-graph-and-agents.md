@@ -1,6 +1,6 @@
 # Your First Graph and AI Agents
 
-*[← Getting Started](../index.md) > [Installation](01-installation.md)*
+*[← Getting Started](../README.md) > [Installation](01-installation.md)*
 
 This guide takes you from a fresh installation to creating your first 3D knowledge graph and deploying multi-agent workflows in under 10 minutes.
 
@@ -374,12 +374,12 @@ See [XR Setup Guide](../guides/xr-setup.md) for detailed configuration.
 
 ### Intermediate Path
 1. 🔧 [Development Workflow](../guides/development-workflow.md) - Contribute to VisionFlow
-2. 🤖 [Agent Templates](../reference/agents/templates/index.md) - Create custom agents
+2. 🤖 [Agent Templates](../reference/agents/templates/README.md) - Create custom agents
 3. 🥽 [XR Integration](../guides/xr-setup.md) - Immersive VR experiences
 
 ### Advanced Path
 1. 🏗️ [System Architecture](../concepts/system-architecture.md) - Deep dive into design
-2. 💻 [API Reference](../reference/api/index.md) - Build integrations
+2. 💻 [API Reference](../reference/api/README.md) - Build integrations
 3. 🚀 [Deployment Guide](../guides/deployment.md) - Production setup
 
 ## Troubleshooting Quick Reference
@@ -443,10 +443,10 @@ bash scripts/voice_pipeline_test.sh
 
 ## Getting Help
 
-- **📚 [Full Documentation](../index.md)** - Comprehensive guides
+- **📚 [Full Documentation](../README.md)** - Comprehensive guides
 - **🐛 [Troubleshooting Guide](../guides/troubleshooting.md)** - Common issues
 - **💬 GitHub Discussions** - Community support *(Repository URL to be configured)*
-- **🔍 [API Reference](../reference/api/index.md)** - Technical details
+- **🔍 [API Reference](../reference/api/README.md)** - Technical details
 
 ---
 

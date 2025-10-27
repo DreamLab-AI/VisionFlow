@@ -9,13 +9,13 @@
 
 📊 STATISTICS:
   • Total markdown files: 252
-  • Total forward links: 5630
-  • Total backward links: 5582
+  • Total forward links: 5613
+  • Total backward links: 5577
   • Files with links: 179
-  • Files linked to: 527
+  • Files linked to: 520
 
 🔗 LINK VALIDATION RESULTS:
-  ❌ BROKEN LINKS (1979):
+  ❌ BROKEN LINKS (1950):
      • CONTRIBUTING_DOCS.md
        └─> ../../README.md (target not found: /home/devuser/workspace/README.md)
      • README.md
@@ -177,23 +177,11 @@
      • concepts/agentic-workers.md
        └─> ../../multi-agent-docker/README.md (target not found: /home/devuser/workspace/project/multi-agent-docker/README.md)
      • concepts/agentic-workers.md
-       └─> ./03-gpu-compute.md (target not found: concepts/03-gpu-compute.md)
-     • concepts/agentic-workers.md
        └─> ../index.md (target not found: index.md)
-     • concepts/architecture.md
-       └─> ./reference/architecture/actor-system.md (target not found: concepts/reference/architecture/actor-system.md)
-     • concepts/architecture.md
-       └─> ./reference/architecture/database-schema.md (target not found: concepts/reference/architecture/database-schema.md)
      • concepts/architecture.md
        └─> ./reference/architecture/hexagonal-cqrs.md (target not found: concepts/reference/architecture/hexagonal-cqrs.md)
      • concepts/data-flow.md
-       └─> ./01-system-overview.md (target not found: concepts/01-system-overview.md)
-     • concepts/data-flow.md
-       └─> ./02-agentic-workers.md (target not found: concepts/02-agentic-workers.md)
-     • concepts/data-flow.md
-       └─> ./03-gpu-compute.md (target not found: concepts/03-gpu-compute.md)
-     • concepts/data-flow.md
-       └─> ./04-networking.md (target not found: concepts/04-networking.md)
+       └─> ./networking.md (target not found: concepts/networking.md)
      • concepts/data-flow.md
        └─> ../index.md (target not found: index.md)
      • concepts/data-flow.md
@@ -215,13 +203,15 @@
      • concepts/decisions/adr-003-code-pruning-2025-10.md
        └─> ../../task-code-pruning.md (target not found: task-code-pruning.md)
      • concepts/gpu-compute.md
-       └─> ./01-system-overview.md (target not found: concepts/01-system-overview.md)
-     • concepts/gpu-compute.md
-       └─> ./04-networking.md (target not found: concepts/04-networking.md)
-     • concepts/gpu-compute.md
-       └─> ./06-data-flow.md (target not found: concepts/06-data-flow.md)
+       └─> ./networking.md (target not found: concepts/networking.md)
      • concepts/gpu-compute.md
        └─> ../index.md (target not found: index.md)
+     • concepts/gpu-compute.md
+       └─> ../reference/architecture/gpu-stability.md (target not found: reference/architecture/gpu-stability.md)
+     • concepts/gpu-compute.md
+       └─> ../reference/architecture/gpu/communication-flow.md (target not found: reference/architecture/gpu/communication-flow.md)
+     • concepts/gpu-compute.md
+       └─> ../reference/architecture/gpu/optimizations.md (target not found: reference/architecture/gpu/optimizations.md)
      • concepts/index.md
        └─> ../../multi-agent-docker/README.md (target not found: /home/devuser/workspace/project/multi-agent-docker/README.md)
      • concepts/index.md
@@ -243,29 +233,37 @@
      • concepts/networking-and-protocols.md
        └─> ../index.md (target not found: index.md)
      • concepts/ontology-and-validation.md
-       └─> ./actor-system.md (target not found: concepts/actor-system.md)
-     • concepts/ontology-and-validation.md
-       └─> ./physics-engine.md (target not found: concepts/physics-engine.md)
-     • concepts/ontology-and-validation.md
-       └─> ./semantic-analysis.md (target not found: concepts/semantic-analysis.md)
+       └─> ../guides/ontology/user-guide.md (target not found: guides/ontology/user-guide.md)
      • concepts/ontology-and-validation.md
        └─> ../index.md (target not found: index.md)
+     • concepts/ontology-and-validation.md
+       └─> ../reference/ontology/api-reference.md (target not found: reference/ontology/api-reference.md)
+     • concepts/ontology-and-validation.md
+       └─> ../reference/ontology/hornedowl.md (target not found: reference/ontology/hornedowl.md)
+     • concepts/ontology-and-validation.md
+       └─> ../reference/ontology/integration-summary.md (target not found: reference/ontology/integration-summary.md)
+     • concepts/ontology-and-validation.md
+       └─> ../reference/ontology/system-overview.md (target not found: reference/ontology/system-overview.md)
      • concepts/security-model.md
        └─> ../index.md (target not found: index.md)
      • concepts/system-architecture.md
        └─> ../architecture/hybrid_docker_mcp_architecture.md (target not found: architecture/hybrid_docker_mcp_architecture.md)
      • concepts/system-architecture.md
-       └─> ./02-agentic-workers.md (target not found: concepts/02-agentic-workers.md)
+       └─> ./networking.md (target not found: concepts/networking.md)
      • concepts/system-architecture.md
-       └─> ./03-gpu-compute.md (target not found: concepts/03-gpu-compute.md)
+       └─> ../getting-started/gpu-setup.md (target not found: getting-started/gpu-setup.md)
      • concepts/system-architecture.md
-       └─> ./04-networking.md (target not found: concepts/04-networking.md)
-     • concepts/system-architecture.md
-       └─> ./06-data-flow.md (target not found: concepts/06-data-flow.md)
-     • concepts/system-architecture.md
-       └─> ../guides/gpu-setup.md (target not found: guides/gpu-setup.md)
+       └─> ../getting-started/multi-agent-docker.md (target not found: getting-started/multi-agent-docker.md)
      • concepts/system-architecture.md
        └─> ../index.md (target not found: index.md)
+     • concepts/system-architecture.md
+       └─> ../reference/architecture/client.md (target not found: reference/architecture/client.md)
+     • concepts/system-architecture.md
+       └─> ../reference/architecture/hybrid-docker-mcp.md (target not found: reference/architecture/hybrid-docker-mcp.md)
+     • concepts/system-architecture.md
+       └─> ../reference/decisions/adr-001-unified-api-client.md (target not found: reference/decisions/adr-001-unified-api-client.md)
+     • concepts/system-architecture.md
+       └─> ../reference/decisions/adr-003-code-pruning-2025-10.md (target not found: reference/decisions/adr-003-code-pruning-2025-10.md)
      • deployment/vircadia-docker-deployment.md
        └─> ../guides/xr-quest3-setup.md (target not found: guides/xr-quest3-setup.md)
      • developer-guide/04-testing-status.md
@@ -310,46 +308,10 @@
        └─> 01-installation.md (target not found: 01-installation.md)
      • getting-started/02-first-graph-and-agents.md
        └─> ../index.md (target not found: index.md)
-     • guides/README.md
-       └─> security.md (target not found: security.md)
-     • guides/README.md
-       └─> telemetry-logging.md (target not found: telemetry-logging.md)
-     • guides/agent-orchestration.md
-       └─> ./API_REFERENCE.md (target not found: guides/API_REFERENCE.md)
-     • guides/agent-orchestration.md
-       └─> ./CONTROL_CENTER.md (target not found: guides/CONTROL_CENTER.md)
-     • guides/agent-orchestration.md
-       └─> ./SETTINGS.md (target not found: guides/SETTINGS.md)
-     • guides/configuration.md
-       └─> ../deployment/index.md (target not found: deployment/index.md)
-     • guides/configuration.md
-       └─> ../getting-started/installation.md (target not found: getting-started/installation.md)
      • guides/configuration.md
        └─> index.md (target not found: index.md)
-     • guides/configuration.md
-       └─> ../security/index.md (target not found: security/index.md)
-     • guides/configuration.md
-       └─> ../troubleshooting/configuration.md (target not found: troubleshooting/configuration.md)
-     • guides/deployment.md
-       └─> ./02-development-workflow.md (target not found: guides/02-development-workflow.md)
-     • guides/deployment.md
-       └─> ./06-troubleshooting.md (target not found: guides/06-troubleshooting.md)
      • guides/deployment.md
        └─> ../index.md (target not found: index.md)
-     • guides/developer/04-testing-status.md
-       └─> ../architecture/overview.md (target not found: guides/architecture/overview.md)
-     • guides/developer/04-testing-status.md
-       └─> ../concepts/cqrs-phase-1d.md (target not found: guides/concepts/cqrs-phase-1d.md)
-     • guides/developer/04-testing-status.md
-       └─> ../reference/api/binary-protocol.md (target not found: guides/reference/api/binary-protocol.md)
-     • guides/developer/adding-a-feature.md
-       └─> /docs/architecture/README.md (target not found: /docs/architecture/README.md)
-     • guides/developer/adding-a-feature.md
-       └─> /docs/guides/developer/development-setup.md (target not found: /docs/guides/developer/development-setup.md)
-     • guides/developer/adding-a-feature.md
-       └─> /docs/guides/developer/testing-guide.md (target not found: /docs/guides/developer/testing-guide.md)
-     • guides/developer/adding-a-feature.md
-       └─> /docs/reference/sparc-methodology.md (target not found: /docs/reference/sparc-methodology.md)
      • guides/developer/development-setup.md
        └─> /docs/architecture/README.md (target not found: /docs/architecture/README.md)
      • guides/developer/development-setup.md
@@ -385,27 +347,21 @@
      • guides/extending-the-system.md
        └─> index.md (target not found: index.md)
      • guides/index.md
-       └─> 01-deployment.md (target not found: 01-deployment.md)
+       └─> agent-orchestration.md (target not found: agent-orchestration.md)
      • guides/index.md
-       └─> 02-development-workflow.md (target not found: 02-development-workflow.md)
-     • guides/index.md
-       └─> 03-using-the-gui-sandbox.md (target not found: 03-using-the-gui-sandbox.md)
-     • guides/index.md
-       └─> 04-orchestrating-agents.md (target not found: 04-orchestrating-agents.md)
-     • guides/index.md
-       └─> 05-extending-the-system.md (target not found: 05-extending-the-system.md)
-     • guides/index.md
-       └─> 06-troubleshooting.md (target not found: 06-troubleshooting.md)
+       └─> configuration.md (target not found: configuration.md)
      • guides/index.md
        └─> ../contributing.md (target not found: contributing.md)
+     • guides/index.md
+       └─> deployment.md (target not found: deployment.md)
+     • guides/index.md
+       └─> development-workflow.md (target not found: development-workflow.md)
+     • guides/index.md
+       └─> orchestrating-agents.md (target not found: orchestrating-agents.md)
+     • guides/index.md
+       └─> xr-setup.md (target not found: xr-setup.md)
      • guides/orchestrating-agents.md
-       └─> ../../multi-agent-docker/README.md (target not found: /home/devuser/workspace/project/multi-agent-docker/README.md)
-     • guides/orchestrating-agents.md
-       └─> 03-using-the-gui-sandbox.md (target not found: 03-using-the-gui-sandbox.md)
-     • guides/orchestrating-agents.md
-       └─> 05-extending-the-system.md (target not found: 05-extending-the-system.md)
-     • guides/orchestrating-agents.md
-       └─> 06-troubleshooting.md (target not found: 06-troubleshooting.md)
+       └─> development-workflow.md (target not found: development-workflow.md)
      • guides/orchestrating-agents.md
        └─> ../index.md (target not found: index.md)
      • guides/orchestrating-agents.md
@@ -422,20 +378,6 @@
        └─> ../index.md (target not found: index.md)
      • guides/troubleshooting.md
        └─> index.md (target not found: index.md)
-     • guides/user/working-with-agents.md
-       └─> /docs/getting-started/README.md (target not found: /docs/getting-started/README.md)
-     • guides/user/working-with-agents.md
-       └─> /docs/guides/user/xr-setup.md (target not found: /docs/guides/user/xr-setup.md)
-     • guides/user/working-with-agents.md
-       └─> /docs/reference/sparc-methodology.md (target not found: /docs/reference/sparc-methodology.md)
-     • guides/user/working-with-agents.md
-       └─> /docs/tutorials/first-swarm.md (target not found: /docs/tutorials/first-swarm.md)
-     • guides/user/xr-setup.md
-       └─> /docs/getting-started/README.md (target not found: /docs/getting-started/README.md)
-     • guides/user/xr-setup.md
-       └─> /docs/guides/user/working-with-agents.md (target not found: /docs/guides/user/working-with-agents.md)
-     • guides/user/xr-setup.md
-       └─> /docs/tutorials/xr-development.md (target not found: /docs/tutorials/xr-development.md)
      • guides/working-with-gui-sandbox.md
        └─> /mnt/mldata/githubs/AR-AI-Knowledge-Graph/docs/multi-agent-docker/ARCHITECTURE.md (target not found: /mnt/mldata/githubs/AR-AI-Knowledge-Graph/docs/multi-agent-docker/ARCHITECTURE.md)
      • guides/working-with-gui-sandbox.md
@@ -3981,12 +3923,12 @@
     • reference/agents/sparc/architecture.md: 100 links
     • reference/agents/development/backend/dev-backend-api.md: 97 links
     • reference/agents/documentation/api-docs/docs-api-openapi.md: 91 links
-    • reference/agents/testing/unit/tdd-london-swarm.md: 83 links
     • reference/agents/testing/validation/production-validator.md: 83 links
+    • reference/agents/testing/unit/tdd-london-swarm.md: 83 links
     • reference/agents/consensus/security-manager.md: 81 links
-    • reference/agents/github/workflow-automation.md: 80 links
     • reference/agents/github/swarm-issue.md: 80 links
     • reference/agents/github/swarm-pr.md: 80 links
+    • reference/agents/github/workflow-automation.md: 80 links
 
 🎯 MOST REFERENCED FILES (Entry Points):
   Top 10 most referenced files:
@@ -3996,10 +3938,10 @@
     • features/agent-orchestration.md: referenced by 64 files
     • reference/agents/github/multi-repo-swarm.md: referenced by 64 files
     • reference/agents/github/swarm-issue.md: referenced by 64 files
-    • reference/agents/README.md: referenced by 63 files
     • server/agent-swarm.md: referenced by 63 files
     • reference/agents/templates/automation-smart-agent.md: referenced by 63 files
-    • reference/agents/core/coder.md: referenced by 63 files
+    • reference/agents/templates/github-pr-manager.md: referenced by 63 files
+    • reference/agents/swarm/hierarchical-coordinator.md: referenced by 63 files
 
 🗺️  NAVIGATION STRUCTURE VALIDATION:
   ✅ README.md
@@ -4012,7 +3954,7 @@
   ❌ docs/guides/developer/README.md (MISSING)
 
 👻 POTENTIALLY ORPHANED FILES (no incoming links):
-  ⚠️  69 orphaned files (showing first 20)
+  ⚠️  77 orphaned files (showing first 20)
     • LINK_VALIDATION_REPORT.md
     • api/01-authentication.md
     • api/02-endpoints.md
@@ -4021,20 +3963,20 @@
     • architecture/05-schema-implementation-summary.md
     • architecture/ARCHITECTURE_ANALYSIS_INDEX.md
     • architecture/ARCHITECTURE_INDEX.md
+    • architecture/core/client.md
     • architecture/core/server.md
     • architecture/cqrs-migration.md
     • architecture/github-sync-service-design.md
+    • architecture/gpu/communication-flow.md
+    • architecture/gpu/optimizations.md
+    • architecture/gpu-stability.md
     • architecture/interface.md
     • architecture/phase3-ports-complete.md
     • architecture/security.md
     • archive/monolithic-reference/API.md
     • archive/monolithic-reference/ARCHITECTURE.md
-    • archive/monolithic-reference/DATABASE.md
-    • archive/monolithic-reference/DEVELOPER_GUIDE.md
-    • concepts/data-flow.md
-    • concepts/networking-and-protocols.md
 
 📈 OVERALL HEALTH:
-  ⚠️  ISSUES FOUND: 1979 broken link(s)
+  ⚠️  ISSUES FOUND: 1950 broken link(s)
 
 ================================================================================

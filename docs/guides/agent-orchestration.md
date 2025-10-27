@@ -333,9 +333,8 @@ The agent panel integrates with:
 
 ## Related Documentation
 
-- [Control Center Guide](./CONTROL_CENTER.md)
-- [Settings Management](./SETTINGS.md)
-- [Agent API Reference](./API_REFERENCE.md)
+- [Orchestrating Agents Guide](./orchestrating-agents.md)
+- [Development Workflow](./development-workflow.md)
 - [GOAP Widget](https://goal.ruv.io/)
 
 ## Support

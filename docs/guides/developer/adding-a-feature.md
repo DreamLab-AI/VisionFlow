@@ -6,9 +6,9 @@ tags: [development, features, workflow]
 difficulty: intermediate
 last_updated: 2025-10-27
 related:
-  - /docs/guides/developer/development-setup.md
-  - /docs/guides/developer/testing-guide.md
-  - /docs/architecture/README.md
+  - ../development-workflow.md
+  - ../configuration.md
+  - ../../reference/README.md
 ---
 
 # Adding a Feature
@@ -21,7 +21,7 @@ This guide walks you through the complete process of adding a new feature to Tur
 
 ## Prerequisites
 
-- Development environment set up (see [Development Setup](/docs/guides/developer/development-setup.md))
+- Development environment set up (see [Development Workflow](../development-workflow.md))
 - Familiarity with the project architecture
 - Understanding of SPARC methodology
 
@@ -117,7 +117,7 @@ npm run test -- path/to/test
 - Test error handling
 - Integration tests for cross-component features
 
-**See**: [Testing Guide](/docs/guides/developer/testing-guide.md) for detailed testing strategies.
+**See**: [Testing Status](./04-testing-status.md) for detailed testing information.
 
 ### 3. Run Quality Checks
 
@@ -255,10 +255,9 @@ After your feature is implemented:
 
 ## Related Resources
 
-- [Development Setup](/docs/guides/developer/development-setup.md)
-- [Testing Guide](/docs/guides/developer/testing-guide.md)
-- [Architecture Overview](/docs/architecture/README.md)
-- [SPARC Methodology](/docs/reference/sparc-methodology.md)
+- [Development Workflow](../development-workflow.md)
+- [Testing Status](./04-testing-status.md)
+- [Reference Documentation](../../reference/README.md)
 
 ## Support
 

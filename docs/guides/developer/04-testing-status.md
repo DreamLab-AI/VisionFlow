@@ -323,8 +323,6 @@ cargo test -- --test-threads=1
 
 ## Related Documentation
 
-- [Development Setup](./01-development-setup.md)
-- [Project Structure](./02-project-structure.md)
-- [Architecture Overview](../architecture/overview.md)
-- [CQRS Implementation](../concepts/cqrs-phase-1d.md)
-- [Binary Protocol](../reference/api/binary-protocol.md)
+- [Development Workflow](../development-workflow.md)
+- [Configuration Guide](../configuration.md)
+- [Reference Documentation](../../reference/README.md)
