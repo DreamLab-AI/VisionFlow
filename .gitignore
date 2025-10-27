@@ -14,6 +14,7 @@ workspace
 webxr.long-type*
 qdrant_data/
 whelk-rs/
+.swarm/
 
 # Dependencies
 node_modules
@@ -178,3 +179,4 @@ agentdb.db-shm
 **/.claude-flow/
 multi-agent-docker/gui-tools-assets/blender-*.tar.xz
 .claude/
+.swarm/memory.db-shm
