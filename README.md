@@ -86,6 +86,22 @@ Converse naturally with your AI agents. Guide research, ask questions, and recei
 - **Natural language commands** to control agents
 - **Voice-to-voice AI responses** with context awareness
 
+### 🥽 Immersive XR & Vircadia Multi-User
+Step into your knowledge graph with Quest 3 AR/VR and collaborative multi-user experiences powered by **[Vircadia](https://vircadia.com)**, an open-source metaverse platform for true spatial collaboration.
+
+- **Meta Quest 3 native support** with hand tracking and controller input
+- **Force-directed 3D graph physics** for intuitive spatial layouts
+- **Vircadia multi-user integration** for collaborative exploration
+- **Spatial avatars and presence** with real-time synchronization
+- **3D UI controls** with gesture-based interaction
+- **Babylon.js WebXR** for high-performance immersive rendering
+
+**📚 Complete XR Documentation:**
+- **[Vircadia XR Complete Guide](docs/guides/vircadia-xr-complete-guide.md)** - Full implementation guide
+- **[XR Immersive System](docs/architecture/xr-immersive-system.md)** - Quest 3 architecture
+- **[XR API Reference](docs/reference/xr-api.md)** - Force-directed graph API
+- **[Vircadia Official Docs](https://docs.vircadia.com)** - Platform documentation
+
 ### 🔐 Enterprise-Grade & Self-Sovereign
 Your data remains yours. Built on a thin-client, secure-server architecture with Git-based version control for all knowledge updates, ensuring a complete audit trail and human-in-the-loop oversight.
 
@@ -579,8 +595,15 @@ Production deployment guides:
 
 ### 🔄 In Progress (v1.1 - Q1 2026)
 
+- **Immersive XR & Multi-User**
+  - ✅ Meta Quest 3 single-user AR/VR implementation (Beta)
+  - ✅ Force-directed graph physics engine with WebXR
+  - ✅ Babylon.js rendering with 25-joint hand tracking
+  - 🔄 Vircadia multi-user integration (Architecture complete)
+  - 🔄 Spatial avatars and real-time user presence
+  - 🔄 Apple Vision Pro native app (Q3 2026)
+
 - **Advanced Features**
-  - 🔄 AR/VR native clients (Quest 3, Vision Pro)
   - 🔄 SPARQL query interface for ontologies
   - 🔄 Email integration for knowledge ingestion
   - 🔄 Multi-language voice support
@@ -708,13 +731,14 @@ We welcome contributions from the community! Whether you're fixing bugs, improvi
 
 ### XR Device Support
 
-| Device | Status | Notes |
-| :--- | :---: | :--- |
-| **Meta Quest 3** | 🔄 Beta | Native app in development |
-| **Meta Quest 2** | 🔄 Beta | Browser-based WebXR |
-| **Apple Vision Pro** | 🔄 Planned | Native app planned for Q3 2025 |
-| **Varjo XR-3** | ⚠️ Limited | WebXR experimental |
-| **HTC Vive** | ⚠️ Limited | WebXR via SteamVR |
+| Device | Status | Features | Documentation |
+| :--- | :---: | :--- | :--- |
+| **Meta Quest 3** | ✅ Beta | Force-directed graphs, hand tracking, AR passthrough | [XR Guide](docs/guides/vircadia-xr-complete-guide.md) |
+| **Meta Quest 2** | ⚠️ Limited | Browser-based WebXR, reduced performance | - |
+| **Vircadia Multi-User** | 🔄 Architecture | Spatial avatars, collaborative sessions | [Vircadia Docs](https://docs.vircadia.com) |
+| **Apple Vision Pro** | 🔄 Planned | Native app planned for Q3 2026 | - |
+| **Varjo XR-3** | ⚠️ Limited | WebXR experimental | - |
+| **HTC Vive** | ⚠️ Limited | WebXR via SteamVR | - |
 
 ---
 

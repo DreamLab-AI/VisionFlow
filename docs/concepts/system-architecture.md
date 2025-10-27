@@ -496,17 +496,20 @@ sequenceDiagram
 ```
 
 **34-byte Binary Format**:
-```
-[4 bytes: node_id]
-[4 bytes: x position (f32)]
-[4 bytes: y position (f32)]
-[4 bytes: z position (f32)]
-[4 bytes: velocity_x (f32)]
-[4 bytes: velocity_y (f32)]
-[4 bytes: velocity_z (f32)]
-[1 byte:  flags (selected, frozen, etc.)]
-[3 bytes: RGB colour]
-[2 bytes: reserved]
+```mermaid
+graph TD
+    subgraph "34-byte Binary Format"
+        A["4 bytes: node_id"]
+        B["4 bytes: x position (f32)"]
+        C["4 bytes: y position (f32)"]
+        D["4 bytes: z position (f32)"]
+        E["4 bytes: velocity_x (f32)"]
+        F["4 bytes: velocity_y (f32)"]
+        G["4 bytes: velocity_z (f32)"]
+        H["1 byte: flags"]
+        I["3 bytes: RGB colour"]
+        J["2 bytes: reserved"]
+    end
 ```
 
 ### Agent Spawn Flow (Hybrid Docker + MCP)
@@ -883,69 +886,53 @@ graph TB
 
 ### Development Environment
 
-```
-┌────────────────────────────────────────┐
-│       Developer Workstation            │
-│                                        │
-│  ┌─────────────────────────────────┐  │
-│  │  Docker Compose Stack           │  │
-│  │  ├─ visionflow-container        │  │
-│  │  │  ├─ Nginx :3030              │  │
-│  │  │  ├─ Rust Backend :4000       │  │
-│  │  │  └─ Vite Dev Server :5173    │  │
-│  │  ├─ multi-agent-container       │  │
-│  │  │  ├─ MCP Server :9500         │  │
-│  │  │  └─ WebSocket Bridge :3002   │  │
-│  │  ├─ PostgreSQL :5432            │  │
-│  │  ├─ Redis :6379                 │  │
-│  │  └─ GUI Tools :5901 (VNC)       │  │
-│  └─────────────────────────────────┘  │
-│                                        │
-│  ┌─────────────────────────────────┐  │
-│  │  Hot Reload                     │  │
-│  │  ├─ Vite HMR (Frontend)         │  │
-│  │  └─ cargo-watch (Backend)       │  │
-│  └─────────────────────────────────┘  │
-└────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph "Developer Workstation"
+        subgraph "Docker Compose Stack"
+            subgraph "visionflow-container"
+                A["Nginx :3030"]
+                B["Rust Backend :4000"]
+                C["Vite Dev Server :5173"]
+            end
+            subgraph "multi-agent-container"
+                D["MCP Server :9500"]
+                E["WebSocket Bridge :3002"]
+            end
+            F["PostgreSQL :5432"]
+            G["Redis :6379"]
+            H["GUI Tools :5901 (VNC)"]
+        end
+        subgraph "Hot Reload"
+            I["Vite HMR (Frontend)"]
+            J["cargo-watch (Backend)"]
+        end
+    end
 ```
 
 ### Production Environment
 
-```
-┌────────────────────────────────────────┐
-│         CloudFlare Edge                │
-│    ├─ DDoS Protection                  │
-│    ├─ SSL/TLS Termination              │
-│    └─ CDN (Static Assets)              │
-└─────────────┬──────────────────────────┘
-              │
-┌─────────────┴──────────────────────────┐
-│      Load Balancer (Nginx)             │
-│    ├─ Rate Limiting                    │
-│    ├─ Health Checks                    │
-│    └─ Connection Pooling               │
-└──────┬────────────────────────┬────────┘
-       │                        │
-   ┌───┴────┐              ┌───┴────┐
-   │ Node 1 │              │ Node 2 │
-   │        │              │        │
-   │ ┌────┐ │              │ ┌────┐ │
-   │ │App │ │              │ │App │ │
-   │ └────┘ │              │ └────┘ │
-   └───┬────┘              └───┬────┘
-       │                        │
-       └──────────┬─────────────┘
-                  │
-       ┌──────────┴──────────┐
-       │                     │
-   ┌───┴────┐           ┌───┴────┐
-   │ DB     │           │ Redis  │
-   │Primary │           │Cluster │
-   │        │           │        │
-   │ ┌────┐ │           │ ┌────┐ │
-   │ │Rep │ │           │ │Rep │ │
-   │ └────┘ │           │ └────┘ │
-   └────────┘           └────────┘
+```mermaid
+graph TD
+    A["CloudFlare Edge<br/>DDoS Protection<br/>SSL/TLS Termination<br/>CDN (Static Assets)"] --> B["Load Balancer (Nginx)<br/>Rate Limiting<br/>Health Checks<br/>Connection Pooling"]
+    B --> C["Node 1"]
+    B --> D["Node 2"]
+    subgraph C
+        App1["App"]
+    end
+    subgraph D
+        App2["App"]
+    end
+    C --> E["DB Primary"]
+    D --> E
+    subgraph E
+        Rep1["Rep"]
+    end
+    C --> F["Redis Cluster"]
+    D --> F
+    subgraph F
+        Rep2["Rep"]
+    end
 ```
 
 **Production Features**:

@@ -105,16 +105,19 @@ ws.onclose = (event) => {
 
 All WebSocket messages follow a standardised binary frame format:
 
-```
-┌─────────────────────────────────────────┐
-│          Frame Header (8 bytes)         │
-├─────────┬────────┬─────────┬────────────┤
-│ Version │  Type  │ Flags   │   Length   │
-│ 1 byte  │ 1 byte │ 2 bytes │  4 bytes   │
-├─────────┴────────┴─────────┴────────────┤
-│          Payload (Variable)             │
-│         (Binary or JSON Data)           │
-└─────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph "Frame Header (8 bytes)"
+        direction LR
+        Version["Version (1 byte)"]
+        Type["Type (1 byte)"]
+        Flags["Flags (2 bytes)"]
+        Length["Length (4 bytes)"]
+    end
+    subgraph "Payload (Variable)"
+        Payload["Binary or JSON Data"]
+    end
+    "Frame Header (8 bytes)" --> "Payload (Variable)"
 ```
 
 **Header Fields**:
@@ -233,20 +236,19 @@ class ReconnectionManager {
 
 The binary protocol achieves 81% bandwidth reduction through compact fixed-size encoding:
 
-```
-┌─────────────┬──────────────┬───────────────────────────────┐
-│ Offset      │ Field        │ Description                   │
-├─────────────┼──────────────┼───────────────────────────────┤
-│ 0-1         │ node_id      │ u16 with control bits         │
-│ 2-5         │ position.x   │ f32 - X coordinate            │
-│ 6-9         │ position.y   │ f32 - Y coordinate            │
-│ 10-13       │ position.z   │ f32 - Z coordinate            │
-│ 14-17       │ velocity.x   │ f32 - X velocity              │
-│ 18-21       │ velocity.y   │ f32 - Y velocity              │
-│ 22-25       │ velocity.z   │ f32 - Z velocity              │
-│ 26-29       │ sssp_dist    │ f32 - SSSP distance           │
-│ 30-33       │ sssp_parent  │ i32 - SSSP parent node        │
-└─────────────┴──────────────┴───────────────────────────────┘
+```mermaid
+graph LR
+    subgraph "34-Byte Wire Format"
+        A[0-1: node_id]
+        B[2-5: position.x]
+        C[6-9: position.y]
+        D[10-13: position.z]
+        E[14-17: velocity.x]
+        F[18-21: velocity.y]
+        G[22-25: velocity.z]
+        H[26-29: sssp_dist]
+        I[30-33: sssp_parent]
+    end
 ```
 
 ### Control Bits Encoding
@@ -393,19 +395,16 @@ At 60 FPS with 1000 nodes:
 
 The Model Context Protocol provides JSON-RPC 2.0 communication over TCP for multi-agent coordination:
 
-```
-┌─────────────────────┐     TCP:9500      ┌─────────────────────┐
-│   VisionFlow/Rust   │─────────────────▶│  MCP TCP Server     │
-│   (logseq container)│                   │ (multi-agent)       │
-└─────────────────────┘                   └─────────────────────┘
-                                                   │
-                                                   ▼
-                                          ┌─────────────────────┐
-                                          │   Agent Swarms      │
-                                          │ ┌─────┬─────┬─────┐│
-                                          │ │Agent│Agent│Agent││
-                                          │ └─────┴─────┴─────┘│
-                                          └─────────────────────┘
+```mermaid
+graph TD
+    A["VisionFlow/Rust (logseq container)"] -- TCP:9500 --> B["MCP TCP Server (multi-agent)"]
+    B --> C["Agent Swarms"]
+    subgraph C
+        direction LR
+        Agent1[Agent]
+        Agent2[Agent]
+        Agent3[Agent]
+    end
 ```
 
 ### Connection Establishment

@@ -434,14 +434,15 @@ Navigate to `webxr::migrations` module.
 
 The `schema_migrations` table tracks all applied migrations:
 
-```sql
-CREATE TABLE schema_migrations (
-    version INTEGER PRIMARY KEY,        -- Migration version number
-    name TEXT NOT NULL UNIQUE,          -- Migration name
-    applied_at TIMESTAMP,               -- When applied
-    checksum TEXT NOT NULL,             -- SHA-1 of migration SQL
-    execution_time_ms INTEGER           -- Execution time in milliseconds
-);
+```mermaid
+erDiagram
+    schema_migrations {
+        INTEGER version PK "Migration version number"
+        TEXT name "Migration name"
+        TIMESTAMP applied_at "When applied"
+        TEXT checksum "SHA-1 of migration SQL"
+        INTEGER execution_time_ms "Execution time in milliseconds"
+    }
 ```
 
 Do not manually modify this table.
