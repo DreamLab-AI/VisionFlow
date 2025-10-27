@@ -50,7 +50,10 @@ impl SettingsWatcher {
         // Watch the parent directory since the file might be replaced atomically
         let watch_path = if db_path.exists() {
             if let Some(parent) = db_path.parent() {
-                info!("Watching directory for settings changes: {}", parent.display());
+                info!(
+                    "Watching directory for settings changes: {}",
+                    parent.display()
+                );
                 parent
             } else {
                 warn!("No parent directory for settings DB, watching file directly");
@@ -67,7 +70,8 @@ impl SettingsWatcher {
 
         let last_reload = self.last_reload.clone();
         let settings_actor = self.settings_actor.clone();
-        let db_filename = db_path.file_name()
+        let db_filename = db_path
+            .file_name()
             .and_then(|n| n.to_str())
             .unwrap_or("settings.db")
             .to_string();
@@ -89,8 +93,11 @@ impl SettingsWatcher {
 
                                 Self::trigger_reload(&settings_actor).await;
                             } else {
-                                debug!("Skipping reload due to debounce ({}ms < {}ms)",
-                                    elapsed.as_millis(), DEBOUNCE_DURATION.as_millis());
+                                debug!(
+                                    "Skipping reload due to debounce ({}ms < {}ms)",
+                                    elapsed.as_millis(),
+                                    DEBOUNCE_DURATION.as_millis()
+                                );
                             }
                         }
                     }

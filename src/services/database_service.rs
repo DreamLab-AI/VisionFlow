@@ -574,4 +574,49 @@ impl DatabaseService {
             Ok(None)
         }
     }
+
+    /// Delete a setting by key
+    pub fn delete_setting(&self, key: &str) -> SqliteResult<()> {
+        let conn = self.get_settings_connection().map_err(|e| {
+            rusqlite::Error::SqliteFailure(
+                rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_ERROR),
+                Some(e),
+            )
+        })?;
+
+        conn.execute("DELETE FROM settings WHERE key = ?1", params![key])?;
+        Ok(())
+    }
+
+    /// List all setting keys, optionally filtered by prefix
+    pub fn list_settings(&self, prefix: Option<&str>) -> SqliteResult<Vec<String>> {
+        let conn = self.get_settings_connection().map_err(|e| {
+            rusqlite::Error::SqliteFailure(
+                rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_ERROR),
+                Some(e),
+            )
+        })?;
+
+        let mut keys = Vec::new();
+
+        if let Some(prefix_str) = prefix {
+            let pattern = format!("{}%", prefix_str);
+            let mut stmt =
+                conn.prepare("SELECT key FROM settings WHERE key LIKE ?1 ORDER BY key")?;
+            let key_iter = stmt.query_map(params![pattern], |row| row.get::<_, String>(0))?;
+
+            for key_result in key_iter {
+                keys.push(key_result?);
+            }
+        } else {
+            let mut stmt = conn.prepare("SELECT key FROM settings ORDER BY key")?;
+            let key_iter = stmt.query_map([], |row| row.get::<_, String>(0))?;
+
+            for key_result in key_iter {
+                keys.push(key_result?);
+            }
+        }
+
+        Ok(keys)
+    }
 }

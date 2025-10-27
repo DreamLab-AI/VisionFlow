@@ -239,9 +239,8 @@ mod test_helpers {
 
     // Helper for making authenticated API requests
     pub fn create_authenticated_request(uri: &str) -> test::TestRequest {
-        test::TestRequest::get()
-            .uri(uri)
-            // Add auth headers if needed
+        test::TestRequest::get().uri(uri)
+        // Add auth headers if needed
     }
 
     // Helper for asserting successful graph data response

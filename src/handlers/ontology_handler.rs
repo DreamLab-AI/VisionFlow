@@ -1,8 +1,8 @@
 // CQRS-Based Ontology Handler
 // Uses Ontology application layer for all OWL operations
 
-use crate::AppState;
 use crate::handlers::utils::execute_in_thread;
+use crate::AppState;
 use actix_web::{web, HttpResponse, Responder};
 use log::{error, info};
 use serde::Deserialize;
@@ -181,9 +181,7 @@ pub async fn get_owl_class(state: web::Data<AppState>, iri: web::Path<String>) -
 
     // Execute query in a separate OS thread to escape Tokio runtime
     let iri_clone = class_iri.clone();
-    let result = execute_in_thread(move || handler.handle(GetOwlClass {
-        iri: iri_clone,
-    })).await;
+    let result = execute_in_thread(move || handler.handle(GetOwlClass { iri: iri_clone })).await;
 
     match result {
         Ok(Ok(Some(class))) => {

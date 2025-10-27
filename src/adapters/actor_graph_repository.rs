@@ -3,10 +3,10 @@
 //! Implements GraphRepository port using the existing GraphServiceActor.
 //! This allows gradual migration - queries use CQRS while actor handles writes.
 
+use actix::Addr;
 use async_trait::async_trait;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
-use actix::Addr;
 
 use crate::actors::graph_actor::{AutoBalanceNotification, GraphServiceActor, PhysicsState};
 use crate::actors::messages as actor_msgs;
@@ -168,9 +168,7 @@ impl GraphRepository for ActorGraphRepository {
 
         let positions: Vec<(u32, Vec3)> = node_map
             .iter()
-            .map(|(id, node)| {
-                (*id, Vec3::new(node.data.x, node.data.y, node.data.z))
-            })
+            .map(|(id, node)| (*id, Vec3::new(node.data.x, node.data.y, node.data.z)))
             .collect();
 
         Ok(positions)
@@ -267,7 +265,6 @@ impl GraphRepository for ActorGraphRepository {
         Ok(HashSet::new())
     }
 }
-
 
 #[cfg(test)]
 mod tests {

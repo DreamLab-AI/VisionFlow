@@ -160,49 +160,54 @@ VisionFlow implements a **Hexagonal Architecture** with **CQRS pattern** for cle
 
 ### System Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Client Layer (React)                      │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
-│  │  Three.js    │  │  WebSocket   │  │   Voice UI   │      │
-│  │   WebGL      │  │   Binary     │  │    WebRTC    │      │
-│  └──────────────┘  └──────────────┘  └──────────────┘      │
-└─────────────────────────────────────────────────────────────┘
-                            ↕ Binary Protocol V2 (36 bytes)
-┌─────────────────────────────────────────────────────────────┐
-│              Server Layer (Rust + Actix-Web)                 │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │         Hexagonal Architecture (Ports & Adapters)     │  │
-│  │  ┌────────────┐  ┌────────────┐  ┌────────────┐     │  │
-│  │  │ Directives │  │  Queries   │  │   Events   │     │  │
-│  │  │  (Write)   │  │   (Read)   │  │ (Notify)   │     │  │
-│  │  └────────────┘  └────────────┘  └────────────┘     │  │
-│  └──────────────────────────────────────────────────────┘  │
-│                            ↕                                 │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │              Actor System (Actix)                     │  │
-│  │  ┌───────────┐  ┌───────────┐  ┌───────────┐        │  │
-│  │  │  Graph    │  │  Agent    │  │ Ontology  │        │  │
-│  │  │  Service  │  │  Manager  │  │ Validator │        │  │
-│  │  └───────────┘  └───────────┘  └───────────┘        │  │
-│  └──────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                            ↕
-┌─────────────────────────────────────────────────────────────┐
-│                    Data Layer (SQLite)                       │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │  settings.db │  │knowledge_    │  │  ontology.db │     │
-│  │   (Config)   │  │  graph.db    │  │  (OWL/RDF)   │     │
-│  └──────────────┘  └──────────────┘  └──────────────┘     │
-└─────────────────────────────────────────────────────────────┘
-                            ↕
-┌─────────────────────────────────────────────────────────────┐
-│               GPU Compute Layer (CUDA)                       │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐           │
-│  │  Physics   │  │ Clustering │  │ Pathfinding│           │
-│  │  (39 PTX)  │  │  (Leiden)  │  │   (SSSP)   │           │
-│  └────────────┘  └────────────┘  └────────────┘           │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph Client["Client Layer (React)"]
+        ThreeJS["Three.js<br/>WebGL"]
+        WS["WebSocket<br/>Binary"]
+        Voice["Voice UI<br/>WebRTC"]
+    end
+
+    Client <-->|"Binary Protocol V2<br/>(36 bytes)"| Server
+
+    subgraph Server["Server Layer (Rust + Actix-Web)"]
+        subgraph Hexagonal["Hexagonal Architecture (Ports & Adapters)"]
+            Directives["Directives<br/>(Write)"]
+            Queries["Queries<br/>(Read)"]
+            Events["Events<br/>(Notify)"]
+        end
+
+        subgraph Actors["Actor System (Actix)"]
+            GraphService["Graph<br/>Service"]
+            AgentMgr["Agent<br/>Manager"]
+            OntologyVal["Ontology<br/>Validator"]
+        end
+
+        Hexagonal <--> Actors
+    end
+
+    Server <--> Data
+
+    subgraph Data["Data Layer (SQLite)"]
+        SettingsDB["settings.db<br/>(Config)"]
+        KnowledgeDB["knowledge_graph.db"]
+        OntologyDB["ontology.db<br/>(OWL/RDF)"]
+    end
+
+    Data <--> GPU
+
+    subgraph GPU["GPU Compute Layer (CUDA)"]
+        Physics["Physics<br/>(39 PTX)"]
+        Clustering["Clustering<br/>(Leiden)"]
+        Pathfinding["Pathfinding<br/>(SSSP)"]
+    end
+
+    style Client fill:#e1f5ff
+    style Server fill:#fff4e1
+    style Data fill:#f0e1ff
+    style GPU fill:#e1ffe1
+    style Hexagonal fill:#fff9e1
+    style Actors fill:#ffe1f5
 ```
 
 **Key Architectural Principles:**

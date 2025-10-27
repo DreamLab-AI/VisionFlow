@@ -26,10 +26,7 @@ impl KnowledgeGraphParser {
         info!("Parsing knowledge graph file: {}", filename);
 
         // Extract the page name from filename (remove .md extension)
-        let page_name = filename
-            .strip_suffix(".md")
-            .unwrap_or(filename)
-            .to_string();
+        let page_name = filename.strip_suffix(".md").unwrap_or(filename).to_string();
 
         // Create the main node for this page
         let mut nodes = vec![self.create_page_node(&page_name, content)];
@@ -196,7 +193,8 @@ impl KnowledgeGraphParser {
         let mut tags = Vec::new();
 
         // Pattern: #tag or tag::
-        let tag_pattern = regex::Regex::new(r"#([a-zA-Z0-9_-]+)|tag::\s*#?([a-zA-Z0-9_-]+)").unwrap();
+        let tag_pattern =
+            regex::Regex::new(r"#([a-zA-Z0-9_-]+)|tag::\s*#?([a-zA-Z0-9_-]+)").unwrap();
 
         for cap in tag_pattern.captures_iter(content) {
             if let Some(tag) = cap.get(1).or_else(|| cap.get(2)) {

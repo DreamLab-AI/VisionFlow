@@ -8,7 +8,7 @@ pub mod consolidated_health_handler; // Replaces health_handler and mcp_health_h
 pub mod constraints_handler;
 pub mod graph_export_handler;
 pub mod graph_state_handler; // CQRS-refactored
-// pub mod hybrid_health_handler; // REMOVED: Deprecated hybrid health system
+                             // pub mod hybrid_health_handler; // REMOVED: Deprecated hybrid health system
 pub mod mcp_relay_handler;
 pub mod multi_mcp_websocket_handler;
 pub mod nostr_handler;
@@ -18,7 +18,7 @@ pub mod perplexity_handler;
 pub mod ragflow_handler;
 pub mod realtime_websocket_handler;
 pub mod settings_handler; // CQRS-refactored
-// pub mod settings_paths; // REMOVED: Redundant, superseded by settings_handler
+                          // pub mod settings_paths; // REMOVED: Redundant, superseded by settings_handler
 pub mod settings_validation_fix;
 pub mod socket_flow_handler;
 pub mod speech_socket_handler;
@@ -26,6 +26,18 @@ pub mod utils; // Helper utilities for handlers
 pub mod validation_handler;
 pub mod websocket_settings_handler;
 pub mod workspace_handler;
+
+// Phase 5: Hexagonal architecture handlers
+pub mod physics_handler;
+pub mod semantic_handler;
+
+pub use physics_handler::configure_routes as configure_physics_routes;
+pub use semantic_handler::configure_routes as configure_semantic_routes;
+
+// Phase 7: Inference handler
+pub mod inference_handler;
+
+pub use inference_handler::configure_routes as configure_inference_routes;
 
 #[cfg(test)]
 pub mod tests;

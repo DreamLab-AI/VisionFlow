@@ -1069,7 +1069,10 @@ impl Handler<msgs::BuildGraphFromMetadata> for TransitionalGraphSupervisor {
         msg: msgs::BuildGraphFromMetadata,
         ctx: &mut Self::Context,
     ) -> Self::Result {
-        info!("[TransitionalGraphSupervisor] BuildGraphFromMetadata handler invoked with {} entries", msg.metadata.len());
+        info!(
+            "[TransitionalGraphSupervisor] BuildGraphFromMetadata handler invoked with {} entries",
+            msg.metadata.len()
+        );
         let actor_result = self.get_or_create_actor(ctx);
         if let Some(actor) = actor_result {
             info!("[TransitionalGraphSupervisor] Forwarding BuildGraphFromMetadata to GraphServiceActor");

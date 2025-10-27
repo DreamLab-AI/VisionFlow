@@ -98,7 +98,10 @@ mod tests {
         let app = test::init_service(
             App::new()
                 .wrap(TimeoutMiddleware::new(Duration::from_secs(5)))
-                .route("/", web::get().to(|| async { HttpResponse::Ok().body("OK") })),
+                .route(
+                    "/",
+                    web::get().to(|| async { HttpResponse::Ok().body("OK") }),
+                ),
         )
         .await;
 

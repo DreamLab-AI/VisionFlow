@@ -19,9 +19,9 @@ use tokio::time::sleep;
 /// File type detection result
 #[derive(Debug, Clone, PartialEq)]
 pub enum FileType {
-    KnowledgeGraph,  // Contains "public:: true"
-    Ontology,        // Contains "- ### OntologyBlock"
-    Skip,            // Neither marker found
+    KnowledgeGraph, // Contains "public:: true"
+    Ontology,       // Contains "- ### OntologyBlock"
+    Skip,           // Neither marker found
 }
 
 /// Sync statistics returned after ingestion
@@ -40,10 +40,21 @@ pub struct SyncStatistics {
 /// Result of processing a single file
 #[derive(Debug)]
 enum FileProcessResult {
-    KnowledgeGraph { nodes: usize, edges: usize },
-    Ontology { classes: usize, properties: usize, axioms: usize },
-    Skipped { reason: String },
-    Error { error: String },
+    KnowledgeGraph {
+        nodes: usize,
+        edges: usize,
+    },
+    Ontology {
+        classes: usize,
+        properties: usize,
+        axioms: usize,
+    },
+    Skipped {
+        reason: String,
+    },
+    Error {
+        error: String,
+    },
 }
 
 /// GitHub Sync Service - orchestrates data ingestion
@@ -89,16 +100,20 @@ impl GitHubSyncService {
 
         // Accumulate all knowledge graph data before saving
         // Use HashMap for automatic node deduplication by ID
-        let mut accumulated_nodes: std::collections::HashMap<u32, crate::models::node::Node> = std::collections::HashMap::new();
+        let mut accumulated_nodes: std::collections::HashMap<u32, crate::models::node::Node> =
+            std::collections::HashMap::new();
         // Use HashMap for automatic edge deduplication by ID to prevent UNIQUE constraint violations
-        let mut accumulated_edges: std::collections::HashMap<String, crate::models::edge::Edge> = std::collections::HashMap::new();
+        let mut accumulated_edges: std::collections::HashMap<String, crate::models::edge::Edge> =
+            std::collections::HashMap::new();
 
         // ✅ FIX: Track which page names have public:: true for filtering linked pages
-        let mut public_page_names: std::collections::HashSet<String> = std::collections::HashSet::new();
+        let mut public_page_names: std::collections::HashSet<String> =
+            std::collections::HashSet::new();
 
         // Accumulate all ontology data before saving
         let mut accumulated_classes: Vec<crate::ports::ontology_repository::OwlClass> = Vec::new();
-        let mut accumulated_properties: Vec<crate::ports::ontology_repository::OwlProperty> = Vec::new();
+        let mut accumulated_properties: Vec<crate::ports::ontology_repository::OwlProperty> =
+            Vec::new();
         let mut accumulated_axioms: Vec<crate::ports::ontology_repository::OwlAxiom> = Vec::new();
 
         // Fetch all markdown files from repository
@@ -125,7 +140,18 @@ impl GitHubSyncService {
             }
 
             // ✅ FIX: Pass public_page_names to process_file
-            match self.process_file(file, &mut accumulated_nodes, &mut accumulated_edges, &mut public_page_names, &mut accumulated_classes, &mut accumulated_properties, &mut accumulated_axioms).await {
+            match self
+                .process_file(
+                    file,
+                    &mut accumulated_nodes,
+                    &mut accumulated_edges,
+                    &mut public_page_names,
+                    &mut accumulated_classes,
+                    &mut accumulated_properties,
+                    &mut accumulated_axioms,
+                )
+                .await
+            {
                 FileProcessResult::KnowledgeGraph { nodes, edges } => {
                     stats.kg_files_processed += 1;
                     stats.total_nodes += nodes;
@@ -160,7 +186,10 @@ impl GitHubSyncService {
         }
 
         // ✅ FIX: NOW filter linked_page nodes after ALL files processed and HashSet is complete
-        info!("Filtering linked_page nodes against {} public pages", public_page_names.len());
+        info!(
+            "Filtering linked_page nodes against {} public pages",
+            public_page_names.len()
+        );
         let node_count_before_filter = accumulated_nodes.len();
         accumulated_nodes.retain(|_id, node| {
             match node.metadata.get("type").map(|s| s.as_str()) {
@@ -169,32 +198,49 @@ impl GitHubSyncService {
                     // Only keep if the linked page is in our public set
                     let is_public = public_page_names.contains(&node.metadata_id);
                     if !is_public {
-                        debug!("Filtered out linked_page '{}' - not in public pages", node.metadata_id);
+                        debug!(
+                            "Filtered out linked_page '{}' - not in public pages",
+                            node.metadata_id
+                        );
                     }
                     is_public
-                },
+                }
                 _ => true, // Keep unknown types
             }
         });
         let nodes_filtered = node_count_before_filter - accumulated_nodes.len();
-        info!("Filtered {} linked_page nodes (kept {} of {} total nodes)",
-              nodes_filtered, accumulated_nodes.len(), node_count_before_filter);
+        info!(
+            "Filtered {} linked_page nodes (kept {} of {} total nodes)",
+            nodes_filtered,
+            accumulated_nodes.len(),
+            node_count_before_filter
+        );
 
         // ✅ FIX: Filter edges to only include those connecting retained nodes
         let edge_count_before_filter = accumulated_edges.len();
         accumulated_edges.retain(|_id, edge| {
-            accumulated_nodes.contains_key(&edge.source) && accumulated_nodes.contains_key(&edge.target)
+            accumulated_nodes.contains_key(&edge.source)
+                && accumulated_nodes.contains_key(&edge.target)
         });
         let edges_filtered = edge_count_before_filter - accumulated_edges.len();
-        info!("Filtered {} orphan edges (kept {} of {} total edges)",
-              edges_filtered, accumulated_edges.len(), edge_count_before_filter);
+        info!(
+            "Filtered {} orphan edges (kept {} of {} total edges)",
+            edges_filtered,
+            accumulated_edges.len(),
+            edge_count_before_filter
+        );
 
         // Convert HashMap to Vec and create GraphData for saving
         if !accumulated_nodes.is_empty() {
-            let node_vec: Vec<crate::models::node::Node> = accumulated_nodes.into_values().collect();
-            let edge_vec: Vec<crate::models::edge::Edge> = accumulated_edges.into_values().collect();
-            info!("Saving accumulated knowledge graph: {} unique nodes, {} unique edges",
-                  node_vec.len(), edge_vec.len());
+            let node_vec: Vec<crate::models::node::Node> =
+                accumulated_nodes.into_values().collect();
+            let edge_vec: Vec<crate::models::edge::Edge> =
+                accumulated_edges.into_values().collect();
+            info!(
+                "Saving accumulated knowledge graph: {} unique nodes, {} unique edges",
+                node_vec.len(),
+                edge_vec.len()
+            );
 
             let mut final_graph = crate::models::graph::GraphData::new();
             final_graph.nodes = node_vec;
@@ -211,11 +257,26 @@ impl GitHubSyncService {
         }
 
         // Save accumulated ontology data in a single batch operation
-        if !accumulated_classes.is_empty() || !accumulated_properties.is_empty() || !accumulated_axioms.is_empty() {
-            info!("Saving accumulated ontology: {} classes, {} properties, {} axioms",
-                  accumulated_classes.len(), accumulated_properties.len(), accumulated_axioms.len());
+        if !accumulated_classes.is_empty()
+            || !accumulated_properties.is_empty()
+            || !accumulated_axioms.is_empty()
+        {
+            info!(
+                "Saving accumulated ontology: {} classes, {} properties, {} axioms",
+                accumulated_classes.len(),
+                accumulated_properties.len(),
+                accumulated_axioms.len()
+            );
 
-            match self.onto_repo.save_ontology(&accumulated_classes, &accumulated_properties, &accumulated_axioms).await {
+            match self
+                .onto_repo
+                .save_ontology(
+                    &accumulated_classes,
+                    &accumulated_properties,
+                    &accumulated_axioms,
+                )
+                .await
+            {
                 Ok(_) => info!("✅ Ontology data saved successfully"),
                 Err(e) => {
                     let error_msg = format!("Failed to save accumulated ontology: {}", e);
@@ -261,7 +322,10 @@ impl GitHubSyncService {
         accumulated_axioms: &mut Vec<crate::ports::ontology_repository::OwlAxiom>,
     ) -> FileProcessResult {
         // Fetch file content
-        let content = match self.fetch_file_content_with_retry(&file.download_url, 3).await {
+        let content = match self
+            .fetch_file_content_with_retry(&file.download_url, 3)
+            .await
+        {
             Ok(content) => content,
             Err(e) => {
                 return FileProcessResult::Error {
@@ -275,8 +339,26 @@ impl GitHubSyncService {
 
         match file_type {
             // ✅ FIX: Pass public_page_names to knowledge graph processor
-            FileType::KnowledgeGraph => self.process_knowledge_graph_file(file, &content, accumulated_nodes, accumulated_edges, public_page_names).await,
-            FileType::Ontology => self.process_ontology_file(file, &content, accumulated_classes, accumulated_properties, accumulated_axioms).await,
+            FileType::KnowledgeGraph => {
+                self.process_knowledge_graph_file(
+                    file,
+                    &content,
+                    accumulated_nodes,
+                    accumulated_edges,
+                    public_page_names,
+                )
+                .await
+            }
+            FileType::Ontology => {
+                self.process_ontology_file(
+                    file,
+                    &content,
+                    accumulated_classes,
+                    accumulated_properties,
+                    accumulated_axioms,
+                )
+                .await
+            }
             FileType::Skip => FileProcessResult::Skipped {
                 reason: "No public:: true or OntologyBlock marker found".to_string(),
             },
@@ -295,7 +377,11 @@ impl GitHubSyncService {
         // ✅ FIX: Add this page to public set (strip .md extension)
         let page_name = file.name.strip_suffix(".md").unwrap_or(&file.name);
         public_page_names.insert(page_name.to_string());
-        debug!("Added '{}' to public pages set (total: {})", page_name, public_page_names.len());
+        debug!(
+            "Added '{}' to public pages set (total: {})",
+            page_name,
+            public_page_names.len()
+        );
 
         // Parse the file
         let graph_data = match self.kg_parser.parse(content, &file.name) {
@@ -320,7 +406,9 @@ impl GitHubSyncService {
 
         for edge in graph_data.edges {
             // Only add edge if both source and target nodes exist in accumulated_nodes
-            if accumulated_nodes.contains_key(&edge.source) && accumulated_nodes.contains_key(&edge.target) {
+            if accumulated_nodes.contains_key(&edge.source)
+                && accumulated_nodes.contains_key(&edge.target)
+            {
                 accumulated_edges.insert(edge.id.clone(), edge);
                 filtered_edge_count += 1;
             } else {
@@ -394,8 +482,12 @@ impl GitHubSyncService {
         // Check for "public:: true" (knowledge graph marker)
         for (i, line) in lines.iter().enumerate() {
             let trimmed = line.trim();
-            debug!("Line {} check: '{}' == 'public:: true' ? {}",
-                   i + 1, trimmed, trimmed == "public:: true");
+            debug!(
+                "Line {} check: '{}' == 'public:: true' ? {}",
+                i + 1,
+                trimmed,
+                trimmed == "public:: true"
+            );
 
             if trimmed == "public:: true" {
                 debug!("✅ Knowledge Graph detected!");
@@ -489,7 +581,9 @@ mod tests {
                     repo: "test".to_string(),
                     base_path: "test".to_string(),
                 },
-                Arc::new(tokio::sync::RwLock::new(crate::config::AppFullSettings::default())),
+                Arc::new(tokio::sync::RwLock::new(
+                    crate::config::AppFullSettings::default(),
+                )),
             )
             .expect("Failed to create test client"),
         );

@@ -78,8 +78,10 @@ async fn list_workspaces(
         GetWorkspaces {
             query: workspace_query,
         },
-        "Workspace"
-    ).await {
+        "Workspace",
+    )
+    .await
+    {
         Ok(Ok(response)) => {
             info!(
                 "Successfully retrieved {} workspaces",
@@ -96,11 +98,16 @@ async fn list_workspaces(
                 ))),
             )
         }
-        Err(ActorTimeoutError::Timeout { duration, actor_type }) => {
+        Err(ActorTimeoutError::Timeout {
+            duration,
+            actor_type,
+        }) => {
             error!("{} actor timeout after {:?}", actor_type, duration);
-            Ok(HttpResponse::GatewayTimeout().json(WorkspaceListResponse::error(
-                "Request timeout - workspace service took too long to respond"
-            )))
+            Ok(
+                HttpResponse::GatewayTimeout().json(WorkspaceListResponse::error(
+                    "Request timeout - workspace service took too long to respond",
+                )),
+            )
         }
         Err(e) => {
             error!("Failed to communicate with workspace actor: {}", e);
@@ -132,8 +139,10 @@ async fn get_workspace(
         GetWorkspace {
             workspace_id: workspace_id.clone(),
         },
-        "Workspace"
-    ).await {
+        "Workspace",
+    )
+    .await
+    {
         Ok(Ok(workspace)) => {
             info!("Successfully retrieved workspace: {}", workspace.name);
             Ok(HttpResponse::Ok().json(WorkspaceResponse::success(
@@ -145,10 +154,16 @@ async fn get_workspace(
             warn!("Workspace not found or error: {}", e);
             Ok(HttpResponse::NotFound().json(WorkspaceResponse::error(e)))
         }
-        Err(ActorTimeoutError::Timeout { duration, actor_type }) => {
+        Err(ActorTimeoutError::Timeout {
+            duration,
+            actor_type,
+        }) => {
             error!("{} actor timeout after {:?}", actor_type, duration);
-            Ok(HttpResponse::GatewayTimeout()
-                .json(WorkspaceResponse::error("Request timeout - workspace service took too long to respond")))
+            Ok(
+                HttpResponse::GatewayTimeout().json(WorkspaceResponse::error(
+                    "Request timeout - workspace service took too long to respond",
+                )),
+            )
         }
         Err(e) => {
             error!("Failed to communicate with workspace actor: {}", e);

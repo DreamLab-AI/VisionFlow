@@ -17,6 +17,15 @@ pub mod sqlite_ontology_repository;
 pub mod sqlite_settings_repository;
 pub mod whelk_inference_engine;
 
+// Phase 2.2: Actor system adapter wrappers
+pub mod actix_physics_adapter;
+pub mod actix_semantic_adapter;
+pub mod messages;
+pub mod whelk_inference_stub;
+
+// Compatibility alias for physics orchestrator adapter
+pub mod physics_orchestrator_adapter;
+
 // CQRS Phase 1: Actor-based adapter exports
 pub use actor_graph_repository::ActorGraphRepository;
 
@@ -29,3 +38,8 @@ pub use sqlite_knowledge_graph_repository::SqliteKnowledgeGraphRepository;
 pub use sqlite_ontology_repository::SqliteOntologyRepository;
 pub use sqlite_settings_repository::SqliteSettingsRepository;
 pub use whelk_inference_engine::WhelkInferenceEngine;
+
+// Phase 2.2: Actor wrapper adapter exports
+pub use actix_physics_adapter::ActixPhysicsAdapter;
+pub use actix_semantic_adapter::ActixSemanticAdapter;
+pub use whelk_inference_stub::WhelkInferenceEngineStub;

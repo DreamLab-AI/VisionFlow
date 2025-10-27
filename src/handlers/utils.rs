@@ -22,7 +22,8 @@ where
     // Wait for the result in a non-blocking way using spawn_blocking
     // This is safe because we're just waiting on a channel, not creating a runtime
     tokio::task::spawn_blocking(move || {
-        rx.recv().map_err(|e| format!("Thread communication error: {}", e))
+        rx.recv()
+            .map_err(|e| format!("Thread communication error: {}", e))
     })
     .await
     .map_err(|e| format!("Task join error: {}", e))?

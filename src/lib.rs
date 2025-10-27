@@ -4,10 +4,14 @@ pub mod app_state;
 pub mod application; // CQRS application layer
 pub mod client;
 pub mod config;
+pub mod cqrs; // CQRS (Command Query Responsibility Segregation) layer
 pub mod errors;
+pub mod events; // Event-driven architecture (Phase 3.2)
 pub mod gpu;
 pub mod handlers;
+pub mod inference; // Inference module (Phase 7 - whelk-rs integration)
 pub mod middleware;
+pub mod migrations; // Database migration system
 pub mod models;
 pub mod ontology;
 pub mod physics;

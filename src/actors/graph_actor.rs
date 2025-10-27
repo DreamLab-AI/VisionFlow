@@ -91,7 +91,7 @@ pub struct GraphServiceActor {
     graph_data: Arc<GraphData>,        // Changed to Arc<GraphData>
     node_map: Arc<HashMap<u32, Node>>, // Changed to Arc for shared access
     gpu_compute_addr: Option<Addr<GPUManagerActor>>, // GPUManagerActor for coordinated GPU computation
-    kg_repo: Arc<dyn KnowledgeGraphRepository>,      // Knowledge graph repository for database operations
+    kg_repo: Arc<dyn KnowledgeGraphRepository>, // Knowledge graph repository for database operations
     client_manager: Addr<ClientCoordinatorActor>,
     simulation_running: AtomicBool,
     shutdown_complete: Arc<AtomicBool>,
@@ -1315,7 +1315,11 @@ impl GraphServiceActor {
     /// # Returns
     /// * `Ok(())` if the graph was built successfully
     /// * `Err(String)` if there was an error during graph construction
-    pub fn build_from_metadata(&mut self, metadata: MetadataStore, ctx: &mut Context<Self>) -> Result<(), String> {
+    pub fn build_from_metadata(
+        &mut self,
+        metadata: MetadataStore,
+        ctx: &mut Context<Self>,
+    ) -> Result<(), String> {
         let mut new_graph_data = GraphData::new();
 
         // BREADCRUMB: Save existing node positions before clearing node_map
@@ -1719,7 +1723,11 @@ impl GraphServiceActor {
         self.upload_constraints_to_gpu(ctx);
     }
 
-    fn generate_initial_semantic_constraints(&mut self, graph_data: &std::sync::Arc<GraphData>, ctx: &mut Context<Self>) {
+    fn generate_initial_semantic_constraints(
+        &mut self,
+        graph_data: &std::sync::Arc<GraphData>,
+        ctx: &mut Context<Self>,
+    ) {
         // Generate domain-based clustering constraints from semantic analysis
         let mut domain_clusters: HashMap<String, Vec<u32>> = HashMap::new();
 
@@ -1853,7 +1861,7 @@ impl GraphServiceActor {
                         );
                     }
                 }
-                .into_actor(self)
+                .into_actor(self),
             );
         } else {
             trace!("No GPU compute actor available for constraint upload");
@@ -2707,7 +2715,7 @@ impl GraphServiceActor {
                         Err(e) => error!("Failed to send ComputeForces message: {}", e),
                     }
                 }
-                .into_actor(self)
+                .into_actor(self),
             );
 
             // Return early - the async block will handle position updates
@@ -3121,7 +3129,8 @@ impl Actor for GraphServiceActor {
             info!("{}", report);
         }
         // Defer simulation start to avoid reactor panic
-        ctx.address().do_send(crate::actors::messages::InitializeActor);
+        ctx.address()
+            .do_send(crate::actors::messages::InitializeActor);
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
@@ -3135,7 +3144,11 @@ impl Actor for GraphServiceActor {
 impl Handler<crate::actors::messages::InitializeActor> for GraphServiceActor {
     type Result = ();
 
-    fn handle(&mut self, _msg: crate::actors::messages::InitializeActor, ctx: &mut Self::Context) -> Self::Result {
+    fn handle(
+        &mut self,
+        _msg: crate::actors::messages::InitializeActor,
+        ctx: &mut Self::Context,
+    ) -> Self::Result {
         info!("GraphServiceActor: Initializing simulation loop (deferred from started)");
         self.start_simulation_loop(ctx);
     }
@@ -3602,7 +3615,10 @@ impl Handler<ReloadGraphFromDatabase> for GraphServiceActor {
                 // Load fresh graph data from database
                 match kg_repo.load_graph().await {
                     Ok(graph_data) => {
-                        info!("ReloadGraphFromDatabase: Loaded {} nodes from database", graph_data.nodes.len());
+                        info!(
+                            "ReloadGraphFromDatabase: Loaded {} nodes from database",
+                            graph_data.nodes.len()
+                        );
                         Ok(graph_data)
                     }
                     Err(e) => {
@@ -3635,9 +3651,9 @@ impl Handler<ReloadGraphFromDatabase> for GraphServiceActor {
                         info!("ReloadGraphFromDatabase: Successfully reloaded graph from database");
                         Ok(())
                     }
-                    Err(e) => Err(e)
+                    Err(e) => Err(e),
                 }
-            })
+            }),
         )
     }
 }
@@ -4401,7 +4417,9 @@ mod tests {
         );
 
         // First build - nodes will get initial positions
-        assert!(actor.build_from_metadata(metadata.clone(), &mut ctx).is_ok());
+        assert!(actor
+            .build_from_metadata(metadata.clone(), &mut ctx)
+            .is_ok());
 
         // Store the positions after first build
         let initial_positions: HashMap<String, (Vec3Data, Vec3Data)> = actor
@@ -4449,7 +4467,9 @@ mod tests {
         }
 
         // Second build - should preserve modified positions
-        assert!(actor.build_from_metadata(metadata.clone(), &mut ctx).is_ok());
+        assert!(actor
+            .build_from_metadata(metadata.clone(), &mut ctx)
+            .is_ok());
 
         // Verify positions were preserved
         let file1_node = actor

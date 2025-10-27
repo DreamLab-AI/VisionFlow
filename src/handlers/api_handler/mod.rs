@@ -18,8 +18,8 @@ pub use visualisation::get_visualisation_settings;
 
 use crate::handlers::utils::execute_in_thread;
 use actix_web::{web, HttpResponse, Responder};
-use serde_json::json;
 use log::{error, info};
+use serde_json::json;
 
 /// GET /api/health - Simple health check endpoint for UI
 async fn health_check() -> impl Responder {
@@ -45,34 +45,32 @@ async fn get_app_config(state: web::Data<crate::AppState>) -> impl Responder {
     let result = execute_in_thread(move || handler.handle(LoadAllSettings)).await;
 
     match result {
-        Ok(Ok(Some(settings))) => {
-            HttpResponse::Ok().json(json!({
-                "version": env!("CARGO_PKG_VERSION"),
-                "features": {
-                    "ragflow": settings.ragflow.is_some(),
-                    "perplexity": settings.perplexity.is_some(),
-                    "openai": settings.openai.is_some(),
-                    "kokoro": settings.kokoro.is_some(),
-                    "whisper": settings.whisper.is_some(),
-                },
-                "websocket": {
-                    "minUpdateRate": settings.system.websocket.min_update_rate,
-                    "maxUpdateRate": settings.system.websocket.max_update_rate,
-                    "motionThreshold": settings.system.websocket.motion_threshold,
-                    "motionDamping": settings.system.websocket.motion_damping,
-                },
-                "rendering": {
-                    "ambientLightIntensity": settings.visualisation.rendering.ambient_light_intensity,
-                    "enableAmbientOcclusion": settings.visualisation.rendering.enable_ambient_occlusion,
-                    "backgroundColor": settings.visualisation.rendering.background_color,
-                },
-                "xr": {
-                    "enabled": settings.xr.enabled.unwrap_or(false),
-                    "roomScale": settings.xr.room_scale,
-                    "spaceType": settings.xr.space_type,
-                }
-            }))
-        }
+        Ok(Ok(Some(settings))) => HttpResponse::Ok().json(json!({
+            "version": env!("CARGO_PKG_VERSION"),
+            "features": {
+                "ragflow": settings.ragflow.is_some(),
+                "perplexity": settings.perplexity.is_some(),
+                "openai": settings.openai.is_some(),
+                "kokoro": settings.kokoro.is_some(),
+                "whisper": settings.whisper.is_some(),
+            },
+            "websocket": {
+                "minUpdateRate": settings.system.websocket.min_update_rate,
+                "maxUpdateRate": settings.system.websocket.max_update_rate,
+                "motionThreshold": settings.system.websocket.motion_threshold,
+                "motionDamping": settings.system.websocket.motion_damping,
+            },
+            "rendering": {
+                "ambientLightIntensity": settings.visualisation.rendering.ambient_light_intensity,
+                "enableAmbientOcclusion": settings.visualisation.rendering.enable_ambient_occlusion,
+                "backgroundColor": settings.visualisation.rendering.background_color,
+            },
+            "xr": {
+                "enabled": settings.xr.enabled.unwrap_or(false),
+                "roomScale": settings.xr.room_scale,
+                "spaceType": settings.xr.space_type,
+            }
+        })),
         Ok(Ok(None)) => {
             log::warn!("No settings found, using defaults");
             use crate::config::AppFullSettings;
@@ -126,7 +124,10 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             // Core API endpoints
             .route("/health", web::get().to(health_check))
             .route("/config", web::get().to(get_app_config))
-            .route("/settings-test", web::get().to(|| async { HttpResponse::Ok().json(json!({"test": "works"})) }))
+            .route(
+                "/settings-test",
+                web::get().to(|| async { HttpResponse::Ok().json(json!({"test": "works"})) }),
+            )
             // Existing module routes
             .configure(files::config)
             .configure(graph::config)

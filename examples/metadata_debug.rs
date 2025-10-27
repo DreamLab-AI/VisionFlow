@@ -1,7 +1,7 @@
-use webxr::services::file_service::FileService;
+use actix::prelude::*;
 use webxr::actors::graph_actor::GraphServiceActor;
 use webxr::actors::messages::BuildGraphFromMetadata;
-use actix::prelude::*;
+use webxr::services::file_service::FileService;
 
 #[actix_rt::main]
 async fn main() {
@@ -12,8 +12,10 @@ async fn main() {
 
             // Show first 3 entries
             for (i, (key, value)) in metadata.iter().enumerate() {
-                if i >= 3 { break; }
-                println!("  {}: {} (size: {})", i+1, key, value.file_size);
+                if i >= 3 {
+                    break;
+                }
+                println!("  {}: {} (size: {})", i + 1, key, value.file_size);
             }
 
             // Create a graph actor and build from metadata
@@ -21,7 +23,10 @@ async fn main() {
             match actor.build_from_metadata(metadata) {
                 Ok(()) => {
                     println!("Graph built successfully!");
-                    println!("Graph contains {} nodes", actor.get_graph_data().nodes.len());
+                    println!(
+                        "Graph contains {} nodes",
+                        actor.get_graph_data().nodes.len()
+                    );
                 }
                 Err(e) => {
                     println!("Failed to build graph: {}", e);

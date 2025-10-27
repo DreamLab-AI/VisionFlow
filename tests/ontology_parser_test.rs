@@ -1,8 +1,8 @@
 // tests/ontology_parser_test.rs
 //! Tests for OntologyParser module
 
-use webxr::services::parsers::ontology_parser::{OntologyParser, OntologyData};
-use webxr::ports::ontology_repository::{OwlClass, OwlProperty, OwlAxiom, PropertyType, AxiomType};
+use webxr::ports::ontology_repository::{AxiomType, OwlAxiom, OwlClass, OwlProperty, PropertyType};
+use webxr::services::parsers::ontology_parser::{OntologyData, OntologyParser};
 
 #[test]
 fn test_parse_basic_owl_class() {
@@ -21,7 +21,10 @@ fn test_parse_basic_owl_class() {
     assert_eq!(result.classes.len(), 1);
     assert_eq!(result.classes[0].iri, "Person");
     assert_eq!(result.classes[0].label, Some("Human Person".to_string()));
-    assert_eq!(result.classes[0].description, Some("A human being".to_string()));
+    assert_eq!(
+        result.classes[0].description,
+        Some("A human being".to_string())
+    );
     assert_eq!(result.classes[0].source_file, Some("test.md".to_string()));
 }
 
@@ -41,7 +44,10 @@ fn test_parse_class_hierarchy() {
 
     assert_eq!(result.classes.len(), 2);
     assert_eq!(result.class_hierarchy.len(), 1);
-    assert_eq!(result.class_hierarchy[0], ("Student".to_string(), "Person".to_string()));
+    assert_eq!(
+        result.class_hierarchy[0],
+        ("Student".to_string(), "Person".to_string())
+    );
 
     // Check parent_classes in OwlClass
     let student = result.classes.iter().find(|c| c.iri == "Student").unwrap();
@@ -64,7 +70,10 @@ fn test_parse_object_property() {
     assert_eq!(result.properties.len(), 1);
     assert_eq!(result.properties[0].iri, "hasParent");
     assert_eq!(result.properties[0].label, Some("has parent".to_string()));
-    assert_eq!(result.properties[0].property_type, PropertyType::ObjectProperty);
+    assert_eq!(
+        result.properties[0].property_type,
+        PropertyType::ObjectProperty
+    );
     assert_eq!(result.properties[0].domain, vec!["Person".to_string()]);
     assert_eq!(result.properties[0].range, vec!["Person".to_string()]);
 }
@@ -84,7 +93,10 @@ fn test_parse_data_property() {
 
     assert_eq!(result.properties.len(), 1);
     assert_eq!(result.properties[0].iri, "hasAge");
-    assert_eq!(result.properties[0].property_type, PropertyType::DataProperty);
+    assert_eq!(
+        result.properties[0].property_type,
+        PropertyType::DataProperty
+    );
     assert_eq!(result.properties[0].domain, vec!["Person".to_string()]);
     assert_eq!(result.properties[0].range, vec!["xsd:integer".to_string()]);
 }
@@ -104,13 +116,17 @@ fn test_parse_axioms() {
 
     assert_eq!(result.axioms.len(), 2);
 
-    let student_axiom = result.axioms.iter()
+    let student_axiom = result
+        .axioms
+        .iter()
         .find(|a| a.subject == "Student")
         .unwrap();
     assert_eq!(student_axiom.axiom_type, AxiomType::SubClassOf);
     assert_eq!(student_axiom.object, "Person");
 
-    let teacher_axiom = result.axioms.iter()
+    let teacher_axiom = result
+        .axioms
+        .iter()
         .find(|a| a.subject == "Teacher")
         .unwrap();
     assert_eq!(teacher_axiom.axiom_type, AxiomType::SubClassOf);
@@ -151,15 +167,22 @@ fn test_parse_iri_format() {
 
     assert_eq!(result.classes.len(), 2);
 
-    let person = result.classes.iter()
+    let person = result
+        .classes
+        .iter()
         .find(|c| c.iri == "http://example.org/ontology#Person")
         .unwrap();
     assert_eq!(person.label, Some("Person".to_string()));
 
-    let student = result.classes.iter()
+    let student = result
+        .classes
+        .iter()
         .find(|c| c.iri == "ex:Student")
         .unwrap();
-    assert_eq!(student.parent_classes, vec!["http://example.org/ontology#Person".to_string()]);
+    assert_eq!(
+        student.parent_classes,
+        vec!["http://example.org/ontology#Person".to_string()]
+    );
 }
 
 #[test]
@@ -252,13 +275,17 @@ Some regular markdown content here.
     // Verify properties
     assert_eq!(result.properties.len(), 3);
     assert_eq!(
-        result.properties.iter()
+        result
+            .properties
+            .iter()
             .filter(|p| p.property_type == PropertyType::ObjectProperty)
             .count(),
         2
     );
     assert_eq!(
-        result.properties.iter()
+        result
+            .properties
+            .iter()
             .filter(|p| p.property_type == PropertyType::DataProperty)
             .count(),
         1
@@ -266,15 +293,25 @@ Some regular markdown content here.
 
     // Verify axioms
     assert_eq!(result.axioms.len(), 2);
-    assert!(result.axioms.iter().all(|a| a.axiom_type == AxiomType::SubClassOf));
+    assert!(result
+        .axioms
+        .iter()
+        .all(|a| a.axiom_type == AxiomType::SubClassOf));
 
     // Verify class hierarchy
     assert_eq!(result.class_hierarchy.len(), 2);
-    assert!(result.class_hierarchy.contains(&("Student".to_string(), "Person".to_string())));
-    assert!(result.class_hierarchy.contains(&("Teacher".to_string(), "Person".to_string())));
+    assert!(result
+        .class_hierarchy
+        .contains(&("Student".to_string(), "Person".to_string())));
+    assert!(result
+        .class_hierarchy
+        .contains(&("Teacher".to_string(), "Person".to_string())));
 
     // Verify source file tracking
-    assert!(result.classes.iter().all(|c| c.source_file == Some("university.md".to_string())));
+    assert!(result
+        .classes
+        .iter()
+        .all(|c| c.source_file == Some("university.md".to_string())));
 }
 
 #[test]

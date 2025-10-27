@@ -11,16 +11,21 @@
 //! - **Directives**: Write operations that modify state (commands)
 //! - **Queries**: Read operations that retrieve state (queries)
 //! - **Handlers**: Process directives and queries using ports (repositories, adapters)
+//! - **Services**: High-level orchestration of commands, queries, and events
 //!
 //! ## Domains
 //!
 //! - **Settings**: Application configuration and user preferences
 //! - **Knowledge Graph**: Main graph structure from local markdown files
 //! - **Ontology**: OWL-based ontology graph from GitHub markdown
+//! - **Physics**: GPU-accelerated physics simulation
 
+pub mod events;
 pub mod graph;
 pub mod knowledge_graph;
 pub mod ontology;
+pub mod physics;
+pub mod services;
 pub mod settings;
 
 // Re-export settings domain
@@ -150,3 +155,24 @@ pub use graph::{
     GetPhysicsState,
     GetPhysicsStateHandler,
 };
+
+// Re-export application services
+pub use services::{
+    GraphApplicationService, OntologyApplicationService, PhysicsApplicationService,
+    SettingsApplicationService,
+};
+
+// Phase 5: New hexagonal architecture services
+pub mod physics_service;
+pub mod semantic_service;
+
+pub use physics_service::PhysicsService;
+pub use semantic_service::SemanticService;
+
+// Phase 7: Inference service
+pub mod inference_service;
+
+pub use inference_service::{InferenceService, InferenceServiceConfig, InferenceEvent};
+
+// Re-export events
+pub use events::DomainEvent;

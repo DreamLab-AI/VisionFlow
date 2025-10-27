@@ -53,3 +53,15 @@ pub use task_orchestrator_actor::{
 };
 pub use voice_commands::{SwarmIntent, SwarmVoiceResponse, VoiceCommand, VoicePreamble};
 pub use workspace_actor::WorkspaceActor;
+
+// Phase 5: Actor lifecycle management and coordination
+pub mod backward_compat;
+pub mod event_coordination;
+pub mod lifecycle;
+
+pub use backward_compat::{LegacyActorCompat, MigrationHelper};
+pub use event_coordination::{initialize_event_coordinator, EventCoordinator};
+pub use lifecycle::{
+    initialize_actor_system, shutdown_actor_system, ActorLifecycleManager,
+    SupervisionStrategy as Phase5SupervisionStrategy,
+};

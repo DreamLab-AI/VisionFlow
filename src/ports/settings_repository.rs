@@ -95,11 +95,20 @@ pub trait SettingsRepository: Send + Sync {
         description: Option<&str>,
     ) -> Result<()>;
 
+    /// Delete a setting by key
+    async fn delete_setting(&self, key: &str) -> Result<()>;
+
+    /// Check if a setting exists
+    async fn has_setting(&self, key: &str) -> Result<bool>;
+
     /// Get batch of settings by keys
     async fn get_settings_batch(&self, keys: &[String]) -> Result<HashMap<String, SettingValue>>;
 
     /// Set batch of settings atomically
     async fn set_settings_batch(&self, updates: HashMap<String, SettingValue>) -> Result<()>;
+
+    /// List all setting keys (optionally filtered by prefix)
+    async fn list_settings(&self, prefix: Option<&str>) -> Result<Vec<String>>;
 
     /// Load complete application settings
     async fn load_all_settings(&self) -> Result<Option<AppFullSettings>>;
@@ -123,6 +132,15 @@ pub trait SettingsRepository: Send + Sync {
     /// Delete a physics profile
     async fn delete_physics_profile(&self, profile_name: &str) -> Result<()>;
 
+    /// Export settings to JSON
+    async fn export_settings(&self) -> Result<serde_json::Value>;
+
+    /// Import settings from JSON
+    async fn import_settings(&self, settings_json: &serde_json::Value) -> Result<()>;
+
     /// Clear cache (for implementations with caching)
     async fn clear_cache(&self) -> Result<()>;
+
+    /// Get repository health status
+    async fn health_check(&self) -> Result<bool>;
 }

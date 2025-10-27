@@ -178,7 +178,7 @@ impl AgentMonitorActor {
                     }
                 }
             }
-            .into_actor(self)
+            .into_actor(self),
         );
     }
 }
@@ -199,7 +199,8 @@ impl Actor for AgentMonitorActor {
         self.is_connected = true;
 
         // Defer polling start to avoid reactor panic
-        ctx.address().do_send(crate::actors::messages::InitializeActor);
+        ctx.address()
+            .do_send(crate::actors::messages::InitializeActor);
     }
 
     fn stopped(&mut self, _: &mut Self::Context) {
@@ -210,7 +211,11 @@ impl Actor for AgentMonitorActor {
 impl Handler<crate::actors::messages::InitializeActor> for AgentMonitorActor {
     type Result = ();
 
-    fn handle(&mut self, _msg: crate::actors::messages::InitializeActor, ctx: &mut Self::Context) -> Self::Result {
+    fn handle(
+        &mut self,
+        _msg: crate::actors::messages::InitializeActor,
+        ctx: &mut Self::Context,
+    ) -> Self::Result {
         info!("[AgentMonitorActor] Initializing periodic polling (deferred from started)");
         // Start periodic polling with deferred interval setup
         ctx.run_later(Duration::from_millis(100), |act, ctx| {

@@ -599,7 +599,8 @@ impl Actor for OntologyActor {
         info!("OntologyActor started");
 
         // Defer interval setup to avoid reactor panic
-        ctx.address().do_send(crate::actors::messages::InitializeActor);
+        ctx.address()
+            .do_send(crate::actors::messages::InitializeActor);
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
@@ -614,7 +615,11 @@ impl Actor for OntologyActor {
 impl Handler<crate::actors::messages::InitializeActor> for OntologyActor {
     type Result = ();
 
-    fn handle(&mut self, _msg: crate::actors::messages::InitializeActor, ctx: &mut Self::Context) -> Self::Result {
+    fn handle(
+        &mut self,
+        _msg: crate::actors::messages::InitializeActor,
+        ctx: &mut Self::Context,
+    ) -> Self::Result {
         info!("OntologyActor: Initializing periodic tasks (deferred from started)");
 
         // Schedule periodic job processing

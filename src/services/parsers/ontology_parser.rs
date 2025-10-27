@@ -75,9 +75,7 @@ impl OntologyParser {
             }
         }
 
-        let start = section_start.ok_or_else(|| {
-            "No OntologyBlock found in file".to_string()
-        })?;
+        let start = section_start.ok_or_else(|| "No OntologyBlock found in file".to_string())?;
 
         // Extract from OntologyBlock to end of file or next major section
         let section: Vec<&str> = lines[start..].iter().copied().collect();
@@ -337,7 +335,10 @@ mod tests {
         assert_eq!(result.classes.len(), 1);
         assert_eq!(result.classes[0].iri, "Person");
         assert_eq!(result.classes[0].label, Some("Human Person".to_string()));
-        assert_eq!(result.classes[0].description, Some("A human being".to_string()));
+        assert_eq!(
+            result.classes[0].description,
+            Some("A human being".to_string())
+        );
         assert_eq!(result.classes[0].source_file, Some("test.md".to_string()));
     }
 
@@ -357,7 +358,10 @@ mod tests {
 
         assert_eq!(result.classes.len(), 2);
         assert_eq!(result.class_hierarchy.len(), 1);
-        assert_eq!(result.class_hierarchy[0], ("Student".to_string(), "Person".to_string()));
+        assert_eq!(
+            result.class_hierarchy[0],
+            ("Student".to_string(), "Person".to_string())
+        );
 
         let student = result.classes.iter().find(|c| c.iri == "Student").unwrap();
         assert_eq!(student.parent_classes, vec!["Person".to_string()]);
@@ -379,7 +383,10 @@ mod tests {
         assert_eq!(result.properties.len(), 1);
         assert_eq!(result.properties[0].iri, "hasParent");
         assert_eq!(result.properties[0].label, Some("has parent".to_string()));
-        assert_eq!(result.properties[0].property_type, PropertyType::ObjectProperty);
+        assert_eq!(
+            result.properties[0].property_type,
+            PropertyType::ObjectProperty
+        );
         assert_eq!(result.properties[0].domain, vec!["Person".to_string()]);
         assert_eq!(result.properties[0].range, vec!["Person".to_string()]);
     }
@@ -399,7 +406,10 @@ mod tests {
 
         assert_eq!(result.properties.len(), 1);
         assert_eq!(result.properties[0].iri, "hasAge");
-        assert_eq!(result.properties[0].property_type, PropertyType::DataProperty);
+        assert_eq!(
+            result.properties[0].property_type,
+            PropertyType::DataProperty
+        );
     }
 
     #[test]
@@ -417,7 +427,9 @@ mod tests {
 
         assert_eq!(result.axioms.len(), 2);
 
-        let student_axiom = result.axioms.iter()
+        let student_axiom = result
+            .axioms
+            .iter()
             .find(|a| a.subject == "Student")
             .unwrap();
         assert_eq!(student_axiom.axiom_type, AxiomType::SubClassOf);
@@ -452,14 +464,21 @@ No ontology here!
 
         assert_eq!(result.classes.len(), 2);
 
-        let person = result.classes.iter()
+        let person = result
+            .classes
+            .iter()
             .find(|c| c.iri == "http://example.org/ontology#Person")
             .unwrap();
         assert_eq!(person.label, Some("Person".to_string()));
 
-        let student = result.classes.iter()
+        let student = result
+            .classes
+            .iter()
             .find(|c| c.iri == "ex:Student")
             .unwrap();
-        assert_eq!(student.parent_classes, vec!["http://example.org/ontology#Person".to_string()]);
+        assert_eq!(
+            student.parent_classes,
+            vec!["http://example.org/ontology#Person".to_string()]
+        );
     }
 }

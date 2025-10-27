@@ -1,0 +1,233 @@
+// src/migrations/version.rs
+//! Migration version tracking and metadata management
+
+use rusqlite::{params, Connection, Result as SqliteResult};
+use chrono::{DateTime, Utc};
+use serde::{Serialize, Deserialize};
+use std::path::Path;
+
+/// Metadata for an applied migration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MigrationMetadata {
+    pub version: i32,
+    pub name: String,
+    pub applied_at: DateTime<Utc>,
+    pub checksum: String,
+    pub execution_time_ms: i64,
+}
+
+/// Manages migration version tracking in the database
+pub struct VersionTracker {
+    database_name: String,
+}
+
+impl VersionTracker {
+    pub fn new(database_name: String) -> Self {
+        Self { database_name }
+    }
+
+    /// Initialize the migration_version table
+    pub fn initialize(&self, conn: &Connection) -> SqliteResult<()> {
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS migration_version (
+                version INTEGER PRIMARY KEY,
+                name TEXT NOT NULL,
+                applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                checksum TEXT NOT NULL,
+                execution_time_ms INTEGER NOT NULL,
+                database_name TEXT NOT NULL
+            )",
+            [],
+        )?;
+
+        // Create index for faster queries
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_migration_version_database
+             ON migration_version(database_name, version DESC)",
+            [],
+        )?;
+
+        Ok(())
+    }
+
+    /// Get the current migration version
+    pub fn get_current_version(&self, conn: &Connection) -> SqliteResult<i32> {
+        let version: Option<i32> = conn
+            .query_row(
+                "SELECT MAX(version) FROM migration_version WHERE database_name = ?1",
+                params![&self.database_name],
+                |row| row.get(0),
+            )
+            .ok()
+            .flatten();
+
+        Ok(version.unwrap_or(0))
+    }
+
+    /// Record a migration as applied
+    pub fn record_migration(
+        &self,
+        conn: &Connection,
+        metadata: &MigrationMetadata,
+    ) -> SqliteResult<()> {
+        conn.execute(
+            "INSERT INTO migration_version
+             (version, name, applied_at, checksum, execution_time_ms, database_name)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            params![
+                metadata.version,
+                &metadata.name,
+                metadata.applied_at.to_rfc3339(),
+                &metadata.checksum,
+                metadata.execution_time_ms,
+                &self.database_name,
+            ],
+        )?;
+
+        Ok(())
+    }
+
+    /// Remove a migration record (for rollback)
+    pub fn remove_migration(&self, conn: &Connection, version: i32) -> SqliteResult<()> {
+        conn.execute(
+            "DELETE FROM migration_version
+             WHERE version = ?1 AND database_name = ?2",
+            params![version, &self.database_name],
+        )?;
+
+        Ok(())
+    }
+
+    /// Get all applied migrations
+    pub fn get_applied_migrations(&self, conn: &Connection) -> SqliteResult<Vec<MigrationMetadata>> {
+        let mut stmt = conn.prepare(
+            "SELECT version, name, applied_at, checksum, execution_time_ms
+             FROM migration_version
+             WHERE database_name = ?1
+             ORDER BY version ASC",
+        )?;
+
+        let migrations = stmt
+            .query_map(params![&self.database_name], |row| {
+                let applied_at_str: String = row.get(2)?;
+                let applied_at = DateTime::parse_from_rfc3339(&applied_at_str)
+                    .map(|dt| dt.with_timezone(&Utc))
+                    .unwrap_or_else(|_| Utc::now());
+
+                Ok(MigrationMetadata {
+                    version: row.get(0)?,
+                    name: row.get(1)?,
+                    applied_at,
+                    checksum: row.get(3)?,
+                    execution_time_ms: row.get(4)?,
+                })
+            })?
+            .collect::<SqliteResult<Vec<_>>>()?;
+
+        Ok(migrations)
+    }
+
+    /// Get metadata for a specific migration
+    pub fn get_migration(&self, conn: &Connection, version: i32) -> SqliteResult<Option<MigrationMetadata>> {
+        let mut stmt = conn.prepare(
+            "SELECT version, name, applied_at, checksum, execution_time_ms
+             FROM migration_version
+             WHERE version = ?1 AND database_name = ?2",
+        )?;
+
+        let result = stmt.query_row(params![version, &self.database_name], |row| {
+            let applied_at_str: String = row.get(2)?;
+            let applied_at = DateTime::parse_from_rfc3339(&applied_at_str)
+                .map(|dt| dt.with_timezone(&Utc))
+                .unwrap_or_else(|_| Utc::now());
+
+            Ok(MigrationMetadata {
+                version: row.get(0)?,
+                name: row.get(1)?,
+                applied_at,
+                checksum: row.get(3)?,
+                execution_time_ms: row.get(4)?,
+            })
+        });
+
+        match result {
+            Ok(metadata) => Ok(Some(metadata)),
+            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Calculate checksum for migration content
+    pub fn calculate_checksum(content: &str) -> String {
+        use blake3::Hasher;
+
+        let mut hasher = Hasher::new();
+        hasher.update(content.as_bytes());
+        hasher.finalize().to_hex().to_string()
+    }
+
+    /// Verify checksum of applied migration
+    pub fn verify_checksum(
+        &self,
+        conn: &Connection,
+        version: i32,
+        expected_checksum: &str,
+    ) -> SqliteResult<bool> {
+        if let Some(metadata) = self.get_migration(conn, version)? {
+            Ok(metadata.checksum == expected_checksum)
+        } else {
+            Ok(false)
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_version_tracker() {
+        let temp_dir = TempDir::new().unwrap();
+        let db_path = temp_dir.path().join("test.db");
+        let conn = Connection::open(&db_path).unwrap();
+
+        let tracker = VersionTracker::new("test".to_string());
+        tracker.initialize(&conn).unwrap();
+
+        // Initial version should be 0
+        assert_eq!(tracker.get_current_version(&conn).unwrap(), 0);
+
+        // Record a migration
+        let metadata = MigrationMetadata {
+            version: 1,
+            name: "initial_schema".to_string(),
+            applied_at: Utc::now(),
+            checksum: "abc123".to_string(),
+            execution_time_ms: 100,
+        };
+
+        tracker.record_migration(&conn, &metadata).unwrap();
+        assert_eq!(tracker.get_current_version(&conn).unwrap(), 1);
+
+        // Verify metadata
+        let retrieved = tracker.get_migration(&conn, 1).unwrap().unwrap();
+        assert_eq!(retrieved.name, "initial_schema");
+        assert_eq!(retrieved.checksum, "abc123");
+    }
+
+    #[test]
+    fn test_checksum_calculation() {
+        let content = "CREATE TABLE test (id INTEGER PRIMARY KEY);";
+        let checksum = VersionTracker::calculate_checksum(content);
+        assert!(!checksum.is_empty());
+
+        // Same content should produce same checksum
+        let checksum2 = VersionTracker::calculate_checksum(content);
+        assert_eq!(checksum, checksum2);
+
+        // Different content should produce different checksum
+        let checksum3 = VersionTracker::calculate_checksum("ALTER TABLE test ADD COLUMN name TEXT;");
+        assert_ne!(checksum, checksum3);
+    }
+}

@@ -10,11 +10,9 @@ use std::collections::HashMap;
 use std::sync::Arc;
 // GraphService direct import is no longer needed as we use actors
 // use crate::services::graph_service::GraphService;
-use crate::actors::messages::{
-    AddNodesFromMetadata, GetSettings,
-};
+use crate::actors::messages::{AddNodesFromMetadata, GetSettings};
 use crate::application::graph::queries::{
-    GetGraphData, GetNodeMap, GetPhysicsState, GetAutoBalanceNotifications,
+    GetAutoBalanceNotifications, GetGraphData, GetNodeMap, GetPhysicsState,
 };
 use crate::handlers::utils::execute_in_thread;
 use hexser::QueryHandler;
@@ -183,7 +181,6 @@ pub async fn get_graph_data(state: web::Data<AppState>, _req: HttpRequest) -> im
         }
     }
 }
-
 
 pub async fn get_paginated_graph_data(
     state: web::Data<AppState>,
@@ -443,7 +440,10 @@ pub async fn get_auto_balance_notifications(
     info!("Fetching auto-balance notifications (CQRS Phase 1D)");
 
     // Use CQRS query handler
-    let handler = state.graph_query_handlers.get_auto_balance_notifications.clone();
+    let handler = state
+        .graph_query_handlers
+        .get_auto_balance_notifications
+        .clone();
     let query_obj = GetAutoBalanceNotifications { since_timestamp };
 
     let result = execute_in_thread(move || handler.handle(query_obj)).await;
@@ -469,8 +469,6 @@ pub async fn get_auto_balance_notifications(
         }
     }
 }
-
-
 
 // Configure routes using snake_case
 pub fn config(cfg: &mut web::ServiceConfig) {

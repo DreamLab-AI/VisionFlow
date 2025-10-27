@@ -1239,13 +1239,13 @@ pub struct NetworkSettings {
 impl Default for NetworkSettings {
     fn default() -> Self {
         Self {
-            bind_address: "0.0.0.0".to_string(),  // Valid bind address (all interfaces)
-            port: 8080,                            // Valid default HTTP port
+            bind_address: "0.0.0.0".to_string(), // Valid bind address (all interfaces)
+            port: 8080,                          // Valid default HTTP port
             domain: String::new(),
             enable_http2: false,
             enable_rate_limiting: false,
             enable_tls: false,
-            max_request_size: 10485760,            // 10MB
+            max_request_size: 10485760, // 10MB
             min_tls_version: "1.2".to_string(),
             rate_limit_requests: 100,
             rate_limit_window: 60,
@@ -1255,7 +1255,7 @@ impl Default for NetworkSettings {
             max_concurrent_requests: 1000,
             max_retries: 3,
             metrics_port: 9090,
-            retry_delay: 1000,                     // 1 second
+            retry_delay: 1000, // 1 second
         }
     }
 }

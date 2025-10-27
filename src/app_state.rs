@@ -5,10 +5,19 @@ use std::sync::{
     atomic::{AtomicUsize, Ordering},
     Arc,
 };
+use tokio::sync::RwLock;
 
 // CQRS Phase 1D: Graph domain imports
 use crate::adapters::actor_graph_repository::ActorGraphRepository;
 use crate::application::graph::*;
+
+// CQRS Phase 4: Command/Query/Event buses and Application Services
+use crate::application::{
+    GraphApplicationService, OntologyApplicationService, PhysicsApplicationService,
+    SettingsApplicationService,
+};
+use crate::cqrs::{CommandBus, QueryBus};
+use crate::events::EventBus;
 
 #[cfg(feature = "gpu")]
 use crate::actors::gpu;
@@ -27,8 +36,8 @@ use crate::models::metadata::MetadataStore;
 use crate::models::protected_settings::{ApiKeys, NostrUser, ProtectedSettings};
 use crate::services::bots_client::BotsClient;
 use crate::services::database_service::DatabaseService;
-use crate::services::github::{ContentAPI, GitHubClient};
 use crate::services::github::content_enhanced::EnhancedContentAPI;
+use crate::services::github::{ContentAPI, GitHubClient};
 use crate::services::github_sync_service::GitHubSyncService;
 use crate::services::management_api_client::ManagementApiClient;
 use crate::services::nostr_service::NostrService;
@@ -62,6 +71,15 @@ pub struct GraphQueryHandlers {
     pub compute_shortest_paths: Arc<ComputeShortestPathsHandler>,
 }
 
+// CQRS Phase 4: Application Services
+#[derive(Clone)]
+pub struct ApplicationServices {
+    pub graph: GraphApplicationService,
+    pub settings: SettingsApplicationService,
+    pub ontology: OntologyApplicationService,
+    pub physics: PhysicsApplicationService,
+}
+
 #[derive(Clone)]
 pub struct AppState {
     pub graph_service_addr: Addr<TransitionalGraphSupervisor>,
@@ -78,6 +96,12 @@ pub struct AppState {
     // Graph CQRS (Phase 1D migration)
     pub graph_repository: Arc<ActorGraphRepository>,
     pub graph_query_handlers: GraphQueryHandlers,
+    // CQRS Phase 4: Command/Query/Event buses
+    pub command_bus: Arc<RwLock<CommandBus>>,
+    pub query_bus: Arc<RwLock<QueryBus>>,
+    pub event_bus: Arc<RwLock<EventBus>>,
+    // CQRS Phase 4: Application Services (high-level orchestration)
+    pub app_services: ApplicationServices,
     // Database-backed settings (legacy - for backward compatibility)
     pub db_service: Arc<DatabaseService>,
     pub settings_service: Arc<SettingsService>,
@@ -137,13 +161,15 @@ impl AppState {
         info!("[AppState::new] Migrating settings to database in blocking context...");
         let db_service_clone = db_service.clone();
         let settings_clone = settings.clone();
-        tokio::task::spawn_blocking(move || {
-            db_service_clone
-                .save_all_settings(&settings_clone)
-        })
-        .await
-        .map_err(|e| format!("Failed to spawn blocking task for settings migration: {}", e))?
-        .map_err(|e| format!("Failed to save settings to database: {}", e))?;
+        tokio::task::spawn_blocking(move || db_service_clone.save_all_settings(&settings_clone))
+            .await
+            .map_err(|e| {
+                format!(
+                    "Failed to spawn blocking task for settings migration: {}",
+                    e
+                )
+            })?
+            .map_err(|e| format!("Failed to save settings to database: {}", e))?;
 
         // Create settings service (provides direct access to database for handlers)
         info!("[AppState::new] Creating SettingsService (UI → Database direct connection)");
@@ -173,13 +199,11 @@ impl AppState {
 
         info!("[AppState::new] Creating ontology repository in blocking context...");
         let ontology_repository: Arc<SqliteOntologyRepository> =
-            tokio::task::spawn_blocking(|| {
-                SqliteOntologyRepository::new("data/ontology.db")
-            })
-            .await
-            .map_err(|e| format!("Failed to spawn blocking task: {}", e))?
-            .map_err(|e| format!("Failed to create ontology repository: {}", e))
-            .map(Arc::new)?;
+            tokio::task::spawn_blocking(|| SqliteOntologyRepository::new("data/ontology.db"))
+                .await
+                .map_err(|e| format!("Failed to spawn blocking task: {}", e))?
+                .map_err(|e| format!("Failed to create ontology repository: {}", e))
+                .map(Arc::new)?;
 
         info!("[AppState::new] Repository adapters initialized successfully (via spawn_blocking)");
         info!("[AppState::new] Database and settings service initialized successfully");
@@ -221,7 +245,9 @@ impl AppState {
                 // Non-fatal: log error but continue startup
                 // This allows manual data import via API if GitHub is down
                 log::error!("❌ GitHub sync failed: {}", e);
-                log::error!("⚠️  Databases may be empty - use manual import API or check GitHub token");
+                log::error!(
+                    "⚠️  Databases may be empty - use manual import API or check GitHub token"
+                );
             }
         }
         info!("[AppState::new] GitHub sync phase complete, proceeding with actor initialization");
@@ -270,11 +296,48 @@ impl AppState {
             get_graph_data: Arc::new(GetGraphDataHandler::new(graph_repository.clone())),
             get_node_map: Arc::new(GetNodeMapHandler::new(graph_repository.clone())),
             get_physics_state: Arc::new(GetPhysicsStateHandler::new(graph_repository.clone())),
-            get_auto_balance_notifications: Arc::new(GetAutoBalanceNotificationsHandler::new(graph_repository.clone())),
+            get_auto_balance_notifications: Arc::new(GetAutoBalanceNotificationsHandler::new(
+                graph_repository.clone(),
+            )),
             get_bots_graph_data: Arc::new(GetBotsGraphDataHandler::new(graph_repository.clone())),
             get_constraints: Arc::new(GetConstraintsHandler::new(graph_repository.clone())),
-            get_equilibrium_status: Arc::new(GetEquilibriumStatusHandler::new(graph_repository.clone())),
-            compute_shortest_paths: Arc::new(ComputeShortestPathsHandler::new(graph_repository.clone())),
+            get_equilibrium_status: Arc::new(GetEquilibriumStatusHandler::new(
+                graph_repository.clone(),
+            )),
+            compute_shortest_paths: Arc::new(ComputeShortestPathsHandler::new(
+                graph_repository.clone(),
+            )),
+        };
+
+        // CQRS Phase 4: Initialize Command/Query/Event buses
+        info!("[AppState::new] Initializing CQRS buses (Phase 4)");
+        let command_bus = Arc::new(RwLock::new(CommandBus::new()));
+        let query_bus = Arc::new(RwLock::new(QueryBus::new()));
+        let event_bus = Arc::new(RwLock::new(EventBus::new()));
+
+        // CQRS Phase 4: Initialize Application Services
+        info!("[AppState::new] Initializing application services (Phase 4)");
+        let app_services = ApplicationServices {
+            graph: GraphApplicationService::new(
+                command_bus.clone(),
+                query_bus.clone(),
+                event_bus.clone(),
+            ),
+            settings: SettingsApplicationService::new(
+                command_bus.clone(),
+                query_bus.clone(),
+                event_bus.clone(),
+            ),
+            ontology: OntologyApplicationService::new(
+                command_bus.clone(),
+                query_bus.clone(),
+                event_bus.clone(),
+            ),
+            physics: PhysicsApplicationService::new(
+                command_bus.clone(),
+                query_bus.clone(),
+                event_bus.clone(),
+            ),
         };
 
         // WEBSOCKET SETTLING FIX: Set graph service supervisor address in client manager for force broadcasts
@@ -352,7 +415,9 @@ impl AppState {
         //         log::error!("Settings watcher failed to start: {}", e);
         //     }
         // });
-        info!("[AppState::new] Settings hot-reload watcher DISABLED (was causing database deadlocks)");
+        info!(
+            "[AppState::new] Settings hot-reload watcher DISABLED (was causing database deadlocks)"
+        );
 
         info!("[AppState::new] Starting AgentMonitorActor for MCP monitoring");
         let mcp_host =
@@ -463,6 +528,12 @@ impl AppState {
             // Graph CQRS (Phase 1D)
             graph_repository,
             graph_query_handlers,
+            // CQRS Phase 4: Command/Query/Event buses
+            command_bus,
+            query_bus,
+            event_bus,
+            // CQRS Phase 4: Application Services
+            app_services,
             // NEW: Database-backed settings (direct UI connection)
             db_service,
             settings_service,

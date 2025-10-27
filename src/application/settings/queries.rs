@@ -37,12 +37,11 @@ impl QueryHandler<GetSetting, Option<SettingValue>> for GetSettingHandler {
         let key = query.key.clone();
 
         // Use current runtime handle (safe inside spawn_blocking)
-        tokio::runtime::Handle::current()
-            .block_on(async move {
-                repository.get_setting(&key).await.map_err(|e| {
-                    Hexserror::adapter("E_HEX_200", &format!("Failed to get setting: {}", e))
-                })
+        tokio::runtime::Handle::current().block_on(async move {
+            repository.get_setting(&key).await.map_err(|e| {
+                Hexserror::adapter("E_HEX_200", &format!("Failed to get setting: {}", e))
             })
+        })
     }
 }
 
@@ -76,15 +75,11 @@ impl QueryHandler<GetSettingsBatch, HashMap<String, SettingValue>> for GetSettin
         let keys = query.keys.clone();
 
         // Use current runtime handle (safe inside spawn_blocking)
-        tokio::runtime::Handle::current()
-            .block_on(async move {
-                repository
-                    .get_settings_batch(&keys)
-                    .await
-                    .map_err(|e| {
-                        Hexserror::adapter("E_HEX_200", &format!("Failed to get settings batch: {}", e))
-                    })
+        tokio::runtime::Handle::current().block_on(async move {
+            repository.get_settings_batch(&keys).await.map_err(|e| {
+                Hexserror::adapter("E_HEX_200", &format!("Failed to get settings batch: {}", e))
             })
+        })
     }
 }
 
@@ -112,12 +107,11 @@ impl QueryHandler<LoadAllSettings, Option<AppFullSettings>> for LoadAllSettingsH
         let repository = self.repository.clone();
 
         // Use current runtime handle (safe inside spawn_blocking)
-        tokio::runtime::Handle::current()
-            .block_on(async move {
-                repository.load_all_settings().await.map_err(|e| {
-                    Hexserror::adapter("E_HEX_200", &format!("Failed to load all settings: {}", e))
-                })
+        tokio::runtime::Handle::current().block_on(async move {
+            repository.load_all_settings().await.map_err(|e| {
+                Hexserror::adapter("E_HEX_200", &format!("Failed to load all settings: {}", e))
             })
+        })
     }
 }
 
@@ -151,18 +145,17 @@ impl QueryHandler<GetPhysicsSettings, PhysicsSettings> for GetPhysicsSettingsHan
         let profile_name = query.profile_name.clone();
 
         // Use current runtime handle (safe inside spawn_blocking)
-        tokio::runtime::Handle::current()
-            .block_on(async move {
-                repository
-                    .get_physics_settings(&profile_name)
-                    .await
-                    .map_err(|e| {
-                        Hexserror::adapter(
-                            "E_HEX_200",
-                            &format!("Failed to get physics settings: {}", e),
-                        )
-                    })
-            })
+        tokio::runtime::Handle::current().block_on(async move {
+            repository
+                .get_physics_settings(&profile_name)
+                .await
+                .map_err(|e| {
+                    Hexserror::adapter(
+                        "E_HEX_200",
+                        &format!("Failed to get physics settings: {}", e),
+                    )
+                })
+        })
     }
 }
 
@@ -190,14 +183,13 @@ impl QueryHandler<ListPhysicsProfiles, Vec<String>> for ListPhysicsProfilesHandl
         let repository = self.repository.clone();
 
         // Use current runtime handle (safe inside spawn_blocking)
-        tokio::runtime::Handle::current()
-            .block_on(async move {
-                repository.list_physics_profiles().await.map_err(|e| {
-                    Hexserror::adapter(
-                        "E_HEX_200",
-                        &format!("Failed to list physics profiles: {}", e),
-                    )
-                })
+        tokio::runtime::Handle::current().block_on(async move {
+            repository.list_physics_profiles().await.map_err(|e| {
+                Hexserror::adapter(
+                    "E_HEX_200",
+                    &format!("Failed to list physics profiles: {}", e),
+                )
             })
+        })
     }
 }

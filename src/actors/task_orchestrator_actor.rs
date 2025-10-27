@@ -142,7 +142,8 @@ impl Actor for TaskOrchestratorActor {
         info!("[TaskOrchestratorActor] Actor started");
 
         // Defer interval setup to avoid reactor panic
-        ctx.address().do_send(crate::actors::messages::InitializeActor);
+        ctx.address()
+            .do_send(crate::actors::messages::InitializeActor);
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
@@ -153,7 +154,11 @@ impl Actor for TaskOrchestratorActor {
 impl Handler<crate::actors::messages::InitializeActor> for TaskOrchestratorActor {
     type Result = ();
 
-    fn handle(&mut self, _msg: crate::actors::messages::InitializeActor, ctx: &mut Self::Context) -> Self::Result {
+    fn handle(
+        &mut self,
+        _msg: crate::actors::messages::InitializeActor,
+        ctx: &mut Self::Context,
+    ) -> Self::Result {
         info!("[TaskOrchestratorActor] Initializing periodic cleanup (deferred from started)");
 
         // Start periodic cleanup of old completed tasks

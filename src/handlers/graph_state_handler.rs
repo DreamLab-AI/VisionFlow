@@ -1,10 +1,10 @@
 // CQRS-Based Graph State Handler
 // Uses Knowledge Graph application layer for all graph operations
 
+use crate::handlers::utils::execute_in_thread;
 use crate::AppState;
 use actix_web::{web, HttpResponse, Responder};
 use log::{debug, error, info};
-use crate::handlers::utils::execute_in_thread;
 use serde::{Deserialize, Serialize};
 
 // Import CQRS handlers
@@ -451,7 +451,8 @@ pub async fn batch_update_positions(
     let handler = BatchUpdatePositionsHandler::new(state.knowledge_graph_repository.clone());
 
     // Execute directive
-    let result = execute_in_thread(move || handler.handle(BatchUpdatePositions { positions })).await;
+    let result =
+        execute_in_thread(move || handler.handle(BatchUpdatePositions { positions })).await;
 
     match result {
         Ok(Ok(())) => {

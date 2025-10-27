@@ -217,6 +217,76 @@ impl SettingsRepository for SqliteSettingsRepository {
         .map_err(|e| SettingsRepositoryError::DatabaseError(e.to_string()))
     }
 
+    #[instrument(skip(self), level = "debug")]
+    async fn delete_setting(&self, key: &str) -> RepoResult<()> {
+        let db = self.db.clone();
+        let key_owned = key.to_string();
+        tokio::task::spawn_blocking(move || db.delete_setting(&key_owned))
+            .await
+            .map_err(|e| SettingsRepositoryError::DatabaseError(format!("Task join error: {}", e)))?
+            .map_err(|e| SettingsRepositoryError::DatabaseError(e.to_string()))?;
+
+        self.invalidate_cache(key).await;
+        Ok(())
+    }
+
+    #[instrument(skip(self), level = "debug")]
+    async fn has_setting(&self, key: &str) -> RepoResult<bool> {
+        // Check cache first
+        if self.get_from_cache(key).await.is_some() {
+            return Ok(true);
+        }
+
+        // Check database
+        let result = self.get_setting(key).await?;
+        Ok(result.is_some())
+    }
+
+    #[instrument(skip(self), level = "debug")]
+    async fn list_settings(&self, prefix: Option<&str>) -> RepoResult<Vec<String>> {
+        let db = self.db.clone();
+        let prefix_owned = prefix.map(|s| s.to_string());
+        tokio::task::spawn_blocking(move || db.list_settings(prefix_owned.as_deref()))
+            .await
+            .map_err(|e| SettingsRepositoryError::DatabaseError(format!("Task join error: {}", e)))?
+            .map_err(|e| SettingsRepositoryError::DatabaseError(e.to_string()))
+    }
+
+    #[instrument(skip(self), level = "debug")]
+    async fn export_settings(&self) -> RepoResult<serde_json::Value> {
+        let db = self.db.clone();
+        let all_keys = self.list_settings(None).await?;
+
+        let mut settings_map = HashMap::new();
+        for key in all_keys {
+            if let Some(value) = self.get_setting(&key).await? {
+                settings_map.insert(key, value);
+            }
+        }
+
+        Ok(serde_json::to_value(&settings_map)
+            .map_err(|e| SettingsRepositoryError::SerializationError(e.to_string()))?)
+    }
+
+    #[instrument(skip(self), level = "debug")]
+    async fn import_settings(&self, settings_json: &serde_json::Value) -> RepoResult<()> {
+        let settings_map: HashMap<String, SettingValue> =
+            serde_json::from_value(settings_json.clone())
+                .map_err(|e| SettingsRepositoryError::SerializationError(e.to_string()))?;
+
+        self.set_settings_batch(settings_map).await?;
+        Ok(())
+    }
+
+    #[instrument(skip(self), level = "debug")]
+    async fn health_check(&self) -> RepoResult<bool> {
+        // Simple health check: try to get a setting
+        match self.list_settings(None).await {
+            Ok(_) => Ok(true),
+            Err(_) => Ok(false),
+        }
+    }
+
     async fn list_physics_profiles(&self) -> RepoResult<Vec<String>> {
         let db = self.db.clone();
         tokio::task::spawn_blocking(move || {

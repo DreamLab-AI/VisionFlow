@@ -393,7 +393,9 @@ impl OntologyRepository for SqliteOntologyRepository {
         let conn_arc = self.conn.clone();
 
         tokio::task::spawn_blocking(move || {
-            let conn = conn_arc.lock().expect("Failed to acquire ontology repository mutex");
+            let conn = conn_arc
+                .lock()
+                .expect("Failed to acquire ontology repository mutex");
 
             let mut stmt = conn
                 .prepare("SELECT iri, label, description, source_file, properties FROM owl_classes")
@@ -415,11 +417,17 @@ impl OntologyRepository for SqliteOntologyRepository {
                     Ok((iri, label, description, source_file, properties_json))
                 })
                 .map_err(|e| {
-                    OntologyRepositoryError::DatabaseError(format!("Failed to query classes: {}", e))
+                    OntologyRepositoryError::DatabaseError(format!(
+                        "Failed to query classes: {}",
+                        e
+                    ))
                 })?
                 .collect::<Result<Vec<_>, _>>()
                 .map_err(|e| {
-                    OntologyRepositoryError::DatabaseError(format!("Failed to collect classes: {}", e))
+                    OntologyRepositoryError::DatabaseError(format!(
+                        "Failed to collect classes: {}",
+                        e
+                    ))
                 })?;
 
             let mut classes = Vec::new();
@@ -562,7 +570,9 @@ impl OntologyRepository for SqliteOntologyRepository {
         let conn_arc = self.conn.clone();
 
         tokio::task::spawn_blocking(move || {
-            let conn = conn_arc.lock().expect("Failed to acquire ontology repository mutex");
+            let conn = conn_arc
+                .lock()
+                .expect("Failed to acquire ontology repository mutex");
 
             let mut stmt = conn
                 .prepare("SELECT iri, label, property_type, domain, range FROM owl_properties")
@@ -600,7 +610,10 @@ impl OntologyRepository for SqliteOntologyRepository {
                     })
                 })
                 .map_err(|e| {
-                    OntologyRepositoryError::DatabaseError(format!("Failed to query properties: {}", e))
+                    OntologyRepositoryError::DatabaseError(format!(
+                        "Failed to query properties: {}",
+                        e
+                    ))
                 })?
                 .collect::<Result<Vec<OwlProperty>, _>>()
                 .map_err(|e| {
@@ -825,18 +838,26 @@ impl OntologyRepository for SqliteOntologyRepository {
         let conn_arc = self.conn.clone();
 
         tokio::task::spawn_blocking(move || {
-            let conn = conn_arc.lock().expect("Failed to acquire ontology repository mutex");
+            let conn = conn_arc
+                .lock()
+                .expect("Failed to acquire ontology repository mutex");
 
             let class_count: usize = conn
                 .query_row("SELECT COUNT(*) FROM owl_classes", [], |row| row.get(0))
                 .map_err(|e| {
-                    OntologyRepositoryError::DatabaseError(format!("Failed to count classes: {}", e))
+                    OntologyRepositoryError::DatabaseError(format!(
+                        "Failed to count classes: {}",
+                        e
+                    ))
                 })?;
 
             let property_count: usize = conn
                 .query_row("SELECT COUNT(*) FROM owl_properties", [], |row| row.get(0))
                 .map_err(|e| {
-                    OntologyRepositoryError::DatabaseError(format!("Failed to count properties: {}", e))
+                    OntologyRepositoryError::DatabaseError(format!(
+                        "Failed to count properties: {}",
+                        e
+                    ))
                 })?;
 
             let axiom_count: usize = conn

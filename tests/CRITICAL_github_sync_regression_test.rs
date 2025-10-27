@@ -19,9 +19,9 @@
 //! - Current: Actor-based GraphServiceActor
 //! - Future: Hexagonal architecture with repositories
 
-use tokio::test;
-use std::collections::HashMap;
 use serde_json::Value;
+use std::collections::HashMap;
+use tokio::test;
 
 // Mock types until we implement the real ones
 #[derive(Debug, Clone)]
@@ -122,15 +122,13 @@ async fn test_database_contains_316_nodes_with_correct_types() {
 
     // Assert: Total node count
     assert_eq!(
-        db_nodes.len(), 316,
+        db_nodes.len(),
+        316,
         "CRITICAL: Database should contain exactly 316 nodes after GitHub sync"
     );
 
     // Assert: Node type distribution
-    let page_nodes: Vec<_> = db_nodes
-        .iter()
-        .filter(|n| n.node_type == "page")
-        .collect();
+    let page_nodes: Vec<_> = db_nodes.iter().filter(|n| n.node_type == "page").collect();
 
     let linked_page_nodes: Vec<_> = db_nodes
         .iter()
@@ -138,12 +136,14 @@ async fn test_database_contains_316_nodes_with_correct_types() {
         .collect();
 
     assert_eq!(
-        page_nodes.len(), 185,
+        page_nodes.len(),
+        185,
         "CRITICAL: Should have exactly 185 'page' nodes (one per markdown file)"
     );
 
     assert_eq!(
-        linked_page_nodes.len(), 131,
+        linked_page_nodes.len(),
+        131,
         "CRITICAL: Should have exactly 131 'linked_page' nodes with public=true"
     );
 }
@@ -164,7 +164,8 @@ async fn test_all_316_nodes_have_public_metadata() {
         .collect();
 
     assert_eq!(
-        public_nodes.len(), 316,
+        public_nodes.len(),
+        316,
         "CRITICAL: 100% of nodes (316/316) MUST have public=true metadata. \
         This ensures the API returns all nodes instead of 0."
     );
@@ -197,7 +198,8 @@ async fn test_api_returns_316_nodes_after_github_sync() {
         .expect("API response should have nodes array");
 
     assert_eq!(
-        nodes.len(), 316,
+        nodes.len(),
+        316,
         "CRITICAL: API should return exactly 316 nodes after GitHub sync. \
         This is the CORE BUG FIX - API was returning 0 nodes before."
     );
@@ -262,7 +264,8 @@ async fn test_github_sync_updates_existing_nodes() {
         .expect("Database query should succeed");
 
     assert_eq!(
-        db_nodes.len(), 316,
+        db_nodes.len(),
+        316,
         "CRITICAL: Re-running GitHub sync should update existing nodes, \
         not create duplicates. Should still have exactly 316 nodes."
     );

@@ -642,7 +642,10 @@ impl Handler<RunKMeans> for ClusteringActor {
     type Result = actix::ResponseFuture<Result<KMeansResult, String>>;
 
     fn handle(&mut self, msg: RunKMeans, _ctx: &mut Self::Context) -> Self::Result {
-        info!("ClusteringActor: Received RunKMeans request with {} clusters", msg.params.num_clusters);
+        info!(
+            "ClusteringActor: Received RunKMeans request with {} clusters",
+            msg.params.num_clusters
+        );
 
         // Clone self state for async block
         let mut actor_clone = Self {
@@ -650,9 +653,7 @@ impl Handler<RunKMeans> for ClusteringActor {
             shared_context: self.shared_context.clone(),
         };
 
-        Box::pin(async move {
-            actor_clone.perform_kmeans_clustering(msg.params).await
-        })
+        Box::pin(async move { actor_clone.perform_kmeans_clustering(msg.params).await })
     }
 }
 
@@ -669,18 +670,21 @@ impl Handler<RunCommunityDetection> for ClusteringActor {
             shared_context: self.shared_context.clone(),
         };
 
-        Box::pin(async move {
-            actor_clone.perform_community_detection(msg.params).await
-        })
+        Box::pin(async move { actor_clone.perform_community_detection(msg.params).await })
     }
 }
 
 /// Handler for generic GPU clustering
 impl Handler<PerformGPUClustering> for ClusteringActor {
-    type Result = actix::ResponseFuture<Result<Vec<crate::handlers::api_handler::analytics::Cluster>, String>>;
+    type Result = actix::ResponseFuture<
+        Result<Vec<crate::handlers::api_handler::analytics::Cluster>, String>,
+    >;
 
     fn handle(&mut self, msg: PerformGPUClustering, _ctx: &mut Self::Context) -> Self::Result {
-        info!("ClusteringActor: Received PerformGPUClustering request with method: {}", msg.method);
+        info!(
+            "ClusteringActor: Received PerformGPUClustering request with method: {}",
+            msg.method
+        );
 
         // Clone self state for async block
         let mut actor_clone = Self {

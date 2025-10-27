@@ -3,6 +3,10 @@ use webxr::actors::messages::UpdateMetadata;
 use webxr::ports::knowledge_graph_repository::KnowledgeGraphRepository;
 use webxr::services::nostr_service::NostrService;
 use webxr::{
+    adapters::{
+        sqlite_knowledge_graph_repository::SqliteKnowledgeGraphRepository,
+        sqlite_ontology_repository::SqliteOntologyRepository,
+    },
     config::AppFullSettings, // Import AppFullSettings only
     handlers::{
         api_handler,
@@ -21,18 +25,9 @@ use webxr::{
     services::speech_service::SpeechService,
     services::{
         // graph_service::GraphService removed - now using GraphServiceSupervisor
-        github::{
-            content_enhanced::EnhancedContentAPI,
-            ContentAPI,
-            GitHubClient,
-            GitHubConfig,
-        },
+        github::{content_enhanced::EnhancedContentAPI, ContentAPI, GitHubClient, GitHubConfig},
         github_sync_service::GitHubSyncService, // NEW: Direct database sync service
-        ragflow_service::RAGFlowService, // ADDED IMPORT
-    },
-    adapters::{
-        sqlite_knowledge_graph_repository::SqliteKnowledgeGraphRepository,
-        sqlite_ontology_repository::SqliteOntologyRepository,
+        ragflow_service::RAGFlowService,        // ADDED IMPORT
     },
     // DEPRECATED: docker_hive_mind, HybridHealthManager removed
     AppState,
@@ -336,7 +331,6 @@ async fn main() -> std::io::Result<()> {
     // Connection will be established on-demand when bots features are used
     info!("Skipping bots orchestrator connection during startup (will connect on-demand)");
 
-
     // Load graph from database (NEW: database-first architecture)
     info!("Loading graph from knowledge_graph.db...");
 
@@ -369,8 +363,11 @@ async fn main() -> std::io::Result<()> {
 
     if let Some(graph_data) = graph_data_option {
         // We have graph data from database - send to actor
-        info!("📤 Sending graph data to GraphServiceActor: {} nodes, {} edges",
-              graph_data.nodes.len(), graph_data.edges.len());
+        info!(
+            "📤 Sending graph data to GraphServiceActor: {} nodes, {} edges",
+            graph_data.nodes.len(),
+            graph_data.edges.len()
+        );
         app_state.graph_service_addr.do_send(UpdateGraphData {
             graph_data: StdArc::new(graph_data),
         });

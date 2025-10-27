@@ -37,8 +37,7 @@ impl LocalMarkdownSync {
         let mut skipped_files = 0;
 
         // Read all markdown files
-        let entries = fs::read_dir(path)
-            .map_err(|e| format!("Failed to read directory: {}", e))?;
+        let entries = fs::read_dir(path).map_err(|e| format!("Failed to read directory: {}", e))?;
 
         for entry in entries {
             let entry = entry.map_err(|e| format!("Failed to read entry: {}", e))?;
@@ -48,9 +47,7 @@ impl LocalMarkdownSync {
                 continue;
             }
 
-            let filename = file_path.file_name()
-                .and_then(|n| n.to_str())
-                .unwrap_or("");
+            let filename = file_path.file_name().and_then(|n| n.to_str()).unwrap_or("");
 
             if !filename.ends_with(".md") {
                 continue;
@@ -94,9 +91,12 @@ impl LocalMarkdownSync {
 
                     processed_files += 1;
                     if processed_files % 10 == 0 {
-                        info!("Progress: {}/{} files processed", processed_files, total_files);
+                        info!(
+                            "Progress: {}/{} files processed",
+                            processed_files, total_files
+                        );
                     }
-                },
+                }
                 Err(e) => {
                     debug!("Failed to parse {}: {}", filename, e);
                     skipped_files += 1;
@@ -104,12 +104,17 @@ impl LocalMarkdownSync {
             }
         }
 
-        info!("File processing complete. Total: {}, Processed: {}, Skipped: {}",
-              total_files, processed_files, skipped_files);
+        info!(
+            "File processing complete. Total: {}, Processed: {}, Skipped: {}",
+            total_files, processed_files, skipped_files
+        );
         info!("Public page names collected: {}", public_page_names.len());
 
         // ✅ TWO-PASS FILTERING: Now filter linked_page nodes
-        info!("Filtering linked_page nodes against {} public pages", public_page_names.len());
+        info!(
+            "Filtering linked_page nodes against {} public pages",
+            public_page_names.len()
+        );
         let node_count_before_filter = accumulated_nodes.len();
         accumulated_nodes.retain(|_id, node| {
             match node.metadata.get("type").map(|s| s.as_str()) {
@@ -117,31 +122,47 @@ impl LocalMarkdownSync {
                 Some("linked_page") => {
                     let is_public = public_page_names.contains(&node.metadata_id);
                     if !is_public {
-                        debug!("Filtered out linked_page '{}' - not in public pages", node.metadata_id);
+                        debug!(
+                            "Filtered out linked_page '{}' - not in public pages",
+                            node.metadata_id
+                        );
                     }
                     is_public
-                },
+                }
                 _ => true,
             }
         });
         let nodes_filtered = node_count_before_filter - accumulated_nodes.len();
-        info!("Filtered {} linked_page nodes (kept {} of {} total nodes)",
-              nodes_filtered, accumulated_nodes.len(), node_count_before_filter);
+        info!(
+            "Filtered {} linked_page nodes (kept {} of {} total nodes)",
+            nodes_filtered,
+            accumulated_nodes.len(),
+            node_count_before_filter
+        );
 
         // Filter orphan edges
         let edge_count_before_filter = accumulated_edges.len();
         accumulated_edges.retain(|_id, edge| {
-            accumulated_nodes.contains_key(&edge.source) && accumulated_nodes.contains_key(&edge.target)
+            accumulated_nodes.contains_key(&edge.source)
+                && accumulated_nodes.contains_key(&edge.target)
         });
         let edges_filtered = edge_count_before_filter - accumulated_edges.len();
-        info!("Filtered {} orphan edges (kept {} of {} total edges)",
-              edges_filtered, accumulated_edges.len(), edge_count_before_filter);
+        info!(
+            "Filtered {} orphan edges (kept {} of {} total edges)",
+            edges_filtered,
+            accumulated_edges.len(),
+            edge_count_before_filter
+        );
 
         // Convert to vectors
         let nodes: Vec<Node> = accumulated_nodes.into_values().collect();
         let edges: Vec<Edge> = accumulated_edges.into_values().collect();
 
-        info!("Local sync complete: {} nodes, {} edges", nodes.len(), edges.len());
+        info!(
+            "Local sync complete: {} nodes, {} edges",
+            nodes.len(),
+            edges.len()
+        );
 
         Ok(LocalSyncResult {
             total_files,

@@ -24,7 +24,10 @@ pub type ActorTimeoutResult<T> = Result<T, ActorTimeoutError>;
 #[derive(Debug)]
 pub enum ActorTimeoutError {
     /// The actor call timed out
-    Timeout { duration: Duration, actor_type: &'static str },
+    Timeout {
+        duration: Duration,
+        actor_type: &'static str,
+    },
     /// The actor returned an error
     ActorError(String),
     /// Failed to send message to actor
@@ -34,7 +37,10 @@ pub enum ActorTimeoutError {
 impl std::fmt::Display for ActorTimeoutError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ActorTimeoutError::Timeout { duration, actor_type } => {
+            ActorTimeoutError::Timeout {
+                duration,
+                actor_type,
+            } => {
                 write!(f, "{} actor timeout after {:?}", actor_type, duration)
             }
             ActorTimeoutError::ActorError(msg) => write!(f, "Actor error: {}", msg),
@@ -75,7 +81,10 @@ where
         }
         Err(_) => {
             error!("{} actor timeout after {:?}", actor_type, timeout);
-            Err(ActorTimeoutError::Timeout { duration: timeout, actor_type })
+            Err(ActorTimeoutError::Timeout {
+                duration: timeout,
+                actor_type,
+            })
         }
     }
 }
@@ -151,12 +160,7 @@ mod tests {
     #[actix::test]
     async fn test_send_with_timeout_success() {
         let addr = TestActor.start();
-        let result = send_with_timeout(
-            &addr,
-            TestMessage,
-            Duration::from_secs(1),
-            "Test"
-        ).await;
+        let result = send_with_timeout(&addr, TestMessage, Duration::from_secs(1), "Test").await;
         assert!(result.is_ok());
     }
 

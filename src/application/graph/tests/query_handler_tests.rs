@@ -94,15 +94,13 @@ impl MockGraphRepository {
             kinetic_energy: 0.5,
         };
 
-        let notifications = vec![
-            AutoBalanceNotification {
-                timestamp: 1000,
-                parameter_name: "repulsion_strength".to_string(),
-                old_value: 100.0,
-                new_value: 150.0,
-                reason: "Test adjustment".to_string(),
-            },
-        ];
+        let notifications = vec![AutoBalanceNotification {
+            timestamp: 1000,
+            parameter_name: "repulsion_strength".to_string(),
+            old_value: 100.0,
+            new_value: 150.0,
+            reason: "Test adjustment".to_string(),
+        }];
 
         Self {
             graph_data,
@@ -133,10 +131,7 @@ impl GraphRepository for MockGraphRepository {
         Ok(vec![])
     }
 
-    async fn update_positions(
-        &self,
-        _updates: Vec<(u32, (f32, f32, f32))>,
-    ) -> Result<()> {
+    async fn update_positions(&self, _updates: Vec<(u32, (f32, f32, f32))>) -> Result<()> {
         Ok(())
     }
 
@@ -236,7 +231,8 @@ fn test_get_physics_state_handler() {
 
 #[test]
 fn test_get_physics_state_handler_settled() {
-    let mock_repo = Arc::new(MockGraphRepository::new().with_settled_physics()) as Arc<dyn GraphRepository>;
+    let mock_repo =
+        Arc::new(MockGraphRepository::new().with_settled_physics()) as Arc<dyn GraphRepository>;
     let handler = GetPhysicsStateHandler::new(mock_repo);
 
     let result = handler.handle(GetPhysicsState);
@@ -321,7 +317,8 @@ fn test_get_equilibrium_status_handler_not_settled() {
 
 #[test]
 fn test_get_equilibrium_status_handler_settled() {
-    let mock_repo = Arc::new(MockGraphRepository::new().with_settled_physics()) as Arc<dyn GraphRepository>;
+    let mock_repo =
+        Arc::new(MockGraphRepository::new().with_settled_physics()) as Arc<dyn GraphRepository>;
     let handler = GetEquilibriumStatusHandler::new(mock_repo);
 
     let result = handler.handle(GetEquilibriumStatus);
@@ -418,15 +415,21 @@ fn test_handler_error_propagation() {
         }
 
         async fn get_graph(&self) -> Result<Arc<GraphData>> {
-            Err(GraphRepositoryError::AccessError("Graph access failed".to_string()))
+            Err(GraphRepositoryError::AccessError(
+                "Graph access failed".to_string(),
+            ))
         }
 
         async fn get_node_map(&self) -> Result<Arc<HashMap<u32, Node>>> {
-            Err(GraphRepositoryError::AccessError("Node map access failed".to_string()))
+            Err(GraphRepositoryError::AccessError(
+                "Node map access failed".to_string(),
+            ))
         }
 
         async fn get_physics_state(&self) -> Result<PhysicsState> {
-            Err(GraphRepositoryError::AccessError("Physics state access failed".to_string()))
+            Err(GraphRepositoryError::AccessError(
+                "Physics state access failed".to_string(),
+            ))
         }
 
         async fn get_node_positions(&self) -> Result<Vec<(u32, glam::Vec3)>> {
@@ -449,8 +452,13 @@ fn test_handler_error_propagation() {
             Ok(false)
         }
 
-        async fn compute_shortest_paths(&self, _params: PathfindingParams) -> Result<PathfindingResult> {
-            Err(GraphRepositoryError::AccessError("Pathfinding failed".to_string()))
+        async fn compute_shortest_paths(
+            &self,
+            _params: PathfindingParams,
+        ) -> Result<PathfindingResult> {
+            Err(GraphRepositoryError::AccessError(
+                "Pathfinding failed".to_string(),
+            ))
         }
 
         async fn get_dirty_nodes(&self) -> Result<std::collections::HashSet<u32>> {
