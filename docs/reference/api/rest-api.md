@@ -755,6 +755,22 @@ GET /api/bots/mcp-status
 }
 ```
 
+## Timeouts and Error Handling
+
+To ensure system stability and prevent indefinite hangs, the VisionFlow API implements a two-layer timeout strategy.
+
+### 1. HTTP-Level Timeout (Global)
+
+-   **Duration:** 30 seconds
+-   **Scope:** Applies to all incoming HTTP requests.
+-   **Behavior:** If a request is not fully processed within 30 seconds, the connection is terminated, and the client will receive a `504 Gateway Timeout` response. This is a global safeguard against long-running or stuck processes.
+
+### 2. Actor-Level Timeout (Per-Operation)
+
+-   **Default Duration:** 5 seconds
+-   **Scope:** Applies to internal actor communications for specific operations.
+-   **Behavior:** When an API handler sends a message to an actor (e.g., `GraphServiceActor`), it waits a maximum of 5 seconds for a response. If the actor fails to respond within this window, the handler will return a `504 Gateway Timeout` with a specific error message related to the operation. This prevents long delays in one part of the system from cascading and affecting the entire application.
+-   **Extended Durations:** Certain long-running operations may use extended timeouts (e.g., 10 seconds) where appropriate.
 ## Error Responses
 
 All error responses follow a consistent format:

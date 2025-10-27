@@ -455,6 +455,13 @@ ws.onmessage = (event) => {
 ```
 
 ## Error Handling
+### Timeouts
+
+While WebSockets are persistent connections, the server-side operations they trigger are still subject to timeouts to ensure system stability.
+
+-   **Actor-Level Timeout:** When a WebSocket message triggers a long-running operation via an actor (e.g., a complex graph query), that operation is subject to a **5-second timeout**. If the actor does not respond within this time, the operation will fail, and an error message will be sent back to the client over the WebSocket.
+
+-   **Connection Heartbeat:** The WebSocket connection relies on a heartbeat mechanism (ping/pong messages) to detect disconnections. If the server does not receive a `ping` from the client within a certain interval (typically 30 seconds), it may close the connection.
 
 ### Connection Errors
 

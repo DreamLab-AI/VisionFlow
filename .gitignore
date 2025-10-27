@@ -13,6 +13,7 @@ CLAUDE.md
 workspace
 webxr.long-type*
 qdrant_data/
+whelk-rs/
 
 # Dependencies
 node_modules
