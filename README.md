@@ -60,6 +60,43 @@ Unlike passive AI tools that wait for your prompts, VisionFlow's autonomous agen
 
 ---
 
+## 🧬 What Makes VisionFlow Intelligent: The Ontology System
+
+Think of VisionFlow's ontology as the "intelligence layer" that transforms a simple network diagram into a living, self-organizing knowledge system. Here's what it does for you:
+
+### From Chaos to Structure: Four Practical Superpowers
+
+**1. Grammar Checker for Your Data**
+
+Just as spell-check prevents "runned," the ontology prevents logical errors in your knowledge graph. It enforces rules like "a Person cannot also be a Company" or "Software Projects must have source code." No more garbage data sneaking into your system.
+
+**2. Automatic Knowledge Discovery**
+
+Add one fact, get two for free. Define `Company X employs Person Y`, and the system automatically infers `Person Y works for Company X`. The ontology uses inverse relationships to multiply your knowledge without extra work.
+
+**3. Self-Organizing 3D Visualization**
+
+The physics engine translates logical rules into spatial forces. Concepts that are fundamentally different (like "People" vs "Organizations") repel each other visually, creating intuitive clusters. Parent-child relationships pull related nodes together. Your graph arranges itself to match how you think.
+
+**4. Context-Aware AI Agents**
+
+Agents understand the "rules of your world." When tasked to "audit all software projects," they know exactly what qualifies as a project versus a library or documentation page. They work smarter because the ontology gives them domain expertise.
+
+### What You See Without vs. With Ontologies
+
+| Without Ontology | With Ontology (VisionFlow) |
+| :--- | :--- |
+| Inconsistent data—connect anything to anything | Validated data—system prevents logical errors |
+| Only know what you explicitly enter | Auto-discover hidden relationships and facts |
+| Generic hairball layout, hard to navigate | Meaningful spatial organization based on concept types |
+| AI agents require hand-holding for every task | Context-aware agents that understand your domain |
+
+**In Plain English**: The ontology is the brain that makes VisionFlow intelligent. It validates your data, discovers new connections, organizes your 3D space meaningfully, and equips AI agents with the domain knowledge to work autonomously and accurately.
+
+**[📖 Deep Dive: Ontology Fundamentals](docs/specialized/ontology/ontology-fundamentals.md)**
+
+---
+
 ## ✨ Key Features
 
 ### 🧠 Continuous AI Analysis
