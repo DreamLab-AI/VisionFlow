@@ -20,6 +20,7 @@ Welcome to the comprehensive documentation for the VisionFlow Ontology Validatio
 - **[Validation Rules](./validation-rules-constraints.md)** - Constraint checking and inference
 - **[Physics Integration](./physics-integration.md)** - Semantic spatial constraints
 - **[Integration Summary](./ontology-integration-summary.md)** - Implementation status
+- **[Storage Architecture](../../architecture/ontology-storage-architecture.md)** - Raw markdown storage with horned-owl parsing
 
 ### Advanced Topics
 - **[HornedOWL Integration](./hornedowl.md)** - OWL processing library details

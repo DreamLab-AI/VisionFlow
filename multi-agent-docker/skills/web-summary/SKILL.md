@@ -11,9 +11,9 @@ This skill provides comprehensive web content summarization capabilities, includ
 
 - Fetch and summarize web pages
 - Extract YouTube video transcripts
-- Generate semantic topic links
 - Use Z.AI for cost-effective summarization
 - Support for multiple output formats (markdown, plain text, JSON)
+- ~~Generate semantic topic links~~ (Deprecated - migrating to new ontology system)
 
 ## When to Use This Skill
 
@@ -59,7 +59,7 @@ Summarize content from any URL.
 Parameters:
 - `url` (required): The URL to summarize
 - `length` (optional): "short" | "medium" | "long" (default: "medium")
-- `include_topics` (optional): boolean (default: true)
+- ~~`include_topics` (optional): boolean (default: true)~~ (Deprecated)
 
 ### `youtube_transcript`
 Extract transcript from YouTube video.
@@ -68,13 +68,10 @@ Parameters:
 - `video_id` (required): YouTube video ID or full URL
 - `language` (optional): Language code (default: "en")
 
-### `generate_topics`
-Generate semantic topic links from text.
+### ~~`generate_topics`~~ (DEPRECATED)
+**This tool is deprecated.** The project is migrating to a new ontology system.
 
-Parameters:
-- `text` (required): The text to analyze
-- `max_topics` (optional): Maximum number of topics (default: 10)
-- `format` (optional): "logseq" | "obsidian" | "plain" (default: "logseq")
+Previously generated semantic topic links from text using keyword extraction.
 
 ## Examples
 

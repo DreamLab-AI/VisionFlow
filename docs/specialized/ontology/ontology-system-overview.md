@@ -46,11 +46,18 @@ graph TB
 
     subgraph "Core Services"
         OVS[OwlValidatorService<br/>Validation Engine]
+        OES[OwlExtractorService<br/>Markdown→OWL Parser]
         CT[ConstraintTranslator<br/>Physics Integration]
         MS[Mapping Service<br/>Graph↔RDF Translation]
     end
 
-    subgraph "Storage & Caching"
+    subgraph "Data Ingestion"
+        GHS[GitHubSyncService<br/>SHA1 Change Detection]
+        OP[OntologyParser<br/>Metadata Extraction]
+    end
+
+    subgraph "Storage Layer"
+        DB[(SQLite Database<br/>Raw Markdown Storage)]
         CACHE[In-Memory Cache<br/>Ontologies & Reports]
         CONFIG[Configuration<br/>mapping.toml]
     end
@@ -69,16 +76,22 @@ graph TB
     WS --> OA
 
     OA --> OVS
+    OA --> OES
     OA --> CT
     OA --> GA
     OA --> PA
     OA --> SA
 
+    GHS --> OP
+    OP --> DB
+    OES --> DB
+    OES --> HORNED
+
     OVS --> MS
     OVS --> CACHE
     OVS --> CONFIG
+    OVS --> OES
 
-    OVS --> HORNED
     OVS --> WHELK
     OVS --> RIO
 
@@ -86,18 +99,59 @@ graph TB
 
     style OA fill:#38A169,stroke:#276749,stroke-width:2px,colour:#fff
     style OVS fill:#2B6CB0,stroke:#1A4E8D,stroke-width:2px,colour:#fff
+    style OES fill:#805AD5,stroke:#553C9A,stroke-width:2px,colour:#fff
     style CT fill:#D69E2E,stroke:#B7791F,stroke-width:2px,colour:#fff
+    style GHS fill:#DD6B20,stroke:#C05621,stroke-width:2px,colour:#fff
+    style DB fill:#319795,stroke:#285E61,stroke-width:2px,colour:#fff
 ```
 
 ## Core Components
 
-### 1. OntologyActor
+### 1. GitHubSyncService (NEW)
+**Location**: `src/services/github_sync_service.rs`
+
+**Responsibility**: Downloads markdown files from GitHub and stores in database
+
+**Key Features**:
+- SHA1-based change detection (15x faster for unchanged files)
+- Stores full markdown content with embedded OWL blocks
+- Records sync timestamps for audit trails
+- Batch processing with transaction safety
+
+**Architecture**:
+```
+GitHub Markdown → Calculate SHA1 → Store in DB
+  (OWL blocks)      (change detect)   (raw + SHA1)
+```
+
+### 2. OwlExtractorService (NEW)
+**Location**: `src/services/owl_extractor_service.rs`
+
+**Responsibility**: Parses OWL Functional Syntax from markdown using horned-owl
+
+**Key Features**:
+- Extracts OWL code blocks via regex (`\`\`\`clojure` or `\`\`\`owl-functional`)
+- Parses with `horned-functional` crate for complete OWL 2 DL semantics
+- Builds complete `AnnotatedOntology` with all axioms
+- Preserves ObjectSomeValuesFrom restrictions (zero semantic loss)
+
+**Usage**:
+```rust
+// Extract from single class
+let extracted = owl_extractor.extract_owl_from_class("ai:MachineTranslation").await?;
+
+// Build complete ontology
+let ontology = owl_extractor.build_complete_ontology().await?;
+```
+
+### 3. OntologyActor
 **Location**: `src/actors/ontology_actor.rs`
 
 The central coordinator for all ontology operations, handling:
 - Asynchronous validation jobs with priority queuing
 - Caching and incremental processing
 - Actor communication and coordination
+- Delegates to OwlExtractorService for parsing
 - Health monitoring and performance metrics
 
 **Key Features**:

@@ -62,7 +62,7 @@ pub trait OntologyRepository: Send + Sync {
 
 ### OwlClass
 
-OWL class definition with hierarchy:
+OWL class definition with hierarchy and raw markdown storage:
 
 ```rust
 pub struct OwlClass {
@@ -72,8 +72,15 @@ pub struct OwlClass {
     pub parent_classes: Vec<String>,    // IRIs of parent classes
     pub properties: HashMap<String, String>, // Additional properties
     pub source_file: Option<String>,    // Source markdown file
+
+    // NEW: Raw markdown storage for zero semantic loss
+    pub markdown_content: Option<String>,     // Full markdown with OWL blocks
+    pub file_sha1: Option<String>,           // SHA1 hash for change detection
+    pub last_synced: Option<DateTime<Utc>>,  // Last GitHub sync timestamp
 }
 ```
+
+**Architecture Note**: The `markdown_content` field stores complete markdown files including embedded OWL Functional Syntax blocks. This enables downstream parsing with horned-owl without semantic loss. See [Ontology Storage Architecture](../ontology-storage-architecture.md) for details.
 
 ### OwlProperty
 

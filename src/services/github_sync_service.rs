@@ -442,8 +442,16 @@ impl GitHubSyncService {
         accumulated_properties: &mut Vec<crate::ports::ontology_repository::OwlProperty>,
         accumulated_axioms: &mut Vec<crate::ports::ontology_repository::OwlAxiom>,
     ) -> FileProcessResult {
+        use sha1::{Sha1, Digest};
+
+        // Calculate SHA1 hash for change detection
+        let mut hasher = Sha1::new();
+        hasher.update(content.as_bytes());
+        let hash_bytes = hasher.finalize();
+        let file_sha1 = format!("{:x}", hash_bytes);
+
         // Parse the file
-        let ontology_data = match self.onto_parser.parse(content, &file.name) {
+        let mut ontology_data = match self.onto_parser.parse(content, &file.name) {
             Ok(data) => data,
             Err(e) => {
                 return FileProcessResult::Error {
@@ -455,6 +463,14 @@ impl GitHubSyncService {
         let class_count = ontology_data.classes.len();
         let property_count = ontology_data.properties.len();
         let axiom_count = ontology_data.axioms.len();
+
+        // Store raw markdown content and SHA1 in all classes from this file
+        let now = chrono::Utc::now();
+        for class in &mut ontology_data.classes {
+            class.markdown_content = Some(content.to_string());
+            class.file_sha1 = Some(file_sha1.clone());
+            class.last_synced = Some(now);
+        }
 
         // Accumulate ontology data (will be saved in batch at end)
         accumulated_classes.extend(ontology_data.classes);

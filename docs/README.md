@@ -20,6 +20,7 @@ Goal-oriented guides for specific tasks. Use these when you know what you want t
 - [Development Setup](./guides/developer/01-development-setup.md)
 - [Adding a Feature](./guides/developer/04-adding-features.md)
 - [Testing Guide](./guides/developer/testing-guide.md)
+- [Ontology Storage Guide](./guides/ontology-storage-guide.md) - Raw markdown storage architecture
 
 ### [Concepts](./concepts/) - Understanding the System
 Explanatory documentation for background knowledge. Read these to understand *why* things work.
@@ -40,6 +41,7 @@ Complete technical specifications. Use these for detailed information and API do
 - [Hexagonal & CQRS Pattern](./reference/architecture/hexagonal-cqrs.md)
 - [Database Schema](./reference/architecture/database-schema.md)
 - [Actor System](./reference/architecture/actor-system.md)
+- [Ontology Storage Architecture](./architecture/ontology-storage-architecture.md) - Lossless markdown storage
 
 **Agents:**
 - [Agent Reference](./reference/agents/)

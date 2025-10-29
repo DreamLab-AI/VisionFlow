@@ -156,46 +156,13 @@ class WebSummaryTool:
             }
 
     def generate_topics(self, text: str, max_topics: int = 10, format: str = "logseq") -> Dict[str, Any]:
-        """Generate semantic topic links from text"""
-        try:
-            # Simple keyword extraction (in production, use NLP libraries)
-            # This is a placeholder - real implementation would use TF-IDF, RAKE, or LLM
-
-            words = text.lower().split()
-
-            # Common words to exclude
-            stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by'}
-
-            # Simple frequency-based extraction
-            word_freq = {}
-            for word in words:
-                word = word.strip('.,!?;:()[]{}')
-                if len(word) > 3 and word not in stop_words:
-                    word_freq[word] = word_freq.get(word, 0) + 1
-
-            # Get top topics
-            topics = sorted(word_freq.items(), key=lambda x: x[1], reverse=True)[:max_topics]
-            topic_names = [topic[0] for topic in topics]
-
-            # Format based on requested format
-            if format == "logseq":
-                formatted = [f"[[{topic}]]" for topic in topic_names]
-            elif format == "obsidian":
-                formatted = [f"[[{topic}]]" for topic in topic_names]
-            else:
-                formatted = topic_names
-
-            return {
-                "success": True,
-                "topics": formatted,
-                "count": len(formatted)
-            }
-
-        except Exception as e:
-            return {
-                "success": False,
-                "error": f"Topic generation failed: {str(e)}"
-            }
+        """Generate semantic topic links from text - DEPRECATED: Migrating to new ontology system"""
+        return {
+            "success": False,
+            "error": "Topic generation deprecated - migrating to new ontology system",
+            "topics": [],
+            "count": 0
+        }
 
     def handle_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Main request handler"""
@@ -234,19 +201,12 @@ class WebSummaryTool:
             if not summary_result.get("success"):
                 return summary_result
 
-            # Generate topics if requested
-            topics = []
-            if include_topics:
-                topics_result = self.generate_topics(text)
-                if topics_result.get("success"):
-                    topics = topics_result["topics"]
-
+            # Topics feature removed - migrating to new ontology system
             return {
                 "success": True,
                 "url": url,
                 "source_type": source_type,
                 "summary": summary_result["summary"],
-                "topics": topics,
                 "length": length
             }
 
@@ -264,14 +224,10 @@ class WebSummaryTool:
             return self.get_youtube_transcript(extracted_id, language)
 
         elif tool == "generate_topics":
-            text = params.get("text")
-            if not text:
-                return {"error": "text parameter required"}
-
-            max_topics = params.get("max_topics", 10)
-            format = params.get("format", "logseq")
-
-            return self.generate_topics(text, max_topics, format)
+            # Deprecated: Migrating to new ontology system
+            return {
+                "error": "generate_topics tool deprecated - migrating to new ontology system"
+            }
 
         else:
             return {"error": f"Unknown tool: {tool}"}

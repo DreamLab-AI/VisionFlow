@@ -43,6 +43,12 @@ pub struct OwlClass {
     pub parent_classes: Vec<String>,
     pub properties: HashMap<String, String>,
     pub source_file: Option<String>,
+    /// Full markdown content with embedded OWL blocks
+    pub markdown_content: Option<String>,
+    /// SHA1 hash of the source file for change detection
+    pub file_sha1: Option<String>,
+    /// Last sync timestamp from GitHub
+    pub last_synced: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 /// OWL property types
