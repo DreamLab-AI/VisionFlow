@@ -7,21 +7,21 @@ services:
       args:
         CUDA_ARCH: ${CUDA_ARCH:-86}
     volumes:
-      - ./client:/app/client
-      - ./src:/app/src # Mount Rust source code for development
-      - ./Cargo.toml:/app/Cargo.toml # Mount Cargo.toml for dependency changes
-      # Note: Cargo.lock is generated during build if missing
+      # Dev mounts disabled - using baked image with fixed code
+      # - ./client:/app/client
+      # - ./src:/app/src
+      # - ./Cargo.toml:/app/Cargo.toml
       - ./data/markdown:/app/data/markdown
       - ./data/metadata:/app/data/metadata
       - ./data/user_settings:/app/user_settings
-      - ./data/settings.yaml:/app/settings.yaml
-      - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro # Mount dev Nginx config (read-only)
+      # - ./data/settings.yaml:/app/settings.yaml  # Commented: Already in image, mount conflicts
+      # - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro # Commented: Already in image
       - ./logs/nginx:/var/log/nginx # Mount nginx logs to host
       - ./logs:/app/logs
-      - ./scripts/dev-exec-proxy.sh:/usr/local/bin/dev-exec:ro # Mount exec proxy
-      - ./scripts/check-rust-rebuild.sh:/app/scripts/check-rust-rebuild.sh:ro # Mount rebuild check script
-      - ./scripts/dev-rebuild-rust.sh:/app/scripts/dev-rebuild-rust.sh:ro # Mount manual rebuild script
-      - ./supervisord.dev.conf:/app/supervisord.dev.conf:ro # Mount supervisor config
+      # - ./scripts/dev-exec-proxy.sh:/usr/local/bin/dev-exec:ro # Commented: Already in image
+      # - ./scripts/check-rust-rebuild.sh:/app/scripts/check-rust-rebuild.sh:ro # Commented: Already in image
+      # - ./scripts/dev-rebuild-rust.sh:/app/scripts/dev-rebuild-rust.sh:ro # Commented: Already in image
+      # - ./supervisord.dev.conf:/app/supervisord.dev.conf:ro # Commented: Already in image
       - /var/run/docker.sock:/var/run/docker.sock:ro # Docker socket for controlled access
       - npm-cache:/root/.npm
       - cargo-cache:/root/.cargo/registry
