@@ -2,7 +2,7 @@
  * AgentPollingService - REST API polling for agent metadata updates
  *
  * ARCHITECTURE (post-fix):
- * - Polls REST /api/bots/data for agent metadata (health, status, capabilities)
+ * - Polls REST /api/graph/data for agent metadata (health, status, capabilities)
  * - Conservative intervals: 2s active, 10s idle (reduced from 1s/5s)
  * - Does NOT handle position updates - those come via WebSocket binary protocol
  * - Single instance managed by BotsDataContext via useAgentPolling hook
@@ -222,7 +222,7 @@ export class AgentPollingService {
       const startTime = Date.now();
       
       // Fetch agent swarm data from REST API
-      const data = await unifiedApiClient.getData<AgentSwarmData>('/bots/data');
+      const data = await unifiedApiClient.getData<AgentSwarmData>('/graph/data');
       
       const pollDuration = Date.now() - startTime;
       this.lastPollTime = Date.now();

@@ -223,34 +223,38 @@ impl AppState {
             ontology_repository.clone(),
         ));
 
-        info!("[AppState::new] Starting GitHub data sync (may take 30-60 seconds)...");
-        match github_sync_service.sync_graphs().await {
-            Ok(stats) => {
-                info!("✅ GitHub sync complete!");
-                info!("  📊 Total files scanned: {}", stats.total_files);
-                info!("  🔗 Knowledge graph files: {}", stats.kg_files_processed);
-                info!("  🏛️  Ontology files: {}", stats.ontology_files_processed);
-                info!("  ⏱️  Duration: {:?}", stats.duration);
-                if !stats.errors.is_empty() {
-                    warn!("  ⚠️  Errors encountered: {}", stats.errors.len());
-                    for (i, error) in stats.errors.iter().enumerate().take(5) {
-                        warn!("    {}. {}", i + 1, error);
-                    }
-                    if stats.errors.len() > 5 {
-                        warn!("    ... and {} more errors", stats.errors.len() - 5);
+        info!("[AppState::new] Starting GitHub data sync in background (non-blocking)...");
+        // Spawn GitHub sync as a background task - don't block server startup
+        let sync_service_clone = github_sync_service.clone();
+        tokio::spawn(async move {
+            info!("🔄 Background GitHub sync started (990 files)...");
+            match sync_service_clone.sync_graphs().await {
+                Ok(stats) => {
+                    info!("✅ GitHub sync complete!");
+                    info!("  📊 Total files scanned: {}", stats.total_files);
+                    info!("  🔗 Knowledge graph files: {}", stats.kg_files_processed);
+                    info!("  🏛️  Ontology files: {}", stats.ontology_files_processed);
+                    info!("  ⏱️  Duration: {:?}", stats.duration);
+                    if !stats.errors.is_empty() {
+                        warn!("  ⚠️  Errors encountered: {}", stats.errors.len());
+                        for (i, error) in stats.errors.iter().enumerate().take(5) {
+                            warn!("    {}. {}", i + 1, error);
+                        }
+                        if stats.errors.len() > 5 {
+                            warn!("    ... and {} more errors", stats.errors.len() - 5);
+                        }
                     }
                 }
+                Err(e) => {
+                    // Non-fatal: log error but continue
+                    log::error!("❌ Background GitHub sync failed: {}", e);
+                    log::error!(
+                        "⚠️  Databases may have partial data - use manual import API if needed"
+                    );
+                }
             }
-            Err(e) => {
-                // Non-fatal: log error but continue startup
-                // This allows manual data import via API if GitHub is down
-                log::error!("❌ GitHub sync failed: {}", e);
-                log::error!(
-                    "⚠️  Databases may be empty - use manual import API or check GitHub token"
-                );
-            }
-        }
-        info!("[AppState::new] GitHub sync phase complete, proceeding with actor initialization");
+        });
+        info!("[AppState::new] GitHub sync running in background, proceeding with actor initialization");
         // ========================================================================
 
         // Start actors

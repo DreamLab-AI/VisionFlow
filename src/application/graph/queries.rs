@@ -36,8 +36,12 @@ impl QueryHandler<GetGraphData, Arc<GraphData>> for GetGraphDataHandler {
 
         let repository = self.repository.clone();
 
-        // Use current runtime handle (safe inside spawn_blocking)
-        tokio::runtime::Handle::current().block_on(async move {
+        // FIXED: Create a new Tokio runtime for this synchronous context
+        // This is necessary because the handler is called from an OS thread without runtime
+        let runtime = tokio::runtime::Runtime::new()
+            .map_err(|e| Hexserror::adapter("E_GRAPH_001", &format!("Failed to create runtime: {}", e)))?;
+
+        runtime.block_on(async move {
             repository.get_graph().await.map_err(|e| {
                 Hexserror::adapter("E_GRAPH_001", &format!("Failed to get graph data: {}", e))
             })
@@ -68,8 +72,11 @@ impl QueryHandler<GetNodeMap, Arc<HashMap<u32, Node>>> for GetNodeMapHandler {
 
         let repository = self.repository.clone();
 
-        // Use current runtime handle (safe inside spawn_blocking)
-        tokio::runtime::Handle::current().block_on(async move {
+        // FIXED: Create a new Tokio runtime for this synchronous context
+        let runtime = tokio::runtime::Runtime::new()
+            .map_err(|e| Hexserror::adapter("E_GRAPH_002", &format!("Failed to create runtime: {}", e)))?;
+
+        runtime.block_on(async move {
             repository.get_node_map().await.map_err(|e| {
                 Hexserror::adapter("E_GRAPH_002", &format!("Failed to get node map: {}", e))
             })
@@ -100,8 +107,11 @@ impl QueryHandler<GetPhysicsState, PhysicsState> for GetPhysicsStateHandler {
 
         let repository = self.repository.clone();
 
-        // Use current runtime handle (safe inside spawn_blocking)
-        tokio::runtime::Handle::current().block_on(async move {
+        // FIXED: Create a new Tokio runtime for this synchronous context
+        let runtime = tokio::runtime::Runtime::new()
+            .map_err(|e| Hexserror::adapter("E_GRAPH_003", &format!("Failed to create runtime: {}", e)))?;
+
+        runtime.block_on(async move {
             repository.get_physics_state().await.map_err(|e| {
                 Hexserror::adapter(
                     "E_GRAPH_003",
