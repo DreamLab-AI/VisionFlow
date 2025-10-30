@@ -225,18 +225,8 @@ check_cloudflared() {
     if [[ "$PROFILE" == "dev" ]]; then
         # Check if cloudflared is running
         if ! docker ps | grep -q cloudflared-tunnel; then
-            warning "Cloudflared tunnel is not running"
-            read -p "Would you like to start the cloudflared tunnel for public access? (y/N) " -n 1 -r
-            echo
-            if [[ $REPLY =~ ^[Yy]$ ]]; then
-                log "Starting cloudflared tunnel..."
-                # The tunnel will start with docker compose up since we added dev to its profiles
-                return 0
-            else
-                info "Skipping cloudflared tunnel. Access will be local only."
-                # Remove cloudflared from the compose command
-                export SKIP_CLOUDFLARED=true
-            fi
+            info "Skipping cloudflared tunnel. Access will be local only."
+            export SKIP_CLOUDFLARED=true
         else
             success "Cloudflared tunnel is already running"
         fi

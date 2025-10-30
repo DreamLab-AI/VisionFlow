@@ -47,7 +47,6 @@ impl SqliteOntologyRepository {
             );
 
             CREATE INDEX IF NOT EXISTS idx_owl_classes_label ON owl_classes(label);
-            CREATE INDEX IF NOT EXISTS idx_owl_classes_sha1 ON owl_classes(file_sha1);
 
             CREATE TABLE IF NOT EXISTS owl_class_hierarchy (
                 class_iri TEXT NOT NULL,
@@ -99,6 +98,20 @@ impl SqliteOntologyRepository {
         "#,
         )
         .map_err(|e| format!("Failed to create schema: {}", e))?;
+
+        // Migration: Add file_sha1 column if it doesn't exist (for backwards compatibility)
+        let _ = conn.execute(
+            r#"ALTER TABLE owl_classes ADD COLUMN file_sha1 TEXT"#,
+            [],
+        );
+        // Ignore error if column already exists
+
+        // Now create the index on file_sha1 (after ensuring column exists)
+        conn.execute(
+            r#"CREATE INDEX IF NOT EXISTS idx_owl_classes_sha1 ON owl_classes(file_sha1)"#,
+            [],
+        )
+        .map_err(|e| format!("Failed to create file_sha1 index: {}", e))?;
 
         info!("Initialized SqliteOntologyRepository at {}", db_path);
 
