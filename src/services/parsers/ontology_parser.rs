@@ -112,6 +112,9 @@ impl OntologyParser {
                     parent_classes,
                     properties,
                     source_file: Some(filename.to_string()),
+                    markdown_content: None,
+                    file_sha1: None,
+                    last_synced: None,
                 });
             }
         }

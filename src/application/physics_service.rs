@@ -94,7 +94,7 @@ impl PhysicsService {
         self.event_bus
             .write()
             .await
-            .publish_domain_event(event)
+            .publish(event)
             .await;
 
         Ok(sim_id)
@@ -120,7 +120,7 @@ impl PhysicsService {
             self.event_bus
                 .write()
                 .await
-                .publish_domain_event(event)
+                .publish(event)
                 .await;
 
             // Clear simulation ID
@@ -150,11 +150,11 @@ impl PhysicsService {
         // Convert to nodes
         let mut nodes = Vec::new();
         for (node_id, x, y, z) in positions {
-            if let Some(node) = graph.nodes.iter().find(|n| n.id == node_id.to_string()) {
+            if let Some(node) = graph.nodes.iter().find(|n| n.id == node_id) {
                 let mut updated_node = node.clone();
-                updated_node.x = Some(x);
-                updated_node.y = Some(y);
-                updated_node.z = Some(z);
+                updated_node.set_x(x);
+                updated_node.set_y(y);
+                updated_node.set_z(z);
                 nodes.push(updated_node);
             }
         }
@@ -162,14 +162,14 @@ impl PhysicsService {
         // Publish positions updated event
         let event = PositionsUpdatedEvent {
             graph_id: "main".to_string(),
-            updated_nodes: nodes.iter().map(|n| n.id.clone()).collect(),
+            updated_nodes: nodes.iter().map(|n| n.id.to_string()).collect(),
             timestamp: Utc::now(),
         };
 
         self.event_bus
             .write()
             .await
-            .publish_domain_event(event)
+            .publish(event)
             .await;
 
         Ok(nodes)
@@ -207,7 +207,7 @@ impl PhysicsService {
         self.event_bus
             .write()
             .await
-            .publish_domain_event(event)
+            .publish(event)
             .await;
 
         Ok(nodes)

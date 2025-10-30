@@ -196,6 +196,7 @@ impl OntologyRepository for SqliteOntologyRepository {
                 let properties_json = serde_json::to_string(&class.properties)
                     .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to serialize properties: {}", e)))?;
 
+                let last_synced_str = class.last_synced.as_ref().map(|dt| dt.to_rfc3339());
                 class_stmt.execute(params![
                     &class.iri,
                     &class.label,
@@ -204,7 +205,7 @@ impl OntologyRepository for SqliteOntologyRepository {
                     properties_json,
                     &class.markdown_content,
                     &class.file_sha1,
-                    &class.last_synced
+                    &last_synced_str
                 ]).map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to insert class {}: {}", class.iri, e)))?;
             }
             drop(class_stmt);
@@ -302,10 +303,12 @@ impl OntologyRepository for SqliteOntologyRepository {
                 OntologyRepositoryError::DatabaseError(format!("Failed to serialize properties: {}", e))
             })?;
 
+            let last_synced_str = class_clone.last_synced.as_ref().map(|dt| dt.to_rfc3339());
+
             conn.execute(
                 "INSERT OR REPLACE INTO owl_classes (iri, label, description, source_file, properties, markdown_content, file_sha1, last_synced, updated_at)
                  VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, CURRENT_TIMESTAMP)",
-                params![&class_clone.iri, &class_clone.label, &class_clone.description, &class_clone.source_file, properties_json, &class_clone.markdown_content, &class_clone.file_sha1, &class_clone.last_synced]
+                params![&class_clone.iri, &class_clone.label, &class_clone.description, &class_clone.source_file, properties_json, &class_clone.markdown_content, &class_clone.file_sha1, &last_synced_str]
             )
             .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to insert class: {}", e)))?;
 
@@ -645,6 +648,75 @@ impl OntologyRepository for SqliteOntologyRepository {
                 })?;
 
             Ok(properties)
+        })
+        .await
+        .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Join error: {}", e)))?
+    }
+
+    async fn get_classes(&self) -> RepoResult<Vec<OwlClass>> {
+        // Alias for list_owl_classes
+        self.list_owl_classes().await
+    }
+
+    async fn get_axioms(&self) -> RepoResult<Vec<OwlAxiom>> {
+        let conn_arc = self.conn.clone();
+
+        tokio::task::spawn_blocking(move || {
+            let conn = conn_arc
+                .lock()
+                .expect("Failed to acquire ontology repository mutex");
+
+            let mut stmt = conn
+                .prepare("SELECT id, axiom_type, subject, object, annotations FROM owl_axioms")
+                .map_err(|e| {
+                    OntologyRepositoryError::DatabaseError(format!(
+                        "Failed to prepare statement: {}",
+                        e
+                    ))
+                })?;
+
+            let axioms = stmt
+                .query_map([], |row| {
+                    let id: i64 = row.get(0)?;
+                    let axiom_type_str: String = row.get(1)?;
+                    let subject: String = row.get(2)?;
+                    let object: String = row.get(3)?;
+                    let annotations_json: String = row.get(4)?;
+
+                    let axiom_type = match axiom_type_str.as_str() {
+                        "SubClassOf" => AxiomType::SubClassOf,
+                        "EquivalentClass" => AxiomType::EquivalentClass,
+                        "DisjointWith" => AxiomType::DisjointWith,
+                        "ObjectPropertyAssertion" => AxiomType::ObjectPropertyAssertion,
+                        "DataPropertyAssertion" => AxiomType::DataPropertyAssertion,
+                        _ => AxiomType::SubClassOf,
+                    };
+
+                    let annotations = serde_json::from_str(&annotations_json).unwrap_or_default();
+
+                    Ok(OwlAxiom {
+                        id: Some(id as u64),
+                        axiom_type,
+                        subject,
+                        object,
+                        annotations,
+                    })
+                })
+                .map_err(|e| {
+                    OntologyRepositoryError::DatabaseError(format!(
+                        "Failed to query axioms: {}",
+                        e
+                    ))
+                })?
+                .collect::<Result<Vec<OwlAxiom>, _>>()
+                .map_err(|e| {
+                    OntologyRepositoryError::DatabaseError(format!(
+                        "Failed to collect axioms: {}",
+                        e
+                    ))
+                })?;
+
+            Ok(axioms)
         })
         .await
         .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Join error: {}", e)))?

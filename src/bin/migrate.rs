@@ -119,8 +119,10 @@ fn cmd_down() -> Result<(), Box<dyn std::error::Error>> {
     let mut conn = Connection::open(&db_path)?;
 
     // Get current version
-    let tracker = VersionTracker::new(&conn);
-    let current = tracker.current_version()?;
+    let current = {
+        let tracker = VersionTracker::new(&conn);
+        tracker.current_version()?
+    };
 
     if current.is_none() {
         println!("No migrations to rollback");
@@ -131,7 +133,10 @@ fn cmd_down() -> Result<(), Box<dyn std::error::Error>> {
 
     RollbackManager::rollback_last(&mut conn, &migrations_dir)?;
 
-    let new_version = tracker.current_version()?;
+    let new_version = {
+        let tracker = VersionTracker::new(&conn);
+        tracker.current_version()?
+    };
     println!("\n Rolled back to version {}", new_version.unwrap_or(0));
 
     Ok(())

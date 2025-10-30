@@ -49,7 +49,7 @@ impl EventBus {
         );
 
         // Serialize event
-        let data = event.to_json().map_err(|e| EventError::Serialization(e))?;
+        let data = event.to_json_string().map_err(|e| EventError::Serialization(e.to_string()))?;
 
         // Get next sequence number
         let mut seq = self.sequence.write().await;
@@ -80,6 +80,7 @@ impl EventBus {
         drop(subscribers);
 
         // Execute handlers
+        let handler_count = handlers.len();
         let mut errors = Vec::new();
         for handler in handlers {
             match self.execute_handler(handler.clone(), &stored_event).await {
@@ -99,7 +100,7 @@ impl EventBus {
         drop(middleware);
 
         // If all handlers failed, return error
-        if !errors.is_empty() && errors.len() == handlers.len() {
+        if !errors.is_empty() && errors.len() == handler_count {
             return Err(EventError::Handler(format!(
                 "All {} handlers failed",
                 errors.len()

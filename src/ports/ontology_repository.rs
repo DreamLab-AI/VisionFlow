@@ -167,6 +167,12 @@ pub trait OntologyRepository: Send + Sync {
     /// List all OWL properties
     async fn list_owl_properties(&self) -> Result<Vec<OwlProperty>>;
 
+    /// Get all OWL classes (alias for list_owl_classes for inference service)
+    async fn get_classes(&self) -> Result<Vec<OwlClass>>;
+
+    /// Get all axioms across all classes
+    async fn get_axioms(&self) -> Result<Vec<OwlAxiom>>;
+
     /// Add an axiom (e.g., SubClassOf, EquivalentClass)
     /// Returns the axiom ID
     async fn add_axiom(&self, axiom: &OwlAxiom) -> Result<u64>;

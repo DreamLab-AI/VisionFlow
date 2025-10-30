@@ -111,7 +111,7 @@ impl Command for SavePhysicsSettingsCommand {
             return Err(anyhow::anyhow!("Profile name cannot be empty"));
         }
         // Validate physics settings
-        if self.settings.time_step <= 0.0 {
+        if self.settings.dt <= 0.0 {
             return Err(anyhow::anyhow!("Time step must be positive"));
         }
         if self.settings.damping < 0.0 || self.settings.damping > 1.0 {

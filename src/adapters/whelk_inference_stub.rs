@@ -82,8 +82,10 @@ impl InferenceEngine for WhelkInferenceEngineStub {
         self.total_inferences += 1;
 
         Ok(InferenceResults {
+            timestamp: chrono::Utc::now(),
             inferred_axioms: Vec::new(),
-            computation_time_ms: 0,
+            inference_time_ms: 0,
+            reasoner_version: "whelk-stub".to_string(),
         })
     }
 

@@ -386,7 +386,7 @@ impl InferenceService {
     ) -> EngineResult<()> {
         // Store inferred axioms back to repository
         for axiom in &results.inferred_axioms {
-            let _ = self.ontology_repo.add_axiom(axiom.clone()).await;
+            let _ = self.ontology_repo.add_axiom(&axiom).await;
         }
 
         debug!(

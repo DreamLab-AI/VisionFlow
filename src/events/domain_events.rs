@@ -2,6 +2,29 @@ use crate::events::types::DomainEvent;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+// Macro to simplify DomainEvent implementations
+macro_rules! impl_domain_event {
+    ($type:ty, $event_type:expr, $aggregate_type:expr, $id_field:ident) => {
+        impl DomainEvent for $type {
+            fn event_type(&self) -> &'static str {
+                $event_type
+            }
+            fn aggregate_id(&self) -> &str {
+                &self.$id_field
+            }
+            fn timestamp(&self) -> DateTime<Utc> {
+                self.timestamp
+            }
+            fn aggregate_type(&self) -> &'static str {
+                $aggregate_type
+            }
+            fn to_json_string(&self) -> Result<String, serde_json::Error> {
+                serde_json::to_string(self)
+            }
+        }
+    };
+}
+
 // ==================== Graph Events ====================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -13,20 +36,7 @@ pub struct NodeAddedEvent {
     pub timestamp: DateTime<Utc>,
 }
 
-impl DomainEvent for NodeAddedEvent {
-    fn event_type(&self) -> &'static str {
-        "NodeAdded"
-    }
-    fn aggregate_id(&self) -> &str {
-        &self.node_id
-    }
-    fn timestamp(&self) -> DateTime<Utc> {
-        self.timestamp
-    }
-    fn aggregate_type(&self) -> &'static str {
-        "Node"
-    }
-}
+impl_domain_event!(NodeAddedEvent, "NodeAdded", "Node", node_id);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NodeUpdatedEvent {
@@ -36,20 +46,7 @@ pub struct NodeUpdatedEvent {
     pub timestamp: DateTime<Utc>,
 }
 
-impl DomainEvent for NodeUpdatedEvent {
-    fn event_type(&self) -> &'static str {
-        "NodeUpdated"
-    }
-    fn aggregate_id(&self) -> &str {
-        &self.node_id
-    }
-    fn timestamp(&self) -> DateTime<Utc> {
-        self.timestamp
-    }
-    fn aggregate_type(&self) -> &'static str {
-        "Node"
-    }
-}
+impl_domain_event!(NodeUpdatedEvent, "NodeUpdated", "Node", node_id);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NodeRemovedEvent {
@@ -57,20 +54,7 @@ pub struct NodeRemovedEvent {
     pub timestamp: DateTime<Utc>,
 }
 
-impl DomainEvent for NodeRemovedEvent {
-    fn event_type(&self) -> &'static str {
-        "NodeRemoved"
-    }
-    fn aggregate_id(&self) -> &str {
-        &self.node_id
-    }
-    fn timestamp(&self) -> DateTime<Utc> {
-        self.timestamp
-    }
-    fn aggregate_type(&self) -> &'static str {
-        "Node"
-    }
-}
+impl_domain_event!(NodeRemovedEvent, "NodeRemoved", "Node", node_id);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EdgeAddedEvent {
@@ -82,20 +66,7 @@ pub struct EdgeAddedEvent {
     pub timestamp: DateTime<Utc>,
 }
 
-impl DomainEvent for EdgeAddedEvent {
-    fn event_type(&self) -> &'static str {
-        "EdgeAdded"
-    }
-    fn aggregate_id(&self) -> &str {
-        &self.edge_id
-    }
-    fn timestamp(&self) -> DateTime<Utc> {
-        self.timestamp
-    }
-    fn aggregate_type(&self) -> &'static str {
-        "Edge"
-    }
-}
+impl_domain_event!(EdgeAddedEvent, "EdgeAdded", "Edge", edge_id);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EdgeRemovedEvent {
@@ -105,20 +76,7 @@ pub struct EdgeRemovedEvent {
     pub timestamp: DateTime<Utc>,
 }
 
-impl DomainEvent for EdgeRemovedEvent {
-    fn event_type(&self) -> &'static str {
-        "EdgeRemoved"
-    }
-    fn aggregate_id(&self) -> &str {
-        &self.edge_id
-    }
-    fn timestamp(&self) -> DateTime<Utc> {
-        self.timestamp
-    }
-    fn aggregate_type(&self) -> &'static str {
-        "Edge"
-    }
-}
+impl_domain_event!(EdgeRemovedEvent, "EdgeRemoved", "Edge", edge_id);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GraphSavedEvent {
@@ -129,20 +87,7 @@ pub struct GraphSavedEvent {
     pub timestamp: DateTime<Utc>,
 }
 
-impl DomainEvent for GraphSavedEvent {
-    fn event_type(&self) -> &'static str {
-        "GraphSaved"
-    }
-    fn aggregate_id(&self) -> &str {
-        &self.graph_id
-    }
-    fn timestamp(&self) -> DateTime<Utc> {
-        self.timestamp
-    }
-    fn aggregate_type(&self) -> &'static str {
-        "Graph"
-    }
-}
+impl_domain_event!(GraphSavedEvent, "GraphSaved", "Graph", graph_id);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GraphClearedEvent {
@@ -150,20 +95,7 @@ pub struct GraphClearedEvent {
     pub timestamp: DateTime<Utc>,
 }
 
-impl DomainEvent for GraphClearedEvent {
-    fn event_type(&self) -> &'static str {
-        "GraphCleared"
-    }
-    fn aggregate_id(&self) -> &str {
-        &self.graph_id
-    }
-    fn timestamp(&self) -> DateTime<Utc> {
-        self.timestamp
-    }
-    fn aggregate_type(&self) -> &'static str {
-        "Graph"
-    }
-}
+impl_domain_event!(GraphClearedEvent, "GraphCleared", "Graph", graph_id);
 
 // ==================== Ontology Events ====================
 
@@ -176,20 +108,7 @@ pub struct ClassAddedEvent {
     pub timestamp: DateTime<Utc>,
 }
 
-impl DomainEvent for ClassAddedEvent {
-    fn event_type(&self) -> &'static str {
-        "ClassAdded"
-    }
-    fn aggregate_id(&self) -> &str {
-        &self.class_id
-    }
-    fn timestamp(&self) -> DateTime<Utc> {
-        self.timestamp
-    }
-    fn aggregate_type(&self) -> &'static str {
-        "OntologyClass"
-    }
-}
+impl_domain_event!(ClassAddedEvent, "ClassAdded", "OntologyClass", class_id);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PropertyAddedEvent {
@@ -201,20 +120,7 @@ pub struct PropertyAddedEvent {
     pub timestamp: DateTime<Utc>,
 }
 
-impl DomainEvent for PropertyAddedEvent {
-    fn event_type(&self) -> &'static str {
-        "PropertyAdded"
-    }
-    fn aggregate_id(&self) -> &str {
-        &self.property_id
-    }
-    fn timestamp(&self) -> DateTime<Utc> {
-        self.timestamp
-    }
-    fn aggregate_type(&self) -> &'static str {
-        "OntologyProperty"
-    }
-}
+impl_domain_event!(PropertyAddedEvent, "PropertyAdded", "OntologyProperty", property_id);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AxiomAddedEvent {
@@ -226,20 +132,7 @@ pub struct AxiomAddedEvent {
     pub timestamp: DateTime<Utc>,
 }
 
-impl DomainEvent for AxiomAddedEvent {
-    fn event_type(&self) -> &'static str {
-        "AxiomAdded"
-    }
-    fn aggregate_id(&self) -> &str {
-        &self.axiom_id
-    }
-    fn timestamp(&self) -> DateTime<Utc> {
-        self.timestamp
-    }
-    fn aggregate_type(&self) -> &'static str {
-        "Axiom"
-    }
-}
+impl_domain_event!(AxiomAddedEvent, "AxiomAdded", "Axiom", axiom_id);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OntologyImportedEvent {
@@ -252,20 +145,7 @@ pub struct OntologyImportedEvent {
     pub timestamp: DateTime<Utc>,
 }
 
-impl DomainEvent for OntologyImportedEvent {
-    fn event_type(&self) -> &'static str {
-        "OntologyImported"
-    }
-    fn aggregate_id(&self) -> &str {
-        &self.ontology_id
-    }
-    fn timestamp(&self) -> DateTime<Utc> {
-        self.timestamp
-    }
-    fn aggregate_type(&self) -> &'static str {
-        "Ontology"
-    }
-}
+impl_domain_event!(OntologyImportedEvent, "OntologyImported", "Ontology", ontology_id);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InferenceCompletedEvent {
@@ -276,20 +156,7 @@ pub struct InferenceCompletedEvent {
     pub timestamp: DateTime<Utc>,
 }
 
-impl DomainEvent for InferenceCompletedEvent {
-    fn event_type(&self) -> &'static str {
-        "InferenceCompleted"
-    }
-    fn aggregate_id(&self) -> &str {
-        &self.ontology_id
-    }
-    fn timestamp(&self) -> DateTime<Utc> {
-        self.timestamp
-    }
-    fn aggregate_type(&self) -> &'static str {
-        "Ontology"
-    }
-}
+impl_domain_event!(InferenceCompletedEvent, "InferenceCompleted", "Ontology", ontology_id);
 
 // ==================== Physics Events ====================
 
@@ -301,20 +168,7 @@ pub struct SimulationStartedEvent {
     pub timestamp: DateTime<Utc>,
 }
 
-impl DomainEvent for SimulationStartedEvent {
-    fn event_type(&self) -> &'static str {
-        "SimulationStarted"
-    }
-    fn aggregate_id(&self) -> &str {
-        &self.simulation_id
-    }
-    fn timestamp(&self) -> DateTime<Utc> {
-        self.timestamp
-    }
-    fn aggregate_type(&self) -> &'static str {
-        "Simulation"
-    }
-}
+impl_domain_event!(SimulationStartedEvent, "SimulationStarted", "Simulation", simulation_id);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SimulationStoppedEvent {
@@ -324,20 +178,7 @@ pub struct SimulationStoppedEvent {
     pub timestamp: DateTime<Utc>,
 }
 
-impl DomainEvent for SimulationStoppedEvent {
-    fn event_type(&self) -> &'static str {
-        "SimulationStopped"
-    }
-    fn aggregate_id(&self) -> &str {
-        &self.simulation_id
-    }
-    fn timestamp(&self) -> DateTime<Utc> {
-        self.timestamp
-    }
-    fn aggregate_type(&self) -> &'static str {
-        "Simulation"
-    }
-}
+impl_domain_event!(SimulationStoppedEvent, "SimulationStopped", "Simulation", simulation_id);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LayoutOptimizedEvent {
@@ -348,20 +189,7 @@ pub struct LayoutOptimizedEvent {
     pub timestamp: DateTime<Utc>,
 }
 
-impl DomainEvent for LayoutOptimizedEvent {
-    fn event_type(&self) -> &'static str {
-        "LayoutOptimized"
-    }
-    fn aggregate_id(&self) -> &str {
-        &self.layout_id
-    }
-    fn timestamp(&self) -> DateTime<Utc> {
-        self.timestamp
-    }
-    fn aggregate_type(&self) -> &'static str {
-        "Layout"
-    }
-}
+impl_domain_event!(LayoutOptimizedEvent, "LayoutOptimized", "Layout", layout_id);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PositionsUpdatedEvent {
@@ -370,20 +198,7 @@ pub struct PositionsUpdatedEvent {
     pub timestamp: DateTime<Utc>,
 }
 
-impl DomainEvent for PositionsUpdatedEvent {
-    fn event_type(&self) -> &'static str {
-        "PositionsUpdated"
-    }
-    fn aggregate_id(&self) -> &str {
-        &self.graph_id
-    }
-    fn timestamp(&self) -> DateTime<Utc> {
-        self.timestamp
-    }
-    fn aggregate_type(&self) -> &'static str {
-        "Graph"
-    }
-}
+impl_domain_event!(PositionsUpdatedEvent, "PositionsUpdated", "Graph", graph_id);
 
 // ==================== Settings Events ====================
 
@@ -396,20 +211,7 @@ pub struct SettingUpdatedEvent {
     pub timestamp: DateTime<Utc>,
 }
 
-impl DomainEvent for SettingUpdatedEvent {
-    fn event_type(&self) -> &'static str {
-        "SettingUpdated"
-    }
-    fn aggregate_id(&self) -> &str {
-        &self.setting_key
-    }
-    fn timestamp(&self) -> DateTime<Utc> {
-        self.timestamp
-    }
-    fn aggregate_type(&self) -> &'static str {
-        "Setting"
-    }
-}
+impl_domain_event!(SettingUpdatedEvent, "SettingUpdated", "Setting", setting_key);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PhysicsProfileSavedEvent {
@@ -419,20 +221,7 @@ pub struct PhysicsProfileSavedEvent {
     pub timestamp: DateTime<Utc>,
 }
 
-impl DomainEvent for PhysicsProfileSavedEvent {
-    fn event_type(&self) -> &'static str {
-        "PhysicsProfileSaved"
-    }
-    fn aggregate_id(&self) -> &str {
-        &self.profile_id
-    }
-    fn timestamp(&self) -> DateTime<Utc> {
-        self.timestamp
-    }
-    fn aggregate_type(&self) -> &'static str {
-        "PhysicsProfile"
-    }
-}
+impl_domain_event!(PhysicsProfileSavedEvent, "PhysicsProfileSaved", "PhysicsProfile", profile_id);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SettingsImportedEvent {
@@ -442,20 +231,7 @@ pub struct SettingsImportedEvent {
     pub timestamp: DateTime<Utc>,
 }
 
-impl DomainEvent for SettingsImportedEvent {
-    fn event_type(&self) -> &'static str {
-        "SettingsImported"
-    }
-    fn aggregate_id(&self) -> &str {
-        &self.settings_id
-    }
-    fn timestamp(&self) -> DateTime<Utc> {
-        self.timestamp
-    }
-    fn aggregate_type(&self) -> &'static str {
-        "Settings"
-    }
-}
+impl_domain_event!(SettingsImportedEvent, "SettingsImported", "Settings", settings_id);
 
 #[cfg(test)]
 mod tests {

@@ -12,6 +12,7 @@ use tracing::{error, info, warn};
 
 use crate::actors::physics_orchestrator_actor::PhysicsOrchestratorActor;
 use crate::actors::semantic_processor_actor::SemanticProcessorActor;
+use crate::models::simulation_params::SimulationParams;
 
 /// Actor system lifecycle manager
 pub struct ActorLifecycleManager {
@@ -57,7 +58,18 @@ impl ActorLifecycleManager {
     async fn start_physics_actor(&mut self) -> Result<(), ActorLifecycleError> {
         info!("Starting PhysicsOrchestratorActor");
 
-        let actor = PhysicsOrchestratorActor::default();
+        let simulation_params = SimulationParams::default();
+        #[cfg(feature = "gpu")]
+        let actor = PhysicsOrchestratorActor::new(
+            simulation_params,
+            None, // gpu_compute_addr
+            None, // graph_data
+        );
+        #[cfg(not(feature = "gpu"))]
+        let actor = PhysicsOrchestratorActor::new(
+            simulation_params,
+            None, // graph_data
+        );
         let addr = actor.start();
 
         self.physics_actor = Some(addr);
@@ -70,7 +82,7 @@ impl ActorLifecycleManager {
     async fn start_semantic_actor(&mut self) -> Result<(), ActorLifecycleError> {
         info!("Starting SemanticProcessorActor");
 
-        let actor = SemanticProcessorActor::default();
+        let actor = SemanticProcessorActor::new(None); // Use default config
         let addr = actor.start();
 
         self.semantic_actor = Some(addr);

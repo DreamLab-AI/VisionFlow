@@ -147,8 +147,8 @@ impl Command for AddEdgeCommand {
     }
 
     fn validate(&self) -> Result<()> {
-        if self.edge.label.is_empty() {
-            return Err(anyhow::anyhow!("Edge label cannot be empty"));
+        if self.edge.id.is_empty() {
+            return Err(anyhow::anyhow!("Edge ID cannot be empty"));
         }
         Ok(())
     }

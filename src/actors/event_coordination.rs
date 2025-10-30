@@ -175,7 +175,7 @@ impl EventCoordinator {
 
         // Broadcast to WebSocket clients
         let event_bus = self.event_bus.write().await;
-        event_bus.publish_domain_event(event).await;
+        event_bus.publish(event).await;
     }
 
     /// Handle node added event

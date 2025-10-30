@@ -144,7 +144,7 @@ impl EventStore {
             event.event_type().to_string(),
         );
 
-        let data = event.to_json().map_err(|e| EventError::Serialization(e))?;
+        let data = event.to_json_string().map_err(|e| EventError::Serialization(e.to_string()))?;
 
         let stored_event = StoredEvent {
             metadata,

@@ -44,7 +44,7 @@ impl QueryHandler<GetPhysicsStatus, PhysicsStatus> for GetPhysicsStatusHandler {
         let is_running = tokio::task::block_in_place(|| {
             tokio::runtime::Handle::current().block_on(async { simulator.is_running().await })
         })
-        .map_err(|e| Hexserror::repository(format!("Failed to get physics status: {}", e)))?;
+        .map_err(|e| Hexserror::port("E_PHYSICS_STATUS", &format!("Failed to get physics status: {}", e)))?;
 
         Ok(PhysicsStatus {
             is_running,

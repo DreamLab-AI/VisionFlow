@@ -5,7 +5,7 @@
 
 use crate::cqrs::commands::*;
 use crate::cqrs::queries::*;
-use crate::cqrs::types::{CommandHandler, QueryHandler, Result};
+use crate::cqrs::types::{Command, CommandHandler, Query, QueryHandler, Result};
 use crate::ports::KnowledgeGraphRepository;
 use async_trait::async_trait;
 use std::sync::Arc;

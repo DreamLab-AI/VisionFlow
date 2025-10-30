@@ -25,12 +25,12 @@ impl Directive for UpdatePhysicsParams {
 
         // Validate physics settings ranges
         let settings = &self.params.settings;
-        if settings.repulsion_strength < 0.0 {
+        if settings.repel_k < 0.0 {
             return Err(Hexserror::validation(
                 "Repulsion strength must be non-negative",
             ));
         }
-        if settings.attraction_strength < 0.0 {
+        if settings.spring_k < 0.0 {
             return Err(Hexserror::validation(
                 "Attraction strength must be non-negative",
             ));

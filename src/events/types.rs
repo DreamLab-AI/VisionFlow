@@ -4,7 +4,8 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
 /// Core trait for all domain events
-pub trait DomainEvent: Send + Sync + Clone + Debug {
+/// Note: This trait is object-safe (can be used as `dyn DomainEvent`)
+pub trait DomainEvent: Send + Sync + Debug {
     /// Returns the type identifier of this event
     fn event_type(&self) -> &'static str;
 
@@ -14,11 +15,6 @@ pub trait DomainEvent: Send + Sync + Clone + Debug {
     /// Returns when this event occurred
     fn timestamp(&self) -> DateTime<Utc>;
 
-    /// Serializes the event to JSON
-    fn to_json(&self) -> Result<String, serde_json::Error> {
-        serde_json::to_string(&self)
-    }
-
     /// Returns the aggregate type (e.g., "Graph", "Node", "Ontology")
     fn aggregate_type(&self) -> &'static str;
 
@@ -26,6 +22,9 @@ pub trait DomainEvent: Send + Sync + Clone + Debug {
     fn version(&self) -> u32 {
         1
     }
+
+    /// Serializes the event to JSON (must be implemented by each event)
+    fn to_json_string(&self) -> Result<String, serde_json::Error>;
 }
 
 /// Metadata associated with every event
@@ -148,10 +147,10 @@ pub trait EventMiddleware: Send + Sync {
 }
 
 /// Event-related errors
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Clone, thiserror::Error)]
 pub enum EventError {
     #[error("Serialization error: {0}")]
-    Serialization(#[from] serde_json::Error),
+    Serialization(String),
 
     #[error("Handler error: {0}")]
     Handler(String),

@@ -540,6 +540,19 @@ impl OntologyRepository for MockOntologyRepository {
         Ok(self.properties.read().await.clone())
     }
 
+    async fn get_classes(
+        &self,
+    ) -> ontology_repository::Result<Vec<ontology_repository::OwlClass>> {
+        // Alias for list_owl_classes
+        self.list_owl_classes().await
+    }
+
+    async fn get_axioms(
+        &self,
+    ) -> ontology_repository::Result<Vec<ontology_repository::OwlAxiom>> {
+        Ok(self.axioms.read().await.clone())
+    }
+
     async fn add_axiom(
         &self,
         axiom: &ontology_repository::OwlAxiom,
