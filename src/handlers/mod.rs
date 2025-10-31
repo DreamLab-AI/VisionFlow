@@ -1,4 +1,5 @@
 pub mod admin_sync_handler;
+pub mod admin_bridge_handler;
 pub mod api_handler;
 pub mod bots_handler;
 pub mod bots_visualization_handler;

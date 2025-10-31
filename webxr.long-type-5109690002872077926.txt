@@ -1,2 +1,0 @@
-horned_owl::ontology::set::SetIndex<std::rc::Rc<str>, horned_owl::model::AnnotatedComponent<std::rc::Rc<str>>>
-horned_owl::ontology::indexed::OneIndexedOntology<std::rc::Rc<str>, horned_owl::model::AnnotatedComponent<std::rc::Rc<str>>, horned_owl::ontology::set::SetIndex<std::rc::Rc<str>, horned_owl::model::AnnotatedComponent<std::rc::Rc<str>>>>

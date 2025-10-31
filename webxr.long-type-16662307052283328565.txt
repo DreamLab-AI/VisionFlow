@@ -1,1 +1,0 @@
-std::result::Result<std::collections::HashMap<u32, std::option::Option<f32>>, std::string::String>
