@@ -9,7 +9,6 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 use crate::models::graph::GraphData;
-use crate::models::node::Node;
 
 pub type Result<T> = std::result::Result<T, GpuPhysicsAdapterError>;
 

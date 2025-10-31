@@ -4,7 +4,6 @@
 //! Parses OWL ontologies in various formats (OWL/XML, Manchester, RDF/XML, Turtle).
 //! Uses horned-owl library for OWL parsing and supports multiple serialization formats.
 
-use std::io::Read;
 use std::collections::HashMap;
 use thiserror::Error;
 use serde::{Deserialize, Serialize};
@@ -12,13 +11,9 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "ontology")]
 use horned_owl::io::owx::reader::read as read_owx;
 #[cfg(feature = "ontology")]
-use horned_owl::io::rdf::reader::read as read_rdf;
-#[cfg(feature = "ontology")]
 use horned_owl::model::ArcStr;
 #[cfg(feature = "ontology")]
 use horned_owl::ontology::set::SetOntology;
-#[cfg(feature = "ontology")]
-use horned_owl::ontology::component_mapped::ComponentMappedOntology;
 
 use crate::ports::ontology_repository::{OwlClass, OwlAxiom, AxiomType};
 

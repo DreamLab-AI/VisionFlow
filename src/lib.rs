@@ -14,9 +14,11 @@ pub mod middleware;
 pub mod migrations; // Database migration system
 pub mod models;
 pub mod ontology;
+pub mod reasoning;
 pub mod physics;
 pub mod ports;
 pub mod services;
+pub mod settings; // Persistent settings management (Week 8-9)
 pub mod telemetry;
 pub mod types;
 pub mod utils;

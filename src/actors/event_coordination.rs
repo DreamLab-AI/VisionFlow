@@ -14,7 +14,6 @@ use crate::events::domain_events::{
     EdgeAddedEvent, GraphSavedEvent, NodeAddedEvent, OntologyImportedEvent, PositionsUpdatedEvent,
 };
 use crate::events::event_bus::EventBus;
-use crate::events::types::DomainEvent;
 use crate::models::graph::GraphData;
 
 /// Event-driven actor coordinator

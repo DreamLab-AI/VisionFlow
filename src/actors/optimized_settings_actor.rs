@@ -345,7 +345,11 @@ impl OptimizedSettingsActor {
         if let Some(redis_client) = &self.redis_client {
             if let Ok(mut conn) = redis_client.get_async_connection().await {
                 let redis_key = format!("settings:{}", path);
-                if let Ok(compressed_data) = conn.get::<String, Vec<u8>>(&redis_key).await {
+                if let Ok(compressed_data): Result<Vec<u8>, _> = redis::cmd("GET")
+                    .arg(&redis_key)
+                    .query_async(&mut conn)
+                    .await
+                {
                     if let Ok(json_str) = self.decompress_data(&compressed_data).await {
                         if let Ok(value) = serde_json::from_str::<Value>(&json_str) {
                             debug!("Redis hit for path: {}", path);
@@ -416,8 +420,11 @@ impl OptimizedSettingsActor {
                             output.truncate(compressed_size);
 
                             let redis_key = format!("settings:{}", path);
-                            if let Err(e) = conn
-                                .set_ex::<String, Vec<u8>, ()>(&redis_key, output, REDIS_TTL)
+                            if let Err(e): Result<(), _> = redis::cmd("SETEX")
+                                .arg(&redis_key)
+                                .arg(REDIS_TTL)
+                                .arg(&output)
+                                .query_async(&mut conn)
                                 .await
                             {
                                 warn!("Failed to cache value in Redis: {}", e);
@@ -624,7 +631,10 @@ impl OptimizedSettingsActor {
         #[cfg(feature = "redis")]
         if let Some(redis_client) = &self.redis_client {
             if let Ok(mut conn) = redis_client.get_async_connection().await {
-                if let Err(e) = conn.flushdb::<()>().await {
+                if let Err(e): Result<(), _> = redis::cmd("FLUSHDB")
+                    .query_async(&mut conn)
+                    .await
+                {
                     warn!("Failed to clear Redis cache: {}", e);
                 }
             }
@@ -1022,7 +1032,11 @@ impl Handler<SetSettingsByPaths> for OptimizedSettingsActor {
                     if let Ok(mut conn) = redis_client.get_async_connection().await {
                         for path in cache_invalidations {
                             let redis_key = format!("settings:{}", path);
-                            if let Err(e) = conn.del::<String, ()>(&redis_key).await {
+                            if let Err(e): Result<(), _> = redis::cmd("DEL")
+                                .arg(&redis_key)
+                                .query_async(&mut conn)
+                                .await
+                            {
                                 warn!("Failed to invalidate Redis cache for {}: {}", path, e);
                             }
                         }

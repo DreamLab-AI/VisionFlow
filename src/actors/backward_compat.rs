@@ -6,7 +6,6 @@
 
 use actix::prelude::*;
 use std::sync::Arc;
-use tokio::sync::RwLock;
 use tracing::warn;
 
 use crate::application::physics_service::PhysicsService;

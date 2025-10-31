@@ -3,7 +3,7 @@
 //!
 //! Read operations for GPU physics adapter status and metrics.
 
-use crate::cqrs::types::{Query, Result};
+use crate::cqrs::types::Query;
 use crate::ports::gpu_physics_adapter::{GpuDeviceInfo, PhysicsStatistics};
 
 /// Get GPU device information and status

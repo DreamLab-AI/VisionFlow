@@ -10,9 +10,7 @@ use lru::LruCache;
 use std::num::NonZeroUsize;
 use chrono::{DateTime, Utc, Duration};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
-use crate::inference::types::Inference;
 use crate::ports::ontology_repository::InferenceResults;
 
 /// Cache configuration

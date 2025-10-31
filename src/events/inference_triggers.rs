@@ -8,7 +8,7 @@ use tokio::sync::RwLock;
 use tracing::{debug, info, warn, instrument};
 
 use crate::application::inference_service::InferenceService;
-use crate::events::{EventBus, EventHandler};
+use crate::events::EventBus;
 
 /// Ontology-related events that trigger inference
 #[derive(Debug, Clone)]

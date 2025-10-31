@@ -3,7 +3,7 @@
 //!
 //! All queries for reading physics simulation state following CQRS patterns.
 
-use hexser::{HexResult, Hexserror, Query, QueryHandler};
+use hexser::{HexResult, Hexserror, QueryHandler};
 use std::sync::Arc;
 
 use crate::ports::physics_simulator::{PhysicsSimulator, SimulationParams};

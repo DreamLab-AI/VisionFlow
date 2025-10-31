@@ -5,7 +5,7 @@
 //! and efficient graph structure storage.
 
 use async_trait::async_trait;
-use log::{error, info};
+use log::info;
 use rusqlite::{params, Connection};
 use std::sync::{Arc, Mutex};
 use tracing::{debug, instrument};

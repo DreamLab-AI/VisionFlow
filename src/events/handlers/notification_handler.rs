@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-use crate::events::types::{EventError, EventHandler, EventResult, StoredEvent};
+use crate::events::types::{EventHandler, EventResult, StoredEvent};
 
 /// Handler that sends WebSocket notifications for events
 pub struct NotificationEventHandler {

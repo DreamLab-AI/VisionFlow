@@ -41,14 +41,11 @@ use crate::services::github::{ContentAPI, GitHubClient};
 use crate::services::github_sync_service::GitHubSyncService;
 use crate::services::management_api_client::ManagementApiClient;
 use crate::services::nostr_service::NostrService;
-use crate::services::parsers::{KnowledgeGraphParser, OntologyParser};
 use crate::services::perplexity_service::PerplexityService;
 use crate::services::ragflow_service::RAGFlowService;
 use crate::services::settings_service::SettingsService;
 use crate::services::speech_service::SpeechService;
 use crate::utils::client_message_extractor::ClientMessage;
-#[cfg(feature = "gpu")]
-use cudarc::driver::CudaDevice;
 use tokio::sync::mpsc;
 use tokio::time::Duration;
 

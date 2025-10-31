@@ -620,3 +620,156 @@ impl DatabaseService {
         Ok(keys)
     }
 }
+
+// ================================================================
+// GENERIC DATABASE OPERATIONS
+// ================================================================
+
+/// Database selection enum for generic operations
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DatabaseTarget {
+    Settings,
+    KnowledgeGraph,
+    Ontology,
+}
+
+impl DatabaseService {
+    /// Execute a SQL statement with parameters (INSERT, UPDATE, DELETE)
+    /// Returns the number of rows affected
+    ///
+    /// # Arguments
+    /// * `target` - Which database to execute against
+    /// * `query` - SQL query string with ? placeholders
+    /// * `params` - Parameters to bind to the query
+    ///
+    /// # Example
+    /// ```ignore
+    /// db_service.execute(
+    ///     DatabaseTarget::Settings,
+    ///     "INSERT INTO users (name, email) VALUES (?1, ?2)",
+    ///     params!["John Doe", "john@example.com"]
+    /// )?;
+    /// ```
+    pub fn execute(
+        &self,
+        target: DatabaseTarget,
+        query: &str,
+        params: &[&dyn rusqlite::ToSql],
+    ) -> SqliteResult<usize> {
+        let conn = match target {
+            DatabaseTarget::Settings => self.get_settings_connection(),
+            DatabaseTarget::KnowledgeGraph => self.get_knowledge_graph_connection(),
+            DatabaseTarget::Ontology => self.get_ontology_connection(),
+        }
+        .map_err(|e| {
+            rusqlite::Error::SqliteFailure(
+                rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_ERROR),
+                Some(format!("Failed to get database connection: {}", e)),
+            )
+        })?;
+
+        conn.execute(query, params)
+    }
+
+    /// Query a single row from the database
+    /// Returns None if no row is found
+    ///
+    /// # Arguments
+    /// * `target` - Which database to query
+    /// * `query` - SQL query string with ? placeholders
+    /// * `params` - Parameters to bind to the query
+    /// * `mapper` - Function to map row to result type T
+    ///
+    /// # Example
+    /// ```ignore
+    /// let user: Option<User> = db_service.query_one(
+    ///     DatabaseTarget::Settings,
+    ///     "SELECT id, name, email FROM users WHERE id = ?1",
+    ///     params![42],
+    ///     |row| Ok(User {
+    ///         id: row.get(0)?,
+    ///         name: row.get(1)?,
+    ///         email: row.get(2)?,
+    ///     })
+    /// )?;
+    /// ```
+    pub fn query_one<T, F>(
+        &self,
+        target: DatabaseTarget,
+        query: &str,
+        params: &[&dyn rusqlite::ToSql],
+        mapper: F,
+    ) -> SqliteResult<Option<T>>
+    where
+        F: FnOnce(&rusqlite::Row<'_>) -> SqliteResult<T>,
+    {
+        let conn = match target {
+            DatabaseTarget::Settings => self.get_settings_connection(),
+            DatabaseTarget::KnowledgeGraph => self.get_knowledge_graph_connection(),
+            DatabaseTarget::Ontology => self.get_ontology_connection(),
+        }
+        .map_err(|e| {
+            rusqlite::Error::SqliteFailure(
+                rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_ERROR),
+                Some(format!("Failed to get database connection: {}", e)),
+            )
+        })?;
+
+        conn.query_row(query, params, mapper).optional()
+    }
+
+    /// Query multiple rows from the database
+    /// Returns a vector of results
+    ///
+    /// # Arguments
+    /// * `target` - Which database to query
+    /// * `query` - SQL query string with ? placeholders
+    /// * `params` - Parameters to bind to the query
+    /// * `mapper` - Function to map each row to result type T
+    ///
+    /// # Example
+    /// ```ignore
+    /// let users: Vec<User> = db_service.query_all(
+    ///     DatabaseTarget::Settings,
+    ///     "SELECT id, name, email FROM users WHERE active = ?1",
+    ///     params![true],
+    ///     |row| Ok(User {
+    ///         id: row.get(0)?,
+    ///         name: row.get(1)?,
+    ///         email: row.get(2)?,
+    ///     })
+    /// )?;
+    /// ```
+    pub fn query_all<T, F>(
+        &self,
+        target: DatabaseTarget,
+        query: &str,
+        params: &[&dyn rusqlite::ToSql],
+        mapper: F,
+    ) -> SqliteResult<Vec<T>>
+    where
+        F: FnMut(&rusqlite::Row<'_>) -> SqliteResult<T>,
+    {
+        let conn = match target {
+            DatabaseTarget::Settings => self.get_settings_connection(),
+            DatabaseTarget::KnowledgeGraph => self.get_knowledge_graph_connection(),
+            DatabaseTarget::Ontology => self.get_ontology_connection(),
+        }
+        .map_err(|e| {
+            rusqlite::Error::SqliteFailure(
+                rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_ERROR),
+                Some(format!("Failed to get database connection: {}", e)),
+            )
+        })?;
+
+        let mut stmt = conn.prepare(query)?;
+        let rows = stmt.query_map(params, mapper)?;
+
+        let mut results = Vec::new();
+        for row_result in rows {
+            results.push(row_result?);
+        }
+
+        Ok(results)
+    }
+}

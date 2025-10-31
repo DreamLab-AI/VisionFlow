@@ -1,23 +1,25 @@
-//! Comprehensive test modules for VisionFlow settings system
+//! Comprehensive test modules for VisionFlow migration
 //!
-//! This module organizes all test files for the settings refactor project,
-//! ported and enhanced from the codestore testing suite.
-//! Tests are organized by functionality and integration patterns.
+//! This module organizes all test files for the migration project:
+//! - Integration tests for end-to-end migration pipeline
+//! - Adapter parity tests for dual-adapter validation
+//! - Performance benchmarks for constraint translation
+//! - Control center tests for settings persistence
+//! - Load tests for concurrent user simulation
 
-// Test module declarations - commented out missing files
-// pub mod settings_validation_tests; // File not found
-// pub mod granular_api_tests; // File not found
-// pub mod settings_serialisation_tests; // File not found
-// pub mod concurrent_access_tests; // File not found
-// pub mod performance_tests; // File not found
-// pub mod websocket_integration_tests; // File not found
-// pub mod security_tests; // File not found
+// Test module declarations
+pub mod helpers;
+pub mod integration;
+pub mod performance;
 
-// Test utilities and helpers
+// Test utilities and helpers (legacy)
 pub mod test_utils;
 
+// Re-export commonly used test utilities
+pub use helpers::*;
+
 #[cfg(test)]
-mod integration_tests {
+mod migration_tests {
     use super::*;
 
     /// Integration test helper to verify all test modules compile and run

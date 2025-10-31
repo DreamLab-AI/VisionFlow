@@ -39,15 +39,13 @@
 
 use crate::adapters::sqlite_knowledge_graph_repository::SqliteKnowledgeGraphRepository;
 use crate::adapters::sqlite_ontology_repository::SqliteOntologyRepository;
-use crate::models::edge::Edge;
-use crate::models::node::Node;
 use crate::ports::knowledge_graph_repository::KnowledgeGraphRepository;
-use crate::ports::ontology_repository::{OwlAxiom, OwlClass, OwlProperty, OntologyRepository};
+use crate::ports::ontology_repository::OntologyRepository;
 use crate::services::github::content_enhanced::EnhancedContentAPI;
 use crate::services::github::types::GitHubFileBasicMetadata;
 use crate::services::parsers::{KnowledgeGraphParser, OntologyParser};
 use log::{debug, error, info, warn};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::{mpsc, Semaphore};

@@ -5,7 +5,6 @@
 //! through hexagonal architecture ports. Handles GPU-accelerated physics
 //! computations and event publishing.
 
-use async_trait::async_trait;
 use chrono::Utc;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -17,7 +16,7 @@ use crate::events::event_bus::EventBus;
 use crate::models::graph::GraphData;
 use crate::models::node::Node;
 use crate::ports::gpu_physics_adapter::{
-    GpuDeviceInfo, GpuPhysicsAdapter, NodeForce, PhysicsParameters, PhysicsStatistics,
+    GpuDeviceInfo, GpuPhysicsAdapter, PhysicsParameters, PhysicsStatistics,
     PhysicsStepResult, Result as PhysicsResult,
 };
 

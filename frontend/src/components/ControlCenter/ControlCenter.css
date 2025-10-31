@@ -1,0 +1,228 @@
+/* frontend/src/components/ControlCenter/ControlCenter.css */
+
+.control-center {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.control-center-header {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.control-center-header h1 {
+  margin: 0 0 10px 0;
+  color: #1a1a1a;
+  font-size: 2.5em;
+}
+
+.control-center-header p {
+  margin: 0;
+  color: #666;
+  font-size: 1.1em;
+}
+
+.notification {
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  animation: slideIn 0.3s ease-out;
+}
+
+.notification.success {
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}
+
+.notification.error {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.control-center-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 0;
+}
+
+.control-center-tabs button {
+  padding: 12px 24px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: 500;
+  color: #666;
+  transition: all 0.2s ease;
+  margin-bottom: -2px;
+}
+
+.control-center-tabs button:hover {
+  color: #1a1a1a;
+  background-color: #f5f5f5;
+}
+
+.control-center-tabs button.active {
+  color: #0066cc;
+  border-bottom-color: #0066cc;
+}
+
+.control-center-content {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+}
+
+/* Common button styles */
+button {
+  padding: 10px 20px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 0.95em;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+button:hover:not(:disabled) {
+  background-color: #f0f0f0;
+  border-color: #b0b0b0;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.primary {
+  background-color: #0066cc;
+  color: white;
+  border-color: #0066cc;
+}
+
+button.primary:hover:not(:disabled) {
+  background-color: #0052a3;
+}
+
+button.danger {
+  background-color: #dc3545;
+  color: white;
+  border-color: #dc3545;
+}
+
+button.danger:hover:not(:disabled) {
+  background-color: #c82333;
+}
+
+/* Loading and error states */
+.loading,
+.error {
+  padding: 60px 20px;
+  text-align: center;
+  font-size: 1.1em;
+  color: #666;
+}
+
+.error {
+  color: #dc3545;
+}
+
+/* Form elements */
+input[type='text'],
+input[type='number'],
+select {
+  padding: 8px 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  font-size: 0.95em;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+input[type='text']:focus,
+input[type='number']:focus,
+select:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+input[type='range'] {
+  width: 100%;
+  margin: 10px 0;
+}
+
+input[type='checkbox'] {
+  margin-right: 8px;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+small {
+  display: block;
+  margin-top: 5px;
+  color: #666;
+  font-size: 0.85em;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .control-center {
+    padding: 10px;
+  }
+
+  .control-center-header h1 {
+    font-size: 1.8em;
+  }
+
+  .control-center-tabs {
+    flex-direction: column;
+    border-bottom: none;
+  }
+
+  .control-center-tabs button {
+    border-left: 3px solid transparent;
+    border-bottom: none;
+    margin-bottom: 0;
+    margin-left: 0;
+  }
+
+  .control-center-tabs button.active {
+    border-left-color: #0066cc;
+    border-bottom-color: transparent;
+  }
+
+  .control-center-content {
+    padding: 15px;
+  }
+}

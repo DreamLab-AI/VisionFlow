@@ -7,12 +7,11 @@
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{debug, info, instrument, warn};
-use chrono::Utc;
 
 use crate::ports::inference_engine::{InferenceEngine, Result as EngineResult};
 use crate::ports::ontology_repository::{OntologyRepository, InferenceResults};
 use crate::inference::{InferenceCache, InferenceOptimizer, ValidationResult};
-use crate::inference::types::{Inference, ConsistencyReport, ClassificationResult, UnsatisfiableClass};
+use crate::inference::types::{ConsistencyReport, ClassificationResult, UnsatisfiableClass};
 use crate::inference::optimization::BatchInferenceRequest;
 use crate::events::EventBus;
 

@@ -10,13 +10,13 @@ use crate::utils::validation::rate_limit::{
 use crate::utils::validation::MAX_REQUEST_SIZE;
 use actix_web::{web, Error, HttpRequest, HttpResponse};
 use log::{debug, error, info, warn};
-use tracing::{debug as trace_debug, info as trace_info};
+use tracing::info as trace_info;
 use uuid::Uuid;
 
 // Import comprehensive validation for GPU parameters
 use crate::handlers::settings_validation_fix::{
-    apply_field_mappings, convert_to_snake_case_recursive, get_complete_field_mappings,
-    validate_constraint, validate_physics_settings_complete,
+    convert_to_snake_case_recursive,
+    validate_physics_settings_complete,
 };
 
 /// Get a human-readable name for a JSON value type
@@ -3582,7 +3582,7 @@ async fn get_cluster_analytics(
     // Check if GPU clustering is available
     if let Some(gpu_addr) = &state.gpu_compute_addr {
         // Get real cluster data from GPU
-        use crate::actors::messages::{GetClusteringResults, GetGraphData};
+        use crate::actors::messages::GetGraphData;
 
         // First get graph data
         let graph_data = match state.graph_service_addr.send(GetGraphData).await {

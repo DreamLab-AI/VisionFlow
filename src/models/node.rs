@@ -16,6 +16,26 @@ pub struct Node {
     pub label: String,
     pub data: BinaryNodeData,
 
+    // Physics fields (direct access to match schema)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub x: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub y: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub z: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vx: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vy: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vz: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mass: Option<f32>,
+
+    // OWL Ontology linkage (matches unified_schema.sql)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub owl_class_iri: Option<String>,
+
     // Metadata
     #[serde(skip_serializing_if = "HashMap::is_empty")]
     pub metadata: HashMap<String, String>,
@@ -67,6 +87,10 @@ impl Node {
         // Spread nodes using configured radius range with random distance
         let radius = physics.initial_radius_min + rng.gen::<f32>() * physics.initial_radius_range;
 
+        let pos_x = radius * phi.sin() * theta.cos();
+        let pos_y = radius * phi.sin() * theta.sin();
+        let pos_z = radius * phi.cos();
+
         Self {
             id,
             metadata_id: metadata_id.clone(),
@@ -74,13 +98,22 @@ impl Node {
             data: BinaryNodeData {
                 node_id: id,
                 // Use spherical coordinates for better 3D distribution with random positions
-                x: radius * phi.sin() * theta.cos(),
-                y: radius * phi.sin() * theta.sin(),
-                z: radius * phi.cos(),
+                x: pos_x,
+                y: pos_y,
+                z: pos_z,
                 vx: 0.0, // Start with zero velocity
                 vy: 0.0, // Physics will handle the movement
                 vz: 0.0,
             },
+            // Physics fields matching schema
+            x: Some(pos_x),
+            y: Some(pos_y),
+            z: Some(pos_z),
+            vx: Some(0.0),
+            vy: Some(0.0),
+            vz: Some(0.0),
+            mass: Some(1.0), // Default mass
+            owl_class_iri: None,
             metadata: HashMap::new(),
             file_size: 0,
             node_type: None,
@@ -108,6 +141,9 @@ impl Node {
         self.data.x = x;
         self.data.y = y;
         self.data.z = z;
+        self.x = Some(x);
+        self.y = Some(y);
+        self.z = Some(z);
         self
     }
 
@@ -115,6 +151,19 @@ impl Node {
         self.data.vx = vx;
         self.data.vy = vy;
         self.data.vz = vz;
+        self.vx = Some(vx);
+        self.vy = Some(vy);
+        self.vz = Some(vz);
+        self
+    }
+
+    pub fn with_mass(mut self, mass: f32) -> Self {
+        self.mass = Some(mass);
+        self
+    }
+
+    pub fn with_owl_class_iri(mut self, iri: String) -> Self {
+        self.owl_class_iri = Some(iri);
         self
     }
 
@@ -166,19 +215,32 @@ impl Node {
         let angle = id_hash * 0.618033988749895; // Golden ratio for good distribution
         let radius = (id_hash * 0.1).min(100.0); // Spread nodes up to radius 100
 
+        let pos_x = radius * angle.cos() * 2.0;
+        let pos_y = radius * angle.sin() * 2.0;
+        let pos_z = (id_hash * 0.01 - 50.0).max(-100.0).min(100.0);
+
         Self {
             id,
             metadata_id: metadata_id.clone(),
             label: metadata_id,
             data: BinaryNodeData {
                 node_id: id,
-                x: radius * angle.cos() * 2.0,
-                y: radius * angle.sin() * 2.0,
-                z: (id_hash * 0.01 - 50.0).max(-100.0).min(100.0),
+                x: pos_x,
+                y: pos_y,
+                z: pos_z,
                 vx: 0.0,
                 vy: 0.0,
                 vz: 0.0,
             },
+            // Physics fields matching schema
+            x: Some(pos_x),
+            y: Some(pos_y),
+            z: Some(pos_z),
+            vx: Some(0.0),
+            vy: Some(0.0),
+            vz: Some(0.0),
+            mass: Some(1.0), // Default mass
+            owl_class_iri: None,
             metadata: HashMap::new(),
             file_size: 0,
             node_type: None,
@@ -221,21 +283,35 @@ impl Node {
 
     pub fn set_x(&mut self, val: f32) {
         self.data.x = val;
+        self.x = Some(val);
     }
     pub fn set_y(&mut self, val: f32) {
         self.data.y = val;
+        self.y = Some(val);
     }
     pub fn set_z(&mut self, val: f32) {
         self.data.z = val;
+        self.z = Some(val);
     }
     pub fn set_vx(&mut self, val: f32) {
         self.data.vx = val;
+        self.vx = Some(val);
     }
     pub fn set_vy(&mut self, val: f32) {
         self.data.vy = val;
+        self.vy = Some(val);
     }
     pub fn set_vz(&mut self, val: f32) {
         self.data.vz = val;
+        self.vz = Some(val);
+    }
+
+    pub fn set_mass(&mut self, val: f32) {
+        self.mass = Some(val);
+    }
+
+    pub fn get_mass(&self) -> f32 {
+        self.mass.unwrap_or(1.0)
     }
 
     /// Get the node ID as a string for socket/wire protocol compatibility

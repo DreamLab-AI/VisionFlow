@@ -10,8 +10,6 @@ use tokio::sync::RwLock;
 use tracing::{info, warn};
 
 use crate::application::inference_service::InferenceService;
-use crate::inference::types::{Inference, ValidationResult, ClassificationResult, ConsistencyReport};
-use crate::ports::ontology_repository::InferenceResults;
 
 /// Run inference request
 #[derive(Debug, Deserialize)]

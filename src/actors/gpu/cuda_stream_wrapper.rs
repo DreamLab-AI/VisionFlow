@@ -4,7 +4,6 @@
 //! This wrapper provides Rust thread safety guarantees.
 
 use cudarc::driver::CudaStream;
-use std::sync::Arc;
 
 /// Thread-safe wrapper for CudaStream
 ///

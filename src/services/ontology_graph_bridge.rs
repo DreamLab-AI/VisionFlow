@@ -5,7 +5,7 @@
 //! This bridge ensures that ontology classes are visible in the graph visualization.
 
 use std::sync::Arc;
-use tracing::{debug, error, info, warn};
+use tracing::{debug, info, warn};
 
 use crate::adapters::sqlite_knowledge_graph_repository::SqliteKnowledgeGraphRepository;
 use crate::adapters::sqlite_ontology_repository::SqliteOntologyRepository;

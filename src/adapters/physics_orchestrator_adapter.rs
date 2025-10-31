@@ -9,13 +9,12 @@ use async_trait::async_trait;
 use tracing::{debug, error, info, instrument};
 
 use crate::actors::messages::{
-    ApplyOntologyConstraints, ConstraintMergeMode, PhysicsPauseMessage, StartSimulation,
+    ApplyOntologyConstraints, ConstraintMergeMode, StartSimulation,
     StopSimulation, UpdateSimulationParams,
 };
 use crate::actors::physics_orchestrator_actor::{
     GetPhysicsStatus, PhysicsOrchestratorActor, UpdateGraphData,
 };
-use crate::config::PhysicsSettings;
 use crate::models::constraints::ConstraintSet;
 use crate::models::graph::GraphData;
 use crate::models::simulation_params::SimulationParams as ActorSimulationParams;
