@@ -1,0 +1,182 @@
+# Extension fields for DRY configuration
+x-common-environment: &common-environment
+  NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-0}
+  NVIDIA_DRIVER_CAPABILITIES: compute,utility
+  CUDA_ARCH: ${CUDA_ARCH:-86}
+  SYSTEM_NETWORK_PORT: ${SYSTEM_NETWORK_PORT:-4000}
+  # MCP and Claude Flow configuration
+  CLAUDE_FLOW_HOST: ${CLAUDE_FLOW_HOST:-agentic-workstation}
+  MCP_HOST: ${MCP_HOST:-agentic-workstation}
+  MCP_TCP_PORT: ${MCP_TCP_PORT:-9500}
+  MCP_TRANSPORT: ${MCP_TRANSPORT:-tcp}
+  MCP_RECONNECT_ATTEMPTS: ${MCP_RECONNECT_ATTEMPTS:-3}
+  MCP_RECONNECT_DELAY: ${MCP_RECONNECT_DELAY:-1000}
+  MCP_CONNECTION_TIMEOUT: ${MCP_CONNECTION_TIMEOUT:-30000}
+  ORCHESTRATOR_WS_URL: ${ORCHESTRATOR_WS_URL:-ws://mcp-orchestrator:9001/ws}
+  MCP_RELAY_FALLBACK_TO_MOCK: ${MCP_RELAY_FALLBACK_TO_MOCK:-true}
+  BOTS_ORCHESTRATOR_URL: ${BOTS_ORCHESTRATOR_URL:-ws://agentic-workstation:3002}
+  MANAGEMENT_API_HOST: ${MANAGEMENT_API_HOST:-agentic-workstation}
+  MANAGEMENT_API_PORT: ${MANAGEMENT_API_PORT:-9090}
+
+x-common-healthcheck: &common-healthcheck
+  test: ["CMD", "curl", "-f", "http://localhost:4000/"]
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 40s
+
+x-common-logging: &common-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-gpu-resources: &gpu-resources
+  resources:
+    reservations:
+      devices:
+        - driver: nvidia
+          count: 1
+          capabilities: [gpu, compute, utility]
+
+services:
+  # Unified VisionFlow service with profile-based configuration
+  visionflow:
+    container_name: ${CONTAINER_NAME:-visionflow_container}
+    hostname: ${HOSTNAME:-webxr}
+    build:
+      context: .
+      dockerfile: ${DOCKERFILE:-Dockerfile.dev}
+      args:
+        CUDA_ARCH: ${CUDA_ARCH:-86}
+        BUILD_TARGET: ${BUILD_TARGET:-development}
+    env_file:
+      - .env
+    environment:
+      <<: *common-environment
+      # Development-specific variables (overridden in production profile)
+      NODE_ENV: ${NODE_ENV:-development}
+      VITE_DEBUG: ${DEBUG_ENABLED:-true}
+      VITE_DEV_SERVER_PORT: ${VITE_DEV_SERVER_PORT:-5173}
+      VITE_API_PORT: ${VITE_API_PORT:-4000}
+      VITE_HMR_PORT: ${VITE_HMR_PORT:-24678}
+      RUST_LOG: ${RUST_LOG:-debug}
+      RUST_LOG_REDIRECT: ${RUST_LOG_REDIRECT:-true}
+      DOCKER_ENV: ${DOCKER_ENV:-true}
+    volumes:
+      # Data volumes - ALWAYS mounted (both dev and prod)
+      - visionflow-data:/app/data
+      - visionflow-logs:/app/logs
+      # Cache volumes for build optimization
+      - npm-cache:/root/.npm
+      - cargo-cache:/root/.cargo/registry
+      - cargo-git-cache:/root/.cargo/git
+      - cargo-target-cache:/app/target
+      # Docker socket for controlled access (development only)
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      # Development: Nginx entry point + API port
+      - "${DEV_NGINX_PORT:-3001}:3001"
+      - "${API_PORT:-4000}:4000"
+    networks:
+      docker_ragflow:
+        aliases:
+          - ${NETWORK_ALIAS:-webxr}
+    deploy:
+      <<: *gpu-resources
+    runtime: nvidia
+    restart: unless-stopped
+    healthcheck:
+      <<: *common-healthcheck
+    logging:
+      <<: *common-logging
+    profiles:
+      - development
+      - dev
+
+  # Production profile configuration (extends visionflow service)
+  visionflow-production:
+    extends:
+      service: visionflow
+    container_name: ${CONTAINER_NAME:-visionflow_prod_container}
+    hostname: ${HOSTNAME:-webxr-prod}
+    build:
+      context: .
+      dockerfile: ${DOCKERFILE:-Dockerfile.production}
+      args:
+        CUDA_ARCH: ${CUDA_ARCH:-86}
+        BUILD_TARGET: production
+        REBUILD_PTX: ${REBUILD_PTX:-false}
+    environment:
+      <<: *common-environment
+      # Production-specific overrides
+      NODE_ENV: production
+      RUST_LOG: ${RUST_LOG:-warn}
+      GIT_HASH: ${GIT_HASH:-production}
+      VITE_DEBUG: "false"
+    volumes:
+      # Production: ONLY data volumes (no source mounts, no Docker socket)
+      - visionflow-data:/app/data
+      - visionflow-logs:/app/logs
+      - cargo-target-cache:/app/target
+    ports:
+      # Production: Only API port
+      - "${PROD_API_PORT:-4000}:4000"
+    entrypoint: ["/app/prod-entrypoint.sh"]
+    profiles:
+      - production
+      - prod
+
+  # Cloudflare tunnel - works with both profiles
+  cloudflared:
+    container_name: ${CLOUDFLARED_CONTAINER:-cloudflared-tunnel}
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    volumes:
+      - ./config.yml:/etc/cloudflared/config.yml:ro
+    depends_on:
+      visionflow:
+        condition: service_started
+        required: false
+      visionflow-production:
+        condition: service_started
+        required: false
+    networks:
+      - docker_ragflow
+    restart: unless-stopped
+    logging:
+      <<: *common-logging
+    profiles:
+      - development
+      - dev
+      - production
+      - prod
+
+networks:
+  docker_ragflow:
+    external: true
+    name: ${EXTERNAL_NETWORK:-docker_ragflow}
+
+volumes:
+  # Persistent data volumes
+  visionflow-data:
+    name: ${DATA_VOLUME_NAME:-visionflow-data}
+    driver: local
+  visionflow-logs:
+    name: ${LOGS_VOLUME_NAME:-visionflow-logs}
+    driver: local
+  # Build cache volumes
+  npm-cache:
+    name: ${NPM_CACHE_VOLUME:-visionflow-npm-cache}
+    driver: local
+  cargo-cache:
+    name: ${CARGO_CACHE_VOLUME:-visionflow-cargo-cache}
+    driver: local
+  cargo-git-cache:
+    name: ${CARGO_GIT_CACHE_VOLUME:-visionflow-cargo-git-cache}
+    driver: local
+  cargo-target-cache:
+    name: ${CARGO_TARGET_CACHE_VOLUME:-visionflow-cargo-target-cache}
+    driver: local

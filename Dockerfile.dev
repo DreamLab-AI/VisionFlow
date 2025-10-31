@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1.7
+
 # Development Docker image for WebXR with CUDA support
 # This image includes all build tools and ALWAYS builds the Rust backend on startup
 # to ensure compatibility with the container's architecture
@@ -16,7 +18,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
     CUDA_PATH=/usr/local/cuda
 
 # Install runtime dependencies and build tools
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
     gcc-11 \
@@ -30,8 +34,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     expect \
     docker.io \
     supervisor \
-    nginx \
-    && rm -rf /var/lib/apt/lists/*
+    nginx
 
 # Create Nginx log and run directories
 RUN mkdir -p /var/log/nginx /var/run/nginx && \
@@ -72,14 +75,17 @@ COPY whelk-rs ./whelk-rs
 # Copy client directory with all frontend files
 COPY client ./client
 
-# Install Node.js dependencies
+# Install Node.js dependencies with cache mount
 WORKDIR /app/client
-RUN npm install
+RUN --mount=type=cache,target=/root/.npm \
+    npm install
 
 WORKDIR /app
 
 # Pre-download Rust dependencies to speed up first build
-RUN cargo fetch
+RUN --mount=type=cache,target=/root/.cargo/registry \
+    --mount=type=cache,target=/root/.cargo/git \
+    cargo fetch
 
 # Copy runtime configuration files (no longer mounted to avoid conflicts)
 COPY nginx.dev.conf /etc/nginx/nginx.conf

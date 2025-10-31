@@ -211,10 +211,9 @@ docker_compose() {
         export DOCKER_DEFAULT_RUNTIME="nvidia"
     fi
 
-    # Workaround for Docker Compose 2.40.x --allow flag bug
-    # Disable BuildKit for compose build operations
-    export DOCKER_BUILDKIT=0
-    export COMPOSE_DOCKER_CLI_BUILD=0
+    # Enable BuildKit for better caching and parallel builds
+    export DOCKER_BUILDKIT=1
+    export BUILDKIT_PROGRESS=plain
 
     cd "$PROJECT_ROOT"
     docker compose --profile "$PROFILE" "${compose_args[@]}" "$@"
@@ -258,7 +257,6 @@ start_environment() {
         info "Building with GPU support enabled"
         build_args+=("--build-arg" "FEATURES=gpu")
 
-        # Use default buildkit (DOCKER_BUILDKIT=1 causes --allow flag issues in Docker 28.x)
         docker_compose build "${build_args[@]}"
     fi
 
@@ -350,7 +348,6 @@ build_only() {
     info "Building with GPU support enabled"
     build_args+=("--build-arg" "FEATURES=gpu")
 
-    # Use default buildkit (DOCKER_BUILDKIT=1 causes --allow flag issues in Docker 28.x)
     docker_compose build "${build_args[@]}"
     success "Build complete"
 }

@@ -6,9 +6,9 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# Disable BuildKit to avoid --allow flag bug in Docker Compose 2.40.x
-export DOCKER_BUILDKIT=0
-export COMPOSE_DOCKER_CLI_BUILD=0
+# Enable BuildKit for better caching and parallel builds
+export DOCKER_BUILDKIT=1
+export BUILDKIT_PROGRESS=plain
 
 # Parse arguments
 BUILD_ARGS=""
