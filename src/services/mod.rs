@@ -30,3 +30,4 @@ pub mod speech_service;
 pub mod speech_voice_integration;
 pub mod voice_context_manager;
 pub mod voice_tag_manager;
+pub mod streaming_sync_service;

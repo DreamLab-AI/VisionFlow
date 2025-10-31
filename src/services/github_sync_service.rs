@@ -190,42 +190,68 @@ impl GitHubSyncService {
             "Filtering linked_page nodes against {} public pages",
             public_page_names.len()
         );
+        debug!("[GitHubSync][Filter] Starting node filtering with {} accumulated nodes", accumulated_nodes.len());
         let node_count_before_filter = accumulated_nodes.len();
+        let filter_start = Instant::now();
+        let mut filtered_count = 0;
+
         accumulated_nodes.retain(|_id, node| {
             match node.metadata.get("type").map(|s| s.as_str()) {
-                Some("page") => true, // Keep all page nodes (already verified public)
+                Some("page") => {
+                    debug!("[GitHubSync][Filter] Keeping page node: {}", node.metadata_id);
+                    true
+                }
                 Some("linked_page") => {
                     // Only keep if the linked page is in our public set
                     let is_public = public_page_names.contains(&node.metadata_id);
                     if !is_public {
                         debug!(
-                            "Filtered out linked_page '{}' - not in public pages",
+                            "[GitHubSync][Filter] Filtered out linked_page '{}' - not in public pages",
                             node.metadata_id
                         );
+                        filtered_count += 1;
+                    } else {
+                        debug!("[GitHubSync][Filter] Keeping linked_page '{}' - is public", node.metadata_id);
                     }
                     is_public
                 }
-                _ => true, // Keep unknown types
+                _ => {
+                    debug!("[GitHubSync][Filter] Keeping unknown type node: {}", node.metadata_id);
+                    true
+                }
             }
         });
         let nodes_filtered = node_count_before_filter - accumulated_nodes.len();
         info!(
-            "Filtered {} linked_page nodes (kept {} of {} total nodes)",
+            "[GitHubSync][Filter] Filtered {} linked_page nodes in {:?} (kept {} of {} total nodes)",
             nodes_filtered,
+            filter_start.elapsed(),
             accumulated_nodes.len(),
             node_count_before_filter
         );
 
         // ✅ FIX: Filter edges to only include those connecting retained nodes
+        debug!("[GitHubSync][Filter] Starting edge filtering with {} accumulated edges", accumulated_edges.len());
         let edge_count_before_filter = accumulated_edges.len();
+        let edge_filter_start = Instant::now();
         accumulated_edges.retain(|_id, edge| {
-            accumulated_nodes.contains_key(&edge.source)
-                && accumulated_nodes.contains_key(&edge.target)
+            let has_source = accumulated_nodes.contains_key(&edge.source);
+            let has_target = accumulated_nodes.contains_key(&edge.target);
+            let keep = has_source && has_target;
+
+            if !keep {
+                debug!(
+                    "[GitHubSync][Filter] Filtered out edge {} -> {}: source_exists={}, target_exists={}",
+                    edge.source, edge.target, has_source, has_target
+                );
+            }
+            keep
         });
         let edges_filtered = edge_count_before_filter - accumulated_edges.len();
         info!(
-            "Filtered {} orphan edges (kept {} of {} total edges)",
+            "[GitHubSync][Filter] Filtered {} orphan edges in {:?} (kept {} of {} total edges)",
             edges_filtered,
+            edge_filter_start.elapsed(),
             accumulated_edges.len(),
             edge_count_before_filter
         );
@@ -304,10 +330,24 @@ impl GitHubSyncService {
         // Use the base_path from GitHub config (mainKnowledgeGraph/pages)
         let path = ""; // Empty string will use the configured base_path
 
-        self.content_api
+        debug!("[GitHubSync] Fetching markdown files from GitHub repository");
+        let fetch_start = Instant::now();
+
+        let result = self.content_api
             .list_markdown_files(path)
             .await
-            .map_err(|e| format!("GitHub API error: {}", e))
+            .map_err(|e| format!("GitHub API error: {}", e));
+
+        match &result {
+            Ok(files) => {
+                debug!("[GitHubSync] Fetched {} files in {:?}", files.len(), fetch_start.elapsed());
+            }
+            Err(e) => {
+                error!("[GitHubSync] Failed to fetch file list: {}", e);
+            }
+        }
+
+        result
     }
 
     /// Process a single file
@@ -490,34 +530,25 @@ impl GitHubSyncService {
         let content = content.trim_start_matches('\u{feff}');
         let lines: Vec<&str> = content.lines().take(20).collect();
 
-        // Debug: Log first 3 lines
-        for (i, line) in lines.iter().take(3).enumerate() {
-            debug!("detect_file_type line {}: {:?}", i + 1, line);
-        }
+        debug!("[GitHubSync][FileType] Analyzing file with {} total lines (examining first 20)", content.lines().count());
 
         // Check for "public:: true" (knowledge graph marker)
         for (i, line) in lines.iter().enumerate() {
             let trimmed = line.trim();
-            debug!(
-                "Line {} check: '{}' == 'public:: true' ? {}",
-                i + 1,
-                trimmed,
-                trimmed == "public:: true"
-            );
 
             if trimmed == "public:: true" {
-                debug!("✅ Knowledge Graph detected!");
+                debug!("[GitHubSync][FileType] Knowledge Graph detected at line {}", i + 1);
                 return FileType::KnowledgeGraph;
             }
         }
 
         // Check for "- ### OntologyBlock" (ontology marker)
         if content.contains("### OntologyBlock") {
-            debug!("✅ Ontology detected!");
+            debug!("[GitHubSync][FileType] Ontology detected (contains '### OntologyBlock')");
             return FileType::Ontology;
         }
 
-        debug!("⏭️ File skipped (no markers found)");
+        debug!("[GitHubSync][FileType] File skipped - no markers found");
         FileType::Skip
     }
 
@@ -527,23 +558,31 @@ impl GitHubSyncService {
         download_url: &str,
         max_retries: u32,
     ) -> Result<String, String> {
+        debug!("[GitHubSync][Fetch] Starting fetch for URL: {}", download_url);
         let mut last_error = String::new();
 
         for attempt in 0..max_retries {
+            debug!("[GitHubSync][Fetch] Attempt {}/{} for {}", attempt + 1, max_retries, download_url);
+
             match self.content_api.fetch_file_content(download_url).await {
-                Ok(content) => return Ok(content),
+                Ok(content) => {
+                    debug!("[GitHubSync][Fetch] Successfully fetched {} bytes", content.len());
+                    return Ok(content);
+                }
                 Err(e) => {
                     last_error = e.to_string();
                     if attempt < max_retries - 1 {
                         let delay = Duration::from_secs(2u64.pow(attempt)); // Exponential backoff
                         warn!(
-                            "Fetch failed (attempt {}/{}): {}. Retrying in {:?}...",
+                            "[GitHubSync][Fetch] Attempt {}/{} failed: {}. Retrying in {:?}...",
                             attempt + 1,
                             max_retries,
                             last_error,
                             delay
                         );
                         sleep(delay).await;
+                    } else {
+                        error!("[GitHubSync][Fetch] All {} attempts failed: {}", max_retries, last_error);
                     }
                 }
             }

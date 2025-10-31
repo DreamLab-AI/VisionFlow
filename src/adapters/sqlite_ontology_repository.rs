@@ -30,41 +30,97 @@ impl SqliteOntologyRepository {
         let conn =
             Connection::open(db_path).map_err(|e| format!("Failed to open database: {}", e))?;
 
-        // Create ontology schema
+        // Create ontology schema (matching actual database schema)
         conn.execute_batch(
             r#"
-            CREATE TABLE IF NOT EXISTS owl_classes (
-                iri TEXT PRIMARY KEY,
-                label TEXT,
+            CREATE TABLE IF NOT EXISTS ontologies (
+                ontology_id TEXT PRIMARY KEY,
+                source_path TEXT NOT NULL,
+                source_type TEXT NOT NULL CHECK (source_type IN ('file', 'url', 'embedded')),
+                base_iri TEXT,
+                version_iri TEXT,
+                title TEXT,
                 description TEXT,
-                source_file TEXT,
-                properties TEXT,
-                markdown_content TEXT,
-                file_sha1 TEXT,
-                last_synced DATETIME,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                author TEXT,
+                version TEXT,
+                content_hash TEXT NOT NULL,
+                axiom_count INTEGER DEFAULT 0,
+                class_count INTEGER DEFAULT 0,
+                property_count INTEGER DEFAULT 0,
+                parsed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_validated_at TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
 
+            CREATE INDEX IF NOT EXISTS idx_ontologies_source ON ontologies(source_path);
+            CREATE INDEX IF NOT EXISTS idx_ontologies_hash ON ontologies(content_hash);
+
+            -- Insert default ontology if not exists
+            INSERT OR IGNORE INTO ontologies (
+                ontology_id,
+                source_path,
+                source_type,
+                content_hash,
+                title,
+                description
+            )
+            VALUES (
+                'default',
+                'default',
+                'embedded',
+                'default-ontology',
+                'Default Ontology',
+                'Default ontology for VisionFlow incremental saves'
+            );
+
+            CREATE TABLE IF NOT EXISTS owl_classes (
+                ontology_id TEXT NOT NULL,
+                class_iri TEXT NOT NULL,
+                label TEXT,
+                comment TEXT,
+                parent_class_iri TEXT,
+                is_deprecated INTEGER DEFAULT 0 CHECK (is_deprecated IN (0, 1)),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                file_sha1 TEXT,
+                PRIMARY KEY (ontology_id, class_iri),
+                FOREIGN KEY (ontology_id) REFERENCES ontologies(ontology_id) ON DELETE CASCADE
+            );
+
+            -- CRITICAL: Create unique index on class_iri to allow foreign key references
+            -- This is required because owl_classes has a composite primary key (ontology_id, class_iri)
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_owl_classes_iri_unique ON owl_classes(class_iri);
+            CREATE INDEX IF NOT EXISTS idx_owl_classes_parent ON owl_classes(parent_class_iri);
             CREATE INDEX IF NOT EXISTS idx_owl_classes_label ON owl_classes(label);
+            CREATE INDEX IF NOT EXISTS idx_owl_classes_sha1 ON owl_classes(file_sha1);
 
             CREATE TABLE IF NOT EXISTS owl_class_hierarchy (
                 class_iri TEXT NOT NULL,
                 parent_iri TEXT NOT NULL,
                 PRIMARY KEY (class_iri, parent_iri),
-                FOREIGN KEY (class_iri) REFERENCES owl_classes(iri) ON DELETE CASCADE,
-                FOREIGN KEY (parent_iri) REFERENCES owl_classes(iri) ON DELETE CASCADE
+                FOREIGN KEY (class_iri) REFERENCES owl_classes(class_iri) ON DELETE CASCADE,
+                FOREIGN KEY (parent_iri) REFERENCES owl_classes(class_iri) ON DELETE CASCADE
             );
 
             CREATE TABLE IF NOT EXISTS owl_properties (
-                iri TEXT PRIMARY KEY,
+                ontology_id TEXT NOT NULL,
+                property_iri TEXT NOT NULL,
+                property_type TEXT NOT NULL CHECK (property_type IN ('ObjectProperty', 'DataProperty', 'AnnotationProperty')),
                 label TEXT,
-                property_type TEXT NOT NULL,
-                domain TEXT,
-                range TEXT,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                comment TEXT,
+                domain_class_iri TEXT,
+                range_class_iri TEXT,
+                is_functional INTEGER DEFAULT 0 CHECK (is_functional IN (0, 1)),
+                is_inverse_functional INTEGER DEFAULT 0 CHECK (is_inverse_functional IN (0, 1)),
+                is_symmetric INTEGER DEFAULT 0 CHECK (is_symmetric IN (0, 1)),
+                is_transitive INTEGER DEFAULT 0 CHECK (is_transitive IN (0, 1)),
+                inverse_property_iri TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (ontology_id, property_iri),
+                FOREIGN KEY (ontology_id) REFERENCES ontologies(ontology_id) ON DELETE CASCADE
             );
+
+            CREATE INDEX IF NOT EXISTS idx_owl_properties_iri ON owl_properties(property_iri);
+            CREATE INDEX IF NOT EXISTS idx_owl_properties_type ON owl_properties(property_type);
 
             CREATE TABLE IF NOT EXISTS owl_axioms (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -99,19 +155,7 @@ impl SqliteOntologyRepository {
         )
         .map_err(|e| format!("Failed to create schema: {}", e))?;
 
-        // Migration: Add file_sha1 column if it doesn't exist (for backwards compatibility)
-        let _ = conn.execute(
-            r#"ALTER TABLE owl_classes ADD COLUMN file_sha1 TEXT"#,
-            [],
-        );
-        // Ignore error if column already exists
-
-        // Now create the index on file_sha1 (after ensuring column exists)
-        conn.execute(
-            r#"CREATE INDEX IF NOT EXISTS idx_owl_classes_sha1 ON owl_classes(file_sha1)"#,
-            [],
-        )
-        .map_err(|e| format!("Failed to create file_sha1 index: {}", e))?;
+        // No migration needed - schema is now correct from creation
 
         info!("Initialized SqliteOntologyRepository at {}", db_path);
 
@@ -177,23 +221,33 @@ impl OntologyRepository for SqliteOntologyRepository {
         properties: &[OwlProperty],
         axioms: &[OwlAxiom],
     ) -> RepoResult<()> {
+        debug!("[OntologyRepo] Acquiring database mutex for save_ontology (batch: {} classes, {} properties, {} axioms)",
+            classes.len(), properties.len(), axioms.len());
+
         let conn_arc = self.conn.clone();
         let classes_vec = classes.to_vec();
         let properties_vec = properties.to_vec();
         let axioms_vec = axioms.to_vec();
 
         tokio::task::spawn_blocking(move || {
+            let mutex_start = std::time::Instant::now();
             let conn = conn_arc.lock().expect("Failed to acquire ontology repository mutex");
+            debug!("[OntologyRepo] Acquired mutex in {:?}", mutex_start.elapsed());
 
             // CRITICAL: PRAGMA must be set BEFORE transaction starts
+            debug!("[OntologyRepo] Disabling foreign keys for bulk insert");
             conn.execute("PRAGMA foreign_keys = OFF", [])
                 .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to disable foreign keys: {}", e)))?;
 
             // Start transaction AFTER disabling foreign keys
+            debug!("[OntologyRepo] Beginning transaction");
+            let txn_start = std::time::Instant::now();
             conn.execute("BEGIN TRANSACTION", [])
                 .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to begin transaction: {}", e)))?;
 
             // Delete existing data (clean slate) - foreign keys now disabled
+            debug!("[OntologyRepo] Clearing existing ontology data");
+            let clear_start = std::time::Instant::now();
             conn.execute("DELETE FROM owl_class_hierarchy", [])
                 .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to clear hierarchy: {}", e)))?;
             conn.execute("DELETE FROM owl_axioms", [])
@@ -202,15 +256,21 @@ impl OntologyRepository for SqliteOntologyRepository {
                 .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to clear properties: {}", e)))?;
             conn.execute("DELETE FROM owl_classes", [])
                 .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to clear classes: {}", e)))?;
+            debug!("[OntologyRepo] Cleared existing data in {:?}", clear_start.elapsed());
 
             // Insert classes (using schema columns: ontology_id, class_iri, label, comment, file_sha1)
+            debug!("[OntologyRepo] Preparing INSERT statement for {} classes", classes_vec.len());
             let ontology_id = "default"; // Default ontology ID for synced data
             let mut class_stmt = conn.prepare(
                 "INSERT OR REPLACE INTO owl_classes (ontology_id, class_iri, label, comment, file_sha1)
                  VALUES (?1, ?2, ?3, ?4, ?5)"
             ).map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to prepare class insert: {}", e)))?;
 
-            for class in &classes_vec {
+            let insert_start = std::time::Instant::now();
+            for (idx, class) in classes_vec.iter().enumerate() {
+                if idx > 0 && idx % 100 == 0 {
+                    debug!("[OntologyRepo] Inserted {}/{} classes", idx, classes_vec.len());
+                }
                 class_stmt.execute(params![
                     ontology_id,
                     &class.iri,
@@ -219,28 +279,39 @@ impl OntologyRepository for SqliteOntologyRepository {
                     &class.file_sha1
                 ]).map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to insert class {}: {}", class.iri, e)))?;
             }
+            debug!("[OntologyRepo] Inserted {} classes in {:?}", classes_vec.len(), insert_start.elapsed());
             drop(class_stmt);
 
             // Insert class hierarchies
+            debug!("[OntologyRepo] Inserting class hierarchies");
+            let hierarchy_start = std::time::Instant::now();
             let mut hierarchy_stmt = conn.prepare(
                 "INSERT INTO owl_class_hierarchy (class_iri, parent_iri) VALUES (?1, ?2)"
             ).map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to prepare hierarchy insert: {}", e)))?;
 
+            let mut hierarchy_count = 0;
             for class in &classes_vec {
                 for parent_iri in &class.parent_classes {
                     hierarchy_stmt.execute(params![&class.iri, parent_iri])
                         .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to insert hierarchy: {}", e)))?;
+                    hierarchy_count += 1;
                 }
             }
+            debug!("[OntologyRepo] Inserted {} hierarchy relationships in {:?}", hierarchy_count, hierarchy_start.elapsed());
             drop(hierarchy_stmt);
 
             // Insert properties (using schema columns: ontology_id, property_iri, property_type, label)
+            debug!("[OntologyRepo] Preparing INSERT statement for {} properties", properties_vec.len());
+            let property_start = std::time::Instant::now();
             let mut property_stmt = conn.prepare(
                 "INSERT OR REPLACE INTO owl_properties (ontology_id, property_iri, property_type, label)
                  VALUES (?1, ?2, ?3, ?4)"
             ).map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to prepare property insert: {}", e)))?;
 
-            for property in &properties_vec {
+            for (idx, property) in properties_vec.iter().enumerate() {
+                if idx > 0 && idx % 100 == 0 {
+                    debug!("[OntologyRepo] Inserted {}/{} properties", idx, properties_vec.len());
+                }
                 let property_type_str = match property.property_type {
                     PropertyType::ObjectProperty => "ObjectProperty",
                     PropertyType::DataProperty => "DataProperty",
@@ -254,15 +325,21 @@ impl OntologyRepository for SqliteOntologyRepository {
                     &property.label
                 ]).map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to insert property {}: {}", property.iri, e)))?;
             }
+            debug!("[OntologyRepo] Inserted {} properties in {:?}", properties_vec.len(), property_start.elapsed());
             drop(property_stmt);
 
             // Insert axioms
+            debug!("[OntologyRepo] Preparing INSERT statement for {} axioms", axioms_vec.len());
+            let axiom_start = std::time::Instant::now();
             let mut axiom_stmt = conn.prepare(
                 "INSERT INTO owl_axioms (axiom_type, subject, object, annotations)
                  VALUES (?1, ?2, ?3, ?4)"
             ).map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to prepare axiom insert: {}", e)))?;
 
-            for axiom in &axioms_vec {
+            for (idx, axiom) in axioms_vec.iter().enumerate() {
+                if idx > 0 && idx % 100 == 0 {
+                    debug!("[OntologyRepo] Inserted {}/{} axioms", idx, axioms_vec.len());
+                }
                 let axiom_type_str = match axiom.axiom_type {
                     AxiomType::SubClassOf => "SubClassOf",
                     AxiomType::EquivalentClass => "EquivalentClass",
@@ -281,13 +358,17 @@ impl OntologyRepository for SqliteOntologyRepository {
                     annotations_json
                 ]).map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to insert axiom: {}", e)))?;
             }
+            debug!("[OntologyRepo] Inserted {} axioms in {:?}", axioms_vec.len(), axiom_start.elapsed());
             drop(axiom_stmt);
 
             // Commit transaction
+            debug!("[OntologyRepo] Committing transaction");
             conn.execute("COMMIT", [])
                 .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to commit transaction: {}", e)))?;
+            debug!("[OntologyRepo] Transaction committed successfully in {:?}", txn_start.elapsed());
 
             // Re-enable foreign keys after transaction
+            debug!("[OntologyRepo] Re-enabling foreign keys");
             conn.execute("PRAGMA foreign_keys = ON", [])
                 .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to enable foreign keys: {}", e)))?;
 
@@ -302,11 +383,14 @@ impl OntologyRepository for SqliteOntologyRepository {
 
     #[instrument(skip(self, class), fields(iri = %class.iri), level = "debug")]
     async fn add_owl_class(&self, class: &OwlClass) -> RepoResult<String> {
+        debug!("[OntologyRepo] add_owl_class: acquiring mutex for class {}", class.iri);
         let conn_arc = self.conn.clone();
         let class_clone = class.clone();
 
         tokio::task::spawn_blocking(move || {
+            let mutex_start = std::time::Instant::now();
             let conn = conn_arc.lock().expect("Failed to acquire ontology repository mutex");
+            debug!("[OntologyRepo] add_owl_class: acquired mutex in {:?} for {}", mutex_start.elapsed(), class_clone.iri);
 
             let properties_json = serde_json::to_string(&class_clone.properties).map_err(|e| {
                 OntologyRepositoryError::DatabaseError(format!("Failed to serialize properties: {}", e))
@@ -314,14 +398,20 @@ impl OntologyRepository for SqliteOntologyRepository {
 
             let last_synced_str = class_clone.last_synced.as_ref().map(|dt| dt.to_rfc3339());
 
+            debug!("[OntologyRepo] add_owl_class: inserting class {}", class_clone.iri);
+            let insert_start = std::time::Instant::now();
             conn.execute(
                 "INSERT OR REPLACE INTO owl_classes (ontology_id, class_iri, label, comment, file_sha1)
                  VALUES (?1, ?2, ?3, ?4, ?5)",
                 params!["default", &class_clone.iri, &class_clone.label, &class_clone.description, &class_clone.file_sha1]
             )
             .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to insert class: {}", e)))?;
+            debug!("[OntologyRepo] add_owl_class: inserted class {} in {:?}", class_clone.iri, insert_start.elapsed());
 
             // Insert parent relationships
+            if !class_clone.parent_classes.is_empty() {
+                debug!("[OntologyRepo] add_owl_class: inserting {} parent relationships for {}", class_clone.parent_classes.len(), class_clone.iri);
+            }
             for parent_iri in &class_clone.parent_classes {
                 conn.execute(
                     "INSERT OR IGNORE INTO owl_class_hierarchy (class_iri, parent_iri) VALUES (?1, ?2)",
@@ -332,6 +422,7 @@ impl OntologyRepository for SqliteOntologyRepository {
                 })?;
             }
 
+            debug!("[OntologyRepo] add_owl_class: successfully saved class {}", class_clone.iri);
             Ok(class_clone.iri.clone())
         })
         .await
