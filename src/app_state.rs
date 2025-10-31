@@ -226,11 +226,20 @@ impl AppState {
         info!("[AppState::new] Starting GitHub data sync in background (non-blocking)...");
         // Spawn GitHub sync as a background task - don't block server startup
         let sync_service_clone = github_sync_service.clone();
-        tokio::spawn(async move {
-            info!("🔄 Background GitHub sync started (990 files)...");
+        let sync_handle = tokio::spawn(async move {
+            info!("🔄 Background GitHub sync task spawned successfully");
+            info!("🔄 Task ID: {:?}", std::thread::current().id());
+            info!("🔄 Starting sync_graphs() execution...");
+
+            // ✅ FIX: We're already in an async context (tokio::spawn), so just await directly!
+            // No need for block_on or panic catching - let tokio handle panics naturally
+            info!("📡 Calling sync_service.sync_graphs()...");
+            let sync_start = std::time::Instant::now();
+
             match sync_service_clone.sync_graphs().await {
                 Ok(stats) => {
-                    info!("✅ GitHub sync complete!");
+                    let elapsed = sync_start.elapsed();
+                    info!("✅ GitHub sync complete! (elapsed: {:?})", elapsed);
                     info!("  📊 Total files scanned: {}", stats.total_files);
                     info!("  🔗 Knowledge graph files: {}", stats.kg_files_processed);
                     info!("  🏛️  Ontology files: {}", stats.ontology_files_processed);
@@ -246,15 +255,50 @@ impl AppState {
                     }
                 }
                 Err(e) => {
-                    // Non-fatal: log error but continue
-                    log::error!("❌ Background GitHub sync failed: {}", e);
-                    log::error!(
-                        "⚠️  Databases may have partial data - use manual import API if needed"
-                    );
+                    let elapsed = sync_start.elapsed();
+                    log::error!("❌ Background GitHub sync failed after {:?}: {}", elapsed, e);
+                    log::error!("❌ Error details: {:?}", e);
+                    log::error!("⚠️  Databases may have partial data - use manual import API if needed");
                 }
             }
         });
-        info!("[AppState::new] GitHub sync running in background, proceeding with actor initialization");
+
+        // Spawn a monitoring task to track the sync handle status
+        tokio::spawn(async move {
+            tokio::time::sleep(Duration::from_millis(100)).await;
+            info!("👀 GitHub sync monitor: Checking task status...");
+
+            // Wait for the sync task to complete with a timeout
+            let timeout_duration = Duration::from_secs(300); // 5 minute timeout
+            match tokio::time::timeout(timeout_duration, sync_handle).await {
+                Ok(join_result) => {
+                    match join_result {
+                        Ok(_sync_result) => {
+                            info!("👀 GitHub sync monitor: Task completed successfully");
+                        }
+                        Err(join_error) => {
+                            if join_error.is_cancelled() {
+                                log::error!("👀 GitHub sync monitor: Task was CANCELLED");
+                            } else if join_error.is_panic() {
+                                log::error!("👀 GitHub sync monitor: Task PANICKED");
+                                log::error!("👀 JoinError details: {:?}", join_error);
+                            } else {
+                                log::error!("👀 GitHub sync monitor: Task failed with unknown error");
+                                log::error!("👀 JoinError: {:?}", join_error);
+                            }
+                        }
+                    }
+                }
+                Err(_timeout_error) => {
+                    log::error!("👀 GitHub sync monitor: Task TIMED OUT after {:?}", timeout_duration);
+                    log::error!("👀 This likely indicates a deadlock or infinite loop in sync_graphs()");
+                }
+            }
+
+            info!("👀 GitHub sync monitor: Monitoring complete");
+        });
+
+        info!("[AppState::new] GitHub sync running in background with enhanced monitoring, proceeding with actor initialization");
         // ========================================================================
 
         // Start actors

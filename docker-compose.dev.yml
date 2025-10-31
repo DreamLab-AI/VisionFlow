@@ -7,26 +7,15 @@ services:
       args:
         CUDA_ARCH: ${CUDA_ARCH:-86}
     volumes:
-      # Dev mounts disabled - using baked image with fixed code
-      # - ./client:/app/client
-      # - ./src:/app/src
-      # - ./Cargo.toml:/app/Cargo.toml
-      - ./data/markdown:/app/data/markdown
-      - ./data/metadata:/app/data/metadata
-      - ./data/user_settings:/app/user_settings
-      # - ./data/settings.yaml:/app/settings.yaml  # Commented: Already in image, mount conflicts
-      # - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro # Commented: Already in image
-      - ./logs/nginx:/var/log/nginx # Mount nginx logs to host
-      - ./logs:/app/logs
-      # - ./scripts/dev-exec-proxy.sh:/usr/local/bin/dev-exec:ro # Commented: Already in image
-      # - ./scripts/check-rust-rebuild.sh:/app/scripts/check-rust-rebuild.sh:ro # Commented: Already in image
-      # - ./scripts/dev-rebuild-rust.sh:/app/scripts/dev-rebuild-rust.sh:ro # Commented: Already in image
-      # - ./supervisord.dev.conf:/app/supervisord.dev.conf:ro # Commented: Already in image
+      # Fully baked image - ALL code and config inside container
+      # Only internal Docker volumes for data persistence and caching
+      - visionflow-data:/app/data  # Internal volume for databases and markdown
+      - visionflow-logs:/app/logs  # Internal volume for application logs
       - /var/run/docker.sock:/var/run/docker.sock:ro # Docker socket for controlled access
       - npm-cache:/root/.npm
       - cargo-cache:/root/.cargo/registry
       - cargo-git-cache:/root/.cargo/git
-      - cargo-target-cache:/app/target # Cache Rust build artifacts
+      - cargo-target-cache:/app/target
     env_file:
       - .env
     environment:
@@ -70,6 +59,8 @@ networks: # Indentation: 2 spaces
     external: true
 
 volumes: # Indentation: 2 spaces
+  visionflow-data:  # Persistent data volume (databases, markdown, metadata, user_settings)
+  visionflow-logs:  # Log files volume
   npm-cache:
   cargo-cache:
   cargo-git-cache:

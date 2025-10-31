@@ -10,28 +10,15 @@ services:
       args:
         CUDA_ARCH: ${CUDA_ARCH:-86}
     volumes:
-      # SOURCE CODE - Live mounted for development
-      - ./src:/app/src:ro
-      - ./client:/app/client
-      - ./Cargo.toml:/app/Cargo.toml:ro
-      - ./Cargo.lock:/app/Cargo.lock:ro
-      - ./schema:/app/schema:ro
-      - ./whelk-rs:/app/whelk-rs:ro
-      # Named volumes for databases (no bind mount conflicts)
-      - visionflow-data:/app/data
-      # Subdirectories as bind mounts (safe)
-      - ./data/user_settings:/app/user_settings
-      # Logs (safe to mount)
-      - ./logs/nginx:/var/log/nginx
-      - ./logs:/app/logs
-      # Docker socket for container management
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      # Caches (volumes only, no file mounts)
+      # Fully baked image - ALL code and config inside container
+      # Only internal Docker volumes for data persistence and caching
+      - visionflow-data:/app/data  # Internal volume for databases and markdown
+      - visionflow-logs:/app/logs  # Internal volume for application logs
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # Docker socket for controlled access
       - npm-cache:/root/.npm
       - cargo-cache:/root/.cargo/registry
       - cargo-git-cache:/root/.cargo/git
       - cargo-target-cache:/app/target
-      # NOTE: Source code now live-mounted - supervisor auto-rebuilds on change
     env_file:
       - .env
     deploy:
@@ -163,7 +150,8 @@ networks:
     external: true
 
 volumes:
-  visionflow-data:
+  visionflow-data:  # Persistent data volume (databases, markdown, metadata, user_settings)
+  visionflow-logs:  # Log files volume
   npm-cache:
   cargo-cache:
   cargo-git-cache:

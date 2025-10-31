@@ -185,11 +185,15 @@ impl OntologyRepository for SqliteOntologyRepository {
         tokio::task::spawn_blocking(move || {
             let conn = conn_arc.lock().expect("Failed to acquire ontology repository mutex");
 
-            // Start transaction
+            // CRITICAL: PRAGMA must be set BEFORE transaction starts
+            conn.execute("PRAGMA foreign_keys = OFF", [])
+                .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to disable foreign keys: {}", e)))?;
+
+            // Start transaction AFTER disabling foreign keys
             conn.execute("BEGIN TRANSACTION", [])
                 .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to begin transaction: {}", e)))?;
 
-            // Delete existing data (clean slate)
+            // Delete existing data (clean slate) - foreign keys now disabled
             conn.execute("DELETE FROM owl_class_hierarchy", [])
                 .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to clear hierarchy: {}", e)))?;
             conn.execute("DELETE FROM owl_axioms", [])
@@ -199,26 +203,18 @@ impl OntologyRepository for SqliteOntologyRepository {
             conn.execute("DELETE FROM owl_classes", [])
                 .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to clear classes: {}", e)))?;
 
-            // Insert classes
+            // Insert classes (using schema columns: iri, label, description, file_sha1)
             let mut class_stmt = conn.prepare(
-                "INSERT INTO owl_classes (iri, label, description, source_file, properties, markdown_content, file_sha1, last_synced, updated_at)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, CURRENT_TIMESTAMP)"
+                "INSERT OR REPLACE INTO owl_classes (iri, label, description, file_sha1)
+                 VALUES (?1, ?2, ?3, ?4)"
             ).map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to prepare class insert: {}", e)))?;
 
             for class in &classes_vec {
-                let properties_json = serde_json::to_string(&class.properties)
-                    .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to serialize properties: {}", e)))?;
-
-                let last_synced_str = class.last_synced.as_ref().map(|dt| dt.to_rfc3339());
                 class_stmt.execute(params![
                     &class.iri,
                     &class.label,
                     &class.description,
-                    &class.source_file,
-                    properties_json,
-                    &class.markdown_content,
-                    &class.file_sha1,
-                    &last_synced_str
+                    &class.file_sha1
                 ]).map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to insert class {}: {}", class.iri, e)))?;
             }
             drop(class_stmt);
@@ -236,10 +232,10 @@ impl OntologyRepository for SqliteOntologyRepository {
             }
             drop(hierarchy_stmt);
 
-            // Insert properties
+            // Insert properties (using schema columns: iri, label, property_type)
             let mut property_stmt = conn.prepare(
-                "INSERT INTO owl_properties (iri, label, property_type, domain, range, updated_at)
-                 VALUES (?1, ?2, ?3, ?4, ?5, CURRENT_TIMESTAMP)"
+                "INSERT OR REPLACE INTO owl_properties (iri, label, property_type)
+                 VALUES (?1, ?2, ?3)"
             ).map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to prepare property insert: {}", e)))?;
 
             for property in &properties_vec {
@@ -249,17 +245,10 @@ impl OntologyRepository for SqliteOntologyRepository {
                     PropertyType::AnnotationProperty => "AnnotationProperty",
                 };
 
-                let domain_json = serde_json::to_string(&property.domain)
-                    .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to serialize domain: {}", e)))?;
-                let range_json = serde_json::to_string(&property.range)
-                    .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to serialize range: {}", e)))?;
-
                 property_stmt.execute(params![
                     &property.iri,
                     &property.label,
-                    property_type_str,
-                    domain_json,
-                    range_json
+                    property_type_str
                 ]).map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to insert property {}: {}", property.iri, e)))?;
             }
             drop(property_stmt);
@@ -294,6 +283,10 @@ impl OntologyRepository for SqliteOntologyRepository {
             // Commit transaction
             conn.execute("COMMIT", [])
                 .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to commit transaction: {}", e)))?;
+
+            // Re-enable foreign keys after transaction
+            conn.execute("PRAGMA foreign_keys = ON", [])
+                .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to enable foreign keys: {}", e)))?;
 
             info!("✅ Saved ontology: {} classes, {} properties, {} axioms",
                   classes_vec.len(), properties_vec.len(), axioms_vec.len());
@@ -428,7 +421,7 @@ impl OntologyRepository for SqliteOntologyRepository {
                 .expect("Failed to acquire ontology repository mutex");
 
             let mut stmt = conn
-                .prepare("SELECT iri, label, description, source_file, properties, markdown_content, file_sha1, last_synced FROM owl_classes")
+                .prepare("SELECT class_iri, label, comment, file_sha1 FROM owl_classes")
                 .map_err(|e| {
                     OntologyRepositoryError::DatabaseError(format!(
                         "Failed to prepare statement: {}",
@@ -441,13 +434,10 @@ impl OntologyRepository for SqliteOntologyRepository {
                     let iri: String = row.get(0)?;
                     let label: Option<String> = row.get(1)?;
                     let description: Option<String> = row.get(2)?;
-                    let source_file: Option<String> = row.get(3)?;
-                    let properties_json: String = row.get(4)?;
-                    let markdown_content: Option<String> = row.get(5)?;
-                    let file_sha1: Option<String> = row.get(6)?;
-                    let last_synced_str: Option<String> = row.get(7)?;
+                    let file_sha1: Option<String> = row.get(3)?;
 
-                    Ok((iri, label, description, source_file, properties_json, markdown_content, file_sha1, last_synced_str))
+                    // Map main schema to OwlClass format
+                    Ok((iri, label, description, None::<String>, "{}".to_string(), None::<String>, file_sha1, None::<String>))
                 })
                 .map_err(|e| {
                     OntologyRepositoryError::DatabaseError(format!(

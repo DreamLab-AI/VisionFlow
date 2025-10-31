@@ -87,8 +87,8 @@ impl OntologyParser {
     fn extract_classes(&self, section: &str, filename: &str) -> Vec<OwlClass> {
         let mut classes = Vec::new();
 
-        // Pattern: - owl_class:: ClassName or owl_class:: iri
-        let class_pattern = regex::Regex::new(r"owl_class::\s*([a-zA-Z0-9_:/-]+)").unwrap();
+        // Pattern: - owl:class:: ClassName or owl_class:: iri (support both formats)
+        let class_pattern = regex::Regex::new(r"owl:?_?class::\s*([a-zA-Z0-9_:/-]+(\([^)]+\))?)").unwrap();
 
         for cap in class_pattern.captures_iter(section) {
             if let Some(class_match) = cap.get(1) {
