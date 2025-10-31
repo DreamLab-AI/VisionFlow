@@ -2,8 +2,8 @@
 //! Unified Graph Repository Adapter
 //!
 //! Implements KnowledgeGraphRepository trait using unified.db schema.
-//! This adapter provides 100% API compatibility with SqliteKnowledgeGraphRepository
-//! while using the unified database schema that combines graph and ontology data.
+//! This is the unified database implementation that combines graph and ontology data
+//! in a single database schema, replacing the legacy separate SQLite adapters.
 //!
 //! CRITICAL: This maintains identical interface to preserve CUDA kernel compatibility.
 

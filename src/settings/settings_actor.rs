@@ -2,6 +2,7 @@
 //! Settings Actor - Actix runtime settings management
 
 use actix::prelude::*;
+use actix::dev::{MessageResponse, OneshotSender};
 use std::sync::Arc;
 use anyhow::Result;
 use log::{info, error};
@@ -139,8 +140,6 @@ pub struct GetAllSettings;
 // ============================================================================
 // MessageResponse Implementations
 // ============================================================================
-
-use actix::dev::{MessageResponse, OneshotSender};
 
 impl<A, M> MessageResponse<A, M> for PhysicsSettings
 where

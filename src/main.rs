@@ -3,10 +3,7 @@ use webxr::actors::messages::UpdateMetadata;
 use webxr::ports::knowledge_graph_repository::KnowledgeGraphRepository;
 use webxr::services::nostr_service::NostrService;
 use webxr::{
-    adapters::{
-        sqlite_knowledge_graph_repository::SqliteKnowledgeGraphRepository,
-        sqlite_ontology_repository::SqliteOntologyRepository,
-    },
+    repositories::{UnifiedGraphRepository, UnifiedOntologyRepository},
     config::AppFullSettings, // Import AppFullSettings only
     handlers::{
         admin_sync_handler,
@@ -21,6 +18,7 @@ use webxr::{
         socket_flow_handler::{socket_flow_handler, PreReadSocketSettings}, // Import PreReadSocketSettings
         speech_socket_handler::speech_socket_handler,
         // DEPRECATED: hybrid_health_handler removed
+        // DEPRECATED: admin_bridge_handler removed (legacy ontology bridge)
         workspace_handler,
     },
     services::speech_service::SpeechService,
@@ -335,14 +333,8 @@ async fn main() -> std::io::Result<()> {
     ));
     info!("[main] GitHub Sync Service initialized");
 
-    // Initialize Ontology Graph Bridge Service
-    info!("[main] Initializing Ontology Graph Bridge...");
-    use crate::services::ontology_graph_bridge::OntologyGraphBridge;
-    let ontology_graph_bridge = Arc::new(OntologyGraphBridge::new(
-        app_state.ontology_repository.clone(),
-        app_state.knowledge_graph_repository.clone(),
-    ));
-    info!("[main] Ontology Graph Bridge initialized");
+    // DEPRECATED: Ontology Graph Bridge removed - unified database architecture
+    // Legacy dual-database bridge no longer needed with unified system
 
     // DEPRECATED: HybridHealthManager removed - use TaskOrchestratorActor
     // Docker exec architecture replaced by HTTP Management API
@@ -468,7 +460,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(app_state_data.nostr_service.clone().unwrap_or_else(|| web::Data::new(NostrService::default()))) // Provide default if None
             .app_data(app_state_data.feature_access.clone())
             .app_data(web::Data::new(github_sync_service.clone())) // GitHub Sync Service
-            .app_data(web::Data::new(ontology_graph_bridge.clone())) // Ontology Graph Bridge Service
+            // DEPRECATED: ontology_graph_bridge removed (legacy dual-database bridge)
             // DEPRECATED: hybrid_health_manager_data, mcp_session_bridge, session_correlation_bridge removed
             .route("/wss", web::get().to(socket_flow_handler)) // Changed from /ws to /wss
             .route("/ws/speech", web::get().to(speech_socket_handler))
@@ -480,7 +472,7 @@ async fn main() -> std::io::Result<()> {
                     .configure(api_handler::config) // This will now serve /api/user-settings etc.
                     .configure(workspace_handler::config) // Add workspace routes under /api/workspace
                     .configure(admin_sync_handler::configure_routes) // Admin endpoints including sync
-                    .configure(admin_bridge_handler::configure_routes) // Bridge sync endpoints
+                    // DEPRECATED: admin_bridge_handler removed (legacy ontology bridge endpoints)
                     .service(web::scope("/pages").configure(pages_handler::config))
                     .service(web::scope("/bots").configure(api_handler::bots::config)) // This will now serve /api/bots/data and /api/bots/update
                     .configure(bots_visualization_handler::configure_routes) // Agent visualization endpoints

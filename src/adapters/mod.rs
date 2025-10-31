@@ -11,9 +11,7 @@ pub mod actor_graph_repository;
 // pub mod gpu_physics_adapter;  // REMOVED: Incomplete stub adapter
 pub mod gpu_semantic_analyzer;
 
-// New hexser-based adapters
-pub mod sqlite_knowledge_graph_repository;
-pub mod sqlite_ontology_repository;
+// New hexser-based adapters (legacy removed, using unified repositories)
 pub mod sqlite_settings_repository;
 pub mod whelk_inference_engine;
 
@@ -34,9 +32,10 @@ pub use actor_graph_repository::ActorGraphRepository;
 pub use gpu_semantic_analyzer::GpuSemanticAnalyzerAdapter;
 
 // New hexser-based adapter exports
-pub use sqlite_knowledge_graph_repository::SqliteKnowledgeGraphRepository;
-pub use sqlite_ontology_repository::SqliteOntologyRepository;
 pub use sqlite_settings_repository::SqliteSettingsRepository;
+
+// Unified repository exports (from repositories module)
+pub use crate::repositories::{UnifiedGraphRepository, UnifiedOntologyRepository};
 pub use whelk_inference_engine::WhelkInferenceEngine;
 
 // Phase 2.2: Actor wrapper adapter exports

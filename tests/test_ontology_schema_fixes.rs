@@ -2,7 +2,7 @@
 //! Tests to verify ontology database schema fixes
 //! Tests that INSERT operations work with correct column names
 
-use webxr::adapters::sqlite_ontology_repository::SqliteOntologyRepository;
+use webxr::repositories::UnifiedOntologyRepository;
 use webxr::ports::ontology_repository::{OntologyRepository, OwlClass, OwlProperty, PropertyType};
 
 #[tokio::test]
@@ -12,7 +12,7 @@ async fn test_schema_creates_correctly() {
     let db_path = temp_db.path().to_str().unwrap();
 
     // Initialize repository - this creates the schema
-    let repo = SqliteOntologyRepository::new(db_path).expect("Failed to create repository");
+    let repo = UnifiedOntologyRepository::new(db_path).expect("Failed to create repository");
 
     // Verify we can get metrics without errors
     let metrics = repo.get_metrics().await.expect("Failed to get metrics");
@@ -23,7 +23,7 @@ async fn test_schema_creates_correctly() {
 async fn test_add_owl_class_with_correct_schema() {
     let temp_db = tempfile::NamedTempFile::new().unwrap();
     let db_path = temp_db.path().to_str().unwrap();
-    let repo = SqliteOntologyRepository::new(db_path).expect("Failed to create repository");
+    let repo = UnifiedOntologyRepository::new(db_path).expect("Failed to create repository");
 
     // Create a test class
     let test_class = OwlClass {
@@ -58,7 +58,7 @@ async fn test_add_owl_class_with_correct_schema() {
 async fn test_add_owl_property_with_correct_schema() {
     let temp_db = tempfile::NamedTempFile::new().unwrap();
     let db_path = temp_db.path().to_str().unwrap();
-    let repo = SqliteOntologyRepository::new(db_path).expect("Failed to create repository");
+    let repo = UnifiedOntologyRepository::new(db_path).expect("Failed to create repository");
 
     // Create a test property
     let test_property = OwlProperty {
@@ -87,7 +87,7 @@ async fn test_add_owl_property_with_correct_schema() {
 async fn test_class_hierarchy_foreign_keys() {
     let temp_db = tempfile::NamedTempFile::new().unwrap();
     let db_path = temp_db.path().to_str().unwrap();
-    let repo = SqliteOntologyRepository::new(db_path).expect("Failed to create repository");
+    let repo = UnifiedOntologyRepository::new(db_path).expect("Failed to create repository");
 
     // Create parent class
     let parent_class = OwlClass {
@@ -133,7 +133,7 @@ async fn test_class_hierarchy_foreign_keys() {
 async fn test_save_ontology_bulk() {
     let temp_db = tempfile::NamedTempFile::new().unwrap();
     let db_path = temp_db.path().to_str().unwrap();
-    let repo = SqliteOntologyRepository::new(db_path).expect("Failed to create repository");
+    let repo = UnifiedOntologyRepository::new(db_path).expect("Failed to create repository");
 
     // Create test data
     let classes = vec![

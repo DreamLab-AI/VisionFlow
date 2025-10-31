@@ -17,6 +17,7 @@ pub mod ontology;
 pub mod reasoning;
 pub mod physics;
 pub mod ports;
+pub mod repositories; // Unified repository adapters
 pub mod services;
 pub mod settings; // Persistent settings management (Week 8-9)
 pub mod telemetry;

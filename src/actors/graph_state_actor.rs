@@ -6,7 +6,7 @@
 //! ## Hexagonal Architecture
 //!
 //! - **Port**: KnowledgeGraphRepository (in-memory interface)
-//! - **Adapter**: SqliteKnowledgeGraphRepository (database implementation)
+//! - **Adapter**: UnifiedGraphRepository (unified database implementation)
 //! - **Actor**: Maintains in-memory state and coordinates operations
 //!
 //! ## Core Responsibilities

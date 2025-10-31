@@ -4,8 +4,7 @@
 //! Orchestrates data ingestion from GitHub repository to populate
 //! knowledge_graph.db and ontology.db databases.
 
-use crate::adapters::sqlite_knowledge_graph_repository::SqliteKnowledgeGraphRepository;
-use crate::adapters::sqlite_ontology_repository::SqliteOntologyRepository;
+use crate::repositories::{UnifiedGraphRepository, UnifiedOntologyRepository};
 use crate::ports::knowledge_graph_repository::KnowledgeGraphRepository;
 use crate::ports::ontology_repository::OntologyRepository;
 use crate::services::github::content_enhanced::EnhancedContentAPI;
@@ -62,16 +61,16 @@ pub struct GitHubSyncService {
     content_api: Arc<EnhancedContentAPI>,
     kg_parser: Arc<KnowledgeGraphParser>,
     onto_parser: Arc<OntologyParser>,
-    kg_repo: Arc<SqliteKnowledgeGraphRepository>,
-    onto_repo: Arc<SqliteOntologyRepository>,
+    kg_repo: Arc<UnifiedGraphRepository>,
+    onto_repo: Arc<UnifiedOntologyRepository>,
 }
 
 impl GitHubSyncService {
     /// Create new GitHubSyncService
     pub fn new(
         content_api: Arc<EnhancedContentAPI>,
-        kg_repo: Arc<SqliteKnowledgeGraphRepository>,
-        onto_repo: Arc<SqliteOntologyRepository>,
+        kg_repo: Arc<UnifiedGraphRepository>,
+        onto_repo: Arc<UnifiedOntologyRepository>,
     ) -> Self {
         Self {
             content_api,
@@ -644,8 +643,8 @@ mod tests {
         );
 
         let content_api = Arc::new(EnhancedContentAPI::new(client));
-        let kg_repo = Arc::new(SqliteKnowledgeGraphRepository::new(":memory:").unwrap());
-        let onto_repo = Arc::new(SqliteOntologyRepository::new(":memory:").unwrap());
+        let kg_repo = Arc::new(UnifiedGraphRepository::new(":memory:").unwrap());
+        let onto_repo = Arc::new(UnifiedOntologyRepository::new(":memory:").unwrap());
 
         GitHubSyncService::new(content_api, kg_repo, onto_repo)
     }

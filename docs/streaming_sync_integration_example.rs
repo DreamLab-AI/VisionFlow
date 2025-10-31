@@ -22,8 +22,8 @@ pub struct AppState {
 impl AppState {
     pub fn new(
         content_api: Arc<crate::services::github::content_enhanced::EnhancedContentAPI>,
-        kg_repo: Arc<crate::adapters::sqlite_knowledge_graph_repository::SqliteKnowledgeGraphRepository>,
-        onto_repo: Arc<crate::adapters::sqlite_ontology_repository::SqliteOntologyRepository>,
+        kg_repo: Arc<crate::adapters::sqlite_knowledge_graph_repository::UnifiedGraphRepository>,
+        onto_repo: Arc<crate::adapters::sqlite_ontology_repository::UnifiedOntologyRepository>,
     ) -> Self {
         // Create streaming sync service with 8 workers
         let streaming_sync_service = Arc::new(StreamingSyncService::new(

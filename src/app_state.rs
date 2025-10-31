@@ -50,10 +50,9 @@ use tokio::sync::mpsc;
 use tokio::time::Duration;
 
 // Repository trait imports for hexagonal architecture
-use crate::adapters::sqlite_knowledge_graph_repository::SqliteKnowledgeGraphRepository;
-use crate::adapters::sqlite_ontology_repository::SqliteOntologyRepository;
 use crate::adapters::sqlite_settings_repository::SqliteSettingsRepository;
 use crate::ports::settings_repository::SettingsRepository;
+use crate::repositories::{UnifiedGraphRepository, UnifiedOntologyRepository};
 
 // CQRS Phase 1D: Graph query handlers struct
 #[derive(Clone)]
@@ -87,9 +86,9 @@ pub struct AppState {
     // HEXAGONAL ARCHITECTURE: Repository adapters
     // Settings uses trait object (non-generic handlers)
     pub settings_repository: Arc<dyn SettingsRepository>,
-    // Knowledge graph and ontology use concrete types (generic handlers)
-    pub knowledge_graph_repository: Arc<SqliteKnowledgeGraphRepository>,
-    pub ontology_repository: Arc<SqliteOntologyRepository>,
+    // Knowledge graph and ontology use unified repositories (concrete types for generic handlers)
+    pub knowledge_graph_repository: Arc<UnifiedGraphRepository>,
+    pub ontology_repository: Arc<UnifiedOntologyRepository>,
     // Graph CQRS (Phase 1D migration)
     pub graph_repository: Arc<ActorGraphRepository>,
     pub graph_query_handlers: GraphQueryHandlers,
@@ -182,24 +181,24 @@ impl AppState {
         let settings_repository: Arc<dyn SettingsRepository> =
             Arc::new(SqliteSettingsRepository::new(db_service.clone()));
 
-        // Knowledge graph and ontology repositories use spawn_blocking to avoid blocking tokio runtime
+        // Unified repositories use spawn_blocking to avoid blocking tokio runtime
         // during schema creation (12+ CREATE statements can take 500ms-3s)
-        info!("[AppState::new] Creating knowledge graph repository in blocking context...");
-        let knowledge_graph_repository: Arc<SqliteKnowledgeGraphRepository> =
+        info!("[AppState::new] Creating unified graph repository in blocking context...");
+        let knowledge_graph_repository: Arc<UnifiedGraphRepository> =
             tokio::task::spawn_blocking(|| {
-                SqliteKnowledgeGraphRepository::new("data/knowledge_graph.db")
+                UnifiedGraphRepository::new("data/unified.db")
             })
             .await
             .map_err(|e| format!("Failed to spawn blocking task: {}", e))?
-            .map_err(|e| format!("Failed to create knowledge graph repository: {}", e))
+            .map_err(|e| format!("Failed to create unified graph repository: {}", e))
             .map(Arc::new)?;
 
-        info!("[AppState::new] Creating ontology repository in blocking context...");
-        let ontology_repository: Arc<SqliteOntologyRepository> =
-            tokio::task::spawn_blocking(|| SqliteOntologyRepository::new("data/ontology.db"))
+        info!("[AppState::new] Creating unified ontology repository in blocking context...");
+        let ontology_repository: Arc<UnifiedOntologyRepository> =
+            tokio::task::spawn_blocking(|| UnifiedOntologyRepository::new("data/unified.db"))
                 .await
                 .map_err(|e| format!("Failed to spawn blocking task: {}", e))?
-                .map_err(|e| format!("Failed to create ontology repository: {}", e))
+                .map_err(|e| format!("Failed to create unified ontology repository: {}", e))
                 .map(Arc::new)?;
 
         info!("[AppState::new] Repository adapters initialized successfully (via spawn_blocking)");

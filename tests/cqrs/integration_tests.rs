@@ -10,12 +10,12 @@ use visionflow::cqrs::commands::*;
 use visionflow::cqrs::handlers::*;
 use visionflow::cqrs::queries::*;
 use visionflow::models::node::Node;
-use visionflow::services::SqliteKnowledgeGraphRepository;
+use visionflow::repositories::UnifiedGraphRepository;
 
 #[tokio::test]
 async fn test_add_and_get_node() -> Result<()> {
     // Setup
-    let repo = Arc::new(SqliteKnowledgeGraphRepository::new(":memory:").await?);
+    let repo = Arc::new(UnifiedGraphRepository::new(":memory:")?);
     repo.initialize().await?;
 
     let command_bus = CommandBus::new();
@@ -51,7 +51,7 @@ async fn test_add_and_get_node() -> Result<()> {
 
 #[tokio::test]
 async fn test_batch_add_nodes() -> Result<()> {
-    let repo = Arc::new(SqliteKnowledgeGraphRepository::new(":memory:").await?);
+    let repo = Arc::new(UnifiedGraphRepository::new(":memory:")?);
     repo.initialize().await?;
 
     let command_bus = CommandBus::new();
@@ -76,7 +76,7 @@ async fn test_batch_add_nodes() -> Result<()> {
 
 #[tokio::test]
 async fn test_search_nodes() -> Result<()> {
-    let repo = Arc::new(SqliteKnowledgeGraphRepository::new(":memory:").await?);
+    let repo = Arc::new(UnifiedGraphRepository::new(":memory:")?);
     repo.initialize().await?;
 
     let command_bus = CommandBus::new();
@@ -113,7 +113,7 @@ async fn test_search_nodes() -> Result<()> {
 
 #[tokio::test]
 async fn test_update_node() -> Result<()> {
-    let repo = Arc::new(SqliteKnowledgeGraphRepository::new(":memory:").await?);
+    let repo = Arc::new(UnifiedGraphRepository::new(":memory:")?);
     repo.initialize().await?;
 
     let command_bus = CommandBus::new();
@@ -147,7 +147,7 @@ async fn test_update_node() -> Result<()> {
 
 #[tokio::test]
 async fn test_remove_node() -> Result<()> {
-    let repo = Arc::new(SqliteKnowledgeGraphRepository::new(":memory:").await?);
+    let repo = Arc::new(UnifiedGraphRepository::new(":memory:")?);
     repo.initialize().await?;
 
     let command_bus = CommandBus::new();
@@ -179,7 +179,7 @@ async fn test_remove_node() -> Result<()> {
 
 #[tokio::test]
 async fn test_graph_statistics() -> Result<()> {
-    let repo = Arc::new(SqliteKnowledgeGraphRepository::new(":memory:").await?);
+    let repo = Arc::new(UnifiedGraphRepository::new(":memory:")?);
     repo.initialize().await?;
 
     let command_bus = CommandBus::new();
@@ -209,7 +209,7 @@ async fn test_graph_statistics() -> Result<()> {
 
 #[tokio::test]
 async fn test_command_validation() -> Result<()> {
-    let repo = Arc::new(SqliteKnowledgeGraphRepository::new(":memory:").await?);
+    let repo = Arc::new(UnifiedGraphRepository::new(":memory:")?);
     repo.initialize().await?;
 
     let command_bus = CommandBus::new();
@@ -229,7 +229,7 @@ async fn test_command_validation() -> Result<()> {
 
 #[tokio::test]
 async fn test_update_positions() -> Result<()> {
-    let repo = Arc::new(SqliteKnowledgeGraphRepository::new(":memory:").await?);
+    let repo = Arc::new(UnifiedGraphRepository::new(":memory:")?);
     repo.initialize().await?;
 
     let command_bus = CommandBus::new();
@@ -263,7 +263,7 @@ async fn test_update_positions() -> Result<()> {
 
 #[tokio::test]
 async fn test_clear_graph() -> Result<()> {
-    let repo = Arc::new(SqliteKnowledgeGraphRepository::new(":memory:").await?);
+    let repo = Arc::new(UnifiedGraphRepository::new(":memory:")?);
     repo.initialize().await?;
 
     let command_bus = CommandBus::new();

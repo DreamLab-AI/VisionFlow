@@ -12,8 +12,7 @@ use std::sync::Arc;
 use std::time::Instant;
 use tempfile::TempDir;
 
-use visionflow::adapters::sqlite_knowledge_graph_repository::SqliteKnowledgeGraphRepository;
-use visionflow::adapters::sqlite_ontology_repository::SqliteOntologyRepository;
+use visionflow::repositories::{UnifiedGraphRepository, UnifiedOntologyRepository};
 use visionflow::adapters::sqlite_settings_repository::SqliteSettingsRepository;
 use visionflow::config::PhysicsSettings;
 use visionflow::models::edge::Edge;
@@ -167,11 +166,11 @@ async fn bench_settings_repository() -> Result<()> {
 /// Benchmark knowledge graph repository operations
 #[tokio::test]
 async fn bench_knowledge_graph_repository() -> Result<()> {
-    println!("\n🔬 BENCHMARKING: SqliteKnowledgeGraphRepository");
+    println!("\n🔬 BENCHMARKING: UnifiedGraphRepository");
 
     let temp_dir = TempDir::new()?;
     let db_path = temp_dir.path().join("bench_kg.db");
-    let repo = SqliteKnowledgeGraphRepository::new(db_path.to_str().unwrap())?;
+    let repo = UnifiedGraphRepository::new(db_path.to_str().unwrap())?;
 
     // Benchmark: Add node (10,000 operations)
     println!("\n📊 Adding 10,000 nodes...");
@@ -262,11 +261,11 @@ async fn bench_knowledge_graph_repository() -> Result<()> {
 /// Benchmark ontology repository operations
 #[tokio::test]
 async fn bench_ontology_repository() -> Result<()> {
-    println!("\n🔬 BENCHMARKING: SqliteOntologyRepository");
+    println!("\n🔬 BENCHMARKING: UnifiedOntologyRepository");
 
     let temp_dir = TempDir::new()?;
     let db_path = temp_dir.path().join("bench_ontology.db");
-    let repo = SqliteOntologyRepository::new(db_path.to_str().unwrap())
+    let repo = UnifiedOntologyRepository::new(db_path.to_str().unwrap())
         .map_err(|e| anyhow::anyhow!(e))?;
 
     // Benchmark: Add OWL class (1000 operations)

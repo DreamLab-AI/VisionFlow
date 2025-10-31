@@ -37,8 +37,7 @@
 //! let stats = sync_handle.await??;
 //! ```
 
-use crate::adapters::sqlite_knowledge_graph_repository::SqliteKnowledgeGraphRepository;
-use crate::adapters::sqlite_ontology_repository::SqliteOntologyRepository;
+use crate::repositories::{UnifiedGraphRepository, UnifiedOntologyRepository};
 use crate::ports::knowledge_graph_repository::KnowledgeGraphRepository;
 use crate::ports::ontology_repository::OntologyRepository;
 use crate::services::github::content_enhanced::EnhancedContentAPI;
@@ -146,8 +145,8 @@ pub struct StreamingSyncService {
     content_api: Arc<EnhancedContentAPI>,
     kg_parser: Arc<KnowledgeGraphParser>,
     onto_parser: Arc<OntologyParser>,
-    kg_repo: Arc<SqliteKnowledgeGraphRepository>,
-    onto_repo: Arc<SqliteOntologyRepository>,
+    kg_repo: Arc<UnifiedGraphRepository>,
+    onto_repo: Arc<UnifiedOntologyRepository>,
     max_workers: usize,
     max_db_writes: usize,
     progress_tx: Option<mpsc::UnboundedSender<SyncProgress>>,
@@ -157,8 +156,8 @@ impl StreamingSyncService {
     /// Create new StreamingSyncService with optional custom worker count
     pub fn new(
         content_api: Arc<EnhancedContentAPI>,
-        kg_repo: Arc<SqliteKnowledgeGraphRepository>,
-        onto_repo: Arc<SqliteOntologyRepository>,
+        kg_repo: Arc<UnifiedGraphRepository>,
+        onto_repo: Arc<UnifiedOntologyRepository>,
         max_workers: Option<usize>,
     ) -> Self {
         let max_workers = max_workers.unwrap_or(DEFAULT_MAX_WORKERS);
@@ -410,8 +409,8 @@ impl StreamingSyncService {
         content_api: Arc<EnhancedContentAPI>,
         kg_parser: Arc<KnowledgeGraphParser>,
         onto_parser: Arc<OntologyParser>,
-        kg_repo: Arc<SqliteKnowledgeGraphRepository>,
-        onto_repo: Arc<SqliteOntologyRepository>,
+        kg_repo: Arc<UnifiedGraphRepository>,
+        onto_repo: Arc<UnifiedOntologyRepository>,
         db_semaphore: Arc<Semaphore>,
         result_tx: mpsc::UnboundedSender<FileProcessResult>,
     ) -> Result<(), String> {
@@ -458,8 +457,8 @@ impl StreamingSyncService {
         content_api: &Arc<EnhancedContentAPI>,
         kg_parser: &Arc<KnowledgeGraphParser>,
         onto_parser: &Arc<OntologyParser>,
-        kg_repo: &Arc<SqliteKnowledgeGraphRepository>,
-        onto_repo: &Arc<SqliteOntologyRepository>,
+        kg_repo: &Arc<UnifiedGraphRepository>,
+        onto_repo: &Arc<UnifiedOntologyRepository>,
         db_semaphore: &Arc<Semaphore>,
     ) -> FileProcessResult {
         debug!("[StreamingSync][Worker-{}] Fetching content from: {}", worker_id, file.download_url);
@@ -524,7 +523,7 @@ impl StreamingSyncService {
         file: &GitHubFileBasicMetadata,
         content: &str,
         kg_parser: &Arc<KnowledgeGraphParser>,
-        kg_repo: &Arc<SqliteKnowledgeGraphRepository>,
+        kg_repo: &Arc<UnifiedGraphRepository>,
         db_semaphore: &Arc<Semaphore>,
     ) -> FileProcessResult {
         debug!("[StreamingSync][Worker-{}] Parsing KG file: {}", worker_id, file.name);
@@ -622,7 +621,7 @@ impl StreamingSyncService {
         file: &GitHubFileBasicMetadata,
         content: &str,
         onto_parser: &Arc<OntologyParser>,
-        onto_repo: &Arc<SqliteOntologyRepository>,
+        onto_repo: &Arc<UnifiedOntologyRepository>,
         db_semaphore: &Arc<Semaphore>,
     ) -> FileProcessResult {
         debug!("[StreamingSync][Worker-{}] Parsing ontology file: {}", worker_id, file.name);
