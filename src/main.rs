@@ -9,6 +9,7 @@ use webxr::{
     },
     config::AppFullSettings, // Import AppFullSettings only
     handlers::{
+        admin_sync_handler,
         api_handler,
         bots_visualization_handler,
         client_log_handler,
@@ -324,6 +325,16 @@ async fn main() -> std::io::Result<()> {
     nostr_handler::init_nostr_service(&mut app_state);
     info!("[main] Nostr service initialized");
 
+    // Initialize GitHub Sync Service
+    info!("[main] Initializing GitHub Sync Service...");
+    let enhanced_content_api = Arc::new(EnhancedContentAPI::new(github_client.clone()));
+    let github_sync_service = Arc::new(GitHubSyncService::new(
+        enhanced_content_api,
+        app_state.knowledge_graph_repository.clone(),
+        app_state.ontology_repository.clone(),
+    ));
+    info!("[main] GitHub Sync Service initialized");
+
     // DEPRECATED: HybridHealthManager removed - use TaskOrchestratorActor
     // Docker exec architecture replaced by HTTP Management API
 
@@ -447,6 +458,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(app_state_data.workspace_addr.clone()))
             .app_data(app_state_data.nostr_service.clone().unwrap_or_else(|| web::Data::new(NostrService::default()))) // Provide default if None
             .app_data(app_state_data.feature_access.clone())
+            .app_data(web::Data::new(github_sync_service.clone())) // GitHub Sync Service
             // DEPRECATED: hybrid_health_manager_data, mcp_session_bridge, session_correlation_bridge removed
             .route("/wss", web::get().to(socket_flow_handler)) // Changed from /ws to /wss
             .route("/ws/speech", web::get().to(speech_socket_handler))
@@ -457,6 +469,7 @@ async fn main() -> std::io::Result<()> {
                 web::scope("/api") // Add /api prefix for these routes
                     .configure(api_handler::config) // This will now serve /api/user-settings etc.
                     .configure(workspace_handler::config) // Add workspace routes under /api/workspace
+                    .configure(admin_sync_handler::configure_routes) // Admin endpoints including sync
                     .service(web::scope("/pages").configure(pages_handler::config))
                     .service(web::scope("/bots").configure(api_handler::bots::config)) // This will now serve /api/bots/data and /api/bots/update
                     .configure(bots_visualization_handler::configure_routes) // Agent visualization endpoints

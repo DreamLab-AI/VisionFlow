@@ -203,14 +203,16 @@ impl OntologyRepository for SqliteOntologyRepository {
             conn.execute("DELETE FROM owl_classes", [])
                 .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to clear classes: {}", e)))?;
 
-            // Insert classes (using schema columns: iri, label, description, file_sha1)
+            // Insert classes (using schema columns: ontology_id, class_iri, label, comment, file_sha1)
+            let ontology_id = "default"; // Default ontology ID for synced data
             let mut class_stmt = conn.prepare(
-                "INSERT OR REPLACE INTO owl_classes (iri, label, description, file_sha1)
-                 VALUES (?1, ?2, ?3, ?4)"
+                "INSERT OR REPLACE INTO owl_classes (ontology_id, class_iri, label, comment, file_sha1)
+                 VALUES (?1, ?2, ?3, ?4, ?5)"
             ).map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to prepare class insert: {}", e)))?;
 
             for class in &classes_vec {
                 class_stmt.execute(params![
+                    ontology_id,
                     &class.iri,
                     &class.label,
                     &class.description,
@@ -232,10 +234,10 @@ impl OntologyRepository for SqliteOntologyRepository {
             }
             drop(hierarchy_stmt);
 
-            // Insert properties (using schema columns: iri, label, property_type)
+            // Insert properties (using schema columns: ontology_id, property_iri, property_type, label)
             let mut property_stmt = conn.prepare(
-                "INSERT OR REPLACE INTO owl_properties (iri, label, property_type)
-                 VALUES (?1, ?2, ?3)"
+                "INSERT OR REPLACE INTO owl_properties (ontology_id, property_iri, property_type, label)
+                 VALUES (?1, ?2, ?3, ?4)"
             ).map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to prepare property insert: {}", e)))?;
 
             for property in &properties_vec {
@@ -246,9 +248,10 @@ impl OntologyRepository for SqliteOntologyRepository {
                 };
 
                 property_stmt.execute(params![
+                    ontology_id,
                     &property.iri,
-                    &property.label,
-                    property_type_str
+                    property_type_str,
+                    &property.label
                 ]).map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to insert property {}: {}", property.iri, e)))?;
             }
             drop(property_stmt);
@@ -312,9 +315,9 @@ impl OntologyRepository for SqliteOntologyRepository {
             let last_synced_str = class_clone.last_synced.as_ref().map(|dt| dt.to_rfc3339());
 
             conn.execute(
-                "INSERT OR REPLACE INTO owl_classes (iri, label, description, source_file, properties, markdown_content, file_sha1, last_synced, updated_at)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, CURRENT_TIMESTAMP)",
-                params![&class_clone.iri, &class_clone.label, &class_clone.description, &class_clone.source_file, properties_json, &class_clone.markdown_content, &class_clone.file_sha1, &last_synced_str]
+                "INSERT OR REPLACE INTO owl_classes (ontology_id, class_iri, label, comment, file_sha1)
+                 VALUES (?1, ?2, ?3, ?4, ?5)",
+                params!["default", &class_clone.iri, &class_clone.label, &class_clone.description, &class_clone.file_sha1]
             )
             .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to insert class: {}", e)))?;
 
@@ -343,27 +346,20 @@ impl OntologyRepository for SqliteOntologyRepository {
             let conn = conn_arc.lock().expect("Failed to acquire ontology repository mutex");
 
             let result = conn.query_row(
-                "SELECT iri, label, description, source_file, properties, markdown_content, file_sha1, last_synced FROM owl_classes WHERE iri = ?1",
+                "SELECT class_iri, label, comment, file_sha1 FROM owl_classes WHERE class_iri = ?1",
                 params![iri_owned],
                 |row| {
                     let iri: String = row.get(0)?;
                     let label: Option<String> = row.get(1)?;
                     let description: Option<String> = row.get(2)?;
-                    let source_file: Option<String> = row.get(3)?;
-                    let properties_json: String = row.get(4)?;
-                    let markdown_content: Option<String> = row.get(5)?;
-                    let file_sha1: Option<String> = row.get(6)?;
-                    let last_synced_str: Option<String> = row.get(7)?;
+                    let file_sha1: Option<String> = row.get(3)?;
 
-                    let properties = serde_json::from_str(&properties_json).unwrap_or_default();
-                    let last_synced = last_synced_str.and_then(|s| chrono::DateTime::parse_from_rfc3339(&s).ok().map(|dt| dt.with_timezone(&chrono::Utc)));
-
-                    Ok((iri, label, description, source_file, properties, markdown_content, file_sha1, last_synced))
+                    Ok((iri, label, description, file_sha1))
                 }
             );
 
             match result {
-                Ok((iri, label, description, source_file, properties, markdown_content, file_sha1, last_synced)) => {
+                Ok((iri, label, description, file_sha1)) => {
                     let mut parent_stmt = conn
                         .prepare("SELECT parent_iri FROM owl_class_hierarchy WHERE class_iri = ?1")
                         .map_err(|e| {
@@ -394,11 +390,11 @@ impl OntologyRepository for SqliteOntologyRepository {
                         label,
                         description,
                         parent_classes,
-                        properties,
-                        source_file,
-                        markdown_content,
+                        properties: HashMap::new(),
+                        source_file: None,
+                        markdown_content: None,
                         file_sha1,
-                        last_synced,
+                        last_synced: None,
                     }))
                 }
                 Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
@@ -524,9 +520,9 @@ impl OntologyRepository for SqliteOntologyRepository {
             })?;
 
             conn.execute(
-                "INSERT OR REPLACE INTO owl_properties (iri, label, property_type, domain, range, updated_at)
-                 VALUES (?1, ?2, ?3, ?4, ?5, CURRENT_TIMESTAMP)",
-                params![&property_clone.iri, &property_clone.label, property_type_str, domain_json, range_json]
+                "INSERT OR REPLACE INTO owl_properties (ontology_id, property_iri, property_type, label)
+                 VALUES (?1, ?2, ?3, ?4)",
+                params!["default", &property_clone.iri, property_type_str, &property_clone.label]
             )
             .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to insert property: {}", e)))?;
 
@@ -544,21 +540,19 @@ impl OntologyRepository for SqliteOntologyRepository {
             let conn = conn_arc.lock().expect("Failed to acquire ontology repository mutex");
 
             let result = conn.query_row(
-                "SELECT iri, label, property_type, domain, range FROM owl_properties WHERE iri = ?1",
+                "SELECT property_iri, label, property_type FROM owl_properties WHERE property_iri = ?1",
                 params![iri_owned],
                 |row| {
                     let iri: String = row.get(0)?;
                     let label: Option<String> = row.get(1)?;
                     let property_type_str: String = row.get(2)?;
-                    let domain_json: String = row.get(3)?;
-                    let range_json: String = row.get(4)?;
 
-                    Ok((iri, label, property_type_str, domain_json, range_json))
+                    Ok((iri, label, property_type_str))
                 },
             );
 
             match result {
-                Ok((iri, label, property_type_str, domain_json, range_json)) => {
+                Ok((iri, label, property_type_str)) => {
                     let property_type = match property_type_str.as_str() {
                         "ObjectProperty" => PropertyType::ObjectProperty,
                         "DataProperty" => PropertyType::DataProperty,
@@ -571,15 +565,12 @@ impl OntologyRepository for SqliteOntologyRepository {
                         }
                     };
 
-                    let domain = serde_json::from_str(&domain_json).unwrap_or_default();
-                    let range = serde_json::from_str(&range_json).unwrap_or_default();
-
                     Ok(Some(OwlProperty {
                         iri,
                         label,
                         property_type,
-                        domain,
-                        range,
+                        domain: Vec::new(),
+                        range: Vec::new(),
                     }))
                 }
                 Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
@@ -602,7 +593,7 @@ impl OntologyRepository for SqliteOntologyRepository {
                 .expect("Failed to acquire ontology repository mutex");
 
             let mut stmt = conn
-                .prepare("SELECT iri, label, property_type, domain, range FROM owl_properties")
+                .prepare("SELECT property_iri, label, property_type FROM owl_properties")
                 .map_err(|e| {
                     OntologyRepositoryError::DatabaseError(format!(
                         "Failed to prepare statement: {}",
@@ -615,8 +606,6 @@ impl OntologyRepository for SqliteOntologyRepository {
                     let iri: String = row.get(0)?;
                     let label: Option<String> = row.get(1)?;
                     let property_type_str: String = row.get(2)?;
-                    let domain_json: String = row.get(3)?;
-                    let range_json: String = row.get(4)?;
 
                     let property_type = match property_type_str.as_str() {
                         "ObjectProperty" => PropertyType::ObjectProperty,
@@ -625,15 +614,12 @@ impl OntologyRepository for SqliteOntologyRepository {
                         _ => PropertyType::ObjectProperty,
                     };
 
-                    let domain = serde_json::from_str(&domain_json).unwrap_or_default();
-                    let range = serde_json::from_str(&range_json).unwrap_or_default();
-
                     Ok(OwlProperty {
                         iri,
                         label,
                         property_type,
-                        domain,
-                        range,
+                        domain: Vec::new(),
+                        range: Vec::new(),
                     })
                 })
                 .map_err(|e| {
