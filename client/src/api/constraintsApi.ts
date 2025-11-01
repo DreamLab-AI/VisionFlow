@@ -3,7 +3,9 @@
 
 import axios, { AxiosResponse } from 'axios';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:4000';
+// Use Vite proxy for API requests in development
+// In production, this will be served from the same origin
+const API_BASE = '/api';
 
 // ============================================================================
 // Type Definitions (matching Rust backend)

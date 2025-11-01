@@ -3,7 +3,10 @@
 
 import axios, { AxiosResponse } from 'axios';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:4000';
+// Use Vite proxy for API requests in development
+// In production, this will be served from the same origin
+// NOTE: Empty string because the function paths already include '/api/'
+const API_BASE = '';
 
 // ============================================================================
 // Type Definitions (matching Rust backend exactly)
@@ -116,6 +119,12 @@ export const settingsApi = {
   // All Settings
   getAll: (): Promise<AxiosResponse<AllSettings>> =>
     axios.get(`${API_BASE}/api/settings/all`),
+
+  // Get settings by paths (for selective loading)
+  // For now, this just returns all settings - frontend will filter
+  getSettingsByPaths: async (paths: string[]): Promise<AxiosResponse<AllSettings>> => {
+    return axios.get(`${API_BASE}/api/settings/all`);
+  },
 
   // Profile Management
   saveProfile: (

@@ -46,7 +46,8 @@ services:
     hostname: ${HOSTNAME:-webxr}
     build:
       context: .
-      dockerfile: ${DOCKERFILE:-Dockerfile.dev}
+      dockerfile: ${DOCKERFILE:-Dockerfile.unified}
+      target: development
       args:
         CUDA_ARCH: ${CUDA_ARCH:-86}
         BUILD_TARGET: ${BUILD_TARGET:-development}

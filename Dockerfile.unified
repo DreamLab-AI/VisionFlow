@@ -99,7 +99,7 @@ FROM rust-deps AS rust-builder
 
 # Copy actual source code
 COPY src ./src
-COPY schema ./schema
+COPY data/schema ./data/schema
 
 # Build Rust backend with GPU features
 # This compiles the actual application code
@@ -115,8 +115,9 @@ FROM base AS node-deps
 
 WORKDIR /app/client
 
-# Copy only package files for better layer caching
+# Copy only package files and scripts for better layer caching
 COPY client/package*.json ./
+COPY client/scripts ./scripts
 
 # Install Node.js dependencies
 # --production flag is added later in production stage
@@ -165,7 +166,7 @@ RUN mkdir -p \
 COPY Cargo.toml build.rs ./
 COPY Cargo.lock* ./
 COPY src ./src
-COPY schema ./schema
+COPY data/schema ./data/schema
 COPY whelk-rs ./whelk-rs
 
 # Copy client source (not built, will use dev server)

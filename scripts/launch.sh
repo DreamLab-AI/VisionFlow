@@ -257,9 +257,9 @@ build_containers() {
         info "Building without GPU support"
     fi
 
-    # Disable BuildKit to avoid compatibility issues
-    export DOCKER_BUILDKIT=0
-    export COMPOSE_DOCKER_CLI_BUILD=0
+    # Enable BuildKit for optimized multi-stage builds
+    export DOCKER_BUILDKIT=1
+    export COMPOSE_DOCKER_CLI_BUILD=1
 
     docker_compose build "${build_args[@]}"
     success "Build complete for $ENVIRONMENT environment"

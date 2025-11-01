@@ -43,6 +43,7 @@
     "@types/lodash": "4.17.20",
     "@types/react-window": "^1.8.8",
     "@types/three": "^0.175.0",
+    "axios": "^1.7.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "comlink": "^4.4.1",

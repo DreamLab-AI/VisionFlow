@@ -475,6 +475,7 @@ async fn main() -> std::io::Result<()> {
                     .service(web::scope("/bots").configure(api_handler::bots::config)) // This will now serve /api/bots/data and /api/bots/update
                     .configure(bots_visualization_handler::configure_routes) // Agent visualization endpoints
                     .configure(graph_export_handler::configure_routes) // Graph export and sharing endpoints
+                    .configure(webxr::settings::api::settings_routes::configure_routes) // Settings API endpoints
                     .route("/client-logs", web::post().to(client_log_handler::handle_client_logs)) // Client browser logs endpoint
                     // DEPRECATED: hybrid health routes removed
             );
