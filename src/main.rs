@@ -1,8 +1,11 @@
 // Rebuild: KE velocity fix applied
+use actix::Actor;
 use webxr::ports::knowledge_graph_repository::KnowledgeGraphRepository;
 use webxr::services::nostr_service::NostrService;
+use webxr::settings::settings_actor::SettingsActor;
+use webxr::adapters::sqlite_settings_repository::SqliteSettingsRepository;
 use webxr::{
-    config::AppFullSettings, 
+    config::AppFullSettings,
     handlers::{
         admin_sync_handler,
         api_handler,
@@ -146,13 +149,33 @@ async fn main() -> std::io::Result<()> {
     
     info!("GPU compute will be initialized by GPUComputeActor when needed");
 
-    debug!("Successfully loaded AppFullSettings"); 
+    debug!("Successfully loaded AppFullSettings");
 
     info!("Starting WebXR application...");
     debug!("main: Beginning application startup sequence.");
 
-    
-    
+    // Initialize settings repository and actor
+    let settings_db_path = std::env::var("SETTINGS_DB_PATH")
+        .unwrap_or_else(|_| "/app/data/settings.db".to_string());
+
+    info!("Initializing SettingsActor with database: {}", settings_db_path);
+    let settings_repository = match SqliteSettingsRepository::new(&settings_db_path) {
+        Ok(repo) => Arc::new(repo),
+        Err(e) => {
+            error!("Failed to create settings repository: {}", e);
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Failed to create settings repository: {}", e),
+            ));
+        }
+    };
+
+    let settings_actor = SettingsActor::new(settings_repository).start();
+    let settings_actor_data = web::Data::new(settings_actor);
+    info!("SettingsActor initialized successfully");
+
+
+
     let settings_data = web::Data::new(settings.clone());
 
     
@@ -362,22 +385,23 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .wrap(middleware::Compress::default())
             .wrap(TimeoutMiddleware::new(Duration::from_secs(30))) 
-            
-            
+
+
             .app_data(settings_data.clone())
             .app_data(web::Data::new(github_client.clone()))
             .app_data(web::Data::new(content_api.clone()))
-            .app_data(app_state_data.clone()) 
-            .app_data(pre_read_ws_settings_data.clone()) 
-            
+            .app_data(app_state_data.clone())
+            .app_data(pre_read_ws_settings_data.clone())
+
             .app_data(web::Data::new(app_state_data.graph_service_addr.clone()))
             .app_data(web::Data::new(app_state_data.settings_addr.clone()))
             .app_data(web::Data::new(app_state_data.metadata_addr.clone()))
             .app_data(web::Data::new(app_state_data.client_manager_addr.clone()))
             .app_data(web::Data::new(app_state_data.workspace_addr.clone()))
-            .app_data(app_state_data.nostr_service.clone().unwrap_or_else(|| web::Data::new(NostrService::default()))) 
+            .app_data(app_state_data.nostr_service.clone().unwrap_or_else(|| web::Data::new(NostrService::default())))
             .app_data(app_state_data.feature_access.clone())
-            .app_data(web::Data::new(github_sync_service.clone())) 
+            .app_data(web::Data::new(github_sync_service.clone()))
+            .app_data(settings_actor_data.clone()) 
             
             
             .route("/wss", web::get().to(socket_flow_handler)) 
@@ -386,18 +410,18 @@ async fn main() -> std::io::Result<()> {
             
             .route("/ws/client-messages", web::get().to(client_messages_handler::websocket_client_messages)) 
             .service(
-                web::scope("/api") 
-                    .configure(api_handler::config) 
-                    .configure(workspace_handler::config) 
-                    .configure(admin_sync_handler::configure_routes) 
-                    
+                web::scope("/api")
+                    .service(web::scope("/settings").configure(webxr::settings::api::configure_routes))
+                    .configure(api_handler::config)
+                    .configure(workspace_handler::config)
+                    .configure(admin_sync_handler::configure_routes)
+
                     .service(web::scope("/pages").configure(pages_handler::config))
-                    .service(web::scope("/bots").configure(api_handler::bots::config)) 
-                    .configure(bots_visualization_handler::configure_routes) 
-                    .configure(graph_export_handler::configure_routes) 
-                    .configure(webxr::settings::api::settings_routes::configure_routes) 
-                    .route("/client-logs", web::post().to(client_log_handler::handle_client_logs)) 
-                    
+                    .service(web::scope("/bots").configure(api_handler::bots::config))
+                    .configure(bots_visualization_handler::configure_routes)
+                    .configure(graph_export_handler::configure_routes)
+                    .route("/client-logs", web::post().to(client_log_handler::handle_client_logs))
+
             );
 
             app

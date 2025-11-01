@@ -22,7 +22,7 @@ impl EnhancedContentAPI {
         &self,
         path: &str,
     ) -> VisionFlowResult<Vec<GitHubFileBasicMetadata>> {
-        let contents_url = self.client.get_contents_url(path).await;
+        let contents_url = GitHubClient::get_contents_url(&self.client, path).await;
         info!(
             "list_markdown_files: Fetching from GitHub API: {}",
             contents_url
@@ -122,7 +122,7 @@ impl EnhancedContentAPI {
         file_path: &str,
         check_actual_changes: bool,
     ) -> VisionFlowResult<DateTime<Utc>> {
-        let encoded_path = self.client.get_full_path(file_path).await;
+        let encoded_path = GitHubClient::get_full_path(&self.client, file_path).await;
 
         
         let commits_url = format!(
@@ -264,7 +264,7 @@ impl EnhancedContentAPI {
         &self,
         file_path: &str,
     ) -> VisionFlowResult<ExtendedFileMetadata> {
-        let encoded_path = self.client.get_full_path(file_path).await;
+        let encoded_path = GitHubClient::get_full_path(&self.client, file_path).await;
 
         
         let contents_url = format!(

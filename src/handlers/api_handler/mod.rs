@@ -139,9 +139,10 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .configure(analytics::config)
             .configure(quest3::config)
             .configure(crate::handlers::nostr_handler::config)
-            .configure(crate::handlers::settings_handler::config)
-            
-            
+            // OLD settings_handler disabled - using new SettingsActor routes from webxr::settings::api
+            // .configure(crate::handlers::settings_handler::config)
+
+
             .configure(crate::handlers::ragflow_handler::config)
             .configure(crate::handlers::clustering_handler::config)
             .configure(crate::handlers::constraints_handler::config),

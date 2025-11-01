@@ -56,7 +56,7 @@ pub async fn get_physics_settings(
     }
 }
 
-/
+/// PUT /api/settings/physics
 pub async fn update_physics_settings(
     settings_actor: web::Data<Addr<SettingsActor>>,
     body: web::Json<PhysicsSettings>,
@@ -87,7 +87,7 @@ pub async fn update_physics_settings(
 // Constraint Settings Routes
 // ============================================================================
 
-/
+/// GET /api/settings/constraints
 pub async fn get_constraint_settings(
     settings_actor: web::Data<Addr<SettingsActor>>,
 ) -> impl Responder {
@@ -102,7 +102,7 @@ pub async fn get_constraint_settings(
     }
 }
 
-/
+/// PUT /api/settings/constraints
 pub async fn update_constraint_settings(
     settings_actor: web::Data<Addr<SettingsActor>>,
     body: web::Json<ConstraintSettings>,
@@ -133,7 +133,7 @@ pub async fn update_constraint_settings(
 // Rendering Settings Routes
 // ============================================================================
 
-/
+///
 pub async fn get_rendering_settings(
     settings_actor: web::Data<Addr<SettingsActor>>,
 ) -> impl Responder {
@@ -148,7 +148,7 @@ pub async fn get_rendering_settings(
     }
 }
 
-/
+///
 pub async fn update_rendering_settings(
     settings_actor: web::Data<Addr<SettingsActor>>,
     body: web::Json<RenderingSettings>,
@@ -179,10 +179,11 @@ pub async fn update_rendering_settings(
 // All Settings Route
 // ============================================================================
 
-/
+///
 pub async fn get_all_settings(
     settings_actor: web::Data<Addr<SettingsActor>>,
 ) -> impl Responder {
+    info!("📥 GET /api/settings/all endpoint called");
     match settings_actor.send(GetAllSettings).await {
         Ok(settings) => HttpResponse::Ok().json(settings),
         Err(e) => {
@@ -198,7 +199,7 @@ pub async fn get_all_settings(
 // Profile Management Routes
 // ============================================================================
 
-/
+///
 pub async fn save_profile(
     settings_actor: web::Data<Addr<SettingsActor>>,
     body: web::Json<SaveProfileRequest>,
@@ -225,7 +226,7 @@ pub async fn save_profile(
     }
 }
 
-/
+///
 pub async fn load_profile(
     settings_actor: web::Data<Addr<SettingsActor>>,
     path: web::Path<i64>,
@@ -253,7 +254,7 @@ pub async fn load_profile(
     }
 }
 
-/
+///
 pub async fn list_profiles(
     settings_actor: web::Data<Addr<SettingsActor>>,
 ) -> impl Responder {
@@ -274,7 +275,7 @@ pub async fn list_profiles(
     }
 }
 
-/
+///
 pub async fn delete_profile(
     settings_actor: web::Data<Addr<SettingsActor>>,
     path: web::Path<i64>,
@@ -307,23 +308,30 @@ pub async fn delete_profile(
 // ============================================================================
 
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
-    cfg.service(
-        web::scope("settings")
-            
-            .route("/physics", web::get().to(get_physics_settings))
-            .route("/physics", web::put().to(update_physics_settings))
-            
-            .route("/constraints", web::get().to(get_constraint_settings))
-            .route("/constraints", web::put().to(update_constraint_settings))
-            
-            .route("/rendering", web::get().to(get_rendering_settings))
-            .route("/rendering", web::put().to(update_rendering_settings))
-            
-            .route("/all", web::get().to(get_all_settings))
-            
-            .route("/profiles", web::post().to(save_profile))
-            .route("/profiles", web::get().to(list_profiles))
-            .route("/profiles/{id}", web::get().to(load_profile))
-            .route("/profiles/{id}", web::delete().to(delete_profile))
-    );
+    log::info!("🔧 Configuring settings routes");
+    log::info!("📍 Registering route: GET all");
+    log::info!("📍 Registering route: GET physics");
+    log::info!("📍 Registering route: PUT physics");
+    log::info!("📍 Registering route: GET constraints");
+    log::info!("📍 Registering route: PUT constraints");
+    log::info!("📍 Registering route: GET rendering");
+    log::info!("📍 Registering route: PUT rendering");
+    log::info!("📍 Registering route: POST profiles");
+    log::info!("📍 Registering route: GET profiles");
+    log::info!("📍 Registering route: GET profiles/{{id}}");
+    log::info!("📍 Registering route: DELETE profiles/{{id}}");
+
+    cfg.route("physics", web::get().to(get_physics_settings))
+        .route("physics", web::put().to(update_physics_settings))
+        .route("constraints", web::get().to(get_constraint_settings))
+        .route("constraints", web::put().to(update_constraint_settings))
+        .route("rendering", web::get().to(get_rendering_settings))
+        .route("rendering", web::put().to(update_rendering_settings))
+        .route("all", web::get().to(get_all_settings))
+        .route("profiles", web::post().to(save_profile))
+        .route("profiles", web::get().to(list_profiles))
+        .route("profiles/{id}", web::get().to(load_profile))
+        .route("profiles/{id}", web::delete().to(delete_profile));
+
+    log::info!("✅ Settings routes configuration complete");
 }

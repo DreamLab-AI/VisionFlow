@@ -85,9 +85,137 @@ impl UnifiedGraphRepository {
     
     
     
-    fn create_schema(_conn: &Connection) -> Result<(), KnowledgeGraphRepositoryError> {
-        
-        
+    fn create_schema(conn: &Connection) -> Result<(), KnowledgeGraphRepositoryError> {
+        info!("Creating unified graph database schema...");
+
+        // Create graph_nodes table
+        conn.execute(
+            r#"
+            CREATE TABLE IF NOT EXISTS graph_nodes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                metadata_id TEXT NOT NULL UNIQUE,
+                label TEXT NOT NULL,
+                x REAL NOT NULL DEFAULT 0.0,
+                y REAL NOT NULL DEFAULT 0.0,
+                z REAL NOT NULL DEFAULT 0.0,
+                vx REAL NOT NULL DEFAULT 0.0,
+                vy REAL NOT NULL DEFAULT 0.0,
+                vz REAL NOT NULL DEFAULT 0.0,
+                mass REAL NOT NULL DEFAULT 1.0,
+                charge REAL NOT NULL DEFAULT 0.0,
+                owl_class_iri TEXT,
+                color TEXT,
+                size REAL DEFAULT 10.0,
+                node_type TEXT,
+                weight REAL DEFAULT 1.0,
+                group_name TEXT,
+                metadata TEXT NOT NULL DEFAULT '{}',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+            "#,
+            [],
+        )
+        .map_err(|e| {
+            KnowledgeGraphRepositoryError::DatabaseError(format!(
+                "Failed to create graph_nodes table: {}",
+                e
+            ))
+        })?;
+
+        // Create graph_edges table
+        conn.execute(
+            r#"
+            CREATE TABLE IF NOT EXISTS graph_edges (
+                id TEXT PRIMARY KEY,
+                source_id INTEGER NOT NULL,
+                target_id INTEGER NOT NULL,
+                weight REAL NOT NULL DEFAULT 1.0,
+                relation_type TEXT,
+                metadata TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (source_id) REFERENCES graph_nodes(id) ON DELETE CASCADE,
+                FOREIGN KEY (target_id) REFERENCES graph_nodes(id) ON DELETE CASCADE
+            )
+            "#,
+            [],
+        )
+        .map_err(|e| {
+            KnowledgeGraphRepositoryError::DatabaseError(format!(
+                "Failed to create graph_edges table: {}",
+                e
+            ))
+        })?;
+
+        // Create graph_statistics table
+        conn.execute(
+            r#"
+            CREATE TABLE IF NOT EXISTS graph_statistics (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                node_count INTEGER NOT NULL DEFAULT 0,
+                edge_count INTEGER NOT NULL DEFAULT 0,
+                average_degree REAL NOT NULL DEFAULT 0.0,
+                connected_components INTEGER NOT NULL DEFAULT 0,
+                last_updated DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+            "#,
+            [],
+        )
+        .map_err(|e| {
+            KnowledgeGraphRepositoryError::DatabaseError(format!(
+                "Failed to create graph_statistics table: {}",
+                e
+            ))
+        })?;
+
+        // Create file_metadata table (used for sync tracking)
+        conn.execute(
+            r#"
+            CREATE TABLE IF NOT EXISTS file_metadata (
+                file_name TEXT PRIMARY KEY,
+                file_path TEXT NOT NULL UNIQUE,
+                sha TEXT,
+                last_modified DATETIME,
+                last_content_change DATETIME,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+            "#,
+            [],
+        )
+        .map_err(|e| {
+            KnowledgeGraphRepositoryError::DatabaseError(format!(
+                "Failed to create file_metadata table: {}",
+                e
+            ))
+        })?;
+
+        // Create indexes
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_graph_nodes_metadata_id ON graph_nodes(metadata_id)",
+            [],
+        )
+        .map_err(|e| {
+            KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to create index: {}", e))
+        })?;
+
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_graph_edges_source ON graph_edges(source_id)",
+            [],
+        )
+        .map_err(|e| {
+            KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to create index: {}", e))
+        })?;
+
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_graph_edges_target ON graph_edges(target_id)",
+            [],
+        )
+        .map_err(|e| {
+            KnowledgeGraphRepositoryError::DatabaseError(format!("Failed to create index: {}", e))
+        })?;
+
+        info!("✅ Unified graph database schema created successfully");
         Ok(())
     }
 

@@ -8,20 +8,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     let typescript_interfaces = generate_typescript_interfaces();
 
-    
+
     let header = format!(
-        "
-         
-         
-         
-         
+        "// Auto-generated TypeScript type definitions\n// Generated: {}\n\n",
         chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
     );
 
     
     let camel_case_code = convert_to_camel_case(format!("{}{}", header, typescript_interfaces));
 
-    
+
     let output_path = Path::new("client/src/types/generated/settings.ts");
     let output_dir = output_path.parent().unwrap();
     if !output_dir.exists() {
@@ -37,14 +33,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         output_path.display()
     );
 
-    
+
     let metadata = fs::metadata(output_path)?;
     println!("📊 Generated file size: {} bytes", metadata.len());
 
     if metadata.len() > 1000 {
         println!("🎉 Type generation completed successfully!");
 
-        
+
         let preview: String = camel_case_code
             .lines()
             .take(20)
@@ -59,7 +55,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("⚠️  Generated file seems small, please verify content");
     }
 
-    println!("📦 Type generation complete! Run 'npm run build' in client to use new types.");
+    println!("📦 Type generation complete! Run `npm run build` in client to use new types.");
 
     Ok(())
 }

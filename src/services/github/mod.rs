@@ -6,10 +6,10 @@
 //! - Common types and error handling
 //! - Configuration: Environment-based configuration
 
-mod api;
+pub mod api;
 pub mod config;
 pub mod content_enhanced;
-mod pr;
+pub mod pr;
 pub mod types;
 
 pub use api::GitHubClient;

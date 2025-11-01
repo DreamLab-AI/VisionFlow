@@ -59,10 +59,10 @@ impl GitHubClient {
             debug!("Decoded base path: '{}'", decoded_path);
         }
 
-        
+
         let base_path = decoded_path
             .trim_matches('/')
-            .replace("
+            .replace("//", "/")
             .replace('\\', "/");
 
         if debug_enabled {
