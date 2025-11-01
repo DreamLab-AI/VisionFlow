@@ -1,7 +1,4 @@
-/**
- * Graph Export API Service
- * Real export functionality for graph data
- */
+
 
 import { unifiedApiClient } from '../services/api/UnifiedApiClient';
 
@@ -65,9 +62,7 @@ export interface PublishResponse {
   message?: string;
 }
 
-/**
- * Export graph in specified format
- */
+
 export const exportGraph = async (
   graphData: any,
   options: ExportOptions
@@ -79,7 +74,7 @@ export const exportGraph = async (
     });
 
     if (response.data.downloadUrl) {
-      // Trigger download if URL is provided
+      
       const link = document.createElement('a');
       link.href = response.data.downloadUrl;
       link.download = response.data.fileName || `graph.${options.format}`;
@@ -98,9 +93,7 @@ export const exportGraph = async (
   }
 };
 
-/**
- * Create shareable link for graph
- */
+
 export const shareGraph = async (
   graphData: any,
   options: ShareOptions
@@ -121,9 +114,7 @@ export const shareGraph = async (
   }
 };
 
-/**
- * Retrieve shared graph by ID
- */
+
 export const getSharedGraph = async (shareId: string): Promise<any> => {
   try {
     const response = await unifiedApiClient.get(`/graph/shared/${shareId}`);
@@ -134,9 +125,7 @@ export const getSharedGraph = async (shareId: string): Promise<any> => {
   }
 };
 
-/**
- * Delete shared graph
- */
+
 export const deleteSharedGraph = async (shareId: string): Promise<boolean> => {
   try {
     await unifiedApiClient.delete(`/graph/shared/${shareId}`);
@@ -147,9 +136,7 @@ export const deleteSharedGraph = async (shareId: string): Promise<boolean> => {
   }
 };
 
-/**
- * Publish graph to public repository
- */
+
 export const publishGraph = async (
   graphData: any,
   metadata: PublishMetadata
@@ -170,9 +157,7 @@ export const publishGraph = async (
   }
 };
 
-/**
- * Get list of user's shared graphs
- */
+
 export const getUserSharedGraphs = async (): Promise<any[]> => {
   try {
     const response = await unifiedApiClient.get('/graph/shared');
@@ -183,9 +168,7 @@ export const getUserSharedGraphs = async (): Promise<any[]> => {
   }
 };
 
-/**
- * Update share settings for existing shared graph
- */
+
 export const updateShareSettings = async (
   shareId: string,
   options: ShareOptions
@@ -202,9 +185,7 @@ export const updateShareSettings = async (
   }
 };
 
-/**
- * Generate embed code for graph
- */
+
 export const generateEmbedCode = (
   shareId: string,
   settings: EmbedSettings = {}
@@ -233,16 +214,12 @@ export const generateEmbedCode = (
 </iframe>`;
 };
 
-/**
- * Generate API endpoint URL for graph data
- */
+
 export const generateApiEndpoint = (shareId: string): string => {
   return `${window.location.origin}/api/graph/shared/${shareId}/data`;
 };
 
-/**
- * Download file from blob data
- */
+
 export const downloadFile = (
   data: Blob | string,
   filename: string,
@@ -261,16 +238,14 @@ export const downloadFile = (
   URL.revokeObjectURL(url);
 };
 
-/**
- * Copy text to clipboard with fallback
- */
+
 export const copyToClipboard = async (text: string): Promise<boolean> => {
   try {
     if (navigator.clipboard && window.isSecureContext) {
       await navigator.clipboard.writeText(text);
       return true;
     } else {
-      // Fallback for older browsers
+      
       const textArea = document.createElement('textarea');
       textArea.value = text;
       textArea.style.position = 'fixed';
@@ -290,9 +265,7 @@ export const copyToClipboard = async (text: string): Promise<boolean> => {
   }
 };
 
-/**
- * Validate export format support
- */
+
 export const getSupportedFormats = (): string[] => {
   return [
     'json',
@@ -308,9 +281,7 @@ export const getSupportedFormats = (): string[] => {
   ];
 };
 
-/**
- * Get file size estimate for export
- */
+
 export const estimateExportSize = (graphData: any, format: string): number => {
   if (!graphData) return 0;
 

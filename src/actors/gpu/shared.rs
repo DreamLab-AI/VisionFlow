@@ -17,9 +17,9 @@ use crate::utils::unified_gpu_compute::{SimParams, UnifiedGPUCompute};
 // use super::{GPUResourceActor, ForceComputeActor, ClusteringActor,
 //            AnomalyDetectionActor, StressMajorizationActor, ConstraintActor};
 
-/// Child actor addresses for the GPU manager
+/
 
-/// GPU resource contention management
+/
 #[derive(Debug, Clone)]
 pub struct GPUResourceMetrics {
     pub kernel_launch_count: u64,
@@ -43,7 +43,7 @@ impl Default for GPUResourceMetrics {
     }
 }
 
-/// GPU operation batching queue
+/
 #[derive(Debug, Clone)]
 pub struct GPUOperationBatch {
     pub operations: Vec<GPUOperation>,
@@ -78,7 +78,7 @@ impl GPUOperationBatch {
             operations: Vec::new(),
             priority,
             batch_size_limit: 10,
-            flush_timeout_ms: 16, // ~60 FPS
+            flush_timeout_ms: 16, 
             created_at: Instant::now(),
         }
     }
@@ -93,22 +93,22 @@ impl GPUOperationBatch {
     }
 }
 
-/// Shared GPU context that gets passed between child actors
+/
 // Note: SafeCudaStream provides thread safety guarantees
 pub struct SharedGPUContext {
     pub device: Arc<CudaDevice>,
     pub stream: Arc<std::sync::Mutex<SafeCudaStream>>,
     pub unified_compute: Arc<std::sync::Mutex<UnifiedGPUCompute>>,
 
-    // Enhanced resource contention management (using RwLock to prevent deadlock)
-    // Read access = normal concurrent operations, Write access = exclusive operations
+    
+    
     pub gpu_access_lock: Arc<RwLock<()>>,
     pub resource_metrics: Arc<Mutex<GPUResourceMetrics>>,
     pub operation_batch: Arc<Mutex<Vec<GPUOperation>>>,
-    pub batch_timeout: Duration, // 10ms timeout for batching operations
+    pub batch_timeout: Duration, 
 }
 
-/// GPU state shared among child actors
+/
 #[derive(Debug, Clone)]
 pub struct GPUState {
     pub num_nodes: u32,
@@ -121,15 +121,15 @@ pub struct GPUState {
     pub gpu_failure_count: u32,
     pub is_initialized: bool,
 
-    // GPU Upload Optimization tracking
+    
     pub graph_structure_hash: u64,
     pub positions_hash: u64,
     pub csr_structure_uploaded: bool,
 
-    // Enhanced GPU resource contention tracking
+    
     pub active_operations: Vec<GPUOperation>,
     pub last_sync_timestamp: Option<Instant>,
-    pub gpu_utilization_history: Vec<f32>, // Rolling window of utilization percentages
+    pub gpu_utilization_history: Vec<f32>, 
     pub operation_queue_depth: usize,
     pub average_kernel_time_ms: f32,
     pub peak_memory_usage_bytes: usize,
@@ -152,10 +152,10 @@ impl Default for GPUState {
             positions_hash: 0,
             csr_structure_uploaded: false,
 
-            // Enhanced GPU resource contention tracking
+            
             active_operations: Vec::new(),
             last_sync_timestamp: None,
-            gpu_utilization_history: Vec::with_capacity(60), // Store 60 samples (~1 second at 60 FPS)
+            gpu_utilization_history: Vec::with_capacity(60), 
             operation_queue_depth: 0,
             average_kernel_time_ms: 0.0,
             peak_memory_usage_bytes: 0,
@@ -164,21 +164,21 @@ impl Default for GPUState {
     }
 }
 
-/// Safety controls for stress majorization - moved from main actor
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StressMajorizationSafety {
-    /// Maximum allowed displacement per iteration
+    
     pub max_displacement_threshold: f32,
-    /// Maximum allowed position magnitude
+    
     pub max_position_magnitude: f32,
-    /// Number of consecutive failures before disabling
+    
     pub max_consecutive_failures: u32,
-    /// Convergence threshold for displacement
+    
     pub convergence_threshold: f32,
-    /// Maximum allowed stress value before emergency stop
+    
     pub max_stress_threshold: f32,
 
-    // Runtime state
+    
     pub consecutive_failures: u32,
     pub last_stress_values: Vec<f32>,
     pub last_displacement_values: Vec<f32>,
@@ -240,7 +240,7 @@ impl StressMajorizationSafety {
             self.last_displacement_values.remove(0);
         }
 
-        // Check for emergency conditions
+        
         if stress > self.max_stress_threshold {
             self.record_failure(format!("Stress exceeded threshold: {}", stress));
         }
@@ -268,7 +268,7 @@ impl StressMajorizationSafety {
         &self,
     ) -> crate::actors::gpu::stress_majorization_actor::StressMajorizationStats {
         crate::actors::gpu::stress_majorization_actor::StressMajorizationStats {
-            stress_value: 0.0, // Default value
+            stress_value: 0.0, 
             iterations_performed: self.total_runs as u32,
             converged: !self.is_emergency_stopped,
             computation_time_ms: if self.successful_runs > 0 {
@@ -291,7 +291,7 @@ impl StressMajorizationSafety {
 }
 
 impl SharedGPUContext {
-    /// Acquire GPU access with proper synchronization and metrics tracking
+    
     pub async fn acquire_gpu_access_qos(
         &self,
         operation: GPUOperation,
@@ -299,7 +299,7 @@ impl SharedGPUContext {
     ) -> Result<(), String> {
         let start_time = Instant::now();
 
-        // Update resource metrics - concurrent access tracking
+        
         {
             let mut metrics = self
                 .resource_metrics
@@ -308,7 +308,7 @@ impl SharedGPUContext {
             metrics.concurrent_access_attempts += 1;
         }
 
-        // Acquire access based on priority (write for critical, read otherwise)
+        
         if matches!(priority, GPUOperationPriority::Critical) {
             let _guard = self.gpu_access_lock.write().await;
             drop(_guard);
@@ -317,14 +317,14 @@ impl SharedGPUContext {
             drop(_guard);
         }
 
-        // Check if we should batch this operation
+        
         let should_batch = self.should_batch_operation(&operation);
         if should_batch {
             self.add_to_batch(operation.clone())?;
             return Ok(());
         }
 
-        // Update metrics with wait time
+        
         let wait_time = start_time.elapsed();
         {
             let mut metrics = self
@@ -339,19 +339,19 @@ impl SharedGPUContext {
         Ok(())
     }
 
-    /// Check if operation should be batched
+    
     fn should_batch_operation(&self, operation: &GPUOperation) -> bool {
-        // Don't batch critical operations or compute-heavy operations
+        
         match operation {
-            GPUOperation::ForceComputation => false, // Always execute immediately
-            GPUOperation::PositionUpdate | GPUOperation::VelocityUpdate => true, // Good candidates for batching
-            GPUOperation::Clustering | GPUOperation::AnomalyDetection => false, // Too heavy to batch
-            GPUOperation::StressMajorization => false, // Critical operation
-            GPUOperation::OntologyConstraints => false, // Constraint updates should execute immediately
+            GPUOperation::ForceComputation => false, 
+            GPUOperation::PositionUpdate | GPUOperation::VelocityUpdate => true, 
+            GPUOperation::Clustering | GPUOperation::AnomalyDetection => false, 
+            GPUOperation::StressMajorization => false, 
+            GPUOperation::OntologyConstraints => false, 
         }
     }
 
-    /// Add operation to batch queue
+    
     fn add_to_batch(&self, operation: GPUOperation) -> Result<(), String> {
         let mut batch = self
             .operation_batch
@@ -359,7 +359,7 @@ impl SharedGPUContext {
             .map_err(|e| format!("Failed to lock batch: {}", e))?;
         batch.push(operation);
 
-        // Update batched operations count
+        
         if let Ok(mut metrics) = self.resource_metrics.lock() {
             metrics.batched_operations_count += 1;
         }
@@ -367,7 +367,7 @@ impl SharedGPUContext {
         Ok(())
     }
 
-    /// Flush batched operations if needed
+    
     pub fn try_flush_batch(&self) -> Result<Vec<GPUOperation>, String> {
         let mut batch = self
             .operation_batch
@@ -383,14 +383,14 @@ impl SharedGPUContext {
         }
     }
 
-    /// Update GPU utilization metrics
+    
     pub fn update_utilization(&self, utilization_percent: f32) -> Result<(), String> {
         let mut metrics = self
             .resource_metrics
             .lock()
             .map_err(|e| format!("Failed to lock metrics: {}", e))?;
 
-        // Update average utilization with exponential moving average
+        
         if metrics.average_utilization_percent == 0.0 {
             metrics.average_utilization_percent = utilization_percent;
         } else {
@@ -401,7 +401,7 @@ impl SharedGPUContext {
         Ok(())
     }
 
-    /// Acquire GPU access for normal concurrent operations
+    
     pub async fn acquire_gpu_access(&self) -> Result<tokio::sync::RwLockReadGuard<()>, String> {
         let start_time = Instant::now();
         let guard = self.gpu_access_lock.read().await;
@@ -413,23 +413,23 @@ impl SharedGPUContext {
         Ok(guard)
     }
 
-    /// Batch operations for efficient GPU execution
-    /// Collects operations from the batch queue and executes them together
+    
+    
     pub async fn batch_operations(&self) -> Result<Vec<GPUOperation>, String> {
         let start_time = Instant::now();
 
-        // Wait for batch timeout or until we have operations to process
+        
         tokio::time::sleep(self.batch_timeout).await;
 
         let operations = self.try_flush_batch()?;
 
         if !operations.is_empty() {
-            // Acquire read lock for batched execution
+            
             let _guard = self.gpu_access_lock.read().await;
 
-            // Update metrics for batch execution
+            
             if let Ok(mut metrics) = self.resource_metrics.lock() {
-                metrics.kernel_launch_count += 1; // One kernel launch for the entire batch
+                metrics.kernel_launch_count += 1; 
                 metrics.total_wait_time_ms += start_time.elapsed().as_millis() as u64;
                 metrics.last_operation_timestamp = Some(Instant::now());
             }
@@ -438,17 +438,17 @@ impl SharedGPUContext {
         Ok(operations)
     }
 
-    /// Acquire exclusive access to GPU for critical operations
-    /// This method provides serialized access for operations that cannot be run concurrently
+    
+    
     pub async fn acquire_exclusive_access(
         &self,
     ) -> Result<tokio::sync::RwLockWriteGuard<()>, String> {
         let start_time = Instant::now();
 
-        // Acquire write lock for exclusive access (blocks all readers and other writers)
+        
         let guard = self.gpu_access_lock.write().await;
 
-        // Update metrics for exclusive access
+        
         if let Ok(mut metrics) = self.resource_metrics.lock() {
             metrics.total_wait_time_ms += start_time.elapsed().as_millis() as u64;
             metrics.concurrent_access_attempts += 1;
@@ -459,14 +459,14 @@ impl SharedGPUContext {
 }
 
 impl GPUState {
-    /// Add operation to active operations list
+    
     pub fn start_operation(&mut self, operation: GPUOperation) {
         self.active_operations.push(operation);
         self.concurrent_access_count += 1;
         self.last_sync_timestamp = Some(Instant::now());
     }
 
-    /// Remove operation from active operations list
+    
     pub fn complete_operation(&mut self, operation: &GPUOperation) {
         self.active_operations.retain(|op| {
             !matches!(
@@ -496,16 +496,16 @@ impl GPUState {
         }
     }
 
-    /// Update GPU utilization history
+    
     pub fn record_utilization(&mut self, utilization_percent: f32) {
         self.gpu_utilization_history.push(utilization_percent);
-        // Keep only last 60 samples (1 second at 60 FPS)
+        
         if self.gpu_utilization_history.len() > 60 {
             self.gpu_utilization_history.remove(0);
         }
     }
 
-    /// Get average GPU utilization over recent history
+    
     pub fn get_average_utilization(&self) -> f32 {
         if self.gpu_utilization_history.is_empty() {
             0.0
@@ -515,15 +515,15 @@ impl GPUState {
         }
     }
 
-    /// Check if GPU is currently overloaded
+    
     pub fn is_gpu_overloaded(&self) -> bool {
-        // Only consider GPU overloaded if both high concurrent access AND high utilization
-        // Previous logic was too aggressive, blocking at just 3 concurrent operations
+        
+        
         self.concurrent_access_count > 5 && self.get_average_utilization() > 80.0
     }
 }
 
-/// Child actor addresses for the manager
+/
 #[derive(Clone)]
 pub struct ChildActorAddresses {
     pub resource_actor: Addr<super::GPUResourceActor>,

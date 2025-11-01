@@ -54,15 +54,15 @@ const SettingRow = memo(({
   const { items, isPowerUser, savedNotification, loadingSettings, onSettingChange, getSettingValue, itemCache } = data;
   const item = items[index];
 
-  // Skip rendering for power-user items if not authorized
+  
   if (item.isPowerUser && !isPowerUser) return null;
 
-  // Use cached value if available
+  
   const cacheKey = `${item.path}-${index}`;
   const cachedValue = itemCache.get(cacheKey);
   const value = cachedValue !== undefined ? cachedValue : getSettingValue(item.path);
 
-  // Update cache if value changed
+  
   if (cachedValue !== value) {
     itemCache.set(cacheKey, value);
   }
@@ -96,7 +96,7 @@ const SettingRow = memo(({
     </div>
   );
 }, (prevProps, nextProps) => {
-  // Optimized comparison function
+  
   if (prevProps.index !== nextProps.index) return false;
   
   const prevItem = prevProps.data.items[prevProps.index];
@@ -104,7 +104,7 @@ const SettingRow = memo(({
   
   if (prevItem.path !== nextItem.path) return false;
   
-  // Use cached values for comparison
+  
   const prevCacheKey = `${prevItem.path}-${prevProps.index}`;
   const nextCacheKey = `${nextItem.path}-${nextProps.index}`;
   
@@ -133,30 +133,30 @@ export const VirtualizedSettingsGroup = memo(({
   onSettingChange,
   groupIndex
 }: VirtualizedSettingsGroupProps) => {
-  // Performance monitoring
+  
   const { measureSearch, getMetrics } = useSettingsPerformance(`VirtualizedGroup-${title}`, {
     enableLogging: process.env.NODE_ENV === 'development',
     sampleRate: 50,
   });
 
-  // Stable getter with caching
+  
   const itemCache = useMemo(() => new Map<string, any>(), []);
   
   const getSettingValue = useCallback((path: string) => {
-    // Check cache first
+    
     const cached = itemCache.get(path);
     if (cached !== undefined) return cached;
     
-    // Get from store and cache
+    
     const value = useSettingsStore.getState().get(path);
     itemCache.set(path, value);
     return value;
   }, [itemCache]);
 
-  // Filter and memoize visible items
+  
   const visibleItems = useMemo(() => {
     const filtered = items.filter(item => !item.isPowerUser || isPowerUser);
-    // Pre-cache values for visible items
+    
     filtered.forEach(item => {
       const cacheKey = `${item.path}-${items.indexOf(item)}`;
       if (!itemCache.has(cacheKey)) {
@@ -166,9 +166,9 @@ export const VirtualizedSettingsGroup = memo(({
     return filtered;
   }, [items, isPowerUser, itemCache, getSettingValue]);
 
-  // Optimized setting change handler
+  
   const handleSettingChange = useCallback((path: string, value: any) => {
-    // Update cache immediately for responsive UI
+    
     const itemIndex = items.findIndex(item => item.path === path);
     if (itemIndex >= 0) {
       itemCache.set(`${path}-${itemIndex}`, value);
@@ -176,7 +176,7 @@ export const VirtualizedSettingsGroup = memo(({
     onSettingChange(path, value);
   }, [items, itemCache, onSettingChange]);
 
-  // Memoized data object with minimal dependencies
+  
   const listData = useMemo<ItemData>(() => ({
     items: visibleItems,
     isPowerUser,
@@ -187,14 +187,14 @@ export const VirtualizedSettingsGroup = memo(({
     itemCache,
   }), [visibleItems, isPowerUser, savedNotification, loadingSettings, handleSettingChange, getSettingValue, itemCache]);
 
-  // Skip rendering if not power user for power user groups
+  
   if (isPowerUser !== undefined && !isPowerUser && items.every(item => item.isPowerUser)) {
     return null;
   }
 
-  // Optimized dimensions
-  const itemHeight = 72; // Reduced height for better density
-  const maxVisibleItems = 10; // Show more items
+  
+  const itemHeight = 72; 
+  const maxVisibleItems = 10; 
   const listHeight = Math.min(visibleItems.length * itemHeight, maxVisibleItems * itemHeight);
 
   return (
@@ -247,7 +247,7 @@ export const VirtualizedSettingsGroup = memo(({
     </Card>
   );
 }, (prevProps, nextProps) => {
-  // Aggressive memoization - only re-render on significant changes
+  
   return (
     prevProps.title === nextProps.title &&
     prevProps.isExpanded === nextProps.isExpanded &&

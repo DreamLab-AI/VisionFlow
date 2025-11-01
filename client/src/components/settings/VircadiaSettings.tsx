@@ -1,6 +1,4 @@
-/**
- * VircadiaSettings - UI controls for Vircadia multi-user XR configuration
- */
+
 
 import React, { useState, useEffect } from 'react';
 import { useVircadia } from '../../contexts/VircadiaContext';
@@ -18,7 +16,7 @@ export const VircadiaSettings: React.FC = () => {
   const [serverUrl, setServerUrl] = useState('ws://vircadia-world-server:3020/world/ws');
   const [autoConnect, setAutoConnect] = useState(false);
 
-  // Load settings from store
+  
   useEffect(() => {
     const settings = useSettingsStore.getState().settings;
     const vircadiaConfig = settings?.vircadia;
@@ -30,7 +28,7 @@ export const VircadiaSettings: React.FC = () => {
     }
   }, []);
 
-  // Save settings to store
+  
   const saveSettings = () => {
     const currentSettings = useSettingsStore.getState().settings;
     useSettingsStore.getState().updateSettings({
@@ -43,7 +41,7 @@ export const VircadiaSettings: React.FC = () => {
     });
   };
 
-  // Handle enable toggle
+  
   const handleEnableToggle = async () => {
     const newEnabled = !vircadiaEnabled;
     setVircadiaEnabled(newEnabled);
@@ -63,13 +61,13 @@ export const VircadiaSettings: React.FC = () => {
     saveSettings();
   };
 
-  // Handle server URL change
+  
   const handleServerUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setServerUrl(e.target.value);
     saveSettings();
   };
 
-  // Handle reconnect
+  
   const handleReconnect = async () => {
     disconnect();
     setTimeout(async () => {
@@ -81,7 +79,7 @@ export const VircadiaSettings: React.FC = () => {
     }, 1000);
   };
 
-  // Connection status indicator
+  
   const getStatusColor = () => {
     if (isConnected) return 'text-green-500';
     if (isConnecting) return 'text-yellow-500';
@@ -105,7 +103,7 @@ export const VircadiaSettings: React.FC = () => {
         </p>
       </div>
 
-      {/* Enable Toggle */}
+      {}
       <div className="flex items-center justify-between">
         <div>
           <label className="text-white font-medium">Enable Multi-User Mode</label>
@@ -125,7 +123,7 @@ export const VircadiaSettings: React.FC = () => {
         </button>
       </div>
 
-      {/* Server URL */}
+      {}
       <div>
         <label className="block text-white font-medium mb-2">Vircadia Server URL</label>
         <input
@@ -141,7 +139,7 @@ export const VircadiaSettings: React.FC = () => {
         </p>
       </div>
 
-      {/* Connection Status */}
+      {}
       <div className="p-4 bg-gray-800 rounded border border-gray-700">
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -190,7 +188,7 @@ export const VircadiaSettings: React.FC = () => {
         )}
       </div>
 
-      {/* Active Users */}
+      {}
       {bridgesInitialized && isConnected && (
         <div className="p-4 bg-gray-800 rounded border border-gray-700">
           <h3 className="text-white font-medium mb-3">Active Users ({activeUsers.length})</h3>
@@ -219,7 +217,7 @@ export const VircadiaSettings: React.FC = () => {
         </div>
       )}
 
-      {/* Bridge Status */}
+      {}
       {vircadiaEnabled && isConnected && (
         <div className="p-4 bg-gray-800 rounded border border-gray-700">
           <h3 className="text-white font-medium mb-3">Synchronization Status</h3>
@@ -240,7 +238,7 @@ export const VircadiaSettings: React.FC = () => {
         </div>
       )}
 
-      {/* Help Text */}
+      {}
       <div className="p-4 bg-blue-900/20 border border-blue-500 rounded">
         <h4 className="text-blue-400 font-medium mb-2">📘 How to Use Multi-User Mode</h4>
         <ul className="text-gray-300 text-sm space-y-1">
@@ -252,7 +250,7 @@ export const VircadiaSettings: React.FC = () => {
         </ul>
       </div>
 
-      {/* Docker Instructions */}
+      {}
       <div className="p-4 bg-gray-800 rounded border border-gray-700">
         <h4 className="text-white font-medium mb-2">🐳 Docker Setup</h4>
         <p className="text-gray-400 text-sm mb-2">To enable Vircadia server, run:</p>

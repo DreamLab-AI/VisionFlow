@@ -10,27 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 
-/**
- * Dashboard Control Panel - Real-time system monitoring and configuration
- *
- * Features:
- * - Graph computation status display
- * - Auto-refresh controls
- * - Compute mode selection (5 algorithms)
- * - Convergence monitoring
- * - Active constraints display
- * - Clustering status
- *
- * Connected to 8 dashboard settings from database:
- * - dashboard.showStatus
- * - dashboard.autoRefresh
- * - dashboard.refreshInterval
- * - dashboard.computeMode
- * - dashboard.iterationCount
- * - dashboard.showConvergence
- * - dashboard.activeConstraints
- * - dashboard.clusteringActive
- */
+
 
 interface SystemStatus {
   graphStatus: 'idle' | 'computing' | 'converged' | 'error';
@@ -60,12 +40,12 @@ export const DashboardControlPanel: React.FC = () => {
     lastUpdate: new Date()
   });
 
-  // Poll system status
+  
   useEffect(() => {
     const pollStatus = async () => {
       try {
-        // In production, this would fetch from /api/physics/status or similar
-        // For now, we'll simulate with physics state
+        
+        
         const response = await fetch('/api/physics/status');
         if (response.ok) {
           const data = await response.json();
@@ -86,7 +66,7 @@ export const DashboardControlPanel: React.FC = () => {
     if (settings?.dashboard?.autoRefresh) {
       const interval = (settings?.dashboard?.refreshInterval || 2) * 1000;
       const timer = setInterval(pollStatus, interval);
-      pollStatus(); // Initial fetch
+      pollStatus(); 
       return () => clearInterval(timer);
     }
   }, [settings?.dashboard?.autoRefresh, settings?.dashboard?.refreshInterval]);
@@ -111,7 +91,7 @@ export const DashboardControlPanel: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div>
         <h2 className="text-2xl font-bold flex items-center gap-2">
           <SettingsIcon className="w-6 h-6" />
@@ -122,7 +102,7 @@ export const DashboardControlPanel: React.FC = () => {
         </p>
       </div>
 
-      {/* System Status Card */}
+      {}
       {settings?.dashboard?.showStatus && (
         <Card>
           <CardHeader>
@@ -135,7 +115,7 @@ export const DashboardControlPanel: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Status Badge */}
+            {}
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Current Status:</span>
               <Badge className={`${getStatusColor(systemStatus.graphStatus)} text-white`}>
@@ -143,7 +123,7 @@ export const DashboardControlPanel: React.FC = () => {
               </Badge>
             </div>
 
-            {/* Iteration Count */}
+            {}
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Iterations:</span>
               <span className="text-lg font-mono">
@@ -151,7 +131,7 @@ export const DashboardControlPanel: React.FC = () => {
               </span>
             </div>
 
-            {/* Convergence Indicator */}
+            {}
             {settings?.dashboard?.showConvergence && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -169,7 +149,7 @@ export const DashboardControlPanel: React.FC = () => {
               </div>
             )}
 
-            {/* Active Constraints */}
+            {}
             {settings?.dashboard?.activeConstraints && (
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Active Constraints:</span>
@@ -179,7 +159,7 @@ export const DashboardControlPanel: React.FC = () => {
               </div>
             )}
 
-            {/* Clustering Status */}
+            {}
             {settings?.dashboard?.clusteringActive && (
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Clustering:</span>
@@ -189,7 +169,7 @@ export const DashboardControlPanel: React.FC = () => {
               </div>
             )}
 
-            {/* Last Update */}
+            {}
             <div className="text-xs text-muted-foreground pt-2 border-t">
               Last updated: {systemStatus.lastUpdate.toLocaleTimeString()}
             </div>
@@ -199,7 +179,7 @@ export const DashboardControlPanel: React.FC = () => {
 
       <Separator />
 
-      {/* Compute Mode Selection */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -233,7 +213,7 @@ export const DashboardControlPanel: React.FC = () => {
             </Select>
           </div>
 
-          {/* Iteration Count Slider */}
+          {}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="iteration-count">Max Iterations</Label>
@@ -257,7 +237,7 @@ export const DashboardControlPanel: React.FC = () => {
 
       <Separator />
 
-      {/* Display Settings */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle>Display Settings</CardTitle>
@@ -266,7 +246,7 @@ export const DashboardControlPanel: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Show Status Toggle */}
+          {}
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="show-status">Show Graph Status</Label>
@@ -281,7 +261,7 @@ export const DashboardControlPanel: React.FC = () => {
             />
           </div>
 
-          {/* Show Convergence Toggle */}
+          {}
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="show-convergence">Show Convergence</Label>
@@ -296,7 +276,7 @@ export const DashboardControlPanel: React.FC = () => {
             />
           </div>
 
-          {/* Show Active Constraints Toggle */}
+          {}
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="show-constraints">Show Active Constraints</Label>
@@ -311,7 +291,7 @@ export const DashboardControlPanel: React.FC = () => {
             />
           </div>
 
-          {/* Show Clustering Status Toggle */}
+          {}
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="show-clustering">Show Clustering Status</Label>
@@ -330,7 +310,7 @@ export const DashboardControlPanel: React.FC = () => {
 
       <Separator />
 
-      {/* Auto-Refresh Settings */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -342,7 +322,7 @@ export const DashboardControlPanel: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Enable Auto-Refresh */}
+          {}
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="auto-refresh">Enable Auto-Refresh</Label>
@@ -357,7 +337,7 @@ export const DashboardControlPanel: React.FC = () => {
             />
           </div>
 
-          {/* Refresh Interval Slider */}
+          {}
           {settings?.dashboard?.autoRefresh && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -379,7 +359,7 @@ export const DashboardControlPanel: React.FC = () => {
             </div>
           )}
 
-          {/* Manual Refresh Button */}
+          {}
           <Button
             variant="outline"
             className="w-full"

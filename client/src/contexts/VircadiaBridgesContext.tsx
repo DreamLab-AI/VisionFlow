@@ -1,8 +1,4 @@
-/**
- * VircadiaBridgesContext - React context for managing Vircadia bridge services
- *
- * Provides access to BotsVircadiaBridge and GraphVircadiaBridge throughout the app
- */
+
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useVircadia } from './VircadiaContext';
@@ -17,13 +13,13 @@ import type { BotsAgent, BotsEdge } from '../features/bots/types/BotsTypes';
 const logger = createLogger('VircadiaBridgesContext');
 
 interface VircadiaBridgesContextValue {
-  // Bots Bridge
+  
   botsBridge: BotsVircadiaBridge | null;
   syncAgentsToVircadia: (agents: BotsAgent[], edges: BotsEdge[]) => void;
   startBotsAutoSync: (getAgentsCallback: () => { agents: BotsAgent[]; edges: BotsEdge[] }) => void;
   stopBotsAutoSync: () => void;
 
-  // Graph Bridge
+  
   graphBridge: GraphVircadiaBridge | null;
   syncGraphToVircadia: (nodes: any[], edges: any[]) => void;
   broadcastSelection: (nodeIds: string[]) => void;
@@ -32,7 +28,7 @@ interface VircadiaBridgesContextValue {
   activeUsers: Array<{ userId: string; username: string; selectedNodes: string[] }>;
   annotations: AnnotationEvent[];
 
-  // Status
+  
   isInitialized: boolean;
   error: Error | null;
 }
@@ -41,7 +37,7 @@ const VircadiaBridgesContext = createContext<VircadiaBridgesContextValue | null>
 
 interface VircadiaBridgesProviderProps {
   children: React.ReactNode;
-  scene?: any; // Babylon.js scene
+  scene?: any; 
   enableBotsBridge?: boolean;
   enableGraphBridge?: boolean;
 }
@@ -60,7 +56,7 @@ export const VircadiaBridgesProvider: React.FC<VircadiaBridgesProviderProps> = (
   const [activeUsers, setActiveUsers] = useState<Array<{ userId: string; username: string; selectedNodes: string[] }>>([]);
   const [annotations, setAnnotations] = useState<AnnotationEvent[]>([]);
 
-  // Initialize bridges when Vircadia client connects
+  
   useEffect(() => {
     if (!client || !isConnected) {
       setIsInitialized(false);
@@ -71,7 +67,7 @@ export const VircadiaBridgesProvider: React.FC<VircadiaBridgesProviderProps> = (
       try {
         logger.info('Initializing Vircadia bridges...');
 
-        // Initialize Bots Bridge
+        
         if (enableBotsBridge) {
           const entitySync = new EntitySyncManager(scene, client);
           await entitySync.initialize();
@@ -86,13 +82,13 @@ export const VircadiaBridgesProvider: React.FC<VircadiaBridgesProviderProps> = (
           logger.info('BotsVircadiaBridge initialized');
         }
 
-        // Initialize Graph Bridge
+        
         if (enableGraphBridge && scene) {
           const collab = new CollaborativeGraphSync(scene, client);
           const gBridge = new GraphVircadiaBridge(scene, client, collab);
           await gBridge.initialize();
 
-          // Set up callbacks for graph events
+          
           gBridge.onRemoteSelection((event: UserSelectionEvent) => {
             logger.debug('Remote selection:', event);
             updateActiveUsers();
@@ -120,7 +116,7 @@ export const VircadiaBridgesProvider: React.FC<VircadiaBridgesProviderProps> = (
 
     initializeBridges();
 
-    // Cleanup on unmount
+    
     return () => {
       if (botsBridge) {
         botsBridge.dispose();
@@ -134,21 +130,21 @@ export const VircadiaBridgesProvider: React.FC<VircadiaBridgesProviderProps> = (
     };
   }, [client, isConnected, scene, enableBotsBridge, enableGraphBridge]);
 
-  // Update active users list
+  
   const updateActiveUsers = useCallback(() => {
     if (graphBridge) {
       setActiveUsers(graphBridge.getActiveUsers());
     }
   }, [graphBridge]);
 
-  // Update annotations list
+  
   const updateAnnotations = useCallback(() => {
     if (graphBridge) {
       setAnnotations(graphBridge.getAnnotations());
     }
   }, [graphBridge]);
 
-  // Poll for active users updates
+  
   useEffect(() => {
     if (!graphBridge) return;
 
@@ -156,7 +152,7 @@ export const VircadiaBridgesProvider: React.FC<VircadiaBridgesProviderProps> = (
     return () => clearInterval(interval);
   }, [graphBridge, updateActiveUsers]);
 
-  // Bots Bridge Methods
+  
   const syncAgentsToVircadia = useCallback((agents: BotsAgent[], edges: BotsEdge[]) => {
     if (botsBridge) {
       botsBridge.syncAgentsToVircadia(agents, edges);
@@ -175,7 +171,7 @@ export const VircadiaBridgesProvider: React.FC<VircadiaBridgesProviderProps> = (
     }
   }, [botsBridge]);
 
-  // Graph Bridge Methods
+  
   const syncGraphToVircadia = useCallback((nodes: any[], edges: any[]) => {
     if (graphBridge) {
       graphBridge.syncGraphToVircadia(nodes, edges);
@@ -231,9 +227,7 @@ export const VircadiaBridgesProvider: React.FC<VircadiaBridgesProviderProps> = (
   );
 };
 
-/**
- * Hook to use Vircadia bridges
- */
+
 export const useVircadiaBridges = (): VircadiaBridgesContextValue => {
   const context = useContext(VircadiaBridgesContext);
   if (!context) {
@@ -242,17 +236,13 @@ export const useVircadiaBridges = (): VircadiaBridgesContextValue => {
   return context;
 };
 
-/**
- * Hook to use Bots bridge specifically
- */
+
 export const useBotsBridge = () => {
   const { botsBridge, syncAgentsToVircadia, startBotsAutoSync, stopBotsAutoSync, isInitialized } = useVircadiaBridges();
   return { botsBridge, syncAgentsToVircadia, startBotsAutoSync, stopBotsAutoSync, isInitialized };
 };
 
-/**
- * Hook to use Graph bridge specifically
- */
+
 export const useGraphBridge = () => {
   const {
     graphBridge,

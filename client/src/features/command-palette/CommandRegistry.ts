@@ -14,7 +14,7 @@ export class CommandRegistry {
     this.loadRecentCommands();
   }
 
-  // Command registration
+  
   registerCommand(command: Command): void {
     this.commands.set(command.id, command);
     this.notifyListeners();
@@ -30,7 +30,7 @@ export class CommandRegistry {
     this.notifyListeners();
   }
 
-  // Category management
+  
   registerCategory(category: CommandCategory): void {
     this.categories.set(category.id, category);
   }
@@ -41,7 +41,7 @@ export class CommandRegistry {
     );
   }
 
-  // Command retrieval
+  
   getCommand(id: string): Command | undefined {
     return this.commands.get(id);
   }
@@ -54,7 +54,7 @@ export class CommandRegistry {
     return this.getAllCommands().filter(cmd => cmd.category === categoryId);
   }
 
-  // Search functionality
+  
   searchCommands(query: string): Command[] {
     if (!query.trim()) {
       return this.getAllCommands().filter(cmd => cmd.enabled !== false);
@@ -68,28 +68,28 @@ export class CommandRegistry {
 
       let score = 0;
 
-      // Exact match in title
+      
       if (command.title.toLowerCase() === lowerQuery) {
         score = 1;
       }
-      // Starts with query
+      
       else if (command.title.toLowerCase().startsWith(lowerQuery)) {
         score = 0.8;
       }
-      // Contains query
+      
       else if (command.title.toLowerCase().includes(lowerQuery)) {
         score = 0.6;
       }
-      // Check description
+      
       else if (command.description?.toLowerCase().includes(lowerQuery)) {
         score = 0.4;
       }
-      // Check keywords
+      
       else if (command.keywords?.some(k => k.toLowerCase().includes(lowerQuery))) {
         score = 0.3;
       }
 
-      // Fuzzy match on title
+      
       if (score === 0) {
         score = this.fuzzyMatch(lowerQuery, command.title.toLowerCase());
       }
@@ -99,13 +99,13 @@ export class CommandRegistry {
       }
     });
 
-    // Sort by score and return commands
+    
     return results
       .sort((a, b) => b.score - a.score)
       .map(r => r.command);
   }
 
-  // Recent commands
+  
   addRecentCommand(commandId: string): void {
     const index = this.recentCommands.indexOf(commandId);
     if (index > -1) {
@@ -124,7 +124,7 @@ export class CommandRegistry {
       .filter((cmd): cmd is Command => cmd !== undefined && cmd.enabled !== false);
   }
 
-  // Listeners
+  
   addListener(listener: (commands: Command[]) => void): void {
     this.listeners.add(listener);
   }
@@ -138,7 +138,7 @@ export class CommandRegistry {
     this.listeners.forEach(listener => listener(commands));
   }
 
-  // Persistence
+  
   private loadRecentCommands(): void {
     try {
       const stored = localStorage.getItem('commandPalette.recentCommands');
@@ -158,7 +158,7 @@ export class CommandRegistry {
     }
   }
 
-  // Fuzzy matching algorithm
+  
   private fuzzyMatch(pattern: string, str: string): number {
     let patternIdx = 0;
     let strIdx = 0;

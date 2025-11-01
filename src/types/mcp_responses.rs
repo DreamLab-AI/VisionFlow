@@ -3,8 +3,8 @@ use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 use std::fmt;
 
-/// Type-safe MCP (Model Context Protocol) response structures
-/// This eliminates brittle double-parsing of nested JSON strings
+/
+/
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -32,7 +32,7 @@ pub struct McpError {
     pub data: Option<Value>,
 }
 
-/// MCP Content structure that contains either text or parsed data
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum McpContent {
@@ -45,7 +45,7 @@ pub struct McpTextContent {
     #[serde(rename = "type")]
     pub content_type: String,
     #[serde(deserialize_with = "deserialize_json_string")]
-    pub text: Value, // This will parse the JSON string automatically
+    pub text: Value, 
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -55,7 +55,7 @@ pub struct McpObjectContent {
     pub data: Value,
 }
 
-/// Custom deserializer that parses JSON strings into Values
+/
 fn deserialize_json_string<'de, D>(deserializer: D) -> Result<Value, D::Error>
 where
     D: Deserializer<'de>,
@@ -64,19 +64,19 @@ where
     serde_json::from_str(&s).map_err(serde::de::Error::custom)
 }
 
-/// Standard MCP result structure with content array
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct McpContentResult {
     pub content: Vec<McpContent>,
 }
 
-/// Agent-specific MCP response types
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentListResponse {
     pub agents: Vec<crate::services::bots_client::Agent>,
 }
 
-/// Request history entry for completed MCP requests
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RequestHistoryEntry {
     pub id: u64,
@@ -92,7 +92,7 @@ pub struct RequestHistoryEntry {
 // Re-export for convenience
 pub type McpAgentResponse = McpResponse<McpContentResult>;
 
-/// Error types for MCP parsing
+/
 #[derive(Debug)]
 pub enum McpParseError {
     JsonError(serde_json::Error),
@@ -127,9 +127,9 @@ impl From<serde_json::Error> for McpParseError {
     }
 }
 
-/// Utility functions for safe MCP parsing
+/
 impl<T> McpResponse<T> {
-    /// Extract the result from a successful response
+    
     pub fn into_result(self) -> Result<T, McpError> {
         match self {
             McpResponse::Success(success) => Ok(success.result),
@@ -137,19 +137,19 @@ impl<T> McpResponse<T> {
         }
     }
 
-    /// Check if response is successful
+    
     pub fn is_success(&self) -> bool {
         matches!(self, McpResponse::Success(_))
     }
 
-    /// Check if response is error
+    
     pub fn is_error(&self) -> bool {
         matches!(self, McpResponse::Error(_))
     }
 }
 
 impl McpContentResult {
-    /// Extract parsed data from the first text content
+    
     pub fn extract_data<T>(&self) -> Result<T, McpParseError>
     where
         T: for<'a> Deserialize<'a>,
@@ -166,7 +166,7 @@ impl McpContentResult {
         }
     }
 
-    /// Get all parsed data from text contents
+    
     pub fn extract_all_data<T>(&self) -> Result<Vec<T>, McpParseError>
     where
         T: for<'a> Deserialize<'a>,

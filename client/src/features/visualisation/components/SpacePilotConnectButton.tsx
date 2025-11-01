@@ -11,7 +11,7 @@ export const SpacePilotConnectButton: React.FC<SpacePilotConnectButtonProps> = (
   const { isSupported, isConnected, connect, disconnect } = useSpacePilot();
   const [isConnecting, setIsConnecting] = React.useState(false);
 
-  // Don't render if WebHID is not supported
+  
   if (!isSupported || !window.isSecureContext) {
     return null;
   }

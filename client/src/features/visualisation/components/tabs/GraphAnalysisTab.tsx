@@ -1,7 +1,4 @@
-/**
- * Graph Analysis Tab Component
- * Provides advanced graph analysis tools with UK English localisation
- */
+
 
 import React, { useState, useCallback, useEffect } from 'react';
 import {
@@ -49,7 +46,7 @@ export const GraphAnalysisTab: React.FC<GraphAnalysisTabProps> = ({
   graphData,
   otherGraphData
 }) => {
-  // Real analytics integration
+  
   const {
     structuralAnalysis,
     semanticAnalysis,
@@ -68,7 +65,7 @@ export const GraphAnalysisTab: React.FC<GraphAnalysisTabProps> = ({
     enableWebSocket: true
   });
 
-  // UI states
+  
   const [comparisonEnabled, setComparisonEnabled] = useState(false);
   const [analysisType, setAnalysisType] = useState<'structural' | 'semantic' | 'both'>('both');
   const [metricsEnabled, setMetricsEnabled] = useState(true);
@@ -202,7 +199,7 @@ export const GraphAnalysisTab: React.FC<GraphAnalysisTabProps> = ({
       return;
     }
 
-    // Download as JSON
+    
     const blob = new Blob([JSON.stringify(results, null, 2)], {
       type: 'application/json'
     });
@@ -223,7 +220,7 @@ export const GraphAnalysisTab: React.FC<GraphAnalysisTabProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Comparison Controls */}
+      {}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -322,7 +319,7 @@ export const GraphAnalysisTab: React.FC<GraphAnalysisTabProps> = ({
         </CardContent>
       </Card>
 
-      {/* Advanced Analytics */}
+      {}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -408,7 +405,7 @@ export const GraphAnalysisTab: React.FC<GraphAnalysisTabProps> = ({
         </CardContent>
       </Card>
 
-      {/* Shortest Path Analysis - Integrated analytics component */}
+      {}
       {graphData?.nodes && graphData?.edges && graphData.nodes.length > 0 && (
         <ShortestPathControls 
           nodes={graphData.nodes}
@@ -416,7 +413,7 @@ export const GraphAnalysisTab: React.FC<GraphAnalysisTabProps> = ({
         />
       )}
 
-      {/* Export & Actions */}
+      {}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -435,7 +432,7 @@ export const GraphAnalysisTab: React.FC<GraphAnalysisTabProps> = ({
             Export Analysis Report
           </Button>
           
-          {/* Real-time Task Progress */}
+          {}
           {hasActiveTasks && (
             <div className="text-xs space-y-2 p-3 bg-blue-50 dark:bg-blue-950 rounded-md border border-blue-200 dark:border-blue-800">
               <div className="font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-2">
@@ -465,14 +462,14 @@ export const GraphAnalysisTab: React.FC<GraphAnalysisTabProps> = ({
             </div>
           )}
 
-          {/* Error Display */}
+          {}
           {error && (
             <div className="text-xs text-red-600 dark:text-red-400 p-2 bg-red-50 dark:bg-red-950 rounded border border-red-200 dark:border-red-800">
               <strong>Error:</strong> {error}
             </div>
           )}
 
-          {/* GPU Status */}
+          {}
           {performanceStats && (
             <div className="text-xs text-muted-foreground p-2 bg-muted/50 rounded flex items-center justify-between">
               <div className="flex items-center gap-2">

@@ -56,7 +56,7 @@ pub async fn fetch_and_process_files(state: web::Data<AppState>) -> HttpResponse
             );
 
             {
-                // Send UpdateMetadata message to MetadataActor
+                
                 if let Err(e) = state
                     .metadata_addr
                     .send(UpdateMetadata {
@@ -68,13 +68,13 @@ pub async fn fetch_and_process_files(state: web::Data<AppState>) -> HttpResponse
                         "Failed to send UpdateMetadata message to MetadataActor: {}",
                         e
                     );
-                    // Decide if this is a critical error to return
+                    
                 }
             }
 
-            // FileService::save_metadata might also need to be an actor message if it implies shared state,
-            // but for now, assuming it's a static utility or local file operation.
-            // If it interacts with shared state, it should be refactored.
+            
+            
+            
             if let Err(e) = FileService::save_metadata(&metadata_store) {
                 error!("Failed to save metadata: {}", e);
                 return HttpResponse::InternalServerError().json(json!({
@@ -83,7 +83,7 @@ pub async fn fetch_and_process_files(state: web::Data<AppState>) -> HttpResponse
                 }));
             }
 
-            // Send AddNodesFromMetadata for incremental updates instead of full rebuild
+            
             match state
                 .graph_service_addr
                 .send(AddNodesFromMetadata {
@@ -94,12 +94,12 @@ pub async fn fetch_and_process_files(state: web::Data<AppState>) -> HttpResponse
                 Ok(Ok(())) => {
                     info!("Graph data structure updated successfully via GraphServiceActor");
 
-                    // If GPU is present, potentially trigger an update or fetch data
+                    
                     if let Some(gpu_addr) = &state.gpu_compute_addr {
-                        // Example: Trigger GPU re-initialization or update if necessary
-                        // This depends on how GPUComputeActor handles graph updates.
-                        // For now, let's assume GraphServiceActor coordinates with GPUComputeActor if needed.
-                        // Or, if we just need to get data for a response:
+                        
+                        
+                        
+                        
                         match gpu_addr.send(GetGpuNodeData).await {
                             Ok(Ok(_nodes)) => {
                                 debug!("GPU node data fetched successfully after graph update");
@@ -167,7 +167,7 @@ pub async fn get_file_content(
 pub async fn refresh_graph(state: web::Data<AppState>) -> HttpResponse {
     info!("Manually triggering graph refresh - returning current state");
 
-    // Instead of rebuilding, just return the current graph data
+    
     match state
         .graph_service_addr
         .send(crate::actors::messages::GetGraphData)

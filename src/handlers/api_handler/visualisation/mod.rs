@@ -9,9 +9,9 @@ pub async fn get_visualisation_settings() -> actix_web::HttpResponse {
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {
-    // All settings endpoints have been moved to /api/settings
-    // This scope is kept empty for backward compatibility
+    
+    
     cfg.service(
-        web::scope("/visualisation"), // Legacy routes removed - use /api/settings instead
+        web::scope("/visualisation"), 
     );
 }

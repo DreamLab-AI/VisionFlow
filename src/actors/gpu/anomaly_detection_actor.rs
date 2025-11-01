@@ -11,7 +11,7 @@ use crate::actors::messages::AnomalyDetectionStats as MessageAnomalyStats;
 use crate::actors::messages::*;
 use crate::utils::unified_gpu_compute::UnifiedGPUCompute;
 
-/// Anomaly detection statistics
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnomalyDetectionStats {
     pub total_anomalies: usize,
@@ -19,7 +19,7 @@ pub struct AnomalyDetectionStats {
     pub computation_time_ms: u64,
 }
 
-/// Represents an anomalous node
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnomalyNode {
     pub node_id: u32,
@@ -31,12 +31,12 @@ pub struct AnomalyNode {
     pub features: Vec<String>,
 }
 
-/// Anomaly Detection Actor - handles anomaly detection algorithms
+/
 pub struct AnomalyDetectionActor {
-    /// Shared GPU state
+    
     gpu_state: GPUState,
 
-    /// Shared GPU context reference
+    
     shared_context: Option<Arc<SharedGPUContext>>,
 }
 
@@ -48,7 +48,7 @@ impl AnomalyDetectionActor {
         }
     }
 
-    /// Perform anomaly detection on GPU
+    
     async fn perform_anomaly_detection(
         &mut self,
         params: AnomalyDetectionParams,
@@ -70,7 +70,7 @@ impl AnomalyDetectionActor {
 
         let start_time = Instant::now();
 
-        // Execute anomaly detection based on the selected method
+        
         let (anomalies, stats): (Vec<AnomalyNode>, AnomalyStats) = match params.method {
             AnomalyDetectionMethod::LOF => {
                 self.perform_lof_detection(&mut unified_compute, &params)
@@ -100,7 +100,7 @@ impl AnomalyDetectionActor {
         Ok(AnomalyResult {
             lof_scores: match params.method {
                 AnomalyDetectionMethod::LOF => {
-                    // Extract LOF scores from the actual LOF results
+                    
                     let lof_scores: Vec<f32> = anomalies
                         .iter()
                         .enumerate()
@@ -108,7 +108,7 @@ impl AnomalyDetectionActor {
                             if anomaly.node_id == idx as u32 {
                                 anomaly.anomaly_score
                             } else {
-                                // Find the anomaly score for this node or return 0 if not anomalous
+                                
                                 anomalies
                                     .iter()
                                     .find(|a| a.node_id == idx as u32)
@@ -117,7 +117,7 @@ impl AnomalyDetectionActor {
                             }
                         })
                         .collect();
-                    // Extend to full node count if needed
+                    
                     let mut full_scores = vec![0.0; self.gpu_state.num_nodes as usize];
                     for anomaly in &anomalies {
                         if (anomaly.node_id as usize) < full_scores.len() {
@@ -131,7 +131,7 @@ impl AnomalyDetectionActor {
             local_densities: None,
             zscore_values: match params.method {
                 AnomalyDetectionMethod::ZScore => {
-                    // Extract Z-scores from the actual Z-score results
+                    
                     let mut full_scores = vec![0.0; self.gpu_state.num_nodes as usize];
                     for anomaly in &anomalies {
                         if (anomaly.node_id as usize) < full_scores.len() {
@@ -160,7 +160,7 @@ impl AnomalyDetectionActor {
         })
     }
 
-    /// Perform Local Outlier Factor (LOF) anomaly detection
+    
     async fn perform_lof_detection(
         &self,
         unified_compute: &mut UnifiedGPUCompute,
@@ -174,7 +174,7 @@ impl AnomalyDetectionActor {
         let k_neighbors = params.k_neighbors.unwrap_or(5);
         let threshold = params.threshold.unwrap_or(0.5);
 
-        // Run LOF algorithm on GPU
+        
         let lof_scores = unified_compute
             .run_lof_anomaly_detection(k_neighbors, threshold)
             .map_err(|e| {
@@ -190,7 +190,7 @@ impl AnomalyDetectionActor {
             ));
         }
 
-        // Convert LOF scores to anomaly nodes
+        
         let mut anomalies = Vec::new();
         let mut _scores_sum = 0.0;
         let mut _max_score = f32::NEG_INFINITY;
@@ -224,7 +224,7 @@ impl AnomalyDetectionActor {
             }
         }
 
-        // Sort anomalies by severity (highest first)
+        
         anomalies.sort_by(|a, b| {
             b.anomaly_score
                 .partial_cmp(&a.anomaly_score)
@@ -254,7 +254,7 @@ impl AnomalyDetectionActor {
         Ok((anomalies, stats))
     }
 
-    /// Perform Z-Score based anomaly detection
+    
     async fn perform_zscore_detection(
         &self,
         unified_compute: &mut UnifiedGPUCompute,
@@ -262,15 +262,15 @@ impl AnomalyDetectionActor {
     ) -> Result<(Vec<AnomalyNode>, AnomalyStats), String> {
         info!("AnomalyDetectionActor: Running Z-Score anomaly detection");
 
-        let threshold = params.threshold.unwrap_or(3.0); // 3-sigma rule by default
+        let threshold = params.threshold.unwrap_or(3.0); 
 
-        // Run Z-Score algorithm on GPU - use actual node features derived from positions and connections
+        
         let feature_data = params.feature_data.as_ref().cloned().unwrap_or_else(|| {
-            // Generate real feature data from node positions and connectivity
+            
             (0..self.gpu_state.num_nodes)
                 .map(|i| {
                     let base_val = (i as f32 + 1.0) / self.gpu_state.num_nodes as f32;
-                    // Add connectivity-based features
+                    
                     base_val + (i as f32).sin() * 0.1 + (i as f32).cos() * 0.05
                 })
                 .collect()
@@ -291,7 +291,7 @@ impl AnomalyDetectionActor {
             ));
         }
 
-        // Convert Z-scores to anomaly nodes
+        
         let mut anomalies = Vec::new();
         let mut _scores_sum = 0.0;
         let mut _max_score = f32::NEG_INFINITY;
@@ -327,7 +327,7 @@ impl AnomalyDetectionActor {
             }
         }
 
-        // Sort anomalies by severity (highest first)
+        
         anomalies.sort_by(|a, b| {
             b.anomaly_score
                 .partial_cmp(&a.anomaly_score)
@@ -357,7 +357,7 @@ impl AnomalyDetectionActor {
         Ok((anomalies, stats))
     }
 
-    /// Perform Isolation Forest anomaly detection
+    
     async fn perform_isolation_forest_detection(
         &self,
         unified_compute: &mut UnifiedGPUCompute,
@@ -366,20 +366,20 @@ impl AnomalyDetectionActor {
         info!("AnomalyDetectionActor: Running Isolation Forest anomaly detection");
 
         let threshold = params.threshold.unwrap_or(0.5);
-        let num_trees = 100; // Standard number of trees for Isolation Forest
+        let num_trees = 100; 
 
-        // Get current positions as features
+        
         let (pos_x, pos_y, pos_z) = unified_compute
             .get_node_positions()
             .map_err(|e| format!("Failed to get node positions: {}", e))?;
 
-        // Create feature matrix (using positions as features)
+        
         let mut features = Vec::new();
         for i in 0..self.gpu_state.num_nodes as usize {
             features.extend_from_slice(&[pos_x[i], pos_y[i], pos_z[i]]);
         }
 
-        // Run simplified Isolation Forest algorithm (CPU implementation)
+        
         let isolation_scores = self.compute_isolation_scores(&features, num_trees);
 
         if isolation_scores.len() != self.gpu_state.num_nodes as usize {
@@ -390,7 +390,7 @@ impl AnomalyDetectionActor {
             ));
         }
 
-        // Convert isolation scores to anomaly nodes
+        
         let mut anomalies = Vec::new();
         let mut _scores_sum = 0.0;
         let mut _max_score = f32::NEG_INFINITY;
@@ -420,7 +420,7 @@ impl AnomalyDetectionActor {
             }
         }
 
-        // Sort anomalies by severity (highest first)
+        
         anomalies.sort_by(|a, b| {
             b.anomaly_score
                 .partial_cmp(&a.anomaly_score)
@@ -450,7 +450,7 @@ impl AnomalyDetectionActor {
         Ok((anomalies, stats))
     }
 
-    /// Perform DBSCAN-based anomaly detection
+    
     async fn perform_dbscan_anomaly_detection(
         &self,
         unified_compute: &mut UnifiedGPUCompute,
@@ -458,10 +458,10 @@ impl AnomalyDetectionActor {
     ) -> Result<(Vec<AnomalyNode>, AnomalyStats), String> {
         info!("AnomalyDetectionActor: Running DBSCAN anomaly detection");
 
-        let eps = params.threshold.unwrap_or(50.0); // Distance threshold
-        let min_pts = 3; // Minimum points to form a cluster
+        let eps = params.threshold.unwrap_or(50.0); 
+        let min_pts = 3; 
 
-        // Run DBSCAN clustering to identify noise points as anomalies
+        
         let cluster_labels = unified_compute
             .run_dbscan_clustering(eps, min_pts)
             .map_err(|e| format!("DBSCAN clustering failed: {}", e))?;
@@ -474,15 +474,15 @@ impl AnomalyDetectionActor {
             ));
         }
 
-        // Identify noise points (label = -1) as anomalies
+        
         let mut anomalies = Vec::new();
         let mut _noise_count = 0;
 
         for (node_id, &label) in cluster_labels.iter().enumerate() {
             if label == -1 {
-                // Noise point
+                
                 _noise_count += 1;
-                let anomaly_score = 1.0; // All noise points get maximum anomaly score
+                let anomaly_score = 1.0; 
 
                 anomalies.push(AnomalyNode {
                     node_id: node_id as u32,
@@ -501,7 +501,7 @@ impl AnomalyDetectionActor {
             }
         }
 
-        let threshold = 0.5; // Not used for DBSCAN but needed for stats
+        let threshold = 0.5; 
         let stats = AnomalyStats {
             anomalies_found: anomalies.len(),
             detection_threshold: threshold,
@@ -513,19 +513,19 @@ impl AnomalyDetectionActor {
         Ok((anomalies, stats))
     }
 
-    /// Compute isolation scores using simplified Isolation Forest algorithm
+    
     fn compute_isolation_scores(&self, features: &[f32], num_trees: usize) -> Vec<f32> {
         let num_nodes = self.gpu_state.num_nodes as usize;
-        let feature_dim = 3; // x, y, z coordinates
+        let feature_dim = 3; 
         let mut isolation_scores = vec![0.0f32; num_nodes];
 
         let mut rng = rand::thread_rng();
 
-        // Build isolation trees and compute path lengths
+        
         for _tree in 0..num_trees {
             let mut path_lengths = vec![0.0f32; num_nodes];
 
-            // For each node, compute isolation path length
+            
             for node_idx in 0..num_nodes {
                 let node_features = &features[node_idx * feature_dim..(node_idx + 1) * feature_dim];
                 path_lengths[node_idx] = self.compute_isolation_path_length(
@@ -536,7 +536,7 @@ impl AnomalyDetectionActor {
                 );
             }
 
-            // Normalize path lengths and add to scores
+            
             let max_depth = (num_nodes as f32).log2().ceil() as usize;
             for node_idx in 0..num_nodes {
                 let normalized_score = 1.0 - (path_lengths[node_idx] / max_depth as f32);
@@ -544,7 +544,7 @@ impl AnomalyDetectionActor {
             }
         }
 
-        // Average scores across all trees
+        
         for score in &mut isolation_scores {
             *score /= num_trees as f32;
         }
@@ -552,7 +552,7 @@ impl AnomalyDetectionActor {
         isolation_scores
     }
 
-    /// Compute isolation path length for a single point
+    
     fn compute_isolation_path_length(
         &self,
         point: &[f32],
@@ -561,12 +561,12 @@ impl AnomalyDetectionActor {
         rng: &mut rand::rngs::ThreadRng,
     ) -> f32 {
         let _num_nodes = all_features.len() / feature_dim;
-        let max_depth = 10; // Limit recursion depth
+        let max_depth = 10; 
 
         self.isolation_path_recursive(point, all_features, feature_dim, 0, max_depth, rng)
     }
 
-    /// Recursive helper for isolation path computation
+    
     fn isolation_path_recursive(
         &self,
         point: &[f32],
@@ -582,10 +582,10 @@ impl AnomalyDetectionActor {
             return depth as f32;
         }
 
-        // Randomly select a feature and split value
+        
         let split_feature = rng.gen_range(0..feature_dim);
 
-        // Find min and max values for the selected feature
+        
         let mut min_val = f32::INFINITY;
         let mut max_val = f32::NEG_INFINITY;
 
@@ -601,9 +601,9 @@ impl AnomalyDetectionActor {
 
         let split_val = rng.gen_range(min_val..max_val);
 
-        // Decide which side the point goes to
+        
         if point[split_feature] < split_val {
-            // Create left subset
+            
             let mut left_features = Vec::new();
             for node_idx in 0..(features.len() / feature_dim) {
                 let node_features = &features[node_idx * feature_dim..(node_idx + 1) * feature_dim];
@@ -620,7 +620,7 @@ impl AnomalyDetectionActor {
                 rng,
             )
         } else {
-            // Create right subset
+            
             let mut right_features = Vec::new();
             for node_idx in 0..(features.len() / feature_dim) {
                 let node_features = &features[node_idx * feature_dim..(node_idx + 1) * feature_dim];
@@ -639,7 +639,7 @@ impl AnomalyDetectionActor {
         }
     }
 
-    /// Calculate severity level based on anomaly score and threshold
+    
     fn calculate_severity(score: f32, threshold: f32) -> String {
         let ratio = score / threshold;
 
@@ -678,7 +678,7 @@ impl Handler<RunAnomalyDetection> for AnomalyDetectionActor {
             msg.params.method
         );
 
-        // Check GPU initialization
+        
         if self.shared_context.is_none() {
             error!("AnomalyDetectionActor: GPU not initialized for anomaly detection");
             return Box::pin(
@@ -696,7 +696,7 @@ impl Handler<RunAnomalyDetection> for AnomalyDetectionActor {
 
         let params = msg.params;
 
-        // Validate parameters
+        
         let num_nodes = self.gpu_state.num_nodes;
         let k_neighbors = params.k_neighbors;
         if k_neighbors as u32 >= num_nodes {
@@ -707,7 +707,7 @@ impl Handler<RunAnomalyDetection> for AnomalyDetectionActor {
             return Box::pin(async move { Err(error_msg) }.into_actor(self));
         }
 
-        // Convert message params to internal params
+        
         let internal_params = AnomalyDetectionParams {
             method: match params.method {
                 crate::actors::messages::AnomalyMethod::LocalOutlierFactor => {
@@ -717,21 +717,21 @@ impl Handler<RunAnomalyDetection> for AnomalyDetectionActor {
             },
             threshold: Some(params.threshold),
             k_neighbors: Some(params.k_neighbors),
-            window_size: Some(100), // Default window size
+            window_size: Some(100), 
             feature_data: None,
         };
 
-        // Execute real GPU-based anomaly detection synchronously
+        
         let start_time = std::time::Instant::now();
 
-        // Execute GPU-based anomaly detection
+        
         let result = match &self.shared_context {
             Some(ctx) => {
                 match ctx.unified_compute.lock() {
                     Ok(mut unified_compute) => {
                         match internal_params.method {
                             AnomalyDetectionMethod::LOF => {
-                                // Run LOF detection on GPU
+                                
                                 let k_neighbors = internal_params.k_neighbors.unwrap_or(5);
                                 let threshold = internal_params.threshold.unwrap_or(0.5);
 
@@ -762,7 +762,7 @@ impl Handler<RunAnomalyDetection> for AnomalyDetectionActor {
                                 }
                             }
                             AnomalyDetectionMethod::ZScore => {
-                                // Run Z-Score detection on GPU
+                                
                                 let feature_data: Vec<f32> = (0..self.gpu_state.num_nodes)
                                     .map(|i| (i as f32 + 1.0) / self.gpu_state.num_nodes as f32)
                                     .collect();
@@ -793,7 +793,7 @@ impl Handler<RunAnomalyDetection> for AnomalyDetectionActor {
                                 }
                             }
                             AnomalyDetectionMethod::DBSCAN => {
-                                // Run DBSCAN clustering for anomaly detection
+                                
                                 let eps = internal_params.threshold.unwrap_or(50.0);
                                 let min_pts = 3;
 
@@ -803,7 +803,7 @@ impl Handler<RunAnomalyDetection> for AnomalyDetectionActor {
 
                                         for (node_id, &label) in cluster_labels.iter().enumerate() {
                                             if label == -1 {
-                                                // Noise point = anomaly
+                                                
                                                 anomalies.push(crate::actors::gpu::anomaly_detection_actor::AnomalyNode {
                                                         node_id: node_id as u32,
                                                         anomaly_score: 1.0,
@@ -904,14 +904,14 @@ struct AnomalyStats {
     min_anomaly_score: f32,
 }
 
-/// Handler for receiving SharedGPUContext from ResourceActor
+/
 impl Handler<SetSharedGPUContext> for AnomalyDetectionActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: SetSharedGPUContext, _ctx: &mut Self::Context) -> Self::Result {
         info!("AnomalyDetectionActor: Received SharedGPUContext from ResourceActor");
         self.shared_context = Some(msg.context);
-        // msg.graph_service_addr is ignored - only ForceComputeActor needs it
+        
         info!("AnomalyDetectionActor: SharedGPUContext stored successfully");
         Ok(())
     }

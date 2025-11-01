@@ -31,10 +31,10 @@
 //!
 //! let translator = OntologyConstraintTranslator::new();
 //!
-//! // Convert axioms to constraints
+//! 
 //! let constraints = translator.axioms_to_constraints(&axioms, &nodes)?;
 //!
-//! // Apply to graph layout system
+//! 
 //! let constraint_set = translator.apply_ontology_constraints(&graph, &reasoning_report)?;
 //! ```
 
@@ -48,68 +48,68 @@ use crate::models::{
     node::Node,
 };
 
-/// Types of OWL axioms that can be translated to physics constraints
+/
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum OWLAxiomType {
-    /// DisjointClasses(A, B) - classes A and B have no common instances
+    
     DisjointClasses,
-    /// SubClassOf(A, B) - all instances of A are also instances of B
+    
     SubClassOf,
-    /// EquivalentClasses(A, B) - classes A and B have exactly the same instances
+    
     EquivalentClasses,
-    /// SameAs(a, b) - individuals a and b refer to the same entity
+    
     SameAs,
-    /// DifferentFrom(a, b) - individuals a and b are distinct entities
+    
     DifferentFrom,
-    /// InverseOf(P, Q) - properties P and Q are inverses
+    
     InverseOf,
-    /// FunctionalProperty(P) - property P has at most one value for each individual
+    
     FunctionalProperty,
-    /// InverseFunctionalProperty(P) - inverse of P is functional
+    
     InverseFunctionalProperty,
-    /// TransitiveProperty(P) - if (a,b) and (b,c) then (a,c)
+    
     TransitiveProperty,
-    /// SymmetricProperty(P) - if (a,b) then (b,a)
+    
     SymmetricProperty,
 }
 
-/// Represents an OWL axiom with its components
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OWLAxiom {
     pub axiom_type: OWLAxiomType,
     pub subject: String,
     pub object: Option<String>,
     pub property: Option<String>,
-    pub confidence: f32, // 0.0 to 1.0, for weighted constraint strength
+    pub confidence: f32, 
 }
 
-/// Inference result from ontology reasoning
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OntologyInference {
     pub inferred_axiom: OWLAxiom,
-    pub premise_axioms: Vec<String>, // IDs of axioms that led to this inference
+    pub premise_axioms: Vec<String>, 
     pub reasoning_confidence: f32,
     pub is_derived: bool,
 }
 
-/// Configuration for ontology constraint translation
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OntologyConstraintConfig {
-    /// Base strength multiplier for disjoint class separation forces
+    
     pub disjoint_separation_strength: f32,
-    /// Base strength for hierarchical alignment forces
+    
     pub hierarchy_alignment_strength: f32,
-    /// Strength for same-as co-location forces
+    
     pub sameas_colocation_strength: f32,
-    /// Strength for cardinality boundary constraints
+    
     pub cardinality_boundary_strength: f32,
-    /// Maximum distance for separation constraints
+    
     pub max_separation_distance: f32,
-    /// Minimum distance for co-location constraints
+    
     pub min_colocation_distance: f32,
-    /// Enable caching of computed constraints
+    
     pub enable_constraint_caching: bool,
-    /// Update cache when axioms change
+    
     pub cache_invalidation_enabled: bool,
 }
 
@@ -128,20 +128,20 @@ impl Default for OntologyConstraintConfig {
     }
 }
 
-/// Constraint group categories for ontology-derived constraints
+/
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum OntologyConstraintGroup {
-    /// Separation forces from disjoint classes and different individuals
+    
     OntologySeparation,
-    /// Alignment forces from hierarchical relationships
+    
     OntologyAlignment,
-    /// Boundary constraints from cardinality restrictions
+    
     OntologyBoundaries,
-    /// Co-location forces from identity relationships
+    
     OntologyIdentity,
 }
 
-/// Cache entry for computed constraints
+/
 #[derive(Debug, Clone)]
 struct ConstraintCacheEntry {
     constraints: Vec<Constraint>,
@@ -149,20 +149,20 @@ struct ConstraintCacheEntry {
     last_updated: std::time::Instant,
 }
 
-/// Main translator for converting OWL axioms to physics constraints
+/
 pub struct OntologyConstraintTranslator {
     config: OntologyConstraintConfig,
     constraint_cache: HashMap<String, ConstraintCacheEntry>,
-    node_type_cache: HashMap<u32, HashSet<String>>, // node_id -> set of types/classes
+    node_type_cache: HashMap<u32, HashSet<String>>, 
 }
 
 impl OntologyConstraintTranslator {
-    /// Create a new translator with default configuration
+    
     pub fn new() -> Self {
         Self::with_config(OntologyConstraintConfig::default())
     }
 
-    /// Create a new translator with custom configuration
+    
     pub fn with_config(config: OntologyConstraintConfig) -> Self {
         Self {
             config,
@@ -171,7 +171,7 @@ impl OntologyConstraintTranslator {
         }
     }
 
-    /// Convert a list of OWL axioms to physics constraints
+    
     pub fn axioms_to_constraints(
         &mut self,
         axioms: &[OWLAxiom],
@@ -182,7 +182,7 @@ impl OntologyConstraintTranslator {
             axioms.len()
         );
 
-        // Build node lookup maps
+        
         let node_by_id: HashMap<String, &Node> = nodes
             .iter()
             .map(|node| (node.metadata_id.clone(), node))
@@ -213,7 +213,7 @@ impl OntologyConstraintTranslator {
         Ok(constraints)
     }
 
-    /// Convert ontology inferences to physics constraints
+    
     pub fn inferences_to_constraints(
         &mut self,
         inferences: &[OntologyInference],
@@ -226,14 +226,14 @@ impl OntologyConstraintTranslator {
 
         let mut constraints = Vec::new();
 
-        // Process inferences sequentially to avoid thread safety issues
+        
         let mut inference_constraints = Vec::new();
 
         for inference in inferences {
             let mut single_inference_constraints =
                 self.axioms_to_constraints(&[inference.inferred_axiom.clone()], &graph.nodes)?;
 
-            // Adjust constraint weights based on inference confidence
+            
             for constraint in &mut single_inference_constraints {
                 constraint.weight *= inference.reasoning_confidence;
             }
@@ -253,7 +253,7 @@ impl OntologyConstraintTranslator {
         Ok(constraints)
     }
 
-    /// Apply ontology constraints to a graph layout system
+    
     pub fn apply_ontology_constraints(
         &mut self,
         graph: &GraphData,
@@ -266,23 +266,23 @@ impl OntologyConstraintTranslator {
 
         let mut all_constraints = Vec::new();
 
-        // Process axioms
+        
         let mut axiom_constraints =
             self.axioms_to_constraints(&reasoning_report.axioms, &graph.nodes)?;
         all_constraints.append(&mut axiom_constraints);
 
-        // Process inferences
+        
         let mut inference_constraints =
             self.inferences_to_constraints(&reasoning_report.inferences, graph)?;
         all_constraints.append(&mut inference_constraints);
 
-        // Create constraint set with groups
+        
         let mut constraint_set = ConstraintSet {
             constraints: all_constraints,
             groups: std::collections::HashMap::new(),
         };
 
-        // Group constraints by category
+        
         let grouped_constraints = self.group_constraints_by_category(&constraint_set.constraints);
         for (group, indices) in grouped_constraints {
             let group_name = match group {
@@ -303,7 +303,7 @@ impl OntologyConstraintTranslator {
         Ok(constraint_set)
     }
 
-    /// Get the appropriate constraint strength for a given axiom type
+    
     pub fn get_constraint_strength(&self, axiom_type: &OWLAxiomType) -> f32 {
         match axiom_type {
             OWLAxiomType::DisjointClasses | OWLAxiomType::DifferentFrom => {
@@ -316,18 +316,18 @@ impl OntologyConstraintTranslator {
             OWLAxiomType::FunctionalProperty | OWLAxiomType::InverseFunctionalProperty => {
                 self.config.cardinality_boundary_strength
             }
-            _ => 0.5, // Default moderate strength
+            _ => 0.5, 
         }
     }
 
-    /// Clear the constraint cache (useful when ontology changes significantly)
+    
     pub fn clear_cache(&mut self) {
         self.constraint_cache.clear();
         self.node_type_cache.clear();
         debug!("Cleared ontology constraint cache");
     }
 
-    /// Update statistics about cache usage and performance
+    
     pub fn get_cache_stats(&self) -> OntologyConstraintCacheStats {
         let total_entries = self.constraint_cache.len();
         let total_cached_constraints: usize = self
@@ -343,14 +343,14 @@ impl OntologyConstraintTranslator {
         }
     }
 
-    // Private helper methods
+    
 
-    /// Update the node type cache based on current nodes
+    
     pub fn update_node_type_cache(&mut self, nodes: &[Node]) {
         for node in nodes {
             let mut types = HashSet::new();
 
-            // Extract types from node metadata
+            
             if let Some(node_type) = &node.node_type {
                 types.insert(node_type.clone());
             }
@@ -359,7 +359,7 @@ impl OntologyConstraintTranslator {
                 types.insert(group.clone());
             }
 
-            // Extract additional type information from metadata
+            
             for (key, value) in &node.metadata {
                 if key.contains("type") || key.contains("class") || key.contains("category") {
                     types.insert(value.clone());
@@ -370,7 +370,7 @@ impl OntologyConstraintTranslator {
         }
     }
 
-    /// Translate a single OWL axiom to physics constraints
+    
     fn translate_single_axiom(
         &self,
         axiom: &OWLAxiom,
@@ -404,7 +404,7 @@ impl OntologyConstraintTranslator {
         }
     }
 
-    /// Create separation constraints for disjoint classes
+    
     fn create_disjoint_class_constraints(
         &self,
         axiom: &OWLAxiom,
@@ -416,19 +416,19 @@ impl OntologyConstraintTranslator {
             .as_ref()
             .ok_or("DisjointClasses axiom missing object")?;
 
-        // Find all nodes of class A and class B
+        
         let class_a_nodes = self.find_nodes_of_type(&axiom.subject, node_lookup);
         let class_b_nodes = self.find_nodes_of_type(object, node_lookup);
 
         let mut constraints = Vec::new();
 
-        // Create separation constraints between all pairs
+        
         for &node_a in &class_a_nodes {
             for &node_b in &class_b_nodes {
                 constraints.push(Constraint {
                     kind: ConstraintKind::Separation,
                     node_indices: vec![node_a.id, node_b.id],
-                    params: vec![self.config.max_separation_distance * 0.7], // 70% of max
+                    params: vec![self.config.max_separation_distance * 0.7], 
                     weight: strength,
                     active: true,
                 });
@@ -445,7 +445,7 @@ impl OntologyConstraintTranslator {
         Ok(constraints)
     }
 
-    /// Create alignment constraints for subclass relationships
+    
     fn create_subclass_constraints(
         &self,
         axiom: &OWLAxiom,
@@ -463,20 +463,20 @@ impl OntologyConstraintTranslator {
         let mut constraints = Vec::new();
 
         if !superclass_nodes.is_empty() {
-            // Calculate centroid of superclass nodes
+            
             let superclass_centroid = self.calculate_node_centroid(&superclass_nodes);
 
-            // Create clustering constraints to pull subclass nodes toward superclass centroid
+            
             for &node in &subclass_nodes {
                 constraints.push(Constraint {
                     kind: ConstraintKind::Clustering,
                     node_indices: vec![node.id],
                     params: vec![
-                        0.0, // cluster_id (will be assigned by system)
+                        0.0, 
                         strength,
-                        superclass_centroid.0, // target x
-                        superclass_centroid.1, // target y
-                        superclass_centroid.2, // target z
+                        superclass_centroid.0, 
+                        superclass_centroid.1, 
+                        superclass_centroid.2, 
                     ],
                     weight: strength,
                     active: true,
@@ -491,7 +491,7 @@ impl OntologyConstraintTranslator {
         Ok(constraints)
     }
 
-    /// Create co-location constraints for same individuals
+    
     fn create_sameas_constraints(
         &self,
         axiom: &OWLAxiom,
@@ -503,14 +503,14 @@ impl OntologyConstraintTranslator {
         if let (Some(&node_a), Some(&node_b)) =
             (node_lookup.get(&axiom.subject), node_lookup.get(object))
         {
-            // Create a clustering constraint to pull the nodes together
+            
             Ok(vec![Constraint {
                 kind: ConstraintKind::Clustering,
                 node_indices: vec![node_a.id, node_b.id],
                 params: vec![
-                    0.0, // cluster_id
+                    0.0, 
                     strength,
-                    self.config.min_colocation_distance, // target distance
+                    self.config.min_colocation_distance, 
                 ],
                 weight: strength,
                 active: true,
@@ -521,7 +521,7 @@ impl OntologyConstraintTranslator {
         }
     }
 
-    /// Create separation constraints for different individuals
+    
     fn create_different_from_constraints(
         &self,
         axiom: &OWLAxiom,
@@ -547,22 +547,22 @@ impl OntologyConstraintTranslator {
         }
     }
 
-    /// Create cardinality boundary constraints for functional properties
+    
     fn create_functional_property_constraints(
         &self,
         axiom: &OWLAxiom,
         node_lookup: &HashMap<String, &Node>,
         strength: f32,
     ) -> Result<Vec<Constraint>, Box<dyn std::error::Error>> {
-        // Functional properties limit the number of outgoing edges
-        // This is more complex and might require graph structure analysis
-        // For now, create boundary constraints to limit clustering
+        
+        
+        
 
         let property_name = &axiom.subject;
         let affected_nodes: Vec<&Node> = node_lookup
             .values()
             .filter(|node| {
-                // Check if node uses this property
+                
                 node.metadata.contains_key(property_name)
                     || node.metadata.values().any(|v| v.contains(property_name))
             })
@@ -571,15 +571,15 @@ impl OntologyConstraintTranslator {
 
         let mut constraints = Vec::new();
 
-        // Create boundary constraints to limit overcrowding
+        
         for &node in &affected_nodes {
             constraints.push(Constraint {
                 kind: ConstraintKind::Boundary,
                 node_indices: vec![node.id],
                 params: vec![
-                    -20.0, 20.0, // x bounds
-                    -20.0, 20.0, // y bounds
-                    -10.0, 10.0, // z bounds
+                    -20.0, 20.0, 
+                    -20.0, 20.0, 
+                    -10.0, 10.0, 
                 ],
                 weight: strength,
                 active: true,
@@ -593,22 +593,22 @@ impl OntologyConstraintTranslator {
         Ok(constraints)
     }
 
-    /// Create bidirectional constraints for inverse properties
+    
     fn create_inverse_property_constraints(
         &self,
         _axiom: &OWLAxiom,
         _node_lookup: &HashMap<String, &Node>,
         _strength: f32,
     ) -> Result<Vec<Constraint>, Box<dyn std::error::Error>> {
-        // Inverse properties create symmetric relationships
-        // This might require edge information which we don't have direct access to
-        // For now, create alignment constraints for nodes connected by these properties
+        
+        
+        
 
         debug!("Inverse property constraints not fully implemented yet");
         Ok(Vec::new())
     }
 
-    /// Find all nodes that belong to a specific type/class
+    
     fn find_nodes_of_type<'a>(
         &self,
         type_name: &str,
@@ -617,7 +617,7 @@ impl OntologyConstraintTranslator {
         node_lookup
             .values()
             .filter(|node| {
-                // Check various ways a node might indicate its type
+                
                 node.node_type.as_ref().map_or(false, |t| t == type_name)
                     || node.group.as_ref().map_or(false, |g| g == type_name)
                     || node.metadata.values().any(|v| v == type_name)
@@ -627,7 +627,7 @@ impl OntologyConstraintTranslator {
             .collect()
     }
 
-    /// Calculate the centroid position of a group of nodes
+    
     fn calculate_node_centroid(&self, nodes: &[&Node]) -> (f32, f32, f32) {
         if nodes.is_empty() {
             return (0.0, 0.0, 0.0);
@@ -642,7 +642,7 @@ impl OntologyConstraintTranslator {
         (sum.0 / count, sum.1 / count, sum.2 / count)
     }
 
-    /// Group constraints by their ontology category
+    
     fn group_constraints_by_category(
         &self,
         constraints: &[Constraint],
@@ -655,7 +655,7 @@ impl OntologyConstraintTranslator {
                 ConstraintKind::Clustering => OntologyConstraintGroup::OntologyAlignment,
                 ConstraintKind::Boundary => OntologyConstraintGroup::OntologyBoundaries,
                 ConstraintKind::FixedPosition => OntologyConstraintGroup::OntologyIdentity,
-                _ => OntologyConstraintGroup::OntologyAlignment, // Default
+                _ => OntologyConstraintGroup::OntologyAlignment, 
             };
 
             groups.entry(group).or_insert_with(Vec::new).push(idx);
@@ -676,7 +676,7 @@ impl Default for OntologyConstraintTranslator {
     }
 }
 
-/// Report structure containing ontology reasoning results
+/
 #[derive(Debug, Serialize, Deserialize)]
 pub struct OntologyReasoningReport {
     pub axioms: Vec<OWLAxiom>,
@@ -685,7 +685,7 @@ pub struct OntologyReasoningReport {
     pub reasoning_time_ms: u64,
 }
 
-/// Consistency check result
+/
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ConsistencyCheck {
     pub is_consistent: bool,
@@ -693,7 +693,7 @@ pub struct ConsistencyCheck {
     pub suggested_resolution: Option<String>,
 }
 
-/// Statistics about constraint cache performance
+/
 #[derive(Debug, Serialize, Deserialize)]
 pub struct OntologyConstraintCacheStats {
     pub total_cache_entries: usize,
@@ -761,7 +761,7 @@ mod tests {
 
         let constraints = translator.axioms_to_constraints(&[axiom], &nodes).unwrap();
 
-        // Should create separation constraints between Animal and Plant instances
+        
         assert!(!constraints.is_empty());
         assert!(constraints
             .iter()
@@ -787,7 +787,7 @@ mod tests {
 
         let constraints = translator.axioms_to_constraints(&[axiom], &nodes).unwrap();
 
-        // Should create clustering constraint to pull nodes together
+        
         assert_eq!(constraints.len(), 1);
         assert_eq!(constraints[0].kind, ConstraintKind::Clustering);
     }
@@ -801,7 +801,7 @@ mod tests {
 
         assert!(disjoint_strength > 0.0);
         assert!(sameas_strength > 0.0);
-        assert!(sameas_strength > disjoint_strength); // SameAs should be stronger
+        assert!(sameas_strength > disjoint_strength); 
     }
 
     #[test]

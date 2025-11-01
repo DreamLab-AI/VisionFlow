@@ -17,7 +17,7 @@ pub use version::{MigrationVersion, VersionTracker};
 
 use thiserror::Error;
 
-/// Migration system errors
+/
 #[derive(Error, Debug)]
 pub enum MigrationError {
     #[error("Database error: {0}")]

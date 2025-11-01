@@ -1,17 +1,14 @@
 import { BotsVisualConfig } from '../types/BotsTypes';
 
-/**
- * Configuration Mapper for Bots Visualization
- * Maps and manages all configurable values for the visualization
- */
+
 export interface VisualizationConfig {
   colors: {
     agents: BotsVisualConfig['colors'];
     health: {
-      excellent: string;  // 80-100%
-      good: string;       // 50-80%
-      warning: string;    // 30-50%
-      critical: string;   // 0-30%
+      excellent: string;  
+      good: string;       
+      warning: string;    
+      critical: string;   
     };
     edges: {
       active: string;
@@ -36,8 +33,8 @@ export interface VisualizationConfig {
     pulseAmplitude: number;
     particleSpeed: number;
     particleCount: number;
-    edgeActivityThreshold: number; // milliseconds
-    staleEdgeThreshold: number;    // milliseconds
+    edgeActivityThreshold: number; 
+    staleEdgeThreshold: number;    
   };
   physics: BotsVisualConfig['physics'];
   camera: {
@@ -82,38 +79,36 @@ export class ConfigurationMapper {
     return ConfigurationMapper.instance;
   }
 
-  /**
-   * Get default configuration
-   */
+  
   private getDefaultConfig(): VisualizationConfig {
     return {
       colors: {
         agents: {
-          // Primary agent types - Greens for roles
-          coder: '#2ECC71',       // Emerald green
-          tester: '#27AE60',      // Nephritis green
-          researcher: '#1ABC9C',  // Turquoise
-          reviewer: '#16A085',    // Green sea
-          documenter: '#229954',  // Forest green
-          specialist: '#239B56',  // Emerald dark
           
-          // Meta roles - Golds for coordination
-          coordinator: '#F1C40F', // Gold
-          analyst: '#F39C12',     // Orange gold
-          architect: '#E67E22',   // Carrot gold
-          optimizer: '#D68910',   // Dark gold
-          monitor: '#D4AC0D',     // Bright gold
+          coder: '#2ECC71',       
+          tester: '#27AE60',      
+          researcher: '#1ABC9C',  
+          reviewer: '#16A085',    
+          documenter: '#229954',  
+          specialist: '#239B56',  
+          
+          
+          coordinator: '#F1C40F', 
+          analyst: '#F39C12',     
+          architect: '#E67E22',   
+          optimizer: '#D68910',   
+          monitor: '#D4AC0D',     
         },
         health: {
-          excellent: '#2ECC71',   // Green
-          good: '#F1C40F',        // Gold
-          warning: '#E67E22',     // Orange
-          critical: '#E74C3C',    // Red
+          excellent: '#2ECC71',   
+          good: '#F1C40F',        
+          warning: '#E67E22',     
+          critical: '#E74C3C',    
         },
         edges: {
-          active: '#FFD700',      // Gold
-          inactive: '#F1C40F',    // Dimmer gold
-          particle: '#FFD700',    // Bright gold
+          active: '#FFD700',      
+          inactive: '#F1C40F',    
+          particle: '#FFD700',    
         },
         background: {
           ambientParticles: '#F1C40F',
@@ -133,8 +128,8 @@ export class ConfigurationMapper {
         pulseAmplitude: 0.1,
         particleSpeed: 1.0,
         particleCount: 8,
-        edgeActivityThreshold: 5000,  // 5 seconds
-        staleEdgeThreshold: 30000,    // 30 seconds
+        edgeActivityThreshold: 5000,  
+        staleEdgeThreshold: 30000,    
       },
       physics: {
         springStrength: 0.3,
@@ -171,24 +166,18 @@ export class ConfigurationMapper {
     };
   }
 
-  /**
-   * Get current configuration
-   */
+  
   getConfig(): VisualizationConfig {
     return { ...this.config };
   }
 
-  /**
-   * Update configuration
-   */
+  
   updateConfig(updates: Partial<VisualizationConfig>): void {
     this.config = this.deepMerge(this.config, updates);
     this.notifyListeners();
   }
 
-  /**
-   * Update specific path in configuration
-   */
+  
   updatePath(path: string, value: any): void {
     const keys = path.split('.');
     let current: any = this.config;
@@ -204,40 +193,30 @@ export class ConfigurationMapper {
     this.notifyListeners();
   }
 
-  /**
-   * Reset to default configuration
-   */
+  
   resetToDefault(): void {
     this.config = this.getDefaultConfig();
     this.notifyListeners();
   }
 
-  /**
-   * Subscribe to configuration changes
-   */
+  
   subscribe(id: string, callback: (config: VisualizationConfig) => void): void {
     this.listeners.set(id, callback);
   }
 
-  /**
-   * Unsubscribe from configuration changes
-   */
+  
   unsubscribe(id: string): void {
     this.listeners.delete(id);
   }
 
-  /**
-   * Notify all listeners of configuration changes
-   */
+  
   private notifyListeners(): void {
     this.listeners.forEach(callback => {
       callback(this.getConfig());
     });
   }
 
-  /**
-   * Deep merge objects
-   */
+  
   private deepMerge(target: any, source: any): any {
     const output = { ...target };
     
@@ -258,23 +237,17 @@ export class ConfigurationMapper {
     return output;
   }
 
-  /**
-   * Check if value is an object
-   */
+  
   private isObject(item: any): boolean {
     return item && typeof item === 'object' && !Array.isArray(item);
   }
 
-  /**
-   * Export configuration as JSON
-   */
+  
   exportConfig(): string {
     return JSON.stringify(this.config, null, 2);
   }
 
-  /**
-   * Import configuration from JSON
-   */
+  
   importConfig(json: string): void {
     try {
       const imported = JSON.parse(json);
@@ -286,9 +259,7 @@ export class ConfigurationMapper {
     }
   }
 
-  /**
-   * Get configuration presets
-   */
+  
   getPresets(): { [key: string]: Partial<VisualizationConfig> } {
     return {
       default: {},
@@ -341,9 +312,7 @@ export class ConfigurationMapper {
     };
   }
 
-  /**
-   * Apply a preset
-   */
+  
   applyPreset(presetName: string): void {
     const presets = this.getPresets();
     if (presets[presetName]) {

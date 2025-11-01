@@ -31,7 +31,7 @@ export function OnboardingOverlay({
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
-  // Find and highlight target element
+  
   useEffect(() => {
     if (step.target) {
       const element = document.querySelector(step.target);
@@ -39,7 +39,7 @@ export function OnboardingOverlay({
         const rect = element.getBoundingClientRect();
         setTargetRect(rect);
 
-        // Scroll element into view
+        
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     } else {
@@ -47,10 +47,10 @@ export function OnboardingOverlay({
     }
   }, [step.target]);
 
-  // Calculate tooltip position
+  
   const getTooltipStyle = (): React.CSSProperties => {
     if (!targetRect || !step.target) {
-      // Center the tooltip if no target
+      
       return {
         position: 'fixed',
         top: '50%',
@@ -95,10 +95,10 @@ export function OnboardingOverlay({
 
   return (
     <>
-      {/* Backdrop */}
+      {}
       <div className="fixed inset-0 z-10000 bg-black/50 animate-in fade-in duration-200" />
 
-      {/* Highlight cutout */}
+      {}
       {targetRect && (
         <div
           className="fixed z-10001 ring-4 ring-primary/50 rounded-md animate-in zoom-in-95 duration-200"
@@ -112,7 +112,7 @@ export function OnboardingOverlay({
         />
       )}
 
-      {/* Tooltip */}
+      {}
       <div
         ref={tooltipRef}
         style={getTooltipStyle()}
@@ -121,7 +121,7 @@ export function OnboardingOverlay({
           "animate-in fade-in zoom-in-95 duration-200"
         )}
       >
-        {/* Header */}
+        {}
         <div className="flex items-start justify-between mb-4">
           <div>
             <h3 className="text-lg font-semibold">{step.title}</h3>
@@ -141,12 +141,12 @@ export function OnboardingOverlay({
           )}
         </div>
 
-        {/* Content */}
+        {}
         <div className="mb-6">
           <p className="text-sm leading-relaxed">{step.description}</p>
         </div>
 
-        {/* Progress dots */}
+        {}
         <div className="flex items-center justify-center gap-1 mb-6">
           {Array.from({ length: totalSteps }).map((_, i) => (
             <div
@@ -159,7 +159,7 @@ export function OnboardingOverlay({
           ))}
         </div>
 
-        {/* Actions */}
+        {}
         <div className="flex items-center justify-between">
           <Button
             variant="ghost"

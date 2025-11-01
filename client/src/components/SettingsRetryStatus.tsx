@@ -20,12 +20,12 @@ export const SettingsRetryStatus: React.FC<SettingsRetryStatusProps> = ({
   const { toast } = useToast();
   
   useEffect(() => {
-    // Update status every 2 seconds
+    
     const interval = setInterval(() => {
       setStatus(retryManager.getRetryStatus());
     }, 2000);
     
-    // Listen for retry failures
+    
     const handleRetryFailed = (event: CustomEvent) => {
       const { path, error } = event.detail;
       toast({
@@ -84,7 +84,7 @@ export const SettingsRetryStatus: React.FC<SettingsRetryStatusProps> = ({
         className
       )}
     >
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <AlertTriangle className="h-5 w-5 text-yellow-600" />
@@ -100,12 +100,12 @@ export const SettingsRetryStatus: React.FC<SettingsRetryStatusProps> = ({
         </button>
       </div>
       
-      {/* Summary */}
+      {}
       <p className="text-sm text-muted-foreground mb-3">
         {status.queueSize} setting{status.queueSize > 1 ? 's' : ''} failed to save and will retry automatically.
       </p>
       
-      {/* Details */}
+      {}
       {showDetails && (
         <div className="space-y-2 mb-3 max-h-40 overflow-y-auto">
           {status.items.map((item) => (
@@ -141,7 +141,7 @@ export const SettingsRetryStatus: React.FC<SettingsRetryStatusProps> = ({
         </div>
       )}
       
-      {/* Actions */}
+      {}
       <div className="flex gap-2">
         <Button
           size="sm"
@@ -171,7 +171,7 @@ export const GlobalSettingsRetryStatus: React.FC = () => {
   const [retryManager] = useState(() => new SettingsRetryManager());
   
   useEffect(() => {
-    // Make retry manager available globally for settings store
+    
     (window as any).__settingsRetryManager = retryManager;
     
     return () => {

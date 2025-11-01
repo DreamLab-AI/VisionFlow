@@ -7,29 +7,29 @@ import type { GraphNode, GraphEdge } from '../features/graph/types/graphTypes';
 const logger = createLogger('useAnalytics');
 
 export interface AnalyticsState {
-  // Current parameters and configuration
+  
   params: VisualAnalyticsParams | null;
   paramsLoading: boolean;
 
-  // Performance stats
+  
   performanceStats: GPUPerformanceStats | null;
   statsLoading: boolean;
 
-  // Analysis results
+  
   structuralAnalysis: any | null;
   semanticAnalysis: any | null;
   clusteringResults: any | null;
   anomalies: any[] | null;
 
-  // Task management
+  
   activeTasks: Map<string, AnalysisTask>;
   taskHistory: AnalysisTask[];
 
-  // GPU and system status
+  
   gpuStatus: any | null;
   isGPUEnabled: boolean;
 
-  // UI states
+  
   isAnalyzing: boolean;
   error: string | null;
   lastUpdate: Date | null;
@@ -52,9 +52,7 @@ export interface AnalysisRequest {
   options?: any;
 }
 
-/**
- * Hook for managing analytics state and operations
- */
+
 export function useAnalytics(options: UseAnalyticsOptions = {}) {
   const {
     autoRefreshStats = true,
@@ -64,7 +62,7 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
     retryAttempts = 3
   } = options;
 
-  // State management
+  
   const [state, setState] = useState<AnalyticsState>({
     params: null,
     paramsLoading: false,
@@ -83,12 +81,12 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
     lastUpdate: null
   });
 
-  // Refs for cleanup and intervals
+  
   const refreshInterval_ref = useRef<NodeJS.Timeout | null>(null);
   const taskSubscriptions = useRef<Map<string, () => void>>(new Map());
   const resultCache = useRef<Map<string, { result: any; timestamp: number }>>(new Map());
 
-  // Update state helper
+  
   const updateState = useCallback((updates: Partial<AnalyticsState>) => {
     setState(prev => ({
       ...prev,
@@ -97,7 +95,7 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
     }));
   }, []);
 
-  // Error handling with retry logic
+  
   const handleError = useCallback((error: any, operation: string, retry?: () => Promise<void>) => {
     logger.error(`Analytics ${operation} failed:`, createErrorMetadata(error));
     updateState({
@@ -106,12 +104,12 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
     });
 
     if (retry && retryAttempts > 0) {
-      // Implement exponential backoff retry
+      
       setTimeout(retry, 1000);
     }
   }, [retryAttempts, updateState]);
 
-  // Load analytics parameters
+  
   const loadParams = useCallback(async () => {
     try {
       updateState({ paramsLoading: true, error: null });
@@ -127,13 +125,13 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
     }
   }, [handleError, updateState]);
 
-  // Update analytics parameters
+  
   const updateParams = useCallback(async (newParams: Partial<VisualAnalyticsParams>) => {
     try {
       updateState({ paramsLoading: true, error: null });
       await analyticsAPI.updateAnalyticsParams(newParams);
 
-      // Refresh params after update
+      
       const updatedParams = await analyticsAPI.getAnalyticsParams();
       updateState({
         params: updatedParams,
@@ -146,7 +144,7 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
     }
   }, [handleError, updateState]);
 
-  // Load performance statistics
+  
   const loadPerformanceStats = useCallback(async () => {
     try {
       updateState({ statsLoading: true });
@@ -162,7 +160,7 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
     }
   }, [updateState]);
 
-  // Load GPU status
+  
   const loadGPUStatus = useCallback(async () => {
     try {
       const gpuStatus = await analyticsAPI.getGPUStatus();
@@ -175,7 +173,7 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
     }
   }, [updateState]);
 
-  // Run analysis with task management
+  
   const runAnalysis = useCallback(async (request: AnalysisRequest): Promise<string> => {
     try {
       updateState({ isAnalyzing: true, error: null });
@@ -230,7 +228,7 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
           throw new Error(`Unsupported analysis type: ${request.type}`);
       }
 
-      // Create task tracking
+      
       const task: AnalysisTask = {
         task_id: taskId,
         task_type: request.type,
@@ -243,14 +241,14 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
         activeTasks: new Map(state.activeTasks.set(taskId, task))
       });
 
-      // Subscribe to task updates if WebSocket is enabled
+      
       if (enableWebSocket) {
         const unsubscribe = analyticsAPI.subscribeToTask(taskId, (updatedTask) => {
           updateState({
             activeTasks: new Map(state.activeTasks.set(taskId, updatedTask))
           });
 
-          // Handle completion
+          
           if (updatedTask.status === 'completed' || updatedTask.status === 'failed') {
             handleTaskCompletion(updatedTask);
           }
@@ -267,9 +265,9 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
     }
   }, [state.activeTasks, enableWebSocket, updateState, handleError]);
 
-  // Handle task completion
+  
   const handleTaskCompletion = useCallback((task: AnalysisTask) => {
-    // Move task to history
+    
     setState(prev => {
       const newActiveTasks = new Map(prev.activeTasks);
       newActiveTasks.delete(task.task_id);
@@ -281,7 +279,7 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
       };
     });
 
-    // Cache results
+    
     if (task.status === 'completed' && task.result && cachingEnabled) {
       resultCache.current.set(task.task_id, {
         result: task.result,
@@ -289,7 +287,7 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
       });
     }
 
-    // Update specific analysis results
+    
     if (task.status === 'completed' && task.result) {
       const updates: Partial<AnalyticsState> = {};
 
@@ -308,7 +306,7 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
       updateState(updates);
     }
 
-    // Cleanup subscription
+    
     const unsubscribe = taskSubscriptions.current.get(task.task_id);
     if (unsubscribe) {
       unsubscribe();
@@ -316,12 +314,12 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
     }
   }, [cachingEnabled, updateState]);
 
-  // Get cached result
+  
   const getCachedResult = useCallback((taskId: string) => {
     if (!cachingEnabled) return null;
 
     const cached = resultCache.current.get(taskId);
-    if (cached && Date.now() - cached.timestamp < 300000) { // 5 minute cache
+    if (cached && Date.now() - cached.timestamp < 300000) { 
       return cached.result;
     }
 
@@ -329,7 +327,7 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
     return null;
   }, [cachingEnabled]);
 
-  // Cancel analysis task
+  
   const cancelTask = useCallback(async (taskId: string) => {
     try {
       await analyticsAPI.cancelTask(taskId);
@@ -344,7 +342,7 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
         };
       });
 
-      // Cleanup subscription
+      
       const unsubscribe = taskSubscriptions.current.get(taskId);
       if (unsubscribe) {
         unsubscribe();
@@ -355,7 +353,7 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
     }
   }, [handleError]);
 
-  // Load anomalies
+  
   const loadAnomalies = useCallback(async () => {
     try {
       const anomalies = await analyticsAPI.getCurrentAnomalies();
@@ -365,17 +363,17 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
     }
   }, [updateState]);
 
-  // Configure anomaly detection
+  
   const configureAnomalyDetection = useCallback(async (config: any) => {
     try {
       await analyticsAPI.configureAnomalyDetection(config);
-      await loadAnomalies(); // Refresh anomalies
+      await loadAnomalies(); 
     } catch (error) {
       handleError(error, 'anomaly detection configuration');
     }
   }, [loadAnomalies, handleError]);
 
-  // Refresh all data
+  
   const refresh = useCallback(async () => {
     await Promise.allSettled([
       loadParams(),
@@ -385,7 +383,7 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
     ]);
   }, [loadParams, loadPerformanceStats, loadGPUStatus, loadAnomalies]);
 
-  // Setup auto-refresh
+  
   useEffect(() => {
     if (autoRefreshStats) {
       refreshInterval_ref.current = setInterval(() => {
@@ -400,36 +398,36 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
     };
   }, [autoRefreshStats, refreshInterval, loadPerformanceStats]);
 
-  // Initial load
+  
   useEffect(() => {
     refresh();
   }, []);
 
-  // Cleanup on unmount
+  
   useEffect(() => {
     return () => {
-      // Clear intervals
+      
       if (refreshInterval_ref.current) {
         clearInterval(refreshInterval_ref.current);
       }
 
-      // Cleanup subscriptions
+      
       taskSubscriptions.current.forEach(unsubscribe => unsubscribe());
       taskSubscriptions.current.clear();
 
-      // Clear cache
+      
       resultCache.current.clear();
 
-      // Cleanup API
+      
       analyticsAPI.cleanup();
     };
   }, []);
 
   return {
-    // State
+    
     ...state,
 
-    // Actions
+    
     loadParams,
     updateParams,
     loadPerformanceStats,
@@ -441,7 +439,7 @@ export function useAnalytics(options: UseAnalyticsOptions = {}) {
     refresh,
     getCachedResult,
 
-    // Computed values
+    
     hasActiveTasks: state.activeTasks.size > 0,
     totalTasks: state.activeTasks.size + state.taskHistory.length,
     completedTasks: state.taskHistory.filter(t => t.status === 'completed').length,

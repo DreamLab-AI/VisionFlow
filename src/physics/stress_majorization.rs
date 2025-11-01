@@ -32,24 +32,24 @@ use crate::models::{
     graph::GraphData,
 };
 
-/// Configuration parameters for stress majorization
+/
 #[derive(Debug, Clone)]
 pub struct StressMajorizationConfig {
-    /// Maximum number of iterations
+    
     pub max_iterations: u32,
-    /// Convergence tolerance (relative change in stress)
+    
     pub tolerance: f32,
-    /// Step size for position updates
+    
     pub step_size: f32,
-    /// Whether to use adaptive step sizing
+    
     pub adaptive_step: bool,
-    /// Weight for constraint satisfaction relative to stress minimization
+    
     pub constraint_weight: f32,
-    /// Use GPU acceleration when available
+    
     pub use_gpu: bool,
-    /// Minimum improvement required to continue optimization
+    
     pub min_improvement: f32,
-    /// Number of iterations between convergence checks
+    
     pub convergence_check_interval: u32,
 }
 
@@ -68,22 +68,22 @@ impl Default for StressMajorizationConfig {
     }
 }
 
-/// Result of stress majorization optimization
+/
 #[derive(Debug, Clone)]
 pub struct OptimizationResult {
-    /// Final stress value
+    
     pub final_stress: f32,
-    /// Number of iterations performed
+    
     pub iterations: u32,
-    /// Whether optimization converged
+    
     pub converged: bool,
-    /// Constraint satisfaction scores for each constraint type
+    
     pub constraint_scores: HashMap<ConstraintKind, f32>,
-    /// Computation time in milliseconds
+    
     pub computation_time: u64,
 }
 
-/// Stress majorization solver for graph layout optimization
+/
 pub struct StressMajorizationSolver {
     config: StressMajorizationConfig,
     _gpu_context: Option<Arc<CudaDevice>>,
@@ -96,7 +96,7 @@ impl Clone for StressMajorizationSolver {
     fn clone(&self) -> Self {
         Self {
             config: self.config.clone(),
-            _gpu_context: self._gpu_context.clone(), // Arc can be cloned
+            _gpu_context: self._gpu_context.clone(), 
             cached_distance_matrix: self.cached_distance_matrix.clone(),
             cached_weight_matrix: self.cached_weight_matrix.clone(),
             iteration_history: self.iteration_history.clone(),
@@ -105,12 +105,12 @@ impl Clone for StressMajorizationSolver {
 }
 
 impl StressMajorizationSolver {
-    /// Create a new stress majorization solver with default configuration
+    
     pub fn new() -> Self {
         Self::with_config(StressMajorizationConfig::default())
     }
 
-    /// Create a new solver with custom configuration
+    
     pub fn with_config(config: StressMajorizationConfig) -> Self {
         let gpu_context = if config.use_gpu {
             match Self::initialize_gpu() {
@@ -133,7 +133,7 @@ impl StressMajorizationSolver {
         }
     }
 
-    /// Create solver from advanced physics parameters
+    
     pub fn from_advanced_params(params: &AdvancedParams) -> Self {
         let config = StressMajorizationConfig {
             max_iterations: params.stress_step_interval_frames * 10,
@@ -147,7 +147,7 @@ impl StressMajorizationSolver {
         Self::with_config(config)
     }
 
-    /// Initialize GPU device for acceleration
+    
     fn initialize_gpu() -> Result<Arc<CudaDevice>, Box<dyn std::error::Error>> {
         info!("Initializing GPU device for stress majorization");
         let device = CudaDevice::new(0)?;
@@ -155,7 +155,7 @@ impl StressMajorizationSolver {
         Ok(device)
     }
 
-    /// Optimize graph layout using stress majorization
+    
     pub fn optimize(
         &mut self,
         graph_data: &mut GraphData,
@@ -167,16 +167,16 @@ impl StressMajorizationSolver {
             graph_data.nodes.len()
         );
 
-        // Validate input data
+        
         if graph_data.nodes.is_empty() {
             return Err("Cannot optimize empty graph".into());
         }
 
-        // Compute initial distance and weight matrices
+        
         self.compute_distance_matrix(graph_data)?;
         self.compute_weight_matrix(graph_data)?;
 
-        // Initialize positions if needed
+        
         self.initialize_positions(graph_data)?;
 
         let mut best_stress = f32::INFINITY;
@@ -189,22 +189,22 @@ impl StressMajorizationSolver {
             constraints.constraints.len()
         );
 
-        // Main optimization loop
+        
         while iterations < self.config.max_iterations && !converged {
-            // Compute current stress
+            
             let current_stress = self.compute_stress(&current_positions, graph_data)?;
 
-            // Check for improvement
+            
             if current_stress < best_stress {
                 best_stress = current_stress;
                 self.apply_positions(graph_data, &current_positions)?;
             }
 
-            // Compute gradient and update positions
+            
             let gradient = self.compute_gradient(&current_positions, graph_data, constraints)?;
             let new_positions = self.update_positions(&current_positions, &gradient)?;
 
-            // Check convergence
+            
             if iterations % self.config.convergence_check_interval == 0 {
                 let improvement = (best_stress - current_stress) / best_stress.max(1e-10);
                 converged = improvement < self.config.tolerance;
@@ -222,10 +222,10 @@ impl StressMajorizationSolver {
             self.iteration_history.push(current_stress);
         }
 
-        // Final position update
+        
         self.apply_positions(graph_data, &current_positions)?;
 
-        // Compute constraint satisfaction scores
+        
         let constraint_scores = self.compute_constraint_scores(graph_data, constraints)?;
 
         let result = OptimizationResult {
@@ -244,7 +244,7 @@ impl StressMajorizationSolver {
         Ok(result)
     }
 
-    /// Compute distance matrix for the graph
+    
     fn compute_distance_matrix(
         &mut self,
         graph_data: &GraphData,
@@ -252,14 +252,14 @@ impl StressMajorizationSolver {
         let n = graph_data.nodes.len();
         let mut distance_matrix = DMatrix::zeros(n, n);
 
-        // Use Floyd-Warshall to compute all-pairs shortest paths
-        // Initialize with direct edge distances
+        
+        
         for (i, node_a) in graph_data.nodes.iter().enumerate() {
             for (j, node_b) in graph_data.nodes.iter().enumerate() {
                 if i == j {
                     distance_matrix[(i, j)] = 0.0;
                 } else {
-                    // Check if there's a direct edge
+                    
                     let direct_distance = graph_data
                         .edges
                         .iter()
@@ -267,7 +267,7 @@ impl StressMajorizationSolver {
                             (edge.source == node_a.id && edge.target == node_b.id)
                                 || (edge.source == node_b.id && edge.target == node_a.id)
                         })
-                        .map(|_| 1.0) // Unit edge weight
+                        .map(|_| 1.0) 
                         .unwrap_or(f32::INFINITY);
 
                     distance_matrix[(i, j)] = direct_distance;
@@ -275,10 +275,10 @@ impl StressMajorizationSolver {
             }
         }
 
-        // Landmark-based APSP approximation: O(k*n log n) instead of O(n³)
-        // Sample k = sqrt(n) landmark nodes
+        
+        
         let num_landmarks = (n as f32).sqrt().ceil() as usize;
-        let num_landmarks = num_landmarks.min(n).max(10); // At least 10, at most n
+        let num_landmarks = num_landmarks.min(n).max(10); 
 
         let mut landmarks = Vec::new();
         let stride = n / num_landmarks;
@@ -286,14 +286,14 @@ impl StressMajorizationSolver {
             landmarks.push(i * stride);
         }
 
-        // Run BFS/Dijkstra from each landmark (can be parallelized)
+        
         let mut landmark_distances = vec![vec![f32::INFINITY; n]; num_landmarks];
         for (k_idx, &landmark) in landmarks.iter().enumerate() {
-            // Simple BFS for unweighted or Dijkstra for weighted
+            
             let mut dist = vec![f32::INFINITY; n];
             dist[landmark] = 0.0;
 
-            // Priority queue simulation (simplified BFS)
+            
             let mut queue = std::collections::VecDeque::new();
             queue.push_back(landmark);
 
@@ -312,7 +312,7 @@ impl StressMajorizationSolver {
             landmark_distances[k_idx] = dist;
         }
 
-        // Approximate all-pairs distances using triangle inequality
+        
         for i in 0..n {
             for j in 0..n {
                 if i != j {
@@ -324,7 +324,7 @@ impl StressMajorizationSolver {
                             min_dist = min_dist.min(dist_ki + dist_kj);
                         }
                     }
-                    // Use approximation if better than direct edge
+                    
                     if min_dist < distance_matrix[(i, j)] {
                         distance_matrix[(i, j)] = min_dist;
                     }
@@ -332,11 +332,11 @@ impl StressMajorizationSolver {
             }
         }
 
-        // Replace infinite distances with a large but finite value
+        
         for i in 0..n {
             for j in 0..n {
                 if distance_matrix[(i, j)].is_infinite() {
-                    distance_matrix[(i, j)] = (n as f32) * 2.0; // Disconnected components
+                    distance_matrix[(i, j)] = (n as f32) * 2.0; 
                 }
             }
         }
@@ -346,7 +346,7 @@ impl StressMajorizationSolver {
         Ok(())
     }
 
-    /// Compute weight matrix based on distances
+    
     fn compute_weight_matrix(
         &mut self,
         graph_data: &GraphData,
@@ -359,7 +359,7 @@ impl StressMajorizationSolver {
         let n = graph_data.nodes.len();
         let mut weight_matrix = DMatrix::zeros(n, n);
 
-        // Weight is inversely proportional to squared distance
+        
         for i in 0..n {
             for j in 0..n {
                 if i != j {
@@ -376,7 +376,7 @@ impl StressMajorizationSolver {
         Ok(())
     }
 
-    /// Initialize node positions if not already set
+    
     fn initialize_positions(
         &self,
         graph_data: &mut GraphData,
@@ -384,12 +384,12 @@ impl StressMajorizationSolver {
         let mut rng = rand::thread_rng();
 
         for node in &mut graph_data.nodes {
-            // Only initialize if position is at origin (likely uninitialized)
+            
             if node.data.x.abs() < f32::EPSILON
                 && node.data.y.abs() < f32::EPSILON
                 && node.data.z.abs() < f32::EPSILON
             {
-                // Random initial position in a sphere
+                
                 use rand::Rng;
                 let theta = rng.gen_range(0.0..2.0 * std::f32::consts::PI);
                 let phi = rng.gen_range(0.0..std::f32::consts::PI);
@@ -405,7 +405,7 @@ impl StressMajorizationSolver {
         Ok(())
     }
 
-    /// Extract current positions as a matrix
+    
     fn extract_positions(&self, graph_data: &GraphData) -> DMatrix<f32> {
         let n = graph_data.nodes.len();
         let mut positions = DMatrix::zeros(n, 3);
@@ -419,7 +419,7 @@ impl StressMajorizationSolver {
         positions
     }
 
-    /// Apply positions back to graph data
+    
     fn apply_positions(
         &self,
         graph_data: &mut GraphData,
@@ -438,7 +438,7 @@ impl StressMajorizationSolver {
         Ok(())
     }
 
-    /// Compute stress function value
+    
     fn compute_stress(
         &self,
         positions: &DMatrix<f32>,
@@ -470,7 +470,7 @@ impl StressMajorizationSolver {
         Ok(stress)
     }
 
-    /// Compute gradient of stress function with constraints
+    
     fn compute_gradient(
         &self,
         positions: &DMatrix<f32>,
@@ -489,7 +489,7 @@ impl StressMajorizationSolver {
         let n = graph_data.nodes.len();
         let mut gradient = DMatrix::zeros(n, 3);
 
-        // Stress gradient
+        
         for i in 0..n {
             for j in 0..n {
                 if i == j {
@@ -511,7 +511,7 @@ impl StressMajorizationSolver {
             }
         }
 
-        // Add constraint gradients
+        
         for constraint in constraints.active_constraints() {
             self.add_constraint_gradient(&mut gradient, positions, constraint)?;
         }
@@ -519,7 +519,7 @@ impl StressMajorizationSolver {
         Ok(gradient)
     }
 
-    /// Add constraint contribution to gradient
+    
     fn add_constraint_gradient(
         &self,
         gradient: &mut DMatrix<f32>,
@@ -587,7 +587,7 @@ impl StressMajorizationSolver {
                     let strength = constraint.params[1];
                     let weight = constraint.weight * self.config.constraint_weight * strength;
 
-                    // Compute centroid
+                    
                     let mut centroid = [0.0f32; 3];
                     let mut valid_nodes = 0;
 
@@ -606,7 +606,7 @@ impl StressMajorizationSolver {
                             centroid[dim] /= valid_nodes as f32;
                         }
 
-                        // Apply attractive force toward centroid
+                        
                         for &node_idx in &constraint.node_indices {
                             if node_idx < positions.nrows() as u32 {
                                 let node_idx = node_idx as usize;
@@ -621,7 +621,7 @@ impl StressMajorizationSolver {
             }
 
             _ => {
-                // TODO: Implement other constraint types
+                
                 debug!(
                     "Constraint type {:?} not yet implemented in gradient computation",
                     constraint.kind
@@ -632,7 +632,7 @@ impl StressMajorizationSolver {
         Ok(())
     }
 
-    /// Update positions using gradient descent
+    
     fn update_positions(
         &self,
         positions: &DMatrix<f32>,
@@ -650,7 +650,7 @@ impl StressMajorizationSolver {
         Ok(new_positions)
     }
 
-    /// Compute Euclidean distance between two nodes
+    
     fn euclidean_distance(&self, positions: &DMatrix<f32>, i: usize, j: usize) -> f32 {
         let mut sum = 0.0;
         for dim in 0..3 {
@@ -660,7 +660,7 @@ impl StressMajorizationSolver {
         sum.sqrt()
     }
 
-    /// Compute constraint satisfaction scores
+    
     fn compute_constraint_scores(
         &self,
         graph_data: &GraphData,
@@ -679,7 +679,7 @@ impl StressMajorizationSolver {
                     self.score_alignment_horizontal(&positions, constraint)?
                 }
                 ConstraintKind::Clustering => self.score_clustering(&positions, constraint)?,
-                _ => 0.5, // Default neutral score for unimplemented types
+                _ => 0.5, 
             };
 
             scores
@@ -691,7 +691,7 @@ impl StressMajorizationSolver {
         Ok(scores)
     }
 
-    /// Score fixed position constraint satisfaction
+    
     fn score_fixed_position(
         &self,
         positions: &DMatrix<f32>,
@@ -705,14 +705,14 @@ impl StressMajorizationSolver {
                     + (positions[(node_idx, 2)] - constraint.params[2]).powi(2))
                 .sqrt();
 
-                // Score inversely related to distance from target
+                
                 return Ok((1.0 / (1.0 + distance / 10.0)).max(0.0).min(1.0));
             }
         }
         Ok(0.0)
     }
 
-    /// Score separation constraint satisfaction
+    
     fn score_separation(
         &self,
         positions: &DMatrix<f32>,
@@ -735,7 +735,7 @@ impl StressMajorizationSolver {
         Ok(0.0)
     }
 
-    /// Score horizontal alignment constraint satisfaction
+    
     fn score_alignment_horizontal(
         &self,
         positions: &DMatrix<f32>,
@@ -762,14 +762,14 @@ impl StressMajorizationSolver {
         Ok(0.0)
     }
 
-    /// Score clustering constraint satisfaction
+    
     fn score_clustering(
         &self,
         positions: &DMatrix<f32>,
         constraint: &Constraint,
     ) -> Result<f32, Box<dyn std::error::Error>> {
         if constraint.node_indices.len() > 1 {
-            // Compute average pairwise distance within cluster
+            
             let mut total_distance = 0.0;
             let mut count = 0;
 
@@ -787,19 +787,19 @@ impl StressMajorizationSolver {
 
             if count > 0 {
                 let avg_distance = total_distance / count as f32;
-                // Score inversely related to average internal distance
+                
                 return Ok((1.0 / (1.0 + avg_distance / 50.0)).max(0.0).min(1.0));
             }
         }
         Ok(0.0)
     }
 
-    /// Get optimization history
+    
     pub fn get_iteration_history(&self) -> &[f32] {
         &self.iteration_history
     }
 
-    /// Clear cached matrices (call when graph topology changes)
+    
     pub fn clear_cache(&mut self) {
         self.cached_distance_matrix = None;
         self.cached_weight_matrix = None;
@@ -807,7 +807,7 @@ impl StressMajorizationSolver {
         trace!("Cleared stress majorization cache");
     }
 
-    /// Update configuration
+    
     pub fn update_config(&mut self, config: StressMajorizationConfig) {
         self.config = config;
         info!("Updated stress majorization configuration");
@@ -838,7 +838,7 @@ mod tests {
             id_to_metadata: std::collections::HashMap::new(),
         };
 
-        // Set initial positions
+        
         graph.nodes[0].data.x = 0.0;
         graph.nodes[0].data.y = 0.0;
         graph.nodes[0].data.z = 0.0;
@@ -873,7 +873,7 @@ mod tests {
         assert_eq!(distance_matrix.nrows(), 3);
         assert_eq!(distance_matrix.ncols(), 3);
 
-        // Check diagonal is zero
+        
         for i in 0..3 {
             assert_eq!(distance_matrix[(i, i)], 0.0);
         }
@@ -890,7 +890,7 @@ mod tests {
         assert_eq!(positions[(0, 0)], 0.0);
         assert_eq!(positions[(1, 0)], 100.0);
 
-        // Modify positions and apply back
+        
         let mut new_positions = positions.clone();
         new_positions[(0, 0)] = 50.0;
 
@@ -904,7 +904,7 @@ mod tests {
         let graph = create_test_graph();
         let mut constraint_set = ConstraintSet::default();
 
-        // Add a separation constraint
+        
         constraint_set.add(Constraint::separation(1, 2, 50.0));
 
         let scores = solver

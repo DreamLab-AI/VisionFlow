@@ -9,11 +9,11 @@ use std::fmt;
 
 use crate::ports::settings_repository::SettingValue;
 
-/// All possible domain events in the system
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum DomainEvent {
-    // Settings domain events
+    
     SettingUpdated {
         key: String,
         value: SettingValue,
@@ -28,7 +28,7 @@ pub enum DomainEvent {
         timestamp: i64,
     },
 
-    // Knowledge Graph domain events
+    
     NodeAdded {
         node_id: String,
         node_type: String,
@@ -63,7 +63,7 @@ pub enum DomainEvent {
         timestamp: i64,
     },
 
-    // Ontology domain events
+    
     OntologyClassAdded {
         class_uri: String,
         timestamp: i64,
@@ -88,7 +88,7 @@ pub enum DomainEvent {
         timestamp: i64,
     },
 
-    // Physics domain events
+    
     SimulationStarted {
         graph_name: String,
         timestamp: i64,
@@ -106,7 +106,7 @@ pub enum DomainEvent {
         timestamp: i64,
     },
 
-    // System events
+    
     CacheInvalidated {
         cache_key: String,
         timestamp: i64,
@@ -119,7 +119,7 @@ pub enum DomainEvent {
 }
 
 impl DomainEvent {
-    /// Get the event timestamp
+    
     pub fn timestamp(&self) -> i64 {
         match self {
             DomainEvent::SettingUpdated { timestamp, .. }
@@ -146,7 +146,7 @@ impl DomainEvent {
         }
     }
 
-    /// Get a human-readable event name
+    
     pub fn event_name(&self) -> &'static str {
         match self {
             DomainEvent::SettingUpdated { .. } => "setting_updated",
@@ -173,7 +173,7 @@ impl DomainEvent {
         }
     }
 
-    /// Get current timestamp in milliseconds
+    
     pub fn now() -> i64 {
         std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)

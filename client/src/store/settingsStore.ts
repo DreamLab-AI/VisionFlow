@@ -19,18 +19,18 @@ const logger = createLogger('SettingsStore')
 async function waitForAuthReady(maxWaitMs: number = 3000): Promise<void> {
   const startTime = Date.now();
 
-  // First, ensure nostrAuth is initialized
+  
   if (!nostrAuth['initialized']) {
     logger.info('Waiting for nostrAuth to initialize...');
     await nostrAuth.initialize();
   }
 
-  // Then wait a bit for auth state to settle if user is authenticated
+  
   return new Promise((resolve) => {
     const checkAuth = () => {
       const elapsed = Date.now() - startTime;
 
-      // If we've waited long enough, or auth is not happening, proceed
+      
       if (elapsed >= maxWaitMs || !localStorage.getItem('nostr_session_token')) {
         logger.info('Proceeding with settings initialization', {
           authenticated: nostrAuth.isAuthenticated(),
@@ -40,14 +40,14 @@ async function waitForAuthReady(maxWaitMs: number = 3000): Promise<void> {
         return;
       }
 
-      // If authenticated, we're ready
+      
       if (nostrAuth.isAuthenticated()) {
         logger.info('Auth ready, proceeding with settings initialization');
         resolve();
         return;
       }
 
-      // Check again in 100ms
+      
       setTimeout(checkAuth, 100);
     };
 
@@ -65,7 +65,7 @@ const ESSENTIAL_PATHS = [
   'visualisation.rendering.context',
   'xr.enabled',
   'xr.mode',
-  // Add physics settings so control center has them on startup
+  
   'visualisation.graphs.logseq.physics',
   'visualisation.graphs.visionflow.physics'
 ];
@@ -75,14 +75,14 @@ const ESSENTIAL_PATHS = [
 function findChangedPaths(oldObj: any, newObj: any, path: string = ''): string[] {
   const changedPaths: string[] = [];
   
-  // Handle null/undefined cases
+  
   if (oldObj === newObj) return changedPaths;
   if (oldObj == null || newObj == null) {
     if (path) changedPaths.push(path);
     return changedPaths;
   }
   
-  // Handle primitive values
+  
   if (typeof oldObj !== 'object' || typeof newObj !== 'object') {
     if (oldObj !== newObj && path) {
       changedPaths.push(path);
@@ -90,7 +90,7 @@ function findChangedPaths(oldObj: any, newObj: any, path: string = ''): string[]
     return changedPaths;
   }
   
-  // Handle objects and arrays
+  
   const allKeys = new Set([...Object.keys(oldObj), ...Object.keys(newObj)]);
   
   for (const key of allKeys) {
@@ -99,10 +99,10 @@ function findChangedPaths(oldObj: any, newObj: any, path: string = ''): string[]
     const newValue = newObj[key];
     
     if (typeof oldValue === 'object' && typeof newValue === 'object' && oldValue !== null && newValue !== null) {
-      // Recursively check nested objects
+      
       changedPaths.push(...findChangedPaths(oldValue, newValue, currentPath));
     } else if (oldValue !== newValue) {
-      // Value changed
+      
       changedPaths.push(currentPath);
     }
   }
@@ -111,21 +111,21 @@ function findChangedPaths(oldObj: any, newObj: any, path: string = ''): string[]
 }
 
 interface SettingsState {
-  // Partial state management - only holds what's been loaded
-  partialSettings: DeepPartial<Settings>
-  loadedPaths: Set<string> // Track which paths have been loaded
-  loadingSections: Set<string> // Track sections currently being loaded
   
-  // Computed getter for backward compatibility with components
-  settings: DeepPartial<Settings> // Maps to partialSettings for component access
+  partialSettings: DeepPartial<Settings>
+  loadedPaths: Set<string> 
+  loadingSections: Set<string> 
+  
+  
+  settings: DeepPartial<Settings> 
   
   initialized: boolean
   authenticated: boolean
   user: { isPowerUser: boolean; pubkey: string } | null
-  isPowerUser: boolean // Direct access to power user state
+  isPowerUser: boolean 
   subscribers: Map<string, Set<() => void>>
 
-  // Actions
+  
   initialize: () => Promise<void>
   setAuthenticated: (authenticated: boolean) => void
   setUser: (user: { isPowerUser: boolean; pubkey: string } | null) => void
@@ -134,32 +134,32 @@ interface SettingsState {
   subscribe: (path: SettingsPath, callback: () => void, immediate?: boolean) => () => void;
   unsubscribe: (path: SettingsPath, callback: () => void) => void;
   updateSettings: (updater: (draft: Settings) => void) => void;
-  notifyViewportUpdate: (path: SettingsPath) => void; // For real-time viewport updates
+  notifyViewportUpdate: (path: SettingsPath) => void; 
   
-  // Lazy loading - load settings on demand
+  
   ensureLoaded: (paths: string[]) => Promise<void>
   loadSection: (section: string) => Promise<void>
   isLoaded: (path: SettingsPath) => boolean
   
-  // New path-based methods for better performance
-  getByPath: <T>(path: SettingsPath) => Promise<T>; // Async get from server
-  setByPath: <T>(path: SettingsPath, value: T) => void; // Immediate local + debounced server
-  batchUpdate: (updates: Array<{path: SettingsPath, value: any}>) => void; // Batch operations
-  flushPendingUpdates: () => Promise<void>; // Force immediate server sync
   
-  // Settings management methods using path-based API
-  resetSettings: () => Promise<void>; // Reset to defaults and reload essential paths
-  exportSettings: () => Promise<string>; // Export current loaded settings as JSON
-  importSettings: (jsonString: string) => Promise<void>; // Import settings using path-based updates
+  getByPath: <T>(path: SettingsPath) => Promise<T>; 
+  setByPath: <T>(path: SettingsPath, value: T) => void; 
+  batchUpdate: (updates: Array<{path: SettingsPath, value: any}>) => void; 
+  flushPendingUpdates: () => Promise<void>; 
   
-  // GPU-specific methods
+  
+  resetSettings: () => Promise<void>; 
+  exportSettings: () => Promise<string>; 
+  importSettings: (jsonString: string) => Promise<void>; 
+  
+  
   updateComputeMode: (mode: string) => void;
   updateClustering: (config: ClusteringConfig) => void;
   updateConstraints: (constraints: ConstraintConfig[]) => void;
   updatePhysics: (graphName: string, params: Partial<GPUPhysicsParams>) => void;
   updateWarmupSettings: (settings: WarmupSettings) => void;
   
-  // WebSocket integration for real-time physics updates
+  
   notifyPhysicsUpdate: (graphName: string, params: Partial<GPUPhysicsParams>) => void;
 }
 
@@ -175,7 +175,7 @@ interface GPUPhysicsParams {
   temperature: number;
   maxRepulsionDist: number;
   
-  // New CUDA kernel parameters
+  
   restLength: number;
   repulsionCutoff: number;
   repulsionSofteningEpsilon: number;
@@ -183,33 +183,33 @@ interface GPUPhysicsParams {
   gridCellSize: number;
   featureFlags: number;
   
-  // Warmup parameters
+  
   warmupIterations: number;
   coolingRate: number;
   
-  // Additional boundary and collision parameters
+  
   enableBounds?: boolean;
   boundsSize?: number;
   boundaryDamping?: number;
   collisionRadius?: number;
   
-  // Advanced parameters
+  
   iterations?: number;
   massScale?: number;
   updateThreshold?: number;
   
-  // Missing CUDA parameters
-  /** Extreme boundary force multiplier (1.0-5.0) */
+  
+  
   boundaryExtremeMultiplier?: number;
-  /** Extreme boundary force strength multiplier (1.0-20.0) */
+  
   boundaryExtremeForceMultiplier?: number;
-  /** Boundary velocity damping factor (0.0-1.0) */
+  
   boundaryVelocityDamping?: number;
-  /** Maximum force magnitude (1-1000) */
+  
   maxForce?: number;
-  /** Random seed for initialization */
+  
   seed?: number;
-  /** Current iteration count */
+  
   iteration?: number;
 }
 
@@ -234,8 +234,8 @@ interface WarmupSettings {
   warmupDuration: number;
   convergenceThreshold: number;
   enableAdaptiveCooling: boolean;
-  warmupIterations?: number; // Optional for direct warmup iteration control
-  coolingRate?: number; // Optional for direct cooling rate control
+  warmupIterations?: number; 
+  coolingRate?: number; 
 }
 
 
@@ -243,7 +243,7 @@ export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
       partialSettings: {},
-      settings: {}, // Initialize settings as alias to partialSettings
+      settings: {}, 
       loadedPaths: new Set(),
       loadingSections: new Set(),
       initialized: false,
@@ -259,7 +259,7 @@ export const useSettingsStore = create<SettingsState>()(
             logger.info('Initializing settings store with essential paths only')
           }
 
-          // Wait for authentication to be ready to avoid race condition
+          
           await waitForAuthReady();
 
           const isAuthenticated = nostrAuth.isAuthenticated();
@@ -270,7 +270,7 @@ export const useSettingsStore = create<SettingsState>()(
             user: user?.pubkey?.slice(0, 8) + '...',
           });
 
-          // Load only essential settings for fast startup
+          
           console.log('[SettingsStore] Calling settingsApi.getSettingsByPaths');
           const essentialSettings = await settingsApi.getSettingsByPaths(ESSENTIAL_PATHS);
           console.log('[SettingsStore] Essential settings loaded successfully');
@@ -281,7 +281,7 @@ export const useSettingsStore = create<SettingsState>()(
 
           set(state => ({
             partialSettings: essentialSettings as DeepPartial<Settings>,
-            settings: essentialSettings as DeepPartial<Settings>, // Keep settings in sync
+            settings: essentialSettings as DeepPartial<Settings>, 
             loadedPaths: new Set(ESSENTIAL_PATHS),
             initialized: true,
             authenticated: isAuthenticated,
@@ -289,7 +289,7 @@ export const useSettingsStore = create<SettingsState>()(
             isPowerUser: user?.isPowerUser || false
           }));
 
-          // Initialize AutoSaveManager now that store is ready
+          
           autoSaveManager.setInitialized(true);
 
           if (debugState.isEnabled()) {
@@ -312,7 +312,7 @@ export const useSettingsStore = create<SettingsState>()(
       }),
 
       notifyViewportUpdate: (path: SettingsPath) => {
-        // This method will be called for settings that need immediate viewport updates
+        
         const callbacks = get().subscribers.get('viewport.update')
         if (callbacks) {
           Array.from(callbacks).forEach(callback => {
@@ -325,7 +325,7 @@ export const useSettingsStore = create<SettingsState>()(
         }
       },
 
-      // Path-based getter - handles unloaded state properly
+      
       get: <T>(path: SettingsPath): T | undefined => {
         const { partialSettings, loadedPaths } = get();
 
@@ -333,7 +333,7 @@ export const useSettingsStore = create<SettingsState>()(
           return partialSettings as unknown as T;
         }
 
-        // Check if this path (or a parent path) has been loaded
+        
         const isPathLoaded = loadedPaths.has(path) || 
           [...loadedPaths].some(loadedPath => 
             path.startsWith(loadedPath + '.') || loadedPath.startsWith(path + '.')
@@ -343,12 +343,12 @@ export const useSettingsStore = create<SettingsState>()(
           if (debugState.isEnabled()) {
             logger.warn(`Accessing unloaded path: ${path} - path should be loaded before access`);
           }
-          // Don't trigger loading here - it causes infinite loops
-          // The calling component should use ensureLoaded in useEffect
+          
+          
           return undefined as unknown as T;
         }
 
-        // Navigate the partial settings using the path
+        
         const pathParts = path.split('.');
         let current: any = partialSettings;
 
@@ -362,13 +362,13 @@ export const useSettingsStore = create<SettingsState>()(
         return current as T;
       },
 
-      // Path-based setter - updates partial settings and marks paths as loaded
+      
       set: <T>(path: SettingsPath, value: T) => {
         if (!path?.trim()) {
           throw new Error('Path cannot be empty');
         }
 
-        // Update local state immediately
+        
         set(state => {
           const newPartialSettings = { ...state.partialSettings };
           setNestedValue(newPartialSettings, path, value);
@@ -377,12 +377,12 @@ export const useSettingsStore = create<SettingsState>()(
 
           return {
             partialSettings: newPartialSettings,
-            settings: newPartialSettings, // Keep settings in sync
+            settings: newPartialSettings, 
             loadedPaths: newLoadedPaths
           };
         });
 
-        // Update server directly via REST API
+        
         settingsApi.updateSettingByPath(path, value).catch(error => {
           logger.error(`Failed to update setting ${path}:`, createErrorMetadata(error));
         });
@@ -405,12 +405,12 @@ export const useSettingsStore = create<SettingsState>()(
           return { subscribers }
         })
 
-        // Call callback immediately if requested and initialized
+        
         if (immediate && get().initialized) {
           callback()
         }
 
-        // Return unsubscribe function
+        
         return () => get().unsubscribe(path, callback)
       },
 
@@ -431,13 +431,13 @@ export const useSettingsStore = create<SettingsState>()(
         })
       },
 
-      // Ensure specific paths are loaded
+      
       ensureLoaded: async (paths: string[]): Promise<void> => {
         const { loadedPaths } = get();
         const unloadedPaths = paths.filter(path => !loadedPaths.has(path));
         
         if (unloadedPaths.length === 0) {
-          return; // All paths already loaded
+          return; 
         }
 
         try {
@@ -454,7 +454,7 @@ export const useSettingsStore = create<SettingsState>()(
 
             return {
               partialSettings: newPartialSettings,
-              settings: newPartialSettings, // Keep settings in sync
+              settings: newPartialSettings, 
               loadedPaths: newLoadedPaths
             };
           });
@@ -468,11 +468,11 @@ export const useSettingsStore = create<SettingsState>()(
         }
       },
 
-      // Load entire section (collection of related paths)  
+      
       loadSection: async (section: string): Promise<void> => {
         const { loadingSections } = get();
         if (loadingSections.has(section)) {
-          return; // Already loading
+          return; 
         }
 
         const sectionPaths = getSectionPaths(section);
@@ -481,7 +481,7 @@ export const useSettingsStore = create<SettingsState>()(
           return;
         }
 
-        // Mark as loading
+        
         set(state => ({
           loadingSections: new Set(state.loadingSections).add(section)
         }));
@@ -493,7 +493,7 @@ export const useSettingsStore = create<SettingsState>()(
             logger.info(`Section loaded: ${section}`, { paths: sectionPaths });
           }
         } finally {
-          // Mark as no longer loading
+          
           set(state => {
             const newLoadingSections = new Set(state.loadingSections);
             newLoadingSections.delete(section);
@@ -502,37 +502,37 @@ export const useSettingsStore = create<SettingsState>()(
         }
       },
 
-      // Check if a path has been loaded
+      
       isLoaded: (path: SettingsPath): boolean => {
         const { loadedPaths } = get();
         return loadedPaths.has(path);
       },
 
-      // Update settings using immer-style updater (synchronous for immediate UI updates)
+      
       updateSettings: (updater: (draft: DeepPartial<Settings>) => void): void => {
         const { partialSettings } = get();
         
-        // Use produce to create immutable update
+        
         const newSettings = produce(partialSettings, updater);
         
-        // Check what paths changed
+        
         const changedPaths = findChangedPaths(partialSettings, newSettings);
         
         if (changedPaths.length === 0) {
-          return; // No changes
+          return; 
         }
 
-        // Update state and queue for batch update
+        
         set(state => {
           return {
             partialSettings: newSettings,
-            settings: newSettings, // Keep settings in sync
-            // Add changed paths to loaded paths
+            settings: newSettings, 
+            
             loadedPaths: new Set([...state.loadedPaths, ...changedPaths])
           };
         });
 
-        // Update server directly via REST API for all changed paths
+        
         changedPaths.forEach(path => {
           const pathParts = path.split('.');
           let current: any = newSettings;
@@ -548,14 +548,14 @@ export const useSettingsStore = create<SettingsState>()(
           logger.info('Settings updated via updateSettings:', { changedPaths });
         }
 
-        // Handle viewport updates and subscribers...
+        
         const state = get();
         
-        // Check if any viewport settings were updated
+        
         const viewportUpdated = changedPaths.some(path => isViewportSetting(path));
         
         if (viewportUpdated) {
-          // Trigger immediate viewport update
+          
           state.notifyViewportUpdate('viewport.update');
           
           if (debugState.isEnabled()) {
@@ -565,7 +565,7 @@ export const useSettingsStore = create<SettingsState>()(
           }
         }
 
-        // Notify all subscribers
+        
         const allCallbacks = new Set<() => void>();
         state.subscribers.forEach(callbacks => {
           callbacks.forEach(cb => allCallbacks.add(cb));
@@ -580,7 +580,7 @@ export const useSettingsStore = create<SettingsState>()(
         });
       },
 
-      // GPU-specific methods
+      
       updateComputeMode: (mode: string) => {
         const state = get();
         state.updateSettings((draft) => {
@@ -620,10 +620,10 @@ export const useSettingsStore = create<SettingsState>()(
       updatePhysics: (graphName: string, params: Partial<GPUPhysicsParams>) => {
         const state = get();
         
-        // Validate parameter ranges for new CUDA parameters
+        
         const validatedParams = { ...params };
         
-        // Validate new CUDA parameters
+        
         if (validatedParams.restLength !== undefined) {
           validatedParams.restLength = Math.max(0.1, Math.min(10.0, validatedParams.restLength));
         }
@@ -643,7 +643,7 @@ export const useSettingsStore = create<SettingsState>()(
           validatedParams.featureFlags = Math.max(0, Math.min(255, Math.floor(validatedParams.featureFlags)));
         }
         
-        // Validate edge/arrow settings to prevent server validation errors
+        
         if (validatedParams.arrow_size !== undefined) {
           validatedParams.arrow_size = Math.max(0.01, Math.min(5.0, validatedParams.arrow_size));
         }
@@ -657,7 +657,7 @@ export const useSettingsStore = create<SettingsState>()(
           validatedParams.baseWidth = Math.max(0.01, Math.min(5.0, validatedParams.baseWidth));
         }
         
-        // Validate existing parameters with updated ranges
+        
         if (validatedParams.springK !== undefined) {
           validatedParams.springK = Math.max(0.001, Math.min(10.0, validatedParams.springK));
         }
@@ -699,7 +699,7 @@ export const useSettingsStore = create<SettingsState>()(
           }
         });
         
-        // Trigger WebSocket notification for real-time updates
+        
         state.notifyPhysicsUpdate(graphName, validatedParams);
       },
 
@@ -713,11 +713,11 @@ export const useSettingsStore = create<SettingsState>()(
         });
       },
 
-      // WebSocket notification for physics updates
+      
       notifyPhysicsUpdate: (graphName: string, params: Partial<GPUPhysicsParams>) => {
         if (typeof window !== 'undefined') {
           try {
-            // Try to get WebSocket service from window
+            
             const wsService = (window as any).webSocketService;
             if (wsService && wsService.isConnected && wsService.isConnected()) {
               const message = {
@@ -745,7 +745,7 @@ export const useSettingsStore = create<SettingsState>()(
             logger.warn('Failed to notify physics update via WebSocket:', createErrorMetadata(error));
           }
           
-          // Also dispatch a custom event for other components to listen to
+          
           const event = new CustomEvent('physicsParametersUpdated', {
             detail: { graphName, params }
           });
@@ -754,14 +754,14 @@ export const useSettingsStore = create<SettingsState>()(
       },
 
       
-      // New path-based methods for enhanced performance
+      
       getByPath: async <T>(path: SettingsPath): Promise<T> => {
         try {
           const value = await settingsApi.getSettingByPath(path);
           return value;
         } catch (error) {
           logger.error(`Failed to get setting by path ${path}:`, createErrorMetadata(error));
-          // Fallback to local state
+          
           return get().get(path);
         }
       },
@@ -769,10 +769,10 @@ export const useSettingsStore = create<SettingsState>()(
       setByPath: <T>(path: SettingsPath, value: T) => {
         const state = get();
 
-        // Update local state immediately for responsive UI
+        
         state.set(path, value);
 
-        // Update server directly via REST API
+        
         settingsApi.updateSettingByPath(path, value).catch(error => {
           logger.error(`Failed to update setting ${path}:`, createErrorMetadata(error));
         });
@@ -781,36 +781,36 @@ export const useSettingsStore = create<SettingsState>()(
       batchUpdate: (updates: Array<{path: SettingsPath, value: any}>) => {
         const state = get();
 
-        // Update all local state immediately
+        
         updates.forEach(({ path, value }) => {
           state.set(path, value);
         });
 
-        // Update server directly via REST API batch operation
+        
         settingsApi.updateSettingsByPaths(updates.map(u => ({ path: u.path, value: u.value }))).catch(error => {
           logger.error('Failed to batch update settings:', createErrorMetadata(error));
         });
       },
       
       flushPendingUpdates: async (): Promise<void> => {
-        // Flush any pending updates in the settings API
+        
         await settingsApi.flushPendingUpdates();
       },
       
-      // Settings management methods using path-based API
+      
       resetSettings: async (): Promise<void> => {
         try {
-          // Call the server's reset endpoint
+          
           await settingsApi.resetSettings();
           
-          // Clear local state
+          
           set({
             partialSettings: {},
-            settings: {}, // Keep settings in sync
+            settings: {}, 
             loadedPaths: new Set()
           });
           
-          // Reload essential settings
+          
           await get().initialize();
           
           logger.info('Settings reset to defaults and essential paths reloaded');
@@ -824,17 +824,17 @@ export const useSettingsStore = create<SettingsState>()(
         const { partialSettings, loadedPaths } = get();
         
         try {
-          // If we only have partial settings, fetch all settings paths first
+          
           if (loadedPaths.size === ESSENTIAL_PATHS.length) {
             logger.info('Only essential settings loaded, fetching all settings for export...');
             
-            // Get all available settings paths by fetching a comprehensive list
+            
             const allPaths = getAllAvailableSettingsPaths();
             const allSettings = await settingsApi.getSettingsByPaths(allPaths);
             
             return settingsApi.exportSettings(allSettings as Settings);
           } else {
-            // Export currently loaded settings
+            
             return settingsApi.exportSettings(partialSettings as Settings);
           }
         } catch (error) {
@@ -845,10 +845,10 @@ export const useSettingsStore = create<SettingsState>()(
       
       importSettings: async (jsonString: string): Promise<void> => {
         try {
-          // Parse and validate the imported settings
+          
           const importedSettings = settingsApi.importSettings(jsonString);
           
-          // Extract all paths and values from the imported settings
+          
           const allPaths = getAllSettingsPaths(importedSettings);
           const updates: Array<{path: string, value: any}> = [];
           
@@ -859,7 +859,7 @@ export const useSettingsStore = create<SettingsState>()(
             }
           }
           
-          // Apply all updates using batch update (goes directly to server)
+          
           get().batchUpdate(updates);
           
           logger.info(`Successfully imported ${updates.length} settings using path-based updates`);
@@ -873,11 +873,11 @@ export const useSettingsStore = create<SettingsState>()(
       name: 'graph-viz-settings-v2',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
-        // Only persist auth state and essential settings, not full partial settings
+        
         authenticated: state.authenticated,
         user: state.user,
         isPowerUser: state.isPowerUser,
-        // Only persist essential paths to avoid staleness
+        
         essentialPaths: ESSENTIAL_PATHS.reduce((acc, path) => {
           const value = state.partialSettings[path];
           if (value !== undefined) {
@@ -894,7 +894,7 @@ export const useSettingsStore = create<SettingsState>()(
           authenticated: persistedState.authenticated || false,
           user: persistedState.user || null,
           isPowerUser: persistedState.isPowerUser || false,
-          // Don't merge partial settings - let them load fresh from server
+          
         };
       },
       onRehydrateStorage: () => (state) => {
@@ -987,10 +987,10 @@ function getAllSettingsPaths(obj: any, prefix: string = ''): string[] {
       const currentPath = prefix ? `${prefix}.${key}` : key;
       
       if (value && typeof value === 'object' && !Array.isArray(value)) {
-        // Recursively get paths from nested objects
+        
         paths.push(...getAllSettingsPaths(value, currentPath));
       } else {
-        // This is a leaf value
+        
         paths.push(currentPath);
       }
     }
@@ -1001,13 +1001,13 @@ function getAllSettingsPaths(obj: any, prefix: string = ''): string[] {
 
 // Helper function to get all available settings paths for comprehensive operations
 function getAllAvailableSettingsPaths(): string[] {
-  // This is a comprehensive list of all known settings paths in the system
-  // These should be kept in sync with the actual settings structure
+  
+  
   return [
-    // System settings
+    
     ...ESSENTIAL_PATHS,
     
-    // Visualization settings
+    
     'visualisation.rendering.ambientLightIntensity',
     'visualisation.rendering.backgroundColor', 
     'visualisation.rendering.directionalLightIntensity',
@@ -1018,7 +1018,7 @@ function getAllAvailableSettingsPaths(): string[] {
     'visualisation.rendering.shadowMapSize',
     'visualisation.rendering.shadowBias',
     
-    // Graph-specific settings
+    
     'visualisation.graphs.logseq.nodes',
     'visualisation.graphs.logseq.edges', 
     'visualisation.graphs.logseq.labels',
@@ -1028,7 +1028,7 @@ function getAllAvailableSettingsPaths(): string[] {
     'visualisation.graphs.visionflow.labels', 
     'visualisation.graphs.visionflow.physics',
     
-    // Effects
+    
     'visualisation.glow.enabled',
     'visualisation.glow.intensity',
     'visualisation.glow.radius',
@@ -1037,18 +1037,18 @@ function getAllAvailableSettingsPaths(): string[] {
     'visualisation.hologram.ringColor',
     'visualisation.hologram.globalRotationSpeed',
     
-    // XR settings
+    
     'xr.enableHandTracking',
     'xr.enableHaptics',
     'xr.quality',
     
-    // Additional system and performance settings
+    
     'system.performance.maxFPS',
     'system.performance.enableVSync',
     'system.websocket.url',
     'system.websocket.protocol',
     
-    // Add more paths as needed based on the actual settings structure
+    
   ];
 }
 

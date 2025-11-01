@@ -85,13 +85,13 @@ export interface ValidationResponse {
 // ============================================================================
 
 export const constraintsApi = {
-  // Define constraints system
+  
   define: (
     system: ConstraintSystem
   ): Promise<AxiosResponse<{ status: string; constraints: ConstraintSystem }>> =>
     axios.post(`${API_BASE}/constraints/define`, system),
 
-  // Apply constraints to nodes
+  
   apply: (
     request: ApplyConstraintRequest
   ): Promise<
@@ -104,7 +104,7 @@ export const constraintsApi = {
     }>
   > => axios.post(`${API_BASE}/constraints/apply`, request),
 
-  // Remove constraints
+  
   remove: (
     request: RemoveConstraintRequest
   ): Promise<
@@ -115,11 +115,11 @@ export const constraintsApi = {
     }>
   > => axios.post(`${API_BASE}/constraints/remove`, request),
 
-  // List all constraints
+  
   list: (): Promise<AxiosResponse<ConstraintListResponse>> =>
     axios.get(`${API_BASE}/constraints/list`),
 
-  // Validate constraint
+  
   validate: (
     constraint: LegacyConstraintData
   ): Promise<AxiosResponse<ValidationResponse>> =>

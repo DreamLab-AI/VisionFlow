@@ -4,20 +4,20 @@ use serde::{Deserialize, Serialize};
 use std::future::Future;
 use std::time::Duration;
 
-/// Configuration for exponential backoff retry logic
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RetryConfig {
-    /// Maximum number of retry attempts (including initial attempt)
+    
     pub max_attempts: usize,
-    /// Initial delay between retries
+    
     pub initial_delay: Duration,
-    /// Maximum delay between retries
+    
     pub max_delay: Duration,
-    /// Multiplier for exponential backoff
+    
     pub backoff_multiplier: f64,
-    /// Amount of jitter to add (0.0 to 1.0)
+    
     pub jitter_factor: f64,
-    /// Whether to include the original error in retry attempts
+    
     pub preserve_original_error: bool,
 }
 
@@ -35,7 +35,7 @@ impl Default for RetryConfig {
 }
 
 impl RetryConfig {
-    /// Create a configuration for network operations
+    
     pub fn network() -> Self {
         Self {
             max_attempts: 5,
@@ -47,7 +47,7 @@ impl RetryConfig {
         }
     }
 
-    /// Create a configuration for TCP connections
+    
     pub fn tcp_connection() -> Self {
         Self {
             max_attempts: 6,
@@ -59,7 +59,7 @@ impl RetryConfig {
         }
     }
 
-    /// Create a configuration for WebSocket connections
+    
     pub fn websocket() -> Self {
         Self {
             max_attempts: 4,
@@ -71,7 +71,7 @@ impl RetryConfig {
         }
     }
 
-    /// Create a configuration for MCP operations
+    
     pub fn mcp_operations() -> Self {
         Self {
             max_attempts: 3,
@@ -84,7 +84,7 @@ impl RetryConfig {
     }
 }
 
-/// Error types that can occur during retry operations
+/
 #[derive(Debug, thiserror::Error)]
 pub enum RetryError<E> {
     #[error("All retry attempts exhausted. Last error: {0}")]
@@ -97,10 +97,10 @@ pub enum RetryError<E> {
     ResourceExhaustion(String),
 }
 
-/// Result of a retry operation
+/
 pub type RetryResult<T, E> = Result<T, RetryError<E>>;
 
-/// Trait for determining if an error is retryable
+/
 pub trait RetryableError {
     fn is_retryable(&self) -> bool;
     fn is_transient(&self) -> bool {
@@ -108,7 +108,7 @@ pub trait RetryableError {
     }
 }
 
-/// Default implementations for common error types
+/
 impl RetryableError for std::io::Error {
     fn is_retryable(&self) -> bool {
         match self.kind() {
@@ -119,7 +119,7 @@ impl RetryableError for std::io::Error {
             | std::io::ErrorKind::Interrupted
             | std::io::ErrorKind::WouldBlock
             | std::io::ErrorKind::UnexpectedEof
-            | std::io::ErrorKind::BrokenPipe => true, // Broken pipe is retryable for TCP connections
+            | std::io::ErrorKind::BrokenPipe => true, 
             _ => false,
         }
     }
@@ -127,7 +127,7 @@ impl RetryableError for std::io::Error {
 
 impl RetryableError for tokio::time::error::Elapsed {
     fn is_retryable(&self) -> bool {
-        true // Timeouts are generally retryable
+        true 
     }
 }
 
@@ -155,25 +155,25 @@ where
 // Implementation for Arc<dyn std::error::Error + Send + Sync>
 impl RetryableError for std::sync::Arc<dyn std::error::Error + Send + Sync> {
     fn is_retryable(&self) -> bool {
-        // For generic errors, we can only make conservative assumptions
-        // In practice, this would check for specific error types
-        true // Default to retryable for network resilience
+        
+        
+        true 
     }
 }
 
-/// Calculate the next delay with exponential backoff and jitter
+/
 fn calculate_delay(config: &RetryConfig, attempt: usize) -> Duration {
     if attempt == 0 {
-        return Duration::from_millis(0); // No delay for first attempt
+        return Duration::from_millis(0); 
     }
 
     let base_delay = config.initial_delay.as_millis() as f64;
     let exponential_delay = base_delay * config.backoff_multiplier.powi((attempt - 1) as i32);
 
-    // Apply maximum delay cap
+    
     let capped_delay = exponential_delay.min(config.max_delay.as_millis() as f64);
 
-    // Add jitter to prevent thundering herd
+    
     let jitter = if config.jitter_factor > 0.0 {
         let mut rng = rand::thread_rng();
         let jitter_amount = capped_delay * config.jitter_factor;
@@ -186,7 +186,7 @@ fn calculate_delay(config: &RetryConfig, attempt: usize) -> Duration {
     Duration::from_millis(final_delay)
 }
 
-/// Retry a future operation with exponential backoff and resource monitoring
+/
 pub async fn retry_with_backoff<F, Fut, T, E>(
     config: RetryConfig,
     mut operation: F,
@@ -201,7 +201,7 @@ where
     for attempt in 0..config.max_attempts {
         debug!("Retry attempt {} of {}", attempt + 1, config.max_attempts);
 
-        // Check system resources before attempting operation
+        
         if let Err(resource_error) = check_system_resources().await {
             warn!(
                 "System resources exhausted, aborting retry: {:?}",
@@ -226,7 +226,7 @@ where
                     return Err(RetryError::AllAttemptsFailed(error));
                 }
 
-                // Check if error is due to resource exhaustion
+                
                 if is_resource_exhaustion_error(&error) {
                     error!(
                         "Resource exhaustion detected, aborting retries: {:?}",
@@ -257,18 +257,18 @@ where
         }
     }
 
-    // This should never be reached due to the loop logic above, but included for safety
+    
     Err(RetryError::AllAttemptsFailed(
         last_error.expect("Should have at least one error"),
     ))
 }
 
-/// Check system resources to prevent resource exhaustion
+/
 async fn check_system_resources() -> Result<(), String> {
-    // Check available file descriptors
+    
     if let Ok(fd_count) = count_open_file_descriptors() {
-        const FD_WARNING_THRESHOLD: usize = 800; // Warning at 80% of typical limit
-        const FD_ERROR_THRESHOLD: usize = 950; // Error at 95% of typical limit
+        const FD_WARNING_THRESHOLD: usize = 800; 
+        const FD_ERROR_THRESHOLD: usize = 950; 
 
         if fd_count > FD_ERROR_THRESHOLD {
             return Err(format!(
@@ -283,7 +283,7 @@ async fn check_system_resources() -> Result<(), String> {
         }
     }
 
-    // Check available memory (basic check)
+    
     #[cfg(target_os = "linux")]
     if let Ok(meminfo) = std::fs::read_to_string("/proc/meminfo") {
         if let Some(available_line) = meminfo
@@ -292,7 +292,7 @@ async fn check_system_resources() -> Result<(), String> {
         {
             if let Some(available_kb) = available_line.split_whitespace().nth(1) {
                 if let Ok(available_kb) = available_kb.parse::<u64>() {
-                    const MIN_AVAILABLE_MB: u64 = 100; // Minimum 100MB available
+                    const MIN_AVAILABLE_MB: u64 = 100; 
                     let available_mb = available_kb / 1024;
                     if available_mb < MIN_AVAILABLE_MB {
                         return Err(format!("Low memory: {}MB available", available_mb));
@@ -305,25 +305,25 @@ async fn check_system_resources() -> Result<(), String> {
     Ok(())
 }
 
-/// Count currently open file descriptors for this process
+/
 fn count_open_file_descriptors() -> Result<usize, std::io::Error> {
     #[cfg(target_os = "linux")]
     {
         use std::fs;
         match fs::read_dir("/proc/self/fd") {
-            Ok(entries) => Ok(entries.count().saturating_sub(1)), // Subtract 1 for the dir handle
+            Ok(entries) => Ok(entries.count().saturating_sub(1)), 
             Err(e) => Err(e),
         }
     }
 
     #[cfg(not(target_os = "linux"))]
     {
-        // For non-Linux systems, return a conservative estimate
+        
         Ok(10)
     }
 }
 
-/// Check if an error indicates resource exhaustion
+/
 fn is_resource_exhaustion_error<E: std::fmt::Debug>(error: &E) -> bool {
     let error_str = format!("{:?}", error).to_lowercase();
     error_str.contains("too many open files")
@@ -334,7 +334,7 @@ fn is_resource_exhaustion_error<E: std::fmt::Debug>(error: &E) -> bool {
         || error_str.contains("emfile")
 }
 
-/// Convenience function for retrying operations with default network configuration
+/
 pub async fn retry_network_operation<F, Fut, T, E>(operation: F) -> RetryResult<T, E>
 where
     F: FnMut() -> Fut,
@@ -344,7 +344,7 @@ where
     retry_with_backoff(RetryConfig::network(), operation).await
 }
 
-/// Convenience function for retrying TCP connections
+/
 pub async fn retry_tcp_connection<F, Fut, T, E>(operation: F) -> RetryResult<T, E>
 where
     F: FnMut() -> Fut,
@@ -354,7 +354,7 @@ where
     retry_with_backoff(RetryConfig::tcp_connection(), operation).await
 }
 
-/// Convenience function for retrying WebSocket operations
+/
 pub async fn retry_websocket_operation<F, Fut, T, E>(operation: F) -> RetryResult<T, E>
 where
     F: FnMut() -> Fut,
@@ -364,7 +364,7 @@ where
     retry_with_backoff(RetryConfig::websocket(), operation).await
 }
 
-/// Convenience function for retrying MCP operations
+/
 pub async fn retry_mcp_operation<F, Fut, T, E>(operation: F) -> RetryResult<T, E>
 where
     F: FnMut() -> Fut,
@@ -374,7 +374,7 @@ where
     retry_with_backoff(RetryConfig::mcp_operations(), operation).await
 }
 
-/// Wrapper for retrying operations with timeout
+/
 pub async fn retry_with_timeout<F, Fut, T, E>(
     config: RetryConfig,
     timeout: Duration,
@@ -505,7 +505,7 @@ mod tests {
             initial_delay: Duration::from_millis(100),
             max_delay: Duration::from_secs(10),
             backoff_multiplier: 2.0,
-            jitter_factor: 0.0, // No jitter for predictable testing
+            jitter_factor: 0.0, 
             ..Default::default()
         };
 

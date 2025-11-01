@@ -21,13 +21,13 @@ use crate::ports::ontology_repository::{
     ValidationReport,
 };
 
-/// Unified database repository implementing OntologyRepository
+/
 pub struct UnifiedOntologyRepository {
     conn: Arc<Mutex<Connection>>,
 }
 
 impl UnifiedOntologyRepository {
-    /// Create new unified ontology repository
+    
     pub fn new(db_path: &str) -> Result<Self, String> {
         let conn =
             Connection::open(db_path).map_err(|e| format!("Failed to open unified database: {}", e))?;
@@ -44,17 +44,17 @@ impl UnifiedOntologyRepository {
         })
     }
 
-    /// Create unified ontology schema
-    ///
-    /// CRITICAL: Schema is managed by migration/unified_schema.sql
-    /// This function is a no-op since schema is applied during database initialization
+    
+    
+    
+    
     fn create_schema(_conn: &Connection) -> Result<(), String> {
-        // Schema is pre-applied from migration/unified_schema.sql during database initialization
-        // No need to create schema here - tables already exist
+        
+        
         Ok(())
     }
 
-    /// Convert axiom type string to enum
+    
     fn parse_axiom_type(s: &str) -> Result<AxiomType, String> {
         match s {
             "SubClassOf" => Ok(AxiomType::SubClassOf),
@@ -66,7 +66,7 @@ impl UnifiedOntologyRepository {
         }
     }
 
-    /// Convert axiom type enum to string
+    
     fn axiom_type_to_str(axiom_type: &AxiomType) -> &'static str {
         match axiom_type {
             AxiomType::SubClassOf => "SubClassOf",
@@ -77,7 +77,7 @@ impl UnifiedOntologyRepository {
         }
     }
 
-    /// Convert property type string to enum
+    
     fn parse_property_type(s: &str) -> Result<PropertyType, String> {
         match s {
             "ObjectProperty" => Ok(PropertyType::ObjectProperty),
@@ -87,7 +87,7 @@ impl UnifiedOntologyRepository {
         }
     }
 
-    /// Convert property type enum to string
+    
     fn property_type_to_str(property_type: &PropertyType) -> &'static str {
         match property_type {
             PropertyType::ObjectProperty => "ObjectProperty",
@@ -104,7 +104,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
         let classes = self.list_owl_classes().await?;
         let mut graph = GraphData::new();
 
-        // Create nodes for each OWL class
+        
         for (i, class) in classes.iter().enumerate() {
             let mut node = Node::new_with_id(class.iri.clone(), Some(i as u32));
             node.label = class.label.clone().unwrap_or_else(|| class.iri.clone());
@@ -117,7 +117,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
             graph.nodes.push(node);
         }
 
-        // Create edges for subclass relationships
+        
         for (i, class) in classes.iter().enumerate() {
             for parent_iri in &class.parent_classes {
                 if let Some((j, _)) = classes
@@ -141,7 +141,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
     }
 
     async fn save_ontology_graph(&self, _graph: &GraphData) -> RepoResult<()> {
-        // Ontology graph is derived from OWL data, not directly saved
+        
         Ok(())
     }
 
@@ -162,7 +162,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
                 .lock()
                 .expect("Failed to acquire unified ontology repository mutex");
 
-            // Disable foreign keys for bulk insert
+            
             conn.execute("PRAGMA foreign_keys = OFF", [])
                 .map_err(|e| {
                     OntologyRepositoryError::DatabaseError(format!(
@@ -178,7 +178,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
                 ))
             })?;
 
-            // Clear existing data
+            
             conn.execute("DELETE FROM owl_class_hierarchy", [])
                 .map_err(|e| {
                     OntologyRepositoryError::DatabaseError(format!(
@@ -200,7 +200,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
                 OntologyRepositoryError::DatabaseError(format!("Failed to clear classes: {}", e))
             })?;
 
-            // Insert classes
+            
             let mut class_stmt = conn
                 .prepare(
                     "INSERT INTO owl_classes (ontology_id, iri, label, description, file_sha1)
@@ -230,7 +230,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
                     })?;
             }
 
-            // Insert class hierarchies
+            
             let mut hierarchy_stmt = conn
                 .prepare("INSERT INTO owl_class_hierarchy (class_iri, parent_iri) VALUES (?1, ?2)")
                 .map_err(|e| {
@@ -253,7 +253,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
                 }
             }
 
-            // Insert properties
+            
             let mut prop_stmt = conn
                 .prepare(
                     "INSERT INTO owl_properties (ontology_id, iri, label, property_type, domain, range)
@@ -287,7 +287,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
                     })?;
             }
 
-            // Insert axioms
+            
             let mut axiom_stmt = conn
                 .prepare(
                     "INSERT INTO owl_axioms (ontology_id, axiom_type, subject, object, annotations)
@@ -323,7 +323,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
                 OntologyRepositoryError::DatabaseError(format!("Failed to commit transaction: {}", e))
             })?;
 
-            // Re-enable foreign keys
+            
             conn.execute("PRAGMA foreign_keys = ON", [])
                 .map_err(|e| {
                     OntologyRepositoryError::DatabaseError(format!(
@@ -370,13 +370,13 @@ impl OntologyRepository for UnifiedOntologyRepository {
                 OntologyRepositoryError::DatabaseError(format!("Failed to insert OWL class: {}", e))
             })?;
 
-            // Insert parent relationships
+            
             for parent_iri in &class.parent_classes {
                 conn.execute(
                     "INSERT INTO owl_class_hierarchy (class_iri, parent_iri) VALUES (?1, ?2)",
                     params![&class.iri, parent_iri],
                 )
-                .ok(); // Ignore duplicates
+                .ok(); 
             }
 
             debug!("Added OWL class {} to unified database", class.iri);
@@ -415,7 +415,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
                             iri,
                             label,
                             description,
-                            parent_classes: Vec::new(), // Will be populated below
+                            parent_classes: Vec::new(), 
                             properties: HashMap::new(),
                             source_file: None,
                             markdown_content,
@@ -430,7 +430,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
                 })?;
 
             if let Some(mut class) = class_opt {
-                // Get parent classes
+                
                 let mut parent_stmt = conn
                     .prepare("SELECT parent_iri FROM owl_class_hierarchy WHERE class_iri = ?1")
                     .map_err(|e| {
@@ -502,7 +502,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
                         iri,
                         label,
                         description,
-                        parent_classes: Vec::new(), // Will be populated below
+                        parent_classes: Vec::new(), 
                         properties: HashMap::new(),
                         source_file: None,
                         markdown_content,
@@ -521,7 +521,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
                     ))
                 })?;
 
-            // Populate parent classes for each class
+            
             let mut parent_stmt = conn
                 .prepare("SELECT parent_iri FROM owl_class_hierarchy WHERE class_iri = ?1")
                 .map_err(|e| {
@@ -561,7 +561,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
         .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Task join error: {}", e)))?
     }
 
-    // Implement remaining methods (abbreviated for space)
+    
     async fn add_owl_property(&self, _property: &OwlProperty) -> RepoResult<String> {
         todo!("Implement add_owl_property")
     }
@@ -571,7 +571,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
     }
 
     async fn list_owl_properties(&self) -> RepoResult<Vec<OwlProperty>> {
-        Ok(Vec::new()) // Stub
+        Ok(Vec::new()) 
     }
 
     async fn get_classes(&self) -> RepoResult<Vec<OwlClass>> {
@@ -643,15 +643,15 @@ impl OntologyRepository for UnifiedOntologyRepository {
     }
 
     async fn get_class_axioms(&self, _class_iri: &str) -> RepoResult<Vec<OwlAxiom>> {
-        Ok(Vec::new()) // Stub
+        Ok(Vec::new()) 
     }
 
     async fn store_inference_results(&self, _results: &InferenceResults) -> RepoResult<()> {
-        Ok(()) // Stub
+        Ok(()) 
     }
 
     async fn get_inference_results(&self) -> RepoResult<Option<InferenceResults>> {
-        Ok(None) // Stub
+        Ok(None) 
     }
 
     async fn validate_ontology(&self) -> RepoResult<ValidationReport> {
@@ -664,7 +664,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
     }
 
     async fn query_ontology(&self, _query: &str) -> RepoResult<Vec<HashMap<String, String>>> {
-        Ok(Vec::new()) // Stub
+        Ok(Vec::new()) 
     }
 
     async fn get_metrics(&self) -> RepoResult<OntologyMetrics> {
@@ -676,32 +676,32 @@ impl OntologyRepository for UnifiedOntologyRepository {
             class_count: classes.len(),
             property_count: properties.len(),
             axiom_count: axioms.len(),
-            max_depth: 10,    // TODO: Calculate actual depth
-            average_branching_factor: 2.5, // TODO: Calculate actual
+            max_depth: 10,    
+            average_branching_factor: 2.5, 
         })
     }
 
     async fn cache_sssp_result(&self, _entry: &PathfindingCacheEntry) -> RepoResult<()> {
-        Ok(()) // Stub
+        Ok(()) 
     }
 
     async fn get_cached_sssp(
         &self,
         _source_node_id: u32,
     ) -> RepoResult<Option<PathfindingCacheEntry>> {
-        Ok(None) // Stub
+        Ok(None) 
     }
 
     async fn cache_apsp_result(&self, _distance_matrix: &Vec<Vec<f32>>) -> RepoResult<()> {
-        Ok(()) // Stub
+        Ok(()) 
     }
 
     async fn get_cached_apsp(&self) -> RepoResult<Option<Vec<Vec<f32>>>> {
-        Ok(None) // Stub
+        Ok(None) 
     }
 
     async fn invalidate_pathfinding_caches(&self) -> RepoResult<()> {
-        Ok(()) // Stub
+        Ok(()) 
     }
 }
 

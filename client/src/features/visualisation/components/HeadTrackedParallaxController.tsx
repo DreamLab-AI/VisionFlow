@@ -30,7 +30,7 @@ export function HeadTrackedParallaxController() {
   useFrame(() => {
     if (isTracking && headPosition && camera instanceof THREE.PerspectiveCamera) {
       if (cameraMode === 'asymmetricFrustum') {
-        // Asymmetric frustum approach - more realistic parallax
+        
         const virtualScreenScale = 1.0 + sensitivity * 0.5;
         const fullWidth = size.width * virtualScreenScale;
         const fullHeight = size.height * virtualScreenScale;
@@ -48,7 +48,7 @@ export function HeadTrackedParallaxController() {
         );
         camera.updateProjectionMatrix();
       } else {
-        // Offset mode - simpler parallax (may conflict with OrbitControls)
+        
         const offsetX = headPosition.x * sensitivity * -0.5;
         const offsetY = headPosition.y * sensitivity * 0.5;
 
@@ -57,7 +57,7 @@ export function HeadTrackedParallaxController() {
         camera.projectionMatrix.multiply(nudgeMatrix);
       }
     } else {
-      // Clear view offset when not tracking
+      
       if (camera instanceof THREE.PerspectiveCamera && camera.view) {
         camera.clearViewOffset();
         camera.updateProjectionMatrix();

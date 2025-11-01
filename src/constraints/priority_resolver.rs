@@ -4,7 +4,7 @@
 use super::physics_constraint::*;
 use std::collections::HashMap;
 
-/// Node pair identifier for grouping conflicting constraints
+/
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NodePair {
     pub node1: NodeId,
@@ -12,7 +12,7 @@ pub struct NodePair {
 }
 
 impl NodePair {
-    /// Create a new node pair (order-independent)
+    
     pub fn new(node1: NodeId, node2: NodeId) -> Self {
         if node1 <= node2 {
             Self { node1, node2 }
@@ -21,13 +21,13 @@ impl NodePair {
         }
     }
 
-    /// Check if this pair contains the given node
+    
     pub fn contains(&self, node: NodeId) -> bool {
         self.node1 == node || self.node2 == node
     }
 }
 
-/// Grouped constraints for the same node pair
+/
 #[derive(Debug, Clone)]
 pub struct ConstraintGroup {
     pub node_pair: NodePair,
@@ -35,7 +35,7 @@ pub struct ConstraintGroup {
 }
 
 impl ConstraintGroup {
-    /// Create a new constraint group
+    
     pub fn new(node_pair: NodePair) -> Self {
         Self {
             node_pair,
@@ -43,29 +43,29 @@ impl ConstraintGroup {
         }
     }
 
-    /// Add a constraint to this group
+    
     pub fn add_constraint(&mut self, constraint: PhysicsConstraint) {
         self.constraints.push(constraint);
     }
 
-    /// Check if there are conflicts (multiple constraints for same pair)
+    
     pub fn has_conflicts(&self) -> bool {
         self.constraints.len() > 1
     }
 
-    /// Get the highest priority constraint (user overrides)
+    
     pub fn get_highest_priority(&self) -> Option<&PhysicsConstraint> {
         self.constraints
             .iter()
-            .min_by_key(|c| c.priority) // Lower priority number = higher importance
+            .min_by_key(|c| c.priority) 
     }
 
-    /// Check if any constraint is user-defined
+    
     pub fn has_user_defined(&self) -> bool {
         self.constraints.iter().any(|c| c.user_defined)
     }
 
-    /// Calculate total weight for all constraints
+    
     pub fn total_weight(&self) -> f32 {
         self.constraints
             .iter()
@@ -74,30 +74,30 @@ impl ConstraintGroup {
     }
 }
 
-/// Priority resolver for constraint conflicts
+/
 pub struct PriorityResolver {
-    /// Group constraints by node pair
+    
     constraint_groups: HashMap<NodePair, ConstraintGroup>,
 }
 
 impl PriorityResolver {
-    /// Create a new priority resolver
+    
     pub fn new() -> Self {
         Self {
             constraint_groups: HashMap::new(),
         }
     }
 
-    /// Add constraints to the resolver
+    
     pub fn add_constraints(&mut self, constraints: Vec<PhysicsConstraint>) {
         for constraint in constraints {
             self.add_constraint(constraint);
         }
     }
 
-    /// Add a single constraint to the resolver
+    
     pub fn add_constraint(&mut self, constraint: PhysicsConstraint) {
-        // For pairwise constraints (Separation, Clustering, Colocation)
+        
         if constraint.nodes.len() == 2 {
             let pair = NodePair::new(constraint.nodes[0], constraint.nodes[1]);
             self.constraint_groups
@@ -105,10 +105,10 @@ impl PriorityResolver {
                 .or_insert_with(|| ConstraintGroup::new(pair))
                 .add_constraint(constraint);
         } else {
-            // For multi-node constraints (Boundary, HierarchicalLayer, Containment)
-            // Create individual entries for each node
+            
+            
             for &node in &constraint.nodes {
-                // Use a synthetic pair (node, node) for single-node constraints
+                
                 let pair = NodePair::new(node, node);
                 self.constraint_groups
                     .entry(pair)
@@ -118,10 +118,10 @@ impl PriorityResolver {
         }
     }
 
-    /// Resolve all conflicts and return final constraints
-    /// Strategy:
-    /// 1. User-defined constraints always win (priority 1)
-    /// 2. Otherwise, use weighted blending based on priority weights
+    
+    
+    
+    
     pub fn resolve(&self) -> Vec<PhysicsConstraint> {
         self.constraint_groups
             .values()
@@ -129,33 +129,33 @@ impl PriorityResolver {
             .collect()
     }
 
-    /// Resolve a single constraint group
+    
     fn resolve_group(&self, group: &ConstraintGroup) -> Option<PhysicsConstraint> {
         if group.constraints.is_empty() {
             return None;
         }
 
-        // If only one constraint, return it
+        
         if group.constraints.len() == 1 {
             return Some(group.constraints[0].clone());
         }
 
-        // If any constraint is user-defined, use highest priority (lowest number)
+        
         if group.has_user_defined() {
             return group.get_highest_priority().cloned();
         }
 
-        // Otherwise, use weighted blending
+        
         self.blend_constraints(&group.constraints)
     }
 
-    /// Blend multiple constraints using priority-weighted averaging
+    
     fn blend_constraints(&self, constraints: &[PhysicsConstraint]) -> Option<PhysicsConstraint> {
         if constraints.is_empty() {
             return None;
         }
 
-        // Group by constraint type (can only blend same types)
+        
         let mut separation_constraints = Vec::new();
         let mut clustering_constraints = Vec::new();
         let mut colocation_constraints = Vec::new();
@@ -186,7 +186,7 @@ impl PriorityResolver {
             }
         }
 
-        // Blend the largest group (most constraints of same type)
+        
         let groups = [
             (separation_constraints.len(), separation_constraints),
             (clustering_constraints.len(), clustering_constraints),
@@ -204,7 +204,7 @@ impl PriorityResolver {
         self.blend_same_type_constraints(largest_group)
     }
 
-    /// Blend constraints of the same type using weighted averaging
+    
     fn blend_same_type_constraints(
         &self,
         constraints: &[&PhysicsConstraint],
@@ -284,7 +284,7 @@ impl PriorityResolver {
             }
 
             PhysicsConstraintType::Containment { .. } => {
-                // For containment, use highest priority (can't blend parent node)
+                
                 Some(
                     constraints
                         .iter()
@@ -296,7 +296,7 @@ impl PriorityResolver {
         }
     }
 
-    /// Blend distance and strength parameters
+    
     fn blend_distance_strength(
         &self,
         constraints: &[&PhysicsConstraint],
@@ -330,7 +330,7 @@ impl PriorityResolver {
         )
     }
 
-    /// Blend boundary parameters
+    
     fn blend_boundary(
         &self,
         constraints: &[&PhysicsConstraint],
@@ -358,7 +358,7 @@ impl PriorityResolver {
         (blended_bounds, blended_strength)
     }
 
-    /// Blend hierarchical layer parameters
+    
     fn blend_hierarchical(
         &self,
         constraints: &[&PhysicsConstraint],
@@ -380,7 +380,7 @@ impl PriorityResolver {
         (blended_z / total_weight, blended_strength / total_weight)
     }
 
-    /// Calculate average priority (weighted by priority weights)
+    
     fn calculate_average_priority(&self, constraints: &[&PhysicsConstraint]) -> u8 {
         let total_weight: f32 = constraints.iter().map(|c| c.priority_weight()).sum();
 
@@ -396,12 +396,12 @@ impl PriorityResolver {
         (weighted_priority / total_weight).round() as u8
     }
 
-    /// Get all constraint groups
+    
     pub fn get_groups(&self) -> Vec<&ConstraintGroup> {
         self.constraint_groups.values().collect()
     }
 
-    /// Get conflicts (groups with multiple constraints)
+    
     pub fn get_conflicts(&self) -> Vec<&ConstraintGroup> {
         self.constraint_groups
             .values()
@@ -409,7 +409,7 @@ impl PriorityResolver {
             .collect()
     }
 
-    /// Clear all constraints
+    
     pub fn clear(&mut self) {
         self.constraint_groups.clear();
     }
@@ -430,7 +430,7 @@ mod tests {
         let pair1 = NodePair::new(1, 2);
         let pair2 = NodePair::new(2, 1);
 
-        assert_eq!(pair1, pair2); // Order-independent
+        assert_eq!(pair1, pair2); 
         assert!(pair1.contains(1));
         assert!(pair1.contains(2));
         assert!(!pair1.contains(3));
@@ -461,7 +461,7 @@ mod tests {
         let resolved = resolver.resolve();
         assert_eq!(resolved.len(), 1);
 
-        // User-defined constraint should win
+        
         match &resolved[0].constraint_type {
             PhysicsConstraintType::Separation { min_distance, .. } => {
                 assert_eq!(*min_distance, 20.0);
@@ -474,8 +474,8 @@ mod tests {
     fn test_weighted_blending() {
         let mut resolver = PriorityResolver::new();
 
-        let constraint1 = PhysicsConstraint::separation(vec![1, 2], 10.0, 0.5, 1); // weight = 1.0
-        let constraint2 = PhysicsConstraint::separation(vec![1, 2], 20.0, 0.7, 5); // weight ≈ 0.5
+        let constraint1 = PhysicsConstraint::separation(vec![1, 2], 10.0, 0.5, 1); 
+        let constraint2 = PhysicsConstraint::separation(vec![1, 2], 20.0, 0.7, 5); 
 
         resolver.add_constraints(vec![constraint1, constraint2]);
 
@@ -484,7 +484,7 @@ mod tests {
 
         match &resolved[0].constraint_type {
             PhysicsConstraintType::Separation { min_distance, .. } => {
-                // Blended: (1.0*10.0 + 0.5*20.0) / (1.0 + 0.5) ≈ 13.33
+                
                 assert!(*min_distance > 10.0 && *min_distance < 20.0);
             }
             _ => panic!("Wrong type"),
@@ -538,7 +538,7 @@ mod tests {
 
         match &resolved[0].constraint_type {
             PhysicsConstraintType::Boundary { bounds, .. } => {
-                // Blended bounds should be between bounds1 and bounds2
+                
                 assert!(bounds[0] > -20.0 && bounds[0] < -10.0);
             }
             _ => panic!("Wrong type"),
@@ -565,6 +565,6 @@ mod tests {
         resolver.add_constraint(PhysicsConstraint::separation(vec![3, 4], 15.0, 0.6, 5));
 
         let conflicts = resolver.get_conflicts();
-        assert_eq!(conflicts.len(), 1); // Only (1,2) has conflict
+        assert_eq!(conflicts.len(), 1); 
     }
 }

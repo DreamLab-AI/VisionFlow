@@ -22,7 +22,7 @@ use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
-/// HTTP client for Management API
+/
 #[derive(Clone)]
 pub struct ManagementApiClient {
     base_url: String,
@@ -30,7 +30,7 @@ pub struct ManagementApiClient {
     client: Client,
 }
 
-/// Task creation response from Management API
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TaskResponse {
@@ -42,7 +42,7 @@ pub struct TaskResponse {
     pub start_time: Option<u64>,
 }
 
-/// Task status response from Management API
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TaskStatus {
@@ -60,7 +60,7 @@ pub struct TaskStatus {
     pub log_tail: Option<String>,
 }
 
-/// Task state enum
+/
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum TaskState {
@@ -69,7 +69,7 @@ pub enum TaskState {
     Failed,
 }
 
-/// Task information in list response
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TaskInfo {
@@ -82,7 +82,7 @@ pub struct TaskInfo {
     pub duration: u64,
 }
 
-/// List tasks response
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TaskListResponse {
@@ -90,7 +90,7 @@ pub struct TaskListResponse {
     pub count: usize,
 }
 
-/// System status response
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SystemStatus {
     pub timestamp: String,
@@ -119,7 +119,7 @@ pub struct GpuStatus {
     pub gpus: Option<Vec<serde_json::Value>>,
 }
 
-/// Management API errors
+/
 #[derive(Debug)]
 pub enum ManagementApiError {
     NetworkError(String),
@@ -146,13 +146,13 @@ impl std::fmt::Display for ManagementApiError {
 impl std::error::Error for ManagementApiError {}
 
 impl ManagementApiClient {
-    /// Create a new Management API client
-    ///
-    /// # Arguments
-    ///
-    /// * `host` - Hostname of management API (e.g., "agentic-workstation")
-    /// * `port` - Port number (typically 9090)
-    /// * `api_key` - Bearer token for authentication
+    
+    
+    
+    
+    
+    
+    
     pub fn new(host: String, port: u16, api_key: String) -> Self {
         let base_url = format!("http://{}:{}", host, port);
 
@@ -174,13 +174,13 @@ impl ManagementApiClient {
         }
     }
 
-    /// Create task via Management API
-    ///
-    /// # Arguments
-    ///
-    /// * `agent` - Agent type (e.g., "coder", "claude-flow")
-    /// * `task` - Task description
-    /// * `provider` - AI provider (e.g., "gemini", "openai", "claude")
+    
+    
+    
+    
+    
+    
+    
     pub async fn create_task(
         &self,
         agent: &str,
@@ -232,7 +232,7 @@ impl ManagementApiClient {
         }
     }
 
-    /// Get task status
+    
     pub async fn get_task_status(&self, task_id: &str) -> Result<TaskStatus, ManagementApiError> {
         let url = format!("{}/v1/tasks/{}", self.base_url, task_id);
 
@@ -263,7 +263,7 @@ impl ManagementApiClient {
         }
     }
 
-    /// List all active tasks
+    
     pub async fn list_tasks(&self) -> Result<TaskListResponse, ManagementApiError> {
         let url = format!("{}/v1/tasks", self.base_url);
 
@@ -294,7 +294,7 @@ impl ManagementApiClient {
         }
     }
 
-    /// Stop a running task
+    
     pub async fn stop_task(&self, task_id: &str) -> Result<(), ManagementApiError> {
         let url = format!("{}/v1/tasks/{}", self.base_url, task_id);
 
@@ -322,7 +322,7 @@ impl ManagementApiClient {
         }
     }
 
-    /// Get system status from Management API
+    
     pub async fn get_system_status(&self) -> Result<SystemStatus, ManagementApiError> {
         let url = format!("{}/v1/status", self.base_url);
 
@@ -353,7 +353,7 @@ impl ManagementApiClient {
         }
     }
 
-    /// Health check (no authentication required)
+    
     pub async fn health_check(&self) -> Result<bool, ManagementApiError> {
         let url = format!("{}/health", self.base_url);
 

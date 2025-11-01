@@ -1,7 +1,4 @@
-/**
- * Graph Worker Proxy
- * Main thread interface to the graph worker using Comlink
- */
+
 
 import { wrap, Remote } from 'comlink';
 import { GraphWorkerType } from '../workers/graph.worker';
@@ -45,9 +42,7 @@ export interface Vec3 {
 type GraphDataChangeListener = (data: GraphData) => void;
 type PositionUpdateListener = (positions: Float32Array) => void;
 
-/**
- * Proxy class that communicates with the graph worker
- */
+
 class GraphWorkerProxy {
   private static instance: GraphWorkerProxy;
   private worker: Worker | null = null;
@@ -56,7 +51,7 @@ class GraphWorkerProxy {
   private positionUpdateListeners: PositionUpdateListener[] = [];
   private sharedBuffer: SharedArrayBuffer | null = null;
   private isInitialized: boolean = false;
-  private graphType: 'logseq' | 'visionflow' = 'logseq'; // Graph type identifier
+  private graphType: 'logseq' | 'visionflow' = 'logseq'; 
 
   private constructor() {}
 
@@ -75,24 +70,24 @@ class GraphWorkerProxy {
     
     console.log('[GraphWorkerProxy] Starting worker initialization');
     try {
-      // Create worker instance
+      
       console.log('[GraphWorkerProxy] Creating worker');
       this.worker = new Worker(
         new URL('../workers/graph.worker.ts', import.meta.url),
         { type: 'module' }
       );
 
-      // Add error handler for worker
+      
       this.worker.onerror = (error) => {
         console.error('[GraphWorkerProxy] Worker error:', error);
         logger.error('Worker error:', error);
       };
 
       console.log('[GraphWorkerProxy] Wrapping worker with Comlink');
-      // Wrap worker with Comlink
+      
       this.workerApi = wrap<GraphWorkerType>(this.worker);
 
-      // Test worker communication
+      
       console.log('[GraphWorkerProxy] Testing worker communication');
       try {
         await this.workerApi.initialize();
@@ -102,9 +97,9 @@ class GraphWorkerProxy {
         throw new Error(`Worker communication failed: ${commError}`);
       }
 
-      // Set up shared array buffer for position data (4 floats per node * max 10k nodes)
+      
       const maxNodes = 10000;
-      const bufferSize = maxNodes * 4 * 4; // 4 floats * 4 bytes per float
+      const bufferSize = maxNodes * 4 * 4; 
 
       if (typeof SharedArrayBuffer !== 'undefined') {
         console.log('[GraphWorkerProxy] Setting up SharedArrayBuffer');
@@ -125,7 +120,7 @@ class GraphWorkerProxy {
         logger.info('Graph worker initialized successfully');
       }
 
-      // Set initial graph type
+      
       console.log(`[GraphWorkerProxy] Setting initial graph type: ${this.graphType}`);
       await this.setGraphType(this.graphType);
     } catch (error) {
@@ -135,9 +130,7 @@ class GraphWorkerProxy {
     }
   }
 
-  /**
-   * Set the graph type
-   */
+  
   public async setGraphType(type: 'logseq' | 'visionflow'): Promise<void> {
     if (!this.workerApi) {
       throw new Error('Worker not initialized');
@@ -151,16 +144,12 @@ class GraphWorkerProxy {
     }
   }
 
-  /**
-   * Get the current graph type
-   */
+  
   public getGraphType(): 'logseq' | 'visionflow' {
     return this.graphType;
   }
 
-  /**
-   * Set graph data in the worker
-   */
+  
   public async setGraphData(data: GraphData): Promise<void> {
     if (!this.workerApi) {
       throw new Error('Worker not initialized');
@@ -174,11 +163,9 @@ class GraphWorkerProxy {
     }
   }
 
-  /**
-   * Process binary data through the worker (with decompression)
-   */
+  
   public async processBinaryData(data: ArrayBuffer): Promise<void> {
-    // Only process binary data for Logseq graphs
+    
     if (this.graphType !== 'logseq') {
       if (debugState.isDataDebugEnabled()) {
         logger.debug(`Skipping binary data processing for ${this.graphType} graph`);
@@ -202,9 +189,7 @@ class GraphWorkerProxy {
     }
   }
 
-  /**
-   * Get current graph data from worker
-   */
+  
   public async getGraphData(): Promise<GraphData> {
     if (!this.workerApi) {
       console.error('[GraphWorkerProxy] Worker not initialized for getGraphData');
@@ -221,9 +206,7 @@ class GraphWorkerProxy {
     }
   }
 
-  /**
-   * Add or update a node in the worker
-   */
+  
   public async updateNode(node: Node): Promise<void> {
     if (!this.workerApi) {
       throw new Error('Worker not initialized');
@@ -231,14 +214,12 @@ class GraphWorkerProxy {
 
     await this.workerApi.updateNode(node);
 
-    // Get updated data and notify listeners
+    
     const graphData = await this.workerApi.getGraphData();
     this.notifyGraphDataListeners(graphData);
   }
 
-  /**
-   * Remove a node from the worker
-   */
+  
   public async removeNode(nodeId: string): Promise<void> {
     if (!this.workerApi) {
       throw new Error('Worker not initialized');
@@ -246,7 +227,7 @@ class GraphWorkerProxy {
 
     await this.workerApi.removeNode(nodeId);
 
-    // Get updated data and notify listeners
+    
     const graphData = await this.workerApi.getGraphData();
     this.notifyGraphDataListeners(graphData);
   }
@@ -286,9 +267,7 @@ class GraphWorkerProxy {
     return await this.workerApi.tick(deltaTime);
   }
 
-  /**
-   * Get shared array buffer view for position data
-   */
+  
   public getSharedPositionBuffer(): Float32Array | null {
     if (!this.sharedBuffer) {
       return null;
@@ -296,40 +275,32 @@ class GraphWorkerProxy {
     return new Float32Array(this.sharedBuffer);
   }
 
-  /**
-   * Add listener for graph data changes
-   */
+  
   public onGraphDataChange(listener: GraphDataChangeListener): () => void {
     this.graphDataListeners.push(listener);
 
-    // Return unsubscribe function
+    
     return () => {
       this.graphDataListeners = this.graphDataListeners.filter(l => l !== listener);
     };
   }
 
-  /**
-   * Add listener for position updates
-   */
+  
   public onPositionUpdate(listener: PositionUpdateListener): () => void {
     this.positionUpdateListeners.push(listener);
 
-    // Return unsubscribe function
+    
     return () => {
       this.positionUpdateListeners = this.positionUpdateListeners.filter(l => l !== listener);
     };
   }
 
-  /**
-   * Check if worker is ready
-   */
+  
   public isReady(): boolean {
     return this.isInitialized && this.workerApi !== null;
   }
 
-  /**
-   * Dispose of worker resources
-   */
+  
   public dispose(): void {
     if (this.worker) {
       this.worker.terminate();

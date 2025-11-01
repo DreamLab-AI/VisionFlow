@@ -1,7 +1,4 @@
-/**
- * Graph Interaction Tab Component
- * Advanced interaction modes and controls with UK English localisation
- */
+
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
@@ -58,7 +55,7 @@ export const GraphInteractionTab: React.FC<GraphInteractionTabProps> = ({
   graphId = 'default',
   onFeatureUpdate
 }) => {
-  // Processing states
+  
   const [processingState, setProcessingState] = useState<ProcessingState>({
     taskId: null,
     isProcessing: false,
@@ -69,7 +66,7 @@ export const GraphInteractionTab: React.FC<GraphInteractionTabProps> = ({
   const [retryCount, setRetryCount] = useState(0);
   const maxRetries = 3;
 
-  // Time Travel states
+  
   const [timeTravelActive, setTimeTravelActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [totalSteps, setTotalSteps] = useState(0);
@@ -77,28 +74,28 @@ export const GraphInteractionTab: React.FC<GraphInteractionTabProps> = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [timeTravelTaskId, setTimeTravelTaskId] = useState<string | null>(null);
 
-  // Collaboration states
+  
   const [collaborationActive, setCollaborationActive] = useState(false);
   const [participantCount, setParticipantCount] = useState(1);
   const [sessionId, setSessionId] = useState<string>('');
   
-  // VR/AR states
+  
   const [vrModeActive, setVrModeActive] = useState(false);
   const [arModeActive, setArModeActive] = useState(false);
   const [handTrackingEnabled, setHandTrackingEnabled] = useState(false);
   const [hapticFeedback, setHapticFeedback] = useState(true);
   
-  // Exploration states
+  
   const [explorationMode, setExplorationMode] = useState(false);
   const [tourActive, setTourActive] = useState(false);
   const [currentTour, setCurrentTour] = useState<string>('');
   const [tourWaypoints, setTourWaypoints] = useState(0);
 
-  // Connection state tracking
+  
   const [wsConnected, setWsConnected] = useState(false);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Settings store for head tracking
+  
   const { settings, updateSettings } = useSettingsStore();
   const headTrackingEnabled = settings?.visualisation?.interaction?.headTrackedParallax?.enabled ?? false;
 
@@ -137,9 +134,9 @@ export const GraphInteractionTab: React.FC<GraphInteractionTabProps> = ({
     setTimeTravelActive(newState);
     
     if (newState) {
-      // Mock initialization with 10 steps
+      
       setTotalSteps(10);
-      setCurrentStep(10); // Start at current state
+      setCurrentStep(10); 
       onFeatureUpdate?.('timeTravel', { 
         enabled: true, 
         currentStep: 10, 
@@ -276,7 +273,7 @@ export const GraphInteractionTab: React.FC<GraphInteractionTabProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Head-Tracked Parallax */}
+      {}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -299,7 +296,7 @@ export const GraphInteractionTab: React.FC<GraphInteractionTabProps> = ({
         </CardContent>
       </Card>
 
-      {/* Time Travel Mode */}
+      {}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -387,7 +384,7 @@ export const GraphInteractionTab: React.FC<GraphInteractionTabProps> = ({
         </CardContent>
       </Card>
 
-      {/* Collaboration */}
+      {}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -453,7 +450,7 @@ export const GraphInteractionTab: React.FC<GraphInteractionTabProps> = ({
         </CardContent>
       </Card>
 
-      {/* VR/AR Modes */}
+      {}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -534,7 +531,7 @@ export const GraphInteractionTab: React.FC<GraphInteractionTabProps> = ({
         </CardContent>
       </Card>
 
-      {/* Exploration Tools */}
+      {}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">

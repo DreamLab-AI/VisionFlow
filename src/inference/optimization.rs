@@ -13,49 +13,49 @@ use serde::{Deserialize, Serialize};
 use crate::ports::inference_engine::{InferenceEngine, Result as EngineResult};
 use crate::ports::ontology_repository::{OwlClass, OwlAxiom, InferenceResults};
 
-/// Batch inference request
+/
 #[derive(Debug, Clone)]
 pub struct BatchInferenceRequest {
-    /// Ontology IDs to process
+    
     pub ontology_ids: Vec<String>,
 
-    /// Maximum parallel inference tasks
+    
     pub max_parallelism: usize,
 
-    /// Timeout per ontology (milliseconds)
+    
     pub timeout_ms: u64,
 }
 
-/// Incremental inference change
+/
 #[derive(Debug, Clone)]
 pub struct IncrementalChange {
-    /// Added classes
+    
     pub added_classes: Vec<OwlClass>,
 
-    /// Removed classes
+    
     pub removed_classes: Vec<OwlClass>,
 
-    /// Added axioms
+    
     pub added_axioms: Vec<OwlAxiom>,
 
-    /// Removed axioms
+    
     pub removed_axioms: Vec<OwlAxiom>,
 }
 
-/// Incremental inference tracker
+/
 pub struct IncrementalInference {
-    /// Previous ontology state checksum
+    
     previous_checksum: Option<String>,
 
-    /// Cached previous results
+    
     previous_results: Option<InferenceResults>,
 
-    /// Change buffer
+    
     changes: Vec<IncrementalChange>,
 }
 
 impl IncrementalInference {
-    /// Create new incremental inference tracker
+    
     pub fn new() -> Self {
         Self {
             previous_checksum: None,
@@ -64,27 +64,27 @@ impl IncrementalInference {
         }
     }
 
-    /// Add incremental change
+    
     pub fn add_change(&mut self, change: IncrementalChange) {
         self.changes.push(change);
     }
 
-    /// Check if incremental inference is possible
+    
     pub fn can_use_incremental(&self) -> bool {
         self.previous_results.is_some() && !self.changes.is_empty()
     }
 
-    /// Get accumulated changes
+    
     pub fn get_accumulated_changes(&self) -> Vec<IncrementalChange> {
         self.changes.clone()
     }
 
-    /// Clear changes after inference
+    
     pub fn clear_changes(&mut self) {
         self.changes.clear();
     }
 
-    /// Update state after inference
+    
     pub fn update_state(&mut self, checksum: String, results: InferenceResults) {
         self.previous_checksum = Some(checksum);
         self.previous_results = Some(results);
@@ -98,19 +98,19 @@ impl Default for IncrementalInference {
     }
 }
 
-/// Parallel classification for large ontologies
+/
 pub struct ParallelClassification {
-    /// Number of parallel workers
+    
     worker_count: usize,
 }
 
 impl ParallelClassification {
-    /// Create parallel classifier
+    
     pub fn new(worker_count: usize) -> Self {
         Self { worker_count }
     }
 
-    /// Classify multiple ontologies in parallel
+    
     pub async fn classify_batch(
         &self,
         engine: Arc<RwLock<dyn InferenceEngine>>,
@@ -141,7 +141,7 @@ impl ParallelClassification {
 
         let chunk_results = join_all(tasks).await;
 
-        // Merge results from all chunks
+        
         let mut final_results = HashMap::new();
         for result in chunk_results {
             if let Ok(chunk_map) = result {
@@ -153,30 +153,30 @@ impl ParallelClassification {
     }
 }
 
-/// Optimization metrics
+/
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct OptimizationMetrics {
-    /// Total inference time (milliseconds)
+    
     pub total_time_ms: u64,
 
-    /// Number of ontologies processed
+    
     pub ontologies_processed: usize,
 
-    /// Number of parallel tasks
+    
     pub parallel_tasks: usize,
 
-    /// Average time per ontology (milliseconds)
+    
     pub avg_time_per_ontology: f64,
 
-    /// Speedup factor vs sequential
+    
     pub speedup_factor: f64,
 
-    /// Cache hit rate
+    
     pub cache_hit_rate: f64,
 }
 
 impl OptimizationMetrics {
-    /// Calculate metrics
+    
     pub fn calculate(
         total_time_ms: u64,
         ontologies_processed: usize,
@@ -215,20 +215,20 @@ impl OptimizationMetrics {
     }
 }
 
-/// Inference optimizer
+/
 pub struct InferenceOptimizer {
-    /// Incremental inference tracker
+    
     incremental: Arc<RwLock<IncrementalInference>>,
 
-    /// Parallel classifier
+    
     parallel: ParallelClassification,
 
-    /// Optimization metrics
+    
     metrics: Arc<RwLock<OptimizationMetrics>>,
 }
 
 impl InferenceOptimizer {
-    /// Create new optimizer
+    
     pub fn new(worker_count: usize) -> Self {
         Self {
             incremental: Arc::new(RwLock::new(IncrementalInference::new())),
@@ -237,7 +237,7 @@ impl InferenceOptimizer {
         }
     }
 
-    /// Process batch inference request
+    
     pub async fn process_batch(
         &self,
         engine: Arc<RwLock<dyn InferenceEngine>>,
@@ -282,7 +282,7 @@ impl InferenceOptimizer {
 
         let elapsed = start.elapsed().as_millis() as u64;
 
-        // Update metrics
+        
         let mut metrics = self.metrics.write().await;
         metrics.total_time_ms = elapsed;
         metrics.ontologies_processed = request.ontology_ids.len();
@@ -292,18 +292,18 @@ impl InferenceOptimizer {
         Ok(final_results)
     }
 
-    /// Get optimization metrics
+    
     pub async fn get_metrics(&self) -> OptimizationMetrics {
         self.metrics.read().await.clone()
     }
 
-    /// Add incremental change
+    
     pub async fn add_change(&self, change: IncrementalChange) {
         let mut incr = self.incremental.write().await;
         incr.add_change(change);
     }
 
-    /// Check if can use incremental
+    
     pub async fn can_use_incremental(&self) -> bool {
         let incr = self.incremental.read().await;
         incr.can_use_incremental()
@@ -338,12 +338,12 @@ mod tests {
     #[test]
     fn test_optimization_metrics_calculation() {
         let metrics = OptimizationMetrics::calculate(
-            1000, // total time
-            10,   // ontologies
-            4,    // parallel tasks
-            5000, // baseline
-            80,   // cache hits
-            20,   // cache misses
+            1000, 
+            10,   
+            4,    
+            5000, 
+            80,   
+            20,   
         );
 
         assert_eq!(metrics.total_time_ms, 1000);

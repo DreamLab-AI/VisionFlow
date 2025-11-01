@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use uuid::Uuid;
 use validator::Validate;
 
-/// Workspace type enumeration
+/
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq)]
 pub enum WorkspaceType {
     #[serde(rename = "personal")]
@@ -24,7 +24,7 @@ impl Default for WorkspaceType {
     }
 }
 
-/// Workspace status enumeration
+/
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq)]
 pub enum WorkspaceStatus {
     #[serde(rename = "active")]
@@ -39,13 +39,13 @@ impl Default for WorkspaceStatus {
     }
 }
 
-/// Main workspace structure
+/
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Validate)]
 pub struct Workspace {
-    /// Unique identifier for the workspace
+    
     pub id: String,
 
-    /// Display name of the workspace
+    
     #[validate(length(
         min = 1,
         max = 100,
@@ -53,35 +53,35 @@ pub struct Workspace {
     ))]
     pub name: String,
 
-    /// Optional description of the workspace
+    
     #[validate(length(max = 500, message = "Description cannot exceed 500 characters"))]
     pub description: Option<String>,
 
-    /// Type of workspace (personal, team, public)
+    
     pub workspace_type: WorkspaceType,
 
-    /// Current status (active, archived)
+    
     pub status: WorkspaceStatus,
 
-    /// Number of members in the workspace
+    
     pub member_count: u32,
 
-    /// Whether this workspace is marked as favorite
+    
     pub is_favorite: bool,
 
-    /// Owner user ID
+    
     pub owner_id: Option<String>,
 
-    /// Additional metadata as key-value pairs (not exposed to TypeScript)
+    
     #[serde(skip_serializing_if = "HashMap::is_empty")]
     #[specta(skip)]
     pub metadata: HashMap<String, serde_json::Value>,
 
-    /// Creation timestamp (ISO 8601 string for TypeScript)
+    
     #[specta(type = String)]
     pub created_at: DateTime<Utc>,
 
-    /// Last modification timestamp (ISO 8601 string for TypeScript)
+    
     #[specta(type = String)]
     pub updated_at: DateTime<Utc>,
 }
@@ -106,7 +106,7 @@ impl Default for Workspace {
 }
 
 impl Workspace {
-    /// Create a new workspace with basic information
+    
     pub fn new(name: String, description: Option<String>, workspace_type: WorkspaceType) -> Self {
         let now = Utc::now();
         Self {
@@ -124,7 +124,7 @@ impl Workspace {
         }
     }
 
-    /// Update the workspace with new information
+    
     pub fn update(
         &mut self,
         name: Option<String>,
@@ -143,37 +143,37 @@ impl Workspace {
         self.updated_at = Utc::now();
     }
 
-    /// Toggle favorite status
+    
     pub fn toggle_favorite(&mut self) -> bool {
         self.is_favorite = !self.is_favorite;
         self.updated_at = Utc::now();
         self.is_favorite
     }
 
-    /// Archive the workspace
+    
     pub fn archive(&mut self) {
         self.status = WorkspaceStatus::Archived;
         self.updated_at = Utc::now();
     }
 
-    /// Unarchive the workspace
+    
     pub fn unarchive(&mut self) {
         self.status = WorkspaceStatus::Active;
         self.updated_at = Utc::now();
     }
 
-    /// Check if workspace is archived
+    
     pub fn is_archived(&self) -> bool {
         self.status == WorkspaceStatus::Archived
     }
 
-    /// Add metadata entry
+    
     pub fn set_metadata(&mut self, key: String, value: serde_json::Value) {
         self.metadata.insert(key, value);
         self.updated_at = Utc::now();
     }
 
-    /// Remove metadata entry
+    
     pub fn remove_metadata(&mut self, key: &str) -> Option<serde_json::Value> {
         let result = self.metadata.remove(key);
         if result.is_some() {
@@ -182,20 +182,20 @@ impl Workspace {
         result
     }
 
-    /// Update member count
+    
     pub fn set_member_count(&mut self, count: u32) {
         self.member_count = count;
         self.updated_at = Utc::now();
     }
 
-    /// Set owner
+    
     pub fn set_owner(&mut self, owner_id: String) {
         self.owner_id = Some(owner_id);
         self.updated_at = Utc::now();
     }
 }
 
-/// Request structure for creating a new workspace
+/
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Validate)]
 pub struct CreateWorkspaceRequest {
     #[validate(length(
@@ -215,7 +215,7 @@ pub struct CreateWorkspaceRequest {
     pub metadata: Option<HashMap<String, serde_json::Value>>,
 }
 
-/// Request structure for updating a workspace
+/
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Validate)]
 pub struct UpdateWorkspaceRequest {
     #[validate(length(
@@ -234,7 +234,7 @@ pub struct UpdateWorkspaceRequest {
     pub metadata: Option<HashMap<String, serde_json::Value>>,
 }
 
-/// Response structure for workspace operations
+/
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct WorkspaceResponse {
     pub success: bool,
@@ -268,7 +268,7 @@ impl WorkspaceResponse {
     }
 }
 
-/// Response structure for workspace list operations
+/
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct WorkspaceListResponse {
     pub success: bool,
@@ -308,22 +308,22 @@ impl WorkspaceListResponse {
     }
 }
 
-/// Filter and sorting options for workspace queries
+/
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct WorkspaceFilter {
-    /// Filter by workspace status
+    
     pub status: Option<WorkspaceStatus>,
-    /// Filter by workspace type
+    
     pub workspace_type: Option<WorkspaceType>,
-    /// Filter by favorite status
+    
     pub is_favorite: Option<bool>,
-    /// Filter by owner ID
+    
     pub owner_id: Option<String>,
-    /// Search term for name/description
+    
     pub search: Option<String>,
 }
 
-/// Sort order for workspace queries
+/
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub enum WorkspaceSortBy {
     #[serde(rename = "name")]
@@ -342,7 +342,7 @@ impl Default for WorkspaceSortBy {
     }
 }
 
-/// Sort direction
+/
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub enum SortDirection {
     #[serde(rename = "asc")]
@@ -357,7 +357,7 @@ impl Default for SortDirection {
     }
 }
 
-/// Query parameters for workspace list endpoint
+/
 #[derive(Debug, Clone, Serialize, Deserialize, Type, Validate)]
 pub struct WorkspaceQuery {
     #[validate(range(min = 1, max = 1000, message = "Page size must be between 1 and 1000"))]

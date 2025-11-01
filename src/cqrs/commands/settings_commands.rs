@@ -8,7 +8,7 @@ use crate::cqrs::types::{Command, Result};
 use crate::ports::settings_repository::SettingValue;
 use std::collections::HashMap;
 
-/// Update a single setting
+/
 #[derive(Debug, Clone)]
 pub struct UpdateSettingCommand {
     pub key: String,
@@ -31,7 +31,7 @@ impl Command for UpdateSettingCommand {
     }
 }
 
-/// Update multiple settings atomically
+/
 #[derive(Debug, Clone)]
 pub struct UpdateBatchSettingsCommand {
     pub updates: HashMap<String, SettingValue>,
@@ -57,7 +57,7 @@ impl Command for UpdateBatchSettingsCommand {
     }
 }
 
-/// Delete a setting
+/
 #[derive(Debug, Clone)]
 pub struct DeleteSettingCommand {
     pub key: String,
@@ -78,7 +78,7 @@ impl Command for DeleteSettingCommand {
     }
 }
 
-/// Save complete application settings
+/
 #[derive(Debug, Clone)]
 pub struct SaveAllSettingsCommand {
     pub settings: AppFullSettings,
@@ -92,7 +92,7 @@ impl Command for SaveAllSettingsCommand {
     }
 }
 
-/// Save physics settings for a specific profile
+/
 #[derive(Debug, Clone)]
 pub struct SavePhysicsSettingsCommand {
     pub profile_name: String,
@@ -110,7 +110,7 @@ impl Command for SavePhysicsSettingsCommand {
         if self.profile_name.is_empty() {
             return Err(anyhow::anyhow!("Profile name cannot be empty"));
         }
-        // Validate physics settings
+        
         if self.settings.dt <= 0.0 {
             return Err(anyhow::anyhow!("Time step must be positive"));
         }
@@ -121,7 +121,7 @@ impl Command for SavePhysicsSettingsCommand {
     }
 }
 
-/// Delete a physics profile
+/
 #[derive(Debug, Clone)]
 pub struct DeletePhysicsProfileCommand {
     pub profile_name: String,
@@ -142,7 +142,7 @@ impl Command for DeletePhysicsProfileCommand {
     }
 }
 
-/// Import settings from JSON
+/
 #[derive(Debug, Clone)]
 pub struct ImportSettingsCommand {
     pub settings_json: serde_json::Value,
@@ -163,7 +163,7 @@ impl Command for ImportSettingsCommand {
     }
 }
 
-/// Clear settings cache
+/
 #[derive(Debug, Clone)]
 pub struct ClearSettingsCacheCommand;
 

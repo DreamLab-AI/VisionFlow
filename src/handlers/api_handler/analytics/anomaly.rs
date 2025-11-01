@@ -1,10 +1,4 @@
-/*!
- * Anomaly Detection Implementation for Analytics API
- *
- * Real-time anomaly detection algorithms for graph analysis.
- * Supports multiple detection methods including isolation forest,
- * local outlier factor, autoencoder, statistical, and temporal analysis.
- */
+
 
 use std::collections::HashMap;
 use log::{debug, info};
@@ -16,7 +10,7 @@ use super::{Anomaly, AnomalyStats, ANOMALY_STATE};
 use crate::AppState;
 use crate::actors::messages::{RunAnomalyDetection, AnomalyParams, AnomalyMethod};
 
-/// Run real GPU-accelerated anomaly detection
+/
 pub async fn run_gpu_anomaly_detection(
     app_state: &actix_web::web::Data<AppState>,
     method: &str,
@@ -27,18 +21,18 @@ pub async fn run_gpu_anomaly_detection(
 ) -> Result<Vec<Anomaly>, String> {
     info!("Running GPU anomaly detection with method: {}", method);
 
-    // Check if GPU compute actor is available
+    
     let gpu_addr = app_state.gpu_compute_addr.as_ref()
         .ok_or_else(|| "GPU compute actor not available".to_string())?;
 
-    // Parse method
+    
     let anomaly_method = match method {
         "lof" | "local_outlier_factor" => AnomalyMethod::LocalOutlierFactor,
         "zscore" | "z_score" => AnomalyMethod::ZScore,
         _ => return Err(format!("Unsupported anomaly detection method: {}", method)),
     };
 
-    // Set default parameters based on method
+    
     let params = AnomalyParams {
         method: anomaly_method.clone(),
         k_neighbors: k_neighbors.unwrap_or(20),
@@ -50,7 +44,7 @@ pub async fn run_gpu_anomaly_detection(
         }),
     };
 
-    // Validate parameters
+    
     validate_anomaly_params(&params)?;
 
     let msg = RunAnomalyDetection { params };
@@ -71,21 +65,21 @@ pub async fn run_gpu_anomaly_detection(
     }
 }
 
-/// Start anomaly detection simulation (deprecated - use run_gpu_anomaly_detection)
+/
 pub async fn start_anomaly_detection() {
     warn!("start_anomaly_detection is deprecated - use run_gpu_anomaly_detection for real GPU processing");
 }
 
-/// Generate a simulated anomaly based on detection method
+/
 async fn generate_anomaly(method: &str) -> Anomaly {
     let mut rng = rand::thread_rng();
 
-    // Generate random node ID
+    
     let node_id = format!("node_{}", rng.gen_range(1..=1000));
 
-    // Determine severity based on method characteristics
+    
     let severity_weights = match method {
-        "isolation_forest" => [0.1, 0.3, 0.4, 0.2], // [critical, high, medium, low]
+        "isolation_forest" => [0.1, 0.3, 0.4, 0.2], 
         "lof" => [0.05, 0.25, 0.5, 0.2],
         "autoencoder" => [0.15, 0.35, 0.35, 0.15],
         "statistical" => [0.2, 0.3, 0.3, 0.2],
@@ -104,7 +98,7 @@ async fn generate_anomaly(method: &str) -> Anomaly {
         "low"
     };
 
-    // Generate anomaly score based on severity
+    
     let score = match severity {
         "critical" => 0.9 + rng.gen::<f32>() * 0.1,
         "high" => 0.7 + rng.gen::<f32>() * 0.2,
@@ -113,7 +107,7 @@ async fn generate_anomaly(method: &str) -> Anomaly {
         _ => 0.5,
     };
 
-    // Generate anomaly type and description based on method
+    
     let (anomaly_type, description) = generate_anomaly_details(method, severity);
 
     let mut metadata = HashMap::new();
@@ -166,7 +160,7 @@ async fn generate_anomaly(method: &str) -> Anomaly {
     }
 }
 
-/// Generate anomaly type and description based on detection method
+/
 fn generate_anomaly_details(method: &str, severity: &str) -> (String, String) {
     let mut rng = rand::thread_rng();
 
@@ -244,11 +238,11 @@ fn generate_anomaly_details(method: &str, severity: &str) -> (String, String) {
     }
 }
 
-/// Clean up old anomalies periodically
+/
 pub async fn cleanup_old_anomalies() {
     let mut state = ANOMALY_STATE.lock().await;
     let current_time = Utc::now().timestamp() as u64;
-    let retention_period = 3600; // 1 hour
+    let retention_period = 3600; 
 
     let initial_count = state.anomalies.len();
     state.anomalies.retain(|anomaly| current_time - anomaly.timestamp < retention_period);
@@ -257,7 +251,7 @@ pub async fn cleanup_old_anomalies() {
     if removed_count > 0 {
         debug!("Cleaned up {} old anomalies", removed_count);
 
-        // Recalculate stats
+        
         let mut new_stats = AnomalyStats::default();
         for anomaly in &state.anomalies {
             match anomaly.severity.as_str() {
@@ -274,7 +268,7 @@ pub async fn cleanup_old_anomalies() {
     }
 }
 
-/// Validate anomaly detection parameters
+/
 fn validate_anomaly_params(params: &AnomalyParams) -> Result<(), String> {
     match params.method {
         AnomalyMethod::LocalOutlierFactor => {
@@ -305,7 +299,7 @@ fn validate_anomaly_params(params: &AnomalyParams) -> Result<(), String> {
     Ok(())
 }
 
-/// Convert GPU anomaly detection results to Anomaly objects
+/
 fn convert_gpu_anomaly_result_to_anomalies(
     result: crate::actors::messages::AnomalyResult,
     method: &AnomalyMethod,
@@ -383,7 +377,7 @@ fn convert_gpu_anomaly_result_to_anomalies(
     anomalies
 }
 
-/// Determine severity from LOF score
+/
 fn determine_severity_from_lof_score(score: f32) -> &'static str {
     if score > 3.0 {
         "critical"
@@ -396,7 +390,7 @@ fn determine_severity_from_lof_score(score: f32) -> &'static str {
     }
 }
 
-/// Determine severity from Z-score
+/
 fn determine_severity_from_zscore(abs_score: f32) -> &'static str {
     if abs_score > 4.0 {
         "critical"

@@ -7,7 +7,7 @@ use serde_json::{json, Value};
 // Note: Constraint imports available but currently unused - keeping for future enhancements
 use crate::handlers::settings_validation_fix::validate_constraint;
 
-/// Configure constraint-specific routes
+/
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/constraints")
@@ -19,7 +19,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     );
 }
 
-/// Define new constraints
+/
 async fn define_constraints(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -30,20 +30,20 @@ async fn define_constraints(
     info!("Constraint definition request received");
     debug!("Constraints: {:?}", constraints);
 
-    // Validate all constraints
+    
     if let Err(e) = validate_constraint_system(&constraints) {
         return Ok(HttpResponse::BadRequest().json(json!({
             "error": format!("Invalid constraint system: {}", e)
         })));
     }
 
-    // Enable constraints mode in physics settings
+    
     let settings_update = json!({
         "visualisation": {
             "graphs": {
                 "logseq": {
                     "physics": {
-                        "computeMode": 2  // Constraints mode
+                        "computeMode": 2  
                     }
                 },
                 "visionflow": {
@@ -55,7 +55,7 @@ async fn define_constraints(
         }
     });
 
-    // Get and update settings
+    
     let mut app_settings = match state.settings_addr.send(GetSettings).await {
         Ok(Ok(s)) => s,
         Ok(Err(e)) => {
@@ -79,7 +79,7 @@ async fn define_constraints(
         })));
     }
 
-    // Save updated settings
+    
     match state
         .settings_addr
         .send(UpdateSettings {
@@ -90,11 +90,11 @@ async fn define_constraints(
         Ok(Ok(())) => {
             info!("Constraints defined successfully");
 
-            // Send constraints to GPU compute actor if available
+            
             if let Some(gpu_addr) = &state.gpu_compute_addr {
                 info!("Sending constraints to GPU compute actor");
 
-                // Convert constraint system to GPU format
+                
                 use crate::actors::messages::UpdateConstraints;
                 let gpu_constraints_json = serde_json::to_value(&constraints).unwrap_or_else(|e| {
                     error!("Failed to serialize constraints: {}", e);
@@ -112,11 +112,11 @@ async fn define_constraints(
                     }
                     Ok(Err(e)) => {
                         warn!("GPU compute actor failed to update constraints: {}", e);
-                        // Continue anyway - constraints are still saved in settings
+                        
                     }
                     Err(e) => {
                         warn!("Failed to communicate with GPU compute actor: {}", e);
-                        // Continue anyway - constraints are still saved in settings
+                        
                     }
                 }
             } else {
@@ -143,7 +143,7 @@ async fn define_constraints(
     }
 }
 
-/// Apply constraints to specific nodes
+/
 async fn apply_constraints(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -157,7 +157,7 @@ async fn apply_constraints(
         serde_json::to_string_pretty(&apply_request).unwrap_or_default()
     );
 
-    // Validate application request
+    
     let constraint_type = apply_request
         .get("constraintType")
         .and_then(|v| v.as_str())
@@ -174,7 +174,7 @@ async fn apply_constraints(
         })));
     }
 
-    // Convert node IDs
+    
     let nodes: Result<Vec<u32>, _> = node_ids
         .iter()
         .map(|v| v.as_u64().map(|n| n as u32))
@@ -190,7 +190,7 @@ async fn apply_constraints(
         }
     };
 
-    // For now, store constraint application request
+    
     let strength = apply_request
         .get("strength")
         .and_then(|v| v.as_f64())
@@ -213,7 +213,7 @@ async fn apply_constraints(
     })))
 }
 
-/// Remove constraints from nodes
+/
 async fn remove_constraints(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -233,7 +233,7 @@ async fn remove_constraints(
 
     let node_ids = remove_request.get("nodeIds").and_then(|v| v.as_array());
 
-    // For now, record constraint removal request
+    
     let removal_count = node_ids.map(|arr| arr.len()).unwrap_or(0);
 
     info!(
@@ -249,14 +249,14 @@ async fn remove_constraints(
     })))
 }
 
-/// List all active constraints
+/
 async fn list_constraints(
     _req: HttpRequest,
     state: web::Data<AppState>,
 ) -> Result<HttpResponse, Error> {
     info!("Constraint list request received");
 
-    // Try to get constraints from GPU compute actor first
+    
     if let Some(gpu_addr) = &state.gpu_compute_addr {
         use crate::actors::messages::GetConstraints;
         match gpu_addr.send(GetConstraints).await {
@@ -281,13 +281,13 @@ async fn list_constraints(
         }
     }
 
-    // Fallback: get constraints from settings
+    
     match state.settings_addr.send(GetSettings).await {
         Ok(Ok(settings)) => {
-            // Extract constraint information from settings
+            
             let mut constraints_list = Vec::new();
 
-            // Check if constraints mode is enabled
+            
             let logseq_mode = settings.visualisation.graphs.logseq.physics.compute_mode;
             let visionflow_mode = settings
                 .visualisation
@@ -334,7 +334,7 @@ async fn list_constraints(
     }
 }
 
-/// Validate constraint definition
+/
 async fn validate_constraint_definition(
     _req: HttpRequest,
     _state: web::Data<AppState>,
@@ -357,7 +357,7 @@ async fn validate_constraint_definition(
     }
 }
 
-/// Validate a complete constraint system
+/
 fn validate_constraint_system(system: &ConstraintSystem) -> Result<(), String> {
     validate_single_constraint(&system.separation)?;
     validate_single_constraint(&system.boundary)?;
@@ -367,39 +367,39 @@ fn validate_constraint_system(system: &ConstraintSystem) -> Result<(), String> {
     Ok(())
 }
 
-/// Validate a single constraint
+/
 fn validate_single_constraint(constraint: &LegacyConstraintData) -> Result<(), String> {
-    // Use comprehensive validation that prevents GPU errors
+    
     let constraint_json = serde_json::to_value(constraint).map_err(|e| e.to_string())?;
     validate_constraint(&constraint_json)?;
 
-    // Additional type-specific validation
-    // Validate constraint type
+    
+    
     if constraint.constraint_type < 0 || constraint.constraint_type > 4 {
         return Err("constraint_type must be between 0 and 4".to_string());
     }
 
-    // Validate strength
+    
     if constraint.strength < 0.0 || constraint.strength > 10.0 {
         return Err("strength must be between 0.0 and 10.0".to_string());
     }
 
-    // Validate parameters based on constraint type
+    
     match constraint.constraint_type {
         1 => {
-            // Separation constraint
+            
             if constraint.param1 <= 0.0 {
                 return Err("separation distance (param1) must be positive".to_string());
             }
         }
         2 => {
-            // Boundary constraint
+            
             if constraint.param1 <= 0.0 || constraint.param2 <= 0.0 {
                 return Err("boundary dimensions (param1, param2) must be positive".to_string());
             }
         }
         3 => {
-            // Alignment constraint
+            
             if constraint.param1 < 0.0 || constraint.param1 > 360.0 {
                 return Err(
                     "alignment angle (param1) must be between 0 and 360 degrees".to_string()
@@ -407,14 +407,14 @@ fn validate_single_constraint(constraint: &LegacyConstraintData) -> Result<(), S
             }
         }
         4 => {
-            // Cluster constraint
+            
             if constraint.param1.abs() > 1000.0 || constraint.param2.abs() > 1000.0 {
                 return Err(
                     "cluster center coordinates must be within reasonable bounds".to_string(),
                 );
             }
         }
-        _ => {} // Type 0 (none) requires no validation
+        _ => {} 
     }
 
     Ok(())

@@ -36,14 +36,14 @@ const GraphCanvas: React.FC = () => {
     const xrEnabled = settings?.xr?.enabled !== false;
     const enableBloom = settings?.visualisation?.bloom?.enabled ?? false;
     const enableGlow = settings?.visualisation?.glow?.enabled ?? false;
-    const useMultiLayerBloom = enableBloom || enableGlow; // Use multi-layer if either is enabled
+    const useMultiLayerBloom = enableBloom || enableGlow; 
     const enableHologram = settings?.visualisation?.graphs?.logseq?.nodes?.enableHologram ?? false;
     
-    // Graph data state
+    
     const [graphData, setGraphData] = useState<GraphData>({ nodes: [], edges: [] });
     const [canvasReady, setCanvasReady] = useState(false);
 
-    // Subscribe to graph data updates
+    
     useEffect(() => {
         let mounted = true;
         
@@ -56,7 +56,7 @@ const GraphCanvas: React.FC = () => {
 
         const unsubscribe = graphDataManager.onGraphDataChange(handleGraphData);
         
-        // Get initial data
+        
         graphDataManager.getGraphData().then((data) => {
             if (mounted) {
                 setGraphData(data);
@@ -84,7 +84,7 @@ const GraphCanvas: React.FC = () => {
                 zIndex: 0
             }}
         >
-            {/* Debug indicator */}
+            {}
             {showStats && (
                 <div style={{
                     position: 'absolute',
@@ -112,11 +112,11 @@ const GraphCanvas: React.FC = () => {
                     setCanvasReady(true);
                 }}
             >
-                {/* Basic lighting - reduced to prevent washout */}
+                {}
                 <ambientLight intensity={0.15} />
                 <directionalLight position={[10, 10, 10]} intensity={0.4} />
                 
-                {/* Holographic Data Sphere with minimal opacity - scaled 50x - only render if enabled */}
+                {}
                 {enableHologram && (
                   <HologramContent
                     opacity={0.1}
@@ -129,17 +129,17 @@ const GraphCanvas: React.FC = () => {
                   />
                 )}
                 
-                {/* Graph Manager - only render when we have data and canvas is ready */}
+                {}
                 {canvasReady && graphData.nodes.length > 0 && (
                     <GraphManager graphData={graphData} />
                 )}
                 
-                {/* Fallback cube removed - was showing when graph data was loading */}
+                {}
                 
-                {/* BotsVisualization for agent graph */}
+                {}
                 <BotsVisualization />
                 
-                {/* Camera controls with SpacePilot integration */}
+                {}
                 <OrbitControls
                     ref={orbitControlsRef}
                     enablePan={true}
@@ -149,20 +149,20 @@ const GraphCanvas: React.FC = () => {
                     panSpeed={0.8}
                     rotateSpeed={0.8}
                 />
-                {/* Using the simpler SpacePilot integration that works with useFrame */}
+                {}
                 <SpacePilotSimpleIntegration orbitControlsRef={orbitControlsRef} />
 
-                {/* Head-Tracked Parallax Controller */}
+                {}
                 <HeadTrackedParallaxController />
 
-                {/* XR Support - causes graph to disappear */}
-                {/* {xrEnabled && <XRController />} */}
-                {/* {xrEnabled && <XRVisualisationConnector />} */}
+                {}
+                {}
+                {}
                 
-                {/* Post-processing effects - using modern R3F selective bloom */}
+                {}
                 <SelectiveBloom enabled={enableBloom || enableGlow} />
                 
-                {/* Performance stats */}
+                {}
                 {showStats && <Stats />}
             </Canvas>
         </div>

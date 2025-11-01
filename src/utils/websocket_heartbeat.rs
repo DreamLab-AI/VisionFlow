@@ -5,21 +5,21 @@ use log::warn;
 use serde_json::json;
 use std::time::{Duration, Instant};
 
-/// Shared WebSocket heartbeat functionality
+/
 pub trait WebSocketHeartbeat: Actor<Context = ws::WebsocketContext<Self>>
 where
     Self: Sized,
 {
-    /// Get the client ID for this WebSocket connection
+    
     fn get_client_id(&self) -> &str;
 
-    /// Get the last heartbeat timestamp
+    
     fn get_last_heartbeat(&self) -> Instant;
 
-    /// Update the last heartbeat timestamp
+    
     fn update_last_heartbeat(&mut self);
 
-    /// Start the heartbeat mechanism with configurable intervals
+    
     fn start_heartbeat(
         &self,
         ctx: &mut ws::WebsocketContext<Self>,
@@ -37,7 +37,7 @@ where
                     "WebSocket client {} heartbeat timeout, disconnecting",
                     act.get_client_id()
                 );
-                // Close the WebSocket connection - this will trigger cleanup
+                
                 ctx.close(Some(ws::CloseReason {
                     code: ws::CloseCode::Abnormal,
                     description: Some("Heartbeat timeout".to_string()),
@@ -49,7 +49,7 @@ where
         });
     }
 
-    /// Send a ping message
+    
     fn send_ping(&self, ctx: &mut ws::WebsocketContext<Self>)
     where
         Self: actix::Actor<Context = ws::WebsocketContext<Self>>,
@@ -65,7 +65,7 @@ where
         }
     }
 
-    /// Send a pong response
+    
     fn send_pong(&self, ctx: &mut ws::WebsocketContext<Self>)
     where
         Self: actix::Actor<Context = ws::WebsocketContext<Self>>,
@@ -81,7 +81,7 @@ where
         }
     }
 
-    /// Handle standard heartbeat messages
+    
     fn handle_heartbeat_message(
         &mut self,
         msg: Result<ws::Message, ws::ProtocolError>,
@@ -94,18 +94,18 @@ where
             Ok(ws::Message::Ping(msg)) => {
                 self.update_last_heartbeat();
                 ctx.pong(&msg);
-                true // Message handled
+                true 
             }
             Ok(ws::Message::Pong(_)) => {
                 self.update_last_heartbeat();
-                true // Message handled
+                true 
             }
-            _ => false, // Message not handled
+            _ => false, 
         }
     }
 }
 
-/// Default heartbeat settings
+/
 pub struct HeartbeatConfig {
     pub ping_interval_secs: u64,
     pub timeout_secs: u64,
@@ -114,8 +114,8 @@ pub struct HeartbeatConfig {
 impl Default for HeartbeatConfig {
     fn default() -> Self {
         Self {
-            ping_interval_secs: 5, // Send ping every 5 seconds
-            timeout_secs: 30,      // Disconnect after 30 seconds of no response
+            ping_interval_secs: 5, 
+            timeout_secs: 30,      
         }
     }
 }
@@ -129,15 +129,15 @@ impl HeartbeatConfig {
     }
 
     pub fn fast() -> Self {
-        Self::new(2, 10) // Fast heartbeat for critical connections
+        Self::new(2, 10) 
     }
 
     pub fn slow() -> Self {
-        Self::new(15, 60) // Slow heartbeat for background connections
+        Self::new(15, 60) 
     }
 }
 
-/// Common WebSocket message types
+/
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
 #[serde(tag = "type")]
 pub enum CommonWebSocketMessage {

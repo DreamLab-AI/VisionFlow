@@ -43,7 +43,7 @@ impl UserSettings {
     pub fn load(pubkey: &str) -> Option<Self> {
         let request_id = Uuid::new_v4();
 
-        // First check the cache
+        
         {
             let cache = match USER_SETTINGS_CACHE.read() {
                 Ok(cache) => cache,
@@ -53,7 +53,7 @@ impl UserSettings {
                 }
             };
             if let Some(cached) = cache.get(pubkey) {
-                // Check if cache is still valid
+                
                 if cached.timestamp.elapsed() < CACHE_EXPIRATION {
                     debug!("Using cached settings for user {}", pubkey);
                     trace_debug!(
@@ -65,7 +65,7 @@ impl UserSettings {
                     );
                     return Some(cached.settings.clone());
                 }
-                // Cache expired, will reload from disk
+                
                 debug!("Cache expired for user {}, reloading from disk", pubkey);
                 trace_debug!(
                     request_id = %request_id,
@@ -86,20 +86,20 @@ impl UserSettings {
             }
         }
 
-        // Not in cache or expired, load from disk
+        
         let path = Self::get_settings_path(pubkey);
         match fs::read_to_string(&path) {
             Ok(content) => {
                 match serde_yaml::from_str::<UserSettings>(&content) {
                     Ok(settings) => {
-                        // Add to cache
+                        
                         let settings_clone = settings.clone();
                         {
                             let mut cache = match USER_SETTINGS_CACHE.write() {
                                 Ok(cache) => cache,
                                 Err(e) => {
                                     error!("Failed to write to user settings cache: {}", e);
-                                    // Continue without caching
+                                    
                                     return Some(settings);
                                 }
                             };
@@ -130,13 +130,13 @@ impl UserSettings {
     pub fn save(&self) -> Result<(), String> {
         let path = Self::get_settings_path(&self.pubkey);
 
-        // Update cache first (this is fast and ensures immediate availability)
+        
         {
             let mut cache = match USER_SETTINGS_CACHE.write() {
                 Ok(cache) => cache,
                 Err(e) => {
                     warn!("Failed to write to user settings cache during save: {}", e);
-                    // Continue with save operation even if caching fails
+                    
                     return self.save_to_disk();
                 }
             };
@@ -150,7 +150,7 @@ impl UserSettings {
             debug!("Updated cache for user {}", self.pubkey);
         }
 
-        // Ensure directory exists
+        
         if let Some(parent) = path.parent() {
             if let Err(e) = fs::create_dir_all(parent) {
                 warn!("Failed to create settings directory: {}", e);
@@ -158,8 +158,8 @@ impl UserSettings {
             }
         }
 
-        // Save settings to disk asynchronously to avoid blocking
-        // For now we'll use a simple thread, but this could be improved with a proper async task
+        
+        
         let pubkey = self.pubkey.clone();
         let settings_clone = self.clone();
 
@@ -174,21 +174,21 @@ impl UserSettings {
             }
         });
 
-        // Return success immediately since we've updated the cache
+        
         Ok(())
     }
 
     fn save_to_disk(&self) -> Result<(), String> {
         let path = Self::get_settings_path(&self.pubkey);
 
-        // Ensure directory exists
+        
         if let Some(parent) = path.parent() {
             if let Err(e) = std::fs::create_dir_all(parent) {
                 return Err(format!("Failed to create settings directory: {}", e));
             }
         }
 
-        // Serialize and save settings
+        
         match serde_yaml::to_string(self) {
             Ok(content) => match std::fs::write(&path, content) {
                 Ok(_) => {
@@ -205,7 +205,7 @@ impl UserSettings {
         PathBuf::from("/app/user_settings").join(format!("{}.yaml", pubkey))
     }
 
-    // Clear the cache entry for a specific user
+    
     pub fn clear_cache(pubkey: &str) {
         let mut cache = match USER_SETTINGS_CACHE.write() {
             Ok(cache) => cache,
@@ -226,7 +226,7 @@ impl UserSettings {
         }
     }
 
-    // Clear all cached settings
+    
     pub fn clear_all_cache() {
         let mut cache = match USER_SETTINGS_CACHE.write() {
             Ok(cache) => cache,
@@ -241,7 +241,7 @@ impl UserSettings {
         trace_info!(entries_cleared = count, "All user settings cache cleared");
     }
 
-    // Invalidate cache on authentication state change
+    
     pub fn invalidate_user_cache(pubkey: &str) {
         Self::clear_cache(pubkey);
         trace_info!(
@@ -250,7 +250,7 @@ impl UserSettings {
         );
     }
 
-    // Get cache statistics
+    
     pub fn get_cache_stats() -> (usize, Vec<(String, Duration)>) {
         let cache = match USER_SETTINGS_CACHE.read() {
             Ok(cache) => cache,

@@ -1,7 +1,4 @@
-/**
- * Publish Graph Dialog Component
- * Publish graphs to public repository
- */
+
 
 import React, { useState } from 'react';
 import {
@@ -144,7 +141,7 @@ export const PublishGraphDialog: React.FC<PublishGraphDialogProps> = ({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Visibility Warning */}
+          {}
           <Card className={`border ${isPublic ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-gray-50'}`}>
             <CardContent className="pt-3 pb-2">
               <div className="flex items-center gap-2">
@@ -169,7 +166,7 @@ export const PublishGraphDialog: React.FC<PublishGraphDialogProps> = ({
             </CardContent>
           </Card>
 
-          {/* Basic Information */}
+          {}
           <div className="space-y-3">
             <div className="space-y-1">
               <Label className="text-sm">Title *</Label>
@@ -217,7 +214,7 @@ export const PublishGraphDialog: React.FC<PublishGraphDialogProps> = ({
 
           <Separator />
 
-          {/* Tags */}
+          {}
           <div className="space-y-2">
             <Label className="text-sm">Tags (Optional)</Label>
             <div className="flex flex-wrap gap-1 mb-2">
@@ -259,7 +256,7 @@ export const PublishGraphDialog: React.FC<PublishGraphDialogProps> = ({
 
           <Separator />
 
-          {/* Publishing Options */}
+          {}
           <div className="space-y-3">
             <Label className="text-sm font-medium">Publishing Options</Label>
 
@@ -303,7 +300,7 @@ export const PublishGraphDialog: React.FC<PublishGraphDialogProps> = ({
 
           <Separator />
 
-          {/* Preview */}
+          {}
           <Card className="bg-muted/50">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs flex items-center gap-2">
@@ -347,7 +344,7 @@ export const PublishGraphDialog: React.FC<PublishGraphDialogProps> = ({
             </CardContent>
           </Card>
 
-          {/* Terms Notice */}
+          {}
           <Card className="border-yellow-200 bg-yellow-50">
             <CardContent className="pt-3 pb-2">
               <div className="flex items-start gap-2">

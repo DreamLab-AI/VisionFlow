@@ -1,7 +1,4 @@
-/**
- * Unified client-side debug state management
- * Uses localStorage only - no backend synchronization
- */
+
 
 import { createLogger } from './baseLogger';
 
@@ -9,12 +6,12 @@ const logger = createLogger('ClientDebugState');
 
 // localStorage keys for debug settings
 const DEBUG_KEYS = {
-  // Main toggles
+  
   enabled: 'debug.enabled',
   dataDebug: 'debug.data',
   performanceDebug: 'debug.performance',
   
-  // Developer options from settings panel
+  
   consoleLogging: 'debug.consoleLogging',
   logLevel: 'debug.logLevel',
   showNodeIds: 'debug.showNodeIds',
@@ -22,7 +19,7 @@ const DEBUG_KEYS = {
   enableProfiler: 'debug.enableProfiler',
   apiDebugMode: 'debug.apiDebugMode',
   
-  // System debug options
+  
   enableWebsocketDebug: 'debug.enableWebsocketDebug',
   logBinaryHeaders: 'debug.logBinaryHeaders',
   logFullJson: 'debug.logFullJson',
@@ -39,7 +36,7 @@ class ClientDebugState {
   private listeners: Map<string, Set<(value: any) => void>> = new Map();
 
   constructor() {
-    // Listen for storage changes from other tabs/windows
+    
     if (typeof window !== 'undefined') {
       window.addEventListener('storage', this.handleStorageChange.bind(this));
     }
@@ -61,7 +58,7 @@ class ClientDebugState {
     }
   }
 
-  // Generic getter for any debug setting
+  
   public get(key: DebugKey): any {
     const storageKey = DEBUG_KEYS[key];
     if (typeof window === 'undefined') return false;
@@ -70,11 +67,11 @@ class ClientDebugState {
       const value = localStorage.getItem(storageKey);
       if (value === null) return this.getDefault(key);
       
-      // Handle boolean conversion
+      
       if (value === 'true') return true;
       if (value === 'false') return false;
       
-      // Return as-is for other types (like logLevel)
+      
       return value;
     } catch (e) {
       logger.warn(`Failed to read ${storageKey} from localStorage`);
@@ -82,7 +79,7 @@ class ClientDebugState {
     }
   }
 
-  // Generic setter for any debug setting
+  
   public set(key: DebugKey, value: any): void {
     const storageKey = DEBUG_KEYS[key];
     if (typeof window === 'undefined') return;
@@ -97,7 +94,7 @@ class ClientDebugState {
     }
   }
 
-  // Subscribe to changes for a specific key
+  
   public subscribe(key: DebugKey, listener: (value: any) => void): () => void {
     const storageKey = DEBUG_KEYS[key];
     if (!this.listeners.has(storageKey)) {
@@ -105,7 +102,7 @@ class ClientDebugState {
     }
     this.listeners.get(storageKey)!.add(listener);
     
-    // Return unsubscribe function
+    
     return () => {
       const listeners = this.listeners.get(storageKey);
       if (listeners) {
@@ -114,7 +111,7 @@ class ClientDebugState {
     };
   }
 
-  // Get default value for a key
+  
   private getDefault(key: DebugKey): any {
     switch (key) {
       case 'logLevel':
@@ -124,7 +121,7 @@ class ClientDebugState {
     }
   }
 
-  // Convenience methods for common operations
+  
   public isEnabled(): boolean {
     return this.get('enabled');
   }
@@ -141,7 +138,7 @@ class ClientDebugState {
     return this.isEnabled() && this.get('performanceDebug');
   }
 
-  // Bulk operations
+  
   public getAll(): Record<DebugKey, any> {
     const result: Partial<Record<DebugKey, any>> = {};
     for (const key of Object.keys(DEBUG_KEYS) as DebugKey[]) {

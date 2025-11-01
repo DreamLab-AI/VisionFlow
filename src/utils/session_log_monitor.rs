@@ -7,7 +7,7 @@ use tokio::io::{AsyncBufReadExt, AsyncSeekExt, BufReader};
 use tokio::sync::mpsc;
 use tokio::time::{interval, Duration};
 
-/// Monitor session log files for client messages
+/
 pub struct SessionLogMonitor {
     session_dir: PathBuf,
     session_id: String,
@@ -25,11 +25,11 @@ impl SessionLogMonitor {
             session_dir,
             session_id,
             message_sender,
-            poll_interval: Duration::from_millis(500), // Poll every 500ms
+            poll_interval: Duration::from_millis(500), 
         }
     }
 
-    /// Start monitoring session logs
+    
     pub async fn start(self: Arc<Self>) {
         let log_file = self.session_dir.join("session.log");
 
@@ -45,10 +45,10 @@ impl SessionLogMonitor {
         loop {
             ticker.tick().await;
 
-            // Try to open and read the log file
+            
             match File::open(&log_file).await {
                 Ok(mut file) => {
-                    // Seek to last read position
+                    
                     if let Err(e) = file.seek(std::io::SeekFrom::Start(last_position)).await {
                         warn!(
                             "Failed to seek log file for session {}: {}",
@@ -60,16 +60,16 @@ impl SessionLogMonitor {
                     let reader = BufReader::new(file);
                     let mut lines = reader.lines();
 
-                    // Read new lines
+                    
                     while let Ok(Some(line)) = lines.next_line().await {
                         buffer.push_str(&line);
                         buffer.push('\n');
 
-                        // Update position
+                        
                         last_position += line.len() as u64 + 1;
                     }
 
-                    // Extract messages from buffer if we have content
+                    
                     if !buffer.is_empty() {
                         let messages =
                             extract_client_messages(&buffer, Some(self.session_id.clone()), None);
@@ -82,16 +82,16 @@ impl SessionLogMonitor {
 
                             if let Err(e) = self.message_sender.send(msg) {
                                 error!("Failed to send client message: {}", e);
-                                return; // Channel closed, stop monitoring
+                                return; 
                             }
                         }
 
-                        // Clear buffer after processing
+                        
                         buffer.clear();
                     }
                 }
                 Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-                    // Log file doesn't exist yet, continue waiting
+                    
                     debug!(
                         "Log file not found for session {}, waiting...",
                         self.session_id
@@ -107,7 +107,7 @@ impl SessionLogMonitor {
         }
     }
 
-    /// Monitor multiple sessions concurrently
+    
     pub async fn monitor_sessions(
         sessions: Vec<(String, PathBuf)>,
         message_sender: mpsc::UnboundedSender<ClientMessage>,
@@ -124,7 +124,7 @@ impl SessionLogMonitor {
             handles.push(handle);
         }
 
-        // Wait for all monitors (they run indefinitely)
+        
         for handle in handles {
             if let Err(e) = handle.await {
                 error!("Session monitor task failed: {}", e);
@@ -133,7 +133,7 @@ impl SessionLogMonitor {
     }
 }
 
-/// Monitor for the TCP server instance logs specifically
+/
 pub struct TCPServerLogMonitor {
     tcp_server_dir: PathBuf,
     message_sender: mpsc::UnboundedSender<ClientMessage>,
@@ -159,7 +159,7 @@ impl TCPServerLogMonitor {
         loop {
             ticker.tick().await;
 
-            // Look for various log sources in TCP server directory
+            
             let log_paths = vec![
                 self.tcp_server_dir.join("mcp.log"),
                 self.tcp_server_dir.join("claude-flow.log"),
@@ -214,7 +214,7 @@ mod tests {
         let session_dir = temp_dir.path().to_path_buf();
         let log_file = session_dir.join("session.log");
 
-        // Write test log content
+        
         fs::write(
             &log_file,
             "Some output\n**[CLIENT_MESSAGE]** Test message **[/CLIENT_MESSAGE]**\n",
@@ -229,12 +229,12 @@ mod tests {
             tx,
         ));
 
-        // Start monitor in background
+        
         let handle = tokio::spawn(async move {
             monitor.start().await;
         });
 
-        // Wait for message
+        
         tokio::select! {
             Some(msg) = rx.recv() => {
                 assert_eq!(msg.content, "Test message");

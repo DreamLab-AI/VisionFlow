@@ -8,7 +8,7 @@ use crate::ports::OntologyRepository;
 use async_trait::async_trait;
 use std::sync::Arc;
 
-/// Handler for ontology commands
+/
 pub struct OntologyCommandHandler {
     repository: Arc<dyn OntologyRepository>,
 }
@@ -31,7 +31,7 @@ impl CommandHandler<AddClassCommand> for OntologyCommandHandler {
 impl CommandHandler<UpdateClassCommand> for OntologyCommandHandler {
     async fn handle(&self, command: UpdateClassCommand) -> Result<()> {
         command.validate()?;
-        // Update by removing and re-adding
+        
         let class = command.class;
         Ok(self.repository.add_owl_class(&class).await.map(|_| ())?)
     }
@@ -41,8 +41,8 @@ impl CommandHandler<UpdateClassCommand> for OntologyCommandHandler {
 impl CommandHandler<RemoveClassCommand> for OntologyCommandHandler {
     async fn handle(&self, command: RemoveClassCommand) -> Result<()> {
         command.validate()?;
-        // Implementation depends on repository supporting class removal
-        // For now, return success (actual implementation needed in repository)
+        
+        
         Ok(())
     }
 }
@@ -122,8 +122,8 @@ impl CommandHandler<StoreInferenceResultsCommand> for OntologyCommandHandler {
 impl CommandHandler<ImportOntologyCommand> for OntologyCommandHandler {
     async fn handle(&self, command: ImportOntologyCommand) -> Result<()> {
         command.validate()?;
-        // Parse OWL XML and import
-        // This would require an OWL parser implementation
+        
+        
         Ok(())
     }
 }
@@ -153,7 +153,7 @@ impl CommandHandler<InvalidatePathfindingCachesCommand> for OntologyCommandHandl
     }
 }
 
-/// Handler for ontology queries
+/
 pub struct OntologyQueryHandler {
     repository: Arc<dyn OntologyRepository>,
 }
@@ -191,7 +191,7 @@ impl QueryHandler<GetClassHierarchyQuery> for OntologyQueryHandler {
         &self,
         _query: GetClassHierarchyQuery,
     ) -> Result<Vec<crate::ports::ontology_repository::OwlClass>> {
-        // Return all classes sorted by hierarchy
+        
         Ok(self.repository.list_owl_classes().await?)
     }
 }
@@ -282,8 +282,8 @@ impl QueryHandler<LoadOntologyGraphQuery> for OntologyQueryHandler {
 #[async_trait]
 impl QueryHandler<ExportOntologyQuery> for OntologyQueryHandler {
     async fn handle(&self, _query: ExportOntologyQuery) -> Result<String> {
-        // Export to OWL XML format
-        // This would require an OWL serializer implementation
+        
+        
         Ok("<?xml version=\"1.0\"?><Ontology/>".to_string())
     }
 }

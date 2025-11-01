@@ -30,19 +30,19 @@ export const ActivityLogPanel: React.FC<ActivityLogPanelProps> = ({
   const logContainerRef = useRef<HTMLDivElement>(null);
   const lastUpdateRef = useRef<string | undefined>();
 
-  // Generate activity log entries from agent data
+  
   useEffect(() => {
     if (!botsData || !botsData.agents) return;
 
-    // Check if this is a new update
+    
     if (botsData.lastUpdate === lastUpdateRef.current) return;
     lastUpdateRef.current = botsData.lastUpdate;
 
     const newEntries: ActivityLogEntry[] = [];
 
-    // Process each agent's status and logs
+    
     botsData.agents.forEach(agent => {
-      // Add status change entries
+      
       if (agent.status === 'active' || agent.status === 'busy') {
         newEntries.push({
           id: `${agent.id}-status-${Date.now()}`,
@@ -65,7 +65,7 @@ export const ActivityLogPanel: React.FC<ActivityLogPanelProps> = ({
         });
       }
 
-      // Add processing logs if available
+      
       if (agent.processingLogs && agent.processingLogs.length > 0) {
         agent.processingLogs.slice(-3).forEach((log, index) => {
           newEntries.push({
@@ -80,7 +80,7 @@ export const ActivityLogPanel: React.FC<ActivityLogPanelProps> = ({
         });
       }
 
-      // Add performance alerts
+      
       if (agent.health < 50) {
         newEntries.push({
           id: `${agent.id}-health-${Date.now()}`,
@@ -106,14 +106,14 @@ export const ActivityLogPanel: React.FC<ActivityLogPanelProps> = ({
       }
     });
 
-    // Add new entries and maintain max entries limit
+    
     setLogEntries(prev => {
       const combined = [...prev, ...newEntries];
       return combined.slice(-maxEntries);
     });
   }, [botsData, maxEntries]);
 
-  // Auto-scroll to bottom when new entries are added
+  
   useEffect(() => {
     if (autoScroll && logContainerRef.current) {
       logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;

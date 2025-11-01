@@ -8,29 +8,29 @@ use actix::prelude::*;
 use log::error;
 use std::time::Duration;
 
-/// Default timeout duration for actor calls (5 seconds)
+/
 pub const DEFAULT_ACTOR_TIMEOUT: Duration = Duration::from_secs(5);
 
-/// Extended timeout for potentially long-running operations (10 seconds)
+/
 pub const EXTENDED_ACTOR_TIMEOUT: Duration = Duration::from_secs(10);
 
-/// Short timeout for quick operations (2 seconds)
+/
 pub const SHORT_ACTOR_TIMEOUT: Duration = Duration::from_secs(2);
 
-/// Result type for actor timeout operations
+/
 pub type ActorTimeoutResult<T> = Result<T, ActorTimeoutError>;
 
-/// Error types for actor timeout operations
+/
 #[derive(Debug)]
 pub enum ActorTimeoutError {
-    /// The actor call timed out
+    
     Timeout {
         duration: Duration,
         actor_type: &'static str,
     },
-    /// The actor returned an error
+    
     ActorError(String),
-    /// Failed to send message to actor
+    
     MailboxError(String),
 }
 
@@ -51,16 +51,16 @@ impl std::fmt::Display for ActorTimeoutError {
 
 impl std::error::Error for ActorTimeoutError {}
 
-/// Send a message to an actor with a timeout
-///
-/// # Arguments
-/// * `addr` - The actor address
-/// * `msg` - The message to send
-/// * `timeout` - Timeout duration
-/// * `actor_type` - Name of the actor type for error reporting
-///
-/// # Returns
-/// Result containing the actor's response or a timeout error
+/
+/
+/
+/
+/
+/
+/
+/
+/
+/
 pub async fn send_with_timeout<A, M>(
     addr: &Addr<A>,
     msg: M,
@@ -89,7 +89,7 @@ where
     }
 }
 
-/// Send a message to an actor with default timeout
+/
 pub async fn send_with_default_timeout<A, M>(
     addr: &Addr<A>,
     msg: M,
@@ -104,7 +104,7 @@ where
     send_with_timeout(addr, msg, DEFAULT_ACTOR_TIMEOUT, actor_type).await
 }
 
-/// Send a message to an actor with extended timeout for long operations
+/
 pub async fn send_with_extended_timeout<A, M>(
     addr: &Addr<A>,
     msg: M,
@@ -119,7 +119,7 @@ where
     send_with_timeout(addr, msg, EXTENDED_ACTOR_TIMEOUT, actor_type).await
 }
 
-/// Send a message to an actor with short timeout for quick operations
+/
 pub async fn send_with_short_timeout<A, M>(
     addr: &Addr<A>,
     msg: M,

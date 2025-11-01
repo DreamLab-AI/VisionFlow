@@ -20,10 +20,7 @@ export interface Quest3IntegrationOptions {
   maxRetries?: number;
 }
 
-/**
- * Hook for Quest 3 auto-detection and AR session management
- * Handles automatic detection, session start, and layout switching
- */
+
 export const useQuest3Integration = (options: Quest3IntegrationOptions = {}) => {
   const {
     enableAutoStart = true,
@@ -42,18 +39,18 @@ export const useQuest3Integration = (options: Quest3IntegrationOptions = {}) => 
 
   const [retryCount, setRetryCount] = useState(0);
 
-  // XR session management removed after migration to Babylon.js
+  
   const isSessionActive = false;
   const sessionType = null;
   const startSession = async (mode: string) => {
     logger.info(`Starting session: ${mode} (Babylon.js implementation)`);
-    // This is now handled by the Babylon.js XRManager
+    
     return true;
   };
 
   const { setMode } = useApplicationMode();
 
-  // Perform Quest 3 detection on mount
+  
   useEffect(() => {
     const detectQuest3 = async () => {
       try {
@@ -86,7 +83,7 @@ export const useQuest3Integration = (options: Quest3IntegrationOptions = {}) => 
     detectQuest3();
   }, []);
 
-  // Auto-start AR session if conditions are met
+  
   useEffect(() => {
     const autoStartAR = async () => {
       if (!enableAutoStart ||
@@ -104,7 +101,7 @@ export const useQuest3Integration = (options: Quest3IntegrationOptions = {}) => 
 
         if (success) {
           setState(prev => ({ ...prev, autoStartSuccessful: true }));
-          // XR mode will be handled by the layout component
+          
           logger.info('Quest 3 AR auto-start successful');
         } else {
           throw new Error('Auto-start returned false');
@@ -120,7 +117,7 @@ export const useQuest3Integration = (options: Quest3IntegrationOptions = {}) => 
           error: errorMessage
         }));
 
-        // Retry logic
+        
         if (retryOnFailure && retryCount < maxRetries) {
           setTimeout(() => {
             setRetryCount(prev => prev + 1);
@@ -143,7 +140,7 @@ export const useQuest3Integration = (options: Quest3IntegrationOptions = {}) => 
     setMode
   ]);
 
-  // Manual start function for fallback
+  
   const manualStartQuest3AR = async (): Promise<boolean> => {
     try {
       if (!state.detectionResult?.supportsAR) {
@@ -173,7 +170,7 @@ export const useQuest3Integration = (options: Quest3IntegrationOptions = {}) => 
     }
   };
 
-  // Reset state (for testing/development)
+  
   const resetDetection = () => {
     quest3AutoDetector.resetDetection();
     setState({
@@ -187,7 +184,7 @@ export const useQuest3Integration = (options: Quest3IntegrationOptions = {}) => 
     setRetryCount(0);
   };
 
-  // Check if we should use Quest 3 AR layout
+  
   const shouldUseQuest3Layout = isSessionActive &&
                                 sessionType === 'immersive-ar' &&
                                 state.isQuest3Detected;

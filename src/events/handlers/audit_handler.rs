@@ -5,7 +5,7 @@ use tokio::sync::RwLock;
 
 use crate::events::types::{EventHandler, EventResult, StoredEvent};
 
-/// Handler that logs all events for audit trail
+/
 pub struct AuditEventHandler {
     handler_id: String,
     log: Arc<RwLock<Vec<AuditLogEntry>>>,
@@ -63,7 +63,7 @@ impl AuditEventHandler {
     }
 
     fn summarize_data(data: &str) -> String {
-        // Truncate long data for summary
+        
         const MAX_LEN: usize = 100;
         if data.len() <= MAX_LEN {
             data.to_string()
@@ -76,7 +76,7 @@ impl AuditEventHandler {
 #[async_trait]
 impl EventHandler for AuditEventHandler {
     fn event_type(&self) -> &'static str {
-        // Audit handler logs ALL event types
+        
         "*"
     }
 
@@ -102,7 +102,7 @@ impl EventHandler for AuditEventHandler {
     }
 
     fn max_retries(&self) -> u32 {
-        1 // Audit logging doesn't need many retries
+        1 
     }
 }
 
@@ -137,7 +137,7 @@ mod tests {
     async fn test_get_entries_for_aggregate() {
         let handler = AuditEventHandler::new("audit-handler");
 
-        // Add events for different aggregates
+        
         for i in 0..5 {
             let event = StoredEvent {
                 metadata: EventMetadata::new(

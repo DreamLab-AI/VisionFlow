@@ -1,9 +1,4 @@
-/**
- * AvatarManager - Multi-user avatar system for Vircadia XR
- *
- * Manages local and remote user avatars in Quest 3 AR environment,
- * including avatar models, nameplates, and position synchronization.
- */
+
 
 import * as BABYLON from '@babylonjs/core';
 import '@babylonjs/loaders/glTF';
@@ -53,11 +48,9 @@ export class AvatarManager {
         this.setupConnectionListeners();
     }
 
-    /**
-     * Set up connection event listeners
-     */
+    
     private setupConnectionListeners(): void {
-        // Listen for connection to get our agentId
+        
         this.client.Utilities.Connection.addEventListener('statusChange', () => {
             const info = this.client.Utilities.Connection.getConnectionInfo();
             if (info.isConnected && info.agentId) {
@@ -66,15 +59,13 @@ export class AvatarManager {
             }
         });
 
-        // Listen for remote avatar updates
+        
         this.client.Utilities.Connection.addEventListener('syncUpdate', async () => {
             await this.fetchRemoteAvatars();
         });
     }
 
-    /**
-     * Create local user avatar
-     */
+    
     async createLocalAvatar(username: string): Promise<void> {
         if (!this.localAgentId) {
             logger.warn('Cannot create local avatar: no agent ID');
@@ -90,30 +81,28 @@ export class AvatarManager {
             rotation: BABYLON.Quaternion.RotationYawPitchRoll(0, 0, 0)
         };
 
-        // Note: Local avatar mesh is typically not shown in first-person VR
-        // But we track it for other users to see
+        
+        
 
         this.avatars.set(this.localAgentId, avatar);
 
-        // Start broadcasting position
+        
         this.startPositionBroadcast();
 
-        // Create avatar entity in Vircadia
+        
         await this.syncAvatarToVircadia(avatar);
     }
 
-    /**
-     * Load remote user avatar
-     */
+    
     async loadRemoteAvatar(agentId: string, username: string): Promise<void> {
         if (this.avatars.has(agentId)) {
-            return; // Already loaded
+            return; 
         }
 
         logger.info(`Loading remote avatar for ${username} (${agentId})`);
 
         try {
-            // Load avatar model
+            
             const result = await BABYLON.SceneLoader.ImportMeshAsync(
                 '',
                 '',
@@ -129,7 +118,7 @@ export class AvatarManager {
                 this.defaultConfig.scale
             );
 
-            // Create nameplate
+            
             let nameplate: BABYLON.Mesh | undefined;
             if (this.defaultConfig.showNameplate) {
                 nameplate = this.createNameplate(rootMesh, username);
@@ -148,7 +137,7 @@ export class AvatarManager {
             this.avatars.set(agentId, avatar);
             logger.info(`Remote avatar loaded: ${username}`);
 
-            // Play idle animation if available
+            
             if (this.defaultConfig.enableAnimations && result.animationGroups.length > 0) {
                 const idleAnim = result.animationGroups.find(a => a.name.toLowerCase().includes('idle'));
                 if (idleAnim) {
@@ -161,9 +150,7 @@ export class AvatarManager {
         }
     }
 
-    /**
-     * Create 3D nameplate above avatar
-     */
+    
     private createNameplate(parentMesh: BABYLON.AbstractMesh, username: string): BABYLON.Mesh {
         const plane = BABYLON.MeshBuilder.CreatePlane(
             `${parentMesh.name}_nameplate`,
@@ -172,10 +159,10 @@ export class AvatarManager {
         );
 
         plane.parent = parentMesh;
-        plane.position.y = 2.2; // Above avatar head
+        plane.position.y = 2.2; 
         plane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
 
-        // Create texture with username
+        
         const dynamicTexture = new BABYLON.DynamicTexture(
             `${parentMesh.name}_nameplate_texture`,
             { width: 512, height: 128 },
@@ -202,9 +189,7 @@ export class AvatarManager {
         return plane;
     }
 
-    /**
-     * Update remote avatar position
-     */
+    
     updateAvatarPosition(agentId: string, position: BABYLON.Vector3, rotation?: BABYLON.Quaternion): void {
         const avatar = this.avatars.get(agentId);
         if (!avatar) {
@@ -217,7 +202,7 @@ export class AvatarManager {
             avatar.rotation = rotation;
         }
 
-        // Update mesh if it exists
+        
         if (avatar.mesh) {
             avatar.mesh.position = position;
             if (rotation) {
@@ -225,16 +210,14 @@ export class AvatarManager {
             }
         }
 
-        // Update nameplate visibility based on distance
+        
         if (avatar.nameplate && this.camera) {
             const distance = BABYLON.Vector3.Distance(this.camera.position, position);
             avatar.nameplate.isVisible = distance <= this.defaultConfig.nameplateDistance;
         }
     }
 
-    /**
-     * Start broadcasting local avatar position
-     */
+    
     private startPositionBroadcast(): void {
         if (this.updateInterval) {
             return;
@@ -252,21 +235,19 @@ export class AvatarManager {
                 return;
             }
 
-            // Update local avatar position from camera
+            
             localAvatar.position = this.camera.position.clone();
 
-            // Get camera rotation as quaternion
+            
             const cameraRotation = this.camera.absoluteRotation;
 
-            // Broadcast to Vircadia
+            
             await this.broadcastAvatarUpdate(localAvatar, cameraRotation);
 
-        }, 100); // 10 Hz update rate
+        }, 100); 
     }
 
-    /**
-     * Broadcast avatar update to Vircadia
-     */
+    
     private async broadcastAvatarUpdate(avatar: UserAvatar, rotation: BABYLON.Quaternion): Promise<void> {
         try {
             const query = `
@@ -298,14 +279,12 @@ export class AvatarManager {
             });
 
         } catch (error) {
-            // Silent fail for position updates to avoid spam
+            
             logger.debug('Failed to broadcast avatar update:', error);
         }
     }
 
-    /**
-     * Fetch remote avatars from Vircadia
-     */
+    
     private async fetchRemoteAvatars(): Promise<void> {
         try {
             const query = `
@@ -333,12 +312,12 @@ export class AvatarManager {
                     continue;
                 }
 
-                // Load avatar if not already loaded
+                
                 if (!this.avatars.has(agentId)) {
                     await this.loadRemoteAvatar(agentId, metadata.username);
                 }
 
-                // Update position
+                
                 if (metadata.position) {
                     const position = new BABYLON.Vector3(
                         metadata.position.x,
@@ -365,9 +344,7 @@ export class AvatarManager {
         }
     }
 
-    /**
-     * Sync avatar entity to Vircadia database
-     */
+    
     private async syncAvatarToVircadia(avatar: UserAvatar): Promise<void> {
         try {
             const query = `
@@ -416,9 +393,7 @@ export class AvatarManager {
         }
     }
 
-    /**
-     * Remove avatar
-     */
+    
     removeAvatar(agentId: string): void {
         const avatar = this.avatars.get(agentId);
         if (!avatar) {
@@ -427,12 +402,12 @@ export class AvatarManager {
 
         logger.info(`Removing avatar: ${avatar.username}`);
 
-        // Dispose mesh
+        
         if (avatar.mesh) {
             avatar.mesh.dispose();
         }
 
-        // Dispose nameplate
+        
         if (avatar.nameplate) {
             avatar.nameplate.dispose();
         }
@@ -440,23 +415,17 @@ export class AvatarManager {
         this.avatars.delete(agentId);
     }
 
-    /**
-     * Get all active avatars
-     */
+    
     getAvatars(): UserAvatar[] {
         return Array.from(this.avatars.values());
     }
 
-    /**
-     * Get avatar count
-     */
+    
     getAvatarCount(): number {
         return this.avatars.size;
     }
 
-    /**
-     * Stop position broadcast
-     */
+    
     private stopPositionBroadcast(): void {
         if (this.updateInterval) {
             clearInterval(this.updateInterval);
@@ -465,15 +434,13 @@ export class AvatarManager {
         }
     }
 
-    /**
-     * Dispose avatar manager
-     */
+    
     dispose(): void {
         logger.info('Disposing AvatarManager');
 
         this.stopPositionBroadcast();
 
-        // Remove all avatars
+        
         this.avatars.forEach((_, agentId) => {
             this.removeAvatar(agentId);
         });

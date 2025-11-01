@@ -42,7 +42,7 @@ export function useErrorHandler() {
       metadata
     } = options;
 
-    // Extract error message
+    
     let message = 'An unexpected error occurred';
     let details: string | undefined;
     let errorCode: string | undefined;
@@ -56,13 +56,13 @@ export function useErrorHandler() {
       message = error;
     } else if (error && typeof error === 'object' && 'message' in error) {
       message = String(error.message);
-      // Check for error code
+      
       if ('code' in error) {
         errorCode = String(error.code);
       }
     }
 
-    // Track error frequency for smart handling
+    
     const errorKey = `${category}:${message}`;
     const errorContext = errorHistory.current.get(errorKey) || {
       timestamp: Date.now(),
@@ -75,7 +75,7 @@ export function useErrorHandler() {
     errorContext.lastOccurrence = Date.now();
     errorHistory.current.set(errorKey, errorContext);
 
-    // Create user-friendly error messages with category-specific handling
+    
     const userFriendlyMessages: Record<string, string> = {
       'Network request failed': 'Unable to connect to the server. Please check your internet connection.',
       'Failed to fetch': 'Could not load data. Please try again later.',
@@ -97,7 +97,7 @@ export function useErrorHandler() {
       'settings sync failed': 'Settings synchronization failed. Your changes may not be saved.'
     };
 
-    // Category-specific error handling
+    
     let friendlyMessage = message;
     let showRetry = false;
     
@@ -126,7 +126,7 @@ export function useErrorHandler() {
         break;
     }
 
-    // Check for known error patterns
+    
     for (const [pattern, friendly] of Object.entries(userFriendlyMessages)) {
       if (message.toLowerCase().includes(pattern.toLowerCase())) {
         friendlyMessage = friendly;
@@ -134,20 +134,20 @@ export function useErrorHandler() {
       }
     }
 
-    // Auto-retry logic for certain errors
+    
     const shouldAutoRetry = showRetry && retry && errorContext.count <= maxRetries;
     const currentRetries = retryAttempts.get(errorKey) || 0;
 
     if (shouldAutoRetry && currentRetries < maxRetries) {
       setRetryAttempts(prev => new Map(prev).set(errorKey, currentRetries + 1));
       
-      // Exponential backoff
+      
       const delay = Math.min(1000 * Math.pow(2, currentRetries), 10000);
       
       setTimeout(async () => {
         try {
           await retry();
-          // Success - clear retry count
+          
           setRetryAttempts(prev => {
             const newMap = new Map(prev);
             newMap.delete(errorKey);
@@ -160,7 +160,7 @@ export function useErrorHandler() {
             variant: 'default',
           });
         } catch (retryError) {
-          // Retry failed, will be handled by next error
+          
           handleError(retryError, { ...options, category });
         }
       }, delay);
@@ -168,7 +168,7 @@ export function useErrorHandler() {
       friendlyMessage += ` Retrying in ${delay / 1000}s... (${currentRetries + 1}/${maxRetries})`;
     }
 
-    // Show toast notification
+    
     const toastId = toast({
       title,
       description: friendlyMessage,
@@ -198,7 +198,7 @@ export function useErrorHandler() {
       ) : undefined,
     });
 
-    // Log error with context
+    
     logger.error('Error handled:', {
       error,
       message,
@@ -211,7 +211,7 @@ export function useErrorHandler() {
       retryAttempts: currentRetries
     });
 
-    // Send error telemetry for monitoring (non-blocking)
+    
     if (category !== 'general' || errorContext.count > 3) {
       sendErrorTelemetry({
         message,
@@ -227,11 +227,11 @@ export function useErrorHandler() {
   const handleAsyncError = useCallback((promise: Promise<any>, options?: ErrorOptions) => {
     return promise.catch(error => {
       handleError(error, options);
-      throw error; // Re-throw to allow caller to handle if needed
+      throw error; 
     });
   }, [handleError]);
 
-  // Handle WebSocket errors specifically
+  
   const handleWebSocketError = useCallback((error: unknown) => {
     const connectionState = webSocketService.getConnectionState();
     
@@ -248,20 +248,20 @@ export function useErrorHandler() {
     });
   }, [handleError]);
 
-  // Handle settings sync errors
+  
   const handleSettingsError = useCallback((error: unknown, failedPaths?: string[]) => {
     handleError(error, {
       title: 'Settings Update Failed',
       category: 'settings',
       metadata: { failedPaths },
       retry: async () => {
-        // Retry logic will be implemented by the settings store
+        
         throw new Error('Settings retry not implemented');
       }
     });
   }, [handleError]);
 
-  // Get error statistics
+  
   const getErrorStats = useCallback(() => {
     const stats: Record<string, { count: number; lastOccurrence: number }> = {};
     errorHistory.current.forEach((context, key) => {
@@ -273,7 +273,7 @@ export function useErrorHandler() {
     return stats;
   }, []);
 
-  // Clear error history
+  
   const clearErrorHistory = useCallback(() => {
     errorHistory.current.clear();
     setRetryAttempts(new Map());
@@ -292,12 +292,12 @@ export function useErrorHandler() {
 // Helper function to send error telemetry
 async function sendErrorTelemetry(errorData: Record<string, any>) {
   try {
-    // Only send in production
+    
     if (process.env.NODE_ENV !== 'production') return;
     
     await unifiedApiClient.post('/api/telemetry/errors', errorData);
   } catch (error) {
-    // Fail silently - don't want telemetry to affect user experience
+    
     logger.debug('Failed to send error telemetry:', error);
   }
 }
@@ -313,7 +313,7 @@ export function withErrorHandler<T extends (...args: any[]) => Promise<any>>(
     } catch (error) {
       const { toast } = useToast();
 
-      // Similar error handling logic as above
+      
       let message = 'An unexpected error occurred';
       if (error instanceof Error) {
         message = error.message;

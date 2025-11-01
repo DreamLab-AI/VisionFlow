@@ -8,7 +8,7 @@ use crate::models::graph::GraphData;
 use crate::ports::gpu_physics_adapter::PhysicsParameters;
 use std::sync::Arc;
 
-/// Initialize physics simulation with graph data
+/
 #[derive(Debug, Clone)]
 pub struct InitializePhysicsCommand {
     pub graph: Arc<GraphData>,
@@ -39,7 +39,7 @@ impl Command for InitializePhysicsCommand {
     }
 }
 
-/// Update physics parameters without reinitializing
+/
 #[derive(Debug, Clone)]
 pub struct UpdatePhysicsParametersCommand {
     pub params: PhysicsParameters,
@@ -63,7 +63,7 @@ impl Command for UpdatePhysicsParametersCommand {
     }
 }
 
-/// Update graph data (e.g., after nodes/edges added/removed)
+/
 #[derive(Debug, Clone)]
 pub struct UpdateGraphDataCommand {
     pub graph: Arc<GraphData>,
@@ -77,10 +77,10 @@ impl Command for UpdateGraphDataCommand {
     }
 }
 
-/// Apply external forces to specific nodes
+/
 #[derive(Debug, Clone)]
 pub struct ApplyExternalForcesCommand {
-    pub forces: Vec<(u32, f32, f32, f32)>, // (node_id, force_x, force_y, force_z)
+    pub forces: Vec<(u32, f32, f32, f32)>, 
 }
 
 impl Command for ApplyExternalForcesCommand {
@@ -112,10 +112,10 @@ impl Command for ApplyExternalForcesCommand {
     }
 }
 
-/// Pin nodes at specific positions
+/
 #[derive(Debug, Clone)]
 pub struct PinNodesCommand {
-    pub nodes: Vec<(u32, f32, f32, f32)>, // (node_id, x, y, z)
+    pub nodes: Vec<(u32, f32, f32, f32)>, 
 }
 
 impl Command for PinNodesCommand {
@@ -147,7 +147,7 @@ impl Command for PinNodesCommand {
     }
 }
 
-/// Unpin nodes to allow free movement
+/
 #[derive(Debug, Clone)]
 pub struct UnpinNodesCommand {
     pub node_ids: Vec<u32>,
@@ -168,7 +168,7 @@ impl Command for UnpinNodesCommand {
     }
 }
 
-/// Reset simulation state
+/
 #[derive(Debug, Clone)]
 pub struct ResetPhysicsCommand;
 
@@ -180,7 +180,7 @@ impl Command for ResetPhysicsCommand {
     }
 }
 
-/// Free GPU resources
+/
 #[derive(Debug, Clone)]
 pub struct CleanupPhysicsCommand;
 

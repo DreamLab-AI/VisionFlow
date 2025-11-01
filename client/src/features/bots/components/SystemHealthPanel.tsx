@@ -23,7 +23,7 @@ export const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({ className 
     );
   }
 
-  // Calculate overall health metrics
+  
   const totalAgents = botsData.agents.length;
   const activeAgents = botsData.agents.filter(a => a.status === 'active' || a.status === 'busy').length;
   const errorAgents = botsData.agents.filter(a => a.status === 'error').length;
@@ -31,7 +31,7 @@ export const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({ className 
   const avgCpuUsage = botsData.agents.reduce((sum, a) => sum + (a.cpuUsage || 0), 0) / totalAgents;
   const avgMemoryUsage = botsData.agents.reduce((sum, a) => sum + (a.memoryUsage || 0), 0) / totalAgents;
 
-  // Get multi-agent metrics if available
+  
   const multiAgentMetrics = botsData.multiAgentMetrics;
 
   const getHealthColor = (value: number) => {
@@ -51,7 +51,7 @@ export const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({ className 
       <div className="p-4">
         <h3 className="text-lg font-semibold mb-4">System Health</h3>
 
-        {/* Agent Status Summary */}
+        {}
         <div className="grid grid-cols-3 gap-3 mb-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-600">{totalAgents}</div>
@@ -67,7 +67,7 @@ export const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({ className 
           </div>
         </div>
 
-        {/* Health Metrics */}
+        {}
         <div className="space-y-3">
           <div>
             <div className="flex justify-between text-sm mb-1">
@@ -109,7 +109,7 @@ export const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({ className 
           </div>
         </div>
 
-        {/* multi-agent Metrics */}
+        {}
         {multiAgentMetrics && (
           <div className="mt-4 pt-4 border-t border-gray-200">
             <h4 className="text-sm font-semibold mb-2">multi-agent Performance</h4>
@@ -134,7 +134,7 @@ export const SystemHealthPanel: React.FC<SystemHealthPanelProps> = ({ className 
           </div>
         )}
 
-        {/* Connection Status */}
+        {}
         <div className="mt-4 pt-4 border-t border-gray-200">
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">MCP Connection</span>

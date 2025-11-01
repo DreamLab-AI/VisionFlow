@@ -2,7 +2,7 @@ use bytemuck::{Pod, Zeroable};
 use glam::Vec3;
 use serde::{Deserialize, Serialize};
 
-/// A 3D vector type that is compatible with both CUDA and WebSocket binary protocol
+/
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Pod, Zeroable, Serialize, Deserialize)]
 pub struct Vec3Data {

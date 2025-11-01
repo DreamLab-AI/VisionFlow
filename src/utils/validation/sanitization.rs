@@ -4,17 +4,17 @@ use regex::Regex;
 use serde_json::Value;
 use std::collections::HashMap;
 
-/// Input sanitization utilities to prevent XSS, injection, and other attacks
+/
 pub struct Sanitizer;
 
 impl Sanitizer {
-    /// Validate numeric values (more lenient for legitimate data)
+    
     pub fn validate_numeric(value: &Value, field: &str) -> ValidationResult<()> {
         match value {
             Value::Number(n) => {
-                // Already a valid number
+                
                 if let Some(f) = n.as_f64() {
-                    // Check for special values that might cause issues
+                    
                     if f.is_nan() || f.is_infinite() {
                         return Err(ValidationError::new(
                             field,
@@ -27,10 +27,10 @@ impl Sanitizer {
                 Ok(())
             }
             Value::String(s) => {
-                // Try to parse string as number
+                
                 match s.parse::<f64>() {
                     Ok(f) => {
-                        // Check for special values
+                        
                         if f.is_nan() || f.is_infinite() {
                             return Err(ValidationError::new(
                                 field,
@@ -42,7 +42,7 @@ impl Sanitizer {
                         Ok(())
                     }
                     Err(_) => {
-                        // Only reject if it's truly not a valid number
+                        
                         Err(
                             ValidationError::new(field, "Invalid numeric format", "INVALID_NUMBER")
                                 .into(),
@@ -59,7 +59,7 @@ impl Sanitizer {
         }
     }
 
-    /// Sanitize a JSON value recursively
+    
     pub fn sanitize_json(value: &mut Value) -> ValidationResult<()> {
         match value {
             Value::String(s) => {
@@ -72,33 +72,33 @@ impl Sanitizer {
             }
             Value::Object(obj) => {
                 for (key, val) in obj.iter_mut() {
-                    // Sanitize both keys and values
+                    
                     if Self::is_suspicious_key(key) {
                         return Err(ValidationError::malicious_content(key).into());
                     }
                     Self::sanitize_json(val)?;
                 }
             }
-            _ => {} // Numbers, booleans, null don't need sanitization
+            _ => {} 
         }
         Ok(())
     }
 
-    /// Sanitize a string by removing/escaping dangerous content
+    
     pub fn sanitize_string(input: &str) -> ValidationResult<String> {
-        // Check length first
+        
         if input.len() > MAX_STRING_LENGTH {
             return Err(ValidationError::too_long("string", MAX_STRING_LENGTH).into());
         }
 
-        // Check for null bytes
+        
         if input.contains('\0') {
             return Err(ValidationError::malicious_content("string").into());
         }
 
         let mut sanitized = input.to_string();
 
-        // Remove or escape potentially dangerous patterns
+        
         sanitized = Self::remove_script_tags(&sanitized)?;
         sanitized = Self::escape_html(&sanitized);
         sanitized = Self::remove_sql_injection_patterns(&sanitized)?;
@@ -108,19 +108,19 @@ impl Sanitizer {
         Ok(sanitized)
     }
 
-    /// Remove actual XSS attempts, not legitimate content
+    
     fn remove_script_tags(input: &str) -> ValidationResult<String> {
-        // Only block actual XSS attempts with HTML context
+        
         let xss_patterns = [
-            // Actual script tags with content
+            
             r"(?i)<script[^>]*>.*?</script>",
-            // javascript: protocol in href/src context (with quotes)
+            
             r#"(?i)(href|src)\s*=\s*["']?\s*javascript:"#,
-            // vbscript: protocol
+            
             r#"(?i)(href|src)\s*=\s*["']?\s*vbscript:"#,
-            // data URIs with HTML content
+            
             r"(?i)data:text/html[,;]",
-            // Event handlers in HTML attributes (with quotes)
+            
             r#"(?i)\s(on\w+)\s*=\s*["'][^"']*["']"#,
         ];
 
@@ -143,7 +143,7 @@ impl Sanitizer {
         Ok(result)
     }
 
-    /// Escape HTML special characters
+    
     fn escape_html(input: &str) -> String {
         input
             .replace('&', "&amp;")
@@ -153,16 +153,16 @@ impl Sanitizer {
             .replace('\'', "&#x27;")
     }
 
-    /// Remove SQL injection patterns - only block actual SQL injection attempts
+    
     fn remove_sql_injection_patterns(input: &str) -> ValidationResult<String> {
-        // Only check for actual SQL injection patterns, not common words
-        // Look for SQL syntax combinations, not individual keywords
+        
+        
         let sql_injection_patterns = [
-            // Actual SQL injection with multiple keywords together
+            
             r"(?i)(union\s+select|select\s+.*\s+from\s+|insert\s+into\s+|delete\s+from\s+|drop\s+table\s+|update\s+.*\s+set\s+)",
-            // SQL comments that are commonly used in injection
+            
             r"(?i)(;\s*--|\*/\s*;)",
-            // Classic OR 1=1 style injections with actual SQL context
+            
             r"(?i)('\s+or\s+\d+\s*=\s*\d+|'\s+and\s+\d+\s*=\s*\d+)",
         ];
 
@@ -183,7 +183,7 @@ impl Sanitizer {
         Ok(input.to_string())
     }
 
-    /// Remove path traversal attempts
+    
     fn remove_path_traversal(input: &str) -> ValidationResult<String> {
         let traversal_patterns = [
             r"\.\./",
@@ -211,19 +211,19 @@ impl Sanitizer {
         Ok(input.to_string())
     }
 
-    /// Limit dangerous Unicode control characters
+    
     fn limit_unicode_control_chars(input: &str) -> ValidationResult<String> {
         let mut result = String::with_capacity(input.len());
 
         for ch in input.chars() {
             match ch {
-                // Allow common whitespace
+                
                 ' ' | '\t' | '\n' | '\r' => result.push(ch),
-                // Block other control characters except basic printable ASCII and common Unicode
+                
                 c if c.is_control() && !matches!(c, '\u{0009}' | '\u{000A}' | '\u{000D}') => {
                     return Err(ValidationError::malicious_content("string").into());
                 }
-                // Allow printable characters
+                
                 c => result.push(c),
             }
         }
@@ -231,23 +231,23 @@ impl Sanitizer {
         Ok(result)
     }
 
-    /// Check if a JSON key is suspicious
+    
     fn is_suspicious_key(key: &str) -> bool {
-        // Only check for actual dangerous prototype pollution patterns
-        // Don't flag legitimate words that happen to contain "function" or "script"
+        
+        
         let dangerous_exact_keys = ["__proto__", "constructor", "prototype"];
 
-        // Check for exact matches of dangerous keys
+        
         if dangerous_exact_keys.iter().any(|&k| key == k) {
             return true;
         }
 
-        // Check for obvious code injection attempts (standalone eval/script tags)
+        
         if key == "eval" || key == "<script>" || key.starts_with("<script") {
             return true;
         }
 
-        // Allow double underscores only for actual proto pollution attempts
+        
         if key == "__proto__" || key == "__defineGetter__" || key == "__defineSetter__" {
             return true;
         }
@@ -255,7 +255,7 @@ impl Sanitizer {
         false
     }
 
-    /// Sanitize filename for safe file operations
+    
     pub fn sanitize_filename(filename: &str) -> ValidationResult<String> {
         if filename.is_empty() {
             return Err(ValidationError::new(
@@ -270,14 +270,14 @@ impl Sanitizer {
             return Err(ValidationError::too_long("filename", 255).into());
         }
 
-        // Remove dangerous characters
+        
         let dangerous_chars = ['/', '\\', ':', '*', '?', '"', '<', '>', '|', '\0'];
 
         if filename.chars().any(|c| dangerous_chars.contains(&c)) {
             return Err(ValidationError::malicious_content("filename").into());
         }
 
-        // Check for reserved names on Windows
+        
         let reserved_names = [
             "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7",
             "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
@@ -291,7 +291,7 @@ impl Sanitizer {
             return Err(ValidationError::malicious_content("filename").into());
         }
 
-        // Don't allow files starting with dot on Unix systems (hidden files)
+        
         if filename.starts_with('.') {
             return Err(ValidationError::malicious_content("filename").into());
         }
@@ -299,17 +299,17 @@ impl Sanitizer {
         Ok(filename.to_string())
     }
 
-    /// Sanitize and validate email addresses
+    
     pub fn sanitize_email(email: &str) -> ValidationResult<String> {
         let sanitized = Self::sanitize_string(email)?;
 
-        // Additional email-specific checks
+        
         if sanitized.len() > 254 {
-            // RFC 5321 limit
+            
             return Err(ValidationError::too_long("email", 254).into());
         }
 
-        // Check for multiple @ symbols
+        
         if sanitized.matches('@').count() != 1 {
             return Err(ValidationError::invalid_format("email").into());
         }
@@ -321,17 +321,17 @@ impl Sanitizer {
 
         let (local, domain) = (parts[0], parts[1]);
 
-        // Validate local part
+        
         if local.is_empty() || local.len() > 64 {
             return Err(ValidationError::invalid_format("email").into());
         }
 
-        // Validate domain part
+        
         if domain.is_empty() || domain.len() > 255 {
             return Err(ValidationError::invalid_format("email").into());
         }
 
-        // Check for consecutive dots
+        
         if sanitized.contains("..") {
             return Err(ValidationError::invalid_format("email").into());
         }
@@ -339,20 +339,20 @@ impl Sanitizer {
         Ok(sanitized)
     }
 
-    /// Sanitize URLs to prevent malicious redirects
+    
     pub fn sanitize_url(url: &str) -> ValidationResult<String> {
         let sanitized = Self::sanitize_string(url)?;
 
-        // Check URL length
+        
         if sanitized.len() > 2048 {
             return Err(ValidationError::too_long("url", 2048).into());
         }
 
-        // Parse URL to validate structure
+        
         let parsed_url = url::Url::parse(&sanitized)
             .map_err(|_| DetailedValidationError::from(ValidationError::invalid_format("url")))?;
 
-        // Only allow safe schemes
+        
         let allowed_schemes = ["http", "https", "ftp", "ftps"];
         if !allowed_schemes.contains(&parsed_url.scheme()) {
             return Err(ValidationError::new(
@@ -363,7 +363,7 @@ impl Sanitizer {
             .into());
         }
 
-        // Block private/local network addresses
+        
         if let Some(host) = parsed_url.host_str() {
             if Self::is_private_ip_or_localhost(host) {
                 return Err(ValidationError::new(
@@ -378,25 +378,25 @@ impl Sanitizer {
         Ok(sanitized)
     }
 
-    /// Check if host is a private IP or localhost
+    
     fn is_private_ip_or_localhost(host: &str) -> bool {
         if host == "localhost" || host == "127.0.0.1" || host == "::1" {
             return true;
         }
 
-        // Check for private IP ranges
+        
         if let Ok(ip) = host.parse::<std::net::IpAddr>() {
             match ip {
                 std::net::IpAddr::V4(ipv4) => {
                     let octets = ipv4.octets();
-                    // 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
+                    
                     octets[0] == 10
                         || (octets[0] == 172 && (octets[1] >= 16 && octets[1] <= 31))
                         || (octets[0] == 192 && octets[1] == 168)
-                        || octets[0] == 127 // loopback
+                        || octets[0] == 127 
                 }
                 std::net::IpAddr::V6(_) => {
-                    // For simplicity, block all IPv6 private ranges
+                    
                     host.starts_with("::1") || host.starts_with("fc") || host.starts_with("fd")
                 }
             }
@@ -406,15 +406,15 @@ impl Sanitizer {
     }
 }
 
-/// Content Security Policy utilities
+/
 pub struct CSPUtils;
 
 impl CSPUtils {
-    /// Generate a Content Security Policy header value
+    
     pub fn generate_csp_header() -> String {
         vec![
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Note: Consider tightening this
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval'", 
             "style-src 'self' 'unsafe-inline'",
             "img-src 'self' data: blob:",
             "font-src 'self'",
@@ -429,7 +429,7 @@ impl CSPUtils {
         .join("; ")
     }
 
-    /// Generate security headers
+    
     pub fn security_headers() -> HashMap<&'static str, &'static str> {
         let mut headers = HashMap::new();
 

@@ -1,17 +1,11 @@
-/**
- * SpaceDriver Service for WebHID 6DOF Controllers
- * Tested with Spaceball 5000 (USB) and SpaceExplorer
- * 
- * This service handles WebHID communication with 3Dconnexion SpaceMouse/SpacePilot devices
- * Provides events for translation (x,y,z), rotation (rx,ry,rz), and button presses
- */
+
 
 import { createLogger } from '../utils/loggerConfig';
 
 const logger = createLogger('SpaceDriverService');
 
 // Device configuration
-const VENDOR_ID = 0x046d; // Logitech/3Dconnexion
+const VENDOR_ID = 0x046d; 
 const DEVICE_FILTER = { vendorId: VENDOR_ID };
 const REQUEST_PARAMS = { filters: [DEVICE_FILTER] };
 
@@ -49,9 +43,7 @@ export interface ConnectEvent extends CustomEvent {
   };
 }
 
-/**
- * SpaceDriver singleton service for managing WebHID SpaceMouse/SpacePilot devices
- */
+
 class SpaceDriverService extends EventTarget {
   private device: HIDDevice | undefined;
   private isInitialized = false;
@@ -62,14 +54,12 @@ class SpaceDriverService extends EventTarget {
     this.handleDisconnect = this.handleDisconnect.bind(this);
   }
 
-  /**
-   * Initialize the service and check for already connected devices
-   */
+  
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
     try {
-      // Check if WebHID is available
+      
       if (!navigator.hid) {
         logger.warn('WebHID API not available. This could be due to:');
         logger.warn('1. Not using HTTPS or localhost');
@@ -77,7 +67,7 @@ class SpaceDriverService extends EventTarget {
         logger.warn('3. WebHID is disabled in browser flags');
         logger.warn('4. Running in an insecure context');
         
-        // Check if we're in a secure context
+        
         if (window.isSecureContext === false) {
           logger.warn('Not in a secure context. WebHID requires HTTPS or localhost.');
           logger.warn('');
@@ -88,7 +78,7 @@ class SpaceDriverService extends EventTarget {
           logger.warn('');
         }
         
-        // Dispatch a custom event to notify UI components
+        
         this.dispatchEvent(new CustomEvent('webhid-unavailable', {
           detail: {
             isSecureContext: window.isSecureContext,
@@ -97,11 +87,11 @@ class SpaceDriverService extends EventTarget {
           }
         }));
         
-        // Don't initialize demo mode - let user fix the issue
+        
         return;
       }
 
-      // Check for already paired devices
+      
       const devices = await navigator.hid.getDevices();
       const spacePilotDevices = devices.filter(d => d.vendorId === VENDOR_ID);
       
@@ -110,10 +100,10 @@ class SpaceDriverService extends EventTarget {
         await this.openDevice(spacePilotDevices[0]);
       }
 
-      // Listen for device disconnection
+      
       navigator.hid.addEventListener('disconnect', this.handleDisconnect);
 
-      // Listen for new device connections (Note: this may not work reliably on all platforms)
+      
       navigator.hid.addEventListener('connect', (evt: HIDConnectionEvent) => {
         logger.info('Device connected:', evt.device.productName);
         if (evt.device.vendorId === VENDOR_ID && !this.device) {
@@ -129,26 +119,24 @@ class SpaceDriverService extends EventTarget {
   }
 
 
-  /**
-   * Open and connect to a specific HID device
-   */
+  
   private async openDevice(device: HIDDevice): Promise<void> {
     try {
-      // Disconnect from current device if any
+      
       if (this.device) {
         await this.disconnect();
       }
 
-      // Open the new device
+      
       await device.open();
       logger.info('Opened device:', device.productName);
 
-      // Set up event listener
+      
       device.addEventListener('inputreport', this.handleInputReport);
       
       this.device = device;
       
-      // Dispatch connect event
+      
       this.dispatchEvent(new CustomEvent('connect', {
         detail: { device }
       }) as ConnectEvent);
@@ -157,9 +145,7 @@ class SpaceDriverService extends EventTarget {
     }
   }
 
-  /**
-   * Disconnect from the current device
-   */
+  
   async disconnect(): Promise<void> {
     if (this.device) {
       try {
@@ -175,23 +161,17 @@ class SpaceDriverService extends EventTarget {
     }
   }
 
-  /**
-   * Check if a device is currently connected
-   */
+  
   isConnected(): boolean {
     return this.device !== undefined;
   }
 
-  /**
-   * Get the currently connected device info
-   */
+  
   getDevice(): HIDDevice | undefined {
     return this.device;
   }
 
-  /**
-   * Handle device disconnection event
-   */
+  
   private handleDisconnect(evt: HIDConnectionEvent): void {
     if (evt.device === this.device) {
       logger.info('Device disconnected:', evt.device.productName);
@@ -199,9 +179,7 @@ class SpaceDriverService extends EventTarget {
     }
   }
 
-  /**
-   * Handle input reports from the device
-   */
+  
   private handleInputReport(evt: HIDInputReportEvent): void {
     switch (evt.reportId) {
       case REPORT_ID_TRANSLATION:
@@ -218,9 +196,7 @@ class SpaceDriverService extends EventTarget {
     }
   }
 
-  /**
-   * Handle translation data (x, y, z movement)
-   */
+  
   private handleTranslation(values: Int16Array): void {
     this.dispatchEvent(new CustomEvent('translate', {
       detail: {
@@ -231,11 +207,9 @@ class SpaceDriverService extends EventTarget {
     }) as TranslateEvent);
   }
 
-  /**
-   * Handle rotation data (rx, ry, rz rotation)
-   */
+  
   private handleRotation(values: Int16Array): void {
-    // Note: rx and ry are negated based on the original implementation
+    
     this.dispatchEvent(new CustomEvent('rotate', {
       detail: {
         rx: -values[0],
@@ -245,16 +219,14 @@ class SpaceDriverService extends EventTarget {
     }) as RotateEvent);
   }
 
-  /**
-   * Handle button press data
-   */
+  
   private handleButtons(buttonBits: number): void {
     const buttons: string[] = [];
     
-    // Check each bit for button state
+    
     for (let i = 0; i < 16; i++) {
       if (buttonBits & (1 << i)) {
-        // Use hex notation for consistency with original implementation
+        
         buttons.push(`[${(i + 1).toString(16).toUpperCase()}]`);
       }
     }
@@ -264,9 +236,7 @@ class SpaceDriverService extends EventTarget {
     }) as ButtonsEvent);
   }
 
-  /**
-   * Request permission and connect to a SpacePilot device
-   */
+  
   async scan(): Promise<boolean> {
     try {
       const devices = await navigator.hid.requestDevice(REQUEST_PARAMS);
@@ -284,9 +254,7 @@ class SpaceDriverService extends EventTarget {
     }
   }
 
-  /**
-   * Clean up resources
-   */
+  
   async destroy(): Promise<void> {
     await this.disconnect();
     

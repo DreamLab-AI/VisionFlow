@@ -1,25 +1,25 @@
 pub mod actors;
 pub mod adapters;
 pub mod app_state;
-pub mod application; // CQRS application layer
+pub mod application; 
 pub mod client;
 pub mod config;
-pub mod cqrs; // CQRS (Command Query Responsibility Segregation) layer
+pub mod cqrs; 
 pub mod errors;
-pub mod events; // Event-driven architecture (Phase 3.2)
+pub mod events; 
 pub mod gpu;
 pub mod handlers;
-pub mod inference; // Inference module (Phase 7 - whelk-rs integration)
+pub mod inference; 
 pub mod middleware;
-pub mod migrations; // Database migration system
+pub mod migrations; 
 pub mod models;
 pub mod ontology;
 pub mod reasoning;
 pub mod physics;
 pub mod ports;
-pub mod repositories; // Unified repository adapters
+pub mod repositories; 
 pub mod services;
-pub mod settings; // Persistent settings management (Week 8-9)
+pub mod settings; 
 pub mod telemetry;
 pub mod types;
 pub mod utils;
@@ -34,5 +34,5 @@ pub use app_state::AppState;
 pub use models::metadata::MetadataStore;
 pub use models::protected_settings::ProtectedSettings;
 pub use models::simulation_params::SimulationParams;
-// pub use models::ui_settings::UISettings; // Removed - consolidated into AppFullSettings"
+// pub use models::ui_settings::UISettings; 
 pub use models::user_settings::UserSettings;

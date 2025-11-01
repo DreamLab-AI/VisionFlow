@@ -11,11 +11,11 @@ use std::path::Path;
 pub fn ptx_module_smoke_test() -> String {
     let mut report = String::new();
     report.push_str("==== GPU PTX MODULE SMOKE TEST ====\n");
-    // Step 1: Resolve PTX
+    
     match ptx::load_ptx_sync() {
         Ok(ptx_content) => {
             report.push_str(&format!("PTX loaded ({} bytes)\n", ptx_content.len()));
-            // Step 2: Create CUDA context
+            
             let device = match Device::get_device(0) {
                 Ok(d) => {
                     report.push_str("CUDA device(0) acquired\n");
@@ -36,11 +36,11 @@ pub fn ptx_module_smoke_test() -> String {
                     return report;
                 }
             };
-            // Step 3: Create module
+            
             match Module::from_ptx(&ptx_content, &[]) {
                 Ok(module) => {
                     report.push_str("PTX module created successfully\n");
-                    // Step 4: Validate expected kernels exist
+                    
                     let kernels = [
                         "build_grid_kernel",
                         "compute_cell_bounds_kernel",
@@ -82,7 +82,7 @@ pub fn run_gpu_diagnostics() -> String {
     let mut report = String::new();
     report.push_str("==== GPU DIAGNOSTIC REPORT (Phase 0 Enhanced) ====\n");
 
-    // Check build-time PTX environment variable
+    
     report.push_str("PTX Build Environment:\n");
     match std::env::var("VISIONFLOW_PTX_PATH") {
         Ok(path) => {
@@ -117,7 +117,7 @@ pub fn run_gpu_diagnostics() -> String {
         }
     }
 
-    // Check environment variables
+    
     report.push_str(&format!(
         "\nEffective fallback CUDA arch (for runtime PTX compile): sm_{}\n",
         ptx::effective_cuda_arch()
@@ -140,7 +140,7 @@ pub fn run_gpu_diagnostics() -> String {
         }
     }
 
-    // Check for PTX file
+    
     let ptx_paths = [
         "/app/src/utils/ptx/visionflow_unified.ptx",
         "./src/utils/ptx/visionflow_unified.ptx",
@@ -153,7 +153,7 @@ pub fn run_gpu_diagnostics() -> String {
             ptx_found = true;
             report.push_str(&format!("  ✅ PTX file found at: {}\n", path));
             info!("GPU Diagnostic: PTX file found at {}", path);
-            // Try to get file size
+            
             match std::fs::metadata(path) {
                 Ok(metadata) => {
                     report.push_str(&format!("     Size: {} bytes\n", metadata.len()));
@@ -172,26 +172,26 @@ pub fn run_gpu_diagnostics() -> String {
 
     if !ptx_found {
         error!("GPU Diagnostic: No PTX file found at any expected location");
-        // This is a critical error for GPU computation
+        
         report.push_str("  ⚠️ CRITICAL ERROR: No PTX file found. GPU physics will not work.\n");
     }
 
-    // Check GPU device creation
+    
     report.push_str("\nCUDA Device Detection:\n");
-    // GPU testing temporarily disabled - would require cust crate
-    // match UnifiedGPUCompute::test_gpu() {
-    //     Ok(_) => {
-    //         report.push_str("  ✅ CUDA device successfully detected and tested\n");
-    //         info!("GPU Diagnostic: CUDA device detected and tested successfully");
-    //     },
-    //     Err(e) => {
-    //         report.push_str(&format!("  ❌ CUDA device test failed: {}\n", e));
-    //         error!("GPU Diagnostic: CUDA device test failed: {}", e);
-    //
-    //         // This is likely why GPU physics isn't working
-    //         report.push_str("  ⚠️ GPU PHYSICS WILL NOT WORK: Could not create CUDA device\n");
-    //     }
-    // }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     report.push_str("  ⚠️ GPU testing temporarily disabled - cust crate not available\n");
 
     report.push_str("=============================\n");
@@ -199,13 +199,13 @@ pub fn run_gpu_diagnostics() -> String {
     report
 }
 
-/// Validate PTX content for common issues
+/
 pub fn validate_ptx_content(ptx_content: &str) -> Result<(), String> {
     if ptx_content.trim().is_empty() {
         return Err("PTX content is empty".to_string());
     }
 
-    // Check for required PTX headers
+    
     if !ptx_content.contains(".version") {
         return Err("PTX content missing .version directive".to_string());
     }
@@ -214,7 +214,7 @@ pub fn validate_ptx_content(ptx_content: &str) -> Result<(), String> {
         return Err("PTX content missing .target directive".to_string());
     }
 
-    // Check for expected kernel functions
+    
     let required_kernels = [
         "build_grid_kernel",
         "compute_cell_bounds_kernel",
@@ -239,7 +239,7 @@ pub fn validate_ptx_content(ptx_content: &str) -> Result<(), String> {
     Ok(())
 }
 
-/// Surface precise PTX-related errors with actionable diagnostics
+/
 pub fn diagnose_ptx_error(error: &str) -> String {
     let mut diagnosis = String::new();
     diagnosis.push_str("PTX Error Diagnosis:\n");
@@ -277,7 +277,7 @@ pub fn diagnose_ptx_error(error: &str) -> String {
     diagnosis
 }
 
-/// Validate kernel launch parameters before execution
+/
 pub fn validate_kernel_launch(
     kernel_name: &str,
     grid_size: u32,
@@ -314,13 +314,13 @@ pub fn validate_kernel_launch(
     Ok(())
 }
 
-/// Create diagnostic reporting functions for GPU metrics
+/
 pub fn create_gpu_metrics_report() -> String {
     let mut report = String::new();
     report.push_str("==== GPU METRICS REPORT ====\n");
 
-    // Memory usage reporting would go here
-    // For now, provide placeholder structure
+    
+    
     report.push_str("Memory Usage:\n");
     report.push_str("  Device Memory: N/A (requires CUDA context)\n");
     report.push_str("  Host Memory: N/A (requires implementation)\n");
@@ -338,14 +338,14 @@ pub fn create_gpu_metrics_report() -> String {
 pub fn fix_cuda_environment() -> Result<(), Error> {
     info!("Attempting to fix CUDA environment...");
 
-    // Check and set CUDA_VISIBLE_DEVICES if not set
+    
     if env::var("CUDA_VISIBLE_DEVICES").is_err() {
         info!("CUDA_VISIBLE_DEVICES not set, setting to 0");
-        // TODO: Audit that the environment access only happens in single-threaded code.
+        
         unsafe { env::set_var("CUDA_VISIBLE_DEVICES", "0") };
     }
 
-    // Check if PTX file exists; if not, try to find it or create a symlink
+    
     let primary_path = "/app/src/utils/ptx/visionflow_unified.ptx";
     let alternative_path = "./src/utils/ptx/visionflow_unified.ptx";
 

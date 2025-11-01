@@ -9,7 +9,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use log::{error, warn, info, debug};
 
-/// CUDA error codes (subset of cuda_runtime_api.h)
+/
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CudaError {
@@ -191,20 +191,20 @@ impl std::fmt::Display for CudaError {
 
 impl std::error::Error for CudaError {}
 
-/// CUDA error recovery strategies
+/
 #[derive(Debug, Clone, Copy)]
 pub enum RecoveryStrategy {
-    /// Retry the operation with exponential backoff
+    
     Retry,
-    /// Fall back to CPU implementation
+    
     FallbackToCPU,
-    /// Reset the CUDA context and retry
+    
     ResetContext,
-    /// Abort the operation
+    
     Abort,
 }
 
-/// CUDA error handler with automatic recovery
+/
 pub struct CudaErrorHandler {
     error_count: Arc<AtomicU32>,
     last_error_time: Arc<std::sync::Mutex<Option<Instant>>>,
@@ -224,7 +224,7 @@ impl CudaErrorHandler {
         }
     }
 
-    /// Check for CUDA errors after an operation and determine recovery strategy
+    
     pub fn check_error(&self, operation_name: &str) -> Result<(), CudaError> {
         let error_code = unsafe { cudaGetLastError() };
         let cuda_error = CudaError::from(error_code);
@@ -233,24 +233,24 @@ impl CudaErrorHandler {
             return Ok(());
         }
 
-        // Record error occurrence
+        
         let error_count = self.error_count.fetch_add(1, Ordering::Relaxed);
         let now = Instant::now();
 
-        // Update last error time
+        
         if let Ok(mut last_time) = self.last_error_time.lock() {
             *last_time = Some(now);
         }
 
         error!("CUDA error in {}: {} (error #{} total)", operation_name, cuda_error, error_count + 1);
 
-        // Determine recovery strategy based on error type and frequency
+        
         let strategy = self.determine_recovery_strategy(&cuda_error, error_count + 1);
 
         match strategy {
             RecoveryStrategy::Retry => {
                 warn!("Attempting to retry {} after CUDA error", operation_name);
-                // Clear the error for retry
+                
                 unsafe { cudaGetLastError(); }
                 return Err(cuda_error);
             }
@@ -270,7 +270,7 @@ impl CudaErrorHandler {
         }
     }
 
-    /// Synchronize device with error checking
+    
     pub fn synchronize_device(&self, operation_name: &str) -> Result<(), CudaError> {
         unsafe {
             let result = cudaDeviceSynchronize();
@@ -281,11 +281,11 @@ impl CudaErrorHandler {
             }
         }
 
-        // Also check for any pending errors
+        
         self.check_error(&format!("{}_sync", operation_name))
     }
 
-    /// Get error statistics
+    
     pub fn get_error_stats(&self) -> (u32, Option<Duration>) {
         let error_count = self.error_count.load(Ordering::Relaxed);
         let time_since_last = if let Ok(last_time) = self.last_error_time.lock() {
@@ -297,7 +297,7 @@ impl CudaErrorHandler {
         (error_count, time_since_last)
     }
 
-    /// Reset error statistics
+    
     pub fn reset_stats(&self) {
         self.error_count.store(0, Ordering::Relaxed);
         if let Ok(mut last_time) = self.last_error_time.lock() {
@@ -306,7 +306,7 @@ impl CudaErrorHandler {
         info!("CUDA error statistics reset");
     }
 
-    /// Check if we should fall back to CPU based on error frequency
+    
     pub fn should_fallback_to_cpu(&self) -> bool {
         let error_count = self.error_count.load(Ordering::Relaxed);
         error_count >= self.fallback_threshold
@@ -314,7 +314,7 @@ impl CudaErrorHandler {
 
     fn determine_recovery_strategy(&self, error: &CudaError, error_count: u32) -> RecoveryStrategy {
         match error {
-            // Memory errors - try CPU fallback
+            
             CudaError::OutOfMemory | CudaError::MemoryValueTooLarge => {
                 if error_count >= 2 {
                     RecoveryStrategy::FallbackToCPU
@@ -323,7 +323,7 @@ impl CudaErrorHandler {
                 }
             }
 
-            // Context/initialization errors - reset context
+            
             CudaError::NotInitialized | CudaError::DeInitialized | CudaError::InvalidContext => {
                 if error_count >= self.context_reset_threshold {
                     RecoveryStrategy::Abort
@@ -332,7 +332,7 @@ impl CudaErrorHandler {
                 }
             }
 
-            // Launch failures - retry with backoff
+            
             CudaError::LaunchFailure | CudaError::InvalidConfiguration => {
                 if error_count >= 3 {
                     RecoveryStrategy::FallbackToCPU
@@ -341,17 +341,17 @@ impl CudaErrorHandler {
                 }
             }
 
-            // Device unavailable - fallback immediately
+            
             CudaError::NoDevice | CudaError::DevicesUnavailable => {
                 RecoveryStrategy::FallbackToCPU
             }
 
-            // Critical errors - abort
+            
             CudaError::ECCUncorrectable | CudaError::NvlinkUncorrectable => {
                 RecoveryStrategy::Abort
             }
 
-            // Other errors - retry a few times then fallback
+            
             _ => {
                 if error_count >= self.fallback_threshold {
                     RecoveryStrategy::FallbackToCPU
@@ -365,11 +365,11 @@ impl CudaErrorHandler {
     fn reset_cuda_context(&self) {
         warn!("Attempting CUDA context reset");
         unsafe {
-            // Reset the current device context
+            
             let result = cudaDeviceReset();
             if result == 0 {
                 info!("CUDA context reset successfully");
-                // Reset error count after successful context reset
+                
                 self.error_count.store(0, Ordering::Relaxed);
             } else {
                 error!("Failed to reset CUDA context: error code {}", result);
@@ -384,7 +384,7 @@ impl Default for CudaErrorHandler {
     }
 }
 
-/// RAII wrapper for CUDA memory with automatic cleanup
+/
 pub struct CudaMemoryGuard {
     ptr: *mut c_void,
     size: usize,
@@ -423,7 +423,7 @@ impl CudaMemoryGuard {
         self.size
     }
 
-    /// Copy data to device with error checking
+    
     pub fn copy_from_host(&self, host_data: *const c_void, size: usize) -> Result<(), CudaError> {
         if size > self.size {
             error!("Attempting to copy {} bytes to buffer of size {}", size, self.size);
@@ -439,14 +439,14 @@ impl CudaMemoryGuard {
             }
         }
 
-        // Check for any additional errors
+        
         self.error_handler.check_error(&format!("copy_to_{}", self.name))?;
 
         debug!("Copied {} bytes to {}", size, self.name);
         Ok(())
     }
 
-    /// Copy data from device with error checking
+    
     pub fn copy_to_host(&self, host_data: *mut c_void, size: usize) -> Result<(), CudaError> {
         if size > self.size {
             error!("Attempting to copy {} bytes from buffer of size {}", size, self.size);
@@ -462,7 +462,7 @@ impl CudaMemoryGuard {
             }
         }
 
-        // Check for any additional errors
+        
         self.error_handler.check_error(&format!("copy_from_{}", self.name))?;
 
         debug!("Copied {} bytes from {}", size, self.name);
@@ -501,7 +501,7 @@ const cudaMemcpyHostToDevice: c_int = 1;
 const cudaMemcpyDeviceToHost: c_int = 2;
 const cudaMemcpyDeviceToDevice: c_int = 3;
 
-/// Macro for easy CUDA error checking
+/
 #[macro_export]
 macro_rules! cuda_check {
     ($handler:expr, $operation:expr, $op_name:expr) => {{
@@ -515,7 +515,7 @@ macro_rules! cuda_check {
     }};
 }
 
-/// Convenience function to create a global CUDA error handler
+/
 static GLOBAL_CUDA_ERROR_HANDLER: std::sync::OnceLock<Arc<CudaErrorHandler>> = std::sync::OnceLock::new();
 
 pub fn get_global_cuda_error_handler() -> Arc<CudaErrorHandler> {
@@ -549,7 +549,7 @@ mod tests {
         let handler = CudaErrorHandler::new();
         assert!(!handler.should_fallback_to_cpu());
 
-        // Simulate errors
+        
         for _ in 0..5 {
             handler.error_count.fetch_add(1, Ordering::Relaxed);
         }

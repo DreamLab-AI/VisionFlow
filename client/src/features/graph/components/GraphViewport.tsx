@@ -22,7 +22,7 @@ const AtmosphericGlowWrapper = () => {
   const { camera, size } = useThree();
   const glowSettings = useSettingsStore(state => state.settings?.visualisation?.glow);
   
-  // Use default values if glow settings are not available
+  
   const defaultGlow = {
     baseColor: "#00ffff",
     intensity: 2.0,
@@ -54,10 +54,10 @@ const GraphViewport: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [graphCenter, setGraphCenter] = useState<[number, number, number]>([0, 0, 0]);
-  const [graphSize, setGraphSize] = useState(50); // Default size
+  const [graphSize, setGraphSize] = useState(50); 
   const [isNodeDragging, setIsNodeDragging] = useState(false);
   
-  // Debug state changes
+  
   useEffect(() => {
     console.log('GraphViewport: isNodeDragging changed to', isNodeDragging);
     console.log('OrbitControls should be:', !isNodeDragging ? 'ENABLED' : 'DISABLED');
@@ -66,18 +66,18 @@ const GraphViewport: React.FC = () => {
   const [dirRef, setDirRef] = useState<THREE.DirectionalLight | null>(null);
   const [pointRef, setPointRef] = useState<THREE.PointLight | null>(null);
 
-  // Settings for camera and visuals
+  
   const settings = useSettingsStore(state => state.settings);
   const initialized = useSettingsStore(state => state.initialized);
   const [viewportRefresh, setViewportRefresh] = useState(0);
 
-  // Subscribe to viewport updates for real-time changes
+  
   useEffect(() => {
     const unsubscribe = useSettingsStore.getState().subscribe(
       'viewport.update',
       () => {
         logger.debug('Viewport update triggered');
-        setViewportRefresh(prev => prev + 1); // Force re-render
+        setViewportRefresh(prev => prev + 1); 
       },
       false
     );
@@ -96,11 +96,11 @@ const GraphViewport: React.FC = () => {
   const near = cameraSettings?.near ?? 0.1;
   const far = cameraSettings?.far ?? 2000;
 
-  // Memoize cameraPosition to ensure stable reference unless underlying values change
+  
   const cameraPosition = useMemo(() => (
     cameraSettings?.position
       ? [cameraSettings.position.x, cameraSettings.position.y, cameraSettings.position.z]
-      : [0, 10, 50] // Default camera position
+      : [0, 10, 50] 
   ), [cameraSettings?.position]);
 
   const enableGlow = glowSettings?.enabled ?? true;
@@ -119,7 +119,7 @@ const GraphViewport: React.FC = () => {
         if (!data || !data.nodes || data.nodes.length === 0) {
           logger.warn('No graph data or empty nodes received.');
           setGraphCenter([0,0,0]);
-          setGraphSize(50); // Default size for empty graph
+          setGraphSize(50); 
           setIsLoading(false);
           return;
         }
@@ -146,7 +146,7 @@ const GraphViewport: React.FC = () => {
         const height = (minY === Infinity || maxY === -Infinity) ? 0 : maxY - minY;
         const depth = (minZ === Infinity || maxZ === -Infinity) ? 0 : maxZ - minZ;
 
-        const maxDimension = Math.max(width, height, depth, 1); // Ensure maxDimension is at least 1
+        const maxDimension = Math.max(width, height, depth, 1); 
 
         setGraphCenter([centerX, centerY, centerZ]);
         setGraphSize(maxDimension > 0 ? maxDimension : 50);
@@ -163,13 +163,13 @@ const GraphViewport: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Enable lights only for default layer and layer 1
-    // SelectiveBloom has issues with layer 2
+    
+    
     [ambientRef, dirRef, pointRef].forEach((l) => {
       if (l) {
-        l.layers.enable(0); // Default layer
-        l.layers.enable(1); // Bloom layer 1
-        // Don't enable layer 2 for lights to avoid SelectiveBloom issues
+        l.layers.enable(0); 
+        l.layers.enable(1); 
+        
       }
     });
   }, [ambientRef, dirRef, pointRef]);
@@ -202,20 +202,20 @@ const GraphViewport: React.FC = () => {
               sceneChildren: scene.children.length,
             });
           }
-          // Force a render
+          
           gl.render(scene, camera);
         }}
         gl={{ 
           antialias: true, 
-          alpha: true, // Enable alpha for proper transparency
+          alpha: true, 
           powerPreference: 'high-performance', 
           logarithmicDepthBuffer: false,
-          toneMapping: THREE.ACESFilmicToneMapping, // Better tone mapping for bloom
+          toneMapping: THREE.ACESFilmicToneMapping, 
           preserveDrawingBuffer: true,
-          outputColorSpace: THREE.SRGBColorSpace // Ensure proper color space
+          outputColorSpace: THREE.SRGBColorSpace 
         }}
-        dpr={[1, 2]} // Pixel ratio for sharpness
-        shadows // Enable shadows
+        dpr={[1, 2]} 
+        shadows 
       >
         <color attach="background" args={[backgroundColor]} />
         <CameraController center={graphCenter} size={graphSize} />
@@ -248,23 +248,23 @@ const GraphViewport: React.FC = () => {
           enableDamping
           dampingFactor={0.05}
           minDistance={1}
-          maxDistance={far / 2} // Max distance related to camera far plane
+          maxDistance={far / 2} 
           target={graphCenter}
           enabled={!isNodeDragging}
           enableRotate={!isNodeDragging}
           enablePan={!isNodeDragging}
           enableZoom={!isNodeDragging}
-          mouseButtons={isNodeDragging ? {} : undefined} // Disable all mouse buttons when dragging
+          mouseButtons={isNodeDragging ? {} : undefined} 
         />
 
             <Suspense fallback={null}>
-              {/* Using GraphManager for all graph rendering */}
+              {}
               <GraphManager onDragStateChange={(isDragging) => {
                 console.log('GraphViewport: onDragStateChange called with', isDragging);
                 setIsNodeDragging(isDragging);
               }} />
 
-            {/* Holographic Data Sphere with minimal opacity - scaled 50x - only render if enabled */}
+            {}
             {enableHologram && (
               <HologramContent
                 opacity={0.15}
@@ -277,11 +277,11 @@ const GraphViewport: React.FC = () => {
               />
             )}
 
-              {/* VisionFlow visualization re-enabled in same origin space */}
+              {}
               <BotsVisualization />
             </Suspense>
 
-          {/* Debug visualizations based on debug settings */}
+          {}
           {debugSettings?.enabled && (
             <>
               <Stats />
@@ -296,7 +296,7 @@ const GraphViewport: React.FC = () => {
             </>
           )}
           
-          {/* Additional debug info logging */}
+          {}
           {debugSettings?.enableNodeDebug && debugState.isEnabled() && 
             logger.info('Node debug enabled - Graph state:', { 
               graphSize, 

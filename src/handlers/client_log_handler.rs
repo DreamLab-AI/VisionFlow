@@ -30,7 +30,7 @@ pub struct ClientLogsPayload {
     timestamp: String,
 }
 
-/// Handler for receiving browser logs from Quest 3 and other remote clients
+/
 pub async fn handle_client_logs(
     req: HttpRequest,
     payload: web::Json<ClientLogsPayload>,
@@ -38,7 +38,7 @@ pub async fn handle_client_logs(
 ) -> Result<HttpResponse, Error> {
     let log_file_path = "/app/logs/client.log";
 
-    // Extract session ID from header or payload
+    
     let header_session_id = req
         .headers()
         .get("X-Session-ID")
@@ -47,9 +47,9 @@ pub async fn handle_client_logs(
 
     let client_session_id = header_session_id.as_ref().unwrap_or(&payload.session_id);
 
-    // DEPRECATED: SessionCorrelationBridge removed - using client session ID directly
+    
     let correlation_id = Uuid::parse_str(client_session_id).unwrap_or_else(|_| {
-        // If not a valid UUID, create one from the session ID
+        
         let new_corr_id = Uuid::new_v4();
         debug!(
             "Created new correlation ID for session {}: {}",
@@ -58,7 +58,7 @@ pub async fn handle_client_logs(
         new_corr_id
     });
 
-    // Log telemetry event with correlation ID
+    
     if let Some(telemetry) = get_telemetry_logger() {
         let event = crate::telemetry::agent_telemetry::TelemetryEvent::new(
             CorrelationId(correlation_id.to_string()),
@@ -85,7 +85,7 @@ pub async fn handle_client_logs(
         telemetry.log_event(event);
     }
 
-    // Open the log file in append mode
+    
     let mut file = OpenOptions::new()
         .create(true)
         .append(true)
@@ -95,11 +95,11 @@ pub async fn handle_client_logs(
             actix_web::error::ErrorInternalServerError(format!("Failed to open log file: {}", e))
         })?;
 
-    // Write each log entry to the file
+    
     for entry in &payload.logs {
         let timestamp = Local::now().format("%Y-%m-%d %H:%M:%S%.3f");
 
-        // Format the log line with correlation ID
+        
         let log_line = format!(
             "[{}] [{}] [{}] [corr:{}] {} - {} | UA: {} | URL: {}{}\n",
             timestamp,
@@ -120,13 +120,13 @@ pub async fn handle_client_logs(
             }
         );
 
-        // Write to file
+        
         file.write_all(log_line.as_bytes()).map_err(|e| {
             error!("Failed to write to client.log: {}", e);
             actix_web::error::ErrorInternalServerError(format!("Failed to write log: {}", e))
         })?;
 
-        // Also log to server console for debugging with correlation ID
+        
         match entry.level.as_str() {
             "error" => error!(
                 "[CLIENT:{}] {} - {}",
@@ -148,7 +148,7 @@ pub async fn handle_client_logs(
             ),
         }
 
-        // If there's a stack trace, write it separately
+        
         if let Some(stack) = &entry.stack {
             let stack_line = format!(
                 "[{}] [STACK] [corr:{}] {}\n{}\n",
@@ -161,7 +161,7 @@ pub async fn handle_client_logs(
         }
     }
 
-    // Flush to ensure data is written
+    
     file.flush().map_err(|e| {
         error!("Failed to flush client.log: {}", e);
         actix_web::error::ErrorInternalServerError(format!("Failed to flush log file: {}", e))

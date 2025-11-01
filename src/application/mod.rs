@@ -36,7 +36,7 @@ pub use settings::{
     DeletePhysicsProfileHandler,
     GetPhysicsSettings,
     GetPhysicsSettingsHandler,
-    // Queries
+    
     GetSetting,
     GetSettingHandler,
     GetSettingsBatch,
@@ -49,7 +49,7 @@ pub use settings::{
     SaveAllSettingsHandler,
     UpdatePhysicsSettings,
     UpdatePhysicsSettingsHandler,
-    // Directives
+    
     UpdateSetting,
     UpdateSettingHandler,
     UpdateSettingsBatch,
@@ -60,7 +60,7 @@ pub use settings::{
 pub use knowledge_graph::{
     AddEdge,
     AddEdgeHandler,
-    // Directives
+    
     AddNode,
     AddNodeHandler,
     BatchUpdatePositions,
@@ -77,7 +77,7 @@ pub use knowledge_graph::{
     LoadGraphHandler,
     QueryNodes,
     QueryNodesHandler,
-    // Queries
+    
     QueryResult,
     RemoveEdge,
     RemoveEdgeHandler,
@@ -93,14 +93,14 @@ pub use knowledge_graph::{
 
 // Re-export ontology domain
 pub use ontology::{
-    // Directives
+    
     AddAxiom,
     AddAxiomHandler,
     AddOwlClass,
     AddOwlClassHandler,
     AddOwlProperty,
     AddOwlPropertyHandler,
-    // Queries
+    
     GetClassAxioms,
     GetClassAxiomsHandler,
     GetInferenceResults,
@@ -137,7 +137,7 @@ pub use ontology::{
 
 // Re-export graph domain
 pub use graph::{
-    // Queries
+    
     ComputeShortestPaths,
     ComputeShortestPathsHandler,
     GetAutoBalanceNotifications,

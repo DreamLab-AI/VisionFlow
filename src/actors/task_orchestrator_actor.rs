@@ -29,7 +29,7 @@ use crate::services::management_api_client::{
     TaskStatus as ApiTaskStatus,
 };
 
-/// Task state tracked by orchestrator
+/
 #[derive(Debug, Clone)]
 pub struct TaskState {
     pub task_id: String,
@@ -42,7 +42,7 @@ pub struct TaskState {
     pub retry_count: u32,
 }
 
-/// Task Orchestrator Actor
+/
 pub struct TaskOrchestratorActor {
     api_client: ManagementApiClient,
     active_tasks: HashMap<String, TaskState>,
@@ -51,7 +51,7 @@ pub struct TaskOrchestratorActor {
 }
 
 impl TaskOrchestratorActor {
-    /// Create new TaskOrchestratorActor
+    
     pub fn new(api_client: ManagementApiClient) -> Self {
         info!("[TaskOrchestratorActor] Initializing");
         Self {
@@ -62,7 +62,7 @@ impl TaskOrchestratorActor {
         }
     }
 
-    /// Create task with retry logic
+    
     async fn create_task_with_retry(
         &mut self,
         agent: String,
@@ -79,7 +79,7 @@ impl TaskOrchestratorActor {
                         response.task_id
                     );
 
-                    // Add to active tasks cache
+                    
                     self.active_tasks.insert(
                         response.task_id.clone(),
                         TaskState {
@@ -116,13 +116,13 @@ impl TaskOrchestratorActor {
         }
     }
 
-    /// Update task status in cache
+    
     fn update_task_status(&mut self, task_status: ApiTaskStatus) {
         if let Some(task) = self.active_tasks.get_mut(&task_status.task_id) {
             task.status = task_status.status.clone();
             task.last_updated = Utc::now();
 
-            // Remove from active tasks if completed or failed
+            
             if task_status.status == ApiTaskState::Completed
                 || task_status.status == ApiTaskState::Failed
             {
@@ -141,7 +141,7 @@ impl Actor for TaskOrchestratorActor {
     fn started(&mut self, ctx: &mut Self::Context) {
         info!("[TaskOrchestratorActor] Actor started");
 
-        // Defer interval setup to avoid reactor panic
+        
         ctx.address()
             .do_send(crate::actors::messages::InitializeActor);
     }
@@ -161,13 +161,13 @@ impl Handler<crate::actors::messages::InitializeActor> for TaskOrchestratorActor
     ) -> Self::Result {
         info!("[TaskOrchestratorActor] Initializing periodic cleanup (deferred from started)");
 
-        // Start periodic cleanup of old completed tasks
+        
         ctx.run_interval(Duration::from_secs(300), |act, _ctx| {
             let now = Utc::now();
             let mut to_remove = Vec::new();
 
             for (task_id, task) in &act.active_tasks {
-                // Remove completed/failed tasks older than 5 minutes
+                
                 if (task.status == ApiTaskState::Completed || task.status == ApiTaskState::Failed)
                     && (now - task.last_updated).num_minutes() > 5
                 {
@@ -190,7 +190,7 @@ impl Handler<crate::actors::messages::InitializeActor> for TaskOrchestratorActor
 // Message Definitions
 // ========================================
 
-/// Create a new task
+/
 #[derive(Message)]
 #[rtype(result = "Result<TaskResponse, String>")]
 pub struct CreateTask {
@@ -199,31 +199,31 @@ pub struct CreateTask {
     pub provider: String,
 }
 
-/// Get task status
+/
 #[derive(Message)]
 #[rtype(result = "Result<ApiTaskStatus, String>")]
 pub struct GetTaskStatus {
     pub task_id: String,
 }
 
-/// Stop a running task
+/
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct StopTask {
     pub task_id: String,
 }
 
-/// List all active tasks
+/
 #[derive(Message)]
 #[rtype(result = "Result<Vec<TaskInfo>, String>")]
 pub struct ListActiveTasks;
 
-/// Get system status
+/
 #[derive(Message)]
 #[rtype(result = "Result<SystemStatusInfo, String>")]
 pub struct GetSystemStatus;
 
-/// System status information
+/
 #[derive(Debug, Clone)]
 pub struct SystemStatusInfo {
     pub active_tasks: usize,
@@ -338,7 +338,7 @@ impl Handler<GetSystemStatus> for TaskOrchestratorActor {
 
 // Helper methods for TaskOrchestratorActor
 impl TaskOrchestratorActor {
-    /// Clone necessary fields for async operations
+    
     fn clone_for_async(&self) -> Self {
         Self {
             api_client: self.api_client.clone(),

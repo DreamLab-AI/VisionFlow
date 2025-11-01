@@ -51,7 +51,7 @@ impl PathRegistry {
             next_id: 1,
         };
 
-        // Pre-register common physics paths for optimal performance
+        
         let common_paths = vec![
             "visualisation.graphs.logseq.physics.damping",
             "visualisation.graphs.logseq.physics.spring_k",
@@ -108,11 +108,11 @@ impl BinarySettingsProtocol {
             path_registry: PathRegistry::new(),
             compressor: Compress::new(Compression::fast(), false),
             decompressor: Decompress::new(false),
-            compression_threshold: 256, // Compress messages > 256 bytes
+            compression_threshold: 256, 
         }
     }
 
-    /// Convert JSON Value to optimized binary representation
+    
     pub fn json_to_binary_value(&self, value: &Value) -> BinaryValue {
         match value {
             Value::Null => BinaryValue::Null,
@@ -125,7 +125,7 @@ impl BinarySettingsProtocol {
                         BinaryValue::I64(i)
                     }
                 } else if let Some(f) = n.as_f64() {
-                    // Use f32 for space efficiency if precision allows
+                    
                     if (f as f32 as f64 - f).abs() < f64::EPSILON * 10.0 {
                         BinaryValue::F32(f as f32)
                     } else {
@@ -151,7 +151,7 @@ impl BinarySettingsProtocol {
         }
     }
 
-    /// Convert binary value back to JSON
+    
     pub fn binary_value_to_json(&self, value: &BinaryValue) -> Value {
         match value {
             BinaryValue::Null => Value::Null,
@@ -177,11 +177,11 @@ impl BinarySettingsProtocol {
         }
     }
 
-    /// Serialize binary message to bytes with optional compression
+    
     pub fn serialize_message(&mut self, message: &BinaryMessage) -> Result<Vec<u8>, String> {
         let mut buffer = Vec::new();
 
-        // Write message type
+        
         match message {
             BinaryMessage::GetSetting { path_id } => {
                 buffer.write_u8(0x01).map_err(|e| e.to_string())?;
@@ -211,7 +211,7 @@ impl BinarySettingsProtocol {
                 buffer.write_u8(0x05).map_err(|e| e.to_string())?;
                 buffer.write_u32::<LittleEndian>(*path_id).map_err(|e| e.to_string())?;
 
-                // Compute and serialize delta
+                
                 let delta = self.compute_value_delta(old_value, new_value)?;
                 self.serialize_binary_value(&mut buffer, &delta)?;
             },
@@ -236,12 +236,12 @@ impl BinarySettingsProtocol {
             }
         }
 
-        // Apply compression if message is large enough
+        
         if buffer.len() > self.compression_threshold {
             let compressed = self.compress_data(&buffer)?;
             if compressed.len() < buffer.len() {
-                // Prepend compression flag
-                let mut final_buffer = vec![0xFF]; // Compression marker
+                
+                let mut final_buffer = vec![0xFF]; 
                 final_buffer.extend(compressed);
                 debug!("Compressed message: {} -> {} bytes ({:.1}% reduction)",
                        buffer.len(), final_buffer.len(),
@@ -250,13 +250,13 @@ impl BinarySettingsProtocol {
             }
         }
 
-        // Prepend no-compression flag
+        
         let mut final_buffer = vec![0x00];
         final_buffer.extend(buffer);
         Ok(final_buffer)
     }
 
-    /// Deserialize bytes to binary message
+    
     pub fn deserialize_message(&mut self, data: &[u8]) -> Result<BinaryMessage, String> {
         if data.is_empty() {
             return Err("Empty message data".to_string());
@@ -266,12 +266,12 @@ impl BinarySettingsProtocol {
         let compression_flag = cursor.read_u8().map_err(|e| e.to_string())?;
 
         let payload = if compression_flag == 0xFF {
-            // Decompress the rest of the data
+            
             let mut compressed = Vec::new();
             cursor.read_to_end(&mut compressed).map_err(|e| e.to_string())?;
             self.decompress_data(&compressed)?
         } else {
-            // Read the rest as uncompressed data
+            
             let mut uncompressed = Vec::new();
             cursor.read_to_end(&mut uncompressed).map_err(|e| e.to_string())?;
             uncompressed
@@ -456,7 +456,7 @@ impl BinarySettingsProtocol {
     }
 
     fn compute_value_delta(&self, old: &BinaryValue, new: &BinaryValue) -> Result<BinaryValue, String> {
-        // For now, return the new value as delta (could implement proper diffing)
+        
         Ok(new.clone())
     }
 
@@ -490,7 +490,7 @@ impl BinarySettingsProtocol {
         }
     }
 
-    /// Get or register path ID for efficient transmission
+    
     pub fn get_or_register_path(&mut self, path: &str) -> u32 {
         if let Some(id) = self.path_registry.get_path_id(path) {
             return id;
@@ -498,12 +498,12 @@ impl BinarySettingsProtocol {
         self.path_registry.register_path(path.to_string())
     }
 
-    /// Get path by ID
+    
     pub fn get_path_by_id(&self, id: u32) -> Option<&String> {
         self.path_registry.get_path_by_id(id)
     }
 
-    /// Calculate compression efficiency
+    
     pub fn calculate_compression_ratio(&self, original_size: usize, compressed_size: usize) -> f64 {
         if original_size == 0 {
             return 0.0;
@@ -549,7 +549,7 @@ mod tests {
         let binary_value = protocol.json_to_binary_value(&json_value);
         let converted_back = protocol.binary_value_to_json(&binary_value);
 
-        // Note: Some precision may be lost in float conversion
+        
         assert_eq!(converted_back["integer"], json_value["integer"]);
         assert_eq!(converted_back["boolean"], json_value["boolean"]);
         assert_eq!(converted_back["string"], json_value["string"]);

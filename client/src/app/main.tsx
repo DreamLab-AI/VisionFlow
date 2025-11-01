@@ -8,7 +8,7 @@ import App from './App';
 import { initializeDebugSystem } from '../utils/debugConfig';
 import { unifiedApiClient } from '../services/api/UnifiedApiClient';
 import { initializeAuthInterceptor, setupAuthStateListener } from '../services/api/authInterceptor';
-import '../styles/index.css'; // Use relative path
+import '../styles/index.css'; 
 
 
 // Initialize debug system before app starts

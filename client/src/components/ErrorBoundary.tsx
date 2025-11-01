@@ -35,7 +35,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    // Update state so the next render will show the fallback UI
+    
     return {
       hasError: true,
       error,
@@ -45,22 +45,22 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Log error to console and external services
+    
     logger.error('React Error Boundary caught an error:', {
       error: error.toString(),
       stack: error.stack,
       componentStack: errorInfo.componentStack
     });
 
-    // Call optional error handler
+    
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
     }
 
-    // Send error to server for logging (non-blocking)
+    
     this.logErrorToServer(error, errorInfo);
 
-    // Update state with error details
+    
     this.setState(prevState => ({
       error,
       errorInfo,
@@ -92,7 +92,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 
       await unifiedApiClient.post('/api/errors/log', errorData);
     } catch (logError) {
-      // Fail silently - don't want logging errors to affect the user
+      
       logger.warn('Failed to log error to server:', logError);
     }
   }
@@ -118,17 +118,17 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
     const { hasError, error, errorInfo } = this.state;
 
     if (hasError && error && errorInfo) {
-      // Use custom fallback if provided
+      
       if (this.props.fallback) {
         return this.props.fallback(error, errorInfo, this.resetError);
       }
 
-      // Default error UI
+      
       return (
         <div className="min-h-screen bg-background flex items-center justify-center p-4">
           <div className="max-w-2xl w-full">
             <div className="bg-card rounded-lg shadow-lg p-8 space-y-6">
-              {/* Error Header */}
+              {}
               <div className="flex items-center space-x-4">
                 <div className="bg-destructive/10 p-3 rounded-full">
                   <AlertTriangle className="h-8 w-8 text-destructive" />
@@ -143,7 +143,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
                 </div>
               </div>
 
-              {/* Error Details */}
+              {}
               <div className="space-y-4">
                 <div className="bg-muted/50 rounded-md p-4">
                   <h3 className="font-semibold text-sm mb-2">Error Message</h3>
@@ -152,7 +152,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
                   </p>
                 </div>
 
-                {/* Stack trace (collapsible) */}
+                {}
                 {process.env.NODE_ENV === 'development' && (
                   <details className="bg-muted/50 rounded-md p-4">
                     <summary className="cursor-pointer font-semibold text-sm">
@@ -176,7 +176,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
                 )}
               </div>
 
-              {/* Actions */}
+              {}
               <div className="flex flex-wrap gap-3">
                 <Button
                   onClick={this.resetError}
@@ -203,7 +203,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
                 </Button>
               </div>
 
-              {/* Help Text */}
+              {}
               <div className="text-sm text-muted-foreground space-y-2 pt-4 border-t">
                 <p>
                   This error has been automatically reported. If the problem persists:

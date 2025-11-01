@@ -11,55 +11,55 @@ const getVisualsForNode = (node: GraphNode, settingsBaseColor?: string, ssspResu
   const visuals = {
     geometryType: 'sphere' as 'sphere' | 'box' | 'octahedron' | 'icosahedron',
     scale: 1.0,
-    color: new THREE.Color(settingsBaseColor || '#00ffff'), // Use base color from settings
+    color: new THREE.Color(settingsBaseColor || '#00ffff'), 
     emissive: new THREE.Color(settingsBaseColor || '#00ffff'),
     pulseSpeed: 0.5,
   };
 
-  // SSSP visualization takes priority over default metaphors
+  
   if (ssspResult) {
     const distance = ssspResult.distances[node.id];
     
-    // Source node - special bright cyan color and enhanced scale
+    
     if (node.id === ssspResult.sourceNodeId) {
       visuals.color = new THREE.Color('#00FFFF');
       visuals.emissive = new THREE.Color('#00FFFF');
       visuals.scale = 1.5;
-      visuals.pulseSpeed = 2.0; // Faster pulsing for source
-      visuals.geometryType = 'icosahedron'; // Special shape for source
+      visuals.pulseSpeed = 2.0; 
+      visuals.geometryType = 'icosahedron'; 
     }
-    // Unreachable nodes - gray and smaller
+    
     else if (!isFinite(distance)) {
       visuals.color = new THREE.Color('#666666');
       visuals.emissive = new THREE.Color('#333333');
       visuals.scale = 0.7;
       visuals.pulseSpeed = 0.1;
     }
-    // Reachable nodes - gradient from green to red based on distance
+    
     else {
       const normalizedDistances = ssspResult.normalizedDistances || {};
       const normalizedDistance = normalizedDistances[node.id] || 0;
       
-      // Create gradient from green (close) to red (far)
+      
       const red = Math.min(1, normalizedDistance * 1.2);
       const green = Math.min(1, (1 - normalizedDistance) * 1.2);
-      const blue = 0.1; // Slight blue tint for depth
+      const blue = 0.1; 
       
       visuals.color = new THREE.Color(red, green, blue);
       visuals.emissive = new THREE.Color(red * 0.5, green * 0.5, blue * 0.5);
-      visuals.scale = 0.8 + (1 - normalizedDistance) * 0.4; // Closer nodes are larger
+      visuals.scale = 0.8 + (1 - normalizedDistance) * 0.4; 
     }
     
-    // Early return when SSSP is active
+    
     return visuals;
   }
 
   const { metadata } = node;
   if (!metadata) return visuals;
   
-  // Debug: Log first few nodes to see what metadata we have
-  // Only log when debug is enabled via debugState
-  if (typeof window !== 'undefined' && window.debugState?.isEnabled?.() && Math.random() < 0.05) { // Log 5% of nodes to see variation
+  
+  
+  if (typeof window !== 'undefined' && window.debugState?.isEnabled?.() && Math.random() < 0.05) { 
     console.log('MetadataShapes: Node metadata sample:', {
       id: node.id,
       label: node.label,
@@ -71,41 +71,41 @@ const getVisualsForNode = (node: GraphNode, settingsBaseColor?: string, ssspResu
     });
   }
 
-  // METAPHOR 1: Geometry from Connectivity (hyperlinkCount)
+  
   const hyperlinkCount = parseInt(metadata.hyperlinkCount || '0', 10);
   if (hyperlinkCount > 7) {
-    visuals.geometryType = 'icosahedron'; // Highly connected: Complex shape
+    visuals.geometryType = 'icosahedron'; 
   } else if (hyperlinkCount > 3) {
-    visuals.geometryType = 'octahedron'; // Well-connected: Interesting shape
+    visuals.geometryType = 'octahedron'; 
   } else if (hyperlinkCount > 0) {
-    visuals.geometryType = 'box'; // Some connections: Simple, distinct shape
+    visuals.geometryType = 'box'; 
   } else {
-    visuals.geometryType = 'sphere'; // No connections: Base shape
+    visuals.geometryType = 'sphere'; 
   }
 
-  // METAPHOR 2: Scale from Connectivity & File Size
+  
   const fileSize = parseInt(metadata.fileSize || '0', 10);
-  const sizeScale = 0.8 + Math.log10(Math.max(1, fileSize / 1024)) * 0.2; // Log scale for size
+  const sizeScale = 0.8 + Math.log10(Math.max(1, fileSize / 1024)) * 0.2; 
   const connectionScale = 1 + hyperlinkCount * 0.05;
   visuals.scale = THREE.MathUtils.clamp(sizeScale * connectionScale, 0.5, 3.0);
 
-  // METAPHOR 3: Color modulation from Recency (lastModified) or Type - ADDITIVE to base color
-  const originalColor = new THREE.Color(visuals.color); // Store original base color
+  
+  const originalColor = new THREE.Color(visuals.color); 
   const lastModified = metadata.lastModified ? new Date(metadata.lastModified).getTime() : 0;
   
   if (lastModified > 0) {
     const ageInDays = (Date.now() - lastModified) / (1000 * 60 * 60 * 24);
-    // Create age-based color modulation (heat effect)
+    
     const heat = Math.max(0, 1 - ageInDays / 90);
     
-    // Convert base color to HSL for modulation
+    
     const hsl = { h: 0, s: 0, l: 0 };
     originalColor.getHSL(hsl);
     
-    // Modulate the base color: shift hue slightly toward warm colors when recent
-    const hueShift = heat * 0.15; // More noticeable hue shift toward yellow/orange
-    const saturationBoost = heat * 0.3; // Increase saturation for recent files
-    const lightnessBoost = heat * 0.25; // Brighten recent files
+    
+    const hueShift = heat * 0.15; 
+    const saturationBoost = heat * 0.3; 
+    const lightnessBoost = heat * 0.25; 
     
     visuals.color.setHSL(
       (hsl.h + hueShift) % 1,
@@ -113,16 +113,16 @@ const getVisualsForNode = (node: GraphNode, settingsBaseColor?: string, ssspResu
       Math.min(1, hsl.l + lightnessBoost)
     );
   } else if (metadata.type) {
-    // Apply more noticeable type-based color tinting to base color
+    
     const typeColorShifts: Record<string, { hue: number, sat: number, light: number }> = {
-      'folder': { hue: 0.1, sat: 0.2, light: 0.15 },     // Yellow shift
-      'file': { hue: 0.0, sat: 0.1, light: 0.05 },       // Slight saturation boost
-      'function': { hue: -0.1, sat: 0.2, light: 0.1 },   // Red shift
-      'class': { hue: 0.05, sat: 0.15, light: 0.1 },     // Green shift
-      'variable': { hue: 0.15, sat: 0.12, light: 0.08 }, // Green shift
-      'import': { hue: -0.06, sat: 0.1, light: 0.05 },   // Red shift
-      'export': { hue: -0.15, sat: 0.15, light: 0.08 },  // Purple shift
-      'default': { hue: 0.0, sat: 0.0, light: 0.0 }      // No change
+      'folder': { hue: 0.1, sat: 0.2, light: 0.15 },     
+      'file': { hue: 0.0, sat: 0.1, light: 0.05 },       
+      'function': { hue: -0.1, sat: 0.2, light: 0.1 },   
+      'class': { hue: 0.05, sat: 0.15, light: 0.1 },     
+      'variable': { hue: 0.15, sat: 0.12, light: 0.08 }, 
+      'import': { hue: -0.06, sat: 0.1, light: 0.05 },   
+      'export': { hue: -0.15, sat: 0.15, light: 0.08 },  
+      'default': { hue: 0.0, sat: 0.0, light: 0.0 }      
     };
     
     const shift = typeColorShifts[metadata.type] || typeColorShifts['default'];
@@ -135,12 +135,12 @@ const getVisualsForNode = (node: GraphNode, settingsBaseColor?: string, ssspResu
       Math.min(1, hsl.l + shift.light)
     );
   } else {
-    // Apply connectivity-based subtle modulation to base color
+    
     const colorIntensity = Math.min(hyperlinkCount / 10, 1);
     const hsl = { h: 0, s: 0, l: 0 };
     originalColor.getHSL(hsl);
     
-    // More noticeable modulation based on connectivity
+    
     const saturationBoost = colorIntensity * 0.25;
     const lightnessBoost = colorIntensity * 0.2;
     
@@ -151,17 +151,17 @@ const getVisualsForNode = (node: GraphNode, settingsBaseColor?: string, ssspResu
     );
   }
 
-  // METAPHOR 4: Emissive Glow from AI Processing (perplexityLink) - ADDITIVE to base color
+  
   if (metadata.perplexityLink) {
-    // Blend gold glow with base color for AI-processed nodes
+    
     const goldTint = new THREE.Color('#FFD700');
-    visuals.emissive.copy(originalColor).lerp(goldTint, 0.6); // 60% gold, 40% base color
+    visuals.emissive.copy(originalColor).lerp(goldTint, 0.6); 
   } else {
-    // Use modulated color for emissive at reduced intensity
+    
     visuals.emissive.copy(visuals.color).multiplyScalar(0.3);
   }
 
-  // METAPHOR 5: Pulse Speed from File Size
+  
   visuals.pulseSpeed = 0.5 + Math.log10(Math.max(1, fileSize / 1024)) * 0.5;
 
   return visuals;
@@ -205,7 +205,7 @@ export const MetadataShapes: React.FC<MetadataShapesProps> = ({ nodes, nodePosit
   const material = useHologramMaterial(settings);
   const meshRefs = useRef<Map<string, THREE.InstancedMesh>>(new Map());
 
-  // Group nodes by their new geometry type for instanced rendering
+  
   const nodeGroups = useMemo(() => {
     const groups = new Map<string, { nodes: GraphNode[], originalIndices: number[] }>();
     const nodeSettings = settings?.visualisation?.graphs?.logseq?.nodes || settings?.visualisation?.nodes;
@@ -222,7 +222,7 @@ export const MetadataShapes: React.FC<MetadataShapesProps> = ({ nodes, nodePosit
     return groups;
   }, [nodes, settings, ssspResult]);
 
-  // Frame loop to update instances
+  
   useFrame((state) => {
     if (!nodePositions) return;
 
@@ -243,12 +243,12 @@ export const MetadataShapes: React.FC<MetadataShapesProps> = ({ nodes, nodePosit
         const visuals = getVisualsForNode(node, baseColorForNode, ssspResult);
         material.uniforms.pulseSpeed.value = visuals.pulseSpeed;
 
-        // Position & Scale
+        
         tempMatrix.makeScale(visuals.scale, visuals.scale, visuals.scale);
         tempMatrix.setPosition(nodePositions[i3], nodePositions[i3 + 1], nodePositions[i3 + 2]);
         mesh.setMatrixAt(localIndex, tempMatrix);
 
-        // Color
+        
         tempColor.copy(visuals.color);
         mesh.setColorAt(localIndex, tempColor);
       });
@@ -268,14 +268,14 @@ export const MetadataShapes: React.FC<MetadataShapesProps> = ({ nodes, nodePosit
           ref={(ref) => { 
             if (ref) {
               meshRefs.current.set(geometryType, ref);
-              // Initialize layers if not present
+              
               if (!ref.layers) {
                 ref.layers = new THREE.Layers();
               }
-              // Set proper layers for graph elements (Layer 1 for bloom, NOT Layer 2 for glow)
-              ref.layers.set(0); // Base layer for rendering
-              ref.layers.enable(1); // Layer 1 for graph bloom
-              ref.layers.disable(2); // Explicitly disable Layer 2 (environment glow)
+              
+              ref.layers.set(0); 
+              ref.layers.enable(1); 
+              ref.layers.disable(2); 
             }
           }}
           args={[geometries[geometryType], material, group.nodes.length]}

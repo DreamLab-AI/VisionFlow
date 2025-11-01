@@ -6,7 +6,7 @@ use tokio::sync::{mpsc, Mutex, RwLock};
 use tokio::task;
 use tokio_tungstenite::{connect_async, tungstenite, MaybeTlsStream, WebSocketStream};
 use tungstenite::http::Request;
-// use crate::config::Settings; // AppFullSettings is used from self.settings
+// use crate::config::Settings; 
 use crate::actors::voice_commands::VoiceCommand;
 use crate::errors::{SpeechError as VisionSpeechError, VisionFlowError, VisionFlowResult};
 use crate::types::speech::{
@@ -28,83 +28,83 @@ use chrono;
 use reqwest::Client;
 use uuid::Uuid;
 
-/// Centralized speech service managing both Text-to-Speech (TTS) and Speech-to-Text (STT) operations
-///
-/// This service orchestrates real-time voice interactions by:
-/// - Managing TTS via Kokoro API for generating speech from text
-/// - Managing STT via Whisper API for transcribing audio to text
-/// - Broadcasting audio and transcription data to multiple WebSocket clients
-/// - Handling provider switching and configuration management
-///
-/// The service uses async channels for command processing and broadcast channels
-/// for distributing results to multiple subscribers simultaneously.
+/
+/
+/
+/
+/
+/
+/
+/
+/
+/
 pub struct SpeechService {
-    /// Command sender for internal message passing to the service task
+    
     sender: Arc<Mutex<mpsc::Sender<SpeechCommand>>>,
-    /// Shared application settings containing API configurations
+    
     settings: Arc<RwLock<AppFullSettings>>,
-    /// Current Text-to-Speech provider (Kokoro, OpenAI, etc.)
+    
     tts_provider: Arc<RwLock<TTSProvider>>,
-    /// Current Speech-to-Text provider (Whisper, OpenAI, etc.)
+    
     stt_provider: Arc<RwLock<STTProvider>>,
-    /// Broadcast channel for distributing TTS audio data to all connected WebSocket clients
-    /// Buffer size of 100 allows multiple clients without blocking
+    
+    
     audio_tx: broadcast::Sender<Vec<u8>>,
-    /// Broadcast channel for distributing STT transcription results to all connected clients
-    /// Each transcription result is sent as a String to all subscribers
+    
+    
     transcription_tx: broadcast::Sender<String>,
-    /// Shared HTTP client for making API requests to external services (Kokoro, Whisper)
-    /// Reused across all requests for connection pooling and efficiency
+    
+    
     http_client: Arc<Client>,
-    /// Voice conversation context manager for multi-turn interactions
+    
     context_manager: Arc<VoiceContextManager>,
-    /// Voice tag manager for tracking commands through hive mind
+    
     tag_manager: Arc<VoiceTagManager>,
-    /// TTS response receiver for tagged responses
+    
     tts_response_rx: Option<Arc<Mutex<mpsc::Receiver<TaggedVoiceResponse>>>>,
 }
 
 impl SpeechService {
-    /// Creates a new SpeechService instance with default configurations
-    ///
-    /// # Arguments
-    /// * `settings` - Shared application settings containing API configurations for TTS/STT providers
-    ///
-    /// # Returns
-    /// * `SpeechService` - A new service instance ready for speech operations
-    ///
-    /// # Behavior
-    /// - Initializes internal command channel with buffer size of 100 commands
-    /// - Creates broadcast channels for audio (TTS output) and transcriptions (STT output)
-    /// - Sets up shared HTTP client for efficient API communication
-    /// - Defaults to Kokoro TTS and Whisper STT providers
-    /// - Automatically starts the internal service task for command processing
-    ///
-    /// # Channel Buffers
-    /// - Command channel: 100 commands (prevents blocking on rapid command submission)
-    /// - Audio broadcast: 100 audio chunks (handles multiple clients with buffering)
-    /// - Transcription broadcast: 100 transcriptions (handles multiple clients with buffering)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     pub fn new(settings: Arc<RwLock<AppFullSettings>>) -> Self {
-        // Create internal command channel for async command processing
+        
         let (tx, rx) = mpsc::channel(100);
         let sender = Arc::new(Mutex::new(tx));
 
-        // Create broadcast channel for TTS audio data with buffer size of 100
-        // This allows multiple WebSocket clients to receive the same audio simultaneously
+        
+        
         let (audio_tx, _) = broadcast::channel(100);
 
-        // Create shared HTTP client for API requests to external services
-        // Reuses connections for better performance across multiple requests
+        
+        
         let http_client = Arc::new(Client::new());
 
-        // Create broadcast channel for STT transcription results
-        // Multiple clients can subscribe to receive transcription text
+        
+        
         let (transcription_tx, _) = broadcast::channel(100);
 
-        // Create TTS response channel for tagged responses
+        
         let (tts_response_tx, tts_response_rx) = mpsc::channel(100);
 
-        // Create voice tag manager and configure TTS sender
+        
         let mut tag_manager = VoiceTagManager::new();
         tag_manager.set_tts_sender(tts_response_tx);
         let tag_manager = Arc::new(tag_manager);
@@ -112,8 +112,8 @@ impl SpeechService {
         let service = SpeechService {
             sender,
             settings,
-            tts_provider: Arc::new(RwLock::new(TTSProvider::Kokoro)), // Default to Kokoro for TTS
-            stt_provider: Arc::new(RwLock::new(STTProvider::Whisper)), // Default to Whisper for STT
+            tts_provider: Arc::new(RwLock::new(TTSProvider::Kokoro)), 
+            stt_provider: Arc::new(RwLock::new(STTProvider::Whisper)), 
             audio_tx,
             transcription_tx,
             http_client,
@@ -122,10 +122,10 @@ impl SpeechService {
             tts_response_rx: Some(Arc::new(Mutex::new(tts_response_rx))),
         };
 
-        // Start the internal service task for async command processing
+        
         service.start(rx);
 
-        // Start the tagged TTS response handler
+        
         service.start_tagged_tts_handler();
 
         service
@@ -147,7 +147,7 @@ impl SpeechService {
                     SpeechCommand::Initialize => {
                         let settings_read = settings.read().await;
 
-                        // Safely get OpenAI API key
+                        
                         let openai_api_key = match settings_read
                             .openai
                             .as_ref()
@@ -156,7 +156,7 @@ impl SpeechService {
                             Some(key) if !key.is_empty() => key.clone(),
                             _ => {
                                 error!("OpenAI API key not configured or empty. Cannot initialize OpenAI Realtime API.");
-                                continue; // Skip initialization if key is missing
+                                continue; 
                             }
                         };
 
@@ -407,7 +407,7 @@ impl SpeechService {
                                     let api_url_base = match config.api_url.as_deref() {
                                         Some(url) if !url.is_empty() => url,
                                         _ => {
-                                            // Use default Kokoro URL on Docker network
+                                            
                                             info!("Using default Kokoro API URL on Docker network");
                                             "http://kokoro-tts-container:8880"
                                         }
@@ -565,10 +565,10 @@ impl SpeechService {
                     SpeechCommand::StopTranscription => {
                         info!("Stopping transcription");
 
-                        // Notify subscribers that transcription has stopped
+                        
                         let _ = transcription_tx.send("Transcription stopped".to_string());
 
-                        // Additional cleanup could be added here for specific providers
+                        
                         match stt_provider.read().await.clone() {
                             STTProvider::Whisper => {
                                 debug!("Whisper transcription stopped");
@@ -600,19 +600,19 @@ impl SpeechService {
                                         api_url_base.trim_end_matches('/')
                                     );
 
-                                    // Detect audio format from the data
-                                    // WebM files start with 0x1A45DFA3 (EBML header)
-                                    // WAV files start with "RIFF" (0x52494646)
+                                    
+                                    
+                                    
                                     let (mime_type, file_ext) = if audio_data.len() >= 4 {
                                         let header = &audio_data[0..4];
                                         if header == [0x1A, 0x45, 0xDF, 0xA3] {
-                                            // WebM/Opus format from browser
+                                            
                                             ("audio/webm", "audio.webm")
                                         } else if header == [0x52, 0x49, 0x46, 0x46] {
-                                            // WAV format
+                                            
                                             ("audio/wav", "audio.wav")
                                         } else {
-                                            // Default to webm as that's what browser sends
+                                            
                                             info!("Unknown audio format, header: {:?}, defaulting to webm", header);
                                             ("audio/webm", "audio.webm")
                                         }
@@ -625,7 +625,7 @@ impl SpeechService {
                                         mime_type
                                     );
 
-                                    // Build the form with all required fields
+                                    
                                     let mut form = reqwest::multipart::Form::new().part(
                                         "file",
                                         reqwest::multipart::Part::bytes(audio_data)
@@ -638,7 +638,7 @@ impl SpeechService {
                                             }),
                                     );
 
-                                    // Add optional parameters
+                                    
                                     if let Some(model) = config.default_model.clone() {
                                         form = form.text("model_size", model);
                                     }
@@ -659,14 +659,14 @@ impl SpeechService {
                                         form = form.text("initial_prompt", initial_prompt);
                                     }
 
-                                    // Process Whisper transcription directly without spawning
+                                    
                                     let http_client_clone = Arc::clone(&http_client);
                                     let transcription_broadcaster = transcription_tx.clone();
                                     let api_url_clone = api_url.clone();
 
-                                    // Process inline to avoid Send issues
+                                    
                                     {
-                                        // Submit audio to Whisper API
+                                        
                                         match http_client_clone
                                             .post(&api_url_clone)
                                             .multipart(form)
@@ -678,14 +678,14 @@ impl SpeechService {
                                                     match response.json::<serde_json::Value>().await
                                                     {
                                                         Ok(json) => {
-                                                            // Whisper returns a task ID, not the transcription directly
+                                                            
                                                             if let Some(identifier) = json
                                                                 .get("identifier")
                                                                 .and_then(|t| t.as_str())
                                                             {
                                                                 info!("Whisper task queued with ID: {}", identifier);
 
-                                                                // Poll for task completion
+                                                                
                                                                 let task_url = format!(
                                                                     "{}/task/{}",
                                                                     api_url_clone.trim_end_matches(
@@ -720,7 +720,7 @@ impl SpeechService {
                                                                                     if let Some(status) = task_json.get("status").and_then(|s| s.as_str()) {
                                                                                         match status {
                                                                                             "completed" => {
-                                                                                                // Extract transcription from result array
+                                                                                                
                                                                                                 if let Some(result) = task_json.get("result").and_then(|r| r.as_array()) {
                                                                                                     let mut full_text = String::new();
                                                                                                     for segment in result {
@@ -735,20 +735,20 @@ impl SpeechService {
                                                                                                         info!("Whisper transcription: {}", transcription_text);
                                                                                                         let _ = transcription_broadcaster.send(transcription_text.clone());
 
-                                                                                                        // Check if this is a voice command and process it
+                                                                                                        
                                                                                                         if Self::is_voice_command(&transcription_text) {
                                                                                                             let session_id = Uuid::new_v4().to_string();
                                                                                                             debug!("Processing as voice command: {}", transcription_text);
 
-                                                                                                            // Parse and execute voice command
+                                                                                                            
                                                                                                             if let Ok(voice_cmd) = VoiceCommand::parse(&transcription_text, session_id) {
                                                                                                                 debug!("Executing voice command: {:?}", voice_cmd.parsed_intent);
 
-                                                                                                                // Execute actual agent commands via MCP with context
+                                                                                                                
                                                                                                                 let context_manager = Arc::new(VoiceContextManager::new());
                                                                                                                 let response_text = Self::execute_voice_command_with_context(voice_cmd, context_manager).await;
 
-                                                                                                                // Broadcast the response text
+                                                                                                                
                                                                                                                 let _ = transcription_broadcaster.send(format!("Response: {}", response_text));
                                                                                                             }
                                                                                                         }
@@ -761,7 +761,7 @@ impl SpeechService {
                                                                                                 break;
                                                                                             },
                                                                                             "queued" | "in_progress" => {
-                                                                                                // Continue polling
+                                                                                                
                                                                                                 debug!("Whisper task {} status: {}", identifier, status);
                                                                                             },
                                                                                             _ => {
@@ -906,7 +906,7 @@ impl SpeechService {
         });
     }
 
-    /// Start background task to handle tagged TTS responses
+    
     fn start_tagged_tts_handler(&self) {
         if let Some(rx) = &self.tts_response_rx {
             let rx = Arc::clone(rx);
@@ -923,13 +923,13 @@ impl SpeechService {
                         tagged_response.tag.short_id()
                     );
 
-                    // Convert tagged response to regular TTS command
+                    
                     let tts_command = SpeechCommand::TextToSpeech(
                         tagged_response.response.text.clone(),
                         SpeechOptions::default(),
                     );
 
-                    // Send to TTS processing
+                    
                     if let Err(e) = sender.lock().await.send(tts_command).await {
                         error!("Failed to send tagged response to TTS: {}", e);
                     } else {
@@ -939,7 +939,7 @@ impl SpeechService {
                         );
                     }
 
-                    // Clean up expired tags periodically
+                    
                     tag_manager.cleanup_expired_commands().await;
                 }
 
@@ -967,21 +967,21 @@ impl SpeechService {
         Ok(())
     }
 
-    /// Converts text to speech using the configured TTS provider
-    ///
-    /// # Arguments
-    /// * `text` - The text to be converted to speech
-    /// * `options` - Speech generation options including voice, speed, and streaming preferences
-    ///
-    /// # Returns
-    /// * `Ok(())` if the command was successfully queued for processing
-    /// * `Err` if the command channel is closed or other error occurs
-    ///
-    /// # Behavior
-    /// - Queues the TTS request for async processing by the service task
-    /// - Audio output is broadcast to all subscribers via the audio channel
-    /// - Supports both streaming and non-streaming audio generation
-    /// - Uses Kokoro API by default with fallback error handling
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     pub async fn text_to_speech(
         &self,
         text: String,
@@ -1019,20 +1019,20 @@ impl SpeechService {
         Ok(())
     }
 
-    /// Creates a new subscriber to the audio broadcast channel for receiving TTS audio data
-    ///
-    /// # Returns
-    /// * `broadcast::Receiver<Vec<u8>>` - A receiver that will get all audio chunks from TTS operations
-    ///
-    /// # Usage
-    /// Multiple WebSocket connections can subscribe to receive the same audio data simultaneously.
-    /// Each subscriber gets its own independent receiver with a buffer to handle temporary disconnections.
-    /// Audio data is broadcast as raw bytes (typically MP3 or WAV format from Kokoro TTS).
+    
+    
+    
+    
+    
+    
+    
+    
+    
     pub fn subscribe_to_audio(&self) -> broadcast::Receiver<Vec<u8>> {
         self.audio_tx.subscribe()
     }
 
-    // Current provider
+    
     pub async fn get_tts_provider(&self) -> TTSProvider {
         self.tts_provider.read().await.clone()
     }
@@ -1068,21 +1068,21 @@ impl SpeechService {
         Ok(())
     }
 
-    /// Processes audio data for speech-to-text transcription using the configured STT provider
-    ///
-    /// # Arguments
-    /// * `audio_data` - Raw audio bytes in WAV format from client microphone input
-    ///
-    /// # Returns
-    /// * `Ok(())` if the audio chunk was successfully queued for processing
-    /// * `Err` if the command channel is closed or other error occurs
-    ///
-    /// # Behavior
-    /// - Queues audio data for async STT processing by the service task
-    /// - Sends audio to Whisper API at configured endpoint (default: http://whisper-webui-backend:8000)
-    /// - Transcription results are broadcast to all subscribers via transcription channel
-    /// - Supports configurable Whisper parameters (model, language, temperature, etc.)
-    /// - Handles multipart form upload format required by Whisper-WebUI-Backend
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     pub async fn process_audio_chunk(&self, audio_data: Vec<u8>) -> VisionFlowResult<()> {
         let command = SpeechCommand::ProcessAudioChunk(audio_data);
         self.sender.lock().await.send(command).await.map_err(|e| {
@@ -1093,20 +1093,20 @@ impl SpeechService {
         Ok(())
     }
 
-    /// Creates a new subscriber to the transcription broadcast channel for receiving STT results
-    ///
-    /// # Returns
-    /// * `broadcast::Receiver<String>` - A receiver that will get all transcription text from STT operations
-    ///
-    /// # Usage
-    /// Multiple WebSocket connections can subscribe to receive the same transcription results simultaneously.
-    /// Each subscriber gets its own independent receiver with a buffer to handle temporary disconnections.
-    /// Transcription results are broadcast as plain text strings from Whisper STT processing.
+    
+    
+    
+    
+    
+    
+    
+    
+    
     pub fn subscribe_to_transcriptions(&self) -> broadcast::Receiver<String> {
         self.transcription_tx.subscribe()
     }
 
-    /// Execute voice command and return response for TTS
+    
     pub async fn process_voice_command(&self, text: String) -> VisionFlowResult<String> {
         let session_id = Uuid::new_v4().to_string();
 
@@ -1118,7 +1118,7 @@ impl SpeechService {
                 )
                 .await;
 
-                // Add conversation turn to context
+                
                 let _ = self
                     .context_manager
                     .add_conversation_turn(
@@ -1129,7 +1129,7 @@ impl SpeechService {
                     )
                     .await;
 
-                // Generate contextual response
+                
                 let contextual_response = self
                     .context_manager
                     .generate_contextual_response(&voice_cmd.session_id, &response)
@@ -1144,7 +1144,7 @@ impl SpeechService {
         }
     }
 
-    /// Get conversation context for a session
+    
     pub async fn get_conversation_context(
         &self,
         session_id: &str,
@@ -1152,22 +1152,22 @@ impl SpeechService {
         self.context_manager.get_context(session_id).await
     }
 
-    /// Check if a session needs follow-up
+    
     pub async fn session_needs_follow_up(&self, session_id: &str) -> bool {
         self.context_manager.needs_follow_up(session_id).await
     }
 
-    /// Get access to the voice tag manager
+    
     pub fn get_tag_manager(&self) -> Arc<VoiceTagManager> {
         Arc::clone(&self.tag_manager)
     }
 
-    /// Get access to the transcription sender for broadcasting text
+    
     pub fn get_transcription_sender(&self) -> broadcast::Sender<String> {
         self.transcription_tx.clone()
     }
 
-    /// Process voice command with tag tracking through hive mind
+    
     pub async fn process_voice_command_with_tags(
         &self,
         text: String,
@@ -1198,7 +1198,7 @@ impl SpeechService {
         }
     }
 
-    /// Check if text looks like a voice command for the swarm
+    
     fn is_voice_command(text: &str) -> bool {
         let command_keywords = [
             "spawn",
@@ -1229,7 +1229,7 @@ impl SpeechService {
             .any(|keyword| lower.contains(keyword))
     }
 
-    /// Execute voice command via MCP task orchestration with context management
+    
     async fn execute_voice_command_with_context(
         voice_cmd: VoiceCommand,
         context_manager: Arc<VoiceContextManager>,
@@ -1238,7 +1238,7 @@ impl SpeechService {
             std::env::var("MCP_HOST").unwrap_or_else(|_| "multi-agent-container".to_string());
         let mcp_port = std::env::var("MCP_TCP_PORT").unwrap_or_else(|_| "9500".to_string());
 
-        // Get or create session for context
+        
         let session_id = context_manager
             .get_or_create_session(Some(voice_cmd.session_id.clone()), None)
             .await;
@@ -1247,17 +1247,17 @@ impl SpeechService {
             crate::actors::voice_commands::SwarmIntent::SpawnAgent { agent_type, .. } => {
                 info!("Executing spawn agent command for type: {}", agent_type);
 
-                // First ensure we have a swarm initialized
+                
                 match call_swarm_init(&mcp_host, &mcp_port, "mesh", 10, "balanced").await {
                     Ok(swarm_result) => {
                         let swarm_id = swarm_result.get("swarmId")
                             .and_then(|s| s.as_str())
                             .unwrap_or("default-swarm");
 
-                        // Spawn the agent
+                        
                         match call_agent_spawn(&mcp_host, &mcp_port, &agent_type, swarm_id).await {
                             Ok(_) => {
-                                // Track the operation in context
+                                
                                 let mut params = std::collections::HashMap::new();
                                 params.insert("agent_type".to_string(), agent_type.clone());
                                 params.insert("swarm_id".to_string(), swarm_id.to_string());
@@ -1289,7 +1289,7 @@ impl SpeechService {
 
                 match call_agent_list(&mcp_host, &mcp_port, "all").await {
                     Ok(agent_result) => {
-                        // Parse agent count from result
+                        
                         let agent_count = agent_result.get("content")
                             .and_then(|c| c.as_array())
                             .map(|arr| arr.len())
@@ -1313,7 +1313,7 @@ impl SpeechService {
 
                 match call_agent_list(&mcp_host, &mcp_port, "all").await {
                     Ok(agent_result) => {
-                        // Parse agents from result
+                        
                         if let Some(content) = agent_result.get("content").and_then(|c| c.as_array()) {
                             let mut agent_names: Vec<String> = Vec::new();
                             for agent in content.iter() {
@@ -1362,7 +1362,7 @@ impl SpeechService {
                             .and_then(|id| id.as_str())
                             .unwrap_or("unknown");
 
-                        // Track the task in context
+                        
                         let mut params = std::collections::HashMap::new();
                         params.insert("task_id".to_string(), task_id.to_string());
                         params.insert("description".to_string(), description.clone());
@@ -1372,7 +1372,7 @@ impl SpeechService {
                             &session_id,
                             "execute_task".to_string(),
                             params,
-                            Some(chrono::Utc::now() + chrono::Duration::minutes(30)), // Expected completion
+                            Some(chrono::Utc::now() + chrono::Duration::minutes(30)), 
                         ).await;
 
                         format!("Task '{}' has been assigned to the swarm with ID: {}.", description, task_id)

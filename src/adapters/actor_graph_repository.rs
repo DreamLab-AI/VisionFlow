@@ -20,17 +20,17 @@ use crate::ports::graph_repository::{
 };
 use glam::Vec3;
 
-/// Actor-based implementation of GraphRepository
-///
-/// This adapter delegates all operations to the GraphServiceActor,
-/// providing a bridge between the CQRS query layer and the existing
-/// actor-based architecture.
+/
+/
+/
+/
+/
 pub struct ActorGraphRepository {
     actor_addr: Addr<GraphServiceActor>,
 }
 
 impl ActorGraphRepository {
-    /// Create a new ActorGraphRepository with the given actor address
+    
     pub fn new(actor_addr: Addr<GraphServiceActor>) -> Self {
         Self { actor_addr }
     }
@@ -38,12 +38,12 @@ impl ActorGraphRepository {
 
 #[async_trait]
 impl GraphRepository for ActorGraphRepository {
-    // === Write Operations (Commands) ===
+    
 
-    /// Add nodes to the graph
-    ///
-    /// Sends individual AddNode messages for each node.
-    /// Returns the IDs of successfully added nodes.
+    
+    
+    
+    
     async fn add_nodes(&self, nodes: Vec<Node>) -> Result<Vec<u32>> {
         let mut added_ids = Vec::with_capacity(nodes.len());
 
@@ -62,10 +62,10 @@ impl GraphRepository for ActorGraphRepository {
         Ok(added_ids)
     }
 
-    /// Add edges to the graph
-    ///
-    /// Sends individual AddEdge messages for each edge.
-    /// Returns the IDs of successfully added edges.
+    
+    
+    
+    
     async fn add_edges(&self, edges: Vec<Edge>) -> Result<Vec<String>> {
         let mut added_ids = Vec::with_capacity(edges.len());
 
@@ -84,10 +84,10 @@ impl GraphRepository for ActorGraphRepository {
         Ok(added_ids)
     }
 
-    /// Update node positions (from physics simulation)
-    ///
-    /// Sends batched position updates to the actor.
-    /// Note: Converts from simple (f32, f32, f32) tuple to BinaryNodeDataClient
+    
+    
+    
+    
     async fn update_positions(
         &self,
         updates: Vec<(u32, crate::ports::graph_repository::BinaryNodeData)>,
@@ -95,7 +95,7 @@ impl GraphRepository for ActorGraphRepository {
         use crate::types::Vec3Data;
         use crate::utils::socket_flow_messages::BinaryNodeDataClient;
 
-        // Convert from simple tuple to BinaryNodeDataClient format
+        
         let positions: Vec<(u32, BinaryNodeDataClient)> = updates
             .into_iter()
             .map(|(id, (x, y, z))| {
@@ -116,20 +116,20 @@ impl GraphRepository for ActorGraphRepository {
             .map_err(GraphRepositoryError::AccessError)
     }
 
-    /// Clear dirty node tracking
-    ///
-    /// Note: No-op until dirty tracking is implemented in the actor.
+    
+    
+    
     async fn clear_dirty_nodes(&self) -> Result<()> {
-        // TODO: Implement dirty node clearing in GraphServiceActor
-        // For now, this is a no-op
+        
+        
         Ok(())
     }
 
-    // === Read Operations (Queries) - CQRS Pattern ===
+    
 
-    /// Get the current graph state
-    ///
-    /// Returns an Arc clone of the graph data - no deep copy needed.
+    
+    
+    
     async fn get_graph(&self) -> Result<Arc<GraphData>> {
         self.actor_addr
             .send(actor_msgs::GetGraphData)
@@ -138,9 +138,9 @@ impl GraphRepository for ActorGraphRepository {
             .map_err(GraphRepositoryError::AccessError)
     }
 
-    /// Get the node map (id -> Node)
-    ///
-    /// Returns an Arc clone of the node map - no deep copy needed.
+    
+    
+    
     async fn get_node_map(&self) -> Result<Arc<HashMap<u32, Node>>> {
         self.actor_addr
             .send(actor_msgs::GetNodeMap)
@@ -149,9 +149,9 @@ impl GraphRepository for ActorGraphRepository {
             .map_err(GraphRepositoryError::AccessError)
     }
 
-    /// Get current physics state
-    ///
-    /// Returns settlement/physics state for client optimization.
+    
+    
+    
     async fn get_physics_state(&self) -> Result<PhysicsState> {
         self.actor_addr
             .send(actor_msgs::GetPhysicsState)
@@ -160,9 +160,9 @@ impl GraphRepository for ActorGraphRepository {
             .map_err(GraphRepositoryError::AccessError)
     }
 
-    /// Get node positions as a vector of (id, position) tuples
-    ///
-    /// Extracts positions from the node map since there's no dedicated message.
+    
+    
+    
     async fn get_node_positions(&self) -> Result<Vec<(u32, Vec3)>> {
         let node_map = self.get_node_map().await?;
 
@@ -174,9 +174,9 @@ impl GraphRepository for ActorGraphRepository {
         Ok(positions)
     }
 
-    /// Get the graph data for bots/pathfinding
-    ///
-    /// Returns an Arc clone - no deep copy needed.
+    
+    
+    
     async fn get_bots_graph(&self) -> Result<Arc<GraphData>> {
         self.actor_addr
             .send(actor_msgs::GetBotsGraphData)
@@ -185,9 +185,9 @@ impl GraphRepository for ActorGraphRepository {
             .map_err(GraphRepositoryError::AccessError)
     }
 
-    /// Get current constraint set
-    ///
-    /// Returns the active constraint set from physics simulation.
+    
+    
+    
     async fn get_constraints(&self) -> Result<ConstraintSet> {
         self.actor_addr
             .send(actor_msgs::GetConstraints)
@@ -196,9 +196,9 @@ impl GraphRepository for ActorGraphRepository {
             .map_err(GraphRepositoryError::AccessError)
     }
 
-    /// Get auto-balance notifications
-    ///
-    /// Returns notifications since a given timestamp (or all if None).
+    
+    
+    
     async fn get_auto_balance_notifications(&self) -> Result<Vec<AutoBalanceNotification>> {
         self.actor_addr
             .send(actor_msgs::GetAutoBalanceNotifications {
@@ -209,9 +209,9 @@ impl GraphRepository for ActorGraphRepository {
             .map_err(GraphRepositoryError::AccessError)
     }
 
-    /// Get equilibrium status
-    ///
-    /// Returns true if the graph has reached equilibrium (settled state).
+    
+    
+    
     async fn get_equilibrium_status(&self) -> Result<bool> {
         self.actor_addr
             .send(actor_msgs::GetEquilibriumStatus)
@@ -220,13 +220,13 @@ impl GraphRepository for ActorGraphRepository {
             .map_err(|e: VisionFlowError| GraphRepositoryError::AccessError(e.to_string()))
     }
 
-    /// Compute shortest paths between nodes
-    ///
-    /// Uses GPU-accelerated pathfinding if available.
+    
+    
+    
     async fn compute_shortest_paths(&self, params: PathfindingParams) -> Result<PathfindingResult> {
         use crate::ports::gpu_semantic_analyzer::PathfindingResult as GpuPathfindingResult;
 
-        // Send compute message with source node
+        
         let gpu_result: GpuPathfindingResult = self
             .actor_addr
             .send(actor_msgs::ComputeShortestPaths {
@@ -236,7 +236,7 @@ impl GraphRepository for ActorGraphRepository {
             .map_err(|e| GraphRepositoryError::AccessError(format!("Mailbox error: {}", e)))?
             .map_err(GraphRepositoryError::AccessError)?;
 
-        // Extract the specific path from source to end node
+        
         let path = gpu_result
             .paths
             .get(&params.end_node)
@@ -255,13 +255,13 @@ impl GraphRepository for ActorGraphRepository {
         })
     }
 
-    /// Get nodes that have changed since last sync
-    ///
-    /// Note: The actor system doesn't currently track dirty nodes.
-    /// This returns an empty set until dirty tracking is implemented.
+    
+    
+    
+    
     async fn get_dirty_nodes(&self) -> Result<HashSet<u32>> {
-        // TODO: Implement dirty node tracking in GraphServiceActor
-        // For now, return empty set as the actor doesn't expose this
+        
+        
         Ok(HashSet::new())
     }
 }
@@ -270,12 +270,12 @@ impl GraphRepository for ActorGraphRepository {
 mod tests {
     use super::*;
 
-    // Note: Integration tests require a running actor system
-    // Unit tests are limited since this is purely a delegation adapter
+    
+    
 
     #[test]
     fn test_repository_construction() {
-        // Cannot construct without actor system, but verify type compiles
-        // This is a compile-time test
+        
+        
     }
 }

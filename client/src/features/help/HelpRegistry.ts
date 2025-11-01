@@ -5,7 +5,7 @@ export class HelpRegistry {
   private categories: Map<string, HelpCategory> = new Map();
   private listeners: Set<() => void> = new Set();
 
-  // Register help content
+  
   registerHelp(help: HelpContent): void {
     this.helpItems.set(help.id, help);
     this.notifyListeners();
@@ -16,13 +16,13 @@ export class HelpRegistry {
     this.notifyListeners();
   }
 
-  // Register help categories
+  
   registerCategory(category: HelpCategory): void {
     this.categories.set(category.id, category);
     this.notifyListeners();
   }
 
-  // Get help content
+  
   getHelp(id: string): HelpContent | undefined {
     return this.helpItems.get(id);
   }
@@ -39,7 +39,7 @@ export class HelpRegistry {
     return Array.from(this.categories.values());
   }
 
-  // Search help content
+  
   searchHelp(query: string): HelpContent[] {
     const lowerQuery = query.toLowerCase();
     return this.getAllHelp().filter(item => 
@@ -50,7 +50,7 @@ export class HelpRegistry {
     );
   }
 
-  // Listeners
+  
   addListener(listener: () => void): void {
     this.listeners.add(listener);
   }

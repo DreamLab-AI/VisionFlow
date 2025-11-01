@@ -23,7 +23,7 @@ export interface SSSPCache {
   [sourceNodeId: string]: {
     result: SSSPResult
     lastAccessed: number
-    graphHash: string // Hash of graph structure to detect changes
+    graphHash: string 
   }
 }
 
@@ -36,19 +36,19 @@ export interface AnalyticsMetrics {
 }
 
 interface AnalyticsState {
-  // SSSP State
+  
   currentResult: SSSPResult | null
   cache: SSSPCache
   loading: boolean
   error: string | null
   
-  // Analytics metrics
+  
   metrics: AnalyticsMetrics
   
-  // Graph data reference
+  
   lastGraphHash: string | null
   
-  // Actions
+  
   computeSSSP: (
     nodes: GraphNode[], 
     edges: GraphEdge[], 
@@ -62,14 +62,14 @@ interface AnalyticsState {
   normalizeDistances: (result: SSSPResult) => Record<string, number>
   getUnreachableNodes: (result: SSSPResult) => string[]
   
-  // Cache management
+  
   invalidateCache: () => void
   cleanExpiredCache: (maxAge?: number) => void
   
-  // Error handling
+  
   setError: (error: string | null) => void
   
-  // Metrics
+  
   updateMetrics: (computationTime: number, fromCache: boolean) => void
   resetMetrics: () => void
 }
@@ -88,13 +88,13 @@ function dijkstra(nodes: GraphNode[], edges: GraphEdge[], sourceNodeId: string):
   const visited = new Set<string>()
   const nodeIds = new Set(nodes.map(n => n.id))
   
-  // Initialize distances
+  
   for (const node of nodes) {
     distances[node.id] = node.id === sourceNodeId ? 0 : Infinity
     predecessors[node.id] = null
   }
   
-  // Build adjacency list with weights
+  
   const adjacencyList: Record<string, Array<{ nodeId: string; weight: number }>> = {}
   for (const node of nodes) {
     adjacencyList[node.id] = []
@@ -104,14 +104,14 @@ function dijkstra(nodes: GraphNode[], edges: GraphEdge[], sourceNodeId: string):
     if (nodeIds.has(edge.source) && nodeIds.has(edge.target)) {
       const weight = edge.weight || 1
       adjacencyList[edge.source].push({ nodeId: edge.target, weight })
-      // For undirected graphs, add reverse edge
+      
       adjacencyList[edge.target].push({ nodeId: edge.source, weight })
     }
   }
   
-  // Dijkstra's main loop
+  
   while (visited.size < nodes.length) {
-    // Find unvisited node with minimum distance
+    
     let currentNode: string | null = null
     let minDistance = Infinity
     
@@ -126,7 +126,7 @@ function dijkstra(nodes: GraphNode[], edges: GraphEdge[], sourceNodeId: string):
     
     visited.add(currentNode)
     
-    // Update distances to neighbors
+    
     for (const neighbor of adjacencyList[currentNode] || []) {
       if (!visited.has(neighbor.nodeId)) {
         const newDistance = distances[currentNode] + neighbor.weight
@@ -138,7 +138,7 @@ function dijkstra(nodes: GraphNode[], edges: GraphEdge[], sourceNodeId: string):
     }
   }
   
-  // Count unreachable nodes
+  
   const unreachableCount = Object.values(distances).filter(d => d === Infinity).length
   
   return {
@@ -154,13 +154,13 @@ function bellmanFord(nodes: GraphNode[], edges: GraphEdge[], sourceNodeId: strin
   const distances: Record<string, number> = {}
   const predecessors: Record<string, string | null> = {}
   
-  // Initialize
+  
   for (const node of nodes) {
     distances[node.id] = node.id === sourceNodeId ? 0 : Infinity
     predecessors[node.id] = null
   }
   
-  // Relax edges V-1 times
+  
   for (let i = 0; i < nodes.length - 1; i++) {
     for (const edge of edges) {
       const weight = edge.weight || 1
@@ -171,7 +171,7 @@ function bellmanFord(nodes: GraphNode[], edges: GraphEdge[], sourceNodeId: strin
           predecessors[edge.target] = edge.source
         }
       }
-      // For undirected graphs
+      
       if (distances[edge.target] !== Infinity) {
         const newDistance = distances[edge.target] + weight
         if (newDistance < distances[edge.source]) {
@@ -182,7 +182,7 @@ function bellmanFord(nodes: GraphNode[], edges: GraphEdge[], sourceNodeId: strin
     }
   }
   
-  // Check for negative cycles
+  
   for (const edge of edges) {
     const weight = edge.weight || 1
     if (distances[edge.source] !== Infinity && 
@@ -204,7 +204,7 @@ function bellmanFord(nodes: GraphNode[], edges: GraphEdge[], sourceNodeId: strin
 export const useAnalyticsStore = create<AnalyticsState>()(
   persist(
     (set, get) => ({
-      // Initial state
+      
       currentResult: null,
       cache: {},
       loading: false,
@@ -224,7 +224,7 @@ export const useAnalyticsStore = create<AnalyticsState>()(
         set({ loading: true, error: null })
 
         try {
-          // Validate input
+          
           if (!nodes.length || !sourceNodeId) {
             throw new Error('Invalid input: nodes array is empty or sourceNodeId is missing')
           }
@@ -234,10 +234,10 @@ export const useAnalyticsStore = create<AnalyticsState>()(
             throw new Error(`Source node with id ${sourceNodeId} not found`)
           }
 
-          // Generate graph hash for caching
+          
           const graphHash = hashGraph(nodes, edges)
 
-          // Check cache first
+          
           const cachedResult = get().getCachedResult(sourceNodeId, graphHash)
           if (cachedResult) {
             const computationTime = performance.now() - startTime
@@ -256,13 +256,13 @@ export const useAnalyticsStore = create<AnalyticsState>()(
             return cachedResult
           }
 
-          // Declare result variable outside try-catch
+          
           let result: SSSPResult
 
-          // Try server API first
+          
           try {
             const response = await unifiedApiClient.post('/api/analytics/shortest-path', {
-              source_node_id: parseInt(sourceNodeId), // Convert to number for server
+              source_node_id: parseInt(sourceNodeId), 
             })
 
             const data = response.data
@@ -271,13 +271,13 @@ export const useAnalyticsStore = create<AnalyticsState>()(
               throw new Error(data.error || 'SSSP computation failed on server')
             }
 
-            // Convert server response to our format
+            
             const distances: Record<string, number> = {}
             const predecessors: Record<string, string | null> = {}
 
             for (const [nodeId, distance] of Object.entries(data.distances || {})) {
               distances[nodeId] = distance === null ? Infinity : distance as number
-              // Server doesn't return predecessors yet, so we set them to null
+              
               predecessors[nodeId] = null
             }
 
@@ -303,10 +303,10 @@ export const useAnalyticsStore = create<AnalyticsState>()(
             }
 
           } catch (apiError) {
-            // If server fails, fall back to local computation
+            
             logger.warn('Server SSSP failed, falling back to local computation', apiError)
 
-            // Compute SSSP locally as fallback
+            
             let baseResult: Omit<SSSPResult, 'timestamp' | 'computationTime' | 'algorithm'>
 
             switch (algorithm) {
@@ -329,29 +329,29 @@ export const useAnalyticsStore = create<AnalyticsState>()(
             }
           }
 
-          // Update state with result and cache
+          
           set(state => produce(state, draft => {
             draft.currentResult = result
             draft.loading = false
             draft.lastGraphHash = graphHash
             
-            // Update cache
+            
             draft.cache[sourceNodeId] = {
               result,
               lastAccessed: Date.now(),
               graphHash
             }
             
-            // Clean old cache entries (keep last 50)
+            
             const cacheEntries = Object.entries(draft.cache)
             if (cacheEntries.length > 50) {
-              // Sort by lastAccessed and remove oldest
+              
               const sortedEntries = cacheEntries.sort(([,a], [,b]) => b.lastAccessed - a.lastAccessed)
               draft.cache = Object.fromEntries(sortedEntries.slice(0, 50))
             }
           }))
           
-          // Update metrics
+          
           get().updateMetrics(computationTime, false)
           
           if (debugState.isEnabled()) {
@@ -404,7 +404,7 @@ export const useAnalyticsStore = create<AnalyticsState>()(
         const cached = state.cache[sourceNodeId]
         
         if (cached && cached.graphHash === graphHash) {
-          // Update last accessed time
+          
           set(state => produce(state, draft => {
             if (draft.cache[sourceNodeId]) {
               draft.cache[sourceNodeId].lastAccessed = Date.now()
@@ -430,14 +430,14 @@ export const useAnalyticsStore = create<AnalyticsState>()(
         const range = maxDistance - minDistance
         
         if (range === 0) {
-          // All reachable nodes have the same distance
+          
           Object.keys(distances).forEach(nodeId => {
             if (isFinite(distances[nodeId])) {
               distances[nodeId] = 1
             }
           })
         } else {
-          // Normalize to 0-1 range
+          
           Object.keys(distances).forEach(nodeId => {
             if (isFinite(distances[nodeId])) {
               distances[nodeId] = (distances[nodeId] - minDistance) / range
@@ -467,7 +467,7 @@ export const useAnalyticsStore = create<AnalyticsState>()(
         }
       },
 
-      cleanExpiredCache: (maxAge = 24 * 60 * 60 * 1000) => { // 24 hours default
+      cleanExpiredCache: (maxAge = 24 * 60 * 60 * 1000) => { 
         const now = Date.now()
         
         set(state => produce(state, draft => {
@@ -497,7 +497,7 @@ export const useAnalyticsStore = create<AnalyticsState>()(
           } else {
             draft.metrics.cacheMisses += 1
             
-            // Update running average computation time (excluding cache hits)
+            
             const totalNonCacheComputations = draft.metrics.cacheMisses
             const currentAverage = draft.metrics.averageComputationTime
             draft.metrics.averageComputationTime = 

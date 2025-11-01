@@ -20,7 +20,7 @@ use crate::ports::gpu_physics_adapter::{
     PhysicsStepResult, Result as PhysicsResult,
 };
 
-/// Simulation parameters for starting physics
+/
 #[derive(Debug, Clone)]
 pub struct SimulationParams {
     pub profile_name: String,
@@ -38,7 +38,7 @@ impl Default for SimulationParams {
     }
 }
 
-/// Layout optimization request
+/
 #[derive(Debug, Clone)]
 pub struct LayoutOptimizationRequest {
     pub algorithm: String,
@@ -46,7 +46,7 @@ pub struct LayoutOptimizationRequest {
     pub target_energy: f32,
 }
 
-/// Physics service for managing GPU-accelerated physics simulation
+/
 pub struct PhysicsService {
     physics_adapter: Arc<RwLock<dyn GpuPhysicsAdapter>>,
     event_bus: Arc<RwLock<EventBus>>,
@@ -54,7 +54,7 @@ pub struct PhysicsService {
 }
 
 impl PhysicsService {
-    /// Create new physics service
+    
     pub fn new(
         physics_adapter: Arc<RwLock<dyn GpuPhysicsAdapter>>,
         event_bus: Arc<RwLock<EventBus>>,
@@ -66,23 +66,23 @@ impl PhysicsService {
         }
     }
 
-    /// Start physics simulation
+    
     pub async fn start_simulation(
         &self,
         graph: Arc<GraphData>,
         params: SimulationParams,
     ) -> PhysicsResult<String> {
-        // Initialize physics adapter
+        
         let mut adapter = self.physics_adapter.write().await;
         adapter
             .initialize(graph.clone(), params.physics_params.clone())
             .await?;
 
-        // Generate simulation ID
+        
         let sim_id = format!("sim-{}", uuid::Uuid::new_v4());
         *self.simulation_id.write().await = Some(sim_id.clone());
 
-        // Publish simulation started event
+        
         let event = SimulationStartedEvent {
             simulation_id: sim_id.clone(),
             physics_profile: params.profile_name,
@@ -99,16 +99,16 @@ impl PhysicsService {
         Ok(sim_id)
     }
 
-    /// Stop physics simulation
+    
     pub async fn stop_simulation(&self) -> PhysicsResult<()> {
         let sim_id = self.simulation_id.read().await.clone();
 
         if let Some(simulation_id) = sim_id {
-            // Get final statistics
+            
             let adapter = self.physics_adapter.read().await;
             let stats = adapter.get_statistics().await?;
 
-            // Publish simulation stopped event
+            
             let event = SimulationStoppedEvent {
                 simulation_id,
                 iterations: stats.total_steps as u32,
@@ -122,31 +122,31 @@ impl PhysicsService {
                 .publish(event)
                 .await;
 
-            // Clear simulation ID
+            
             *self.simulation_id.write().await = None;
         }
 
         Ok(())
     }
 
-    /// Compute layout using force-directed algorithm
+    
     pub async fn compute_layout(
         &self,
         graph: Arc<GraphData>,
         params: PhysicsParameters,
     ) -> PhysicsResult<Vec<Node>> {
-        // Initialize physics
+        
         let mut adapter = self.physics_adapter.write().await;
         adapter.initialize(graph.clone(), params).await?;
 
-        // Run simulation until convergence
+        
         let result = adapter.simulate_until_convergence().await?;
 
-        // Get updated positions
+        
         let forces = adapter.compute_forces().await?;
         let positions = adapter.update_positions(&forces).await?;
 
-        // Convert to nodes
+        
         let mut nodes = Vec::new();
         for (node_id, x, y, z) in positions {
             if let Some(node) = graph.nodes.iter().find(|n| n.id == node_id) {
@@ -158,7 +158,7 @@ impl PhysicsService {
             }
         }
 
-        // Publish positions updated event
+        
         let event = PositionsUpdatedEvent {
             graph_id: "main".to_string(),
             updated_nodes: nodes.iter().map(|n| n.id.to_string()).collect(),
@@ -174,27 +174,27 @@ impl PhysicsService {
         Ok(nodes)
     }
 
-    /// Perform single physics step
+    
     pub async fn step(&self) -> PhysicsResult<PhysicsStepResult> {
         let mut adapter = self.physics_adapter.write().await;
         adapter.step().await
     }
 
-    /// Optimize layout with specific algorithm
+    
     pub async fn optimize_layout(
         &self,
         graph: Arc<GraphData>,
         request: LayoutOptimizationRequest,
     ) -> PhysicsResult<Vec<Node>> {
-        // Setup physics parameters for optimization
+        
         let mut params = PhysicsParameters::default();
         params.max_iterations = request.max_iterations;
         params.convergence_threshold = request.target_energy;
 
-        // Run layout computation
+        
         let nodes = self.compute_layout(graph, params).await?;
 
-        // Publish layout optimized event
+        
         let event = LayoutOptimizedEvent {
             layout_id: format!("layout-{}", uuid::Uuid::new_v4()),
             algorithm: request.algorithm,
@@ -212,7 +212,7 @@ impl PhysicsService {
         Ok(nodes)
     }
 
-    /// Apply external forces (e.g., user dragging)
+    
     pub async fn apply_external_forces(
         &self,
         forces: Vec<(u32, f32, f32, f32)>,
@@ -221,48 +221,48 @@ impl PhysicsService {
         adapter.apply_external_forces(forces).await
     }
 
-    /// Pin nodes at specific positions
+    
     pub async fn pin_nodes(&self, nodes: Vec<(u32, f32, f32, f32)>) -> PhysicsResult<()> {
         let mut adapter = self.physics_adapter.write().await;
         adapter.pin_nodes(nodes).await
     }
 
-    /// Unpin nodes to allow free movement
+    
     pub async fn unpin_nodes(&self, node_ids: Vec<u32>) -> PhysicsResult<()> {
         let mut adapter = self.physics_adapter.write().await;
         adapter.unpin_nodes(node_ids).await
     }
 
-    /// Update physics parameters
+    
     pub async fn update_parameters(&self, params: PhysicsParameters) -> PhysicsResult<()> {
         let mut adapter = self.physics_adapter.write().await;
         adapter.update_parameters(params).await
     }
 
-    /// Get GPU device status
+    
     pub async fn get_gpu_status(&self) -> PhysicsResult<GpuDeviceInfo> {
         let adapter = self.physics_adapter.read().await;
         adapter.get_gpu_status().await
     }
 
-    /// Get physics statistics
+    
     pub async fn get_statistics(&self) -> PhysicsResult<PhysicsStatistics> {
         let adapter = self.physics_adapter.read().await;
         adapter.get_statistics().await
     }
 
-    /// Reset simulation state
+    
     pub async fn reset(&self) -> PhysicsResult<()> {
         let mut adapter = self.physics_adapter.write().await;
         adapter.reset().await
     }
 
-    /// Check if simulation is running
+    
     pub async fn is_running(&self) -> bool {
         self.simulation_id.read().await.is_some()
     }
 
-    /// Get current simulation ID
+    
     pub async fn get_simulation_id(&self) -> Option<String> {
         self.simulation_id.read().await.clone()
     }

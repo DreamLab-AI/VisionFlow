@@ -1,9 +1,9 @@
-/// Inference cache with checksum-based invalidation
-///
-/// Performance targets:
-/// - Cache hit: <1ms
-/// - Cache miss: compute + store (200ms)
-/// - Cache hit rate: >80%
+/
+/
+/
+/
+/
+/
 
 use rusqlite::{Connection, params};
 use serde::{Deserialize, Serialize};
@@ -14,26 +14,26 @@ use crate::reasoning::{
     ReasoningError, ReasoningResult,
 };
 
-/// Cached inference result
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CachedInference {
     pub ontology_id: i64,
     pub ontology_checksum: String,
     pub inferred_axioms: Vec<InferredAxiom>,
-    pub cached_at: i64, // Unix timestamp
+    pub cached_at: i64, 
 }
 
-/// Inference cache with checksum-based invalidation
+/
 pub struct InferenceCache {
     db_path: String,
 }
 
 impl InferenceCache {
-    /// Create new inference cache
+    
     pub fn new(db_path: impl AsRef<Path>) -> ReasoningResult<Self> {
         let db_path = db_path.as_ref().to_string_lossy().to_string();
 
-        // Initialize cache table if not exists
+        
         let conn = Connection::open(&db_path)?;
         conn.execute(
             "CREATE TABLE IF NOT EXISTS inference_cache (
@@ -45,7 +45,7 @@ impl InferenceCache {
             [],
         )?;
 
-        // Create index for faster lookups
+        
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_cache_checksum
              ON inference_cache(ontology_checksum)",
@@ -55,7 +55,7 @@ impl InferenceCache {
         Ok(Self { db_path })
     }
 
-    /// Get cached inference or compute if missing/invalid
+    
     pub fn get_or_compute(
         &self,
         ontology_id: i64,
@@ -64,15 +64,15 @@ impl InferenceCache {
     ) -> ReasoningResult<Vec<InferredAxiom>> {
         let checksum = self.compute_ontology_checksum(ontology);
 
-        // Try to load from cache
+        
         if let Some(cached) = self.load_from_cache(ontology_id)? {
             if self.is_valid(&cached, &checksum) {
-                // Cache hit! <1ms
+                
                 return Ok(cached.inferred_axioms);
             }
         }
 
-        // Cache miss - compute inference (200ms)
+        
         let start = std::time::Instant::now();
         let inferred = reasoner.infer_axioms(ontology)?;
         let duration = start.elapsed();
@@ -83,27 +83,27 @@ impl InferenceCache {
             duration
         );
 
-        // Store in cache
+        
         self.store_to_cache(ontology_id, &checksum, &inferred)?;
 
         Ok(inferred)
     }
 
-    /// Compute checksum of ontology structure
+    
     fn compute_ontology_checksum(
         &self,
         ontology: &crate::reasoning::custom_reasoner::Ontology,
     ) -> String {
         let mut hasher = Sha1::new();
 
-        // Hash classes (sorted for determinism)
+        
         let mut class_iris: Vec<_> = ontology.classes.keys().collect();
         class_iris.sort();
         for iri in class_iris {
             hasher.update(iri.as_bytes());
         }
 
-        // Hash SubClassOf relationships (sorted)
+        
         let mut subclass_pairs: Vec<_> = ontology.subclass_of
             .iter()
             .flat_map(|(child, parents)| {
@@ -117,7 +117,7 @@ impl InferenceCache {
             hasher.update(parent.as_bytes());
         }
 
-        // Hash DisjointClasses sets (sorted)
+        
         for disjoint_set in &ontology.disjoint_classes {
             let mut classes: Vec<_> = disjoint_set.iter().collect();
             classes.sort();
@@ -127,7 +127,7 @@ impl InferenceCache {
             }
         }
 
-        // Hash EquivalentClass relationships (sorted)
+        
         let mut equiv_pairs: Vec<_> = ontology.equivalent_classes
             .iter()
             .flat_map(|(a, equivalents)| {
@@ -144,7 +144,7 @@ impl InferenceCache {
         format!("{:x}", hasher.finalize())
     }
 
-    /// Load cached inference from database
+    
     pub(crate) fn load_from_cache(&self, ontology_id: i64) -> ReasoningResult<Option<CachedInference>> {
         let conn = Connection::open(&self.db_path)?;
 
@@ -175,7 +175,7 @@ impl InferenceCache {
         }
     }
 
-    /// Store inference result to cache
+    
     fn store_to_cache(
         &self,
         ontology_id: i64,
@@ -202,9 +202,9 @@ impl InferenceCache {
         Ok(())
     }
 
-    /// Check if cached result is still valid
+    
     fn is_valid(&self, cached: &CachedInference, current_checksum: &str) -> bool {
-        // Checksum-based invalidation
+        
         if cached.ontology_checksum != current_checksum {
             log::info!(
                 "Cache invalid for ontology {} (checksum mismatch)",
@@ -213,13 +213,13 @@ impl InferenceCache {
             return false;
         }
 
-        // Optional: TTL-based invalidation (e.g., 1 hour)
+        
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_secs() as i64;
 
-        let ttl = 3600; // 1 hour
+        let ttl = 3600; 
         if now - cached.cached_at > ttl {
             log::info!(
                 "Cache expired for ontology {} (TTL exceeded)",
@@ -231,7 +231,7 @@ impl InferenceCache {
         true
     }
 
-    /// Clear cache for specific ontology
+    
     pub fn invalidate(&self, ontology_id: i64) -> ReasoningResult<()> {
         let conn = Connection::open(&self.db_path)?;
         conn.execute(
@@ -241,14 +241,14 @@ impl InferenceCache {
         Ok(())
     }
 
-    /// Clear all cache entries
+    
     pub fn clear_all(&self) -> ReasoningResult<()> {
         let conn = Connection::open(&self.db_path)?;
         conn.execute("DELETE FROM inference_cache", [])?;
         Ok(())
     }
 
-    /// Get cache statistics
+    
     pub fn get_stats(&self) -> ReasoningResult<CacheStats> {
         let conn = Connection::open(&self.db_path)?;
 
@@ -271,7 +271,7 @@ impl InferenceCache {
     }
 }
 
-/// Cache statistics
+/
 #[derive(Debug, Clone)]
 pub struct CacheStats {
     pub total_entries: usize,
@@ -315,18 +315,18 @@ mod tests {
         let reasoner = CustomReasoner::new();
         let ontology = create_test_ontology();
 
-        // First call - cache miss
+        
         let start = std::time::Instant::now();
         let result1 = cache.get_or_compute(1, &reasoner, &ontology).unwrap();
         let duration1 = start.elapsed();
 
-        // Second call - cache hit (should be much faster)
+        
         let start = std::time::Instant::now();
         let result2 = cache.get_or_compute(1, &reasoner, &ontology).unwrap();
         let duration2 = start.elapsed();
 
         assert_eq!(result1, result2);
-        assert!(duration2 < duration1); // Cache hit should be faster
+        assert!(duration2 < duration1); 
 
         println!("Cache miss: {:?}, Cache hit: {:?}", duration1, duration2);
     }
@@ -340,20 +340,20 @@ mod tests {
         let reasoner = CustomReasoner::new();
         let mut ontology = create_test_ontology();
 
-        // First computation
+        
         let result1 = cache.get_or_compute(1, &reasoner, &ontology).unwrap();
 
-        // Modify ontology
+        
         ontology.classes.insert("C".to_string(), OWLClass {
             iri: "C".to_string(),
             label: Some("Class C".to_string()),
             parent_class_iri: Some("B".to_string()),
         });
 
-        // Should recompute (checksum changed)
+        
         let result2 = cache.get_or_compute(1, &reasoner, &ontology).unwrap();
 
-        // Results should be different due to new class
+        
         assert_ne!(result1.len(), result2.len());
     }
 
@@ -366,7 +366,7 @@ mod tests {
         let reasoner = CustomReasoner::new();
         let ontology = create_test_ontology();
 
-        // Add some cache entries
+        
         cache.get_or_compute(1, &reasoner, &ontology).unwrap();
         cache.get_or_compute(2, &reasoner, &ontology).unwrap();
 
@@ -384,10 +384,10 @@ mod tests {
         let reasoner = CustomReasoner::new();
         let ontology = create_test_ontology();
 
-        // Cache entry
+        
         cache.get_or_compute(1, &reasoner, &ontology).unwrap();
 
-        // Invalidate
+        
         cache.invalidate(1).unwrap();
 
         let stats = cache.get_stats().unwrap();

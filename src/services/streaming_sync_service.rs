@@ -17,19 +17,19 @@
 //!     content_api,
 //!     kg_repo,
 //!     onto_repo,
-//!     Some(8), // max_workers
+//!     Some(8), 
 //! );
 //!
-//! // Create progress receiver
+//! 
 //! let (progress_tx, mut progress_rx) = tokio::sync::mpsc::unbounded_channel();
 //! service.set_progress_channel(progress_tx);
 //!
-//! // Start sync in background
+//! 
 //! let sync_handle = tokio::spawn(async move {
 //!     service.sync_graphs_streaming().await
 //! });
 //!
-//! // Monitor progress
+//! 
 //! while let Some(progress) = progress_rx.recv().await {
 //!     println!("Progress: {}/{} files", progress.files_processed, progress.files_total);
 //! }
@@ -50,21 +50,21 @@ use std::time::{Duration, Instant};
 use tokio::sync::{mpsc, Semaphore};
 use tokio::task::JoinSet;
 
-/// Default number of concurrent workers in the swarm
+/
 const DEFAULT_MAX_WORKERS: usize = 8;
 
-/// Default maximum concurrent database writes
+/
 const DEFAULT_MAX_DB_WRITES: usize = 4;
 
-/// File type detection result
+/
 #[derive(Debug, Clone, PartialEq)]
 pub enum FileType {
-    KnowledgeGraph, // Contains "public:: true"
-    Ontology,       // Contains "- ### OntologyBlock"
-    Skip,           // Neither marker found
+    KnowledgeGraph, 
+    Ontology,       
+    Skip,           
 }
 
-/// Progress information reported during sync
+/
 #[derive(Debug, Clone)]
 pub struct SyncProgress {
     pub files_total: usize,
@@ -98,7 +98,7 @@ impl SyncProgress {
     }
 }
 
-/// Final sync statistics returned after completion
+/
 #[derive(Debug, Clone)]
 pub struct SyncStatistics {
     pub total_files: usize,
@@ -115,7 +115,7 @@ pub struct SyncStatistics {
     pub total_axioms: usize,
 }
 
-/// Result of processing a single file
+/
 #[derive(Debug, Clone)]
 enum FileProcessResult {
     KnowledgeGraph {
@@ -140,7 +140,7 @@ enum FileProcessResult {
     },
 }
 
-/// Streaming GitHub Sync Service with swarm-based parallel processing
+/
 pub struct StreamingSyncService {
     content_api: Arc<EnhancedContentAPI>,
     kg_parser: Arc<KnowledgeGraphParser>,
@@ -153,7 +153,7 @@ pub struct StreamingSyncService {
 }
 
 impl StreamingSyncService {
-    /// Create new StreamingSyncService with optional custom worker count
+    
     pub fn new(
         content_api: Arc<EnhancedContentAPI>,
         kg_repo: Arc<UnifiedGraphRepository>,
@@ -178,25 +178,25 @@ impl StreamingSyncService {
         }
     }
 
-    /// Set progress channel for real-time progress updates
+    
     pub fn set_progress_channel(&mut self, tx: mpsc::UnboundedSender<SyncProgress>) {
         self.progress_tx = Some(tx);
     }
 
-    /// Synchronize all graphs from GitHub repository using streaming approach
-    ///
-    /// This method:
-    /// 1. Fetches all markdown files from GitHub
-    /// 2. Splits files into chunks for worker swarm
-    /// 3. Spawns concurrent workers using JoinSet
-    /// 4. Each worker: fetch → parse → save immediately (no accumulation)
-    /// 5. Collects results and aggregates statistics
-    /// 6. Returns partial success statistics
+    
+    
+    
+    
+    
+    
+    
+    
+    
     pub async fn sync_graphs_streaming(&self) -> Result<SyncStatistics, String> {
         info!("🚀 Starting streaming GitHub sync with {} workers", self.max_workers);
         let start_time = Instant::now();
 
-        // Fetch all markdown files
+        
         let files = match self.fetch_all_markdown_files().await {
             Ok(files) => {
                 info!("📁 Found {} markdown files in repository", files.len());
@@ -227,25 +227,25 @@ impl StreamingSyncService {
             });
         }
 
-        // Initialize progress tracking
+        
         let total_files = files.len();
         let mut progress = SyncProgress::new(total_files);
 
-        // Send initial progress
+        
         if let Some(tx) = &self.progress_tx {
             let _ = tx.send(progress.clone());
         }
 
-        // Create semaphore to limit concurrent database writes
+        
         let db_semaphore = Arc::new(Semaphore::new(self.max_db_writes));
 
-        // Create shared progress tracker
+        
         let (result_tx, mut result_rx) = mpsc::unbounded_channel();
 
-        // Spawn worker swarm using JoinSet
+        
         let mut worker_set = JoinSet::new();
 
-        // Split files into chunks for workers
+        
         let chunk_size = (files.len() + self.max_workers - 1) / self.max_workers;
 
         info!(
@@ -279,10 +279,10 @@ impl StreamingSyncService {
             });
         }
 
-        // Drop the original sender so the channel closes when all workers are done
+        
         drop(result_tx);
 
-        // Collect results from workers in real-time
+        
         let mut public_page_names = HashSet::new();
         let mut stats = SyncStatistics {
             total_files,
@@ -299,7 +299,7 @@ impl StreamingSyncService {
             total_axioms: 0,
         };
 
-        // Process results as they come in
+        
         while let Some(result) = result_rx.recv().await {
             match result {
                 FileProcessResult::KnowledgeGraph {
@@ -360,13 +360,13 @@ impl StreamingSyncService {
                 }
             }
 
-            // Send progress update
+            
             if let Some(tx) = &self.progress_tx {
                 let _ = tx.send(progress.clone());
             }
         }
 
-        // Wait for all workers to complete
+        
         while let Some(result) = worker_set.join_next().await {
             match result {
                 Ok(worker_result) => {
@@ -402,7 +402,7 @@ impl StreamingSyncService {
         Ok(stats)
     }
 
-    /// Worker function to process a batch of files
+    
     async fn worker_process_files(
         worker_id: usize,
         files: Vec<GitHubFileBasicMetadata>,
@@ -435,14 +435,14 @@ impl StreamingSyncService {
             )
             .await;
 
-            // Send result regardless of success/failure
+            
             if let Err(e) = result_tx.send(result) {
                 error!("[StreamingSync][Worker-{}] Failed to send result for {}: {}", worker_id, file.name, e);
             } else {
                 debug!("[StreamingSync][Worker-{}] Successfully sent result for {}", worker_id, file.name);
             }
 
-            // Small delay to be nice to GitHub API and reduce contention
+            
             tokio::time::sleep(Duration::from_millis(50)).await;
         }
 
@@ -450,7 +450,7 @@ impl StreamingSyncService {
         Ok(())
     }
 
-    /// Process a single file: fetch → parse → save immediately
+    
     async fn process_file_worker(
         worker_id: usize,
         file: &GitHubFileBasicMetadata,
@@ -464,7 +464,7 @@ impl StreamingSyncService {
         debug!("[StreamingSync][Worker-{}] Fetching content from: {}", worker_id, file.download_url);
         let fetch_start = Instant::now();
 
-        // Fetch file content with retry
+        
         let content = match Self::fetch_with_retry(&file.download_url, content_api, 3).await {
             Ok(content) => {
                 let fetch_duration = fetch_start.elapsed();
@@ -480,7 +480,7 @@ impl StreamingSyncService {
             }
         };
 
-        // Detect file type
+        
         let file_type = Self::detect_file_type(&content);
         debug!("[StreamingSync][Worker-{}] Detected file type for {}: {:?}", worker_id, file.name, file_type);
 
@@ -517,7 +517,7 @@ impl StreamingSyncService {
         }
     }
 
-    /// Process knowledge graph file with immediate saving
+    
     async fn process_kg_file_streaming(
         worker_id: usize,
         file: &GitHubFileBasicMetadata,
@@ -529,7 +529,7 @@ impl StreamingSyncService {
         debug!("[StreamingSync][Worker-{}] Parsing KG file: {}", worker_id, file.name);
         let parse_start = Instant::now();
 
-        // Parse the file
+        
         let parsed_graph = match kg_parser.parse(content, &file.path) {
             Ok(graph) => {
                 let parse_duration = parse_start.elapsed();
@@ -549,7 +549,7 @@ impl StreamingSyncService {
         let node_count = parsed_graph.nodes.len();
         let edge_count = parsed_graph.edges.len();
 
-        // Extract public page name if this is a public page
+        
         let public_page_name = parsed_graph
             .nodes
             .iter()
@@ -562,7 +562,7 @@ impl StreamingSyncService {
         debug!("[StreamingSync][Worker-{}] Waiting for DB semaphore to save {} nodes and {} edges", worker_id, node_count, edge_count);
         let semaphore_start = Instant::now();
 
-        // Acquire semaphore permit for database write
+        
         let _permit = db_semaphore.acquire().await.ok();
         let wait_duration = semaphore_start.elapsed();
         debug!("[StreamingSync][Worker-{}] Acquired DB semaphore after {:?}, saving to database", worker_id, wait_duration);
@@ -571,10 +571,10 @@ impl StreamingSyncService {
         let mut nodes_saved = 0;
         let mut nodes_failed = 0;
 
-        // Save nodes incrementally
+        
         for node in &parsed_graph.nodes {
             if let Err(e) = kg_repo.add_node(node).await {
-                // Log error but continue processing
+                
                 warn!(
                     "[StreamingSync][Worker-{}] Failed to save node {} from file {}: {}",
                     worker_id, node.metadata_id, file.name, e
@@ -588,10 +588,10 @@ impl StreamingSyncService {
         let mut edges_saved = 0;
         let mut edges_failed = 0;
 
-        // Save edges incrementally
+        
         for edge in &parsed_graph.edges {
             if let Err(e) = kg_repo.add_edge(edge).await {
-                // Log error but continue processing
+                
                 warn!(
                     "[StreamingSync][Worker-{}] Failed to save edge {} from file {}: {}",
                     worker_id, edge.id, file.name, e
@@ -615,7 +615,7 @@ impl StreamingSyncService {
         }
     }
 
-    /// Process ontology file with immediate saving
+    
     async fn process_ontology_file_streaming(
         worker_id: usize,
         file: &GitHubFileBasicMetadata,
@@ -627,7 +627,7 @@ impl StreamingSyncService {
         debug!("[StreamingSync][Worker-{}] Parsing ontology file: {}", worker_id, file.name);
         let parse_start = Instant::now();
 
-        // Parse the file
+        
         let ontology_data = match onto_parser.parse(content, &file.path)
         {
             Ok(result) => {
@@ -653,7 +653,7 @@ impl StreamingSyncService {
             worker_id, class_count, property_count, axiom_count);
         let semaphore_start = Instant::now();
 
-        // Acquire semaphore permit for database write
+        
         let _permit = db_semaphore.acquire().await.ok();
         let wait_duration = semaphore_start.elapsed();
         debug!("[StreamingSync][Worker-{}] Acquired DB semaphore after {:?}, saving to database", worker_id, wait_duration);
@@ -662,7 +662,7 @@ impl StreamingSyncService {
         let mut classes_saved = 0;
         let mut classes_failed = 0;
 
-        // Save classes incrementally
+        
         for class in &ontology_data.classes {
             if let Err(e) = onto_repo.add_owl_class(class).await {
                 warn!(
@@ -678,7 +678,7 @@ impl StreamingSyncService {
         let mut properties_saved = 0;
         let mut properties_failed = 0;
 
-        // Save properties incrementally
+        
         for property in &ontology_data.properties {
             if let Err(e) = onto_repo.add_owl_property(property).await {
                 warn!(
@@ -694,7 +694,7 @@ impl StreamingSyncService {
         let mut axioms_saved = 0;
         let mut axioms_failed = 0;
 
-        // Save axioms incrementally
+        
         for axiom in &ontology_data.axioms {
             if let Err(e) = onto_repo.add_axiom(axiom).await {
                 warn!("[StreamingSync][Worker-{}] Failed to save axiom from file {}: {}", worker_id, file.name, e);
@@ -717,16 +717,16 @@ impl StreamingSyncService {
         }
     }
 
-    /// Fetch all markdown files from the repository
+    
     async fn fetch_all_markdown_files(&self) -> Result<Vec<GitHubFileBasicMetadata>, String> {
-        // Empty string uses the configured base_path
+        
         self.content_api
             .list_markdown_files("")
             .await
             .map_err(|e| format!("GitHub API error: {}", e))
     }
 
-    /// Fetch content with retry logic
+    
     async fn fetch_with_retry(
         url: &str,
         content_api: &Arc<EnhancedContentAPI>,
@@ -770,7 +770,7 @@ impl StreamingSyncService {
         }
     }
 
-    /// Detect file type based on content markers
+    
     fn detect_file_type(content: &str) -> FileType {
         let has_public = content.contains("public:: true");
         let has_ontology = content.contains("- ### OntologyBlock");
@@ -818,7 +818,7 @@ mod tests {
 
     #[test]
     fn test_detect_file_type_ontology_priority() {
-        // Ontology should have priority over knowledge graph
+        
         let content = "public:: true\n- ### OntologyBlock\nContent";
         assert_eq!(
             StreamingSyncService::detect_file_type(content),

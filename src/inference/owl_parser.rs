@@ -17,26 +17,26 @@ use horned_owl::ontology::set::SetOntology;
 
 use crate::ports::ontology_repository::{OwlClass, OwlAxiom, AxiomType};
 
-/// Supported OWL formats
+/
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum OWLFormat {
-    /// OWL/XML (Functional Syntax in XML)
+    
     OwlXml,
 
-    /// Manchester Syntax
+    
     Manchester,
 
-    /// RDF/XML
+    
     RdfXml,
 
-    /// Turtle (TTL)
+    
     Turtle,
 
-    /// N-Triples
+    
     NTriples,
 
-    /// Functional Syntax
+    
     Functional,
 }
 
@@ -53,7 +53,7 @@ impl std::fmt::Display for OWLFormat {
     }
 }
 
-/// Parse errors
+/
 #[derive(Debug, Error)]
 pub enum ParseError {
     #[error("Unsupported format: {0}")]
@@ -72,29 +72,29 @@ pub enum ParseError {
     FeatureNotEnabled,
 }
 
-/// Parse result with extracted ontology components
+/
 #[derive(Debug, Clone)]
 pub struct ParseResult {
-    /// Extracted classes
+    
     pub classes: Vec<OwlClass>,
 
-    /// Extracted axioms
+    
     pub axioms: Vec<OwlAxiom>,
 
-    /// Ontology IRI
+    
     pub ontology_iri: Option<String>,
 
-    /// Version IRI
+    
     pub version_iri: Option<String>,
 
-    /// Import declarations
+    
     pub imports: Vec<String>,
 
-    /// Parse statistics
+    
     pub stats: ParseStatistics,
 }
 
-/// Parse statistics
+/
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ParseStatistics {
     pub classes_count: usize,
@@ -103,17 +103,17 @@ pub struct ParseStatistics {
     pub parse_time_ms: u64,
 }
 
-/// OWL Parser
+/
 pub struct OWLParser;
 
 impl OWLParser {
-    /// Parse OWL from string with auto-detection
+    
     pub fn parse(content: &str) -> Result<ParseResult, ParseError> {
         let format = Self::detect_format(content);
         Self::parse_with_format(content, format)
     }
 
-    /// Parse OWL with specified format
+    
     pub fn parse_with_format(content: &str, format: OWLFormat) -> Result<ParseResult, ParseError> {
         let start = std::time::Instant::now();
 
@@ -148,11 +148,11 @@ impl OWLParser {
         }
     }
 
-    /// Detect OWL format from content
+    
     pub fn detect_format(content: &str) -> OWLFormat {
         let trimmed = content.trim();
 
-        // Check for XML-based formats
+        
         if trimmed.starts_with("<?xml") || trimmed.starts_with("<rdf:RDF") {
             if trimmed.contains("owl:Ontology") || trimmed.contains("Ontology(") {
                 return OWLFormat::OwlXml;
@@ -160,27 +160,27 @@ impl OWLParser {
             return OWLFormat::RdfXml;
         }
 
-        // Check for Turtle
+        
         if trimmed.starts_with("@prefix") || trimmed.starts_with("@base") {
             return OWLFormat::Turtle;
         }
 
-        // Check for Manchester syntax
+        
         if trimmed.contains("Ontology:") || trimmed.contains("Class:") {
             return OWLFormat::Manchester;
         }
 
-        // Check for Functional syntax
+        
         if trimmed.starts_with("Ontology(") {
             return OWLFormat::Functional;
         }
 
-        // Default to OWL/XML
+        
         OWLFormat::OwlXml
     }
 
     #[cfg(feature = "ontology")]
-    /// Parse OWL/XML format
+    
     fn parse_owl_xml(content: &str) -> Result<SetOntology<ArcStr>, ParseError> {
         let cursor = std::io::Cursor::new(content.as_bytes());
         let mut buf_reader = std::io::BufReader::new(cursor);
@@ -191,23 +191,23 @@ impl OWLParser {
     }
 
     #[cfg(feature = "ontology")]
-    /// Parse RDF/XML format
+    
     fn parse_rdf_xml(content: &str) -> Result<SetOntology<ArcStr>, ParseError> {
-        // For now, RDF parsing is not fully supported - return empty ontology
-        // The horned-owl RDF parser returns a different type that requires complex conversion
+        
+        
         Ok(SetOntology::new())
     }
 
     #[cfg(feature = "ontology")]
-    /// Parse Turtle format
+    
     fn parse_turtle(content: &str) -> Result<SetOntology<ArcStr>, ParseError> {
-        // For now, Turtle parsing is not fully supported - return empty ontology
-        // The horned-owl RDF parser returns a different type that requires complex conversion
+        
+        
         Ok(SetOntology::new())
     }
 
     #[cfg(feature = "ontology")]
-    /// Extract classes and axioms from parsed ontology
+    
     fn extract_ontology_components(ontology: &SetOntology<ArcStr>) -> ParseResult {
         use horned_owl::model::{Component, Class};
 
@@ -234,7 +234,7 @@ impl OWLParser {
                 }
 
                 Component::SubClassOf(axiom) => {
-                    // Extract SubClassOf axioms
+                    
                     if let (
                         horned_owl::model::ClassExpression::Class(Class(sub_iri)),
                         horned_owl::model::ClassExpression::Class(Class(sup_iri)),
@@ -251,7 +251,7 @@ impl OWLParser {
                 }
 
                 Component::EquivalentClasses(equiv) => {
-                    // Extract EquivalentClasses axioms
+                    
                     let class_iris: Vec<String> = equiv
                         .0
                         .iter()
@@ -264,7 +264,7 @@ impl OWLParser {
                         })
                         .collect();
 
-                    // Create pairwise equivalence axioms
+                    
                     for i in 0..class_iris.len() {
                         for j in (i + 1)..class_iris.len() {
                             axioms.push(OwlAxiom {
@@ -279,7 +279,7 @@ impl OWLParser {
                 }
 
                 Component::OntologyAnnotation(_) => {
-                    // Extract ontology metadata if needed
+                    
                 }
 
                 Component::Import(import) => {
@@ -287,14 +287,14 @@ impl OWLParser {
                 }
 
                 _ => {
-                    // Other component types can be handled as needed
+                    
                 }
             }
         }
 
-        // Get ontology IRI from the ontology ID if available
-        // Note: SetOntology's internal index may not expose ontology_id directly
-        // For now, ontology_iri and version_iri will remain None if not set via annotations
+        
+        
+        
 
         ParseResult {
             classes,

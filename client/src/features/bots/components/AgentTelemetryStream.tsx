@@ -1,8 +1,4 @@
-/**
- * Agent Telemetry Stream Component
- * Displays streaming agent telemetry in DSEG 7-segment font style
- * Black text on orange background for maximum visibility
- */
+
 
 import React, { useState, useEffect, useRef } from 'react';
 import { unifiedApiClient } from '../../../services/api/UnifiedApiClient';
@@ -60,21 +56,21 @@ export const AgentTelemetryStream: React.FC = () => {
   const streamRef = useRef<HTMLDivElement>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Auto-scroll to bottom when new messages arrive
+  
   useEffect(() => {
     if (streamRef.current) {
       streamRef.current.scrollTop = streamRef.current.scrollHeight;
     }
   }, [messages]);
 
-  // Load GOAP widget when GOAP tab is active
+  
   useEffect(() => {
     if (activeTab === 'goap') {
       loadGoapWidget();
     }
   }, [activeTab]);
 
-  // Poll telemetry data from REST API
+  
   useEffect(() => {
     const pollTelemetry = async () => {
       try {
@@ -91,7 +87,7 @@ export const AgentTelemetryStream: React.FC = () => {
 
           setMessages(prev => {
             const combined = [...prev, ...newMessages];
-            // Keep only last 50 messages
+            
             return combined.slice(-50);
           });
 
@@ -103,7 +99,7 @@ export const AgentTelemetryStream: React.FC = () => {
       }
     };
 
-    // Poll every 5 seconds
+    
     pollTelemetry();
     pollIntervalRef.current = setInterval(pollTelemetry, 5000);
 
@@ -119,7 +115,7 @@ export const AgentTelemetryStream: React.FC = () => {
 
     if (agent.status) parts.push(`STS:${agent.status.toUpperCase()}`);
     if (agent.health !== undefined) parts.push(`HP:${Math.round(agent.health)}%`);
-    // Handle both camelCase and snake_case
+    
     const cpuUsage = agent.cpuUsage ?? agent.cpu_usage;
     if (cpuUsage !== undefined) parts.push(`CPU:${Math.round(cpuUsage)}%`);
     const memoryUsage = agent.memoryUsage ?? agent.memory_usage;

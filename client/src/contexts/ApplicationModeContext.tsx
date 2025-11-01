@@ -16,20 +16,18 @@ const defaultContext = {
 };
 // Create the context
 const ApplicationModeContext = createContext(defaultContext);
-/**
- * Provider component for application mode
- */
+
 export const ApplicationModeProvider = ({ children }) => {
     const [mode, setMode] = useState('desktop');
     const [previousMode, setPreviousMode] = useState(null);
     const [isMobileView, setIsMobileView] = useState(false);
-    // Check for mobile view on mount and resize
+    
     useEffect(() => {
         const handleResize = () => {
-            const isMobile = window.innerWidth < 768; // Breakpoint for mobile view
+            const isMobile = window.innerWidth < 768; 
             setIsMobileView(isMobile);
-            // Auto-switch to mobile mode based on screen size
-            // but don't override XR mode
+            
+            
             if (isMobile && mode !== 'xr') {
                 setMode('mobile');
             }
@@ -37,22 +35,22 @@ export const ApplicationModeProvider = ({ children }) => {
                 setMode('desktop');
             }
         };
-        // Initial check
+        
         handleResize();
-        // Add event listener
+        
         window.addEventListener('resize', handleResize);
-        // Cleanup
+        
         return () => {
             window.removeEventListener('resize', handleResize);
         };
     }, [mode]);
-    // Handle mode change
+    
     const handleModeChange = (newMode) => {
         logger.info(`Changing mode: ${mode} -> ${newMode}`);
         setPreviousMode(mode);
         setMode(newMode);
     };
-    // Compute layout settings based on current mode
+    
     const getLayoutSettings = () => {
         switch (mode) {
             case 'desktop':
@@ -91,9 +89,7 @@ export const ApplicationModeProvider = ({ children }) => {
     };
     return (_jsx(ApplicationModeContext.Provider, { value: contextValue, children: children }));
 };
-/**
- * Hook to use the application mode context
- */
+
 export const useApplicationMode = () => {
     const context = useContext(ApplicationModeContext);
     if (!context) {

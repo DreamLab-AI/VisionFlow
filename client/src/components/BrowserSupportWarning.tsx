@@ -13,7 +13,7 @@ export const BrowserSupportWarning: React.FC<BrowserSupportWarningProps> = ({ cl
     const supportInfo = AudioInputService.getBrowserSupport();
     setSupport(supportInfo);
 
-    // Show warning if any critical features are missing
+    
     const hasIssues = !supportInfo.getUserMedia || !supportInfo.isHttps || !supportInfo.audioContext || !supportInfo.mediaRecorder;
     setShowWarning(hasIssues);
   }, []);

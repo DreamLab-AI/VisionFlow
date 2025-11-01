@@ -1,7 +1,4 @@
-/**
- * WebSocket Message Types for Real-Time Updates
- * Comprehensive typing for all real-time features
- */
+
 
 // Base WebSocket message structure
 export interface BaseWebSocketMessage {
@@ -55,7 +52,7 @@ export interface AnalysisProgressMessage extends BaseWebSocketMessage {
   data: {
     analysisId: string;
     graphId?: string;
-    progress: number; // 0-100
+    progress: number; 
     stage: string;
     estimatedTimeRemaining?: number;
     currentOperation: string;
@@ -111,7 +108,7 @@ export interface OptimizationUpdateMessage extends BaseWebSocketMessage {
   data: {
     optimizationId: string;
     graphId?: string;
-    progress: number; // 0-100
+    progress: number; 
     algorithm: string;
     currentIteration: number;
     totalIterations: number;
@@ -160,7 +157,7 @@ export interface ExportProgressMessage extends BaseWebSocketMessage {
     exportId: string;
     graphId?: string;
     format: string;
-    progress: number; // 0-100
+    progress: number; 
     stage: 'preparing' | 'processing' | 'rendering' | 'finalizing' | 'uploading';
     size?: number;
     estimatedTimeRemaining?: number;
@@ -285,7 +282,7 @@ export interface GraphProcessingProgressMessage extends BaseWebSocketMessage {
   data: {
     taskId: string;
     graphId?: string;
-    progress: number; // 0-100
+    progress: number; 
     stage: string;
     currentOperation: string;
     estimatedTimeRemaining?: number;
@@ -327,7 +324,7 @@ export interface TimeTraverseProgressMessage extends BaseWebSocketMessage {
   data: {
     taskId: string;
     graphId?: string;
-    progress: number; // 0-100
+    progress: number; 
     stage: string;
     currentStep: number;
     totalSteps: number;
@@ -421,34 +418,34 @@ export type WebSocketMessage =
 export type MessageHandler<T extends WebSocketMessage = WebSocketMessage> = (message: T) => void;
 
 export interface WebSocketEventHandlers {
-  // Workspace events
+  
   workspace_update: MessageHandler<WorkspaceUpdateMessage>;
   workspace_deleted: MessageHandler<WorkspaceDeletedMessage>;
   workspace_collaboration: MessageHandler<WorkspaceCollaborationMessage>;
 
-  // Analysis events
+  
   analysis_progress: MessageHandler<AnalysisProgressMessage>;
   analysis_complete: MessageHandler<AnalysisCompleteMessage>;
   analysis_error: MessageHandler<AnalysisErrorMessage>;
 
-  // Optimization events
+  
   optimization_update: MessageHandler<OptimizationUpdateMessage>;
   optimization_result: MessageHandler<OptimizationResultMessage>;
 
-  // Export events
+  
   export_progress: MessageHandler<ExportProgressMessage>;
   export_ready: MessageHandler<ExportReadyMessage>;
   share_created: MessageHandler<ShareCreatedMessage>;
   share_access: MessageHandler<ShareAccessMessage>;
 
-  // System events
+  
   connection_status: MessageHandler<ConnectionStatusMessage>;
   system_notification: MessageHandler<SystemNotificationMessage>;
   user_activity: MessageHandler<UserActivityMessage>;
   performance_metrics: MessageHandler<PerformanceMetricsMessage>;
   server_health: MessageHandler<ServerHealthMessage>;
 
-  // Graph Interaction events
+  
   graph_processing_progress: MessageHandler<GraphProcessingProgressMessage>;
   graph_processing_complete: MessageHandler<GraphProcessingCompleteMessage>;
   graph_processing_error: MessageHandler<GraphProcessingErrorMessage>;

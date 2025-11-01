@@ -27,13 +27,13 @@ class GraphDataManager {
   public nodeIdMap: Map<string, number> = new Map();
   private reverseNodeIdMap: Map<number, string> = new Map();
   private workerInitialized: boolean = false;
-  private graphType: 'logseq' | 'visionflow' = 'logseq'; // Graph type identifier
-  private isUserInteracting: boolean = false; // Track if user is actively interacting
+  private graphType: 'logseq' | 'visionflow' = 'logseq'; 
+  private isUserInteracting: boolean = false; 
   private interactionTimeoutRef: number | null = null;
-  private updateCount: number = 0; // Track update count
+  private updateCount: number = 0; 
 
   private constructor() {
-    // Worker proxy initializes automatically, just wait for it to be ready
+    
     this.waitForWorker();
   }
 
@@ -41,9 +41,9 @@ class GraphDataManager {
     try {
       console.log('[GraphDataManager] Waiting for worker to be ready...');
       let attempts = 0;
-      const maxAttempts = 50; // 500ms total wait time
+      const maxAttempts = 50; 
       
-      // Poll until worker is ready with timeout
+      
       while (!graphWorkerProxy.isReady() && attempts < maxAttempts) {
         await new Promise(resolve => setTimeout(resolve, 10));
         attempts++;
@@ -59,7 +59,7 @@ class GraphDataManager {
       this.workerInitialized = true;
       console.log('[GraphDataManager] Worker is ready!');
       
-      // Connect to worker proxy listeners
+      
       this.setupWorkerListeners();
       
       if (debugState.isEnabled()) {
@@ -73,7 +73,7 @@ class GraphDataManager {
   }
 
   private setupWorkerListeners(): void {
-    // Forward graph data changes from worker to our listeners
+    
     graphWorkerProxy.onGraphDataChange((data) => {
       this.graphDataListeners.forEach(listener => {
         try {
@@ -86,7 +86,7 @@ class GraphDataManager {
       });
     });
 
-    // Forward position updates from worker to our listeners
+    
     graphWorkerProxy.onPositionUpdate((positions) => {
       this.positionUpdateListeners.forEach(listener => {
         try {
@@ -105,7 +105,7 @@ class GraphDataManager {
     return GraphDataManager.instance;
   }
 
-  // Set WebSocket service for sending binary updates
+  
   public setWebSocketService(service: WebSocketAdapter): void {
     this.webSocketService = service;
     if (debugState.isDataDebugEnabled()) {
@@ -113,7 +113,7 @@ class GraphDataManager {
     }
   }
 
-  // Set the graph type (for preventing data mixing)
+  
   public setGraphType(type: 'logseq' | 'visionflow'): void {
     this.graphType = type;
     if (debugState.isEnabled()) {
@@ -121,16 +121,16 @@ class GraphDataManager {
     }
   }
 
-  // Get the current graph type
+  
   public getGraphType(): 'logseq' | 'visionflow' {
     return this.graphType;
   }
 
-  // Fetch initial graph data from the API with retry logic
-  // NEW: Server now returns physics-settled positions, eliminating "pop-in" effect
+  
+  
   public async fetchInitialData(): Promise<GraphData> {
     const maxRetries = 5;
-    const initialDelay = 1000; // 1 second
+    const initialDelay = 1000; 
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -155,8 +155,8 @@ class GraphDataManager {
 
         console.log(`[GraphDataManager] Received settlement state: settled=${settlementState.isSettled}, frames=${settlementState.stableFrameCount}, KE=${settlementState.kineticEnergy}`);
 
-        // Nodes now have ACTUAL physics-settled positions from server!
-        // No more random (0,0,0) fallback - positions are correct immediately
+        
+        
         const enrichedNodes = nodes.map(node => {
           const nodeMetadata = metadata[node.metadata_id || node.metadataId];
           if (nodeMetadata) {
@@ -182,7 +182,7 @@ class GraphDataManager {
         logger.error(`Attempt ${attempt} failed to fetch initial graph data:`, createErrorMetadata(error));
         if (attempt === maxRetries) {
           logger.error('All attempts to fetch initial graph data failed.');
-          throw error; // Re-throw the last error
+          throw error; 
         }
 
         const delay = initialDelay * Math.pow(2, attempt - 1);
@@ -191,17 +191,17 @@ class GraphDataManager {
       }
     }
 
-    // This part should be unreachable, but as a fallback return empty graph
+    
     return { nodes: [], edges: [] };
   }
 
-  // Set graph data and notify listeners
+  
   public async setGraphData(data: GraphData): Promise<void> {
     if (debugState.isEnabled()) {
       logger.info(`Setting ${this.graphType} graph data: ${data.nodes.length} nodes, ${data.edges.length} edges`);
     }
 
-    // Ensure all nodes have valid positions before setting the data
+    
     let validatedData = data;
     if (data && data.nodes) {
       const validatedNodes = data.nodes.map(node => this.ensureNodeHasValidPosition(node));
@@ -214,32 +214,32 @@ class GraphDataManager {
         logger.info(`Validated ${validatedNodes.length} nodes with positions`);
       }
     } else {
-      // Initialize with empty arrays if data is invalid
+      
       validatedData = { nodes: [], edges: data?.edges || [] };
       logger.warn('Initialized with empty graph data');
     }
     
-    // Reset ID maps and rebuild them
+    
     this.nodeIdMap.clear();
     this.reverseNodeIdMap.clear();
     
-    // Create mappings between string IDs and numeric IDs (now u32 instead of u16)
+    
     validatedData.nodes.forEach((node, index) => {
       const numericId = parseInt(node.id, 10);
       if (!isNaN(numericId) && numericId >= 0 && numericId <= 0xFFFFFFFF) {
-        // If the ID can be parsed as a u32 number, use it directly
+        
         this.nodeIdMap.set(node.id, numericId);
         this.reverseNodeIdMap.set(numericId, node.id);
       } else {
-        // For non-numeric IDs, use the index + 1 as the numeric ID
-        // We add 1 to avoid using 0 as an ID
+        
+        
         const mappedId = index + 1;
         this.nodeIdMap.set(node.id, mappedId);
         this.reverseNodeIdMap.set(mappedId, node.id);
       }
     });
     
-    // Delegate to worker
+    
     await graphWorkerProxy.setGraphData(validatedData);
     
     if (debugState.isDataDebugEnabled()) {
@@ -247,27 +247,27 @@ class GraphDataManager {
     }
   }
 
-  // Setup node IDs (simplified since data is now in worker)
+  
   private validateNodeMappings(nodes: Node[]): void {
     if (debugState.isDataDebugEnabled()) {
       logger.debug(`Validated ${nodes.length} nodes with ID mapping`);
     }
   }
 
-  // Enable binary updates and start the retry mechanism
+  
   public enableBinaryUpdates(): void {
     if (!this.webSocketService) {
       logger.warn('Cannot enable binary updates: WebSocket service not set');
       return;
     }
 
-    // If WebSocket is already ready, enable binary updates immediately
+    
     if (this.webSocketService.isReady()) {
       this.setBinaryUpdatesEnabled(true);
       return;
     }
 
-    // Otherwise, start a retry mechanism
+    
     if (this.retryTimeout) {
       window.clearTimeout(this.retryTimeout);
     }
@@ -295,7 +295,7 @@ class GraphDataManager {
     }
   }
 
-  // Get the current graph data
+  
   public async getGraphData(): Promise<GraphData> {
     if (!this.workerInitialized) {
       console.warn('[GraphDataManager] Worker not initialized, returning empty data');
@@ -310,15 +310,15 @@ class GraphDataManager {
     }
   }
 
-  // Add a node to the graph
+  
   public async addNode(node: Node): Promise<void> {
-    // Update node mappings
+    
     const numericId = parseInt(node.id, 10);
     if (!isNaN(numericId)) {
       this.nodeIdMap.set(node.id, numericId);
       this.reverseNodeIdMap.set(numericId, node.id);
     } else {
-      // For non-numeric IDs, we'll get the current length from worker
+      
       const currentData = await graphWorkerProxy.getGraphData();
       const mappedId = currentData.nodes.length + 1;
       this.nodeIdMap.set(node.id, mappedId);
@@ -328,9 +328,9 @@ class GraphDataManager {
     await graphWorkerProxy.updateNode(node);
   }
 
-  // Add an edge to the graph (for backward compatibility - edges go through worker)
+  
   public async addEdge(edge: Edge): Promise<void> {
-    // Worker doesn't have addEdge method, so we get current data, add edge, and set it back
+    
     const currentData = await graphWorkerProxy.getGraphData();
     const existingIndex = currentData.edges.findIndex(e => e.id === edge.id);
     
@@ -346,33 +346,33 @@ class GraphDataManager {
     await graphWorkerProxy.setGraphData(currentData);
   }
 
-  // Remove a node from the graph
+  
   public async removeNode(nodeId: string): Promise<void> {
-    // Get numeric ID before removing the node
+    
     const numericId = this.nodeIdMap.get(nodeId);
     
     await graphWorkerProxy.removeNode(nodeId);
     
-    // Remove from ID maps
+    
     if (numericId !== undefined) {
       this.nodeIdMap.delete(nodeId);
       this.reverseNodeIdMap.delete(numericId);
     }
   }
 
-  // Remove an edge from the graph
+  
   public async removeEdge(edgeId: string): Promise<void> {
-    // Worker doesn't have removeEdge method, so we get current data, remove edge, and set it back
+    
     const currentData = await graphWorkerProxy.getGraphData();
     currentData.edges = currentData.edges.filter(edge => edge.id !== edgeId);
     await graphWorkerProxy.setGraphData(currentData);
   }
 
-  // Update node positions from binary data
+  
   public async updateNodePositions(positionData: ArrayBuffer): Promise<void> {
-    // Log only occasionally
+    
     this.updateCount = (this.updateCount || 0) + 1;
-    if (this.updateCount % 100 === 1) { // First call and every 100th call
+    if (this.updateCount % 100 === 1) { 
       console.log('[GraphDataManager] updateNodePositions called, size:', positionData?.byteLength, 'graph type:', this.graphType, 'count:', this.updateCount);
     }
     
@@ -383,7 +383,7 @@ class GraphDataManager {
       return;
     }
 
-    // Only process if this is for Logseq graph (VisionFlow uses different update mechanism)
+    
     if (this.graphType !== 'logseq') {
       if (this.updateCount % 100 === 1) {
         console.log('[GraphDataManager] Skipping - not logseq graph, type is:', this.graphType);
@@ -394,9 +394,9 @@ class GraphDataManager {
       return;
     }
 
-    // Check if this is a duplicate update (can happen with WebSocket)
+    
     const now = Date.now();
-    if (now - this.lastBinaryUpdateTime < 16) { // Less than 16ms (60fps)
+    if (now - this.lastBinaryUpdateTime < 16) { 
       if (debugState.isDataDebugEnabled()) {
         logger.debug('Skipping duplicate position update');
       }
@@ -405,18 +405,18 @@ class GraphDataManager {
     this.lastBinaryUpdateTime = now;
 
     try {
-      // Add diagnostic information about the received data
+      
       if (debugState.isDataDebugEnabled()) {
         logger.debug(`Received binary data: ${positionData.byteLength} bytes`);
         
-        // Check if data length is a multiple of our expected node size
+        
         const remainder = positionData.byteLength % BINARY_NODE_SIZE;
         if (remainder !== 0) {
           logger.warn(`Binary data size (${positionData.byteLength} bytes) is not a multiple of ${BINARY_NODE_SIZE}. Remainder: ${remainder} bytes`);
         }
       }
       
-      // Delegate to worker proxy for processing
+      
       if (this.updateCount % 100 === 1) {
         console.log('[GraphDataManager] Sending to worker proxy for processing');
       }
@@ -425,7 +425,7 @@ class GraphDataManager {
         console.log('[GraphDataManager] Worker proxy processing complete');
       }
       
-      // Log node positions only if debug mode is enabled in settings
+      
       const settings = useSettingsStore.getState().settings;
       const debugEnabled = settings?.system?.debug?.enabled;
       const physicsDebugEnabled = (settings?.system?.debug as any)?.enablePhysicsDebug;
@@ -449,10 +449,10 @@ class GraphDataManager {
     } catch (error) {
       logger.error('Error processing binary position data:', createErrorMetadata(error));
       
-      // Add additional diagnostic information
+      
       if (debugState.isEnabled()) {
         try {
-          // Try to display the first few bytes for debugging
+          
           const view = new DataView(positionData);
           const byteArray = [];
           const maxBytesToShow = Math.min(64, positionData.byteLength);
@@ -469,32 +469,32 @@ class GraphDataManager {
     }
   }
 
-  // Send node positions to the server via WebSocket
-  // Only sends during active user interactions to prevent continuous updates
+  
+  
   public async sendNodePositions(): Promise<void> {
     if (!this.binaryUpdatesEnabled || !this.webSocketService || !this.isUserInteracting) {
       return;
     }
 
     try {
-      // Get current graph data from worker
+      
       const currentData = await graphWorkerProxy.getGraphData();
       
-      // Create binary node data array in the format expected by the server
+      
       const binaryNodes: BinaryNodeData[] = currentData.nodes
-        .filter(node => node && node.id) // Filter out invalid nodes
+        .filter(node => node && node.id) 
         .map(node => {
-          // Ensure node has a valid position
+          
           const validatedNode = this.ensureNodeHasValidPosition(node);
           
-          // Get numeric ID from map or create a new one
+          
           const numericId = this.nodeIdMap.get(validatedNode.id) || 0;
           if (numericId === 0) {
             logger.warn(`No numeric ID found for node ${validatedNode.id}, skipping`);
             return null;
           }
           
-          // Get velocity from metadata or default to zero
+          
           const velocity: Vec3 = (validatedNode.metadata?.velocity as Vec3) || { x: 0, y: 0, z: 0 };
           
           return {
@@ -509,10 +509,10 @@ class GraphDataManager {
         })
         .filter((node): node is BinaryNodeData => node !== null);
 
-      // Create binary buffer using our protocol encoder
+      
       const buffer = createBinaryNodeData(binaryNodes);
       
-      // Send the buffer via WebSocket
+      
       this.webSocketService.send(buffer);
       
       if (debugState.isDataDebugEnabled()) {
@@ -523,12 +523,12 @@ class GraphDataManager {
     }
   }
 
-  // Add listener for graph data changes
+  
   public onGraphDataChange(listener: GraphDataChangeListener): () => void {
     console.log('[GraphDataManager] Adding graph data change listener');
     this.graphDataListeners.push(listener);
     
-    // Call immediately with current data from worker
+    
     console.log('[GraphDataManager] Getting current data for new listener');
     graphWorkerProxy.getGraphData().then(data => {
       console.log(`[GraphDataManager] Calling listener with current data: ${data.nodes.length} nodes`);
@@ -536,28 +536,28 @@ class GraphDataManager {
     }).catch(error => {
       console.error('[GraphDataManager] Error getting initial graph data for listener:', error);
       logger.error('Error getting initial graph data for listener:', createErrorMetadata(error));
-      // Provide empty data as fallback
+      
       listener({ nodes: [], edges: [] });
     });
     
-    // Return unsubscribe function
+    
     return () => {
       console.log('[GraphDataManager] Removing graph data change listener');
       this.graphDataListeners = this.graphDataListeners.filter(l => l !== listener);
     };
   }
 
-  // Add listener for position updates
+  
   public onPositionUpdate(listener: PositionUpdateListener): () => void {
     this.positionUpdateListeners.push(listener);
     
-    // Return unsubscribe function
+    
     return () => {
       this.positionUpdateListeners = this.positionUpdateListeners.filter(l => l !== listener);
     };
   }
 
-  // Notify all graph data listeners
+  
   private async notifyGraphDataListeners(): Promise<void> {
     try {
       const currentData = await graphWorkerProxy.getGraphData();
@@ -573,7 +573,7 @@ class GraphDataManager {
     }
   }
 
-  // Notify all position update listeners
+  
   private notifyPositionUpdateListeners(positions: Float32Array): void {
     this.positionUpdateListeners.forEach(listener => {
       try {
@@ -584,10 +584,10 @@ class GraphDataManager {
     });
   }
 
-  // Validate node position (server now provides positions, so this should rarely trigger)
+  
   public ensureNodeHasValidPosition(node: Node): Node {
     if (!node.position) {
-      // Should not happen with new server response, but keep as safety fallback
+      
       console.warn(`[GraphDataManager] Node ${node.id} missing position - server should provide this!`);
       return {
         ...node,
@@ -596,7 +596,7 @@ class GraphDataManager {
     } else if (typeof node.position.x !== 'number' ||
                typeof node.position.y !== 'number' ||
                typeof node.position.z !== 'number') {
-      // Fix any NaN or undefined coordinates
+      
       console.warn(`[GraphDataManager] Node ${node.id} has invalid position coordinates - fixing`);
       node.position.x = typeof node.position.x === 'number' && isFinite(node.position.x) ? node.position.x : 0;
       node.position.y = typeof node.position.y === 'number' && isFinite(node.position.y) ? node.position.y : 0;
@@ -605,14 +605,14 @@ class GraphDataManager {
     return node;
   }
 
-  // Subscribe to graph data updates (for backward compatibility)
+  
   public subscribeToUpdates(listener: GraphDataChangeListener): () => void {
     return this.onGraphDataChange(listener);
   }
 
-  // Get visible nodes (for Quest3AR compatibility)
+  
   public getVisibleNodes(): Node[] {
-    // Return a promise-like structure that can be used synchronously
+    
     let nodes: Node[] = [];
     graphWorkerProxy.getGraphData().then(data => {
       nodes = data.nodes;
@@ -622,16 +622,16 @@ class GraphDataManager {
     return nodes;
   }
 
-  // Set user interaction state (called by interaction hooks)
+  
   public setUserInteracting(isInteracting: boolean): void {
     if (this.isUserInteracting === isInteracting) {
-      return; // No change needed
+      return; 
     }
 
     this.isUserInteracting = isInteracting;
 
     if (isInteracting) {
-      // Clear any existing timeout when starting interaction
+      
       if (this.interactionTimeoutRef) {
         window.clearTimeout(this.interactionTimeoutRef);
         this.interactionTimeoutRef = null;
@@ -641,8 +641,8 @@ class GraphDataManager {
         logger.debug('User interaction started - WebSocket position updates enabled');
       }
     } else {
-      // Set a brief timeout before completely stopping updates
-      // This prevents rapid start/stop cycles
+      
+      
       this.interactionTimeoutRef = window.setTimeout(() => {
         this.isUserInteracting = false;
         this.interactionTimeoutRef = null;
@@ -650,16 +650,16 @@ class GraphDataManager {
         if (debugState.isEnabled()) {
           logger.debug('User interaction ended - WebSocket position updates disabled');
         }
-      }, 200); // 200ms grace period
+      }, 200); 
     }
   }
 
-  // Check if user is currently interacting
+  
   public isUserCurrentlyInteracting(): boolean {
     return this.isUserInteracting;
   }
 
-  // Clean up resources
+  
   public dispose(): void {
     if (this.retryTimeout) {
       window.clearTimeout(this.retryTimeout);

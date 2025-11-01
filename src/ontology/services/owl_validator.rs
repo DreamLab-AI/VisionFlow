@@ -13,7 +13,7 @@ pub use crate::services::owl_validator::{
     ValidationReport, Violation,
 };
 
-/// Mapping configuration loaded from mapping.toml
+/
 #[derive(Debug, Clone, Deserialize)]
 pub struct MappingConfig {
     pub metadata: MappingMetadata,
@@ -120,13 +120,13 @@ pub struct MetadataTemplates {
     pub class: String,
 }
 
-/// The main service for ontology validation.
+/
 pub struct OwlValidatorService {
     mapping_config: Arc<MappingConfig>,
 }
 
 impl OwlValidatorService {
-    /// Creates a new instance of the validation service.
+    
     pub fn new() -> Result<Self> {
         let mapping_toml = std::fs::read_to_string("ontology/mapping.toml")
             .context("Failed to read ontology/mapping.toml")?;
@@ -139,23 +139,23 @@ impl OwlValidatorService {
         })
     }
 
-    /// Creates a new instance with a custom mapping configuration
+    
     pub fn with_config(mapping_config: MappingConfig) -> Self {
         Self {
             mapping_config: Arc::new(mapping_config),
         }
     }
 
-    /// Maps the property graph to RDF triples based on `mapping.toml`.
+    
     pub fn map_graph_to_rdf(&self, graph: &PropertyGraph) -> Result<Vec<RdfTriple>> {
         let mut triples = Vec::new();
 
-        // Process nodes
+        
         for node in &graph.nodes {
             triples.extend(self.map_node_to_triples(node)?);
         }
 
-        // Process edges
+        
         for edge in &graph.edges {
             triples.extend(self.map_edge_to_triples(edge)?);
         }
@@ -163,17 +163,17 @@ impl OwlValidatorService {
         Ok(triples)
     }
 
-    /// Maps a single node to RDF triples
+    
     fn map_node_to_triples(&self, node: &GraphNode) -> Result<Vec<RdfTriple>> {
         let mut triples = Vec::new();
 
-        // Generate node IRI using templates
+        
         let node_iri = self.generate_node_iri(node)?;
 
-        // Map node labels to OWL classes
+        
         for label in &node.labels {
             if let Some(class_mapping) = self.mapping_config.class_mappings.get(label) {
-                // Add rdf:type triple
+                
                 let owl_class_iri = self.expand_prefixed_iri(&class_mapping.owl_class)?;
                 triples.push(RdfTriple {
                     subject: node_iri.clone(),
@@ -184,7 +184,7 @@ impl OwlValidatorService {
                     language: None,
                 });
             } else {
-                // Use default class if no mapping found
+                
                 triples.push(RdfTriple {
                     subject: node_iri.clone(),
                     predicate: self.expand_prefixed_iri("rdf:type")?,
@@ -197,14 +197,14 @@ impl OwlValidatorService {
             }
         }
 
-        // Map node properties to data properties
+        
         for (prop_name, prop_value) in &node.properties {
             if let Some(data_prop_mapping) =
                 self.mapping_config.data_property_mappings.get(prop_name)
             {
                 let prop_iri = self.expand_prefixed_iri(&data_prop_mapping.owl_property)?;
 
-                // Handle multi-valued properties
+                
                 let values = if prop_value.is_array() {
                     prop_value.as_array().unwrap().iter().collect()
                 } else {
@@ -230,14 +230,14 @@ impl OwlValidatorService {
         Ok(triples)
     }
 
-    /// Maps a single edge to RDF triples
+    
     fn map_edge_to_triples(&self, edge: &GraphEdge) -> Result<Vec<RdfTriple>> {
         let mut triples = Vec::new();
 
         let source_iri = self.generate_node_iri_from_id(&edge.source)?;
         let target_iri = self.generate_node_iri_from_id(&edge.target)?;
 
-        // Map edge relationship to object property
+        
         if let Some(obj_prop_mapping) = self
             .mapping_config
             .object_property_mappings
@@ -254,7 +254,7 @@ impl OwlValidatorService {
                 language: None,
             });
 
-            // Handle inverse properties if auto-generation is enabled
+            
             if self.mapping_config.global.auto_generate_inverses {
                 if let Some(inverse_prop) = &obj_prop_mapping.owl_inverse_of {
                     let inverse_iri = self.expand_prefixed_iri(inverse_prop)?;
@@ -269,7 +269,7 @@ impl OwlValidatorService {
                 }
             }
         } else {
-            // Use default edge property
+            
             let default_prop =
                 self.expand_prefixed_iri(&self.mapping_config.defaults.default_edge_property)?;
             triples.push(RdfTriple {
@@ -282,7 +282,7 @@ impl OwlValidatorService {
             });
         }
 
-        // Map edge properties
+        
         for (prop_name, prop_value) in &edge.properties {
             if let Some(data_prop_mapping) =
                 self.mapping_config.data_property_mappings.get(prop_name)
@@ -307,9 +307,9 @@ impl OwlValidatorService {
         Ok(triples)
     }
 
-    /// Generates IRI for a node using templates from mapping.toml
+    
     fn generate_node_iri(&self, node: &GraphNode) -> Result<String> {
-        // Try to find a template for the first label
+        
         if let Some(label) = node.labels.first() {
             let label_lower = label.to_lowercase();
             if let Some(template) = self.mapping_config.iri_templates.nodes.get(&label_lower) {
@@ -317,14 +317,14 @@ impl OwlValidatorService {
             }
         }
 
-        // Fallback to base IRI + node ID
+        
         Ok(format!(
             "{}{}",
             self.mapping_config.global.base_iri, node.id
         ))
     }
 
-    /// Generates IRI for a node from just its ID
+    
     fn generate_node_iri_from_id(&self, node_id: &str) -> Result<String> {
         Ok(format!(
             "{}{}",
@@ -332,7 +332,7 @@ impl OwlValidatorService {
         ))
     }
 
-    /// Generates IRI for an edge using templates
+    
     fn generate_edge_iri(&self, edge: &GraphEdge) -> Result<String> {
         let rel_type_lower = edge.relationship_type.to_lowercase();
         if let Some(template) = self.mapping_config.iri_templates.edges.get(&rel_type_lower) {
@@ -343,21 +343,21 @@ impl OwlValidatorService {
             return Ok(template_str);
         }
 
-        // Fallback
+        
         Ok(format!(
             "{}edge/{}",
             self.mapping_config.global.base_iri, edge.id
         ))
     }
 
-    /// Applies a template string with variables
+    
     fn apply_template(&self, template: &str, node_id: &str, node: &GraphNode) -> Result<String> {
         let mut result = template.to_string();
 
         result = result.replace("{base_iri}", &self.mapping_config.global.base_iri);
         result = result.replace("{id}", node_id);
 
-        // Handle hash generation for special templates
+        
         if result.contains("{hash}") || result.contains("{path_hash}") {
             let hash = self.calculate_hash(node_id);
             result = result.replace("{hash}", &hash);
@@ -367,25 +367,25 @@ impl OwlValidatorService {
         Ok(result)
     }
 
-    /// Calculates a simple hash for IRI generation
+    
     fn calculate_hash(&self, input: &str) -> String {
         use blake3::Hasher;
         let mut hasher = Hasher::new();
         hasher.update(input.as_bytes());
         let hash = hasher.finalize();
-        hash.to_hex()[..16].to_string() // Use first 16 chars
+        hash.to_hex()[..16].to_string() 
     }
 
-    /// Expands a prefixed IRI (e.g., "foaf:Person") to full IRI
+    
     fn expand_prefixed_iri(&self, prefixed: &str) -> Result<String> {
         if prefixed.contains("://") {
-            // Already a full IRI
+            
             return Ok(prefixed.to_string());
         }
 
         if let Some(colon_pos) = prefixed.find(':') {
             let (prefix, local) = prefixed.split_at(colon_pos);
-            let local = &local[1..]; // Remove colon
+            let local = &local[1..]; 
 
             if let Some(namespace) = self.mapping_config.namespaces.get(prefix) {
                 return Ok(format!("{}{}", namespace, local));
@@ -394,14 +394,14 @@ impl OwlValidatorService {
             }
         }
 
-        // No prefix, use default vocabulary
+        
         Ok(format!(
             "{}{}",
             self.mapping_config.global.default_vocabulary, prefixed
         ))
     }
 
-    /// Serializes a JSON value to a literal with appropriate datatype
+    
     fn serialize_literal_value(
         &self,
         value: &serde_json::Value,
@@ -411,12 +411,12 @@ impl OwlValidatorService {
 
         match value {
             serde_json::Value::String(s) => {
-                // Check if it's a URL/URI
+                
                 if s.starts_with("http://") || s.starts_with("https://") {
                     return Ok((s.clone(), full_range_iri));
                 }
 
-                // Detect dateTime patterns
+                
                 if s.contains('T') && (s.contains('Z') || s.contains('+') || s.contains('-')) {
                     if expected_range == "xsd:dateTime" {
                         return Ok((s.clone(), self.expand_prefixed_iri("xsd:dateTime")?));
@@ -441,21 +441,21 @@ impl OwlValidatorService {
                 Ok((b.to_string(), self.expand_prefixed_iri("xsd:boolean")?))
             }
             _ => {
-                // Default to string representation
+                
                 Ok((value.to_string(), full_range_iri))
             }
         }
     }
 
-    /// Runs consistency checks on the loaded ontology and data.
+    
     pub fn run_consistency_checks(&self) -> Result<()> {
-        // TODO: Implement consistency checks using whelk-rs
+        
         Ok(())
     }
 
-    /// Performs inference to discover new relationships.
+    
     pub fn perform_inference(&self) -> Result<()> {
-        // TODO: Implement inference logic using whelk-rs
+        
         Ok(())
     }
 }
@@ -472,7 +472,7 @@ mod tests {
     use serde_json::json;
 
     fn create_test_service() -> OwlValidatorService {
-        // Load from actual mapping.toml for tests
+        
         OwlValidatorService::new().expect("Failed to create test service")
     }
 
@@ -510,12 +510,12 @@ mod tests {
 
         let triples = service.map_node_to_triples(&node).unwrap();
 
-        // Should have at least rdf:type triple
+        
         assert!(triples
             .iter()
             .any(|t| t.predicate.contains("rdf-syntax-ns#type") && t.object.contains("Person")));
 
-        // Should have name property
+        
         assert!(triples
             .iter()
             .any(|t| t.predicate.contains("foaf") && t.object == "John Doe"));
@@ -561,14 +561,14 @@ mod tests {
 
         assert!(!triples.is_empty());
 
-        // Verify we have type triples
+        
         let type_triples: Vec<_> = triples
             .iter()
             .filter(|t| t.predicate.contains("rdf-syntax-ns#type"))
             .collect();
         assert!(!type_triples.is_empty());
 
-        // Verify we have the employedBy relationship
+        
         assert!(triples.iter().any(|t| t.predicate.contains("employedBy")));
     }
 }

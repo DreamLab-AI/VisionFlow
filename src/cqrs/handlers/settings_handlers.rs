@@ -8,7 +8,7 @@ use crate::ports::SettingsRepository;
 use async_trait::async_trait;
 use std::sync::Arc;
 
-/// Handler for settings commands
+/
 pub struct SettingsCommandHandler {
     repository: Arc<dyn SettingsRepository>,
 }
@@ -93,7 +93,7 @@ impl CommandHandler<ClearSettingsCacheCommand> for SettingsCommandHandler {
     }
 }
 
-/// Handler for settings queries
+/
 pub struct SettingsQueryHandler {
     repository: Arc<dyn SettingsRepository>,
 }

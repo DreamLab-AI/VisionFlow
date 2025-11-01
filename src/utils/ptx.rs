@@ -15,7 +15,7 @@ pub const DEFAULT_CUDA_ARCH: &str = "75";
 pub const CUDA_ARCH_ENV: &str = "CUDA_ARCH";
 pub const DOCKER_ENV_VAR: &str = "DOCKER_ENV";
 
-/// PTX module identifier for different kernel sets
+/
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PTXModule {
     VisionflowUnified,
@@ -68,22 +68,22 @@ impl PTXModule {
 // Build-time exported paths from build.rs (if present)
 pub static COMPILED_PTX_PATH: Option<&'static str> = option_env!("VISIONFLOW_UNIFIED_PTX_PATH");
 
-/// Get the PTX path exported by build.rs for a specific module
+/
 pub fn get_compiled_ptx_path(module: PTXModule) -> Option<PathBuf> {
     std::env::var(module.env_var()).ok().map(PathBuf::from)
 }
 
-/// Get the PTX path exported by build.rs (legacy compatibility)
+/
 pub fn get_compiled_ptx_path_legacy() -> Option<PathBuf> {
     COMPILED_PTX_PATH.map(PathBuf::from)
 }
 
-/// Resolve the effective CUDA arch used for fallback compilation.
+/
 pub fn effective_cuda_arch() -> String {
     std::env::var(CUDA_ARCH_ENV).unwrap_or_else(|_| DEFAULT_CUDA_ARCH.to_string())
 }
 
-/// Validate that the PTX content looks structurally sound.
+/
 fn validate_ptx(ptx: &str) -> Result<(), String> {
     if !ptx.contains(".version") {
         return Err("PTX validation failed: missing .version directive".into());
@@ -94,20 +94,20 @@ fn validate_ptx(ptx: &str) -> Result<(), String> {
     Ok(())
 }
 
-/// Load PTX content for a specific module, preferring build-time artifact
+/
 pub fn load_ptx_module_sync(module: PTXModule) -> Result<String, String> {
     info!("load_ptx_module_sync: Loading PTX for {:?}", module);
 
-    // Try multiple sources in priority order:
-    // 1. Build-time compiled PTX from build.rs (if not in Docker)
-    // 2. Pre-compiled PTX in src/utils/ptx/ directory
-    // 3. Runtime compilation via nvcc
+    
+    
+    
+    
 
-    // Always compile in Docker to avoid mismatched build/runtime paths
+    
     if std::env::var(DOCKER_ENV_VAR).is_ok() {
         info!("Docker environment detected, checking for pre-compiled PTX first");
 
-        // Try loading from src/utils/ptx/ directory first
+        
         if let Ok(content) = load_precompiled_ptx(module) {
             return Ok(content);
         }
@@ -116,7 +116,7 @@ pub fn load_ptx_module_sync(module: PTXModule) -> Result<String, String> {
         return compile_ptx_fallback_sync_module(module);
     }
 
-    // Try build-time PTX first (from build.rs)
+    
     if let Some(path) = get_compiled_ptx_path(module) {
         match fs::read_to_string(&path) {
             Ok(content) => {
@@ -141,12 +141,12 @@ pub fn load_ptx_module_sync(module: PTXModule) -> Result<String, String> {
         }
     }
 
-    // Try pre-compiled PTX
+    
     if let Ok(content) = load_precompiled_ptx(module) {
         return Ok(content);
     }
 
-    // Fall back to runtime compilation
+    
     warn!(
         "No pre-compiled PTX found for {:?}. Falling back to runtime compile.",
         module
@@ -154,7 +154,7 @@ pub fn load_ptx_module_sync(module: PTXModule) -> Result<String, String> {
     compile_ptx_fallback_sync_module(module)
 }
 
-/// Load pre-compiled PTX from src/utils/ptx/ directory
+/
 fn load_precompiled_ptx(module: PTXModule) -> Result<String, String> {
     let manifest_dir = env!("CARGO_MANIFEST_DIR");
     let ptx_file = module.source_file().replace(".cu", ".ptx");
@@ -179,13 +179,13 @@ fn load_precompiled_ptx(module: PTXModule) -> Result<String, String> {
     Err(format!("Pre-compiled PTX not found for {:?}", module))
 }
 
-/// Load PTX content, preferring the build-time artifact. Falls back to runtime compilation.
-/// Legacy compatibility function - loads VisionflowUnified module
+/
+/
 pub fn load_ptx_sync() -> Result<String, String> {
     load_ptx_module_sync(PTXModule::VisionflowUnified)
 }
 
-/// Load all PTX modules
+/
 pub fn load_all_ptx_modules_sync() -> Result<HashMap<PTXModule, String>, String> {
     let mut modules = HashMap::new();
 
@@ -209,14 +209,14 @@ pub fn load_all_ptx_modules_sync() -> Result<HashMap<PTXModule, String>, String>
     Ok(modules)
 }
 
-/// Async wrapper for load_ptx_sync. Note: currently uses a direct call; upgrade to spawn_blocking if needed.
+/
 pub async fn load_ptx() -> Result<String, String> {
-    // If desired, switch to tokio::task::spawn_blocking to avoid blocking executors:
-    // tokio::task::spawn_blocking(|| load_ptx_sync()).await.map_err(|e| e.to_string())?
+    
+    
     load_ptx_sync()
 }
 
-/// Compile a specific CUDA module to PTX on-the-fly using nvcc
+/
 pub fn compile_ptx_fallback_sync_module(module: PTXModule) -> Result<String, String> {
     info!(
         "compile_ptx_fallback_sync_module: Starting runtime PTX compilation for {:?}",
@@ -225,7 +225,7 @@ pub fn compile_ptx_fallback_sync_module(module: PTXModule) -> Result<String, Str
     let arch = effective_cuda_arch();
     info!("Using CUDA architecture: sm_{}", arch);
 
-    // Locate the CUDA source relative to the crate root
+    
     let manifest_dir = env!("CARGO_MANIFEST_DIR");
     let cu_path = Path::new(manifest_dir)
         .join("src")
@@ -286,8 +286,8 @@ pub fn compile_ptx_fallback_sync_module(module: PTXModule) -> Result<String, Str
     Ok(ptx_content)
 }
 
-/// Compile the CUDA source to PTX on-the-fly using nvcc.
-/// Legacy compatibility function - compiles VisionflowUnified module
+/
+/
 pub fn compile_ptx_fallback_sync() -> Result<String, String> {
     compile_ptx_fallback_sync_module(PTXModule::VisionflowUnified)
 }

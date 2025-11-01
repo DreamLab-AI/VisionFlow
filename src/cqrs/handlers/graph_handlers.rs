@@ -10,7 +10,7 @@ use crate::ports::KnowledgeGraphRepository;
 use async_trait::async_trait;
 use std::sync::Arc;
 
-/// Handler for knowledge graph commands
+/
 pub struct GraphCommandHandler {
     repository: Arc<dyn KnowledgeGraphRepository>,
 }
@@ -132,7 +132,7 @@ impl CommandHandler<UpdatePositionsCommand> for GraphCommandHandler {
     }
 }
 
-/// Handler for knowledge graph queries
+/
 pub struct GraphQueryHandler {
     repository: Arc<dyn KnowledgeGraphRepository>,
 }

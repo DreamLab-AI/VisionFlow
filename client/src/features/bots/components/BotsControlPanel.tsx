@@ -23,7 +23,7 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
   const [agentCount, setAgentCount] = useState(12);
 
   useEffect(() => {
-    // Subscribe to configuration changes
+    
     const id = 'control-panel';
     configurationMapper.subscribe(id, (newConfig) => {
       setConfig(newConfig);
@@ -48,17 +48,17 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
   };
 
   const handleAddAgent = async (type: BotsAgent['type']) => {
-    // Enhanced agent spawning with hybrid Docker/MCP backend
+    
     try {
       const { unifiedApiClient } = await import('../../../services/api/UnifiedApiClient');
 
-      // First attempt: Use new hybrid Docker endpoint
+      
       let response;
       try {
         const apiResponse = await unifiedApiClient.post('/bots/spawn-agent-hybrid', {
           agentType: type,
           swarmId: 'default',
-          method: 'docker', // Primary method
+          method: 'docker', 
           priority: 'medium',
           strategy: 'hive-mind',
           config: {
@@ -73,7 +73,7 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
           console.log(`Successfully spawned ${type} agent via Docker:`, response.swarmId);
           setAgentCount(prev => prev + 1);
 
-          // Start real-time monitoring for this swarm
+          
           if (response.swarmId) {
             startSwarmMonitoring(response.swarmId);
           }
@@ -84,7 +84,7 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
         console.warn(`Docker spawn failed for ${type} agent, trying MCP fallback:`, dockerError);
       }
 
-      // Fallback: Use traditional MCP endpoint
+      
       const fallbackResponse = await unifiedApiClient.post('/bots/spawn-agent', {
         agentType: type,
         swarmId: 'default',
@@ -97,7 +97,7 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
         setAgentCount(prev => prev + 1);
       } else {
         console.error(`Both Docker and MCP failed for ${type} agent:`, response.error);
-        // Show user-friendly error
+        
         showSpawnError(type, 'Both primary and fallback methods failed');
       }
     } catch (error) {
@@ -107,16 +107,16 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
   };
 
   const startSwarmMonitoring = (swarmId: string) => {
-    // Start WebSocket monitoring for the new swarm
+    
     const ws = new WebSocket(`/ws/swarm-status/${swarmId}`);
 
     ws.onmessage = (event) => {
       const statusUpdate = JSON.parse(event.data);
       console.log('Swarm status update:', statusUpdate);
 
-      // Update UI based on swarm status
+      
       if (statusUpdate.status === 'active') {
-        // Swarm is now active and ready
+        
         console.log(`Swarm ${swarmId} is now active with ${statusUpdate.activeWorkers} workers`);
       } else if (statusUpdate.status === 'failed') {
         console.error(`Swarm ${swarmId} failed:`, statusUpdate.error);
@@ -128,19 +128,19 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
       console.error('Swarm monitoring WebSocket error:', error);
     };
 
-    // Store WebSocket reference for cleanup
-    // (In a real implementation, you'd store this in component state or context)
+    
+    
     setTimeout(() => {
       if (ws.readyState === WebSocket.OPEN) {
         ws.close();
       }
-    }, 60000); // Close after 1 minute
+    }, 60000); 
   };
 
   const showSpawnError = (type: string, message: string) => {
-    // In a real implementation, this would use a toast/notification system
+    
     console.error(`Spawn Error - ${type}: ${message}`);
-    // You could also update UI state to show error indicators
+    
   };
 
   const handleExportConfig = () => {
@@ -225,7 +225,7 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
 
         {!isCollapsed && (
           <>
-            {/* Tabs */}
+            {}
             <div style={{ display: 'flex', marginBottom: '15px', flexWrap: 'wrap' }}>
               <button
                 style={tabStyle(activeTab === 'colors')}
@@ -253,7 +253,7 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
               </button>
             </div>
 
-            {/* Colors Tab */}
+            {}
             {activeTab === 'colors' && (
               <div>
                 <h4 style={{ color: '#F1C40F', marginBottom: '10px' }}>Agent Colors</h4>
@@ -294,7 +294,7 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
               </div>
             )}
 
-            {/* Animation Tab */}
+            {}
             {activeTab === 'animation' && (
               <div>
                 <h4 style={{ color: '#F1C40F', marginBottom: '10px' }}>Animation Settings</h4>
@@ -364,7 +364,7 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
               </div>
             )}
 
-            {/* Physics Tab */}
+            {}
             {activeTab === 'physics' && (
               <div>
                 <h4 style={{ color: '#F1C40F', marginBottom: '10px' }}>Physics Settings</h4>
@@ -390,7 +390,7 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
               </div>
             )}
 
-            {/* Rendering Tab */}
+            {}
             {activeTab === 'rendering' && (
               <div>
                 <h4 style={{ color: '#F1C40F', marginBottom: '10px' }}>Rendering Settings</h4>
@@ -468,7 +468,7 @@ export const BotsControlPanel: React.FC<BotsControlPanelProps> = ({
               </div>
             )}
 
-            {/* Presets and Actions */}
+            {}
             <div style={{ 
               borderTop: '1px solid #F1C40F', 
               marginTop: '20px', 

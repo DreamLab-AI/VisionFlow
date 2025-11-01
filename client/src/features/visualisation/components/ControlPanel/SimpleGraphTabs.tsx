@@ -1,6 +1,4 @@
-/**
- * Simple Graph Feature Tabs - Inline Styles Version
- */
+
 
 import React from 'react';
 import type { GraphNode, GraphEdge } from '@/features/graph/types/graphTypes';

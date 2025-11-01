@@ -54,16 +54,16 @@ pub use constraint_lod::{
     LODStats,
 };
 
-/// Complete constraint translation pipeline
-///
-/// Usage:
-/// ```rust
-/// use constraints::ConstraintPipeline;
-///
-/// let pipeline = ConstraintPipeline::new();
-/// let axioms = load_owl_axioms();
-/// let gpu_buffer = pipeline.process(axioms, zoom_level);
-/// ```
+/
+/
+/
+/
+/
+/
+/
+/
+/
+/
 pub struct ConstraintPipeline {
     mapper: AxiomMapper,
     resolver: PriorityResolver,
@@ -72,7 +72,7 @@ pub struct ConstraintPipeline {
 }
 
 impl ConstraintPipeline {
-    /// Create a new constraint pipeline with default configuration
+    
     pub fn new() -> Self {
         Self {
             mapper: AxiomMapper::new(),
@@ -82,7 +82,7 @@ impl ConstraintPipeline {
         }
     }
 
-    /// Create a new constraint pipeline with custom configuration
+    
     pub fn with_configs(
         translation_config: TranslationConfig,
         blender_config: BlenderConfig,
@@ -96,28 +96,28 @@ impl ConstraintPipeline {
         }
     }
 
-    /// Process axioms through complete pipeline
-    ///
-    /// Steps:
-    /// 1. Translate OWL axioms → physics constraints (AxiomMapper)
-    /// 2. Resolve conflicts with priority weighting (PriorityResolver)
-    /// 3. Blend remaining conflicts (ConstraintBlender)
-    /// 4. Apply LOD based on zoom level (ConstraintLOD)
-    /// 5. Convert to GPU format (GPUConverter)
+    
+    
+    
+    
+    
+    
+    
+    
     pub fn process(
         &mut self,
         axioms: &[OWLAxiom],
         zoom_level: f32,
     ) -> GPUConstraintBuffer {
-        // Step 1: Translate axioms to constraints
+        
         let constraints = self.mapper.translate_axioms(axioms);
 
-        // Step 2: Resolve priority conflicts
+        
         self.resolver.clear();
         self.resolver.add_constraints(constraints);
         let resolved = self.resolver.resolve();
 
-        // Step 3: Blend remaining conflicts
+        
         let blended: Vec<PhysicsConstraint> = self.resolver
             .get_groups()
             .iter()
@@ -126,34 +126,34 @@ impl ConstraintPipeline {
             })
             .collect();
 
-        // Step 4: Apply LOD
+        
         self.lod.set_constraints(blended);
         self.lod.update_zoom(zoom_level);
         let active = self.lod.get_active_constraints();
 
-        // Step 5: Convert to GPU format
+        
         let mut buffer = GPUConstraintBuffer::new(active.len());
         buffer.add_constraints(active).unwrap();
 
         buffer
     }
 
-    /// Update frame time for adaptive LOD
+    
     pub fn update_frame_time(&mut self, frame_time_ms: f32) {
         self.lod.update_frame_time(frame_time_ms);
     }
 
-    /// Get LOD statistics
+    
     pub fn get_lod_stats(&self) -> LODStats {
         self.lod.get_stats()
     }
 
-    /// Get constraint statistics
+    
     pub fn get_constraint_stats(&self, buffer: &GPUConstraintBuffer) -> ConstraintStats {
         ConstraintStats::from_buffer(buffer)
     }
 
-    /// Get current LOD level
+    
     pub fn get_lod_level(&self) -> LODLevel {
         self.lod.get_current_level()
     }
@@ -187,7 +187,7 @@ mod tests {
             }),
         ];
 
-        // Process with close zoom (all constraints active)
+        
         let buffer = pipeline.process(&axioms, 5.0);
 
         assert!(buffer.len() > 0);
@@ -208,15 +208,15 @@ mod tests {
             }),
         ];
 
-        // Far zoom
+        
         let buffer_far = pipeline.process(&axioms, 2000.0);
         assert_eq!(pipeline.get_lod_level(), LODLevel::Far);
 
-        // Close zoom
+        
         let buffer_close = pipeline.process(&axioms, 5.0);
         assert_eq!(pipeline.get_lod_level(), LODLevel::Close);
 
-        // Far zoom should have fewer or equal constraints
+        
         assert!(buffer_far.len() <= buffer_close.len());
     }
 
@@ -233,7 +233,7 @@ mod tests {
 
         pipeline.process(&axioms, 5.0);
 
-        // Simulate high frame time
+        
         pipeline.update_frame_time(30.0);
 
         let stats = pipeline.get_lod_stats();

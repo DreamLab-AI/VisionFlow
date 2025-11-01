@@ -19,7 +19,7 @@ use tokio::sync::RwLock;
 #[serde(rename_all = "camelCase")]
 pub struct BotsDataRequest {
     pub nodes: Vec<Agent>,
-    pub edges: Vec<serde_json::Value>, // Generic edges for now
+    pub edges: Vec<serde_json::Value>, 
 }
 
 #[derive(Serialize)]
@@ -47,7 +47,7 @@ pub struct InitializeSwarmRequest {
 pub struct SpawnAgentHybridRequest {
     pub agent_type: String,
     pub swarm_id: String,
-    pub method: String, // "docker" or "mcp-fallback"
+    pub method: String, 
     pub priority: Option<String>,
     pub strategy: Option<String>,
     pub config: Option<SpawnAgentConfig>,
@@ -82,10 +82,10 @@ static CURRENT_SWARM_ID: Lazy<Arc<RwLock<Option<String>>>> =
 
 pub async fn fetch_hive_mind_agents(
     state: &AppState,
-    _hybrid_manager: Option<()>, // DEPRECATED
+    _hybrid_manager: Option<()>, 
 ) -> Result<Vec<Agent>, Box<dyn std::error::Error>> {
-    // Agent data comes from AgentMonitorActor via MCP TCP polling
-    // Use BotsClient which caches the latest agent data from the graph
+    
+    
     match state.bots_client.get_agents_snapshot().await {
         Ok(agents) => {
             info!("Retrieved {} agents from BotsClient cache", agents.len());
@@ -104,12 +104,12 @@ fn convert_agents_to_nodes(agents: Vec<Agent>) -> Vec<Node> {
         .into_iter()
         .enumerate()
         .map(|(idx, agent)| {
-            // Map agent ID to numeric ID for physics processing
-            let node_id = (idx + 1000) as u32; // Start at 1000 to avoid conflicts
+            
+            let node_id = (idx + 1000) as u32; 
 
-            // Enhanced positioning based on agent type and hierarchy
+            
             let (_radius, vertical_offset) = match agent.agent_type.as_str() {
-                "queen" => (0.0, 0.0), // Queen at center
+                "queen" => (0.0, 0.0), 
                 "coordinator" => (20.0, 2.0),
                 "researcher" => (30.0, 0.0),
                 "analyst" => (30.0, 0.0),
@@ -119,17 +119,17 @@ fn convert_agents_to_nodes(agents: Vec<Agent>) -> Vec<Node> {
                 _ => (60.0, -3.0),
             };
 
-            // Node color and size based on agent type
+            
             let (color, size) = match agent.agent_type.as_str() {
-                "queen" => ("#FFD700", 25.0),       // Gold for Queen
-                "coordinator" => ("#FF6B6B", 20.0), // Red for coordinators
-                "researcher" => ("#4ECDC4", 18.0),  // Teal for researchers
-                "analyst" => ("#45B7D1", 18.0),     // Blue for analysts
-                "coder" => ("#95E1D3", 16.0),       // Mint for coders
-                "optimizer" => ("#F38181", 16.0),   // Coral for optimizers
-                "tester" => ("#F6B93B", 14.0),      // Orange for testers
-                "worker" => ("#B8E994", 12.0),      // Light green for workers
-                _ => ("#DFE4EA", 10.0),             // Gray for unknown types
+                "queen" => ("#FFD700", 25.0),       
+                "coordinator" => ("#FF6B6B", 20.0), 
+                "researcher" => ("#4ECDC4", 18.0),  
+                "analyst" => ("#45B7D1", 18.0),     
+                "coder" => ("#95E1D3", 16.0),       
+                "optimizer" => ("#F38181", 16.0),   
+                "tester" => ("#F6B93B", 14.0),      
+                "worker" => ("#B8E994", 12.0),      
+                _ => ("#DFE4EA", 10.0),             
             };
 
             Node {
@@ -189,7 +189,7 @@ pub async fn update_bots_graph(
     );
 
     let nodes = convert_agents_to_nodes(request.nodes.clone());
-    let edges = vec![]; // TODO: Extract edges from request
+    let edges = vec![]; 
 
     let mut graph = BOTS_GRAPH.write().await;
     graph.nodes = nodes;
@@ -205,7 +205,7 @@ pub async fn update_bots_graph(
 }
 
 pub async fn get_bots_data(state: web::Data<AppState>) -> Result<impl Responder> {
-    // First try to get data from graph actor if available
+    
     if let Ok(graph_data) = state.graph_service_addr.send(GetBotsGraphData).await {
         if let Ok(graph) = graph_data {
             let nodes = &graph.nodes;
@@ -224,7 +224,7 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> Result<impl Responder>
         }
     }
 
-    // Fall back to static storage
+    
     let graph = BOTS_GRAPH.read().await;
     info!(
         "Retrieved bots data from static storage: {} nodes",
@@ -242,14 +242,14 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> Result<impl Responder>
 pub async fn initialize_hive_mind_swarm(
     request: web::Json<InitializeSwarmRequest>,
     state: web::Data<AppState>,
-    _hybrid_manager: Option<()>, // DEPRECATED
+    _hybrid_manager: Option<()>, 
 ) -> Result<impl Responder> {
     info!(
         "🐝 Initializing hive mind swarm via Management API with topology: {}",
         request.topology
     );
 
-    // Build task description
+    
     let base_task = if let Some(custom_prompt) = &request.custom_prompt {
         if !custom_prompt.trim().is_empty() {
             custom_prompt.trim().to_string()
@@ -274,7 +274,7 @@ pub async fn initialize_hive_mind_swarm(
         )
     };
 
-    // Append communication protocol instructions
+    
     let task = format!(
         "{}\n\n**IMPORTANT COMMUNICATION PROTOCOL:**\n\
         Messages will be displayed in the user's telemetry panel in real-time.\n\
@@ -284,18 +284,18 @@ pub async fn initialize_hive_mind_swarm(
 
     info!("🔧 Swarm initialization task: {}", task);
 
-    // Determine agent type and provider based on strategy
-    // Maps UI strategy selection to actual agent names from agentic-flow container
+    
+    
     let agent_type = match request.strategy.as_str() {
-        "strategic" => "planner",   // Strategic planning → planner agent
-        "tactical" => "coder",      // Tactical execution → coder agent
-        "adaptive" => "researcher", // Adaptive research → researcher agent
-        _ => "coder",               // Default to coder for general tasks
+        "strategic" => "planner",   
+        "tactical" => "coder",      
+        "adaptive" => "researcher", 
+        _ => "coder",               
     };
 
     let provider = std::env::var("PRIMARY_PROVIDER").unwrap_or_else(|_| "gemini".to_string());
 
-    // Create task via TaskOrchestratorActor
+    
     let create_task_msg = CreateTask {
         agent: agent_type.to_string(),
         task: task.clone(),
@@ -313,13 +313,13 @@ pub async fn initialize_hive_mind_swarm(
                 task_response.task_id
             );
 
-            // Store the task ID for reference
+            
             {
                 let mut current_id = CURRENT_SWARM_ID.write().await;
                 *current_id = Some(task_response.task_id.clone());
             }
 
-            // Return immediately - AgentMonitorActor will poll MCP for agent updates
+            
             Ok(HttpResponse::Accepted().json(json!({
                 "success": true,
                 "message": "Hive mind swarm task created. Agents will appear shortly.",
@@ -362,7 +362,7 @@ pub async fn get_bots_connection_status(state: web::Data<AppState>) -> Result<im
 
 pub async fn get_bots_agents(
     state: web::Data<AppState>,
-    _hybrid_manager: Option<()>, // DEPRECATED
+    _hybrid_manager: Option<()>, 
 ) -> Result<impl Responder> {
     match fetch_hive_mind_agents(&state, None).await {
         Ok(agents) => Ok(HttpResponse::Ok().json(json!({
@@ -403,7 +403,7 @@ pub async fn spawn_agent_hybrid(
     let task = format!("Spawn {} agent for swarm {}", req.agent_type, req.swarm_id);
     let provider = std::env::var("PRIMARY_PROVIDER").unwrap_or_else(|_| "gemini".to_string());
 
-    // Create task via TaskOrchestratorActor
+    
     let create_task_msg = CreateTask {
         agent: req.agent_type.clone(),
         task,
@@ -469,7 +469,7 @@ pub struct TaskResponse {
     pub error: Option<String>,
 }
 
-/// Remove/stop a task by ID
+/
 pub async fn remove_task(
     path: web::Path<String>,
     state: web::Data<AppState>,
@@ -477,7 +477,7 @@ pub async fn remove_task(
     let task_id = path.into_inner();
     info!("Stopping task via Management API: {}", task_id);
 
-    // Send StopTask message to TaskOrchestratorActor
+    
     let stop_task_msg = StopTask {
         task_id: task_id.clone(),
     };
@@ -524,12 +524,12 @@ pub async fn get_bots_positions(bots_client: &Arc<BotsClient>) -> Vec<BotsNodeDa
                 .enumerate()
                 .map(|(idx, agent)| {
                     BotsNodeData {
-                        id: (idx as u32) + 1000, // Convert to numeric ID
+                        id: (idx as u32) + 1000, 
                         data: BotData {
                             x: agent.x,
                             y: agent.y,
                             z: agent.z,
-                            vx: 0.0, // No velocity data from agents yet
+                            vx: 0.0, 
                             vy: 0.0,
                             vz: 0.0,
                         },

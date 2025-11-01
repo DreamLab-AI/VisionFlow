@@ -58,14 +58,14 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
     }
   });
 
-  // Check browser support on mount
+  
   useEffect(() => {
     const support = AudioInputService.getBrowserSupport();
     const supported = support.getUserMedia && support.audioContext && support.isHttps && support.mediaRecorder;
     setIsSupported(supported);
   }, []);
 
-  // Get audio level from VoiceWebSocketService directly for visual feedback
+  
   useEffect(() => {
     const voiceService = VoiceWebSocketService.getInstance();
     const handleAudioLevel = (level: number) => setAudioLevel(level);
@@ -78,17 +78,17 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
     };
   }, []);
 
-  // Clear error when listening state changes
+  
   useEffect(() => {
     if (isListening && hasError) {
       setHasError(false);
     }
   }, [isListening, hasError]);
 
-  // Add spacebar hotkey support
+  
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Only activate if spacebar is pressed and no input is focused
+      
       if (e.code === 'Space' && 
           !e.repeat && 
           !(e.target instanceof HTMLInputElement) && 
@@ -165,7 +165,7 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
       className={buttonClasses}
       aria-label={isListening ? 'Stop voice input' : 'Start voice input'}
     >
-      {/* Audio level indicator */}
+      {}
       {isListening && (
         <div
           className="absolute inset-0 rounded-full bg-destructive opacity-30 animate-pulse"
@@ -176,7 +176,7 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
         />
       )}
 
-      {/* Icon */}
+      {}
       {isSpeaking ? (
         <VolumeIcon className="w-5 h-5" />
       ) : isListening ? (

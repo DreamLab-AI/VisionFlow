@@ -1,7 +1,4 @@
-/**
- * WebHID API TypeScript declarations
- * These extend the standard Web APIs with WebHID-specific interfaces
- */
+
 
 interface HIDDevice {
   opened: boolean;

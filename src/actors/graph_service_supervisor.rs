@@ -48,20 +48,20 @@ use crate::actors::messages as msgs;
 // Removed graph_messages::GetGraphData import - not used
 use crate::errors::{ActorError, VisionFlowError};
 
-/// Graph service supervision strategy for handling actor failures
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum GraphSupervisionStrategy {
-    /// Restart only the failed actor
+    
     OneForOne,
-    /// Restart all actors when one fails
+    
     OneForAll,
-    /// Restart failed actor and all actors started after it
+    
     RestForOne,
-    /// Escalate failure to parent supervisor
+    
     Escalate,
 }
 
-/// Actor health status
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ActorHealth {
     Healthy,
@@ -71,7 +71,7 @@ pub enum ActorHealth {
     Unknown,
 }
 
-/// Actor restart policy configuration
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RestartPolicy {
     pub max_restarts: u32,
@@ -80,7 +80,7 @@ pub struct RestartPolicy {
     pub escalation_threshold: u32,
 }
 
-/// Backoff strategy for actor restarts
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum BackoffStrategy {
     Fixed(Duration),
@@ -88,7 +88,7 @@ pub enum BackoffStrategy {
     Exponential { initial: Duration, max: Duration },
 }
 
-/// Actor metadata for supervision
+/
 #[derive(Debug)]
 pub struct ActorInfo {
     pub name: String,
@@ -101,7 +101,7 @@ pub struct ActorInfo {
     pub stats: ActorStats,
 }
 
-/// Types of supervised actors
+/
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, Hash, PartialEq)]
 pub enum ActorType {
     GraphState,
@@ -110,7 +110,7 @@ pub enum ActorType {
     ClientCoordinator,
 }
 
-/// Actor performance statistics
+/
 #[derive(Debug, Clone)]
 pub struct ActorStats {
     pub messages_processed: u64,
@@ -121,7 +121,7 @@ pub struct ActorStats {
     pub memory_usage: Option<u64>,
 }
 
-/// Simple operation result message for supervised actors
+/
 #[derive(Message, Debug, Clone)]
 #[rtype(result = "()")]
 pub struct OperationResult {
@@ -144,7 +144,7 @@ impl From<Result<(), VisionFlowError>> for OperationResult {
     }
 }
 
-/// Buffered message during actor restart
+/
 pub struct SupervisedMessage {
     pub message: Box<dyn Message<Result = ()> + Send>,
     pub sender: Option<Recipient<OperationResult>>,
@@ -161,37 +161,37 @@ impl std::fmt::Debug for SupervisedMessage {
     }
 }
 
-/// Main supervisor actor managing all graph service actors
+/
 pub struct GraphServiceSupervisor {
-    // Child actor addresses
+    
     graph_state: Option<Addr<GraphServiceActor>>,
     physics: Option<Addr<PhysicsOrchestratorActor>>,
     semantic: Option<Addr<SemanticProcessorActor>>,
     client: Option<Addr<ClientCoordinatorActor>>,
 
-    // Knowledge graph repository
+    
     kg_repo: Option<Arc<dyn crate::ports::knowledge_graph_repository::KnowledgeGraphRepository>>,
 
-    // Supervision configuration
+    
     strategy: GraphSupervisionStrategy,
     restart_policy: RestartPolicy,
 
-    // Actor management
+    
     actor_info: HashMap<ActorType, ActorInfo>,
 
-    // Health monitoring
+    
     health_check_interval: Duration,
     last_health_check: Instant,
 
-    // Message routing and buffering
+    
     message_buffer_size: usize,
     total_messages_routed: u64,
 
-    // Performance metrics
+    
     supervision_stats: SupervisionStats,
 }
 
-/// Supervisor performance statistics
+/
 #[derive(Debug, Clone)]
 pub struct SupervisionStats {
     pub actors_supervised: u32,
@@ -208,7 +208,7 @@ impl Default for RestartPolicy {
     fn default() -> Self {
         Self {
             max_restarts: 5,
-            within_time_period: Duration::from_secs(300), // 5 minutes
+            within_time_period: Duration::from_secs(300), 
             backoff_strategy: BackoffStrategy::Exponential {
                 initial: Duration::from_secs(1),
                 max: Duration::from_secs(60),
@@ -232,7 +232,7 @@ impl Default for ActorStats {
 }
 
 impl GraphServiceSupervisor {
-    /// Create new supervisor with default configuration
+    
     pub fn new() -> Self {
         Self {
             graph_state: None,
@@ -251,7 +251,7 @@ impl GraphServiceSupervisor {
         }
     }
 
-    /// Create supervisor with custom configuration
+    
     pub fn with_config(
         strategy: GraphSupervisionStrategy,
         restart_policy: RestartPolicy,
@@ -264,9 +264,9 @@ impl GraphServiceSupervisor {
         supervisor
     }
 
-    /// Create supervisor with dependencies for GraphServiceActor compatibility
-    /// This is a transitional method that creates a GraphServiceActor as the managed child
-    /// This allows for gradual migration to the full supervisor architecture
+    
+    
+    
     pub fn with_dependencies(
         client_manager_addr: Option<Addr<crate::actors::ClientCoordinatorActor>>,
         gpu_manager_addr: Option<Addr<crate::actors::GPUManagerActor>>,
@@ -274,15 +274,15 @@ impl GraphServiceSupervisor {
     ) -> TransitionalGraphSupervisor {
         info!("Creating TransitionalGraphSupervisor with GraphServiceActor as managed child");
 
-        // Create the transitional supervisor that wraps GraphServiceActor
+        
         TransitionalGraphSupervisor::new(client_manager_addr, gpu_manager_addr, kg_repo)
     }
 
-    /// Initialize all child actors
+    
     fn initialize_actors(&mut self, ctx: &mut Context<Self>) {
         info!("Initializing supervised actors");
 
-        // Initialize actor info structures
+        
         self.actor_info.insert(
             ActorType::GraphState,
             ActorInfo {
@@ -339,14 +339,14 @@ impl GraphServiceSupervisor {
             },
         );
 
-        // Start actors in dependency order
-        // ClientCoordinator must start first as GraphState depends on it
+        
+        
         self.start_actor(ActorType::ClientCoordinator, ctx);
         self.start_actor(ActorType::PhysicsOrchestrator, ctx);
         self.start_actor(ActorType::SemanticProcessor, ctx);
-        self.start_actor(ActorType::GraphState, ctx); // GraphState last - depends on ClientCoordinator
+        self.start_actor(ActorType::GraphState, ctx); 
 
-        // Schedule health checks
+        
         ctx.run_interval(self.health_check_interval, |act, ctx| {
             act.perform_health_check(ctx);
         });
@@ -355,28 +355,28 @@ impl GraphServiceSupervisor {
         info!("All supervised actors initialized successfully");
     }
 
-    /// Start a specific actor
+    
     fn start_actor(&mut self, actor_type: ActorType, _ctx: &mut Context<Self>) {
         info!("Starting actor: {:?}", actor_type);
 
         match actor_type {
             ActorType::GraphState => {
-                // Temporarily use GraphServiceActor as the graph state manager
-                // This will be replaced with a dedicated GraphStateActor during gradual refactoring
+                
+                
                 info!("Starting GraphServiceActor as temporary GraphState manager");
 
-                // GraphServiceActor needs client_manager and optionally gpu_compute addresses
-                // For now we'll create it without these dependencies and add them later
-                // The supervisor will coordinate message routing
+                
+                
+                
                 let client_manager = self.client.as_ref().map(|addr| addr.clone());
                 if let Some(client_addr) = client_manager {
-                    // For backward compatibility, we need kg_repo. If not available, we'll need to handle this gracefully
+                    
                     if let Some(ref kg_repo) = self.kg_repo {
                         let actor = GraphServiceActor::new(
                             client_addr,
-                            None, // GPU compute will be linked later
+                            None, 
                             kg_repo.clone(),
-                            None, // Settings actor will be linked later
+                            None, 
                         )
                         .start();
                         self.graph_state = Some(actor);
@@ -407,7 +407,7 @@ impl GraphServiceSupervisor {
             }
         }
 
-        // Update actor info
+        
         if let Some(info) = self.actor_info.get_mut(&actor_type) {
             info.health = ActorHealth::Healthy;
             info.last_heartbeat = Some(Instant::now());
@@ -415,17 +415,17 @@ impl GraphServiceSupervisor {
         }
     }
 
-    /// Restart a failed actor
+    
     fn restart_actor(&mut self, actor_type: ActorType, ctx: &mut Context<Self>) {
         warn!("Restarting failed actor: {:?}", actor_type);
 
-        // Update actor info
+        
         if let Some(info) = self.actor_info.get_mut(&actor_type) {
             info.health = ActorHealth::Restarting;
             info.restart_count += 1;
             info.last_restart = Some(Instant::now());
 
-            // Check restart limits
+            
             if info.restart_count > self.restart_policy.max_restarts {
                 error!(
                     "Actor {:?} exceeded maximum restarts ({}), escalating",
@@ -436,7 +436,7 @@ impl GraphServiceSupervisor {
             }
         }
 
-        // Apply backoff strategy
+        
         let backoff_duration = self.calculate_backoff(&actor_type);
         let actor_type_clone = actor_type.clone();
         let actor_type_clone2 = actor_type.clone();
@@ -449,7 +449,7 @@ impl GraphServiceSupervisor {
         self.supervision_stats.total_restarts += 1;
     }
 
-    /// Calculate backoff duration for restart
+    
     fn calculate_backoff(&self, actor_type: &ActorType) -> Duration {
         if let Some(info) = self.actor_info.get(actor_type) {
             match &self.restart_policy.backoff_strategy {
@@ -465,7 +465,7 @@ impl GraphServiceSupervisor {
         }
     }
 
-    /// Escalate failure to parent or shutdown
+    
     fn escalate_failure(&mut self, actor_type: ActorType, ctx: &mut Context<Self>) {
         error!("Escalating failure for actor: {:?}", actor_type);
 
@@ -476,7 +476,7 @@ impl GraphServiceSupervisor {
             }
             GraphSupervisionStrategy::Escalate => {
                 error!("Escalating to parent supervisor");
-                // TODO: Send escalation message to parent
+                
                 ctx.stop();
             }
             _ => {
@@ -488,24 +488,24 @@ impl GraphServiceSupervisor {
         }
     }
 
-    /// Restart all supervised actors
+    
     fn restart_all_actors(&mut self, ctx: &mut Context<Self>) {
         info!("Restarting all supervised actors");
 
-        // Clear current actors
+        
         self.graph_state = None;
         self.physics = None;
         self.semantic = None;
         self.client = None;
 
-        // Restart all
+        
         self.start_actor(ActorType::GraphState, ctx);
         self.start_actor(ActorType::PhysicsOrchestrator, ctx);
         self.start_actor(ActorType::SemanticProcessor, ctx);
         self.start_actor(ActorType::ClientCoordinator, ctx);
     }
 
-    /// Buffer message during actor restart
+    
     fn buffer_message(&mut self, actor_type: ActorType, message: SupervisedMessage) {
         if let Some(info) = self.actor_info.get_mut(&actor_type) {
             if info.message_buffer.len() < self.message_buffer_size {
@@ -520,7 +520,7 @@ impl GraphServiceSupervisor {
         }
     }
 
-    /// Replay buffered messages after actor restart
+    
     fn replay_buffered_messages(&mut self, actor_type: ActorType) {
         if let Some(info) = self.actor_info.get_mut(&actor_type) {
             let messages = std::mem::take(&mut info.message_buffer);
@@ -530,12 +530,12 @@ impl GraphServiceSupervisor {
                 actor_type
             );
 
-            // TODO: Replay messages to restarted actor
-            // This would require message serialization/deserialization
+            
+            
         }
     }
 
-    /// Perform health check on all actors
+    
     fn perform_health_check(&mut self, _ctx: &mut Context<Self>) {
         debug!("Performing health check on supervised actors");
 
@@ -544,7 +544,7 @@ impl GraphServiceSupervisor {
         self.supervision_stats.health_checks_performed += 1;
 
         for (actor_type, info) in &mut self.actor_info {
-            // Check heartbeat timeout
+            
             if let Some(last_heartbeat) = info.last_heartbeat {
                 if now.duration_since(last_heartbeat) > Duration::from_secs(60) {
                     warn!("Actor {:?} heartbeat timeout", actor_type);
@@ -552,14 +552,14 @@ impl GraphServiceSupervisor {
                 }
             }
 
-            // Update uptime
+            
             if let Some(last_restart) = info.last_restart {
                 info.stats.uptime = now.duration_since(last_restart);
             }
         }
     }
 
-    /// Route message to appropriate actor
+    
     fn route_message(
         &mut self,
         message: SupervisorMessage,
@@ -570,8 +570,8 @@ impl GraphServiceSupervisor {
         let result = match message {
             SupervisorMessage::GraphOperation(_msg) => {
                 if let Some(ref _addr) = self.graph_state {
-                    // Forward message to graph state actor
-                    // For now this is a placeholder - full implementation would deserialize and forward
+                    
+                    
                     debug!("Forwarding graph operation to GraphState actor");
                     Ok(())
                 } else {
@@ -612,12 +612,12 @@ impl GraphServiceSupervisor {
             }
         };
 
-        // Update routing statistics
+        
         let routing_time = start_time.elapsed();
         self.total_messages_routed += 1;
         self.supervision_stats.messages_routed += 1;
 
-        // Update average routing time (simple moving average)
+        
         let current_avg = self.supervision_stats.average_routing_time;
         let new_avg = (current_avg + routing_time) / 2;
         self.supervision_stats.average_routing_time = new_avg;
@@ -625,7 +625,7 @@ impl GraphServiceSupervisor {
         result
     }
 
-    /// Get supervisor status and statistics
+    
     pub fn get_status(&self) -> SupervisorStatus {
         SupervisorStatus {
             strategy: self.strategy.clone(),
@@ -672,7 +672,7 @@ impl Actor for GraphServiceSupervisor {
 
 // Message definitions for supervisor communication
 
-/// Main supervisor message enum for routing
+/
 #[derive(Message)]
 #[rtype(result = "Result<(), VisionFlowError>")]
 pub enum SupervisorMessage {
@@ -682,7 +682,7 @@ pub enum SupervisorMessage {
     ClientOperation(Box<dyn Message<Result = Result<(), VisionFlowError>> + Send>),
 }
 
-/// Actor heartbeat message
+/
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct ActorHeartbeat {
@@ -692,12 +692,12 @@ pub struct ActorHeartbeat {
     pub stats: Option<ActorStats>,
 }
 
-/// Request supervisor status
+/
 #[derive(Message)]
 #[rtype(result = "SupervisorStatus")]
 pub struct GetSupervisorStatus;
 
-/// Supervisor status response
+/
 #[derive(Debug, Clone)]
 pub struct SupervisorStatus {
     pub strategy: GraphSupervisionStrategy,
@@ -719,14 +719,14 @@ where
     }
 }
 
-/// Request to restart specific actor
+/
 #[derive(Message)]
 #[rtype(result = "Result<(), VisionFlowError>")]
 pub struct RestartActor {
     pub actor_type: ActorType,
 }
 
-/// Request to restart all actors
+/
 #[derive(Message)]
 #[rtype(result = "Result<(), VisionFlowError>")]
 pub struct RestartAllActors;
@@ -786,8 +786,8 @@ impl Handler<RestartAllActors> for GraphServiceSupervisor {
 // KEY MESSAGE HANDLERS - Bridge to existing GraphServiceActor functionality
 // ============================================================================
 
-/// For now, forward key graph messages directly to maintain compatibility
-/// In a full refactor, these would be decomposed and routed to specialized actors
+/
+/
 
 // Removed GetGraphData handler from graph_messages - GraphServiceActor doesn't implement it
 
@@ -846,7 +846,7 @@ impl Handler<msgs::GetBotsGraphData> for GraphServiceSupervisor {
 
     fn handle(&mut self, _msg: msgs::GetBotsGraphData, _ctx: &mut Self::Context) -> Self::Result {
         warn!("GetBotsGraphData: Supervisor not fully implemented");
-        let result = Err("Supervisor not fully implemented".to_string()); // Return error for now since we need Arc<GraphData>
+        let result = Err("Supervisor not fully implemented".to_string()); 
         Box::pin(actix::fut::ready(result))
     }
 }
@@ -860,7 +860,7 @@ impl Handler<msgs::UpdateSimulationParams> for GraphServiceSupervisor {
         _ctx: &mut Self::Context,
     ) -> Self::Result {
         warn!("UpdateSimulationParams: Supervisor not fully implemented");
-        // This is a fire-and-forget message, so we just log and return
+        
         Ok(())
     }
 }
@@ -874,7 +874,7 @@ impl Handler<msgs::InitializeGPUConnection> for GraphServiceSupervisor {
         _ctx: &mut Self::Context,
     ) -> Self::Result {
         warn!("InitializeGPUConnection: Supervisor not fully implemented");
-        // This is a fire-and-forget message, so we just log and return
+        
     }
 }
 
@@ -882,19 +882,19 @@ impl Handler<msgs::InitializeGPUConnection> for GraphServiceSupervisor {
 // TRANSITIONAL SUPERVISOR - Wraps GraphServiceActor for gradual migration
 // ============================================================================
 
-/// Transitional supervisor that wraps GraphServiceActor
-/// This allows for gradual migration from the monolithic actor to the full supervisor pattern
-/// while maintaining compatibility with existing code
+/
+/
+/
 pub struct TransitionalGraphSupervisor {
-    /// The wrapped GraphServiceActor
+    
     graph_service_actor: Option<Addr<GraphServiceActor>>,
-    /// Client manager dependency
+    
     client_manager_addr: Option<Addr<crate::actors::ClientCoordinatorActor>>,
-    /// GPU manager dependency
+    
     gpu_manager_addr: Option<Addr<crate::actors::GPUManagerActor>>,
-    /// Knowledge graph repository
+    
     kg_repo: Arc<dyn crate::ports::knowledge_graph_repository::KnowledgeGraphRepository>,
-    /// Supervisor statistics
+    
     start_time: Instant,
     messages_forwarded: u64,
 }
@@ -915,20 +915,20 @@ impl TransitionalGraphSupervisor {
         }
     }
 
-    /// Get or create the wrapped GraphServiceActor
+    
     fn get_or_create_actor(
         &mut self,
         _ctx: &mut Context<Self>,
     ) -> Option<&Addr<GraphServiceActor>> {
         if self.graph_service_actor.is_none() {
-            // Create the GraphServiceActor with the provided dependencies
+            
             if let Some(ref client_manager) = self.client_manager_addr {
                 info!("TransitionalGraphSupervisor: Creating managed GraphServiceActor");
                 let actor = GraphServiceActor::new(
                     client_manager.clone(),
-                    None, // GPU compute actor will be linked later
+                    None, 
                     self.kg_repo.clone(),
-                    None, // Settings actor will be linked later
+                    None, 
                 )
                 .start();
                 self.graph_service_actor = Some(actor);
@@ -941,7 +941,7 @@ impl TransitionalGraphSupervisor {
     }
 }
 
-/// Handler for GetGraphServiceActor - returns the internal GraphServiceActor address
+/
 impl Handler<msgs::GetGraphServiceActor> for TransitionalGraphSupervisor {
     type Result = Option<Addr<GraphServiceActor>>;
 
@@ -960,7 +960,7 @@ impl Actor for TransitionalGraphSupervisor {
     fn started(&mut self, ctx: &mut Self::Context) {
         info!("TransitionalGraphSupervisor started - managing GraphServiceActor lifecycle");
 
-        // Create the wrapped actor immediately
+        
         self.get_or_create_actor(ctx);
     }
 
@@ -1345,7 +1345,7 @@ mod tests {
     async fn test_backoff_calculation() {
         let supervisor = GraphServiceSupervisor::new();
 
-        // Test with no actor info
+        
         let backoff = supervisor.calculate_backoff(&ActorType::GraphState);
         assert_eq!(backoff, Duration::from_secs(1));
     }

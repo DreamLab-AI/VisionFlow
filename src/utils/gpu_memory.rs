@@ -1,12 +1,12 @@
-/// RAII GPU Memory Management
-/// Provides automatic cleanup of CUDA memory allocations to prevent leaks
+/
+/
 use cust::memory::DeviceBuffer;
 use log::{debug, error, warn};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-/// RAII wrapper for GPU memory buffers with automatic cleanup
+/
 pub struct ManagedDeviceBuffer<T: cust_core::DeviceCopy> {
     buffer: DeviceBuffer<T>,
     name: String,
@@ -45,7 +45,7 @@ impl<T: cust_core::DeviceCopy> Drop for ManagedDeviceBuffer<T> {
     }
 }
 
-/// Global GPU memory tracker for leak detection (using std::sync for hot path)
+/
 struct GPUMemoryTracker {
     allocations: Arc<std::sync::Mutex<HashMap<String, usize>>>,
     total_allocated: Arc<std::sync::atomic::AtomicUsize>,
@@ -60,7 +60,7 @@ impl GPUMemoryTracker {
     }
 
     fn track_allocation(&self, name: String, size: usize) {
-        // Direct synchronous update (no task spawning)
+        
         if let Ok(mut alloc_map) = self.allocations.lock() {
             alloc_map.insert(name.clone(), size);
             let total = self
@@ -76,7 +76,7 @@ impl GPUMemoryTracker {
     }
 
     fn track_deallocation(&self, name: String, size: usize) {
-        // Direct synchronous update (no task spawning)
+        
         if let Ok(mut alloc_map) = self.allocations.lock() {
             if alloc_map.remove(&name).is_some() {
                 let total = self
@@ -123,7 +123,7 @@ impl GPUMemoryTracker {
 
 static GPU_MEMORY_TRACKER: Lazy<GPUMemoryTracker> = Lazy::new(|| GPUMemoryTracker::new());
 
-/// Convenience functions for creating managed GPU buffers
+/
 pub fn create_managed_buffer<T>(
     capacity: usize,
     name: &str,
@@ -150,17 +150,17 @@ where
     ))
 }
 
-/// Check for memory leaks and report
+/
 pub fn check_gpu_memory_leaks() -> Vec<String> {
     GPU_MEMORY_TRACKER.check_leaks()
 }
 
-/// Get current GPU memory usage
+/
 pub fn get_gpu_memory_usage() -> (usize, HashMap<String, usize>) {
     GPU_MEMORY_TRACKER.get_memory_usage()
 }
 
-/// Multiple CUDA stream manager for overlapped operations
+/
 pub struct MultiStreamManager {
     compute_stream: cust::stream::Stream,
     memory_stream: cust::stream::Stream,
@@ -199,7 +199,7 @@ impl MultiStreamManager {
         &self.analysis_stream
     }
 
-    /// Get next stream for round-robin load balancing
+    
     pub fn get_next_stream(&mut self) -> &cust::stream::Stream {
         let stream = match self.current_stream % 3 {
             0 => &self.compute_stream,
@@ -210,7 +210,7 @@ impl MultiStreamManager {
         stream
     }
 
-    /// Synchronize all streams
+    
     pub fn synchronize_all(&self) -> Result<(), cust::error::CudaError> {
         self.compute_stream.synchronize()?;
         self.memory_stream.synchronize()?;
@@ -218,19 +218,19 @@ impl MultiStreamManager {
         Ok(())
     }
 
-    /// Async synchronization using events
+    
     pub async fn synchronize_async(&self) -> Result<(), cust::error::CudaError> {
-        // Create events for each stream
+        
         let compute_event = cust::event::Event::new(cust::event::EventFlags::DEFAULT)?;
         let memory_event = cust::event::Event::new(cust::event::EventFlags::DEFAULT)?;
         let analysis_event = cust::event::Event::new(cust::event::EventFlags::DEFAULT)?;
 
-        // Record events
+        
         compute_event.record(&self.compute_stream)?;
         memory_event.record(&self.memory_stream)?;
         analysis_event.record(&self.analysis_stream)?;
 
-        // Poll for completion asynchronously
+        
         loop {
             let compute_done = compute_event
                 .query()
@@ -249,7 +249,7 @@ impl MultiStreamManager {
                 break;
             }
 
-            // Yield control to allow other async tasks
+            
             tokio::task::yield_now().await;
         }
 
@@ -257,7 +257,7 @@ impl MultiStreamManager {
     }
 }
 
-/// Label mapping cache for GPU performance optimization
+/
 use std::sync::RwLock;
 
 pub struct LabelMappingCache {
@@ -281,7 +281,7 @@ impl LabelMappingCache {
     {
         let key = labels.to_vec();
 
-        // Try to read from cache first
+        
         if let Ok(cache) = self.cached_mappings.read() {
             if let Some(cached_result) = cache.get(&key) {
                 self.cache_hits
@@ -290,13 +290,13 @@ impl LabelMappingCache {
             }
         }
 
-        // Cache miss - compute and store
+        
         self.cache_misses
             .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         let result = compute_fn(labels);
 
         if let Ok(mut cache) = self.cached_mappings.write() {
-            // Limit cache size to prevent memory bloat
+            
             if cache.len() > 1000 {
                 cache.clear();
                 debug!("Cleared label mapping cache to prevent memory bloat");

@@ -1,12 +1,4 @@
-/**
- * BotsDataContext - Unified data management for agent swarm visualization
- *
- * ARCHITECTURE (post-fix):
- * - REST polling for agent metadata (health, status, capabilities) via useAgentPolling hook
- * - WebSocket binary updates for real-time position/velocity data
- * - Single source of truth - no duplicate polling or race conditions
- * - Conservative polling: 3s active, 15s idle for metadata (positions are real-time via WS)
- */
+
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import type { BotsAgent, BotsEdge, BotsFullUpdateMessage } from '../types/BotsTypes';
 import { botsWebSocketIntegration } from '../services/BotsWebSocketIntegration';
@@ -23,9 +15,9 @@ interface BotsData {
   tokenCount: number;
   mcpConnected: boolean;
   dataSource: string;
-  // Enhanced fields for full agent data
+  
   agents: BotsAgent[];
-  edges: BotsEdge[];  // Added edges array
+  edges: BotsEdge[];  
   multiAgentMetrics?: {
     totalAgents: number;
     activeAgents: number;
@@ -54,14 +46,14 @@ interface BotsDataContextType {
 const BotsDataContext = createContext<BotsDataContextType | undefined>(undefined);
 
 export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Use the new polling hook for REST-based metadata updates
-  // Binary position updates come via WebSocket for real-time performance
+  
+  
   const pollingData = useAgentPolling({
     enabled: true,
     config: {
-      activePollingInterval: 3000,  // 3s for active (agent metadata updates)
-      idlePollingInterval: 15000,   // 15s for idle (reduced server load)
-      enableSmartPolling: true      // Auto-adjust based on activity
+      activePollingInterval: 3000,  
+      idlePollingInterval: 15000,   
+      enableSmartPolling: true      
     },
     onError: (error) => {
       logger.error('Polling error:', error);
@@ -75,7 +67,7 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     mcpConnected: false,
     dataSource: 'live',
     agents: [],
-    edges: []  // Initialize edges array
+    edges: []  
   });
 
   const updateBotsData = (data: BotsData) => {
@@ -87,7 +79,7 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       ...prev!,
       agents: update.agents || [],
       nodeCount: update.agents?.length || 0,
-      edgeCount: 0, // Will be calculated from communication patterns
+      edgeCount: 0, 
       tokenCount: update.multiAgentMetrics?.totalTokens || 0,
       mcpConnected: true,
       dataSource: 'live',
@@ -103,17 +95,17 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }));
   };
 
-  // Handler for graph data with type conversion
+  
   const updateFromGraphData = (data: any) => {
-    // Safety check for undefined data
+    
     if (!data) {
       logger.warn('updateFromGraphData received undefined data');
       return;
     }
     
-    // Transform backend nodes to BotsAgent format
+    
     const transformedAgents = (data.nodes || []).map((node: any) => {
-      // Read agent type from correct field - check multiple possible locations
+      
       const agentType = node.metadata?.agent_type || node.type || node.node_type || node.nodeType;
 
       if (!agentType) {
@@ -127,7 +119,7 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         });
       }
 
-      // Handle both nested position/velocity and flat x/y/z coordinates
+      
       const position = node.data?.position || {
         x: node.data?.x || 0,
         y: node.data?.y || 0,
@@ -141,15 +133,15 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       };
 
       return {
-        // Use metadataId (camelCase from API) as the agent ID (original string ID)
+        
         id: node.metadataId || node.metadata_id || String(node.id),
         name: node.label || node.metadata?.name || `Agent-${node.id}`,
         type: agentType,
-        status: node.metadata?.status || 'active', // 'active' is the default status in backend
+        status: node.metadata?.status || 'active', 
         position,
         velocity,
         force: { x: 0, y: 0, z: 0 },
-        // Parse numeric values from metadata (use camelCase for frontend)
+        
         cpuUsage: parseFloat(node.metadata?.cpu_usage || '0'),
         memoryUsage: parseFloat(node.metadata?.memory_usage || '0'),
         health: parseFloat(node.metadata?.health || '100'),
@@ -157,7 +149,7 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         tokens: parseInt(node.metadata?.tokens || '0'),
         createdAt: node.metadata?.created_at || new Date().toISOString(),
         age: parseInt(node.metadata?.age || '0'),
-        // Other fields from metadata
+        
         swarmId: node.metadata?.swarm_id,
         parentQueenId: node.metadata?.parent_queen_id,
         capabilities: node.metadata?.capabilities ? 
@@ -167,8 +159,8 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       };
     });
 
-    // Transform backend edges (u32 IDs) to frontend format (string IDs)
-    // Need to map numeric node IDs to agent string IDs
+    
+    
     const nodeIdToAgentId = new Map();
     data.nodes?.forEach((node: any) => {
       nodeIdToAgentId.set(node.id, node.metadataId || node.metadata_id || String(node.id));
@@ -178,8 +170,8 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       id: edge.id,
       source: nodeIdToAgentId.get(edge.source) || String(edge.source),
       target: nodeIdToAgentId.get(edge.target) || String(edge.target),
-      dataVolume: edge.weight * 1000,  // Use weight as proxy for data volume
-      messageCount: Math.floor(edge.weight * 10),  // Derive from weight
+      dataVolume: edge.weight * 1000,  
+      messageCount: Math.floor(edge.weight * 10),  
     }));
     
     setBotsData(prev => ({
@@ -195,17 +187,17 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }));
   };
 
-  // Handler for binary position updates
+  
   const updateFromBinaryPositions = (binaryData: ArrayBuffer) => {
     try {
-      // Parse binary data to get agent positions
+      
       const nodeUpdates = parseBinaryNodeData(binaryData);
 
-      // Filter for agent nodes only
+      
       const agentUpdates = nodeUpdates.filter(node => isAgentNode(node.nodeId));
 
       if (agentUpdates.length === 0) {
-        return; // No agent data to process
+        return; 
       }
 
       logger.debug(`Processing ${agentUpdates.length} agent position updates from binary data`);
@@ -213,25 +205,25 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setBotsData(prev => {
         if (!prev) return prev;
 
-        // Create updated agents array with new positions
+        
         const updatedAgents = prev.agents.map(agent => {
-          // Find matching position update by node ID
+          
           const positionUpdate = agentUpdates.find(update => {
             const actualNodeId = getActualNodeId(update.nodeId);
-            // Try to match by ID conversion (numeric to string)
+            
             return String(actualNodeId) === agent.id || actualNodeId.toString() === agent.id;
           });
 
           if (positionUpdate) {
-            // Merge binary position/velocity data with existing agent metadata
+            
             return {
               ...agent,
               position: positionUpdate.position,
               velocity: positionUpdate.velocity,
-              // Store additional SSSP data for path visualization
+              
               ssspDistance: positionUpdate.ssspDistance,
               ssspParent: positionUpdate.ssspParent,
-              // Update timestamp to indicate fresh data
+              
               lastPositionUpdate: Date.now()
             };
           }
@@ -250,7 +242,7 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  // Update botsData when polling data changes
+  
   useEffect(() => {
     if (pollingData.agents.length > 0 || pollingData.edges.length > 0) {
       setBotsData({
@@ -267,28 +259,28 @@ export const BotsDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, [pollingData]);
 
-  // Subscribe to WebSocket binary position updates ONLY
-  // REST polling is handled by useAgentPolling hook above
+  
+  
   useEffect(() => {
-    // Subscribe to binary position updates for real-time agent movement
+    
     const unsubscribe = botsWebSocketIntegration.on('bots-binary-position-update', (binaryData: ArrayBuffer) => {
       updateFromBinaryPositions(binaryData);
     });
 
-    // DO NOT subscribe to REST polling service here - it's handled by useAgentPolling hook
-    // This prevents duplicate polling and race conditions
+    
+    
 
     return () => {
       unsubscribe();
     };
   }, []);
 
-  // Provide both polling data and traditional botsData
+  
   const contextValue = useMemo(() => ({
     botsData,
     updateBotsData,
     updateFromFullUpdate,
-    // Additional polling controls
+    
     pollingStatus: {
       isPolling: pollingData.isPolling,
       activityLevel: pollingData.activityLevel,

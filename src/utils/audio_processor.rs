@@ -20,24 +20,24 @@ impl AudioProcessor {
     ) -> Result<(String, Vec<u8>), String> {
         let _settings = self.settings.read().await;
 
-        // Parse the JSON response
+        
         let json_response: Value = serde_json::from_slice(response_data)
             .map_err(|e| format!("Failed to parse JSON response: {}", e))?;
 
-        // Log the entire JSON response if data debug is enabled
+        
         info!(
             "Received JSON response: {}",
             serde_json::to_string_pretty(&json_response)
                 .unwrap_or_else(|_| "Unable to prettify JSON".to_string())
         );
 
-        // Check if the response contains an error message
+        
         if let Some(error_msg) = json_response["error"].as_str() {
             error!("Error in JSON response: {}", error_msg);
             return Err(format!("Error in JSON response: {}", error_msg));
         }
 
-        // Extract the text answer with better error handling
+        
         let answer = json_response["data"]["answer"]
             .as_str()
             .or_else(|| json_response["answer"].as_str())
@@ -47,7 +47,7 @@ impl AudioProcessor {
             })?
             .to_string();
 
-        // Try to extract the audio data from different possible locations with detailed logging
+        
         let audio_data = if let Some(audio) = json_response["data"]["audio"].as_str() {
             info!("Found audio data in data.audio");
             BASE64
@@ -59,7 +59,7 @@ impl AudioProcessor {
                 .decode(audio)
                 .map_err(|e| format!("Failed to decode base64 audio data from root.audio: {}", e))?
         } else {
-            // Log available paths in the JSON for debugging
+            
             warn!("Audio data not found in JSON response. Available paths:");
             if let Some(obj) = json_response.as_object() {
                 for (key, value) in obj {
@@ -85,7 +85,7 @@ impl AudioProcessor {
             audio_data.len()
         );
 
-        // Validate WAV header
+        
         if audio_data.len() >= 44 {
             info!("WAV header: {:?}", &audio_data[..44]);
 
@@ -94,7 +94,7 @@ impl AudioProcessor {
                 return Err("Invalid WAV header".to_string());
             }
 
-            // Extract and log WAV format information
+            
             let channels = u16::from_le_bytes([audio_data[22], audio_data[23]]);
             let sample_rate = u32::from_le_bytes([
                 audio_data[24],
@@ -168,19 +168,19 @@ mod tests {
         let processor = AudioProcessor::new(settings);
 
         let test_wav = vec![
-            b'R', b'I', b'F', b'F', // ChunkID
-            0x24, 0x00, 0x00, 0x00, // ChunkSize
-            b'W', b'A', b'V', b'E', // Format
-            b'f', b'm', b't', b' ', // Subchunk1ID
-            0x10, 0x00, 0x00, 0x00, // Subchunk1Size
-            0x01, 0x00, // AudioFormat (PCM)
-            0x01, 0x00, // NumChannels (Mono)
-            0x44, 0xAC, 0x00, 0x00, // SampleRate (44100)
-            0x88, 0x58, 0x01, 0x00, // ByteRate
-            0x02, 0x00, // BlockAlign
-            0x10, 0x00, // BitsPerSample (16)
-            b'd', b'a', b't', b'a', // Subchunk2ID
-            0x00, 0x00, 0x00, 0x00, // Subchunk2Size
+            b'R', b'I', b'F', b'F', 
+            0x24, 0x00, 0x00, 0x00, 
+            b'W', b'A', b'V', b'E', 
+            b'f', b'm', b't', b' ', 
+            0x10, 0x00, 0x00, 0x00, 
+            0x01, 0x00, 
+            0x01, 0x00, 
+            0x44, 0xAC, 0x00, 0x00, 
+            0x88, 0x58, 0x01, 0x00, 
+            0x02, 0x00, 
+            0x10, 0x00, 
+            b'd', b'a', b't', b'a', 
+            0x00, 0x00, 0x00, 0x00, 
         ];
 
         let json_data = json!({
@@ -206,7 +206,7 @@ mod tests {
         let settings = create_test_settings();
         let processor = AudioProcessor::new(settings);
 
-        let invalid_wav = vec![0x00; 44]; // Invalid WAV header
+        let invalid_wav = vec![0x00; 44]; 
         let json_data = json!({
             "data": {
                 "answer": "Test answer",

@@ -29,7 +29,7 @@ pub enum InferenceEngineError {
     ReasonerError(String),
 }
 
-/// Inference engine statistics
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InferenceStatistics {
     pub loaded_classes: usize,
@@ -39,36 +39,36 @@ pub struct InferenceStatistics {
     pub total_inferences: u64,
 }
 
-/// Port for ontology inference operations
+/
 #[async_trait]
 pub trait InferenceEngine: Send + Sync {
-    /// Load ontology for reasoning
+    
     async fn load_ontology(&mut self, classes: Vec<OwlClass>, axioms: Vec<OwlAxiom>) -> Result<()>;
 
-    /// Perform inference to derive new axioms
+    
     async fn infer(&mut self) -> Result<InferenceResults>;
 
-    /// Check if a specific axiom is entailed by the ontology
+    
     async fn is_entailed(&self, axiom: &OwlAxiom) -> Result<bool>;
 
-    /// Get all inferred subclass relationships
-    /// Returns Vec<(child_iri, parent_iri)>
+    
+    
     async fn get_subclass_hierarchy(&self) -> Result<Vec<(String, String)>>;
 
-    /// Classify instances into classes
-    /// Returns class IRIs that the instance belongs to
+    
+    
     async fn classify_instance(&self, instance_iri: &str) -> Result<Vec<String>>;
 
-    /// Check ontology consistency
+    
     async fn check_consistency(&self) -> Result<bool>;
 
-    /// Explain why an axiom is entailed
-    /// Returns the axioms that support the entailment
+    
+    
     async fn explain_entailment(&self, axiom: &OwlAxiom) -> Result<Vec<OwlAxiom>>;
 
-    /// Clear loaded ontology
+    
     async fn clear(&mut self) -> Result<()>;
 
-    /// Get inference engine statistics
+    
     async fn get_statistics(&self) -> Result<InferenceStatistics>;
 }

@@ -1,12 +1,4 @@
-/**
- * AgentPollingService - REST API polling for agent metadata updates
- *
- * ARCHITECTURE (post-fix):
- * - Polls REST /api/graph/data for agent metadata (health, status, capabilities)
- * - Conservative intervals: 2s active, 10s idle (reduced from 1s/5s)
- * - Does NOT handle position updates - those come via WebSocket binary protocol
- * - Single instance managed by BotsDataContext via useAgentPolling hook
- */
+
 import { createLogger } from '../../../utils/loggerConfig';
 import { unifiedApiClient } from '../../../services/api/UnifiedApiClient';
 import type { BotsAgent, BotsEdge } from '../types/BotsTypes';
@@ -17,9 +9,9 @@ const logger = createLogger('AgentPollingService');
 export interface AgentSwarmData {
   nodes: Array<{
     id: number;
-    metadataId: string; // API returns camelCase
+    metadataId: string; 
     label: string;
-    type?: string; // node_type is renamed to 'type' in API
+    type?: string; 
     data?: {
       nodeId?: number;
       x?: number;
@@ -63,9 +55,9 @@ export interface AgentSwarmData {
 }
 
 export interface PollingConfig {
-  activePollingInterval: number; // Default 2000ms for active tasks (metadata updates)
-  idlePollingInterval: number;   // Default 10000ms for idle (reduced load)
-  enableSmartPolling: boolean;   // Auto-adjust based on activity
+  activePollingInterval: number; 
+  idlePollingInterval: number;   
+  enableSmartPolling: boolean;   
   maxRetries: number;
   retryDelay: number;
 }
@@ -90,8 +82,8 @@ export class AgentPollingService {
 
   private constructor() {
     this.config = {
-      activePollingInterval: 2000,  // 2s for active tasks (reduced from 1s)
-      idlePollingInterval: 10000,   // 10s for idle (increased from 5s)
+      activePollingInterval: 2000,  
+      idlePollingInterval: 10000,   
       enableSmartPolling: true,
       maxRetries: 3,
       retryDelay: 2000
@@ -107,23 +99,19 @@ export class AgentPollingService {
     return AgentPollingService.instance;
   }
 
-  /**
-   * Configure polling parameters
-   */
+  
   public configure(config: Partial<PollingConfig>): void {
     this.config = { ...this.config, ...config };
     logger.debug('Polling configuration updated:', this.config);
     
-    // Restart polling with new config if active
+    
     if (this.isPolling) {
       this.stop();
       this.start();
     }
   }
 
-  /**
-   * Start polling for agent swarm data
-   */
+  
   public start(): void {
     if (this.isPolling) {
       logger.warn('Polling already active');
@@ -135,9 +123,7 @@ export class AgentPollingService {
     this.poll();
   }
 
-  /**
-   * Stop polling
-   */
+  
   public stop(): void {
     if (this.pollingTimer) {
       clearTimeout(this.pollingTimer);
@@ -147,16 +133,14 @@ export class AgentPollingService {
     logger.debug('Agent swarm polling stopped');
   }
 
-  /**
-   * Subscribe to polling updates
-   */
+  
   public subscribe(callback: PollingCallback, errorCallback?: ErrorCallback): () => void {
     this.callbacks.add(callback);
     if (errorCallback) {
       this.errorCallbacks.add(errorCallback);
     }
 
-    // Return unsubscribe function
+    
     return () => {
       this.callbacks.delete(callback);
       if (errorCallback) {
@@ -165,16 +149,14 @@ export class AgentPollingService {
     };
   }
 
-  /**
-   * Force an immediate poll
-   */
+  
   public async pollNow(): Promise<void> {
     if (!this.isPolling) {
       logger.warn('Cannot poll now - polling is not active');
       return;
     }
     
-    // Cancel existing timer
+    
     if (this.pollingTimer) {
       clearTimeout(this.pollingTimer);
       this.pollingTimer = null;
@@ -183,23 +165,17 @@ export class AgentPollingService {
     await this.poll();
   }
 
-  /**
-   * Get performance metrics
-   */
+  
   public getPerformanceMetrics() {
     return this.performanceMonitor.getMetrics();
   }
 
-  /**
-   * Reset performance metrics
-   */
+  
   public resetPerformanceMetrics(): void {
     this.performanceMonitor.reset();
   }
 
-  /**
-   * Get current polling status
-   */
+  
   public getStatus() {
     return {
       isPolling: this.isPolling,
@@ -212,36 +188,34 @@ export class AgentPollingService {
     };
   }
 
-  /**
-   * Main polling loop
-   */
+  
   private async poll(): Promise<void> {
     if (!this.isPolling) return;
 
     try {
       const startTime = Date.now();
       
-      // Fetch agent swarm data from REST API
+      
       const data = await unifiedApiClient.getData<AgentSwarmData>('/graph/data');
       
       const pollDuration = Date.now() - startTime;
       this.lastPollTime = Date.now();
-      this.retryCount = 0; // Reset retry count on success
+      this.retryCount = 0; 
 
-      // Check if data has changed (simple hash comparison)
+      
       const dataHash = this.hashData(data);
       const hasChanged = dataHash !== this.lastDataHash;
       this.lastDataHash = dataHash;
       
-      // Record performance metrics
+      
       this.performanceMonitor.recordPoll(pollDuration, hasChanged);
 
-      // Analyze activity level
+      
       if (this.config.enableSmartPolling) {
         this.updateActivityLevel(data, hasChanged);
       }
 
-      // Log poll metrics
+      
       if (hasChanged || Date.now() - this.lastActivityCheck > 10000) {
         logger.debug('Poll completed', {
           duration: pollDuration,
@@ -253,7 +227,7 @@ export class AgentPollingService {
         this.lastActivityCheck = Date.now();
       }
 
-      // Notify all subscribers if data changed
+      
       if (hasChanged) {
         this.callbacks.forEach(callback => {
           try {
@@ -268,27 +242,25 @@ export class AgentPollingService {
       this.handlePollingError(error as Error);
     }
 
-    // Schedule next poll
+    
     if (this.isPolling) {
       this.pollingTimer = setTimeout(() => this.poll(), this.currentInterval);
     }
   }
 
-  /**
-   * Update activity level based on agent metrics
-   */
+  
   private updateActivityLevel(data: AgentSwarmData, hasChanged: boolean): void {
     const activeAgents = data.metadata?.active_agents || 0;
     const totalAgents = data.metadata?.total_agents || 0;
     const activeRatio = totalAgents > 0 ? activeAgents / totalAgents : 0;
 
-    // Determine activity level
+    
     const wasActive = this.activityLevel === 'active';
     
-    // Switch to active if:
-    // - More than 20% of agents are active
-    // - Data is changing frequently
-    // - There are ongoing tasks
+    
+    
+    
+    
     if (activeRatio > 0.2 || hasChanged || (data.metadata?.total_tasks || 0) > (data.metadata?.completed_tasks || 0)) {
       this.activityLevel = 'active';
       this.currentInterval = this.config.activePollingInterval;
@@ -297,23 +269,21 @@ export class AgentPollingService {
       this.currentInterval = this.config.idlePollingInterval;
     }
 
-    // Log activity level changes
+    
     if (wasActive !== (this.activityLevel === 'active')) {
       logger.info(`Activity level changed to ${this.activityLevel}, interval: ${this.currentInterval}ms`);
     }
   }
 
-  /**
-   * Handle polling errors with retry logic
-   */
+  
   private handlePollingError(error: Error): void {
     this.retryCount++;
     logger.error('Polling error:', error, { retryCount: this.retryCount });
     
-    // Record error in performance monitor
+    
     this.performanceMonitor.recordError();
 
-    // Notify error callbacks
+    
     this.errorCallbacks.forEach(callback => {
       try {
         callback(error);
@@ -328,7 +298,7 @@ export class AgentPollingService {
       return;
     }
 
-    // Exponential backoff for retries
+    
     const retryDelay = this.config.retryDelay * Math.pow(2, this.retryCount - 1);
     logger.info(`Retrying poll in ${retryDelay}ms`);
     
@@ -337,9 +307,7 @@ export class AgentPollingService {
     }
   }
 
-  /**
-   * Simple hash function to detect data changes
-   */
+  
   private hashData(data: AgentSwarmData): string {
     const relevant = {
       nodeCount: data.nodes?.length || 0,
@@ -347,7 +315,7 @@ export class AgentPollingService {
       activeAgents: data.metadata?.active_agents || 0,
       totalTasks: data.metadata?.total_tasks || 0,
       completedTasks: data.metadata?.completed_tasks || 0,
-      // Include agent positions for change detection
+      
       positions: data.nodes?.map(n => 
         `${n.id}:${n.data?.position?.x?.toFixed(1)},${n.data?.position?.y?.toFixed(1)},${n.data?.position?.z?.toFixed(1)}`
       ).join('|')

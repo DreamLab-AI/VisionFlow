@@ -11,7 +11,7 @@ export const AutoBalanceIndicator: React.FC<AutoBalanceIndicatorProps> = ({ styl
   const [lastNotificationTime, setLastNotificationTime] = useState(0);
   
   useEffect(() => {
-    // Check if auto-balance is enabled
+    
     const checkAutoBalance = () => {
       const settings = useSettingsStore.getState().settings;
       const autoBalanceEnabled = settings?.visualisation?.graphs?.logseq?.physics?.autoBalance;
@@ -21,7 +21,7 @@ export const AutoBalanceIndicator: React.FC<AutoBalanceIndicatorProps> = ({ styl
         return;
       }
       
-      // Poll for recent notifications to determine if actively tuning
+      
       unifiedApiClient.get('/api/graph/auto-balance-notifications')
         .then(response => {
           const data = response.data;
@@ -30,10 +30,10 @@ export const AutoBalanceIndicator: React.FC<AutoBalanceIndicatorProps> = ({ styl
             const now = Date.now();
             const timeSinceLastNotification = now - latestNotification.timestamp;
 
-            // Consider active if there was a notification in the last 5 seconds
+            
             setIsActive(timeSinceLastNotification < 5000);
 
-            // If it's a "stable" notification, stop showing as active after 2 seconds
+            
             if (latestNotification.severity === 'success' && timeSinceLastNotification < 2000) {
               setTimeout(() => setIsActive(false), 2000);
             }
@@ -42,7 +42,7 @@ export const AutoBalanceIndicator: React.FC<AutoBalanceIndicatorProps> = ({ styl
         .catch(err => console.error('Failed to check auto-balance status:', err));
     };
     
-    // Check immediately and then every 2 seconds
+    
     checkAutoBalance();
     const interval = setInterval(checkAutoBalance, 2000);
     

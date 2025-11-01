@@ -37,10 +37,10 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
     initialLoad = true,
     pageSize = 20,
     enableRealtime = true,
-    cacheTimeout = 5 * 60 * 1000, // 5 minutes
+    cacheTimeout = 5 * 60 * 1000, 
   } = options;
 
-  // State management
+  
   const [state, setState] = useState<UseWorkspacesState>({
     workspaces: [],
     loading: false,
@@ -49,16 +49,16 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
     total: 0,
   });
 
-  // Filters and pagination
+  
   const [filters, setFilters] = useState<UseWorkspacesFilters>({});
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Refs for managing side effects
+  
   const abortControllerRef = useRef<AbortController | null>(null);
   const cacheRef = useRef<WorkspaceCache | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
 
-  // Check if we have valid cached data
+  
   const isValidCache = useCallback((cache: WorkspaceCache | null): boolean => {
     if (!cache) return false;
 
@@ -68,12 +68,12 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
     return !isExpired && filtersMatch;
   }, [filters, cacheTimeout]);
 
-  // Fetch workspaces with caching support
+  
   const fetchWorkspaces = useCallback(async (
     page: number = 1,
     appendToExisting: boolean = false
   ) => {
-    // Check cache first for initial loads
+    
     if (!appendToExisting && isValidCache(cacheRef.current)) {
       logger.info('Using cached workspace data');
       setState(prev => ({
@@ -85,7 +85,7 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
       return;
     }
 
-    // Cancel any ongoing request
+    
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -118,7 +118,7 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
         total: response.total,
       }));
 
-      // Update cache
+      
       if (!appendToExisting) {
         cacheRef.current = {
           data: response.workspaces,
@@ -134,7 +134,7 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
       });
 
     } catch (error) {
-      if (error.name === 'AbortError') return; // Request was cancelled
+      if (error.name === 'AbortError') return; 
 
       const errorMessage = error instanceof WorkspaceApiError
         ? error.message
@@ -150,7 +150,7 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
     }
   }, [filters, pageSize, isValidCache]);
 
-  // Load more workspaces (pagination)
+  
   const loadMore = useCallback(async () => {
     if (state.loading || !state.hasMore) return;
 
@@ -159,22 +159,22 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
     await fetchWorkspaces(nextPage, true);
   }, [state.loading, state.hasMore, currentPage, fetchWorkspaces]);
 
-  // Refresh workspaces (clear cache and reload)
+  
   const refresh = useCallback(async () => {
     cacheRef.current = null;
     setCurrentPage(1);
     await fetchWorkspaces(1, false);
   }, [fetchWorkspaces]);
 
-  // Update filters and refetch
+  
   const updateFilters = useCallback(async (newFilters: UseWorkspacesFilters) => {
     logger.info('Updating workspace filters', { newFilters });
     setFilters(newFilters);
     setCurrentPage(1);
-    cacheRef.current = null; // Clear cache when filters change
+    cacheRef.current = null; 
   }, []);
 
-  // Optimistic update helper
+  
   const optimisticallyUpdateWorkspace = useCallback((
     workspaceId: string,
     updates: Partial<Workspace>
@@ -188,7 +188,7 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
       ),
     }));
 
-    // Also update cache if it exists
+    
     if (cacheRef.current) {
       cacheRef.current.data = cacheRef.current.data.map(workspace =>
         workspace.id === workspaceId
@@ -198,21 +198,21 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
     }
   }, []);
 
-  // Create workspace with optimistic update
+  
   const createWorkspace = useCallback(async (data: CreateWorkspaceRequest): Promise<Workspace> => {
     try {
       logger.info('Creating workspace', { name: data.name });
 
       const newWorkspace = await workspaceApi.createWorkspace(data);
 
-      // Add to local state
+      
       setState(prev => ({
         ...prev,
         workspaces: [newWorkspace, ...prev.workspaces],
         total: prev.total + 1,
       }));
 
-      // Update cache
+      
       if (cacheRef.current) {
         cacheRef.current.data = [newWorkspace, ...cacheRef.current.data];
       }
@@ -230,12 +230,12 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
     }
   }, []);
 
-  // Update workspace with optimistic update
+  
   const updateWorkspace = useCallback(async (
     id: string,
     data: UpdateWorkspaceRequest
   ): Promise<Workspace> => {
-    // Optimistic update
+    
     optimisticallyUpdateWorkspace(id, data);
 
     try {
@@ -243,14 +243,14 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
 
       const updatedWorkspace = await workspaceApi.updateWorkspace(id, data);
 
-      // Update with server response
+      
       optimisticallyUpdateWorkspace(id, updatedWorkspace);
 
       logger.info('Workspace updated successfully', { id });
       return updatedWorkspace;
 
     } catch (error) {
-      // Revert optimistic update by refetching
+      
       await refresh();
 
       const errorMessage = error instanceof WorkspaceApiError
@@ -262,21 +262,21 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
     }
   }, [optimisticallyUpdateWorkspace, refresh]);
 
-  // Delete workspace
+  
   const deleteWorkspace = useCallback(async (id: string): Promise<void> => {
     try {
       logger.info('Deleting workspace', { id });
 
       await workspaceApi.deleteWorkspace(id);
 
-      // Remove from local state
+      
       setState(prev => ({
         ...prev,
         workspaces: prev.workspaces.filter(workspace => workspace.id !== id),
         total: prev.total - 1,
       }));
 
-      // Update cache
+      
       if (cacheRef.current) {
         cacheRef.current.data = cacheRef.current.data.filter(workspace => workspace.id !== id);
       }
@@ -293,12 +293,12 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
     }
   }, []);
 
-  // Toggle favorite with optimistic update
+  
   const toggleFavorite = useCallback(async (id: string): Promise<void> => {
     const workspace = state.workspaces.find(w => w.id === id);
     if (!workspace) return;
 
-    // Optimistic update
+    
     optimisticallyUpdateWorkspace(id, { favorite: !workspace.favorite });
 
     try {
@@ -306,13 +306,13 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
 
       const updatedWorkspace = await workspaceApi.toggleFavorite(id);
 
-      // Update with server response
+      
       optimisticallyUpdateWorkspace(id, { favorite: updatedWorkspace.favorite });
 
       logger.info('Workspace favorite toggled successfully', { id, favorite: updatedWorkspace.favorite });
 
     } catch (error) {
-      // Revert optimistic update
+      
       optimisticallyUpdateWorkspace(id, { favorite: workspace.favorite });
 
       const errorMessage = error instanceof WorkspaceApiError
@@ -324,9 +324,9 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
     }
   }, [state.workspaces, optimisticallyUpdateWorkspace]);
 
-  // Archive/unarchive workspace
+  
   const archiveWorkspace = useCallback(async (id: string, archive: boolean = true): Promise<void> => {
-    // Optimistic update
+    
     optimisticallyUpdateWorkspace(id, { status: archive ? 'archived' : 'active' });
 
     try {
@@ -334,13 +334,13 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
 
       const updatedWorkspace = await workspaceApi.archiveWorkspace(id, archive);
 
-      // Update with server response
+      
       optimisticallyUpdateWorkspace(id, { status: updatedWorkspace.status });
 
       logger.info('Workspace archive status updated', { id, status: updatedWorkspace.status });
 
     } catch (error) {
-      // Revert optimistic update by refetching
+      
       await refresh();
 
       const errorMessage = error instanceof WorkspaceApiError
@@ -352,14 +352,14 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
     }
   }, [optimisticallyUpdateWorkspace, refresh]);
 
-  // WebSocket connection for real-time updates
+  
   useEffect(() => {
     if (!enableRealtime) return;
 
     const connectWebSocket = () => {
       try {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}/ws/workspaces`;
+        const wsUrl = `${protocol}
 
         logger.info('Connecting to workspace WebSocket', { url: wsUrl });
 
@@ -403,7 +403,7 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
         wsRef.current.onclose = (event) => {
           logger.info('Workspace WebSocket disconnected', { code: event.code, reason: event.reason });
 
-          // Reconnect after 5 seconds if not a normal closure
+          
           if (event.code !== 1000) {
             setTimeout(connectWebSocket, 5000);
           }
@@ -428,21 +428,21 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
     };
   }, [enableRealtime, optimisticallyUpdateWorkspace]);
 
-  // Initial load effect
+  
   useEffect(() => {
     if (initialLoad) {
       fetchWorkspaces();
     }
   }, [initialLoad, fetchWorkspaces]);
 
-  // Re-fetch when filters change
+  
   useEffect(() => {
     if (filters) {
       fetchWorkspaces();
     }
   }, [filters, fetchWorkspaces]);
 
-  // Cleanup effect
+  
   useEffect(() => {
     return () => {
       if (abortControllerRef.current) {
@@ -455,25 +455,25 @@ export const useWorkspaces = (options: UseWorkspacesOptions = {}) => {
   }, []);
 
   return {
-    // State
+    
     ...state,
     filters,
     currentPage,
 
-    // Actions
+    
     fetchWorkspaces,
     loadMore,
     refresh,
     updateFilters,
 
-    // CRUD operations
+    
     createWorkspace,
     updateWorkspace,
     deleteWorkspace,
     toggleFavorite,
     archiveWorkspace,
 
-    // Computed values
+    
     activeWorkspaces: state.workspaces.filter(w => w.status === 'active'),
     archivedWorkspaces: state.workspaces.filter(w => w.status === 'archived'),
     favoriteWorkspaces: state.workspaces.filter(w => w.favorite),

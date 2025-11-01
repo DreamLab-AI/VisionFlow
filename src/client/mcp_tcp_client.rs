@@ -5,7 +5,7 @@ use std::time::Duration;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpStream;
 
-/// MCP TCP Client for querying multi-agent-container MCP server on port 9500
+/
 #[derive(Debug, Clone)]
 pub struct McpTelemetryClient {
     host: String,
@@ -15,7 +15,7 @@ pub struct McpTelemetryClient {
 }
 
 impl McpTelemetryClient {
-    /// Create a new MCP TCP client
+    
     pub fn new(host: String, port: u16) -> Self {
         Self {
             host,
@@ -25,18 +25,18 @@ impl McpTelemetryClient {
         }
     }
 
-    /// Create client for multi-agent-container
+    
     pub fn for_multi_agent_container() -> Self {
         Self::new("multi-agent-container".to_string(), 9500)
     }
 
-    /// Set request timeout
+    
     pub fn with_timeout(mut self, timeout: Duration) -> Self {
         self.request_timeout = timeout;
         self
     }
 
-    /// Connect to MCP TCP server
+    
     async fn connect(&self) -> Result<TcpStream, Box<dyn std::error::Error + Send + Sync>> {
         let addr = format!("{}:{}", self.host, self.port);
         debug!("Connecting to MCP TCP server at {}", addr);
@@ -48,7 +48,7 @@ impl McpTelemetryClient {
         Ok(stream)
     }
 
-    /// Send JSON-RPC request and receive response
+    
     async fn send_request(
         &mut self,
         method: &str,
@@ -56,7 +56,7 @@ impl McpTelemetryClient {
     ) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
         let mut stream = self.connect().await?;
 
-        // Build JSON-RPC request
+        
         let request_id = self.next_request_id;
         self.next_request_id += 1;
 
@@ -70,12 +70,12 @@ impl McpTelemetryClient {
         let request_str = serde_json::to_string(&request)?;
         debug!("Sending MCP request: {}", request_str);
 
-        // Send request
+        
         stream.write_all(request_str.as_bytes()).await?;
         stream.write_all(b"\n").await?;
         stream.flush().await?;
 
-        // Read response with timeout
+        
         let mut reader = BufReader::new(stream);
         let mut response_line = String::new();
 
@@ -83,7 +83,7 @@ impl McpTelemetryClient {
 
         debug!("Received MCP response: {}", response_line);
 
-        // Parse JSON-RPC response
+        
         let response: Value = serde_json::from_str(&response_line)?;
 
         if let Some(error) = response.get("error") {
@@ -93,7 +93,7 @@ impl McpTelemetryClient {
         Ok(response["result"].clone())
     }
 
-    /// List all available MCP tools
+    
     pub async fn list_tools(
         &mut self,
     ) -> Result<Vec<McpTool>, Box<dyn std::error::Error + Send + Sync>> {
@@ -105,7 +105,7 @@ impl McpTelemetryClient {
         Ok(tools)
     }
 
-    /// Call a specific MCP tool
+    
     pub async fn call_tool(
         &mut self,
         tool_name: &str,
@@ -119,7 +119,7 @@ impl McpTelemetryClient {
         self.send_request("tools/call", params).await
     }
 
-    /// Query session status by UUID
+    
     pub async fn query_session_status(
         &mut self,
         session_uuid: &str,
@@ -133,7 +133,7 @@ impl McpTelemetryClient {
         Ok(serde_json::from_value(result)?)
     }
 
-    /// Query agents in a specific session
+    
     pub async fn query_session_agents(
         &mut self,
         session_uuid: &str,
@@ -150,7 +150,7 @@ impl McpTelemetryClient {
         Ok(agents)
     }
 
-    /// Query session performance metrics
+    
     pub async fn query_session_metrics(
         &mut self,
         session_uuid: &str,
@@ -164,7 +164,7 @@ impl McpTelemetryClient {
         Ok(serde_json::from_value(result)?)
     }
 
-    /// List all active swarms
+    
     pub async fn query_swarm_list(
         &mut self,
     ) -> Result<Vec<SwarmInfo>, Box<dyn std::error::Error + Send + Sync>> {
@@ -178,7 +178,7 @@ impl McpTelemetryClient {
         Ok(swarms)
     }
 
-    /// Get swarm details by swarm ID
+    
     pub async fn query_swarm_metrics(
         &mut self,
         swarm_id: &str,
@@ -192,7 +192,7 @@ impl McpTelemetryClient {
         Ok(serde_json::from_value(result)?)
     }
 
-    /// Get agent-specific metrics
+    
     pub async fn query_agent_metrics(
         &mut self,
         agent_id: &str,
@@ -206,7 +206,7 @@ impl McpTelemetryClient {
         Ok(serde_json::from_value(result)?)
     }
 
-    /// Get system-wide performance summary
+    
     pub async fn query_performance_summary(
         &mut self,
     ) -> Result<PerformanceSummary, Box<dyn std::error::Error + Send + Sync>> {
@@ -217,7 +217,7 @@ impl McpTelemetryClient {
         Ok(serde_json::from_value(result)?)
     }
 
-    /// Ping MCP server to check connectivity
+    
     pub async fn ping(&mut self) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
         match self.send_request("ping", json!({})).await {
             Ok(_) => Ok(true),

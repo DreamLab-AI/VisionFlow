@@ -5,7 +5,7 @@ use tokio::sync::RwLock;
 
 use crate::events::types::{EventHandler, EventResult, StoredEvent};
 
-/// Handler that sends WebSocket notifications for events
+/
 pub struct NotificationEventHandler {
     handler_id: String,
     notifications: Arc<RwLock<Vec<Notification>>>,
@@ -92,7 +92,7 @@ impl NotificationEventHandler {
 #[async_trait]
 impl EventHandler for NotificationEventHandler {
     fn event_type(&self) -> &'static str {
-        // Notification handler handles ALL event types
+        
         "*"
     }
 
@@ -113,14 +113,14 @@ impl EventHandler for NotificationEventHandler {
         let mut notifications = self.notifications.write().await;
         notifications.push(notification);
 
-        // In a real implementation, this would send the notification via WebSocket
-        // For now, we just store it for later retrieval
+        
+        
 
         Ok(())
     }
 
     fn max_retries(&self) -> u32 {
-        2 // Retry once if notification fails
+        2 
     }
 }
 

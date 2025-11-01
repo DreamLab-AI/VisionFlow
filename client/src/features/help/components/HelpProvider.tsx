@@ -42,7 +42,7 @@ export function HelpProvider({ children }: HelpProviderProps) {
 
   const hideHelp = useCallback(() => {
     setIsHelpOpen(false);
-    setTimeout(() => setCurrentHelp(null), 300); // Clear after animation
+    setTimeout(() => setCurrentHelp(null), 300); 
   }, []);
 
   const toggleHelp = useCallback(() => {
@@ -68,7 +68,7 @@ function HelpPanel() {
       "bg-background border rounded-lg shadow-xl",
       "animate-in slide-in-from-right duration-200"
     )}>
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2">
           <HelpCircle className="h-5 w-5 text-primary" />
@@ -84,7 +84,7 @@ function HelpPanel() {
         </Button>
       </div>
 
-      {/* Content */}
+      {}
       <div className="p-4 overflow-y-auto max-h-[calc(100vh-12rem)]">
         <h4 className="font-medium text-lg mb-2">{currentHelp.title}</h4>
         <p className="text-sm text-muted-foreground mb-4">

@@ -2,7 +2,7 @@
 
 pub mod agent_monitor_actor;
 pub mod client_coordinator_actor;
-pub mod gpu; // Modular GPU actors system
+pub mod gpu; 
 pub mod graph_actor;
 pub mod metadata_actor;
 pub mod optimized_settings_actor;
@@ -10,7 +10,7 @@ pub mod physics_orchestrator_actor;
 pub mod protected_settings_actor;
 pub mod supervisor;
 pub mod voice_commands;
-// pub mod supervisor_voice; // Removed - duplicate handlers in supervisor.rs
+// pub mod supervisor_voice; 
 pub mod graph_messages;
 pub mod graph_service_supervisor;
 pub mod messages;
@@ -24,7 +24,7 @@ pub use agent_monitor_actor::AgentMonitorActor;
 pub use client_coordinator_actor::{
     ClientCoordinatorActor, ClientCoordinatorStats, ClientManager, ClientState,
 };
-pub use gpu::GPUManagerActor; // Modular GPU manager system
+pub use gpu::GPUManagerActor; 
 pub use graph_actor::GraphServiceActor;
 pub use graph_service_supervisor::{
     ActorHealth, ActorHeartbeat, ActorType, BackoffStrategy, GetSupervisorStatus,

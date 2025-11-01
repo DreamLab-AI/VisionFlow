@@ -4,11 +4,11 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::net::TcpStream;
 use tokio::sync::{RwLock, Semaphore};
-/// Async improvements for performance optimization
-/// Includes cancellation tokens and connection pooling
+/
+/
 use tokio_util::sync::CancellationToken;
 
-/// Connection pool for MCP connections
+/
 pub struct MCPConnectionPool {
     connections: Arc<RwLock<HashMap<String, PooledConnection>>>,
     max_connections_per_host: usize,
@@ -34,7 +34,7 @@ impl MCPConnectionPool {
             max_connections_per_host,
             connection_timeout,
             idle_timeout,
-            semaphore: Arc::new(Semaphore::new(max_connections_per_host * 10)), // Global limit
+            semaphore: Arc::new(Semaphore::new(max_connections_per_host * 10)), 
         }
     }
 
@@ -46,7 +46,7 @@ impl MCPConnectionPool {
         let _permit = self.semaphore.acquire().await?;
         let key = format!("{}:{}", host, port);
 
-        // Try to reuse existing connection
+        
         {
             let mut connections = self.connections.write().await;
             if let Some(conn) = connections.get_mut(&key) {
@@ -54,15 +54,15 @@ impl MCPConnectionPool {
                     conn.in_use = true;
                     conn.last_used = Instant::now();
                     debug!("Reusing existing connection to {}", key);
-                    // Clone the stream for return (simplified - real implementation would need proper handling)
-                    // Note: TcpStream doesn't implement Clone, so this is conceptual
-                    // In practice, you'd use a connection wrapper or different approach
+                    
+                    
+                    
                     return Err("Connection reuse needs proper implementation".into());
                 }
             }
         }
 
-        // Create new connection with timeout
+        
         debug!("Creating new connection to {}", key);
         let stream = tokio::time::timeout(
             self.connection_timeout,
@@ -70,11 +70,11 @@ impl MCPConnectionPool {
         )
         .await??;
 
-        // Store in pool (using a placeholder - this is a design issue that needs proper connection management)
+        
         {
             let _connections = self.connections.write().await;
-            // For now, we'll return the stream directly without pooling the individual connection
-            // A proper solution would need Arc<Mutex<TcpStream>> or a different approach
+            
+            
         }
 
         Ok(stream)
@@ -107,7 +107,7 @@ impl MCPConnectionPool {
         }
     }
 
-    /// Start background task to cleanup idle connections
+    
     pub fn start_cleanup_task(self: Arc<Self>, cancellation_token: CancellationToken) {
         let pool = self;
         let cleanup_interval = Duration::from_secs(60);
@@ -135,7 +135,7 @@ impl MCPConnectionPool {
     }
 }
 
-/// Enhanced tokio::spawn with cancellation support
+/
 pub fn spawn_with_cancellation<F>(
     future: F,
     cancellation_token: CancellationToken,
@@ -155,7 +155,7 @@ where
     })
 }
 
-/// Enhanced spawn with timeout and cancellation
+/
 pub fn spawn_with_timeout_and_cancellation<F, T>(
     future: F,
     timeout: Duration,
@@ -197,7 +197,7 @@ impl std::fmt::Display for SpawnError {
 
 impl std::error::Error for SpawnError {}
 
-/// Task manager for coordinating multiple async operations
+/
 pub struct TaskManager {
     tasks: Arc<RwLock<HashMap<String, tokio::task::JoinHandle<()>>>>,
     global_cancellation: CancellationToken,
@@ -256,7 +256,7 @@ impl TaskManager {
         self.tasks.read().await.len()
     }
 
-    /// Wait for all tasks to complete or be cancelled
+    
     pub async fn wait_for_all_tasks(&self, timeout: Option<Duration>) {
         let tasks = {
             let mut tasks_guard = self.tasks.write().await;
@@ -283,7 +283,7 @@ impl TaskManager {
     }
 }
 
-/// Global task manager instance
+/
 static GLOBAL_TASK_MANAGER: tokio::sync::OnceCell<TaskManager> = tokio::sync::OnceCell::const_new();
 
 pub async fn get_global_task_manager() -> &'static TaskManager {
@@ -292,7 +292,7 @@ pub async fn get_global_task_manager() -> &'static TaskManager {
         .await
 }
 
-/// Convenience function for spawning tasks with automatic registration
+/
 pub async fn spawn_managed_task<F>(name: String, future: F)
 where
     F: std::future::Future<Output = ()> + Send + 'static,
@@ -301,7 +301,7 @@ where
     manager.spawn_task(name, future).await;
 }
 
-/// Shutdown helper for graceful application termination
+/
 pub async fn graceful_shutdown(timeout: Duration) {
     let manager = get_global_task_manager().await;
 

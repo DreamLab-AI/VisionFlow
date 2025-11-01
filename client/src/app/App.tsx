@@ -28,7 +28,7 @@ const logger = createLogger('App');
 // Initialize remote logging for Quest 3 debugging
 if (typeof window !== 'undefined') {
   console.log('[RemoteLogger] Initializing remote logging service...');
-  remoteLogger.logXRInfo(); // Log XR capabilities on startup
+  remoteLogger.logXRInfo(); 
 }
 
 function App() {
@@ -40,23 +40,23 @@ function App() {
     enableAutoStart: false
   });
 
-  // Initialize bots WebSocket integration
+  
   const botsConnectionStatus = useBotsWebSocketIntegration();
   
-  // Initialize auto-balance notifications polling
+  
   useAutoBalanceNotifications();
 
-  // Check if we should use immersive client (new Babylon.js implementation)
+  
   const shouldUseImmersiveClient = () => {
     const userAgent = navigator.userAgent;
-    // Check with original case (Quest 3 browsers use "Quest 3" with capital letters)
+    
     const isQuest3Browser = userAgent.includes('Quest 3') ||
                             userAgent.includes('Quest3') ||
                             userAgent.includes('OculusBrowser') ||
                             (userAgent.includes('VR') && userAgent.includes('Quest')) ||
                             userAgent.toLowerCase().includes('meta quest');
 
-    // Check for force parameter
+    
     const forceQuest3 = window.location.search.includes('force=quest3') ||
                         window.location.search.includes('directar=true') ||
                         window.location.search.includes('immersive=true');
@@ -65,7 +65,7 @@ function App() {
   };
 
   useEffect(() => {
-    // Initialize command palette, help system, and onboarding on first load
+    
     if (initialized) {
       initializeCommandPalette();
       registerSettingsHelp();

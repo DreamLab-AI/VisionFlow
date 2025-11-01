@@ -1,7 +1,4 @@
-/**
- * Performance optimizations for dual graph visualization
- * Implements LOD, frustum culling, instanced rendering improvements, and SharedArrayBuffer communication
- */
+
 
 import * as THREE from 'three';
 import { createLogger } from './loggerConfig';
@@ -87,13 +84,13 @@ export class InstancedRenderingManager {
     geometryFactory: () => THREE.BufferGeometry,
     materialFactory: () => THREE.Material
   ): THREE.InstancedMesh {
-    // Get or create geometry
+    
     if (!this.geometryPool.has(geometryKey)) {
       const geometry = geometryFactory();
       this.geometryPool.set(geometryKey, geometry);
     }
     
-    // Get or create material
+    
     if (!this.materialPool.has(materialKey)) {
       const material = materialFactory();
       this.materialPool.set(materialKey, material);
@@ -105,7 +102,7 @@ export class InstancedRenderingManager {
     const count = Math.min(instanceCount, this.maxInstances);
     const mesh = new THREE.InstancedMesh(geometry, material, count);
     
-    // Enable automatic frustum culling per instance
+    
     mesh.frustumCulled = true;
     
     return mesh;
@@ -122,7 +119,7 @@ export class InstancedRenderingManager {
     let renderedCount = 0;
     let culledCount = 0;
     
-    // Create instance color attribute if it doesn't exist
+    
     if (!mesh.geometry.attributes.instanceColor) {
       const colors = new Float32Array(mesh.count * 3);
       mesh.geometry.setAttribute('instanceColor', new THREE.InstancedBufferAttribute(colors, 3));
@@ -133,7 +130,7 @@ export class InstancedRenderingManager {
     for (let i = 0; i < Math.min(nodes.length, mesh.count); i++) {
       const node = nodes[i];
       
-      // Check if node should be rendered based on LOD and frustum culling
+      
       let shouldRender = true;
       
       if (lodManager && !lodManager.shouldRenderNode(node.position)) {
@@ -145,19 +142,19 @@ export class InstancedRenderingManager {
       }
       
       if (shouldRender) {
-        // Set transformation matrix
+        
         const scale = node.scale || 1;
         matrix.makeScale(scale, scale, scale);
         matrix.setPosition(node.position);
         mesh.setMatrixAt(i, matrix);
         
-        // Set color
+        
         const nodeColor = node.color || new THREE.Color(0x00ffff);
         colorAttribute.setXYZ(i, nodeColor.r, nodeColor.g, nodeColor.b);
         
         renderedCount++;
       } else {
-        // Hide instance by scaling to zero
+        
         matrix.makeScale(0, 0, 0);
         matrix.setPosition(0, 0, 0);
         mesh.setMatrixAt(i, matrix);
@@ -165,7 +162,7 @@ export class InstancedRenderingManager {
       }
     }
     
-    // Update instance matrices and colors
+    
     mesh.instanceMatrix.needsUpdate = true;
     colorAttribute.needsUpdate = true;
     mesh.count = renderedCount;
@@ -204,14 +201,14 @@ export class SharedBufferCommunication {
     if (!this.supported) return false;
     
     try {
-      // Allocate space for positions (3 floats per node) + metadata (1 int per node)
-      const positionBytes = nodeCount * 3 * 4; // 3 floats * 4 bytes
-      const metadataBytes = nodeCount * 4; // 1 int * 4 bytes
+      
+      const positionBytes = nodeCount * 3 * 4; 
+      const metadataBytes = nodeCount * 4; 
       const totalBytes = positionBytes + metadataBytes;
       
       this.sharedBuffer = new SharedArrayBuffer(totalBytes);
       
-      // Create typed array views
+      
       this.positionArray = new Float32Array(this.sharedBuffer, 0, nodeCount * 3);
       this.metadataArray = new Int32Array(this.sharedBuffer, positionBytes, nodeCount);
       
@@ -334,7 +331,7 @@ class OctreeNode {
       }
     }
     
-    // If no child could contain it, store in this node
+    
     this.objects.push(object);
     return true;
   }
@@ -402,7 +399,7 @@ export class DualGraphOptimizer {
   public initializeOptimizations(camera: THREE.Camera, renderer: THREE.WebGLRenderer) {
     this.lodManager.setCamera(camera);
     
-    // Initialize spatial partitioning for large graphs
+    
     const bounds = new THREE.Box3(
       new THREE.Vector3(-100, -100, -100),
       new THREE.Vector3(100, 100, 100)

@@ -12,24 +12,24 @@ use log::{debug, error, info, warn};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
-/// Supervision strategy for handling actor failures
+/
 #[derive(Debug, Clone)]
 pub enum SupervisionStrategy {
-    /// Restart the failed actor immediately
+    
     Restart,
-    /// Restart after a delay with exponential backoff
+    
     RestartWithBackoff {
         initial_delay: Duration,
         max_delay: Duration,
         multiplier: f64,
     },
-    /// Escalate the error to parent supervisor
+    
     Escalate,
-    /// Stop the actor permanently
+    
     Stop,
 }
 
-/// Information about a supervised actor
+/
 #[derive(Debug, Clone)]
 pub struct SupervisedActorInfo {
     pub name: String,
@@ -42,7 +42,7 @@ pub struct SupervisedActorInfo {
     pub last_heartbeat: DateTime<Utc>,
 }
 
-/// Internal state tracking for supervised actors
+/
 #[derive(Debug)]
 struct ActorState {
     actor_info: SupervisedActorInfo,
@@ -53,7 +53,7 @@ struct ActorState {
     session_id: Option<String>,
 }
 
-/// Messages for the supervisor
+/
 #[derive(Message)]
 #[rtype(result = "Result<(), VisionFlowError>")]
 pub struct RegisterActor {
@@ -80,7 +80,7 @@ pub struct ActorStarted {
 #[rtype(result = "Result<SupervisionStatus, VisionFlowError>")]
 pub struct GetSupervisionStatus;
 
-/// Status information about supervised actors
+/
 #[derive(Debug, Clone)]
 pub struct SupervisionStatus {
     pub total_actors: usize,
@@ -98,7 +98,7 @@ pub struct ActorStatusInfo {
     pub strategy: SupervisionStrategy,
 }
 
-/// The supervisor actor that manages other actors
+/
 pub struct SupervisorActor {
     supervised_actors: HashMap<String, ActorState>,
     supervisor_name: String,
@@ -113,7 +113,7 @@ impl SupervisorActor {
     }
 
     fn should_restart(&self, actor_name: &str, state: &ActorState) -> bool {
-        // Check if we've exceeded maximum restart count within the window
+        
         if state.restart_count >= state.actor_info.max_restart_count {
             if let Some(last_restart) = state.last_restart {
                 if last_restart.elapsed() < state.actor_info.restart_window {
@@ -125,7 +125,7 @@ impl SupervisorActor {
                     );
                     return false;
                 }
-                // Window has passed, reset restart count
+                
             }
         }
         true
@@ -170,9 +170,9 @@ impl SupervisorActor {
             ctx.run_later(delay, move |_act, ctx| {
                 info!("Attempting to restart actor '{}'", actor_name_clone);
 
-                // In a real implementation, this would call a factory method
-                // to recreate the specific actor type. For now, we just mark
-                // the restart attempt.
+                
+                
+                
                 ctx.notify(RestartAttempt {
                     actor_name: actor_name_clone,
                     supervisor_name,
@@ -239,10 +239,10 @@ impl Handler<ActorFailed> for SupervisorActor {
             state.is_running = false;
             let strategy = state.actor_info.strategy.clone();
 
-            // FIX: Simplified logic to avoid borrowing issues and incorrect drop
+            
             let should_restart = match &strategy {
                 SupervisionStrategy::Restart | SupervisionStrategy::RestartWithBackoff { .. } => {
-                    // Check restart limits directly on the state
+                    
                     if state.restart_count >= state.actor_info.max_restart_count {
                         if let Some(last_restart) = state.last_restart {
                             if last_restart.elapsed() < state.actor_info.restart_window {
@@ -251,7 +251,7 @@ impl Handler<ActorFailed> for SupervisorActor {
                                       state.actor_info.restart_window);
                                 false
                             } else {
-                                // Window has passed, reset counter and allow restart
+                                
                                 state.restart_count = 0;
                                 true
                             }
@@ -265,7 +265,7 @@ impl Handler<ActorFailed> for SupervisorActor {
                 _ => false,
             };
 
-            // Now handle the strategy
+            
             match strategy {
                 SupervisionStrategy::Restart => {
                     if should_restart {
@@ -292,7 +292,7 @@ impl Handler<ActorFailed> for SupervisorActor {
                         "Escalating failure of actor '{}' to parent supervisor",
                         msg.actor_name
                     );
-                    // In a real implementation, this would notify a parent supervisor
+                    
                 }
                 SupervisionStrategy::Stop => {
                     info!(
@@ -370,15 +370,15 @@ impl Handler<RestartAttempt> for SupervisorActor {
     fn handle(&mut self, msg: RestartAttempt, _ctx: &mut Self::Context) {
         debug!("Processing restart attempt for actor '{}'", msg.actor_name);
 
-        // In a real implementation, this would:
-        // 1. Call the appropriate factory method to recreate the actor
-        // 2. Start the new actor instance
-        // 3. Update the supervision state
-        // 4. Notify other parts of the system about the restart
+        
+        
+        
+        
+        
 
         if let Some(state) = self.supervised_actors.get_mut(&msg.actor_name) {
-            // For now, just mark as running (in real implementation, this would happen
-            // after successful restart)
+            
+            
             state.is_running = true;
             info!("Actor '{}' restart attempt completed", msg.actor_name);
         }
@@ -388,181 +388,9 @@ impl Handler<RestartAttempt> for SupervisorActor {
 // DEPRECATED: Voice command handler removed - uses legacy DockerHiveMind
 // Replace with TaskOrchestratorActor integration
 
-/*
-/// Handler for voice commands from the speech system
-impl Handler<VoiceCommand> for SupervisorActor {
-    type Result = Result<SwarmVoiceResponse, String>;
 
-    fn handle(&mut self, msg: VoiceCommand, _ctx: &mut Self::Context) -> Self::Result {
-        info!("Supervisor processing voice command: {:?} (tag: {:?})",
-              msg.parsed_intent, msg.voice_tag);
 
-        // Process voice command and generate appropriate response
-        let response_text = match &msg.parsed_intent {
-            crate::actors::voice_commands::SwarmIntent::SpawnAgent { agent_type, .. } => {
-                // Use DockerHiveMind to spawn real agents
-                let hive_mind = crate::utils::docker_hive_mind::create_docker_hive_mind();
-                let task_description = format!("Spawn {} agent for multi-agent coordination", agent_type);
-
-                match tokio::task::block_in_place(|| {
-                    tokio::runtime::Handle::current().block_on(
-                        hive_mind.spawn_swarm(&task_description, crate::utils::docker_hive_mind::SwarmConfig::default())
-                    )
-                }) {
-                    Ok(session_id) => {
-                        // Track the spawned agent
-                        let actor_info = SupervisedActorInfo {
-                            name: format!("{}_{}", agent_type, session_id),
-                            strategy: SupervisionStrategy::Restart,
-                            max_restart_count: 3,
-                            restart_window: Duration::from_secs(60),
-                            actor_type: agent_type.clone(),
-                            is_running: true,
-                            session_id: Some(session_id.clone()),
-                            last_heartbeat: chrono::Utc::now(),
-                        };
-                        let actor_state = ActorState {
-                            actor_info,
-                            restart_count: 0,
-                            last_restart: None,
-                            current_delay: Duration::from_secs(1),
-                            is_running: true,
-                            session_id: Some(session_id.clone()),
-                        };
-                        self.supervised_actors.insert(session_id.clone(), actor_state);
-
-                        format!("Successfully spawned {} agent with session ID: {}", agent_type, session_id)
-                    }
-                    Err(e) => {
-                        error!("Failed to spawn {} agent: {}", agent_type, e);
-                        format!("Failed to spawn {} agent: {}", agent_type, e)
-                    }
-                }
-            },
-            crate::actors::voice_commands::SwarmIntent::QueryStatus { target } => {
-                let target_str = target.as_ref().map(|s| s.as_str()).unwrap_or("all");
-                let running_count = self.supervised_actors.values()
-                    .filter(|actor| actor.is_running)
-                    .count();
-                format!("Status for {}: {} supervised actors running", target_str, running_count)
-            },
-            crate::actors::voice_commands::SwarmIntent::ListAgents => {
-                let agent_names: Vec<String> = self.supervised_actors.keys().cloned().collect();
-                if agent_names.is_empty() {
-                    "No supervised actors are currently registered".to_string()
-                } else {
-                    format!("Supervised actors: {}", agent_names.join(", "))
-                }
-            },
-            crate::actors::voice_commands::SwarmIntent::StopAgent { agent_id } => {
-                if let Some(actor_info) = self.supervised_actors.get_mut(agent_id) {
-                    if let Some(ref session_id) = actor_info.session_id {
-                        // Use DockerHiveMind to terminate the agent
-                        let hive_mind = crate::utils::docker_hive_mind::create_docker_hive_mind();
-
-                        match tokio::task::block_in_place(|| {
-                            tokio::runtime::Handle::current().block_on(
-                                hive_mind.terminate_swarm(session_id)
-                            )
-                        }) {
-                            Ok(_) => {
-                                actor_info.is_running = false;
-                                format!("Successfully stopped agent: {}", agent_id)
-                            }
-                            Err(e) => {
-                                error!("Failed to stop agent {}: {}", agent_id, e);
-                                format!("Failed to stop agent {}: {}", agent_id, e)
-                            }
-                        }
-                    } else {
-                        actor_info.is_running = false;
-                        format!("Stopped agent: {} (no active session)", agent_id)
-                    }
-                } else {
-                    format!("Agent {} not found", agent_id)
-                }
-            },
-            crate::actors::voice_commands::SwarmIntent::ExecuteTask { description, .. } => {
-                // Use DockerHiveMind to execute tasks
-                let hive_mind = crate::utils::docker_hive_mind::create_docker_hive_mind();
-
-                match tokio::task::block_in_place(|| {
-                    tokio::runtime::Handle::current().block_on(
-                        hive_mind.spawn_swarm(description, crate::utils::docker_hive_mind::SwarmConfig {
-                            priority: crate::utils::docker_hive_mind::SwarmPriority::High,
-                            strategy: crate::utils::docker_hive_mind::SwarmStrategy::Tactical,
-                            ..Default::default()
-                        })
-                    )
-                }) {
-                    Ok(session_id) => {
-                        // Track the task execution session
-                        let task_info = SupervisedActorInfo {
-                            name: format!("task-executor_{}", session_id),
-                            strategy: SupervisionStrategy::Restart,
-                            max_restart_count: 3,
-                            restart_window: Duration::from_secs(60),
-                            actor_type: "task-executor".to_string(),
-                            is_running: true,
-                            session_id: Some(session_id.clone()),
-                            last_heartbeat: chrono::Utc::now(),
-                        };
-                        let actor_state = ActorState {
-                            actor_info: task_info,
-                            restart_count: 0,
-                            last_restart: None,
-                            current_delay: Duration::from_secs(1),
-                            is_running: true,
-                            session_id: Some(session_id.clone()),
-                        };
-                        self.supervised_actors.insert(session_id.clone(), actor_state);
-
-                        format!("Task execution started with session ID: {}", session_id)
-                    }
-                    Err(e) => {
-                        error!("Failed to execute task '{}': {}", description, e);
-                        format!("Failed to execute task: {}", e)
-                    }
-                }
-            },
-            crate::actors::voice_commands::SwarmIntent::UpdateGraph { .. } => {
-                // Request graph update from GraphServiceActor
-                // Graph service functionality temporarily disabled for compilation
-                warn!("Graph service temporarily disabled for compilation");
-                "Graph service temporarily disabled - operation skipped".to_string()
-            },
-            crate::actors::voice_commands::SwarmIntent::Help => {
-                "I can help you spawn agents, check status, list agents, or execute tasks. What would you like to do?".to_string()
-            }
-        };
-
-        // Create response with tag if present
-        let mut response = SwarmVoiceResponse {
-            text: response_text,
-            use_voice: msg.respond_via_voice,
-            metadata: None,
-            follow_up: None,
-            voice_tag: msg.voice_tag.clone(),
-            is_final: Some(true),
-        };
-
-        // Add contextual follow-up for certain commands
-        match &msg.parsed_intent {
-            crate::actors::voice_commands::SwarmIntent::SpawnAgent { .. } => {
-                response.follow_up = Some("What would you like the agent to do?".to_string());
-            },
-            crate::actors::voice_commands::SwarmIntent::Help => {
-                response.follow_up = Some("Try saying 'spawn researcher agent' or 'show status'.".to_string());
-            },
-            _ => {}
-        }
-
-        Ok(response)
-    }
-}
-*/
-
-/// Helper trait for actors to integrate with supervision
+/
 pub trait SupervisedActorTrait: Actor {
     fn actor_name() -> &'static str;
 
@@ -579,10 +407,10 @@ pub trait SupervisedActorTrait: Actor {
     }
 
     fn restart_window() -> Duration {
-        Duration::from_secs(300) // 5 minutes
+        Duration::from_secs(300) 
     }
 
-    /// Called when the actor encounters an error that might require supervision
+    
     fn report_error(&self, supervisor: &Addr<SupervisorActor>, error: VisionFlowError) {
         supervisor.do_send(ActorFailed {
             actor_name: Self::actor_name().to_string(),
@@ -623,7 +451,7 @@ mod tests {
     async fn test_actor_failure_handling() {
         let supervisor = SupervisorActor::new("TestSupervisor".to_string()).start();
 
-        // Register an actor
+        
         let register_msg = RegisterActor {
             actor_name: "TestActor".to_string(),
             strategy: SupervisionStrategy::Restart,
@@ -633,7 +461,7 @@ mod tests {
 
         supervisor.send(register_msg).await.unwrap().unwrap();
 
-        // Simulate actor failure
+        
         let failure_msg = ActorFailed {
             actor_name: "TestActor".to_string(),
             error: VisionFlowError::Actor(ActorError::RuntimeFailure {
@@ -644,7 +472,7 @@ mod tests {
 
         supervisor.send(failure_msg).await.unwrap();
 
-        // Give some time for processing
+        
         sleep(Duration::from_millis(100)).await;
 
         let status = supervisor

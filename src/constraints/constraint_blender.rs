@@ -4,22 +4,22 @@
 use super::physics_constraint::*;
 use super::priority_resolver::*;
 
-/// Blending strategy for constraint resolution
+/
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum BlendingStrategy {
-    /// Weighted average based on priority weights
+    
     WeightedAverage,
 
-    /// Take maximum value (strongest constraint wins)
+    
     Maximum,
 
-    /// Take minimum value (weakest constraint wins)
+    
     Minimum,
 
-    /// Highest priority only (no blending)
+    
     HighestPriority,
 
-    /// Median value (robust to outliers)
+    
     Median,
 }
 
@@ -29,19 +29,19 @@ impl Default for BlendingStrategy {
     }
 }
 
-/// Configuration for constraint blending
+/
 #[derive(Debug, Clone)]
 pub struct BlenderConfig {
     pub strategy: BlendingStrategy,
 
-    /// Threshold for considering constraints as conflicting
-    /// If distance difference < threshold, don't blend
+    
+    
     pub conflict_threshold: f32,
 
-    /// Whether to preserve user-defined constraints unchanged
+    
     pub preserve_user_defined: bool,
 
-    /// Whether to normalize weights before blending
+    
     pub normalize_weights: bool,
 }
 
@@ -56,25 +56,25 @@ impl Default for BlenderConfig {
     }
 }
 
-/// Advanced constraint blender with multiple strategies
+/
 pub struct ConstraintBlender {
     config: BlenderConfig,
 }
 
 impl ConstraintBlender {
-    /// Create a new constraint blender with default configuration
+    
     pub fn new() -> Self {
         Self {
             config: BlenderConfig::default(),
         }
     }
 
-    /// Create a new constraint blender with custom configuration
+    
     pub fn with_config(config: BlenderConfig) -> Self {
         Self { config }
     }
 
-    /// Blend multiple constraints for the same node pair
+    
     pub fn blend_constraints(
         &self,
         constraints: &[PhysicsConstraint],
@@ -83,19 +83,19 @@ impl ConstraintBlender {
             return None;
         }
 
-        // Single constraint - return as-is
+        
         if constraints.len() == 1 {
             return Some(constraints[0].clone());
         }
 
-        // User-defined constraint present - use it if config says so
+        
         if self.config.preserve_user_defined {
             if let Some(user_constraint) = constraints.iter().find(|c| c.user_defined) {
                 return Some(user_constraint.clone());
             }
         }
 
-        // Check if constraints are similar enough to not need blending
+        
         if !self.has_significant_conflict(constraints) {
             return Some(
                 constraints
@@ -106,7 +106,7 @@ impl ConstraintBlender {
             );
         }
 
-        // Group by constraint type
+        
         let separation_constraints: Vec<_> = constraints
             .iter()
             .filter(|c| matches!(c.constraint_type, PhysicsConstraintType::Separation { .. }))
@@ -122,7 +122,7 @@ impl ConstraintBlender {
             .filter(|c| matches!(c.constraint_type, PhysicsConstraintType::Colocation { .. }))
             .collect();
 
-        // Blend the largest group
+        
         if !separation_constraints.is_empty() {
             self.blend_separation_constraints(&separation_constraints)
         } else if !clustering_constraints.is_empty() {
@@ -130,7 +130,7 @@ impl ConstraintBlender {
         } else if !colocation_constraints.is_empty() {
             self.blend_colocation_constraints(&colocation_constraints)
         } else {
-            // For other types, use highest priority
+            
             Some(
                 constraints
                     .iter()
@@ -141,7 +141,7 @@ impl ConstraintBlender {
         }
     }
 
-    /// Check if constraints have significant conflict
+    
     fn has_significant_conflict(&self, constraints: &[PhysicsConstraint]) -> bool {
         let distances: Vec<f32> = constraints
             .iter()
@@ -163,7 +163,7 @@ impl ConstraintBlender {
         (max_distance - min_distance) > self.config.conflict_threshold
     }
 
-    /// Blend separation constraints
+    
     fn blend_separation_constraints(
         &self,
         constraints: &[&PhysicsConstraint],
@@ -195,7 +195,7 @@ impl ConstraintBlender {
         ))
     }
 
-    /// Blend clustering constraints
+    
     fn blend_clustering_constraints(
         &self,
         constraints: &[&PhysicsConstraint],
@@ -227,7 +227,7 @@ impl ConstraintBlender {
         ))
     }
 
-    /// Blend colocation constraints
+    
     fn blend_colocation_constraints(
         &self,
         constraints: &[&PhysicsConstraint],
@@ -259,7 +259,7 @@ impl ConstraintBlender {
         ))
     }
 
-    /// Generic parameter blending using configured strategy
+    
     fn blend_parameters<F1, F2>(
         &self,
         constraints: &[&PhysicsConstraint],
@@ -288,7 +288,7 @@ impl ConstraintBlender {
         (blended_distance, blended_strength)
     }
 
-    /// Blend values using configured strategy
+    
     fn blend_values(&self, values: &[f32], weights: &[f32]) -> f32 {
         if values.is_empty() {
             return 0.0;
@@ -298,12 +298,12 @@ impl ConstraintBlender {
             BlendingStrategy::WeightedAverage => self.weighted_average(values, weights),
             BlendingStrategy::Maximum => self.maximum(values),
             BlendingStrategy::Minimum => self.minimum(values),
-            BlendingStrategy::HighestPriority => values[0], // Assumes sorted by priority
+            BlendingStrategy::HighestPriority => values[0], 
             BlendingStrategy::Median => self.median(values),
         }
     }
 
-    /// Weighted average: Σ(weight_i × value_i) / Σ(weight_i)
+    
     fn weighted_average(&self, values: &[f32], weights: &[f32]) -> f32 {
         if values.is_empty() || weights.is_empty() {
             return 0.0;
@@ -327,7 +327,7 @@ impl ConstraintBlender {
         }
     }
 
-    /// Maximum value
+    
     fn maximum(&self, values: &[f32]) -> f32 {
         values
             .iter()
@@ -335,12 +335,12 @@ impl ConstraintBlender {
             .fold(f32::NEG_INFINITY, f32::max)
     }
 
-    /// Minimum value
+    
     fn minimum(&self, values: &[f32]) -> f32 {
         values.iter().cloned().fold(f32::INFINITY, f32::min)
     }
 
-    /// Median value (robust to outliers)
+    
     fn median(&self, values: &[f32]) -> f32 {
         if values.is_empty() {
             return 0.0;
@@ -357,7 +357,7 @@ impl ConstraintBlender {
         }
     }
 
-    /// Calculate average priority (weighted)
+    
     fn calculate_average_priority(&self, constraints: &[&PhysicsConstraint]) -> u8 {
         let weights: Vec<f32> = constraints.iter().map(|c| c.priority_weight()).collect();
         let priorities: Vec<f32> = constraints.iter().map(|c| c.priority as f32).collect();
@@ -416,15 +416,15 @@ mod tests {
 
         let blender = ConstraintBlender::with_config(config);
 
-        let constraint1 = PhysicsConstraint::separation(vec![1, 2], 10.0, 0.5, 1); // weight = 1.0
-        let constraint2 = PhysicsConstraint::separation(vec![1, 2], 20.0, 0.7, 10); // weight = 0.1
+        let constraint1 = PhysicsConstraint::separation(vec![1, 2], 10.0, 0.5, 1); 
+        let constraint2 = PhysicsConstraint::separation(vec![1, 2], 20.0, 0.7, 10); 
 
         let result = blender.blend_constraints(&[constraint1, constraint2]);
         assert!(result.is_some());
 
         match result.unwrap().constraint_type {
             PhysicsConstraintType::Separation { min_distance, .. } => {
-                // (1.0*10 + 0.1*20) / (1.0 + 0.1) ≈ 10.91
+                
                 assert!(min_distance > 10.0 && min_distance < 12.0);
             }
             _ => panic!("Wrong type"),
@@ -511,7 +511,7 @@ mod tests {
         let constraint1 = PhysicsConstraint::separation(vec![1, 2], 10.0, 0.5, 5);
         let constraint2 = PhysicsConstraint::separation(vec![1, 2], 12.0, 0.6, 3);
 
-        // Difference is 2.0, less than threshold (5.0)
+        
         assert!(!blender.has_significant_conflict(&[constraint1.clone(), constraint2.clone()]));
 
         let result = blender.blend_constraints(&[constraint1, constraint2]);

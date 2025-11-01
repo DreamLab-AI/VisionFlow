@@ -2,16 +2,16 @@ use super::errors::DetailedValidationError;
 use super::ValidationResult;
 use serde_json::Value;
 
-/// Validate position data with lenient numeric handling
+/
 pub struct PositionValidator;
 
 impl PositionValidator {
-    /// Validate a position update value (lenient for WebSocket updates)
+    
     pub fn validate_position_value(value: &Value, field: &str) -> ValidationResult<f32> {
         match value {
             Value::Number(n) => {
                 if let Some(f) = n.as_f64() {
-                    // Check bounds
+                    
                     if f.is_nan() || f.is_infinite() {
                         return Err(DetailedValidationError::new(
                             field,
@@ -19,7 +19,7 @@ impl PositionValidator {
                             "INVALID_POSITION",
                         ));
                     }
-                    // Reasonable bounds for position values
+                    
                     if f.abs() > 1_000_000.0 {
                         return Err(DetailedValidationError::new(
                             field,
@@ -37,7 +37,7 @@ impl PositionValidator {
                 }
             }
             Value::String(s) => {
-                // Try to parse string as number (lenient for client data)
+                
                 match s.parse::<f64>() {
                     Ok(f) => {
                         if f.is_nan() || f.is_infinite() {
@@ -71,7 +71,7 @@ impl PositionValidator {
         }
     }
 
-    /// Validate a complete position object (x, y, z)
+    
     pub fn validate_position_object(position: &Value) -> ValidationResult<(f32, f32, f32)> {
         let obj = position.as_object().ok_or_else(|| {
             DetailedValidationError::new("position", "Position must be an object", "INVALID_TYPE")
@@ -101,7 +101,7 @@ impl PositionValidator {
         Ok((x, y, z))
     }
 
-    /// Validate velocity data (same as position but with different bounds)
+    
     pub fn validate_velocity_value(value: &Value, field: &str) -> ValidationResult<f32> {
         match value {
             Value::Number(n) => {
@@ -113,7 +113,7 @@ impl PositionValidator {
                             "INVALID_VELOCITY",
                         ));
                     }
-                    // Reasonable bounds for velocity
+                    
                     if f.abs() > 10_000.0 {
                         return Err(DetailedValidationError::new(
                             field,
@@ -131,7 +131,7 @@ impl PositionValidator {
                 }
             }
             Value::String(s) => {
-                // Try to parse string as number
+                
                 match s.parse::<f64>() {
                     Ok(f) => {
                         if f.is_nan() || f.is_infinite() {

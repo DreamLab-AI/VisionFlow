@@ -33,28 +33,28 @@ use crate::models::{
     node::Node,
 };
 
-/// Configuration for semantic constraint generation
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SemanticConstraintConfig {
-    /// Minimum similarity threshold for clustering (0.0 to 1.0)
+    
     pub clustering_threshold: f32,
-    /// Maximum cluster size for automatic clustering
+    
     pub max_cluster_size: usize,
-    /// Minimum separation distance for unrelated nodes
+    
     pub min_separation_distance: f32,
-    /// Enable hierarchical constraint generation
+    
     pub enable_hierarchy: bool,
-    /// Enable topic-based clustering
+    
     pub enable_topic_clustering: bool,
-    /// Enable temporal clustering (group by creation/modification time)
+    
     pub enable_temporal_clustering: bool,
-    /// Weight for semantic similarity in clustering
+    
     pub semantic_weight: f32,
-    /// Weight for structural similarity in clustering
+    
     pub structural_weight: f32,
-    /// Number of top topics to consider for each node
+    
     pub max_topics_per_node: usize,
-    /// Minimum topic count threshold for clustering
+    
     pub min_topic_count: usize,
 }
 
@@ -75,86 +75,86 @@ impl Default for SemanticConstraintConfig {
     }
 }
 
-/// Semantic similarity metrics between nodes
+/
 #[derive(Debug, Clone)]
 pub struct NodeSimilarity {
-    /// Semantic similarity based on content/topics (0.0 to 1.0)
+    
     pub semantic_similarity: f32,
-    /// Structural similarity based on connections (0.0 to 1.0)
+    
     pub structural_similarity: f32,
-    /// Combined similarity score
+    
     pub combined_similarity: f32,
-    /// Shared topics between nodes
+    
     pub shared_topics: Vec<String>,
-    /// Metadata-based similarity factors
+    
     pub metadata_factors: HashMap<String, f32>,
 }
 
-/// Semantic cluster of related nodes
+/
 #[derive(Debug, Clone)]
 pub struct SemanticCluster {
-    /// Unique cluster identifier
+    
     pub id: String,
-    /// Nodes belonging to this cluster
+    
     pub node_ids: HashSet<u32>,
-    /// Primary topics defining this cluster
+    
     pub primary_topics: Vec<String>,
-    /// Cluster coherence score (0.0 to 1.0)
+    
     pub coherence: f32,
-    /// Cluster centroid position (if computed)
+    
     pub centroid: Option<(f32, f32, f32)>,
-    /// Cluster radius for boundary constraints
+    
     pub radius: Option<f32>,
 }
 
-/// Hierarchical relationship between nodes
+/
 #[derive(Debug, Clone)]
 pub struct HierarchicalRelation {
-    /// Parent node ID
+    
     pub parent_id: u32,
-    /// Child node ID
+    
     pub child_id: u32,
-    /// Relationship type (e.g., "contains", "references", "depends_on")
+    
     pub relation_type: String,
-    /// Strength of the hierarchical relationship (0.0 to 1.0)
+    
     pub strength: f32,
 }
 
-/// Results from semantic constraint generation
+/
 #[derive(Debug, Clone)]
 pub struct ConstraintGenerationResult {
-    /// Generated clustering constraints
+    
     pub clustering_constraints: Vec<Constraint>,
-    /// Generated separation constraints
+    
     pub separation_constraints: Vec<Constraint>,
-    /// Generated alignment constraints
+    
     pub alignment_constraints: Vec<Constraint>,
-    /// Generated boundary constraints
+    
     pub boundary_constraints: Vec<Constraint>,
-    /// Identified semantic clusters
+    
     pub clusters: Vec<SemanticCluster>,
-    /// Identified hierarchical relations
+    
     pub hierarchical_relations: Vec<HierarchicalRelation>,
-    /// Processing statistics
+    
     pub stats: GenerationStats,
 }
 
-/// Statistics from constraint generation
+/
 #[derive(Debug, Clone)]
 pub struct GenerationStats {
-    /// Number of nodes processed
+    
     pub nodes_processed: usize,
-    /// Number of similarity calculations performed
+    
     pub similarity_calculations: usize,
-    /// Number of clusters created
+    
     pub clusters_created: usize,
-    /// Processing time in milliseconds
+    
     pub processing_time: u64,
-    /// Average cluster coherence
+    
     pub avg_cluster_coherence: f32,
 }
 
-/// Semantic constraint generator
+/
 pub struct SemanticConstraintGenerator {
     config: SemanticConstraintConfig,
     similarity_cache: HashMap<(u32, u32), NodeSimilarity>,
@@ -162,12 +162,12 @@ pub struct SemanticConstraintGenerator {
 }
 
 impl SemanticConstraintGenerator {
-    /// Create a new semantic constraint generator with default configuration
+    
     pub fn new() -> Self {
         Self::with_config(SemanticConstraintConfig::default())
     }
 
-    /// Create a generator with custom configuration
+    
     pub fn with_config(config: SemanticConstraintConfig) -> Self {
         Self {
             config,
@@ -176,7 +176,7 @@ impl SemanticConstraintGenerator {
         }
     }
 
-    /// Create generator from advanced physics parameters
+    
     pub fn from_advanced_params(params: &AdvancedParams) -> Self {
         let config = SemanticConstraintConfig {
             semantic_weight: params.semantic_force_weight,
@@ -190,7 +190,7 @@ impl SemanticConstraintGenerator {
         Self::with_config(config)
     }
 
-    /// Generate semantic constraints for the given graph
+    
     pub fn generate_constraints(
         &mut self,
         graph_data: &GraphData,
@@ -202,40 +202,40 @@ impl SemanticConstraintGenerator {
             graph_data.nodes.len()
         );
 
-        // Clear cache for fresh analysis
+        
         self.similarity_cache.clear();
 
-        // Compute node similarities
+        
         let similarities = self.compute_node_similarities(graph_data, metadata_store)?;
         debug!("Computed {} node similarity pairs", similarities.len());
 
-        // Identify semantic clusters
+        
         let clusters = self.identify_semantic_clusters(graph_data, &similarities)?;
         info!("Identified {} semantic clusters", clusters.len());
 
-        // Identify hierarchical relationships
+        
         let hierarchical_relations = if self.config.enable_hierarchy {
             self.identify_hierarchical_relations(graph_data, metadata_store)?
         } else {
             Vec::new()
         };
 
-        // Generate clustering constraints
+        
         let clustering_constraints = self.generate_clustering_constraints(&clusters)?;
 
-        // Generate separation constraints
+        
         let separation_constraints =
             self.generate_separation_constraints(graph_data, &similarities)?;
 
-        // Generate alignment constraints
+        
         let alignment_constraints = self.generate_alignment_constraints(&hierarchical_relations)?;
 
-        // Generate boundary constraints
+        
         let boundary_constraints = self.generate_boundary_constraints(&clusters)?;
 
         let processing_time = start_time.elapsed().as_millis() as u64;
 
-        // Compute statistics
+        
         let stats = GenerationStats {
             nodes_processed: graph_data.nodes.len(),
             similarity_calculations: similarities.len(),
@@ -266,7 +266,7 @@ impl SemanticConstraintGenerator {
         })
     }
 
-    /// Compute pairwise similarities between all nodes
+    
     fn compute_node_similarities(
         &mut self,
         graph_data: &GraphData,
@@ -275,7 +275,7 @@ impl SemanticConstraintGenerator {
         let mut similarities = HashMap::new();
         let nodes = &graph_data.nodes;
 
-        // Use parallel computation for large graphs
+        
         let node_pairs: Vec<_> = (0..nodes.len())
             .flat_map(|i| (i + 1..nodes.len()).map(move |j| (i, j)))
             .collect();
@@ -297,7 +297,7 @@ impl SemanticConstraintGenerator {
         Ok(similarities)
     }
 
-    /// Compute similarity between two specific nodes
+    
     fn compute_similarity_pair(
         &self,
         node_a: &Node,
@@ -305,11 +305,11 @@ impl SemanticConstraintGenerator {
         metadata_store: Option<&MetadataStore>,
     ) -> NodeSimilarity {
         let mut semantic_sim = 0.0;
-        let structural_sim; // Will be assigned later
+        let structural_sim; 
         let mut shared_topics = Vec::new();
         let mut metadata_factors = HashMap::new();
 
-        // Semantic similarity from metadata topics
+        
         if let Some(store) = metadata_store {
             if let (Some(meta_a), Some(meta_b)) = (
                 store.get(&node_a.metadata_id),
@@ -319,30 +319,30 @@ impl SemanticConstraintGenerator {
                     self.compute_topic_similarity(&meta_a.topic_counts, &meta_b.topic_counts);
                 shared_topics = self.find_shared_topics(&meta_a.topic_counts, &meta_b.topic_counts);
 
-                // File size similarity (normalized)
+                
                 let size_diff = (meta_a.file_size as f32 - meta_b.file_size as f32).abs();
-                let size_sim = 1.0 / (1.0 + size_diff / 1000.0); // Normalize by 1KB
+                let size_sim = 1.0 / (1.0 + size_diff / 1000.0); 
                 metadata_factors.insert("file_size".to_string(), size_sim);
 
-                // Temporal similarity (if both have timestamps)
+                
                 if let (Some(time_a), Some(time_b)) =
                     (&meta_a.last_content_change, &meta_b.last_content_change)
                 {
                     let time_diff = (time_a.timestamp() - time_b.timestamp()).abs() as f32;
-                    let time_sim = 1.0 / (1.0 + time_diff / 86400.0); // Normalize by 1 day
+                    let time_sim = 1.0 / (1.0 + time_diff / 86400.0); 
                     metadata_factors.insert("temporal".to_string(), time_sim);
                 }
             }
         }
 
-        // Structural similarity based on common neighbors
+        
         structural_sim = self.compute_structural_similarity(node_a, node_b);
 
-        // Label/name similarity using simple string metrics
+        
         let name_sim = self.compute_string_similarity(&node_a.label, &node_b.label);
         metadata_factors.insert("name".to_string(), name_sim);
 
-        // Combined similarity
+        
         let combined_similarity = self.config.semantic_weight * semantic_sim
             + self.config.structural_weight * structural_sim;
 
@@ -355,7 +355,7 @@ impl SemanticConstraintGenerator {
         }
     }
 
-    /// Compute topic similarity using cosine similarity
+    
     fn compute_topic_similarity(
         &self,
         topics_a: &HashMap<String, usize>,
@@ -365,10 +365,10 @@ impl SemanticConstraintGenerator {
             return 0.0;
         }
 
-        // Get all unique topics
+        
         let all_topics: HashSet<_> = topics_a.keys().chain(topics_b.keys()).collect();
 
-        // Create vectors
+        
         let mut vec_a = Vec::new();
         let mut vec_b = Vec::new();
 
@@ -377,11 +377,11 @@ impl SemanticConstraintGenerator {
             vec_b.push(*topics_b.get(*topic).unwrap_or(&0) as f32);
         }
 
-        // Compute cosine similarity
+        
         self.cosine_similarity(&vec_a, &vec_b)
     }
 
-    /// Find shared topics between two topic maps
+    
     fn find_shared_topics(
         &self,
         topics_a: &HashMap<String, usize>,
@@ -398,10 +398,10 @@ impl SemanticConstraintGenerator {
             .collect()
     }
 
-    /// Compute structural similarity based on graph topology
+    
     fn compute_structural_similarity(&self, node_a: &Node, node_b: &Node) -> f32 {
-        // For now, return a placeholder - in a full implementation this would
-        // analyze the graph structure around each node
+        
+        
         let pos_a = (node_a.data.x, node_a.data.y, node_a.data.z);
         let pos_b = (node_b.data.x, node_b.data.y, node_b.data.z);
 
@@ -410,11 +410,11 @@ impl SemanticConstraintGenerator {
             + (pos_a.2 - pos_b.2).powi(2))
         .sqrt();
 
-        // Structural similarity inversely related to current distance
+        
         1.0 / (1.0 + distance / 100.0)
     }
 
-    /// Compute string similarity using Jaccard coefficient on character n-grams
+    
     fn compute_string_similarity(&self, str_a: &str, str_b: &str) -> f32 {
         if str_a.is_empty() || str_b.is_empty() {
             return if str_a == str_b { 1.0 } else { 0.0 };
@@ -444,7 +444,7 @@ impl SemanticConstraintGenerator {
         }
     }
 
-    /// Compute cosine similarity between two vectors
+    
     fn cosine_similarity(&self, vec_a: &[f32], vec_b: &[f32]) -> f32 {
         if vec_a.len() != vec_b.len() || vec_a.is_empty() {
             return 0.0;
@@ -461,7 +461,7 @@ impl SemanticConstraintGenerator {
         }
     }
 
-    /// Identify semantic clusters using similarity-based clustering
+    
     fn identify_semantic_clusters(
         &self,
         _graph_data: &GraphData,
@@ -470,7 +470,7 @@ impl SemanticConstraintGenerator {
         let mut clusters = Vec::new();
         let mut processed_nodes = HashSet::new();
 
-        // Sort node pairs by similarity for greedy clustering
+        
         let mut sorted_pairs: Vec<_> = similarities.iter().collect();
         sorted_pairs.sort_by(|a, b| {
             b.1.combined_similarity
@@ -480,23 +480,23 @@ impl SemanticConstraintGenerator {
 
         for ((id_a, id_b), similarity) in sorted_pairs {
             if similarity.combined_similarity < self.config.clustering_threshold {
-                break; // Remaining pairs have even lower similarity
+                break; 
             }
 
             if processed_nodes.contains(id_a) || processed_nodes.contains(id_b) {
-                continue; // One or both nodes already in a cluster
+                continue; 
             }
 
-            // Start a new cluster
+            
             let mut cluster_nodes = HashSet::new();
             cluster_nodes.insert(*id_a);
             cluster_nodes.insert(*id_b);
 
-            // Find additional nodes to add to this cluster
+            
             self.expand_cluster(&mut cluster_nodes, similarities, &processed_nodes)?;
 
             if cluster_nodes.len() <= self.config.max_cluster_size {
-                // Collect topics for this cluster
+                
                 let primary_topics = self.compute_cluster_topics(&cluster_nodes, similarities);
                 let coherence = self.compute_cluster_coherence(&cluster_nodes, similarities);
 
@@ -505,8 +505,8 @@ impl SemanticConstraintGenerator {
                     node_ids: cluster_nodes.clone(),
                     primary_topics,
                     coherence,
-                    centroid: None, // Will be computed later if needed
-                    radius: None,   // Will be computed later if needed
+                    centroid: None, 
+                    radius: None,   
                 };
 
                 let cluster_size = cluster_nodes.len();
@@ -523,7 +523,7 @@ impl SemanticConstraintGenerator {
         Ok(clusters)
     }
 
-    /// Expand a cluster by finding additional similar nodes
+    
     fn expand_cluster(
         &self,
         cluster_nodes: &mut HashSet<u32>,
@@ -574,7 +574,7 @@ impl SemanticConstraintGenerator {
         Ok(())
     }
 
-    /// Compute primary topics for a cluster
+    
     fn compute_cluster_topics(
         &self,
         cluster_nodes: &HashSet<u32>,
@@ -582,7 +582,7 @@ impl SemanticConstraintGenerator {
     ) -> Vec<String> {
         let mut topic_counts: HashMap<String, usize> = HashMap::new();
 
-        // Aggregate topics from all pairs in the cluster
+        
         for &node_a in cluster_nodes {
             for &node_b in cluster_nodes {
                 if node_a >= node_b {
@@ -599,7 +599,7 @@ impl SemanticConstraintGenerator {
             }
         }
 
-        // Sort topics by frequency and return top ones
+        
         let mut sorted_topics: Vec<_> = topic_counts.into_iter().collect();
         sorted_topics.sort_by(|a, b| b.1.cmp(&a.1));
 
@@ -610,7 +610,7 @@ impl SemanticConstraintGenerator {
             .collect()
     }
 
-    /// Compute coherence score for a cluster
+    
     fn compute_cluster_coherence(
         &self,
         cluster_nodes: &HashSet<u32>,
@@ -645,7 +645,7 @@ impl SemanticConstraintGenerator {
         }
     }
 
-    /// Identify hierarchical relationships between nodes
+    
     fn identify_hierarchical_relations(
         &self,
         graph_data: &GraphData,
@@ -653,13 +653,13 @@ impl SemanticConstraintGenerator {
     ) -> Result<Vec<HierarchicalRelation>, Box<dyn std::error::Error>> {
         let mut relations = Vec::new();
 
-        // Analyze edges for potential hierarchical relationships
+        
         for edge in &graph_data.edges {
             if let (Some(source_node), Some(target_node)) = (
                 graph_data.nodes.iter().find(|n| n.id == edge.source),
                 graph_data.nodes.iter().find(|n| n.id == edge.target),
             ) {
-                // Check for hierarchical patterns in node names/labels
+                
                 let relation_type =
                     self.infer_relation_type(source_node, target_node, metadata_store);
 
@@ -671,7 +671,7 @@ impl SemanticConstraintGenerator {
                     );
 
                     if strength > 0.3 {
-                        // Threshold for significant hierarchical relationship
+                        
                         relations.push(HierarchicalRelation {
                             parent_id: edge.source,
                             child_id: edge.target,
@@ -687,7 +687,7 @@ impl SemanticConstraintGenerator {
         Ok(relations)
     }
 
-    /// Infer the type of hierarchical relationship between two nodes
+    
     fn infer_relation_type(
         &self,
         source_node: &Node,
@@ -697,7 +697,7 @@ impl SemanticConstraintGenerator {
         let source_label = source_node.label.to_lowercase();
         let target_label = target_node.label.to_lowercase();
 
-        // Simple heuristics for common hierarchical patterns
+        
         if source_label.contains("index") || source_label.contains("overview") {
             return "contains".to_string();
         }
@@ -706,15 +706,15 @@ impl SemanticConstraintGenerator {
             return "references".to_string();
         }
 
-        // Directory-like structure
+        
         if source_label.ends_with('/') || source_label.contains("folder") {
             return "contains".to_string();
         }
 
-        String::new() // No clear hierarchical relationship
+        String::new() 
     }
 
-    /// Compute strength of hierarchical relationship
+    
     fn compute_hierarchical_strength(
         &self,
         source_node: &Node,
@@ -723,7 +723,7 @@ impl SemanticConstraintGenerator {
     ) -> f32 {
         let mut strength: f32 = 0.0;
 
-        // File size relationship (larger files often contain or reference smaller ones)
+        
         if let Some(store) = metadata_store {
             if let (Some(source_meta), Some(target_meta)) = (
                 store.get(&source_node.metadata_id),
@@ -734,14 +734,14 @@ impl SemanticConstraintGenerator {
                     strength += 0.3;
                 }
 
-                // Hyperlink count relationship
+                
                 if source_meta.hyperlink_count > target_meta.hyperlink_count {
                     strength += 0.2;
                 }
             }
         }
 
-        // Label-based patterns
+        
         let source_label = &source_node.label.to_lowercase();
         let target_label = &target_node.label.to_lowercase();
 
@@ -756,7 +756,7 @@ impl SemanticConstraintGenerator {
         strength.min(1.0)
     }
 
-    /// Generate clustering constraints from identified clusters
+    
     fn generate_clustering_constraints(
         &self,
         clusters: &[SemanticCluster],
@@ -782,14 +782,14 @@ impl SemanticConstraintGenerator {
         Ok(constraints)
     }
 
-    /// Generate separation constraints for weakly related nodes
+    
     fn generate_separation_constraints(
         &self,
         graph_data: &GraphData,
         similarities: &HashMap<(u32, u32), NodeSimilarity>,
     ) -> Result<Vec<Constraint>, Box<dyn std::error::Error>> {
         let mut constraints = Vec::new();
-        let separation_threshold = 0.2; // Nodes with very low similarity should be separated
+        let separation_threshold = 0.2; 
 
         for ((id_a, id_b), similarity) in similarities {
             if similarity.combined_similarity < separation_threshold {
@@ -798,7 +798,7 @@ impl SemanticConstraintGenerator {
 
                 constraints.push(constraint);
 
-                // Limit the number of separation constraints to avoid over-constraining
+                
                 if constraints.len() >= graph_data.nodes.len() {
                     break;
                 }
@@ -809,14 +809,14 @@ impl SemanticConstraintGenerator {
         Ok(constraints)
     }
 
-    /// Generate alignment constraints from hierarchical relationships
+    
     fn generate_alignment_constraints(
         &self,
         hierarchical_relations: &[HierarchicalRelation],
     ) -> Result<Vec<Constraint>, Box<dyn std::error::Error>> {
         let mut constraints = Vec::new();
 
-        // Group related nodes by hierarchy level
+        
         let mut hierarchy_groups: HashMap<String, Vec<u32>> = HashMap::new();
 
         for relation in hierarchical_relations {
@@ -826,10 +826,10 @@ impl SemanticConstraintGenerator {
                 .extend([relation.parent_id, relation.child_id]);
         }
 
-        // Create alignment constraints for each hierarchy group
+        
         for (relation_type, node_ids) in hierarchy_groups {
             if node_ids.len() >= 2 {
-                // Remove duplicates and sort
+                
                 let mut unique_nodes: Vec<u32> = node_ids
                     .into_iter()
                     .collect::<HashSet<_>>()
@@ -838,14 +838,14 @@ impl SemanticConstraintGenerator {
                 unique_nodes.sort();
 
                 if unique_nodes.len() >= 2 {
-                    // Create horizontal alignment for nodes at the same hierarchy level
+                    
                     let constraint = match relation_type.as_str() {
                         "contains" => {
-                            // Parent nodes align horizontally
+                            
                             Constraint::align_horizontal(unique_nodes, 0.0)
                         }
                         _ => {
-                            // Default alignment
+                            
                             Constraint::align_horizontal(unique_nodes, 0.0)
                         }
                     };
@@ -859,7 +859,7 @@ impl SemanticConstraintGenerator {
         Ok(constraints)
     }
 
-    /// Generate boundary constraints for cluster containment
+    
     fn generate_boundary_constraints(
         &self,
         clusters: &[SemanticCluster],
@@ -870,7 +870,7 @@ impl SemanticConstraintGenerator {
             if cluster.node_ids.len() >= 3 {
                 let node_indices: Vec<u32> = cluster.node_ids.iter().cloned().collect();
 
-                // Create a loose boundary around the cluster
+                
                 let boundary_size = 200.0 * (cluster.node_ids.len() as f32).sqrt();
 
                 let constraint = Constraint::boundary(
@@ -891,28 +891,28 @@ impl SemanticConstraintGenerator {
         Ok(constraints)
     }
 
-    /// Apply generated constraints to a constraint set
+    
     pub fn apply_to_constraint_set(
         &self,
         constraint_set: &mut ConstraintSet,
         result: &ConstraintGenerationResult,
     ) {
-        // Add clustering constraints
+        
         for constraint in &result.clustering_constraints {
             constraint_set.add_to_group("semantic_clustering", constraint.clone());
         }
 
-        // Add separation constraints
+        
         for constraint in &result.separation_constraints {
             constraint_set.add_to_group("semantic_separation", constraint.clone());
         }
 
-        // Add alignment constraints
+        
         for constraint in &result.alignment_constraints {
             constraint_set.add_to_group("hierarchical_alignment", constraint.clone());
         }
 
-        // Add boundary constraints
+        
         for constraint in &result.boundary_constraints {
             constraint_set.add_to_group("cluster_boundaries", constraint.clone());
         }
@@ -926,19 +926,19 @@ impl SemanticConstraintGenerator {
         );
     }
 
-    /// Get semantic clusters for visualization or analysis
+    
     pub fn get_clusters(&self) -> &HashMap<(u32, u32), NodeSimilarity> {
         &self.similarity_cache
     }
 
-    /// Update configuration
+    
     pub fn update_config(&mut self, config: SemanticConstraintConfig) {
         self.config = config;
-        self.similarity_cache.clear(); // Clear cache when config changes
+        self.similarity_cache.clear(); 
         info!("Updated semantic constraint generator configuration");
     }
 
-    /// Clear internal caches
+    
     pub fn clear_cache(&mut self) {
         self.similarity_cache.clear();
         self.topic_embeddings.clear();
@@ -972,13 +972,13 @@ mod tests {
             id_to_metadata: std::collections::HashMap::new(),
         };
 
-        // Set different labels for testing
+        
         graph.nodes[0].label = "AI Overview".to_string();
         graph.nodes[1].label = "Machine Learning".to_string();
         graph.nodes[2].label = "Deep Learning".to_string();
         graph.nodes[3].label = "Cooking Recipes".to_string();
 
-        // Create metadata with topics
+        
         let mut metadata_store = MetadataStore::new();
 
         let mut ai_topics = HashMap::new();
@@ -1078,7 +1078,7 @@ mod tests {
 
         let sim3 =
             generator.compute_string_similarity("artificial intelligence", "cooking recipes");
-        assert!(sim3 < 0.5); // Should be low similarity
+        assert!(sim3 < 0.5); 
     }
 
     #[test]
@@ -1108,14 +1108,14 @@ mod tests {
         assert!(result.stats.similarity_calculations > 0);
         assert!(result.stats.processing_time > 0);
 
-        // Should generate some constraints
+        
         let total_constraints = result.clustering_constraints.len()
             + result.separation_constraints.len()
             + result.alignment_constraints.len()
             + result.boundary_constraints.len();
         assert!(total_constraints > 0);
 
-        // AI-related nodes should have higher similarity than cooking
+        
         assert!(result.clusters.len() >= 1);
     }
 
@@ -1126,12 +1126,12 @@ mod tests {
         let mut topics_a = HashMap::new();
         topics_a.insert("ai".to_string(), 10);
         topics_a.insert("ml".to_string(), 5);
-        topics_a.insert("rare_topic".to_string(), 1); // Below threshold
+        topics_a.insert("rare_topic".to_string(), 1); 
 
         let mut topics_b = HashMap::new();
         topics_b.insert("ai".to_string(), 8);
         topics_b.insert("deep_learning".to_string(), 12);
-        topics_b.insert("rare_topic".to_string(), 1); // Below threshold
+        topics_b.insert("rare_topic".to_string(), 1); 
 
         let shared = generator.find_shared_topics(&topics_a, &topics_b);
         assert_eq!(shared.len(), 1);

@@ -1,7 +1,4 @@
-/**
- * Export Format Dialog Component
- * Select format and configure export options
- */
+
 
 import React, { useState, useMemo } from 'react';
 import {
@@ -183,7 +180,7 @@ export const ExportFormatDialog: React.FC<ExportFormatDialogProps> = ({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Format Selection */}
+          {}
           <div className="space-y-3">
             <Label className="text-sm font-medium">Export Format</Label>
 
@@ -243,12 +240,12 @@ export const ExportFormatDialog: React.FC<ExportFormatDialogProps> = ({
 
           <Separator />
 
-          {/* Format Options */}
+          {}
           {selectedFormatData && (
             <div className="space-y-3">
               <Label className="text-sm font-medium">Export Options</Label>
 
-              {/* Image Resolution */}
+              {}
               {isImageFormat && (
                 <div className="space-y-1">
                   <Label className="text-xs">Resolution</Label>
@@ -267,7 +264,7 @@ export const ExportFormatDialog: React.FC<ExportFormatDialogProps> = ({
                 </div>
               )}
 
-              {/* Image Quality */}
+              {}
               {selectedFormat === 'png' && (
                 <div className="space-y-1">
                   <Label className="text-xs">Quality</Label>
@@ -285,7 +282,7 @@ export const ExportFormatDialog: React.FC<ExportFormatDialogProps> = ({
                 </div>
               )}
 
-              {/* Metadata */}
+              {}
               {isDataFormat && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -299,7 +296,7 @@ export const ExportFormatDialog: React.FC<ExportFormatDialogProps> = ({
                 </div>
               )}
 
-              {/* Compression */}
+              {}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Zap className="h-4 w-4 text-muted-foreground" />
@@ -315,7 +312,7 @@ export const ExportFormatDialog: React.FC<ExportFormatDialogProps> = ({
 
           <Separator />
 
-          {/* Export Preview */}
+          {}
           <Card className="bg-muted/50">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs flex items-center gap-2">

@@ -1,7 +1,4 @@
-/**
- * AI-Powered Graph Insights
- * Provides intelligent graph layout optimization, cluster detection, node recommendations, and pattern recognition
- */
+
 
 import { Vector3, Color } from 'three';
 import { createLogger } from '../../../utils/loggerConfig';
@@ -134,9 +131,7 @@ export class AIInsights {
     return AIInsights.instance;
   }
 
-  /**
-   * Optimize graph layout using AI algorithms
-   */
+  
   public async optimizeLayout(
     graphData: GraphData,
     currentPositions: Map<string, Vector3>,
@@ -154,13 +149,13 @@ export class AIInsights {
       return this.optimizationCache.get(cacheKey)!;
     }
 
-    // Calculate current metrics
+    
     const currentMetrics = this.calculateLayoutMetrics(graphData, currentPositions);
     
-    // Choose best algorithm based on graph characteristics
+    
     const algorithm = this.selectOptimalAlgorithm(graphData, constraints);
     
-    // Apply optimization algorithm
+    
     const optimizedPositions = await this.applyOptimizationAlgorithm(
       graphData,
       currentPositions,
@@ -168,10 +163,10 @@ export class AIInsights {
       constraints
     );
 
-    // Calculate improved metrics
+    
     const improvedMetrics = this.calculateLayoutMetrics(graphData, optimizedPositions);
     
-    // Generate optimization report
+    
     const optimization: LayoutOptimization = {
       algorithmUsed: algorithm,
       improvements: {
@@ -197,9 +192,7 @@ export class AIInsights {
     return optimization;
   }
 
-  /**
-   * Detect clusters using AI clustering algorithms
-   */
+  
   public async detectClusters(
     graphData: GraphData,
     options: {
@@ -218,10 +211,10 @@ export class AIInsights {
     const algorithm = options.algorithm || this.selectOptimalClusteringAlgorithm(graphData);
     const clusters = await this.applyClustering(graphData, algorithm, options);
     
-    // Calculate cluster quality metrics
+    
     const quality = this.calculateClusterQuality(graphData, clusters);
     
-    // Generate recommendations
+    
     const recommendations = this.generateClusterRecommendations(clusters, quality);
 
     const detection: ClusterDetection = {
@@ -235,9 +228,7 @@ export class AIInsights {
     return detection;
   }
 
-  /**
-   * Generate smart node recommendations
-   */
+  
   public async generateNodeRecommendations(
     graphData: GraphData,
     targetNodeId?: string
@@ -250,16 +241,16 @@ export class AIInsights {
     for (const node of nodes) {
       if (!node) continue;
 
-      // Analyze node connectivity
+      
       const connectivity = this.analyzeNodeConnectivity(node, graphData);
       
-      // Analyze node positioning
+      
       const positioning = this.analyzeNodePositioning(node, graphData);
       
-      // Analyze node type and metadata
+      
       const typeAnalysis = this.analyzeNodeType(node, graphData);
       
-      // Generate recommendations based on analysis
+      
       const nodeRecommendations = this.generateNodeSpecificRecommendations(
         node,
         connectivity,
@@ -270,7 +261,7 @@ export class AIInsights {
       recommendations.push(...nodeRecommendations);
     }
 
-    // Sort by impact and confidence
+    
     recommendations.sort((a, b) => {
       const aScore = a.confidence * (
         a.potentialImpact.connectivityImprovement +
@@ -285,12 +276,10 @@ export class AIInsights {
       return bScore - aScore;
     });
 
-    return recommendations.slice(0, 10); // Return top 10 recommendations
+    return recommendations.slice(0, 10); 
   }
 
-  /**
-   * Recognize patterns across both graphs
-   */
+  
   public async recognizePatterns(
     logseqGraph: GraphData,
     visionflowGraph: GraphData,
@@ -307,21 +296,21 @@ export class AIInsights {
       return this.patternCache.get(cacheKey)!;
     }
 
-    // Detect patterns in individual graphs
+    
     const logseqPatterns = await this.detectGraphPatterns(logseqGraph, options.patternTypes);
     const visionflowPatterns = await this.detectGraphPatterns(visionflowGraph, options.patternTypes);
 
-    // Analyze cross-graph patterns if enabled
+    
     const crossGraphPatterns = options.crossGraphAnalysis 
       ? await this.analyzeCrossGraphPatterns(logseqPatterns, visionflowPatterns)
       : [];
 
-    // Detect anomalies if enabled
+    
     const anomalies = options.detectAnomalies 
       ? await this.detectGraphAnomalies(logseqGraph, visionflowGraph)
       : [];
 
-    // Generate insights
+    
     const insights = this.generatePatternInsights(
       [...logseqPatterns, ...visionflowPatterns],
       crossGraphPatterns,
@@ -339,9 +328,7 @@ export class AIInsights {
     return recognition;
   }
 
-  /**
-   * Calculate comprehensive graph metrics
-   */
+  
   public calculateGraphMetrics(graphData: GraphData): GraphMetrics {
     const cacheKey = this.generateCacheKey(graphData);
     if (this.metricsCache.has(cacheKey)) {
@@ -352,7 +339,7 @@ export class AIInsights {
     const edges = graphData.edges.length;
     const maxEdges = nodes * (nodes - 1) / 2;
 
-    // Calculate basic metrics
+    
     const density = maxEdges > 0 ? edges / maxEdges : 0;
     const averagePathLength = this.calculateAveragePathLength(graphData);
     const clusteringCoefficient = this.calculateClusteringCoefficient(graphData);
@@ -375,7 +362,7 @@ export class AIInsights {
     return metrics;
   }
 
-  // Private helper methods
+  
 
   private selectOptimalAlgorithm(
     graphData: GraphData,
@@ -385,7 +372,7 @@ export class AIInsights {
     const edgeCount = graphData.edges.length;
     const density = edgeCount / (nodeCount * (nodeCount - 1) / 2);
 
-    // Algorithm selection heuristics
+    
     if (nodeCount < 50 && constraints.minimizeEdgeCrossings) {
       return 'force-directed';
     }
@@ -399,7 +386,7 @@ export class AIInsights {
       return 'hierarchical';
     }
 
-    return 'organic'; // Default fallback
+    return 'organic'; 
   }
 
   private async applyOptimizationAlgorithm(
@@ -442,7 +429,7 @@ export class AIInsights {
     let temperature = 1.0;
 
     for (let i = 0; i < iterations; i++) {
-      // Apply repulsive forces between all nodes
+      
       for (const node1 of graphData.nodes) {
         const pos1 = positions.get(node1.id)!;
         let force = new Vector3(0, 0, 0);
@@ -454,12 +441,12 @@ export class AIInsights {
           const distance = pos1.distanceTo(pos2);
           const direction = new Vector3().subVectors(pos1, pos2).normalize();
           
-          // Repulsive force (Coulomb's law-like)
+          
           const repulsion = direction.multiplyScalar(1 / Math.max(distance * distance, 0.1));
           force.add(repulsion);
         }
 
-        // Apply attractive forces for connected nodes
+        
         for (const edge of graphData.edges) {
           if (edge.source === node1.id || edge.target === node1.id) {
             const otherId = edge.source === node1.id ? edge.target : edge.source;
@@ -467,13 +454,13 @@ export class AIInsights {
             const distance = pos1.distanceTo(otherPos);
             const direction = new Vector3().subVectors(otherPos, pos1).normalize();
             
-            // Attractive force (spring-like)
+            
             const attraction = direction.multiplyScalar(distance * 0.01);
             force.add(attraction);
           }
         }
 
-        // Update position
+        
         const newPos = pos1.clone().add(force.multiplyScalar(temperature));
         positions.set(node1.id, newPos);
       }
@@ -487,7 +474,7 @@ export class AIInsights {
   private applyHierarchicalLayout(graphData: GraphData, constraints: any): Map<string, Vector3> {
     const positions = new Map<string, Vector3>();
     
-    // Find root nodes (nodes with no incoming edges)
+    
     const inDegree = new Map<string, number>();
     graphData.nodes.forEach(node => inDegree.set(node.id, 0));
     graphData.edges.forEach(edge => {
@@ -496,7 +483,7 @@ export class AIInsights {
 
     const rootNodes = graphData.nodes.filter(node => inDegree.get(node.id) === 0);
     
-    // Assign levels using BFS
+    
     const levels = new Map<string, number>();
     const queue = rootNodes.map(node => ({ id: node.id, level: 0 }));
     
@@ -504,7 +491,7 @@ export class AIInsights {
       const { id, level } = queue.shift()!;
       levels.set(id, level);
       
-      // Find children
+      
       const children = graphData.edges
         .filter(edge => edge.source === id)
         .map(edge => edge.target)
@@ -515,7 +502,7 @@ export class AIInsights {
       });
     }
 
-    // Position nodes by level
+    
     const maxLevel = Math.max(...Array.from(levels.values()));
     const levelCounts = new Map<number, number>();
     
@@ -574,10 +561,10 @@ export class AIInsights {
     currentPositions: Map<string, Vector3>,
     constraints: any
   ): Map<string, Vector3> {
-    // Organic layout combines force-directed with some randomness and clustering awareness
+    
     const positions = this.applyForceDirectedLayout(graphData, currentPositions, constraints);
     
-    // Add organic clustering
+    
     const clusters = this.detectSimpleClusters(graphData);
     clusters.forEach(cluster => {
       const clusterCenter = this.calculateClusterCenter(cluster, positions);
@@ -599,7 +586,7 @@ export class AIInsights {
     let edgeCrossings = 0;
     let nodeOverlaps = 0;
     
-    // Calculate edge crossings (simplified 2D projection)
+    
     const edges = graphData.edges.map(edge => ({
       start: positions.get(edge.source)!,
       end: positions.get(edge.target)!
@@ -613,19 +600,19 @@ export class AIInsights {
       }
     }
 
-    // Calculate node overlaps
+    
     const nodes = Array.from(positions.values());
     for (let i = 0; i < nodes.length; i++) {
       for (let j = i + 1; j < nodes.length; j++) {
-        if (nodes[i].distanceTo(nodes[j]) < 2.0) { // Assuming node radius of 1
+        if (nodes[i].distanceTo(nodes[j]) < 2.0) { 
           nodeOverlaps++;
         }
       }
     }
 
-    // Calculate readability (inverse of crowding)
+    
     const averageDistance = this.calculateAverageNodeDistance(positions);
-    const readability = Math.min(1, averageDistance / 5); // Normalize to 0-1
+    const readability = Math.min(1, averageDistance / 5); 
 
     return { edgeCrossings, nodeOverlaps, readability };
   }
@@ -661,7 +648,7 @@ export class AIInsights {
   }
 
   private applyModularityClustering(graphData: GraphData, options: any): GraphCluster[] {
-    // Implementation of modularity-based clustering (Louvain algorithm)
+    
     const clusters: GraphCluster[] = [];
     const visited = new Set<string>();
     let clusterId = 0;
@@ -679,18 +666,18 @@ export class AIInsights {
   }
 
   private applyDensityClustering(graphData: GraphData, options: any): GraphCluster[] {
-    // Implementation of density-based clustering (DBSCAN-like)
-    return this.applyModularityClustering(graphData, options); // Simplified
+    
+    return this.applyModularityClustering(graphData, options); 
   }
 
   private applyHierarchicalClustering(graphData: GraphData, options: any): GraphCluster[] {
-    // Implementation of hierarchical clustering
-    return this.applyModularityClustering(graphData, options); // Simplified
+    
+    return this.applyModularityClustering(graphData, options); 
   }
 
   private applySpectralClustering(graphData: GraphData, options: any): GraphCluster[] {
-    // Implementation of spectral clustering
-    return this.applyModularityClustering(graphData, options); // Simplified
+    
+    return this.applyModularityClustering(graphData, options); 
   }
 
   private growClusterFromNode(
@@ -708,7 +695,7 @@ export class AIInsights {
       visited.add(nodeId);
       cluster.push(nodeId);
 
-      // Add connected nodes
+      
       const connectedNodes = graphData.edges
         .filter(edge => edge.source === nodeId || edge.target === nodeId)
         .map(edge => edge.source === nodeId ? edge.target : edge.source)
@@ -728,19 +715,19 @@ export class AIInsights {
     const nodes = nodeIds.map(id => graphData.nodes.find(n => n.id === id)!);
     const positions = nodes.map(n => n.position || { x: 0, y: 0, z: 0 });
     
-    // Calculate center
+    
     const centerPosition = new Vector3(
       positions.reduce((sum, pos) => sum + pos.x, 0) / positions.length,
       positions.reduce((sum, pos) => sum + pos.y, 0) / positions.length,
       positions.reduce((sum, pos) => sum + pos.z, 0) / positions.length
     );
 
-    // Calculate radius
+    
     const radius = Math.max(...positions.map(pos => 
       centerPosition.distanceTo(new Vector3(pos.x, pos.y, pos.z))
     ));
 
-    // Calculate characteristics
+    
     const internalEdges = graphData.edges.filter(edge => 
       nodeIds.includes(edge.source) && nodeIds.includes(edge.target)
     ).length;
@@ -775,15 +762,15 @@ export class AIInsights {
     };
   }
 
-  // Additional helper methods would continue here...
-  // Due to length constraints, I'm including the most essential parts
+  
+  
 
   private generateCacheKey(...args: any[]): string {
     return JSON.stringify(args);
   }
 
   private hasHierarchicalStructure(graphData: GraphData): boolean {
-    // Simple heuristic: check if there are nodes with significantly more connections
+    
     const connectionCounts = new Map<string, number>();
     
     graphData.edges.forEach(edge => {
@@ -799,14 +786,14 @@ export class AIInsights {
   }
 
   private doEdgesCross(edge1: any, edge2: any): boolean {
-    // Simplified 2D edge crossing detection
+    
     const p1 = edge1.start;
     const q1 = edge1.end;
     const p2 = edge2.start;
     const q2 = edge2.end;
 
-    // Check if line segments intersect (simplified)
-    return false; // Placeholder implementation
+    
+    return false; 
   }
 
   private calculateAverageNodeDistance(positions: Map<string, Vector3>): number {
@@ -857,38 +844,36 @@ export class AIInsights {
   }
 
   private calculateAveragePathLength(graphData: GraphData): number {
-    // Simplified implementation
-    return 3.5; // Placeholder
+    
+    return 3.5; 
   }
 
   private calculateClusteringCoefficient(graphData: GraphData): number {
-    // Simplified implementation
-    return 0.3; // Placeholder
+    
+    return 0.3; 
   }
 
   private calculateCentralization(graphData: GraphData): number {
-    // Simplified implementation
-    return 0.4; // Placeholder
+    
+    return 0.4; 
   }
 
   private calculateModularity(graphData: GraphData): number {
-    // Simplified implementation
-    return 0.5; // Placeholder
+    
+    return 0.5; 
   }
 
   private calculateNetworkEfficiency(graphData: GraphData): number {
-    // Simplified implementation
-    return 0.6; // Placeholder
+    
+    return 0.6; 
   }
 
   private calculateSmallWorldness(clustering: number, pathLength: number): number {
-    // Small-world coefficient
+    
     return clustering / pathLength;
   }
 
-  /**
-   * Cleanup resources
-   */
+  
   public dispose(): void {
     this.optimizationCache.clear();
     this.clusterCache.clear();

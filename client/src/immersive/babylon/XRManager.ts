@@ -12,21 +12,18 @@ import { createRemoteLogger } from '../../services/remoteLogger';
 
 const logger = createRemoteLogger('XRManager');
 
-/**
- * Manages WebXR session and interactions for Quest 3 AR
- * Handles immersive AR mode, hand tracking, and controller input
- */
+
 export class XRManager {
   private scene: Scene;
   private camera: UniversalCamera;
   private xrHelper: WebXRExperienceHelper | null = null;
   private handTracking: WebXRHandTracking | null = null;
 
-  // Node interaction tracking
+  
   private pinnedNode: string | null = null;
   private activeInputSource: WebXRInputSource | null = null;
 
-  // UI panel reference (to be set externally)
+  
   private uiPanel: any | null = null;
 
   constructor(scene: Scene, camera: UniversalCamera) {
@@ -36,7 +33,7 @@ export class XRManager {
   }
 
   private async initializeXR(): Promise<void> {
-    // First, check WebXR capabilities
+    
     logger.info('====== XRManager: WebXR Initialization Starting ======');
     logger.info('User Agent: ' + navigator.userAgent);
     logger.info('Protocol: ' + window.location.protocol);
@@ -47,7 +44,7 @@ export class XRManager {
     console.log('Protocol:', window.location.protocol);
     console.log('Hostname:', window.location.hostname);
 
-    // Check for WebXR support
+    
     if ('xr' in navigator) {
       logger.info('✅ WebXR API is available');
       console.log('✅ WebXR API is available');
@@ -70,15 +67,15 @@ export class XRManager {
     try {
       console.log('Creating Babylon XR experience with immersive-ar mode...');
 
-      // Create default XR experience for Quest 3 AR
-      // The default UI button will be created automatically by Babylon
+      
+      
       const xrOptions = {
-        floorMeshes: [], // No floor mesh for AR passthrough
+        floorMeshes: [], 
         uiOptions: {
-          sessionMode: 'immersive-ar', // Request AR mode for passthrough
+          sessionMode: 'immersive-ar', 
           referenceSpaceType: 'local-floor',
-          // Let Babylon handle the button creation - this is what Quest browser expects
-          customButtons: undefined // Use default button
+          
+          customButtons: undefined 
         },
         optionalFeatures: true
       };
@@ -94,7 +91,7 @@ export class XRManager {
       console.log('XR Helper baseExperience exists:', !!this.xrHelper.baseExperience);
       console.log('XR UI exists:', !!this.xrHelper.enterExitUI);
 
-      // Log button details
+      
       if (this.xrHelper.enterExitUI) {
         logger.info('XR Button Details:');
         console.log('XR Button Details:');
@@ -119,11 +116,11 @@ export class XRManager {
         }
       }
 
-      // Configure for immersive AR mode
+      
       if (this.xrHelper.baseExperience) {
         console.log('Configuring XR features...');
 
-        // Listen for XR state changes
+        
         this.xrHelper.baseExperience.onStateChangedObservable.add((state) => {
           console.log('🔄 XR State Changed:', WebXRState[state]);
           if (state === WebXRState.IN_XR) {
@@ -132,7 +129,7 @@ export class XRManager {
             console.log('⬅️ Exited XR mode');
           }
         });
-        // Enable hand tracking
+        
         const handTrackingFeature = this.xrHelper.baseExperience.featuresManager.enableFeature(
           WebXRHandTracking.Name,
           'latest'
@@ -143,7 +140,7 @@ export class XRManager {
           this.setupHandInteractions();
         }
 
-        // Setup controller interactions
+        
         this.setupControllerInteractions();
       }
 
@@ -157,7 +154,7 @@ export class XRManager {
       console.error('❌ XRManager: Failed to initialize WebXR');
       console.error('Error details:', error);
 
-      // Log specific error information
+      
       if (error instanceof Error) {
         console.error('Error message:', error.message);
         console.error('Error stack:', error.stack);
@@ -181,14 +178,14 @@ export class XRManager {
   private setupHandInteractions(): void {
     if (!this.handTracking) return;
 
-    // Track hand joint data for interaction
+    
     this.handTracking.onHandAddedObservable.add((hand) => {
       console.log('Hand detected:', hand.handedness);
 
-      // Get index finger tip joint for pointing/selection
+      
       const indexTip = hand.getJoint('index-finger-tip');
       if (indexTip) {
-        // Create a continuous observer for finger tip position
+        
         this.scene.onBeforeRenderObservable.add(() => {
           this.handleFingerTipInteraction(indexTip, hand.handedness);
         });
@@ -201,11 +198,11 @@ export class XRManager {
   private setupControllerInteractions(): void {
     if (!this.xrHelper?.baseExperience) return;
 
-    // Listen for controller input
+    
     this.xrHelper.baseExperience.onXRInputSourceObservable.add((inputSource) => {
       console.log('Controller connected:', inputSource.uniqueId);
 
-      // Setup trigger events for selection
+      
       inputSource.onComponentChangedObservable.add((component) => {
         if (component.id === 'xr-standard-trigger') {
           this.handleTriggerAction(component, inputSource);
@@ -215,7 +212,7 @@ export class XRManager {
         }
       });
 
-      // Setup pointer ray for selection
+      
       inputSource.onPointerRayChangedObservable.add((ray) => {
         this.handleControllerRay(ray, inputSource);
       });
@@ -225,7 +222,7 @@ export class XRManager {
   }
 
   private handleFingerTipInteraction(indexTip: any, handedness: string): void {
-    // Create ray from finger tip for node selection
+    
     const tipPosition = indexTip.position;
     const tipForward = indexTip.forward || Vector3.Forward();
 
@@ -235,17 +232,17 @@ export class XRManager {
 
   private handleTriggerAction(component: any, inputSource: any): void {
     if (component.pressed) {
-      // Trigger pressed - start selection/dragging
+      
       this.startNodeInteraction(inputSource);
     } else {
-      // Trigger released - end selection/dragging
+      
       this.endNodeInteraction(inputSource);
     }
   }
 
   private handleSqueezeAction(component: any, inputSource: any): void {
     if (component.pressed) {
-      // Squeeze for additional actions like menu toggle
+      
       this.toggleUIPanel();
     }
   }
@@ -255,11 +252,11 @@ export class XRManager {
   }
 
   private performRaySelection(ray: Ray, sourceId: string): void {
-    // Perform ray casting to detect node intersections
+    
     const hit = this.scene.pickWithRay(ray);
 
     if (hit?.pickedMesh) {
-      // Check if the picked mesh is a graph node
+      
       const nodeId = this.getNodeIdFromMesh(hit.pickedMesh);
       if (nodeId) {
         this.selectNode(nodeId, sourceId);
@@ -268,14 +265,14 @@ export class XRManager {
   }
 
   private getNodeIdFromMesh(mesh: any): string | null {
-    // Extract node ID from mesh metadata or name
+    
     return mesh.metadata?.nodeId || mesh.name?.replace('node_', '') || null;
   }
 
   private selectNode(nodeId: string, sourceId: string): void {
     console.log(`Node ${nodeId} selected by ${sourceId}`);
 
-    // Dispatch selection event
+    
     this.scene.onNodeSelectedObservable?.notifyObservers({
       nodeId,
       sourceId,
@@ -284,11 +281,11 @@ export class XRManager {
   }
 
   private startNodeInteraction(inputSource: any): void {
-    // Start dragging the currently selected node
+    
     console.log('Starting node interaction with', inputSource.uniqueId);
 
-    // Pin node in physics simulation
-    // When physics is integrated, this will prevent physics engine from moving the node
+    
+    
     if (this.scene.onNodeSelectedObservable) {
       const selectedNodeEvent = this.scene.onNodeSelectedObservable as any;
       if (selectedNodeEvent._observers && selectedNodeEvent._observers.length > 0) {
@@ -297,7 +294,7 @@ export class XRManager {
           this.pinnedNode = lastEvent.nodeId;
           console.log('XRManager: Pinned node for dragging:', this.pinnedNode);
 
-          // Emit pin event for physics system integration
+          
           if (this.scene.onPhysicsPinObservable) {
             (this.scene.onPhysicsPinObservable as any).notifyObservers({
               nodeId: this.pinnedNode,
@@ -309,18 +306,18 @@ export class XRManager {
       }
     }
 
-    // Track input source for continuous position updates
+    
     this.activeInputSource = inputSource;
 
-    // Start render loop observer for continuous updates
+    
     const updateObserver = this.scene.onBeforeRenderObservable.add(() => {
       if (this.activeInputSource && this.pinnedNode) {
-        // Get input source position
+        
         const grip = this.activeInputSource.grip || this.activeInputSource.pointer;
         if (grip) {
           const position = grip.position;
 
-          // Update node position via observable
+          
           if (this.scene.onNodePositionUpdateObservable) {
             (this.scene.onNodePositionUpdateObservable as any).notifyObservers({
               nodeId: this.pinnedNode,
@@ -333,19 +330,19 @@ export class XRManager {
       }
     });
 
-    // Store observer for cleanup
+    
     (this.scene as any)._xrDragUpdateObserver = updateObserver;
   }
 
   private endNodeInteraction(inputSource: any): void {
-    // End dragging interaction
+    
     console.log('Ending node interaction with', inputSource.uniqueId);
 
-    // Unpin node in physics simulation
+    
     if (this.pinnedNode) {
       console.log('XRManager: Unpinning node:', this.pinnedNode);
 
-      // Emit unpin event for physics system integration
+      
       if (this.scene.onPhysicsPinObservable) {
         (this.scene.onPhysicsPinObservable as any).notifyObservers({
           nodeId: this.pinnedNode,
@@ -357,10 +354,10 @@ export class XRManager {
       this.pinnedNode = null;
     }
 
-    // Stop tracking input source
+    
     this.activeInputSource = null;
 
-    // Remove render loop observer
+    
     if ((this.scene as any)._xrDragUpdateObserver) {
       this.scene.onBeforeRenderObservable.remove((this.scene as any)._xrDragUpdateObserver);
       (this.scene as any)._xrDragUpdateObserver = null;
@@ -368,17 +365,17 @@ export class XRManager {
   }
 
   private toggleUIPanel(): void {
-    // Toggle the 3D UI panel visibility
+    
     console.log('XRManager: Toggling UI panel');
 
-    // Communicate with XRUI component
+    
     if (this.uiPanel) {
-      // Call toggle method on XRUI instance
+      
       if (typeof this.uiPanel.toggle === 'function') {
         this.uiPanel.toggle();
         console.log('XRManager: UI panel toggled via direct method');
       } else if (typeof this.uiPanel.setVisibility === 'function') {
-        // Alternative: toggle via visibility setter
+        
         const currentVisibility = this.uiPanel.isVisible || false;
         this.uiPanel.setVisibility(!currentVisibility);
         console.log('XRManager: UI panel toggled via setVisibility:', !currentVisibility);
@@ -389,7 +386,7 @@ export class XRManager {
       console.warn('XRManager: UI panel reference not set. Use setUIPanel() to connect XRUI instance.');
     }
 
-    // Emit UI toggle event for other components
+    
     if (this.scene.onUIToggleObservable) {
       (this.scene.onUIToggleObservable as any).notifyObservers({
         source: 'xr-manager',
@@ -398,26 +395,18 @@ export class XRManager {
     }
   }
 
-  /**
-   * Set the XRUI panel reference for interaction
-   * Call this from the parent component to connect XRUI instance
-   */
+  
   public setUIPanel(uiPanel: any): void {
     this.uiPanel = uiPanel;
     console.log('XRManager: UI panel reference set');
   }
 
-  /**
-   * Gets the XR helper for external access
-   * The built-in UI button will handle entering XR automatically
-   */
+  
   public getXRHelper(): WebXRExperienceHelper | null {
     return this.xrHelper;
   }
 
-  /**
-   * Check if currently in XR session
-   */
+  
   public isInXR(): boolean {
     return this.xrHelper?.baseExperience?.state === WebXRState.IN_XR;
   }

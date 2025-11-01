@@ -11,7 +11,7 @@ use serde::Deserialize;
 use crate::application::ontology::{
     AddAxiom,
     AddAxiomHandler,
-    // Directives
+    
     AddOwlClass,
     AddOwlClassHandler,
     AddOwlProperty,
@@ -30,7 +30,7 @@ use crate::application::ontology::{
     ListOwlClassesHandler,
     ListOwlProperties,
     ListOwlPropertiesHandler,
-    // Queries
+    
     LoadOntologyGraph,
     LoadOntologyGraphHandler,
     QueryOntology,
@@ -102,17 +102,17 @@ pub struct SaveGraphRequest {
     pub graph: GraphData,
 }
 
-/// Get complete ontology graph using CQRS query
+/
 pub async fn get_ontology_graph(state: web::Data<AppState>) -> impl Responder {
     info!("Getting ontology graph via CQRS query");
 
-    // Create query handler
+    
     let handler = LoadOntologyGraphHandler::new(state.ontology_repository.clone());
 
-    // Execute query in a separate OS thread to escape Tokio runtime
+    
     let result = execute_in_thread(move || handler.handle(LoadOntologyGraph)).await;
 
-    // Handle the result
+    
     match result {
         Ok(Ok(graph)) => {
             info!("Ontology graph loaded successfully via CQRS");
@@ -134,7 +134,7 @@ pub async fn get_ontology_graph(state: web::Data<AppState>) -> impl Responder {
     }
 }
 
-/// Save ontology graph using CQRS directive
+/
 pub async fn save_ontology_graph(
     state: web::Data<AppState>,
     request: web::Json<SaveGraphRequest>,
@@ -142,10 +142,10 @@ pub async fn save_ontology_graph(
     let graph = request.into_inner().graph;
     info!("Saving ontology graph via CQRS directive");
 
-    // Create directive handler
+    
     let handler = SaveOntologyGraphHandler::new(state.ontology_repository.clone());
 
-    // Execute directive in a separate OS thread to escape Tokio runtime
+    
     let result = execute_in_thread(move || handler.handle(SaveOntologyGraph { graph })).await;
 
     match result {
@@ -171,15 +171,15 @@ pub async fn save_ontology_graph(
     }
 }
 
-/// Get an OWL class by IRI using CQRS query
+/
 pub async fn get_owl_class(state: web::Data<AppState>, iri: web::Path<String>) -> impl Responder {
     let class_iri = iri.into_inner();
     info!("Getting OWL class via CQRS query: iri={}", class_iri);
 
-    // Create query handler
+    
     let handler = GetOwlClassHandler::new(state.ontology_repository.clone());
 
-    // Execute query in a separate OS thread to escape Tokio runtime
+    
     let iri_clone = class_iri.clone();
     let result = execute_in_thread(move || handler.handle(GetOwlClass { iri: iri_clone })).await;
 
@@ -211,14 +211,14 @@ pub async fn get_owl_class(state: web::Data<AppState>, iri: web::Path<String>) -
     }
 }
 
-/// List all OWL classes using CQRS query
+/
 pub async fn list_owl_classes(state: web::Data<AppState>) -> impl Responder {
     info!("Listing all OWL classes via CQRS query");
 
-    // Create query handler
+    
     let handler = ListOwlClassesHandler::new(state.ontology_repository.clone());
 
-    // Execute query in a separate OS thread to escape Tokio runtime
+    
     let result = execute_in_thread(move || handler.handle(ListOwlClasses)).await;
 
     match result {
@@ -245,7 +245,7 @@ pub async fn list_owl_classes(state: web::Data<AppState>) -> impl Responder {
     }
 }
 
-/// Add an OWL class using CQRS directive
+/
 pub async fn add_owl_class(
     state: web::Data<AppState>,
     request: web::Json<AddClassRequest>,
@@ -253,10 +253,10 @@ pub async fn add_owl_class(
     let class = request.into_inner().class;
     info!("Adding OWL class via CQRS directive: iri={}", class.iri);
 
-    // Create directive handler
+    
     let handler = AddOwlClassHandler::new(state.ontology_repository.clone());
 
-    // Execute directive in a separate OS thread to escape Tokio runtime
+    
     let class_iri = class.iri.clone();
     let result = execute_in_thread(move || handler.handle(AddOwlClass { class })).await;
 
@@ -284,7 +284,7 @@ pub async fn add_owl_class(
     }
 }
 
-/// Update an OWL class using CQRS directive
+/
 pub async fn update_owl_class(
     state: web::Data<AppState>,
     request: web::Json<UpdateClassRequest>,
@@ -292,10 +292,10 @@ pub async fn update_owl_class(
     let class = request.into_inner().class;
     info!("Updating OWL class via CQRS directive: iri={}", class.iri);
 
-    // Create directive handler
+    
     let handler = UpdateOwlClassHandler::new(state.ontology_repository.clone());
 
-    // Execute directive in a separate OS thread to escape Tokio runtime
+    
     let result = execute_in_thread(move || handler.handle(UpdateOwlClass { class })).await;
 
     match result {
@@ -321,7 +321,7 @@ pub async fn update_owl_class(
     }
 }
 
-/// Remove an OWL class using CQRS directive
+/
 pub async fn remove_owl_class(
     state: web::Data<AppState>,
     iri: web::Path<String>,
@@ -329,10 +329,10 @@ pub async fn remove_owl_class(
     let class_iri = iri.into_inner();
     info!("Removing OWL class via CQRS directive: iri={}", class_iri);
 
-    // Create directive handler
+    
     let handler = RemoveOwlClassHandler::new(state.ontology_repository.clone());
 
-    // Execute directive in a separate OS thread to escape Tokio runtime
+    
     let result = execute_in_thread(move || handler.handle(RemoveOwlClass { iri: class_iri })).await;
 
     match result {
@@ -358,7 +358,7 @@ pub async fn remove_owl_class(
     }
 }
 
-/// Get an OWL property by IRI using CQRS query
+/
 pub async fn get_owl_property(
     state: web::Data<AppState>,
     iri: web::Path<String>,
@@ -366,10 +366,10 @@ pub async fn get_owl_property(
     let property_iri = iri.into_inner();
     info!("Getting OWL property via CQRS query: iri={}", property_iri);
 
-    // Create query handler
+    
     let handler = GetOwlPropertyHandler::new(state.ontology_repository.clone());
 
-    // Execute query
+    
     match handler.handle(GetOwlProperty {
         iri: property_iri.clone(),
     }) {
@@ -394,14 +394,14 @@ pub async fn get_owl_property(
     }
 }
 
-/// List all OWL properties using CQRS query
+/
 pub async fn list_owl_properties(state: web::Data<AppState>) -> impl Responder {
     info!("Listing all OWL properties via CQRS query");
 
-    // Create query handler
+    
     let handler = ListOwlPropertiesHandler::new(state.ontology_repository.clone());
 
-    // Execute query in a separate OS thread to escape Tokio runtime
+    
     let result = execute_in_thread(move || handler.handle(ListOwlProperties)).await;
 
     match result {
@@ -428,7 +428,7 @@ pub async fn list_owl_properties(state: web::Data<AppState>) -> impl Responder {
     }
 }
 
-/// Add an OWL property using CQRS directive
+/
 pub async fn add_owl_property(
     state: web::Data<AppState>,
     request: web::Json<AddPropertyRequest>,
@@ -439,10 +439,10 @@ pub async fn add_owl_property(
         property.iri
     );
 
-    // Create directive handler
+    
     let handler = AddOwlPropertyHandler::new(state.ontology_repository.clone());
 
-    // Execute directive
+    
     let property_iri = property.iri.clone();
     match handler.handle(AddOwlProperty { property }) {
         Ok(()) => {
@@ -465,7 +465,7 @@ pub async fn add_owl_property(
     }
 }
 
-/// Update an OWL property using CQRS directive
+/
 pub async fn update_owl_property(
     state: web::Data<AppState>,
     request: web::Json<UpdatePropertyRequest>,
@@ -476,10 +476,10 @@ pub async fn update_owl_property(
         property.iri
     );
 
-    // Create directive handler
+    
     let handler = UpdateOwlPropertyHandler::new(state.ontology_repository.clone());
 
-    // Execute directive in a separate OS thread to escape Tokio runtime
+    
     let result = execute_in_thread(move || handler.handle(UpdateOwlProperty { property })).await;
 
     match result {
@@ -505,7 +505,7 @@ pub async fn update_owl_property(
     }
 }
 
-/// Get axioms for an OWL class using CQRS query
+/
 pub async fn get_class_axioms(
     state: web::Data<AppState>,
     iri: web::Path<String>,
@@ -513,10 +513,10 @@ pub async fn get_class_axioms(
     let class_iri = iri.into_inner();
     info!("Getting class axioms via CQRS query: iri={}", class_iri);
 
-    // Create query handler
+    
     let handler = GetClassAxiomsHandler::new(state.ontology_repository.clone());
 
-    // Execute query in a separate OS thread to escape Tokio runtime
+    
     let result = execute_in_thread(move || handler.handle(GetClassAxioms { class_iri })).await;
 
     match result {
@@ -543,7 +543,7 @@ pub async fn get_class_axioms(
     }
 }
 
-/// Add an axiom using CQRS directive
+/
 pub async fn add_axiom(
     state: web::Data<AppState>,
     request: web::Json<AddAxiomRequest>,
@@ -554,10 +554,10 @@ pub async fn add_axiom(
         axiom.axiom_type
     );
 
-    // Create directive handler
+    
     let handler = AddAxiomHandler::new(state.ontology_repository.clone());
 
-    // Execute directive
+    
     let axiom_type = format!("{:?}", axiom.axiom_type);
     match handler.handle(AddAxiom { axiom }) {
         Ok(()) => {
@@ -577,15 +577,15 @@ pub async fn add_axiom(
     }
 }
 
-/// Remove an axiom using CQRS directive
+/
 pub async fn remove_axiom(state: web::Data<AppState>, axiom_id: web::Path<u64>) -> impl Responder {
     let id = axiom_id.into_inner();
     info!("Removing axiom via CQRS directive: id={}", id);
 
-    // Create directive handler
+    
     let handler = RemoveAxiomHandler::new(state.ontology_repository.clone());
 
-    // Execute directive in a separate OS thread to escape Tokio runtime
+    
     let result = execute_in_thread(move || handler.handle(RemoveAxiom { axiom_id: id })).await;
 
     match result {
@@ -611,14 +611,14 @@ pub async fn remove_axiom(state: web::Data<AppState>, axiom_id: web::Path<u64>) 
     }
 }
 
-/// Get inference results using CQRS query
+/
 pub async fn get_inference_results(state: web::Data<AppState>) -> impl Responder {
     info!("Getting inference results via CQRS query");
 
-    // Create query handler
+    
     let handler = GetInferenceResultsHandler::new(state.ontology_repository.clone());
 
-    // Execute query in a separate OS thread to escape Tokio runtime
+    
     let result = execute_in_thread(move || handler.handle(GetInferenceResults)).await;
 
     match result {
@@ -648,7 +648,7 @@ pub async fn get_inference_results(state: web::Data<AppState>) -> impl Responder
     }
 }
 
-/// Store inference results using CQRS directive
+/
 pub async fn store_inference_results(
     state: web::Data<AppState>,
     request: web::Json<StoreInferenceRequest>,
@@ -659,10 +659,10 @@ pub async fn store_inference_results(
         results.inferred_axioms.len()
     );
 
-    // Create directive handler
+    
     let handler = StoreInferenceResultsHandler::new(state.ontology_repository.clone());
 
-    // Execute directive in a separate OS thread to escape Tokio runtime
+    
     let result = execute_in_thread(move || handler.handle(StoreInferenceResults { results })).await;
 
     match result {
@@ -688,14 +688,14 @@ pub async fn store_inference_results(
     }
 }
 
-/// Validate ontology using CQRS query
+/
 pub async fn validate_ontology(state: web::Data<AppState>) -> impl Responder {
     info!("Validating ontology via CQRS query");
 
-    // Create query handler
+    
     let handler = ValidateOntologyHandler::new(state.ontology_repository.clone());
 
-    // Execute query in a separate OS thread to escape Tokio runtime
+    
     let result = execute_in_thread(move || handler.handle(ValidateOntology)).await;
 
     match result {
@@ -722,7 +722,7 @@ pub async fn validate_ontology(state: web::Data<AppState>) -> impl Responder {
     }
 }
 
-/// Query ontology using CQRS query
+/
 pub async fn query_ontology(
     state: web::Data<AppState>,
     request: web::Json<QueryRequest>,
@@ -730,10 +730,10 @@ pub async fn query_ontology(
     let query = request.into_inner().query;
     info!("Querying ontology via CQRS query");
 
-    // Create query handler
+    
     let handler = QueryOntologyHandler::new(state.ontology_repository.clone());
 
-    // Execute query in a separate OS thread to escape Tokio runtime
+    
     let result = execute_in_thread(move || handler.handle(QueryOntology { query })).await;
 
     match result {
@@ -760,14 +760,14 @@ pub async fn query_ontology(
     }
 }
 
-/// Get ontology metrics using CQRS query
+/
 pub async fn get_ontology_metrics(state: web::Data<AppState>) -> impl Responder {
     info!("Getting ontology metrics via CQRS query");
 
-    // Create query handler
+    
     let handler = GetOntologyMetricsHandler::new(state.ontology_repository.clone());
 
-    // Execute query in a separate OS thread to escape Tokio runtime
+    
     let result = execute_in_thread(move || handler.handle(GetOntologyMetrics)).await;
 
     match result {
@@ -791,32 +791,32 @@ pub async fn get_ontology_metrics(state: web::Data<AppState>) -> impl Responder 
     }
 }
 
-/// Configure routes for ontology endpoints
+/
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/ontology")
-            // Graph operations
+            
             .route("/graph", web::get().to(get_ontology_graph))
             .route("/graph", web::post().to(save_ontology_graph))
-            // Class operations
+            
             .route("/classes", web::get().to(list_owl_classes))
             .route("/classes", web::post().to(add_owl_class))
             .route("/classes/{iri}", web::get().to(get_owl_class))
             .route("/classes/{iri}", web::put().to(update_owl_class))
             .route("/classes/{iri}", web::delete().to(remove_owl_class))
             .route("/classes/{iri}/axioms", web::get().to(get_class_axioms))
-            // Property operations
+            
             .route("/properties", web::get().to(list_owl_properties))
             .route("/properties", web::post().to(add_owl_property))
             .route("/properties/{iri}", web::get().to(get_owl_property))
             .route("/properties/{iri}", web::put().to(update_owl_property))
-            // Axiom operations
+            
             .route("/axioms", web::post().to(add_axiom))
             .route("/axioms/{id}", web::delete().to(remove_axiom))
-            // Inference operations
+            
             .route("/inference", web::get().to(get_inference_results))
             .route("/inference", web::post().to(store_inference_results))
-            // Validation and query
+            
             .route("/validate", web::get().to(validate_ontology))
             .route("/query", web::post().to(query_ontology))
             .route("/metrics", web::get().to(get_ontology_metrics)),

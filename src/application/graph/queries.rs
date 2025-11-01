@@ -36,8 +36,8 @@ impl QueryHandler<GetGraphData, Arc<GraphData>> for GetGraphDataHandler {
 
         let repository = self.repository.clone();
 
-        // FIXED: Create a new Tokio runtime for this synchronous context
-        // This is necessary because the handler is called from an OS thread without runtime
+        
+        
         let runtime = tokio::runtime::Runtime::new()
             .map_err(|e| Hexserror::adapter("E_GRAPH_001", &format!("Failed to create runtime: {}", e)))?;
 
@@ -72,7 +72,7 @@ impl QueryHandler<GetNodeMap, Arc<HashMap<u32, Node>>> for GetNodeMapHandler {
 
         let repository = self.repository.clone();
 
-        // FIXED: Create a new Tokio runtime for this synchronous context
+        
         let runtime = tokio::runtime::Runtime::new()
             .map_err(|e| Hexserror::adapter("E_GRAPH_002", &format!("Failed to create runtime: {}", e)))?;
 
@@ -107,7 +107,7 @@ impl QueryHandler<GetPhysicsState, PhysicsState> for GetPhysicsStateHandler {
 
         let repository = self.repository.clone();
 
-        // FIXED: Create a new Tokio runtime for this synchronous context
+        
         let runtime = tokio::runtime::Runtime::new()
             .map_err(|e| Hexserror::adapter("E_GRAPH_003", &format!("Failed to create runtime: {}", e)))?;
 
@@ -155,7 +155,7 @@ impl QueryHandler<GetAutoBalanceNotifications, Vec<AutoBalanceNotification>>
 
         let repository = self.repository.clone();
 
-        // Use current runtime handle (safe inside spawn_blocking)
+        
         tokio::runtime::Handle::current().block_on(async move {
             repository
                 .get_auto_balance_notifications()
@@ -193,7 +193,7 @@ impl QueryHandler<GetBotsGraphData, Arc<GraphData>> for GetBotsGraphDataHandler 
 
         let repository = self.repository.clone();
 
-        // Use current runtime handle (safe inside spawn_blocking)
+        
         tokio::runtime::Handle::current().block_on(async move {
             repository.get_bots_graph().await.map_err(|e| {
                 Hexserror::adapter(
@@ -228,7 +228,7 @@ impl QueryHandler<GetConstraints, ConstraintSet> for GetConstraintsHandler {
 
         let repository = self.repository.clone();
 
-        // Use current runtime handle (safe inside spawn_blocking)
+        
         tokio::runtime::Handle::current().block_on(async move {
             repository.get_constraints().await.map_err(|e| {
                 Hexserror::adapter("E_GRAPH_006", &format!("Failed to get constraints: {}", e))
@@ -260,7 +260,7 @@ impl QueryHandler<GetEquilibriumStatus, bool> for GetEquilibriumStatusHandler {
 
         let repository = self.repository.clone();
 
-        // Use current runtime handle (safe inside spawn_blocking)
+        
         tokio::runtime::Handle::current().block_on(async move {
             repository.get_equilibrium_status().await.map_err(|e| {
                 Hexserror::adapter(
@@ -309,7 +309,7 @@ impl QueryHandler<ComputeShortestPaths, PathfindingResult> for ComputeShortestPa
             max_depth: query.max_depth,
         };
 
-        // Use current runtime handle (safe inside spawn_blocking)
+        
         tokio::runtime::Handle::current().block_on(async move {
             repository
                 .compute_shortest_paths(params)

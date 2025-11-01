@@ -1,9 +1,4 @@
-/**
- * NetworkOptimizer - Phase 4: Network optimization for Quest 3 XR
- *
- * Implements delta compression, message batching, and adaptive quality
- * for efficient multi-user synchronization over wireless networks.
- */
+
 
 import { ClientCore } from './VircadiaClientCore';
 import { createLogger } from '../../utils/loggerConfig';
@@ -61,11 +56,11 @@ export class NetworkOptimizer {
     private lastBatchTime = Date.now();
 
     private defaultConfig: NetworkOptimizerConfig = {
-        batchIntervalMs: 100, // 10 Hz
+        batchIntervalMs: 100, 
         maxBatchSize: 100,
         compressionEnabled: true,
         adaptiveQuality: true,
-        bandwidthTargetKbps: 5000 // 5 Mbps target
+        bandwidthTargetKbps: 5000 
     };
 
     constructor(
@@ -76,9 +71,7 @@ export class NetworkOptimizer {
         this.startBatchInterval();
     }
 
-    /**
-     * Queue position update for batching
-     */
+    
     queuePositionUpdate(entityName: string, x: number, y: number, z: number): void {
         this.pendingUpdates.set(entityName, {
             entityName,
@@ -89,14 +82,12 @@ export class NetworkOptimizer {
         });
     }
 
-    /**
-     * Apply delta compression to position update
-     */
+    
     private compressPositionUpdate(update: PositionUpdate): DeltaCompressedUpdate {
         const lastPos = this.lastPositions.get(update.entityName);
 
         if (!lastPos) {
-            // First update, no compression possible
+            
             this.lastPositions.set(update.entityName, {
                 x: update.x,
                 y: update.y,
@@ -112,12 +103,12 @@ export class NetworkOptimizer {
             };
         }
 
-        // Calculate deltas
+        
         const dx = update.x - lastPos.x;
         const dy = update.y - lastPos.y;
         const dz = update.z - lastPos.z;
 
-        // Update last position
+        
         this.lastPositions.set(update.entityName, {
             x: update.x,
             y: update.y,
@@ -133,45 +124,43 @@ export class NetworkOptimizer {
         };
     }
 
-    /**
-     * Encode position updates to binary format (Float32Array)
-     */
+    
     private encodePositionsToBinary(updates: DeltaCompressedUpdate[]): ArrayBuffer {
-        // Format: [count: uint32, ...entries]
-        // Entry: [entityNameLength: uint8, entityName: string, dx: float32, dy: float32, dz: float32, timestamp: uint32]
+        
+        
 
-        let totalSize = 4; // count
+        let totalSize = 4; 
         const textEncoder = new TextEncoder();
         const encodedNames: Uint8Array[] = [];
 
-        // Calculate total size
+        
         updates.forEach(update => {
             const encoded = textEncoder.encode(update.entityName);
             encodedNames.push(encoded);
-            totalSize += 1 + encoded.length + 12 + 4; // name length + name + 3 floats + timestamp
+            totalSize += 1 + encoded.length + 12 + 4; 
         });
 
         const buffer = new ArrayBuffer(totalSize);
         const view = new DataView(buffer);
         let offset = 0;
 
-        // Write count
+        
         view.setUint32(offset, updates.length, true);
         offset += 4;
 
-        // Write entries
+        
         updates.forEach((update, i) => {
             const nameBytes = encodedNames[i];
 
-            // Write name length
+            
             view.setUint8(offset, nameBytes.length);
             offset += 1;
 
-            // Write name
+            
             new Uint8Array(buffer, offset, nameBytes.length).set(nameBytes);
             offset += nameBytes.length;
 
-            // Write deltas
+            
             view.setFloat32(offset, update.dx, true);
             offset += 4;
             view.setFloat32(offset, update.dy, true);
@@ -179,7 +168,7 @@ export class NetworkOptimizer {
             view.setFloat32(offset, update.dz, true);
             offset += 4;
 
-            // Write timestamp
+            
             view.setUint32(offset, update.timestamp, true);
             offset += 4;
         });
@@ -187,32 +176,30 @@ export class NetworkOptimizer {
         return buffer;
     }
 
-    /**
-     * Decode binary position updates
-     */
+    
     decodePositionsFromBinary(buffer: ArrayBuffer): DeltaCompressedUpdate[] {
         const view = new DataView(buffer);
         const textDecoder = new TextDecoder();
         let offset = 0;
 
-        // Read count
+        
         const count = view.getUint32(offset, true);
         offset += 4;
 
         const updates: DeltaCompressedUpdate[] = [];
 
-        // Read entries
+        
         for (let i = 0; i < count; i++) {
-            // Read name length
+            
             const nameLength = view.getUint8(offset);
             offset += 1;
 
-            // Read name
+            
             const nameBytes = new Uint8Array(buffer, offset, nameLength);
             const entityName = textDecoder.decode(nameBytes);
             offset += nameLength;
 
-            // Read deltas
+            
             const dx = view.getFloat32(offset, true);
             offset += 4;
             const dy = view.getFloat32(offset, true);
@@ -220,7 +207,7 @@ export class NetworkOptimizer {
             const dz = view.getFloat32(offset, true);
             offset += 4;
 
-            // Read timestamp
+            
             const timestamp = view.getUint32(offset, true);
             offset += 4;
 
@@ -230,9 +217,7 @@ export class NetworkOptimizer {
         return updates;
     }
 
-    /**
-     * Flush pending updates in a batch
-     */
+    
     private async flushBatch(): Promise<void> {
         if (this.pendingUpdates.size === 0) {
             return;
@@ -244,16 +229,16 @@ export class NetworkOptimizer {
 
         try {
             if (this.defaultConfig.compressionEnabled) {
-                // Apply delta compression
+                
                 const compressed = updates.map(u => this.compressPositionUpdate(u));
 
-                // Encode to binary
+                
                 const binary = this.encodePositionsToBinary(compressed);
 
-                // Convert to base64 for transmission
+                
                 const base64 = btoa(String.fromCharCode(...new Uint8Array(binary)));
 
-                // Send as single binary update
+                
                 const query = `
                     INSERT INTO entity.entities (
                         general__entity_name,
@@ -275,14 +260,14 @@ export class NetworkOptimizer {
 
                 await this.client.Utilities.Connection.query({ query, timeoutMs: 2000 });
 
-                // Update stats
-                const originalSize = updates.length * 32; // 8 bytes per float * 4 (3 coords + timestamp)
+                
+                const originalSize = updates.length * 32; 
                 const compressedSize = binary.byteLength;
                 this.stats.compressionRatio = originalSize / compressedSize;
                 this.stats.bytesSent += compressedSize;
 
             } else {
-                // Send uncompressed batch
+                
                 const statements = updates.map(update => {
                     return `
                         UPDATE entity.entities
@@ -315,15 +300,15 @@ export class NetworkOptimizer {
             this.stats.averageLatency = this.latencyMeasurements.reduce((a, b) => a + b, 0) / this.latencyMeasurements.length;
             this.stats.messagesSent++;
 
-            // Calculate bandwidth
-            const timeDelta = (Date.now() - this.lastBatchTime) / 1000; // seconds
+            
+            const timeDelta = (Date.now() - this.lastBatchTime) / 1000; 
             if (timeDelta > 0) {
                 const bytesPerSecond = this.stats.bytesSent / timeDelta;
                 this.stats.currentBandwidthKbps = (bytesPerSecond * 8) / 1000;
             }
             this.lastBatchTime = Date.now();
 
-            // Adaptive quality adjustment
+            
             if (this.defaultConfig.adaptiveQuality) {
                 this.adjustQuality();
             }
@@ -335,21 +320,19 @@ export class NetworkOptimizer {
         }
     }
 
-    /**
-     * Adjust quality based on network conditions
-     */
+    
     private adjustQuality(): void {
         const { currentBandwidthKbps, bandwidthTargetKbps } = this.defaultConfig;
 
         if (this.stats.currentBandwidthKbps > bandwidthTargetKbps * 1.2) {
-            // Exceeding target, reduce update rate
+            
             if (this.defaultConfig.batchIntervalMs < 500) {
                 this.defaultConfig.batchIntervalMs += 50;
                 this.restartBatchInterval();
                 logger.info(`Reduced update rate: ${this.defaultConfig.batchIntervalMs}ms interval`);
             }
         } else if (this.stats.currentBandwidthKbps < bandwidthTargetKbps * 0.5) {
-            // Well under target, increase update rate
+            
             if (this.defaultConfig.batchIntervalMs > 50) {
                 this.defaultConfig.batchIntervalMs -= 25;
                 this.restartBatchInterval();
@@ -358,9 +341,7 @@ export class NetworkOptimizer {
         }
     }
 
-    /**
-     * Start batch interval
-     */
+    
     private startBatchInterval(): void {
         if (this.batchInterval) {
             return;
@@ -375,17 +356,13 @@ export class NetworkOptimizer {
         logger.info(`Batch interval started: ${this.defaultConfig.batchIntervalMs}ms`);
     }
 
-    /**
-     * Restart batch interval with new timing
-     */
+    
     private restartBatchInterval(): void {
         this.stopBatchInterval();
         this.startBatchInterval();
     }
 
-    /**
-     * Stop batch interval
-     */
+    
     private stopBatchInterval(): void {
         if (this.batchInterval) {
             clearInterval(this.batchInterval);
@@ -393,16 +370,12 @@ export class NetworkOptimizer {
         }
     }
 
-    /**
-     * Get network statistics
-     */
+    
     getStats(): NetworkStats {
         return { ...this.stats };
     }
 
-    /**
-     * Reset statistics
-     */
+    
     resetStats(): void {
         this.stats = {
             bytesSent: 0,
@@ -417,9 +390,7 @@ export class NetworkOptimizer {
         this.lastBatchTime = Date.now();
     }
 
-    /**
-     * Dispose optimizer
-     */
+    
     dispose(): void {
         logger.info('Disposing NetworkOptimizer');
         this.stopBatchInterval();

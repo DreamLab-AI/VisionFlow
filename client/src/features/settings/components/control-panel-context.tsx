@@ -33,8 +33,8 @@ export const ControlPanelProvider: React.FC<ControlPanelProviderProps> = ({ chil
 export const useControlPanelContext = (): ControlPanelContextType => {
   const context = useContext(ControlPanelContext);
   if (!context) {
-    // Return default context instead of throwing an error
-    // This makes the hook more resilient when used outside the provider
+    
+    
     return defaultContext;
   }
   return context;

@@ -89,7 +89,7 @@ export interface ErrorResponse {
 // ============================================================================
 
 export const settingsApi = {
-  // Physics Settings
+  
   getPhysics: (): Promise<AxiosResponse<PhysicsSettings>> =>
     axios.get(`${API_BASE}/api/settings/physics`),
 
@@ -98,7 +98,7 @@ export const settingsApi = {
   ): Promise<AxiosResponse<void>> =>
     axios.put(`${API_BASE}/api/settings/physics`, settings),
 
-  // Constraint Settings
+  
   getConstraints: (): Promise<AxiosResponse<ConstraintSettings>> =>
     axios.get(`${API_BASE}/api/settings/constraints`),
 
@@ -107,7 +107,7 @@ export const settingsApi = {
   ): Promise<AxiosResponse<void>> =>
     axios.put(`${API_BASE}/api/settings/constraints`, settings),
 
-  // Rendering Settings
+  
   getRendering: (): Promise<AxiosResponse<RenderingSettings>> =>
     axios.get(`${API_BASE}/api/settings/rendering`),
 
@@ -116,17 +116,17 @@ export const settingsApi = {
   ): Promise<AxiosResponse<void>> =>
     axios.put(`${API_BASE}/api/settings/rendering`, settings),
 
-  // All Settings
+  
   getAll: (): Promise<AxiosResponse<AllSettings>> =>
     axios.get(`${API_BASE}/api/settings/all`),
 
-  // Get settings by paths (for selective loading)
-  // For now, this just returns all settings - frontend will filter
+  
+  
   getSettingsByPaths: async (paths: string[]): Promise<AxiosResponse<AllSettings>> => {
     return axios.get(`${API_BASE}/api/settings/all`);
   },
 
-  // Profile Management
+  
   saveProfile: (
     request: SaveProfileRequest
   ): Promise<AxiosResponse<ProfileIdResponse>> =>

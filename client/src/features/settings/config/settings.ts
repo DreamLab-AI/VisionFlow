@@ -8,7 +8,7 @@ export interface NodeSettings {
   metalness: number;
   opacity: number;
   roughness: number;
-  nodeSize: number; // Changed from sizeRange: [number, number]
+  nodeSize: number; 
   quality: 'low' | 'medium' | 'high';
   enableInstancing: boolean;
   enableHologram: boolean;
@@ -38,26 +38,26 @@ export interface EdgeSettings {
 export interface PhysicsSettings {
   enabled: boolean;
   
-  // Core GPU Forces
+  
   springK: number;
   repelK: number;
   attractionK: number;
   gravity: number;
   
-  // Dynamics
+  
   dt: number;
   maxVelocity: number;
   damping: number;
   temperature: number;
   
-  // Boundary & Collision
+  
   enableBounds: boolean;
   boundsSize: number;
   boundaryDamping: number;
   separationRadius: number;
-  collisionRadius?: number; // For compatibility
+  collisionRadius?: number; 
   
-  // New CUDA kernel parameters
+  
   restLength: number;
   repulsionCutoff: number;
   repulsionSofteningEpsilon: number;
@@ -65,7 +65,7 @@ export interface PhysicsSettings {
   gridCellSize: number;
   featureFlags: number;
   
-  // GPU-specific parameters
+  
   stressWeight: number;
   stressAlpha: number;
   boundaryLimit: number;
@@ -77,36 +77,36 @@ export interface PhysicsSettings {
   boundaryMargin: number;
   boundaryForceStrength: number;
   
-  // Advanced Parameters
+  
   iterations: number;
   massScale: number;
   updateThreshold: number;
   
-  // Missing CUDA parameters
-  /** Extreme boundary force multiplier (1.0-5.0) - Controls how aggressively boundary forces are applied */
+  
+  
   boundaryExtremeMultiplier: number;
-  /** Extreme boundary force strength multiplier (1.0-20.0) - Controls the intensity of extreme boundary forces */
+  
   boundaryExtremeForceMultiplier: number;
-  /** Boundary velocity damping factor (0.0-1.0) - Reduces velocity near boundaries */
+  
   boundaryVelocityDamping: number;
-  /** Maximum force magnitude (1-1000) - Caps the total force applied to prevent instability */
+  
   maxForce: number;
-  /** Random seed for initialization - Ensures reproducible layouts */
+  
   seed: number;
-  /** Current iteration count - Tracks simulation progress */
+  
   iteration: number;
   
-  // Warmup System
+  
   warmupIterations: number;
-  warmupCurve?: string; // Optional for compatibility
-  zeroVelocityIterations?: number; // Optional for compatibility  
+  warmupCurve?: string; 
+  zeroVelocityIterations?: number; 
   coolingRate: number;
   
-  // Clustering
-  clusteringAlgorithm?: string; // Optional for compatibility
-  clusterCount?: number; // Optional for compatibility
-  clusteringResolution?: number; // Optional for compatibility
-  clusteringIterations?: number; // Optional for compatibility
+  
+  clusteringAlgorithm?: string; 
+  clusterCount?: number; 
+  clusteringResolution?: number; 
+  clusteringIterations?: number; 
 }
 
 // Rendering settings
@@ -145,35 +145,35 @@ export interface LabelSettings {
   textResolution: number;
   textPadding: number;
   billboardMode: 'camera' | 'vertical';
-  showMetadata?: boolean; // Display metadata as secondary label
-  maxLabelWidth?: number; // Maximum width for label text
+  showMetadata?: boolean; 
+  maxLabelWidth?: number; 
 }
 
 
 // Glow settings - Unified visual effects with diffuse atmospheric rendering
 // This is the server-preferred interface, but client supports both
 export interface GlowSettings {
-  // Core glow properties
+  
   enabled: boolean;
   intensity: number;
   radius: number;
   threshold: number;
   
-  // Atmospheric diffusion properties
+  
   diffuseStrength: number;
   atmosphericDensity: number;
   volumetricIntensity: number;
   
-  // Color and appearance
+  
   baseColor: string;
   emissionColor: string;
   opacity: number;
   
-  // Animation properties
+  
   pulseSpeed: number;
   flowSpeed: number;
   
-  // Selective glow for different elements
+  
   nodeGlowStrength: number;
   edgeGlowStrength: number;
   environmentGlowStrength: number;
@@ -181,14 +181,14 @@ export interface GlowSettings {
 
 // Hologram settings - Enhanced with atmospheric effects
 export interface HologramSettings {
-  // Core hologram structure
+  
   ringCount: number;
   ringColor: string;
   ringOpacity: number;
   sphereSizes: [number, number];
   globalRotationSpeed: number;
   
-  // Geometric elements
+  
   enableBuckminster: boolean;
   buckminsterSize: number;
   buckminsterOpacity: number;
@@ -199,7 +199,7 @@ export interface HologramSettings {
   triangleSphereSize: number;
   triangleSphereOpacity: number;
   
-  // Enhanced atmospheric effects
+  
   enableQuantumField: boolean;
   quantumFieldIntensity: number;
   enablePlasmaEffects: boolean;
@@ -207,7 +207,7 @@ export interface HologramSettings {
   enableEnergyFlow: boolean;
   energyFlowSpeed: number;
   
-  // Ring animation
+  
   ringRotationSpeed: number;
   enableRingParticles: boolean;
   particleDensity: number;
@@ -236,7 +236,7 @@ export interface WebSocketSettings {
 // Debug settings
 export interface DebugSettings {
   enabled: boolean;
-  logLevel?: 'debug' | 'info' | 'warn' | 'error'; // Added for client-side logging
+  logLevel?: 'debug' | 'info' | 'warn' | 'error'; 
   logFormat?: 'json' | 'text';
   enableDataDebug: boolean;
   enableWebsocketDebug: boolean;
@@ -265,8 +265,8 @@ export interface SpacePilotConfig {
 // XR settings
 export interface XRSettings {
   enabled: boolean;
-  clientSideEnableXR?: boolean; // Client-side XR toggle
-  mode?: 'inline' | 'immersive-vr' | 'immersive-ar'; // Added from YAML
+  clientSideEnableXR?: boolean; 
+  mode?: 'inline' | 'immersive-vr' | 'immersive-ar'; 
   roomScale?: number;
   spaceType?: 'local-floor' | 'bounded-floor' | 'unbounded';
   quality?: 'low' | 'medium' | 'high';
@@ -332,7 +332,7 @@ export interface CameraSettings {
   near: number;
   far: number;
   position: { x: number; y: number; z: number };
-  lookAt?: { x: number; y: number; z: number }; // lookAt is often dynamic
+  lookAt?: { x: number; y: number; z: number }; 
 }
 
 // Graph-specific settings namespace
@@ -350,7 +350,7 @@ export interface GraphsSettings {
 }
 
 export interface VisualisationSettings {
-  // Global visualisation settings (shared across graphs)
+  
   rendering: RenderingSettings;
   animations: AnimationSettings;
   glow: GlowSettings;
@@ -359,7 +359,7 @@ export interface VisualisationSettings {
   camera?: CameraSettings;
   interaction?: InteractionSettings;
 
-  // Graph-specific settings
+  
   graphs: GraphsSettings;
 }
 
@@ -367,8 +367,8 @@ export interface VisualisationSettings {
 export interface SystemSettings {
   websocket: WebSocketSettings;
   debug: DebugSettings;
-  persistSettings: boolean; // Added to control server-side persistence
-  customBackendUrl?: string; // Add if missing
+  persistSettings: boolean; 
+  customBackendUrl?: string; 
 }
 
 // RAGFlow settings
@@ -418,7 +418,7 @@ export interface KokoroSettings {
 // Auth settings
 export interface AuthSettings {
   enabled: boolean;
-  provider: 'nostr' | string; // Allow other providers potentially
+  provider: 'nostr' | string; 
   required: boolean;
   nostr?: {
     connected: boolean;

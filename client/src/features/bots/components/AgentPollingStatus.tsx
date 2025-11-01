@@ -15,7 +15,7 @@ export const AgentPollingStatus: React.FC = () => {
 
   const { isPolling, activityLevel, lastUpdate, error } = pollingStatus;
   const timeSinceUpdate = Date.now() - lastUpdate;
-  const isStale = timeSinceUpdate > 10000; // Data is stale after 10s
+  const isStale = timeSinceUpdate > 10000; 
   
   return (
     <div style={{
@@ -34,7 +34,7 @@ export const AgentPollingStatus: React.FC = () => {
       zIndex: 1000,
       backdropFilter: 'blur(10px)'
     }}>
-      {/* Header */}
+      {}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span style={{ fontWeight: 'bold', fontSize: '14px' }}>Agent Network Status</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -53,7 +53,7 @@ export const AgentPollingStatus: React.FC = () => {
         </div>
       </div>
 
-      {/* Activity Level */}
+      {}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <span style={{ opacity: 0.7 }}>Activity:</span>
         <Badge
@@ -71,7 +71,7 @@ export const AgentPollingStatus: React.FC = () => {
         </span>
       </div>
 
-      {/* Last Update */}
+      {}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <span style={{ opacity: 0.7 }}>Last Update:</span>
         <span style={{ 
@@ -84,7 +84,7 @@ export const AgentPollingStatus: React.FC = () => {
         </span>
       </div>
 
-      {/* Error Display */}
+      {}
       {error && (
         <div style={{
           backgroundColor: 'rgba(231, 76, 60, 0.2)',
@@ -98,7 +98,7 @@ export const AgentPollingStatus: React.FC = () => {
         </div>
       )}
 
-      {/* Polling Controls */}
+      {}
       <div style={{ 
         marginTop: '4px',
         paddingTop: '8px',

@@ -8,7 +8,7 @@
 pub mod actor_graph_repository;
 
 // Legacy adapters
-// pub mod gpu_physics_adapter;  // REMOVED: Incomplete stub adapter
+// pub mod gpu_physics_adapter;  
 pub mod gpu_semantic_analyzer;
 
 // New hexser-based adapters (legacy removed, using unified repositories)
@@ -28,7 +28,7 @@ pub mod physics_orchestrator_adapter;
 pub use actor_graph_repository::ActorGraphRepository;
 
 // GPU adapter implementation exports (these implement the traits from crate::ports)
-// pub use gpu_physics_adapter::GpuPhysicsAdapter as GpuPhysicsAdapterImpl;  // REMOVED: Incomplete stub
+// pub use gpu_physics_adapter::GpuPhysicsAdapter as GpuPhysicsAdapterImpl;  
 pub use gpu_semantic_analyzer::GpuSemanticAnalyzerAdapter;
 
 // New hexser-based adapter exports

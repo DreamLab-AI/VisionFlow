@@ -39,7 +39,7 @@ export const WireframeCloudMesh: React.FC<WireframeCloudMeshProps> = ({
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.MeshBasicMaterial>();
 
-  // Create geometry
+  
   const geometryObj = useMemo(() => {
     let geo: THREE.BufferGeometry;
     
@@ -60,7 +60,7 @@ export const WireframeCloudMesh: React.FC<WireframeCloudMeshProps> = ({
     return geo;
   }, [geometry, geometryArgs]);
 
-  // Create material using standard THREE.js material with emissive properties
+  
   const material = useMemo(() => {
     const c = new THREE.Color(color);
     return new THREE.MeshBasicMaterial({
@@ -74,7 +74,7 @@ export const WireframeCloudMesh: React.FC<WireframeCloudMeshProps> = ({
     });
   }, [color, opacity, glowIntensity]);
 
-  // Store material ref
+  
   useEffect(() => {
     materialRef.current = material;
     return () => {
@@ -82,7 +82,7 @@ export const WireframeCloudMesh: React.FC<WireframeCloudMeshProps> = ({
     };
   }, [material]);
 
-  // Animate
+  
   useFrame((state, delta) => {
     if (meshRef.current && rotationSpeed > 0) {
       meshRef.current.rotation.x += delta * rotationSpeed * rotationAxis[0];
@@ -90,7 +90,7 @@ export const WireframeCloudMesh: React.FC<WireframeCloudMeshProps> = ({
       meshRef.current.rotation.z += delta * rotationSpeed * rotationAxis[2];
     }
 
-    // Standard material doesn't need time updates
+    
   });
 
   return (
@@ -124,9 +124,9 @@ export const MultiLayerWireframeCloud: React.FC<{
   return (
     <group position={position}>
       {Array.from({ length: layers }, (_, i) => {
-        const layerScale = 1 + i * 0.1;  // Each layer slightly larger
-        const layerOpacity = 0.3 / layers;  // Distribute opacity
-        const extension = 5 + i * 5;  // Each layer extends further
+        const layerScale = 1 + i * 0.1;  
+        const layerOpacity = 0.3 / layers;  
+        const extension = 5 + i * 5;  
         
         return (
           <WireframeCloudMesh
@@ -135,7 +135,7 @@ export const MultiLayerWireframeCloud: React.FC<{
             geometryArgs={geometryArgs}
             scale={layerScale}
             color={color}
-            wireframeOpacity={i === 0 ? 0.8 : 0}  // Only first layer shows wireframe
+            wireframeOpacity={i === 0 ? 0.8 : 0}  
             opacity={layerOpacity}
             cloudExtension={extension}
             blurRadius={10 + i * 10}

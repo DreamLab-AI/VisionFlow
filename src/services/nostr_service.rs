@@ -72,8 +72,8 @@ impl NostrService {
     }
 
     pub async fn verify_auth_event(&self, event: AuthEvent) -> Result<NostrUser, NostrError> {
-        // Convert to Nostr Event for verification
-        // Convert to JSON string and parse as Nostr Event
+        
+        
         debug!(
             "Verifying auth event with id: {} and pubkey: {}",
             event.id, event.pubkey
@@ -118,7 +118,7 @@ impl NostrService {
             return Err(NostrError::InvalidSignature);
         }
 
-        // Register new user if not already registered
+        
         let mut feature_access = self.feature_access.write().await;
         if feature_access.register_new_user(&event.pubkey) {
             info!("Registered new user with basic access: {}", event.pubkey);
@@ -127,7 +127,7 @@ impl NostrService {
         let now = Utc::now();
         let is_power_user = self.power_user_pubkeys.contains(&event.pubkey);
 
-        // Generate session token
+        
         let session_token = Uuid::new_v4().to_string();
 
         let user = NostrUser {
@@ -142,13 +142,13 @@ impl NostrService {
             session_token: Some(session_token),
         };
 
-        // Log successful user creation
+        
         info!(
             "Created/updated user: pubkey={}, is_power_user={}",
             user.pubkey, user.is_power_user
         );
 
-        // Store or update user
+        
         let mut users = self.users.write().await;
         users.insert(user.pubkey.clone(), user.clone());
 

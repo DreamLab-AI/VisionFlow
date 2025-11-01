@@ -9,26 +9,26 @@ use std::sync::{Arc, Mutex};
 use log::{info, warn, error, debug};
 use crate::utils::cuda_error_handling::{CudaErrorHandler, CudaMemoryGuard};
 
-/// Dynamic buffer configuration for different node counts
+/
 #[derive(Debug, Clone)]
 pub struct BufferConfig {
-    /// Base buffer size per node (in bytes)
+    
     pub bytes_per_node: usize,
-    /// Growth factor when resizing (e.g., 1.5 = 50% growth)
+    
     pub growth_factor: f32,
-    /// Maximum buffer size in bytes
+    
     pub max_size_bytes: usize,
-    /// Minimum buffer size in bytes
+    
     pub min_size_bytes: usize,
 }
 
 impl Default for BufferConfig {
     fn default() -> Self {
         Self {
-            bytes_per_node: 64, // 64 bytes per node (16 floats * 4 bytes)
+            bytes_per_node: 64, 
             growth_factor: 1.5,
-            max_size_bytes: 1024 * 1024 * 1024, // 1GB max
-            min_size_bytes: 1024, // 1KB min
+            max_size_bytes: 1024 * 1024 * 1024, 
+            min_size_bytes: 1024, 
         }
     }
 }
@@ -36,16 +36,16 @@ impl Default for BufferConfig {
 impl BufferConfig {
     pub fn for_positions() -> Self {
         Self {
-            bytes_per_node: 12, // 3 floats * 4 bytes (x, y, z)
+            bytes_per_node: 12, 
             growth_factor: 1.3,
-            max_size_bytes: 512 * 1024 * 1024, // 512MB max
-            min_size_bytes: 4096, // 4KB min
+            max_size_bytes: 512 * 1024 * 1024, 
+            min_size_bytes: 4096, 
         }
     }
 
     pub fn for_velocities() -> Self {
         Self {
-            bytes_per_node: 12, // 3 floats * 4 bytes (vx, vy, vz)
+            bytes_per_node: 12, 
             growth_factor: 1.3,
             max_size_bytes: 512 * 1024 * 1024,
             min_size_bytes: 4096,
@@ -54,7 +54,7 @@ impl BufferConfig {
 
     pub fn for_forces() -> Self {
         Self {
-            bytes_per_node: 12, // 3 floats * 4 bytes (fx, fy, fz)
+            bytes_per_node: 12, 
             growth_factor: 1.3,
             max_size_bytes: 512 * 1024 * 1024,
             min_size_bytes: 4096,
@@ -63,24 +63,24 @@ impl BufferConfig {
 
     pub fn for_edges() -> Self {
         Self {
-            bytes_per_node: 32, // Approximately 8 edges per node * 4 bytes
+            bytes_per_node: 32, 
             growth_factor: 2.0,
-            max_size_bytes: 2048 * 1024 * 1024, // 2GB max for edge data
+            max_size_bytes: 2048 * 1024 * 1024, 
             min_size_bytes: 8192,
         }
     }
 
     pub fn for_grid_cells() -> Self {
         Self {
-            bytes_per_node: 8, // 2 ints * 4 bytes (start, end)
+            bytes_per_node: 8, 
             growth_factor: 1.5,
-            max_size_bytes: 256 * 1024 * 1024, // 256MB max
+            max_size_bytes: 256 * 1024 * 1024, 
             min_size_bytes: 2048,
         }
     }
 }
 
-/// A dynamically resizable GPU buffer
+/
 pub struct DynamicGpuBuffer {
     name: String,
     config: BufferConfig,
@@ -102,7 +102,7 @@ impl DynamicGpuBuffer {
         }
     }
 
-    /// Ensure the buffer can hold at least the specified number of elements
+    
     pub fn ensure_capacity(&mut self, required_elements: usize) -> Result<(), Box<dyn std::error::Error>> {
         let required_bytes = required_elements * self.config.bytes_per_node;
 
@@ -111,7 +111,7 @@ impl DynamicGpuBuffer {
             return Ok(());
         }
 
-        // Calculate new capacity with growth factor
+        
         let mut new_capacity = if self.current_capacity == 0 {
             self.config.min_size_bytes.max(required_bytes)
         } else {
@@ -119,7 +119,7 @@ impl DynamicGpuBuffer {
             grown_size.max(required_bytes)
         };
 
-        // Clamp to maximum size
+        
         new_capacity = new_capacity.min(self.config.max_size_bytes);
 
         if required_bytes > new_capacity {
@@ -129,14 +129,14 @@ impl DynamicGpuBuffer {
 
         info!("Resizing buffer {} from {} bytes to {} bytes", self.name, self.current_capacity, new_capacity);
 
-        // Allocate new buffer
+        
         let new_buffer = Arc::new(CudaMemoryGuard::new(
             new_capacity,
             format!("{}_dynamic", self.name),
             self.error_handler.clone()
         )?);
 
-        // Copy existing data if we have it
+        
         if let Some(old_buffer) = &self.current_buffer {
             if self.current_size > 0 {
                 debug!("Copying {} bytes from old buffer to new buffer", self.current_size);
@@ -155,7 +155,7 @@ impl DynamicGpuBuffer {
             }
         }
 
-        // Update buffer state
+        
         self.current_buffer = Some(new_buffer);
         self.current_capacity = new_capacity;
 
@@ -163,7 +163,7 @@ impl DynamicGpuBuffer {
         Ok(())
     }
 
-    /// Get the raw pointer to the buffer (unsafe)
+    
     pub unsafe fn as_ptr(&self) -> *mut c_void {
         if let Some(buffer) = &self.current_buffer {
             buffer.as_ptr()
@@ -172,27 +172,27 @@ impl DynamicGpuBuffer {
         }
     }
 
-    /// Get the current capacity in bytes
+    
     pub fn capacity_bytes(&self) -> usize {
         self.current_capacity
     }
 
-    /// Get the current size in bytes
+    
     pub fn size_bytes(&self) -> usize {
         self.current_size
     }
 
-    /// Update the current used size
+    
     pub fn set_size(&mut self, size_bytes: usize) {
         self.current_size = size_bytes.min(self.current_capacity);
     }
 
-    /// Check if buffer is allocated
+    
     pub fn is_allocated(&self) -> bool {
         self.current_buffer.is_some()
     }
 
-    /// Get buffer statistics
+    
     pub fn get_stats(&self) -> BufferStats {
         BufferStats {
             name: self.name.clone(),
@@ -215,7 +215,7 @@ pub struct BufferStats {
     pub utilization: f32,
 }
 
-/// Manager for all dynamic GPU buffers
+/
 pub struct DynamicBufferManager {
     buffers: HashMap<String, DynamicGpuBuffer>,
     error_handler: Arc<CudaErrorHandler>,
@@ -229,11 +229,11 @@ impl DynamicBufferManager {
             buffers: HashMap::new(),
             error_handler,
             total_allocated: 0,
-            max_total_allocation: 6 * 1024 * 1024 * 1024, // 6GB max total
+            max_total_allocation: 6 * 1024 * 1024 * 1024, 
         }
     }
 
-    /// Get or create a buffer with the given name and configuration
+    
     pub fn get_or_create_buffer(&mut self, name: &str, config: BufferConfig) -> &mut DynamicGpuBuffer {
         if !self.buffers.contains_key(name) {
             let buffer = DynamicGpuBuffer::new(
@@ -246,59 +246,59 @@ impl DynamicBufferManager {
         self.buffers.get_mut(name).unwrap()
     }
 
-    /// Ensure all cell buffers can handle the specified number of nodes
+    
     pub fn resize_cell_buffers(&mut self, num_nodes: usize) -> Result<(), Box<dyn std::error::Error>> {
         info!("Resizing cell buffers for {} nodes", num_nodes);
 
-        // Calculate grid dimensions based on node count
+        
         let grid_side_length = ((num_nodes as f64).powf(1.0/3.0).ceil() as usize).max(8);
         let total_cells = grid_side_length * grid_side_length * grid_side_length;
 
         info!("Grid dimensions: {}x{}x{} = {} cells", grid_side_length, grid_side_length, grid_side_length, total_cells);
 
-        // Resize position buffers
+        
         let pos_config = BufferConfig::for_positions();
         self.get_or_create_buffer("pos_x", pos_config.clone()).ensure_capacity(num_nodes)?;
         self.get_or_create_buffer("pos_y", pos_config.clone()).ensure_capacity(num_nodes)?;
         self.get_or_create_buffer("pos_z", pos_config.clone()).ensure_capacity(num_nodes)?;
 
-        // Resize velocity buffers
+        
         let vel_config = BufferConfig::for_velocities();
         self.get_or_create_buffer("vel_x", vel_config.clone()).ensure_capacity(num_nodes)?;
         self.get_or_create_buffer("vel_y", vel_config.clone()).ensure_capacity(num_nodes)?;
         self.get_or_create_buffer("vel_z", vel_config.clone()).ensure_capacity(num_nodes)?;
 
-        // Resize force buffers
+        
         let force_config = BufferConfig::for_forces();
         self.get_or_create_buffer("force_x", force_config.clone()).ensure_capacity(num_nodes)?;
         self.get_or_create_buffer("force_y", force_config.clone()).ensure_capacity(num_nodes)?;
         self.get_or_create_buffer("force_z", force_config.clone()).ensure_capacity(num_nodes)?;
 
-        // Resize grid cell buffers
+        
         let cell_config = BufferConfig::for_grid_cells();
         self.get_or_create_buffer("cell_keys", cell_config.clone()).ensure_capacity(num_nodes)?;
         self.get_or_create_buffer("cell_start", cell_config.clone()).ensure_capacity(total_cells)?;
         self.get_or_create_buffer("cell_end", cell_config.clone()).ensure_capacity(total_cells)?;
         self.get_or_create_buffer("sorted_indices", cell_config.clone()).ensure_capacity(num_nodes)?;
 
-        // Update total allocation tracking
+        
         self.update_total_allocation();
 
         info!("Successfully resized all cell buffers for {} nodes, {} cells", num_nodes, total_cells);
         Ok(())
     }
 
-    /// Get buffer statistics for all buffers
+    
     pub fn get_all_stats(&self) -> Vec<BufferStats> {
         self.buffers.values().map(|buffer| buffer.get_stats()).collect()
     }
 
-    /// Get total allocated memory across all buffers
+    
     pub fn get_total_allocation(&self) -> usize {
         self.total_allocated
     }
 
-    /// Update total allocation tracking
+    
     fn update_total_allocation(&mut self) {
         self.total_allocated = self.buffers.values()
             .map(|buffer| buffer.capacity_bytes())
@@ -313,16 +313,16 @@ impl DynamicBufferManager {
                self.total_allocated, self.buffers.len());
     }
 
-    /// Check if we can allocate more memory
+    
     pub fn can_allocate(&self, additional_bytes: usize) -> bool {
         self.total_allocated + additional_bytes <= self.max_total_allocation
     }
 
-    /// Clean up unused buffers to free memory
+    
     pub fn cleanup_unused_buffers(&mut self) {
         let initial_count = self.buffers.len();
 
-        // Remove buffers with zero utilization that aren't recently used
+        
         self.buffers.retain(|name, buffer| {
             let stats = buffer.get_stats();
             if stats.utilization == 0.0 && stats.capacity_bytes > 0 {
@@ -365,7 +365,7 @@ mod tests {
         let handler = get_global_cuda_error_handler();
         let mut manager = DynamicBufferManager::new(handler);
 
-        // Test buffer creation
+        
         let config = BufferConfig::default();
         let buffer = manager.get_or_create_buffer("test_buffer", config);
         assert_eq!(buffer.name, "test_buffer");

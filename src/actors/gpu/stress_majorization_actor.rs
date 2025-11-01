@@ -9,7 +9,7 @@ use std::time::Instant;
 use super::shared::{GPUState, SharedGPUContext, StressMajorizationSafety};
 use crate::actors::messages::*;
 
-/// Stress majorization parameters
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StressMajorizationParams {
     pub max_iterations: u32,
@@ -21,7 +21,7 @@ pub struct StressMajorizationParams {
     pub convergence_threshold: Option<f32>,
 }
 
-/// Stress majorization statistics
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StressMajorizationStats {
     pub stress_value: f32,
@@ -30,21 +30,21 @@ pub struct StressMajorizationStats {
     pub computation_time_ms: u64,
 }
 
-/// Stress Majorization Actor - handles stress optimization and layout algorithms
+/
 pub struct StressMajorizationActor {
-    /// Shared GPU state
+    
     gpu_state: GPUState,
 
-    /// Shared GPU context reference
+    
     shared_context: Option<Arc<SharedGPUContext>>,
 
-    /// Stress majorization safety controls
+    
     safety: StressMajorizationSafety,
 
-    /// Stress majorization execution interval (in iterations)
+    
     stress_majorization_interval: u32,
 
-    /// Last iteration when stress majorization was performed
+    
     last_stress_majorization: u32,
 }
 
@@ -54,16 +54,16 @@ impl StressMajorizationActor {
             gpu_state: GPUState::default(),
             shared_context: None,
             safety: StressMajorizationSafety::new(),
-            stress_majorization_interval: 600, // Default: every 10 seconds at 60 FPS
+            stress_majorization_interval: 600, 
             last_stress_majorization: 0,
         }
     }
 
-    /// Perform stress majorization with safety controls
+    
     fn perform_stress_majorization(&mut self) -> Result<(), String> {
         info!("StressMajorizationActor: Performing stress majorization");
 
-        // Safety check - verify it's safe to run
+        
         if !self.safety.is_safe_to_run() {
             let reason = if self.safety.is_emergency_stopped {
                 format!(
@@ -96,7 +96,7 @@ impl StressMajorizationActor {
 
         let start_time = Instant::now();
 
-        // Execute stress majorization on GPU with safety monitoring
+        
         let result = unified_compute.run_stress_majorization().map_err(|e| {
             error!("GPU stress majorization failed: {}", e);
             self.safety
@@ -108,12 +108,12 @@ impl StressMajorizationActor {
 
         match result {
             Ok(stress_info) => {
-                // Record successful execution
+                
                 self.safety
                     .record_success(computation_time.as_millis() as u64);
 
-                // Record iteration metrics for safety monitoring
-                // Extract info from tuple result
+                
+                
                 let (positions_x, positions_y, positions_z) = stress_info;
                 let stress_value =
                     self.calculate_stress_value(&positions_x, &positions_y, &positions_z)?;
@@ -124,7 +124,7 @@ impl StressMajorizationActor {
                 self.safety
                     .record_iteration(stress_value, max_displacement, converged);
 
-                // Update last execution tracking
+                
                 self.last_stress_majorization = self.gpu_state.iteration_count;
 
                 info!(
@@ -136,7 +136,7 @@ impl StressMajorizationActor {
                     stress_value, max_displacement, converged
                 );
 
-                // Apply position clamping for safety
+                
                 self.apply_position_safety_clamping()?;
 
                 Ok(())
@@ -148,7 +148,7 @@ impl StressMajorizationActor {
         }
     }
 
-    /// Apply position safety clamping to prevent numerical explosions
+    
     fn apply_position_safety_clamping(&self) -> Result<(), String> {
         let mut unified_compute = match &self.shared_context {
             Some(ctx) => ctx
@@ -160,12 +160,12 @@ impl StressMajorizationActor {
             }
         };
 
-        // Get current positions from GPU
+        
         let (positions_x, positions_y, positions_z) = unified_compute
             .get_node_positions()
             .map_err(|e| format!("Failed to get positions for clamping: {}", e))?;
 
-        // Check if any positions need clamping
+        
         let mut clamping_needed = false;
         let mut clamped_x = positions_x.clone();
         let mut clamped_y = positions_y.clone();
@@ -187,7 +187,7 @@ impl StressMajorizationActor {
             }
         }
 
-        // Update positions on GPU if clamping was needed
+        
         if clamping_needed {
             warn!("StressMajorizationActor: Position clamping applied to prevent numerical instability");
             unified_compute
@@ -198,7 +198,7 @@ impl StressMajorizationActor {
         Ok(())
     }
 
-    /// Check if stress majorization should be triggered based on interval
+    
     fn should_run_stress_majorization(&self) -> bool {
         if !self.safety.is_safe_to_run() {
             return false;
@@ -211,17 +211,17 @@ impl StressMajorizationActor {
         iterations_since_last >= self.stress_majorization_interval
     }
 
-    /// Update stress majorization parameters
+    
     fn update_stress_majorization_params(&mut self, params: StressMajorizationParams) {
         info!("StressMajorizationActor: Updating stress majorization parameters");
 
-        // Update interval
+        
         if let Some(interval) = params.interval_frames {
             self.stress_majorization_interval = interval;
             info!("  Updated interval to {} frames", interval);
         }
 
-        // Update safety thresholds
+        
         if let Some(max_displacement) = params.max_displacement_threshold {
             self.safety.max_displacement_threshold = max_displacement;
             info!(
@@ -241,23 +241,23 @@ impl StressMajorizationActor {
         }
     }
 
-    /// Get stress majorization statistics
+    
     fn get_stress_majorization_stats(&self) -> StressMajorizationStats {
         self.safety.get_stats()
     }
 
-    /// Reset safety state
+    
     fn reset_safety_state(&mut self) {
         self.safety.reset_safety_state();
         info!("StressMajorizationActor: Safety state has been reset");
     }
 
-    /// Check if stress majorization should be disabled due to safety
+    
     fn should_disable_stress_majorization(&self) -> bool {
         self.safety.should_disable()
     }
 
-    /// Calculate stress function value from current positions
+    
     fn calculate_stress_value(
         &self,
         pos_x: &[f32],
@@ -271,7 +271,7 @@ impl StressMajorizationActor {
         let mut total_stress = 0.0f32;
         let n = pos_x.len();
 
-        // Calculate stress as sum of squared differences between actual and target distances
+        
         for i in 0..n {
             for j in (i + 1)..n {
                 let dx = pos_x[i] - pos_x[j];
@@ -279,9 +279,9 @@ impl StressMajorizationActor {
                 let dz = pos_z[i] - pos_z[j];
                 let actual_dist = (dx * dx + dy * dy + dz * dz).sqrt();
 
-                // Use graph-theoretic distance as target (simplified)
+                
                 let target_dist = ((i as f32 - j as f32).abs() + 1.0).ln();
-                let weight = 1.0; // Uniform weighting for simplicity
+                let weight = 1.0; 
 
                 let diff = actual_dist - target_dist;
                 total_stress += weight * diff * diff;
@@ -291,14 +291,14 @@ impl StressMajorizationActor {
         Ok(total_stress)
     }
 
-    /// Calculate maximum displacement from previous positions
+    
     fn calculate_max_displacement(
         &self,
         pos_x: &[f32],
         pos_y: &[f32],
         pos_z: &[f32],
     ) -> Result<f32, String> {
-        // Get previous positions from GPU state (simplified)
+        
         let mut unified_compute = match &self.shared_context {
             Some(ctx) => ctx.unified_compute.lock().map_err(|e| {
                 format!(
@@ -363,15 +363,7 @@ impl Handler<TriggerStressMajorization> for StressMajorizationActor {
 }
 
 // FIXME: Type conflict - commented for compilation
-/*
-impl Handler<GetStressMajorizationStats> for StressMajorizationActor {
-    type Result = Result<crate::actors::gpu::stress_majorization_actor::StressMajorizationStats, String>;
 
-    fn handle(&mut self, _msg: GetStressMajorizationStats, _ctx: &mut Self::Context) -> Self::Result {
-        Ok(self.get_stress_majorization_stats())
-    }
-}
-*/
 
 impl Handler<ResetStressMajorizationSafety> for StressMajorizationActor {
     type Result = Result<(), String>;
@@ -394,22 +386,22 @@ impl Handler<UpdateStressMajorizationParams> for StressMajorizationActor {
         msg: UpdateStressMajorizationParams,
         _ctx: &mut Self::Context,
     ) -> Self::Result {
-        // Extract relevant fields from AdvancedParams and map to StressMajorizationParams
+        
         let stress_params = StressMajorizationParams {
-            max_iterations: 100, // Default value since not available in AdvancedParams
-            tolerance: 0.001,    // Default value since not available in AdvancedParams
-            learning_rate: 0.1,  // Default value since not available in AdvancedParams
+            max_iterations: 100, 
+            tolerance: 0.001,    
+            learning_rate: 0.1,  
             interval_frames: Some(msg.params.stress_step_interval_frames),
-            max_displacement_threshold: None, // Not available in AdvancedParams
-            max_position_magnitude: None,     // Not available in AdvancedParams
-            convergence_threshold: None,      // Not available in AdvancedParams
+            max_displacement_threshold: None, 
+            max_position_magnitude: None,     
+            convergence_threshold: None,      
         };
         self.update_stress_majorization_params(stress_params);
         Ok(())
     }
 }
 
-/// Internal handler for automatic stress majorization checks during physics simulation
+/
 impl Handler<CheckStressMajorization> for StressMajorizationActor {
     type Result = Result<bool, String>;
 
@@ -423,7 +415,7 @@ impl Handler<CheckStressMajorization> for StressMajorizationActor {
                         "StressMajorizationActor: Automatic stress majorization failed: {}",
                         e
                     );
-                    Ok(false) // Don't fail the entire physics step
+                    Ok(false) 
                 }
             }
         } else {
@@ -438,14 +430,14 @@ impl Handler<CheckStressMajorization> for StressMajorizationActor {
 #[rtype(result = "Result<bool, String>")]
 pub struct CheckStressMajorization;
 
-/// Handler for receiving SharedGPUContext from ResourceActor
+/
 impl Handler<SetSharedGPUContext> for StressMajorizationActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: SetSharedGPUContext, _ctx: &mut Self::Context) -> Self::Result {
         info!("StressMajorizationActor: Received SharedGPUContext from ResourceActor");
         self.shared_context = Some(msg.context);
-        // msg.graph_service_addr is ignored - only ForceComputeActor needs it
+        
         info!("StressMajorizationActor: SharedGPUContext stored successfully");
         Ok(())
     }

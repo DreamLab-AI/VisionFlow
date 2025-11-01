@@ -23,22 +23,22 @@ export const VoiceStatusIndicator: React.FC<VoiceStatusIndicatorProps> = ({
     }
   });
 
-  // Check browser support on mount
+  
   useEffect(() => {
-    // DEVELOPER WORKAROUND: Force enable for testing
-    // Uncomment the line below to bypass browser support checks
-    setIsSupported(true); // <- DEVELOPER OVERRIDE
     
-    // Original check (commented out for testing)
-    // const support = AudioInputService.getBrowserSupport();
-    // const supported = support.getUserMedia && support.audioContext && support.mediaRecorder;
-    // setIsSupported(supported);
-    // if (!supported) {
-    // Browser support check logging removed - use proper logging if needed
-    // }
+    
+    setIsSupported(true); 
+    
+    
+    
+    
+    
+    
+    
+    
   }, []);
 
-  // Get audio level for visual feedback
+  
   useEffect(() => {
     const voiceService = VoiceWebSocketService.getInstance();
     const handleAudioLevel = (level: number) => setAudioLevel(level);
@@ -51,10 +51,10 @@ export const VoiceStatusIndicator: React.FC<VoiceStatusIndicatorProps> = ({
     };
   }, []);
 
-  // Add spacebar hotkey support
+  
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Only activate if spacebar is pressed and no input is focused
+      
       if (e.code === 'Space' && 
           !e.repeat && 
           !(e.target instanceof HTMLInputElement) && 
@@ -86,7 +86,7 @@ export const VoiceStatusIndicator: React.FC<VoiceStatusIndicatorProps> = ({
     };
   }, [isListening]);
 
-  // Clear error when listening state changes
+  
   useEffect(() => {
     if (isListening && hasError) {
       setHasError(false);
@@ -114,9 +114,9 @@ export const VoiceStatusIndicator: React.FC<VoiceStatusIndicatorProps> = ({
       onClick={handleToggle}
       className={`flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity ${className}`}
       aria-label={isListening ? 'Stop voice input' : 'Start voice input'}>
-      {/* Status Icon */}
+      {}
       <div className="relative">
-        {/* Base icon */}
+        {}
         <div className={`
           w-6 h-6 rounded-full flex items-center justify-center
           transition-all duration-200
@@ -131,7 +131,7 @@ export const VoiceStatusIndicator: React.FC<VoiceStatusIndicatorProps> = ({
           )}
         </div>
 
-        {/* Pulsing ring when active */}
+        {}
         {(isListening || isSpeaking) && (
           <div 
             className={`
@@ -142,7 +142,7 @@ export const VoiceStatusIndicator: React.FC<VoiceStatusIndicatorProps> = ({
           />
         )}
 
-        {/* Audio level indicator */}
+        {}
         {isListening && (
           <div
             className="absolute inset-0 rounded-full bg-red-400 opacity-50"
@@ -154,7 +154,7 @@ export const VoiceStatusIndicator: React.FC<VoiceStatusIndicatorProps> = ({
         )}
       </div>
 
-      {/* Status Text */}
+      {}
       <div className="text-xs font-medium">
         {isListening ? (
           <span className="text-red-400">Recording (Space)</span>

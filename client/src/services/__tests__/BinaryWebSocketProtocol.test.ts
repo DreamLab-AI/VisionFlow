@@ -1,7 +1,4 @@
-/**
- * Test suite for node ID truncation bug fix
- * Verifies that V2 protocol correctly handles node IDs > 16383
- */
+
 
 import {
   BinaryWebSocketProtocol,
@@ -27,7 +24,7 @@ describe('BinaryWebSocketProtocol - Node ID Truncation Fix', () => {
       const payload = new ArrayBuffer(AGENT_POSITION_SIZE_V1);
       const view = new DataView(payload);
 
-      // Write V1 format: u16 ID
+      
       view.setUint16(0, 100, true);
       view.setFloat32(2, 1.0, true);
       view.setFloat32(6, 2.0, true);
@@ -46,7 +43,7 @@ describe('BinaryWebSocketProtocol - Node ID Truncation Fix', () => {
       const payload = new ArrayBuffer(AGENT_POSITION_SIZE_V1);
       const view = new DataView(payload);
 
-      view.setUint16(0, 16383, true); // Maximum 14-bit ID
+      view.setUint16(0, 16383, true); 
       view.setFloat32(2, 1.0, true);
       view.setFloat32(6, 2.0, true);
       view.setFloat32(10, 3.0, true);
@@ -66,7 +63,7 @@ describe('BinaryWebSocketProtocol - Node ID Truncation Fix', () => {
 
       const updates: AgentPositionUpdate[] = [
         {
-          agentId: 20000, // Larger than V1 max
+          agentId: 20000, 
           position: { x: 1.0, y: 2.0, z: 3.0 },
           timestamp: Date.now(),
           flags: 0,
@@ -76,15 +73,15 @@ describe('BinaryWebSocketProtocol - Node ID Truncation Fix', () => {
       const encoded = protocol.encodePositionUpdates(updates);
 
       expect(encoded).not.toBeNull();
-      expect(encoded!.byteLength).toBe(4 + AGENT_POSITION_SIZE_V2); // Header + 1 update
+      expect(encoded!.byteLength).toBe(4 + AGENT_POSITION_SIZE_V2); 
     });
 
     it('should decode V2 format with large IDs', () => {
       const payload = new ArrayBuffer(AGENT_POSITION_SIZE_V2);
       const view = new DataView(payload);
 
-      // Write V2 format: u32 ID
-      view.setUint32(0, 50000, true); // Large ID
+      
+      view.setUint32(0, 50000, true); 
       view.setFloat32(4, 1.0, true);
       view.setFloat32(8, 2.0, true);
       view.setFloat32(12, 3.0, true);
@@ -160,7 +157,7 @@ describe('BinaryWebSocketProtocol - Node ID Truncation Fix', () => {
       ];
 
       const encoded = protocol.encodeAgentState(agents);
-      const payload = encoded.slice(4); // Skip header
+      const payload = encoded.slice(4); 
 
       expect(payload.byteLength).toBe(AGENT_STATE_SIZE_V2);
     });
@@ -169,7 +166,7 @@ describe('BinaryWebSocketProtocol - Node ID Truncation Fix', () => {
       const payload = new ArrayBuffer(AGENT_STATE_SIZE_V2);
       const view = new DataView(payload);
 
-      view.setUint32(0, 100000, true); // Very large ID
+      view.setUint32(0, 100000, true); 
       view.setFloat32(4, 1.0, true);
       view.setFloat32(8, 2.0, true);
       view.setFloat32(12, 3.0, true);
@@ -195,7 +192,7 @@ describe('BinaryWebSocketProtocol - Node ID Truncation Fix', () => {
       const payload = new ArrayBuffer(AGENT_STATE_SIZE_V1);
       const view = new DataView(payload);
 
-      view.setUint16(0, 100, true); // V1 uses u16
+      view.setUint16(0, 100, true); 
       view.setFloat32(2, 1.0, true);
       view.setFloat32(6, 2.0, true);
       view.setFloat32(10, 3.0, true);
@@ -237,24 +234,24 @@ describe('BinaryWebSocketProtocol - Node ID Truncation Fix', () => {
 
       expect(updates).toHaveLength(nodeIds.length);
 
-      // Verify no collisions
+      
       const decodedIds = updates.map(u => u.agentId);
       const uniqueIds = new Set(decodedIds);
       expect(uniqueIds.size).toBe(nodeIds.length);
 
-      // Verify each ID matches
+      
       nodeIds.forEach((nodeId, i) => {
         expect(updates[i].agentId).toBe(nodeId);
       });
     });
 
     it('should demonstrate V1 would have collisions', () => {
-      // IDs that would collide in V1 (differ by 16384)
+      
       const id1 = 100;
-      const id2 = 16384 + 100; // Would collide with id1 in V1
+      const id2 = 16384 + 100; 
 
-      // In V1, both would truncate to 100 (collision)
-      // In V2, they remain distinct
+      
+      
       const payload = new ArrayBuffer(AGENT_POSITION_SIZE_V2 * 2);
       const view = new DataView(payload);
 
@@ -317,7 +314,7 @@ describe('BinaryWebSocketProtocol - Node ID Truncation Fix', () => {
     });
 
     it('should handle invalid payload sizes gracefully', () => {
-      const payload = new ArrayBuffer(17); // Invalid size
+      const payload = new ArrayBuffer(17); 
 
       const updates = protocol.decodePositionUpdates(payload);
 
@@ -327,7 +324,7 @@ describe('BinaryWebSocketProtocol - Node ID Truncation Fix', () => {
 
   describe('Maximum Node ID Support', () => {
     it('should support maximum 30-bit node ID', () => {
-      const maxId = 0x3FFFFFFF; // 1,073,741,823 (30 bits)
+      const maxId = 0x3FFFFFFF; 
       const payload = new ArrayBuffer(AGENT_POSITION_SIZE_V2);
       const view = new DataView(payload);
 
@@ -352,7 +349,7 @@ describe('BinaryWebSocketProtocol - Node ID Truncation Fix', () => {
 
       const bandwidth = protocol.calculateBandwidth(agentCount, updateRateHz);
 
-      // V2 uses 49 bytes per agent (AGENT_STATE_SIZE_V2)
+      
       const expectedFullState = agentCount * 49 * updateRateHz + 4 * updateRateHz;
 
       expect(bandwidth.fullState).toBe(expectedFullState);

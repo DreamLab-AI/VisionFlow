@@ -1,9 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { agentTelemetry } from './AgentTelemetry';
 
-/**
- * React hook for telemetry and performance monitoring
- */
+
 export function useTelemetry(componentName: string) {
   const renderStartTime = useRef<number>();
   const componentMountTime = useRef<number>();
@@ -55,9 +53,7 @@ export function useTelemetry(componentName: string) {
   };
 }
 
-/**
- * Hook for monitoring Three.js performance
- */
+
 export function useThreeJSTelemetry(objectId: string) {
   const logPositionUpdate = useCallback((position: { x: number; y: number; z: number }, metadata?: Record<string, any>) => {
     agentTelemetry.logThreeJSOperation('position_update', objectId, position, undefined, metadata);
@@ -83,9 +79,7 @@ export function useThreeJSTelemetry(objectId: string) {
   };
 }
 
-/**
- * Hook for WebSocket telemetry
- */
+
 export function useWebSocketTelemetry() {
   const logMessage = useCallback((messageType: string, direction: 'incoming' | 'outgoing', data?: any) => {
     const size = data ? JSON.stringify(data).length : undefined;

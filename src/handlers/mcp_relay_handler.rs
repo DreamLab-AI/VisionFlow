@@ -45,7 +45,7 @@ pub struct MCPRelayActor {
         >,
     >,
     self_addr: Option<Addr<Self>>,
-    // Resilience components
+    
     circuit_breaker: Arc<CircuitBreaker>,
     health_manager: Arc<HealthCheckManager>,
     timeout_config: TimeoutConfig,
@@ -61,7 +61,7 @@ impl MCPRelayActor {
         let health_manager = Arc::new(HealthCheckManager::new());
         let timeout_config = TimeoutConfig::mcp_operations();
 
-        // Service will be registered in started() method
+        
 
         info!(
             "[MCP Relay] Creating new actor with resilience features: {}",
@@ -99,7 +99,7 @@ impl MCPRelayActor {
         let connection_attempts = self.connection_attempts;
 
         actix::spawn(async move {
-            // Use circuit breaker for connection attempt
+            
             let connection_result = circuit_breaker
                 .execute(async {
                     let conn_timeout = timeout_config.connect_timeout;
@@ -129,15 +129,15 @@ impl MCPRelayActor {
                     let (tx, mut rx) = ws_stream.split();
                     let tx = Arc::new(Mutex::new(tx));
 
-                    // Update health status
+                    
                     let _health_check_result =
                         health_manager.check_service_now("orchestrator").await;
                     debug!("[MCP Relay] Health check performed for orchestrator");
 
-                    // Send connection success to actor
+                    
                     addr.do_send(OrchestratorText("connected".to_string()));
 
-                    // Forward messages from orchestrator to client
+                    
                     while let Some(msg) = rx.next().await {
                         match msg {
                             Ok(TungsteniteMessage::Text(text)) => {
@@ -154,7 +154,7 @@ impl MCPRelayActor {
                                 let tx_clone = tx.clone();
                                 let health_manager_clone = health_manager.clone();
                                 actix::spawn(async move {
-                                    // Respond to ping and update health status
+                                    
                                     let mut tx_guard = tx_clone.lock().await;
                                     match tx_guard.send(TungsteniteMessage::Pong(data)).await {
                                         Err(e) => {
@@ -172,12 +172,12 @@ impl MCPRelayActor {
                                 });
                             }
                             Ok(TungsteniteMessage::Pong(_)) => {
-                                // Pong received, connection is alive
+                                
                             }
                             Ok(_) => {}
                             Err(e) => {
                                 error!("[MCP Relay] Error receiving from orchestrator: {}", e);
-                                // Mark orchestrator as unhealthy
+                                
                                 let _ = health_manager.check_service_now("orchestrator").await;
                                 break;
                             }
@@ -192,10 +192,10 @@ impl MCPRelayActor {
                         connection_attempts, e
                     );
 
-                    // Mark orchestrator as unhealthy
+                    
                     let _ = health_manager.check_service_now("orchestrator").await;
 
-                    // Use exponential backoff for retries
+                    
                     let retry_delay = std::cmp::min(
                         Duration::from_secs(5) * 2_u32.pow(connection_attempts.saturating_sub(1)),
                         Duration::from_secs(60),
@@ -219,24 +219,24 @@ impl Actor for MCPRelayActor {
             self.client_id
         );
 
-        // Register orchestrator service for health monitoring
+        
         let health_manager = self.health_manager.clone();
         actix::spawn(async move {
             let endpoint = ServiceEndpoint {
                 name: "orchestrator".to_string(),
                 host: "localhost".to_string(),
-                port: 8080, // Default port, could be configurable
+                port: 8080, 
                 config: HealthCheckConfig::default(),
                 additional_endpoints: vec![],
             };
             health_manager.register_service(endpoint).await;
         });
 
-        // Start heartbeat with health monitoring
+        
         ctx.run_interval(Duration::from_secs(30), |act, ctx| {
             ctx.ping(b"");
 
-            // Perform health check on orchestrator
+            
             let health_manager = act.health_manager.clone();
             actix::spawn(async move {
                 let health_result = health_manager.check_service_now("orchestrator").await;
@@ -248,10 +248,10 @@ impl Actor for MCPRelayActor {
             });
         });
 
-        // Start periodic health monitoring
+        
         ctx.run_interval(Duration::from_secs(60), |act, _ctx| {
             act.last_health_check = Instant::now();
-            // Health status will be updated asynchronously
+            
             let health_manager = act.health_manager.clone();
             actix::spawn(async move {
                 let _health = health_manager.get_service_health("orchestrator").await;
@@ -267,7 +267,7 @@ impl Actor for MCPRelayActor {
             });
         });
 
-        // Connect to orchestrator
+        
         self.connect_to_orchestrator(ctx);
     }
 
@@ -283,7 +283,7 @@ impl Handler<OrchestratorText> for MCPRelayActor {
     fn handle(&mut self, msg: OrchestratorText, ctx: &mut Self::Context) {
         match msg.0.as_str() {
             "connected" => {
-                // Store orchestrator connection
+                
                 ctx.text(
                     serde_json::json!({
                         "type": "orchestrator_connected",
@@ -293,11 +293,11 @@ impl Handler<OrchestratorText> for MCPRelayActor {
                 );
             }
             "retry" => {
-                // Retry connection
+                
                 self.connect_to_orchestrator(ctx);
             }
             _ => {
-                // Forward message to client
+                
                 ctx.text(msg.0);
             }
         }
@@ -308,7 +308,7 @@ impl Handler<OrchestratorBinary> for MCPRelayActor {
     type Result = ();
 
     fn handle(&mut self, msg: OrchestratorBinary, ctx: &mut Self::Context) {
-        // Forward binary message to client
+        
         ctx.binary(msg.0);
     }
 }
@@ -321,14 +321,14 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MCPRelayActor {
                 ctx.pong(&msg);
             }
             Ok(ws::Message::Pong(_)) => {
-                // Client is alive
+                
             }
             Ok(ws::Message::Text(text)) => {
                 debug!("[MCP Relay] Received text from client: {}", text);
 
-                // Parse and handle message
+                
                 if let Ok(msg) = serde_json::from_str::<serde_json::Value>(&text) {
-                    // Handle control messages
+                    
                     if let Some(msg_type) = msg.get("type").and_then(|t| t.as_str()) {
                         match msg_type {
                             "ping" => {
@@ -346,7 +346,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MCPRelayActor {
                     }
                 }
 
-                // Forward to orchestrator if connected and healthy
+                
                 if let Some(tx) = &self.orchestrator_tx {
                     if !self.is_orchestrator_healthy {
                         warn!("[MCP Relay] Orchestrator unhealthy, dropping message");
@@ -374,7 +374,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MCPRelayActor {
                         .await
                         {
                             Ok(Ok(_)) => {
-                                // Message sent successfully
+                                
                                 let _ = health_manager.check_service_now("orchestrator").await;
                             }
                             Ok(Err(e)) => {
@@ -405,7 +405,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MCPRelayActor {
                     bin.len()
                 );
 
-                // Forward to orchestrator if connected and healthy
+                
                 if let Some(tx) = &self.orchestrator_tx {
                     if !self.is_orchestrator_healthy {
                         warn!("[MCP Relay] Orchestrator unhealthy, dropping binary message");

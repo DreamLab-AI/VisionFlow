@@ -9,14 +9,14 @@ use crate::ports::ontology_repository::{
     InferenceResults, OwlAxiom, OwlClass, OwlProperty, PathfindingCacheEntry,
 };
 
-/// Add an OWL class definition
+/
 #[derive(Debug, Clone)]
 pub struct AddClassCommand {
     pub class: OwlClass,
 }
 
 impl Command for AddClassCommand {
-    type Result = String; // Returns class IRI
+    type Result = String; 
 
     fn name(&self) -> &'static str {
         "AddClass"
@@ -30,7 +30,7 @@ impl Command for AddClassCommand {
     }
 }
 
-/// Update an existing OWL class
+/
 #[derive(Debug, Clone)]
 pub struct UpdateClassCommand {
     pub class: OwlClass,
@@ -51,7 +51,7 @@ impl Command for UpdateClassCommand {
     }
 }
 
-/// Remove an OWL class by IRI
+/
 #[derive(Debug, Clone)]
 pub struct RemoveClassCommand {
     pub iri: String,
@@ -72,14 +72,14 @@ impl Command for RemoveClassCommand {
     }
 }
 
-/// Add an OWL property definition
+/
 #[derive(Debug, Clone)]
 pub struct AddPropertyCommand {
     pub property: OwlProperty,
 }
 
 impl Command for AddPropertyCommand {
-    type Result = String; // Returns property IRI
+    type Result = String; 
 
     fn name(&self) -> &'static str {
         "AddProperty"
@@ -93,7 +93,7 @@ impl Command for AddPropertyCommand {
     }
 }
 
-/// Update an existing OWL property
+/
 #[derive(Debug, Clone)]
 pub struct UpdatePropertyCommand {
     pub property: OwlProperty,
@@ -114,7 +114,7 @@ impl Command for UpdatePropertyCommand {
     }
 }
 
-/// Remove an OWL property by IRI
+/
 #[derive(Debug, Clone)]
 pub struct RemovePropertyCommand {
     pub iri: String,
@@ -135,14 +135,14 @@ impl Command for RemovePropertyCommand {
     }
 }
 
-/// Add an axiom (e.g., SubClassOf, EquivalentClass)
+/
 #[derive(Debug, Clone)]
 pub struct AddAxiomCommand {
     pub axiom: OwlAxiom,
 }
 
 impl Command for AddAxiomCommand {
-    type Result = u64; // Returns axiom ID
+    type Result = u64; 
 
     fn name(&self) -> &'static str {
         "AddAxiom"
@@ -159,7 +159,7 @@ impl Command for AddAxiomCommand {
     }
 }
 
-/// Remove an axiom by ID
+/
 #[derive(Debug, Clone)]
 pub struct RemoveAxiomCommand {
     pub axiom_id: u64,
@@ -173,7 +173,7 @@ impl Command for RemoveAxiomCommand {
     }
 }
 
-/// Save complete ontology (classes, properties, axioms) in single transaction
+/
 #[derive(Debug, Clone)]
 pub struct SaveOntologyCommand {
     pub classes: Vec<OwlClass>,
@@ -189,7 +189,7 @@ impl Command for SaveOntologyCommand {
     }
 }
 
-/// Save ontology graph structure
+/
 #[derive(Debug, Clone)]
 pub struct SaveOntologyGraphCommand {
     pub graph: GraphData,
@@ -203,7 +203,7 @@ impl Command for SaveOntologyGraphCommand {
     }
 }
 
-/// Store inference results from reasoning engine
+/
 #[derive(Debug, Clone)]
 pub struct StoreInferenceResultsCommand {
     pub results: InferenceResults,
@@ -217,7 +217,7 @@ impl Command for StoreInferenceResultsCommand {
     }
 }
 
-/// Import ontology from OWL XML
+/
 #[derive(Debug, Clone)]
 pub struct ImportOntologyCommand {
     pub owl_xml: String,
@@ -238,7 +238,7 @@ impl Command for ImportOntologyCommand {
     }
 }
 
-/// Cache SSSP pathfinding result
+/
 #[derive(Debug, Clone)]
 pub struct CacheSsspResultCommand {
     pub entry: PathfindingCacheEntry,
@@ -252,7 +252,7 @@ impl Command for CacheSsspResultCommand {
     }
 }
 
-/// Cache APSP distance matrix
+/
 #[derive(Debug, Clone)]
 pub struct CacheApspResultCommand {
     pub distance_matrix: Vec<Vec<f32>>,
@@ -273,7 +273,7 @@ impl Command for CacheApspResultCommand {
     }
 }
 
-/// Invalidate all pathfinding caches
+/
 #[derive(Debug, Clone)]
 pub struct InvalidatePathfindingCachesCommand;
 

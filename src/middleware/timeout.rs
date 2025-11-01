@@ -12,18 +12,18 @@ use log::error;
 use std::future::{ready, Ready};
 use std::time::Duration;
 
-/// Timeout middleware that wraps all requests with a timeout
+/
 pub struct TimeoutMiddleware {
     timeout: Duration,
 }
 
 impl TimeoutMiddleware {
-    /// Create new timeout middleware with specified timeout duration
+    
     pub fn new(timeout: Duration) -> Self {
         Self { timeout }
     }
 
-    /// Create with default 30 second timeout
+    
     pub fn default() -> Self {
         Self::new(Duration::from_secs(30))
     }
@@ -78,7 +78,7 @@ where
                         "Request timeout after {:?} - request exceeded maximum processing time",
                         timeout_duration
                     );
-                    // Create an error response for timeout
+                    
                     Err(actix_web::error::ErrorGatewayTimeout(
                         "Request processing timeout - the server took too long to respond",
                     ))

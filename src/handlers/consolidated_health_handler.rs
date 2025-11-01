@@ -50,21 +50,21 @@ pub struct PhysicsSimulationStatus {
     timestamp: String,
 }
 
-/// Unified health check endpoint that combines all health checks
+/
 pub async fn unified_health_check(app_state: web::Data<AppState>) -> Result<HttpResponse> {
     let mut health_status = "healthy".to_string();
     let mut issues = Vec::new();
 
-    // System metrics check
+    
     let system_metrics = check_system_metrics(&mut health_status, &mut issues);
 
-    // Service metrics check
+    
     let service_metrics = check_service_metrics(&app_state, &mut health_status, &mut issues).await;
 
-    // MCP metrics check
+    
     let mcp_metrics = check_mcp_metrics().await;
 
-    // Update overall status
+    
     if health_status == "healthy" && !issues.is_empty() {
         health_status = "degraded".to_string();
     }
@@ -90,7 +90,7 @@ fn check_system_metrics(health_status: &mut String, issues: &mut Vec<String>) ->
     let disk_usage = check_disk_usage();
     let gpu_status = check_gpu_status();
 
-    // Check thresholds
+    
     if cpu_usage > 90.0 {
         *health_status = "degraded".to_string();
         issues.push("High CPU usage".to_string());
@@ -117,7 +117,7 @@ async fn check_service_metrics(
     health_status: &mut String,
     issues: &mut Vec<String>,
 ) -> ServiceMetrics {
-    // Check metadata service
+    
     let metadata_count = match tokio::time::timeout(
         Duration::from_secs(5),
         app_state.metadata_addr.send(GetMetadata),
@@ -142,7 +142,7 @@ async fn check_service_metrics(
         }
     };
 
-    // Check graph service
+    
     let (nodes_count, edges_count) = match tokio::time::timeout(
         Duration::from_secs(5),
         app_state.graph_service_addr.send(GetGraphData),
@@ -171,7 +171,7 @@ async fn check_service_metrics(
         metadata_count,
         nodes_count,
         edges_count,
-        mcp_status: "not_configured".to_string(), // TODO: Implement proper MCP status check
+        mcp_status: "not_configured".to_string(), 
     }
 }
 
@@ -279,7 +279,7 @@ async fn get_physics_diagnostics(
     let mut diagnostics = Vec::new();
     let mut status = "healthy".to_string();
 
-    // Check graph service
+    
     match tokio::time::timeout(
         Duration::from_secs(3),
         app_state.graph_service_addr.send(GetGraphData),
@@ -311,7 +311,7 @@ async fn get_physics_diagnostics(
         }
     }
 
-    // Check GPU compute if available
+    
     if let Some(gpu_compute_addr) = &app_state.gpu_compute_addr {
         match tokio::time::timeout(Duration::from_secs(2), gpu_compute_addr.send(GetGPUStatus))
             .await
@@ -336,7 +336,7 @@ async fn get_physics_diagnostics(
         diagnostics.push("GPU compute not available - using CPU fallback".to_string());
     }
 
-    // Check physics parameters
+    
     let physics_info = check_physics_parameters();
     diagnostics.push(physics_info);
 
@@ -365,7 +365,7 @@ fn check_physics_parameters() -> String {
     )
 }
 
-/// MCP-specific endpoints
+/
 pub async fn start_mcp_relay() -> Result<HttpResponse> {
     let manager = McpRelayManager::new();
     match manager.ensure_relay_running().await {
@@ -394,7 +394,7 @@ pub async fn get_mcp_logs(query: web::Query<LogQuery>) -> Result<HttpResponse> {
     }
 }
 
-/// Configure consolidated health routes
+/
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/health")

@@ -1,7 +1,4 @@
-/**
- * Comprehensive performance monitoring utility for dual graph visualization
- * Tracks FPS, memory usage, WebGL stats, and rendering performance for both graphs
- */
+
 
 import * as THREE from 'three';
 import { createLogger } from './loggerConfig';
@@ -55,19 +52,19 @@ class DualGraphPerformanceMonitor {
   private metrics: PerformanceMetrics;
   private frameCount = 0;
   private frameStartTime = 0;
-  private fpsUpdateInterval = 500; // Update FPS every 500ms
+  private fpsUpdateInterval = 500; 
   private lastFpsUpdate = 0;
   private frameTimeSamples: number[] = [];
   private maxSamples = 60;
   
-  // WebGL extensions for detailed stats
+  
   private gl: WebGLRenderingContext | WebGL2RenderingContext | null = null;
   private extDisjointTimerQuery: any = null;
   
-  // Performance marks for detailed timing
+  
   private performanceMarks = new Map<string, number>();
   
-  // Worker communication tracking
+  
   private workerMessageTimes = new Map<string, number>();
   
   constructor() {
@@ -126,20 +123,18 @@ class DualGraphPerformanceMonitor {
     };
   }
 
-  /**
-   * Initialize WebGL context for detailed GPU stats
-   */
+  
   public initializeWebGL(renderer: THREE.WebGLRenderer) {
     this.gl = renderer.getContext();
     
-    // Try to get timer query extension for GPU timing
+    
     if (this.gl) {
       this.extDisjointTimerQuery = 
         this.gl.getExtension('EXT_disjoint_timer_query_webgl2') ||
         this.gl.getExtension('EXT_disjoint_timer_query');
     }
     
-    // Enable renderer info
+    
     renderer.info.autoReset = false;
     
     logger.info('WebGL monitoring initialized', {
@@ -150,16 +145,12 @@ class DualGraphPerformanceMonitor {
     });
   }
 
-  /**
-   * Mark the start of a performance measurement
-   */
+  
   public mark(name: string) {
     this.performanceMarks.set(name, performance.now());
   }
 
-  /**
-   * Measure time since a mark was set
-   */
+  
   public measure(name: string): number {
     const startTime = this.performanceMarks.get(name);
     if (!startTime) return 0;
@@ -169,33 +160,29 @@ class DualGraphPerformanceMonitor {
     return duration;
   }
 
-  /**
-   * Start frame timing
-   */
+  
   public beginFrame() {
     this.frameStartTime = performance.now();
     this.mark('frame');
   }
 
-  /**
-   * End frame timing and update metrics
-   */
+  
   public endFrame(renderer?: THREE.WebGLRenderer) {
     const frameTime = this.measure('frame');
     
-    // Update frame time samples
+    
     this.frameTimeSamples.push(frameTime);
     if (this.frameTimeSamples.length > this.maxSamples) {
       this.frameTimeSamples.shift();
     }
     
-    // Calculate frame time stats
+    
     const avgFrameTime = this.frameTimeSamples.reduce((a, b) => a + b, 0) / this.frameTimeSamples.length;
     this.metrics.frameTime = Math.round(avgFrameTime * 100) / 100;
     this.metrics.frameTimeMin = Math.min(...this.frameTimeSamples);
     this.metrics.frameTimeMax = Math.max(...this.frameTimeSamples);
     
-    // Update FPS
+    
     this.frameCount++;
     const now = performance.now();
     if (now - this.lastFpsUpdate >= this.fpsUpdateInterval) {
@@ -204,7 +191,7 @@ class DualGraphPerformanceMonitor {
       this.frameCount = 0;
       this.lastFpsUpdate = now;
       
-      // Update other metrics less frequently
+      
       this.updateMemoryMetrics();
       if (renderer) {
         this.updateWebGLStats(renderer);
@@ -212,23 +199,19 @@ class DualGraphPerformanceMonitor {
     }
   }
 
-  /**
-   * Update memory metrics
-   */
+  
   private updateMemoryMetrics() {
     if ('memory' in performance) {
       const memory = (performance as any).memory;
       this.metrics.memory = {
-        used: Math.round(memory.usedJSHeapSize / 1048576), // MB
-        limit: Math.round(memory.jsHeapSizeLimit / 1048576), // MB
+        used: Math.round(memory.usedJSHeapSize / 1048576), 
+        limit: Math.round(memory.jsHeapSizeLimit / 1048576), 
         percent: Math.round((memory.usedJSHeapSize / memory.jsHeapSizeLimit) * 100)
       };
     }
   }
 
-  /**
-   * Update WebGL stats from Three.js renderer
-   */
+  
   public updateWebGLStats(renderer: THREE.WebGLRenderer) {
     const info = renderer.info;
     
@@ -242,20 +225,16 @@ class DualGraphPerformanceMonitor {
       geometries: info.memory.geometries
     };
     
-    // Reset renderer info for next frame
+    
     info.reset();
   }
 
-  /**
-   * Update graph-specific metrics
-   */
+  
   public updateGraphMetrics(graphType: 'logseq' | 'visionflow', metrics: Partial<GraphPerformanceMetrics>) {
     Object.assign(this.metrics.graphMetrics[graphType], metrics);
   }
 
-  /**
-   * Track worker message timing
-   */
+  
   public trackWorkerMessage(workerId: string, type: 'sent' | 'received') {
     const key = `${workerId}_${type}`;
     
@@ -269,7 +248,7 @@ class DualGraphPerformanceMonitor {
         const metrics = this.metrics.workerMetrics.physicsWorker;
         metrics.messagesReceived++;
         
-        // Update average response time
+        
         const total = metrics.avgResponseTime * (metrics.messagesReceived - 1) + responseTime;
         metrics.avgResponseTime = total / metrics.messagesReceived;
         
@@ -278,16 +257,12 @@ class DualGraphPerformanceMonitor {
     }
   }
 
-  /**
-   * Get current metrics
-   */
+  
   public getMetrics(): Readonly<PerformanceMetrics> {
     return { ...this.metrics };
   }
 
-  /**
-   * Create performance report
-   */
+  
   public generateReport(): string {
     const m = this.metrics;
     const report = [
@@ -318,21 +293,19 @@ class DualGraphPerformanceMonitor {
       '--- Recommendations ---'
     ];
 
-    // Add performance recommendations
+    
     const recommendations = this.getPerformanceRecommendations();
     report.push(...recommendations);
 
     return report.join('\n');
   }
 
-  /**
-   * Get performance recommendations based on metrics
-   */
+  
   private getPerformanceRecommendations(): string[] {
     const recommendations: string[] = [];
     const m = this.metrics;
 
-    // FPS recommendations
+    
     if (m.fps < 30) {
       recommendations.push('⚠️ Low FPS detected:');
       
@@ -348,7 +321,7 @@ class DualGraphPerformanceMonitor {
       recommendations.push('  - Implement Level of Detail (LOD) for distant nodes');
     }
 
-    // Memory recommendations
+    
     if (m.memory.percent > 80) {
       recommendations.push('⚠️ High memory usage:');
       recommendations.push('  - Dispose unused geometries and materials');
@@ -356,7 +329,7 @@ class DualGraphPerformanceMonitor {
       recommendations.push('  - Consider using BufferGeometry.dispose() on hidden graphs');
     }
 
-    // Draw call recommendations
+    
     if (m.webgl.drawCalls > 300) {
       recommendations.push('⚠️ High draw call count:');
       
@@ -373,7 +346,7 @@ class DualGraphPerformanceMonitor {
       recommendations.push('  - Use texture atlases for node icons/sprites');
     }
 
-    // Graph-specific recommendations
+    
     const totalNodes = m.graphMetrics.logseq.nodeCount + m.graphMetrics.visionflow.nodeCount;
     if (totalNodes > 1000) {
       recommendations.push('⚠️ Large node count optimization needed:');
@@ -387,7 +360,7 @@ class DualGraphPerformanceMonitor {
       }
     }
 
-    // Physics recommendations
+    
     if (m.graphMetrics.logseq.physicsTime + m.graphMetrics.visionflow.physicsTime > 10) {
       recommendations.push('⚠️ Physics performance issues:');
       recommendations.push('  - Consider spatial hashing for collision detection');
@@ -395,7 +368,7 @@ class DualGraphPerformanceMonitor {
       recommendations.push('  - Use fixed timestep for physics simulation');
     }
 
-    // Worker recommendations
+    
     if (m.workerMetrics.physicsWorker.avgResponseTime > 16) {
       recommendations.push('⚠️ Worker communication bottleneck:');
       recommendations.push('  - Consider SharedArrayBuffer for zero-copy communication');
@@ -413,32 +386,26 @@ class DualGraphPerformanceMonitor {
     return recommendations;
   }
 
-  /**
-   * Log performance report to console
-   */
+  
   public logReport() {
     console.log(this.generateReport());
   }
 
-  /**
-   * Get performance score (0-100)
-   */
+  
   public getPerformanceScore(): number {
     const m = this.metrics;
     
-    // Calculate sub-scores
-    const fpsScore = Math.min(m.fps / 60, 1) * 30; // 30 points for FPS
-    const frameTimeScore = Math.max(0, 1 - (m.frameTime / 16.67)) * 20; // 20 points for frame time
-    const memoryScore = Math.max(0, 1 - (m.memory.percent / 100)) * 20; // 20 points for memory
-    const drawCallScore = Math.max(0, 1 - (m.webgl.drawCalls / 500)) * 20; // 20 points for draw calls
-    const workerScore = Math.max(0, 1 - (m.workerMetrics.physicsWorker.avgResponseTime / 16)) * 10; // 10 points for worker
+    
+    const fpsScore = Math.min(m.fps / 60, 1) * 30; 
+    const frameTimeScore = Math.max(0, 1 - (m.frameTime / 16.67)) * 20; 
+    const memoryScore = Math.max(0, 1 - (m.memory.percent / 100)) * 20; 
+    const drawCallScore = Math.max(0, 1 - (m.webgl.drawCalls / 500)) * 20; 
+    const workerScore = Math.max(0, 1 - (m.workerMetrics.physicsWorker.avgResponseTime / 16)) * 10; 
     
     return Math.round(fpsScore + frameTimeScore + memoryScore + drawCallScore + workerScore);
   }
 
-  /**
-   * Reset metrics
-   */
+  
   public reset() {
     this.metrics = this.initializeMetrics();
     this.frameCount = 0;
@@ -447,16 +414,12 @@ class DualGraphPerformanceMonitor {
     this.workerMessageTimes.clear();
   }
 
-  /**
-   * Export metrics as JSON
-   */
+  
   public exportMetrics(): string {
     return JSON.stringify(this.metrics, null, 2);
   }
 
-  /**
-   * Cleanup
-   */
+  
   public dispose() {
     this.gl = null;
     this.extDisjointTimerQuery = null;

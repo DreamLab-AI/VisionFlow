@@ -5,18 +5,18 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicU32, Ordering};
 
 // Static counter for generating unique numeric IDs
-static NEXT_NODE_ID: AtomicU32 = AtomicU32::new(1); // Start from 1 (0 could be reserved)
+static NEXT_NODE_ID: AtomicU32 = AtomicU32::new(1); 
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Node {
-    // Core data
+    
     pub id: u32,
-    pub metadata_id: String, // Store the original filename for lookup
+    pub metadata_id: String, 
     pub label: String,
     pub data: BinaryNodeData,
 
-    // Physics fields (direct access to match schema)
+    
     #[serde(skip_serializing_if = "Option::is_none")]
     pub x: Option<f32>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -32,17 +32,17 @@ pub struct Node {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mass: Option<f32>,
 
-    // OWL Ontology linkage (matches unified_schema.sql)
+    
     #[serde(skip_serializing_if = "Option::is_none")]
     pub owl_class_iri: Option<String>,
 
-    // Metadata
+    
     #[serde(skip_serializing_if = "HashMap::is_empty")]
     pub metadata: HashMap<String, String>,
     #[serde(skip)]
     pub file_size: u64,
 
-    // Rendering properties
+    
     #[serde(rename = "type")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub node_type: Option<String>,
@@ -64,27 +64,27 @@ impl Node {
     }
 
     pub fn new_with_id(metadata_id: String, provided_id: Option<u32>) -> Self {
-        // Always generate a new ID on the server side
-        // Use provided ID only if it's valid (non-zero)
+        
+        
         let id = match provided_id {
             Some(id) if id != 0 => {
-                // Use the provided ID only if it's a valid non-zero ID
+                
                 id
             }
             _ => NEXT_NODE_ID.fetch_add(1, Ordering::SeqCst),
         };
 
-        // BREADCRUMB: Use random initial positions for force-directed graph
-        // This ensures truly random starting positions for better force-directed layout
+        
+        
         use rand::Rng;
         let mut rng = rand::thread_rng();
         let physics = dev_config::physics();
 
-        // Generate random spherical coordinates for even distribution in 3D space
-        let theta = rng.gen::<f32>() * 2.0 * std::f32::consts::PI; // Random angle [0, 2π]
-        let phi = rng.gen::<f32>() * std::f32::consts::PI; // Random angle [0, π]
+        
+        let theta = rng.gen::<f32>() * 2.0 * std::f32::consts::PI; 
+        let phi = rng.gen::<f32>() * std::f32::consts::PI; 
 
-        // Spread nodes using configured radius range with random distance
+        
         let radius = physics.initial_radius_min + rng.gen::<f32>() * physics.initial_radius_range;
 
         let pos_x = radius * phi.sin() * theta.cos();
@@ -94,25 +94,25 @@ impl Node {
         Self {
             id,
             metadata_id: metadata_id.clone(),
-            label: String::new(), // Initialize as empty string, will be set from metadata later
+            label: String::new(), 
             data: BinaryNodeData {
                 node_id: id,
-                // Use spherical coordinates for better 3D distribution with random positions
+                
                 x: pos_x,
                 y: pos_y,
                 z: pos_z,
-                vx: 0.0, // Start with zero velocity
-                vy: 0.0, // Physics will handle the movement
+                vx: 0.0, 
+                vy: 0.0, 
                 vz: 0.0,
             },
-            // Physics fields matching schema
+            
             x: Some(pos_x),
             y: Some(pos_y),
             z: Some(pos_z),
             vx: Some(0.0),
             vy: Some(0.0),
             vz: Some(0.0),
-            mass: Some(1.0), // Default mass
+            mass: Some(1.0), 
             owl_class_iri: None,
             metadata: HashMap::new(),
             file_size: 0,
@@ -127,10 +127,10 @@ impl Node {
 
     pub fn set_file_size(&mut self, size: u64) {
         self.file_size = size;
-        // Note: Mass is no longer stored in BinaryNodeDataClient - handled separately
+        
 
-        // Add the file_size to the metadata HashMap so it gets serialized to the client
-        // This is our workaround since we can't directly serialize the file_size field
+        
+        
         if size > 0 {
             self.metadata
                 .insert("fileSize".to_string(), size.to_string());
@@ -202,18 +202,18 @@ impl Node {
         self
     }
 
-    /// Create a new node with a specific ID or use a stored ID if available
+    
     pub fn new_with_stored_id(metadata_id: String, stored_node_id: Option<u32>) -> Self {
-        // Use stored ID if available, otherwise generate a new one
+        
         let id = match stored_node_id {
             Some(stored_id) => stored_id,
             None => NEXT_NODE_ID.fetch_add(1, Ordering::SeqCst),
         };
 
-        // Use similar position initialization logic as the main constructor
+        
         let id_hash = id as f32;
-        let angle = id_hash * 0.618033988749895; // Golden ratio for good distribution
-        let radius = (id_hash * 0.1).min(100.0); // Spread nodes up to radius 100
+        let angle = id_hash * 0.618033988749895; 
+        let radius = (id_hash * 0.1).min(100.0); 
 
         let pos_x = radius * angle.cos() * 2.0;
         let pos_y = radius * angle.sin() * 2.0;
@@ -232,14 +232,14 @@ impl Node {
                 vy: 0.0,
                 vz: 0.0,
             },
-            // Physics fields matching schema
+            
             x: Some(pos_x),
             y: Some(pos_y),
             z: Some(pos_z),
             vx: Some(0.0),
             vy: Some(0.0),
             vz: Some(0.0),
-            mass: Some(1.0), // Default mass
+            mass: Some(1.0), 
             owl_class_iri: None,
             metadata: HashMap::new(),
             file_size: 0,
@@ -253,15 +253,15 @@ impl Node {
     }
 
     pub fn calculate_mass(file_size: u64) -> u8 {
-        // Use log scale to prevent extremely large masses
-        // Add 1 to file_size to handle empty files (log(0) is undefined)
+        
+        
         let base_mass = ((file_size + 1) as f32).log10() / 4.0;
-        // Ensure minimum mass of 0.1 and maximum of 10.0
+        
         let mass = base_mass.max(0.1).min(10.0);
         (mass * 255.0 / 10.0) as u8
     }
 
-    // Convenience getters/setters for position and velocity
+    
     pub fn x(&self) -> f32 {
         self.data.x
     }
@@ -314,12 +314,12 @@ impl Node {
         self.mass.unwrap_or(1.0)
     }
 
-    /// Get the node ID as a string for socket/wire protocol compatibility
+    
     pub fn id_as_string(&self) -> String {
         self.id.to_string()
     }
 
-    /// Create a Node from a string ID (for socket/wire protocol compatibility)
+    
     pub fn from_string_id(
         id_str: &str,
         metadata_id: String,
@@ -336,24 +336,24 @@ mod tests {
 
     #[test]
     fn test_numeric_id_generation() {
-        // Read the current value of the counter (it might have been incremented elsewhere)
+        
         let start_value = NEXT_NODE_ID.load(Ordering::SeqCst);
 
-        // Create two nodes with different metadata IDs
+        
         let node1 = Node::new("test-file-1.md".to_string());
         let node2 = Node::new("test-file-2.md".to_string());
 
-        // Verify each node has a unique numeric ID
+        
         assert_ne!(node1.id, node2.id);
 
-        // Verify metadata_id is stored correctly
+        
         assert_eq!(node1.metadata_id, "test-file-1.md");
         assert_eq!(node2.metadata_id, "test-file-2.md");
 
-        // Verify IDs are consecutive numbers
+        
         assert_eq!(node1.id + 1, node2.id);
 
-        // Verify final counter value
+        
         let end_value = NEXT_NODE_ID.load(Ordering::SeqCst);
         assert_eq!(end_value, start_value + 2);
     }
@@ -370,7 +370,7 @@ mod tests {
             .with_weight(2.0)
             .with_group("group1".to_string());
 
-        // ID should be a numeric u32 now, not "test"
+        
         assert!(node.id > 0, "ID should be positive, got: {}", node.id);
         assert_eq!(node.metadata_id, "test");
         assert_eq!(node.label, "Test Node");
@@ -406,11 +406,11 @@ mod tests {
         assert_eq!(node.vz(), 0.3);
     }
 
-    // #[test]
-    // fn test_mass_calculation() {
-    //     // NOTE: Mass field not available in BinaryNodeDataClient
-    //     // This test has been disabled as the client-side binary format
-    //     // only includes position and velocity data (28 bytes total)
-    //     // Mass calculation is handled server-side in BinaryNodeDataGPU
-    // }
+    
+    
+    
+    
+    
+    
+    
 }

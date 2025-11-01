@@ -32,7 +32,7 @@ export const VircadiaProvider: React.FC<VircadiaProviderProps> = ({
     const [error, setError] = useState<Error | null>(null);
     const clientRef = useRef<ClientCore | null>(null);
 
-    // Default configuration
+    
     const defaultConfig: ClientCoreConfig = {
         serverUrl: import.meta.env.VITE_VIRCADIA_SERVER_URL || 'ws://localhost:3020/world/ws',
         authToken: import.meta.env.VITE_VIRCADIA_AUTH_TOKEN || '',
@@ -44,7 +44,7 @@ export const VircadiaProvider: React.FC<VircadiaProviderProps> = ({
         ...config
     };
 
-    // Initialize client
+    
     useEffect(() => {
         logger.info('Initializing Vircadia client with config:', {
             serverUrl: defaultConfig.serverUrl,
@@ -56,7 +56,7 @@ export const VircadiaProvider: React.FC<VircadiaProviderProps> = ({
         setClient(vircadiaClient);
         clientRef.current = vircadiaClient;
 
-        // Set up event listeners
+        
         const handleStatusChange = () => {
             const info = vircadiaClient.Utilities.Connection.getConnectionInfo();
             setConnectionInfo(info);
@@ -65,7 +65,7 @@ export const VircadiaProvider: React.FC<VircadiaProviderProps> = ({
 
         vircadiaClient.Utilities.Connection.addEventListener('statusChange', handleStatusChange);
 
-        // Cleanup
+        
         return () => {
             vircadiaClient.Utilities.Connection.removeEventListener('statusChange', handleStatusChange);
             vircadiaClient.dispose();
@@ -73,7 +73,7 @@ export const VircadiaProvider: React.FC<VircadiaProviderProps> = ({
         };
     }, []);
 
-    // Auto-connect if enabled
+    
     useEffect(() => {
         if (autoConnect && client && !connectionInfo?.isConnected) {
             connect();

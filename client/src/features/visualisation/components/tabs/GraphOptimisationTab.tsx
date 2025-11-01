@@ -1,7 +1,4 @@
-/**
- * Graph Optimisation Tab Component
- * Provides AI-powered graph optimisation tools with UK English localisation
- */
+
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { 
@@ -56,19 +53,19 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
   onFeatureUpdate,
   onOptimizationComplete
 }) => {
-  // AI Insights states
+  
   const [aiInsightsEnabled, setAiInsightsEnabled] = useState(false);
   const [autoOptimise, setAutoOptimise] = useState(false);
   const [optimisationLevel, setOptimisationLevel] = useState([3]);
   const [isOptimising, setIsOptimising] = useState(false);
   const [optimisationProgress, setOptimisationProgress] = useState(0);
   
-  // Performance states
+  
   const [performanceMode, setPerformanceMode] = useState('balanced');
   const [clusteringEnabled, setClusteringEnabled] = useState(false);
   const [layoutAlgorithm, setLayoutAlgorithm] = useState('force-directed');
 
-  // Optimization state
+  
   const [optimisationResults, setOptimisationResults] = useState<OptimizationResult | null>(null);
   const [currentTask, setCurrentTask] = useState<OptimizationTask | null>(null);
   const [gpuStatus, setGpuStatus] = useState<{ available: boolean; utilization: number }>({ available: false, utilization: 0 });
@@ -76,27 +73,27 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
   const [performanceMetrics, setPerformanceMetrics] = useState<any>(null);
   const [canCancel, setCanCancel] = useState(false);
 
-  // Refs for cleanup
+  
   const wsConnectedRef = useRef(false);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize WebSocket and load GPU status on mount
+  
   useEffect(() => {
     const initialize = async () => {
       try {
-        // Connect to optimization WebSocket
+        
         if (!wsConnectedRef.current) {
           await optimizationWebSocket.connect();
           wsConnectedRef.current = true;
 
-          // Listen for optimization events
+          
           optimizationWebSocket.addEventListener('optimization_progress', handleOptimizationProgress);
           optimizationWebSocket.addEventListener('optimization_complete', handleOptimizationComplete);
           optimizationWebSocket.addEventListener('optimization_error', handleOptimizationError);
           optimizationWebSocket.addEventListener('gpu_status', handleGpuStatusUpdate);
         }
 
-        // Load initial data
+        
         const [gpuStatusData, algorithms, metrics] = await Promise.all([
           optimizationApi.getGpuStatus(),
           optimizationApi.getAvailableAlgorithms(),
@@ -123,7 +120,7 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
     initialize();
 
     return () => {
-      // Cleanup
+      
       if (wsConnectedRef.current) {
         optimizationWebSocket.removeEventListener('optimization_progress', handleOptimizationProgress);
         optimizationWebSocket.removeEventListener('optimization_complete', handleOptimizationComplete);
@@ -139,7 +136,7 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
     };
   }, []);
 
-  // WebSocket event handlers
+  
   const handleOptimizationProgress = useCallback((event: OptimizationWebSocketEvent) => {
     if (event.taskId === currentTask?.taskId) {
       setOptimisationProgress(event.data.progress || 0);
@@ -153,7 +150,7 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
       setCanCancel(false);
       setOptimisationProgress(100);
 
-      // Fetch the complete result
+      
       optimizationApi.getOptimizationResults(event.taskId!).then(result => {
         setOptimisationResults(result);
         onOptimizationComplete?.(result);
@@ -257,7 +254,7 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
       const task = await optimizationApi.triggerStressMajorization(graphData, optimizationParams);
       setCurrentTask(task);
 
-      // Start polling for progress if WebSocket isn't connected
+      
       if (!optimizationWebSocket.isConnected()) {
         pollIntervalRef.current = setInterval(async () => {
           try {
@@ -316,7 +313,7 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
       const task = await optimizationApi.runClusteringAnalysis(graphData, 'louvain');
       setCurrentTask(task);
 
-      // Poll for clustering results
+      
       const pollClustering = async () => {
         const status = await optimizationApi.getOptimizationStatus(task.taskId);
 
@@ -385,7 +382,7 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* AI Insights Control */}
+      {}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -460,7 +457,7 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
         </CardContent>
       </Card>
 
-      {/* Optimisation Tools */}
+      {}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -585,7 +582,7 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
         </CardContent>
       </Card>
 
-      {/* AI Recommendations */}
+      {}
       {optimisationResults && optimisationResults.recommendations && (
         <Card>
           <CardHeader className="pb-3">
@@ -626,7 +623,7 @@ export const GraphOptimisationTab: React.FC<GraphOptimisationTabProps> = ({
         </Card>
       )}
 
-      {/* Performance Settings */}
+      {}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">

@@ -8,15 +8,15 @@ use super::shared::{GPUState, SharedGPUContext};
 use crate::actors::messages::*;
 use crate::models::constraints::{Constraint, ConstraintData, ConstraintKind, ConstraintSet};
 
-/// Constraint Actor - handles constraint management and GPU uploads
+/
 pub struct ConstraintActor {
-    /// Shared GPU state
+    
     gpu_state: GPUState,
 
-    /// Shared GPU context reference
+    
     shared_context: Option<Arc<SharedGPUContext>>,
 
-    /// Current constraint set
+    
     constraints: Vec<Constraint>,
 }
 
@@ -29,7 +29,7 @@ impl ConstraintActor {
         }
     }
 
-    /// Update constraints and upload to GPU
+    
     fn update_constraints(&mut self, new_constraints: Vec<Constraint>) -> Result<(), String> {
         info!(
             "ConstraintActor: Updating constraints - {} current, {} new",
@@ -37,10 +37,10 @@ impl ConstraintActor {
             new_constraints.len()
         );
 
-        // Update local constraint storage
+        
         self.constraints = new_constraints;
 
-        // Upload constraints to GPU if available
+        
         if self.shared_context.is_some() {
             self.upload_constraints_to_gpu()?;
         } else {
@@ -54,7 +54,7 @@ impl ConstraintActor {
         Ok(())
     }
 
-    /// Upload constraints to GPU
+    
     fn upload_constraints_to_gpu(&self) -> Result<(), String> {
         info!(
             "ConstraintActor: Uploading {} constraints to GPU",
@@ -71,7 +71,7 @@ impl ConstraintActor {
             }
         };
 
-        // Convert constraints to GPU format
+        
         let constraint_data = self.convert_constraints_to_gpu_format()?;
 
         if constraint_data.is_empty() {
@@ -80,7 +80,7 @@ impl ConstraintActor {
                 .clear_constraints()
                 .map_err(|e| format!("Failed to clear GPU constraints: {}", e))?;
         } else {
-            // Upload constraint data to GPU
+            
             unified_compute
                 .upload_constraints(&constraint_data)
                 .map_err(|e| format!("Failed to upload constraints to GPU: {}", e))?;
@@ -94,15 +94,15 @@ impl ConstraintActor {
         Ok(())
     }
 
-    /// Convert constraints to GPU-compatible format
+    
     fn convert_constraints_to_gpu_format(&self) -> Result<Vec<ConstraintData>, String> {
         let mut constraint_data = Vec::new();
 
-        // Use the ConstraintData::from_constraint method for each constraint
+        
         for constraint in self.constraints.iter() {
-            // Only process active constraints
+            
             if constraint.active {
-                // Validate that node indices exist in our GPU state
+                
                 for &node_idx in &constraint.node_indices {
                     if node_idx >= self.gpu_state.num_nodes {
                         error!(
@@ -114,7 +114,7 @@ impl ConstraintActor {
                     }
                 }
 
-                // Convert to GPU-compatible format
+                
                 let gpu_constraint = ConstraintData::from_constraint(constraint);
                 constraint_data.push(gpu_constraint);
             }
@@ -129,21 +129,21 @@ impl ConstraintActor {
         Ok(constraint_data)
     }
 
-    /// Get current constraint set
+    
     fn get_current_constraints(&self) -> ConstraintSet {
         ConstraintSet {
             constraints: self.constraints.clone(),
-            groups: std::collections::HashMap::new(), // Add missing groups field
+            groups: std::collections::HashMap::new(), 
         }
     }
 
-    /// Clear all constraints
+    
     fn clear_constraints(&mut self) -> Result<(), String> {
         info!("ConstraintActor: Clearing all constraints");
 
         self.constraints.clear();
 
-        // Clear constraints on GPU if available
+        
         if let Some(ctx) = &self.shared_context {
             let mut unified_compute = ctx
                 .unified_compute
@@ -161,7 +161,7 @@ impl ConstraintActor {
         Ok(())
     }
 
-    /// Get constraint statistics
+    
     fn get_constraint_statistics(&self) -> ConstraintStatistics {
         let mut stats = ConstraintStatistics {
             total_constraints: self.constraints.len(),
@@ -169,10 +169,10 @@ impl ConstraintActor {
             angle_constraints: 0,
             position_constraints: 0,
             cluster_constraints: 0,
-            active_constraints: self.constraints.len(), // All are active by default
+            active_constraints: self.constraints.len(), 
         };
 
-        // Count constraints by type
+        
         for constraint in &self.constraints {
             if constraint.active {
                 match constraint.kind {
@@ -180,13 +180,13 @@ impl ConstraintActor {
                     ConstraintKind::FixedPosition => stats.position_constraints += 1,
                     ConstraintKind::Clustering => {
                         stats.cluster_constraints += 1;
-                        // Each cluster constraint affects multiple nodes
+                        
                         stats.total_constraints += constraint.node_indices.len().saturating_sub(1);
                     }
                     ConstraintKind::AlignmentHorizontal
                     | ConstraintKind::AlignmentVertical
-                    | ConstraintKind::AlignmentDepth => stats.angle_constraints += 1, // Using angle_constraints for alignment
-                    _ => {} // Other constraint types not tracked in current stats
+                    | ConstraintKind::AlignmentDepth => stats.angle_constraints += 1, 
+                    _ => {} 
                 }
             }
         }
@@ -215,12 +215,12 @@ impl Handler<UpdateConstraints> for ConstraintActor {
     fn handle(&mut self, msg: UpdateConstraints, _ctx: &mut Self::Context) -> Self::Result {
         info!("ConstraintActor: UpdateConstraints received");
 
-        // Parse constraint_data from JSON Value
+        
         let constraints =
             match serde_json::from_value::<Vec<Constraint>>(msg.constraint_data.clone()) {
                 Ok(constraints) => constraints,
                 Err(e) => {
-                    // Try parsing as ConstraintSet if direct Vec<Constraint> fails
+                    
                     match serde_json::from_value::<ConstraintSet>(msg.constraint_data) {
                         Ok(constraint_set) => constraint_set.constraints,
                         Err(_) => {
@@ -263,7 +263,7 @@ impl Handler<UploadConstraintsToGPU> for ConstraintActor {
             }
         };
 
-        // Upload the provided constraint data directly
+        
         unified_compute
             .upload_constraints(&msg.constraint_data)
             .map_err(|e| format!("Failed to upload constraints to GPU: {}", e))?;
@@ -302,14 +302,14 @@ pub struct ClearConstraints;
 #[rtype(result = "Result<ConstraintStatistics, String>")]
 pub struct GetConstraintStatistics;
 
-/// Handler for receiving SharedGPUContext from ResourceActor
+/
 impl Handler<SetSharedGPUContext> for ConstraintActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: SetSharedGPUContext, _ctx: &mut Self::Context) -> Self::Result {
         info!("ConstraintActor: Received SharedGPUContext from ResourceActor");
         self.shared_context = Some(msg.context);
-        // msg.graph_service_addr is ignored - only ForceComputeActor needs it
+        
         info!("ConstraintActor: SharedGPUContext stored successfully");
         Ok(())
     }

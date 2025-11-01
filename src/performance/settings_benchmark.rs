@@ -46,11 +46,11 @@ pub struct BenchmarkSuite {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImprovementMetrics {
-    pub response_time_improvement: f64, // Percentage
-    pub throughput_improvement: f64,    // Percentage
-    pub bandwidth_savings: f64,         // Percentage
-    pub memory_efficiency: f64,         // Percentage
-    pub overall_score: f64,            // Combined score
+    pub response_time_improvement: f64, 
+    pub throughput_improvement: f64,    
+    pub bandwidth_savings: f64,         
+    pub memory_efficiency: f64,         
+    pub overall_score: f64,            
 }
 
 #[derive(Debug, Clone)]
@@ -93,7 +93,7 @@ impl SettingsBenchmark {
         Self { config }
     }
 
-    /// Run comprehensive benchmark comparing old and new systems
+    
     pub async fn run_comparison_benchmark(
         &self,
         old_actor_addr: Addr<SettingsActor>,
@@ -101,19 +101,19 @@ impl SettingsBenchmark {
     ) -> Result<ComparisonReport, String> {
         info!("Starting comprehensive settings performance benchmark");
 
-        // Warmup both systems
+        
         self.warmup_system(&old_actor_addr, &new_actor_addr).await?;
 
-        // Benchmark old system
+        
         let old_suite = self.benchmark_old_system(old_actor_addr).await?;
 
-        // Benchmark new system
+        
         let new_suite = self.benchmark_new_system(new_actor_addr).await?;
 
-        // Calculate improvements
+        
         let improvements = self.calculate_improvements(&old_suite, &new_suite);
 
-        // Generate recommendations
+        
         let recommendations = self.generate_recommendations(&improvements);
 
         let report = ComparisonReport {
@@ -136,13 +136,13 @@ impl SettingsBenchmark {
         info!("Warming up benchmark systems...");
 
         for _ in 0..self.config.warmup_iterations {
-            // Warmup old system
+            
             let _ = old_addr.send(GetSettings).await;
 
-            // Warmup new system
+            
             let _ = new_addr.send(GetSettings).await;
 
-            // Test a few path operations
+            
             for path in &self.config.test_paths[..3] {
                 let _ = old_addr.send(GetSettingByPath { path: path.clone() }).await;
                 let _ = new_addr.send(GetSettingByPath { path: path.clone() }).await;
@@ -203,9 +203,9 @@ impl SettingsBenchmark {
             test_name: "Single Path Fetch (Old)".to_string(),
             duration_ms,
             throughput_ops_per_sec: (successful_ops as f64 / duration.as_secs_f64()),
-            memory_usage_mb: 0.0, // Would need to measure actual memory
+            memory_usage_mb: 0.0, 
             bandwidth_bytes: total_bytes,
-            cache_hit_rate: 0.0,   // Old system has no cache
+            cache_hit_rate: 0.0,   
             error_rate: ((self.config.iterations - successful_ops) as f64 / self.config.iterations as f64) * 100.0,
             timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
         })
@@ -231,7 +231,7 @@ impl SettingsBenchmark {
         let duration = start_time.elapsed();
         let duration_ms = duration.as_millis() as f64;
 
-        // Get performance metrics from optimized actor
+        
         let metrics = addr.send(crate::actors::optimized_settings_actor::GetPerformanceMetrics)
             .await
             .unwrap_or_default();
@@ -331,11 +331,11 @@ impl SettingsBenchmark {
         let mut successful_ops = 0;
         let mut total_bytes = 0u64;
 
-        for _ in 0..100 { // Fewer iterations for full settings fetch
+        for _ in 0..100 { 
             match addr.send(GetSettings).await {
                 Ok(Ok(settings)) => {
                     successful_ops += 1;
-                    // Estimate ~50KB for full settings
+                    
                     total_bytes += 50_000;
                 }
                 _ => {}
@@ -366,7 +366,7 @@ impl SettingsBenchmark {
             match addr.send(GetSettings).await {
                 Ok(Ok(settings)) => {
                     successful_ops += 1;
-                    total_bytes += 50_000; // Estimate
+                    total_bytes += 50_000; 
                 }
                 _ => {}
             }
@@ -395,7 +395,7 @@ impl SettingsBenchmark {
         let start_time = Instant::now();
         let mut handles = Vec::new();
 
-        // Spawn concurrent read operations
+        
         for _ in 0..self.config.concurrent_requests {
             let addr_clone = addr.clone();
             let path = self.config.test_paths[0].clone();
@@ -407,7 +407,7 @@ impl SettingsBenchmark {
             handles.push(handle);
         }
 
-        // Wait for all to complete
+        
         let results = join_all(handles).await;
         let successful_ops = results.into_iter()
             .filter(|r| r.is_ok() && r.as_ref().unwrap().is_ok())
@@ -421,7 +421,7 @@ impl SettingsBenchmark {
             duration_ms,
             throughput_ops_per_sec: (successful_ops as f64 / duration.as_secs_f64()),
             memory_usage_mb: 0.0,
-            bandwidth_bytes: successful_ops as u64 * 500, // Estimate 500B per path
+            bandwidth_bytes: successful_ops as u64 * 500, 
             cache_hit_rate: 0.0,
             error_rate: 0.0,
             timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
@@ -475,7 +475,7 @@ impl SettingsBenchmark {
             .map(|path| (path.clone(), serde_json::Value::Number(serde_json::Number::from_f64(0.5).unwrap())))
             .collect();
 
-        for _ in 0..10 { // Fewer iterations for writes
+        for _ in 0..10 { 
             match addr.send(SetSettingsByPaths { updates: updates.clone() }).await {
                 Ok(Ok(_)) => successful_ops += updates.len(),
                 _ => {}
@@ -532,7 +532,7 @@ impl SettingsBenchmark {
     }
 
     async fn benchmark_cache_old(&self, _addr: &Addr<SettingsActor>) -> Result<BenchmarkResult, String> {
-        // Old system has no cache, return baseline
+        
         Ok(BenchmarkResult {
             test_name: "Cache Performance (Old - No Cache)".to_string(),
             duration_ms: 0.0,
@@ -546,7 +546,7 @@ impl SettingsBenchmark {
     }
 
     async fn benchmark_cache_new(&self, addr: &Addr<OptimizedSettingsActor>) -> Result<BenchmarkResult, String> {
-        // Warm up cache first
+        
         for path in &self.config.test_paths {
             let _ = addr.send(GetSettingByPath { path: path.clone() }).await;
         }
@@ -554,7 +554,7 @@ impl SettingsBenchmark {
         let start_time = Instant::now();
         let mut successful_ops = 0;
 
-        // Now test cached reads
+        
         for _ in 0..self.config.iterations {
             let path = &self.config.test_paths[successful_ops % self.config.test_paths.len()];
 
@@ -592,7 +592,7 @@ impl SettingsBenchmark {
         let throughput_improvement = self.calculate_percentage_improvement(
             new.single_path_fetch.throughput_ops_per_sec,
             old.single_path_fetch.throughput_ops_per_sec
-        ) - 100.0; // Convert from ratio to improvement percentage
+        ) - 100.0; 
 
         let bandwidth_savings = self.calculate_bandwidth_savings(old, new);
 
@@ -605,7 +605,7 @@ impl SettingsBenchmark {
             0.0
         };
 
-        // Calculate overall score (weighted average)
+        
         let overall_score = (response_time_improvement * 0.3) +
                            (throughput_improvement * 0.3) +
                            (bandwidth_savings * 0.25) +
@@ -699,7 +699,7 @@ impl SettingsBenchmark {
     fn estimate_payload_size(&self, value: &Value) -> u64 {
         serde_json::to_string(value)
             .map(|s| s.len() as u64)
-            .unwrap_or(500) // Default estimate
+            .unwrap_or(500) 
     }
 }
 

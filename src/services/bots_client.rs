@@ -32,9 +32,9 @@ pub struct Agent {
     #[serde(default = "default_memory_usage")]
     pub memory_usage: f32,
     #[serde(rename = "createdAt", skip_serializing_if = "Option::is_none")]
-    pub created_at: Option<String>, // ISO 8601 timestamp
+    pub created_at: Option<String>, 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub age: Option<u64>, // milliseconds
+    pub age: Option<u64>, 
 }
 
 fn default_cpu_usage() -> f32 {
@@ -57,7 +57,7 @@ impl From<MultiMcpAgentStatus> for Agent {
             name: mcp_agent.name,
             agent_type: mcp_agent.agent_type,
             status: mcp_agent.status,
-            x: 0.0, // Position will be set by graph layout
+            x: 0.0, 
             y: 0.0,
             z: 0.0,
             cpu_usage: mcp_agent.performance.cpu_usage,
@@ -83,7 +83,7 @@ pub struct BotsClient {
 
 impl BotsClient {
     pub fn new() -> Self {
-        // Get MCP configuration from environment
+        
         let host = std::env::var("CLAUDE_FLOW_HOST")
             .or_else(|_| std::env::var("MCP_HOST"))
             .unwrap_or_else(|_| "multi-agent-container".to_string());
@@ -113,19 +113,19 @@ impl BotsClient {
             self.mcp_client.host, self.mcp_client.port
         );
 
-        // Test connection
+        
         match self.mcp_client.test_connection().await {
             Ok(true) => {
                 info!("✓ MCP server is reachable");
 
-                // Initialize MCP session
+                
                 match self.mcp_client.initialize_session().await {
                     Ok(_) => {
                         info!("✓ MCP session initialized successfully");
                     }
                     Err(e) => {
                         warn!("Failed to initialize MCP session: {}", e);
-                        // Continue anyway - some operations might still work
+                        
                     }
                 }
             }
@@ -139,7 +139,7 @@ impl BotsClient {
             }
         }
 
-        // Start polling for agents
+        
         self.start_polling().await;
 
         Ok(())
@@ -161,30 +161,30 @@ impl BotsClient {
                         if !mcp_agents.is_empty() {
                             info!("📊 Received {} agents from MCP server", mcp_agents.len());
 
-                            // Convert MCP agents to our Agent format
+                            
                             let converted_agents: Vec<Agent> =
                                 mcp_agents.into_iter().map(Agent::from).collect();
 
-                            // Update stored agents
+                            
                             {
                                 let mut agents_lock = agents.write().await;
                                 *agents_lock = converted_agents.clone();
                             }
 
-                            // Send to graph if connected
+                            
                             if let Some(ref graph_addr) = graph_service_addr {
                                 info!(
                                     "📨 BotsClient sending {} agents to graph",
                                     converted_agents.len()
                                 );
 
-                                // Send agents directly without conversion
+                                
                                 graph_addr.do_send(UpdateBotsGraph {
                                     agents: converted_agents.clone(),
                                 });
                             }
                         } else {
-                            // Clear stored agents if MCP returns empty list
+                            
                             let mut agents_lock = agents.write().await;
                             if !agents_lock.is_empty() {
                                 debug!("Clearing stored agents - MCP returned empty list");
@@ -206,15 +206,15 @@ impl BotsClient {
     }
 
     pub async fn get_status(&self) -> Result<serde_json::Value> {
-        // TEMPORARY FIX: Report connected=true since we use Management API instead of MCP TCP
-        // The Management API (port 9090) handles task spawning, not MCP TCP (port 9500)
-        let connected = true; // TODO: Check Management API health instead
+        
+        
+        let connected = true; 
         let agents = self.agents.read().await;
 
         Ok(serde_json::json!({
             "connected": connected,
             "host": "agentic-workstation",
-            "port": 9090, // Management API port, not MCP TCP
+            "port": 9090, 
             "agent_count": agents.len(),
             "agents": agents.iter().map(|a| {
                 serde_json::json!({
@@ -240,11 +240,11 @@ impl BotsClient {
             agent_type, swarm_id
         );
 
-        // Use the MCP connection utility to spawn an agent
+        
         let port_str = self.mcp_client.port.to_string();
         match call_agent_spawn(&self.mcp_client.host, &port_str, agent_type, swarm_id).await {
             Ok(response) => {
-                // Extract agent ID from response
+                
                 let agent_id = if let Some(content) = response.get("content") {
                     if let Some(agent_data) = content.get("agent_id") {
                         agent_data.as_str().unwrap_or("unknown").to_string()

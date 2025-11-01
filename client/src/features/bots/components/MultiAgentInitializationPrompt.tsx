@@ -38,7 +38,7 @@ export const MultiAgentInitializationPrompt: React.FC<MultiAgentInitializationPr
   const [error, setError] = useState<string | null>(null);
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
 
-  // Check MCP connection status
+  
   useEffect(() => {
     const checkConnection = async () => {
       try {
@@ -49,17 +49,17 @@ export const MultiAgentInitializationPrompt: React.FC<MultiAgentInitializationPr
       }
     };
 
-    // Initial check
+    
     checkConnection();
 
-    // Poll every 3 seconds
+    
     const interval = setInterval(checkConnection, 3000);
 
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
-    // Create a portal container at the root level
+    
     const container = document.createElement('div');
     container.id = 'multi-agent-modal-portal';
     container.style.position = 'fixed';
@@ -82,7 +82,7 @@ export const MultiAgentInitializationPrompt: React.FC<MultiAgentInitializationPr
     setError(null);
 
     try {
-      // Count selected agent types
+      
       const selectedAgentTypes = Object.entries(agentTypes)
         .filter(([_, enabled]) => enabled)
         .map(([type, _]) => type);
@@ -99,11 +99,11 @@ export const MultiAgentInitializationPrompt: React.FC<MultiAgentInitializationPr
         return;
       }
 
-      // Prepare initialization configuration for hive mind
+      
       const config = {
         topology,
         maxAgents,
-        strategy: 'adaptive', // Adaptive hive mind strategy
+        strategy: 'adaptive', 
         enableNeural,
         agentTypes: selectedAgentTypes,
         customPrompt: customPrompt.trim(),
@@ -111,15 +111,15 @@ export const MultiAgentInitializationPrompt: React.FC<MultiAgentInitializationPr
 
       logger.info('Spawning hive mind with config:', config);
 
-      // Call API to initialize multi-agent
+      
       logger.info('Calling API endpoint: /bots/initialize-swarm');
       const response = await unifiedApiClient.postData('/bots/initialize-swarm', config);
 
       if (response.success) {
         logger.info('Hive mind spawned successfully:', response);
-        // NOTE: No need to restart polling - BotsDataContext automatically polls via REST API
-        // WebSocket handles only binary position updates
-        // New agents will be picked up by the next polling cycle (3s active interval)
+        
+        
+        
         onInitialized();
       } else {
         throw new Error(response.error || 'Failed to spawn hive mind');
@@ -140,7 +140,7 @@ export const MultiAgentInitializationPrompt: React.FC<MultiAgentInitializationPr
       top: '50%',
       left: '50%',
       transform: 'translate(-50%, -50%)',
-      backgroundColor: '#141414',  // Solid black background
+      backgroundColor: '#141414',  
       border: '2px solid #F1C40F',
       borderRadius: '8px',
       padding: '20px',

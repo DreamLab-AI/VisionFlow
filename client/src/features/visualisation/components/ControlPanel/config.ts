@@ -1,6 +1,4 @@
-/**
- * Unified Control Panel - Configuration
- */
+
 
 import {
   BarChart3,
@@ -20,7 +18,7 @@ import {
 import type { TabConfig } from './types';
 
 export const TAB_CONFIGS: TabConfig[] = [
-  // Row 1: Core Settings
+  
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3, description: 'System overview and status', buttonKey: '1' },
   { id: 'visualization', label: 'Visualization', icon: Eye, description: 'Visual rendering settings', buttonKey: '2' },
   { id: 'physics', label: 'Physics', icon: Zap, description: 'Physics simulation controls', buttonKey: '3' },
@@ -30,7 +28,7 @@ export const TAB_CONFIGS: TabConfig[] = [
   { id: 'developer', label: 'Developer', icon: Code, description: 'Development tools', buttonKey: '7' },
   { id: 'xr', label: 'XR/AR', icon: Glasses, description: 'Extended reality settings', buttonKey: '8' },
 
-  // Row 2: Graph Features
+  
   { id: 'graph-analysis', label: 'Analysis', icon: Network, description: 'Advanced graph analysis', buttonKey: 'A' },
   { id: 'graph-visualisation', label: 'Visualisation', icon: Palette, description: 'Graph visualization features', buttonKey: 'B' },
   { id: 'graph-optimisation', label: 'Optimisation', icon: Wrench, description: 'Graph optimization tools', buttonKey: 'C' },

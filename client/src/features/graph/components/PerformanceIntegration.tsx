@@ -1,7 +1,4 @@
-/**
- * Performance monitoring integration for graph components
- * Adds performance tracking hooks to existing graph managers
- */
+
 
 import { useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
@@ -26,7 +23,7 @@ export const PerformanceIntegration: React.FC<PerformanceIntegrationProps> = ({
 }) => {
   const { camera, gl } = useThree();
 
-  // Initialize performance monitoring
+  
   useEffect(() => {
     if (debugState.isEnabled()) {
       dualGraphPerformanceMonitor.initializeWebGL(gl);
@@ -34,7 +31,7 @@ export const PerformanceIntegration: React.FC<PerformanceIntegrationProps> = ({
     }
   }, [camera, gl]);
 
-  // Update graph metrics when counts change
+  
   useEffect(() => {
     dualGraphPerformanceMonitor.mark('logseq-update');
     dualGraphPerformanceMonitor.updateGraphMetrics('logseq', {
@@ -55,25 +52,25 @@ export const PerformanceIntegration: React.FC<PerformanceIntegrationProps> = ({
     });
   }, [visionflowNodeCount, visionflowEdgeCount]);
 
-  // Performance tracking in render loop
+  
   useFrame((state, delta) => {
     if (!debugState.isEnabled()) return;
 
-    // Track frame performance
+    
     dualGraphPerformanceMonitor.beginFrame();
     
-    // Optimize frame calculations
+    
     dualGraphOptimizer.optimizeFrame(camera);
     
-    // End frame and update metrics
+    
     dualGraphPerformanceMonitor.endFrame(gl);
     
-    // Call performance update callback if provided
+    
     if (onPerformanceUpdate) {
       const metrics = dualGraphPerformanceMonitor.getMetrics();
       onPerformanceUpdate(metrics);
     }
   });
 
-  return null; // This is a utility component with no visual output
+  return null; 
 };

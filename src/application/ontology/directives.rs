@@ -94,7 +94,7 @@ impl DirectiveHandler<UpdateOwlClass> for UpdateOwlClassHandler {
                 directive.class.iri
             );
 
-            // First check if class exists
+            
             let existing = self
                 .repository
                 .get_owl_class(&directive.class.iri)
@@ -105,7 +105,7 @@ impl DirectiveHandler<UpdateOwlClass> for UpdateOwlClassHandler {
                 return Err(Hexserror::not_found("OWL class", &directive.class.iri));
             }
 
-            // For update, we remove and re-add (simpler than selective update)
+            
             self.repository
                 .add_owl_class(&directive.class)
                 .await
@@ -153,7 +153,7 @@ impl DirectiveHandler<RemoveOwlClass> for RemoveOwlClassHandler {
         tokio::runtime::Handle::current().block_on(async {
             log::info!("Executing RemoveOwlClass directive: iri={}", directive.iri);
 
-            // Check if class exists first
+            
             let existing = self
                 .repository
                 .get_owl_class(&directive.iri)
@@ -164,8 +164,8 @@ impl DirectiveHandler<RemoveOwlClass> for RemoveOwlClassHandler {
                 return Err(Hexserror::not_found("OWL class", &directive.iri));
             }
 
-            // Note: Actual removal would need to be implemented in the repository
-            // For now, we just validate that it exists
+            
+            
             log::warn!(
                 "OWL class removal not yet implemented in repository: iri={}",
                 directive.iri
@@ -263,7 +263,7 @@ impl DirectiveHandler<UpdateOwlProperty> for UpdateOwlPropertyHandler {
                 directive.property.iri
             );
 
-            // Check if property exists
+            
             let existing = self
                 .repository
                 .get_owl_property(&directive.property.iri)
@@ -277,7 +277,7 @@ impl DirectiveHandler<UpdateOwlProperty> for UpdateOwlPropertyHandler {
                 ));
             }
 
-            // Re-add the property (upsert behavior)
+            
             self.repository
                 .add_owl_property(&directive.property)
                 .await
@@ -377,7 +377,7 @@ impl DirectiveHandler<RemoveAxiom> for RemoveAxiomHandler {
         tokio::runtime::Handle::current().block_on(async {
             log::info!("Executing RemoveAxiom directive: id={}", directive.axiom_id);
 
-            // Note: Actual removal would need to be implemented in the repository
+            
             log::warn!(
                 "Axiom removal not yet implemented in repository: id={}",
                 directive.axiom_id
@@ -400,7 +400,7 @@ pub struct StoreInferenceResults {
 
 impl Directive for StoreInferenceResults {
     fn validate(&self) -> HexResult<()> {
-        // Inference results can be empty, so no specific validation needed
+        
         Ok(())
     }
 }
@@ -445,7 +445,7 @@ pub struct SaveOntologyGraph {
 
 impl Directive for SaveOntologyGraph {
     fn validate(&self) -> HexResult<()> {
-        // Graph can be empty, so no specific validation needed
+        
         Ok(())
     }
 }

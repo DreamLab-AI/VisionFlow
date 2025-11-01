@@ -101,13 +101,13 @@ export function useKeyboardShortcuts(
   const registeredIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    // Register all shortcuts
+    
     Object.entries(shortcuts).forEach(([id, shortcut]) => {
       keyboardShortcutRegistry.register(id, shortcut);
       registeredIds.current.add(id);
     });
 
-    // Cleanup function
+    
     return () => {
       registeredIds.current.forEach(id => {
         keyboardShortcutRegistry.unregister(id);
@@ -118,7 +118,7 @@ export function useKeyboardShortcuts(
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Skip if in input element and not allowed
+      
       if (!allowInInput) {
         const target = event.target as HTMLElement;
         if (
@@ -130,7 +130,7 @@ export function useKeyboardShortcuts(
         }
       }
 
-      // Check each registered shortcut
+      
       keyboardShortcutRegistry.getShortcuts().forEach((shortcut, id) => {
         if (!shortcut.enabled) return;
 

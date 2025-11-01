@@ -74,12 +74,12 @@ pub struct AnomalyDetectionStats {
 // Community detection results
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommunityDetectionResult {
-    pub node_labels: Vec<i32>,     // Community assignment for each node
-    pub num_communities: usize,    // Total number of communities found
-    pub modularity: f32,           // Quality metric (higher is better)
-    pub iterations: u32,           // Number of iterations until convergence
-    pub community_sizes: Vec<i32>, // Size of each community
-    pub converged: bool,           // Whether algorithm converged
+    pub node_labels: Vec<i32>,     
+    pub num_communities: usize,    
+    pub modularity: f32,           
+    pub iterations: u32,           
+    pub community_sizes: Vec<i32>, 
+    pub converged: bool,           
     pub communities: Vec<crate::actors::gpu::clustering_actor::Community>,
     pub stats: crate::actors::gpu::clustering_actor::CommunityDetectionStats,
     pub algorithm: CommunityDetectionAlgorithm,
@@ -120,8 +120,8 @@ pub struct CommunityDetectionParams {
     pub algorithm: CommunityDetectionAlgorithm,
     pub max_iterations: Option<u32>,
     pub convergence_tolerance: Option<f32>,
-    pub synchronous: Option<bool>, // True for sync, false for async propagation
-    pub seed: Option<u32>,         // Random seed for tie-breaking
+    pub synchronous: Option<bool>, 
+    pub seed: Option<u32>,         
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -143,7 +143,7 @@ pub enum AnomalyDetectionMethod {
 pub enum CommunityDetectionAlgorithm {
     LabelPropagation,
     Louvain,
-    // Future algorithms: Leiden, etc.
+    
 }
 
 // Graph Service Actor Messages
@@ -151,7 +151,7 @@ pub enum CommunityDetectionAlgorithm {
 #[rtype(result = "Result<std::sync::Arc<ServiceGraphData>, String>")]
 pub struct GetGraphData;
 
-/// NEW: Get settlement/physics state for client optimization
+/
 #[derive(Message)]
 #[rtype(result = "Result<crate::actors::graph_actor::PhysicsState, String>")]
 pub struct GetPhysicsState;
@@ -309,7 +309,7 @@ pub struct RegenerateSemanticConstraints;
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct SetAdvancedGPUContext {
-    // Don't send the whole GPU context, just a signal to initialize it
+    
     pub initialize: bool,
 }
 
@@ -434,10 +434,10 @@ pub struct SetSettingsByPaths {
 // Priority-based update for concurrent update handling
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum UpdatePriority {
-    Critical = 1, // Physics parameters that affect GPU simulation
-    High = 2,     // Visual settings that impact rendering
-    Normal = 3,   // General configuration changes
-    Low = 4,      // Non-critical settings like UI preferences
+    Critical = 1, 
+    High = 2,     
+    Normal = 3,   
+    Low = 4,      
 }
 
 impl PartialOrd for UpdatePriority {
@@ -472,10 +472,10 @@ impl PartialOrd for PriorityUpdate {
 
 impl Ord for PriorityUpdate {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        // First compare by priority (Critical < High < Normal < Low)
+        
         match self.priority.cmp(&other.priority) {
             std::cmp::Ordering::Equal => {
-                // If priorities are equal, compare by timestamp (earlier first)
+                
                 self.timestamp.cmp(&other.timestamp)
             }
             other => other,
@@ -502,16 +502,16 @@ impl PriorityUpdate {
 
     fn determine_priority(path: &str) -> UpdatePriority {
         if path.contains(".physics.") {
-            // Physics parameters are critical for GPU simulation
+            
             UpdatePriority::Critical
         } else if path.contains(".bloom.") || path.contains(".glow.") || path.contains(".visual") {
-            // Visual settings are high priority for user experience
+            
             UpdatePriority::High
         } else if path.contains(".system.") || path.contains(".security.") {
-            // System settings have normal priority
+            
             UpdatePriority::Normal
         } else {
-            // UI preferences and other settings are low priority
+            
             UpdatePriority::Low
         }
     }
@@ -530,8 +530,8 @@ impl BatchedUpdate {
     pub fn new(updates: Vec<PriorityUpdate>) -> Self {
         Self {
             updates,
-            max_batch_size: 50, // Default batch size to prevent mailbox overflow
-            timeout_ms: 100,    // Default 100ms timeout for batching
+            max_batch_size: 50, 
+            timeout_ms: 100,    
         }
     }
 
@@ -541,12 +541,12 @@ impl BatchedUpdate {
         self
     }
 
-    /// Sort updates by priority (Critical first, Low last)
+    
     pub fn sort_by_priority(&mut self) {
         self.updates.sort_by(|a, b| a.priority.cmp(&b.priority));
     }
 
-    /// Group updates by priority level
+    
     pub fn group_by_priority(&self) -> HashMap<UpdatePriority, Vec<&PriorityUpdate>> {
         let mut groups = HashMap::new();
         for update in &self.updates {
@@ -607,15 +607,15 @@ pub struct GetClientCount;
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct ForcePositionBroadcast {
-    pub reason: String, // For debugging: "new_client", "settled_override", etc.
+    pub reason: String, 
 }
 
 // UNIFIED INIT: Message to coordinate REST-triggered broadcasts
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct InitialClientSync {
-    pub client_identifier: String, // Can be IP, session ID, or other identifier
-    pub trigger_source: String,    // "rest_api", "websocket", etc.
+    pub client_identifier: String, 
+    pub trigger_source: String,    
 }
 
 // WEBSOCKET SETTLING FIX: Message to set graph service address in client manager
@@ -642,7 +642,7 @@ pub struct SendToClientText(pub String);
 // Claude Flow Actor Messages - Enhanced for Hive Mind Swarm
 use crate::types::claude_flow::AgentStatus;
 
-/// Message to update the agent cache in ClaudeFlowActorTcp
+/
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct UpdateAgentCache {
@@ -847,8 +847,8 @@ pub struct SwarmMonitorData {
 #[derive(Message, Debug, Clone, Serialize, Deserialize)]
 #[rtype(result = "Result<(), VisionFlowError>")]
 pub struct PhysicsPauseMessage {
-    pub pause: bool,    // true to pause, false to resume
-    pub reason: String, // reason for pause/resume
+    pub pause: bool,    
+    pub reason: String, 
 }
 
 #[derive(Message, Debug, Clone, Serialize, Deserialize)]
@@ -856,14 +856,14 @@ pub struct PhysicsPauseMessage {
 pub struct NodeInteractionMessage {
     pub node_id: u32,
     pub interaction_type: NodeInteractionType,
-    pub position: Option<[f32; 3]>, // Changed from Vec3 to simple array for serde compatibility
+    pub position: Option<[f32; 3]>, 
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum NodeInteractionType {
-    Dragged,  // Node is being dragged
-    Selected, // Node was selected
-    Released, // Node drag ended
+    Dragged,  
+    Selected, 
+    Released, 
 }
 
 #[derive(Message, Debug, Clone, Serialize, Deserialize)]
@@ -890,10 +890,10 @@ pub struct MessageFlowEvent {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CoordinationPattern {
     pub id: String,
-    pub pattern_type: String, // hierarchy, mesh, consensus, pipeline
+    pub pattern_type: String, 
     pub participants: Vec<String>,
-    pub status: String, // forming, active, completing, completed
-    pub progress: f32,  // 0.0 to 1.0
+    pub status: String, 
+    pub progress: f32,  
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -917,7 +917,7 @@ pub struct PerformanceReport {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Bottleneck {
     pub component: String,
-    pub severity: f32, // 0.0 to 1.0
+    pub severity: f32, 
     pub description: String,
     pub suggested_fix: String,
 }
@@ -925,13 +925,13 @@ pub struct Bottleneck {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct SystemMetrics {
     pub active_agents: u32,
-    pub message_rate: f32,      // messages per second
-    pub average_latency: f32,   // milliseconds
-    pub error_rate: f32,        // 0.0 to 1.0
-    pub network_health: f32,    // 0.0 to 1.0
-    pub cpu_usage: f32,         // 0.0 to 1.0
-    pub memory_usage: f32,      // 0.0 to 1.0
-    pub gpu_usage: Option<f32>, // 0.0 to 1.0
+    pub message_rate: f32,      
+    pub average_latency: f32,   
+    pub error_rate: f32,        
+    pub network_health: f32,    
+    pub cpu_usage: f32,         
+    pub memory_usage: f32,      
+    pub gpu_usage: Option<f32>, 
 }
 
 // GPU Compute Actor Messages
@@ -960,7 +960,7 @@ pub struct SetSharedGPUContext {
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct StoreGPUComputeAddress {
-    // Changed to GPUManagerActor for proper message routing
+    
     pub addr: Option<Addr<crate::actors::gpu::GPUManagerActor>>,
 }
 
@@ -985,7 +985,7 @@ pub struct UpdateGPUGraphData {
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct UpdateGPUPositions {
-    pub positions: Vec<(f32, f32, f32)>, // (x, y, z) positions
+    pub positions: Vec<(f32, f32, f32)>, 
 }
 
 #[derive(Message, Clone)]
@@ -1125,7 +1125,7 @@ pub struct ApplyConstraintsToNodes {
 }
 
 // SSSP (Single-Source Shortest Path) Message
-/// Compute shortest paths from a source node using GPU SSSP
+/
 #[derive(Message)]
 #[rtype(result = "Result<PathfindingResult, String>")]
 pub struct ComputeShortestPaths {
@@ -1162,7 +1162,7 @@ pub struct UploadConstraintsToGPU {
 #[derive(Message)]
 #[rtype(result = "Result<Vec<crate::actors::graph_actor::AutoBalanceNotification>, String>")]
 pub struct GetAutoBalanceNotifications {
-    pub since_timestamp: Option<i64>, // Only get notifications after this timestamp
+    pub since_timestamp: Option<i64>, 
 }
 
 // TCP Connection Actor Messages
@@ -1199,22 +1199,22 @@ pub struct RequestGraphUpdate {
 // Ontology Actor Messages
 // ============================================================================
 
-/// Load ontology axioms from various sources (file, URL, or direct content)
+/
 #[derive(Message)]
 #[rtype(result = "Result<String, String>")]
 pub struct LoadOntologyAxioms {
-    pub source: String,         // File path, URL, or direct ontology content
-    pub format: Option<String>, // "turtle", "rdf-xml", "n-triples" - auto-detect if None
+    pub source: String,         
+    pub format: Option<String>, 
 }
 
-/// Update ontology mapping configuration
+/
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct UpdateOntologyMapping {
     pub config: crate::services::owl_validator::ValidationConfig,
 }
 
-/// Validate ontology against property graph with different modes
+/
 #[derive(Message)]
 #[rtype(result = "Result<crate::services::owl_validator::ValidationReport, String>")]
 pub struct ValidateOntology {
@@ -1223,15 +1223,15 @@ pub struct ValidateOntology {
     pub mode: ValidationMode,
 }
 
-/// Validation mode for ontology validation
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ValidationMode {
-    Quick,       // Basic constraints only
-    Full,        // Complete validation with inference
-    Incremental, // Only validate changes since last run
+    Quick,       
+    Full,        
+    Incremental, 
 }
 
-/// Apply inferred relationships to the graph
+/
 #[derive(Message)]
 #[rtype(result = "Result<Vec<crate::services::owl_validator::RdfTriple>, String>")]
 pub struct ApplyInferences {
@@ -1239,19 +1239,19 @@ pub struct ApplyInferences {
     pub max_depth: Option<usize>,
 }
 
-/// Get latest ontology validation report
+/
 #[derive(Message)]
 #[rtype(result = "Result<Option<crate::services::owl_validator::ValidationReport>, String>")]
 pub struct GetOntologyReport {
-    pub report_id: Option<String>, // Get specific report or latest if None
+    pub report_id: Option<String>, 
 }
 
-/// Get ontology system health status
+/
 #[derive(Message)]
 #[rtype(result = "Result<OntologyHealth, String>")]
 pub struct GetOntologyHealth;
 
-/// Ontology system health information
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OntologyHealth {
     pub loaded_ontologies: u32,
@@ -1264,17 +1264,17 @@ pub struct OntologyHealth {
     pub memory_usage_mb: f32,
 }
 
-/// Clear ontology caches
+/
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct ClearOntologyCaches;
 
-/// Get cached ontology list
+/
 #[derive(Message)]
 #[rtype(result = "Result<Vec<CachedOntologyInfo>, String>")]
 pub struct GetCachedOntologies;
 
-/// Information about cached ontology
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CachedOntologyInfo {
     pub id: String,
@@ -1289,28 +1289,28 @@ pub struct CachedOntologyInfo {
 // Workspace Actor Messages
 // ============================================================================
 
-/// Get all workspaces with optional filtering and pagination
+/
 #[derive(Message)]
 #[rtype(result = "Result<crate::models::workspace::WorkspaceListResponse, String>")]
 pub struct GetWorkspaces {
     pub query: WorkspaceQuery,
 }
 
-/// Get a specific workspace by ID
+/
 #[derive(Message)]
 #[rtype(result = "Result<Workspace, String>")]
 pub struct GetWorkspace {
     pub workspace_id: String,
 }
 
-/// Create a new workspace
+/
 #[derive(Message)]
 #[rtype(result = "Result<Workspace, String>")]
 pub struct CreateWorkspace {
     pub request: CreateWorkspaceRequest,
 }
 
-/// Update an existing workspace
+/
 #[derive(Message)]
 #[rtype(result = "Result<Workspace, String>")]
 pub struct UpdateWorkspace {
@@ -1318,46 +1318,46 @@ pub struct UpdateWorkspace {
     pub request: UpdateWorkspaceRequest,
 }
 
-/// Soft delete a workspace (archive it)
+/
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct DeleteWorkspace {
     pub workspace_id: String,
 }
 
-/// Toggle favorite status of a workspace
+/
 #[derive(Message)]
 #[rtype(result = "Result<bool, String>")]
 pub struct ToggleFavoriteWorkspace {
     pub workspace_id: String,
 }
 
-/// Archive or unarchive a workspace
+/
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct ArchiveWorkspace {
     pub workspace_id: String,
-    pub archive: bool, // true to archive, false to unarchive
+    pub archive: bool, 
 }
 
-/// Get workspace count for statistics
+/
 #[derive(Message)]
 #[rtype(result = "Result<usize, String>")]
 pub struct GetWorkspaceCount {
     pub filter: Option<WorkspaceFilter>,
 }
 
-/// Load workspaces from persistent storage
+/
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct LoadWorkspaces;
 
-/// Save workspaces to persistent storage
+/
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct SaveWorkspaces;
 
-/// Internal message for workspace state updates via WebSocket
+/
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct WorkspaceStateChanged {
@@ -1365,7 +1365,7 @@ pub struct WorkspaceStateChanged {
     pub change_type: WorkspaceChangeType,
 }
 
-/// Type of workspace change for WebSocket notifications
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum WorkspaceChangeType {
     Created,
@@ -1383,38 +1383,38 @@ pub enum WorkspaceChangeType {
 
 use crate::ontology::parser::parser::LogseqPage;
 
-/// Message to send parsed ontology data to the OntologyActor.
-/// This is sent by the file handler after parsing the Logseq markdown files.
+/
+/
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct ProcessOntologyData {
     pub pages: Vec<LogseqPage>,
 }
 
-/// Triggers a validation run of the current graph data against the loaded ontology.
+/
 #[derive(Message)]
-#[rtype(result = "Result<String, String>")] // Returns a job ID
+#[rtype(result = "Result<String, String>")] 
 pub struct ValidateGraph {
     pub mode: ValidationMode,
 }
 
-/// Retrieves a validation report.
+/
 #[derive(Message)]
-#[rtype(result = "Result<Option<String>, String>")] // Returns JSON string of the report
+#[rtype(result = "Result<Option<String>, String>")] 
 pub struct GetValidationReport {
-    pub report_id: Option<String>, // Get specific report or latest if None
+    pub report_id: Option<String>, 
 }
 
-/// Retrieves the system health of the ontology module.
+/
 #[derive(Message)]
-#[rtype(result = "Result<String, String>")] // Returns JSON string of the health status
+#[rtype(result = "Result<String, String>")] 
 pub struct GetOntologyHealthLegacy;
 
 // ============================================================================
 // Ontology-Physics Integration Messages
 // ============================================================================
 
-/// Apply ontology-derived constraints to the physics simulation
+/
 #[derive(Message, Clone)]
 #[rtype(result = "Result<(), String>")]
 pub struct ApplyOntologyConstraints {
@@ -1423,18 +1423,18 @@ pub struct ApplyOntologyConstraints {
     pub graph_id: u32,
 }
 
-/// Mode for merging ontology constraints with existing constraints
+/
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum ConstraintMergeMode {
-    /// Replace all existing ontology constraints
+    
     Replace,
-    /// Merge with existing constraints, keeping both
+    
     Merge,
-    /// Add only if no conflicts with existing constraints
+    
     AddIfNoConflict,
 }
 
-/// Enable or disable specific constraint groups
+/
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct SetConstraintGroupActive {
@@ -1442,17 +1442,17 @@ pub struct SetConstraintGroupActive {
     pub active: bool,
 }
 
-/// Get statistics about currently active constraints
+/
 #[derive(Message)]
 #[rtype(result = "Result<ConstraintStats, String>")]
 pub struct GetConstraintStats;
 
-/// Get statistics about ontology constraints
+/
 #[derive(Message)]
 #[rtype(result = "Result<OntologyConstraintStats, String>")]
 pub struct GetOntologyConstraintStats;
 
-/// Ontology constraint statistics
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OntologyConstraintStats {
     pub total_axioms_processed: u32,
@@ -1463,7 +1463,7 @@ pub struct OntologyConstraintStats {
     pub cpu_fallback_count: u32,
 }
 
-/// Statistics about constraint application
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConstraintStats {
     pub total_constraints: usize,
@@ -1479,7 +1479,7 @@ pub struct ConstraintStats {
 // Note: ComputeShortestPaths already defined above at line ~1107
 // Note: PathfindingResult is defined in ports::gpu_semantic_analyzer
 
-/// Compute all-pairs shortest paths using landmark approximation
+/
 #[derive(Message)]
 #[rtype(result = "Result<HashMap<(u32, u32), Vec<u32>>, String>")]
 pub struct ComputeAllPairsShortestPaths {

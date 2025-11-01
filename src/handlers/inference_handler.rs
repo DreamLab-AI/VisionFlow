@@ -11,18 +11,18 @@ use tracing::{info, warn};
 
 use crate::application::inference_service::InferenceService;
 
-/// Run inference request
+/
 #[derive(Debug, Deserialize)]
 pub struct RunInferenceRequest {
-    /// Ontology ID to run inference on
+    
     pub ontology_id: String,
 
-    /// Force re-inference (ignore cache)
+    
     #[serde(default)]
     pub force: bool,
 }
 
-/// Run inference response
+/
 #[derive(Debug, Serialize)]
 pub struct RunInferenceResponse {
     pub success: bool,
@@ -35,13 +35,13 @@ pub struct RunInferenceResponse {
     pub error: Option<String>,
 }
 
-/// Batch inference request
+/
 #[derive(Debug, Deserialize)]
 pub struct BatchInferenceRequest {
-    /// Ontology IDs to process
+    
     pub ontology_ids: Vec<String>,
 
-    /// Maximum parallelism
+    
     #[serde(default = "default_max_parallel")]
     pub max_parallel: usize,
 }
@@ -50,7 +50,7 @@ fn default_max_parallel() -> usize {
     4
 }
 
-/// Batch inference response
+/
 #[derive(Debug, Serialize)]
 pub struct BatchInferenceResponse {
     pub success: bool,
@@ -63,20 +63,20 @@ pub struct BatchInferenceResponse {
     pub results: Option<Vec<RunInferenceResponse>>,
 }
 
-/// Validation request
+/
 #[derive(Debug, Deserialize)]
 pub struct ValidateOntologyRequest {
     pub ontology_id: String,
 }
 
-/// Explanation request
+/
 #[derive(Debug, Deserialize)]
 pub struct GetExplanationRequest {
     pub axiom_id: String,
 }
 
-/// POST /api/inference/run
-/// Run inference on an ontology
+/
+/
 pub async fn run_inference(
     service: web::Data<Arc<RwLock<InferenceService>>>,
     req: web::Json<RunInferenceRequest>,
@@ -85,7 +85,7 @@ pub async fn run_inference(
 
     let service_lock = service.read().await;
 
-    // Invalidate cache if force=true
+    
     if req.force {
         service_lock.invalidate_cache(&req.ontology_id).await;
     }
@@ -120,8 +120,8 @@ pub async fn run_inference(
     }
 }
 
-/// POST /api/inference/batch
-/// Run inference on multiple ontologies in parallel
+/
+/
 pub async fn batch_inference(
     service: web::Data<Arc<RwLock<InferenceService>>>,
     req: web::Json<BatchInferenceRequest>,
@@ -180,8 +180,8 @@ pub async fn batch_inference(
     }
 }
 
-/// POST /api/inference/validate
-/// Validate ontology consistency
+/
+/
 pub async fn validate_ontology(
     service: web::Data<Arc<RwLock<InferenceService>>>,
     req: web::Json<ValidateOntologyRequest>,
@@ -202,8 +202,8 @@ pub async fn validate_ontology(
     }
 }
 
-/// GET /api/inference/results/{ontology_id}
-/// Get inference results for an ontology
+/
+/
 pub async fn get_inference_results(
     service: web::Data<Arc<RwLock<InferenceService>>>,
     path: web::Path<String>,
@@ -213,7 +213,7 @@ pub async fn get_inference_results(
 
     let service_lock = service.read().await;
 
-    // Try to get cached results, otherwise run inference
+    
     match service_lock.run_inference(&ontology_id).await {
         Ok(results) => HttpResponse::Ok().json(results),
         Err(e) => {
@@ -226,8 +226,8 @@ pub async fn get_inference_results(
     }
 }
 
-/// GET /api/inference/classify/{ontology_id}
-/// Classify ontology hierarchy
+/
+/
 pub async fn classify_ontology(
     service: web::Data<Arc<RwLock<InferenceService>>>,
     path: web::Path<String>,
@@ -249,8 +249,8 @@ pub async fn classify_ontology(
     }
 }
 
-/// GET /api/inference/consistency/{ontology_id}
-/// Get consistency report
+/
+/
 pub async fn get_consistency_report(
     service: web::Data<Arc<RwLock<InferenceService>>>,
     path: web::Path<String>,
@@ -272,8 +272,8 @@ pub async fn get_consistency_report(
     }
 }
 
-/// DELETE /api/inference/cache/{ontology_id}
-/// Invalidate cache for ontology
+/
+/
 pub async fn invalidate_cache(
     service: web::Data<Arc<RwLock<InferenceService>>>,
     path: web::Path<String>,
@@ -290,7 +290,7 @@ pub async fn invalidate_cache(
     }))
 }
 
-/// Configure inference routes
+/
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api/inference")
@@ -309,5 +309,5 @@ mod tests {
     use super::*;
     use actix_web::{test, App};
 
-    // Handler tests would go here
+    
 }

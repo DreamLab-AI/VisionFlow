@@ -20,7 +20,7 @@ export function OntologyModeToggle({ onModeChange, className = '' }: OntologyMod
   const [mode, setMode] = useState<GraphMode>('knowledge_graph');
   const [loading, setLoading] = useState(false);
 
-  // Load current mode from settings on mount
+  
   useEffect(() => {
     const loadMode = async () => {
       try {
@@ -41,11 +41,11 @@ export function OntologyModeToggle({ onModeChange, className = '' }: OntologyMod
     setLoading(true);
 
     try {
-      // Update settings store
+      
       settingsStore.set('visualisation.graphs.mode', newMode);
       setMode(newMode);
 
-      // Notify parent component
+      
       onModeChange?.(newMode);
 
       logger.info(`Graph mode switched to: ${newMode}`);
@@ -73,7 +73,7 @@ export function OntologyModeToggle({ onModeChange, className = '' }: OntologyMod
     }
   };
 
-  // Fetch graph data when mode changes
+  
   useEffect(() => {
     fetchGraphData(mode).catch(error => {
       logger.error('Failed to fetch graph data:', error);

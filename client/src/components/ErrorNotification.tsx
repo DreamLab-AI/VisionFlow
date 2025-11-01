@@ -17,7 +17,7 @@ export interface ErrorNotificationProps {
     maxRetries?: number;
   };
   dismissible?: boolean;
-  autoClose?: number; // milliseconds
+  autoClose?: number; 
   onClose?: () => void;
   className?: string;
 }
@@ -64,9 +64,9 @@ export const ErrorNotification: React.FC<ErrorNotificationProps> = ({
 
     try {
       await retry.onRetry();
-      handleClose(); // Close on successful retry
+      handleClose(); 
     } catch (error) {
-      // Retry failed, keep notification open
+      
       console.error('Retry failed:', error);
     } finally {
       setIsRetrying(false);

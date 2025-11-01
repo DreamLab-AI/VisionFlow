@@ -45,7 +45,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
-  // Settings store
+  
   const { 
     settings, 
     saving, 
@@ -58,13 +58,13 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
     hasUnsavedChanges: checkUnsavedChanges
   } = useSettingsStore();
   
-  // Undo/redo support (disabled - not implemented yet)
+  
   const canUndo = false;
   const canRedo = false;
   const undo = () => toast.info('Undo not yet implemented');
   const redo = () => toast.info('Redo not yet implemented');
   
-  // Check for unsaved changes
+  
   useEffect(() => {
     const interval = setInterval(() => {
       setHasUnsavedChanges(checkUnsavedChanges());
@@ -72,7 +72,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
     return () => clearInterval(interval);
   }, [checkUnsavedChanges]);
   
-  // Filter settings based on search
+  
   const filteredUIDefinition = useMemo(() => {
     if (!searchQuery) return settingsUIDefinition;
     
@@ -112,16 +112,16 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
     return filtered;
   }, [searchQuery]);
   
-  // Handle file import
+  
   const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       await loadFromFile(file);
-      event.target.value = ''; // Reset input
+      event.target.value = ''; 
     }
   };
   
-  // Tab definitions - comprehensive settings categories
+  
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: Monitor, category: 'dashboard' },
     { id: 'visualization', label: 'Visualization', icon: Eye, category: 'visualization' },
@@ -139,7 +139,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
   
   return (
     <div className="h-full flex flex-col bg-background">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2">
           <Settings className="w-5 h-5" />
@@ -150,7 +150,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
         </div>
         
         <div className="flex items-center gap-2">
-          {/* Search */}
+          {}
           <div className="relative">
             <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -162,7 +162,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
             />
           </div>
           
-          {/* Undo/Redo */}
+          {}
           <div className="flex gap-1">
             <Button
               variant="ghost"
@@ -184,7 +184,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
             </Button>
           </div>
           
-          {/* Import/Export */}
+          {}
           <div className="flex gap-1">
             <Button
               variant="ghost"
@@ -211,7 +211,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
             </Button>
           </div>
           
-          {/* Save/Reset */}
+          {}
           <div className="flex gap-1">
             <Button
               variant="ghost"
@@ -240,7 +240,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
         </div>
       </div>
       
-      {/* Content */}
+      {}
       <div className="flex-1 overflow-hidden">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
           <TabsList className="px-4 w-full justify-start">
@@ -254,7 +254,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
           
           <ScrollArea className="flex-1 h-[calc(100%-3rem)]">
             {tabs.map(tab => {
-              // Handle custom panels (like Agents)
+              
               if (tab.isCustomPanel && tab.id === 'agents') {
                 return (
                   <TabsContent key={tab.id} value={tab.id} className="p-4">
@@ -268,14 +268,14 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
 
               return (
                 <TabsContent key={tab.id} value={tab.id} className="p-4 space-y-4">
-                  {/* Tab description */}
+                  {}
                   {categoryDef.description && (
                     <div className="text-sm text-muted-foreground mb-4">
                       {categoryDef.description}
                     </div>
                   )}
 
-                  {/* Settings sections */}
+                  {}
                   {Object.entries(categoryDef.subsections || {}).map(([sectionKey, section]) => (
                     <div key={sectionKey} className="space-y-2">
                       <h3 className="text-sm font-semibold">{section.label}</h3>
@@ -306,7 +306,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
         </Tabs>
       </div>
       
-      {/* Status bar */}
+      {}
       {(loading || saving) && (
         <div className="px-4 py-2 border-t text-xs text-muted-foreground">
           {loading && 'Loading settings...'}

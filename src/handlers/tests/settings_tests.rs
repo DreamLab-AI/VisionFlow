@@ -17,12 +17,12 @@ mod settings_api_tests {
     use serde_json::{json, Value};
     use std::sync::Arc;
 
-    /// Create test app state with settings actor
+    
     async fn create_test_app_state() -> web::Data<AppState> {
         let settings = AppFullSettings::default();
         let settings_actor = SettingsActor::new(settings).start();
 
-        // Create minimal app state for testing
+        
         let app_state = AppState {
             settings_addr: settings_actor,
         };
@@ -30,7 +30,7 @@ mod settings_api_tests {
         web::Data::new(app_state)
     }
 
-    /// Helper function to create test app with settings routes
+    
     async fn create_test_app() -> App<
         impl actix_web::dev::ServiceFactory<
             actix_web::dev::ServiceRequest,
@@ -59,7 +59,7 @@ mod settings_api_tests {
     async fn test_get_settings_by_path() {
         let app = create_test_app().await;
 
-        // Test getting a simple path
+        
         let req = test::TestRequest::get()
             .uri("/api/settings/path?path=visualisation.physics.damping")
             .to_request();
@@ -77,7 +77,7 @@ mod settings_api_tests {
     async fn test_get_settings_by_path_not_found() {
         let app = create_test_app().await;
 
-        // Test getting a non-existent path
+        
         let req = test::TestRequest::get()
             .uri("/api/settings/path?path=nonexistent.path")
             .to_request();
@@ -94,7 +94,7 @@ mod settings_api_tests {
     async fn test_get_settings_empty_path() {
         let app = create_test_app().await;
 
-        // Test getting with empty path
+        
         let req = test::TestRequest::get()
             .uri("/api/settings/path?path=")
             .to_request();
@@ -110,7 +110,7 @@ mod settings_api_tests {
     async fn test_update_settings_by_path() {
         let app = create_test_app().await;
 
-        // Test updating a simple physics parameter
+        
         let update_data = json!({
             "path": "visualisation.physics.damping",
             "value": 0.95
@@ -134,7 +134,7 @@ mod settings_api_tests {
     async fn test_field_conversion_base_color() {
         let app = create_test_app().await;
 
-        // Test the problematic baseColor field that was causing duplicate field errors
+        
         let update_data = json!({
             "path": "visualisation.graphs.logseq.nodes.baseColor",
             "value": "#FF5733"
@@ -160,7 +160,7 @@ mod settings_api_tests {
     async fn test_field_conversion_ambient_light_intensity() {
         let app = create_test_app().await;
 
-        // Test the problematic ambientLightIntensity field
+        
         let update_data = json!({
             "path": "visualisation.rendering.ambientLightIntensity",
             "value": 0.8
@@ -186,7 +186,7 @@ mod settings_api_tests {
     async fn test_field_conversion_emission_color() {
         let app = create_test_app().await;
 
-        // Test emissionColor field conversion
+        
         let update_data = json!({
             "path": "visualisation.graphs.logseq.nodes.emissionColor",
             "value": "#00FF00"
@@ -208,7 +208,7 @@ mod settings_api_tests {
     async fn test_complex_nested_settings_update() {
         let app = create_test_app().await;
 
-        // Test updating deeply nested physics auto-balance settings
+        
         let update_data = json!({
             "path": "visualisation.graphs.logseq.physics.autoBalance.stabilityVarianceThreshold",
             "value": 0.05
@@ -234,7 +234,7 @@ mod settings_api_tests {
     async fn test_batch_read_settings() {
         let app = create_test_app().await;
 
-        // Test batch reading multiple settings paths
+        
         let batch_data = json!({
             "paths": [
                 "visualisation.physics.damping",
@@ -254,7 +254,7 @@ mod settings_api_tests {
 
         let body: Value = test::read_body_json(resp).await;
 
-        // Verify all requested paths are present in response
+        
         assert!(body["visualisation.physics.damping"].is_number());
         assert!(body["visualisation.physics.gravity"].is_number());
         assert!(body["visualisation.graphs.logseq.nodes.baseColor"].is_string());
@@ -265,7 +265,7 @@ mod settings_api_tests {
     async fn test_batch_read_empty_paths() {
         let app = create_test_app().await;
 
-        // Test batch read with no paths
+        
         let batch_data = json!({
             "paths": []
         });
@@ -286,7 +286,7 @@ mod settings_api_tests {
     async fn test_batch_read_too_many_paths() {
         let app = create_test_app().await;
 
-        // Test batch read with more than 50 paths
+        
         let mut paths = Vec::new();
         for i in 0..51 {
             paths.push(format!("fake.path.{}", i));
@@ -315,7 +315,7 @@ mod settings_api_tests {
     async fn test_batch_update_settings() {
         let app = create_test_app().await;
 
-        // Test batch updating multiple settings with field conversion
+        
         let batch_data = json!({
             "updates": [
                 {
@@ -350,7 +350,7 @@ mod settings_api_tests {
         let results = body["results"].as_array().unwrap();
         assert_eq!(results.len(), 3);
 
-        // Verify all updates succeeded
+        
         for result in results {
             assert_eq!(result["success"], true);
         }
@@ -360,7 +360,7 @@ mod settings_api_tests {
     async fn test_batch_update_empty_updates() {
         let app = create_test_app().await;
 
-        // Test batch update with no updates
+        
         let batch_data = json!({
             "updates": []
         });
@@ -381,7 +381,7 @@ mod settings_api_tests {
     async fn test_batch_update_too_many_updates() {
         let app = create_test_app().await;
 
-        // Test batch update with more than 50 updates
+        
         let mut updates = Vec::new();
         for i in 0..51 {
             updates.push(json!({
@@ -413,7 +413,7 @@ mod settings_api_tests {
     async fn test_get_settings_schema() {
         let app = create_test_app().await;
 
-        // Test getting schema for physics settings
+        
         let req = test::TestRequest::get()
             .uri("/api/settings/schema?path=visualisation.physics")
             .to_request();
@@ -432,7 +432,7 @@ mod settings_api_tests {
     async fn test_field_normalization_edge_cases() {
         let app = create_test_app().await;
 
-        // Test various edge case field names that could cause conflicts
+        
         let test_cases = vec![
             ("visualisation.graphs.logseq.edges.arrowSize", 0.5),
             ("visualisation.graphs.logseq.edges.baseWidth", 1.2),
@@ -481,7 +481,7 @@ mod settings_api_tests {
     async fn test_validation_errors() {
         let app = create_test_app().await;
 
-        // Test validation error for invalid hex color
+        
         let update_data = json!({
             "path": "visualisation.graphs.logseq.nodes.baseColor",
             "value": "invalid-color"
@@ -508,10 +508,10 @@ mod settings_api_tests {
     async fn test_validation_range_errors() {
         let app = create_test_app().await;
 
-        // Test validation error for out of range opacity
+        
         let update_data = json!({
             "path": "visualisation.graphs.logseq.nodes.opacity",
-            "value": 1.5  // Invalid: should be 0.0-1.0
+            "value": 1.5  
         });
 
         let req = test::TestRequest::put()
@@ -531,7 +531,7 @@ mod settings_api_tests {
     async fn test_all_problematic_fields() {
         let app = create_test_app().await;
 
-        // Test all the fields mentioned in the task that were causing duplicate field errors
+        
         let problematic_fields = vec![
             ("visualisation.graphs.logseq.nodes.baseColor", "#FF5733"),
             ("visualisation.graphs.visionflow.nodes.baseColor", "#33FF57"),
@@ -572,7 +572,7 @@ mod settings_api_tests {
     async fn test_concurrent_field_updates() {
         let app = create_test_app().await;
 
-        // Test concurrent updates using batch operation with potential conflicts
+        
         let batch_data = json!({
             "updates": [
                 {
@@ -608,7 +608,7 @@ mod settings_api_tests {
         let body: Value = test::read_body_json(resp).await;
         assert_eq!(body["success"], true);
 
-        // Verify all updates succeeded
+        
         let results = body["results"].as_array().unwrap();
         for result in results {
             assert_eq!(
@@ -625,7 +625,7 @@ mod integration_tests {
     use actix_web::{test, web, App};
     use serde_json::json;
 
-    /// Integration test that verifies the complete settings API workflow
+    
     #[actix_web::test]
     async fn test_complete_settings_workflow() {
         let app_state = super::settings_api_tests::create_test_app_state().await;
@@ -644,14 +644,14 @@ mod integration_tests {
         )
         .await;
 
-        // Step 1: Get initial settings
+        
         let req = test::TestRequest::get()
             .uri("/api/settings/path?path=visualisation.graphs.logseq.nodes.baseColor")
             .to_request();
         let resp = test::call_service(&app, req).await;
         assert!(resp.status().is_success());
 
-        // Step 2: Update the baseColor field (this was the problematic one)
+        
         let update_data = json!({
             "path": "visualisation.graphs.logseq.nodes.baseColor",
             "value": "#NEW123"
@@ -663,7 +663,7 @@ mod integration_tests {
         let resp = test::call_service(&app, req).await;
         assert!(resp.status().is_success());
 
-        // Step 3: Verify the update took effect
+        
         let req = test::TestRequest::get()
             .uri("/api/settings/path?path=visualisation.graphs.logseq.nodes.baseColor")
             .to_request();
@@ -671,7 +671,7 @@ mod integration_tests {
         let body: serde_json::Value = test::read_body_json(resp).await;
         assert_eq!(body["value"], "#NEW123");
 
-        // Step 4: Test batch operations with the fixed field
+        
         let batch_data = json!({
             "updates": [
                 {
@@ -691,7 +691,7 @@ mod integration_tests {
         let resp = test::call_service(&app, req).await;
         assert!(resp.status().is_success());
 
-        // Step 5: Verify batch updates took effect
+        
         let batch_read = json!({
             "paths": [
                 "visualisation.graphs.logseq.nodes.baseColor",

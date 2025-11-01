@@ -11,26 +11,26 @@ use log::{debug, warn};
 use crate::ports::inference_engine::{InferenceEngine, InferenceStatistics, Result as PortResult};
 use crate::ports::ontology_repository::{InferenceResults, OwlAxiom, OwlClass};
 
-/// Stub implementation of InferenceEngine
-///
-/// All methods return empty results or placeholders.
-/// Phase 7 will replace this with the actual whelk-rs integration.
+/
+/
+/
+/
 pub struct WhelkInferenceEngineStub {
-    /// Loaded classes (stored for statistics)
+    
     loaded_classes: Vec<OwlClass>,
 
-    /// Loaded axioms (stored for statistics)
+    
     loaded_axioms: Vec<OwlAxiom>,
 
-    /// Whether ontology has been loaded
+    
     is_loaded: bool,
 
-    /// Total inferences performed (for statistics)
+    
     total_inferences: u64,
 }
 
 impl WhelkInferenceEngineStub {
-    /// Create a new stub inference engine
+    
     pub fn new() -> Self {
         warn!("WhelkInferenceEngineStub: Using stub implementation - Phase 7 will implement full reasoning");
         Self {
@@ -50,7 +50,7 @@ impl Default for WhelkInferenceEngineStub {
 
 #[async_trait]
 impl InferenceEngine for WhelkInferenceEngineStub {
-    /// Load ontology for reasoning (stub - stores data but doesn't reason)
+    
     async fn load_ontology(
         &mut self,
         classes: Vec<OwlClass>,
@@ -69,9 +69,9 @@ impl InferenceEngine for WhelkInferenceEngineStub {
         Ok(())
     }
 
-    /// Perform inference (stub - returns empty results)
-    ///
-    /// Phase 7 will implement actual OWL reasoning using whelk-rs.
+    
+    
+    
     async fn infer(&mut self) -> PortResult<InferenceResults> {
         debug!("WhelkInferenceEngineStub: Performing inference (stub - returns empty)");
 
@@ -89,7 +89,7 @@ impl InferenceEngine for WhelkInferenceEngineStub {
         })
     }
 
-    /// Check if axiom is entailed (stub - always returns false)
+    
     async fn is_entailed(&self, axiom: &OwlAxiom) -> PortResult<bool> {
         debug!("WhelkInferenceEngineStub: Checking entailment (stub - returns false)");
 
@@ -97,11 +97,11 @@ impl InferenceEngine for WhelkInferenceEngineStub {
             return Err(crate::ports::inference_engine::InferenceEngineError::OntologyNotLoaded);
         }
 
-        // Stub: always returns false
+        
         Ok(false)
     }
 
-    /// Get subclass hierarchy (stub - returns empty)
+    
     async fn get_subclass_hierarchy(&self) -> PortResult<Vec<(String, String)>> {
         debug!("WhelkInferenceEngineStub: Getting subclass hierarchy (stub - returns empty)");
 
@@ -112,7 +112,7 @@ impl InferenceEngine for WhelkInferenceEngineStub {
         Ok(Vec::new())
     }
 
-    /// Classify instance (stub - returns empty)
+    
     async fn classify_instance(&self, instance_iri: &str) -> PortResult<Vec<String>> {
         debug!(
             "WhelkInferenceEngineStub: Classifying instance {} (stub - returns empty)",
@@ -126,7 +126,7 @@ impl InferenceEngine for WhelkInferenceEngineStub {
         Ok(Vec::new())
     }
 
-    /// Check consistency (stub - always returns true)
+    
     async fn check_consistency(&self) -> PortResult<bool> {
         debug!("WhelkInferenceEngineStub: Checking consistency (stub - returns true)");
 
@@ -134,11 +134,11 @@ impl InferenceEngine for WhelkInferenceEngineStub {
             return Err(crate::ports::inference_engine::InferenceEngineError::OntologyNotLoaded);
         }
 
-        // Stub: always consistent
+        
         Ok(true)
     }
 
-    /// Explain entailment (stub - returns empty explanation)
+    
     async fn explain_entailment(&self, axiom: &OwlAxiom) -> PortResult<Vec<OwlAxiom>> {
         debug!("WhelkInferenceEngineStub: Explaining entailment (stub - returns empty)");
 
@@ -149,7 +149,7 @@ impl InferenceEngine for WhelkInferenceEngineStub {
         Ok(Vec::new())
     }
 
-    /// Clear loaded ontology
+    
     async fn clear(&mut self) -> PortResult<()> {
         debug!("WhelkInferenceEngineStub: Clearing ontology");
 
@@ -160,14 +160,14 @@ impl InferenceEngine for WhelkInferenceEngineStub {
         Ok(())
     }
 
-    /// Get statistics
+    
     async fn get_statistics(&self) -> PortResult<InferenceStatistics> {
         debug!("WhelkInferenceEngineStub: Getting statistics");
 
         Ok(InferenceStatistics {
             loaded_classes: self.loaded_classes.len(),
             loaded_axioms: self.loaded_axioms.len(),
-            inferred_axioms: 0, // Stub: no inferred axioms
+            inferred_axioms: 0, 
             last_inference_time_ms: 0,
             total_inferences: self.total_inferences,
         })

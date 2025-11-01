@@ -49,7 +49,7 @@ pub struct ValidateRequest {
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::scope("/auth/nostr") // Now mounted under /api/auth/nostr due to API handler configuration
+        web::scope("/auth/nostr") 
             .route("", web::post().to(login))
             .route("", web::delete().to(logout))
             .route("/verify", web::post().to(verify))
@@ -141,10 +141,10 @@ async fn login(
                     .parse::<i64>()
                     .unwrap_or(3600);
 
-            // Get available features for the user
+            
             let features = feature_access.get_available_features(&user.pubkey);
 
-            // Create simplified user DTO for response
+            
             let user_dto = UserResponseDTO {
                 pubkey: user.pubkey.clone(),
                 npub: Some(user.npub.clone()),
@@ -171,7 +171,7 @@ async fn logout(
     req: web::Json<ValidateRequest>,
     nostr_service: web::Data<NostrService>,
 ) -> Result<HttpResponse, Error> {
-    // Validate session before logout
+    
     if !nostr_service
         .validate_session(&req.pubkey, &req.token)
         .await
@@ -212,7 +212,7 @@ async fn verify(
         None
     };
 
-    // Get available features if session is valid
+    
     let features = if is_valid {
         feature_access.get_available_features(&req.pubkey)
     } else {
@@ -231,7 +231,7 @@ async fn refresh(
     nostr_service: web::Data<NostrService>,
     feature_access: web::Data<FeatureAccess>,
 ) -> Result<HttpResponse, Error> {
-    // First validate the current session
+    
     if !nostr_service
         .validate_session(&req.pubkey, &req.token)
         .await
@@ -249,7 +249,7 @@ async fn refresh(
                         .unwrap_or_else(|_| "3600".to_string())
                         .parse::<i64>()
                         .unwrap_or(3600);
-                // Get available features for the refreshed session
+                
                 let features = feature_access.get_available_features(&req.pubkey);
 
                 Ok(HttpResponse::Ok().json(AuthResponse {
@@ -319,13 +319,13 @@ async fn get_api_keys(
 pub fn init_nostr_service(app_state: &mut AppState) {
     let nostr_service = NostrService::new();
 
-    // Start session cleanup task
+    
     let service_clone = nostr_service.clone();
     tokio::spawn(async move {
-        let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(3600)); // Every hour
+        let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(3600)); 
         loop {
             interval.tick().await;
-            service_clone.cleanup_sessions(24).await; // Clean up sessions older than 24 hours
+            service_clone.cleanup_sessions(24).await; 
         }
     });
 

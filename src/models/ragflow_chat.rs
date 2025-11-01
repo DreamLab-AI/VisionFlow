@@ -5,15 +5,15 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct RagflowChatRequest {
     pub question: String,
-    pub session_id: Option<String>, // Client might send existing session ID
-    pub stream: Option<bool>,       // Add stream parameter, optional
-                                    // Add any other RAGFlow specific params client might send
+    pub session_id: Option<String>, 
+    pub stream: Option<bool>,       
+                                    
 }
 
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct RagflowChatResponse {
     pub answer: String,
-    pub session_id: String, // Server returns session_id for future requests
-                            // Add any other RAGFlow specific response fields
+    pub session_id: String, 
+                            
 }

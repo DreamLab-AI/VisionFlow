@@ -1,7 +1,4 @@
-/**
- * Advanced Interaction Modes
- * Time-travel, exploration, collaboration, and VR/AR modes for immersive graph interaction
- */
+
 
 import { Vector3, Color, Camera, Raycaster, Object3D } from 'three';
 import { createLogger } from '../../../utils/loggerConfig';
@@ -96,7 +93,7 @@ export interface GraphAnnotation {
   type: 'note' | 'question' | 'explanation' | 'warning';
   attachedNodes: string[];
   visibility: 'private' | 'shared' | 'public';
-  reactions: Map<string, string>; // participantId -> reaction
+  reactions: Map<string, string>; 
 }
 
 export interface CollaborationPermissions {
@@ -273,9 +270,7 @@ export class AdvancedInteractionModes {
     };
   }
 
-  /**
-   * Time-Travel Mode
-   */
+  
   public activateTimeTravelMode(
     graphStates: GraphData[],
     options: {
@@ -345,9 +340,7 @@ export class AdvancedInteractionModes {
     setTimeout(animate, stepDuration);
   }
 
-  /**
-   * Exploration Mode
-   */
+  
   public createExplorationTour(
     tourId: string,
     waypoints: ExplorationWaypoint[]
@@ -418,10 +411,10 @@ export class AdvancedInteractionModes {
     this.explorationState.currentWaypoint = index;
     this.explorationState.narrativeText = waypoint.description;
     
-    // Clear previous highlights
+    
     this.explorationState.highlightedElements.clear();
     
-    // Add new highlights
+    
     waypoint.highlightNodes.forEach(nodeId => {
       this.explorationState.highlightedElements.add(nodeId);
     });
@@ -429,7 +422,7 @@ export class AdvancedInteractionModes {
       this.explorationState.highlightedElements.add(edgeId);
     });
 
-    // Execute waypoint triggers
+    
     this.executeWaypointTriggers(waypoint);
 
     this.explorationState.onWaypointReached?.(waypoint);
@@ -445,16 +438,16 @@ export class AdvancedInteractionModes {
           }
           break;
         case 'highlight':
-          // Additional highlighting logic
+          
           break;
         case 'show_element':
-          // Show interactive elements
+          
           waypoint.interactiveElements.forEach(element => {
             element.isVisible = true;
           });
           break;
         case 'play_animation':
-          // Trigger custom animations
+          
           break;
       }
     });
@@ -466,9 +459,7 @@ export class AdvancedInteractionModes {
     this.emit('explorationFinished', this.explorationState);
   }
 
-  /**
-   * Collaboration Mode
-   */
+  
   public startCollaborationSession(
     sessionId: string,
     permissions: Partial<CollaborationPermissions> = {}
@@ -563,9 +554,7 @@ export class AdvancedInteractionModes {
     return annotation.id;
   }
 
-  /**
-   * VR/AR Mode
-   */
+  
   public activateVRMode(options: Partial<VRARState> = {}): void {
     logger.info('Activating VR mode');
 
@@ -598,7 +587,7 @@ export class AdvancedInteractionModes {
   }
 
   private initializeSpatialUI(): void {
-    // Create default spatial panels
+    
     this.spatialUI.panels = [
       {
         id: 'main-controls',
@@ -622,7 +611,7 @@ export class AdvancedInteractionModes {
       }
     ];
 
-    // Create spatial workspace
+    
     this.spatialUI.workspace = {
       center: new Vector3(0, 0, 0),
       bounds: { 
@@ -642,24 +631,24 @@ export class AdvancedInteractionModes {
   }
 
   private setupVRControls(): void {
-    // Setup hand tracking and gesture recognition
+    
     if (this.vrArState.handTracking) {
       this.enableHandTracking();
     }
 
-    // Setup eye tracking
+    
     if (this.vrArState.eyeTracking) {
       this.enableEyeTracking();
     }
 
-    // Setup haptic feedback
+    
     if (this.vrArState.hapticFeedback) {
       this.enableHapticFeedback();
     }
   }
 
   private setupARControls(): void {
-    // Setup AR-specific controls
+    
     this.setupWorldTracking();
     this.setupOcclusion();
     this.setupLightEstimation();
@@ -690,10 +679,10 @@ export class AdvancedInteractionModes {
   }
 
   private handleHandGrab(interaction: ImmersiveInteraction): void {
-    // Handle hand grab interactions
+    
     const target = interaction.targetElement;
     
-    // Check if target is a node, edge, or UI element
+    
     if (target.startsWith('node-')) {
       this.selectNode(target.replace('node-', ''));
     } else if (target.startsWith('panel-')) {
@@ -702,14 +691,14 @@ export class AdvancedInteractionModes {
   }
 
   private handleEyeSelect(interaction: ImmersiveInteraction): void {
-    // Handle eye tracking selections
+    
     if (interaction.confidence > 0.8) {
       this.highlightElement(interaction.targetElement);
     }
   }
 
   private handleVoiceCommand(interaction: ImmersiveInteraction): void {
-    // Handle voice commands
+    
     const command = interaction.parameters.command;
     
     switch (command) {
@@ -729,7 +718,7 @@ export class AdvancedInteractionModes {
   }
 
   private handleGesture(interaction: ImmersiveInteraction): void {
-    // Handle gesture recognition
+    
     const gesture = interaction.parameters.gesture;
     
     switch (gesture) {
@@ -749,40 +738,40 @@ export class AdvancedInteractionModes {
   }
 
   private handleHapticTap(interaction: ImmersiveInteraction): void {
-    // Handle haptic feedback interactions
+    
     this.selectElement(interaction.targetElement);
     this.provideHapticFeedback('tap');
   }
 
-  // Utility methods for VR/AR
+  
 
   private enableHandTracking(): void {
-    // Implementation for hand tracking
+    
     logger.info('Hand tracking enabled');
   }
 
   private enableEyeTracking(): void {
-    // Implementation for eye tracking
+    
     logger.info('Eye tracking enabled');
   }
 
   private enableHapticFeedback(): void {
-    // Implementation for haptic feedback
+    
     logger.info('Haptic feedback enabled');
   }
 
   private setupWorldTracking(): void {
-    // Implementation for AR world tracking
+    
     logger.info('World tracking setup');
   }
 
   private setupOcclusion(): void {
-    // Implementation for AR occlusion
+    
     logger.info('Occlusion setup');
   }
 
   private setupLightEstimation(): void {
-    // Implementation for AR light estimation
+    
     logger.info('Light estimation setup');
   }
 
@@ -834,11 +823,11 @@ export class AdvancedInteractionModes {
   }
 
   private provideHapticFeedback(type: 'tap' | 'pulse' | 'vibrate'): void {
-    // Implementation for haptic feedback
+    
     this.emit('hapticFeedback', { type });
   }
 
-  // Event system
+  
 
   private emit(event: string, data?: any): void {
     const listeners = this.eventListeners.get(event);
@@ -860,7 +849,7 @@ export class AdvancedInteractionModes {
     
     this.eventListeners.get(event)!.add(listener);
     
-    // Return unsubscribe function
+    
     return () => {
       const listeners = this.eventListeners.get(event);
       if (listeners) {
@@ -869,7 +858,7 @@ export class AdvancedInteractionModes {
     };
   }
 
-  // Getters for current states
+  
 
   public getTimeTravelState(): TimeTravelState {
     return { ...this.timeTravelState };
@@ -891,9 +880,7 @@ export class AdvancedInteractionModes {
     return { ...this.spatialUI };
   }
 
-  /**
-   * Cleanup resources
-   */
+  
   public dispose(): void {
     this.timeTravelState.isPlaying = false;
     this.explorationState.isActive = false;

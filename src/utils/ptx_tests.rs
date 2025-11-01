@@ -98,7 +98,7 @@ mod tests {
 
     #[test]
     fn test_load_ptx_module_precompiled() {
-        // This test will pass if pre-compiled PTX exists in src/utils/ptx/
+        
         for module in PTXModule::all_modules() {
             match load_ptx_module_sync(module) {
                 Ok(content) => {
@@ -153,7 +153,7 @@ mod tests {
 
     #[test]
     fn test_legacy_load_ptx_sync() {
-        // Test backward compatibility
+        
         match load_ptx_sync() {
             Ok(content) => {
                 println!("✓ Legacy load_ptx_sync: {} bytes", content.len());

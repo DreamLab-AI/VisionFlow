@@ -23,11 +23,11 @@
 //! use crate::cqrs::commands::AddNodeCommand;
 //! use crate::cqrs::queries::GetNodeQuery;
 //!
-//! // Execute a command
+//! 
 //! let command = AddNodeCommand { node };
 //! let node_id = command_bus.execute(command).await?;
 //!
-//! // Execute a query
+//! 
 //! let query = GetNodeQuery { node_id };
 //! let node = query_bus.execute(query).await?;
 //! ```

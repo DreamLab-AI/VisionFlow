@@ -8,7 +8,7 @@ const logger = createLogger('useHeadTracking');
 let faceLandmarker: FaceLandmarker | undefined;
 let lastVideoTime = -1;
 
-const SMOOTHING_FACTOR = 0.15; // Smoothing for less jittery movement
+const SMOOTHING_FACTOR = 0.15; 
 
 export function useHeadTracking() {
   const [isEnabled, setIsEnabled] = useState(false);
@@ -56,18 +56,18 @@ export function useHeadTracking() {
       const results = faceLandmarker.detectForVideo(video, Date.now());
 
       if (results.faceLandmarks && results.faceLandmarks.length > 0) {
-        // Use nose tip (landmark 1) as a stable point for head position
+        
         const noseTip = results.faceLandmarks[0][1];
         if (noseTip) {
-          // Normalize position to [-1, 1] range
-          // MediaPipe gives normalized coordinates [0, 1]
-          // We map x:[0,1] -> [-1,1] and y:[0,1] -> [1,-1] (inverted y)
+          
+          
+          
           const newPos = new THREE.Vector2(
             (noseTip.x - 0.5) * 2,
             -(noseTip.y - 0.5) * 2
           );
 
-          // Apply smoothing (Lerp)
+          
           smoothedPosition.current.lerp(newPos, SMOOTHING_FACTOR);
           setHeadPosition(smoothedPosition.current.clone());
         }
@@ -142,7 +142,7 @@ export function useHeadTracking() {
     }
   }, [isEnabled, start, stop]);
 
-  // Cleanup on unmount
+  
   useEffect(() => {
     return () => {
       stop();
@@ -150,7 +150,7 @@ export function useHeadTracking() {
         document.body.removeChild(videoRef.current);
         videoRef.current = null;
       }
-      // Do not close faceLandmarker, it can be reused across the app lifecycle
+      
     };
   }, [stop]);
 

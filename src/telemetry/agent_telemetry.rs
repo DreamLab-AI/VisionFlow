@@ -14,7 +14,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
 use uuid::Uuid;
 
-/// Correlation ID for tracking agent lifecycle and operations
+/
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct CorrelationId(pub String);
 
@@ -35,13 +35,13 @@ impl CorrelationId {
         Self(format!("swarm-{}", swarm_id))
     }
 
-    /// Create correlation ID from client session ID
-    /// This is used when browser provides session_${timestamp}_${random}
+    
+    
     pub fn from_client_session(client_session_id: &str) -> Self {
         Self(format!("client-{}", client_session_id))
     }
 
-    /// Create from UUID (used when SessionCorrelationBridge provides mapping)
+    
     pub fn from_uuid(uuid: uuid::Uuid) -> Self {
         Self(uuid.to_string())
     }
@@ -57,14 +57,14 @@ impl std::fmt::Display for CorrelationId {
     }
 }
 
-/// Log levels with microsecond precision timestamps
+/
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum LogLevel {
-    TRACE, // Position updates, fine-grained tracking
-    DEBUG, // Events, method calls
-    INFO,  // Milestones, important events
-    WARN,  // Recoverable issues
-    ERROR, // Serious problems
+    TRACE, 
+    DEBUG, 
+    INFO,  
+    WARN,  
+    ERROR, 
 }
 
 impl From<log::Level> for LogLevel {
@@ -79,7 +79,7 @@ impl From<log::Level> for LogLevel {
     }
 }
 
-/// Position information for 3D coordinates
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Position3D {
     pub x: f32,
@@ -103,64 +103,64 @@ impl Position3D {
     }
 }
 
-/// Structured telemetry event with full context
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TelemetryEvent {
-    /// Event timestamp with microsecond precision
+    
     pub timestamp: DateTime<Utc>,
     pub timestamp_micros: u128,
 
-    /// Correlation ID for tracking related operations
+    
     pub correlation_id: CorrelationId,
 
-    /// Log level
+    
     pub level: LogLevel,
 
-    /// Event category
+    
     pub category: String,
 
-    /// Event type/action
+    
     pub event_type: String,
 
-    /// Human-readable message
+    
     pub message: String,
 
-    /// Structured metadata
+    
     pub metadata: HashMap<String, serde_json::Value>,
 
-    /// Agent/component information
+    
     pub agent_id: Option<String>,
     pub component: String,
 
-    /// Performance metrics
+    
     pub duration_ms: Option<f64>,
     pub memory_usage_bytes: Option<u64>,
 
-    /// Position information (for graph nodes)
+    
     pub position: Option<Position3D>,
     pub position_delta: Option<Position3D>,
 
-    /// GPU-specific data
+    
     pub gpu_kernel: Option<String>,
     pub gpu_execution_time_ms: Option<f64>,
     pub gpu_memory_mb: Option<f32>,
 
-    /// MCP-specific data
+    
     pub mcp_message_type: Option<String>,
-    pub mcp_direction: Option<String>, // "inbound" | "outbound"
+    pub mcp_direction: Option<String>, 
     pub mcp_payload_size: Option<usize>,
 
-    /// Session tracking
+    
     pub session_uuid: Option<String>,
     pub swarm_id: Option<String>,
 
-    /// Client session ID (from X-Session-ID header or client-generated)
-    /// Format: session_${timestamp}_${random}
+    
+    
     pub client_session_id: Option<String>,
 }
 
 impl TelemetryEvent {
-    /// Create a new telemetry event with default values
+    
     pub fn new(
         correlation_id: CorrelationId,
         level: LogLevel,
@@ -202,43 +202,43 @@ impl TelemetryEvent {
         }
     }
 
-    /// Add structured metadata
+    
     pub fn with_metadata(mut self, key: &str, value: serde_json::Value) -> Self {
         self.metadata.insert(key.to_string(), value);
         self
     }
 
-    /// Add session UUID
+    
     pub fn with_session_uuid(mut self, session_uuid: &str) -> Self {
         self.session_uuid = Some(session_uuid.to_string());
         self
     }
 
-    /// Add swarm ID
+    
     pub fn with_swarm_id(mut self, swarm_id: &str) -> Self {
         self.swarm_id = Some(swarm_id.to_string());
         self
     }
 
-    /// Add client session ID (from X-Session-ID header)
+    
     pub fn with_client_session_id(mut self, client_session_id: &str) -> Self {
         self.client_session_id = Some(client_session_id.to_string());
         self
     }
 
-    /// Add agent ID
+    
     pub fn with_agent_id(mut self, agent_id: &str) -> Self {
         self.agent_id = Some(agent_id.to_string());
         self
     }
 
-    /// Add position information
+    
     pub fn with_position(mut self, position: Position3D) -> Self {
         self.position = Some(position);
         self
     }
 
-    /// Add position delta for movement tracking
+    
     pub fn with_position_delta(mut self, old_pos: Position3D, new_pos: Position3D) -> Self {
         let delta = Position3D::new(
             new_pos.x - old_pos.x,
@@ -250,7 +250,7 @@ impl TelemetryEvent {
         self
     }
 
-    /// Add GPU execution information
+    
     pub fn with_gpu_info(mut self, kernel: &str, execution_time_ms: f64, memory_mb: f32) -> Self {
         self.gpu_kernel = Some(kernel.to_string());
         self.gpu_execution_time_ms = Some(execution_time_ms);
@@ -258,7 +258,7 @@ impl TelemetryEvent {
         self
     }
 
-    /// Add MCP message information
+    
     pub fn with_mcp_info(
         mut self,
         message_type: &str,
@@ -271,14 +271,14 @@ impl TelemetryEvent {
         self
     }
 
-    /// Add performance timing
+    
     pub fn with_duration(mut self, duration_ms: f64) -> Self {
         self.duration_ms = Some(duration_ms);
         self
     }
 }
 
-/// Thread-safe telemetry logger that writes to both stdout and files
+/
 #[derive(Clone)]
 pub struct AgentTelemetryLogger {
     log_dir: String,
@@ -288,9 +288,9 @@ pub struct AgentTelemetryLogger {
 }
 
 impl AgentTelemetryLogger {
-    /// Create a new telemetry logger
+    
     pub fn new(log_dir: &str, buffer_size: usize) -> Result<Self, std::io::Error> {
-        // Ensure log directory exists
+        
         create_dir_all(log_dir)?;
 
         Ok(Self {
@@ -301,14 +301,14 @@ impl AgentTelemetryLogger {
         })
     }
 
-    /// Set correlation context for a thread/operation
+    
     pub fn set_correlation_context(&self, context_key: &str, correlation_id: CorrelationId) {
         if let Ok(mut contexts) = self.correlation_contexts.lock() {
             contexts.insert(context_key.to_string(), correlation_id);
         }
     }
 
-    /// Get correlation context for current operation
+    
     pub fn get_correlation_context(&self, context_key: &str) -> Option<CorrelationId> {
         self.correlation_contexts
             .lock()
@@ -317,9 +317,9 @@ impl AgentTelemetryLogger {
             .cloned()
     }
 
-    /// Log a telemetry event
+    
     pub fn log_event(&self, event: TelemetryEvent) {
-        // Log to stdout using standard logging
+        
         let json_str = serde_json::to_string(&event)
             .unwrap_or_else(|e| format!(r#"{{"error": "Failed to serialize event: {}"}}"#, e));
 
@@ -331,30 +331,30 @@ impl AgentTelemetryLogger {
             LogLevel::ERROR => error!("TELEMETRY: {}", json_str),
         }
 
-        // Buffer for file writing
+        
         if let Ok(mut buffer) = self.event_buffer.lock() {
             buffer.push(event);
 
-            // Flush buffer if full
+            
             if buffer.len() >= self.buffer_size {
                 self.flush_buffer_to_file(&mut buffer);
             }
         }
     }
 
-    /// Create telemetry event from client session ID, automatically looking up correlation ID
-    /// This is the recommended method for browser-originated events
+    
+    
     pub fn from_client_session(
         &self,
         client_session_id: &str,
-        _bridge: Option<()>, // DEPRECATED: SessionCorrelationBridge removed
+        _bridge: Option<()>, 
         level: LogLevel,
         category: &str,
         event_type: &str,
         message: &str,
         component: &str,
     ) -> TelemetryEvent {
-        // DEPRECATED: Bridge parameter removed, using fallback correlation ID
+        
         let correlation_id = {
             debug!(
                 "Creating fallback correlation ID for client session {}",
@@ -374,7 +374,7 @@ impl AgentTelemetryLogger {
         .with_client_session_id(client_session_id)
     }
 
-    /// Log agent spawn event with position generation debugging
+    
     pub fn log_agent_spawn(
         &self,
         agent_id: &str,
@@ -404,17 +404,17 @@ impl AgentTelemetryLogger {
         .with_agent_id(agent_id)
         .with_position(initial_position.clone());
 
-        // Add session UUID if provided
+        
         if let Some(uuid) = session_uuid {
             event = event.with_session_uuid(uuid);
         }
 
-        // Add metadata
+        
         for (key, value) in metadata {
             event = event.with_metadata(&key, value);
         }
 
-        // Special debugging for origin position bug
+        
         if initial_position.is_origin() {
             event = event.with_metadata(
                 "position_debug",
@@ -429,7 +429,7 @@ impl AgentTelemetryLogger {
         self.log_event(event);
     }
 
-    /// Log position update with delta tracking
+    
     pub fn log_position_update(
         &self,
         agent_id: &str,
@@ -466,7 +466,7 @@ impl AgentTelemetryLogger {
         self.log_event(event);
     }
 
-    /// Log GPU kernel execution
+    
     pub fn log_gpu_execution(
         &self,
         kernel_name: &str,
@@ -494,7 +494,7 @@ impl AgentTelemetryLogger {
         self.log_event(event);
     }
 
-    /// Log MCP message flow
+    
     pub fn log_mcp_message(
         &self,
         message_type: &str,
@@ -521,7 +521,7 @@ impl AgentTelemetryLogger {
         self.log_event(event);
     }
 
-    /// Log graph state change
+    
     pub fn log_graph_state_change(
         &self,
         session_uuid: Option<&str>,
@@ -551,12 +551,12 @@ impl AgentTelemetryLogger {
         .with_metadata("node_count", serde_json::json!(node_count))
         .with_metadata("edge_count", serde_json::json!(edge_count));
 
-        // Add session UUID if provided
+        
         if let Some(uuid) = session_uuid {
             event = event.with_session_uuid(uuid);
         }
 
-        // Add additional details
+        
         for (key, value) in details {
             event = event.with_metadata(&key, value);
         }
@@ -564,7 +564,7 @@ impl AgentTelemetryLogger {
         self.log_event(event);
     }
 
-    /// Flush event buffer to file
+    
     fn flush_buffer_to_file(&self, buffer: &mut Vec<TelemetryEvent>) {
         if buffer.is_empty() {
             return;
@@ -605,7 +605,7 @@ impl AgentTelemetryLogger {
         buffer.clear();
     }
 
-    /// Force flush all buffered events
+    
     pub fn flush(&self) {
         if let Ok(mut buffer) = self.event_buffer.lock() {
             self.flush_buffer_to_file(&mut buffer);
@@ -613,11 +613,11 @@ impl AgentTelemetryLogger {
     }
 }
 
-/// Global telemetry logger instance
+/
 static mut GLOBAL_TELEMETRY_LOGGER: Option<AgentTelemetryLogger> = None;
 static LOGGER_INIT: std::sync::Once = std::sync::Once::new();
 
-/// Initialize the global telemetry logger
+/
 pub fn init_telemetry_logger(log_dir: &str, buffer_size: usize) -> Result<(), std::io::Error> {
     LOGGER_INIT.call_once(|| match AgentTelemetryLogger::new(log_dir, buffer_size) {
         Ok(logger) => {
@@ -636,12 +636,12 @@ pub fn init_telemetry_logger(log_dir: &str, buffer_size: usize) -> Result<(), st
     Ok(())
 }
 
-/// Get the global telemetry logger
+/
 pub fn get_telemetry_logger() -> Option<&'static AgentTelemetryLogger> {
     unsafe { GLOBAL_TELEMETRY_LOGGER.as_ref() }
 }
 
-/// Convenience macros for logging telemetry events
+/
 #[macro_export]
 macro_rules! telemetry_info {
     ($correlation_id:expr, $category:expr, $event_type:expr, $message:expr, $component:expr) => {

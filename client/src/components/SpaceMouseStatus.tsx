@@ -23,7 +23,7 @@ export const SpaceMouseStatus: React.FC = () => {
     };
   }, []);
 
-  // Don't show anything if WebHID is supported and we're in a secure context
+  
   if (isSupported && isSecureContext) {
     return null;
   }

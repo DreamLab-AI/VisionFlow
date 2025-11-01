@@ -23,7 +23,7 @@ use crate::ports::gpu_semantic_analyzer::{
 
 const DEFAULT_TIMEOUT: Duration = Duration::from_secs(30);
 
-/// Actix-based implementation of GpuSemanticAnalyzer
+/
 pub struct ActixSemanticAdapter {
     actor_addr: Option<Addr<SemanticProcessorActor>>,
     timeout: Duration,
@@ -251,7 +251,7 @@ impl Handler<DetectCommunitiesMessage> for SemanticProcessorActor {
     type Result = Result<CommunityDetectionResult, String>;
 
     fn handle(&mut self, _msg: DetectCommunitiesMessage, _ctx: &mut Self::Context) -> Self::Result {
-        // Placeholder implementation
+        
         Ok(CommunityDetectionResult {
             clusters: HashMap::new(),
             cluster_sizes: HashMap::new(),
@@ -275,7 +275,7 @@ impl Handler<ComputeShortestPathsMessage> for SemanticProcessorActor {
         };
 
         Box::pin(async move {
-            // Forward to existing handler
+            
             Ok(PathfindingResult {
                 source_node: msg.source_node_id,
                 distances: HashMap::new(),

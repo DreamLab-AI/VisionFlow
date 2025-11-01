@@ -32,7 +32,7 @@ export const welcomeFlow: OnboardingFlow = {
       description: 'Press Ctrl+K (or Cmd+K on Mac) to open the command palette. It provides quick access to all available commands and features.',
       position: 'center',
       action: () => {
-        // Show command palette briefly
+        
         window.dispatchEvent(new KeyboardEvent('keydown', { 
           key: 'k', 
           ctrlKey: true,

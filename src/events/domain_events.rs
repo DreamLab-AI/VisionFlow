@@ -114,7 +114,7 @@ impl_domain_event!(ClassAddedEvent, "ClassAdded", "OntologyClass", class_id);
 pub struct PropertyAddedEvent {
     pub property_id: String,
     pub property_iri: String,
-    pub property_type: String, // "ObjectProperty" | "DataProperty" | "AnnotationProperty"
+    pub property_type: String, 
     pub domain: Option<String>,
     pub range: Option<String>,
     pub timestamp: DateTime<Utc>,
@@ -138,7 +138,7 @@ impl_domain_event!(AxiomAddedEvent, "AxiomAdded", "Axiom", axiom_id);
 pub struct OntologyImportedEvent {
     pub ontology_id: String,
     pub file_path: String,
-    pub format: String, // "RDF/XML" | "Turtle" | "OWL/XML"
+    pub format: String, 
     pub class_count: usize,
     pub property_count: usize,
     pub individual_count: usize,

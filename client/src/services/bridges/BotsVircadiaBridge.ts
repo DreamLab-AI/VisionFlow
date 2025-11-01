@@ -1,10 +1,4 @@
-/**
- * BotsVircadiaBridge - Synchronize agent swarm with Vircadia multi-user entities
- *
- * This bridge connects the VisionFlow agent swarm system with Vircadia's multi-user
- * entity synchronization, allowing multiple users to see the same agent positions
- * and states in real-time.
- */
+
 
 import { ClientCore } from '../vircadia/VircadiaClientCore';
 import { EntitySyncManager } from '../vircadia/EntitySyncManager';
@@ -33,7 +27,7 @@ export interface VircadiaEntity {
 
 export class BotsVircadiaBridge {
   private syncInterval: ReturnType<typeof setInterval> | null = null;
-  private agentEntityMap = new Map<string, string>(); // agentId -> entityId
+  private agentEntityMap = new Map<string, string>(); 
   private lastSyncedAgents = new Map<string, BotsAgent>();
   private isActive = false;
 
@@ -41,7 +35,7 @@ export class BotsVircadiaBridge {
     syncPositions: true,
     syncMetadata: true,
     syncEdges: true,
-    updateInterval: 100, // 100ms for smooth updates
+    updateInterval: 100, 
     enableAvatars: true
   };
 
@@ -54,9 +48,7 @@ export class BotsVircadiaBridge {
     this.defaultConfig = { ...this.defaultConfig, ...config };
   }
 
-  /**
-   * Initialize the bridge and start synchronization
-   */
+  
   async initialize(): Promise<void> {
     logger.info('Initializing BotsVircadiaBridge...');
 
@@ -64,7 +56,7 @@ export class BotsVircadiaBridge {
       throw new Error('Vircadia client must be connected before initializing bridge');
     }
 
-    // Listen for entity updates from Vircadia (other users' changes)
+    
     this.entitySync.on('entity-updated', this.handleVircadiaEntityUpdate.bind(this));
     this.entitySync.on('entity-deleted', this.handleVircadiaEntityDeleted.bind(this));
 
@@ -72,22 +64,20 @@ export class BotsVircadiaBridge {
     logger.info('BotsVircadiaBridge initialized successfully');
   }
 
-  /**
-   * Synchronize agents from VisionFlow to Vircadia
-   */
+  
   syncAgentsToVircadia(agents: BotsAgent[], edges: BotsEdge[]): void {
     if (!this.isActive) return;
 
     try {
-      // Sync each agent as a Vircadia entity
+      
       agents.forEach(agent => {
         this.syncAgentToEntity(agent);
       });
 
-      // Remove entities for agents that no longer exist
+      
       this.cleanupStaleEntities(agents);
 
-      // Sync edges if enabled
+      
       if (this.defaultConfig.syncEdges) {
         this.syncEdgesToVircadia(edges);
       }
@@ -98,22 +88,20 @@ export class BotsVircadiaBridge {
     }
   }
 
-  /**
-   * Sync a single agent to Vircadia entity
-   */
+  
   private syncAgentToEntity(agent: BotsAgent): void {
-    // Check if agent data has changed
+    
     const lastSynced = this.lastSyncedAgents.get(agent.id);
     if (lastSynced && this.isAgentUnchanged(agent, lastSynced)) {
-      return; // Skip if unchanged
+      return; 
     }
 
     const entityId = this.agentEntityMap.get(agent.id) || `agent-${agent.id}`;
 
-    // Convert agent position to Vircadia world coordinates
+    
     const position = this.convertAgentPosition(agent.position);
 
-    // Create entity data
+    
     const entityData: VircadiaEntity = {
       id: entityId,
       type: 'agent-avatar',
@@ -132,30 +120,26 @@ export class BotsVircadiaBridge {
       } : undefined
     };
 
-    // Update or create entity
+    
     this.entitySync.updateEntity(entityData);
 
-    // Store mapping and last synced state
+    
     this.agentEntityMap.set(agent.id, entityId);
     this.lastSyncedAgents.set(agent.id, { ...agent });
   }
 
-  /**
-   * Convert agent position to Vircadia world coordinates
-   */
+  
   private convertAgentPosition(position: { x: number; y: number; z: number }): { x: number; y: number; z: number } {
-    // VisionFlow uses different coordinate system - adjust as needed
-    // Y is up in Vircadia, might be Z in VisionFlow
+    
+    
     return {
-      x: position.x * 10, // Scale up for better visibility
-      y: position.z * 10, // Swap Y/Z if needed
+      x: position.x * 10, 
+      y: position.z * 10, 
       z: position.y * 10
     };
   }
 
-  /**
-   * Get agent color for visualization
-   */
+  
   private getAgentColor(agent: BotsAgent): string {
     const typeColors: Record<string, string> = {
       'researcher': '#4A90E2',
@@ -168,9 +152,7 @@ export class BotsVircadiaBridge {
     return typeColors[agent.type] || '#9013FE';
   }
 
-  /**
-   * Check if agent data has changed
-   */
+  
   private isAgentUnchanged(agent: BotsAgent, lastSynced: BotsAgent): boolean {
     return (
       agent.position.x === lastSynced.position.x &&
@@ -181,9 +163,7 @@ export class BotsVircadiaBridge {
     );
   }
 
-  /**
-   * Remove entities for agents that no longer exist
-   */
+  
   private cleanupStaleEntities(currentAgents: BotsAgent[]): void {
     const currentAgentIds = new Set(currentAgents.map(a => a.id));
     const staleAgentIds: string[] = [];
@@ -205,11 +185,9 @@ export class BotsVircadiaBridge {
     }
   }
 
-  /**
-   * Sync edges (communication links) to Vircadia
-   */
+  
   private syncEdgesToVircadia(edges: BotsEdge[]): void {
-    // Create line entities for edges
+    
     edges.forEach(edge => {
       const entityId = `edge-${edge.source}-${edge.target}`;
       const sourceEntity = this.agentEntityMap.get(edge.source);
@@ -219,7 +197,7 @@ export class BotsVircadiaBridge {
         this.entitySync.updateEntity({
           id: entityId,
           type: 'communication-link',
-          position: { x: 0, y: 0, z: 0 }, // Lines don't need position
+          position: { x: 0, y: 0, z: 0 }, 
           metadata: {
             source: sourceEntity,
             target: targetEntity,
@@ -231,14 +209,12 @@ export class BotsVircadiaBridge {
     });
   }
 
-  /**
-   * Handle entity updates from Vircadia (other users' changes)
-   */
+  
   private handleVircadiaEntityUpdate(entity: VircadiaEntity): void {
-    // Check if this is an agent entity we should respond to
+    
     if (entity.type !== 'agent-avatar') return;
 
-    // Find corresponding agent
+    
     const agentId = Array.from(this.agentEntityMap.entries())
       .find(([_, entityId]) => entityId === entity.id)?.[0];
 
@@ -247,16 +223,14 @@ export class BotsVircadiaBridge {
       return;
     }
 
-    // In a full implementation, you might update the local agent state
-    // based on Vircadia changes (bidirectional sync)
+    
+    
     logger.debug(`Entity ${entity.id} updated by another user`);
   }
 
-  /**
-   * Handle entity deletion from Vircadia
-   */
+  
   private handleVircadiaEntityDeleted(entityId: string): void {
-    // Find and remove from our tracking
+    
     const agentId = Array.from(this.agentEntityMap.entries())
       .find(([_, eid]) => eid === entityId)?.[0];
 
@@ -267,9 +241,7 @@ export class BotsVircadiaBridge {
     }
   }
 
-  /**
-   * Enable automatic periodic synchronization
-   */
+  
   startAutoSync(
     getAgentsCallback: () => { agents: BotsAgent[]; edges: BotsEdge[] }
   ): void {
@@ -285,9 +257,7 @@ export class BotsVircadiaBridge {
     logger.info(`Auto-sync started with ${this.defaultConfig.updateInterval}ms interval`);
   }
 
-  /**
-   * Stop automatic synchronization
-   */
+  
   stopAutoSync(): void {
     if (this.syncInterval) {
       clearInterval(this.syncInterval);
@@ -296,9 +266,7 @@ export class BotsVircadiaBridge {
     }
   }
 
-  /**
-   * Cleanup and disconnect
-   */
+  
   dispose(): void {
     this.stopAutoSync();
     this.isActive = false;

@@ -39,13 +39,13 @@
 //! ## Usage Pattern
 //!
 //! ```rust
-//! // Get current graph data
+//! 
 //! let graph_data = graph_state_actor.send(GetGraphData).await?;
 //!
-//! // Add a new node (persisted via repository)
+//! 
 //! graph_state_actor.send(AddNode { node }).await?;
 //!
-//! // Update from metadata
+//! 
 //! graph_state_actor.send(BuildGraphFromMetadata { metadata }).await?;
 //! ```
 
@@ -65,22 +65,22 @@ use crate::utils::socket_flow_messages::{BinaryNodeData, BinaryNodeDataClient, g
 // Ports (hexagonal architecture)
 use crate::ports::knowledge_graph_repository::KnowledgeGraphRepository;
 
-/// Graph State Actor - Manages all graph state operations with repository injection
+/
 pub struct GraphStateActor {
-    /// Hexagonal architecture: repository port for persistence
+    
     repository: Arc<dyn KnowledgeGraphRepository>,
-    /// Primary graph data containing nodes and edges (in-memory cache)
+    
     graph_data: Arc<GraphData>,
-    /// Efficient node lookup map by ID
+    
     node_map: Arc<HashMap<u32, Node>>,
-    /// Separate graph data for bot/agent visualization
+    
     bots_graph_data: Arc<GraphData>,
-    /// Next available node ID for auto-assignment
+    
     next_node_id: std::sync::atomic::AtomicU32,
 }
 
 impl GraphStateActor {
-    /// Create new GraphStateActor instance with injected repository (hexagonal architecture)
+    
     pub fn new(repository: Arc<dyn KnowledgeGraphRepository>) -> Self {
         info!("Initializing GraphStateActor with repository injection");
         Self {
@@ -92,38 +92,38 @@ impl GraphStateActor {
         }
     }
 
-    /// Get reference to graph data
+    
     pub fn get_graph_data(&self) -> &GraphData {
         &self.graph_data
     }
 
-    /// Get reference to node map
+    
     pub fn get_node_map(&self) -> &HashMap<u32, Node> {
         &self.node_map
     }
 
-    /// Add a single node to the graph
+    
     fn add_node(&mut self, node: Node) {
         let node_id = node.id;
 
-        // Add to node map
+        
         Arc::make_mut(&mut self.node_map).insert(node_id, node.clone());
 
-        // Add to graph data
+        
         Arc::make_mut(&mut self.graph_data).nodes.push(node);
 
         info!("Added node {} to graph", node_id);
     }
 
-    /// Remove a node and its associated edges
+    
     fn remove_node(&mut self, node_id: u32) {
-        // Remove from node map
+        
         if Arc::make_mut(&mut self.node_map).remove(&node_id).is_some() {
-            // Remove from graph data nodes
+            
             let graph_data_mut = Arc::make_mut(&mut self.graph_data);
             graph_data_mut.nodes.retain(|n| n.id != node_id);
 
-            // Remove associated edges
+            
             graph_data_mut.edges.retain(|e| e.source != node_id && e.target != node_id);
 
             info!("Removed node {} and its edges from graph", node_id);
@@ -132,9 +132,9 @@ impl GraphStateActor {
         }
     }
 
-    /// Add an edge to the graph
+    
     fn add_edge(&mut self, edge: Edge) {
-        // Verify source and target nodes exist
+        
         if !self.node_map.contains_key(&edge.source) {
             warn!("Cannot add edge: source node {} does not exist", edge.source);
             return;
@@ -144,12 +144,12 @@ impl GraphStateActor {
             return;
         }
 
-        // Add to graph data
+        
         Arc::make_mut(&mut self.graph_data).edges.push(edge.clone());
         info!("Added edge from {} to {} with weight {}", edge.source, edge.target, edge.weight);
     }
 
-    /// Remove an edge by ID
+    
     fn remove_edge(&mut self, edge_id: &str) {
         let graph_data_mut = Arc::make_mut(&mut self.graph_data);
         let initial_count = graph_data_mut.edges.len();
@@ -164,25 +164,25 @@ impl GraphStateActor {
         }
     }
 
-    /// Build graph from metadata store
+    
     fn build_from_metadata(&mut self, metadata: MetadataStore) -> Result<(), String> {
         let mut new_graph_data = GraphData::new();
 
-        // Save existing node positions to preserve layout
+        
         let mut existing_positions: HashMap<String, (crate::types::vec3::Vec3Data, crate::types::vec3::Vec3Data)> = HashMap::new();
 
         for node in &self.graph_data.nodes {
             existing_positions.insert(node.metadata_id.clone(), (node.data.position(), node.data.velocity()));
         }
 
-        // Generate nodes from metadata
+        
         let mut new_node_map = HashMap::new();
         let mut current_id = self.next_node_id.load(std::sync::atomic::Ordering::SeqCst);
 
         for (metadata_id, file_metadata) in metadata.iter() {
             let mut node = Node::new_with_id(metadata_id.clone(), Some(current_id));
 
-            // Restore position if it existed
+            
             if let Some((position, velocity)) = existing_positions.get(metadata_id) {
                 node.data.x = position.x;
                 node.data.y = position.y;
@@ -191,11 +191,11 @@ impl GraphStateActor {
                 node.data.vy = velocity.y;
                 node.data.vz = velocity.z;
             } else {
-                // Generate random initial position
+                
                 self.generate_random_position(&mut node);
             }
 
-            // Set node properties from metadata
+            
             self.configure_node_from_metadata(&mut node, file_metadata);
 
             new_node_map.insert(current_id, node.clone());
@@ -203,10 +203,10 @@ impl GraphStateActor {
             current_id += 1;
         }
 
-        // Generate edges based on relationships in metadata
+        
         self.generate_edges_from_metadata(&mut new_graph_data, &metadata);
 
-        // Update actor state
+        
         self.graph_data = Arc::new(new_graph_data);
         self.node_map = Arc::new(new_node_map);
         self.next_node_id.store(current_id, std::sync::atomic::Ordering::SeqCst);
@@ -217,7 +217,7 @@ impl GraphStateActor {
         Ok(())
     }
 
-    /// Generate random initial position for a node
+    
     fn generate_random_position(&self, node: &mut Node) {
         use rand::{Rng, SeedableRng};
         use rand::rngs::{StdRng, OsRng};
@@ -231,28 +231,28 @@ impl GraphStateActor {
         node.data.y = radius * phi.sin() * theta.sin();
         node.data.z = radius * phi.cos();
 
-        // Small random initial velocity
+        
         node.data.vx = rng.gen_range(-1.0..1.0);
         node.data.vy = rng.gen_range(-1.0..1.0);
         node.data.vz = rng.gen_range(-1.0..1.0);
     }
 
-    /// Configure node properties based on metadata
+    
     fn configure_node_from_metadata(&self, node: &mut Node, metadata: &FileMetadata) {
-        // Set label from filename
+        
         if let Some(filename) = metadata.path.file_name() {
             node.label = filename.to_string_lossy().to_string();
         }
 
-        // Set color based on file extension
+        
         node.color = Some(self.get_color_for_extension(&metadata.path));
 
-        // Set size based on file size (if available)
+        
         if let Some(size) = metadata.size {
             node.size = Some(10.0 + (size as f32 / 1000.0).min(50.0));
         }
 
-        // Store metadata
+        
         node.metadata.insert("path".to_string(), metadata.path.to_string_lossy().to_string());
         if let Some(size) = metadata.size {
             node.metadata.insert("size".to_string(), size.to_string());
@@ -262,27 +262,27 @@ impl GraphStateActor {
         }
     }
 
-    /// Get color for file extension
+    
     fn get_color_for_extension(&self, path: &std::path::Path) -> String {
         match path.extension().and_then(|s| s.to_str()) {
-            Some("rs") => "#CE422B".to_string(), // Rust orange
-            Some("js") | Some("ts") => "#F7DF1E".to_string(), // JavaScript yellow
-            Some("py") => "#3776AB".to_string(), // Python blue
-            Some("html") => "#E34F26".to_string(), // HTML orange
-            Some("css") => "#1572B6".to_string(), // CSS blue
-            Some("json") => "#000000".to_string(), // JSON black
-            Some("md") => "#083FA1".to_string(), // Markdown blue
-            Some("txt") => "#808080".to_string(), // Text gray
-            _ => "#95A5A6".to_string(), // Default gray
+            Some("rs") => "#CE422B".to_string(), 
+            Some("js") | Some("ts") => "#F7DF1E".to_string(), 
+            Some("py") => "#3776AB".to_string(), 
+            Some("html") => "#E34F26".to_string(), 
+            Some("css") => "#1572B6".to_string(), 
+            Some("json") => "#000000".to_string(), 
+            Some("md") => "#083FA1".to_string(), 
+            Some("txt") => "#808080".to_string(), 
+            _ => "#95A5A6".to_string(), 
         }
     }
 
-    /// Generate edges from metadata relationships
+    
     fn generate_edges_from_metadata(&self, graph_data: &mut GraphData, metadata: &MetadataStore) {
-        // Create edges based on directory structure
+        
         let mut path_to_node: HashMap<std::path::PathBuf, u32> = HashMap::new();
 
-        // Map paths to node IDs
+        
         for node in &graph_data.nodes {
             if let Some(path_str) = node.metadata.get("path") {
                 let path = std::path::PathBuf::from(path_str);
@@ -290,7 +290,7 @@ impl GraphStateActor {
             }
         }
 
-        // Create edges between files in same directory
+        
         let mut directory_nodes: HashMap<std::path::PathBuf, Vec<u32>> = HashMap::new();
 
         for (path, node_id) in &path_to_node {
@@ -301,12 +301,12 @@ impl GraphStateActor {
             }
         }
 
-        // Create edges within directories
+        
         for (_, nodes) in directory_nodes {
             if nodes.len() > 1 {
                 for i in 0..nodes.len() {
                     for j in i+1..nodes.len() {
-                        let edge = Edge::new(nodes[i], nodes[j], 0.3); // Weak directory connection
+                        let edge = Edge::new(nodes[i], nodes[j], 0.3); 
                         graph_data.edges.push(edge);
                     }
                 }
@@ -316,13 +316,13 @@ impl GraphStateActor {
         info!("Generated {} edges from metadata relationships", graph_data.edges.len());
     }
 
-    /// Add nodes from metadata store
+    
     fn add_nodes_from_metadata(&mut self, metadata: MetadataStore) -> Result<(), String> {
         let mut added_count = 0;
         let mut current_id = self.next_node_id.load(std::sync::atomic::Ordering::SeqCst);
 
         for (metadata_id, file_metadata) in metadata.iter() {
-            // Skip if node already exists
+            
             if self.node_map.values().any(|n| n.metadata_id == *metadata_id) {
                 continue;
             }
@@ -341,9 +341,9 @@ impl GraphStateActor {
         Ok(())
     }
 
-    /// Update existing node from metadata
+    
     fn update_node_from_metadata(&mut self, metadata_id: String, metadata: FileMetadata) -> Result<(), String> {
-        // Find node by metadata_id
+        
         let mut node_found = false;
         let node_map_mut = Arc::make_mut(&mut self.node_map);
 
@@ -355,7 +355,7 @@ impl GraphStateActor {
             }
         }
 
-        // Update in graph_data as well
+        
         if node_found {
             let graph_data_mut = Arc::make_mut(&mut self.graph_data);
             for node in &mut graph_data_mut.nodes {
@@ -372,9 +372,9 @@ impl GraphStateActor {
         }
     }
 
-    /// Remove node by metadata ID
+    
     fn remove_node_by_metadata(&mut self, metadata_id: String) -> Result<(), String> {
-        // Find node ID by metadata_id
+        
         let node_id = self.node_map.values()
             .find(|n| n.metadata_id == metadata_id)
             .map(|n| n.id);
@@ -388,7 +388,7 @@ impl GraphStateActor {
         }
     }
 
-    /// Compute shortest paths from a source node using Dijkstra's algorithm
+    
     fn compute_shortest_paths(&self, source_node_id: u32) -> Result<HashMap<u32, (f32, Vec<u32>)>, String> {
         if !self.node_map.contains_key(&source_node_id) {
             return Err(format!("Source node {} not found", source_node_id));
@@ -398,7 +398,7 @@ impl GraphStateActor {
         let mut predecessors: HashMap<u32, u32> = HashMap::new();
         let mut unvisited: std::collections::BTreeSet<(ordered_float::OrderedFloat<f32>, u32)> = std::collections::BTreeSet::new();
 
-        // Initialize distances
+        
         for &node_id in self.node_map.keys() {
             let distance = if node_id == source_node_id { 0.0 } else { f32::INFINITY };
             distances.insert(node_id, distance);
@@ -409,10 +409,10 @@ impl GraphStateActor {
             let current_distance = current_distance.into_inner();
 
             if current_distance == f32::INFINITY {
-                break; // No more reachable nodes
+                break; 
             }
 
-            // Check all edges from current node
+            
             for edge in &self.graph_data.edges {
                 let (neighbor, edge_weight) = if edge.source == current_node {
                     (edge.target, edge.weight)
@@ -426,20 +426,20 @@ impl GraphStateActor {
                 let old_distance = distances.get(&neighbor).copied().unwrap_or(f32::INFINITY);
 
                 if new_distance < old_distance {
-                    // Remove old entry from unvisited
+                    
                     unvisited.remove(&(ordered_float::OrderedFloat(old_distance), neighbor));
 
-                    // Update distance and predecessor
+                    
                     distances.insert(neighbor, new_distance);
                     predecessors.insert(neighbor, current_node);
 
-                    // Add new entry to unvisited
+                    
                     unvisited.insert((ordered_float::OrderedFloat(new_distance), neighbor));
                 }
             }
         }
 
-        // Reconstruct paths
+        
         let mut result: HashMap<u32, (f32, Vec<u32>)> = HashMap::new();
 
         for (&target_node, &distance) in &distances {
@@ -447,7 +447,7 @@ impl GraphStateActor {
                 let mut path = Vec::new();
                 let mut current = target_node;
 
-                // Reconstruct path backwards
+                
                 while current != source_node_id {
                     path.push(current);
                     if let Some(&prev) = predecessors.get(&current) {
@@ -578,10 +578,10 @@ impl Handler<UpdateGraphData> for GraphStateActor {
         info!("Updating graph data with {} nodes, {} edges",
               msg.graph_data.nodes.len(), msg.graph_data.edges.len());
 
-        // Update graph data with the provided Arc
+        
         self.graph_data = msg.graph_data;
 
-        // Rebuild node map
+        
         Arc::make_mut(&mut self.node_map).clear();
         for node in &self.graph_data.nodes {
             Arc::make_mut(&mut self.node_map).insert(node.id, node.clone());
@@ -604,25 +604,25 @@ impl Handler<UpdateBotsGraph> for GraphStateActor {
     type Result = ();
 
     fn handle(&mut self, msg: UpdateBotsGraph, _ctx: &mut Context<Self>) -> Self::Result {
-        // Convert agents to graph structure
+        
         let mut nodes = vec![];
         let mut edges = vec![];
 
         let bot_id_offset = 10000;
 
-        // Preserve existing agent positions
+        
         let mut existing_positions: HashMap<String, (crate::types::vec3::Vec3Data, crate::types::vec3::Vec3Data)> = HashMap::new();
         for node in &self.bots_graph_data.nodes {
             existing_positions.insert(node.metadata_id.clone(), (node.data.position(), node.data.velocity()));
         }
 
-        // Create nodes for each agent
+        
         for (i, agent) in msg.agents.iter().enumerate() {
             let node_id = bot_id_offset + i as u32;
             let mut node = Node::new_with_id(agent.id.clone(), Some(node_id));
 
             if let Some((saved_position, saved_velocity)) = existing_positions.get(&agent.id) {
-                // Restore existing position
+                
                 node.data.x = saved_position.x;
                 node.data.y = saved_position.y;
                 node.data.z = saved_position.z;
@@ -633,7 +633,7 @@ impl Handler<UpdateBotsGraph> for GraphStateActor {
                 self.generate_random_position(&mut node);
             }
 
-            // Set node properties based on agent type
+            
             node.color = Some(match agent.agent_type.as_str() {
                 "coordinator" => "#FF6B6B".to_string(),
                 "researcher" => "#4ECDC4".to_string(),
@@ -647,7 +647,7 @@ impl Handler<UpdateBotsGraph> for GraphStateActor {
             node.label = agent.name.clone();
             node.size = Some(20.0 + (agent.workload * 25.0));
 
-            // Add metadata
+            
             node.metadata.insert("agent_type".to_string(), agent.agent_type.clone());
             node.metadata.insert("status".to_string(), agent.status.clone());
             node.metadata.insert("cpu_usage".to_string(), agent.cpu_usage.to_string());
@@ -658,7 +658,7 @@ impl Handler<UpdateBotsGraph> for GraphStateActor {
             nodes.push(node);
         }
 
-        // Create edges based on agent interactions
+        
         for (i, source_agent) in msg.agents.iter().enumerate() {
             for (j, target_agent) in msg.agents.iter().enumerate() {
                 if i != j {
@@ -684,7 +684,7 @@ impl Handler<UpdateBotsGraph> for GraphStateActor {
             }
         }
 
-        // Update the bots graph data
+        
         let bots_graph_data_mut = Arc::make_mut(&mut self.bots_graph_data);
         bots_graph_data_mut.nodes = nodes;
         bots_graph_data_mut.edges = edges;

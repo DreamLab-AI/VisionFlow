@@ -51,23 +51,23 @@ pub enum ClusterAlgorithm {
     ConnectedComponents,
 }
 
-/// Port for semantic analysis operations
+/
 #[async_trait]
 pub trait SemanticAnalyzer: Send + Sync {
-    /// Run Single-Source Shortest Path from a source node
+    
     async fn run_sssp(&self, graph: &GraphData, source: u32) -> Result<SSSPResult>;
 
-    /// Run clustering algorithm on the graph
+    
     async fn run_clustering(
         &self,
         graph: &GraphData,
         algorithm: ClusterAlgorithm,
     ) -> Result<ClusteringResult>;
 
-    /// Detect communities using Louvain modularity
+    
     async fn detect_communities(&self, graph: &GraphData) -> Result<CommunityResult>;
 
-    /// Get shortest path between two nodes
+    
     async fn get_shortest_path(
         &self,
         graph: &GraphData,
@@ -75,6 +75,6 @@ pub trait SemanticAnalyzer: Send + Sync {
         target: u32,
     ) -> Result<Vec<u32>>;
 
-    /// Invalidate algorithm caches
+    
     async fn invalidate_cache(&self) -> Result<()>;
 }

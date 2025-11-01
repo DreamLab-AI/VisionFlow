@@ -3,12 +3,12 @@ use super::{Cluster, ClusteringParams, GPUPhysicsStats, StressMajorizationStats}
 use crate::app_state::AppState;
 use log::{error, info, warn};
 
-/// Get real GPU physics stats from the actual GPU compute actor
+/
 pub async fn get_real_gpu_physics_stats(app_state: &AppState) -> Option<GPUPhysicsStats> {
     if let Some(gpu_addr) = &app_state.gpu_compute_addr {
         use crate::actors::messages::{GetGPUStatus, GetStressMajorizationStats};
 
-        // Get basic GPU stats
+        
         let gpu_stats = match gpu_addr.send(GetGPUStatus).await {
             Ok(stats) => stats,
             Err(e) => {
@@ -17,10 +17,10 @@ pub async fn get_real_gpu_physics_stats(app_state: &AppState) -> Option<GPUPhysi
             }
         };
 
-        // Get stress majorization stats
+        
         let stress_stats = match gpu_addr.send(GetStressMajorizationStats).await {
             Ok(Ok(stats)) => StressMajorizationStats {
-                total_runs: 1, // Based on basic stats available
+                total_runs: 1, 
                 successful_runs: if stats.converged { 1 } else { 0 },
                 failed_runs: if stats.converged { 0 } else { 1 },
                 consecutive_failures: 0,
@@ -32,12 +32,12 @@ pub async fn get_real_gpu_physics_stats(app_state: &AppState) -> Option<GPUPhysi
                 emergency_stop_reason: "None".to_string(),
                 avg_computation_time_ms: stats.computation_time_ms,
                 avg_stress: stats.stress_value,
-                avg_displacement: 0.1, // Estimated from stress value
+                avg_displacement: 0.1, 
                 is_converging: stats.converged,
             },
             Ok(Err(e)) => {
                 warn!("Failed to get stress majorization stats: {}", e);
-                // Provide default stress stats
+                
                 StressMajorizationStats {
                     total_runs: 0,
                     successful_runs: 0,
@@ -56,7 +56,7 @@ pub async fn get_real_gpu_physics_stats(app_state: &AppState) -> Option<GPUPhysi
                 }
             }
             Err(_) => {
-                // Default stats if communication fails
+                
                 StressMajorizationStats {
                     total_runs: 0,
                     successful_runs: 0,
@@ -79,9 +79,9 @@ pub async fn get_real_gpu_physics_stats(app_state: &AppState) -> Option<GPUPhysi
         Some(GPUPhysicsStats {
             iteration_count: gpu_stats.iteration_count,
             nodes_count: gpu_stats.num_nodes,
-            edges_count: gpu_stats.num_nodes * 2, // Estimated
-            kinetic_energy: 0.1,                  // Default value
-            total_forces: 1.0,                    // Default value
+            edges_count: gpu_stats.num_nodes * 2, 
+            kinetic_energy: 0.1,                  
+            total_forces: 1.0,                    
             gpu_enabled: gpu_stats.is_initialized,
             compute_mode: "WGSL".to_string(),
             kernel_mode: "unified".to_string(),
@@ -103,7 +103,7 @@ pub async fn get_real_gpu_physics_stats(app_state: &AppState) -> Option<GPUPhysi
     }
 }
 
-/// Perform real GPU-accelerated spectral clustering
+/
 pub async fn perform_gpu_spectral_clustering(
     app_state: &AppState,
     graph_data: &crate::models::graph::GraphData,
@@ -115,11 +115,11 @@ pub async fn perform_gpu_spectral_clustering(
         graph_data.nodes.len()
     );
 
-    // Check if GPU manager is available (clustering handled by GPU manager)
+    
     if let Some(gpu_manager) = &app_state.gpu_manager_addr {
         info!("GPU manager available, executing spectral clustering on GPU");
 
-        // Use simple clustering message for GPU execution
+        
         use crate::actors::messages::PerformGPUClustering;
 
         let clustering_msg = PerformGPUClustering {
@@ -128,7 +128,7 @@ pub async fn perform_gpu_spectral_clustering(
             task_id: format!("spectral_{}", uuid::Uuid::new_v4()),
         };
 
-        // Send to GPU manager for clustering
+        
         match gpu_manager.send(clustering_msg).await {
             Ok(Ok(gpu_result)) => {
                 info!(
@@ -139,16 +139,16 @@ pub async fn perform_gpu_spectral_clustering(
             }
             Ok(Err(e)) => {
                 error!("GPU spectral clustering failed: {}", e);
-                // Fall through to CPU fallback
+                
             }
             Err(e) => {
                 error!("Failed to communicate with GPU manager: {}", e);
-                // Fall through to CPU fallback
+                
             }
         }
     }
 
-    // Fallback to CPU-based clustering only if GPU actually fails
+    
     warn!("GPU clustering failed, falling back to CPU spectral clustering");
     generate_cpu_fallback_clustering(
         graph_data,
@@ -158,7 +158,7 @@ pub async fn perform_gpu_spectral_clustering(
     )
 }
 
-/// Perform real GPU-accelerated K-means clustering
+/
 pub async fn perform_gpu_kmeans_clustering(
     app_state: &AppState,
     graph_data: &crate::models::graph::GraphData,
@@ -170,11 +170,11 @@ pub async fn perform_gpu_kmeans_clustering(
         graph_data.nodes.len()
     );
 
-    // Check if GPU manager is available (clustering handled by GPU manager)
+    
     if let Some(gpu_manager) = &app_state.gpu_manager_addr {
         info!("GPU manager available, executing K-means clustering on GPU");
 
-        // Create K-means params for GPU execution
+        
         use crate::actors::messages::PerformGPUClustering;
 
         let clustering_msg = PerformGPUClustering {
@@ -183,7 +183,7 @@ pub async fn perform_gpu_kmeans_clustering(
             task_id: format!("kmeans_{}", uuid::Uuid::new_v4()),
         };
 
-        // Send to GPU manager for clustering
+        
         match gpu_manager.send(clustering_msg).await {
             Ok(Ok(gpu_result)) => {
                 info!(
@@ -194,16 +194,16 @@ pub async fn perform_gpu_kmeans_clustering(
             }
             Ok(Err(e)) => {
                 error!("GPU K-means clustering failed: {}", e);
-                // Fall through to CPU fallback
+                
             }
             Err(e) => {
                 error!("Failed to communicate with GPU manager: {}", e);
-                // Fall through to CPU fallback
+                
             }
         }
     }
 
-    // Fallback to CPU-based clustering only if GPU actually fails
+    
     warn!("GPU clustering failed, falling back to CPU K-means clustering");
     generate_cpu_fallback_clustering(
         graph_data,
@@ -213,7 +213,7 @@ pub async fn perform_gpu_kmeans_clustering(
     )
 }
 
-/// Perform real GPU-accelerated Louvain clustering
+/
 pub async fn perform_gpu_louvain_clustering(
     app_state: &AppState,
     graph_data: &crate::models::graph::GraphData,
@@ -225,11 +225,11 @@ pub async fn perform_gpu_louvain_clustering(
         graph_data.nodes.len()
     );
 
-    // Check if GPU manager is available (clustering handled by GPU manager)
+    
     if let Some(gpu_manager) = &app_state.gpu_manager_addr {
         info!("GPU manager available, executing Louvain clustering on GPU");
 
-        // Create Louvain params for GPU execution
+        
         use crate::actors::messages::PerformGPUClustering;
 
         let clustering_msg = PerformGPUClustering {
@@ -238,7 +238,7 @@ pub async fn perform_gpu_louvain_clustering(
             task_id: format!("louvain_{}", uuid::Uuid::new_v4()),
         };
 
-        // Send to GPU manager for clustering
+        
         match gpu_manager.send(clustering_msg).await {
             Ok(Ok(gpu_result)) => {
                 info!(
@@ -249,16 +249,16 @@ pub async fn perform_gpu_louvain_clustering(
             }
             Ok(Err(e)) => {
                 error!("GPU Louvain clustering failed: {}", e);
-                // Fall through to CPU fallback
+                
             }
             Err(e) => {
                 error!("Failed to communicate with GPU manager: {}", e);
-                // Fall through to CPU fallback
+                
             }
         }
     }
 
-    // Fallback to CPU-based clustering only if GPU actually fails
+    
     warn!("GPU clustering failed, falling back to CPU Louvain clustering");
     generate_cpu_fallback_clustering(
         graph_data,
@@ -268,7 +268,7 @@ pub async fn perform_gpu_louvain_clustering(
     )
 }
 
-/// Perform default GPU clustering (adaptive algorithm selection)
+/
 pub async fn perform_gpu_default_clustering(
     app_state: &AppState,
     graph_data: &crate::models::graph::GraphData,
@@ -277,20 +277,20 @@ pub async fn perform_gpu_default_clustering(
 ) -> Vec<Cluster> {
     let node_count = graph_data.nodes.len();
 
-    // Choose optimal algorithm based on graph size and characteristics
+    
     if node_count < 100 {
-        // Small graphs: use K-means
+        
         perform_gpu_kmeans_clustering(app_state, graph_data, agents, params).await
     } else if node_count < 1000 {
-        // Medium graphs: use spectral clustering
+        
         perform_gpu_spectral_clustering(app_state, graph_data, agents, params).await
     } else {
-        // Large graphs: use Louvain for scalability
+        
         perform_gpu_louvain_clustering(app_state, graph_data, agents, params).await
     }
 }
 
-/// Convert GPU clustering results to HTTP response format
+/
 fn convert_gpu_clusters_to_response(
     gpu_results: Vec<Cluster>,
     graph_data: &crate::models::graph::GraphData,
@@ -304,7 +304,7 @@ fn convert_gpu_clusters_to_response(
         .into_iter()
         .enumerate()
         .map(|(i, cluster)| {
-            // Calculate centroid from actual node positions
+            
             let centroid = if !cluster.nodes.is_empty() {
                 let sum_x: f32 = cluster
                     .nodes
@@ -354,7 +354,7 @@ fn convert_gpu_clusters_to_response(
         .collect()
 }
 
-/// CPU fallback clustering when GPU is unavailable
+/
 fn generate_cpu_fallback_clustering(
     graph_data: &crate::models::graph::GraphData,
     agents: &[crate::services::agent_visualization_protocol::MultiMcpAgentStatus],
@@ -362,10 +362,10 @@ fn generate_cpu_fallback_clustering(
     method: &str,
 ) -> Vec<Cluster> {
     if !agents.is_empty() {
-        // Use agent-based clustering if agents are available
+        
         super::generate_agent_based_clusters(graph_data, agents, num_clusters, method)
     } else {
-        // Fall back to simple graph-based clustering
+        
         super::generate_graph_based_clusters(graph_data, num_clusters, method)
     }
 }

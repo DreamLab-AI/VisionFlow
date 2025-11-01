@@ -12,7 +12,7 @@ use crate::application::physics_service::PhysicsService;
 use crate::application::semantic_service::SemanticService;
 use crate::ports::gpu_physics_adapter::PhysicsParameters;
 
-/// Legacy physics message (deprecated)
+/
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct LegacyStartPhysics {
@@ -37,14 +37,14 @@ impl Default for LegacyPhysicsParams {
     }
 }
 
-/// Legacy semantic message (deprecated)
+/
 #[derive(Message)]
 #[rtype(result = "Result<usize, String>")]
 pub struct LegacyDetectCommunities {
     pub algorithm: String,
 }
 
-/// Backward compatibility wrapper for physics operations
+/
 pub struct PhysicsCompatWrapper {
     service: Arc<PhysicsService>,
 }
@@ -54,7 +54,7 @@ impl PhysicsCompatWrapper {
         Self { service }
     }
 
-    /// Handle legacy start physics message
+    
     #[deprecated(
         since = "1.0.0",
         note = "Use PhysicsService::start_simulation() through adapters instead"
@@ -65,7 +65,7 @@ impl PhysicsCompatWrapper {
              Please migrate to PhysicsService::start_simulation()"
         );
 
-        // Convert legacy params to new format
+        
         let params = PhysicsParameters {
             time_step: msg.params.time_step,
             damping: msg.params.damping,
@@ -73,14 +73,14 @@ impl PhysicsCompatWrapper {
             ..Default::default()
         };
 
-        // Note: This is a simplified conversion
-        // Actual implementation would need proper graph data
+        
+        
 
         Ok(())
     }
 }
 
-/// Backward compatibility wrapper for semantic operations
+/
 pub struct SemanticCompatWrapper {
     service: Arc<SemanticService>,
 }
@@ -90,7 +90,7 @@ impl SemanticCompatWrapper {
         Self { service }
     }
 
-    /// Handle legacy community detection message
+    
     #[deprecated(
         since = "1.0.0",
         note = "Use SemanticService::detect_communities() through adapters instead"
@@ -104,7 +104,7 @@ impl SemanticCompatWrapper {
              Please migrate to SemanticService::detect_communities()"
         );
 
-        // Route to new service
+        
         match msg.algorithm.as_str() {
             "louvain" => self
                 .service
@@ -128,21 +128,21 @@ impl SemanticCompatWrapper {
     }
 }
 
-/// Legacy actor compatibility layer
+/
 pub struct LegacyActorCompat;
 
 impl LegacyActorCompat {
-    /// Create physics compat wrapper
+    
     pub fn physics_wrapper(service: Arc<PhysicsService>) -> PhysicsCompatWrapper {
         PhysicsCompatWrapper::new(service)
     }
 
-    /// Create semantic compat wrapper
+    
     pub fn semantic_wrapper(service: Arc<SemanticService>) -> SemanticCompatWrapper {
         SemanticCompatWrapper::new(service)
     }
 
-    /// Log deprecation warning for direct actor usage
+    
     pub fn warn_direct_actor_usage(actor_type: &str, operation: &str) {
         warn!(
             "DEPRECATED: Direct {} actor usage for '{}'. \
@@ -152,7 +152,7 @@ impl LegacyActorCompat {
         );
     }
 
-    /// Check if legacy mode is enabled
+    
     pub fn legacy_mode_enabled() -> bool {
         std::env::var("VISIONFLOW_LEGACY_ACTORS")
             .map(|v| v == "true" || v == "1")
@@ -160,11 +160,11 @@ impl LegacyActorCompat {
     }
 }
 
-/// Migration helper for legacy code
+/
 pub struct MigrationHelper;
 
 impl MigrationHelper {
-    /// Convert legacy physics params to new format
+    
     pub fn convert_physics_params(legacy: LegacyPhysicsParams) -> PhysicsParameters {
         PhysicsParameters {
             time_step: legacy.time_step,
@@ -174,12 +174,12 @@ impl MigrationHelper {
         }
     }
 
-    /// Get migration guide URL
+    
     pub fn migration_guide_url() -> &'static str {
         "https://docs.visionflow.dev/migration/actors-to-adapters"
     }
 
-    /// Print migration guide
+    
     pub fn print_migration_guide() {
         eprintln!(
             "\n\

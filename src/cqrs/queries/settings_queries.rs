@@ -8,7 +8,7 @@ use crate::cqrs::types::{Query, Result};
 use crate::ports::settings_repository::SettingValue;
 use std::collections::HashMap;
 
-/// Get a single setting by key
+/
 #[derive(Debug, Clone)]
 pub struct GetSettingQuery {
     pub key: String,
@@ -29,7 +29,7 @@ impl Query for GetSettingQuery {
     }
 }
 
-/// Get multiple settings by keys
+/
 #[derive(Debug, Clone)]
 pub struct GetBatchSettingsQuery {
     pub keys: Vec<String>,
@@ -50,7 +50,7 @@ impl Query for GetBatchSettingsQuery {
     }
 }
 
-/// Get all application settings
+/
 #[derive(Debug, Clone)]
 pub struct GetAllSettingsQuery;
 
@@ -62,7 +62,7 @@ impl Query for GetAllSettingsQuery {
     }
 }
 
-/// List all setting keys (optionally filtered by prefix)
+/
 #[derive(Debug, Clone)]
 pub struct ListSettingsQuery {
     pub prefix: Option<String>,
@@ -76,7 +76,7 @@ impl Query for ListSettingsQuery {
     }
 }
 
-/// Check if a setting exists
+/
 #[derive(Debug, Clone)]
 pub struct HasSettingQuery {
     pub key: String,
@@ -97,7 +97,7 @@ impl Query for HasSettingQuery {
     }
 }
 
-/// Get physics settings for a specific profile
+/
 #[derive(Debug, Clone)]
 pub struct GetPhysicsSettingsQuery {
     pub profile_name: String,
@@ -118,7 +118,7 @@ impl Query for GetPhysicsSettingsQuery {
     }
 }
 
-/// List all available physics profiles
+/
 #[derive(Debug, Clone)]
 pub struct ListPhysicsProfilesQuery;
 
@@ -130,7 +130,7 @@ impl Query for ListPhysicsProfilesQuery {
     }
 }
 
-/// Export settings to JSON
+/
 #[derive(Debug, Clone)]
 pub struct ExportSettingsQuery;
 
@@ -142,7 +142,7 @@ impl Query for ExportSettingsQuery {
     }
 }
 
-/// Check settings repository health
+/
 #[derive(Debug, Clone)]
 pub struct SettingsHealthCheckQuery;
 

@@ -40,7 +40,7 @@ export const useNodeInteraction = (options: UseNodeInteractionOptions = {}) => {
     lastInteractionTime: 0
   });
 
-  // Refs for tracking interaction data
+  
   const interactionDataRef = useRef({
     isInteracting: false,
     isDragging: false,
@@ -52,10 +52,10 @@ export const useNodeInteraction = (options: UseNodeInteractionOptions = {}) => {
     lastUpdateTime: 0
   });
 
-  // Interaction timeout ref
+  
   const interactionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Throttled position update function
+  
   const throttledPositionUpdate = useRef(
     throttle((nodeId: string, position: { x: number; y: number; z: number }) => {
       if (interactionDataRef.current.isInteracting && onPositionUpdate) {
@@ -67,17 +67,17 @@ export const useNodeInteraction = (options: UseNodeInteractionOptions = {}) => {
     }, throttleMs)
   ).current;
 
-  // Start interaction
+  
   const startInteraction = useCallback((nodeId: string, instanceId: number, pointerPos?: { x: number; y: number }) => {
     const now = Date.now();
 
-    // Clear any existing interaction timeout
+    
     if (interactionTimeoutRef.current) {
       clearTimeout(interactionTimeoutRef.current);
       interactionTimeoutRef.current = null;
     }
 
-    // Update refs
+    
     interactionDataRef.current = {
       ...interactionDataRef.current,
       isInteracting: true,
@@ -89,7 +89,7 @@ export const useNodeInteraction = (options: UseNodeInteractionOptions = {}) => {
       lastUpdateTime: now
     };
 
-    // Update state
+    
     setInteractionState(prev => ({
       ...prev,
       isInteracting: true,
@@ -99,7 +99,7 @@ export const useNodeInteraction = (options: UseNodeInteractionOptions = {}) => {
       lastInteractionTime: now
     }));
 
-    // Notify parent
+    
     if (onInteractionStart) {
       onInteractionStart(nodeId, instanceId);
     }
@@ -109,20 +109,20 @@ export const useNodeInteraction = (options: UseNodeInteractionOptions = {}) => {
     }
   }, [onInteractionStart]);
 
-  // Start drag (upgrade from click to drag)
+  
   const startDrag = useCallback((pointerPos: { x: number; y: number }) => {
     const data = interactionDataRef.current;
 
     if (!data.isInteracting || data.isDragging) return;
 
-    // Check drag threshold
+    
     const distance = Math.sqrt(
       Math.pow(pointerPos.x - data.startPointerPos.x, 2) +
       Math.pow(pointerPos.y - data.startPointerPos.y, 2)
     );
 
     if (distance > dragThreshold) {
-      // Upgrade to drag
+      
       interactionDataRef.current.isDragging = true;
       interactionDataRef.current.isClicking = false;
 
@@ -138,7 +138,7 @@ export const useNodeInteraction = (options: UseNodeInteractionOptions = {}) => {
     }
   }, [dragThreshold]);
 
-  // Update position during interaction
+  
   const updatePosition = useCallback((position: { x: number; y: number; z: number }) => {
     const data = interactionDataRef.current;
 
@@ -147,23 +147,23 @@ export const useNodeInteraction = (options: UseNodeInteractionOptions = {}) => {
     const now = Date.now();
     data.lastUpdateTime = now;
 
-    // Use throttled position update
+    
     throttledPositionUpdate(data.nodeId, position);
 
-    // Update interaction time in state
+    
     setInteractionState(prev => ({
       ...prev,
       lastInteractionTime: now
     }));
   }, [throttledPositionUpdate]);
 
-  // End interaction
+  
   const endInteraction = useCallback(() => {
     const data = interactionDataRef.current;
     const previousNodeId = data.nodeId;
     const previousInstanceId = data.instanceId;
 
-    // Reset refs
+    
     interactionDataRef.current = {
       ...interactionDataRef.current,
       isInteracting: false,
@@ -173,7 +173,7 @@ export const useNodeInteraction = (options: UseNodeInteractionOptions = {}) => {
       instanceId: null
     };
 
-    // Update state
+    
     setInteractionState(prev => ({
       ...prev,
       isInteracting: false,
@@ -183,12 +183,12 @@ export const useNodeInteraction = (options: UseNodeInteractionOptions = {}) => {
       instanceId: null
     }));
 
-    // Set a brief timeout before completely ending interaction
-    // This helps with rapid click sequences
+    
+    
     interactionTimeoutRef.current = setTimeout(() => {
       interactionTimeoutRef.current = null;
 
-      // Notify parent
+      
       if (onInteractionEnd) {
         onInteractionEnd(previousNodeId, previousInstanceId);
       }
@@ -199,24 +199,24 @@ export const useNodeInteraction = (options: UseNodeInteractionOptions = {}) => {
     }, 50);
   }, [onInteractionEnd]);
 
-  // Check if actively interacting (used for sending position updates)
+  
   const isActivelyInteracting = useCallback(() => {
     const data = interactionDataRef.current;
     return data.isInteracting && (data.isDragging || data.isClicking);
   }, []);
 
-  // Check if should send position updates
+  
   const shouldSendUpdates = useCallback(() => {
     const data = interactionDataRef.current;
     const now = Date.now();
 
-    // Only send if actively interacting and not too frequent
+    
     return data.isInteracting &&
-           data.isDragging && // Only during drag, not just click
+           data.isDragging && 
            (now - data.lastUpdateTime) >= throttleMs;
   }, [throttleMs]);
 
-  // Cleanup on unmount
+  
   useEffect(() => {
     return () => {
       if (interactionTimeoutRef.current) {

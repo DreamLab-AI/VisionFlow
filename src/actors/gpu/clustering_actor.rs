@@ -11,7 +11,7 @@ use uuid::Uuid;
 use super::shared::{GPUState, SharedGPUContext};
 use crate::actors::messages::*;
 
-/// Clustering statistics for reporting
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClusteringStats {
     pub total_clusters: usize,
@@ -22,7 +22,7 @@ pub struct ClusteringStats {
     pub computation_time_ms: u64,
 }
 
-/// Community detection statistics
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommunityDetectionStats {
     pub total_communities: usize,
@@ -33,7 +33,7 @@ pub struct CommunityDetectionStats {
     pub computation_time_ms: u64,
 }
 
-/// Represents a detected community
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Community {
     pub id: String,
@@ -43,12 +43,12 @@ pub struct Community {
     pub density: f32,
 }
 
-/// Clustering Actor - handles clustering and community detection algorithms
+/
 pub struct ClusteringActor {
-    /// Shared GPU state
+    
     gpu_state: GPUState,
 
-    /// Shared GPU context reference
+    
     shared_context: Option<Arc<SharedGPUContext>>,
 }
 
@@ -60,13 +60,13 @@ impl ClusteringActor {
         }
     }
 
-    /// Generate keywords for a cluster based on node IDs
+    
     fn generate_cluster_keywords(nodes: &[u32]) -> Vec<String> {
         if nodes.is_empty() {
             return vec!["empty".to_string()];
         }
 
-        // Simple keyword generation based on node count
+        
         let mut keywords = Vec::new();
         match nodes.len() {
             1 => keywords.push("singleton".to_string()),
@@ -75,12 +75,12 @@ impl ClusteringActor {
             _ => keywords.push("large".to_string()),
         }
 
-        // Add some sample descriptive terms
+        
         keywords.push(format!("cluster-{}", nodes[0] % 10));
         keywords
     }
 
-    /// Perform K-means clustering on GPU
+    
     async fn perform_kmeans_clustering(
         &mut self,
         params: KMeansParams,
@@ -102,7 +102,7 @@ impl ClusteringActor {
 
         let start_time = Instant::now();
 
-        // Execute K-means clustering on GPU with enhanced metrics tracking
+        
         let gpu_result = unified_compute
             .run_kmeans_clustering_with_metrics(
                 params.num_clusters,
@@ -121,14 +121,14 @@ impl ClusteringActor {
             computation_time
         );
 
-        // Extract enhanced GPU result
+        
         let (assignments, centroids, inertia, actual_iterations, converged) = gpu_result;
         let clusters = self.convert_gpu_kmeans_result_to_clusters(
             assignments.iter().map(|&x| x as u32).collect(),
             params.num_clusters as u32,
         )?;
 
-        // Calculate cluster statistics
+        
         let cluster_sizes: Vec<usize> = clusters.iter().map(|c| c.nodes.len()).collect();
         let avg_cluster_size = if !cluster_sizes.is_empty() {
             cluster_sizes.iter().sum::<usize>() as f32 / cluster_sizes.len() as f32
@@ -136,7 +136,7 @@ impl ClusteringActor {
             0.0
         };
 
-        // Calculate silhouette score if we have valid clusters
+        
         let silhouette_score = if clusters.len() > 1 && !assignments.is_empty() {
             self.calculate_silhouette_score(&assignments, &centroids, &clusters)?
         } else {
@@ -164,7 +164,7 @@ impl ClusteringActor {
         })
     }
 
-    /// Perform community detection on GPU
+    
     async fn perform_community_detection(
         &mut self,
         params: CommunityDetectionParams,
@@ -186,7 +186,7 @@ impl ClusteringActor {
 
         let start_time = Instant::now();
 
-        // Execute community detection on GPU based on algorithm
+        
         let gpu_result = match params.algorithm {
             CommunityDetectionAlgorithm::LabelPropagation => unified_compute
                 .run_community_detection_label_propagation(
@@ -201,17 +201,17 @@ impl ClusteringActor {
                 unified_compute
                     .run_louvain_community_detection(
                         params.max_iterations.unwrap_or(100),
-                        1.0, // resolution parameter
+                        1.0, 
                         params.seed.unwrap_or(42),
                     )
                     .map_err(|e| {
                         error!("GPU Louvain community detection failed: {}", e);
                         format!("Louvain community detection failed: {}", e)
                     })?
-            } // CommunityDetectionAlgorithm::Leiden => {
-              //     // TODO: Implement Leiden algorithm on GPU
-              //     return Err("Leiden algorithm not yet implemented on GPU".to_string());
-              // },
+            } 
+              
+              
+              
         };
 
         let computation_time = start_time.elapsed();
@@ -220,14 +220,14 @@ impl ClusteringActor {
             computation_time
         );
 
-        // Convert GPU result to API format
+        
         let (node_labels, num_communities, modularity, iterations, community_sizes, converged) =
             gpu_result;
         let communities = self.convert_gpu_community_result_to_communities(
             node_labels.iter().map(|&x| x as u32).collect(),
         )?;
 
-        // Calculate community statistics
+        
         let actual_community_sizes: Vec<usize> =
             communities.iter().map(|c| c.nodes.len()).collect();
         let actual_modularity = self.calculate_modularity(&communities);
@@ -259,7 +259,7 @@ impl ClusteringActor {
         })
     }
 
-    /// Convert GPU K-means result to API clusters format
+    
     fn convert_gpu_kmeans_result_to_clusters(
         &self,
         gpu_result: Vec<u32>,
@@ -273,7 +273,7 @@ impl ClusteringActor {
             ));
         }
 
-        // Group nodes by cluster assignment
+        
         let mut cluster_nodes: Vec<Vec<u32>> = vec![Vec::new(); num_clusters as usize];
 
         for (node_idx, &cluster_id) in gpu_result.iter().enumerate() {
@@ -282,7 +282,7 @@ impl ClusteringActor {
             }
         }
 
-        // Convert to API format
+        
         let mut clusters = Vec::new();
         for (cluster_id, nodes) in cluster_nodes.into_iter().enumerate() {
             if !nodes.is_empty() {
@@ -291,7 +291,7 @@ impl ClusteringActor {
                     label: format!("Cluster {}", cluster_id),
                     node_count: nodes.len() as u32,
                     coherence: {
-                        // Convert u32 assignments to i32 for coherence calculation
+                        
                         let assignments_i32: Vec<i32> =
                             gpu_result.iter().map(|&x| x as i32).collect();
                         self.calculate_cluster_coherence(&nodes, &assignments_i32)
@@ -316,7 +316,7 @@ impl ClusteringActor {
         Ok(clusters)
     }
 
-    /// Convert GPU community detection result to API communities format
+    
     fn convert_gpu_community_result_to_communities(
         &self,
         gpu_result: Vec<u32>,
@@ -329,7 +329,7 @@ impl ClusteringActor {
             ));
         }
 
-        // Group nodes by community assignment
+        
         let mut community_nodes: std::collections::HashMap<u32, Vec<u32>> =
             std::collections::HashMap::new();
 
@@ -340,7 +340,7 @@ impl ClusteringActor {
                 .push(node_idx as u32);
         }
 
-        // Convert to API format
+        
         let mut communities = Vec::new();
         for (community_id, nodes) in community_nodes {
             let internal_edges = self.calculate_internal_edges(&nodes);
@@ -363,16 +363,16 @@ impl ClusteringActor {
         Ok(communities)
     }
 
-    /// Generate a color for cluster visualization
+    
     fn generate_cluster_color(cluster_id: usize) -> [f32; 3] {
         let mut rng = rand::thread_rng();
 
-        // Use cluster_id as seed for consistent colors
-        let hue = (cluster_id as f32 * 137.5) % 360.0; // Golden angle for good distribution
-        let saturation = 0.7 + (rng.gen::<f32>() * 0.3); // 70-100% saturation
-        let value = 0.8 + (rng.gen::<f32>() * 0.2); // 80-100% value
+        
+        let hue = (cluster_id as f32 * 137.5) % 360.0; 
+        let saturation = 0.7 + (rng.gen::<f32>() * 0.3); 
+        let value = 0.8 + (rng.gen::<f32>() * 0.2); 
 
-        // Convert HSV to RGB (simplified)
+        
         let c = value * saturation;
         let x = c * (1.0 - ((hue / 60.0) % 2.0 - 1.0).abs());
         let m = value - c;
@@ -389,8 +389,8 @@ impl ClusteringActor {
         [r + m, g + m, b + m]
     }
 
-    /// Calculate silhouette score for clustering quality
-    /// Formula: (b-a)/max(a,b) where a is mean intra-cluster distance and b is mean nearest-cluster distance
+    
+    
     fn calculate_silhouette_score(
         &self,
         assignments: &[i32],
@@ -401,7 +401,7 @@ impl ClusteringActor {
             return Ok(0.0);
         }
 
-        // Get node positions from GPU state (simplified - in practice we'd need actual positions)
+        
         let mut total_silhouette = 0.0;
         let mut valid_samples = 0;
 
@@ -410,7 +410,7 @@ impl ClusteringActor {
                 continue;
             }
 
-            // Calculate mean intra-cluster distance (a)
+            
             let own_cluster_nodes: Vec<usize> = assignments
                 .iter()
                 .enumerate()
@@ -437,7 +437,7 @@ impl ClusteringActor {
                 0.0
             };
 
-            // Calculate mean nearest-cluster distance (b)
+            
             let mut min_inter_cluster_distance = f32::INFINITY;
             for other_cluster_id in 0..centroids.len() {
                 if other_cluster_id != cluster_id as usize {
@@ -460,7 +460,7 @@ impl ClusteringActor {
                 }
             }
 
-            // Calculate silhouette for this sample
+            
             if min_inter_cluster_distance.is_finite() && intra_cluster_distance.is_finite() {
                 let max_distance = intra_cluster_distance.max(min_inter_cluster_distance);
                 if max_distance > 0.0 {
@@ -479,18 +479,18 @@ impl ClusteringActor {
         })
     }
 
-    /// Calculate distance between two nodes (simplified using centroid distances)
+    
     fn calculate_node_distance(
         &self,
         node1: usize,
         node2: usize,
         centroids: &[(f32, f32, f32)],
     ) -> f32 {
-        // Simplified distance calculation - in practice we'd use actual node positions
-        // For now, use a heuristic based on node indices and centroid distances
+        
+        
         let diff = (node1 as f32 - node2 as f32).abs();
 
-        // Add some randomness based on centroids to make it more realistic
+        
         if !centroids.is_empty() {
             let centroid_idx = (node1 + node2) % centroids.len();
             let (cx, cy, cz) = centroids[centroid_idx];
@@ -501,7 +501,7 @@ impl ClusteringActor {
         }
     }
 
-    /// Calculate modularity for community detection quality
+    
     fn calculate_modularity(&self, communities: &[Community]) -> f32 {
         let _num_nodes = self.gpu_state.num_nodes as f32;
         let total_edges = communities
@@ -516,10 +516,10 @@ impl ClusteringActor {
         let mut modularity = 0.0;
 
         for community in communities {
-            let m = total_edges / 2.0; // Total number of edges (undirected)
-            let e_in = community.internal_edges as f32 / (2.0 * m); // Fraction of edges within community
+            let m = total_edges / 2.0; 
+            let e_in = community.internal_edges as f32 / (2.0 * m); 
             let degree_sum = (community.internal_edges + community.external_edges) as f32;
-            let a_sq = (degree_sum / (2.0 * m)).powi(2); // Expected fraction squared
+            let a_sq = (degree_sum / (2.0 * m)).powi(2); 
 
             modularity += e_in - a_sq;
         }
@@ -527,13 +527,13 @@ impl ClusteringActor {
         modularity.max(0.0).min(1.0)
     }
 
-    /// Calculate cluster coherence based on intra-cluster distances
+    
     fn calculate_cluster_coherence(&self, nodes: &[u32], _assignments: &[i32]) -> f32 {
         if nodes.len() < 2 {
             return 1.0;
         }
 
-        // Simple coherence metric: inverse of average intra-cluster distance
+        
         let mut total_distance = 0.0;
         let mut pair_count = 0;
 
@@ -553,13 +553,13 @@ impl ClusteringActor {
         }
     }
 
-    /// Calculate cluster centroid position
+    
     fn calculate_cluster_centroid(&self, nodes: &[u32]) -> [f32; 3] {
         if nodes.is_empty() {
             return [0.0, 0.0, 0.0];
         }
 
-        // Simple centroid calculation based on node indices
+        
         let sum_x: f32 = nodes.iter().map(|&n| (n % 100) as f32).sum();
         let sum_y: f32 = nodes.iter().map(|&n| ((n / 100) % 100) as f32).sum();
         let sum_z: f32 = nodes.iter().map(|&n| (n / 10000) as f32).sum();
@@ -568,35 +568,35 @@ impl ClusteringActor {
         [sum_x / count, sum_y / count, sum_z / count]
     }
 
-    /// Calculate internal edges for community
+    
     fn calculate_internal_edges(&self, nodes: &[u32]) -> usize {
-        // Estimate internal edges based on community size
-        // Real implementation would query edge data
+        
+        
         let n = nodes.len();
         if n < 2 {
             0
         } else {
-            // Assume ~30% connectivity within communities
+            
             ((n * (n - 1)) as f32 * 0.3 / 2.0) as usize
         }
     }
 
-    /// Calculate external edges for community
+    
     fn calculate_external_edges(&self, nodes: &[u32]) -> usize {
-        // Estimate external edges
+        
         let n = nodes.len();
         let total_nodes = self.gpu_state.num_nodes as usize;
         let external_nodes = total_nodes - n;
 
         if external_nodes > 0 {
-            // Assume ~5% connectivity to external nodes
+            
             (n * external_nodes / 20).max(1)
         } else {
             0
         }
     }
 
-    /// Calculate community density
+    
     fn calculate_community_density(&self, nodes: &[u32]) -> f32 {
         let n = nodes.len();
         if n < 2 {
@@ -624,20 +624,20 @@ impl Actor for ClusteringActor {
 
 // === Message Handlers ===
 
-/// Handler for receiving SharedGPUContext from ResourceActor
+/
 impl Handler<SetSharedGPUContext> for ClusteringActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: SetSharedGPUContext, _ctx: &mut Self::Context) -> Self::Result {
         info!("ClusteringActor: Received SharedGPUContext from ResourceActor");
         self.shared_context = Some(msg.context);
-        // msg.graph_service_addr is ignored - only ForceComputeActor needs it
+        
         info!("ClusteringActor: SharedGPUContext stored successfully");
         Ok(())
     }
 }
 
-/// Handler for K-means clustering
+/
 impl Handler<RunKMeans> for ClusteringActor {
     type Result = actix::ResponseFuture<Result<KMeansResult, String>>;
 
@@ -647,7 +647,7 @@ impl Handler<RunKMeans> for ClusteringActor {
             msg.params.num_clusters
         );
 
-        // Clone self state for async block
+        
         let mut actor_clone = Self {
             gpu_state: self.gpu_state.clone(),
             shared_context: self.shared_context.clone(),
@@ -657,14 +657,14 @@ impl Handler<RunKMeans> for ClusteringActor {
     }
 }
 
-/// Handler for community detection
+/
 impl Handler<RunCommunityDetection> for ClusteringActor {
     type Result = actix::ResponseFuture<Result<CommunityDetectionResult, String>>;
 
     fn handle(&mut self, msg: RunCommunityDetection, _ctx: &mut Self::Context) -> Self::Result {
         info!("ClusteringActor: Received RunCommunityDetection request");
 
-        // Clone self state for async block
+        
         let mut actor_clone = Self {
             gpu_state: self.gpu_state.clone(),
             shared_context: self.shared_context.clone(),
@@ -674,7 +674,7 @@ impl Handler<RunCommunityDetection> for ClusteringActor {
     }
 }
 
-/// Handler for generic GPU clustering
+/
 impl Handler<PerformGPUClustering> for ClusteringActor {
     type Result = actix::ResponseFuture<
         Result<Vec<crate::handlers::api_handler::analytics::Cluster>, String>,
@@ -686,14 +686,14 @@ impl Handler<PerformGPUClustering> for ClusteringActor {
             msg.method
         );
 
-        // Clone self state for async block
+        
         let mut actor_clone = Self {
             gpu_state: self.gpu_state.clone(),
             shared_context: self.shared_context.clone(),
         };
 
         Box::pin(async move {
-            // Convert generic clustering request to K-means
+            
             let params = KMeansParams {
                 num_clusters: msg.params.num_clusters.unwrap_or(5) as usize,
                 max_iterations: msg.params.max_iterations,
@@ -701,10 +701,10 @@ impl Handler<PerformGPUClustering> for ClusteringActor {
                 seed: None,
             };
 
-            // Perform K-means clustering
+            
             let result = actor_clone.perform_kmeans_clustering(params).await?;
 
-            // Return the clusters from the result
+            
             Ok(result.clusters)
         })
     }

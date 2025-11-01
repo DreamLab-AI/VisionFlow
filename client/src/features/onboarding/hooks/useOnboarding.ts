@@ -11,7 +11,7 @@ export function useOnboarding() {
     completedFlows: []
   });
 
-  // Load completed flows from localStorage
+  
   useEffect(() => {
     try {
       const stored = localStorage.getItem(COMPLETED_FLOWS_KEY);
@@ -26,7 +26,7 @@ export function useOnboarding() {
     }
   }, []);
 
-  // Start onboarding flow
+  
   const startFlow = useCallback((flow: OnboardingFlow, forceRestart = false) => {
     if (!forceRestart && state.completedFlows.includes(flow.id)) {
       return false;
@@ -42,13 +42,13 @@ export function useOnboarding() {
     return true;
   }, [state.completedFlows]);
 
-  // Navigate to next step
+  
   const nextStep = useCallback(async () => {
     if (!state.currentFlow) return;
 
     const currentStep = state.currentFlow.steps[state.currentStepIndex];
     
-    // Execute step action if provided
+    
     if (currentStep.action) {
       try {
         await currentStep.action();
@@ -63,12 +63,12 @@ export function useOnboarding() {
         currentStepIndex: prev.currentStepIndex + 1
       }));
     } else {
-      // Flow completed
+      
       completeFlow();
     }
   }, [state.currentFlow, state.currentStepIndex]);
 
-  // Navigate to previous step
+  
   const prevStep = useCallback(() => {
     if (state.currentStepIndex > 0) {
       setState(prev => ({
@@ -78,19 +78,19 @@ export function useOnboarding() {
     }
   }, [state.currentStepIndex]);
 
-  // Skip current flow
+  
   const skipFlow = useCallback(() => {
     completeFlow();
   }, []);
 
-  // Complete current flow
+  
   const completeFlow = useCallback(() => {
     if (!state.currentFlow) return;
 
     const flowId = state.currentFlow.id;
     const newCompletedFlows = [...state.completedFlows, flowId];
 
-    // Save to localStorage
+    
     try {
       localStorage.setItem(COMPLETED_FLOWS_KEY, JSON.stringify(newCompletedFlows));
     } catch (error) {
@@ -105,13 +105,13 @@ export function useOnboarding() {
       completedFlows: newCompletedFlows
     }));
 
-    // Emit completion event
+    
     window.dispatchEvent(new CustomEvent('onboarding-completed', { 
       detail: { flowId } 
     }));
   }, [state.currentFlow, state.completedFlows]);
 
-  // Reset onboarding state
+  
   const resetOnboarding = useCallback(() => {
     localStorage.removeItem(COMPLETED_FLOWS_KEY);
     setState({
@@ -122,7 +122,7 @@ export function useOnboarding() {
     });
   }, []);
 
-  // Get current step
+  
   const currentStep = state.currentFlow 
     ? state.currentFlow.steps[state.currentStepIndex]
     : null;

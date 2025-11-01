@@ -12,7 +12,7 @@ use crate::ports::ontology_repository::{
 use std::collections::HashMap;
 use std::sync::Arc;
 
-/// Get an OWL class by IRI
+/
 #[derive(Debug, Clone)]
 pub struct GetClassQuery {
     pub iri: String,
@@ -33,7 +33,7 @@ impl Query for GetClassQuery {
     }
 }
 
-/// List all OWL classes
+/
 #[derive(Debug, Clone)]
 pub struct ListClassesQuery;
 
@@ -45,21 +45,21 @@ impl Query for ListClassesQuery {
     }
 }
 
-/// Get class hierarchy tree
+/
 #[derive(Debug, Clone)]
 pub struct GetClassHierarchyQuery {
-    pub root_iri: Option<String>, // If None, get entire hierarchy
+    pub root_iri: Option<String>, 
 }
 
 impl Query for GetClassHierarchyQuery {
-    type Result = Vec<OwlClass>; // Returns classes in hierarchical order
+    type Result = Vec<OwlClass>; 
 
     fn name(&self) -> &'static str {
         "GetClassHierarchy"
     }
 }
 
-/// Get an OWL property by IRI
+/
 #[derive(Debug, Clone)]
 pub struct GetPropertyQuery {
     pub iri: String,
@@ -80,7 +80,7 @@ impl Query for GetPropertyQuery {
     }
 }
 
-/// List all OWL properties
+/
 #[derive(Debug, Clone)]
 pub struct ListPropertiesQuery;
 
@@ -92,7 +92,7 @@ impl Query for ListPropertiesQuery {
     }
 }
 
-/// Get all axioms for a class
+/
 #[derive(Debug, Clone)]
 pub struct GetAxiomsForClassQuery {
     pub class_iri: String,
@@ -113,7 +113,7 @@ impl Query for GetAxiomsForClassQuery {
     }
 }
 
-/// Get latest inference results
+/
 #[derive(Debug, Clone)]
 pub struct GetInferenceResultsQuery;
 
@@ -125,7 +125,7 @@ impl Query for GetInferenceResultsQuery {
     }
 }
 
-/// Validate ontology consistency
+/
 #[derive(Debug, Clone)]
 pub struct ValidateOntologyQuery;
 
@@ -137,7 +137,7 @@ impl Query for ValidateOntologyQuery {
     }
 }
 
-/// Query ontology using SPARQL-like syntax
+/
 #[derive(Debug, Clone)]
 pub struct QueryOntologyQuery {
     pub query: String,
@@ -158,7 +158,7 @@ impl Query for QueryOntologyQuery {
     }
 }
 
-/// Get ontology metrics
+/
 #[derive(Debug, Clone)]
 pub struct GetOntologyMetricsQuery;
 
@@ -170,7 +170,7 @@ impl Query for GetOntologyMetricsQuery {
     }
 }
 
-/// Load ontology graph structure
+/
 #[derive(Debug, Clone)]
 pub struct LoadOntologyGraphQuery;
 
@@ -182,19 +182,19 @@ impl Query for LoadOntologyGraphQuery {
     }
 }
 
-/// Export ontology to OWL XML
+/
 #[derive(Debug, Clone)]
 pub struct ExportOntologyQuery;
 
 impl Query for ExportOntologyQuery {
-    type Result = String; // OWL XML string
+    type Result = String; 
 
     fn name(&self) -> &'static str {
         "ExportOntology"
     }
 }
 
-/// Get cached SSSP result
+/
 #[derive(Debug, Clone)]
 pub struct GetCachedSsspQuery {
     pub source_node_id: u32,
@@ -208,7 +208,7 @@ impl Query for GetCachedSsspQuery {
     }
 }
 
-/// Get cached APSP distance matrix
+/
 #[derive(Debug, Clone)]
 pub struct GetCachedApspQuery;
 

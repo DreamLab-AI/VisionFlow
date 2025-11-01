@@ -9,12 +9,12 @@ export const FloatingSettingsPanel: React.FC = () => {
   useEffect(() => {
     const handleOpenSettings = () => setIsOpen(true);
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Open with Cmd/Ctrl+Shift+S
+      
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 's') {
         e.preventDefault();
         setIsOpen(prev => !prev);
       }
-      // Close with Escape
+      
       if (e.key === 'Escape' && isOpen) {
         setIsOpen(false);
       }
@@ -31,7 +31,7 @@ export const FloatingSettingsPanel: React.FC = () => {
 
   return (
     <>
-      {/* Floating Settings Button */}
+      {}
       <button
         onClick={() => setIsOpen(true)}
         style={{
@@ -64,7 +64,7 @@ export const FloatingSettingsPanel: React.FC = () => {
         <Settings size={24} color="black" />
       </button>
 
-      {/* Settings Panel Modal */}
+      {}
       {isOpen && (
         <div
           style={{
@@ -99,7 +99,7 @@ export const FloatingSettingsPanel: React.FC = () => {
               position: 'relative',
             }}
           >
-            {/* Close button */}
+            {}
             <button
               onClick={() => setIsOpen(false)}
               style={{

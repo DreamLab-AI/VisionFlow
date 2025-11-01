@@ -83,7 +83,7 @@ const createRequest = async <T>(url: string, method: string = 'GET', data?: any)
 
     let responseData = response.data;
 
-    // Transform date strings to Date objects
+    
     if (responseData?.data) {
       responseData.data = transformDates(responseData.data);
     } else if (Array.isArray(responseData)) {
@@ -132,9 +132,7 @@ const transformDates = (item: any): any => {
 
 // Workspace API operations
 export const workspaceApi = {
-  /**
-   * Fetch all workspaces with optional pagination and filtering
-   */
+  
   async fetchWorkspaces(params?: {
     page?: number;
     limit?: number;
@@ -163,11 +161,9 @@ export const workspaceApi = {
     return response.data!;
   },
 
-  /**
-   * Create a new workspace with validation
-   */
+  
   async createWorkspace(data: CreateWorkspaceRequest): Promise<Workspace> {
-    // Client-side validation
+    
     if (!data.name?.trim()) {
       throw new WorkspaceApiError('Workspace name is required');
     }
@@ -188,15 +184,13 @@ export const workspaceApi = {
     return response.data!;
   },
 
-  /**
-   * Update an existing workspace with optimistic updates support
-   */
+  
   async updateWorkspace(id: string, data: UpdateWorkspaceRequest): Promise<Workspace> {
     if (!id) {
       throw new WorkspaceApiError('Workspace ID is required');
     }
 
-    // Client-side validation
+    
     if (data.name && !data.name.trim()) {
       throw new WorkspaceApiError('Workspace name cannot be empty');
     }
@@ -217,9 +211,7 @@ export const workspaceApi = {
     return response.data!;
   },
 
-  /**
-   * Delete a workspace with confirmation
-   */
+  
   async deleteWorkspace(id: string): Promise<void> {
     if (!id) {
       throw new WorkspaceApiError('Workspace ID is required');
@@ -236,9 +228,7 @@ export const workspaceApi = {
     logger.info('Workspace deleted successfully', { id });
   },
 
-  /**
-   * Toggle favorite status for a workspace
-   */
+  
   async toggleFavorite(id: string): Promise<Workspace> {
     if (!id) {
       throw new WorkspaceApiError('Workspace ID is required');
@@ -256,9 +246,7 @@ export const workspaceApi = {
     return response.data!;
   },
 
-  /**
-   * Archive or unarchive a workspace
-   */
+  
   async archiveWorkspace(id: string, archive: boolean = true): Promise<Workspace> {
     if (!id) {
       throw new WorkspaceApiError('Workspace ID is required');
@@ -276,9 +264,7 @@ export const workspaceApi = {
     return response.data!;
   },
 
-  /**
-   * Get workspace details by ID
-   */
+  
   async getWorkspace(id: string): Promise<Workspace> {
     if (!id) {
       throw new WorkspaceApiError('Workspace ID is required');
@@ -295,9 +281,7 @@ export const workspaceApi = {
     return response.data!;
   },
 
-  /**
-   * Update workspace settings
-   */
+  
   async updateWorkspaceSettings(id: string, settings: Partial<WorkspaceSettings>): Promise<Workspace> {
     if (!id) {
       throw new WorkspaceApiError('Workspace ID is required');
@@ -315,9 +299,7 @@ export const workspaceApi = {
     return response.data!;
   },
 
-  /**
-   * Get workspace members (for team workspaces)
-   */
+  
   async getWorkspaceMembers(id: string): Promise<any[]> {
     if (!id) {
       throw new WorkspaceApiError('Workspace ID is required');

@@ -85,8 +85,8 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
       if (onSuccess) {
         onSuccess(`Profile loaded successfully`);
       }
-      // Note: Settings would be applied through the settings API
-      // This would trigger a refresh in the SettingsPanel
+      
+      
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Failed to load profile';

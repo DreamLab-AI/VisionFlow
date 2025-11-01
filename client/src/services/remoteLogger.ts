@@ -1,7 +1,4 @@
-/**
- * Remote Logger Service
- * Sends browser console logs to server for debugging Quest 3 and other remote devices
- */
+
 
 interface LogEntry {
   level: 'debug' | 'info' | 'warn' | 'error';
@@ -16,37 +13,35 @@ interface LogEntry {
 
 class RemoteLogger {
   private buffer: LogEntry[] = [];
-  private flushInterval: number = 1000; // Flush every second
+  private flushInterval: number = 1000; 
   private maxBufferSize: number = 50;
   private flushTimer: NodeJS.Timeout | null = null;
   private enabled: boolean = true;
   private serverEndpoint: string;
 
   constructor() {
-    // Use the API URL from Vite environment or fallback to default
-    // @ts-ignore - import.meta is provided by Vite
+    
+    
     const apiUrl = (import.meta?.env?.VITE_API_URL) || 'http://visionflow_container:4000';
 
     this.serverEndpoint = `${apiUrl}/api/client-logs`;
     console.log('[RemoteLogger] Configured endpoint:', this.serverEndpoint);
 
-    // Start flush timer
+    
     this.startFlushTimer();
 
-    // Override console methods to capture all logs
+    
     this.interceptConsole();
 
-    // Send logs on page unload
+    
     if (typeof window !== 'undefined') {
       window.addEventListener('beforeunload', () => {
-        this.flush(true); // Force sync flush on unload
+        this.flush(true); 
       });
     }
   }
 
-  /**
-   * Intercept console methods to capture all logs
-   */
+  
   private interceptConsole(): void {
     const originalConsole = {
       log: console.log,
@@ -56,7 +51,7 @@ class RemoteLogger {
       error: console.error
     };
 
-    // Wrap console methods
+    
     console.log = (...args: any[]) => {
       originalConsole.log(...args);
       this.log('info', 'console', this.formatArgs(args));
@@ -83,9 +78,7 @@ class RemoteLogger {
     };
   }
 
-  /**
-   * Format console arguments into a string
-   */
+  
   private formatArgs(args: any[]): string {
     return args.map(arg => {
       if (typeof arg === 'object') {
@@ -99,9 +92,7 @@ class RemoteLogger {
     }).join(' ');
   }
 
-  /**
-   * Extract stack trace from error arguments
-   */
+  
   private extractStack(args: any[]): string | undefined {
     for (const arg of args) {
       if (arg instanceof Error && arg.stack) {
@@ -111,9 +102,7 @@ class RemoteLogger {
     return undefined;
   }
 
-  /**
-   * Log a message to the remote server
-   */
+  
   public log(
     level: LogEntry['level'],
     namespace: string,
@@ -136,15 +125,13 @@ class RemoteLogger {
 
     this.buffer.push(entry);
 
-    // Flush if buffer is full
+    
     if (this.buffer.length >= this.maxBufferSize) {
       this.flush();
     }
   }
 
-  /**
-   * Start the flush timer
-   */
+  
   private startFlushTimer(): void {
     if (this.flushTimer) return;
 
@@ -155,9 +142,7 @@ class RemoteLogger {
     }, this.flushInterval);
   }
 
-  /**
-   * Stop the flush timer
-   */
+  
   private stopFlushTimer(): void {
     if (this.flushTimer) {
       clearInterval(this.flushTimer);
@@ -165,9 +150,7 @@ class RemoteLogger {
     }
   }
 
-  /**
-   * Flush buffered logs to server
-   */
+  
   public async flush(sync: boolean = false): Promise<void> {
     if (this.buffer.length === 0) return;
 
@@ -182,13 +165,13 @@ class RemoteLogger {
       };
 
       if (sync) {
-        // Use sendBeacon for synchronous sending on page unload
+        
         if (navigator.sendBeacon) {
           const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
           navigator.sendBeacon(this.serverEndpoint, blob);
         }
       } else {
-        // Normal async fetch
+        
         const response = await fetch(this.serverEndpoint, {
           method: 'POST',
           headers: {
@@ -202,17 +185,15 @@ class RemoteLogger {
         }
       }
     } catch (error) {
-      // Re-add logs to buffer if send failed (unless it was a sync flush)
+      
       if (!sync) {
         this.buffer = logs.concat(this.buffer);
       }
-      // Don't log this error to avoid infinite loop
+      
     }
   }
 
-  /**
-   * Get or create session ID
-   */
+  
   private getSessionId(): string {
     let sessionId = sessionStorage.getItem('remote-logger-session');
     if (!sessionId) {
@@ -222,22 +203,18 @@ class RemoteLogger {
     return sessionId;
   }
 
-  /**
-   * Enable or disable remote logging
-   */
+  
   public setEnabled(enabled: boolean): void {
     this.enabled = enabled;
     if (!enabled) {
-      this.flush(); // Flush any remaining logs
+      this.flush(); 
       this.stopFlushTimer();
     } else {
       this.startFlushTimer();
     }
   }
 
-  /**
-   * Configure the logger
-   */
+  
   public configure(options: {
     flushInterval?: number;
     maxBufferSize?: number;
@@ -263,9 +240,7 @@ class RemoteLogger {
     }
   }
 
-  /**
-   * Create a namespaced logger
-   */
+  
   public createLogger(namespace: string) {
     return {
       debug: (message: string, data?: any) => this.log('debug', namespace, message, undefined, data),
@@ -279,9 +254,7 @@ class RemoteLogger {
     };
   }
 
-  /**
-   * Log XR-specific information
-   */
+  
   public logXRInfo(): void {
     const xrInfo: any = {
       webXRSupported: 'xr' in navigator,
@@ -291,7 +264,7 @@ class RemoteLogger {
       timestamp: new Date().toISOString()
     };
 
-    // Check XR capabilities if available
+    
     if ('xr' in navigator && navigator.xr) {
       navigator.xr.isSessionSupported('immersive-vr').then(supported => {
         xrInfo.vrSupported = supported;
@@ -308,12 +281,12 @@ class RemoteLogger {
       });
     }
 
-    // Check if on Quest device
+    
     const isQuest = /OculusBrowser|Quest/i.test(navigator.userAgent);
     xrInfo.isQuestDevice = isQuest;
 
     if (isQuest) {
-      // Extract Quest version if possible
+      
       const questMatch = navigator.userAgent.match(/Quest\s*(\d+)?/i);
       if (questMatch) {
         xrInfo.questVersion = questMatch[1] || 'Unknown';
@@ -332,7 +305,7 @@ export const createRemoteLogger = (namespace: string) => remoteLogger.createLogg
 
 // Log XR info on load
 if (typeof window !== 'undefined') {
-  // Wait a bit for other systems to initialize
+  
   setTimeout(() => {
     remoteLogger.logXRInfo();
   }, 1000);

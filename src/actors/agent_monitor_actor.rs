@@ -20,11 +20,11 @@ use crate::types::claude_flow::{
     AgentProfile, AgentStatus, AgentType, ClaudeFlowClient, PerformanceMetrics, TokenUsage,
 };
 
-/// Convert Management API TaskInfo to AgentStatus for graph visualization
+/
 fn task_to_agent_status(task: TaskInfo) -> AgentStatus {
     use chrono::TimeZone;
 
-    // Map agent type string to AgentType enum
+    
     let agent_type_enum = match task.agent.as_str() {
         "coder" => AgentType::Coder,
         "planner" => AgentType::Coordinator,
@@ -34,17 +34,17 @@ fn task_to_agent_status(task: TaskInfo) -> AgentStatus {
         _ => AgentType::Coordinator,
     };
 
-    // Create timestamp
+    
     let timestamp = chrono::Utc
         .timestamp_millis_opt(task.start_time as i64)
         .single()
         .unwrap_or_else(|| chrono::Utc::now());
 
-    // Calculate age in seconds
+    
     let age = (chrono::Utc::now().timestamp_millis() - task.start_time as i64) / 1000;
 
     AgentStatus {
-        // Core identification
+        
         agent_id: task.task_id.clone(),
         profile: AgentProfile {
             name: format!("{} ({})", task.agent, &task.task_id[..8]),
@@ -64,7 +64,7 @@ fn task_to_agent_status(task: TaskInfo) -> AgentStatus {
         agent_type: task.agent.clone(),
         current_task_description: Some(task.task.clone()),
         capabilities: vec![format!("Provider: {}", task.provider)],
-        position: None, // Will be positioned by physics engine
+        position: None, 
         cpu_usage: 0.5,
         memory_usage: 200.0,
         health: 1.0,
@@ -91,23 +91,23 @@ fn task_to_agent_status(task: TaskInfo) -> AgentStatus {
         workload: Some(0.5),
     }
 }
-/// AgentMonitorActor - Monitoring via Management API
+/
 pub struct AgentMonitorActor {
     _client: ClaudeFlowClient,
     graph_service_addr: Addr<crate::actors::graph_service_supervisor::TransitionalGraphSupervisor>,
     management_api_client: ManagementApiClient,
 
-    /// Connection state
+    
     is_connected: bool,
 
-    /// Polling configuration
+    
     polling_interval: Duration,
     last_poll: DateTime<Utc>,
 
-    /// Agent cache (task_id -> AgentStatus)
+    
     agent_cache: HashMap<String, AgentStatus>,
 
-    /// Error tracking
+    
     consecutive_poll_failures: u32,
     last_successful_poll: Option<DateTime<Utc>>,
 }
@@ -121,7 +121,7 @@ impl AgentMonitorActor {
     ) -> Self {
         info!("[AgentMonitorActor] Initializing with Management API monitoring");
 
-        // Create Management API client
+        
         let host = std::env::var("MANAGEMENT_API_HOST")
             .unwrap_or_else(|_| "agentic-workstation".to_string());
         let port = std::env::var("MANAGEMENT_API_PORT")
@@ -138,7 +138,7 @@ impl AgentMonitorActor {
             graph_service_addr,
             management_api_client,
             is_connected: false,
-            polling_interval: Duration::from_secs(3), // Poll every 3 seconds
+            polling_interval: Duration::from_secs(3), 
             last_poll: Utc::now(),
             agent_cache: HashMap::new(),
             consecutive_poll_failures: 0,
@@ -146,7 +146,7 @@ impl AgentMonitorActor {
         }
     }
 
-    /// Poll agent statuses from Management API
+    
     fn poll_agent_statuses(&mut self, ctx: &mut Context<Self>) {
         debug!("[AgentMonitorActor] Polling active tasks from Management API");
 
@@ -163,7 +163,7 @@ impl AgentMonitorActor {
                             active_count
                         );
 
-                        // Convert tasks to agent statuses
+                        
                         let agents: Vec<AgentStatus> = task_list
                             .active_tasks
                             .into_iter()
@@ -183,7 +183,7 @@ impl AgentMonitorActor {
     }
 }
 
-/// Message to process agent statuses from MCP
+/
 #[derive(Message)]
 #[rtype(result = "()")]
 struct ProcessAgentStatuses {
@@ -198,7 +198,7 @@ impl Actor for AgentMonitorActor {
 
         self.is_connected = true;
 
-        // Defer polling start to avoid reactor panic
+        
         ctx.address()
             .do_send(crate::actors::messages::InitializeActor);
     }
@@ -217,7 +217,7 @@ impl Handler<crate::actors::messages::InitializeActor> for AgentMonitorActor {
         ctx: &mut Self::Context,
     ) -> Self::Result {
         info!("[AgentMonitorActor] Initializing periodic polling (deferred from started)");
-        // Start periodic polling with deferred interval setup
+        
         ctx.run_later(Duration::from_millis(100), |act, ctx| {
             ctx.run_interval(act.polling_interval, |act, ctx| {
                 act.poll_agent_statuses(ctx);
@@ -235,7 +235,7 @@ impl Handler<ProcessAgentStatuses> for AgentMonitorActor {
             msg.agents.len()
         );
 
-        // Convert AgentStatus to Agent for UpdateBotsGraph
+        
         let agents: Vec<crate::services::bots_client::Agent> = msg
             .agents
             .iter()
@@ -258,7 +258,7 @@ impl Handler<ProcessAgentStatuses> for AgentMonitorActor {
             })
             .collect();
 
-        // Send graph update
+        
         let message = UpdateBotsGraph { agents };
         info!(
             "[AgentMonitorActor] Sending graph update with {} agents",
@@ -266,7 +266,7 @@ impl Handler<ProcessAgentStatuses> for AgentMonitorActor {
         );
         self.graph_service_addr.do_send(message);
 
-        // Update cache
+        
         if !msg.agents.is_empty() {
             self.agent_cache.clear();
             for agent in msg.agents {
@@ -274,7 +274,7 @@ impl Handler<ProcessAgentStatuses> for AgentMonitorActor {
             }
         }
 
-        // Mark poll as successful
+        
         self.consecutive_poll_failures = 0;
         self.last_successful_poll = Some(Utc::now());
     }

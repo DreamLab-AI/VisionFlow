@@ -9,10 +9,10 @@ use async_trait::async_trait;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-/// Handler for GPU physics commands
-///
-/// Note: GpuPhysicsAdapter requires &mut self for mutations,
-/// so we wrap it in a Mutex for thread-safe access
+/
+/
+/
+/
 pub struct PhysicsCommandHandler {
     adapter: Arc<Mutex<dyn GpuPhysicsAdapter>>,
 }
@@ -92,7 +92,7 @@ impl CommandHandler<CleanupPhysicsCommand> for PhysicsCommandHandler {
     }
 }
 
-/// Handler for GPU physics queries
+/
 pub struct PhysicsQueryHandler {
     adapter: Arc<Mutex<dyn GpuPhysicsAdapter>>,
 }
@@ -131,7 +131,7 @@ impl QueryHandler<ListGpuDevicesQuery> for PhysicsQueryHandler {
         &self,
         _query: ListGpuDevicesQuery,
     ) -> Result<Vec<crate::ports::gpu_physics_adapter::GpuDeviceInfo>> {
-        // Return single GPU device for now
+        
         let adapter = self.adapter.lock().await;
         let device = adapter.get_gpu_status().await?;
         Ok(vec![device])

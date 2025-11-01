@@ -2,8 +2,8 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-/// Stores metadata about a processed file.
-/// All fields use camelCase serialization for client compatibility.
+/
+/
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Metadata {
@@ -22,13 +22,13 @@ pub struct Metadata {
     #[serde(default = "Utc::now")]
     pub last_modified: DateTime<Utc>,
     #[serde(default)]
-    pub last_content_change: Option<DateTime<Utc>>, // When content actually changed
+    pub last_content_change: Option<DateTime<Utc>>, 
     #[serde(default)]
-    pub last_commit: Option<DateTime<Utc>>, // When file appeared in any commit
+    pub last_commit: Option<DateTime<Utc>>, 
     #[serde(default)]
-    pub change_count: Option<u32>, // Number of actual content changes
+    pub change_count: Option<u32>, 
     #[serde(default)]
-    pub file_blob_sha: Option<String>, // GitHub file blob SHA
+    pub file_blob_sha: Option<String>, 
     #[serde(default)]
     pub perplexity_link: String,
     #[serde(default)]
@@ -39,14 +39,14 @@ pub struct Metadata {
 
 // Default function for node_id to ensure backward compatibility
 fn default_node_id() -> String {
-    // Will be replaced with actual ID during processing
+    
     "0".to_string()
 }
 
-/// Type alias for metadata storage with camelCase keys
+/
 pub type MetadataStore = HashMap<String, Metadata>;
 
-/// Type alias for file metadata - same as Metadata
+/
 pub type FileMetadata = Metadata;
 
 // Implement helper methods directly on HashMap<String, Metadata>
@@ -57,7 +57,7 @@ pub trait MetadataOps {
 
 impl MetadataOps for MetadataStore {
     fn get_max_node_id(&self) -> u32 {
-        // Find the maximum node_id in the metadata store
+        
         self.values()
             .map(|m| m.node_id.parse::<u32>().unwrap_or(0))
             .max()
@@ -69,7 +69,7 @@ impl MetadataOps for MetadataStore {
             return false;
         }
 
-        // Check if the markdown files referenced in metadata actually exist
+        
         for filename in self.keys() {
             let file_path = format!("{}/{}", markdown_dir, filename);
             if !std::path::Path::new(&file_path).exists() {

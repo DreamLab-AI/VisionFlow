@@ -11,30 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-/**
- * Performance Control Panel - GPU, FPS, and optimization settings
- *
- * Features:
- * - FPS monitoring and limiting
- * - GPU memory management
- * - Quality level presets (LOD)
- * - Adaptive quality controls
- * - Physics convergence tuning
- * - GPU kernel optimization
- *
- * Connected to 11 performance settings from database:
- * - performance.showFPS
- * - performance.targetFPS
- * - performance.gpuMemoryLimit
- * - performance.levelOfDetail
- * - performance.enableAdaptiveQuality
- * - performance.warmupDuration
- * - performance.convergenceThreshold
- * - performance.enableAdaptiveCooling
- * - performance.gpuBlockSize
- * - performance.enableMemoryCoalescing
- * - performance.iterationLimit
- */
+
 
 interface PerformanceMetrics {
   currentFPS: number;
@@ -65,7 +42,7 @@ export const PerformanceControlPanel: React.FC = () => {
     convergenceRate: 0
   });
 
-  // Poll performance metrics
+  
   useEffect(() => {
     const pollMetrics = async () => {
       try {
@@ -86,8 +63,8 @@ export const PerformanceControlPanel: React.FC = () => {
       }
     };
 
-    const timer = setInterval(pollMetrics, 1000); // Poll every second
-    pollMetrics(); // Initial fetch
+    const timer = setInterval(pollMetrics, 1000); 
+    pollMetrics(); 
     return () => clearInterval(timer);
   }, []);
 
@@ -110,7 +87,7 @@ export const PerformanceControlPanel: React.FC = () => {
       updateSetting('performance.levelOfDetail', preset);
       updateSetting('performance.targetFPS', level.targetFPS);
 
-      // Apply associated settings based on preset
+      
       switch (preset) {
         case 'low':
           updateSetting('performance.gpuMemoryLimit', 1024);
@@ -138,7 +115,7 @@ export const PerformanceControlPanel: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div>
         <h2 className="text-2xl font-bold flex items-center gap-2">
           <Zap className="w-6 h-6" />
@@ -149,7 +126,7 @@ export const PerformanceControlPanel: React.FC = () => {
         </p>
       </div>
 
-      {/* Live Metrics Card */}
+      {}
       {settings?.performance?.showFPS && (
         <Card>
           <CardHeader>
@@ -162,7 +139,7 @@ export const PerformanceControlPanel: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* FPS Display */}
+            {}
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Current FPS:</span>
               <span className={`text-3xl font-mono font-bold ${getFPSColor(metrics.currentFPS, settings?.performance?.targetFPS || 60)}`}>
@@ -170,7 +147,7 @@ export const PerformanceControlPanel: React.FC = () => {
               </span>
             </div>
 
-            {/* Target FPS */}
+            {}
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Target:</span>
               <span className="font-mono">{settings?.performance?.targetFPS || 60} FPS</span>
@@ -178,7 +155,7 @@ export const PerformanceControlPanel: React.FC = () => {
 
             <Separator />
 
-            {/* GPU Usage */}
+            {}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">GPU Usage:</span>
@@ -192,7 +169,7 @@ export const PerformanceControlPanel: React.FC = () => {
               </div>
             </div>
 
-            {/* GPU Memory */}
+            {}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">GPU Memory:</span>
@@ -208,7 +185,7 @@ export const PerformanceControlPanel: React.FC = () => {
               </div>
             </div>
 
-            {/* Physics Metrics */}
+            {}
             <Separator />
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
@@ -226,7 +203,7 @@ export const PerformanceControlPanel: React.FC = () => {
 
       <Separator />
 
-      {/* Quality Presets */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -262,7 +239,7 @@ export const PerformanceControlPanel: React.FC = () => {
 
       <Separator />
 
-      {/* FPS Settings */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle>FPS Controls</CardTitle>
@@ -271,7 +248,7 @@ export const PerformanceControlPanel: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Show FPS Toggle */}
+          {}
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="show-fps">Show FPS Counter</Label>
@@ -286,7 +263,7 @@ export const PerformanceControlPanel: React.FC = () => {
             />
           </div>
 
-          {/* Target FPS Slider */}
+          {}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="target-fps">Target FPS</Label>
@@ -312,7 +289,7 @@ export const PerformanceControlPanel: React.FC = () => {
 
       <Separator />
 
-      {/* GPU Memory Management */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -324,7 +301,7 @@ export const PerformanceControlPanel: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* GPU Memory Limit */}
+          {}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="gpu-memory">Memory Limit</Label>
@@ -344,7 +321,7 @@ export const PerformanceControlPanel: React.FC = () => {
             </p>
           </div>
 
-          {/* GPU Block Size */}
+          {}
           <div className="space-y-2">
             <Label htmlFor="block-size">CUDA Block Size</Label>
             <Select
@@ -367,7 +344,7 @@ export const PerformanceControlPanel: React.FC = () => {
             </p>
           </div>
 
-          {/* Memory Coalescing */}
+          {}
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="memory-coalescing">Enable Memory Coalescing</Label>
@@ -386,7 +363,7 @@ export const PerformanceControlPanel: React.FC = () => {
 
       <Separator />
 
-      {/* Physics Optimization */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -398,7 +375,7 @@ export const PerformanceControlPanel: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Iteration Limit */}
+          {}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="iteration-limit">Iteration Limit</Label>
@@ -418,7 +395,7 @@ export const PerformanceControlPanel: React.FC = () => {
             </p>
           </div>
 
-          {/* Warmup Duration */}
+          {}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="warmup">Warmup Duration</Label>
@@ -438,7 +415,7 @@ export const PerformanceControlPanel: React.FC = () => {
             </p>
           </div>
 
-          {/* Convergence Threshold */}
+          {}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="convergence">Convergence Threshold</Label>
@@ -462,7 +439,7 @@ export const PerformanceControlPanel: React.FC = () => {
 
       <Separator />
 
-      {/* Adaptive Features */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -474,7 +451,7 @@ export const PerformanceControlPanel: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Adaptive Quality */}
+          {}
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="adaptive-quality">Adaptive Quality</Label>
@@ -489,7 +466,7 @@ export const PerformanceControlPanel: React.FC = () => {
             />
           </div>
 
-          {/* Adaptive Cooling */}
+          {}
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="adaptive-cooling">Adaptive Cooling</Label>

@@ -1,7 +1,4 @@
-/**
- * Graph Visualisation Tab Component
- * Controls advanced visualisation features with UK English localisation
- */
+
 
 import React, { useState, useCallback } from 'react';
 import {
@@ -36,7 +33,7 @@ export const GraphVisualisationTab: React.FC<GraphVisualisationTabProps> = ({
   graphId = 'default',
   onFeatureUpdate
 }) => {
-  // Synchronisation states
+  
   const [syncEnabled, setSyncEnabled] = useState(false);
   const [cameraSync, setCameraSync] = useState(true);
   const [selectionSync, setSelectionSync] = useState(true);
@@ -44,13 +41,13 @@ export const GraphVisualisationTab: React.FC<GraphVisualisationTabProps> = ({
   const [panSync, setPanSync] = useState(true);
   const [transitionDuration, setTransitionDuration] = useState([300]);
 
-  // Animation states
+  
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
   const [transitionEffect, setTransitionEffect] = useState('smooth');
   const [nodeAnimations, setNodeAnimations] = useState(true);
   const [edgeAnimations, setEdgeAnimations] = useState(true);
   
-  // Visual effects
+  
   const [visualEffects, setVisualEffects] = useState({
     bloom: false,
     glow: true,
@@ -127,7 +124,7 @@ export const GraphVisualisationTab: React.FC<GraphVisualisationTabProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Graph Mode Selection */}
+      {}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -140,7 +137,7 @@ export const GraphVisualisationTab: React.FC<GraphVisualisationTabProps> = ({
         </CardContent>
       </Card>
 
-      {/* Graph Synchronisation */}
+      {}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -212,7 +209,7 @@ export const GraphVisualisationTab: React.FC<GraphVisualisationTabProps> = ({
         </CardContent>
       </Card>
 
-      {/* Animation System */}
+      {}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -260,7 +257,7 @@ export const GraphVisualisationTab: React.FC<GraphVisualisationTabProps> = ({
         </CardContent>
       </Card>
 
-      {/* Visual Effects */}
+      {}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -287,7 +284,7 @@ export const GraphVisualisationTab: React.FC<GraphVisualisationTabProps> = ({
         </CardContent>
       </Card>
 
-      {/* Camera Controls */}
+      {}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">

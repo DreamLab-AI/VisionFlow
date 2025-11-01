@@ -38,19 +38,19 @@ interface ShortestPathControlsProps {
 export function ShortestPathControls({ nodes, edges, className }: ShortestPathControlsProps) {
   const { toast } = useToast();
   
-  // State
+  
   const [sourceNodeId, setSourceNodeId] = useState<string>('');
   const [algorithm, setAlgorithm] = useState<'dijkstra' | 'bellman-ford' | 'floyd-warshall'>('dijkstra');
   const [showNormalized, setShowNormalized] = useState(false);
   const [progress, setProgress] = useState(0);
   
-  // Store actions and state
+  
   const computeSSSP = useAnalyticsStore(state => state.computeSSSP);
   const clearResults = useAnalyticsStore(state => state.clearResults);
   const normalizeDistances = useAnalyticsStore(state => state.normalizeDistances);
   const getUnreachableNodes = useAnalyticsStore(state => state.getUnreachableNodes);
   
-  // Store state
+  
   const currentResult = useCurrentSSSPResult();
   const loading = useSSSPLoading();
   const error = useSSSPError();
@@ -80,14 +80,14 @@ export function ShortestPathControls({ nodes, edges, className }: ShortestPathCo
     }
   ];
 
-  // Set default source node when nodes change
+  
   useEffect(() => {
     if (nodes.length > 0 && !sourceNodeId) {
       setSourceNodeId(nodes[0].id);
     }
   }, [nodes, sourceNodeId]);
 
-  // Simulate progress during computation
+  
   useEffect(() => {
     if (loading) {
       const timer = setInterval(() => {
@@ -155,7 +155,7 @@ export function ShortestPathControls({ nodes, edges, className }: ShortestPathCo
 
   return (
     <div className={`space-y-4 ${className}`}>
-      {/* Shortest Path Analysis */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -274,7 +274,7 @@ export function ShortestPathControls({ nodes, edges, className }: ShortestPathCo
               
               {currentResult ? (
                 <div className="space-y-4">
-                  {/* Summary Statistics */}
+                  {}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
                       <div className="flex items-center gap-2">
@@ -313,7 +313,7 @@ export function ShortestPathControls({ nodes, edges, className }: ShortestPathCo
                     </div>
                   </div>
 
-                  {/* Distance Table */}
+                  {}
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <Label className="font-medium">Shortest Distances</Label>
@@ -386,7 +386,7 @@ export function ShortestPathControls({ nodes, edges, className }: ShortestPathCo
         </CardContent>
       </Card>
 
-      {/* Performance Metrics */}
+      {}
       {metrics.totalComputations > 0 && (
         <Card>
           <CardHeader>

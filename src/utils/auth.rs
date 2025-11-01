@@ -5,8 +5,8 @@ use uuid::Uuid;
 use crate::services::nostr_service::NostrService;
 
 pub enum AccessLevel {
-    Authenticated,  // Any authenticated Nostr user
-    PowerUser,      // Power users only
+    Authenticated,  
+    PowerUser,      
 }
 
 pub async fn verify_access(
@@ -14,14 +14,14 @@ pub async fn verify_access(
     nostr_service: &NostrService,
     required_level: AccessLevel,
 ) -> Result<String, HttpResponse> {
-    // Generate request ID for tracing
+    
     let request_id = req.headers()
         .get("X-Request-ID")
         .and_then(|v| v.to_str().ok())
         .unwrap_or(&Uuid::new_v4().to_string())
         .to_string();
 
-    // Get pubkey from header
+    
     let pubkey = match req.headers().get("X-Nostr-Pubkey") {
         Some(value) => value.to_str().unwrap_or("").to_string(),
         None => {
@@ -34,7 +34,7 @@ pub async fn verify_access(
         }
     };
 
-    // Get token from header
+    
     let token = match req.headers().get("X-Nostr-Token") {
         Some(value) => value.to_str().unwrap_or("").to_string(),
         None => {
@@ -48,7 +48,7 @@ pub async fn verify_access(
         }
     };
 
-    // Log successful header extraction
+    
     debug!(
         request_id = %request_id,
         has_pubkey = !pubkey.is_empty(),
@@ -57,7 +57,7 @@ pub async fn verify_access(
         "Authentication headers extracted"
     );
 
-    // Validate session
+    
     if !nostr_service.validate_session(&pubkey, &token).await {
         warn!("Invalid or expired session for user {}", pubkey);
         debug!(
@@ -74,10 +74,10 @@ pub async fn verify_access(
         "Session validated successfully"
     );
 
-    // Check access level
+    
     match required_level {
         AccessLevel::Authenticated => {
-            // Any valid session is sufficient
+            
             debug!(
                 request_id = %request_id,
                 pubkey = %pubkey,

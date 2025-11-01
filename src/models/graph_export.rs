@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
 
-/// Export format enum for graph serialization
+/
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum ExportFormat {
@@ -26,7 +26,7 @@ impl std::fmt::Display for ExportFormat {
     }
 }
 
-/// Request for exporting a graph
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportRequest {
     pub format: ExportFormat,
@@ -36,7 +36,7 @@ pub struct ExportRequest {
     pub custom_attributes: Option<Vec<String>>,
 }
 
-/// Response from graph export
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportResponse {
     pub export_id: String,
@@ -47,7 +47,7 @@ pub struct ExportResponse {
     pub expires_at: DateTime<Utc>,
 }
 
-/// Shared graph metadata
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SharedGraph {
     pub id: Uuid,
@@ -70,7 +70,7 @@ pub struct SharedGraph {
     pub metadata: HashMap<String, serde_json::Value>,
 }
 
-/// Request to create a shared graph link
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ShareRequest {
     pub title: String,
@@ -84,7 +84,7 @@ pub struct ShareRequest {
     pub include_metadata: bool,
 }
 
-/// Response from creating a shared graph
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ShareResponse {
     pub share_id: Uuid,
@@ -94,7 +94,7 @@ pub struct ShareResponse {
     pub created_at: DateTime<Utc>,
 }
 
-/// Request to publish graph to repository
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PublishRequest {
     pub title: String,
@@ -107,7 +107,7 @@ pub struct PublishRequest {
     pub export_format: ExportFormat,
 }
 
-/// Response from publishing a graph
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PublishResponse {
     pub publication_id: Uuid,
@@ -117,7 +117,7 @@ pub struct PublishResponse {
     pub status: PublicationStatus,
 }
 
-/// Publication status enum
+/
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum PublicationStatus {
@@ -127,7 +127,7 @@ pub enum PublicationStatus {
     Published,
 }
 
-/// Graph export statistics
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportStats {
     pub total_exports: u64,
@@ -138,7 +138,7 @@ pub struct ExportStats {
     pub last_export: Option<DateTime<Utc>>,
 }
 
-/// Rate limiting information for exports
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RateLimitInfo {
     pub remaining_exports: u32,
@@ -147,7 +147,7 @@ pub struct RateLimitInfo {
     pub hourly_limit: u32,
 }
 
-/// Compression statistics
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CompressionStats {
     pub original_size: u64,
@@ -157,7 +157,7 @@ pub struct CompressionStats {
 }
 
 impl SharedGraph {
-    /// Create a new shared graph instance
+    
     pub fn new(
         title: String,
         description: Option<String>,
@@ -192,7 +192,7 @@ impl SharedGraph {
         }
     }
 
-    /// Check if the shared graph has expired
+    
     pub fn is_expired(&self) -> bool {
         if let Some(expires_at) = self.expires_at {
             Utc::now() > expires_at
@@ -201,7 +201,7 @@ impl SharedGraph {
         }
     }
 
-    /// Check if access limit has been reached
+    
     pub fn access_limit_reached(&self) -> bool {
         if let Some(max_count) = self.max_access_count {
             self.access_count >= max_count
@@ -210,23 +210,23 @@ impl SharedGraph {
         }
     }
 
-    /// Increment access count
+    
     pub fn increment_access(&mut self) {
         self.access_count += 1;
         self.updated_at = Utc::now();
     }
 
-    /// Set expiration time
+    
     pub fn set_expiration(&mut self, hours: u32) {
         self.expires_at = Some(Utc::now() + chrono::Duration::hours(hours as i64));
     }
 
-    /// Validate password
+    
     pub fn validate_password(&self, password: &str) -> bool {
         if let Some(hash) = &self.password_hash {
             bcrypt::verify(password, hash).unwrap_or(false)
         } else {
-            true // No password required
+            true 
         }
     }
 }
@@ -248,7 +248,7 @@ impl Default for ShareRequest {
         Self {
             title: "Shared Graph".to_string(),
             description: None,
-            expires_in_hours: Some(24 * 7), // 7 days default
+            expires_in_hours: Some(24 * 7), 
             max_access_count: None,
             is_public: true,
             password: None,

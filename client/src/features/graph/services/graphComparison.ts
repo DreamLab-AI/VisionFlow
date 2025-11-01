@@ -1,7 +1,4 @@
-/**
- * Advanced Graph Comparison Tools
- * Provides cross-graph node matching, relationship bridges, difference highlighting, and similarity analysis
- */
+
 
 import { Vector3, Color } from 'three';
 import { createLogger } from '../../../utils/loggerConfig';
@@ -91,9 +88,7 @@ export class GraphComparison {
     return GraphComparison.instance;
   }
 
-  /**
-   * Find matching nodes between two graphs
-   */
+  
   public async findNodeMatches(
     logseqGraph: GraphData,
     visionflowGraph: GraphData,
@@ -131,14 +126,12 @@ export class GraphComparison {
       }
     }
 
-    // Sort matches by confidence and remove conflicts
+    
     matches.sort((a, b) => b.confidence - a.confidence);
     return this.resolveMatchConflicts(matches);
   }
 
-  /**
-   * Calculate match score between two nodes
-   */
+  
   private calculateNodeMatch(
     logseqNode: GraphNode,
     visionflowNode: GraphNode,
@@ -146,19 +139,19 @@ export class GraphComparison {
     visionflowGraph: GraphData,
     options: any
   ): NodeMatch {
-    // Name similarity
+    
     const nameSimilarity = this.calculateStringSimilarity(
       logseqNode.label || logseqNode.id,
       visionflowNode.label || visionflowNode.id
     );
 
-    // Type similarity
+    
     const typeSimilarity = this.calculateTypeSimilarity(
       logseqNode.metadata?.type,
       visionflowNode.metadata?.type
     );
 
-    // Structural similarity (connections)
+    
     const logseqConnections = logseqGraph.edges.filter(
       e => e.source === logseqNode.id || e.target === logseqNode.id
     ).length;
@@ -168,19 +161,19 @@ export class GraphComparison {
     const connectionSimilarity = 1 - Math.abs(logseqConnections - visionflowConnections) / 
       Math.max(logseqConnections, visionflowConnections, 1);
 
-    // Metadata similarity
+    
     const metadataSimilarity = this.calculateMetadataSimilarity(
       logseqNode.metadata,
       visionflowNode.metadata
     );
 
-    // Weighted confidence score
+    
     const confidence = 
       nameSimilarity * options.exactMatchWeight +
       (typeSimilarity + connectionSimilarity) * options.structuralMatchWeight +
       metadataSimilarity * options.semanticMatchWeight;
 
-    // Determine match type
+    
     let matchType: NodeMatch['matchType'] = 'fuzzy';
     if (nameSimilarity > 0.9 && typeSimilarity > 0.8) matchType = 'exact';
     else if (metadataSimilarity > 0.7) matchType = 'semantic';
@@ -200,9 +193,7 @@ export class GraphComparison {
     };
   }
 
-  /**
-   * Create relationship bridges between matched nodes
-   */
+  
   public createRelationshipBridges(
     matches: NodeMatch[],
     logseqGraph: GraphData,
@@ -217,7 +208,7 @@ export class GraphComparison {
       const bridgeId = `bridge-${index}`;
       const strength = match.confidence;
       
-      // Determine visual style based on match type and strength
+      
       const visualStyle = this.getBridgeVisualStyle(match);
 
       const bridge: RelationshipBridge = {
@@ -238,9 +229,7 @@ export class GraphComparison {
     return bridges;
   }
 
-  /**
-   * Analyze differences between graphs
-   */
+  
   public analyzeDifferences(
     logseqGraph: GraphData,
     visionflowGraph: GraphData,
@@ -254,11 +243,11 @@ export class GraphComparison {
     const onlyInLogseq = logseqGraph.nodes.filter(node => !matchedLogseqIds.has(node.id));
     const onlyInVisionflow = visionflowGraph.nodes.filter(node => !matchedVisionflowIds.has(node.id));
 
-    // Analyze clusters
+    
     const logseqClusters = this.detectClusters(logseqGraph);
     const visionflowClusters = this.detectClusters(visionflowGraph);
 
-    // Detect unique patterns
+    
     const uniquePatterns = this.detectUniquePatterns(logseqGraph, visionflowGraph, matches);
 
     return {
@@ -273,9 +262,7 @@ export class GraphComparison {
     };
   }
 
-  /**
-   * Perform comprehensive similarity analysis
-   */
+  
   public performSimilarityAnalysis(
     logseqGraph: GraphData,
     visionflowGraph: GraphData,
@@ -283,19 +270,19 @@ export class GraphComparison {
   ): SimilarityAnalysis {
     logger.info('Performing similarity analysis');
 
-    // Calculate various similarity metrics
+    
     const structuralSimilarity = this.calculateStructuralSimilarity(logseqGraph, visionflowGraph);
     const semanticSimilarity = this.calculateSemanticSimilarity(matches);
     const topologicalSimilarity = this.calculateTopologicalSimilarity(logseqGraph, visionflowGraph);
 
-    // Overall similarity (weighted average)
+    
     const overallSimilarity = (
       structuralSimilarity * 0.4 +
       semanticSimilarity * 0.3 +
       topologicalSimilarity * 0.3
     );
 
-    // Generate recommendations
+    
     const recommendations = this.generateRecommendations(
       logseqGraph,
       visionflowGraph,
@@ -312,9 +299,7 @@ export class GraphComparison {
     };
   }
 
-  /**
-   * Get highlighting data for difference visualization
-   */
+  
   public getDifferenceHighlighting(differences: GraphDifference): {
     logseqHighlights: Map<string, { color: Color; intensity: number }>;
     visionflowHighlights: Map<string, { color: Color; intensity: number }>;
@@ -322,27 +307,27 @@ export class GraphComparison {
     const logseqHighlights = new Map();
     const visionflowHighlights = new Map();
 
-    // Highlight unique nodes
+    
     differences.onlyInLogseq.forEach(node => {
       logseqHighlights.set(node.id, {
-        color: new Color('#ff4444'), // Red for unique
+        color: new Color('#ff4444'), 
         intensity: 0.8
       });
     });
 
     differences.onlyInVisionflow.forEach(node => {
       visionflowHighlights.set(node.id, {
-        color: new Color('#ff4444'), // Red for unique
+        color: new Color('#ff4444'), 
         intensity: 0.8
       });
     });
 
-    // Highlight matched nodes with confidence-based colors
+    
     differences.commonNodes.forEach(match => {
       const confidence = match.confidence;
       const color = new Color().lerpColors(
-        new Color('#ffaa00'), // Orange for low confidence
-        new Color('#44ff44'), // Green for high confidence
+        new Color('#ffaa00'), 
+        new Color('#44ff44'), 
         confidence
       );
 
@@ -360,7 +345,7 @@ export class GraphComparison {
     return { logseqHighlights, visionflowHighlights };
   }
 
-  // Helper methods
+  
 
   private calculateStringSimilarity(str1: string, str2: string): number {
     const longer = str1.length > str2.length ? str1 : str2;
@@ -399,7 +384,7 @@ export class GraphComparison {
     if (!type1 || !type2) return 0;
     if (type1 === type2) return 1;
     
-    // Define type hierarchies for semantic similarity
+    
     const typeHierarchy: Record<string, string[]> = {
       'file': ['document', 'text', 'code'],
       'folder': ['directory', 'container', 'namespace'],
@@ -408,7 +393,7 @@ export class GraphComparison {
       'variable': ['property', 'field', 'attribute']
     };
 
-    // Check if types are in the same hierarchy
+    
     for (const [parent, children] of Object.entries(typeHierarchy)) {
       if ((type1 === parent && children.includes(type2)) ||
           (type2 === parent && children.includes(type1)) ||
@@ -462,7 +447,7 @@ export class GraphComparison {
   private getBridgeVisualStyle(match: NodeMatch): RelationshipBridge['visualStyle'] {
     const confidence = match.confidence;
     
-    // Color based on match type
+    
     const colorMap = {
       exact: new Color('#00ff00'),
       semantic: new Color('#0088ff'),
@@ -485,7 +470,7 @@ export class GraphComparison {
   }
 
   private detectClusters(graph: GraphData): NodeCluster[] {
-    // Simple clustering algorithm based on connectivity
+    
     const clusters: NodeCluster[] = [];
     const visited = new Set<string>();
 
@@ -512,7 +497,7 @@ export class GraphComparison {
       visited.add(nodeId);
       clusterNodes.push(nodeId);
       
-      // Find connected nodes
+      
       const connectedNodes = graph.edges
         .filter(edge => edge.source === nodeId || edge.target === nodeId)
         .map(edge => edge.source === nodeId ? edge.target : edge.source)
@@ -521,7 +506,7 @@ export class GraphComparison {
       queue.push(...connectedNodes);
     }
 
-    // Calculate cluster characteristics
+    
     const positions = clusterNodes
       .map(id => graph.nodes.find(n => n.id === id)?.position)
       .filter(pos => pos) as Array<{ x: number; y: number; z: number }>;
@@ -560,7 +545,7 @@ export class GraphComparison {
   ): Pattern[] {
     const patterns: Pattern[] = [];
     
-    // Detect hubs (nodes with many connections)
+    
     const logseqHubs = this.detectHubs(logseqGraph);
     const visionflowHubs = this.detectHubs(visionflowGraph);
     
@@ -615,7 +600,7 @@ export class GraphComparison {
   }
 
   private calculateTopologicalSimilarity(graph1: GraphData, graph2: GraphData): number {
-    // Calculate graph metrics
+    
     const metrics1 = this.calculateGraphMetrics(graph1);
     const metrics2 = this.calculateGraphMetrics(graph2);
 
@@ -632,8 +617,8 @@ export class GraphComparison {
     
     const density = maxEdges > 0 ? m / maxEdges : 0;
     
-    // Simple clustering coefficient approximation
-    const clustering = 0; // Would need more complex calculation for real clustering coefficient
+    
+    const clustering = 0; 
 
     return { density, clustering };
   }
@@ -682,9 +667,7 @@ export class GraphComparison {
     return mostCommon;
   }
 
-  /**
-   * Cleanup resources
-   */
+  
   public dispose(): void {
     this.nodeMatches.clear();
     this.relationshipBridges.clear();

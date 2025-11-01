@@ -1,9 +1,4 @@
-/**
- * Quest3Optimizer - Phase 4: Quest 3-specific XR optimizations
- *
- * Handles hand tracking synchronization, controller support,
- * passthrough AR optimization, and performance targeting for Quest 3.
- */
+
 
 import * as BABYLON from '@babylonjs/core';
 import { ClientCore } from './VircadiaClientCore';
@@ -73,37 +68,35 @@ export class Quest3Optimizer {
         this.defaultConfig = { ...this.defaultConfig, ...config };
     }
 
-    /**
-     * Initialize Quest 3 optimizations with XR helper
-     */
+    
     async initialize(xrHelper: BABYLON.WebXRDefaultExperience): Promise<void> {
         logger.info('Initializing Quest 3 optimizations...');
 
         this.xrHelper = xrHelper;
 
-        // Get local agent ID
+        
         const info = this.client.Utilities.Connection.getConnectionInfo();
         if (info.agentId) {
             this.localAgentId = info.agentId;
         }
 
-        // Setup performance monitoring
+        
         this.setupPerformanceMonitoring();
 
-        // Setup foveated rendering
+        
         this.setupFoveatedRendering();
 
-        // Setup dynamic resolution scaling
+        
         if (this.defaultConfig.dynamicResolutionScale) {
             this.setupDynamicResolution();
         }
 
-        // Setup hand tracking
+        
         if (this.defaultConfig.enableHandTracking) {
             await this.setupHandTracking();
         }
 
-        // Setup controller support
+        
         if (this.defaultConfig.enableControllers) {
             this.setupControllers();
         }
@@ -111,9 +104,7 @@ export class Quest3Optimizer {
         logger.info('Quest 3 optimizations initialized');
     }
 
-    /**
-     * Setup performance monitoring
-     */
+    
     private setupPerformanceMonitoring(): void {
         this.performanceMonitor = new BABYLON.PerformanceMonitor();
 
@@ -127,9 +118,7 @@ export class Quest3Optimizer {
         logger.info('Performance monitoring enabled');
     }
 
-    /**
-     * Setup foveated rendering for Quest 3
-     */
+    
     private setupFoveatedRendering(): void {
         if (!this.xrHelper) return;
 
@@ -137,7 +126,7 @@ export class Quest3Optimizer {
         if (!session) return;
 
         try {
-            // Check if fixed foveation is supported
+            
             const glLayer = session.renderState.baseLayer as any;
             if (glLayer && 'fixedFoveation' in glLayer) {
                 glLayer.fixedFoveation = this.defaultConfig.foveatedRenderingLevel;
@@ -148,9 +137,7 @@ export class Quest3Optimizer {
         }
     }
 
-    /**
-     * Setup dynamic resolution scaling
-     */
+    
     private setupDynamicResolution(): void {
         const engine = this.scene.getEngine();
         const { targetFrameRate, minResolutionScale, maxResolutionScale } = this.defaultConfig;
@@ -159,14 +146,14 @@ export class Quest3Optimizer {
             const fps = this.currentFPS;
 
             if (fps < targetFrameRate - 10) {
-                // FPS too low, reduce resolution
+                
                 const currentScale = engine.getHardwareScalingLevel();
                 const newScale = Math.min(currentScale + 0.1, 1 / minResolutionScale);
                 engine.setHardwareScalingLevel(newScale);
                 logger.debug(`Resolution scaled down: ${newScale.toFixed(2)}`);
 
             } else if (fps > targetFrameRate + 5) {
-                // FPS good, increase resolution
+                
                 const currentScale = engine.getHardwareScalingLevel();
                 const newScale = Math.max(currentScale - 0.05, 1 / maxResolutionScale);
                 engine.setHardwareScalingLevel(newScale);
@@ -177,9 +164,7 @@ export class Quest3Optimizer {
         logger.info('Dynamic resolution scaling enabled');
     }
 
-    /**
-     * Setup hand tracking
-     */
+    
     private async setupHandTracking(): Promise<void> {
         if (!this.xrHelper) return;
 
@@ -190,7 +175,7 @@ export class Quest3Optimizer {
                 { xrInput: this.xrHelper.input }
             );
 
-            // Start broadcasting hand positions
+            
             this.startHandTracking();
 
             logger.info('Hand tracking enabled');
@@ -200,9 +185,7 @@ export class Quest3Optimizer {
         }
     }
 
-    /**
-     * Start broadcasting hand tracking data
-     */
+    
     private startHandTracking(): void {
         if (this.handUpdateInterval) {
             return;
@@ -218,33 +201,31 @@ export class Quest3Optimizer {
                 return;
             }
 
-            // Broadcast left hand
+            
             const leftHand = this.handFeature.getHandByControllerId('left');
             if (leftHand) {
                 await this.broadcastHandData('left', leftHand);
             }
 
-            // Broadcast right hand
+            
             const rightHand = this.handFeature.getHandByControllerId('right');
             if (rightHand) {
                 await this.broadcastHandData('right', rightHand);
             }
 
-        }, 50); // 20 Hz for hand tracking
+        }, 50); 
 
         logger.info('Hand tracking broadcast started');
     }
 
-    /**
-     * Broadcast hand tracking data to Vircadia
-     */
+    
     private async broadcastHandData(hand: 'left' | 'right', handData: any): Promise<void> {
         if (!this.localAgentId) return;
 
         try {
             const joints: HandJoint[] = [];
 
-            // Extract joint data
+            
             Object.keys(handData.trackedMeshes || {}).forEach((jointName: string) => {
                 const mesh = handData.trackedMeshes[jointName];
                 if (mesh) {
@@ -276,15 +257,13 @@ export class Quest3Optimizer {
         }
     }
 
-    /**
-     * Update remote user hand tracking visualization
-     */
+    
     updateRemoteHandTracking(agentId: string, hand: 'left' | 'right', joints: HandJoint[]): void {
         const handKey = `${agentId}_${hand}`;
         let handMeshes = this.remoteHands.get(handKey);
 
         if (!handMeshes) {
-            // Create hand joint meshes
+            
             handMeshes = joints.map((joint, index) => {
                 const sphere = BABYLON.MeshBuilder.CreateSphere(
                     `hand_${handKey}_${index}`,
@@ -302,7 +281,7 @@ export class Quest3Optimizer {
             this.remoteHands.set(handKey, handMeshes);
         }
 
-        // Update positions
+        
         joints.forEach((joint, index) => {
             if (handMeshes![index]) {
                 handMeshes![index].position = joint.position;
@@ -311,25 +290,21 @@ export class Quest3Optimizer {
         });
     }
 
-    /**
-     * Setup controller support
-     */
+    
     private setupControllers(): void {
         if (!this.xrHelper) return;
 
         this.xrHelper.input.onControllerAddedObservable.add((controller) => {
             logger.info(`Controller added: ${controller.uniqueId}`);
 
-            // Start broadcasting controller state
+            
             this.startControllerBroadcast();
         });
 
         logger.info('Controller support enabled');
     }
 
-    /**
-     * Start broadcasting controller state
-     */
+    
     private startControllerBroadcast(): void {
         if (this.controllerUpdateInterval) {
             return;
@@ -351,7 +326,7 @@ export class Quest3Optimizer {
                     timestamp: Date.now()
                 };
 
-                // Extract button states
+                
                 controller.motionController?.components.forEach((component, name) => {
                     if (component.type === BABYLON.WebXRControllerComponent.BUTTON_TYPE) {
                         controllerState.buttons[name] = component.pressed;
@@ -364,14 +339,12 @@ export class Quest3Optimizer {
                 await this.broadcastControllerState(controllerState);
             });
 
-        }, 50); // 20 Hz for controllers
+        }, 50); 
 
         logger.info('Controller broadcast started');
     }
 
-    /**
-     * Broadcast controller state to Vircadia
-     */
+    
     private async broadcastControllerState(state: ControllerState): Promise<void> {
         try {
             const query = `
@@ -406,15 +379,13 @@ export class Quest3Optimizer {
         }
     }
 
-    /**
-     * Update remote controller visualization
-     */
+    
     updateRemoteController(agentId: string, state: ControllerState): void {
         const controllerKey = `${agentId}_${state.controllerId}`;
         let controllerMesh = this.remoteControllers.get(controllerKey);
 
         if (!controllerMesh) {
-            // Create simple controller representation
+            
             controllerMesh = BABYLON.MeshBuilder.CreateCylinder(
                 `controller_${controllerKey}`,
                 { height: 0.15, diameter: 0.03 },
@@ -428,14 +399,12 @@ export class Quest3Optimizer {
             this.remoteControllers.set(controllerKey, controllerMesh);
         }
 
-        // Update position and orientation
+        
         controllerMesh.position = state.position;
         controllerMesh.rotationQuaternion = state.orientation;
     }
 
-    /**
-     * Get current performance metrics
-     */
+    
     getPerformanceMetrics() {
         return {
             fps: this.currentFPS,
@@ -447,9 +416,7 @@ export class Quest3Optimizer {
         };
     }
 
-    /**
-     * Stop hand tracking broadcast
-     */
+    
     private stopHandTracking(): void {
         if (this.handUpdateInterval) {
             clearInterval(this.handUpdateInterval);
@@ -458,9 +425,7 @@ export class Quest3Optimizer {
         }
     }
 
-    /**
-     * Stop controller broadcast
-     */
+    
     private stopControllerBroadcast(): void {
         if (this.controllerUpdateInterval) {
             clearInterval(this.controllerUpdateInterval);
@@ -469,22 +434,20 @@ export class Quest3Optimizer {
         }
     }
 
-    /**
-     * Dispose Quest 3 optimizer
-     */
+    
     dispose(): void {
         logger.info('Disposing Quest3Optimizer');
 
         this.stopHandTracking();
         this.stopControllerBroadcast();
 
-        // Dispose remote hand meshes
+        
         this.remoteHands.forEach(meshes => {
             meshes.forEach(mesh => mesh.dispose());
         });
         this.remoteHands.clear();
 
-        // Dispose remote controller meshes
+        
         this.remoteControllers.forEach(mesh => mesh.dispose());
         this.remoteControllers.clear();
 

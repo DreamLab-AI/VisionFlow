@@ -1,9 +1,4 @@
-/*!
- * WebSocket Integration for GPU Analytics
- *
- * Provides real-time GPU metrics, progress updates, and streaming analytics data
- * to clients via WebSocket connections with efficient delta compression.
- */
+
 
 use actix::prelude::*;
 use actix_web_actors::ws;
@@ -15,7 +10,7 @@ use std::time::Instant;
 use crate::app_state::AppState;
 use crate::handlers::api_handler::analytics::{ANOMALY_STATE, CLUSTERING_TASKS};
 
-/// WebSocket message types for GPU analytics
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AnalyticsWebSocketMessage {
@@ -25,7 +20,7 @@ pub struct AnalyticsWebSocketMessage {
     pub client_id: Option<String>,
 }
 
-/// GPU metrics update message
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GpuMetricsUpdate {
@@ -40,7 +35,7 @@ pub struct GpuMetricsUpdate {
     pub frame_time_ms: Option<f32>,
 }
 
-/// Clustering progress update
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ClusteringProgress {
@@ -53,7 +48,7 @@ pub struct ClusteringProgress {
     pub error: Option<String>,
 }
 
-/// Anomaly detection alert
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AnomalyAlert {
@@ -66,7 +61,7 @@ pub struct AnomalyAlert {
     pub requires_action: bool,
 }
 
-/// Real-time insights update
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct InsightsUpdate {
@@ -77,7 +72,7 @@ pub struct InsightsUpdate {
     pub recommendations: Vec<String>,
 }
 
-/// Client subscription preferences
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SubscriptionPreferences {
@@ -97,12 +92,12 @@ impl Default for SubscriptionPreferences {
             anomaly_alerts: true,
             insights_updates: true,
             performance_monitoring: true,
-            update_interval_ms: 5000, // 5 second updates by default
+            update_interval_ms: 5000, 
         }
     }
 }
 
-/// WebSocket actor for GPU analytics streaming
+/
 pub struct GpuAnalyticsWebSocket {
     client_id: String,
     app_state: actix_web::web::Data<AppState>,
@@ -141,7 +136,7 @@ impl GpuAnalyticsWebSocket {
         let client_id = self.client_id.clone();
 
         let fut = async move {
-            // Get GPU metrics from GPU compute actor
+            
             if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
                 match gpu_addr
                     .send(crate::actors::messages::GetPhysicsStats)
@@ -149,15 +144,15 @@ impl GpuAnalyticsWebSocket {
                 {
                     Ok(Ok(stats)) => {
                         let metrics = GpuMetricsUpdate {
-                            gpu_utilization: 75.0, // Would be from NVIDIA-ML in production
-                            memory_usage_percent: (1000 as f32 * 0.5) / 8192.0 * 100.0, // Default estimate
+                            gpu_utilization: 75.0, 
+                            memory_usage_percent: (1000 as f32 * 0.5) / 8192.0 * 100.0, 
                             temperature: 68.0,
                             power_draw: 120.0,
-                            active_kernels: 3, // Estimate based on active features
-                            compute_nodes: 1000, // Default estimate
+                            active_kernels: 3, 
+                            compute_nodes: 1000, 
                             compute_edges: stats.num_edges,
-                            fps: None,           // PhysicsStats doesn't have fps
-                            frame_time_ms: None, // PhysicsStats doesn't have frame_time_ms
+                            fps: None,           
+                            frame_time_ms: None, 
                         };
 
                         Some(metrics)
@@ -244,7 +239,7 @@ impl GpuAnalyticsWebSocket {
             let state = ANOMALY_STATE.lock().await;
             let mut alerts = Vec::new();
 
-            // Send recent high-severity anomalies as alerts
+            
             for anomaly in state.anomalies.iter().rev().take(5) {
                 if anomaly.severity == "critical" || anomaly.severity == "high" {
                     let alert = AnomalyAlert {
@@ -287,13 +282,13 @@ impl GpuAnalyticsWebSocket {
         let client_id = self.client_id.clone();
 
         let fut = async move {
-            // Generate real-time insights
+            
             let mut insights = Vec::new();
             let mut performance_warnings = Vec::new();
             let mut recommendations = Vec::new();
             let mut urgency_level = "low";
 
-            // Check GPU performance
+            
             if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
                 if let Ok(Ok(stats)) = gpu_addr
                     .send(crate::actors::messages::GetPhysicsStats)
@@ -309,7 +304,7 @@ impl GpuAnalyticsWebSocket {
                     }
 
                     if stats.total_force_calculations > 500000 {
-                        // Use available field
+                        
                         insights.push(format!(
                             "Processing large graph with {} force calculations",
                             stats.total_force_calculations
@@ -321,7 +316,7 @@ impl GpuAnalyticsWebSocket {
                 }
             }
 
-            // Check clustering status
+            
             {
                 let tasks = CLUSTERING_TASKS.lock().await;
                 let running_tasks = tasks.values().filter(|t| t.status == "running").count();
@@ -330,7 +325,7 @@ impl GpuAnalyticsWebSocket {
                 }
             }
 
-            // Check anomaly status
+            
             {
                 let state = ANOMALY_STATE.lock().await;
                 if state.stats.critical > 0 {
@@ -382,7 +377,7 @@ impl GpuAnalyticsWebSocket {
                 return;
             }
 
-            // Send different types of updates
+            
             act.send_gpu_metrics(ctx);
             act.send_clustering_progress(ctx);
             act.send_anomaly_alerts(ctx);
@@ -400,7 +395,7 @@ impl Actor for GpuAnalyticsWebSocket {
             self.client_id
         );
 
-        // Send welcome message with capabilities
+        
         let welcome = AnalyticsWebSocketMessage {
             message_type: "connected".to_string(),
             data: serde_json::json!({
@@ -420,7 +415,7 @@ impl Actor for GpuAnalyticsWebSocket {
 
         self.send_message(ctx, welcome);
 
-        // Start periodic updates
+        
         self.start_periodic_updates(ctx);
     }
 
@@ -464,7 +459,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for GpuAnalyticsWebSo
                                 }
                             }
                             "requestImmediateUpdate" => {
-                                // Send immediate update of all subscribed data
+                                
                                 self.send_gpu_metrics(ctx);
                                 self.send_clustering_progress(ctx);
                                 self.send_anomaly_alerts(ctx);
@@ -511,7 +506,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for GpuAnalyticsWebSo
     }
 }
 
-/// WebSocket route handler for GPU analytics
+/
 pub async fn gpu_analytics_websocket(
     req: actix_web::HttpRequest,
     stream: actix_web::web::Payload,

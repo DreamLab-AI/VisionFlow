@@ -1,7 +1,4 @@
-/**
- * AudioOutputService - Manages audio playback with queue management and Web Audio API
- * Handles TTS audio output with proper buffering and playback control
- */
+
 
 import { AudioContextManager } from './AudioContextManager';
 import { gatedConsole } from '../utils/console';
@@ -39,9 +36,7 @@ export class AudioOutputService {
     return AudioOutputService.instance;
   }
 
-  /**
-   * Add audio data to playback queue
-   */
+  
   async queueAudio(audioData: ArrayBuffer, id?: string): Promise<void> {
     const item: AudioQueueItem = {
       id: id || Date.now().toString(),
@@ -52,15 +47,13 @@ export class AudioOutputService {
     this.playbackQueue.push(item);
     this.emit('audioQueued', item);
 
-    // Start processing if not already
+    
     if (!this.isProcessing) {
       this.processQueue();
     }
   }
 
-  /**
-   * Process the audio queue
-   */
+  
   private async processQueue() {
     if (this.isProcessing || this.playbackQueue.length === 0) {
       return;
@@ -84,20 +77,18 @@ export class AudioOutputService {
     this.setState('idle');
   }
 
-  /**
-   * Play an audio buffer
-   */
+  
   private async playAudioBuffer(item: AudioQueueItem): Promise<void> {
     try {
-      // Decode audio data
+      
       const audioBuffer = await this.audioContext.decodeAudioData(item.buffer.slice(0));
       
-      // Create source
+      
       this.currentSource = this.audioContext.createBufferSource();
       this.currentSource.buffer = audioBuffer;
       this.currentSource.connect(this.gainNode);
 
-      // Wait for playback to complete
+      
       return new Promise((resolve) => {
         if (!this.currentSource) {
           resolve();
@@ -120,16 +111,14 @@ export class AudioOutputService {
     }
   }
 
-  /**
-   * Stop current playback and clear queue
-   */
+  
   stop() {
     if (this.currentSource) {
       try {
         this.currentSource.stop();
         this.currentSource.disconnect();
       } catch (e) {
-        // Ignore errors when stopping
+        
       }
       this.currentSource = null;
     }
@@ -140,13 +129,11 @@ export class AudioOutputService {
     this.emit('stopped');
   }
 
-  /**
-   * Pause playback
-   */
+  
   pause() {
     if (this.state === 'playing') {
       this.setState('paused');
-      // Note: Web Audio API doesn't support pause, so we stop and will need to restart
+      
       if (this.currentSource) {
         this.currentSource.stop();
         this.currentSource = null;
@@ -155,9 +142,7 @@ export class AudioOutputService {
     }
   }
 
-  /**
-   * Resume playback
-   */
+  
   resume() {
     if (this.state === 'paused') {
       this.setState('idle');
@@ -166,55 +151,41 @@ export class AudioOutputService {
     }
   }
 
-  /**
-   * Set volume (0-1)
-   */
+  
   setVolume(volume: number) {
     this.volume = Math.max(0, Math.min(1, volume));
     this.gainNode.gain.setValueAtTime(this.volume, this.audioContext.currentTime);
     this.emit('volumeChanged', this.volume);
   }
 
-  /**
-   * Get current volume
-   */
+  
   getVolume(): number {
     return this.volume;
   }
 
-  /**
-   * Get queue length
-   */
+  
   getQueueLength(): number {
     return this.playbackQueue.length;
   }
 
-  /**
-   * Clear the queue without stopping current playback
-   */
+  
   clearQueue() {
     this.playbackQueue = [];
     this.emit('queueCleared');
   }
 
-  /**
-   * Get current state
-   */
+  
   getState(): AudioOutputState {
     return this.state;
   }
 
-  /**
-   * Set state and notify listeners
-   */
+  
   private setState(state: AudioOutputState) {
     this.state = state;
     this.emit('stateChange', state);
   }
 
-  /**
-   * Event emitter functionality
-   */
+  
   on(event: string, callback: Function) {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
@@ -236,9 +207,7 @@ export class AudioOutputService {
     }
   }
 
-  /**
-   * Check if browser supports required APIs
-   */
+  
   static isSupported(): boolean {
     return !!(window.AudioContext && window.ArrayBuffer);
   }

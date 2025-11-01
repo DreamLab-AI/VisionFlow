@@ -60,7 +60,7 @@ class AtmosphericGlowEffect extends Effect {
     camera,
     resolution,
   } = {}) {
-    // Convert color to proper format for WebGL uniform3fv
+    
     let colorUniform;
     if (typeof glowColor === 'string') {
       const color = new THREE.Color(glowColor);
@@ -70,7 +70,7 @@ class AtmosphericGlowEffect extends Effect {
     } else if (Array.isArray(glowColor)) {
       colorUniform = new THREE.Vector3(glowColor[0], glowColor[1], glowColor[2]);
     } else {
-      // Assume it's already a Vector3
+      
       colorUniform = glowColor;
     }
     

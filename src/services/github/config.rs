@@ -43,7 +43,7 @@ impl GitHubConfig {
         let base_path = env::var("GITHUB_BASE_PATH")
             .map_err(|_| GitHubConfigError::MissingEnvVar("GITHUB_BASE_PATH".to_string()))?;
 
-        // Optional settings with defaults
+        
         let rate_limit = env::var("GITHUB_RATE_LIMIT")
             .map(|v| v.parse::<bool>().unwrap_or(true))
             .unwrap_or(true);
@@ -144,8 +144,8 @@ mod tests {
         assert_eq!(config.owner, "owner");
         assert_eq!(config.repo, "repo");
         assert_eq!(config.base_path, "path");
-        assert!(config.rate_limit); // Default value
-        assert_eq!(config.version, "v3"); // Default value
+        assert!(config.rate_limit); 
+        assert_eq!(config.version, "v3"); 
     }
 
     #[test]

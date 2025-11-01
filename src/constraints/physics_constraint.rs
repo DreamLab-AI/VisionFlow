@@ -4,49 +4,49 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-/// Node identifier (maps to graph_nodes.id)
+/
 pub type NodeId = i64;
 
-/// Physics constraint types with configurable parameters
+/
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum PhysicsConstraintType {
-    /// Separation force: Push nodes apart
-    /// Used for: DisjointClasses, DisjointUnion
+    
+    
     Separation {
         min_distance: f32,
         strength: f32,
     },
 
-    /// Clustering force: Pull nodes toward a target centroid
-    /// Used for: SubClassOf (pull toward parent)
+    
+    
     Clustering {
         ideal_distance: f32,
         stiffness: f32,
     },
 
-    /// Co-location force: Merge nodes to same location
-    /// Used for: SameAs, EquivalentClasses
+    
+    
     Colocation {
         target_distance: f32,
         strength: f32,
     },
 
-    /// Boundary constraint: Keep nodes within spatial bounds
-    /// Used for: FunctionalProperty, domain/range restrictions
+    
+    
     Boundary {
-        bounds: [f32; 6], // [min_x, max_x, min_y, max_y, min_z, max_z]
+        bounds: [f32; 6], 
         strength: f32,
     },
 
-    /// Hierarchical layering: Z-axis stratification
-    /// Used for: SubClassOf hierarchy levels
+    
+    
     HierarchicalLayer {
         z_level: f32,
         strength: f32,
     },
 
-    /// Containment: Keep children inside parent hull
-    /// Used for: partOf, hasPart relations
+    
+    
     Containment {
         parent_node: NodeId,
         radius: f32,
@@ -54,41 +54,41 @@ pub enum PhysicsConstraintType {
     },
 }
 
-/// Priority levels for constraint resolution
-/// Lower priority number = higher importance
-pub const PRIORITY_USER_DEFINED: u8 = 1; // User overrides always win
-pub const PRIORITY_INFERRED: u8 = 3;     // Reasoner-derived
-pub const PRIORITY_ASSERTED: u8 = 5;     // Explicitly stated in ontology
-pub const PRIORITY_DEFAULT: u8 = 8;      // Default physics behavior
+/
+/
+pub const PRIORITY_USER_DEFINED: u8 = 1; 
+pub const PRIORITY_INFERRED: u8 = 3;     
+pub const PRIORITY_ASSERTED: u8 = 5;     
+pub const PRIORITY_DEFAULT: u8 = 8;      
 
-/// Complete physics constraint with metadata
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PhysicsConstraint {
-    /// Type of constraint and its parameters
+    
     pub constraint_type: PhysicsConstraintType,
 
-    /// Nodes affected by this constraint
+    
     pub nodes: Vec<NodeId>,
 
-    /// Priority for conflict resolution (1=highest, 10=lowest)
-    /// Priority 1: User-defined (always wins)
-    /// Priority 2-4: Inferred (from reasoner)
-    /// Priority 5: Asserted (from ontology)
-    /// Priority 6-10: Default physics
+    
+    
+    
+    
+    
     pub priority: u8,
 
-    /// Whether this constraint was user-defined (via UI)
+    
     pub user_defined: bool,
 
-    /// Optional: Frame at which to activate (progressive activation)
+    
     pub activation_frame: Option<i32>,
 
-    /// Optional: Source axiom ID for traceability
+    
     pub axiom_id: Option<i64>,
 }
 
 impl PhysicsConstraint {
-    /// Create a new separation constraint
+    
     pub fn separation(
         nodes: Vec<NodeId>,
         min_distance: f32,
@@ -108,7 +108,7 @@ impl PhysicsConstraint {
         }
     }
 
-    /// Create a new clustering constraint
+    
     pub fn clustering(
         nodes: Vec<NodeId>,
         ideal_distance: f32,
@@ -128,7 +128,7 @@ impl PhysicsConstraint {
         }
     }
 
-    /// Create a new colocation constraint
+    
     pub fn colocation(
         nodes: Vec<NodeId>,
         target_distance: f32,
@@ -148,7 +148,7 @@ impl PhysicsConstraint {
         }
     }
 
-    /// Create a new boundary constraint
+    
     pub fn boundary(
         nodes: Vec<NodeId>,
         bounds: [f32; 6],
@@ -165,7 +165,7 @@ impl PhysicsConstraint {
         }
     }
 
-    /// Create a new hierarchical layer constraint
+    
     pub fn hierarchical_layer(
         nodes: Vec<NodeId>,
         z_level: f32,
@@ -182,7 +182,7 @@ impl PhysicsConstraint {
         }
     }
 
-    /// Create a new containment constraint
+    
     pub fn containment(
         nodes: Vec<NodeId>,
         parent_node: NodeId,
@@ -204,44 +204,44 @@ impl PhysicsConstraint {
         }
     }
 
-    /// Mark this constraint as user-defined (highest priority)
+    
     pub fn mark_user_defined(mut self) -> Self {
         self.user_defined = true;
         self.priority = PRIORITY_USER_DEFINED;
         self
     }
 
-    /// Link this constraint to a source axiom
+    
     pub fn with_axiom_id(mut self, axiom_id: i64) -> Self {
         self.axiom_id = Some(axiom_id);
         self
     }
 
-    /// Set activation frame for progressive constraint activation
+    
     pub fn with_activation_frame(mut self, frame: i32) -> Self {
         self.activation_frame = Some(frame);
         self
     }
 
-    /// Calculate priority weight for conflict resolution
-    /// Weight = 10^(-(priority-1)/9)
-    /// Priority 1 → weight = 1.0
-    /// Priority 10 → weight = 0.1
+    
+    
+    
+    
     pub fn priority_weight(&self) -> f32 {
         10.0_f32.powf(-(self.priority as f32 - 1.0) / 9.0)
     }
 
-    /// Get the number of nodes affected by this constraint
+    
     pub fn node_count(&self) -> usize {
         self.nodes.len()
     }
 
-    /// Check if this constraint affects the given node
+    
     pub fn affects_node(&self, node_id: NodeId) -> bool {
         self.nodes.contains(&node_id)
     }
 
-    /// Get the constraint strength (varies by type)
+    
     pub fn strength(&self) -> f32 {
         match &self.constraint_type {
             PhysicsConstraintType::Separation { strength, .. } => *strength,

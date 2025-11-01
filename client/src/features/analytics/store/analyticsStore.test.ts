@@ -42,7 +42,7 @@ describe('AnalyticsStore', () => {
   ]
 
   beforeEach(() => {
-    // Reset the store to initial state
+    
     useAnalyticsStore.setState({
       currentResult: null,
       cache: {},
@@ -60,7 +60,7 @@ describe('AnalyticsStore', () => {
   })
 
   afterEach(() => {
-    // Clean up after each test
+    
     vi.clearAllMocks()
   })
 
@@ -77,8 +77,8 @@ describe('AnalyticsStore', () => {
       expect(result.algorithm).toBe('dijkstra')
       expect(result.distances['A']).toBe(0)
       expect(result.distances['B']).toBe(1)
-      expect(result.distances['C']).toBe(3) // A->B->C = 1+2 = 3
-      expect(result.distances['D']).toBe(3) // A->D = 3
+      expect(result.distances['C']).toBe(3) 
+      expect(result.distances['D']).toBe(3) 
       expect(result.unreachableCount).toBe(0)
       expect(result.computationTime).toBeGreaterThan(0)
     })
@@ -128,13 +128,13 @@ describe('AnalyticsStore', () => {
       const store = useAnalyticsStore.getState()
       expect(store.loading).toBe(false)
 
-      // Start computation and check loading state immediately
+      
       const computationPromise = store.computeSSSP(sampleNodes, sampleEdges, 'A')
       
-      // Wait for the promise to resolve
+      
       await computationPromise
       
-      // Should not be loading after completion
+      
       expect(useAnalyticsStore.getState().loading).toBe(false)
     })
   })
@@ -143,29 +143,29 @@ describe('AnalyticsStore', () => {
     it('should cache computation results', async () => {
       const store = useAnalyticsStore.getState()
       
-      // First computation
+      
       const result1 = await store.computeSSSP(sampleNodes, sampleEdges, 'A')
       const metrics1 = useAnalyticsStore.getState().metrics
       expect(metrics1.cacheMisses).toBe(1)
       expect(metrics1.cacheHits).toBe(0)
 
-      // Second computation with same parameters should use cache
+      
       const result2 = await store.computeSSSP(sampleNodes, sampleEdges, 'A')
       const metrics2 = useAnalyticsStore.getState().metrics
       expect(metrics2.cacheHits).toBe(1)
-      expect(result1.timestamp).toBe(result2.timestamp) // Same cached result
+      expect(result1.timestamp).toBe(result2.timestamp) 
     })
 
     it('should invalidate cache when graph changes', async () => {
       const store = useAnalyticsStore.getState()
       
-      // First computation
+      
       await store.computeSSSP(sampleNodes, sampleEdges, 'A')
       
-      // Change graph structure
+      
       const newEdges = [...sampleEdges, { id: 'e4', source: 'C', target: 'D', weight: 1 }]
       
-      // Should not use cache due to graph change
+      
       await store.computeSSSP(sampleNodes, newEdges, 'A')
       const metrics = useAnalyticsStore.getState().metrics
       expect(metrics.cacheMisses).toBe(2)
@@ -174,10 +174,10 @@ describe('AnalyticsStore', () => {
     it('should clean expired cache entries', async () => {
       const store = useAnalyticsStore.getState()
       
-      // First, add a cache entry by computing
+      
       await store.computeSSSP(sampleNodes, sampleEdges, 'A')
       
-      // Manually set an old timestamp by accessing the store directly
+      
       const currentState = useAnalyticsStore.getState()
       useAnalyticsStore.setState({
         ...currentState,
@@ -185,14 +185,14 @@ describe('AnalyticsStore', () => {
           ...currentState.cache,
           'A': {
             ...currentState.cache['A'],
-            lastAccessed: Date.now() - 25 * 60 * 60 * 1000 // 25 hours ago
+            lastAccessed: Date.now() - 25 * 60 * 60 * 1000 
           }
         }
       })
 
       expect(Object.keys(useAnalyticsStore.getState().cache)).toContain('A')
       
-      store.cleanExpiredCache(24 * 60 * 60 * 1000) // 24 hours
+      store.cleanExpiredCache(24 * 60 * 60 * 1000) 
       
       expect(Object.keys(useAnalyticsStore.getState().cache)).not.toContain('A')
     })
@@ -208,7 +208,7 @@ describe('AnalyticsStore', () => {
       
       const normalized = useAnalyticsStore.getState().normalizeDistances(result)
       
-      expect(normalized['A']).toBe(0) // Source node
+      expect(normalized['A']).toBe(0) 
       expect(normalized['B']).toBeGreaterThanOrEqual(0)
       expect(normalized['B']).toBeLessThanOrEqual(1)
       expect(normalized['C']).toBeGreaterThanOrEqual(0)
@@ -257,7 +257,7 @@ describe('AnalyticsStore', () => {
     it('should clear results', () => {
       const store = useAnalyticsStore.getState()
       
-      // Set some state
+      
       store.setError('Test error')
       
       store.clearResults()
@@ -269,7 +269,7 @@ describe('AnalyticsStore', () => {
     it('should clear cache', async () => {
       const store = useAnalyticsStore.getState()
       
-      // Add cache entry by computing
+      
       await store.computeSSSP(sampleNodes, sampleEdges, 'A')
       expect(Object.keys(useAnalyticsStore.getState().cache)).toHaveLength(1)
       
@@ -296,7 +296,7 @@ describe('AnalyticsStore', () => {
     it('should reset metrics', () => {
       const store = useAnalyticsStore.getState()
       
-      // Set some metrics
+      
       store.updateMetrics(100, false)
       
       store.resetMetrics()

@@ -36,18 +36,18 @@
 //! use crate::models::constraints::ConstraintSet;
 //! use crate::models::graph::GraphData;
 //!
-//! // Create a stress majorization solver
+//! 
 //! let mut solver = StressMajorizationSolver::new(params);
 //!
-//! // Generate semantic constraints
+//! 
 //! let constraint_generator = SemanticConstraintGenerator::new();
 //! let semantic_constraints = constraint_generator.generate_constraints(&graph_data)?;
 //!
-//! // Generate ontology constraints from OWL axioms
+//! 
 //! let mut ontology_translator = OntologyConstraintTranslator::new();
 //! let ontology_constraints = ontology_translator.apply_ontology_constraints(&graph_data, &reasoning_report)?;
 //!
-//! // Combine and optimize layout
+//! 
 //! let mut combined_constraints = semantic_constraints.constraints;
 //! combined_constraints.extend(ontology_constraints.constraints);
 //!
@@ -73,7 +73,7 @@ pub use ontology_constraints::{
 pub use semantic_constraints::SemanticConstraintGenerator;
 pub use stress_majorization::StressMajorizationSolver;
 
-/// Re-export core types for convenience
+/
 pub use crate::models::constraints::{AdvancedParams, Constraint, ConstraintKind, ConstraintSet};
 pub use crate::models::graph::GraphData;
 pub use crate::models::metadata::Metadata;

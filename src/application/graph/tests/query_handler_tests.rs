@@ -23,7 +23,7 @@ use crate::utils::socket_flow_messages::BinaryNodeDataClient;
 // MOCK REPOSITORY IMPLEMENTATION
 // ============================================================================
 
-/// Mock implementation of GraphRepository for testing
+/
 struct MockGraphRepository {
     graph_data: Arc<GraphData>,
     node_map: Arc<HashMap<u32, Node>>,
@@ -35,7 +35,7 @@ struct MockGraphRepository {
 
 impl MockGraphRepository {
     fn new() -> Self {
-        // Create test graph data
+        
         let mut nodes = Vec::new();
         let mut node_map = HashMap::new();
 
@@ -57,7 +57,7 @@ impl MockGraphRepository {
                         z: 0.0,
                     },
                 ),
-                // Physics fields (match unified schema)
+                
                 x: Some(i as f32 * 10.0),
                 y: Some(i as f32 * 10.0),
                 z: Some(i as f32 * 10.0),
@@ -184,7 +184,7 @@ impl GraphRepository for MockGraphRepository {
     }
 
     async fn compute_shortest_paths(&self, params: PathfindingParams) -> Result<PathfindingResult> {
-        // Simple mock: return path from start to end
+        
         Ok(PathfindingResult {
             path: vec![params.start_node, params.end_node],
             total_distance: 10.0,
@@ -286,7 +286,7 @@ fn test_get_auto_balance_notifications_handler_with_timestamp() {
 
     assert!(result.is_ok());
     let notifications = result.unwrap();
-    // Mock always returns all notifications, but in real impl would filter
+    
     assert_eq!(notifications.len(), 1);
 }
 
@@ -312,7 +312,7 @@ fn test_get_constraints_handler() {
 
     assert!(result.is_ok());
     let _constraints = result.unwrap();
-    // ConstraintSet has default implementation, just verify it doesn't error
+    
 }
 
 #[test]
@@ -383,19 +383,19 @@ fn test_compute_shortest_paths_handler_no_max_depth() {
 mod handler_integration_tests {
     use super::*;
 
-    // These tests would use ActorGraphRepository with a real actor system
-    // For now they are placeholders showing the structure
+    
+    
 
     #[test]
     #[ignore = "Requires running actor system"]
     fn test_get_graph_data_with_actor_repository() {
-        // TODO: Implement with ActorGraphRepository and running actor
+        
     }
 
     #[test]
     #[ignore = "Requires running actor system"]
     fn test_concurrent_query_execution() {
-        // TODO: Test parallel query execution with real repository
+        
     }
 }
 
@@ -405,7 +405,7 @@ mod handler_integration_tests {
 
 #[test]
 fn test_handler_error_propagation() {
-    // Mock repository that returns errors
+    
     struct ErrorMockRepository;
 
     #[async_trait::async_trait]
@@ -480,22 +480,22 @@ fn test_handler_error_propagation() {
 
     let error_repo = Arc::new(ErrorMockRepository) as Arc<dyn GraphRepository>;
 
-    // Test GetGraphData error handling
+    
     let handler = GetGraphDataHandler::new(error_repo.clone());
     let result = handler.handle(GetGraphData);
     assert!(result.is_err());
 
-    // Test GetNodeMap error handling
+    
     let handler = GetNodeMapHandler::new(error_repo.clone());
     let result = handler.handle(GetNodeMap);
     assert!(result.is_err());
 
-    // Test GetPhysicsState error handling
+    
     let handler = GetPhysicsStateHandler::new(error_repo.clone());
     let result = handler.handle(GetPhysicsState);
     assert!(result.is_err());
 
-    // Test ComputeShortestPaths error handling
+    
     let handler = ComputeShortestPathsHandler::new(error_repo.clone());
     let result = handler.handle(ComputeShortestPaths {
         start_node: 1,

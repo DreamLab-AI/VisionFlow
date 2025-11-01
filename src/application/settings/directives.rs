@@ -128,7 +128,7 @@ pub struct SaveAllSettings {
 
 impl Directive for SaveAllSettings {
     fn validate(&self) -> HexResult<()> {
-        // AppFullSettings validation could be added here
+        
         Ok(())
     }
 }
@@ -287,7 +287,7 @@ pub struct ClearSettingsCache;
 
 impl Directive for ClearSettingsCache {
     fn validate(&self) -> HexResult<()> {
-        // No validation needed for cache clear
+        
         Ok(())
     }
 }

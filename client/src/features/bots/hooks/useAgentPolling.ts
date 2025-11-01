@@ -29,13 +29,11 @@ export interface AgentPollingState {
   error: Error | null;
 }
 
-/**
- * React hook for efficient agent swarm polling with state management
- */
+
 export function useAgentPolling(options: UseAgentPollingOptions = {}) {
   const { enabled = true, config, onError } = options;
   
-  // Use refs to prevent unnecessary re-renders
+  
   const agentsMapRef = useRef<Map<string, BotsAgent>>(new Map());
   const edgesMapRef = useRef<Map<string, BotsEdge>>(new Map());
   const lastUpdateRef = useRef<number>(0);
@@ -50,22 +48,22 @@ export function useAgentPolling(options: UseAgentPollingOptions = {}) {
     error: null
   });
 
-  // Transform raw agent data to frontend format
+  
   const transformAgentData = useCallback((data: AgentSwarmData): {
     agents: BotsAgent[],
     edges: BotsEdge[]
   } => {
-    // Create node ID to agent ID mapping
+    
     const nodeIdToAgentId = new Map<number, string>();
     data.nodes?.forEach(node => {
       nodeIdToAgentId.set(node.id, node.metadataId || String(node.id));
     });
 
-    // Transform nodes to agents
+    
     const agents = data.nodes?.map(node => {
       const agentType = node.metadata?.agent_type || node.type || 'specialist';
 
-      // Handle both nested position object and flat x/y/z coordinates
+      
       const position = node.data?.position || {
         x: node.data?.x || 0,
         y: node.data?.y || 0,
@@ -100,7 +98,7 @@ export function useAgentPolling(options: UseAgentPollingOptions = {}) {
       } as BotsAgent;
     }) || [];
 
-    // Transform edges
+    
     const edges = data.edges?.map(edge => ({
       id: edge.id,
       source: nodeIdToAgentId.get(edge.source) || String(edge.source),
@@ -113,13 +111,13 @@ export function useAgentPolling(options: UseAgentPollingOptions = {}) {
     return { agents, edges };
   }, []);
 
-  // Store the update function in a ref to avoid re-renders
+  
   const updateStateRef = useRef<(data: AgentSwarmData) => void>();
   updateStateRef.current = (data: AgentSwarmData) => {
     const { agents, edges } = transformAgentData(data);
     const now = Date.now();
 
-    // Update agent positions efficiently
+    
     let hasAgentChanges = false;
     agents.forEach(agent => {
       const existing = agentsMapRef.current.get(agent.id);
@@ -134,7 +132,7 @@ export function useAgentPolling(options: UseAgentPollingOptions = {}) {
       }
     });
 
-    // Update edges efficiently
+    
     let hasEdgeChanges = false;
     const newEdgeIds = new Set<string>();
     edges.forEach(edge => {
@@ -148,7 +146,7 @@ export function useAgentPolling(options: UseAgentPollingOptions = {}) {
       }
     });
 
-    // Remove edges that no longer exist
+    
     edgesMapRef.current.forEach((edge, id) => {
       if (!newEdgeIds.has(id)) {
         edgesMapRef.current.delete(id);
@@ -156,7 +154,7 @@ export function useAgentPolling(options: UseAgentPollingOptions = {}) {
       }
     });
 
-    // Only update state if there are actual changes
+    
     if (hasAgentChanges || hasEdgeChanges || now - lastUpdateRef.current > 5000) {
       lastUpdateRef.current = now;
 
@@ -176,7 +174,7 @@ export function useAgentPolling(options: UseAgentPollingOptions = {}) {
         error: null
       }));
 
-      // Log telemetry for significant updates
+      
       if (hasAgentChanges) {
         agentTelemetry.logAgentAction('polling', 'update', 'agents_changed', {
           agentCount: agents.length,
@@ -186,12 +184,12 @@ export function useAgentPolling(options: UseAgentPollingOptions = {}) {
     }
   };
 
-  // Efficient state update with change detection
+  
   const updateState = useCallback((data: AgentSwarmData) => {
     updateStateRef.current?.(data);
   }, []);
 
-  // Handle polling errors - no dependencies to prevent re-renders
+  
   const handleErrorRef = useRef<(error: Error) => void>();
   handleErrorRef.current = (error: Error) => {
     logger.error('Polling error:', error);
@@ -203,14 +201,14 @@ export function useAgentPolling(options: UseAgentPollingOptions = {}) {
     handleErrorRef.current?.(error);
   }, []);
 
-  // Configure polling service
+  
   useEffect(() => {
     if (config) {
       agentPollingService.configure(config);
     }
   }, [config]);
 
-  // Start/stop polling based on enabled state
+  
   useEffect(() => {
     if (!enabled) {
       agentPollingService.stop();
@@ -218,18 +216,18 @@ export function useAgentPolling(options: UseAgentPollingOptions = {}) {
       return;
     }
 
-    // Subscribe to polling updates
+    
     const unsubscribe = agentPollingService.subscribe(updateState, handleError);
 
-    // Start polling
+    
     agentPollingService.start();
     setState(prev => ({ ...prev, isPolling: true }));
 
-    // Update polling status periodically
+    
     const statusInterval = setInterval(() => {
       const status = agentPollingService.getStatus();
       setState(prev => {
-        // Only update if values have changed
+        
         if (prev.isPolling === status.isPolling && prev.activityLevel === status.activityLevel) {
           return prev;
         }
@@ -246,9 +244,9 @@ export function useAgentPolling(options: UseAgentPollingOptions = {}) {
       agentPollingService.stop();
       clearInterval(statusInterval);
     };
-  }, [enabled]); // Remove updateState and handleError from dependencies
+  }, [enabled]); 
 
-  // Memoized return value to prevent unnecessary re-renders
+  
   const result = useMemo(() => ({
     agents: state.agents,
     edges: state.edges,
@@ -257,7 +255,7 @@ export function useAgentPolling(options: UseAgentPollingOptions = {}) {
     activityLevel: state.activityLevel,
     lastUpdate: state.lastUpdate,
     error: state.error,
-    // Utility methods
+    
     pollNow: () => agentPollingService.pollNow(),
     getStatus: () => agentPollingService.getStatus(),
     configure: (newConfig: Partial<PollingConfig>) => agentPollingService.configure(newConfig)

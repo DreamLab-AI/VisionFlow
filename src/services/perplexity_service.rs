@@ -1,4 +1,4 @@
-use crate::config::AppFullSettings; // Use AppFullSettings, ConfigPerplexitySettings removed
+use crate::config::AppFullSettings; 
 use crate::models::metadata::Metadata;
 use crate::services::file_service::ProcessedFile;
 use chrono::Utc;
@@ -34,26 +34,26 @@ struct QueryRequest {
 
 pub struct PerplexityService {
     client: Client,
-    settings: Arc<RwLock<AppFullSettings>>, // Changed to AppFullSettings
+    settings: Arc<RwLock<AppFullSettings>>, 
 }
 
 impl PerplexityService {
     pub async fn new(
         settings: Arc<RwLock<AppFullSettings>>,
     ) -> Result<Self, Box<dyn StdError + Send + Sync>> {
-        // Changed signature
+        
         let timeout_duration = {
             let settings_read = settings.read().await;
-            // Safely access optional perplexity settings, provide default timeout
+            
             settings_read
                 .perplexity
                 .as_ref()
                 .and_then(|p| p.timeout)
-                .unwrap_or(30) // Default 30s
+                .unwrap_or(30) 
         };
 
         let client = Client::builder()
-            .timeout(std::time::Duration::from_secs(timeout_duration)) // Use extracted timeout
+            .timeout(std::time::Duration::from_secs(timeout_duration)) 
             .build()?;
 
         Ok(Self {
@@ -69,7 +69,7 @@ impl PerplexityService {
     ) -> Result<String, Box<dyn StdError + Send + Sync>> {
         let settings_read = self.settings.read().await;
 
-        // Get perplexity settings or return error if not configured
+        
         let perplexity_config = match settings_read.perplexity.as_ref() {
             Some(p) => p,
             None => {
@@ -80,7 +80,7 @@ impl PerplexityService {
             }
         };
 
-        // Safely get required fields or return error
+        
         let api_url = perplexity_config
             .api_url
             .as_deref()
@@ -96,7 +96,7 @@ impl PerplexityService {
 
         info!("Sending query to Perplexity API: {}", api_url);
 
-        // Use defaults for optional parameters if not set in config
+        
         let request = QueryRequest {
             query: query.to_string(),
             conversation_id: conversation_id.to_string(),
@@ -148,7 +148,7 @@ impl PerplexityService {
         let content = fs::read_to_string(&file_path)?;
         let settings_read = self.settings.read().await;
 
-        // Get perplexity settings or return error if not configured
+        
         let perplexity_config = match settings_read.perplexity.as_ref() {
             Some(p) => p,
             None => {
@@ -159,7 +159,7 @@ impl PerplexityService {
             }
         };
 
-        // Safely get required fields or return error
+        
         let api_url = perplexity_config
             .api_url
             .as_deref()
@@ -171,7 +171,7 @@ impl PerplexityService {
 
         info!("Sending request to Perplexity API: {}", api_url);
 
-        // Assuming the API takes the raw content as JSON string body? If not, adjust .json(&content)
+        
         let response = self
             .client
             .post(api_url)
@@ -195,19 +195,19 @@ impl PerplexityService {
 
         let perplexity_response: PerplexityResponse = response.json().await?;
 
-        // Create metadata for processed file
+        
         let metadata = Metadata {
             file_name: file_name.to_string(),
             file_size: perplexity_response.content.len(),
-            node_id: "0".to_string(), // Will be assigned properly later
-            node_size: 10.0,          // Default size
+            node_id: "0".to_string(), 
+            node_size: 10.0,          
             hyperlink_count: 0,
             sha1: String::new(),
             last_modified: Utc::now(),
-            last_content_change: Some(Utc::now()), // Perplexity processed content is new
-            last_commit: None,                     // Not from GitHub
-            change_count: Some(1),                 // First generation
-            file_blob_sha: None,                   // Not from GitHub
+            last_content_change: Some(Utc::now()), 
+            last_commit: None,                     
+            change_count: Some(1),                 
+            file_blob_sha: None,                   
             perplexity_link: perplexity_response.link,
             last_perplexity_process: Some(Utc::now()),
             topic_counts: HashMap::new(),

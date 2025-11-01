@@ -7,7 +7,7 @@ use std::time::{Duration, Instant};
 
 use crate::AppState;
 
-/// WebSocket actor for streaming client messages from agents to frontend
+/
 pub struct ClientMessagesWs {
     app_state: web::Data<AppState>,
     last_heartbeat: Instant,
@@ -36,7 +36,7 @@ impl ClientMessagesWs {
         let rx = self.app_state.client_message_rx.clone();
 
         ctx.run_interval(Duration::from_millis(100), move |_act, ctx| {
-            // Try to receive messages without blocking
+            
             if let Ok(mut receiver) = rx.try_lock() {
                 while let Ok(msg) = receiver.try_recv() {
                     let json = json!({
@@ -63,7 +63,7 @@ impl Actor for ClientMessagesWs {
         self.start_heartbeat(ctx);
         self.start_message_stream(ctx);
 
-        // Send initial connection confirmation
+        
         let init_json = json!({
             "type": "init",
             "status": "connected",
@@ -89,7 +89,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for ClientMessagesWs 
             }
             Ok(ws::Message::Text(text)) => {
                 debug!("Received WebSocket text: {}", text);
-                // Client can send commands here if needed
+                
             }
             Ok(ws::Message::Close(reason)) => {
                 info!("Client messages WebSocket closing: {:?}", reason);
@@ -107,7 +107,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for ClientMessagesWs 
     }
 }
 
-/// WebSocket route handler
+/
 pub async fn websocket_client_messages(
     req: HttpRequest,
     stream: web::Payload,

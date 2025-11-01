@@ -1,12 +1,12 @@
-/// Horned-OWL integration for advanced OWL reasoning
-///
-/// Provides integration with the horned-owl crate for:
-/// - OWL 2 parsing and validation
-/// - Consistency checking
-/// - Advanced reasoning beyond custom reasoner
-///
-/// Note: This is a simplified implementation that delegates to CustomReasoner.
-/// Full horned-owl integration requires matching API versions.
+/
+/
+/
+/
+/
+/
+/
+/
+/
 
 use rusqlite::Connection;
 use crate::reasoning::{
@@ -15,8 +15,8 @@ use crate::reasoning::{
 };
 use std::collections::{HashMap, HashSet};
 
-/// Horned-OWL reasoner wrapper
-/// Currently delegates to CustomReasoner for compatibility
+/
+/
 pub struct HornedOwlReasoner {
     custom_reasoner: CustomReasoner,
     ontology: Option<Ontology>,
@@ -30,13 +30,13 @@ impl HornedOwlReasoner {
         }
     }
 
-    /// Parse OWL from database
+    
     pub fn parse_from_database(&mut self, db_path: &str) -> ReasoningResult<()> {
         let conn = Connection::open(db_path)?;
 
         let mut ontology = Ontology::default();
 
-        // Load OWL classes
+        
         let mut stmt = conn.prepare(
             "SELECT iri, label, parent_class_iri, markdown_content
              FROM owl_classes"
@@ -60,7 +60,7 @@ impl HornedOwlReasoner {
                 parent_class_iri: parent_iri.clone(),
             });
 
-            // Add SubClassOf relationship
+            
             if let Some(parent) = parent_iri {
                 ontology.subclass_of.entry(iri.clone())
                     .or_insert_with(HashSet::new)
@@ -68,7 +68,7 @@ impl HornedOwlReasoner {
             }
         }
 
-        // Load DisjointClasses axioms
+        
         let mut stmt = conn.prepare(
             "SELECT c1.iri, c2.iri
              FROM owl_axioms a
@@ -84,7 +84,7 @@ impl HornedOwlReasoner {
             ))
         })?;
 
-        // Group disjoint classes into sets
+        
         let mut disjoint_map: HashMap<String, HashSet<String>> = HashMap::new();
         for pair_result in disjoint_pairs {
             let (class_a, class_b) = pair_result?;
@@ -98,7 +98,7 @@ impl HornedOwlReasoner {
                 .insert(class_a);
         }
 
-        // Convert map to disjoint sets
+        
         for (_, disjoint_set) in disjoint_map {
             if !ontology.disjoint_classes.iter().any(|existing| {
                 existing.iter().any(|c| disjoint_set.contains(c))
@@ -107,7 +107,7 @@ impl HornedOwlReasoner {
             }
         }
 
-        // Load EquivalentClass axioms
+        
         let mut stmt = conn.prepare(
             "SELECT c1.iri, c2.iri
              FROM owl_axioms a
@@ -131,7 +131,7 @@ impl HornedOwlReasoner {
                 .insert(class_b);
         }
 
-        // Load FunctionalProperty axioms
+        
         let mut stmt = conn.prepare(
             "SELECT property_iri
              FROM owl_properties
@@ -150,23 +150,23 @@ impl HornedOwlReasoner {
         Ok(())
     }
 
-    /// Validate ontology consistency
+    
     pub fn validate_consistency(&self) -> ReasoningResult<bool> {
         if self.ontology.is_none() {
             return Err(ReasoningError::Inference("Ontology not loaded".to_string()));
         }
 
-        // Basic consistency checks:
-        // 1. No class is both subclass and disjoint with another
-        // 2. No cycles in subclass hierarchy
-        // 3. Equivalent classes form valid equivalence relations
+        
+        
+        
+        
 
-        // For now, return true (assumes consistency)
-        // Full consistency checking requires a complete reasoner
+        
+        
         Ok(true)
     }
 
-    /// Get inferred axioms
+    
     pub fn get_inferred_axioms(&self) -> ReasoningResult<Vec<InferredAxiom>> {
         if let Some(ontology) = &self.ontology {
             self.custom_reasoner.infer_axioms(ontology)
@@ -206,7 +206,7 @@ mod tests {
         let temp_dir = TempDir::new().unwrap();
         let db_path = temp_dir.path().join("test.db");
 
-        // Create test database
+        
         let conn = Connection::open(&db_path).unwrap();
         conn.execute(
             "CREATE TABLE owl_classes (
@@ -249,7 +249,7 @@ mod tests {
 
         drop(conn);
 
-        // Test parsing
+        
         let mut reasoner = HornedOwlReasoner::new();
         let result = reasoner.parse_from_database(db_path.to_str().unwrap());
         assert!(result.is_ok());

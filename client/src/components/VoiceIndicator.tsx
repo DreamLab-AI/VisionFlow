@@ -42,7 +42,7 @@ export const VoiceIndicator: React.FC<VoiceIndicatorProps> = ({
   const voiceService = VoiceWebSocketService.getInstance();
 
   useEffect(() => {
-    // Set up event listeners
+    
     const handleTranscription = (result: TranscriptionResult) => {
       if (result.isFinal) {
         setTranscription(result.text);
@@ -91,7 +91,7 @@ export const VoiceIndicator: React.FC<VoiceIndicatorProps> = ({
 
   return (
     <div className={`flex flex-col gap-2 p-3 rounded-lg bg-card border border-border shadow-sm ${className} ${(status === 'idle' && !transcription && !partialTranscription) ? 'opacity-50' : ''}`}>
-      {/* Status indicator */}
+      {}
       {showStatus && currentStatus.icon && (
         <div className={`flex items-center gap-2 ${currentStatus.color}`}>
           <currentStatus.icon
@@ -99,7 +99,7 @@ export const VoiceIndicator: React.FC<VoiceIndicatorProps> = ({
           />
           <span className="text-sm font-medium">{currentStatus.text}</span>
 
-          {/* Audio level bars */}
+          {}
           {status === 'listening' && (
             <div className="flex gap-1 items-center ml-2">
               {[...Array(5)].map((_, i) => (
@@ -118,7 +118,7 @@ export const VoiceIndicator: React.FC<VoiceIndicatorProps> = ({
         </div>
       )}
 
-      {/* Transcription display */}
+      {}
       {showTranscription && (transcription || partialTranscription) && (
         <div className="text-sm">
           {transcription && (

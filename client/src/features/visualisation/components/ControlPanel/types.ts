@@ -1,6 +1,4 @@
-/**
- * Unified Control Panel - Type Definitions
- */
+
 
 export interface ControlPanelProps {
   showStats: boolean;

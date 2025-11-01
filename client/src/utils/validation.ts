@@ -26,9 +26,7 @@ const DEFAULT_VALIDATION_CONFIG: ValidationConfig = {
   allowInfinity: false
 };
 
-/**
- * Validate a Vec3 position or velocity
- */
+
 export function validateVec3(
   vec: Vec3,
   fieldName: string,
@@ -37,21 +35,21 @@ export function validateVec3(
   const cfg = { ...DEFAULT_VALIDATION_CONFIG, ...config };
   const errors: string[] = [];
 
-  // Check for NaN
+  
   if (!cfg.allowNaN) {
     if (isNaN(vec.x)) errors.push(`${fieldName}.x is NaN`);
     if (isNaN(vec.y)) errors.push(`${fieldName}.y is NaN`);
     if (isNaN(vec.z)) errors.push(`${fieldName}.z is NaN`);
   }
 
-  // Check for Infinity
+  
   if (!cfg.allowInfinity) {
     if (!isFinite(vec.x)) errors.push(`${fieldName}.x is not finite`);
     if (!isFinite(vec.y)) errors.push(`${fieldName}.y is not finite`);
     if (!isFinite(vec.z)) errors.push(`${fieldName}.z is not finite`);
   }
 
-  // Check coordinate bounds
+  
   if (vec.x < cfg.minCoordinate || vec.x > cfg.maxCoordinate) {
     errors.push(`${fieldName}.x out of bounds: ${vec.x}`);
   }
@@ -68,9 +66,7 @@ export function validateVec3(
   };
 }
 
-/**
- * Validate velocity specific constraints
- */
+
 export function validateVelocity(
   velocity: Vec3,
   config: Partial<ValidationConfig> = {}
@@ -95,27 +91,25 @@ export function validateVelocity(
   };
 }
 
-/**
- * Validate a single BinaryNodeData object
- */
+
 export function validateNodeData(
   node: BinaryNodeData,
   config: Partial<ValidationConfig> = {}
 ): ValidationResult {
   const errors: string[] = [];
 
-  // Validate node ID
+  
   if (node.nodeId < 0) {
     errors.push(`Invalid node ID: ${node.nodeId}`);
   }
 
-  // Validate position
+  
   const positionValidation = validateVec3(node.position, `node[${node.nodeId}].position`, config);
   if (!positionValidation.valid && positionValidation.errors) {
     errors.push(...positionValidation.errors);
   }
 
-  // Validate velocity
+  
   const velocityValidation = validateVelocity(node.velocity, config);
   if (!velocityValidation.valid && velocityValidation.errors) {
     errors.push(...velocityValidation.errors);
@@ -127,9 +121,7 @@ export function validateNodeData(
   };
 }
 
-/**
- * Validate an array of node positions before sending
- */
+
 export function validateNodePositions(
   nodes: BinaryNodeData[],
   config: Partial<ValidationConfig> = {}
@@ -137,12 +129,12 @@ export function validateNodePositions(
   const cfg = { ...DEFAULT_VALIDATION_CONFIG, ...config };
   const errors: string[] = [];
 
-  // Check array size
+  
   if (nodes.length > cfg.maxNodes) {
     errors.push(`Too many nodes: ${nodes.length} > ${cfg.maxNodes}`);
   }
 
-  // Check for duplicates
+  
   const seenIds = new Set<number>();
   const duplicates: number[] = [];
   
@@ -157,7 +149,7 @@ export function validateNodePositions(
     errors.push(`Duplicate node IDs found: ${duplicates.join(', ')}`);
   }
 
-  // Validate each node
+  
   nodes.forEach((node, index) => {
     const nodeValidation = validateNodeData(node, config);
     if (!nodeValidation.valid && nodeValidation.errors) {
@@ -171,9 +163,7 @@ export function validateNodePositions(
   };
 }
 
-/**
- * Sanitize node data by clamping values to valid ranges
- */
+
 export function sanitizeNodeData(
   node: BinaryNodeData,
   config: Partial<ValidationConfig> = {}
@@ -191,7 +181,7 @@ export function sanitizeNodeData(
     z: clampValue(vec.z, cfg.minCoordinate, cfg.maxCoordinate)
   });
 
-  // Clamp velocity to max speed
+  
   const clampVelocity = (vel: Vec3): Vec3 => {
     const speed = Math.sqrt(vel.x ** 2 + vel.y ** 2 + vel.z ** 2);
     if (speed > cfg.maxVelocity) {
@@ -212,9 +202,7 @@ export function sanitizeNodeData(
   };
 }
 
-/**
- * Batch validate and sanitize node data
- */
+
 export function validateAndSanitizeBatch(
   nodes: BinaryNodeData[],
   config: Partial<ValidationConfig> = {}
@@ -227,7 +215,7 @@ export function validateAndSanitizeBatch(
     if (validation.valid) {
       valid.push(node);
     } else {
-      // Try to sanitize invalid nodes
+      
       const sanitized = sanitizeNodeData(node, config);
       const revalidation = validateNodeData(sanitized, config);
       
@@ -250,9 +238,7 @@ export function validateAndSanitizeBatch(
   return { valid, invalid };
 }
 
-/**
- * Create a validation middleware for batch processing
- */
+
 export function createValidationMiddleware(config: Partial<ValidationConfig> = {}) {
   return (nodes: BinaryNodeData[]): BinaryNodeData[] => {
     const { valid, invalid } = validateAndSanitizeBatch(nodes, config);
@@ -268,9 +254,7 @@ export function createValidationMiddleware(config: Partial<ValidationConfig> = {
   };
 }
 
-/**
- * Validate WebSocket message structure
- */
+
 export function validateWebSocketMessage(message: any): boolean {
   if (!message || typeof message !== 'object') {
     return false;
@@ -280,7 +264,7 @@ export function validateWebSocketMessage(message: any): boolean {
     return false;
   }
 
-  // Type-specific validation
+  
   switch (message.type) {
     case 'node_position_update':
       return Array.isArray(message.data) && message.data.length > 0;
@@ -292,7 +276,7 @@ export function validateWebSocketMessage(message: any): boolean {
       return typeof message.message === 'string';
     
     default:
-      // Unknown message types are allowed but logged
+      
       logger.debug(`Unknown message type: ${message.type}`);
       return true;
   }

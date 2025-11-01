@@ -1,5 +1,5 @@
 use crate::models::metadata::Metadata;
-use crate::models::node::Node; // Changed from socket_flow_messages::Node
+use crate::models::node::Node; 
 use crate::services::file_service::FileService;
 use crate::types::vec3::Vec3Data;
 use crate::AppState;
@@ -17,7 +17,7 @@ use crate::application::graph::queries::{
 use crate::handlers::utils::execute_in_thread;
 use hexser::QueryHandler;
 
-/// Settlement state information for client optimization
+/
 #[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SettlementState {
@@ -26,24 +26,24 @@ pub struct SettlementState {
     pub kinetic_energy: f32,
 }
 
-/// Node with physics position data included for immediate client rendering
+/
 #[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct NodeWithPosition {
-    // Core node data
+    
     pub id: u32,
     pub metadata_id: String,
     pub label: String,
 
-    // Physics state (NEW - prevents client-side random positioning)
+    
     pub position: Vec3Data,
     pub velocity: Vec3Data,
 
-    // Metadata
+    
     #[serde(skip_serializing_if = "HashMap::is_empty")]
     pub metadata: HashMap<String, String>,
 
-    // Rendering properties
+    
     #[serde(rename = "type")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub node_type: Option<String>,
@@ -57,7 +57,7 @@ pub struct NodeWithPosition {
     pub group: Option<String>,
 }
 
-/// Original GraphResponse for backward compatibility
+/
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GraphResponse {
@@ -66,7 +66,7 @@ pub struct GraphResponse {
     pub metadata: HashMap<String, Metadata>,
 }
 
-/// NEW: Enhanced response with physics positions for optimized client initialization
+/
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GraphResponseWithPositions {
@@ -100,12 +100,12 @@ pub struct GraphQuery {
 pub async fn get_graph_data(state: web::Data<AppState>, _req: HttpRequest) -> impl Responder {
     info!("Received request for graph data (CQRS Phase 1D)");
 
-    // Use CQRS query handlers instead of actor messages
+    
     let graph_handler = state.graph_query_handlers.get_graph_data.clone();
     let node_map_handler = state.graph_query_handlers.get_node_map.clone();
     let physics_handler = state.graph_query_handlers.get_physics_state.clone();
 
-    // Execute queries in separate OS threads to avoid Tokio runtime blocking
+    
     let graph_future = execute_in_thread(move || graph_handler.handle(GetGraphData));
     let node_map_future = execute_in_thread(move || node_map_handler.handle(GetNodeMap));
     let physics_future = execute_in_thread(move || physics_handler.handle(GetPhysicsState));
@@ -122,16 +122,16 @@ pub async fn get_graph_data(state: web::Data<AppState>, _req: HttpRequest) -> im
                 physics_state
             );
 
-            // Build nodes with CURRENT physics positions from node_map
+            
             let nodes_with_positions: Vec<NodeWithPosition> = graph_data
                 .nodes
                 .iter()
                 .map(|node| {
-                    // Get current position from physics-simulated node_map
+                    
                     let (position, velocity) = if let Some(physics_node) = node_map.get(&node.id) {
                         (physics_node.data.position(), physics_node.data.velocity())
                     } else {
-                        // Fallback to original position if not in node_map yet
+                        
                         (node.data.position(), node.data.velocity())
                     };
 
@@ -201,7 +201,7 @@ pub async fn get_paginated_graph_data(
         }));
     }
 
-    // Use CQRS query handler
+    
     let graph_handler = state.graph_query_handlers.get_graph_data.clone();
     let graph_result = execute_in_thread(move || graph_handler.handle(GetGraphData)).await;
 
@@ -288,7 +288,7 @@ pub async fn get_paginated_graph_data(
 pub async fn refresh_graph(state: web::Data<AppState>) -> impl Responder {
     info!("Received request to refresh graph (CQRS Phase 1D)");
 
-    // Use CQRS query handler
+    
     let graph_handler = state.graph_query_handlers.get_graph_data.clone();
     let graph_result = execute_in_thread(move || graph_handler.handle(GetGraphData)).await;
 
@@ -372,7 +372,7 @@ pub async fn update_graph(state: web::Data<AppState>) -> impl Responder {
             debug!("Processing {} new files", processed_files.len());
 
             {
-                // Send UpdateMetadata message to MetadataActor
+                
                 if let Err(e) = state
                     .metadata_addr
                     .send(crate::actors::messages::UpdateMetadata {
@@ -381,18 +381,18 @@ pub async fn update_graph(state: web::Data<AppState>) -> impl Responder {
                     .await
                 {
                     error!("Failed to send UpdateMetadata to MetadataActor: {}", e);
-                    // Potentially return error if this is critical
+                    
                 }
             }
 
-            // Send AddNodesFromMetadata for incremental updates instead of full rebuild
+            
             match state
                 .graph_service_addr
                 .send(AddNodesFromMetadata { metadata })
                 .await
             {
                 Ok(Ok(())) => {
-                    // Position preservation logic would need to be handled by the actor or subsequent messages.
+                    
                     debug!(
                         "Graph updated successfully via GraphServiceActor after file processing"
                     );
@@ -439,7 +439,7 @@ pub async fn get_auto_balance_notifications(
 
     info!("Fetching auto-balance notifications (CQRS Phase 1D)");
 
-    // Use CQRS query handler
+    
     let handler = state
         .graph_query_handlers
         .get_auto_balance_notifications
@@ -474,13 +474,13 @@ pub async fn get_auto_balance_notifications(
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/graph")
-            // Match client's endpoint pattern exactly
+            
             .route("/data", web::get().to(get_graph_data))
             .route("/data/paginated", web::get().to(get_paginated_graph_data))
             .route("/update", web::post().to(update_graph))
-            // Keep refresh endpoint for admin/maintenance
+            
             .route("/refresh", web::post().to(refresh_graph))
-            // Auto-balance notifications
+            
             .route(
                 "/auto-balance-notifications",
                 web::get().to(get_auto_balance_notifications),

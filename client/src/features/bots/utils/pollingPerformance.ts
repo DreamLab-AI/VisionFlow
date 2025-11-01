@@ -31,9 +31,7 @@ export class PollingPerformanceMonitor {
   private durations: number[] = [];
   private maxDurationHistory = 100;
 
-  /**
-   * Record a successful poll
-   */
+  
   recordPoll(duration: number, dataChanged: boolean): void {
     this.metrics.pollCount++;
     this.metrics.successCount++;
@@ -43,7 +41,7 @@ export class PollingPerformanceMonitor {
       this.metrics.dataChangeCount++;
     }
     
-    // Update duration statistics
+    
     this.durations.push(duration);
     if (this.durations.length > this.maxDurationHistory) {
       this.durations.shift();
@@ -53,23 +51,19 @@ export class PollingPerformanceMonitor {
     this.metrics.maxDuration = Math.max(this.metrics.maxDuration, duration);
     this.metrics.averageDuration = this.durations.reduce((a, b) => a + b, 0) / this.durations.length;
     
-    // Log performance warnings
+    
     if (duration > 1000) {
       logger.warn(`Slow poll detected: ${duration}ms`);
     }
   }
 
-  /**
-   * Record a failed poll
-   */
+  
   recordError(): void {
     this.metrics.pollCount++;
     this.metrics.errorCount++;
   }
 
-  /**
-   * Get current metrics
-   */
+  
   getMetrics(): PollingMetrics {
     return {
       ...this.metrics,
@@ -77,25 +71,19 @@ export class PollingPerformanceMonitor {
     };
   }
 
-  /**
-   * Get success rate
-   */
+  
   getSuccessRate(): number {
     if (this.metrics.pollCount === 0) return 1;
     return this.metrics.successCount / this.metrics.pollCount;
   }
 
-  /**
-   * Get data freshness (time since last successful poll)
-   */
+  
   getDataFreshness(): number {
     if (this.metrics.lastPollTime === 0) return Infinity;
     return Date.now() - this.metrics.lastPollTime;
   }
 
-  /**
-   * Reset metrics
-   */
+  
   reset(): void {
     this.metrics = {
       pollCount: 0,
@@ -112,9 +100,7 @@ export class PollingPerformanceMonitor {
     this.startTime = Date.now();
   }
 
-  /**
-   * Get performance summary
-   */
+  
   getSummary(): string {
     const successRate = (this.getSuccessRate() * 100).toFixed(1);
     const changeRate = this.metrics.pollCount > 0 

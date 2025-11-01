@@ -1,6 +1,4 @@
-/**
- * System Info Display Component
- */
+
 
 import React from 'react';
 

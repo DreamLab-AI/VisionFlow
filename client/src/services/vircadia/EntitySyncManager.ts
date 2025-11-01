@@ -1,9 +1,4 @@
-/**
- * EntitySyncManager - Real-time synchronization between VisionFlow and Vircadia
- *
- * Handles bidirectional sync of graph entities with the Vircadia server,
- * optimized for Quest 3 XR multi-user collaboration.
- */
+
 
 import { ClientCore, QueryResult } from './VircadiaClientCore';
 import { GraphEntityMapper, GraphData, GraphNode, GraphEdge, VircadiaEntity } from './GraphEntityMapper';
@@ -43,7 +38,7 @@ export class EntitySyncManager {
     private config: SyncConfig = {
         syncGroup: 'public.NORMAL',
         batchSize: 100,
-        syncIntervalMs: 100, // 10 updates per second
+        syncIntervalMs: 100, 
         enableRealTimePositions: true
     };
 
@@ -58,18 +53,18 @@ export class EntitySyncManager {
             createdBy: 'visionflow-xr'
         });
 
-        // Set up event listeners
+        
         this.setupEventListeners();
     }
 
     private setupEventListeners(): void {
-        // Listen for sync updates from server
+        
         this.client.Utilities.Connection.addEventListener('syncUpdate', () => {
             logger.debug('Received sync update from server');
-            // Handle incoming entity updates
+            
         });
 
-        // Listen for connection status changes
+        
         this.client.Utilities.Connection.addEventListener('statusChange', () => {
             const info = this.client.Utilities.Connection.getConnectionInfo();
             if (info.isConnected) {
@@ -82,16 +77,14 @@ export class EntitySyncManager {
         });
     }
 
-    /**
-     * Push entire graph to Vircadia
-     */
+    
     async pushGraphToVircadia(graphData: GraphData): Promise<void> {
         logger.info(`Pushing graph to Vircadia: ${graphData.nodes.length} nodes, ${graphData.edges.length} edges`);
 
         const entities = this.mapper.mapGraphToEntities(graphData);
         this.stats.totalEntities = entities.length;
 
-        // Batch insert for performance
+        
         for (let i = 0; i < entities.length; i += this.config.batchSize) {
             const batch = entities.slice(i, i + this.config.batchSize);
             await this.insertEntitiesBatch(batch);
@@ -104,9 +97,7 @@ export class EntitySyncManager {
         logger.info('Graph push complete', this.stats);
     }
 
-    /**
-     * Pull graph from Vircadia
-     */
+    
     async pullGraphFromVircadia(): Promise<GraphData> {
         logger.info('Pulling graph from Vircadia');
 
@@ -143,9 +134,7 @@ export class EntitySyncManager {
         }
     }
 
-    /**
-     * Update node position in Vircadia (real-time)
-     */
+    
     updateNodePosition(nodeId: string, position: { x: number; y: number; z: number }): void {
         if (!this.config.enableRealTimePositions) {
             return;
@@ -156,9 +145,7 @@ export class EntitySyncManager {
         this.stats.pendingUpdates = this.pendingPositionUpdates.size;
     }
 
-    /**
-     * Batch update positions (called periodically)
-     */
+    
     private async flushPositionUpdates(): Promise<void> {
         if (this.pendingPositionUpdates.size === 0) {
             return;
@@ -168,7 +155,7 @@ export class EntitySyncManager {
         this.pendingPositionUpdates.clear();
 
         try {
-            // Build batch update SQL
+            
             const statements = updates.map(([entityName, position]) =>
                 this.mapper.generatePositionUpdateSQL(entityName, position)
             );
@@ -187,16 +174,14 @@ export class EntitySyncManager {
             logger.error('Failed to flush position updates:', error);
             this.stats.errors++;
 
-            // Re-queue failed updates
+            
             updates.forEach(([entityName, position]) => {
                 this.pendingPositionUpdates.set(entityName, position);
             });
         }
     }
 
-    /**
-     * Insert entities batch
-     */
+    
     private async insertEntitiesBatch(entities: VircadiaEntity[]): Promise<void> {
         try {
             const sql = this.mapper.generateBatchInsertSQL(entities);
@@ -215,9 +200,7 @@ export class EntitySyncManager {
         }
     }
 
-    /**
-     * Start real-time position sync
-     */
+    
     private startRealTimeSync(): void {
         if (this.syncInterval) {
             return;
@@ -230,9 +213,7 @@ export class EntitySyncManager {
         }, this.config.syncIntervalMs);
     }
 
-    /**
-     * Stop real-time position sync
-     */
+    
     private stopRealTimeSync(): void {
         if (this.syncInterval) {
             clearInterval(this.syncInterval);
@@ -241,13 +222,11 @@ export class EntitySyncManager {
         }
     }
 
-    /**
-     * Subscribe to entity changes from Vircadia
-     */
+    
     onEntityUpdate(callback: (entities: VircadiaEntity[]) => void): () => void {
         const handler = async () => {
             try {
-                // Query for recently updated entities
+                
                 const query = `
                     SELECT * FROM entity.entities
                     WHERE group__sync = $1
@@ -273,15 +252,13 @@ export class EntitySyncManager {
 
         this.client.Utilities.Connection.addEventListener('syncUpdate', handler);
 
-        // Return unsubscribe function
+        
         return () => {
             this.client.Utilities.Connection.removeEventListener('syncUpdate', handler);
         };
     }
 
-    /**
-     * Delete entity from Vircadia
-     */
+    
     async deleteEntity(entityName: string): Promise<void> {
         try {
             const query = `
@@ -304,9 +281,7 @@ export class EntitySyncManager {
         }
     }
 
-    /**
-     * Clear all graph entities from Vircadia
-     */
+    
     async clearGraph(): Promise<void> {
         logger.warn('Clearing all graph entities from Vircadia');
 
@@ -336,16 +311,12 @@ export class EntitySyncManager {
         }
     }
 
-    /**
-     * Get current sync statistics
-     */
+    
     getStats(): SyncStats {
         return { ...this.stats };
     }
 
-    /**
-     * Dispose sync manager
-     */
+    
     dispose(): void {
         this.stopRealTimeSync();
         this.pendingPositionUpdates.clear();

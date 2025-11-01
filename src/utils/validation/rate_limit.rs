@@ -6,7 +6,7 @@ use std::net::IpAddr;
 use std::sync::{Arc, RwLock};
 use std::time::{Duration, Instant};
 
-/// Rate limiting configuration
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RateLimitConfig {
     pub requests_per_minute: u32,
@@ -19,16 +19,16 @@ pub struct RateLimitConfig {
 impl Default for RateLimitConfig {
     fn default() -> Self {
         Self {
-            requests_per_minute: 60,                    // 60 requests per minute
-            burst_size: 10,                             // Allow 10 requests in quick succession
-            cleanup_interval: Duration::from_secs(300), // Cleanup every 5 minutes
-            ban_duration: Duration::from_secs(3600),    // Ban for 1 hour
-            max_violations: 5,                          // Ban after 5 violations
+            requests_per_minute: 60,                    
+            burst_size: 10,                             
+            cleanup_interval: Duration::from_secs(300), 
+            ban_duration: Duration::from_secs(3600),    
+            max_violations: 5,                          
         }
     }
 }
 
-/// Rate limiter entry for a client
+/
 #[derive(Debug, Clone)]
 struct RateLimitEntry {
     tokens: u32,
@@ -89,7 +89,7 @@ impl RateLimitEntry {
     }
 }
 
-/// Rate limiter implementation
+/
 pub struct RateLimiter {
     clients: Arc<RwLock<HashMap<String, RateLimitEntry>>>,
     config: RateLimitConfig,
@@ -104,12 +104,12 @@ impl RateLimiter {
             last_cleanup: Arc::new(RwLock::new(Instant::now())),
         };
 
-        // Spawn cleanup task
+        
         limiter.start_cleanup_task();
         limiter
     }
 
-    /// Check if request is allowed for the given client
+    
     pub fn is_allowed(&self, client_id: &str) -> bool {
         self.cleanup_if_needed();
 
@@ -127,7 +127,7 @@ impl RateLimiter {
         allowed
     }
 
-    /// Get remaining tokens for a client
+    
     pub fn remaining_tokens(&self, client_id: &str) -> u32 {
         let mut clients = self.clients.write().unwrap();
         let entry = clients
@@ -138,7 +138,7 @@ impl RateLimiter {
         entry.tokens
     }
 
-    /// Get time until rate limit resets
+    
     pub fn reset_time(&self, client_id: &str) -> Duration {
         let clients = self.clients.read().unwrap();
         if let Some(entry) = clients.get(client_id) {
@@ -151,7 +151,7 @@ impl RateLimiter {
         }
     }
 
-    /// Check if client is currently banned
+    
     pub fn is_banned(&self, client_id: &str) -> bool {
         let clients = self.clients.read().unwrap();
         clients
@@ -160,7 +160,7 @@ impl RateLimiter {
             .unwrap_or(false)
     }
 
-    /// Cleanup expired entries
+    
     fn cleanup_if_needed(&self) {
         let mut last_cleanup = self.last_cleanup.write().unwrap();
         let now = Instant::now();
@@ -176,7 +176,7 @@ impl RateLimiter {
         let before_count = clients.len();
 
         clients.retain(|_, entry| {
-            // Keep entries that are not expired and not old
+            
             !entry.is_banned()
                 || entry
                     .banned_until
@@ -193,7 +193,7 @@ impl RateLimiter {
         }
     }
 
-    /// Start background cleanup task
+    
     fn start_cleanup_task(&self) {
         let clients = self.clients.clone();
         let config = self.config.clone();
@@ -209,14 +209,14 @@ impl RateLimiter {
                 let now = Instant::now();
 
                 clients_guard.retain(|_, entry| {
-                    // Keep entries that are active or recently banned
+                    
                     let keep_banned = entry
                         .banned_until
                         .map(|until| now < until + Duration::from_secs(3600))
                         .unwrap_or(false);
 
                     let keep_active =
-                        now.duration_since(entry.last_refill) < Duration::from_secs(1800); // 30 minutes
+                        now.duration_since(entry.last_refill) < Duration::from_secs(1800); 
 
                     keep_banned || keep_active
                 });
@@ -232,7 +232,7 @@ impl RateLimiter {
         });
     }
 
-    /// Get statistics about rate limiting
+    
     pub fn get_stats(&self) -> RateLimitStats {
         let clients = self.clients.read().unwrap();
         let now = Instant::now();
@@ -253,7 +253,7 @@ impl RateLimiter {
     }
 }
 
-/// Rate limit statistics
+/
 #[derive(Debug, Serialize)]
 pub struct RateLimitStats {
     pub total_clients: usize,
@@ -262,9 +262,9 @@ pub struct RateLimitStats {
     pub config: RateLimitConfig,
 }
 
-/// Extract client identifier from request
+/
 pub fn extract_client_id(req: &HttpRequest) -> String {
-    // Try to get real IP from headers (for proxied requests)
+    
     let real_ip = req
         .headers()
         .get("X-Real-IP")
@@ -273,7 +273,7 @@ pub fn extract_client_id(req: &HttpRequest) -> String {
         .and_then(|s| s.split(',').next())
         .and_then(|s| s.trim().parse::<IpAddr>().ok());
 
-    // Fall back to connection peer address
+    
     let ip = real_ip.or_else(|| req.peer_addr().map(|addr| addr.ip()));
 
     match ip {
@@ -282,7 +282,7 @@ pub fn extract_client_id(req: &HttpRequest) -> String {
     }
 }
 
-/// Extract client identifier from service request (for middleware)
+/
 pub fn extract_client_id_from_service_request(req: &ServiceRequest) -> String {
     let real_ip = req
         .headers()
@@ -300,7 +300,7 @@ pub fn extract_client_id_from_service_request(req: &ServiceRequest) -> String {
     }
 }
 
-/// Create rate limit response with headers
+/
 pub fn create_rate_limit_response(client_id: &str, limiter: &RateLimiter) -> Result<HttpResponse> {
     let remaining = limiter.remaining_tokens(client_id);
     let reset_time = limiter.reset_time(client_id);
@@ -337,11 +337,11 @@ pub fn create_rate_limit_response(client_id: &str, limiter: &RateLimiter) -> Res
     Ok(response)
 }
 
-/// Endpoint-specific rate limit configurations
+/
 pub struct EndpointRateLimits;
 
 impl EndpointRateLimits {
-    /// Rate limit for settings updates (more restrictive)
+    
     pub fn settings_update() -> RateLimitConfig {
         RateLimitConfig {
             requests_per_minute: 30,
@@ -350,7 +350,7 @@ impl EndpointRateLimits {
         }
     }
 
-    /// Rate limit for RAGFlow requests (less restrictive for chat)
+    
     pub fn ragflow_chat() -> RateLimitConfig {
         RateLimitConfig {
             requests_per_minute: 20,
@@ -359,7 +359,7 @@ impl EndpointRateLimits {
         }
     }
 
-    /// Rate limit for bots/swarm operations (moderate)
+    
     pub fn bots_operations() -> RateLimitConfig {
         RateLimitConfig {
             requests_per_minute: 40,
@@ -368,7 +368,7 @@ impl EndpointRateLimits {
         }
     }
 
-    /// Rate limit for health checks (very permissive)
+    
     pub fn health_check() -> RateLimitConfig {
         RateLimitConfig {
             requests_per_minute: 120,
@@ -377,18 +377,18 @@ impl EndpointRateLimits {
         }
     }
 
-    /// Rate limit for WebSocket position updates (5Hz updates)
+    
     pub fn socket_flow_updates() -> RateLimitConfig {
         RateLimitConfig {
-            requests_per_minute: 300,                   // 5Hz * 60s = 300/min
-            burst_size: 50,                             // Allow burst of 50 updates
-            cleanup_interval: Duration::from_secs(600), // Cleanup every 10 minutes
-            ban_duration: Duration::from_secs(600),     // Shorter ban for real-time updates
-            max_violations: 10,                         // More lenient for real-time data
+            requests_per_minute: 300,                   
+            burst_size: 50,                             
+            cleanup_interval: Duration::from_secs(600), 
+            ban_duration: Duration::from_secs(600),     
+            max_violations: 10,                         
         }
     }
 
-    /// Default rate limit for all other endpoints
+    
     pub fn default() -> RateLimitConfig {
         RateLimitConfig::default()
     }
@@ -409,12 +409,12 @@ mod tests {
         let limiter = RateLimiter::new(config);
         let client_id = "test_client";
 
-        // Should allow burst size requests initially
+        
         for _ in 0..5 {
             assert!(limiter.is_allowed(client_id));
         }
 
-        // Should deny the next request
+        
         assert!(!limiter.is_allowed(client_id));
     }
 
@@ -428,14 +428,14 @@ mod tests {
         let limiter = RateLimiter::new(config);
         let client_id = "test_client_refill";
 
-        // Use up the token
+        
         assert!(limiter.is_allowed(client_id));
         assert!(!limiter.is_allowed(client_id));
 
-        // Wait for refill (in a real test, you'd mock time)
+        
         thread::sleep(Duration::from_secs(2));
 
-        // Should have a token again
+        
         assert!(limiter.is_allowed(client_id));
     }
 
@@ -451,12 +451,12 @@ mod tests {
         let limiter = RateLimiter::new(config);
         let client_id = "test_client_ban";
 
-        // Use up tokens and trigger violations
-        assert!(limiter.is_allowed(client_id)); // Use the token
-        assert!(!limiter.is_allowed(client_id)); // Violation 1
-        assert!(!limiter.is_allowed(client_id)); // Violation 2, should trigger ban
+        
+        assert!(limiter.is_allowed(client_id)); 
+        assert!(!limiter.is_allowed(client_id)); 
+        assert!(!limiter.is_allowed(client_id)); 
 
-        // Should be banned now
+        
         assert!(limiter.is_banned(client_id));
         assert!(!limiter.is_allowed(client_id));
     }

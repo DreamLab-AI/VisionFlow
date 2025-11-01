@@ -1,6 +1,4 @@
-/**
- * Tab Navigation Component
- */
+
 
 import React from 'react';
 import { TabsList, TabsTrigger } from '../../../design-system/components/Tabs';

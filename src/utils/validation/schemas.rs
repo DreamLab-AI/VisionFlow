@@ -3,7 +3,7 @@ use super::{ValidationContext, ValidationResult, ValidationUtils};
 use serde_json::Value;
 use std::collections::HashMap;
 
-/// Schema-based validation for API endpoints
+/
 #[derive(Debug, Clone)]
 pub struct ValidationSchema {
     pub fields: HashMap<String, FieldValidator>,
@@ -37,14 +37,14 @@ impl ValidationSchema {
             DetailedValidationError::new(&ctx.get_path(), "Expected object", "INVALID_TYPE")
         })?;
 
-        // Check required fields
+        
         for field_name in &self.required_fields {
             if !obj.contains_key(field_name) {
                 return Err(DetailedValidationError::missing_required_field(field_name));
             }
         }
 
-        // Validate each field
+        
         for (field_name, field_value) in obj {
             if let Some(validator) = self.fields.get(field_name) {
                 ctx.enter_field(field_name)?;
@@ -63,7 +63,7 @@ impl ValidationSchema {
     }
 
     pub fn allow_unknown_fields(&self) -> bool {
-        true // Allow unknown fields by default for flexibility
+        true 
     }
 }
 
@@ -73,7 +73,7 @@ impl Default for ValidationSchema {
     }
 }
 
-/// Field validator with multiple validation rules
+/
 #[derive(Debug, Clone)]
 pub struct FieldValidator {
     pub rules: Vec<ValidationRule>,
@@ -168,7 +168,7 @@ impl Default for FieldValidator {
     }
 }
 
-/// Individual validation rules
+/
 #[derive(Debug, Clone)]
 pub enum ValidationRule {
     Type(FieldType),
@@ -435,7 +435,7 @@ impl ValidationRule {
     }
 }
 
-/// Field types for validation
+/
 #[derive(Debug, Clone, PartialEq)]
 pub enum FieldType {
     String,
@@ -460,11 +460,11 @@ impl std::fmt::Display for FieldType {
     }
 }
 
-/// Pre-defined schemas for common API endpoints
+/
 pub struct ApiSchemas;
 
 impl ApiSchemas {
-    /// Settings update schema
+    
     pub fn settings_update() -> ValidationSchema {
         ValidationSchema::new()
             .add_optional_field("visualisation", FieldValidator::object())
@@ -473,7 +473,7 @@ impl ApiSchemas {
             .add_optional_field("rendering", FieldValidator::object())
     }
 
-    /// Physics parameters schema
+    
     pub fn physics_params() -> ValidationSchema {
         ValidationSchema::new()
             .add_optional_field(
@@ -545,7 +545,7 @@ impl ApiSchemas {
             )
     }
 
-    /// RAGFlow chat request schema
+    
     pub fn ragflow_chat() -> ValidationSchema {
         ValidationSchema::new()
             .add_required_field(
@@ -557,14 +557,14 @@ impl ApiSchemas {
             .add_optional_field("enable_tts", FieldValidator::boolean())
     }
 
-    /// Bots data update schema
+    
     pub fn bots_data() -> ValidationSchema {
         ValidationSchema::new()
             .add_required_field("nodes", FieldValidator::array().max_length(1000))
             .add_required_field("edges", FieldValidator::array().max_length(10000))
     }
 
-    /// Swarm initialization schema
+    
     pub fn swarm_init() -> ValidationSchema {
         ValidationSchema::new()
             .add_required_field(
@@ -581,7 +581,7 @@ impl ApiSchemas {
             .add_optional_field("custom_prompt", FieldValidator::string().max_length(5000))
     }
 
-    /// Node color update schema
+    
     pub fn node_settings() -> ValidationSchema {
         ValidationSchema::new()
             .add_optional_field("baseColor", FieldValidator::string().hex_color())
@@ -607,7 +607,7 @@ impl ApiSchemas {
             )
     }
 
-    /// XR settings schema
+    
     pub fn xr_settings() -> ValidationSchema {
         ValidationSchema::new()
             .add_optional_field("enabled", FieldValidator::boolean())
@@ -627,24 +627,24 @@ impl ApiSchemas {
             .add_optional_field("interactions", FieldValidator::object())
     }
 
-    /// Rendering settings schema including bloom/glow effects
+    
     pub fn rendering_settings() -> ValidationSchema {
         ValidationSchema::new()
             .add_optional_field(
                 "ambientLightIntensity",
                 FieldValidator::number().min_value(0.0).max_value(100.0),
             )
-            // Support both 'bloom' and 'glow' field names for compatibility
+            
             .add_optional_field("bloom", Self::bloom_glow_effects())
             .add_optional_field("glow", Self::bloom_glow_effects())
     }
 
-    /// Bloom/glow effects sub-schema
+    
     fn bloom_glow_effects() -> FieldValidator {
         FieldValidator::object()
     }
 
-    /// Complete rendering schema with bloom/glow field mapping support
+    
     pub fn complete_rendering_schema() -> ValidationSchema {
         ValidationSchema::new()
             .add_optional_field(

@@ -22,17 +22,17 @@ use crate::ports::knowledge_graph_repository::{
     Result as RepoResult,
 };
 
-/// Unified database repository implementing KnowledgeGraphRepository
-///
-/// Uses unified.db schema with graph_nodes table that includes owl_class_iri
-/// linkage to ontology data for semantic integration.
+/
+/
+/
+/
 pub struct UnifiedGraphRepository {
     conn: Arc<Mutex<Connection>>,
     #[allow(dead_code)]
     metrics: Arc<RepositoryMetrics>,
 }
 
-/// Repository metrics for monitoring
+/
 #[derive(Debug, Default)]
 pub struct RepositoryMetrics {
     pub load_count: std::sync::atomic::AtomicU64,
@@ -42,18 +42,18 @@ pub struct RepositoryMetrics {
 }
 
 impl UnifiedGraphRepository {
-    /// Create new unified graph repository
-    ///
-    /// # Arguments
-    /// * `db_path` - Path to unified.db database
-    ///
-    /// # Schema
-    /// Uses unified schema with graph_nodes table that includes:
-    /// - id, metadata_id, label (identity)
-    /// - x, y, z, vx, vy, vz (physics - UNCHANGED for CUDA)
-    /// - mass, charge (physics properties)
-    /// - owl_class_iri (ontology linkage - NEW)
-    /// - color, size, metadata (rendering)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     pub fn new(db_path: &str) -> Result<Self, KnowledgeGraphRepositoryError> {
         let conn = Connection::open(db_path).map_err(|e| {
             KnowledgeGraphRepositoryError::DatabaseError(format!(
@@ -62,7 +62,7 @@ impl UnifiedGraphRepository {
             ))
         })?;
 
-        // Enable foreign keys for referential integrity
+        
         conn.execute("PRAGMA foreign_keys = ON", []).map_err(|e| {
             KnowledgeGraphRepositoryError::DatabaseError(format!(
                 "Failed to enable foreign keys: {}",
@@ -70,7 +70,7 @@ impl UnifiedGraphRepository {
             ))
         })?;
 
-        // Create unified schema
+        
         Self::create_schema(&conn)?;
 
         info!("Initialized UnifiedGraphRepository at {}", db_path);
@@ -81,17 +81,17 @@ impl UnifiedGraphRepository {
         })
     }
 
-    /// Create unified database schema
-    ///
-    /// CRITICAL: Schema is managed by migration/unified_schema.sql
-    /// This function is a no-op since schema is applied during database initialization
+    
+    
+    
+    
     fn create_schema(_conn: &Connection) -> Result<(), KnowledgeGraphRepositoryError> {
-        // Schema is pre-applied from migration/unified_schema.sql during database initialization
-        // No need to create schema here - tables already exist
+        
+        
         Ok(())
     }
 
-    /// Deserialize node from database row (unified schema)
+    
     fn deserialize_node(row: &rusqlite::Row) -> Result<Node, rusqlite::Error> {
         let id: u32 = row.get(0)?;
         let metadata_id: String = row.get(1)?;
@@ -102,8 +102,8 @@ impl UnifiedGraphRepository {
         let vx: f32 = row.get(6)?;
         let vy: f32 = row.get(7)?;
         let vz: f32 = row.get(8)?;
-        let _mass: f32 = row.get(9)?; // Available but not used in Node struct
-        let _charge: f32 = row.get(10)?; // Available but not used in Node struct
+        let _mass: f32 = row.get(9)?; 
+        let _charge: f32 = row.get(10)?; 
         let owl_class_iri: Option<String> = row.get(11)?;
         let color: Option<String> = row.get(12)?;
         let size: Option<f32> = row.get(13)?;
@@ -116,7 +116,7 @@ impl UnifiedGraphRepository {
             .and_then(|json| serde_json::from_str(&json).ok())
             .unwrap_or_default();
 
-        // Add owl_class_iri to metadata if present
+        
         if let Some(iri) = owl_class_iri {
             metadata.insert("owl_class_iri".to_string(), iri);
         }
@@ -139,12 +139,12 @@ impl UnifiedGraphRepository {
         Ok(node)
     }
 
-    /// Serialize node metadata to JSON
+    
     fn serialize_metadata(metadata: &HashMap<String, String>) -> String {
         serde_json::to_string(metadata).unwrap_or_else(|_| "{}".to_string())
     }
 
-    /// Update graph statistics cache
+    
     fn update_statistics_cache(&self, conn: &Connection) -> RepoResult<()> {
         let node_count: i64 = conn
             .query_row("SELECT COUNT(*) FROM graph_nodes", [], |row| row.get(0))
@@ -188,7 +188,7 @@ impl UnifiedGraphRepository {
         Ok(())
     }
 
-    /// Get database connection (for file_metadata operations)
+    
     pub fn get_connection(&self) -> Result<Arc<Mutex<Connection>>, KnowledgeGraphRepositoryError> {
         Ok(self.conn.clone())
     }
@@ -210,7 +210,7 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                 .lock()
                 .expect("Failed to acquire unified repository mutex");
 
-            // Load all nodes
+            
             let mut stmt = conn
                 .prepare(
                     r#"
@@ -245,7 +245,7 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
 
             debug!("Loaded {} nodes from unified database", nodes.len());
 
-            // Load all edges
+            
             let mut edge_stmt = conn
                 .prepare("SELECT id, source_id, target_id, weight, relation_type, metadata FROM graph_edges")
                 .map_err(|e| {
@@ -319,8 +319,8 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                 ))
             })?;
 
-            // INCREMENTAL SYNC: Only clear and update if this is initial sync (no metadata)
-            // Otherwise, rely on UPSERT logic below
+            
+            
             let metadata_count: i64 = tx
                 .query_row("SELECT COUNT(*) FROM file_metadata", [], |row| row.get(0))
                 .unwrap_or(0);
@@ -344,7 +344,7 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                 info!("Incremental sync - preserving existing nodes");
             }
 
-            // UPSERT nodes (INSERT OR REPLACE for incremental sync)
+            
             let mut node_stmt = tx
                 .prepare(
                     r#"
@@ -376,8 +376,8 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                         node.data.vx,
                         node.data.vy,
                         node.data.vz,
-                        1.0, // mass default
-                        0.0, // charge default
+                        1.0, 
+                        0.0, 
                         owl_class_iri,
                         node.color,
                         node.size,
@@ -394,7 +394,7 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                     })?;
             }
 
-            // UPSERT edges (INSERT OR REPLACE for incremental sync)
+            
             let mut edge_stmt = tx
                 .prepare(
                     "INSERT OR REPLACE INTO graph_edges (id, source_id, target_id, weight, relation_type, metadata)
@@ -430,7 +430,7 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                     })?;
             }
 
-            // Drop statements before commit to avoid borrow checker issues
+            
             drop(node_stmt);
             drop(edge_stmt);
 
@@ -578,7 +578,7 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                 node_ids.push(tx.last_insert_rowid() as u32);
             }
 
-            // Drop statement before commit to avoid borrow checker issues
+            
             drop(stmt);
 
             tx.commit().map_err(|e| {
@@ -723,7 +723,7 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                 })?;
             }
 
-            // Drop statement before commit to avoid borrow checker issues
+            
             drop(stmt);
 
             tx.commit().map_err(|e| {
@@ -807,7 +807,7 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                 })?;
             }
 
-            // Drop statement before commit to avoid borrow checker issues
+            
             drop(stmt);
 
             tx.commit().map_err(|e| {
@@ -1118,7 +1118,7 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                 edge_ids.push(edge.id.clone());
             }
 
-            // Drop statement before commit to avoid borrow checker issues
+            
             drop(stmt);
 
             tx.commit().map_err(|e| {
@@ -1254,7 +1254,7 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                 })?;
             }
 
-            // Drop statement before commit to avoid borrow checker issues
+            
             drop(stmt);
 
             tx.commit().map_err(|e| {
@@ -1401,13 +1401,13 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
         })?
     }
 
-    /// CRITICAL: Batch update positions - UNCHANGED interface for CUDA compatibility
-    ///
-    /// This method MUST maintain identical interface to legacy adapter
-    /// Format: Vec<(node_id, x, y, z)>
-    ///
-    /// CUDA kernels call this after force computation with updated positions.
-    /// The x,y,z,vx,vy,vz column names MUST NOT change.
+    
+    
+    
+    
+    
+    
+    
     async fn batch_update_positions(
         &self,
         positions: Vec<(u32, f32, f32, f32)>,
@@ -1426,7 +1426,7 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                 ))
             })?;
 
-            // CRITICAL: Column names x,y,z,vx,vy,vz MUST match CUDA expectations
+            
             let mut stmt = tx
                 .prepare(
                     "UPDATE graph_nodes
@@ -1440,7 +1440,7 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                     ))
                 })?;
 
-            // Batch update in chunks of 10,000 for performance (same as legacy)
+            
             for chunk in positions.chunks(10_000) {
                 for (node_id, x, y, z) in chunk {
                     stmt.execute(params![x, y, z, node_id]).map_err(|e| {
@@ -1452,7 +1452,7 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                 }
             }
 
-            // Drop statement before commit to avoid borrow checker issues
+            
             drop(stmt);
 
             tx.commit().map_err(|e| {
@@ -1476,7 +1476,7 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
     }
 
     async fn query_nodes(&self, _query: &str) -> RepoResult<Vec<Node>> {
-        // TODO: Implement query DSL parsing
+        
         warn!("query_nodes not yet implemented for unified repository");
         Ok(Vec::new())
     }
@@ -1539,7 +1539,7 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                 .lock()
                 .expect("Failed to acquire unified repository mutex");
 
-            // Try to get cached statistics
+            
             let cached: Option<GraphStatistics> = conn
                 .query_row(
                     "SELECT node_count, edge_count, average_degree, connected_components, last_updated
@@ -1565,7 +1565,7 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                 return Ok(stats);
             }
 
-            // Compute fresh statistics
+            
             let node_count: i64 = conn
                 .query_row("SELECT COUNT(*) FROM graph_nodes", [], |row| row.get(0))
                 .unwrap_or(0);
@@ -1584,7 +1584,7 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                 node_count: node_count as usize,
                 edge_count: edge_count as usize,
                 average_degree,
-                connected_components: 1, // TODO: Compute actual connected components
+                connected_components: 1, 
                 last_updated: chrono::Utc::now(),
             };
 
@@ -1651,18 +1651,18 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
     }
 
     async fn begin_transaction(&self) -> RepoResult<()> {
-        // Note: rusqlite doesn't support explicit transaction management across async boundaries
-        // Transactions are managed per-operation in this implementation
+        
+        
         Ok(())
     }
 
     async fn commit_transaction(&self) -> RepoResult<()> {
-        // Note: rusqlite doesn't support explicit transaction management across async boundaries
+        
         Ok(())
     }
 
     async fn rollback_transaction(&self) -> RepoResult<()> {
-        // Note: rusqlite doesn't support explicit transaction management across async boundaries
+        
         Ok(())
     }
 
@@ -1674,7 +1674,7 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                 .lock()
                 .expect("Failed to acquire unified repository mutex");
 
-            // Simple health check: try to query the database
+            
             let result: Result<i64, _> = conn.query_row("SELECT COUNT(*) FROM graph_nodes", [], |row| row.get(0));
 
             Ok(result.is_ok())
@@ -1715,7 +1715,7 @@ mod tests {
     async fn test_batch_update_positions() {
         let repo = UnifiedGraphRepository::new(":memory:").unwrap();
 
-        // Add test nodes
+        
         let mut node1 = Node::new("node1".to_string());
         node1.label = "Node 1".to_string();
         let id1 = repo.add_node(&node1).await.unwrap();
@@ -1724,12 +1724,12 @@ mod tests {
         node2.label = "Node 2".to_string();
         let id2 = repo.add_node(&node2).await.unwrap();
 
-        // Update positions
+        
         let positions = vec![(id1, 10.0, 20.0, 30.0), (id2, 40.0, 50.0, 60.0)];
 
         repo.batch_update_positions(positions).await.unwrap();
 
-        // Verify positions were updated
+        
         let updated1 = repo.get_node(id1).await.unwrap().unwrap();
         assert_eq!(updated1.data.x, 10.0);
         assert_eq!(updated1.data.y, 20.0);

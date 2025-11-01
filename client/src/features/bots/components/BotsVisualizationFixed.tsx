@@ -35,7 +35,7 @@ if (typeof document !== 'undefined' && !document.querySelector('#bots-visualizat
 
 // Helper to format processing logs (no mock generation)
 const formatProcessingLogs = (logs: string[] | undefined): string[] => {
-  // Return actual logs if provided, otherwise empty array
+  
   return logs || [];
 };
 
@@ -48,31 +48,31 @@ function lerpVector3(current: THREE.Vector3, target: THREE.Vector3, alpha: numbe
 
 // Dynamic color generation based on agent type hash
 const generateAgentTypeColor = (agentType: string): string => {
-  // Create a simple hash function for consistent colors per agent type
+  
   let hash = 0;
   for (let i = 0; i < agentType.length; i++) {
     const char = agentType.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32-bit integer
+    hash = hash & hash; 
   }
 
-  // Use predefined color palettes based on agent category
-  const coordColors = ['#F1C40F', '#F39C12', '#E67E22', '#D68910', '#B7950B']; // Golds/oranges for coordination
-  const devColors = ['#2ECC71', '#27AE60', '#1ABC9C', '#16A085', '#229954']; // Greens for development
-  const specialColors = ['#9B59B6', '#8E44AD', '#E74C3C', '#C0392B', '#3498DB']; // Various for special roles
+  
+  const coordColors = ['#F1C40F', '#F39C12', '#E67E22', '#D68910', '#B7950B']; 
+  const devColors = ['#2ECC71', '#27AE60', '#1ABC9C', '#16A085', '#229954']; 
+  const specialColors = ['#9B59B6', '#8E44AD', '#E74C3C', '#C0392B', '#3498DB']; 
 
-  // Categorize agent types
+  
   const coordTypes = ['queen', 'coordinator', 'architect', 'monitor', 'manager'];
   const devTypes = ['coder', 'tester', 'reviewer', 'documenter', 'developer'];
 
-  let colorPalette = specialColors; // Default
+  let colorPalette = specialColors; 
   if (coordTypes.some(type => agentType.toLowerCase().includes(type))) {
     colorPalette = coordColors;
   } else if (devTypes.some(type => agentType.toLowerCase().includes(type))) {
     colorPalette = devColors;
   }
 
-  // Select color based on hash
+  
   const colorIndex = Math.abs(hash) % colorPalette.length;
   return colorPalette[colorIndex];
 };
@@ -82,18 +82,18 @@ const getVisionFlowColors = (settings: any) => {
   const visionflowSettings = settings?.visualisation?.graphs?.visionflow;
   const baseColor = visionflowSettings?.nodes?.baseColor || '#F1C40F';
 
-  // Get agent colors from server settings (provided via dev_config.toml)
+  
   const agentColors = settings?.visualisation?.rendering?.agentColors;
 
   if (agentColors && Object.keys(agentColors).length > 0) {
-    // Use server-provided colors with dynamic fallback for missing types
+    
     return {
-      // Create a function to get colors dynamically
+      
       getAgentColor: (agentType: string) => {
         return agentColors[agentType] || generateAgentTypeColor(agentType);
       },
 
-      // Predefined server colors (if available)
+      
       coder: agentColors.coder || generateAgentTypeColor('coder'),
       tester: agentColors.tester || generateAgentTypeColor('tester'),
       researcher: agentColors.researcher || generateAgentTypeColor('researcher'),
@@ -107,11 +107,11 @@ const getVisionFlowColors = (settings: any) => {
       analyst: agentColors.analyst || generateAgentTypeColor('analyst'),
       optimizer: agentColors.optimizer || generateAgentTypeColor('optimizer'),
 
-      // Connections (not in server config, use defaults)
-      edge: '#3498DB',        // Bright blue
-      activeEdge: '#2980B9',  // Peter river blue
+      
+      edge: '#3498DB',        
+      activeEdge: '#2980B9',  
 
-      // States (not in server config, use defaults)
+      
       active: '#2ECC71',
       busy: '#F39C12',
       idle: '#95A5A6',
@@ -119,12 +119,12 @@ const getVisionFlowColors = (settings: any) => {
     };
   }
 
-  // Dynamic color generation when no server colors available
+  
   return {
-    // Create a function to get colors dynamically
+    
     getAgentColor: (agentType: string) => generateAgentTypeColor(agentType),
 
-    // Generate colors for common agent types
+    
     coder: generateAgentTypeColor('coder'),
     tester: generateAgentTypeColor('tester'),
     researcher: generateAgentTypeColor('researcher'),
@@ -138,11 +138,11 @@ const getVisionFlowColors = (settings: any) => {
     analyst: generateAgentTypeColor('analyst'),
     optimizer: generateAgentTypeColor('optimizer'),
 
-    // Connections
-    edge: '#3498DB',        // Bright blue
-    activeEdge: '#2980B9',  // Peter river blue
+    
+    edge: '#3498DB',        
+    activeEdge: '#2980B9',  
 
-    // States
+    
     active: '#2ECC71',
     busy: '#F39C12',
     idle: '#95A5A6',
@@ -161,7 +161,7 @@ const AgentStatusBadges: React.FC<AgentStatusBadgesProps> = ({ agent, logs = [] 
   const [displayLogs, setDisplayLogs] = useState<{ text: string; key: number }[]>([]);
 
   useEffect(() => {
-    // Keep only the last 3 logs with unique keys for animation
+    
     const newLogs = logs.slice(-3).map((log, index) => ({
       text: log,
       key: logKey + index
@@ -178,7 +178,7 @@ const AgentStatusBadges: React.FC<AgentStatusBadgesProps> = ({ agent, logs = [] 
       minWidth: '250px',
       maxWidth: '350px',
     }}>
-      {/* Agent Name and Type */}
+      {}
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -203,7 +203,7 @@ const AgentStatusBadges: React.FC<AgentStatusBadgesProps> = ({ agent, logs = [] 
         </span>
       </div>
 
-      {/* Status and Health Row */}
+      {}
       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
         <div style={{
           padding: '3px 8px',
@@ -267,7 +267,7 @@ const AgentStatusBadges: React.FC<AgentStatusBadgesProps> = ({ agent, logs = [] 
         )}
       </div>
 
-      {/* Token Usage Row */}
+      {}
       {(agent.tokens || agent.tokenRate) && (
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '2px' }}>
           {agent.tokens && (
@@ -296,7 +296,7 @@ const AgentStatusBadges: React.FC<AgentStatusBadgesProps> = ({ agent, logs = [] 
         </div>
       )}
 
-      {/* Task Info */}
+      {}
       {(agent.tasksActive > 0 || agent.tasksCompleted > 0) && (
         <div style={{
           fontSize: '10px',
@@ -307,7 +307,7 @@ const AgentStatusBadges: React.FC<AgentStatusBadgesProps> = ({ agent, logs = [] 
         </div>
       )}
 
-      {/* Current Task or Activity */}
+      {}
       {(agent.currentTask || displayLogs.length > 0) && (
         <div style={{
           marginTop: '4px',
@@ -336,7 +336,7 @@ const AgentStatusBadges: React.FC<AgentStatusBadgesProps> = ({ agent, logs = [] 
         </div>
       )}
 
-      {/* Agent Capabilities */}
+      {}
       {agent.capabilities && agent.capabilities.length > 0 && (
         <div style={{
           display: 'flex',
@@ -367,7 +367,7 @@ const AgentStatusBadges: React.FC<AgentStatusBadgesProps> = ({ agent, logs = [] 
         </div>
       )}
 
-      {/* Agent Mode and Age Info */}
+      {}
       {(agent.agentMode || agent.age) && (
         <div style={{
           fontSize: '9px',
@@ -385,7 +385,7 @@ const AgentStatusBadges: React.FC<AgentStatusBadgesProps> = ({ agent, logs = [] 
         </div>
       )}
 
-      {/* multi-agent Info */}
+      {}
       {agent.swarmId && (
         <div style={{
           fontSize: '9px',
@@ -421,18 +421,18 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
   const targetPositionRef = useRef<THREE.Vector3>(position.clone());
   const settings = useSettingsStore(state => state.settings);
 
-  // Enhanced health-based glow color with more precise mapping
+  
   const glowColor = useMemo(() => {
     const health = agent.health || 0;
-    if (health >= 95) return '#00FF00'; // Bright green for excellent health
-    if (health >= 80) return '#2ECC71'; // Green for good health
-    if (health >= 65) return '#F1C40F'; // Yellow for moderate health
-    if (health >= 50) return '#F39C12'; // Orange for poor health
-    if (health >= 25) return '#E67E22'; // Dark orange for bad health
-    return '#E74C3C'; // Red for critical health
+    if (health >= 95) return '#00FF00'; 
+    if (health >= 80) return '#2ECC71'; 
+    if (health >= 65) return '#F1C40F'; 
+    if (health >= 50) return '#F39C12'; 
+    if (health >= 25) return '#E67E22'; 
+    return '#E74C3C'; 
   }, [agent.health]);
 
-  // Enhanced size calculation based on workload with multiple factors
+  
   const baseSize = 1.0;
   const cpuScale = agent.cpuUsage ? (agent.cpuUsage / 100) * 0.8 : 0;
   const workloadScale = agent.workload ? agent.workload * 0.6 : 0;
@@ -440,38 +440,38 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
   const tokenScale = agent.tokenRate ? Math.min(agent.tokenRate / 50, 0.5) : 0;
 
   const size = baseSize + cpuScale + workloadScale + activityScale + tokenScale;
-  const clampedSize = Math.max(0.5, Math.min(size, 3.0)); // Clamp between 0.5 and 3.0
+  const clampedSize = Math.max(0.5, Math.min(size, 3.0)); 
 
-  // Enhanced shape based on status and agent type
+  
   const geometry = useMemo(() => {
     const radius = clampedSize;
 
     switch (agent.status) {
       case 'error':
-        return new THREE.TetrahedronGeometry(radius * 1.2); // Sharp edges for error
+        return new THREE.TetrahedronGeometry(radius * 1.2); 
       case 'terminating':
-        return new THREE.OctahedronGeometry(radius); // Diamond shape for terminating
+        return new THREE.OctahedronGeometry(radius); 
       case 'initializing':
-        return new THREE.BoxGeometry(radius, radius, radius); // Cube for initializing
+        return new THREE.BoxGeometry(radius, radius, radius); 
       case 'idle':
-        return new THREE.SphereGeometry(radius * 0.8, 12, 12); // Smaller sphere, lower poly for idle
+        return new THREE.SphereGeometry(radius * 0.8, 12, 12); 
       case 'offline':
-        return new THREE.CylinderGeometry(radius * 0.5, radius * 0.5, radius); // Flat cylinder for offline
+        return new THREE.CylinderGeometry(radius * 0.5, radius * 0.5, radius); 
       case 'busy':
-        // Different shapes for different agent types when busy
+        
         switch (agent.type) {
           case 'queen':
-            return new THREE.IcosahedronGeometry(radius * 1.3, 1); // Large complex shape for queen
+            return new THREE.IcosahedronGeometry(radius * 1.3, 1); 
           case 'coordinator':
-            return new THREE.DodecahedronGeometry(radius * 1.1); // 12-sided for coordinators
+            return new THREE.DodecahedronGeometry(radius * 1.1); 
           case 'architect':
-            return new THREE.ConeGeometry(radius, radius * 1.5, 8); // Pyramid for architects
+            return new THREE.ConeGeometry(radius, radius * 1.5, 8); 
           default:
-            return new THREE.SphereGeometry(radius, 32, 32); // High-poly sphere for active agents
+            return new THREE.SphereGeometry(radius, 32, 32); 
         }
       case 'active':
       default:
-        return new THREE.SphereGeometry(radius, 24, 24); // Medium-poly sphere for active
+        return new THREE.SphereGeometry(radius, 24, 24); 
     }
   }, [agent.status, agent.type, clampedSize]);
 
@@ -480,7 +480,7 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
 
     telemetry.startRender();
 
-    // Log position updates for debugging clustering
+    
     if (!lastPositionRef.current || !lastPositionRef.current.equals(position)) {
       threeJSTelemetry.logPositionUpdate(
         { x: position.x, y: position.y, z: position.z },
@@ -489,29 +489,29 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
       lastPositionRef.current = position.clone();
     }
 
-    // Smooth position interpolation for real-time updates
+    
     targetPositionRef.current.copy(position);
     
-    // Interpolate current position towards target
-    // TODO: Extract to configuration - magic number for animation smoothness
-    const lerpFactor = 0.15; // TODO: Config - Adjust for smoothness (0.05 = very smooth, 0.3 = responsive)
+    
+    
+    const lerpFactor = 0.15; 
     lerpVector3(currentPositionRef.current, targetPositionRef.current, lerpFactor);
 
-    // Update group position with interpolated value
+    
     groupRef.current.position.copy(currentPositionRef.current);
 
-    // Enhanced pulse animation based on token rate, health, and status
-    // TODO: Extract to configuration - magic numbers for pulse calculations
+    
+    
     if (agent.status === 'active' || agent.status === 'busy') {
-      // Base pulse speed influenced by token rate and health
-      const tokenMultiplier = agent.tokenRate ? Math.min(agent.tokenRate / 10, 3) : 1; // TODO: Config - tokenRate divisor (10) and max multiplier (3)
-      const healthMultiplier = agent.health ? Math.max(0.3, agent.health / 100) : 1; // TODO: Config - health min (0.3) and divisor (100)
-      const pulseSpeed = 2 * tokenMultiplier * healthMultiplier; // TODO: Config - base pulse speed multiplier (2)
-      const pulse = Math.sin(state.clock.elapsedTime * pulseSpeed + index) * 0.15 + 1; // TODO: Config - pulse amplitude (0.15) and offset (1)
+      
+      const tokenMultiplier = agent.tokenRate ? Math.min(agent.tokenRate / 10, 3) : 1; 
+      const healthMultiplier = agent.health ? Math.max(0.3, agent.health / 100) : 1; 
+      const pulseSpeed = 2 * tokenMultiplier * healthMultiplier; 
+      const pulse = Math.sin(state.clock.elapsedTime * pulseSpeed + index) * 0.15 + 1; 
 
       meshRef.current.scale.setScalar(pulse * clampedSize);
 
-      // Dynamic glow intensity based on multiple factors
+      
       const tokenGlow = agent.tokenRate ? Math.min(agent.tokenRate / 20, 2) : 1;
       const healthGlow = agent.health ? (agent.health / 100) : 0.5;
       const statusGlow = agent.status === 'busy' ? 1.5 : 1.0;
@@ -519,34 +519,34 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
 
       glowRef.current.scale.setScalar(pulse * 1.5 * glowIntensity);
     } else if (agent.status === 'error') {
-      // Error state: rapid red pulsing
+      
       const errorPulse = Math.sin(state.clock.elapsedTime * 8 + index) * 0.3 + 1;
       meshRef.current.scale.setScalar(errorPulse * clampedSize);
       glowRef.current.scale.setScalar(errorPulse * 2.0);
     }
 
-    // Enhanced rotation for busy agents (faster with higher token rate)
+    
     if (agent.status === 'busy') {
       const rotationSpeed = agent.tokenRate ? 0.01 * (1 + agent.tokenRate / 50) : 0.01;
       meshRef.current.rotation.y += rotationSpeed;
     }
 
-    // Enhanced high-activity animations
+    
     if (agent.tokenRate && agent.tokenRate > 30) {
-      // Gentle floating motion for high-activity agents
+      
       const vibration = Math.sin(state.clock.elapsedTime * 15 + index) * 0.03;
       const float = Math.cos(state.clock.elapsedTime * 3 + index) * 0.1;
       meshRef.current.position.y += vibration + float;
     }
 
-    // Memory pressure indicator - slight shake if memory usage is high
+    
     if (agent.memoryUsage && agent.memoryUsage > 80) {
       const shake = Math.sin(state.clock.elapsedTime * 25) * 0.01;
       meshRef.current.position.x += shake;
       meshRef.current.position.z += shake * 0.7;
     }
 
-    // Critical health warning - dramatic pulsing
+    
     if (agent.health && agent.health < 25) {
       const criticalPulse = Math.sin(state.clock.elapsedTime * 12) * 0.5 + 1;
       meshRef.current.scale.multiplyScalar(criticalPulse);
@@ -554,20 +554,20 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
 
     telemetry.endRender();
 
-    // Log animation frame for telemetry
+    
     threeJSTelemetry.logAnimationFrame(
       { x: position.x, y: position.y, z: position.z },
       { x: meshRef.current.rotation.x, y: meshRef.current.rotation.y, z: meshRef.current.rotation.z }
     );
   });
 
-  // Use actual logs or empty array
+  
   const processingLogs = formatProcessingLogs(agent.processingLogs);
 
   return (
     <group ref={groupRef}>
-      {/* Glow effect */}
-      {/* TODO: Config - base opacity (0.15), hover opacity (0.1), tokenRate opacity (0.2/100) */}
+      {}
+      {}
       <mesh ref={glowRef}>
         <sphereGeometry args={[clampedSize * 1.5, 16, 16]} />
         <meshBasicMaterial
@@ -579,7 +579,7 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
         />
       </mesh>
 
-      {/* Main node */}
+      {}
       <mesh
         ref={meshRef}
         geometry={geometry}
@@ -604,7 +604,7 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
           });
         }}
         onClick={() => {
-          // Cycle through display modes on click
+          
           const modes: Array<'overview' | 'performance' | 'tasks' | 'network' | 'resources'> =
             ['overview', 'performance', 'tasks', 'network', 'resources'];
           const currentIndex = modes.indexOf(displayMode);
@@ -627,15 +627,15 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
           color={color}
           emissive={glowColor}
           emissiveIntensity={(() => {
-            // Get glow settings from central store
+            
             const glowSettings = settings?.visualisation?.glow;
             const baseIntensity = glowSettings?.nodeGlowStrength ?? 0.7;
 
-            // Apply status-based modulation
+            
             if (agent.status === 'active' || agent.status === 'busy') {
-              return baseIntensity * 0.7; // 70% of base for active agents
+              return baseIntensity * 0.7; 
             } else {
-              return baseIntensity * 0.3; // 30% of base for idle agents
+              return baseIntensity * 0.3; 
             }
           })()}
           metalness={0.3}
@@ -645,7 +645,7 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
         />
       </mesh>
 
-      {/* Enhanced agent info display */}
+      {}
       {(hover || agent.status === 'active' || agent.status === 'busy') && (
         <Html
           center
@@ -665,10 +665,10 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
         </Html>
       )}
 
-      {/* Performance indicators for high-performance agents */}
+      {}
       {(agent.tokenRate > 30 || agent.cpuUsage > 80) && (
         <group>
-          {/* CPU usage ring */}
+          {}
           <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, clampedSize + 0.2, 0]}>
             <ringGeometry args={[clampedSize * 1.1, clampedSize * 1.3, 16]} />
             <meshBasicMaterial
@@ -679,7 +679,7 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
             />
           </mesh>
 
-          {/* Token rate indicator particles */}
+          {}
           {agent.tokenRate > 50 && [
             ...Array(Math.min(Math.floor(agent.tokenRate / 10), 8))
           ].map((_, i) => {
@@ -701,14 +701,14 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
         </group>
       )}
 
-      {/* Enhanced 3D Text labels - content changes based on display mode */}
+      {}
       <Billboard
         follow={true}
         lockX={false}
         lockY={false}
         lockZ={false}
       >
-        {/* Mode indicator */}
+        {}
         <Text
           position={[0, clampedSize + 0.8, 0]}
           fontSize={0.18}
@@ -721,7 +721,7 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
           [{displayMode.toUpperCase()}]
         </Text>
 
-        {/* Agent name/ID always shown */}
+        {}
         <Text
           position={[0, -clampedSize - 0.7, 0]}
           fontSize={0.4}
@@ -734,13 +734,13 @@ const BotsNode: React.FC<BotsNodeProps> = ({ agent, position, index, color }) =>
           {agent.name || String(agent.id).slice(0, 8)}
         </Text>
 
-        {/* Dynamic content based on display mode */}
+        {}
         {displayMode === 'overview' && (
           <>
             <Text
               position={[0, -clampedSize - 1.1, 0]}
               fontSize={0.25}
-              color={color} // Use the passed color prop instead of looking up in colors array
+              color={color} 
               anchorX="center"
               anchorY="middle"
               outlineWidth={0.03}
@@ -1002,7 +1002,7 @@ const BotsEdgeComponent: React.FC<BotsEdgeProps> = ({
   useEffect(() => {
     const checkActivity = () => {
       const timeSinceLastMessage = Date.now() - edge.lastMessageTime;
-      setIsActive(timeSinceLastMessage < 5000); // Active if communicated within 5 seconds
+      setIsActive(timeSinceLastMessage < 5000); 
     };
 
     checkActivity();
@@ -1010,41 +1010,41 @@ const BotsEdgeComponent: React.FC<BotsEdgeProps> = ({
     return () => clearInterval(interval);
   }, [edge.lastMessageTime]);
 
-  // Calculate communication bandwidth based on connected agents' token rates
+  
   const sourceTokenRate = sourceAgent?.tokenRate || 0;
   const targetTokenRate = targetAgent?.tokenRate || 0;
   const avgTokenRate = (sourceTokenRate + targetTokenRate) / 2;
   
-  // Enhanced visual properties based on data flow and communication intensity
-  const baseWidth = Math.max(0.5, edge.dataVolume / 1000); // Base width from data volume
-  const tokenWidth = avgTokenRate > 0 ? Math.min(avgTokenRate / 10, 2) : 0; // Additional width from token rate
-  const messageWidth = edge.messageCount > 0 ? Math.min(edge.messageCount / 100, 1.5) : 0; // Width from message frequency
+  
+  const baseWidth = Math.max(0.5, edge.dataVolume / 1000); 
+  const tokenWidth = avgTokenRate > 0 ? Math.min(avgTokenRate / 10, 2) : 0; 
+  const messageWidth = edge.messageCount > 0 ? Math.min(edge.messageCount / 100, 1.5) : 0; 
   const lineWidth = isActive ? Math.max(1.5, baseWidth + tokenWidth + messageWidth) : Math.max(0.5, baseWidth * 0.5);
   
-  // Opacity and color intensity based on activity
+  
   const baseOpacity = isActive ? 0.8 : 0.3;
   const tokenOpacity = avgTokenRate > 10 ? Math.min(avgTokenRate / 50, 0.4) : 0;
   const opacity = Math.min(baseOpacity + tokenOpacity, 1);
   
-  // Color variation based on communication intensity
+  
   const edgeColor = isActive ? 
-    (avgTokenRate > 20 ? '#E67E22' : // Orange for high token flow
-     avgTokenRate > 10 ? '#3498DB' : // Blue for medium token flow  
-     '#2980B9') : // Dark blue for low activity
+    (avgTokenRate > 20 ? '#E67E22' : 
+     avgTokenRate > 10 ? '#3498DB' : 
+     '#2980B9') : 
     color;
 
-  // Enhanced animation properties for different communication types
+  
   const shouldAnimate = isActive && (avgTokenRate > 15 || edge.messageCount > 50);
   const animationSpeed = Math.min(avgTokenRate / 10, 3) + Math.min(edge.messageCount / 100, 2);
   const dashOffset = shouldAnimate ? -Date.now() * 0.001 * animationSpeed : 0;
 
-  // Pulse effect for very high activity connections
+  
   const shouldPulse = avgTokenRate > 40 || edge.messageCount > 200;
   const pulseIntensity = shouldPulse ? Math.sin(Date.now() * 0.005) * 0.3 + 1 : 1;
 
   return (
     <>
-      {/* Main connection line */}
+      {}
       <DreiLine
         points={[sourcePos, targetPos]}
         color={edgeColor}
@@ -1057,7 +1057,7 @@ const BotsEdgeComponent: React.FC<BotsEdgeProps> = ({
         dashOffset={dashOffset}
       />
       
-      {/* High-bandwidth indicator - additional glowing line */}
+      {}
       {avgTokenRate > 25 && isActive && (
         <DreiLine
           points={[sourcePos, targetPos]}
@@ -1072,7 +1072,7 @@ const BotsEdgeComponent: React.FC<BotsEdgeProps> = ({
         />
       )}
 
-      {/* Ultra-high activity indicator - third layer for extreme communication */}
+      {}
       {avgTokenRate > 50 && edge.messageCount > 300 && isActive && (
         <DreiLine
           points={[sourcePos, targetPos]}
@@ -1087,7 +1087,7 @@ const BotsEdgeComponent: React.FC<BotsEdgeProps> = ({
         />
       )}
 
-      {/* Communication direction indicator - small particles */}
+      {}
       {isActive && shouldAnimate && (
         <group>
           {[0.2, 0.5, 0.8].map((t, i) => {
@@ -1117,7 +1117,7 @@ export const BotsVisualization: React.FC = () => {
   const { botsData: contextBotsData } = useBotsData();
   const telemetry = useTelemetry('BotsVisualization');
 
-  // Component state
+  
   const [botsData, setBotsData] = useState<BotsState>({
     agents: new Map(),
     edges: new Map(),
@@ -1129,16 +1129,16 @@ export const BotsVisualization: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [mcpConnected, setMcpConnected] = useState(false);
 
-  // Refs for server-authoritative positions
+  
   const positionsRef = useRef<Map<string, THREE.Vector3>>(new Map());
 
-  // Note: Binary position updates removed - now handled via full graph updates
-  // The server sends complete graph data including positions via requestBotsGraph
+  
+  
 
-  // Colors
+  
   const colors = useMemo(() => getVisionFlowColors(settings), [settings]);
 
-  // Process data from context
+  
   useEffect(() => {
     if (!contextBotsData) {
       logger.debug('[VISIONFLOW] No context data available yet');
@@ -1148,13 +1148,13 @@ export const BotsVisualization: React.FC = () => {
     logger.debug('[VISIONFLOW] Processing bots data from context', contextBotsData);
     setIsLoading(false);
 
-    // Update local state with context data
+    
     const agents = contextBotsData.agents || [];
     const agentMap = new Map<string, BotsAgent>();
     agents.forEach((agent, index) => {
       agentMap.set(agent.id, agent);
 
-      // Log agent state changes
+      
       agentTelemetry.logAgentAction(agent.id, agent.type, 'state_update', {
         status: agent.status,
         health: agent.health,
@@ -1162,9 +1162,9 @@ export const BotsVisualization: React.FC = () => {
         tokenRate: agent.tokenRate
       });
       
-      // Check if agent has server-provided position data
+      
       if (agent.position && (agent.position.x !== undefined || agent.position.y !== undefined || agent.position.z !== undefined)) {
-        // Always update with server position when available
+        
         const serverPosition = new THREE.Vector3(
           agent.position.x || 0,
           agent.position.y || 0,
@@ -1172,7 +1172,7 @@ export const BotsVisualization: React.FC = () => {
         );
         positionsRef.current.set(agent.id, serverPosition);
       } else if (!positionsRef.current.has(agent.id)) {
-        // Only set initial calculated position if no server position and no existing position
+        
         const radius = 25;
         const angle = (index / agents.length) * Math.PI * 2;
         const height = (Math.random() - 0.5) * 15;
@@ -1183,7 +1183,7 @@ export const BotsVisualization: React.FC = () => {
         );
         positionsRef.current.set(agent.id, newPosition);
 
-        // Log initial position calculation - check for clustering
+        
         agentTelemetry.logThreeJSOperation('position_update', agent.id, {
           x: newPosition.x,
           y: newPosition.y,
@@ -1197,7 +1197,7 @@ export const BotsVisualization: React.FC = () => {
       }
     });
 
-    // Use edges from context (provided by backend with full graph data)
+    
     const edges = (contextBotsData as any).edges || [];
     const edgeMap = new Map<string, BotsEdge>();
     edges.forEach((edge: BotsEdge) => {
@@ -1214,7 +1214,7 @@ export const BotsVisualization: React.FC = () => {
 
     setMcpConnected(agentMap.size > 0);
 
-    // Log visualization update
+    
     agentTelemetry.logAgentAction('visualization', 'system', 'data_update', {
       agentCount: agentMap.size,
       edgeCount: edgeMap.size,
@@ -1222,15 +1222,15 @@ export const BotsVisualization: React.FC = () => {
     });
   }, [contextBotsData]);
 
-  // Request server position updates periodically
+  
   useFrame(() => {
-    // The server handles all physics computation
-    // We just render the positions received via binary protocol
-    // No client-side physics simulation needed
+    
+    
+    
   });
 
-  // Position updates are now handled automatically via WebSocket polling
-  // The BotsWebSocketIntegration service polls for graph updates every 2 seconds
+  
+  
 
   if (error) {
     return (
@@ -1255,21 +1255,21 @@ export const BotsVisualization: React.FC = () => {
   }
 
   if (botsData.agents.size === 0) {
-    // Don't render anything in the 3D scene when no agents are active
-    // This message should be shown in the control panel instead
+    
+    
     return null;
   }
 
   return (
     <group>
-      {/* Render edges */}
+      {}
       {Array.from(botsData.edges.values()).map(edge => {
         const sourcePos = positionsRef.current.get(edge.source);
         const targetPos = positionsRef.current.get(edge.target);
 
         if (!sourcePos || !targetPos) return null;
 
-        // Get source and target agents for enhanced edge visualization
+        
         const sourceAgent = botsData.agents.get(edge.source);
         const targetAgent = botsData.agents.get(edge.target);
 
@@ -1286,26 +1286,26 @@ export const BotsVisualization: React.FC = () => {
         );
       })}
 
-      {/* Render nodes using server-authoritative positions */}
+      {}
       {Array.from(botsData.agents.values()).map((node, index) => {
         const position = positionsRef.current.get(node.id);
-        if (!position) return null; // Wait for server position data
+        if (!position) return null; 
 
-        // Use dynamic color generation or server-provided colors
+        
         const nodeColor = colors.getAgentColor ? colors.getAgentColor(node.type) : (colors[node.type] || colors.coordinator);
 
         return (
           <BotsNode
             key={node.id}
             agent={node}
-            position={position} // Server-computed position via binary protocol
+            position={position} 
             index={index}
             color={nodeColor}
           />
         );
       })}
 
-      {/* Debug info removed - now in control panel */}
+      {}
     </group>
   );
 };

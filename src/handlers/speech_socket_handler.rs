@@ -36,7 +36,7 @@ struct SetProviderRequest {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct STTActionRequest {
-    action: String, // "start" or "stop"
+    action: String, 
     language: Option<String>,
     model: Option<String>,
 }
@@ -52,7 +52,7 @@ struct VoiceCommandRequest {
 pub struct SpeechSocket {
     id: String,
     app_state: Arc<AppState>,
-    _hybrid_manager: Option<()>, // DEPRECATED: HybridHealthManager removed
+    _hybrid_manager: Option<()>, 
     heartbeat: Instant,
     audio_rx: Option<broadcast::Receiver<Vec<u8>>>,
     transcription_rx: Option<broadcast::Receiver<String>>,
@@ -79,7 +79,7 @@ impl SpeechSocket {
         }
     }
 
-    // Helper method to handle heartbeat
+    
     fn start_heartbeat(&self, ctx: &mut ws::WebsocketContext<Self>) {
         ctx.run_interval(HEARTBEAT_INTERVAL, |act, ctx| {
             if Instant::now().duration_since(act.heartbeat) > CLIENT_TIMEOUT {
@@ -91,39 +91,39 @@ impl SpeechSocket {
         });
     }
 
-    // Process text-to-speech request
+    
     async fn process_tts_request(
         app_state: Arc<AppState>,
         req: TextToSpeechRequest,
     ) -> Result<(), String> {
         if let Some(speech_service) = &app_state.speech_service {
-            // Get default settings from app state, handling optional Kokoro settings
+            
             let settings = app_state
                 .settings_addr
                 .send(GetSettings)
                 .await
                 .map_err(|e| format!("Settings actor mailbox error: {}", e))?
                 .map_err(|e| format!("Failed to get settings: {}", e))?;
-            let kokoro_config = settings.kokoro.as_ref(); // Get Option<&KokoroSettings>
+            let kokoro_config = settings.kokoro.as_ref(); 
 
-            // Provide defaults if Kokoro config or specific fields are None
+            
             let default_voice = kokoro_config
                 .and_then(|k| k.default_voice.clone())
                 .unwrap_or_else(|| {
-                    // Use actual Kokoro voice IDs instead of placeholder
-                    "af_sarah".to_string() // Default to Sarah voice which is standard in Kokoro TTS
+                    
+                    "af_sarah".to_string() 
                 });
             let default_speed = kokoro_config.and_then(|k| k.default_speed).unwrap_or(1.0);
-            let default_stream = kokoro_config.and_then(|k| k.stream).unwrap_or(true); // Default to streaming?
+            let default_stream = kokoro_config.and_then(|k| k.stream).unwrap_or(true); 
 
-            // Create options with defaults or provided values
+            
             let options = SpeechOptions {
                 voice: req.voice.unwrap_or(default_voice),
                 speed: req.speed.unwrap_or(default_speed),
                 stream: req.stream.unwrap_or(default_stream),
             };
 
-            // Send request to TTS service
+            
             match speech_service.text_to_speech(req.text, options).await {
                 Ok(_) => Ok(()),
                 Err(e) => Err(format!("Failed to process TTS request: {}", e)),
@@ -133,7 +133,7 @@ impl SpeechSocket {
         }
     }
 
-    /// Check if a voice command is related to swarm operations
+    
     fn is_swarm_command(&self, text: &str) -> bool {
         let text_lower = text.to_lowercase();
         text_lower.contains("swarm")
@@ -145,9 +145,9 @@ impl SpeechSocket {
             || text_lower.contains("docker hive")
     }
 
-    /// Handle swarm-related voice commands (DEPRECATED)
+    
     fn handle_swarm_voice_command(&self, _text: &str, ctx: &mut ws::WebsocketContext<Self>) {
-        // DEPRECATED: HybridHealthManager removed - use TaskOrchestratorActor
+        
         let error_msg = json!({
             "type": "error",
             "message": "Swarm voice commands deprecated - use API endpoints instead"
@@ -155,112 +155,7 @@ impl SpeechSocket {
         .to_string();
         ctx.text(error_msg);
 
-        /*
-        if let Some(hybrid_manager) = &self.hybrid_manager {
-            let text_lower = text.to_lowercase();
-            let manager = Arc::clone(hybrid_manager);
-            let addr = ctx.address();
-
-            if text_lower.contains("start swarm") || text_lower.contains("spawn agents") {
-                // Parse parameters from voice command
-                let task = if text_lower.contains("coding") {
-                    "Create a coding swarm with developers and testers".to_string()
-                } else if text_lower.contains("research") {
-                    "Create a research swarm with analysts and researchers".to_string()
-                } else {
-                    "Create a general-purpose multi-agent swarm".to_string()
-                };
-
-                let spawn_request = SpawnSwarmRequest {
-                    task,
-                    priority: Some("medium".to_string()),
-                    strategy: Some("hive-mind".to_string()),
-                    method: Some("hybrid".to_string()),
-                    max_workers: Some(5),
-                    auto_scale: Some(true),
-                    config: Some(json!({"voice_triggered": true})),
-                };
-
-                let fut = async move {
-                    match manager.docker_hive_mind.spawn_swarm(&spawn_request.task, Default::default()).await {
-                        Ok(session_id) => {
-                            let msg = json!({
-                                "type": "voice_response",
-                                "data": {
-                                    "text": format!("Swarm successfully spawned with ID: {}", session_id),
-                                    "swarm_id": session_id,
-                                    "isFinal": true,
-                                    "timestamp": std::time::SystemTime::now()
-                                        .duration_since(std::time::UNIX_EPOCH)
-                                        .unwrap_or_default()
-                                        .as_millis()
-                                }
-                            }).to_string();
-                            let _ = addr.try_send(ErrorMessage(msg));
-                        },
-                        Err(e) => {
-                            let msg = json!({
-                                "type": "error",
-                                "message": format!("Failed to spawn swarm: {}", e)
-                            }).to_string();
-                            let _ = addr.try_send(ErrorMessage(msg));
-                        }
-                    }
-                };
-                ctx.spawn(fut.into_actor(self));
-            } else if text_lower.contains("agent status") || text_lower.contains("swarm status") {
-                let fut = async move {
-                    match manager.get_system_status().await {
-                        Ok(status) => {
-                            let active_count = status.active_sessions.len();
-                            let health = &status.system_status;
-                            let msg = json!({
-                                "type": "voice_response",
-                                "data": {
-                                    "text": format!("System status: {}. {} active swarms running.", health, active_count),
-                                    "system_status": status,
-                                    "isFinal": true,
-                                    "timestamp": std::time::SystemTime::now()
-                                        .duration_since(std::time::UNIX_EPOCH)
-                                        .unwrap_or_default()
-                                        .as_millis()
-                                }
-                            }).to_string();
-                            let _ = addr.try_send(ErrorMessage(msg));
-                        },
-                        Err(e) => {
-                            let msg = json!({
-                                "type": "error",
-                                "message": format!("Failed to get swarm status: {}", e)
-                            }).to_string();
-                            let _ = addr.try_send(ErrorMessage(msg));
-                        }
-                    }
-                };
-                ctx.spawn(fut.into_actor(self));
-            } else {
-                // Generic swarm command response
-                let response = json!({
-                    "type": "voice_response",
-                    "data": {
-                        "text": "I understand you want to work with swarms. Available commands: 'start swarm', 'agent status', 'stop swarm'",
-                        "isFinal": true,
-                        "timestamp": std::time::SystemTime::now()
-                            .duration_since(std::time::UNIX_EPOCH)
-                            .unwrap_or_default()
-                            .as_millis()
-                    }
-                }).to_string();
-                ctx.text(response);
-            }
-        } else {
-            let error_msg = json!({
-                "type": "error",
-                "message": "Hybrid health manager not available for swarm commands"
-            }).to_string();
-            ctx.text(error_msg);
-        }
-        */
+        
     }
 }
 
@@ -270,10 +165,10 @@ impl Actor for SpeechSocket {
     fn started(&mut self, ctx: &mut Self::Context) {
         info!("[SpeechSocket] Client connected: {}", self.id);
 
-        // Start heartbeat
+        
         self.start_heartbeat(ctx);
 
-        // Send welcome message
+        
         let welcome = json!({
             "type": "connected",
             "message": "Connected to speech service"
@@ -281,14 +176,14 @@ impl Actor for SpeechSocket {
 
         ctx.text(welcome.to_string());
 
-        // Start listening for audio data
+        
         if let Some(mut rx) = self.audio_rx.take() {
             let addr = ctx.address();
 
             ctx.spawn(Box::pin(
                 async move {
                     while let Ok(audio_data) = rx.recv().await {
-                        // Send audio data to the client
+                        
                         if addr.try_send(AudioChunkMessage(audio_data)).is_err() {
                             break;
                         }
@@ -298,14 +193,14 @@ impl Actor for SpeechSocket {
             ));
         }
 
-        // Start listening for transcription data
+        
         if let Some(mut rx) = self.transcription_rx.take() {
             let addr = ctx.address();
 
             ctx.spawn(Box::pin(
                 async move {
                     while let Ok(transcription_text) = rx.recv().await {
-                        // Send transcription to the client
+                        
                         if addr
                             .try_send(TranscriptionMessage(transcription_text))
                             .is_err()
@@ -331,7 +226,7 @@ impl Handler<AudioChunkMessage> for SpeechSocket {
     type Result = ();
 
     fn handle(&mut self, msg: AudioChunkMessage, ctx: &mut Self::Context) -> Self::Result {
-        // Send binary audio data to the client
+        
         ctx.binary(msg.0);
     }
 }
@@ -347,7 +242,7 @@ impl Handler<TranscriptionMessage> for SpeechSocket {
     type Result = ();
 
     fn handle(&mut self, msg: TranscriptionMessage, ctx: &mut Self::Context) -> Self::Result {
-        // Send transcription as JSON to the client
+        
         let message = json!({
             "type": "transcription",
             "data": {
@@ -374,7 +269,7 @@ impl Handler<ErrorMessage> for SpeechSocket {
     type Result = ();
 
     fn handle(&mut self, msg: ErrorMessage, ctx: &mut Self::Context) -> Self::Result {
-        // Send error message to the client
+        
         ctx.text(msg.0);
     }
 }
@@ -393,18 +288,18 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SpeechSocket {
                 debug!("[SpeechSocket] Received text: {}", text);
                 self.heartbeat = Instant::now();
 
-                // Parse the message
+                
                 match serde_json::from_str::<serde_json::Value>(&text) {
                     Ok(msg) => {
-                        // Process based on message type
+                        
                         let msg_type = msg.get("type").and_then(|t| t.as_str());
                         match msg_type {
                             Some("tts") => {
-                                // Parse as TextToSpeechRequest
+                                
                                 if let Ok(tts_req) =
                                     serde_json::from_value::<TextToSpeechRequest>(msg)
                                 {
-                                    // Process TTS request
+                                    
                                     let app_state = self.app_state.clone();
                                     let addr = ctx.address();
                                     let fut = async move {
@@ -425,7 +320,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SpeechSocket {
                                 }
                             }
                             Some("stt") => {
-                                // Parse as STT action request
+                                
                                 if let Ok(stt_req) = serde_json::from_value::<STTActionRequest>(msg)
                                 {
                                     match stt_req.action.as_str() {
@@ -510,11 +405,11 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SpeechSocket {
                                 }
                             }
                             Some("voice_command") => {
-                                // Handle direct voice command execution
+                                
                                 if let Ok(voice_req) =
                                     serde_json::from_value::<VoiceCommandRequest>(msg)
                                 {
-                                    // Check if it's a swarm command first
+                                    
                                     if self.is_swarm_command(&voice_req.text) {
                                         self.handle_swarm_voice_command(&voice_req.text, ctx);
                                     } else if let Some(speech_service) =
@@ -523,7 +418,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SpeechSocket {
                                         let speech_service = speech_service.clone();
                                         let addr = ctx.address();
                                         let fut = async move {
-                                            // Try to use tagged voice command processing first
+                                            
                                             let session_id =
                                                 voice_req.session_id.unwrap_or_else(|| {
                                                     uuid::Uuid::new_v4().to_string()
@@ -551,7 +446,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SpeechSocket {
                                                     let _ = addr.try_send(ErrorMessage(msg));
                                                 }
                                                 Err(_) => {
-                                                    // Fallback to legacy voice command processing
+                                                    
                                                     match speech_service
                                                         .process_voice_command(voice_req.text)
                                                         .await
@@ -614,11 +509,11 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SpeechSocket {
                 );
                 self.heartbeat = Instant::now();
 
-                // Process audio chunk for STT
+                
                 if let Some(speech_service) = &self.app_state.speech_service {
                     let audio_data = bin.to_vec();
 
-                    // Clone the speech service Arc to move into the future
+                    
                     let speech_service = speech_service.clone();
                     let fut = async move {
                         if let Err(e) = speech_service.process_audio_chunk(audio_data).await {
@@ -646,7 +541,7 @@ pub async fn speech_socket_handler(
     req: HttpRequest,
     stream: web::Payload,
     app_state: web::Data<AppState>,
-    _hybrid_manager: Option<()>, // DEPRECATED: HybridHealthManager removed
+    _hybrid_manager: Option<()>, 
 ) -> Result<HttpResponse, Error> {
     let socket_id = format!("speech_{}", uuid::Uuid::new_v4());
     let socket = SpeechSocket::new(socket_id, app_state.into_inner(), None);

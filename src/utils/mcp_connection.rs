@@ -8,7 +8,7 @@ use tokio::net::TcpStream;
 use tokio::sync::{Mutex, RwLock};
 use uuid::Uuid;
 
-/// Persistent MCP Connection that maintains the stream
+/
 pub struct PersistentMCPConnection {
     stream: Arc<Mutex<TcpStream>>,
     session_id: String,
@@ -16,7 +16,7 @@ pub struct PersistentMCPConnection {
 }
 
 impl PersistentMCPConnection {
-    /// Create and initialize a new MCP connection
+    
     pub async fn new(
         host: &str,
         port: &str,
@@ -29,7 +29,7 @@ impl PersistentMCPConnection {
 
         let session_id = Uuid::new_v4().to_string();
 
-        // Send initialization request
+        
         let init_request = json!({
             "jsonrpc": "2.0",
             "id": session_id.clone(),
@@ -53,15 +53,15 @@ impl PersistentMCPConnection {
         stream.write_all(msg.as_bytes()).await?;
         stream.flush().await?;
 
-        // Read response directly without BufReader
+        
         let mut buffer = Vec::new();
         let mut byte = [0u8; 1];
 
-        // Read until we get our initialization response
+        
         loop {
             buffer.clear();
 
-            // Read line byte by byte
+            
             loop {
                 match tokio::time::timeout(Duration::from_secs(5), stream.read_exact(&mut byte))
                     .await
@@ -86,12 +86,12 @@ impl PersistentMCPConnection {
             let response_line = String::from_utf8_lossy(&buffer);
             debug!("MCP response: {}", response_line.trim());
 
-            // Skip server.initialized messages
+            
             if response_line.contains("server.initialized") {
                 continue;
             }
 
-            // Parse actual response
+            
             if let Ok(response) = serde_json::from_str::<Value>(&response_line) {
                 if response.get("id").and_then(|id| id.as_str()) == Some(&session_id) {
                     if response.get("result").is_some() {
@@ -111,7 +111,7 @@ impl PersistentMCPConnection {
         }
     }
 
-    /// Execute a command on the persistent connection
+    
     pub async fn execute_command(
         &self,
         method: &str,
@@ -132,20 +132,20 @@ impl PersistentMCPConnection {
         let msg = format!("{}\n", request.to_string());
         debug!("Sending MCP command: {}", msg.trim());
 
-        // Lock the stream and send command
+        
         let mut stream = self.stream.lock().await;
         stream.write_all(msg.as_bytes()).await?;
         stream.flush().await?;
 
-        // Read response
+        
         let mut buffer = Vec::new();
         let mut byte = [0u8; 1];
 
-        // Read until we get our response
+        
         loop {
             buffer.clear();
 
-            // Read line byte by byte
+            
             loop {
                 match tokio::time::timeout(Duration::from_secs(10), stream.read_exact(&mut byte))
                     .await
@@ -176,14 +176,14 @@ impl PersistentMCPConnection {
 
             debug!("MCP response: {}", trimmed);
 
-            // Skip notifications
+            
             if trimmed.contains("server.initialized") {
                 continue;
             }
 
-            // Parse response
+            
             if let Ok(response) = serde_json::from_str::<Value>(trimmed) {
-                // Check if this is our response
+                
                 if response.get("id").and_then(|id| id.as_str()) == Some(&request_id) {
                     if let Some(result) = response.get("result") {
                         info!("MCP command '{}' executed successfully", method);
@@ -193,7 +193,7 @@ impl PersistentMCPConnection {
                         return Err(format!("MCP error: {:?}", error).into());
                     }
                 } else if response.get("method").is_some() {
-                    // This is a notification, skip it
+                    
                     continue;
                 }
             }
@@ -201,7 +201,7 @@ impl PersistentMCPConnection {
     }
 }
 
-/// MCP Connection Pool for managing multiple persistent connections
+/
 #[derive(Clone)]
 pub struct MCPConnectionPool {
     connections: Arc<RwLock<HashMap<String, Arc<PersistentMCPConnection>>>>,
@@ -222,12 +222,12 @@ impl MCPConnectionPool {
         }
     }
 
-    /// Get or create a connection for a specific purpose
+    
     pub async fn get_connection(
         &self,
         purpose: &str,
     ) -> Result<Arc<PersistentMCPConnection>, Box<dyn std::error::Error + Send + Sync>> {
-        // Check if we have an existing connection
+        
         {
             let connections = self.connections.read().await;
             if let Some(conn) = connections.get(purpose) {
@@ -236,7 +236,7 @@ impl MCPConnectionPool {
             }
         }
 
-        // Create new connection
+        
         info!("Creating new MCP connection for {}", purpose);
 
         for attempt in 1..=self.max_retries {
@@ -246,7 +246,7 @@ impl MCPConnectionPool {
                 Ok(conn) => {
                     let conn = Arc::new(conn);
 
-                    // Store in pool
+                    
                     let mut connections = self.connections.write().await;
                     connections.insert(purpose.to_string(), Arc::clone(&conn));
 
@@ -267,7 +267,7 @@ impl MCPConnectionPool {
         Err("Failed to establish MCP connection after all retries".into())
     }
 
-    /// Execute a command using the connection pool
+    
     pub async fn execute_command(
         &self,
         purpose: &str,
@@ -278,7 +278,7 @@ impl MCPConnectionPool {
         conn.execute_command(method, params).await
     }
 
-    /// Remove a connection from the pool
+    
     pub async fn remove_connection(&self, purpose: &str) {
         let mut connections = self.connections.write().await;
         if connections.remove(purpose).is_some() {
@@ -287,7 +287,7 @@ impl MCPConnectionPool {
     }
 }
 
-/// Simplified function to call swarm_init
+/
 pub async fn call_swarm_init(
     host: &str,
     port: &str,
@@ -310,7 +310,7 @@ pub async fn call_swarm_init(
         .await
 }
 
-/// Simplified function to list agents
+/
 pub async fn call_agent_list(
     host: &str,
     port: &str,
@@ -329,7 +329,7 @@ pub async fn call_agent_list(
         .await
 }
 
-/// Simplified function to destroy a swarm
+/
 pub async fn call_swarm_destroy(
     host: &str,
     port: &str,
@@ -350,7 +350,7 @@ pub async fn call_swarm_destroy(
         .await
 }
 
-/// Simplified function to spawn an agent
+/
 pub async fn call_agent_spawn(
     host: &str,
     port: &str,
@@ -376,7 +376,7 @@ pub async fn call_agent_spawn(
         .await
 }
 
-/// Simplified function to orchestrate a task
+/
 pub async fn call_task_orchestrate(
     host: &str,
     port: &str,
@@ -409,216 +409,20 @@ pub async fn call_task_orchestrate(
         .await
 }
 
-/// Hybrid task orchestration supporting both Docker exec and MCP fallback
+/
 #[derive(Debug, Clone)]
 pub enum TaskMethod {
-    Docker, // Primary method via Docker exec
-    MCP,    // Fallback via TCP/MCP
-    Hybrid, // Try Docker first, fallback to MCP
+    Docker, 
+    MCP,    
+    Hybrid, 
 }
 
 // DEPRECATED: Legacy Docker orchestration functions removed
 // Use TaskOrchestratorActor with Management API instead
 
-/*
-/// Docker-based task orchestration using hive-mind
-/// This is the PRIMARY method for task creation, replacing TCP MCP spawning
-pub async fn call_task_orchestrate_docker(
-    task: &str,
-    priority: Option<&str>,
-    strategy: Option<&str>,
-) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
-    use crate::utils::docker_hive_mind::{create_docker_hive_mind, SwarmConfig, SwarmPriority, SwarmStrategy};
 
-    info!("Orchestrating task via Docker hive-mind: {}", task);
 
-    // Create hive mind instance
-    let hive_mind = create_docker_hive_mind();
-
-    // Convert priority
-    let swarm_priority = match priority {
-        Some("high") | Some("critical") => SwarmPriority::High,
-        Some("medium") => SwarmPriority::Medium,
-        Some("low") => SwarmPriority::Low,
-        _ => SwarmPriority::Medium,
-    };
-
-    // Convert strategy
-    let swarm_strategy = match strategy {
-        Some("tactical") => SwarmStrategy::Tactical,
-        Some("strategic") => SwarmStrategy::Strategic,
-        Some("adaptive") => SwarmStrategy::Adaptive,
-        _ => SwarmStrategy::HiveMind,
-    };
-
-    // Build config
-    let config = SwarmConfig {
-        priority: swarm_priority,
-        strategy: swarm_strategy,
-        auto_scale: true,
-        monitor: true,
-        verbose: false,
-        ..Default::default()
-    };
-
-    // Spawn swarm
-    match hive_mind.spawn_swarm(task, config).await {
-        Ok(session_id) => {
-            info!("Swarm spawned successfully with ID: {}", session_id);
-
-            Ok(json!({
-                "success": true,
-                "taskId": session_id,
-                "swarmId": session_id,
-                "objective": task,
-                "strategy": strategy.unwrap_or("hive-mind"),
-                "priority": priority.unwrap_or("medium"),
-                "status": "spawning",
-                "method": "docker-exec",
-                "timestamp": chrono::Utc::now().to_rfc3339()
-            }))
-        },
-        Err(e) => {
-            error!("Failed to spawn swarm via Docker: {}", e);
-            Err(format!("Docker swarm spawn failed: {}", e).into())
-        }
-    }
-}
-
-/// Hybrid task orchestration - tries Docker first, falls back to MCP
-pub async fn call_task_orchestrate_hybrid(
-    task: &str,
-    priority: Option<&str>,
-    strategy: Option<&str>,
-    host: &str,
-    port: &str,
-) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
-    info!("Attempting hybrid task orchestration for: {}", task);
-
-    // Try Docker first
-    match call_task_orchestrate_docker(task, priority, strategy).await {
-        Ok(result) => {
-            info!("Docker orchestration successful");
-            Ok(result)
-        },
-        Err(docker_err) => {
-            warn!("Docker orchestration failed: {}, trying MCP fallback", docker_err);
-
-            // Fallback to MCP
-            match call_task_orchestrate(host, port, task, priority, strategy).await {
-                Ok(mut result) => {
-                    // Mark as MCP fallback
-                    if let Some(obj) = result.as_object_mut() {
-                        obj.insert("method".to_string(), json!("mcp-fallback"));
-                        obj.insert("docker_error".to_string(), json!(docker_err.to_string()));
-                    }
-                    info!("MCP fallback successful");
-                    Ok(result)
-                },
-                Err(mcp_err) => {
-                    error!("Both Docker and MCP failed. Docker: {}, MCP: {}", docker_err, mcp_err);
-                    Err(format!("Hybrid orchestration failed - Docker: {}, MCP: {}", docker_err, mcp_err).into())
-                }
-            }
-        }
-    }
-}
-
-/// Get Docker swarm status with MCP fallback for telemetry
-pub async fn get_swarm_status_hybrid(
-    swarm_id: &str,
-    host: &str,
-    port: &str,
-) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
-    use crate::utils::docker_hive_mind::create_docker_hive_mind;
-
-    let hive_mind = create_docker_hive_mind();
-
-    // Get primary status from Docker
-    let docker_status = match hive_mind.get_swarm_status(swarm_id).await {
-        Ok(status) => Some(status),
-        Err(e) => {
-            warn!("Failed to get Docker swarm status: {}", e);
-            None
-        }
-    };
-
-    // Get telemetry from MCP (non-blocking)
-    let mcp_telemetry = match call_task_status(host, port, Some(swarm_id)).await {
-        Ok(telemetry) => Some(telemetry),
-        Err(e) => {
-            debug!("MCP telemetry unavailable: {}", e);
-            None
-        }
-    };
-
-    // Combine results
-    let mut result = json!({
-        "swarmId": swarm_id,
-        "timestamp": chrono::Utc::now().to_rfc3339(),
-        "sources": {
-            "docker": docker_status.is_some(),
-            "mcp": mcp_telemetry.is_some()
-        }
-    });
-
-    if let Some(ref status) = docker_status {
-        result["status"] = json!(format!("{:?}", status));
-        result["primary_source"] = json!("docker");
-    }
-
-    if let Some(ref telemetry) = mcp_telemetry {
-        result["telemetry"] = telemetry.clone();
-        result["telemetry_source"] = json!("mcp");
-    }
-
-    if docker_status.is_none() && mcp_telemetry.is_none() {
-        result["status"] = json!("unknown");
-        result["error"] = json!("No data sources available");
-    }
-
-    Ok(result)
-}
-
-/// Get all swarms from both Docker and MCP sources
-pub async fn get_all_swarms_hybrid(
-    host: &str,
-    port: &str,
-) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
-    use crate::utils::docker_hive_mind::create_docker_hive_mind;
-
-    let hive_mind = create_docker_hive_mind();
-
-    // Get Docker sessions
-    let docker_sessions = match hive_mind.get_sessions().await {
-        Ok(sessions) => sessions,
-        Err(e) => {
-            warn!("Failed to get Docker sessions: {}", e);
-            Vec::new()
-        }
-    };
-
-    // Get MCP agent list (for telemetry context)
-    let mcp_agents = match call_agent_list(host, port, "active").await {
-        Ok(agents) => Some(agents),
-        Err(e) => {
-            debug!("MCP agent list unavailable: {}", e);
-            None
-        }
-    };
-
-    // Combine and format response
-    Ok(json!({
-        "swarms": docker_sessions,
-        "mcp_agents": mcp_agents,
-        "total_swarms": docker_sessions.len(),
-        "source": "hybrid",
-        "timestamp": chrono::Utc::now().to_rfc3339()
-    }))
-}
-*/
-
-/// Simplified function to get task status
+/
 pub async fn call_task_status(
     host: &str,
     port: &str,

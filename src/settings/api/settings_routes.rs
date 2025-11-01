@@ -41,7 +41,7 @@ pub struct ErrorResponse {
 // Physics Settings Routes
 // ============================================================================
 
-/// GET /api/settings/physics
+/
 pub async fn get_physics_settings(
     settings_actor: web::Data<Addr<SettingsActor>>,
 ) -> impl Responder {
@@ -56,7 +56,7 @@ pub async fn get_physics_settings(
     }
 }
 
-/// PUT /api/settings/physics
+/
 pub async fn update_physics_settings(
     settings_actor: web::Data<Addr<SettingsActor>>,
     body: web::Json<PhysicsSettings>,
@@ -87,7 +87,7 @@ pub async fn update_physics_settings(
 // Constraint Settings Routes
 // ============================================================================
 
-/// GET /api/settings/constraints
+/
 pub async fn get_constraint_settings(
     settings_actor: web::Data<Addr<SettingsActor>>,
 ) -> impl Responder {
@@ -102,7 +102,7 @@ pub async fn get_constraint_settings(
     }
 }
 
-/// PUT /api/settings/constraints
+/
 pub async fn update_constraint_settings(
     settings_actor: web::Data<Addr<SettingsActor>>,
     body: web::Json<ConstraintSettings>,
@@ -133,7 +133,7 @@ pub async fn update_constraint_settings(
 // Rendering Settings Routes
 // ============================================================================
 
-/// GET /api/settings/rendering
+/
 pub async fn get_rendering_settings(
     settings_actor: web::Data<Addr<SettingsActor>>,
 ) -> impl Responder {
@@ -148,7 +148,7 @@ pub async fn get_rendering_settings(
     }
 }
 
-/// PUT /api/settings/rendering
+/
 pub async fn update_rendering_settings(
     settings_actor: web::Data<Addr<SettingsActor>>,
     body: web::Json<RenderingSettings>,
@@ -179,7 +179,7 @@ pub async fn update_rendering_settings(
 // All Settings Route
 // ============================================================================
 
-/// GET /api/settings/all
+/
 pub async fn get_all_settings(
     settings_actor: web::Data<Addr<SettingsActor>>,
 ) -> impl Responder {
@@ -198,7 +198,7 @@ pub async fn get_all_settings(
 // Profile Management Routes
 // ============================================================================
 
-/// POST /api/settings/profiles
+/
 pub async fn save_profile(
     settings_actor: web::Data<Addr<SettingsActor>>,
     body: web::Json<SaveProfileRequest>,
@@ -225,7 +225,7 @@ pub async fn save_profile(
     }
 }
 
-/// GET /api/settings/profiles/:id
+/
 pub async fn load_profile(
     settings_actor: web::Data<Addr<SettingsActor>>,
     path: web::Path<i64>,
@@ -253,7 +253,7 @@ pub async fn load_profile(
     }
 }
 
-/// GET /api/settings/profiles
+/
 pub async fn list_profiles(
     settings_actor: web::Data<Addr<SettingsActor>>,
 ) -> impl Responder {
@@ -274,7 +274,7 @@ pub async fn list_profiles(
     }
 }
 
-/// DELETE /api/settings/profiles/:id
+/
 pub async fn delete_profile(
     settings_actor: web::Data<Addr<SettingsActor>>,
     path: web::Path<i64>,
@@ -308,19 +308,19 @@ pub async fn delete_profile(
 
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::scope("/api/settings")
-            // Physics settings
+        web::scope("settings")
+            
             .route("/physics", web::get().to(get_physics_settings))
             .route("/physics", web::put().to(update_physics_settings))
-            // Constraint settings
+            
             .route("/constraints", web::get().to(get_constraint_settings))
             .route("/constraints", web::put().to(update_constraint_settings))
-            // Rendering settings
+            
             .route("/rendering", web::get().to(get_rendering_settings))
             .route("/rendering", web::put().to(update_rendering_settings))
-            // All settings
+            
             .route("/all", web::get().to(get_all_settings))
-            // Profile management
+            
             .route("/profiles", web::post().to(save_profile))
             .route("/profiles", web::get().to(list_profiles))
             .route("/profiles/{id}", web::get().to(load_profile))

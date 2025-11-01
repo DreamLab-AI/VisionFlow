@@ -18,7 +18,7 @@ impl LocalMarkdownSync {
         Self
     }
 
-    /// Sync from local markdown directory
+    
     pub fn sync_from_directory(&self, dir_path: &str) -> Result<LocalSyncResult, String> {
         info!("Starting local markdown sync from: {}", dir_path);
 
@@ -36,7 +36,7 @@ impl LocalMarkdownSync {
         let mut processed_files = 0;
         let mut skipped_files = 0;
 
-        // Read all markdown files
+        
         let entries = fs::read_dir(path).map_err(|e| format!("Failed to read directory: {}", e))?;
 
         for entry in entries {
@@ -55,7 +55,7 @@ impl LocalMarkdownSync {
 
             total_files += 1;
 
-            // Read file content
+            
             let content = match fs::read_to_string(&file_path) {
                 Ok(c) => c,
                 Err(e) => {
@@ -65,26 +65,26 @@ impl LocalMarkdownSync {
                 }
             };
 
-            // Check for public:: true
+            
             if !content.contains("public:: true") {
                 debug!("Skipping {} - no public:: true marker", filename);
                 skipped_files += 1;
                 continue;
             }
 
-            // Add to public page names (strip .md extension)
+            
             let page_name = filename.strip_suffix(".md").unwrap_or(filename);
             public_page_names.insert(page_name.to_string());
 
-            // Parse file
+            
             match parser.parse(&content, filename) {
                 Ok(graph_data) => {
-                    // Accumulate ALL nodes (no filtering yet)
+                    
                     for node in graph_data.nodes {
                         accumulated_nodes.insert(node.id, node);
                     }
 
-                    // Accumulate edges (deduplication via HashMap)
+                    
                     for edge in graph_data.edges {
                         accumulated_edges.insert(edge.id.clone(), edge);
                     }
@@ -110,7 +110,7 @@ impl LocalMarkdownSync {
         );
         info!("Public page names collected: {}", public_page_names.len());
 
-        // ✅ TWO-PASS FILTERING: Now filter linked_page nodes
+        
         info!(
             "Filtering linked_page nodes against {} public pages",
             public_page_names.len()
@@ -118,7 +118,7 @@ impl LocalMarkdownSync {
         let node_count_before_filter = accumulated_nodes.len();
         accumulated_nodes.retain(|_id, node| {
             match node.metadata.get("type").map(|s| s.as_str()) {
-                Some("page") => true, // Keep all page nodes
+                Some("page") => true, 
                 Some("linked_page") => {
                     let is_public = public_page_names.contains(&node.metadata_id);
                     if !is_public {
@@ -140,7 +140,7 @@ impl LocalMarkdownSync {
             node_count_before_filter
         );
 
-        // Filter orphan edges
+        
         let edge_count_before_filter = accumulated_edges.len();
         accumulated_edges.retain(|_id, edge| {
             accumulated_nodes.contains_key(&edge.source)
@@ -154,7 +154,7 @@ impl LocalMarkdownSync {
             edge_count_before_filter
         );
 
-        // Convert to vectors
+        
         let nodes: Vec<Node> = accumulated_nodes.into_values().collect();
         let edges: Vec<Edge> = accumulated_edges.into_values().collect();
 

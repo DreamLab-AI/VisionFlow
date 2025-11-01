@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
-import * as THREE from 'three'; // Use namespace import
+import * as THREE from 'three'; 
 import { useThree, useFrame } from '@react-three/fiber';
-// import { Text, Billboard, useTexture } from '@react-three/drei'; // Commented out due to import errors
+// import { Text, Billboard, useTexture } from '@react-three/drei'; 
 import { usePlatform } from '@/services/platformManager';
 import { useSettingsStore } from '@/store/settingsStore';
 import { createLogger } from '@/utils/loggerConfig';
@@ -11,7 +11,7 @@ const logger = createLogger('MetadataVisualizer');
 // Type guard to check for Vector3 instance using instanceof
 // Reverting to instanceof check as property check didn't resolve TS errors
 function isVector3Instance(obj: any): obj is THREE.Vector3 {
-  // Check if Vector3 constructor exists on THREE before using instanceof
+  
   return typeof THREE.Vector3 === 'function' && obj instanceof THREE.Vector3;
 }
 
@@ -27,7 +27,7 @@ export interface NodeMetadata {
   color?: string | number;
   icon?: string;
   priority?: number;
-  [key: string]: any; // Allow additional properties
+  [key: string]: any; 
 }
 
 interface MetadataVisualizerProps {
@@ -37,10 +37,7 @@ interface MetadataVisualizerProps {
   renderMetrics?: boolean;
 }
 
-/**
- * MetadataVisualizer component using React Three Fiber
- * This is a modernized version of the original MetadataVisualizer class
- */
+
 export const MetadataVisualizer: React.FC<MetadataVisualizerProps> = ({
   children,
   renderLabels = true,
@@ -48,40 +45,40 @@ export const MetadataVisualizer: React.FC<MetadataVisualizerProps> = ({
   renderMetrics = false
 }) => {
   const { scene, camera } = useThree();
-  // Use THREE.Object3D as Group might not be resolving correctly
+  
   const groupRef = useRef<THREE.Group>(null);
   const { isXRMode } = usePlatform();
   const labelSettings = useSettingsStore(state => state.settings?.visualisation?.labels);
 
-  // Layer management for XR mode
+  
   useEffect(() => {
     if (!groupRef.current) return;
 
-    // Set layers based on XR mode
+    
     const group = groupRef.current;
     if (isXRMode) {
-      // In XR mode, use layer 1 to ensure labels are visible in XR
+      
       group.traverse(obj => {
         obj.layers.set(1);
       });
     } else {
-      // In desktop mode, use default layer
+      
       group.traverse(obj => {
         obj.layers.set(0);
       });
     }
   }, [isXRMode]);
 
-  // Render optimization - only update label positions at 30fps
+  
   useFrame((state, delta) => {
-    // Potential optimization logic here
-  }, 2); // Lower priority than regular rendering
+    
+  }, 2); 
 
   return (
-    // Use THREE.Group directly in JSX if needed, or keep as <group>
+    
     <group ref={groupRef} name="metadata-container">
       {children}
-      {/* {renderLabels && <LabelSystem />} */} {/* Commented out LabelSystem usage */}
+      {}
       {renderIcons && <IconSystem />}
       {renderMetrics && <MetricsDisplay />}
     </group>
@@ -94,8 +91,8 @@ const LabelSystem: React.FC = () => {
   const { labels } = labelManagerRef.current;
   const labelSettings = useSettingsStore(state => state.settings?.visualisation?.labels);
 
-  // Don't render if labels are disabled
-  // if (!labelSettings?.enabled) return null; // Commented out due to type error
+  
+  
 
   return (
     <group name="label-system">
@@ -105,11 +102,11 @@ const LabelSystem: React.FC = () => {
           id={label.id}
           position={label.position}
           text={label.text}
-          // color={labelSettings.color || '#ffffff'} // Commented out
-          // size={labelSettings.size || 1} // Commented out
-          // backgroundColor={labelSettings.backgroundColor} // Commented out
-          // showDistance={labelSettings.showDistance} // Commented out
-          // fadeDistance={labelSettings.fadeDistance} // Commented out
+          
+          
+          
+          
+          
         />
       ))}
     </group>
@@ -138,33 +135,33 @@ const NodeLabel: React.FC<NodeLabelProps> = ({
   showDistance = 0,
   fadeDistance = 0
 }) => {
-  // Skip rendering empty labels
+  
   if (!text?.trim()) return null;
 
   const { camera } = useThree();
   const [opacity, setOpacity] = useState(1);
 
-  // Convert position to tuple format with type guards
+  
   const labelPos: [number, number, number] = useMemo(() => {
-    if (isVector3Instance(position)) { // Use instanceof type guard
-       // Explicit cast to help TS understand the type is narrowed
+    if (isVector3Instance(position)) { 
+       
       const vec = position as THREE.Vector3;
       return [vec.x, vec.y, vec.z];
     } else if (Array.isArray(position)) {
-      return position as [number, number, number]; // Assume it's a tuple if array
+      return position as [number, number, number]; 
     } else if (typeof position === 'object' && position !== null && 'x' in position && 'y' in position && 'z' in position) {
       const posObj = position as { x: number; y: number; z: number };
       return [posObj.x, posObj.y, posObj.z];
     }
     logger.warn(`Invalid position format for label ${id}:`, position);
-    return [0, 0, 0]; // Default position if format is unknown
+    return [0, 0, 0]; 
   }, [position]);
 
-  // Handle distance-based opacity
+  
   useFrame(() => {
     if (!fadeDistance) return;
 
-    // Calculate distance using tuple positions
+    
     const dx = camera.position.x - labelPos[0];
     const dy = camera.position.y - labelPos[1];
     const dz = camera.position.z - labelPos[2];
@@ -173,7 +170,7 @@ const NodeLabel: React.FC<NodeLabelProps> = ({
     if (distance > fadeDistance) {
       setOpacity(0);
     } else if (distance > showDistance) {
-      // Linear fade from showDistance to fadeDistance
+      
       const fadeRatio = 1 - ((distance - showDistance) / (fadeDistance - showDistance));
       setOpacity(Math.max(0, Math.min(1, fadeRatio)));
     } else {
@@ -181,60 +178,23 @@ const NodeLabel: React.FC<NodeLabelProps> = ({
     }
   });
 
-  // Don't render if fully transparent
+  
   if (opacity <= 0) return null;
 
-  // Commenting out Billboard and Text usage due to import errors
+  
   return null;
-  /*
-  return (
-    <Billboard
-      position={labelPos}
-      follow={true}
-      lockX={false}
-      lockY={false}
-      lockZ={false}
-    >
-      <Text
-        fontSize={size}
-        color={color}
-        anchorX="center"
-        anchorY="middle"
-        outlineWidth={0.02}
-        outlineColor="#000000"
-        outlineOpacity={0.8}
-        overflowWrap="normal"
-        maxWidth={10}
-        textAlign="center"
-        renderOrder={10} // Ensure text renders on top of other objects
-        material-depthTest={false} // Make sure text is always visible
-        material-transparent={true}
-        material-opacity={opacity}
-      >
-        {text}
-        {backgroundColor && (
-          <meshBasicMaterial
-            // color={backgroundColor} // Commented out due to type error
-            opacity={opacity * 0.7}
-            transparent={true}
-            side={THREE.DoubleSide} // Use THREE namespace
-          />
-        )}
-      </Text>
-    </Billboard>
-  );
-  */
+  
 };
 
 // System to display icons next to nodes
 const IconSystem: React.FC = () => {
-  // Implement if needed
+  
   return null;
 };
 
 // System to display performance metrics
 const MetricsDisplay: React.FC = () => {
-  // Implement if needed
+  
   return null;
 };
 
@@ -254,10 +214,10 @@ export function useTextLabelManager() {
     updateLabel: (id, text, position) => {
       const labels = labelManagerRef.current.labels;
 
-      // Convert position to tuple format with type guards
+      
       let pos: [number, number, number];
-      if (isVector3Instance(position)) { // Use instanceof type guard
-         // Explicit cast to help TS understand the type is narrowed
+      if (isVector3Instance(position)) { 
+         
         const vec = position as THREE.Vector3;
         pos = [vec.x, vec.y, vec.z];
       } else if (Array.isArray(position)) {
@@ -267,24 +227,24 @@ export function useTextLabelManager() {
         pos = [posObj.x, posObj.y, posObj.z];
       } else {
         logger.warn(`Invalid position format for updateLabel ${id}:`, position);
-        pos = [0, 0, 0]; // Default or handle error
+        pos = [0, 0, 0]; 
       }
 
       const existingLabelIndex = labels.findIndex(label => label.id === id);
 
       if (existingLabelIndex >= 0) {
-        // Update existing label
+        
         labels[existingLabelIndex] = {
           ...labels[existingLabelIndex],
           text: text || labels[existingLabelIndex].text,
           position: pos
         };
       } else {
-        // Add new label
+        
         labels.push({ id, text, position: pos });
       }
 
-      // Force update by creating a new array
+      
       labelManagerRef.current.labels = [...labels];
     },
     removeLabel: (id) => {
@@ -302,8 +262,8 @@ export function useTextLabelManager() {
 
 // Factory function to create SDF font texture for high-quality text rendering
 export const createSDFFont = async (fontUrl: string, fontSize: number = 64) => {
-  // This would be an implementation of SDF font generation
-  // For now, we use drei's Text component which provides high-quality text
+  
+  
   return null;
 };
 
@@ -332,10 +292,10 @@ export class MetadataVisualizerManager {
     position: [number, number, number] | { x: number; y: number; z: number } | THREE.Vector3
   ): void {
     try {
-      // Convert position to tuple format with type guards
+      
       let pos: [number, number, number];
-      if (isVector3Instance(position)) { // Use instanceof type guard
-         // Explicit cast to help TS understand the type is narrowed
+      if (isVector3Instance(position)) { 
+         
         const vec = position as THREE.Vector3;
         pos = [vec.x, vec.y, vec.z];
       } else if (Array.isArray(position)) {
@@ -345,7 +305,7 @@ export class MetadataVisualizerManager {
         pos = [posObj.x, posObj.y, posObj.z];
       } else {
          logger.warn(`Invalid position format for updateNodeLabel ${nodeId}:`, position);
-         pos = [0,0,0]; // Default or handle error
+         pos = [0,0,0]; 
       }
 
       this.labels.set(nodeId, { text, position: pos });
@@ -386,7 +346,7 @@ export class MetadataVisualizerManager {
     this.labels.clear();
     this.updateCallback = null;
 
-    // Reset singleton instance
+    
     MetadataVisualizerManager.instance = null as any;
   }
 }

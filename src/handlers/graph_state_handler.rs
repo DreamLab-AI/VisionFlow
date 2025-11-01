@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use crate::application::knowledge_graph::{
     AddEdge,
     AddEdgeHandler,
-    // Directives
+    
     AddNode,
     AddNodeHandler,
     BatchUpdatePositions,
@@ -20,7 +20,7 @@ use crate::application::knowledge_graph::{
     GetGraphStatisticsHandler,
     GetNode,
     GetNodeHandler,
-    // Queries
+    
     LoadGraph,
     LoadGraphHandler,
     RemoveNode,
@@ -78,19 +78,19 @@ pub struct BatchPositionsRequest {
     pub positions: Vec<(u32, f32, f32, f32)>,
 }
 
-/// Get complete graph state including counts, positions, and statistics
+/
 pub async fn get_graph_state(state: web::Data<AppState>) -> impl Responder {
     info!("Received request for complete graph state via CQRS");
 
-    // Create query handler for loading graph
+    
     let load_handler = LoadGraphHandler::new(state.knowledge_graph_repository.clone());
 
-    // Execute query
+    
     let result = execute_in_thread(move || load_handler.handle(LoadGraph)).await;
 
     match result {
         Ok(Ok(query_result)) => {
-            // Extract GraphData from QueryResult::Graph variant
+            
             let graph_data = match query_result {
                 crate::application::knowledge_graph::QueryResult::Graph(graph_arc) => graph_arc,
                 _ => {
@@ -101,7 +101,7 @@ pub async fn get_graph_state(state: web::Data<AppState>) -> impl Responder {
                 }
             };
 
-            // Extract node positions (dereference Arc)
+            
             let graph_ref = graph_data.as_ref();
             let positions: Vec<NodePosition> = graph_ref
                 .nodes
@@ -119,7 +119,7 @@ pub async fn get_graph_state(state: web::Data<AppState>) -> impl Responder {
                 edges_count: graph_ref.edges.len(),
                 metadata_count: graph_ref.metadata.len(),
                 positions,
-                settings_version: "1.0.0".to_string(), // TODO: Extract from settings
+                settings_version: "1.0.0".to_string(), 
                 timestamp: std::time::SystemTime::now()
                     .duration_since(std::time::UNIX_EPOCH)
                     .unwrap_or_default()
@@ -149,19 +149,19 @@ pub async fn get_graph_state(state: web::Data<AppState>) -> impl Responder {
     }
 }
 
-/// Get graph statistics
+/
 pub async fn get_graph_statistics(state: web::Data<AppState>) -> impl Responder {
     info!("Received request for graph statistics via CQRS");
 
-    // Create query handler
+    
     let handler = GetGraphStatisticsHandler::new(state.knowledge_graph_repository.clone());
 
-    // Execute query
+    
     let result = execute_in_thread(move || handler.handle(GetGraphStatistics)).await;
 
     match result {
         Ok(Ok(query_result)) => {
-            // Extract Statistics from QueryResult::Statistics variant
+            
             let statistics = match query_result {
                 crate::application::knowledge_graph::QueryResult::Statistics(stats) => stats,
                 _ => {
@@ -191,7 +191,7 @@ pub async fn get_graph_statistics(state: web::Data<AppState>) -> impl Responder 
     }
 }
 
-/// Add a new node using CQRS directive
+/
 pub async fn add_node(
     state: web::Data<AppState>,
     request: web::Json<AddNodeRequest>,
@@ -203,10 +203,10 @@ pub async fn add_node(
         node.metadata_id
     );
 
-    // Create directive handler
+    
     let handler = AddNodeHandler::new(state.knowledge_graph_repository.clone());
 
-    // Execute directive
+    
     let result = execute_in_thread(move || handler.handle(AddNode { node })).await;
 
     match result {
@@ -233,7 +233,7 @@ pub async fn add_node(
     }
 }
 
-/// Update an existing node using CQRS directive
+/
 pub async fn update_node(
     state: web::Data<AppState>,
     request: web::Json<UpdateNodeRequest>,
@@ -241,10 +241,10 @@ pub async fn update_node(
     let node = request.into_inner().node;
     info!("Updating node via CQRS directive: id={}", node.id);
 
-    // Create directive handler
+    
     let handler = UpdateNodeHandler::new(state.knowledge_graph_repository.clone());
 
-    // Execute directive
+    
     let result = execute_in_thread(move || handler.handle(UpdateNode { node })).await;
 
     match result {
@@ -270,15 +270,15 @@ pub async fn update_node(
     }
 }
 
-/// Remove a node using CQRS directive
+/
 pub async fn remove_node(state: web::Data<AppState>, node_id: web::Path<u32>) -> impl Responder {
     let id = node_id.into_inner();
     info!("Removing node via CQRS directive: id={}", id);
 
-    // Create directive handler
+    
     let handler = RemoveNodeHandler::new(state.knowledge_graph_repository.clone());
 
-    // Execute directive
+    
     let result = execute_in_thread(move || handler.handle(RemoveNode { node_id: id })).await;
 
     match result {
@@ -304,20 +304,20 @@ pub async fn remove_node(state: web::Data<AppState>, node_id: web::Path<u32>) ->
     }
 }
 
-/// Get a node by ID using CQRS query
+/
 pub async fn get_node(state: web::Data<AppState>, node_id: web::Path<u32>) -> impl Responder {
     let id = node_id.into_inner();
     info!("Getting node via CQRS query: id={}", id);
 
-    // Create query handler
+    
     let handler = GetNodeHandler::new(state.knowledge_graph_repository.clone());
 
-    // Execute query
+    
     let result = execute_in_thread(move || handler.handle(GetNode { node_id: id })).await;
 
     match result {
         Ok(Ok(query_result)) => {
-            // Extract Node from QueryResult::Node variant
+            
             let node_opt = match query_result {
                 crate::application::knowledge_graph::QueryResult::Node(node) => node,
                 _ => {
@@ -358,7 +358,7 @@ pub async fn get_node(state: web::Data<AppState>, node_id: web::Path<u32>) -> im
     }
 }
 
-/// Add an edge using CQRS directive
+/
 pub async fn add_edge(
     state: web::Data<AppState>,
     request: web::Json<AddEdgeRequest>,
@@ -372,10 +372,10 @@ pub async fn add_edge(
         edge_source, edge_target
     );
 
-    // Create directive handler
+    
     let handler = AddEdgeHandler::new(state.knowledge_graph_repository.clone());
 
-    // Execute directive
+    
     let result = execute_in_thread(move || handler.handle(AddEdge { edge })).await;
 
     match result {
@@ -402,15 +402,15 @@ pub async fn add_edge(
     }
 }
 
-/// Update edge using CQRS directive
+/
 pub async fn update_edge(state: web::Data<AppState>, request: web::Json<Edge>) -> impl Responder {
     let edge = request.into_inner();
     info!("Updating edge via CQRS directive: id={}", edge.id);
 
-    // Create directive handler
+    
     let handler = UpdateEdgeHandler::new(state.knowledge_graph_repository.clone());
 
-    // Execute directive
+    
     let result = execute_in_thread(move || handler.handle(UpdateEdge { edge })).await;
 
     match result {
@@ -436,7 +436,7 @@ pub async fn update_edge(state: web::Data<AppState>, request: web::Json<Edge>) -
     }
 }
 
-/// Batch update node positions using CQRS directive
+/
 pub async fn batch_update_positions(
     state: web::Data<AppState>,
     request: web::Json<BatchPositionsRequest>,
@@ -447,10 +447,10 @@ pub async fn batch_update_positions(
         positions.len()
     );
 
-    // Create directive handler
+    
     let handler = BatchUpdatePositionsHandler::new(state.knowledge_graph_repository.clone());
 
-    // Execute directive
+    
     let result =
         execute_in_thread(move || handler.handle(BatchUpdatePositions { positions })).await;
 
@@ -477,7 +477,7 @@ pub async fn batch_update_positions(
     }
 }
 
-/// Configure routes for graph endpoints
+/
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/graph")

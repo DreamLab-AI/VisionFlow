@@ -1,7 +1,4 @@
-/**
- * Base logger implementation without dependencies on clientDebugState
- * This breaks the circular dependency between loggerConfig and clientDebugState
- */
+
 
 // Moved from loggerConfig.ts - utility functions for error handling
 export function createErrorMetadata(error: unknown): Record<string, any> {
@@ -55,10 +52,10 @@ const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
 };
 
 const LOG_COLORS = {
-  debug: '#8c8c8c', // gray
-  info: '#4c9aff',  // blue
-  warn: '#ffab00',  // orange
-  error: '#ff5630', // red
+  debug: '#8c8c8c', 
+  info: '#4c9aff',  
+  warn: '#ffab00',  
+  error: '#ff5630', 
 };
 
 // Central log storage
@@ -80,37 +77,30 @@ export interface LoggerOptions {
   respectRuntimeSettings?: boolean;
 }
 
-/**
- * Get the default log level from environment variables only
- */
+
 function getEnvironmentLogLevel(): LogLevel {
-  // Read from environment variable (Vite uses VITE_ prefix)
+  
   const envLogLevel = import.meta.env?.VITE_LOG_LEVEL || import.meta.env?.LOG_LEVEL;
 
-  // Validate and return the log level
+  
   const level = envLogLevel?.toLowerCase();
 
   if (isValidLogLevel(level)) {
     return level as LogLevel;
   }
 
-  // Default to 'debug' in development, 'info' in production
+  
   const isDev = import.meta.env?.DEV || import.meta.env?.MODE === 'development';
   return isDev ? 'debug' : 'info';
 }
 
-/**
- * Validate if a string is a valid log level
- */
+
 function isValidLogLevel(level: any): level is LogLevel {
   const validLevels: LogLevel[] = ['debug', 'info', 'warn', 'error'];
   return validLevels.includes(level);
 }
 
-/**
- * Simple logger factory that doesn't depend on clientDebugState
- * This is the core logger implementation without circular dependencies
- */
+
 export function createLogger(namespace: string, options: LoggerOptions = {}) {
   const { disabled = false, level = getEnvironmentLogLevel(), maxLogEntries = DEFAULT_MAX_LOG_ENTRIES } = options;
   let currentDisabled = disabled;

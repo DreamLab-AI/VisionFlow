@@ -28,9 +28,7 @@ export interface SpacePilotHookReturn {
   config: SpacePilotConfig;
 }
 
-/**
- * React hook for SpacePilot integration with Three.js
- */
+
 export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookReturn {
   const {
     enabled = true,
@@ -49,20 +47,20 @@ export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookRe
   const controllerRef = useRef<SpacePilotController | null>(null);
   const configRef = useRef<SpacePilotConfig>({ ...defaultSpacePilotConfig, ...userConfig });
   
-  // Load settings from store
+  
   const settings = useSettingsStore(state => state.settings);
   const spacePilotSettings = settings?.visualisation?.spacePilot;
 
-  // Check WebHID support
+  
   useEffect(() => {
     setIsSupported('hid' in navigator);
   }, []);
 
-  // Initialize controller
+  
   useEffect(() => {
     if (!enabled || !camera || !isSupported) return;
 
-    // Merge settings from store with user config
+    
     const mergedConfig = {
       ...defaultSpacePilotConfig,
       ...spacePilotSettings,
@@ -70,10 +68,10 @@ export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookRe
     };
     configRef.current = mergedConfig;
 
-    // Get OrbitControls from ref if provided
+    
     const orbitControls = orbitControlsRef?.current || undefined;
 
-    // Create controller instance
+    
     const controller = new SpacePilotController(
       camera,
       mergedConfig,
@@ -81,7 +79,7 @@ export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookRe
     );
     controllerRef.current = controller;
 
-    // Set initial mode
+    
     setCurrentMode(mergedConfig.mode);
 
     return () => {
@@ -90,7 +88,7 @@ export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookRe
     };
   }, [enabled, camera, orbitControlsRef, isSupported, spacePilotSettings, userConfig]);
 
-  // Handle SpaceDriver events
+  
   useEffect(() => {
     if (!enabled || !isSupported || !controllerRef.current) return;
 
@@ -118,16 +116,16 @@ export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookRe
       onDisconnect?.();
     };
 
-    // Add event listeners
+    
     SpaceDriver.addEventListener('translate', handleTranslate);
     SpaceDriver.addEventListener('rotate', handleRotate);
     SpaceDriver.addEventListener('buttons', handleButtons);
     SpaceDriver.addEventListener('connect', handleConnect);
     SpaceDriver.addEventListener('disconnect', handleDisconnect);
 
-    // Check if already connected
-    // Note: SpaceDriver doesn't expose device property, so we can't check initial state
-    // The connect event will fire if a device is already connected
+    
+    
+    
 
     return () => {
       SpaceDriver.removeEventListener('translate', handleTranslate);
@@ -138,7 +136,7 @@ export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookRe
     };
   }, [enabled, isSupported, onConnect, onDisconnect]);
 
-  // Connect to device
+  
   const connect = useCallback(async () => {
     if (!isSupported) {
       console.error('WebHID is not supported in this browser');
@@ -152,18 +150,18 @@ export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookRe
     }
   }, [isSupported]);
 
-  // Disconnect from device
+  
   const disconnect = useCallback(() => {
     SpaceDriver.disconnect();
   }, []);
 
-  // Calibrate (reset smoothing buffers)
+  
   const calibrate = useCallback(() => {
     controllerRef.current?.stop();
     controllerRef.current?.start();
   }, []);
 
-  // Reset view
+  
   const resetView = useCallback(() => {
     const orbitControls = orbitControlsRef?.current;
     if (orbitControls && 'reset' in orbitControls) {
@@ -174,13 +172,13 @@ export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookRe
     }
   }, [camera, orbitControlsRef]);
 
-  // Set control mode
+  
   const setMode = useCallback((mode: 'camera' | 'object' | 'navigation') => {
     setCurrentMode(mode);
     controllerRef.current?.setMode(mode);
     onModeChange?.(mode);
     
-    // Save to settings store
+    
     const updateSettings = useSettingsStore.getState().updateSettings;
     updateSettings({
       visualisation: {
@@ -191,13 +189,13 @@ export function useSpacePilot(options: SpacePilotOptions = {}): SpacePilotHookRe
     });
   }, [onModeChange]);
 
-  // Update configuration
+  
   const updateConfig = useCallback((newConfig: Partial<SpacePilotConfig>) => {
     const mergedConfig = { ...configRef.current, ...newConfig };
     configRef.current = mergedConfig;
     controllerRef.current?.updateConfig(mergedConfig);
     
-    // Save to settings store
+    
     const updateSettings = useSettingsStore.getState().updateSettings;
     updateSettings({
       visualisation: {

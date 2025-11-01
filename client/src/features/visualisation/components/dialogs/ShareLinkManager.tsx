@@ -1,7 +1,4 @@
-/**
- * Share Link Manager Component
- * Manage existing shared graphs
- */
+
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -194,7 +191,7 @@ export const ShareLinkManager: React.FC<ShareLinkManagerProps> = ({
                       </div>
                     </div>
 
-                    {/* Metadata */}
+                    {}
                     <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground mb-3">
                       <div className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
@@ -216,7 +213,7 @@ export const ShareLinkManager: React.FC<ShareLinkManagerProps> = ({
                       </div>
                     </div>
 
-                    {/* Permissions */}
+                    {}
                     <div className="flex flex-wrap gap-1 mb-3">
                       {graph.permissions.allowDownload && (
                         <Badge variant="outline" className="text-xs">Download</Badge>
@@ -231,7 +228,7 @@ export const ShareLinkManager: React.FC<ShareLinkManagerProps> = ({
 
                     <Separator className="my-3" />
 
-                    {/* Share URL */}
+                    {}
                     <div className="bg-muted/50 rounded p-2 mb-3">
                       <div className="flex items-center justify-between">
                         <div className="text-xs font-mono text-muted-foreground truncate flex-1 mr-2">
@@ -248,7 +245,7 @@ export const ShareLinkManager: React.FC<ShareLinkManagerProps> = ({
                       </div>
                     </div>
 
-                    {/* Actions */}
+                    {}
                     <div className="flex items-center justify-between">
                       <div className="flex gap-1">
                         <Button

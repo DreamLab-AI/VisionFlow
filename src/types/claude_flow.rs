@@ -14,13 +14,13 @@ pub struct Vec3 {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentStatus {
-    // Core identification
+    
     #[serde(rename = "id")]
     pub agent_id: String,
     pub profile: AgentProfile,
     pub status: String,
 
-    // Task information
+    
     pub active_tasks_count: u32,
     pub completed_tasks_count: u32,
     pub failed_tasks_count: u32,
@@ -28,7 +28,7 @@ pub struct AgentStatus {
     pub timestamp: DateTime<Utc>,
     pub current_task: Option<TaskReference>,
 
-    // Client compatibility fields with proper serialization
+    
     #[serde(rename = "type")]
     pub agent_type: String,
 
@@ -37,10 +37,10 @@ pub struct AgentStatus {
 
     pub capabilities: Vec<String>,
 
-    // Position as Vec3 structure
+    
     pub position: Option<Vec3>,
 
-    // Performance metrics (0-1 normalized for client)
+    
     #[serde(rename = "cpuUsage")]
     pub cpu_usage: f32,
 
@@ -64,7 +64,7 @@ pub struct AgentStatus {
     #[serde(rename = "tokenRate")]
     pub token_rate: f32,
 
-    // Additional fields
+    
     pub performance_metrics: PerformanceMetrics,
     pub token_usage: TokenUsage,
 
@@ -169,7 +169,7 @@ pub struct McpRequest {
 pub struct ClaudeFlowClient {
     host: String,
     port: u16,
-    // Remove transport field - we're using direct TCP now
+    
 }
 
 impl ClaudeFlowClient {
@@ -188,8 +188,8 @@ impl ClaudeFlowClient {
 
         log::info!("Successfully connected to Claude Flow at {}", addr);
 
-        // Validate connection with a simple ping
-        drop(stream); // For now, we'll reconnect as needed per request
+        
+        drop(stream); 
         Ok(())
     }
 
@@ -203,7 +203,7 @@ impl ClaudeFlowClient {
         let addr = format!("{}:{}", self.host, self.port);
         let mut stream = timeout(Duration::from_secs(5), TcpStream::connect(&addr)).await??;
 
-        // Send agent list request (simplified JSON-RPC style)
+        
         let request = json!({
             "jsonrpc": "2.0",
             "method": "list_agents",
@@ -213,17 +213,17 @@ impl ClaudeFlowClient {
         let request_str = format!("{}\n", request.to_string());
         stream.write_all(request_str.as_bytes()).await?;
 
-        // Read response
+        
         let mut buffer = vec![0; 8192];
         let bytes_read = timeout(Duration::from_secs(5), stream.read(&mut buffer)).await??;
 
         if bytes_read == 0 {
-            return Ok(vec![]); // No data received
+            return Ok(vec![]); 
         }
 
         let response_str = String::from_utf8_lossy(&buffer[..bytes_read]);
 
-        // Parse JSON response
+        
         if let Ok(response_json) = serde_json::from_str::<serde_json::Value>(&response_str) {
             if let Some(agents_array) = response_json.get("result").and_then(|r| r.as_array()) {
                 let mut statuses = Vec::new();
@@ -260,7 +260,7 @@ impl ClaudeFlowClient {
             .unwrap_or("idle")
             .to_string();
 
-        // Extract position data
+        
         let position = if let (Some(x), Some(y), Some(z)) = (
             agent_data.get("x").and_then(|v| v.as_f64()),
             agent_data.get("y").and_then(|v| v.as_f64()),
@@ -281,7 +281,7 @@ impl ClaudeFlowClient {
             None
         };
 
-        // Extract current task description
+        
         let current_task_description = agent_data
             .get("current_task")
             .and_then(|v| v.as_str())
@@ -293,7 +293,7 @@ impl ClaudeFlowClient {
                     .map(|s| s.to_string())
             });
 
-        // Extract capabilities
+        
         let capabilities = agent_data
             .get("capabilities")
             .and_then(|v| v.as_array())
@@ -305,7 +305,7 @@ impl ClaudeFlowClient {
             })
             .unwrap_or_else(|| vec![agent_type.clone()]);
 
-        // Normalize success rate to 0-1 range
+        
         let success_rate_raw = agent_data
             .get("success_rate")
             .and_then(|v| v.as_f64())
@@ -316,7 +316,7 @@ impl ClaudeFlowClient {
             success_rate_raw
         };
 
-        // Normalize CPU/memory usage to percentage (0-1 range)
+        
         let cpu_usage_raw = agent_data
             .get("cpu_usage")
             .and_then(|v| v.as_f64())
@@ -363,7 +363,7 @@ impl ClaudeFlowClient {
             },
             status: status.clone(),
 
-            // Original fields
+            
             active_tasks_count: agent_data
                 .get("active_tasks")
                 .and_then(|v| v.as_u64())
@@ -386,7 +386,7 @@ impl ClaudeFlowClient {
                     priority: TaskPriority::Medium,
                 }),
 
-            // Client compatibility fields
+            
             agent_type: agent_type.clone(),
             current_task_description,
             capabilities,
@@ -419,7 +419,7 @@ impl ClaudeFlowClient {
                 .and_then(|v| v.as_f64())
                 .unwrap_or(0.1) as f32,
 
-            // Additional fields
+            
             performance_metrics: PerformanceMetrics {
                 tasks_completed: agent_data
                     .get("completed_tasks")
@@ -451,7 +451,7 @@ impl ClaudeFlowClient {
                 .map(|s| s.to_string()),
             processing_logs: Some(vec![]),
             created_at,
-            age: 0, // Will be calculated based on created_at vs current time
+            age: 0, 
             workload: agent_data
                 .get("workload")
                 .and_then(|v| v.as_f64())
@@ -459,7 +459,7 @@ impl ClaudeFlowClient {
         })
     }
 
-    // Method to send MCP request via TCP
+    
     pub async fn send_mcp_request(
         &self,
         request: &McpRequest,
@@ -471,7 +471,7 @@ impl ClaudeFlowClient {
         let addr = format!("{}:{}", self.host, self.port);
         let mut stream = timeout(Duration::from_secs(5), TcpStream::connect(&addr)).await??;
 
-        // Convert McpRequest to JSON-RPC format
+        
         let json_request = json!({
             "jsonrpc": "2.0",
             "method": request.method,
@@ -482,7 +482,7 @@ impl ClaudeFlowClient {
         let request_str = format!("{}\n", json_request.to_string());
         stream.write_all(request_str.as_bytes()).await?;
 
-        // Read response
+        
         let mut buffer = vec![0; 16384];
         let bytes_read = timeout(Duration::from_secs(10), stream.read(&mut buffer)).await??;
 
@@ -492,7 +492,7 @@ impl ClaudeFlowClient {
 
         let response_str = String::from_utf8_lossy(&buffer[..bytes_read]);
 
-        // Parse JSON-RPC response
+        
         match serde_json::from_str::<serde_json::Value>(&response_str) {
             Ok(json_response) => {
                 if let Some(error) = json_response.get("error") {

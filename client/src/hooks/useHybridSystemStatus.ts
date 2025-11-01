@@ -59,7 +59,7 @@ export interface UseHybridSystemStatusOptions {
 }
 
 const defaultOptions: UseHybridSystemStatusOptions = {
-  pollingInterval: 30000, // 30 seconds
+  pollingInterval: 30000, 
   enableWebSocket: true,
   enablePerformanceMetrics: true,
   enableHealthChecks: true,
@@ -100,7 +100,7 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Fetch status from HTTP API
+  
   const fetchStatus = useCallback(async (): Promise<HybridSystemStatus | null> => {
     try {
       const startTime = Date.now();
@@ -109,7 +109,7 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
       const networkLatency = Date.now() - startTime;
       const data = response.data;
 
-      // Add network latency to the response
+      
       return {
         ...data,
         networkLatency,
@@ -122,13 +122,13 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
     }
   }, []);
 
-  // Initialize WebSocket connection
+  
   const initializeWebSocket = useCallback(() => {
     if (!opts.enableWebSocket) return;
 
     try {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/ws/hybrid-status`;
+      const wsUrl = `${protocol}
 
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
@@ -138,7 +138,7 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
         setError(null);
         setReconnectAttempts(0);
 
-        // Request immediate status update
+        
         ws.send(JSON.stringify({ type: 'request_status' }));
       };
 
@@ -210,9 +210,9 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
     }
   }, [opts.enableWebSocket, opts.autoReconnect, opts.reconnectDelay, opts.maxReconnectAttempts, reconnectAttempts]);
 
-  // Start polling if WebSocket is not enabled
+  
   const startPolling = useCallback(() => {
-    if (opts.enableWebSocket) return; // Don't poll if WebSocket is enabled
+    if (opts.enableWebSocket) return; 
 
     const poll = async () => {
       const newStatus = await fetchStatus();
@@ -222,35 +222,35 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
       }
     };
 
-    // Initial fetch
+    
     poll();
 
-    // Set up polling interval
+    
     pollingRef.current = setInterval(poll, opts.pollingInterval || 30000);
   }, [opts.enableWebSocket, opts.pollingInterval, fetchStatus]);
 
-  // Cleanup function
+  
   const cleanup = useCallback(() => {
-    // Close WebSocket
+    
     if (wsRef.current) {
       wsRef.current.close();
       wsRef.current = null;
     }
 
-    // Clear polling interval
+    
     if (pollingRef.current) {
       clearInterval(pollingRef.current);
       pollingRef.current = null;
     }
 
-    // Clear reconnect timeout
+    
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = null;
     }
   }, []);
 
-  // Manual refresh function
+  
   const refresh = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -262,7 +262,7 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
     setIsLoading(false);
   }, [fetchStatus]);
 
-  // Force reconnect WebSocket
+  
   const reconnect = useCallback(() => {
     cleanup();
     setReconnectAttempts(0);
@@ -275,7 +275,7 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
     }
   }, [cleanup, opts.enableWebSocket, initializeWebSocket, startPolling]);
 
-  // Spawn new swarm function
+  
   const spawnSwarm = useCallback(async (
     taskDescription: string,
     config?: {
@@ -294,7 +294,7 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
 
       const result = response.data;
 
-      // Refresh status to get updated session list
+      
       setTimeout(refresh, 1000);
 
       return result;
@@ -304,12 +304,12 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
     }
   }, [refresh]);
 
-  // Stop swarm function
+  
   const stopSwarm = useCallback(async (sessionId: string) => {
     try {
       const response = await unifiedApiClient.post(`/hybrid/swarm/${sessionId}/stop`);
 
-      // Refresh status to get updated session list
+      
       setTimeout(refresh, 1000);
 
       return response.data;
@@ -319,7 +319,7 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
     }
   }, [refresh]);
 
-  // Get performance report
+  
   const getPerformanceReport = useCallback(async () => {
     try {
       const response = await unifiedApiClient.get('/hybrid/performance-report');
@@ -330,7 +330,7 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
     }
   }, []);
 
-  // Initialize on mount
+  
   useEffect(() => {
     if (opts.enableWebSocket) {
       initializeWebSocket();
@@ -341,24 +341,24 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
     return cleanup;
   }, [opts.enableWebSocket, initializeWebSocket, startPolling, cleanup]);
 
-  // Health check derived state
+  
   const isSystemHealthy = status.systemStatus === 'healthy';
   const isSystemDegraded = status.systemStatus === 'degraded';
   const isSystemCritical = status.systemStatus === 'critical';
 
-  // Connection status derived state
+  
   const isDockerAvailable = status.dockerHealth === 'healthy' || status.dockerHealth === 'degraded';
   const isMcpAvailable = status.mcpHealth === 'connected' || status.mcpHealth === 'reconnecting';
   const isConnected = opts.enableWebSocket ? wsRef.current?.readyState === WebSocket.OPEN : !error;
 
   return {
-    // Status data
+    
     status,
     isLoading,
     error,
     reconnectAttempts,
 
-    // Derived state
+    
     isSystemHealthy,
     isSystemDegraded,
     isSystemCritical,
@@ -366,14 +366,14 @@ export const useHybridSystemStatus = (options: UseHybridSystemStatusOptions = {}
     isMcpAvailable,
     isConnected,
 
-    // Actions
+    
     refresh,
     reconnect,
     spawnSwarm,
     stopSwarm,
     getPerformanceReport,
 
-    // WebSocket reference (for advanced usage)
+    
     wsRef,
   };
 };

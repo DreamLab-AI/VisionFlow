@@ -2,7 +2,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
 
-/// Message extracted from agent output intended for client display
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClientMessage {
     pub content: String,
@@ -11,11 +11,11 @@ pub struct ClientMessage {
     pub agent_id: Option<String>,
 }
 
-/// Pattern for extracting client messages from agent output
-/// Supports multiple patterns for flexibility:
-/// - **[CLIENT_MESSAGE]** content **[/CLIENT_MESSAGE]**
-/// - *[MESSAGE]* content *[/MESSAGE]*
-/// - [CLIENT] content [/CLIENT]
+/
+/
+/
+/
+/
 static MESSAGE_REGEX: OnceLock<Regex> = OnceLock::new();
 
 fn get_message_regex() -> &'static Regex {
@@ -33,7 +33,7 @@ fn get_message_regex() -> &'static Regex {
     })
 }
 
-/// Extract all client messages from text output
+/
 pub fn extract_client_messages(
     text: &str,
     session_id: Option<String>,
@@ -55,7 +55,7 @@ pub fn extract_client_messages(
         .collect()
 }
 
-/// Stream processor that continuously scans for client messages
+/
 pub struct ClientMessageStream {
     buffer: String,
     session_id: Option<String>,
@@ -69,26 +69,26 @@ impl ClientMessageStream {
             buffer: String::new(),
             session_id,
             agent_id,
-            max_buffer_size: 100_000, // 100KB buffer
+            max_buffer_size: 100_000, 
         }
     }
 
-    /// Process new text chunk and extract any complete messages
+    
     pub fn process_chunk(&mut self, chunk: &str) -> Vec<ClientMessage> {
-        // Append to buffer
+        
         self.buffer.push_str(chunk);
 
-        // Extract messages from buffer
+        
         let messages =
             extract_client_messages(&self.buffer, self.session_id.clone(), self.agent_id.clone());
 
-        // Remove extracted message content from buffer to prevent reprocessing
+        
         if !messages.is_empty() {
             let regex = get_message_regex();
             self.buffer = regex.replace_all(&self.buffer, "").to_string();
         }
 
-        // Prevent buffer from growing too large - keep last 50KB if exceeded
+        
         if self.buffer.len() > self.max_buffer_size {
             let start_idx = self.buffer.len() - (self.max_buffer_size / 2);
             self.buffer = self.buffer[start_idx..].to_string();
@@ -97,12 +97,12 @@ impl ClientMessageStream {
         messages
     }
 
-    /// Clear the buffer
+    
     pub fn clear(&mut self) {
         self.buffer.clear();
     }
 
-    /// Get current buffer size
+    
     pub fn buffer_size(&self) -> usize {
         self.buffer.len()
     }
@@ -159,11 +159,11 @@ mod tests {
     fn test_stream_processor() {
         let mut stream = ClientMessageStream::new(None, None);
 
-        // First chunk - incomplete message
+        
         let messages = stream.process_chunk("**[CLIENT_MESSAGE]** Start of mes");
         assert_eq!(messages.len(), 0);
 
-        // Second chunk - completes message
+        
         let messages = stream.process_chunk("sage **[/CLIENT_MESSAGE]**");
         assert_eq!(messages.len(), 1);
         assert_eq!(messages[0].content, "Start of message");

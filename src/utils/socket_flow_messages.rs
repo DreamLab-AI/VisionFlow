@@ -9,17 +9,17 @@ use serde::{Deserialize, Serialize};
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Pod, Zeroable, Serialize, Deserialize)]
-/// Binary node data for client communication (28 bytes)
-/// Contains only position and velocity for real-time updates.
-/// SSSP and other algorithm results are sent via REST/JSON when needed.
+/
+/
+/
 pub struct BinaryNodeDataClient {
-    pub node_id: u32, // 4 bytes - Node identifier
-    pub x: f32,       // 4 bytes - X position
-    pub y: f32,       // 4 bytes - Y position
-    pub z: f32,       // 4 bytes - Z position
-    pub vx: f32,      // 4 bytes - X velocity
-    pub vy: f32,      // 4 bytes - Y velocity
-    pub vz: f32,      // 4 bytes - Z velocity
+    pub node_id: u32, 
+    pub x: f32,       
+    pub y: f32,       
+    pub z: f32,       
+    pub vx: f32,      
+    pub vy: f32,      
+    pub vz: f32,      
 }
 
 // Compile-time assertion to ensure client format is exactly 28 bytes
@@ -33,21 +33,21 @@ pub type BinaryNodeData = BinaryNodeDataClient;
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Pod, Zeroable, Serialize, Deserialize)]
-/// Binary node data for GPU computation (48 bytes)
-/// Includes all client fields plus algorithm-specific data that stays server-side.
+/
+/
 pub struct BinaryNodeDataGPU {
-    pub node_id: u32,       // 4 bytes - Node identifier
-    pub x: f32,             // 4 bytes - X position
-    pub y: f32,             // 4 bytes - Y position
-    pub z: f32,             // 4 bytes - Z position
-    pub vx: f32,            // 4 bytes - X velocity
-    pub vy: f32,            // 4 bytes - Y velocity
-    pub vz: f32,            // 4 bytes - Z velocity
-    pub sssp_distance: f32, // 4 bytes - Shortest path distance
-    pub sssp_parent: i32,   // 4 bytes - Parent node for path reconstruction
-    pub cluster_id: i32,    // 4 bytes - Cluster assignment
-    pub centrality: f32,    // 4 bytes - Node centrality score
-    pub mass: f32,          // 4 bytes - Node mass for physics
+    pub node_id: u32,       
+    pub x: f32,             
+    pub y: f32,             
+    pub z: f32,             
+    pub vx: f32,            
+    pub vy: f32,            
+    pub vz: f32,            
+    pub sssp_distance: f32, 
+    pub sssp_parent: i32,   
+    pub cluster_id: i32,    
+    pub centrality: f32,    
+    pub mass: f32,          
 }
 
 // Compile-time assertion to ensure GPU format is exactly 48 bytes

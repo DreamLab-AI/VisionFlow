@@ -1,7 +1,4 @@
-/**
- * Textarea Component
- * A multi-line text input component
- */
+
 
 import * as React from "react";
 import { cn } from "../../../utils/classNameUtils";

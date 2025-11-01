@@ -86,7 +86,7 @@ const createGraphSettingsSubsections = (graphName: 'logseq' | 'visionflow') => (
         path: `visualisation.graphs.${graphName}.physics.updateThreshold`,
         description: 'Minimum movement distance to trigger updates (0 = all updates, higher = fewer updates).'
       },
-      // CUDA kernel parameters
+      
       restLength: { label: 'Rest Length', type: 'slider', min: 1, max: 1000, step: 1, path: `visualisation.graphs.${graphName}.physics.restLength`, description: 'Target distance for spring forces.' },
       repulsionCutoff: { label: 'Repulsion Cutoff', type: 'slider', min: 0, max: 1000, step: 1, path: `visualisation.graphs.${graphName}.physics.repulsionCutoff`, description: 'Max distance for repulsion effect.' },
       repulsionSofteningEpsilon: { label: 'Repulsion Softening Epsilon', type: 'slider', min: 0.0001, max: 0.01, step: 0.0001, path: `visualisation.graphs.${graphName}.physics.repulsionSofteningEpsilon`, description: 'Softening parameter to prevent singularities in repulsion calculations.' },
@@ -103,7 +103,7 @@ const createGraphSettingsSubsections = (graphName: 'logseq' | 'visionflow') => (
 });
 
 export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
-  // Dashboard - System overview and quick actions
+  
   dashboard: {
     label: 'Dashboard',
     icon: 'Monitor',
@@ -120,12 +120,12 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
       },
     },
   },
-  // Visualization - All visual settings
+  
   visualization: {
     label: 'Visualization',
     icon: 'Eye',
     subsections: {
-      // Graph-specific settings
+      
       ...createGraphSettingsSubsections('logseq'),
       ...createGraphSettingsSubsections('visionflow'),
       rendering: {
@@ -153,7 +153,7 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
           environmentGlowStrength: { label: 'Environment Glow Strength', type: 'slider', min: 0, max: 5, step: 0.1, path: 'visualisation.glow.environmentGlowStrength', description: 'Glow strength from environment.' },
           radius: { label: 'Radius', type: 'slider', min: 0, max: 5, step: 0.05, path: 'visualisation.glow.radius', description: 'Radius of the glow effect.' },
           threshold: { label: 'Threshold', type: 'slider', min: 0, max: 1, step: 0.01, path: 'visualisation.glow.threshold', description: 'Luminance threshold for glow.' },
-          // Atmospheric effects
+          
           diffuseStrength: { label: 'Diffuse Strength', type: 'slider', min: 0, max: 3, step: 0.1, path: 'visualisation.glow.diffuseStrength', description: 'Strength of atmospheric diffusion.' },
           atmosphericDensity: { label: 'Atmospheric Density', type: 'slider', min: 0, max: 2, step: 0.1, path: 'visualisation.glow.atmosphericDensity', description: 'Density of atmospheric effects.' },
           volumetricIntensity: { label: 'Volumetric Intensity', type: 'slider', min: 0, max: 3, step: 0.1, path: 'visualisation.glow.volumetricIntensity', description: 'Intensity of volumetric lighting.' },
@@ -224,7 +224,7 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
       },
     },
   },
-  // Physics - Physics simulation settings
+  
   physics: {
     label: 'Physics',
     icon: 'Activity',
@@ -242,7 +242,7 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
           repelK: { label: 'Repel K', type: 'slider', min: 0.01, max: 10.0, step: 0.01, path: 'visualisation.graphs.logseq.physics.repelK', description: 'Repulsion force constant.' },
           maxVelocity: { label: 'Max Velocity', type: 'slider', min: 0.1, max: 50.0, step: 0.1, unit: 'units/s', path: 'visualisation.graphs.logseq.physics.maxVelocity', description: 'Speed limit for node movement.' },
           damping: { label: 'Damping', type: 'slider', min: 0.0, max: 1.0, step: 0.01, path: 'visualisation.graphs.logseq.physics.damping', description: 'Velocity reduction factor (0=no damping, 1=complete stop).' },
-          // CUDA kernel parameters
+          
           restLength: { label: 'Rest Length', type: 'slider', min: 10, max: 100, step: 1, path: 'visualisation.graphs.logseq.physics.restLength', description: 'Default rest length for spring forces.' },
           repulsionCutoff: { label: 'Repulsion Cutoff', type: 'slider', min: 10, max: 100, step: 1, path: 'visualisation.graphs.logseq.physics.repulsionCutoff', description: 'Maximum distance for repulsion calculations.' },
           repulsionSofteningEpsilon: { label: 'Repulsion Softening Epsilon', type: 'slider', min: 0.0001, max: 0.01, step: 0.0001, path: 'visualisation.graphs.logseq.physics.repulsionSofteningEpsilon', description: 'Softening parameter to prevent singularities in repulsion calculations.' },
@@ -260,7 +260,7 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
           boundsSize: { label: 'Bounds Size', type: 'slider', min: 10, max: 2000, step: 10, unit: 'units', path: 'visualisation.graphs.visionflow.physics.boundsSize', description: 'Simulation space boundaries.' },
           collisionRadius: { label: 'Collision Radius', type: 'slider', min: 0.5, max: 100, step: 0.5, unit: 'units', path: 'visualisation.graphs.visionflow.physics.collisionRadius', description: 'Node collision detection distance.' },
           damping: { label: 'Damping', type: 'slider', min: 0.0, max: 1.0, step: 0.01, path: 'visualisation.graphs.visionflow.physics.damping', description: 'Velocity reduction factor (0=no damping, 1=complete stop).' },
-          // CUDA kernel parameters
+          
           restLength: { label: 'Rest Length', type: 'slider', min: 10, max: 100, step: 1, path: 'visualisation.graphs.visionflow.physics.restLength', description: 'Default rest length for spring forces.' },
           repulsionCutoff: { label: 'Repulsion Cutoff', type: 'slider', min: 10, max: 100, step: 1, path: 'visualisation.graphs.visionflow.physics.repulsionCutoff', description: 'Maximum distance for repulsion calculations.' },
           repulsionSofteningEpsilon: { label: 'Repulsion Softening Epsilon', type: 'slider', min: 0.0001, max: 0.01, step: 0.0001, path: 'visualisation.graphs.visionflow.physics.repulsionSofteningEpsilon', description: 'Softening parameter to prevent singularities in repulsion calculations.' },
@@ -275,7 +275,7 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
       },
     },
   },
-  // Analytics - Data analysis and insights
+  
   analytics: {
     label: 'Analytics',
     icon: 'BarChart3',
@@ -292,7 +292,7 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
       },
     },
   },
-  // Performance - Performance monitoring and optimization
+  
   performance: {
     label: 'Performance',
     icon: 'Activity',
@@ -309,7 +309,7 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
       },
     },
   },
-  // Integrations - External services and data sources
+  
   integrations: {
     label: 'Data & Integrations',
     icon: 'Database',
@@ -326,7 +326,7 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
       },
     },
   },
-  // Developer - Client-side debug tools (localStorage only)
+  
   developer: {
     label: 'Developer',
     icon: 'Code',
@@ -374,7 +374,7 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
       },
     },
   },
-  // Auth - Authentication and security
+  
   auth: {
     label: 'Authentication',
     icon: 'Shield',
@@ -413,7 +413,7 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
           compressionThreshold: { label: 'Compression Threshold', type: 'slider', min: 128, max: 8192, step: 128, unit: 'bytes', path: 'system.websocket.compressionThreshold', description: 'Minimum message size to trigger compression.' },
         },
       },
-      // Debug section removed - all debug settings moved to Developer section with localStorage
+      
     },
   },
   xr: {
@@ -487,7 +487,7 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
       },
     },
   },
-  // Enhanced system settings with comprehensive configuration
+  
   system: {
     label: 'System',
     icon: 'Settings',
@@ -528,7 +528,7 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
       },
     },
   },
-  // AI Services - Comprehensive AI model configuration
+  
   ai: {
     label: 'AI Services',
     icon: 'Brain',

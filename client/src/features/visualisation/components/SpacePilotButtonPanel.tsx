@@ -18,10 +18,7 @@ interface ButtonState {
   label?: string;
 }
 
-/**
- * Displays all 16 SpacePilot button states in real-time
- * Follows VisionFlow panel styling conventions
- */
+
 export const SpacePilotButtonPanel: React.FC<SpacePilotButtonPanelProps> = ({
   className = '',
   compact = false,
@@ -60,8 +57,8 @@ export const SpacePilotButtonPanel: React.FC<SpacePilotButtonPanelProps> = ({
     const handleButtons = (event: CustomEvent) => {
       const { buttons } = event.detail;
       
-      // Parse button states from the event
-      // SpaceDriver returns hex notation: [1] through [F] and [10]
+      
+      
       const newStates: Record<number, ButtonState> = {};
       for (let i = 1; i <= 16; i++) {
         const buttonString = `[${i.toString(16).toUpperCase()}]`;
@@ -71,7 +68,7 @@ export const SpacePilotButtonPanel: React.FC<SpacePilotButtonPanelProps> = ({
           label: buttonLabels[i] 
         };
         
-        // Trigger callback for newly pressed buttons
+        
         if (isPressed && !buttonStates[i]?.pressed && onButtonPress) {
           onButtonPress(i);
         }
@@ -86,7 +83,7 @@ export const SpacePilotButtonPanel: React.FC<SpacePilotButtonPanelProps> = ({
 
     const handleDisconnect = () => {
       setIsConnected(false);
-      // Reset all button states
+      
       const resetStates: Record<number, ButtonState> = {};
       for (let i = 1; i <= 16; i++) {
         resetStates[i] = { pressed: false, label: buttonLabels[i] };
@@ -94,14 +91,14 @@ export const SpacePilotButtonPanel: React.FC<SpacePilotButtonPanelProps> = ({
       setButtonStates(resetStates);
     };
 
-    // Add event listeners
+    
     SpaceDriver.addEventListener('buttons', handleButtons);
     SpaceDriver.addEventListener('connect', handleConnect);
     SpaceDriver.addEventListener('disconnect', handleDisconnect);
 
-    // Check if already connected
-    // Note: SpaceDriver doesn't expose device property directly
-    // The connect event will fire if a device is already connected
+    
+    
+    
 
     return () => {
       SpaceDriver.removeEventListener('buttons', handleButtons);
@@ -153,7 +150,7 @@ export const SpacePilotButtonPanel: React.FC<SpacePilotButtonPanelProps> = ({
                     isPressed && 'transform scale-95'
                   )}
                 >
-                  {/* Button number */}
+                  {}
                   <span
                     className={cn(
                       'font-mono font-medium',
@@ -168,7 +165,7 @@ export const SpacePilotButtonPanel: React.FC<SpacePilotButtonPanelProps> = ({
                     )}
                   </span>
 
-                  {/* Press indicator */}
+                  {}
                   {isPressed && (
                     <div className="absolute inset-0 rounded-md animate-pulse bg-cyan-400/10" />
                   )}
@@ -178,7 +175,7 @@ export const SpacePilotButtonPanel: React.FC<SpacePilotButtonPanelProps> = ({
           })}
         </div>
 
-        {/* Button groups separator (visual only) */}
+        {}
         <div className="mt-3 pt-3 border-t border-gray-700/50">
           <div className="flex justify-between text-xs text-gray-500">
             <span>Navigation (1-8)</span>
@@ -187,7 +184,7 @@ export const SpacePilotButtonPanel: React.FC<SpacePilotButtonPanelProps> = ({
           </div>
         </div>
 
-        {/* Active button count */}
+        {}
         <div className="mt-2 flex items-center justify-between">
           <span className="text-xs text-gray-400">Active:</span>
           <span className="text-xs font-mono text-cyan-400">
@@ -199,9 +196,7 @@ export const SpacePilotButtonPanel: React.FC<SpacePilotButtonPanelProps> = ({
   );
 };
 
-/**
- * Compact inline button indicator for toolbars
- */
+
 export const SpacePilotButtonIndicator: React.FC<{
   buttonNumber: number;
   className?: string;

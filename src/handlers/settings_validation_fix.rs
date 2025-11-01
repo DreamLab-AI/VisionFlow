@@ -2,38 +2,38 @@
 use serde_json::Value;
 use std::collections::HashMap;
 
-/// Complete physics settings validation with proper bounds for GPU stability
+/
 pub fn validate_physics_settings_complete(physics: &Value) -> Result<(), String> {
-    // CRITICAL GPU PARAMETER BOUNDS - Prevents NaN and explosions
+    
 
-    // dt (time step) - CRITICAL for stability
+    
     if let Some(dt) = physics.get("dt").or_else(|| physics.get("timeStep")) {
         let val = dt.as_f64().ok_or("dt must be a number")?;
         if val <= 0.0 || val > 0.1 {
-            // Strict upper bound for stability
+            
             return Err("dt must be between 0.001 and 0.1 for GPU stability".to_string());
         }
     }
 
-    // maxVelocity - Prevent position explosions
+    
     if let Some(max_vel) = physics.get("maxVelocity") {
         let val = max_vel.as_f64().ok_or("maxVelocity must be a number")?;
         if val <= 0.0 || val > 100.0 {
-            // Reduced from 1000 to prevent instability
+            
             return Err("maxVelocity must be between 0.1 and 100.0".to_string());
         }
     }
 
-    // repelK - Must be positive to prevent NaN
+    
     if let Some(repel_k) = physics.get("repelK") {
         let val = repel_k.as_f64().ok_or("repelK must be a number")?;
         if val <= 0.0 || val > 500.0 {
-            // Strictly positive, capped at 500
+            
             return Err("repelK must be between 0.001 and 500.0".to_string());
         }
     }
 
-    // springK - Must be positive
+    
     if let Some(spring_k) = physics.get("springK") {
         let val = spring_k.as_f64().ok_or("springK must be a number")?;
         if val <= 0.0 || val > 10.0 {
@@ -41,16 +41,16 @@ pub fn validate_physics_settings_complete(physics: &Value) -> Result<(), String>
         }
     }
 
-    // damping - Critical for convergence
+    
     if let Some(damping) = physics.get("damping") {
         let val = damping.as_f64().ok_or("damping must be a number")?;
         if val < 0.0 || val >= 1.0 {
-            // Must be less than 1 for stability
+            
             return Err("damping must be between 0.0 and 0.999".to_string());
         }
     }
 
-    // maxForce - Prevent force explosions
+    
     if let Some(max_force) = physics.get("maxForce") {
         let val = max_force.as_f64().ok_or("maxForce must be a number")?;
         if val <= 0.0 || val > 1000.0 {
@@ -58,7 +58,7 @@ pub fn validate_physics_settings_complete(physics: &Value) -> Result<(), String>
         }
     }
 
-    // SSSP parameters
+    
     if let Some(sssp_alpha) = physics.get("ssspAlpha") {
         let val = sssp_alpha.as_f64().ok_or("ssspAlpha must be a number")?;
         if val < 0.0 || val > 1.0 {
@@ -66,7 +66,7 @@ pub fn validate_physics_settings_complete(physics: &Value) -> Result<(), String>
         }
     }
 
-    // Constraint parameters
+    
     if let Some(constraint_strength) = physics.get("constraintStrength") {
         let val = constraint_strength
             .as_f64()
@@ -79,21 +79,21 @@ pub fn validate_physics_settings_complete(physics: &Value) -> Result<(), String>
     Ok(())
 }
 
-/// Validate constraint data to prevent GPU errors
+/
 pub fn validate_constraint(constraint: &Value) -> Result<(), String> {
-    // Validate constraint type
+    
     if let Some(kind) = constraint.get("kind") {
         let val = kind
             .as_u64()
             .or_else(|| kind.as_i64().map(|i| i as u64))
             .ok_or("constraint kind must be an integer")?;
         if val > 10 {
-            // Assuming max 10 constraint types
+            
             return Err("Invalid constraint kind".to_string());
         }
     }
 
-    // Validate node indices
+    
     if let Some(nodes) = constraint.get("nodeIndices") {
         let indices = nodes.as_array().ok_or("nodeIndices must be an array")?;
         for (i, idx) in indices.iter().enumerate() {
@@ -101,13 +101,13 @@ pub fn validate_constraint(constraint: &Value) -> Result<(), String> {
                 .as_u64()
                 .ok_or(format!("nodeIndices[{}] must be a positive integer", i))?;
             if val > 1_000_000 {
-                // Sanity check
+                
                 return Err(format!("nodeIndices[{}] is too large", i));
             }
         }
     }
 
-    // Validate activation frame
+    
     if let Some(frame) = constraint.get("activationFrame") {
         let val = frame.as_i64().ok_or("activationFrame must be an integer")?;
         if val < 0 {
@@ -115,7 +115,7 @@ pub fn validate_constraint(constraint: &Value) -> Result<(), String> {
         }
     }
 
-    // Validate strength
+    
     if let Some(strength) = constraint.get("strength") {
         let val = strength.as_f64().ok_or("strength must be a number")?;
         if val < 0.0 || val > 10.0 {
@@ -126,7 +126,7 @@ pub fn validate_constraint(constraint: &Value) -> Result<(), String> {
     Ok(())
 }
 
-/// Recursive case conversion for nested JSON objects
+/
 pub fn convert_to_snake_case_recursive(value: &mut Value) {
     match value {
         Value::Object(map) => {
@@ -147,7 +147,7 @@ pub fn convert_to_snake_case_recursive(value: &mut Value) {
     }
 }
 
-/// Convert camelCase to snake_case
+/
 fn camel_to_snake_case(s: &str) -> String {
     let mut result = String::new();
     let mut prev_upper = false;
@@ -165,7 +165,7 @@ fn camel_to_snake_case(s: &str) -> String {
         }
     }
 
-    // Handle special cases
+    
     match result.as_str() {
         "s_s_s_p_alpha" => "sssp_alpha".to_string(),
         "s_s_s_p_enabled" => "sssp_enabled".to_string(),
@@ -173,11 +173,11 @@ fn camel_to_snake_case(s: &str) -> String {
     }
 }
 
-/// Complete field mapping for all known settings fields
+/
 pub fn get_complete_field_mappings() -> HashMap<String, String> {
     let mut mappings = HashMap::new();
 
-    // Physics fields
+    
     mappings.insert("springK".to_string(), "spring_k".to_string());
     mappings.insert("repelK".to_string(), "repel_k".to_string());
     mappings.insert("attractionK".to_string(), "spring_k".to_string());
@@ -227,7 +227,7 @@ pub fn get_complete_field_mappings() -> HashMap<String, String> {
         "constraint_strength".to_string(),
     );
 
-    // Visual fields previously missing
+    
     mappings.insert("enableHologram".to_string(), "enable_hologram".to_string());
     mappings.insert("showLabels".to_string(), "show_labels".to_string());
     mappings.insert("nodeSize".to_string(), "node_size".to_string());
@@ -290,7 +290,7 @@ pub fn get_complete_field_mappings() -> HashMap<String, String> {
     mappings.insert("shadowBias".to_string(), "shadow_bias".to_string());
     mappings.insert("agentColors".to_string(), "agent_colors".to_string());
 
-    // Auto-balance fields
+    
     mappings.insert("autoBalance".to_string(), "auto_balance".to_string());
     mappings.insert(
         "autoBalanceIntervalMs".to_string(),
@@ -304,7 +304,7 @@ pub fn get_complete_field_mappings() -> HashMap<String, String> {
     mappings
 }
 
-/// Apply field mappings to JSON value
+/
 pub fn apply_field_mappings(value: &mut Value, mappings: &HashMap<String, String>) {
     if let Value::Object(map) = value {
         let mut updates = Vec::new();
@@ -317,13 +317,13 @@ pub fn apply_field_mappings(value: &mut Value, mappings: &HashMap<String, String
             }
         }
 
-        // Apply updates
+        
         for (old_key, new_key, val) in updates {
             map.remove(&old_key);
             map.insert(new_key, val);
         }
 
-        // Recurse into nested objects
+        
         for (_, val) in map.iter_mut() {
             apply_field_mappings(val, mappings);
         }
@@ -358,10 +358,10 @@ mod tests {
         });
         assert!(validate_physics_settings_complete(&valid).is_ok());
 
-        let invalid_dt = json!({"dt": 1.0}); // Too large
+        let invalid_dt = json!({"dt": 1.0}); 
         assert!(validate_physics_settings_complete(&invalid_dt).is_err());
 
-        let invalid_repel = json!({"repelK": -10.0}); // Negative
+        let invalid_repel = json!({"repelK": -10.0}); 
         assert!(validate_physics_settings_complete(&invalid_repel).is_err());
     }
 

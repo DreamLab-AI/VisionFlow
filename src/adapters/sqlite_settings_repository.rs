@@ -17,7 +17,7 @@ use crate::ports::settings_repository::{
     SettingsRepositoryError,
 };
 
-/// SQLite-backed settings repository with caching
+/
 pub struct SqliteSettingsRepository {
     conn: Arc<Mutex<Connection>>,
     cache: Arc<RwLock<SettingsCache>>,
@@ -35,13 +35,13 @@ struct CachedSetting {
 }
 
 impl SqliteSettingsRepository {
-    /// Create new SQLite settings repository with caching
+    
     pub fn new(db_path: &str) -> RepoResult<Self> {
         info!("Initializing SqliteSettingsRepository with cache TTL=300s, path: {}", db_path);
         let conn = Connection::open(db_path)
             .map_err(|e| SettingsRepositoryError::DatabaseError(format!("Failed to open database: {}", e)))?;
 
-        // Ensure settings table exists (it should be created by unified_schema.sql)
+        
         conn.execute(
             "CREATE TABLE IF NOT EXISTS settings (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -65,12 +65,12 @@ impl SqliteSettingsRepository {
             cache: Arc::new(RwLock::new(SettingsCache {
                 settings: HashMap::new(),
                 last_updated: std::time::Instant::now(),
-                ttl_seconds: 300, // 5 minutes
+                ttl_seconds: 300, 
             })),
         })
     }
 
-    /// Check cache and return value if valid
+    
     async fn get_from_cache(&self, key: &str) -> Option<SettingValue> {
         let cache = self.cache.read().await;
         if let Some(cached) = cache.settings.get(key) {
@@ -82,7 +82,7 @@ impl SqliteSettingsRepository {
         None
     }
 
-    /// Update cache with new value
+    
     async fn update_cache(&self, key: String, value: SettingValue) {
         let mut cache = self.cache.write().await;
         cache.settings.insert(
@@ -94,13 +94,13 @@ impl SqliteSettingsRepository {
         );
     }
 
-    /// Invalidate cache entry
+    
     async fn invalidate_cache(&self, key: &str) {
         let mut cache = self.cache.write().await;
         cache.settings.remove(key);
     }
 
-    /// Clear entire cache
+    
     async fn clear_cache(&self) -> RepoResult<()> {
         let mut cache = self.cache.write().await;
         cache.settings.clear();
@@ -112,12 +112,12 @@ impl SqliteSettingsRepository {
 impl SettingsRepository for SqliteSettingsRepository {
     #[instrument(skip(self), level = "debug")]
     async fn get_setting(&self, key: &str) -> RepoResult<Option<SettingValue>> {
-        // Check cache first
+        
         if let Some(cached_value) = self.get_from_cache(key).await {
             return Ok(Some(cached_value));
         }
 
-        // Query database (blocking operation, run in thread pool)
+        
         let conn = self.conn.clone();
         let key_owned = key.to_string();
         let result = tokio::task::spawn_blocking(move || {
@@ -126,7 +126,7 @@ impl SettingsRepository for SqliteSettingsRepository {
                 "SELECT value_text, value_integer, value_float, value_boolean, value_json FROM settings WHERE key = ?1",
                 [&key_owned],
                 |row| {
-                    // Parse based on which column has a value (first non-NULL)
+                    
                     if let Ok(Some(text)) = row.get::<_, Option<String>>(0) {
                         return Ok(Some(SettingValue::String(text)));
                     }
@@ -157,10 +157,10 @@ impl SettingsRepository for SqliteSettingsRepository {
 
         let result = match result {
             Ok(val) => Some(val),
-            Err(_) => None, // Setting not found is not an error
+            Err(_) => None, 
         };
 
-        // Update cache on success
+        
         if let Some(ref value) = result {
             self.update_cache(key.to_string(), value.clone()).await;
         }
@@ -183,7 +183,7 @@ impl SettingsRepository for SqliteSettingsRepository {
         tokio::task::spawn_blocking(move || {
             let conn_guard = conn.lock().map_err(|e| format!("Failed to lock connection: {}", e))?;
 
-            // Determine value type and columns
+            
             let (value_type, text_val, int_val, float_val, bool_val, json_val) = match value_owned {
                 SettingValue::String(s) => ("string", Some(s), None, None, None, None),
                 SettingValue::Integer(i) => ("integer", None, Some(i), None, None, None),
@@ -218,7 +218,7 @@ impl SettingsRepository for SqliteSettingsRepository {
         .map_err(|e| SettingsRepositoryError::DatabaseError(format!("Task join error: {}", e)))?
         .map_err(|e| SettingsRepositoryError::DatabaseError(e))?;
 
-        // Invalidate cache
+        
         self.invalidate_cache(key).await;
 
         Ok(())
@@ -248,7 +248,7 @@ impl SettingsRepository for SqliteSettingsRepository {
 
     #[instrument(skip(self), level = "debug")]
     async fn load_all_settings(&self) -> RepoResult<Option<AppFullSettings>> {
-        // Return a stub implementation - settings are managed individually
+        
         Ok(Some(AppFullSettings {
             visualisation: Default::default(),
             system: Default::default(),
@@ -269,14 +269,14 @@ impl SettingsRepository for SqliteSettingsRepository {
 
     #[instrument(skip(self), level = "debug")]
     async fn save_all_settings(&self, _settings: &AppFullSettings) -> RepoResult<()> {
-        // Stub implementation - settings are managed individually
+        
         self.clear_cache().await?;
         Ok(())
     }
 
     #[instrument(skip(self), level = "debug")]
     async fn get_physics_settings(&self, _profile_name: &str) -> RepoResult<PhysicsSettings> {
-        // Return default physics settings - can be enhanced later
+        
         Ok(PhysicsSettings::default())
     }
 
@@ -286,7 +286,7 @@ impl SettingsRepository for SqliteSettingsRepository {
         _profile_name: &str,
         _settings: &PhysicsSettings,
     ) -> RepoResult<()> {
-        // Stub implementation
+        
         Ok(())
     }
 
@@ -349,22 +349,22 @@ impl SettingsRepository for SqliteSettingsRepository {
     }
 
     async fn list_physics_profiles(&self) -> RepoResult<Vec<String>> {
-        // Stub - return empty list
+        
         Ok(Vec::new())
     }
 
     async fn delete_physics_profile(&self, _profile_name: &str) -> RepoResult<()> {
-        // Stub implementation
+        
         Ok(())
     }
 
     async fn export_settings(&self) -> RepoResult<serde_json::Value> {
-        // Stub - return empty JSON
+        
         Ok(serde_json::json!({}))
     }
 
     async fn import_settings(&self, _settings_json: &serde_json::Value) -> RepoResult<()> {
-        // Stub implementation
+        
         Ok(())
     }
 
@@ -373,7 +373,7 @@ impl SettingsRepository for SqliteSettingsRepository {
     }
 
     async fn health_check(&self) -> RepoResult<bool> {
-        // Try to query database
+        
         let conn = self.conn.clone();
         tokio::task::spawn_blocking(move || {
             let conn_guard = conn.lock().map_err(|_| "Failed to lock connection".to_string())?;

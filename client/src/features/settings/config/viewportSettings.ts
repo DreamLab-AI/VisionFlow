@@ -1,10 +1,7 @@
-/**
- * Configuration defining which settings require immediate viewport updates
- * These settings affect real-time rendering and need to bypass the debounced save
- */
+
 
 export const VIEWPORT_SETTINGS_PATTERNS = [
-  // Visualization settings that affect rendering
+  
   'visualisation.nodes',
   'visualisation.edges',
   'visualisation.physics',
@@ -12,11 +9,11 @@ export const VIEWPORT_SETTINGS_PATTERNS = [
   'visualisation.animations',
   'visualisation.labels',
   'visualisation.bloom',
-  'visualisation.glow', // Server-preferred glow settings
+  'visualisation.glow', 
   'visualisation.hologram',
   'visualisation.camera',
   
-  // Graph-specific visualization settings
+  
   'visualisation.graphs.*.nodes',
   'visualisation.graphs.*.edges',
   'visualisation.graphs.*.physics',
@@ -24,11 +21,11 @@ export const VIEWPORT_SETTINGS_PATTERNS = [
   'visualisation.graphs.*.animations',
   'visualisation.graphs.*.labels',
   'visualisation.graphs.*.bloom',
-  'visualisation.graphs.*.glow', // Server-preferred glow settings
+  'visualisation.graphs.*.glow', 
   'visualisation.graphs.*.hologram',
   'visualisation.graphs.*.camera',
   
-  // XR settings that affect viewport
+  
   'xr.mode',
   'xr.quality',
   'xr.renderScale',
@@ -39,34 +36,26 @@ export const VIEWPORT_SETTINGS_PATTERNS = [
   'xr.enablePlaneDetection',
   'xr.enablePassthroughPortal',
   
-  // Debug visualization settings
+  
   'system.debug.enabled',
   'system.debug.showAxesHelper',
   'system.debug.showStats',
 ];
 
-/**
- * Check if a settings path requires immediate viewport update
- * @param path The settings path being updated
- * @returns true if the path requires immediate viewport update
- */
+
 export function isViewportSetting(path: string): boolean {
   return VIEWPORT_SETTINGS_PATTERNS.some(pattern => {
-    // Convert pattern with wildcards to regex
+    
     const regexPattern = pattern
-      .replace(/\./g, '\\.')  // Escape dots
-      .replace(/\*/g, '[^.]+'); // Replace * with non-dot characters
+      .replace(/\./g, '\\.')  
+      .replace(/\*/g, '[^.]+'); 
     
     const regex = new RegExp(`^${regexPattern}($|\\.)`);
     return regex.test(path);
   });
 }
 
-/**
- * Extract all viewport-related paths from a settings update
- * @param paths Array of settings paths being updated
- * @returns Array of paths that require viewport updates
- */
+
 export function getViewportPaths(paths: string[]): string[] {
   return paths.filter(isViewportSetting);
 }

@@ -56,7 +56,7 @@ interface Anomaly {
 export function SemanticClusteringControls() {
   const { toast } = useToast();
   
-  // State
+  
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [autoUpdate, setAutoUpdate] = useState(false);
@@ -143,7 +143,7 @@ export function SemanticClusteringControls() {
     { id: 'temporal', name: 'Temporal', description: 'Time-series anomalies' },
   ];
 
-  // Handlers
+  
   const handleRunClustering = useCallback(async () => {
     setIsProcessing(true);
     setProgress(0);
@@ -199,7 +199,7 @@ export function SemanticClusteringControls() {
     }
   }, [anomalyDetection, toast]);
 
-  // Auto-update anomalies
+  
   useEffect(() => {
     if (!anomalyDetection.enabled) return;
     
@@ -218,7 +218,7 @@ export function SemanticClusteringControls() {
     return () => clearInterval(interval);
   }, [anomalyDetection.enabled, anomalyDetection.updateInterval]);
 
-  // Simulate progress for demo
+  
   useEffect(() => {
     if (isProcessing) {
       const timer = setInterval(() => {
@@ -230,7 +230,7 @@ export function SemanticClusteringControls() {
 
   return (
     <div className="space-y-4">
-      {/* Semantic Clustering */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -394,7 +394,7 @@ export function SemanticClusteringControls() {
         </CardContent>
       </Card>
 
-      {/* Anomaly Detection */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -455,7 +455,7 @@ export function SemanticClusteringControls() {
                   />
                 </div>
                 
-                {/* Anomaly Statistics */}
+                {}
                 <div className="p-4 rounded-lg bg-muted/50">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-sm font-medium">Detected Anomalies</span>
@@ -481,7 +481,7 @@ export function SemanticClusteringControls() {
                   </div>
                 </div>
                 
-                {/* Recent Anomalies */}
+                {}
                 {anomalies.length > 0 && (
                   <div>
                     <Label className="mb-2">Recent Anomalies</Label>
@@ -519,7 +519,7 @@ export function SemanticClusteringControls() {
         </CardContent>
       </Card>
 
-      {/* Advanced Analytics */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

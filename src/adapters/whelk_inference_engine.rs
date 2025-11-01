@@ -24,10 +24,10 @@ use std::collections::hash_map::DefaultHasher;
 #[cfg(feature = "ontology")]
 use std::hash::{Hash, Hasher};
 
-/// Whelk-based inference engine for OWL EL reasoning
-///
-/// Note: ReasonerState is not stored because it contains Rc which is not Send+Sync.
-/// Instead, we cache the inferred subsumptions as OwlAxioms which are thread-safe.
+/
+/
+/
+/
 pub struct WhelkInferenceEngine {
     #[cfg(feature = "ontology")]
     ontology: Option<SetOntology<ArcStr>>,
@@ -49,11 +49,11 @@ pub struct WhelkInferenceEngine {
 }
 
 #[cfg(feature = "ontology")]
-/// Use whelk crate for ontology reasoning
+/
 use whelk;
 
 impl WhelkInferenceEngine {
-    /// Create new Whelk inference engine
+    
     pub fn new() -> Self {
         info!("Initializing WhelkInferenceEngine");
         Self {
@@ -78,7 +78,7 @@ impl WhelkInferenceEngine {
     }
 
     #[cfg(feature = "ontology")]
-    /// Convert OwlClass to horned-owl DeclareClass component
+    
     fn convert_class_to_horned(class: &OwlClass) -> Option<AnnotatedComponent<ArcStr>> {
         let iri = Build::new().iri(class.iri.clone());
         let class_decl = Class(iri);
@@ -89,11 +89,11 @@ impl WhelkInferenceEngine {
     }
 
     #[cfg(feature = "ontology")]
-    /// Convert OwlAxiom to horned-owl Component
+    
     fn convert_axiom_to_horned(axiom: &OwlAxiom) -> Option<AnnotatedComponent<ArcStr>> {
         let component = match axiom.axiom_type {
             AxiomType::SubClassOf => {
-                // Create SubClassOf axiom
+                
                 let sub_iri = Build::new().iri(axiom.subject.clone());
                 let sup_iri = Build::new().iri(axiom.object.clone());
 
@@ -106,7 +106,7 @@ impl WhelkInferenceEngine {
                 })
             }
             AxiomType::EquivalentClass => {
-                // For equivalent classes, create bidirectional SubClassOf axioms
+                
                 warn!("EquivalentClass axioms require special handling - converting to SubClassOf");
                 let sub_iri = Build::new().iri(axiom.subject.clone());
                 let sup_iri = Build::new().iri(axiom.object.clone());
@@ -117,8 +117,8 @@ impl WhelkInferenceEngine {
                 })
             }
             AxiomType::ObjectPropertyAssertion => {
-                // Property assertions are not directly supported in EL reasoning Tbox
-                // but we handle them for completeness
+                
+                
                 warn!("ObjectPropertyAssertion not directly translated to EL Tbox");
                 return None;
             }
@@ -135,11 +135,11 @@ impl WhelkInferenceEngine {
     }
 
     #[cfg(feature = "ontology")]
-    /// Compute checksum of ontology for cache invalidation
+    
     fn compute_ontology_checksum(ontology: &SetOntology<ArcStr>) -> u64 {
         let mut hasher = DefaultHasher::new();
 
-        // Collect and sort axioms for deterministic hashing
+        
         let mut axioms: Vec<String> = ontology
             .iter()
             .map(|ann| format!("{:?}", ann.component))
@@ -154,9 +154,9 @@ impl WhelkInferenceEngine {
     }
 
     #[cfg(feature = "ontology")]
-    /// Convert whelk subsumptions back to OwlAxioms
-    /// Note: whelk::Vector is from the im crate used by whelk
-    /// Note: Whelk internally uses Rc, so we need to use std::rc::Rc here
+    
+    
+    
     fn convert_subsumptions_to_axioms<V>(subsumptions: &V) -> Vec<OwlAxiom>
     where
         V: IntoIterator<
@@ -198,24 +198,24 @@ impl InferenceEngine for WhelkInferenceEngine {
         {
             let mut ontology = SetOntology::new();
 
-            // Convert classes to horned-owl declarations
+            
             for class in &classes {
                 if let Some(horned_class) = Self::convert_class_to_horned(class) {
                     ontology.insert(horned_class);
                 }
             }
 
-            // Convert axioms to horned-owl format
+            
             for axiom in &axioms {
                 if let Some(horned_axiom) = Self::convert_axiom_to_horned(axiom) {
                     ontology.insert(horned_axiom);
                 }
             }
 
-            // Compute checksum for caching
+            
             let checksum = Self::compute_ontology_checksum(&ontology);
 
-            // Check if we need to re-reason
+            
             let needs_reasoning = match self.last_checksum {
                 Some(last) => last != checksum,
                 None => true,
@@ -224,7 +224,7 @@ impl InferenceEngine for WhelkInferenceEngine {
             if needs_reasoning {
                 info!("Ontology changed, will perform fresh reasoning");
                 self.last_checksum = Some(checksum);
-                self.cached_subsumptions = None; // Clear cached inferences
+                self.cached_subsumptions = None; 
             } else {
                 info!("Ontology unchanged, reusing cached reasoning results");
             }
@@ -261,7 +261,7 @@ impl InferenceEngine for WhelkInferenceEngine {
                 .as_ref()
                 .ok_or(InferenceEngineError::OntologyNotLoaded)?;
 
-            // Return cached results if already reasoned
+            
             if let Some(ref cached) = self.cached_subsumptions {
                 info!("Using cached reasoning results");
 
@@ -276,25 +276,25 @@ impl InferenceEngine for WhelkInferenceEngine {
                 });
             }
 
-            // Perform fresh reasoning with whelk-rs
+            
             info!("Performing EL reasoning with whelk-rs");
 
-            // Translate horned-owl ontology to whelk axioms
+            
             let whelk_axioms = whelk::whelk::owl::translate_ontology(ontology);
             debug!("Translated {} axioms to whelk format", whelk_axioms.len());
 
-            // Run whelk-rs EL reasoner
+            
             let reasoner_state = whelk::whelk::reasoner::assert(&whelk_axioms);
 
-            // Extract inferred subsumptions
+            
             let subsumptions = reasoner_state.named_subsumptions();
             info!("Inferred {} subsumption relationships", subsumptions.len());
 
-            // Convert to OwlAxioms and cache them
+            
             let inferred_axioms = Self::convert_subsumptions_to_axioms(&subsumptions);
             self.inferred_axioms = inferred_axioms.len();
 
-            // Cache the subsumptions (not the ReasonerState since it's not Send+Sync)
+            
             self.cached_subsumptions = Some(inferred_axioms.clone());
             self.total_inferences += 1;
 
@@ -340,7 +340,7 @@ impl InferenceEngine for WhelkInferenceEngine {
                 .as_ref()
                 .ok_or(InferenceEngineError::OntologyNotLoaded)?;
 
-            // Check if SubClassOf axiom is entailed by looking in cached subsumptions
+            
             if axiom.axiom_type == AxiomType::SubClassOf {
                 let is_entailed = cached.iter().any(|inferred| {
                     inferred.axiom_type == AxiomType::SubClassOf
@@ -368,7 +368,7 @@ impl InferenceEngine for WhelkInferenceEngine {
                 .as_ref()
                 .ok_or(InferenceEngineError::OntologyNotLoaded)?;
 
-            // Extract all SubClassOf relationships from cached inferences
+            
             let hierarchy: Vec<(String, String)> = cached
                 .iter()
                 .filter(|ax| ax.axiom_type == AxiomType::SubClassOf)
@@ -393,7 +393,7 @@ impl InferenceEngine for WhelkInferenceEngine {
                 .as_ref()
                 .ok_or(InferenceEngineError::OntologyNotLoaded)?;
 
-            // Find all superclasses of the instance from cached subsumptions
+            
             let class_iris: Vec<String> = cached
                 .iter()
                 .filter(|ax| ax.axiom_type == AxiomType::SubClassOf && ax.subject == instance_iri)
@@ -422,8 +422,8 @@ impl InferenceEngine for WhelkInferenceEngine {
                 .as_ref()
                 .ok_or(InferenceEngineError::OntologyNotLoaded)?;
 
-            // Check if any non-trivial class is a subclass of owl:Nothing
-            // An ontology is inconsistent if any class (other than Nothing itself) is subclass of Nothing
+            
+            
             let bottom_iri = "http://www.w3.org/2002/07/owl#Nothing";
 
             let inconsistent_classes: Vec<&OwlAxiom> = cached
@@ -456,8 +456,8 @@ impl InferenceEngine for WhelkInferenceEngine {
     async fn explain_entailment(&self, axiom: &OwlAxiom) -> EngineResult<Vec<OwlAxiom>> {
         #[cfg(feature = "ontology")]
         {
-            // Explanation generation would require tracking justifications during reasoning
-            // For now, return a simplified explanation based on direct subsumptions
+            
+            
             if axiom.axiom_type != AxiomType::SubClassOf {
                 return Ok(Vec::new());
             }
@@ -467,10 +467,10 @@ impl InferenceEngine for WhelkInferenceEngine {
                 .as_ref()
                 .ok_or(InferenceEngineError::OntologyNotLoaded)?;
 
-            // Find intermediate steps in the hierarchy
+            
             let mut explanation = Vec::new();
 
-            // Add direct subsumptions that lead to this entailment
+            
             for inferred in cached.iter() {
                 if inferred.subject == axiom.subject && inferred.axiom_type == AxiomType::SubClassOf
                 {

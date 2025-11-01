@@ -97,7 +97,7 @@ pub struct SpeechOptions {
 impl Default for SpeechOptions {
     fn default() -> Self {
         Self {
-            voice: "af_heart".to_string(), // Default Kokoro voice
+            voice: "af_heart".to_string(), 
             speed: 1.0,
             stream: true,
         }

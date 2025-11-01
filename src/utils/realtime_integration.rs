@@ -92,7 +92,7 @@ impl AnalyticsProgressReporter for RealtimeProgressReporter {
             analysis_id, success
         );
 
-        // Create analysis complete message
+        
         let _message = json!({
             "type": "analysis_complete",
             "data": {
@@ -105,8 +105,8 @@ impl AnalyticsProgressReporter for RealtimeProgressReporter {
             }
         });
 
-        // For now, we'll use the existing broadcast function
-        // In a full implementation, you'd want a specific broadcast_analysis_complete function
+        
+        
         broadcast_analysis_progress(
             analysis_id.to_string(),
             self.graph_id.clone(),
@@ -154,7 +154,7 @@ impl OptimizationProgressReporter for RealtimeProgressReporter {
             progress,
             algorithm.to_string(),
             iteration,
-            1000, // Default total iterations
+            1000, 
             metrics,
         )
         .await;
@@ -163,7 +163,7 @@ impl OptimizationProgressReporter for RealtimeProgressReporter {
     async fn report_completion(&self, optimization_id: &str, results: Value) {
         info!("Optimization {} completed", optimization_id);
 
-        // Extract key metrics from results for the broadcast
+        
         let algorithm = results
             .get("algorithm")
             .and_then(|v| v.as_str())
@@ -182,13 +182,13 @@ impl OptimizationProgressReporter for RealtimeProgressReporter {
             .and_then(|v| v.as_u64())
             .unwrap_or(0);
 
-        // Create optimization result message - you'd implement broadcast_optimization_result
+        
         broadcast_optimization_update(
             optimization_id.to_string(),
             self.graph_id.clone(),
             100.0,
             algorithm,
-            1000, // Final iteration
+            1000, 
             1000,
             json!({
                 "confidence": confidence,
@@ -248,7 +248,7 @@ impl WorkspaceEventReporter for RealtimeProgressReporter {
             workspace_id.to_string(),
             changes,
             operation.to_string(),
-            None, // No specific user ID for now
+            None, 
         )
         .await;
     }
@@ -259,7 +259,7 @@ impl WorkspaceEventReporter for RealtimeProgressReporter {
             workspace_id, user_id, action
         );
 
-        // You could create a user activity broadcast function
+        
         broadcast_workspace_update(
             workspace_id.to_string(),
             json!({"user_activity": {"user_id": user_id, "action": action}}),

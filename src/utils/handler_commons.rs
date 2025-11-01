@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use log::{error, warn};
 use serde::{Deserialize, Serialize};
 
-/// Standard response wrapper for all API endpoints
+/
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct StandardResponse<T> {
     pub success: bool,
@@ -13,7 +13,7 @@ pub struct StandardResponse<T> {
     pub request_id: Option<String>,
 }
 
-/// Standard error response
+/
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ErrorResponse {
     pub error_type: String,
@@ -22,7 +22,7 @@ pub struct ErrorResponse {
     pub timestamp: DateTime<Utc>,
 }
 
-/// Standard success response
+/
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SuccessResponse<T> {
     pub data: T,
@@ -30,9 +30,9 @@ pub struct SuccessResponse<T> {
     pub timestamp: DateTime<Utc>,
 }
 
-/// Helper trait for standardizing handler responses
+/
 pub trait HandlerResponse<T: Serialize> {
-    /// Create a success response
+    
     fn success(data: T) -> Result<HttpResponse> {
         Ok(HttpResponse::Ok().json(StandardResponse {
             success: true,
@@ -43,7 +43,7 @@ pub trait HandlerResponse<T: Serialize> {
         }))
     }
 
-    /// Create a success response with message
+    
     fn success_with_message(data: T, message: String) -> Result<HttpResponse> {
         Ok(HttpResponse::Ok().json(SuccessResponse {
             data,
@@ -52,7 +52,7 @@ pub trait HandlerResponse<T: Serialize> {
         }))
     }
 
-    /// Create an error response with internal server error status
+    
     fn internal_error(message: String) -> Result<HttpResponse> {
         error!("Internal server error: {}", message);
         Ok(
@@ -66,7 +66,7 @@ pub trait HandlerResponse<T: Serialize> {
         )
     }
 
-    /// Create a bad request error response
+    
     fn bad_request(message: String) -> Result<HttpResponse> {
         warn!("Bad request: {}", message);
         Ok(HttpResponse::BadRequest().json(StandardResponse::<()> {
@@ -78,7 +78,7 @@ pub trait HandlerResponse<T: Serialize> {
         }))
     }
 
-    /// Create a not found error response
+    
     fn not_found(message: String) -> Result<HttpResponse> {
         warn!("Not found: {}", message);
         Ok(HttpResponse::NotFound().json(StandardResponse::<()> {
@@ -90,21 +90,21 @@ pub trait HandlerResponse<T: Serialize> {
         }))
     }
 
-    /// Convert a std::error::Error to an internal server error response
+    
     fn from_error(error: Box<dyn std::error::Error>) -> Result<HttpResponse> {
         Self::internal_error(error.to_string())
     }
 
-    /// Convert a string error to an internal server error response
+    
     fn from_str_error(error: &str) -> Result<HttpResponse> {
         Self::internal_error(error.to_string())
     }
 }
 
-/// Implement the trait for any type
+/
 impl<T: Serialize> HandlerResponse<T> for T {}
 
-/// Standard pagination parameters
+/
 #[derive(Deserialize, Debug, Clone)]
 pub struct PaginationParams {
     pub page: Option<u32>,
@@ -134,11 +134,11 @@ impl PaginationParams {
     }
 
     pub fn get_limit(&self) -> u32 {
-        self.limit.unwrap_or(50).min(100) // Cap at 100 items per page
+        self.limit.unwrap_or(50).min(100) 
     }
 }
 
-/// Standard paginated response wrapper
+/
 #[derive(Serialize, Debug, Clone)]
 pub struct PaginatedResponse<T> {
     pub items: Vec<T>,
@@ -154,7 +154,7 @@ impl<T> PaginatedResponse<T> {
     pub fn new(items: Vec<T>, total_count: u32, params: &PaginationParams) -> Self {
         let limit = params.get_limit();
         let current_page = params.page.unwrap_or(1);
-        let total_pages = (total_count + limit - 1) / limit; // Ceiling division
+        let total_pages = (total_count + limit - 1) / limit; 
 
         Self {
             items,
@@ -168,10 +168,10 @@ impl<T> PaginatedResponse<T> {
     }
 }
 
-/// Standard health check response
+/
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct HealthCheckResponse {
-    pub status: String, // "healthy" | "degraded" | "unhealthy"
+    pub status: String, 
     pub timestamp: DateTime<Utc>,
     pub version: Option<String>,
     pub uptime_seconds: Option<u64>,
@@ -181,13 +181,13 @@ pub struct HealthCheckResponse {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ComponentHealth {
     pub name: String,
-    pub status: String, // "healthy" | "degraded" | "unhealthy"
+    pub status: String, 
     pub details: Option<String>,
     pub last_check: DateTime<Utc>,
     pub metrics: Option<serde_json::Value>,
 }
 
-/// Standard WebSocket message format
+/
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "type")]
 pub enum StandardWebSocketMessage<T> {
@@ -236,14 +236,14 @@ pub enum StandardWebSocketMessage<T> {
     },
 }
 
-/// Validation helper trait
+/
 pub trait Validate {
     type ValidationError;
 
-    /// Validate the data and return errors if invalid
+    
     fn validate(&self) -> std::result::Result<(), Self::ValidationError>;
 
-    /// Validate and return a standardized error response
+    
     fn validate_for_handler(&self) -> Option<Result<HttpResponse>>
     where
         Self::ValidationError: std::fmt::Display,
@@ -255,7 +255,7 @@ pub trait Validate {
     }
 }
 
-/// Common request/response logging
+/
 pub fn log_request<T: std::fmt::Debug>(endpoint: &str, request: &T) {
     log::info!("Request to {}: {:?}", endpoint, request);
 }
@@ -264,12 +264,12 @@ pub fn log_response<T: std::fmt::Debug>(endpoint: &str, response: &T) {
     log::debug!("Response from {}: {:?}", endpoint, response);
 }
 
-/// Error conversion helpers
+/
 pub fn convert_to_actix_error(error: Box<dyn std::error::Error + Send + Sync>) -> actix_web::Error {
     actix_web::error::ErrorInternalServerError(error)
 }
 
-/// Macro for quick error responses
+/
 #[macro_export]
 macro_rules! handler_error {
     ($msg:expr) => {
@@ -280,7 +280,7 @@ macro_rules! handler_error {
     };
 }
 
-/// Macro for quick success responses
+/
 #[macro_export]
 macro_rules! handler_success {
     ($data:expr) => {

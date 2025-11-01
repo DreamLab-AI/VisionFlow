@@ -21,7 +21,7 @@ interface MultiUserState {
   users: Record<string, UserData>
   connectionStatus: 'disconnected' | 'connecting' | 'connected'
 
-  // Actions
+  
   setLocalUserId: (userId: string) => void
   updateUser: (userId: string, data: Partial<UserData>) => void
   removeUser: (userId: string) => void
@@ -121,7 +121,7 @@ export class MultiUserConnection {
         store.setConnectionStatus('connected')
         this.startHeartbeat()
 
-        // Send initial user data
+        
         const { localUserId } = store
         if (localUserId) {
           this.send({
@@ -173,7 +173,7 @@ export class MultiUserConnection {
         break
 
       case 'sync':
-        // Full state sync from server
+        
         Object.entries(message.users).forEach(([userId, userData]) => {
           if (userId !== store.localUserId) {
             store.updateUser(userId, userData as Partial<UserData>)
@@ -182,7 +182,7 @@ export class MultiUserConnection {
         break
 
       case 'pong':
-        // Heartbeat response
+        
         break
 
       default:
@@ -237,7 +237,7 @@ export const useXRUserTracking = () => {
   const updateLocalSelection = useMultiUserStore(state => state.updateLocalSelection)
   const connection = useRef<MultiUserConnection | null>(null)
 
-  // Subscribe to position updates
+  
   useEffect(() => {
     const unsubscribe = useMultiUserStore.subscribe(
       state => state.users[state.localUserId],

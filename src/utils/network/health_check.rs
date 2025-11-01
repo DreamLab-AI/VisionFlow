@@ -7,49 +7,49 @@ use tokio::net::TcpStream;
 use tokio::sync::{Mutex, RwLock};
 use tokio::time::timeout;
 
-/// Health check status for a service
+/
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum HealthStatus {
-    /// Service is healthy and responsive
+    
     Healthy,
-    /// Service is partially healthy (some issues but still functional)
+    
     Degraded,
-    /// Service is unhealthy and not responding
+    
     Unhealthy,
-    /// Health status is unknown (not yet checked)
+    
     Unknown,
 }
 
 impl HealthStatus {
-    /// Check if the status indicates the service is usable
+    
     pub fn is_usable(&self) -> bool {
         matches!(self, HealthStatus::Healthy | HealthStatus::Degraded)
     }
 
-    /// Check if the status indicates a critical issue
+    
     pub fn is_critical(&self) -> bool {
         matches!(self, HealthStatus::Unhealthy)
     }
 }
 
-/// Configuration for health checks
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HealthCheckConfig {
-    /// How often to perform health checks
+    
     pub check_interval: Duration,
-    /// Timeout for individual health check operations
+    
     pub check_timeout: Duration,
-    /// Number of consecutive successful checks to mark as healthy
+    
     pub healthy_threshold: usize,
-    /// Number of consecutive failed checks to mark as unhealthy
+    
     pub unhealthy_threshold: usize,
-    /// Whether to enable TCP port checks
+    
     pub enable_tcp_check: bool,
-    /// Whether to enable HTTP health endpoint checks
+    
     pub enable_http_check: bool,
-    /// Custom health check endpoint path
+    
     pub http_health_path: Option<String>,
-    /// Grace period before starting health checks (allows service startup)
+    
     pub startup_grace_period: Duration,
 }
 
@@ -69,7 +69,7 @@ impl Default for HealthCheckConfig {
 }
 
 impl HealthCheckConfig {
-    /// Configuration for critical services requiring frequent checks
+    
     pub fn critical_service() -> Self {
         Self {
             check_interval: Duration::from_secs(10),
@@ -83,7 +83,7 @@ impl HealthCheckConfig {
         }
     }
 
-    /// Configuration for background services with relaxed checks
+    
     pub fn background_service() -> Self {
         Self {
             check_interval: Duration::from_secs(60),
@@ -98,7 +98,7 @@ impl HealthCheckConfig {
     }
 }
 
-/// Health check result for a specific check
+/
 #[derive(Debug, Clone)]
 pub struct HealthCheckResult {
     pub service_name: String,
@@ -146,7 +146,7 @@ impl HealthCheckResult {
     }
 }
 
-/// Comprehensive health information for a service
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServiceHealthInfo {
     pub service_name: String,
@@ -165,14 +165,14 @@ pub struct ServiceHealthInfo {
     pub check_types: Vec<String>,
 }
 
-/// Service endpoint information
+/
 #[derive(Debug, Clone)]
 pub struct ServiceEndpoint {
     pub name: String,
     pub host: String,
     pub port: u16,
     pub config: HealthCheckConfig,
-    pub additional_endpoints: Vec<String>, // For HTTP health checks, etc.
+    pub additional_endpoints: Vec<String>, 
 }
 
 impl ServiceEndpoint {
@@ -201,7 +201,7 @@ impl ServiceEndpoint {
     }
 }
 
-/// Health check manager for monitoring service health
+/
 pub struct HealthCheckManager {
     services: Arc<RwLock<HashMap<String, ServiceEndpoint>>>,
     health_info: Arc<RwLock<HashMap<String, ServiceHealthInfo>>>,
@@ -219,7 +219,7 @@ impl HealthCheckManager {
         }
     }
 
-    /// Register a service for health monitoring
+    
     pub async fn register_service(&self, endpoint: ServiceEndpoint) {
         let service_name = endpoint.name.clone();
         info!(
@@ -227,13 +227,13 @@ impl HealthCheckManager {
             service_name
         );
 
-        // Add service to registry
+        
         self.services
             .write()
             .await
             .insert(service_name.clone(), endpoint.clone());
 
-        // Initialize health info
+        
         let health_info = ServiceHealthInfo {
             service_name: service_name.clone(),
             current_status: HealthStatus::Unknown,
@@ -256,39 +256,39 @@ impl HealthCheckManager {
             .await
             .insert(service_name.clone(), health_info);
 
-        // Start health check task
+        
         self.start_health_check_task(service_name, endpoint).await;
     }
 
-    /// Unregister a service from health monitoring
+    
     pub async fn unregister_service(&self, service_name: &str) {
         info!(
             "Unregistering service from health monitoring: {}",
             service_name
         );
 
-        // Remove from registries
+        
         self.services.write().await.remove(service_name);
         self.health_info.write().await.remove(service_name);
 
-        // Cancel health check task
+        
         let mut handles = self.check_handles.lock().await;
         if let Some(handle) = handles.remove(service_name) {
             handle.abort();
         }
     }
 
-    /// Get health status for a specific service
+    
     pub async fn get_service_health(&self, service_name: &str) -> Option<ServiceHealthInfo> {
         self.health_info.read().await.get(service_name).cloned()
     }
 
-    /// Get health status for all services
+    
     pub async fn get_all_health(&self) -> HashMap<String, ServiceHealthInfo> {
         self.health_info.read().await.clone()
     }
 
-    /// Get only unhealthy services
+    
     pub async fn get_unhealthy_services(&self) -> Vec<ServiceHealthInfo> {
         self.health_info
             .read()
@@ -299,7 +299,7 @@ impl HealthCheckManager {
             .collect()
     }
 
-    /// Perform an immediate health check for a service
+    
     pub async fn check_service_now(&self, service_name: &str) -> Option<HealthCheckResult> {
         let services = self.services.read().await;
         let endpoint = services.get(service_name)?;
@@ -310,18 +310,18 @@ impl HealthCheckManager {
         Some(result)
     }
 
-    /// Check if all critical services are healthy
+    
     pub async fn are_critical_services_healthy(&self) -> bool {
         let health_info = self.health_info.read().await;
 
-        // For now, consider all services as potentially critical
-        // In a real implementation, you'd mark services as critical in their config
+        
+        
         health_info
             .values()
             .all(|info| info.current_status.is_usable())
     }
 
-    /// Get overall system health summary
+    
     pub async fn get_system_health_summary(&self) -> SystemHealthSummary {
         let health_info = self.health_info.read().await;
 
@@ -360,7 +360,7 @@ impl HealthCheckManager {
         }
     }
 
-    /// Shutdown all health check tasks
+    
     pub async fn shutdown(&self) {
         info!("Shutting down health check manager");
 
@@ -371,7 +371,7 @@ impl HealthCheckManager {
         }
     }
 
-    // Private methods
+    
 
     async fn start_health_check_task(&self, service_name: String, endpoint: ServiceEndpoint) {
         let services = self.services.clone();
@@ -379,7 +379,7 @@ impl HealthCheckManager {
         let service_name_clone = service_name.clone();
 
         let handle = tokio::spawn(async move {
-            // Wait for startup grace period
+            
             tokio::time::sleep(endpoint.config.startup_grace_period).await;
 
             let mut interval = tokio::time::interval(endpoint.config.check_interval);
@@ -387,18 +387,18 @@ impl HealthCheckManager {
             loop {
                 interval.tick().await;
 
-                // Get current endpoint config (may have been updated)
+                
                 let current_endpoint = {
                     let services_guard = services.read().await;
                     if let Some(ep) = services_guard.get(&service_name_clone) {
                         ep.clone()
                     } else {
-                        // Service was unregistered
+                        
                         break;
                     }
                 };
 
-                // Perform health check
+                
                 let manager = HealthCheckManager {
                     services: services.clone(),
                     health_info: health_info.clone(),
@@ -418,7 +418,7 @@ impl HealthCheckManager {
         let start_time = Instant::now();
         let service_name = endpoint.name.clone();
 
-        // Perform TCP health check if enabled
+        
         if endpoint.config.enable_tcp_check {
             match self.tcp_health_check(endpoint).await {
                 Ok(response_time) => {
@@ -439,7 +439,7 @@ impl HealthCheckManager {
             }
         }
 
-        // Perform HTTP health check if enabled
+        
         if endpoint.config.enable_http_check {
             match self.http_health_check(endpoint).await {
                 Ok(response_time) => {
@@ -460,7 +460,7 @@ impl HealthCheckManager {
             }
         }
 
-        // No health checks enabled or all failed
+        
         HealthCheckResult::unhealthy(
             service_name,
             "none".to_string(),
@@ -498,8 +498,8 @@ impl HealthCheckManager {
     async fn http_health_check(&self, endpoint: &ServiceEndpoint) -> Result<Duration, String> {
         let _start_time = Instant::now();
 
-        // For now, we'll implement a basic HTTP check
-        // In a real implementation, you'd use an HTTP client like reqwest
+        
+        
         let health_path = endpoint
             .config
             .http_health_path
@@ -512,10 +512,10 @@ impl HealthCheckManager {
             format!("{}{}", endpoint.additional_endpoints[0], health_path)
         };
 
-        // Placeholder implementation - in practice you'd make an actual HTTP request
+        
         debug!("HTTP health check would connect to: {}", url);
 
-        // Simulate HTTP check with TCP connection for now
+        
         self.tcp_health_check(endpoint).await
     }
 
@@ -533,7 +533,7 @@ impl HealthCheckManager {
                     info.consecutive_failures = 0;
                     info.last_success = Some(result.timestamp);
 
-                    // Update status if we've reached the healthy threshold
+                    
                     if info.consecutive_successes >= info.consecutive_successes.max(1) {
                         if info.current_status != HealthStatus::Healthy {
                             info!("Service {} is now healthy", result.service_name);
@@ -547,7 +547,7 @@ impl HealthCheckManager {
                     info.consecutive_successes = 0;
                     info.last_failure = Some(result.timestamp);
 
-                    // Get the config to check unhealthy threshold
+                    
                     let services = self.services.read().await;
                     if let Some(endpoint) = services.get(&result.service_name) {
                         if info.consecutive_failures >= endpoint.config.unhealthy_threshold {
@@ -564,7 +564,7 @@ impl HealthCheckManager {
                 _ => {}
             }
 
-            // Update average response time
+            
             if info.total_checks > 0 {
                 let total_time =
                     info.average_response_time.as_millis() as u64 * (info.total_checks - 1);
@@ -572,7 +572,7 @@ impl HealthCheckManager {
                 info.average_response_time = Duration::from_millis(new_total / info.total_checks);
             }
 
-            // Update uptime percentage
+            
             info.uptime_percentage = if info.total_checks > 0 {
                 (info.successful_checks as f64 / info.total_checks as f64) * 100.0
             } else {
@@ -606,7 +606,7 @@ impl Default for HealthCheckManager {
     }
 }
 
-/// System-wide health summary
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SystemHealthSummary {
     pub overall_status: HealthStatus,

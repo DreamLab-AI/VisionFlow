@@ -1,7 +1,4 @@
-/**
- * Agent Control Panel Component
- * Comprehensive UI for agent orchestration with 20+ settings and controls
- */
+
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -47,7 +44,7 @@ export const AgentControlPanel: React.FC<AgentControlPanelProps> = ({ className 
   const settings = useSettingsStore(state => state.settings);
   const updateSettings = useSettingsStore(state => state.updateSettings);
 
-  // Agent types available for spawning
+  
   const agentTypes = [
     { id: 'researcher', label: 'Researcher', icon: '🔍' },
     { id: 'coder', label: 'Coder', icon: '💻' },
@@ -57,7 +54,7 @@ export const AgentControlPanel: React.FC<AgentControlPanelProps> = ({ className 
     { id: 'coordinator', label: 'Coordinator', icon: '🎯' }
   ];
 
-  // Load agent settings
+  
   const agentSettings = settings?.agents || {
     spawn: {
       auto_scale: true,
@@ -83,7 +80,7 @@ export const AgentControlPanel: React.FC<AgentControlPanelProps> = ({ className 
     }
   };
 
-  // Fetch agent list
+  
   const fetchAgents = async () => {
     setRefreshing(true);
     try {
@@ -99,14 +96,14 @@ export const AgentControlPanel: React.FC<AgentControlPanelProps> = ({ className 
     }
   };
 
-  // Auto-refresh agents
+  
   useEffect(() => {
     fetchAgents();
     const interval = setInterval(fetchAgents, (agentSettings.monitoring?.telemetry_poll_interval || 5) * 1000);
     return () => clearInterval(interval);
   }, [agentSettings.monitoring?.telemetry_poll_interval]);
 
-  // Spawn agent
+  
   const spawnAgent = async (agentType: string) => {
     setSpawning(true);
     try {
@@ -133,7 +130,7 @@ export const AgentControlPanel: React.FC<AgentControlPanelProps> = ({ className 
     }
   };
 
-  // Update setting helper
+  
   const updateSetting = (path: string, value: any) => {
     updateSettings((draft) => {
       const parts = path.split('.');
@@ -146,7 +143,7 @@ export const AgentControlPanel: React.FC<AgentControlPanelProps> = ({ className 
     });
   };
 
-  // Get status icon
+  
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'active': return <CheckCircle className="w-4 h-4 text-green-500" />;
@@ -158,7 +155,7 @@ export const AgentControlPanel: React.FC<AgentControlPanelProps> = ({ className 
 
   return (
     <div className={`space-y-4 ${className}`}>
-      {/* Agent Spawner */}
+      {}
       <div className="border rounded-lg p-4 bg-card">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold flex items-center gap-2">
@@ -196,7 +193,7 @@ export const AgentControlPanel: React.FC<AgentControlPanelProps> = ({ className 
         </div>
       </div>
 
-      {/* Active Agents */}
+      {}
       <div className="border rounded-lg p-4 bg-card">
         <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
           <Users className="w-4 h-4" />
@@ -228,7 +225,7 @@ export const AgentControlPanel: React.FC<AgentControlPanelProps> = ({ className 
         )}
       </div>
 
-      {/* Agent Settings */}
+      {}
       <div className="border rounded-lg p-4 bg-card">
         <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
           <SettingsIcon className="w-4 h-4" />
@@ -236,7 +233,7 @@ export const AgentControlPanel: React.FC<AgentControlPanelProps> = ({ className 
         </h3>
 
         <div className="space-y-3">
-          {/* Spawning Settings */}
+          {}
           <div className="space-y-2">
             <h4 className="text-xs font-semibold text-muted-foreground">Spawning</h4>
 
@@ -303,7 +300,7 @@ export const AgentControlPanel: React.FC<AgentControlPanelProps> = ({ className 
             </div>
           </div>
 
-          {/* Lifecycle Settings */}
+          {}
           <div className="space-y-2">
             <h4 className="text-xs font-semibold text-muted-foreground">Lifecycle</h4>
 
@@ -342,7 +339,7 @@ export const AgentControlPanel: React.FC<AgentControlPanelProps> = ({ className 
             </div>
           </div>
 
-          {/* Monitoring Settings */}
+          {}
           <div className="space-y-2">
             <h4 className="text-xs font-semibold text-muted-foreground">Monitoring</h4>
 
@@ -383,7 +380,7 @@ export const AgentControlPanel: React.FC<AgentControlPanelProps> = ({ className 
             </div>
           </div>
 
-          {/* Visualization Settings */}
+          {}
           <div className="space-y-2">
             <h4 className="text-xs font-semibold text-muted-foreground">Visualization</h4>
 
@@ -426,7 +423,7 @@ export const AgentControlPanel: React.FC<AgentControlPanelProps> = ({ className 
         </div>
       </div>
 
-      {/* Agent Telemetry Stream */}
+      {}
       {agentSettings.monitoring?.telemetry_enabled && (
         <div className="border rounded-lg p-4 bg-card">
           <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">

@@ -14,16 +14,16 @@ export function BackendUrlSetting() {
   const [backendUrl, setBackendUrl] = useState<string>('');
   const [isConnected, setIsConnected] = useState<boolean>(false);
   
-  // Initialize from settings
+  
   useEffect(() => {
     const storedUrl = getSetting('system.customBackendUrl') as string;
     setBackendUrl(storedUrl || '');
     
-    // Check connection status
+    
     const websocketService = WebSocketService.getInstance();
     setIsConnected(websocketService.isReady());
     
-    // Subscribe to connection status changes
+    
     const unsubscribe = websocketService.onConnectionStatusChange((connected) => {
       setIsConnected(connected);
     });
@@ -34,10 +34,10 @@ export function BackendUrlSetting() {
   }, [getSetting]);
   
   const handleSave = () => {
-    // Save to settings
+    
     setSetting('system.customBackendUrl', backendUrl);
     
-    // Update WebSocket service
+    
     const websocketService = WebSocketService.getInstance();
     websocketService.setCustomBackendUrl(backendUrl || null);
     
@@ -48,7 +48,7 @@ export function BackendUrlSetting() {
     setBackendUrl('');
     setSetting('system.customBackendUrl', '');
     
-    // Reset WebSocket service to default URL
+    
     const websocketService = WebSocketService.getInstance();
     websocketService.setCustomBackendUrl(null);
     

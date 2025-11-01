@@ -1,7 +1,4 @@
-/**
- * Separator Component
- * A simple separator/divider component for visual separation
- */
+
 
 import * as React from "react";
 import { cn } from "../../../utils/classNameUtils";

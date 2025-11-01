@@ -1,9 +1,9 @@
-/// Actix actor for background reasoning tasks
-///
-/// Provides:
-/// - Asynchronous reasoning execution
-/// - Integration with UnifiedGraphRepository
-/// - Message-based API for triggering reasoning
+/
+/
+/
+/
+/
+/
 
 use actix::prelude::*;
 use std::sync::Arc;
@@ -13,14 +13,14 @@ use crate::reasoning::{
     ReasoningResult,
 };
 
-/// Reasoning actor for background processing
+/
 pub struct ReasoningActor {
     reasoner: Arc<dyn OntologyReasoner + Send + Sync>,
     cache: Arc<InferenceCache>,
 }
 
 impl ReasoningActor {
-    /// Create new reasoning actor with custom reasoner and cache
+    
     pub fn new(cache_db_path: &str) -> ReasoningResult<Self> {
         let reasoner = Arc::new(CustomReasoner::new()) as Arc<dyn OntologyReasoner + Send + Sync>;
         let cache = Arc::new(InferenceCache::new(cache_db_path)?);
@@ -28,7 +28,7 @@ impl ReasoningActor {
         Ok(Self { reasoner, cache })
     }
 
-    /// Create with custom reasoner
+    
     pub fn with_reasoner(
         reasoner: Arc<dyn OntologyReasoner + Send + Sync>,
         cache_db_path: &str,
@@ -50,30 +50,30 @@ impl Actor for ReasoningActor {
     }
 }
 
-/// Message types for reasoning actor
+/
 #[derive(Debug, Clone)]
 pub enum ReasoningMessage {
-    /// Trigger reasoning for an ontology
+    
     TriggerReasoning {
         ontology_id: i64,
         ontology: Ontology,
     },
 
-    /// Get cached inferred axioms
+    
     GetInferredAxioms {
         ontology_id: i64,
     },
 
-    /// Invalidate cache for ontology
+    
     InvalidateCache {
         ontology_id: i64,
     },
 
-    /// Get cache statistics
+    
     GetCacheStats,
 }
 
-/// Message: Trigger reasoning
+/
 #[derive(Message)]
 #[rtype(result = "ReasoningResult<Vec<InferredAxiom>>")]
 pub struct TriggerReasoning {
@@ -119,7 +119,7 @@ impl Handler<TriggerReasoning> for ReasoningActor {
     }
 }
 
-/// Message: Get inferred axioms (from cache only)
+/
 #[derive(Message)]
 #[rtype(result = "ReasoningResult<Option<Vec<InferredAxiom>>>")]
 pub struct GetInferredAxioms {
@@ -133,14 +133,14 @@ impl Handler<GetInferredAxioms> for ReasoningActor {
         let cache = Arc::clone(&self.cache);
 
         Box::pin(async move {
-            // Try to load from cache (won't compute if missing)
+            
             let cached = cache.load_from_cache(msg.ontology_id)?;
             Ok(cached.map(|c| c.inferred_axioms))
         })
     }
 }
 
-/// Message: Invalidate cache
+/
 #[derive(Message)]
 #[rtype(result = "ReasoningResult<()>")]
 pub struct InvalidateCache {
@@ -156,7 +156,7 @@ impl Handler<InvalidateCache> for ReasoningActor {
     }
 }
 
-/// Message: Get cache stats
+/
 #[derive(Message)]
 #[rtype(result = "ReasoningResult<crate::reasoning::inference_cache::CacheStats>")]
 pub struct GetCacheStats;
@@ -210,7 +210,7 @@ mod tests {
 
         let ontology = create_test_ontology();
 
-        // Trigger reasoning
+        
         let result = actor.send(TriggerReasoning {
             ontology_id: 1,
             ontology: ontology.clone(),
@@ -232,13 +232,13 @@ mod tests {
 
         let ontology = create_test_ontology();
 
-        // Cache result
+        
         actor.send(TriggerReasoning {
             ontology_id: 1,
             ontology: ontology.clone(),
         }).await.unwrap().unwrap();
 
-        // Invalidate
+        
         let result = actor.send(InvalidateCache {
             ontology_id: 1,
         }).await;
@@ -257,13 +257,13 @@ mod tests {
 
         let ontology = create_test_ontology();
 
-        // Add cache entry
+        
         actor.send(TriggerReasoning {
             ontology_id: 1,
             ontology,
         }).await.unwrap().unwrap();
 
-        // Get stats
+        
         let result = actor.send(GetCacheStats).await;
         assert!(result.is_ok());
 

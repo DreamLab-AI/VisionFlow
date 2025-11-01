@@ -13,7 +13,7 @@ use tokio::sync::{mpsc, RwLock};
 use crate::utils::gpu_safety::{GPUSafetyConfig, GPUSafetyError, GPUSafetyValidator};
 use crate::utils::memory_bounds::{MemoryBounds, SafeArrayAccess, ThreadSafeMemoryBoundsChecker};
 
-/// Safe simplified render packet with validation
+/
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct SimplifiedNode {
@@ -27,9 +27,9 @@ pub struct SimplifiedNode {
 }
 
 impl SimplifiedNode {
-    /// Validate node data for safety
+    
     pub fn validate(&self) -> Result<(), GPUSafetyError> {
-        // Check for infinite or NaN values
+        
         if !self.x.is_finite() || !self.y.is_finite() || !self.z.is_finite() {
             return Err(GPUSafetyError::InvalidKernelParams {
                 reason: format!(
@@ -39,7 +39,7 @@ impl SimplifiedNode {
             });
         }
 
-        // Check for reasonable bounds (prevent extreme values)
+        
         const MAX_COORD: f32 = 1e6;
         if self.x.abs() > MAX_COORD || self.y.abs() > MAX_COORD || self.z.abs() > MAX_COORD {
             return Err(GPUSafetyError::InvalidKernelParams {
@@ -53,7 +53,7 @@ impl SimplifiedNode {
         Ok(())
     }
 
-    /// Create from raw values with validation
+    
     pub fn new(
         x: f32,
         y: f32,
@@ -77,7 +77,7 @@ impl SimplifiedNode {
     }
 }
 
-/// Safe compressed edge with validation
+/
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
 pub struct CompressedEdge {
@@ -88,7 +88,7 @@ pub struct CompressedEdge {
 }
 
 impl CompressedEdge {
-    /// Validate edge indices against node count
+    
     pub fn validate(&self, max_nodes: usize) -> Result<(), GPUSafetyError> {
         if self.source as usize >= max_nodes {
             return Err(GPUSafetyError::BufferBoundsExceeded {
@@ -104,7 +104,7 @@ impl CompressedEdge {
             });
         }
 
-        // Prevent self-loops in compressed format
+        
         if self.source == self.target {
             return Err(GPUSafetyError::InvalidKernelParams {
                 reason: format!(
@@ -118,7 +118,7 @@ impl CompressedEdge {
     }
 }
 
-/// Safe client LOD with validation
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ClientLOD {
     Mobile {
@@ -164,7 +164,7 @@ impl ClientLOD {
             } => (*max_nodes, *max_edges, *update_rate),
         };
 
-        // Validate reasonable limits
+        
         if max_nodes > 10_000_000 {
             return Err(GPUSafetyError::ResourceExhaustion {
                 resource: "max_nodes".to_string(),
@@ -224,7 +224,7 @@ impl ClientLOD {
     }
 }
 
-/// Safe frame buffer with bounds checking
+/
 pub struct FrameBuffer {
     current_frame: u32,
     positions: SafeArrayAccess<f32>,
@@ -239,7 +239,7 @@ impl FrameBuffer {
         max_nodes: usize,
         bounds_checker: Arc<ThreadSafeMemoryBoundsChecker>,
     ) -> Result<Self, GPUSafetyError> {
-        // Validate buffer sizes
+        
         if max_nodes > 10_000_000 {
             return Err(GPUSafetyError::ResourceExhaustion {
                 resource: "max_nodes".to_string(),
@@ -248,7 +248,7 @@ impl FrameBuffer {
             });
         }
 
-        // Check for potential overflow in allocation size
+        
         let positions_size =
             max_nodes
                 .checked_mul(4)
@@ -265,7 +265,7 @@ impl FrameBuffer {
                     max_allowed: usize::MAX / 4,
                 })?;
 
-        // Register memory allocations
+        
         bounds_checker.register_allocation(MemoryBounds::new(
             "frame_buffer_positions".to_string(),
             positions_size * std::mem::size_of::<f32>(),
@@ -320,7 +320,7 @@ impl FrameBuffer {
         importance: &[f32],
         frame: u32,
     ) -> Result<(), GPUSafetyError> {
-        // Validate input sizes
+        
         if positions.len() % 4 != 0 {
             return Err(GPUSafetyError::InvalidKernelParams {
                 reason: format!(
@@ -358,7 +358,7 @@ impl FrameBuffer {
             });
         }
 
-        // Validate buffer capacity
+        
         if positions.len() > self.positions.len() {
             return Err(GPUSafetyError::BufferBoundsExceeded {
                 index: positions.len(),
@@ -380,7 +380,7 @@ impl FrameBuffer {
             });
         }
 
-        // Validate data values
+        
         for (i, &val) in positions.iter().enumerate() {
             if !val.is_finite() {
                 return Err(GPUSafetyError::InvalidKernelParams {
@@ -405,11 +405,11 @@ impl FrameBuffer {
             }
         }
 
-        // Update frame data safely
+        
         self.current_frame = frame;
         self.node_count = node_count;
 
-        // Copy data with bounds checking (this is done implicitly by SafeArrayAccess)
+        
         for i in 0..positions.len() {
             *self
                 .positions
@@ -479,7 +479,7 @@ impl FrameBuffer {
     }
 }
 
-/// Safe client connection with validation
+/
 pub struct ClientConnection {
     id: String,
     lod: ClientLOD,
@@ -518,7 +518,7 @@ impl ClientConnection {
     }
 
     pub fn update_position(&mut self, position: [f32; 3]) -> Result<(), GPUSafetyError> {
-        // Validate position values
+        
         for &coord in &position {
             if !coord.is_finite() {
                 return Err(GPUSafetyError::InvalidKernelParams {
@@ -533,8 +533,8 @@ impl ClientConnection {
     }
 
     pub async fn send_packet(&mut self, packet: Bytes) -> Result<(), GPUSafetyError> {
-        // Validate packet size
-        const MAX_PACKET_SIZE: usize = 10 * 1024 * 1024; // 10MB limit
+        
+        const MAX_PACKET_SIZE: usize = 10 * 1024 * 1024; 
         if packet.len() > MAX_PACKET_SIZE {
             return Err(GPUSafetyError::ResourceExhaustion {
                 resource: "packet_size".to_string(),
@@ -543,10 +543,10 @@ impl ClientConnection {
             });
         }
 
-        // Check send queue capacity
+        
         if self.sender.capacity() == 0 && self.sender.try_send(packet.clone()).is_err() {
             warn!("Client {} send queue full, dropping packet", self.id);
-            return Ok(()); // Don't fail, just drop the packet
+            return Ok(()); 
         }
 
         match self.sender.send(packet.clone()).await {
@@ -608,7 +608,7 @@ impl ClientConnection {
     }
 }
 
-/// Client statistics
+/
 #[derive(Debug, Clone, Serialize)]
 pub struct ClientStats {
     pub id: String,
@@ -619,7 +619,7 @@ pub struct ClientStats {
     pub lod_type: String,
 }
 
-/// Safe streaming pipeline with comprehensive bounds checking
+/
 pub struct StreamingPipeline {
     gpu_receiver: mpsc::Receiver<RenderData>,
     clients: Arc<RwLock<Vec<ClientConnection>>>,
@@ -630,7 +630,7 @@ pub struct StreamingPipeline {
     stats: Arc<RwLock<PipelineStats>>,
 }
 
-/// Pipeline statistics
+/
 #[derive(Debug, Clone)]
 pub struct PipelineStats {
     pub frames_processed: u64,
@@ -656,7 +656,7 @@ impl Default for PipelineStats {
     }
 }
 
-/// Render data from GPU
+/
 #[derive(Debug)]
 pub struct RenderData {
     pub positions: Vec<f32>,
@@ -667,7 +667,7 @@ pub struct RenderData {
 
 impl RenderData {
     pub fn validate(&self) -> Result<(), GPUSafetyError> {
-        // Check array sizes
+        
         if self.positions.len() % 4 != 0 {
             return Err(GPUSafetyError::InvalidKernelParams {
                 reason: format!(
@@ -708,7 +708,7 @@ impl RenderData {
             });
         }
 
-        // Validate data values
+        
         for (i, &val) in self.positions.iter().enumerate() {
             if !val.is_finite() {
                 return Err(GPUSafetyError::InvalidKernelParams {
@@ -778,14 +778,14 @@ impl StreamingPipeline {
         while let Some(render_data) = self.gpu_receiver.recv().await {
             let frame_start = Instant::now();
 
-            // Validate incoming data
+            
             if let Err(e) = render_data.validate() {
                 error!("Invalid render data received: {}", e);
                 self.record_error().await;
                 continue;
             }
 
-            // Update frame buffer safely
+            
             {
                 let mut buffer = self.frame_buffer.write().await;
                 if let Err(e) = buffer.update_data(
@@ -800,13 +800,13 @@ impl StreamingPipeline {
                 }
             }
 
-            // Process clients safely
+            
             if let Err(e) = self.process_clients().await {
                 error!("Error processing clients: {}", e);
                 self.record_error().await;
             }
 
-            // Update statistics
+            
             self.update_stats(frame_start).await;
         }
 
@@ -860,11 +860,11 @@ impl StreamingPipeline {
     ) -> Result<Bytes, GPUSafetyError> {
         let mut packet = BytesMut::new();
 
-        // Header with validation
-        packet.put_u8(1); // Packet version
+        
+        packet.put_u8(1); 
         packet.put_u32_le(buffer.get_current_frame());
 
-        // Safely collect importance-based culling
+        
         let mut nodes: Vec<(usize, f32)> = Vec::new();
 
         for i in 0..node_count {
@@ -874,11 +874,11 @@ impl StreamingPipeline {
             }
         }
 
-        // Sort by importance and take top N
+        
         nodes.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
         nodes.truncate(max_nodes);
 
-        // Apply distance culling if client position available
+        
         if let Some(cam_pos) = client_position {
             nodes.retain(|(idx, _)| {
                 let x = buffer.get_position(*idx, 0).unwrap_or(0.0);
@@ -888,11 +888,11 @@ impl StreamingPipeline {
                 let dist_sq =
                     (x - cam_pos[0]).powi(2) + (y - cam_pos[1]).powi(2) + (z - cam_pos[2]).powi(2);
 
-                dist_sq < 10000.0 // 100 unit radius
+                dist_sq < 10000.0 
             });
         }
 
-        // Validate node count fits in packet
+        
         if nodes.len() > u16::MAX as usize {
             return Err(GPUSafetyError::ResourceExhaustion {
                 resource: "packet_nodes".to_string(),
@@ -903,13 +903,13 @@ impl StreamingPipeline {
 
         packet.put_u16_le(nodes.len() as u16);
 
-        // Write simplified nodes with bounds checking
+        
         for (idx, importance) in nodes {
             let x = buffer.get_position(idx, 0)?;
             let y = buffer.get_position(idx, 1)?;
             let z = buffer.get_position(idx, 2)?;
 
-            // Quantize position to 16-bit per component (6 bytes instead of 12)
+            
             let quantized_x = (x * 100.0).clamp(i16::MIN as f32, i16::MAX as f32) as i16;
             let quantized_y = (y * 100.0).clamp(i16::MIN as f32, i16::MAX as f32) as i16;
             let quantized_z = (z * 100.0).clamp(i16::MIN as f32, i16::MAX as f32) as i16;
@@ -918,12 +918,12 @@ impl StreamingPipeline {
             packet.put_i16_le(quantized_y);
             packet.put_i16_le(quantized_z);
 
-            // Quantize color to palette index (simplified)
+            
             let hue = buffer.get_position(idx, 0).unwrap_or(0.0);
             let color_index = (hue.abs() * 255.0).clamp(0.0, 255.0) as u8;
             packet.put_u8(color_index);
 
-            // Quantize importance
+            
             let importance_quantized = (importance * 255.0).clamp(0.0, 255.0) as u8;
             packet.put_u8(importance_quantized);
         }
@@ -940,16 +940,16 @@ impl StreamingPipeline {
     ) -> Result<Bytes, GPUSafetyError> {
         let mut packet = BytesMut::new();
 
-        // Header
-        packet.put_u8(2); // Packet version
+        
+        packet.put_u8(2); 
         packet.put_u32_le(buffer.get_current_frame());
 
-        // Apply LOD based on importance
+        
         let mut nodes: Vec<usize> = (0..node_count.min(max_nodes))
             .filter(|&i| buffer.get_importance(i).unwrap_or(0.0) > self.importance_threshold * 0.5)
             .collect();
 
-        // Spatial culling if camera position available
+        
         if let Some(cam_pos) = client_position {
             nodes.retain(|&idx| {
                 let x = buffer.get_position(idx, 0).unwrap_or(0.0);
@@ -959,11 +959,11 @@ impl StreamingPipeline {
                 let dist_sq =
                     (x - cam_pos[0]).powi(2) + (y - cam_pos[1]).powi(2) + (z - cam_pos[2]).powi(2);
 
-                dist_sq < 40000.0 // 200 unit radius
+                dist_sq < 40000.0 
             });
         }
 
-        // Validate node count
+        
         if nodes.len() > u32::MAX as usize {
             return Err(GPUSafetyError::ResourceExhaustion {
                 resource: "packet_nodes".to_string(),
@@ -974,20 +974,20 @@ impl StreamingPipeline {
 
         packet.put_u32_le(nodes.len() as u32);
 
-        // Write nodes with moderate compression
+        
         for idx in nodes {
-            // Position (full precision)
+            
             packet.put_f32_le(buffer.get_position(idx, 0)?);
             packet.put_f32_le(buffer.get_position(idx, 1)?);
             packet.put_f32_le(buffer.get_position(idx, 2)?);
 
-            // Color (simplified - using position as hue)
+            
             let hue = buffer.get_position(idx, 0).unwrap_or(0.0);
             packet.put_u8((hue.abs() * 255.0).clamp(0.0, 255.0) as u8);
-            packet.put_u8(128); // Fixed saturation
-            packet.put_u8(255); // Fixed value
+            packet.put_u8(128); 
+            packet.put_u8(255); 
 
-            // Importance
+            
             let importance = buffer.get_importance(idx)?;
             packet.put_u8((importance * 255.0).clamp(0.0, 255.0) as u8);
         }
@@ -1002,27 +1002,27 @@ impl StreamingPipeline {
     ) -> Result<Bytes, GPUSafetyError> {
         let mut packet = BytesMut::new();
 
-        // Header
-        packet.put_u8(3); // Packet version
+        
+        packet.put_u8(3); 
         packet.put_u32_le(buffer.get_current_frame());
         packet.put_u32_le(node_count as u32);
 
-        // Write full precision data
+        
         for i in 0..node_count {
-            // Position (x, y, z, w)
+            
             packet.put_f32_le(buffer.get_position(i, 0)?);
             packet.put_f32_le(buffer.get_position(i, 1)?);
             packet.put_f32_le(buffer.get_position(i, 2)?);
-            packet.put_f32_le(buffer.get_position(i, 3).unwrap_or(1.0)); // w component
+            packet.put_f32_le(buffer.get_position(i, 3).unwrap_or(1.0)); 
 
-            // Color (simplified RGBA)
+            
             let hue = buffer.get_position(i, 0).unwrap_or(0.0);
-            packet.put_f32_le(hue.abs()); // R
-            packet.put_f32_le(0.5); // G
-            packet.put_f32_le(1.0); // B
-            packet.put_f32_le(1.0); // A
+            packet.put_f32_le(hue.abs()); 
+            packet.put_f32_le(0.5); 
+            packet.put_f32_le(1.0); 
+            packet.put_f32_le(1.0); 
 
-            // Importance
+            
             packet.put_f32_le(buffer.get_importance(i)?);
         }
 
@@ -1039,13 +1039,13 @@ impl StreamingPipeline {
         if stats.frames_processed == 1 {
             stats.average_frame_time_ms = frame_time_ms;
         } else {
-            // Exponential moving average
+            
             stats.average_frame_time_ms = stats.average_frame_time_ms * 0.9 + frame_time_ms * 0.1;
         }
 
         stats.last_frame_time = Some(frame_start);
 
-        // Update client count
+        
         let clients = self.clients.read().await;
         stats.active_clients = clients.len();
     }
@@ -1071,7 +1071,7 @@ impl StreamingPipeline {
     }
 }
 
-/// Delta compression for bandwidth optimization with safe bounds checking
+/
 pub struct DeltaCompressor {
     previous_frame: Option<Vec<SimplifiedNode>>,
     keyframe_interval: u32,
@@ -1092,7 +1092,7 @@ impl DeltaCompressor {
 
         let mut packet = BytesMut::new();
 
-        // Validate input nodes
+        
         for (i, node) in nodes.iter().enumerate() {
             node.validate()
                 .map_err(|e| GPUSafetyError::InvalidKernelParams {
@@ -1100,12 +1100,12 @@ impl DeltaCompressor {
                 })?;
         }
 
-        // Check if keyframe needed
+        
         if self.current_frame % self.keyframe_interval == 0 || self.previous_frame.is_none() {
-            // Send keyframe
-            packet.put_u8(0xFF); // Keyframe marker
+            
+            packet.put_u8(0xFF); 
 
-            // Validate node count fits in u32
+            
             if nodes.len() > u32::MAX as usize {
                 return Err(GPUSafetyError::ResourceExhaustion {
                     resource: "keyframe_nodes".to_string(),
@@ -1128,16 +1128,16 @@ impl DeltaCompressor {
 
             self.previous_frame = Some(nodes);
         } else {
-            // Send delta frame
-            packet.put_u8(0xFE); // Delta marker
+            
+            packet.put_u8(0xFE); 
 
             let prev = match self.previous_frame.as_ref() {
                 Some(frame) => frame,
                 None => {
                     warn!("Delta frame requested but no previous frame available, falling back to full frame");
-                    // Fall back to full frame instead of panicking
+                    
                     packet.clear();
-                    packet.put_u8(0xFF); // Full frame marker
+                    packet.put_u8(0xFF); 
 
                     if nodes.len() > u32::MAX as usize {
                         return Err(GPUSafetyError::ResourceExhaustion {
@@ -1164,7 +1164,7 @@ impl DeltaCompressor {
                 }
             };
 
-            // Validate both frames have same length
+            
             if nodes.len() != prev.len() {
                 return Err(GPUSafetyError::InvalidKernelParams {
                     reason: format!(
@@ -1182,7 +1182,7 @@ impl DeltaCompressor {
                 let dy = curr.y - prev.y;
                 let dz = curr.z - prev.z;
 
-                // Validate delta values
+                
                 if !dx.is_finite() || !dy.is_finite() || !dz.is_finite() {
                     return Err(GPUSafetyError::InvalidKernelParams {
                         reason: format!(
@@ -1192,7 +1192,7 @@ impl DeltaCompressor {
                     });
                 }
 
-                // Only send if changed significantly
+                
                 if dx.abs() > 0.01
                     || dy.abs() > 0.01
                     || dz.abs() > 0.01
@@ -1210,7 +1210,7 @@ impl DeltaCompressor {
                 }
             }
 
-            // Validate delta count
+            
             if deltas.len() > u16::MAX as usize {
                 return Err(GPUSafetyError::ResourceExhaustion {
                     resource: "deltas".to_string(),
@@ -1224,7 +1224,7 @@ impl DeltaCompressor {
             for (idx, dx, dy, dz, color, importance) in deltas {
                 packet.put_u16_le(idx);
 
-                // Clamp quantized deltas to prevent overflow
+                
                 let quantized_dx = (dx * 1000.0).clamp(i16::MIN as f32, i16::MAX as f32) as i16;
                 let quantized_dy = (dy * 1000.0).clamp(i16::MIN as f32, i16::MAX as f32) as i16;
                 let quantized_dz = (dz * 1000.0).clamp(i16::MIN as f32, i16::MAX as f32) as i16;
@@ -1243,25 +1243,25 @@ impl DeltaCompressor {
     }
 }
 
-/// WebSocket message for control and data
+/
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum StreamMessage {
-    /// Client capability declaration
+    
     ClientCapability {
         device: String,
         lod: ClientLOD,
         position: Option<[f32; 3]>,
     },
 
-    /// Focus request from client
+    
     FocusRequest {
         node_id: Option<u32>,
         position: [f32; 3],
         radius: f32,
     },
 
-    /// Performance metrics
+    
     Metrics {
         fps: f32,
         latency_ms: f32,
@@ -1276,22 +1276,22 @@ mod tests {
 
     #[test]
     fn test_simplified_node_validation() {
-        // Valid node
+        
         let valid_node = SimplifiedNode::new(1.0, 2.0, 3.0, 10, 20, 30, 0);
         assert!(valid_node.is_ok());
 
-        // Invalid coordinates
+        
         let invalid_node = SimplifiedNode::new(f32::NAN, 2.0, 3.0, 10, 20, 30, 0);
         assert!(invalid_node.is_err());
 
-        // Extreme coordinates
+        
         let extreme_node = SimplifiedNode::new(1e7, 2.0, 3.0, 10, 20, 30, 0);
         assert!(extreme_node.is_err());
     }
 
     #[test]
     fn test_client_lod_validation() {
-        // Valid LOD
+        
         let valid_lod = ClientLOD::Mobile {
             max_nodes: 1000,
             max_edges: 2000,
@@ -1300,7 +1300,7 @@ mod tests {
         };
         assert!(valid_lod.validate().is_ok());
 
-        // Invalid update rate
+        
         let invalid_lod = ClientLOD::Mobile {
             max_nodes: 1000,
             max_edges: 2000,
@@ -1309,7 +1309,7 @@ mod tests {
         };
         assert!(invalid_lod.validate().is_err());
 
-        // Excessive node count
+        
         let excessive_lod = ClientLOD::Mobile {
             max_nodes: 20_000_000,
             max_edges: 2000,
@@ -1324,7 +1324,7 @@ mod tests {
         let bounds_checker = Arc::new(ThreadSafeMemoryBoundsChecker::new(1024 * 1024 * 1024));
         let mut buffer = FrameBuffer::new(100, bounds_checker).unwrap();
 
-        let positions = vec![1.0f32; 400]; // 100 nodes * 4 components
+        let positions = vec![1.0f32; 400]; 
         let colors = vec![0.5f32; 400];
         let importance = vec![0.8f32; 100];
 
@@ -1334,40 +1334,40 @@ mod tests {
         assert_eq!(buffer.get_current_frame(), 1);
         assert_eq!(buffer.get_node_count(), 100);
 
-        // Test out of bounds access
+        
         assert!(buffer.get_position(150, 0).is_err());
         assert!(buffer.get_importance(150).is_err());
 
-        // Test valid access
+        
         assert!(buffer.get_position(50, 0).is_ok());
         assert!(buffer.get_importance(50).is_ok());
     }
 
     #[tokio::test]
     async fn test_render_data_validation() {
-        // Valid render data
+        
         let valid_data = RenderData {
-            positions: vec![1.0f32; 40], // 10 nodes
+            positions: vec![1.0f32; 40], 
             colors: vec![0.5f32; 40],
             importance: vec![0.8f32; 10],
             frame: 1,
         };
         assert!(valid_data.validate().is_ok());
 
-        // Invalid positions length
+        
         let invalid_data = RenderData {
-            positions: vec![1.0f32; 39], // Not divisible by 4
+            positions: vec![1.0f32; 39], 
             colors: vec![0.5f32; 40],
             importance: vec![0.8f32; 10],
             frame: 1,
         };
         assert!(invalid_data.validate().is_err());
 
-        // Mismatched array sizes
+        
         let mismatched_data = RenderData {
-            positions: vec![1.0f32; 40], // 10 nodes
+            positions: vec![1.0f32; 40], 
             colors: vec![0.5f32; 40],
-            importance: vec![0.8f32; 15], // Wrong count
+            importance: vec![0.8f32; 15], 
             frame: 1,
         };
         assert!(mismatched_data.validate().is_err());

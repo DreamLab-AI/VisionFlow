@@ -21,13 +21,13 @@ class DebugControl {
   private dataDebugEnabled: boolean = false;
   private performanceDebugEnabled: boolean = false;
 
-  // Enable main debug mode
+  
   enable() {
     this.enabled = true;
     logger.info('Debug mode enabled');
   }
 
-  // Disable main debug mode
+  
   disable() {
     this.enabled = false;
     this.enabledCategories.clear();
@@ -36,70 +36,70 @@ class DebugControl {
     logger.info('Debug mode disabled');
   }
 
-  // Check if debug is enabled
+  
   isEnabled(): boolean {
     return this.enabled;
   }
 
-  // Enable a specific category
+  
   enableCategory(category: DebugCategory) {
     this.enabledCategories.add(category);
     logger.debug(`Enabled debug category: ${category}`);
   }
 
-  // Disable a specific category
+  
   disableCategory(category: DebugCategory) {
     this.enabledCategories.delete(category);
     logger.debug(`Disabled debug category: ${category}`);
   }
 
-  // Check if a category is enabled
+  
   isCategoryEnabled(category: DebugCategory): boolean {
     return this.enabledCategories.has(category);
   }
 
-  // Get all enabled categories
+  
   getEnabledCategories(): DebugCategory[] {
     return Array.from(this.enabledCategories);
   }
 
-  // Enable data debugging
+  
   enableData() {
     this.dataDebugEnabled = true;
     logger.debug('Data debugging enabled');
   }
 
-  // Disable data debugging
+  
   disableData() {
     this.dataDebugEnabled = false;
     logger.debug('Data debugging disabled');
   }
 
-  // Check if data debugging is enabled
+  
   isDataEnabled(): boolean {
     return this.dataDebugEnabled;
   }
 
-  // Enable performance debugging
+  
   enablePerformance() {
     this.performanceDebugEnabled = true;
     logger.debug('Performance debugging enabled');
   }
 
-  // Disable performance debugging
+  
   disablePerformance() {
     this.performanceDebugEnabled = false;
     logger.debug('Performance debugging disabled');
   }
 
-  // Check if performance debugging is enabled
+  
   isPerformanceEnabled(): boolean {
     return this.performanceDebugEnabled;
   }
 
-  // Debug presets for quick configuration
+  
   presets = {
-    // Enable all debugging
+    
     all: () => {
       this.enable();
       Object.values(DebugCategory).forEach(cat => this.enableCategory(cat));
@@ -108,7 +108,7 @@ class DebugControl {
       logger.info('All debug features enabled');
     },
 
-    // Enable only essential debugging
+    
     minimal: () => {
       this.enable();
       this.enableCategory(DebugCategory.GENERAL);
@@ -118,7 +118,7 @@ class DebugControl {
       logger.info('Minimal debug features enabled');
     },
 
-    // Enable performance analysis
+    
     performance: () => {
       this.enable();
       this.enableCategory(DebugCategory.PERFORMANCE);
@@ -127,7 +127,7 @@ class DebugControl {
       logger.info('Performance debug features enabled');
     },
 
-    // Enable network debugging
+    
     network: () => {
       this.enable();
       this.enableCategory(DebugCategory.WEBSOCKET);
@@ -136,14 +136,14 @@ class DebugControl {
       logger.info('Network debug features enabled');
     },
 
-    // Disable all debugging
+    
     none: () => {
       this.disable();
       logger.info('All debug features disabled');
     }
   };
 
-  // Log a debug message for a specific category
+  
   log(category: DebugCategory, message: string, data?: any) {
     if (!this.enabled || !this.isCategoryEnabled(category)) {
       return;
@@ -157,7 +157,7 @@ class DebugControl {
       data
     };
 
-    // Use the logger to output based on category
+    
     switch (category) {
       case DebugCategory.ERROR:
         logger.error(message, data);
@@ -262,7 +262,7 @@ export const gatedConsole = {
 
 // Function to replace global console with gated console
 export const replaceGlobalConsole = () => {
-  // Store original console methods
+  
   const originalConsole = {
     log: console.log,
     error: console.error,
@@ -271,7 +271,7 @@ export const replaceGlobalConsole = () => {
     info: console.info
   };
 
-  // Replace global console methods with gated versions
+  
   console.log = (...args: any[]) => {
     if (debugControl.isEnabled()) {
       originalConsole.log(...args);
@@ -279,7 +279,7 @@ export const replaceGlobalConsole = () => {
   };
 
   console.error = (...args: any[]) => {
-    // Always show errors
+    
     originalConsole.error(...args);
   };
 

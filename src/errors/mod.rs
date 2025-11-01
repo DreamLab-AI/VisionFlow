@@ -6,7 +6,7 @@
 use serde::ser::{Serialize, Serializer};
 use std::fmt;
 
-/// Serialize std::io::Error as a string since it's not directly serializable
+/
 fn serialize_io_error<S>(
     error: &std::sync::Arc<std::io::Error>,
     serializer: S,
@@ -17,35 +17,35 @@ where
     error.to_string().serialize(serializer)
 }
 
-/// Top-level error type for the VisionFlow system
+/
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum VisionFlowError {
-    /// Actor system related errors
+    
     Actor(ActorError),
-    /// GPU computation errors
+    
     GPU(GPUError),
-    /// Settings and configuration errors
+    
     Settings(SettingsError),
-    /// Network and communication errors
+    
     Network(NetworkError),
-    /// File system and I/O errors
+    
     #[serde(serialize_with = "serialize_io_error")]
     IO(std::sync::Arc<std::io::Error>),
-    /// Serialization/Deserialization errors
+    
     Serialization(String),
-    /// Speech and voice processing errors
+    
     Speech(SpeechError),
-    /// GitHub integration errors
+    
     GitHub(GitHubError),
-    /// Audio processing errors
+    
     Audio(AudioError),
-    /// Resource management errors
+    
     Resource(ResourceError),
-    /// Performance benchmarking errors
+    
     Performance(PerformanceError),
-    /// Binary protocol errors
+    
     Protocol(ProtocolError),
-    /// Generic error with context
+    
     Generic {
         message: String,
         #[serde(skip)]
@@ -53,50 +53,50 @@ pub enum VisionFlowError {
     },
 }
 
-/// Actor system specific errors
+/
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum ActorError {
-    /// Actor failed to start
+    
     StartupFailed { actor_name: String, reason: String },
-    /// Actor crashed during operation
+    
     RuntimeFailure { actor_name: String, reason: String },
-    /// Message handling failed
+    
     MessageHandlingFailed {
         message_type: String,
         reason: String,
     },
-    /// Actor supervision failure
+    
     SupervisionFailed {
         supervisor: String,
         supervised: String,
         reason: String,
     },
-    /// Actor mailbox full or inaccessible
+    
     MailboxError { actor_name: String, reason: String },
-    /// Actor not available or not found
+    
     ActorNotAvailable(String),
 }
 
-/// GPU computation specific errors
+/
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum GPUError {
-    /// CUDA device initialization failed
+    
     DeviceInitializationFailed(String),
-    /// GPU memory allocation failed
+    
     MemoryAllocationFailed {
         requested_bytes: usize,
         reason: String,
     },
-    /// Kernel execution failed
+    
     KernelExecutionFailed { kernel_name: String, reason: String },
-    /// Data transfer between CPU and GPU failed
+    
     DataTransferFailed {
         direction: DataTransferDirection,
         reason: String,
     },
-    /// GPU compute fallback to CPU
+    
     FallbackToCPU { reason: String },
-    /// GPU driver or runtime error
+    
     DriverError(String),
 }
 
@@ -106,141 +106,141 @@ pub enum DataTransferDirection {
     GPUToCPU,
 }
 
-/// Settings and configuration errors
+/
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum SettingsError {
-    /// Settings file not found or inaccessible
+    
     FileNotFound(String),
-    /// Settings parsing failed
+    
     ParseError { file_path: String, reason: String },
-    /// Settings validation failed
+    
     ValidationFailed {
         setting_path: String,
         reason: String,
     },
-    /// Settings save failed
+    
     SaveFailed { file_path: String, reason: String },
-    /// Cache access failed
+    
     CacheError(String),
 }
 
-/// Network and communication errors
+/
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum NetworkError {
-    /// TCP connection failed
+    
     ConnectionFailed {
         host: String,
         port: u16,
         reason: String,
     },
-    /// WebSocket connection issues
+    
     WebSocketError(String),
-    /// MCP protocol errors
+    
     MCPError { method: String, reason: String },
-    /// HTTP request/response errors
+    
     HTTPError {
         url: String,
         status: Option<u16>,
         reason: String,
     },
-    /// HTTP request failed
+    
     RequestFailed { url: String, reason: String },
-    /// Timeout errors
+    
     Timeout { operation: String, timeout_ms: u64 },
 }
 
-/// Speech and voice processing errors
+/
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum SpeechError {
-    /// Speech service initialization failed
+    
     InitializationFailed(String),
-    /// TTS (Text-to-Speech) processing failed
+    
     TTSFailed { text: String, reason: String },
-    /// STT (Speech-to-Text) processing failed
+    
     STTFailed { reason: String },
-    /// Audio chunk processing failed
+    
     AudioProcessingFailed { reason: String },
-    /// Speech provider configuration error
+    
     ProviderConfigError { provider: String, reason: String },
 }
 
-/// GitHub integration errors
+/
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum GitHubError {
-    /// API request failed
+    
     APIRequestFailed {
         url: String,
         status: Option<u16>,
         reason: String,
     },
-    /// Authentication failed
+    
     AuthenticationFailed(String),
-    /// File operation failed
+    
     FileOperationFailed {
         path: String,
         operation: String,
         reason: String,
     },
-    /// Branch operation failed
+    
     BranchOperationFailed { branch: String, reason: String },
-    /// Pull request operation failed
+    
     PullRequestFailed { reason: String },
 }
 
-/// Audio processing errors
+/
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum AudioError {
-    /// Audio format validation failed
+    
     FormatValidationFailed { format: String, reason: String },
-    /// WAV header validation failed
+    
     WAVHeaderValidationFailed(String),
-    /// Audio data processing failed
+    
     DataProcessingFailed(String),
-    /// JSON response processing failed
+    
     JSONProcessingFailed(String),
 }
 
-/// Resource management errors
+/
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum ResourceError {
-    /// Resource monitoring failed
+    
     MonitoringFailed(String),
-    /// Resource availability check failed
+    
     AvailabilityCheckFailed(String),
-    /// File descriptor limit reached
+    
     FileDescriptorLimit { current: usize, limit: usize },
-    /// Memory limit reached
+    
     MemoryLimit { current: u64, limit: u64 },
-    /// Process limit reached
+    
     ProcessLimit { current: usize, limit: usize },
 }
 
-/// Performance benchmarking errors
+/
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum PerformanceError {
-    /// Benchmark execution failed
+    
     BenchmarkFailed {
         benchmark_name: String,
         reason: String,
     },
-    /// Performance report generation failed
+    
     ReportGenerationFailed(String),
-    /// Metric collection failed
+    
     MetricCollectionFailed { metric: String, reason: String },
-    /// Performance comparison failed
+    
     ComparisonFailed(String),
 }
 
-/// Binary protocol errors
+/
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum ProtocolError {
-    /// Data encoding failed
+    
     EncodingFailed { data_type: String, reason: String },
-    /// Data decoding failed
+    
     DecodingFailed { data_type: String, reason: String },
-    /// Protocol validation failed
+    
     ValidationFailed(String),
-    /// Binary format error
+    
     BinaryFormatError(String),
 }
 
@@ -652,7 +652,7 @@ impl From<&str> for VisionFlowError {
 // Convenience type alias for Results
 pub type VisionFlowResult<T> = Result<T, VisionFlowError>;
 
-/// Trait for providing error context
+/
 pub trait ErrorContext<T> {
     fn with_context<F>(self, f: F) -> VisionFlowResult<T>
     where

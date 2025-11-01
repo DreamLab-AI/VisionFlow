@@ -4,12 +4,12 @@ import { Button } from '@/features/design-system/components/Button';
 import { Input } from '@/features/design-system/components/Input';
 import Send from 'lucide-react/dist/esm/icons/send';
 import { unifiedApiClient } from '@/services/api/UnifiedApiClient';
-import { useSettingsStore } from '@/store/settingsStore'; // For auth check
-import { nostrAuth } from '@/services/nostrAuthService'; // For getting token
+import { useSettingsStore } from '@/store/settingsStore'; 
+import { nostrAuth } from '@/services/nostrAuthService'; 
 import { createLogger, createErrorMetadata } from '@/utils/loggerConfig';
-import MarkdownRenderer from '@/features/design-system/patterns/MarkdownRenderer'; // For rendering bot responses
-import { RagflowChatRequestPayload, RagflowChatResponsePayload } from '@/types/ragflowTypes'; // Import DTOs
-// import { shallow } from 'zustand/shallow'; // Not needed for this approach
+import MarkdownRenderer from '@/features/design-system/patterns/MarkdownRenderer'; 
+import { RagflowChatRequestPayload, RagflowChatResponsePayload } from '@/types/ragflowTypes'; 
+// import { shallow } from 'zustand/shallow'; 
 
 const logger = createLogger('ConversationPane');
 
@@ -36,7 +36,7 @@ const ConversationPane: React.FC = () => {
 
   useEffect(scrollToBottom, [messages]);
 
-  // Check if auth is enabled and user is authenticated
+  
   const isAuthRequired = authEnabled && (!authenticated || !nostrAuth.isAuthenticated());
 
   const handleSendMessage = useCallback(async () => {

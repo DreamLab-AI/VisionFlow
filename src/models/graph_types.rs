@@ -4,17 +4,17 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum GraphType {
-    /// Standard node-edge graph
+    
     Standard,
-    /// Multi-agent system graph
+    
     MultiAgent,
-    /// Force-directed layout graph
+    
     ForceDirected,
-    /// Hierarchical graph structure
+    
     Hierarchical,
-    /// Network topology graph
+    
     Network,
-    /// OWL/RDF ontology graph with semantic constraints
+    
     Ontology,
 }
 

@@ -1,7 +1,4 @@
-/**
- * useVoiceInteraction - React hook for voice-to-voice interaction
- * Provides a simple interface for voice input/output in components
- */
+
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { VoiceWebSocketService, TranscriptionResult } from '../services/VoiceWebSocketService';
@@ -33,29 +30,29 @@ export function useVoiceInteraction(options: UseVoiceInteractionOptions = {}): U
   const { autoConnect = true, onTranscription, onError, language } = options;
   const settings = useSettingsStore((state) => state.settings);
 
-  // All state hooks must be called unconditionally
+  
   const [isConnected, setIsConnected] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [transcription, setTranscription] = useState('');
   const [partialTranscription, setPartialTranscription] = useState('');
 
-  // All ref hooks must be called unconditionally
+  
   const voiceServiceRef = useRef<VoiceWebSocketService>();
   const autoConnectAttemptedRef = useRef(false);
   const onTranscriptionRef = useRef(onTranscription);
   const onErrorRef = useRef(onError);
 
-  // Update refs on every render to have latest callbacks
+  
   onTranscriptionRef.current = onTranscription;
   onErrorRef.current = onError;
 
-  // All useEffect hooks must be called unconditionally and in the same order
+  
   useEffect(() => {
     voiceServiceRef.current = VoiceWebSocketService.getInstance();
     const voiceService = voiceServiceRef.current;
 
-    // Set up event listeners
+    
     const handleConnected = () => setIsConnected(true);
     const handleDisconnected = () => {
       setIsConnected(false);
@@ -81,7 +78,7 @@ export function useVoiceInteraction(options: UseVoiceInteractionOptions = {}): U
       onErrorRef.current?.(error);
     };
 
-    // Subscribe to events
+    
     voiceService.on('connected', handleConnected);
     voiceService.on('disconnected', handleDisconnected);
     voiceService.on('transcription', handleTranscription);
@@ -91,7 +88,7 @@ export function useVoiceInteraction(options: UseVoiceInteractionOptions = {}): U
     audioOutput.on('audioStarted', handleAudioStarted);
     audioOutput.on('audioEnded', handleAudioEnded);
 
-    // Cleanup
+    
     return () => {
       voiceService.off('connected', handleConnected);
       voiceService.off('disconnected', handleDisconnected);
@@ -100,9 +97,9 @@ export function useVoiceInteraction(options: UseVoiceInteractionOptions = {}): U
       audioOutput.off('audioStarted', handleAudioStarted);
       audioOutput.off('audioEnded', handleAudioEnded);
     };
-  }, []); // Empty dependency array to avoid re-registration
+  }, []); 
 
-  // Separate effect for auto-connect to avoid dependency issues
+  
   useEffect(() => {
     if (autoConnect && !autoConnectAttemptedRef.current && voiceServiceRef.current && (settings?.system?.customBackendUrl || window.location.origin)) {
       autoConnectAttemptedRef.current = true;
@@ -127,7 +124,7 @@ export function useVoiceInteraction(options: UseVoiceInteractionOptions = {}): U
 
     try {
       await voiceServiceRef.current.disconnect();
-      autoConnectAttemptedRef.current = false; // Reset auto-connect flag
+      autoConnectAttemptedRef.current = false; 
     } catch (error) {
       gatedConsole.voice.error('Failed to disconnect from voice service:', error);
       onError?.(error);

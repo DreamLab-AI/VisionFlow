@@ -91,11 +91,11 @@ fn cmd_up() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut conn = Connection::open(&db_path)?;
 
-    // Initialize version tracking
+    
     let tracker = VersionTracker::new(&conn);
     tracker.initialize()?;
 
-    // Run migrations
+    
     let runner = MigrationRunner::new(&migrations_dir);
     let count = runner.migrate_up(&mut conn)?;
 
@@ -118,7 +118,7 @@ fn cmd_down() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut conn = Connection::open(&db_path)?;
 
-    // Get current version
+    
     let current = {
         let tracker = VersionTracker::new(&conn);
         tracker.current_version()?
@@ -152,7 +152,7 @@ fn cmd_status() -> Result<(), Box<dyn std::error::Error>> {
 
     let conn = Connection::open(&db_path)?;
 
-    // Check if migrations table exists
+    
     let table_exists: bool = conn.query_row(
         "SELECT COUNT(*) > 0 FROM sqlite_master WHERE type='table' AND name='schema_migrations'",
         [],
@@ -171,7 +171,7 @@ fn cmd_status() -> Result<(), Box<dyn std::error::Error>> {
     println!("Current Version: {}", current.unwrap_or(0));
     println!();
 
-    // Show applied migrations
+    
     let applied = tracker.get_all_applied()?;
 
     if !applied.is_empty() {
@@ -202,7 +202,7 @@ fn cmd_status() -> Result<(), Box<dyn std::error::Error>> {
         println!();
     }
 
-    // Show pending migrations
+    
     let runner = MigrationRunner::new(&migrations_dir);
     let pending = runner.pending_migrations(&conn)?;
 
@@ -224,16 +224,16 @@ fn cmd_status() -> Result<(), Box<dyn std::error::Error>> {
 fn cmd_create(name: &str) -> Result<(), Box<dyn std::error::Error>> {
     let migrations_dir = get_migrations_dir();
 
-    // Ensure migrations directory exists
+    
     std::fs::create_dir_all(&migrations_dir)?;
 
-    // Find next version number
+    
     let runner = MigrationRunner::new(&migrations_dir);
     let existing = runner.discover_migrations().unwrap_or_default();
 
     let next_version = existing.iter().map(|m| m.version).max().unwrap_or(0) + 1;
 
-    // Create migration file
+    
     let filename = format!("{:03}_{}.sql", next_version, name.replace(' ', "_"));
     let filepath = migrations_dir.join(&filename);
 

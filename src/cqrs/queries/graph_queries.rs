@@ -11,7 +11,7 @@ use crate::models::node::Node;
 use crate::ports::knowledge_graph_repository::GraphStatistics;
 use std::sync::Arc;
 
-/// Get a single node by ID
+/
 #[derive(Debug, Clone)]
 pub struct GetNodeQuery {
     pub node_id: u32,
@@ -25,7 +25,7 @@ impl Query for GetNodeQuery {
     }
 }
 
-/// Get multiple nodes by IDs
+/
 #[derive(Debug, Clone)]
 pub struct GetNodesQuery {
     pub node_ids: Vec<u32>,
@@ -46,7 +46,7 @@ impl Query for GetNodesQuery {
     }
 }
 
-/// Get all nodes in the graph
+/
 #[derive(Debug, Clone)]
 pub struct GetAllNodesQuery;
 
@@ -58,7 +58,7 @@ impl Query for GetAllNodesQuery {
     }
 }
 
-/// Search nodes by label pattern (supports partial matching)
+/
 #[derive(Debug, Clone)]
 pub struct SearchNodesQuery {
     pub label_pattern: String,
@@ -79,7 +79,7 @@ impl Query for SearchNodesQuery {
     }
 }
 
-/// Get nodes by metadata ID
+/
 #[derive(Debug, Clone)]
 pub struct GetNodesByMetadataQuery {
     pub metadata_id: String,
@@ -100,7 +100,7 @@ impl Query for GetNodesByMetadataQuery {
     }
 }
 
-/// Get all edges connected to a node
+/
 #[derive(Debug, Clone)]
 pub struct GetNodeEdgesQuery {
     pub node_id: u32,
@@ -114,7 +114,7 @@ impl Query for GetNodeEdgesQuery {
     }
 }
 
-/// Get edges between two nodes
+/
 #[derive(Debug, Clone)]
 pub struct GetEdgesBetweenQuery {
     pub source_id: u32,
@@ -129,11 +129,11 @@ impl Query for GetEdgesBetweenQuery {
     }
 }
 
-/// Get neighboring nodes (nodes connected by edges)
+/
 #[derive(Debug, Clone)]
 pub struct GetNeighborsQuery {
     pub node_id: u32,
-    pub max_depth: Option<usize>, // Optional depth limit for multi-hop neighbors
+    pub max_depth: Option<usize>, 
 }
 
 impl Query for GetNeighborsQuery {
@@ -144,7 +144,7 @@ impl Query for GetNeighborsQuery {
     }
 }
 
-/// Count total nodes in the graph
+/
 #[derive(Debug, Clone)]
 pub struct CountNodesQuery;
 
@@ -156,7 +156,7 @@ impl Query for CountNodesQuery {
     }
 }
 
-/// Count total edges in the graph
+/
 #[derive(Debug, Clone)]
 pub struct CountEdgesQuery;
 
@@ -168,7 +168,7 @@ impl Query for CountEdgesQuery {
     }
 }
 
-/// Get graph statistics (node count, edge count, etc.)
+/
 #[derive(Debug, Clone)]
 pub struct GetGraphStatsQuery;
 
@@ -180,7 +180,7 @@ impl Query for GetGraphStatsQuery {
     }
 }
 
-/// Load complete graph structure
+/
 #[derive(Debug, Clone)]
 pub struct LoadGraphQuery;
 
@@ -192,7 +192,7 @@ impl Query for LoadGraphQuery {
     }
 }
 
-/// Query nodes by properties (e.g., "color = red", "size > 10")
+/
 #[derive(Debug, Clone)]
 pub struct QueryNodesQuery {
     pub query: String,
@@ -213,7 +213,7 @@ impl Query for QueryNodesQuery {
     }
 }
 
-/// Check repository health status
+/
 #[derive(Debug, Clone)]
 pub struct GraphHealthCheckQuery;
 

@@ -22,23 +22,18 @@ export interface NodeUpdate {
 }
 
 
-/**
- * Batch update API for efficient server communication
- */
+
 export const batchUpdateApi = {
-  /**
-   * Send batch position updates via REST API
-   * This is an alternative to WebSocket for less frequent updates
-   */
+  
   async updateNodePositions(updates: NodeUpdate[]): Promise<BatchUpdateResult> {
     try {
-      // Validate before sending
+      
       const binaryNodes: BinaryNodeData[] = updates.map(u => ({
         nodeId: u.nodeId,
         position: u.position,
         velocity: u.velocity || { x: 0, y: 0, z: 0 },
-        ssspDistance: Infinity, // Default SSSP distance for client-generated updates
-        ssspParent: -1 // Default SSSP parent for client-generated updates
+        ssspDistance: Infinity, 
+        ssspParent: -1 
       }));
 
       const validation = validateNodePositions(binaryNodes);
@@ -63,9 +58,7 @@ export const batchUpdateApi = {
   },
 
 
-  /**
-   * Batch create nodes
-   */
+  
   async createNodes(nodes: Array<{ id?: number; type: string; position: { x: number; y: number; z: number }; metadata?: any }>): Promise<BatchUpdateResult> {
     try {
       const result = await unifiedApiClient.postData(`${API_BASE}/graph/nodes/batch-create`, { nodes });
@@ -78,9 +71,7 @@ export const batchUpdateApi = {
     }
   },
 
-  /**
-   * Batch delete nodes
-   */
+  
   async deleteNodes(nodeIds: number[]): Promise<BatchUpdateResult> {
     try {
       const result = await unifiedApiClient.request('DELETE', `${API_BASE}/graph/nodes/batch-delete`, { nodeIds });
@@ -93,9 +84,7 @@ export const batchUpdateApi = {
     }
   },
 
-  /**
-   * Batch update edges
-   */
+  
   async updateEdges(edges: Array<{ id: number; source?: number; target?: number; weight?: number }>): Promise<BatchUpdateResult> {
     try {
       const result = await unifiedApiClient.putData(`${API_BASE}/graph/edges/batch-update`, { edges });
@@ -109,9 +98,7 @@ export const batchUpdateApi = {
   }
 };
 
-/**
- * Hook for using batch updates with React
- */
+
 export function useBatchUpdates() {
   const [isProcessing, setIsProcessing] = React.useState(false);
   const [lastResult, setLastResult] = React.useState<BatchUpdateResult | null>(null);

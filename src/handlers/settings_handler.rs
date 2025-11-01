@@ -19,7 +19,7 @@ use crate::handlers::settings_validation_fix::{
     validate_physics_settings_complete,
 };
 
-/// Get a human-readable name for a JSON value type
+/
 fn value_type_name(value: &Value) -> &'static str {
     match value {
         Value::Null => "null",
@@ -35,7 +35,7 @@ use serde_json::{json, Value};
 use std::borrow::Cow;
 use std::sync::Arc;
 
-/// DTO for settings responses with camelCase serialization
+/
 #[derive(Debug, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SettingsResponseDTO {
@@ -55,7 +55,7 @@ pub struct SettingsResponseDTO {
     pub whisper: Option<WhisperSettingsDTO>,
 }
 
-/// DTO for settings updates with camelCase deserialization
+/
 #[derive(Debug, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SettingsUpdateDTO {
@@ -84,7 +84,7 @@ pub struct SettingsUpdateDTO {
 pub struct VisualisationSettingsDTO {
     pub rendering: RenderingSettingsDTO,
     pub animations: AnimationSettingsDTO,
-    // Use "glow" consistently across all layers
+    
     pub glow: GlowSettingsDTO,
     pub hologram: HologramSettingsDTO,
     pub graphs: GraphsSettingsDTO,
@@ -635,7 +635,7 @@ impl From<&crate::config::VisualisationSettings> for VisualisationSettingsDTO {
 
 impl From<&crate::config::RenderingSettings> for RenderingSettingsDTO {
     fn from(settings: &crate::config::RenderingSettings) -> Self {
-        // Load agent colors from dev_config
+        
         let dev_config = crate::config::dev_config::rendering();
         let agent_colors = Some(AgentColorsDTO {
             coordinator: dev_config.agent_colors.coordinator.clone(),
@@ -647,7 +647,7 @@ impl From<&crate::config::RenderingSettings> for RenderingSettingsDTO {
             reviewer: dev_config.agent_colors.reviewer.clone(),
             optimizer: dev_config.agent_colors.optimizer.clone(),
             documenter: dev_config.agent_colors.documenter.clone(),
-            queen: "#FFD700".to_string(), // Gold color for queen
+            queen: "#FFD700".to_string(), 
             default: dev_config.agent_colors.default.clone(),
         });
 
@@ -1147,7 +1147,7 @@ impl From<&crate::config::WhisperSettings> for WhisperSettingsDTO {
     }
 }
 
-/// Enhanced settings handler with comprehensive validation
+/
 pub struct EnhancedSettingsHandler {
     validation_service: ValidationService,
     rate_limiter: Arc<RateLimiter>,
@@ -1164,14 +1164,14 @@ impl EnhancedSettingsHandler {
         }
     }
 
-    /// Enhanced settings update with full validation
+    
     pub async fn update_settings_enhanced(
         &self,
         req: HttpRequest,
         state: web::Data<AppState>,
         payload: web::Json<Value>,
     ) -> Result<HttpResponse, Error> {
-        // Extract request ID for tracing
+        
         let request_id = req
             .headers()
             .get("X-Request-ID")
@@ -1179,7 +1179,7 @@ impl EnhancedSettingsHandler {
             .unwrap_or(&Uuid::new_v4().to_string())
             .to_string();
 
-        // Extract authentication info
+        
         let pubkey = req
             .headers()
             .get("X-Nostr-Pubkey")
@@ -1195,7 +1195,7 @@ impl EnhancedSettingsHandler {
 
         let client_id = extract_client_id(&req);
 
-        // Rate limiting check
+        
         if !self.rate_limiter.is_allowed(&client_id) {
             warn!(
                 "Rate limit exceeded for settings update from client: {}",
@@ -1209,7 +1209,7 @@ impl EnhancedSettingsHandler {
             })));
         }
 
-        // Request size check
+        
         let payload_size = serde_json::to_vec(&*payload).unwrap_or_default().len();
         if payload_size > MAX_REQUEST_SIZE {
             error!("Settings update payload too large: {} bytes", payload_size);
@@ -1220,9 +1220,9 @@ impl EnhancedSettingsHandler {
             })));
         }
 
-        // Processing settings update
+        
 
-        // Comprehensive validation
+        
         let validated_payload = match self.validation_service.validate_settings_update(&payload) {
             Ok(sanitized) => sanitized,
             Err(validation_error) => {
@@ -1234,14 +1234,14 @@ impl EnhancedSettingsHandler {
             }
         };
 
-        // Settings validation passed
+        
 
-        // Continue with existing update logic using validated payload
+        
         let update = validated_payload;
 
-        // Settings update received
+        
 
-        // Get current settings
+        
         let mut app_settings = match state.settings_addr.send(GetSettings).await {
             Ok(Ok(s)) => s,
             Ok(Err(e)) => {
@@ -1258,7 +1258,7 @@ impl EnhancedSettingsHandler {
             }
         };
 
-        // Continue with existing auto-balance logic...
+        
         let mut modified_update = update.clone();
         let auto_balance_update = update
             .get("visualisation")
@@ -1281,9 +1281,9 @@ impl EnhancedSettingsHandler {
                 None
             });
 
-        // If auto_balance is being updated, apply to both graphs
+        
         if let Some(ref auto_balance_value) = auto_balance_update {
-            // Synchronizing auto_balance setting across both graphs
+            
 
             let vis_obj = modified_update
                 .as_object_mut()
@@ -1327,7 +1327,7 @@ impl EnhancedSettingsHandler {
             }
         }
 
-        // Merge the (possibly modified) update
+        
         if let Err(e) = app_settings.merge_update(modified_update.clone()) {
             error!("Failed to merge settings: {}", e);
             if crate::utils::logging::is_debug_enabled() {
@@ -1342,11 +1342,11 @@ impl EnhancedSettingsHandler {
             })));
         }
 
-        // Continue with existing update logic...
+        
         let _updated_graphs = if auto_balance_update.is_some() {
             vec!["logseq", "visionflow"]
         } else {
-            // Use the extract_physics_updates helper function
+            
             let _physics_updates = extract_physics_updates(&modified_update);
             modified_update
                 .get("visualisation")
@@ -1378,7 +1378,7 @@ impl EnhancedSettingsHandler {
                 .physics
                 .auto_balance;
 
-        // Save updated settings
+        
         match state
             .settings_addr
             .send(UpdateSettings {
@@ -1387,19 +1387,19 @@ impl EnhancedSettingsHandler {
             .await
         {
             Ok(Ok(())) => {
-                // Settings updated successfully
+                
 
                 let is_auto_balance_change = auto_balance_update.is_some();
 
                 if is_auto_balance_change || !auto_balance_active {
-                    // Only use logseq (knowledge graph) physics for now
-                    // TODO: Add graph type selection when agent graph is implemented
+                    
+                    
                     propagate_physics_to_gpu(&state, &app_settings, "logseq").await;
                     if is_auto_balance_change {
-                        // Propagating auto_balance setting change to GPU
+                        
                     }
                 } else {
-                    // Skipping physics propagation - auto-balance is active
+                    
                 }
 
                 let response_dto: SettingsResponseDTO = (&app_settings).into();
@@ -1427,13 +1427,13 @@ impl EnhancedSettingsHandler {
         }
     }
 
-    /// Enhanced get settings with validation metadata
+    
     pub async fn get_settings_enhanced(
         &self,
         req: HttpRequest,
         state: web::Data<AppState>,
     ) -> Result<HttpResponse, Error> {
-        // Extract request ID for tracing
+        
         let request_id = req
             .headers()
             .get("X-Request-ID")
@@ -1441,7 +1441,7 @@ impl EnhancedSettingsHandler {
             .unwrap_or(&Uuid::new_v4().to_string())
             .to_string();
 
-        // Extract authentication info
+        
         let pubkey = req
             .headers()
             .get("X-Nostr-Pubkey")
@@ -1457,7 +1457,7 @@ impl EnhancedSettingsHandler {
 
         let client_id = extract_client_id(&req);
 
-        // Rate limiting (more permissive for GET requests)
+        
         let get_rate_limiter = Arc::new(RateLimiter::new(RateLimitConfig {
             requests_per_minute: 120,
             burst_size: 20,
@@ -1471,7 +1471,7 @@ impl EnhancedSettingsHandler {
             })));
         }
 
-        // Processing get settings request
+        
 
         let app_settings = match state.settings_addr.send(GetSettings).await {
             Ok(Ok(settings)) => settings,
@@ -1504,7 +1504,7 @@ impl EnhancedSettingsHandler {
         })))
     }
 
-    /// Reset settings with validation
+    
     pub async fn reset_settings_enhanced(
         &self,
         req: HttpRequest,
@@ -1512,7 +1512,7 @@ impl EnhancedSettingsHandler {
     ) -> Result<HttpResponse, Error> {
         let client_id = extract_client_id(&req);
 
-        // Stricter rate limiting for reset operations
+        
         let reset_rate_limiter = Arc::new(RateLimiter::new(RateLimitConfig {
             requests_per_minute: 10,
             burst_size: 2,
@@ -1530,9 +1530,9 @@ impl EnhancedSettingsHandler {
             })));
         }
 
-        // Processing settings reset request
+        
 
-        // Load default settings
+        
         let default_settings = match AppFullSettings::new() {
             Ok(settings) => settings,
             Err(e) => {
@@ -1543,7 +1543,7 @@ impl EnhancedSettingsHandler {
             }
         };
 
-        // Save as current settings
+        
         match state
             .settings_addr
             .send(UpdateSettings {
@@ -1579,7 +1579,7 @@ impl EnhancedSettingsHandler {
         }
     }
 
-    /// Settings health check endpoint
+    
     pub async fn settings_health(
         &self,
         req: HttpRequest,
@@ -1597,14 +1597,14 @@ impl EnhancedSettingsHandler {
             "Settings health check requested"
         );
 
-        // Get cache statistics
+        
         let (cache_entries, cache_ages) =
             crate::models::user_settings::UserSettings::get_cache_stats();
 
-        // Calculate cache metrics
+        
         let cache_hit_rate = if cache_entries > 0 {
-            // This is an estimate - in production, track actual hits/misses
-            0.85 // Placeholder
+            
+            0.85 
         } else {
             0.0
         };
@@ -1621,7 +1621,7 @@ impl EnhancedSettingsHandler {
             0
         };
 
-        // Check settings actor health
+        
         let settings_healthy = match state.settings_addr.send(GetSettings).await {
             Ok(Ok(_)) => true,
             _ => false,
@@ -1635,7 +1635,7 @@ impl EnhancedSettingsHandler {
                 "hit_rate": cache_hit_rate,
                 "oldest_entry_secs": oldest_cache_entry,
                 "avg_age_secs": avg_cache_age,
-                "ttl_secs": 600, // 10 minutes
+                "ttl_secs": 600, 
             },
             "settings_actor": {
                 "responsive": settings_healthy,
@@ -1647,7 +1647,7 @@ impl EnhancedSettingsHandler {
         })))
     }
 
-    /// Get validation statistics for settings
+    
     pub async fn get_validation_stats(&self, req: HttpRequest) -> Result<HttpResponse, Error> {
         let client_id = extract_client_id(&req);
         debug!("Validation stats request from client: {}", client_id);
@@ -1684,14 +1684,14 @@ impl EnhancedSettingsHandler {
         })))
     }
 
-    /// Propagate physics updates to GPU actors
+    
     async fn propagate_physics_updates(
         &self,
         state: &web::Data<AppState>,
         settings: &AppFullSettings,
         update: &Value,
     ) {
-        // Check if physics was updated
+        
         let has_physics_update = update
             .get("visualisation")
             .and_then(|v| v.get("graphs"))
@@ -1705,8 +1705,8 @@ impl EnhancedSettingsHandler {
         if has_physics_update {
             info!("Propagating physics updates to GPU actors");
 
-            // Only use logseq (knowledge graph) physics for now
-            // TODO: Add graph type selection when agent graph is implemented
+            
+            
             let graph_name = "logseq";
             let physics = settings.get_physics(graph_name);
             let sim_params = crate::models::simulation_params::SimulationParams::from(physics);
@@ -1737,22 +1737,22 @@ impl Default for EnhancedSettingsHandler {
     }
 }
 
-/// Configure routes for settings endpoints
+/
 pub fn config(cfg: &mut web::ServiceConfig) {
     let handler = web::Data::new(EnhancedSettingsHandler::new());
 
     cfg.app_data(handler.clone())
         .service(
             web::scope("/settings")
-                // Modern path-based endpoints
+                
                 .route("/path", web::get().to(get_setting_by_path))
                 .route("/path", web::put().to(update_setting_by_path))
-                // Batch endpoints moved to settings_paths.rs to avoid duplicate route conflicts
-                // .route("/batch", web::post().to(batch_get_settings))
-                // .route("/batch", web::put().to(batch_update_settings))
+                
+                
+                
                 .route("/schema", web::get().to(get_settings_schema))
                 .route("/current", web::get().to(get_current_settings))
-                // Legacy endpoints (kept for compatibility but deprecated)
+                
                 .route("", web::get().to(get_settings))
                 .route("", web::post().to(update_settings))
                 .route("/reset", web::post().to(reset_settings))
@@ -1785,7 +1785,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         );
 }
 
-/// Get single setting by path
+/
 async fn get_setting_by_path(
     req: HttpRequest,
     state: web::Data<AppState>,
@@ -1838,7 +1838,7 @@ async fn get_setting_by_path(
     }
 }
 
-/// Update single setting by path
+/
 async fn update_setting_by_path(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -1887,24 +1887,24 @@ async fn update_setting_by_path(
                 Ok(Ok(())) => {
                     info!("Updated setting at path: {}", path);
 
-                    // Check if this is a physics setting and propagate to GPU if so
+                    
                     if path.contains(".physics.")
                         || path.contains(".graphs.logseq.")
                         || path.contains(".graphs.visionflow.")
                     {
                         info!("Physics setting changed, propagating to GPU actors");
 
-                        // Determine which graph was updated
+                        
                         let graph_name = if path.contains(".graphs.logseq.") {
                             "logseq"
                         } else if path.contains(".graphs.visionflow.") {
                             "visionflow"
                         } else {
-                            // Default to logseq for general physics settings
+                            
                             "logseq"
                         };
 
-                        // Propagate physics to GPU
+                        
                         propagate_physics_to_gpu(&state, &app_settings, graph_name).await;
                     }
 
@@ -1943,7 +1943,7 @@ async fn update_setting_by_path(
     }
 }
 
-/// Batch get multiple settings
+/
 async fn batch_get_settings(
     state: web::Data<AppState>,
     payload: web::Json<Value>,
@@ -2008,12 +2008,12 @@ async fn batch_get_settings(
     })))
 }
 
-/// Batch update multiple settings
+/
 async fn batch_update_settings(
     state: web::Data<AppState>,
     payload: web::Json<Value>,
 ) -> Result<HttpResponse, Error> {
-    // Log the incoming request for debugging
+    
     info!("Batch update request received: {:?}", payload);
 
     let updates = payload
@@ -2082,13 +2082,13 @@ async fn batch_update_settings(
                 }));
             }
             Err(e) => {
-                // Enhanced error logging with more context
+                
                 error!(
                     "Failed to update path '{}' with value {:?}: {}",
                     path, value, e
                 );
 
-                // Try to provide more specific error information
+                
                 let error_detail = if e.contains("does not exist") {
                     format!("Path '{}' does not exist in settings structure", path)
                 } else if e.contains("Type mismatch") {
@@ -2111,7 +2111,7 @@ async fn batch_update_settings(
         }
     }
 
-    // Save only if at least one update succeeded
+    
     if success_count > 0 {
         match state
             .settings_addr
@@ -2123,7 +2123,7 @@ async fn batch_update_settings(
             Ok(Ok(())) => {
                 info!("Batch updated {} settings successfully", success_count);
 
-                // Check if any physics settings were updated and propagate if so
+                
                 let mut physics_updated = false;
                 for update in updates {
                     let path = update.get("path").and_then(|p| p.as_str()).unwrap_or("");
@@ -2138,10 +2138,10 @@ async fn batch_update_settings(
 
                 if physics_updated {
                     info!("Physics settings changed in batch update, propagating to GPU actors");
-                    // Propagate to both graphs since batch update might affect both
+                    
                     propagate_physics_to_gpu(&state, &app_settings, "logseq").await;
-                    // Optionally propagate to visionflow if needed
-                    // propagate_physics_to_gpu(&state, &app_settings, "visionflow").await;
+                    
+                    
                 }
             }
             Ok(Err(e)) => {
@@ -2170,7 +2170,7 @@ async fn batch_update_settings(
     })))
 }
 
-/// Get settings schema for introspection
+/
 async fn get_settings_schema(
     req: HttpRequest,
     _state: web::Data<AppState>,
@@ -2187,14 +2187,14 @@ async fn get_settings_schema(
         })
         .unwrap_or_default();
 
-    // For now, return a simple schema based on the path
-    // In a full implementation, this would reflect the actual structure
+    
+    
     let schema = json!({
         "type": "object",
         "properties": {
             "damping": { "type": "number", "description": "Physics damping factor (0.0-1.0)" },
             "gravity": { "type": "number", "description": "Physics gravity strength" },
-            // Add more fields based on path
+            
         },
         "path": path
     });
@@ -2206,7 +2206,7 @@ async fn get_settings_schema(
     })))
 }
 
-/// Get current settings - returns camelCase JSON (legacy, kept for compatibility)
+/
 async fn get_settings(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -2227,13 +2227,13 @@ async fn get_settings(
         }
     };
 
-    // Convert to DTO with camelCase serialization for client
+    
     let response_dto: SettingsResponseDTO = (&app_settings).into();
 
     Ok(HttpResponse::Ok().json(response_dto))
 }
 
-/// Get current settings with version information
+/
 async fn get_current_settings(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -2254,10 +2254,10 @@ async fn get_current_settings(
         }
     };
 
-    // Convert to DTO with camelCase serialization for client
+    
     let response_dto: SettingsResponseDTO = (&app_settings).into();
 
-    // Wrap with version info
+    
     Ok(HttpResponse::Ok().json(json!({
         "settings": response_dto,
         "version": app_settings.version,
@@ -2268,7 +2268,7 @@ async fn get_current_settings(
     })))
 }
 
-/// Update settings with validation - accepts camelCase JSON
+/
 async fn update_settings(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -2276,12 +2276,12 @@ async fn update_settings(
 ) -> Result<HttpResponse, Error> {
     let mut update = payload.into_inner();
 
-    // Apply comprehensive case conversion from camelCase to snake_case
+    
     convert_to_snake_case_recursive(&mut update);
 
     debug!("Settings update received: {:?}", update);
 
-    // Validate the update
+    
     if let Err(e) = validate_settings_update(&update) {
         error!("Settings validation failed: {}", e);
         error!(
@@ -2293,7 +2293,7 @@ async fn update_settings(
         })));
     }
 
-    // Get current settings
+    
     let mut app_settings = match state.settings_addr.send(GetSettings).await {
         Ok(Ok(s)) => s,
         Ok(Err(e)) => {
@@ -2310,7 +2310,7 @@ async fn update_settings(
         }
     };
 
-    // Debug: Log the update payload before merging
+    
     if crate::utils::logging::is_debug_enabled() {
         debug!(
             "Settings update payload (before merge): {}",
@@ -2319,14 +2319,14 @@ async fn update_settings(
         );
     }
 
-    // Check if auto_balance is being updated in either graph
-    // If so, apply it to both graphs for consistency
+    
+    
     let mut modified_update = update.clone();
     let auto_balance_update = update
         .get("visualisation")
         .and_then(|v| v.get("graphs"))
         .and_then(|g| {
-            // Check if logseq graph has auto_balance update
+            
             if let Some(logseq) = g.get("logseq") {
                 if let Some(physics) = logseq.get("physics") {
                     if let Some(auto_balance) = physics.get("autoBalance") {
@@ -2334,7 +2334,7 @@ async fn update_settings(
                     }
                 }
             }
-            // Check if visionflow graph has auto_balance update
+            
             if let Some(visionflow) = g.get("visionflow") {
                 if let Some(physics) = visionflow.get("physics") {
                     if let Some(auto_balance) = physics.get("autoBalance") {
@@ -2345,14 +2345,14 @@ async fn update_settings(
             None
         });
 
-    // If auto_balance is being updated, apply to both graphs
+    
     if let Some(ref auto_balance_value) = auto_balance_update {
         info!(
             "Synchronizing auto_balance setting across both graphs: {}",
             auto_balance_value
         );
 
-        // Ensure the update structure exists for both graphs
+        
         let vis_obj = modified_update
             .as_object_mut()
             .and_then(|o| {
@@ -2367,7 +2367,7 @@ async fn update_settings(
             });
 
         if let Some(graphs) = vis_obj {
-            // Update logseq graph
+            
             let logseq_physics = graphs
                 .entry("logseq")
                 .or_insert_with(|| json!({}))
@@ -2381,7 +2381,7 @@ async fn update_settings(
                 physics.insert("autoBalance".to_string(), auto_balance_value.clone());
             }
 
-            // Update visionflow graph
+            
             let visionflow_physics = graphs
                 .entry("visionflow")
                 .or_insert_with(|| json!({}))
@@ -2397,7 +2397,7 @@ async fn update_settings(
         }
     }
 
-    // Merge the (possibly modified) update
+    
     if let Err(e) = app_settings.merge_update(modified_update.clone()) {
         error!("Failed to merge settings: {}", e);
         if crate::utils::logging::is_debug_enabled() {
@@ -2412,10 +2412,10 @@ async fn update_settings(
         })));
     }
 
-    // Check which graphs had physics updated
-    // If auto_balance was synchronized, both graphs are considered updated
+    
+    
     let _updated_graphs = if auto_balance_update.is_some() {
-        // Also extract physics updates for analysis
+        
         let _physics_updates = extract_physics_updates(&update);
         vec!["logseq", "visionflow"]
     } else {
@@ -2436,8 +2436,8 @@ async fn update_settings(
             .unwrap_or_default()
     };
 
-    // Check if auto-balance is enabled in the current settings
-    // If auto-balance is active, don't propagate physics back to avoid feedback loop
+    
+    
     let auto_balance_active = app_settings
         .visualisation
         .graphs
@@ -2451,7 +2451,7 @@ async fn update_settings(
             .physics
             .auto_balance;
 
-    // Save updated settings
+    
     match state
         .settings_addr
         .send(UpdateSettings {
@@ -2462,17 +2462,17 @@ async fn update_settings(
         Ok(Ok(())) => {
             info!("Settings updated successfully");
 
-            // Check if this update is changing the auto_balance setting itself
-            // If so, we MUST propagate it regardless of current auto_balance state
+            
+            
             let is_auto_balance_change = auto_balance_update.is_some();
 
-            // Propagate physics updates to GPU
-            // - Always propagate if auto_balance setting is being changed
-            // - Skip only if auto_balance is already active AND this isn't an auto_balance change
-            //   (to prevent feedback loops from auto-tuning adjustments)
+            
+            
+            
+            
             if is_auto_balance_change || !auto_balance_active {
-                // Only use logseq (knowledge graph) physics for now
-                // TODO: Add graph type selection when agent graph is implemented
+                
+                
                 propagate_physics_to_gpu(&state, &app_settings, "logseq").await;
                 if is_auto_balance_change {
                     info!("[AUTO-BALANCE] Propagating auto_balance setting change to GPU (logseq only)");
@@ -2481,7 +2481,7 @@ async fn update_settings(
                 info!("[AUTO-BALANCE] Skipping physics propagation to GPU - auto-balance is active and not changing");
             }
 
-            // Return updated settings using DTO with camelCase serialization
+            
             let response_dto: SettingsResponseDTO = (&app_settings).into();
 
             Ok(HttpResponse::Ok().json(response_dto))
@@ -2501,12 +2501,12 @@ async fn update_settings(
     }
 }
 
-/// Reset settings to defaults from settings.yaml
+/
 async fn reset_settings(
     _req: HttpRequest,
     state: web::Data<AppState>,
 ) -> Result<HttpResponse, Error> {
-    // Load default settings from YAML
+    
     let default_settings = match AppFullSettings::new() {
         Ok(settings) => settings,
         Err(e) => {
@@ -2517,7 +2517,7 @@ async fn reset_settings(
         }
     };
 
-    // Save as current settings
+    
     match state
         .settings_addr
         .send(UpdateSettings {
@@ -2528,7 +2528,7 @@ async fn reset_settings(
         Ok(Ok(())) => {
             info!("Settings reset to defaults");
 
-            // Return default settings using DTO with camelCase serialization
+            
             let response_dto: SettingsResponseDTO = (&default_settings).into();
 
             Ok(HttpResponse::Ok().json(response_dto))
@@ -2548,13 +2548,13 @@ async fn reset_settings(
     }
 }
 
-/// Explicitly save current settings to file
+/
 async fn save_settings(
     _req: HttpRequest,
     state: web::Data<AppState>,
     payload: Option<web::Json<Value>>,
 ) -> Result<HttpResponse, Error> {
-    // Get current settings
+    
     let mut app_settings = match state.settings_addr.send(GetSettings).await {
         Ok(Ok(s)) => s,
         Ok(Err(e)) => {
@@ -2571,11 +2571,11 @@ async fn save_settings(
         }
     };
 
-    // If payload is provided, merge it with current settings first
+    
     if let Some(update) = payload {
         let update_value = update.into_inner();
 
-        // Validate the update
+        
         if let Err(e) = validate_settings_update(&update_value) {
             error!("Settings validation failed: {}", e);
             return Ok(HttpResponse::BadRequest().json(json!({
@@ -2583,7 +2583,7 @@ async fn save_settings(
             })));
         }
 
-        // Merge the update
+        
         if let Err(e) = app_settings.merge_update(update_value) {
             error!("Failed to merge settings update: {}", e);
             return Ok(HttpResponse::BadRequest().json(json!({
@@ -2592,19 +2592,19 @@ async fn save_settings(
         }
     }
 
-    // Check if persist_settings is enabled
+    
     if !app_settings.system.persist_settings {
         return Ok(HttpResponse::BadRequest().json(json!({
             "error": "Settings persistence is disabled. Enable 'system.persist_settings' to save settings."
         })));
     }
 
-    // Save the settings to file
+    
     match app_settings.save() {
         Ok(()) => {
             info!("Settings successfully saved to file");
 
-            // Update the settings in the actor to ensure consistency
+            
             match state
                 .settings_addr
                 .send(UpdateSettings {
@@ -2644,12 +2644,12 @@ async fn save_settings(
     }
 }
 
-/// Validate settings update payload
+/
 fn validate_settings_update(update: &Value) -> Result<(), String> {
-    // Validate visualisation settings
+    
     if let Some(vis) = update.get("visualisation") {
         if let Some(graphs) = vis.get("graphs") {
-            // Validate graph settings
+            
             for (graph_name, graph_settings) in
                 graphs.as_object().ok_or("graphs must be an object")?.iter()
             {
@@ -2657,35 +2657,35 @@ fn validate_settings_update(update: &Value) -> Result<(), String> {
                     return Err(format!("Invalid graph name: {}", graph_name));
                 }
 
-                // Validate physics settings
+                
                 if let Some(physics) = graph_settings.get("physics") {
                     validate_physics_settings(physics)?;
                 }
 
-                // Validate node settings
+                
                 if let Some(nodes) = graph_settings.get("nodes") {
                     validate_node_settings(nodes)?;
                 }
             }
         }
 
-        // Validate rendering settings
+        
         if let Some(rendering) = vis.get("rendering") {
             validate_rendering_settings(rendering)?;
         }
 
-        // Validate hologram settings
+        
         if let Some(hologram) = vis.get("hologram") {
             validate_hologram_settings(hologram)?;
         }
     }
 
-    // Validate XR settings
+    
     if let Some(xr) = update.get("xr") {
         validate_xr_settings(xr)?;
     }
 
-    // Validate system settings
+    
     if let Some(system) = update.get("system") {
         validate_system_settings(system)?;
     }
@@ -2694,10 +2694,10 @@ fn validate_settings_update(update: &Value) -> Result<(), String> {
 }
 
 fn validate_physics_settings(physics: &Value) -> Result<(), String> {
-    // Use comprehensive validation with proper GPU bounds to prevent NaN and explosions
+    
     validate_physics_settings_complete(physics)?;
 
-    // Log what fields are actually being sent for debugging
+    
     if let Some(obj) = physics.as_object() {
         debug!(
             "Physics settings fields received: {:?}",
@@ -2705,7 +2705,7 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
         );
     }
 
-    // Additional validations for iterations (accept both int and float from JS)
+    
     if let Some(iterations) = physics.get("iterations") {
         let val = iterations
             .as_f64()
@@ -2717,7 +2717,7 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
         }
     }
 
-    // Auto-balance interval validation
+    
     if let Some(auto_balance_interval) = physics.get("autoBalanceIntervalMs") {
         let val = auto_balance_interval
             .as_u64()
@@ -2728,7 +2728,7 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
         }
     }
 
-    // Boundary limit validation (should be ~98% of boundsSize)
+    
     if let Some(boundary_limit) = physics.get("boundaryLimit") {
         let val = boundary_limit
             .as_f64()
@@ -2737,7 +2737,7 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
             return Err("boundaryLimit must be between 0.1 and 100000.0".to_string());
         }
 
-        // If boundsSize is also present, validate the relationship
+        
         if let Some(bounds_size) = physics.get("boundsSize").and_then(|b| b.as_f64()) {
             let max_boundary = bounds_size * 0.99;
             if val > max_boundary {
@@ -2753,7 +2753,7 @@ fn validate_physics_settings(physics: &Value) -> Result<(), String> {
 }
 
 fn validate_node_settings(nodes: &Value) -> Result<(), String> {
-    // UNIFIED FORMAT: Only accept camelCase "baseColor"
+    
     if let Some(color) = nodes.get("baseColor") {
         let color_str = color.as_str().ok_or("baseColor must be a string")?;
         if !color_str.starts_with('#') || (color_str.len() != 7 && color_str.len() != 4) {
@@ -2782,7 +2782,7 @@ fn validate_node_settings(nodes: &Value) -> Result<(), String> {
         }
     }
 
-    // UNIFIED FORMAT: Only accept "nodeSize"
+    
     if let Some(node_size) = nodes.get("nodeSize") {
         let val = node_size.as_f64().ok_or("nodeSize must be a number")?;
         if val <= 0.0 || val > 1000.0 {
@@ -2801,7 +2801,7 @@ fn validate_node_settings(nodes: &Value) -> Result<(), String> {
 }
 
 fn validate_rendering_settings(rendering: &Value) -> Result<(), String> {
-    // UNIFIED FORMAT: Only accept "ambientLightIntensity"
+    
     if let Some(ambient) = rendering.get("ambientLightIntensity") {
         let val = ambient
             .as_f64()
@@ -2811,7 +2811,7 @@ fn validate_rendering_settings(rendering: &Value) -> Result<(), String> {
         }
     }
 
-    // Validate glow settings - use "glow" field consistently
+    
     if let Some(glow) = rendering.get("glow") {
         validate_glow_settings(glow)?;
     }
@@ -2819,16 +2819,16 @@ fn validate_rendering_settings(rendering: &Value) -> Result<(), String> {
     Ok(())
 }
 
-/// Validate glow effect settings
+/
 fn validate_glow_settings(glow: &Value) -> Result<(), String> {
-    // Validate enabled flag
+    
     if let Some(enabled) = glow.get("enabled") {
         if !enabled.is_boolean() {
             return Err("glow enabled must be a boolean".to_string());
         }
     }
 
-    // Validate intensity/strength fields
+    
     for field_name in ["intensity", "strength"] {
         if let Some(intensity) = glow.get(field_name) {
             let val = intensity
@@ -2840,7 +2840,7 @@ fn validate_glow_settings(glow: &Value) -> Result<(), String> {
         }
     }
 
-    // Validate radius field
+    
     if let Some(radius) = glow.get("radius") {
         let val = radius.as_f64().ok_or("glow radius must be a number")?;
         if val < 0.0 || val > 5.0 {
@@ -2848,7 +2848,7 @@ fn validate_glow_settings(glow: &Value) -> Result<(), String> {
         }
     }
 
-    // Validate threshold field
+    
     if let Some(threshold) = glow.get("threshold") {
         let val = threshold
             .as_f64()
@@ -2858,7 +2858,7 @@ fn validate_glow_settings(glow: &Value) -> Result<(), String> {
         }
     }
 
-    // Validate specific glow strength fields
+    
     for field_name in [
         "edgeGlowStrength",
         "environmentGlowStrength",
@@ -2878,13 +2878,13 @@ fn validate_glow_settings(glow: &Value) -> Result<(), String> {
 }
 
 fn validate_hologram_settings(hologram: &Value) -> Result<(), String> {
-    // Validate ringCount - MUST be an integer
+    
     if let Some(ring_count) = hologram.get("ringCount") {
-        // Accept both integer and float values (JavaScript might send 5.0)
+        
         let val = ring_count
             .as_f64()
-            .map(|f| f.round() as u64) // Round float to u64
-            .or_else(|| ring_count.as_u64()) // Also accept direct integer
+            .map(|f| f.round() as u64) 
+            .or_else(|| ring_count.as_u64()) 
             .ok_or("ringCount must be a positive integer")?;
 
         if val > 20 {
@@ -2892,7 +2892,7 @@ fn validate_hologram_settings(hologram: &Value) -> Result<(), String> {
         }
     }
 
-    // Validate ringColor (hex color)
+    
     if let Some(color) = hologram.get("ringColor") {
         let color_str = color.as_str().ok_or("ringColor must be a string")?;
         if !color_str.starts_with('#') || (color_str.len() != 7 && color_str.len() != 4) {
@@ -2900,7 +2900,7 @@ fn validate_hologram_settings(hologram: &Value) -> Result<(), String> {
         }
     }
 
-    // Validate ringOpacity
+    
     if let Some(opacity) = hologram.get("ringOpacity") {
         let val = opacity.as_f64().ok_or("ringOpacity must be a number")?;
         if !(0.0..=1.0).contains(&val) {
@@ -2908,7 +2908,7 @@ fn validate_hologram_settings(hologram: &Value) -> Result<(), String> {
         }
     }
 
-    // Validate ringRotationSpeed
+    
     if let Some(speed) = hologram.get("ringRotationSpeed") {
         let val = speed.as_f64().ok_or("ringRotationSpeed must be a number")?;
         if val < 0.0 || val > 1000.0 {
@@ -2920,12 +2920,12 @@ fn validate_hologram_settings(hologram: &Value) -> Result<(), String> {
 }
 
 fn validate_system_settings(system: &Value) -> Result<(), String> {
-    // Handle debug settings
+    
     if let Some(debug) = system.get("debug") {
         if let Some(debug_obj) = debug.as_object() {
-            // All debug flags should be booleans - UNIFIED FORMAT ONLY
+            
             let boolean_fields = [
-                "enabled", // NOT "enableClientDebugMode" - unified format only!
+                "enabled", 
                 "showFPS",
                 "showMemory",
                 "enablePerformanceDebug",
@@ -2946,7 +2946,7 @@ fn validate_system_settings(system: &Value) -> Result<(), String> {
                 }
             }
 
-            // logLevel can be a number or string
+            
             if let Some(log_level) = debug_obj.get("logLevel") {
                 if let Some(val) = log_level.as_f64() {
                     if val < 0.0 || val > 3.0 {
@@ -2957,10 +2957,10 @@ fn validate_system_settings(system: &Value) -> Result<(), String> {
                         return Err("debug.logLevel must be between 0 and 3".to_string());
                     }
                 } else if let Some(val) = log_level.as_str() {
-                    // Accept string log levels from client
+                    
                     match val {
                         "error" | "warn" | "info" | "debug" => {
-                            // Valid string log level
+                            
                         }
                         _ => {
                             return Err(
@@ -2976,14 +2976,14 @@ fn validate_system_settings(system: &Value) -> Result<(), String> {
         }
     }
 
-    // Handle persistSettingsOnServer
+    
     if let Some(persist) = system.get("persistSettingsOnServer") {
         if !persist.is_boolean() {
             return Err("system.persistSettingsOnServer must be a boolean".to_string());
         }
     }
 
-    // Handle customBackendUrl
+    
     if let Some(url) = system.get("customBackendUrl") {
         if !url.is_string() && !url.is_null() {
             return Err("system.customBackendUrl must be a string or null".to_string());
@@ -2994,14 +2994,14 @@ fn validate_system_settings(system: &Value) -> Result<(), String> {
 }
 
 fn validate_xr_settings(xr: &Value) -> Result<(), String> {
-    // UNIFIED FORMAT: Only accept "enabled", not "enableXrMode"
+    
     if let Some(enabled) = xr.get("enabled") {
         if !enabled.is_boolean() {
             return Err("XR enabled must be a boolean".to_string());
         }
     }
 
-    // Handle quality setting
+    
     if let Some(quality) = xr.get("quality") {
         if let Some(q) = quality.as_str() {
             if !["Low", "Medium", "High", "low", "medium", "high"].contains(&q) {
@@ -3012,7 +3012,7 @@ fn validate_xr_settings(xr: &Value) -> Result<(), String> {
         }
     }
 
-    // UNIFIED FORMAT: Only accept "renderScale"
+    
     if let Some(render_scale) = xr.get("renderScale") {
         let val = render_scale
             .as_f64()
@@ -3022,7 +3022,7 @@ fn validate_xr_settings(xr: &Value) -> Result<(), String> {
         }
     }
 
-    // UNIFIED FORMAT: Only accept "roomScale"
+    
     if let Some(room_scale) = xr.get("roomScale") {
         let val = room_scale.as_f64().ok_or("roomScale must be a number")?;
         if val <= 0.0 || val > 100.0 {
@@ -3030,7 +3030,7 @@ fn validate_xr_settings(xr: &Value) -> Result<(), String> {
         }
     }
 
-    // Handle nested handTracking object
+    
     if let Some(hand_tracking) = xr.get("handTracking") {
         if let Some(ht_obj) = hand_tracking.as_object() {
             if let Some(enabled) = ht_obj.get("enabled") {
@@ -3041,7 +3041,7 @@ fn validate_xr_settings(xr: &Value) -> Result<(), String> {
         }
     }
 
-    // Handle nested interactions object
+    
     if let Some(interactions) = xr.get("interactions") {
         if let Some(int_obj) = interactions.as_object() {
             if let Some(haptics) = int_obj.get("enableHaptics") {
@@ -3055,7 +3055,7 @@ fn validate_xr_settings(xr: &Value) -> Result<(), String> {
     Ok(())
 }
 
-/// Propagate physics settings to GPU compute actor
+/
 async fn propagate_physics_to_gpu(
     state: &web::Data<AppState>,
     settings: &AppFullSettings,
@@ -3063,7 +3063,7 @@ async fn propagate_physics_to_gpu(
 ) {
     let physics = settings.get_physics(graph);
 
-    // Always log critical physics values with new parameter names
+    
     info!("[PHYSICS UPDATE] Propagating {} physics to actors:", graph);
     info!(
         "  - repulsion_k: {:.3} (affects node spreading)",
@@ -3091,14 +3091,14 @@ async fn propagate_physics_to_gpu(
 
     if crate::utils::logging::is_debug_enabled() {
         debug!("  - bounds_size: {:.1}", physics.bounds_size);
-        debug!("  - separation_radius: {:.3}", physics.separation_radius); // Updated name
+        debug!("  - separation_radius: {:.3}", physics.separation_radius); 
         debug!("  - mass_scale: {:.3}", physics.mass_scale);
         debug!("  - boundary_damping: {:.3}", physics.boundary_damping);
         debug!("  - update_threshold: {:.3}", physics.update_threshold);
         debug!("  - iterations: {}", physics.iterations);
         debug!("  - enabled: {}", physics.enabled);
 
-        // Log new GPU-aligned parameters
+        
         debug!("  - min_distance: {:.3}", physics.min_distance);
         debug!("  - max_repulsion_dist: {:.1}", physics.max_repulsion_dist);
         debug!("  - boundary_margin: {:.3}", physics.boundary_margin);
@@ -3137,7 +3137,7 @@ async fn propagate_physics_to_gpu(
         params: sim_params.clone(),
     };
 
-    // Send to GPU compute actor
+    
     if let Some(gpu_addr) = &state.gpu_compute_addr {
         info!("[PHYSICS UPDATE] Sending to GPUComputeActor...");
         if let Err(e) = gpu_addr.send(update_msg.clone()).await {
@@ -3149,7 +3149,7 @@ async fn propagate_physics_to_gpu(
         warn!("[PHYSICS UPDATE] No GPUComputeActor available");
     }
 
-    // Send to graph service actor
+    
     info!("[PHYSICS UPDATE] Sending to GraphServiceActor...");
     if let Err(e) = state.graph_service_addr.send(update_msg).await {
         error!("[PHYSICS UPDATE] FAILED to update GraphServiceActor: {}", e);
@@ -3158,7 +3158,7 @@ async fn propagate_physics_to_gpu(
     }
 }
 
-/// Helper function to get field variants (camelCase or snake_case)
+/
 fn get_field_variant<'a>(obj: &'a Value, variants: &[&str]) -> Option<&'a Value> {
     for variant in variants {
         if let Some(val) = obj.get(*variant) {
@@ -3168,7 +3168,7 @@ fn get_field_variant<'a>(obj: &'a Value, variants: &[&str]) -> Option<&'a Value>
     None
 }
 
-/// Count the number of fields in a JSON object recursively
+/
 fn count_fields(value: &Value) -> usize {
     match value {
         Value::Object(map) => map.len() + map.values().map(count_fields).sum::<usize>(),
@@ -3177,7 +3177,7 @@ fn count_fields(value: &Value) -> usize {
     }
 }
 
-/// Extract which graphs have physics updates
+/
 fn extract_physics_updates(update: &Value) -> Vec<&str> {
     update
         .get("visualisation")
@@ -3206,7 +3206,7 @@ fn extract_physics_updates(update: &Value) -> Vec<&str> {
         .unwrap_or_default()
 }
 
-/// Extract the field name that failed validation
+/
 fn extract_failed_field(physics: &Value) -> String {
     if let Some(obj) = physics.as_object() {
         obj.keys().next().unwrap_or(&"unknown".to_string()).clone()
@@ -3215,35 +3215,35 @@ fn extract_failed_field(physics: &Value) -> String {
     }
 }
 
-/// Create a proper settings update structure for physics parameters
-/// Maps old parameter names to new ones for backward compatibility
+/
+/
 fn create_physics_settings_update(physics_update: Value) -> Value {
     let mut normalized_physics = physics_update.clone();
 
-    // Map old parameter names to new ones if old names are present
+    
     if let Some(obj) = normalized_physics.as_object_mut() {
-        // Map springStrength -> springK
+        
         if let Some(spring_strength) = obj.remove("springStrength") {
             if !obj.contains_key("springK") {
                 obj.insert("springK".to_string(), spring_strength);
             }
         }
 
-        // Map repulsionStrength -> repelK (GPU-aligned name)
+        
         if let Some(repulsion_strength) = obj.remove("repulsionStrength") {
             if !obj.contains_key("repelK") {
                 obj.insert("repelK".to_string(), repulsion_strength);
             }
         }
 
-        // Map attractionStrength -> attractionK
+        
         if let Some(attraction_strength) = obj.remove("attractionStrength") {
             if !obj.contains_key("attractionK") {
                 obj.insert("attractionK".to_string(), attraction_strength);
             }
         }
 
-        // Map collisionRadius -> separationRadius
+        
         if let Some(collision_radius) = obj.remove("collisionRadius") {
             if !obj.contains_key("separationRadius") {
                 obj.insert("separationRadius".to_string(), collision_radius);
@@ -3265,7 +3265,7 @@ fn create_physics_settings_update(physics_update: Value) -> Value {
     })
 }
 
-/// Update compute mode endpoint
+/
 async fn update_compute_mode(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -3279,7 +3279,7 @@ async fn update_compute_mode(
         serde_json::to_string_pretty(&update).unwrap_or_default()
     );
 
-    // Validate compute mode
+    
     let compute_mode = update
         .get("computeMode")
         .and_then(|v| v.as_u64())
@@ -3293,14 +3293,14 @@ async fn update_compute_mode(
         })));
     }
 
-    // Create physics update with compute mode
+    
     let physics_update = json!({
         "computeMode": compute_mode
     });
 
     let settings_update = create_physics_settings_update(physics_update);
 
-    // Get and update settings
+    
     let mut app_settings = match state.settings_addr.send(GetSettings).await {
         Ok(Ok(s)) => s,
         Ok(Err(e)) => {
@@ -3324,7 +3324,7 @@ async fn update_compute_mode(
         })));
     }
 
-    // Save updated settings
+    
     match state
         .settings_addr
         .send(UpdateSettings {
@@ -3335,7 +3335,7 @@ async fn update_compute_mode(
         Ok(Ok(())) => {
             info!("Compute mode updated successfully to: {}", compute_mode);
 
-            // Propagate to GPU
+            
             propagate_physics_to_gpu(&state, &app_settings, "logseq").await;
             propagate_physics_to_gpu(&state, &app_settings, "visionflow").await;
 
@@ -3359,7 +3359,7 @@ async fn update_compute_mode(
     }
 }
 
-/// Update clustering algorithm endpoint
+/
 async fn update_clustering_algorithm(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -3373,7 +3373,7 @@ async fn update_clustering_algorithm(
         serde_json::to_string_pretty(&update).unwrap_or_default()
     );
 
-    // Validate clustering algorithm
+    
     let algorithm = update
         .get("algorithm")
         .and_then(|v| v.as_str())
@@ -3385,7 +3385,7 @@ async fn update_clustering_algorithm(
         })));
     }
 
-    // Extract optional parameters
+    
     let cluster_count = update
         .get("clusterCount")
         .and_then(|v| v.as_u64())
@@ -3399,7 +3399,7 @@ async fn update_clustering_algorithm(
         .and_then(|v| v.as_u64())
         .unwrap_or(30);
 
-    // Create physics update with clustering parameters
+    
     let physics_update = json!({
         "clusteringAlgorithm": algorithm,
         "clusterCount": cluster_count,
@@ -3409,7 +3409,7 @@ async fn update_clustering_algorithm(
 
     let settings_update = create_physics_settings_update(physics_update);
 
-    // Get and update settings
+    
     let mut app_settings = match state.settings_addr.send(GetSettings).await {
         Ok(Ok(s)) => s,
         Ok(Err(e)) => {
@@ -3433,7 +3433,7 @@ async fn update_clustering_algorithm(
         })));
     }
 
-    // Save updated settings
+    
     match state
         .settings_addr
         .send(UpdateSettings {
@@ -3447,7 +3447,7 @@ async fn update_clustering_algorithm(
                 algorithm
             );
 
-            // Propagate to GPU
+            
             propagate_physics_to_gpu(&state, &app_settings, "logseq").await;
             propagate_physics_to_gpu(&state, &app_settings, "visionflow").await;
 
@@ -3474,7 +3474,7 @@ async fn update_clustering_algorithm(
     }
 }
 
-/// Update constraints endpoint
+/
 async fn update_constraints(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -3488,21 +3488,21 @@ async fn update_constraints(
         serde_json::to_string_pretty(&update).unwrap_or_default()
     );
 
-    // Validate constraint data structure
+    
     if let Err(e) = validate_constraints(&update) {
         return Ok(HttpResponse::BadRequest().json(json!({
             "error": format!("Invalid constraints: {}", e)
         })));
     }
 
-    // For now, store constraints in physics settings
-    // In a real implementation, you'd have a dedicated constraints store
+    
+    
     let settings_update = json!({
         "visualisation": {
             "graphs": {
                 "logseq": {
                     "physics": {
-                        "computeMode": 2  // Enable constraints mode
+                        "computeMode": 2  
                     }
                 },
                 "visionflow": {
@@ -3514,7 +3514,7 @@ async fn update_constraints(
         }
     });
 
-    // Get and update settings
+    
     let mut app_settings = match state.settings_addr.send(GetSettings).await {
         Ok(Ok(s)) => s,
         Ok(Err(e)) => {
@@ -3538,7 +3538,7 @@ async fn update_constraints(
         })));
     }
 
-    // Save updated settings
+    
     match state
         .settings_addr
         .send(UpdateSettings {
@@ -3549,7 +3549,7 @@ async fn update_constraints(
         Ok(Ok(())) => {
             info!("Constraints updated successfully");
 
-            // Propagate to GPU
+            
             propagate_physics_to_gpu(&state, &app_settings, "logseq").await;
             propagate_physics_to_gpu(&state, &app_settings, "visionflow").await;
 
@@ -3572,19 +3572,19 @@ async fn update_constraints(
     }
 }
 
-/// Get cluster analytics endpoint
+/
 async fn get_cluster_analytics(
     _req: HttpRequest,
     state: web::Data<AppState>,
 ) -> Result<HttpResponse, Error> {
     info!("Cluster analytics request received");
 
-    // Check if GPU clustering is available
+    
     if let Some(gpu_addr) = &state.gpu_compute_addr {
-        // Get real cluster data from GPU
+        
         use crate::actors::messages::GetGraphData;
 
-        // First get graph data
+        
         let graph_data = match state.graph_service_addr.send(GetGraphData).await {
             Ok(Ok(data)) => data,
             Ok(Err(e)) => {
@@ -3601,11 +3601,11 @@ async fn get_cluster_analytics(
             }
         };
 
-        // Use CPU fallback analytics since GPU clustering requires different actor
+        
         info!("GPU compute actor available but clustering not handled by force compute actor");
         get_cpu_fallback_analytics(&graph_data).await
     } else {
-        // Get graph data for CPU fallback
+        
         use crate::actors::messages::GetGraphData;
         match state.graph_service_addr.send(GetGraphData).await {
             Ok(Ok(graph_data)) => get_cpu_fallback_analytics(&graph_data).await,
@@ -3625,17 +3625,17 @@ async fn get_cluster_analytics(
     }
 }
 
-/// CPU fallback analytics when GPU clustering is unavailable
+/
 async fn get_cpu_fallback_analytics(
     graph_data: &crate::models::graph::GraphData,
 ) -> Result<HttpResponse, Error> {
     use std::collections::HashMap;
 
-    // Basic CPU-based clustering analysis
+    
     let node_count = graph_data.nodes.len();
     let edge_count = graph_data.edges.len();
 
-    // Group nodes by type for basic clustering
+    
     let mut type_clusters: HashMap<String, Vec<&crate::models::node::Node>> = HashMap::new();
 
     for node in &graph_data.nodes {
@@ -3650,12 +3650,12 @@ async fn get_cpu_fallback_analytics(
             .push(node);
     }
 
-    // Generate basic cluster statistics
+    
     let clusters: Vec<_> = type_clusters
         .into_iter()
         .enumerate()
         .map(|(i, (type_name, nodes))| {
-            // Calculate centroid
+            
             let centroid = if !nodes.is_empty() {
                 let sum_x: f32 = nodes.iter().map(|n| n.data.x).sum();
                 let sum_y: f32 = nodes.iter().map(|n| n.data.y).sum();
@@ -3669,7 +3669,7 @@ async fn get_cpu_fallback_analytics(
             json!({
                 "id": format!("cpu_cluster_{}", i),
                 "nodeCount": nodes.len(),
-                "coherence": 0.6, // Basic heuristic for CPU clustering
+                "coherence": 0.6, 
                 "centroid": centroid,
                 "keywords": [type_name.clone(), "cpu_cluster"],
                 "type": type_name
@@ -3681,7 +3681,7 @@ async fn get_cpu_fallback_analytics(
         "clusters": clusters,
         "totalNodes": node_count,
         "algorithmUsed": "cpu_heuristic",
-        "modularity": 0.4, // Estimated modularity for type-based clustering
+        "modularity": 0.4, 
         "lastUpdated": chrono::Utc::now().to_rfc3339(),
         "gpu_accelerated": false,
         "note": "CPU fallback clustering based on node types",
@@ -3691,7 +3691,7 @@ async fn get_cpu_fallback_analytics(
     Ok(HttpResponse::Ok().json(fallback_analytics))
 }
 
-/// Update stress optimization endpoint
+/
 async fn update_stress_optimization(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -3705,7 +3705,7 @@ async fn update_stress_optimization(
         serde_json::to_string_pretty(&update).unwrap_or_default()
     );
 
-    // Validate stress parameters
+    
     let stress_weight = update
         .get("stressWeight")
         .and_then(|v| v.as_f64())
@@ -3722,7 +3722,7 @@ async fn update_stress_optimization(
         })));
     }
 
-    // Create physics update with stress optimization parameters
+    
     let physics_update = json!({
         "stressWeight": stress_weight,
         "stressAlpha": stress_alpha
@@ -3730,7 +3730,7 @@ async fn update_stress_optimization(
 
     let settings_update = create_physics_settings_update(physics_update);
 
-    // Get and update settings
+    
     let mut app_settings = match state.settings_addr.send(GetSettings).await {
         Ok(Ok(s)) => s,
         Ok(Err(e)) => {
@@ -3754,7 +3754,7 @@ async fn update_stress_optimization(
         })));
     }
 
-    // Save updated settings
+    
     match state
         .settings_addr
         .send(UpdateSettings {
@@ -3765,7 +3765,7 @@ async fn update_stress_optimization(
         Ok(Ok(())) => {
             info!("Stress optimization updated successfully");
 
-            // Propagate to GPU
+            
             propagate_physics_to_gpu(&state, &app_settings, "logseq").await;
             propagate_physics_to_gpu(&state, &app_settings, "visionflow").await;
 
@@ -3790,9 +3790,9 @@ async fn update_stress_optimization(
     }
 }
 
-/// Validate constraint data structure
+/
 fn validate_constraints(constraints: &Value) -> Result<(), String> {
-    // Basic validation for constraint structure
+    
     if let Some(obj) = constraints.as_object() {
         for (constraint_type, constraint_data) in obj {
             if !["separation", "boundary", "alignment", "cluster"]

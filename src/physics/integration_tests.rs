@@ -21,32 +21,32 @@ mod tests {
         let mut graph = create_ai_knowledge_graph();
         let metadata = create_ai_metadata();
 
-        // Generate semantic constraints
+        
         let mut constraint_generator = SemanticConstraintGenerator::new();
         let constraint_result = constraint_generator
             .generate_constraints(&graph, Some(&metadata))
             .expect("Failed to generate constraints");
 
-        // Should identify AI-related clusters
+        
         assert!(constraint_result.clusters.len() >= 1);
         assert!(constraint_result.clustering_constraints.len() > 0);
 
-        // Apply constraints to constraint set
+        
         let mut constraint_set = ConstraintSet::default();
         constraint_generator.apply_to_constraint_set(&mut constraint_set, &constraint_result);
 
-        // Optimize using stress majorization
+        
         let mut solver = StressMajorizationSolver::new();
         let optimization_result = solver
             .optimize(&mut graph, &constraint_set)
             .expect("Failed to optimize layout");
 
-        // Verify optimization completed
+        
         assert!(optimization_result.iterations > 0);
         assert!(optimization_result.final_stress.is_finite());
         assert!(optimization_result.computation_time > 0);
 
-        // Verify nodes have valid positions
+        
         for node in &graph.nodes {
             assert!(node.data.x.is_finite());
             assert!(node.data.y.is_finite());
@@ -64,16 +64,16 @@ mod tests {
             .generate_constraints(&graph, Some(&metadata))
             .expect("Failed to generate constraints");
 
-        // Should separate AI and cooking topics
+        
         assert!(result.clusters.len() >= 2);
 
-        // Verify cluster coherence
+        
         for cluster in &result.clusters {
             assert!(cluster.coherence > 0.0);
             assert!(cluster.node_ids.len() >= 2);
         }
 
-        // Should generate separation constraints for dissimilar topics
+        
         assert!(result.separation_constraints.len() > 0);
     }
 
@@ -93,10 +93,10 @@ mod tests {
             .generate_constraints(&graph, Some(&metadata))
             .expect("Failed to generate constraints");
 
-        // Should identify hierarchical relationships
+        
         assert!(result.hierarchical_relations.len() > 0);
 
-        // Should generate alignment constraints
+        
         assert!(result.alignment_constraints.len() > 0);
     }
 
@@ -110,10 +110,10 @@ mod tests {
             .optimize(&mut graph, &constraint_set)
             .expect("Failed to optimize");
 
-        // Should have constraint satisfaction scores
+        
         assert!(!result.constraint_scores.is_empty());
 
-        // Scores should be in valid range [0, 1]
+        
         for (_, score) in &result.constraint_scores {
             assert!(*score >= 0.0 && *score <= 1.0);
         }
@@ -121,10 +121,10 @@ mod tests {
 
     #[test]
     fn test_performance_with_large_graph() {
-        let graph = create_large_graph(1000); // 1000 nodes
+        let graph = create_large_graph(1000); 
         let mut solver = StressMajorizationSolver::with_config(
             crate::physics::stress_majorization::StressMajorizationConfig {
-                max_iterations: 100, // Reduce for performance test
+                max_iterations: 100, 
                 ..Default::default()
             },
         );
@@ -136,13 +136,13 @@ mod tests {
         let elapsed = start_time.elapsed();
 
         assert!(result.is_ok());
-        assert!(elapsed.as_secs() < 10); // Should complete within 10 seconds
+        assert!(elapsed.as_secs() < 10); 
 
         let result = result.unwrap();
         assert!(result.final_stress.is_finite());
     }
 
-    // Helper functions for creating test data
+    
 
     fn create_ai_knowledge_graph() -> GraphData {
         let nodes = vec![
@@ -175,8 +175,8 @@ mod tests {
         ];
 
         let edges = vec![
-            Edge::new(1, 2, 1.0), // AI connection
-            Edge::new(3, 4, 1.0), // Non-AI connection
+            Edge::new(1, 2, 1.0), 
+            Edge::new(3, 4, 1.0), 
         ];
 
         GraphData {
@@ -230,15 +230,15 @@ mod tests {
         let mut nodes = Vec::new();
         let mut edges = Vec::new();
 
-        // Create nodes
+        
         for i in 1..=node_count {
             nodes.push(create_test_node(i, &format!("Node {}", i)));
         }
 
-        // Create a sparse random graph structure
+        
         use rand::Rng;
         let mut rng = rand::thread_rng();
-        let edge_count = (node_count as f32 * 2.0) as usize; // ~2 edges per node on average
+        let edge_count = (node_count as f32 * 2.0) as usize; 
 
         for _ in 0..edge_count {
             let source = rng.gen_range(1..=node_count);
@@ -263,7 +263,7 @@ mod tests {
         );
         node.label = label.to_string();
 
-        // Set random initial position
+        
         use rand::Rng;
         let mut rng = rand::thread_rng();
         node.data.x = rng.gen_range(-100.0..100.0);
@@ -449,7 +449,7 @@ mod tests {
     fn create_test_constraints() -> ConstraintSet {
         let mut constraint_set = ConstraintSet::default();
 
-        // Add some basic constraints
+        
         constraint_set.add(crate::models::constraints::Constraint::fixed_position(
             1, 0.0, 0.0, 0.0,
         ));

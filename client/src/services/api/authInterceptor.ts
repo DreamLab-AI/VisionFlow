@@ -1,7 +1,4 @@
-/**
- * Authentication Interceptor for UnifiedApiClient
- * Automatically includes Nostr authentication headers and request IDs in all API calls
- */
+
 
 import { nostrAuth } from '../nostrAuthService';
 import { createLogger } from '../../utils/loggerConfig';
@@ -10,29 +7,25 @@ import { v4 as uuidv4 } from 'uuid';
 
 const logger = createLogger('AuthInterceptor');
 
-/**
- * Generate a unique request ID for tracing
- */
+
 export function generateRequestId(): string {
   return uuidv4();
 }
 
-/**
- * Request interceptor that adds authentication headers
- */
+
 export function authRequestInterceptor(config: RequestConfig, url: string): RequestConfig {
   const finalConfig = { ...config };
 
-  // Initialize headers if not present
+  
   if (!finalConfig.headers) {
     finalConfig.headers = {};
   }
 
-  // Add request ID for tracing
+  
   const requestId = generateRequestId();
   finalConfig.headers['X-Request-ID'] = requestId;
 
-  // Add Nostr authentication headers if authenticated
+  
   if (nostrAuth.isAuthenticated()) {
     const user = nostrAuth.getCurrentUser();
     const token = nostrAuth.getSessionToken();
@@ -55,11 +48,9 @@ export function authRequestInterceptor(config: RequestConfig, url: string): Requ
   return finalConfig;
 }
 
-/**
- * Initialize authentication interceptor for the UnifiedApiClient
- */
+
 export function initializeAuthInterceptor(apiClient: any): void {
-  // Set the interceptor
+  
   apiClient.setInterceptors({
     onRequest: authRequestInterceptor,
   });
@@ -67,9 +58,7 @@ export function initializeAuthInterceptor(apiClient: any): void {
   logger.info('Authentication interceptor initialized for UnifiedApiClient');
 }
 
-/**
- * Update auth headers when authentication state changes
- */
+
 export function setupAuthStateListener(): void {
   nostrAuth.onAuthStateChanged((state) => {
     if (state.authenticated) {

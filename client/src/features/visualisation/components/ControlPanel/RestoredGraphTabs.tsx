@@ -1,6 +1,4 @@
-/**
- * Restored Graph Feature Tabs - Inline Styles Version
- */
+
 
 import React, { useState, useCallback } from 'react';
 import { Eye, Zap, TrendingUp, MousePointer2, Download } from 'lucide-react';
@@ -304,7 +302,7 @@ export const RestoredGraphExportTab: React.FC<GraphTabProps> = ({ graphData }) =
 
   const handleExport = () => {
     console.log('Exporting as', format, 'with metadata:', includeMetadata);
-    // Export logic would go here
+    
   };
 
   return (

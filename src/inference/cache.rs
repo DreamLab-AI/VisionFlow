@@ -13,19 +13,19 @@ use serde::{Deserialize, Serialize};
 
 use crate::ports::ontology_repository::InferenceResults;
 
-/// Cache configuration
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CacheConfig {
-    /// Maximum number of cached entries
+    
     pub max_entries: usize,
 
-    /// Time-to-live for cache entries (seconds)
+    
     pub ttl_seconds: i64,
 
-    /// Whether to persist cache to database
+    
     pub persist_to_db: bool,
 
-    /// Enable cache statistics
+    
     pub enable_stats: bool,
 }
 
@@ -33,51 +33,51 @@ impl Default for CacheConfig {
     fn default() -> Self {
         Self {
             max_entries: 1000,
-            ttl_seconds: 3600, // 1 hour
+            ttl_seconds: 3600, 
             persist_to_db: true,
             enable_stats: true,
         }
     }
 }
 
-/// Cache entry with metadata
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CacheEntry {
-    /// Cached inference results
+    
     pub results: InferenceResults,
 
-    /// Ontology checksum for invalidation
+    
     pub ontology_checksum: String,
 
-    /// Creation timestamp
+    
     pub created_at: DateTime<Utc>,
 
-    /// Last accessed timestamp
+    
     pub accessed_at: DateTime<Utc>,
 
-    /// Access count
+    
     pub access_count: u64,
 }
 
 impl CacheEntry {
-    /// Check if entry is expired
+    
     pub fn is_expired(&self, ttl: Duration) -> bool {
         Utc::now() - self.created_at > ttl
     }
 
-    /// Check if entry is still valid for given checksum
+    
     pub fn is_valid_for(&self, checksum: &str) -> bool {
         self.ontology_checksum == checksum
     }
 
-    /// Update access statistics
+    
     pub fn touch(&mut self) {
         self.accessed_at = Utc::now();
         self.access_count += 1;
     }
 }
 
-/// Cache statistics
+/
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct CacheStatistics {
     pub hits: u64,
@@ -89,7 +89,7 @@ pub struct CacheStatistics {
 }
 
 impl CacheStatistics {
-    /// Calculate hit rate
+    
     pub fn hit_rate(&self) -> f64 {
         let total = self.hits + self.misses;
         if total == 0 {
@@ -100,20 +100,20 @@ impl CacheStatistics {
     }
 }
 
-/// Inference cache with LRU eviction
+/
 pub struct InferenceCache {
-    /// LRU cache storage
+    
     cache: Arc<RwLock<LruCache<String, CacheEntry>>>,
 
-    /// Cache configuration
+    
     config: CacheConfig,
 
-    /// Cache statistics
+    
     stats: Arc<RwLock<CacheStatistics>>,
 }
 
 impl InferenceCache {
-    /// Create new inference cache
+    
     pub fn new(config: CacheConfig) -> Self {
         let capacity = NonZeroUsize::new(config.max_entries).unwrap();
         let cache = Arc::new(RwLock::new(LruCache::new(capacity)));
@@ -130,13 +130,13 @@ impl InferenceCache {
         }
     }
 
-    /// Get cached inference results
+    
     pub async fn get(&self, ontology_id: &str, checksum: &str) -> Option<InferenceResults> {
         let mut cache = self.cache.write().await;
         let mut stats = self.stats.write().await;
 
         if let Some(entry) = cache.get_mut(ontology_id) {
-            // Check if entry is valid and not expired
+            
             let ttl = Duration::seconds(self.config.ttl_seconds);
 
             if entry.is_valid_for(checksum) && !entry.is_expired(ttl) {
@@ -144,7 +144,7 @@ impl InferenceCache {
                 stats.hits += 1;
                 return Some(entry.results.clone());
             } else {
-                // Entry is invalid or expired, remove it
+                
                 cache.pop(ontology_id);
                 stats.invalidations += 1;
             }
@@ -154,7 +154,7 @@ impl InferenceCache {
         None
     }
 
-    /// Store inference results in cache
+    
     pub async fn put(
         &self,
         ontology_id: String,
@@ -172,7 +172,7 @@ impl InferenceCache {
             access_count: 0,
         };
 
-        // Check if we'll evict an entry
+        
         if cache.len() >= self.config.max_entries && !cache.contains(&ontology_id) {
             stats.evictions += 1;
         }
@@ -181,7 +181,7 @@ impl InferenceCache {
         stats.current_size = cache.len();
     }
 
-    /// Invalidate cache entry
+    
     pub async fn invalidate(&self, ontology_id: &str) {
         let mut cache = self.cache.write().await;
         let mut stats = self.stats.write().await;
@@ -192,7 +192,7 @@ impl InferenceCache {
         }
     }
 
-    /// Clear all cache entries
+    
     pub async fn clear(&self) {
         let mut cache = self.cache.write().await;
         let mut stats = self.stats.write().await;
@@ -202,12 +202,12 @@ impl InferenceCache {
         stats.invalidations += cache.len() as u64;
     }
 
-    /// Get cache statistics
+    
     pub async fn get_statistics(&self) -> CacheStatistics {
         self.stats.read().await.clone()
     }
 
-    /// Remove expired entries
+    
     pub async fn cleanup_expired(&self) {
         let mut cache = self.cache.write().await;
         let ttl = Duration::seconds(self.config.ttl_seconds);
@@ -227,7 +227,7 @@ impl InferenceCache {
         stats.current_size = cache.len();
     }
 
-    /// Get all cached ontology IDs
+    
     pub async fn get_cached_ids(&self) -> Vec<String> {
         let cache = self.cache.read().await;
         cache.iter().map(|(key, _)| key.clone()).collect()
@@ -283,11 +283,11 @@ mod tests {
             .put("ont1".to_string(), "checksum1".to_string(), results.clone())
             .await;
 
-        // Try to get with different checksum
+        
         let retrieved = cache.get("ont1", "checksum2").await;
         assert!(retrieved.is_none());
 
-        // Verify it was invalidated
+        
         let stats = cache.get_statistics().await;
         assert_eq!(stats.invalidations, 1);
     }
@@ -334,10 +334,10 @@ mod tests {
             .put("ont1".to_string(), "checksum1".to_string(), results.clone())
             .await;
 
-        // Hit
+        
         cache.get("ont1", "checksum1").await;
 
-        // Miss
+        
         cache.get("ont2", "checksum2").await;
 
         let stats = cache.get_statistics().await;
@@ -363,7 +363,7 @@ mod tests {
             .put("ont2".to_string(), "checksum2".to_string(), results.clone())
             .await;
 
-        // This should evict ont1
+        
         cache
             .put("ont3".to_string(), "checksum3".to_string(), results.clone())
             .await;

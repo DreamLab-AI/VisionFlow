@@ -1,6 +1,4 @@
-/**
- * Control Panel Components - Barrel Export
- */
+
 
 export * from './types';
 export * from './config';

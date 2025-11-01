@@ -25,12 +25,12 @@ use crate::models::workspace::{
     SortDirection, Workspace, WorkspaceFilter, WorkspaceListResponse, WorkspaceSortBy,
 };
 
-/// WebSocket client for broadcasting workspace updates
+/
 pub trait WorkspaceWebSocketClient: Send + Sync {
     fn broadcast_workspace_change(&self, workspace: &Workspace, change_type: WorkspaceChangeType);
 }
 
-/// Default WebSocket client implementation (no-op for testing)
+/
 #[derive(Clone, Default)]
 pub struct DefaultWebSocketClient;
 
@@ -44,28 +44,28 @@ impl WorkspaceWebSocketClient for DefaultWebSocketClient {
     }
 }
 
-/// Workspace Actor manages all workspace-related operations
+/
 pub struct WorkspaceActor {
-    /// In-memory storage of workspaces indexed by ID
+    
     workspaces: HashMap<String, Workspace>,
 
-    /// Path to the persistent storage file
+    
     storage_path: String,
 
-    /// WebSocket client for broadcasting updates
+    
     websocket_client: Arc<dyn WorkspaceWebSocketClient>,
 
-    /// Actor started flag for lazy loading
+    
     initialized: bool,
 }
 
 impl WorkspaceActor {
-    /// Create a new WorkspaceActor with default storage path
+    
     pub fn new() -> Self {
         Self::with_storage_path("data/workspaces.json".to_string())
     }
 
-    /// Create a new WorkspaceActor with custom storage path
+    
     pub fn with_storage_path(storage_path: String) -> Self {
         Self {
             workspaces: HashMap::new(),
@@ -75,7 +75,7 @@ impl WorkspaceActor {
         }
     }
 
-    /// Create WorkspaceActor with custom WebSocket client
+    
     pub fn with_websocket_client(
         storage_path: String,
         websocket_client: Arc<dyn WorkspaceWebSocketClient>,
@@ -88,7 +88,7 @@ impl WorkspaceActor {
         }
     }
 
-    /// Load workspaces from persistent storage
+    
     fn load_from_storage(&mut self) -> Result<()> {
         if !Path::new(&self.storage_path).exists() {
             info!(
@@ -121,9 +121,9 @@ impl WorkspaceActor {
         Ok(())
     }
 
-    /// Save workspaces to persistent storage
+    
     fn save_to_storage(&self) -> Result<()> {
-        // Ensure data directory exists
+        
         if let Some(parent) = Path::new(&self.storage_path).parent() {
             fs::create_dir_all(parent)
                 .map_err(|e| anyhow!("Failed to create data directory: {}", e))?;
@@ -140,7 +140,7 @@ impl WorkspaceActor {
         Ok(())
     }
 
-    /// Apply filters to workspace list
+    
     fn apply_filters<'a>(
         &self,
         workspaces: Vec<&'a Workspace>,
@@ -153,35 +153,35 @@ impl WorkspaceActor {
         workspaces
             .into_iter()
             .filter(|workspace| {
-                // Status filter
+                
                 if let Some(status) = &filter.status {
                     if workspace.status != *status {
                         return false;
                     }
                 }
 
-                // Type filter
+                
                 if let Some(workspace_type) = &filter.workspace_type {
                     if workspace.workspace_type != *workspace_type {
                         return false;
                     }
                 }
 
-                // Favorite filter
+                
                 if let Some(is_favorite) = filter.is_favorite {
                     if workspace.is_favorite != is_favorite {
                         return false;
                     }
                 }
 
-                // Owner filter
+                
                 if let Some(owner_id) = &filter.owner_id {
                     if workspace.owner_id.as_ref() != Some(owner_id) {
                         return false;
                     }
                 }
 
-                // Search filter (name and description)
+                
                 if let Some(search) = &filter.search {
                     let search_lower = search.to_lowercase();
                     let name_matches = workspace.name.to_lowercase().contains(&search_lower);
@@ -201,7 +201,7 @@ impl WorkspaceActor {
             .collect()
     }
 
-    /// Apply sorting to workspace list
+    
     fn apply_sorting<'a>(
         &self,
         mut workspaces: Vec<&'a Workspace>,
@@ -225,7 +225,7 @@ impl WorkspaceActor {
         workspaces
     }
 
-    /// Apply pagination to workspace list
+    
     fn apply_pagination(
         &self,
         workspaces: Vec<&Workspace>,
@@ -245,13 +245,13 @@ impl WorkspaceActor {
             .collect()
     }
 
-    /// Notify WebSocket clients of workspace changes
+    
     fn notify_change(&self, workspace: &Workspace, change_type: WorkspaceChangeType) {
         self.websocket_client
             .broadcast_workspace_change(workspace, change_type);
     }
 
-    /// Initialize the actor by loading existing data
+    
     fn ensure_initialized(&mut self) -> Result<()> {
         if self.initialized {
             return Ok(());
@@ -275,7 +275,7 @@ impl Actor for WorkspaceActor {
     fn started(&mut self, _ctx: &mut Self::Context) {
         info!("WorkspaceActor started");
 
-        // Load existing workspaces
+        
         if let Err(e) = self.ensure_initialized() {
             error!("Failed to initialize WorkspaceActor: {}", e);
         }
@@ -284,7 +284,7 @@ impl Actor for WorkspaceActor {
     fn stopped(&mut self, _ctx: &mut Self::Context) {
         info!("WorkspaceActor stopped");
 
-        // Save workspaces before shutdown
+        
         if let Err(e) = self.save_to_storage() {
             error!("Failed to save workspaces during shutdown: {}", e);
         }
@@ -302,24 +302,24 @@ impl Handler<GetWorkspaces> for WorkspaceActor {
 
         let query = msg.query;
 
-        // Apply defaults
+        
         let page = query.page.unwrap_or(0);
-        let page_size = query.page_size.unwrap_or(20).min(1000); // Cap at 1000
+        let page_size = query.page_size.unwrap_or(20).min(1000); 
         let sort_by = query.sort_by.unwrap_or(WorkspaceSortBy::UpdatedAt);
         let sort_direction = query.sort_direction.unwrap_or(SortDirection::Descending);
 
-        // Get all workspaces as references
+        
         let all_workspaces: Vec<&Workspace> = self.workspaces.values().collect();
         let total_count = all_workspaces.len();
 
-        // Apply filters
+        
         let filtered_workspaces = self.apply_filters(all_workspaces, &query.filter);
         let filtered_count = filtered_workspaces.len();
 
-        // Apply sorting
+        
         let sorted_workspaces = self.apply_sorting(filtered_workspaces, &sort_by, &sort_direction);
 
-        // Apply pagination
+        
         let paginated_workspaces = self.apply_pagination(sorted_workspaces, page, page_size);
 
         debug!(
@@ -358,7 +358,7 @@ impl Handler<CreateWorkspace> for WorkspaceActor {
         self.ensure_initialized()
             .map_err(|e| format!("Failed to initialize: {}", e))?;
 
-        // Validate the request
+        
         msg.request
             .validate()
             .map_err(|e| format!("Validation error: {}", e))?;
@@ -369,7 +369,7 @@ impl Handler<CreateWorkspace> for WorkspaceActor {
             msg.request.workspace_type.unwrap_or_default(),
         );
 
-        // Set optional fields
+        
         if let Some(owner_id) = msg.request.owner_id {
             workspace.set_owner(owner_id);
         }
@@ -380,19 +380,19 @@ impl Handler<CreateWorkspace> for WorkspaceActor {
             }
         }
 
-        // Insert into storage
+        
         let workspace_id = workspace.id.clone();
         self.workspaces
             .insert(workspace_id.clone(), workspace.clone());
 
-        // Save to persistent storage
+        
         if let Err(e) = self.save_to_storage() {
             error!("Failed to save workspaces after creation: {}", e);
-            self.workspaces.remove(&workspace_id); // Rollback
+            self.workspaces.remove(&workspace_id); 
             return Err(format!("Failed to persist workspace: {}", e));
         }
 
-        // Notify WebSocket clients
+        
         self.notify_change(&workspace, WorkspaceChangeType::Created);
 
         info!(
@@ -410,7 +410,7 @@ impl Handler<UpdateWorkspace> for WorkspaceActor {
         self.ensure_initialized()
             .map_err(|e| format!("Failed to initialize: {}", e))?;
 
-        // Validate the request
+        
         msg.request
             .validate()
             .map_err(|e| format!("Validation error: {}", e))?;
@@ -420,14 +420,14 @@ impl Handler<UpdateWorkspace> for WorkspaceActor {
             .get_mut(&msg.workspace_id)
             .ok_or_else(|| format!("Workspace with ID '{}' not found", msg.workspace_id))?;
 
-        // Update the workspace
+        
         workspace.update(
             msg.request.name,
             msg.request.description,
             msg.request.workspace_type,
         );
 
-        // Update metadata if provided
+        
         if let Some(metadata) = msg.request.metadata {
             for (key, value) in metadata {
                 workspace.set_metadata(key, value);
@@ -436,13 +436,13 @@ impl Handler<UpdateWorkspace> for WorkspaceActor {
 
         let updated_workspace = workspace.clone();
 
-        // Save to persistent storage
+        
         if let Err(e) = self.save_to_storage() {
             error!("Failed to save workspaces after update: {}", e);
             return Err(format!("Failed to persist workspace update: {}", e));
         }
 
-        // Notify WebSocket clients
+        
         self.notify_change(&updated_workspace, WorkspaceChangeType::Updated);
 
         info!(
@@ -466,18 +466,18 @@ impl Handler<DeleteWorkspace> for WorkspaceActor {
             .cloned()
             .ok_or_else(|| format!("Workspace with ID '{}' not found", msg.workspace_id))?;
 
-        // Soft delete - just archive the workspace
+        
         workspace.archive();
         self.workspaces
             .insert(msg.workspace_id.clone(), workspace.clone());
 
-        // Save to persistent storage
+        
         if let Err(e) = self.save_to_storage() {
             error!("Failed to save workspaces after deletion: {}", e);
             return Err(format!("Failed to persist workspace deletion: {}", e));
         }
 
-        // Notify WebSocket clients
+        
         self.notify_change(&workspace, WorkspaceChangeType::Deleted);
 
         info!(
@@ -503,13 +503,13 @@ impl Handler<ToggleFavoriteWorkspace> for WorkspaceActor {
         let is_favorite = workspace.toggle_favorite();
         let updated_workspace = workspace.clone();
 
-        // Save to persistent storage
+        
         if let Err(e) = self.save_to_storage() {
             error!("Failed to save workspaces after favorite toggle: {}", e);
             return Err(format!("Failed to persist favorite toggle: {}", e));
         }
 
-        // Notify WebSocket clients
+        
         let change_type = if is_favorite {
             WorkspaceChangeType::Favorited
         } else {
@@ -545,13 +545,13 @@ impl Handler<ArchiveWorkspace> for WorkspaceActor {
 
         let updated_workspace = workspace.clone();
 
-        // Save to persistent storage
+        
         if let Err(e) = self.save_to_storage() {
             error!("Failed to save workspaces after archive operation: {}", e);
             return Err(format!("Failed to persist archive operation: {}", e));
         }
 
-        // Notify WebSocket clients
+        
         let change_type = if msg.archive {
             WorkspaceChangeType::Archived
         } else {
@@ -619,7 +619,7 @@ impl Handler<WorkspaceStateChanged> for WorkspaceActor {
     type Result = ();
 
     fn handle(&mut self, msg: WorkspaceStateChanged, _ctx: &mut Self::Context) {
-        // This is mainly for internal coordination - just broadcast the change
+        
         debug!(
             "Broadcasting workspace state change: {:?} for workspace {}",
             msg.change_type, msg.workspace.id

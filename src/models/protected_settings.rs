@@ -88,7 +88,7 @@ impl Default for ProtectedSettings {
                 enable_http2: true,
                 enable_tls: false,
                 min_tls_version: "TLS1.2".to_string(),
-                max_request_size: 10 * 1024 * 1024, // 10MB
+                max_request_size: 10 * 1024 * 1024, 
                 enable_rate_limiting: true,
                 rate_limit_requests: 100,
                 rate_limit_window: 60,
@@ -107,7 +107,7 @@ impl Default for ProtectedSettings {
             },
             websocket_server: WebSocketServerSettings {
                 max_connections: 100,
-                max_message_size: 32 * 1024 * 1024, // 32MB
+                max_message_size: 32 * 1024 * 1024, 
                 url: String::new(),
             },
             users: std::collections::HashMap::new(),
@@ -154,18 +154,18 @@ impl ProtectedSettings {
     pub fn get_api_keys(&self, pubkey: &str) -> ApiKeys {
         if let Some(user) = self.users.get(pubkey) {
             if user.is_power_user {
-                // Power users get environment-based keys
+                
                 ApiKeys {
                     perplexity: std::env::var("PERPLEXITY_API_KEY").ok(),
                     openai: std::env::var("OPENAI_API_KEY").ok(),
                     ragflow: std::env::var("RAGFLOW_API_KEY").ok(),
                 }
             } else {
-                // Normal users get their stored keys
+                
                 user.api_keys.clone()
             }
         } else {
-            // Default keys for unauthenticated users
+            
             self.default_api_keys.clone()
         }
     }

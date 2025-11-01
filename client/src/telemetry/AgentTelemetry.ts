@@ -27,9 +27,7 @@ export interface TelemetryUploadPayload {
   };
 }
 
-/**
- * Centralized telemetry service for agent monitoring and debugging
- */
+
 export class AgentTelemetryService {
   private static instance: AgentTelemetryService;
   private logger = createAgentLogger('AgentTelemetryService');
@@ -69,7 +67,7 @@ export class AgentTelemetryService {
   }
 
   private setupPerformanceObserver() {
-    // Monitor memory usage if available
+    
     if ('memory' in performance && (performance as any).memory) {
       const updateMemory = () => {
         const memory = (performance as any).memory;
@@ -78,7 +76,7 @@ export class AgentTelemetryService {
       setInterval(updateMemory, 5000);
     }
 
-    // Monitor error count
+    
     window.addEventListener('error', () => {
       this.metrics.errorCount++;
     });
@@ -89,17 +87,17 @@ export class AgentTelemetryService {
   }
 
   private startAutoUpload() {
-    // Poll REST endpoint for all agent telemetry/metadata every 30 seconds
-    // WebSocket handles high-speed position/velocity/SSSP data
-    // REST handles metadata, telemetry, and agent details
+    
+    
+    
     this.uploadInterval = setInterval(() => {
       this.fetchAgentTelemetry().catch(error => {
         this.logger.error('Failed to fetch agent telemetry:', error);
       });
-    }, 30000); // Poll every 30 seconds for telemetry updates
+    }, 30000); 
   }
 
-  // Public telemetry methods
+  
   logAgentSpawn(agentId: string, agentType: string, metadata?: Record<string, any>) {
     this.metrics.agentSpawns++;
     this.logger.logAgentAction(agentId, agentType, 'spawn', metadata);
@@ -142,17 +140,17 @@ export class AgentTelemetryService {
   logRenderCycle(frameTime: number) {
     this.metrics.renderCycles++;
 
-    // Track frame time for performance analysis
+    
     this.frameTimeBuffer.push(frameTime);
-    if (this.frameTimeBuffer.length > 60) { // Keep last 60 frames
+    if (this.frameTimeBuffer.length > 60) { 
       this.frameTimeBuffer.shift();
     }
 
-    // Update average frame time
+    
     this.metrics.averageFrameTime = this.frameTimeBuffer.reduce((a, b) => a + b, 0) / this.frameTimeBuffer.length;
 
-    // Log performance issues
-    if (frameTime > 50) { // Slower than 20fps
+    
+    if (frameTime > 50) { 
       console.warn(`⚡ PERFORMANCE: Slow frame detected - ${frameTime.toFixed(2)}ms`);
     }
 
@@ -169,7 +167,7 @@ export class AgentTelemetryService {
     this.logger.logAgentAction('user', 'interaction', interactionType, { target, ...metadata });
   }
 
-  // Debug overlay data
+  
   getDebugOverlayData() {
     return {
       sessionId: this.sessionId,
@@ -181,22 +179,22 @@ export class AgentTelemetryService {
     };
   }
 
-  // Fetch all agent telemetry and metadata from REST endpoints
-  // This includes: agent status, CPU/memory usage, health, workload, tasks, etc.
-  // Position/velocity data comes via WebSocket binary protocol separately
+  
+  
+  
   async fetchAgentTelemetry(): Promise<any> {
     try {
-      // Fetch both telemetry status and full agent data using unified API client
+      
       const [statusResponse, dataResponse] = await Promise.all([
         unifiedApiClient.get('/api/bots/status'),
         unifiedApiClient.get('/api/bots/data')
       ]);
 
-      // Extract data from API response objects
+      
       const telemetryData = statusResponse.data;
       const agentData = dataResponse.data;
 
-        // Merge telemetry and agent metadata
+        
         const mergedData = {
           ...telemetryData,
           agents: agentData.agents || telemetryData.agents || []
@@ -204,7 +202,7 @@ export class AgentTelemetryService {
 
         this.logger.info(`Fetched telemetry for ${mergedData.agents?.length || 0} agents`);
 
-        // Process and cache the telemetry data
+        
         if (mergedData.agents) {
           this.processAgentTelemetry(mergedData.agents);
           this.cacheAgentTelemetry(mergedData);
@@ -213,12 +211,12 @@ export class AgentTelemetryService {
         return mergedData;
     } catch (error) {
       this.logger.error('Failed to fetch agent telemetry:', error);
-      // Use cached telemetry if available
+      
       return this.getCachedTelemetry();
     }
   }
 
-  // Cache telemetry data for offline use
+  
   private cacheAgentTelemetry(data: any) {
     try {
       const cacheKey = `agent-telemetry-cache-${this.sessionId}`;
@@ -227,14 +225,14 @@ export class AgentTelemetryService {
         data: data
       }));
     } catch (e) {
-      // Ignore cache errors
+      
     }
   }
 
-  // Process telemetry received from server
+  
   private processAgentTelemetry(agents: any[]) {
     agents.forEach(agent => {
-      // Store agent telemetry for local visualization
+      
       this.logger.logAgentMessage({
         type: 'telemetry-update',
         agentId: agent.id,
@@ -251,7 +249,7 @@ export class AgentTelemetryService {
     });
   }
 
-  // Get cached telemetry for offline use
+  
   private getCachedTelemetry(): any {
     try {
       const cacheKey = `agent-telemetry-cache-${this.sessionId}`;
@@ -294,12 +292,12 @@ export class AgentTelemetryService {
     }
   }
 
-  // Cleanup
+  
   destroy() {
     if (this.uploadInterval) {
       clearInterval(this.uploadInterval);
     }
-    // No final upload needed - telemetry flows from agents to server to client
+    
   }
 }
 

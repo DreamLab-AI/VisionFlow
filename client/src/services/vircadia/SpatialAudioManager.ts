@@ -1,9 +1,4 @@
-/**
- * SpatialAudioManager - 3D spatial audio for multi-user XR
- *
- * Manages WebRTC peer connections and Web Audio API for
- * positional audio in Quest 3 multi-user sessions.
- */
+
 
 import * as BABYLON from '@babylonjs/core';
 import { ClientCore } from './VircadiaClientCore';
@@ -59,18 +54,16 @@ export class SpatialAudioManager {
         this.setupConnectionListeners();
     }
 
-    /**
-     * Initialize audio context and local stream
-     */
+    
     async initialize(): Promise<void> {
         logger.info('Initializing spatial audio...');
 
         try {
-            // Create audio context
+            
             this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
             logger.info(`Audio context created: ${this.audioContext.state}`);
 
-            // Get local microphone stream
+            
             this.localStream = await navigator.mediaDevices.getUserMedia({
                 audio: this.defaultConfig.audioConstraints,
                 video: false
@@ -78,7 +71,7 @@ export class SpatialAudioManager {
 
             logger.info('Local audio stream acquired');
 
-            // Get local agent ID
+            
             const info = this.client.Utilities.Connection.getConnectionInfo();
             if (info.agentId) {
                 this.localAgentId = info.agentId;
@@ -90,16 +83,14 @@ export class SpatialAudioManager {
         }
     }
 
-    /**
-     * Set up connection event listeners
-     */
+    
     private setupConnectionListeners(): void {
-        // Listen for WebRTC signaling messages
+        
         this.client.Utilities.Connection.addEventListener('syncUpdate', async () => {
             await this.handleSignalingMessages();
         });
 
-        // Listen for new users joining
+        
         this.client.Utilities.Connection.addEventListener('statusChange', () => {
             const info = this.client.Utilities.Connection.getConnectionInfo();
             if (info.isConnected && info.agentId) {
@@ -108,9 +99,7 @@ export class SpatialAudioManager {
         });
     }
 
-    /**
-     * Connect to remote peer
-     */
+    
     async connectToPeer(agentId: string, username: string): Promise<void> {
         if (this.peerConnections.has(agentId)) {
             logger.warn(`Already connected to peer: ${agentId}`);
@@ -125,29 +114,29 @@ export class SpatialAudioManager {
         logger.info(`Connecting to peer: ${username} (${agentId})`);
 
         try {
-            // Create peer connection
+            
             const pc = new RTCPeerConnection({
                 iceServers: this.defaultConfig.iceServers
             });
 
-            // Add local stream tracks
+            
             this.localStream.getTracks().forEach(track => {
                 pc.addTrack(track, this.localStream!);
             });
 
-            // Handle remote stream
+            
             pc.ontrack = (event) => {
                 this.handleRemoteTrack(agentId, username, event);
             };
 
-            // Handle ICE candidates
+            
             pc.onicecandidate = (event) => {
                 if (event.candidate) {
                     this.sendICECandidate(agentId, event.candidate);
                 }
             };
 
-            // Handle connection state
+            
             pc.onconnectionstatechange = () => {
                 logger.debug(`Peer connection state: ${pc.connectionState} (${username})`);
                 if (pc.connectionState === 'failed' || pc.connectionState === 'closed') {
@@ -155,7 +144,7 @@ export class SpatialAudioManager {
                 }
             };
 
-            // Store connection
+            
             const peerConn: PeerConnection = {
                 agentId,
                 username,
@@ -163,7 +152,7 @@ export class SpatialAudioManager {
             };
             this.peerConnections.set(agentId, peerConn);
 
-            // Create and send offer
+            
             const offer = await pc.createOffer();
             await pc.setLocalDescription(offer);
             await this.sendOffer(agentId, offer);
@@ -175,9 +164,7 @@ export class SpatialAudioManager {
         }
     }
 
-    /**
-     * Handle remote audio track
-     */
+    
     private handleRemoteTrack(agentId: string, username: string, event: RTCTrackEvent): void {
         logger.info(`Received remote track from ${username}`);
 
@@ -186,53 +173,51 @@ export class SpatialAudioManager {
             return;
         }
 
-        // Create audio element for remote stream
+        
         const audioElement = new Audio();
         audioElement.srcObject = event.streams[0];
         audioElement.autoplay = true;
-        audioElement.muted = true; // Will be unmuted through Web Audio API
+        audioElement.muted = true; 
 
-        // Create Web Audio nodes for spatial audio
+        
         const source = this.audioContext.createMediaStreamSource(event.streams[0]);
         const panner = this.audioContext.createPanner();
 
-        // Configure panner for 3D audio
+        
         panner.panningModel = 'HRTF';
         panner.distanceModel = 'inverse';
         panner.refDistance = this.defaultConfig.refDistance;
         panner.maxDistance = this.defaultConfig.maxDistance;
         panner.rolloffFactor = this.defaultConfig.rolloffFactor;
 
-        // Connect nodes
+        
         source.connect(panner);
         panner.connect(this.audioContext.destination);
 
-        // Store references
+        
         peerConn.audioElement = audioElement;
         peerConn.pannerNode = panner;
 
         logger.info(`Spatial audio configured for ${username}`);
     }
 
-    /**
-     * Update listener position (local user camera)
-     */
+    
     updateListenerPosition(position: BABYLON.Vector3, forward: BABYLON.Vector3, up: BABYLON.Vector3): void {
         if (!this.audioContext?.listener) {
             return;
         }
 
-        // Update listener position
+        
         if (this.audioContext.listener.positionX) {
             this.audioContext.listener.positionX.value = position.x;
             this.audioContext.listener.positionY.value = position.y;
             this.audioContext.listener.positionZ.value = position.z;
         } else {
-            // Fallback for older browsers
+            
             (this.audioContext.listener as any).setPosition(position.x, position.y, position.z);
         }
 
-        // Update listener orientation
+        
         if (this.audioContext.listener.forwardX) {
             this.audioContext.listener.forwardX.value = forward.x;
             this.audioContext.listener.forwardY.value = forward.y;
@@ -241,7 +226,7 @@ export class SpatialAudioManager {
             this.audioContext.listener.upY.value = up.y;
             this.audioContext.listener.upZ.value = up.z;
         } else {
-            // Fallback for older browsers
+            
             (this.audioContext.listener as any).setOrientation(
                 forward.x, forward.y, forward.z,
                 up.x, up.y, up.z
@@ -249,29 +234,25 @@ export class SpatialAudioManager {
         }
     }
 
-    /**
-     * Update remote peer audio position
-     */
+    
     updatePeerPosition(agentId: string, position: BABYLON.Vector3): void {
         const peerConn = this.peerConnections.get(agentId);
         if (!peerConn?.pannerNode) {
             return;
         }
 
-        // Update panner position
+        
         if (peerConn.pannerNode.positionX) {
             peerConn.pannerNode.positionX.value = position.x;
             peerConn.pannerNode.positionY.value = position.y;
             peerConn.pannerNode.positionZ.value = position.z;
         } else {
-            // Fallback for older browsers
+            
             (peerConn.pannerNode as any).setPosition(position.x, position.y, position.z);
         }
     }
 
-    /**
-     * Mute/unmute local microphone
-     */
+    
     setMuted(muted: boolean): void {
         if (!this.localStream) {
             return;
@@ -285,17 +266,13 @@ export class SpatialAudioManager {
         logger.info(`Microphone ${muted ? 'muted' : 'unmuted'}`);
     }
 
-    /**
-     * Toggle microphone mute
-     */
+    
     toggleMute(): boolean {
         this.setMuted(!this.isMuted);
         return this.isMuted;
     }
 
-    /**
-     * Send WebRTC offer via Vircadia
-     */
+    
     private async sendOffer(targetAgentId: string, offer: RTCSessionDescriptionInit): Promise<void> {
         try {
             const query = `
@@ -325,9 +302,7 @@ export class SpatialAudioManager {
         }
     }
 
-    /**
-     * Send ICE candidate via Vircadia
-     */
+    
     private async sendICECandidate(targetAgentId: string, candidate: RTCIceCandidate): Promise<void> {
         try {
             const query = `
@@ -357,9 +332,7 @@ export class SpatialAudioManager {
         }
     }
 
-    /**
-     * Handle incoming signaling messages
-     */
+    
     private async handleSignalingMessages(): Promise<void> {
         try {
             const query = `
@@ -398,9 +371,7 @@ export class SpatialAudioManager {
         }
     }
 
-    /**
-     * Handle incoming WebRTC offer
-     */
+    
     private async handleOffer(fromAgentId: string, offer: RTCSessionDescriptionInit): Promise<void> {
         logger.info(`Received offer from ${fromAgentId}`);
 
@@ -414,13 +385,11 @@ export class SpatialAudioManager {
         const answer = await peerConn.pc.createAnswer();
         await peerConn.pc.setLocalDescription(answer);
 
-        // Send answer back
+        
         await this.sendAnswer(fromAgentId, answer);
     }
 
-    /**
-     * Send WebRTC answer
-     */
+    
     private async sendAnswer(targetAgentId: string, answer: RTCSessionDescriptionInit): Promise<void> {
         try {
             const query = `
@@ -450,9 +419,7 @@ export class SpatialAudioManager {
         }
     }
 
-    /**
-     * Handle incoming answer
-     */
+    
     private async handleAnswer(fromAgentId: string, answer: RTCSessionDescriptionInit): Promise<void> {
         const peerConn = this.peerConnections.get(fromAgentId);
         if (peerConn) {
@@ -461,9 +428,7 @@ export class SpatialAudioManager {
         }
     }
 
-    /**
-     * Handle incoming ICE candidate
-     */
+    
     private async handleICECandidate(fromAgentId: string, candidate: RTCIceCandidateInit): Promise<void> {
         const peerConn = this.peerConnections.get(fromAgentId);
         if (peerConn) {
@@ -471,9 +436,7 @@ export class SpatialAudioManager {
         }
     }
 
-    /**
-     * Remove peer connection
-     */
+    
     private removePeer(agentId: string): void {
         const peerConn = this.peerConnections.get(agentId);
         if (!peerConn) {
@@ -490,32 +453,28 @@ export class SpatialAudioManager {
         this.peerConnections.delete(agentId);
     }
 
-    /**
-     * Get connected peer count
-     */
+    
     getPeerCount(): number {
         return this.peerConnections.size;
     }
 
-    /**
-     * Dispose audio manager
-     */
+    
     dispose(): void {
         logger.info('Disposing SpatialAudioManager');
 
-        // Stop local stream
+        
         if (this.localStream) {
             this.localStream.getTracks().forEach(track => track.stop());
             this.localStream = null;
         }
 
-        // Close all peer connections
+        
         this.peerConnections.forEach((_, agentId) => {
             this.removePeer(agentId);
         });
         this.peerConnections.clear();
 
-        // Close audio context
+        
         if (this.audioContext) {
             this.audioContext.close();
             this.audioContext = null;

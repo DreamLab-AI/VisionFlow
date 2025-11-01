@@ -6,25 +6,25 @@ export interface BotsAgent {
   type: 'coordinator' | 'researcher' | 'coder' | 'analyst' | 'architect' | 'tester' | 'reviewer' | 'optimizer' | 'documenter' | 'monitor' | 'specialist' |
         'requirements_analyst' | 'design_architect' | 'task_planner' | 'implementation_coder' | 'quality_reviewer' | 'steering_documenter' | 'queen';
   status: 'idle' | 'busy' | 'active' | 'error' | 'initializing' | 'terminating' | 'offline';
-  health: number; // 0-100
-  cpuUsage: number; // percentage
-  memoryUsage: number; // percentage
-  workload?: number; // 0-1
-  createdAt: string; // ISO 8601
-  age: number; // milliseconds
+  health: number; 
+  cpuUsage: number; 
+  memoryUsage: number; 
+  workload?: number; 
+  createdAt: string; 
+  age: number; 
   name?: string;
 
-  // UPDATED: Enhanced agent properties from claude-flow hive-mind
-  capabilities?: string[]; // agent capabilities like 'task_management', 'code_generation', etc.
-  currentTask?: string; // active task description
-  tasksActive?: number; // number of active tasks
-  tasksCompleted?: number; // total completed tasks
-  successRate?: number; // 0-1 success rate
-  tokens?: number; // token usage
-  tokenRate?: number; // tokens per minute
-  activity?: number; // 0-1 activity level
+  
+  capabilities?: string[]; 
+  currentTask?: string; 
+  tasksActive?: number; 
+  tasksCompleted?: number; 
+  successRate?: number; 
+  tokens?: number; 
+  tokenRate?: number; 
+  activity?: number; 
 
-  // 3D positioning for force-directed graph
+  
   position?: {
     x: number;
     y: number;
@@ -36,29 +36,29 @@ export interface BotsAgent {
     z: number;
   };
 
-  // SSSP (Single Source Shortest Path) data from binary protocol
-  ssspDistance?: number; // Shortest path distance from source node
-  ssspParent?: number;   // Parent node ID for path reconstruction
-  lastPositionUpdate?: number; // Timestamp of last binary position update
+  
+  ssspDistance?: number; 
+  ssspParent?: number;   
+  lastPositionUpdate?: number; 
 
-  // UPDATED: multi-agent and hive-mind metadata
-  swarmId?: string; // Changed from multiAgentId for consistency
+  
+  swarmId?: string; 
   agentMode?: 'centralized' | 'distributed' | 'strategic';
-  parentQueenId?: string; // for hierarchical topologies
+  parentQueenId?: string; 
 
-  // Processing activity logs for visualization
-  processingLogs?: string[]; // Recent processing activity messages
+  
+  processingLogs?: string[]; 
 }
 
 export interface BotsCommunication {
   id: string;
   type: 'communication';
   timestamp: string;
-  sender: string; // agent ID
-  receivers: string[]; // agent IDs
+  sender: string; 
+  receivers: string[]; 
   metadata: {
-    size: number; // bytes
-    type?: string; // communication type
+    size: number; 
+    type?: string; 
   };
 }
 
@@ -73,7 +73,7 @@ export interface BotsEdge {
   id: string;
   source: string;
   target: string;
-  dataVolume: number; // total bytes exchanged
+  dataVolume: number; 
   messageCount: number;
   lastMessageTime: number;
 }
@@ -106,7 +106,7 @@ export interface BotsFullUpdateMessage {
     avgSuccessRate: number;
     totalTokens: number;
   };
-  timestamp: string; // ISO 8601
+  timestamp: string; 
 }
 
 export interface MCPRequest {
@@ -122,7 +122,7 @@ export interface MCPRequest {
 // UPDATED: Enhanced visual configuration for all claude-flow hive-mind agent types
 export interface BotsVisualConfig {
   colors: {
-    // Core agent types
+    
     coordinator: string;
     researcher: string;
     coder: string;
@@ -135,7 +135,7 @@ export interface BotsVisualConfig {
     monitor: string;
     specialist: string;
 
-    // UPDATED: Maestro specs-driven agent types
+    
     requirements_analyst: string;
     design_architect: string;
     task_planner: string;
@@ -143,11 +143,11 @@ export interface BotsVisualConfig {
     quality_reviewer: string;
     steering_documenter: string;
 
-    // UPDATED: Special hive-mind types
-    queen: string; // Queen agent gets distinctive color
+    
+    queen: string; 
   };
 
-  // UPDATED: Enhanced physics configuration for multi-agent behavior
+  
   physics: {
     springStrength: number;
     linkDistance: number;
@@ -156,18 +156,18 @@ export interface BotsVisualConfig {
     gravityStrength: number;
     maxVelocity: number;
 
-    // UPDATED: Hive-mind specific physics
-    queenGravity: number; // Additional gravity toward Queen agents
-    multiAgentCohesion: number; // Cohesion within same multi-agent
-    hierarchicalForce: number; // Force for hierarchical topologies
+    
+    queenGravity: number; 
+    multiAgentCohesion: number; 
+    hierarchicalForce: number; 
   };
 
-  // UPDATED: Agent size configuration based on role importance
+  
   sizes: {
-    queen: number; // Largest
+    queen: number; 
     coordinator: number;
     architect: number;
     specialist: number;
-    default: number; // Default size for other agents
+    default: number; 
   };
 }

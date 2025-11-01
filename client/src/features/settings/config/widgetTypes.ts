@@ -7,26 +7,26 @@ export type SettingWidgetType =
   | 'textInput'
   | 'colorPicker'
   | 'select'
-  | 'radioGroup' // For a small set of mutually exclusive choices
-  | 'rangeSlider' // For [number, number] arrays
+  | 'radioGroup' 
+  | 'rangeSlider' 
   | 'buttonAction'
-  | 'dualColorPicker'; // Custom type for [string, string] color arrays
+  | 'dualColorPicker'; 
 
 export interface UISettingDefinition {
   label: string;
   type: SettingWidgetType;
-  path: string; // Full path in the SettingsStore, e.g., "visualisation.nodes.baseColor"
-  description?: string; // Tooltip text
-  options?: Array<{ value: string | number; label: string }>; // For select
-  min?: number; // For slider, numberInput, rangeSlider
-  max?: number; // For slider, numberInput, rangeSlider
-  step?: number; // For slider, numberInput, rangeSlider
-  unit?: string; // e.g., "px", "ms"
-  isAdvanced?: boolean; // To hide behind an "Advanced" toggle if needed
-  isPowerUserOnly?: boolean; // Only visible/editable by power users
-  localStorage?: boolean; // Flag to indicate this uses localStorage instead of server sync
-  required?: boolean; // Required field indicator
-  action?: () => void; // For buttonAction type
+  path: string; 
+  description?: string; 
+  options?: Array<{ value: string | number; label: string }>; 
+  min?: number; 
+  max?: number; 
+  step?: number; 
+  unit?: string; 
+  isAdvanced?: boolean; 
+  isPowerUserOnly?: boolean; 
+  localStorage?: boolean; 
+  required?: boolean; 
+  action?: () => void; 
 }
 
 export interface UISubsectionDefinition {
@@ -37,7 +37,7 @@ export interface UISubsectionDefinition {
 
 export interface UICategoryDefinition {
   label: string;
-  icon?: string; // Lucide icon name
+  icon?: string; 
   description?: string;
   subsections: Record<string, UISubsectionDefinition>;
 }

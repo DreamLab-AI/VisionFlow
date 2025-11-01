@@ -13,7 +13,7 @@ use std::time::{Duration, Instant};
 use thiserror::Error;
 use uuid::Uuid;
 
-/// Errors that can occur during ontology validation
+/
 #[derive(Error, Debug)]
 pub enum ValidationError {
     #[error("Failed to parse ontology: {0}")]
@@ -35,7 +35,7 @@ pub enum ValidationError {
     CacheError(String),
 }
 
-/// Represents an RDF triple for property graph mapping
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RdfTriple {
     pub subject: String,
@@ -46,7 +46,7 @@ pub struct RdfTriple {
     pub language: Option<String>,
 }
 
-/// Validation result severity levels
+/
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Severity {
     Error,
@@ -54,7 +54,7 @@ pub enum Severity {
     Info,
 }
 
-/// Individual validation violation
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Violation {
     pub id: String,
@@ -67,7 +67,7 @@ pub struct Violation {
     pub timestamp: DateTime<Utc>,
 }
 
-/// Comprehensive validation report
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ValidationReport {
     pub id: String,
@@ -80,7 +80,7 @@ pub struct ValidationReport {
     pub statistics: ValidationStatistics,
 }
 
-/// Statistics about the validation process
+/
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ValidationStatistics {
     pub classes_checked: usize,
@@ -92,7 +92,7 @@ pub struct ValidationStatistics {
     pub cache_misses: usize,
 }
 
-/// Property graph node representation
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GraphNode {
     pub id: String,
@@ -100,7 +100,7 @@ pub struct GraphNode {
     pub properties: HashMap<String, serde_json::Value>,
 }
 
-/// Property graph edge representation
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GraphEdge {
     pub id: String,
@@ -110,7 +110,7 @@ pub struct GraphEdge {
     pub properties: HashMap<String, serde_json::Value>,
 }
 
-/// Complete property graph representation
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PropertyGraph {
     pub nodes: Vec<GraphNode>,
@@ -118,7 +118,7 @@ pub struct PropertyGraph {
     pub metadata: HashMap<String, serde_json::Value>,
 }
 
-/// Cached ontology with metadata
+/
 #[derive(Debug, Clone)]
 struct CachedOntology {
     id: String,
@@ -129,7 +129,7 @@ struct CachedOntology {
     ttl_seconds: u64,
 }
 
-/// Configuration for validation behavior
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ValidationConfig {
     pub enable_reasoning: bool,
@@ -151,7 +151,7 @@ impl Default for ValidationConfig {
             enable_inference: true,
             max_inference_depth: 3,
             enable_caching: true,
-            cache_ttl_seconds: 3600, // 1 hour
+            cache_ttl_seconds: 3600, 
             validate_cardinality: true,
             validate_domains_ranges: true,
             validate_disjoint_classes: true,
@@ -159,7 +159,7 @@ impl Default for ValidationConfig {
     }
 }
 
-/// Main OWL validation service
+/
 #[derive(Clone)]
 pub struct OwlValidatorService {
     ontology_cache: Arc<DashMap<String, CachedOntology>>,
@@ -169,7 +169,7 @@ pub struct OwlValidatorService {
     inference_rules: Vec<InferenceRule>,
 }
 
-/// Represents different types of inference rules
+/
 #[derive(Debug, Clone)]
 enum InferenceRule {
     InverseProperty {
@@ -189,12 +189,12 @@ enum InferenceRule {
 }
 
 impl OwlValidatorService {
-    /// Create a new OWL validator service with default configuration
+    
     pub fn new() -> Self {
         Self::with_config(ValidationConfig::default())
     }
 
-    /// Create a new OWL validator service with custom configuration
+    
     pub fn with_config(config: ValidationConfig) -> Self {
         let mut default_namespaces = HashMap::new();
         default_namespaces.insert(
@@ -216,16 +216,16 @@ impl OwlValidatorService {
         default_namespaces.insert("foaf".to_string(), "http://xmlns.com/foaf/0.1/".to_string());
 
         let inference_rules = vec![
-            // Common inverse properties
+            
             InferenceRule::InverseProperty {
                 property: "http://example.org/employs".to_string(),
                 inverse: "http://example.org/worksFor".to_string(),
             },
-            // Transitive properties
+            
             InferenceRule::TransitiveProperty {
                 property: "http://example.org/partOf".to_string(),
             },
-            // Symmetric properties
+            
             InferenceRule::SymmetricProperty {
                 property: "http://example.org/knows".to_string(),
             },
@@ -240,7 +240,7 @@ impl OwlValidatorService {
         }
     }
 
-    /// Load an ontology from various sources (file, string, URL)
+    
     pub async fn load_ontology(&self, source: &str) -> Result<String> {
         let start_time = Instant::now();
 
@@ -253,21 +253,21 @@ impl OwlValidatorService {
             }
         );
 
-        // Determine source type and load content
+        
         let ontology_content = if source.starts_with("http://") || source.starts_with("https://") {
             self.load_from_url(source).await?
         } else if std::path::Path::new(source).exists() {
             self.load_from_file(source)?
         } else {
-            // Treat as direct OWL/RDF content
+            
             source.to_string()
         };
 
-        // Generate unique ID based on content hash
+        
         let content_hash = self.calculate_signature(&ontology_content);
         let ontology_id = format!("ontology_{}", content_hash);
 
-        // Check if already cached
+        
         if self.config.enable_caching {
             if let Some(cached) = self.ontology_cache.get(&ontology_id) {
                 let age = Utc::now().signed_duration_since(cached.loaded_at);
@@ -282,13 +282,13 @@ impl OwlValidatorService {
             }
         }
 
-        // Parse the ontology
+        
         let ontology = self.parse_ontology(&ontology_content)?;
         let axiom_count = ontology.iter().count();
 
         info!("Parsed ontology with {} axioms", axiom_count);
 
-        // Cache the parsed ontology
+        
         if self.config.enable_caching {
             let cached = CachedOntology {
                 id: ontology_id.clone(),
@@ -307,13 +307,13 @@ impl OwlValidatorService {
         Ok(ontology_id)
     }
 
-    /// Convert property graph to RDF triples
+    
     pub fn map_graph_to_rdf(&self, graph_data: &PropertyGraph) -> Result<Vec<RdfTriple>> {
         let mut triples = Vec::new();
 
-        // Map nodes to RDF
+        
         for node in &graph_data.nodes {
-            // Add type triples for each label
+            
             for label in &node.labels {
                 triples.push(RdfTriple {
                     subject: self.expand_iri(&node.id)?,
@@ -325,7 +325,7 @@ impl OwlValidatorService {
                 });
             }
 
-            // Add property triples
+            
             for (prop_name, prop_value) in &node.properties {
                 let (object, is_literal, datatype, language) =
                     self.serialize_property_value(prop_value)?;
@@ -340,7 +340,7 @@ impl OwlValidatorService {
             }
         }
 
-        // Map edges to RDF
+        
         for edge in &graph_data.edges {
             triples.push(RdfTriple {
                 subject: self.expand_iri(&edge.source)?,
@@ -351,7 +351,7 @@ impl OwlValidatorService {
                 language: None,
             });
 
-            // Add edge properties as reified statements or use edge IRI
+            
             for (prop_name, prop_value) in &edge.properties {
                 let (object, is_literal, datatype, language) =
                     self.serialize_property_value(prop_value)?;
@@ -376,7 +376,7 @@ impl OwlValidatorService {
         Ok(triples)
     }
 
-    /// Validate property graph against loaded ontology
+    
     pub async fn validate(
         &self,
         ontology_id: &str,
@@ -385,7 +385,7 @@ impl OwlValidatorService {
         let start_time = Instant::now();
         let graph_signature = self.calculate_graph_signature(graph_data);
 
-        // Check validation cache
+        
         let cache_key = format!("{}:{}", ontology_id, graph_signature);
         if self.config.enable_caching {
             if let Some(cached_report) = self.validation_cache.get(&cache_key) {
@@ -403,15 +403,15 @@ impl OwlValidatorService {
             graph_data.edges.len()
         );
 
-        // Get cached ontology
+        
         let cached_ontology = self.ontology_cache.get(ontology_id).ok_or_else(|| {
             ValidationError::CacheError(format!("Ontology not found: {}", ontology_id))
         })?;
 
-        // Convert graph to RDF triples
+        
         let rdf_triples = self.map_graph_to_rdf(graph_data)?;
 
-        // Initialize validation context
+        
         let mut violations = Vec::new();
         let mut statistics = ValidationStatistics {
             classes_checked: 0,
@@ -423,7 +423,7 @@ impl OwlValidatorService {
             cache_misses: 0,
         };
 
-        // Perform different types of validation
+        
         if self.config.validate_disjoint_classes {
             violations
                 .extend(self.validate_disjoint_classes(&cached_ontology.ontology, &rdf_triples)?);
@@ -440,7 +440,7 @@ impl OwlValidatorService {
             statistics.constraints_evaluated += 1;
         }
 
-        // Perform inference if enabled
+        
         let inferred_triples = if self.config.enable_inference {
             self.infer_triples(&rdf_triples, &mut statistics)?
         } else {
@@ -459,7 +459,7 @@ impl OwlValidatorService {
             statistics,
         };
 
-        // Cache the report
+        
         if self.config.enable_caching {
             self.validation_cache.insert(cache_key, report.clone());
         }
@@ -474,15 +474,15 @@ impl OwlValidatorService {
         Ok(report)
     }
 
-    /// Infer new relationships based on defined rules
+    
     pub fn infer(&self, rdf_triples: &[RdfTriple]) -> Result<Vec<RdfTriple>> {
         let mut statistics = ValidationStatistics::default();
         self.infer_triples(rdf_triples, &mut statistics)
     }
 
-    /// Get all violations from the most recent validation
+    
     pub fn get_violations(&self, report_id: &str) -> Vec<Violation> {
-        // Search through cached validation reports
+        
         for entry in self.validation_cache.iter() {
             if entry.value().id == report_id {
                 return entry.value().violations.clone();
@@ -491,14 +491,14 @@ impl OwlValidatorService {
         Vec::new()
     }
 
-    /// Clear all caches
+    
     pub fn clear_caches(&self) {
         self.ontology_cache.clear();
         self.validation_cache.clear();
         info!("All caches cleared");
     }
 
-    // Private helper methods
+    
 
     async fn load_from_url(&self, url: &str) -> Result<String> {
         let client = reqwest::Client::new();
@@ -529,7 +529,7 @@ impl OwlValidatorService {
 
         debug!("Detecting ontology format...");
 
-        // Detect format based on content
+        
         if trimmed.starts_with("@prefix")
             || trimmed.starts_with("@base")
             || trimmed.contains("@prefix")
@@ -599,7 +599,7 @@ impl OwlValidatorService {
         use blake3::Hasher;
         let mut hasher = Hasher::new();
 
-        // Hash nodes
+        
         for node in &graph.nodes {
             hasher.update(node.id.as_bytes());
             for label in &node.labels {
@@ -607,7 +607,7 @@ impl OwlValidatorService {
             }
         }
 
-        // Hash edges
+        
         for edge in &graph.edges {
             hasher.update(edge.id.as_bytes());
             hasher.update(edge.source.as_bytes());
@@ -624,12 +624,12 @@ impl OwlValidatorService {
 
     fn expand_iri(&self, iri: &str) -> Result<String> {
         if iri.contains("://") {
-            // Already a full IRI
+            
             Ok(iri.to_string())
         } else if let Some(colon_pos) = iri.find(':') {
-            // Prefixed IRI
+            
             let (prefix, local) = iri.split_at(colon_pos);
-            let local = &local[1..]; // Remove the colon
+            let local = &local[1..]; 
 
             if let Some(namespace) = self.default_namespaces.get(prefix) {
                 Ok(format!("{}{}", namespace, local))
@@ -637,7 +637,7 @@ impl OwlValidatorService {
                 Err(ValidationError::InvalidIri(format!("Unknown prefix: {}", prefix)).into())
             }
         } else {
-            // Assume default namespace
+            
             Ok(format!("http://example.org/{}", iri))
         }
     }
@@ -649,10 +649,10 @@ impl OwlValidatorService {
         match value {
             serde_json::Value::String(s) => {
                 if s.starts_with("http://") || s.starts_with("https://") {
-                    // Treat as IRI
+                    
                     Ok((s.clone(), false, None, None))
                 } else {
-                    // String literal
+                    
                     Ok((
                         s.clone(),
                         true,
@@ -700,7 +700,7 @@ impl OwlValidatorService {
     ) -> Result<Vec<Violation>> {
         let mut violations = Vec::new();
 
-        // Extract type assertions from triples
+        
         let mut individual_types: HashMap<String, Vec<String>> = HashMap::new();
 
         for triple in triples {
@@ -714,9 +714,9 @@ impl OwlValidatorService {
             }
         }
 
-        // Check for disjoint class violations
-        // This is a simplified implementation - in practice, you'd extract
-        // disjoint class axioms from the ontology
+        
+        
+        
         let disjoint_pairs = vec![
             ("http://example.org/Person", "http://example.org/Company"),
             ("http://example.org/Animal", "http://example.org/Plant"),
@@ -754,8 +754,8 @@ impl OwlValidatorService {
     ) -> Result<Vec<Violation>> {
         let mut violations = Vec::new();
 
-        // Define some example domain/range constraints
-        // In practice, these would be extracted from the ontology
+        
+        
         let constraints = vec![
             (
                 "http://example.org/employs",
@@ -769,7 +769,7 @@ impl OwlValidatorService {
             ),
         ];
 
-        // Get type information for validation
+        
         let mut individual_types: HashMap<String, Vec<String>> = HashMap::new();
         for triple in triples {
             if triple.predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
@@ -782,11 +782,11 @@ impl OwlValidatorService {
             }
         }
 
-        // Validate domain/range constraints
+        
         for triple in triples {
             for (property, domain, range) in &constraints {
                 if &triple.predicate == property {
-                    // Check domain constraint
+                    
                     if let Some(subject_types) = individual_types.get(&triple.subject) {
                         if !subject_types.contains(&domain.to_string()) {
                             violations.push(Violation {
@@ -805,7 +805,7 @@ impl OwlValidatorService {
                         }
                     }
 
-                    // Check range constraint for object properties
+                    
                     if !triple.is_literal {
                         if let Some(object_types) = individual_types.get(&triple.object) {
                             if !object_types.contains(&range.to_string()) {
@@ -827,7 +827,7 @@ impl OwlValidatorService {
                     } else if triple.is_literal
                         && triple.datatype.as_ref() != Some(&range.to_string())
                     {
-                        // Check datatype for literals
+                        
                         violations.push(Violation {
                             id: Uuid::new_v4().to_string(),
                             severity: Severity::Error,
@@ -856,14 +856,14 @@ impl OwlValidatorService {
     ) -> Result<Vec<Violation>> {
         let mut violations = Vec::new();
 
-        // Define cardinality constraints
-        // In practice, these would be extracted from the ontology
+        
+        
         let cardinality_constraints = vec![
-            ("http://example.org/hasSSN", 1, Some(1)), // exactly 1
-            ("http://example.org/hasChild", 0, None),  // minimum 0, no maximum
+            ("http://example.org/hasSSN", 1, Some(1)), 
+            ("http://example.org/hasChild", 0, None),  
         ];
 
-        // Count property occurrences per subject
+        
         let mut property_counts: HashMap<(String, String), usize> = HashMap::new();
 
         for triple in triples {
@@ -871,9 +871,9 @@ impl OwlValidatorService {
             *property_counts.entry(key).or_insert(0) += 1;
         }
 
-        // Check cardinality constraints
+        
         for (property, min_card, max_card) in cardinality_constraints {
-            // Group subjects by property usage
+            
             let subjects_using_property: HashSet<String> = triples
                 .iter()
                 .filter(|t| t.predicate == property)
@@ -933,7 +933,7 @@ impl OwlValidatorService {
         let timeout = Duration::from_secs(self.config.reasoning_timeout_seconds);
         let start_time = Instant::now();
 
-        // Apply inference rules with timeout
+        
         for rule in &self.inference_rules {
             if start_time.elapsed() > timeout {
                 return Err(ValidationError::TimeoutError(timeout).into());
@@ -993,13 +993,13 @@ impl OwlValidatorService {
     ) -> Vec<RdfTriple> {
         let mut inferred = Vec::new();
 
-        // Find all triples with the transitive property
+        
         let property_triples: Vec<_> = triples
             .iter()
             .filter(|t| t.predicate == property && !t.is_literal)
             .collect();
 
-        // Apply transitivity: if (A, P, B) and (B, P, C) then (A, P, C)
+        
         for triple1 in &property_triples {
             for triple2 in &property_triples {
                 if triple1.object == triple2.subject && triple1.subject != triple2.object {
@@ -1049,7 +1049,7 @@ impl OwlValidatorService {
     ) -> Vec<RdfTriple> {
         let mut inferred = Vec::new();
 
-        // If X is of type Subclass, then X is also of type Superclass
+        
         for triple in triples {
             if triple.predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
                 && triple.object == subclass
@@ -1076,10 +1076,10 @@ impl Default for OwlValidatorService {
     }
 }
 
-/// Convert ValidationReport to OntologyReasoningReport for physics integration
-///
-/// TODO: This function needs to be updated to use horned-owl 1.2.0 API for proper axiom extraction.
-/// Currently returns a simplified report based on validation results.
+/
+/
+/
+/
 pub fn validation_report_to_reasoning_report(
     report: &ValidationReport,
     _ontology: &SetOntology<Arc<str>>,
@@ -1088,19 +1088,19 @@ pub fn validation_report_to_reasoning_report(
         ConsistencyCheck, OWLAxiom, OWLAxiomType, OntologyInference, OntologyReasoningReport,
     };
 
-    let axioms = Vec::new(); // TODO: Extract axioms using horned-owl 1.2.0 API
+    let axioms = Vec::new(); 
     let mut inferences = Vec::new();
     let mut consistency_checks = Vec::new();
 
-    // Convert inferred triples to inferences
+    
     for triple in &report.inferred_triples {
-        // Determine axiom type from triple pattern
+        
         let axiom_type = if triple.predicate.contains("inverseOf") {
             OWLAxiomType::InverseOf
         } else if triple.predicate.contains("type") {
             OWLAxiomType::SubClassOf
         } else {
-            OWLAxiomType::SameAs // Default
+            OWLAxiomType::SameAs 
         };
 
         inferences.push(OntologyInference {
@@ -1109,15 +1109,15 @@ pub fn validation_report_to_reasoning_report(
                 subject: triple.subject.clone(),
                 object: Some(triple.object.clone()),
                 property: Some(triple.predicate.clone()),
-                confidence: 0.8, // Inferred axioms have lower confidence
+                confidence: 0.8, 
             },
-            premise_axioms: vec![], // Could be populated with source axiom IDs
+            premise_axioms: vec![], 
             reasoning_confidence: 0.8,
             is_derived: true,
         });
     }
 
-    // Create consistency checks based on violations
+    
     let is_consistent = report
         .violations
         .iter()
@@ -1155,7 +1155,7 @@ mod tests {
     async fn test_basic_validation() {
         let validator = OwlValidatorService::new();
 
-        // Create a simple property graph
+        
         let graph = PropertyGraph {
             nodes: vec![GraphNode {
                 id: "person1".to_string(),
@@ -1177,24 +1177,24 @@ mod tests {
             metadata: HashMap::new(),
         };
 
-        // Map to RDF triples
+        
         let triples = validator.map_graph_to_rdf(&graph).unwrap();
         assert!(!triples.is_empty());
 
-        // Test inference
+        
         let inferred = validator.infer(&triples).unwrap();
-        // Inference results depend on loaded ontology
+        
     }
 
     #[test]
     fn test_iri_expansion() {
         let validator = OwlValidatorService::new();
 
-        // Test prefixed IRI
+        
         let expanded = validator.expand_iri("foaf:Person").unwrap();
         assert_eq!(expanded, "http://xmlns.com/foaf/0.1/Person");
 
-        // Test full IRI
+        
         let full_iri = "http://example.org/Person";
         let expanded = validator.expand_iri(full_iri).unwrap();
         assert_eq!(expanded, full_iri);
@@ -1204,7 +1204,7 @@ mod tests {
     fn test_property_value_serialization() {
         let validator = OwlValidatorService::new();
 
-        // Test string value
+        
         let string_val = serde_json::Value::String("test".to_string());
         let (object, is_literal, datatype, _) =
             validator.serialize_property_value(&string_val).unwrap();
@@ -1214,7 +1214,7 @@ mod tests {
             Some("http://www.w3.org/2001/XMLSchema#string".to_string())
         );
 
-        // Test integer value
+        
         let int_val = serde_json::Value::Number(serde_json::Number::from(42));
         let (object, is_literal, datatype, _) =
             validator.serialize_property_value(&int_val).unwrap();

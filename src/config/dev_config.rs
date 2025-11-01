@@ -19,130 +19,130 @@ pub struct DevConfig {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PhysicsInternals {
-    // Force calculation parameters
-    pub force_epsilon: f32, // Small value to prevent division by zero
-    pub spring_length_multiplier: f32, // Natural spring length = separation_radius * this
-    pub spring_length_max: f32, // Maximum natural spring length
-    pub spring_force_clamp_factor: f32, // Clamp spring forces to max_force * this
+    
+    pub force_epsilon: f32, 
+    pub spring_length_multiplier: f32, 
+    pub spring_length_max: f32, 
+    pub spring_force_clamp_factor: f32, 
 
-    // CUDA kernel parameters
-    pub rest_length: f32,                 // Natural spring rest length
-    pub repulsion_cutoff: f32,            // Maximum distance for repulsion calculations
-    pub repulsion_softening_epsilon: f32, // Prevents division by zero in force calculations
-    pub center_gravity_k: f32,            // Gravity toward center
-    pub grid_cell_size: f32,              // Spatial grid resolution for neighbor searches
-    pub warmup_iterations: u32,           // Number of warmup simulation steps
-    pub cooling_rate: f32,                // Rate of cooling during warmup
+    
+    pub rest_length: f32,                 
+    pub repulsion_cutoff: f32,            
+    pub repulsion_softening_epsilon: f32, 
+    pub center_gravity_k: f32,            
+    pub grid_cell_size: f32,              
+    pub warmup_iterations: u32,           
+    pub cooling_rate: f32,                
 
-    // GPU kernel-specific physics parameters
-    pub max_force: f32,                // Maximum force magnitude for clamping
-    pub max_velocity: f32,             // Maximum velocity magnitude for clamping
-    pub world_bounds_min: f32,         // Minimum world coordinate
-    pub world_bounds_max: f32,         // Maximum world coordinate
-    pub cell_size_lod: f32,            // Level of detail cell size
-    pub k_neighbors_max: u32,          // Maximum k-neighbors for LOF
-    pub anomaly_detection_radius: f32, // Default radius for anomaly detection
-    pub learning_rate_default: f32,    // Default learning rate for GPU algorithms
-    pub min_velocity_threshold: f32,   // Minimum velocity threshold for stability gates
-    pub stability_threshold: f32,      // System stability threshold for early exit
+    
+    pub max_force: f32,                
+    pub max_velocity: f32,             
+    pub world_bounds_min: f32,         
+    pub world_bounds_max: f32,         
+    pub cell_size_lod: f32,            
+    pub k_neighbors_max: u32,          
+    pub anomaly_detection_radius: f32, 
+    pub learning_rate_default: f32,    
+    pub min_velocity_threshold: f32,   
+    pub stability_threshold: f32,      
 
-    // Additional kernel constants for fine-tuning
-    pub norm_delta_cap: f32, // Cap for SSSP delta normalization
-    pub position_constraint_attraction: f32, // Gentle attraction factor for position constraints
-    pub lof_score_min: f32,  // Minimum LOF score clamp
-    pub lof_score_max: f32,  // Maximum LOF score clamp
-    pub weight_precision_multiplier: f32, // Weight precision multiplier for integer operations
+    
+    pub norm_delta_cap: f32, 
+    pub position_constraint_attraction: f32, 
+    pub lof_score_min: f32,  
+    pub lof_score_max: f32,  
+    pub weight_precision_multiplier: f32, 
 
-    // Boundary behavior
-    pub boundary_extreme_multiplier: f32, // Position is extreme if > viewport_bounds * this
-    pub boundary_extreme_force_multiplier: f32, // Force multiplier for extreme positions
-    pub boundary_velocity_damping: f32,   // Velocity reduction on boundary hit
+    
+    pub boundary_extreme_multiplier: f32, 
+    pub boundary_extreme_force_multiplier: f32, 
+    pub boundary_velocity_damping: f32,   
 
-    // Node distribution
-    pub golden_ratio: f32,         // For initial node positioning
-    pub initial_radius_min: f32,   // Minimum initial node radius
-    pub initial_radius_range: f32, // Range for initial radius variation
+    
+    pub golden_ratio: f32,         
+    pub initial_radius_min: f32,   
+    pub initial_radius_range: f32, 
 
-    // Graph-based scaling
-    pub cross_graph_repulsion_scale: f32, // Repulsion between different graphs
-    pub cross_graph_spring_scale: f32,    // Spring force between different graphs
+    
+    pub cross_graph_repulsion_scale: f32, 
+    pub cross_graph_spring_scale: f32,    
 
-    // Clustering
-    pub cluster_repulsion_scale: f32, // Repulsion within same cluster
-    pub importance_scale_factor: f32, // Scale based on node importance
+    
+    pub cluster_repulsion_scale: f32, 
+    pub importance_scale_factor: f32, 
 
-    // Distance thresholds
-    pub repulsion_distance_squared_min: f32, // Minimum distance squared for repulsion
-    pub stress_majorization_epsilon: f32,    // Small value for stress calculations
+    
+    pub repulsion_distance_squared_min: f32, 
+    pub stress_majorization_epsilon: f32,    
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CudaInternals {
-    // Warmup parameters
+    
     pub warmup_iterations_default: u32,
     pub warmup_damping_start: f32,
     pub warmup_damping_end: f32,
     pub warmup_temperature_scale: f32,
     pub warmup_cooling_iterations: u32,
 
-    // GPU safety
+    
     pub max_kernel_time_ms: u32,
     pub max_gpu_failures: u32,
     pub debug_output_throttle: u32,
-    pub debug_node_count: u32, // Number of nodes to debug output
+    pub debug_node_count: u32, 
 
-    // Memory limits
+    
     pub max_nodes: u32,
     pub max_edges: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NetworkInternals {
-    // Connection pooling
+    
     pub pool_max_idle_per_host: usize,
     pub pool_idle_timeout_secs: u64,
     pub pool_connect_timeout_secs: u64,
 
-    // Circuit breaker
+    
     pub circuit_failure_threshold: u32,
     pub circuit_recovery_timeout_secs: u64,
     pub circuit_half_open_max_requests: u32,
 
-    // Retry logic
+    
     pub max_retry_attempts: u32,
     pub retry_base_delay_ms: u64,
     pub retry_max_delay_ms: u64,
     pub retry_exponential_base: f32,
 
-    // WebSocket internals
+    
     pub ws_ping_interval_secs: u64,
     pub ws_pong_timeout_secs: u64,
     pub ws_frame_size: usize,
     pub ws_max_pending_messages: usize,
 
-    // Rate limiting internals
+    
     pub rate_limit_burst_size: u32,
     pub rate_limit_refill_rate: f32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RenderingInternals {
-    // Agent colors (hex strings)
+    
     pub agent_colors: AgentColors,
 
-    // Size calculations
+    
     pub agent_base_size: f32,
     pub agent_size_per_task: f32,
     pub agent_max_size: f32,
     pub node_base_radius: f32,
 
-    // Animation speeds
+    
     pub pulse_speed: f32,
     pub rotate_speed: f32,
     pub glow_speed: f32,
     pub wave_speed: f32,
 
-    // Quality thresholds
+    
     pub lod_distance_high: f32,
     pub lod_distance_medium: f32,
     pub lod_distance_low: f32,
@@ -164,22 +164,22 @@ pub struct AgentColors {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PerformanceInternals {
-    // Batching
+    
     pub batch_size_nodes: usize,
     pub batch_size_edges: usize,
     pub batch_timeout_ms: u64,
 
-    // Caching
+    
     pub cache_ttl_secs: u64,
     pub cache_max_entries: usize,
     pub cache_eviction_percentage: f32,
 
-    // Threading
+    
     pub worker_threads: usize,
     pub blocking_threads: usize,
     pub stack_size_mb: usize,
 
-    // Memory management
+    
     pub gc_interval_secs: u64,
     pub memory_warning_threshold_mb: usize,
     pub memory_critical_threshold_mb: usize,
@@ -207,7 +207,7 @@ impl Default for DevConfig {
                 spring_length_max: 10.0,
                 spring_force_clamp_factor: 0.5,
 
-                // CUDA kernel parameters
+                
                 rest_length: 50.0,
                 repulsion_cutoff: 50.0,
                 repulsion_softening_epsilon: 0.0001,
@@ -216,7 +216,7 @@ impl Default for DevConfig {
                 warmup_iterations: 100,
                 cooling_rate: 0.001,
 
-                // GPU kernel-specific physics parameters
+                
                 max_force: 15.0,
                 max_velocity: 50.0,
                 world_bounds_min: -1000.0,
@@ -228,7 +228,7 @@ impl Default for DevConfig {
                 min_velocity_threshold: 0.01,
                 stability_threshold: 1e-6,
 
-                // Additional kernel constants for fine-tuning
+                
                 norm_delta_cap: 1000.0,
                 position_constraint_attraction: 0.1,
                 lof_score_min: 0.1,
@@ -333,10 +333,10 @@ impl Default for DevConfig {
 }
 
 impl DevConfig {
-    /// Load developer configuration from file or use defaults
+    
     pub fn load() -> &'static Self {
         DEV_CONFIG.get_or_init(|| {
-            // Try to load from dev_config.toml
+            
             match std::fs::read_to_string("data/dev_config.toml") {
                 Ok(content) => match toml::from_str::<DevConfig>(&content) {
                     Ok(config) => {
@@ -356,12 +356,12 @@ impl DevConfig {
         })
     }
 
-    /// Get the global developer configuration instance
+    
     pub fn get() -> &'static Self {
         Self::load()
     }
 
-    /// Save current configuration to file
+    
     pub fn save_to_file(&self, path: &str) -> Result<(), Box<dyn std::error::Error>> {
         let toml_string = toml::to_string_pretty(self)?;
         std::fs::write(path, toml_string)?;

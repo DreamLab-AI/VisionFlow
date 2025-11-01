@@ -2,7 +2,7 @@ import { HelpContent } from './types';
 import { helpRegistry } from './HelpRegistry';
 
 export const settingsHelpContent: Record<string, HelpContent> = {
-  // System Settings
+  
   'settings.system.debug': {
     id: 'settings.system.debug',
     title: 'Debug Mode',
@@ -32,7 +32,7 @@ export const settingsHelpContent: Record<string, HelpContent> = {
     detailedHelp: 'When enabled, settings are saved automatically after each change. Disable this to manually control when settings are persisted.',
   },
 
-  // Visualization Settings
+  
   'settings.visualization.theme': {
     id: 'settings.visualization.theme',
     title: 'Visualization Theme',
@@ -57,7 +57,7 @@ export const settingsHelpContent: Record<string, HelpContent> = {
     detailedHelp: 'Lower opacity helps see through dense connection networks, while higher opacity makes individual connections clearer.',
   },
 
-  // AI Settings
+  
   'settings.ai.provider': {
     id: 'settings.ai.provider',
     title: 'AI Provider',
@@ -77,7 +77,7 @@ export const settingsHelpContent: Record<string, HelpContent> = {
     ]
   },
 
-  // XR Settings
+  
   'settings.xr.enabled': {
     id: 'settings.xr.enabled',
     title: 'Enable XR',
@@ -99,7 +99,7 @@ export function registerSettingsHelp() {
     helpRegistry.registerHelp(help);
   });
 
-  // Register categories
+  
   helpRegistry.registerCategory({
     id: 'settings',
     name: 'Settings',

@@ -14,7 +14,7 @@ use crate::actors::physics_orchestrator_actor::PhysicsOrchestratorActor;
 use crate::actors::semantic_processor_actor::SemanticProcessorActor;
 use crate::models::simulation_params::SimulationParams;
 
-/// Actor system lifecycle manager
+/
 pub struct ActorLifecycleManager {
     physics_actor: Option<Addr<PhysicsOrchestratorActor>>,
     semantic_actor: Option<Addr<SemanticProcessorActor>>,
@@ -28,7 +28,7 @@ impl Default for ActorLifecycleManager {
 }
 
 impl ActorLifecycleManager {
-    /// Create new actor lifecycle manager
+    
     pub fn new() -> Self {
         Self {
             physics_actor: None,
@@ -37,24 +37,24 @@ impl ActorLifecycleManager {
         }
     }
 
-    /// Initialize all actors
+    
     pub async fn initialize(&mut self) -> Result<(), ActorLifecycleError> {
         info!("Initializing actor system");
 
-        // Start physics actor
+        
         self.start_physics_actor().await?;
 
-        // Start semantic actor
+        
         self.start_semantic_actor().await?;
 
-        // Start health monitoring
+        
         self.start_health_monitoring();
 
         info!("Actor system initialized successfully");
         Ok(())
     }
 
-    /// Start physics actor
+    
     async fn start_physics_actor(&mut self) -> Result<(), ActorLifecycleError> {
         info!("Starting PhysicsOrchestratorActor");
 
@@ -62,13 +62,13 @@ impl ActorLifecycleManager {
         #[cfg(feature = "gpu")]
         let actor = PhysicsOrchestratorActor::new(
             simulation_params,
-            None, // gpu_compute_addr
-            None, // graph_data
+            None, 
+            None, 
         );
         #[cfg(not(feature = "gpu"))]
         let actor = PhysicsOrchestratorActor::new(
             simulation_params,
-            None, // graph_data
+            None, 
         );
         let addr = actor.start();
 
@@ -78,11 +78,11 @@ impl ActorLifecycleManager {
         Ok(())
     }
 
-    /// Start semantic actor
+    
     async fn start_semantic_actor(&mut self) -> Result<(), ActorLifecycleError> {
         info!("Starting SemanticProcessorActor");
 
-        let actor = SemanticProcessorActor::new(None); // Use default config
+        let actor = SemanticProcessorActor::new(None); 
         let addr = actor.start();
 
         self.semantic_actor = Some(addr);
@@ -91,7 +91,7 @@ impl ActorLifecycleManager {
         Ok(())
     }
 
-    /// Start health monitoring
+    
     fn start_health_monitoring(&self) {
         let physics_actor = self.physics_actor.clone();
         let semantic_actor = self.semantic_actor.clone();
@@ -103,7 +103,7 @@ impl ActorLifecycleManager {
             loop {
                 timer.tick().await;
 
-                // Check physics actor health
+                
                 if let Some(addr) = &physics_actor {
                     if addr.connected() {
                         info!("PhysicsActor health check: OK");
@@ -112,7 +112,7 @@ impl ActorLifecycleManager {
                     }
                 }
 
-                // Check semantic actor health
+                
                 if let Some(addr) = &semantic_actor {
                     if addr.connected() {
                         info!("SemanticActor health check: OK");
@@ -124,74 +124,74 @@ impl ActorLifecycleManager {
         });
     }
 
-    /// Graceful shutdown of all actors
+    
     pub async fn shutdown(&mut self) -> Result<(), ActorLifecycleError> {
         info!("Starting graceful actor shutdown");
 
-        // Stop physics actor
+        
         if let Some(_addr) = self.physics_actor.take() {
             info!("Stopping PhysicsOrchestratorActor");
-            // Actor will be dropped and stopped when addr is dropped
+            
         }
 
-        // Stop semantic actor
+        
         if let Some(_addr) = self.semantic_actor.take() {
             info!("Stopping SemanticProcessorActor");
-            // Actor will be dropped and stopped when addr is dropped
+            
         }
 
-        // Wait for actors to stop
+        
         tokio::time::sleep(Duration::from_secs(2)).await;
 
         info!("Actor system shutdown complete");
         Ok(())
     }
 
-    /// Restart physics actor
+    
     pub async fn restart_physics_actor(&mut self) -> Result<(), ActorLifecycleError> {
         warn!("Restarting PhysicsOrchestratorActor");
 
-        // Stop existing actor by dropping it
+        
         if let Some(_addr) = self.physics_actor.take() {
-            // Actor will be stopped when addr is dropped
+            
             tokio::time::sleep(Duration::from_millis(500)).await;
         }
 
-        // Start new actor
+        
         self.start_physics_actor().await?;
 
         info!("PhysicsOrchestratorActor restarted successfully");
         Ok(())
     }
 
-    /// Restart semantic actor
+    
     pub async fn restart_semantic_actor(&mut self) -> Result<(), ActorLifecycleError> {
         warn!("Restarting SemanticProcessorActor");
 
-        // Stop existing actor by dropping it
+        
         if let Some(_addr) = self.semantic_actor.take() {
-            // Actor will be stopped when addr is dropped
+            
             tokio::time::sleep(Duration::from_millis(500)).await;
         }
 
-        // Start new actor
+        
         self.start_semantic_actor().await?;
 
         info!("SemanticProcessorActor restarted successfully");
         Ok(())
     }
 
-    /// Get physics actor address
+    
     pub fn get_physics_actor(&self) -> Option<&Addr<PhysicsOrchestratorActor>> {
         self.physics_actor.as_ref()
     }
 
-    /// Get semantic actor address
+    
     pub fn get_semantic_actor(&self) -> Option<&Addr<SemanticProcessorActor>> {
         self.semantic_actor.as_ref()
     }
 
-    /// Check if all actors are running
+    
     pub fn is_healthy(&self) -> bool {
         self.physics_actor.as_ref().map_or(false, |a| a.connected())
             && self
@@ -200,13 +200,13 @@ impl ActorLifecycleManager {
                 .map_or(false, |a| a.connected())
     }
 
-    /// Set health check interval
+    
     pub fn set_health_check_interval(&mut self, interval: Duration) {
         self.health_check_interval = interval;
     }
 }
 
-/// Actor lifecycle errors
+/
 #[derive(Debug, thiserror::Error)]
 pub enum ActorLifecycleError {
     #[error("Actor initialization failed: {0}")]
@@ -222,7 +222,7 @@ pub enum ActorLifecycleError {
     ShutdownTimeout,
 }
 
-/// Supervision strategy for actor failures
+/
 pub struct SupervisionStrategy {
     max_restarts: usize,
     restart_window: Duration,
@@ -238,7 +238,7 @@ impl Default for SupervisionStrategy {
 }
 
 impl SupervisionStrategy {
-    /// Create new supervision strategy
+    
     pub fn new(max_restarts: usize, restart_window: Duration) -> Self {
         Self {
             max_restarts,
@@ -246,7 +246,7 @@ impl SupervisionStrategy {
         }
     }
 
-    /// Handle actor failure
+    
     pub async fn handle_failure(
         &self,
         actor_name: &str,
@@ -270,24 +270,24 @@ impl SupervisionStrategy {
     }
 }
 
-/// Supervision decision
+/
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SupervisionDecision {
     Restart,
     Stop,
 }
 
-/// Global actor system manager
+/
 pub static ACTOR_SYSTEM: once_cell::sync::Lazy<Arc<RwLock<ActorLifecycleManager>>> =
     once_cell::sync::Lazy::new(|| Arc::new(RwLock::new(ActorLifecycleManager::new())));
 
-/// Initialize global actor system
+/
 pub async fn initialize_actor_system() -> Result<(), ActorLifecycleError> {
     let mut system = ACTOR_SYSTEM.write().await;
     system.initialize().await
 }
 
-/// Shutdown global actor system
+/
 pub async fn shutdown_actor_system() -> Result<(), ActorLifecycleError> {
     let mut system = ACTOR_SYSTEM.write().await;
     system.shutdown().await

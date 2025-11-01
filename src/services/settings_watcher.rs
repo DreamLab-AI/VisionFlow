@@ -18,7 +18,7 @@ use tokio::sync::RwLock;
 use crate::actors::messages::ReloadSettings;
 use crate::actors::optimized_settings_actor::OptimizedSettingsActor;
 
-/// Debounce duration to avoid rapid consecutive reloads
+/
 const DEBOUNCE_DURATION: Duration = Duration::from_millis(500);
 
 pub struct SettingsWatcher {
@@ -28,7 +28,7 @@ pub struct SettingsWatcher {
 }
 
 impl SettingsWatcher {
-    /// Create a new settings watcher for the given database path
+    
     pub fn new(db_path: String, settings_actor: Addr<OptimizedSettingsActor>) -> Self {
         Self {
             db_path,
@@ -37,17 +37,17 @@ impl SettingsWatcher {
         }
     }
 
-    /// Start watching the settings database for changes
+    
     pub async fn start(self) -> notify::Result<()> {
         let (tx, rx) = std::sync::mpsc::channel();
 
-        // Create the watcher
+        
         let mut watcher = notify::recommended_watcher(tx)?;
 
-        // Watch the database file
+        
         let db_path = Path::new(&self.db_path);
 
-        // Watch the parent directory since the file might be replaced atomically
+        
         let watch_path = if db_path.exists() {
             if let Some(parent) = db_path.parent() {
                 info!(
@@ -76,20 +76,20 @@ impl SettingsWatcher {
             .unwrap_or("settings.db")
             .to_string();
 
-        // Process file system events
+        
         tokio::spawn(async move {
             while let Ok(result) = rx.recv() {
                 match result {
                     Ok(event) => {
                         if Self::should_reload(&event, &db_filename) {
-                            // Debounce: only reload if enough time has passed
+                            
                             let mut last = last_reload.write().await;
                             let elapsed = last.elapsed();
 
                             if elapsed >= DEBOUNCE_DURATION {
                                 debug!("Settings file modified, triggering reload...");
                                 *last = std::time::Instant::now();
-                                drop(last); // Release lock before async operation
+                                drop(last); 
 
                                 Self::trigger_reload(&settings_actor).await;
                             } else {
@@ -109,14 +109,14 @@ impl SettingsWatcher {
             warn!("Settings watcher event loop terminated");
         });
 
-        // Keep the watcher alive
+        
         std::mem::forget(watcher);
         Ok(())
     }
 
-    /// Check if the event should trigger a reload
+    
     fn should_reload(event: &Event, db_filename: &str) -> bool {
-        // Check if event is a modification
+        
         matches!(
             event.kind,
             EventKind::Modify(_) | EventKind::Create(_) | EventKind::Remove(_)
@@ -128,7 +128,7 @@ impl SettingsWatcher {
         })
     }
 
-    /// Trigger settings reload via actor message
+    
     async fn trigger_reload(settings_actor: &Addr<OptimizedSettingsActor>) {
         match settings_actor.send(ReloadSettings).await {
             Ok(Ok(())) => {

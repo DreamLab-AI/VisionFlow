@@ -14,7 +14,7 @@ use futures_util::future::LocalBoxFuture;
 use log::{debug, info, warn};
 use std::rc::Rc;
 
-/// Request size validation middleware
+/
 pub struct RequestSizeLimit {
     max_size: usize,
 }
@@ -71,7 +71,7 @@ where
     fn call(&self, req: ServiceRequest) -> Self::Future {
         let max_size = self.max_size;
 
-        // Check Content-Length header
+        
         if let Some(content_length) = req.headers().get("content-length") {
             if let Ok(length_str) = content_length.to_str() {
                 if let Ok(length) = length_str.parse::<usize>() {
@@ -104,7 +104,7 @@ where
     }
 }
 
-/// Security headers middleware
+/
 pub struct SecurityHeaders;
 
 impl<S, B> Transform<S, ServiceRequest> for SecurityHeaders
@@ -146,7 +146,7 @@ where
         Box::pin(async move {
             let mut res = fut.await?;
 
-            // Add security headers to response
+            
             let headers = CSPUtils::security_headers();
             for (name, value) in headers {
                 let header_name = match actix_web::http::header::HeaderName::from_bytes(
@@ -160,7 +160,7 @@ where
                 }
             }
 
-            // Add CSP header
+            
             res.headers_mut().insert(
                 actix_web::http::header::CONTENT_SECURITY_POLICY,
                 actix_web::http::header::HeaderValue::from_str(&CSPUtils::generate_csp_header())
@@ -174,7 +174,7 @@ where
     }
 }
 
-/// Rate limiting middleware
+/
 pub struct RateLimit {
     limiter: Rc<RateLimiter>,
     config: RateLimitConfig,
@@ -242,7 +242,7 @@ where
         Box::pin(async move {
             let mut res = fut.await?;
 
-            // Add rate limit headers to response
+            
             let remaining = limiter.remaining_tokens(&client_id);
             let reset_time = limiter.reset_time(&client_id);
 
@@ -262,7 +262,7 @@ where
     }
 }
 
-/// Input sanitization middleware for JSON payloads
+/
 pub struct InputSanitizer;
 
 impl<S, B> Transform<S, ServiceRequest> for InputSanitizer
@@ -299,7 +299,7 @@ where
     forward_ready!(service);
 
     fn call(&self, mut req: ServiceRequest) -> Self::Future {
-        // Only process JSON payloads
+        
         let is_json = req
             .headers()
             .get("content-type")
@@ -314,21 +314,21 @@ where
 
         let service = self.service.clone();
         Box::pin(async move {
-            // Extract the payload
+            
             let payload = req.extract::<Bytes>().await;
 
             match payload {
                 Ok(bytes) => {
-                    // Try to parse as JSON
+                    
                     match serde_json::from_slice::<serde_json::Value>(&bytes) {
                         Ok(mut json_value) => {
-                            // Sanitize the JSON
+                            
                             match Sanitizer::sanitize_json(&mut json_value) {
                                 Ok(()) => {
-                                    // Re-serialize the sanitized JSON
+                                    
                                     match serde_json::to_vec(&json_value) {
                                         Ok(sanitized_bytes) => {
-                                            // Create new payload with sanitized data
+                                            
                                             let new_payload =
                                                 actix_web::dev::Payload::from(sanitized_bytes);
                                             req.set_payload(new_payload.into());
@@ -369,29 +369,29 @@ where
                 }
             }
 
-            // Continue with the request
+            
             service.call(req).await.map(|res| res.map_into_boxed_body())
         })
     }
 }
 
-/// Validation middleware factory
+/
 pub struct ValidationMiddlewareFactory;
 
 impl ValidationMiddlewareFactory {
-    /// Create middleware stack for API endpoints
+    
     pub fn create_api_middleware() -> RequestSizeLimit {
         RequestSizeLimit::default()
     }
 
-    /// Create middleware for settings endpoints (with stricter rate limits)
+    
     pub fn create_settings_middleware() -> RateLimit {
         use crate::utils::validation::rate_limit::EndpointRateLimits;
 
         RateLimit::new(EndpointRateLimits::settings_update())
     }
 
-    /// Create middleware for RAGFlow endpoints
+    
     pub fn create_ragflow_middleware() -> RateLimit {
         use crate::utils::validation::rate_limit::EndpointRateLimits;
 
@@ -399,7 +399,7 @@ impl ValidationMiddlewareFactory {
     }
 }
 
-/// Logging middleware for validation events
+/
 pub struct ValidationLogging;
 
 impl<S, B> Transform<S, ServiceRequest> for ValidationLogging

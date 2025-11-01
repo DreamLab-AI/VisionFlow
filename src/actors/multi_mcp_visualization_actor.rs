@@ -24,53 +24,53 @@ use crate::services::multi_mcp_agent_discovery::McpServerConfig;
 use crate::types::AgentStatus;
 use crate::types::Vec3Data;
 
-/// Wrapper for AgentVisualizationMessage to implement Actix Message trait
+/
 #[derive(Message, Debug, Clone)]
 #[rtype(result = "()")]
 pub struct AgentVisualizationMessageWrapper(pub AgentVisualizationMessage);
 
-/// Multi-MCP Visualization Actor that coordinates visualization across MCP servers
+/
 #[derive(Debug)]
 pub struct MultiMcpVisualizationActor {
-    /// Connected MCP servers configuration
+    
     pub mcp_servers: HashMap<String, McpServerConfig>,
 
-    /// Current agent positions across all servers
+    
     pub agent_positions: HashMap<String, Position>,
 
-    /// Agent metadata and status
+    
     pub agents: HashMap<String, AgentInit>,
 
-    /// Connections between agents (including cross-server)
+    
     pub connections: HashMap<String, ConnectionInit>,
 
-    /// Server performance metrics
+    
     pub server_metrics: HashMap<String, McpServerMetrics>,
 
-    /// Current visualization layout
+    
     pub layout_algorithm: LayoutAlgorithm,
 
-    /// Physics simulation parameters
+    
     pub physics_config: PhysicsConfig,
 
-    /// Visual rendering configuration
+    
     pub visual_config: VisualConfig,
 
-    /// Update timing control
+    
     pub last_update: Instant,
     pub update_interval: Duration,
 
-    /// Client subscribers for visualization updates
+    
     pub subscribers: Vec<Recipient<AgentVisualizationMessageWrapper>>,
 
-    /// Topology analysis data
+    
     pub topology_data: SwarmTopologyData,
 
-    /// Global performance tracking
+    
     pub global_metrics: GlobalPerformanceMetrics,
 }
 
-/// MCP Server performance metrics
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct McpServerMetrics {
     pub server_id: String,
@@ -84,28 +84,28 @@ pub struct McpServerMetrics {
     pub last_updated: i64,
 }
 
-/// Layout algorithms for multi-MCP visualization
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum LayoutAlgorithm {
-    /// Force-directed layout with spring simulation
+    
     ForceDirected {
         attraction_strength: f32,
         repulsion_strength: f32,
         damping_factor: f32,
     },
-    /// Hierarchical layout with server grouping
+    
     Hierarchical {
         server_separation: f32,
         layer_height: f32,
         node_spacing: f32,
     },
-    /// Circular layout with servers as concentric circles
+    
     Circular {
         radius_base: f32,
         radius_increment: f32,
         angular_spacing: f32,
     },
-    /// Grid layout with server clusters
+    
     Grid {
         grid_spacing: f32,
         cluster_size: u32,
@@ -123,11 +123,11 @@ impl Default for LayoutAlgorithm {
     }
 }
 
-/// Messages for Multi-MCP Visualization Actor
+/
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub enum MultiMcpVisualizationMessage {
-    /// Initialize visualization with MCP server configurations
+    
     Initialize {
         servers: Vec<McpServerConfig>,
         layout: LayoutAlgorithm,
@@ -135,24 +135,24 @@ pub enum MultiMcpVisualizationMessage {
         visual: VisualConfig,
     },
 
-    /// Update agent positions from a specific MCP server
+    
     UpdateAgentPositions {
         server_id: String,
         positions: HashMap<String, Position>,
         timestamp: i64,
     },
 
-    /// Add new agent from MCP server
+    
     AddAgent {
         server_id: String,
         agent: AgentInit,
         position: Option<Position>,
     },
 
-    /// Remove agent from visualization
+    
     RemoveAgent { server_id: String, agent_id: String },
 
-    /// Update agent status/metadata
+    
     UpdateAgentStatus {
         server_id: String,
         agent_id: String,
@@ -160,46 +160,46 @@ pub enum MultiMcpVisualizationMessage {
         metadata: HashMap<String, serde_json::Value>,
     },
 
-    /// Add connection between agents (possibly cross-server)
+    
     AddConnection { connection: ConnectionInit },
 
-    /// Remove connection between agents
+    
     RemoveConnection { connection_id: String },
 
-    /// Update server metrics
+    
     UpdateServerMetrics {
         server_id: String,
         metrics: McpServerMetrics,
     },
 
-    /// Subscribe to visualization updates
+    
     Subscribe {
         recipient: Recipient<AgentVisualizationMessageWrapper>,
     },
 
-    /// Unsubscribe from visualization updates
+    
     Unsubscribe {
         recipient: Recipient<AgentVisualizationMessageWrapper>,
     },
 
-    /// Change layout algorithm
+    
     ChangeLayout { algorithm: LayoutAlgorithm },
 
-    /// Trigger topology analysis
+    
     AnalyzeTopology,
 
-    /// Request current visualization state
+    
     GetVisualizationState,
 
-    /// Reset visualization to initial state
+    
     Reset,
 }
 
-/// Response messages for Multi-MCP Visualization queries
+/
 #[derive(Message)]
 #[rtype(result = "()")]
 pub enum MultiMcpVisualizationResponse {
-    /// Current complete visualization state
+    
     VisualizationState {
         agents: HashMap<String, AgentInit>,
         positions: HashMap<String, Position>,
@@ -210,20 +210,20 @@ pub enum MultiMcpVisualizationResponse {
         global_metrics: GlobalPerformanceMetrics,
     },
 
-    /// Topology analysis results
+    
     TopologyAnalysis {
         topology_data: SwarmTopologyData,
         recommendations: Vec<TopologyRecommendation>,
     },
 
-    /// Performance metrics summary
+    
     PerformanceMetrics {
         global_metrics: GlobalPerformanceMetrics,
         server_metrics: HashMap<String, McpServerMetrics>,
     },
 }
 
-/// Topology optimization recommendations
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TopologyRecommendation {
     pub recommendation_type: RecommendationType,
@@ -255,7 +255,7 @@ impl Default for MultiMcpVisualizationActor {
             physics_config: PhysicsConfig::default(),
             visual_config: VisualConfig::default(),
             last_update: Instant::now(),
-            update_interval: Duration::from_millis(33), // ~30 FPS
+            update_interval: Duration::from_millis(33), 
             subscribers: Vec::new(),
             topology_data: SwarmTopologyData::default(),
             global_metrics: GlobalPerformanceMetrics::default(),
@@ -269,17 +269,17 @@ impl Actor for MultiMcpVisualizationActor {
     fn started(&mut self, ctx: &mut Self::Context) {
         info!("MultiMcpVisualizationActor started");
 
-        // Schedule periodic updates
+        
         ctx.run_interval(self.update_interval, |act, ctx| {
             act.update_visualization(ctx);
         });
 
-        // Schedule periodic topology analysis
+        
         ctx.run_interval(Duration::from_secs(10), |act, ctx| {
             act.analyze_topology();
         });
 
-        // Schedule metrics collection
+        
         ctx.run_interval(Duration::from_secs(5), |act, ctx| {
             act.collect_global_metrics();
         });
@@ -346,7 +346,7 @@ impl Handler<MultiMcpVisualizationMessage> for MultiMcpVisualizationActor {
             MultiMcpVisualizationMessage::Subscribe { recipient } => self.subscribe(recipient),
 
             MultiMcpVisualizationMessage::Unsubscribe { recipient } => {
-                // Note: This is simplified - in practice you'd need a way to identify subscribers
+                
                 warn!("Unsubscribe not fully implemented - requires subscriber identification");
                 Ok(())
             }
@@ -370,7 +370,7 @@ impl Handler<MultiMcpVisualizationMessage> for MultiMcpVisualizationActor {
                     topology: self.topology_data.clone(),
                     global_metrics: self.global_metrics.clone(),
                 };
-                // In a real implementation, you'd send this response back
+                
                 debug!("Visualization state requested");
                 Ok(())
             }
@@ -381,12 +381,12 @@ impl Handler<MultiMcpVisualizationMessage> for MultiMcpVisualizationActor {
 }
 
 impl MultiMcpVisualizationActor {
-    /// Create new Multi-MCP visualization actor
+    
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Initialize visualization with server configurations
+    
     fn initialize_visualization(
         &mut self,
         servers: Vec<McpServerConfig>,
@@ -399,26 +399,26 @@ impl MultiMcpVisualizationActor {
             servers.len()
         );
 
-        // Store server configurations
+        
         for server in servers {
             self.mcp_servers.insert(server.server_id.clone(), server);
         }
 
-        // Set layout and configuration
+        
         self.layout_algorithm = layout;
         self.physics_config = physics;
         self.visual_config = visual;
 
-        // Initialize server positions in layout
+        
         self.initialize_server_layout()?;
 
-        // Send initialization message to subscribers
+        
         self.broadcast_initialization();
 
         Ok(())
     }
 
-    /// Initialize server layout based on algorithm
+    
     fn initialize_server_layout(&mut self) -> Result<(), String> {
         let server_count = self.mcp_servers.len() as f32;
 
@@ -428,7 +428,7 @@ impl MultiMcpVisualizationActor {
             } => {
                 let mut x_offset = 0.0;
                 for (i, server_id) in self.mcp_servers.keys().enumerate() {
-                    // Set server region in layout
+                    
                     x_offset = i as f32 * server_separation;
                     debug!("Positioning server {} at x_offset: {}", server_id, x_offset);
                 }
@@ -455,7 +455,7 @@ impl MultiMcpVisualizationActor {
         Ok(())
     }
 
-    /// Update agent positions from specific server
+    
     fn update_agent_positions(
         &mut self,
         server_id: String,
@@ -467,13 +467,13 @@ impl MultiMcpVisualizationActor {
             self.agent_positions.insert(full_agent_id, position);
         }
 
-        // Broadcast position update
+        
         self.broadcast_position_update(timestamp);
 
         Ok(())
     }
 
-    /// Add new agent from MCP server
+    
     fn add_agent(
         &mut self,
         server_id: String,
@@ -482,40 +482,40 @@ impl MultiMcpVisualizationActor {
     ) -> Result<(), String> {
         let full_agent_id = format!("{}:{}", server_id, agent.id);
 
-        // Update agent ID to include server prefix
+        
         agent.id = full_agent_id.clone();
-        // Note: AgentInit doesn't have metadata field - server association tracked via agent ID prefix
+        
 
-        // Generate position if not provided
+        
         let pos = position.unwrap_or_else(|| self.generate_agent_position(&agent.id));
 
         self.agents.insert(full_agent_id.clone(), agent);
         self.agent_positions.insert(full_agent_id, pos);
 
-        // Broadcast state update
+        
         self.broadcast_state_update();
 
         Ok(())
     }
 
-    /// Remove agent from visualization
+    
     fn remove_agent(&mut self, server_id: String, agent_id: String) -> Result<(), String> {
         let full_agent_id = format!("{}:{}", server_id, agent_id);
 
         self.agents.remove(&full_agent_id);
         self.agent_positions.remove(&full_agent_id);
 
-        // Remove connections involving this agent
+        
         self.connections
             .retain(|_, conn| conn.source != full_agent_id && conn.target != full_agent_id);
 
-        // Broadcast state update
+        
         self.broadcast_state_update();
 
         Ok(())
     }
 
-    /// Update agent status and metadata
+    
     fn update_agent_status(
         &mut self,
         server_id: String,
@@ -526,39 +526,39 @@ impl MultiMcpVisualizationActor {
         let full_agent_id = format!("{}:{}", server_id, agent_id);
 
         if let Some(agent) = self.agents.get_mut(&full_agent_id) {
-            // Convert AgentStatus to string representation
+            
             agent.status = format!("{:?}", status);
-            // Note: AgentInit doesn't have a metadata field, so we skip metadata updates for now
-            // TODO: Consider extending AgentInit with metadata field if needed
+            
+            
 
-            // Broadcast state update
+            
             self.broadcast_state_update();
         }
 
         Ok(())
     }
 
-    /// Add connection between agents
+    
     fn add_connection(&mut self, connection: ConnectionInit) -> Result<(), String> {
         self.connections.insert(connection.id.clone(), connection);
 
-        // Broadcast connection update
+        
         self.broadcast_connection_update();
 
         Ok(())
     }
 
-    /// Remove connection between agents
+    
     fn remove_connection(&mut self, connection_id: String) -> Result<(), String> {
         self.connections.remove(&connection_id);
 
-        // Broadcast connection update
+        
         self.broadcast_connection_update();
 
         Ok(())
     }
 
-    /// Update server performance metrics
+    
     fn update_server_metrics(
         &mut self,
         server_id: String,
@@ -566,16 +566,16 @@ impl MultiMcpVisualizationActor {
     ) -> Result<(), String> {
         self.server_metrics.insert(server_id, metrics);
 
-        // Update global metrics
+        
         self.collect_global_metrics();
 
-        // Broadcast metrics update
+        
         self.broadcast_metrics_update();
 
         Ok(())
     }
 
-    /// Subscribe to visualization updates
+    
     fn subscribe(
         &mut self,
         recipient: Recipient<AgentVisualizationMessageWrapper>,
@@ -584,20 +584,20 @@ impl MultiMcpVisualizationActor {
         Ok(())
     }
 
-    /// Change layout algorithm
+    
     fn change_layout(&mut self, algorithm: LayoutAlgorithm) -> Result<(), String> {
         self.layout_algorithm = algorithm;
 
-        // Recalculate positions based on new layout
+        
         self.recalculate_layout()?;
 
-        // Broadcast position update
+        
         self.broadcast_position_update(chrono::Utc::now().timestamp());
 
         Ok(())
     }
 
-    /// Reset visualization to initial state
+    
     fn reset_visualization(&mut self) -> Result<(), String> {
         self.agents.clear();
         self.agent_positions.clear();
@@ -606,20 +606,20 @@ impl MultiMcpVisualizationActor {
         self.topology_data = SwarmTopologyData::default();
         self.global_metrics = GlobalPerformanceMetrics::default();
 
-        // Broadcast state update
+        
         self.broadcast_state_update();
 
         Ok(())
     }
 
-    /// Generate position for new agent based on layout algorithm
+    
     fn generate_agent_position(&self, agent_id: &str) -> Position {
-        // Extract server ID from agent ID
+        
         let server_id = agent_id.split(':').next().unwrap_or("unknown");
 
         match &self.layout_algorithm {
             LayoutAlgorithm::ForceDirected { .. } => {
-                // Random position with some clustering by server
+                
                 let server_offset = self.get_server_offset(server_id);
                 Position {
                     x: server_offset.x + (rand::random::<f32>() - 0.5) * 10.0,
@@ -676,7 +676,7 @@ impl MultiMcpVisualizationActor {
         }
     }
 
-    /// Get server offset for layout calculations
+    
     fn get_server_offset(&self, server_id: &str) -> Position {
         let server_index = self.get_server_index(server_id);
         Position {
@@ -686,7 +686,7 @@ impl MultiMcpVisualizationActor {
         }
     }
 
-    /// Get server index for layout calculations
+    
     fn get_server_index(&self, server_id: &str) -> usize {
         self.mcp_servers
             .keys()
@@ -694,18 +694,18 @@ impl MultiMcpVisualizationActor {
             .unwrap_or(0)
     }
 
-    /// Get agent count in specific server
+    
     fn get_agent_count_in_server(&self, server_id: &str) -> usize {
         self.agents
             .values()
             .filter(|agent| {
-                // Extract server ID from agent ID prefix (format: "server_id:agent_id")
+                
                 agent.id.split(':').next().unwrap_or("") == server_id
             })
             .count()
     }
 
-    /// Recalculate layout for all agents
+    
     fn recalculate_layout(&mut self) -> Result<(), String> {
         let agent_ids: Vec<String> = self.agents.keys().cloned().collect();
 
@@ -717,11 +717,11 @@ impl MultiMcpVisualizationActor {
         Ok(())
     }
 
-    /// Analyze current topology and generate recommendations
+    
     fn analyze_topology(&mut self) {
         let mut recommendations = Vec::new();
 
-        // Analyze server load distribution
+        
         let mut total_agents = 0;
         let mut max_agents = 0;
         let mut min_agents = usize::MAX;
@@ -733,7 +733,7 @@ impl MultiMcpVisualizationActor {
             min_agents = min_agents.min(agent_count);
         }
 
-        // Check for load imbalance
+        
         if max_agents > 0 && min_agents < usize::MAX {
             let imbalance_ratio = max_agents as f32 / min_agents.max(1) as f32;
             if imbalance_ratio > 2.0 {
@@ -750,7 +750,7 @@ impl MultiMcpVisualizationActor {
             }
         }
 
-        // Analyze connection patterns
+        
         let mut cross_server_connections = 0;
         let total_connections = self.connections.len();
 
@@ -779,13 +779,13 @@ impl MultiMcpVisualizationActor {
             }
         }
 
-        // Update topology data
+        
         self.topology_data = SwarmTopologyData {
             topology_type: "multi_server".to_string(),
             total_agents: total_agents as u32,
-            coordination_layers: self.mcp_servers.len() as u32, // Use server count as layers
+            coordination_layers: self.mcp_servers.len() as u32, 
             efficiency_score: if total_agents > 0 && cross_server_connections > 0 {
-                // Simple efficiency calculation based on cross-server communication ratio
+                
                 1.0 - (cross_server_connections as f32 / total_connections.max(1) as f32)
             } else {
                 1.0
@@ -803,7 +803,7 @@ impl MultiMcpVisualizationActor {
         );
     }
 
-    /// Collect global performance metrics
+    
     fn collect_global_metrics(&mut self) {
         let mut total_cpu = 0.0;
         let mut total_memory = 0.0;
@@ -840,31 +840,31 @@ impl MultiMcpVisualizationActor {
         };
     }
 
-    /// Update visualization and send to subscribers
+    
     fn update_visualization(&mut self, _ctx: &mut Context<Self>) {
         if self.last_update.elapsed() >= self.update_interval {
             self.last_update = Instant::now();
 
-            // Apply physics simulation if enabled
+            
             self.apply_physics_simulation();
 
-            // Broadcast position updates
+            
             self.broadcast_position_update(chrono::Utc::now().timestamp());
         }
     }
 
-    /// Apply physics simulation to agent positions
+    
     fn apply_physics_simulation(&mut self) {
-        // Physics config doesn't have enabled field, so always apply if there are agents
+        
         if self.agent_positions.is_empty() {
             return;
         }
 
-        // Simple force-directed physics simulation
+        
         let dt = self.update_interval.as_secs_f32();
         let mut forces: HashMap<String, Vec3Data> = HashMap::new();
 
-        // Calculate repulsion forces between all agents
+        
         let agent_ids: Vec<String> = self.agent_positions.keys().cloned().collect();
         for i in 0..agent_ids.len() {
             for j in (i + 1)..agent_ids.len() {
@@ -877,7 +877,7 @@ impl MultiMcpVisualizationActor {
                     let dx = pos1.x - pos2.x;
                     let dy = pos1.y - pos2.y;
                     let dz = pos1.z - pos2.z;
-                    let dist_sq = dx * dx + dy * dy + dz * dz + 0.1; // Avoid division by zero
+                    let dist_sq = dx * dx + dy * dy + dz * dz + 0.1; 
                     let dist = dist_sq.sqrt();
 
                     let force_magnitude = self.physics_config.repel_k / dist_sq;
@@ -896,7 +896,7 @@ impl MultiMcpVisualizationActor {
             }
         }
 
-        // Calculate attraction forces from connections
+        
         for connection in self.connections.values() {
             if let (Some(pos1), Some(pos2)) = (
                 self.agent_positions.get(&connection.source),
@@ -942,19 +942,19 @@ impl MultiMcpVisualizationActor {
             }
         }
 
-        // Apply forces to positions
+        
         for (agent_id, force) in forces {
             if let Some(position) = self.agent_positions.get_mut(&agent_id) {
                 position.x += force.x * dt;
                 position.y += force.y * dt;
                 position.z += force.z * dt;
 
-                // Apply damping
+                
                 position.x *= self.physics_config.damping;
                 position.y *= self.physics_config.damping;
                 position.z *= self.physics_config.damping;
 
-                // Apply bounds
+                
                 position.x = position.x.clamp(-100.0, 100.0);
                 position.y = position.y.clamp(-100.0, 100.0);
                 position.z = position.z.clamp(-100.0, 100.0);
@@ -962,12 +962,12 @@ impl MultiMcpVisualizationActor {
         }
     }
 
-    /// Broadcast initialization message to all subscribers
+    
     fn broadcast_initialization(&self) {
         let message = AgentVisualizationMessage::Initialize(InitializeMessage {
             timestamp: chrono::Utc::now().timestamp(),
             swarm_id: "multi_mcp_swarm".to_string(),
-            session_uuid: None, // Multi-MCP swarm doesn't have a single session UUID
+            session_uuid: None, 
             topology: "multi_server".to_string(),
             agents: self.agents.values().cloned().collect(),
             connections: self.connections.values().cloned().collect(),
@@ -979,7 +979,7 @@ impl MultiMcpVisualizationActor {
         self.broadcast_message(message);
     }
 
-    /// Broadcast position update to all subscribers
+    
     fn broadcast_position_update(&self, timestamp: i64) {
         let message = AgentVisualizationMessage::PositionUpdate(PositionUpdateMessage {
             timestamp,
@@ -991,7 +991,7 @@ impl MultiMcpVisualizationActor {
                     x: pos.x,
                     y: pos.y,
                     z: pos.z,
-                    vx: None, // TODO: Calculate velocities
+                    vx: None, 
                     vy: None,
                     vz: None,
                 })
@@ -1001,7 +1001,7 @@ impl MultiMcpVisualizationActor {
         self.broadcast_message(message);
     }
 
-    /// Broadcast state update to all subscribers
+    
     fn broadcast_state_update(&self) {
         let message = AgentVisualizationMessage::StateUpdate(StateUpdateMessage {
             timestamp: chrono::Utc::now().timestamp(),
@@ -1016,7 +1016,7 @@ impl MultiMcpVisualizationActor {
                     memory: Some(agent.memory),
                     activity: Some(agent.activity),
                     tasks_active: Some(agent.tasks_active),
-                    current_task: None, // TODO: Track current task
+                    current_task: None, 
                 })
                 .collect(),
         });
@@ -1024,19 +1024,19 @@ impl MultiMcpVisualizationActor {
         self.broadcast_message(message);
     }
 
-    /// Broadcast connection update to all subscribers
+    
     fn broadcast_connection_update(&self) {
         let message = AgentVisualizationMessage::ConnectionUpdate(ConnectionUpdateMessage {
             timestamp: chrono::Utc::now().timestamp(),
             added: self.connections.values().cloned().collect(),
-            removed: Vec::new(), // Would track removed connections
-            updated: Vec::new(), // Would track updated connections
+            removed: Vec::new(), 
+            updated: Vec::new(), 
         });
 
         self.broadcast_message(message);
     }
 
-    /// Broadcast metrics update to all subscribers
+    
     fn broadcast_metrics_update(&self) {
         let message = AgentVisualizationMessage::MetricsUpdate(MetricsUpdateMessage {
             timestamp: chrono::Utc::now().timestamp(),
@@ -1073,7 +1073,7 @@ impl MultiMcpVisualizationActor {
         self.broadcast_message(message);
     }
 
-    /// Broadcast message to all subscribers
+    
     fn broadcast_message(&self, message: AgentVisualizationMessage) {
         let wrapped_message = AgentVisualizationMessageWrapper(message);
         let mut failed_subscribers = Vec::new();
@@ -1084,7 +1084,7 @@ impl MultiMcpVisualizationActor {
             }
         }
 
-        // Note: In a production system, you'd want to remove failed subscribers
+        
         if !failed_subscribers.is_empty() {
             warn!(
                 "Failed to send message to {} subscribers",
@@ -1093,24 +1093,24 @@ impl MultiMcpVisualizationActor {
         }
     }
 
-    /// Calculate load distribution across servers
+    
     fn calculate_load_distribution(&self) -> Vec<LayerLoad> {
         self.server_metrics
             .iter()
             .enumerate()
             .map(|(i, (name, metrics))| LayerLoad {
                 layer_id: i as u32,
-                agent_count: 1, // Simplified - each server represents one layer
+                agent_count: 1, 
                 average_load: metrics.cpu_usage + metrics.memory_usage,
-                max_capacity: 100, // Simplified capacity
+                max_capacity: 100, 
                 utilization: (metrics.cpu_usage + metrics.memory_usage) / 2.0,
             })
             .collect()
     }
 
-    /// Analyze critical paths in the system
+    
     fn analyze_critical_paths(&self) -> Vec<CriticalPath> {
-        // Simple implementation - identify servers with high error rates
+        
         self.server_metrics
             .iter()
             .filter(|(_, metrics)| metrics.error_rate > 0.1)
@@ -1124,18 +1124,18 @@ impl MultiMcpVisualizationActor {
             .collect()
     }
 
-    /// Detect system bottlenecks
+    
     fn detect_bottlenecks(&self) -> Vec<Bottleneck> {
         let mut bottlenecks = Vec::new();
 
-        // Check for high CPU usage
+        
         for (name, metrics) in &self.server_metrics {
             if metrics.cpu_usage > 0.8 {
                 bottlenecks.push(Bottleneck {
                     agent_id: name.clone(),
                     bottleneck_type: "cpu".to_string(),
                     severity: metrics.cpu_usage,
-                    impact_agents: vec![], // Simplified - no impact calculation
+                    impact_agents: vec![], 
                     suggested_action: "Scale CPU resources".to_string(),
                 });
             }
@@ -1144,7 +1144,7 @@ impl MultiMcpVisualizationActor {
                     agent_id: name.clone(),
                     bottleneck_type: "memory".to_string(),
                     severity: metrics.memory_usage,
-                    impact_agents: vec![], // Simplified - no impact calculation
+                    impact_agents: vec![], 
                     suggested_action: "Scale memory resources".to_string(),
                 });
             }
@@ -1153,7 +1153,7 @@ impl MultiMcpVisualizationActor {
         bottlenecks
     }
 
-    /// Calculate average latency across all servers
+    
     fn calculate_average_latency(&self) -> f64 {
         if self.server_metrics.is_empty() {
             return 0.0;
@@ -1162,22 +1162,22 @@ impl MultiMcpVisualizationActor {
         let total_latency: f64 = self
             .server_metrics
             .values()
-            .map(|metrics| metrics.network_latency as f64) // Use actual network latency
+            .map(|metrics| metrics.network_latency as f64) 
             .sum();
 
         total_latency / self.server_metrics.len() as f64
     }
 
-    /// Calculate coordination overhead
+    
     fn calculate_coordination_overhead(&self) -> f64 {
-        // Simple calculation based on number of servers and connections
+        
         let server_count = self.server_metrics.len() as f64;
         let connection_count = self.connections.len() as f64;
 
         if server_count <= 1.0 {
             0.0
         } else {
-            // Overhead increases with server coordination complexity
+            
             (connection_count / (server_count * server_count)).min(1.0)
         }
     }

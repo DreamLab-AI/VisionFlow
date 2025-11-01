@@ -1,6 +1,4 @@
-/**
- * Control Panel Header Component
- */
+
 
 import React from 'react';
 import { X } from 'lucide-react';

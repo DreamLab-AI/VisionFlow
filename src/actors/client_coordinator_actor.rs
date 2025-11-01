@@ -34,7 +34,7 @@ use crate::handlers::socket_flow_handler::SocketFlowServer;
 use crate::telemetry::agent_telemetry::{get_telemetry_logger, CorrelationId, Position3D};
 use crate::utils::socket_flow_messages::BinaryNodeDataClient;
 
-/// Client state information for tracking and management
+/
 #[derive(Debug, Clone)]
 pub struct ClientState {
     pub client_id: usize,
@@ -45,7 +45,7 @@ pub struct ClientState {
     pub initial_sync_completed: bool,
 }
 
-/// Client Manager wrapper for thread-safe access
+/
 pub struct ClientManager {
     pub clients: HashMap<usize, ClientState>,
     pub next_id: usize,
@@ -146,48 +146,48 @@ impl ClientManager {
     }
 }
 
-/// Client Coordinator Actor - Manages WebSocket client communications
+/
 pub struct ClientCoordinatorActor {
-    /// Thread-safe client manager
+    
     client_manager: Arc<RwLock<ClientManager>>,
 
-    /// Last broadcast timestamp for timing control
+    
     last_broadcast: Instant,
 
-    /// Broadcast interval configuration
+    
     broadcast_interval: Duration,
 
-    /// Active broadcast interval (high frequency)
+    
     active_broadcast_interval: Duration,
 
-    /// Stable broadcast interval (low frequency)
+    
     stable_broadcast_interval: Duration,
 
-    /// Track if initial positions have been sent
+    
     initial_positions_sent: bool,
 
-    /// Graph service actor address for coordination
+    
     graph_service_addr: Option<Addr<crate::actors::graph_actor::GraphServiceActor>>,
 
-    /// Position cache for efficient broadcasting
+    
     position_cache: HashMap<u32, BinaryNodeDataClient>,
 
-    /// Broadcasting statistics
+    
     broadcast_count: u64,
     bytes_sent: u64,
 
-    /// Force broadcast tracking
+    
     force_broadcast_requests: u32,
 
-    /// Client connection statistics
+    
     connection_stats: ConnectionStats,
 
-    /// Bandwidth throttling configuration
-    bandwidth_limit_bytes_per_sec: usize, // 0 = unlimited
+    
+    bandwidth_limit_bytes_per_sec: usize, 
     bytes_sent_this_second: usize,
     last_bandwidth_check: Instant,
 
-    /// Message priority queue (voice has priority over graph updates)
+    
     pending_voice_data: Vec<Vec<u8>>,
     voice_data_queued_bytes: usize,
 }
@@ -206,9 +206,9 @@ impl ClientCoordinatorActor {
         Self {
             client_manager: Arc::new(RwLock::new(ClientManager::new())),
             last_broadcast: Instant::now(),
-            broadcast_interval: Duration::from_millis(50), // Default to active rate
-            active_broadcast_interval: Duration::from_millis(50), // 20Hz for active periods
-            stable_broadcast_interval: Duration::from_millis(1000), // 1Hz for stable periods
+            broadcast_interval: Duration::from_millis(50), 
+            active_broadcast_interval: Duration::from_millis(50), 
+            stable_broadcast_interval: Duration::from_millis(1000), 
             initial_positions_sent: false,
             graph_service_addr: None,
             position_cache: HashMap::new(),
@@ -216,7 +216,7 @@ impl ClientCoordinatorActor {
             bytes_sent: 0,
             force_broadcast_requests: 0,
             connection_stats: ConnectionStats::default(),
-            bandwidth_limit_bytes_per_sec: 1_000_000, // 1 MB/s default limit
+            bandwidth_limit_bytes_per_sec: 1_000_000, 
             bytes_sent_this_second: 0,
             last_bandwidth_check: Instant::now(),
             pending_voice_data: Vec::new(),
@@ -224,35 +224,35 @@ impl ClientCoordinatorActor {
         }
     }
 
-    /// Set bandwidth limit in bytes per second (0 = unlimited)
+    
     pub fn set_bandwidth_limit(&mut self, bytes_per_sec: usize) {
         self.bandwidth_limit_bytes_per_sec = bytes_per_sec;
         info!("Bandwidth limit set to {} bytes/sec", bytes_per_sec);
     }
 
-    /// Check if we have bandwidth available
+    
     fn check_bandwidth_available(&mut self, bytes_needed: usize) -> bool {
         if self.bandwidth_limit_bytes_per_sec == 0 {
-            return true; // Unlimited
+            return true; 
         }
 
-        // Reset counter if a second has passed
+        
         if self.last_bandwidth_check.elapsed() >= Duration::from_secs(1) {
             self.bytes_sent_this_second = 0;
             self.last_bandwidth_check = Instant::now();
         }
 
-        // Check if we have capacity
+        
         self.bytes_sent_this_second + bytes_needed <= self.bandwidth_limit_bytes_per_sec
     }
 
-    /// Record bytes sent for bandwidth tracking
+    
     fn record_bytes_sent(&mut self, bytes: usize) {
         self.bytes_sent_this_second += bytes;
         self.bytes_sent += bytes as u64;
     }
 
-    /// Queue voice data for prioritized sending
+    
     pub fn queue_voice_data(&mut self, audio: Vec<u8>) {
         let audio_len = audio.len();
         self.voice_data_queued_bytes += audio_len;
@@ -263,19 +263,19 @@ impl ClientCoordinatorActor {
         );
     }
 
-    /// Send prioritized messages (voice first, then graph updates)
+    
     fn send_prioritized_broadcasts(&mut self) -> Result<usize, String> {
         use crate::utils::binary_protocol::BinaryProtocol;
 
         let mut total_sent = 0;
 
-        // Priority 1: Send all queued voice data first
+        
         while !self.pending_voice_data.is_empty() {
-            // Get voice data length before borrowing
+            
             let voice_data_len = self.pending_voice_data[0].len();
             let encoded = BinaryProtocol::encode_voice_data(&self.pending_voice_data[0]);
 
-            // Check bandwidth (no mutable borrow conflict now)
+            
             if !self.check_bandwidth_available(encoded.len()) {
                 debug!(
                     "Bandwidth limit reached, deferring {} voice messages",
@@ -284,7 +284,7 @@ impl ClientCoordinatorActor {
                 break;
             }
 
-            // Send voice data
+            
             let client_count = {
                 let manager = self.client_manager.read().unwrap();
                 manager.broadcast_to_all(encoded.clone())
@@ -293,7 +293,7 @@ impl ClientCoordinatorActor {
             self.record_bytes_sent(encoded.len());
             total_sent += client_count;
 
-            // Remove sent voice data
+            
             self.voice_data_queued_bytes -= voice_data_len;
             self.pending_voice_data.remove(0);
 
@@ -304,20 +304,20 @@ impl ClientCoordinatorActor {
             );
         }
 
-        // Priority 2: Send graph updates if bandwidth available
+        
         if !self.position_cache.is_empty() && self.should_broadcast() {
-            // Create position data from cache
+            
             let mut position_data = Vec::new();
             for (_, node_data) in &self.position_cache {
                 position_data.push(*node_data);
             }
 
-            // Serialize to binary format
+            
             let binary_data = self.serialize_positions(&position_data);
 
-            // Check bandwidth
+            
             if self.check_bandwidth_available(binary_data.len()) {
-                // Broadcast to all clients
+                
                 let client_count = {
                     let manager = self.client_manager.read().unwrap();
                     manager.broadcast_to_all(binary_data.clone())
@@ -342,7 +342,7 @@ impl ClientCoordinatorActor {
         Ok(total_sent)
     }
 
-    /// Set the graph service address for coordination
+    
     pub fn set_graph_service_addr(
         &mut self,
         addr: Addr<crate::actors::graph_actor::GraphServiceActor>,
@@ -351,7 +351,7 @@ impl ClientCoordinatorActor {
         debug!("Graph service address set in client coordinator");
     }
 
-    /// Update broadcast interval based on graph stability
+    
     pub fn update_broadcast_interval(&mut self, is_stable: bool) {
         let new_interval = if is_stable {
             self.stable_broadcast_interval
@@ -369,12 +369,12 @@ impl ClientCoordinatorActor {
         }
     }
 
-    /// Check if it's time for a scheduled broadcast
+    
     pub fn should_broadcast(&self) -> bool {
         self.last_broadcast.elapsed() >= self.broadcast_interval
     }
 
-    /// Force immediate broadcast regardless of timing
+    
     pub fn force_broadcast(&mut self, reason: &str) -> bool {
         info!("Force broadcasting positions: {}", reason);
         self.force_broadcast_requests += 1;
@@ -389,7 +389,7 @@ impl ClientCoordinatorActor {
             return false;
         }
 
-        // Create position data from cache
+        
         let mut position_data = Vec::new();
         for (_, node_data) in &self.position_cache {
             position_data.push(*node_data);
@@ -403,22 +403,22 @@ impl ClientCoordinatorActor {
             return false;
         }
 
-        // Serialize to binary format
+        
         let binary_data = self.serialize_positions(&position_data);
 
-        // Broadcast to all clients
+        
         let broadcast_count = {
             let manager = self.client_manager.read().unwrap();
             manager.broadcast_to_all(binary_data.clone())
         };
 
-        // Update statistics
+        
         self.broadcast_count += 1;
         self.bytes_sent += binary_data.len() as u64;
         self.last_broadcast = Instant::now();
         self.initial_positions_sent = true;
 
-        // Log telemetry
+        
         if let Some(logger) = get_telemetry_logger() {
             let correlation_id = CorrelationId::new();
             logger.log_event(
@@ -450,13 +450,13 @@ impl ClientCoordinatorActor {
         true
     }
 
-    /// Serialize position data to binary WebSocket format
-    /// Supports both legacy and new simplified protocol
+    
+    
     fn serialize_positions(&self, positions: &[BinaryNodeDataClient]) -> Vec<u8> {
-        // Use new simplified protocol for better performance
+        
         use crate::utils::binary_protocol::{BinaryProtocol, GraphType};
 
-        // Convert BinaryNodeDataClient to simplified protocol format
+        
         let nodes: Vec<(String, [f32; 6])> = positions
             .iter()
             .map(|pos| {
@@ -467,12 +467,12 @@ impl ClientCoordinatorActor {
             })
             .collect();
 
-        // Default to knowledge graph for now
-        // TODO: Track graph type per node
+        
+        
         BinaryProtocol::encode_graph_update(GraphType::KnowledgeGraph, &nodes)
     }
 
-    /// Update position cache with new node data
+    
     pub fn update_position_cache(&mut self, positions: Vec<(u32, BinaryNodeDataClient)>) {
         for (node_id, node_data) in positions {
             self.position_cache.insert(node_id, node_data);
@@ -483,7 +483,7 @@ impl ClientCoordinatorActor {
         );
     }
 
-    /// Broadcast current positions to all clients
+    
     pub fn broadcast_positions(&mut self, is_stable: bool) -> Result<usize, String> {
         self.update_broadcast_interval(is_stable);
 
@@ -496,14 +496,14 @@ impl ClientCoordinatorActor {
             return Ok(0);
         }
 
-        // Check if we should broadcast based on timing
+        
         let force_broadcast = !self.initial_positions_sent;
 
         if !force_broadcast && !self.should_broadcast() {
-            return Ok(0); // Skip broadcast due to timing
+            return Ok(0); 
         }
 
-        // Create position data from cache
+        
         let mut position_data = Vec::new();
         for (_, node_data) in &self.position_cache {
             position_data.push(*node_data);
@@ -513,16 +513,16 @@ impl ClientCoordinatorActor {
             return Err("No position data available for broadcast".to_string());
         }
 
-        // Serialize to binary format
+        
         let binary_data = self.serialize_positions(&position_data);
 
-        // Broadcast to all clients
+        
         let broadcast_count = {
             let manager = self.client_manager.read().unwrap();
             manager.broadcast_to_all(binary_data.clone())
         };
 
-        // Update statistics
+        
         self.broadcast_count += 1;
         self.bytes_sent += binary_data.len() as u64;
         self.last_broadcast = Instant::now();
@@ -536,7 +536,7 @@ impl ClientCoordinatorActor {
             );
         }
 
-        // Log debug information
+        
         if crate::utils::logging::is_debug_enabled() && !force_broadcast {
             debug!(
                 "Broadcast positions: {} nodes to {} clients, stable: {}",
@@ -546,7 +546,7 @@ impl ClientCoordinatorActor {
             );
         }
 
-        // Log telemetry for significant broadcasts
+        
         if force_broadcast || position_data.len() > 100 {
             if let Some(logger) = get_telemetry_logger() {
                 let correlation_id = CorrelationId::new();
@@ -574,13 +574,13 @@ impl ClientCoordinatorActor {
         Ok(broadcast_count)
     }
 
-    /// Generate initial position for a new client
+    
     fn generate_initial_position(&self, client_id: usize) -> Position3D {
         use rand::prelude::*;
 
         let mut rng = thread_rng();
 
-        // Generate random position in spherical coordinates to avoid clustering
+        
         let radius = rng.gen_range(50.0..200.0);
         let theta = rng.gen_range(0.0..std::f32::consts::PI * 2.0);
         let phi = rng.gen_range(0.0..std::f32::consts::PI);
@@ -596,7 +596,7 @@ impl ClientCoordinatorActor {
             client_id, position.x, position.y, position.z, position.magnitude
         );
 
-        // Check for origin position bug
+        
         if position.is_origin() {
             warn!(
                 "ORIGIN POSITION BUG DETECTED: Client {} generated at origin despite parameters",
@@ -607,7 +607,7 @@ impl ClientCoordinatorActor {
         position
     }
 
-    /// Update connection statistics
+    
     fn update_connection_stats(&mut self) {
         let manager = self.client_manager.read().unwrap();
         self.connection_stats.current_clients = manager.get_client_count();
@@ -617,7 +617,7 @@ impl ClientCoordinatorActor {
         }
     }
 
-    /// Get comprehensive client coordinator statistics
+    
     pub fn get_stats(&self) -> ClientCoordinatorStats {
         let manager = self.client_manager.read().unwrap();
         ClientCoordinatorStats {
@@ -651,7 +651,7 @@ impl Actor for ClientCoordinatorActor {
     fn started(&mut self, _ctx: &mut Self::Context) {
         info!("ClientCoordinatorActor started - WebSocket communication manager ready");
 
-        // Log startup telemetry
+        
         if let Some(logger) = get_telemetry_logger() {
             let correlation_id = CorrelationId::new();
             logger.log_event(
@@ -686,7 +686,7 @@ impl Actor for ClientCoordinatorActor {
             stats.active_clients, stats.total_broadcasts, stats.bytes_sent
         );
 
-        // Log shutdown telemetry with final statistics
+        
         if let Some(logger) = get_telemetry_logger() {
             let correlation_id = CorrelationId::new();
             logger.log_event(
@@ -712,7 +712,7 @@ impl Actor for ClientCoordinatorActor {
 
 // ===== MESSAGE HANDLERS =====
 
-/// Handle client registration
+/
 impl Handler<RegisterClient> for ClientCoordinatorActor {
     type Result = Result<usize, String>;
 
@@ -722,14 +722,14 @@ impl Handler<RegisterClient> for ClientCoordinatorActor {
             manager.register_client(msg.addr)
         };
 
-        // Generate initial position for telemetry
+        
         let initial_position = self.generate_initial_position(client_id);
 
-        // Update connection statistics
+        
         self.connection_stats.total_registrations += 1;
         self.update_connection_stats();
 
-        // Log enhanced telemetry for client registration
+        
         if let Some(logger) = get_telemetry_logger() {
             let mut metadata = std::collections::HashMap::new();
             metadata.insert("client_id".to_string(), serde_json::json!(client_id));
@@ -744,13 +744,13 @@ impl Handler<RegisterClient> for ClientCoordinatorActor {
 
             logger.log_agent_spawn(
                 &format!("client_{}", client_id),
-                None, // session_uuid - not available in this context
+                None, 
                 initial_position,
                 metadata,
             );
         }
 
-        // Trigger force broadcast for new client if we have position data
+        
         if !self.position_cache.is_empty() {
             self.force_broadcast(&format!("new_client_{}", client_id));
         } else {
@@ -765,7 +765,7 @@ impl Handler<RegisterClient> for ClientCoordinatorActor {
     }
 }
 
-/// Handle client unregistration
+/
 impl Handler<UnregisterClient> for ClientCoordinatorActor {
     type Result = Result<(), String>;
 
@@ -776,11 +776,11 @@ impl Handler<UnregisterClient> for ClientCoordinatorActor {
         };
 
         if success {
-            // Update connection statistics
+            
             self.connection_stats.total_unregistrations += 1;
             self.update_connection_stats();
 
-            // Log telemetry for client disconnection
+            
             if let Some(logger) = get_telemetry_logger() {
                 let correlation_id =
                     CorrelationId::from_agent_id(&format!("client_{}", msg.client_id));
@@ -814,7 +814,7 @@ impl Handler<UnregisterClient> for ClientCoordinatorActor {
     }
 }
 
-/// Handle broadcasting node positions to all clients
+/
 impl Handler<BroadcastNodePositions> for ClientCoordinatorActor {
     type Result = Result<(), String>;
 
@@ -825,7 +825,7 @@ impl Handler<BroadcastNodePositions> for ClientCoordinatorActor {
         };
 
         if client_count > 0 {
-            // Update statistics
+            
             self.broadcast_count += 1;
             self.bytes_sent += msg.positions.len() as u64;
             self.last_broadcast = Instant::now();
@@ -836,7 +836,7 @@ impl Handler<BroadcastNodePositions> for ClientCoordinatorActor {
                 client_count
             );
 
-            // Log significant broadcasts
+            
             if msg.positions.len() > 1000 || client_count > 10 {
                 info!(
                     "Large broadcast: {} bytes to {} clients",
@@ -870,7 +870,7 @@ impl Handler<BroadcastNodePositions> for ClientCoordinatorActor {
     }
 }
 
-/// Handle broadcasting text messages to all clients
+/
 impl Handler<BroadcastMessage> for ClientCoordinatorActor {
     type Result = Result<(), String>;
 
@@ -896,7 +896,7 @@ impl Handler<BroadcastMessage> for ClientCoordinatorActor {
     }
 }
 
-/// Handle getting current client count
+/
 impl Handler<GetClientCount> for ClientCoordinatorActor {
     type Result = Result<usize, String>;
 
@@ -909,7 +909,7 @@ impl Handler<GetClientCount> for ClientCoordinatorActor {
     }
 }
 
-/// Handle force position broadcast requests
+/
 impl Handler<ForcePositionBroadcast> for ClientCoordinatorActor {
     type Result = Result<(), String>;
 
@@ -924,7 +924,7 @@ impl Handler<ForcePositionBroadcast> for ClientCoordinatorActor {
     }
 }
 
-/// Handle initial client synchronization
+/
 impl Handler<InitialClientSync> for ClientCoordinatorActor {
     type Result = Result<(), String>;
 
@@ -934,14 +934,14 @@ impl Handler<InitialClientSync> for ClientCoordinatorActor {
             msg.client_identifier, msg.trigger_source
         );
 
-        // Force broadcast current positions to ensure client synchronization
+        
         let broadcast_reason = format!(
             "initial_sync_{}_{}",
             msg.client_identifier, msg.trigger_source
         );
 
         if self.force_broadcast(&broadcast_reason) {
-            // Mark client as synced if we can identify them
+            
             if let Ok(client_id) = msg.client_identifier.parse::<usize>() {
                 let mut manager = self.client_manager.write().unwrap();
                 manager.mark_client_synced(client_id);
@@ -963,12 +963,12 @@ impl Handler<InitialClientSync> for ClientCoordinatorActor {
     }
 }
 
-/// Handle updating node positions (from graph actor)
+/
 impl Handler<UpdateNodePositions> for ClientCoordinatorActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateNodePositions, _ctx: &mut Self::Context) -> Self::Result {
-        // Convert BinaryNodeData to BinaryNodeDataClient and update cache
+        
         let mut client_positions = Vec::new();
         for (node_id, node_data) in msg.positions {
             let client_data = BinaryNodeDataClient {
@@ -983,17 +983,17 @@ impl Handler<UpdateNodePositions> for ClientCoordinatorActor {
             client_positions.push((node_id, client_data));
         }
 
-        // Update position cache
+        
         self.update_position_cache(client_positions);
 
-        // Trigger broadcast if we have clients waiting
+        
         let client_count = {
             let manager = self.client_manager.read().unwrap();
             manager.get_client_count()
         };
 
         if client_count > 0 {
-            // Check if there are unsynced clients who need immediate updates
+            
             let unsynced_clients = {
                 let manager = self.client_manager.read().unwrap();
                 manager.get_unsynced_clients()
@@ -1004,8 +1004,8 @@ impl Handler<UpdateNodePositions> for ClientCoordinatorActor {
             if force_broadcast {
                 self.force_broadcast("position_update_with_unsynced_clients");
             } else {
-                // Normal adaptive broadcasting
-                self.broadcast_positions(false)?; // Assume active state for position updates
+                
+                self.broadcast_positions(false)?; 
             }
         }
 
@@ -1018,7 +1018,7 @@ impl Handler<UpdateNodePositions> for ClientCoordinatorActor {
     }
 }
 
-/// Handle setting graph service address for coordination
+/
 impl Handler<SetGraphServiceAddress> for ClientCoordinatorActor {
     type Result = ();
 
@@ -1028,7 +1028,7 @@ impl Handler<SetGraphServiceAddress> for ClientCoordinatorActor {
     }
 }
 
-/// Custom message to get client coordinator statistics
+/
 #[derive(Message)]
 #[rtype(result = "Result<ClientCoordinatorStats, String>")]
 pub struct GetClientCoordinatorStats;
@@ -1045,7 +1045,7 @@ impl Handler<GetClientCoordinatorStats> for ClientCoordinatorActor {
     }
 }
 
-/// Message for queueing voice data
+/
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct QueueVoiceData {
@@ -1058,7 +1058,7 @@ impl Handler<QueueVoiceData> for ClientCoordinatorActor {
     fn handle(&mut self, msg: QueueVoiceData, _ctx: &mut Self::Context) -> Self::Result {
         self.queue_voice_data(msg.audio);
 
-        // Try to send prioritized broadcasts immediately
+        
         match self.send_prioritized_broadcasts() {
             Ok(count) => {
                 debug!("Voice data queued and {} broadcasts sent", count);
@@ -1069,13 +1069,13 @@ impl Handler<QueueVoiceData> for ClientCoordinatorActor {
                     "Failed to send prioritized broadcasts after queuing voice: {}",
                     e
                 );
-                Ok(()) // Still return Ok since queueing succeeded
+                Ok(()) 
             }
         }
     }
 }
 
-/// Message for setting bandwidth limit
+/
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct SetBandwidthLimit {
@@ -1099,8 +1099,8 @@ mod tests {
         let mut manager = ClientManager::new();
         assert_eq!(manager.get_client_count(), 0);
 
-        // Note: Can't easily test with real Addr in unit tests
-        // This would require integration tests with actual actor system
+        
+        
     }
 
     #[test]
@@ -1127,13 +1127,13 @@ mod tests {
     fn test_broadcast_timing() {
         let mut actor = ClientCoordinatorActor::new();
 
-        // Should broadcast initially
+        
         assert!(actor.should_broadcast());
 
-        // Update last broadcast time
+        
         actor.last_broadcast = Instant::now();
 
-        // Should not broadcast immediately after
+        
         assert!(!actor.should_broadcast());
     }
 }

@@ -15,12 +15,12 @@ export const AuthGatedVoiceButton: React.FC<AuthGatedVoiceButtonProps> = ({
   const authenticated = useSettingsStore(state => state.authenticated);
   const authEnabled = useSettingsStore(state => state.settings?.auth?.enabled);
 
-  // If auth is not enabled in settings, show the voice button normally
+  
   if (!authEnabled) {
     return <VoiceButton {...voiceButtonProps} />;
   }
 
-  // If auth is enabled but user is not authenticated, show locked button
+  
   if (!authenticated || !nostrAuth.isAuthenticated()) {
     return (
       <button
@@ -50,6 +50,6 @@ export const AuthGatedVoiceButton: React.FC<AuthGatedVoiceButtonProps> = ({
     );
   }
 
-  // User is authenticated, show normal voice button
+  
   return <VoiceButton {...voiceButtonProps} />;
 };

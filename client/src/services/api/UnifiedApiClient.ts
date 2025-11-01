@@ -1,8 +1,4 @@
-/**
- * Unified API Client
- * Production-ready HTTP client with centralized configuration, auth management,
- * request/response interceptors, retry logic, and comprehensive error handling
- */
+
 
 import { createLogger } from '../../utils/loggerConfig';
 import { createErrorMetadata } from '../../utils/loggerConfig';
@@ -47,12 +43,12 @@ export interface RetryConfig {
 }
 
 // Default configurations
-const DEFAULT_TIMEOUT = 30000; // 30 seconds
+const DEFAULT_TIMEOUT = 30000; 
 const DEFAULT_RETRY_CONFIG: RetryConfig = {
   maxRetries: 3,
   retryDelay: 1000,
   retryCondition: (error: ApiError, attempt: number) => {
-    // Retry on network errors or 5xx server errors, but not on auth errors
+    
     return (
       attempt < 3 &&
       (!error.status || error.status >= 500 || error.status === 0) &&
@@ -68,9 +64,7 @@ const DEFAULT_RETRY_CONFIG: RetryConfig = {
   }
 };
 
-/**
- * Unified API Client class with comprehensive features
- */
+
 export class UnifiedApiClient {
   private baseURL: string;
   private defaultHeaders: Record<string, string>;
@@ -87,66 +81,50 @@ export class UnifiedApiClient {
     };
     this.retryConfig = { ...DEFAULT_RETRY_CONFIG, ...retryConfig };
 
-    // Initialize abort controller for request cancellation
+    
     this.abortController = new AbortController();
   }
 
-  /**
-   * Set authentication token
-   */
+  
   public setAuthToken(token: string): void {
     this.authToken = token;
     this.defaultHeaders['Authorization'] = `Bearer ${token}`;
     logger.info('Authentication token set');
   }
 
-  /**
-   * Remove authentication token
-   */
+  
   public removeAuthToken(): void {
     this.authToken = null;
     delete this.defaultHeaders['Authorization'];
     logger.info('Authentication token removed');
   }
 
-  /**
-   * Get current auth token
-   */
+  
   public getAuthToken(): string | null {
     return this.authToken;
   }
 
-  /**
-   * Set default header
-   */
+  
   public setDefaultHeader(key: string, value: string): void {
     this.defaultHeaders[key] = value;
   }
 
-  /**
-   * Remove default header
-   */
+  
   public removeDefaultHeader(key: string): void {
     delete this.defaultHeaders[key];
   }
 
-  /**
-   * Set request/response interceptors
-   */
+  
   public setInterceptors(interceptors: InterceptorConfig): void {
     this.interceptors = { ...this.interceptors, ...interceptors };
   }
 
-  /**
-   * Update retry configuration
-   */
+  
   public setRetryConfig(config: Partial<RetryConfig>): void {
     this.retryConfig = { ...this.retryConfig, ...config };
   }
 
-  /**
-   * Cancel all pending requests
-   */
+  
   public cancelRequests(): void {
     if (this.abortController) {
       this.abortController.abort();
@@ -155,9 +133,7 @@ export class UnifiedApiClient {
     }
   }
 
-  /**
-   * Create API error from response or exception
-   */
+  
   private createApiError(
     message: string,
     status?: number,
@@ -173,9 +149,7 @@ export class UnifiedApiClient {
     return error;
   }
 
-  /**
-   * Execute request with retry logic
-   */
+  
   private async executeWithRetry<T>(
     url: string,
     config: RequestConfig,
@@ -194,7 +168,7 @@ export class UnifiedApiClient {
           this.retryConfig.onRetry(apiError, attempt);
         }
 
-        // Exponential backoff
+        
         const delay = this.retryConfig.retryDelay * Math.pow(2, attempt);
         await new Promise(resolve => setTimeout(resolve, delay));
 
@@ -205,30 +179,28 @@ export class UnifiedApiClient {
     }
   }
 
-  /**
-   * Core request execution method
-   */
+  
   private async executeRequest<T>(url: string, config: RequestConfig): Promise<ApiResponse<T>> {
     const fullUrl = url.startsWith('http') ? url : `${this.baseURL}${url}`;
 
-    // Apply request interceptor
+    
     let finalConfig = { ...config };
     if (this.interceptors.onRequest && !config.skipInterceptors) {
       finalConfig = await this.interceptors.onRequest(finalConfig, fullUrl);
     }
 
-    // Merge headers
+    
     const headers = {
       ...this.defaultHeaders,
       ...finalConfig.headers,
     };
 
-    // Skip auth if requested
+    
     if (finalConfig.skipAuth && headers.Authorization) {
       delete headers.Authorization;
     }
 
-    // Set up abort signal with timeout
+    
     const timeoutMs = finalConfig.timeout || DEFAULT_TIMEOUT;
     const timeoutId = setTimeout(() => {
       this.abortController?.abort();
@@ -271,7 +243,7 @@ export class UnifiedApiClient {
       clearTimeout(timeoutId);
     }
 
-    // Parse response
+    
     let responseData: any;
     const contentType = response.headers.get('content-type');
 
@@ -288,7 +260,7 @@ export class UnifiedApiClient {
       responseData = null;
     }
 
-    // Create response object
+    
     const apiResponse: ApiResponse<T> = {
       data: responseData,
       status: response.status,
@@ -296,7 +268,7 @@ export class UnifiedApiClient {
       headers: Object.fromEntries(response.headers.entries()),
     };
 
-    // Handle HTTP errors
+    
     if (!response.ok) {
       const errorMessage = responseData?.error ||
                           responseData?.message ||
@@ -320,7 +292,7 @@ export class UnifiedApiClient {
       throw apiError;
     }
 
-    // Apply response interceptor
+    
     let finalResponse = apiResponse;
     if (this.interceptors.onResponse && !config.skipInterceptors) {
       finalResponse = await this.interceptors.onResponse(apiResponse);
@@ -336,9 +308,7 @@ export class UnifiedApiClient {
     return finalResponse;
   }
 
-  /**
-   * Generic request method
-   */
+  
   public async request<T = any>(
     method: string,
     url: string,
@@ -350,7 +320,7 @@ export class UnifiedApiClient {
       ...config,
     };
 
-    // Add body for methods that support it
+    
     if (data && ['POST', 'PUT', 'PATCH'].includes(requestConfig.method!)) {
       if (typeof data === 'string' || data instanceof ArrayBuffer || data instanceof FormData) {
         requestConfig.body = data;
@@ -368,58 +338,42 @@ export class UnifiedApiClient {
     }
   }
 
-  /**
-   * GET request
-   */
+  
   public async get<T = any>(url: string, config?: RequestConfig): Promise<ApiResponse<T>> {
     return this.request<T>('GET', url, undefined, config);
   }
 
-  /**
-   * POST request
-   */
+  
   public async post<T = any>(url: string, data?: any, config?: RequestConfig): Promise<ApiResponse<T>> {
     return this.request<T>('POST', url, data, config);
   }
 
-  /**
-   * PUT request
-   */
+  
   public async put<T = any>(url: string, data?: any, config?: RequestConfig): Promise<ApiResponse<T>> {
     return this.request<T>('PUT', url, data, config);
   }
 
-  /**
-   * PATCH request
-   */
+  
   public async patch<T = any>(url: string, data?: any, config?: RequestConfig): Promise<ApiResponse<T>> {
     return this.request<T>('PATCH', url, data, config);
   }
 
-  /**
-   * DELETE request
-   */
+  
   public async delete<T = any>(url: string, config?: RequestConfig): Promise<ApiResponse<T>> {
     return this.request<T>('DELETE', url, undefined, config);
   }
 
-  /**
-   * HEAD request
-   */
+  
   public async head<T = any>(url: string, config?: RequestConfig): Promise<ApiResponse<T>> {
     return this.request<T>('HEAD', url, undefined, config);
   }
 
-  /**
-   * OPTIONS request
-   */
+  
   public async options<T = any>(url: string, config?: RequestConfig): Promise<ApiResponse<T>> {
     return this.request<T>('OPTIONS', url, undefined, config);
   }
 
-  /**
-   * Convenience methods that return data directly (similar to existing patterns)
-   */
+  
   public async getData<T = any>(url: string, config?: RequestConfig): Promise<T> {
     const response = await this.get<T>(url, config);
     return response.data;
@@ -445,9 +399,7 @@ export class UnifiedApiClient {
     return response.data;
   }
 
-  /**
-   * Upload file with progress tracking
-   */
+  
   public async uploadFile<T = any>(
     url: string,
     file: File | FormData,
@@ -459,19 +411,17 @@ export class UnifiedApiClient {
       formData.append('file', file);
     }
 
-    // Remove content-type to let browser set it with boundary
+    
     const uploadConfig = { ...config };
     if (uploadConfig.headers) {
       delete uploadConfig.headers['Content-Type'];
     }
 
-    // TODO: Implement progress tracking with XMLHttpRequest if needed
+    
     return this.post<T>(url, formData, uploadConfig);
   }
 
-  /**
-   * Create a new instance with different base URL
-   */
+  
   public createInstance(baseURL: string, config: Partial<RetryConfig> = {}): UnifiedApiClient {
     const instance = new UnifiedApiClient(baseURL, config);
     instance.defaultHeaders = { ...this.defaultHeaders };
@@ -480,9 +430,7 @@ export class UnifiedApiClient {
     return instance;
   }
 
-  /**
-   * Health check method
-   */
+  
   public async healthCheck(): Promise<boolean> {
     try {
       await this.get('/health', { timeout: 5000, retries: 1 });
@@ -492,9 +440,7 @@ export class UnifiedApiClient {
     }
   }
 
-  /**
-   * Get client configuration for debugging
-   */
+  
   public getConfig() {
     return {
       baseURL: this.baseURL,

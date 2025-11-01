@@ -2,7 +2,7 @@ export interface OnboardingStep {
   id: string;
   title: string;
   description: string;
-  target?: string; // CSS selector for element to highlight
+  target?: string; 
   position?: 'top' | 'bottom' | 'left' | 'right' | 'center';
   action?: () => void | Promise<void>;
   skipable?: boolean;
@@ -15,7 +15,7 @@ export interface OnboardingFlow {
   name: string;
   description: string;
   steps: OnboardingStep[];
-  completionKey?: string; // localStorage key to track completion
+  completionKey?: string; 
 }
 
 export interface OnboardingState {

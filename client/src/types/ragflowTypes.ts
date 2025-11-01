@@ -2,7 +2,7 @@
 export interface RagflowChatRequestPayload {
   question: string;
   sessionId?: string;
-  stream?: boolean; // Added stream parameter
+  stream?: boolean; 
 }
 
 export interface RagflowChatResponsePayload {

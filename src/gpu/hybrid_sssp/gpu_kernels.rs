@@ -1,11 +1,11 @@
 // GPU Kernel Enhancements for Hybrid SSSP
 // These kernels are designed to work efficiently with CPU orchestration
 
-/// GPU kernel specifications for hybrid SSSP
+/
 pub struct HybridGPUKernels;
 
 impl HybridGPUKernels {
-    /// Get CUDA kernel code for hybrid SSSP operations
+    
     pub fn get_cuda_code() -> &'static str {
         r#"
 // Enhanced GPU Kernels for Hybrid CPU-WASM/GPU SSSP Implementation
@@ -20,16 +20,16 @@ impl HybridGPUKernels {
 // =============================================================================
 
 __global__ void k_step_relaxation_kernel(
-    const int* __restrict__ frontier,          // Current frontier vertices
-    int frontier_size,                         // Size of frontier
-    float* __restrict__ distances,             // Distance array
-    int* __restrict__ spt_sizes,              // SPT size for each vertex
-    const int* __restrict__ row_offsets,      // CSR row offsets
-    const int* __restrict__ col_indices,      // CSR column indices
-    const float* __restrict__ weights,        // Edge weights
-    int* __restrict__ next_frontier,          // Next frontier
-    int* __restrict__ next_frontier_size,     // Size of next frontier
-    int k,                                     // Number of steps
+    const int* __restrict__ frontier,          
+    int frontier_size,                         
+    float* __restrict__ distances,             
+    int* __restrict__ spt_sizes,              
+    const int* __restrict__ row_offsets,      
+    const int* __restrict__ col_indices,      
+    const float* __restrict__ weights,        
+    int* __restrict__ next_frontier,          
+    int* __restrict__ next_frontier_size,     
+    int k,                                     
     int num_nodes)
 {
     extern __shared__ int shared_frontier[];
@@ -38,7 +38,7 @@ __global__ void k_step_relaxation_kernel(
     int bid = blockIdx.x;
     int global_tid = blockIdx.x * blockDim.x + threadIdx.x;
 
-    // Cooperative loading of frontier into shared memory
+    
     int chunks = (frontier_size + blockDim.x - 1) / blockDim.x;
     for (int chunk = 0; chunk < chunks; chunk++) {
         int idx = chunk * blockDim.x + tid;
@@ -48,16 +48,16 @@ __global__ void k_step_relaxation_kernel(
     }
     __syncthreads();
 
-    // Perform k iterations of relaxation
+    
     for (int iteration = 0; iteration < k; iteration++) {
-        // Each thread processes vertices from the frontier
+        
         for (int f_idx = tid; f_idx < frontier_size; f_idx += blockDim.x) {
             int vertex = shared_frontier[f_idx];
             float vertex_dist = distances[vertex];
 
             if (vertex_dist == INFINITY) continue;
 
-            // Relax edges from this vertex
+            
             int start = row_offsets[vertex];
             int end = row_offsets[vertex + 1];
 
@@ -66,14 +66,14 @@ __global__ void k_step_relaxation_kernel(
                 float weight = weights[e];
                 float new_dist = vertex_dist + weight;
 
-                // Atomic min for distance update
+                
                 float old_dist = atomicMinFloat(&distances[neighbor], new_dist);
 
-                // Update SPT size if distance improved
+                
                 if (new_dist < old_dist) {
                     atomicAdd(&spt_sizes[neighbor], 1);
 
-                    // Add to next frontier (with deduplication)
+                    
                     if (iteration == k - 1) {
                         int pos = atomicAdd(next_frontier_size, 1);
                         if (pos < num_nodes) {
@@ -92,22 +92,22 @@ __global__ void k_step_relaxation_kernel(
 // =============================================================================
 
 __global__ void bounded_dijkstra_kernel(
-    const int* __restrict__ sources,          // Source vertices
-    int num_sources,                          // Number of sources
-    float* __restrict__ distances,            // Distance array
-    int* __restrict__ parents,               // Parent array for path reconstruction
-    const int* __restrict__ row_offsets,     // CSR row offsets
-    const int* __restrict__ col_indices,     // CSR column indices
-    const float* __restrict__ weights,       // Edge weights
-    float bound,                              // Distance bound B
-    int* __restrict__ active_vertices,       // Active vertex buffer
-    int* __restrict__ active_count,          // Number of active vertices
-    unsigned long long* __restrict__ relaxation_count,  // Total relaxations
+    const int* __restrict__ sources,          
+    int num_sources,                          
+    float* __restrict__ distances,            
+    int* __restrict__ parents,               
+    const int* __restrict__ row_offsets,     
+    const int* __restrict__ col_indices,     
+    const float* __restrict__ weights,       
+    float bound,                              
+    int* __restrict__ active_vertices,       
+    int* __restrict__ active_count,          
+    unsigned long long* __restrict__ relaxation_count,  
     int num_nodes)
 {
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
-    // Initialize sources
+    
     if (tid < num_sources) {
         int source = sources[tid];
         distances[source] = 0.0f;
@@ -120,7 +120,7 @@ __global__ void bounded_dijkstra_kernel(
     }
     __syncthreads();
 
-    // Main Dijkstra loop with bound checking
+    
     int iteration = 0;
     int max_iterations = (int)(log2f((float)num_nodes) * 2);
 
@@ -128,15 +128,15 @@ __global__ void bounded_dijkstra_kernel(
         int current_active = *active_count;
         if (current_active == 0) break;
 
-        // Process active vertices
+        
         for (int idx = tid; idx < current_active; idx += blockDim.x * gridDim.x) {
             int vertex = active_vertices[idx];
             float vertex_dist = distances[vertex];
 
-            // Skip if distance exceeds bound
+            
             if (vertex_dist >= bound) continue;
 
-            // Relax edges
+            
             int start = row_offsets[vertex];
             int end = row_offsets[vertex + 1];
 
@@ -145,7 +145,7 @@ __global__ void bounded_dijkstra_kernel(
                 float weight = weights[e];
                 float new_dist = vertex_dist + weight;
 
-                // Only update if within bound
+                
                 if (new_dist < bound) {
                     float old_dist = atomicMinFloat(&distances[neighbor], new_dist);
 
@@ -167,20 +167,20 @@ __global__ void bounded_dijkstra_kernel(
 // =============================================================================
 
 __global__ void detect_pivots_kernel(
-    const int* __restrict__ spt_sizes,       // SPT sizes from k-step relaxation
-    const float* __restrict__ distances,     // Distance array
-    int* __restrict__ pivots,                // Output pivot array
-    int* __restrict__ pivot_count,           // Number of pivots found
-    int k,                                    // Threshold for pivot selection
+    const int* __restrict__ spt_sizes,       
+    const float* __restrict__ distances,     
+    int* __restrict__ pivots,                
+    int* __restrict__ pivot_count,           
+    int k,                                    
     int num_nodes,
-    int max_pivots)                          // Maximum number of pivots
+    int max_pivots)                          
 {
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (tid < num_nodes) {
-        // Check if this vertex qualifies as a pivot
+        
         if (spt_sizes[tid] >= k && distances[tid] < INFINITY) {
-            // Atomically add to pivot list
+            
             int pos = atomicAdd(pivot_count, 1);
             if (pos < max_pivots) {
                 pivots[pos] = tid;
@@ -194,14 +194,14 @@ __global__ void detect_pivots_kernel(
 // =============================================================================
 
 __global__ void partition_frontier_kernel(
-    const int* __restrict__ frontier,        // Current frontier
+    const int* __restrict__ frontier,        
     int frontier_size,
-    const int* __restrict__ pivots,          // Selected pivots
+    const int* __restrict__ pivots,          
     int num_pivots,
-    const float* __restrict__ distances,     // Distance array
-    int* __restrict__ partition_assignment,  // Partition ID for each vertex
-    int* __restrict__ partition_sizes,       // Size of each partition
-    int t)                                    // Number of partitions
+    const float* __restrict__ distances,     
+    int* __restrict__ partition_assignment,  
+    int* __restrict__ partition_sizes,       
+    int t)                                    
 {
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -209,7 +209,7 @@ __global__ void partition_frontier_kernel(
         int vertex = frontier[tid];
         float vertex_dist = distances[vertex];
 
-        // Find nearest pivot
+        
         int best_partition = 0;
         float min_diff = INFINITY;
 
@@ -224,7 +224,7 @@ __global__ void partition_frontier_kernel(
             }
         }
 
-        // Assign to partition
+        
         partition_assignment[tid] = best_partition;
         atomicAdd(&partition_sizes[best_partition], 1);
     }
@@ -303,41 +303,41 @@ extern "C" {
         "#
     }
 
-    /// Link with existing CUDA kernels
+    
     pub fn link_with_existing_kernels(_existing_ptx_path: &str) -> Result<Vec<u8>, String> {
-        // In real implementation, would use NVRTC to compile and link
+        
         log::info!(
             "Linking hybrid kernels with existing GPU code at: {}",
             _existing_ptx_path
         );
 
-        // Placeholder - would return compiled PTX
+        
         Ok(Vec::new())
     }
 
-    /// Get kernel launch parameters based on graph size
+    
     pub fn get_launch_params(num_nodes: usize, _num_edges: usize) -> KernelLaunchParams {
-        // Calculate optimal block and grid sizes
+        
         let block_size = if num_nodes < 1024 { 128 } else { 256 };
         let grid_size = ((num_nodes + block_size - 1) / block_size).min(65535);
 
-        // Shared memory calculation
+        
         let shared_mem_size = if num_nodes < 10000 {
-            block_size * 4 // Small graphs: more shared memory per thread
+            block_size * 4 
         } else {
-            block_size * 2 // Large graphs: conservative shared memory
+            block_size * 2 
         };
 
         KernelLaunchParams {
             block_size,
             grid_size,
             shared_mem_size,
-            stream_count: 2, // Use 2 streams for overlap
+            stream_count: 2, 
         }
     }
 }
 
-/// Kernel launch parameters
+/
 #[derive(Debug, Clone)]
 pub struct KernelLaunchParams {
     pub block_size: usize,

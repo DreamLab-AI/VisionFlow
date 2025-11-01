@@ -31,95 +31,95 @@ use crate::AppState;
 // REQUEST/RESPONSE DTOs
 // ============================================================================
 
-/// Request to load ontology content (spec-compliant)
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoadOntologyRequest {
-    /// Ontology content as string
+    
     pub content: String,
-    /// Optional format specification ("turtle", "rdf-xml", "n-triples")
+    
     pub format: Option<String>,
 }
 
-/// Response for successful ontology loading (spec-compliant)
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoadOntologyResponse {
-    /// Generated ontology ID
+    
     pub ontology_id: String,
-    /// Number of axioms loaded
+    
     pub axiom_count: usize,
 }
 
-/// Request to load ontology axioms from various sources (extended version)
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoadAxiomsRequest {
-    /// Source of the ontology (file path, URL, or direct content)
+    
     pub source: String,
-    /// Optional format specification ("turtle", "rdf-xml", "n-triples")
+    
     pub format: Option<String>,
-    /// Whether to validate immediately after loading
+    
     pub validate_immediately: Option<bool>,
 }
 
-/// Response for successful axiom loading (extended version)
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoadAxiomsResponse {
-    /// Generated ontology ID
+    
     pub ontology_id: String,
-    /// Timestamp when loaded
+    
     pub loaded_at: DateTime<Utc>,
-    /// Number of axioms loaded
+    
     pub axiom_count: Option<u32>,
-    /// Loading duration in milliseconds
+    
     pub loading_time_ms: u64,
-    /// Optional validation job ID if immediate validation was requested
+    
     pub validation_job_id: Option<String>,
 }
 
-/// Request to validate ontology (spec-compliant)
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ValidateRequest {
-    /// Ontology ID (optional, uses latest if not provided)
+    
     pub ontology_id: Option<String>,
-    /// Validation mode
+    
     pub mode: Option<ValidationModeDto>,
 }
 
-/// Request to update ontology mapping configuration
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MappingRequest {
-    /// Mapping configuration
+    
     pub config: ValidationConfigDto,
-    /// Whether to apply to all loaded ontologies
+    
     pub apply_to_all: Option<bool>,
 }
 
-/// DTO for validation configuration
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ValidationConfigDto {
-    /// Enable OWL reasoning
+    
     pub enable_reasoning: Option<bool>,
-    /// Reasoning timeout in seconds
+    
     pub reasoning_timeout_seconds: Option<u64>,
-    /// Enable inference generation
+    
     pub enable_inference: Option<bool>,
-    /// Maximum inference depth
+    
     pub max_inference_depth: Option<usize>,
-    /// Enable caching
+    
     pub enable_caching: Option<bool>,
-    /// Cache TTL in seconds
+    
     pub cache_ttl_seconds: Option<u64>,
-    /// Validate cardinality constraints
+    
     pub validate_cardinality: Option<bool>,
-    /// Validate domain and range constraints
+    
     pub validate_domains_ranges: Option<bool>,
-    /// Validate disjoint classes
+    
     pub validate_disjoint_classes: Option<bool>,
 }
 
@@ -139,23 +139,23 @@ impl From<ValidationConfigDto> for ValidationConfig {
     }
 }
 
-/// Request to validate ontology against graph
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ValidationRequest {
-    /// Ontology ID to validate against
+    
     pub ontology_id: String,
-    /// Validation mode
+    
     pub mode: ValidationModeDto,
-    /// Optional priority (1-10, higher is more urgent)
+    
     pub priority: Option<u8>,
-    /// Whether to send progress updates via WebSocket
+    
     pub enable_websocket_updates: Option<bool>,
-    /// Client ID for WebSocket updates
+    
     pub client_id: Option<String>,
 }
 
-/// DTO for validation mode
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum ValidationModeDto {
@@ -174,35 +174,35 @@ impl From<ValidationModeDto> for ValidationMode {
     }
 }
 
-/// Response for validation request
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ValidationResponse {
-    /// Generated job ID for tracking
+    
     pub job_id: String,
-    /// Current status
+    
     pub status: String,
-    /// Estimated completion time
+    
     pub estimated_completion: Option<DateTime<Utc>>,
-    /// Queue position (if queued)
+    
     pub queue_position: Option<usize>,
-    /// WebSocket URL for real-time updates (if enabled)
+    
     pub websocket_url: Option<String>,
 }
 
-/// Request to apply inferences to the graph
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ApplyInferencesRequest {
-    /// RDF triples to apply inferences to
+    
     pub rdf_triples: Vec<RdfTripleDto>,
-    /// Maximum inference depth
+    
     pub max_depth: Option<usize>,
-    /// Whether to update the graph immediately
+    
     pub update_graph: Option<bool>,
 }
 
-/// DTO for RDF triple
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RdfTripleDto {
@@ -240,35 +240,35 @@ impl From<RdfTriple> for RdfTripleDto {
     }
 }
 
-/// Response for inference application
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct InferenceResult {
-    /// Number of input triples
+    
     pub input_count: usize,
-    /// Generated inferred triples
+    
     pub inferred_triples: Vec<RdfTripleDto>,
-    /// Processing time in milliseconds
+    
     pub processing_time_ms: u64,
-    /// Whether graph was updated
+    
     pub graph_updated: bool,
 }
 
-/// Health status response
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct HealthStatusResponse {
-    /// Overall system status
+    
     pub status: String,
-    /// Detailed health metrics
+    
     pub health: OntologyHealthDto,
-    /// Feature flag status
+    
     pub ontology_validation_enabled: bool,
-    /// Last update timestamp
+    
     pub timestamp: DateTime<Utc>,
 }
 
-/// DTO for ontology health
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct OntologyHealthDto {
@@ -297,7 +297,7 @@ impl From<OntologyHealth> for OntologyHealthDto {
     }
 }
 
-/// Error response structure
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ErrorResponse {
@@ -329,7 +329,7 @@ impl ErrorResponse {
 // UTILITY FUNCTIONS
 // ============================================================================
 
-/// Check if ontology validation feature is enabled
+/
 async fn check_feature_enabled() -> Result<(), ErrorResponse> {
     let flags = FEATURE_FLAGS.lock().await;
 
@@ -350,20 +350,20 @@ async fn check_feature_enabled() -> Result<(), ErrorResponse> {
     Ok(())
 }
 
-/// Create a timeout for actor communication
+/
 fn actor_timeout() -> StdDuration {
     StdDuration::from_secs(30)
 }
 
-/// Convert graph data to PropertyGraph for validation
+/
 fn extract_property_graph(_state: &AppState) -> Result<PropertyGraph, ErrorResponse> {
-    // This is a simplified implementation
-    // In a real scenario, we would extract the current graph data
-    // from the GraphServiceActor and convert it to PropertyGraph format
+    
+    
+    
     Ok(PropertyGraph {
-        nodes: vec![],            // TODO: Extract from graph service
-        edges: vec![],            // TODO: Extract from graph service
-        metadata: HashMap::new(), // Empty metadata for now
+        nodes: vec![],            
+        edges: vec![],            
+        metadata: HashMap::new(), 
     })
 }
 
@@ -371,9 +371,9 @@ fn extract_property_graph(_state: &AppState) -> Result<PropertyGraph, ErrorRespo
 // REST ENDPOINTS
 // ============================================================================
 
-/// POST /api/ontology/load - Load ontology from content string (spec-compliant)
+/
 pub async fn load_axioms(state: web::Data<AppState>, body: web::Bytes) -> impl Responder {
-    // Try to parse as either LoadOntologyRequest or LoadAxiomsRequest
+    
     let (source, format) = if let Ok(req) = serde_json::from_slice::<LoadOntologyRequest>(&body) {
         info!("Loading ontology from content string");
         (req.content, req.format)
@@ -385,14 +385,14 @@ pub async fn load_axioms(state: web::Data<AppState>, body: web::Bytes) -> impl R
         return HttpResponse::BadRequest().json(error_response);
     };
 
-    // Check feature flag
+    
     if let Err(error) = check_feature_enabled().await {
         return HttpResponse::ServiceUnavailable().json(error);
     }
 
     let start_time = std::time::Instant::now();
 
-    // Send message to OntologyActor
+    
     let load_msg = LoadOntologyAxioms { source, format };
 
     let Some(ref ontology_addr) = state.ontology_actor_addr else {
@@ -405,10 +405,10 @@ pub async fn load_axioms(state: web::Data<AppState>, body: web::Bytes) -> impl R
         Ok(Ok(ontology_id)) => {
             let loading_time_ms = start_time.elapsed().as_millis() as u64;
 
-            // Return spec-compliant response
+            
             let response = LoadOntologyResponse {
                 ontology_id: ontology_id.clone(),
-                axiom_count: 0, // TODO: Return actual axiom count from actor
+                axiom_count: 0, 
             };
 
             info!("Successfully loaded ontology: {}", response.ontology_id);
@@ -427,19 +427,19 @@ pub async fn load_axioms(state: web::Data<AppState>, body: web::Bytes) -> impl R
     }
 }
 
-/// POST /api/ontology/mapping - Update mapping configuration
+/
 pub async fn update_mapping(
     state: web::Data<AppState>,
     req: web::Json<MappingRequest>,
 ) -> impl Responder {
     info!("Updating ontology mapping configuration");
 
-    // Check feature flag
+    
     if let Err(error) = check_feature_enabled().await {
         return HttpResponse::ServiceUnavailable().json(error);
     }
 
-    // Convert DTO to internal config
+    
     let config = ValidationConfig::from(req.config.clone());
 
     let update_msg = UpdateOntologyMapping { config };
@@ -472,7 +472,7 @@ pub async fn update_mapping(
     }
 }
 
-/// POST /api/ontology/validate - Run validation (quick/full)
+/
 pub async fn validate_ontology(
     state: web::Data<AppState>,
     req: web::Json<ValidationRequest>,
@@ -482,12 +482,12 @@ pub async fn validate_ontology(
         req.ontology_id, req.mode
     );
 
-    // Check feature flag
+    
     if let Err(error) = check_feature_enabled().await {
         return HttpResponse::ServiceUnavailable().json(error);
     }
 
-    // Extract property graph from current graph data
+    
     let property_graph = match extract_property_graph(&state) {
         Ok(graph) => graph,
         Err(error) => return HttpResponse::InternalServerError().json(error),
@@ -507,8 +507,8 @@ pub async fn validate_ontology(
 
     match ontology_addr.send(validation_msg).await {
         Ok(Ok(report)) => {
-            // For synchronous validation, return the report immediately
-            // In a real implementation, this would be asynchronous with job tracking
+            
+            
             let response = ValidationResponse {
                 job_id: report.id.clone(),
                 status: "completed".to_string(),
@@ -540,7 +540,7 @@ pub async fn validate_ontology(
     }
 }
 
-/// GET /api/ontology/report - Get latest validation report
+/
 pub async fn get_validation_report(
     state: web::Data<AppState>,
     query: web::Query<HashMap<String, String>>,
@@ -549,7 +549,7 @@ pub async fn get_validation_report(
 
     info!("Retrieving validation report: {:?}", report_id);
 
-    // Check feature flag
+    
     if let Err(error) = check_feature_enabled().await {
         return HttpResponse::ServiceUnavailable().json(error);
     }
@@ -585,21 +585,21 @@ pub async fn get_validation_report(
     }
 }
 
-/// POST /api/ontology/apply - Apply inferences to graph
+/
 pub async fn apply_inferences(
     state: web::Data<AppState>,
     req: web::Json<ApplyInferencesRequest>,
 ) -> impl Responder {
     info!("Applying inferences to {} triples", req.rdf_triples.len());
 
-    // Check feature flag
+    
     if let Err(error) = check_feature_enabled().await {
         return HttpResponse::ServiceUnavailable().json(error);
     }
 
     let start_time = std::time::Instant::now();
 
-    // Convert DTOs to internal types
+    
     let triples: Vec<RdfTriple> = req
         .rdf_triples
         .iter()
@@ -650,7 +650,7 @@ pub async fn apply_inferences(
     }
 }
 
-/// GET /api/ontology/health - System health status
+/
 pub async fn get_health_status(state: web::Data<AppState>) -> impl Responder {
     info!("Retrieving ontology system health");
 
@@ -672,7 +672,7 @@ pub async fn get_health_status(state: web::Data<AppState>) -> impl Responder {
                 }
                 .to_string(),
                 health: OntologyHealthDto::from(health),
-                ontology_validation_enabled: true, // TODO: Check feature flag
+                ontology_validation_enabled: true, 
                 timestamp: Utc::now(),
             };
 
@@ -691,11 +691,11 @@ pub async fn get_health_status(state: web::Data<AppState>) -> impl Responder {
     }
 }
 
-/// DELETE /api/ontology/cache - Clear caches
+/
 pub async fn clear_caches(state: web::Data<AppState>) -> impl Responder {
     info!("Clearing ontology caches");
 
-    // Check feature flag
+    
     if let Err(error) = check_feature_enabled().await {
         return HttpResponse::ServiceUnavailable().json(error);
     }
@@ -730,11 +730,11 @@ pub async fn clear_caches(state: web::Data<AppState>) -> impl Responder {
     }
 }
 
-/// GET /api/ontology/axioms - List all loaded axioms
+/
 pub async fn list_axioms(state: web::Data<AppState>) -> impl Responder {
     info!("Listing all loaded axioms");
 
-    // Check feature flag
+    
     if let Err(error) = check_feature_enabled().await {
         return HttpResponse::ServiceUnavailable().json(error);
     }
@@ -770,14 +770,14 @@ pub async fn list_axioms(state: web::Data<AppState>) -> impl Responder {
     }
 }
 
-/// GET /api/ontology/inferences - Get inferred relationships
+/
 pub async fn get_inferences(
     state: web::Data<AppState>,
     query: web::Query<HashMap<String, String>>,
 ) -> impl Responder {
     info!("Retrieving inferred relationships");
 
-    // Check feature flag
+    
     if let Err(error) = check_feature_enabled().await {
         return HttpResponse::ServiceUnavailable().json(error);
     }
@@ -790,7 +790,7 @@ pub async fn get_inferences(
         return HttpResponse::ServiceUnavailable().json(error_response);
     };
 
-    // Get the latest validation report to extract inferences
+    
     let report_msg = GetOntologyReport {
         report_id: ontology_id,
     };
@@ -799,7 +799,7 @@ pub async fn get_inferences(
         Ok(Ok(Some(report))) => {
             info!("Retrieved inferences from report: {}", report.id);
 
-            // Extract inferred triples from the validation report
+            
             let inferences = serde_json::json!({
                 "report_id": report.id,
                 "inferred_count": report.inferred_triples.len(),
@@ -833,7 +833,7 @@ pub async fn get_inferences(
     }
 }
 
-/// POST /api/ontology/validate - Trigger validation job (spec-compliant endpoint)
+/
 pub async fn validate_graph(
     state: web::Data<AppState>,
     req: web::Json<ValidationRequest>,
@@ -843,12 +843,12 @@ pub async fn validate_graph(
         req.ontology_id, req.mode
     );
 
-    // Check feature flag
+    
     if let Err(error) = check_feature_enabled().await {
         return HttpResponse::ServiceUnavailable().json(error);
     }
 
-    // Extract property graph from current graph data
+    
     let property_graph = match extract_property_graph(&state) {
         Ok(graph) => graph,
         Err(error) => return HttpResponse::InternalServerError().json(error),
@@ -866,11 +866,11 @@ pub async fn validate_graph(
         return HttpResponse::ServiceUnavailable().json(error_response);
     };
 
-    // Return job ID immediately (async validation)
+    
     let job_id = Uuid::new_v4().to_string();
     let job_id_clone = job_id.clone();
 
-    // Spawn validation task asynchronously
+    
     let ontology_addr_clone = ontology_addr.clone();
     actix::spawn(async move {
         match ontology_addr_clone.send(validation_msg).await {
@@ -905,7 +905,7 @@ pub async fn validate_graph(
     HttpResponse::Accepted().json(response)
 }
 
-/// GET /api/ontology/reports/{id} - Get validation report by ID (spec-compliant endpoint)
+/
 pub async fn get_report_by_id(
     state: web::Data<AppState>,
     path: web::Path<String>,
@@ -913,7 +913,7 @@ pub async fn get_report_by_id(
     let report_id = path.into_inner();
     info!("Retrieving validation report by ID: {}", report_id);
 
-    // Check feature flag
+    
     if let Err(error) = check_feature_enabled().await {
         return HttpResponse::ServiceUnavailable().json(error);
     }
@@ -955,11 +955,11 @@ pub async fn get_report_by_id(
 // WEBSOCKET IMPLEMENTATION
 // ============================================================================
 
-/// WebSocket actor for real-time validation progress updates
+/
 pub struct OntologyWebSocket {
-    /// Client ID for tracking
+    
     client_id: String,
-    /// Connection to ontology actor
+    
     ontology_addr: Addr<OntologyActor>,
 }
 
@@ -981,7 +981,7 @@ impl actix::Actor for OntologyWebSocket {
             self.client_id
         );
 
-        // Send initial connection confirmation
+        
         let msg = serde_json::json!({
             "type": "connection_established",
             "client_id": self.client_id,
@@ -1007,7 +1007,7 @@ impl actix::StreamHandler<Result<ws::Message, ws::ProtocolError>> for OntologyWe
                     self.client_id, text
                 );
 
-                // Echo back for now - in production, this would handle client commands
+                
                 let response = serde_json::json!({
                     "type": "echo",
                     "original": &*text,
@@ -1030,7 +1030,7 @@ impl actix::StreamHandler<Result<ws::Message, ws::ProtocolError>> for OntologyWe
     }
 }
 
-/// WebSocket upgrade handler
+/
 pub async fn websocket_handler(
     req: HttpRequest,
     stream: web::Payload,
@@ -1039,7 +1039,7 @@ pub async fn websocket_handler(
 ) -> Result<HttpResponse, ActixError> {
     info!("WebSocket upgrade request for ontology updates");
 
-    // Check feature flag
+    
     if let Err(error) = check_feature_enabled().await {
         return Ok(HttpResponse::ServiceUnavailable().json(error));
     }
@@ -1064,25 +1064,25 @@ pub async fn websocket_handler(
 // ROUTE CONFIGURATION
 // ============================================================================
 
-/// Configure ontology API routes
+/
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/ontology")
-            // Load ontology content
+            
             .route("/load", web::post().to(load_axioms))
-            .route("/load-axioms", web::post().to(load_axioms)) // Alias for compatibility
-            // Trigger validation
+            .route("/load-axioms", web::post().to(load_axioms)) 
+            
             .route("/validate", web::post().to(validate_graph))
-            // Get validation report by ID (path parameter)
+            
             .route("/reports/{id}", web::get().to(get_report_by_id))
-            .route("/report", web::get().to(get_validation_report)) // Alias for compatibility
-            // List all loaded axioms
+            .route("/report", web::get().to(get_validation_report)) 
+            
             .route("/axioms", web::get().to(list_axioms))
-            // Get inferred relationships
+            
             .route("/inferences", web::get().to(get_inferences))
-            // Clear caches
+            
             .route("/cache", web::delete().to(clear_caches))
-            // Additional endpoints
+            
             .route("/mapping", web::post().to(update_mapping))
             .route("/apply", web::post().to(apply_inferences))
             .route("/health", web::get().to(get_health_status))
@@ -1102,7 +1102,7 @@ mod tests {
 
     #[actix_web::test]
     async fn test_health_endpoint_structure() {
-        // Test the structure of our DTOs
+        
         let health = OntologyHealthDto {
             loaded_ontologies: 5,
             cached_reports: 10,
@@ -1121,7 +1121,7 @@ mod tests {
             timestamp: Utc::now(),
         };
 
-        // Ensure it serializes correctly
+        
         let json = serde_json::to_value(&response).unwrap();
         assert!(json.get("status").is_some());
         assert!(json.get("health").is_some());

@@ -16,20 +16,20 @@ import { NodeShaderToggle } from './NodeShaderToggle'
 import { EdgeSettings } from '../../settings/config/settings'
 import { registerNodeObject, unregisterNodeObject } from '../../visualisation/hooks/bloomRegistry'
 import { useAnalyticsStore, useCurrentSSSPResult } from '../../analytics/store/analyticsStore'
-// import { useBloomStrength } from '../contexts/BloomContext' // Removed - bloom managed via settings
+// import { useBloomStrength } from '../contexts/BloomContext' 
 
 const logger = createLogger('GraphManager')
 
 // Enhanced position calculation with better distribution
 const getPositionForNode = (node: GraphNode, index: number, totalNodes: number): [number, number, number] => {
   if (!node.position || (node.position.x === 0 && node.position.y === 0 && node.position.z === 0)) {
-    // Golden angle for better distribution
+    
     const goldenAngle = Math.PI * (3 - Math.sqrt(5))
     const theta = index * goldenAngle
     const y = 1 - (index / totalNodes) * 2
     const radius = Math.sqrt(1 - y * y)
 
-    const scaleFactor = 15 + Math.random() * 5 // Vary radius for organic feel
+    const scaleFactor = 15 + Math.random() * 5 
     const x = Math.cos(theta) * radius * scaleFactor
     const z = Math.sin(theta) * radius * scaleFactor
     const yScaled = y * scaleFactor
@@ -52,57 +52,57 @@ const getPositionForNode = (node: GraphNode, index: number, totalNodes: number):
 const getGeometryForNodeType = (type?: string): THREE.BufferGeometry => {
   switch (type?.toLowerCase()) {
     case 'folder':
-      return new THREE.OctahedronGeometry(0.6, 0); // Folder = octahedron
+      return new THREE.OctahedronGeometry(0.6, 0); 
     case 'file':
-      return new THREE.BoxGeometry(0.8, 0.8, 0.8); // File = cube
+      return new THREE.BoxGeometry(0.8, 0.8, 0.8); 
     case 'concept':
-      return new THREE.IcosahedronGeometry(0.5, 0); // Concept = icosahedron
+      return new THREE.IcosahedronGeometry(0.5, 0); 
     case 'todo':
-      return new THREE.ConeGeometry(0.5, 1, 4); // Todo = pyramid
+      return new THREE.ConeGeometry(0.5, 1, 4); 
     case 'reference':
-      return new THREE.TorusGeometry(0.5, 0.2, 8, 16); // Reference = torus
+      return new THREE.TorusGeometry(0.5, 0.2, 8, 16); 
     default:
-      return new THREE.SphereGeometry(0.5, 32, 32); // Default = sphere
+      return new THREE.SphereGeometry(0.5, 32, 32); 
   }
 };
 
 // Get node color based on type/metadata and SSSP visualization
 const getNodeColor = (node: GraphNode, ssspResult?: any): THREE.Color => {
-  // SSSP visualization takes priority when available
+  
   if (ssspResult) {
     const distance = ssspResult.distances[node.id]
     
-    // Source node - special bright cyan color
+    
     if (node.id === ssspResult.sourceNodeId) {
-      return new THREE.Color('#00FFFF') // Bright cyan for source
+      return new THREE.Color('#00FFFF') 
     }
     
-    // Unreachable nodes - gray
+    
     if (!isFinite(distance)) {
-      return new THREE.Color('#666666') // Dark gray
+      return new THREE.Color('#666666') 
     }
     
-    // Reachable nodes - gradient from green to red based on distance
+    
     const normalizedDistances = ssspResult.normalizedDistances || {}
     const normalizedDistance = normalizedDistances[node.id] || 0
     
-    // Create gradient from green (close) to red (far)
+    
     const red = Math.min(1, normalizedDistance * 1.2)
     const green = Math.min(1, (1 - normalizedDistance) * 1.2)
-    const blue = 0.1 // Slight blue tint for depth
+    const blue = 0.1 
     
     return new THREE.Color(red, green, blue)
   }
   
-  // Default type-based coloring when no SSSP result
+  
   const typeColors: Record<string, string> = {
-    'folder': '#FFD700',     // Gold
-    'file': '#00CED1',       // Dark turquoise
-    'function': '#FF6B6B',   // Coral
-    'class': '#4ECDC4',      // Turquoise
-    'variable': '#95E1D3',   // Mint
-    'import': '#F38181',     // Light coral
-    'export': '#AA96DA',     // Lavender
+    'folder': '#FFD700',     
+    'file': '#00CED1',       
+    'function': '#FF6B6B',   
+    'class': '#4ECDC4',      
+    'variable': '#95E1D3',   
+    'import': '#F38181',     
+    'export': '#AA96DA',     
   }
 
   const nodeType = node.metadata?.type || 'default'
@@ -117,10 +117,10 @@ const getNodeScale = (node: GraphNode, edges: any[]): number => {
     e.source === node.id || e.target === node.id
   ).length
 
-  // Scale based on connections (more connections = larger node)
+  
   const connectionScale = 1 + Math.log(connectionCount + 1) * 0.3
 
-  // Also scale based on node type importance
+  
   const typeScale = getTypeImportance(node.metadata?.type)
 
   return baseSize * connectionScale * typeScale
@@ -129,13 +129,13 @@ const getNodeScale = (node: GraphNode, edges: any[]): number => {
 // Get importance multiplier based on node type
 const getTypeImportance = (nodeType?: string): number => {
   const importanceMap: Record<string, number> = {
-    'folder': 1.5,      // Folders are important containers
-    'function': 1.3,    // Functions are important code elements
-    'class': 1.4,       // Classes are structural elements
-    'file': 1.0,        // Files are baseline
-    'variable': 0.8,    // Variables are smaller
-    'import': 0.7,      // Imports are small
-    'export': 0.9,      // Exports are medium
+    'folder': 1.5,      
+    'function': 1.3,    
+    'class': 1.4,       
+    'file': 1.0,        
+    'variable': 0.8,    
+    'import': 0.7,      
+    'export': 0.9,      
   }
 
   return importanceMap[nodeType || 'default'] || 1.0
@@ -146,18 +146,18 @@ interface GraphManagerProps {
 }
 
 const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
-  // Only log once on mount, not every frame
+  
   useEffect(() => {
     if (onDragStateChange) {
       console.log('GraphManager: onDragStateChange callback available');
     }
   }, []);
   const settings = useSettingsStore((state) => state.settings);
-  // Handle both camelCase and snake_case field names from REST API
+  
   const nodeBloomStrength = settings?.visualisation?.bloom?.node_bloom_strength ?? settings?.visualisation?.bloom?.nodeBloomStrength ?? 0.5;
   const edgeBloomStrength = settings?.visualisation?.bloom?.edge_bloom_strength ?? settings?.visualisation?.bloom?.edgeBloomStrength ?? 0.5;
   
-  // SSSP visualization state
+  
   const ssspResult = useCurrentSSSPResult();
   const normalizeDistances = useAnalyticsStore(state => state.normalizeDistances);
   const [normalizedSSSPResult, setNormalizedSSSPResult] = useState<any>(null);
@@ -165,7 +165,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   const materialRef = useRef<HologramNodeMaterial | null>(null)
   const particleSystemRef = useRef<THREE.Points>(null)
 
-  // Memoized objects for performance
+  
   const tempMatrix = useMemo(() => new THREE.Matrix4(), [])
   const tempPosition = useMemo(() => new THREE.Vector3(), [])
   const tempScale = useMemo(() => new THREE.Vector3(), [])
@@ -176,10 +176,10 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   const nodePositionsRef = useRef<Float32Array | null>(null)
   const [edgePoints, setEdgePoints] = useState<number[]>([])
   const [nodesAreAtOrigin, setNodesAreAtOrigin] = useState(false)
-  // Remove duplicate settings declaration - already declared above
+  
   const [forceUpdate, setForceUpdate] = useState(0)
 
-  // Animation state
+  
   const animationStateRef = useRef({
     time: 0,
     selectedNode: null as string | null,
@@ -187,7 +187,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     pulsePhase: 0,
   })
 
-  // Drag state (same as original)
+  
   const [dragState, setDragState] = useState<{
     nodeId: string | null;
     instanceId: number | null;
@@ -208,66 +208,66 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
   const { camera, size } = useThree()
 
-  // Check if metadata shapes are enabled
+  
   const logseqSettings = settings?.visualisation?.graphs?.logseq
   const nodeSettings = logseqSettings?.nodes || settings?.visualisation?.nodes
   const enableMetadataShape = nodeSettings?.enableMetadataShape ?? false
 
-  // Create custom hologram material
+  
   useEffect(() => {
     if (!materialRef.current) {
       materialRef.current = new HologramNodeMaterial({
-        baseColor: '#0066ff', // Bright blue base
-        emissiveColor: '#00ffff', // Cyan emissive
+        baseColor: '#0066ff', 
+        emissiveColor: '#00ffff', 
         opacity: settings?.visualisation?.graphs?.logseq?.nodes?.opacity ?? settings?.visualisation?.nodes?.opacity ?? 0.8,
-        enableHologram: true, // Force enable to test
-        glowStrength: (nodeBloomStrength || 1) * (settings?.visualisation?.glow?.nodeGlowStrength ?? 0.7), // Use central glow strength setting
+        enableHologram: true, 
+        glowStrength: (nodeBloomStrength || 1) * (settings?.visualisation?.glow?.nodeGlowStrength ?? 0.7), 
         pulseSpeed: 1.0,
-        hologramStrength: 0.8, // Strong hologram effect
-        rimPower: 2.0, // Moderate rim lighting
+        hologramStrength: 0.8, 
+        rimPower: 2.0, 
       })
 
-      // Keep nodes bright for postprocessing bloom
+      
       ;(materialRef.current as any).toneMapped = false
 
-      // Enable instance color support
+      
       materialRef.current.defines = { ...materialRef.current.defines, USE_INSTANCING_COLOR: '' }
       materialRef.current.needsUpdate = true
     }
   }, [])
   
-  // Set up bloom for nodes
+  
   useEffect(() => {
     const obj = meshRef.current as any;
     if (obj) {
-      // Make sure mesh is on default layer for raycasting
-      obj.layers.set(0); // Default layer for raycasting
-      obj.layers.enable(1); // Also enable bloom layer
+      
+      obj.layers.set(0); 
+      obj.layers.enable(1); 
       registerNodeObject(obj);
     }
     return () => {
       if (obj) unregisterNodeObject(obj);
     };
-  }, [graphData.nodes.length]) // Re-run when nodes change
+  }, [graphData.nodes.length]) 
   
-  // Update material settings for bloom strength changes
+  
   useEffect(() => {
     if (materialRef.current) {
-      // Update glow strength based on bloom slider
+      
       const strength = nodeBloomStrength || 1;
       materialRef.current.updateHologramParams({
-        glowStrength: strength * (settings?.visualisation?.glow?.nodeGlowStrength ?? 0.7) // Use central glow strength
+        glowStrength: strength * (settings?.visualisation?.glow?.nodeGlowStrength ?? 0.7) 
       });
-      // Also update the emissive intensity directly
+      
       materialRef.current.uniforms.glowStrength.value = strength * (settings?.visualisation?.glow?.nodeGlowStrength ?? 0.7);
       materialRef.current.needsUpdate = true;
     }
   }, [nodeBloomStrength]);
   
-  // Update material settings for Logseq graph
+  
   useEffect(() => {
     if (materialRef.current && settings?.visualisation) {
-      // Use Logseq-specific settings, fallback to legacy nodes settings
+      
       const logseqSettings = settings.visualisation.graphs?.logseq;
       const nodeSettings = logseqSettings?.nodes || settings.visualisation.nodes;
 
@@ -285,7 +285,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     }
   }, [settings?.visualisation])
 
-  // Update normalized SSSP result when ssspResult changes
+  
   useEffect(() => {
     if (ssspResult) {
       const normalized = normalizeDistances(ssspResult);
@@ -298,7 +298,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     }
   }, [ssspResult, normalizeDistances]);
 
-  // Function to update node colors with smooth transitions
+  
   const updateNodeColors = useCallback(() => {
     if (!meshRef.current || graphData.nodes.length === 0) return;
 
@@ -316,18 +316,18 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     mesh.geometry.attributes.instanceColor.needsUpdate = true;
   }, [graphData.nodes, normalizedSSSPResult]);
 
-  // Update colors when SSSP result changes
+  
   useEffect(() => {
     updateNodeColors();
   }, [updateNodeColors]);
 
-  // Initialize instance attributes
+  
   useEffect(() => {
     if (meshRef.current && graphData.nodes.length > 0) {
       const mesh = meshRef.current
       mesh.count = graphData.nodes.length
       
-      // Debug logging based on settings
+      
       const debugSettings = settings?.system?.debug;
       if (debugSettings?.enableNodeDebug) {
         console.log('GraphManager: Node mesh initialized', {
@@ -341,18 +341,18 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
       updateNodeColors();
 
-      // CRITICAL: Initialize instance matrices immediately
+      
       const tempMatrix = new THREE.Matrix4();
       const nodeSize = settings?.visualisation?.graphs?.logseq?.nodes?.nodeSize || 0.5;
       const BASE_SPHERE_RADIUS = 0.5;
       const baseScale = nodeSize / BASE_SPHERE_RADIUS;
 
       graphData.nodes.forEach((node, i) => {
-        // CRITICAL: Set initial instance matrix for each node
+        
         const nodeScale = getNodeScale(node, graphData.edges) * baseScale;
         tempMatrix.makeScale(nodeScale, nodeScale, nodeScale);
         
-        // Use node's initial position or spread them out
+        
         const angle = (i / graphData.nodes.length) * Math.PI * 2;
         const radius = 10;
         tempMatrix.setPosition(
@@ -364,13 +364,13 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         mesh.setMatrixAt(i, tempMatrix);
       })
       
-      // CRITICAL: Mark instance matrix as needing update
+      
       mesh.instanceMatrix.needsUpdate = true;
       
-      // IMPORTANT: Update bounding sphere for proper raycasting
+      
       mesh.computeBoundingSphere();
 
-      // Force material update
+      
       if (materialRef.current) {
         materialRef.current.needsUpdate = true
       }
@@ -378,20 +378,20 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     }
   }, [graphData, normalizedSSSPResult])
 
-  // Pass settings to worker whenever they change
+  
   useEffect(() => {
     graphWorkerProxy.updateSettings(settings);
   }, [settings]);
 
-  // Animation loop with physics updates
+  
   useFrame(async (state, delta) => {
     animationStateRef.current.time = state.clock.elapsedTime
     
-    // Debug: Log first frame and periodic updates
+    
     const debugSettings = settings?.system?.debug;
     if (debugSettings?.enablePhysicsDebug && debugState.isEnabled()) {
       const frameCount = Math.floor(state.clock.elapsedTime * 60);
-      if (frameCount === 1 || frameCount % 300 === 0) { // Log first frame and every 5 seconds
+      if (frameCount === 1 || frameCount % 300 === 0) { 
         logger.debug('Physics frame update', {
           time: state.clock.elapsedTime,
           delta,
@@ -401,32 +401,32 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       }
     }
 
-    // Update material time
+    
     if (materialRef.current) {
       materialRef.current.updateTime(animationStateRef.current.time)
     }
 
-    // Get smooth positions from physics worker
+    
     if ((meshRef.current || enableMetadataShape) && graphData.nodes.length > 0) {
       const positions = await graphWorkerProxy.tick(delta);
       nodePositionsRef.current = positions;
 
       if (positions) {
-        // Update node positions from physics
+        
         const logseqSettings = settings?.visualisation?.graphs?.logseq;
         const nodeSettings = logseqSettings?.nodes || settings?.visualisation?.nodes;
         const nodeSize = nodeSettings?.nodeSize || 0.5;
         const BASE_SPHERE_RADIUS = 0.5;
         const baseScale = nodeSize / BASE_SPHERE_RADIUS;
 
-        // Only update instance matrix if using standard mesh (not metadata shapes)
+        
         if (meshRef.current && !enableMetadataShape) {
           for (let i = 0; i < graphData.nodes.length; i++) {
             const i3 = i * 3;
             const node = graphData.nodes[i];
             let nodeScale = getNodeScale(node, graphData.edges) * baseScale;
             
-            // Add pulsing effect for source node in SSSP visualization
+            
             if (normalizedSSSPResult && node.id === normalizedSSSPResult.sourceNodeId) {
               const pulseScale = 1 + Math.sin(animationStateRef.current.time * 2) * 0.3;
               nodeScale *= pulseScale;
@@ -437,11 +437,11 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
             meshRef.current.setMatrixAt(i, tempMatrix);
           }
           meshRef.current.instanceMatrix.needsUpdate = true;
-          // Update bounding sphere for raycasting to work properly
+          
           meshRef.current.computeBoundingSphere();
         }
 
-        // Update edge points based on new positions with endpoint offset
+        
         const newEdgePoints: number[] = [];
         graphData.edges.forEach(edge => {
           const sourceNodeIndex = graphData.nodes.findIndex(n => n.id === edge.source);
@@ -450,18 +450,18 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
             const i3s = sourceNodeIndex * 3;
             const i3t = targetNodeIndex * 3;
 
-            // Get node positions
+            
             const sourcePos = new THREE.Vector3(positions[i3s], positions[i3s + 1], positions[i3s + 2]);
             const targetPos = new THREE.Vector3(positions[i3t], positions[i3t + 1], positions[i3t + 2]);
 
-            // Calculate edge direction
+            
             const direction = new THREE.Vector3().subVectors(targetPos, sourcePos);
             const edgeLength = direction.length();
 
             if (edgeLength > 0) {
               direction.normalize();
 
-              // Calculate node radii based on scale
+              
               const sourceNode = graphData.nodes[sourceNodeIndex];
               const targetNode = graphData.nodes[targetNodeIndex];
               const logseqSettings = settings?.visualisation?.graphs?.logseq;
@@ -469,11 +469,11 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
               const sourceRadius = getNodeScale(sourceNode, graphData.edges) * (nodeSettings?.nodeSize || 0.5);
               const targetRadius = getNodeScale(targetNode, graphData.edges) * (nodeSettings?.nodeSize || 0.5);
 
-              // Offset endpoints to stop before node surfaces (plus small gap)
+              
               const offsetSource = new THREE.Vector3().addVectors(sourcePos, direction.clone().multiplyScalar(sourceRadius + 0.1));
               const offsetTarget = new THREE.Vector3().subVectors(targetPos, direction.clone().multiplyScalar(targetRadius + 0.1));
 
-              // Only add edge if there's still visible length after offset
+              
               if (offsetSource.distanceTo(offsetTarget) > 0.2) {
                 newEdgePoints.push(offsetSource.x, offsetSource.y, offsetSource.z);
                 newEdgePoints.push(offsetTarget.x, offsetTarget.y, offsetTarget.z);
@@ -483,7 +483,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         });
         setEdgePoints(newEdgePoints);
 
-        // Update label positions in real-time
+        
         const newLabelPositions = graphData.nodes.map((node, i) => {
           const i3 = i * 3;
           return {
@@ -496,19 +496,19 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       }
     }
 
-    // Animate particles - disabled
-    // if (particleSystemRef.current) {
-    //   particleSystemRef.current.rotation.y = animationStateRef.current.time * 0.05
-    //   const positions = particleSystemRef.current.geometry.attributes.position.array as Float32Array
-    //
-    //   for (let i = 0; i < positions.length; i += 3) {
-    //     positions[i + 1] += Math.sin(animationStateRef.current.time + i) * 0.01
-    //   }
-    //
-    //   particleSystemRef.current.geometry.attributes.position.needsUpdate = true
-    // }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
-    // Pulse selected nodes
+    
     if (meshRef.current && animationStateRef.current.selectedNode !== null) {
       const mesh = meshRef.current
       const nodes = graphData.nodes
@@ -529,11 +529,11 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     }
   })
 
-  // Graph data subscription with enhanced error handling and diagnostics
+  
   useEffect(() => {
     
     const handleGraphUpdate = (data: GraphData) => {
-      // Debug logging if enabled
+      
       const debugSettings = settings?.system?.debug;
       if (debugSettings?.enableNodeDebug) {
         console.log('GraphManager: Graph data updated', {
@@ -552,12 +552,12 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         })
       }
 
-      // Validate data before processing
+      
       if (!data || !Array.isArray(data.nodes) || !Array.isArray(data.edges)) {
         return;
       }
 
-      // Ensure nodes have valid positions
+      
       const dataWithPositions = {
         ...data,
         nodes: data.nodes.map((node, i) => {
@@ -579,7 +579,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
       setGraphData(dataWithPositions)
 
-      // Update edge points
+      
       const newEdgePoints: number[] = []
       data.edges.forEach((edge) => {
         const sourceNode = data.nodes.find(n => n.id === edge.source)
@@ -598,9 +598,9 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 
     const unsubscribe = graphDataManager.onGraphDataChange(handleGraphUpdate)
 
-    // Get initial data and update worker with enhanced error handling
+    
     graphDataManager.getGraphData().then((data) => {
-      // Debug logging if enabled
+      
       const debugSettings = settings?.system?.debug;
       if (debugSettings?.enableNodeDebug) {
         console.log('GraphManager: Initial graph data loaded', {
@@ -609,11 +609,11 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         });
       }
       handleGraphUpdate(data)
-      // Ensure worker has the data
+      
       return graphWorkerProxy.setGraphData(data)
     }).then(() => {
     }).catch((error) => {
-      // Fallback: create sample data
+      
       const fallbackData = {
         nodes: [
           { id: 'fallback1', label: 'Test Node 1', position: { x: -5, y: 0, z: 0 } },
@@ -633,7 +633,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     }
   }, [])
 
-  // Event handlers with interaction tracking
+  
   const { handlePointerDown, handlePointerMove, handlePointerUp } = useGraphEventHandlers(
     meshRef,
     dragDataRef,
@@ -646,15 +646,15 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     onDragStateChange
   )
 
-  // Create ambient particles (disabled for now to avoid white blocks)
+  
   const particleGeometry = useMemo(() => {
-    return null // Disable particles that were causing white blocks
+    return null 
   }, [])
 
-  // Node labels with dynamic positioning
+  
   const [labelPositions, setLabelPositions] = useState<Array<{x: number, y: number, z: number}>>([])
 
-  // Update label positions from physics
+  
   useEffect(() => {
     if (nodePositionsRef.current && graphData.nodes.length > 0) {
       const newPositions = graphData.nodes.map((node, i) => {
@@ -669,7 +669,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     }
   }, [nodePositionsRef.current, graphData.nodes])
 
-  // Node labels (enhanced version) - using physics positions
+  
   const defaultEdgeSettings: EdgeSettings = {
     arrowSize: 0.5,
     baseWidth: 1,
@@ -693,18 +693,18 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       if (!labelSettings?.enableLabels || graphData.nodes.length === 0) return null;
 
     return graphData.nodes.map((node, index) => {
-      // Use physics position if available, otherwise fallback to node position
+      
       const physicsPos = labelPositions[index]
       const position = physicsPos || node.position || { x: 0, y: 0, z: 0 }
       const scale = getNodeScale(node, graphData.edges)
       const textPadding = labelSettings.textPadding ?? 0.6;
-      const labelOffsetY = scale * 1.5 + textPadding; // Use textPadding setting
+      const labelOffsetY = scale * 1.5 + textPadding; 
 
-      // Determine which piece of metadata to show
+      
       let metadataToShow = null;
       let distanceInfo = null;
       
-      // SSSP distance information takes priority
+      
       if (normalizedSSSPResult) {
         const distance = normalizedSSSPResult.distances[node.id];
         if (node.id === normalizedSSSPResult.sourceNodeId) {
@@ -733,7 +733,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         }
       }
 
-      // Get max width from settings
+      
       const maxWidth = labelSettings.maxLabelWidth ?? 5;
       const fontSize = labelSettings.desktopFontSize ?? 0.5;
 
@@ -805,9 +805,9 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
     })
   }, [graphData.nodes, graphData.edges, labelPositions, settings?.visualisation?.graphs?.logseq?.labels, settings?.visualisation?.labels, normalizedSSSPResult])
 
-  // Debug logging for render - only log once on mount/unmount
+  
   useEffect(() => {
-    // Debug logging if enabled
+    
     const debugSettings = settings?.system?.debug;
     if (debugSettings?.enableNodeDebug) {
       console.log('GraphManager: Component mounted', {
@@ -825,15 +825,15 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         console.log('GraphManager: Component unmounting');
       }
     };
-  }, []); // Empty deps = only on mount/unmount
+  }, []); 
 
   return (
     <>
-      {/* Node shader toggle - controls animation effects */}
+      {}
       <NodeShaderToggle materialRef={materialRef} />
       
       
-      {/* Render nodes based on metadata shape setting */}
+      {}
       {enableMetadataShape ? (
   <MetadataShapes
     nodes={graphData.nodes}
@@ -870,7 +870,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         </instancedMesh>
       )}
 
-      {/* Enhanced flowing edges */}
+      {}
       {edgePoints.length > 0 && (
         <FlowingEdges
           points={edgePoints}
@@ -879,20 +879,20 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         />
       )}
 
-      {/* Ambient particle system - disabled to prevent white blocks */}
+      {}
       {particleGeometry && (
         <points 
           ref={(points) => {
             particleSystemRef.current = points;
-            // Ensure particles are on Layer 1 (graph bloom) only
+            
             if (points) {
-              // Initialize layers if not present
+              
               if (!points.layers) {
                 points.layers = new THREE.Layers();
               }
-              points.layers.set(0); // Base layer for rendering
-              points.layers.enable(1); // Layer 1 for graph bloom
-              points.layers.disable(2); // Explicitly disable Layer 2 (environment glow)
+              points.layers.set(0); 
+              points.layers.enable(1); 
+              points.layers.disable(2); 
             }
           }}
           geometry={particleGeometry}
@@ -909,7 +909,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         </points>
       )}
 
-      {/* Enhanced node labels */}
+      {}
       {NodeLabels}
     </>
   )

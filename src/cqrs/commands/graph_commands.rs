@@ -9,14 +9,14 @@ use crate::models::edge::Edge;
 use crate::models::graph::GraphData;
 use crate::models::node::Node;
 
-/// Add a single node to the knowledge graph
+/
 #[derive(Debug, Clone)]
 pub struct AddNodeCommand {
     pub node: Node,
 }
 
 impl Command for AddNodeCommand {
-    type Result = u32; // Returns assigned node ID
+    type Result = u32; 
 
     fn name(&self) -> &'static str {
         "AddNode"
@@ -30,14 +30,14 @@ impl Command for AddNodeCommand {
     }
 }
 
-/// Batch add multiple nodes atomically
+/
 #[derive(Debug, Clone)]
 pub struct AddNodesCommand {
     pub nodes: Vec<Node>,
 }
 
 impl Command for AddNodesCommand {
-    type Result = Vec<u32>; // Returns assigned node IDs
+    type Result = Vec<u32>; 
 
     fn name(&self) -> &'static str {
         "AddNodes"
@@ -56,7 +56,7 @@ impl Command for AddNodesCommand {
     }
 }
 
-/// Update an existing node
+/
 #[derive(Debug, Clone)]
 pub struct UpdateNodeCommand {
     pub node: Node,
@@ -77,7 +77,7 @@ impl Command for UpdateNodeCommand {
     }
 }
 
-/// Batch update multiple nodes atomically
+/
 #[derive(Debug, Clone)]
 pub struct UpdateNodesCommand {
     pub nodes: Vec<Node>,
@@ -98,7 +98,7 @@ impl Command for UpdateNodesCommand {
     }
 }
 
-/// Remove a node by ID
+/
 #[derive(Debug, Clone)]
 pub struct RemoveNodeCommand {
     pub node_id: u32,
@@ -112,7 +112,7 @@ impl Command for RemoveNodeCommand {
     }
 }
 
-/// Batch remove multiple nodes atomically
+/
 #[derive(Debug, Clone)]
 pub struct RemoveNodesCommand {
     pub node_ids: Vec<u32>,
@@ -133,14 +133,14 @@ impl Command for RemoveNodesCommand {
     }
 }
 
-/// Add an edge between two nodes
+/
 #[derive(Debug, Clone)]
 pub struct AddEdgeCommand {
     pub edge: Edge,
 }
 
 impl Command for AddEdgeCommand {
-    type Result = String; // Returns assigned edge ID
+    type Result = String; 
 
     fn name(&self) -> &'static str {
         "AddEdge"
@@ -154,14 +154,14 @@ impl Command for AddEdgeCommand {
     }
 }
 
-/// Batch add multiple edges atomically
+/
 #[derive(Debug, Clone)]
 pub struct AddEdgesCommand {
     pub edges: Vec<Edge>,
 }
 
 impl Command for AddEdgesCommand {
-    type Result = Vec<String>; // Returns assigned edge IDs
+    type Result = Vec<String>; 
 
     fn name(&self) -> &'static str {
         "AddEdges"
@@ -175,7 +175,7 @@ impl Command for AddEdgesCommand {
     }
 }
 
-/// Update an existing edge
+/
 #[derive(Debug, Clone)]
 pub struct UpdateEdgeCommand {
     pub edge: Edge,
@@ -189,7 +189,7 @@ impl Command for UpdateEdgeCommand {
     }
 }
 
-/// Remove an edge by ID
+/
 #[derive(Debug, Clone)]
 pub struct RemoveEdgeCommand {
     pub edge_id: String,
@@ -210,7 +210,7 @@ impl Command for RemoveEdgeCommand {
     }
 }
 
-/// Batch remove multiple edges atomically
+/
 #[derive(Debug, Clone)]
 pub struct RemoveEdgesCommand {
     pub edge_ids: Vec<String>,
@@ -231,7 +231,7 @@ impl Command for RemoveEdgesCommand {
     }
 }
 
-/// Save complete graph structure
+/
 #[derive(Debug, Clone)]
 pub struct SaveGraphCommand {
     pub graph: GraphData,
@@ -245,7 +245,7 @@ impl Command for SaveGraphCommand {
     }
 }
 
-/// Clear all graph data
+/
 #[derive(Debug, Clone)]
 pub struct ClearGraphCommand;
 
@@ -257,10 +257,10 @@ impl Command for ClearGraphCommand {
     }
 }
 
-/// Update node positions in batch (for physics simulation)
+/
 #[derive(Debug, Clone)]
 pub struct UpdatePositionsCommand {
-    pub positions: Vec<(u32, f32, f32, f32)>, // (node_id, x, y, z)
+    pub positions: Vec<(u32, f32, f32, f32)>, 
 }
 
 impl Command for UpdatePositionsCommand {

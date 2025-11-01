@@ -1,7 +1,4 @@
-/**
- * Smooth Animation System
- * Provides graph transitions, morphing animations, camera fly-throughs, and node animations
- */
+
 
 import { Vector3, Color, Camera, Quaternion, AnimationMixer, Clock } from 'three';
 import { createLogger } from '../../../utils/loggerConfig';
@@ -79,9 +76,7 @@ export class GraphAnimations {
     return GraphAnimations.instance;
   }
 
-  /**
-   * Start the animation system
-   */
+  
   public start(): void {
     if (this.isRunning) return;
     
@@ -91,17 +86,13 @@ export class GraphAnimations {
     logger.info('Animation system started');
   }
 
-  /**
-   * Stop the animation system
-   */
+  
   public stop(): void {
     this.isRunning = false;
     logger.info('Animation system stopped');
   }
 
-  /**
-   * Animate graph visibility transition
-   */
+  
   public animateGraphTransition(
     graphId: string,
     show: boolean,
@@ -137,9 +128,7 @@ export class GraphAnimations {
     });
   }
 
-  /**
-   * Create morphing animation between graph states
-   */
+  
   public animateGraphMorph(
     morphId: string,
     fromGraph: GraphData,
@@ -148,7 +137,7 @@ export class GraphAnimations {
     nodeMapping?: Map<string, string>
   ): Promise<void> {
     return new Promise((resolve) => {
-      // Auto-generate node mapping if not provided
+      
       const mapping = nodeMapping || this.generateNodeMapping(fromGraph, toGraph);
       
       const morph: MorphingTransition = {
@@ -164,7 +153,7 @@ export class GraphAnimations {
 
       this.morphingTransitions.set(morphId, morph);
       
-      // Complete after duration
+      
       setTimeout(() => {
         this.morphingTransitions.delete(morphId);
         resolve();
@@ -174,9 +163,7 @@ export class GraphAnimations {
     });
   }
 
-  /**
-   * Create camera fly-through animation
-   */
+  
   public animateCameraFlight(
     flightId: string,
     camera: Camera,
@@ -203,9 +190,7 @@ export class GraphAnimations {
     });
   }
 
-  /**
-   * Animate node appearance
-   */
+  
   public animateNodeAppearance(
     nodeId: string,
     options: Partial<AnimationOptions> = {}
@@ -239,9 +224,7 @@ export class GraphAnimations {
     });
   }
 
-  /**
-   * Animate node disappearance
-   */
+  
   public animateNodeDisappearance(
     nodeId: string,
     options: Partial<AnimationOptions> = {}
@@ -275,9 +258,7 @@ export class GraphAnimations {
     });
   }
 
-  /**
-   * Add continuous node animation
-   */
+  
   public addNodeAnimation(
     nodeId: string,
     type: NodeAnimationState['animationType'],
@@ -296,17 +277,13 @@ export class GraphAnimations {
     logger.info(`Added ${type} animation to node ${nodeId}`);
   }
 
-  /**
-   * Remove node animation
-   */
+  
   public removeNodeAnimation(nodeId: string): void {
     this.nodeAnimations.delete(nodeId);
     logger.info(`Removed animation from node ${nodeId}`);
   }
 
-  /**
-   * Create guided tour animation
-   */
+  
   public createGuidedTour(
     tourId: string,
     camera: Camera,
@@ -329,13 +306,13 @@ export class GraphAnimations {
 
       this.animateCameraFlight(tourId, camera, waypoints, resolve);
       
-      // Add waypoint callbacks for highlighting
+      
       if (onWaypointReached) {
         interestingPoints.forEach((point, index) => {
           setTimeout(() => {
             onWaypointReached(index, point);
             
-            // Highlight nodes if specified
+            
             if (point.highlightNodes) {
               point.highlightNodes.forEach(nodeId => {
                 this.addNodeAnimation(nodeId, 'glow', 1.5, 2.0);
@@ -347,9 +324,7 @@ export class GraphAnimations {
     });
   }
 
-  /**
-   * Animate time-travel through graph evolution
-   */
+  
   public animateTimeTravelMode(
     graphStates: GraphData[],
     stepDuration: number = 1000,
@@ -386,9 +361,7 @@ export class GraphAnimations {
     });
   }
 
-  /**
-   * Get current animation values for a node
-   */
+  
   public getNodeAnimationValues(nodeId: string, time: number): {
     scale: number;
     rotation: number;
@@ -470,32 +443,28 @@ export class GraphAnimations {
     }
   }
 
-  /**
-   * Get current morphing state for interpolated graph
-   */
+  
   public getMorphingState(morphId: string): MorphingTransition | null {
     return this.morphingTransitions.get(morphId) || null;
   }
 
-  /**
-   * Main animation loop
-   */
+  
   private animate = (): void => {
     if (!this.isRunning) return;
 
     const deltaTime = this.clock.getDelta();
     const elapsedTime = this.clock.getElapsedTime();
 
-    // Update transition animations
+    
     this.updateTransitionAnimations(deltaTime);
 
-    // Update camera flights
+    
     this.updateCameraFlights(deltaTime);
 
-    // Update morphing transitions
+    
     this.updateMorphingTransitions(deltaTime);
 
-    // Update node animations
+    
     this.updateNodeAnimations(elapsedTime);
 
     requestAnimationFrame(this.animate);
@@ -506,13 +475,13 @@ export class GraphAnimations {
       const progressDelta = deltaTime * 1000 / animation.options.duration;
       animation.progress = Math.min(animation.progress + progressDelta, 1);
 
-      // Apply easing
+      
       const easedProgress = this.applyEasing(animation.progress, animation.options.easing);
       
-      // Trigger progress callback
+      
       animation.onProgress?.(easedProgress);
 
-      // Check if complete
+      
       if (animation.progress >= 1) {
         animation.onComplete?.();
       }
@@ -521,8 +490,8 @@ export class GraphAnimations {
 
   private updateCameraFlights(deltaTime: number): void {
     this.cameraFlights.forEach((flight, id) => {
-      // Implementation for camera flight animation
-      // This would update camera position based on current waypoint and progress
+      
+      
     });
   }
 
@@ -531,7 +500,7 @@ export class GraphAnimations {
       const progressDelta = deltaTime * 1000 / morph.duration;
       morph.progress = Math.min(morph.progress + progressDelta, 1);
 
-      // Interpolate node positions and colors
+      
       this.interpolateMorphingState(morph);
     });
   }
@@ -545,7 +514,7 @@ export class GraphAnimations {
   private interpolateMorphingState(morph: MorphingTransition): void {
     const progress = this.applyEasing(morph.progress, 'easeInOut');
 
-    // Interpolate positions
+    
     morph.nodeMapping.forEach((toNodeId, fromNodeId) => {
       const fromNode = morph.fromGraph.nodes.find(n => n.id === fromNodeId);
       const toNode = morph.toGraph.nodes.find(n => n.id === toNodeId);
@@ -559,15 +528,15 @@ export class GraphAnimations {
       }
     });
 
-    // Interpolate colors (if available)
-    // This would be implemented based on node coloring system
+    
+    
   }
 
   private generateNodeMapping(fromGraph: GraphData, toGraph: GraphData): Map<string, string> {
     const mapping = new Map<string, string>();
     
-    // Simple mapping based on node IDs/labels
-    // In a real implementation, this would use more sophisticated matching
+    
+    
     fromGraph.nodes.forEach(fromNode => {
       const matchingToNode = toGraph.nodes.find(toNode => 
         toNode.id === fromNode.id || toNode.label === fromNode.label
@@ -621,9 +590,7 @@ export class GraphAnimations {
     }
   }
 
-  /**
-   * Cleanup resources
-   */
+  
   public dispose(): void {
     this.stop();
     this.activeAnimations.clear();

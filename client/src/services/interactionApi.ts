@@ -1,7 +1,4 @@
-/**
- * Graph Interaction API Service
- * Handles graph processing pipeline operations with real-time progress tracking
- */
+
 
 import { createLogger } from '../utils/loggerConfig';
 import { createErrorMetadata } from '../utils/loggerConfig';
@@ -69,7 +66,7 @@ class InteractionApi {
   }
 
   private setupWebSocketListeners(): void {
-    // Listen for graph processing progress updates
+    
     const progressUnsub = webSocketService.on('graph_processing_progress', (data: any) => {
       const message = data as GraphProcessingProgressMessage;
       const callback = this.activeProcesses.get(message.data.taskId);
@@ -86,7 +83,7 @@ class InteractionApi {
       }
     });
 
-    // Listen for completion messages
+    
     const completeUnsub = webSocketService.on('graph_processing_complete', (data: any) => {
       const message = data as GraphProcessingCompleteMessage;
       const callback = this.activeProcesses.get(message.data.taskId);
@@ -103,7 +100,7 @@ class InteractionApi {
       }
     });
 
-    // Listen for error messages
+    
     const errorUnsub = webSocketService.on('graph_processing_error', (data: any) => {
       const message = data as GraphProcessingErrorMessage;
       const callback = this.activeProcesses.get(message.data.taskId);
@@ -118,7 +115,7 @@ class InteractionApi {
       }
     });
 
-    // Listen for time traverse progress
+    
     const timeTraverseProgressUnsub = webSocketService.on('time_traverse_progress', (data: any) => {
       const message = data as TimeTraverseProgressMessage;
       const callback = this.activeProcesses.get(message.data.taskId);
@@ -140,7 +137,7 @@ class InteractionApi {
       }
     });
 
-    // Listen for time traverse completion
+    
     const timeTraverseCompleteUnsub = webSocketService.on('time_traverse_complete', (data: any) => {
       const message = data as TimeTraverseCompleteMessage;
       const callback = this.activeProcesses.get(message.data.taskId);
@@ -169,13 +166,7 @@ class InteractionApi {
     ];
   }
 
-  /**
-   * Start graph processing operation
-   * @param graphData The graph data to process
-   * @param options Processing options and mode
-   * @param callbacks Progress callbacks
-   * @returns Task ID for tracking
-   */
+  
   public async startGraphProcessing(
     graphData: any,
     options: GraphProcessingOptions,
@@ -210,11 +201,7 @@ class InteractionApi {
     }
   }
 
-  /**
-   * Get current processing status
-   * @param taskId Task identifier
-   * @returns Current processing status
-   */
+  
   public async getProcessingStatus(taskId: string): Promise<GraphProcessingProgress | null> {
     try {
       const response = await unifiedApiClient.getData<{
@@ -229,11 +216,7 @@ class InteractionApi {
     }
   }
 
-  /**
-   * Cancel processing operation
-   * @param taskId Task identifier
-   * @returns Cancellation success
-   */
+  
   public async cancelProcessing(taskId: string): Promise<boolean> {
     try {
       if (debugState.isEnabled()) {
@@ -253,11 +236,7 @@ class InteractionApi {
     }
   }
 
-  /**
-   * Get processing results
-   * @param taskId Task identifier
-   * @returns Processing results
-   */
+  
   public async getProcessingResults(taskId: string): Promise<GraphProcessingResult | null> {
     try {
       const response = await unifiedApiClient.getData<{
@@ -272,12 +251,7 @@ class InteractionApi {
     }
   }
 
-  /**
-   * Initialize time travel mode for a graph
-   * @param graphId Graph identifier
-   * @param callbacks Progress callbacks
-   * @returns Task ID for tracking
-   */
+  
   public async initializeTimeTravel(
     graphId: string,
     callbacks: ProgressCallback
@@ -305,12 +279,7 @@ class InteractionApi {
     }
   }
 
-  /**
-   * Navigate to specific step in time travel
-   * @param taskId Time travel task ID
-   * @param step Step number to navigate to
-   * @returns Navigation success
-   */
+  
   public async navigateToStep(taskId: string, step: number): Promise<boolean> {
     try {
       const response = await unifiedApiClient.postData<{ success: boolean }>(`/graph/time-travel/navigate/${taskId}`, {
@@ -324,12 +293,7 @@ class InteractionApi {
     }
   }
 
-  /**
-   * Start time travel playback
-   * @param taskId Time travel task ID
-   * @param speed Playback speed multiplier
-   * @returns Playback start success
-   */
+  
   public async startPlayback(taskId: string, speed: number = 1): Promise<boolean> {
     try {
       const response = await unifiedApiClient.postData<{ success: boolean }>(`/graph/time-travel/playback/${taskId}`, {
@@ -344,11 +308,7 @@ class InteractionApi {
     }
   }
 
-  /**
-   * Stop time travel playback
-   * @param taskId Time travel task ID
-   * @returns Playback stop success
-   */
+  
   public async stopPlayback(taskId: string): Promise<boolean> {
     try {
       const response = await unifiedApiClient.postData<{ success: boolean }>(`/graph/time-travel/playback/${taskId}`, {
@@ -362,11 +322,7 @@ class InteractionApi {
     }
   }
 
-  /**
-   * Create collaboration session
-   * @param graphId Graph identifier
-   * @returns Session information
-   */
+  
   public async createCollaborationSession(graphId: string): Promise<{
     sessionId: string;
     shareUrl: string;
@@ -388,11 +344,7 @@ class InteractionApi {
     }
   }
 
-  /**
-   * Join collaboration session
-   * @param sessionId Session identifier
-   * @returns Join success
-   */
+  
   public async joinCollaborationSession(sessionId: string): Promise<boolean> {
     try {
       const response = await unifiedApiClient.postData<{ success: boolean }>(`/graph/collaboration/join/${sessionId}`, {});
@@ -403,11 +355,7 @@ class InteractionApi {
     }
   }
 
-  /**
-   * Leave collaboration session
-   * @param sessionId Session identifier
-   * @returns Leave success
-   */
+  
   public async leaveCollaborationSession(sessionId: string): Promise<boolean> {
     try {
       const response = await unifiedApiClient.postData<{ success: boolean }>(`/graph/collaboration/leave/${sessionId}`, {});
@@ -418,9 +366,7 @@ class InteractionApi {
     }
   }
 
-  /**
-   * Cleanup resources
-   */
+  
   public cleanup(): void {
     this.wsUnsubscribers.forEach(unsub => unsub());
     this.wsUnsubscribers = [];

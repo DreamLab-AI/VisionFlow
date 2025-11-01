@@ -17,14 +17,14 @@ use crate::ports::gpu_semantic_analyzer::{
     ClusteringAlgorithm, ImportanceAlgorithm, SemanticConstraintConfig,
 };
 
-/// Detect communities request
+/
 #[derive(Debug, Deserialize)]
 pub struct DetectCommunitiesRequest {
     pub algorithm: String,
     pub min_cluster_size: Option<usize>,
 }
 
-/// Community detection response
+/
 #[derive(Debug, Serialize)]
 pub struct CommunitiesResponse {
     pub clusters: HashMap<u32, usize>,
@@ -33,7 +33,7 @@ pub struct CommunitiesResponse {
     pub computation_time_ms: f32,
 }
 
-/// Compute centrality request
+/
 #[derive(Debug, Deserialize)]
 pub struct CentralityAnalysisRequest {
     pub algorithm: String,
@@ -42,7 +42,7 @@ pub struct CentralityAnalysisRequest {
     pub top_k: Option<usize>,
 }
 
-/// Centrality response
+/
 #[derive(Debug, Serialize)]
 pub struct CentralityResponse {
     pub scores: HashMap<u32, f32>,
@@ -50,7 +50,7 @@ pub struct CentralityResponse {
     pub top_nodes: Vec<(u32, f32)>,
 }
 
-/// Shortest path request
+/
 #[derive(Debug, Deserialize)]
 pub struct ShortestPathAnalysisRequest {
     pub source_node_id: u32,
@@ -58,7 +58,7 @@ pub struct ShortestPathAnalysisRequest {
     pub include_path: Option<bool>,
 }
 
-/// Shortest path response
+/
 #[derive(Debug, Serialize)]
 pub struct ShortestPathResponse {
     pub source_node: u32,
@@ -67,7 +67,7 @@ pub struct ShortestPathResponse {
     pub computation_time_ms: f32,
 }
 
-/// Generate constraints request
+/
 #[derive(Debug, Deserialize)]
 pub struct GenerateConstraintsRequest {
     pub similarity_threshold: Option<f32>,
@@ -77,13 +77,13 @@ pub struct GenerateConstraintsRequest {
     pub max_constraints: Option<usize>,
 }
 
-/// POST /api/semantic/communities
+/
 pub async fn detect_communities(
     semantic_service: web::Data<Arc<SemanticService>>,
     graph_data: web::Data<Arc<RwLock<GraphData>>>,
     req: web::Json<DetectCommunitiesRequest>,
 ) -> ActixResult<HttpResponse> {
-    // Initialize with graph data
+    
     let graph = graph_data.read().await.clone();
     if let Err(e) = semantic_service.initialize(Arc::new(graph)).await {
         return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
@@ -91,7 +91,7 @@ pub async fn detect_communities(
         })));
     }
 
-    // Parse algorithm
+    
     let algorithm = match req.algorithm.as_str() {
         "louvain" => ClusteringAlgorithm::Louvain,
         "label_propagation" => ClusteringAlgorithm::LabelPropagation,
@@ -120,13 +120,13 @@ pub async fn detect_communities(
     }
 }
 
-/// POST /api/semantic/centrality
+/
 pub async fn compute_centrality(
     semantic_service: web::Data<Arc<SemanticService>>,
     graph_data: web::Data<Arc<RwLock<GraphData>>>,
     req: web::Json<CentralityAnalysisRequest>,
 ) -> ActixResult<HttpResponse> {
-    // Initialize with graph data
+    
     let graph = graph_data.read().await.clone();
     if let Err(e) = semantic_service.initialize(Arc::new(graph)).await {
         return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
@@ -134,7 +134,7 @@ pub async fn compute_centrality(
         })));
     }
 
-    // Parse algorithm
+    
     let algorithm = match req.algorithm.as_str() {
         "pagerank" => ImportanceAlgorithm::PageRank {
             damping: req.damping.unwrap_or(0.85),
@@ -157,7 +157,7 @@ pub async fn compute_centrality(
 
     match semantic_service.compute_centrality(request).await {
         Ok(scores) => {
-            // Get top nodes
+            
             let mut top_nodes: Vec<_> = scores.iter().map(|(&id, &score)| (id, score)).collect();
             top_nodes.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
             if let Some(k) = req.top_k {
@@ -178,13 +178,13 @@ pub async fn compute_centrality(
     }
 }
 
-/// POST /api/semantic/shortest-path
+/
 pub async fn compute_shortest_path(
     semantic_service: web::Data<Arc<SemanticService>>,
     graph_data: web::Data<Arc<RwLock<GraphData>>>,
     req: web::Json<ShortestPathAnalysisRequest>,
 ) -> ActixResult<HttpResponse> {
-    // Initialize with graph data
+    
     let graph = graph_data.read().await.clone();
     if let Err(e) = semantic_service.initialize(Arc::new(graph)).await {
         return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
@@ -211,13 +211,13 @@ pub async fn compute_shortest_path(
     }
 }
 
-/// POST /api/semantic/constraints/generate
+/
 pub async fn generate_constraints(
     semantic_service: web::Data<Arc<SemanticService>>,
     graph_data: web::Data<Arc<RwLock<GraphData>>>,
     req: web::Json<GenerateConstraintsRequest>,
 ) -> ActixResult<HttpResponse> {
-    // Initialize with graph data
+    
     let graph = graph_data.read().await.clone();
     if let Err(e) = semantic_service.initialize(Arc::new(graph)).await {
         return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
@@ -244,7 +244,7 @@ pub async fn generate_constraints(
     }
 }
 
-/// GET /api/semantic/statistics
+/
 pub async fn get_statistics(
     semantic_service: web::Data<Arc<SemanticService>>,
 ) -> ActixResult<HttpResponse> {
@@ -262,7 +262,7 @@ pub async fn get_statistics(
     }
 }
 
-/// POST /api/semantic/cache/invalidate
+/
 pub async fn invalidate_cache(
     semantic_service: web::Data<Arc<SemanticService>>,
 ) -> ActixResult<HttpResponse> {
@@ -276,7 +276,7 @@ pub async fn invalidate_cache(
     }
 }
 
-/// Configure semantic routes
+/
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api/semantic")

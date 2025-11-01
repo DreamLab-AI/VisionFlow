@@ -5,7 +5,7 @@ pub mod graph;
 #[cfg(feature = "ontology")]
 pub mod ontology;
 pub mod quest3;
-// pub mod sessions; // REMOVED: Deprecated sessions API (returns 410 Gone)
+// pub mod sessions; 
 pub mod visualisation;
 
 // Re-export specific types and functions
@@ -21,7 +21,7 @@ use actix_web::{web, HttpResponse, Responder};
 use log::{error, info};
 use serde_json::json;
 
-/// GET /api/health - Simple health check endpoint for UI
+/
 async fn health_check() -> impl Responder {
     info!("Health check requested");
     HttpResponse::Ok().json(json!({
@@ -31,17 +31,17 @@ async fn health_check() -> impl Responder {
     }))
 }
 
-/// GET /api/config - Return app configuration for UI (CQRS-based)
+/
 async fn get_app_config(state: web::Data<crate::AppState>) -> impl Responder {
     info!("App config requested via CQRS");
 
-    // Use CQRS to load settings from database
+    
     use crate::application::settings::{LoadAllSettings, LoadAllSettingsHandler};
     use hexser::QueryHandler;
 
     let handler = LoadAllSettingsHandler::new(state.settings_repository.clone());
 
-    // Execute query in a separate OS thread to escape Tokio runtime
+    
     let result = execute_in_thread(move || handler.handle(LoadAllSettings)).await;
 
     match result {
@@ -120,34 +120,34 @@ async fn get_app_config(state: web::Data<crate::AppState>) -> impl Responder {
 // Configure all API routes
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::scope("") // Removed redundant /api prefix
-            // Core API endpoints
+        web::scope("") 
+            
             .route("/health", web::get().to(health_check))
             .route("/config", web::get().to(get_app_config))
             .route(
                 "/settings-test",
                 web::get().to(|| async { HttpResponse::Ok().json(json!({"test": "works"})) }),
             )
-            // Existing module routes
+            
             .configure(files::config)
             .configure(graph::config)
-            .configure(crate::handlers::graph_state_handler::config) // CQRS-refactored graph state
-            .configure(crate::handlers::ontology_handler::config) // CQRS-based ontology handler
+            .configure(crate::handlers::graph_state_handler::config) 
+            .configure(crate::handlers::ontology_handler::config) 
             .configure(visualisation::config)
             .configure(bots::config)
-            // .configure(sessions::config)  // REMOVED: Deprecated sessions API (returns 410 Gone)
+            
             .configure(analytics::config)
             .configure(quest3::config)
             .configure(crate::handlers::nostr_handler::config)
             .configure(crate::handlers::settings_handler::config)
-            // DISABLED: Causes route conflicts/timeouts with settings_handler
-            // .configure(crate::handlers::settings_paths::configure_settings_paths)
+            
+            
             .configure(crate::handlers::ragflow_handler::config)
             .configure(crate::handlers::clustering_handler::config)
             .configure(crate::handlers::constraints_handler::config),
     );
 
-    // Legacy ontology module (will be deprecated in favor of ontology_handler)
+    
     #[cfg(feature = "ontology")]
     cfg.service(web::scope("").configure(ontology::config));
 }

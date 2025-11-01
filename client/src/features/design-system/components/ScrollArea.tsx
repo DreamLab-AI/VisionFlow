@@ -25,8 +25,8 @@ const scrollbarStyles = `
   }
 
   .scroll-area {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;  
+    scrollbar-width: none;  
   }
 `;
 

@@ -4,28 +4,7 @@ import { createLogger } from '../../utils/loggerConfig';
 
 const logger = createLogger('HologramNodeMaterial');
 
-/**
- * HOLOGRAM NODE MATERIAL
- * 
- * A specialized shader material for rendering data visualization nodes with
- * holographic effects including scanlines, rim lighting, and glitch effects.
- * 
- * This material is designed to work with the SelectiveBloom's Graph Pipeline
- * (Layer 1) and provides unique visual effects that are NOT replicated by the
- * post-processing bloom pass:
- * 
- * UNIQUE FEATURES (not in post-processing):
- * - Animated scanlines for holographic appearance
- * - Rim lighting for edge definition
- * - Glitch effects for sci-fi aesthetic
- * - Instance color support for per-node coloring
- * - Vertex displacement for organic animation
- * 
- * BLOOM INTEGRATION:
- * - glowStrength uniform controls bloom contribution
- * - Emissive color designed to work with post-processing
- * - toneMapped disabled for proper bloom interaction
- */
+
 
 // Vertex shader with instancing support and vertex displacement
 const hologramVertexShader = `
@@ -42,17 +21,17 @@ const hologramVertexShader = `
     vPosition = position;
     vNormal = normalize(normalMatrix * normal);
 
-    // Get instance color from built-in instanceColor attribute
+    
     #ifdef USE_INSTANCING_COLOR
       vInstanceColor = instanceColor;
     #else
       vInstanceColor = vec3(1.0);
     #endif
 
-    // Apply instance transform (matrix already includes position and scale)
+    
     vec3 transformed = position;
 
-    // Add subtle vertex displacement for organic feel
+    
     vec4 worldPosition = modelMatrix * instanceMatrix * vec4(transformed, 1.0);
     float displacement = sin(time * pulseSpeed + worldPosition.x * 0.1) * pulseStrength;
     worldPosition.xyz += normalize(normalMatrix * normal) * displacement * 0.1;
@@ -84,77 +63,72 @@ const hologramFragmentShader = `
   void main() {
     vec3 viewDirection = normalize(cameraPosition - vWorldPosition);
 
-    // Base color with instance color modulation - favor instance color
+    
     vec3 color = mix(baseColor, vInstanceColor, 0.9);
 
-    // Fresnel rim lighting for edge definition
+    
     float rim = 1.0 - max(dot(viewDirection, vNormal), 0.0);
     rim = pow(rim, rimPower);
 
-    // Hologram scanlines - creates the classic holographic look
+    
     float scanline = 0.0;
     if (enableHologram) {
       float scan = sin(vWorldPosition.y * scanlineCount + time * scanlineSpeed);
       scanline = smoothstep(0.0, 0.1, scan) * hologramStrength;
     }
 
-    // Glitch effect for sci-fi aesthetic
+    
     float glitch = 0.0;
     if (enableHologram) {
       float glitchTime = time * 10.0;
       glitch = step(0.99, sin(glitchTime * 1.0 + vWorldPosition.y * 12.0)) * 0.1;
     }
 
-    // Combine effects - glowStrength acts as bloom multiplier
+    
     float totalGlow = rim + scanline + glitch;
     vec3 emission = emissiveColor * totalGlow * glowStrength;
     color += emission;
 
-    // Alpha with rim fade
+    
     float alpha = mix(opacity, 1.0, rim * 0.5);
-    alpha *= (1.0 - glitch * 0.5); // Flicker during glitch
+    alpha *= (1.0 - glitch * 0.5); 
 
-    // Distance fade for depth - adjusted for better visibility
+    
     float distance = length(cameraPosition - vWorldPosition);
-    float distanceFade = 1.0 - smoothstep(100.0, 500.0, distance); // Increased range
+    float distanceFade = 1.0 - smoothstep(100.0, 500.0, distance); 
     alpha *= distanceFade;
     
-    // Ensure minimum alpha to prevent complete transparency
+    
     alpha = max(alpha, 0.1);
 
     gl_FragColor = vec4(color, alpha);
   }
 `;
 
-/**
- * HologramNodeMaterial Class
- * 
- * A high-performance shader material for rendering graph nodes with
- * holographic effects and bloom pipeline integration.
- */
+
 export class HologramNodeMaterial extends THREE.ShaderMaterial {
   constructor(parameters?: {
-    /** Base color of the node */
+    
     baseColor?: THREE.Color | string;
-    /** Emissive color for bloom effects */
+    
     emissiveColor?: THREE.Color | string;
-    /** Overall opacity */
+    
     opacity?: number;
-    /** Enable/disable holographic effects */
+    
     enableHologram?: boolean;
-    /** Speed of scanline animation */
+    
     scanlineSpeed?: number;
-    /** Density of scanlines */
+    
     scanlineCount?: number;
-    /** Intensity multiplier for bloom contribution */
+    
     glowStrength?: number;
-    /** Power of rim lighting effect */
+    
     rimPower?: number;
-    /** Speed of vertex pulse animation */
+    
     pulseSpeed?: number;
-    /** Strength of vertex displacement */
+    
     pulseStrength?: number;
-    /** Intensity of holographic effects */
+    
     hologramStrength?: number;
   }) {
     
@@ -190,15 +164,15 @@ export class HologramNodeMaterial extends THREE.ShaderMaterial {
       vertexShader: hologramVertexShader,
       fragmentShader: hologramFragmentShader,
       
-      // Optimized transparency settings
+      
       transparent: true,
       side: THREE.DoubleSide,
-      depthWrite: false, // Don't write to depth buffer for transparent objects
-      depthTest: true,   // But still test against depth for proper sorting
-      blending: THREE.NormalBlending, // Use normal blending to prevent scene vanishing
+      depthWrite: false, 
+      depthTest: true,   
+      blending: THREE.NormalBlending, 
       
-      // Bloom optimization
-      toneMapped: false  // Critical: Disable tone mapping for proper bloom
+      
+      toneMapped: false  
     });
     
     if ((globalThis as any).__SETTINGS__?.system?.debug?.enablePerformanceDebug) {
@@ -211,18 +185,12 @@ export class HologramNodeMaterial extends THREE.ShaderMaterial {
     }
   }
 
-  /**
-   * Update time uniform for animations
-   * Should be called each frame for animated effects
-   */
+  
   updateTime(time: number) {
     this.uniforms.time.value = time;
   }
 
-  /**
-   * Update colors from settings
-   * Useful for dynamic theming or state changes
-   */
+  
   updateColors(baseColor: string | THREE.Color, emissiveColor?: string | THREE.Color) {
     this.uniforms.baseColor.value = new THREE.Color(baseColor);
     this.uniforms.emissiveColor.value = new THREE.Color(emissiveColor || baseColor);
@@ -235,10 +203,7 @@ export class HologramNodeMaterial extends THREE.ShaderMaterial {
     }
   }
 
-  /**
-   * Toggle hologram effect on/off
-   * Useful for performance optimization or style changes
-   */
+  
   setHologramEnabled(enabled: boolean) {
     this.uniforms.enableHologram.value = enabled;
     if ((globalThis as any).__SETTINGS__?.system?.debug?.enablePerformanceDebug) {
@@ -246,9 +211,7 @@ export class HologramNodeMaterial extends THREE.ShaderMaterial {
     }
   }
 
-  /**
-   * Update hologram parameters for fine-tuning effects
-   */
+  
   updateHologramParams(params: {
     scanlineSpeed?: number;
     scanlineCount?: number;
@@ -277,9 +240,7 @@ export class HologramNodeMaterial extends THREE.ShaderMaterial {
     }
   }
   
-  /**
-   * Update glow strength specifically for bloom pipeline integration
-   */
+  
   updateBloomContribution(glowStrength: number) {
     this.uniforms.glowStrength.value = glowStrength;
     if ((globalThis as any).__SETTINGS__?.system?.debug?.enablePerformanceDebug) {
@@ -287,9 +248,7 @@ export class HologramNodeMaterial extends THREE.ShaderMaterial {
     }
   }
   
-  /**
-   * Create a copy of this material with modified parameters
-   */
+  
   clone(): this {
     const cloned = new HologramNodeMaterial({
       baseColor: this.uniforms.baseColor.value,
@@ -312,15 +271,9 @@ export class HologramNodeMaterial extends THREE.ShaderMaterial {
 // Extend for use in React Three Fiber
 extend({ HologramNodeMaterial });
 
-/**
- * PRESET CONFIGURATIONS
- * 
- * Pre-configured materials for different node types
- */
+
 export const HologramNodePresets = {
-  /**
-   * Standard data node with full holographic effects
-   */
+  
   Standard: new HologramNodeMaterial({
     baseColor: '#00ffff',
     emissiveColor: '#00ffff',
@@ -329,9 +282,7 @@ export const HologramNodePresets = {
     hologramStrength: 0.3
   }),
   
-  /**
-   * High-priority node with enhanced effects
-   */
+  
   HighPriority: new HologramNodeMaterial({
     baseColor: '#ff0080',
     emissiveColor: '#ff0080',
@@ -341,9 +292,7 @@ export const HologramNodePresets = {
     scanlineSpeed: 3.0
   }),
   
-  /**
-   * Subtle node with minimal effects
-   */
+  
   Subtle: new HologramNodeMaterial({
     baseColor: '#0066ff',
     emissiveColor: '#0066ff',
@@ -353,9 +302,7 @@ export const HologramNodePresets = {
     hologramStrength: 0.1
   }),
   
-  /**
-   * Performance-optimized node with effects disabled
-   */
+  
   Performance: new HologramNodeMaterial({
     baseColor: '#00ff88',
     emissiveColor: '#00ff88',

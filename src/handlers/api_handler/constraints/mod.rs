@@ -14,7 +14,7 @@ use crate::actors::messages::{GetConstraints, UpdateConstraint};
 use crate::models::constraints::{Constraint, ConstraintType};
 use crate::AppState;
 
-/// Request body for creating user-defined constraints
+/
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateConstraintRequest {
@@ -27,7 +27,7 @@ pub struct CreateConstraintRequest {
     pub metadata: Option<serde_json::Value>,
 }
 
-/// Request body for updating constraints
+/
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateConstraintRequest {
@@ -36,7 +36,7 @@ pub struct UpdateConstraintRequest {
     pub distance: Option<f32>,
 }
 
-/// Response for constraint operations
+/
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ConstraintResponse {
@@ -51,7 +51,7 @@ pub struct ConstraintResponse {
     pub created_at: String,
 }
 
-/// Response for constraint statistics
+/
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ConstraintStatsResponse {
@@ -65,11 +65,11 @@ pub struct ConstraintStatsResponse {
     pub cache_hit_rate: f32,
 }
 
-/// GET /api/constraints - List all constraints
+/
 pub async fn get_constraints(state: web::Data<AppState>) -> impl Responder {
     info!("GET /api/constraints - Fetching all constraints");
 
-    // Query constraint actor for current constraints
+    
     match state
         .graph_service_addr
         .send(GetConstraints)
@@ -113,14 +113,14 @@ pub async fn get_constraints(state: web::Data<AppState>) -> impl Responder {
     }
 }
 
-/// GET /api/constraints/{id} - Get specific constraint
+/
 pub async fn get_constraint(
     state: web::Data<AppState>,
     constraint_id: web::Path<String>,
 ) -> impl Responder {
     info!("GET /api/constraints/{} - Fetching specific constraint", constraint_id);
 
-    // Query constraint actor
+    
     match state
         .graph_service_addr
         .send(GetConstraints)
@@ -165,7 +165,7 @@ pub async fn get_constraint(
     }
 }
 
-/// PUT /api/constraints/{id} - Update constraint
+/
 pub async fn update_constraint(
     state: web::Data<AppState>,
     constraint_id: web::Path<String>,
@@ -173,7 +173,7 @@ pub async fn update_constraint(
 ) -> impl Responder {
     info!("PUT /api/constraints/{} - Updating constraint", constraint_id);
 
-    // Create update message
+    
     let update_msg = UpdateConstraint {
         constraint_id: constraint_id.to_string(),
         active: req.active,
@@ -181,7 +181,7 @@ pub async fn update_constraint(
         distance: req.distance,
     };
 
-    // Send to constraint actor
+    
     match state
         .graph_service_addr
         .send(update_msg)
@@ -211,14 +211,14 @@ pub async fn update_constraint(
     }
 }
 
-/// POST /api/constraints/user - Create user-defined constraint
+/
 pub async fn create_user_constraint(
     state: web::Data<AppState>,
     req: web::Json<CreateConstraintRequest>,
 ) -> impl Responder {
     info!("POST /api/constraints/user - Creating user constraint");
 
-    // Parse constraint type
+    
     let constraint_type = match req.constraint_type.as_str() {
         "Distance" => ConstraintType::Distance,
         "Angle" => ConstraintType::Angle,
@@ -233,7 +233,7 @@ pub async fn create_user_constraint(
         }
     };
 
-    // Create constraint object
+    
     let constraint = Constraint {
         id: uuid::Uuid::new_v4().to_string(),
         constraint_type,
@@ -245,8 +245,8 @@ pub async fn create_user_constraint(
         metadata: req.metadata.clone(),
     };
 
-    // TODO: Send to constraint actor to add to active constraints
-    // For now, return success response
+    
+    
     HttpResponse::Created().json(json!({
         "success": true,
         "constraint": ConstraintResponse {
@@ -263,12 +263,12 @@ pub async fn create_user_constraint(
     }))
 }
 
-/// GET /api/constraints/stats - Get constraint statistics
+/
 pub async fn get_constraint_stats(state: web::Data<AppState>) -> impl Responder {
     info!("GET /api/constraints/stats - Fetching constraint statistics");
 
-    // Query constraint actor for statistics
-    // For now, return mock data (TODO: implement GetConstraintStats message)
+    
+    
     let stats = ConstraintStatsResponse {
         total_constraints: 150,
         active_constraints: 120,
@@ -283,7 +283,7 @@ pub async fn get_constraint_stats(state: web::Data<AppState>) -> impl Responder 
     HttpResponse::Ok().json(stats)
 }
 
-/// Configure constraint API routes
+/
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/constraints")

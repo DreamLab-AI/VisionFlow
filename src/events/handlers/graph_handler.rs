@@ -6,8 +6,8 @@ use tokio::sync::RwLock;
 use crate::events::domain_events::*;
 use crate::events::types::{EventError, EventHandler, EventResult, StoredEvent};
 
-/// Handler for graph-related events
-/// Updates caches when graph changes occur
+/
+/
 pub struct GraphEventHandler {
     handler_id: String,
     cache: Arc<RwLock<GraphCache>>,
@@ -134,7 +134,7 @@ impl GraphEventHandler {
 #[async_trait]
 impl EventHandler for GraphEventHandler {
     fn event_type(&self) -> &'static str {
-        // This handler handles multiple event types
+        
         "Graph"
     }
 
@@ -149,7 +149,7 @@ impl EventHandler for GraphEventHandler {
             "EdgeAdded" => self.handle_edge_added(event).await,
             "EdgeRemoved" => self.handle_edge_removed(event).await,
             "GraphCleared" => self.handle_graph_cleared(event).await,
-            _ => Ok(()), // Ignore other events
+            _ => Ok(()), 
         }
     }
 
@@ -221,7 +221,7 @@ mod tests {
     async fn test_graph_cleared_event() {
         let handler = GraphEventHandler::new("graph-handler");
 
-        // Add some data first
+        
         let add_event = NodeAddedEvent {
             node_id: "node-1".to_string(),
             label: "Test".to_string(),
@@ -243,7 +243,7 @@ mod tests {
         handler.handle(&stored_add).await.unwrap();
         assert_eq!(handler.get_node_count().await, 1);
 
-        // Clear the graph
+        
         let clear_event = GraphClearedEvent {
             graph_id: "graph-1".to_string(),
             timestamp: Utc::now(),

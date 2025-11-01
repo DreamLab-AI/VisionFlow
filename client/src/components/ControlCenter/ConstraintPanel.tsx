@@ -26,7 +26,7 @@ export const ConstraintPanel: React.FC<ConstraintPanelProps> = ({
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
 
-  // Application form state
+  
   const [constraintType, setConstraintType] = useState<
     'separation' | 'boundary' | 'alignment' | 'cluster'
   >('separation');
@@ -58,7 +58,7 @@ export const ConstraintPanel: React.FC<ConstraintPanelProps> = ({
   };
 
   const applyConstraints = async () => {
-    // Parse node IDs from comma-separated string
+    
     const ids = nodeIds
       .split(',')
       .map((id) => parseInt(id.trim(), 10))
@@ -85,9 +85,9 @@ export const ConstraintPanel: React.FC<ConstraintPanelProps> = ({
           `Applied ${response.data.constraintType} constraint to ${response.data.nodeCount} nodes`
         );
       }
-      // Reload constraints to see updated state
+      
       await loadConstraints();
-      // Reset form
+      
       setNodeIds('');
       setStrength(0.5);
     } catch (err) {

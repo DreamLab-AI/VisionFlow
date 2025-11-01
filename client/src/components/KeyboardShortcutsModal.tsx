@@ -46,14 +46,14 @@ export function KeyboardShortcutsModal({ isOpen, onClose }: KeyboardShortcutsMod
       aria-modal="true"
       aria-labelledby="keyboard-shortcuts-title"
     >
-      {/* Backdrop */}
+      {}
       <div
         className="absolute inset-0 bg-background/80 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Modal */}
+      {}
       <Card
         ref={containerRef as any}
         className="relative z-10 w-full max-w-2xl max-h-[80vh] overflow-hidden"

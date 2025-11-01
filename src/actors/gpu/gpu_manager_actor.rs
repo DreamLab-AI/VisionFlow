@@ -15,18 +15,18 @@ use crate::telemetry::agent_telemetry::{
 };
 use crate::utils::socket_flow_messages::BinaryNodeData;
 
-/// GPU Manager Actor - coordinates all specialized GPU actors
+/
 pub struct GPUManagerActor {
-    /// Child actor addresses
+    
     child_actors: Option<ChildActorAddresses>,
 
-    /// Shared GPU state
+    
     gpu_state: GPUState,
 
-    /// Shared GPU context (None until initialized)
+    
     shared_context: Option<Arc<SharedGPUContext>>,
 
-    /// Flag to track if child actors have been spawned
+    
     children_spawned: bool,
 }
 
@@ -40,25 +40,25 @@ impl GPUManagerActor {
         }
     }
 
-    /// Spawn all child actors and establish supervision
+    
     fn spawn_child_actors(&mut self, _ctx: &mut Context<Self>) -> Result<(), String> {
         if self.children_spawned {
             debug!("Child actors already spawned, skipping");
-            return Ok(()); // Already spawned
+            return Ok(()); 
         }
 
         info!("GPU Manager: Spawning specialized child actors");
 
-        // Spawn child actors with supervision
+        
         debug!("Creating GPUResourceActor...");
         let resource_actor = GPUResourceActor::new().start();
         debug!("GPUResourceActor created: {:?}", resource_actor);
 
         debug!("Creating ForceComputeActor...");
-        // Configure ForceComputeActor with dynamic mailbox capacity
-        // Scale mailbox based on expected workload - no hard limits for future 100K+ nodes
+        
+        
         let force_compute_actor = actix::Actor::create(|ctx| {
-            ctx.set_mailbox_capacity(2048); // Large buffer for async GPU operations
+            ctx.set_mailbox_capacity(2048); 
             ForceComputeActor::new()
         });
         debug!("Creating ClusteringActor...");
@@ -87,7 +87,7 @@ impl GPUManagerActor {
         Ok(())
     }
 
-    /// Get child actor addresses, spawning them if needed
+    
     fn get_child_actors(
         &mut self,
         ctx: &mut Context<Self>,
@@ -108,7 +108,7 @@ impl Actor for GPUManagerActor {
     fn started(&mut self, _ctx: &mut Self::Context) {
         info!("GPU Manager Actor started");
 
-        // Enhanced telemetry for GPU manager startup
+        
         if let Some(logger) = get_telemetry_logger() {
             let correlation_id = CorrelationId::new();
             let event = TelemetryEvent::new(
@@ -122,8 +122,8 @@ impl Actor for GPUManagerActor {
             logger.log_event(event);
         }
 
-        // Don't spawn children immediately - wait for first message
-        // This prevents resource allocation until actually needed
+        
+        
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
@@ -133,7 +133,7 @@ impl Actor for GPUManagerActor {
 
 // === Message Routing Handlers ===
 
-/// GPU Initialization - delegate to ResourceActor
+/
 impl Handler<InitializeGPU> for GPUManagerActor {
     type Result = ResponseActFuture<Self, Result<(), String>>;
 
@@ -159,11 +159,11 @@ impl Handler<InitializeGPU> for GPUManagerActor {
             }
         };
 
-        // Add GPUManagerActor's address to the message
+        
         let mut msg_with_manager = msg;
         msg_with_manager.gpu_manager_addr = Some(ctx.address());
 
-        // Delegate to ResourceActor
+        
         debug!("Delegating InitializeGPU to ResourceActor with manager address");
         let fut = child_actors
             .resource_actor
@@ -181,19 +181,19 @@ impl Handler<InitializeGPU> for GPUManagerActor {
     }
 }
 
-/// Graph data updates - delegate to ResourceActor
+/
 impl Handler<UpdateGPUGraphData> for GPUManagerActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateGPUGraphData, ctx: &mut Self::Context) -> Self::Result {
         let child_actors = self.get_child_actors(ctx)?;
 
-        // Send to both ResourceActor AND ForceComputeActor
-        // ResourceActor needs it for GPU buffer management
-        // ForceComputeActor needs it for node/edge counts and physics
+        
+        
+        
         let graph = msg.graph.clone();
 
-        // Send to ResourceActor
+        
         if let Err(e) = child_actors.resource_actor.try_send(UpdateGPUGraphData {
             graph: graph.clone(),
         }) {
@@ -201,7 +201,7 @@ impl Handler<UpdateGPUGraphData> for GPUManagerActor {
             return Err("Failed to delegate graph update to ResourceActor".to_string());
         }
 
-        // Also send to ForceComputeActor so it knows the graph dimensions
+        
         if let Err(e) = child_actors
             .force_compute_actor
             .try_send(UpdateGPUGraphData { graph: graph })
@@ -218,7 +218,7 @@ impl Handler<UpdateGPUGraphData> for GPUManagerActor {
     }
 }
 
-/// Force computation - delegate to ForceComputeActor
+/
 impl Handler<ComputeForces> for GPUManagerActor {
     type Result = Result<(), String>;
 
@@ -235,7 +235,7 @@ impl Handler<ComputeForces> for GPUManagerActor {
     }
 }
 
-/// Clustering operations - delegate to ClusteringActor
+/
 impl Handler<RunKMeans> for GPUManagerActor {
     type Result = ResponseActFuture<Self, Result<KMeansResult, String>>;
 
@@ -258,7 +258,7 @@ impl Handler<RunKMeans> for GPUManagerActor {
     }
 }
 
-/// Community detection - delegate to ClusteringActor
+/
 impl Handler<RunCommunityDetection> for GPUManagerActor {
     type Result = ResponseActFuture<Self, Result<CommunityDetectionResult, String>>;
 
@@ -281,7 +281,7 @@ impl Handler<RunCommunityDetection> for GPUManagerActor {
     }
 }
 
-/// Anomaly detection - delegate to AnomalyDetectionActor
+/
 impl Handler<RunAnomalyDetection> for GPUManagerActor {
     type Result = ResponseActFuture<Self, Result<AnomalyResult, String>>;
 
@@ -304,7 +304,7 @@ impl Handler<RunAnomalyDetection> for GPUManagerActor {
     }
 }
 
-/// GPU Clustering - delegate to ClusteringActor based on method
+/
 impl Handler<PerformGPUClustering> for GPUManagerActor {
     type Result = ResponseActFuture<
         Self,
@@ -322,7 +322,7 @@ impl Handler<PerformGPUClustering> for GPUManagerActor {
             Err(e) => return Box::pin(async move { Err(e) }.into_actor(self)),
         };
 
-        // Convert to appropriate message based on method
+        
         match msg.method.as_str() {
             "kmeans" => {
                 let kmeans_msg = RunKMeans {
@@ -347,7 +347,7 @@ impl Handler<PerformGPUClustering> for GPUManagerActor {
                 )
             }
             "spectral" | "louvain" | _ => {
-                // For now, fall back to community detection for other methods
+                
                 let community_msg = RunCommunityDetection {
                     params: CommunityDetectionParams {
                         algorithm: if msg.method == "louvain" {
@@ -356,9 +356,9 @@ impl Handler<PerformGPUClustering> for GPUManagerActor {
                             CommunityDetectionAlgorithm::LabelPropagation
                         },
                         max_iterations: Some(msg.params.max_iterations.unwrap_or(100)),
-                        convergence_tolerance: Some(0.001), // Default tolerance
-                        synchronous: Some(true),            // Default to synchronous
-                        seed: None,                         // No specific seed
+                        convergence_tolerance: Some(0.001), 
+                        synchronous: Some(true),            
+                        seed: None,                         
                     },
                 };
 
@@ -370,7 +370,7 @@ impl Handler<PerformGPUClustering> for GPUManagerActor {
                         .map(|res, _actor, _ctx| {
                             match res {
                                 Ok(Ok(community_result)) => {
-                                    // Convert communities to clusters
+                                    
                                     let clusters = community_result
                                         .communities
                                         .into_iter()
@@ -382,7 +382,7 @@ impl Handler<PerformGPUClustering> for GPUManagerActor {
                                                 nodes: c.nodes,
                                                 label,
                                                 node_count,
-                                                coherence: 0.8, // Default coherence value
+                                                coherence: 0.8, 
                                                 color: "#4ECDC4".to_string(),
                                                 keywords: vec![],
                                                 centroid: None,
@@ -404,7 +404,7 @@ impl Handler<PerformGPUClustering> for GPUManagerActor {
     }
 }
 
-/// Stress majorization - delegate to StressMajorizationActor
+/
 impl Handler<TriggerStressMajorization> for GPUManagerActor {
     type Result = Result<(), String>;
 
@@ -418,7 +418,7 @@ impl Handler<TriggerStressMajorization> for GPUManagerActor {
     }
 }
 
-/// Constraint operations - delegate to ConstraintActor
+/
 impl Handler<UpdateConstraints> for GPUManagerActor {
     type Result = Result<(), String>;
 
@@ -432,13 +432,13 @@ impl Handler<UpdateConstraints> for GPUManagerActor {
     }
 }
 
-/// Status queries - delegate to ResourceActor
+/
 impl Handler<GetGPUStatus> for GPUManagerActor {
     type Result = MessageResult<GetGPUStatus>;
 
     fn handle(&mut self, _msg: GetGPUStatus, _ctx: &mut Self::Context) -> Self::Result {
-        // For status queries, we'll maintain some state locally for quick response
-        // This avoids the async complexity for simple status checks
+        
+        
 
         MessageResult(GPUStatus {
             is_initialized: self.shared_context.is_some(),
@@ -449,7 +449,7 @@ impl Handler<GetGPUStatus> for GPUManagerActor {
     }
 }
 
-/// Get ForceComputeActor address - return the ForceComputeActor from child actors
+/
 impl Handler<GetForceComputeActor> for GPUManagerActor {
     type Result = Result<Addr<ForceComputeActor>, String>;
 
@@ -461,14 +461,14 @@ impl Handler<GetForceComputeActor> for GPUManagerActor {
 
 // Additional handlers for messages that need delegation
 
-/// Handle UploadConstraintsToGPU - delegate to ConstraintActor
+/
 impl Handler<UploadConstraintsToGPU> for GPUManagerActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UploadConstraintsToGPU, ctx: &mut Self::Context) -> Self::Result {
         let child_actors = self.get_child_actors(ctx)?;
 
-        // Send to ConstraintActor
+        
         match child_actors.constraint_actor.try_send(msg) {
             Ok(_) => Ok(()),
             Err(e) => Err(format!("Failed to delegate UploadConstraintsToGPU: {}", e)),
@@ -476,7 +476,7 @@ impl Handler<UploadConstraintsToGPU> for GPUManagerActor {
     }
 }
 
-/// Handle GetNodeData - delegate to ForceComputeActor
+/
 impl Handler<GetNodeData> for GPUManagerActor {
     type Result = ResponseActFuture<Self, Result<Vec<BinaryNodeData>, String>>;
 
@@ -488,7 +488,7 @@ impl Handler<GetNodeData> for GPUManagerActor {
             }
         };
 
-        // Delegate to ForceComputeActor
+        
         let fut = child_actors
             .force_compute_actor
             .send(msg)
@@ -505,14 +505,14 @@ impl Handler<GetNodeData> for GPUManagerActor {
     }
 }
 
-/// Handle UpdateSimulationParams - delegate to ForceComputeActor
+/
 impl Handler<UpdateSimulationParams> for GPUManagerActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateSimulationParams, ctx: &mut Self::Context) -> Self::Result {
         let child_actors = self.get_child_actors(ctx)?;
 
-        // Send to ForceComputeActor
+        
         match child_actors.force_compute_actor.try_send(msg) {
             Ok(_) => Ok(()),
             Err(e) => Err(format!("Failed to delegate UpdateSimulationParams: {}", e)),
@@ -520,14 +520,14 @@ impl Handler<UpdateSimulationParams> for GPUManagerActor {
     }
 }
 
-/// Handle UpdateAdvancedParams - delegate to ForceComputeActor
+/
 impl Handler<UpdateAdvancedParams> for GPUManagerActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateAdvancedParams, ctx: &mut Self::Context) -> Self::Result {
         let child_actors = self.get_child_actors(ctx)?;
 
-        // Send to ForceComputeActor only (StressMajorizationActor doesn't need it directly)
+        
         match child_actors.force_compute_actor.try_send(msg) {
             Ok(_) => Ok(()),
             Err(e) => Err(format!("Failed to delegate UpdateAdvancedParams: {}", e)),
@@ -535,7 +535,7 @@ impl Handler<UpdateAdvancedParams> for GPUManagerActor {
     }
 }
 
-/// Handle SetSharedGPUContext - distribute to all child actors
+/
 impl Handler<SetSharedGPUContext> for GPUManagerActor {
     type Result = Result<(), String>;
 
@@ -547,7 +547,7 @@ impl Handler<SetSharedGPUContext> for GPUManagerActor {
         let graph_service_addr = msg.graph_service_addr;
         let mut errors = Vec::new();
 
-        // Distribute to ForceComputeActor (most critical) - include GraphServiceActor address
+        
         if let Err(e) = child_actors
             .force_compute_actor
             .try_send(SetSharedGPUContext {
@@ -560,7 +560,7 @@ impl Handler<SetSharedGPUContext> for GPUManagerActor {
             info!("SharedGPUContext sent to ForceComputeActor with GraphServiceActor address");
         }
 
-        // Distribute to ClusteringActor
+        
         if let Err(e) = child_actors.clustering_actor.try_send(SetSharedGPUContext {
             context: context.clone(),
             graph_service_addr: graph_service_addr.clone(),
@@ -570,7 +570,7 @@ impl Handler<SetSharedGPUContext> for GPUManagerActor {
             info!("SharedGPUContext sent to ClusteringActor");
         }
 
-        // Distribute to ConstraintActor
+        
         if let Err(e) = child_actors.constraint_actor.try_send(SetSharedGPUContext {
             context: context.clone(),
             graph_service_addr: graph_service_addr.clone(),
@@ -580,7 +580,7 @@ impl Handler<SetSharedGPUContext> for GPUManagerActor {
             info!("SharedGPUContext sent to ConstraintActor");
         }
 
-        // Distribute to StressMajorizationActor
+        
         if let Err(e) = child_actors
             .stress_majorization_actor
             .try_send(SetSharedGPUContext {
@@ -593,7 +593,7 @@ impl Handler<SetSharedGPUContext> for GPUManagerActor {
             info!("SharedGPUContext sent to StressMajorizationActor");
         }
 
-        // Distribute to AnomalyDetectionActor
+        
         if let Err(e) = child_actors
             .anomaly_detection_actor
             .try_send(SetSharedGPUContext {
@@ -606,7 +606,7 @@ impl Handler<SetSharedGPUContext> for GPUManagerActor {
             info!("SharedGPUContext sent to AnomalyDetectionActor");
         }
 
-        // Distribute to OntologyConstraintActor
+        
         if let Err(e) = child_actors
             .ontology_constraint_actor
             .try_send(SetSharedGPUContext {
@@ -627,7 +627,7 @@ impl Handler<SetSharedGPUContext> for GPUManagerActor {
                 "Failed to distribute SharedGPUContext to some actors: {:?}",
                 errors
             );
-            // Still return Ok if at least ForceComputeActor received it
+            
             if !errors.iter().any(|e| e.starts_with("ForceComputeActor")) {
                 Ok(())
             } else {
@@ -639,7 +639,7 @@ impl Handler<SetSharedGPUContext> for GPUManagerActor {
     }
 }
 
-/// Handler for ApplyOntologyConstraints - delegate to OntologyConstraintActor
+/
 impl Handler<ApplyOntologyConstraints> for GPUManagerActor {
     type Result = Result<(), String>;
 

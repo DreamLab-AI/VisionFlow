@@ -1,11 +1,6 @@
-/**
- * Download Helper Utilities
- * File download and clipboard operations
- */
 
-/**
- * Download file from blob data
- */
+
+
 export const downloadFile = (
   data: Blob | string | ArrayBuffer,
   filename: string,
@@ -31,14 +26,12 @@ export const downloadFile = (
   document.body.appendChild(link);
   link.click();
 
-  // Cleanup
+  
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 };
 
-/**
- * Download JSON data as file
- */
+
 export const downloadJSON = (
   data: any,
   filename: string = 'data.json',
@@ -51,9 +44,7 @@ export const downloadJSON = (
   downloadFile(jsonString, filename, 'application/json');
 };
 
-/**
- * Download CSV data as file
- */
+
 export const downloadCSV = (
   data: string[][] | Record<string, any>[],
   filename: string = 'data.csv'
@@ -62,12 +53,12 @@ export const downloadCSV = (
 
   if (Array.isArray(data) && data.length > 0) {
     if (Array.isArray(data[0])) {
-      // Array of arrays format
+      
       csvContent = (data as string[][])
         .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
         .join('\n');
     } else {
-      // Array of objects format
+      
       const objects = data as Record<string, any>[];
       const headers = Object.keys(objects[0] || {});
 
@@ -85,9 +76,7 @@ export const downloadCSV = (
   downloadFile(csvContent, filename, 'text/csv');
 };
 
-/**
- * Download text file
- */
+
 export const downloadText = (
   content: string,
   filename: string = 'file.txt',
@@ -96,9 +85,7 @@ export const downloadText = (
   downloadFile(content, filename, mimeType);
 };
 
-/**
- * Download XML file
- */
+
 export const downloadXML = (
   content: string,
   filename: string = 'data.xml'
@@ -106,9 +93,7 @@ export const downloadXML = (
   downloadFile(content, filename, 'application/xml');
 };
 
-/**
- * Download image from canvas
- */
+
 export const downloadImageFromCanvas = (
   canvas: HTMLCanvasElement,
   filename: string = 'image.png',
@@ -125,9 +110,7 @@ export const downloadImageFromCanvas = (
   );
 };
 
-/**
- * Download image from URL
- */
+
 export const downloadImageFromUrl = async (
   url: string,
   filename?: string
@@ -148,16 +131,14 @@ export const downloadImageFromUrl = async (
   }
 };
 
-/**
- * Copy text to clipboard with fallback
- */
+
 export const copyToClipboard = async (text: string): Promise<boolean> => {
   try {
     if (navigator.clipboard && window.isSecureContext) {
       await navigator.clipboard.writeText(text);
       return true;
     } else {
-      // Fallback for older browsers
+      
       return fallbackCopyToClipboard(text);
     }
   } catch (error) {
@@ -166,9 +147,7 @@ export const copyToClipboard = async (text: string): Promise<boolean> => {
   }
 };
 
-/**
- * Fallback clipboard copy for older browsers
- */
+
 const fallbackCopyToClipboard = (text: string): boolean => {
   try {
     const textArea = document.createElement('textarea');
@@ -192,9 +171,7 @@ const fallbackCopyToClipboard = (text: string): boolean => {
   }
 };
 
-/**
- * Read file as text
- */
+
 export const readFileAsText = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -204,9 +181,7 @@ export const readFileAsText = (file: File): Promise<string> => {
   });
 };
 
-/**
- * Read file as data URL
- */
+
 export const readFileAsDataURL = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -216,9 +191,7 @@ export const readFileAsDataURL = (file: File): Promise<string> => {
   });
 };
 
-/**
- * Read file as array buffer
- */
+
 export const readFileAsArrayBuffer = (file: File): Promise<ArrayBuffer> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -228,9 +201,7 @@ export const readFileAsArrayBuffer = (file: File): Promise<ArrayBuffer> => {
   });
 };
 
-/**
- * Format file size in human readable format
- */
+
 export const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 Bytes';
 
@@ -241,41 +212,35 @@ export const formatFileSize = (bytes: number): string => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
-/**
- * Get file extension from filename
- */
+
 export const getFileExtension = (filename: string): string => {
   const lastDot = filename.lastIndexOf('.');
   return lastDot !== -1 ? filename.substring(lastDot + 1).toLowerCase() : '';
 };
 
-/**
- * Generate safe filename
- */
+
 export const generateSafeFilename = (
   name: string,
   extension: string = '',
   maxLength: number = 255
 ): string => {
-  // Remove or replace unsafe characters
+  
   const safeName = name
     .replace(/[<>:"/\\|?*\x00-\x1f]/g, '_')
     .replace(/\s+/g, '_')
     .replace(/_+/g, '_')
     .trim();
 
-  // Add extension if provided
+  
   const fullName = extension ? `${safeName}.${extension}` : safeName;
 
-  // Truncate if too long
+  
   return fullName.length > maxLength
     ? fullName.substring(0, maxLength - (extension.length + 1)) + (extension ? `.${extension}` : '')
     : fullName;
 };
 
-/**
- * Check if file type is supported for preview
- */
+
 export const isPreviewableFileType = (mimeType: string): boolean => {
   const previewableTypes = [
     'text/',
@@ -289,9 +254,7 @@ export const isPreviewableFileType = (mimeType: string): boolean => {
   return previewableTypes.some(type => mimeType.startsWith(type));
 };
 
-/**
- * Create download progress tracker
- */
+
 export const createDownloadProgress = (
   onProgress: (loaded: number, total: number) => void
 ) => {
@@ -325,7 +288,7 @@ export const createDownloadProgress = (
       }
     }
 
-    // Combine chunks
+    
     const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
     const result = new Uint8Array(totalLength);
     let offset = 0;

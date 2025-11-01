@@ -62,7 +62,7 @@ export function registerDefaultCategories() {
 // Register default commands
 export function registerDefaultCommands() {
   const commands: Command[] = [
-    // Navigation commands
+    
     {
       id: 'nav.settings',
       title: 'Open Settings',
@@ -71,7 +71,7 @@ export function registerDefaultCommands() {
       icon: Settings,
       keywords: ['preferences', 'config', 'configuration'],
       handler: () => {
-        // Emit event to open settings
+        
         window.dispatchEvent(new CustomEvent('open-settings'));
       }
     },
@@ -87,7 +87,7 @@ export function registerDefaultCommands() {
       }
     },
     
-    // Help commands
+    
     {
       id: 'help.search',
       title: 'Search Help Topics',
@@ -96,7 +96,7 @@ export function registerDefaultCommands() {
       icon: Search,
       keywords: ['find', 'lookup', 'support'],
       handler: () => {
-        // Open help search dialog
+        
         window.dispatchEvent(new CustomEvent('search-help'));
       }
     },
@@ -124,7 +124,7 @@ export function registerDefaultCommands() {
       }
     },
 
-    // Settings commands
+    
     {
       id: 'settings.undo',
       title: 'Undo Settings Change',
@@ -209,7 +209,7 @@ export function registerDefaultCommands() {
       }
     },
 
-    // View commands
+    
     {
       id: 'view.fullscreen',
       title: 'Toggle Fullscreen',
@@ -253,7 +253,7 @@ export function registerDefaultCommands() {
       }
     },
 
-    // System commands
+    
     {
       id: 'system.reload',
       title: 'Reload Application',

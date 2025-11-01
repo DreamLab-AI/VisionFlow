@@ -1,13 +1,8 @@
-/**
- * Accessibility utilities for focus management, announcements, and keyboard navigation
- */
+
 
 import { useEffect, useRef, useCallback } from 'react';
 
-/**
- * Focus trap hook for modals and dialogs
- * Ensures focus stays within the container and returns to the trigger element when closed
- */
+
 export function useFocusTrap(isActive: boolean) {
   const containerRef = useRef<HTMLElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -15,10 +10,10 @@ export function useFocusTrap(isActive: boolean) {
   useEffect(() => {
     if (!isActive || !containerRef.current) return;
 
-    // Store the currently focused element
+    
     previousFocusRef.current = document.activeElement as HTMLElement;
 
-    // Get all focusable elements within the container
+    
     const getFocusableElements = () => {
       if (!containerRef.current) return [];
       
@@ -36,13 +31,13 @@ export function useFocusTrap(isActive: boolean) {
       ).filter(el => !el.hasAttribute('aria-hidden'));
     };
 
-    // Focus the first focusable element
+    
     const focusableElements = getFocusableElements();
     if (focusableElements.length > 0) {
       focusableElements[0].focus();
     }
 
-    // Handle Tab key navigation
+    
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Tab' || !containerRef.current) return;
 
@@ -54,13 +49,13 @@ export function useFocusTrap(isActive: boolean) {
       );
 
       if (e.shiftKey) {
-        // Shift+Tab: Move backwards
+        
         if (currentIndex <= 0) {
           e.preventDefault();
           focusableElements[focusableElements.length - 1].focus();
         }
       } else {
-        // Tab: Move forwards
+        
         if (currentIndex === focusableElements.length - 1) {
           e.preventDefault();
           focusableElements[0].focus();
@@ -73,7 +68,7 @@ export function useFocusTrap(isActive: boolean) {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       
-      // Restore focus to the previous element
+      
       if (previousFocusRef.current && previousFocusRef.current.focus) {
         previousFocusRef.current.focus();
       }
@@ -83,9 +78,7 @@ export function useFocusTrap(isActive: boolean) {
   return containerRef;
 }
 
-/**
- * Announcer for screen readers using ARIA live regions
- */
+
 class ScreenReaderAnnouncer {
   private container: HTMLElement | null = null;
   private timeout: NodeJS.Timeout | null = null;
@@ -118,18 +111,18 @@ class ScreenReaderAnnouncer {
   announce(message: string, priority: 'polite' | 'assertive' = 'polite') {
     if (!this.container) return;
 
-    // Clear any pending announcement
+    
     if (this.timeout) {
       clearTimeout(this.timeout);
     }
 
-    // Update aria-live attribute based on priority
+    
     this.container.setAttribute('aria-live', priority);
 
-    // Clear and set the message
+    
     this.container.textContent = '';
     
-    // Use a small delay to ensure the screen reader picks up the change
+    
     this.timeout = setTimeout(() => {
       if (this.container) {
         this.container.textContent = message;
@@ -150,9 +143,7 @@ class ScreenReaderAnnouncer {
 // Singleton instance
 let announcerInstance: ScreenReaderAnnouncer | null = null;
 
-/**
- * Get or create the screen reader announcer instance
- */
+
 export function getAnnouncer(): ScreenReaderAnnouncer {
   if (!announcerInstance && typeof window !== 'undefined') {
     announcerInstance = new ScreenReaderAnnouncer();
@@ -160,9 +151,7 @@ export function getAnnouncer(): ScreenReaderAnnouncer {
   return announcerInstance!;
 }
 
-/**
- * Hook for announcing messages to screen readers
- */
+
 export function useAnnounce() {
   const announce = useCallback((message: string, priority?: 'polite' | 'assertive') => {
     const announcer = getAnnouncer();
@@ -174,9 +163,7 @@ export function useAnnounce() {
   return announce;
 }
 
-/**
- * Hook for managing roving tabindex in composite widgets
- */
+
 export function useRovingTabIndex<T extends HTMLElement>(
   items: T[],
   activeIndex: number,
@@ -229,9 +216,7 @@ export function useRovingTabIndex<T extends HTMLElement>(
   return { handleKeyDown };
 }
 
-/**
- * Generates a unique ID for ARIA relationships
- */
+
 export function useId(prefix = 'id') {
   const ref = useRef<string>();
   
@@ -242,16 +227,14 @@ export function useId(prefix = 'id') {
   return ref.current;
 }
 
-/**
- * ARIA labels and descriptions for common UI patterns
- */
+
 export const ariaLabels = {
-  // Navigation
+  
   mainNavigation: 'Main navigation',
   breadcrumb: 'Breadcrumb navigation',
   pagination: 'Pagination navigation',
   
-  // Buttons
+  
   close: 'Close',
   menu: 'Open menu',
   settings: 'Open settings',
@@ -262,38 +245,34 @@ export const ariaLabels = {
   delete: 'Delete',
   edit: 'Edit',
   
-  // Form controls
+  
   required: 'Required field',
   error: 'Error',
   success: 'Success',
   
-  // Loading states
+  
   loading: 'Loading...',
   loadingMore: 'Loading more items...',
   
-  // Toggles
+  
   expand: 'Expand',
   collapse: 'Collapse',
   toggleOn: 'Toggle on',
   toggleOff: 'Toggle off',
   
-  // Sorting
+  
   sortAscending: 'Sort ascending',
   sortDescending: 'Sort descending',
   
-  // Status
+  
   online: 'Online',
   offline: 'Offline',
   connected: 'Connected',
   disconnected: 'Disconnected',
 };
 
-/**
- * Focus visible class utility
- */
+
 export const focusRingClasses = 'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 
-/**
- * Screen reader only class utility
- */
+
 export const srOnlyClasses = 'absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0';

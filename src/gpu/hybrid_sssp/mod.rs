@@ -7,32 +7,32 @@ pub mod communication_bridge;
 pub mod gpu_kernels;
 pub mod wasm_controller;
 
-/// Hybrid SSSP configuration
+/
 #[derive(Debug, Clone)]
 pub struct HybridSSPConfig {
-    /// Use hybrid CPU-WASM/GPU implementation
+    
     pub enable_hybrid: bool,
 
-    /// Maximum recursion depth (log n / t)
+    
     pub max_recursion_depth: u32,
 
-    /// Pivot detection parameter k = log^(1/3)(n)
+    
     pub pivot_k: u32,
 
-    /// Recursion branching factor t = log^(2/3)(n)
+    
     pub branching_t: u32,
 
-    /// Use pinned memory for zero-copy transfers
+    
     pub use_pinned_memory: bool,
 
-    /// Enable performance profiling
+    
     pub enable_profiling: bool,
 }
 
 impl Default for HybridSSPConfig {
     fn default() -> Self {
         Self {
-            enable_hybrid: false, // Default to traditional GPU-only
+            enable_hybrid: false, 
             max_recursion_depth: 10,
             pivot_k: 10,
             branching_t: 100,
@@ -42,48 +42,48 @@ impl Default for HybridSSPConfig {
     }
 }
 
-/// Result of hybrid SSSP computation
+/
 #[derive(Debug)]
 pub struct HybridSSPResult {
-    /// Distance array for all vertices
+    
     pub distances: Vec<f32>,
 
-    /// Parent array for path reconstruction
+    
     pub parents: Vec<i32>,
 
-    /// Performance metrics
+    
     pub metrics: SSPMetrics,
 }
 
-/// Performance metrics for analysis
+/
 #[derive(Debug, Default, Clone)]
 pub struct SSPMetrics {
-    /// Total execution time (ms)
+    
     pub total_time_ms: f32,
 
-    /// Time spent in CPU orchestration (ms)
+    
     pub cpu_time_ms: f32,
 
-    /// Time spent in GPU computation (ms)
+    
     pub gpu_time_ms: f32,
 
-    /// Time spent in CPU-GPU communication (ms)
+    
     pub transfer_time_ms: f32,
 
-    /// Number of recursion levels executed
+    
     pub recursion_levels: u32,
 
-    /// Total number of edge relaxations
+    
     pub total_relaxations: u64,
 
-    /// Number of pivots selected
+    
     pub pivots_selected: u32,
 
-    /// Achieved complexity (edges × log factor)
+    
     pub complexity_factor: f32,
 }
 
-/// Main hybrid SSSP executor
+/
 pub struct HybridSSPExecutor {
     config: HybridSSPConfig,
     wasm_controller: Option<wasm_controller::WASMController>,
@@ -92,7 +92,7 @@ pub struct HybridSSPExecutor {
 }
 
 impl HybridSSPExecutor {
-    /// Create new hybrid executor
+    
     pub fn new(config: HybridSSPConfig) -> Self {
         Self {
             config: config.clone(),
@@ -102,7 +102,7 @@ impl HybridSSPExecutor {
         }
     }
 
-    /// Initialize WASM controller
+    
     pub async fn initialize(&mut self) -> Result<(), String> {
         if self.config.enable_hybrid {
             self.wasm_controller = Some(wasm_controller::WASMController::new(&self.config).await?);
@@ -110,7 +110,7 @@ impl HybridSSPExecutor {
         Ok(())
     }
 
-    /// Execute hybrid SSSP algorithm
+    
     pub async fn execute(
         &mut self,
         num_nodes: usize,
@@ -122,10 +122,10 @@ impl HybridSSPExecutor {
     ) -> Result<HybridSSPResult, String> {
         let start_time = std::time::Instant::now();
 
-        // Calculate algorithm parameters
+        
         let n = num_nodes as f32;
-        let k = n.log2().cbrt().floor() as u32; // log^(1/3)(n)
-        let t = n.log2().powf(2.0 / 3.0).floor() as u32; // log^(2/3)(n)
+        let k = n.log2().cbrt().floor() as u32; 
+        let t = n.log2().powf(2.0 / 3.0).floor() as u32; 
         let max_depth = ((n.log2() / t as f32).ceil() as u32).max(1);
 
         self.config.pivot_k = k;
@@ -139,7 +139,7 @@ impl HybridSSPExecutor {
         );
 
         let result = if self.config.enable_hybrid && self.wasm_controller.is_some() {
-            // Execute hybrid CPU-WASM/GPU algorithm
+            
             self.execute_hybrid(
                 num_nodes,
                 num_edges,
@@ -150,7 +150,7 @@ impl HybridSSPExecutor {
             )
             .await?
         } else {
-            // Fallback to traditional GPU-only implementation
+            
             self.execute_gpu_only(
                 num_nodes,
                 sources,
@@ -176,7 +176,7 @@ impl HybridSSPExecutor {
         })
     }
 
-    /// Execute hybrid CPU-WASM/GPU algorithm
+    
     async fn execute_hybrid(
         &mut self,
         num_nodes: usize,
@@ -191,12 +191,12 @@ impl HybridSSPExecutor {
             .as_mut()
             .ok_or("WASM controller not initialized")?;
 
-        // Transfer graph to GPU (stays resident during execution)
+        
         self.gpu_bridge
             .upload_graph(num_nodes, csr_row_offsets, csr_col_indices, csr_weights)
             .await?;
 
-        // Execute recursive BMSSP via WASM controller
+        
         let (distances, parents) = controller
             .execute_bmssp(sources, num_nodes, &mut self.gpu_bridge, &mut self.metrics)
             .await?;
@@ -204,7 +204,7 @@ impl HybridSSPExecutor {
         Ok((distances, parents))
     }
 
-    /// Fallback to traditional GPU-only implementation
+    
     async fn execute_gpu_only(
         &mut self,
         num_nodes: usize,
@@ -213,15 +213,15 @@ impl HybridSSPExecutor {
         _csr_col_indices: &[u32],
         _csr_weights: &[f32],
     ) -> Result<(Vec<f32>, Vec<i32>), String> {
-        // This would call the existing GPU implementation
-        // For now, returning placeholder
+        
+        
         let distances = vec![f32::INFINITY; num_nodes];
         let parents = vec![-1i32; num_nodes];
 
-        // Set source distances to 0
+        
         for &source in sources {
             if (source as usize) < num_nodes {
-                // distances[source as usize] = 0.0;
+                
             }
         }
 
@@ -229,7 +229,7 @@ impl HybridSSPExecutor {
         Ok((distances, parents))
     }
 
-    /// Log performance metrics for analysis
+    
     fn log_performance_metrics(&self) {
         log::info!("=== Hybrid SSSP Performance Metrics ===");
         log::info!("Total time: {:.2} ms", self.metrics.total_time_ms);
@@ -270,10 +270,10 @@ mod tests {
         let t = n.log2().powf(2.0 / 3.0).floor() as u32;
         let max_depth = ((n.log2() / t as f32).ceil() as u32).max(1);
 
-        // For n=100,000: log2(n) ≈ 16.6
-        // k = log^(1/3)(n) ≈ 2.5 → 2
-        // t = log^(2/3)(n) ≈ 6.4 → 6
-        // max_depth = log(n)/t ≈ 16.6/6 ≈ 2.8 → 3
+        
+        
+        
+        
 
         assert!(k >= 2 && k <= 3);
         assert!(t >= 6 && t <= 7);

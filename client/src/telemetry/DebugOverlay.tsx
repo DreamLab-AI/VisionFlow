@@ -54,7 +54,7 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({ visible, onToggle })
       fontSize: '11px',
       border: '1px solid rgba(255, 255, 255, 0.2)'
     }}>
-      {/* Header */}
+      {}
       <div style={{
         padding: '10px',
         borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
@@ -78,7 +78,7 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({ visible, onToggle })
         </button>
       </div>
 
-      {/* Tab Navigation */}
+      {}
       <div style={{
         display: 'flex',
         backgroundColor: 'rgba(0, 0, 0, 0.3)',
@@ -108,7 +108,7 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({ visible, onToggle })
         ))}
       </div>
 
-      {/* Content */}
+      {}
       <div style={{
         padding: '10px',
         maxHeight: 'calc(80vh - 120px)',
@@ -226,7 +226,7 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({ visible, onToggle })
         )}
       </div>
 
-      {/* Footer with actions */}
+      {}
       <div style={{
         padding: '10px',
         borderTop: '1px solid rgba(255, 255, 255, 0.2)',
@@ -289,15 +289,13 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({ visible, onToggle })
   );
 };
 
-/**
- * Hook to manage debug overlay state
- */
+
 export function useDebugOverlay() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Toggle with Ctrl+Shift+D
+      
       if (event.ctrlKey && event.shiftKey && event.key === 'D') {
         event.preventDefault();
         setVisible(prev => !prev);

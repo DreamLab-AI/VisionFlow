@@ -1,6 +1,4 @@
-/**
- * SpacePilot Status Component
- */
+
 
 import React from 'react';
 import { Puzzle } from 'lucide-react';

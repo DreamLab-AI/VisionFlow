@@ -1,6 +1,6 @@
 use anyhow::Result;
 
-/// Assembles OWL Functional Syntax fragments into a complete ontology
+/
 pub struct OntologyAssembler {
     header: String,
     axiom_blocks: Vec<String>,
@@ -14,18 +14,18 @@ impl OntologyAssembler {
         }
     }
 
-    /// Set the ontology header from OntologyDefinition.md
+    
     pub fn set_header(&mut self, owl_blocks: &[String]) -> Result<()> {
         if owl_blocks.is_empty() {
             anyhow::bail!("No OWL blocks found in ontology definition");
         }
 
-        // Combine all blocks from the definition file
+        
         self.header = owl_blocks.join("\n\n");
         Ok(())
     }
 
-    /// Add OWL axiom blocks from other files
+    
     pub fn add_owl_blocks(&mut self, owl_blocks: &[String]) -> Result<()> {
         for block in owl_blocks {
             if !block.trim().is_empty() {
@@ -35,7 +35,7 @@ impl OntologyAssembler {
         Ok(())
     }
 
-    /// Add axioms generated from Logseq properties
+    
     pub fn add_axioms(&mut self, axioms: &[String]) -> Result<()> {
         for axiom in axioms {
             if !axiom.trim().is_empty() {
@@ -45,18 +45,18 @@ impl OntologyAssembler {
         Ok(())
     }
 
-    /// Generate the complete OWL Functional Syntax document
+    
     pub fn to_string(&self) -> String {
         let mut result = String::new();
 
-        // Add the header (which should already be wrapped in Ontology(...))
-        // We need to remove the closing parenthesis, add axioms, then close it
+        
+        
 
         let header = self.header.trim();
 
-        // Check if header ends with the ontology closing parenthesis
+        
         if header.ends_with(')') {
-            // Remove the last closing parenthesis
+            
             let header_without_close = &header[..header.len() - 1];
             result.push_str(header_without_close);
             result.push('\n');
@@ -65,10 +65,10 @@ impl OntologyAssembler {
             result.push('\n');
         }
 
-        // Add all axiom blocks with proper indentation
+        
         for block in &self.axiom_blocks {
             result.push('\n');
-            // Add indentation to each line
+            
             for line in block.lines() {
                 if !line.trim().is_empty() {
                     result.push_str("  ");
@@ -78,13 +78,13 @@ impl OntologyAssembler {
             }
         }
 
-        // Close the ontology
+        
         result.push_str(")\n");
 
         result
     }
 
-    /// Validate the ontology using horned-owl
+    
     pub fn validate(&self) -> Result<()> {
         use horned_owl::io::ofn::reader::read as read_ofn;
         use horned_owl::ontology::set::SetOntology;
@@ -94,14 +94,14 @@ impl OntologyAssembler {
         let ontology_text = self.to_string();
         let cursor = Cursor::new(ontology_text.as_bytes());
 
-        // Try to parse with horned-owl's native OFN reader
+        
         match read_ofn::<Arc<str>, SetOntology<Arc<str>>, _>(cursor, Default::default()) {
             Ok((_ontology, _prefixes)) => {
                 println!("  ✓ Parsed successfully");
                 println!("  ✓ OWL Functional Syntax is valid");
 
-                // Basic consistency checks
-                // Note: For full reasoning, you'd need to integrate with whelk or another reasoner
+                
+                
                 println!(
                     "  ℹ For full reasoning/consistency checking, use a DL reasoner like whelk-rs"
                 );

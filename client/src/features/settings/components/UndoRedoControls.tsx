@@ -23,7 +23,7 @@ export function UndoRedoControls({ className, showHistory = false }: UndoRedoCon
     historyLength
   } = useSettingsHistory();
 
-  // Register keyboard shortcuts
+  
   useKeyboardShortcuts({
     'settings-undo': {
       key: 'z',
@@ -99,7 +99,7 @@ export function UndoRedoControls({ className, showHistory = false }: UndoRedoCon
               size="icon"
               className="h-8 w-8"
               onClick={() => {
-                // Could open a history panel
+                
                 window.dispatchEvent(new CustomEvent('show-settings-history'));
               }}
             >

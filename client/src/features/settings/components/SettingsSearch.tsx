@@ -15,26 +15,7 @@ export interface SettingsSearchProps {
   onFilterToggle?: () => void;
 }
 
-/**
- * SettingsSearch - High-performance search component for 1,061+ settings
- *
- * Features:
- * - Real-time fuzzy search with debouncing
- * - Result count display
- * - Clear button with keyboard shortcut (Escape)
- * - Accessibility support (ARIA labels, keyboard navigation)
- * - Performance optimized with useMemo and useCallback
- *
- * @example
- * ```tsx
- * <SettingsSearch
- *   onSearch={handleSearch}
- *   resultCount={42}
- *   totalCount={1061}
- *   placeholder="Search physics settings..."
- * />
- * ```
- */
+
 export const SettingsSearch: React.FC<SettingsSearchProps> = ({
   onSearch,
   placeholder = "Search 1,061 settings...",
@@ -50,7 +31,7 @@ export const SettingsSearch: React.FC<SettingsSearchProps> = ({
   const debounceTimerRef = useRef<NodeJS.Timeout>();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Debounced search handler for performance with 1000+ settings
+  
   const debouncedSearch = useCallback((searchQuery: string) => {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
@@ -76,19 +57,19 @@ export const SettingsSearch: React.FC<SettingsSearchProps> = ({
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
-    // Focus input after clearing for better UX
+    
     inputRef.current?.focus();
   }, [onSearch]);
 
-  // Keyboard shortcuts
+  
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Escape to clear search
+      
       if (e.key === 'Escape' && query) {
         e.preventDefault();
         handleClear();
       }
-      // Ctrl/Cmd + K to focus search
+      
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
         inputRef.current?.focus();
@@ -109,7 +90,7 @@ export const SettingsSearch: React.FC<SettingsSearchProps> = ({
 
   return (
     <div className={cn("relative flex items-center gap-2", className)}>
-      {/* Search Input Container */}
+      {}
       <div className="relative flex-1">
         <Search
           className={cn(
@@ -130,7 +111,7 @@ export const SettingsSearch: React.FC<SettingsSearchProps> = ({
             "placeholder:text-muted-foreground",
             "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
             "transition-all duration-200",
-            query && "pr-20" // Extra padding when showing clear button
+            query && "pr-20" 
           )}
           aria-label="Search settings"
           aria-describedby={showResultCount ? "search-results-count" : undefined}
@@ -138,7 +119,7 @@ export const SettingsSearch: React.FC<SettingsSearchProps> = ({
           spellCheck={false}
         />
 
-        {/* Clear Button */}
+        {}
         {query && (
           <button
             onClick={handleClear}
@@ -155,7 +136,7 @@ export const SettingsSearch: React.FC<SettingsSearchProps> = ({
         )}
       </div>
 
-      {/* Result Count Badge */}
+      {}
       {showResultCount && (
         <div
           id="search-results-count"
@@ -178,7 +159,7 @@ export const SettingsSearch: React.FC<SettingsSearchProps> = ({
         </div>
       )}
 
-      {/* Filter Toggle Button (Optional) */}
+      {}
       {showFilters && onFilterToggle && (
         <Button
           variant="outline"
@@ -192,7 +173,7 @@ export const SettingsSearch: React.FC<SettingsSearchProps> = ({
         </Button>
       )}
 
-      {/* Keyboard Shortcut Hint */}
+      {}
       {!query && (
         <div
           className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none"

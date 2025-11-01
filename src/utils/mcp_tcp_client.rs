@@ -19,7 +19,7 @@ use crate::services::agent_visualization_protocol::{
     SwarmTopologyData, TopologyPosition,
 };
 
-/// MCP TCP Client for real server communication with connection pooling
+/
 #[derive(Debug, Clone)]
 pub struct McpTcpClient {
     pub host: String,
@@ -29,7 +29,7 @@ pub struct McpTcpClient {
     pub retry_delay: Duration,
 }
 
-/// Connection pool for MCP TCP clients
+/
 #[derive(Debug)]
 pub struct McpConnectionPool {
     servers: Arc<Mutex<HashMap<String, McpTcpClient>>>,
@@ -38,7 +38,7 @@ pub struct McpConnectionPool {
 
 static CONNECTION_POOL: Lazy<McpConnectionPool> = Lazy::new(|| McpConnectionPool::new(5));
 
-/// MCP JSON-RPC request structure
+/
 #[derive(Debug, serde::Serialize)]
 struct McpRequest {
     jsonrpc: String,
@@ -47,7 +47,7 @@ struct McpRequest {
     id: u64,
 }
 
-/// MCP JSON-RPC response structure
+/
 #[derive(Debug, serde::Deserialize)]
 struct McpResponse {
     jsonrpc: String,
@@ -58,7 +58,7 @@ struct McpResponse {
     id: u64,
 }
 
-/// MCP Error structure
+/
 #[derive(Debug, serde::Deserialize)]
 struct McpError {
     code: i32,
@@ -68,7 +68,7 @@ struct McpError {
 }
 
 impl McpTcpClient {
-    /// Create new MCP TCP client
+    
     pub fn new(host: String, port: u16) -> Self {
         Self {
             host,
@@ -79,20 +79,20 @@ impl McpTcpClient {
         }
     }
 
-    /// Set connection timeout
+    
     pub fn with_timeout(mut self, timeout: Duration) -> Self {
         self.timeout = timeout;
         self
     }
 
-    /// Set retry configuration
+    
     pub fn with_retry_config(mut self, max_retries: u32, retry_delay: Duration) -> Self {
         self.max_retries = max_retries;
         self.retry_delay = retry_delay;
         self
     }
 
-    /// Establish async TCP connection to MCP server with retry logic
+    
     async fn connect(&self) -> Result<TcpStream, Box<dyn std::error::Error + Send + Sync>> {
         let addr_str = format!("{}:{}", self.host, self.port);
         debug!(
@@ -105,7 +105,7 @@ impl McpTcpClient {
         for attempt in 0..=self.max_retries {
             match tokio::time::timeout(self.timeout, TcpStream::connect(&addr_str)).await {
                 Ok(Ok(stream)) => {
-                    // Configure TCP options
+                    
                     if let Err(e) = stream.set_nodelay(true) {
                         warn!("Failed to set TCP_NODELAY: {}", e);
                     }
@@ -152,7 +152,7 @@ impl McpTcpClient {
         .into())
     }
 
-    /// Send MCP JSON-RPC request and receive response with improved error handling
+    
     async fn send_request(
         &self,
         method: &str,
@@ -190,13 +190,13 @@ impl McpTcpClient {
         .into())
     }
 
-    /// Send MCP tool call through tools/call wrapper
+    
     async fn send_tool_call(
         &self,
         tool_name: &str,
         arguments: Value,
     ) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
-        // Wrap the tool call in the MCP tools/call format
+        
         let wrapped_params = json!({
             "name": tool_name,
             "arguments": arguments
@@ -207,15 +207,15 @@ impl McpTcpClient {
             tool_name, arguments
         );
 
-        // Send through tools/call method
+        
         let response = self.send_request("tools/call", wrapped_params).await?;
 
-        // Extract the content from the response
+        
         if let Some(content) = response.get("content") {
             if let Some(content_array) = content.as_array() {
                 if let Some(first_content) = content_array.first() {
                     if let Some(text) = first_content.get("text").and_then(|t| t.as_str()) {
-                        // Parse the nested JSON response
+                        
                         match serde_json::from_str::<Value>(text) {
                             Ok(parsed) => {
                                 debug!("Parsed tool response: {}", parsed);
@@ -234,7 +234,7 @@ impl McpTcpClient {
         Err("Invalid tool call response format".into())
     }
 
-    /// Internal method to try sending a request once
+    
     async fn try_send_request(
         &self,
         method: &str,
@@ -242,7 +242,7 @@ impl McpTcpClient {
     ) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
         let mut stream = self.connect().await?;
 
-        // Create JSON-RPC request with unique ID
+        
         let request = McpRequest {
             jsonrpc: "2.0".to_string(),
             method: method.to_string(),
@@ -250,12 +250,12 @@ impl McpTcpClient {
             id: chrono::Utc::now().timestamp_millis() as u64,
         };
 
-        // Serialize and send request
+        
         let request_json = serde_json::to_string(&request)
             .map_err(|e| format!("Failed to serialize request: {}", e))?;
         debug!("Sending MCP request: {}", request_json);
 
-        // MCP protocol sends newline-delimited JSON
+        
         let request_data = format!("{}\n", request_json);
         stream
             .write_all(request_data.as_bytes())
@@ -266,11 +266,11 @@ impl McpTcpClient {
             .await
             .map_err(|e| format!("Failed to flush stream: {}", e))?;
 
-        // Read response with timeout handling
+        
         let response_str = self.read_response(&mut stream).await?;
         debug!("Received MCP response: {}", response_str.trim());
 
-        // Parse JSON-RPC response
+        
         let response: McpResponse = serde_json::from_str(response_str.trim())
             .map_err(|e| format!("Failed to parse response: {}", e))?;
 
@@ -287,7 +287,7 @@ impl McpTcpClient {
             .ok_or_else(|| "No result in MCP response".into())
     }
 
-    /// Read response from stream with proper timeout handling
+    
     async fn read_response(
         &self,
         stream: &mut TcpStream,
@@ -295,7 +295,7 @@ impl McpTcpClient {
         let mut reader = BufReader::new(stream);
         let mut response_line = String::new();
 
-        // Read a single line (JSON-RPC response) with timeout
+        
         match tokio::time::timeout(self.timeout, reader.read_line(&mut response_line)).await {
             Ok(Ok(bytes_read)) => {
                 if bytes_read == 0 {
@@ -309,7 +309,7 @@ impl McpTcpClient {
         }
     }
 
-    /// Query agent list from MCP server
+    
     pub async fn query_agent_list(
         &self,
     ) -> Result<Vec<MultiMcpAgentStatus>, Box<dyn std::error::Error + Send + Sync>> {
@@ -323,7 +323,7 @@ impl McpTcpClient {
         let result = self.send_tool_call("agent_list", params).await?;
         debug!("Agent list response: {}", result);
 
-        // Parse agent data from MCP response
+        
         let agents = self.parse_agent_list_response(&result)?;
         info!(
             "Successfully retrieved {} agents from MCP server",
@@ -333,7 +333,7 @@ impl McpTcpClient {
         Ok(agents)
     }
 
-    /// Query swarm status from MCP server
+    
     pub async fn query_swarm_status(
         &self,
     ) -> Result<SwarmTopologyData, Box<dyn std::error::Error + Send + Sync>> {
@@ -347,14 +347,14 @@ impl McpTcpClient {
         let result = self.send_tool_call("swarm_status", params).await?;
         debug!("Swarm status response: {}", result);
 
-        // Parse topology data from MCP response
+        
         let topology = self.parse_swarm_topology_response(&result)?;
         info!("Successfully retrieved swarm topology from MCP server");
 
         Ok(topology)
     }
 
-    /// Query server information and capabilities
+    
     pub async fn query_server_info(
         &self,
     ) -> Result<McpServerInfo, Box<dyn std::error::Error + Send + Sync>> {
@@ -365,14 +365,14 @@ impl McpTcpClient {
         let result = self.send_tool_call("server_info", params).await?;
         debug!("Server info response: {}", result);
 
-        // Parse server info from MCP response
+        
         let server_info = self.parse_server_info_response(&result)?;
         info!("Successfully retrieved server info from MCP server");
 
         Ok(server_info)
     }
 
-    /// Parse agent list response from MCP
+    
     fn parse_agent_list_response(
         &self,
         response: &Value,
@@ -397,7 +397,7 @@ impl McpTcpClient {
         Ok(agents)
     }
 
-    /// Parse single agent from MCP response
+    
     fn parse_single_agent(
         &self,
         agent_data: &Value,
@@ -432,7 +432,7 @@ impl McpTcpClient {
             .unwrap_or("default")
             .to_string();
 
-        // Parse capabilities
+        
         let capabilities = agent_data
             .get("capabilities")
             .and_then(|v| v.as_array())
@@ -443,13 +443,13 @@ impl McpTcpClient {
             })
             .unwrap_or_else(Vec::new);
 
-        // Parse performance data
+        
         let performance = self.parse_performance_data(agent_data.get("performance"))?;
 
-        // Parse metadata
+        
         let metadata = self.parse_agent_metadata(agent_data.get("metadata"))?;
 
-        // Parse neural info if available
+        
         let neural_info = agent_data
             .get("neural")
             .map(|neural_data| self.parse_neural_data(neural_data))
@@ -460,7 +460,7 @@ impl McpTcpClient {
         Ok(MultiMcpAgentStatus {
             agent_id,
             swarm_id,
-            server_source: McpServerType::ClaudeFlow, // Will be updated by caller
+            server_source: McpServerType::ClaudeFlow, 
             name,
             agent_type,
             status,
@@ -473,7 +473,7 @@ impl McpTcpClient {
         })
     }
 
-    /// Parse performance data from agent response
+    
     fn parse_performance_data(
         &self,
         perf_data: Option<&Value>,
@@ -533,7 +533,7 @@ impl McpTcpClient {
         })
     }
 
-    /// Parse agent metadata
+    
     fn parse_agent_metadata(
         &self,
         meta_data: Option<&Value>,
@@ -606,7 +606,7 @@ impl McpTcpClient {
         })
     }
 
-    /// Parse neural data from agent response
+    
     fn parse_neural_data(
         &self,
         neural_data: &Value,
@@ -661,7 +661,7 @@ impl McpTcpClient {
         )
     }
 
-    /// Parse swarm topology response
+    
     fn parse_swarm_topology_response(
         &self,
         response: &Value,
@@ -692,13 +692,13 @@ impl McpTcpClient {
             total_agents,
             coordination_layers,
             efficiency_score,
-            load_distribution: vec![], // Would be parsed from response
-            critical_paths: vec![],    // Would be parsed from response
-            bottlenecks: vec![],       // Would be parsed from response
+            load_distribution: vec![], 
+            critical_paths: vec![],    
+            bottlenecks: vec![],       
         })
     }
 
-    /// Parse server info response
+    
     fn parse_server_info_response(
         &self,
         response: &Value,
@@ -750,7 +750,7 @@ impl McpTcpClient {
         })
     }
 
-    /// Test connection to MCP server
+    
     pub async fn test_connection(&self) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
         match self.connect().await {
             Ok(_) => {
@@ -764,7 +764,7 @@ impl McpTcpClient {
         }
     }
 
-    /// Initialize MCP session (send initialize request)
+    
     pub async fn initialize_session(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         debug!("Initializing MCP session");
 
@@ -782,7 +782,7 @@ impl McpTcpClient {
             }
         });
 
-        // Use direct send_request for initialize (this is a protocol-level method, not a tool)
+        
         let result = self.send_request("initialize", params).await?;
         debug!("MCP session initialized: {}", result);
 
@@ -791,7 +791,7 @@ impl McpTcpClient {
 }
 
 impl McpConnectionPool {
-    /// Create new connection pool
+    
     pub fn new(max_connections_per_server: usize) -> Self {
         Self {
             servers: Arc::new(Mutex::new(HashMap::new())),
@@ -799,7 +799,7 @@ impl McpConnectionPool {
         }
     }
 
-    /// Get or create MCP client for server
+    
     pub async fn get_client(&self, server_id: &str, host: &str, port: u16) -> McpTcpClient {
         let mut servers = self.servers.lock().await;
 
@@ -820,7 +820,7 @@ impl McpConnectionPool {
         }
     }
 
-    /// Remove client from pool
+    
     pub async fn remove_client(&self, server_id: &str) {
         let mut servers = self.servers.lock().await;
         if servers.remove(server_id).is_some() {
@@ -828,7 +828,7 @@ impl McpConnectionPool {
         }
     }
 
-    /// Get pool statistics
+    
     pub async fn get_stats(&self) -> HashMap<String, usize> {
         let servers = self.servers.lock().await;
         let mut stats = HashMap::new();
@@ -841,18 +841,18 @@ impl McpConnectionPool {
     }
 }
 
-/// Create MCP TCP client for a specific server configuration using connection pool
+/
 pub fn create_mcp_client(server_type: &McpServerType, host: &str, port: u16) -> McpTcpClient {
     info!(
         "Creating MCP TCP client for {:?} at {}:{}",
         server_type, host, port
     );
     McpTcpClient::new(host.to_string(), port)
-        .with_timeout(Duration::from_secs(15)) // Increased timeout for reliability
-        .with_retry_config(5, Duration::from_millis(1000)) // More retries with longer delay
+        .with_timeout(Duration::from_secs(15)) 
+        .with_retry_config(5, Duration::from_millis(1000)) 
 }
 
-/// Get MCP client from connection pool
+/
 pub async fn get_pooled_mcp_client(
     server_type: &McpServerType,
     host: &str,
@@ -862,7 +862,7 @@ pub async fn get_pooled_mcp_client(
     CONNECTION_POOL.get_client(&server_id, host, port).await
 }
 
-/// Test MCP TCP connectivity for multiple servers
+/
 pub async fn test_mcp_connectivity(
     servers: &HashMap<String, (String, u16)>,
 ) -> HashMap<String, bool> {

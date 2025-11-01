@@ -1,9 +1,4 @@
-/**
- * GraphEntityMapper - Maps VisionFlow graph data to Vircadia entities
- *
- * Converts graph nodes and edges into Vircadia's entity system for
- * multi-user spatial visualization in Quest 3 AR.
- */
+
 
 import { createLogger } from '../../utils/loggerConfig';
 
@@ -57,8 +52,8 @@ export interface VircadiaEntityMetadata {
     color?: string;
     label?: string;
     visualProperties?: Record<string, unknown>;
-    sourceId?: string;  // For edges
-    targetId?: string;  // For edges
+    sourceId?: string;  
+    targetId?: string;  
 }
 
 export interface EntitySyncOptions {
@@ -78,20 +73,18 @@ export class GraphEntityMapper {
         this.defaultOptions = { ...this.defaultOptions, ...options };
     }
 
-    /**
-     * Map a graph node to a Vircadia sphere entity
-     */
+    
     mapNodeToEntity(node: GraphNode): VircadiaEntity {
         const entityName = `node_${node.id}`;
 
-        // Default position if not provided
+        
         const position = {
             x: node.x ?? 0,
             y: node.y ?? 0,
             z: node.z ?? 0
         };
 
-        // Node size determines sphere scale
+        
         const scale = {
             x: node.size ?? 0.1,
             y: node.size ?? 0.1,
@@ -125,9 +118,7 @@ export class GraphEntityMapper {
         return entity;
     }
 
-    /**
-     * Map a graph edge to a Vircadia line entity
-     */
+    
     mapEdgeToEntity(edge: GraphEdge, nodePositions: Map<string, { x: number; y: number; z: number }>): VircadiaEntity {
         const entityName = `edge_${edge.id}`;
 
@@ -163,7 +154,7 @@ export class GraphEntityMapper {
             general__semantic_version: '1.0.0',
             general__created_by: this.defaultOptions.createdBy,
             group__sync: this.defaultOptions.syncGroup,
-            group__load_priority: this.defaultOptions.loadPriority + 1, // Edges render after nodes
+            group__load_priority: this.defaultOptions.loadPriority + 1, 
             meta__data: metadata
         };
 
@@ -171,15 +162,13 @@ export class GraphEntityMapper {
         return entity;
     }
 
-    /**
-     * Map entire graph to Vircadia entities
-     */
+    
     mapGraphToEntities(graphData: GraphData): VircadiaEntity[] {
         logger.info(`Mapping graph with ${graphData.nodes.length} nodes and ${graphData.edges.length} edges`);
 
         const entities: VircadiaEntity[] = [];
 
-        // Build position lookup for edges
+        
         const nodePositions = new Map<string, { x: number; y: number; z: number }>();
         graphData.nodes.forEach(node => {
             nodePositions.set(node.id, {
@@ -189,12 +178,12 @@ export class GraphEntityMapper {
             });
         });
 
-        // Map nodes
+        
         graphData.nodes.forEach(node => {
             entities.push(this.mapNodeToEntity(node));
         });
 
-        // Map edges
+        
         graphData.edges.forEach(edge => {
             entities.push(this.mapEdgeToEntity(edge, nodePositions));
         });
@@ -203,9 +192,7 @@ export class GraphEntityMapper {
         return entities;
     }
 
-    /**
-     * Create SQL INSERT statement for entity
-     */
+    
     generateEntityInsertSQL(entity: VircadiaEntity): string {
         const columns = [
             'general__entity_name',
@@ -237,17 +224,13 @@ DO UPDATE SET
         return sql;
     }
 
-    /**
-     * Create batch SQL for all entities
-     */
+    
     generateBatchInsertSQL(entities: VircadiaEntity[]): string {
         const statements = entities.map(entity => this.generateEntityInsertSQL(entity));
         return statements.join('\n\n');
     }
 
-    /**
-     * Extract entity metadata from Vircadia entity
-     */
+    
     static extractMetadata(entity: VircadiaEntity): VircadiaEntityMetadata | null {
         if (!entity.meta__data) {
             return null;
@@ -255,9 +238,7 @@ DO UPDATE SET
         return entity.meta__data as VircadiaEntityMetadata;
     }
 
-    /**
-     * Reverse mapping: Vircadia entity back to graph node
-     */
+    
     static entityToGraphNode(entity: VircadiaEntity): GraphNode | null {
         const metadata = GraphEntityMapper.extractMetadata(entity);
         if (!metadata || metadata.entityType !== 'node') {
@@ -279,9 +260,7 @@ DO UPDATE SET
         return node;
     }
 
-    /**
-     * Reverse mapping: Vircadia entity back to graph edge
-     */
+    
     static entityToGraphEdge(entity: VircadiaEntity): GraphEdge | null {
         const metadata = GraphEntityMapper.extractMetadata(entity);
         if (!metadata || metadata.entityType !== 'edge') {
@@ -301,9 +280,7 @@ DO UPDATE SET
         return edge;
     }
 
-    /**
-     * Convert Vircadia entities back to graph data
-     */
+    
     static entitiesToGraph(entities: VircadiaEntity[]): GraphData {
         const nodes: GraphNode[] = [];
         const edges: GraphEdge[] = [];
@@ -326,9 +303,7 @@ DO UPDATE SET
         return { nodes, edges };
     }
 
-    /**
-     * Update entity position (for real-time sync)
-     */
+    
     updateEntityPosition(
         entity: VircadiaEntity,
         position: { x: number; y: number; z: number }
@@ -347,9 +322,7 @@ DO UPDATE SET
         };
     }
 
-    /**
-     * Generate position update SQL (optimized for real-time)
-     */
+    
     generatePositionUpdateSQL(
         entityName: string,
         position: { x: number; y: number; z: number }

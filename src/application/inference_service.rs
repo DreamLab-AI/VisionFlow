@@ -15,51 +15,51 @@ use crate::inference::types::{ConsistencyReport, ClassificationResult, Unsatisfi
 use crate::inference::optimization::BatchInferenceRequest;
 use crate::events::EventBus;
 
-/// Inference service events
+/
 #[derive(Debug, Clone)]
 pub enum InferenceEvent {
-    /// Inference started
+    
     InferenceStarted { ontology_id: String },
 
-    /// Inference completed
+    
     InferenceCompleted {
         ontology_id: String,
         inference_count: usize,
         duration_ms: u64,
     },
 
-    /// Inference failed
+    
     InferenceFailed {
         ontology_id: String,
         error: String,
     },
 
-    /// Validation completed
+    
     ValidationCompleted {
         ontology_id: String,
         consistent: bool,
     },
 
-    /// Classification completed
+    
     ClassificationCompleted {
         ontology_id: String,
         hierarchy_count: usize,
     },
 }
 
-/// Inference service configuration
+/
 #[derive(Debug, Clone)]
 pub struct InferenceServiceConfig {
-    /// Enable caching
+    
     pub enable_cache: bool,
 
-    /// Enable automatic inference
+    
     pub auto_inference: bool,
 
-    /// Maximum parallel inferences
+    
     pub max_parallel: usize,
 
-    /// Enable event publishing
+    
     pub publish_events: bool,
 }
 
@@ -74,29 +74,29 @@ impl Default for InferenceServiceConfig {
     }
 }
 
-/// Application service for inference operations
+/
 pub struct InferenceService {
-    /// Inference engine
+    
     inference_engine: Arc<RwLock<dyn InferenceEngine>>,
 
-    /// Ontology repository
+    
     ontology_repo: Arc<dyn OntologyRepository>,
 
-    /// Inference cache
+    
     cache: Option<Arc<InferenceCache>>,
 
-    /// Optimizer for batch/parallel operations
+    
     optimizer: Arc<InferenceOptimizer>,
 
-    /// Event bus for publishing events
+    
     event_bus: Arc<RwLock<EventBus>>,
 
-    /// Service configuration
+    
     config: InferenceServiceConfig,
 }
 
 impl InferenceService {
-    /// Create new inference service
+    
     pub fn new(
         inference_engine: Arc<RwLock<dyn InferenceEngine>>,
         ontology_repo: Arc<dyn OntologyRepository>,
@@ -121,13 +121,13 @@ impl InferenceService {
         }
     }
 
-    /// Run inference on an ontology
+    
     #[instrument(skip(self), level = "info")]
     pub async fn run_inference(&self, ontology_id: &str) -> EngineResult<InferenceResults> {
         info!("Running inference for ontology: {}", ontology_id);
         let start = std::time::Instant::now();
 
-        // Publish start event
+        
         if self.config.publish_events {
             self.publish_event(InferenceEvent::InferenceStarted {
                 ontology_id: ontology_id.to_string(),
@@ -135,11 +135,11 @@ impl InferenceService {
             .await;
         }
 
-        // Load ontology from repository
+        
         let (classes, axioms) = self.load_ontology_data(ontology_id).await?;
         let checksum = self.compute_checksum(&classes, &axioms);
 
-        // Check cache
+        
         if let Some(ref cache) = self.cache {
             if let Some(cached_results) = cache.get(ontology_id, &checksum).await {
                 info!("Using cached inference results");
@@ -147,11 +147,11 @@ impl InferenceService {
             }
         }
 
-        // Load ontology into inference engine
+        
         let mut engine = self.inference_engine.write().await;
         engine.load_ontology(classes, axioms).await?;
 
-        // Perform inference
+        
         let results = match engine.infer().await {
             Ok(results) => results,
             Err(e) => {
@@ -167,12 +167,12 @@ impl InferenceService {
             }
         };
 
-        drop(engine); // Release write lock
+        drop(engine); 
 
-        // Store results
+        
         self.store_inference_results(ontology_id, &results).await?;
 
-        // Cache results
+        
         if let Some(ref cache) = self.cache {
             cache
                 .put(ontology_id.to_string(), checksum, results.clone())
@@ -181,7 +181,7 @@ impl InferenceService {
 
         let duration_ms = start.elapsed().as_millis() as u64;
 
-        // Publish completion event
+        
         if self.config.publish_events {
             self.publish_event(InferenceEvent::InferenceCompleted {
                 ontology_id: ontology_id.to_string(),
@@ -200,22 +200,22 @@ impl InferenceService {
         Ok(results)
     }
 
-    /// Validate ontology consistency
+    
     #[instrument(skip(self), level = "info")]
     pub async fn validate_ontology(&self, ontology_id: &str) -> EngineResult<ValidationResult> {
         info!("Validating ontology: {}", ontology_id);
         let start = std::time::Instant::now();
 
-        // Load ontology
+        
         let (classes, axioms) = self.load_ontology_data(ontology_id).await?;
 
         let mut engine = self.inference_engine.write().await;
         engine.load_ontology(classes, axioms).await?;
 
-        // Check consistency
+        
         let consistent = engine.check_consistency().await?;
 
-        // Get unsatisfiable classes if inconsistent
+        
         let mut unsatisfiable = Vec::new();
         if !consistent {
             let hierarchy = engine.get_subclass_hierarchy().await?;
@@ -242,7 +242,7 @@ impl InferenceService {
             validation_time_ms,
         };
 
-        // Publish event
+        
         if self.config.publish_events {
             self.publish_event(InferenceEvent::ValidationCompleted {
                 ontology_id: ontology_id.to_string(),
@@ -260,19 +260,19 @@ impl InferenceService {
         Ok(result)
     }
 
-    /// Classify ontology hierarchy
+    
     #[instrument(skip(self), level = "info")]
     pub async fn classify_ontology(&self, ontology_id: &str) -> EngineResult<ClassificationResult> {
         info!("Classifying ontology: {}", ontology_id);
         let start = std::time::Instant::now();
 
-        // Ensure inference has been run
+        
         let results = self.run_inference(ontology_id).await?;
 
         let engine = self.inference_engine.read().await;
         let hierarchy = engine.get_subclass_hierarchy().await?;
 
-        // Extract equivalent classes (classes with same sub/super classes)
+        
         let equivalent_classes = self.find_equivalent_classes(&hierarchy);
 
         let classification_time_ms = start.elapsed().as_millis() as u64;
@@ -284,7 +284,7 @@ impl InferenceService {
             inferred_count: results.inferred_axioms.len(),
         };
 
-        // Publish event
+        
         if self.config.publish_events {
             self.publish_event(InferenceEvent::ClassificationCompleted {
                 ontology_id: ontology_id.to_string(),
@@ -296,7 +296,7 @@ impl InferenceService {
         Ok(result)
     }
 
-    /// Get consistency report
+    
     pub async fn get_consistency_report(&self, ontology_id: &str) -> EngineResult<ConsistencyReport> {
         let validation = self.validate_ontology(ontology_id).await?;
 
@@ -315,7 +315,7 @@ impl InferenceService {
         })
     }
 
-    /// Batch inference for multiple ontologies
+    
     pub async fn batch_inference(
         &self,
         ontology_ids: Vec<String>,
@@ -325,7 +325,7 @@ impl InferenceService {
         let request = BatchInferenceRequest {
             ontology_ids: ontology_ids.clone(),
             max_parallelism: self.config.max_parallel,
-            timeout_ms: 60000, // 60 seconds per ontology
+            timeout_ms: 60000, 
         };
 
         self.optimizer
@@ -333,7 +333,7 @@ impl InferenceService {
             .await
     }
 
-    /// Invalidate cache for ontology
+    
     pub async fn invalidate_cache(&self, ontology_id: &str) {
         if let Some(ref cache) = self.cache {
             cache.invalidate(ontology_id).await;
@@ -341,7 +341,7 @@ impl InferenceService {
         }
     }
 
-    /// Helper: Load ontology data from repository
+    
     async fn load_ontology_data(
         &self,
         ontology_id: &str,
@@ -361,7 +361,7 @@ impl InferenceService {
         Ok((classes, axioms))
     }
 
-    /// Helper: Compute ontology checksum
+    
     fn compute_checksum(
         &self,
         classes: &[crate::ports::ontology_repository::OwlClass],
@@ -377,13 +377,13 @@ impl InferenceService {
         format!("{:x}", hasher.finish())
     }
 
-    /// Helper: Store inference results
+    
     async fn store_inference_results(
         &self,
         ontology_id: &str,
         results: &InferenceResults,
     ) -> EngineResult<()> {
-        // Store inferred axioms back to repository
+        
         for axiom in &results.inferred_axioms {
             let _ = self.ontology_repo.add_axiom(&axiom).await;
         }
@@ -397,14 +397,14 @@ impl InferenceService {
         Ok(())
     }
 
-    /// Helper: Find equivalent classes
+    
     fn find_equivalent_classes(&self, hierarchy: &[(String, String)]) -> Vec<Vec<String>> {
         use std::collections::{HashMap, HashSet};
 
         let mut subclasses: HashMap<String, HashSet<String>> = HashMap::new();
         let mut superclasses: HashMap<String, HashSet<String>> = HashMap::new();
 
-        // Build maps
+        
         for (child, parent) in hierarchy {
             subclasses
                 .entry(parent.clone())
@@ -416,7 +416,7 @@ impl InferenceService {
                 .insert(parent.clone());
         }
 
-        // Find equivalent classes (same sub and super classes)
+        
         let mut equivalent_groups: Vec<Vec<String>> = Vec::new();
         let mut processed: HashSet<String> = HashSet::new();
 
@@ -449,10 +449,10 @@ impl InferenceService {
         equivalent_groups
     }
 
-    /// Helper: Publish event
+    
     async fn publish_event(&self, event: InferenceEvent) {
         let event_bus = self.event_bus.write().await;
-        // Event publishing implementation would go here
+        
         debug!("Published event: {:?}", event);
     }
 }
@@ -463,5 +463,5 @@ mod tests {
     use mockall::mock;
     use crate::ports::ontology_repository::OwlClass;
 
-    // Mock implementations would be added here for testing
+    
 }

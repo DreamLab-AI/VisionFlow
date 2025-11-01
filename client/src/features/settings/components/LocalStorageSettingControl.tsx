@@ -1,6 +1,4 @@
-/**
- * Setting control component that uses localStorage instead of backend sync
- */
+
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Switch } from '@/features/design-system/components/Switch';
@@ -30,7 +28,7 @@ interface LocalStorageSettingControlProps {
 export const LocalStorageSettingControl: React.FC<LocalStorageSettingControlProps> = ({ setting }) => {
   const [value, setValue] = useState<any>(null);
 
-  // Extract the key from the path (e.g., 'debug.enabled' -> 'enabled')
+  
   const getDebugKey = useCallback(() => {
     if (setting.path.startsWith('debug.')) {
       return setting.path.replace('debug.', '');
@@ -38,19 +36,19 @@ export const LocalStorageSettingControl: React.FC<LocalStorageSettingControlProp
     return setting.path;
   }, [setting.path]);
 
-  // Load initial value from localStorage
+  
   useEffect(() => {
     const loadValue = () => {
       const key = getDebugKey();
       
-      // Check if this is a debug setting
+      
       if (setting.path.startsWith('debug.')) {
-        // Use clientDebugState for debug settings
+        
         const debugKey = key as any;
         const val = clientDebugState.get(debugKey);
         setValue(val);
       } else {
-        // Direct localStorage access for non-debug settings
+        
         const stored = localStorage.getItem(setting.path);
         if (stored !== null) {
           if (setting.type === 'toggle') {
@@ -61,7 +59,7 @@ export const LocalStorageSettingControl: React.FC<LocalStorageSettingControlProp
             setValue(stored);
           }
         } else {
-          // Set default values
+          
           setValue(setting.type === 'toggle' ? false : 
                   setting.type === 'number' || setting.type === 'slider' ? setting.min || 0 :
                   '');
@@ -71,7 +69,7 @@ export const LocalStorageSettingControl: React.FC<LocalStorageSettingControlProp
 
     loadValue();
 
-    // Subscribe to changes if it's a debug setting
+    
     if (setting.path.startsWith('debug.')) {
       const key = getDebugKey() as any;
       const unsubscribe = clientDebugState.subscribe(key, (newValue) => {
@@ -80,7 +78,7 @@ export const LocalStorageSettingControl: React.FC<LocalStorageSettingControlProp
       return unsubscribe;
     }
 
-    // Listen for storage changes from other tabs
+    
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === setting.path) {
         loadValue();
@@ -91,21 +89,21 @@ export const LocalStorageSettingControl: React.FC<LocalStorageSettingControlProp
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [setting.path, setting.type, setting.min, getDebugKey]);
 
-  // Handle value changes
+  
   const handleChange = useCallback((newValue: any) => {
     setValue(newValue);
     
     const key = getDebugKey();
     
     if (setting.path.startsWith('debug.')) {
-      // Use clientDebugState for debug settings
+      
       const debugKey = key as any;
       clientDebugState.set(debugKey, newValue);
     } else {
-      // Direct localStorage for non-debug settings
+      
       localStorage.setItem(setting.path, String(newValue));
       
-      // Dispatch storage event for same-tab updates
+      
       window.dispatchEvent(new StorageEvent('storage', {
         key: setting.path,
         newValue: String(newValue),
@@ -117,7 +115,7 @@ export const LocalStorageSettingControl: React.FC<LocalStorageSettingControlProp
     logger.debug(`Setting ${setting.path} changed to ${newValue}`);
   }, [setting.path, getDebugKey]);
 
-  // Render different control types
+  
   const renderControl = () => {
     switch (setting.type) {
       case 'toggle':

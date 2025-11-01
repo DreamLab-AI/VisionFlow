@@ -1,9 +1,4 @@
-/**
- * VircadiaSceneBridge - Bridges Vircadia entities to Babylon.js scene
- *
- * Manages real-time synchronization between Vircadia multi-user server
- * and Babylon.js XR rendering for Quest 3.
- */
+
 
 import * as BABYLON from '@babylonjs/core';
 import { ClientCore } from '../../services/vircadia/VircadiaClientCore';
@@ -53,11 +48,9 @@ export class VircadiaSceneBridge {
         logger.info('VircadiaSceneBridge initialized', this.config);
     }
 
-    /**
-     * Initialize master meshes for instancing
-     */
+    
     private initializeMasterMeshes(): void {
-        // Master sphere for nodes
+        
         this.masterNodeMesh = BABYLON.MeshBuilder.CreateSphere(
             'master_node_sphere',
             { diameter: 1, segments: 16 },
@@ -65,7 +58,7 @@ export class VircadiaSceneBridge {
         );
         this.masterNodeMesh.isVisible = false;
 
-        // Emissive material for XR visibility
+        
         const nodeMaterial = new BABYLON.StandardMaterial('master_node_material', this.scene);
         nodeMaterial.emissiveColor = new BABYLON.Color3(0.1, 0.2, 0.5);
         nodeMaterial.diffuseColor = new BABYLON.Color3(0.3, 0.5, 0.8);
@@ -74,9 +67,7 @@ export class VircadiaSceneBridge {
         logger.debug('Master meshes created for instancing');
     }
 
-    /**
-     * Create Babylon mesh from Vircadia entity
-     */
+    
     private createMeshFromEntity(entity: VircadiaEntity): BABYLON.TransformNode | null {
         const metadata = GraphEntityMapper.extractMetadata(entity);
         if (!metadata) {
@@ -93,17 +84,15 @@ export class VircadiaSceneBridge {
         return null;
     }
 
-    /**
-     * Create node mesh (sphere instance)
-     */
+    
     private createNodeMesh(entity: VircadiaEntity, metadata: VircadiaEntityMetadata): BABYLON.TransformNode {
         let mesh: BABYLON.TransformNode;
 
         if (this.config.instancedRendering && this.masterNodeMesh) {
-            // Use instanced rendering for performance
+            
             mesh = this.masterNodeMesh.createInstance(entity.general__entity_name);
         } else {
-            // Create individual mesh
+            
             mesh = BABYLON.MeshBuilder.CreateSphere(
                 entity.general__entity_name,
                 { diameter: 1, segments: 16 },
@@ -111,7 +100,7 @@ export class VircadiaSceneBridge {
             );
         }
 
-        // Apply transform
+        
         if (metadata.position) {
             mesh.position = new BABYLON.Vector3(
                 metadata.position.x,
@@ -128,7 +117,7 @@ export class VircadiaSceneBridge {
             );
         }
 
-        // Apply color
+        
         if (metadata.color && mesh instanceof BABYLON.Mesh) {
             const color = BABYLON.Color3.FromHexString(metadata.color);
             const material = new BABYLON.StandardMaterial(`${entity.general__entity_name}_mat`, this.scene);
@@ -137,12 +126,12 @@ export class VircadiaSceneBridge {
             mesh.material = material;
         }
 
-        // Add label
+        
         if (metadata.label) {
             this.createNodeLabel(mesh, metadata.label);
         }
 
-        // LOD optimization
+        
         if (this.config.enableLOD && mesh instanceof BABYLON.Mesh) {
             this.setupLOD(mesh);
         }
@@ -151,9 +140,7 @@ export class VircadiaSceneBridge {
         return mesh;
     }
 
-    /**
-     * Create edge mesh (line)
-     */
+    
     private createEdgeMesh(entity: VircadiaEntity, metadata: VircadiaEntityMetadata): BABYLON.TransformNode {
         const sourcePos = metadata.position || { x: 0, y: 0, z: 0 };
         const targetPos = (metadata.visualProperties?.targetPosition as { x: number; y: number; z: number }) || sourcePos;
@@ -169,7 +156,7 @@ export class VircadiaSceneBridge {
             this.scene
         );
 
-        // Apply color
+        
         if (metadata.color) {
             line.color = BABYLON.Color3.FromHexString(metadata.color);
         } else {
@@ -180,9 +167,7 @@ export class VircadiaSceneBridge {
         return line;
     }
 
-    /**
-     * Create 3D label for node
-     */
+    
     private createNodeLabel(node: BABYLON.TransformNode, text: string): void {
         const plane = BABYLON.MeshBuilder.CreatePlane(
             `${node.name}_label`,
@@ -194,7 +179,7 @@ export class VircadiaSceneBridge {
         plane.position.y = 0.15;
         plane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
 
-        // Create texture with text
+        
         const dynamicTexture = new BABYLON.DynamicTexture(
             `${node.name}_label_texture`,
             { width: 512, height: 128 },
@@ -219,9 +204,7 @@ export class VircadiaSceneBridge {
         plane.material = labelMaterial;
     }
 
-    /**
-     * Setup LOD (Level of Detail) for performance
-     */
+    
     private setupLOD(mesh: BABYLON.Mesh): void {
         const highDetail = mesh;
         const mediumDetail = mesh.clone(`${mesh.name}_medium`);
@@ -235,12 +218,10 @@ export class VircadiaSceneBridge {
 
         mesh.addLODLevel(15, mediumDetail);
         mesh.addLODLevel(30, lowDetail);
-        mesh.addLODLevel(this.config.maxRenderDistance, null); // Cull beyond max distance
+        mesh.addLODLevel(this.config.maxRenderDistance, null); 
     }
 
-    /**
-     * Listen for entity updates from Vircadia
-     */
+    
     private setupEntityUpdateListener(): void {
         this.unsubscribeEntityUpdates = this.syncManager.onEntityUpdate((entities) => {
             logger.debug(`Received ${entities.length} entity updates from Vircadia`);
@@ -251,20 +232,18 @@ export class VircadiaSceneBridge {
         });
     }
 
-    /**
-     * Update existing mesh or create new one
-     */
+    
     private updateOrCreateMesh(entity: VircadiaEntity): void {
         let mesh = this.entityMeshes.get(entity.general__entity_name);
 
         if (!mesh) {
-            // Create new mesh
+            
             mesh = this.createMeshFromEntity(entity);
             if (mesh) {
                 this.entityMeshes.set(entity.general__entity_name, mesh);
             }
         } else {
-            // Update existing mesh
+            
             const metadata = GraphEntityMapper.extractMetadata(entity);
             if (metadata?.position) {
                 mesh.position = new BABYLON.Vector3(
@@ -276,9 +255,7 @@ export class VircadiaSceneBridge {
         }
     }
 
-    /**
-     * Load graph from Vircadia and render
-     */
+    
     async loadGraphFromVircadia(): Promise<void> {
         logger.info('Loading graph from Vircadia...');
 
@@ -286,10 +263,10 @@ export class VircadiaSceneBridge {
             const graphData = await this.syncManager.pullGraphFromVircadia();
             logger.info(`Loaded ${graphData.nodes.length} nodes and ${graphData.edges.length} edges`);
 
-            // Clear existing meshes
+            
             this.clearScene();
 
-            // Create meshes for all entities
+            
             const entities = new GraphEntityMapper().mapGraphToEntities(graphData);
             entities.forEach(entity => {
                 const mesh = this.createMeshFromEntity(entity);
@@ -306,9 +283,7 @@ export class VircadiaSceneBridge {
         }
     }
 
-    /**
-     * Push local graph to Vircadia
-     */
+    
     async pushGraphToVircadia(graphData: { nodes: any[]; edges: any[] }): Promise<void> {
         logger.info('Pushing graph to Vircadia...');
 
@@ -321,9 +296,7 @@ export class VircadiaSceneBridge {
         }
     }
 
-    /**
-     * Update node position (for real-time sync)
-     */
+    
     updateNodePosition(nodeId: string, position: BABYLON.Vector3): void {
         const entityName = `node_${nodeId}`;
         const mesh = this.entityMeshes.get(entityName);
@@ -332,7 +305,7 @@ export class VircadiaSceneBridge {
             mesh.position = position;
         }
 
-        // Sync to Vircadia
+        
         this.syncManager.updateNodePosition(nodeId, {
             x: position.x,
             y: position.y,
@@ -340,9 +313,7 @@ export class VircadiaSceneBridge {
         });
     }
 
-    /**
-     * Clear all meshes from scene
-     */
+    
     clearScene(): void {
         logger.info('Clearing scene');
 
@@ -352,16 +323,12 @@ export class VircadiaSceneBridge {
         this.entityMeshes.clear();
     }
 
-    /**
-     * Get sync statistics
-     */
+    
     getStats() {
         return this.syncManager.getStats();
     }
 
-    /**
-     * Dispose bridge and cleanup
-     */
+    
     dispose(): void {
         logger.info('Disposing VircadiaSceneBridge');
 

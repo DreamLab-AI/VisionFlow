@@ -1,9 +1,4 @@
-/**
- * GraphVircadiaBridge - Synchronize knowledge graph with Vircadia collaborative features
- *
- * This bridge enables multi-user graph exploration by synchronizing node selections,
- * annotations, and filter states across all connected Vircadia clients.
- */
+
 
 import * as BABYLON from '@babylonjs/core';
 import { ClientCore } from '../vircadia/VircadiaClientCore';
@@ -42,7 +37,7 @@ export interface AnnotationEvent {
 }
 
 export class GraphVircadiaBridge {
-  private nodeEntityMap = new Map<string, string>(); // nodeId -> entityId
+  private nodeEntityMap = new Map<string, string>(); 
   private localSelectionCallback?: (nodeIds: string[]) => void;
   private remoteSelectionCallback?: (event: UserSelectionEvent) => void;
   private annotationCallback?: (event: AnnotationEvent) => void;
@@ -54,9 +49,7 @@ export class GraphVircadiaBridge {
     private collab: CollaborativeGraphSync
   ) {}
 
-  /**
-   * Initialize the bridge
-   */
+  
   async initialize(): Promise<void> {
     logger.info('Initializing GraphVircadiaBridge...');
 
@@ -66,33 +59,31 @@ export class GraphVircadiaBridge {
 
     await this.collab.initialize();
 
-    // Listen for remote user selections
+    
     this.collab.on('user-selection', this.handleRemoteSelection.bind(this));
 
-    // Listen for annotations from other users
+    
     this.collab.on('annotation-added', this.handleRemoteAnnotation.bind(this));
     this.collab.on('annotation-removed', this.handleAnnotationRemoved.bind(this));
 
-    // Listen for filter state changes
+    
     this.collab.on('filter-state-changed', this.handleFilterStateChanged.bind(this));
 
     this.isActive = true;
     logger.info('GraphVircadiaBridge initialized successfully');
   }
 
-  /**
-   * Synchronize graph nodes to Vircadia
-   */
+  
   syncGraphToVircadia(nodes: GraphNode[], edges: GraphEdge[]): void {
     if (!this.isActive) return;
 
     try {
-      // Sync nodes as collaborative entities
+      
       nodes.forEach(node => {
         this.syncNodeToEntity(node);
       });
 
-      // Sync edges
+      
       edges.forEach(edge => {
         this.syncEdgeToEntity(edge);
       });
@@ -103,35 +94,29 @@ export class GraphVircadiaBridge {
     }
   }
 
-  /**
-   * Sync a single node to Vircadia entity
-   */
+  
   private syncNodeToEntity(node: GraphNode): void {
     const entityId = `graph-node-${node.id}`;
 
-    // Store mapping
+    
     this.nodeEntityMap.set(node.id, entityId);
 
-    // Nodes are managed by CollaborativeGraphSync
-    // Just track the mapping for selection synchronization
+    
+    
   }
 
-  /**
-   * Sync edge to Vircadia
-   */
+  
   private syncEdgeToEntity(edge: GraphEdge): void {
     const sourceEntityId = this.nodeEntityMap.get(edge.source);
     const targetEntityId = this.nodeEntityMap.get(edge.target);
 
     if (sourceEntityId && targetEntityId) {
-      // Edges are visualized in the graph, we just track them
-      // for collaborative features
+      
+      
     }
   }
 
-  /**
-   * Broadcast local user's node selection to all connected users
-   */
+  
   broadcastLocalSelection(nodeIds: string[]): void {
     if (!this.isActive) return;
 
@@ -143,9 +128,7 @@ export class GraphVircadiaBridge {
     }
   }
 
-  /**
-   * Add annotation to a node (visible to all users)
-   */
+  
   async addAnnotation(
     nodeId: string,
     text: string,
@@ -170,9 +153,7 @@ export class GraphVircadiaBridge {
     }
   }
 
-  /**
-   * Remove annotation
-   */
+  
   async removeAnnotation(annotationId: string): Promise<void> {
     if (!this.isActive) return;
 
@@ -184,9 +165,7 @@ export class GraphVircadiaBridge {
     }
   }
 
-  /**
-   * Broadcast filter state to all users
-   */
+  
   broadcastFilterState(filterState: {
     searchQuery?: string;
     categoryFilter?: string[];
@@ -203,9 +182,7 @@ export class GraphVircadiaBridge {
     }
   }
 
-  /**
-   * Handle remote user selection event
-   */
+  
   private handleRemoteSelection(event: {
     agentId: string;
     username: string;
@@ -222,9 +199,7 @@ export class GraphVircadiaBridge {
     }
   }
 
-  /**
-   * Handle remote annotation added
-   */
+  
   private handleRemoteAnnotation(annotation: {
     id: string;
     agentId: string;
@@ -247,49 +222,37 @@ export class GraphVircadiaBridge {
     }
   }
 
-  /**
-   * Handle annotation removed
-   */
+  
   private handleAnnotationRemoved(annotationId: string): void {
     logger.debug(`Annotation ${annotationId} removed`);
   }
 
-  /**
-   * Handle filter state changed by another user
-   */
+  
   private handleFilterStateChanged(event: {
     agentId: string;
     username: string;
     filterState: any;
   }): void {
     logger.debug(`Remote user ${event.username} changed filter state`);
-    // Optionally sync filter state to local UI
+    
   }
 
-  /**
-   * Register callback for local selection changes
-   */
+  
   onLocalSelection(callback: (nodeIds: string[]) => void): void {
     this.localSelectionCallback = callback;
   }
 
-  /**
-   * Register callback for remote selection changes
-   */
+  
   onRemoteSelection(callback: (event: UserSelectionEvent) => void): void {
     this.remoteSelectionCallback = callback;
   }
 
-  /**
-   * Register callback for annotations
-   */
+  
   onAnnotation(callback: (event: AnnotationEvent) => void): void {
     this.annotationCallback = callback;
   }
 
-  /**
-   * Get all active users and their selections
-   */
+  
   getActiveUsers(): Array<{
     userId: string;
     username: string;
@@ -304,9 +267,7 @@ export class GraphVircadiaBridge {
     }));
   }
 
-  /**
-   * Get all annotations
-   */
+  
   getAnnotations(): AnnotationEvent[] {
     if (!this.isActive) return [];
 
@@ -320,9 +281,7 @@ export class GraphVircadiaBridge {
     }));
   }
 
-  /**
-   * Cleanup and disconnect
-   */
+  
   dispose(): void {
     this.isActive = false;
     this.nodeEntityMap.clear();

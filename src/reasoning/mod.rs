@@ -1,10 +1,10 @@
-/// Reasoning module for OWL ontology inference and constraint translation
-///
-/// This module provides:
-/// - Custom OWL reasoner with hash-based class hierarchy (O(log n) lookups)
-/// - Horned-OWL integration for advanced reasoning
-/// - Inference caching with checksum-based invalidation
-/// - Actix actor for background reasoning tasks
+/
+/
+/
+/
+/
+/
+/
 
 pub mod custom_reasoner;
 pub mod horned_integration;
@@ -17,10 +17,10 @@ pub use horned_integration::HornedOwlReasoner;
 pub use inference_cache::{InferenceCache, CachedInference};
 pub use reasoning_actor::{ReasoningActor, ReasoningMessage, TriggerReasoning, GetInferredAxioms};
 
-/// Result type for reasoning operations
+/
 pub type ReasoningResult<T> = Result<T, ReasoningError>;
 
-/// Reasoning error types
+/
 #[derive(Debug, thiserror::Error)]
 pub enum ReasoningError {
     #[error("Database error: {0}")]

@@ -47,7 +47,7 @@ impl ResponseError for RAGFlowError {
     }
 }
 
-/// Handler for sending a message to the RAGFlow service.
+/
 pub async fn send_message(
     state: web::Data<AppState>,
     request: web::Json<SendMessageRequest>,
@@ -61,35 +61,35 @@ pub async fn send_message(
         }
     };
 
-    // Get session ID from request or use the default one from app state if not provided
+    
     let session_id = match &request.session_id {
         Some(id) => id.clone(),
         None => state.ragflow_session_id.clone(),
     };
 
     let enable_tts = request.enable_tts.unwrap_or(false);
-    // The quote and doc_ids parameters are not used in the new API
+    
     match ragflow_service
         .send_message(
             session_id,
             request.question.clone(),
-            false, // quote parameter (unused)
-            None,  // doc_ids parameter (unused)
+            false, 
+            None,  
             request.stream.unwrap_or(true),
         )
         .await
     {
         Ok(response_stream) => {
-            // Check if TTS is enabled and speech service exists
+            
             if enable_tts {
                 if let Some(speech_service) = &state.speech_service {
                     let speech_service = speech_service.clone();
-                    // Clone the question to pass to TTS
+                    
                     let question = request.question.clone();
-                    // Spawn a task to process TTS in the background
+                    
                     actix_web::rt::spawn(async move {
                         let speech_options = SpeechOptions::default();
-                        // The exact question will be sent to TTS
+                        
                         if let Err(e) = speech_service
                             .text_to_speech(question, speech_options)
                             .await
@@ -100,17 +100,17 @@ pub async fn send_message(
                 }
             }
 
-            // Continue with normal text response handling
-            let enable_tts = enable_tts; // Clone for capture in closure
+            
+            let enable_tts = enable_tts; 
             let mapped_stream = response_stream.map(move |result| {
                 result
                     .map(|answer| {
-                        // Skip empty messages (like the end marker)
+                        
                         if answer.is_empty() {
                             return Bytes::new();
                         }
 
-                        // If TTS is enabled, send answer to speech service
+                        
                         if enable_tts {
                             if let Some(speech_service) = &state.speech_service {
                                 let speech_service = speech_service.clone();
@@ -146,7 +146,7 @@ pub async fn send_message(
     }
 }
 
-/// Handler for initiating a new session with RAGFlow agent.
+/
 pub async fn create_session(
     state: web::Data<AppState>,
     request: web::Json<CreateSessionRequest>,
@@ -163,15 +163,15 @@ pub async fn create_session(
 
     match ragflow_service.create_session(user_id.clone()).await {
         Ok(session_id) => {
-            // Store the session ID in the AppState for future use
-            // We can't directly modify AppState through an Arc, but we can clone it and create a new state
-            // For now, we'll log this situation but not update the shared state
-            // In a production environment, you'd want a better solution like using RwLock for the session_id
+            
+            
+            
+            
             info!(
                 "Created new RAGFlow session: {}. Note: session ID cannot be stored in shared AppState.",
                 session_id
             );
-            // Use the session_id directly from the request in subsequent calls
+            
 
             HttpResponse::Ok().json(CreateSessionResponse {
                 success: true,
@@ -188,7 +188,7 @@ pub async fn create_session(
     }
 }
 
-/// Handler for retrieving session history.
+/
 pub async fn get_session_history(
     state: web::Data<AppState>,
     session_id: web::Path<String>,
@@ -216,13 +216,13 @@ pub async fn get_session_history(
     }
 }
 
-/// Configure RAGFlow API routes
+/
 async fn handle_ragflow_chat(
     state: web::Data<AppState>,
-    req: HttpRequest, // To get headers for auth
+    req: HttpRequest, 
     payload: web::Json<RagflowChatRequest>,
 ) -> HttpResponse {
-    // Authentication: Check for power user
+    
     let pubkey = match req
         .headers()
         .get("X-Nostr-Pubkey")
@@ -250,7 +250,7 @@ async fn handle_ragflow_chat(
         if !nostr_service.validate_session(&pubkey, &token).await {
             return HttpResponse::Unauthorized().json(json!({"error": "Invalid session token"}));
         }
-        // Accessing feature checks through AppState methods
+        
         let has_ragflow_specific_access = state.has_feature_access(&pubkey, "ragflow");
         let is_power_user = state.is_power_user(&pubkey);
 
@@ -258,8 +258,8 @@ async fn handle_ragflow_chat(
             return HttpResponse::Forbidden().json(json!({"error": "This feature requires power user access or specific RAGFlow permission"}));
         }
     } else {
-        // This case should ideally not be reached if nostr_service is integral
-        // and initialized properly. Consider logging a warning or error.
+        
+        
         error!(
             "Nostr service not available during chat handling for pubkey: {}",
             pubkey
@@ -271,22 +271,22 @@ async fn handle_ragflow_chat(
     info!(
         "[handle_ragflow_chat] Checking RAGFlow service availability. Is Some: {}",
         state.ragflow_service.is_some()
-    ); // ADDED LOG
+    ); 
 
     let ragflow_service = match &state.ragflow_service {
         Some(service) => service,
         None => {
-            error!("[handle_ragflow_chat] RAGFlow service is None, returning 503."); // ADDED LOG
+            error!("[handle_ragflow_chat] RAGFlow service is None, returning 503."); 
             return HttpResponse::ServiceUnavailable()
                 .json(json!({"error": "RAGFlow service not available"}));
         }
     };
 
-    info!("[handle_ragflow_chat] RAGFlow service is Some. Proceeding."); // ADDED LOG
+    info!("[handle_ragflow_chat] RAGFlow service is Some. Proceeding."); 
 
     let mut session_id = payload.session_id.clone();
     if session_id.is_none() {
-        // Create a new session if none provided. Using pubkey as user_id for RAGFlow session.
+        
         match ragflow_service.create_session(pubkey.clone()).await {
             Ok(new_sid) => {
                 info!(
@@ -306,10 +306,10 @@ async fn handle_ragflow_chat(
         }
     }
 
-    // We've ensured it's Some by now, or returned an error.
+    
     let current_session_id = session_id.expect("Session ID should be Some at this point");
 
-    let stream_preference = payload.stream.unwrap_or(false); // Default to false if not provided
+    let stream_preference = payload.stream.unwrap_or(false); 
     match ragflow_service
         .send_chat_message(
             current_session_id.clone(),
@@ -321,7 +321,7 @@ async fn handle_ragflow_chat(
         Ok((answer, final_session_id)) => {
             HttpResponse::Ok().json(RagflowChatResponse {
                 answer,
-                session_id: final_session_id, // RAGFlow service send_chat_message returns the session_id it used
+                session_id: final_session_id, 
             })
         }
         Err(e) => {
@@ -334,7 +334,7 @@ async fn handle_ragflow_chat(
         }
     }
 }
-/// Enhanced RAGFlow handler with comprehensive validation and security
+/
 pub struct EnhancedRagFlowHandler {
     validation_service: ValidationService,
     rate_limiter: Arc<RateLimiter>,
@@ -351,7 +351,7 @@ impl EnhancedRagFlowHandler {
         }
     }
 
-    /// Enhanced chat endpoint with full validation
+    
     pub async fn chat_enhanced(
         &self,
         req: HttpRequest,
@@ -360,7 +360,7 @@ impl EnhancedRagFlowHandler {
     ) -> Result<HttpResponse> {
         let client_id = extract_client_id(&req);
 
-        // Rate limiting check
+        
         if !self.rate_limiter.is_allowed(&client_id) {
             warn!(
                 "Rate limit exceeded for RAGFlow chat from client: {}",
@@ -373,7 +373,7 @@ impl EnhancedRagFlowHandler {
             })));
         }
 
-        // Request size validation
+        
         let payload_size = serde_json::to_vec(&*payload).unwrap_or_default().len();
         if payload_size > MAX_REQUEST_SIZE {
             error!("RAGFlow chat payload too large: {} bytes", payload_size);
@@ -389,7 +389,7 @@ impl EnhancedRagFlowHandler {
             client_id, payload_size
         );
 
-        // Authentication validation
+        
         let pubkey = match req
             .headers()
             .get("X-Nostr-Pubkey")
@@ -421,7 +421,7 @@ impl EnhancedRagFlowHandler {
             }
         };
 
-        // Validate session and permissions
+        
         if let Some(nostr_service) = &state.nostr_service {
             if !nostr_service.validate_session(&pubkey, &token).await {
                 warn!(
@@ -455,7 +455,7 @@ impl EnhancedRagFlowHandler {
             })));
         }
 
-        // Comprehensive validation and sanitization
+        
         let validated_payload = match self.validation_service.validate_ragflow_chat(&payload) {
             Ok(sanitized) => sanitized,
             Err(validation_error) => {
@@ -469,7 +469,7 @@ impl EnhancedRagFlowHandler {
 
         debug!("RAGFlow chat validation passed for client: {}", client_id);
 
-        // Extract validated parameters
+        
         let question = validated_payload
             .get("question")
             .and_then(|q| q.as_str())
@@ -493,10 +493,10 @@ impl EnhancedRagFlowHandler {
             .and_then(|t| t.as_bool())
             .unwrap_or(false);
 
-        // Additional question content validation
+        
         self.validate_question_content(question)?;
 
-        // Get or create session
+        
         let ragflow_service = match &state.ragflow_service {
             Some(service) => service,
             None => {
@@ -531,12 +531,12 @@ impl EnhancedRagFlowHandler {
             }
         };
 
-        // Process TTS if requested
+        
         if enable_tts {
             self.process_tts_request(&state, question).await;
         }
 
-        // Send message to RAGFlow
+        
         match ragflow_service
             .send_chat_message(current_session_id.clone(), question.to_string(), stream)
             .await
@@ -547,7 +547,7 @@ impl EnhancedRagFlowHandler {
                     client_id, final_session_id
                 );
 
-                // Process TTS for response if requested
+                
                 if enable_tts {
                     self.process_tts_request(&state, &answer).await;
                 }
@@ -571,7 +571,7 @@ impl EnhancedRagFlowHandler {
         }
     }
 
-    /// Enhanced session creation with validation
+    
     pub async fn create_session_enhanced(
         &self,
         req: HttpRequest,
@@ -580,7 +580,7 @@ impl EnhancedRagFlowHandler {
     ) -> Result<HttpResponse> {
         let client_id = extract_client_id(&req);
 
-        // Rate limiting
+        
         if !self.rate_limiter.is_allowed(&client_id) {
             return Ok(HttpResponse::TooManyRequests().json(json!({
                 "error": "rate_limit_exceeded",
@@ -593,13 +593,13 @@ impl EnhancedRagFlowHandler {
             client_id
         );
 
-        // Validate user_id field
+        
         let user_id = payload
             .get("user_id")
             .and_then(|u| u.as_str())
             .ok_or_else(|| DetailedValidationError::missing_required_field("user_id"))?;
 
-        // Sanitize user_id
+        
         let sanitized_user_id = Sanitizer::sanitize_string(user_id).map_err(|e| {
             warn!("User ID sanitization failed: {}", e);
             e
@@ -644,7 +644,7 @@ impl EnhancedRagFlowHandler {
         }
     }
 
-    /// Get session history with validation
+    
     pub async fn get_session_history_enhanced(
         &self,
         req: HttpRequest,
@@ -653,7 +653,7 @@ impl EnhancedRagFlowHandler {
     ) -> Result<HttpResponse> {
         let client_id = extract_client_id(&req);
 
-        // More permissive rate limiting for history requests
+        
         let history_rate_limiter = Arc::new(RateLimiter::new(
             crate::utils::validation::rate_limit::RateLimitConfig {
                 requests_per_minute: 30,
@@ -669,7 +669,7 @@ impl EnhancedRagFlowHandler {
             })));
         }
 
-        // Validate and sanitize session ID
+        
         let sanitized_session_id = Sanitizer::sanitize_string(&session_id).map_err(|e| {
             warn!("Session ID sanitization failed: {}", e);
             e
@@ -718,9 +718,9 @@ impl EnhancedRagFlowHandler {
         }
     }
 
-    /// Validate question content for potentially harmful input
+    
     fn validate_question_content(&self, question: &str) -> Result<(), DetailedValidationError> {
-        // Check for prompt injection attempts
+        
         let injection_patterns = [
             "ignore previous instructions",
             "forget everything above",
@@ -728,8 +728,8 @@ impl EnhancedRagFlowHandler {
             "system:",
             "\\n\\nUser:",
             "\\n\\nAssistant:",
-            "<|im_star|>", // Fixed: was im_star, should be im_start
-            "<|im_en|>",   // Fixed: was im_en, should be im_end
+            "<|im_star|>", 
+            "<|im_en|>",   
         ];
 
         let question_lower = question.to_lowercase();
@@ -743,7 +743,7 @@ impl EnhancedRagFlowHandler {
             }
         }
 
-        // Check for excessive repetition (spam detection)
+        
         if self.has_excessive_repetition(question) {
             return Err(DetailedValidationError::new(
                 "question",
@@ -752,7 +752,7 @@ impl EnhancedRagFlowHandler {
             ));
         }
 
-        // Check for extremely long questions
+        
         if question.len() > 8000 {
             return Err(DetailedValidationError::new(
                 "question",
@@ -764,7 +764,7 @@ impl EnhancedRagFlowHandler {
         Ok(())
     }
 
-    /// Check for excessive repetition in question
+    
     fn has_excessive_repetition(&self, text: &str) -> bool {
         if text.len() < 50 {
             return false;
@@ -777,14 +777,14 @@ impl EnhancedRagFlowHandler {
             *word_counts.entry(word.to_lowercase()).or_insert(0) += 1;
         }
 
-        // Check if any word appears more than 30% of total words
+        
         let total_words = words.len();
         word_counts
             .values()
             .any(|&count| count as f64 / total_words as f64 > 0.3)
     }
 
-    /// Process TTS request asynchronously
+    
     async fn process_tts_request(&self, state: &web::Data<AppState>, text: &str) {
         if let Some(speech_service) = &state.speech_service {
             let speech_service = speech_service.clone();
@@ -814,32 +814,32 @@ pub fn config(cfg: &mut ServiceConfig) {
     cfg.app_data(handler.clone())
         .service(
             web::scope("/ragflow")
-                .route("/session", web::post().to(create_session)) // Existing
-                .route("/message", web::post().to(send_message))   // Existing (streaming)
+                .route("/session", web::post().to(create_session)) 
+                .route("/message", web::post().to(send_message))   
                 .route("/chat", web::post().to(|req: HttpRequest, state: web::Data<AppState>, payload: web::Json<serde_json::Value>, handler: web::Data<EnhancedRagFlowHandler>| async move {
-                    // Try enhanced handler first, fallback to legacy
+                    
                     match handler.chat_enhanced(req.clone(), state.clone(), payload).await {
                         Ok(response) => response,
                         Err(e) => {
                             warn!("Enhanced chat handler failed, falling back to legacy: {:?}", e);
-                            // Re-create payload for legacy handler
+                            
                             let fallback_payload = web::Json(RagflowChatRequest {
                                 question: "fallback".to_string(),
                                 session_id: None,
                                 stream: Some(false)
                             });
-                            // Convert impl Responder to HttpResponse
+                            
                             let legacy_response = handle_ragflow_chat(state, req, fallback_payload).await;
                             legacy_response
                         }
                     }
-                })) // Enhanced chat endpoint with fallback
+                })) 
                 .route("/session/enhanced", web::post().to(|req, state, payload, handler: web::Data<EnhancedRagFlowHandler>| async move {
                     handler.create_session_enhanced(req, state, payload).await
-                })) // Enhanced session creation
-                .route("/history/{session_id}", web::get().to(get_session_history)) // Existing
+                })) 
+                .route("/history/{session_id}", web::get().to(get_session_history)) 
                 .route("/history/enhanced/{session_id}", web::get().to(|req, state, session_id, handler: web::Data<EnhancedRagFlowHandler>| async move {
                     handler.get_session_history_enhanced(req, state, session_id).await
-                })) // Enhanced history
+                })) 
         );
 }

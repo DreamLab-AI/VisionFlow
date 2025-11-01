@@ -34,7 +34,7 @@ const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
           onKeyDown={handleKeyDown}
           icon={<Search className="h-4 w-4" />}
           iconPosition="left"
-          className="pl-10 pr-10" // Make space for icons
+          className="pl-10 pr-10" 
           {...props}
         />
         {value && (

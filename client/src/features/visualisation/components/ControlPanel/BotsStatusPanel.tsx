@@ -1,6 +1,4 @@
-/**
- * Bots Status Panel Component
- */
+
 
 import React, { useState } from 'react';
 import { Zap } from 'lucide-react';
@@ -37,7 +35,7 @@ export const BotsStatusPanel: React.FC<BotsStatusPanelProps> = ({ botsData }) =>
         });
       }
     } catch (error) {
-      // Silently fail - connection may already be closed
+      
     }
   };
 
@@ -163,7 +161,7 @@ export const BotsStatusPanel: React.FC<BotsStatusPanelProps> = ({ botsData }) =>
         )}
       </div>
 
-      {/* Telemetry Stream - Always visible when agents are active */}
+      {}
       {botsData.nodeCount > 0 && (
         <AgentTelemetryStream />
       )}

@@ -6,70 +6,70 @@ use serde::{Deserialize, Serialize};
 use serde_json;
 
 // Protocol versions for wire format
-const PROTOCOL_V1: u8 = 1; // Legacy 16-bit node IDs (34 bytes per node)
-const PROTOCOL_V2: u8 = 2; // Full 32-bit node IDs (36 bytes per node)
+const PROTOCOL_V1: u8 = 1; 
+const PROTOCOL_V2: u8 = 2; 
 
 // Node type flag constants for u32 (server-side)
-const AGENT_NODE_FLAG: u32 = 0x80000000; // Bit 31 indicates agent node
-const KNOWLEDGE_NODE_FLAG: u32 = 0x40000000; // Bit 30 indicates knowledge graph node
+const AGENT_NODE_FLAG: u32 = 0x80000000; 
+const KNOWLEDGE_NODE_FLAG: u32 = 0x40000000; 
 
 // Ontology node type flags (bits 26-28, only valid when GraphType::Ontology)
-const ONTOLOGY_TYPE_MASK: u32 = 0x1C000000; // Bits 26-28: Ontology node types
-const ONTOLOGY_CLASS_FLAG: u32 = 0x04000000; // Bit 26: OWL Class
-const ONTOLOGY_INDIVIDUAL_FLAG: u32 = 0x08000000; // Bit 27: OWL Individual
-const ONTOLOGY_PROPERTY_FLAG: u32 = 0x10000000; // Bit 28: OWL Property
+const ONTOLOGY_TYPE_MASK: u32 = 0x1C000000; 
+const ONTOLOGY_CLASS_FLAG: u32 = 0x04000000; 
+const ONTOLOGY_INDIVIDUAL_FLAG: u32 = 0x08000000; 
+const ONTOLOGY_PROPERTY_FLAG: u32 = 0x10000000; 
 
-const NODE_ID_MASK: u32 = 0x3FFFFFFF; // Mask to extract actual node ID (bits 0-29)
+const NODE_ID_MASK: u32 = 0x3FFFFFFF; 
 
 // Node type flag constants for u16 (wire format v1 - DEPRECATED)
 // BUG: These constants truncate node IDs > 16383, causing collisions
 // FIXED: Use PROTOCOL_V2 with full u32 IDs for node_id > 16383
-const WIRE_V1_AGENT_FLAG: u16 = 0x8000; // Bit 15 indicates agent node
-const WIRE_V1_KNOWLEDGE_FLAG: u16 = 0x4000; // Bit 14 indicates knowledge graph node
-const WIRE_V1_NODE_ID_MASK: u16 = 0x3FFF; // Mask to extract actual node ID (bits 0-13)
+const WIRE_V1_AGENT_FLAG: u16 = 0x8000; 
+const WIRE_V1_KNOWLEDGE_FLAG: u16 = 0x4000; 
+const WIRE_V1_NODE_ID_MASK: u16 = 0x3FFF; 
 
 // Node type flag constants for u32 (wire format v2)
-const WIRE_V2_AGENT_FLAG: u32 = 0x80000000; // Bit 31 indicates agent node
-const WIRE_V2_KNOWLEDGE_FLAG: u32 = 0x40000000; // Bit 30 indicates knowledge graph node
-const WIRE_V2_NODE_ID_MASK: u32 = 0x3FFFFFFF; // Mask to extract actual node ID (bits 0-29)
+const WIRE_V2_AGENT_FLAG: u32 = 0x80000000; 
+const WIRE_V2_KNOWLEDGE_FLAG: u32 = 0x40000000; 
+const WIRE_V2_NODE_ID_MASK: u32 = 0x3FFFFFFF; 
 
-/// Wire format v1 struct (LEGACY - 34 bytes)
-/// BUG: Truncates node IDs to 14 bits (max 16383), causing collisions
-/// DEPRECATED: Use WireNodeDataItemV2 for new implementations
+/
+/
+/
 pub struct WireNodeDataItemV1 {
-    pub id: u16,            // 2 bytes - TRUNCATED to 14 bits + 2 flag bits
-    pub position: Vec3Data, // 12 bytes
-    pub velocity: Vec3Data, // 12 bytes
-    pub sssp_distance: f32, // 4 bytes - SSSP distance from source
-    pub sssp_parent: i32,   // 4 bytes - Parent node for path reconstruction
-                            // Total: 34 bytes
+    pub id: u16,            
+    pub position: Vec3Data, 
+    pub velocity: Vec3Data, 
+    pub sssp_distance: f32, 
+    pub sssp_parent: i32,   
+                            
 }
 
-/// Wire format v2 struct (FIXED - 36 bytes)
-/// FIXES: Uses full 32-bit node IDs (30 bits + 2 flag bits)
-/// Supports node IDs up to 1,073,741,823 (2^30 - 1)
+/
+/
+/
 pub struct WireNodeDataItemV2 {
-    pub id: u32,            // 4 bytes - Full 32-bit with 30 bits for ID + 2 flag bits
-    pub position: Vec3Data, // 12 bytes
-    pub velocity: Vec3Data, // 12 bytes
-    pub sssp_distance: f32, // 4 bytes - SSSP distance from source
-    pub sssp_parent: i32,   // 4 bytes - Parent node for path reconstruction
-                            // Total: 36 bytes (4+12+12+4+4)
+    pub id: u32,            
+    pub position: Vec3Data, 
+    pub velocity: Vec3Data, 
+    pub sssp_distance: f32, 
+    pub sssp_parent: i32,   
+                            
 }
 
 // Backwards compatibility alias - DEPRECATED
 pub type WireNodeDataItem = WireNodeDataItemV2;
 
 // Constants for wire format sizes
-const WIRE_V1_ID_SIZE: usize = 2; // u16 (LEGACY)
-const WIRE_V2_ID_SIZE: usize = 4; // u32 (FIXED)
-const WIRE_VEC3_SIZE: usize = 12; // 3 * f32
-const WIRE_F32_SIZE: usize = 4; // f32
-const WIRE_I32_SIZE: usize = 4; // i32
+const WIRE_V1_ID_SIZE: usize = 2; 
+const WIRE_V2_ID_SIZE: usize = 4; 
+const WIRE_VEC3_SIZE: usize = 12; 
+const WIRE_F32_SIZE: usize = 4; 
+const WIRE_I32_SIZE: usize = 4; 
 const WIRE_V1_ITEM_SIZE: usize =
-    WIRE_V1_ID_SIZE + WIRE_VEC3_SIZE + WIRE_VEC3_SIZE + WIRE_F32_SIZE + WIRE_I32_SIZE; // 34 bytes (2+12+12+4+4)
+    WIRE_V1_ID_SIZE + WIRE_VEC3_SIZE + WIRE_VEC3_SIZE + WIRE_F32_SIZE + WIRE_I32_SIZE; 
 const WIRE_V2_ITEM_SIZE: usize =
-    WIRE_V2_ID_SIZE + WIRE_VEC3_SIZE + WIRE_VEC3_SIZE + WIRE_F32_SIZE + WIRE_I32_SIZE; // 36 bytes (4+12+12+4+4) NOT 38!
+    WIRE_V2_ID_SIZE + WIRE_VEC3_SIZE + WIRE_VEC3_SIZE + WIRE_F32_SIZE + WIRE_I32_SIZE; 
 
 // Backwards compatibility alias - DEPRECATED
 const WIRE_ID_SIZE: usize = WIRE_V2_ID_SIZE;
@@ -109,7 +109,7 @@ const WIRE_ITEM_SIZE: usize = WIRE_V2_ITEM_SIZE;
 // - V1: Bits 14-15 of u16 ID (Bit 15 = Agent, Bit 14 = Knowledge) [BUGGY]
 // This allows the client to distinguish between different node types for visualization.
 
-/// Utility functions for node type flag manipulation
+/
 pub fn set_agent_flag(node_id: u32) -> u32 {
     (node_id & NODE_ID_MASK) | AGENT_NODE_FLAG
 }
@@ -164,7 +164,7 @@ pub fn get_node_type(node_id: u32) -> NodeType {
     }
 }
 
-/// Ontology node type utility functions
+/
 pub fn set_ontology_class_flag(node_id: u32) -> u32 {
     (node_id & NODE_ID_MASK) | ONTOLOGY_CLASS_FLAG
 }
@@ -193,15 +193,15 @@ pub fn is_ontology_node(node_id: u32) -> bool {
     (node_id & ONTOLOGY_TYPE_MASK) != 0
 }
 
-/// Convert u32 node ID with flags to u16 wire format (V1 - LEGACY)
-/// BUG: Truncates node IDs to 14 bits! Use to_wire_id_v2 instead.
-/// DEPRECATED: Only kept for backwards compatibility with old clients
+/
+/
+/
 #[deprecated(note = "Use to_wire_id_v2 for full 32-bit node ID support")]
 pub fn to_wire_id_v1(node_id: u32) -> u16 {
     let actual_id = get_actual_node_id(node_id);
-    let wire_id = (actual_id & 0x3FFF) as u16; // BUG: Truncates to 14 bits!
+    let wire_id = (actual_id & 0x3FFF) as u16; 
 
-    // Preserve node type flags
+    
     if is_agent_node(node_id) {
         wire_id | WIRE_V1_AGENT_FLAG
     } else if is_knowledge_node(node_id) {
@@ -211,13 +211,13 @@ pub fn to_wire_id_v1(node_id: u32) -> u16 {
     }
 }
 
-/// Convert u16 wire ID back to u32 preserving flags (V1 - LEGACY)
-/// DEPRECATED: Only kept for backwards compatibility with old clients
+/
+/
 #[deprecated(note = "Use from_wire_id_v2 for full 32-bit node ID support")]
 pub fn from_wire_id_v1(wire_id: u16) -> u32 {
     let actual_id = (wire_id & WIRE_V1_NODE_ID_MASK) as u32;
 
-    // Restore node type flags
+    
     if (wire_id & WIRE_V1_AGENT_FLAG) != 0 {
         actual_id | AGENT_NODE_FLAG
     } else if (wire_id & WIRE_V1_KNOWLEDGE_FLAG) != 0 {
@@ -227,18 +227,18 @@ pub fn from_wire_id_v1(wire_id: u16) -> u32 {
     }
 }
 
-/// Convert u32 node ID with flags to u32 wire format (V2 - FIXED)
-/// FIXED: Preserves full 32-bit node ID without truncation
+/
+/
 pub fn to_wire_id_v2(node_id: u32) -> u32 {
-    // No truncation needed - wire format uses full u32
-    // Flags are already in the correct bit positions (30-31)
+    
+    
     node_id
 }
 
-/// Convert u32 wire ID back to u32 preserving flags (V2 - FIXED)
-/// FIXED: No data loss, full 32-bit support
+/
+/
 pub fn from_wire_id_v2(wire_id: u32) -> u32 {
-    // No conversion needed - direct passthrough
+    
     wire_id
 }
 
@@ -251,31 +251,31 @@ pub fn from_wire_id(wire_id: u32) -> u32 {
     from_wire_id_v2(wire_id)
 }
 
-/// Convert BinaryNodeData to wire format
+/
 impl BinaryNodeData {
     pub fn to_wire_format(&self, node_id: u32) -> WireNodeDataItem {
         WireNodeDataItem {
             id: to_wire_id(node_id),
             position: self.position(),
             velocity: self.velocity(),
-            sssp_distance: f32::INFINITY, // Default for client data
-            sssp_parent: -1,              // Default for client data
+            sssp_distance: f32::INFINITY, 
+            sssp_parent: -1,              
         }
     }
 }
 
-/// Determine if we need V2 protocol (any node_id > 16383)
-/// FIXED: Automatically detects when V2 is needed to prevent truncation
+/
+/
 pub fn needs_v2_protocol(nodes: &[(u32, BinaryNodeData)]) -> bool {
     nodes.iter().any(|(node_id, _)| {
         let actual_id = get_actual_node_id(*node_id);
-        actual_id > 0x3FFF // > 16383
+        actual_id > 0x3FFF 
     })
 }
 
-/// Enhanced encoding function that accepts metadata about node types including ontology nodes
-/// FIXED: Always uses V2 protocol by default (full 32-bit node ID support)
-/// Only falls back to V1 for backwards compatibility when all IDs are small
+/
+/
+/
 pub fn encode_node_data_with_types(
     nodes: &[(u32, BinaryNodeData)],
     agent_node_ids: &[u32],
@@ -284,7 +284,7 @@ pub fn encode_node_data_with_types(
     encode_node_data_extended(nodes, agent_node_ids, knowledge_node_ids, &[], &[], &[])
 }
 
-/// Extended encoding function with ontology node type support
+/
 pub fn encode_node_data_extended(
     nodes: &[(u32, BinaryNodeData)],
     agent_node_ids: &[u32],
@@ -293,12 +293,12 @@ pub fn encode_node_data_extended(
     ontology_individual_ids: &[u32],
     ontology_property_ids: &[u32],
 ) -> Vec<u8> {
-    // Always use V2 protocol to prevent truncation bugs (V1 is only for backwards compat)
-    let use_v2 = true; // Force V2 for all new encoding
+    
+    let use_v2 = true; 
     let item_size = WIRE_V2_ITEM_SIZE;
     let protocol_version = PROTOCOL_V2;
 
-    // Only log non-empty node transmissions to reduce spam
+    
     if nodes.len() > 0 {
         trace!(
             "Encoding {} nodes with agent flags using protocol v{} (item_size={})",
@@ -308,13 +308,13 @@ pub fn encode_node_data_extended(
         );
     }
 
-    // Reserve space for version byte + node data
+    
     let mut buffer = Vec::with_capacity(1 + nodes.len() * item_size);
 
-    // Write protocol version as first byte
+    
     buffer.push(protocol_version);
 
-    // Log some samples of the encoded data
+    
     let sample_size = std::cmp::min(3, nodes.len());
     if sample_size > 0 {
         trace!(
@@ -324,8 +324,8 @@ pub fn encode_node_data_extended(
     }
 
     for (node_id, node) in nodes {
-        // Check node type and set the appropriate flag
-        // Priority: Agent > Knowledge > Ontology types > None
+        
+        
         let flagged_id = if agent_node_ids.contains(node_id) {
             set_agent_flag(*node_id)
         } else if knowledge_node_ids.contains(node_id) {
@@ -337,10 +337,10 @@ pub fn encode_node_data_extended(
         } else if ontology_property_ids.contains(node_id) {
             set_ontology_property_flag(*node_id)
         } else {
-            *node_id // No flags for unknown nodes
+            *node_id 
         };
 
-        // Log the first few nodes for debugging
+        
         if sample_size > 0 && *node_id < sample_size as u32 {
             trace!(
                 "Encoding node {}: pos=[{:.3},{:.3},{:.3}], vel=[{:.3},{:.3},{:.3}], is_agent={}",
@@ -356,32 +356,32 @@ pub fn encode_node_data_extended(
         }
 
         if use_v2 {
-            // V2: Write u32 ID (4 bytes) - NO TRUNCATION
+            
             let wire_id = to_wire_id_v2(flagged_id);
             buffer.extend_from_slice(&wire_id.to_le_bytes());
         } else {
-            // V1: Write u16 ID (2 bytes) - TRUNCATES (legacy support only)
+            
             #[allow(deprecated)]
             let wire_id = to_wire_id_v1(flagged_id);
             buffer.extend_from_slice(&wire_id.to_le_bytes());
         }
 
-        // Write position (12 bytes = 3 * f32)
+        
         buffer.extend_from_slice(&node.x.to_le_bytes());
         buffer.extend_from_slice(&node.y.to_le_bytes());
         buffer.extend_from_slice(&node.z.to_le_bytes());
 
-        // Write velocity (12 bytes = 3 * f32)
+        
         buffer.extend_from_slice(&node.vx.to_le_bytes());
         buffer.extend_from_slice(&node.vy.to_le_bytes());
         buffer.extend_from_slice(&node.vz.to_le_bytes());
 
-        // SSSP fields (8 bytes)
+        
         buffer.extend_from_slice(&f32::INFINITY.to_le_bytes());
         buffer.extend_from_slice(&(-1i32).to_le_bytes());
     }
 
-    // Only log non-empty node transmissions to reduce spam
+    
     if nodes.len() > 0 {
         trace!(
             "Encoded binary data with agent flags (v{}): {} bytes for {} nodes",
@@ -393,7 +393,7 @@ pub fn encode_node_data_extended(
     buffer
 }
 
-/// Backwards-compatible encoding function for agent nodes only
+/
 pub fn encode_node_data_with_flags(
     nodes: &[(u32, BinaryNodeData)],
     agent_node_ids: &[u32],
@@ -401,8 +401,8 @@ pub fn encode_node_data_with_flags(
     encode_node_data_with_types(nodes, agent_node_ids, &[])
 }
 
-/// Basic encoding function without node type metadata
-/// FIXED: Automatically uses V2 protocol when node IDs > 16383
+/
+/
 pub fn encode_node_data(nodes: &[(u32, BinaryNodeData)]) -> Vec<u8> {
     encode_node_data_with_types(nodes, &[], &[])
 }
@@ -412,7 +412,7 @@ pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, Strin
         return Ok(Vec::new());
     }
 
-    // First byte is protocol version
+    
     if data.len() < 1 {
         return Err("Data too small for protocol version".to_string());
     }
@@ -427,9 +427,9 @@ pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, Strin
     }
 }
 
-/// Decode V1 protocol (LEGACY - 34 bytes per node, u16 IDs)
+/
 fn decode_node_data_v1(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String> {
-    // Check if data is properly sized
+    
     if data.len() % WIRE_V1_ITEM_SIZE != 0 {
         return Err(format!(
             "Data size {} is not a multiple of V1 wire item size {}",
@@ -449,15 +449,15 @@ fn decode_node_data_v1(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String
     let max_samples = 3;
     let mut samples_logged = 0;
 
-    // Process data in chunks of WIRE_V1_ITEM_SIZE bytes
+    
     for chunk in data.chunks_exact(WIRE_V1_ITEM_SIZE) {
         let mut cursor = 0;
 
-        // Read u16 ID (2 bytes)
+        
         let wire_id = u16::from_le_bytes([chunk[cursor], chunk[cursor + 1]]);
         cursor += 2;
 
-        // Read position (12 bytes = 3 * f32)
+        
         let pos_x = f32::from_le_bytes([
             chunk[cursor],
             chunk[cursor + 1],
@@ -480,7 +480,7 @@ fn decode_node_data_v1(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String
         ]);
         cursor += 4;
 
-        // Read velocity (12 bytes = 3 * f32)
+        
         let vel_x = f32::from_le_bytes([
             chunk[cursor],
             chunk[cursor + 1],
@@ -503,7 +503,7 @@ fn decode_node_data_v1(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String
         ]);
         cursor += 4;
 
-        // Read SSSP data (8 bytes)
+        
         let _sssp_distance = f32::from_le_bytes([
             chunk[cursor],
             chunk[cursor + 1],
@@ -518,7 +518,7 @@ fn decode_node_data_v1(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String
             chunk[cursor + 3],
         ]);
 
-        // Convert V1 wire ID back to u32 with flags
+        
         #[allow(deprecated)]
         let full_node_id = from_wire_id_v1(wire_id);
 
@@ -555,9 +555,9 @@ fn decode_node_data_v1(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String
     Ok(updates)
 }
 
-/// Decode V2 protocol (FIXED - 36 bytes per node, u32 IDs)
+/
 fn decode_node_data_v2(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String> {
-    // Check if data is properly sized
+    
     if data.len() % WIRE_V2_ITEM_SIZE != 0 {
         return Err(format!(
             "Data size {} is not a multiple of V2 wire item size {}",
@@ -577,11 +577,11 @@ fn decode_node_data_v2(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String
     let max_samples = 3;
     let mut samples_logged = 0;
 
-    // Process data in chunks of WIRE_V2_ITEM_SIZE bytes
+    
     for chunk in data.chunks_exact(WIRE_V2_ITEM_SIZE) {
         let mut cursor = 0;
 
-        // Read u32 ID (4 bytes) - FIXED: Full 32-bit support
+        
         let wire_id = u32::from_le_bytes([
             chunk[cursor],
             chunk[cursor + 1],
@@ -590,7 +590,7 @@ fn decode_node_data_v2(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String
         ]);
         cursor += 4;
 
-        // Read position (12 bytes = 3 * f32)
+        
         let pos_x = f32::from_le_bytes([
             chunk[cursor],
             chunk[cursor + 1],
@@ -613,7 +613,7 @@ fn decode_node_data_v2(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String
         ]);
         cursor += 4;
 
-        // Read velocity (12 bytes = 3 * f32)
+        
         let vel_x = f32::from_le_bytes([
             chunk[cursor],
             chunk[cursor + 1],
@@ -636,7 +636,7 @@ fn decode_node_data_v2(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String
         ]);
         cursor += 4;
 
-        // Read SSSP data (8 bytes)
+        
         let _sssp_distance = f32::from_le_bytes([
             chunk[cursor],
             chunk[cursor + 1],
@@ -651,7 +651,7 @@ fn decode_node_data_v2(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String
             chunk[cursor + 3],
         ]);
 
-        // Convert V2 wire ID back to u32 with flags (no truncation)
+        
         let full_node_id = from_wire_id_v2(wire_id);
 
         if samples_logged < max_samples {
@@ -688,14 +688,14 @@ fn decode_node_data_v2(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String
 }
 
 pub fn calculate_message_size(updates: &[(u32, BinaryNodeData)]) -> usize {
-    // Determine protocol version based on node IDs
+    
     let use_v2 = needs_v2_protocol(updates);
     let item_size = if use_v2 {
         WIRE_V2_ITEM_SIZE
     } else {
         WIRE_V1_ITEM_SIZE
     };
-    // 1 byte for protocol version + items
+    
     1 + updates.len() * item_size
 }
 
@@ -705,11 +705,11 @@ mod tests {
 
     #[test]
     fn test_wire_format_size() {
-        // Verify V1 format is 34 bytes (legacy)
+        
         assert_eq!(WIRE_V1_ITEM_SIZE, 34);
-        // Verify V2 format is 36 bytes (current)
+        
         assert_eq!(WIRE_V2_ITEM_SIZE, 36);
-        assert_eq!(WIRE_ITEM_SIZE, WIRE_V2_ITEM_SIZE); // Default is V2
+        assert_eq!(WIRE_ITEM_SIZE, WIRE_V2_ITEM_SIZE); 
         assert_eq!(
             WIRE_ID_SIZE + WIRE_VEC3_SIZE + WIRE_VEC3_SIZE + WIRE_F32_SIZE + WIRE_I32_SIZE,
             36
@@ -747,7 +747,7 @@ mod tests {
 
         let encoded = encode_node_data(&nodes);
 
-        // Verify encoded size: 1 byte version + nodes * V2 item size (small IDs use V2 by default now)
+        
         assert_eq!(encoded.len(), 1 + nodes.len() * WIRE_V2_ITEM_SIZE);
 
         let decoded = decode_node_data(&encoded).unwrap();
@@ -762,14 +762,14 @@ mod tests {
 
     #[test]
     fn test_decode_invalid_data() {
-        // Test with V2 protocol marker but invalid data size (not multiple of 36 bytes)
-        let mut data = vec![PROTOCOL_V2]; // Version byte
-        data.extend_from_slice(&[0u8; 37]); // 37 bytes (not multiple of 36)
+        
+        let mut data = vec![PROTOCOL_V2]; 
+        data.extend_from_slice(&[0u8; 37]); 
         let result = decode_node_data(&data);
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("not a multiple of"));
 
-        // Test with just version byte (valid empty message)
+        
         let result = decode_node_data(&[PROTOCOL_V2]);
         assert!(result.is_ok());
         assert_eq!(result.unwrap().len(), 0);
@@ -791,7 +791,7 @@ mod tests {
         )];
 
         let size = calculate_message_size(&nodes);
-        // V2 format: 1 byte version + 36 bytes per node
+        
         assert_eq!(size, 1 + 36);
 
         let encoded = encode_node_data(&nodes);
@@ -802,50 +802,50 @@ mod tests {
     fn test_agent_flag_functions() {
         let node_id = 42u32;
 
-        // Test setting agent flag
+        
         let flagged_id = set_agent_flag(node_id);
         assert_eq!(flagged_id, node_id | AGENT_NODE_FLAG);
         assert!(is_agent_node(flagged_id));
 
-        // Test getting actual ID
+        
         let actual_id = get_actual_node_id(flagged_id);
         assert_eq!(actual_id, node_id);
 
-        // Test clearing agent flag
+        
         let cleared_id = clear_agent_flag(flagged_id);
         assert_eq!(cleared_id, node_id);
         assert!(!is_agent_node(cleared_id));
 
-        // Test non-agent node
+        
         assert!(!is_agent_node(node_id));
     }
 
     #[test]
     fn test_wire_id_conversion() {
-        // Test basic conversion (V2 uses u32, no truncation)
+        
         let node_id = 42u32;
         let wire_id = to_wire_id(node_id);
-        assert_eq!(wire_id, 42u32); // V2 returns u32
+        assert_eq!(wire_id, 42u32); 
         assert_eq!(from_wire_id(wire_id), node_id);
 
-        // Test agent flag preservation
+        
         let agent_id = set_agent_flag(node_id);
         let agent_wire_id = to_wire_id(agent_id);
         assert_eq!(agent_wire_id & WIRE_V2_NODE_ID_MASK, 42u32);
         assert!((agent_wire_id & WIRE_V2_AGENT_FLAG) != 0);
         assert_eq!(from_wire_id(agent_wire_id), agent_id);
 
-        // Test knowledge flag preservation
+        
         let knowledge_id = set_knowledge_flag(node_id);
         let knowledge_wire_id = to_wire_id(knowledge_id);
         assert_eq!(knowledge_wire_id & WIRE_V2_NODE_ID_MASK, 42u32);
         assert!((knowledge_wire_id & WIRE_V2_KNOWLEDGE_FLAG) != 0);
         assert_eq!(from_wire_id(knowledge_wire_id), knowledge_id);
 
-        // Test large node ID (V2 no longer truncates)
+        
         let large_id = 0x5432u32;
         let wire_id = to_wire_id(large_id);
-        assert_eq!(wire_id, 0x5432u32); // V2: No truncation!
+        assert_eq!(wire_id, 0x5432u32); 
         assert_eq!(from_wire_id(wire_id), large_id);
     }
 
@@ -878,19 +878,19 @@ mod tests {
             ),
         ];
 
-        // Mark node 2 as an agent
+        
         let agent_ids = vec![2u32];
         let encoded = encode_node_data_with_flags(&nodes, &agent_ids);
 
-        // Verify encoded size: 1 byte version + nodes * V2 item size
+        
         assert_eq!(encoded.len(), 1 + nodes.len() * WIRE_V2_ITEM_SIZE);
 
         let decoded = decode_node_data(&encoded).unwrap();
         assert_eq!(nodes.len(), decoded.len());
 
-        // Verify that positions and velocities are preserved
+        
         for ((orig_id, orig_data), (dec_id, dec_data)) in nodes.iter().zip(decoded.iter()) {
-            assert_eq!(orig_id, dec_id); // IDs should match after flag stripping
+            assert_eq!(orig_id, dec_id); 
             assert_eq!(orig_data.position(), dec_data.position());
             assert_eq!(orig_data.velocity(), dec_data.velocity());
         }
@@ -898,7 +898,7 @@ mod tests {
 
     #[test]
     fn test_large_node_id_no_truncation() {
-        // Test that V2 protocol handles large node IDs correctly
+        
         let large_nodes = vec![
             (
                 20000u32,
@@ -926,18 +926,18 @@ mod tests {
             ),
         ];
 
-        // Verify V2 is automatically selected
+        
         assert!(needs_v2_protocol(&large_nodes));
 
         let encoded = encode_node_data(&large_nodes);
 
-        // First byte should be PROTOCOL_V2
+        
         assert_eq!(encoded[0], PROTOCOL_V2);
 
         let decoded = decode_node_data(&encoded).unwrap();
         assert_eq!(large_nodes.len(), decoded.len());
 
-        // Verify node IDs are preserved without truncation
+        
         assert_eq!(decoded[0].0, 20000u32);
         assert_eq!(decoded[1].0, 100000u32);
     }
@@ -946,7 +946,7 @@ mod tests {
     fn test_ontology_node_flags() {
         let node_id = 123u32;
 
-        // Test ontology class flag
+        
         let class_id = set_ontology_class_flag(node_id);
         assert!(is_ontology_class(class_id));
         assert!(is_ontology_node(class_id));
@@ -955,7 +955,7 @@ mod tests {
         assert_eq!(get_actual_node_id(class_id), node_id);
         assert_eq!(get_node_type(class_id), NodeType::OntologyClass);
 
-        // Test ontology individual flag
+        
         let individual_id = set_ontology_individual_flag(node_id);
         assert!(is_ontology_individual(individual_id));
         assert!(is_ontology_node(individual_id));
@@ -964,7 +964,7 @@ mod tests {
         assert_eq!(get_actual_node_id(individual_id), node_id);
         assert_eq!(get_node_type(individual_id), NodeType::OntologyIndividual);
 
-        // Test ontology property flag
+        
         let property_id = set_ontology_property_flag(node_id);
         assert!(is_ontology_property(property_id));
         assert!(is_ontology_node(property_id));
@@ -973,7 +973,7 @@ mod tests {
         assert_eq!(get_actual_node_id(property_id), node_id);
         assert_eq!(get_node_type(property_id), NodeType::OntologyProperty);
 
-        // Test non-ontology node
+        
         assert!(!is_ontology_node(node_id));
         assert!(!is_ontology_class(node_id));
         assert!(!is_ontology_individual(node_id));
@@ -1021,7 +1021,7 @@ mod tests {
             ),
         ];
 
-        // Mark nodes with different ontology types
+        
         let class_ids = vec![1u32];
         let individual_ids = vec![2u32];
         let property_ids = vec![3u32];
@@ -1029,13 +1029,13 @@ mod tests {
         let encoded =
             encode_node_data_extended(&nodes, &[], &[], &class_ids, &individual_ids, &property_ids);
 
-        // Verify encoded size: 1 byte version + nodes * V2 item size
+        
         assert_eq!(encoded.len(), 1 + nodes.len() * WIRE_V2_ITEM_SIZE);
 
         let decoded = decode_node_data(&encoded).unwrap();
         assert_eq!(nodes.len(), decoded.len());
 
-        // Verify positions and velocities are preserved
+        
         for ((orig_id, orig_data), (dec_id, dec_data)) in nodes.iter().zip(decoded.iter()) {
             assert_eq!(orig_id, dec_id);
             assert_eq!(orig_data.position(), dec_data.position());
@@ -1061,20 +1061,20 @@ mod tests {
         let class_ids = vec![100u32];
         let encoded = encode_node_data_extended(&nodes, &[], &[], &class_ids, &[], &[]);
 
-        // First byte is protocol version
+        
         assert_eq!(encoded[0], PROTOCOL_V2);
 
-        // Next 4 bytes are the node ID with flags
+        
         let wire_id = u32::from_le_bytes([encoded[1], encoded[2], encoded[3], encoded[4]]);
 
-        // Verify the class flag is set
+        
         assert_eq!(wire_id & ONTOLOGY_TYPE_MASK, ONTOLOGY_CLASS_FLAG);
         assert_eq!(wire_id & NODE_ID_MASK, 100u32);
     }
 
     #[test]
     fn test_v1_backwards_compatibility() {
-        // Test that small node IDs can use V1 if needed
+        
         let small_nodes = vec![(
             100u32,
             BinaryNodeData {
@@ -1088,22 +1088,22 @@ mod tests {
             },
         )];
 
-        // V1 not needed, but should decode correctly if received
+        
         let mut v1_encoded = vec![PROTOCOL_V1];
         #[allow(deprecated)]
         {
             let wire_id = to_wire_id_v1(100);
             v1_encoded.extend_from_slice(&wire_id.to_le_bytes());
         }
-        // Add position
+        
         v1_encoded.extend_from_slice(&1.0f32.to_le_bytes());
         v1_encoded.extend_from_slice(&2.0f32.to_le_bytes());
         v1_encoded.extend_from_slice(&3.0f32.to_le_bytes());
-        // Add velocity
+        
         v1_encoded.extend_from_slice(&0.1f32.to_le_bytes());
         v1_encoded.extend_from_slice(&0.2f32.to_le_bytes());
         v1_encoded.extend_from_slice(&0.3f32.to_le_bytes());
-        // Add SSSP fields
+        
         v1_encoded.extend_from_slice(&f32::INFINITY.to_le_bytes());
         v1_encoded.extend_from_slice(&(-1i32).to_le_bytes());
 
@@ -1115,11 +1115,11 @@ mod tests {
 
 // Control frame structures for constraint and parameter updates
 
-/// Control frame types for WebSocket communication
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum ControlFrame {
-    /// Update constraints on the server
+    
     #[serde(rename = "constraints_update")]
     ConstraintsUpdate {
         version: u32,
@@ -1128,14 +1128,14 @@ pub enum ControlFrame {
         advanced_params: Option<AdvancedParams>,
     },
 
-    /// Request specific view lens configuration
+    
     #[serde(rename = "lens_request")]
     LensRequest {
         lens_type: String,
         parameters: serde_json::Value,
     },
 
-    /// Server acknowledgment of control frame
+    
     #[serde(rename = "control_ack")]
     ControlAck {
         frame_type: String,
@@ -1144,27 +1144,27 @@ pub enum ControlFrame {
         message: Option<String>,
     },
 
-    /// Update advanced physics parameters
+    
     #[serde(rename = "physics_params")]
     PhysicsParams { advanced_params: AdvancedParams },
 
-    /// Request constraint preset
+    
     #[serde(rename = "preset_request")]
     PresetRequest { preset_name: String },
 }
 
 impl ControlFrame {
-    /// Serialize control frame to JSON bytes
+    
     pub fn to_bytes(&self) -> Result<Vec<u8>, serde_json::Error> {
         serde_json::to_vec(self)
     }
 
-    /// Deserialize control frame from JSON bytes
+    
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, serde_json::Error> {
         serde_json::from_slice(bytes)
     }
 
-    /// Create a constraints update frame
+    
     pub fn constraints_update(
         constraints: Vec<Constraint>,
         params: Option<AdvancedParams>,
@@ -1176,7 +1176,7 @@ impl ControlFrame {
         }
     }
 
-    /// Create an acknowledgment frame
+    
     pub fn ack(frame_type: &str, success: bool, message: Option<String>) -> Self {
         ControlFrame::ControlAck {
             frame_type: frame_type.to_string(),
@@ -1186,20 +1186,20 @@ impl ControlFrame {
     }
 }
 
-/// Message type indicator for multiplexed WebSocket communication
+/
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum MessageType {
-    /// Binary position data (28 bytes per node) - DEPRECATED
+    
     BinaryPositions = 0,
-    /// Graph update (simplified protocol)
+    
     GraphUpdate = 0x01,
-    /// Voice data (audio streaming)
+    
     VoiceData = 0x02,
-    /// JSON control frame - DEPRECATED (moved to avoid conflict)
+    
     ControlFrame = 0x03,
 }
 
-/// Graph type flag for graph updates
+/
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum GraphType {
     KnowledgeGraph = 0,
@@ -1223,15 +1223,15 @@ impl GraphType {
     }
 }
 
-/// Simplified protocol message types
+/
 #[derive(Debug, Clone, PartialEq)]
 pub enum Message {
-    /// Graph update with type and node data
+    
     GraphUpdate {
         graph_type: GraphType,
-        nodes: Vec<(String, [f32; 6])>, // node_id, [x, y, z, vx, vy, vz]
+        nodes: Vec<(String, [f32; 6])>, 
     },
-    /// Voice data payload
+    
     VoiceData { audio: Vec<u8> },
 }
 
@@ -1258,28 +1258,28 @@ impl std::fmt::Display for ProtocolError {
 
 impl std::error::Error for ProtocolError {}
 
-/// Simplified binary protocol implementation
+/
 pub struct BinaryProtocol;
 
 impl BinaryProtocol {
-    /// Encode graph update message
-    /// Format: [0x01][graph_type_flag][flat f32 array: node_id, x, y, z, vx, vy, vz, ...]
+    
+    
     pub fn encode_graph_update(graph_type: GraphType, nodes: &[(String, [f32; 6])]) -> Vec<u8> {
-        // Calculate buffer size: 1 byte type + 1 byte graph_type + nodes * 7 * 4 bytes
+        
         let buffer_size = 2 + nodes.len() * 7 * 4;
         let mut buffer = Vec::with_capacity(buffer_size);
 
-        // Message type
+        
         buffer.push(MessageType::GraphUpdate as u8);
 
-        // Graph type flag
+        
         buffer.push(graph_type.to_u8());
 
-        // Flat array of f32: node_id, x, y, z, vx, vy, vz
+        
         for (node_id, data) in nodes {
-            // Parse node_id as f32 (or use hash if not numeric)
+            
             let node_id_f32 = node_id.parse::<f32>().unwrap_or_else(|_| {
-                // Use simple hash for non-numeric IDs
+                
                 let hash = node_id
                     .bytes()
                     .fold(0u32, |acc, b| acc.wrapping_mul(31).wrapping_add(b as u32));
@@ -1287,18 +1287,18 @@ impl BinaryProtocol {
             });
 
             buffer.extend_from_slice(&node_id_f32.to_le_bytes());
-            buffer.extend_from_slice(&data[0].to_le_bytes()); // x
-            buffer.extend_from_slice(&data[1].to_le_bytes()); // y
-            buffer.extend_from_slice(&data[2].to_le_bytes()); // z
-            buffer.extend_from_slice(&data[3].to_le_bytes()); // vx
-            buffer.extend_from_slice(&data[4].to_le_bytes()); // vy
-            buffer.extend_from_slice(&data[5].to_le_bytes()); // vz
+            buffer.extend_from_slice(&data[0].to_le_bytes()); 
+            buffer.extend_from_slice(&data[1].to_le_bytes()); 
+            buffer.extend_from_slice(&data[2].to_le_bytes()); 
+            buffer.extend_from_slice(&data[3].to_le_bytes()); 
+            buffer.extend_from_slice(&data[4].to_le_bytes()); 
+            buffer.extend_from_slice(&data[5].to_le_bytes()); 
         }
 
         buffer
     }
 
-    /// Decode message from binary data
+    
     pub fn decode_message(data: &[u8]) -> Result<Message, ProtocolError> {
         if data.is_empty() {
             return Err(ProtocolError::DecodingError("Empty message".to_string()));
@@ -1313,7 +1313,7 @@ impl BinaryProtocol {
         }
     }
 
-    /// Decode graph update message
+    
     fn decode_graph_update(data: &[u8]) -> Result<Message, ProtocolError> {
         if data.is_empty() {
             return Err(ProtocolError::InvalidPayloadSize(
@@ -1326,7 +1326,7 @@ impl BinaryProtocol {
 
         let payload = &data[1..];
 
-        // Each node is 7 * 4 = 28 bytes (node_id, x, y, z, vx, vy, vz)
+        
         if payload.len() % 28 != 0 {
             return Err(ProtocolError::InvalidPayloadSize(format!(
                 "Graph update payload size {} is not a multiple of 28",
@@ -1341,11 +1341,11 @@ impl BinaryProtocol {
             let offset = i * 28;
             let chunk = &payload[offset..offset + 28];
 
-            // Read node_id (f32)
+            
             let node_id_f32 = f32::from_le_bytes([chunk[0], chunk[1], chunk[2], chunk[3]]);
-            let node_id = format!("{:.0}", node_id_f32); // Convert back to string
+            let node_id = format!("{:.0}", node_id_f32); 
 
-            // Read position and velocity
+            
             let x = f32::from_le_bytes([chunk[4], chunk[5], chunk[6], chunk[7]]);
             let y = f32::from_le_bytes([chunk[8], chunk[9], chunk[10], chunk[11]]);
             let z = f32::from_le_bytes([chunk[12], chunk[13], chunk[14], chunk[15]]);
@@ -1359,15 +1359,15 @@ impl BinaryProtocol {
         Ok(Message::GraphUpdate { graph_type, nodes })
     }
 
-    /// Decode voice data message
+    
     fn decode_voice_data(data: &[u8]) -> Result<Message, ProtocolError> {
         Ok(Message::VoiceData {
             audio: data.to_vec(),
         })
     }
 
-    /// Encode voice data message
-    /// Format: [0x02][audio bytes...]
+    
+    
     pub fn encode_voice_data(audio: &[u8]) -> Vec<u8> {
         let mut buffer = Vec::with_capacity(1 + audio.len());
         buffer.push(MessageType::VoiceData as u8);
@@ -1376,14 +1376,14 @@ impl BinaryProtocol {
     }
 }
 
-/// Multiplexed message wrapper for WebSocket (DEPRECATED - use BinaryProtocol)
+/
 pub struct MultiplexedMessage {
     pub msg_type: MessageType,
     pub data: Vec<u8>,
 }
 
 impl MultiplexedMessage {
-    /// Create a binary positions message
+    
     pub fn positions(node_data: &[(u32, BinaryNodeData)]) -> Self {
         Self {
             msg_type: MessageType::BinaryPositions,
@@ -1391,7 +1391,7 @@ impl MultiplexedMessage {
         }
     }
 
-    /// Create a control frame message
+    
     pub fn control(frame: &ControlFrame) -> Result<Self, serde_json::Error> {
         Ok(Self {
             msg_type: MessageType::ControlFrame,
@@ -1399,7 +1399,7 @@ impl MultiplexedMessage {
         })
     }
 
-    /// Encode message with type indicator prefix
+    
     pub fn encode(&self) -> Vec<u8> {
         let mut result = Vec::with_capacity(1 + self.data.len());
         result.push(self.msg_type as u8);
@@ -1407,7 +1407,7 @@ impl MultiplexedMessage {
         result
     }
 
-    /// Decode message from bytes
+    
     pub fn decode(data: &[u8]) -> Result<Self, String> {
         if data.is_empty() {
             return Err("Empty message".to_string());
@@ -1479,7 +1479,7 @@ mod control_frame_tests {
         let msg = MultiplexedMessage::positions(&nodes);
         let encoded = msg.encode();
 
-        assert_eq!(encoded[0], 0); // Binary positions type
+        assert_eq!(encoded[0], 0); 
 
         let decoded = MultiplexedMessage::decode(&encoded).unwrap();
         assert_eq!(decoded.msg_type, MessageType::BinaryPositions);
@@ -1492,13 +1492,13 @@ mod control_frame_tests {
             ("2".to_string(), [4.0, 5.0, 6.0, 0.4, 0.5, 0.6]),
         ];
 
-        // Test knowledge graph
+        
         let encoded = BinaryProtocol::encode_graph_update(GraphType::KnowledgeGraph, &nodes);
-        assert_eq!(encoded[0], 0x01); // Message type
-        assert_eq!(encoded[1], 0); // Graph type flag
-        assert_eq!(encoded.len(), 2 + nodes.len() * 28); // 2 header bytes + 28 bytes per node
+        assert_eq!(encoded[0], 0x01); 
+        assert_eq!(encoded[1], 0); 
+        assert_eq!(encoded.len(), 2 + nodes.len() * 28); 
 
-        // Decode and verify
+        
         let decoded = BinaryProtocol::decode_message(&encoded).unwrap();
         match decoded {
             Message::GraphUpdate {
@@ -1513,10 +1513,10 @@ mod control_frame_tests {
             _ => panic!("Expected GraphUpdate message"),
         }
 
-        // Test ontology graph
+        
         let encoded_ont = BinaryProtocol::encode_graph_update(GraphType::Ontology, &nodes);
         assert_eq!(encoded_ont[0], 0x01);
-        assert_eq!(encoded_ont[1], 1); // Ontology flag
+        assert_eq!(encoded_ont[1], 1); 
 
         let decoded_ont = BinaryProtocol::decode_message(&encoded_ont).unwrap();
         match decoded_ont {
@@ -1532,7 +1532,7 @@ mod control_frame_tests {
         let audio = vec![0x12, 0x34, 0x56, 0x78];
 
         let encoded = BinaryProtocol::encode_voice_data(&audio);
-        assert_eq!(encoded[0], 0x02); // Message type
+        assert_eq!(encoded[0], 0x02); 
         assert_eq!(encoded.len(), 1 + audio.len());
 
         let decoded = BinaryProtocol::decode_message(&encoded).unwrap();
@@ -1548,23 +1548,23 @@ mod control_frame_tests {
 
     #[test]
     fn test_protocol_error_handling() {
-        // Test empty message
+        
         let result = BinaryProtocol::decode_message(&[]);
         assert!(matches!(result, Err(ProtocolError::DecodingError(_))));
 
-        // Test invalid message type
+        
         let result = BinaryProtocol::decode_message(&[0xFF]);
         assert!(matches!(
             result,
             Err(ProtocolError::InvalidMessageType(0xFF))
         ));
 
-        // Test invalid graph type
+        
         let result = BinaryProtocol::decode_message(&[0x01, 0xFF]);
         assert!(matches!(result, Err(ProtocolError::InvalidGraphType(0xFF))));
 
-        // Test invalid payload size
-        let result = BinaryProtocol::decode_message(&[0x01, 0x00, 0x01, 0x02]); // Not multiple of 28
+        
+        let result = BinaryProtocol::decode_message(&[0x01, 0x00, 0x01, 0x02]); 
         assert!(matches!(result, Err(ProtocolError::InvalidPayloadSize(_))));
     }
 

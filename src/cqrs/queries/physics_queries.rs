@@ -6,7 +6,7 @@
 use crate::cqrs::types::Query;
 use crate::ports::gpu_physics_adapter::{GpuDeviceInfo, PhysicsStatistics};
 
-/// Get GPU device information and status
+/
 #[derive(Debug, Clone)]
 pub struct GetGpuStatusQuery;
 
@@ -18,7 +18,7 @@ impl Query for GetGpuStatusQuery {
     }
 }
 
-/// Get physics simulation statistics
+/
 #[derive(Debug, Clone)]
 pub struct GetPhysicsStatisticsQuery;
 
@@ -30,7 +30,7 @@ impl Query for GetPhysicsStatisticsQuery {
     }
 }
 
-/// List available GPU devices
+/
 #[derive(Debug, Clone)]
 pub struct ListGpuDevicesQuery;
 
@@ -42,7 +42,7 @@ impl Query for ListGpuDevicesQuery {
     }
 }
 
-/// Get performance metrics for physics simulation
+/
 #[derive(Debug, Clone)]
 pub struct GetPerformanceMetricsQuery {
     pub metric_type: PerformanceMetricType,
@@ -65,7 +65,7 @@ impl Query for GetPerformanceMetricsQuery {
     }
 }
 
-/// Performance metrics result
+/
 #[derive(Debug, Clone)]
 pub struct PerformanceMetrics {
     pub average_step_time_ms: Option<f32>,
@@ -74,7 +74,7 @@ pub struct PerformanceMetrics {
     pub cache_hit_rate: Option<f32>,
 }
 
-/// Check if GPU is available and initialized
+/
 #[derive(Debug, Clone)]
 pub struct IsGpuAvailableQuery;
 

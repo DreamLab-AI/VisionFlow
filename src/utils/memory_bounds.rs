@@ -7,7 +7,7 @@ use log::{debug, error};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-/// Memory bounds descriptor for tracking allocations
+/
 #[derive(Debug, Clone)]
 pub struct MemoryBounds {
     pub base_address: usize,
@@ -28,7 +28,7 @@ impl MemoryBounds {
         };
 
         Self {
-            base_address: 0, // Will be set when allocated
+            base_address: 0, 
             size,
             element_size,
             element_count,
@@ -48,17 +48,17 @@ impl MemoryBounds {
         self
     }
 
-    /// Check if an element index is within bounds
+    
     pub fn is_element_in_bounds(&self, element_index: usize) -> bool {
         element_index < self.element_count
     }
 
-    /// Check if a byte offset is within bounds
+    
     pub fn is_byte_in_bounds(&self, byte_offset: usize) -> bool {
         byte_offset < self.size
     }
 
-    /// Get the byte offset for an element index
+    
     pub fn element_to_byte_offset(&self, element_index: usize) -> Option<usize> {
         if self.is_element_in_bounds(element_index) {
             Some(element_index * self.element_size)
@@ -67,7 +67,7 @@ impl MemoryBounds {
         }
     }
 
-    /// Check if a memory range is valid within this allocation
+    
     pub fn is_range_valid(&self, start_element: usize, element_count: usize) -> bool {
         if start_element >= self.element_count {
             return false;
@@ -76,13 +76,13 @@ impl MemoryBounds {
         start_element.saturating_add(element_count) <= self.element_count
     }
 
-    /// Validate memory alignment
+    
     pub fn is_properly_aligned(&self, address: usize) -> bool {
         address % self.alignment == 0
     }
 }
 
-/// Error types for memory bounds checking
+/
 #[derive(Debug, thiserror::Error)]
 pub enum MemoryBoundsError {
     #[error("Element index {index} out of bounds for buffer '{name}' (size: {size} elements)")]
@@ -129,7 +129,7 @@ pub enum MemoryBoundsError {
     InvalidElementSize { element_size: usize, name: String },
 }
 
-/// Memory bounds registry for tracking all GPU allocations
+/
 #[derive(Debug)]
 pub struct MemoryBoundsRegistry {
     bounds: HashMap<String, MemoryBounds>,
@@ -146,9 +146,9 @@ impl MemoryBoundsRegistry {
         }
     }
 
-    /// Register a new memory allocation
+    
     pub fn register_allocation(&mut self, bounds: MemoryBounds) -> Result<(), MemoryBoundsError> {
-        // Check for integer overflow in total allocation
+        
         if self.total_allocated.saturating_add(bounds.size) > self.max_allocation_size {
             return Err(MemoryBoundsError::IntegerOverflow {
                 name: bounds.name.clone(),
@@ -159,7 +159,7 @@ impl MemoryBoundsRegistry {
             });
         }
 
-        // Validate element size
+        
         if bounds.element_size == 0 {
             return Err(MemoryBoundsError::InvalidElementSize {
                 element_size: bounds.element_size,
@@ -177,7 +177,7 @@ impl MemoryBoundsRegistry {
         Ok(())
     }
 
-    /// Unregister a memory allocation
+    
     pub fn unregister_allocation(&mut self, name: &str) -> Result<(), MemoryBoundsError> {
         if let Some(bounds) = self.bounds.remove(name) {
             self.total_allocated = self.total_allocated.saturating_sub(bounds.size);
@@ -193,7 +193,7 @@ impl MemoryBoundsRegistry {
         }
     }
 
-    /// Get bounds for a buffer
+    
     pub fn get_bounds(&self, name: &str) -> Result<&MemoryBounds, MemoryBoundsError> {
         self.bounds
             .get(name)
@@ -202,7 +202,7 @@ impl MemoryBoundsRegistry {
             })
     }
 
-    /// Check element access bounds
+    
     pub fn check_element_access(
         &self,
         buffer_name: &str,
@@ -228,7 +228,7 @@ impl MemoryBoundsRegistry {
         Ok(())
     }
 
-    /// Check byte access bounds
+    
     pub fn check_byte_access(
         &self,
         buffer_name: &str,
@@ -254,7 +254,7 @@ impl MemoryBoundsRegistry {
         Ok(())
     }
 
-    /// Check range access bounds
+    
     pub fn check_range_access(
         &self,
         buffer_name: &str,
@@ -283,7 +283,7 @@ impl MemoryBoundsRegistry {
         Ok(())
     }
 
-    /// Check memory alignment
+    
     pub fn check_alignment(
         &self,
         buffer_name: &str,
@@ -302,17 +302,17 @@ impl MemoryBoundsRegistry {
         Ok(())
     }
 
-    /// Get total allocated memory
+    
     pub fn total_allocated(&self) -> usize {
         self.total_allocated
     }
 
-    /// Get allocation count
+    
     pub fn allocation_count(&self) -> usize {
         self.bounds.len()
     }
 
-    /// Get memory usage report
+    
     pub fn get_usage_report(&self) -> MemoryUsageReport {
         let mut largest_allocation = 0;
         let mut buffer_types = HashMap::new();
@@ -343,7 +343,7 @@ impl MemoryBoundsRegistry {
     }
 }
 
-/// Memory usage report
+/
 #[derive(Debug, Clone)]
 pub struct MemoryUsageReport {
     pub total_allocated: usize,
@@ -396,7 +396,7 @@ impl MemoryUsageReport {
     }
 }
 
-/// Thread-safe memory bounds checker
+/
 pub struct ThreadSafeMemoryBoundsChecker {
     registry: Arc<Mutex<MemoryBoundsRegistry>>,
 }
@@ -464,7 +464,7 @@ impl ThreadSafeMemoryBoundsChecker {
     }
 }
 
-/// Safe array accessor with bounds checking
+/
 pub struct SafeArrayAccess<T> {
     data: Vec<T>,
     bounds_checker: Option<Arc<ThreadSafeMemoryBoundsChecker>>,
@@ -550,7 +550,7 @@ mod tests {
         let bounds = MemoryBounds::new("test_buffer".to_string(), 1000, 4, 4);
 
         assert!(bounds.is_element_in_bounds(0));
-        assert!(bounds.is_element_in_bounds(249)); // 1000/4 - 1
+        assert!(bounds.is_element_in_bounds(249)); 
         assert!(!bounds.is_element_in_bounds(250));
 
         assert!(bounds.is_byte_in_bounds(0));
@@ -559,7 +559,7 @@ mod tests {
 
         assert!(bounds.is_range_valid(0, 100));
         assert!(bounds.is_range_valid(200, 50));
-        assert!(!bounds.is_range_valid(200, 100)); // Would exceed bounds
+        assert!(!bounds.is_range_valid(200, 100)); 
     }
 
     #[test]
@@ -591,7 +591,7 @@ mod tests {
         let slice = safe_array.slice(1, 3).unwrap();
         assert_eq!(slice, &[2, 3, 4]);
 
-        assert!(safe_array.slice(3, 5).is_err()); // Would exceed bounds
+        assert!(safe_array.slice(3, 5).is_err()); 
     }
 
     #[test]

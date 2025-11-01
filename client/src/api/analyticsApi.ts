@@ -118,18 +118,14 @@ export interface AnomalyDetectionConfig {
   update_interval_ms: number;
 }
 
-/**
- * Analytics API client for GPU-accelerated graph analysis
- */
+
 export class AnalyticsAPI {
   private websocket: WebSocket | null = null;
   private taskSubscriptions = new Map<string, (task: AnalysisTask) => void>();
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
 
-  /**
-   * Get current analytics parameters
-   */
+  
   public async getAnalyticsParams(): Promise<VisualAnalyticsParams> {
     try {
       logger.debug('Fetching analytics parameters');
@@ -150,9 +146,7 @@ export class AnalyticsAPI {
     }
   }
 
-  /**
-   * Update analytics parameters
-   */
+  
   public async updateAnalyticsParams(params: Partial<VisualAnalyticsParams>): Promise<boolean> {
     try {
       logger.debug('Updating analytics parameters:', params);
@@ -172,9 +166,7 @@ export class AnalyticsAPI {
     }
   }
 
-  /**
-   * Get current constraints
-   */
+  
   public async getConstraints(): Promise<ConstraintSet> {
     try {
       const response = await unifiedApiClient.getData<{
@@ -194,9 +186,7 @@ export class AnalyticsAPI {
     }
   }
 
-  /**
-   * Update constraints
-   */
+  
   public async updateConstraints(constraints: Partial<ConstraintSet>): Promise<boolean> {
     try {
       const response = await unifiedApiClient.postData<{
@@ -215,9 +205,7 @@ export class AnalyticsAPI {
     }
   }
 
-  /**
-   * Run structural analysis on graph data
-   */
+  
   public async runStructuralAnalysis(request: StructuralAnalysisRequest): Promise<string> {
     try {
       logger.info('Starting structural analysis');
@@ -243,13 +231,11 @@ export class AnalyticsAPI {
     }
   }
 
-  /**
-   * Run semantic analysis on graph data
-   */
+  
   public async runSemanticAnalysis(request: SemanticAnalysisRequest): Promise<string> {
     try {
       logger.info('Starting semantic analysis');
-      // Use AI insights endpoint for semantic analysis
+      
       const response = await unifiedApiClient.postData<{
         success: boolean;
         task_id: string;
@@ -270,9 +256,7 @@ export class AnalyticsAPI {
     }
   }
 
-  /**
-   * Get analysis task status
-   */
+  
   public async getTaskStatus(taskId: string): Promise<AnalysisTask> {
     try {
       const response = await unifiedApiClient.getData<{
@@ -292,9 +276,7 @@ export class AnalyticsAPI {
     }
   }
 
-  /**
-   * Get analysis results
-   */
+  
   public async getAnalysisResults(taskId: string): Promise<any> {
     try {
       const task = await this.getTaskStatus(taskId);
@@ -314,9 +296,7 @@ export class AnalyticsAPI {
     }
   }
 
-  /**
-   * Cancel running analysis task
-   */
+  
   public async cancelTask(taskId: string): Promise<boolean> {
     try {
       const response = await unifiedApiClient.postData<{
@@ -331,9 +311,7 @@ export class AnalyticsAPI {
     }
   }
 
-  /**
-   * Get GPU performance statistics
-   */
+  
   public async getPerformanceStats(): Promise<GPUPerformanceStats> {
     try {
       const response = await unifiedApiClient.getData<{
@@ -353,9 +331,7 @@ export class AnalyticsAPI {
     }
   }
 
-  /**
-   * Get comprehensive GPU status
-   */
+  
   public async getGPUStatus(): Promise<{
     gpu_available: boolean;
     compute_mode: string;
@@ -380,9 +356,7 @@ export class AnalyticsAPI {
     }
   }
 
-  /**
-   * Run clustering analysis
-   */
+  
   public async runClustering(request: ClusteringRequest): Promise<string> {
     try {
       const response = await unifiedApiClient.postData<{
@@ -402,9 +376,7 @@ export class AnalyticsAPI {
     }
   }
 
-  /**
-   * Configure anomaly detection
-   */
+  
   public async configureAnomalyDetection(config: AnomalyDetectionConfig): Promise<boolean> {
     try {
       const response = await unifiedApiClient.postData<{
@@ -419,9 +391,7 @@ export class AnalyticsAPI {
     }
   }
 
-  /**
-   * Get current anomalies
-   */
+  
   public async getCurrentAnomalies(): Promise<any[]> {
     try {
       const response = await unifiedApiClient.getData<{
@@ -441,9 +411,7 @@ export class AnalyticsAPI {
     }
   }
 
-  /**
-   * Subscribe to task progress updates via WebSocket
-   */
+  
   public subscribeToTask(taskId: string, callback: (task: AnalysisTask) => void): () => void {
     this.taskSubscriptions.set(taskId, callback);
     this.ensureWebSocketConnection();
@@ -456,16 +424,14 @@ export class AnalyticsAPI {
     };
   }
 
-  /**
-   * Ensure WebSocket connection is established
-   */
+  
   private ensureWebSocketConnection(): void {
     if (this.websocket && this.websocket.readyState === WebSocket.OPEN) {
       return;
     }
 
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${wsProtocol}//${window.location.host}/ws/analytics`;
+    const wsUrl = `${wsProtocol}
 
     logger.debug('Connecting to analytics WebSocket:', wsUrl);
 
@@ -475,7 +441,7 @@ export class AnalyticsAPI {
       logger.info('Analytics WebSocket connected');
       this.reconnectAttempts = 0;
 
-      // Subscribe to all tracked tasks
+      
       const taskIds = Array.from(this.taskSubscriptions.keys());
       for (const taskId of taskIds) {
         this.websocket?.send(JSON.stringify({
@@ -514,9 +480,7 @@ export class AnalyticsAPI {
     };
   }
 
-  /**
-   * Disconnect WebSocket
-   */
+  
   private disconnectWebSocket(): void {
     if (this.websocket) {
       this.websocket.close();
@@ -525,9 +489,7 @@ export class AnalyticsAPI {
     this.reconnectAttempts = 0;
   }
 
-  /**
-   * Poll for task completion with exponential backoff
-   */
+  
   public async pollForCompletion(
     taskId: string,
     maxAttempts: number = 30,
@@ -549,7 +511,7 @@ export class AnalyticsAPI {
         }
 
         await new Promise(resolve => setTimeout(resolve, delay));
-        delay = Math.min(delay * 1.5, 5000); // Exponential backoff, max 5s
+        delay = Math.min(delay * 1.5, 5000); 
         attempts++;
       } catch (error) {
         if (attempts === maxAttempts - 1) {
@@ -563,9 +525,7 @@ export class AnalyticsAPI {
     throw new Error(`Task ${taskId} did not complete within ${maxAttempts} attempts`);
   }
 
-  /**
-   * Cleanup resources
-   */
+  
   public cleanup(): void {
     this.disconnectWebSocket();
     this.taskSubscriptions.clear();

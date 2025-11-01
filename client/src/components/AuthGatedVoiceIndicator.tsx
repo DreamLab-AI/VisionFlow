@@ -14,12 +14,12 @@ export const AuthGatedVoiceIndicator: React.FC<AuthGatedVoiceIndicatorProps> = (
   const authenticated = useSettingsStore(state => state.authenticated);
   const authEnabled = useSettingsStore(state => state.settings?.auth?.enabled);
 
-  // If auth is not enabled in settings, show the voice indicator normally
+  
   if (!authEnabled) {
     return <VoiceIndicator {...voiceIndicatorProps} />;
   }
 
-  // If auth is enabled but user is not authenticated, show auth required message
+  
   if (!authenticated || !nostrAuth.isAuthenticated()) {
     return (
       <div 
@@ -37,6 +37,6 @@ export const AuthGatedVoiceIndicator: React.FC<AuthGatedVoiceIndicatorProps> = (
     );
   }
 
-  // User is authenticated, show normal voice indicator
+  
   return <VoiceIndicator {...voiceIndicatorProps} />;
 };

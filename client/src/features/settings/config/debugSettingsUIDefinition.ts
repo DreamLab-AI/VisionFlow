@@ -1,10 +1,7 @@
-/**
- * Debug settings UI definition for client-side only debug options
- * These settings use localStorage and do not sync with the backend
- */
+
 
 export const debugSettingsUIDefinition = {
-  // Developer section - uses localStorage keys directly
+  
   developer: {
     label: 'Developer',
     icon: 'Code',
@@ -15,9 +12,9 @@ export const debugSettingsUIDefinition = {
           consoleLogging: { 
             label: 'Console Logging', 
             type: 'toggle', 
-            path: 'debug.consoleLogging',  // localStorage key
+            path: 'debug.consoleLogging',  
             description: 'Enable console debug logs.',
-            localStorage: true  // Flag to indicate this uses localStorage
+            localStorage: true  
           },
           logLevel: { 
             label: 'Log Level', 

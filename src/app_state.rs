@@ -31,7 +31,7 @@ use crate::actors::{
     ProtectedSettingsActor, TaskOrchestratorActor, WorkspaceActor,
 };
 use crate::config::feature_access::FeatureAccess;
-use crate::config::AppFullSettings; // Renamed for clarity, ClientFacingSettings removed
+use crate::config::AppFullSettings; 
 use crate::models::metadata::MetadataStore;
 use crate::models::protected_settings::{ApiKeys, NostrUser, ProtectedSettings};
 use crate::services::bots_client::BotsClient;
@@ -78,25 +78,25 @@ pub struct ApplicationServices {
 pub struct AppState {
     pub graph_service_addr: Addr<TransitionalGraphSupervisor>,
     #[cfg(feature = "gpu")]
-    pub gpu_manager_addr: Option<Addr<GPUManagerActor>>, // Modular GPU manager system
+    pub gpu_manager_addr: Option<Addr<GPUManagerActor>>, 
     #[cfg(feature = "gpu")]
-    pub gpu_compute_addr: Option<Addr<gpu::ForceComputeActor>>, // Force compute actor for physics
-    // HEXAGONAL ARCHITECTURE: Repository adapters
-    // Settings uses trait object (non-generic handlers)
+    pub gpu_compute_addr: Option<Addr<gpu::ForceComputeActor>>, 
+    
+    
     pub settings_repository: Arc<dyn SettingsRepository>,
-    // Knowledge graph and ontology use unified repositories (concrete types for generic handlers)
+    
     pub knowledge_graph_repository: Arc<UnifiedGraphRepository>,
     pub ontology_repository: Arc<UnifiedOntologyRepository>,
-    // Graph CQRS (Phase 1D migration)
+    
     pub graph_repository: Arc<ActorGraphRepository>,
     pub graph_query_handlers: GraphQueryHandlers,
-    // CQRS Phase 4: Command/Query/Event buses
+    
     pub command_bus: Arc<RwLock<CommandBus>>,
     pub query_bus: Arc<RwLock<QueryBus>>,
     pub event_bus: Arc<RwLock<EventBus>>,
-    // CQRS Phase 4: Application Services (high-level orchestration)
+    
     pub app_services: ApplicationServices,
-    // Legacy actor-based settings (will be phased out)
+    
     pub settings_addr: Addr<OptimizedSettingsActor>,
     pub protected_settings_addr: Addr<ProtectedSettingsActor>,
     pub metadata_addr: Addr<MetadataActor>,
@@ -133,17 +133,17 @@ impl AppState {
         info!("[AppState::new] Initializing actor system");
         tokio::time::sleep(Duration::from_millis(50)).await;
 
-        // HEXAGONAL ARCHITECTURE: Create repository adapters (port implementations)
+        
         info!("[AppState::new] Creating repository adapters for hexagonal architecture");
 
-        // Settings repository as trait object (handlers accept Arc<dyn SettingsRepository>)
+        
         let settings_repository: Arc<dyn SettingsRepository> = Arc::new(
             SqliteSettingsRepository::new("data/unified.db")
                 .map_err(|e| format!("Failed to create settings repository: {}", e))?,
         );
 
-        // Unified repositories use spawn_blocking to avoid blocking tokio runtime
-        // during schema creation (12+ CREATE statements can take 500ms-3s)
+        
+        
         info!("[AppState::new] Creating unified graph repository in blocking context...");
         let knowledge_graph_repository: Arc<UnifiedGraphRepository> =
             tokio::task::spawn_blocking(|| {
@@ -168,9 +168,9 @@ impl AppState {
             "[AppState::new] IMPORTANT: UI now connects directly to database via SettingsService"
         );
 
-        // ========================================================================
-        // CRITICAL: GitHub Data Sync - Populate databases before starting actors
-        // ========================================================================
+        
+        
+        
         info!("[AppState::new] Initializing GitHubSyncService for data ingestion");
 
         let enhanced_content_api = Arc::new(EnhancedContentAPI::new(github_client.clone()));
@@ -181,15 +181,15 @@ impl AppState {
         ));
 
         info!("[AppState::new] Starting GitHub data sync in background (non-blocking)...");
-        // Spawn GitHub sync as a background task - don't block server startup
+        
         let sync_service_clone = github_sync_service.clone();
         let sync_handle = tokio::spawn(async move {
             info!("🔄 Background GitHub sync task spawned successfully");
             info!("🔄 Task ID: {:?}", std::thread::current().id());
             info!("🔄 Starting sync_graphs() execution...");
 
-            // ✅ FIX: We're already in an async context (tokio::spawn), so just await directly!
-            // No need for block_on or panic catching - let tokio handle panics naturally
+            
+            
             info!("📡 Calling sync_service.sync_graphs()...");
             let sync_start = std::time::Instant::now();
 
@@ -220,13 +220,13 @@ impl AppState {
             }
         });
 
-        // Spawn a monitoring task to track the sync handle status
+        
         tokio::spawn(async move {
             tokio::time::sleep(Duration::from_millis(100)).await;
             info!("👀 GitHub sync monitor: Checking task status...");
 
-            // Wait for the sync task to complete with a timeout
-            let timeout_duration = Duration::from_secs(300); // 5 minute timeout
+            
+            let timeout_duration = Duration::from_secs(300); 
             match tokio::time::timeout(timeout_duration, sync_handle).await {
                 Ok(join_result) => {
                     match join_result {
@@ -256,36 +256,36 @@ impl AppState {
         });
 
         info!("[AppState::new] GitHub sync running in background with enhanced monitoring, proceeding with actor initialization");
-        // ========================================================================
+        
 
-        // Start actors
+        
         info!("[AppState::new] Starting ClientCoordinatorActor");
         let client_manager_addr = ClientCoordinatorActor::new().start();
 
-        // Extract physics settings from logseq graph before moving settings
+        
         let physics_settings = settings.visualisation.graphs.logseq.physics.clone();
 
         info!("[AppState::new] Starting MetadataActor");
         let metadata_addr = MetadataActor::new(MetadataStore::new()).start();
 
-        // Create GraphServiceSupervisor instead of the monolithic GraphServiceActor
+        
         info!("[AppState::new] Starting GraphServiceSupervisor (refactored architecture)");
-        // CUDA initialization moved to GPU compute actor to avoid blocking actor startup
-        // #[cfg(feature = "gpu")]
-        // {
-        //     let _device = CudaDevice::new(0).map_err(|e| {
-        //         log::error!("Failed to create CUDA device: {}", e);
-        //         format!("CUDA initialization failed: {}", e)
-        //     })?;
-        // }
+        
+        
+        
+        
+        
+        
+        
+        
         let graph_service_addr = TransitionalGraphSupervisor::new(
             Some(client_manager_addr.clone()),
-            None, // GPU manager will be linked later
+            None, 
             knowledge_graph_repository.clone(),
         )
         .start();
 
-        // Phase 1D: Create graph repository adapter and CQRS query handlers
+        
         info!("[AppState::new] Retrieving GraphServiceActor from TransitionalGraphSupervisor for CQRS");
         let graph_actor_addr = graph_service_addr
             .send(crate::actors::messages::GetGraphServiceActor)
@@ -314,13 +314,13 @@ impl AppState {
             )),
         };
 
-        // CQRS Phase 4: Initialize Command/Query/Event buses
+        
         info!("[AppState::new] Initializing CQRS buses (Phase 4)");
         let command_bus = Arc::new(RwLock::new(CommandBus::new()));
         let query_bus = Arc::new(RwLock::new(QueryBus::new()));
         let event_bus = Arc::new(RwLock::new(EventBus::new()));
 
-        // CQRS Phase 4: Initialize Application Services
+        
         info!("[AppState::new] Initializing application services (Phase 4)");
         let app_services = ApplicationServices {
             graph: GraphApplicationService::new(
@@ -345,16 +345,16 @@ impl AppState {
             ),
         };
 
-        // WEBSOCKET SETTLING FIX: Set graph service supervisor address in client manager for force broadcasts
+        
         info!("[AppState::new] Linking ClientCoordinatorActor to TransitionalGraphSupervisor for settling fix");
-        // Get the internal GraphServiceActor from the supervisor and set it in ClientManagerActor
+        
         let graph_supervisor_clone = graph_service_addr.clone();
         let client_manager_clone = client_manager_addr.clone();
         actix::spawn(async move {
-            // Wait a moment for supervisor to initialize
+            
             tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
 
-            // Get the internal GraphServiceActor address
+            
             if let Ok(Some(graph_actor)) = graph_supervisor_clone
                 .send(crate::actors::messages::GetGraphServiceActor)
                 .await
@@ -367,18 +367,18 @@ impl AppState {
             }
         });
 
-        // Create the modular GPU manager system
+        
         #[cfg(feature = "gpu")]
         let gpu_manager_addr = {
             info!("[AppState::new] Starting GPUManagerActor (modular architecture)");
             Some(GPUManagerActor::new().start())
         };
 
-        // Initialize the connection between GraphServiceSupervisor and GPUManagerActor
+        
         #[cfg(feature = "gpu")]
         {
             use crate::actors::messages::InitializeGPUConnection;
-            // Send the GPUManagerActor address to GraphServiceSupervisor for proper message routing
+            
             info!("[AppState] Initializing GPU connection with GPUManagerActor for proper message delegation");
             if let Some(ref gpu_manager) = gpu_manager_addr {
                 graph_service_addr.do_send(InitializeGPUConnection {
@@ -394,7 +394,7 @@ impl AppState {
         }
 
         info!("[AppState::new] Starting OptimizedSettingsActor with repository injection (hexagonal architecture)");
-        // Create settings repository adapter for OptimizedSettingsActor (separate from CQRS repositories)
+        
         let actor_settings_repository = Arc::new(
             SqliteSettingsRepository::new("data/unified.db")
                 .map_err(|e| format!("Failed to create actor settings repository: {}", e))?,
@@ -403,7 +403,7 @@ impl AppState {
         let settings_actor = OptimizedSettingsActor::with_actors(
             actor_settings_repository,
             Some(graph_service_addr.clone()),
-            None, // Legacy GPU compute actor removed
+            None, 
         )
         .map_err(|e| {
             log::error!("Failed to create OptimizedSettingsActor: {}", e);
@@ -411,18 +411,18 @@ impl AppState {
         })?;
         let settings_addr = settings_actor.start();
 
-        // Start settings hot-reload watcher
+        
         info!("[AppState::new] Starting settings hot-reload watcher");
-        // DISABLED: SettingsWatcher blocks Tokio threads with sync recv(), causing db connection pool exhaustion
-        // let settings_db_path = std::env::var("SETTINGS_DB_PATH")
-        //     .unwrap_or_else(|_| "data/settings.db".to_string());
-        // let settings_watcher =
-        //     crate::services::settings_watcher::SettingsWatcher::new(settings_db_path, settings_addr.clone());
-        // tokio::spawn(async move {
-        //     if let Err(e) = settings_watcher.start().await {
-        //         log::error!("Settings watcher failed to start: {}", e);
-        //     }
-        // });
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         info!(
             "[AppState::new] Settings hot-reload watcher DISABLED (was causing database deadlocks)"
         );
@@ -444,22 +444,22 @@ impl AppState {
         let agent_monitor_addr =
             AgentMonitorActor::new(claude_flow_client, graph_service_addr.clone()).start();
 
-        // Send initial physics settings to both GraphServiceSupervisor and GPUComputeActor
-        // Use the From trait to convert PhysicsSettings to SimulationParams
-        // This ensures all fields are properly set from settings.yaml
+        
+        
+        
         let sim_params =
             crate::models::simulation_params::SimulationParams::from(&physics_settings);
 
         let update_msg = crate::actors::messages::UpdateSimulationParams { params: sim_params };
 
-        // Send to GraphServiceSupervisor
+        
         graph_service_addr.do_send(update_msg.clone());
 
-        // Send to GPUManagerActor if available
+        
         #[cfg(feature = "gpu")]
         if let Some(ref _gpu_addr) = gpu_manager_addr {
-            // TODO: GPUManagerActor needs to handle UpdateSimulationParams
-            // gpu_addr.do_send(update_msg);
+            
+            
         }
 
         info!("[AppState::new] Starting ProtectedSettingsActor");
@@ -497,11 +497,11 @@ impl AppState {
         let mgmt_client = ManagementApiClient::new(mgmt_api_host, mgmt_api_port, mgmt_api_key);
         let task_orchestrator_addr = TaskOrchestratorActor::new(mgmt_client).start();
 
-        // GPU initialization will be handled later by the actors themselves
-        // This avoids the tokio runtime panic during initialization
+        
+        
         info!("[AppState] GPU manager will self-initialize when needed");
 
-        // Schedule GPU initialization to happen after actor system is ready
+        
         #[cfg(feature = "gpu")]
         if let Some(ref gpu_manager) = gpu_manager_addr {
             use crate::actors::messages::InitializeGPUConnection;
@@ -514,12 +514,12 @@ impl AppState {
 
         info!("[AppState::new] Actor system initialization complete");
 
-        // Read debug state from settings (can be overridden by env var)
+        
         let debug_enabled = crate::utils::logging::is_debug_enabled();
 
         info!("[AppState::new] Debug mode enabled: {}", debug_enabled);
 
-        // Create client message channel for agent -> user communication
+        
         let (client_message_tx, client_message_rx) = mpsc::unbounded_channel::<ClientMessage>();
         info!("[AppState::new] Client message channel created");
 
@@ -528,21 +528,21 @@ impl AppState {
             #[cfg(feature = "gpu")]
             gpu_manager_addr,
             #[cfg(feature = "gpu")]
-            gpu_compute_addr: None, // Will be set by GPUManagerActor
-            // HEXAGONAL ARCHITECTURE: Repository trait objects
+            gpu_compute_addr: None, 
+            
             settings_repository,
             knowledge_graph_repository,
             ontology_repository,
-            // Graph CQRS (Phase 1D)
+            
             graph_repository,
             graph_query_handlers,
-            // CQRS Phase 4: Command/Query/Event buses
+            
             command_bus,
             query_bus,
             event_bus,
-            // CQRS Phase 4: Application Services
+            
             app_services,
-            // Legacy actor-based settings
+            
             settings_addr,
             protected_settings_addr,
             metadata_addr,

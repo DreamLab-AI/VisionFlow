@@ -6,7 +6,7 @@ use log::{debug, error, info, warn};
 use serde_json::{json, Value};
 use std::collections::HashMap;
 
-/// Configure clustering-specific routes
+/
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/clustering")
@@ -18,7 +18,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     );
 }
 
-/// Configure clustering parameters
+/
 async fn configure_clustering(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -31,14 +31,14 @@ async fn configure_clustering(
         config.algorithm, config.num_clusters
     );
 
-    // Validate configuration
+    
     if let Err(e) = validate_clustering_config(&config) {
         return Ok(HttpResponse::BadRequest().json(json!({
             "error": format!("Invalid clustering configuration: {}", e)
         })));
     }
 
-    // Store configuration in settings
+    
     let settings_update = json!({
         "visualisation": {
             "graphs": {
@@ -62,7 +62,7 @@ async fn configure_clustering(
         }
     });
 
-    // Get and update settings
+    
     let mut app_settings = match state.settings_addr.send(GetSettings).await {
         Ok(Ok(s)) => s,
         Ok(Err(e)) => {
@@ -86,7 +86,7 @@ async fn configure_clustering(
         })));
     }
 
-    // Save updated settings
+    
     match state
         .settings_addr
         .send(UpdateSettings {
@@ -116,7 +116,7 @@ async fn configure_clustering(
     }
 }
 
-/// Start clustering analysis
+/
 async fn start_clustering(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -147,9 +147,9 @@ async fn start_clustering(
         algorithm, cluster_count
     );
 
-    // Check if GPU compute actor is available
+    
     if let Some(gpu_addr) = &state.gpu_compute_addr {
-        // Start clustering based on algorithm type
+        
         use crate::actors::messages::PerformGPUClustering;
 
         let request = PerformGPUClustering {
@@ -190,8 +190,8 @@ async fn start_clustering(
                     "algorithm": algorithm,
                     "clusterCount": cluster_results.len(),
                     "clustersFound": cluster_results.len(),
-                    "modularity": 0.8, // Calculated separately in actual implementation
-                    "computationTimeMs": 150, // Actual timing from GPU actor
+                    "modularity": 0.8, 
+                    "computationTimeMs": 150, 
                     "gpuAccelerated": true
                 })))
             }
@@ -229,20 +229,20 @@ async fn start_clustering(
     }
 }
 
-/// Get clustering status
+/
 async fn get_clustering_status(
     _req: HttpRequest,
     state: web::Data<AppState>,
 ) -> Result<HttpResponse, Error> {
     info!("Clustering status request");
 
-    // Get real clustering status from GPU
+    
     if let Some(gpu_addr) = &state.gpu_compute_addr {
         use crate::actors::messages::GetClusteringResults;
 
         match gpu_addr.send(GetClusteringResults).await {
             Ok(Ok(cluster_results)) => {
-                // Extract fields from JSON value safely
+                
                 let algorithm = cluster_results
                     .get("algorithm_used")
                     .and_then(|v| v.as_str())
@@ -311,18 +311,18 @@ async fn get_clustering_status(
     }
 }
 
-/// Get clustering results
+/
 async fn get_clustering_results(
     _req: HttpRequest,
     state: web::Data<AppState>,
 ) -> Result<HttpResponse, Error> {
     info!("Clustering results request");
 
-    // Get real clustering results from GPU
+    
     if let Some(gpu_addr) = &state.gpu_compute_addr {
         use crate::actors::messages::{GetClusteringResults, GetGraphData};
 
-        // Get graph data for node count
+        
         let graph_data = match state.graph_service_addr.send(GetGraphData).await {
             Ok(Ok(data)) => data,
             Ok(Err(e)) => {
@@ -339,10 +339,10 @@ async fn get_clustering_results(
             }
         };
 
-        // Get clustering results
+        
         match gpu_addr.send(GetClusteringResults).await {
             Ok(Ok(cluster_results)) => {
-                // Extract clusters array from JSON value safely
+                
                 let clusters = if let Some(clusters_array) =
                     cluster_results.get("clusters").and_then(|v| v.as_array())
                 {
@@ -360,7 +360,7 @@ async fn get_clustering_results(
                     vec![]
                 };
 
-                // Extract other fields from JSON value safely
+                
                 let algorithm = cluster_results
                     .get("algorithm_used")
                     .and_then(|v| v.as_str())
@@ -424,7 +424,7 @@ async fn get_clustering_results(
     }
 }
 
-/// Export cluster assignments
+/
 async fn export_cluster_assignments(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -449,11 +449,11 @@ async fn export_cluster_assignments(
         })));
     }
 
-    // Get real clustering data from GPU compute actor if available
+    
     if let Some(gpu_addr) = &state.gpu_compute_addr {
         info!("Attempting to get clustering data from GPU compute actor");
 
-        // Try to get clustering results from GPU
+        
         match gpu_addr
             .send(crate::actors::messages::GetClusteringResults)
             .await
@@ -470,7 +470,7 @@ async fn export_cluster_assignments(
                                 let cluster_id = cluster.get("id").and_then(|v| v.as_u64()).unwrap_or(0);
                                 for node_id in node_ids {
                                     if let Some(id) = node_id.as_u64() {
-                                        // Include position data if available
+                                        
                                         let position = cluster.get("centroid").and_then(|v| v.as_array())
                                             .map(|arr| (
                                                 arr.get(0).and_then(|v| v.as_f64()).unwrap_or(0.0),
@@ -484,7 +484,7 @@ async fn export_cluster_assignments(
                                 }
                             }
                         }
-                        } // Close clusters_array if
+                        } 
                         csv_content
                     },
                     "graphml" => {
@@ -506,7 +506,7 @@ async fn export_cluster_assignments(
                                 }
                             }
                         }
-                        } // Close clusters_array if
+                        } 
 
                         graphml.push_str("  </graph>\n</graphml>\n");
                         graphml
@@ -546,7 +546,7 @@ async fn export_cluster_assignments(
         }
     }
 
-    // Fallback: try to get data from graph service
+    
     match state
         .graph_service_addr
         .send(crate::actors::messages::GetGraphData)
@@ -559,10 +559,10 @@ async fn export_cluster_assignments(
                     graph_data.nodes.len()
                 );
 
-                // Generate basic clustering based on node metadata
+                
                 let mut clusters = HashMap::new();
                 for node in &graph_data.nodes {
-                    // Simple clustering by node type or group
+                    
                     let cluster_key = node
                         .node_type
                         .as_ref()
@@ -656,7 +656,7 @@ async fn export_cluster_assignments(
         }
     }
 
-    // Final fallback: return informative empty response
+    
     let empty_response = match format {
         "csv" => "# No clustering data available\n# Try running clustering analysis first\nnode_id,cluster_id\n".to_string(),
         "graphml" => format!(
@@ -686,9 +686,9 @@ async fn export_cluster_assignments(
         .body(empty_response))
 }
 
-/// Validate clustering configuration
+/
 fn validate_clustering_config(config: &ClusteringConfiguration) -> Result<(), String> {
-    // Validate algorithm
+    
     if ![
         "none",
         "kmeans",
@@ -702,17 +702,17 @@ fn validate_clustering_config(config: &ClusteringConfiguration) -> Result<(), St
         return Err("algorithm must be 'none', 'kmeans', 'spectral', 'louvain', 'hierarchical', or 'dbscan'".to_string());
     }
 
-    // Validate cluster count
+    
     if config.num_clusters < 2 || config.num_clusters > 50 {
         return Err("num_clusters must be between 2 and 50".to_string());
     }
 
-    // Validate resolution
+    
     if config.resolution < 0.1 || config.resolution > 5.0 {
         return Err("resolution must be between 0.1 and 5.0".to_string());
     }
 
-    // Validate iterations
+    
     if config.iterations < 10 || config.iterations > 1000 {
         return Err("iterations must be between 10 and 1000".to_string());
     }

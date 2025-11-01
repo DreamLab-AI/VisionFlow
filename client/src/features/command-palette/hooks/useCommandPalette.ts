@@ -12,7 +12,7 @@ export function useCommandPalette() {
     recentCommands: []
   });
 
-  // Update filtered commands when search query changes
+  
   useEffect(() => {
     if (state.isOpen) {
       const filtered = state.searchQuery 
@@ -29,7 +29,7 @@ export function useCommandPalette() {
     }
   }, [state.searchQuery, state.isOpen]);
 
-  // Load recent commands on mount
+  
   useEffect(() => {
     setState(prev => ({
       ...prev,
@@ -37,7 +37,7 @@ export function useCommandPalette() {
     }));
   }, []);
 
-  // Open command palette
+  
   const open = useCallback(() => {
     setState(prev => ({
       ...prev,
@@ -47,7 +47,7 @@ export function useCommandPalette() {
     }));
   }, []);
 
-  // Close command palette
+  
   const close = useCallback(() => {
     setState(prev => ({
       ...prev,
@@ -57,7 +57,7 @@ export function useCommandPalette() {
     }));
   }, []);
 
-  // Toggle command palette
+  
   const toggle = useCallback(() => {
     setState(prev => ({
       ...prev,
@@ -67,7 +67,7 @@ export function useCommandPalette() {
     }));
   }, []);
 
-  // Update search query
+  
   const setSearchQuery = useCallback((query: string) => {
     setState(prev => ({
       ...prev,
@@ -76,7 +76,7 @@ export function useCommandPalette() {
     }));
   }, []);
 
-  // Navigate through commands
+  
   const navigateUp = useCallback(() => {
     setState(prev => ({
       ...prev,
@@ -91,7 +91,7 @@ export function useCommandPalette() {
     }));
   }, []);
 
-  // Execute selected command
+  
   const executeCommand = useCallback(async (command: Command) => {
     try {
       commandRegistry.addRecentCommand(command.id);
@@ -109,7 +109,7 @@ export function useCommandPalette() {
     }
   }, [state.filteredCommands, state.selectedIndex, executeCommand]);
 
-  // Register keyboard shortcut for opening command palette
+  
   useKeyboardShortcuts({
     'command-palette-toggle': {
       key: 'k',

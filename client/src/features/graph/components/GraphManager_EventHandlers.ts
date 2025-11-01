@@ -12,9 +12,9 @@ import { useGraphInteraction } from '../../visualisation/hooks/useGraphInteracti
 
 const logger = createLogger('GraphManager');
 
-const DRAG_THRESHOLD = 5; // pixels
+const DRAG_THRESHOLD = 5; 
 const BASE_SPHERE_RADIUS = 0.5;
-const POSITION_UPDATE_THROTTLE_MS = 100; // 100ms throttle for position updates
+const POSITION_UPDATE_THROTTLE_MS = 100; 
 
 // Helper function to slugify node labels
 const slugifyNodeLabel = (label: string): string => {
@@ -35,7 +35,7 @@ export const createEventHandlers = (
   setGraphData: React.Dispatch<React.SetStateAction<any>>,
   onDragStateChange?: (isDragging: boolean) => void
 ) => {
-  // Initialize graph interaction tracking
+  
   const {
     startInteraction,
     endInteraction,
@@ -47,10 +47,10 @@ export const createEventHandlers = (
     onInteractionStateChange: onDragStateChange
   });
 
-  // Throttled WebSocket position update function
+  
   const throttledWebSocketUpdate = useCallback(
     throttle((nodeId: string, position: { x: number; y: number; z: number }) => {
-      // Only send if we should be sending position updates (during active interactions)
+      
       if (shouldSendPositionUpdates()) {
         const numericId = graphDataManager.nodeIdMap.get(nodeId);
         if (numericId !== undefined && graphDataManager.webSocketService?.isReady()) {
@@ -79,7 +79,7 @@ export const createEventHandlers = (
     const node = graphData.nodes[instanceId];
     if (!node || !node.position) return;
 
-    // Record the initial state for drag detection
+    
     dragDataRef.current = {
       ...dragDataRef.current,
       pointerDown: true,
@@ -91,7 +91,7 @@ export const createEventHandlers = (
       currentNodePos3D: new THREE.Vector3(node.position.x, node.position.y, node.position.z),
     };
 
-    // Start interaction tracking immediately on node click
+    
     startInteraction(node.id);
 
     if (debugState.isEnabled()) {
@@ -107,7 +107,7 @@ export const createEventHandlers = (
     const drag = dragDataRef.current;
     if (!drag.pointerDown) return;
 
-    // Check if we should START dragging
+    
     if (!drag.isDragging) {
       const currentPos = new THREE.Vector2(event.nativeEvent.offsetX, event.nativeEvent.offsetY);
       const distance = currentPos.distanceTo(drag.startPointerPos);
@@ -126,27 +126,27 @@ export const createEventHandlers = (
       }
     }
 
-    // If we are dragging, execute the move logic
+    
     if (drag.isDragging) {
       event.stopPropagation();
 
-      // Use camera-parallel plane method for proper screen-space movement
-      // This ensures nodes move in the XY plane relative to the camera view
       
-      // Create a plane parallel to the camera's view plane at the node's depth
+      
+      
+      
       const cameraDirection = new THREE.Vector3();
       camera.getWorldDirection(cameraDirection);
       const planeNormal = cameraDirection.clone().normalize();
       
-      // Create plane at the node's starting depth
-      // The plane passes through the node's starting position and is perpendicular to camera direction
+      
+      
       const plane = new THREE.Plane(planeNormal, -planeNormal.dot(drag.startNodePos3D));
       
-      // Cast a ray from the camera through the current mouse position
+      
       const raycaster = new THREE.Raycaster();
       raycaster.setFromCamera(event.pointer, camera);
       
-      // Find where the ray intersects the plane
+      
       const intersection = new THREE.Vector3();
       const intersectionFound = raycaster.ray.intersectPlane(plane, intersection);
       
@@ -158,7 +158,7 @@ export const createEventHandlers = (
 
         drag.currentNodePos3D.copy(intersection);
 
-        // Update visual immediately for responsiveness
+        
         const nodeSize = settings?.visualisation?.nodes?.nodeSize || 0.01;
         const scale = nodeSize / BASE_SPHERE_RADIUS;
         const tempMatrix = new THREE.Matrix4();
@@ -169,7 +169,7 @@ export const createEventHandlers = (
           meshRef.current.instanceMatrix.needsUpdate = true;
         }
 
-        // Update graphData to keep edges/labels in sync
+        
         setGraphData(prev => ({
           ...prev,
           nodes: prev.nodes.map((node, idx) =>
@@ -179,14 +179,14 @@ export const createEventHandlers = (
           )
         }));
 
-        // Use the interaction-aware position update system
+        
         updateNodePosition(drag.nodeId!, {
           x: drag.currentNodePos3D.x,
           y: drag.currentNodePos3D.y,
           z: drag.currentNodePos3D.z
         });
 
-        // Also use throttled WebSocket update as backup
+        
         throttledWebSocketUpdate(drag.nodeId!, {
           x: drag.currentNodePos3D.x,
           y: drag.currentNodePos3D.y,
@@ -203,26 +203,26 @@ export const createEventHandlers = (
     }
 
     if (drag.isDragging) {
-      // End of a DRAG action
+      
       if (debugState.isEnabled()) logger.debug(`Drag ended for node ${drag.nodeId}`);
 
       const numericId = graphDataManager.nodeIdMap.get(drag.nodeId!);
       if (numericId !== undefined) {
         graphWorkerProxy.unpinNode(numericId);
 
-        // Flush any pending position updates immediately
+        
         flushPositionUpdates();
       }
     } else {
-      // This was a CLICK action
+      
       const node = graphData.nodes.find(n => n.id === drag.nodeId);
       if (node?.label) {
         if (debugState.isEnabled()) logger.debug(`Click action on node ${node.id}`);
 
-        // Encode the label for URL (replace spaces and special chars with %20)
+        
         const encodedLabel = encodeURIComponent(node.label);
 
-        // Open Narrative Goldmine in a new tab (security: no iframe)
+        
         const url = `https://narrativegoldmine.com/#/page/${encodedLabel}`;
         window.open(url, '_blank', 'noopener,noreferrer');
 
@@ -232,10 +232,10 @@ export const createEventHandlers = (
       }
     }
 
-    // End interaction tracking
+    
     endInteraction(drag.nodeId);
 
-    // Reset state for the next interaction
+    
     dragDataRef.current.pointerDown = false;
     dragDataRef.current.isDragging = false;
     dragDataRef.current.nodeId = null;
@@ -248,7 +248,7 @@ export const createEventHandlers = (
     }
   }, [graphData.nodes, dragDataRef, setDragState, endInteraction, flushPositionUpdates]);
 
-  // Add global event listeners for pointer up
+  
   useEffect(() => {
     const handleGlobalPointerUp = () => {
       if (dragDataRef.current.pointerDown || dragDataRef.current.isDragging) {
@@ -256,7 +256,7 @@ export const createEventHandlers = (
       }
     };
 
-    // Add global listener for mouse up
+    
     window.addEventListener('pointerup', handleGlobalPointerUp);
     window.addEventListener('pointercancel', handleGlobalPointerUp);
     

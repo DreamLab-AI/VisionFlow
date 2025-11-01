@@ -33,7 +33,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     'physics' | 'constraints' | 'rendering'
   >('physics');
 
-  // Load all settings on mount
+  
   useEffect(() => {
     loadSettings();
   }, []);

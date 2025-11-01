@@ -1,18 +1,4 @@
-/**
- * Binary WebSocket Protocol for Agent Data Streaming
- *
- * This protocol is designed for high-frequency, bandwidth-efficient streaming of:
- * - Agent position/velocity updates
- * - Agent metadata (status, health, resources)
- * - Control bits and state flags
- * - SSSP pathfinding data
- * - Voice/audio data chunks
- *
- * Architecture:
- * - Client-to-server: Position updates ONLY during user interactions
- * - Server-to-client: Full agent state streaming with smart throttling
- * - Bi-directional: Control messages and handshaking
- */
+
 
 import { createLogger } from '../utils/loggerConfig';
 import type { Vec3 } from '../types/binaryProtocol';
@@ -20,173 +6,151 @@ import type { Vec3 } from '../types/binaryProtocol';
 const logger = createLogger('BinaryWebSocketProtocol');
 
 // Protocol versions
-export const PROTOCOL_V1 = 1;  // Legacy 16-bit node IDs (34 bytes per node)
-export const PROTOCOL_V2 = 2;  // Full 32-bit node IDs (38 bytes per node)
-export const PROTOCOL_VERSION = PROTOCOL_V2;  // Default to V2
+export const PROTOCOL_V1 = 1;  
+export const PROTOCOL_V2 = 2;  
+export const PROTOCOL_VERSION = PROTOCOL_V2;  
 
 // Message types (1 byte header)
 export enum MessageType {
-  // Graph updates (knowledge graph or ontology)
-  GRAPH_UPDATE = 0x01,        // Server -> Client: Graph data updates (includes graph_type_flag)
+  
+  GRAPH_UPDATE = 0x01,        
 
-  // Voice/audio streaming
-  VOICE_DATA = 0x02,          // Bi-directional: Audio data chunks
+  
+  VOICE_DATA = 0x02,          
 
-  // Position/movement data (legacy)
-  POSITION_UPDATE = 0x10,     // Client -> Server: User moved nodes
-  AGENT_POSITIONS = 0x11,     // Server -> Client: Agent position batch
-  VELOCITY_UPDATE = 0x12,     // Bi-directional: Velocity changes
+  
+  POSITION_UPDATE = 0x10,     
+  AGENT_POSITIONS = 0x11,     
+  VELOCITY_UPDATE = 0x12,     
 
-  // Agent metadata
-  AGENT_STATE_FULL = 0x20,    // Server -> Client: Complete agent state
-  AGENT_STATE_DELTA = 0x21,   // Server -> Client: Partial state updates
-  AGENT_HEALTH = 0x22,        // Server -> Client: Health/resources only
+  
+  AGENT_STATE_FULL = 0x20,    
+  AGENT_STATE_DELTA = 0x21,   
+  AGENT_HEALTH = 0x22,        
 
-  // Control and coordination
-  CONTROL_BITS = 0x30,        // Bi-directional: Control flags
-  SSSP_DATA = 0x31,          // Server -> Client: Pathfinding data
-  HANDSHAKE = 0x32,          // Bi-directional: Protocol negotiation
-  HEARTBEAT = 0x33,          // Bi-directional: Connection keepalive
+  
+  CONTROL_BITS = 0x30,        
+  SSSP_DATA = 0x31,          
+  HANDSHAKE = 0x32,          
+  HEARTBEAT = 0x33,          
 
-  // Voice/audio streaming (legacy)
-  VOICE_CHUNK = 0x40,        // Bi-directional: Audio data chunks
-  VOICE_START = 0x41,        // Client -> Server: Start voice transmission
-  VOICE_END = 0x42,          // Client -> Server: End voice transmission
+  
+  VOICE_CHUNK = 0x40,        
+  VOICE_START = 0x41,        
+  VOICE_END = 0x42,          
 
-  // Error handling
-  ERROR = 0xFF               // Bi-directional: Error messages
+  
+  ERROR = 0xFF               
 }
 
 // Graph type flags for GRAPH_UPDATE messages
 export enum GraphTypeFlag {
-  KNOWLEDGE_GRAPH = 0x01,    // Standard knowledge graph
-  ONTOLOGY = 0x02            // Ontology mode
+  KNOWLEDGE_GRAPH = 0x01,    
+  ONTOLOGY = 0x02            
 }
 
 // Agent state flags (bit field)
 export enum AgentStateFlags {
-  ACTIVE = 1 << 0,           // Agent is actively processing
-  IDLE = 1 << 1,             // Agent is idle
-  ERROR = 1 << 2,            // Agent has errors
-  VOICE_ACTIVE = 1 << 3,     // Agent is transmitting voice
-  HIGH_PRIORITY = 1 << 4,    // Agent requires priority updates
-  POSITION_CHANGED = 1 << 5,  // Position was updated this frame
-  METADATA_CHANGED = 1 << 6,  // Metadata was updated this frame
-  RESERVED = 1 << 7          // Reserved for future use
+  ACTIVE = 1 << 0,           
+  IDLE = 1 << 1,             
+  ERROR = 1 << 2,            
+  VOICE_ACTIVE = 1 << 3,     
+  HIGH_PRIORITY = 1 << 4,    
+  POSITION_CHANGED = 1 << 5,  
+  METADATA_CHANGED = 1 << 6,  
+  RESERVED = 1 << 7          
 }
 
 // Control bit flags
 export enum ControlFlags {
-  PAUSE_UPDATES = 1 << 0,    // Client requests pause in updates
-  HIGH_FREQUENCY = 1 << 1,   // Client requests high-frequency updates
-  LOW_BANDWIDTH = 1 << 2,    // Client is on limited bandwidth
-  VOICE_ENABLED = 1 << 3,    // Voice communication enabled
-  DEBUG_MODE = 1 << 4,       // Enable debug data in messages
-  FORCE_FULL_UPDATE = 1 << 5, // Request complete state refresh
-  USER_INTERACTING = 1 << 6,  // User is currently interacting
-  BACKGROUND_MODE = 1 << 7    // Client is in background
+  PAUSE_UPDATES = 1 << 0,    
+  HIGH_FREQUENCY = 1 << 1,   
+  LOW_BANDWIDTH = 1 << 2,    
+  VOICE_ENABLED = 1 << 3,    
+  DEBUG_MODE = 1 << 4,       
+  FORCE_FULL_UPDATE = 1 << 5, 
+  USER_INTERACTING = 1 << 6,  
+  BACKGROUND_MODE = 1 << 7    
 }
 
 // Binary data structures
 
-/**
- * Agent Position Update (Client -> Server)
- * V1: 19 bytes per agent (u16 ID)
- * V2: 21 bytes per agent (u32 ID)
- */
+
 export interface AgentPositionUpdate {
-  agentId: number;      // V1: 2 bytes (uint16), V2: 4 bytes (uint32)
-  position: Vec3;       // 12 bytes (3x float32)
-  timestamp: number;    // 4 bytes (uint32) - milliseconds since epoch
-  flags: number;        // 1 byte (interaction flags)
+  agentId: number;      
+  position: Vec3;       
+  timestamp: number;    
+  flags: number;        
 }
 
-/**
- * Agent State Data (Server -> Client)
- * V1: 47 bytes per agent (full) with u16 ID
- * V2: 49 bytes per agent (full) with u32 ID
- */
+
 export interface AgentStateData {
-  agentId: number;       // V1: 2 bytes (uint16), V2: 4 bytes (uint32)
-  position: Vec3;        // 12 bytes (3x float32)
-  velocity: Vec3;        // 12 bytes (3x float32)
-  health: number;        // 4 bytes (float32) - 0.0 to 100.0
-  cpuUsage: number;      // 4 bytes (float32) - 0.0 to 100.0
-  memoryUsage: number;   // 4 bytes (float32) - 0.0 to 100.0
-  workload: number;      // 4 bytes (float32) - 0.0 to 100.0
-  tokens: number;        // 4 bytes (uint32)
-  flags: number;         // 1 byte (AgentStateFlags)
+  agentId: number;       
+  position: Vec3;        
+  velocity: Vec3;        
+  health: number;        
+  cpuUsage: number;      
+  memoryUsage: number;   
+  workload: number;      
+  tokens: number;        
+  flags: number;         
 }
 
-/**
- * SSSP Pathfinding Data
- * Size: 10 bytes per node
- */
+
 export interface SSSPData {
-  nodeId: number;        // 2 bytes (uint16)
-  distance: number;      // 4 bytes (float32)
-  parentId: number;      // 2 bytes (uint16)
-  flags: number;         // 2 bytes (pathfinding flags)
+  nodeId: number;        
+  distance: number;      
+  parentId: number;      
+  flags: number;         
 }
 
-/**
- * Voice Data Chunk
- * Variable size based on audio format
- */
+
 export interface VoiceChunk {
-  agentId: number;       // 2 bytes (uint16)
-  chunkId: number;       // 2 bytes (uint16) - sequence number
-  format: number;        // 1 byte (audio format)
-  dataLength: number;    // 2 bytes (uint16)
-  audioData: ArrayBuffer; // Variable length
+  agentId: number;       
+  chunkId: number;       
+  format: number;        
+  dataLength: number;    
+  audioData: ArrayBuffer; 
 }
 
-/**
- * Message header for all binary messages
- * Size: 5 bytes (updated to include graph type flag)
- */
+
 export interface MessageHeader {
-  type: MessageType;      // 1 byte
-  version: number;        // 1 byte
-  payloadLength: number;  // 2 bytes (uint16) - excludes header
-  graphTypeFlag?: GraphTypeFlag; // 1 byte (only for GRAPH_UPDATE messages)
+  type: MessageType;      
+  version: number;        
+  payloadLength: number;  
+  graphTypeFlag?: GraphTypeFlag; 
 }
 
-/**
- * Extended header for GRAPH_UPDATE messages
- * Size: 5 bytes
- */
+
 export interface GraphUpdateHeader extends MessageHeader {
-  graphTypeFlag: GraphTypeFlag; // 1 byte - required for graph updates
+  graphTypeFlag: GraphTypeFlag; 
 }
 
 // Constants for binary layout (V1 - Legacy)
 export const MESSAGE_HEADER_SIZE = 4;
-export const GRAPH_UPDATE_HEADER_SIZE = 5; // With graph type flag
-export const AGENT_POSITION_SIZE_V1 = 19;  // u16 ID
-export const AGENT_STATE_SIZE_V1 = 47;     // u16 ID
-export const SSSP_DATA_SIZE_V1 = 10;       // u16 ID
+export const GRAPH_UPDATE_HEADER_SIZE = 5; 
+export const AGENT_POSITION_SIZE_V1 = 19;  
+export const AGENT_STATE_SIZE_V1 = 47;     
+export const SSSP_DATA_SIZE_V1 = 10;       
 
 // Constants for binary layout (V2 - Fixed)
-export const AGENT_POSITION_SIZE_V2 = 21;  // u32 ID (+2 bytes)
-export const AGENT_STATE_SIZE_V2 = 49;     // u32 ID (+2 bytes)
-export const SSSP_DATA_SIZE_V2 = 12;       // u32 ID (+2 bytes)
+export const AGENT_POSITION_SIZE_V2 = 21;  
+export const AGENT_STATE_SIZE_V2 = 49;     
+export const SSSP_DATA_SIZE_V2 = 12;       
 
 // Default to V2 sizes
 export const AGENT_POSITION_SIZE = AGENT_POSITION_SIZE_V2;
 export const AGENT_STATE_SIZE = AGENT_STATE_SIZE_V2;
 export const SSSP_DATA_SIZE = SSSP_DATA_SIZE_V2;
 
-export const VOICE_HEADER_SIZE = 7; // Without audio data
+export const VOICE_HEADER_SIZE = 7; 
 
-/**
- * Binary WebSocket Protocol Handler
- */
+
 export class BinaryWebSocketProtocol {
   private static instance: BinaryWebSocketProtocol;
   private lastPositionUpdate: number = 0;
-  private positionUpdateThrottle: number = 16; // ~60fps max
-  private metadataUpdateThrottle: number = 100; // 10fps for metadata
+  private positionUpdateThrottle: number = 16; 
+  private metadataUpdateThrottle: number = 100; 
   private isUserInteracting: boolean = false;
   private pendingPositionUpdates: AgentPositionUpdate[] = [];
   private voiceEnabled: boolean = false;
@@ -200,9 +164,7 @@ export class BinaryWebSocketProtocol {
     return BinaryWebSocketProtocol.instance;
   }
 
-  /**
-   * Create a binary message with header
-   */
+  
   public createMessage(type: MessageType, payload: ArrayBuffer, graphTypeFlag?: GraphTypeFlag): ArrayBuffer {
     const isGraphUpdate = type === MessageType.GRAPH_UPDATE;
     const headerSize = isGraphUpdate ? GRAPH_UPDATE_HEADER_SIZE : MESSAGE_HEADER_SIZE;
@@ -210,25 +172,23 @@ export class BinaryWebSocketProtocol {
     const buffer = new ArrayBuffer(totalSize);
     const view = new DataView(buffer);
 
-    // Write header
+    
     view.setUint8(0, type);
     view.setUint8(1, PROTOCOL_VERSION);
     view.setUint16(2, payload.byteLength, true);
 
-    // Write graph type flag for GRAPH_UPDATE messages
+    
     if (isGraphUpdate && graphTypeFlag !== undefined) {
       view.setUint8(4, graphTypeFlag);
     }
 
-    // Copy payload
+    
     new Uint8Array(buffer, headerSize).set(new Uint8Array(payload));
 
     return buffer;
   }
 
-  /**
-   * Parse message header from binary data
-   */
+  
   public parseHeader(buffer: ArrayBuffer): MessageHeader | null {
     if (buffer.byteLength < MESSAGE_HEADER_SIZE) {
       logger.error('Buffer too small for message header');
@@ -243,7 +203,7 @@ export class BinaryWebSocketProtocol {
       payloadLength: view.getUint16(2, true)
     };
 
-    // Parse graph type flag for GRAPH_UPDATE messages
+    
     if (type === MessageType.GRAPH_UPDATE && buffer.byteLength >= GRAPH_UPDATE_HEADER_SIZE) {
       header.graphTypeFlag = view.getUint8(4) as GraphTypeFlag;
     }
@@ -251,9 +211,7 @@ export class BinaryWebSocketProtocol {
     return header;
   }
 
-  /**
-   * Extract payload from binary message
-   */
+  
   public extractPayload(buffer: ArrayBuffer, header?: MessageHeader): ArrayBuffer {
     const isGraphUpdate = header?.type === MessageType.GRAPH_UPDATE;
     const headerSize = isGraphUpdate ? GRAPH_UPDATE_HEADER_SIZE : MESSAGE_HEADER_SIZE;
@@ -264,37 +222,33 @@ export class BinaryWebSocketProtocol {
     return buffer.slice(headerSize);
   }
 
-  /**
-   * Encode agent position updates for client->server transmission
-   * Only sends updates during user interactions
-   * Uses V2 protocol with u32 IDs
-   */
+  
   public encodePositionUpdates(updates: AgentPositionUpdate[]): ArrayBuffer | null {
     if (!this.isUserInteracting || updates.length === 0) {
-      return null; // Only send during user interaction
+      return null; 
     }
 
-    // Throttle position updates
+    
     const now = performance.now();
     if (now - this.lastPositionUpdate < this.positionUpdateThrottle) {
-      // Add to pending updates
+      
       this.pendingPositionUpdates.push(...updates);
       return null;
     }
 
-    // Combine pending and new updates
+    
     const allUpdates = [...this.pendingPositionUpdates, ...updates];
     this.pendingPositionUpdates = [];
     this.lastPositionUpdate = now;
 
-    // Create payload with V2 format (u32 IDs)
+    
     const payload = new ArrayBuffer(allUpdates.length * AGENT_POSITION_SIZE_V2);
     const view = new DataView(payload);
 
     allUpdates.forEach((update, index) => {
       const offset = index * AGENT_POSITION_SIZE_V2;
 
-      // Write u32 ID (4 bytes) - FIXED for V2
+      
       view.setUint32(offset, update.agentId, true);
       view.setFloat32(offset + 4, update.position.x, true);
       view.setFloat32(offset + 8, update.position.y, true);
@@ -306,16 +260,13 @@ export class BinaryWebSocketProtocol {
     return this.createMessage(MessageType.POSITION_UPDATE, payload);
   }
 
-  /**
-   * Decode agent position updates from server
-   * Supports both V1 (u16) and V2 (u32) protocols
-   */
+  
   public decodePositionUpdates(payload: ArrayBuffer): AgentPositionUpdate[] {
     const updates: AgentPositionUpdate[] = [];
     const view = new DataView(payload);
 
-    // Auto-detect protocol version based on payload size
-    // Try V2 first (21 bytes), fallback to V1 (19 bytes)
+    
+    
     const isV2 = (payload.byteLength % AGENT_POSITION_SIZE_V2) === 0;
     const isV1 = (payload.byteLength % AGENT_POSITION_SIZE_V1) === 0;
 
@@ -330,7 +281,7 @@ export class BinaryWebSocketProtocol {
         }
 
         updates.push({
-          agentId: view.getUint32(offset, true),  // V2: u32
+          agentId: view.getUint32(offset, true),  
           position: {
             x: view.getFloat32(offset + 4, true),
             y: view.getFloat32(offset + 8, true),
@@ -353,7 +304,7 @@ export class BinaryWebSocketProtocol {
         }
 
         updates.push({
-          agentId: view.getUint16(offset, true),  // V1: u16 (LEGACY)
+          agentId: view.getUint16(offset, true),  
           position: {
             x: view.getFloat32(offset + 2, true),
             y: view.getFloat32(offset + 6, true),
@@ -370,10 +321,7 @@ export class BinaryWebSocketProtocol {
     return updates;
   }
 
-  /**
-   * Encode full agent state data for server->client transmission
-   * Uses V2 protocol with u32 IDs
-   */
+  
   public encodeAgentState(agents: AgentStateData[]): ArrayBuffer {
     const payload = new ArrayBuffer(agents.length * AGENT_STATE_SIZE_V2);
     const view = new DataView(payload);
@@ -381,7 +329,7 @@ export class BinaryWebSocketProtocol {
     agents.forEach((agent, index) => {
       const offset = index * AGENT_STATE_SIZE_V2;
 
-      // Write u32 ID (4 bytes) - FIXED for V2
+      
       view.setUint32(offset, agent.agentId, true);
       view.setFloat32(offset + 4, agent.position.x, true);
       view.setFloat32(offset + 8, agent.position.y, true);
@@ -400,15 +348,12 @@ export class BinaryWebSocketProtocol {
     return this.createMessage(MessageType.AGENT_STATE_FULL, payload);
   }
 
-  /**
-   * Decode agent state data from server
-   * Supports both V1 (u16) and V2 (u32) protocols
-   */
+  
   public decodeAgentState(payload: ArrayBuffer): AgentStateData[] {
     const agents: AgentStateData[] = [];
     const view = new DataView(payload);
 
-    // Auto-detect protocol version based on payload size
+    
     const isV2 = (payload.byteLength % AGENT_STATE_SIZE_V2) === 0;
     const isV1 = (payload.byteLength % AGENT_STATE_SIZE_V1) === 0;
 
@@ -423,7 +368,7 @@ export class BinaryWebSocketProtocol {
         }
 
         agents.push({
-          agentId: view.getUint32(offset, true),  // V2: u32
+          agentId: view.getUint32(offset, true),  
           position: {
             x: view.getFloat32(offset + 4, true),
             y: view.getFloat32(offset + 8, true),
@@ -455,7 +400,7 @@ export class BinaryWebSocketProtocol {
         }
 
         agents.push({
-          agentId: view.getUint16(offset, true),  // V1: u16 (LEGACY)
+          agentId: view.getUint16(offset, true),  
           position: {
             x: view.getFloat32(offset + 2, true),
             y: view.getFloat32(offset + 6, true),
@@ -481,9 +426,7 @@ export class BinaryWebSocketProtocol {
     return agents;
   }
 
-  /**
-   * Encode SSSP pathfinding data
-   */
+  
   public encodeSSSPData(nodes: SSSPData[]): ArrayBuffer {
     const payload = new ArrayBuffer(nodes.length * SSSP_DATA_SIZE);
     const view = new DataView(payload);
@@ -500,9 +443,7 @@ export class BinaryWebSocketProtocol {
     return this.createMessage(MessageType.SSSP_DATA, payload);
   }
 
-  /**
-   * Decode SSSP pathfinding data
-   */
+  
   public decodeSSSPData(payload: ArrayBuffer): SSSPData[] {
     const nodes: SSSPData[] = [];
     const view = new DataView(payload);
@@ -527,9 +468,7 @@ export class BinaryWebSocketProtocol {
     return nodes;
   }
 
-  /**
-   * Encode control bits message
-   */
+  
   public encodeControlBits(flags: ControlFlags): ArrayBuffer {
     const payload = new ArrayBuffer(1);
     const view = new DataView(payload);
@@ -537,9 +476,7 @@ export class BinaryWebSocketProtocol {
     return this.createMessage(MessageType.CONTROL_BITS, payload);
   }
 
-  /**
-   * Decode control bits message
-   */
+  
   public decodeControlBits(payload: ArrayBuffer): ControlFlags {
     if (payload.byteLength < 1) {
       return 0 as ControlFlags;
@@ -548,9 +485,7 @@ export class BinaryWebSocketProtocol {
     return view.getUint8(0) as ControlFlags;
   }
 
-  /**
-   * Encode voice data chunk
-   */
+  
   public encodeVoiceChunk(chunk: VoiceChunk): ArrayBuffer {
     const totalSize = VOICE_HEADER_SIZE + chunk.audioData.byteLength;
     const payload = new ArrayBuffer(totalSize);
@@ -561,15 +496,13 @@ export class BinaryWebSocketProtocol {
     view.setUint8(4, chunk.format);
     view.setUint16(5, chunk.dataLength, true);
 
-    // Copy audio data
+    
     new Uint8Array(payload, VOICE_HEADER_SIZE).set(new Uint8Array(chunk.audioData));
 
     return this.createMessage(MessageType.VOICE_CHUNK, payload);
   }
 
-  /**
-   * Decode voice data chunk
-   */
+  
   public decodeVoiceChunk(payload: ArrayBuffer): VoiceChunk | null {
     if (payload.byteLength < VOICE_HEADER_SIZE) {
       logger.error('Voice chunk payload too small');
@@ -593,42 +526,34 @@ export class BinaryWebSocketProtocol {
     };
   }
 
-  /**
-   * Set user interaction state (controls position update sending)
-   */
+  
   public setUserInteracting(interacting: boolean): void {
     this.isUserInteracting = interacting;
     logger.debug(`User interaction state: ${interacting}`);
   }
 
-  /**
-   * Configure update throttling rates
-   */
+  
   public configureThrottling(positionMs: number, metadataMs: number): void {
     this.positionUpdateThrottle = positionMs;
     this.metadataUpdateThrottle = metadataMs;
     logger.info(`Throttling configured: position=${positionMs}ms, metadata=${metadataMs}ms`);
   }
 
-  /**
-   * Enable/disable voice communication
-   */
+  
   public setVoiceEnabled(enabled: boolean): void {
     this.voiceEnabled = enabled;
     logger.info(`Voice communication: ${enabled ? 'enabled' : 'disabled'}`);
   }
 
-  /**
-   * Calculate bandwidth usage for different update scenarios
-   */
+  
   public calculateBandwidth(agentCount: number, updateRateHz: number): {
-    positionOnly: number;    // bytes per second
-    fullState: number;       // bytes per second
-    withVoice: number;       // bytes per second (estimated)
+    positionOnly: number;    
+    fullState: number;       
+    withVoice: number;       
   } {
     const positionBandwidth = agentCount * AGENT_POSITION_SIZE * updateRateHz;
     const stateBandwidth = agentCount * AGENT_STATE_SIZE * updateRateHz;
-    const voiceBandwidth = this.voiceEnabled ? agentCount * 8000 : 0; // 8KB/s per agent estimate
+    const voiceBandwidth = this.voiceEnabled ? agentCount * 8000 : 0; 
 
     return {
       positionOnly: positionBandwidth + MESSAGE_HEADER_SIZE * updateRateHz,
@@ -637,20 +562,18 @@ export class BinaryWebSocketProtocol {
     };
   }
 
-  /**
-   * Validate message integrity
-   */
+  
   public validateMessage(buffer: ArrayBuffer): boolean {
     const header = this.parseHeader(buffer);
     if (!header) return false;
 
-    // Check version compatibility
+    
     if (header.version !== PROTOCOL_VERSION) {
       logger.warn(`Protocol version mismatch: expected ${PROTOCOL_VERSION}, got ${header.version}`);
       return false;
     }
 
-    // Check payload length
+    
     const expectedSize = MESSAGE_HEADER_SIZE + header.payloadLength;
     if (buffer.byteLength !== expectedSize) {
       logger.warn(`Message size mismatch: expected ${expectedSize}, got ${buffer.byteLength}`);
@@ -675,8 +598,8 @@ export function estimateDataSize(agentCount: number): {
   const perSecond10Hz = perUpdate * 10;
   const perSecond60Hz = perUpdate * 60;
 
-  // Compare to typical REST API JSON payload (estimated)
-  const jsonEstimate = agentCount * 200; // ~200 bytes per agent in JSON
+  
+  const jsonEstimate = agentCount * 200; 
   const comparison = perUpdate < jsonEstimate
     ? `${Math.round((1 - perUpdate/jsonEstimate) * 100)}% smaller than JSON`
     : `${Math.round((perUpdate/jsonEstimate - 1) * 100)}% larger than JSON`;

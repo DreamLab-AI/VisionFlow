@@ -1,7 +1,4 @@
-/**
- * Programmatic monitor utilities for sending bots updates
- * Compatible with the bots-monitor.py pattern
- */
+
 
 import { unifiedApiClient } from '../../../services/api/UnifiedApiClient';
 import { createLogger } from '../../../utils/loggerConfig';
@@ -15,19 +12,16 @@ export interface BotsUpdatePayload {
   timestamp?: string;
 }
 
-/**
- * Send bots update through HTTP API endpoint
- * This follows the same pattern as the programmatic-monitor.py
- */
+
 export async function sendBotsUpdate(data: BotsUpdatePayload): Promise<void> {
   try {
-    // Add timestamp if not provided
+    
     const payload = {
       ...data,
       timestamp: data.timestamp || new Date().toISOString()
     };
 
-    // Send through API service
+    
     const response = await unifiedApiClient.post('/api/bots/update', payload);
 
     logger.debug('Sent bots update:', {
@@ -43,9 +37,7 @@ export async function sendBotsUpdate(data: BotsUpdatePayload): Promise<void> {
   }
 }
 
-/**
- * Generate mock agent data for testing
- */
+
 export function generateMockAgent(id: string, type: string, name: string): BotsAgent {
   return {
     id,
@@ -61,9 +53,7 @@ export function generateMockAgent(id: string, type: string, name: string): BotsA
   };
 }
 
-/**
- * Generate mock edge data for testing
- */
+
 export function generateMockEdge(source: string, target: string): BotsEdge {
   return {
     id: `edge_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -75,20 +65,16 @@ export function generateMockEdge(source: string, target: string): BotsEdge {
   };
 }
 
-/**
- * Create a programmatic monitor that sends periodic updates
- */
+
 export class ProgrammaticMonitor {
   private intervalId: number | null = null;
   private agents: Map<string, BotsAgent> = new Map();
 
   constructor() {
-    // Initialize with empty agents map - will be populated from real swarm data
+    
   }
 
-  /**
-   * Start monitoring and sending updates
-   */
+  
   start(intervalMs: number = 2000): void {
     if (this.intervalId) {
       logger.warn('Monitor already running');
@@ -101,13 +87,11 @@ export class ProgrammaticMonitor {
       this.sendUpdate();
     }, intervalMs);
 
-    // Send initial update
+    
     this.sendUpdate();
   }
 
-  /**
-   * Stop monitoring
-   */
+  
   stop(): void {
     if (this.intervalId) {
       window.clearInterval(this.intervalId);
@@ -116,38 +100,34 @@ export class ProgrammaticMonitor {
     }
   }
 
-  /**
-   * Update agent metrics
-   */
+  
   private updateAgentMetrics(agent: BotsAgent): void {
-    // Random walk for CPU usage
+    
     agent.cpuUsage = Math.max(0, Math.min(100,
       agent.cpuUsage + (Math.random() - 0.5) * 20));
 
-    // Workload affects health
+    
     if (agent.workload > 0.8) {
       agent.health = Math.max(0, agent.health - Math.random() * 2);
     } else {
       agent.health = Math.min(100, agent.health + Math.random());
     }
 
-    // Random workload changes
+    
     agent.workload = Math.max(0, Math.min(1.0,
       agent.workload + (Math.random() - 0.5) * 0.2));
 
-    // Update age
-    agent.age = (agent.age || 0) + 2; // seconds
+    
+    agent.age = (agent.age || 0) + 2; 
   }
 
-  /**
-   * Generate communications between agents
-   */
+  
   private generateCommunications(): BotsEdge[] {
     const edges: BotsEdge[] = [];
     const agentIds = Array.from(this.agents.keys());
 
     if (agentIds.length >= 2) {
-      // Generate 1-3 random communications
+      
       const numComms = Math.floor(Math.random() * 3) + 1;
 
       for (let i = 0; i < numComms; i++) {
@@ -163,17 +143,15 @@ export class ProgrammaticMonitor {
     return edges;
   }
 
-  /**
-   * Send update
-   */
+  
   private async sendUpdate(): Promise<void> {
-    // Update all agent metrics
+    
     this.agents.forEach(agent => this.updateAgentMetrics(agent));
 
-    // Generate communications
+    
     const edges = this.generateCommunications();
 
-    // Prepare payload
+    
     const payload: BotsUpdatePayload = {
       nodes: Array.from(this.agents.values()),
       edges
@@ -186,23 +164,17 @@ export class ProgrammaticMonitor {
     }
   }
 
-  /**
-   * Add or update an agent
-   */
+  
   addAgent(agent: BotsAgent): void {
     this.agents.set(agent.id, agent);
   }
 
-  /**
-   * Remove an agent
-   */
+  
   removeAgent(agentId: string): void {
     this.agents.delete(agentId);
   }
 
-  /**
-   * Get current agents
-   */
+  
   getAgents(): BotsAgent[] {
     return Array.from(this.agents.values());
   }

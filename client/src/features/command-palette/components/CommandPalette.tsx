@@ -27,7 +27,7 @@ export function CommandPalette() {
   const selectedRef = useRef<HTMLDivElement>(null);
   const announce = useAnnounce();
 
-  // Handle keyboard navigation
+  
   useEffect(() => {
     if (!isOpen) return;
 
@@ -56,7 +56,7 @@ export function CommandPalette() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, navigateUp, navigateDown, executeSelectedCommand, close]);
 
-  // Scroll selected item into view
+  
   useEffect(() => {
     if (selectedRef.current && containerRef.current) {
       const container = containerRef.current;
@@ -72,7 +72,7 @@ export function CommandPalette() {
     }
   }, [selectedIndex]);
 
-  // Announce results to screen readers
+  
   useEffect(() => {
     if (isOpen && filteredCommands.length > 0) {
       announce(`${filteredCommands.length} commands available. Use arrow keys to navigate.`, 'polite');
@@ -81,7 +81,7 @@ export function CommandPalette() {
     }
   }, [isOpen, filteredCommands.length, searchQuery, announce]);
 
-  // Handle clicks outside
+  
   useEffect(() => {
     if (!isOpen) return;
 
@@ -124,10 +124,10 @@ export function CommandPalette() {
         )}
         onClick={() => executeCommand(command)}
         onMouseEnter={() => {
-          // Update selected index on hover
+          
           const newIndex = filteredCommands.indexOf(command);
           if (newIndex !== -1 && newIndex !== selectedIndex) {
-            // We need to expose a method to update selectedIndex
+            
           }
         }}
       >
@@ -165,10 +165,10 @@ export function CommandPalette() {
       aria-modal="true"
       aria-labelledby="command-palette-title"
     >
-      {/* Backdrop */}
+      {}
       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" aria-hidden="true" />
 
-      {/* Dialog */}
+      {}
       <div
         ref={dialogRef as any}
         id="command-palette-dialog"
@@ -178,7 +178,7 @@ export function CommandPalette() {
           "animate-in fade-in-0 zoom-in-95 duration-200"
         )}
       >
-        {/* Search header */}
+        {}
         <div className="p-4 border-b">
           <label htmlFor="command-search" className="sr-only">Search commands</label>
           <SearchInput
@@ -195,7 +195,7 @@ export function CommandPalette() {
           />
         </div>
 
-        {/* Command list */}
+        {}
         <div
           ref={containerRef}
           id="command-list"
@@ -219,7 +219,7 @@ export function CommandPalette() {
           )}
         </div>
 
-        {/* Footer */}
+        {}
         <div className="p-3 border-t flex items-center justify-between text-xs text-muted-foreground">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">

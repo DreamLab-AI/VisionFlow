@@ -27,7 +27,7 @@ use crate::models::workspace::{
     WorkspaceType,
 };
 
-/// Configuration function to register workspace routes
+/
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/workspace")
@@ -42,15 +42,15 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     );
 }
 
-/// GET /api/workspace/list
-/// List all workspaces with optional filtering and pagination
+/
+/
 async fn list_workspaces(
     workspace_actor: web::Data<Addr<WorkspaceActor>>,
     query: web::Query<WorkspaceQueryParams>,
 ) -> ActixResult<HttpResponse> {
     debug!("Received workspace list request: {:?}", query);
 
-    // Convert query parameters to internal query structure
+    
     let workspace_query = WorkspaceQuery {
         page: query.page,
         page_size: query.page_size,
@@ -59,7 +59,7 @@ async fn list_workspaces(
         filter: build_filter_from_query(&query),
     };
 
-    // Validate the query
+    
     if let Err(validation_errors) = workspace_query.validate() {
         warn!("Workspace query validation failed: {:?}", validation_errors);
         return Ok(HttpResponse::BadRequest().json(json!({
@@ -72,7 +72,7 @@ async fn list_workspaces(
         })));
     }
 
-    // Send request to workspace actor with timeout
+    
     match send_with_default_timeout(
         &workspace_actor,
         GetWorkspaces {
@@ -120,8 +120,8 @@ async fn list_workspaces(
     }
 }
 
-/// GET /api/workspace/{id}
-/// Get a specific workspace by ID
+/
+/
 async fn get_workspace(
     workspace_actor: web::Data<Addr<WorkspaceActor>>,
     path: web::Path<String>,
@@ -173,15 +173,15 @@ async fn get_workspace(
     }
 }
 
-/// POST /api/workspace/create
-/// Create a new workspace with validation
+/
+/
 async fn create_workspace(
     workspace_actor: web::Data<Addr<WorkspaceActor>>,
     payload: web::Json<CreateWorkspaceRequest>,
 ) -> ActixResult<HttpResponse> {
     debug!("Received create workspace request: {:?}", payload.name);
 
-    // Validate the request
+    
     if let Err(validation_errors) = payload.validate() {
         warn!(
             "Workspace creation validation failed: {:?}",
@@ -225,8 +225,8 @@ async fn create_workspace(
     }
 }
 
-/// PUT /api/workspace/{id}
-/// Update workspace metadata
+/
+/
 async fn update_workspace(
     workspace_actor: web::Data<Addr<WorkspaceActor>>,
     path: web::Path<String>,
@@ -240,7 +240,7 @@ async fn update_workspace(
             .json(WorkspaceResponse::error("Workspace ID cannot be empty")));
     }
 
-    // Validate the request
+    
     if let Err(validation_errors) = payload.validate() {
         warn!(
             "Workspace update validation failed: {:?}",
@@ -294,8 +294,8 @@ async fn update_workspace(
     }
 }
 
-/// DELETE /api/workspace/{id}
-/// Soft delete workspace (archives it)
+/
+/
 async fn delete_workspace(
     workspace_actor: web::Data<Addr<WorkspaceActor>>,
     path: web::Path<String>,
@@ -344,8 +344,8 @@ async fn delete_workspace(
     }
 }
 
-/// POST /api/workspace/{id}/favorite
-/// Toggle favorite status
+/
+/
 async fn toggle_favorite_workspace(
     workspace_actor: web::Data<Addr<WorkspaceActor>>,
     path: web::Path<String>,
@@ -413,8 +413,8 @@ async fn toggle_favorite_workspace(
     }
 }
 
-/// POST /api/workspace/{id}/archive
-/// Archive/unarchive workspace
+/
+/
 async fn archive_workspace(
     workspace_actor: web::Data<Addr<WorkspaceActor>>,
     path: web::Path<String>,
@@ -473,8 +473,8 @@ async fn archive_workspace(
     }
 }
 
-/// GET /api/workspace/count
-/// Get workspace count with optional filtering
+/
+/
 async fn get_workspace_count(
     workspace_actor: web::Data<Addr<WorkspaceActor>>,
     query: web::Query<WorkspaceCountQuery>,
@@ -515,7 +515,7 @@ async fn get_workspace_count(
 // Helper Types and Functions
 // ============================================================================
 
-/// Query parameters for workspace list endpoint
+/
 #[derive(serde::Deserialize, Debug)]
 struct WorkspaceQueryParams {
     page: Option<usize>,
@@ -523,7 +523,7 @@ struct WorkspaceQueryParams {
     sort_by: Option<WorkspaceSortBy>,
     sort_direction: Option<SortDirection>,
 
-    // Filter parameters
+    
     status: Option<WorkspaceStatus>,
     workspace_type: Option<WorkspaceType>,
     is_favorite: Option<bool>,
@@ -531,13 +531,13 @@ struct WorkspaceQueryParams {
     search: Option<String>,
 }
 
-/// Request body for archive endpoint
+/
 #[derive(serde::Deserialize, Debug)]
 struct ArchiveRequest {
     archive: bool,
 }
 
-/// Query parameters for workspace count endpoint
+/
 #[derive(serde::Deserialize, Debug)]
 struct WorkspaceCountQuery {
     status: Option<WorkspaceStatus>,
@@ -547,7 +547,7 @@ struct WorkspaceCountQuery {
     search: Option<String>,
 }
 
-/// Build workspace filter from query parameters
+/
 fn build_filter_from_query(query: &WorkspaceQueryParams) -> Option<WorkspaceFilter> {
     if query.status.is_none()
         && query.workspace_type.is_none()
@@ -567,7 +567,7 @@ fn build_filter_from_query(query: &WorkspaceQueryParams) -> Option<WorkspaceFilt
     })
 }
 
-/// Build workspace filter from count query parameters
+/
 fn build_filter_from_count_query(query: &WorkspaceCountQuery) -> Option<WorkspaceFilter> {
     if query.status.is_none()
         && query.workspace_type.is_none()

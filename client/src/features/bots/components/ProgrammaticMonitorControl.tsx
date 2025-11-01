@@ -5,16 +5,13 @@ import { Button } from '../../design-system/components/Button';
 
 const logger = createLogger('ProgrammaticMonitorControl');
 
-/**
- * Control panel for programmatic bots monitor
- * Allows starting/stopping the monitor that sends updates via HTTP
- */
+
 export const ProgrammaticMonitorControl: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [updateCount, setUpdateCount] = useState(0);
 
   useEffect(() => {
-    // Clean up on unmount
+    
     return () => {
       programmaticMonitor.stop();
     };
@@ -26,22 +23,22 @@ export const ProgrammaticMonitorControl: React.FC = () => {
       setIsRunning(false);
       logger.info('Programmatic monitor stopped');
     } else {
-      programmaticMonitor.start(2000); // Update every 2 seconds
+      programmaticMonitor.start(2000); 
       setIsRunning(true);
       logger.info('Programmatic monitor started');
 
-      // Track updates
+      
       const interval = setInterval(() => {
         setUpdateCount(prev => prev + 1);
       }, 2000);
 
-      // Store interval ID for cleanup
+      
       (window as any)._monitorInterval = interval;
     }
   };
 
   useEffect(() => {
-    // Clean up interval when stopping
+    
     if (!isRunning && (window as any)._monitorInterval) {
       clearInterval((window as any)._monitorInterval);
       delete (window as any)._monitorInterval;

@@ -7,24 +7,24 @@ use tokio::net::TcpStream;
 use tokio::sync::{Mutex, RwLock, Semaphore};
 use uuid::Uuid;
 
-/// Configuration for connection pooling
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConnectionPoolConfig {
-    /// Maximum number of connections per endpoint
+    
     pub max_connections_per_endpoint: usize,
-    /// Maximum total connections across all endpoints
+    
     pub max_total_connections: usize,
-    /// How long to wait for an available connection
+    
     pub connection_timeout: Duration,
-    /// How long a connection can be idle before being closed
+    
     pub idle_timeout: Duration,
-    /// How long a connection can exist before being recycled
+    
     pub max_connection_lifetime: Duration,
-    /// How often to run cleanup of idle/expired connections
+    
     pub cleanup_interval: Duration,
-    /// Enable connection validation before reuse
+    
     pub validate_on_borrow: bool,
-    /// Enable connection validation while idle
+    
     pub validate_while_idle: bool,
 }
 
@@ -34,8 +34,8 @@ impl Default for ConnectionPoolConfig {
             max_connections_per_endpoint: 10,
             max_total_connections: 100,
             connection_timeout: Duration::from_secs(10),
-            idle_timeout: Duration::from_secs(300), // 5 minutes
-            max_connection_lifetime: Duration::from_secs(3600), // 1 hour
+            idle_timeout: Duration::from_secs(300), 
+            max_connection_lifetime: Duration::from_secs(3600), 
             cleanup_interval: Duration::from_secs(60),
             validate_on_borrow: true,
             validate_while_idle: false,
@@ -44,28 +44,28 @@ impl Default for ConnectionPoolConfig {
 }
 
 impl ConnectionPoolConfig {
-    /// Configuration optimized for high-throughput scenarios
+    
     pub fn high_throughput() -> Self {
         Self {
             max_connections_per_endpoint: 20,
             max_total_connections: 200,
             connection_timeout: Duration::from_secs(5),
-            idle_timeout: Duration::from_secs(600), // 10 minutes
-            max_connection_lifetime: Duration::from_secs(7200), // 2 hours
+            idle_timeout: Duration::from_secs(600), 
+            max_connection_lifetime: Duration::from_secs(7200), 
             cleanup_interval: Duration::from_secs(30),
-            validate_on_borrow: false, // Skip validation for performance
+            validate_on_borrow: false, 
             validate_while_idle: true,
         }
     }
 
-    /// Configuration for low-latency scenarios
+    
     pub fn low_latency() -> Self {
         Self {
             max_connections_per_endpoint: 5,
             max_total_connections: 50,
             connection_timeout: Duration::from_secs(2),
-            idle_timeout: Duration::from_secs(120), // 2 minutes
-            max_connection_lifetime: Duration::from_secs(1800), // 30 minutes
+            idle_timeout: Duration::from_secs(120), 
+            max_connection_lifetime: Duration::from_secs(1800), 
             cleanup_interval: Duration::from_secs(15),
             validate_on_borrow: true,
             validate_while_idle: false,
@@ -73,7 +73,7 @@ impl ConnectionPoolConfig {
     }
 }
 
-/// Represents a pooled TCP connection
+/
 #[derive(Debug)]
 pub struct PooledConnection {
     pub id: String,
@@ -97,26 +97,26 @@ impl PooledConnection {
         }
     }
 
-    /// Check if connection is expired based on age
+    
     pub fn is_expired(&self, max_lifetime: Duration) -> bool {
         self.created_at.elapsed() > max_lifetime
     }
 
-    /// Check if connection is idle for too long
+    
     pub fn is_idle(&self, idle_timeout: Duration) -> bool {
         self.last_used.elapsed() > idle_timeout
     }
 
-    /// Update last used timestamp and increment usage count
+    
     pub fn mark_used(&mut self) {
         self.last_used = Instant::now();
         self.usage_count += 1;
     }
 
-    /// Validate connection by attempting a simple operation
+    
     pub async fn validate(&self) -> bool {
-        // For TCP streams, we can check if the socket is still connected
-        // This is a basic check - in practice you might want to send a ping
+        
+        
         match self.stream.peer_addr() {
             Ok(_) => true,
             Err(_) => false,
@@ -124,7 +124,7 @@ impl PooledConnection {
     }
 }
 
-/// Statistics for the connection pool
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConnectionPoolStats {
     pub total_connections: usize,
@@ -141,7 +141,7 @@ pub struct ConnectionPoolStats {
     pub validations_failed: u64,
 }
 
-/// Connection pool for managing TCP connections
+/
 pub struct ConnectionPool {
     config: ConnectionPoolConfig,
     connections: Arc<RwLock<HashMap<String, Vec<PooledConnection>>>>,
@@ -151,7 +151,7 @@ pub struct ConnectionPool {
 }
 
 impl ConnectionPool {
-    /// Create a new connection pool with the given configuration
+    
     pub fn new(config: ConnectionPoolConfig) -> Self {
         let pool = Self {
             connection_semaphore: Arc::new(Semaphore::new(config.max_total_connections)),
@@ -177,7 +177,7 @@ impl ConnectionPool {
         pool
     }
 
-    /// Start the cleanup task
+    
     pub fn start_cleanup_task(&mut self) {
         let connections = self.connections.clone();
         let stats = self.stats.clone();
@@ -195,26 +195,26 @@ impl ConnectionPool {
         self.cleanup_handle = Some(handle);
     }
 
-    /// Get a connection from the pool or create a new one
+    
     pub async fn get_connection(
         &self,
         endpoint: &str,
     ) -> Result<PooledConnection, ConnectionPoolError> {
         let _start_time = Instant::now();
 
-        // Check file descriptor usage before attempting connection
+        
         if let Err(fd_error) = self.check_file_descriptor_usage().await {
             warn!("{}", fd_error);
             return Err(ConnectionPoolError::ConnectionFailed(fd_error));
         }
 
-        // Update stats
+        
         {
             let mut stats = self.stats.lock().await;
             stats.total_requests += 1;
         }
 
-        // Try to acquire a semaphore permit
+        
         let permit = match tokio::time::timeout(
             self.config.connection_timeout,
             self.connection_semaphore.acquire(),
@@ -232,42 +232,42 @@ impl ConnectionPool {
             }
         };
 
-        // Try to get an existing connection first
+        
         if let Some(connection) = self.borrow_existing_connection(endpoint).await? {
-            permit.forget(); // Keep the permit as we're using a connection
+            permit.forget(); 
             return Ok(connection);
         }
 
-        // Create a new connection
+        
         match self.create_new_connection(endpoint).await {
             Ok(connection) => {
-                permit.forget(); // Keep the permit as we're using a connection
+                permit.forget(); 
                 self.record_successful_borrow().await;
                 Ok(connection)
             }
             Err(err) => {
-                drop(permit); // Release the permit as we failed to create a connection
+                drop(permit); 
                 self.record_failed_borrow().await;
                 Err(err)
             }
         }
     }
 
-    /// Return a connection to the pool
+    
     pub async fn return_connection(
         &self,
         mut connection: PooledConnection,
     ) -> Result<(), ConnectionPoolError> {
         connection.mark_used();
 
-        // Validate connection if configured
+        
         if self.config.validate_on_borrow && !connection.validate().await {
             self.record_validation_failed().await;
             self.connection_semaphore.add_permits(1);
-            return Ok(()); // Don't return invalid connections to pool
+            return Ok(()); 
         }
 
-        // Check if connection is expired
+        
         if connection.is_expired(self.config.max_connection_lifetime) {
             debug!(
                 "Connection {} expired, not returning to pool",
@@ -277,7 +277,7 @@ impl ConnectionPool {
             return Ok(());
         }
 
-        // Check connection limit for this endpoint
+        
         let endpoint = connection.endpoint.clone();
         let mut connections = self.connections.write().await;
 
@@ -299,21 +299,21 @@ impl ConnectionPool {
         Ok(())
     }
 
-    /// Get current pool statistics
+    
     pub async fn stats(&self) -> ConnectionPoolStats {
         self.stats.lock().await.clone()
     }
 
-    /// Close all connections and shutdown the pool
+    
     pub async fn shutdown(&mut self) {
         info!("Shutting down connection pool");
 
-        // Cancel cleanup task
+        
         if let Some(handle) = self.cleanup_handle.take() {
             handle.abort();
         }
 
-        // Close all connections
+        
         let mut connections = self.connections.write().await;
         for (endpoint, conn_list) in connections.drain() {
             debug!(
@@ -326,7 +326,7 @@ impl ConnectionPool {
         info!("Connection pool shutdown complete");
     }
 
-    // Private methods
+    
 
     async fn borrow_existing_connection(
         &self,
@@ -335,21 +335,21 @@ impl ConnectionPool {
         let mut connections = self.connections.write().await;
 
         if let Some(endpoint_connections) = connections.get_mut(endpoint) {
-            // Try to find a valid connection
+            
             while let Some(mut connection) = endpoint_connections.pop() {
-                // Check if connection is still valid
+                
                 if self.config.validate_on_borrow && !connection.validate().await {
                     self.record_validation_failed().await;
                     continue;
                 }
 
-                // Check if connection is expired
+                
                 if connection.is_expired(self.config.max_connection_lifetime) {
                     debug!("Connection {} expired, creating new one", connection.id);
                     continue;
                 }
 
-                // Check if connection is idle for too long
+                
                 if connection.is_idle(self.config.idle_timeout) {
                     debug!(
                         "Connection {} idle for too long, creating new one",
@@ -397,7 +397,7 @@ impl ConnectionPool {
             }
         };
 
-        // Set TCP options for optimal performance
+        
         if let Err(err) = stream.set_nodelay(true) {
             warn!("Failed to set TCP_NODELAY: {}", err);
         }
@@ -446,7 +446,7 @@ impl ConnectionPool {
             }
         }
 
-        // Remove empty endpoint entries
+        
         connections_guard.retain(|_, conns| !conns.is_empty());
 
         if closed_count > 0 {
@@ -456,7 +456,7 @@ impl ConnectionPool {
         }
     }
 
-    // Resource monitoring methods
+    
     async fn check_file_descriptor_usage(&self) -> Result<(), String> {
         #[cfg(target_os = "linux")]
         {
@@ -467,7 +467,7 @@ impl ConnectionPool {
                     while let Ok(Some(_)) = entries.next_entry().await {
                         count += 1;
                     }
-                    let fd_count = count.saturating_sub(1); // Subtract dir handle
+                    let fd_count = count.saturating_sub(1); 
 
                     const FD_WARNING_THRESHOLD: usize = 700;
                     const FD_ERROR_THRESHOLD: usize = 900;
@@ -482,14 +482,14 @@ impl ConnectionPool {
                     }
                 }
                 Err(_) => {
-                    // If /proc/self/fd is unavailable, continue without check
+                    
                 }
             }
         }
         Ok(())
     }
 
-    // Statistics methods
+    
     async fn record_successful_borrow(&self) {
         let mut stats = self.stats.lock().await;
         stats.successful_borrows += 1;
@@ -525,8 +525,8 @@ impl ConnectionPool {
         let mut stats = self.stats.lock().await;
 
         stats.total_connections = connections.values().map(|v| v.len()).sum();
-        stats.idle_connections = stats.total_connections; // All pooled connections are idle
-        stats.active_connections = 0; // Active connections are not in the pool
+        stats.idle_connections = stats.total_connections; 
+        stats.active_connections = 0; 
 
         stats.connections_per_endpoint.clear();
         for (endpoint, conns) in connections.iter() {
@@ -545,7 +545,7 @@ impl Drop for ConnectionPool {
     }
 }
 
-/// Errors that can occur with connection pool operations
+/
 #[derive(Debug, thiserror::Error)]
 pub enum ConnectionPoolError {
     #[error("Connection timeout")]
@@ -560,7 +560,7 @@ pub enum ConnectionPoolError {
     PoolShuttingDown,
 }
 
-/// Global connection pool registry
+/
 pub struct ConnectionPoolRegistry {
     pools: Arc<RwLock<HashMap<String, Arc<Mutex<ConnectionPool>>>>>,
 }
@@ -572,7 +572,7 @@ impl ConnectionPoolRegistry {
         }
     }
 
-    /// Get or create a connection pool for a specific service
+    
     pub async fn get_or_create_pool(
         &self,
         service_name: &str,
@@ -592,7 +592,7 @@ impl ConnectionPoolRegistry {
         }
     }
 
-    /// Get statistics for all pools
+    
     pub async fn get_all_stats(&self) -> HashMap<String, ConnectionPoolStats> {
         let pools = self.pools.read().await;
         let mut all_stats = HashMap::new();
@@ -605,7 +605,7 @@ impl ConnectionPoolRegistry {
         all_stats
     }
 
-    /// Shutdown all pools
+    
     pub async fn shutdown_all(&self) {
         let mut pools = self.pools.write().await;
         for (name, pool) in pools.drain() {
@@ -641,29 +641,29 @@ mod tests {
 
     #[tokio::test]
     async fn test_pooled_connection_validation() {
-        // This test requires a real connection, so we'll skip it in unit tests
-        // In integration tests, you would create a real TcpStream and test validation
+        
+        
     }
 
     #[tokio::test]
     async fn test_connection_expiry() {
         let stream = tokio::net::TcpStream::connect("127.0.0.1:80").await;
 
-        // Skip test if we can't connect (no server running)
+        
         if stream.is_err() {
             return;
         }
 
         let mut connection = PooledConnection::new(stream.unwrap(), "127.0.0.1:80".to_string());
 
-        // Test that new connection is not expired
+        
         assert!(!connection.is_expired(Duration::from_secs(60)));
 
-        // Test that connection becomes idle
+        
         sleep(Duration::from_millis(10)).await;
         assert!(connection.is_idle(Duration::from_millis(5)));
 
-        // Mark as used and check it's no longer idle
+        
         connection.mark_used();
         assert!(!connection.is_idle(Duration::from_millis(5)));
     }
@@ -679,7 +679,7 @@ mod tests {
             .get_or_create_pool("service1", ConnectionPoolConfig::default())
             .await;
 
-        // Should return the same pool instance
+        
         assert!(Arc::ptr_eq(&pool1, &pool2));
 
         registry.shutdown_all().await;

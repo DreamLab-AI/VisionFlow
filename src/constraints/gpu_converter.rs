@@ -3,48 +3,48 @@
 
 use super::physics_constraint::*;
 
-/// GPU-compatible constraint data structure
-/// Matches CUDA struct layout for direct memory copy
+/
+/
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
 pub struct ConstraintData {
-    /// Constraint kind (enum as i32 for GPU compatibility)
+    
     pub kind: i32,
 
-    /// Number of nodes affected
+    
     pub count: i32,
 
-    /// Node indices (max 4 nodes per constraint)
-    /// For pairwise: [node1, node2, -1, -1]
-    /// For multi-node: [node1, node2, node3, node4]
+    
+    
+    
     pub node_idx: [i32; 4],
 
-    /// Constraint parameters
-    /// Separation: [min_distance, strength, 0, 0]
-    /// Clustering: [ideal_distance, stiffness, 0, 0]
-    /// Colocation: [target_distance, strength, 0, 0]
-    /// Boundary: [min_x, max_x, min_y, max_y] (uses params2 for z)
-    /// HierarchicalLayer: [z_level, strength, 0, 0]
-    /// Containment: [parent_node_id, radius, strength, 0]
+    
+    
+    
+    
+    
+    
+    
     pub params: [f32; 4],
 
-    /// Additional parameters for boundary constraints
-    /// Boundary: [min_z, max_z, strength, 0]
+    
+    
     pub params2: [f32; 4],
 
-    /// Priority weight (10^(-(priority-1)/9))
+    
     pub weight: f32,
 
-    /// Activation frame for progressive constraints
-    /// -1 = activate immediately
+    
+    
     pub activation_frame: i32,
 
-    /// Padding to align to 16-byte boundary (GPU optimization)
+    
     _padding: [f32; 2],
 }
 
-/// GPU constraint kind enumeration
-/// Must match CUDA enum values
+/
+/
 pub mod gpu_constraint_kind {
     pub const NONE: i32 = 0;
     pub const SEPARATION: i32 = 1;
@@ -70,23 +70,23 @@ impl Default for ConstraintData {
     }
 }
 
-/// Convert physics constraint to GPU format
+/
 pub fn to_gpu_constraint_data(constraint: &PhysicsConstraint) -> ConstraintData {
     let mut data = ConstraintData::default();
 
-    // Set node indices (max 4 nodes)
+    
     data.count = constraint.nodes.len().min(4) as i32;
     for (i, &node_id) in constraint.nodes.iter().take(4).enumerate() {
         data.node_idx[i] = node_id as i32;
     }
 
-    // Set priority weight
+    
     data.weight = constraint.priority_weight();
 
-    // Set activation frame
+    
     data.activation_frame = constraint.activation_frame.unwrap_or(-1);
 
-    // Set kind and parameters based on constraint type
+    
     match &constraint.constraint_type {
         PhysicsConstraintType::Separation { min_distance, strength } => {
             data.kind = gpu_constraint_kind::SEPARATION;
@@ -108,12 +108,12 @@ pub fn to_gpu_constraint_data(constraint: &PhysicsConstraint) -> ConstraintData 
 
         PhysicsConstraintType::Boundary { bounds, strength } => {
             data.kind = gpu_constraint_kind::BOUNDARY;
-            data.params[0] = bounds[0]; // min_x
-            data.params[1] = bounds[1]; // max_x
-            data.params[2] = bounds[2]; // min_y
-            data.params[3] = bounds[3]; // max_y
-            data.params2[0] = bounds[4]; // min_z
-            data.params2[1] = bounds[5]; // max_z
+            data.params[0] = bounds[0]; 
+            data.params[1] = bounds[1]; 
+            data.params[2] = bounds[2]; 
+            data.params[3] = bounds[3]; 
+            data.params2[0] = bounds[4]; 
+            data.params2[1] = bounds[5]; 
             data.params2[2] = *strength;
         }
 
@@ -134,7 +134,7 @@ pub fn to_gpu_constraint_data(constraint: &PhysicsConstraint) -> ConstraintData 
     data
 }
 
-/// Convert multiple constraints to GPU format
+/
 pub fn to_gpu_constraint_batch(constraints: &[PhysicsConstraint]) -> Vec<ConstraintData> {
     constraints
         .iter()
@@ -142,20 +142,20 @@ pub fn to_gpu_constraint_batch(constraints: &[PhysicsConstraint]) -> Vec<Constra
         .collect()
 }
 
-/// GPU constraint buffer for CUDA kernel launch
+/
 pub struct GPUConstraintBuffer {
-    /// Raw constraint data
+    
     pub data: Vec<ConstraintData>,
 
-    /// Total number of constraints
+    
     pub count: usize,
 
-    /// Maximum constraints capacity
+    
     pub capacity: usize,
 }
 
 impl GPUConstraintBuffer {
-    /// Create a new GPU constraint buffer
+    
     pub fn new(capacity: usize) -> Self {
         Self {
             data: Vec::with_capacity(capacity),
@@ -164,7 +164,7 @@ impl GPUConstraintBuffer {
         }
     }
 
-    /// Add constraints to buffer
+    
     pub fn add_constraints(&mut self, constraints: &[PhysicsConstraint]) -> Result<(), String> {
         if self.count + constraints.len() > self.capacity {
             return Err(format!(
@@ -182,34 +182,34 @@ impl GPUConstraintBuffer {
         Ok(())
     }
 
-    /// Clear buffer
+    
     pub fn clear(&mut self) {
         self.data.clear();
         self.count = 0;
     }
 
-    /// Get raw data pointer for CUDA
+    
     pub fn as_ptr(&self) -> *const ConstraintData {
         self.data.as_ptr()
     }
 
-    /// Get data size in bytes
+    
     pub fn size_bytes(&self) -> usize {
         self.count * std::mem::size_of::<ConstraintData>()
     }
 
-    /// Check if buffer is empty
+    
     pub fn is_empty(&self) -> bool {
         self.count == 0
     }
 
-    /// Get number of constraints
+    
     pub fn len(&self) -> usize {
         self.count
     }
 }
 
-/// Statistics about GPU constraint buffer
+/
 #[derive(Debug, Clone)]
 pub struct ConstraintStats {
     pub total_constraints: usize,
@@ -225,7 +225,7 @@ pub struct ConstraintStats {
 }
 
 impl ConstraintStats {
-    /// Calculate statistics from constraint buffer
+    
     pub fn from_buffer(buffer: &GPUConstraintBuffer) -> Self {
         let mut stats = Self {
             total_constraints: buffer.count,
@@ -257,7 +257,7 @@ impl ConstraintStats {
                 stats.progressive_count += 1;
             }
 
-            // User-defined have weight = 1.0 (priority 1)
+            
             if (constraint_data.weight - 1.0).abs() < 0.001 {
                 stats.user_defined_count += 1;
             }
@@ -304,13 +304,13 @@ mod tests {
         let gpu_data = to_gpu_constraint_data(&constraint);
 
         assert_eq!(gpu_data.kind, gpu_constraint_kind::BOUNDARY);
-        assert_eq!(gpu_data.params[0], -20.0); // min_x
-        assert_eq!(gpu_data.params[1], 20.0);  // max_x
-        assert_eq!(gpu_data.params[2], -20.0); // min_y
-        assert_eq!(gpu_data.params[3], 20.0);  // max_y
-        assert_eq!(gpu_data.params2[0], -20.0); // min_z
-        assert_eq!(gpu_data.params2[1], 20.0);  // max_z
-        assert_eq!(gpu_data.params2[2], 0.7);   // strength
+        assert_eq!(gpu_data.params[0], -20.0); 
+        assert_eq!(gpu_data.params[1], 20.0);  
+        assert_eq!(gpu_data.params[2], -20.0); 
+        assert_eq!(gpu_data.params[3], 20.0);  
+        assert_eq!(gpu_data.params2[0], -20.0); 
+        assert_eq!(gpu_data.params2[1], 20.0);  
+        assert_eq!(gpu_data.params2[2], 0.7);   
     }
 
     #[test]
@@ -330,9 +330,9 @@ mod tests {
         let gpu_data = to_gpu_constraint_data(&constraint);
 
         assert_eq!(gpu_data.kind, gpu_constraint_kind::CONTAINMENT);
-        assert_eq!(gpu_data.params[0], 100.0); // parent_node
-        assert_eq!(gpu_data.params[1], 50.0);  // radius
-        assert_eq!(gpu_data.params[2], 0.8);   // strength
+        assert_eq!(gpu_data.params[0], 100.0); 
+        assert_eq!(gpu_data.params[1], 50.0);  
+        assert_eq!(gpu_data.params[2], 0.8);   
     }
 
     #[test]
@@ -429,10 +429,10 @@ mod tests {
 
     #[test]
     fn test_constraint_data_size() {
-        // Verify struct size for GPU memory alignment
+        
         let size = std::mem::size_of::<ConstraintData>();
 
-        // Should be multiple of 16 bytes for optimal GPU memory access
+        
         assert_eq!(size % 16, 0);
     }
 }

@@ -32,7 +32,7 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
   }>({ status: 'idle' });
   const [taskPriority, setTaskPriority] = useState<'low' | 'medium' | 'high' | 'critical'>('medium');
 
-  // Update selected agent when ID changes or data updates
+  
   useEffect(() => {
     if (!botsData || !botsData.agents) {
       setSelectedAgent(null);
@@ -43,7 +43,7 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
       const agent = botsData.agents.find(a => a.id === selectedAgentId);
       setSelectedAgent(agent || null);
     } else if (botsData.agents.length > 0 && !selectedAgent) {
-      // Auto-select first agent if none selected
+      
       setSelectedAgent(botsData.agents[0]);
     }
   }, [botsData, selectedAgentId, selectedAgent]);
@@ -111,7 +111,7 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
 
         {selectedAgent ? (
           <div className="space-y-4">
-            {/* Agent Header */}
+            {}
             <div className="flex items-center gap-3">
               <div className={`w-3 h-3 rounded-full ${getStatusColor(selectedAgent.status)}`} />
               <div>
@@ -122,7 +122,7 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
               </div>
             </div>
 
-            {/* Performance Metrics */}
+            {}
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-gray-50 rounded p-3">
                 <div className="text-xs text-gray-600">Health</div>
@@ -144,7 +144,7 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
               </div>
             </div>
 
-            {/* Task Information */}
+            {}
             <div>
               <h5 className="font-semibold text-sm mb-2">Task Activity</h5>
               <div className="space-y-2 text-sm">
@@ -165,7 +165,7 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
               </div>
             </div>
 
-            {/* Capabilities */}
+            {}
             {selectedAgent.capabilities && selectedAgent.capabilities.length > 0 && (
               <div>
                 <h5 className="font-semibold text-sm mb-2">Capabilities</h5>
@@ -182,7 +182,7 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
               </div>
             )}
 
-            {/* Token Usage */}
+            {}
             {selectedAgent.tokens !== undefined && (
               <div>
                 <h5 className="font-semibold text-sm mb-2">Token Usage</h5>
@@ -201,7 +201,7 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
               </div>
             )}
 
-            {/* multi-agent Information */}
+            {}
             {selectedAgent.multi-agentId && (
               <div>
                 <h5 className="font-semibold text-sm mb-2">multi-agent Information</h5>
@@ -224,7 +224,7 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
               </div>
             )}
 
-            {/* Task Submission Section */}
+            {}
             <div className="pt-3 border-t border-gray-200">
               <h5 className="font-semibold text-sm mb-2">Submit Task to Swarm</h5>
               <div className="space-y-2">
@@ -277,7 +277,7 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
                           progress: 0
                         });
 
-                        // Start polling for task status
+                        
                         const pollInterval = setInterval(async () => {
                           try {
                             const statusApiResponse = await unifiedApiClient.get(`/bots/task-status/${response.taskId}`);
@@ -291,7 +291,7 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
                                 progress: 100
                               });
                               clearInterval(pollInterval);
-                              // Clear task input after completion
+                              
                               setTimeout(() => {
                                 setTaskDescription('');
                                 setTaskStatus({ status: 'idle' });
@@ -316,9 +316,9 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
                             logger.error('Failed to poll task status:', error);
                             clearInterval(pollInterval);
                           }
-                        }, 2000); // Poll every 2 seconds
+                        }, 2000); 
 
-                        // Stop polling after 5 minutes
+                        
                         setTimeout(() => clearInterval(pollInterval), 300000);
                       } else {
                         setTaskStatus({
@@ -342,7 +342,7 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
                    'Submit Task'}
                 </Button>
 
-                {/* Task Status Display */}
+                {}
                 {taskStatus.message && (
                   <div className={`p-2 rounded text-xs ${
                     taskStatus.status === 'error' ? 'bg-red-50 text-red-600' :
@@ -371,7 +371,7 @@ export const AgentDetailPanel: React.FC<AgentDetailPanelProps> = ({
               </div>
             </div>
 
-            {/* Agent Age */}
+            {}
             <div className="pt-3 border-t border-gray-200 text-xs text-gray-500">
               Agent Age: {formatDuration(selectedAgent.age)}
             </div>

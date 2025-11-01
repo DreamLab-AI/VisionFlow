@@ -10,11 +10,11 @@ export function useWebSocketErrorHandler() {
   const { handleError, handleWebSocketError, handleSettingsError } = useErrorHandler();
   
   useEffect(() => {
-    // Listen for structured error frames from WebSocket
+    
     const unsubscribeErrorFrame = webSocketService.on('error-frame', (error: WebSocketErrorFrame) => {
       logger.warn('WebSocket error frame received:', error);
       
-      // Handle based on category
+      
       switch (error.category) {
         case 'validation':
           handleError(new Error(error.message), {
@@ -33,11 +33,11 @@ export function useWebSocketErrorHandler() {
             title: 'Rate Limit Exceeded',
             category: 'network',
             retry: async () => {
-              // Wait for rate limit to expire
+              
               if (error.retryAfter) {
                 await new Promise(resolve => setTimeout(resolve, error.retryAfter));
               }
-              // Retry queued messages
+              
               await webSocketService.processMessageQueue();
             },
             metadata: {
@@ -53,7 +53,7 @@ export function useWebSocketErrorHandler() {
             category: 'network',
             actionLabel: 'Sign In',
             onAction: () => {
-              // Navigate to auth or trigger auth modal
+              
               window.location.href = '/auth/login';
             },
             metadata: {
@@ -92,24 +92,24 @@ export function useWebSocketErrorHandler() {
       }
     });
     
-    // Listen for validation errors
+    
     const unsubscribeValidation = webSocketService.on('validation-error', (data: { paths: string[], message: string }) => {
       handleSettingsError(new Error(data.message), data.paths);
     });
     
-    // Listen for rate limit events
+    
     const unsubscribeRateLimit = webSocketService.on('rate-limit', (data: { retryAfter: number, message: string }) => {
       logger.info(`Rate limited. Will retry after ${data.retryAfter}ms`);
     });
     
-    // Listen for auth errors
+    
     const unsubscribeAuth = webSocketService.on('auth-error', (data: { code: string, message: string }) => {
-      // Clear auth state
+      
       useSettingsStore.getState().setAuthenticated(false);
       useSettingsStore.getState().setUser(null);
     });
     
-    // Listen for connection state changes
+    
     const unsubscribeConnectionState = webSocketService.onConnectionStateChange((state) => {
       if (state.status === 'failed') {
         handleWebSocketError(new Error(state.lastError || 'Connection failed'));
@@ -142,7 +142,7 @@ export function reportClientError(error: Error, context?: Record<string, any>) {
       retryable: false
     });
   } catch (sendError) {
-    // Fail silently - don't want error reporting to cause more errors
+    
     logger.debug('Failed to report client error:', sendError);
   }
 }

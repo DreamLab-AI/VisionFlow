@@ -64,13 +64,13 @@ export const Modal: React.FC<ModalProps> = ({
       role="dialog"
       aria-modal="true"
     >
-      {/* Backdrop */}
+      {}
       <div
         className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
         onClick={handleOverlayClick}
       />
 
-      {/* Modal Container */}
+      {}
       <div className="flex min-h-screen items-center justify-center p-4">
         <div
           ref={modalRef}
@@ -81,7 +81,7 @@ export const Modal: React.FC<ModalProps> = ({
             ${className}
           `}
         >
-          {/* Header */}
+          {}
           {(title || showCloseButton) && (
             <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-6 py-4">
               {title && (
@@ -102,7 +102,7 @@ export const Modal: React.FC<ModalProps> = ({
             </div>
           )}
 
-          {/* Content */}
+          {}
           <div className="px-6 py-4">
             {children}
           </div>

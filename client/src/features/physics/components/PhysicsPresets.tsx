@@ -220,7 +220,7 @@ export function PhysicsPresets() {
     try {
       const response = await unifiedApiClient.get('/api/analytics/preset/export');
 
-      // Convert response data to blob for download
+      
       const blob = new Blob([JSON.stringify(response.data)], { type: 'application/json' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -335,7 +335,7 @@ export function PhysicsPresets() {
         </CardContent>
       </Card>
 
-      {/* Save Preset Dialog */}
+      {}
       <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
         <DialogContent>
           <DialogHeader>

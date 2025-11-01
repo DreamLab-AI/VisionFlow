@@ -11,7 +11,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use uuid::Uuid;
 
-/// Rate limiting state for export operations
+/
 #[derive(Debug, Clone)]
 pub struct RateLimitState {
     pub requests: Vec<DateTime<Utc>>,
@@ -29,13 +29,13 @@ impl Default for RateLimitState {
     }
 }
 
-/// Shared graph storage for in-memory management
+/
 type SharedGraphStorage = Arc<RwLock<HashMap<Uuid, SharedGraph>>>;
 
-/// Rate limiting storage (in production, use Redis)
+/
 type RateLimitStorage = Arc<RwLock<HashMap<String, RateLimitState>>>;
 
-/// Graph export handler with comprehensive functionality
+/
 pub struct GraphExportHandler {
     serialization_service: GraphSerializationService,
     shared_graphs: SharedGraphStorage,
@@ -45,7 +45,7 @@ pub struct GraphExportHandler {
 }
 
 impl GraphExportHandler {
-    /// Create new graph export handler
+    
     pub fn new(storage_path: std::path::PathBuf) -> Self {
         Self {
             serialization_service: GraphSerializationService::new(storage_path),
@@ -56,7 +56,7 @@ impl GraphExportHandler {
         }
     }
 
-    /// Check rate limits for a client
+    
     async fn check_rate_limit(&self, client_ip: &str) -> Result<RateLimitInfo> {
         let mut rate_limits = self.rate_limits.write().await;
         let now = Utc::now();
@@ -65,12 +65,12 @@ impl GraphExportHandler {
             .entry(client_ip.to_string())
             .or_insert_with(RateLimitState::default);
 
-        // Clean old requests (older than 24 hours)
+        
         state
             .requests
             .retain(|&timestamp| now.signed_duration_since(timestamp).num_hours() < 24);
 
-        // Count hourly and daily requests
+        
         let hourly_count = state
             .requests
             .iter()
@@ -79,7 +79,7 @@ impl GraphExportHandler {
 
         let daily_count = state.requests.len() as u32;
 
-        // Check limits
+        
         if daily_count >= self.daily_export_limit {
             return Ok(RateLimitInfo {
                 remaining_exports: 0,
@@ -98,7 +98,7 @@ impl GraphExportHandler {
             });
         }
 
-        // Update state
+        
         state.requests.push(now);
         state.daily_count = daily_count + 1;
         state.hourly_count = hourly_count + 1;
@@ -111,13 +111,13 @@ impl GraphExportHandler {
         })
     }
 
-    /// Get current graph from app state (mock implementation)
+    
     async fn get_current_graph(&self, _app_state: &AppState) -> Result<GraphData> {
-        // In production, this would get the actual graph from the visualization service
-        // For now, return a mock graph
+        
+        
         let mut graph = GraphData::new();
 
-        // Add sample nodes and edges
+        
         for i in 1..=10 {
             let mut node = crate::models::node::Node::new(format!("node_{}", i))
                 .with_label(format!("Node {}", i))
@@ -136,7 +136,7 @@ impl GraphExportHandler {
     }
 }
 
-/// Export graph in specified format
+/
 pub async fn export_graph(
     app_state: web::Data<AppState>,
     request: web::Json<ExportRequest>,
@@ -148,10 +148,10 @@ pub async fn export_graph(
         .unwrap_or("unknown")
         .to_string();
 
-    // Get handler from app state (in production, this would be injected)
+    
     let handler = GraphExportHandler::new(std::path::PathBuf::from("data"));
 
-    // Check rate limits
+    
     match handler.check_rate_limit(&client_ip).await {
         Ok(rate_info) if rate_info.remaining_exports == 0 => {
             return Ok(HttpResponse::TooManyRequests().json(serde_json::json!({
@@ -167,7 +167,7 @@ pub async fn export_graph(
         _ => {}
     }
 
-    // Get current graph
+    
     let graph = match handler.get_current_graph(&app_state).await {
         Ok(graph) => graph,
         Err(e) => {
@@ -177,7 +177,7 @@ pub async fn export_graph(
         }
     };
 
-    // Export graph
+    
     match handler
         .serialization_service
         .export_graph(&graph, &request)
@@ -190,7 +190,7 @@ pub async fn export_graph(
     }
 }
 
-/// Create shareable link for graph
+/
 pub async fn share_graph(
     app_state: web::Data<AppState>,
     request: web::Json<ShareRequest>,
@@ -204,7 +204,7 @@ pub async fn share_graph(
 
     let handler = GraphExportHandler::new(std::path::PathBuf::from("data"));
 
-    // Check rate limits
+    
     match handler.check_rate_limit(&client_ip).await {
         Ok(rate_info) if rate_info.remaining_exports == 0 => {
             return Ok(HttpResponse::TooManyRequests().json(serde_json::json!({
@@ -220,7 +220,7 @@ pub async fn share_graph(
         _ => {}
     }
 
-    // Get current graph
+    
     let graph = match handler.get_current_graph(&app_state).await {
         Ok(graph) => graph,
         Err(e) => {
@@ -230,14 +230,14 @@ pub async fn share_graph(
         }
     };
 
-    // Create shared graph
+    
     match handler
         .serialization_service
         .create_shared_graph(&graph, &request)
         .await
     {
         Ok((shared_graph, share_response)) => {
-            // Store shared graph in memory
+            
             {
                 let mut shared_graphs = handler.shared_graphs.write().await;
                 shared_graphs.insert(shared_graph.id, shared_graph);
@@ -251,7 +251,7 @@ pub async fn share_graph(
     }
 }
 
-/// Retrieve shared graph by ID
+/
 pub async fn get_shared_graph(
     path: web::Path<String>,
     query: web::Query<HashMap<String, String>>,
@@ -267,7 +267,7 @@ pub async fn get_shared_graph(
 
     let handler = GraphExportHandler::new(std::path::PathBuf::from("data"));
 
-    // Get shared graph from storage
+    
     let shared_graph = {
         let shared_graphs = handler.shared_graphs.read().await;
         match shared_graphs.get(&share_id) {
@@ -280,21 +280,21 @@ pub async fn get_shared_graph(
         }
     };
 
-    // Check if expired
+    
     if shared_graph.is_expired() {
         return Ok(HttpResponse::Gone().json(serde_json::json!({
             "error": "Shared graph has expired"
         })));
     }
 
-    // Check access limit
+    
     if shared_graph.access_limit_reached() {
         return Ok(HttpResponse::Forbidden().json(serde_json::json!({
             "error": "Access limit reached for this shared graph"
         })));
     }
 
-    // Check password if required
+    
     if let Some(password) = query.get("password") {
         if !shared_graph.validate_password(password) {
             return Ok(HttpResponse::Unauthorized().json(serde_json::json!({
@@ -307,7 +307,7 @@ pub async fn get_shared_graph(
         })));
     }
 
-    // Update access count
+    
     {
         let mut shared_graphs = handler.shared_graphs.write().await;
         if let Some(graph) = shared_graphs.get_mut(&share_id) {
@@ -315,7 +315,7 @@ pub async fn get_shared_graph(
         }
     }
 
-    // Read and return the shared graph file
+    
     match std::fs::read(&shared_graph.file_path) {
         Ok(file_data) => {
             let content_type = match shared_graph.original_format {
@@ -344,7 +344,7 @@ pub async fn get_shared_graph(
     }
 }
 
-/// Publish graph to repository
+/
 pub async fn publish_graph(
     app_state: web::Data<AppState>,
     _request: web::Json<PublishRequest>,
@@ -358,7 +358,7 @@ pub async fn publish_graph(
 
     let handler = GraphExportHandler::new(std::path::PathBuf::from("data"));
 
-    // Check rate limits (publishing has stricter limits)
+    
     match handler.check_rate_limit(&client_ip).await {
         Ok(rate_info) if rate_info.remaining_exports == 0 => {
             return Ok(HttpResponse::TooManyRequests().json(serde_json::json!({
@@ -374,7 +374,7 @@ pub async fn publish_graph(
         _ => {}
     }
 
-    // Get current graph
+    
     let _graph = match handler.get_current_graph(&app_state).await {
         Ok(graph) => graph,
         Err(e) => {
@@ -384,16 +384,16 @@ pub async fn publish_graph(
         }
     };
 
-    // Create publication (mock implementation)
+    
     let publication_id = Uuid::new_v4();
     let repository_url = format!("https://graphdb.example.com/graphs/{}", publication_id);
 
-    // In production, this would:
-    // 1. Validate graph data
-    // 2. Generate metadata
-    // 3. Submit to review queue
-    // 4. Generate DOI if approved
-    // 5. Store in repository
+    
+    
+    
+    
+    
+    
 
     let publish_response = PublishResponse {
         publication_id,
@@ -406,7 +406,7 @@ pub async fn publish_graph(
     Ok(HttpResponse::Ok().json(publish_response))
 }
 
-/// Delete shared graph
+/
 pub async fn delete_shared_graph(path: web::Path<String>) -> ActixResult<HttpResponse> {
     let share_id = match Uuid::parse_str(&path.into_inner()) {
         Ok(id) => id,
@@ -419,7 +419,7 @@ pub async fn delete_shared_graph(path: web::Path<String>) -> ActixResult<HttpRes
 
     let handler = GraphExportHandler::new(std::path::PathBuf::from("data"));
 
-    // Remove from storage
+    
     let removed_graph = {
         let mut shared_graphs = handler.shared_graphs.write().await;
         shared_graphs.remove(&share_id)
@@ -427,7 +427,7 @@ pub async fn delete_shared_graph(path: web::Path<String>) -> ActixResult<HttpRes
 
     match removed_graph {
         Some(graph) => {
-            // Delete the file
+            
             if let Err(e) = std::fs::remove_file(&graph.file_path) {
                 log::warn!("Failed to delete shared graph file: {}", e);
             }
@@ -443,9 +443,9 @@ pub async fn delete_shared_graph(path: web::Path<String>) -> ActixResult<HttpRes
     }
 }
 
-/// Get export statistics
+/
 pub async fn get_export_stats() -> ActixResult<HttpResponse> {
-    // In production, this would query actual usage statistics
+    
     let stats = ExportStats {
         total_exports: 1250,
         exports_by_format: {
@@ -458,14 +458,14 @@ pub async fn get_export_stats() -> ActixResult<HttpResponse> {
         },
         shared_graphs: 45,
         published_graphs: 12,
-        avg_file_size: 2.4, // MB
+        avg_file_size: 2.4, 
         last_export: Some(Utc::now() - chrono::Duration::minutes(15)),
     };
 
     Ok(HttpResponse::Ok().json(stats))
 }
 
-/// Configure routes for graph export functionality
+/
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api/graph")
@@ -491,11 +491,11 @@ mod tests {
 
         let client_ip = "127.0.0.1";
 
-        // First request should succeed
+        
         let rate_info = handler.check_rate_limit(client_ip).await.unwrap();
         assert!(rate_info.remaining_exports > 0);
 
-        // Subsequent requests should reduce remaining count
+        
         let rate_info2 = handler.check_rate_limit(client_ip).await.unwrap();
         assert!(rate_info2.remaining_exports < rate_info.remaining_exports);
     }
@@ -504,7 +504,7 @@ mod tests {
     async fn test_export_api_endpoint() {
         let temp_dir = tempdir().unwrap();
         let app_state = web::Data::new(AppState {
-            // Mock app state
+            
             server_port: 8080,
         });
 

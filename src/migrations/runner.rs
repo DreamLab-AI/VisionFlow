@@ -6,23 +6,23 @@ use rusqlite::Connection;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
-/// Migration execution mode
+/
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ExecutionMode {
-    /// Actually execute migrations
+    
     Execute,
-    /// Only show what would be executed (dry-run)
+    
     DryRun,
 }
 
-/// Migration runner
+/
 pub struct MigrationRunner {
     migrations_dir: PathBuf,
     mode: ExecutionMode,
 }
 
 impl MigrationRunner {
-    /// Create new migration runner
+    
     pub fn new<P: AsRef<Path>>(migrations_dir: P) -> Self {
         Self {
             migrations_dir: migrations_dir.as_ref().to_path_buf(),
@@ -30,13 +30,13 @@ impl MigrationRunner {
         }
     }
 
-    /// Set execution mode
+    
     pub fn with_mode(mut self, mode: ExecutionMode) -> Self {
         self.mode = mode;
         self
     }
 
-    /// Discover all migration files in the migrations directory
+    
     pub fn discover_migrations(&self) -> Result<Vec<MigrationVersion>> {
         if !self.migrations_dir.exists() {
             return Err(MigrationError::FileNotFound(
@@ -56,7 +56,7 @@ impl MigrationRunner {
             }
         }
 
-        // Sort by version number
+        
         migrations.sort_by_key(|m| m.version);
 
         if migrations.is_empty() {
@@ -74,7 +74,7 @@ impl MigrationRunner {
         Ok(migrations)
     }
 
-    /// Get pending migrations (not yet applied)
+    
     pub fn pending_migrations(&self, conn: &Connection) -> Result<Vec<MigrationVersion>> {
         let tracker = VersionTracker::new(conn);
         let all_migrations = self.discover_migrations()?;
@@ -84,7 +84,7 @@ impl MigrationRunner {
             if !tracker.is_applied(migration.version)? {
                 pending.push(migration);
             } else {
-                // Verify checksum for applied migrations
+                
                 tracker.verify_checksum(&migration)?;
             }
         }
@@ -92,9 +92,9 @@ impl MigrationRunner {
         Ok(pending)
     }
 
-    /// Apply all pending migrations
+    
     pub fn migrate_up(&self, conn: &mut Connection) -> Result<usize> {
-        // Initialize version tracking
+        
         let tracker = VersionTracker::new(conn);
         tracker.initialize()?;
 
@@ -128,14 +128,14 @@ impl MigrationRunner {
 
             let start = Instant::now();
 
-            // Execute in transaction
+            
             let tx = conn.transaction()?;
 
             match self.execute_migration_up(&tx, &migration) {
                 Ok(_) => {
                     let execution_time = start.elapsed().as_millis() as i64;
 
-                    // Record in version table
+                    
                     let tracker = VersionTracker::new(&tx);
                     tracker.record_migration(&migration, execution_time)?;
 
@@ -153,7 +153,7 @@ impl MigrationRunner {
                         "[MigrationRunner] ✗ Migration {} failed: {}",
                         migration.version, e
                     );
-                    // Transaction will auto-rollback on drop
+                    
                     return Err(e);
                 }
             }
@@ -166,7 +166,7 @@ impl MigrationRunner {
         Ok(applied_count)
     }
 
-    /// Execute UP migration SQL
+    
     fn execute_migration_up(&self, conn: &Connection, migration: &MigrationVersion) -> Result<()> {
         let migration_path = self.migrations_dir.join(format!(
             "{:03}_{}.sql",
@@ -177,13 +177,13 @@ impl MigrationRunner {
         let content = std::fs::read_to_string(&migration_path)?;
         let (up_sql, _) = MigrationVersion::parse_sql(&content)?;
 
-        // Execute the UP migration
+        
         conn.execute_batch(&up_sql)?;
 
         Ok(())
     }
 
-    /// Get migration file path for reading rollback SQL
+    
     pub fn get_migration_path(&self, migration: &MigrationVersion) -> PathBuf {
         self.migrations_dir.join(format!(
             "{:03}_{}.sql",

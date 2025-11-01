@@ -1,12 +1,4 @@
-/**
- * Unified Integrated Control Panel
- *
- * Complete refactor with clean architecture:
- * - Modular components
- * - Consistent Tailwind styling
- * - Clear separation of concerns
- * - Proper error handling
- */
+
 
 import React, { useState, useEffect } from 'react';
 import { SpaceDriver } from '../../../services/SpaceDriverService';
@@ -43,21 +35,21 @@ export const IntegratedControlPanel: React.FC<ControlPanelProps> = ({
   graphData,
   otherGraphData
 }) => {
-  // UI State
+  
   const [isExpanded, setIsExpanded] = useState(true);
   const [activeTab, setActiveTab] = useState<string>('dashboard');
 
-  // SpacePilot State
+  
   const [webHidAvailable, setWebHidAvailable] = useState(false);
   const [spacePilotConnected, setSpacePilotConnected] = useState(false);
   const [spacePilotButtons, setSpacePilotButtons] = useState<string[]>([]);
 
-  // Check WebHID availability
+  
   useEffect(() => {
     setWebHidAvailable('hid' in navigator);
   }, []);
 
-  // SpacePilot event handlers
+  
   useEffect(() => {
     const handleConnect = () => {
       setSpacePilotConnected(true);
@@ -90,14 +82,14 @@ export const IntegratedControlPanel: React.FC<ControlPanelProps> = ({
     try {
       await SpaceDriver.scan();
     } catch (error) {
-      // Silently fail - user will see connection status
+      
     }
   };
 
-  // Render tab content
+  
   const renderTabContent = (tabId: string) => {
     switch (tabId) {
-      // Graph Feature Tabs
+      
       case 'graph-analysis':
         return (
           <RestoredGraphAnalysisTab
@@ -132,13 +124,13 @@ export const IntegratedControlPanel: React.FC<ControlPanelProps> = ({
           />
         );
 
-      // Settings Tabs
+      
       default:
         return <SettingsTabContent sectionId={tabId} />;
     }
   };
 
-  // Collapsed state
+  
   if (!isExpanded) {
     return (
       <div
@@ -170,7 +162,7 @@ export const IntegratedControlPanel: React.FC<ControlPanelProps> = ({
     );
   }
 
-  // Expanded state - with inline styles
+  
   return (
     <div style={{
       position: 'fixed',
@@ -193,7 +185,7 @@ export const IntegratedControlPanel: React.FC<ControlPanelProps> = ({
       zIndex: 1000,
       overflow: 'hidden'
     }}>
-      {/* Header */}
+      {}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -244,7 +236,7 @@ export const IntegratedControlPanel: React.FC<ControlPanelProps> = ({
         </button>
       </div>
 
-      {/* System Info */}
+      {}
       <div style={{
         display: 'flex',
         gap: '6px',
@@ -275,10 +267,10 @@ export const IntegratedControlPanel: React.FC<ControlPanelProps> = ({
         </div>
       </div>
 
-      {/* Bots Status Panel */}
+      {}
       <BotsStatusPanel botsData={botsData} />
 
-      {/* SpacePilot Status */}
+      {}
       <SpacePilotStatus
         webHidAvailable={webHidAvailable}
         spacePilotConnected={spacePilotConnected}
@@ -286,7 +278,7 @@ export const IntegratedControlPanel: React.FC<ControlPanelProps> = ({
         onConnect={handleConnectSpacePilot}
       />
 
-      {/* Tab Navigation and Content */}
+      {}
       <div className="scroll-area" style={{
         flex: 1,
         overflow: 'auto',

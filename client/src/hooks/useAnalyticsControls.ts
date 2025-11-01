@@ -33,9 +33,7 @@ export interface AnalyticsStats {
   [key: string]: any;
 }
 
-/**
- * Hook for controlling analytics operations with backend API integration
- */
+
 export const useAnalyticsControls = () => {
   const [running, setRunning] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
@@ -43,10 +41,7 @@ export const useAnalyticsControls = () => {
   const [error, setError] = useState<string | null>(null);
   const settings = useSettingsStore(state => state.settings);
 
-  /**
-   * Run clustering algorithm
-   * Backend endpoint: POST /api/analytics/clustering/run
-   */
+  
   const runClustering = useCallback(async (customParams?: ClusteringParams): Promise<string | null> => {
     setRunning(true);
     setError(null);
@@ -83,10 +78,7 @@ export const useAnalyticsControls = () => {
     }
   }, [settings.analytics]);
 
-  /**
-   * Check clustering status
-   * Backend endpoint: GET /api/analytics/clustering/status?task_id={taskId}
-   */
+  
   const checkClusteringStatus = useCallback(async (taskId: string): Promise<ClusteringResult | null> => {
     try {
       const response = await unifiedApiClient.getData<ClusteringResult>(
@@ -108,10 +100,7 @@ export const useAnalyticsControls = () => {
     }
   }, []);
 
-  /**
-   * Run community detection
-   * Backend endpoint: POST /api/analytics/community/detect
-   */
+  
   const runCommunityDetection = useCallback(async (params?: CommunityDetectionParams) => {
     setRunning(true);
     setError(null);
@@ -143,10 +132,7 @@ export const useAnalyticsControls = () => {
     }
   }, [settings.analytics]);
 
-  /**
-   * Get analytics performance stats
-   * Backend endpoint: GET /api/analytics/stats
-   */
+  
   const getPerformanceStats = useCallback(async (): Promise<AnalyticsStats | null> => {
     try {
       const response = await unifiedApiClient.getData<AnalyticsStats>('/api/analytics/stats');
@@ -159,10 +145,7 @@ export const useAnalyticsControls = () => {
     }
   }, []);
 
-  /**
-   * Cancel running clustering task
-   * Backend endpoint: DELETE /api/analytics/clustering/cancel?task_id={taskId}
-   */
+  
   const cancelClustering = useCallback(async (taskId: string): Promise<boolean> => {
     try {
       await unifiedApiClient.delete(`/api/analytics/clustering/cancel?task_id=${taskId}`);
@@ -176,9 +159,7 @@ export const useAnalyticsControls = () => {
     }
   }, []);
 
-  /**
-   * Clear current results and errors
-   */
+  
   const clear = useCallback(() => {
     setResults(null);
     setError(null);
@@ -186,13 +167,13 @@ export const useAnalyticsControls = () => {
   }, []);
 
   return {
-    // State
+    
     running,
     status,
     results,
     error,
 
-    // Actions
+    
     runClustering,
     checkClusteringStatus,
     runCommunityDetection,
@@ -200,7 +181,7 @@ export const useAnalyticsControls = () => {
     cancelClustering,
     clear,
 
-    // Computed
+    
     hasResults: !!results,
     hasError: !!error
   };

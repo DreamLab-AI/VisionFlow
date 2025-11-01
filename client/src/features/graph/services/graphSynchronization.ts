@@ -1,7 +1,4 @@
-/**
- * Graph Synchronization System
- * Provides camera sync, selection sync, zoom sync, and pan sync between dual graphs
- */
+
 
 import { Camera, Vector3 } from 'three';
 import { createLogger } from '../../../utils/loggerConfig';
@@ -76,24 +73,18 @@ export class GraphSynchronization {
     return GraphSynchronization.instance;
   }
 
-  /**
-   * Update sync options
-   */
+  
   public updateSyncOptions(options: Partial<SyncOptions>): void {
     this.syncOptions = { ...this.syncOptions, ...options };
     logger.info('Sync options updated:', this.syncOptions);
   }
 
-  /**
-   * Get current sync options
-   */
+  
   public getSyncOptions(): SyncOptions {
     return { ...this.syncOptions };
   }
 
-  /**
-   * Sync camera state between graphs
-   */
+  
   public syncCamera(graphId: string, camera: Camera, target?: Vector3): void {
     if (!this.syncOptions.enableCameraSync) return;
 
@@ -114,9 +105,7 @@ export class GraphSynchronization {
     this.notifyOtherGraphs(graphId, 'camera');
   }
 
-  /**
-   * Sync selection state between graphs
-   */
+  
   public syncSelection(graphId: string, selectedNodes: Set<string>, hoveredNode?: string | null): void {
     if (!this.syncOptions.enableSelectionSync) return;
 
@@ -136,9 +125,7 @@ export class GraphSynchronization {
     this.notifyOtherGraphs(graphId, 'selection');
   }
 
-  /**
-   * Sync pan state between graphs
-   */
+  
   public syncPan(graphId: string, delta: Vector3): void {
     if (!this.syncOptions.enablePanSync) return;
 
@@ -160,9 +147,7 @@ export class GraphSynchronization {
     this.notifyOtherGraphs(graphId, 'pan');
   }
 
-  /**
-   * Sync zoom state between graphs
-   */
+  
   public syncZoom(graphId: string, zoomFactor: number): void {
     if (!this.syncOptions.enableZoomSync) return;
 
@@ -183,9 +168,7 @@ export class GraphSynchronization {
     this.notifyOtherGraphs(graphId, 'zoom');
   }
 
-  /**
-   * Subscribe to sync updates for a specific graph
-   */
+  
   public subscribe(graphId: string, callback: (state: SyncState) => void): () => void {
     if (!this.listeners.has(graphId)) {
       this.listeners.set(graphId, new Set());
@@ -193,7 +176,7 @@ export class GraphSynchronization {
     
     this.listeners.get(graphId)!.add(callback);
 
-    // Return unsubscribe function
+    
     return () => {
       const graphListeners = this.listeners.get(graphId);
       if (graphListeners) {
@@ -205,9 +188,7 @@ export class GraphSynchronization {
     };
   }
 
-  /**
-   * Get current sync state
-   */
+  
   public getState(): SyncState {
     return {
       camera: {
@@ -223,16 +204,12 @@ export class GraphSynchronization {
     };
   }
 
-  /**
-   * Update internal state
-   */
+  
   private updateState(newState: SyncState): void {
     this.syncState = newState;
   }
 
-  /**
-   * Notify all graphs except the sender
-   */
+  
   private notifyOtherGraphs(senderGraphId: string, syncType: string): void {
     this.listeners.forEach((callbacks, graphId) => {
       if (graphId !== senderGraphId) {
@@ -251,9 +228,7 @@ export class GraphSynchronization {
     });
   }
 
-  /**
-   * Apply smooth transitions for sync updates
-   */
+  
   private smoothTransition(callback: (state: SyncState) => void): void {
     if (this.animationFrameId !== null) {
       cancelAnimationFrame(this.animationFrameId);
@@ -266,7 +241,7 @@ export class GraphSynchronization {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
       
-      // Easing function for smooth transitions
+      
       const easeProgress = 1 - Math.pow(1 - progress, 3);
       
       callback(this.getState());
@@ -281,17 +256,13 @@ export class GraphSynchronization {
     this.animationFrameId = requestAnimationFrame(animate);
   }
 
-  /**
-   * Reset interaction state (call after user interaction ends)
-   */
+  
   public resetInteractionState(): void {
     this.syncState.interaction.isPanning = false;
     this.syncState.interaction.isZooming = false;
   }
 
-  /**
-   * Cleanup resources
-   */
+  
   public dispose(): void {
     if (this.animationFrameId !== null) {
       cancelAnimationFrame(this.animationFrameId);

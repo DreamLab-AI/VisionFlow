@@ -13,17 +13,17 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-/// Command bus that routes commands to handlers
-///
-/// The bus maintains a registry of command handlers and executes
-/// commands through a middleware pipeline.
+/
+/
+/
+/
 pub struct CommandBus {
     handlers: Arc<RwLock<HashMap<TypeId, Box<dyn Any + Send + Sync>>>>,
     middleware: Arc<Vec<Box<dyn CommandMiddleware>>>,
 }
 
 impl CommandBus {
-    /// Create a new command bus
+    
     pub fn new() -> Self {
         Self {
             handlers: Arc::new(RwLock::new(HashMap::new())),
@@ -31,7 +31,7 @@ impl CommandBus {
         }
     }
 
-    /// Create a command bus with middleware
+    
     pub fn with_middleware(middleware: Vec<Box<dyn CommandMiddleware>>) -> Self {
         Self {
             handlers: Arc::new(RwLock::new(HashMap::new())),
@@ -39,33 +39,33 @@ impl CommandBus {
         }
     }
 
-    /// Register a command handler
+    
     pub async fn register<C: Command + 'static>(&self, handler: Box<dyn CommandHandler<C>>) {
         let type_id = TypeId::of::<C>();
         let mut handlers = self.handlers.write().await;
         handlers.insert(type_id, Box::new(handler));
     }
 
-    /// Execute a command
-    ///
-    /// # Errors
-    /// Returns an error if:
-    /// - No handler is registered for the command type
-    /// - Command validation fails
-    /// - Handler execution fails
-    /// - Middleware fails
+    
+    
+    
+    
+    
+    
+    
+    
     pub async fn execute<C: Command + 'static>(&self, command: C) -> Result<C::Result>
     where
         C::Result: 'static,
     {
         let command_name = command.name();
 
-        // Run before middleware
+        
         for mw in self.middleware.iter() {
             mw.before_execute(command_name).await?;
         }
 
-        // Execute command
+        
         let result = async {
             let type_id = TypeId::of::<C>();
             let handlers = self.handlers.read().await;
@@ -84,7 +84,7 @@ impl CommandBus {
         }
         .await;
 
-        // Run after middleware or error middleware
+        
         match &result {
             Ok(_) => {
                 for mw in self.middleware.iter() {
@@ -108,17 +108,17 @@ impl Default for CommandBus {
     }
 }
 
-/// Query bus that routes queries to handlers
-///
-/// The bus maintains a registry of query handlers and executes
-/// queries through a middleware pipeline.
+/
+/
+/
+/
 pub struct QueryBus {
     handlers: Arc<RwLock<HashMap<TypeId, Box<dyn Any + Send + Sync>>>>,
     middleware: Arc<Vec<Box<dyn QueryMiddleware>>>,
 }
 
 impl QueryBus {
-    /// Create a new query bus
+    
     pub fn new() -> Self {
         Self {
             handlers: Arc::new(RwLock::new(HashMap::new())),
@@ -126,7 +126,7 @@ impl QueryBus {
         }
     }
 
-    /// Create a query bus with middleware
+    
     pub fn with_middleware(middleware: Vec<Box<dyn QueryMiddleware>>) -> Self {
         Self {
             handlers: Arc::new(RwLock::new(HashMap::new())),
@@ -134,33 +134,33 @@ impl QueryBus {
         }
     }
 
-    /// Register a query handler
+    
     pub async fn register<Q: Query + 'static>(&self, handler: Box<dyn QueryHandler<Q>>) {
         let type_id = TypeId::of::<Q>();
         let mut handlers = self.handlers.write().await;
         handlers.insert(type_id, Box::new(handler));
     }
 
-    /// Execute a query
-    ///
-    /// # Errors
-    /// Returns an error if:
-    /// - No handler is registered for the query type
-    /// - Query validation fails
-    /// - Handler execution fails
-    /// - Middleware fails
+    
+    
+    
+    
+    
+    
+    
+    
     pub async fn execute<Q: Query + 'static>(&self, query: Q) -> Result<Q::Result>
     where
         Q::Result: 'static,
     {
         let query_name = query.name();
 
-        // Run before middleware
+        
         for mw in self.middleware.iter() {
             mw.before_execute(query_name).await?;
         }
 
-        // Execute query
+        
         let result = async {
             let type_id = TypeId::of::<Q>();
             let handlers = self.handlers.read().await;
@@ -179,7 +179,7 @@ impl QueryBus {
         }
         .await;
 
-        // Run after middleware or error middleware
+        
         match &result {
             Ok(_) => {
                 for mw in self.middleware.iter() {
@@ -203,7 +203,7 @@ impl Default for QueryBus {
     }
 }
 
-/// Metrics middleware for tracking command/query execution
+/
 pub struct MetricsMiddleware {
     command_counts: Arc<RwLock<HashMap<String, u64>>>,
     query_counts: Arc<RwLock<HashMap<String, u64>>>,

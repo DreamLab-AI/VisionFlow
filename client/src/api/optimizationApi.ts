@@ -60,7 +60,7 @@ export interface OptimizationMetrics {
 
 export interface OptimizationParams {
   algorithm?: 'stress-majorization' | 'force-directed' | 'hierarchical' | 'adaptive';
-  optimizationLevel: number; // 1-5
+  optimizationLevel: number; 
   clusteringEnabled: boolean;
   maxIterations?: number;
   convergenceThreshold?: number;
@@ -116,7 +116,7 @@ class OptimizationApiClient {
     }
   }
 
-  // Trigger GPU-accelerated stress majorization optimization
+  
   async triggerStressMajorization(
     graphData: GraphData,
     params: OptimizationParams = {
@@ -134,19 +134,19 @@ class OptimizationApiClient {
     });
   }
 
-  // Check optimization task progress
+  
   async getOptimizationStatus(taskId: string): Promise<OptimizationTask> {
     return this.request<OptimizationTask>(`/analytics/optimize/status/${taskId}`, 'GET');
   }
 
-  // Retrieve completed optimization results
+  
   async getOptimizationResults(taskId: string): Promise<OptimizationResult> {
     logger.info('Fetching optimization results', { taskId });
 
     return this.request<OptimizationResult>(`/analytics/optimize/results/${taskId}`, 'GET');
   }
 
-  // Update optimization parameters for running task
+  
   async updateOptimizationParams(
     taskId: string,
     params: Partial<OptimizationParams>
@@ -156,14 +156,14 @@ class OptimizationApiClient {
     return this.request<{ success: boolean; message: string }>(`/analytics/optimize/params/${taskId}`, 'PUT', params);
   }
 
-  // Cancel running optimization task
+  
   async cancelOptimization(taskId: string): Promise<{ success: boolean; message: string }> {
     logger.info('Cancelling optimization task', { taskId });
 
     return this.request<{ success: boolean; message: string }>(`/analytics/optimize/cancel/${taskId}`, 'POST');
   }
 
-  // Run GPU clustering analysis
+  
   async runClusteringAnalysis(
     graphData: GraphData,
     algorithm: 'modularity' | 'louvain' | 'leiden' | 'spectral' = 'louvain'
@@ -177,12 +177,12 @@ class OptimizationApiClient {
     });
   }
 
-  // Get available optimization algorithms
+  
   async getAvailableAlgorithms(): Promise<string[]> {
     return this.request<string[]>('/analytics/optimize/algorithms', 'GET');
   }
 
-  // Get GPU compute capabilities and status
+  
   async getGpuStatus(): Promise<{
     available: boolean;
     memory: { total: number; free: number; used: number };
@@ -193,7 +193,7 @@ class OptimizationApiClient {
     return this.request('/analytics/gpu/status', 'GET');
   }
 
-  // Batch optimization for multiple graphs
+  
   async batchOptimization(
     tasks: Array<{
       graphData: GraphData;
@@ -206,14 +206,14 @@ class OptimizationApiClient {
     return this.request<OptimizationTask[]>('/analytics/optimize/batch', 'POST', { tasks });
   }
 
-  // Get optimization history and analytics
+  
   async getOptimizationHistory(
     limit: number = 50
   ): Promise<OptimizationResult[]> {
     return this.request<OptimizationResult[]>(`/analytics/optimize/history?limit=${limit}`, 'GET');
   }
 
-  // Get real-time performance metrics
+  
   async getPerformanceMetrics(): Promise<{
     gpu: {
       utilization: number;
@@ -317,7 +317,7 @@ export class OptimizationWebSocketManager {
       });
     }
 
-    // Also notify wildcard listeners
+    
     const wildcardListeners = this.listeners.get('*');
     if (wildcardListeners) {
       wildcardListeners.forEach(listener => {

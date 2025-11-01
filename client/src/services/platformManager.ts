@@ -32,7 +32,7 @@ export type PlatformEventType =
   | 'handtrackingavailabilitychange';
 
 interface PlatformState {
-  // Platform details
+  
   platform: PlatformType;
   xrDeviceType: XRDeviceType;
   capabilities: PlatformCapabilities;
@@ -41,14 +41,14 @@ interface PlatformState {
   xrSessionState: XRSessionState;
   isWebXRSupported: boolean;
   
-  // Event listeners storage
+  
   listeners: Map<PlatformEventType, Set<Function>>;
   
-  // Initialization
+  
   initialized: boolean;
   initialize: () => Promise<void>;
   
-  // Platform detection
+  
   detectPlatform: () => void;
   isQuest: () => boolean;
   isPico: () => boolean;
@@ -56,11 +56,11 @@ interface PlatformState {
   isMobile: () => boolean;
   isXRSupported: () => boolean;
   
-  // XR mode management
+  
   setXRMode: (enabled: boolean) => void;
   setXRSessionState: (state: XRSessionState) => void;
   
-  // Event handling
+  
   dispatchEvent: (event: PlatformEventType, data: any) => void;
   addEventListener: (event: PlatformEventType, callback: Function) => void;
   removeEventListener: (event: PlatformEventType, callback: Function) => void;
@@ -68,7 +68,7 @@ interface PlatformState {
 }
 
 export const usePlatformStore = create<PlatformState>()((set, get) => ({
-  // Default initial state
+  
   platform: 'unknown',
   xrDeviceType: 'none',
   capabilities: {
@@ -90,21 +90,21 @@ export const usePlatformStore = create<PlatformState>()((set, get) => ({
   isWebXRSupported: typeof navigator !== 'undefined' && !!navigator.xr,
   initialized: false,
   
-  // Event listeners
+  
   listeners: new Map<PlatformEventType, Set<Function>>(),
   
   initialize: async () => {
     logger.info('Initializing platform manager');
     
-    // Detect platform first
+    
     get().detectPlatform();
     
-    // Check for XR support
+    
     if (typeof navigator !== 'undefined' && navigator.xr) {
-      // Test for VR support
+      
       try {
         const vrSupported = await navigator.xr.isSessionSupported('immersive-vr');
-        // Test for AR support (Oculus Quest)
+        
         const arSupported = await navigator.xr.isSessionSupported('immersive-ar');
         
         set(state => ({
@@ -123,10 +123,10 @@ export const usePlatformStore = create<PlatformState>()((set, get) => ({
       }
     }
     
-    // Check for hand tracking support
+    
     if (typeof navigator !== 'undefined' && navigator.xr) {
       try {
-        // Note: This might need further detection based on device
+        
         const handTrackingSupported = get().isQuest();
         
         set(state => ({
@@ -140,14 +140,14 @@ export const usePlatformStore = create<PlatformState>()((set, get) => ({
       }
     }
     
-    // Set up event listeners
+    
     if (typeof window !== 'undefined') {
       window.addEventListener('resize', () => {
         get().detectPlatform();
       });
     }
     
-    // Update WebXR support
+    
     const isWebXRSupported = typeof navigator !== 'undefined' && !!navigator.xr;
     
     set({ 
@@ -167,7 +167,7 @@ export const usePlatformStore = create<PlatformState>()((set, get) => ({
     let platform: PlatformType = 'unknown';
     let xrDeviceType: XRDeviceType = 'none';
     
-    // Check for Quest
+    
     if (userAgent.includes('Quest')) {
       if (userAgent.includes('Quest 3')) {
         platform = 'quest3';
@@ -178,23 +178,23 @@ export const usePlatformStore = create<PlatformState>()((set, get) => ({
       }
       xrDeviceType = 'quest';
     }
-    // Check for Pico
+    
     else if (userAgent.includes('Pico') || userAgent.includes('PICO')) {
       platform = 'pico';
       xrDeviceType = 'pico';
     }
-    // Check for mobile
+    
     else if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)) {
       platform = 'mobile';
       xrDeviceType = 'mobile-xr';
     }
-    // Default to desktop
+    
     else {
       platform = 'desktop';
       xrDeviceType = 'desktop-xr';
     }
     
-    // Determine performance tier based on platform
+    
     let performanceTier: 'low' | 'medium' | 'high' = 'medium';
     let maxTextureSize = 2048;
     let memoryLimited = false;
@@ -232,11 +232,11 @@ export const usePlatformStore = create<PlatformState>()((set, get) => ({
         break;
     }
     
-    // Detect features
+    
     const hasTouchscreen = typeof navigator !== 'undefined' && 
       ('maxTouchPoints' in navigator ? navigator.maxTouchPoints > 0 : 'ontouchstart' in window);
     
-    // Update state with detected platform
+    
     const prevPlatform = get().platform;
     set(state => ({ 
       platform,
@@ -254,7 +254,7 @@ export const usePlatformStore = create<PlatformState>()((set, get) => ({
       }
     }));
     
-    // Emit platform change event if changed
+    
     if (prevPlatform !== platform) {
       get().dispatchEvent('platformchange', { platform });
     }
@@ -301,7 +301,7 @@ export const usePlatformStore = create<PlatformState>()((set, get) => ({
     }
   },
   
-  // Internal helper to dispatch events
+  
   dispatchEvent: (event: PlatformEventType, data: any) => {
     const listeners = get().listeners;
     if (!listeners.has(event)) return;
@@ -315,7 +315,7 @@ export const usePlatformStore = create<PlatformState>()((set, get) => ({
     });
   },
   
-  // Event handling
+  
   addEventListener: (event: PlatformEventType, callback: Function) => {
     const listeners = get().listeners;
     
@@ -326,7 +326,7 @@ export const usePlatformStore = create<PlatformState>()((set, get) => ({
     listeners.get(event)?.add(callback);
     set({ listeners });
     
-    // Immediately call the callback with current state for some events
+    
     if (event === 'platformchange') {
       callback({ platform: get().platform });
     } else if (event === 'xrmodechange') {

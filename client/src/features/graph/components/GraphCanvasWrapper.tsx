@@ -4,16 +4,9 @@ import { createLogger } from '../../../utils/loggerConfig';
 
 const logger = createLogger('GraphCanvasWrapper');
 
-/**
- * Detects if we're running in a testing environment
- * Checks for:
- * - Headless browser indicators
- * - Missing WebGL support
- * - Test mode query parameters
- * - Environment variables
- */
+
 const detectTestMode = (): boolean => {
-    // Check for test mode query parameter
+    
     if (typeof window !== 'undefined') {
         const params = new URLSearchParams(window.location.search);
         if (params.get('testMode') === 'true' || params.get('bypassWebGL') === 'true') {
@@ -22,11 +15,11 @@ const detectTestMode = (): boolean => {
         }
     }
 
-    // Check for headless browser indicators
+    
     if (typeof navigator !== 'undefined') {
         const userAgent = navigator.userAgent.toLowerCase();
 
-        // Common headless browser indicators
+        
         if (userAgent.includes('headless') ||
             userAgent.includes('phantomjs') ||
             userAgent.includes('nightmare') ||
@@ -35,14 +28,14 @@ const detectTestMode = (): boolean => {
             return true;
         }
 
-        // Check for Playwright user agent
+        
         if (userAgent.includes('playwright')) {
             logger.info('Playwright detected, enabling test mode');
             return true;
         }
     }
 
-    // Check for WebGL availability
+    
     if (typeof document !== 'undefined') {
         try {
             const canvas = document.createElement('canvas');
@@ -53,7 +46,7 @@ const detectTestMode = (): boolean => {
                 return true;
             }
 
-            // Additional check for software rendering (common in containers)
+            
             const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
             if (debugInfo) {
                 const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
@@ -74,7 +67,7 @@ const detectTestMode = (): boolean => {
         }
     }
 
-    // Check for test environment variables (if exposed to client)
+    
     if (typeof process !== 'undefined' && process.env) {
         if (process.env.NODE_ENV === 'test' ||
             process.env.VISIONFLOW_TEST_MODE === 'true' ||
@@ -84,15 +77,15 @@ const detectTestMode = (): boolean => {
         }
     }
 
-    // Check for missing required browser APIs (common in test environments)
+    
     if (typeof window !== 'undefined') {
-        // Check if we're in a container or restricted environment
+        
         if (!window.WebGLRenderingContext || !window.WebGL2RenderingContext) {
             logger.warn('WebGL rendering context not available, enabling test mode');
             return true;
         }
 
-        // Check for automation indicators
+        
         if ((window as any).navigator?.webdriver === true ||
             (window as any).__nightmare ||
             (window as any).__selenium_unwrapped ||
@@ -105,9 +98,7 @@ const detectTestMode = (): boolean => {
     return false;
 };
 
-/**
- * Wrapper component for GraphCanvas
- */
+
 const GraphCanvasWrapper: React.FC = () => {
     return <GraphCanvas />;
 };

@@ -1,7 +1,4 @@
-/**
- * Share Settings Dialog Component
- * Configure sharing options for graphs
- */
+
 
 import React, { useState } from 'react';
 import {
@@ -110,7 +107,7 @@ export const ShareSettingsDialog: React.FC<ShareSettingsDialogProps> = ({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Security Indicator */}
+          {}
           <Card className={`border ${isSecure ? 'border-green-200 bg-green-50' : 'border-yellow-200 bg-yellow-50'}`}>
             <CardContent className="pt-3 pb-2">
               <div className="flex items-center gap-2">
@@ -129,7 +126,7 @@ export const ShareSettingsDialog: React.FC<ShareSettingsDialogProps> = ({
             </CardContent>
           </Card>
 
-          {/* Description */}
+          {}
           <div className="space-y-1">
             <Label className="text-sm">Description (Optional)</Label>
             <Textarea
@@ -145,7 +142,7 @@ export const ShareSettingsDialog: React.FC<ShareSettingsDialogProps> = ({
             </div>
           </div>
 
-          {/* Expiry Settings */}
+          {}
           <div className="space-y-1">
             <Label className="text-sm">Link Expires</Label>
             <Select value={expiry} onValueChange={setExpiry}>
@@ -165,7 +162,7 @@ export const ShareSettingsDialog: React.FC<ShareSettingsDialogProps> = ({
             </Select>
           </div>
 
-          {/* Password Protection */}
+          {}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-sm">Password Protection</Label>
@@ -193,7 +190,7 @@ export const ShareSettingsDialog: React.FC<ShareSettingsDialogProps> = ({
 
           <Separator />
 
-          {/* Permissions */}
+          {}
           <div className="space-y-3">
             <Label className="text-sm font-medium">Viewer Permissions</Label>
 
@@ -233,7 +230,7 @@ export const ShareSettingsDialog: React.FC<ShareSettingsDialogProps> = ({
             </div>
           </div>
 
-          {/* Preview */}
+          {}
           <Card className="bg-muted/50">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs">Share Preview</CardTitle>

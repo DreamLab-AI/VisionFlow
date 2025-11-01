@@ -1,7 +1,4 @@
-/**
- * Graph Export Tab Component
- * Data export and sharing functionality with UK English localisation
- */
+
 
 import React, { useState, useCallback } from 'react';
 import {
@@ -63,24 +60,24 @@ export const GraphExportTab: React.FC<GraphExportTabProps> = ({
   graphData,
   onExport
 }) => {
-  // Dialog states
+  
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showShareManager, setShowShareManager] = useState(false);
   const [showPublishDialog, setShowPublishDialog] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
-  // Active states
+  
   const [shareUrl, setShareUrl] = useState('');
   const [isSharing, setIsSharing] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
 
-  // Generated content
+  
   const [embedCode, setEmbedCode] = useState('');
   const [apiEndpoint, setApiEndpoint] = useState('');
   const [shareId, setShareId] = useState('');
 
-  // Real export handler
+  
   const handleExport = useCallback(async (options: ExportOptions) => {
     if (!graphData) {
       toast({
@@ -126,7 +123,7 @@ export const GraphExportTab: React.FC<GraphExportTabProps> = ({
     }
   }, [graphData, onExport]);
 
-  // Real share handler
+  
   const handleShare = useCallback(async (options: ShareOptions) => {
     if (!graphData) {
       toast({
@@ -152,7 +149,7 @@ export const GraphExportTab: React.FC<GraphExportTabProps> = ({
         setShareUrl(result.shareUrl);
         setShareId(result.shareId || '');
 
-        // Auto-copy to clipboard
+        
         const copied = await copyToClipboard(result.shareUrl);
 
         toast({
@@ -183,7 +180,7 @@ export const GraphExportTab: React.FC<GraphExportTabProps> = ({
     }
   }, [graphData]);
 
-  // Real publish handler
+  
   const handlePublish = useCallback(async (metadata: PublishMetadata) => {
     if (!graphData) {
       toast({
@@ -283,7 +280,7 @@ export const GraphExportTab: React.FC<GraphExportTabProps> = ({
   return (
     <>
       <div className="space-y-4">
-        {/* Data Export */}
+        {}
         <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -316,7 +313,7 @@ export const GraphExportTab: React.FC<GraphExportTabProps> = ({
         </CardContent>
       </Card>
 
-      {/* Sharing & Collaboration */}
+      {}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -385,7 +382,7 @@ export const GraphExportTab: React.FC<GraphExportTabProps> = ({
         </CardContent>
       </Card>
 
-      {/* Web Integration */}
+      {}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -453,7 +450,7 @@ export const GraphExportTab: React.FC<GraphExportTabProps> = ({
         </CardContent>
       </Card>
 
-      {/* Publishing */}
+      {}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -487,7 +484,7 @@ export const GraphExportTab: React.FC<GraphExportTabProps> = ({
         </CardContent>
       </Card>
 
-      {/* Quick Actions */}
+      {}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -522,7 +519,7 @@ export const GraphExportTab: React.FC<GraphExportTabProps> = ({
       </Card>
       </div>
 
-      {/* Dialogs */}
+      {}
       <ExportFormatDialog
         open={showExportDialog}
         onClose={() => setShowExportDialog(false)}

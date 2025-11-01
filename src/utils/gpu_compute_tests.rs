@@ -133,7 +133,7 @@ mod tests {
 
     #[test]
     fn test_gpu_compute_backward_compatibility() {
-        // Test that old code still works (using legacy `new` method)
+        
         match load_ptx_module_sync(PTXModule::VisionflowUnified) {
             Ok(ptx_content) => match UnifiedGPUCompute::new(50, 25, &ptx_content) {
                 Ok(_compute) => {

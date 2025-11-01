@@ -1,10 +1,4 @@
-/*!
- * Clustering Implementation for Analytics API
- *
- * GPU-accelerated clustering algorithms for semantic graph analysis.
- * Supports multiple clustering methods including spectral, hierarchical,
- * DBSCAN, K-means, Louvain, and affinity propagation.
- */
+
 
 use std::collections::HashMap;
 use log::{debug, error, info};
@@ -15,7 +9,7 @@ use crate::AppState;
 use crate::actors::messages::GetGraphData;
 use super::{Cluster, ClusteringRequest, ClusteringParams};
 
-/// Perform clustering analysis based on the specified method and parameters
+/
 pub async fn perform_clustering(
     app_state: &actix_web::web::Data<AppState>,
     request: &ClusteringRequest,
@@ -23,14 +17,14 @@ pub async fn perform_clustering(
 ) -> Result<Vec<Cluster>, String> {
     info!("Performing {} clustering for task {}", request.method, task_id);
 
-    // Check if GPU compute actor is available
+    
     if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
-        // Use GPU-accelerated clustering
+        
         use crate::actors::messages::PerformGPUClustering;
 
         info!("Using GPU-accelerated clustering for method: {}", request.method);
 
-        // Validate clustering parameters
+        
         if let Err(validation_error) = validate_clustering_params(request) {
             error!("Clustering parameter validation failed: {}", validation_error);
             return Err(validation_error);
@@ -49,21 +43,21 @@ pub async fn perform_clustering(
             }
             Ok(Err(e)) => {
                 error!("GPU clustering failed: {}", e);
-                // Fall back to CPU clustering
+                
                 info!("Falling back to CPU clustering");
             }
             Err(e) => {
                 error!("GPU actor mailbox error: {}", e);
-                // Fall back to CPU clustering
+                
                 info!("Falling back to CPU clustering");
             }
         }
     }
 
-    // CPU clustering fallback
+    
     info!("Using CPU clustering (fallback or no GPU available)");
 
-    // Get current graph data
+    
     let graph_data = {
         let graph_addr = app_state.get_graph_service_addr();
         match graph_addr.send(GetGraphData).await {
@@ -86,7 +80,7 @@ pub async fn perform_clustering(
 
     debug!("Clustering {} nodes using method: {}", node_count, request.method);
 
-    // Perform clustering based on method (CPU fallback)
+    
     let clusters = match request.method.as_str() {
         "spectral" => perform_spectral_clustering(&graph_data, &request.params).await,
         "hierarchical" => perform_hierarchical_clustering(&graph_data, &request.params).await,
@@ -112,7 +106,7 @@ pub async fn perform_clustering(
     }
 }
 
-/// Perform spectral clustering using eigendecomposition
+/
 async fn perform_spectral_clustering(
     graph_data: &crate::models::graph::GraphData,
     params: &ClusteringParams,
@@ -124,7 +118,7 @@ async fn perform_spectral_clustering(
         return Ok(create_single_cluster(graph_data, "spectral"));
     }
 
-    // Simulate spectral clustering with realistic results
+    
     let mut clusters = Vec::new();
     let nodes_per_cluster = node_count / num_clusters;
 
@@ -139,7 +133,7 @@ async fn perform_spectral_clustering(
             .cloned()
             .collect();
 
-        let coherence = 0.7 + rand::thread_rng().gen::<f32>() * 0.25; // 0.7-0.95
+        let coherence = 0.7 + rand::thread_rng().gen::<f32>() * 0.25; 
 
         clusters.push(Cluster {
             id: Uuid::new_v4().to_string(),
@@ -156,7 +150,7 @@ async fn perform_spectral_clustering(
     Ok(clusters)
 }
 
-/// Perform hierarchical clustering
+/
 async fn perform_hierarchical_clustering(
     graph_data: &crate::models::graph::GraphData,
     params: &ClusteringParams,
@@ -164,7 +158,7 @@ async fn perform_hierarchical_clustering(
     let distance_threshold = params.distance_threshold.unwrap_or(0.5);
     let node_count = graph_data.nodes.len();
 
-    // Simulate hierarchical clustering based on distance threshold
+    
     let num_clusters = ((1.0 - distance_threshold) * 10.0 + 2.0) as usize;
     let num_clusters = num_clusters.min(node_count).max(2);
 
@@ -199,7 +193,7 @@ async fn perform_hierarchical_clustering(
     Ok(clusters)
 }
 
-/// Perform DBSCAN clustering
+/
 async fn perform_dbscan_clustering(
     graph_data: &crate::models::graph::GraphData,
     params: &ClusteringParams,
@@ -208,7 +202,7 @@ async fn perform_dbscan_clustering(
     let min_samples = params.min_samples.unwrap_or(5) as usize;
     let node_count = graph_data.nodes.len();
 
-    // Simulate DBSCAN clustering
+    
     let density_factor = 1.0 - eps;
     let num_clusters = (density_factor * 8.0 + 1.0) as usize;
     let num_clusters = num_clusters.min(node_count / min_samples).max(1);
@@ -223,7 +217,7 @@ async fn perform_dbscan_clustering(
             .collect();
 
         if cluster_nodes.len() >= min_samples {
-            let coherence = 0.8 + rand::thread_rng().gen::<f32>() * 0.15; // DBSCAN typically has high coherence
+            let coherence = 0.8 + rand::thread_rng().gen::<f32>() * 0.15; 
 
             clusters.push(Cluster {
                 id: Uuid::new_v4().to_string(),
@@ -238,13 +232,13 @@ async fn perform_dbscan_clustering(
         }
     }
 
-    // Add noise points as a separate cluster if any remain
+    
     if !remaining_nodes.is_empty() {
         clusters.push(Cluster {
             id: Uuid::new_v4().to_string(),
             label: "Noise Points".to_string(),
             node_count: remaining_nodes.len() as u32,
-            coherence: 0.1, // Low coherence for noise
+            coherence: 0.1, 
             color: "#666666".to_string(),
             keywords: vec!["noise".to_string(), "outliers".to_string()],
             nodes: remaining_nodes,
@@ -255,7 +249,7 @@ async fn perform_dbscan_clustering(
     Ok(clusters)
 }
 
-/// Perform K-means clustering
+/
 async fn perform_kmeans_clustering(
     graph_data: &crate::models::graph::GraphData,
     params: &ClusteringParams,
@@ -281,7 +275,7 @@ async fn perform_kmeans_clustering(
             .cloned()
             .collect();
 
-        let coherence = 0.65 + rand::thread_rng().gen::<f32>() * 0.25; // K-means typically has good coherence
+        let coherence = 0.65 + rand::thread_rng().gen::<f32>() * 0.25; 
 
         clusters.push(Cluster {
             id: Uuid::new_v4().to_string(),
@@ -298,7 +292,7 @@ async fn perform_kmeans_clustering(
     Ok(clusters)
 }
 
-/// Perform Louvain community detection
+/
 async fn perform_louvain_clustering(
     graph_data: &crate::models::graph::GraphData,
     params: &ClusteringParams,
@@ -307,7 +301,7 @@ async fn perform_louvain_clustering(
     let node_count = graph_data.nodes.len();
     let edge_count = graph_data.edges.len();
 
-    // Simulate Louvain community detection based on graph structure
+    
     let modularity_factor = (edge_count as f32 / node_count.max(1) as f32).min(5.0);
     let num_communities = ((modularity_factor * resolution) + 2.0) as usize;
     let num_communities = num_communities.min(node_count / 2).max(2);
@@ -315,7 +309,7 @@ async fn perform_louvain_clustering(
     let mut clusters = Vec::new();
     let mut remaining_nodes: Vec<u32> = graph_data.nodes.keys().cloned().collect();
 
-    // Create communities of varying sizes (more realistic for Louvain)
+    
     for i in 0..num_communities {
         let base_size = remaining_nodes.len() / (num_communities - i);
         let variation = (base_size as f32 * rand::thread_rng().gen::<f32>() * 0.5) as usize;
@@ -325,7 +319,7 @@ async fn perform_louvain_clustering(
             .drain(0..community_size)
             .collect();
 
-        let coherence = 0.75 + rand::thread_rng().gen::<f32>() * 0.2; // Louvain typically finds good communities
+        let coherence = 0.75 + rand::thread_rng().gen::<f32>() * 0.2; 
 
         clusters.push(Cluster {
             id: Uuid::new_v4().to_string(),
@@ -342,7 +336,7 @@ async fn perform_louvain_clustering(
     Ok(clusters)
 }
 
-/// Perform Affinity Propagation clustering
+/
 async fn perform_affinity_propagation(
     graph_data: &crate::models::graph::GraphData,
     params: &ClusteringParams,
@@ -350,7 +344,7 @@ async fn perform_affinity_propagation(
     let damping = params.damping.unwrap_or(0.5);
     let node_count = graph_data.nodes.len();
 
-    // Simulate affinity propagation - it determines cluster count automatically
+    
     let num_exemplars = ((1.0 - damping) * node_count as f32 * 0.2 + 1.0) as usize;
     let num_exemplars = num_exemplars.min(node_count / 3).max(1);
 
@@ -380,7 +374,7 @@ async fn perform_affinity_propagation(
     Ok(clusters)
 }
 
-/// Create a single cluster containing all nodes (fallback)
+/
 fn create_single_cluster(graph_data: &crate::models::graph::GraphData, method: &str) -> Vec<Cluster> {
     let all_nodes: Vec<u32> = graph_data.nodes.keys().cloned().collect();
 
@@ -396,7 +390,7 @@ fn create_single_cluster(graph_data: &crate::models::graph::GraphData, method: &
     }]
 }
 
-/// Generate cluster color based on index
+/
 fn generate_cluster_color(index: usize) -> String {
     let colors = [
         "#4F46E5", "#7C3AED", "#DB2777", "#DC2626",
@@ -406,7 +400,7 @@ fn generate_cluster_color(index: usize) -> String {
     colors[index % colors.len()].to_string()
 }
 
-/// Generate cluster keywords based on type and index
+/
 fn generate_cluster_keywords(cluster_type: &str) -> Vec<String> {
     let base_keywords = vec![
         "semantic".to_string(),
@@ -429,7 +423,7 @@ fn generate_cluster_keywords(cluster_type: &str) -> Vec<String> {
         .collect()
 }
 
-/// Generate 3D centroid for cluster visualization
+/
 fn generate_centroid(cluster_index: usize, total_clusters: usize) -> [f32; 3] {
     let angle = 2.0 * std::f32::consts::PI * cluster_index as f32 / total_clusters as f32;
     let radius = 10.0 + (cluster_index as f32 * 2.0);
@@ -441,15 +435,15 @@ fn generate_centroid(cluster_index: usize, total_clusters: usize) -> [f32; 3] {
     ]
 }
 
-/// Validate clustering request parameters
+/
 fn validate_clustering_params(request: &ClusteringRequest) -> Result<(), String> {
-    // Validate method
+    
     let valid_methods = ["spectral", "hierarchical", "dbscan", "kmeans", "louvain", "affinity"];
     if !valid_methods.contains(&request.method.as_str()) {
         return Err(format!("Unsupported clustering method: {}. Valid methods: {:?}", request.method, valid_methods));
     }
 
-    // Validate parameters based on method
+    
     match request.method.as_str() {
         "kmeans" | "spectral" => {
             if let Some(num_clusters) = request.params.num_clusters {
@@ -491,7 +485,7 @@ fn validate_clustering_params(request: &ClusteringRequest) -> Result<(), String>
                 }
             }
         }
-        _ => {} // Other methods validated above
+        _ => {} 
     }
 
     Ok(())

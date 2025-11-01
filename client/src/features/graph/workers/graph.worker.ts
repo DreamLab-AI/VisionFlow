@@ -1,7 +1,4 @@
-/**
- * Graph Data Web Worker
- * Handles graph data processing, binary decompression, and position updates off the main thread
- */
+
 
 import { expose } from 'comlink';
 import { BinaryNodeData, parseBinaryNodeData, createBinaryNodeData, Vec3 } from '../../../types/binaryProtocol';
@@ -31,15 +28,13 @@ export interface GraphData {
   edges: Edge[];
 }
 
-/**
- * Decompress zlib compressed data in worker thread
- */
+
 async function decompressZlib(compressedData: ArrayBuffer): Promise<ArrayBuffer> {
   if (typeof DecompressionStream !== 'undefined') {
     try {
       const cs = new DecompressionStream('deflate-raw');
       const writer = cs.writable.getWriter();
-      writer.write(new Uint8Array(compressedData.slice(2))); // Skip zlib header
+      writer.write(new Uint8Array(compressedData.slice(2))); 
       writer.close();
 
       const output = [];
@@ -69,29 +64,25 @@ async function decompressZlib(compressedData: ArrayBuffer): Promise<ArrayBuffer>
   throw new Error('DecompressionStream not available');
 }
 
-/**
- * Check if data is zlib compressed
- */
+
 function isZlibCompressed(data: ArrayBuffer): boolean {
   if (data.byteLength < 2) return false;
   const view = new Uint8Array(data);
   return view[0] === 0x78 && [0x01, 0x5E, 0x9C, 0xDA].includes(view[1]);
 }
 
-/**
- * Graph Worker API exposed to main thread
- */
+
 class GraphWorker {
   private graphData: GraphData = { nodes: [], edges: [] };
   private nodeIdMap: Map<string, number> = new Map();
   private reverseNodeIdMap: Map<number, string> = new Map();
-  private graphType: 'logseq' | 'visionflow' = 'logseq'; // Graph type identifier
+  private graphType: 'logseq' | 'visionflow' = 'logseq'; 
 
-  // --- NEW STATE FOR ANIMATION ---
+  
   private currentPositions: Float32Array | null = null;
   private targetPositions: Float32Array | null = null;
   private velocities: Float32Array | null = null;
-  private pinnedNodeIds: Set<number> = new Set(); // For user-dragged nodes
+  private pinnedNodeIds: Set<number> = new Set(); 
   private physicsSettings = {
     springStrength: 0.001,
     damping: 0.98,
@@ -99,37 +90,31 @@ class GraphWorker {
     updateThreshold: 0.05,
   };
   
-  // Flag to enable/disable local physics simulation
-  private useServerPhysics: boolean = true;  // Changed to true - server is authoritative
+  
+  private useServerPhysics: boolean = true;  
   private positionBuffer: SharedArrayBuffer | null = null;
   private positionView: Float32Array | null = null;
 
-  /**
-   * Initialize the worker
-   */
+  
   async initialize(): Promise<void> {
     console.log('GraphWorker: Initialize method called');
     return Promise.resolve();
   }
   
-  /**
-   * Set the graph type
-   */
+  
   async setGraphType(type: 'logseq' | 'visionflow'): Promise<void> {
     this.graphType = type;
     console.log(`GraphWorker: Graph type set to ${type}`);
   }
 
-  /**
-   * Initialize the worker with graph data
-   */
+  
   async setGraphData(data: GraphData): Promise<void> {
     this.graphData = {
       nodes: data.nodes.map(node => this.ensureNodeHasValidPosition(node)),
       edges: data.edges
     };
 
-    // (existing ID mapping logic...)
+    
     this.nodeIdMap.clear();
     this.reverseNodeIdMap.clear();
     this.graphData.nodes.forEach((node, index) => {
@@ -144,11 +129,11 @@ class GraphWorker {
         }
     });
 
-    // --- INITIALIZE ANIMATION ARRAYS ---
+    
     const nodeCount = data.nodes.length;
     this.currentPositions = new Float32Array(nodeCount * 3);
     this.targetPositions = new Float32Array(nodeCount * 3);
-    this.velocities = new Float32Array(nodeCount * 3).fill(0); // All start with 0 velocity
+    this.velocities = new Float32Array(nodeCount * 3).fill(0); 
 
     data.nodes.forEach((node, index) => {
       const i3 = index * 3;
@@ -156,7 +141,7 @@ class GraphWorker {
       this.currentPositions![i3] = pos.x;
       this.currentPositions![i3 + 1] = pos.y;
       this.currentPositions![i3 + 2] = pos.z;
-      // Target starts same as current
+      
       this.targetPositions![i3] = pos.x;
       this.targetPositions![i3 + 1] = pos.y;
       this.targetPositions![i3 + 2] = pos.z;
@@ -165,18 +150,16 @@ class GraphWorker {
     console.log(`GraphWorker: Initialized ${this.graphType} graph with ${this.graphData.nodes.length} nodes`);
   }
 
-  /**
-   * Set up shared array buffer for position data
-   */
+  
   async setupSharedPositions(buffer: SharedArrayBuffer): Promise<void> {
     this.positionBuffer = buffer;
     this.positionView = new Float32Array(buffer);
     console.log(`GraphWorker: SharedArrayBuffer set up with ${buffer.byteLength} bytes`);
   }
 
-  // --- NEW METHOD to receive settings from the main thread ---
+  
   async updateSettings(settings: any): Promise<void> {
-    // Get the current graph type settings
+    
     const graphSettings = settings?.visualisation?.graphs?.[this.graphType]?.physics || 
                          settings?.visualisation?.physics;
     
@@ -188,33 +171,31 @@ class GraphWorker {
     };
   }
 
-  /**
-   * Process binary position data with decompression
-   */
-  async processBinaryData(data: ArrayBuffer): Promise<Float32Array> { // The return value is no longer directly used for rendering but can be for listeners.
-    // Only process binary data for Logseq graphs
+  
+  async processBinaryData(data: ArrayBuffer): Promise<Float32Array> { 
+    
     if (this.graphType !== 'logseq') {
       console.log(`GraphWorker: Skipping binary data processing for ${this.graphType} graph`);
       return new Float32Array(0);
     }
 
-    // CRITICAL FIX: Receiving binary data from server means server physics are active
+    
     if (!this.useServerPhysics) {
       this.useServerPhysics = true;
       console.log('GraphWorker: Auto-enabled server physics mode due to binary position updates');
     }
     
-    // DEBUG: Log binary updates occasionally
+    
     this.binaryUpdateCount = (this.binaryUpdateCount || 0) + 1;
     this.lastBinaryUpdate = Date.now();
 
-    // ... (decompression logic remains the same)
+    
     if (isZlibCompressed(data)) {
       data = await decompressZlib(data);
     }
     const nodeUpdates = parseBinaryNodeData(data);
 
-    // Create a flat array for listeners/main thread
+    
     const positionArray = new Float32Array(nodeUpdates.length * 4);
 
     nodeUpdates.forEach((update, index) => {
@@ -222,12 +203,12 @@ class GraphWorker {
       if (stringNodeId) {
         const nodeIndex = this.graphData.nodes.findIndex(n => n.id === stringNodeId);
         if (nodeIndex !== -1 && !this.pinnedNodeIds.has(update.nodeId)) {
-          // --- UPDATE TARGET POSITIONS FOR SERVER PHYSICS ---
+          
           const i3 = nodeIndex * 3;
           this.targetPositions![i3] = update.position.x;
           this.targetPositions![i3 + 1] = update.position.y;
           this.targetPositions![i3 + 2] = update.position.z;
-          // The tick method will smoothly interpolate to these positions
+          
         }
       }
 
@@ -238,20 +219,16 @@ class GraphWorker {
       positionArray[arrayOffset + 3] = update.position.z;
     });
 
-    // We still return the raw server positions for any listeners that might need it
+    
     return positionArray;
   }
 
-  /**
-   * Get current graph data
-   */
+  
   async getGraphData(): Promise<GraphData> {
     return this.graphData;
   }
 
-  /**
-   * Add or update a node
-   */
+  
   async updateNode(node: Node): Promise<void> {
     const existingIndex = this.graphData.nodes.findIndex(n => n.id === node.id);
 
@@ -260,7 +237,7 @@ class GraphWorker {
     } else {
       this.graphData.nodes.push(this.ensureNodeHasValidPosition(node));
 
-      // Update ID mappings
+      
       const numericId = parseInt(node.id, 10);
       if (!isNaN(numericId)) {
         this.nodeIdMap.set(node.id, numericId);
@@ -273,9 +250,7 @@ class GraphWorker {
     }
   }
 
-  /**
-   * Remove a node
-   */
+  
   async removeNode(nodeId: string): Promise<void> {
     const numericId = this.nodeIdMap.get(nodeId);
 
@@ -290,9 +265,7 @@ class GraphWorker {
     }
   }
 
-  /**
-   * Create binary node data
-   */
+  
   async createBinaryData(nodes: BinaryNodeData[]): Promise<ArrayBuffer> {
     return createBinaryNodeData(nodes);
   }
@@ -312,17 +285,17 @@ class GraphWorker {
     };
   }
 
-  // --- NEW METHODS for managing user drag interactions ---
+  
   async pinNode(nodeId: number): Promise<void> { this.pinnedNodeIds.add(nodeId); }
   async unpinNode(nodeId: number): Promise<void> { this.pinnedNodeIds.delete(nodeId); }
 
-  // Method to switch between server and local physics
+  
   async setUseServerPhysics(useServer: boolean): Promise<void> {
     this.useServerPhysics = useServer;
     console.log(`GraphWorker: Physics mode set to ${useServer ? 'server' : 'local'}`);
   }
   
-  // Get current physics mode
+  
   async getPhysicsMode(): Promise<boolean> {
     return this.useServerPhysics;
   }
@@ -333,40 +306,40 @@ class GraphWorker {
       const nodeIndex = this.graphData.nodes.findIndex(n => n.id === stringNodeId);
       if (nodeIndex !== -1) {
         const i3 = nodeIndex * 3;
-        // For user drags, update both current and target to snap the node and stop it from moving
+        
         this.currentPositions![i3] = position.x;
         this.currentPositions![i3 + 1] = position.y;
         this.currentPositions![i3 + 2] = position.z;
         this.targetPositions![i3] = position.x;
         this.targetPositions![i3 + 1] = position.y;
         this.targetPositions![i3 + 2] = position.z;
-        // Reset velocity
+        
         this.velocities!.fill(0, i3, i3 + 3);
       }
     }
   }
 
-  // --- NEW: The core animation method, called on every frame from the main thread ---
+  
   async tick(deltaTime: number): Promise<Float32Array> {
     if (!this.currentPositions || !this.targetPositions || !this.velocities) {
       return new Float32Array(0);
     }
 
-    // Clamp deltaTime to prevent physics explosion when tab regains focus
-    const dt = Math.min(deltaTime, 0.016); // Cap at ~60fps (16ms) to avoid large jumps
+    
+    const dt = Math.min(deltaTime, 0.016); 
 
-    // DEBUG: Log physics mode rarely
+    
     this.frameCount = (this.frameCount || 0) + 1;
-    if (this.frameCount < 3 || this.frameCount % 100 === 0) { // First 3 frames, then every 100 frames
+    if (this.frameCount < 3 || this.frameCount % 100 === 0) { 
       const timeSinceLastUpdate = this.lastBinaryUpdate ? Date.now() - this.lastBinaryUpdate : 999999;
       console.log('[GraphWorker] Physics mode - useServerPhysics:', this.useServerPhysics, 
                   'frame:', this.frameCount,
                   'ms since last binary update:', timeSinceLastUpdate);
     }
     
-    // When using server physics, only interpolate between current and target positions
+    
     if (this.useServerPhysics) {
-      // First check if we have any movement at all
+      
       let hasAnyMovement = false;
       for (let i = 0; i < this.graphData.nodes.length && !hasAnyMovement; i++) {
         const i3 = i * 3;
@@ -378,7 +351,7 @@ class GraphWorker {
         }
       }
       
-      // If no movement at all, just return current positions without any processing
+      
       if (!hasAnyMovement) {
         if (this.frameCount % 500 === 0) {
           console.log('[GraphWorker] No movement detected, skipping interpolation entirely');
@@ -386,15 +359,15 @@ class GraphWorker {
         return this.currentPositions;
       }
       
-      // Ultra-gentle interpolation to prevent any oscillation
-      // Using very small linear interpolation factor
-      const lerpFactor = 0.05; // Fixed 5% interpolation per frame - even gentler
       
-      // Track total movement for debugging
+      
+      const lerpFactor = 0.05; 
+      
+      
       let totalMovement = 0;
       
-      // DEBUG: Log interpolation state very rarely
-      if (this.frameCount % 200 === 0) { // Log every 200 frames (about every 3 seconds)
+      
+      if (this.frameCount % 200 === 0) { 
         const node0_current = [this.currentPositions[0], this.currentPositions[1], this.currentPositions[2]];
         const node0_target = [this.targetPositions[0], this.targetPositions[1], this.targetPositions[2]];
         const dist = Math.sqrt(
@@ -411,40 +384,40 @@ class GraphWorker {
       for (let i = 0; i < this.graphData.nodes.length; i++) {
         const i3 = i * 3;
         
-        // Check if this node is pinned (user is dragging it)
+        
         const nodeId = this.nodeIdMap.get(this.graphData.nodes[i].id);
         if (nodeId !== undefined && this.pinnedNodeIds.has(nodeId)) {
-          // Skip interpolation for pinned nodes - they maintain their user-set position
+          
           continue;
         }
         
-        // Calculate distance to target to detect if we're close enough
+        
         const dx = this.targetPositions[i3] - this.currentPositions[i3];
         const dy = this.targetPositions[i3 + 1] - this.currentPositions[i3 + 1];
         const dz = this.targetPositions[i3 + 2] - this.currentPositions[i3 + 2];
         const distanceSq = dx * dx + dy * dy + dz * dz;
         
-        // =================================================================================
-        // EXPERIMENTAL: Disable Node Smoothing (COMMENTED OUT)
-        // The following lines force nodes to snap directly to their target positions,
-        // bypassing the gentle interpolation (smoothing) logic. This is useful for
-        // debugging the raw output of the server-side physics simulation.
-        //
-        // To re-enable smoothing, comment out this block and uncomment the original
-        // `if/else` block below.
-        // =================================================================================
-        // this.currentPositions[i3] = this.targetPositions[i3];
-        // this.currentPositions[i3 + 1] = this.targetPositions[i3 + 1];
-        // this.currentPositions[i3 + 2] = this.targetPositions[i3 + 2];
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
-        // =================================================================================
-        // ORIGINAL SMOOTHING LOGIC (RE-ENABLED)
-        // =================================================================================
-        // Very large snap threshold to prevent ANY micro-oscillations
-        // When nodes are within this distance, they snap directly to target
-        const snapThreshold = 5.0; // Very large threshold - snap when within 5 units
+        
+        
+        
+        
+        
+        const snapThreshold = 5.0; 
         if (distanceSq < snapThreshold * snapThreshold) {
-          // Only update if there's an actual meaningful change
+          
           const positionChanged = Math.abs(this.currentPositions[i3] - this.targetPositions[i3]) > 0.01 ||
                                  Math.abs(this.currentPositions[i3 + 1] - this.targetPositions[i3 + 1]) > 0.01 ||
                                  Math.abs(this.currentPositions[i3 + 2] - this.targetPositions[i3 + 2]) > 0.01;
@@ -455,14 +428,14 @@ class GraphWorker {
             this.currentPositions[i3 + 1] = this.targetPositions[i3 + 1];
             this.currentPositions[i3 + 2] = this.targetPositions[i3 + 2];
           }
-          // Clear any residual velocity
+          
           if (this.velocities) {
             this.velocities[i3] = 0;
             this.velocities[i3 + 1] = 0;
             this.velocities[i3 + 2] = 0;
           }
         } else {
-          // Very gentle linear interpolation towards server positions
+          
           const moveX = dx * lerpFactor;
           const moveY = dy * lerpFactor;
           const moveZ = dz * lerpFactor;
@@ -473,10 +446,10 @@ class GraphWorker {
           this.currentPositions[i3 + 1] += moveY;
           this.currentPositions[i3 + 2] += moveZ;
         }
-        // =================================================================================
+        
       }
       
-      // Log total movement to detect if nodes are actually moving
+      
       if (this.frameCount % 100 === 0 && totalMovement > 0.01) {
         console.log('[GraphWorker] Total movement this frame:', totalMovement.toFixed(4), 'nodes:', this.graphData.nodes.length);
       }
@@ -484,13 +457,13 @@ class GraphWorker {
       return this.currentPositions;
     }
 
-    // Local physics simulation - ONLY runs when server physics are disabled
-    // This ensures no spring physics interference when server is authoritative
+    
+    
     const { springStrength, damping, maxVelocity, updateThreshold } = this.physicsSettings;
 
     for (let i = 0; i < this.graphData.nodes.length; i++) {
       const numericId = this.nodeIdMap.get(this.graphData.nodes[i].id)!;
-      if (this.pinnedNodeIds.has(numericId)) continue; // Skip physics for pinned (dragged) nodes
+      if (this.pinnedNodeIds.has(numericId)) continue; 
 
       const i3 = i * 3;
 
@@ -500,28 +473,28 @@ class GraphWorker {
 
       const distSq = dx * dx + dy * dy + dz * dz;
 
-      // Apply tolerance check
+      
       if (distSq < updateThreshold * updateThreshold) {
-        this.velocities.fill(0, i3, i3 + 3); // Node has settled
+        this.velocities.fill(0, i3, i3 + 3); 
         continue;
       }
 
-      // Spring force (F = k * x), assuming mass = 1
+      
       let ax = dx * springStrength;
       let ay = dy * springStrength;
       let az = dz * springStrength;
 
-      // Update velocity with acceleration (use clamped dt)
+      
       this.velocities[i3] += ax * dt;
       this.velocities[i3 + 1] += ay * dt;
       this.velocities[i3 + 2] += az * dt;
 
-      // Apply damping
+      
       this.velocities[i3] *= damping;
       this.velocities[i3 + 1] *= damping;
       this.velocities[i3 + 2] *= damping;
 
-      // Clamp velocity to prevent physics explosions
+      
       const currentVelSq = this.velocities[i3] * this.velocities[i3] + 
                           this.velocities[i3 + 1] * this.velocities[i3 + 1] + 
                           this.velocities[i3 + 2] * this.velocities[i3 + 2];
@@ -532,13 +505,13 @@ class GraphWorker {
         this.velocities[i3 + 2] *= scale;
       }
 
-      // Update position with velocity (use clamped dt)
+      
       this.currentPositions[i3] += this.velocities[i3] * dt;
       this.currentPositions[i3 + 1] += this.velocities[i3 + 1] * dt;
       this.currentPositions[i3 + 2] += this.velocities[i3 + 2] * dt;
     }
 
-    // Return the smoothly animated positions for rendering
+    
     return this.currentPositions;
   }
 }

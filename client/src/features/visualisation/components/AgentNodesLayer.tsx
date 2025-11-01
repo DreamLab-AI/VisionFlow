@@ -4,25 +4,7 @@ import { useFrame } from '@react-three/fiber';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { Text } from '@react-three/drei';
 
-/**
- * Agent Nodes Layer - Three.js integration for agent visualization
- *
- * Features:
- * - Renders agent nodes in 3D space
- * - Color-coded by status (active, idle, error)
- * - Size scaled by workload
- * - Animated pulse for active agents
- * - Agent-to-agent connection edges
- * - Labels with agent type and status
- *
- * Connected to agent visualization settings:
- * - agents.visualization.show_in_graph
- * - agents.visualization.node_size
- * - agents.visualization.node_color
- * - agents.visualization.show_connections
- * - agents.visualization.connection_color
- * - agents.visualization.animate_activity
- */
+
 
 interface AgentNode {
   id: string;
@@ -50,10 +32,10 @@ interface AgentNodesLayerProps {
 }
 
 const STATUS_COLORS = {
-  active: '#10b981',    // Green
-  idle: '#fbbf24',      // Yellow
-  error: '#ef4444',     // Red
-  warning: '#f97316'    // Orange
+  active: '#10b981',    
+  idle: '#fbbf24',      
+  error: '#ef4444',     
+  warning: '#f97316'    
 };
 
 export const AgentNodesLayer: React.FC<AgentNodesLayerProps> = ({
@@ -63,7 +45,7 @@ export const AgentNodesLayer: React.FC<AgentNodesLayerProps> = ({
   const { settings } = useSettingsStore();
   const groupRef = useRef<THREE.Group>(null);
 
-  // Check if agent visualization is enabled
+  
   const showAgents = settings?.agents?.visualization?.show_in_graph ?? true;
   const nodeSize = settings?.agents?.visualization?.node_size ?? 1.5;
   const baseColor = settings?.agents?.visualization?.node_color ?? '#ff8800';
@@ -77,7 +59,7 @@ export const AgentNodesLayer: React.FC<AgentNodesLayerProps> = ({
 
   return (
     <group ref={groupRef}>
-      {/* Agent Nodes */}
+      {}
       {agents.map((agent) => (
         <AgentNode
           key={agent.id}
@@ -88,7 +70,7 @@ export const AgentNodesLayer: React.FC<AgentNodesLayerProps> = ({
         />
       ))}
 
-      {/* Agent Connections */}
+      {}
       {showConnections && connections.map((connection, index) => (
         <AgentConnection
           key={`${connection.source}-${connection.target}-${index}`}
@@ -101,9 +83,7 @@ export const AgentNodesLayer: React.FC<AgentNodesLayerProps> = ({
   );
 };
 
-/**
- * Individual Agent Node Component
- */
+
 const AgentNode: React.FC<{
   agent: AgentNode;
   nodeSize: number;
@@ -114,35 +94,35 @@ const AgentNode: React.FC<{
   const glowRef = useRef<THREE.Mesh>(null);
   const pulseRef = useRef({ phase: 0 });
 
-  // Determine position (default to center if not specified)
+  
   const position: [number, number, number] = agent.position
     ? [agent.position.x, agent.position.y, agent.position.z]
     : [Math.random() * 20 - 10, Math.random() * 20 - 10, Math.random() * 20 - 10];
 
-  // Status-based color
+  
   const statusColor = STATUS_COLORS[agent.status] || baseColor;
 
-  // Size scaled by workload (0-100 range)
+  
   const scaledSize = nodeSize * (1 + agent.workload / 100);
 
-  // Animation for active agents
+  
   useFrame((state, delta) => {
     if (!animateActivity || agent.status !== 'active') return;
 
     if (meshRef.current && glowRef.current) {
-      // Pulse animation
+      
       pulseRef.current.phase += delta * 2;
       const pulseScale = 1 + Math.sin(pulseRef.current.phase) * 0.1;
 
       meshRef.current.scale.setScalar(pulseScale);
       glowRef.current.scale.setScalar(pulseScale * 1.3);
 
-      // Rotate slowly
+      
       meshRef.current.rotation.y += delta * 0.5;
     }
   });
 
-  // Agent type icon geometry
+  
   const geometry = useMemo(() => {
     switch (agent.type) {
       case 'researcher':
@@ -164,7 +144,7 @@ const AgentNode: React.FC<{
 
   return (
     <group position={position}>
-      {/* Glow effect */}
+      {}
       <mesh ref={glowRef}>
         <sphereGeometry args={[scaledSize * 1.5, 16, 16]} />
         <meshBasicMaterial
@@ -175,7 +155,7 @@ const AgentNode: React.FC<{
         />
       </mesh>
 
-      {/* Main node */}
+      {}
       <mesh ref={meshRef} geometry={geometry}>
         <meshStandardMaterial
           color={statusColor}
@@ -186,7 +166,7 @@ const AgentNode: React.FC<{
         />
       </mesh>
 
-      {/* Agent label */}
+      {}
       <Text
         position={[0, scaledSize + 1, 0]}
         fontSize={0.5}
@@ -197,7 +177,7 @@ const AgentNode: React.FC<{
         {agent.type.toUpperCase()}
       </Text>
 
-      {/* Status indicator */}
+      {}
       <Text
         position={[0, scaledSize + 1.5, 0]}
         fontSize={0.3}
@@ -208,7 +188,7 @@ const AgentNode: React.FC<{
         {agent.status} • {agent.health}%
       </Text>
 
-      {/* Current task (if any) */}
+      {}
       {agent.currentTask && (
         <Text
           position={[0, -(scaledSize + 1), 0]}
@@ -222,21 +202,21 @@ const AgentNode: React.FC<{
         </Text>
       )}
 
-      {/* Health bar */}
+      {}
       <group position={[0, -(scaledSize + 0.5), 0]}>
-        {/* Background */}
+        {}
         <mesh position={[0, 0, 0]}>
           <planeGeometry args={[2, 0.2]} />
           <meshBasicMaterial color="#333333" />
         </mesh>
-        {/* Foreground (health percentage) */}
+        {}
         <mesh position={[-(1 - agent.health / 100), 0, 0.01]}>
           <planeGeometry args={[(agent.health / 100) * 2, 0.2]} />
           <meshBasicMaterial color={agent.health > 70 ? '#10b981' : agent.health > 40 ? '#fbbf24' : '#ef4444'} />
         </mesh>
       </group>
 
-      {/* Workload indicator (spinning ring for active agents) */}
+      {}
       {agent.status === 'active' && agent.workload > 0 && (
         <mesh rotation={[Math.PI / 2, 0, 0]}>
           <torusGeometry args={[scaledSize * 1.8, 0.05, 8, 32, (agent.workload / 100) * Math.PI * 2]} />
@@ -247,9 +227,7 @@ const AgentNode: React.FC<{
   );
 };
 
-/**
- * Agent Connection Edge Component
- */
+
 const AgentConnection: React.FC<{
   connection: AgentConnection;
   agents: AgentNode[];
@@ -257,7 +235,7 @@ const AgentConnection: React.FC<{
 }> = ({ connection, agents, color }) => {
   const lineRef = useRef<THREE.Line>(null);
 
-  // Find source and target positions
+  
   const sourceAgent = agents.find(a => a.id === connection.source);
   const targetAgent = agents.find(a => a.id === connection.target);
 
@@ -277,13 +255,13 @@ const AgentConnection: React.FC<{
     targetAgent.position.z
   );
 
-  // Create curved line (quadratic bezier)
+  
   const points = useMemo(() => {
     const midPoint = new THREE.Vector3()
       .addVectors(sourcePos, targetPos)
       .multiplyScalar(0.5);
 
-    // Offset midpoint perpendicular to connection
+    
     const direction = new THREE.Vector3().subVectors(targetPos, sourcePos);
     const perpendicular = new THREE.Vector3(-direction.y, direction.x, 0).normalize();
     midPoint.add(perpendicular.multiplyScalar(2));
@@ -296,7 +274,7 @@ const AgentConnection: React.FC<{
     return new THREE.BufferGeometry().setFromPoints(points);
   }, [points]);
 
-  // Animate flow along edge
+  
   useFrame((state) => {
     if (lineRef.current) {
       const material = lineRef.current.material as THREE.LineBasicMaterial;
@@ -304,7 +282,7 @@ const AgentConnection: React.FC<{
     }
   });
 
-  // Connection type styling
+  
   const lineWidth = connection.weight ? connection.weight * 2 : 2;
   const opacity = connection.type === 'communication' ? 0.5 : 0.3;
 
@@ -320,11 +298,7 @@ const AgentConnection: React.FC<{
   );
 };
 
-/**
- * Agent Nodes Manager Hook
- *
- * Fetches agent telemetry and manages agent node state
- */
+
 export const useAgentNodes = () => {
   const [agents, setAgents] = React.useState<AgentNode[]>([]);
   const [connections, setConnections] = React.useState<AgentConnection[]>([]);
@@ -355,7 +329,7 @@ export const useAgentNodes = () => {
       }
     };
 
-    // Poll based on settings
+    
     const interval = (settings?.agents?.monitoring?.telemetry_poll_interval || 5) * 1000;
 
     const timer = setInterval(() => {

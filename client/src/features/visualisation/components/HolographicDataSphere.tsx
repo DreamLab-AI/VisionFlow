@@ -28,36 +28,36 @@ import { useSettingsStore } from '../../../store/settingsStore';
 // Note: Settings system is brittle - don't update UX names yet
 // These values should eventually come from visualisation.hologram settings
 export const SCENE_CONFIG = {
-  background: '#02030c', // TODO: Map to hologram.backgroundColor or rendering.backgroundColor
-  fogNear: 6, // TODO: Map to hologram.fogNear or rendering.fogNear
-  fogFar: 34, // TODO: Map to hologram.fogFar or rendering.fogFar
+  background: '#02030c', 
+  fogNear: 6, 
+  fogFar: 34, 
 };
 
-export const HOLOGRAM_BASE_OPACITY = 0.3; // TODO: Map to hologram.ringOpacity
+export const HOLOGRAM_BASE_OPACITY = 0.3; 
 
 export const LIGHTING_CONFIG = {
-  ambient: 0.2, // TODO: Map to rendering.ambientLightIntensity
-  key: { position: [5, 7, 4], intensity: 1.65, color: '#7acbff' }, // TODO: Map to hologram.keyLight*
-  rim: { position: [-6, -4, -3], intensity: 1.05, color: '#ff7b1f' }, // TODO: Map to hologram.rimLight*
-  fill: { position: [0, 0, 12], intensity: 0.55, color: '#00faff' }, // TODO: Map to hologram.fillLight*
+  ambient: 0.2, 
+  key: { position: [5, 7, 4], intensity: 1.65, color: '#7acbff' }, 
+  rim: { position: [-6, -4, -3], intensity: 1.05, color: '#ff7b1f' }, 
+  fill: { position: [0, 0, 12], intensity: 0.55, color: '#00faff' }, 
 };
 
 export const POSTPROCESS_DEFAULTS = {
-  globalAlpha: HOLOGRAM_BASE_OPACITY, // TODO: Map to hologram.ringOpacity
-  bloomIntensity: 1.5, // TODO: Map to hologram.bloomIntensity or rendering.bloomIntensity
-  bloomThreshold: 0.15, // TODO: Map to hologram.bloomThreshold or rendering.bloomThreshold
-  bloomSmoothing: 0.36, // TODO: Map to hologram.bloomSmoothing
-  aoRadius: 124, // TODO: Map to hologram.aoRadius
-  aoIntensity: 0.75, // TODO: Map to hologram.aoIntensity
-  dofFocusDistance: 3.6, // TODO: Map to hologram.dofFocusDistance
-  dofFocalLength: 4.4, // TODO: Map to hologram.dofFocalLength
-  dofBokehScale: 520, // TODO: Map to hologram.dofBokehScale
-  vignetteDarkness: 0.45, // TODO: Map to hologram.vignetteDarkness
+  globalAlpha: HOLOGRAM_BASE_OPACITY, 
+  bloomIntensity: 1.5, 
+  bloomThreshold: 0.15, 
+  bloomSmoothing: 0.36, 
+  aoRadius: 124, 
+  aoIntensity: 0.75, 
+  dofFocusDistance: 3.6, 
+  dofFocalLength: 4.4, 
+  dofBokehScale: 520, 
+  vignetteDarkness: 0.45, 
 };
 
 export const FADE_DEFAULTS = {
-  fadeStart: 1200, // TODO: Map to hologram.fadeStart
-  fadeEnd: 2800, // TODO: Map to hologram.fadeEnd
+  fadeStart: 1200, 
+  fadeEnd: 2800, 
 };
 
 class GlobalFadeEffect extends Effect {
@@ -67,7 +67,7 @@ class GlobalFadeEffect extends Effect {
       `
       uniform float uAlpha;
       void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
-        // Properly handle alpha channel multiplication
+        
         outputColor = vec4(inputColor.rgb, inputColor.a * uAlpha);
       }
     `,
@@ -134,7 +134,7 @@ function useDepthFade(ref, { baseOpacity, fadeStart, fadeEnd }) {
           const originalOpacity = mat.userData.__baseOpacity;
           mat.opacity = THREE.MathUtils.clamp(originalOpacity * fadeMultiplier, 0, originalOpacity);
           mat.transparent = mat.opacity < 1;
-          // Don't force depthWrite for transparent materials
+          
           mat.depthWrite = mat.opacity >= 0.99;
           mat.needsUpdate = true;
         }
@@ -148,11 +148,11 @@ function registerMaterialForFade(material, baseOpacity) {
     material.userData = {};
   }
   material.userData.__isDepthFaded = true;
-  // Always set the base opacity, don't check if undefined
+  
   material.userData.__baseOpacity = baseOpacity;
   material.opacity = baseOpacity;
-  material.transparent = true; // Always transparent for proper blending
-  // Never use depthWrite for transparent hologram materials
+  material.transparent = true; 
+  
   material.depthWrite = false;
   material.needsUpdate = true;
 }
@@ -357,7 +357,7 @@ function TechnicalGrid({ count = 240, radius = 410, opacity = 0.3 }) {
     <group ref={groupRef}>
       {lines.map((lineSegment, index) => (
         <Line
-          // eslint-disable-next-line react/no-array-index-key
+          
           key={index}
           points={lineSegment}
           color="#ffae19"
@@ -433,10 +433,10 @@ function TextRing({
 }) {
   const groupRef = useRef();
 
-  // Reduce letter spacing significantly - the drei Text component
-  // might handle curveRadius differently than expected
-  const repeatCount = 1; // Just show text once
-  const adjustedLetterSpacing = 0.2; // Much smaller value for drei's Text
+  
+  
+  const repeatCount = 1; 
+  const adjustedLetterSpacing = 0.2; 
 
   useFrame((state) => {
     if (!groupRef.current) return;
@@ -649,14 +649,14 @@ export function HologramContent({
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
-    // Delay material registration to ensure all materials are initialized
+    
     const timeoutId = setTimeout(() => {
       root.traverse((object) => {
         const material = object.material;
         if (!material) return;
         const materials = Array.isArray(material) ? material : [material];
         materials.forEach((mat) => {
-          // Use the provided opacity as base, not the material's current opacity
+          
           registerMaterialForFade(mat, opacity);
         });
       });
@@ -677,7 +677,7 @@ export function HologramContent({
           mat.userData.__baseOpacity = opacity;
           mat.opacity = opacity;
           mat.transparent = opacity < 1;
-          // Don't force depthWrite for transparent materials
+          
           mat.depthWrite = opacity >= 0.99;
           mat.needsUpdate = true;
         }
@@ -713,11 +713,11 @@ export function HologramEffects({
   selectionLayer = 0,
   renderPriority,
 }) {
-  // Get settings from central store
+  
   const settings = useSettingsStore(state => state.settings);
   const bloomSettings = settings?.visualisation?.bloom;
 
-  // Use central settings if available, fallback to props or defaults
+  
   const bloomIntensity = bloomSettings?.intensity ?? propsBloomIntensity ?? POSTPROCESS_DEFAULTS.bloomIntensity;
   const bloomThreshold = bloomSettings?.threshold ?? propsBloomThreshold ?? POSTPROCESS_DEFAULTS.bloomThreshold;
   return (
@@ -767,11 +767,11 @@ export function HologramEnvironment({
     speed: 0.25,
   },
 }) {
-  // Get lighting settings from central store
+  
   const settings = useSettingsStore(state => state.settings);
   const renderingSettings = settings?.visualisation?.rendering;
 
-  // Use central settings if available, with reasonable defaults
+  
   const ambientIntensity = renderingSettings?.ambientLightIntensity ?? propsAmbientIntensity ?? LIGHTING_CONFIG.ambient;
   return (
     <>

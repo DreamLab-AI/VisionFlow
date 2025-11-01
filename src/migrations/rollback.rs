@@ -5,11 +5,11 @@ use log::{error, info, warn};
 use rusqlite::Connection;
 use std::time::Instant;
 
-/// Manages migration rollbacks
+/
 pub struct RollbackManager;
 
 impl RollbackManager {
-    /// Rollback the last applied migration
+    
     pub fn rollback_last(conn: &mut Connection, migrations_dir: &std::path::Path) -> Result<()> {
         let tracker = VersionTracker::new(conn);
 
@@ -22,7 +22,7 @@ impl RollbackManager {
             current_version
         );
 
-        // Get the applied migration details
+        
         let migration = tracker
             .get_applied(current_version)?
             .ok_or(MigrationError::NotApplied(current_version))?;
@@ -36,7 +36,7 @@ impl RollbackManager {
         Ok(())
     }
 
-    /// Rollback to a specific version
+    
     pub fn rollback_to(
         conn: &mut Connection,
         target_version: i32,
@@ -61,7 +61,7 @@ impl RollbackManager {
             current_version, target_version
         );
 
-        // Get all migrations to rollback (in reverse order)
+        
         let applied = tracker.get_all_applied()?;
         let to_rollback: Vec<_> = applied
             .into_iter()
@@ -85,7 +85,7 @@ impl RollbackManager {
         Ok(())
     }
 
-    /// Execute a single migration rollback
+    
     fn rollback_migration(
         conn: &mut Connection,
         migration: &MigrationVersion,
@@ -120,12 +120,12 @@ impl RollbackManager {
 
         let start = Instant::now();
 
-        // Execute in transaction
+        
         let tx = conn.transaction()?;
 
         match tx.execute_batch(&down_sql) {
             Ok(_) => {
-                // Remove from version table
+                
                 let tracker = VersionTracker::new(&tx);
                 tracker.remove_migration(migration.version)?;
 
@@ -144,13 +144,13 @@ impl RollbackManager {
                     "[RollbackManager] ✗ Failed to rollback migration {}: {}",
                     migration.version, e
                 );
-                // Transaction will auto-rollback on drop
+                
                 Err(MigrationError::Database(e))
             }
         }
     }
 
-    /// Verify rollback safety (check if DOWN migration exists)
+    
     pub fn verify_rollback_safety(
         migration: &MigrationVersion,
         migrations_dir: &std::path::Path,
@@ -178,7 +178,7 @@ mod tests {
 
     #[test]
     fn test_verify_rollback_safety() {
-        // This would require a real migration file to test properly
-        // In a real scenario, you'd create a temp migration file
+        
+        
     }
 }

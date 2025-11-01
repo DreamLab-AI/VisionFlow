@@ -15,15 +15,15 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::time::sleep;
 
-/// File type detection result
+/
 #[derive(Debug, Clone, PartialEq)]
 pub enum FileType {
-    KnowledgeGraph, // Contains "public:: true"
-    Ontology,       // Contains "- ### OntologyBlock"
-    Skip,           // Neither marker found
+    KnowledgeGraph, 
+    Ontology,       
+    Skip,           
 }
 
-/// Sync statistics returned after ingestion
+/
 #[derive(Debug, Clone)]
 pub struct SyncStatistics {
     pub total_files: usize,
@@ -36,7 +36,7 @@ pub struct SyncStatistics {
     pub total_edges: usize,
 }
 
-/// Result of processing a single file
+/
 #[derive(Debug)]
 enum FileProcessResult {
     KnowledgeGraph {
@@ -56,7 +56,7 @@ enum FileProcessResult {
     },
 }
 
-/// GitHub Sync Service - orchestrates data ingestion
+/
 pub struct GitHubSyncService {
     content_api: Arc<EnhancedContentAPI>,
     kg_parser: Arc<KnowledgeGraphParser>,
@@ -66,7 +66,7 @@ pub struct GitHubSyncService {
 }
 
 impl GitHubSyncService {
-    /// Create new GitHubSyncService
+    
     pub fn new(
         content_api: Arc<EnhancedContentAPI>,
         kg_repo: Arc<UnifiedGraphRepository>,
@@ -81,7 +81,7 @@ impl GitHubSyncService {
         }
     }
 
-    /// Synchronize all graphs from GitHub repository
+    
     pub async fn sync_graphs(&self) -> Result<SyncStatistics, String> {
         info!("Starting GitHub data synchronization...");
         let start_time = Instant::now();
@@ -97,25 +97,25 @@ impl GitHubSyncService {
             total_edges: 0,
         };
 
-        // Accumulate all knowledge graph data before saving
-        // Use HashMap for automatic node deduplication by ID
+        
+        
         let mut accumulated_nodes: std::collections::HashMap<u32, crate::models::node::Node> =
             std::collections::HashMap::new();
-        // Use HashMap for automatic edge deduplication by ID to prevent UNIQUE constraint violations
+        
         let mut accumulated_edges: std::collections::HashMap<String, crate::models::edge::Edge> =
             std::collections::HashMap::new();
 
-        // ✅ FIX: Track which page names have public:: true for filtering linked pages
+        
         let mut public_page_names: std::collections::HashSet<String> =
             std::collections::HashSet::new();
 
-        // Accumulate all ontology data before saving
+        
         let mut accumulated_classes: Vec<crate::ports::ontology_repository::OwlClass> = Vec::new();
         let mut accumulated_properties: Vec<crate::ports::ontology_repository::OwlProperty> =
             Vec::new();
         let mut accumulated_axioms: Vec<crate::ports::ontology_repository::OwlAxiom> = Vec::new();
 
-        // Fetch all markdown files from repository
+        
         let files = match self.fetch_all_markdown_files().await {
             Ok(files) => {
                 info!("Found {} markdown files in repository", files.len());
@@ -126,13 +126,13 @@ impl GitHubSyncService {
                 error!("{}", error_msg);
                 stats.errors.push(error_msg);
                 stats.duration = start_time.elapsed();
-                return Ok(stats); // Return empty stats, allow manual import
+                return Ok(stats); 
             }
         };
 
         stats.total_files = files.len();
 
-        // SHA1 SELECTIVE UPDATE: Check existing file_metadata to skip unchanged files
+        
         let existing_metadata = self.get_existing_file_metadata().await?;
         let mut files_to_process = Vec::new();
 
@@ -157,13 +157,13 @@ impl GitHubSyncService {
             files_to_process.len()
         );
 
-        // Process only changed/new files
+        
         for (index, file) in files_to_process.iter().enumerate() {
             if index > 0 && index % 10 == 0 {
                 info!("Progress: {}/{} files processed", index, files_to_process.len());
             }
 
-            // ✅ FIX: Pass public_page_names to process_file
+            
             match self
                 .process_file(
                     file,
@@ -203,13 +203,13 @@ impl GitHubSyncService {
                 }
             }
 
-            // Rate limiting: small delay between files to be nice to GitHub API
+            
             if index < files.len() - 1 {
                 sleep(Duration::from_millis(100)).await;
             }
         }
 
-        // ✅ FIX: NOW filter linked_page nodes after ALL files processed and HashSet is complete
+        
         info!(
             "Filtering linked_page nodes against {} public pages",
             public_page_names.len()
@@ -226,7 +226,7 @@ impl GitHubSyncService {
                     true
                 }
                 Some("linked_page") => {
-                    // Only keep if the linked page is in our public set
+                    
                     let is_public = public_page_names.contains(&node.metadata_id);
                     if !is_public {
                         debug!(
@@ -254,7 +254,7 @@ impl GitHubSyncService {
             node_count_before_filter
         );
 
-        // ✅ FIX: Filter edges to only include those connecting retained nodes
+        
         debug!("[GitHubSync][Filter] Starting edge filtering with {} accumulated edges", accumulated_edges.len());
         let edge_count_before_filter = accumulated_edges.len();
         let edge_filter_start = Instant::now();
@@ -280,7 +280,7 @@ impl GitHubSyncService {
             edge_count_before_filter
         );
 
-        // Convert HashMap to Vec and create GraphData for saving
+        
         if !accumulated_nodes.is_empty() {
             let node_vec: Vec<crate::models::node::Node> =
                 accumulated_nodes.into_values().collect();
@@ -300,7 +300,7 @@ impl GitHubSyncService {
                 Ok(_) => {
                     info!("✅ Knowledge graph saved successfully");
 
-                    // Update file_metadata table with SHA1 hashes for incremental sync
+                    
                     if let Err(e) = self.update_file_metadata(&files).await {
                         warn!("Failed to update file_metadata: {}", e);
                     }
@@ -313,7 +313,7 @@ impl GitHubSyncService {
             }
         }
 
-        // Save accumulated ontology data in a single batch operation
+        
         if !accumulated_classes.is_empty()
             || !accumulated_properties.is_empty()
             || !accumulated_axioms.is_empty()
@@ -356,10 +356,10 @@ impl GitHubSyncService {
         Ok(stats)
     }
 
-    /// Fetch all markdown files from the repository
+    
     async fn fetch_all_markdown_files(&self) -> Result<Vec<GitHubFileBasicMetadata>, String> {
-        // Use the base_path from GitHub config (mainKnowledgeGraph/pages)
-        let path = ""; // Empty string will use the configured base_path
+        
+        let path = ""; 
 
         debug!("[GitHubSync] Fetching markdown files from GitHub repository");
         let fetch_start = Instant::now();
@@ -381,18 +381,18 @@ impl GitHubSyncService {
         result
     }
 
-    /// Process a single file
+    
     async fn process_file(
         &self,
         file: &GitHubFileBasicMetadata,
         accumulated_nodes: &mut std::collections::HashMap<u32, crate::models::node::Node>,
         accumulated_edges: &mut std::collections::HashMap<String, crate::models::edge::Edge>,
-        public_page_names: &mut std::collections::HashSet<String>, // ✅ FIX: Add parameter
+        public_page_names: &mut std::collections::HashSet<String>, 
         accumulated_classes: &mut Vec<crate::ports::ontology_repository::OwlClass>,
         accumulated_properties: &mut Vec<crate::ports::ontology_repository::OwlProperty>,
         accumulated_axioms: &mut Vec<crate::ports::ontology_repository::OwlAxiom>,
     ) -> FileProcessResult {
-        // Fetch file content
+        
         let content = match self
             .fetch_file_content_with_retry(&file.download_url, 3)
             .await
@@ -405,11 +405,11 @@ impl GitHubSyncService {
             }
         };
 
-        // Detect file type
+        
         let file_type = self.detect_file_type(&content);
 
         match file_type {
-            // ✅ FIX: Pass public_page_names to knowledge graph processor
+            
             FileType::KnowledgeGraph => {
                 self.process_knowledge_graph_file(
                     file,
@@ -436,16 +436,16 @@ impl GitHubSyncService {
         }
     }
 
-    /// Process a knowledge graph file
+    
     async fn process_knowledge_graph_file(
         &self,
         file: &GitHubFileBasicMetadata,
         content: &str,
         accumulated_nodes: &mut std::collections::HashMap<u32, crate::models::node::Node>,
         accumulated_edges: &mut std::collections::HashMap<String, crate::models::edge::Edge>,
-        public_page_names: &mut std::collections::HashSet<String>, // ✅ FIX: Add parameter
+        public_page_names: &mut std::collections::HashSet<String>, 
     ) -> FileProcessResult {
-        // ✅ FIX: Add this page to public set (strip .md extension)
+        
         let page_name = file.name.strip_suffix(".md").unwrap_or(&file.name);
         public_page_names.insert(page_name.to_string());
         debug!(
@@ -454,7 +454,7 @@ impl GitHubSyncService {
             public_page_names.len()
         );
 
-        // Parse the file
+        
         let graph_data = match self.kg_parser.parse(content, &file.name) {
             Ok(data) => data,
             Err(e) => {
@@ -464,19 +464,19 @@ impl GitHubSyncService {
             }
         };
 
-        // ✅ FIX: Accumulate ALL nodes first - filtering happens after all files processed
+        
         let node_count = graph_data.nodes.len();
         for node in graph_data.nodes {
             accumulated_nodes.insert(node.id, node);
         }
 
-        // ✅ FIX: Filter edges to only include those where both source AND target nodes exist
-        // This prevents FOREIGN KEY constraint violations when nodes are filtered out
+        
+        
         let edge_count_before_filter = graph_data.edges.len();
         let mut filtered_edge_count = 0;
 
         for edge in graph_data.edges {
-            // Only add edge if both source and target nodes exist in accumulated_nodes
+            
             if accumulated_nodes.contains_key(&edge.source)
                 && accumulated_nodes.contains_key(&edge.target)
             {
@@ -504,7 +504,7 @@ impl GitHubSyncService {
         }
     }
 
-    /// Process an ontology file
+    
     async fn process_ontology_file(
         &self,
         file: &GitHubFileBasicMetadata,
@@ -515,13 +515,13 @@ impl GitHubSyncService {
     ) -> FileProcessResult {
         use sha1::{Sha1, Digest};
 
-        // Calculate SHA1 hash for change detection
+        
         let mut hasher = Sha1::new();
         hasher.update(content.as_bytes());
         let hash_bytes = hasher.finalize();
         let file_sha1 = format!("{:x}", hash_bytes);
 
-        // Parse the file
+        
         let mut ontology_data = match self.onto_parser.parse(content, &file.name) {
             Ok(data) => data,
             Err(e) => {
@@ -535,7 +535,7 @@ impl GitHubSyncService {
         let property_count = ontology_data.properties.len();
         let axiom_count = ontology_data.axioms.len();
 
-        // Store raw markdown content and SHA1 in all classes from this file
+        
         let now = chrono::Utc::now();
         for class in &mut ontology_data.classes {
             class.markdown_content = Some(content.to_string());
@@ -543,7 +543,7 @@ impl GitHubSyncService {
             class.last_synced = Some(now);
         }
 
-        // Accumulate ontology data (will be saved in batch at end)
+        
         accumulated_classes.extend(ontology_data.classes);
         accumulated_properties.extend(ontology_data.properties);
         accumulated_axioms.extend(ontology_data.axioms);
@@ -555,15 +555,15 @@ impl GitHubSyncService {
         }
     }
 
-    /// Detect file type based on content markers
+    
     fn detect_file_type(&self, content: &str) -> FileType {
-        // Remove UTF-8 BOM if present
+        
         let content = content.trim_start_matches('\u{feff}');
         let lines: Vec<&str> = content.lines().take(20).collect();
 
         debug!("[GitHubSync][FileType] Analyzing file with {} total lines (examining first 20)", content.lines().count());
 
-        // Check for "public:: true" (knowledge graph marker)
+        
         for (i, line) in lines.iter().enumerate() {
             let trimmed = line.trim();
 
@@ -573,7 +573,7 @@ impl GitHubSyncService {
             }
         }
 
-        // Check for "- ### OntologyBlock" (ontology marker)
+        
         if content.contains("### OntologyBlock") {
             debug!("[GitHubSync][FileType] Ontology detected (contains '### OntologyBlock')");
             return FileType::Ontology;
@@ -583,7 +583,7 @@ impl GitHubSyncService {
         FileType::Skip
     }
 
-    /// Fetch file content with retry logic
+    
     async fn fetch_file_content_with_retry(
         &self,
         download_url: &str,
@@ -603,7 +603,7 @@ impl GitHubSyncService {
                 Err(e) => {
                     last_error = e.to_string();
                     if attempt < max_retries - 1 {
-                        let delay = Duration::from_secs(2u64.pow(attempt)); // Exponential backoff
+                        let delay = Duration::from_secs(2u64.pow(attempt)); 
                         warn!(
                             "[GitHubSync][Fetch] Attempt {}/{} failed: {}. Retrying in {:?}...",
                             attempt + 1,
@@ -625,7 +625,7 @@ impl GitHubSyncService {
         ))
     }
 
-    /// Get existing file metadata SHA1 hashes for selective sync
+    
     async fn get_existing_file_metadata(&self) -> Result<std::collections::HashMap<String, String>, String> {
         let kg_repo = self.kg_repo.clone();
 
@@ -660,7 +660,7 @@ impl GitHubSyncService {
         .map_err(|e| format!("Task join error: {}", e))?
     }
 
-    /// Update file_metadata table with SHA1 hashes from GitHub files for incremental sync
+    
     async fn update_file_metadata(
         &self,
         files: &[GitHubFileBasicMetadata],
@@ -685,10 +685,10 @@ impl GitHubSyncService {
             for file in &files {
                 let now = Utc::now().to_rfc3339();
 
-                // Extract file extension
+                
                 let extension = file.name.rsplit('.').next().unwrap_or("");
 
-                // UPSERT file metadata with comprehensive tracking
+                
                 tx.execute(
                     r#"
                     INSERT INTO file_metadata
@@ -721,11 +721,11 @@ impl GitHubSyncService {
                         file.size as i64,
                         extension,
                         file.sha,
-                        "", // github_node_id not available in basic metadata
-                        file.sha, // Use GitHub SHA as content hash
-                        file.sha, // content_hash same as sha1 for GitHub files
+                        "", 
+                        file.sha, 
+                        file.sha, 
                         now.clone(),
-                        now.clone(), // last_content_change
+                        now.clone(), 
                         now,
                     ],
                 )
@@ -772,7 +772,7 @@ mod tests {
     }
 
     fn create_test_service() -> GitHubSyncService {
-        // This is a placeholder for testing - in real tests, use mock repositories
+        
         use crate::services::github::api::GitHubClient;
         use std::sync::Arc;
 

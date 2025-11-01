@@ -12,7 +12,7 @@ use crate::actors::messages::{GetSettings, UpdateSettings};
 use crate::config::{ConstraintSettings, PhysicsSettings, RenderingSettings};
 use crate::AppState;
 
-/// Request body for updating physics settings
+/
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdatePhysicsRequest {
@@ -26,7 +26,7 @@ pub struct UpdatePhysicsRequest {
     pub dt: Option<f32>,
 }
 
-/// Request body for updating constraint settings
+/
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateConstraintRequest {
@@ -37,7 +37,7 @@ pub struct UpdateConstraintRequest {
     pub progressive_activation: Option<bool>,
 }
 
-/// Request body for updating rendering settings
+/
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateRenderingRequest {
@@ -48,7 +48,7 @@ pub struct UpdateRenderingRequest {
     pub edge_thickness: Option<f32>,
 }
 
-/// Settings profile for save/load
+/
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SettingsProfile {
@@ -61,7 +61,7 @@ pub struct SettingsProfile {
     pub created_at: String,
 }
 
-/// GET /api/settings/physics - Get current physics settings
+/
 pub async fn get_physics_settings(state: web::Data<AppState>) -> impl Responder {
     info!("GET /api/settings/physics");
 
@@ -87,17 +87,17 @@ pub async fn get_physics_settings(state: web::Data<AppState>) -> impl Responder 
     }
 }
 
-/// PUT /api/settings/physics - Update physics settings
+/
 pub async fn update_physics_settings(
     state: web::Data<AppState>,
     req: web::Json<UpdatePhysicsRequest>,
 ) -> impl Responder {
     info!("PUT /api/settings/physics");
 
-    // Get current settings
+    
     match state.settings_addr.send(GetSettings).await {
         Ok(Ok(mut settings)) => {
-            // Apply updates
+            
             if let Some(gravity) = req.gravity {
                 settings.physics.gravity = gravity;
             }
@@ -123,7 +123,7 @@ pub async fn update_physics_settings(
                 settings.physics.dt = dt;
             }
 
-            // Save updated settings
+            
             match state.settings_addr.send(UpdateSettings { settings: settings.clone() }).await {
                 Ok(Ok(())) => {
                     HttpResponse::Ok().json(json!({
@@ -162,7 +162,7 @@ pub async fn update_physics_settings(
     }
 }
 
-/// GET /api/settings/constraints - Get constraint settings
+/
 pub async fn get_constraint_settings(state: web::Data<AppState>) -> impl Responder {
     info!("GET /api/settings/constraints");
 
@@ -188,17 +188,17 @@ pub async fn get_constraint_settings(state: web::Data<AppState>) -> impl Respond
     }
 }
 
-/// PUT /api/settings/constraints - Update constraint settings
+/
 pub async fn update_constraint_settings(
     state: web::Data<AppState>,
     req: web::Json<UpdateConstraintRequest>,
 ) -> impl Responder {
     info!("PUT /api/settings/constraints");
 
-    // Get current settings
+    
     match state.settings_addr.send(GetSettings).await {
         Ok(Ok(mut settings)) => {
-            // Apply updates
+            
             if let Some(enabled) = req.enabled {
                 settings.constraints.enabled = enabled;
             }
@@ -215,7 +215,7 @@ pub async fn update_constraint_settings(
                 settings.constraints.progressive_activation = progressive;
             }
 
-            // Save updated settings
+            
             match state.settings_addr.send(UpdateSettings { settings: settings.clone() }).await {
                 Ok(Ok(())) => {
                     HttpResponse::Ok().json(json!({
@@ -254,7 +254,7 @@ pub async fn update_constraint_settings(
     }
 }
 
-/// GET /api/settings/rendering - Get rendering settings
+/
 pub async fn get_rendering_settings(state: web::Data<AppState>) -> impl Responder {
     info!("GET /api/settings/rendering");
 
@@ -280,17 +280,17 @@ pub async fn get_rendering_settings(state: web::Data<AppState>) -> impl Responde
     }
 }
 
-/// PUT /api/settings/rendering - Update rendering settings
+/
 pub async fn update_rendering_settings(
     state: web::Data<AppState>,
     req: web::Json<UpdateRenderingRequest>,
 ) -> impl Responder {
     info!("PUT /api/settings/rendering");
 
-    // Get current settings
+    
     match state.settings_addr.send(GetSettings).await {
         Ok(Ok(mut settings)) => {
-            // Apply updates
+            
             if let Some(ambient) = req.ambient_light_intensity {
                 settings.rendering.ambient_light_intensity = ambient;
             }
@@ -307,7 +307,7 @@ pub async fn update_rendering_settings(
                 settings.rendering.edge_thickness = thickness;
             }
 
-            // Save updated settings
+            
             match state.settings_addr.send(UpdateSettings { settings: settings.clone() }).await {
                 Ok(Ok(())) => {
                     HttpResponse::Ok().json(json!({
@@ -346,7 +346,7 @@ pub async fn update_rendering_settings(
     }
 }
 
-/// POST /api/settings/profiles - Save current settings as a profile
+/
 pub async fn save_profile(
     state: web::Data<AppState>,
     req: web::Json<serde_json::Value>,
@@ -356,7 +356,7 @@ pub async fn save_profile(
     let name = req.get("name").and_then(|v| v.as_str()).unwrap_or("Untitled Profile");
     let description = req.get("description").and_then(|v| v.as_str());
 
-    // Get current settings
+    
     match state.settings_addr.send(GetSettings).await {
         Ok(Ok(settings)) => {
             let profile = SettingsProfile {
@@ -369,7 +369,7 @@ pub async fn save_profile(
                 created_at: chrono::Utc::now().to_rfc3339(),
             };
 
-            // TODO: Persist profile to database
+            
             HttpResponse::Created().json(json!({
                 "success": true,
                 "profile": profile
@@ -391,32 +391,32 @@ pub async fn save_profile(
     }
 }
 
-/// GET /api/settings/profiles - List saved profiles
+/
 pub async fn list_profiles(_state: web::Data<AppState>) -> impl Responder {
     info!("GET /api/settings/profiles");
 
-    // TODO: Fetch profiles from database
-    // For now, return empty list
+    
+    
     HttpResponse::Ok().json(json!({
         "profiles": []
     }))
 }
 
-/// GET /api/settings/profiles/{id} - Load specific profile
+/
 pub async fn load_profile(
     _state: web::Data<AppState>,
     profile_id: web::Path<String>,
 ) -> impl Responder {
     info!("GET /api/settings/profiles/{}", profile_id);
 
-    // TODO: Load profile from database and apply settings
+    
     HttpResponse::NotFound().json(json!({
         "error": "Profile not found",
         "id": profile_id.to_string()
     }))
 }
 
-/// Configure settings API routes
+/
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/settings")

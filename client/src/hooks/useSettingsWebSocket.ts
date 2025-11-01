@@ -2,31 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { toast } from '@/hooks/use-toast';
 
-/**
- * Real-time Settings WebSocket Hook
- *
- * Features:
- * - Automatic connection and reconnection
- * - Heartbeat monitoring
- * - Real-time settings synchronization
- * - Batch update handling
- * - Preset application notifications
- * - Hot-reload notifications
- *
- * Usage:
- * ```typescript
- * const MyComponent = () => {
- *   const { connected, lastUpdate } = useSettingsWebSocket();
- *
- *   return (
- *     <div>
- *       Status: {connected ? 'Connected' : 'Disconnected'}
- *       Last update: {lastUpdate?.toLocaleTimeString()}
- *     </div>
- *   );
- * };
- * ```
- */
+
 
 interface SettingsBroadcastMessage {
   type: 'SettingChanged' | 'SettingsBatchChanged' | 'SettingsReloaded' | 'PresetApplied' | 'Ping' | 'Pong';
@@ -40,26 +16,26 @@ interface SettingsBroadcastMessage {
 }
 
 interface UseSettingsWebSocketOptions {
-  /** Enable WebSocket connection */
+  
   enabled?: boolean;
-  /** Auto-reconnect on disconnect */
+  
   autoReconnect?: boolean;
-  /** Reconnection delay in ms */
+  
   reconnectDelay?: number;
-  /** Show toast notifications for changes */
+  
   showNotifications?: boolean;
 }
 
 interface UseSettingsWebSocketReturn {
-  /** Connection status */
+  
   connected: boolean;
-  /** Last message timestamp */
+  
   lastUpdate: Date | null;
-  /** Number of messages received */
+  
   messageCount: number;
-  /** Manually reconnect */
+  
   reconnect: () => void;
-  /** Manually disconnect */
+  
   disconnect: () => void;
 }
 
@@ -86,10 +62,10 @@ export const useSettingsWebSocket = (
   const connect = () => {
     if (!enabled) return;
 
-    // Determine WebSocket URL
+    
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.host;
-    const wsUrl = `${protocol}//${host}/api/settings/ws`;
+    const wsUrl = `${protocol}
 
     try {
       const ws = new WebSocket(wsUrl);
@@ -129,7 +105,7 @@ export const useSettingsWebSocket = (
         setConnected(false);
         wsRef.current = null;
 
-        // Auto-reconnect
+        
         if (autoReconnect && enabled) {
           reconnectAttemptsRef.current += 1;
           const delay = Math.min(reconnectDelay * reconnectAttemptsRef.current, 30000);
@@ -196,7 +172,7 @@ export const useSettingsWebSocket = (
           });
         }
 
-        // Trigger full settings refresh
+        
         window.location.reload();
         break;
 
@@ -213,7 +189,7 @@ export const useSettingsWebSocket = (
         break;
 
       case 'Ping':
-        // Respond to server ping with pong
+        
         if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
           wsRef.current.send(JSON.stringify({
             type: 'Pong',
@@ -223,7 +199,7 @@ export const useSettingsWebSocket = (
         break;
 
       case 'Pong':
-        // Server acknowledged our ping
+        
         break;
 
       default:
@@ -250,17 +226,17 @@ export const useSettingsWebSocket = (
     setTimeout(() => connect(), 100);
   };
 
-  // Initialize connection
+  
   useEffect(() => {
     if (enabled) {
       connect();
     }
 
-    // Cleanup on unmount
+    
     return () => {
       disconnect();
     };
-  }, [enabled]); // Only depend on enabled to avoid reconnections
+  }, [enabled]); 
 
   return {
     connected,
@@ -271,11 +247,7 @@ export const useSettingsWebSocket = (
   };
 };
 
-/**
- * Settings WebSocket Status Component
- *
- * Display connection status indicator
- */
+
 export const SettingsWebSocketStatus: React.FC<{
   className?: string;
 }> = ({ className }) => {

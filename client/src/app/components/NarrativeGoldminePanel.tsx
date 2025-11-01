@@ -1,10 +1,6 @@
 import React from 'react';
 
-/**
- * NarrativeGoldminePanel - Opens narrativegoldmine.com in a new tab
- *
- * Security: Opens external site in new tab instead of iframe to avoid security risks
- */
+
 const NarrativeGoldminePanel: React.FC = () => {
   const handleOpenInNewTab = () => {
     window.open('https://narrativegoldmine.com/#/page/', '_blank', 'noopener,noreferrer');

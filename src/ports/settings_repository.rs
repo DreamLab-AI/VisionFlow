@@ -30,7 +30,7 @@ pub enum SettingsRepositoryError {
     CacheError(String),
 }
 
-/// Setting value that can be various types
+/
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum SettingValue {
@@ -81,13 +81,13 @@ impl SettingValue {
 // Re-export AppFullSettings from config module (single source of truth)
 pub use crate::config::AppFullSettings;
 
-/// Port for settings repository operations
+/
 #[async_trait]
 pub trait SettingsRepository: Send + Sync {
-    /// Get a single setting by key (supports both camelCase and snake_case)
+    
     async fn get_setting(&self, key: &str) -> Result<Option<SettingValue>>;
 
-    /// Set a single setting by key with optional description
+    
     async fn set_setting(
         &self,
         key: &str,
@@ -95,52 +95,52 @@ pub trait SettingsRepository: Send + Sync {
         description: Option<&str>,
     ) -> Result<()>;
 
-    /// Delete a setting by key
+    
     async fn delete_setting(&self, key: &str) -> Result<()>;
 
-    /// Check if a setting exists
+    
     async fn has_setting(&self, key: &str) -> Result<bool>;
 
-    /// Get batch of settings by keys
+    
     async fn get_settings_batch(&self, keys: &[String]) -> Result<HashMap<String, SettingValue>>;
 
-    /// Set batch of settings atomically
+    
     async fn set_settings_batch(&self, updates: HashMap<String, SettingValue>) -> Result<()>;
 
-    /// List all setting keys (optionally filtered by prefix)
+    
     async fn list_settings(&self, prefix: Option<&str>) -> Result<Vec<String>>;
 
-    /// Load complete application settings
+    
     async fn load_all_settings(&self) -> Result<Option<AppFullSettings>>;
 
-    /// Save complete application settings
+    
     async fn save_all_settings(&self, settings: &AppFullSettings) -> Result<()>;
 
-    /// Get physics settings for a specific profile (e.g., "logseq", "ontology")
+    
     async fn get_physics_settings(&self, profile_name: &str) -> Result<PhysicsSettings>;
 
-    /// Save physics settings for a specific profile
+    
     async fn save_physics_settings(
         &self,
         profile_name: &str,
         settings: &PhysicsSettings,
     ) -> Result<()>;
 
-    /// List all available physics profiles
+    
     async fn list_physics_profiles(&self) -> Result<Vec<String>>;
 
-    /// Delete a physics profile
+    
     async fn delete_physics_profile(&self, profile_name: &str) -> Result<()>;
 
-    /// Export settings to JSON
+    
     async fn export_settings(&self) -> Result<serde_json::Value>;
 
-    /// Import settings from JSON
+    
     async fn import_settings(&self, settings_json: &serde_json::Value) -> Result<()>;
 
-    /// Clear cache (for implementations with caching)
+    
     async fn clear_cache(&self) -> Result<()>;
 
-    /// Get repository health status
+    
     async fn health_check(&self) -> Result<bool>;
 }

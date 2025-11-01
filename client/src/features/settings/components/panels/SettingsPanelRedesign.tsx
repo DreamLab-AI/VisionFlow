@@ -53,7 +53,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  // Settings store
+  
   const {
     settings,
     saving,
@@ -66,21 +66,21 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
     hasUnsavedChanges: checkUnsavedChanges
   } = useSettingsStore();
 
-  // Undo/redo support (disabled - not implemented yet)
+  
   const canUndo = false;
   const canRedo = false;
   const undo = () => toast.info('Undo not yet implemented');
   const redo = () => toast.info('Redo not yet implemented');
 
-  // Build search index once on mount (1,061 settings indexed)
+  
   const searchIndex = useMemo(() => {
     return buildSearchIndex(settingsUIDefinition);
   }, []);
 
-  // Total settings count
+  
   const totalSettingsCount = useMemo(() => searchIndex.length, [searchIndex]);
 
-  // Handle search with performance optimization
+  
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
 
@@ -89,9 +89,9 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
       return;
     }
 
-    // Perform fuzzy search with scoring
+    
     const results = searchSettings(searchIndex, query, {
-      minScore: 15, // Lower threshold for better recall
+      minScore: 15, 
       maxResults: 100,
       includeAdvanced: true,
       includePowerUser: true
@@ -99,7 +99,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
 
     setSearchResults(results);
 
-    // Log search performance for monitoring
+    
     if (results.length > 0) {
       console.debug(`Search: "${query}" found ${results.length} results (avg score: ${
         (results.reduce((sum, r) => sum + r.score, 0) / results.length).toFixed(1)
@@ -107,7 +107,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
     }
   }, [searchIndex]);
 
-  // Check for unsaved changes
+  
   useEffect(() => {
     const interval = setInterval(() => {
       setHasUnsavedChanges(checkUnsavedChanges());
@@ -115,13 +115,13 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
     return () => clearInterval(interval);
   }, [checkUnsavedChanges]);
 
-  // Filter settings based on search results
+  
   const filteredUIDefinition = useMemo(() => {
     if (!searchQuery || searchResults.length === 0) {
       return settingsUIDefinition;
     }
 
-    // Build a set of matching paths for O(1) lookup
+    
     const matchingPaths = new Set(searchResults.map(r => r.path));
     const filtered: typeof settingsUIDefinition = {};
 
@@ -132,7 +132,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
         const filteredSettings: Record<string, any> = {};
 
         Object.entries(section.settings || {}).forEach(([settingKey, setting]) => {
-          // Include if path matches search results
+          
           if (matchingPaths.has(setting.path)) {
             filteredSettings[settingKey] = setting;
           }
@@ -157,16 +157,16 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
     return filtered;
   }, [searchQuery, searchResults]);
 
-  // Handle file import
+  
   const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       await loadFromFile(file);
-      event.target.value = ''; // Reset input
+      event.target.value = ''; 
     }
   };
 
-  // Tab definitions - comprehensive settings categories
+  
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: Monitor, category: 'dashboard' },
     { id: 'visualization', label: 'Visualization', icon: Eye, category: 'visualization' },
@@ -184,7 +184,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
 
   return (
     <div className="h-full flex flex-col bg-background">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2">
           <Settings className="w-5 h-5" />
@@ -195,7 +195,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Enhanced Search with Fuzzy Matching & Result Count */}
+          {}
           <SettingsSearch
             onSearch={handleSearch}
             resultCount={searchQuery ? searchResults.length : undefined}
@@ -204,7 +204,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
             className="w-80"
           />
 
-          {/* Undo/Redo */}
+          {}
           <div className="flex gap-1">
             <Button
               variant="ghost"
@@ -226,7 +226,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
             </Button>
           </div>
 
-          {/* Import/Export */}
+          {}
           <div className="flex gap-1">
             <Button
               variant="ghost"
@@ -253,7 +253,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
             </Button>
           </div>
 
-          {/* Save/Reset */}
+          {}
           <div className="flex gap-1">
             <Button
               variant="ghost"
@@ -282,7 +282,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
         </div>
       </div>
 
-      {/* Content */}
+      {}
       <div className="flex-1 overflow-hidden">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
           <TabsList className="px-4 w-full justify-start">
@@ -296,7 +296,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
 
           <ScrollArea className="flex-1 h-[calc(100%-3rem)]">
             {tabs.map(tab => {
-              // Handle custom panels (like Agents)
+              
               if (tab.isCustomPanel && tab.id === 'agents') {
                 return (
                   <TabsContent key={tab.id} value={tab.id} className="p-4">
@@ -310,14 +310,14 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
 
               return (
                 <TabsContent key={tab.id} value={tab.id} className="p-4 space-y-4">
-                  {/* Tab description */}
+                  {}
                   {categoryDef.description && (
                     <div className="text-sm text-muted-foreground mb-4">
                       {categoryDef.description}
                     </div>
                   )}
 
-                  {/* Settings sections */}
+                  {}
                   {Object.entries(categoryDef.subsections || {}).map(([sectionKey, section]) => (
                     <div key={sectionKey} className="space-y-2">
                       <h3 className="text-sm font-semibold">{section.label}</h3>
@@ -348,7 +348,7 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
         </Tabs>
       </div>
 
-      {/* Status bar */}
+      {}
       {(loading || saving) && (
         <div className="px-4 py-2 border-t text-xs text-muted-foreground">
           {loading && 'Loading settings...'}

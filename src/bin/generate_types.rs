@@ -5,23 +5,23 @@ use std::path::Path;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("🔧 Generating TypeScript types from Rust structs...");
 
-    // Create the comprehensive TypeScript interfaces based on the Rust structs
+    
     let typescript_interfaces = generate_typescript_interfaces();
 
-    // Create header with metadata
+    
     let header = format!(
-        "// Auto-generated TypeScript types from Rust structs\n\
-         // Generated from webxr config module - DO NOT EDIT MANUALLY\n\
-         // Last updated: {}\n\n\
-         // All field names have been converted from snake_case to camelCase\n\
-         // for TypeScript/JavaScript convention\n\n",
+        "
+         
+         
+         
+         
         chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
     );
 
-    // Apply camelCase conversion to field names
+    
     let camel_case_code = convert_to_camel_case(format!("{}{}", header, typescript_interfaces));
 
-    // Ensure output directory exists
+    
     let output_path = Path::new("client/src/types/generated/settings.ts");
     let output_dir = output_path.parent().unwrap();
     if !output_dir.exists() {
@@ -29,7 +29,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("📁 Created output directory: {}", output_dir.display());
     }
 
-    // Write the generated types
+    
     fs::write(output_path, &camel_case_code)?;
 
     println!(
@@ -37,14 +37,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         output_path.display()
     );
 
-    // Verify the file was created and has content
+    
     let metadata = fs::metadata(output_path)?;
     println!("📊 Generated file size: {} bytes", metadata.len());
 
     if metadata.len() > 1000 {
         println!("🎉 Type generation completed successfully!");
 
-        // Show a preview of the generated content
+        
         let preview: String = camel_case_code
             .lines()
             .take(20)
@@ -64,9 +64,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-/// Generate comprehensive TypeScript interfaces that match all Rust structs
+/
 fn generate_typescript_interfaces() -> String {
-    r#"// Movement controls
+    r#"
 export interface MovementAxes {
   horizontal: number;
   vertical: number;
@@ -604,7 +604,7 @@ export default AppFullSettings;
     .to_string()
 }
 
-/// Convert snake_case field names to camelCase for TypeScript
+/
 fn convert_to_camel_case(typescript_code: String) -> String {
     let field_regex = Regex::new(r"(\s+)([a-z][a-z0-9_]*[a-z0-9])(\s*:\s*)").unwrap();
 
@@ -614,7 +614,7 @@ fn convert_to_camel_case(typescript_code: String) -> String {
             let field_name = &caps[2];
             let colon_and_space = &caps[3];
 
-            // Convert snake_case to camelCase
+            
             let camel_case = snake_to_camel_case(field_name);
 
             format!("{}{}{}", indent, camel_case, colon_and_space)
@@ -622,7 +622,7 @@ fn convert_to_camel_case(typescript_code: String) -> String {
         .to_string()
 }
 
-/// Convert a snake_case string to camelCase
+/
 fn snake_to_camel_case(snake_str: &str) -> String {
     let mut result = String::new();
     let mut capitalize_next = false;

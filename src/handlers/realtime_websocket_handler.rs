@@ -27,7 +27,7 @@ pub struct RealtimeWebSocketMessage {
 pub struct WorkspaceUpdateEvent {
     pub workspace_id: String,
     pub changes: Value,
-    pub operation: String, // create, update, delete, favorite, archive
+    pub operation: String, 
     pub user_id: Option<String>,
 }
 
@@ -40,7 +40,7 @@ pub struct WorkspaceDeletedEvent {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkspaceCollaborationEvent {
     pub workspace_id: String,
-    pub action: String, // user_joined, user_left, permission_changed
+    pub action: String, 
     pub user_id: String,
     pub user_name: Option<String>,
     pub permissions: Option<Vec<String>>,
@@ -51,7 +51,7 @@ pub struct WorkspaceCollaborationEvent {
 pub struct AnalysisProgressEvent {
     pub analysis_id: String,
     pub graph_id: Option<String>,
-    pub progress: f64, // 0.0-100.0
+    pub progress: f64, 
     pub stage: String,
     pub estimated_time_remaining: Option<u64>,
     pub current_operation: String,
@@ -73,7 +73,7 @@ pub struct AnalysisCompleteEvent {
 pub struct OptimizationUpdateEvent {
     pub optimization_id: String,
     pub graph_id: Option<String>,
-    pub progress: f64, // 0.0-100.0
+    pub progress: f64, 
     pub algorithm: String,
     pub current_iteration: u64,
     pub total_iterations: u64,
@@ -101,8 +101,8 @@ pub struct ExportProgressEvent {
     pub export_id: String,
     pub graph_id: Option<String>,
     pub format: String,
-    pub progress: f64, // 0.0-100.0
-    pub stage: String, // preparing, processing, rendering, finalizing, uploading
+    pub progress: f64, 
+    pub stage: String, 
     pub size: Option<u64>,
     pub estimated_time_remaining: Option<u64>,
 }
@@ -132,7 +132,7 @@ pub struct ShareCreatedEvent {
 // System notification messages
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SystemNotificationEvent {
-    pub level: String, // info, warning, error
+    pub level: String, 
     pub title: String,
     pub message: String,
     pub actions: Option<Vec<Value>>,
@@ -143,8 +143,8 @@ pub struct SystemNotificationEvent {
 #[derive(Debug, Clone)]
 pub struct ClientSubscription {
     pub client_id: String,
-    pub subscriptions: HashSet<String>,   // Set of event types
-    pub filters: HashMap<String, String>, // Key-value filters
+    pub subscriptions: HashSet<String>,   
+    pub filters: HashMap<String, String>, 
     pub last_activity: Instant,
 }
 
@@ -164,7 +164,7 @@ pub struct RealtimeWebSocketHandler {
 // Global connection manager for broadcasting
 pub struct ConnectionManager {
     connections: HashMap<String, Addr<RealtimeWebSocketHandler>>,
-    subscriptions: HashMap<String, HashSet<String>>, // event_type -> set of client_ids
+    subscriptions: HashMap<String, HashSet<String>>, 
 }
 
 impl ConnectionManager {
@@ -182,7 +182,7 @@ impl ConnectionManager {
 
     pub fn remove_connection(&mut self, client_id: &str) {
         self.connections.remove(client_id);
-        // Remove from all subscriptions
+        
         for (_, client_ids) in self.subscriptions.iter_mut() {
             client_ids.remove(client_id);
         }
@@ -287,7 +287,7 @@ impl RealtimeWebSocketHandler {
             }
         }
 
-        // Register with global connection manager
+        
         let client_id = self.client_id.clone();
         let event_type_clone = event_type.clone();
         tokio::spawn(async move {
@@ -295,7 +295,7 @@ impl RealtimeWebSocketHandler {
             manager.subscribe(client_id, event_type_clone);
         });
 
-        // Send confirmation
+        
         let confirmation = RealtimeWebSocketMessage {
             msg_type: "subscription_confirmed".to_string(),
             data: json!({
@@ -315,11 +315,11 @@ impl RealtimeWebSocketHandler {
     fn handle_unsubscription(&mut self, _ctx: &mut ws::WebsocketContext<Self>, event_type: String) {
         self.subscriptions.remove(&event_type);
 
-        // Remove filters for this event type
+        
         self.filters
             .retain(|key, _| !key.starts_with(&format!("{}:", event_type)));
 
-        // Unregister from global connection manager
+        
         let client_id = self.client_id.clone();
         let event_type_clone = event_type.clone();
         tokio::spawn(async move {
@@ -361,7 +361,7 @@ impl Actor for RealtimeWebSocketHandler {
             self.client_id
         );
 
-        // Register with connection manager
+        
         let client_id = self.client_id.clone();
         let ctx_address = ctx.address();
         tokio::spawn(async move {
@@ -369,12 +369,12 @@ impl Actor for RealtimeWebSocketHandler {
             manager.add_connection(client_id, ctx_address);
         });
 
-        // Start heartbeat interval
+        
         ctx.run_interval(Duration::from_secs(30), |act, ctx| {
             act.send_heartbeat(ctx);
         });
 
-        // Connection timeout check
+        
         ctx.run_interval(Duration::from_secs(10), |act, ctx| {
             if Instant::now().duration_since(act.heartbeat) > Duration::from_secs(120) {
                 warn!(
@@ -386,7 +386,7 @@ impl Actor for RealtimeWebSocketHandler {
             }
         });
 
-        // Send welcome message
+        
         let welcome_message = RealtimeWebSocketMessage {
             msg_type: "connection_established".to_string(),
             data: json!({
@@ -416,14 +416,14 @@ impl Actor for RealtimeWebSocketHandler {
             self.client_id
         );
 
-        // Remove from connection manager
+        
         let client_id = self.client_id.clone();
         tokio::spawn(async move {
             let mut manager = CONNECTION_MANAGER.lock().await;
             manager.remove_connection(&client_id);
         });
 
-        // Log final statistics
+        
         info!(
             "Final statistics for client {}: {} messages sent, {} bytes sent, {} bytes received",
             self.client_id, self.message_count, self.bytes_sent, self.bytes_received
@@ -550,15 +550,15 @@ impl Handler<BroadcastMessage> for RealtimeWebSocketHandler {
     type Result = ();
 
     fn handle(&mut self, msg: BroadcastMessage, ctx: &mut Self::Context) {
-        // Apply filters if any
+        
         let should_send = if self.filters.is_empty() {
             true
         } else {
-            // Simple filter matching - extend as needed
+            
             let event_type = &msg.message.msg_type;
             let data = &msg.message.data;
 
-            // Check if any filters match
+            
             self.filters.iter().any(|(key, filter_value)| {
                 if let Some((filter_event_type, filter_key)) = key.split_once(':') {
                     if filter_event_type == event_type {
@@ -599,7 +599,7 @@ pub async fn broadcast_workspace_update(
         session_id: None,
     };
 
-    // Clone the message to avoid holding the lock across await
+    
     let msg_to_send = message.clone();
     tokio::spawn(async move {
         let manager = CONNECTION_MANAGER.lock().await;
@@ -633,7 +633,7 @@ pub async fn broadcast_analysis_progress(
         session_id: None,
     };
 
-    // Clone message and spawn task to avoid holding lock across await
+    
     let msg = message.clone();
     tokio::spawn(async move {
         let manager = CONNECTION_MANAGER.lock().await;
@@ -669,7 +669,7 @@ pub async fn broadcast_optimization_update(
         session_id: None,
     };
 
-    // Clone message and spawn task to avoid holding lock across await
+    
     let msg = message.clone();
     tokio::spawn(async move {
         let manager = CONNECTION_MANAGER.lock().await;
@@ -702,7 +702,7 @@ pub async fn broadcast_export_progress(
         session_id: None,
     };
 
-    // Clone message and spawn task to avoid holding lock across await
+    
     let msg = message.clone();
     tokio::spawn(async move {
         let manager = CONNECTION_MANAGER.lock().await;
@@ -738,7 +738,7 @@ pub async fn broadcast_export_ready(
         session_id: None,
     };
 
-    // Clone message and spawn task to avoid holding lock across await
+    
     let msg = message.clone();
     tokio::spawn(async move {
         let manager = CONNECTION_MANAGER.lock().await;

@@ -27,7 +27,7 @@ import { unifiedApiClient } from '../../../services/api';
 type KernelMode = 'legacy' | 'advanced' | 'visual_analytics';
 
 interface ForceParameters {
-  repulsionStrength: number;  // UNIFIED: Use proper camelCase names
+  repulsionStrength: number;  
   attractionStrength: number;
   springStrength: number;
   damping: number;
@@ -35,7 +35,7 @@ interface ForceParameters {
   timeStep: number;
   maxVelocity: number;
   temperature: number;
-  // Boundary behavior parameters
+  
   boundaryExtremeMultiplier: number;
   boundaryExtremeForceMultiplier: number;
   boundaryVelocityDamping: number;
@@ -60,11 +60,11 @@ interface IsolationLayer {
 
 export function PhysicsEngineControls() {
   const { toast } = useToast();
-  // Use the settings store
+  
   const { settings, initialized, updateSettings, loadSection, ensureLoaded } = useSettingsStore();
   const [currentGraph] = useState<'logseq' | 'visionflow'>('logseq');
   
-  // Helper function to update physics settings
+  
   const updatePhysics = async (physicsUpdate: Partial<PhysicsSettings>) => {
     updateSettings((draft) => {
       if (!draft.visualisation.graphs[currentGraph]) {
@@ -80,14 +80,14 @@ export function PhysicsEngineControls() {
   };
   
   const loadSettings = async () => {
-    // Settings are automatically loaded by the store
+    
   };
   
-  // State management
+  
   const [kernelMode, setKernelMode] = useState<KernelMode>('visual_analytics');
   const [showConstraintBuilder, setShowConstraintBuilder] = useState(false);
   
-  // Get physics settings directly from the settings store - no local state
+  
   const physicsSettings = settings?.visualisation?.graphs?.[currentGraph]?.physics;
   
   const [constraints, setConstraints] = useState<ConstraintType[]>([
@@ -123,11 +123,11 @@ export function PhysicsEngineControls() {
     power: 0,
   });
 
-  // Initialize the settings store and load physics settings on mount
+  
   useEffect(() => {
     const loadPhysicsSettings = async () => {
       if (initialized) {
-        // Ensure physics settings are loaded for both graphs
+        
         await ensureLoaded([
           `visualisation.graphs.${currentGraph}.physics`,
           'visualisation.graphs.logseq.physics',
@@ -139,16 +139,16 @@ export function PhysicsEngineControls() {
     loadPhysicsSettings();
   }, [initialized, currentGraph, ensureLoaded]);
   
-  // All values are read directly from settings store - no local state needed
   
-  // Fetch GPU metrics periodically
+  
+  
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
         const response = await unifiedApiClient.get('/api/analytics/gpu-metrics');
         setGpuMetrics(response.data);
       } catch (error) {
-        // Failed to fetch GPU metrics
+        
       }
     };
 
@@ -157,7 +157,7 @@ export function PhysicsEngineControls() {
     return () => clearInterval(interval);
   }, []);
 
-  // Handlers
+  
   const handleKernelModeChange = useCallback(async (mode: KernelMode) => {
     try {
       const response = await unifiedApiClient.post('/api/analytics/kernel-mode', { mode });
@@ -177,7 +177,7 @@ export function PhysicsEngineControls() {
   }, [toast]);
 
   const handleForceParamChange = useCallback(async (param: keyof ForceParameters, value: number) => {
-    // Map UI parameter names to camelCase physics settings names
+    
     const paramMapping: Record<string, string> = {
       repulsionStrength: 'repelK',
       attractionStrength: 'attractionK',
@@ -187,7 +187,7 @@ export function PhysicsEngineControls() {
       timeStep: 'dt',
       maxVelocity: 'maxVelocity',
       temperature: 'temperature',
-      // Boundary behavior parameters - these map directly
+      
       boundaryExtremeMultiplier: 'boundaryExtremeMultiplier',
       boundaryExtremeForceMultiplier: 'boundaryExtremeForceMultiplier',
       boundaryVelocityDamping: 'boundaryVelocityDamping',
@@ -196,7 +196,7 @@ export function PhysicsEngineControls() {
     const settingsPath = `visualisation.graphs.${currentGraph}.physics.${paramMapping[param] || param}`;
     
     try {
-      // Update through settings store
+      
       updateSettings((draft) => {
         const pathParts = settingsPath.split('.');
         let current: any = draft;
@@ -230,7 +230,7 @@ export function PhysicsEngineControls() {
         constraints: newConstraints.filter(c => c.enabled).map(c => c.id),
       });
     } catch (error) {
-      // Failed to update constraints
+      
     }
   }, [constraints]);
 
@@ -245,13 +245,13 @@ export function PhysicsEngineControls() {
         layers: newLayers.filter(l => l.active),
       });
     } catch (error) {
-      // Failed to update isolation layers
+      
     }
   }, [isolationLayers]);
 
   const handleSaveConstraint = useCallback((constraint: any) => {
-    // Saving constraint
-    // TODO: Implement constraint saving
+    
+    
   }, []);
 
   return (
@@ -264,12 +264,12 @@ export function PhysicsEngineControls() {
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
         
-        {/* Engine Tab */}
+        {}
         <TabsContent value="engine" className="space-y-4">
-          {/* Presets */}
+          {}
           <PhysicsPresets />
           
-          {/* GPU Status Card */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -312,7 +312,7 @@ export function PhysicsEngineControls() {
             </CardContent>
           </Card>
 
-          {/* Kernel Mode Selector */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -352,7 +352,7 @@ export function PhysicsEngineControls() {
             </CardContent>
           </Card>
 
-          {/* Isolation Layers */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -394,7 +394,7 @@ export function PhysicsEngineControls() {
           </Card>
         </TabsContent>
 
-        {/* Forces Tab */}
+        {}
         <TabsContent value="forces" className="space-y-4">
           <Card>
             <CardHeader>
@@ -415,7 +415,7 @@ export function PhysicsEngineControls() {
                 <Slider
                   id="repulsionStrength"
                   min={10}
-                  max={200}  // Safe range to prevent explosion (was 1000!)
+                  max={200}  
                   step={1}
                   value={[physicsSettings?.repelK || 50.0]}
                   onValueChange={([v]) => handleForceParamChange('repulsionStrength', v)}
@@ -430,7 +430,7 @@ export function PhysicsEngineControls() {
                 <Slider
                   id="attractionStrength"
                   min={0}
-                  max={10}  // Full GPU experimentation range
+                  max={10}  
                   step={0.01}
                   value={[physicsSettings?.attractionK || 0.001]}
                   onValueChange={([v]) => handleForceParamChange('attractionStrength', v)}
@@ -444,7 +444,7 @@ export function PhysicsEngineControls() {
                 </div>
                 <Slider
                   id="damping"
-                  min={0.5}  // Minimum 0.5 for stability (was 0.0!)
+                  min={0.5}  
                   max={0.99}
                   step={0.01}
                   value={[physicsSettings?.damping || 0.95]}
@@ -460,7 +460,7 @@ export function PhysicsEngineControls() {
                 <Slider
                   id="temperature"
                   min={0}
-                  max={2.0}  // Match server validation range
+                  max={2.0}  
                   step={0.01}
                   value={[physicsSettings?.temperature || 0.01]}
                   onValueChange={([v]) => handleForceParamChange('temperature', v)}
@@ -475,7 +475,7 @@ export function PhysicsEngineControls() {
                 <Slider
                   id="gravity"
                   min={-5.0}
-                  max={5.0}  // Match server validation range
+                  max={5.0}  
                   step={0.01}
                   value={[physicsSettings?.gravity || 0.0001]}
                   onValueChange={([v]) => handleForceParamChange('gravity', v)}
@@ -490,7 +490,7 @@ export function PhysicsEngineControls() {
                 <Slider
                   id="maxVelocity"
                   min={0.1}
-                  max={10}   // Safe range to prevent explosion (was 100!)
+                  max={10}   
                   step={0.1}
                   value={[physicsSettings?.maxVelocity || 2.0]}
                   onValueChange={([v]) => handleForceParamChange('maxVelocity', v)}
@@ -505,7 +505,7 @@ export function PhysicsEngineControls() {
                 <Slider
                   id="timeStep"
                   min={0.001}
-                  max={0.02}   // Safe range for numerical stability (was 0.1!)
+                  max={0.02}   
                   step={0.001}
                   value={[physicsSettings?.dt || 0.016]}
                   onValueChange={([v]) => handleForceParamChange('timeStep', v)}
@@ -514,7 +514,7 @@ export function PhysicsEngineControls() {
             </CardContent>
           </Card>
 
-          {/* Boundary Behavior Section */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -609,7 +609,7 @@ export function PhysicsEngineControls() {
             </CardContent>
           </Card>
 
-          {/* Trajectory Visualization */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -668,7 +668,7 @@ export function PhysicsEngineControls() {
             </CardContent>
           </Card>
 
-          {/* SSSP Integration Section */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -737,7 +737,7 @@ export function PhysicsEngineControls() {
           </Card>
         </TabsContent>
 
-        {/* Constraints Tab */}
+        {}
         <TabsContent value="constraints" className="space-y-4">
           <Card>
             <CardHeader>
@@ -783,13 +783,13 @@ export function PhysicsEngineControls() {
           </Card>
         </TabsContent>
 
-        {/* Analytics Tab */}
+        {}
         <TabsContent value="analytics" className="space-y-4">
           <SemanticClusteringControls />
         </TabsContent>
       </Tabs>
 
-      {/* Constraint Builder Dialog */}
+      {}
       <ConstraintBuilderDialog
         isOpen={showConstraintBuilder}
         onClose={() => setShowConstraintBuilder(false)}

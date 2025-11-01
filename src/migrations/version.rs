@@ -5,7 +5,7 @@ use chrono::{DateTime, Utc};
 use log::{info, warn};
 use rusqlite::{params, Connection};
 
-/// Represents a single migration version
+/
 #[derive(Debug, Clone)]
 pub struct MigrationVersion {
     pub version: i32,
@@ -16,14 +16,14 @@ pub struct MigrationVersion {
 }
 
 impl MigrationVersion {
-    /// Create new migration version from file
+    
     pub fn from_file(path: &std::path::Path) -> Result<Self> {
         let filename = path
             .file_name()
             .and_then(|n| n.to_str())
             .ok_or_else(|| MigrationError::InvalidFormat("Invalid filename".into()))?;
 
-        // Parse version from filename (e.g., "001_create_table.sql" -> 1)
+        
         let parts: Vec<&str> = filename.splitn(2, '_').collect();
         if parts.len() != 2 {
             return Err(MigrationError::InvalidFormat(format!(
@@ -41,7 +41,7 @@ impl MigrationVersion {
             .replace('_', " ")
             .to_string();
 
-        // Read file and calculate checksum
+        
         let content = std::fs::read_to_string(path)?;
         let checksum = Self::calculate_checksum(&content);
 
@@ -54,7 +54,7 @@ impl MigrationVersion {
         })
     }
 
-    /// Calculate SHA-1 checksum of migration content
+    
     pub fn calculate_checksum(content: &str) -> String {
         use sha1::{Digest, Sha1};
         let mut hasher = Sha1::new();
@@ -62,7 +62,7 @@ impl MigrationVersion {
         format!("{:x}", hasher.finalize())
     }
 
-    /// Parse migration SQL into UP and DOWN sections
+    
     pub fn parse_sql(content: &str) -> Result<(String, String)> {
         let up_marker = "-- === UP MIGRATION ===";
         let down_marker = "-- === DOWN MIGRATION ===";
@@ -99,7 +99,7 @@ impl MigrationVersion {
     }
 }
 
-/// Tracks migration versions in the database
+/
 pub struct VersionTracker<'a> {
     conn: &'a Connection,
 }
@@ -109,7 +109,7 @@ impl<'a> VersionTracker<'a> {
         Self { conn }
     }
 
-    /// Initialize schema_migrations table if it doesn't exist
+    
     pub fn initialize(&self) -> Result<()> {
         info!("[VersionTracker] Initializing schema_migrations table");
 
@@ -128,7 +128,7 @@ impl<'a> VersionTracker<'a> {
         Ok(())
     }
 
-    /// Get current schema version (highest applied migration)
+    
     pub fn current_version(&self) -> Result<Option<i32>> {
         let version = self
             .conn
@@ -141,7 +141,7 @@ impl<'a> VersionTracker<'a> {
         Ok(version)
     }
 
-    /// Check if a migration version is already applied
+    
     pub fn is_applied(&self, version: i32) -> Result<bool> {
         let count: i32 = self.conn.query_row(
             "SELECT COUNT(*) FROM schema_migrations WHERE version = ?1",
@@ -152,7 +152,7 @@ impl<'a> VersionTracker<'a> {
         Ok(count > 0)
     }
 
-    /// Get applied migration details
+    
     pub fn get_applied(&self, version: i32) -> Result<Option<MigrationVersion>> {
         let result = self
             .conn
@@ -179,7 +179,7 @@ impl<'a> VersionTracker<'a> {
         Ok(result)
     }
 
-    /// Get all applied migrations
+    
     pub fn get_all_applied(&self) -> Result<Vec<MigrationVersion>> {
         let mut stmt = self.conn.prepare(
             "SELECT version, name, checksum, applied_at, execution_time_ms
@@ -205,7 +205,7 @@ impl<'a> VersionTracker<'a> {
         Ok(migrations)
     }
 
-    /// Record a successful migration
+    
     pub fn record_migration(
         &self,
         migration: &MigrationVersion,
@@ -230,7 +230,7 @@ impl<'a> VersionTracker<'a> {
         Ok(())
     }
 
-    /// Remove a migration record (for rollback)
+    
     pub fn remove_migration(&self, version: i32) -> Result<()> {
         info!("[VersionTracker] Removing migration record {}", version);
 
@@ -246,7 +246,7 @@ impl<'a> VersionTracker<'a> {
         Ok(())
     }
 
-    /// Verify checksum of applied migration
+    
     pub fn verify_checksum(&self, migration: &MigrationVersion) -> Result<()> {
         if let Some(applied) = self.get_applied(migration.version)? {
             if applied.checksum != migration.checksum {
@@ -269,7 +269,7 @@ mod tests {
     fn test_calculate_checksum() {
         let content = "SELECT 1;";
         let checksum = MigrationVersion::calculate_checksum(content);
-        assert_eq!(checksum.len(), 40); // SHA-1 produces 40 hex chars
+        assert_eq!(checksum.len(), 40); 
     }
 
     #[test]

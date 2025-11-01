@@ -7,7 +7,7 @@ use base64::{engine::general_purpose::STANDARD as BASE64, Engine as _};
 use chrono::Utc;
 use log::{error, info};
 
-/// Handles GitHub Pull Request operations
+/
 use std::sync::Arc;
 
 pub struct PullRequestAPI {
@@ -15,12 +15,12 @@ pub struct PullRequestAPI {
 }
 
 impl PullRequestAPI {
-    /// Create a new PullRequestAPI instance
+    
     pub fn new(client: Arc<GitHubClient>) -> Self {
         Self { client }
     }
 
-    /// Create a pull request for a file update
+    
     pub async fn create_pull_request(
         &self,
         file_name: &str,
@@ -75,7 +75,7 @@ impl PullRequestAPI {
         Ok(pr_response.html_url)
     }
 
-    /// Get the SHA of the main branch
+    
     async fn get_main_branch_sha(&self) -> VisionFlowResult<String> {
         let url = format!(
             "https://api.github.com/repos/{}/{}/git/ref/heads/main",
@@ -105,7 +105,7 @@ impl PullRequestAPI {
             .to_string())
     }
 
-    /// Create a new branch
+    
     async fn create_branch(&self, branch_name: &str, sha: &str) -> VisionFlowResult<()> {
         let url = format!(
             "https://api.github.com/repos/{}/{}/git/refs",
@@ -137,7 +137,7 @@ impl PullRequestAPI {
         Ok(())
     }
 
-    /// Update a file in a branch
+    
     async fn update_file(
         &self,
         file_path: &str,

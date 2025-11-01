@@ -28,7 +28,7 @@ export function DebugControlPanel({ className }: DebugControlPanelProps) {
   const [dataDebugEnabled, setDataDebugEnabled] = useState(false);
   const [performanceDebugEnabled, setPerformanceDebugEnabled] = useState(false);
 
-  // Load initial state
+  
   useEffect(() => {
     const loadState = () => {
       setMainDebugEnabled(clientDebugState.isEnabled());
@@ -39,7 +39,7 @@ export function DebugControlPanel({ className }: DebugControlPanelProps) {
 
     loadState();
 
-    // Listen for storage changes (in case debug state changes in another tab)
+    
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key?.startsWith('debug.')) {
         loadState();
@@ -50,7 +50,7 @@ export function DebugControlPanel({ className }: DebugControlPanelProps) {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  // Register keyboard shortcut
+  
   useKeyboardShortcuts({
     'debug-panel': {
       key: 'd',
@@ -108,7 +108,7 @@ export function DebugControlPanel({ className }: DebugControlPanelProps) {
 
   const handlePresetClick = useCallback((preset: keyof typeof debugControl.presets) => {
     debugControl.presets[preset]();
-    // Reload state after preset is applied
+    
     setTimeout(() => {
       setMainDebugEnabled(debugState.isEnabled());
       setDataDebugEnabled(debugState.isDataDebugEnabled());
@@ -166,7 +166,7 @@ export function DebugControlPanel({ className }: DebugControlPanelProps) {
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Main Debug Toggle */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Master Debug Control</CardTitle>
@@ -188,7 +188,7 @@ export function DebugControlPanel({ className }: DebugControlPanelProps) {
             </CardContent>
           </Card>
 
-          {/* Debug Categories */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Debug Categories</CardTitle>
@@ -218,7 +218,7 @@ export function DebugControlPanel({ className }: DebugControlPanelProps) {
             </CardContent>
           </Card>
 
-          {/* Special Debug Modes */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Special Debug Modes</CardTitle>
@@ -262,7 +262,7 @@ export function DebugControlPanel({ className }: DebugControlPanelProps) {
             </CardContent>
           </Card>
 
-          {/* Debug Presets */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Debug Presets</CardTitle>

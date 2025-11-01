@@ -20,19 +20,19 @@ use uuid::Uuid;
 use crate::actors::voice_commands::{SwarmVoiceResponse, VoiceCommand};
 use crate::types::speech::SpeechOptions;
 
-/// Unique tag for tracking voice commands through the system
+/
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct VoiceTag {
-    /// Unique identifier for this voice command
+    
     pub tag_id: String,
-    /// Session ID for context
+    
     pub session_id: String,
-    /// Timestamp when tag was created
+    
     pub created_at: DateTime<Utc>,
 }
 
 impl VoiceTag {
-    /// Generate a new unique voice tag
+    
     pub fn new(session_id: String) -> Self {
         Self {
             tag_id: format!("voice_tag_{}", Uuid::new_v4()),
@@ -41,98 +41,98 @@ impl VoiceTag {
         }
     }
 
-    /// Get a short representation for logging
+    
     pub fn short_id(&self) -> String {
         self.tag_id.chars().take(12).collect()
     }
 }
 
-/// Tagged voice command with routing information
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaggedVoiceCommand {
-    /// The voice command
+    
     pub command: VoiceCommand,
-    /// Unique tag for tracking
+    
     pub tag: VoiceTag,
-    /// Whether response should be spoken via TTS
+    
     pub expect_voice_response: bool,
-    /// TTS options for the response
+    
     pub tts_options: SpeechOptions,
-    /// Optional timeout for the command
+    
     pub timeout: Option<DateTime<Utc>>,
 }
 
-/// Tagged response from agents
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaggedVoiceResponse {
-    /// The response from the agent/hive mind
+    
     pub response: SwarmVoiceResponse,
-    /// Tag that matches the original command
+    
     pub tag: VoiceTag,
-    /// Whether this is the final response
+    
     pub is_final: bool,
-    /// Timestamp of the response
+    
     pub responded_at: DateTime<Utc>,
 }
 
-/// Status of a tagged voice command
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TaggedCommandStatus {
-    /// Command sent to agents, waiting for response
+    
     Pending,
-    /// Response received, processing for TTS
+    
     Processing,
-    /// Response sent to TTS
+    
     Completed,
-    /// Command timed out without response
+    
     TimedOut,
-    /// Error occurred during processing
+    
     Failed(String),
 }
 
-/// Active voice command being tracked
+/
 #[derive(Debug, Clone)]
 struct ActiveVoiceCommand {
-    /// The tagged command
+    
     command: TaggedVoiceCommand,
-    /// Current status
+    
     status: TaggedCommandStatus,
-    /// Number of partial responses received
+    
     response_count: usize,
-    /// Last activity timestamp
+    
     last_activity: DateTime<Utc>,
 }
 
-/// Voice tag manager for tracking commands and routing responses
+/
 pub struct VoiceTagManager {
-    /// Active commands being tracked by tag
+    
     active_commands: Arc<RwLock<HashMap<String, ActiveVoiceCommand>>>,
-    /// Channel for sending tagged responses to TTS
+    
     tts_sender: Option<mpsc::Sender<TaggedVoiceResponse>>,
-    /// Default timeout for voice commands
+    
     default_timeout: ChronoDuration,
-    /// Maximum number of active commands to track
+    
     max_active_commands: usize,
 }
 
 impl VoiceTagManager {
-    /// Create a new voice tag manager
+    
     pub fn new() -> Self {
         Self {
             active_commands: Arc::new(RwLock::new(HashMap::new())),
             tts_sender: None,
-            default_timeout: ChronoDuration::minutes(5), // 5 minute timeout
-            max_active_commands: 100,                    // Track up to 100 concurrent commands
+            default_timeout: ChronoDuration::minutes(5), 
+            max_active_commands: 100,                    
         }
     }
 
-    /// Set the TTS response channel
+    
     pub fn set_tts_sender(&mut self, sender: mpsc::Sender<TaggedVoiceResponse>) {
         self.tts_sender = Some(sender);
         info!("Voice tag manager TTS sender configured");
     }
 
-    /// Generate a tagged voice command with unique tracking
+    
     pub async fn create_tagged_command(
         &self,
         mut command: VoiceCommand,
@@ -140,18 +140,18 @@ impl VoiceTagManager {
         tts_options: SpeechOptions,
         timeout: Option<ChronoDuration>,
     ) -> Result<TaggedVoiceCommand, String> {
-        // Generate unique tag
+        
         let tag = VoiceTag::new(command.session_id.clone());
 
-        // Calculate timeout
+        
         let timeout_time = timeout
             .unwrap_or(self.default_timeout)
             .to_std()
             .map(|d| Utc::now() + ChronoDuration::from_std(d).unwrap_or(self.default_timeout))
             .unwrap_or_else(|_| Utc::now() + self.default_timeout);
 
-        // Update command with tag for tracking
-        command.session_id = tag.tag_id.clone(); // Use tag as session for tracking
+        
+        command.session_id = tag.tag_id.clone(); 
 
         let tagged_command = TaggedVoiceCommand {
             command,
@@ -161,10 +161,10 @@ impl VoiceTagManager {
             timeout: Some(timeout_time),
         };
 
-        // Track the command
+        
         let mut active_commands = self.active_commands.write().await;
 
-        // Clean up old commands if at capacity
+        
         if active_commands.len() >= self.max_active_commands {
             self.cleanup_expired_commands_internal(&mut active_commands)
                 .await;
@@ -189,7 +189,7 @@ impl VoiceTagManager {
         Ok(tagged_command)
     }
 
-    /// Process a tagged response from agents
+    
     pub async fn process_tagged_response(
         &self,
         mut response: TaggedVoiceResponse,
@@ -198,11 +198,11 @@ impl VoiceTagManager {
         let mut active_commands = self.active_commands.write().await;
 
         if let Some(active_cmd) = active_commands.get_mut(&tag_id) {
-            // Update activity
+            
             active_cmd.last_activity = Utc::now();
             active_cmd.response_count += 1;
 
-            // Update status
+            
             active_cmd.status = if response.is_final {
                 TaggedCommandStatus::Completed
             } else {
@@ -216,12 +216,12 @@ impl VoiceTagManager {
                 response.is_final
             );
 
-            // Check if this command expects voice response
+            
             if active_cmd.command.expect_voice_response {
-                // Update response timestamp
+                
                 response.responded_at = Utc::now();
 
-                // Send to TTS if channel is available
+                
                 if let Some(sender) = &self.tts_sender {
                     match sender.try_send(response.clone()) {
                         Ok(_) => {
@@ -242,7 +242,7 @@ impl VoiceTagManager {
                 }
             }
 
-            // Clean up completed commands
+            
             if response.is_final {
                 active_commands.remove(&tag_id);
                 debug!(
@@ -261,19 +261,19 @@ impl VoiceTagManager {
         }
     }
 
-    /// Check if a tag is currently active
+    
     pub async fn is_tag_active(&self, tag_id: &str) -> bool {
         let active_commands = self.active_commands.read().await;
         active_commands.contains_key(tag_id)
     }
 
-    /// Get the status of a tagged command
+    
     pub async fn get_command_status(&self, tag_id: &str) -> Option<TaggedCommandStatus> {
         let active_commands = self.active_commands.read().await;
         active_commands.get(tag_id).map(|cmd| cmd.status.clone())
     }
 
-    /// Get all active command tags
+    
     pub async fn get_active_tags(&self) -> Vec<VoiceTag> {
         let active_commands = self.active_commands.read().await;
         active_commands
@@ -282,14 +282,14 @@ impl VoiceTagManager {
             .collect()
     }
 
-    /// Clean up expired and timed out commands
+    
     pub async fn cleanup_expired_commands(&self) {
         let mut active_commands = self.active_commands.write().await;
         self.cleanup_expired_commands_internal(&mut active_commands)
             .await;
     }
 
-    /// Internal cleanup implementation
+    
     async fn cleanup_expired_commands_internal(
         &self,
         active_commands: &mut HashMap<String, ActiveVoiceCommand>,
@@ -299,7 +299,7 @@ impl VoiceTagManager {
 
         for (tag_id, active_cmd) in active_commands.iter_mut() {
             let should_remove = if let Some(timeout) = active_cmd.command.timeout {
-                // Command has timed out
+                
                 if now > timeout {
                     active_cmd.status = TaggedCommandStatus::TimedOut;
                     true
@@ -307,7 +307,7 @@ impl VoiceTagManager {
                     false
                 }
             } else {
-                // No explicit timeout, use default aging
+                
                 let age = now.signed_duration_since(active_cmd.last_activity);
                 age > self.default_timeout
             };
@@ -337,7 +337,7 @@ impl VoiceTagManager {
         }
     }
 
-    /// Get statistics about active commands
+    
     pub async fn get_stats(&self) -> VoiceTagStats {
         let active_commands = self.active_commands.read().await;
 
@@ -363,7 +363,7 @@ impl VoiceTagManager {
         stats
     }
 
-    /// Create a tagged response from agent output
+    
     pub fn create_tagged_response(
         tag: VoiceTag,
         response_text: String,
@@ -386,7 +386,7 @@ impl VoiceTagManager {
     }
 }
 
-/// Statistics about voice tag manager
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VoiceTagStats {
     pub total_active: usize,
@@ -437,7 +437,7 @@ mod tests {
     async fn test_response_processing() {
         let manager = VoiceTagManager::new();
 
-        // Create a tagged command
+        
         let command = VoiceCommand {
             raw_text: "list agents".to_string(),
             parsed_intent: SwarmIntent::ListAgents,
@@ -451,10 +451,10 @@ mod tests {
             .await
             .unwrap();
 
-        // Verify tag is active
+        
         assert!(manager.is_tag_active(&tagged_cmd.tag.tag_id).await);
 
-        // Create a response
+        
         let response = VoiceTagManager::create_tagged_response(
             tagged_cmd.tag.clone(),
             "Active agents: researcher, coder".to_string(),
@@ -462,13 +462,13 @@ mod tests {
             true,
         );
 
-        // Process response (without TTS sender for test)
+        
         let result = manager.process_tagged_response(response).await;
 
-        // Should fail because no TTS sender configured
+        
         assert!(result.is_err());
 
-        // Tag should still be tracked but marked as failed
+        
         let status = manager.get_command_status(&tagged_cmd.tag.tag_id).await;
         assert!(matches!(status, Some(TaggedCommandStatus::Failed(_))));
     }
@@ -485,7 +485,7 @@ mod tests {
             session_id: "test_session".to_string(),
         };
 
-        // Create command with very short timeout
+        
         let tagged_cmd = manager
             .create_tagged_command(
                 command,
@@ -496,13 +496,13 @@ mod tests {
             .await
             .unwrap();
 
-        // Wait for timeout
+        
         tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
 
-        // Cleanup
+        
         manager.cleanup_expired_commands().await;
 
-        // Should be cleaned up
+        
         assert!(!manager.is_tag_active(&tagged_cmd.tag.tag_id).await);
     }
 }

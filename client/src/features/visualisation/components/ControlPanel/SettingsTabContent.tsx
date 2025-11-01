@@ -1,7 +1,4 @@
-/**
- * Settings Tab Content Component
- * Renders settings fields based on configuration
- */
+
 
 import React, { useCallback, useState } from 'react';
 import { useSettingsStore } from '../../../../store/settingsStore';
@@ -18,7 +15,7 @@ export const SettingsTabContent: React.FC<SettingsTabContentProps> = ({ sectionI
   const [nostrConnected, setNostrConnected] = useState(false);
   const [nostrPublicKey, setNostrPublicKey] = useState('');
 
-  // Get value from settings path
+  
   const getValueFromPath = useCallback((path: string): any => {
     const keys = path.split('.');
     let value = settings;
@@ -28,7 +25,7 @@ export const SettingsTabContent: React.FC<SettingsTabContentProps> = ({ sectionI
     return value;
   }, [settings]);
 
-  // Update setting by path
+  
   const updateSettingByPath = useCallback(async (path: string, value: any) => {
     const keys = path.split('.');
 
@@ -44,7 +41,7 @@ export const SettingsTabContent: React.FC<SettingsTabContentProps> = ({ sectionI
     });
   }, [updateSettings]);
 
-  // Handle Nostr login
+  
   const handleNostrLogin = async () => {
     if (typeof window.nostr === 'undefined') {
       alert('No Nostr extension found! Please install a Nostr extension like nos2x or Alby.');
@@ -63,7 +60,7 @@ export const SettingsTabContent: React.FC<SettingsTabContentProps> = ({ sectionI
     }
   };
 
-  // Handle Nostr logout
+  
   const handleNostrLogout = async () => {
     setNostrConnected(false);
     setNostrPublicKey('');
@@ -72,7 +69,7 @@ export const SettingsTabContent: React.FC<SettingsTabContentProps> = ({ sectionI
     await updateSettingByPath('auth.nostr.publicKey', '');
   };
 
-  // Render field based on type
+  
   const renderField = (field: SettingField) => {
     const value = getValueFromPath(field.path);
 

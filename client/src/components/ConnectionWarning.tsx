@@ -8,10 +8,7 @@ import RefreshCw from 'lucide-react/dist/esm/icons/refresh-cw';
 
 const logger = createLogger('ConnectionWarning');
 
-/**
- * Displays a prominent warning when the application fails to connect to the backend
- * Indicates when running on cached/local settings only
- */
+
 export const ConnectionWarning: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [settingsSource, setSettingsSource] = useState<'server' | 'local'>('server');
@@ -19,7 +16,7 @@ export const ConnectionWarning: React.FC = () => {
   const { settings } = useSettingsStore();
 
   useEffect(() => {
-    // Check WebSocket connection status
+    
     const wsService = WebSocketService.getInstance();
     
     const handleConnectionChange = (connected: boolean) => {
@@ -29,13 +26,13 @@ export const ConnectionWarning: React.FC = () => {
       }
     };
 
-    // Subscribe to connection status changes
+    
     const unsubscribe = wsService.onConnectionStatusChange(handleConnectionChange);
     
-    // Check initial connection state
+    
     setIsConnected(wsService.isReady());
 
-    // Check if settings came from local storage
+    
     const checkSettingsSource = () => {
       const localStorageSettings = localStorage.getItem('settings');
       if (localStorageSettings && !isConnected) {
@@ -60,7 +57,7 @@ export const ConnectionWarning: React.FC = () => {
       const wsService = WebSocketService.getInstance();
       await wsService.connect();
       
-      // Try to reload settings from server
+      
       const { initialize } = useSettingsStore.getState();
       await initialize();
       
@@ -72,7 +69,7 @@ export const ConnectionWarning: React.FC = () => {
     }
   };
 
-  // Don't show warning if connected and using server settings
+  
   if (isConnected && settingsSource === 'server') {
     return null;
   }
@@ -114,7 +111,7 @@ export const ConnectionWarning: React.FC = () => {
         </button>
       </div>
 
-      {/* Additional details in debug mode */}
+      {}
       {settings?.system?.debug?.enabled && (
         <div className="max-w-7xl mx-auto mt-2 text-xs opacity-75 font-mono">
           <div>Settings Source: {settingsSource === 'local' ? 'localStorage' : 'server'}</div>

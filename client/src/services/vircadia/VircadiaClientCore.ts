@@ -1,9 +1,4 @@
-/**
- * VircadiaClientCore - Local SDK wrapper for Vircadia World Server
- *
- * This is a simplified version of the Vircadia browser SDK adapted for React/TypeScript
- * Based on: ext/vircadia/server/vircadia-world/sdk/vircadia-world-sdk-ts/browser/src/core/
- */
+
 
 export type ClientCoreConnectionState =
     | "connected"
@@ -117,8 +112,8 @@ class CoreConnectionManager {
     private connectionPromise: Promise<ClientCoreConnectionInfo> | null = null;
     private agentId: string | null = null;
     private sessionId: string | null = null;
-    private readonly HEARTBEAT_INTERVAL_MS = 30000; // 30 seconds
-    private readonly HEARTBEAT_TIMEOUT_MS = 10000;  // 10 seconds
+    private readonly HEARTBEAT_INTERVAL_MS = 30000; 
+    private readonly HEARTBEAT_TIMEOUT_MS = 10000;  
 
     constructor(private config: ClientCoreConfig) {}
 
@@ -297,9 +292,7 @@ class CoreConnectionManager {
         this.sessionId = null;
     }
 
-    /**
-     * Start heartbeat mechanism to detect stale connections
-     */
+    
     private startHeartbeat(): void {
         this.stopHeartbeat();
         this.lastHeartbeatTime = Date.now();
@@ -312,7 +305,7 @@ class CoreConnectionManager {
 
             const timeSinceLastHeartbeat = Date.now() - this.lastHeartbeatTime;
 
-            // Check if we haven't received any response for too long
+            
             if (timeSinceLastHeartbeat > this.HEARTBEAT_INTERVAL_MS + this.HEARTBEAT_TIMEOUT_MS) {
                 debugLog(this.config, "Heartbeat timeout - connection appears stale");
                 this.stopHeartbeat();
@@ -320,7 +313,7 @@ class CoreConnectionManager {
                 return;
             }
 
-            // Send heartbeat query
+            
             this.query({ query: "SELECT 1 as heartbeat", timeoutMs: this.HEARTBEAT_TIMEOUT_MS })
                 .then(() => {
                     this.lastHeartbeatTime = Date.now();
@@ -337,9 +330,7 @@ class CoreConnectionManager {
         debugLog(this.config, "Heartbeat started");
     }
 
-    /**
-     * Stop heartbeat mechanism
-     */
+    
     private stopHeartbeat(): void {
         if (this.heartbeatTimer) {
             clearInterval(this.heartbeatTimer);

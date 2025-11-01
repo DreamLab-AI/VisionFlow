@@ -1,4 +1,4 @@
-use crate::config::AppFullSettings; // Use AppFullSettings, ConfigRagFlowSettings removed
+use crate::config::AppFullSettings; 
 use futures::stream::{Stream, StreamExt};
 use log::{error, info};
 use reqwest::{Client, StatusCode};
@@ -44,35 +44,35 @@ impl From<std::io::Error> for RAGFlowError {
 }
 
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)] // Fields are part of API response, not necessarily used internally
+#[allow(dead_code)] 
 struct SessionResponse {
     code: i32,
     data: SessionData,
 }
 
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)] // Fields are part of API response, not necessarily used internally
+#[allow(dead_code)] 
 struct SessionData {
     id: String,
     message: Option<Vec<Message>>,
 }
 
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)] // Fields are part of API response, not necessarily used internally
+#[allow(dead_code)] 
 struct Message {
     role: String,
     content: String,
 }
 
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)] // Fields are part of API response, not necessarily used internally
+#[allow(dead_code)] 
 struct CompletionResponse {
     code: i32,
     data: CompletionData,
 }
 
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)] // Fields are part of API response, not necessarily used internally
+#[allow(dead_code)] 
 struct CompletionData {
     answer: Option<String>,
     reference: Option<serde_json::Value>,
@@ -97,11 +97,11 @@ pub struct RAGFlowService {
 }
 
 impl RAGFlowService {
-    // Updated signature and logic to handle optional settings
+    
     pub async fn new(_settings: Arc<RwLock<AppFullSettings>>) -> Result<Self, RAGFlowError> {
-        // settings might still be needed for other parts if any
+        
         let client = Client::new();
-        // let settings_read = settings.read().await; // Keep if other ragflow settings (timeout, etc.) are used from config
+        
 
         info!("[RAGFlowService::new] Attempting to load RAGFlow config directly from environment variables.");
 
@@ -142,7 +142,7 @@ impl RAGFlowService {
         info!("[RAGFlowService::new] RAGFLOW_API_BASE_URL: {}", base_url);
         info!("[RAGFlowService::new] RAGFLOW_AGENT_ID: {}", agent_id);
 
-        // Check if essential fields are empty after loading from env
+        
         if api_key.is_empty() {
             error!(
                 "[RAGFlowService::new] RAGFLOW_API_KEY is empty after loading from environment."
@@ -191,7 +191,7 @@ impl RAGFlowService {
             .post(&url)
             .header("Authorization", format!("Bearer {}", self.api_key))
             .header("Content-Type", "application/json")
-            .body("{}") // Empty JSON body as we don't have any Begin parameters
+            .body("{}") 
             .send()
             .await?;
 
@@ -202,7 +202,7 @@ impl RAGFlowService {
             let result: serde_json::Value = response.json().await?;
             info!("Successful response: {:?}", result);
 
-            // Extract session ID from the response
+            
             match result["data"]["id"].as_str() {
                 Some(id) => Ok(id.to_string()),
                 None => {
@@ -226,8 +226,8 @@ impl RAGFlowService {
         &self,
         session_id: String,
         message: String,
-        _quote: bool,                  // Not used in new API
-        _doc_ids: Option<Vec<String>>, // Not used in new API
+        _quote: bool,                  
+        _doc_ids: Option<Vec<String>>, 
         stream: bool,
     ) -> Result<
         Pin<Box<dyn Stream<Item = Result<String, RAGFlowError>> + Send + 'static>>,
@@ -272,7 +272,7 @@ impl RAGFlowService {
                     match chunk_result {
                         Ok(chunk) => {
                             let chunk_str = String::from_utf8_lossy(&chunk);
-                            // Handle SSE format (data: {...})
+                            
                             let chunk_str = chunk_str.trim();
 
                             if chunk_str.starts_with("data:") {
@@ -280,7 +280,7 @@ impl RAGFlowService {
                                 match serde_json::from_str::<serde_json::Value>(json_str) {
                                     Ok(json_response) => {
                                         if let Some(true) = json_response["data"].as_bool() {
-                                            // This is the end marker
+                                            
                                             Ok("".to_string())
                                         } else if let Some(answer) =
                                             json_response["data"]["answer"].as_str()
@@ -310,11 +310,11 @@ impl RAGFlowService {
 
                 Ok(Box::pin(stream))
             } else {
-                // Non-streaming response handling
+                
                 let result: serde_json::Value = response.json().await?;
 
                 if let Some(answer) = result["data"]["answer"].as_str() {
-                    // Create a one-item stream with the answer
+                    
                     let stream = futures::stream::once(futures::future::ok(answer.to_string()));
                     Ok(Box::pin(stream))
                 } else {
@@ -369,9 +369,9 @@ impl RAGFlowService {
         &self,
         session_id: String,
         message: String,
-        stream_preference: bool, // Added stream_preference parameter
+        stream_preference: bool, 
     ) -> Result<(String, String), RAGFlowError> {
-        // Returns (answer, session_id)
+        
         info!(
             "Sending chat message to RAGFlow session: {}, stream_preference: {}",
             session_id, stream_preference
@@ -384,7 +384,7 @@ impl RAGFlowService {
 
         let request_body = CompletionRequest {
             question: message,
-            stream: stream_preference, // Use the passed-in stream_preference
+            stream: stream_preference, 
             session_id: Some(session_id.clone()),
             user_id: None,
             sync_dsl: Some(false),
@@ -410,7 +410,7 @@ impl RAGFlowService {
         }
 
         if !stream_preference {
-            // Handle non-streamed response directly
+            
             let result: serde_json::Value = response.json().await.map_err(|e| {
                 RAGFlowError::ParseError(format!(
                     "Failed to parse non-streamed JSON response: {}",
@@ -431,18 +431,18 @@ impl RAGFlowService {
                     )
                 })?;
 
-            // The session_id in the response data might be the same or a new one if RAGFlow refreshed it.
-            // For consistency, we can use the session_id from the response if available, otherwise the one we sent.
+            
+            
             let final_session_id = result
                 .get("data")
                 .and_then(|data| data.get("session_id"))
                 .and_then(|sid| sid.as_str())
                 .map(|s| s.to_string())
-                .unwrap_or_else(|| session_id.clone()); // Fallback to original session_id
+                .unwrap_or_else(|| session_id.clone()); 
 
             Ok((answer, final_session_id))
         } else {
-            // Aggregate streamed response (existing logic)
+            
             let mut full_answer = String::new();
             let mut response_stream = response.bytes_stream();
 
@@ -462,8 +462,8 @@ impl RAGFlowService {
                                     Ok(json_val) => {
                                         if json_val.get("code").and_then(|c| c.as_i64()) == Some(0) &&
                                            json_val.get("data").and_then(|d| d.as_bool()) == Some(true) {
-                                            // End of stream marker
-                                            return Ok((full_answer, session_id)); // Return aggregated answer
+                                            
+                                            return Ok((full_answer, session_id)); 
                                         }
 
                                         if let Some(answer_chunk) = json_val.get("data").and_then(|d| d.get("answer")).and_then(|a| a.as_str()) {
@@ -476,11 +476,11 @@ impl RAGFlowService {
                                 }
                             }
                         }
-                        // Check for end marker in the whole chunk if not caught by line-by-line parsing
+                        
                         if chunk_str.contains(r#"{"code":0,"data":true}"#)
                             || chunk_str.contains(r#"{"code": 0, "data": true}"#)
                         {
-                            return Ok((full_answer, session_id)); // Return aggregated answer
+                            return Ok((full_answer, session_id)); 
                         }
                     }
                     Err(e) => {
@@ -489,11 +489,11 @@ impl RAGFlowService {
                     }
                 }
             }
-            // If loop finishes without explicit end marker, return what was aggregated.
+            
             Ok((full_answer, session_id))
         }
     }
-} // This closing brace now correctly closes impl RAGFlowService
+} 
 
 impl Clone for RAGFlowService {
     fn clone(&self) -> Self {

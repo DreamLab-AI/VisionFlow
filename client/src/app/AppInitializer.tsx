@@ -14,12 +14,12 @@ const loadServices = async (): Promise<void> => {
   }
 
   try {
-    // Authentication is handled by Nostr via authInterceptor
+    
     if (debugState.isEnabled()) {
       logger.info('Using Nostr authentication system');
     }
 
-    // Initialize innovation manager with timeout to prevent blocking
+    
     try {
       console.log('[AppInitializer] Starting Innovation Manager initialization...');
       const initPromise = innovationManager.initialize({
@@ -31,7 +31,7 @@ const loadServices = async (): Promise<void> => {
         performanceMode: 'balanced'
       });
       
-      // Add timeout to prevent indefinite blocking
+      
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Innovation Manager initialization timeout')), 5000)
       );
@@ -47,7 +47,7 @@ const loadServices = async (): Promise<void> => {
     } catch (innovationError) {
       console.error('[AppInitializer] Innovation Manager initialization failed:', innovationError);
       logger.error('Error initializing Innovation Manager:', createErrorMetadata(innovationError));
-      // Don't throw - innovation features are non-critical for basic functionality
+      
     }
 
   } catch (error) {
@@ -67,7 +67,7 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
 
   useEffect(() => {
     const initApp = async () => {
-      // Load services first
+      
       await loadServices();
 
       if (debugState.isEnabled()) {
@@ -76,13 +76,13 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
 
         try {
           console.log('[AppInitializer] Step 1: Initializing graphWorkerProxy');
-          // Initialize settings
+          
           await graphWorkerProxy.initialize();
           console.log('[AppInitializer] Step 2: graphWorkerProxy initialized, calling settings initialize');
           const settings = await initialize();
           console.log('[AppInitializer] Step 3: Settings initialized:', settings ? 'success' : 'null');
 
-          // Apply debug settings safely
+          
           if (settings?.system?.debug) {
             try {
               const debugSettings = settings.system.debug;
@@ -96,21 +96,21 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
             }
           }
 
-          // Try to initialize WebSocket
+          
           if (typeof WebSocketService !== 'undefined' && typeof graphDataManager !== 'undefined') {
             try {
-              // Initialize WebSocket
+              
               await initializeWebSocket(settings);
-              // logger.info('WebSocket initialization deliberately disabled - using REST API only.'); // Commented out the disabling message
+              
             } catch (wsError) {
               logger.error('WebSocket initialization failed, continuing with UI only:', createErrorMetadata(wsError));
-              // We'll proceed without WebSocket connectivity
+              
             }
           } else {
             logger.warn('WebSocket services not available, continuing with UI only');
           }
 
-          // Fetch initial graph data AFTER settings and BEFORE signaling completion
+          
           try {
             console.log('[AppInitializer] About to fetch initial graph data via REST API');
             logger.info('Fetching initial graph data via REST API');
@@ -122,7 +122,7 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
           } catch (fetchError) {
             console.error('[AppInitializer] Failed to fetch initial graph data:', fetchError);
             logger.error('Failed to fetch initial graph data:', createErrorMetadata(fetchError));
-            // Initialize with empty graph when fetch fails
+            
             const emptyGraph = {
               nodes: [],
               edges: []
@@ -136,7 +136,7 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
             logger.info('Application initialized successfully');
           }
 
-          // Signal that initialization is complete
+          
           onInitialized();
           console.log('[AppInitializer] onInitialized called successfully');
 
@@ -149,21 +149,21 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
     initApp();
   }, []);
 
-  // Initialize WebSocket and set up event handlers - now safer with more error handling
+  
   const initializeWebSocket = async (settings: any): Promise<void> => {
     try {
       const websocketService = WebSocketService.getInstance();
 
-      // Handle binary position updates from WebSocket
+      
       websocketService.onBinaryMessage((data) => {
         if (data instanceof ArrayBuffer) {
           try {
-            // Log receipt of binary data only if data debug is enabled
+            
             if (debugState.isDataDebugEnabled()) {
               logger.debug(`Received binary data from WebSocket: ${data.byteLength} bytes`);
             }
 
-            // Process binary position update through graph data manager
+            
             graphDataManager.updateNodePositions(data).then(() => {
               if (debugState.isDataDebugEnabled()) {
                 logger.debug(`Processed binary position update: ${data.byteLength} bytes`);
@@ -174,12 +174,12 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
           } catch (error) {
             logger.error('Failed to process binary position update:', createErrorMetadata(error));
 
-            // Add diagnostic info in debug mode
+            
             if (debugState.isEnabled()) {
-              // Display basic info about the data
+              
               logger.debug(`Binary data size: ${data.byteLength} bytes`);
 
-              // Display the first few bytes for debugging - helps detect compression headers
+              
               try {
                 const view = new DataView(data);
                 const hexBytes = [];
@@ -191,7 +191,7 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
 
                 logger.debug(`First ${maxBytesToShow} bytes: ${hexBytes.join(' ')}`);
 
-                // Check if data might be compressed (zlib headers)
+                
                 if (data.byteLength >= 2) {
                   const firstByte = view.getUint8(0);
                   const secondByte = view.getUint8(1);
@@ -203,8 +203,8 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
                 logger.debug('Could not display binary data preview');
               }
 
-              // Check if the data length is a multiple of expected formats
-              const nodeSize = 26; // 2 bytes (ID) + 12 bytes (position) + 12 bytes (velocity)
+              
+              const nodeSize = 26; 
               if (data.byteLength % nodeSize !== 0) {
                 logger.debug(`Invalid data length: not a multiple of ${nodeSize} bytes per node (remainder: ${data.byteLength % nodeSize})`);
               }
@@ -213,21 +213,21 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
         }
       });
 
-      // Set up connection status handler
+      
       websocketService.onConnectionStatusChange((connected) => {
         if (debugState.isEnabled()) {
           logger.info(`WebSocket connection status changed: ${connected}`);
         }
 
-        // Check if websocket is both connected AND ready (received 'connection_established' message)
+        
         if (connected) {
           try {
             if (websocketService.isReady()) {
-              // WebSocket is fully ready, now it's safe to enable binary updates
+              
               logger.info('WebSocket is connected and fully established - enabling binary updates');
               graphDataManager.setBinaryUpdatesEnabled(true);
 
-              // Subscribe to position updates
+              
               logger.info('Sending subscribe_position_updates message to server');
               websocketService.sendMessage('subscribe_position_updates', {
                 binary: true,
@@ -240,20 +240,20 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
             } else {
               logger.info('WebSocket connected but not fully established yet - waiting for readiness');
 
-              // We'll let graphDataManager handle the binary updates enablement
-              // through its retry mechanism that now checks for websocket readiness
+              
+              
               graphDataManager.enableBinaryUpdates();
 
-              // Set up a listener for the 'connection_established' message
+              
               const unsubscribe = websocketService.onMessage((message) => {
                 if (message.type === 'connection_established') {
-                  // Now that we're fully connected, subscribe to position updates
+                  
                   logger.info('Connection established message received, sending subscribe_position_updates');
                   websocketService.sendMessage('subscribe_position_updates', {
                     binary: true,
                     interval: settings?.system?.websocket?.updateRate || 60
                   });
-                  unsubscribe(); // Remove this one-time listener
+                  unsubscribe(); 
 
                   if (debugState.isDataDebugEnabled()) {
                     logger.debug('Connection established, subscribed to position updates');
@@ -267,7 +267,7 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
         }
       });
 
-      // Configure GraphDataManager with WebSocket service (adapter pattern)
+      
       if (websocketService) {
         const wsAdapter = {
           send: (data: ArrayBuffer) => {
@@ -279,7 +279,7 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
       }
 
       try {
-        // Connect WebSocket
+        
         await websocketService.connect();
       } catch (connectError) {
         logger.error('Failed to connect to WebSocket:', createErrorMetadata(connectError));
@@ -290,7 +290,7 @@ const AppInitializer: React.FC<AppInitializerProps> = ({ onInitialized, onError 
     }
   };
 
-  return null; // This component doesn't render anything directly
+  return null; 
 };
 
 export default AppInitializer;

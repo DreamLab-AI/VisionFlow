@@ -7,32 +7,32 @@ use crate::events::types::{
     DomainEvent, EventError, EventMetadata, EventResult, EventSnapshot, StoredEvent,
 };
 
-/// Repository trait for event storage
+/
 #[async_trait]
 pub trait EventRepository: Send + Sync {
-    /// Appends an event to the store
+    
     async fn append(&self, event: StoredEvent) -> EventResult<()>;
 
-    /// Gets all events for an aggregate
+    
     async fn get_events(&self, aggregate_id: &str) -> EventResult<Vec<StoredEvent>>;
 
-    /// Gets events after a specific sequence number
+    
     async fn get_events_after(&self, sequence: i64) -> EventResult<Vec<StoredEvent>>;
 
-    /// Gets events by type
+    
     async fn get_events_by_type(&self, event_type: &str) -> EventResult<Vec<StoredEvent>>;
 
-    /// Saves a snapshot
+    
     async fn save_snapshot(&self, snapshot: EventSnapshot) -> EventResult<()>;
 
-    /// Gets the latest snapshot for an aggregate
+    
     async fn get_snapshot(&self, aggregate_id: &str) -> EventResult<Option<EventSnapshot>>;
 
-    /// Gets event count for an aggregate
+    
     async fn get_event_count(&self, aggregate_id: &str) -> EventResult<usize>;
 }
 
-/// In-memory event repository for testing and development
+/
 pub struct InMemoryEventRepository {
     events: Arc<RwLock<Vec<StoredEvent>>>,
     snapshots: Arc<RwLock<HashMap<String, EventSnapshot>>>,
@@ -114,28 +114,28 @@ impl EventRepository for InMemoryEventRepository {
     }
 }
 
-/// Event store for persisting and replaying events
+/
 pub struct EventStore {
     repo: Arc<dyn EventRepository>,
     snapshot_threshold: usize,
 }
 
 impl EventStore {
-    /// Creates a new event store with the given repository
+    
     pub fn new(repo: Arc<dyn EventRepository>) -> Self {
         Self {
             repo,
-            snapshot_threshold: 100, // Create snapshot every 100 events
+            snapshot_threshold: 100, 
         }
     }
 
-    /// Sets the snapshot threshold
+    
     pub fn with_snapshot_threshold(mut self, threshold: usize) -> Self {
         self.snapshot_threshold = threshold;
         self
     }
 
-    /// Appends an event to the store
+    
     pub async fn append(&self, event: &dyn DomainEvent) -> EventResult<()> {
         let metadata = EventMetadata::new(
             event.aggregate_id().to_string(),
@@ -148,53 +148,53 @@ impl EventStore {
         let stored_event = StoredEvent {
             metadata,
             data,
-            sequence: 0, // Will be set by repository
+            sequence: 0, 
         };
 
         self.repo.append(stored_event).await?;
 
-        // Check if we should create a snapshot
+        
         let count = self.repo.get_event_count(event.aggregate_id()).await?;
         if count % self.snapshot_threshold == 0 {
-            // Snapshot creation would happen here
-            // For now, we'll skip it as it requires aggregate reconstruction
+            
+            
         }
 
         Ok(())
     }
 
-    /// Gets all events for an aggregate
+    
     pub async fn get_events(&self, aggregate_id: &str) -> EventResult<Vec<StoredEvent>> {
         self.repo.get_events(aggregate_id).await
     }
 
-    /// Gets events after a specific sequence
+    
     pub async fn get_events_after(&self, sequence: i64) -> EventResult<Vec<StoredEvent>> {
         self.repo.get_events_after(sequence).await
     }
 
-    /// Gets events by type
+    
     pub async fn get_events_by_type(&self, event_type: &str) -> EventResult<Vec<StoredEvent>> {
         self.repo.get_events_by_type(event_type).await
     }
 
-    /// Replays events for an aggregate
+    
     pub async fn replay_events(&self, aggregate_id: &str) -> EventResult<Vec<StoredEvent>> {
-        // Try to get snapshot first
+        
         if let Some(snapshot) = self.repo.get_snapshot(aggregate_id).await? {
-            // Get events after snapshot
+            
             let events = self.get_events(aggregate_id).await?;
             Ok(events
                 .into_iter()
                 .filter(|e| e.sequence > snapshot.sequence)
                 .collect())
         } else {
-            // No snapshot, get all events
+            
             self.get_events(aggregate_id).await
         }
     }
 
-    /// Gets event count for an aggregate
+    
     pub async fn get_event_count(&self, aggregate_id: &str) -> EventResult<usize> {
         self.repo.get_event_count(aggregate_id).await
     }
@@ -252,7 +252,7 @@ mod tests {
         let repo = Arc::new(InMemoryEventRepository::new());
         let store = EventStore::new(repo.clone());
 
-        // Add multiple events
+        
         for i in 0..5 {
             let event = NodeAddedEvent {
                 node_id: format!("node-{}", i),

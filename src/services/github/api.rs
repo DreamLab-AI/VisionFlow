@@ -1,5 +1,5 @@
 use super::config::GitHubConfig;
-use crate::config::AppFullSettings; // Changed from Settings to AppFullSettings
+use crate::config::AppFullSettings; 
 use crate::errors::VisionFlowResult;
 use log::{debug, info};
 use reqwest::Client;
@@ -7,25 +7,25 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::RwLock;
 
-// const GITHUB_API_DELAY: Duration = Duration::from_millis(500); // Unused
-// const MAX_RETRIES: u32 = 3; // Unused
-// const RETRY_DELAY: Duration = Duration::from_secs(2); // Unused
+// const GITHUB_API_DELAY: Duration = Duration::from_millis(500); 
+// const MAX_RETRIES: u32 = 3; 
+// const RETRY_DELAY: Duration = Duration::from_secs(2); 
 
-/// Core GitHub API client providing common functionality
+/
 pub struct GitHubClient {
     client: Client,
     token: String,
     owner: String,
     repo: String,
     base_path: String,
-    settings: Arc<RwLock<AppFullSettings>>, // Changed from Settings to AppFullSettings
+    settings: Arc<RwLock<AppFullSettings>>, 
 }
 
 impl GitHubClient {
-    /// Create a new GitHub API client
+    
     pub async fn new(
         config: GitHubConfig,
-        settings: Arc<RwLock<AppFullSettings>>, // Changed from Settings to AppFullSettings
+        settings: Arc<RwLock<AppFullSettings>>, 
     ) -> VisionFlowResult<Self> {
         let debug_enabled = crate::utils::logging::is_debug_enabled();
 
@@ -36,7 +36,7 @@ impl GitHubClient {
             );
         }
 
-        // Build HTTP client with configuration
+        
         if debug_enabled {
             debug!("Configuring HTTP client - Timeout: 30s, User-Agent: github-api-client");
         }
@@ -50,7 +50,7 @@ impl GitHubClient {
             debug!("HTTP client configured successfully");
         }
 
-        // First decode any existing encoding
+        
         let decoded_path = urlencoding::decode(&config.base_path)
             .unwrap_or(std::borrow::Cow::Owned(config.base_path.clone()))
             .into_owned();
@@ -59,10 +59,10 @@ impl GitHubClient {
             debug!("Decoded base path: '{}'", decoded_path);
         }
 
-        // Clean the path
+        
         let base_path = decoded_path
             .trim_matches('/')
-            .replace("//", "/")
+            .replace("
             .replace('\\', "/");
 
         if debug_enabled {
@@ -83,49 +83,9 @@ impl GitHubClient {
         })
     }
 
-    /*
-    /// Get the properly encoded API path
-    pub(crate) async fn get_api_path(&self) -> String {
-        let settings = self.settings.read().await;
-        let debug_enabled = crate::utils::logging::is_debug_enabled();
-        drop(settings);
+    
 
-        if debug_enabled {
-            debug!("Getting API path from base_path: '{}'", self.base_path);
-        }
-
-        let decoded_path = urlencoding::decode(&self.base_path)
-            .unwrap_or(std::borrow::Cow::Owned(self.base_path.clone()))
-            .into_owned();
-
-        if debug_enabled {
-            log::debug!("Decoded base path: '{}'", decoded_path);
-        }
-
-        let trimmed_path = decoded_path.trim_matches('/');
-
-        if debug_enabled {
-            log::debug!("Trimmed path: '{}'", trimmed_path);
-        }
-
-        if trimmed_path.is_empty() {
-            if debug_enabled {
-                log::debug!("Path is empty, returning empty string");
-            }
-            String::new()
-        } else {
-            let encoded = url::form_urlencoded::byte_serialize(trimmed_path.as_bytes())
-                .collect::<String>();
-
-            if debug_enabled {
-                log::debug!("Final encoded API path: '{}'", encoded);
-            }
-            encoded
-        }
-    }
-    */
-
-    /// Get the full path for a file
+    
     pub(crate) async fn get_full_path(&self, path: &str) -> String {
         let settings = self.settings.read().await;
         let debug_enabled = crate::utils::logging::is_debug_enabled();
@@ -145,7 +105,7 @@ impl GitHubClient {
             log::debug!("Trimmed paths - Base: '{}', Path: '{}'", base, path);
         }
 
-        // First decode any existing encoding to prevent double-encoding
+        
         let decoded_path = urlencoding::decode(path)
             .unwrap_or(std::borrow::Cow::Owned(path.to_string()))
             .into_owned();
@@ -176,7 +136,7 @@ impl GitHubClient {
                 }
                 decoded_base
             } else if decoded_path.starts_with(&decoded_base) {
-                // Path already contains base path, don't duplicate it
+                
                 if debug_enabled {
                     log::debug!(
                         "Path already contains base path, using as-is: '{}'",
@@ -193,7 +153,7 @@ impl GitHubClient {
             }
         };
 
-        // Use percent encoding instead of form encoding to properly handle spaces as %20
+        
         let encoded = urlencoding::encode(&full_path).into_owned();
 
         if debug_enabled {
@@ -203,7 +163,7 @@ impl GitHubClient {
         encoded
     }
 
-    /// Get the base URL for contents API
+    
     pub(crate) async fn get_contents_url(&self, path: &str) -> String {
         let settings = self.settings.read().await;
         let _debug_enabled = crate::utils::logging::is_debug_enabled();
@@ -229,42 +189,37 @@ impl GitHubClient {
         url
     }
 
-    /// Get the client for making requests
+    
     pub(crate) fn client(&self) -> &Client {
         &self.client
     }
 
-    /// Get the authorization token
+    
     pub(crate) fn token(&self) -> &str {
         &self.token
     }
 
-    /// Get owner name
+    
     pub(crate) fn owner(&self) -> &str {
         &self.owner
     }
 
-    /// Get repository name
+    
     pub(crate) fn repo(&self) -> &str {
         &self.repo
     }
 
-    /// Get base path
+    
     pub(crate) fn base_path(&self) -> &str {
         &self.base_path
     }
 
-    /// Get settings
+    
     #[allow(dead_code)]
     pub(crate) fn settings(&self) -> &Arc<RwLock<AppFullSettings>> {
-        // Changed from Settings to AppFullSettings
+        
         &self.settings
     }
 
-    /*
-    /// Get constants
-    pub(crate) fn constants() -> (Duration, u32, Duration) {
-        (GITHUB_API_DELAY, MAX_RETRIES, RETRY_DELAY)
-    }
-    */
+    
 }

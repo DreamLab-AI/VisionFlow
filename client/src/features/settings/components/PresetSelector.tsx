@@ -1,8 +1,4 @@
-/**
- * Preset Selector Component
- *
- * One-click quality preset selection for 571 settings
- */
+
 
 import React, { useState } from 'react';
 import { Zap, Battery, Cpu, Rocket, Info, Check } from 'lucide-react';
@@ -32,13 +28,13 @@ export const PresetSelector: React.FC<PresetSelectorProps> = ({
     setSelectedPreset(preset.id);
 
     try {
-      // Apply all preset settings
+      
       await updateSettings(preset.settings);
 
-      // Optional: Show success notification
+      
       console.log(`Applied ${preset.name} preset successfully`);
 
-      // Store the current preset ID
+      
       localStorage.setItem('quality-preset', preset.id);
     } catch (error) {
       console.error('Failed to apply preset:', error);
@@ -109,7 +105,7 @@ export const PresetSelector: React.FC<PresetSelectorProps> = ({
               "hover:shadow-md"
             )}
           >
-            {/* Header */}
+            {}
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Icon className="w-6 h-6" />
@@ -134,14 +130,14 @@ export const PresetSelector: React.FC<PresetSelectorProps> = ({
               </button>
             </div>
 
-            {/* Description */}
+            {}
             {showDescription && (
               <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
                 {preset.description}
               </p>
             )}
 
-            {/* System Requirements (when info is shown) */}
+            {}
             {showingInfo && preset.systemRequirements && (
               <div className="mb-3 p-2 bg-black/5 rounded text-xs space-y-1">
                 <div className="font-semibold mb-1">System Requirements:</div>
@@ -157,7 +153,7 @@ export const PresetSelector: React.FC<PresetSelectorProps> = ({
               </div>
             )}
 
-            {/* Apply Button */}
+            {}
             <Button
               onClick={() => applyPreset(preset)}
               disabled={isApplying}
@@ -185,9 +181,7 @@ export const PresetSelector: React.FC<PresetSelectorProps> = ({
   );
 };
 
-/**
- * Compact preset selector for header/toolbar
- */
+
 export const PresetSelectorCompact: React.FC<{ className?: string }> = ({ className }) => {
   return <PresetSelector compact className={className} />;
 };

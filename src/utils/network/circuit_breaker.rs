@@ -5,33 +5,33 @@ use std::sync::Arc;
 use std::time::{Duration, Instant, SystemTime};
 use tokio::sync::RwLock;
 
-/// Circuit breaker states
+/
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum CircuitBreakerState {
-    /// Normal operation - requests are allowed through
+    
     Closed,
-    /// Circuit is open - requests are rejected immediately
+    
     Open,
-    /// Testing if service has recovered - limited requests allowed
+    
     HalfOpen,
 }
 
-/// Configuration for circuit breaker behavior
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CircuitBreakerConfig {
-    /// Number of consecutive failures to trigger circuit opening
+    
     pub failure_threshold: usize,
-    /// Percentage of failures in time window to trigger opening (0.0 to 1.0)
+    
     pub failure_rate_threshold: f64,
-    /// Time window for calculating failure rate
+    
     pub time_window: Duration,
-    /// How long to wait before moving from Open to HalfOpen
+    
     pub recovery_timeout: Duration,
-    /// Number of successful requests in HalfOpen state to close circuit
+    
     pub success_threshold: usize,
-    /// Maximum number of requests allowed in HalfOpen state
+    
     pub half_open_max_requests: usize,
-    /// Minimum number of requests before failure rate is considered
+    
     pub minimum_request_threshold: usize,
 }
 
@@ -50,7 +50,7 @@ impl Default for CircuitBreakerConfig {
 }
 
 impl CircuitBreakerConfig {
-    /// Configuration for network operations
+    
     pub fn network() -> Self {
         Self {
             failure_threshold: 3,
@@ -63,7 +63,7 @@ impl CircuitBreakerConfig {
         }
     }
 
-    /// Configuration for TCP connections
+    
     pub fn tcp_connection() -> Self {
         Self {
             failure_threshold: 5,
@@ -76,7 +76,7 @@ impl CircuitBreakerConfig {
         }
     }
 
-    /// Configuration for WebSocket connections
+    
     pub fn websocket() -> Self {
         Self {
             failure_threshold: 4,
@@ -89,7 +89,7 @@ impl CircuitBreakerConfig {
         }
     }
 
-    /// Configuration for MCP operations
+    
     pub fn mcp_operations() -> Self {
         Self {
             failure_threshold: 3,
@@ -103,7 +103,7 @@ impl CircuitBreakerConfig {
     }
 }
 
-/// Circuit breaker statistics
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CircuitBreakerStats {
     pub state: CircuitBreakerState,
@@ -118,7 +118,7 @@ pub struct CircuitBreakerStats {
     pub time_since_state_change: Duration,
 }
 
-/// Request outcome for circuit breaker tracking
+/
 #[derive(Debug)]
 pub enum RequestOutcome {
     Success,
@@ -127,14 +127,14 @@ pub enum RequestOutcome {
     Rejected,
 }
 
-/// Request record for tracking in time window
+/
 #[derive(Debug)]
 struct RequestRecord {
     timestamp: Instant,
     success: bool,
 }
 
-/// Circuit breaker implementation
+/
 pub struct CircuitBreaker {
     config: CircuitBreakerConfig,
     state: Arc<RwLock<CircuitBreakerState>>,
@@ -151,7 +151,7 @@ pub struct CircuitBreaker {
 }
 
 impl CircuitBreaker {
-    /// Create a new circuit breaker with the given configuration
+    
     pub fn new(config: CircuitBreakerConfig) -> Self {
         let now = Instant::now();
         Self {
@@ -170,39 +170,39 @@ impl CircuitBreaker {
         }
     }
 
-    /// Create circuit breaker with default configuration
+    
     pub fn default() -> Self {
         Self::new(CircuitBreakerConfig::default())
     }
 
-    /// Create circuit breaker for network operations
+    
     pub fn network() -> Self {
         Self::new(CircuitBreakerConfig::network())
     }
 
-    /// Create circuit breaker for TCP connections
+    
     pub fn tcp_connection() -> Self {
         Self::new(CircuitBreakerConfig::tcp_connection())
     }
 
-    /// Create circuit breaker for WebSocket connections
+    
     pub fn websocket() -> Self {
         Self::new(CircuitBreakerConfig::websocket())
     }
 
-    /// Create circuit breaker for MCP operations
+    
     pub fn mcp_operations() -> Self {
         Self::new(CircuitBreakerConfig::mcp_operations())
     }
 
-    /// Check if a request should be allowed
+    
     pub async fn can_execute(&self) -> bool {
         let state = *self.state.read().await;
 
         match state {
             CircuitBreakerState::Closed => true,
             CircuitBreakerState::Open => {
-                // Check if we should transition to half-open
+                
                 if let Some(last_failure) = *self.last_failure_time.read().await {
                     if last_failure.elapsed() >= self.config.recovery_timeout {
                         self.transition_to_half_open().await;
@@ -218,7 +218,7 @@ impl CircuitBreaker {
         }
     }
 
-    /// Record the outcome of a request
+    
     pub async fn record_request(&self, outcome: RequestOutcome) {
         let now = Instant::now();
         let state = *self.state.read().await;
@@ -230,7 +230,7 @@ impl CircuitBreaker {
                 self.successful_requests.fetch_add(1, Ordering::Release);
                 self.consecutive_failures.store(0, Ordering::Release);
 
-                // Add to history
+                
                 self.add_to_history(now, true).await;
 
                 if state == CircuitBreakerState::HalfOpen {
@@ -246,10 +246,10 @@ impl CircuitBreaker {
                 self.failed_requests.fetch_add(1, Ordering::Release);
                 let consecutive = self.consecutive_failures.fetch_add(1, Ordering::Release) + 1;
 
-                // Update last failure time
+                
                 *self.last_failure_time.write().await = Some(now);
 
-                // Add to history
+                
                 self.add_to_history(now, false).await;
 
                 warn!(
@@ -257,7 +257,7 @@ impl CircuitBreaker {
                     consecutive
                 );
 
-                // Check if we should open the circuit
+                
                 if state != CircuitBreakerState::Open {
                     if self.should_open_circuit().await {
                         self.transition_to_open().await;
@@ -271,7 +271,7 @@ impl CircuitBreaker {
         }
     }
 
-    /// Execute a request through the circuit breaker
+    
     pub async fn execute<F, T, E>(&self, operation: F) -> Result<T, CircuitBreakerError<E>>
     where
         F: std::future::Future<Output = Result<T, E>>,
@@ -298,7 +298,7 @@ impl CircuitBreaker {
         }
     }
 
-    /// Get current statistics
+    
     pub async fn stats(&self) -> CircuitBreakerStats {
         let state = *self.state.read().await;
         let state_changed_at = *self.state_changed_at.read().await;
@@ -322,7 +322,7 @@ impl CircuitBreaker {
         }
     }
 
-    /// Reset the circuit breaker to closed state
+    
     pub async fn reset(&self) {
         info!("Resetting circuit breaker");
         *self.state.write().await = CircuitBreakerState::Closed;
@@ -334,7 +334,7 @@ impl CircuitBreaker {
         self.request_history.write().await.clear();
     }
 
-    // Internal methods
+    
 
     async fn should_open_circuit(&self) -> bool {
         let consecutive = self.consecutive_failures.load(Ordering::Acquire);
@@ -394,7 +394,7 @@ impl CircuitBreaker {
         let mut history = self.request_history.write().await;
         history.push(RequestRecord { timestamp, success });
 
-        // Clean old records outside the time window
+        
         let cutoff = timestamp - self.config.time_window;
         history.retain(|record| record.timestamp > cutoff);
     }
@@ -415,7 +415,7 @@ impl CircuitBreaker {
     }
 }
 
-/// Errors that can occur with circuit breaker operations
+/
 #[derive(Debug, thiserror::Error)]
 pub enum CircuitBreakerError<E> {
     #[error("Circuit breaker is open - requests are being rejected")]
@@ -424,7 +424,7 @@ pub enum CircuitBreakerError<E> {
     OperationFailed(E),
 }
 
-/// Circuit breaker registry for managing multiple circuit breakers
+/
 pub struct CircuitBreakerRegistry {
     breakers: Arc<RwLock<std::collections::HashMap<String, Arc<CircuitBreaker>>>>,
 }
@@ -436,7 +436,7 @@ impl CircuitBreakerRegistry {
         }
     }
 
-    /// Get or create a circuit breaker with the given name and configuration
+    
     pub async fn get_or_create(
         &self,
         name: &str,
@@ -454,7 +454,7 @@ impl CircuitBreakerRegistry {
         }
     }
 
-    /// Get stats for all circuit breakers
+    
     pub async fn get_all_stats(&self) -> std::collections::HashMap<String, CircuitBreakerStats> {
         let breakers = self.breakers.read().await;
         let mut stats = std::collections::HashMap::new();
@@ -466,7 +466,7 @@ impl CircuitBreakerRegistry {
         stats
     }
 
-    /// Reset all circuit breakers
+    
     pub async fn reset_all(&self) {
         let breakers = self.breakers.read().await;
         for breaker in breakers.values() {
@@ -496,7 +496,7 @@ mod tests {
 
         assert!(breaker.can_execute().await);
 
-        // Record success
+        
         breaker.record_request(RequestOutcome::Success).await;
         let stats = breaker.stats().await;
         assert_eq!(stats.state, CircuitBreakerState::Closed);
@@ -511,11 +511,11 @@ mod tests {
             ..Default::default()
         });
 
-        // First failure
+        
         breaker.record_request(RequestOutcome::Failure).await;
         assert_eq!(breaker.stats().await.state, CircuitBreakerState::Closed);
 
-        // Second failure should open circuit
+        
         breaker.record_request(RequestOutcome::Failure).await;
         assert_eq!(breaker.stats().await.state, CircuitBreakerState::Open);
         assert!(!breaker.can_execute().await);
@@ -530,18 +530,18 @@ mod tests {
             ..Default::default()
         });
 
-        // Open the circuit
+        
         breaker.record_request(RequestOutcome::Failure).await;
         assert_eq!(breaker.stats().await.state, CircuitBreakerState::Open);
 
-        // Wait for recovery timeout
+        
         sleep(Duration::from_millis(60)).await;
 
-        // Should transition to half-open
+        
         assert!(breaker.can_execute().await);
         assert_eq!(breaker.stats().await.state, CircuitBreakerState::HalfOpen);
 
-        // Success should close the circuit
+        
         breaker.record_request(RequestOutcome::Success).await;
         assert_eq!(breaker.stats().await.state, CircuitBreakerState::Closed);
     }
@@ -553,12 +553,12 @@ mod tests {
             ..Default::default()
         });
 
-        // Successful operation
+        
         let result = breaker.execute(async { Ok::<i32, &'static str>(42) }).await;
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), 42);
 
-        // Failed operation should open circuit
+        
         let result = breaker
             .execute(async { Err::<i32, &'static str>("error") })
             .await;
@@ -567,7 +567,7 @@ mod tests {
             Err(CircuitBreakerError::OperationFailed(_))
         ));
 
-        // Next request should be rejected
+        
         let result = breaker.execute(async { Ok::<i32, &'static str>(42) }).await;
         assert!(matches!(result, Err(CircuitBreakerError::CircuitOpen)));
     }

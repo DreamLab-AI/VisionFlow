@@ -19,20 +19,20 @@ use log::{debug, info, warn};
 use regex::Regex;
 use std::sync::Arc;
 
-/// OWL Extractor Service - parses OWL blocks from markdown
+/
 pub struct OwlExtractorService<R: OntologyRepository> {
     repo: Arc<R>,
 }
 
 impl<R: OntologyRepository> OwlExtractorService<R> {
-    /// Create new OWL extractor service
+    
     pub fn new(repo: Arc<R>) -> Self {
         Self { repo }
     }
 
-    /// Extract all OWL blocks from a class's markdown content
+    
     pub async fn extract_owl_from_class(&self, class_iri: &str) -> Result<ExtractedOwl, String> {
-        // Fetch class with markdown content from database
+        
         let class = self
             .repo
             .get_owl_class(class_iri)
@@ -48,7 +48,7 @@ impl<R: OntologyRepository> OwlExtractorService<R> {
         self.parse_owl_blocks(markdown_content, class_iri)
     }
 
-    /// Extract OWL from all classes in the database
+    
     pub async fn extract_all_owl(&self) -> Result<Vec<ExtractedOwl>, String> {
         info!("Extracting OWL from all classes in database...");
 
@@ -88,9 +88,9 @@ impl<R: OntologyRepository> OwlExtractorService<R> {
         Ok(extracted)
     }
 
-    /// Parse OWL Functional Syntax blocks from markdown content
+    
     fn parse_owl_blocks(&self, markdown: &str, class_iri: &str) -> Result<ExtractedOwl, String> {
-        // Extract code blocks with ```clojure or ```owl-functional
+        
         let code_block_pattern = Regex::new(r"```(?:clojure|owl-functional)\s*\n([\s\S]*?)```")
             .map_err(|e| format!("Regex error: {}", e))?;
 
@@ -100,7 +100,7 @@ impl<R: OntologyRepository> OwlExtractorService<R> {
             if let Some(block_match) = cap.get(1) {
                 let owl_text = block_match.as_str().trim();
 
-                // Only process blocks that look like OWL Functional Syntax
+                
                 if owl_text.contains("Declaration")
                     || owl_text.contains("SubClassOf")
                     || owl_text.contains("ObjectSomeValuesFrom")
@@ -127,7 +127,7 @@ impl<R: OntologyRepository> OwlExtractorService<R> {
         })
     }
 
-    /// Count axioms in OWL blocks (simple heuristic)
+    
     fn count_axioms(&self, blocks: &[String]) -> usize {
         let axiom_patterns = [
             "Declaration",
@@ -151,7 +151,7 @@ impl<R: OntologyRepository> OwlExtractorService<R> {
             .sum()
     }
 
-    /// Parse OWL Functional Syntax using horned-owl (when ontology feature enabled)
+    
     #[cfg(feature = "ontology")]
     pub fn parse_with_horned_owl(&self, owl_text: &str) -> Result<AnnotatedOntology, String> {
         use std::io::Cursor;
@@ -162,21 +162,21 @@ impl<R: OntologyRepository> OwlExtractorService<R> {
             .map_err(|e| format!("Failed to parse OWL with horned-owl: {}", e))
     }
 
-    /// Build complete ontology from database (when ontology feature enabled)
+    
     #[cfg(feature = "ontology")]
     pub async fn build_complete_ontology(&self) -> Result<AnnotatedOntology, String> {
         info!("Building complete ontology from database with horned-owl...");
 
         let extracted = self.extract_all_owl().await?;
 
-        // Combine all OWL blocks into a single ontology
+        
         let mut combined_ontology = AnnotatedOntology::default();
 
         for ext in extracted {
             for block in ext.owl_blocks {
                 match self.parse_with_horned_owl(&block) {
                     Ok(onto) => {
-                        // Merge axioms into combined ontology
+                        
                         for axiom in onto.axiom() {
                             combined_ontology.insert(axiom.clone());
                         }
@@ -200,7 +200,7 @@ impl<R: OntologyRepository> OwlExtractorService<R> {
     }
 }
 
-/// Extracted OWL data from markdown
+/
 #[derive(Debug, Clone)]
 pub struct ExtractedOwl {
     pub class_iri: String,
@@ -232,8 +232,8 @@ Some description
 More content
 "#;
 
-        // Create mock repository (would need mockall in real tests)
-        // For now, test the regex pattern directly
+        
+        
         let pattern = Regex::new(r"```(?:clojure|owl-functional)\s*\n([\s\S]*?)```").unwrap();
         let captures: Vec<_> = pattern.captures_iter(markdown).collect();
 

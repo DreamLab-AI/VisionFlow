@@ -5,17 +5,17 @@
 
 use cudarc::driver::CudaStream;
 
-/// Thread-safe wrapper for CudaStream
-///
-/// # Safety
-///
-/// CUDA streams are thread-safe at the driver level. Multiple threads can submit
-/// work to the same stream, and CUDA will serialize the operations properly.
-/// The raw pointer is safe to send between threads because:
-///
-/// 1. CUDA maintains internal synchronization for stream operations
-/// 2. We always access through Arc<Mutex> in SharedGPUContext
-/// 3. The stream lifetime is managed by Arc reference counting
+/
+/
+/
+/
+/
+/
+/
+/
+/
+/
+/
 pub struct SafeCudaStream {
     inner: CudaStream,
 }

@@ -3,58 +3,58 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
-/// Core trait for all domain events
-/// Note: This trait is object-safe (can be used as `dyn DomainEvent`)
+/
+/
 pub trait DomainEvent: Send + Sync + Debug {
-    /// Returns the type identifier of this event
+    
     fn event_type(&self) -> &'static str;
 
-    /// Returns the ID of the aggregate this event relates to
+    
     fn aggregate_id(&self) -> &str;
 
-    /// Returns when this event occurred
+    
     fn timestamp(&self) -> DateTime<Utc>;
 
-    /// Returns the aggregate type (e.g., "Graph", "Node", "Ontology")
+    
     fn aggregate_type(&self) -> &'static str;
 
-    /// Returns version for event schema evolution
+    
     fn version(&self) -> u32 {
         1
     }
 
-    /// Serializes the event to JSON (must be implemented by each event)
+    
     fn to_json_string(&self) -> Result<String, serde_json::Error>;
 }
 
-/// Metadata associated with every event
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EventMetadata {
-    /// Unique event identifier
+    
     pub event_id: String,
 
-    /// ID of the aggregate
+    
     pub aggregate_id: String,
 
-    /// Type of the aggregate
+    
     pub aggregate_type: String,
 
-    /// Type of the event
+    
     pub event_type: String,
 
-    /// When the event occurred
+    
     pub timestamp: DateTime<Utc>,
 
-    /// ID of the command/event that caused this event
+    
     pub causation_id: Option<String>,
 
-    /// Correlation ID for tracking related events
+    
     pub correlation_id: Option<String>,
 
-    /// User who triggered this event
+    
     pub user_id: Option<String>,
 
-    /// Event schema version
+    
     pub version: u32,
 }
 
@@ -89,55 +89,55 @@ impl EventMetadata {
     }
 }
 
-/// Stored representation of an event for event sourcing
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StoredEvent {
-    /// Event metadata
+    
     pub metadata: EventMetadata,
 
-    /// Serialized event data
+    
     pub data: String,
 
-    /// Sequence number for ordering
+    
     pub sequence: i64,
 }
 
-/// Handler for domain events
+/
 #[async_trait]
 pub trait EventHandler: Send + Sync {
-    /// Returns the event type this handler processes
+    
     fn event_type(&self) -> &'static str;
 
-    /// Returns unique handler identifier
+    
     fn handler_id(&self) -> &str;
 
-    /// Handles the event
+    
     async fn handle(&self, event: &StoredEvent) -> Result<(), EventError>;
 
-    /// Optional: specify if handler should run asynchronously
+    
     fn is_async(&self) -> bool {
         true
     }
 
-    /// Optional: specify retry policy
+    
     fn max_retries(&self) -> u32 {
         3
     }
 }
 
-/// Middleware for event processing pipeline
+/
 #[async_trait]
 pub trait EventMiddleware: Send + Sync {
-    /// Called before event is published
+    
     async fn before_publish(&self, event: &mut StoredEvent) -> Result<(), EventError>;
 
-    /// Called after event is published
+    
     async fn after_publish(&self, event: &StoredEvent) -> Result<(), EventError>;
 
-    /// Called before handler execution
+    
     async fn before_handle(&self, event: &StoredEvent, handler_id: &str) -> Result<(), EventError>;
 
-    /// Called after handler execution
+    
     async fn after_handle(
         &self,
         event: &StoredEvent,
@@ -146,7 +146,7 @@ pub trait EventMiddleware: Send + Sync {
     ) -> Result<(), EventError>;
 }
 
-/// Event-related errors
+/
 #[derive(Debug, Clone, thiserror::Error)]
 pub enum EventError {
     #[error("Serialization error: {0}")]
@@ -176,13 +176,13 @@ pub enum EventError {
 
 pub type EventResult<T> = Result<T, EventError>;
 
-/// Envelope for type-erased events
+/
 pub struct EventEnvelope {
     pub metadata: EventMetadata,
     pub event: Box<dyn std::any::Any + Send + Sync>,
 }
 
-/// Snapshot for event sourcing optimization
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EventSnapshot {
     pub aggregate_id: String,

@@ -41,10 +41,10 @@
 //! The enhanced actor maintains backward compatibility while providing advanced features:
 //!
 //! ```rust
-//! // Traditional usage (unchanged)
+//! 
 //! let actor = GraphServiceActor::new(client_manager, gpu_compute_addr);
 //!
-//! // Enhanced features
+//! 
 //! actor.update_advanced_physics_params(advanced_params)?;
 //! actor.trigger_stress_optimization()?;
 //! let status = actor.get_semantic_analysis_status();
@@ -65,14 +65,14 @@ use crate::actors::graph_messages::{
 };
 use crate::actors::messages::*;
 use crate::errors::VisionFlowError;
-// use crate::utils::binary_protocol; // Unused
+// use crate::utils::binary_protocol; 
 use crate::actors::client_coordinator_actor::ClientCoordinatorActor;
 use crate::models::edge::Edge;
 use crate::models::graph::GraphData;
 use crate::models::metadata::{FileMetadata, MetadataStore};
 use crate::models::node::Node;
-use crate::utils::socket_flow_messages::{glam_to_vec3data, BinaryNodeData, BinaryNodeDataClient}; // Added glam_to_vec3data
-                                                                                                  // Using the modular GPU system's ForceComputeActor for physics computation
+use crate::utils::socket_flow_messages::{glam_to_vec3data, BinaryNodeData, BinaryNodeDataClient}; 
+                                                                                                  
 use crate::actors::gpu::GPUManagerActor;
 use crate::config::AutoBalanceConfig;
 use crate::models::simulation_params::SimulationParams;
@@ -82,74 +82,74 @@ use crate::models::constraints::{AdvancedParams, Constraint, ConstraintSet};
 use crate::services::edge_generation::{AdvancedEdgeGenerator, EdgeGenerationConfig};
 use crate::services::semantic_analyzer::{SemanticAnalyzer, SemanticFeatures};
 use crate::utils::unified_gpu_compute::UnifiedGPUCompute;
-// use crate::models::simulation_params::SimParams; // Unused
+// use crate::models::simulation_params::SimParams; 
 use crate::physics::stress_majorization::StressMajorizationSolver;
 use crate::ports::knowledge_graph_repository::KnowledgeGraphRepository;
 use std::sync::Mutex;
 
 pub struct GraphServiceActor {
-    graph_data: Arc<GraphData>,        // Changed to Arc<GraphData>
-    node_map: Arc<HashMap<u32, Node>>, // Changed to Arc for shared access
-    gpu_compute_addr: Option<Addr<GPUManagerActor>>, // GPUManagerActor for coordinated GPU computation
-    kg_repo: Arc<dyn KnowledgeGraphRepository>, // Knowledge graph repository for database operations
+    graph_data: Arc<GraphData>,        
+    node_map: Arc<HashMap<u32, Node>>, 
+    gpu_compute_addr: Option<Addr<GPUManagerActor>>, 
+    kg_repo: Arc<dyn KnowledgeGraphRepository>, 
     client_manager: Addr<ClientCoordinatorActor>,
     simulation_running: AtomicBool,
     shutdown_complete: Arc<AtomicBool>,
     next_node_id: AtomicU32,
-    bots_graph_data: Arc<GraphData>, // Changed to Arc for shared access
-    simulation_params: SimulationParams, // Physics simulation parameters
+    bots_graph_data: Arc<GraphData>, 
+    simulation_params: SimulationParams, 
 
-    // Advanced hybrid solver components - GPU context managed by ForceComputeActor
-    gpu_init_in_progress: bool, // Flag to prevent multiple initialization attempts
-    gpu_initialized: bool,      // Track if GPU has been successfully initialized
+    
+    gpu_init_in_progress: bool, 
+    gpu_initialized: bool,      
     constraint_set: ConstraintSet,
     semantic_analyzer: SemanticAnalyzer,
     edge_generator: AdvancedEdgeGenerator,
     stress_solver: StressMajorizationSolver,
     semantic_features_cache: HashMap<String, SemanticFeatures>,
 
-    // Advanced physics parameters
+    
     advanced_params: AdvancedParams,
 
-    // Control flow state
+    
     stress_step_counter: u32,
     constraint_update_counter: u32,
     last_semantic_analysis: Option<std::time::Instant>,
 
-    // Auto-balance tracking
+    
     settings_addr: Option<Addr<crate::actors::optimized_settings_actor::OptimizedSettingsActor>>,
-    auto_balance_history: Vec<f32>, // Track max distances to detect minima
-    stable_count: u32,              // Count stable frames to detect settling
-    auto_balance_notifications: Arc<Mutex<Vec<AutoBalanceNotification>>>, // Store notifications for REST API
-    kinetic_energy_history: Vec<f32>, // Track kinetic energy for stability detection
-    last_adjustment_time: std::time::Instant, // Cooldown tracking
-    current_state: AutoBalanceState,  // Track current auto-balance state for hysteresis
-    frames_since_last_broadcast: Option<u32>, // Track frames since last position broadcast (deprecated - use time-based instead)
-    last_broadcast_time: Option<std::time::Instant>, // Time-based broadcast tracking to fix 10-second delay issue
-    initial_positions_sent: bool, // Track if initial positions have been sent to clients
+    auto_balance_history: Vec<f32>, 
+    stable_count: u32,              
+    auto_balance_notifications: Arc<Mutex<Vec<AutoBalanceNotification>>>, 
+    kinetic_energy_history: Vec<f32>, 
+    last_adjustment_time: std::time::Instant, 
+    current_state: AutoBalanceState,  
+    frames_since_last_broadcast: Option<u32>, 
+    last_broadcast_time: Option<std::time::Instant>, 
+    initial_positions_sent: bool, 
 
-    // Backpressure management
-    pending_broadcasts: u32,     // Number of pending position broadcasts
-    max_pending_broadcasts: u32, // Maximum allowed pending broadcasts before throttling
-    broadcast_skip_count: u32,   // Number of broadcasts skipped due to backpressure
-    last_backpressure_warning: Option<std::time::Instant>, // Rate limit warnings
+    
+    pending_broadcasts: u32,     
+    max_pending_broadcasts: u32, 
+    broadcast_skip_count: u32,   
+    last_backpressure_warning: Option<std::time::Instant>, 
 
-    // Smooth parameter transitions
-    target_params: SimulationParams, // Target physics parameters
-    param_transition_rate: f32,      // How fast to transition (0.0 - 1.0)
+    
+    target_params: SimulationParams, 
+    param_transition_rate: f32,      
 
-    // Position change tracking to avoid unnecessary updates
-    previous_positions: HashMap<u32, crate::types::vec3::Vec3Data>, // Track previous positions for change detection
+    
+    previous_positions: HashMap<u32, crate::types::vec3::Vec3Data>, 
 
-    // Update queue for batch operations
+    
     update_queue: UpdateQueue,
     queue_config: UpdateQueueConfig,
 
-    // Metrics for batch operations
+    
     batch_metrics: BatchMetrics,
 }
 
-/// Configuration for the update queue system
+/
 #[derive(Debug, Clone)]
 struct UpdateQueueConfig {
     max_operations: usize,
@@ -167,7 +167,7 @@ impl Default for UpdateQueueConfig {
     }
 }
 
-/// Queue for batching graph update operations
+/
 #[derive(Debug, Default)]
 struct UpdateQueue {
     pending_nodes: Vec<Node>,
@@ -231,12 +231,12 @@ impl UpdateQueue {
             return false;
         }
 
-        // Flush if we've exceeded max operations
+        
         if self.operation_count >= config.max_operations {
             return true;
         }
 
-        // Flush if enough time has passed
+        
         if let Some(last_flush) = self.last_flush_time {
             let elapsed = last_flush.elapsed();
             if elapsed.as_millis() >= config.flush_interval_ms as u128 {
@@ -248,7 +248,7 @@ impl UpdateQueue {
     }
 }
 
-/// Metrics for tracking batch operation performance
+/
 #[derive(Debug, Default)]
 struct BatchMetrics {
     total_batches_processed: u64,
@@ -279,7 +279,7 @@ impl BatchMetrics {
             self.max_batch_size = batch_size;
         }
 
-        // Update rolling average
+        
         let total_operations = self.total_nodes_batched + self.total_edges_batched;
         self.average_batch_size = total_operations as f64 / self.total_batches_processed as f64;
 
@@ -294,25 +294,25 @@ impl BatchMetrics {
     }
 }
 
-/// Auto-balance state tracking for hysteresis prevention
+/
 #[derive(Debug, Clone, PartialEq)]
 enum AutoBalanceState {
-    Stable,      // System is in equilibrium
-    Spreading,   // Nodes are spreading out
-    Clustering,  // Nodes are clustering together
-    Bouncing,    // Nodes are bouncing off boundaries
-    Oscillating, // System is oscillating between states
-    Adjusting,   // Currently making parameter adjustments
+    Stable,      
+    Spreading,   
+    Clustering,  
+    Bouncing,    
+    Oscillating, 
+    Adjusting,   
 }
 
-/// Physics/settlement state for client optimization
-/// Exported for REST API responses
+/
+/
 #[derive(Debug, Clone, Serialize)]
 pub struct PhysicsState {
     pub is_settled: bool,
     pub stable_frame_count: u32,
     pub kinetic_energy: f32,
-    pub current_state: String, // Converted from AutoBalanceState enum
+    pub current_state: String, 
 }
 
 // Auto-balance notification structure
@@ -320,15 +320,15 @@ pub struct PhysicsState {
 pub struct AutoBalanceNotification {
     pub message: String,
     pub timestamp: i64,
-    pub severity: String, // "info", "warning", "success"
+    pub severity: String, 
 }
 
 impl GraphServiceActor {
     fn smooth_transition_params(&mut self) {
-        // Smoothly transition current params to target params
+        
         let rate = self.param_transition_rate;
 
-        // Use exponential smoothing for each parameter
+        
         self.simulation_params.repel_k =
             self.simulation_params.repel_k * (1.0 - rate) + self.target_params.repel_k * rate;
         self.simulation_params.damping =
@@ -341,7 +341,7 @@ impl GraphServiceActor {
             * (1.0 - rate)
             + self.target_params.viewport_bounds * rate;
 
-        // New CUDA kernel parameters - smooth transitions
+        
         self.simulation_params.max_repulsion_dist = self.simulation_params.max_repulsion_dist
             * (1.0 - rate)
             + self.target_params.max_repulsion_dist * rate;
@@ -353,7 +353,7 @@ impl GraphServiceActor {
         self.simulation_params.spring_k =
             self.simulation_params.spring_k * (1.0 - rate) + self.target_params.spring_k * rate;
 
-        // For boolean values, switch immediately when more than halfway
+        
         if (self.target_params.enable_bounds as i32 - self.simulation_params.enable_bounds as i32)
             .abs()
             > 0
@@ -364,7 +364,7 @@ impl GraphServiceActor {
 
     fn set_target_params(&mut self, new_params: SimulationParams) {
         self.target_params = new_params;
-        // Optionally increase transition rate for urgent changes
+        
         let damping_change = (self.target_params.damping - self.simulation_params.damping).abs();
         let repulsion_cutoff_change = (self.target_params.max_repulsion_dist
             - self.simulation_params.max_repulsion_dist)
@@ -374,13 +374,13 @@ impl GraphServiceActor {
             .abs();
 
         if damping_change > 0.3 || repulsion_cutoff_change > 20.0 || grid_cell_change > 0.5 {
-            self.param_transition_rate = 0.2; // Faster transition for large changes
+            self.param_transition_rate = 0.2; 
         } else {
-            self.param_transition_rate = 0.1; // Normal transition rate
+            self.param_transition_rate = 0.1; 
         }
     }
 
-    /// Determines auto-balance state with hysteresis bands to prevent rapid switching
+    
     fn determine_auto_balance_state(
         &self,
         max_distance: f32,
@@ -390,17 +390,17 @@ impl GraphServiceActor {
         _has_spatial_issues: bool,
         config: &crate::config::AutoBalanceConfig,
     ) -> AutoBalanceState {
-        // Priority 1: Critical issues
+        
         if has_numerical_instability {
             return AutoBalanceState::Adjusting;
         }
 
-        // Priority 2: Bouncing nodes (at boundaries)
+        
         if boundary_nodes as f32 > (total_nodes as f32 * config.bouncing_node_percentage) {
             return AutoBalanceState::Bouncing;
         }
 
-        // Priority 3: Oscillation detection
+        
         if self.auto_balance_history.len() >= config.oscillation_detection_frames {
             let recent = &self.auto_balance_history
                 [self.auto_balance_history.len() - config.oscillation_detection_frames..];
@@ -413,10 +413,10 @@ impl GraphServiceActor {
             }
         }
 
-        // Priority 4: Distance-based states with hysteresis
+        
         match self.current_state {
             AutoBalanceState::Spreading => {
-                // When spreading, require going below threshold minus hysteresis to switch
+                
                 if max_distance
                     < (config.spreading_distance_threshold - config.spreading_hysteresis_buffer)
                 {
@@ -429,11 +429,11 @@ impl GraphServiceActor {
                         AutoBalanceState::Stable
                     }
                 } else {
-                    AutoBalanceState::Spreading // Stay in spreading state
+                    AutoBalanceState::Spreading 
                 }
             }
             AutoBalanceState::Clustering => {
-                // When clustering, require going above threshold plus hysteresis to switch
+                
                 if max_distance
                     > (config.clustering_distance_threshold + config.clustering_hysteresis_buffer)
                 {
@@ -445,11 +445,11 @@ impl GraphServiceActor {
                         AutoBalanceState::Stable
                     }
                 } else {
-                    AutoBalanceState::Clustering // Stay in clustering state
+                    AutoBalanceState::Clustering 
                 }
             }
             _ => {
-                // From stable or other states, use normal thresholds
+                
                 if max_distance > config.spreading_distance_threshold {
                     AutoBalanceState::Spreading
                 } else if max_distance < config.clustering_distance_threshold {
@@ -461,7 +461,7 @@ impl GraphServiceActor {
         }
     }
 
-    /// Applies gradual parameter adjustments based on state
+    
     fn apply_gradual_adjustment(
         &mut self,
         state: AutoBalanceState,
@@ -472,7 +472,7 @@ impl GraphServiceActor {
 
         match state {
             AutoBalanceState::Spreading => {
-                // Gradually increase attraction and center gravity
+                
                 let mut new_target = self.target_params.clone();
 
                 let attraction_factor = 1.0 + adjustment_rate;
@@ -480,7 +480,7 @@ impl GraphServiceActor {
                     .max(self.simulation_params.spring_k * (1.0 + config.min_adjustment_factor))
                     .min(self.simulation_params.spring_k * (1.0 + config.max_adjustment_factor));
 
-                let spring_factor = 1.0 + adjustment_rate * 0.5; // Smaller spring adjustment
+                let spring_factor = 1.0 + adjustment_rate * 0.5; 
                 new_target.spring_k = (self.simulation_params.spring_k * spring_factor)
                     .max(self.simulation_params.spring_k * (1.0 + config.min_adjustment_factor))
                     .min(self.simulation_params.spring_k * (1.0 + config.max_adjustment_factor));
@@ -492,7 +492,7 @@ impl GraphServiceActor {
                 adjustment_made = true;
             }
             AutoBalanceState::Clustering => {
-                // Gradually increase repulsion
+                
                 let mut new_target = self.target_params.clone();
 
                 let repulsion_factor = 1.0 + adjustment_rate;
@@ -500,7 +500,7 @@ impl GraphServiceActor {
                     .max(self.simulation_params.repel_k * (1.0 + config.min_adjustment_factor))
                     .min(self.simulation_params.repel_k * (1.0 + config.max_adjustment_factor));
 
-                // Slightly reduce attraction
+                
                 let attraction_factor = 1.0 - adjustment_rate * 0.5;
                 new_target.spring_k = (self.simulation_params.spring_k * attraction_factor)
                     .max(self.simulation_params.spring_k * (1.0 + config.min_adjustment_factor))
@@ -513,7 +513,7 @@ impl GraphServiceActor {
                 adjustment_made = true;
             }
             AutoBalanceState::Bouncing => {
-                // Gradual damping increase and velocity reduction
+                
                 let mut new_target = self.target_params.clone();
 
                 let damping_factor = 1.0 + adjustment_rate * 0.5;
@@ -530,12 +530,12 @@ impl GraphServiceActor {
                 adjustment_made = true;
             }
             AutoBalanceState::Oscillating => {
-                // Aggressive damping to stop oscillation
+                
                 let mut new_target = self.target_params.clone();
                 new_target.damping = (self.simulation_params.damping * 1.2).min(0.98);
                 new_target.max_velocity = self.simulation_params.max_velocity * 0.7;
 
-                // Also slow down the parameter transition rate temporarily
+                
                 self.param_transition_rate = config.parameter_dampening_factor;
 
                 self.set_target_params(new_target);
@@ -545,7 +545,7 @@ impl GraphServiceActor {
                 adjustment_made = true;
             }
             AutoBalanceState::Adjusting => {
-                // Handle numerical instability with conservative parameters
+                
                 let mut new_target = self.target_params.clone();
                 new_target.dt = (self.simulation_params.dt * 0.8).max(0.001);
                 new_target.damping = (self.simulation_params.damping * 1.1).min(0.99);
@@ -557,9 +557,9 @@ impl GraphServiceActor {
                 adjustment_made = true;
             }
             AutoBalanceState::Stable => {
-                // Gradually return to baseline parameters
+                
                 self.param_transition_rate = config.parameter_dampening_factor;
-                // No immediate adjustment needed
+                
             }
         }
 
@@ -574,7 +574,7 @@ impl GraphServiceActor {
     fn send_auto_balance_notification(&self, message: &str) {
         info!("[AUTO-BALANCE NOTIFICATION] {}", message);
 
-        // Determine severity based on message content
+        
         let severity = if message.contains("disabled") || message.contains("failed") {
             "warning"
         } else if message.contains("stable") || message.contains("found") {
@@ -584,7 +584,7 @@ impl GraphServiceActor {
         }
         .to_string();
 
-        // Store notification for REST API retrieval
+        
         let notification = AutoBalanceNotification {
             message: message.to_string(),
             timestamp: chrono::Utc::now().timestamp_millis(),
@@ -593,7 +593,7 @@ impl GraphServiceActor {
 
         if let Ok(mut notifications) = self.auto_balance_notifications.lock() {
             notifications.push(notification);
-            // Keep only last 50 notifications
+            
             if notifications.len() > 50 {
                 let drain_count = notifications.len() - 50;
                 notifications.drain(0..drain_count);
@@ -602,11 +602,11 @@ impl GraphServiceActor {
     }
 
     fn notify_settings_update(&self) {
-        // Send updated physics parameters back to settings system
-        // This will trigger UI updates
+        
+        
         info!("[AUTO-BALANCE] Notifying settings system of parameter changes");
 
-        // Send message to settings actor to update and propagate to UI
+        
         if let Some(settings_addr) = self.settings_addr.as_ref() {
             let physics_update = serde_json::json!({
                 "visualisation": {
@@ -646,32 +646,32 @@ impl GraphServiceActor {
         let edge_generator = AdvancedEdgeGenerator::new(EdgeGenerationConfig::default());
         let stress_solver = StressMajorizationSolver::from_advanced_params(&advanced_params);
 
-        // Initialize with default simulation params
-        // Settings will be loaded from database and sent via UpdateSimulationParams message
+        
+        
         let simulation_params = {
             info!("Using default SimulationParams (database-first architecture)");
             info!("Settings will be loaded from database via DatabaseService");
             SimulationParams::default()
         };
 
-        // Clone simulation_params for target_params before moving it
+        
         let target_params = simulation_params.clone();
 
         Self {
-            graph_data: Arc::new(GraphData::new()), // Changed to Arc::new
-            node_map: Arc::new(HashMap::new()),     // Changed to Arc::new for shared access
+            graph_data: Arc::new(GraphData::new()), 
+            node_map: Arc::new(HashMap::new()),     
             gpu_compute_addr,
             kg_repo,
             client_manager,
             simulation_running: AtomicBool::new(false),
             shutdown_complete: Arc::new(AtomicBool::new(false)),
             next_node_id: AtomicU32::new(1),
-            bots_graph_data: Arc::new(GraphData::new()), // Changed to Arc::new for shared access
-            simulation_params,                           // Use logseq physics from settings
+            bots_graph_data: Arc::new(GraphData::new()), 
+            simulation_params,                           
 
-            // Initialize advanced components - GPU context managed by ForceComputeActor
+            
             gpu_init_in_progress: false,
-            gpu_initialized: false, // GPU not yet initialized
+            gpu_initialized: false, 
             constraint_set: ConstraintSet::default(),
             semantic_analyzer,
             edge_generator,
@@ -679,37 +679,37 @@ impl GraphServiceActor {
             semantic_features_cache: HashMap::new(),
             advanced_params,
 
-            // Initialize control state
+            
             stress_step_counter: 0,
             constraint_update_counter: 0,
             last_semantic_analysis: None,
 
-            // Auto-balance tracking
+            
             settings_addr,
-            auto_balance_history: Vec::with_capacity(60), // Track last 60 frames (1 second at 60fps)
+            auto_balance_history: Vec::with_capacity(60), 
             stable_count: 0,
             auto_balance_notifications: Arc::new(Mutex::new(Vec::new())),
-            kinetic_energy_history: Vec::with_capacity(60), // Track kinetic energy
-            last_adjustment_time: std::time::Instant::now(), // Initialize cooldown tracking
-            current_state: AutoBalanceState::Stable,        // Start in stable state
+            kinetic_energy_history: Vec::with_capacity(60), 
+            last_adjustment_time: std::time::Instant::now(), 
+            current_state: AutoBalanceState::Stable,        
             frames_since_last_broadcast: None,
-            last_broadcast_time: None, // Initialize time-based broadcast tracking
+            last_broadcast_time: None, 
             initial_positions_sent: false,
 
-            // Smooth parameter transitions - initialize with actual loaded settings
+            
             target_params,
-            param_transition_rate: 0.1, // 10% per frame for smooth transitions
+            param_transition_rate: 0.1, 
 
-            // Position change tracking
+            
             previous_positions: HashMap::new(),
 
-            // Backpressure management initialization
+            
             pending_broadcasts: 0,
-            max_pending_broadcasts: 5, // Default value, will be adjusted adaptively
+            max_pending_broadcasts: 5, 
             broadcast_skip_count: 0,
             last_backpressure_warning: None,
 
-            // Update queue and batch metrics initialization
+            
             update_queue: UpdateQueue::new(),
             queue_config: UpdateQueueConfig::default(),
             batch_metrics: BatchMetrics::default(),
@@ -717,8 +717,8 @@ impl GraphServiceActor {
     }
 
     pub fn get_graph_data(&self) -> &GraphData {
-        // Returns a reference to the inner GraphData
-        &self.graph_data // Dereferences Arc<GraphData> to &GraphData
+        
+        &self.graph_data 
     }
 
     pub fn get_node_map(&self) -> &HashMap<u32, Node> {
@@ -726,96 +726,96 @@ impl GraphServiceActor {
     }
 
     pub fn add_node(&mut self, node: Node) {
-        let node_id = node.id; // Store the ID before moving node
+        let node_id = node.id; 
 
-        // Use queue for better performance if auto-flush is enabled
+        
         if self.queue_config.enable_auto_flush {
-            // Queue the operation for batch processing
+            
             self.update_queue.add_node(node);
 
-            // Auto-flush if thresholds are met
+            
             if self.update_queue.should_flush(&self.queue_config) {
                 if let Err(e) = self.flush_update_queue_internal(true) {
                     error!("Failed to flush update queue: {}", e);
-                    // Queue is already updated, so just log the error
+                    
                 }
             }
         } else {
-            // Direct update when queue is disabled
+            
             self.add_node_direct(node);
         }
 
         debug!("Added/updated node: {}", node_id);
     }
 
-    /// Direct node addition without queueing (used as fallback)
+    
     fn add_node_direct(&mut self, node: Node) {
-        // Update node_map
+        
         Arc::make_mut(&mut self.node_map).insert(node.id, node.clone());
 
         let graph_data_mut = Arc::make_mut(&mut self.graph_data);
-        // Add to graph data if not already present
+        
         if !graph_data_mut.nodes.iter().any(|n| n.id == node.id) {
             graph_data_mut.nodes.push(node);
         } else {
-            // Update existing node
+            
             if let Some(existing) = graph_data_mut.nodes.iter_mut().find(|n| n.id == node.id) {
-                *existing = node; // Move node here instead of cloning
+                *existing = node; 
             }
         }
     }
 
     pub fn remove_node(&mut self, node_id: u32) {
-        // Remove from node_map
+        
         Arc::make_mut(&mut self.node_map).remove(&node_id);
 
         let graph_data_mut = Arc::make_mut(&mut self.graph_data);
-        // Remove from graph data
+        
         graph_data_mut.nodes.retain(|n| n.id != node_id);
 
-        // Remove related edges
+        
         graph_data_mut
             .edges
             .retain(|e| e.source != node_id && e.target != node_id);
 
-        // Clean up position tracking
+        
         self.previous_positions.remove(&node_id);
 
         debug!("Removed node: {}", node_id);
     }
 
     pub fn add_edge(&mut self, edge: Edge) {
-        let edge_id = edge.id.clone(); // Store the ID before moving edge
+        let edge_id = edge.id.clone(); 
 
-        // Use queue for better performance if auto-flush is enabled
+        
         if self.queue_config.enable_auto_flush {
-            // Queue the operation for batch processing
+            
             self.update_queue.add_edge(edge);
 
-            // Auto-flush if thresholds are met
+            
             if self.update_queue.should_flush(&self.queue_config) {
                 if let Err(e) = self.flush_update_queue_internal(true) {
                     error!("Failed to flush update queue: {}", e);
                 }
             }
         } else {
-            // Direct update when queue is disabled
+            
             self.add_edge_direct(edge);
         }
 
         debug!("Added/updated edge: {}", edge_id);
     }
 
-    /// Direct edge addition without queueing (used as fallback)
+    
     fn add_edge_direct(&mut self, edge: Edge) {
         let graph_data_mut = Arc::make_mut(&mut self.graph_data);
-        // Add to graph data if not already present
+        
         if !graph_data_mut.edges.iter().any(|e| e.id == edge.id) {
             graph_data_mut.edges.push(edge);
         } else {
-            // Update existing edge
+            
             if let Some(existing) = graph_data_mut.edges.iter_mut().find(|e| e.id == edge.id) {
-                *existing = edge; // Move edge here instead of cloning
+                *existing = edge; 
             }
         }
     }
@@ -827,8 +827,8 @@ impl GraphServiceActor {
         debug!("Removed edge: {}", edge_id);
     }
 
-    /// Efficiently add multiple nodes in a single batch operation
-    /// Optimized to minimize Arc::make_mut calls and improve memory access patterns
+    
+    
     pub fn batch_add_nodes(&mut self, nodes: Vec<Node>) -> Result<(), String> {
         if nodes.is_empty() {
             return Ok(());
@@ -837,28 +837,28 @@ impl GraphServiceActor {
         let start_time = std::time::Instant::now();
         let node_count = nodes.len();
 
-        // Pre-allocate capacity for better performance
+        
         let mut new_nodes = Vec::with_capacity(node_count);
         let mut updated_nodes = Vec::new();
 
-        // Single Arc::make_mut call for node_map
+        
         let node_map_mut = Arc::make_mut(&mut self.node_map);
 
-        // Single Arc::make_mut call for graph_data
+        
         let graph_data_mut = Arc::make_mut(&mut self.graph_data);
 
-        // Build lookup set for O(1) existence checks instead of O(n) iterations
+        
         let existing_node_ids: std::collections::HashSet<u32> =
             graph_data_mut.nodes.iter().map(|n| n.id).collect();
 
-        // Process nodes and separate new from updates
+        
         for node in nodes {
             let node_id = node.id;
 
-            // Insert into node_map (always update for latest data)
+            
             node_map_mut.insert(node_id, node.clone());
 
-            // Separate new nodes from updates for more efficient batch processing
+            
             if existing_node_ids.contains(&node_id) {
                 updated_nodes.push(node);
             } else {
@@ -866,10 +866,10 @@ impl GraphServiceActor {
             }
         }
 
-        // Bulk extend for new nodes (more efficient than individual pushes)
+        
         graph_data_mut.nodes.extend(new_nodes);
 
-        // Update existing nodes with optimized lookup
+        
         for update_node in updated_nodes {
             if let Some(existing) = graph_data_mut
                 .nodes
@@ -892,8 +892,8 @@ impl GraphServiceActor {
         Ok(())
     }
 
-    /// Efficiently add multiple edges in a single batch operation
-    /// Optimized to minimize Arc::make_mut calls and improve memory access patterns
+    
+    
     pub fn batch_add_edges(&mut self, edges: Vec<Edge>) -> Result<(), String> {
         if edges.is_empty() {
             return Ok(());
@@ -902,20 +902,20 @@ impl GraphServiceActor {
         let start_time = std::time::Instant::now();
         let edge_count = edges.len();
 
-        // Pre-allocate capacity for better performance
+        
         let mut new_edges = Vec::with_capacity(edge_count);
         let mut updated_edges = Vec::new();
 
-        // Single Arc::make_mut call for graph_data
+        
         let graph_data_mut = Arc::make_mut(&mut self.graph_data);
 
-        // Build lookup set for O(1) existence checks instead of O(n) iterations
+        
         let existing_edge_ids: std::collections::HashSet<String> =
             graph_data_mut.edges.iter().map(|e| e.id.clone()).collect();
 
-        // Process edges and separate new from updates
+        
         for edge in edges {
-            // Separate new edges from updates for more efficient batch processing
+            
             if existing_edge_ids.contains(&edge.id) {
                 updated_edges.push(edge);
             } else {
@@ -923,10 +923,10 @@ impl GraphServiceActor {
             }
         }
 
-        // Bulk extend for new edges (more efficient than individual pushes)
+        
         graph_data_mut.edges.extend(new_edges);
 
-        // Update existing edges with optimized lookup
+        
         for update_edge in updated_edges {
             if let Some(existing) = graph_data_mut
                 .edges
@@ -949,7 +949,7 @@ impl GraphServiceActor {
         Ok(())
     }
 
-    /// Perform mixed batch operations (nodes, edges, removals) in a single transaction
+    
     pub fn batch_graph_update(
         &mut self,
         nodes: Vec<Node>,
@@ -965,11 +965,11 @@ impl GraphServiceActor {
             return Ok(());
         }
 
-        // Single Arc::make_mut calls for both data structures
+        
         let node_map_mut = Arc::make_mut(&mut self.node_map);
         let graph_data_mut = Arc::make_mut(&mut self.graph_data);
 
-        // Remove nodes first
+        
         for node_id in &remove_node_ids {
             node_map_mut.remove(node_id);
             graph_data_mut.nodes.retain(|n| n.id != *node_id);
@@ -979,16 +979,16 @@ impl GraphServiceActor {
             self.previous_positions.remove(node_id);
         }
 
-        // Remove edges
+        
         for edge_id in &remove_edge_ids {
             graph_data_mut.edges.retain(|e| e.id != *edge_id);
         }
 
-        // Store lengths before moving
+        
         let nodes_len = nodes.len();
         let edges_len = edges.len();
 
-        // Add nodes
+        
         for node in nodes {
             node_map_mut.insert(node.id, node.clone());
 
@@ -1001,7 +1001,7 @@ impl GraphServiceActor {
             }
         }
 
-        // Add edges
+        
         for edge in edges {
             if !graph_data_mut.edges.iter().any(|e| e.id == edge.id) {
                 graph_data_mut.edges.push(edge);
@@ -1028,7 +1028,7 @@ impl GraphServiceActor {
         Ok(())
     }
 
-    /// Add operation to queue and auto-flush if thresholds are met
+    
     pub fn queue_add_node(&mut self, node: Node) -> Result<(), String> {
         self.update_queue.add_node(node);
 
@@ -1039,7 +1039,7 @@ impl GraphServiceActor {
         Ok(())
     }
 
-    /// Add operation to queue and auto-flush if thresholds are met
+    
     pub fn queue_add_edge(&mut self, edge: Edge) -> Result<(), String> {
         self.update_queue.add_edge(edge);
 
@@ -1050,13 +1050,13 @@ impl GraphServiceActor {
         Ok(())
     }
 
-    /// Flush all pending operations from the queue
+    
     pub fn flush_update_queue(&mut self) -> Result<(), String> {
         self.flush_update_queue_internal(false)
     }
 
-    /// Internal flush implementation with auto-flush tracking
-    /// Optimized to use the more efficient batch methods directly
+    
+    
     fn flush_update_queue_internal(&mut self, is_auto_flush: bool) -> Result<(), String> {
         if self.update_queue.is_empty() {
             return Ok(());
@@ -1064,27 +1064,27 @@ impl GraphServiceActor {
 
         let start_time = std::time::Instant::now();
 
-        // Count operations for metrics
+        
         let node_count = self.update_queue.pending_nodes.len();
         let edge_count = self.update_queue.pending_edges.len();
         let _removal_count = self.update_queue.pending_node_removals.len()
             + self.update_queue.pending_edge_removals.len();
 
-        // Extract operations from queue using efficient mem::take
+        
         let nodes = std::mem::take(&mut self.update_queue.pending_nodes);
         let edges = std::mem::take(&mut self.update_queue.pending_edges);
         let remove_node_ids = std::mem::take(&mut self.update_queue.pending_node_removals);
         let remove_edge_ids = std::mem::take(&mut self.update_queue.pending_edge_removals);
 
-        // Use optimized batch methods for better performance
+        
         if !remove_node_ids.is_empty()
             || !remove_edge_ids.is_empty()
             || (!nodes.is_empty() && !edges.is_empty())
         {
-            // Use batch_graph_update for mixed operations (optimal for removals)
+            
             self.batch_graph_update(nodes, edges, remove_node_ids, remove_edge_ids)?;
         } else {
-            // Use specialized batch methods for pure additions (more efficient)
+            
             if !nodes.is_empty() {
                 self.batch_add_nodes(nodes)?;
             }
@@ -1093,7 +1093,7 @@ impl GraphServiceActor {
             }
         }
 
-        // Clear queue and update metrics
+        
         self.update_queue.clear();
 
         let duration = start_time.elapsed();
@@ -1112,7 +1112,7 @@ impl GraphServiceActor {
         Ok(())
     }
 
-    /// Configure the update queue parameters
+    
     pub fn configure_update_queue(
         &mut self,
         max_operations: usize,
@@ -1130,13 +1130,13 @@ impl GraphServiceActor {
         );
     }
 
-    /// Get current batch operation metrics
+    
     pub fn get_batch_metrics(&self) -> &BatchMetrics {
         &self.batch_metrics
     }
 
-    /// Optimized batch update with pre-allocated capacity and minimal Arc::make_mut calls
-    /// This method is designed for high-throughput data ingestion scenarios
+    
+    
     pub fn batch_update_optimized(
         &mut self,
         nodes: Vec<Node>,
@@ -1151,13 +1151,13 @@ impl GraphServiceActor {
         let edge_count = edges.len();
         let total_operations = node_count + edge_count;
 
-        // Single Arc::make_mut calls for optimal performance
+        
         let node_map_mut = Arc::make_mut(&mut self.node_map);
         let graph_data_mut = Arc::make_mut(&mut self.graph_data);
 
-        // Process nodes if present
+        
         if !nodes.is_empty() {
-            // Build existence sets for O(1) lookups
+            
             let existing_node_ids: std::collections::HashSet<u32> =
                 graph_data_mut.nodes.iter().map(|n| n.id).collect();
 
@@ -1167,10 +1167,10 @@ impl GraphServiceActor {
             for node in nodes {
                 let node_id = node.id;
 
-                // Update node_map
+                
                 node_map_mut.insert(node_id, node.clone());
 
-                // Separate new from updates
+                
                 if existing_node_ids.contains(&node_id) {
                     updated_nodes.push(node);
                 } else {
@@ -1178,7 +1178,7 @@ impl GraphServiceActor {
                 }
             }
 
-            // Bulk operations
+            
             graph_data_mut.nodes.extend(new_nodes);
             for update_node in updated_nodes {
                 if let Some(existing) = graph_data_mut
@@ -1191,9 +1191,9 @@ impl GraphServiceActor {
             }
         }
 
-        // Process edges if present
+        
         if !edges.is_empty() {
-            // Build existence set for O(1) lookups
+            
             let existing_edge_ids: std::collections::HashSet<String> =
                 graph_data_mut.edges.iter().map(|e| e.id.clone()).collect();
 
@@ -1201,7 +1201,7 @@ impl GraphServiceActor {
             let mut updated_edges = Vec::new();
 
             for edge in edges {
-                // Separate new from updates
+                
                 if existing_edge_ids.contains(&edge.id) {
                     updated_edges.push(edge);
                 } else {
@@ -1209,7 +1209,7 @@ impl GraphServiceActor {
                 }
             }
 
-            // Bulk operations
+            
             graph_data_mut.edges.extend(new_edges);
             for update_edge in updated_edges {
                 if let Some(existing) = graph_data_mut
@@ -1234,24 +1234,24 @@ impl GraphServiceActor {
         Ok(())
     }
 
-    /// High-throughput queue-based batch operations
-    /// Automatically triggers flush when queue size or time thresholds are exceeded
+    
+    
     pub fn queue_batch_operations(
         &mut self,
         nodes: Vec<Node>,
         edges: Vec<Edge>,
     ) -> Result<(), String> {
-        // Add all nodes to queue
+        
         for node in nodes {
             self.update_queue.add_node(node);
         }
 
-        // Add all edges to queue
+        
         for edge in edges {
             self.update_queue.add_edge(edge);
         }
 
-        // Check if we should auto-flush based on current configuration
+        
         if self.update_queue.should_flush(&self.queue_config) {
             self.flush_update_queue_internal(true)?;
         }
@@ -1259,8 +1259,8 @@ impl GraphServiceActor {
         Ok(())
     }
 
-    /// Force flush with performance metrics
-    /// Returns detailed performance information about the flush operation
+    
+    
     pub fn force_flush_with_metrics(
         &mut self,
     ) -> Result<(usize, usize, std::time::Duration), String> {
@@ -1274,47 +1274,47 @@ impl GraphServiceActor {
         Ok((node_count, edge_count, duration))
     }
 
-    /// Configure queue for maximum throughput
-    /// Sets optimal parameters for high-volume data ingestion
+    
+    
     pub fn configure_for_high_throughput(&mut self) {
         self.queue_config = UpdateQueueConfig {
-            max_operations: 5000,  // Higher threshold for batch operations
-            flush_interval_ms: 50, // More frequent flushes to maintain responsiveness
+            max_operations: 5000,  
+            flush_interval_ms: 50, 
             enable_auto_flush: true,
         };
         debug!("Configured queue for high-throughput mode: max_ops=5000, interval=50ms");
     }
 
-    /// Configure queue for memory conservation
-    /// Sets parameters to minimize memory usage at the cost of some throughput
+    
+    
     pub fn configure_for_memory_conservation(&mut self) {
         self.queue_config = UpdateQueueConfig {
-            max_operations: 500,    // Lower threshold to reduce memory usage
-            flush_interval_ms: 200, // Less frequent flushes to reduce overhead
+            max_operations: 500,    
+            flush_interval_ms: 200, 
             enable_auto_flush: true,
         };
         debug!("Configured queue for memory conservation: max_ops=500, interval=200ms");
     }
 
-    /// Build graph from metadata while preserving existing node positions
-    ///
-    /// This method addresses a critical issue where node positions were reset every time
-    /// BuildGraphFromMetadata was called (e.g., when clients connected). The fix ensures
-    /// that existing nodes maintain their positions across rebuilds, while new nodes
-    /// still get proper initial positions.
-    ///
-    /// # Position Preservation Strategy
-    /// 1. Save existing positions before clearing the node_map
-    /// 2. Create new nodes with generated positions
-    /// 3. Restore saved positions for nodes that existed before
-    /// 4. Allow physics simulation to continue from preserved positions
-    ///
-    /// # Args
-    /// * `metadata` - The metadata store containing file information
-    ///
-    /// # Returns
-    /// * `Ok(())` if the graph was built successfully
-    /// * `Err(String)` if there was an error during graph construction
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     pub fn build_from_metadata(
         &mut self,
         metadata: MetadataStore,
@@ -1322,14 +1322,14 @@ impl GraphServiceActor {
     ) -> Result<(), String> {
         let mut new_graph_data = GraphData::new();
 
-        // BREADCRUMB: Save existing node positions before clearing node_map
-        // This preserves positions across rebuilds, preventing position reset on client connections
+        
+        
         let mut existing_positions: HashMap<
             String,
             (crate::types::vec3::Vec3Data, crate::types::vec3::Vec3Data),
         > = HashMap::new();
 
-        // Save positions from existing nodes indexed by metadata_id
+        
         for node in self.node_map.values() {
             existing_positions.insert(
                 node.metadata_id.clone(),
@@ -1348,7 +1348,7 @@ impl GraphServiceActor {
         Arc::make_mut(&mut self.node_map).clear();
         self.semantic_features_cache.clear();
 
-        // Phase 1: Build nodes with semantic analysis
+        
         info!("Phase 1: Building nodes with semantic analysis");
         info!("Metadata contains {} entries", metadata.len());
 
@@ -1365,11 +1365,11 @@ impl GraphServiceActor {
             let mut node = Node::new_with_id(metadata_id_val.clone(), Some(node_id_val));
             node.label = file_meta_data.file_name.trim_end_matches(".md").to_string();
             node.set_file_size(file_meta_data.file_size as u64);
-            // Note: flags field not available in BinaryNodeDataClient
-            // Using node_id low bit as flag if needed: node.data.node_id |= 1;
+            
+            
 
-            // BREADCRUMB: Restore existing position if this node was previously created
-            // This ensures positions persist across BuildGraphFromMetadata calls
+            
+            
             debug!(
                 "Looking for existing position for metadata_id: '{}'",
                 metadata_id_val
@@ -1398,7 +1398,7 @@ impl GraphServiceActor {
                 );
             }
 
-            // Enhanced metadata with semantic features
+            
             node.metadata
                 .insert("fileName".to_string(), file_meta_data.file_name.clone());
             node.metadata
@@ -1430,7 +1430,7 @@ impl GraphServiceActor {
             node.metadata
                 .insert("metadataId".to_string(), metadata_id_val.clone());
 
-            // Extract semantic features
+            
             let features = self.semantic_analyzer.analyze_metadata(file_meta_data);
             self.semantic_features_cache
                 .insert(metadata_id_val, features);
@@ -1449,7 +1449,7 @@ impl GraphServiceActor {
         );
         info!("node_map now contains {} entries", self.node_map.len());
 
-        // Phase 2: Generate enhanced edges with multi-modal similarities
+        
         info!("Phase 2: Generating enhanced edges with multi-modal similarities");
         info!(
             "Semantic features cache contains {} entries",
@@ -1466,17 +1466,17 @@ impl GraphServiceActor {
         let enhanced_edges = self.edge_generator.generate(&self.semantic_features_cache);
         info!("Generated {} enhanced edges", enhanced_edges.len());
 
-        // Convert enhanced edges to basic edges and add topic-based edges
+        
         let mut edge_map: HashMap<(u32, u32), f32> = HashMap::new();
 
-        // Add semantic similarity edges
+        
         for enhanced_edge in &enhanced_edges {
             debug!(
                 "Processing enhanced edge: {} -> {} (weight: {})",
                 enhanced_edge.source, enhanced_edge.target, enhanced_edge.weight
             );
 
-            // Find node IDs from metadata IDs
+            
             if let (Some(source_node), Some(target_node)) = (
                 self.node_map
                     .values()
@@ -1490,12 +1490,12 @@ impl GraphServiceActor {
                 } else {
                     (target_node.id, source_node.id)
                 };
-                // Use semantic weight as primary, topic count as secondary
+                
                 *edge_map.entry(edge_key).or_insert(0.0) += enhanced_edge.weight;
             }
         }
 
-        // Add traditional topic-based edges (with lower weight)
+        
         for (source_filename_ext, source_meta) in &metadata {
             let source_metadata_id = source_filename_ext.trim_end_matches(".md");
             if let Some(source_node) = self
@@ -1516,7 +1516,7 @@ impl GraphServiceActor {
                             } else {
                                 (target_node.id, source_node.id)
                             };
-                            // Lower weight for topic counts to not override semantic similarity
+                            
                             *edge_map.entry(edge_key).or_insert(0.0) += (*count as f32) * 0.3;
                         }
                     }
@@ -1524,30 +1524,30 @@ impl GraphServiceActor {
             }
         }
 
-        // Create edges from the combined map
+        
         for ((source_id, target_id), weight) in edge_map {
             new_graph_data
                 .edges
                 .push(Edge::new(source_id, target_id, weight));
         }
 
-        // Phase 3: Generate initial semantic constraints from the built graph
+        
         info!("Phase 3: Generating initial semantic constraints");
 
-        // Store the graph data first so constraint generation can access it
+        
         self.graph_data = Arc::new(new_graph_data.clone());
 
-        // Generate constraints based on semantic analysis
+        
         let graph_data_clone = Arc::clone(&self.graph_data);
         self.generate_initial_semantic_constraints(&graph_data_clone, ctx);
 
-        // Phase 4: Initialize advanced GPU context if needed (async context not available in message handler)
-        // Note: Advanced GPU context initialization will be attempted on first physics step
+        
+        
         if self.gpu_compute_addr.is_none() {
             trace!("Advanced GPU context will be initialized on first physics step");
         }
 
-        // Update graph data metadata and timestamp
+        
         Arc::make_mut(&mut self.graph_data).metadata = metadata.clone();
         self.last_semantic_analysis = Some(std::time::Instant::now());
 
@@ -1558,12 +1558,12 @@ impl GraphServiceActor {
             self.constraint_set.constraints.len()
         );
 
-        // Note: GPU initialization will be handled by the message handler that calls this method
+        
 
         Ok(())
     }
 
-    /// Helper methods for the hybrid solver orchestration
+    
 
     fn prepare_node_positions(&self) -> Vec<(f32, f32, f32)> {
         self.graph_data
@@ -1575,16 +1575,16 @@ impl GraphServiceActor {
 
     fn execute_stress_majorization_step(&mut self) {
         if self.graph_data.nodes.len() < 3 {
-            return; // Skip for very small graphs
+            return; 
         }
 
-        // Skip stress majorization if GPU compute is not available
+        
         if self.gpu_compute_addr.is_none() {
             trace!("Skipping stress majorization - no GPU context available");
             return;
         }
 
-        let mut graph_data_clone = self.graph_data.as_ref().clone(); // Still need to clone here for stress solver which modifies the data
+        let mut graph_data_clone = self.graph_data.as_ref().clone(); 
 
         match self
             .stress_solver
@@ -1592,17 +1592,17 @@ impl GraphServiceActor {
         {
             Ok(result) => {
                 if result.converged || result.final_stress < f32::INFINITY {
-                    // Apply optimized positions back to main graph
+                    
                     let graph_data_mut = Arc::make_mut(&mut self.graph_data);
                     for (i, node) in graph_data_mut.nodes.iter_mut().enumerate() {
                         if let Some(optimized_node) = graph_data_clone.nodes.get(i) {
-                            // Validate positions before applying
+                            
                             let new_x = optimized_node.data.x;
                             let new_y = optimized_node.data.y;
                             let new_z = optimized_node.data.z;
 
                             if new_x.is_finite() && new_y.is_finite() && new_z.is_finite() {
-                                // Calculate displacement for safety clamping
+                                
                                 let old_pos = Vec3Data::new(node.data.x, node.data.y, node.data.z);
                                 let displacement_x = new_x - old_pos.x;
                                 let displacement_y = new_y - old_pos.y;
@@ -1612,14 +1612,14 @@ impl GraphServiceActor {
                                     + displacement_z * displacement_z)
                                     .sqrt();
 
-                                // Calculate layout extent for displacement clamping (5% max displacement)
+                                
                                 let layout_extent =
                                     self.simulation_params.viewport_bounds.max(1000.0);
                                 let max_displacement = layout_extent * 0.05;
 
                                 let (final_x, final_y, final_z) =
                                     if displacement_magnitude > max_displacement {
-                                        // Clamp displacement to safe range
+                                        
                                         let scale = max_displacement / displacement_magnitude;
                                         (
                                             old_pos.x + displacement_x * scale,
@@ -1630,7 +1630,7 @@ impl GraphServiceActor {
                                         (new_x, new_y, new_z)
                                     };
 
-                                // Apply boundary constraints with bounded AABB domain
+                                
                                 if self.simulation_params.enable_bounds
                                     && self.simulation_params.viewport_bounds > 0.0
                                 {
@@ -1639,7 +1639,7 @@ impl GraphServiceActor {
                                     node.data.y = final_y.clamp(-boundary_limit, boundary_limit);
                                     node.data.z = final_z.clamp(-boundary_limit, boundary_limit);
                                 } else {
-                                    // Apply default AABB bounds to prevent position explosions
+                                    
                                     let default_bound = 10000.0;
                                     node.data.x = final_x.clamp(-default_bound, default_bound);
                                     node.data.y = final_y.clamp(-default_bound, default_bound);
@@ -1652,12 +1652,12 @@ impl GraphServiceActor {
                         }
                     }
 
-                    // Update node_map as well with validated positions
+                    
                     for node in &graph_data_mut.nodes {
                         if let Some(node_in_map) =
                             Arc::make_mut(&mut self.node_map).get_mut(&node.id)
                         {
-                            // Use the already validated and clamped positions
+                            
                             node_in_map.data.x = node.data.x;
                             node_in_map.data.y = node.data.y;
                             node_in_map.data.z = node.data.z;
@@ -1678,19 +1678,19 @@ impl GraphServiceActor {
     }
 
     fn update_dynamic_constraints(&mut self, ctx: &mut Context<Self>) {
-        // Update dynamic constraints based on semantic analysis
+        
         trace!("Updating dynamic constraints based on semantic analysis");
 
-        // Only update if we have recent semantic analysis
+        
         if self.last_semantic_analysis.is_none() {
             return;
         }
 
-        // Clear dynamic constraints (keep manually added ones)
+        
         self.constraint_set
             .set_group_active("semantic_dynamic", false);
 
-        // Generate new semantic constraints
+        
         if let Ok(constraints) = self.generate_dynamic_semantic_constraints() {
             let constraint_count = constraints.len();
             for constraint in constraints {
@@ -1702,7 +1702,7 @@ impl GraphServiceActor {
             trace!("Failed to generate dynamic semantic constraints");
         }
 
-        // Re-cluster nodes based on current positions and semantic features
+        
         if let Ok(clustering_constraints) = self.generate_clustering_constraints() {
             self.constraint_set
                 .set_group_active("clustering_dynamic", false);
@@ -1719,7 +1719,7 @@ impl GraphServiceActor {
             trace!("Failed to generate dynamic clustering constraints");
         }
 
-        // Upload updated constraints to GPU
+        
         self.upload_constraints_to_gpu(ctx);
     }
 
@@ -1728,7 +1728,7 @@ impl GraphServiceActor {
         graph_data: &std::sync::Arc<GraphData>,
         ctx: &mut Context<Self>,
     ) {
-        // Generate domain-based clustering constraints from semantic analysis
+        
         let mut domain_clusters: HashMap<String, Vec<u32>> = HashMap::new();
 
         for node in &graph_data.nodes {
@@ -1743,24 +1743,24 @@ impl GraphServiceActor {
             }
         }
 
-        // Clear existing initial constraints
+        
         self.constraint_set
             .set_group_active("domain_clustering", false);
 
-        // Create clustering constraints for domains with multiple files
+        
         for (domain, node_ids) in domain_clusters {
             if node_ids.len() >= 2 {
                 let cluster_constraint = Constraint::cluster(
                     node_ids,
-                    domain.len() as f32, // Use domain as cluster ID
-                    0.6,                 // Medium clustering strength
+                    domain.len() as f32, 
+                    0.6,                 
                 );
                 self.constraint_set
                     .add_to_group("domain_clustering", cluster_constraint);
             }
         }
 
-        // Upload constraints to GPU if available
+        
         self.upload_constraints_to_gpu(ctx);
 
         info!(
@@ -1774,7 +1774,7 @@ impl GraphServiceActor {
     ) -> Result<Vec<Constraint>, Box<dyn std::error::Error>> {
         let mut constraints = Vec::new();
 
-        // Create separation constraints for high-importance nodes
+        
         let high_importance_nodes: Vec<_> = self
             .semantic_features_cache
             .iter()
@@ -1792,7 +1792,7 @@ impl GraphServiceActor {
                 let constraint = Constraint::separation(
                     high_importance_nodes[i],
                     high_importance_nodes[j],
-                    100.0, // Minimum separation for important nodes
+                    100.0, 
                 );
                 constraints.push(constraint);
             }
@@ -1806,7 +1806,7 @@ impl GraphServiceActor {
     ) -> Result<Vec<Constraint>, Box<dyn std::error::Error>> {
         let mut constraints = Vec::new();
 
-        // Group nodes by file type
+        
         let mut type_clusters: HashMap<String, Vec<u32>> = HashMap::new();
 
         for node in &self.graph_data.nodes {
@@ -1818,13 +1818,13 @@ impl GraphServiceActor {
             }
         }
 
-        // Create clustering constraints for each file type
+        
         for (file_type, node_ids) in type_clusters {
             if node_ids.len() >= 2 {
                 let constraint = Constraint::cluster(
                     node_ids,
-                    file_type.len() as f32, // Use type length as cluster ID
-                    0.4,                    // Moderate clustering strength
+                    file_type.len() as f32, 
+                    0.4,                    
                 );
                 constraints.push(constraint);
             }
@@ -1833,10 +1833,10 @@ impl GraphServiceActor {
         Ok(constraints)
     }
 
-    /// Upload current constraints to GPU via ForceComputeActor
+    
     fn upload_constraints_to_gpu(&mut self, ctx: &mut Context<Self>) {
         if let Some(ref gpu_addr) = self.gpu_compute_addr {
-            // Convert constraints to GPU format
+            
             let active_constraints = self.constraint_set.active_constraints();
             let constraint_data: Vec<crate::models::constraints::ConstraintData> =
                 active_constraints
@@ -1844,7 +1844,7 @@ impl GraphServiceActor {
                     .map(|c| c.to_gpu_format())
                     .collect();
 
-            // Send constraints to ForceComputeActor
+            
             let upload_msg = crate::actors::messages::UploadConstraintsToGPU {
                 constraint_data: constraint_data.clone(),
             };
@@ -1868,7 +1868,7 @@ impl GraphServiceActor {
         }
     }
 
-    /// Handle control frames for constraint updates
+    
     pub fn handle_constraint_update(
         &mut self,
         constraint_data: serde_json::Value,
@@ -1920,7 +1920,7 @@ impl GraphServiceActor {
                 if let Some(enabled) = constraint_data.get("enabled").and_then(|v| v.as_bool()) {
                     self.advanced_params.hierarchical_mode = enabled;
                     if enabled {
-                        // Add hierarchical constraints based on directory structure
+                        
                         self.generate_hierarchical_constraints();
                     }
                     info!("Set hierarchical mode: {}", enabled);
@@ -1935,14 +1935,14 @@ impl GraphServiceActor {
             }
         }
 
-        // Upload updated constraints to GPU after any modification
+        
         self.upload_constraints_to_gpu(ctx);
 
         Ok(())
     }
 
     fn generate_hierarchical_constraints(&mut self) {
-        // Create layer constraints based on directory depth
+        
         let mut depth_layers: HashMap<u32, Vec<u32>> = HashMap::new();
 
         for node in &self.graph_data.nodes {
@@ -1954,7 +1954,7 @@ impl GraphServiceActor {
             }
         }
 
-        // Create alignment constraints for each depth layer
+        
         for (depth, node_ids) in &depth_layers {
             if node_ids.len() >= 2 {
                 let z_position = -(*depth as f32) * self.advanced_params.layer_separation;
@@ -1976,7 +1976,7 @@ impl GraphServiceActor {
         );
     }
 
-    /// Helper method to detect spatial hashing effectiveness issues
+    
     fn detect_spatial_hashing_issues(
         &self,
         positions: &[(f32, f32, f32)],
@@ -1986,17 +1986,17 @@ impl GraphServiceActor {
             return (false, 1.0);
         }
 
-        let current_grid_cell_size = self.simulation_params.max_repulsion_dist; // Used as grid_cell_size proxy
+        let current_grid_cell_size = self.simulation_params.max_repulsion_dist; 
         let mut clustering_detected = false;
         let mut efficiency_score = 1.0;
 
-        // Calculate average inter-node distance to assess grid efficiency
+        
         let mut total_distance = 0.0f32;
         let mut distance_count = 0;
 
         for i in 0..positions.len() {
             for j in i + 1..std::cmp::min(i + 10, positions.len()) {
-                // Sample to avoid O(n²) complexity
+                
                 let pos1 = positions[i];
                 let pos2 = positions[j];
                 let dist = ((pos1.0 - pos2.0).powi(2)
@@ -2014,13 +2014,13 @@ impl GraphServiceActor {
             1.0
         };
 
-        // If average distance is much smaller than grid cell size, we have clustering issues
+        
         if avg_distance < current_grid_cell_size * 0.5 {
             clustering_detected = true;
             efficiency_score = avg_distance / current_grid_cell_size;
         }
 
-        // Check for excessive clustering (too many nodes in small areas)
+        
         let cluster_density = positions.len() as f32 / (avg_distance * avg_distance);
         if cluster_density > config.cluster_density_threshold {
             clustering_detected = true;
@@ -2030,23 +2030,23 @@ impl GraphServiceActor {
         (clustering_detected, efficiency_score)
     }
 
-    /// Helper method to detect numerical instability
+    
     fn detect_numerical_instability(
         &self,
         positions: &[(f32, f32, f32)],
         config: &AutoBalanceConfig,
     ) -> bool {
-        // Check for NaN or infinite positions
+        
         for &(x, y, z) in positions {
             if !x.is_finite() || !y.is_finite() || !z.is_finite() {
                 return true;
             }
         }
 
-        // Check for excessive velocities in kinetic energy history
+        
         if let Some(&recent_ke) = self.kinetic_energy_history.last() {
             if recent_ke > config.numerical_instability_threshold {
-                // Check if kinetic energy is growing exponentially
+                
                 if self.kinetic_energy_history.len() >= 5 {
                     let last_5: Vec<f32> = self
                         .kinetic_energy_history
@@ -2066,17 +2066,17 @@ impl GraphServiceActor {
         false
     }
 
-    // Helper method to calculate adaptive max_pending_broadcasts based on node count
+    
     fn calculate_adaptive_max_pending_broadcasts(&self) -> u32 {
         let node_count = self.node_map.len();
         match node_count {
-            0..=999 => 10,    // < 1000 nodes: max 10 pending
-            1000..=9999 => 5, // 1000-10000 nodes: max 5 pending
-            _ => 3,           // > 10000 nodes: max 3 pending
+            0..=999 => 10,    
+            1000..=9999 => 5, 
+            _ => 3,           
         }
     }
 
-    // Method to handle broadcast acknowledgments from clients
+    
     pub fn acknowledge_broadcast(&mut self) {
         if self.pending_broadcasts > 0 {
             self.pending_broadcasts -= 1;
@@ -2087,7 +2087,7 @@ impl GraphServiceActor {
         }
     }
 
-    // Method to get backpressure metrics for monitoring
+    
     pub fn get_backpressure_metrics(&self) -> (u32, u32, u32) {
         (
             self.pending_broadcasts,
@@ -2097,8 +2097,8 @@ impl GraphServiceActor {
     }
 
     pub fn update_node_positions(&mut self, positions: Vec<(u32, BinaryNodeData)>) {
-        // CRITICAL FIX: Skip position updates if physics is paused
-        // This prevents the graph from jumping when it's in a settled/stable state
+        
+        
         if self.simulation_params.is_physics_paused {
             debug!(
                 "Physics is paused, skipping position update for {} nodes",
@@ -2107,25 +2107,25 @@ impl GraphServiceActor {
             return;
         }
 
-        // Update adaptive max_pending_broadcasts based on current node count
+        
         self.max_pending_broadcasts = self.calculate_adaptive_max_pending_broadcasts();
 
         let mut updated_count = 0;
         let graph_data_mut = Arc::make_mut(&mut self.graph_data);
 
         for (node_id, mut position_data) in positions {
-            // CRITICAL FIX: Validate and clamp positions to prevent extreme values
-            // This prevents z-axis from going to -99.99 or other boundary issues
+            
+            
             const MAX_COORD: f32 = 500.0;
             const MIN_Z: f32 = -50.0;
             const MAX_Z: f32 = 50.0;
 
-            // Clamp positions to reasonable bounds
+            
             position_data.x = position_data.x.clamp(-MAX_COORD, MAX_COORD);
             position_data.y = position_data.y.clamp(-MAX_COORD, MAX_COORD);
             position_data.z = position_data.z.clamp(MIN_Z, MAX_Z);
 
-            // Detect and warn about extreme positions
+            
             if position_data.z.abs() > 45.0 {
                 debug!(
                     "Node {} has extreme z position: {}, clamped to range [{}, {}]",
@@ -2133,7 +2133,7 @@ impl GraphServiceActor {
                 );
             }
 
-            // Update in node_map
+            
             if let Some(node) = Arc::make_mut(&mut self.node_map).get_mut(&node_id) {
                 node.data.x = position_data.x;
                 node.data.y = position_data.y;
@@ -2144,7 +2144,7 @@ impl GraphServiceActor {
                 updated_count += 1;
             }
 
-            // Update in graph_data.nodes
+            
             if let Some(node) = graph_data_mut.nodes.iter_mut().find(|n| n.id == node_id) {
                 node.data.x = position_data.x;
                 node.data.y = position_data.y;
@@ -2155,9 +2155,9 @@ impl GraphServiceActor {
             }
         }
 
-        // Position sampling disabled to reduce log volume
+        
 
-        // Check for extreme positions, boundary nodes, and calculate metrics including kinetic energy
+        
         let config = &self.simulation_params.auto_balance_config;
         let mut extreme_count = 0;
         let mut boundary_nodes = 0;
@@ -2177,22 +2177,22 @@ impl GraphServiceActor {
             total_distance += dist;
             positions.push(dist);
 
-            // Calculate kinetic energy: KE = 0.5 * mass * velocity^2
-            // Assuming unit mass for simplicity (mass = 1)
+            
+            
             let velocity_squared = node.data.vx * node.data.vx
                 + node.data.vy * node.data.vy
                 + node.data.vz * node.data.vz;
             total_kinetic_energy += 0.5 * velocity_squared;
 
-            // FIXED: Percentage-based boundary detection relative to viewport_bounds
+            
             let viewport_bounds = self.simulation_params.viewport_bounds;
-            let boundary_min_threshold = viewport_bounds * (config.boundary_min_distance / 100.0); // 90% of bounds
-            let boundary_max_threshold = viewport_bounds * (config.boundary_max_distance / 100.0); // 100% of bounds
+            let boundary_min_threshold = viewport_bounds * (config.boundary_min_distance / 100.0); 
+            let boundary_max_threshold = viewport_bounds * (config.boundary_max_distance / 100.0); 
 
             if dist > config.extreme_distance_threshold {
                 extreme_count += 1;
             } else if dist >= boundary_min_threshold && dist <= boundary_max_threshold {
-                // Count nodes at boundary using percentage of viewport_bounds
+                
                 boundary_nodes += 1;
             }
         }
@@ -2203,14 +2203,14 @@ impl GraphServiceActor {
             0.0
         };
 
-        // Auto-pause equilibrium detection
+        
         self.check_and_handle_equilibrium(total_kinetic_energy, self.node_map.len());
 
-        // IMPROVED Auto-balance system with hysteresis, cooldown, and gradual adjustments
-        // Fixed oscillation issues with dampening and state tracking
+        
+        
         if self.simulation_params.auto_balance {
-            // CRITICAL FIX: Skip auto-balance if graph is already settled/stable
-            // This prevents the graph from jumping after it has settled
+            
+            
             if self.stable_count > 30 {
                 debug!(
                     "Graph is stable (stable_count: {}), skipping auto-balance",
@@ -2219,7 +2219,7 @@ impl GraphServiceActor {
                 return;
             }
 
-            // Normalize kinetic energy by number of nodes
+            
             let avg_kinetic_energy = if !self.node_map.is_empty() {
                 total_kinetic_energy / self.node_map.len() as f32
             } else {
@@ -2232,42 +2232,42 @@ impl GraphServiceActor {
                       extreme_count, self.node_map.len());
             }
 
-            // Track history for minima detection
+            
             self.auto_balance_history.push(max_distance);
             if self.auto_balance_history.len() > 60 {
                 self.auto_balance_history.remove(0);
             }
 
-            // Track kinetic energy history
+            
             self.kinetic_energy_history.push(avg_kinetic_energy);
             if self.kinetic_energy_history.len() > 60 {
                 self.kinetic_energy_history.remove(0);
             }
 
-            // Check cooldown periods to prevent rapid adjustments
+            
             let now = std::time::Instant::now();
             let config = &self.simulation_params.auto_balance_config;
 
-            // Check if enough time has passed since last adjustment
+            
             let adjustment_cooldown_duration =
                 std::time::Duration::from_millis(config.adjustment_cooldown_ms);
             let time_since_last_adjustment = now.duration_since(self.last_adjustment_time);
 
             if time_since_last_adjustment >= adjustment_cooldown_duration {
-                // Prepare position data for advanced analysis
+                
                 let position_data: Vec<(f32, f32, f32)> = self
                     .node_map
                     .values()
                     .map(|node| (node.data.x, node.data.y, node.data.z))
                     .collect();
 
-                // Detect spatial hashing issues and numerical instability
+                
                 let (_has_spatial_issues, _efficiency_score) =
                     self.detect_spatial_hashing_issues(&position_data, config);
                 let has_numerical_instability =
                     self.detect_numerical_instability(&position_data, config);
 
-                // Determine current state with hysteresis bands to prevent rapid switching
+                
                 let new_state = self.determine_auto_balance_state(
                     max_distance,
                     boundary_nodes,
@@ -2277,11 +2277,11 @@ impl GraphServiceActor {
                     config,
                 );
 
-                // Check for stability (equilibrium detection)
+                
                 let is_stable = if self.auto_balance_history.len() >= 30
                     && self.kinetic_energy_history.len() >= 30
                 {
-                    // Check position variance
+                    
                     let recent_avg = self.auto_balance_history
                         [self.auto_balance_history.len() - 30..]
                         .iter()
@@ -2294,7 +2294,7 @@ impl GraphServiceActor {
                         .sum::<f32>()
                         / 30.0;
 
-                    // Check kinetic energy (should be low for stable state)
+                    
                     let recent_ke = self.kinetic_energy_history
                         [self.kinetic_energy_history.len() - 30..]
                         .iter()
@@ -2307,9 +2307,9 @@ impl GraphServiceActor {
                         .sum::<f32>()
                         / 30.0;
 
-                    // System is stable if both position variance is low AND kinetic energy is low
-                    let ke_threshold = 0.01; // Low kinetic energy threshold
-                    let ke_variance_threshold = 0.001; // Very low KE variance threshold
+                    
+                    let ke_threshold = 0.01; 
+                    let ke_variance_threshold = 0.001; 
                     position_variance < config.stability_variance_threshold
                         && recent_ke < ke_threshold
                         && ke_variance < ke_variance_threshold
@@ -2317,40 +2317,40 @@ impl GraphServiceActor {
                     false
                 };
 
-                // Apply gradual adjustments based on current state
+                
                 let new_state_clone = new_state.clone();
                 if new_state != self.current_state || new_state != AutoBalanceState::Stable {
-                    // TODO: Fix borrow checker issue with apply_gradual_adjustment
-                    // let adjustment_made = self.apply_gradual_adjustment(new_state, config);
+                    
+                    
 
                     info!("[AUTO-BALANCE] State transition: {:?} -> {:?} (max_distance: {:.1}, boundary: {}/{})",
                           self.current_state, new_state_clone, max_distance, boundary_nodes, self.node_map.len());
                 }
 
-                // Handle stability detection (for UI updates)
+                
                 if is_stable && new_state_clone == AutoBalanceState::Stable {
-                    // We've found a stable minima
+                    
                     self.stable_count += 1;
 
-                    // After being stable for configured frames, update UI and save
+                    
                     if self.stable_count == config.stability_frame_count {
                         info!("[AUTO-BALANCE] Stable equilibrium found at {:.1} units - updating UI sliders", max_distance);
 
-                        // Send success notification to client
+                        
                         self.send_auto_balance_notification(
                             "Auto-Balance: Stable equilibrium achieved!",
                         );
 
-                        // Update UI sliders and potentially save to settings.yaml
+                        
                         self.notify_settings_update();
 
-                        // Reset stability counter to avoid repeated updates
-                        self.stable_count = 181; // Set to a value that prevents repeated notifications
+                        
+                        self.stable_count = 181; 
                     } else if self.stable_count < 180 {
                         debug!("[AUTO-BALANCE] Stability detected for {} frames (need 180 for UI update)", self.stable_count);
                     }
                 } else {
-                    // Not stable yet, reset counter
+                    
                     if self.stable_count > 0 && self.stable_count < 180 {
                         debug!(
                             "[AUTO-BALANCE] Lost stability after {} frames",
@@ -2362,16 +2362,16 @@ impl GraphServiceActor {
             }
         }
 
-        // FIXED: Broadcast position updates to WebSocket clients
-        // This was the critical missing piece causing the settling issue
+        
+        
 
-        // Check if we should broadcast positions (avoid spam during stable periods)
+        
         let now = std::time::Instant::now();
         let should_broadcast = if let Some(last_time) = self.last_broadcast_time {
-            // During stable/settled periods, reduce broadcast frequency to save bandwidth
-            // But still broadcast occasionally to ensure clients stay updated
-            let stable_broadcast_interval = std::time::Duration::from_millis(1000); // 1 second during stable
-            let active_broadcast_interval = std::time::Duration::from_millis(50); // 20Hz during active
+            
+            
+            let stable_broadcast_interval = std::time::Duration::from_millis(1000); 
+            let active_broadcast_interval = std::time::Duration::from_millis(50); 
 
             let is_stable =
                 self.current_state == AutoBalanceState::Stable && self.stable_count > 30;
@@ -2383,24 +2383,24 @@ impl GraphServiceActor {
 
             now.duration_since(last_time) >= required_interval
         } else {
-            // First broadcast or no previous broadcast time
+            
             true
         };
 
-        // CRITICAL FIX: Always broadcast if we haven't sent initial positions to clients
-        // This ensures new clients get data immediately regardless of settled state
+        
+        
         let force_broadcast = !self.initial_positions_sent;
 
         if should_broadcast || force_broadcast {
-            // Check backpressure - skip broadcast if too many pending
+            
             let backpressure_active =
                 self.pending_broadcasts > self.max_pending_broadcasts && !force_broadcast;
 
             if backpressure_active {
-                // Skip broadcast due to backpressure
+                
                 self.broadcast_skip_count += 1;
 
-                // Log warning every 5 seconds to avoid spam
+                
                 let should_warn = if let Some(last_warning) = self.last_backpressure_warning {
                     now.duration_since(last_warning) >= std::time::Duration::from_secs(5)
                 } else {
@@ -2413,16 +2413,16 @@ impl GraphServiceActor {
                     self.last_backpressure_warning = Some(now);
                 }
 
-                return; // Skip this broadcast
+                return; 
             }
 
-            // Create binary position data for BOTH knowledge graph AND agent graph
-            // Per dual-graph architecture: both types broadcast together with type flags
+            
+            
             let mut position_data: Vec<(u32, BinaryNodeData)> = Vec::new();
             let mut knowledge_ids: Vec<u32> = Vec::new();
             let mut agent_ids: Vec<u32> = Vec::new();
 
-            // Collect knowledge graph nodes (from main graph)
+            
             for (node_id, node) in self.node_map.iter() {
                 position_data.push((
                     *node_id,
@@ -2431,8 +2431,8 @@ impl GraphServiceActor {
                 knowledge_ids.push(*node_id);
             }
 
-            // ALSO collect agent graph nodes (from bots_graph_data)
-            // This ensures both graphs are broadcast together in one unified message
+            
+            
             for node in &self.bots_graph_data.nodes {
                 position_data.push((
                     node.id,
@@ -2445,26 +2445,26 @@ impl GraphServiceActor {
                 agent_ids.push(node.id);
             }
 
-            // Broadcast to all connected clients via client manager
+            
             if !position_data.is_empty() {
-                // Encode with proper type flags: KNOWLEDGE_NODE_FLAG and AGENT_NODE_FLAG
-                // Client will separate them by checking flags
+                
+                
                 let binary_data = crate::utils::binary_protocol::encode_node_data_with_types(
                     &position_data,
                     &agent_ids,
                     &knowledge_ids,
                 );
 
-                // Send to client manager for broadcasting
+                
                 self.client_manager
                     .do_send(crate::actors::messages::BroadcastNodePositions {
                         positions: binary_data,
                     });
 
-                // Increment pending broadcasts counter for backpressure tracking
+                
                 self.pending_broadcasts += 1;
 
-                // Update broadcast time and mark initial positions as sent
+                
                 self.last_broadcast_time = Some(now);
                 if !self.initial_positions_sent {
                     self.initial_positions_sent = true;
@@ -2487,11 +2487,11 @@ impl GraphServiceActor {
 
         debug!("Updated positions for {} nodes", updated_count);
 
-        // REMOVED: Immediate GPU broadcast section
-        // This was causing dual-graph conflicts by broadcasting knowledge nodes separately
-        // without type flags, conflicting with the unified dual-graph broadcast above.
-        // The unified broadcast (lines 2087-2150) already handles both knowledge and agent
-        // graphs with proper type flags at 16ms intervals, making this redundant and harmful.
+        
+        
+        
+        
+        
     }
 
     fn start_simulation_loop(&mut self, ctx: &mut Context<Self>) {
@@ -2505,9 +2505,9 @@ impl GraphServiceActor {
             info!("Starting physics simulation loop");
         }
 
-        // Defer interval scheduling to ensure proper runtime context
+        
         ctx.run_later(Duration::from_millis(100), |actor, ctx| {
-            // Now start the simulation interval from within the actor's execution context
+            
             ctx.run_interval(Duration::from_millis(16), move |actor_ref, ctx_ref| {
                 if !actor_ref.simulation_running.load(Ordering::SeqCst) {
                     return;
@@ -2519,50 +2519,50 @@ impl GraphServiceActor {
     }
 
     fn run_simulation_step(&mut self, ctx: &mut Context<Self>) {
-        // Check if GPU is ready before running physics
+        
         if !self.gpu_initialized && self.gpu_compute_addr.is_some() {
-            // GPU is expected but not yet initialized - skip physics
+            
             if self.gpu_init_in_progress {
-                // Silently skip - we're already waiting for initialization
+                
                 return;
             }
             warn!("Skipping physics simulation - waiting for GPU initialization");
             return;
         }
 
-        // Apply smooth parameter transitions if auto-balance is enabled
-        // Fixed oscillation issues with improved dampening
+        
+        
         if self.simulation_params.auto_balance {
             self.smooth_transition_params();
         }
 
-        // Increment counters for periodic operations
+        
         self.stress_step_counter += 1;
         self.constraint_update_counter += 1;
 
-        // Execute periodic stress-majorization projection
-        // DISABLED: Causing node jumps every few seconds
-        // if self.stress_step_counter >= self.advanced_params.stress_step_interval_frames {
-        //     self.execute_stress_majorization_step();
-        //     self.stress_step_counter = 0;
-        // }
+        
+        
+        
+        
+        
+        
 
-        // Update constraints periodically based on semantic analysis
-        // DISABLED: Causing node jumps every 2 seconds
-        // if self.constraint_update_counter >= 120 { // Every 2 seconds at 60 FPS
-        //     self.update_dynamic_constraints();
-        //     self.constraint_update_counter = 0;
-        // }
+        
+        
+        
+        
+        
+        
 
-        // Initialize advanced GPU context if needed
+        
         if self.gpu_compute_addr.is_none()
             && !self.gpu_init_in_progress
             && !self.graph_data.nodes.is_empty()
         {
-            // Mark initialization as in progress
+            
             self.gpu_init_in_progress = true;
 
-            // Attempt to initialize advanced GPU context
+            
             let graph_data_clone = Arc::clone(&self.graph_data);
 
             ctx.run_later(Duration::from_secs(2), |actor, ctx| {
@@ -2573,7 +2573,7 @@ impl GraphServiceActor {
                     async move {
                         info!("Starting GPU initialization...");
 
-                        // Enhanced PTX loading with proper fallback logic
+                        
                         let ptx_content = match crate::utils::ptx::load_ptx().await {
                             Ok(content) => {
                                 info!("PTX content loaded successfully");
@@ -2582,13 +2582,13 @@ impl GraphServiceActor {
                             Err(e) => {
                                 error!("Failed to load PTX content: {}", e);
                                 error!("PTX load error details: {:?}", e);
-                                // Reset the init flag so we can retry
+                                
                                 self_addr.do_send(ResetGPUInitFlag {});
                                 return;
                             }
                         };
 
-                        // For CSR format, each undirected edge becomes 2 directed edges
+                        
                         let num_directed_edges = graph_data_clone.edges.len() * 2;
                         info!("Creating UnifiedGPUCompute with {} nodes and {} directed edges (from {} undirected edges)",
                               graph_data_clone.nodes.len(), num_directed_edges, graph_data_clone.edges.len());
@@ -2603,7 +2603,7 @@ impl GraphServiceActor {
                                 info!("✅ Successfully initialized advanced GPU context with {} nodes and {} edges",
                                       graph_data_clone.nodes.len(), num_directed_edges);
                                 info!("GPU physics simulation is now active for knowledge graph");
-                                // GPU context now managed by ForceComputeActor, no need to store locally
+                                
                             }
                             Err(e) => {
                                 error!("❌ Failed to initialize advanced GPU context: {}", e);
@@ -2615,7 +2615,7 @@ impl GraphServiceActor {
                                 );
                                 error!("Full error: {:?}", e);
 
-                                // Log specific error details
+                                
                                 let error_str = e.to_string();
                                 if error_str.contains("PTX") {
                                     error!("PTX compilation or loading issue detected");
@@ -2625,7 +2625,7 @@ impl GraphServiceActor {
                                     error!("CUDA device issue - check GPU availability");
                                 }
 
-                                // Reset the flag on failure so we can retry later
+                                
                                 self_addr.do_send(ResetGPUInitFlag {});
                             }
                         }
@@ -2635,31 +2635,31 @@ impl GraphServiceActor {
             });
         }
 
-        // Use advanced GPU compute only - legacy path removed
+        
         if self.gpu_compute_addr.is_some() && self.gpu_initialized {
             self.run_advanced_gpu_step(ctx);
         } else if self.gpu_compute_addr.is_none() {
             warn!("No GPU compute context available for physics simulation");
         }
-        // If GPU is expected but not initialized, we already returned above
+        
     }
 
     fn run_advanced_gpu_step(&mut self, ctx: &mut Context<Self>) {
-        // Only log physics step execution when debug is enabled
-        // DISABLED: This was logging every 16ms causing log flooding and crashes
-        // if crate::utils::logging::is_debug_enabled() {
-        //     info!("[GPU STEP] === Starting physics simulation step ===");
-        //     info!("[GPU STEP] Current physics parameters:");
-        //     info!("  - repel_k: {} (node spreading force)", self.simulation_params.repel_k);
-        //     info!("  - damping: {:.3} (velocity reduction, 1.0 = frozen)", self.simulation_params.damping);
-        //     info!("  - dt: {:.3} (simulation speed)", self.simulation_params.dt);
-        //     info!("  - spring_k: {:.3} (edge tension)", self.simulation_params.spring_k);
-        //     info!("  - spring_k: {:.3} (unused - for future clustering)", self.simulation_params.spring_k);
-        //     info!("  - center_gravity_k: {:.3} (center pull force)", self.simulation_params.center_gravity_k);
-        //     info!("  - max_velocity: {:.3} (explosion prevention)", self.simulation_params.max_velocity);
-        //     info!("  - enabled: {} (is physics on?)", self.simulation_params.enabled);
-        //     info!("  - auto_balance: {} (auto-tuning enabled?)", self.simulation_params.auto_balance);
-        // }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
         if !self.simulation_params.enabled {
             if crate::utils::logging::is_debug_enabled() {
@@ -2668,7 +2668,7 @@ impl GraphServiceActor {
             return;
         }
 
-        // Check if physics is paused due to equilibrium
+        
         if self.simulation_params.is_physics_paused {
             if crate::utils::logging::is_debug_enabled() {
                 trace!("[GPU STEP] Physics paused (equilibrium reached) - skipping simulation");
@@ -2676,11 +2676,11 @@ impl GraphServiceActor {
             return;
         }
 
-        // Physics parameters loaded
+        
 
-        // Delegate GPU computation to ForceComputeActor
+        
         if let Some(ref _gpu_addr) = self.gpu_compute_addr {
-            // Send ComputeForces message to ForceComputeActor
+            
             let gpu_addr_clone = _gpu_addr.clone();
             let ctx_addr = Context::address(ctx).recipient();
 
@@ -2691,13 +2691,13 @@ impl GraphServiceActor {
                         .await
                     {
                         Ok(Ok(())) => {
-                            // GPU computation successful, now get the updated node data
+                            
                             match gpu_addr_clone
                                 .send(crate::actors::messages::GetNodeData)
                                 .await
                             {
                                 Ok(Ok(node_data)) => {
-                                    // Send positions back to GraphServiceActor for processing
+                                    
                                     let update_msg = crate::actors::messages::UpdateNodePositions {
                                         positions: node_data
                                             .iter()
@@ -2718,22 +2718,22 @@ impl GraphServiceActor {
                 .into_actor(self),
             );
 
-            // Return early - the async block will handle position updates
+            
             return;
         }
 
-        // No GPU compute actor available - skip GPU computation
+        
         trace!("No GPU compute actor available for physics simulation");
     }
-    // Legacy GPU step removed - only advanced GPU compute is supported
-    // All physics computation uses the unified GPU kernel
+    
+    
 
-    /// Update advanced physics parameters
+    
     pub fn update_advanced_physics_params(&mut self, params: AdvancedParams) -> Result<(), String> {
         self.advanced_params = params.clone();
         self.stress_solver = StressMajorizationSolver::from_advanced_params(&params);
 
-        // Update GPU parameters via ForceComputeActor
+        
         if let Some(ref gpu_addr) = self.gpu_compute_addr {
             let update_msg = crate::actors::messages::UpdateSimulationParams {
                 params: self.simulation_params.clone(),
@@ -2745,34 +2745,34 @@ impl GraphServiceActor {
         Ok(())
     }
 
-    /// Get current constraint set (read-only access)
+    
     pub fn get_constraint_set(&self) -> &ConstraintSet {
         &self.constraint_set
     }
 
-    /// Manually trigger stress majorization optimization
+    
     pub fn trigger_stress_optimization(&mut self) -> Result<(), String> {
         self.execute_stress_majorization_step();
         info!("Manually triggered stress majorization via public API");
         Ok(())
     }
 
-    /// Check if advanced GPU context is available
+    
     pub fn has_advanced_gpu(&self) -> bool {
         self.gpu_compute_addr.is_some()
     }
 
-    /// Get semantic analysis status
+    
     pub fn get_semantic_analysis_status(&self) -> (usize, Option<std::time::Duration>) {
         let feature_count = self.semantic_features_cache.len();
         let age = self.last_semantic_analysis.map(|t| t.elapsed());
         (feature_count, age)
     }
 
-    /// Calculate Communication Intensity between two agents based on:
-    /// - Agent types and their collaboration patterns
-    /// - Activity levels (active tasks)
-    /// - Performance metrics (success rates)
+    
+    
+    
+    
     fn calculate_communication_intensity(
         &self,
         source_type: &crate::types::claude_flow::AgentType,
@@ -2782,13 +2782,13 @@ impl GraphServiceActor {
         source_success_rate: f32,
         target_success_rate: f32,
     ) -> f32 {
-        // Base communication intensity based on agent type relationships
+        
         let base_intensity = match (source_type, target_type) {
-            // Coordinator has high communication with all agent types
+            
             (crate::types::claude_flow::AgentType::Coordinator, _)
             | (_, crate::types::claude_flow::AgentType::Coordinator) => 0.9,
 
-            // High collaboration pairs
+            
             (
                 crate::types::claude_flow::AgentType::Coder,
                 crate::types::claude_flow::AgentType::Tester,
@@ -2816,7 +2816,7 @@ impl GraphServiceActor {
                 crate::types::claude_flow::AgentType::Architect,
             ) => 0.7,
 
-            // Medium collaboration pairs
+            
             (
                 crate::types::claude_flow::AgentType::Architect,
                 crate::types::claude_flow::AgentType::Analyst,
@@ -2844,56 +2844,56 @@ impl GraphServiceActor {
                 crate::types::claude_flow::AgentType::Optimizer,
             ) => 0.6,
 
-            // Default moderate communication for other pairs
+            
             _ => 0.4,
         };
 
-        // Activity factor: agents with more active tasks communicate more
+        
         let max_tasks = std::cmp::max(source_active_tasks, target_active_tasks);
         let activity_factor = if max_tasks > 0 {
-            1.0 + (max_tasks as f32 * 0.1).min(0.5) // Cap at 50% boost
+            1.0 + (max_tasks as f32 * 0.1).min(0.5) 
         } else {
-            0.7 // Reduce for inactive agents
+            0.7 
         };
 
-        // Performance factor: higher success rates lead to more collaboration
-        let avg_success_rate = (source_success_rate + target_success_rate) / 200.0; // Convert to 0-1 range
-        let performance_factor = 0.5 + avg_success_rate * 0.5; // Range: 0.5 to 1.0
+        
+        let avg_success_rate = (source_success_rate + target_success_rate) / 200.0; 
+        let performance_factor = 0.5 + avg_success_rate * 0.5; 
 
-        // Calculate final intensity with all factors
+        
         let final_intensity = base_intensity * activity_factor * performance_factor;
 
-        // Clamp to reasonable range
+        
         final_intensity.min(1.0).max(0.0)
     }
 
-    /// Check if the physics simulation has reached equilibrium and handle auto-pause
+    
     fn check_and_handle_equilibrium(&mut self, total_kinetic_energy: f32, node_count: usize) {
         if !self.simulation_params.auto_pause_config.enabled || node_count == 0 {
             return;
         }
 
-        // Calculate average velocity from kinetic energy
-        // KE = 0.5 * m * v^2, assuming m = 1, so v = sqrt(2 * KE)
+        
+        
         let avg_kinetic_energy = total_kinetic_energy / node_count as f32;
         let avg_velocity = (2.0 * avg_kinetic_energy).sqrt();
 
         let config = &self.simulation_params.auto_pause_config;
 
-        // Check if we're in equilibrium state
+        
         let is_in_equilibrium = avg_velocity < config.equilibrium_velocity_threshold
             && avg_kinetic_energy < config.equilibrium_energy_threshold;
 
         if is_in_equilibrium {
-            // Increment stability counter
+            
             self.simulation_params.equilibrium_stability_counter += 1;
 
-            // Check if we've been stable for enough frames
+            
             if self.simulation_params.equilibrium_stability_counter
                 >= config.equilibrium_check_frames
             {
                 if !self.simulation_params.is_physics_paused && config.pause_on_equilibrium {
-                    // Pause physics (not disable it)
+                    
                     self.simulation_params.is_physics_paused = true;
 
                     if crate::utils::logging::is_debug_enabled() {
@@ -2901,7 +2901,7 @@ impl GraphServiceActor {
                               avg_velocity, avg_kinetic_energy);
                     }
 
-                    // Broadcast pause notification to clients
+                    
                     let pause_msg = PhysicsPauseMessage {
                         pause: true,
                         reason: format!(
@@ -2910,7 +2910,7 @@ impl GraphServiceActor {
                         ),
                     };
 
-                    // Send to client manager for broadcast
+                    
                     self.client_manager.do_send(BroadcastMessage {
                         message: format!(
                             "{{\"type\": \"physics_paused\", \"reason\": \"{}\"}}",
@@ -2920,14 +2920,14 @@ impl GraphServiceActor {
                 }
             }
         } else {
-            // CRITICAL FIX: Only reset stability counter if physics is not already paused
-            // This prevents the graph from un-settling after it has reached equilibrium
+            
+            
             if !self.simulation_params.is_physics_paused {
-                // Reset stability counter if not in equilibrium and physics is still running
+                
                 self.simulation_params.equilibrium_stability_counter = 0;
             }
-            // If physics is paused and we're no longer in equilibrium, keep it paused
-            // This prevents auto-resume which could cause the jumping behavior
+            
+            
         }
 
         if crate::utils::logging::is_debug_enabled() {
@@ -2939,7 +2939,7 @@ impl GraphServiceActor {
         }
     }
 
-    /// Resume physics if paused, usually triggered by user interaction
+    
     fn resume_physics_if_paused(&mut self, reason: String) {
         if self.simulation_params.is_physics_paused {
             self.simulation_params.is_physics_paused = false;
@@ -2949,7 +2949,7 @@ impl GraphServiceActor {
                 info!("[AUTO-PAUSE] Physics resumed: {}", reason);
             }
 
-            // Broadcast resume notification to clients
+            
             let _resume_msg = PhysicsPauseMessage {
                 pause: false,
                 reason: reason.clone(),
@@ -2964,7 +2964,7 @@ impl GraphServiceActor {
         }
     }
 
-    /// Add new nodes from metadata without rebuilding the entire graph
+    
     pub fn add_nodes_from_metadata(&mut self, metadata: MetadataStore) -> Result<(), String> {
         debug!("Adding {} new nodes incrementally", metadata.len());
 
@@ -2973,7 +2973,7 @@ impl GraphServiceActor {
         for (filename_with_ext, file_meta_data) in &metadata {
             let metadata_id_val = filename_with_ext.trim_end_matches(".md").to_string();
 
-            // Check if node already exists
+            
             if self
                 .node_map
                 .values()
@@ -2987,10 +2987,10 @@ impl GraphServiceActor {
             let mut node = Node::new_with_id(metadata_id_val.clone(), Some(node_id_val));
             node.label = file_meta_data.file_name.trim_end_matches(".md").to_string();
             node.set_file_size(file_meta_data.file_size as u64);
-            // Note: flags field not available in BinaryNodeDataClient
-            // Using node_id low bit as flag if needed: node.data.node_id |= 1;
+            
+            
 
-            // Enhanced metadata
+            
             node.metadata
                 .insert("fileName".to_string(), file_meta_data.file_name.clone());
             node.metadata
@@ -3010,7 +3010,7 @@ impl GraphServiceActor {
             node.metadata
                 .insert("metadataId".to_string(), metadata_id_val.clone());
 
-            // Extract semantic features
+            
             let features = self.semantic_analyzer.analyze_metadata(file_meta_data);
             self.semantic_features_cache
                 .insert(metadata_id_val, features);
@@ -3023,7 +3023,7 @@ impl GraphServiceActor {
         Ok(())
     }
 
-    /// Update a single node from metadata
+    
     pub fn update_node_from_metadata(
         &mut self,
         metadata_id: String,
@@ -3031,7 +3031,7 @@ impl GraphServiceActor {
     ) -> Result<(), String> {
         debug!("Updating node {} incrementally", metadata_id);
 
-        // Find and update node in node_map
+        
         let mut node_found = false;
         if let Some(node) = Arc::make_mut(&mut self.node_map)
             .values_mut()
@@ -3040,7 +3040,7 @@ impl GraphServiceActor {
             node.label = metadata.file_name.trim_end_matches(".md").to_string();
             node.set_file_size(metadata.file_size as u64);
 
-            // Update metadata
+            
             node.metadata
                 .insert("fileName".to_string(), metadata.file_name.clone());
             node.metadata
@@ -3065,7 +3065,7 @@ impl GraphServiceActor {
             return Err(format!("Node {} not found for update", metadata_id));
         }
 
-        // Update corresponding node in graph_data
+        
         let graph_data_mut = Arc::make_mut(&mut self.graph_data);
         if let Some(node) = graph_data_mut
             .nodes
@@ -3076,7 +3076,7 @@ impl GraphServiceActor {
             node.set_file_size(metadata.file_size as u64);
         }
 
-        // Update semantic features
+        
         let features = self.semantic_analyzer.analyze_metadata(&metadata);
         self.semantic_features_cache
             .insert(metadata_id.clone(), features);
@@ -3085,11 +3085,11 @@ impl GraphServiceActor {
         Ok(())
     }
 
-    /// Remove a node by metadata ID
+    
     pub fn remove_node_by_metadata(&mut self, metadata_id: String) -> Result<(), String> {
         debug!("Removing node {} incrementally", metadata_id);
 
-        // Find node to remove
+        
         let node_id = self
             .node_map
             .values()
@@ -3097,17 +3097,17 @@ impl GraphServiceActor {
             .map(|n| n.id);
 
         if let Some(node_id) = node_id {
-            // Remove from node_map
+            
             Arc::make_mut(&mut self.node_map).remove(&node_id);
 
-            // Remove from graph_data
+            
             let graph_data_mut = Arc::make_mut(&mut self.graph_data);
             graph_data_mut.nodes.retain(|n| n.id != node_id);
             graph_data_mut
                 .edges
                 .retain(|e| e.source != node_id && e.target != node_id);
 
-            // Remove from semantic features cache
+            
             self.semantic_features_cache.remove(&metadata_id);
 
             info!("Removed node {} incrementally", metadata_id);
@@ -3123,12 +3123,12 @@ impl Actor for GraphServiceActor {
 
     fn started(&mut self, ctx: &mut Self::Context) {
         info!("GraphServiceActor started");
-        // Optional GPU smoke test on start (set GPU_SMOKE_ON_START=1)
+        
         if std::env::var("GPU_SMOKE_ON_START").ok().as_deref() == Some("1") {
             let report = crate::utils::gpu_diagnostics::ptx_module_smoke_test();
             info!("{}", report);
         }
-        // Defer simulation start to avoid reactor panic
+        
         ctx.address()
             .do_send(crate::actors::messages::InitializeActor);
     }
@@ -3159,7 +3159,7 @@ impl Handler<GetGraphData> for GraphServiceActor {
 
     fn handle(&mut self, _msg: GetGraphData, _ctx: &mut Self::Context) -> Self::Result {
         info!("DEBUG_VERIFICATION: GraphServiceActor handling GetGraphData with Arc reference (NO CLONE!).");
-        Ok(std::sync::Arc::clone(&self.graph_data)) // Returns Arc reference, no data cloning!
+        Ok(std::sync::Arc::clone(&self.graph_data)) 
     }
 }
 
@@ -3183,12 +3183,12 @@ impl Handler<crate::actors::messages::ForcePositionBroadcast> for GraphServiceAc
     ) -> Self::Result {
         info!("Force broadcasting positions: {}", msg.reason);
 
-        // DUAL-GRAPH FIX: Collect BOTH knowledge and agent nodes with proper type flags
+        
         let mut position_data: Vec<(u32, BinaryNodeData)> = Vec::new();
         let mut knowledge_ids: Vec<u32> = Vec::new();
         let mut agent_ids: Vec<u32> = Vec::new();
 
-        // Collect knowledge graph nodes
+        
         for (node_id, node) in self.node_map.iter() {
             position_data.push((
                 *node_id,
@@ -3197,7 +3197,7 @@ impl Handler<crate::actors::messages::ForcePositionBroadcast> for GraphServiceAc
             knowledge_ids.push(*node_id);
         }
 
-        // ALSO collect agent graph nodes
+        
         for node in &self.bots_graph_data.nodes {
             position_data.push((
                 node.id,
@@ -3210,22 +3210,22 @@ impl Handler<crate::actors::messages::ForcePositionBroadcast> for GraphServiceAc
             agent_ids.push(node.id);
         }
 
-        // Broadcast to all connected clients via client manager
+        
         if !position_data.is_empty() {
-            // Encode with proper type flags for dual-graph support
+            
             let binary_data = crate::utils::binary_protocol::encode_node_data_with_types(
                 &position_data,
                 &agent_ids,
                 &knowledge_ids,
             );
 
-            // Send to client manager for broadcasting
+            
             self.client_manager
                 .do_send(crate::actors::messages::BroadcastNodePositions {
                     positions: binary_data,
                 });
 
-            // Update broadcast time and ensure initial positions flag is set
+            
             self.last_broadcast_time = Some(std::time::Instant::now());
             self.initial_positions_sent = true;
 
@@ -3256,12 +3256,12 @@ impl Handler<InitialClientSync> for GraphServiceActor {
             msg.client_identifier, msg.trigger_source
         );
 
-        // DUAL-GRAPH FIX: Collect BOTH knowledge and agent nodes with proper type flags
+        
         let mut position_data: Vec<(u32, BinaryNodeData)> = Vec::new();
         let mut knowledge_ids: Vec<u32> = Vec::new();
         let mut agent_ids: Vec<u32> = Vec::new();
 
-        // Collect knowledge graph nodes
+        
         for (node_id, node) in self.node_map.iter() {
             position_data.push((
                 *node_id,
@@ -3270,7 +3270,7 @@ impl Handler<InitialClientSync> for GraphServiceActor {
             knowledge_ids.push(*node_id);
         }
 
-        // ALSO collect agent graph nodes
+        
         for node in &self.bots_graph_data.nodes {
             position_data.push((
                 node.id,
@@ -3284,20 +3284,20 @@ impl Handler<InitialClientSync> for GraphServiceActor {
         }
 
         if !position_data.is_empty() {
-            // Encode with proper type flags for dual-graph support
+            
             let binary_data = crate::utils::binary_protocol::encode_node_data_with_types(
                 &position_data,
                 &agent_ids,
                 &knowledge_ids,
             );
 
-            // Send to client manager for broadcasting to all clients
+            
             self.client_manager
                 .do_send(crate::actors::messages::BroadcastNodePositions {
                     positions: binary_data,
                 });
 
-            // Update tracking flags
+            
             self.last_broadcast_time = Some(std::time::Instant::now());
             self.initial_positions_sent = true;
 
@@ -3354,16 +3354,16 @@ impl Handler<GetNodeMap> for GraphServiceActor {
     type Result = Result<std::sync::Arc<HashMap<u32, Node>>, String>;
 
     fn handle(&mut self, _msg: GetNodeMap, _ctx: &mut Self::Context) -> Self::Result {
-        Ok(Arc::clone(&self.node_map)) // Return Arc reference, no cloning of HashMap data!
+        Ok(Arc::clone(&self.node_map)) 
     }
 }
 
-/// NEW: Handler for getting physics/settlement state for client optimization
+/
 impl Handler<GetPhysicsState> for GraphServiceActor {
     type Result = Result<PhysicsState, String>;
 
     fn handle(&mut self, _msg: GetPhysicsState, _ctx: &mut Self::Context) -> Self::Result {
-        // Calculate average kinetic energy from recent history
+        
         let avg_ke = if !self.kinetic_energy_history.is_empty() {
             self.kinetic_energy_history.iter().sum::<f32>()
                 / self.kinetic_energy_history.len() as f32
@@ -3397,24 +3397,24 @@ impl Handler<BuildGraphFromMetadata> for GraphServiceActor {
             "BuildGraphFromMetadata handler called with {} metadata entries",
             msg.metadata.len()
         );
-        // Build the graph from metadata
+        
         let result = self.build_from_metadata(msg.metadata, ctx);
 
-        // If successful, handle GPU initialization
+        
         if result.is_ok() {
-            // Send data to appropriate GPU context
+            
             if let Some(ref gpu_compute_addr) = self.gpu_compute_addr {
                 info!("Graph data prepared for GPU physics");
 
-                // First initialize GPU with GraphServiceActor address for notification
+                
                 gpu_compute_addr.do_send(InitializeGPU {
                     graph: Arc::clone(&self.graph_data),
                     graph_service_addr: Some(ctx.address()),
-                    gpu_manager_addr: None, // Will be filled by GPUManagerActor
+                    gpu_manager_addr: None, 
                 });
                 info!("Sent GPU initialization request to GPU compute actor");
 
-                // Then update the graph data
+                
                 gpu_compute_addr.do_send(UpdateGPUGraphData {
                     graph: Arc::clone(&self.graph_data),
                 });
@@ -3474,9 +3474,9 @@ impl Handler<UpdateNodePosition> for GraphServiceActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, msg: UpdateNodePosition, _ctx: &mut Self::Context) -> Self::Result {
-        // Update node in the node map
+        
         if let Some(node) = Arc::make_mut(&mut self.node_map).get_mut(&msg.node_id) {
-            // Update position and velocity using direct field access
+            
             let new_position = glam_to_vec3data(msg.position);
             let new_velocity = glam_to_vec3data(msg.velocity);
 
@@ -3487,24 +3487,24 @@ impl Handler<UpdateNodePosition> for GraphServiceActor {
             node.data.vy = new_velocity.y;
             node.data.vz = new_velocity.z;
 
-            // Note: mass and flags fields not available in BinaryNodeDataClient
+            
         } else {
             debug!("Received update for unknown node ID: {}", msg.node_id);
             return Err(format!("Unknown node ID: {}", msg.node_id));
         }
 
-        // Update corresponding node in graph
+        
         let graph_data_mut = Arc::make_mut(&mut self.graph_data);
         for node_in_graph_data in &mut graph_data_mut.nodes {
-            // Iterate over mutable graph_data
+            
             if node_in_graph_data.id == msg.node_id {
-                // Update position components directly
+                
                 let pos = glam_to_vec3data(msg.position);
                 node_in_graph_data.data.x = pos.x;
                 node_in_graph_data.data.y = pos.y;
                 node_in_graph_data.data.z = pos.z;
 
-                // Update velocity components directly
+                
                 let vel = glam_to_vec3data(msg.velocity);
                 node_in_graph_data.data.vx = vel.x;
                 node_in_graph_data.data.vy = vel.y;
@@ -3521,7 +3521,7 @@ impl Handler<SimulationStep> for GraphServiceActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, _msg: SimulationStep, ctx: &mut Self::Context) -> Self::Result {
-        // Just run one simulation step
+        
         self.run_simulation_step(ctx);
         Ok(())
     }
@@ -3564,33 +3564,33 @@ impl Handler<UpdateGraphData> for GraphServiceActor {
             msg.graph_data.edges.len()
         );
 
-        // Update graph data with the provided Arc
+        
         self.graph_data = msg.graph_data;
 
-        // Rebuild node map
+        
         Arc::make_mut(&mut self.node_map).clear();
         for node in &self.graph_data.nodes {
-            // Dereferences Arc for iteration
+            
             Arc::make_mut(&mut self.node_map).insert(node.id, node.clone());
         }
 
-        // Generate initial semantic constraints for the new graph data
+        
         let graph_data_clone = Arc::clone(&self.graph_data);
         self.generate_initial_semantic_constraints(&graph_data_clone, ctx);
 
-        // Send data to GPU compute if available
+        
         if let Some(ref gpu_compute_addr) = self.gpu_compute_addr {
             info!("Sending loaded graph data to GPU physics");
 
-            // First initialize GPU with GraphServiceActor address for notification
+            
             gpu_compute_addr.do_send(InitializeGPU {
                 graph: Arc::clone(&self.graph_data),
                 graph_service_addr: Some(ctx.address()),
-                gpu_manager_addr: None, // Will be filled by GPUManagerActor
+                gpu_manager_addr: None, 
             });
             info!("Sent GPU initialization request to GPU compute actor");
 
-            // Then update the graph data
+            
             gpu_compute_addr.do_send(UpdateGPUGraphData {
                 graph: Arc::clone(&self.graph_data),
             });
@@ -3612,7 +3612,7 @@ impl Handler<ReloadGraphFromDatabase> for GraphServiceActor {
 
         Box::pin(
             async move {
-                // Load fresh graph data from database
+                
                 match kg_repo.load_graph().await {
                     Ok(graph_data) => {
                         info!(
@@ -3631,16 +3631,16 @@ impl Handler<ReloadGraphFromDatabase> for GraphServiceActor {
             .map(|result, actor, ctx| {
                 match result {
                     Ok(graph_data) => {
-                        // Update actor state with fresh data
+                        
                         actor.graph_data = graph_data;
 
-                        // Rebuild node map
+                        
                         Arc::make_mut(&mut actor.node_map).clear();
                         for node in &actor.graph_data.nodes {
                             Arc::make_mut(&mut actor.node_map).insert(node.id, node.clone());
                         }
 
-                        // Notify GPU service if available
+                        
                         if let Some(ref gpu_addr) = actor.gpu_compute_addr {
                             gpu_addr.do_send(UpdateGPUGraphData {
                                 graph: Arc::clone(&actor.graph_data),
@@ -3662,20 +3662,20 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
     type Result = ();
 
     fn handle(&mut self, msg: UpdateBotsGraph, _ctx: &mut Context<Self>) -> Self::Result {
-        // Skip processing and broadcasting if there are no agents
+        
         if msg.agents.is_empty() {
             debug!("No agents to update - skipping bots graph broadcast");
             return;
         }
 
-        // This logic converts `Agent` objects into `Node` and `Edge` objects
+        
         let mut nodes = vec![];
         let mut edges = vec![];
 
-        // Use a high ID range (starting at 10000) to avoid conflicts with main graph
+        
         let bot_id_offset = 10000;
 
-        // Preserve existing agent positions to prevent re-randomization on every update
+        
         let mut existing_positions: HashMap<String, (Vec3Data, Vec3Data)> = HashMap::new();
         for node in &self.bots_graph_data.nodes {
             existing_positions.insert(
@@ -3684,15 +3684,15 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
             );
         }
 
-        // Create nodes for each agent
+        
         for (i, agent) in msg.agents.iter().enumerate() {
             let node_id = bot_id_offset + i as u32;
 
-            // Create a node for each agent
+            
             let mut node = Node::new_with_id(agent.id.clone(), Some(node_id));
 
             if let Some((saved_position, saved_velocity)) = existing_positions.get(&agent.id) {
-                // Restore existing position
+                
                 node.data.x = saved_position.x;
                 node.data.y = saved_position.y;
                 node.data.z = saved_position.z;
@@ -3700,7 +3700,7 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
                 node.data.vy = saved_velocity.y;
                 node.data.vz = saved_velocity.z;
             } else {
-                // Generate random initial positions for new agents
+                
                 let physics = crate::config::dev_config::physics();
                 use rand::rngs::{OsRng, StdRng};
                 use rand::{Rng, SeedableRng};
@@ -3720,7 +3720,7 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
                 node.data.vz = rng.gen_range(-0.5..0.5);
             }
 
-            // Set node properties based on agent type
+            
             node.color = Some(match agent.agent_type.as_str() {
                 "coordinator" => "#FF6B6B".to_string(),
                 "researcher" => "#4ECDC4".to_string(),
@@ -3732,9 +3732,9 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
             });
 
             node.label = agent.name.clone();
-            node.size = Some(20.0 + (agent.workload * 25.0)); // Size based on workload
+            node.size = Some(20.0 + (agent.workload * 25.0)); 
 
-            // Add metadata including agent flag for GPU physics
+            
             node.metadata
                 .insert("agent_type".to_string(), agent.agent_type.clone());
             node.metadata
@@ -3746,34 +3746,34 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
             node.metadata
                 .insert("health".to_string(), agent.health.to_string());
             node.metadata
-                .insert("is_agent".to_string(), "true".to_string()); // Agent node flag
+                .insert("is_agent".to_string(), "true".to_string()); 
 
             nodes.push(node);
         }
 
-        // Create edges based on agent types and status
+        
         for (i, source_agent) in msg.agents.iter().enumerate() {
             for (j, target_agent) in msg.agents.iter().enumerate() {
                 if i != j {
                     let source_node_id = bot_id_offset + i as u32;
                     let target_node_id = bot_id_offset + j as u32;
 
-                    // Simple communication intensity based on agent types
+                    
                     let communication_intensity = if source_agent.agent_type == "coordinator"
                         || target_agent.agent_type == "coordinator"
                     {
-                        0.8 // Coordinators have strong connections
+                        0.8 
                     } else if source_agent.status == "active" && target_agent.status == "active" {
-                        0.5 // Active agents communicate
+                        0.5 
                     } else {
-                        0.2 // Default weak connection
+                        0.2 
                     };
 
-                    // Only create edges for significant communication
+                    
                     if communication_intensity > 0.1 {
                         let mut edge =
                             Edge::new(source_node_id, target_node_id, communication_intensity);
-                        // Correctly handle Option<HashMap>
+                        
                         let metadata = edge.metadata.get_or_insert_with(HashMap::new);
                         metadata.insert(
                             "communication_type".to_string(),
@@ -3787,7 +3787,7 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
             }
         }
 
-        // Update the bots graph data
+        
         let bots_graph_data_mut = Arc::make_mut(&mut self.bots_graph_data);
         bots_graph_data_mut.nodes = nodes;
         bots_graph_data_mut.edges = edges;
@@ -3795,25 +3795,25 @@ impl Handler<UpdateBotsGraph> for GraphServiceActor {
         info!("Updated bots graph with {} agents and {} edges - data will be broadcast in next physics cycle",
              msg.agents.len(), self.bots_graph_data.edges.len());
 
-        // DUAL-GRAPH ARCHITECTURE FIX:
-        // Per docs/architecture/core/visualization.md, both knowledge and agent graphs
-        // are broadcast TOGETHER in a unified message from the physics loop.
-        //
-        // The physics loop (PhysicsUpdate handler) now collects BOTH graphs:
-        // - Knowledge nodes from node_map with KNOWLEDGE_NODE_FLAG (bit 30)
-        // - Agent nodes from bots_graph_data with AGENT_NODE_FLAG (bit 31)
-        //
-        // This prevents duplicate/conflicting broadcasts and ensures clients receive
-        // a single unified stream with proper type flags for separation.
-        //
-        // DO NOT broadcast agents separately here - it causes position conflicts!
-        // The physics loop will pick up the updated bots_graph_data automatically.
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
         debug!("Agent graph data updated ({} nodes). Physics loop will broadcast with AGENT_NODE_FLAG.",
                self.bots_graph_data.nodes.len());
 
-        // Send agents to GPU for physics simulation
-        // Both knowledge graph and agent graph coexist in GPU physics
+        
+        
         if self.bots_graph_data.nodes.len() > 0 {
             if let Some(ref gpu_compute_addr) = self.gpu_compute_addr {
                 gpu_compute_addr.do_send(UpdateGPUGraphData {
@@ -3832,7 +3832,7 @@ impl Handler<GetBotsGraphData> for GraphServiceActor {
     type Result = Result<std::sync::Arc<GraphData>, String>;
 
     fn handle(&mut self, _msg: GetBotsGraphData, _ctx: &mut Context<Self>) -> Self::Result {
-        Ok(Arc::clone(&self.bots_graph_data)) // Return Arc reference, no cloning of GraphData!
+        Ok(Arc::clone(&self.bots_graph_data)) 
     }
 }
 
@@ -3862,20 +3862,20 @@ impl Handler<InitializeGPUConnection> for GraphServiceActor {
             let _gpu_manager_clone = gpu_manager.clone();
             let _self_addr = ctx.address();
 
-            // Store the GPUManagerActor address directly
+            
             self.gpu_compute_addr = Some(gpu_manager.clone());
             info!("[GraphServiceActor] Stored GPUManagerActor address for GPU coordination");
 
-            // Initialize GPU with current graph data if we have any
+            
             if !self.graph_data.nodes.is_empty() {
                 info!("Sending initial graph data to GPU via GPUManager");
                 gpu_manager.do_send(InitializeGPU {
                     graph: Arc::clone(&self.graph_data),
                     graph_service_addr: Some(ctx.address()),
-                    gpu_manager_addr: None, // Will be filled by GPUManagerActor
+                    gpu_manager_addr: None, 
                 });
 
-                // Also send the graph data update
+                
                 gpu_manager.do_send(UpdateGPUGraphData {
                     graph: Arc::clone(&self.graph_data),
                 });
@@ -3898,7 +3898,7 @@ impl Handler<GPUInitialized> for GraphServiceActor {
         self.gpu_initialized = true;
         self.gpu_init_in_progress = false;
 
-        // Log current state
+        
         info!("Physics simulation is now ready:");
         info!("  - GPU initialized: {}", self.gpu_initialized);
         info!("  - Physics enabled: {}", self.simulation_params.enabled);
@@ -3940,19 +3940,19 @@ impl Handler<UpdateSimulationParams> for GraphServiceActor {
             info!("  - auto_balance: {} (new)", msg.params.auto_balance);
         }
 
-        // Check if auto-balance is being turned on for the first time
+        
         let auto_balance_just_enabled =
             !self.simulation_params.auto_balance && msg.params.auto_balance;
 
         self.simulation_params = msg.params.clone();
-        // CRITICAL: Also update target_params so smooth transitions work correctly
+        
         self.target_params = msg.params.clone();
 
-        // If auto-balance was just enabled, reset tracking state for fresh start
+        
         if auto_balance_just_enabled {
             info!("[AUTO-BALANCE] Auto-balance enabled - starting adaptive tuning from current values");
 
-            // Reset history and stability counter for fresh start
+            
             self.auto_balance_history.clear();
             self.stable_count = 0;
 
@@ -3960,7 +3960,7 @@ impl Handler<UpdateSimulationParams> for GraphServiceActor {
                   self.simulation_params.repel_k, self.simulation_params.damping);
         }
 
-        // Update GPU compute actor if available
+        
         if let Some(ref gpu_addr) = self.gpu_compute_addr {
             if crate::utils::logging::is_debug_enabled() {
                 info!("Forwarding params to ForceComputeActor");
@@ -3982,10 +3982,10 @@ impl Handler<RequestPositionSnapshot> for GraphServiceActor {
         let mut knowledge_nodes = Vec::new();
         let mut agent_nodes = Vec::new();
 
-        // Collect knowledge graph positions if requested
+        
         if msg.include_knowledge_graph {
             for node in &self.graph_data.nodes {
-                // Skip agent nodes in main graph
+                
                 if node.metadata.get("is_agent").map_or(false, |v| v == "true") {
                     continue;
                 }
@@ -3997,7 +3997,7 @@ impl Handler<RequestPositionSnapshot> for GraphServiceActor {
             }
         }
 
-        // Collect agent graph positions if requested
+        
         if msg.include_agent_graph {
             for node in &self.bots_graph_data.nodes {
                 let node_data =
@@ -4023,14 +4023,14 @@ impl Handler<UpdateAdvancedParams> for GraphServiceActor {
     fn handle(&mut self, msg: UpdateAdvancedParams, _ctx: &mut Self::Context) -> Self::Result {
         self.advanced_params = msg.params.clone();
 
-        // Update stress solver configuration
+        
         self.stress_solver =
             crate::physics::stress_majorization::StressMajorizationSolver::from_advanced_params(
                 &msg.params,
             );
 
-        // Update advanced GPU context if available
-        // Update GPU parameters via ForceComputeActor
+        
+        
         if let Some(ref gpu_addr) = self.gpu_compute_addr {
             let update_msg = crate::actors::messages::UpdateAdvancedParams {
                 params: msg.params.clone(),
@@ -4081,7 +4081,7 @@ impl Handler<RegenerateSemanticConstraints> for GraphServiceActor {
         _msg: RegenerateSemanticConstraints,
         ctx: &mut Self::Context,
     ) -> Self::Result {
-        // Clear existing semantic constraints
+        
         self.constraint_set
             .set_group_active("semantic_dynamic", false);
         self.constraint_set
@@ -4089,11 +4089,11 @@ impl Handler<RegenerateSemanticConstraints> for GraphServiceActor {
         self.constraint_set
             .set_group_active("clustering_dynamic", false);
 
-        // Regenerate initial semantic constraints
+        
         let graph_data_clone = Arc::clone(&self.graph_data);
         self.generate_initial_semantic_constraints(&graph_data_clone, ctx);
 
-        // Regenerate dynamic constraints if semantic analysis is available
+        
         if self.last_semantic_analysis.is_some() {
             self.update_dynamic_constraints(ctx);
         }
@@ -4110,9 +4110,9 @@ impl Handler<SetAdvancedGPUContext> for GraphServiceActor {
     type Result = ();
 
     fn handle(&mut self, _msg: SetAdvancedGPUContext, _ctx: &mut Self::Context) -> Self::Result {
-        // The GPU context initialization signal has been received
-        // The actual context is managed separately in the actor that created it
-        self.gpu_init_in_progress = false; // Reset the flag
+        
+        
+        self.gpu_init_in_progress = false; 
         info!("Advanced GPU context initialization signal received");
     }
 }
@@ -4135,34 +4135,34 @@ impl Handler<ComputeShortestPaths> for GraphServiceActor {
         use crate::ports::gpu_semantic_analyzer::PathfindingResult;
         use std::time::Instant;
 
-        // Implement Dijkstra's algorithm for SSSP computation
+        
         let source_id = msg.source_node_id;
         let start_time = Instant::now();
 
-        // Check if source node exists
+        
         if !self.node_map.contains_key(&source_id) {
             return Err(format!("Source node {} not found", source_id));
         }
 
-        // Initialize distances and predecessors for path reconstruction
+        
         let mut distances: std::collections::HashMap<u32, f32> = std::collections::HashMap::new();
         let mut predecessors: std::collections::HashMap<u32, u32> =
             std::collections::HashMap::new();
         let mut visited = std::collections::HashSet::new();
         let mut priority_queue = std::collections::BinaryHeap::new();
 
-        // Source node has distance 0
+        
         distances.insert(source_id, 0.0);
         priority_queue.push(std::cmp::Reverse((
             ordered_float::OrderedFloat(0.0_f32),
             source_id,
         )));
 
-        // Build adjacency list from edges
+        
         let mut adjacency: std::collections::HashMap<u32, Vec<(u32, f32)>> =
             std::collections::HashMap::new();
         for edge in &self.graph_data.edges {
-            // For undirected graph, add both directions
+            
             adjacency
                 .entry(edge.source)
                 .or_insert_with(Vec::new)
@@ -4173,7 +4173,7 @@ impl Handler<ComputeShortestPaths> for GraphServiceActor {
                 .push((edge.source, edge.weight));
         }
 
-        // Dijkstra's algorithm
+        
         while let Some(std::cmp::Reverse((current_dist, current_node))) = priority_queue.pop() {
             let current_dist = current_dist.into_inner();
             if visited.contains(&current_node) {
@@ -4182,7 +4182,7 @@ impl Handler<ComputeShortestPaths> for GraphServiceActor {
 
             visited.insert(current_node);
 
-            // Check neighbors
+            
             if let Some(neighbors) = adjacency.get(&current_node) {
                 for &(neighbor_id, edge_weight) in neighbors {
                     if visited.contains(&neighbor_id) {
@@ -4205,7 +4205,7 @@ impl Handler<ComputeShortestPaths> for GraphServiceActor {
             }
         }
 
-        // Reconstruct paths from predecessors
+        
         let mut paths: std::collections::HashMap<u32, Vec<u32>> = std::collections::HashMap::new();
         for &target_id in distances.keys() {
             if target_id == source_id {
@@ -4265,7 +4265,7 @@ impl Handler<NodeInteractionMessage> for GraphServiceActor {
     type Result = Result<(), VisionFlowError>;
 
     fn handle(&mut self, msg: NodeInteractionMessage, _ctx: &mut Self::Context) -> Self::Result {
-        // Resume physics on interaction if configured to do so
+        
         if self
             .simulation_params
             .auto_pause_config
@@ -4279,15 +4279,15 @@ impl Handler<NodeInteractionMessage> for GraphServiceActor {
             self.resume_physics_if_paused(reason);
         }
 
-        // Update node position if provided (for dragging)
+        
         if let (Some(_position), NodeInteractionType::Dragged) =
             (msg.position, &msg.interaction_type)
         {
-            // Update node position in node_map
+            
             if let Some(node) = Arc::make_mut(&mut self.node_map).get_mut(&msg.node_id) {
-                // FIXME: Type mismatch - commented for compilation
-                // node.data.position = crate::utils::socket_flow_messages::glam_to_vec3data(position);
-                // Reset velocity to avoid physics conflicts during drag
+                
+                
+                
                 node.data.vx = 0.0;
                 node.data.vy = 0.0;
                 node.data.vz = 0.0;
@@ -4377,15 +4377,15 @@ mod tests {
     use chrono::Utc;
     use std::collections::HashMap;
 
-    /// Test that node positions are preserved across multiple BuildGraphFromMetadata calls
-    /// This addresses the issue where positions were reset every time a client connected
+    
+    
     #[actix::test]
     async fn test_position_preservation_across_rebuilds() {
-        // Create a test GraphServiceActor and context
+        
         let mut actor = GraphServiceActor::new();
         let mut ctx = actix::Context::new();
 
-        // Create initial metadata
+        
         let mut metadata = MetadataStore::new();
         metadata.insert(
             "file1.md".to_string(),
@@ -4426,12 +4426,12 @@ mod tests {
             },
         );
 
-        // First build - nodes will get initial positions
+        
         assert!(actor
             .build_from_metadata(metadata.clone(), &mut ctx)
             .is_ok());
 
-        // Store the positions after first build
+        
         let initial_positions: HashMap<String, (Vec3Data, Vec3Data)> = actor
             .node_map
             .values()
@@ -4449,7 +4449,7 @@ mod tests {
             "Should have 2 nodes after first build"
         );
 
-        // Modify node positions to simulate physics simulation
+        
         let modified_position = Vec3Data::new(10.0, 20.0, 30.0);
         let modified_velocity = Vec3Data::new(1.0, 2.0, 3.0);
 
@@ -4464,7 +4464,7 @@ mod tests {
             }
         }
 
-        // Update graph_data to match node_map changes
+        
         for node in &mut Arc::make_mut(&mut actor.graph_data).nodes {
             if node.metadata_id == "file1" {
                 node.data.x = modified_position.x;
@@ -4476,12 +4476,12 @@ mod tests {
             }
         }
 
-        // Second build - should preserve modified positions
+        
         assert!(actor
             .build_from_metadata(metadata.clone(), &mut ctx)
             .is_ok());
 
-        // Verify positions were preserved
+        
         let file1_node = actor
             .node_map
             .values()
@@ -4495,7 +4495,7 @@ mod tests {
         assert_eq!(file1_node.data.vy, 2.0, "Velocity Y should be preserved");
         assert_eq!(file1_node.data.vz, 3.0, "Velocity Z should be preserved");
 
-        // Verify file2 node kept its original position (since we didn't modify it)
+        
         let file2_node = actor
             .node_map
             .values()
@@ -4510,13 +4510,13 @@ mod tests {
         );
     }
 
-    /// Test that new nodes still get proper initial positions
+    
     #[actix::test]
     async fn test_new_nodes_get_initial_positions() {
         let mut actor = GraphServiceActor::new();
         let mut ctx = actix::Context::new();
 
-        // First build with one file
+        
         let mut metadata1 = MetadataStore::new();
         metadata1.insert(
             "file1.md".to_string(),
@@ -4545,7 +4545,7 @@ mod tests {
             "Should have 1 node after first build"
         );
 
-        // Second build with additional file
+        
         let mut metadata2 = MetadataStore::new();
         metadata2.insert(
             "file1.md".to_string(),
@@ -4593,7 +4593,7 @@ mod tests {
             "Should have 2 nodes after second build"
         );
 
-        // Verify the new node has a non-zero position (not at origin)
+        
         let file2_node = actor
             .node_map
             .values()

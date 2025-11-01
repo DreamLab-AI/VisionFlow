@@ -19,35 +19,35 @@ use crate::services::agent_visualization_protocol::{
 };
 use crate::types::mcp_responses::{McpError, McpResponse};
 
-/// Real MCP Integration Bridge for direct server communication
+/
 // Debug removed due to non-Debug trait object
 pub struct RealMcpIntegrationBridge {
-    /// Active MCP server connections
+    
     connections: Arc<RwLock<HashMap<String, McpConnection>>>,
 
-    /// Connection pool configuration
+    
     pool_config: ConnectionPoolConfig,
 
-    /// Message routing table
+    
     message_router: Arc<RwLock<MessageRouter>>,
 
-    /// Event handlers for MCP events
+    
     event_handlers: Arc<RwLock<Vec<Box<dyn McpEventHandler + Send + Sync>>>>,
 
-    /// Connection health monitoring
+    
     health_monitor: Arc<Mutex<HealthMonitor>>,
 
-    /// Authentication manager
+    
     auth_manager: Arc<RwLock<AuthenticationManager>>,
 
-    /// Request/response tracking
+    
     request_tracker: Arc<RwLock<RequestTracker>>,
 
-    /// Integration statistics
+    
     stats: Arc<RwLock<IntegrationStats>>,
 }
 
-/// MCP server connection with JSON-RPC communication
+/
 #[derive(Debug)]
 pub struct McpConnection {
     pub server_id: String,
@@ -66,17 +66,17 @@ pub struct McpConnection {
     pub session_info: Option<SessionInfo>,
 }
 
-/// Pending MCP request information
+/
 #[derive(Debug, Clone)]
 pub struct PendingRequest {
     pub id: u64,
     pub method: String,
     pub sent_at: DateTime<Utc>,
     pub timeout_ms: u64,
-    pub response_handler: String, // Handler type identifier
+    pub response_handler: String, 
 }
 
-/// MCP server capabilities
+/
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ServerCapabilities {
     pub supported_tools: Vec<String>,
@@ -88,7 +88,7 @@ pub struct ServerCapabilities {
     pub roots_support: bool,
 }
 
-/// Session information for MCP connection
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SessionInfo {
     pub session_id: String,
@@ -111,7 +111,7 @@ pub struct ServerInfo {
     pub capabilities: ServerCapabilities,
 }
 
-/// Connection pool configuration
+/
 #[derive(Debug, Clone)]
 pub struct ConnectionPoolConfig {
     pub max_connections_per_server: u32,
@@ -137,7 +137,7 @@ impl Default for ConnectionPoolConfig {
     }
 }
 
-/// Message routing configuration
+/
 #[derive(Debug, Default)]
 pub struct MessageRouter {
     pub routes: HashMap<String, RouteConfig>,
@@ -194,12 +194,12 @@ impl Default for RetryPolicy {
             base_delay_ms: 1000,
             max_delay_ms: 30000,
             backoff_multiplier: 2.0,
-            retryable_errors: vec![-32603, -32602], // Internal error, Invalid request
+            retryable_errors: vec![-32603, -32602], 
         }
     }
 }
 
-/// Event handler trait for MCP events
+/
 pub trait McpEventHandler {
     fn handle_connection_established(&self, server_id: &str, server_info: &ServerInfo);
     fn handle_connection_lost(&self, server_id: &str, error: &str);
@@ -210,7 +210,7 @@ pub trait McpEventHandler {
     fn handle_server_error(&self, server_id: &str, error: &McpError);
 }
 
-/// Connection health monitoring
+/
 #[derive(Debug, Default)]
 pub struct HealthMonitor {
     pub server_health: HashMap<String, ServerHealth>,
@@ -238,7 +238,7 @@ pub struct GlobalHealth {
     pub last_updated: Option<DateTime<Utc>>,
 }
 
-/// Authentication management for MCP servers
+/
 #[derive(Debug, Default)]
 pub struct AuthenticationManager {
     pub credentials: HashMap<String, ServerCredentials>,
@@ -274,7 +274,7 @@ pub struct AuthToken {
     pub refresh_token: Option<String>,
 }
 
-/// Request tracking for debugging and monitoring
+/
 #[derive(Debug, Default)]
 pub struct RequestTracker {
     pub active_requests: HashMap<u64, TrackedRequest>,
@@ -292,7 +292,7 @@ pub struct TrackedRequest {
     pub retry_count: u32,
 }
 
-/// Integration performance statistics
+/
 #[derive(Debug, Default, Clone)]
 pub struct IntegrationStats {
     pub total_requests: u64,
@@ -309,7 +309,7 @@ pub struct IntegrationStats {
     pub last_reset: DateTime<Utc>,
 }
 
-/// MCP JSON-RPC message types
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum McpMessage {
@@ -340,7 +340,7 @@ impl Default for RealMcpIntegrationBridge {
 }
 
 impl RealMcpIntegrationBridge {
-    /// Create new MCP integration bridge
+    
     pub fn new() -> Self {
         Self {
             connections: Arc::new(RwLock::new(HashMap::new())),
@@ -360,13 +360,13 @@ impl RealMcpIntegrationBridge {
         }
     }
 
-    /// Initialize the bridge with configuration
+    
     pub async fn initialize(&mut self, config: BridgeConfiguration) -> Result<(), String> {
         info!("Initializing Real MCP Integration Bridge");
 
         self.pool_config = config.connection_pool;
 
-        // Set up authentication
+        
         if config.authentication_enabled {
             let mut auth_manager = self.auth_manager.write().await;
             auth_manager.auth_enabled = true;
@@ -377,24 +377,24 @@ impl RealMcpIntegrationBridge {
             }
         }
 
-        // Set up routing
+        
         let mut router = self.message_router.write().await;
         router.routes = config.routes;
         router.load_balancer = config.load_balancer;
         router.retry_policy = config.retry_policy;
 
-        // Start health monitoring
+        
         let mut health_monitor = self.health_monitor.lock().await;
         health_monitor.monitoring_enabled = config.health_monitoring_enabled;
 
-        // Start background tasks
+        
         self.start_background_tasks().await;
 
         info!("Real MCP Integration Bridge initialized successfully");
         Ok(())
     }
 
-    /// Connect to an MCP server
+    
     pub async fn connect_to_server(
         &self,
         server_id: String,
@@ -409,7 +409,7 @@ impl RealMcpIntegrationBridge {
 
         let mut connections = self.connections.write().await;
 
-        // Check if already connected
+        
         if let Some(existing) = connections.get(&server_id) {
             if existing.is_connected {
                 warn!("Already connected to server: {}", server_id);
@@ -417,7 +417,7 @@ impl RealMcpIntegrationBridge {
             }
         }
 
-        // Create new connection
+        
         let mut connection = McpConnection {
             server_id: server_id.clone(),
             server_type,
@@ -435,10 +435,10 @@ impl RealMcpIntegrationBridge {
             session_info: None,
         };
 
-        // Attempt TCP connection
+        
         match self.establish_tcp_connection(&mut connection).await {
             Ok(_) => {
-                // Initialize MCP session
+                
                 match self.initialize_mcp_session(&mut connection).await {
                     Ok(session_info) => {
                         connection.session_info = Some(session_info.clone());
@@ -447,12 +447,12 @@ impl RealMcpIntegrationBridge {
 
                         connections.insert(server_id.clone(), connection);
 
-                        // Update statistics
+                        
                         let mut stats = self.stats.write().await;
                         stats.active_connections += 1;
                         stats.total_connections_created += 1;
 
-                        // Notify event handlers
+                        
                         self.notify_connection_established(&server_id, &session_info.server_info)
                             .await;
 
@@ -468,7 +468,7 @@ impl RealMcpIntegrationBridge {
             Err(e) => {
                 error!("Failed to establish TCP connection to {}: {}", server_id, e);
 
-                // Update statistics
+                
                 let mut stats = self.stats.write().await;
                 stats.connection_errors += 1;
 
@@ -477,7 +477,7 @@ impl RealMcpIntegrationBridge {
         }
     }
 
-    /// Disconnect from an MCP server
+    
     pub async fn disconnect_from_server(&self, server_id: &str) -> Result<(), String> {
         info!("Disconnecting from MCP server: {}", server_id);
 
@@ -486,18 +486,18 @@ impl RealMcpIntegrationBridge {
         if let Some(mut connection) = connections.remove(server_id) {
             connection.is_connected = false;
 
-            // Close TCP connection
+            
             if let Some(mut writer) = connection.writer.take() {
                 let _ = writer.shutdown().await;
             }
 
-            // Update statistics
+            
             let mut stats = self.stats.write().await;
             if stats.active_connections > 0 {
                 stats.active_connections -= 1;
             }
 
-            // Notify event handlers
+            
             self.notify_connection_lost(server_id, "Disconnected by client")
                 .await;
 
@@ -509,7 +509,7 @@ impl RealMcpIntegrationBridge {
         }
     }
 
-    /// Send JSON-RPC request to MCP server
+    
     pub async fn send_request(
         &self,
         server_id: &str,
@@ -527,11 +527,11 @@ impl RealMcpIntegrationBridge {
             return Err(format!("Server not connected: {}", server_id));
         }
 
-        // Generate request ID
+        
         connection.request_id_counter += 1;
         let request_id = connection.request_id_counter;
 
-        // Create JSON-RPC request
+        
         let request = McpRequest {
             jsonrpc: "2.0".to_string(),
             id: Value::Number(serde_json::Number::from(request_id)),
@@ -539,7 +539,7 @@ impl RealMcpIntegrationBridge {
             params,
         };
 
-        // Track request
+        
         let pending_request = PendingRequest {
             id: request_id,
             method: method.to_string(),
@@ -552,7 +552,7 @@ impl RealMcpIntegrationBridge {
             .pending_requests
             .insert(request_id, pending_request.clone());
 
-        // Add to request tracker
+        
         let mut tracker = self.request_tracker.write().await;
         tracker.active_requests.insert(
             request_id,
@@ -567,7 +567,7 @@ impl RealMcpIntegrationBridge {
             },
         );
 
-        // Serialize and send request
+        
         let request_json = serde_json::to_string(&request)
             .map_err(|e| format!("Failed to serialize request: {}", e))?;
 
@@ -578,14 +578,14 @@ impl RealMcpIntegrationBridge {
                 Ok(_) => {
                     match writer.flush().await {
                         Ok(_) => {
-                            // Update statistics
+                            
                             let mut stats = self.stats.write().await;
                             stats.total_requests += 1;
                             stats.bytes_sent += message.len() as u64;
 
                             debug!("Sent MCP request: {} (ID: {})", method, request_id);
 
-                            // Wait for response (simplified - in practice would use async channels)
+                            
                             self.wait_for_response(server_id, request_id).await
                         }
                         Err(e) => {
@@ -608,7 +608,7 @@ impl RealMcpIntegrationBridge {
         }
     }
 
-    /// Query agent list from MCP server
+    
     pub async fn query_agent_list(
         &self,
         server_id: &str,
@@ -617,7 +617,7 @@ impl RealMcpIntegrationBridge {
 
         let response = self.send_request(server_id, "agent_list", None).await?;
 
-        // Parse response into agent list
+        
         if let Some(agents_array) = response.as_array() {
             let mut agents = Vec::new();
 
@@ -643,7 +643,7 @@ impl RealMcpIntegrationBridge {
         }
     }
 
-    /// Query server information
+    
     pub async fn query_server_info(&self, server_id: &str) -> Result<McpServerInfo, String> {
         debug!("Querying server info from: {}", server_id);
 
@@ -661,7 +661,7 @@ impl RealMcpIntegrationBridge {
         }
     }
 
-    /// Query swarm status and topology
+    
     pub async fn query_swarm_status(&self, server_id: &str) -> Result<SwarmTopologyData, String> {
         debug!("Querying swarm status from: {}", server_id);
 
@@ -679,7 +679,7 @@ impl RealMcpIntegrationBridge {
         }
     }
 
-    /// Execute agent task on MCP server
+    
     pub async fn execute_agent_task(
         &self,
         server_id: &str,
@@ -706,7 +706,7 @@ impl RealMcpIntegrationBridge {
         Ok(response)
     }
 
-    /// Spawn new agent on MCP server
+    
     pub async fn spawn_agent(
         &self,
         server_id: &str,
@@ -731,7 +731,7 @@ impl RealMcpIntegrationBridge {
                     server_id, agent.agent_id
                 );
 
-                // Notify event handlers
+                
                 self.notify_agent_spawned(server_id, &agent).await;
 
                 Ok(agent)
@@ -743,7 +743,7 @@ impl RealMcpIntegrationBridge {
         }
     }
 
-    /// Get all active connections
+    
     pub async fn get_active_connections(&self) -> Vec<String> {
         let connections = self.connections.read().await;
         connections
@@ -753,7 +753,7 @@ impl RealMcpIntegrationBridge {
             .collect()
     }
 
-    /// Get connection status
+    
     pub async fn get_connection_status(&self, server_id: &str) -> Option<ConnectionStatus> {
         let connections = self.connections.read().await;
         connections.get(server_id).map(|conn| ConnectionStatus {
@@ -766,18 +766,18 @@ impl RealMcpIntegrationBridge {
         })
     }
 
-    /// Get integration statistics
+    
     pub async fn get_statistics(&self) -> IntegrationStats {
         self.stats.read().await.clone()
     }
 
-    /// Add event handler
+    
     pub async fn add_event_handler(&self, handler: Box<dyn McpEventHandler + Send + Sync>) {
         let mut handlers = self.event_handlers.write().await;
         handlers.push(handler);
     }
 
-    /// Private helper methods
+    
 
     async fn establish_tcp_connection(&self, connection: &mut McpConnection) -> Result<(), String> {
         let address = format!("{}:{}", connection.host, connection.port);
@@ -789,16 +789,16 @@ impl RealMcpIntegrationBridge {
         .await
         {
             Ok(Ok(stream)) => {
-                // Configure TCP options
+                
                 if let Err(e) = stream.set_nodelay(self.pool_config.tcp_nodelay) {
                     warn!("Failed to set TCP_NODELAY: {}", e);
                 }
 
-                // Split stream for reading and writing
+                
                 let (read_half, write_half) = stream.into_split();
                 let reader = BufReader::new(read_half);
 
-                connection.stream = None; // Stream is consumed by split
+                connection.stream = None; 
                 connection.reader = Some(reader);
                 connection.writer = Some(write_half);
                 connection.connection_attempts += 1;
@@ -814,7 +814,7 @@ impl RealMcpIntegrationBridge {
         &self,
         connection: &mut McpConnection,
     ) -> Result<SessionInfo, String> {
-        // Send initialize request
+        
         let init_params = json!({
             "protocolVersion": "2024-11-05",
             "capabilities": {
@@ -830,8 +830,8 @@ impl RealMcpIntegrationBridge {
             }
         });
 
-        // For session initialization, we need to handle the request manually
-        // since the normal send_request method expects an established session
+        
+        
 
         connection.request_id_counter += 1;
         let request_id = connection.request_id_counter;
@@ -859,7 +859,7 @@ impl RealMcpIntegrationBridge {
                 .await
                 .map_err(|e| format!("Failed to flush initialize request: {}", e))?;
 
-            // Read response (simplified - in practice would use proper async handling)
+            
             if let Some(ref mut reader) = connection.reader {
                 let mut response_line = String::new();
                 reader
@@ -872,7 +872,7 @@ impl RealMcpIntegrationBridge {
 
                 match response {
                     McpResponse::Success(success_response) => {
-                        // Parse server capabilities and info
+                        
                         let server_capabilities = success_response
                             .result
                             .get("capabilities")
@@ -912,7 +912,7 @@ impl RealMcpIntegrationBridge {
                             established_at: Utc::now(),
                         };
 
-                        // Send initialized notification to complete handshake
+                        
                         let initialized_notification = McpNotification {
                             jsonrpc: "2.0".to_string(),
                             method: "notifications/initialized".to_string(),
@@ -962,10 +962,10 @@ impl RealMcpIntegrationBridge {
             tokio::time::Duration::from_millis(self.pool_config.connection_timeout_ms);
         let start_time = tokio::time::Instant::now();
 
-        // Create a channel for receiving the response
+        
         let (tx, mut rx) = tokio::sync::mpsc::channel::<Result<Value, String>>(1);
 
-        // Spawn a task to read from the connection
+        
         let connections = self.connections.clone();
         let server_id_clone = server_id.to_string();
         let stats = self.stats.clone();
@@ -979,7 +979,7 @@ impl RealMcpIntegrationBridge {
 
                 if let Some(connection) = connections_guard.get_mut(&server_id_clone) {
                     if let Some(ref mut reader) = connection.reader {
-                        // Try to read a response line
+                        
                         let mut response_line = String::new();
 
                         match tokio::time::timeout(
@@ -992,22 +992,22 @@ impl RealMcpIntegrationBridge {
                                 if bytes_read > 0 {
                                     debug!("Received response line: {}", response_line.trim());
 
-                                    // Parse JSON-RPC response
+                                    
                                     match serde_json::from_str::<McpResponse<Value>>(&response_line)
                                     {
                                         Ok(response) => {
                                             match response {
                                                 McpResponse::Success(success_response) => {
-                                                    // Check if this is our response
+                                                    
                                                     if let Some(id_val) = &success_response.id {
                                                         if let Some(id_num) = id_val.as_u64() {
                                                             if id_num == request_id {
-                                                                // Remove from pending requests
+                                                                
                                                                 connection
                                                                     .pending_requests
                                                                     .remove(&request_id);
 
-                                                                // Update statistics
+                                                                
                                                                 let mut stats_guard =
                                                                     stats.write().await;
                                                                 stats_guard.successful_requests +=
@@ -1015,7 +1015,7 @@ impl RealMcpIntegrationBridge {
                                                                 stats_guard.bytes_received +=
                                                                     response_line.len() as u64;
 
-                                                                // Update request tracker
+                                                                
                                                                 let mut tracker =
                                                                     request_tracker.write().await;
                                                                 if let Some(tracked_request) =
@@ -1042,7 +1042,7 @@ impl RealMcpIntegrationBridge {
                                                                         .request_history
                                                                         .push(history_entry);
 
-                                                                    // Limit history size
+                                                                    
                                                                     if tracker.request_history.len()
                                                                         > tracker.max_history_size
                                                                     {
@@ -1064,21 +1064,21 @@ impl RealMcpIntegrationBridge {
                                                     }
                                                 }
                                                 McpResponse::Error(error_response) => {
-                                                    // Check if this is our error response
+                                                    
                                                     if let Some(id_val) = &error_response.id {
                                                         if let Some(id_num) = id_val.as_u64() {
                                                             if id_num == request_id {
-                                                                // Remove from pending requests
+                                                                
                                                                 connection
                                                                     .pending_requests
                                                                     .remove(&request_id);
 
-                                                                // Update statistics
+                                                                
                                                                 let mut stats_guard =
                                                                     stats.write().await;
                                                                 stats_guard.failed_requests += 1;
 
-                                                                // Update request tracker
+                                                                
                                                                 let mut tracker =
                                                                     request_tracker.write().await;
                                                                 if let Some(tracked_request) =
@@ -1138,7 +1138,7 @@ impl RealMcpIntegrationBridge {
                                 break;
                             }
                             Err(_) => {
-                                // Timeout - continue to next iteration
+                                
                             }
                         }
                     } else {
@@ -1152,18 +1152,18 @@ impl RealMcpIntegrationBridge {
 
                 drop(connections_guard);
 
-                // Small delay to prevent tight loop
+                
                 tokio::time::sleep(tokio::time::Duration::from_millis(10)).await;
             }
 
-            // If we haven't received a response, send timeout error
+            
             if !response_received {
                 warn!(
                     "Request {} to {} timed out after {:?}",
                     request_id, server_id_clone, timeout_duration
                 );
 
-                // Clean up pending request and update stats
+                
                 let mut connections_guard = connections.write().await;
                 if let Some(connection) = connections_guard.get_mut(&server_id_clone) {
                     connection.pending_requests.remove(&request_id);
@@ -1193,7 +1193,7 @@ impl RealMcpIntegrationBridge {
             }
         });
 
-        // Wait for the response or timeout
+        
         match rx.recv().await {
             Some(result) => result,
             None => Err("Internal error: response channel closed".to_string()),
@@ -1201,7 +1201,7 @@ impl RealMcpIntegrationBridge {
     }
 
     async fn start_background_tasks(&self) {
-        // Start heartbeat task
+        
         let connections = self.connections.clone();
         let pool_config = self.pool_config.clone();
 
@@ -1216,15 +1216,15 @@ impl RealMcpIntegrationBridge {
                 let connections_guard = connections.read().await;
                 for (server_id, connection) in connections_guard.iter() {
                     if connection.is_connected {
-                        // Send heartbeat (ping) to server
+                        
                         debug!("Sending heartbeat to server: {}", server_id);
-                        // Implementation would send actual ping message
+                        
                     }
                 }
             }
         });
 
-        // Start request timeout task
+        
         let request_tracker = self.request_tracker.clone();
 
         tokio::spawn(async move {
@@ -1236,7 +1236,7 @@ impl RealMcpIntegrationBridge {
                 let mut tracker = request_tracker.write().await;
                 let now = Utc::now();
 
-                // Remove timed out requests
+                
                 tracker.active_requests.retain(|_, request| {
                     if now > request.timeout_at {
                         warn!("Request {} to {} timed out", request.id, request.server_id);
@@ -1273,7 +1273,7 @@ impl RealMcpIntegrationBridge {
     }
 }
 
-/// Configuration for the MCP integration bridge
+/
 #[derive(Debug, Clone)]
 pub struct BridgeConfiguration {
     pub connection_pool: ConnectionPoolConfig,
@@ -1302,14 +1302,14 @@ impl Default for BridgeConfiguration {
                 base_delay_ms: 1000,
                 max_delay_ms: 10000,
                 backoff_multiplier: 2.0,
-                retryable_errors: vec![-32603, -32000], // Internal error, server error
+                retryable_errors: vec![-32603, -32000], 
             },
             health_monitoring_enabled: true,
         }
     }
 }
 
-/// Connection status information
+/
 #[derive(Debug, Clone)]
 pub struct ConnectionStatus {
     pub server_id: String,

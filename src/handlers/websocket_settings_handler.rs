@@ -130,11 +130,11 @@ impl WebSocketSettingsHandler {
             output.truncate(compressed_size);
             compressed.extend(output);
 
-            // Update compression metrics
+            
             let original_size = data.len();
             let compressed_size = compressed.len();
             let ratio = 1.0 - (compressed_size as f64 / original_size as f64);
-            self.metrics.compression_ratio = (self.metrics.compression_ratio + ratio) / 2.0; // Running average
+            self.metrics.compression_ratio = (self.metrics.compression_ratio + ratio) / 2.0; 
 
             debug!(
                 "Compressed {} bytes to {} bytes (ratio: {:.2}%)",
@@ -182,14 +182,14 @@ impl WebSocketSettingsHandler {
         let original_size = message_bytes.len();
 
         if self.compression_enabled && original_size > 1024 {
-            // Only compress larger messages
+            
             match self.compress_data(message_bytes) {
                 Ok(compressed) => {
                     let mut compressed_message = message.clone();
                     compressed_message.compression = Some("gzip".to_string());
                     compressed_message.checksum = Some(Self::calculate_hash(&message.data));
 
-                    // Send as binary message
+                    
                     let compressed_len = compressed.len();
                     ctx.binary(compressed);
                     self.metrics.bytes_sent += compressed_len as u64;
@@ -206,7 +206,7 @@ impl WebSocketSettingsHandler {
                 }
             }
         } else {
-            // Send uncompressed
+            
             ctx.text(json_str);
             self.metrics.bytes_sent += original_size as u64;
         }
@@ -223,10 +223,10 @@ impl WebSocketSettingsHandler {
         let timestamp = Self::current_timestamp();
         let hash = Self::calculate_hash(&new_value);
 
-        // Check if this is actually a change
+        
         let old_value = if let Some(cached) = self.settings_cache.get(&path) {
             if cached.hash == hash {
-                // No change, skip
+                
                 return;
             }
             Some(cached.value.clone())
@@ -234,7 +234,7 @@ impl WebSocketSettingsHandler {
             None
         };
 
-        // Update cache
+        
         self.settings_cache.insert(
             path.clone(),
             CachedSetting {
@@ -244,7 +244,7 @@ impl WebSocketSettingsHandler {
             },
         );
 
-        // Send delta update
+        
         let delta = DeltaUpdate {
             path: path.clone(),
             value: new_value,
@@ -278,17 +278,17 @@ impl WebSocketSettingsHandler {
         for (path, new_value) in updates {
             let hash = Self::calculate_hash(&new_value);
 
-            // Check for actual changes
+            
             let old_value = if let Some(cached) = self.settings_cache.get(&path) {
                 if cached.hash == hash {
-                    continue; // No change
+                    continue; 
                 }
                 Some(cached.value.clone())
             } else {
                 None
             };
 
-            // Update cache
+            
             self.settings_cache.insert(
                 path.clone(),
                 CachedSetting {
@@ -308,10 +308,10 @@ impl WebSocketSettingsHandler {
         }
 
         if deltas.is_empty() {
-            return; // No actual changes
+            return; 
         }
 
-        // Send batch delta
+        
         let message = WebSocketSettingsMessage {
             msg_type: "settingsBatchDelta".to_string(),
             data: serde_json::to_value(&deltas).unwrap_or_default(),
@@ -334,7 +334,7 @@ impl WebSocketSettingsHandler {
 
         self.compression_enabled = request.compression_supported;
 
-        // For now, send full sync (in production, implement delta sync)
+        
         let message = WebSocketSettingsMessage {
             msg_type: "fullSync".to_string(),
             data: serde_json::to_value(&self.settings_cache).unwrap_or_default(),
@@ -346,7 +346,7 @@ impl WebSocketSettingsHandler {
         self.send_compressed_message(ctx, &message);
         self.metrics.full_sync_messages += 1;
 
-        // Update client's last sync timestamp
+        
         self.last_sync = Self::current_timestamp();
     }
 
@@ -358,7 +358,7 @@ impl WebSocketSettingsHandler {
                 return;
             }
 
-            // Send ping
+            
             let message = WebSocketSettingsMessage {
                 msg_type: "ping".to_string(),
                 data: serde_json::to_value(&act.metrics).unwrap_or_default(),
@@ -373,8 +373,8 @@ impl WebSocketSettingsHandler {
 
     fn handle_performance_request(&mut self, ctx: &mut ws::WebsocketContext<Self>) {
         let bandwidth_saved = if self.metrics.messages_sent > 0 {
-            // Estimate bandwidth savings from compression and delta updates
-            let estimated_full_size = self.metrics.messages_sent * 50000; // ~50KB per full sync
+            
+            let estimated_full_size = self.metrics.messages_sent * 50000; 
             let actual_size = self.metrics.bytes_sent;
             estimated_full_size.saturating_sub(actual_size)
         } else {
@@ -415,10 +415,10 @@ impl Actor for WebSocketSettingsHandler {
             self.client_id
         );
 
-        // Start heartbeat
+        
         self.handle_heartbeat(ctx);
 
-        // Send initial welcome message
+        
         let welcome_message = WebSocketSettingsMessage {
             msg_type: "connected".to_string(),
             data: serde_json::json!({
@@ -440,7 +440,7 @@ impl Actor for WebSocketSettingsHandler {
             self.client_id
         );
 
-        // Log final metrics
+        
         info!("Final metrics - Messages sent: {}, received: {}, bytes sent: {}, compression ratio: {:.1}%",
               self.metrics.messages_sent, self.metrics.messages_received,
               self.metrics.bytes_sent, self.metrics.compression_ratio * 100.0);
@@ -455,7 +455,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocketSettings
                 self.metrics.messages_received += 1;
                 self.metrics.bytes_received += text.len() as u64;
 
-                // Parse message
+                
                 match serde_json::from_str::<WebSocketSettingsMessage>(&text) {
                     Ok(ws_message) => match ws_message.msg_type.as_str() {
                         "syncRequest" => {
@@ -502,11 +502,11 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocketSettings
                 self.metrics.messages_received += 1;
                 self.metrics.bytes_received += bytes.len() as u64;
 
-                // Try to decompress
+                
                 match self.decompress_data(&bytes) {
                     Ok(decompressed) => {
                         if let Ok(text) = String::from_utf8(decompressed) {
-                            // Recursively handle as text message
+                            
                             let text_msg = Ok(ws::Message::Text(text.into()));
                             <Self as StreamHandler<Result<ws::Message, ws::ProtocolError>>>::handle(
                                 self, text_msg, ctx,
@@ -568,7 +568,7 @@ impl Handler<BroadcastSettingChange> for WebSocketSettingsHandler {
     type Result = ();
 
     fn handle(&mut self, msg: BroadcastSettingChange, ctx: &mut Self::Context) {
-        // Don't echo back to the sender
+        
         if let Some(sender_id) = &msg.client_id {
             if sender_id == &self.client_id {
                 return;
@@ -583,7 +583,7 @@ impl Handler<BroadcastBatchChange> for WebSocketSettingsHandler {
     type Result = ();
 
     fn handle(&mut self, msg: BroadcastBatchChange, ctx: &mut Self::Context) {
-        // Don't echo back to the sender
+        
         if let Some(sender_id) = &msg.client_id {
             if sender_id == &self.client_id {
                 return;
@@ -612,7 +612,7 @@ impl WebSocketSettingsHandler {
         ctx: &mut ws::WebsocketContext<Self>,
         message: &WebSocketSettingsMessage,
     ) {
-        // Direct send without circuit breaker for critical messages like heartbeats
+        
         let json_str = match serde_json::to_string(message) {
             Ok(s) => s,
             Err(e) => {

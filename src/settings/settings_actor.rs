@@ -10,7 +10,7 @@ use crate::config::{PhysicsSettings, RenderingSettings};
 use crate::ports::settings_repository::SettingsRepository;
 use super::models::{ConstraintSettings, AllSettings, SettingsProfile};
 
-/// Settings Actor for managing runtime settings
+/
 pub struct SettingsActor {
     repository: Arc<dyn SettingsRepository>,
     current_physics: PhysicsSettings,
@@ -28,8 +28,8 @@ impl SettingsActor {
         }
     }
 
-    /// Initialize actor by loading settings from database
-    /// Note: This is a stub - actual initialization happens in Actor::started
+    
+    
     pub fn initialize(&mut self) -> Result<()> {
         info!("Settings actor initialized with defaults (async load will occur on start)");
         Ok(())
@@ -41,8 +41,8 @@ impl Actor for SettingsActor {
 
     fn started(&mut self, ctx: &mut Self::Context) {
         info!("SettingsActor started with default settings");
-        // Settings are loaded on-demand via message handlers
-        // Repository stub returns defaults, so we use in-memory defaults
+        
+        
     }
 }
 
@@ -50,59 +50,59 @@ impl Actor for SettingsActor {
 // Message Types
 // ============================================================================
 
-/// Update physics settings
+/
 #[derive(Message)]
 #[rtype(result = "Result<()>")]
 pub struct UpdatePhysicsSettings(pub PhysicsSettings);
 
-/// Get current physics settings
+/
 #[derive(Message)]
 #[rtype(result = "PhysicsSettings")]
 pub struct GetPhysicsSettings;
 
-/// Update constraint settings
+/
 #[derive(Message)]
 #[rtype(result = "Result<()>")]
 pub struct UpdateConstraintSettings(pub ConstraintSettings);
 
-/// Get current constraint settings
+/
 #[derive(Message)]
 #[rtype(result = "ConstraintSettings")]
 pub struct GetConstraintSettings;
 
-/// Update rendering settings
+/
 #[derive(Message)]
 #[rtype(result = "Result<()>")]
 pub struct UpdateRenderingSettings(pub RenderingSettings);
 
-/// Get current rendering settings
+/
 #[derive(Message)]
 #[rtype(result = "RenderingSettings")]
 pub struct GetRenderingSettings;
 
-/// Load a settings profile
+/
 #[derive(Message)]
 #[rtype(result = "Result<AllSettings>")]
 pub struct LoadProfile(pub i64);
 
-/// Save current settings as a profile
+/
 #[derive(Message)]
 #[rtype(result = "Result<i64>")]
 pub struct SaveProfile {
     pub name: String,
 }
 
-/// List all settings profiles
+/
 #[derive(Message)]
 #[rtype(result = "Result<Vec<SettingsProfile>>")]
 pub struct ListProfiles;
 
-/// Delete a settings profile
+/
 #[derive(Message)]
 #[rtype(result = "Result<()>")]
 pub struct DeleteProfile(pub i64);
 
-/// Get all current settings
+/
 #[derive(Message)]
 #[rtype(result = "AllSettings")]
 pub struct GetAllSettings;
@@ -172,7 +172,7 @@ impl Handler<UpdatePhysicsSettings> for SettingsActor {
         let settings = msg.0;
 
         Box::pin(async move {
-            // Use generic save_physics_settings from trait
+            
             repository.save_physics_settings("default", &settings).await?;
             info!("Physics settings updated and persisted");
             Ok(())
@@ -240,7 +240,7 @@ impl Handler<SaveProfile> for SettingsActor {
     fn handle(&mut self, msg: SaveProfile, _ctx: &mut Self::Context) -> Self::Result {
         let name = msg.name.clone();
         info!("Profile saving not implemented for '{}'", name);
-        Box::pin(async move { Ok(1) }) // Return dummy ID
+        Box::pin(async move { Ok(1) }) 
     }
 }
 

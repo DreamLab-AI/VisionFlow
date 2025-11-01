@@ -1,7 +1,4 @@
-/**
- * AudioInputService - Manages microphone access, WebRTC setup, and audio recording
- * Provides comprehensive audio input handling with Web Audio API integration
- */
+
 
 import { AudioContextManager } from './AudioContextManager';
 import { gatedConsole } from '../utils/console';
@@ -37,7 +34,7 @@ export class AudioInputService {
   private listeners: Map<string, Set<Function>> = new Map();
   private audioChunks: AudioChunk[] = [];
   private recordingStartTime: number = 0;
-  private audioBlobs: Blob[] = [];  // Store raw blobs for complete audio
+  private audioBlobs: Blob[] = [];  
 
   private constructor() {
     this.initializeAudioContext();
@@ -54,19 +51,17 @@ export class AudioInputService {
     this.audioContext = AudioContextManager.getInstance().getContext();
   }
 
-  /**
-   * Request microphone access with specified constraints
-   */
+  
   async requestMicrophoneAccess(constraints: AudioConstraints = {}): Promise<boolean> {
     try {
       this.setState('requesting');
 
-      // Comprehensive browser support check
+      
       if (!navigator || !navigator.mediaDevices) {
         throw new Error('Browser does not support media devices. Please use a modern browser with HTTPS.');
       }
 
-      // Check for getUserMedia with fallbacks
+      
       const getUserMedia = navigator.mediaDevices.getUserMedia ||
                           (navigator as any).webkitGetUserMedia ||
                           (navigator as any).mozGetUserMedia ||
@@ -76,10 +71,10 @@ export class AudioInputService {
         throw new Error('Browser does not support microphone access. Please use a modern browser with HTTPS.');
       }
 
-      // DEVELOPER WORKAROUND: Bypass HTTPS check for testing
-      // if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-      //   throw new Error('Microphone access requires HTTPS or localhost. Please use a secure connection.');
-      // }
+      
+      
+      
+      
       logger.warn('DEVELOPER MODE: HTTPS check bypassed in AudioInputService');
 
       const defaultConstraints: MediaStreamConstraints = {
@@ -92,11 +87,11 @@ export class AudioInputService {
         }
       };
 
-      // Use the modern API if available, fallback to older APIs
+      
       if (navigator.mediaDevices.getUserMedia) {
         this.stream = await navigator.mediaDevices.getUserMedia(defaultConstraints);
       } else {
-        // Fallback for older browsers
+        
         this.stream = await new Promise<MediaStream>((resolve, reject) => {
           const legacyGetUserMedia = getUserMedia.bind(navigator);
           legacyGetUserMedia(defaultConstraints, resolve, reject);
@@ -114,24 +109,22 @@ export class AudioInputService {
     }
   }
 
-  /**
-   * Setup Web Audio API nodes for processing
-   */
+  
   private async setupAudioNodes() {
     if (!this.stream || !this.audioContext) return;
 
-    // Create source from stream
+    
     this.sourceNode = this.audioContext.createMediaStreamSource(this.stream);
 
-    // Create analyser for visualization
+    
     this.analyserNode = this.audioContext.createAnalyser();
     this.analyserNode.fftSize = 2048;
     this.analyserNode.smoothingTimeConstant = 0.8;
 
-    // Connect nodes
+    
     this.sourceNode.connect(this.analyserNode);
 
-    // Load and setup audio worklet if needed
+    
     try {
       await this.setupAudioWorklet();
     } catch (error) {
@@ -139,16 +132,14 @@ export class AudioInputService {
     }
   }
 
-  /**
-   * Setup audio worklet for advanced processing
-   */
+  
   private async setupAudioWorklet() {
     if (!this.audioContext || !this.sourceNode) return;
 
-    // Register worklet module
+    
     await this.audioContext.audioWorklet.addModule('/audio-processor.js');
 
-    // Create processor node
+    
     this.processorNode = new AudioWorkletNode(this.audioContext, 'audio-processor', {
       numberOfInputs: 1,
       numberOfOutputs: 1,
@@ -157,32 +148,30 @@ export class AudioInputService {
       }
     });
 
-    // Handle messages from processor
+    
     this.processorNode.port.onmessage = (event) => {
       if (event.data.type === 'audioLevel') {
         this.emit('audioLevel', event.data.level);
       }
     };
 
-    // Connect in chain
+    
     this.sourceNode.disconnect();
     this.sourceNode.connect(this.processorNode);
     this.processorNode.connect(this.analyserNode!);
   }
 
-  /**
-   * Start recording audio
-   */
+  
   async startRecording(mimeType: string = 'audio/webm;codecs=opus'): Promise<void> {
     if (!this.stream || this.state !== 'ready') {
       throw new Error('Microphone not ready. Call requestMicrophoneAccess first.');
     }
 
     this.audioChunks = [];
-    this.audioBlobs = [];  // Clear previous recording
+    this.audioBlobs = [];  
     this.recordingStartTime = Date.now();
 
-    // Check supported mime types
+    
     const supportedType = this.getSupportedMimeType(mimeType);
 
     this.mediaRecorder = new MediaRecorder(this.stream, {
@@ -192,9 +181,9 @@ export class AudioInputService {
 
     this.mediaRecorder.ondataavailable = (event) => {
       if (event.data.size > 0) {
-        // Store the blob for complete audio
+        
         this.audioBlobs.push(event.data);
-        // Still handle chunks for real-time features
+        
         this.handleAudioData(event.data);
       }
     };
@@ -206,7 +195,7 @@ export class AudioInputService {
     };
 
     this.mediaRecorder.onstop = async () => {
-      // Combine all blobs into a single complete audio file
+      
       logger.debug('Recording stopped, creating complete audio blob', { chunks: this.audioBlobs.length });
       const completeAudio = new Blob(this.audioBlobs, { type: this.mediaRecorder?.mimeType || 'audio/webm' });
       logger.debug('Complete audio blob created', { size: completeAudio.size, type: completeAudio.type });
@@ -214,15 +203,13 @@ export class AudioInputService {
       this.emit('recordingStopped', this.audioChunks);
     };
 
-    // Start recording with timeslice for monitoring
-    this.mediaRecorder.start(100); // Get data every 100ms
+    
+    this.mediaRecorder.start(100); 
     this.setState('recording');
     this.emit('recordingStarted');
   }
 
-  /**
-   * Stop recording
-   */
+  
   stopRecording(): void {
     if (this.mediaRecorder && this.state === 'recording') {
       logger.debug('Stopping recording', { blobsCollected: this.audioBlobs.length });
@@ -231,9 +218,7 @@ export class AudioInputService {
     }
   }
 
-  /**
-   * Pause recording
-   */
+  
   pauseRecording(): void {
     if (this.mediaRecorder && this.state === 'recording') {
       this.mediaRecorder.pause();
@@ -242,9 +227,7 @@ export class AudioInputService {
     }
   }
 
-  /**
-   * Resume recording
-   */
+  
   resumeRecording(): void {
     if (this.mediaRecorder && this.state === 'paused') {
       this.mediaRecorder.resume();
@@ -253,24 +236,20 @@ export class AudioInputService {
     }
   }
 
-  /**
-   * Handle incoming audio data chunks
-   */
+  
   private async handleAudioData(blob: Blob) {
     const arrayBuffer = await blob.arrayBuffer();
     const chunk: AudioChunk = {
       data: arrayBuffer,
       timestamp: Date.now() - this.recordingStartTime,
-      duration: 100 // Approximate based on timeslice
+      duration: 100 
     };
 
     this.audioChunks.push(chunk);
     this.emit('audioChunk', chunk);
   }
 
-  /**
-   * Get supported MIME type
-   */
+  
   private getSupportedMimeType(preferred: string): string {
     const types = [
       preferred,
@@ -286,12 +265,10 @@ export class AudioInputService {
       }
     }
 
-    return ''; // Browser will use default
+    return ''; 
   }
 
-  /**
-   * Get audio level (0-1)
-   */
+  
   getAudioLevel(): number {
     if (!this.analyserNode) return 0;
 
@@ -307,9 +284,7 @@ export class AudioInputService {
     return sum / (bufferLength * 255);
   }
 
-  /**
-   * Get frequency data for visualization
-   */
+  
   getFrequencyData(): Uint8Array {
     if (!this.analyserNode) return new Uint8Array(0);
 
@@ -320,9 +295,7 @@ export class AudioInputService {
     return dataArray;
   }
 
-  /**
-   * Get waveform data for visualization
-   */
+  
   getWaveformData(): Uint8Array {
     if (!this.analyserNode) return new Uint8Array(0);
 
@@ -333,9 +306,7 @@ export class AudioInputService {
     return dataArray;
   }
 
-  /**
-   * Release all resources
-   */
+  
   async release() {
     this.stopRecording();
 
@@ -362,24 +333,18 @@ export class AudioInputService {
     this.setState('idle');
   }
 
-  /**
-   * Get current state
-   */
+  
   getState(): AudioInputState {
     return this.state;
   }
 
-  /**
-   * Set state and notify listeners
-   */
+  
   private setState(state: AudioInputState) {
     this.state = state;
     this.emit('stateChange', state);
   }
 
-  /**
-   * Event emitter functionality
-   */
+  
   on(event: string, callback: Function) {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
@@ -401,9 +366,7 @@ export class AudioInputService {
     }
   }
 
-  /**
-   * Check if browser supports required APIs
-   */
+  
   static isSupported(): boolean {
     return !!(navigator.mediaDevices &&
              navigator.mediaDevices.getUserMedia &&
@@ -411,9 +374,7 @@ export class AudioInputService {
              (window.AudioContext || (window as any).webkitAudioContext));
   }
 
-  /**
-   * Get detailed browser support information
-   */
+  
   static getBrowserSupport(): {
     mediaDevices: boolean;
     getUserMedia: boolean;

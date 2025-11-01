@@ -18,21 +18,21 @@ use path_access::{parse_path, PathAccessible};
 
 // Centralized validation patterns
 lazy_static! {
-    /// Validates hex color format (#RRGGBB or #RRGGBBAA)
+    
     static ref HEX_COLOR_REGEX: Regex = Regex::new(r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$").unwrap();
 
-    /// Validates URL format (http/https)
+    
     static ref URL_REGEX: Regex = Regex::new(r"^https?://[^\s/$.?#].[^\s]*$").unwrap();
 
-    /// Validates file path format (Unix/Windows compatible)
+    
     static ref FILE_PATH_REGEX: Regex = Regex::new(r"^[a-zA-Z0-9._/\\-]+$").unwrap();
 
-    /// Validates domain name format
+    
     static ref DOMAIN_REGEX: Regex = Regex::new(r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$").unwrap();
 }
 
-/// Custom validation functions for specific business logic
-/// Validates hex color format (#RRGGBB or #RRGGBBAA)
+/
+/
 pub fn validate_hex_color(color: &str) -> Result<(), ValidationError> {
     if !HEX_COLOR_REGEX.is_match(color) {
         return Err(ValidationError::new("invalid_hex_color"));
@@ -40,7 +40,7 @@ pub fn validate_hex_color(color: &str) -> Result<(), ValidationError> {
     Ok(())
 }
 
-/// Validates width range has exactly 2 elements with proper min/max order
+/
 pub fn validate_width_range(range: &[f32]) -> Result<(), ValidationError> {
     if range.len() != 2 {
         return Err(ValidationError::new("width_range_length"));
@@ -51,7 +51,7 @@ pub fn validate_width_range(range: &[f32]) -> Result<(), ValidationError> {
     Ok(())
 }
 
-/// Validates port number is in valid range (1-65535)
+/
 pub fn validate_port(port: u16) -> Result<(), ValidationError> {
     if port == 0 {
         return Err(ValidationError::new("invalid_port"));
@@ -59,7 +59,7 @@ pub fn validate_port(port: u16) -> Result<(), ValidationError> {
     Ok(())
 }
 
-/// Validates percentage is between 0 and 100
+/
 pub fn validate_percentage(value: f32) -> Result<(), ValidationError> {
     if !(0.0..=100.0).contains(&value) {
         return Err(ValidationError::new("invalid_percentage"));
@@ -67,13 +67,13 @@ pub fn validate_percentage(value: f32) -> Result<(), ValidationError> {
     Ok(())
 }
 
-/// Validates bloom/glow settings to prevent GPU kernel crashes
-/// This function checks ranges for intensity, threshold, radius, and validates hex colors
+/
+/
 pub fn validate_bloom_glow_settings(
     glow: &GlowSettings,
     bloom: &BloomSettings,
 ) -> Result<(), ValidationError> {
-    // Validate glow settings
+    
     if glow.intensity < 0.0 || glow.intensity > 10.0 {
         return Err(ValidationError::new("glow_intensity_out_of_range"));
     }
@@ -87,11 +87,11 @@ pub fn validate_bloom_glow_settings(
         return Err(ValidationError::new("glow_opacity_out_of_range"));
     }
 
-    // Validate glow colors
+    
     validate_hex_color(&glow.base_color)?;
     validate_hex_color(&glow.emission_color)?;
 
-    // Check for NaN/Infinity values that would crash GPU kernel
+    
     if !glow.intensity.is_finite() {
         return Err(ValidationError::new("glow_intensity_not_finite"));
     }
@@ -102,7 +102,7 @@ pub fn validate_bloom_glow_settings(
         return Err(ValidationError::new("glow_threshold_not_finite"));
     }
 
-    // Validate bloom settings
+    
     if bloom.intensity < 0.0 || bloom.intensity > 10.0 {
         return Err(ValidationError::new("bloom_intensity_out_of_range"));
     }
@@ -119,11 +119,11 @@ pub fn validate_bloom_glow_settings(
         return Err(ValidationError::new("bloom_knee_out_of_range"));
     }
 
-    // Validate bloom colors
+    
     validate_hex_color(&bloom.color)?;
     validate_hex_color(&bloom.tint_color)?;
 
-    // Check for NaN/Infinity values in bloom settings
+    
     if !bloom.intensity.is_finite() {
         return Err(ValidationError::new("bloom_intensity_not_finite"));
     }
@@ -137,7 +137,7 @@ pub fn validate_bloom_glow_settings(
     Ok(())
 }
 
-/// Converts snake_case to camelCase
+/
 fn to_camel_case(snake_str: &str) -> String {
     let mut result = String::new();
     let mut capitalize_next = false;
@@ -161,11 +161,11 @@ fn default_auto_balance_interval() -> u32 {
 }
 
 fn default_constraint_ramp_frames() -> u32 {
-    60 // 1 second at 60 FPS for full activation
+    60 
 }
 
 fn default_constraint_max_force_per_node() -> f32 {
-    50.0 // Default constraint force limit per node
+    50.0 
 }
 
 fn default_glow_color() -> String {
@@ -194,9 +194,9 @@ fn convert_empty_strings_to_null(value: Value) -> Value {
                 .map(|(k, v)| {
                     let new_v = match v {
                         Value::String(s) if s.is_empty() => {
-                            // For required String fields, keep empty strings
-                            // For optional fields, convert to null
-                            // List of required string fields that should NOT be null
+                            
+                            
+                            
                             let required_string_fields = vec![
                                 "base_color",
                                 "color",
@@ -226,10 +226,10 @@ fn convert_empty_strings_to_null(value: Value) -> Value {
                             ];
 
                             if required_string_fields.contains(&k.as_str()) {
-                                // Keep empty string for required fields
+                                
                                 Value::String(s)
                             } else {
-                                // Convert to null for optional fields
+                                
                                 Value::Null
                             }
                         }
@@ -268,16 +268,16 @@ fn merge_json_values(base: Value, update: Value) -> Value {
             }
             Value::Object(base_map)
         }
-        (_, update) => update, // For non-objects, update overwrites base
+        (_, update) => update, 
     }
 }
 
-/// Cached field mapping to avoid rebuilding the HashMap on every call
+/
 static FIELD_MAPPINGS: std::sync::LazyLock<std::collections::HashMap<&'static str, &'static str>> =
     std::sync::LazyLock::new(|| {
         let mut field_mappings = std::collections::HashMap::new();
 
-        // Node settings fields
+        
         field_mappings.insert("base_color", "baseColor");
         field_mappings.insert("emission_color", "emissionColor");
         field_mappings.insert("node_size", "nodeSize");
@@ -289,7 +289,7 @@ static FIELD_MAPPINGS: std::sync::LazyLock<std::collections::HashMap<&'static st
             "enableMetadataVisualisation",
         );
 
-        // Edge settings fields
+        
         field_mappings.insert("arrow_size", "arrowSize");
         field_mappings.insert("base_width", "baseWidth");
         field_mappings.insert("edge_color", "color");
@@ -298,7 +298,7 @@ static FIELD_MAPPINGS: std::sync::LazyLock<std::collections::HashMap<&'static st
         field_mappings.insert("enable_arrows", "enableArrows");
         field_mappings.insert("width_range", "widthRange");
 
-        // Rendering settings fields
+        
         field_mappings.insert("ambient_light_intensity", "ambientLightIntensity");
         field_mappings.insert("background_color", "backgroundColor");
         field_mappings.insert("directional_light_intensity", "directionalLightIntensity");
@@ -309,13 +309,13 @@ static FIELD_MAPPINGS: std::sync::LazyLock<std::collections::HashMap<&'static st
         field_mappings.insert("shadow_map_size", "shadowMapSize");
         field_mappings.insert("shadow_bias", "shadowBias");
 
-        // Animation settings fields
+        
         field_mappings.insert("enable_motion_blur", "enableMotionBlur");
         field_mappings.insert("enable_node_animations", "enableNodeAnimations");
         field_mappings.insert("motion_blur_strength", "motionBlurStrength");
         field_mappings.insert("animation_speed", "animationSpeed");
 
-        // Auto-pause config fields
+        
         field_mappings.insert(
             "equilibrium_velocity_threshold",
             "equilibriumVelocityThreshold",
@@ -325,7 +325,7 @@ static FIELD_MAPPINGS: std::sync::LazyLock<std::collections::HashMap<&'static st
         field_mappings.insert("pause_on_equilibrium", "pauseOnEquilibrium");
         field_mappings.insert("resume_on_interaction", "resumeOnInteraction");
 
-        // Auto-balance config fields (extensive physics parameters)
+        
         field_mappings.insert("stability_variance_threshold", "stabilityVarianceThreshold");
         field_mappings.insert("stability_frame_count", "stabilityFrameCount");
         field_mappings.insert(
@@ -368,7 +368,7 @@ static FIELD_MAPPINGS: std::sync::LazyLock<std::collections::HashMap<&'static st
             "numericalInstabilityThreshold",
         );
 
-        // Physics settings fields
+        
         field_mappings.insert("bounds_size", "boundsSize");
         field_mappings.insert("separation_radius", "separationRadius");
         field_mappings.insert("enable_bounds", "enableBounds");
@@ -405,7 +405,7 @@ static FIELD_MAPPINGS: std::sync::LazyLock<std::collections::HashMap<&'static st
         field_mappings.insert("warmup_curve", "warmupCurve");
         field_mappings.insert("zero_velocity_iterations", "zeroVelocityIterations");
 
-        // System settings fields
+        
         field_mappings.insert("host_port", "hostPort");
         field_mappings.insert("log_level", "logLevel");
         field_mappings.insert("persist_settings", "persistSettings");
@@ -414,21 +414,21 @@ static FIELD_MAPPINGS: std::sync::LazyLock<std::collections::HashMap<&'static st
         field_mappings
     });
 
-/// Normalize JSON field names from snake_case to camelCase to prevent duplicate field errors
-/// during serde deserialization when both naming conventions exist in the same object.
-///
-/// This function specifically handles the known problematic fields that have serde aliases:
-/// - base_color -> baseColor
-/// - ambient_light_intensity -> ambientLightIntensity
-/// - emission_color -> emissionColor
-/// - etc.
-///
-/// Performance optimized with cached field mappings.
+/
+/
+/
+/
+/
+/
+/
+/
+/
+/
 fn normalize_field_names_to_camel_case(value: Value) -> Result<Value, String> {
     normalize_object_fields(value, &FIELD_MAPPINGS)
 }
 
-/// Recursively normalize field names in a JSON object using the provided mapping
+/
 fn normalize_object_fields(
     value: Value,
     mappings: &std::collections::HashMap<&str, &str>,
@@ -438,16 +438,16 @@ fn normalize_object_fields(
             let mut new_map = serde_json::Map::new();
 
             for (key, val) in map {
-                // Check if this field needs normalization
+                
                 let normalized_key = if let Some(&camel_case_key) = mappings.get(key.as_str()) {
-                    // Convert snake_case to camelCase
+                    
                     camel_case_key.to_string()
                 } else {
-                    // Keep original key
+                    
                     key
                 };
 
-                // Recursively normalize nested objects
+                
                 let normalized_value = normalize_object_fields(val, mappings)?;
                 new_map.insert(normalized_key, normalized_value);
             }
@@ -461,7 +461,7 @@ fn normalize_object_fields(
                 .collect();
             Ok(Value::Array(normalized_array?))
         }
-        // For primitive values, no normalization needed
+        
         _ => Ok(value),
     }
 }
@@ -594,7 +594,7 @@ pub struct AutoBalanceConfig {
     #[serde(alias = "min_oscillation_changes")]
     pub min_oscillation_changes: usize,
 
-    // Parameter adjustment and cooldown configuration
+    
     #[serde(alias = "parameter_adjustment_rate")]
     pub parameter_adjustment_rate: f32,
     #[serde(alias = "max_adjustment_factor")]
@@ -610,7 +610,7 @@ pub struct AutoBalanceConfig {
     #[serde(alias = "hysteresis_delay_frames")]
     pub hysteresis_delay_frames: u32,
 
-    // New CUDA kernel parameter tuning thresholds
+    
     #[serde(alias = "grid_cell_size_min")]
     pub grid_cell_size_min: f32,
     #[serde(alias = "grid_cell_size_max")]
@@ -628,7 +628,7 @@ pub struct AutoBalanceConfig {
     #[serde(alias = "center_gravity_max")]
     pub center_gravity_max: f32,
 
-    // Spatial hashing effectiveness thresholds
+    
     #[serde(alias = "spatial_hash_efficiency_threshold")]
     pub spatial_hash_efficiency_threshold: f32,
     #[serde(alias = "cluster_density_threshold")]
@@ -655,7 +655,7 @@ impl AutoBalanceConfig {
             oscillation_change_threshold: 10.0,
             min_oscillation_changes: 8,
 
-            // Parameter adjustment and cooldown defaults
+            
             parameter_adjustment_rate: 0.1,
             max_adjustment_factor: 0.2,
             min_adjustment_factor: -0.2,
@@ -664,7 +664,7 @@ impl AutoBalanceConfig {
             parameter_dampening_factor: 0.05,
             hysteresis_delay_frames: 30,
 
-            // New CUDA kernel parameter defaults for tuning ranges
+            
             grid_cell_size_min: 1.0,
             grid_cell_size_max: 50.0,
             repulsion_cutoff_min: 5.0,
@@ -674,10 +674,10 @@ impl AutoBalanceConfig {
             center_gravity_min: 0.0,
             center_gravity_max: 0.1,
 
-            // Spatial hashing and numerical stability thresholds
-            spatial_hash_efficiency_threshold: 0.3, // Below 30% efficiency triggers grid_cell_size adjustment
-            cluster_density_threshold: 50.0,        // Nodes per unit area that indicates clustering
-            numerical_instability_threshold: 1e-3,  // Threshold for detecting numerical issues
+            
+            spatial_hash_efficiency_threshold: 0.3, 
+            cluster_density_threshold: 50.0,        
+            numerical_instability_threshold: 1e-3,  
         }
     }
 }
@@ -730,7 +730,7 @@ pub struct PhysicsSettings {
     pub temperature: f32,
     #[serde(alias = "gravity")]
     pub gravity: f32,
-    // New GPU-aligned fields
+    
     #[serde(alias = "stress_weight")]
     pub stress_weight: f32,
     #[serde(alias = "stress_alpha")]
@@ -744,7 +744,7 @@ pub struct PhysicsSettings {
     #[serde(alias = "compute_mode")]
     pub compute_mode: i32,
 
-    // CUDA kernel parameters from dev_config.toml
+    
     #[serde(alias = "rest_length")]
     pub rest_length: f32,
     #[serde(alias = "repulsion_cutoff")]
@@ -765,7 +765,7 @@ pub struct PhysicsSettings {
     pub boundary_extreme_force_multiplier: f32,
     #[serde(alias = "boundary_velocity_damping")]
     pub boundary_velocity_damping: f32,
-    // Additional GPU parameters from documentation
+    
     #[serde(alias = "min_distance")]
     pub min_distance: f32,
     #[serde(alias = "max_repulsion_dist")]
@@ -779,7 +779,7 @@ pub struct PhysicsSettings {
     #[serde(alias = "zero_velocity_iterations")]
     pub zero_velocity_iterations: u32,
 
-    // Constraint progressive activation parameters
+    
     #[serde(
         alias = "constraint_ramp_frames",
         default = "default_constraint_ramp_frames"
@@ -791,7 +791,7 @@ pub struct PhysicsSettings {
     )]
     pub constraint_max_force_per_node: f32,
 
-    // Clustering parameters
+    
     #[serde(alias = "clustering_algorithm")]
     pub clustering_algorithm: String,
     #[serde(alias = "cluster_count")]
@@ -831,7 +831,7 @@ impl Default for PhysicsSettings {
             alignment_strength: 0.0,
             cluster_strength: 0.0,
             compute_mode: 0,
-            // CUDA kernel parameter defaults from dev_config.toml
+            
             rest_length: 50.0,
             repulsion_cutoff: 50.0,
             repulsion_softening_epsilon: 0.0001,
@@ -842,17 +842,17 @@ impl Default for PhysicsSettings {
             boundary_extreme_multiplier: 2.0,
             boundary_extreme_force_multiplier: 10.0,
             boundary_velocity_damping: 0.5,
-            // Additional GPU parameter defaults
+            
             min_distance: 0.15,
             max_repulsion_dist: 50.0,
             boundary_margin: 0.85,
             boundary_force_strength: 2.0,
             warmup_curve: "quadratic".to_string(),
             zero_velocity_iterations: 5,
-            // Constraint progressive activation defaults
+            
             constraint_ramp_frames: default_constraint_ramp_frames(),
             constraint_max_force_per_node: default_constraint_max_force_per_node(),
-            // Clustering defaults
+            
             clustering_algorithm: "none".to_string(),
             cluster_count: 5,
             clustering_resolution: 1.0,
@@ -989,22 +989,22 @@ pub struct GlowSettings {
     pub environment_glow_strength: f32,
 }
 
-/// Default function for bloom intensity
+/
 fn default_bloom_intensity() -> f32 {
     1.0
 }
 
-/// Default function for bloom radius
+/
 fn default_bloom_radius() -> f32 {
     0.8
 }
 
-/// Default function for bloom threshold
+/
 fn default_bloom_threshold() -> f32 {
     0.15
 }
 
-/// Default function for bloom color
+/
 fn default_bloom_color() -> String {
     "#ffffff".to_string()
 }
@@ -1178,7 +1178,7 @@ pub struct GraphsSettings {
 #[derive(Debug, Serialize, Deserialize, Clone, Default, Type, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct VisualisationSettings {
-    // Global settings
+    
     #[validate(nested)]
     pub rendering: RenderingSettings,
     #[validate(nested)]
@@ -1239,13 +1239,13 @@ pub struct NetworkSettings {
 impl Default for NetworkSettings {
     fn default() -> Self {
         Self {
-            bind_address: "0.0.0.0".to_string(), // Valid bind address (all interfaces)
-            port: 8080,                          // Valid default HTTP port
+            bind_address: "0.0.0.0".to_string(), 
+            port: 8080,                          
             domain: String::new(),
             enable_http2: false,
             enable_rate_limiting: false,
             enable_tls: false,
-            max_request_size: 10485760, // 10MB
+            max_request_size: 10485760, 
             min_tls_version: "1.2".to_string(),
             rate_limit_requests: 100,
             rate_limit_window: 60,
@@ -1255,7 +1255,7 @@ impl Default for NetworkSettings {
             max_concurrent_requests: 1000,
             max_retries: 3,
             metrics_port: 9090,
-            retry_delay: 1000, // 1 second
+            retry_delay: 1000, 
         }
     }
 }
@@ -1612,7 +1612,7 @@ pub struct WhisperSettings {
 #[serde(rename_all = "camelCase")]
 pub struct LegacyConstraintData {
     #[serde(alias = "constraint_type")]
-    pub constraint_type: i32, // 0=none, 1=separation, 2=boundary, 3=alignment, 4=cluster
+    pub constraint_type: i32, 
     #[serde(alias = "strength")]
     pub strength: f32,
     #[serde(alias = "param1")]
@@ -1620,7 +1620,7 @@ pub struct LegacyConstraintData {
     #[serde(alias = "param2")]
     pub param2: f32,
     #[serde(alias = "node_mask")]
-    pub node_mask: i32, // Bit mask for selective application
+    pub node_mask: i32, 
     #[serde(alias = "enabled")]
     pub enabled: bool,
 }
@@ -1691,7 +1691,7 @@ pub struct PhysicsUpdate {
     pub gravity: Option<f32>,
     #[serde(alias = "update_threshold")]
     pub update_threshold: Option<f32>,
-    // New GPU-aligned fields
+    
     #[serde(alias = "stress_weight")]
     pub stress_weight: Option<f32>,
     #[serde(alias = "stress_alpha")]
@@ -1704,7 +1704,7 @@ pub struct PhysicsUpdate {
     pub cluster_strength: Option<f32>,
     #[serde(alias = "compute_mode")]
     pub compute_mode: Option<i32>,
-    // Additional GPU parameters
+    
     #[serde(alias = "min_distance")]
     pub min_distance: Option<f32>,
     #[serde(alias = "max_repulsion_dist")]
@@ -1721,7 +1721,7 @@ pub struct PhysicsUpdate {
     pub zero_velocity_iterations: Option<u32>,
     #[serde(alias = "cooling_rate")]
     pub cooling_rate: Option<f32>,
-    // Clustering parameters
+    
     #[serde(alias = "clustering_algorithm")]
     pub clustering_algorithm: Option<String>,
     #[serde(alias = "cluster_count")]
@@ -1730,7 +1730,7 @@ pub struct PhysicsUpdate {
     pub clustering_resolution: Option<f32>,
     #[serde(alias = "clustering_iterations")]
     pub clustering_iterations: Option<u32>,
-    // New CUDA kernel parameters
+    
     #[serde(alias = "repulsion_softening_epsilon")]
     pub repulsion_softening_epsilon: Option<f32>,
     #[serde(alias = "center_gravity_k")]
@@ -1746,15 +1746,15 @@ pub struct PhysicsUpdate {
 #[serde(rename_all = "camelCase")]
 pub struct UserPreferences {
     #[serde(default)]
-    pub comfort_level: Option<f32>, // 0.0 to 1.0
+    pub comfort_level: Option<f32>, 
     #[serde(default)]
-    pub interaction_style: Option<String>, // "hands" | "controllers" | "mixed"
+    pub interaction_style: Option<String>, 
     #[serde(default)]
-    pub ar_preference: Option<bool>, // Prefer AR over VR when possible
+    pub ar_preference: Option<bool>, 
     #[serde(default)]
-    pub theme: Option<String>, // UI theme preference
+    pub theme: Option<String>, 
     #[serde(default)]
-    pub language: Option<String>, // Language preference
+    pub language: Option<String>, 
 }
 
 // Feature flags for experimental or optional features
@@ -1825,7 +1825,7 @@ pub struct AppFullSettings {
     pub whisper: Option<WhisperSettings>,
     #[serde(default = "default_version", alias = "version")]
     pub version: String,
-    // New fields for enhanced configuration
+    
     #[serde(default, alias = "user_preferences")]
     #[validate(nested)]
     pub user_preferences: UserPreferences,
@@ -1864,30 +1864,30 @@ impl Default for AppFullSettings {
 }
 
 impl AppFullSettings {
-    /// Create default settings (YAML file loading removed - use database instead)
-    /// This method is kept for backward compatibility but now returns defaults only
+    
+    
     pub fn new() -> Result<Self, ConfigError> {
         debug!("Initializing AppFullSettings with defaults (database-first architecture)");
         info!("IMPORTANT: Settings should be loaded from database via DatabaseService");
         info!("Legacy YAML file loading has been removed - all settings are now in SQLite");
 
-        // Return default settings
+        
         Ok(Self::default())
     }
 
-    /// Save method removed - settings are now persisted to database only
-    /// This is kept as a no-op for backward compatibility
+    
+    
     pub fn save(&self) -> Result<(), String> {
         debug!("save() called but ignored - settings are now automatically persisted to database");
         info!("Legacy YAML file saving has been removed - all settings are now in SQLite");
         Ok(())
     }
 
-    /// Get physics settings for a specific graph
-    /// - "logseq": Knowledge graph (primary) - for visualizing knowledge/data relationships
-    /// - "visionflow": Agent graph (secondary) - for visualizing AI agents and their interactions
-    /// - "bots": Alias for visionflow/agent graph
-    /// Default: logseq (knowledge graph)
+    
+    
+    
+    
+    
     pub fn get_physics(&self, graph: &str) -> &PhysicsSettings {
         match graph {
             "logseq" | "knowledge" => &self.visualisation.graphs.logseq.physics,
@@ -1902,12 +1902,12 @@ impl AppFullSettings {
         }
     }
 
-    // Physics updates now handled through the general merge_update method
-    // which provides better validation and consistency
+    
+    
 
-    /// Deep merge partial update into settings
+    
     pub fn merge_update(&mut self, update: serde_json::Value) -> Result<(), String> {
-        // Debug: Log the incoming update (only if debug is enabled)
+        
         if crate::utils::logging::is_debug_enabled() {
             debug!(
                 "merge_update: Incoming update (camelCase): {}",
@@ -1916,7 +1916,7 @@ impl AppFullSettings {
             );
         }
 
-        // Convert empty strings to null for Option<String> fields
+        
         let processed_update = convert_empty_strings_to_null(update.clone());
         if crate::utils::logging::is_debug_enabled() {
             debug!(
@@ -1926,12 +1926,12 @@ impl AppFullSettings {
             );
         }
 
-        // CRITICAL FIX: Normalize field names before merging to prevent duplicate field errors
-        // This ensures both current settings and update use the same field naming convention (camelCase)
+        
+        
         let current_value = serde_json::to_value(&self)
             .map_err(|e| format!("Failed to serialize current settings: {}", e))?;
 
-        // Normalize both values to use camelCase consistently
+        
         let normalized_current = normalize_field_names_to_camel_case(current_value)?;
         let normalized_update = normalize_field_names_to_camel_case(processed_update)?;
 
@@ -1957,7 +1957,7 @@ impl AppFullSettings {
             );
         }
 
-        // Deserialize back to AppFullSettings
+        
         *self = serde_json::from_value(merged.clone()).map_err(|e| {
             if crate::utils::logging::is_debug_enabled() {
                 error!(
@@ -1977,29 +1977,29 @@ impl AppFullSettings {
         Ok(())
     }
 
-    /// Validates the entire configuration with camelCase field names for frontend compatibility
+    
     pub fn validate_config_camel_case(&self) -> Result<(), validator::ValidationErrors> {
-        // Validate the entire struct
+        
         self.validate()?;
 
-        // Additional cross-field validation
+        
         self.validate_cross_field_constraints()?;
 
         Ok(())
     }
 
-    /// Validates constraints that span multiple fields
+    
     fn validate_cross_field_constraints(&self) -> Result<(), validator::ValidationErrors> {
         let mut errors = validator::ValidationErrors::new();
 
-        // Example: Check that physics simulation is enabled if physics settings are configured
+        
         if self.visualisation.graphs.logseq.physics.gravity != 0.0
             && !self.visualisation.graphs.logseq.physics.enabled
         {
             errors.add("physics", ValidationError::new("physics_enabled_required"));
         }
 
-        // Validate bloom/glow settings to prevent GPU kernel crashes
+        
         if let Err(validation_error) =
             validate_bloom_glow_settings(&self.visualisation.glow, &self.visualisation.bloom)
         {
@@ -2013,7 +2013,7 @@ impl AppFullSettings {
         }
     }
 
-    /// Gets user-friendly error messages in camelCase format
+    
     pub fn get_validation_errors_camel_case(
         errors: &validator::ValidationErrors,
     ) -> HashMap<String, Vec<String>> {

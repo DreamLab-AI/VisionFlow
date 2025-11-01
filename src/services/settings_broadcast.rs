@@ -5,57 +5,57 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use std::time::{Duration, Instant};
 
-/// WebSocket broadcast service for real-time settings synchronization
-///
-/// Features:
-/// - Broadcast setting changes to all connected clients
-/// - Connection management with heartbeat
-/// - Message batching for efficiency
-/// - Type-safe message serialization
-/// - Automatic reconnection support
-///
-/// Usage:
-/// ```rust
-/// // In settings actor handler
-/// let broadcast = SettingsBroadcast::from_registry();
-/// broadcast.send(BroadcastSettingChange {
-///     key: "physics.damping".to_string(),
-///     value: serde_json::json!(0.95),
-///     timestamp: chrono::Utc::now().timestamp()
-/// }).await;
-/// ```
+/
+/
+/
+/
+/
+/
+/
+/
+/
+/
+/
+/
+/
+/
+/
+/
+/
+/
+/
 
-/// Message types for settings broadcast
+/
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum SettingsBroadcastMessage {
-    /// Single setting changed
+    
     SettingChanged {
         key: String,
         value: serde_json::Value,
         timestamp: i64,
     },
-    /// Multiple settings changed (batch)
+    
     SettingsBatchChanged {
         changes: Vec<SettingChange>,
         timestamp: i64,
     },
-    /// Settings reloaded (hot-reload triggered)
+    
     SettingsReloaded {
         timestamp: i64,
         reason: String,
     },
-    /// Preset applied
+    
     PresetApplied {
         preset_id: String,
         settings_count: usize,
         timestamp: i64,
     },
-    /// Heartbeat ping
+    
     Ping {
         timestamp: i64,
     },
-    /// Heartbeat pong
+    
     Pong {
         timestamp: i64,
     },
@@ -67,13 +67,13 @@ pub struct SettingChange {
     pub value: serde_json::Value,
 }
 
-/// WebSocket session for settings synchronization
+/
 pub struct SettingsWebSocket {
-    /// Client ID for tracking
+    
     id: String,
-    /// Last heartbeat time
+    
     hb: Instant,
-    /// Broadcast manager address
+    
     broadcast_addr: Addr<SettingsBroadcastManager>,
 }
 
@@ -86,18 +86,18 @@ impl SettingsWebSocket {
         }
     }
 
-    /// Send heartbeat to client
+    
     fn hb(&self, ctx: &mut ws::WebsocketContext<Self>) {
         ctx.run_interval(Duration::from_secs(5), |act, ctx| {
-            // Check client heartbeat
+            
             if Instant::now().duration_since(act.hb) > Duration::from_secs(30) {
-                // Heartbeat timeout - disconnect
+                
                 log::warn!("Settings WebSocket heartbeat timeout for client {}", act.id);
                 ctx.stop();
                 return;
             }
 
-            // Send ping
+            
             let msg = SettingsBroadcastMessage::Ping {
                 timestamp: chrono::Utc::now().timestamp(),
             };
@@ -114,10 +114,10 @@ impl Actor for SettingsWebSocket {
     fn started(&mut self, ctx: &mut Self::Context) {
         log::info!("Settings WebSocket connected: {}", self.id);
 
-        // Start heartbeat
+        
         self.hb(ctx);
 
-        // Register with broadcast manager
+        
         self.broadcast_addr.do_send(RegisterClient {
             id: self.id.clone(),
             addr: ctx.address(),
@@ -127,7 +127,7 @@ impl Actor for SettingsWebSocket {
     fn stopped(&mut self, _ctx: &mut Self::Context) {
         log::info!("Settings WebSocket disconnected: {}", self.id);
 
-        // Unregister from broadcast manager
+        
         self.broadcast_addr.do_send(UnregisterClient {
             id: self.id.clone(),
         });
@@ -147,11 +147,11 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SettingsWebSocket
             Ok(ws::Message::Text(text)) => {
                 self.hb = Instant::now();
 
-                // Parse incoming message
+                
                 if let Ok(msg) = serde_json::from_str::<SettingsBroadcastMessage>(&text) {
                     match msg {
                         SettingsBroadcastMessage::Pong { .. } => {
-                            // Client acknowledged ping
+                            
                         }
                         _ => {
                             log::debug!("Received settings message: {:?}", msg);
@@ -171,7 +171,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SettingsWebSocket
     }
 }
 
-/// Broadcast message to all connected clients
+/
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct BroadcastToClients {
@@ -188,13 +188,13 @@ impl Handler<BroadcastToClients> for SettingsWebSocket {
     }
 }
 
-/// Central broadcast manager for all settings WebSocket connections
+/
 pub struct SettingsBroadcastManager {
-    /// Connected clients
+    
     clients: Arc<RwLock<HashMap<String, Addr<SettingsWebSocket>>>>,
-    /// Message buffer for batching
+    
     message_buffer: Vec<SettingChange>,
-    /// Last batch send time
+    
     last_batch_send: Instant,
 }
 
@@ -207,7 +207,7 @@ impl SettingsBroadcastManager {
         }
     }
 
-    /// Broadcast message to all connected clients
+    
     fn broadcast(&self, message: SettingsBroadcastMessage) {
         if let Ok(clients) = self.clients.read() {
             let message_for_send = BroadcastToClients { message };
@@ -222,7 +222,7 @@ impl SettingsBroadcastManager {
         }
     }
 
-    /// Flush message buffer if needed
+    
     fn flush_buffer(&mut self) {
         if !self.message_buffer.is_empty()
             && Instant::now().duration_since(self.last_batch_send) > Duration::from_millis(100)
@@ -243,7 +243,7 @@ impl Actor for SettingsBroadcastManager {
     fn started(&mut self, ctx: &mut Self::Context) {
         log::info!("Settings broadcast manager started");
 
-        // Periodic buffer flush
+        
         ctx.run_interval(Duration::from_millis(100), |act, _ctx| {
             act.flush_buffer();
         });
@@ -260,7 +260,7 @@ impl Default for SettingsBroadcastManager {
     }
 }
 
-/// Register a new client
+/
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct RegisterClient {
@@ -279,7 +279,7 @@ impl Handler<RegisterClient> for SettingsBroadcastManager {
     }
 }
 
-/// Unregister a client
+/
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct UnregisterClient {
@@ -297,7 +297,7 @@ impl Handler<UnregisterClient> for SettingsBroadcastManager {
     }
 }
 
-/// Broadcast a single setting change
+/
 #[derive(Message, Clone)]
 #[rtype(result = "()")]
 pub struct BroadcastSettingChange {
@@ -309,20 +309,20 @@ impl Handler<BroadcastSettingChange> for SettingsBroadcastManager {
     type Result = ();
 
     fn handle(&mut self, msg: BroadcastSettingChange, _ctx: &mut Self::Context) {
-        // Add to buffer for batching
+        
         self.message_buffer.push(SettingChange {
             key: msg.key.clone(),
             value: msg.value.clone(),
         });
 
-        // If buffer is large, flush immediately
+        
         if self.message_buffer.len() >= 10 {
             self.flush_buffer();
         }
     }
 }
 
-/// Broadcast settings reload notification
+/
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct BroadcastSettingsReload {
@@ -340,7 +340,7 @@ impl Handler<BroadcastSettingsReload> for SettingsBroadcastManager {
     }
 }
 
-/// Broadcast preset application
+/
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct BroadcastPresetApplied {
