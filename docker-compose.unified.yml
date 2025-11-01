@@ -94,19 +94,19 @@ services:
       - development
       - dev
 
-  # Production profile configuration (extends visionflow service)
+  # Production profile configuration
   visionflow-production:
-    extends:
-      service: visionflow
     container_name: ${CONTAINER_NAME:-visionflow_prod_container}
     hostname: ${HOSTNAME:-webxr-prod}
     build:
       context: .
-      dockerfile: ${DOCKERFILE:-Dockerfile.production}
+      dockerfile: Dockerfile.production
       args:
         CUDA_ARCH: ${CUDA_ARCH:-86}
         BUILD_TARGET: production
         REBUILD_PTX: ${REBUILD_PTX:-false}
+    env_file:
+      - .env
     environment:
       <<: *common-environment
       # Production-specific overrides
@@ -118,11 +118,21 @@ services:
       # Production: ONLY data volumes (no source mounts, no Docker socket)
       - visionflow-data:/app/data
       - visionflow-logs:/app/logs
-      - cargo-target-cache:/app/target
     ports:
       # Production: Only API port
       - "${PROD_API_PORT:-4000}:4000"
-    entrypoint: ["/app/prod-entrypoint.sh"]
+    networks:
+      docker_ragflow:
+        aliases:
+          - ${NETWORK_ALIAS:-webxr-prod}
+    deploy:
+      <<: *gpu-resources
+    runtime: nvidia
+    restart: unless-stopped
+    healthcheck:
+      <<: *common-healthcheck
+    logging:
+      <<: *common-logging
     profiles:
       - production
       - prod
