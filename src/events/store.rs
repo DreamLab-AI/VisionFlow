@@ -203,6 +203,7 @@ impl EventStore {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chrono::Utc;
     use crate::events::domain_events::NodeAddedEvent;
     use std::collections::HashMap;
 

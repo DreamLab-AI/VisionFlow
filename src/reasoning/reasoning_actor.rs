@@ -10,7 +10,7 @@ use std::sync::Arc;
 use crate::reasoning::{
     custom_reasoner::{CustomReasoner, InferredAxiom, OntologyReasoner, Ontology},
     inference_cache::InferenceCache,
-    ReasoningResult, ReasoningError,
+    ReasoningResult,
 };
 
 /// Reasoning actor for background processing
@@ -169,14 +169,7 @@ impl Handler<GetCacheStats> for ReasoningActor {
     }
 }
 
-// Fix the visibility issue by implementing a public wrapper method
-impl InferenceCache {
-    pub fn load_from_cache(&self, ontology_id: i64) -> ReasoningResult<Option<crate::reasoning::inference_cache::CachedInference>> {
-        // This calls the private method - we need to make it public
-        // For now, we'll use the get_or_compute pattern
-        Err(ReasoningError::Cache("Direct cache access not implemented. Use get_or_compute.".to_string()))
-    }
-}
+// Note: load_from_cache is implemented in inference_cache.rs module
 
 #[cfg(test)]
 mod tests {

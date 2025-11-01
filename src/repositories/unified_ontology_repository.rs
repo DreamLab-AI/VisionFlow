@@ -542,7 +542,9 @@ impl OntologyRepository for UnifiedOntologyRepository {
                         let label: Option<String> = row.get(1)?;
                         let description: Option<String> = row.get(2)?;
                         let file_sha1: Option<String> = row.get(3)?;
-                        let last_synced: Option<chrono::DateTime<chrono::Utc>> = row.get(4)?;
+                        let last_synced_timestamp: Option<i64> = row.get(4)?;
+                        let last_synced = last_synced_timestamp
+                            .and_then(|ts| chrono::DateTime::from_timestamp(ts, 0));
                         let markdown_content: Option<String> = row.get(5)?;
 
                         Ok(OwlClass {
@@ -627,7 +629,9 @@ impl OntologyRepository for UnifiedOntologyRepository {
                     let label: Option<String> = row.get(1)?;
                     let description: Option<String> = row.get(2)?;
                     let file_sha1: Option<String> = row.get(3)?;
-                    let last_synced: Option<chrono::DateTime<chrono::Utc>> = row.get(4)?;
+                    let last_synced_timestamp: Option<i64> = row.get(4)?;
+                    let last_synced = last_synced_timestamp
+                        .and_then(|ts| chrono::DateTime::from_timestamp(ts, 0));
                     let markdown_content: Option<String> = row.get(5)?;
 
                     Ok(OwlClass {

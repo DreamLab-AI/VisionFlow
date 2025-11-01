@@ -166,6 +166,14 @@ fn convert_agents_to_nodes(agents: Vec<Agent>) -> Vec<Node> {
                 group: None,
                 user_data: None,
                 weight: Some(1.0),
+                mass: Some(1.0),
+                x: Some(agent.x),
+                y: Some(agent.y + vertical_offset),
+                z: Some(agent.z),
+                vx: Some(0.0),
+                vy: Some(0.0),
+                vz: Some(0.0),
+                owl_class_iri: None,
             }
         })
         .collect()

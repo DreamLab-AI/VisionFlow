@@ -57,12 +57,23 @@ impl MockGraphRepository {
                         z: 0.0,
                     },
                 ),
+                // Physics fields (match unified schema)
+                x: Some(i as f32 * 10.0),
+                y: Some(i as f32 * 10.0),
+                z: Some(i as f32 * 10.0),
+                vx: Some(0.0),
+                vy: Some(0.0),
+                vz: Some(0.0),
+                mass: Some(1.0),
+                owl_class_iri: None,
                 metadata: HashMap::new(),
+                file_size: 0,
                 node_type: Some("default".to_string()),
                 size: Some(1.0),
                 color: Some("#FFFFFF".to_string()),
                 weight: Some(1.0),
                 group: Some("test".to_string()),
+                user_data: None,
             };
             node_map.insert(i, node.clone());
             nodes.push(node);
@@ -74,11 +85,10 @@ impl MockGraphRepository {
                 id: format!("edge_{}_{}", i, i + 1),
                 source: i,
                 target: i + 1,
-                weight: Some(1.0),
-                label: Some(format!("Edge {}-{}", i, i + 1)),
+                weight: 1.0,
                 edge_type: Some("default".to_string()),
-                color: None,
-                width: None,
+                owl_property_iri: None,
+                metadata: None,
             });
         }
 
@@ -86,12 +96,14 @@ impl MockGraphRepository {
             nodes,
             edges,
             metadata: HashMap::new(),
+            id_to_metadata: HashMap::new(),
         });
 
         let physics_state = PhysicsState {
             is_settled: false,
             stable_frame_count: 10,
             kinetic_energy: 0.5,
+            current_state: "Running".to_string(),
         };
 
         let notifications = vec![AutoBalanceNotification {

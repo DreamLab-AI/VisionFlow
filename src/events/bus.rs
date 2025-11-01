@@ -224,6 +224,8 @@ impl Default for EventBus {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use async_trait::async_trait;
+    use chrono::Utc;
     use crate::events::domain_events::NodeAddedEvent;
     use std::sync::atomic::{AtomicUsize, Ordering};
 

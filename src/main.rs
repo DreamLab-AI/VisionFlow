@@ -1,9 +1,7 @@
 // Rebuild: KE velocity fix applied
-use webxr::actors::messages::UpdateMetadata;
 use webxr::ports::knowledge_graph_repository::KnowledgeGraphRepository;
 use webxr::services::nostr_service::NostrService;
 use webxr::{
-    repositories::{UnifiedGraphRepository, UnifiedOntologyRepository},
     config::AppFullSettings, // Import AppFullSettings only
     handlers::{
         admin_sync_handler,
@@ -39,7 +37,7 @@ use actix_web::{middleware, web, App, HttpServer};
 // DEPRECATED: LocalBoxFuture import removed (was for ErrorRecoveryMiddleware)
 // use actix_files::Files; // Removed unused import
 use dotenvy::dotenv;
-use log::{debug, error, info, warn};
+use log::{debug, error, info};
 use std::sync::Arc;
 use tokio::signal::unix::{signal, SignalKind};
 use tokio::sync::RwLock;

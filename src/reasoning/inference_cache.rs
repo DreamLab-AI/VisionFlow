@@ -145,7 +145,7 @@ impl InferenceCache {
     }
 
     /// Load cached inference from database
-    fn load_from_cache(&self, ontology_id: i64) -> ReasoningResult<Option<CachedInference>> {
+    pub(crate) fn load_from_cache(&self, ontology_id: i64) -> ReasoningResult<Option<CachedInference>> {
         let conn = Connection::open(&self.db_path)?;
 
         let mut stmt = conn.prepare(

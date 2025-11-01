@@ -29,8 +29,8 @@ impl SettingsActor {
     }
 
     /// Initialize actor by loading settings from database
-    pub async fn initialize(&mut self) -> Result<()> {
-        match self.repository.load_all_settings().await {
+    pub fn initialize(&mut self) -> Result<()> {
+        match self.repository.load_all_settings() {
             Ok(settings) => {
                 self.current_physics = settings.physics;
                 self.current_constraints = settings.constraints;
@@ -52,27 +52,18 @@ impl Actor for SettingsActor {
     fn started(&mut self, ctx: &mut Self::Context) {
         info!("SettingsActor started");
 
-        // Load settings asynchronously
-        let repository = self.repository.clone();
-        let fut = async move {
-            repository.load_all_settings().await
-        };
-
-        let fut = fut.into_actor(self).map(|result, act, _ctx| {
-            match result {
-                Ok(settings) => {
-                    act.current_physics = settings.physics;
-                    act.current_constraints = settings.constraints;
-                    act.current_rendering = settings.rendering;
-                    info!("Settings loaded successfully");
-                }
-                Err(e) => {
-                    error!("Failed to load settings: {}", e);
-                }
+        // Load settings synchronously (repository methods are sync)
+        match self.repository.load_all_settings() {
+            Ok(settings) => {
+                self.current_physics = settings.physics;
+                self.current_constraints = settings.constraints;
+                self.current_rendering = settings.rendering;
+                info!("Settings loaded successfully");
             }
-        });
-
-        ctx.spawn(fut);
+            Err(e) => {
+                error!("Failed to load settings: {}", e);
+            }
+        }
     }
 }
 
@@ -202,14 +193,16 @@ impl Handler<UpdatePhysicsSettings> for SettingsActor {
         let settings = msg.0;
 
         Box::pin(async move {
-            repository.save_physics_settings(&settings).await?;
-            info!("Physics settings updated and persisted");
+            tokio::task::spawn_blocking(move || {
+                repository.save_physics_settings(&settings)?;
+                info!("Physics settings updated and persisted");
 
-            // TODO: Notify GpuPhysicsActor of settings change
-            // This would require access to the GpuPhysicsActor address
-            // For now, settings will be picked up on next physics iteration
+                // TODO: Notify GpuPhysicsActor of settings change
+                // This would require access to the GpuPhysicsActor address
+                // For now, settings will be picked up on next physics iteration
 
-            Ok(())
+                Ok(())
+            }).await.map_err(|e| anyhow::anyhow!("Task join error: {}", e))?
         })
     }
 }
@@ -231,9 +224,11 @@ impl Handler<UpdateConstraintSettings> for SettingsActor {
         let settings = msg.0;
 
         Box::pin(async move {
-            repository.save_constraint_settings(&settings).await?;
-            info!("Constraint settings updated and persisted");
-            Ok(())
+            tokio::task::spawn_blocking(move || {
+                repository.save_constraint_settings(&settings)?;
+                info!("Constraint settings updated and persisted");
+                Ok(())
+            }).await.map_err(|e| anyhow::anyhow!("Task join error: {}", e))?
         })
     }
 }
@@ -255,9 +250,11 @@ impl Handler<UpdateRenderingSettings> for SettingsActor {
         let settings = msg.0;
 
         Box::pin(async move {
-            repository.save_rendering_settings(&settings).await?;
-            info!("Rendering settings updated and persisted");
-            Ok(())
+            tokio::task::spawn_blocking(move || {
+                repository.save_rendering_settings(&settings)?;
+                info!("Rendering settings updated and persisted");
+                Ok(())
+            }).await.map_err(|e| anyhow::anyhow!("Task join error: {}", e))?
         })
     }
 }
@@ -278,9 +275,11 @@ impl Handler<LoadProfile> for SettingsActor {
         let profile_id = msg.0;
 
         Box::pin(async move {
-            let settings = repository.load_profile(profile_id).await?;
-            info!("Loaded settings profile {}", profile_id);
-            Ok(settings)
+            tokio::task::spawn_blocking(move || {
+                let settings = repository.load_profile(profile_id)?;
+                info!("Loaded settings profile {}", profile_id);
+                Ok(settings)
+            }).await.map_err(|e| anyhow::anyhow!("Task join error: {}", e))?
         })
     }
 }
@@ -297,9 +296,12 @@ impl Handler<SaveProfile> for SettingsActor {
         };
 
         Box::pin(async move {
-            let profile_id = repository.save_profile(&msg.name, &settings).await?;
-            info!("Saved settings profile '{}' with ID {}", msg.name, profile_id);
-            Ok(profile_id)
+            let name = msg.name.clone();
+            tokio::task::spawn_blocking(move || {
+                let profile_id = repository.save_profile(&name, &settings)?;
+                info!("Saved settings profile '{}' with ID {}", name, profile_id);
+                Ok(profile_id)
+            }).await.map_err(|e| anyhow::anyhow!("Task join error: {}", e))?
         })
     }
 }
@@ -311,7 +313,9 @@ impl Handler<ListProfiles> for SettingsActor {
         let repository = self.repository.clone();
 
         Box::pin(async move {
-            repository.list_profiles().await
+            tokio::task::spawn_blocking(move || {
+                repository.list_profiles()
+            }).await.map_err(|e| anyhow::anyhow!("Task join error: {}", e))?
         })
     }
 }
@@ -324,9 +328,11 @@ impl Handler<DeleteProfile> for SettingsActor {
         let profile_id = msg.0;
 
         Box::pin(async move {
-            repository.delete_profile(profile_id).await?;
-            info!("Deleted settings profile {}", profile_id);
-            Ok(())
+            tokio::task::spawn_blocking(move || {
+                repository.delete_profile(profile_id)?;
+                info!("Deleted settings profile {}", profile_id);
+                Ok(())
+            }).await.map_err(|e| anyhow::anyhow!("Task join error: {}", e))?
         })
     }
 }

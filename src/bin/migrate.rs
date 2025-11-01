@@ -11,7 +11,7 @@ use rusqlite::Connection;
 use std::path::PathBuf;
 use std::process;
 
-use webxr::migrations::{MigrationRunner, MigrationVersion, RollbackManager, VersionTracker};
+use webxr::migrations::{MigrationRunner, RollbackManager, VersionTracker};
 
 fn main() {
     env_logger::init();

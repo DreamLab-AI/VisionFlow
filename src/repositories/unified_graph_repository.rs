@@ -8,7 +8,7 @@
 //! CRITICAL: This maintains identical interface to preserve CUDA kernel compatibility.
 
 use async_trait::async_trait;
-use log::{debug, error, info, warn};
+use log::{debug, info, warn};
 use rusqlite::{params, Connection, OptionalExtension};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -33,7 +33,7 @@ pub struct UnifiedGraphRepository {
 }
 
 /// Repository metrics for monitoring
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Default)]
 pub struct RepositoryMetrics {
     pub load_count: std::sync::atomic::AtomicU64,
     pub save_count: std::sync::atomic::AtomicU64,
@@ -492,6 +492,10 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                     })?;
             }
 
+            // Drop statements before commit to avoid borrow checker issues
+            drop(node_stmt);
+            drop(edge_stmt);
+
             tx.commit().map_err(|e| {
                 KnowledgeGraphRepositoryError::DatabaseError(format!(
                     "Failed to commit transaction: {}",
@@ -636,6 +640,9 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                 node_ids.push(tx.last_insert_rowid() as u32);
             }
 
+            // Drop statement before commit to avoid borrow checker issues
+            drop(stmt);
+
             tx.commit().map_err(|e| {
                 KnowledgeGraphRepositoryError::DatabaseError(format!(
                     "Failed to commit transaction: {}",
@@ -778,6 +785,9 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                 })?;
             }
 
+            // Drop statement before commit to avoid borrow checker issues
+            drop(stmt);
+
             tx.commit().map_err(|e| {
                 KnowledgeGraphRepositoryError::DatabaseError(format!(
                     "Failed to commit transaction: {}",
@@ -858,6 +868,9 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                     ))
                 })?;
             }
+
+            // Drop statement before commit to avoid borrow checker issues
+            drop(stmt);
 
             tx.commit().map_err(|e| {
                 KnowledgeGraphRepositoryError::DatabaseError(format!(
@@ -1167,6 +1180,9 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                 edge_ids.push(edge.id.clone());
             }
 
+            // Drop statement before commit to avoid borrow checker issues
+            drop(stmt);
+
             tx.commit().map_err(|e| {
                 KnowledgeGraphRepositoryError::DatabaseError(format!(
                     "Failed to commit transaction: {}",
@@ -1299,6 +1315,9 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                     ))
                 })?;
             }
+
+            // Drop statement before commit to avoid borrow checker issues
+            drop(stmt);
 
             tx.commit().map_err(|e| {
                 KnowledgeGraphRepositoryError::DatabaseError(format!(
@@ -1495,6 +1514,9 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                 }
             }
 
+            // Drop statement before commit to avoid borrow checker issues
+            drop(stmt);
+
             tx.commit().map_err(|e| {
                 KnowledgeGraphRepositoryError::DatabaseError(format!(
                     "Failed to commit transaction: {}",
@@ -1586,12 +1608,14 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                      FROM graph_statistics WHERE id = 1",
                     [],
                     |row| {
+                        let timestamp: i64 = row.get(4)?;
                         Ok(GraphStatistics {
                             node_count: row.get::<_, i64>(0)? as usize,
                             edge_count: row.get::<_, i64>(1)? as usize,
                             average_degree: row.get(2)?,
                             connected_components: row.get::<_, i64>(3)? as usize,
-                            last_updated: row.get(4)?,
+                            last_updated: chrono::DateTime::from_timestamp(timestamp, 0)
+                                .unwrap_or_else(chrono::Utc::now),
                         })
                     },
                 )

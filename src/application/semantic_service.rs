@@ -244,14 +244,14 @@ mod tests {
 
     #[async_trait]
     impl GpuSemanticAnalyzer for MockSemanticAnalyzer {
-        async fn initialize(&mut self, _graph: Arc<GraphData>) -> SemanticResult<()> {
+        async fn initialize(&mut self, _graph: Arc<GraphData>) -> Result<()> {
             Ok(())
         }
 
         async fn detect_communities(
             &mut self,
             _algorithm: ClusteringAlgorithm,
-        ) -> SemanticResult<CommunityDetectionResult> {
+        ) -> Result<CommunityDetectionResult> {
             Ok(CommunityDetectionResult {
                 clusters: HashMap::new(),
                 cluster_sizes: HashMap::new(),
@@ -263,7 +263,7 @@ mod tests {
         async fn compute_shortest_paths(
             &mut self,
             source_node_id: u32,
-        ) -> SemanticResult<PathfindingResult> {
+        ) -> Result<PathfindingResult> {
             Ok(PathfindingResult {
                 source_node: source_node_id,
                 distances: HashMap::new(),
@@ -275,27 +275,27 @@ mod tests {
         async fn compute_sssp_distances(
             &mut self,
             _source_node_id: u32,
-        ) -> SemanticResult<Vec<f32>> {
+        ) -> Result<Vec<f32>> {
             Ok(vec![])
         }
 
         async fn compute_all_pairs_shortest_paths(
             &mut self,
-        ) -> SemanticResult<HashMap<(u32, u32), Vec<u32>>> {
+        ) -> Result<HashMap<(u32, u32), Vec<u32>>> {
             Ok(HashMap::new())
         }
 
         async fn compute_landmark_apsp(
             &mut self,
             _num_landmarks: usize,
-        ) -> SemanticResult<Vec<Vec<f32>>> {
+        ) -> Result<Vec<Vec<f32>>> {
             Ok(vec![])
         }
 
         async fn generate_semantic_constraints(
             &mut self,
             _config: SemanticConstraintConfig,
-        ) -> SemanticResult<ConstraintSet> {
+        ) -> Result<ConstraintSet> {
             Ok(ConstraintSet::default())
         }
 
@@ -303,7 +303,7 @@ mod tests {
             &mut self,
             _constraints: &ConstraintSet,
             _max_iterations: usize,
-        ) -> SemanticResult<OptimizationResult> {
+        ) -> Result<OptimizationResult> {
             Ok(OptimizationResult {
                 converged: true,
                 iterations: 100,
@@ -316,7 +316,7 @@ mod tests {
         async fn analyze_node_importance(
             &mut self,
             _algorithm: ImportanceAlgorithm,
-        ) -> SemanticResult<HashMap<u32, f32>> {
+        ) -> Result<HashMap<u32, f32>> {
             Ok(HashMap::new())
         }
 

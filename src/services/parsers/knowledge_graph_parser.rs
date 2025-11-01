@@ -102,6 +102,14 @@ impl KnowledgeGraphParser {
             weight: Some(1.0),
             group: None,
             user_data: None,
+            mass: Some(1.0),
+            x: Some(data.x),
+            y: Some(data.y),
+            z: Some(data.z),
+            vx: Some(0.0),
+            vy: Some(0.0),
+            vz: Some(0.0),
+            owl_class_iri: None,
         }
     }
 
@@ -147,6 +155,14 @@ impl KnowledgeGraphParser {
                     weight: Some(0.8),
                     group: None,
                     user_data: None,
+                    mass: Some(1.0),
+                    x: Some(data.x),
+                    y: Some(data.y),
+                    z: Some(data.z),
+                    vx: Some(0.0),
+                    vy: Some(0.0),
+                    vz: Some(0.0),
+                    owl_class_iri: None,
                 });
 
                 // Create edge from source to target
@@ -157,6 +173,7 @@ impl KnowledgeGraphParser {
                     weight: 1.0,
                     edge_type: Some("link".to_string()),
                     metadata: Some(HashMap::new()),
+                    owl_property_iri: None,
                 });
             }
         }
@@ -166,7 +183,7 @@ impl KnowledgeGraphParser {
 
     /// Extract metadata from markdown properties
     fn extract_metadata_store(&self, content: &str) -> MetadataStore {
-        let mut store = MetadataStore::new();
+        let store = MetadataStore::new();
 
         // Pattern: property:: value
         let prop_pattern = regex::Regex::new(r"([a-zA-Z_]+)::\s*(.+)").unwrap();

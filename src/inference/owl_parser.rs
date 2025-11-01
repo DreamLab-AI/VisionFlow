@@ -214,8 +214,8 @@ impl OWLParser {
         let mut classes = Vec::new();
         let mut axioms = Vec::new();
         let mut imports = Vec::new();
-        let mut ontology_iri = None;
-        let mut version_iri = None;
+        let ontology_iri = None;
+        let version_iri = None;
 
         for ann_component in ontology.iter() {
             match &ann_component.component {
