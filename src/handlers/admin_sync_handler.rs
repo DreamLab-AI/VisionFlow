@@ -75,8 +75,5 @@ pub async fn trigger_sync(
 }
 
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
-    cfg.service(
-        web::scope("/admin")
-            .route("/sync", web::post().to(trigger_sync))
-    );
+    cfg.route("/admin/sync", web::post().to(trigger_sync));
 }
