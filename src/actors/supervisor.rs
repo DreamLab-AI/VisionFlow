@@ -12,7 +12,7 @@ use log::{debug, error, info, warn};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
-/
+///
 #[derive(Debug, Clone)]
 pub enum SupervisionStrategy {
     
@@ -29,7 +29,7 @@ pub enum SupervisionStrategy {
     Stop,
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct SupervisedActorInfo {
     pub name: String,
@@ -42,7 +42,7 @@ pub struct SupervisedActorInfo {
     pub last_heartbeat: DateTime<Utc>,
 }
 
-/
+///
 #[derive(Debug)]
 struct ActorState {
     actor_info: SupervisedActorInfo,
@@ -53,7 +53,7 @@ struct ActorState {
     session_id: Option<String>,
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "Result<(), VisionFlowError>")]
 pub struct RegisterActor {
@@ -80,7 +80,7 @@ pub struct ActorStarted {
 #[rtype(result = "Result<SupervisionStatus, VisionFlowError>")]
 pub struct GetSupervisionStatus;
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct SupervisionStatus {
     pub total_actors: usize,
@@ -98,7 +98,7 @@ pub struct ActorStatusInfo {
     pub strategy: SupervisionStrategy,
 }
 
-/
+///
 pub struct SupervisorActor {
     supervised_actors: HashMap<String, ActorState>,
     supervisor_name: String,
@@ -390,7 +390,7 @@ impl Handler<RestartAttempt> for SupervisorActor {
 
 
 
-/
+///
 pub trait SupervisedActorTrait: Actor {
     fn actor_name() -> &'static str;
 

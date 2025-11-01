@@ -31,8 +31,8 @@ lazy_static! {
     static ref DOMAIN_REGEX: Regex = Regex::new(r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$").unwrap();
 }
 
-/
-/
+///
+///
 pub fn validate_hex_color(color: &str) -> Result<(), ValidationError> {
     if !HEX_COLOR_REGEX.is_match(color) {
         return Err(ValidationError::new("invalid_hex_color"));
@@ -40,7 +40,7 @@ pub fn validate_hex_color(color: &str) -> Result<(), ValidationError> {
     Ok(())
 }
 
-/
+///
 pub fn validate_width_range(range: &[f32]) -> Result<(), ValidationError> {
     if range.len() != 2 {
         return Err(ValidationError::new("width_range_length"));
@@ -51,7 +51,7 @@ pub fn validate_width_range(range: &[f32]) -> Result<(), ValidationError> {
     Ok(())
 }
 
-/
+///
 pub fn validate_port(port: u16) -> Result<(), ValidationError> {
     if port == 0 {
         return Err(ValidationError::new("invalid_port"));
@@ -59,7 +59,7 @@ pub fn validate_port(port: u16) -> Result<(), ValidationError> {
     Ok(())
 }
 
-/
+///
 pub fn validate_percentage(value: f32) -> Result<(), ValidationError> {
     if !(0.0..=100.0).contains(&value) {
         return Err(ValidationError::new("invalid_percentage"));
@@ -67,8 +67,8 @@ pub fn validate_percentage(value: f32) -> Result<(), ValidationError> {
     Ok(())
 }
 
-/
-/
+///
+///
 pub fn validate_bloom_glow_settings(
     glow: &GlowSettings,
     bloom: &BloomSettings,
@@ -137,7 +137,7 @@ pub fn validate_bloom_glow_settings(
     Ok(())
 }
 
-/
+///
 fn to_camel_case(snake_str: &str) -> String {
     let mut result = String::new();
     let mut capitalize_next = false;
@@ -272,7 +272,7 @@ fn merge_json_values(base: Value, update: Value) -> Value {
     }
 }
 
-/
+///
 static FIELD_MAPPINGS: std::sync::LazyLock<std::collections::HashMap<&'static str, &'static str>> =
     std::sync::LazyLock::new(|| {
         let mut field_mappings = std::collections::HashMap::new();
@@ -414,21 +414,21 @@ static FIELD_MAPPINGS: std::sync::LazyLock<std::collections::HashMap<&'static st
         field_mappings
     });
 
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
 fn normalize_field_names_to_camel_case(value: Value) -> Result<Value, String> {
     normalize_object_fields(value, &FIELD_MAPPINGS)
 }
 
-/
+///
 fn normalize_object_fields(
     value: Value,
     mappings: &std::collections::HashMap<&str, &str>,
@@ -989,22 +989,22 @@ pub struct GlowSettings {
     pub environment_glow_strength: f32,
 }
 
-/
+///
 fn default_bloom_intensity() -> f32 {
     1.0
 }
 
-/
+///
 fn default_bloom_radius() -> f32 {
     0.8
 }
 
-/
+///
 fn default_bloom_threshold() -> f32 {
     0.15
 }
 
-/
+///
 fn default_bloom_color() -> String {
     "#ffffff".to_string()
 }

@@ -8,7 +8,7 @@ use super::shared::{GPUState, SharedGPUContext};
 use crate::actors::messages::*;
 use crate::models::constraints::{Constraint, ConstraintData, ConstraintKind, ConstraintSet};
 
-/
+///
 pub struct ConstraintActor {
     
     gpu_state: GPUState,
@@ -302,7 +302,7 @@ pub struct ClearConstraints;
 #[rtype(result = "Result<ConstraintStatistics, String>")]
 pub struct GetConstraintStatistics;
 
-/
+///
 impl Handler<SetSharedGPUContext> for ConstraintActor {
     type Result = Result<(), String>;
 

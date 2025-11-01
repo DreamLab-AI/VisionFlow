@@ -34,7 +34,7 @@ pub enum OntologyRepositoryError {
     ValidationFailed(String),
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OwlClass {
     pub iri: String,
@@ -51,7 +51,7 @@ pub struct OwlClass {
     pub last_synced: Option<chrono::DateTime<chrono::Utc>>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum PropertyType {
     ObjectProperty,
@@ -59,7 +59,7 @@ pub enum PropertyType {
     AnnotationProperty,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OwlProperty {
     pub iri: String,
@@ -69,7 +69,7 @@ pub struct OwlProperty {
     pub range: Vec<String>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum AxiomType {
     SubClassOf,
@@ -79,7 +79,7 @@ pub enum AxiomType {
     DataPropertyAssertion,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OwlAxiom {
     pub id: Option<u64>,
@@ -89,7 +89,7 @@ pub struct OwlAxiom {
     pub annotations: HashMap<String, String>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InferenceResults {
     pub timestamp: chrono::DateTime<chrono::Utc>,
@@ -98,7 +98,7 @@ pub struct InferenceResults {
     pub reasoner_version: String,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ValidationReport {
     pub is_valid: bool,
@@ -107,7 +107,7 @@ pub struct ValidationReport {
     pub timestamp: chrono::DateTime<chrono::Utc>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OntologyMetrics {
     pub class_count: usize,
@@ -117,7 +117,7 @@ pub struct OntologyMetrics {
     pub average_branching_factor: f32,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PathfindingCacheEntry {
     pub source_node_id: u32,
@@ -128,7 +128,7 @@ pub struct PathfindingCacheEntry {
     pub computation_time_ms: f32,
 }
 
-/
+///
 #[async_trait]
 pub trait OntologyRepository: Send + Sync {
     

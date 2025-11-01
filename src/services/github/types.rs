@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fmt;
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct RateLimitInfo {
     pub remaining: u32,
@@ -11,7 +11,7 @@ pub struct RateLimitInfo {
     pub reset_time: DateTime<Utc>,
 }
 
-/
+///
 #[derive(Debug)]
 pub enum GitHubError {
     
@@ -72,7 +72,7 @@ impl From<base64::DecodeError> for GitHubError {
     }
 }
 
-/
+///
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GitHubFile {
     
@@ -89,7 +89,7 @@ pub struct GitHubFile {
     pub download_url: String,
 }
 
-/
+///
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
 pub struct GitHubFileMetadata {
     
@@ -113,7 +113,7 @@ pub struct GitHubFileMetadata {
     pub file_blob_sha: Option<String>,
 }
 
-/
+///
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GitHubFileBasicMetadata {
     pub name: String,
@@ -123,13 +123,13 @@ pub struct GitHubFileBasicMetadata {
     pub download_url: String,
 }
 
-/
+///
 #[derive(Debug, Deserialize)]
 pub struct ContentResponse {
     pub sha: String,
 }
 
-/
+///
 #[derive(Debug, Deserialize)]
 pub struct PullRequestResponse {
     pub html_url: String,
@@ -137,14 +137,14 @@ pub struct PullRequestResponse {
     pub state: String,
 }
 
-/
+///
 #[derive(Debug, Serialize)]
 pub struct CreateBranchRequest {
     pub ref_name: String,
     pub sha: String,
 }
 
-/
+///
 #[derive(Debug, Serialize)]
 pub struct CreatePullRequest {
     pub title: String,
@@ -153,7 +153,7 @@ pub struct CreatePullRequest {
     pub body: String,
 }
 
-/
+///
 #[derive(Debug, Serialize)]
 pub struct UpdateFileRequest {
     pub message: String,

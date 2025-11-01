@@ -2,8 +2,8 @@ use crate::models::graph::GraphData;
 use std::io::{Error, ErrorKind};
 use log::warn;
 
-/
-/
+///
+///
 pub fn check_empty_graph(graph: &GraphData, min_nodes: usize) -> Result<(), Error> {
     
     if graph.nodes.is_empty() {

@@ -469,7 +469,7 @@ pub struct TaskResponse {
     pub error: Option<String>,
 }
 
-/
+///
 pub async fn remove_task(
     path: web::Path<String>,
     state: web::Data<AppState>,

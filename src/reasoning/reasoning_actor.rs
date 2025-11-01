@@ -1,9 +1,9 @@
-/
-/
-/
-/
-/
-/
+///
+///
+///
+///
+///
+///
 
 use actix::prelude::*;
 use std::sync::Arc;
@@ -13,7 +13,7 @@ use crate::reasoning::{
     ReasoningResult,
 };
 
-/
+///
 pub struct ReasoningActor {
     reasoner: Arc<dyn OntologyReasoner + Send + Sync>,
     cache: Arc<InferenceCache>,
@@ -50,7 +50,7 @@ impl Actor for ReasoningActor {
     }
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub enum ReasoningMessage {
     
@@ -73,7 +73,7 @@ pub enum ReasoningMessage {
     GetCacheStats,
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "ReasoningResult<Vec<InferredAxiom>>")]
 pub struct TriggerReasoning {
@@ -119,7 +119,7 @@ impl Handler<TriggerReasoning> for ReasoningActor {
     }
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "ReasoningResult<Option<Vec<InferredAxiom>>>")]
 pub struct GetInferredAxioms {
@@ -140,7 +140,7 @@ impl Handler<GetInferredAxioms> for ReasoningActor {
     }
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "ReasoningResult<()>")]
 pub struct InvalidateCache {
@@ -156,7 +156,7 @@ impl Handler<InvalidateCache> for ReasoningActor {
     }
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "ReasoningResult<crate::reasoning::inference_cache::CacheStats>")]
 pub struct GetCacheStats;

@@ -15,7 +15,7 @@ use crate::telemetry::agent_telemetry::{
 };
 use crate::utils::socket_flow_messages::BinaryNodeData;
 
-/
+///
 pub struct GPUManagerActor {
     
     child_actors: Option<ChildActorAddresses>,
@@ -133,7 +133,7 @@ impl Actor for GPUManagerActor {
 
 // === Message Routing Handlers ===
 
-/
+///
 impl Handler<InitializeGPU> for GPUManagerActor {
     type Result = ResponseActFuture<Self, Result<(), String>>;
 
@@ -181,7 +181,7 @@ impl Handler<InitializeGPU> for GPUManagerActor {
     }
 }
 
-/
+///
 impl Handler<UpdateGPUGraphData> for GPUManagerActor {
     type Result = Result<(), String>;
 
@@ -218,7 +218,7 @@ impl Handler<UpdateGPUGraphData> for GPUManagerActor {
     }
 }
 
-/
+///
 impl Handler<ComputeForces> for GPUManagerActor {
     type Result = Result<(), String>;
 
@@ -235,7 +235,7 @@ impl Handler<ComputeForces> for GPUManagerActor {
     }
 }
 
-/
+///
 impl Handler<RunKMeans> for GPUManagerActor {
     type Result = ResponseActFuture<Self, Result<KMeansResult, String>>;
 
@@ -258,7 +258,7 @@ impl Handler<RunKMeans> for GPUManagerActor {
     }
 }
 
-/
+///
 impl Handler<RunCommunityDetection> for GPUManagerActor {
     type Result = ResponseActFuture<Self, Result<CommunityDetectionResult, String>>;
 
@@ -281,7 +281,7 @@ impl Handler<RunCommunityDetection> for GPUManagerActor {
     }
 }
 
-/
+///
 impl Handler<RunAnomalyDetection> for GPUManagerActor {
     type Result = ResponseActFuture<Self, Result<AnomalyResult, String>>;
 
@@ -304,7 +304,7 @@ impl Handler<RunAnomalyDetection> for GPUManagerActor {
     }
 }
 
-/
+///
 impl Handler<PerformGPUClustering> for GPUManagerActor {
     type Result = ResponseActFuture<
         Self,
@@ -404,7 +404,7 @@ impl Handler<PerformGPUClustering> for GPUManagerActor {
     }
 }
 
-/
+///
 impl Handler<TriggerStressMajorization> for GPUManagerActor {
     type Result = Result<(), String>;
 
@@ -418,7 +418,7 @@ impl Handler<TriggerStressMajorization> for GPUManagerActor {
     }
 }
 
-/
+///
 impl Handler<UpdateConstraints> for GPUManagerActor {
     type Result = Result<(), String>;
 
@@ -432,7 +432,7 @@ impl Handler<UpdateConstraints> for GPUManagerActor {
     }
 }
 
-/
+///
 impl Handler<GetGPUStatus> for GPUManagerActor {
     type Result = MessageResult<GetGPUStatus>;
 
@@ -449,7 +449,7 @@ impl Handler<GetGPUStatus> for GPUManagerActor {
     }
 }
 
-/
+///
 impl Handler<GetForceComputeActor> for GPUManagerActor {
     type Result = Result<Addr<ForceComputeActor>, String>;
 
@@ -461,7 +461,7 @@ impl Handler<GetForceComputeActor> for GPUManagerActor {
 
 // Additional handlers for messages that need delegation
 
-/
+///
 impl Handler<UploadConstraintsToGPU> for GPUManagerActor {
     type Result = Result<(), String>;
 
@@ -476,7 +476,7 @@ impl Handler<UploadConstraintsToGPU> for GPUManagerActor {
     }
 }
 
-/
+///
 impl Handler<GetNodeData> for GPUManagerActor {
     type Result = ResponseActFuture<Self, Result<Vec<BinaryNodeData>, String>>;
 
@@ -505,7 +505,7 @@ impl Handler<GetNodeData> for GPUManagerActor {
     }
 }
 
-/
+///
 impl Handler<UpdateSimulationParams> for GPUManagerActor {
     type Result = Result<(), String>;
 
@@ -520,7 +520,7 @@ impl Handler<UpdateSimulationParams> for GPUManagerActor {
     }
 }
 
-/
+///
 impl Handler<UpdateAdvancedParams> for GPUManagerActor {
     type Result = Result<(), String>;
 
@@ -535,7 +535,7 @@ impl Handler<UpdateAdvancedParams> for GPUManagerActor {
     }
 }
 
-/
+///
 impl Handler<SetSharedGPUContext> for GPUManagerActor {
     type Result = Result<(), String>;
 
@@ -639,7 +639,7 @@ impl Handler<SetSharedGPUContext> for GPUManagerActor {
     }
 }
 
-/
+///
 impl Handler<ApplyOntologyConstraints> for GPUManagerActor {
     type Result = Result<(), String>;
 

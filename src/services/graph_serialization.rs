@@ -11,7 +11,7 @@ use std::path::{Path, PathBuf};
 use uuid::Uuid;
 use xml::writer::{EmitterConfig, XmlEvent};
 
-/
+///
 pub struct GraphSerializationService {
     pub storage_path: PathBuf,
     pub max_file_size: u64,

@@ -3,7 +3,7 @@ use regex::Regex;
 
 use crate::ontology::parser::parser::LogseqPage;
 
-/
+///
 pub fn logseq_properties_to_owl(page: &LogseqPage) -> Result<Vec<String>> {
     let mut axioms = Vec::new();
 
@@ -69,7 +69,7 @@ pub fn logseq_properties_to_owl(page: &LogseqPage) -> Result<Vec<String>> {
     Ok(axioms)
 }
 
-/
+///
 fn kebab_to_camel(s: &str) -> String {
     let mut result = String::new();
     let mut capitalize_next = false;
@@ -88,13 +88,13 @@ fn kebab_to_camel(s: &str) -> String {
     result
 }
 
-/
+///
 fn extract_wikilink(s: &str) -> Option<String> {
     let re = Regex::new(r"\[\[([^\]]+)\]\]").unwrap();
     re.captures(s).map(|cap| cap[1].to_string())
 }
 
-/
+///
 fn wikilink_to_iri(s: &str) -> String {
     
     let cleaned = s.replace("[[", "").replace("]]", "");

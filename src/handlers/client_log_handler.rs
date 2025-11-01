@@ -30,7 +30,7 @@ pub struct ClientLogsPayload {
     timestamp: String,
 }
 
-/
+///
 pub async fn handle_client_logs(
     req: HttpRequest,
     payload: web::Json<ClientLogsPayload>,

@@ -10,13 +10,13 @@ use crate::events::EventBus;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-/
+///
 pub type ServiceResult<T> = Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
-/
-/
-/
-/
+///
+///
+///
+///
 #[derive(Clone)]
 pub struct GraphApplicationService {
     command_bus: Arc<RwLock<CommandBus>>,
@@ -80,9 +80,9 @@ impl GraphApplicationService {
     }
 }
 
-/
-/
-/
+///
+///
+///
 #[derive(Clone)]
 pub struct SettingsApplicationService {
     command_bus: Arc<RwLock<CommandBus>>,
@@ -129,9 +129,9 @@ impl SettingsApplicationService {
     }
 }
 
-/
-/
-/
+///
+///
+///
 #[derive(Clone)]
 pub struct OntologyApplicationService {
     command_bus: Arc<RwLock<CommandBus>>,
@@ -178,9 +178,9 @@ impl OntologyApplicationService {
     }
 }
 
-/
-/
-/
+///
+///
+///
 #[derive(Clone)]
 pub struct PhysicsApplicationService {
     command_bus: Arc<RwLock<CommandBus>>,

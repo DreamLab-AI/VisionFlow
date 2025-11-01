@@ -149,7 +149,7 @@ pub struct GraphServiceActor {
     batch_metrics: BatchMetrics,
 }
 
-/
+///
 #[derive(Debug, Clone)]
 struct UpdateQueueConfig {
     max_operations: usize,
@@ -167,7 +167,7 @@ impl Default for UpdateQueueConfig {
     }
 }
 
-/
+///
 #[derive(Debug, Default)]
 struct UpdateQueue {
     pending_nodes: Vec<Node>,
@@ -248,7 +248,7 @@ impl UpdateQueue {
     }
 }
 
-/
+///
 #[derive(Debug, Default)]
 struct BatchMetrics {
     total_batches_processed: u64,
@@ -294,7 +294,7 @@ impl BatchMetrics {
     }
 }
 
-/
+///
 #[derive(Debug, Clone, PartialEq)]
 enum AutoBalanceState {
     Stable,      
@@ -305,8 +305,8 @@ enum AutoBalanceState {
     Adjusting,   
 }
 
-/
-/
+///
+///
 #[derive(Debug, Clone, Serialize)]
 pub struct PhysicsState {
     pub is_settled: bool,
@@ -3358,7 +3358,7 @@ impl Handler<GetNodeMap> for GraphServiceActor {
     }
 }
 
-/
+///
 impl Handler<GetPhysicsState> for GraphServiceActor {
     type Result = Result<PhysicsState, String>;
 

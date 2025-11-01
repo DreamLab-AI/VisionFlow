@@ -34,7 +34,7 @@ use crate::handlers::socket_flow_handler::SocketFlowServer;
 use crate::telemetry::agent_telemetry::{get_telemetry_logger, CorrelationId, Position3D};
 use crate::utils::socket_flow_messages::BinaryNodeDataClient;
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct ClientState {
     pub client_id: usize,
@@ -45,7 +45,7 @@ pub struct ClientState {
     pub initial_sync_completed: bool,
 }
 
-/
+///
 pub struct ClientManager {
     pub clients: HashMap<usize, ClientState>,
     pub next_id: usize,
@@ -146,7 +146,7 @@ impl ClientManager {
     }
 }
 
-/
+///
 pub struct ClientCoordinatorActor {
     
     client_manager: Arc<RwLock<ClientManager>>,
@@ -712,7 +712,7 @@ impl Actor for ClientCoordinatorActor {
 
 // ===== MESSAGE HANDLERS =====
 
-/
+///
 impl Handler<RegisterClient> for ClientCoordinatorActor {
     type Result = Result<usize, String>;
 
@@ -765,7 +765,7 @@ impl Handler<RegisterClient> for ClientCoordinatorActor {
     }
 }
 
-/
+///
 impl Handler<UnregisterClient> for ClientCoordinatorActor {
     type Result = Result<(), String>;
 
@@ -814,7 +814,7 @@ impl Handler<UnregisterClient> for ClientCoordinatorActor {
     }
 }
 
-/
+///
 impl Handler<BroadcastNodePositions> for ClientCoordinatorActor {
     type Result = Result<(), String>;
 
@@ -870,7 +870,7 @@ impl Handler<BroadcastNodePositions> for ClientCoordinatorActor {
     }
 }
 
-/
+///
 impl Handler<BroadcastMessage> for ClientCoordinatorActor {
     type Result = Result<(), String>;
 
@@ -896,7 +896,7 @@ impl Handler<BroadcastMessage> for ClientCoordinatorActor {
     }
 }
 
-/
+///
 impl Handler<GetClientCount> for ClientCoordinatorActor {
     type Result = Result<usize, String>;
 
@@ -909,7 +909,7 @@ impl Handler<GetClientCount> for ClientCoordinatorActor {
     }
 }
 
-/
+///
 impl Handler<ForcePositionBroadcast> for ClientCoordinatorActor {
     type Result = Result<(), String>;
 
@@ -924,7 +924,7 @@ impl Handler<ForcePositionBroadcast> for ClientCoordinatorActor {
     }
 }
 
-/
+///
 impl Handler<InitialClientSync> for ClientCoordinatorActor {
     type Result = Result<(), String>;
 
@@ -963,7 +963,7 @@ impl Handler<InitialClientSync> for ClientCoordinatorActor {
     }
 }
 
-/
+///
 impl Handler<UpdateNodePositions> for ClientCoordinatorActor {
     type Result = Result<(), String>;
 
@@ -1018,7 +1018,7 @@ impl Handler<UpdateNodePositions> for ClientCoordinatorActor {
     }
 }
 
-/
+///
 impl Handler<SetGraphServiceAddress> for ClientCoordinatorActor {
     type Result = ();
 
@@ -1028,7 +1028,7 @@ impl Handler<SetGraphServiceAddress> for ClientCoordinatorActor {
     }
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "Result<ClientCoordinatorStats, String>")]
 pub struct GetClientCoordinatorStats;
@@ -1045,7 +1045,7 @@ impl Handler<GetClientCoordinatorStats> for ClientCoordinatorActor {
     }
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct QueueVoiceData {
@@ -1075,7 +1075,7 @@ impl Handler<QueueVoiceData> for ClientCoordinatorActor {
     }
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct SetBandwidthLimit {

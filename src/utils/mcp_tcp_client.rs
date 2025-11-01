@@ -19,7 +19,7 @@ use crate::services::agent_visualization_protocol::{
     SwarmTopologyData, TopologyPosition,
 };
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct McpTcpClient {
     pub host: String,
@@ -29,7 +29,7 @@ pub struct McpTcpClient {
     pub retry_delay: Duration,
 }
 
-/
+///
 #[derive(Debug)]
 pub struct McpConnectionPool {
     servers: Arc<Mutex<HashMap<String, McpTcpClient>>>,
@@ -38,7 +38,7 @@ pub struct McpConnectionPool {
 
 static CONNECTION_POOL: Lazy<McpConnectionPool> = Lazy::new(|| McpConnectionPool::new(5));
 
-/
+///
 #[derive(Debug, serde::Serialize)]
 struct McpRequest {
     jsonrpc: String,
@@ -47,7 +47,7 @@ struct McpRequest {
     id: u64,
 }
 
-/
+///
 #[derive(Debug, serde::Deserialize)]
 struct McpResponse {
     jsonrpc: String,
@@ -58,7 +58,7 @@ struct McpResponse {
     id: u64,
 }
 
-/
+///
 #[derive(Debug, serde::Deserialize)]
 struct McpError {
     code: i32,
@@ -841,7 +841,7 @@ impl McpConnectionPool {
     }
 }
 
-/
+///
 pub fn create_mcp_client(server_type: &McpServerType, host: &str, port: u16) -> McpTcpClient {
     info!(
         "Creating MCP TCP client for {:?} at {}:{}",
@@ -852,7 +852,7 @@ pub fn create_mcp_client(server_type: &McpServerType, host: &str, port: u16) -> 
         .with_retry_config(5, Duration::from_millis(1000)) 
 }
 
-/
+///
 pub async fn get_pooled_mcp_client(
     server_type: &McpServerType,
     host: &str,
@@ -862,7 +862,7 @@ pub async fn get_pooled_mcp_client(
     CONNECTION_POOL.get_client(&server_id, host, port).await
 }
 
-/
+///
 pub async fn test_mcp_connectivity(
     servers: &HashMap<String, (String, u16)>,
 ) -> HashMap<String, bool> {

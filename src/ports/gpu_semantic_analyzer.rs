@@ -32,7 +32,7 @@ pub enum GpuSemanticAnalyzerError {
     CudaError(String),
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ClusteringAlgorithm {
     Louvain,
@@ -41,7 +41,7 @@ pub enum ClusteringAlgorithm {
     HierarchicalClustering { min_cluster_size: usize },
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommunityDetectionResult {
     pub clusters: HashMap<u32, usize>,        
@@ -50,7 +50,7 @@ pub struct CommunityDetectionResult {
     pub computation_time_ms: f32,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PathfindingResult {
     pub source_node: u32,
@@ -59,7 +59,7 @@ pub struct PathfindingResult {
     pub computation_time_ms: f32,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SemanticConstraintConfig {
     pub similarity_threshold: f32,
@@ -69,7 +69,7 @@ pub struct SemanticConstraintConfig {
     pub max_constraints: usize,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OptimizationResult {
     pub converged: bool,
@@ -79,7 +79,7 @@ pub struct OptimizationResult {
     pub computation_time_ms: f32,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ImportanceAlgorithm {
     PageRank { damping: f32, max_iterations: usize },
@@ -89,7 +89,7 @@ pub enum ImportanceAlgorithm {
     Degree,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SemanticStatistics {
     pub total_analyses: u64,
@@ -99,7 +99,7 @@ pub struct SemanticStatistics {
     pub gpu_memory_used_mb: f32,
 }
 
-/
+///
 #[async_trait]
 pub trait GpuSemanticAnalyzer: Send + Sync {
     

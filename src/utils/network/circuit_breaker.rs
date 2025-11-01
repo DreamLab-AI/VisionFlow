@@ -5,7 +5,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant, SystemTime};
 use tokio::sync::RwLock;
 
-/
+///
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum CircuitBreakerState {
     
@@ -16,7 +16,7 @@ pub enum CircuitBreakerState {
     HalfOpen,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CircuitBreakerConfig {
     
@@ -103,7 +103,7 @@ impl CircuitBreakerConfig {
     }
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CircuitBreakerStats {
     pub state: CircuitBreakerState,
@@ -118,7 +118,7 @@ pub struct CircuitBreakerStats {
     pub time_since_state_change: Duration,
 }
 
-/
+///
 #[derive(Debug)]
 pub enum RequestOutcome {
     Success,
@@ -127,14 +127,14 @@ pub enum RequestOutcome {
     Rejected,
 }
 
-/
+///
 #[derive(Debug)]
 struct RequestRecord {
     timestamp: Instant,
     success: bool,
 }
 
-/
+///
 pub struct CircuitBreaker {
     config: CircuitBreakerConfig,
     state: Arc<RwLock<CircuitBreakerState>>,
@@ -415,7 +415,7 @@ impl CircuitBreaker {
     }
 }
 
-/
+///
 #[derive(Debug, thiserror::Error)]
 pub enum CircuitBreakerError<E> {
     #[error("Circuit breaker is open - requests are being rejected")]
@@ -424,7 +424,7 @@ pub enum CircuitBreakerError<E> {
     OperationFailed(E),
 }
 
-/
+///
 pub struct CircuitBreakerRegistry {
     breakers: Arc<RwLock<std::collections::HashMap<String, Arc<CircuitBreaker>>>>,
 }

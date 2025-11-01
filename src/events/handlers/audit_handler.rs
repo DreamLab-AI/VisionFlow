@@ -5,7 +5,7 @@ use tokio::sync::RwLock;
 
 use crate::events::types::{EventHandler, EventResult, StoredEvent};
 
-/
+///
 pub struct AuditEventHandler {
     handler_id: String,
     log: Arc<RwLock<Vec<AuditLogEntry>>>,

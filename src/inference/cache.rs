@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::ports::ontology_repository::InferenceResults;
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CacheConfig {
     
@@ -40,7 +40,7 @@ impl Default for CacheConfig {
     }
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CacheEntry {
     
@@ -77,7 +77,7 @@ impl CacheEntry {
     }
 }
 
-/
+///
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct CacheStatistics {
     pub hits: u64,
@@ -100,7 +100,7 @@ impl CacheStatistics {
     }
 }
 
-/
+///
 pub struct InferenceCache {
     
     cache: Arc<RwLock<LruCache<String, CacheEntry>>>,

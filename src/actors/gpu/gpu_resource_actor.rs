@@ -18,11 +18,11 @@ use crate::models::graph::GraphData;
 use crate::utils::socket_flow_messages::BinaryNodeData;
 use crate::utils::unified_gpu_compute::UnifiedGPUCompute;
 
-/
+///
 const MAX_NODES: u32 = 1_000_000;
 const MAX_GPU_FAILURES: u32 = 5;
 
-/
+///
 pub struct GPUResourceActor {
     
     device: Option<Arc<CudaDevice>>,
@@ -321,7 +321,7 @@ impl GPUResourceActor {
     }
 }
 
-/
+///
 struct CsrResult {
     row_offsets: Vec<u32>,
     col_indices: Vec<u32>,

@@ -10,7 +10,7 @@ use super::{Anomaly, AnomalyStats, ANOMALY_STATE};
 use crate::AppState;
 use crate::actors::messages::{RunAnomalyDetection, AnomalyParams, AnomalyMethod};
 
-/
+///
 pub async fn run_gpu_anomaly_detection(
     app_state: &actix_web::web::Data<AppState>,
     method: &str,
@@ -65,12 +65,12 @@ pub async fn run_gpu_anomaly_detection(
     }
 }
 
-/
+///
 pub async fn start_anomaly_detection() {
     warn!("start_anomaly_detection is deprecated - use run_gpu_anomaly_detection for real GPU processing");
 }
 
-/
+///
 async fn generate_anomaly(method: &str) -> Anomaly {
     let mut rng = rand::thread_rng();
 
@@ -160,7 +160,7 @@ async fn generate_anomaly(method: &str) -> Anomaly {
     }
 }
 
-/
+///
 fn generate_anomaly_details(method: &str, severity: &str) -> (String, String) {
     let mut rng = rand::thread_rng();
 
@@ -238,7 +238,7 @@ fn generate_anomaly_details(method: &str, severity: &str) -> (String, String) {
     }
 }
 
-/
+///
 pub async fn cleanup_old_anomalies() {
     let mut state = ANOMALY_STATE.lock().await;
     let current_time = Utc::now().timestamp() as u64;
@@ -268,7 +268,7 @@ pub async fn cleanup_old_anomalies() {
     }
 }
 
-/
+///
 fn validate_anomaly_params(params: &AnomalyParams) -> Result<(), String> {
     match params.method {
         AnomalyMethod::LocalOutlierFactor => {
@@ -299,7 +299,7 @@ fn validate_anomaly_params(params: &AnomalyParams) -> Result<(), String> {
     Ok(())
 }
 
-/
+///
 fn convert_gpu_anomaly_result_to_anomalies(
     result: crate::actors::messages::AnomalyResult,
     method: &AnomalyMethod,
@@ -377,7 +377,7 @@ fn convert_gpu_anomaly_result_to_anomalies(
     anomalies
 }
 
-/
+///
 fn determine_severity_from_lof_score(score: f32) -> &'static str {
     if score > 3.0 {
         "critical"
@@ -390,7 +390,7 @@ fn determine_severity_from_lof_score(score: f32) -> &'static str {
     }
 }
 
-/
+///
 fn determine_severity_from_zscore(abs_score: f32) -> &'static str {
     if abs_score > 4.0 {
         "critical"

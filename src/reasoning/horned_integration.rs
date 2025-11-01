@@ -1,12 +1,12 @@
-/
-/
-/
-/
-/
-/
-/
-/
-/
+///
+///
+///
+///
+///
+///
+///
+///
+///
 
 use rusqlite::Connection;
 use crate::reasoning::{
@@ -15,8 +15,8 @@ use crate::reasoning::{
 };
 use std::collections::{HashMap, HashSet};
 
-/
-/
+///
+///
 pub struct HornedOwlReasoner {
     custom_reasoner: CustomReasoner,
     ontology: Option<Ontology>,

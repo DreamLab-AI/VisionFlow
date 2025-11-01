@@ -11,7 +11,7 @@ use uuid::Uuid;
 use super::shared::{GPUState, SharedGPUContext};
 use crate::actors::messages::*;
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClusteringStats {
     pub total_clusters: usize,
@@ -22,7 +22,7 @@ pub struct ClusteringStats {
     pub computation_time_ms: u64,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommunityDetectionStats {
     pub total_communities: usize,
@@ -33,7 +33,7 @@ pub struct CommunityDetectionStats {
     pub computation_time_ms: u64,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Community {
     pub id: String,
@@ -43,7 +43,7 @@ pub struct Community {
     pub density: f32,
 }
 
-/
+///
 pub struct ClusteringActor {
     
     gpu_state: GPUState,
@@ -624,7 +624,7 @@ impl Actor for ClusteringActor {
 
 // === Message Handlers ===
 
-/
+///
 impl Handler<SetSharedGPUContext> for ClusteringActor {
     type Result = Result<(), String>;
 
@@ -637,7 +637,7 @@ impl Handler<SetSharedGPUContext> for ClusteringActor {
     }
 }
 
-/
+///
 impl Handler<RunKMeans> for ClusteringActor {
     type Result = actix::ResponseFuture<Result<KMeansResult, String>>;
 
@@ -657,7 +657,7 @@ impl Handler<RunKMeans> for ClusteringActor {
     }
 }
 
-/
+///
 impl Handler<RunCommunityDetection> for ClusteringActor {
     type Result = actix::ResponseFuture<Result<CommunityDetectionResult, String>>;
 
@@ -674,7 +674,7 @@ impl Handler<RunCommunityDetection> for ClusteringActor {
     }
 }
 
-/
+///
 impl Handler<PerformGPUClustering> for ClusteringActor {
     type Result = actix::ResponseFuture<
         Result<Vec<crate::handlers::api_handler::analytics::Cluster>, String>,

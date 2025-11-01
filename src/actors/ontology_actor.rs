@@ -20,7 +20,7 @@ use crate::services::owl_validator::{
     OwlValidatorService, PropertyGraph, RdfTriple, ValidationConfig, ValidationReport,
 };
 
-/
+///
 #[derive(Error, Debug)]
 pub enum OntologyActorError {
     #[error("Validation service error: {0}")]
@@ -42,7 +42,7 @@ pub enum OntologyActorError {
     MailboxError(String),
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum JobStatus {
     Pending,
@@ -61,7 +61,7 @@ pub enum JobStatus {
     },
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct ValidationJob {
     pub id: String,
@@ -73,7 +73,7 @@ pub struct ValidationJob {
     pub priority: JobPriority,
 }
 
-/
+///
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum JobPriority {
     Low = 3,
@@ -82,7 +82,7 @@ pub enum JobPriority {
     Critical = 0,
 }
 
-/
+///
 #[derive(Debug, Clone)]
 struct ReportCacheEntry {
     report: ValidationReport,
@@ -90,7 +90,7 @@ struct ReportCacheEntry {
     access_count: u32,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ActorStatistics {
     pub total_validations: u64,
@@ -103,7 +103,7 @@ pub struct ActorStatistics {
     pub memory_usage_mb: f32,
 }
 
-/
+///
 pub struct OntologyActor {
     
     validator_service: Arc<OwlValidatorService>,
@@ -141,7 +141,7 @@ pub struct OntologyActor {
         Option<Addr<crate::actors::semantic_processor_actor::SemanticProcessorActor>>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OntologyActorConfig {
     pub max_queue_size: usize,

@@ -5,7 +5,7 @@ use log::{error, info, warn};
 use rusqlite::Connection;
 use std::time::Instant;
 
-/
+///
 pub struct RollbackManager;
 
 impl RollbackManager {

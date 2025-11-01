@@ -20,7 +20,7 @@ use uuid::Uuid;
 use crate::actors::voice_commands::{SwarmVoiceResponse, VoiceCommand};
 use crate::types::speech::SpeechOptions;
 
-/
+///
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct VoiceTag {
     
@@ -47,7 +47,7 @@ impl VoiceTag {
     }
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaggedVoiceCommand {
     
@@ -62,7 +62,7 @@ pub struct TaggedVoiceCommand {
     pub timeout: Option<DateTime<Utc>>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaggedVoiceResponse {
     
@@ -75,7 +75,7 @@ pub struct TaggedVoiceResponse {
     pub responded_at: DateTime<Utc>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TaggedCommandStatus {
     
@@ -90,7 +90,7 @@ pub enum TaggedCommandStatus {
     Failed(String),
 }
 
-/
+///
 #[derive(Debug, Clone)]
 struct ActiveVoiceCommand {
     
@@ -103,7 +103,7 @@ struct ActiveVoiceCommand {
     last_activity: DateTime<Utc>,
 }
 
-/
+///
 pub struct VoiceTagManager {
     
     active_commands: Arc<RwLock<HashMap<String, ActiveVoiceCommand>>>,
@@ -386,7 +386,7 @@ impl VoiceTagManager {
     }
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VoiceTagStats {
     pub total_active: usize,

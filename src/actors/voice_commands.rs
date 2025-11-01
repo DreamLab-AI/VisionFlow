@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 // use log::{info, debug, error}; 
 use std::collections::HashMap;
 
-/
+///
 #[derive(Message, Debug, Clone, Serialize, Deserialize)]
 #[rtype(result = "Result<SwarmVoiceResponse, String>")]
 pub struct VoiceCommand {
@@ -26,7 +26,7 @@ pub struct VoiceCommand {
     pub voice_tag: Option<String>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SwarmVoiceResponse {
     
@@ -43,7 +43,7 @@ pub struct SwarmVoiceResponse {
     pub is_final: Option<bool>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum SwarmIntent {
     SpawnAgent {
@@ -83,7 +83,7 @@ pub enum GraphAction {
     Clear,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConversationContext {
     pub session_id: String,
@@ -93,7 +93,7 @@ pub struct ConversationContext {
     pub turn_count: usize,
 }
 
-/
+///
 pub struct VoicePreamble;
 
 impl VoicePreamble {

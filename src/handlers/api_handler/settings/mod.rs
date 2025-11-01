@@ -12,7 +12,7 @@ use crate::actors::messages::{GetSettings, UpdateSettings};
 use crate::config::{ConstraintSettings, PhysicsSettings, RenderingSettings};
 use crate::AppState;
 
-/
+///
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdatePhysicsRequest {
@@ -26,7 +26,7 @@ pub struct UpdatePhysicsRequest {
     pub dt: Option<f32>,
 }
 
-/
+///
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateConstraintRequest {
@@ -37,7 +37,7 @@ pub struct UpdateConstraintRequest {
     pub progressive_activation: Option<bool>,
 }
 
-/
+///
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateRenderingRequest {
@@ -48,7 +48,7 @@ pub struct UpdateRenderingRequest {
     pub edge_thickness: Option<f32>,
 }
 
-/
+///
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SettingsProfile {
@@ -61,7 +61,7 @@ pub struct SettingsProfile {
     pub created_at: String,
 }
 
-/
+///
 pub async fn get_physics_settings(state: web::Data<AppState>) -> impl Responder {
     info!("GET /api/settings/physics");
 
@@ -87,7 +87,7 @@ pub async fn get_physics_settings(state: web::Data<AppState>) -> impl Responder 
     }
 }
 
-/
+///
 pub async fn update_physics_settings(
     state: web::Data<AppState>,
     req: web::Json<UpdatePhysicsRequest>,
@@ -162,7 +162,7 @@ pub async fn update_physics_settings(
     }
 }
 
-/
+///
 pub async fn get_constraint_settings(state: web::Data<AppState>) -> impl Responder {
     info!("GET /api/settings/constraints");
 
@@ -188,7 +188,7 @@ pub async fn get_constraint_settings(state: web::Data<AppState>) -> impl Respond
     }
 }
 
-/
+///
 pub async fn update_constraint_settings(
     state: web::Data<AppState>,
     req: web::Json<UpdateConstraintRequest>,
@@ -254,7 +254,7 @@ pub async fn update_constraint_settings(
     }
 }
 
-/
+///
 pub async fn get_rendering_settings(state: web::Data<AppState>) -> impl Responder {
     info!("GET /api/settings/rendering");
 
@@ -280,7 +280,7 @@ pub async fn get_rendering_settings(state: web::Data<AppState>) -> impl Responde
     }
 }
 
-/
+///
 pub async fn update_rendering_settings(
     state: web::Data<AppState>,
     req: web::Json<UpdateRenderingRequest>,
@@ -346,7 +346,7 @@ pub async fn update_rendering_settings(
     }
 }
 
-/
+///
 pub async fn save_profile(
     state: web::Data<AppState>,
     req: web::Json<serde_json::Value>,
@@ -391,7 +391,7 @@ pub async fn save_profile(
     }
 }
 
-/
+///
 pub async fn list_profiles(_state: web::Data<AppState>) -> impl Responder {
     info!("GET /api/settings/profiles");
 
@@ -402,7 +402,7 @@ pub async fn list_profiles(_state: web::Data<AppState>) -> impl Responder {
     }))
 }
 
-/
+///
 pub async fn load_profile(
     _state: web::Data<AppState>,
     profile_id: web::Path<String>,
@@ -416,7 +416,7 @@ pub async fn load_profile(
     }))
 }
 
-/
+///
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/settings")

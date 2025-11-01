@@ -40,7 +40,7 @@ use crate::ports::gpu_semantic_analyzer::{
     GpuSemanticAnalyzer as GpuSemanticAnalyzerPort, PathfindingResult,
 };
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct SemanticProcessorConfig {
     
@@ -70,7 +70,7 @@ impl Default for SemanticProcessorConfig {
     }
 }
 
-/
+///
 #[derive(Debug, Clone, Default)]
 pub struct SemanticStats {
     pub constraints_generated: usize,
@@ -94,7 +94,7 @@ where
     }
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct AISemanticFeatures {
     
@@ -130,7 +130,7 @@ impl Default for AISemanticFeatures {
     }
 }
 
-/
+///
 pub struct SemanticProcessorActor {
     
     semantic_analyzer: Option<SemanticAnalyzer>,
@@ -184,7 +184,7 @@ pub struct SemanticProcessorActor {
     gpu_analyzer: Option<GpuSemanticAnalyzerAdapter>,
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct SemanticTask {
     pub task_id: String,
@@ -214,7 +214,7 @@ pub enum SemanticTaskStatus {
     Cancelled,
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct SemanticClusteringParams {
     pub min_cluster_size: usize,
@@ -1628,7 +1628,7 @@ impl Handler<UpdateAdvancedParams> for SemanticProcessorActor {
     }
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct SetGraphData {
@@ -1644,7 +1644,7 @@ impl Handler<SetGraphData> for SemanticProcessorActor {
     }
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct ProcessMetadata {
@@ -1680,7 +1680,7 @@ impl Handler<ProcessMetadata> for SemanticProcessorActor {
     }
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "SemanticStats")]
 pub struct GetSemanticStats;
@@ -1693,7 +1693,7 @@ impl Handler<GetSemanticStats> for SemanticProcessorActor {
     }
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct UpdateSemanticConfig {
@@ -1709,7 +1709,7 @@ impl Handler<UpdateSemanticConfig> for SemanticProcessorActor {
     }
 }
 
-/
+///
 impl Handler<ComputeShortestPaths> for SemanticProcessorActor {
     type Result = actix::ResponseFuture<Result<PathfindingResult, String>>;
 
@@ -1759,7 +1759,7 @@ impl Handler<ComputeShortestPaths> for SemanticProcessorActor {
     }
 }
 
-/
+///
 impl Handler<ComputeAllPairsShortestPaths> for SemanticProcessorActor {
     type Result = actix::ResponseFuture<Result<HashMap<(u32, u32), Vec<u32>>, String>>;
 

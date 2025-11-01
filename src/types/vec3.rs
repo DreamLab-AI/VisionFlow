@@ -2,7 +2,7 @@ use bytemuck::{Pod, Zeroable};
 use glam::Vec3;
 use serde::{Deserialize, Serialize};
 
-/
+///
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Pod, Zeroable, Serialize, Deserialize)]
 pub struct Vec3Data {

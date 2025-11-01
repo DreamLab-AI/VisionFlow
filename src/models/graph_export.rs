@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum ExportFormat {
@@ -26,7 +26,7 @@ impl std::fmt::Display for ExportFormat {
     }
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportRequest {
     pub format: ExportFormat,
@@ -36,7 +36,7 @@ pub struct ExportRequest {
     pub custom_attributes: Option<Vec<String>>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportResponse {
     pub export_id: String,
@@ -47,7 +47,7 @@ pub struct ExportResponse {
     pub expires_at: DateTime<Utc>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SharedGraph {
     pub id: Uuid,
@@ -70,7 +70,7 @@ pub struct SharedGraph {
     pub metadata: HashMap<String, serde_json::Value>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ShareRequest {
     pub title: String,
@@ -84,7 +84,7 @@ pub struct ShareRequest {
     pub include_metadata: bool,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ShareResponse {
     pub share_id: Uuid,
@@ -94,7 +94,7 @@ pub struct ShareResponse {
     pub created_at: DateTime<Utc>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PublishRequest {
     pub title: String,
@@ -107,7 +107,7 @@ pub struct PublishRequest {
     pub export_format: ExportFormat,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PublishResponse {
     pub publication_id: Uuid,
@@ -117,7 +117,7 @@ pub struct PublishResponse {
     pub status: PublicationStatus,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum PublicationStatus {
@@ -127,7 +127,7 @@ pub enum PublicationStatus {
     Published,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportStats {
     pub total_exports: u64,
@@ -138,7 +138,7 @@ pub struct ExportStats {
     pub last_export: Option<DateTime<Utc>>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RateLimitInfo {
     pub remaining_exports: u32,
@@ -147,7 +147,7 @@ pub struct RateLimitInfo {
     pub hourly_limit: u32,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CompressionStats {
     pub original_size: u64,

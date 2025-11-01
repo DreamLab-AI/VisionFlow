@@ -29,7 +29,7 @@ pub enum InferenceEngineError {
     ReasonerError(String),
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InferenceStatistics {
     pub loaded_classes: usize,
@@ -39,7 +39,7 @@ pub struct InferenceStatistics {
     pub total_inferences: u64,
 }
 
-/
+///
 #[async_trait]
 pub trait InferenceEngine: Send + Sync {
     

@@ -6,14 +6,14 @@ use super::communication_bridge::GPUBridge;
 use super::{HybridSSPConfig, SSPMetrics};
 use std::collections::VecDeque;
 
-/
+///
 pub struct WASMController {
     config: HybridSSPConfig,
     adaptive_heap: AdaptiveHeap,
     recursion_stack: Vec<RecursionFrame>,
 }
 
-/
+///
 struct RecursionFrame {
     level: u32,
     bound: f32,
@@ -269,7 +269,7 @@ impl WASMController {
     }
 }
 
-/
+///
 #[cfg(target_arch = "wasm32")]
 mod wasm_helpers {
     use wasm_bindgen::prelude::*;

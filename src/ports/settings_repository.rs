@@ -30,7 +30,7 @@ pub enum SettingsRepositoryError {
     CacheError(String),
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum SettingValue {
@@ -81,7 +81,7 @@ impl SettingValue {
 // Re-export AppFullSettings from config module (single source of truth)
 pub use crate::config::AppFullSettings;
 
-/
+///
 #[async_trait]
 pub trait SettingsRepository: Send + Sync {
     

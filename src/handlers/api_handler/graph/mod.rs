@@ -17,7 +17,7 @@ use crate::application::graph::queries::{
 use crate::handlers::utils::execute_in_thread;
 use hexser::QueryHandler;
 
-/
+///
 #[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SettlementState {
@@ -26,7 +26,7 @@ pub struct SettlementState {
     pub kinetic_energy: f32,
 }
 
-/
+///
 #[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct NodeWithPosition {
@@ -57,7 +57,7 @@ pub struct NodeWithPosition {
     pub group: Option<String>,
 }
 
-/
+///
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GraphResponse {
@@ -66,7 +66,7 @@ pub struct GraphResponse {
     pub metadata: HashMap<String, Metadata>,
 }
 
-/
+///
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GraphResponseWithPositions {

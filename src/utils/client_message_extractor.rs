@@ -2,7 +2,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClientMessage {
     pub content: String,
@@ -11,11 +11,11 @@ pub struct ClientMessage {
     pub agent_id: Option<String>,
 }
 
-/
-/
-/
-/
-/
+///
+///
+///
+///
+///
 static MESSAGE_REGEX: OnceLock<Regex> = OnceLock::new();
 
 fn get_message_regex() -> &'static Regex {
@@ -33,7 +33,7 @@ fn get_message_regex() -> &'static Regex {
     })
 }
 
-/
+///
 pub fn extract_client_messages(
     text: &str,
     session_id: Option<String>,
@@ -55,7 +55,7 @@ pub fn extract_client_messages(
         .collect()
 }
 
-/
+///
 pub struct ClientMessageStream {
     buffer: String,
     session_id: Option<String>,

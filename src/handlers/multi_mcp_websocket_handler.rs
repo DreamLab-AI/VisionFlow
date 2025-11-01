@@ -38,7 +38,7 @@ impl RetryableError for McpError {
     }
 }
 
-/
+///
 pub struct MultiMcpVisualizationWs {
     app_state: web::Data<AppState>,
     _hybrid_manager: Option<()>, 
@@ -57,7 +57,7 @@ pub struct MultiMcpVisualizationWs {
     last_successful_operation: Instant,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SubscriptionFilters {
     
@@ -91,7 +91,7 @@ impl Default for SubscriptionFilters {
     }
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PerformanceMode {
@@ -544,7 +544,7 @@ impl Actor for MultiMcpVisualizationWs {
     }
 }
 
-/
+///
 impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MultiMcpVisualizationWs {
     fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
         match msg {
@@ -687,21 +687,21 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MultiMcpVisualiza
     }
 }
 
-/
+///
 #[derive(Debug, Deserialize)]
 struct ClientRequest {
     action: String,
     data: Option<serde_json::Value>,
 }
 
-/
+///
 #[derive(Debug, Deserialize)]
 struct ClientConfig {
     subscription_filters: Option<SubscriptionFilters>,
     performance_mode: Option<PerformanceMode>,
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "()")]
 struct RequestAgentUpdate;
@@ -736,7 +736,7 @@ struct SendHeartbeatPing;
 #[rtype(result = "()")]
 struct ReconnectionCompleted;
 
-/
+///
 impl Handler<RequestAgentUpdate> for MultiMcpVisualizationWs {
     type Result = ();
 
@@ -841,7 +841,7 @@ impl Handler<ReconnectionCompleted> for MultiMcpVisualizationWs {
     }
 }
 
-/
+///
 pub async fn multi_mcp_visualization_ws(
     req: HttpRequest,
     stream: web::Payload,
@@ -852,7 +852,7 @@ pub async fn multi_mcp_visualization_ws(
     ws::start(MultiMcpVisualizationWs::new(app_state, None), &req, stream)
 }
 
-/
+///
 pub async fn get_mcp_server_status(_app_state: web::Data<AppState>) -> ActixResult<HttpResponse> {
     
     let response = json!({
@@ -883,7 +883,7 @@ pub async fn get_mcp_server_status(_app_state: web::Data<AppState>) -> ActixResu
         .json(response))
 }
 
-/
+///
 pub async fn refresh_mcp_discovery(_app_state: web::Data<AppState>) -> ActixResult<HttpResponse> {
     info!("Manual MCP discovery refresh requested");
 
@@ -896,7 +896,7 @@ pub async fn refresh_mcp_discovery(_app_state: web::Data<AppState>) -> ActixResu
     })))
 }
 
-/
+///
 pub fn configure_multi_mcp_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api/multi-mcp")

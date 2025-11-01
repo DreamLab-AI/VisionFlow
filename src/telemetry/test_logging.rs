@@ -8,7 +8,7 @@ use super::agent_telemetry::{
 use serde_json;
 use std::collections::HashMap;
 
-/
+///
 #[cfg(test)]
 pub fn test_telemetry_logging() -> Result<(), Box<dyn std::error::Error>> {
     
@@ -57,7 +57,7 @@ pub fn test_telemetry_logging() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-/
+///
 pub fn example_usage() {
     use crate::telemetry::agent_telemetry::get_telemetry_logger;
 

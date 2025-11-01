@@ -3,7 +3,7 @@ use super::{Cluster, ClusteringParams, GPUPhysicsStats, StressMajorizationStats}
 use crate::app_state::AppState;
 use log::{error, info, warn};
 
-/
+///
 pub async fn get_real_gpu_physics_stats(app_state: &AppState) -> Option<GPUPhysicsStats> {
     if let Some(gpu_addr) = &app_state.gpu_compute_addr {
         use crate::actors::messages::{GetGPUStatus, GetStressMajorizationStats};
@@ -103,7 +103,7 @@ pub async fn get_real_gpu_physics_stats(app_state: &AppState) -> Option<GPUPhysi
     }
 }
 
-/
+///
 pub async fn perform_gpu_spectral_clustering(
     app_state: &AppState,
     graph_data: &crate::models::graph::GraphData,
@@ -158,7 +158,7 @@ pub async fn perform_gpu_spectral_clustering(
     )
 }
 
-/
+///
 pub async fn perform_gpu_kmeans_clustering(
     app_state: &AppState,
     graph_data: &crate::models::graph::GraphData,
@@ -213,7 +213,7 @@ pub async fn perform_gpu_kmeans_clustering(
     )
 }
 
-/
+///
 pub async fn perform_gpu_louvain_clustering(
     app_state: &AppState,
     graph_data: &crate::models::graph::GraphData,
@@ -268,7 +268,7 @@ pub async fn perform_gpu_louvain_clustering(
     )
 }
 
-/
+///
 pub async fn perform_gpu_default_clustering(
     app_state: &AppState,
     graph_data: &crate::models::graph::GraphData,
@@ -290,7 +290,7 @@ pub async fn perform_gpu_default_clustering(
     }
 }
 
-/
+///
 fn convert_gpu_clusters_to_response(
     gpu_results: Vec<Cluster>,
     graph_data: &crate::models::graph::GraphData,
@@ -354,7 +354,7 @@ fn convert_gpu_clusters_to_response(
         .collect()
 }
 
-/
+///
 fn generate_cpu_fallback_clustering(
     graph_data: &crate::models::graph::GraphData,
     agents: &[crate::services::agent_visualization_protocol::MultiMcpAgentStatus],

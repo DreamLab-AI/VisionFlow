@@ -1,12 +1,12 @@
-/
-/
+///
+///
 use cust::memory::DeviceBuffer;
 use log::{debug, error, warn};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-/
+///
 pub struct ManagedDeviceBuffer<T: cust_core::DeviceCopy> {
     buffer: DeviceBuffer<T>,
     name: String,
@@ -45,7 +45,7 @@ impl<T: cust_core::DeviceCopy> Drop for ManagedDeviceBuffer<T> {
     }
 }
 
-/
+///
 struct GPUMemoryTracker {
     allocations: Arc<std::sync::Mutex<HashMap<String, usize>>>,
     total_allocated: Arc<std::sync::atomic::AtomicUsize>,
@@ -123,7 +123,7 @@ impl GPUMemoryTracker {
 
 static GPU_MEMORY_TRACKER: Lazy<GPUMemoryTracker> = Lazy::new(|| GPUMemoryTracker::new());
 
-/
+///
 pub fn create_managed_buffer<T>(
     capacity: usize,
     name: &str,
@@ -150,17 +150,17 @@ where
     ))
 }
 
-/
+///
 pub fn check_gpu_memory_leaks() -> Vec<String> {
     GPU_MEMORY_TRACKER.check_leaks()
 }
 
-/
+///
 pub fn get_gpu_memory_usage() -> (usize, HashMap<String, usize>) {
     GPU_MEMORY_TRACKER.get_memory_usage()
 }
 
-/
+///
 pub struct MultiStreamManager {
     compute_stream: cust::stream::Stream,
     memory_stream: cust::stream::Stream,
@@ -257,7 +257,7 @@ impl MultiStreamManager {
     }
 }
 
-/
+///
 use std::sync::RwLock;
 
 pub struct LabelMappingCache {

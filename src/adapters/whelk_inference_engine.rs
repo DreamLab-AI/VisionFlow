@@ -24,10 +24,10 @@ use std::collections::hash_map::DefaultHasher;
 #[cfg(feature = "ontology")]
 use std::hash::{Hash, Hasher};
 
-/
-/
-/
-/
+///
+///
+///
+///
 pub struct WhelkInferenceEngine {
     #[cfg(feature = "ontology")]
     ontology: Option<SetOntology<ArcStr>>,
@@ -49,7 +49,7 @@ pub struct WhelkInferenceEngine {
 }
 
 #[cfg(feature = "ontology")]
-/
+///
 use whelk;
 
 impl WhelkInferenceEngine {

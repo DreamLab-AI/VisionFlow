@@ -34,8 +34,8 @@ use crate::models::graph::GraphData;
 use crate::models::simulation_params::SimulationParams;
 use crate::utils::socket_flow_messages::BinaryNodeData;
 
-/
-/
+///
+///
 pub struct PhysicsOrchestratorActor {
     
     simulation_running: AtomicBool,
@@ -95,7 +95,7 @@ pub struct PhysicsOrchestratorActor {
     user_constraints: Option<ConstraintSet>,
 }
 
-/
+///
 #[derive(Debug, Default, Clone)]
 pub struct PhysicsPerformanceMetrics {
     pub total_steps: u64,
@@ -735,7 +735,7 @@ impl PhysicsOrchestratorActor {
     }
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct PhysicsStatus {
     pub simulation_running: bool,
@@ -966,7 +966,7 @@ impl Handler<UpdateSimulationParams> for PhysicsOrchestratorActor {
     }
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "PhysicsStatus")]
 pub struct GetPhysicsStatus;
@@ -979,7 +979,7 @@ impl Handler<GetPhysicsStatus> for PhysicsOrchestratorActor {
     }
 }
 
-/
+///
 #[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(result = "()")]
@@ -996,7 +996,7 @@ impl Handler<UpdatePhysicsStats> for PhysicsOrchestratorActor {
     }
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct UpdateGraphData {
@@ -1011,7 +1011,7 @@ impl Handler<UpdateGraphData> for PhysicsOrchestratorActor {
     }
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct FlushParameterTransitions;
@@ -1030,7 +1030,7 @@ impl Handler<FlushParameterTransitions> for PhysicsOrchestratorActor {
     }
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct SetParameterInterpolationRate {
@@ -1053,7 +1053,7 @@ impl Handler<SetParameterInterpolationRate> for PhysicsOrchestratorActor {
     }
 }
 
-/
+///
 impl Handler<ApplyOntologyConstraints> for PhysicsOrchestratorActor {
     type Result = Result<(), String>;
 
@@ -1068,7 +1068,7 @@ impl Handler<ApplyOntologyConstraints> for PhysicsOrchestratorActor {
     }
 }
 
-/
+///
 impl Handler<SetConstraintGroupActive> for PhysicsOrchestratorActor {
     type Result = Result<(), String>;
 
@@ -1077,7 +1077,7 @@ impl Handler<SetConstraintGroupActive> for PhysicsOrchestratorActor {
     }
 }
 
-/
+///
 impl Handler<GetConstraintStats> for PhysicsOrchestratorActor {
     type Result = Result<ConstraintStats, String>;
 
@@ -1086,7 +1086,7 @@ impl Handler<GetConstraintStats> for PhysicsOrchestratorActor {
     }
 }
 
-/
+///
 #[cfg(feature = "ontology")]
 #[derive(Message)]
 #[rtype(result = "()")]
@@ -1094,7 +1094,7 @@ pub struct SetOntologyActor {
     pub addr: Addr<crate::actors::ontology_actor::OntologyActor>,
 }
 
-/
+///
 #[cfg(feature = "ontology")]
 impl Handler<SetOntologyActor> for PhysicsOrchestratorActor {
     type Result = ();

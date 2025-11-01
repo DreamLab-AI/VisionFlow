@@ -15,7 +15,7 @@ use crate::inference::types::{ConsistencyReport, ClassificationResult, Unsatisfi
 use crate::inference::optimization::BatchInferenceRequest;
 use crate::events::EventBus;
 
-/
+///
 #[derive(Debug, Clone)]
 pub enum InferenceEvent {
     
@@ -47,7 +47,7 @@ pub enum InferenceEvent {
     },
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct InferenceServiceConfig {
     
@@ -74,7 +74,7 @@ impl Default for InferenceServiceConfig {
     }
 }
 
-/
+///
 pub struct InferenceService {
     
     inference_engine: Arc<RwLock<dyn InferenceEngine>>,

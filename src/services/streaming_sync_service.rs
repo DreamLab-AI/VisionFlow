@@ -50,13 +50,13 @@ use std::time::{Duration, Instant};
 use tokio::sync::{mpsc, Semaphore};
 use tokio::task::JoinSet;
 
-/
+///
 const DEFAULT_MAX_WORKERS: usize = 8;
 
-/
+///
 const DEFAULT_MAX_DB_WRITES: usize = 4;
 
-/
+///
 #[derive(Debug, Clone, PartialEq)]
 pub enum FileType {
     KnowledgeGraph, 
@@ -64,7 +64,7 @@ pub enum FileType {
     Skip,           
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct SyncProgress {
     pub files_total: usize,
@@ -98,7 +98,7 @@ impl SyncProgress {
     }
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct SyncStatistics {
     pub total_files: usize,
@@ -115,7 +115,7 @@ pub struct SyncStatistics {
     pub total_axioms: usize,
 }
 
-/
+///
 #[derive(Debug, Clone)]
 enum FileProcessResult {
     KnowledgeGraph {
@@ -140,7 +140,7 @@ enum FileProcessResult {
     },
 }
 
-/
+///
 pub struct StreamingSyncService {
     content_api: Arc<EnhancedContentAPI>,
     kg_parser: Arc<KnowledgeGraphParser>,

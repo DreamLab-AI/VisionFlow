@@ -3,7 +3,7 @@ use log::error;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DetailedValidationError {
     pub error_type: String,
@@ -318,7 +318,7 @@ impl ResponseError for DetailedValidationError {
     }
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ValidationErrorCollection {
     pub errors: Vec<DetailedValidationError>,
@@ -431,7 +431,7 @@ impl ValidationErrorCollection {
     }
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub enum ValidationErrorType {
     Required(String),
@@ -540,7 +540,7 @@ impl From<ValidationErrorType> for DetailedValidationError {
     }
 }
 
-/
+///
 #[macro_export]
 macro_rules! validation_error {
     (required: $field:expr_2021) => {

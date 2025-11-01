@@ -17,9 +17,9 @@ use crate::utils::unified_gpu_compute::{SimParams, UnifiedGPUCompute};
 // use super::{GPUResourceActor, ForceComputeActor, ClusteringActor,
 //            AnomalyDetectionActor, StressMajorizationActor, ConstraintActor};
 
-/
+///
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct GPUResourceMetrics {
     pub kernel_launch_count: u64,
@@ -43,7 +43,7 @@ impl Default for GPUResourceMetrics {
     }
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct GPUOperationBatch {
     pub operations: Vec<GPUOperation>,
@@ -93,7 +93,7 @@ impl GPUOperationBatch {
     }
 }
 
-/
+///
 // Note: SafeCudaStream provides thread safety guarantees
 pub struct SharedGPUContext {
     pub device: Arc<CudaDevice>,
@@ -108,7 +108,7 @@ pub struct SharedGPUContext {
     pub batch_timeout: Duration, 
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct GPUState {
     pub num_nodes: u32,
@@ -164,7 +164,7 @@ impl Default for GPUState {
     }
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StressMajorizationSafety {
     
@@ -523,7 +523,7 @@ impl GPUState {
     }
 }
 
-/
+///
 #[derive(Clone)]
 pub struct ChildActorAddresses {
     pub resource_actor: Addr<super::GPUResourceActor>,

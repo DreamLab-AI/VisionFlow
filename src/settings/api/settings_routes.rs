@@ -41,7 +41,7 @@ pub struct ErrorResponse {
 // Physics Settings Routes
 // ============================================================================
 
-/
+/// GET /api/settings/physics
 pub async fn get_physics_settings(
     settings_actor: web::Data<Addr<SettingsActor>>,
 ) -> impl Responder {

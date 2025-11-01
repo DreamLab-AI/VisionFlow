@@ -11,7 +11,7 @@ use tokio::sync::RwLock;
 // const MAX_RETRIES: u32 = 3; 
 // const RETRY_DELAY: Duration = Duration::from_secs(2); 
 
-/
+///
 pub struct GitHubClient {
     client: Client,
     token: String,
@@ -86,7 +86,7 @@ impl GitHubClient {
     
 
     
-    pub(crate) async fn get_full_path(&self, path: &str) -> String {
+    pub async fn get_full_path(&self, path: &str) -> String {
         let settings = self.settings.read().await;
         let debug_enabled = crate::utils::logging::is_debug_enabled();
         drop(settings);
@@ -164,7 +164,7 @@ impl GitHubClient {
     }
 
     
-    pub(crate) async fn get_contents_url(&self, path: &str) -> String {
+    pub async fn get_contents_url(&self, path: &str) -> String {
         let settings = self.settings.read().await;
         let _debug_enabled = crate::utils::logging::is_debug_enabled();
         drop(settings);
@@ -190,7 +190,7 @@ impl GitHubClient {
     }
 
     
-    pub(crate) fn client(&self) -> &Client {
+    pub fn client(&self) -> &Client {
         &self.client
     }
 

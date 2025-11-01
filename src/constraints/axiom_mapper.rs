@@ -4,7 +4,7 @@
 use super::physics_constraint::*;
 use std::collections::HashMap;
 
-/
+///
 #[derive(Debug, Clone, PartialEq)]
 pub enum AxiomType {
     
@@ -62,7 +62,7 @@ pub enum AxiomType {
     },
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct OWLAxiom {
     pub id: Option<i64>,
@@ -109,7 +109,7 @@ impl OWLAxiom {
     }
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct TranslationConfig {
     
@@ -167,7 +167,7 @@ impl Default for TranslationConfig {
     }
 }
 
-/
+///
 pub struct AxiomMapper {
     config: TranslationConfig,
     

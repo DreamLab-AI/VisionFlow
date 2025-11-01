@@ -22,7 +22,7 @@ use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
-/
+///
 #[derive(Clone)]
 pub struct ManagementApiClient {
     base_url: String,
@@ -30,7 +30,7 @@ pub struct ManagementApiClient {
     client: Client,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TaskResponse {
@@ -42,7 +42,7 @@ pub struct TaskResponse {
     pub start_time: Option<u64>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TaskStatus {
@@ -60,7 +60,7 @@ pub struct TaskStatus {
     pub log_tail: Option<String>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum TaskState {
@@ -69,7 +69,7 @@ pub enum TaskState {
     Failed,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TaskInfo {
@@ -82,7 +82,7 @@ pub struct TaskInfo {
     pub duration: u64,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TaskListResponse {
@@ -90,7 +90,7 @@ pub struct TaskListResponse {
     pub count: usize,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SystemStatus {
     pub timestamp: String,
@@ -119,7 +119,7 @@ pub struct GpuStatus {
     pub gpus: Option<Vec<serde_json::Value>>,
 }
 
-/
+///
 #[derive(Debug)]
 pub enum ManagementApiError {
     NetworkError(String),

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 // TODO: Re-enable after CUDA integration refactor
 // use cudarc::driver::{DeviceRepr, ValidAsZeroBits};
 
-/
+///
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub enum ConstraintKind {
@@ -29,7 +29,7 @@ pub enum ConstraintKind {
     LayerDepth = 9,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Constraint {
     
@@ -143,7 +143,7 @@ impl Constraint {
     }
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AdvancedParams {
     
@@ -234,7 +234,7 @@ impl AdvancedParams {
     }
 }
 
-/
+///
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct ConstraintData {
@@ -293,7 +293,7 @@ impl ConstraintData {
     }
 }
 
-/
+///
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ConstraintSet {
     

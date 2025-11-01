@@ -5,7 +5,7 @@ use log::warn;
 use serde_json::json;
 use std::time::{Duration, Instant};
 
-/
+///
 pub trait WebSocketHeartbeat: Actor<Context = ws::WebsocketContext<Self>>
 where
     Self: Sized,
@@ -105,7 +105,7 @@ where
     }
 }
 
-/
+///
 pub struct HeartbeatConfig {
     pub ping_interval_secs: u64,
     pub timeout_secs: u64,
@@ -137,7 +137,7 @@ impl HeartbeatConfig {
     }
 }
 
-/
+///
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
 #[serde(tag = "type")]
 pub enum CommonWebSocketMessage {

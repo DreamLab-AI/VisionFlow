@@ -7,7 +7,7 @@ use log::{debug, error};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct MemoryBounds {
     pub base_address: usize,
@@ -82,7 +82,7 @@ impl MemoryBounds {
     }
 }
 
-/
+///
 #[derive(Debug, thiserror::Error)]
 pub enum MemoryBoundsError {
     #[error("Element index {index} out of bounds for buffer '{name}' (size: {size} elements)")]
@@ -129,7 +129,7 @@ pub enum MemoryBoundsError {
     InvalidElementSize { element_size: usize, name: String },
 }
 
-/
+///
 #[derive(Debug)]
 pub struct MemoryBoundsRegistry {
     bounds: HashMap<String, MemoryBounds>,
@@ -343,7 +343,7 @@ impl MemoryBoundsRegistry {
     }
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct MemoryUsageReport {
     pub total_allocated: usize,
@@ -396,7 +396,7 @@ impl MemoryUsageReport {
     }
 }
 
-/
+///
 pub struct ThreadSafeMemoryBoundsChecker {
     registry: Arc<Mutex<MemoryBoundsRegistry>>,
 }
@@ -464,7 +464,7 @@ impl ThreadSafeMemoryBoundsChecker {
     }
 }
 
-/
+///
 pub struct SafeArrayAccess<T> {
     data: Vec<T>,
     bounds_checker: Option<Arc<ThreadSafeMemoryBoundsChecker>>,

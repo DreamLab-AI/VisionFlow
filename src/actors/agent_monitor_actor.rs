@@ -20,7 +20,7 @@ use crate::types::claude_flow::{
     AgentProfile, AgentStatus, AgentType, ClaudeFlowClient, PerformanceMetrics, TokenUsage,
 };
 
-/
+///
 fn task_to_agent_status(task: TaskInfo) -> AgentStatus {
     use chrono::TimeZone;
 
@@ -91,7 +91,7 @@ fn task_to_agent_status(task: TaskInfo) -> AgentStatus {
         workload: Some(0.5),
     }
 }
-/
+///
 pub struct AgentMonitorActor {
     _client: ClaudeFlowClient,
     graph_service_addr: Addr<crate::actors::graph_service_supervisor::TransitionalGraphSupervisor>,
@@ -183,7 +183,7 @@ impl AgentMonitorActor {
     }
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "()")]
 struct ProcessAgentStatuses {

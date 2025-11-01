@@ -29,7 +29,7 @@ use crate::services::management_api_client::{
     TaskStatus as ApiTaskStatus,
 };
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct TaskState {
     pub task_id: String,
@@ -42,7 +42,7 @@ pub struct TaskState {
     pub retry_count: u32,
 }
 
-/
+///
 pub struct TaskOrchestratorActor {
     api_client: ManagementApiClient,
     active_tasks: HashMap<String, TaskState>,
@@ -190,7 +190,7 @@ impl Handler<crate::actors::messages::InitializeActor> for TaskOrchestratorActor
 // Message Definitions
 // ========================================
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "Result<TaskResponse, String>")]
 pub struct CreateTask {
@@ -199,31 +199,31 @@ pub struct CreateTask {
     pub provider: String,
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "Result<ApiTaskStatus, String>")]
 pub struct GetTaskStatus {
     pub task_id: String,
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct StopTask {
     pub task_id: String,
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "Result<Vec<TaskInfo>, String>")]
 pub struct ListActiveTasks;
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "Result<SystemStatusInfo, String>")]
 pub struct GetSystemStatus;
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct SystemStatusInfo {
     pub active_tasks: usize,

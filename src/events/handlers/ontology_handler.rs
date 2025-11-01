@@ -5,8 +5,8 @@ use tokio::sync::RwLock;
 use crate::events::domain_events::*;
 use crate::events::types::{EventError, EventHandler, EventResult, StoredEvent};
 
-/
-/
+///
+///
 pub struct OntologyEventHandler {
     handler_id: String,
     state: Arc<RwLock<OntologyState>>,

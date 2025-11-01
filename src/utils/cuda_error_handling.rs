@@ -9,7 +9,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use log::{error, warn, info, debug};
 
-/
+///
 #[repr(i32)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CudaError {
@@ -191,7 +191,7 @@ impl std::fmt::Display for CudaError {
 
 impl std::error::Error for CudaError {}
 
-/
+///
 #[derive(Debug, Clone, Copy)]
 pub enum RecoveryStrategy {
     
@@ -204,7 +204,7 @@ pub enum RecoveryStrategy {
     Abort,
 }
 
-/
+///
 pub struct CudaErrorHandler {
     error_count: Arc<AtomicU32>,
     last_error_time: Arc<std::sync::Mutex<Option<Instant>>>,
@@ -384,7 +384,7 @@ impl Default for CudaErrorHandler {
     }
 }
 
-/
+///
 pub struct CudaMemoryGuard {
     ptr: *mut c_void,
     size: usize,
@@ -501,7 +501,7 @@ const cudaMemcpyHostToDevice: c_int = 1;
 const cudaMemcpyDeviceToHost: c_int = 2;
 const cudaMemcpyDeviceToDevice: c_int = 3;
 
-/
+///
 #[macro_export]
 macro_rules! cuda_check {
     ($handler:expr, $operation:expr, $op_name:expr) => {{
@@ -515,7 +515,7 @@ macro_rules! cuda_check {
     }};
 }
 
-/
+///
 static GLOBAL_CUDA_ERROR_HANDLER: std::sync::OnceLock<Arc<CudaErrorHandler>> = std::sync::OnceLock::new();
 
 pub fn get_global_cuda_error_handler() -> Arc<CudaErrorHandler> {

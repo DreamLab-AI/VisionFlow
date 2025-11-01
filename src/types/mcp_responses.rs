@@ -3,8 +3,8 @@ use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 use std::fmt;
 
-/
-/
+///
+///
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -32,7 +32,7 @@ pub struct McpError {
     pub data: Option<Value>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum McpContent {
@@ -55,7 +55,7 @@ pub struct McpObjectContent {
     pub data: Value,
 }
 
-/
+///
 fn deserialize_json_string<'de, D>(deserializer: D) -> Result<Value, D::Error>
 where
     D: Deserializer<'de>,
@@ -64,19 +64,19 @@ where
     serde_json::from_str(&s).map_err(serde::de::Error::custom)
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct McpContentResult {
     pub content: Vec<McpContent>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentListResponse {
     pub agents: Vec<crate::services::bots_client::Agent>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RequestHistoryEntry {
     pub id: u64,
@@ -92,7 +92,7 @@ pub struct RequestHistoryEntry {
 // Re-export for convenience
 pub type McpAgentResponse = McpResponse<McpContentResult>;
 
-/
+///
 #[derive(Debug)]
 pub enum McpParseError {
     JsonError(serde_json::Error),
@@ -127,7 +127,7 @@ impl From<serde_json::Error> for McpParseError {
     }
 }
 
-/
+///
 impl<T> McpResponse<T> {
     
     pub fn into_result(self) -> Result<T, McpError> {

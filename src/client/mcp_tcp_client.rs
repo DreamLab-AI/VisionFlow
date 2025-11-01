@@ -5,7 +5,7 @@ use std::time::Duration;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpStream;
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct McpTelemetryClient {
     host: String,

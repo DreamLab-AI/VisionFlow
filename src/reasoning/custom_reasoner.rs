@@ -1,18 +1,18 @@
-/
-/
-/
-/
-/
-/
-/
-/
-/
+///
+///
+///
+///
+///
+///
+///
+///
+///
 
 use std::collections::{HashMap, HashSet};
 use serde::{Deserialize, Serialize};
 use crate::reasoning::ReasoningResult;
 
-/
+///
 pub trait OntologyReasoner: Send + Sync {
     
     fn infer_axioms(&self, ontology: &Ontology) -> ReasoningResult<Vec<InferredAxiom>>;
@@ -24,7 +24,7 @@ pub trait OntologyReasoner: Send + Sync {
     fn are_disjoint(&self, class_a: &str, class_b: &str, ontology: &Ontology) -> bool;
 }
 
-/
+///
 #[derive(Debug, Clone, Default)]
 pub struct Ontology {
     
@@ -43,7 +43,7 @@ pub struct Ontology {
     pub functional_properties: HashSet<String>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OWLClass {
     pub iri: String,
@@ -51,7 +51,7 @@ pub struct OWLClass {
     pub parent_class_iri: Option<String>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct InferredAxiom {
     pub axiom_type: AxiomType,
@@ -60,7 +60,7 @@ pub struct InferredAxiom {
     pub confidence: f32,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum AxiomType {
     SubClassOf,
@@ -69,7 +69,7 @@ pub enum AxiomType {
     FunctionalProperty,
 }
 
-/
+///
 pub struct CustomReasoner {
     
     transitive_cache: HashMap<String, HashSet<String>>,

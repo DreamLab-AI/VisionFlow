@@ -50,7 +50,7 @@ pub struct PhysicsSimulationStatus {
     timestamp: String,
 }
 
-/
+///
 pub async fn unified_health_check(app_state: web::Data<AppState>) -> Result<HttpResponse> {
     let mut health_status = "healthy".to_string();
     let mut issues = Vec::new();
@@ -365,7 +365,7 @@ fn check_physics_parameters() -> String {
     )
 }
 
-/
+///
 pub async fn start_mcp_relay() -> Result<HttpResponse> {
     let manager = McpRelayManager::new();
     match manager.ensure_relay_running().await {
@@ -394,7 +394,7 @@ pub async fn get_mcp_logs(query: web::Query<LogQuery>) -> Result<HttpResponse> {
     }
 }
 
-/
+///
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/health")

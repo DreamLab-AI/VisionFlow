@@ -18,7 +18,7 @@ use tokio::sync::RwLock;
 use crate::actors::messages::ReloadSettings;
 use crate::actors::optimized_settings_actor::OptimizedSettingsActor;
 
-/
+///
 const DEBOUNCE_DURATION: Duration = Duration::from_millis(500);
 
 pub struct SettingsWatcher {

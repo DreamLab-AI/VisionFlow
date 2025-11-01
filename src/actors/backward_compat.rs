@@ -12,7 +12,7 @@ use crate::application::physics_service::PhysicsService;
 use crate::application::semantic_service::SemanticService;
 use crate::ports::gpu_physics_adapter::PhysicsParameters;
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct LegacyStartPhysics {
@@ -37,14 +37,14 @@ impl Default for LegacyPhysicsParams {
     }
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "Result<usize, String>")]
 pub struct LegacyDetectCommunities {
     pub algorithm: String,
 }
 
-/
+///
 pub struct PhysicsCompatWrapper {
     service: Arc<PhysicsService>,
 }
@@ -80,7 +80,7 @@ impl PhysicsCompatWrapper {
     }
 }
 
-/
+///
 pub struct SemanticCompatWrapper {
     service: Arc<SemanticService>,
 }
@@ -128,7 +128,7 @@ impl SemanticCompatWrapper {
     }
 }
 
-/
+///
 pub struct LegacyActorCompat;
 
 impl LegacyActorCompat {
@@ -160,7 +160,7 @@ impl LegacyActorCompat {
     }
 }
 
-/
+///
 pub struct MigrationHelper;
 
 impl MigrationHelper {

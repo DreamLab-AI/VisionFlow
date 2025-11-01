@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 use crate::ports::ontology_repository::OwlAxiom;
 
-/
+///
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum InferenceType {
@@ -56,7 +56,7 @@ impl std::fmt::Display for InferenceType {
     }
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Inference {
     
@@ -127,7 +127,7 @@ impl Inference {
     }
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InferenceExplanation {
     
@@ -143,7 +143,7 @@ pub struct InferenceExplanation {
     pub confidence: f32,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ValidationResult {
     
@@ -191,7 +191,7 @@ impl ValidationResult {
     }
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UnsatisfiableClass {
     
@@ -204,7 +204,7 @@ pub struct UnsatisfiableClass {
     pub conflicting_axioms: Vec<OwlAxiom>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClassificationResult {
     
@@ -220,7 +220,7 @@ pub struct ClassificationResult {
     pub inferred_count: usize,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConsistencyReport {
     

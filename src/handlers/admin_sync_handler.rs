@@ -41,7 +41,7 @@ impl From<SyncStatistics> for SyncStatisticsDto {
     }
 }
 
-/
+///
 pub async fn trigger_sync(
     sync_service: web::Data<GitHubSyncService>,
 ) -> HttpResponse {

@@ -10,7 +10,7 @@ use tracing::{debug, info, warn, instrument};
 use crate::application::inference_service::InferenceService;
 use crate::events::EventBus;
 
-/
+///
 #[derive(Debug, Clone)]
 pub enum OntologyEvent {
     
@@ -39,7 +39,7 @@ pub enum OntologyEvent {
     },
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct AutoInferenceConfig {
     
@@ -70,7 +70,7 @@ impl Default for AutoInferenceConfig {
     }
 }
 
-/
+///
 pub struct InferenceTriggerHandler {
     
     inference_service: Arc<RwLock<InferenceService>>,
@@ -186,7 +186,7 @@ impl InferenceTriggerHandler {
     }
 }
 
-/
+///
 pub async fn register_inference_triggers(
     event_bus: Arc<RwLock<EventBus>>,
     inference_service: Arc<RwLock<InferenceService>>,

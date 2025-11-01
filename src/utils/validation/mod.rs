@@ -11,22 +11,22 @@ use actix_web::HttpResponse;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-/
+///
 pub const MAX_REQUEST_SIZE: usize = 16 * 1024 * 1024;
 
-/
+///
 pub const MAX_STRING_LENGTH: usize = 10_000;
 
-/
+///
 pub const MAX_ARRAY_SIZE: usize = 1000;
 
-/
+///
 pub const MAX_NESTING_DEPTH: usize = 10;
 
-/
+///
 pub type ValidationResult<T> = Result<T, DetailedValidationError>;
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ValidationError {
     pub field: String,
@@ -127,7 +127,7 @@ impl actix_web::ResponseError for ValidationError {
     }
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct ValidationContext {
     pub max_depth: usize,
@@ -179,12 +179,12 @@ impl Default for ValidationContext {
     }
 }
 
-/
+///
 pub trait Validator<T> {
     fn validate(&self, value: &T, ctx: &mut ValidationContext) -> ValidationResult<()>;
 }
 
-/
+///
 pub struct ValidationUtils;
 
 impl ValidationUtils {

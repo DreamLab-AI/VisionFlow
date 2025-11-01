@@ -10,7 +10,7 @@ use std::time::Instant;
 use crate::app_state::AppState;
 use crate::handlers::api_handler::analytics::{ANOMALY_STATE, CLUSTERING_TASKS};
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AnalyticsWebSocketMessage {
@@ -20,7 +20,7 @@ pub struct AnalyticsWebSocketMessage {
     pub client_id: Option<String>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GpuMetricsUpdate {
@@ -35,7 +35,7 @@ pub struct GpuMetricsUpdate {
     pub frame_time_ms: Option<f32>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ClusteringProgress {
@@ -48,7 +48,7 @@ pub struct ClusteringProgress {
     pub error: Option<String>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AnomalyAlert {
@@ -61,7 +61,7 @@ pub struct AnomalyAlert {
     pub requires_action: bool,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct InsightsUpdate {
@@ -72,7 +72,7 @@ pub struct InsightsUpdate {
     pub recommendations: Vec<String>,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SubscriptionPreferences {
@@ -97,7 +97,7 @@ impl Default for SubscriptionPreferences {
     }
 }
 
-/
+///
 pub struct GpuAnalyticsWebSocket {
     client_id: String,
     app_state: actix_web::web::Data<AppState>,
@@ -506,7 +506,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for GpuAnalyticsWebSo
     }
 }
 
-/
+///
 pub async fn gpu_analytics_websocket(
     req: actix_web::HttpRequest,
     stream: actix_web::web::Payload,

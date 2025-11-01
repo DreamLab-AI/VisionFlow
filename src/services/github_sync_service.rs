@@ -15,7 +15,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::time::sleep;
 
-/
+///
 #[derive(Debug, Clone, PartialEq)]
 pub enum FileType {
     KnowledgeGraph, 
@@ -23,7 +23,7 @@ pub enum FileType {
     Skip,           
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct SyncStatistics {
     pub total_files: usize,
@@ -36,7 +36,7 @@ pub struct SyncStatistics {
     pub total_edges: usize,
 }
 
-/
+///
 #[derive(Debug)]
 enum FileProcessResult {
     KnowledgeGraph {
@@ -56,7 +56,7 @@ enum FileProcessResult {
     },
 }
 
-/
+///
 pub struct GitHubSyncService {
     content_api: Arc<EnhancedContentAPI>,
     kg_parser: Arc<KnowledgeGraphParser>,

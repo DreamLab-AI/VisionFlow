@@ -5,7 +5,7 @@ use crate::services::semantic_analyzer::SemanticFeatures;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EdgeGenerationConfig {
     
@@ -28,7 +28,7 @@ pub struct EdgeGenerationConfig {
     pub classify_edge_types: bool,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SimilarityWeights {
     pub semantic: f32,
@@ -64,7 +64,7 @@ impl Default for EdgeGenerationConfig {
     }
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnhancedEdge {
     
@@ -89,7 +89,7 @@ pub struct EnhancedEdge {
     pub metadata: HashMap<String, serde_json::Value>,
 }
 
-/
+///
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub enum EdgeType {
     
@@ -110,7 +110,7 @@ pub enum EdgeType {
     Composite,
 }
 
-/
+///
 pub struct AdvancedEdgeGenerator {
     config: EdgeGenerationConfig,
     edge_cache: HashMap<(String, String), EnhancedEdge>,

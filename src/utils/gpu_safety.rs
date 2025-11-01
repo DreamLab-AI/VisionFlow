@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct GPUSafetyConfig {
     
@@ -41,7 +41,7 @@ impl Default for GPUSafetyConfig {
     }
 }
 
-/
+///
 #[derive(Debug)]
 pub struct GPUMemoryTracker {
     allocations: HashMap<String, usize>,
@@ -89,7 +89,7 @@ impl GPUMemoryTracker {
     }
 }
 
-/
+///
 #[derive(Debug)]
 pub struct KernelTracker {
     executions: HashMap<String, KernelStats>,
@@ -164,7 +164,7 @@ impl KernelTracker {
     }
 }
 
-/
+///
 #[derive(Debug, thiserror::Error)]
 pub enum GPUSafetyError {
     #[error("Buffer bounds exceeded: index {index} >= size {size}")]
@@ -214,7 +214,7 @@ pub enum GPUSafetyError {
     },
 }
 
-/
+///
 pub struct GPUSafetyValidator {
     config: GPUSafetyConfig,
     memory_tracker: Arc<Mutex<GPUMemoryTracker>>,
@@ -503,7 +503,7 @@ impl Default for GPUSafetyValidator {
     }
 }
 
-/
+///
 pub struct SafeKernelExecutor {
     validator: Arc<GPUSafetyValidator>,
 }

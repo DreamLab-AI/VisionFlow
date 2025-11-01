@@ -74,7 +74,7 @@ pub mod websocket_integration;
 // Community detection module
 pub mod community;
 
-/
+///
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AnalyticsParamsResponse {
@@ -84,7 +84,7 @@ pub struct AnalyticsParamsResponse {
     pub error: Option<String>,
 }
 
-/
+///
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ConstraintsResponse {
@@ -94,7 +94,7 @@ pub struct ConstraintsResponse {
     pub error: Option<String>,
 }
 
-/
+///
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateConstraintsRequest {
@@ -104,7 +104,7 @@ pub struct UpdateConstraintsRequest {
     pub active: Option<bool>,
 }
 
-/
+///
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SetFocusRequest {
@@ -114,7 +114,7 @@ pub struct SetFocusRequest {
     pub intensity: Option<f32>,
 }
 
-/
+///
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FocusRegion {
@@ -124,7 +124,7 @@ pub struct FocusRegion {
     pub radius: f32,
 }
 
-/
+///
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FocusResponse {
@@ -135,7 +135,7 @@ pub struct FocusResponse {
     pub error: Option<String>,
 }
 
-/
+///
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StatsResponse {
@@ -147,7 +147,7 @@ pub struct StatsResponse {
     pub error: Option<String>,
 }
 
-/
+///
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SystemMetrics {
@@ -165,7 +165,7 @@ pub struct SystemMetrics {
     pub network_latency_ms: f32,
 }
 
-/
+///
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ClusteringRequest {
@@ -173,7 +173,7 @@ pub struct ClusteringRequest {
     pub params: ClusteringParams,
 }
 
-/
+///
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ClusteringParams {
@@ -196,7 +196,7 @@ pub struct ClusteringParams {
     pub min_modularity_gain: Option<f64>,
 }
 
-/
+///
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Cluster {
@@ -210,7 +210,7 @@ pub struct Cluster {
     pub centroid: Option<[f32; 3]>,
 }
 
-/
+///
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ClusteringResponse {
@@ -223,7 +223,7 @@ pub struct ClusteringResponse {
     pub error: Option<String>,
 }
 
-/
+///
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ClusteringStatusResponse {
@@ -238,7 +238,7 @@ pub struct ClusteringStatusResponse {
     pub error: Option<String>,
 }
 
-/
+///
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ClusterFocusRequest {
@@ -247,7 +247,7 @@ pub struct ClusterFocusRequest {
     pub highlight: Option<bool>,
 }
 
-/
+///
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AnomalyDetectionConfig {
@@ -258,7 +258,7 @@ pub struct AnomalyDetectionConfig {
     pub update_interval: u32,
 }
 
-/
+///
 #[derive(Debug, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Anomaly {
@@ -272,7 +272,7 @@ pub struct Anomaly {
     pub metadata: Option<serde_json::Value>,
 }
 
-/
+///
 #[derive(Debug, Serialize, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AnomalyStats {
@@ -284,7 +284,7 @@ pub struct AnomalyStats {
     pub last_updated: Option<u64>,
 }
 
-/
+///
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AnomalyResponse {
@@ -297,7 +297,7 @@ pub struct AnomalyResponse {
     pub error: Option<String>,
 }
 
-/
+///
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct InsightsResponse {
@@ -310,7 +310,7 @@ pub struct InsightsResponse {
     pub error: Option<String>,
 }
 
-/
+///
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GraphPattern {
@@ -351,7 +351,7 @@ struct AnomalyState {
     pub stats: AnomalyStats,
 }
 
-/
+///
 pub async fn get_analytics_params(app_state: web::Data<AppState>) -> Result<HttpResponse> {
     info!("Getting current visual analytics parameters");
 
@@ -390,8 +390,8 @@ pub async fn get_analytics_params(app_state: web::Data<AppState>) -> Result<Http
     }))
 }
 
-/
-/
+///
+///
 pub async fn update_analytics_params(
     app_state: web::Data<AppState>,
     params: web::Json<VisualAnalyticsParams>,
@@ -446,7 +446,7 @@ pub async fn update_analytics_params(
     }
 }
 
-/
+///
 pub async fn get_constraints(app_state: web::Data<AppState>) -> Result<HttpResponse> {
     info!("Getting current constraint set");
 
@@ -476,7 +476,7 @@ pub async fn get_constraints(app_state: web::Data<AppState>) -> Result<HttpRespo
     }))
 }
 
-/
+///
 pub async fn update_constraints(
     app_state: web::Data<AppState>,
     request: web::Json<UpdateConstraintsRequest>,
@@ -541,7 +541,7 @@ pub async fn update_constraints(
     )
 }
 
-/
+///
 pub async fn set_focus(
     app_state: web::Data<AppState>,
     request: web::Json<SetFocusRequest>,
@@ -690,7 +690,7 @@ pub async fn set_focus(
     Ok(HttpResponse::Ok().json(focus_response))
 }
 
-/
+///
 async fn calculate_network_metrics(
     _app_state: &AppState,
     physics_stats: &Option<crate::actors::gpu::force_compute_actor::PhysicsStats>,
@@ -746,7 +746,7 @@ async fn calculate_network_metrics(
     )
 }
 
-/
+///
 pub async fn get_performance_stats(app_state: web::Data<AppState>) -> Result<HttpResponse> {
     info!("Getting performance statistics");
 
@@ -799,7 +799,7 @@ pub async fn get_performance_stats(app_state: web::Data<AppState>) -> Result<Htt
     }))
 }
 
-/
+///
 fn create_default_analytics_params(
     _settings: &crate::config::AppFullSettings,
 ) -> VisualAnalyticsParams {
@@ -813,7 +813,7 @@ fn create_default_analytics_params(
         .build()
 }
 
-/
+///
 pub async fn set_kernel_mode(
     app_state: web::Data<AppState>,
     request: web::Json<serde_json::Value>,
@@ -879,7 +879,7 @@ pub async fn set_kernel_mode(
     }
 }
 
-/
+///
 pub async fn run_clustering(
     app_state: web::Data<AppState>,
     request: web::Json<ClusteringRequest>,
@@ -943,7 +943,7 @@ pub async fn run_clustering(
     }))
 }
 
-/
+///
 pub async fn get_clustering_status(
     query: web::Query<HashMap<String, String>>,
 ) -> Result<HttpResponse> {
@@ -983,7 +983,7 @@ pub async fn get_clustering_status(
     }))
 }
 
-/
+///
 pub async fn focus_cluster(
     app_state: web::Data<AppState>,
     request: web::Json<ClusterFocusRequest>,
@@ -1028,7 +1028,7 @@ pub async fn focus_cluster(
     }))
 }
 
-/
+///
 pub async fn toggle_anomaly_detection(
     request: web::Json<AnomalyDetectionConfig>,
 ) -> Result<HttpResponse> {
@@ -1060,7 +1060,7 @@ pub async fn toggle_anomaly_detection(
     }))
 }
 
-/
+///
 pub async fn get_current_anomalies() -> Result<HttpResponse> {
     let state = ANOMALY_STATE.lock().await;
 
@@ -1085,7 +1085,7 @@ pub async fn get_current_anomalies() -> Result<HttpResponse> {
     }))
 }
 
-/
+///
 async fn perform_clustering(
     app_state: &web::Data<AppState>,
     request: &ClusteringRequest,
@@ -1161,7 +1161,7 @@ async fn perform_clustering(
     Ok(clusters)
 }
 
-/
+///
 fn generate_spectral_clusters_from_agents(
     graph_data: &crate::models::graph::GraphData,
     agents: &[crate::services::agent_visualization_protocol::MultiMcpAgentStatus],
@@ -1171,7 +1171,7 @@ fn generate_spectral_clusters_from_agents(
     generate_agent_based_clusters(graph_data, agents, num_clusters, "spectral")
 }
 
-/
+///
 fn generate_kmeans_clusters_from_agents(
     graph_data: &crate::models::graph::GraphData,
     agents: &[crate::services::agent_visualization_protocol::MultiMcpAgentStatus],
@@ -1181,7 +1181,7 @@ fn generate_kmeans_clusters_from_agents(
     generate_agent_based_clusters(graph_data, agents, num_clusters, "kmeans")
 }
 
-/
+///
 fn generate_louvain_clusters_from_agents(
     graph_data: &crate::models::graph::GraphData,
     agents: &[crate::services::agent_visualization_protocol::MultiMcpAgentStatus],
@@ -1192,7 +1192,7 @@ fn generate_louvain_clusters_from_agents(
     generate_agent_based_clusters(graph_data, agents, num_clusters, "louvain")
 }
 
-/
+///
 fn generate_default_clusters_from_agents(
     graph_data: &crate::models::graph::GraphData,
     agents: &[crate::services::agent_visualization_protocol::MultiMcpAgentStatus],
@@ -1202,7 +1202,7 @@ fn generate_default_clusters_from_agents(
     generate_agent_based_clusters(graph_data, agents, cluster_count, "default")
 }
 
-/
+///
 fn generate_agent_based_clusters(
     graph_data: &crate::models::graph::GraphData,
     agents: &[crate::services::agent_visualization_protocol::MultiMcpAgentStatus],
@@ -1345,7 +1345,7 @@ fn generate_agent_based_clusters(
     clusters
 }
 
-/
+///
 fn generate_graph_based_clusters(
     graph_data: &crate::models::graph::GraphData,
     num_clusters: u32,
@@ -1415,7 +1415,7 @@ fn generate_graph_based_clusters(
         .collect()
 }
 
-/
+///
 async fn start_anomaly_detection() {
     tokio::spawn(async move {
         info!("Starting real anomaly detection using MCP agent data");
@@ -1585,7 +1585,7 @@ async fn start_anomaly_detection() {
     });
 }
 
-/
+///
 pub async fn get_ai_insights(app_state: web::Data<AppState>) -> Result<HttpResponse> {
     info!("Generating AI insights for graph analysis");
 
@@ -1715,14 +1715,14 @@ pub async fn get_ai_insights(app_state: web::Data<AppState>) -> Result<HttpRespo
     }))
 }
 
-/
+///
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SSSPRequest {
     pub source_node_id: u32,
 }
 
-/
+///
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SSSPToggleRequest {
@@ -1730,7 +1730,7 @@ pub struct SSSPToggleRequest {
     pub alpha: Option<f32>, 
 }
 
-/
+///
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SSSPResponse {
@@ -1741,7 +1741,7 @@ pub struct SSSPResponse {
     pub error: Option<String>,
 }
 
-/
+///
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SSSPToggleResponse {
@@ -1753,35 +1753,35 @@ pub struct SSSPToggleResponse {
     pub error: Option<String>,
 }
 
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
 pub async fn toggle_sssp(
     app_state: web::Data<AppState>,
     request: web::Json<SSSPToggleRequest>,
@@ -1876,19 +1876,19 @@ pub async fn toggle_sssp(
     }
 }
 
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
 pub async fn get_sssp_status() -> Result<HttpResponse> {
     let flags = FEATURE_FLAGS.lock().await;
 
@@ -1900,7 +1900,7 @@ pub async fn get_sssp_status() -> Result<HttpResponse> {
     })))
 }
 
-/
+///
 pub async fn get_gpu_status(app_state: web::Data<AppState>) -> Result<HttpResponse> {
     info!("Control center requesting comprehensive GPU status");
 
@@ -1985,7 +1985,7 @@ pub async fn get_gpu_status(app_state: web::Data<AppState>) -> Result<HttpRespon
     Ok(HttpResponse::Ok().json(gpu_status))
 }
 
-/
+///
 pub async fn get_gpu_features(app_state: web::Data<AppState>) -> Result<HttpResponse> {
     info!("Client requesting GPU feature capabilities");
 
@@ -2070,7 +2070,7 @@ pub async fn get_gpu_features(app_state: web::Data<AppState>) -> Result<HttpResp
     Ok(HttpResponse::Ok().json(features))
 }
 
-/
+///
 pub async fn cancel_clustering(query: web::Query<HashMap<String, String>>) -> Result<HttpResponse> {
     let task_id = query.get("task_id");
 
@@ -2096,7 +2096,7 @@ pub async fn cancel_clustering(query: web::Query<HashMap<String, String>>) -> Re
     })))
 }
 
-/
+///
 pub async fn get_anomaly_config() -> Result<HttpResponse> {
     let state = ANOMALY_STATE.lock().await;
 
@@ -2120,7 +2120,7 @@ pub async fn get_anomaly_config() -> Result<HttpResponse> {
     })))
 }
 
-/
+///
 pub async fn get_realtime_insights(app_state: web::Data<AppState>) -> Result<HttpResponse> {
     info!("Client requesting real-time AI insights");
 
@@ -2221,7 +2221,7 @@ pub async fn get_realtime_insights(app_state: web::Data<AppState>) -> Result<Htt
     })))
 }
 
-/
+///
 pub async fn get_dashboard_status(app_state: web::Data<AppState>) -> Result<HttpResponse> {
     info!("Control center requesting dashboard status");
 
@@ -2287,7 +2287,7 @@ pub async fn get_dashboard_status(app_state: web::Data<AppState>) -> Result<Http
     })))
 }
 
-/
+///
 pub async fn get_health_check(app_state: web::Data<AppState>) -> Result<HttpResponse> {
     let gpu_available = app_state.gpu_compute_addr.is_some();
     let timestamp = chrono::Utc::now().timestamp_millis();
@@ -2302,7 +2302,7 @@ pub async fn get_health_check(app_state: web::Data<AppState>) -> Result<HttpResp
     })))
 }
 
-/
+///
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FeatureFlags {
     pub gpu_clustering: bool,
@@ -2335,7 +2335,7 @@ impl Default for FeatureFlags {
 pub static FEATURE_FLAGS: Lazy<Arc<Mutex<FeatureFlags>>> =
     Lazy::new(|| Arc::new(Mutex::new(FeatureFlags::default())));
 
-/
+///
 pub async fn get_feature_flags() -> Result<HttpResponse> {
     let flags = FEATURE_FLAGS.lock().await;
 
@@ -2356,7 +2356,7 @@ pub async fn get_feature_flags() -> Result<HttpResponse> {
     })))
 }
 
-/
+///
 pub async fn update_feature_flags(request: web::Json<FeatureFlags>) -> Result<HttpResponse> {
     info!("Updating analytics feature flags");
 
@@ -2370,7 +2370,7 @@ pub async fn update_feature_flags(request: web::Json<FeatureFlags>) -> Result<Ht
     })))
 }
 
-/
+///
 async fn trigger_stress_majorization(data: web::Data<AppState>) -> Result<HttpResponse, Error> {
     if let Some(gpu_actor) = &data.gpu_compute_addr {
         match gpu_actor.send(TriggerStressMajorization).await {
@@ -2401,7 +2401,7 @@ async fn trigger_stress_majorization(data: web::Data<AppState>) -> Result<HttpRe
     }
 }
 
-/
+///
 async fn get_stress_majorization_stats(data: web::Data<AppState>) -> Result<HttpResponse, Error> {
     if let Some(gpu_actor) = &data.gpu_compute_addr {
         match gpu_actor.send(GetStressMajorizationStats).await {
@@ -2432,7 +2432,7 @@ async fn get_stress_majorization_stats(data: web::Data<AppState>) -> Result<Http
     }
 }
 
-/
+///
 async fn reset_stress_majorization_safety(
     data: web::Data<AppState>,
 ) -> Result<HttpResponse, Error> {
@@ -2465,7 +2465,7 @@ async fn reset_stress_majorization_safety(
     }
 }
 
-/
+///
 async fn update_stress_majorization_params(
     params: web::Json<AdvancedParams>,
     data: web::Data<AppState>,
@@ -2503,7 +2503,7 @@ async fn update_stress_majorization_params(
     }
 }
 
-/
+///
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/analytics")
@@ -2573,7 +2573,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     );
 }
 
-/
+///
 pub async fn run_community_detection(
     app_state: web::Data<AppState>,
     request: web::Json<community::CommunityDetectionRequest>,
@@ -2595,7 +2595,7 @@ pub async fn run_community_detection(
     }
 }
 
-/
+///
 pub async fn get_community_statistics(
     app_state: web::Data<AppState>,
 ) -> Result<HttpResponse, Error> {
@@ -2613,7 +2613,7 @@ pub async fn get_community_statistics(
     })))
 }
 
-/
+///
 pub async fn update_sssp_params(
     _app_state: web::Data<AppState>,
     request: web::Json<serde_json::Value>,
@@ -2646,7 +2646,7 @@ pub async fn update_sssp_params(
     })))
 }
 
-/
+///
 pub async fn get_sssp_params(_app_state: web::Data<AppState>) -> Result<HttpResponse, Error> {
     debug!("Retrieving SSSP parameters");
 
@@ -2662,7 +2662,7 @@ pub async fn get_sssp_params(_app_state: web::Data<AppState>) -> Result<HttpResp
     })))
 }
 
-/
+///
 pub async fn compute_sssp(
     app_state: web::Data<AppState>,
     request: web::Json<serde_json::Value>,
@@ -2709,7 +2709,7 @@ pub async fn compute_sssp(
     }
 }
 
-/
+///
 pub async fn get_gpu_metrics(app_state: web::Data<AppState>) -> Result<HttpResponse, Error> {
     debug!("Retrieving GPU performance metrics");
 

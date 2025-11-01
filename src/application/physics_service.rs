@@ -20,7 +20,7 @@ use crate::ports::gpu_physics_adapter::{
     PhysicsStepResult, Result as PhysicsResult,
 };
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct SimulationParams {
     pub profile_name: String,
@@ -38,7 +38,7 @@ impl Default for SimulationParams {
     }
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct LayoutOptimizationRequest {
     pub algorithm: String,
@@ -46,7 +46,7 @@ pub struct LayoutOptimizationRequest {
     pub target_energy: f32,
 }
 
-/
+///
 pub struct PhysicsService {
     physics_adapter: Arc<RwLock<dyn GpuPhysicsAdapter>>,
     event_bus: Arc<RwLock<EventBus>>,

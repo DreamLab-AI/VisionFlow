@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::actors::messages::{GetSettings, UpdateSettings};
 use crate::AppState;
 
-/
+///
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Quest3Settings {
@@ -18,7 +18,7 @@ pub struct Quest3Settings {
     pub gpu: Quest3GpuSettings,
 }
 
-/
+///
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Quest3XRSettings {
@@ -39,7 +39,7 @@ pub struct Quest3XRSettings {
     pub refresh_rate: u32, 
 }
 
-/
+///
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Quest3VisualizationSettings {
@@ -56,7 +56,7 @@ pub struct Quest3VisualizationSettings {
     pub culling_distance: f32,
 }
 
-/
+///
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Quest3PerformanceSettings {
@@ -70,7 +70,7 @@ pub struct Quest3PerformanceSettings {
     pub network_optimization: bool,
 }
 
-/
+///
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Quest3InteractionSettings {
@@ -82,7 +82,7 @@ pub struct Quest3InteractionSettings {
     pub comfort_settings: ComfortSettings,
 }
 
-/
+///
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Quest3GpuSettings {
@@ -95,7 +95,7 @@ pub struct Quest3GpuSettings {
     pub anomaly_detection: bool,
 }
 
-/
+///
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct GpuForceParams {
@@ -106,7 +106,7 @@ pub struct GpuForceParams {
     pub max_velocity: f32,
 }
 
-/
+///
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ComfortSettings {
@@ -117,7 +117,7 @@ pub struct ComfortSettings {
     pub comfort_mode_intensity: f32, 
 }
 
-/
+///
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Quest3DefaultsResponse {
@@ -129,7 +129,7 @@ pub struct Quest3DefaultsResponse {
     pub error: Option<String>,
 }
 
-/
+///
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Quest3CalibrationRequest {
@@ -139,7 +139,7 @@ pub struct Quest3CalibrationRequest {
     pub preferences: Option<UserPreferences>,
 }
 
-/
+///
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UserProfile {
@@ -150,7 +150,7 @@ pub struct UserProfile {
     pub motion_sensitivity: Option<f32>,  
 }
 
-/
+///
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EnvironmentProfile {
@@ -160,7 +160,7 @@ pub struct EnvironmentProfile {
     pub wifi_quality: Option<String>,        
 }
 
-/
+///
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PerformanceTarget {
@@ -170,7 +170,7 @@ pub struct PerformanceTarget {
     pub thermal_priority: Option<bool>,
 }
 
-/
+///
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UserPreferences {
@@ -179,7 +179,7 @@ pub struct UserPreferences {
     pub ar_preference: Option<bool>,       
 }
 
-/
+///
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Quest3CalibrationResponse {
@@ -193,7 +193,7 @@ pub struct Quest3CalibrationResponse {
     pub error: Option<String>,
 }
 
-/
+///
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct OptimizationApplied {
@@ -203,7 +203,7 @@ pub struct OptimizationApplied {
     pub impact: String, 
 }
 
-/
+///
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PerformanceEstimate {
@@ -214,7 +214,7 @@ pub struct PerformanceEstimate {
     pub quality_score: f32,     
 }
 
-/
+///
 pub async fn get_quest3_defaults(_app_state: web::Data<AppState>) -> Result<HttpResponse> {
     info!("Getting Quest 3 optimized default settings");
 
@@ -236,7 +236,7 @@ pub async fn get_quest3_defaults(_app_state: web::Data<AppState>) -> Result<Http
     }))
 }
 
-/
+///
 pub async fn calibrate_quest3(
     app_state: web::Data<AppState>,
     request: web::Json<Quest3CalibrationRequest>,
@@ -320,7 +320,7 @@ pub async fn calibrate_quest3(
     }))
 }
 
-/
+///
 fn create_quest3_defaults() -> Quest3Settings {
     Quest3Settings {
         xr: Quest3XRSettings {
@@ -395,7 +395,7 @@ fn create_quest3_defaults() -> Quest3Settings {
     }
 }
 
-/
+///
 fn apply_user_profile_optimizations(
     settings: &mut Quest3Settings,
     optimizations: &mut Vec<OptimizationApplied>,
@@ -448,7 +448,7 @@ fn apply_user_profile_optimizations(
     }
 }
 
-/
+///
 fn apply_environment_optimizations(
     settings: &mut Quest3Settings,
     optimizations: &mut Vec<OptimizationApplied>,
@@ -511,7 +511,7 @@ fn apply_environment_optimizations(
     }
 }
 
-/
+///
 fn apply_performance_optimizations(
     settings: &mut Quest3Settings,
     optimizations: &mut Vec<OptimizationApplied>,
@@ -581,7 +581,7 @@ fn apply_performance_optimizations(
     }
 }
 
-/
+///
 fn apply_user_preferences(
     settings: &mut Quest3Settings,
     optimizations: &mut Vec<OptimizationApplied>,
@@ -632,7 +632,7 @@ fn apply_user_preferences(
     }
 }
 
-/
+///
 fn estimate_performance(settings: &Quest3Settings) -> PerformanceEstimate {
     let mut performance_score = 1.0f32;
     let mut battery_multiplier = 1.0f32;
@@ -698,7 +698,7 @@ fn estimate_performance(settings: &Quest3Settings) -> PerformanceEstimate {
     }
 }
 
-/
+///
 async fn apply_quest3_settings_to_system(
     app_state: web::Data<AppState>,
     quest3_settings: &Quest3Settings,
@@ -757,7 +757,7 @@ async fn apply_quest3_settings_to_system(
     Ok(())
 }
 
-/
+///
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/quest3")

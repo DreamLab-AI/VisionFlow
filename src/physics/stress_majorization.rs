@@ -32,7 +32,7 @@ use crate::models::{
     graph::GraphData,
 };
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct StressMajorizationConfig {
     
@@ -68,7 +68,7 @@ impl Default for StressMajorizationConfig {
     }
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct OptimizationResult {
     
@@ -83,7 +83,7 @@ pub struct OptimizationResult {
     pub computation_time: u64,
 }
 
-/
+///
 pub struct StressMajorizationSolver {
     config: StressMajorizationConfig,
     _gpu_context: Option<Arc<CudaDevice>>,

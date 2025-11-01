@@ -35,7 +35,7 @@ pub enum KnowledgeGraphRepositoryError {
     ConcurrentModification,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GraphStatistics {
     pub node_count: usize,
@@ -45,7 +45,7 @@ pub struct GraphStatistics {
     pub last_updated: chrono::DateTime<chrono::Utc>,
 }
 
-/
+///
 #[async_trait]
 pub trait KnowledgeGraphRepository: Send + Sync {
     

@@ -24,7 +24,7 @@ use crate::physics::ontology_constraints::{
     OWLAxiom, OntologyConstraintTranslator, OntologyReasoningReport,
 };
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OntologyConstraintStats {
     pub total_axioms_processed: u32,
@@ -52,7 +52,7 @@ impl Default for OntologyConstraintStats {
     }
 }
 
-/
+///
 pub struct OntologyConstraintActor {
     
     shared_context: Option<Arc<SharedGPUContext>>,
@@ -267,7 +267,7 @@ impl Actor for OntologyConstraintActor {
 
 // === Message Handlers ===
 
-/
+///
 impl Handler<ApplyOntologyConstraints> for OntologyConstraintActor {
     type Result = Result<(), String>;
 
@@ -345,7 +345,7 @@ impl Handler<ApplyOntologyConstraints> for OntologyConstraintActor {
     }
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct UpdateOntologyConstraints {
@@ -360,7 +360,7 @@ impl Handler<UpdateOntologyConstraints> for OntologyConstraintActor {
     }
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "Result<OntologyConstraintStats, String>")]
 pub struct GetOntologyStats;
@@ -373,7 +373,7 @@ impl Handler<GetOntologyStats> for OntologyConstraintActor {
     }
 }
 
-/
+///
 impl Handler<GetOntologyConstraintStats> for OntologyConstraintActor {
     type Result = Result<crate::actors::messages::OntologyConstraintStats, String>;
 
@@ -398,7 +398,7 @@ impl Handler<GetOntologyConstraintStats> for OntologyConstraintActor {
     }
 }
 
-/
+///
 impl Handler<SetSharedGPUContext> for OntologyConstraintActor {
     type Result = Result<(), String>;
 
@@ -421,7 +421,7 @@ impl Handler<SetSharedGPUContext> for OntologyConstraintActor {
     }
 }
 
-/
+///
 impl Handler<GetConstraintStats> for OntologyConstraintActor {
     type Result = Result<ConstraintStats, String>;
 
@@ -445,7 +445,7 @@ impl Handler<GetConstraintStats> for OntologyConstraintActor {
     }
 }
 
-/
+///
 impl Handler<UpdateConstraints> for OntologyConstraintActor {
     type Result = Result<(), String>;
 
@@ -487,7 +487,7 @@ impl Handler<UpdateConstraints> for OntologyConstraintActor {
     }
 }
 
-/
+///
 impl Handler<InitializeGPU> for OntologyConstraintActor {
     type Result = Result<(), String>;
 

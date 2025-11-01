@@ -1,10 +1,10 @@
-/
-/
-/
-/
-/
-/
-/
+///
+///
+///
+///
+///
+///
+///
 
 pub mod custom_reasoner;
 pub mod horned_integration;
@@ -17,10 +17,10 @@ pub use horned_integration::HornedOwlReasoner;
 pub use inference_cache::{InferenceCache, CachedInference};
 pub use reasoning_actor::{ReasoningActor, ReasoningMessage, TriggerReasoning, GetInferredAxioms};
 
-/
+///
 pub type ReasoningResult<T> = Result<T, ReasoningError>;
 
-/
+///
 #[derive(Debug, thiserror::Error)]
 pub enum ReasoningError {
     #[error("Database error: {0}")]

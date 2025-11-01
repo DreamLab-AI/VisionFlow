@@ -1,7 +1,7 @@
 // GPU Kernel Enhancements for Hybrid SSSP
 // These kernels are designed to work efficiently with CPU orchestration
 
-/
+///
 pub struct HybridGPUKernels;
 
 impl HybridGPUKernels {
@@ -337,7 +337,7 @@ extern "C" {
     }
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct KernelLaunchParams {
     pub block_size: usize,

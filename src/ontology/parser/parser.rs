@@ -11,7 +11,7 @@ pub struct LogseqPage {
     pub owl_blocks: Vec<String>,
 }
 
-/
+///
 pub fn parse_logseq_file(path: &Path) -> Result<LogseqPage> {
     let content =
         fs::read_to_string(path).context(format!("Failed to read file: {}", path.display()))?;
@@ -27,7 +27,7 @@ pub fn parse_logseq_file(path: &Path) -> Result<LogseqPage> {
     })
 }
 
-/
+///
 fn extract_title(path: &Path, content: &str) -> String {
     
     let heading_re = Regex::new(r"^#\s+(.+)$").unwrap();
@@ -44,7 +44,7 @@ fn extract_title(path: &Path, content: &str) -> String {
         .to_string()
 }
 
-/
+///
 fn extract_properties(content: &str) -> HashMap<String, Vec<String>> {
     let mut properties = HashMap::new();
     let property_re = Regex::new(r"^([a-zA-Z][a-zA-Z0-9-_]*)::\s*(.+)$").unwrap();
@@ -71,16 +71,16 @@ fn extract_properties(content: &str) -> HashMap<String, Vec<String>> {
     properties
 }
 
-/
-/
-/
-/
-/
-/
-/
-/
-/
-/
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
 fn extract_owl_blocks(content: &str) -> Result<Vec<String>> {
     let mut blocks = Vec::new();
     let lines: Vec<&str> = content.lines().collect();
@@ -194,7 +194,7 @@ fn extract_owl_blocks(content: &str) -> Result<Vec<String>> {
                 
                 if current_line.trim_start().starts_with('#')
                     || current_line.trim().starts_with("```")
-                    || (current_line.contains("::") && !current_line.trim().starts_with("
+                    || (current_line.contains("::") && !current_line.trim().starts_with("|"))
                 {
                     break;
                 }

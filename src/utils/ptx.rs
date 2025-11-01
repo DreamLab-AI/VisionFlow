@@ -15,7 +15,7 @@ pub const DEFAULT_CUDA_ARCH: &str = "75";
 pub const CUDA_ARCH_ENV: &str = "CUDA_ARCH";
 pub const DOCKER_ENV_VAR: &str = "DOCKER_ENV";
 
-/
+///
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PTXModule {
     VisionflowUnified,
@@ -68,22 +68,22 @@ impl PTXModule {
 // Build-time exported paths from build.rs (if present)
 pub static COMPILED_PTX_PATH: Option<&'static str> = option_env!("VISIONFLOW_UNIFIED_PTX_PATH");
 
-/
+///
 pub fn get_compiled_ptx_path(module: PTXModule) -> Option<PathBuf> {
     std::env::var(module.env_var()).ok().map(PathBuf::from)
 }
 
-/
+///
 pub fn get_compiled_ptx_path_legacy() -> Option<PathBuf> {
     COMPILED_PTX_PATH.map(PathBuf::from)
 }
 
-/
+///
 pub fn effective_cuda_arch() -> String {
     std::env::var(CUDA_ARCH_ENV).unwrap_or_else(|_| DEFAULT_CUDA_ARCH.to_string())
 }
 
-/
+///
 fn validate_ptx(ptx: &str) -> Result<(), String> {
     if !ptx.contains(".version") {
         return Err("PTX validation failed: missing .version directive".into());
@@ -94,7 +94,7 @@ fn validate_ptx(ptx: &str) -> Result<(), String> {
     Ok(())
 }
 
-/
+///
 pub fn load_ptx_module_sync(module: PTXModule) -> Result<String, String> {
     info!("load_ptx_module_sync: Loading PTX for {:?}", module);
 
@@ -154,7 +154,7 @@ pub fn load_ptx_module_sync(module: PTXModule) -> Result<String, String> {
     compile_ptx_fallback_sync_module(module)
 }
 
-/
+///
 fn load_precompiled_ptx(module: PTXModule) -> Result<String, String> {
     let manifest_dir = env!("CARGO_MANIFEST_DIR");
     let ptx_file = module.source_file().replace(".cu", ".ptx");
@@ -179,13 +179,13 @@ fn load_precompiled_ptx(module: PTXModule) -> Result<String, String> {
     Err(format!("Pre-compiled PTX not found for {:?}", module))
 }
 
-/
-/
+///
+///
 pub fn load_ptx_sync() -> Result<String, String> {
     load_ptx_module_sync(PTXModule::VisionflowUnified)
 }
 
-/
+///
 pub fn load_all_ptx_modules_sync() -> Result<HashMap<PTXModule, String>, String> {
     let mut modules = HashMap::new();
 
@@ -209,14 +209,14 @@ pub fn load_all_ptx_modules_sync() -> Result<HashMap<PTXModule, String>, String>
     Ok(modules)
 }
 
-/
+///
 pub async fn load_ptx() -> Result<String, String> {
     
     
     load_ptx_sync()
 }
 
-/
+///
 pub fn compile_ptx_fallback_sync_module(module: PTXModule) -> Result<String, String> {
     info!(
         "compile_ptx_fallback_sync_module: Starting runtime PTX compilation for {:?}",
@@ -286,8 +286,8 @@ pub fn compile_ptx_fallback_sync_module(module: PTXModule) -> Result<String, Str
     Ok(ptx_content)
 }
 
-/
-/
+///
+///
 pub fn compile_ptx_fallback_sync() -> Result<String, String> {
     compile_ptx_fallback_sync_module(PTXModule::VisionflowUnified)
 }

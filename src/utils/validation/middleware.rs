@@ -14,7 +14,7 @@ use futures_util::future::LocalBoxFuture;
 use log::{debug, info, warn};
 use std::rc::Rc;
 
-/
+///
 pub struct RequestSizeLimit {
     max_size: usize,
 }
@@ -104,7 +104,7 @@ where
     }
 }
 
-/
+///
 pub struct SecurityHeaders;
 
 impl<S, B> Transform<S, ServiceRequest> for SecurityHeaders
@@ -174,7 +174,7 @@ where
     }
 }
 
-/
+///
 pub struct RateLimit {
     limiter: Rc<RateLimiter>,
     config: RateLimitConfig,
@@ -262,7 +262,7 @@ where
     }
 }
 
-/
+///
 pub struct InputSanitizer;
 
 impl<S, B> Transform<S, ServiceRequest> for InputSanitizer
@@ -375,7 +375,7 @@ where
     }
 }
 
-/
+///
 pub struct ValidationMiddlewareFactory;
 
 impl ValidationMiddlewareFactory {
@@ -399,7 +399,7 @@ impl ValidationMiddlewareFactory {
     }
 }
 
-/
+///
 pub struct ValidationLogging;
 
 impl<S, B> Transform<S, ServiceRequest> for ValidationLogging

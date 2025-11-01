@@ -4,7 +4,7 @@
 use super::SSPMetrics;
 use std::time::Instant;
 
-/
+///
 pub struct GPUBridge {
     
     use_pinned_memory: bool,
@@ -253,7 +253,7 @@ impl GPUBridge {
     }
 }
 
-/
+///
 #[derive(Debug)]
 pub struct MemoryStats {
     pub graph_memory_mb: f32,
@@ -261,7 +261,7 @@ pub struct MemoryStats {
     pub pinned_memory_mb: f32,
 }
 
-/
+///
 pub mod gpu_kernels {
     
     pub fn k_step_relaxation_kernel(

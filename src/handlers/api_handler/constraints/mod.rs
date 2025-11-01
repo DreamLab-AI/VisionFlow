@@ -14,7 +14,7 @@ use crate::actors::messages::{GetConstraints, UpdateConstraint};
 use crate::models::constraints::{Constraint, ConstraintType};
 use crate::AppState;
 
-/
+///
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateConstraintRequest {
@@ -27,7 +27,7 @@ pub struct CreateConstraintRequest {
     pub metadata: Option<serde_json::Value>,
 }
 
-/
+///
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateConstraintRequest {
@@ -36,7 +36,7 @@ pub struct UpdateConstraintRequest {
     pub distance: Option<f32>,
 }
 
-/
+///
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ConstraintResponse {
@@ -51,7 +51,7 @@ pub struct ConstraintResponse {
     pub created_at: String,
 }
 
-/
+///
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ConstraintStatsResponse {
@@ -65,7 +65,7 @@ pub struct ConstraintStatsResponse {
     pub cache_hit_rate: f32,
 }
 
-/
+///
 pub async fn get_constraints(state: web::Data<AppState>) -> impl Responder {
     info!("GET /api/constraints - Fetching all constraints");
 
@@ -113,7 +113,7 @@ pub async fn get_constraints(state: web::Data<AppState>) -> impl Responder {
     }
 }
 
-/
+///
 pub async fn get_constraint(
     state: web::Data<AppState>,
     constraint_id: web::Path<String>,
@@ -165,7 +165,7 @@ pub async fn get_constraint(
     }
 }
 
-/
+///
 pub async fn update_constraint(
     state: web::Data<AppState>,
     constraint_id: web::Path<String>,
@@ -211,7 +211,7 @@ pub async fn update_constraint(
     }
 }
 
-/
+///
 pub async fn create_user_constraint(
     state: web::Data<AppState>,
     req: web::Json<CreateConstraintRequest>,
@@ -263,7 +263,7 @@ pub async fn create_user_constraint(
     }))
 }
 
-/
+///
 pub async fn get_constraint_stats(state: web::Data<AppState>) -> impl Responder {
     info!("GET /api/constraints/stats - Fetching constraint statistics");
 
@@ -283,7 +283,7 @@ pub async fn get_constraint_stats(state: web::Data<AppState>) -> impl Responder 
     HttpResponse::Ok().json(stats)
 }
 
-/
+///
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/constraints")

@@ -48,7 +48,7 @@ use crate::actors::messages as msgs;
 // Removed graph_messages::GetGraphData import - not used
 use crate::errors::{ActorError, VisionFlowError};
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum GraphSupervisionStrategy {
     
@@ -61,7 +61,7 @@ pub enum GraphSupervisionStrategy {
     Escalate,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ActorHealth {
     Healthy,
@@ -71,7 +71,7 @@ pub enum ActorHealth {
     Unknown,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RestartPolicy {
     pub max_restarts: u32,
@@ -80,7 +80,7 @@ pub struct RestartPolicy {
     pub escalation_threshold: u32,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum BackoffStrategy {
     Fixed(Duration),
@@ -88,7 +88,7 @@ pub enum BackoffStrategy {
     Exponential { initial: Duration, max: Duration },
 }
 
-/
+///
 #[derive(Debug)]
 pub struct ActorInfo {
     pub name: String,
@@ -101,7 +101,7 @@ pub struct ActorInfo {
     pub stats: ActorStats,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, Hash, PartialEq)]
 pub enum ActorType {
     GraphState,
@@ -110,7 +110,7 @@ pub enum ActorType {
     ClientCoordinator,
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct ActorStats {
     pub messages_processed: u64,
@@ -121,7 +121,7 @@ pub struct ActorStats {
     pub memory_usage: Option<u64>,
 }
 
-/
+///
 #[derive(Message, Debug, Clone)]
 #[rtype(result = "()")]
 pub struct OperationResult {
@@ -144,7 +144,7 @@ impl From<Result<(), VisionFlowError>> for OperationResult {
     }
 }
 
-/
+///
 pub struct SupervisedMessage {
     pub message: Box<dyn Message<Result = ()> + Send>,
     pub sender: Option<Recipient<OperationResult>>,
@@ -161,7 +161,7 @@ impl std::fmt::Debug for SupervisedMessage {
     }
 }
 
-/
+///
 pub struct GraphServiceSupervisor {
     
     graph_state: Option<Addr<GraphServiceActor>>,
@@ -191,7 +191,7 @@ pub struct GraphServiceSupervisor {
     supervision_stats: SupervisionStats,
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct SupervisionStats {
     pub actors_supervised: u32,
@@ -672,7 +672,7 @@ impl Actor for GraphServiceSupervisor {
 
 // Message definitions for supervisor communication
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "Result<(), VisionFlowError>")]
 pub enum SupervisorMessage {
@@ -682,7 +682,7 @@ pub enum SupervisorMessage {
     ClientOperation(Box<dyn Message<Result = Result<(), VisionFlowError>> + Send>),
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct ActorHeartbeat {
@@ -692,12 +692,12 @@ pub struct ActorHeartbeat {
     pub stats: Option<ActorStats>,
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "SupervisorStatus")]
 pub struct GetSupervisorStatus;
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct SupervisorStatus {
     pub strategy: GraphSupervisionStrategy,
@@ -719,14 +719,14 @@ where
     }
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "Result<(), VisionFlowError>")]
 pub struct RestartActor {
     pub actor_type: ActorType,
 }
 
-/
+///
 #[derive(Message)]
 #[rtype(result = "Result<(), VisionFlowError>")]
 pub struct RestartAllActors;
@@ -786,8 +786,8 @@ impl Handler<RestartAllActors> for GraphServiceSupervisor {
 // KEY MESSAGE HANDLERS - Bridge to existing GraphServiceActor functionality
 // ============================================================================
 
-/
-/
+///
+///
 
 // Removed GetGraphData handler from graph_messages - GraphServiceActor doesn't implement it
 
@@ -882,9 +882,9 @@ impl Handler<msgs::InitializeGPUConnection> for GraphServiceSupervisor {
 // TRANSITIONAL SUPERVISOR - Wraps GraphServiceActor for gradual migration
 // ============================================================================
 
-/
-/
-/
+///
+///
+///
 pub struct TransitionalGraphSupervisor {
     
     graph_service_actor: Option<Addr<GraphServiceActor>>,
@@ -941,7 +941,7 @@ impl TransitionalGraphSupervisor {
     }
 }
 
-/
+///
 impl Handler<msgs::GetGraphServiceActor> for TransitionalGraphSupervisor {
     type Result = Option<Addr<GraphServiceActor>>;
 

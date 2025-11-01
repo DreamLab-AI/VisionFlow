@@ -33,9 +33,9 @@ const WIRE_V2_AGENT_FLAG: u32 = 0x80000000;
 const WIRE_V2_KNOWLEDGE_FLAG: u32 = 0x40000000; 
 const WIRE_V2_NODE_ID_MASK: u32 = 0x3FFFFFFF; 
 
-/
-/
-/
+///
+///
+///
 pub struct WireNodeDataItemV1 {
     pub id: u16,            
     pub position: Vec3Data, 
@@ -45,9 +45,9 @@ pub struct WireNodeDataItemV1 {
                             
 }
 
-/
-/
-/
+///
+///
+///
 pub struct WireNodeDataItemV2 {
     pub id: u32,            
     pub position: Vec3Data, 
@@ -109,7 +109,7 @@ const WIRE_ITEM_SIZE: usize = WIRE_V2_ITEM_SIZE;
 // - V1: Bits 14-15 of u16 ID (Bit 15 = Agent, Bit 14 = Knowledge) [BUGGY]
 // This allows the client to distinguish between different node types for visualization.
 
-/
+///
 pub fn set_agent_flag(node_id: u32) -> u32 {
     (node_id & NODE_ID_MASK) | AGENT_NODE_FLAG
 }
@@ -164,7 +164,7 @@ pub fn get_node_type(node_id: u32) -> NodeType {
     }
 }
 
-/
+///
 pub fn set_ontology_class_flag(node_id: u32) -> u32 {
     (node_id & NODE_ID_MASK) | ONTOLOGY_CLASS_FLAG
 }
@@ -193,9 +193,9 @@ pub fn is_ontology_node(node_id: u32) -> bool {
     (node_id & ONTOLOGY_TYPE_MASK) != 0
 }
 
-/
-/
-/
+///
+///
+///
 #[deprecated(note = "Use to_wire_id_v2 for full 32-bit node ID support")]
 pub fn to_wire_id_v1(node_id: u32) -> u16 {
     let actual_id = get_actual_node_id(node_id);
@@ -211,8 +211,8 @@ pub fn to_wire_id_v1(node_id: u32) -> u16 {
     }
 }
 
-/
-/
+///
+///
 #[deprecated(note = "Use from_wire_id_v2 for full 32-bit node ID support")]
 pub fn from_wire_id_v1(wire_id: u16) -> u32 {
     let actual_id = (wire_id & WIRE_V1_NODE_ID_MASK) as u32;
@@ -227,16 +227,16 @@ pub fn from_wire_id_v1(wire_id: u16) -> u32 {
     }
 }
 
-/
-/
+///
+///
 pub fn to_wire_id_v2(node_id: u32) -> u32 {
     
     
     node_id
 }
 
-/
-/
+///
+///
 pub fn from_wire_id_v2(wire_id: u32) -> u32 {
     
     wire_id
@@ -251,7 +251,7 @@ pub fn from_wire_id(wire_id: u32) -> u32 {
     from_wire_id_v2(wire_id)
 }
 
-/
+///
 impl BinaryNodeData {
     pub fn to_wire_format(&self, node_id: u32) -> WireNodeDataItem {
         WireNodeDataItem {
@@ -264,8 +264,8 @@ impl BinaryNodeData {
     }
 }
 
-/
-/
+///
+///
 pub fn needs_v2_protocol(nodes: &[(u32, BinaryNodeData)]) -> bool {
     nodes.iter().any(|(node_id, _)| {
         let actual_id = get_actual_node_id(*node_id);
@@ -273,9 +273,9 @@ pub fn needs_v2_protocol(nodes: &[(u32, BinaryNodeData)]) -> bool {
     })
 }
 
-/
-/
-/
+///
+///
+///
 pub fn encode_node_data_with_types(
     nodes: &[(u32, BinaryNodeData)],
     agent_node_ids: &[u32],
@@ -284,7 +284,7 @@ pub fn encode_node_data_with_types(
     encode_node_data_extended(nodes, agent_node_ids, knowledge_node_ids, &[], &[], &[])
 }
 
-/
+///
 pub fn encode_node_data_extended(
     nodes: &[(u32, BinaryNodeData)],
     agent_node_ids: &[u32],
@@ -393,7 +393,7 @@ pub fn encode_node_data_extended(
     buffer
 }
 
-/
+///
 pub fn encode_node_data_with_flags(
     nodes: &[(u32, BinaryNodeData)],
     agent_node_ids: &[u32],
@@ -401,8 +401,8 @@ pub fn encode_node_data_with_flags(
     encode_node_data_with_types(nodes, agent_node_ids, &[])
 }
 
-/
-/
+///
+///
 pub fn encode_node_data(nodes: &[(u32, BinaryNodeData)]) -> Vec<u8> {
     encode_node_data_with_types(nodes, &[], &[])
 }
@@ -427,7 +427,7 @@ pub fn decode_node_data(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, Strin
     }
 }
 
-/
+///
 fn decode_node_data_v1(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String> {
     
     if data.len() % WIRE_V1_ITEM_SIZE != 0 {
@@ -555,7 +555,7 @@ fn decode_node_data_v1(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String
     Ok(updates)
 }
 
-/
+///
 fn decode_node_data_v2(data: &[u8]) -> Result<Vec<(u32, BinaryNodeData)>, String> {
     
     if data.len() % WIRE_V2_ITEM_SIZE != 0 {
@@ -1115,7 +1115,7 @@ mod tests {
 
 // Control frame structures for constraint and parameter updates
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum ControlFrame {
@@ -1186,7 +1186,7 @@ impl ControlFrame {
     }
 }
 
-/
+///
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum MessageType {
     
@@ -1199,7 +1199,7 @@ pub enum MessageType {
     ControlFrame = 0x03,
 }
 
-/
+///
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum GraphType {
     KnowledgeGraph = 0,
@@ -1223,7 +1223,7 @@ impl GraphType {
     }
 }
 
-/
+///
 #[derive(Debug, Clone, PartialEq)]
 pub enum Message {
     
@@ -1258,7 +1258,7 @@ impl std::fmt::Display for ProtocolError {
 
 impl std::error::Error for ProtocolError {}
 
-/
+///
 pub struct BinaryProtocol;
 
 impl BinaryProtocol {
@@ -1376,7 +1376,7 @@ impl BinaryProtocol {
     }
 }
 
-/
+///
 pub struct MultiplexedMessage {
     pub msg_type: MessageType,
     pub data: Vec<u8>,

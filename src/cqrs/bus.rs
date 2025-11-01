@@ -13,10 +13,10 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-/
-/
-/
-/
+///
+///
+///
+///
 pub struct CommandBus {
     handlers: Arc<RwLock<HashMap<TypeId, Box<dyn Any + Send + Sync>>>>,
     middleware: Arc<Vec<Box<dyn CommandMiddleware>>>,
@@ -108,10 +108,10 @@ impl Default for CommandBus {
     }
 }
 
-/
-/
-/
-/
+///
+///
+///
+///
 pub struct QueryBus {
     handlers: Arc<RwLock<HashMap<TypeId, Box<dyn Any + Send + Sync>>>>,
     middleware: Arc<Vec<Box<dyn QueryMiddleware>>>,
@@ -203,7 +203,7 @@ impl Default for QueryBus {
     }
 }
 
-/
+///
 pub struct MetricsMiddleware {
     command_counts: Arc<RwLock<HashMap<String, u64>>>,
     query_counts: Arc<RwLock<HashMap<String, u64>>>,

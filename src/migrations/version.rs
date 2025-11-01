@@ -5,7 +5,7 @@ use chrono::{DateTime, Utc};
 use log::{info, warn};
 use rusqlite::{params, Connection};
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct MigrationVersion {
     pub version: i32,
@@ -99,7 +99,7 @@ impl MigrationVersion {
     }
 }
 
-/
+///
 pub struct VersionTracker<'a> {
     conn: &'a Connection,
 }

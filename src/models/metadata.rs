@@ -2,8 +2,8 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-/
-/
+///
+///
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Metadata {
@@ -43,10 +43,10 @@ fn default_node_id() -> String {
     "0".to_string()
 }
 
-/
+///
 pub type MetadataStore = HashMap<String, Metadata>;
 
-/
+///
 pub type FileMetadata = Metadata;
 
 // Implement helper methods directly on HashMap<String, Metadata>

@@ -9,7 +9,7 @@ use std::fmt;
 
 use crate::ports::settings_repository::SettingValue;
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum DomainEvent {

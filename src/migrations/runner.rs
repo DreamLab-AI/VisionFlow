@@ -6,7 +6,7 @@ use rusqlite::Connection;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
-/
+///
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ExecutionMode {
     
@@ -15,7 +15,7 @@ pub enum ExecutionMode {
     DryRun,
 }
 
-/
+///
 pub struct MigrationRunner {
     migrations_dir: PathBuf,
     mode: ExecutionMode,

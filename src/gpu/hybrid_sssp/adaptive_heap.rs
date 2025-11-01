@@ -4,8 +4,8 @@
 use std::cmp::Ordering;
 use std::collections::{BinaryHeap, HashMap};
 
-/
-/
+///
+///
 pub struct AdaptiveHeap {
     
     block_size: usize,
@@ -26,14 +26,14 @@ pub struct AdaptiveHeap {
     capacity: usize,
 }
 
-/
+///
 #[derive(Clone, Debug)]
 struct HeapEntry {
     vertex: u32,
     distance: f32,
 }
 
-/
+///
 #[derive(Clone, Debug)]
 struct Block {
     entries: Vec<HeapEntry>,

@@ -13,7 +13,7 @@ pub use crate::services::owl_validator::{
     ValidationReport, Violation,
 };
 
-/
+///
 #[derive(Debug, Clone, Deserialize)]
 pub struct MappingConfig {
     pub metadata: MappingMetadata,
@@ -120,7 +120,7 @@ pub struct MetadataTemplates {
     pub class: String,
 }
 
-/
+///
 pub struct OwlValidatorService {
     mapping_config: Arc<MappingConfig>,
 }

@@ -7,7 +7,7 @@ pub mod communication_bridge;
 pub mod gpu_kernels;
 pub mod wasm_controller;
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct HybridSSPConfig {
     
@@ -42,7 +42,7 @@ impl Default for HybridSSPConfig {
     }
 }
 
-/
+///
 #[derive(Debug)]
 pub struct HybridSSPResult {
     
@@ -55,7 +55,7 @@ pub struct HybridSSPResult {
     pub metrics: SSPMetrics,
 }
 
-/
+///
 #[derive(Debug, Default, Clone)]
 pub struct SSPMetrics {
     
@@ -83,7 +83,7 @@ pub struct SSPMetrics {
     pub complexity_factor: f32,
 }
 
-/
+///
 pub struct HybridSSPExecutor {
     config: HybridSSPConfig,
     wasm_controller: Option<wasm_controller::WASMController>,

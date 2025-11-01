@@ -18,7 +18,7 @@ use crate::utils::unified_gpu_compute::ComputeMode;
 use crate::utils::unified_gpu_compute::SimParams;
 use glam::Vec3;
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PhysicsStats {
     pub iteration_count: u32,
@@ -42,7 +42,7 @@ pub struct PhysicsStats {
     pub total_force_calculations: u32,
 }
 
-/
+///
 pub struct ForceComputeActor {
     
     gpu_state: GPUState,
@@ -1015,7 +1015,7 @@ impl Handler<GetClusteringResults> for ForceComputeActor {
     }
 }
 
-/
+///
 impl Handler<SetSharedGPUContext> for ForceComputeActor {
     type Result = Result<(), String>;
 

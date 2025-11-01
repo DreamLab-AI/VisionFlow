@@ -7,7 +7,7 @@ use tokio::net::TcpStream;
 use tokio::sync::{Mutex, RwLock, Semaphore};
 use uuid::Uuid;
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConnectionPoolConfig {
     
@@ -73,7 +73,7 @@ impl ConnectionPoolConfig {
     }
 }
 
-/
+///
 #[derive(Debug)]
 pub struct PooledConnection {
     pub id: String,
@@ -124,7 +124,7 @@ impl PooledConnection {
     }
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConnectionPoolStats {
     pub total_connections: usize,
@@ -141,7 +141,7 @@ pub struct ConnectionPoolStats {
     pub validations_failed: u64,
 }
 
-/
+///
 pub struct ConnectionPool {
     config: ConnectionPoolConfig,
     connections: Arc<RwLock<HashMap<String, Vec<PooledConnection>>>>,
@@ -545,7 +545,7 @@ impl Drop for ConnectionPool {
     }
 }
 
-/
+///
 #[derive(Debug, thiserror::Error)]
 pub enum ConnectionPoolError {
     #[error("Connection timeout")]
@@ -560,7 +560,7 @@ pub enum ConnectionPoolError {
     PoolShuttingDown,
 }
 
-/
+///
 pub struct ConnectionPoolRegistry {
     pools: Arc<RwLock<HashMap<String, Arc<Mutex<ConnectionPool>>>>>,
 }

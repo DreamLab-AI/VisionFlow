@@ -19,7 +19,7 @@ use crate::handlers::settings_validation_fix::{
     validate_physics_settings_complete,
 };
 
-/
+///
 fn value_type_name(value: &Value) -> &'static str {
     match value {
         Value::Null => "null",
@@ -35,7 +35,7 @@ use serde_json::{json, Value};
 use std::borrow::Cow;
 use std::sync::Arc;
 
-/
+///
 #[derive(Debug, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SettingsResponseDTO {
@@ -55,7 +55,7 @@ pub struct SettingsResponseDTO {
     pub whisper: Option<WhisperSettingsDTO>,
 }
 
-/
+///
 #[derive(Debug, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SettingsUpdateDTO {
@@ -1147,7 +1147,7 @@ impl From<&crate::config::WhisperSettings> for WhisperSettingsDTO {
     }
 }
 
-/
+///
 pub struct EnhancedSettingsHandler {
     validation_service: ValidationService,
     rate_limiter: Arc<RateLimiter>,
@@ -1737,7 +1737,7 @@ impl Default for EnhancedSettingsHandler {
     }
 }
 
-/
+///
 pub fn config(cfg: &mut web::ServiceConfig) {
     let handler = web::Data::new(EnhancedSettingsHandler::new());
 
@@ -1785,7 +1785,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         );
 }
 
-/
+///
 async fn get_setting_by_path(
     req: HttpRequest,
     state: web::Data<AppState>,
@@ -1838,7 +1838,7 @@ async fn get_setting_by_path(
     }
 }
 
-/
+///
 async fn update_setting_by_path(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -1943,7 +1943,7 @@ async fn update_setting_by_path(
     }
 }
 
-/
+///
 async fn batch_get_settings(
     state: web::Data<AppState>,
     payload: web::Json<Value>,
@@ -2008,7 +2008,7 @@ async fn batch_get_settings(
     })))
 }
 
-/
+///
 async fn batch_update_settings(
     state: web::Data<AppState>,
     payload: web::Json<Value>,
@@ -2170,7 +2170,7 @@ async fn batch_update_settings(
     })))
 }
 
-/
+///
 async fn get_settings_schema(
     req: HttpRequest,
     _state: web::Data<AppState>,
@@ -2206,7 +2206,7 @@ async fn get_settings_schema(
     })))
 }
 
-/
+///
 async fn get_settings(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -2233,7 +2233,7 @@ async fn get_settings(
     Ok(HttpResponse::Ok().json(response_dto))
 }
 
-/
+///
 async fn get_current_settings(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -2268,7 +2268,7 @@ async fn get_current_settings(
     })))
 }
 
-/
+///
 async fn update_settings(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -2501,7 +2501,7 @@ async fn update_settings(
     }
 }
 
-/
+///
 async fn reset_settings(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -2548,7 +2548,7 @@ async fn reset_settings(
     }
 }
 
-/
+///
 async fn save_settings(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -2644,7 +2644,7 @@ async fn save_settings(
     }
 }
 
-/
+///
 fn validate_settings_update(update: &Value) -> Result<(), String> {
     
     if let Some(vis) = update.get("visualisation") {
@@ -2819,7 +2819,7 @@ fn validate_rendering_settings(rendering: &Value) -> Result<(), String> {
     Ok(())
 }
 
-/
+///
 fn validate_glow_settings(glow: &Value) -> Result<(), String> {
     
     if let Some(enabled) = glow.get("enabled") {
@@ -3055,7 +3055,7 @@ fn validate_xr_settings(xr: &Value) -> Result<(), String> {
     Ok(())
 }
 
-/
+///
 async fn propagate_physics_to_gpu(
     state: &web::Data<AppState>,
     settings: &AppFullSettings,
@@ -3158,7 +3158,7 @@ async fn propagate_physics_to_gpu(
     }
 }
 
-/
+///
 fn get_field_variant<'a>(obj: &'a Value, variants: &[&str]) -> Option<&'a Value> {
     for variant in variants {
         if let Some(val) = obj.get(*variant) {
@@ -3168,7 +3168,7 @@ fn get_field_variant<'a>(obj: &'a Value, variants: &[&str]) -> Option<&'a Value>
     None
 }
 
-/
+///
 fn count_fields(value: &Value) -> usize {
     match value {
         Value::Object(map) => map.len() + map.values().map(count_fields).sum::<usize>(),
@@ -3177,7 +3177,7 @@ fn count_fields(value: &Value) -> usize {
     }
 }
 
-/
+///
 fn extract_physics_updates(update: &Value) -> Vec<&str> {
     update
         .get("visualisation")
@@ -3206,7 +3206,7 @@ fn extract_physics_updates(update: &Value) -> Vec<&str> {
         .unwrap_or_default()
 }
 
-/
+///
 fn extract_failed_field(physics: &Value) -> String {
     if let Some(obj) = physics.as_object() {
         obj.keys().next().unwrap_or(&"unknown".to_string()).clone()
@@ -3215,8 +3215,8 @@ fn extract_failed_field(physics: &Value) -> String {
     }
 }
 
-/
-/
+///
+///
 fn create_physics_settings_update(physics_update: Value) -> Value {
     let mut normalized_physics = physics_update.clone();
 
@@ -3265,7 +3265,7 @@ fn create_physics_settings_update(physics_update: Value) -> Value {
     })
 }
 
-/
+///
 async fn update_compute_mode(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -3359,7 +3359,7 @@ async fn update_compute_mode(
     }
 }
 
-/
+///
 async fn update_clustering_algorithm(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -3474,7 +3474,7 @@ async fn update_clustering_algorithm(
     }
 }
 
-/
+///
 async fn update_constraints(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -3572,7 +3572,7 @@ async fn update_constraints(
     }
 }
 
-/
+///
 async fn get_cluster_analytics(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -3625,7 +3625,7 @@ async fn get_cluster_analytics(
     }
 }
 
-/
+///
 async fn get_cpu_fallback_analytics(
     graph_data: &crate::models::graph::GraphData,
 ) -> Result<HttpResponse, Error> {
@@ -3691,7 +3691,7 @@ async fn get_cpu_fallback_analytics(
     Ok(HttpResponse::Ok().json(fallback_analytics))
 }
 
-/
+///
 async fn update_stress_optimization(
     _req: HttpRequest,
     state: web::Data<AppState>,
@@ -3790,7 +3790,7 @@ async fn update_stress_optimization(
     }
 }
 
-/
+///
 fn validate_constraints(constraints: &Value) -> Result<(), String> {
     
     if let Some(obj) = constraints.as_object() {

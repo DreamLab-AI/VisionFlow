@@ -9,10 +9,10 @@ use async_trait::async_trait;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-/
-/
-/
-/
+///
+///
+///
+///
 pub struct PhysicsCommandHandler {
     adapter: Arc<Mutex<dyn GpuPhysicsAdapter>>,
 }
@@ -92,7 +92,7 @@ impl CommandHandler<CleanupPhysicsCommand> for PhysicsCommandHandler {
     }
 }
 
-/
+///
 pub struct PhysicsQueryHandler {
     adapter: Arc<Mutex<dyn GpuPhysicsAdapter>>,
 }

@@ -33,7 +33,7 @@ pub enum GpuPhysicsAdapterError {
     GraphNotLoaded,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GpuDeviceInfo {
     pub device_id: u32,
@@ -46,7 +46,7 @@ pub struct GpuDeviceInfo {
     pub max_threads_per_block: u32,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NodeForce {
     pub node_id: u32,
@@ -55,7 +55,7 @@ pub struct NodeForce {
     pub force_z: f32,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PhysicsStepResult {
     pub nodes_updated: usize,
@@ -65,7 +65,7 @@ pub struct PhysicsStepResult {
     pub computation_time_ms: f32,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PhysicsStatistics {
     pub total_steps: u64,
@@ -76,7 +76,7 @@ pub struct PhysicsStatistics {
     pub last_convergence_iterations: u32,
 }
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PhysicsParameters {
     pub time_step: f32,
@@ -104,7 +104,7 @@ impl Default for PhysicsParameters {
     }
 }
 
-/
+///
 #[async_trait]
 pub trait GpuPhysicsAdapter: Send + Sync {
     

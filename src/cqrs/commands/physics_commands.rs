@@ -8,7 +8,7 @@ use crate::models::graph::GraphData;
 use crate::ports::gpu_physics_adapter::PhysicsParameters;
 use std::sync::Arc;
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct InitializePhysicsCommand {
     pub graph: Arc<GraphData>,
@@ -39,7 +39,7 @@ impl Command for InitializePhysicsCommand {
     }
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct UpdatePhysicsParametersCommand {
     pub params: PhysicsParameters,
@@ -63,7 +63,7 @@ impl Command for UpdatePhysicsParametersCommand {
     }
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct UpdateGraphDataCommand {
     pub graph: Arc<GraphData>,
@@ -77,7 +77,7 @@ impl Command for UpdateGraphDataCommand {
     }
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct ApplyExternalForcesCommand {
     pub forces: Vec<(u32, f32, f32, f32)>, 
@@ -112,7 +112,7 @@ impl Command for ApplyExternalForcesCommand {
     }
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct PinNodesCommand {
     pub nodes: Vec<(u32, f32, f32, f32)>, 
@@ -147,7 +147,7 @@ impl Command for PinNodesCommand {
     }
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct UnpinNodesCommand {
     pub node_ids: Vec<u32>,
@@ -168,7 +168,7 @@ impl Command for UnpinNodesCommand {
     }
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct ResetPhysicsCommand;
 
@@ -180,7 +180,7 @@ impl Command for ResetPhysicsCommand {
     }
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct CleanupPhysicsCommand;
 

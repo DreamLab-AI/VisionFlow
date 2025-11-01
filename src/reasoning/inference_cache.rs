@@ -1,9 +1,9 @@
-/
-/
-/
-/
-/
-/
+///
+///
+///
+///
+///
+///
 
 use rusqlite::{Connection, params};
 use serde::{Deserialize, Serialize};
@@ -14,7 +14,7 @@ use crate::reasoning::{
     ReasoningError, ReasoningResult,
 };
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CachedInference {
     pub ontology_id: i64,
@@ -23,7 +23,7 @@ pub struct CachedInference {
     pub cached_at: i64, 
 }
 
-/
+///
 pub struct InferenceCache {
     db_path: String,
 }
@@ -271,7 +271,7 @@ impl InferenceCache {
     }
 }
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct CacheStats {
     pub total_entries: usize,

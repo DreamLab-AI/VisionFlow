@@ -199,7 +199,7 @@ pub fn run_gpu_diagnostics() -> String {
     report
 }
 
-/
+///
 pub fn validate_ptx_content(ptx_content: &str) -> Result<(), String> {
     if ptx_content.trim().is_empty() {
         return Err("PTX content is empty".to_string());
@@ -239,7 +239,7 @@ pub fn validate_ptx_content(ptx_content: &str) -> Result<(), String> {
     Ok(())
 }
 
-/
+///
 pub fn diagnose_ptx_error(error: &str) -> String {
     let mut diagnosis = String::new();
     diagnosis.push_str("PTX Error Diagnosis:\n");
@@ -277,7 +277,7 @@ pub fn diagnose_ptx_error(error: &str) -> String {
     diagnosis
 }
 
-/
+///
 pub fn validate_kernel_launch(
     kernel_name: &str,
     grid_size: u32,
@@ -314,7 +314,7 @@ pub fn validate_kernel_launch(
     Ok(())
 }
 
-/
+///
 pub fn create_gpu_metrics_report() -> String {
     let mut report = String::new();
     report.push_str("==== GPU METRICS REPORT ====\n");

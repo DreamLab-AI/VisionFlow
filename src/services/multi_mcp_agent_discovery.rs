@@ -19,7 +19,7 @@ use crate::services::agent_visualization_protocol::{
 };
 use crate::utils::mcp_tcp_client::create_mcp_client;
 
-/
+///
 #[derive(Debug, Clone)]
 pub struct McpServerConfig {
     pub server_id: String,
@@ -47,7 +47,7 @@ impl Default for McpServerConfig {
     }
 }
 
-/
+///
 #[derive(Debug, Clone, Default)]
 pub struct DiscoveryStats {
     pub total_discoveries: u64,
@@ -60,7 +60,7 @@ pub struct DiscoveryStats {
     pub servers_offline: u32,
 }
 
-/
+///
 pub struct MultiMcpAgentDiscovery {
     servers: Arc<RwLock<HashMap<String, McpServerConfig>>>,
     discovered_agents: Arc<RwLock<HashMap<String, MultiMcpAgentStatus>>>,

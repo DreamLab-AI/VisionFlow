@@ -4,11 +4,11 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::net::TcpStream;
 use tokio::sync::{RwLock, Semaphore};
-/
-/
+///
+///
 use tokio_util::sync::CancellationToken;
 
-/
+///
 pub struct MCPConnectionPool {
     connections: Arc<RwLock<HashMap<String, PooledConnection>>>,
     max_connections_per_host: usize,
@@ -135,7 +135,7 @@ impl MCPConnectionPool {
     }
 }
 
-/
+///
 pub fn spawn_with_cancellation<F>(
     future: F,
     cancellation_token: CancellationToken,
@@ -155,7 +155,7 @@ where
     })
 }
 
-/
+///
 pub fn spawn_with_timeout_and_cancellation<F, T>(
     future: F,
     timeout: Duration,
@@ -197,7 +197,7 @@ impl std::fmt::Display for SpawnError {
 
 impl std::error::Error for SpawnError {}
 
-/
+///
 pub struct TaskManager {
     tasks: Arc<RwLock<HashMap<String, tokio::task::JoinHandle<()>>>>,
     global_cancellation: CancellationToken,
@@ -283,7 +283,7 @@ impl TaskManager {
     }
 }
 
-/
+///
 static GLOBAL_TASK_MANAGER: tokio::sync::OnceCell<TaskManager> = tokio::sync::OnceCell::const_new();
 
 pub async fn get_global_task_manager() -> &'static TaskManager {
@@ -292,7 +292,7 @@ pub async fn get_global_task_manager() -> &'static TaskManager {
         .await
 }
 
-/
+///
 pub async fn spawn_managed_task<F>(name: String, future: F)
 where
     F: std::future::Future<Output = ()> + Send + 'static,
@@ -301,7 +301,7 @@ where
     manager.spawn_task(name, future).await;
 }
 
-/
+///
 pub async fn graceful_shutdown(timeout: Duration) {
     let manager = get_global_task_manager().await;
 

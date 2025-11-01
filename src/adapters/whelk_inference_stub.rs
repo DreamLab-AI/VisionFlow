@@ -11,10 +11,10 @@ use log::{debug, warn};
 use crate::ports::inference_engine::{InferenceEngine, InferenceStatistics, Result as PortResult};
 use crate::ports::ontology_repository::{InferenceResults, OwlAxiom, OwlClass};
 
-/
-/
-/
-/
+///
+///
+///
+///
 pub struct WhelkInferenceEngineStub {
     
     loaded_classes: Vec<OwlClass>,

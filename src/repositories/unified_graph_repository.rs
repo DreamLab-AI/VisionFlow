@@ -22,17 +22,17 @@ use crate::ports::knowledge_graph_repository::{
     Result as RepoResult,
 };
 
-/
-/
-/
-/
+///
+///
+///
+///
 pub struct UnifiedGraphRepository {
     conn: Arc<Mutex<Connection>>,
     #[allow(dead_code)]
     metrics: Arc<RepositoryMetrics>,
 }
 
-/
+///
 #[derive(Debug, Default)]
 pub struct RepositoryMetrics {
     pub load_count: std::sync::atomic::AtomicU64,

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::future::Future;
 use std::time::Duration;
 
-/
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RetryConfig {
     
@@ -84,7 +84,7 @@ impl RetryConfig {
     }
 }
 
-/
+///
 #[derive(Debug, thiserror::Error)]
 pub enum RetryError<E> {
     #[error("All retry attempts exhausted. Last error: {0}")]
@@ -97,10 +97,10 @@ pub enum RetryError<E> {
     ResourceExhaustion(String),
 }
 
-/
+///
 pub type RetryResult<T, E> = Result<T, RetryError<E>>;
 
-/
+///
 pub trait RetryableError {
     fn is_retryable(&self) -> bool;
     fn is_transient(&self) -> bool {
@@ -108,7 +108,7 @@ pub trait RetryableError {
     }
 }
 
-/
+///
 impl RetryableError for std::io::Error {
     fn is_retryable(&self) -> bool {
         match self.kind() {
@@ -161,7 +161,7 @@ impl RetryableError for std::sync::Arc<dyn std::error::Error + Send + Sync> {
     }
 }
 
-/
+///
 fn calculate_delay(config: &RetryConfig, attempt: usize) -> Duration {
     if attempt == 0 {
         return Duration::from_millis(0); 
@@ -186,7 +186,7 @@ fn calculate_delay(config: &RetryConfig, attempt: usize) -> Duration {
     Duration::from_millis(final_delay)
 }
 
-/
+///
 pub async fn retry_with_backoff<F, Fut, T, E>(
     config: RetryConfig,
     mut operation: F,
@@ -263,7 +263,7 @@ where
     ))
 }
 
-/
+///
 async fn check_system_resources() -> Result<(), String> {
     
     if let Ok(fd_count) = count_open_file_descriptors() {
@@ -305,7 +305,7 @@ async fn check_system_resources() -> Result<(), String> {
     Ok(())
 }
 
-/
+///
 fn count_open_file_descriptors() -> Result<usize, std::io::Error> {
     #[cfg(target_os = "linux")]
     {
@@ -323,7 +323,7 @@ fn count_open_file_descriptors() -> Result<usize, std::io::Error> {
     }
 }
 
-/
+///
 fn is_resource_exhaustion_error<E: std::fmt::Debug>(error: &E) -> bool {
     let error_str = format!("{:?}", error).to_lowercase();
     error_str.contains("too many open files")
@@ -334,7 +334,7 @@ fn is_resource_exhaustion_error<E: std::fmt::Debug>(error: &E) -> bool {
         || error_str.contains("emfile")
 }
 
-/
+///
 pub async fn retry_network_operation<F, Fut, T, E>(operation: F) -> RetryResult<T, E>
 where
     F: FnMut() -> Fut,
@@ -344,7 +344,7 @@ where
     retry_with_backoff(RetryConfig::network(), operation).await
 }
 
-/
+///
 pub async fn retry_tcp_connection<F, Fut, T, E>(operation: F) -> RetryResult<T, E>
 where
     F: FnMut() -> Fut,
@@ -354,7 +354,7 @@ where
     retry_with_backoff(RetryConfig::tcp_connection(), operation).await
 }
 
-/
+///
 pub async fn retry_websocket_operation<F, Fut, T, E>(operation: F) -> RetryResult<T, E>
 where
     F: FnMut() -> Fut,
@@ -364,7 +364,7 @@ where
     retry_with_backoff(RetryConfig::websocket(), operation).await
 }
 
-/
+///
 pub async fn retry_mcp_operation<F, Fut, T, E>(operation: F) -> RetryResult<T, E>
 where
     F: FnMut() -> Fut,
@@ -374,7 +374,7 @@ where
     retry_with_backoff(RetryConfig::mcp_operations(), operation).await
 }
 
-/
+///
 pub async fn retry_with_timeout<F, Fut, T, E>(
     config: RetryConfig,
     timeout: Duration,
