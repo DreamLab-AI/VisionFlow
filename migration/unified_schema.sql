@@ -413,6 +413,62 @@ CREATE INDEX idx_inference_type ON inference_results(inferred_axiom_type);
 CREATE INDEX idx_inference_checksum ON inference_results(ontology_checksum);
 
 -- ==============================================================================
+-- FILE METADATA: GitHub sync tracking for incremental updates
+-- ==============================================================================
+
+CREATE TABLE file_metadata (
+    file_name TEXT PRIMARY KEY,
+    file_path TEXT NOT NULL UNIQUE,
+
+    -- File attributes
+    file_size INTEGER,
+    file_extension TEXT,
+
+    -- Content hash
+    sha1 TEXT,
+    content_hash TEXT,
+
+    -- GitHub metadata (if applicable)
+    file_blob_sha TEXT,
+    github_node_id TEXT,
+
+    -- Statistics
+    node_count INTEGER DEFAULT 0,
+    hyperlink_count INTEGER DEFAULT 0,
+    block_count INTEGER DEFAULT 0,
+    word_count INTEGER DEFAULT 0,
+
+    -- Processing metadata
+    perplexity_link TEXT,
+    processing_status TEXT DEFAULT 'pending' CHECK (processing_status IN ('pending', 'processing', 'complete', 'error')),
+    error_message TEXT,
+
+    -- Timestamps
+    last_modified DATETIME,
+    last_content_change DATETIME,
+    last_commit DATETIME,
+    last_perplexity_process DATETIME,
+    last_processed DATETIME,
+    change_count INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_file_metadata_path ON file_metadata(file_path);
+CREATE INDEX idx_file_metadata_modified ON file_metadata(last_modified);
+CREATE INDEX idx_file_metadata_extension ON file_metadata(file_extension);
+CREATE INDEX idx_file_metadata_status ON file_metadata(processing_status);
+CREATE INDEX idx_file_metadata_hash ON file_metadata(content_hash);
+CREATE INDEX idx_file_metadata_sha ON file_metadata(file_blob_sha);
+
+CREATE TRIGGER update_file_metadata_timestamp
+AFTER UPDATE ON file_metadata
+FOR EACH ROW
+BEGIN
+    UPDATE file_metadata SET updated_at = CURRENT_TIMESTAMP WHERE file_name = NEW.file_name;
+END;
+
+-- ==============================================================================
 -- CONTROL CENTER SETTINGS: NEW (Physics & Rendering Configuration)
 -- ==============================================================================
 

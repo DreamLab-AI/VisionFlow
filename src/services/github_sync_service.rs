@@ -132,10 +132,35 @@ impl GitHubSyncService {
 
         stats.total_files = files.len();
 
-        // Process each file
-        for (index, file) in files.iter().enumerate() {
+        // SHA1 SELECTIVE UPDATE: Check existing file_metadata to skip unchanged files
+        let existing_metadata = self.get_existing_file_metadata().await?;
+        let mut files_to_process = Vec::new();
+
+        for file in &files {
+            if let Some(existing_sha) = existing_metadata.get(&file.name) {
+                if existing_sha == &file.sha {
+                    debug!("[GitHubSync][SHA1] Skipping unchanged file: {} (SHA: {})", file.name, file.sha);
+                    stats.skipped_files += 1;
+                    continue;
+                }
+                info!("[GitHubSync][SHA1] File changed: {} (old: {}, new: {})", file.name, existing_sha, file.sha);
+            } else {
+                info!("[GitHubSync][SHA1] New file: {}", file.name);
+            }
+            files_to_process.push(file.clone());
+        }
+
+        info!(
+            "[GitHubSync][SHA1] Processing {} files ({} unchanged, {} to process)",
+            files.len(),
+            stats.skipped_files,
+            files_to_process.len()
+        );
+
+        // Process only changed/new files
+        for (index, file) in files_to_process.iter().enumerate() {
             if index > 0 && index % 10 == 0 {
-                info!("Progress: {}/{} files processed", index, files.len());
+                info!("Progress: {}/{} files processed", index, files_to_process.len());
             }
 
             // ✅ FIX: Pass public_page_names to process_file
@@ -272,7 +297,14 @@ impl GitHubSyncService {
             final_graph.edges = edge_vec;
 
             match self.kg_repo.save_graph(&final_graph).await {
-                Ok(_) => info!("✅ Knowledge graph saved successfully"),
+                Ok(_) => {
+                    info!("✅ Knowledge graph saved successfully");
+
+                    // Update file_metadata table with SHA1 hashes for incremental sync
+                    if let Err(e) = self.update_file_metadata(&files).await {
+                        warn!("Failed to update file_metadata: {}", e);
+                    }
+                }
                 Err(e) => {
                     let error_msg = format!("Failed to save accumulated knowledge graph: {}", e);
                     error!("{}", error_msg);
@@ -591,6 +623,123 @@ impl GitHubSyncService {
             "Failed after {} attempts: {}",
             max_retries, last_error
         ))
+    }
+
+    /// Get existing file metadata SHA1 hashes for selective sync
+    async fn get_existing_file_metadata(&self) -> Result<std::collections::HashMap<String, String>, String> {
+        let kg_repo = self.kg_repo.clone();
+
+        tokio::task::spawn_blocking(move || {
+            let conn = kg_repo.get_connection()
+                .map_err(|e| format!("Failed to get database connection: {}", e))?;
+
+            let conn_guard = conn.lock()
+                .map_err(|e| format!("Failed to lock connection: {}", e))?;
+
+            let mut stmt = conn_guard.prepare(
+                "SELECT file_name, file_blob_sha FROM file_metadata WHERE file_blob_sha IS NOT NULL"
+            )
+            .map_err(|e| format!("Failed to prepare statement: {}", e))?;
+
+            let mut metadata_map = std::collections::HashMap::new();
+
+            let rows = stmt.query_map([], |row| {
+                Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+            })
+            .map_err(|e| format!("Failed to query file_metadata: {}", e))?;
+
+            for row in rows {
+                let (file_name, sha) = row.map_err(|e| format!("Failed to read row: {}", e))?;
+                metadata_map.insert(file_name, sha);
+            }
+
+            info!("[GitHubSync][SHA1] Loaded {} existing file metadata entries", metadata_map.len());
+            Ok(metadata_map)
+        })
+        .await
+        .map_err(|e| format!("Task join error: {}", e))?
+    }
+
+    /// Update file_metadata table with SHA1 hashes from GitHub files for incremental sync
+    async fn update_file_metadata(
+        &self,
+        files: &[GitHubFileBasicMetadata],
+    ) -> Result<(), String> {
+        use chrono::Utc;
+
+        let kg_repo = self.kg_repo.clone();
+        let files = files.to_vec();
+
+        tokio::task::spawn_blocking(move || {
+            use rusqlite::params;
+
+            let conn = kg_repo.get_connection()
+                .map_err(|e| format!("Failed to get database connection: {}", e))?;
+
+            let mut conn_guard = conn.lock()
+                .map_err(|e| format!("Failed to lock connection: {}", e))?;
+
+            let tx = conn_guard.transaction()
+                .map_err(|e| format!("Failed to begin transaction: {}", e))?;
+
+            for file in &files {
+                let now = Utc::now().to_rfc3339();
+
+                // Extract file extension
+                let extension = file.name.rsplit('.').next().unwrap_or("");
+
+                // UPSERT file metadata with comprehensive tracking
+                tx.execute(
+                    r#"
+                    INSERT INTO file_metadata
+                        (file_name, file_path, file_size, file_extension,
+                         file_blob_sha, github_node_id, sha1, content_hash,
+                         last_modified, last_content_change, updated_at, processing_status)
+                    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, 'complete')
+                    ON CONFLICT(file_name) DO UPDATE SET
+                        file_path = ?2,
+                        file_size = ?3,
+                        file_extension = ?4,
+                        file_blob_sha = ?5,
+                        sha1 = ?7,
+                        content_hash = ?8,
+                        last_modified = ?9,
+                        last_content_change = CASE
+                            WHEN file_blob_sha != ?5 THEN ?10
+                            ELSE last_content_change
+                        END,
+                        updated_at = ?11,
+                        processing_status = 'complete',
+                        change_count = CASE
+                            WHEN file_blob_sha != ?5 THEN COALESCE(change_count, 0) + 1
+                            ELSE change_count
+                        END
+                    "#,
+                    params![
+                        file.name,
+                        file.download_url,
+                        file.size as i64,
+                        extension,
+                        file.sha,
+                        "", // github_node_id not available in basic metadata
+                        file.sha, // Use GitHub SHA as content hash
+                        file.sha, // content_hash same as sha1 for GitHub files
+                        now.clone(),
+                        now.clone(), // last_content_change
+                        now,
+                    ],
+                )
+                .map_err(|e| format!("Failed to upsert file_metadata for {}: {}", file.name, e))?;
+            }
+
+            tx.commit()
+                .map_err(|e| format!("Failed to commit file_metadata transaction: {}", e))?;
+
+            info!("✅ Updated file_metadata for {} files", files.len());
+            Ok(())
+        })
+        .await
+        .map_err(|e| format!("Task join error: {}", e))?
     }
 }
 

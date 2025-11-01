@@ -83,93 +83,11 @@ impl UnifiedGraphRepository {
 
     /// Create unified database schema
     ///
-    /// CRITICAL: x,y,z,vx,vy,vz columns MUST match old schema for CUDA compatibility
-    fn create_schema(conn: &Connection) -> Result<(), KnowledgeGraphRepositoryError> {
-        conn.execute_batch(
-            r#"
-            -- Unified graph nodes table (combines knowledge graph + ontology linkage)
-            CREATE TABLE IF NOT EXISTS graph_nodes (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                metadata_id TEXT UNIQUE NOT NULL,
-                label TEXT NOT NULL,
-
-                -- Physics state (UNCHANGED - CUDA compatibility)
-                x REAL NOT NULL DEFAULT 0.0,
-                y REAL NOT NULL DEFAULT 0.0,
-                z REAL NOT NULL DEFAULT 0.0,
-                vx REAL NOT NULL DEFAULT 0.0,
-                vy REAL NOT NULL DEFAULT 0.0,
-                vz REAL NOT NULL DEFAULT 0.0,
-
-                -- Physics properties
-                mass REAL NOT NULL DEFAULT 1.0,
-                charge REAL NOT NULL DEFAULT 0.0,
-
-                -- NEW: Ontology linkage (NULL for non-ontology nodes)
-                owl_class_iri TEXT,
-
-                -- Rendering properties
-                color TEXT,
-                size REAL,
-                node_type TEXT,
-                weight REAL,
-                group_name TEXT,
-                metadata TEXT, -- JSON
-
-                -- Timestamps
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-                -- Foreign key to ontology (if exists)
-                FOREIGN KEY (owl_class_iri) REFERENCES owl_classes(iri)
-                    ON DELETE SET NULL
-                    ON UPDATE CASCADE
-            );
-
-            CREATE INDEX IF NOT EXISTS idx_graph_nodes_metadata_id
-                ON graph_nodes(metadata_id);
-            CREATE INDEX IF NOT EXISTS idx_graph_nodes_owl_class
-                ON graph_nodes(owl_class_iri);
-            CREATE INDEX IF NOT EXISTS idx_graph_nodes_label
-                ON graph_nodes(label);
-
-            -- Unified graph edges table
-            CREATE TABLE IF NOT EXISTS graph_edges (
-                id TEXT PRIMARY KEY,
-                source INTEGER NOT NULL,
-                target INTEGER NOT NULL,
-                weight REAL NOT NULL DEFAULT 1.0,
-                edge_type TEXT,
-                metadata TEXT, -- JSON
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-                FOREIGN KEY (source) REFERENCES graph_nodes(id) ON DELETE CASCADE,
-                FOREIGN KEY (target) REFERENCES graph_nodes(id) ON DELETE CASCADE
-            );
-
-            CREATE INDEX IF NOT EXISTS idx_graph_edges_source ON graph_edges(source);
-            CREATE INDEX IF NOT EXISTS idx_graph_edges_target ON graph_edges(target);
-            CREATE INDEX IF NOT EXISTS idx_graph_edges_source_target
-                ON graph_edges(source, target);
-
-            -- Graph statistics cache
-            CREATE TABLE IF NOT EXISTS graph_statistics (
-                id INTEGER PRIMARY KEY CHECK (id = 1),
-                node_count INTEGER NOT NULL,
-                edge_count INTEGER NOT NULL,
-                average_degree REAL NOT NULL,
-                connected_components INTEGER NOT NULL,
-                last_updated DATETIME DEFAULT CURRENT_TIMESTAMP
-            );
-            "#,
-        )
-        .map_err(|e| {
-            KnowledgeGraphRepositoryError::DatabaseError(format!(
-                "Failed to create unified schema: {}",
-                e
-            ))
-        })?;
-
+    /// CRITICAL: Schema is managed by migration/unified_schema.sql
+    /// This function is a no-op since schema is applied during database initialization
+    fn create_schema(_conn: &Connection) -> Result<(), KnowledgeGraphRepositoryError> {
+        // Schema is pre-applied from migration/unified_schema.sql during database initialization
+        // No need to create schema here - tables already exist
         Ok(())
     }
 
@@ -269,6 +187,16 @@ impl UnifiedGraphRepository {
 
         Ok(())
     }
+
+    /// Get database connection (for file_metadata operations)
+    pub fn get_connection(&self) -> Result<Arc<Mutex<Connection>>, KnowledgeGraphRepositoryError> {
+        Ok(self.conn.clone())
+    }
+
+    fn _placeholder_for_implementation(&self) -> Result<(), KnowledgeGraphRepositoryError> {
+
+        Ok(())
+    }
 }
 
 #[async_trait]
@@ -319,7 +247,7 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
 
             // Load all edges
             let mut edge_stmt = conn
-                .prepare("SELECT id, source, target, weight, edge_type, metadata FROM graph_edges")
+                .prepare("SELECT id, source_id, target_id, weight, relation_type, metadata FROM graph_edges")
                 .map_err(|e| {
                     KnowledgeGraphRepositoryError::DatabaseError(format!(
                         "Failed to prepare edge query: {}",
@@ -391,26 +319,36 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                 ))
             })?;
 
-            // Clear existing data
-            tx.execute("DELETE FROM graph_edges", []).map_err(|e| {
-                KnowledgeGraphRepositoryError::DatabaseError(format!(
-                    "Failed to clear edges: {}",
-                    e
-                ))
-            })?;
+            // INCREMENTAL SYNC: Only clear and update if this is initial sync (no metadata)
+            // Otherwise, rely on UPSERT logic below
+            let metadata_count: i64 = tx
+                .query_row("SELECT COUNT(*) FROM file_metadata", [], |row| row.get(0))
+                .unwrap_or(0);
 
-            tx.execute("DELETE FROM graph_nodes", []).map_err(|e| {
-                KnowledgeGraphRepositoryError::DatabaseError(format!(
-                    "Failed to clear nodes: {}",
-                    e
-                ))
-            })?;
+            if metadata_count == 0 {
+                info!("Initial sync detected - clearing existing graph data");
+                tx.execute("DELETE FROM graph_edges", []).map_err(|e| {
+                    KnowledgeGraphRepositoryError::DatabaseError(format!(
+                        "Failed to clear edges: {}",
+                        e
+                    ))
+                })?;
 
-            // Insert nodes
+                tx.execute("DELETE FROM graph_nodes", []).map_err(|e| {
+                    KnowledgeGraphRepositoryError::DatabaseError(format!(
+                        "Failed to clear nodes: {}",
+                        e
+                    ))
+                })?;
+            } else {
+                info!("Incremental sync - preserving existing nodes");
+            }
+
+            // UPSERT nodes (INSERT OR REPLACE for incremental sync)
             let mut node_stmt = tx
                 .prepare(
                     r#"
-                    INSERT INTO graph_nodes
+                    INSERT OR REPLACE INTO graph_nodes
                         (id, metadata_id, label, x, y, z, vx, vy, vz, mass, charge,
                          owl_class_iri, color, size, node_type, weight, group_name, metadata)
                     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)
@@ -418,7 +356,7 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                 )
                 .map_err(|e| {
                     KnowledgeGraphRepositoryError::DatabaseError(format!(
-                        "Failed to prepare node insert: {}",
+                        "Failed to prepare node upsert: {}",
                         e
                     ))
                 })?;
@@ -456,15 +394,15 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                     })?;
             }
 
-            // Insert edges
+            // UPSERT edges (INSERT OR REPLACE for incremental sync)
             let mut edge_stmt = tx
                 .prepare(
-                    "INSERT INTO graph_edges (id, source, target, weight, edge_type, metadata)
+                    "INSERT OR REPLACE INTO graph_edges (id, source_id, target_id, weight, relation_type, metadata)
                      VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
                 )
                 .map_err(|e| {
                     KnowledgeGraphRepositoryError::DatabaseError(format!(
-                        "Failed to prepare edge insert: {}",
+                        "Failed to prepare edge upsert: {}",
                         e
                     ))
                 })?;
@@ -1102,7 +1040,7 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                 .and_then(|m| serde_json::to_string(m).ok());
 
             conn.execute(
-                "INSERT INTO graph_edges (id, source, target, weight, edge_type, metadata)
+                "INSERT INTO graph_edges (id, source_id, target_id, weight, relation_type, metadata)
                  VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
                 params![
                     edge.id,
@@ -1144,7 +1082,7 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
 
             let mut stmt = tx
                 .prepare(
-                    "INSERT INTO graph_edges (id, source, target, weight, edge_type, metadata)
+                    "INSERT INTO graph_edges (id, source_id, target_id, weight, relation_type, metadata)
                      VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
                 )
                 .map_err(|e| {
@@ -1217,7 +1155,7 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
             let rows = conn
                 .execute(
                     "UPDATE graph_edges
-                     SET source = ?1, target = ?2, weight = ?3, edge_type = ?4, metadata = ?5
+                     SET source_id = ?1, target_id = ?2, weight = ?3, relation_type = ?4, metadata = ?5
                      WHERE id = ?6",
                     params![
                         edge.source,
@@ -1349,9 +1287,9 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
 
             let mut stmt = conn
                 .prepare(
-                    "SELECT id, source, target, weight, edge_type, metadata
+                    "SELECT id, source_id, target_id, weight, relation_type, metadata
                      FROM graph_edges
-                     WHERE source = ?1 OR target = ?1",
+                     WHERE source_id = ?1 OR target_id = ?1",
                 )
                 .map_err(|e| {
                     KnowledgeGraphRepositoryError::DatabaseError(format!(
@@ -1411,9 +1349,9 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
 
             let mut stmt = conn
                 .prepare(
-                    "SELECT id, source, target, weight, edge_type, metadata
+                    "SELECT id, source_id, target_id, weight, relation_type, metadata
                      FROM graph_edges
-                     WHERE (source = ?1 AND target = ?2) OR (source = ?2 AND target = ?1)",
+                     WHERE (source_id = ?1 AND target_id = ?2) OR (source_id = ?2 AND target_id = ?1)",
                 )
                 .map_err(|e| {
                     KnowledgeGraphRepositoryError::DatabaseError(format!(
@@ -1558,8 +1496,8 @@ impl KnowledgeGraphRepository for UnifiedGraphRepository {
                            n.vx, n.vy, n.vz, n.mass, n.charge, n.owl_class_iri,
                            n.color, n.size, n.node_type, n.weight, n.group_name, n.metadata
                     FROM graph_nodes n
-                    JOIN graph_edges e ON (e.source = ?1 AND e.target = n.id)
-                                       OR (e.target = ?1 AND e.source = n.id)
+                    JOIN graph_edges e ON (e.source_id = ?1 AND e.target_id = n.id)
+                                       OR (e.target_id = ?1 AND e.source_id = n.id)
                     "#,
                 )
                 .map_err(|e| {
