@@ -1,7 +1,6 @@
 pub mod agent_visualization_processor;
 pub mod agent_visualization_protocol;
 pub mod bots_client;
-pub mod database_service;
 pub mod edge_generation;
 pub mod file_service;
 pub mod github;
@@ -24,7 +23,6 @@ pub mod owl_validator;
 pub mod perplexity_service;
 pub mod ragflow_service;
 pub mod semantic_analyzer;
-pub mod settings_service;
 pub mod settings_watcher;
 pub mod speech_service;
 pub mod speech_voice_integration;

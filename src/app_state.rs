@@ -35,7 +35,6 @@ use crate::config::AppFullSettings; // Renamed for clarity, ClientFacingSettings
 use crate::models::metadata::MetadataStore;
 use crate::models::protected_settings::{ApiKeys, NostrUser, ProtectedSettings};
 use crate::services::bots_client::BotsClient;
-use crate::services::database_service::DatabaseService;
 use crate::services::github::content_enhanced::EnhancedContentAPI;
 use crate::services::github::{ContentAPI, GitHubClient};
 use crate::services::github_sync_service::GitHubSyncService;
@@ -43,7 +42,6 @@ use crate::services::management_api_client::ManagementApiClient;
 use crate::services::nostr_service::NostrService;
 use crate::services::perplexity_service::PerplexityService;
 use crate::services::ragflow_service::RAGFlowService;
-use crate::services::settings_service::SettingsService;
 use crate::services::speech_service::SpeechService;
 use crate::utils::client_message_extractor::ClientMessage;
 use tokio::sync::mpsc;
@@ -98,9 +96,6 @@ pub struct AppState {
     pub event_bus: Arc<RwLock<EventBus>>,
     // CQRS Phase 4: Application Services (high-level orchestration)
     pub app_services: ApplicationServices,
-    // Database-backed settings (legacy - for backward compatibility)
-    pub db_service: Arc<DatabaseService>,
-    pub settings_service: Arc<SettingsService>,
     // Legacy actor-based settings (will be phased out)
     pub settings_addr: Addr<OptimizedSettingsActor>,
     pub protected_settings_addr: Addr<ProtectedSettingsActor>,
@@ -138,48 +133,14 @@ impl AppState {
         info!("[AppState::new] Initializing actor system");
         tokio::time::sleep(Duration::from_millis(50)).await;
 
-        // CRITICAL: Initialize database FIRST - this is the new source of truth for settings
-        info!("[AppState::new] Initializing SQLite database (NEW architecture)");
-        let db_path =
-            std::env::var("DATABASE_PATH").unwrap_or_else(|_| "data/visionflow.db".to_string());
-        let db_service = Arc::new(
-            DatabaseService::new(&db_path)
-                .map_err(|e| format!("Failed to create database: {}", e))?,
-        );
-
-        // Initialize database schema
-        info!("[AppState::new] Initializing database schema");
-        db_service
-            .initialize_schema()
-            .map_err(|e| format!("Failed to initialize schema: {}", e))?;
-
-        // Save current settings to database (migration from YAML/in-memory)
-        info!("[AppState::new] Migrating settings to database in blocking context...");
-        let db_service_clone = db_service.clone();
-        let settings_clone = settings.clone();
-        tokio::task::spawn_blocking(move || db_service_clone.save_all_settings(&settings_clone))
-            .await
-            .map_err(|e| {
-                format!(
-                    "Failed to spawn blocking task for settings migration: {}",
-                    e
-                )
-            })?
-            .map_err(|e| format!("Failed to save settings to database: {}", e))?;
-
-        // Create settings service (provides direct access to database for handlers)
-        info!("[AppState::new] Creating SettingsService (UI → Database direct connection)");
-        let settings_service = Arc::new(
-            SettingsService::new(db_service.clone())
-                .map_err(|e| format!("Failed to create settings service: {}", e))?,
-        );
-
         // HEXAGONAL ARCHITECTURE: Create repository adapters (port implementations)
         info!("[AppState::new] Creating repository adapters for hexagonal architecture");
 
         // Settings repository as trait object (handlers accept Arc<dyn SettingsRepository>)
-        let settings_repository: Arc<dyn SettingsRepository> =
-            Arc::new(SqliteSettingsRepository::new(db_service.clone()));
+        let settings_repository: Arc<dyn SettingsRepository> = Arc::new(
+            SqliteSettingsRepository::new("data/unified.db")
+                .map_err(|e| format!("Failed to create settings repository: {}", e))?,
+        );
 
         // Unified repositories use spawn_blocking to avoid blocking tokio runtime
         // during schema creation (12+ CREATE statements can take 500ms-3s)
@@ -434,7 +395,10 @@ impl AppState {
 
         info!("[AppState::new] Starting OptimizedSettingsActor with repository injection (hexagonal architecture)");
         // Create settings repository adapter for OptimizedSettingsActor (separate from CQRS repositories)
-        let actor_settings_repository = Arc::new(SqliteSettingsRepository::new(db_service.clone()));
+        let actor_settings_repository = Arc::new(
+            SqliteSettingsRepository::new("data/unified.db")
+                .map_err(|e| format!("Failed to create actor settings repository: {}", e))?,
+        );
 
         let settings_actor = OptimizedSettingsActor::with_actors(
             actor_settings_repository,
@@ -578,9 +542,6 @@ impl AppState {
             event_bus,
             // CQRS Phase 4: Application Services
             app_services,
-            // NEW: Database-backed settings (direct UI connection)
-            db_service,
-            settings_service,
             // Legacy actor-based settings
             settings_addr,
             protected_settings_addr,

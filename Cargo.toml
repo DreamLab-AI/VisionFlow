@@ -170,3 +170,19 @@ min = "1.75.0"
 [[bin]]
 name = "generate_types"
 path = "src/bin/generate_types.rs"
+
+[[example]]
+name = "constraint_integration_debug"
+path = "examples/constraint_integration_debug.rs"
+
+[[example]]
+name = "metadata_debug"
+path = "examples/metadata_debug.rs"
+
+[[example]]
+name = "ontology_constraints_example"
+path = "examples/ontology_constraints_example.rs"
+
+[[example]]
+name = "ontology_validation_example"
+path = "examples/ontology_validation_example.rs"
