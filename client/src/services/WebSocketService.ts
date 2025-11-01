@@ -211,10 +211,10 @@ class WebSocketService {
     
     
     const port = isDev ? '3001' : window.location.port;
-  
-    
-    const baseUrl = `${protocol}
-    const wsUrl = `${baseUrl}/wss`;
+
+
+    const baseUrl = `${protocol}//${host}:${port}`;
+    const wsUrl = `${baseUrl}/ws`;
   
     if (debugState.isEnabled()) {
       logger.info(`Determined WebSocket URL (${isDev ? 'dev' : 'prod'}): ${wsUrl}`);
