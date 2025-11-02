@@ -143,7 +143,7 @@ Step into your knowledge graph with Quest 3 AR/VR and collaborative multi-user e
 Your data remains yours. Built on a thin-client, secure-server architecture with Git-based version control for all knowledge updates, ensuring a complete audit trail and human-in-the-loop oversight.
 
 - **Hexagonal architecture** with CQRS pattern
-- **Three-database design** (settings, knowledge_graph, ontology)
+- **Unified database design** (single unified.db with all domain tables)
 - **JWT authentication** with role-based access
 - **Git version control** for all knowledge changes
 - **Complete audit trail** for compliance
@@ -242,9 +242,7 @@ graph TB
     Server <--> Data
 
     subgraph Data["Data Layer (SQLite)"]
-        SettingsDB["settings.db<br/>(Config)"]
-        KnowledgeDB["knowledge_graph.db"]
-        OntologyDB["ontology.db<br/>(OWL/RDF)"]
+        UnifiedDB["unified.db<br/>(WAL mode, integrated tables:<br/>graph_nodes, graph_edges,<br/>owl_classes, owl_hierarchy,<br/>owl_properties, owl_axioms,<br/>file_metadata)"]
     end
 
     Data <--> GPU
@@ -287,7 +285,7 @@ VisionFlow combines cutting-edge technologies for unmatched performance and scal
 | **AI Orchestration** | MCP Protocol + Claude | 50+ concurrent specialist agents |
 | **Semantic Layer** | OWL/RDF + Whelk Reasoner | Ontology validation, logical inference |
 | **Networking** | Binary WebSocket (36-byte protocol V2) | <10ms latency, 80% bandwidth reduction |
-| **Data Layer** | Three SQLite Databases | settings.db, knowledge_graph.db, ontology.db (WAL mode) |
+| **Data Layer** | Single Unified SQLite Database | unified.db (WAL mode) with integrated tables: graph_nodes, graph_edges, owl_classes, owl_class_hierarchy, owl_properties, owl_axioms, file_metadata |
 | **Development** | Hexser + TypeScript | Type-safe CQRS with auto-generated TypeScript types |
 
 ### Advanced AI Architecture
@@ -299,11 +297,40 @@ VisionFlow combines cutting-edge technologies for unmatched performance and scal
 
 ### Hexagonal Architecture Benefits
 
-- **Database-First Design**: All state persists in three separate databases
+- **Database-First Design**: All state persists in unified.db
 - **CQRS Pattern**: Directives (write) and Queries (read) with hexser
 - **Ports & Adapters**: Clean separation between business logic and infrastructure
 - **Server-Authoritative**: No client-side caching, simplified state management
 - **Type Safety**: Specta generates TypeScript types from Rust
+
+---
+
+## 🔄 Data Pipeline Architecture
+
+**Complete Pipeline: GitHub → Database → GPU → API → Client**
+
+```mermaid
+graph TD
+    A[GitHub Repository<br/>jjohare/logseq<br/>900+ OWL Classes] --> B[GitHub Sync Service]
+    B --> C{File Type Detection}
+    C -->|Markdown with OWL| D[OntologyParser]
+    C -->|Regular Markdown| E[KnowledgeGraphParser]
+    D --> F[UnifiedOntologyRepository]
+    E --> G[UnifiedGraphRepository]
+    F --> H[(unified.db<br/>owl_classes, owl_hierarchy,<br/>owl_properties, owl_axioms)]
+    G --> H
+    H --> I[Load into GPU Memory]
+    I --> J[7 CUDA Kernels<br/>Physics Simulation]
+    J --> K[REST API<br/>/api/graph/data]
+    K --> L[3D Client<br/>Visualization]
+```
+
+**Key Features**:
+- SHA1-based differential sync (process only changed files)
+- FORCE_FULL_SYNC=1 bypass for complete reprocessing
+- Batch processing (50 files per batch)
+- Ontology-integrated graph structure
+- Real-time GPU physics simulation
 
 ---
 
@@ -350,6 +377,8 @@ VisionFlow is built for enterprise-scale performance:
 ---
 
 ## 💻 Installation
+
+> **⚠️ Migration Notice (Nov 2, 2025):** If upgrading from pre-Nov 2, 2025 versions, delete the old `unified.db` file to apply critical schema fixes. The `graph_edges` table columns have been renamed from `source/target` to `source_id/target_id`. See [task.md](docs/task.md) for details.
 
 ### Prerequisites
 
@@ -591,12 +620,16 @@ Production deployment guides:
 
 - **Core Infrastructure**
   - ✅ Hexagonal architecture with CQRS pattern
-  - ✅ Three-database design (settings, knowledge_graph, ontology)
+  - ✅ Unified database migration (unified.db replaces separate databases)
+  - ✅ **CRITICAL SCHEMA FIX** (Nov 2, 2025): graph_edges columns renamed from source/target to source_id/target_id
   - ✅ Binary WebSocket protocol (36 bytes, 80% bandwidth reduction)
   - ✅ Server-authoritative state management
   - ✅ Complete migration system with WAL mode
   - ✅ Database-first design with zero file-based configuration
   - ✅ Actor-based concurrency with Actix (safe parallelism)
+  - ✅ Ontology-integrated architecture (900+ OWL classes)
+  - ✅ FORCE_FULL_SYNC environment variable
+  - ✅ 50+ nodes rendering successfully
 
 - **GPU Acceleration**
   - ✅ 39 production CUDA kernels
