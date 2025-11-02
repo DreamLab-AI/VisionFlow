@@ -251,16 +251,17 @@ impl GitHubSyncService {
         let file_type = self.detect_file_type(&content);
         debug!("🔍 Detected file type: {:?} for {}", file_type, file.name);
 
+        let page_name = file.name.trim_end_matches(".md");
+
         match file_type {
             FileType::KnowledgeGraph => {
+                // Process public:: true files as knowledge graph nodes
                 debug!("🔍 Parsing knowledge graph from {}", file.name);
                 let parsed = self.kg_parser.parse(&content, &file.name)
                     .map_err(|e| format!("Parse error: {}", e))?;
 
                 info!("📊 Parsed {}: {} nodes, {} edges",
                     file.name, parsed.nodes.len(), parsed.edges.len());
-
-                let page_name = file.name.trim_end_matches(".md");
 
                 // Add to public pages
                 public_pages.insert(page_name.to_string());
@@ -275,56 +276,10 @@ impl GitHubSyncService {
                     nodes.insert(node.id, node);
                 }
                 let kg_nodes_added = nodes.len() - nodes_before;
+                info!("✓ Added {} KG nodes from {} (total now: {})",
+                    kg_nodes_added, file.name, nodes.len());
 
-                // If KG parser didn't produce nodes, create an ontology class for this markdown file
-                // This enables the "fully migrated to ontology-based nodes" architecture
-                if kg_nodes_added == 0 && !content.contains("### OntologyBlock") {
-                    debug!("🦉 Creating ontology class from markdown file: {}", page_name);
-
-                    // Extract first line as description
-                    let description = content
-                        .lines()
-                        .find(|line| !line.trim().is_empty() && !line.starts_with('#'))
-                        .map(|s| s.to_string())
-                        .unwrap_or_else(|| format!("Page: {}", page_name));
-
-                    // Create IRI from filename
-                    let iri = format!("kg:{}", page_name.replace(' ', "_").replace('-', "_").to_lowercase());
-
-                    // Create ontology class record using the ports definition
-                    use crate::ports::ontology_repository::OwlClass;
-                    use std::collections::HashMap;
-                    let class = OwlClass {
-                        iri: iri.clone(),
-                        label: Some(page_name.to_string()),
-                        description: Some(description),
-                        parent_classes: vec![],
-                        properties: HashMap::new(),
-                        source_file: Some(file.name.clone()),
-                        markdown_content: Some(content.clone()),
-                        file_sha1: Some(file.sha.clone()),
-                        last_synced: Some(chrono::Utc::now()),
-                    };
-
-                    let onto_data = crate::services::parsers::ontology_parser::OntologyData {
-                        classes: vec![class],
-                        properties: vec![],
-                        axioms: vec![],
-                        class_hierarchy: vec![],
-                    };
-
-                    // Save ontology data immediately
-                    if let Err(e) = self.save_ontology_data(onto_data).await {
-                        error!("Failed to save ontology data from {}: {}", file.name, e);
-                    } else {
-                        info!("✅ Created ontology class from {}", page_name);
-                    }
-                } else {
-                    info!("✓ Added {} nodes from {} (total now: {})",
-                        kg_nodes_added, file.name, nodes.len());
-                }
-
-                // Add edges
+                // Add edges from KG parser
                 let edges_before = edges.len();
                 for edge in parsed.edges {
                     edges.insert(edge.id.clone(), edge);
@@ -333,7 +288,7 @@ impl GitHubSyncService {
                     debug!("✓ Added {} edges from {}", edges.len() - edges_before, file.name);
                 }
 
-                // ALSO check for and parse ontology blocks in this file
+                // Also check for and parse ontology blocks in this file
                 if content.contains("### OntologyBlock") {
                     debug!("🦉 Detected OntologyBlock in {}, extracting ontology data", file.name);
                     match self.onto_parser.parse(&content, &file.name) {
@@ -359,12 +314,33 @@ impl GitHubSyncService {
 
                 Ok(())
             }
-            FileType::Skip => {
-                debug!("⏭️  Skipped: {} (no public:: true)", file.name);
+            FileType::Ontology => {
+                // Process files with ontology blocks
+                debug!("🦉 Processing ontology file {}", file.name);
+                match self.onto_parser.parse(&content, &file.name) {
+                    Ok(onto_data) => {
+                        info!("🦉 Extracted from {}: {} classes, {} properties, {} axioms",
+                            file.name,
+                            onto_data.classes.len(),
+                            onto_data.properties.len(),
+                            onto_data.axioms.len());
+
+                        // Save ontology data immediately
+                        if let Err(e) = self.save_ontology_data(onto_data).await {
+                            error!("Failed to save ontology data from {}: {}", file.name, e);
+                        } else {
+                            debug!("✓ Saved ontology data from {}", file.name);
+                        }
+                    }
+                    Err(e) => {
+                        debug!("Failed to parse ontology file {}: {}", file.name, e);
+                    }
+                }
                 Ok(())
             }
-            FileType::Ontology => {
-                debug!("⏭️  Ontology file skipped: {} (not yet implemented)", file.name);
+            FileType::Skip => {
+                // Skip regular notes without public:: true or ontology blocks
+                debug!("⏭️  Skipped regular note: {} (no public:: true or ontology block)", file.name);
                 Ok(())
             }
         }
@@ -552,6 +528,11 @@ impl GitHubSyncService {
         let content = content.trim_start_matches('\u{feff}');
         let lines: Vec<&str> = content.lines().take(20).collect();
 
+        // Check for ontology blocks first (highest priority)
+        if content.contains("### OntologyBlock") {
+            return FileType::Ontology;
+        }
+
         // Check for explicit public:: true (knowledge graph files)
         for line in lines.iter() {
             if line.trim() == "public:: true" {
@@ -559,14 +540,8 @@ impl GitHubSyncService {
             }
         }
 
-        // Check for ontology blocks - treat as knowledge graph for now
-        // (unified ontology-first architecture)
-        if content.contains("### OntologyBlock") {
-            return FileType::KnowledgeGraph; // CHANGED: treat ontology files as knowledge graph
-        }
-
-        // Default: treat all markdown as knowledge graph (unified pipeline)
-        FileType::KnowledgeGraph
+        // Default: skip regular notes without public:: true or ontology blocks
+        FileType::Skip
     }
 
     /// Save ontology data to database
