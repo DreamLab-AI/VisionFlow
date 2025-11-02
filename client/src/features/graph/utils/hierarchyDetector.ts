@@ -26,7 +26,8 @@ export function detectHierarchy(nodes: Node[]): Map<string, HierarchyNode> {
 
   // First pass: Create hierarchy nodes with parent detection
   nodes.forEach(node => {
-    const pathParts = node.id.split('/').filter(p => p.length > 0);
+    // Convert node.id to string to handle non-string IDs (numbers, objects, etc.)
+    const pathParts = String(node.id).split('/').filter(p => p.length > 0);
     const depth = pathParts.length - 1;
 
     // Parent is the path without the last component

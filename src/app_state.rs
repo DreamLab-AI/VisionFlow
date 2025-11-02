@@ -181,15 +181,21 @@ impl AppState {
         ));
 
         info!("[AppState::new] Starting GitHub data sync in background (non-blocking)...");
-        
+
         let sync_service_clone = github_sync_service.clone();
+
+        // Will be initialized before spawn
+        let graph_service_addr_ref: std::sync::Arc<tokio::sync::Mutex<Option<Addr<TransitionalGraphSupervisor>>>> =
+            std::sync::Arc::new(tokio::sync::Mutex::new(None));
+        let graph_service_addr_clone_for_sync = graph_service_addr_ref.clone();
+
         let sync_handle = tokio::spawn(async move {
             info!("🔄 Background GitHub sync task spawned successfully");
             info!("🔄 Task ID: {:?}", std::thread::current().id());
             info!("🔄 Starting sync_graphs() execution...");
 
-            
-            
+
+
             info!("📡 Calling sync_service.sync_graphs()...");
             let sync_start = std::time::Instant::now();
 
@@ -209,6 +215,15 @@ impl AppState {
                         if stats.errors.len() > 5 {
                             warn!("    ... and {} more errors", stats.errors.len() - 5);
                         }
+                    }
+
+                    // Load synced data into graph actor (if it's ready)
+                    if let Some(graph_addr) = &*graph_service_addr_clone_for_sync.lock().await {
+                        info!("📥 [GitHub Sync] Notifying GraphServiceActor to reload synced data...");
+                        graph_addr.do_send(crate::actors::messages::ReloadGraphFromDatabase);
+                        info!("✅ [GitHub Sync] Reload notification sent to GraphServiceActor");
+                    } else {
+                        info!("ℹ️  [GitHub Sync] Graph service not yet initialized - will load on startup");
                     }
                 }
                 Err(e) => {
@@ -256,34 +271,41 @@ impl AppState {
         });
 
         info!("[AppState::new] GitHub sync running in background with enhanced monitoring, proceeding with actor initialization");
-        
 
-        
+
         info!("[AppState::new] Starting ClientCoordinatorActor");
         let client_manager_addr = ClientCoordinatorActor::new().start();
 
-        
+
         let physics_settings = settings.visualisation.graphs.logseq.physics.clone();
 
         info!("[AppState::new] Starting MetadataActor");
         let metadata_addr = MetadataActor::new(MetadataStore::new()).start();
 
-        
+
         info!("[AppState::new] Starting GraphServiceSupervisor (refactored architecture)");
-        
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
+
         let graph_service_addr = TransitionalGraphSupervisor::new(
             Some(client_manager_addr.clone()),
-            None, 
+            None,
             knowledge_graph_repository.clone(),
         )
         .start();
+
+        // Store graph service address in Arc for GitHub sync task to use
+        let graph_service_addr_clone = graph_service_addr.clone();
+        tokio::spawn(async move {
+            let mut addr_guard = graph_service_addr_ref.lock().await;
+            *addr_guard = Some(graph_service_addr_clone);
+            info!("[AppState::new] GitHub sync task notified - graph service address available");
+        });
 
         
         info!("[AppState::new] Retrieving GraphServiceActor from TransitionalGraphSupervisor for CQRS");
@@ -295,6 +317,11 @@ impl AppState {
 
         info!("[AppState::new] Creating graph repository adapter (CQRS Phase 1D)");
         let graph_repository = Arc::new(ActorGraphRepository::new(graph_actor_addr));
+
+        // Load existing data from database into graph actor on startup
+        info!("[AppState::new] Loading graph data from database into GraphServiceActor...");
+        graph_service_addr.do_send(crate::actors::messages::ReloadGraphFromDatabase);
+        info!("[AppState::new] ✅ Initial graph reload request sent");
 
         info!("[AppState::new] Initializing CQRS query handlers for graph domain");
         let graph_query_handlers = GraphQueryHandlers {

@@ -6,6 +6,7 @@ use log::{error, info};
 use serde::Serialize;
 
 use crate::services::github_sync_service::{GitHubSyncService, SyncStatistics};
+use crate::AppState;
 
 #[derive(Serialize)]
 pub struct SyncResponse {
@@ -44,6 +45,7 @@ impl From<SyncStatistics> for SyncStatisticsDto {
 ///
 pub async fn trigger_sync(
     sync_service: web::Data<GitHubSyncService>,
+    app_state: web::Data<AppState>,
 ) -> HttpResponse {
     info!("Admin sync endpoint triggered");
 
@@ -53,6 +55,11 @@ pub async fn trigger_sync(
                 "Sync completed successfully: {} nodes, {} edges from {} files",
                 stats.total_nodes, stats.total_edges, stats.total_files
             );
+
+            // Notify graph actor to reload from database
+            info!("📥 Notifying GraphServiceActor to reload data from database...");
+            app_state.graph_service_addr.do_send(crate::actors::messages::ReloadGraphFromDatabase);
+            info!("✅ Reload notification sent to GraphServiceActor");
 
             HttpResponse::Ok().json(SyncResponse {
                 success: true,
