@@ -43,6 +43,17 @@
 - Server stable (25+ min uptime, 60 FPS target)
 - GPU processing confirmed via GraphServiceActor logs
 
+### 0.3 **ONTOLOGY EXTRACTION IMPLEMENTED** ⭐ NEW
+**Status:** ✅ MOSTLY COMPLETE (Nov 2, 2025)
+**Achievement:** Ontology block parsing and database storage working
+**Implementation:**
+- File: `src/services/github_sync_service.rs:288-310`
+- Detects `### OntologyBlock` sections in markdown files
+- Extracts OWL classes, properties, axioms via OntologyParser
+- Saves to owl_classes, owl_properties, owl_axioms tables
+- Database schema includes owl_class_iri column for node-to-class linking
+**Pending:** Architectural design for automatic node-to-class association logic
+
 ### 1. **Schema Mismatch - owl_classes (CRITICAL FIX)**
 **Problem:** `owl_classes` table column names didn't match INSERT statements
 **Root Cause:** create_schema() used different column names (`local_name`, `comment`) than save_ontology() expected (`label`, `description`)

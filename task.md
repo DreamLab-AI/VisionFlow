@@ -28,6 +28,7 @@
 - [x] Data flowing to GPU (GraphServiceActor loaded 50 nodes, 12 edges)
 - [x] **GitHub sync working** - 50 nodes saved successfully to unified.db
 - [x] **End-to-end pipeline verified** - Full data flow GitHub → DB → GPU → API → Client ✅
+- [x] **Ontology extraction implemented** - Detects `### OntologyBlock`, extracts OWL data, saves to database
 
 ### ✅ Verified Working
 - [x] End-to-end pipeline: GitHub → DB → GPU → API → Client (**50 nodes rendering at 60 FPS**)
@@ -70,16 +71,23 @@
 
 **Outcome:** Nodes and edges now persisting to unified.db after sync. Pipeline flowing: GitHub → Database → GPU ✅
 
-#### Task 1.2: Verify Ontology Integration
-**Files:** `src/services/github_sync_service.rs:241`, `src/services/parsers/ontology_parser.rs`
-**Issue:** Ontology files skipped (line 243: "Ontology file skipped")
-**Steps:**
-1. Implement ontology block parsing in `process_single_file()`
-2. Extract OWL axioms from markdown `### OntologyBlock` sections
-3. Save to `owl_classes`, `owl_axioms` tables
-4. Link nodes to OWL classes via `owl_class_iri` foreign key
+#### Task 1.2: Verify Ontology Integration ✅ MOSTLY COMPLETE
+**Files:** `src/services/github_sync_service.rs:288-310`, `src/services/parsers/ontology_parser.rs`
+**Status:** Implementation complete, architectural design needed for node-to-class linking
+**Completed Steps:**
+1. ✅ Implemented ontology block parsing in `process_single_file()` (lines 288-310)
+2. ✅ Extract OWL axioms from markdown `### OntologyBlock` sections via OntologyParser
+3. ✅ Save to `owl_classes`, `owl_properties`, `owl_axioms` tables via save_ontology_data()
+4. 🟡 Database schema supports `owl_class_iri` foreign key, but automatic linking logic needs design
 
-**Expected Outcome:** Ontology metadata saved alongside knowledge graph
+**Implementation Details:**
+- Detects `### OntologyBlock` markers in markdown content
+- Calls `onto_parser.parse()` to extract classes, properties, axioms, hierarchy
+- Saves ontology data immediately via `onto_repo.save_ontology()`
+- Infrastructure exists for linking (owl_class_iri field in Node struct and DB schema)
+- **Design Decision Needed:** How to determine which knowledge graph nodes link to which OWL classes
+
+**Outcome:** Ontology metadata extraction working and saving to database ✅
 
 #### Task 1.3: End-to-End Pipeline Test ✅ COMPLETED
 **Goal:** Verify full data flow - **SUCCESS**
@@ -199,10 +207,11 @@ GitHub API (jjohare/logseq)
 
 1. ✅ **DONE:** Task 1.1 - Fixed `save_graph()` file type detection bug
 2. ✅ **DONE:** Task 1.1.1 - Fixed file_metadata schema mismatch (file_blob_sha column)
-3. ✅ **DONE:** Task 1.3 - End-to-end pipeline verified (GitHub → DB → GPU → API)
-4. **NOW:** Task 2.1 - Implement OWL axiom → physics constraint translation
-5. **NEXT:** Task 3.1 - Remove legacy dual-database code references
-6. **THEN:** Task 3.2 - Update documentation (README, architecture.md, API.md)
+3. ✅ **DONE:** Task 1.2 - Ontology extraction implemented (database save working)
+4. ✅ **DONE:** Task 1.3 - End-to-end pipeline verified (GitHub → DB → GPU → API)
+5. **NOW:** Task 2.1 - Implement OWL axiom → physics constraint translation
+6. **NEXT:** Task 3.1 - Remove legacy dual-database code references
+7. **THEN:** Task 3.2 - Update documentation (README, architecture.md, API.md)
 
 ---
 
