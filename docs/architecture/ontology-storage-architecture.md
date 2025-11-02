@@ -6,16 +6,44 @@ This document describes the architecture for storing and parsing rich OWL ontolo
 
 ## Architecture Flow
 
-```
-GitHub Markdown Files (with OWL blocks)
-    ↓
-GitHub Sync Service (SHA1 tracking)
-    ↓
-SQLite Database (raw markdown storage)
-    ↓
-OWL Extractor Service (horned-owl parsing)
-    ↓
-Downstream Components (whelk-rs reasoning)
+```mermaid
+graph TB
+    subgraph "GitHub Repository"
+        Files["Logseq Markdown Files<br/>OWL Functional Syntax Blocks"]
+    end
+
+    subgraph "VisionFlow Backend"
+        Sync["GitHub Sync Service<br/>SHA1 Change Detection<br/>Incremental Updates"]
+        DB[("SQLite Database<br/>ontology.db<br/>Raw Markdown Storage")]
+        Extractor["OWL Extractor Service<br/>horned-owl Parsing<br/>Zero Semantic Loss"]
+    end
+
+    subgraph "Reasoning Layer"
+        Whelk["whelk-rs Reasoner<br/>Inference Engine"]
+        Validation["Consistency Validator<br/>Axiom Checker"]
+    end
+
+    subgraph "Application Layer"
+        API["REST API<br/>GraphQL Endpoints"]
+        UI["Web Interface<br/>Knowledge Graph Visualization"]
+    end
+
+    Files -- "GitHub API<br/>Download Changed Files" --> Sync
+    Sync -- "SHA1 Comparison<br/>Only Update Changed Content" --> DB
+    DB -- "Raw Markdown<br/>With OWL Blocks" --> Extractor
+    Extractor -- "Parsed OWL Ontology<br/>Complete Axiom Set" --> Whelk
+    Whelk -- "Logical Inference<br/>Consistency Checks" --> Validation
+    Validation -- "Validated Knowledge<br/>Inferred Relationships" --> API
+    API -- "JSON Responses<br/>Real-time Updates" --> UI
+
+    style Files fill:#e1f5ff
+    style Sync fill:#fff4e1
+    style DB fill:#ccffcc
+    style Extractor fill:#ffe1e1
+    style Whelk fill:#f0f0ff
+    style Validation fill:#f0f0ff
+    style API fill:#e1ffe1
+    style UI fill:#e1ffe1
 ```
 
 ## Key Design Principles
