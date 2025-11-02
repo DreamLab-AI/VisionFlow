@@ -453,33 +453,31 @@ impl GitHubSyncService {
                 tx.execute(
                     r#"
                     INSERT INTO file_metadata
-                        (file_name, file_path, file_size, file_extension,
+                        (file_name, file_path, file_extension,
                          file_blob_sha, github_node_id, sha1, content_hash,
                          last_modified, last_content_change, updated_at, processing_status)
-                    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, 'complete')
+                    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, 'complete')
                     ON CONFLICT(file_name) DO UPDATE SET
                         file_path = ?2,
-                        file_size = ?3,
-                        file_extension = ?4,
-                        file_blob_sha = ?5,
-                        sha1 = ?7,
-                        content_hash = ?8,
-                        last_modified = ?9,
+                        file_extension = ?3,
+                        file_blob_sha = ?4,
+                        sha1 = ?6,
+                        content_hash = ?7,
+                        last_modified = ?8,
                         last_content_change = CASE
-                            WHEN file_blob_sha != ?5 THEN ?10
+                            WHEN file_blob_sha != ?4 THEN ?9
                             ELSE last_content_change
                         END,
-                        updated_at = ?11,
+                        updated_at = ?10,
                         processing_status = 'complete',
                         change_count = CASE
-                            WHEN file_blob_sha != ?5 THEN COALESCE(change_count, 0) + 1
+                            WHEN file_blob_sha != ?4 THEN COALESCE(change_count, 0) + 1
                             ELSE change_count
                         END
                     "#,
                     params![
                         file.name,
                         file.download_url,
-                        file.size as i64,
                         extension,
                         file.sha,
                         "", // github_node_id
