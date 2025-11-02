@@ -963,6 +963,7 @@ pub struct SystemMetrics {
 pub struct InitializeGPU {
     pub graph: std::sync::Arc<ModelsGraphData>,
     pub graph_service_addr: Option<Addr<crate::actors::graph_actor::GraphServiceActor>>,
+    pub physics_orchestrator_addr: Option<Addr<crate::actors::physics_orchestrator_actor::PhysicsOrchestratorActor>>,
     pub gpu_manager_addr: Option<Addr<crate::actors::GPUManagerActor>>,
 }
 

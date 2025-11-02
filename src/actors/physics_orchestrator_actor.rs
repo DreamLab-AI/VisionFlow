@@ -270,7 +270,7 @@ impl PhysicsOrchestratorActor {
 
     
     #[cfg(feature = "gpu")]
-    fn initialize_gpu_if_needed(&mut self, _ctx: &mut Context<Self>) {
+    fn initialize_gpu_if_needed(&mut self, ctx: &mut Context<Self>) {
         if self.gpu_init_in_progress || self.gpu_initialized {
             return;
         }
@@ -283,8 +283,9 @@ impl PhysicsOrchestratorActor {
             if let Some(ref graph_data) = self.graph_data_ref {
                 gpu_addr.do_send(InitializeGPU {
                     graph: Arc::clone(graph_data),
-                    graph_service_addr: None, 
-                    gpu_manager_addr: None,   
+                    graph_service_addr: None,
+                    physics_orchestrator_addr: Some(ctx.address()),
+                    gpu_manager_addr: None,
                 });
 
                 
@@ -292,8 +293,11 @@ impl PhysicsOrchestratorActor {
                     graph: Arc::clone(graph_data),
                 });
 
-                self.gpu_initialized = true;
-                self.gpu_init_in_progress = false;
+                // NOTE: Do NOT set gpu_initialized here!
+                // Wait for GPUInitialized message from GPU actor (see handler at end of file)
+                // self.gpu_initialized = true;  // REMOVED - wait for confirmation
+                // self.gpu_init_in_progress = false;  // REMOVED - wait for confirmation
+                info!("GPU initialization messages sent - waiting for GPUInitialized confirmation");
             }
         }
     }
@@ -1101,5 +1105,20 @@ impl Handler<SetOntologyActor> for PhysicsOrchestratorActor {
 
     fn handle(&mut self, msg: SetOntologyActor, _ctx: &mut Self::Context) -> Self::Result {
         self.set_ontology_actor(msg.addr);
+    }
+}
+
+/// Handler for GPU initialization confirmation
+/// This is called by the GPU actor when initialization is complete
+#[cfg(feature = "gpu")]
+impl Handler<crate::actors::messages::GPUInitialized> for PhysicsOrchestratorActor {
+    type Result = ();
+
+    fn handle(&mut self, _msg: crate::actors::messages::GPUInitialized, _ctx: &mut Self::Context) -> Self::Result {
+        info!("✅ GPU initialization CONFIRMED for PhysicsOrchestrator - GPUInitialized message received");
+        self.gpu_initialized = true;
+        self.gpu_init_in_progress = false;
+
+        info!("Physics simulation GPU initialization complete - ready for simulation with non-zero velocities");
     }
 }

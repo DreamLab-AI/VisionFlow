@@ -3410,7 +3410,8 @@ impl Handler<BuildGraphFromMetadata> for GraphServiceActor {
                 gpu_compute_addr.do_send(InitializeGPU {
                     graph: Arc::clone(&self.graph_data),
                     graph_service_addr: Some(ctx.address()),
-                    gpu_manager_addr: None, 
+                    physics_orchestrator_addr: None,
+                    gpu_manager_addr: None,
                 });
                 info!("Sent GPU initialization request to GPU compute actor");
 
@@ -3586,7 +3587,8 @@ impl Handler<UpdateGraphData> for GraphServiceActor {
             gpu_compute_addr.do_send(InitializeGPU {
                 graph: Arc::clone(&self.graph_data),
                 graph_service_addr: Some(ctx.address()),
-                gpu_manager_addr: None, 
+                physics_orchestrator_addr: None,
+                gpu_manager_addr: None,
             });
             info!("Sent GPU initialization request to GPU compute actor");
 
@@ -3872,6 +3874,7 @@ impl Handler<InitializeGPUConnection> for GraphServiceActor {
                 gpu_manager.do_send(InitializeGPU {
                     graph: Arc::clone(&self.graph_data),
                     graph_service_addr: Some(ctx.address()),
+                    physics_orchestrator_addr: None,
                     gpu_manager_addr: None,
                 });
 

@@ -388,6 +388,7 @@ impl Handler<InitializeGPU> for GPUResourceActor {
 
         let graph_data = msg.graph;
         let graph_service_addr = msg.graph_service_addr;
+        let physics_orchestrator_addr = msg.physics_orchestrator_addr;
         let gpu_manager_addr = msg.gpu_manager_addr;
 
         
@@ -454,12 +455,18 @@ impl Handler<InitializeGPU> for GPUResourceActor {
                             
                             if let Some(addr) = graph_service_addr {
                                 if let Err(e) = addr.try_send(crate::actors::messages::GPUInitialized) {
-                                    error!("Failed to send GPUInitialized message: {}", e);
+                                    error!("Failed to send GPUInitialized message to GraphServiceActor: {}", e);
                                     return Err("Failed to notify GraphServiceActor of GPU initialization".to_string());
                                 }
-                                info!("GPUInitialized message sent successfully");
-                            } else {
-                                info!("No GraphServiceActor address provided, skipping notification");
+                                info!("GPUInitialized message sent successfully to GraphServiceActor");
+                            }
+
+                            if let Some(addr) = physics_orchestrator_addr {
+                                if let Err(e) = addr.try_send(crate::actors::messages::GPUInitialized) {
+                                    error!("Failed to send GPUInitialized message to PhysicsOrchestratorActor: {}", e);
+                                    return Err("Failed to notify PhysicsOrchestratorActor of GPU initialization".to_string());
+                                }
+                                info!("GPUInitialized message sent successfully to PhysicsOrchestratorActor");
                             }
                             Ok(())
                         },
