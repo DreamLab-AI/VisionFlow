@@ -528,18 +528,8 @@ impl AppState {
         
         info!("[AppState] GPU manager will self-initialize when needed");
 
-        
-        #[cfg(feature = "gpu")]
-        if let Some(ref gpu_manager) = gpu_manager_addr {
-            use crate::actors::messages::InitializeGPUConnection;
-            let init_msg = InitializeGPUConnection {
-                gpu_manager: Some(gpu_manager.clone()),
-            };
-            graph_service_addr.do_send(init_msg);
-            info!("[AppState] Sent GPU initialization message to GraphServiceSupervisor");
-        }
 
-        info!("[AppState::new] Actor system initialization complete");
+        info!("[AppState::new] Actor system initialization complete (GPU initialization sent earlier)");
 
         
         let debug_enabled = crate::utils::logging::is_debug_enabled();

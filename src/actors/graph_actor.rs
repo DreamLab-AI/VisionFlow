@@ -3866,22 +3866,22 @@ impl Handler<InitializeGPUConnection> for GraphServiceActor {
             self.gpu_compute_addr = Some(gpu_manager.clone());
             info!("[GraphServiceActor] Stored GPUManagerActor address for GPU coordination");
 
-            
+
             if !self.graph_data.nodes.is_empty() {
                 info!("Sending initial graph data to GPU via GPUManager");
                 gpu_manager.do_send(InitializeGPU {
                     graph: Arc::clone(&self.graph_data),
                     graph_service_addr: Some(ctx.address()),
-                    gpu_manager_addr: None, 
+                    gpu_manager_addr: None,
                 });
 
-                
+
                 gpu_manager.do_send(UpdateGPUGraphData {
                     graph: Arc::clone(&self.graph_data),
                 });
 
-                self.gpu_initialized = true;
-                info!("GPU initialization messages sent via GPUManager");
+                self.gpu_init_in_progress = true;
+                info!("GPU initialization in progress - waiting for GPUInitialized confirmation message");
             }
         } else {
             warn!("No GPU manager provided for initialization");
@@ -3894,7 +3894,7 @@ impl Handler<GPUInitialized> for GraphServiceActor {
     type Result = ();
 
     fn handle(&mut self, _msg: GPUInitialized, _ctx: &mut Self::Context) -> Self::Result {
-        info!("GPU has been successfully initialized - enabling physics simulation");
+        info!("✅ GPU initialization CONFIRMED - GPUInitialized message received");
         self.gpu_initialized = true;
         self.gpu_init_in_progress = false;
 
