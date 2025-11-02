@@ -91,17 +91,26 @@ impl GitHubSyncService {
 
         stats.total_files = files.len();
 
-        // SHA1 filtering - only process changed files
-        let files_to_process = match self.filter_changed_files(&files).await {
-            Ok(filtered) => {
-                info!("📋 Processing {} changed files ({} unchanged)",
-                    filtered.len(), files.len() - filtered.len());
-                stats.skipped_files = files.len() - filtered.len();
-                filtered
-            }
-            Err(e) => {
-                error!("SHA1 filter failed: {}", e);
-                files.clone() // Process all if filter fails
+        // SHA1 filtering - only process changed files (unless FORCE_FULL_SYNC is set)
+        let force_full_sync = std::env::var("FORCE_FULL_SYNC")
+            .map(|v| v == "1" || v.to_lowercase() == "true")
+            .unwrap_or(false);
+
+        let files_to_process = if force_full_sync {
+            info!("🔄 FORCE_FULL_SYNC enabled - processing ALL {} files (bypassing SHA1 filter)", files.len());
+            files.clone()
+        } else {
+            match self.filter_changed_files(&files).await {
+                Ok(filtered) => {
+                    info!("📋 Processing {} changed files ({} unchanged)",
+                        filtered.len(), files.len() - filtered.len());
+                    stats.skipped_files = files.len() - filtered.len();
+                    filtered
+                }
+                Err(e) => {
+                    error!("SHA1 filter failed: {}", e);
+                    files.clone() // Process all if filter fails
+                }
             }
         };
 
@@ -150,15 +159,20 @@ impl GitHubSyncService {
         let mut batch_edges = std::collections::HashMap::new();
         let mut public_pages = std::collections::HashSet::new();
 
+        info!("🔍 [DEBUG] Starting batch with {} files", files.len());
+
         // Process each file
         for (idx, file) in files.iter().enumerate() {
             if idx % 10 == 0 && idx > 0 {
-                info!("  Progress: {}/{} files in batch", idx, files.len());
+                info!("  Progress: {}/{} files in batch (nodes so far: {}, edges: {})",
+                    idx, files.len(), batch_nodes.len(), batch_edges.len());
             }
 
             match self.process_single_file(file, &mut batch_nodes, &mut batch_edges, &mut public_pages).await {
                 Ok(()) => {
                     stats.kg_files_processed += 1;
+                    debug!("✓ Processed {}: {} nodes total, {} edges total",
+                        file.name, batch_nodes.len(), batch_edges.len());
                 }
                 Err(e) => {
                     warn!("Error processing {}: {}", file.name, e);
@@ -170,9 +184,19 @@ impl GitHubSyncService {
             tokio::time::sleep(Duration::from_millis(50)).await;
         }
 
+        info!("🔍 [DEBUG] After processing: {} nodes, {} edges, {} public_pages",
+            batch_nodes.len(), batch_edges.len(), public_pages.len());
+
         // Filter nodes/edges
+        let nodes_before_filter = batch_nodes.len();
         self.filter_linked_pages(&mut batch_nodes, &public_pages);
+        info!("🔍 [DEBUG] After filter_linked_pages: {} nodes (removed {})",
+            batch_nodes.len(), nodes_before_filter - batch_nodes.len());
+
+        let edges_before_filter = batch_edges.len();
         self.filter_orphan_edges(&mut batch_edges, &batch_nodes);
+        info!("🔍 [DEBUG] After filter_orphan_edges: {} edges (removed {})",
+            batch_edges.len(), edges_before_filter - batch_edges.len());
 
         // Save batch to database
         if !batch_nodes.is_empty() {
@@ -188,9 +212,17 @@ impl GitHubSyncService {
             graph.nodes = node_vec;
             graph.edges = edge_vec;
 
+            info!("🔍 [DEBUG] Calling save_graph() with {} nodes, {} edges",
+                graph.nodes.len(), graph.edges.len());
+
             self.kg_repo.save_graph(&graph).await.map_err(|e| {
+                error!("❌ save_graph() failed: {}", e);
                 format!("Failed to save batch: {}", e)
             })?;
+
+            info!("✅ [DEBUG] save_graph() completed successfully");
+        } else {
+            warn!("⚠️ [DEBUG] Batch is EMPTY after filtering - nothing to save!");
         }
 
         Ok(())
@@ -204,43 +236,87 @@ impl GitHubSyncService {
         edges: &mut std::collections::HashMap<String, crate::models::edge::Edge>,
         public_pages: &mut std::collections::HashSet<String>,
     ) -> Result<(), String> {
+        debug!("🔍 Processing file: {}", file.name);
+
         // Fetch content
         let content = self.content_api
             .fetch_file_content(&file.download_url)
             .await
             .map_err(|e| format!("Failed to fetch content: {}", e))?;
 
+        debug!("🔍 Fetched {} bytes for {}", content.len(), file.name);
+
         // Detect file type
         let file_type = self.detect_file_type(&content);
+        debug!("🔍 Detected file type: {:?} for {}", file_type, file.name);
 
         match file_type {
             FileType::KnowledgeGraph => {
+                debug!("🔍 Parsing knowledge graph from {}", file.name);
                 let parsed = self.kg_parser.parse(&content, &file.name)
                     .map_err(|e| format!("Parse error: {}", e))?;
+
+                info!("📊 Parsed {}: {} nodes, {} edges",
+                    file.name, parsed.nodes.len(), parsed.edges.len());
+
                 let page_name = file.name.trim_end_matches(".md");
 
                 // Add to public pages
                 public_pages.insert(page_name.to_string());
+                debug!("✓ Added '{}' to public_pages (total: {})", page_name, public_pages.len());
 
                 // Add nodes
+                let nodes_before = nodes.len();
                 for node in parsed.nodes {
+                    debug!("  → Node {}: {} (type: {:?})",
+                        node.id, node.label,
+                        node.metadata.get("type"));
                     nodes.insert(node.id, node);
                 }
+                info!("✓ Added {} nodes from {} (total now: {})",
+                    nodes.len() - nodes_before, file.name, nodes.len());
 
                 // Add edges
+                let edges_before = edges.len();
                 for edge in parsed.edges {
                     edges.insert(edge.id.clone(), edge);
+                }
+                if edges.len() > edges_before {
+                    debug!("✓ Added {} edges from {}", edges.len() - edges_before, file.name);
+                }
+
+                // ALSO check for and parse ontology blocks in this file
+                if content.contains("### OntologyBlock") {
+                    debug!("🦉 Detected OntologyBlock in {}, extracting ontology data", file.name);
+                    match self.onto_parser.parse(&content, &file.name) {
+                        Ok(onto_data) => {
+                            info!("🦉 Extracted from {}: {} classes, {} properties, {} axioms",
+                                file.name,
+                                onto_data.classes.len(),
+                                onto_data.properties.len(),
+                                onto_data.axioms.len());
+
+                            // Save ontology data immediately
+                            if let Err(e) = self.save_ontology_data(onto_data).await {
+                                error!("Failed to save ontology data from {}: {}", file.name, e);
+                            } else {
+                                debug!("✓ Saved ontology data from {}", file.name);
+                            }
+                        }
+                        Err(e) => {
+                            debug!("Failed to parse ontology block in {}: {}", file.name, e);
+                        }
+                    }
                 }
 
                 Ok(())
             }
             FileType::Skip => {
-                debug!("Skipped: {}", file.name);
+                debug!("⏭️  Skipped: {} (no public:: true)", file.name);
                 Ok(())
             }
             FileType::Ontology => {
-                // Skip ontology processing for now
-                debug!("Ontology file skipped: {}", file.name);
+                debug!("⏭️  Ontology file skipped: {} (not yet implemented)", file.name);
                 Ok(())
             }
         }
@@ -430,16 +506,36 @@ impl GitHubSyncService {
         let content = content.trim_start_matches('\u{feff}');
         let lines: Vec<&str> = content.lines().take(20).collect();
 
+        // Check for explicit public:: true (knowledge graph files)
         for line in lines.iter() {
             if line.trim() == "public:: true" {
                 return FileType::KnowledgeGraph;
             }
         }
 
+        // Check for ontology blocks - treat as knowledge graph for now
+        // (unified ontology-first architecture)
         if content.contains("### OntologyBlock") {
-            return FileType::Ontology;
+            return FileType::KnowledgeGraph; // CHANGED: treat ontology files as knowledge graph
         }
 
-        FileType::Skip
+        // Default: treat all markdown as knowledge graph (unified pipeline)
+        FileType::KnowledgeGraph
+    }
+
+    /// Save ontology data to database
+    async fn save_ontology_data(&self, onto_data: crate::services::parsers::ontology_parser::OntologyData) -> Result<(), String> {
+        use crate::ports::ontology_repository::OntologyRepository;
+
+        // Save all ontology data in one call
+        self.onto_repo.save_ontology(&onto_data.classes, &onto_data.properties, &onto_data.axioms).await
+            .map_err(|e| format!("Failed to save ontology data: {}", e))?;
+
+        // Log class hierarchy
+        for (subclass_iri, superclass_iri) in onto_data.class_hierarchy {
+            debug!("Class hierarchy: {} -> {}", subclass_iri, superclass_iri);
+        }
+
+        Ok(())
     }
 }

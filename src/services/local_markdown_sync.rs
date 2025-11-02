@@ -1,7 +1,7 @@
 // src/services/local_markdown_sync.rs
 //! Local Markdown Sync Service
 //!
-//! Reads markdown files from local directory and populates knowledge_graph.db
+//! Reads markdown files from local directory and populates unified.db (graph_nodes, graph_edges)
 
 use crate::models::edge::Edge;
 use crate::models::node::Node;

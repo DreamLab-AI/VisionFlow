@@ -174,9 +174,15 @@ impl UnifiedGraphRepository {
             CREATE TABLE IF NOT EXISTS file_metadata (
                 file_name TEXT PRIMARY KEY,
                 file_path TEXT NOT NULL UNIQUE,
-                sha TEXT,
+                file_blob_sha TEXT,
+                github_node_id TEXT,
+                sha1 TEXT,
+                content_hash TEXT,
                 last_modified DATETIME,
                 last_content_change DATETIME,
+                last_commit DATETIME,
+                change_count INTEGER DEFAULT 0,
+                processing_status TEXT DEFAULT 'pending',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )

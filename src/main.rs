@@ -1,6 +1,6 @@
 // Rebuild: KE velocity fix applied
 use actix::Actor;
-use webxr::ports::knowledge_graph_repository::KnowledgeGraphRepository;
+use webxr::ports::ontology_repository::OntologyRepository;
 use webxr::services::nostr_service::NostrService;
 use webxr::settings::settings_actor::SettingsActor;
 use webxr::adapters::sqlite_settings_repository::SqliteSettingsRepository;
@@ -285,26 +285,26 @@ async fn main() -> std::io::Result<()> {
     info!("Skipping bots orchestrator connection during startup (will connect on-demand)");
 
     
-    info!("Loading graph from knowledge_graph.db...");
+    info!("Loading ontology graph from unified.db...");
 
-    let graph_data_option = match app_state.knowledge_graph_repository.load_graph().await {
+    let graph_data_option = match app_state.ontology_repository.load_ontology_graph().await {
         Ok(graph_arc) => {
             let graph = graph_arc.as_ref();
             if !graph.nodes.is_empty() {
                 info!(
-                    "✅ Loaded graph from database: {} nodes, {} edges",
+                    "✅ Loaded ontology graph from database: {} nodes, {} edges",
                     graph.nodes.len(),
                     graph.edges.len()
                 );
                 Some((*graph_arc).clone())
             } else {
-                info!("📂 Database is empty - waiting for GitHub sync to complete");
-                info!("ℹ️  Graph will be loaded after sync finishes");
+                info!("📂 Ontology database is empty - waiting for GitHub sync to populate");
+                info!("ℹ️  Ontology classes will be loaded after sync extracts OWL data");
                 None
             }
         }
         Err(e) => {
-            error!("⚠️  Failed to load graph from database: {}", e);
+            error!("⚠️  Failed to load ontology graph from database: {}", e);
             error!("⚠️  Graph will be empty until GitHub sync completes");
             None
         }

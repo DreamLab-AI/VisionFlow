@@ -48,9 +48,92 @@ impl UnifiedOntologyRepository {
     
     
     
-    fn create_schema(_conn: &Connection) -> Result<(), String> {
-        
-        
+    fn create_schema(conn: &Connection) -> Result<(), String> {
+        // Create owl_classes table - MATCH INSERT STATEMENT COLUMNS
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS owl_classes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ontology_id TEXT DEFAULT 'default',
+                iri TEXT UNIQUE NOT NULL,
+                label TEXT,
+                description TEXT,
+                file_sha1 TEXT,
+                last_synced INTEGER,
+                markdown_content TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )",
+            [],
+        )
+        .map_err(|e| format!("Failed to create owl_classes table: {}", e))?;
+
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_owl_classes_iri ON owl_classes(iri)", [])
+            .map_err(|e| format!("Failed to create index: {}", e))?;
+
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_owl_classes_ontology_id ON owl_classes(ontology_id)", [])
+            .map_err(|e| format!("Failed to create index: {}", e))?;
+
+        // Create owl_class_hierarchy table - MATCH INSERT STATEMENT COLUMNS
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS owl_class_hierarchy (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                class_iri TEXT NOT NULL,
+                parent_iri TEXT NOT NULL,
+                UNIQUE(class_iri, parent_iri),
+                FOREIGN KEY (class_iri) REFERENCES owl_classes(iri) ON DELETE CASCADE,
+                FOREIGN KEY (parent_iri) REFERENCES owl_classes(iri) ON DELETE CASCADE
+            )",
+            [],
+        )
+        .map_err(|e| format!("Failed to create owl_class_hierarchy table: {}", e))?;
+
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_owl_hierarchy_class ON owl_class_hierarchy(class_iri)", [])
+            .map_err(|e| format!("Failed to create index: {}", e))?;
+
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_owl_hierarchy_parent ON owl_class_hierarchy(parent_iri)", [])
+            .map_err(|e| format!("Failed to create index: {}", e))?;
+
+        // Create owl_properties table - MATCH INSERT STATEMENT COLUMNS
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS owl_properties (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ontology_id TEXT DEFAULT 'default',
+                iri TEXT UNIQUE NOT NULL,
+                label TEXT,
+                property_type TEXT NOT NULL,
+                domain TEXT,
+                range TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )",
+            [],
+        )
+        .map_err(|e| format!("Failed to create owl_properties table: {}", e))?;
+
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_owl_properties_iri ON owl_properties(iri)", [])
+            .map_err(|e| format!("Failed to create index: {}", e))?;
+
+        // Create owl_axioms table - MATCH INSERT STATEMENT COLUMNS
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS owl_axioms (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ontology_id TEXT DEFAULT 'default',
+                axiom_type TEXT NOT NULL,
+                subject TEXT NOT NULL,
+                object TEXT NOT NULL,
+                annotations TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )",
+            [],
+        )
+        .map_err(|e| format!("Failed to create owl_axioms table: {}", e))?;
+
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_owl_axioms_type ON owl_axioms(axiom_type)", [])
+            .map_err(|e| format!("Failed to create index: {}", e))?;
+
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_owl_axioms_subject ON owl_axioms(subject)", [])
+            .map_err(|e| format!("Failed to create index: {}", e))?;
+
+        info!("Successfully created ontology schema tables with correct column names");
         Ok(())
     }
 
