@@ -16,7 +16,9 @@ import { NodeShaderToggle } from './NodeShaderToggle'
 import { EdgeSettings } from '../../settings/config/settings'
 import { registerNodeObject, unregisterNodeObject } from '../../visualisation/hooks/bloomRegistry'
 import { useAnalyticsStore, useCurrentSSSPResult } from '../../analytics/store/analyticsStore'
-// import { useBloomStrength } from '../contexts/BloomContext' 
+import { detectHierarchy } from '../utils/hierarchyDetector'
+import { useExpansionState } from '../hooks/useExpansionState'
+// import { useBloomStrength } from '../contexts/BloomContext'
 
 const logger = createLogger('GraphManager')
 
@@ -176,8 +178,44 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   const nodePositionsRef = useRef<Float32Array | null>(null)
   const [edgePoints, setEdgePoints] = useState<number[]>([])
   const [nodesAreAtOrigin, setNodesAreAtOrigin] = useState(false)
-  
+
   const [forceUpdate, setForceUpdate] = useState(0)
+
+  // CLIENT-SIDE HIERARCHICAL LOD: Detect hierarchy from node IDs
+  const hierarchyMap = useMemo(() => {
+    if (graphData.nodes.length === 0) return new Map();
+    const hierarchy = detectHierarchy(graphData.nodes);
+    logger.info(`Detected hierarchy: ${hierarchy.size} nodes, max depth: ${
+      Math.max(...Array.from(hierarchy.values()).map(n => n.depth))
+    }`);
+    return hierarchy;
+  }, [graphData.nodes]);
+
+  // CLIENT-SIDE HIERARCHICAL LOD: Expansion state (per-client, no server persistence)
+  const expansionState = useExpansionState(true); // Default: all expanded
+
+  // CLIENT-SIDE HIERARCHICAL LOD: Filter visible nodes for RENDERING ONLY
+  // Physics still uses ALL graphData.nodes!
+  const visibleNodes = useMemo(() => {
+    if (graphData.nodes.length === 0) return [];
+
+    const visible = graphData.nodes.filter(node => {
+      const hierarchyNode = hierarchyMap.get(node.id);
+      if (!hierarchyNode) return true; // Show nodes not in hierarchy
+
+      // Root nodes always visible
+      if (hierarchyNode.isRoot) return true;
+
+      // Child nodes visible only if parent is expanded
+      return expansionState.isVisible(node.id, hierarchyNode.parentId);
+    });
+
+    if (visible.length !== graphData.nodes.length) {
+      logger.info(`LOD filtering: ${visible.length}/${graphData.nodes.length} nodes visible`);
+    }
+
+    return visible;
+  }, [graphData.nodes, hierarchyMap, expansionState])
 
   
   const animationStateRef = useRef({
@@ -690,11 +728,13 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   const NodeLabels = useMemo(() => {
       const logseqSettings = settings?.visualisation?.graphs?.logseq;
       const labelSettings = logseqSettings?.labels ?? settings?.visualisation?.labels;
-      if (!labelSettings?.enableLabels || graphData.nodes.length === 0) return null;
+      // CLIENT-SIDE HIERARCHICAL LOD: Only render labels for visible nodes
+      if (!labelSettings?.enableLabels || visibleNodes.length === 0) return null;
 
-    return graphData.nodes.map((node, index) => {
-      
-      const physicsPos = labelPositions[index]
+    return visibleNodes.map((node) => {
+      // CLIENT-SIDE HIERARCHICAL LOD: Find original index in graphData.nodes for position lookup
+      const originalIndex = graphData.nodes.findIndex(n => n.id === node.id);
+      const physicsPos = originalIndex !== -1 ? labelPositions[originalIndex] : undefined;
       const position = physicsPos || node.position || { x: 0, y: 0, z: 0 }
       const scale = getNodeScale(node, graphData.edges)
       const textPadding = labelSettings.textPadding ?? 0.6;
@@ -803,7 +843,8 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
         </Billboard>
       )
     })
-  }, [graphData.nodes, graphData.edges, labelPositions, settings?.visualisation?.graphs?.logseq?.labels, settings?.visualisation?.labels, normalizedSSSPResult])
+    // CLIENT-SIDE HIERARCHICAL LOD: Updated dependencies to use visibleNodes
+  }, [visibleNodes, graphData.nodes, graphData.edges, labelPositions, settings?.visualisation?.graphs?.logseq?.labels, settings?.visualisation?.labels, normalizedSSSPResult])
 
   
   useEffect(() => {
@@ -836,10 +877,10 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
       {}
       {enableMetadataShape ? (
   <MetadataShapes
-    nodes={graphData.nodes}
+    nodes={visibleNodes}
     nodePositions={nodePositionsRef.current}
     onNodeClick={(nodeId, event) => {
-      const nodeIndex = graphData.nodes.findIndex(n => n.id === nodeId);
+      const nodeIndex = visibleNodes.findIndex(n => n.id === nodeId);
       if (nodeIndex !== -1) {
         handlePointerDown({ ...event, instanceId: nodeIndex } as any);
       }
@@ -850,7 +891,7 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
 ) : (
         <instancedMesh
           ref={meshRef}
-          args={[undefined, undefined, graphData.nodes.length]}
+          args={[undefined, undefined, visibleNodes.length]}
           frustumCulled={false}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
@@ -858,6 +899,23 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
           onPointerMissed={() => {
             if (dragDataRef.current.isDragging) {
               handlePointerUp()
+            }
+          }}
+          onDoubleClick={(event: ThreeEvent<MouseEvent>) => {
+            // CLIENT-SIDE HIERARCHICAL LOD: Toggle expansion on double-click
+            if (event.instanceId !== undefined && event.instanceId < visibleNodes.length) {
+              const node = visibleNodes[event.instanceId];
+              if (node) {
+                const hierarchyNode = hierarchyMap.get(node.id);
+                if (hierarchyNode && hierarchyNode.childIds.length > 0) {
+                  expansionState.toggleExpansion(node.id);
+                  logger.info(`Toggled expansion for "${node.label}" (${node.id}): ${
+                    expansionState.isExpanded(node.id) ? 'expanded' : 'collapsed'
+                  }, ${hierarchyNode.childIds.length} children`);
+                } else {
+                  logger.info(`Node "${node.label}" has no children to expand`);
+                }
+              }
             }
           }}
         >
