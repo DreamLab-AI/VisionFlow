@@ -11,7 +11,9 @@ export interface GraphNode {
     z: number;
   };
   metadata?: Record<string, any>;
-  graphType?: GraphType; 
+  graphType?: GraphType;
+  owlClassIri?: string;  // Ontology class IRI for semantic identity
+  nodeType?: string;     // Visual node type for rendering
 }
 
 export interface GraphEdge {

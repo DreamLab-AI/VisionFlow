@@ -245,11 +245,16 @@ pub struct UnifiedGPUCompute {
     pub vel_out_y: DeviceBuffer<f32>,
     pub vel_out_z: DeviceBuffer<f32>,
 
-    
+
     pub mass: DeviceBuffer<f32>,
     pub node_graph_id: DeviceBuffer<i32>,
 
-    
+    // Ontology class metadata for class-based physics
+    pub class_id: DeviceBuffer<i32>,        // Maps owl_class_iri to integer class ID
+    pub class_charge: DeviceBuffer<f32>,    // Class-specific charge modifiers
+    pub class_mass: DeviceBuffer<f32>,      // Class-specific mass modifiers
+
+
     pub edge_row_offsets: DeviceBuffer<i32>,
     pub edge_col_indices: DeviceBuffer<i32>,
     pub edge_weights: DeviceBuffer<f32>,
@@ -433,9 +438,15 @@ impl UnifiedGPUCompute {
         let vel_out_y = DeviceBuffer::zeroed(num_nodes)?;
         let vel_out_z = DeviceBuffer::zeroed(num_nodes)?;
 
-        
+
         let mass = DeviceBuffer::from_slice(&vec![1.0f32; num_nodes])?;
         let node_graph_id = DeviceBuffer::zeroed(num_nodes)?;
+
+        // Initialize ontology class metadata buffers
+        let class_id = DeviceBuffer::zeroed(num_nodes)?;           // Default class ID = 0 (unknown)
+        let class_charge = DeviceBuffer::from_slice(&vec![1.0f32; num_nodes])?;  // Default charge = 1.0
+        let class_mass = DeviceBuffer::from_slice(&vec![1.0f32; num_nodes])?;    // Default mass = 1.0
+
         let edge_row_offsets = DeviceBuffer::zeroed(num_nodes + 1)?;
         let edge_col_indices = DeviceBuffer::zeroed(num_edges)?;
         let edge_weights = DeviceBuffer::zeroed(num_edges)?;
@@ -535,6 +546,9 @@ impl UnifiedGPUCompute {
             vel_out_z,
             mass,
             node_graph_id,
+            class_id,
+            class_charge,
+            class_mass,
             edge_row_offsets,
             edge_col_indices,
             edge_weights,
@@ -718,6 +732,44 @@ impl UnifiedGPUCompute {
             self.pos_in_y.copy_from(y)?;
             self.pos_in_z.copy_from(z)?;
         }
+        Ok(())
+    }
+
+    /// Upload ontology class metadata for class-based physics
+    /// Maps owl_class_iri to integer class IDs and sets class-specific force parameters
+    pub fn upload_class_metadata(
+        &mut self,
+        class_ids: &[i32],
+        class_charges: &[f32],
+        class_masses: &[f32],
+    ) -> Result<()> {
+        if class_ids.len() != self.num_nodes {
+            return Err(anyhow!(
+                "Class ID array size mismatch: expected {} nodes, got {}",
+                self.num_nodes,
+                class_ids.len()
+            ));
+        }
+        if class_charges.len() != self.num_nodes {
+            return Err(anyhow!(
+                "Class charge array size mismatch: expected {} nodes, got {}",
+                self.num_nodes,
+                class_charges.len()
+            ));
+        }
+        if class_masses.len() != self.num_nodes {
+            return Err(anyhow!(
+                "Class mass array size mismatch: expected {} nodes, got {}",
+                self.num_nodes,
+                class_masses.len()
+            ));
+        }
+
+        // Upload to GPU buffers
+        self.class_id.copy_from(class_ids)?;
+        self.class_charge.copy_from(class_charges)?;
+        self.class_mass.copy_from(class_masses)?;
+
         Ok(())
     }
 
