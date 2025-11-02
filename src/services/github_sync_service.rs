@@ -266,7 +266,7 @@ impl GitHubSyncService {
                 public_pages.insert(page_name.to_string());
                 debug!("✓ Added '{}' to public_pages (total: {})", page_name, public_pages.len());
 
-                // Add nodes
+                // Add nodes from KG parser
                 let nodes_before = nodes.len();
                 for node in parsed.nodes {
                     debug!("  → Node {}: {} (type: {:?})",
@@ -274,8 +274,55 @@ impl GitHubSyncService {
                         node.metadata.get("type"));
                     nodes.insert(node.id, node);
                 }
-                info!("✓ Added {} nodes from {} (total now: {})",
-                    nodes.len() - nodes_before, file.name, nodes.len());
+                let kg_nodes_added = nodes.len() - nodes_before;
+
+                // If KG parser didn't produce nodes, create an ontology class for this markdown file
+                // This enables the "fully migrated to ontology-based nodes" architecture
+                if kg_nodes_added == 0 && !content.contains("### OntologyBlock") {
+                    debug!("🦉 Creating ontology class from markdown file: {}", page_name);
+
+                    // Extract first line as description
+                    let description = content
+                        .lines()
+                        .find(|line| !line.trim().is_empty() && !line.starts_with('#'))
+                        .map(|s| s.to_string())
+                        .unwrap_or_else(|| format!("Page: {}", page_name));
+
+                    // Create IRI from filename
+                    let iri = format!("kg:{}", page_name.replace(' ', "_").replace('-', "_").to_lowercase());
+
+                    // Create ontology class record using the ports definition
+                    use crate::ports::ontology_repository::OwlClass;
+                    use std::collections::HashMap;
+                    let class = OwlClass {
+                        iri: iri.clone(),
+                        label: Some(page_name.to_string()),
+                        description: Some(description),
+                        parent_classes: vec![],
+                        properties: HashMap::new(),
+                        source_file: Some(file.name.clone()),
+                        markdown_content: Some(content.clone()),
+                        file_sha1: Some(file.sha.clone()),
+                        last_synced: Some(chrono::Utc::now()),
+                    };
+
+                    let onto_data = crate::services::parsers::ontology_parser::OntologyData {
+                        classes: vec![class],
+                        properties: vec![],
+                        axioms: vec![],
+                        class_hierarchy: vec![],
+                    };
+
+                    // Save ontology data immediately
+                    if let Err(e) = self.save_ontology_data(onto_data).await {
+                        error!("Failed to save ontology data from {}: {}", file.name, e);
+                    } else {
+                        info!("✅ Created ontology class from {}", page_name);
+                    }
+                } else {
+                    info!("✓ Added {} nodes from {} (total now: {})",
+                        kg_nodes_added, file.name, nodes.len());
+                }
 
                 // Add edges
                 let edges_before = edges.len();

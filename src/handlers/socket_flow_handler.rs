@@ -122,8 +122,10 @@ impl Handler<SendInitialGraphLoad> for SocketFlowServer {
 
         if let Ok(json) = serde_json::to_string(&initial_load) {
             ctx.text(json);
-            info!("[WebSocket] Sent initial graph load: {} nodes, {} edges",
-                   initial_load.nodes.len(), initial_load.edges.len());
+            if let Message::InitialGraphLoad { nodes, edges, .. } = &initial_load {
+                info!("[WebSocket] Sent initial graph load: {} nodes, {} edges",
+                       nodes.len(), edges.len());
+            }
         } else {
             error!("[WebSocket] Failed to serialize initial graph load message");
         }
@@ -318,8 +320,8 @@ impl SocketFlowServer {
                             .iter()
                             .map(|node| InitialNodeData {
                                 id: node.id,
-                                metadata_id: node.metadata_id.clone().unwrap_or_default(),
-                                label: node.label.clone().unwrap_or_default(),
+                                metadata_id: node.metadata_id.clone(),
+                                label: node.label.clone(),
                                 x: node.data.x,
                                 y: node.data.y,
                                 z: node.data.z,
@@ -336,8 +338,8 @@ impl SocketFlowServer {
                             .iter()
                             .map(|edge| InitialEdgeData {
                                 id: edge.id.clone(),
-                                source_id: edge.source_id,
-                                target_id: edge.target_id,
+                                source_id: edge.source,
+                                target_id: edge.target,
                                 weight: Some(edge.weight),
                                 edge_type: edge.edge_type.clone(),
                             })
