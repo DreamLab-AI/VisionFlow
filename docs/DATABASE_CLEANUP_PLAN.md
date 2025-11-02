@@ -1,14 +1,15 @@
 # Database & Schema Cleanup Plan
 
-## Current State Analysis
+## Current State Analysis (Updated: November 2, 2025)
 
 ### Database Files
 
 **PRODUCTION (data/)**
-- ✅ `data/unified.db` (408K) - **ACTIVE** authoritative unified database
-- ⚠️ `data/knowledge_graph.db` (288K) - LEGACY, superseded by unified.db
-- ⚠️ `data/ontology.db` (192K) - LEGACY, superseded by unified.db
-- ⚠️ `data/settings.db` (212K) - LEGACY, superseded by unified.db
+- ✅ `data/unified.db` - **ACTIVE** authoritative unified database (ALL domain tables)
+- ✅ **ARCHIVED** Legacy databases moved to `data/archive/`:
+  - `data/archive/knowledge_graph.db` - Archived for historical reference only
+  - `data/archive/ontology.db` - Archived for historical reference only
+  - `data/archive/settings.db` - Archived for historical reference only
 
 **ROOT DIRECTORY CLUTTER**
 - 🗑️ `unified.db` (0 bytes) - Empty duplicate, DELETE

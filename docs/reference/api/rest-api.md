@@ -73,6 +73,47 @@ X-API-Key: <api_key>
 **Authentication:** User
 **CQRS Handler:** `GetGraphQuery`
 
+### Get Complete Graph Data
+**Endpoint:** `GET /api/graph/data`
+**Authentication:** User
+**Description:** Returns complete graph data with nodes, edges, and metadata
+
+**Response Structure:**
+```json
+{
+  "nodes": [
+    {
+      "id": "string",
+      "label": "string",
+      "position": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "velocity": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "metadata": {
+        "owl_class_iri": "string",
+        "file_source": "string"
+      },
+      "visual": {
+        "color": "#hexcolor",
+        "size": 1.0
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_id",
+      "target": "node_id",
+      "relationship_type": "string"
+    }
+  ],
+  "metadata": {
+    "node_count": 50,
+    "edge_count": 12,
+    "last_updated": "2025-11-02T13:00:00Z"
+  }
+}
+```
+
+**Example:** Typical response: 50 nodes, 12 edges (~17KB JSON)
+
 ### Add Node
 **Endpoint:** `POST /api/graph/node`
 **Authentication:** User
@@ -107,6 +148,28 @@ X-API-Key: <api_key>
 **Endpoint:** `GET /api/graph/statistics`
 **Authentication:** User
 **CQRS Handler:** `GetGraphStatisticsQuery`
+
+---
+
+## Admin API
+
+### Trigger GitHub Synchronization
+**Endpoint:** `POST /api/admin/sync`
+**Authentication:** Developer
+**Description:** Triggers GitHub repository synchronization to import ontology files
+
+**Environment Variables:**
+- `FORCE_FULL_SYNC=1` - Bypass SHA1 filtering, process all files
+
+**Response:**
+```json
+{
+  "status": "success",
+  "files_processed": 50,
+  "nodes_created": 45,
+  "edges_created": 12
+}
+```
 
 ---
 
@@ -230,6 +293,21 @@ X-RateLimit-Reset: 1729591200
 
 ---
 
+## Database Architecture
+
+VisionFlow uses a **unified database architecture** with `unified.db`:
+
+### Database Schema
+- **nodes** - Knowledge graph nodes with positions and metadata
+- **edges** - Relationships between nodes
+- **owl_classes** - OWL ontology classes
+- **owl_properties** - OWL ontology properties
+- **github_sync_state** - GitHub synchronization tracking (SHA1 hashes)
+
+All domain data is consolidated in a single database for consistency and performance.
+
+---
+
 **Document Maintained By:** VisionFlow API Team
-**Last Review:** 2025-10-25
-**Next Review:** 2025-11-25
+**Last Review:** 2025-11-02
+**Next Review:** 2025-12-02

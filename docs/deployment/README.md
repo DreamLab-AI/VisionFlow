@@ -7,7 +7,7 @@ VisionFlow is deployed as a Rust backend + React frontend system. This guide cov
 **Current Technology Stack:**
 - **Backend**: Rust (Actix-web framework)
 - **Frontend**: React + Vite
-- **Database**: SQLite (3 separate databases: knowledge_graph.db, settings.db, ontology.db)
+- **Database**: SQLite (unified.db with 8 core tables)
 - **Default API Port**: 3030 (configurable via SYSTEM_NETWORK_PORT)
 
 ## Deployment Approaches
@@ -189,11 +189,12 @@ See `/docs/deployment/docker-future.md` for planned Docker implementation detail
 
 ```
 data/
-├── settings.yaml          # Main application configuration
+├── settings.yaml          # Main application configuration (legacy, being phased out)
 ├── dev_config.toml        # Physics parameters and tuning
-├── knowledge_graph.db     # SQLite database (created automatically)
-├── settings.db            # Settings storage (created automatically)
-└── ontology.db            # Ontology data (created automatically)
+└── unified.db             # Unified SQLite database (created automatically)
+                           # Contains 8 tables: graph_nodes, graph_edges,
+                           # owl_classes, owl_class_hierarchy, owl_properties,
+                           # owl_axioms, graph_statistics, file_metadata
 ```
 
 ### Environment Variables
@@ -204,6 +205,8 @@ data/
 | `RUST_LOG` | `info` | Logging level: debug, info, warn, error |
 | `ENABLE_GPU` | `true` | Enable GPU acceleration (if hardware available) |
 | `CUDA_VISIBLE_DEVICES` | all | CUDA device selection (for multi-GPU systems) |
+| `FORCE_FULL_SYNC` | `false` | Force full database sync on startup (ignores file_metadata cache) |
+| `DB_PATH` | `./data/unified.db` | Path to unified SQLite database |
 
 ### Example Configuration (settings.yaml)
 
@@ -216,8 +219,9 @@ server:
   timeout_secs: 30
 
 database:
-  sqlite_path: "./data/"
+  unified_db_path: "./data/unified.db"  # Single unified database
   enable_wal: true  # Write-ahead logging for concurrency
+  force_full_sync: false  # Set to true to ignore file_metadata cache
 
 physics:
   repulsion_strength: 150
@@ -294,15 +298,22 @@ netstat -an | grep 3030 | grep ESTABLISHED | wc -l
 - [ ] **Restrict CORS** - Configure allowed origins in backend
 - [ ] **Database security** - SQLite file permissions:
   ```bash
-  chmod 600 data/*.db
-  chown visionflow:visionflow data/*.db
+  chmod 600 data/unified.db
+  chown visionflow:visionflow data/unified.db
   ```
 - [ ] **Review settings.yaml** - Ensure no secrets hardcoded
 - [ ] **Enable logging** - Set `RUST_LOG=info` or `warn` for production
 - [ ] **Rate limiting** - Consider implementing API rate limiting
-- [ ] **Regular backups** - Backup SQLite databases regularly:
+- [ ] **Regular backups** - Backup unified database regularly:
   ```bash
-  cp data/*.db /backup/visionflow-$(date +%Y%m%d).tar.gz
+  # Binary backup (recommended)
+  sqlite3 data/unified.db ".backup /backup/visionflow-$(date +%Y%m%d).db"
+
+  # SQL export (for version control)
+  sqlite3 data/unified.db ".dump" > /backup/visionflow-$(date +%Y%m%d).sql
+
+  # Compressed backup
+  tar -czf /backup/visionflow-$(date +%Y%m%d).tar.gz data/unified.db
   ```
 
 ## Troubleshooting

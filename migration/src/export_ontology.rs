@@ -5,7 +5,7 @@ use sqlx::{sqlite::SqlitePool, Row};
 use std::fs::File;
 use std::io::Write;
 
-/// OWL Class from ontology.db
+/// OWL Class from unified.db (owl_classes table)
 #[derive(Debug, Serialize, Deserialize)]
 struct OwlClass {
     id: i64,
@@ -90,12 +90,12 @@ async fn main() -> Result<()> {
 
     // Database path (adjust as needed)
     let db_path = std::env::var("ONT_DATABASE_URL")
-        .unwrap_or_else(|_| "sqlite:///home/devuser/workspace/project/data/ontology.db".to_string());
+        .unwrap_or_else(|_| "sqlite:///home/devuser/workspace/project/data/unified.db".to_string());
 
     println!("📊 Connecting to: {}", db_path);
     let pool = SqlitePool::connect(&db_path)
         .await
-        .context("Failed to connect to ontology.db")?;
+        .context("Failed to connect to unified.db")?;
 
     // Export OWL classes
     println!("📦 Exporting OWL classes...");

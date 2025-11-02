@@ -134,6 +134,92 @@ GET /api/users/me
 PUT /api/users/me
 ```
 
+### Graph Data
+
+#### Get Complete Graph Data
+
+```
+GET /api/graph/data
+```
+
+**Description**: Returns complete graph data with nodes, edges, and metadata.
+
+**Authentication**: Required
+
+**Response Structure**:
+```json
+{
+  "nodes": [
+    {
+      "id": "string",
+      "label": "string",
+      "position": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "velocity": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "metadata": {
+        "owl_class_iri": "string",
+        "file_source": "string"
+      },
+      "visual": {
+        "color": "#hexcolor",
+        "size": 1.0
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "node_id",
+      "target": "node_id",
+      "relationship_type": "string"
+    }
+  ],
+  "metadata": {
+    "node_count": 50,
+    "edge_count": 12,
+    "last_updated": "2025-11-02T13:00:00Z"
+  }
+}
+```
+
+**Example**: Typical response contains 50 nodes, 12 edges (~17KB JSON)
+
+**Response**: `200 OK`
+
+### Admin Operations
+
+#### Trigger GitHub Synchronization
+
+```
+POST /api/admin/sync
+```
+
+**Description**: Triggers GitHub repository synchronization to import ontology files.
+
+**Authentication**: Required (Admin)
+
+**Environment Variables**:
+- `FORCE_FULL_SYNC=1` - Bypass SHA1 filtering, process all files
+
+**Response**:
+```json
+{
+  "status": "success",
+  "files_processed": 50,
+  "nodes_created": 45,
+  "edges_created": 12
+}
+```
+
+**Response**: `200 OK` on success
+
+## Database
+
+The API uses a **unified database architecture** with `unified.db` containing all domain tables:
+- `nodes` - Knowledge graph nodes
+- `edges` - Relationships between nodes
+- `owl_classes` - OWL ontology classes
+- `owl_properties` - OWL ontology properties
+- `github_sync_state` - Synchronization tracking
+
 ## Error Responses
 
 ```json

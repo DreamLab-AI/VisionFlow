@@ -28,28 +28,112 @@ This document provides a complete architectural blueprint for migrating the Visi
    - Handlers for all domains
 
 4. **[04-database-schemas.md](./04-database-schemas.md)** - Complete database designs
-   - settings.db schema
-   - knowledge_graph.db schema
-   - ontology.db schema
+   - unified.db schema (single database with all domain tables)
 
 ## Key Architectural Decisions
 
-### 1. Three Separate Databases
+### 1. Unified Database Design (ACTIVE: November 2, 2025)
 
-**Decision**: Use three separate SQLite databases instead of one monolithic database.
+**Decision**: ✅ Use a **single unified SQLite database** (unified.db) with all domain tables.
 
 **Rationale**:
-- **Clear domain separation**: Settings, knowledge graph, and ontology are distinct concerns
-- **Independent scaling**: Each database can be optimized independently
-- **Easier backup/restore**: Can backup specific domains without affecting others
-- **Reduced lock contention**: Separate write-ahead logs per database
-- **Future migration path**: Easier to move individual databases to different storage solutions
+- **Atomic transactions**: Cross-domain transactions are atomic
+- **Simplified operations**: Single connection pool, single backup file
+- **Foreign key integrity**: Cross-domain relationships enforced by database
+- **Easier development**: Simpler schema management and testing
+- **Better performance**: Reduced connection overhead
 
-**Trade-offs**:
-- ❌ No cross-database foreign keys (handled at application layer)
-- ❌ No atomic transactions across databases (acceptable for this use case)
-- ✅ Better isolation and modularity
-- ✅ Easier testing and development
+**Legacy Architecture Removed** (as of November 2, 2025):
+- ❌ Previous three-database design fully deprecated
+- ❌ Legacy databases archived to data/archive/
+- ❌ All code updated to use unified.db only
+
+**Current Architecture**:
+- ✅ Single unified.db with 8 core domain tables
+- ✅ Full foreign key support across all domains
+- ✅ Atomic transactions spanning all domains
+- ✅ Simplified backup/restore (single file)
+
+**Unified Database Structure**:
+
+```mermaid
+erDiagram
+    graph_nodes ||--o{ graph_edges : "connects"
+    graph_nodes {
+        integer id PK
+        text metadata_id UK
+        text label
+        real x
+        real y
+        real z
+        text metadata
+    }
+
+    graph_edges {
+        text id PK
+        integer source FK
+        integer target FK
+        real weight
+        text metadata
+    }
+
+    owl_classes ||--o{ owl_class_hierarchy : "parent"
+    owl_classes ||--o{ owl_class_hierarchy : "child"
+    owl_classes ||--o{ owl_axioms : "references"
+
+    owl_classes {
+        text iri PK
+        text label
+        text description
+        text properties
+    }
+
+    owl_class_hierarchy {
+        text class_iri FK
+        text parent_iri FK
+    }
+
+    owl_properties {
+        text iri PK
+        text label
+        text property_type
+        text domain
+        text range
+    }
+
+    owl_axioms {
+        integer id PK
+        text axiom_type
+        text subject
+        text predicate
+        text object
+        integer is_inferred
+    }
+
+    graph_statistics {
+        text key PK
+        text value
+        datetime updated_at
+    }
+
+    file_metadata {
+        integer id PK
+        text file_path UK
+        text file_hash
+        datetime last_modified
+        text sync_status
+    }
+```
+
+**Table Overview**:
+1. **graph_nodes** - Knowledge graph vertices (local markdown)
+2. **graph_edges** - Knowledge graph relationships
+3. **owl_classes** - OWL ontology class definitions (GitHub markdown)
+4. **owl_class_hierarchy** - SubClassOf relationships
+5. **owl_properties** - OWL property definitions
+6. **owl_axioms** - Complete axiom storage with inference tracking
+7. **graph_statistics** - Runtime metrics and metadata
+8. **file_metadata** - Source file tracking for incremental sync
 
 ### 2. Hexagonal Architecture with hexser
 
@@ -159,7 +243,7 @@ gantt
 6. Test database connections and basic CRUD operations
 
 **Completion Criteria**:
-- ✅ All three databases created and initialized
+- ✅ Unified database created and initialized
 - ✅ All port traits compile without errors
 - ✅ Migration scripts successfully import existing data
 - ✅ Basic unit tests pass for database operations
@@ -492,9 +576,7 @@ cargo build --release --features gpu,ontology
 # Automated backup script
 #!/bin/bash
 DATE=$(date +%Y%m%d_%H%M%S)
-sqlite3 data/settings.db ".backup data/backups/settings_$DATE.db"
-sqlite3 data/knowledge_graph.db ".backup data/backups/knowledge_graph_$DATE.db"
-sqlite3 data/ontology.db ".backup data/backups/ontology_$DATE.db"
+sqlite3 data/unified.db ".backup data/backups/unified_$DATE.db"
 ```
 
 ## Success Criteria
@@ -503,7 +585,7 @@ sqlite3 data/ontology.db ".backup data/backups/ontology_$DATE.db"
 
 - ✅ All existing features work correctly
 - ✅ No file-based config remains
-- ✅ Three databases operational
+- ✅ Unified database operational
 - ✅ CQRS layer properly separates reads and writes
 - ✅ Actors integrated with new architecture
 - ✅ WebSocket and HTTP APIs functional

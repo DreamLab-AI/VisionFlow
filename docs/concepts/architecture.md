@@ -85,38 +85,52 @@ Concrete adapters implement ports:
 
 ## Database Architecture
 
-### Three-Database Model
+### Unified Database Model (UPDATED: November 2, 2025)
 
+```mermaid
+graph TB
+    subgraph "VisionFlow Application State"
+        DB[unified.db]
+
+        subgraph "Knowledge Graph Domain"
+            GN[graph_nodes<br/>• 3D positions<br/>• Physics state]
+            GE[graph_edges<br/>• Relationships<br/>• Weights]
+        end
+
+        subgraph "Ontology Domain"
+            OC[owl_classes<br/>• Semantic concepts]
+            OH[owl_class_hierarchy<br/>• SubClassOf]
+            OP[owl_properties<br/>• Relationships]
+            OA[owl_axioms<br/>• Inferences]
+        end
+
+        subgraph "Cross-Domain"
+            GS[graph_statistics<br/>• Runtime metrics]
+            FM[file_metadata<br/>• Sync tracking]
+        end
+
+        DB --> GN
+        DB --> GE
+        DB --> OC
+        DB --> OH
+        DB --> OP
+        DB --> OA
+        DB --> GS
+        DB --> FM
+
+        GN -.->|FK| GE
+        OC -.->|FK| OH
+        OC -.->|FK| OA
+    end
 ```
-┌─────────────────────────────────────────────┐
-│ VisionFlow Application State                │
-├─────────────────────────────────────────────┤
-│                                             │
-│  ┌──────────────┐  ┌──────────────┐       │
-│  │ settings.db  │  │ knowledge_   │       │
-│  │              │  │ graph.db     │       │
-│  │ • Prefs      │  │              │       │
-│  │ • Physics    │  │ • Nodes      │       │
-│  │ • Namespaces │  │ • Edges      │       │
-│  └──────────────┘  └──────────────┘       │
-│                                             │
-│  ┌──────────────┐                         │
-│  │ ontology.db  │                         │
-│  │              │                         │
-│  │ • OWL Classes │                        │
-│  │ • Properties  │                        │
-│  │ • Axioms      │                        │
-│  └──────────────┘                         │
-│                                             │
-└─────────────────────────────────────────────┘
-```
 
-**Why Three Databases?**
+**Why Unified Database?**
 
-- **Domain Separation**: Clear semantic boundaries
-- **Independent Scaling**: Each database sized to its use case
-- **Conflict Prevention**: No risk of mixing knowledge graph IDs with ontology IRIs
-- **Query Optimization**: Specialized indexes per domain
+- ✅ **Atomic Transactions**: Cross-domain operations are atomic
+- ✅ **Foreign Key Integrity**: Enforced relationships between domains
+- ✅ **Simplified Operations**: Single connection pool, single backup file
+- ✅ **Better Performance**: Reduced connection overhead
+- ✅ **Easier Development**: Simpler schema management and testing
 
 ---
 
@@ -275,11 +289,12 @@ This allows gradual migration from actor-based to CQRS-based architecture.
 
 ### Storage
 
-| Database | Typical Size | Growth Rate |
-|----------|--------------|-------------|
-| Settings | 1-5 MB | Slow |
-| Knowledge Graph | 50-500 MB | Medium |
-| Ontology | 10-100 MB | Slow |
+| Database | Typical Size | Growth Rate | Tables |
+|----------|--------------|-------------|--------|
+| unified.db | 50-500 MB | Medium | 8 core tables |
+| - Knowledge Graph | 40-400 MB | Medium | graph_nodes, graph_edges |
+| - Ontology | 10-100 MB | Slow | owl_classes, owl_properties, owl_axioms, owl_class_hierarchy |
+| - Metadata | 1-5 MB | Slow | graph_statistics, file_metadata |
 
 ### Network
 
