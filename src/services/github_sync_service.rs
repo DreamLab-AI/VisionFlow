@@ -187,16 +187,17 @@ impl GitHubSyncService {
         info!("🔍 [DEBUG] After processing: {} nodes, {} edges, {} public_pages",
             batch_nodes.len(), batch_edges.len(), public_pages.len());
 
-        // Filter nodes/edges
-        let nodes_before_filter = batch_nodes.len();
-        self.filter_linked_pages(&mut batch_nodes, &public_pages);
-        info!("🔍 [DEBUG] After filter_linked_pages: {} nodes (removed {})",
-            batch_nodes.len(), nodes_before_filter - batch_nodes.len());
+        // Don't filter nodes/edges - save everything to maintain graph connectivity
+        // Edge cross-references between batches should be preserved
+        // let nodes_before_filter = batch_nodes.len();
+        // self.filter_linked_pages(&mut batch_nodes, &public_pages);
+        // info!("🔍 [DEBUG] After filter_linked_pages: {} nodes (removed {})",
+        //     batch_nodes.len(), nodes_before_filter - batch_nodes.len());
 
-        let edges_before_filter = batch_edges.len();
-        self.filter_orphan_edges(&mut batch_edges, &batch_nodes);
-        info!("🔍 [DEBUG] After filter_orphan_edges: {} edges (removed {})",
-            batch_edges.len(), edges_before_filter - batch_edges.len());
+        // let edges_before_filter = batch_edges.len();
+        // self.filter_orphan_edges(&mut batch_edges, &batch_nodes);
+        // info!("🔍 [DEBUG] After filter_orphan_edges: {} edges (removed {})",
+        //     batch_edges.len(), edges_before_filter - batch_edges.len());
 
         // Save batch to database
         if !batch_nodes.is_empty() {

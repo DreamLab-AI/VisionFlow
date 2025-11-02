@@ -296,6 +296,7 @@ async fn main() -> std::io::Result<()> {
                     graph.nodes.len(),
                     graph.edges.len()
                 );
+                info!("ℹ️  Ontology classes loaded but NOT sent to actor (KG nodes will be loaded via ReloadGraphFromDatabase)");
                 Some((*graph_arc).clone())
             } else {
                 info!("📂 Ontology database is empty - waiting for GitHub sync to populate");
@@ -310,25 +311,21 @@ async fn main() -> std::io::Result<()> {
         }
     };
 
-    
-    use std::sync::Arc as StdArc;
-    use webxr::actors::messages::UpdateGraphData;
 
-    if let Some(graph_data) = graph_data_option {
-        
-        info!(
-            "📤 Sending graph data to GraphServiceActor: {} nodes, {} edges",
-            graph_data.nodes.len(),
-            graph_data.edges.len()
-        );
-        app_state.graph_service_addr.do_send(UpdateGraphData {
-            graph_data: StdArc::new(graph_data),
-        });
-        info!("✅ Graph data sent to actor");
+    // CRITICAL FIX: Do NOT send ontology graph via UpdateGraphData!
+    // This would overwrite the KG nodes that should be loaded via ReloadGraphFromDatabase.
+    // The architecture is: KG nodes (from GitHub sync) with owl_class_iri links to ontology.
+    // ReloadGraphFromDatabase (sent in app_state.rs) will load all KG nodes from database.
+    // UpdateGraphData here would overwrite them with only the 1 ontology root node.
+    //
+    // Keeping graph_data_option for potential future use but not sending it to actor.
+
+    if let Some(_graph_data) = graph_data_option {
+        info!("⏭️  Ontology graph loaded but not sent to actor (will use KG nodes from ReloadGraphFromDatabase instead)");
+        info!("ℹ️  Ontology classes are available via API endpoints but nodes come from KG sync");
     } else {
-        
-        info!("⏳ GraphServiceActor will remain empty until GitHub sync finishes");
-        info!("ℹ️  You can manually trigger sync via /api/admin/sync endpoint");
+        info!("⏳ GraphServiceActor will be populated by ReloadGraphFromDatabase from existing KG nodes");
+        info!("ℹ️  If no KG nodes exist, you can trigger GitHub sync via /api/admin/sync endpoint");
     }
 
     info!("Starting HTTP server...");
