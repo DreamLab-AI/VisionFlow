@@ -105,6 +105,60 @@ impl Handler<SendToClientText> for SocketFlowServer {
     }
 }
 
+// Handler for initial graph load - sends all nodes and edges as JSON
+use crate::actors::messages::{SendInitialGraphLoad, SendPositionUpdate};
+
+impl Handler<SendInitialGraphLoad> for SocketFlowServer {
+    type Result = ();
+
+    fn handle(&mut self, msg: SendInitialGraphLoad, ctx: &mut Self::Context) -> Self::Result {
+        use crate::utils::socket_flow_messages::Message;
+
+        let initial_load = Message::InitialGraphLoad {
+            nodes: msg.nodes,
+            edges: msg.edges,
+            timestamp: chrono::Utc::now().timestamp_millis() as u64,
+        };
+
+        if let Ok(json) = serde_json::to_string(&initial_load) {
+            ctx.text(json);
+            info!("[WebSocket] Sent initial graph load: {} nodes, {} edges",
+                   initial_load.nodes.len(), initial_load.edges.len());
+        } else {
+            error!("[WebSocket] Failed to serialize initial graph load message");
+        }
+    }
+}
+
+// Handler for streamed position updates - sends individual node updates efficiently
+impl Handler<SendPositionUpdate> for SocketFlowServer {
+    type Result = ();
+
+    fn handle(&mut self, msg: SendPositionUpdate, ctx: &mut Self::Context) -> Self::Result {
+        use crate::utils::socket_flow_messages::Message;
+
+        let position_update = Message::PositionUpdate {
+            node_id: msg.node_id,
+            x: msg.x,
+            y: msg.y,
+            z: msg.z,
+            vx: msg.vx,
+            vy: msg.vy,
+            vz: msg.vz,
+            timestamp: chrono::Utc::now().timestamp_millis() as u64,
+        };
+
+        if let Ok(json) = serde_json::to_string(&position_update) {
+            ctx.text(json);
+            if self.should_log_update() {
+                trace!("[WebSocket] Sent position update for node {}", msg.node_id);
+            }
+        } else {
+            error!("[WebSocket] Failed to serialize position update for node {}", msg.node_id);
+        }
+    }
+}
+
 pub struct SocketFlowServer {
     app_state: Arc<AppState>,
     client_id: Option<usize>,
@@ -254,7 +308,47 @@ impl SocketFlowServer {
                         );
                     }
 
-                    
+
+                    // Send new InitialGraphLoad message with full node metadata and all edges
+                    if !graph_data.nodes.is_empty() || !graph_data.edges.is_empty() {
+                        use crate::utils::socket_flow_messages::{InitialNodeData, InitialEdgeData};
+
+                        let nodes: Vec<InitialNodeData> = graph_data
+                            .nodes
+                            .iter()
+                            .map(|node| InitialNodeData {
+                                id: node.id,
+                                metadata_id: node.metadata_id.clone().unwrap_or_default(),
+                                label: node.label.clone().unwrap_or_default(),
+                                x: node.data.x,
+                                y: node.data.y,
+                                z: node.data.z,
+                                vx: node.data.vx,
+                                vy: node.data.vy,
+                                vz: node.data.vz,
+                                owl_class_iri: node.owl_class_iri.clone(),
+                                node_type: node.node_type.clone(),
+                            })
+                            .collect();
+
+                        let edges: Vec<InitialEdgeData> = graph_data
+                            .edges
+                            .iter()
+                            .map(|edge| InitialEdgeData {
+                                id: edge.id.clone(),
+                                source_id: edge.source_id,
+                                target_id: edge.target_id,
+                                weight: Some(edge.weight),
+                                edge_type: edge.edge_type.clone(),
+                            })
+                            .collect();
+
+                        addr.do_send(SendInitialGraphLoad { nodes, edges });
+                        info!("✅ Sent InitialGraphLoad: {} nodes, {} edges",
+                              graph_data.nodes.len(), graph_data.edges.len());
+                    }
+
+                    // Also send binary position data for backward compatibility and efficiency
                     if !graph_data.nodes.is_empty() {
                         let node_data: Vec<(u32, BinaryNodeData)> = graph_data
                             .nodes
@@ -275,9 +369,9 @@ impl SocketFlowServer {
                             })
                             .collect();
 
-                        
+
                         addr.do_send(BroadcastPositionUpdate(node_data));
-                        debug!("Sent initial node positions for state sync");
+                        debug!("Sent initial node positions for state sync (binary)");
                     }
                 }
             }

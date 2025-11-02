@@ -639,6 +639,29 @@ pub struct SendToClientBinary(pub Vec<u8>);
 #[rtype(result = "()")]
 pub struct SendToClientText(pub String);
 
+// WebSocket protocol: Initial graph load with all nodes and edges
+use crate::utils::socket_flow_messages::{InitialNodeData, InitialEdgeData};
+
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct SendInitialGraphLoad {
+    pub nodes: Vec<InitialNodeData>,
+    pub edges: Vec<InitialEdgeData>,
+}
+
+// WebSocket protocol: Streamed position updates indexed by node ID
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct SendPositionUpdate {
+    pub node_id: u32,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+    pub vx: f32,
+    pub vy: f32,
+    pub vz: f32,
+}
+
 // Claude Flow Actor Messages - Enhanced for Hive Mind Swarm
 use crate::types::claude_flow::AgentStatus;
 

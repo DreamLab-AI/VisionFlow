@@ -144,6 +144,55 @@ pub enum Message {
 
     #[serde(rename = "enableRandomization")]
     EnableRandomization { enabled: bool },
+
+    #[serde(rename = "initialGraphLoad")]
+    InitialGraphLoad {
+        nodes: Vec<InitialNodeData>,
+        edges: Vec<InitialEdgeData>,
+        timestamp: u64,
+    },
+
+    #[serde(rename = "positionUpdate")]
+    PositionUpdate {
+        node_id: u32,
+        x: f32,
+        y: f32,
+        z: f32,
+        vx: f32,
+        vy: f32,
+        vz: f32,
+        timestamp: u64,
+    },
+}
+
+/// Node data sent during initial graph load with full metadata
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InitialNodeData {
+    pub id: u32,
+    pub metadata_id: String,
+    pub label: String,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+    pub vx: f32,
+    pub vy: f32,
+    pub vz: f32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub owl_class_iri: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub node_type: Option<String>,
+}
+
+/// Edge data sent during initial graph load
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InitialEdgeData {
+    pub id: String,
+    pub source_id: u32,
+    pub target_id: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub weight: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub edge_type: Option<String>,
 }
 
 // Helper functions to convert between Vec3Data and [f32; 3] for GPU computations
