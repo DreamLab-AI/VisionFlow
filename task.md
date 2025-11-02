@@ -1,285 +1,323 @@
-# VisionFlow - Single Pipeline Implementation Tasks
+# VisionFlow - Ontology-Based Graph Visualization Pipeline
 
+**Status:** Major Architecture Transition in Progress
+**Goal:** Complete migration from hybrid KG/Ontology nodes to unified ontology-based nodes with ported physics/networking
+**Architecture:** Single unified.db with ontology classes as primary nodes (OWL classes → graph nodes)
+**Last Updated:** November 2, 2025
+
+---
+
+## 🎯 High-Level Strategy
+
+### Legacy System (Being Replaced)
+```
+GitHub (Logseq) → KnowledgeGraphParser → graph_nodes (KG concepts)
+                                      → owl_classes (separate ontology)
+                                      → owl_class_iri link (one-way reference)
+```
+**Problem:** Two parallel node systems, ontology was metadata, KG was primary
+
+### New System (Current Target)
+```
+GitHub (Logseq) → OntologyExtractor → owl_classes (primary nodes)
+                → OntologyConverter  → graph_nodes (ontology instances)
+                                   → Properties, hierarchies, axioms
+```
+**Benefit:** Single authoritative source (OWL), physics/constraints/networking unchanged
+
+### Porting Strategy
+- ✅ GPU physics engine: **Reusable as-is** (works on any node set)
+- ✅ CUDA kernels: **No changes needed** (node IDs stay same, just different source)
+- ✅ WebSocket networking: **Needs protocol update** (initial node handshake)
+- ⚠️ Client visualization: **Minor updates** (same rendering, different node metadata)
+- 🔄 Database schema: **Minimal changes** (already supports both, just flip primary)
+
+---
+
+## 📋 Current State (November 2, 2025)
+
+### ✅ Legacy System (Working)
+- [x] GitHub sync → database (983 nodes, 1268 edges in unified.db)
+- [x] KnowledgeGraphParser extracting nodes/edges from markdown
+- [x] OntologyParser extracting OWL blocks from files
+- [x] GPU physics initialized and running (50+ FPS target)
+- [x] REST API returning graph data (with fix: now returns KG nodes not ontology root)
+- [x] Client can render nodes/edges (at localhost:4000)
+
+### 🔧 Critical Issues Found & Fixed (Today)
+- [x] **API Bug:** `UpdateGraphData` in main.rs was overwriting 983 KG nodes with 1 OWL root
+  - **Root Cause:** Race condition - UpdateGraphData sent AFTER ReloadGraphFromDatabase
+  - **Fix Applied:** Removed UpdateGraphData send, let ReloadGraphFromDatabase load KG nodes
+  - **Commit:** 20db1e98 "fix: Prevent ontology graph from overwriting KG nodes"
+
+### 📊 Current Database State
+```
+unified.db:
+  - graph_nodes:  983 nodes (from GitHub sync)
+  - graph_edges:  1268 edges
+  - owl_classes:  1 root node (mv:rb0088iso13482compliance)
+  - file_metadata: tracking SHA1 for differential sync
+  - owl_axioms:   empty (no OWL relationships yet)
+```
+
+### ⚠️ Remaining Issues (Blocking Client)
+1. **GPU Physics:** Nodes at origin (0,0,0) - physics not updating positions
+2. **WebSocket Protocol:** No initial full-node handshake, client not receiving node metadata
+3. **Edge Rendering:** 1268 edges in DB but not displayed in client
+4. **Node Positioning:** No force-directed layout, all nodes need physics simulation
+
+---
+
+## 🎯 Phase 0: Complete Legacy System (This Week)
+
+### Task 0.1: Verify End-to-End Pipeline with Full Node Set
+**Goal:** Get all 983 nodes + 1268 edges rendering at localhost:4000
 **Status:** In Progress
-**Goal:** Complete the single data pipeline: GitHub → Database → GPU → REST API → Client
-**Architecture:** Unified ontology-based graph with single database (unified.db)
+- [ ] Wait for GitHub sync to complete (currently: 983 nodes)
+- [ ] Restart container with fixed code (main.rs UpdateGraphData removal)
+- [ ] Verify API returns 983 nodes + 1268 edges (not 1 OWL node)
+- [ ] Check client renders all nodes with edges
 
----
+**Files to Monitor:**
+- `src/main.rs:315-329` - Ontology graph handling (FIXED)
+- `src/app_state.rs:220-227` - ReloadGraphFromDatabase after sync
+- `/app/logs/rust-error.log` - Application startup and sync completion logs
 
-## Current State Analysis
-
-### ✅ Completed (November 2, 2025)
-- [x] **UNIFIED DATABASE ARCHITECTURE** - Single unified.db with all domain tables
-- [x] **LEGACY CLEANUP COMPLETE** - All dual/triple database references removed from code and docs
-- [x] Unified database schema (unified.db) with graph_nodes, graph_edges, owl_classes, file_metadata
-- [x] GitHub sync service implementation with batch processing (50 files/batch)
-- [x] SHA1-based differential sync to skip unchanged files
-- [x] Knowledge graph parser for markdown files
-- [x] CUDA GPU acceleration (7 tier-1 kernels: spatial grid, Barnes-Hut, stability gates, etc.)
-- [x] Ontology repository and parser
-- [x] **Documentation Updated** - README.md, architecture docs reflect unified.db
-- [x] **Archived Legacy Databases** - knowledge_graph.db, ontology.db, settings.db → data/archive/
-
-### ✅ Recently Completed
-- [x] **CRITICAL:** Schema fix - `graph_edges` columns renamed from `source/target` to `source_id/target_id`
-- [x] **CRITICAL:** Old unified.db deleted to allow fresh schema creation with correct column names
-- [x] **CRITICAL:** GitHub sync database save fixed - file type detection now treats all markdown as KnowledgeGraph
-- [x] Data flowing to database (50+ nodes saved to unified.db)
-- [x] Data flowing to GPU (GraphServiceActor loaded 50 nodes, 12 edges)
-- [x] **GitHub sync working** - 50 nodes saved successfully to unified.db
-- [x] **End-to-end pipeline verified** - Full data flow GitHub → DB → GPU → API → Client ✅
-- [x] **Ontology extraction implemented** - Detects `### OntologyBlock`, extracts OWL data, saves to database
-- [x] **OWL axiom translation** - 5 of 6 core axiom types translate to physics constraints
-
-### ✅ Verified Working
-- [x] End-to-end pipeline: GitHub → DB → GPU → API → Client (**50 nodes rendering at 60 FPS**)
-- [x] Client visualization displaying graph correctly at http://localhost:4000
-- [x] Server stable (25+ min uptime, PID 229)
-- [x] API endpoint responding: 17KB JSON with 50 nodes, 12 edges
-- [x] GPU processing: GraphServiceActor loaded and processing data
-
-### ✅ Recently Completed
-- [x] **Documentation cleanup** - Removed all three-database references
-- [x] **Code cleanup** - Updated comments and database paths to unified.db
-- [x] **New documentation** - Created docs/UNIFIED_DB_ARCHITECTURE.md
-
-### 🟡 In Progress
-- [ ] Hierarchical expansion/collapse UI
-- [ ] Optional enhancements to ontology constraint system (InverseOf, priority)
-
----
-
-## Actionable Tasks (Priority Order)
-
-### Phase 1: Fix Data Pipeline (CRITICAL)
-
-#### Task 1.1: Debug GitHub Sync Database Save ✅ COMPLETED
-**File:** `src/services/github_sync_service.rs:472-491`
-**Issue:** `save_graph()` called but 0 nodes saved - **ROOT CAUSE FOUND AND FIXED**
-**Root Cause:** `detect_file_type()` was classifying all files as `Ontology` or `Skip`, causing ALL files to be skipped
-**Fix Applied:**
-- Changed `detect_file_type()` to treat ALL markdown files as `KnowledgeGraph` by default
-- Files with `### OntologyBlock` now treated as KnowledgeGraph (unified architecture)
-- Removed `FileType::Skip` default behavior
-
-**Steps Completed:**
-1. ✅ Added comprehensive debug logging at batch, file, and filter levels
-2. ✅ Identified all files being skipped due to file type detection
-3. ✅ Fixed `detect_file_type()` to align with unified ontology-first architecture
-4. ✅ Verified 50+ nodes and 12 edges saved to unified.db
-5. ✅ Confirmed data loaded into GPU (GraphServiceActor logs)
-
-**Outcome:** Nodes and edges now persisting to unified.db after sync. Pipeline flowing: GitHub → Database → GPU ✅
-
-#### Task 1.2: Verify Ontology Integration ✅ MOSTLY COMPLETE
-**Files:** `src/services/github_sync_service.rs:288-310`, `src/services/parsers/ontology_parser.rs`
-**Status:** Implementation complete, architectural design needed for node-to-class linking
-**Completed Steps:**
-1. ✅ Implemented ontology block parsing in `process_single_file()` (lines 288-310)
-2. ✅ Extract OWL axioms from markdown `### OntologyBlock` sections via OntologyParser
-3. ✅ Save to `owl_classes`, `owl_properties`, `owl_axioms` tables via save_ontology_data()
-4. 🟡 Database schema supports `owl_class_iri` foreign key, but automatic linking logic needs design
-
-**Implementation Details:**
-- Detects `### OntologyBlock` markers in markdown content
-- Calls `onto_parser.parse()` to extract classes, properties, axioms, hierarchy
-- Saves ontology data immediately via `onto_repo.save_ontology()`
-- Infrastructure exists for linking (owl_class_iri field in Node struct and DB schema)
-- **Design Decision Needed:** How to determine which knowledge graph nodes link to which OWL classes
-
-**Outcome:** Ontology metadata extraction working and saving to database ✅
-
-#### Task 1.3: End-to-End Pipeline Test ✅ COMPLETED
-**Goal:** Verify full data flow - **SUCCESS**
-**Steps Completed:**
-1. ✅ Schema fixed: Added `file_blob_sha` column to file_metadata table in unified_graph_repository.rs:177
-2. ✅ Database verification: 50 nodes loaded from unified.db
-3. ✅ GPU receives data: Log shows "✅ Loaded graph from database: 50 nodes, 12 edges"
-4. ✅ API tested: `curl http://localhost:4000/api/graph/data` returns 17KB JSON with 50 nodes, 12 edges
-5. ✅ Data structure verified:
-   - Nodes with position (x,y,z), velocity, metadata, visual properties
-   - Edges with source/target relationships
-   - Settlement state tracking
-6. ✅ Client visualization: **50 nodes rendering successfully at http://localhost:4000**
-
-**Outcome:** **PIPELINE WORKING END-TO-END** ✅
-**Performance:** 50 nodes @ 60 FPS target, stable server (25+ min uptime)
+**Success Criteria:**
 ```
-GitHub API (jjohare/logseq)
-   ↓ (batch sync, 50 files)
-[✅] UnifiedGraphRepository.save_graph() - 50 nodes, 12 edges saved
-   ↓
-[✅] GraphServiceActor.load_graph() - Data loaded into GPU memory
-   ↓
-[✅] REST API /api/graph/data - Returns complete JSON response (17KB)
-   ↓
-[✅] Client visualization - 50 nodes rendering at http://localhost:4000
+curl http://localhost:4000/api/graph/data
+→ { "nodes": [...983 nodes...], "edges": [...1268 edges...] }
+→ Client at localhost:4000 shows full graph with nodes positioned by GPU physics
 ```
 
-**Key Fixes Applied:**
-- `src/services/github_sync_service.rs:472-491` - Changed file type detection to treat all markdown as KnowledgeGraph
-- `src/repositories/unified_graph_repository.rs:171-197` - Fixed file_metadata schema to include file_blob_sha, github_node_id, sha1, content_hash columns
+### Task 0.2: Fix GPU Physics Engine
+**Goal:** Make nodes spread out with force-directed layout (not stuck at origin)
+**Status:** Pending
+- [ ] Check if GPU kernels are receiving and processing data
+- [ ] Verify position updates are being sent to API
+- [ ] Confirm client receives position updates in WebSocket
+- [ ] Debug why all nodes have vx=0, vy=0, vz=0 (no velocity)
 
----
+**Files Involved:**
+- `src/actors/gpu/gpu_manager_actor.rs` - GPU computation
+- `src/utils/unified_gpu_compute.rs` - CUDA kernel interface
+- `src/handlers/api_handler/graph/mod.rs` - Position response formatting
 
-### Phase 2: Complete Ontology Features
-
-#### Task 2.1: OWL Axiom → Physics Constraint Translation ✅ MOSTLY COMPLETE
-**Files:** `src/actors/gpu/ontology_constraint_actor.rs`, `src/physics/ontology_constraints.rs`
-**Status:** Core implementation complete, optional enhancements pending
-**Completed Steps:**
-1. ✅ Implemented axiom mappings (`ontology_constraints.rs:408-607`):
-   - ✅ `DisjointClasses` → Separation force (lines 408-446)
-   - ✅ `SubClassOf` → Clustering force toward parent centroid (lines 449-492)
-   - ✅ `SameAs/EquivalentClass` → Colocation force (lines 495-522)
-   - ✅ `DifferentFrom` → Separation force (lines 525-548)
-   - ✅ `FunctionalProperty` → Boundary constraints (lines 551-594)
-   - 🟡 `InverseOf` → Stub implementation (line 607)
-2. 🟡 Priority system not implemented (could use constraint.weight for user/asserted/inferred)
-3. ✅ Pass constraints to CUDA kernels via `upload_constraints_to_gpu()` (actor line 198-223)
-4. ⏭️ Testing with sample ontology pending
-
-**Optional Enhancements:**
-- Implement InverseOf property constraints
-- Add constraint priority field (user > asserted > inferred)
-- Test with BFO or GO ontology sample
-
-**Outcome:** Ontology semantics translate to physics forces ✅
-
-#### Task 2.2: Hierarchical Expansion/Collapse
-**Files:** `client/src/components/GraphVisualization.tsx`, backend API
-**Status:** Not implemented
-**Steps:**
-1. Add `expanded` boolean to graph_nodes table
-2. Backend: Implement `/api/graph/expand/:nodeId` endpoint
-3. Frontend: Add click handler to toggle expansion
-4. Implement LOD rendering (hide children when parent collapsed)
-5. Animate expansion (children emerge from parent over 1000ms)
-
-**Expected Outcome:** Users can expand/collapse hierarchy levels
-
----
-
-### Phase 3: Cleanup & Documentation
-
-#### Task 3.1: Remove Legacy Code
-**Goal:** Delete dual-database references
-**Files to audit:**
-- `src/repositories/` - Check for old repository files
-- `src/app_state.rs` - Remove dual-database initialization
-- `Cargo.toml` - Remove unused dependencies
-- SQL migration files - Archive old migrations
-
-**Expected Outcome:** Clean codebase with single database pattern
-
-#### Task 3.2: Update Documentation
-**Files:** `README.md`, `docs/architecture.md`, `docs/api.md`
-**Updates needed:**
-1. Architecture diagrams: Show unified.db, remove dual-database
-2. API documentation: Document current endpoints
-3. Setup guide: Update database initialization steps
-4. Performance benchmarks: Add current FPS/node counts
-5. Development guide: Explain single-pipeline architecture
-
-**Expected Outcome:** Accurate, up-to-date documentation
-
-#### Task 3.3: Add Integration Tests
-**File:** `tests/integration/pipeline_test.rs` (new)
-**Coverage:**
-1. GitHub sync → Database persistence
-2. Database → GPU data transfer
-3. GPU → API query path
-4. Ontology axiom → Constraint translation
-5. Full pipeline performance test (1000 nodes)
-
-**Expected Outcome:** Automated validation of entire pipeline
-
----
-
-## Success Criteria
-
-| Metric | Target | Current | Status |
-|--------|--------|---------|--------|
-| **Data Pipeline** | GitHub → Client | GitHub → DB → GPU → API → Client ✅ | ✅ |
-| **Nodes in DB** | >900 from GitHub | 50 nodes, 12 edges confirmed | ✅ |
-| **API Response** | Non-empty JSON | 17KB JSON with 50 nodes | ✅ |
-| **Graph rendering** | Visible in browser | 50 nodes visible at localhost:4000 | ✅ |
-| **Ontology integration** | Axioms saved | Treating all as KG | 🟡 |
-| **GPU performance** | 30+ FPS @ 10K nodes | 50 nodes @ 60 FPS target | ✅ |
-| **Documentation** | Reflects unified architecture | Updated README, arch docs | ✅ |
-| **Test coverage** | >80% integration tests | ~0% | ❌ |
-
----
-
-## Next Actions (Immediate)
-
-1. ✅ **DONE:** Task 1.1 - Fixed `save_graph()` file type detection bug
-2. ✅ **DONE:** Task 1.1.1 - Fixed file_metadata schema mismatch (file_blob_sha column)
-3. ✅ **DONE:** Task 1.2 - Ontology extraction implemented (database save working)
-4. ✅ **DONE:** Task 1.3 - End-to-end pipeline verified (GitHub → DB → GPU → API)
-5. ✅ **DONE:** Task 2.1 - OWL axiom → physics constraint translation (5/6 axioms implemented)
-6. **NOW:** Task 3.1 - Remove legacy dual-database code references
-7. **NEXT:** Task 3.2 - Update documentation (README, architecture.md, API.md)
-8. **OPTIONAL:** Task 2.1 enhancements - InverseOf implementation, priority system
-
----
-
-## Technical Notes
-
-### Database Schema (Actual)
-```sql
--- Single source of truth: unified.db
-
-graph_nodes (
-  id INTEGER,
-  metadata_id TEXT UNIQUE,
-  label TEXT,
-  x, y, z REAL,           -- Physics state
-  vx, vy, vz REAL,        -- Velocity
-  mass, charge REAL,
-  owl_class_iri TEXT,     -- Links to ontology
-  ...
-)
-
-owl_classes (
-  iri TEXT PRIMARY KEY,
-  label TEXT,
-  parent_class_iri TEXT,  -- Hierarchy
-  markdown_content TEXT
-)
-
-owl_axioms (
-  axiom_type TEXT,        -- SubClassOf, DisjointClasses, etc.
-  subject_id INTEGER,
-  object_id INTEGER,
-  strength REAL,          -- For physics constraints
-  priority INTEGER        -- Conflict resolution
-)
-
-file_metadata (
-  file_name TEXT PRIMARY KEY,
-  file_blob_sha TEXT,     -- SHA1 for differential sync
-  processing_status TEXT
-)
+### Task 0.3: Implement Client WebSocket Protocol
+**Goal:** Proper initial node load + real-time position updates
+**Status:** Pending
+**Architecture:**
+```
+Client connects → Server sends initial full graph (all 983 nodes + metadata)
+                → Client stores node index: Map<NodeID, Node>
+                → GPU physics runs
+                → Server sends position updates (NodeID, x, y, z, vx, vy, vz)
+                → Client updates via ID index (NOT full node objects)
 ```
 
-### Current Pipeline Status
-```
-GitHub API
-   ↓
-[✅] GitHubSyncService.sync_graphs() - 50 files/batch processing
-   ↓
-[✅] KnowledgeGraphParser.parse() - Extracting nodes/edges from markdown
-   ↓
-[✅] UnifiedGraphRepository.save_graph() - 50 nodes, 12 edges saved
-   ↓
-[✅] GraphServiceActor.load_graph() - Data loaded into GPU memory
-   ↓
-[✅] GPU CUDA kernels - Processing 50 nodes @ 60 FPS
-   ↓
-[✅] REST API /api/graph/data - Returns 17KB JSON
-   ↓
-[✅] Client visualization - 50 nodes rendering at http://localhost:4000
+**Files to Create/Update:**
+- `src/handlers/websocket/*.rs` - WebSocket message handlers
+- `client/src/hooks/useGraphWebSocket.ts` - Client WebSocket connection
+- `client/src/stores/graphStore.ts` - Client-side node/edge store
+
+**Success Criteria:**
+- [ ] Client receives all 983 nodes at connection
+- [ ] Client updates node positions in real-time
+- [ ] No lag or full-object re-transfers for position updates
+
+---
+
+## 🔄 Phase 1: Migrate to Ontology-Based Nodes (Next Sprint)
+
+### Task 1.1: Understand Ontology Extraction from GitHub
+**Goal:** Map current KG parsing to OWL extraction
+**Status:** Analysis needed
+- [ ] Review OntologyParser (`src/services/parsers/ontology_parser.rs`)
+- [ ] Check what OWL blocks are in GitHub markdown files
+- [ ] Design mapping: KG page → OWL class IRI
+- [ ] Plan: Should each KG node become an OWL class?
+
+### Task 1.2: Create OntologyConverter
+**Goal:** Transform OWL classes to graph_nodes
+**Status:** Not started
+**Implementation:**
+- Create new service: `src/services/ontology_converter.rs`
+- For each `owl_class`:
+  - Create `graph_node` with `metadata_id = class.iri`
+  - Extract position from class hierarchy (compute layout)
+  - Store properties in node metadata
+- Link axioms to edges: `SubClassOf` → edge, `DisjointClasses` → repulsion constraint
+
+### Task 1.3: Update GitHub Sync Pipeline
+**Goal:** Extract OWL → database, skip old KG parser
+**Status:** Design pending
+- [ ] Decide: Keep both parsers or replace?
+- [ ] If replace: Remove KnowledgeGraphParser, use OntologyExtractor for all
+- [ ] If hybrid: Keep KG parser for backwards compat, toggle via config
+- [ ] Update batch processing to handle OWL conversion
+
+---
+
+## 🔌 Phase 2: Port Physics/Networking (Parallel with Phase 1)
+
+### Task 2.1: GPU Physics on Ontology Nodes
+**Goal:** Ensure physics engine works with ontology-based nodes (no code changes)
+**Status:** Low priority (should work unchanged)
+- [ ] Verify CUDA kernels don't depend on KG-specific metadata
+- [ ] Test with 983 ontology nodes instead of KG nodes
+- [ ] Benchmark: FPS, memory usage, constraint handling
+
+**Files (No changes expected):**
+- `src/physics/` - All constraint logic
+- `src/actors/gpu/` - All GPU management
+
+### Task 2.2: WebSocket Protocol for Ontology Nodes
+**Goal:** Send ontology metadata in initial handshake
+**Status:** Ready to implement
+**Additional Metadata to Include:**
+```json
+{
+  "id": 123,
+  "metadataId": "mv:concept-name",
+  "label": "Concept Name",
+  "iri": "http://example.com/ontology#ConceptName",
+  "parentClass": "http://example.com/ontology#ParentClass",
+  "properties": { "definition": "...", "source": "..." },
+  "position": { "x": 10, "y": 20, "z": 30 },
+  "metadata": { ... }
+}
 ```
 
-**Fix Applied:** Changed `detect_file_type()` in `github_sync_service.rs:472-491` to treat all markdown as KnowledgeGraph instead of skipping files.
+---
+
+## 📚 Supporting Tasks
+
+### Documentation
+- [ ] Update README.md: Explain ontology-based architecture
+- [ ] Create MIGRATION.md: Legacy KG → Ontology transition guide
+- [ ] Document OWL extraction from GitHub markdown
+- [ ] API docs: List all ontology endpoints
+
+### Testing
+- [ ] Unit tests: OntologyConverter logic
+- [ ] Integration tests: GitHub → OWL → Database → API
+- [ ] Performance tests: 1000+ ontology nodes at 30+ FPS
+- [ ] Client tests: WebSocket handshake, position updates
+
+### Code Cleanup
+- [ ] Archive old KnowledgeGraphParser if replaced
+- [ ] Remove any KG-specific logic from GPU/networking
+- [ ] Clean up temporary debug logging
+
+---
+
+## 🗂️ Repository Structure Reference
+
+### Backend (Rust)
+```
+src/
+├── services/
+│   ├── github_sync_service.rs      [✅ Working] Batch sync from GitHub
+│   ├── parsers/
+│   │   ├── knowledge_graph_parser.rs  [✅ Working] Extract KG nodes/edges
+│   │   ├── ontology_parser.rs        [✅ Working] Extract OWL from markdown
+│   │   └── converter.rs              [TBD] OWL → Graph node conversion
+│   └── edge_generation.rs           [✅ Available] Multi-modal edges
+├── repositories/
+│   └── unified_graph_repository.rs  [✅ Working] SQLite persistence
+├── actors/
+│   ├── graph_actor.rs               [✅ Working] Graph state management
+│   ├── graph_service_supervisor.rs [✅ Working] Actor orchestration
+│   └── gpu/
+│       ├── gpu_manager_actor.rs     [✅ Working] CUDA kernel calls
+│       └── ontology_constraint_actor.rs [✅ Partial] OWL axiom → forces
+├── handlers/
+│   ├── websocket/                   [🔄 Needs update] WebSocket protocol
+│   └── api_handler/graph/           [✅ Working] REST API endpoints
+└── physics/
+    ├── ontology_constraints.rs      [✅ Partial] 5/6 axiom types
+    └── stress_majorization.rs       [✅ Available] Graph optimization
+```
+
+### Frontend (React + TypeScript)
+```
+client/src/
+├── components/
+│   └── GraphVisualization.tsx       [✅ Working] Three.js renderer
+├── hooks/
+│   └── useGraphWebSocket.ts         [🔄 Needs protocol update] WS connection
+├── stores/
+│   └── graphStore.ts                [🔄 Needs ID-index update] State management
+└── types/
+    └── graph.ts                     [✅ Working] Node/Edge interfaces
+```
+
+### Database (SQLite)
+```
+unified.db
+├── graph_nodes (983 rows)           [✅] KG nodes (to be replaced by ontology)
+├── graph_edges (1268 rows)          [✅] Relationships
+├── owl_classes (1 row)              [🔄] Ontology definitions
+├── owl_properties                   [🔄] OWL properties
+├── owl_axioms                       [🔄] OWL relationships (empty)
+├── owl_class_hierarchy              [🔄] Class inheritance (empty)
+└── file_metadata                    [✅] GitHub sync tracking
+```
+
+---
+
+## 🔑 Key Decisions (Architecture)
+
+### 1. Keep or Replace KnowledgeGraphParser?
+**Option A: Keep Both** (Safer)
+- Pro: Backwards compatible, can run both in parallel for validation
+- Con: Maintains two parsers, potential confusion
+- Recommendation: Keep during transition, archive after validation
+
+**Option B: Replace** (Cleaner)
+- Pro: Single source of truth, simpler codebase
+- Con: Risk if OWL extraction misses anything
+- Recommendation: After full validation on 1000+ nodes
+
+### 2. Physics Engine Architecture
+**Current:** Works on any node ID set
+**Decision:** NO CHANGES NEEDED - WASM SIMD + CUDA kernels are generic
+
+### 3. Client Communication Protocol
+**Current:** Individual node updates (inefficient)
+**New:** Batch initial load + ID-indexed updates
+**Implementation:** See WebSocket tasks above
+
+---
+
+## ✅ Definition of Done
+
+### For Phase 0 (This Week)
+- [ ] All 983 nodes + 1268 edges visible at localhost:4000
+- [ ] GPU physics spreading nodes naturally (force-directed)
+- [ ] WebSocket protocol sending full graph on initial connection
+- [ ] Client updates positions in real-time with minimal latency
+
+### For Phase 1 (Next Sprint)
+- [ ] OWL extraction producing usable ontology nodes
+- [ ] OntologyConverter transforms OWL → graph_nodes correctly
+- [ ] GitHub sync using new pipeline (OWL-based)
+- [ ] All nodes have proper metadata, hierarchy, properties
+
+### For Phase 2 (Following Sprint)
+- [ ] Benchmarks: 1000+ nodes at 30+ FPS
+- [ ] Documentation complete and accurate
+- [ ] All tests passing (unit + integration + performance)
+- [ ] Legacy KG system archived or removed
+
+---
+
+## 🚀 Immediate Next Steps
+
+1. **Monitor container sync** - Wait for 983 nodes to finish processing
+2. **Restart with fix** - Container with removed UpdateGraphData call
+3. **Verify API** - Test `/api/graph/data` returns all 983 nodes
+4. **Debug GPU physics** - Check why nodes are at origin
+5. **Test WebSocket** - Verify client receives full initial node set
+
+**Blockers:** None identified - all infrastructure exists, just needs integration
