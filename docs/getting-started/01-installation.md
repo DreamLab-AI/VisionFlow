@@ -604,3 +604,7 @@ If you encounter issues during installation:
 - [Configuration Guide](../reference/configuration.md)
 - [Getting Started with VisionFlow](README.md)
 - [Quick Start Guide](02-first-graph-and-agents.md)
+
+---
+
+**Navigation:** [📖 Documentation Index](../INDEX.md) | [🚀 Getting Started](./) | [📚 Guides](../guides/) | [🏗️ Architecture](../architecture/)

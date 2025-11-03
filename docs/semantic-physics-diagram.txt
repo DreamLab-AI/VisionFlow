@@ -1,0 +1,201 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    SEMANTIC PHYSICS ARCHITECTURE                             ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           INPUT: OWL AXIOMS                                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  OWLAxiom                                                                   │
+│  ├─ DisjointClasses { classes: [1, 2, 3] }                                │
+│  ├─ SubClassOf { subclass: 10, superclass: 20 }                           │
+│  ├─ EquivalentClasses { class1: 5, class2: 6 }                            │
+│  ├─ SameAs { individual1: 1, individual2: 2 }                             │
+│  ├─ DifferentFrom { individual1: 3, individual2: 4 }                      │
+│  └─ PartOf { part: 7, whole: 8 }                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    SEMANTIC AXIOM TRANSLATOR                                │
+│                                                                             │
+│  SemanticAxiomTranslator {                                                 │
+│    config: SemanticPhysicsConfig {                                         │
+│      disjoint_repel_multiplier: 2.0,      ◄── DisjointWith × 2.0          │
+│      subclass_spring_multiplier: 0.5,     ◄── SubClassOf × 0.5            │
+│      enable_hierarchy_alignment: true,                                     │
+│      enable_bidirectional_constraints: true,                               │
+│      priority_blending: Weighted,                                          │
+│    }                                                                        │
+│  }                                                                          │
+│                                                                             │
+│  Translation Rules:                                                         │
+│  ┌────────────────────────────────────────────────────────────────┐        │
+│  │ DisjointWith(A,B) → Separation(A,B, min_dist=70.0, str=0.8)  │        │
+│  │ SubClassOf(C,P)   → HierarchicalAttraction(C,P, dist=20, s=0.3)│      │
+│  │                   + Alignment(C, Y-axis, strength=0.5)         │        │
+│  │ EquivalentTo(A,B) → Colocation(A,B, dist=2.0, str=0.9)       │        │
+│  │                   + BidirectionalEdge(A,B, str=0.9)           │        │
+│  │ SameAs(I1,I2)     → Colocation(I1,I2, dist=0.0, str=1.0)     │        │
+│  │ PartOf(P,W)       → Containment(P,W, radius=30.0, str=0.8)   │        │
+│  └────────────────────────────────────────────────────────────────┘        │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                  SEMANTIC PHYSICS CONSTRAINTS                               │
+│                                                                             │
+│  SemanticPhysicsConstraint {                                               │
+│                                                                             │
+│    Separation {                                                            │
+│      class_a: "ClassA",                                                    │
+│      class_b: "ClassB",                                                    │
+│      min_distance: 70.0,                                                   │
+│      strength: 0.8,                                                        │
+│      priority: 5,  ◄────────┐                                             │
+│    }                         │                                             │
+│                             │ Priority System (1-10)                       │
+│    HierarchicalAttraction { │                                             │
+│      child_class: "Dog",    │ Priority 1:  weight = 1.000 (user)         │
+│      parent_class: "Mammal",│ Priority 5:  weight = 0.359 (asserted)     │
+│      ideal_distance: 20.0,  │ Priority 10: weight = 0.100 (inferred)     │
+│      strength: 0.3,         │                                             │
+│      priority: 5,  ◄────────┘ Formula: 10^(-(p-1)/9)                      │
+│    }                                                                        │
+│                                                                             │
+│    Alignment {                                                             │
+│      class_iri: "Dog",                                                     │
+│      axis: Y,  ◄─── X, Y, or Z axis                                       │
+│      target_position: 0.0,                                                 │
+│      strength: 0.5,                                                        │
+│      priority: 7,                                                          │
+│    }                                                                        │
+│  }                                                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    SEMANTIC GPU BUFFER                                      │
+│                                                                             │
+│  SemanticGPUConstraintBuffer {                                             │
+│    iri_to_index: {                                                         │
+│      "ClassA" → 0,                                                         │
+│      "ClassB" → 1,                                                         │
+│      "Dog" → 2,                                                            │
+│      "Mammal" → 3,                                                         │
+│    }                                                                        │
+│                                                                             │
+│    data: Vec<SemanticGPUConstraint> {                                      │
+│      ┌────────────────────────────────────────────────────┐               │
+│      │ SemanticGPUConstraint (80 bytes, 16-byte aligned) │               │
+│      │ ┌────────────────────────────────────────────────┐ │               │
+│      │ │ constraint_type: i32    (4 bytes)              │ │               │
+│      │ │ priority: i32           (4 bytes)              │ │               │
+│      │ │ node_indices: [i32; 4]  (16 bytes)             │ │               │
+│      │ │ params: [f32; 4]        (16 bytes)             │ │               │
+│      │ │ params2: [f32; 4]       (16 bytes)             │ │               │
+│      │ │ weight: f32             (4 bytes)              │ │               │
+│      │ │ axis: i32               (4 bytes)              │ │               │
+│      │ │ _padding: [f32; 2]      (8 bytes)              │ │               │
+│      │ └────────────────────────────────────────────────┘ │               │
+│      │                                                    │               │
+│      │ Constraint Types:                                 │               │
+│      │   1 = SEPARATION                                  │               │
+│      │   2 = HIERARCHICAL_ATTRACTION                     │               │
+│      │   3 = ALIGNMENT                                   │               │
+│      │   4 = BIDIRECTIONAL_EDGE                          │               │
+│      │   5 = COLOCATION                                  │               │
+│      │   6 = CONTAINMENT                                 │               │
+│      └────────────────────────────────────────────────────┘               │
+│    }                                                                        │
+│  }                                                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         CUDA GPU UPLOAD                                     │
+│                                                                             │
+│  unsafe {                                                                   │
+│    cuda_upload(                                                            │
+│      buffer.as_ptr(),      ◄── Zero-copy pointer                          │
+│      buffer.size_bytes(),  ◄── Exact byte count                           │
+│    );                                                                       │
+│  }                                                                          │
+│                                                                             │
+│  Memory Layout (Contiguous):                                               │
+│  ┌──────┬──────┬──────┬──────┬─────┬───────┐                              │
+│  │ C1   │ C2   │ C3   │ C4   │ ... │ Cn    │                              │
+│  │ 80B  │ 80B  │ 80B  │ 80B  │     │ 80B   │                              │
+│  └──────┴──────┴──────┴──────┴─────┴───────┘                              │
+│                                                                             │
+│  ◄─────────── Coalesced Memory Access ──────────►                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      CUDA PHYSICS KERNEL                                    │
+│                                                                             │
+│  __global__ void apply_constraints(                                        │
+│    float3* positions,                                                       │
+│    float3* velocities,                                                      │
+│    SemanticGPUConstraint* constraints,                                     │
+│    int num_constraints                                                      │
+│  ) {                                                                        │
+│    int idx = blockIdx.x * blockDim.x + threadIdx.x;                       │
+│    if (idx >= num_constraints) return;                                     │
+│                                                                             │
+│    SemanticGPUConstraint c = constraints[idx];                             │
+│                                                                             │
+│    // Apply constraint based on type                                       │
+│    switch (c.constraint_type) {                                            │
+│      case SEPARATION:                                                       │
+│        apply_separation(positions, velocities, c);                         │
+│        break;                                                               │
+│      case HIERARCHICAL_ATTRACTION:                                          │
+│        apply_hierarchical(positions, velocities, c);                       │
+│        break;                                                               │
+│      // ... other constraint types                                         │
+│    }                                                                        │
+│  }                                                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+
+PERFORMANCE CHARACTERISTICS:
+
+Memory:
+  • Constraint size: 80 bytes (16-byte aligned)
+  • 1K constraints: ~80 KB
+  • 100K constraints: ~8 MB
+  • 1M constraints: ~80 MB
+
+Translation Speed:
+  • DisjointClasses(n): O(n²) constraints generated
+  • SubClassOf: O(1) per axiom
+  • Batch processing: ~100K axioms/sec (estimated)
+
+GPU Upload:
+  • Zero-copy: Direct memory mapping via as_ptr()
+  • Contiguous: Optimal for coalesced access
+  • Efficient: No serialization overhead
+
+═══════════════════════════════════════════════════════════════════════════════
+
+PRIORITY BLENDING EXAMPLE:
+
+User Constraint (priority 1, weight 1.0):
+  Separation(A, B) min_dist=50.0
+
+Inferred Constraint (priority 7, weight 0.215):
+  Separation(A, B) min_dist=30.0
+
+Weighted Blend:
+  blended_dist = (1.0 × 50.0 + 0.215 × 30.0) / (1.0 + 0.215)
+               = (50.0 + 6.45) / 1.215
+               = 46.5 units
+
+Result: User constraint dominates (50.0 → 46.5)
+
+═══════════════════════════════════════════════════════════════════════════════

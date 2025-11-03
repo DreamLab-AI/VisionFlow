@@ -11,7 +11,7 @@ The ontology system uses a **lossless storage architecture** that preserves comp
 For existing databases, run the migration script:
 
 ```bash
-sqlite3 project/data/ontology.db < project/scripts/migrate_ontology_database.sql
+sqlite3 project/data/unified.db < project/scripts/migrate_ontology_database.sql
 ```
 
 This adds three new columns to `owl_classes`:
@@ -44,7 +44,7 @@ use crate::adapters::sqlite_ontology_repository::SqliteOntologyRepository;
 use std::sync::Arc;
 
 // Initialize repository and extractor
-let repo = Arc::new(SqliteOntologyRepository::new("ontology.db")?);
+let repo = Arc::new(UnifiedOntologyRepository::new("unified.db")?);
 let extractor = OwlExtractorService::new(repo.clone());
 
 // Extract from single class
@@ -312,7 +312,7 @@ for class in recent_classes {
 
 **Solution**: Run migration script:
 ```bash
-sqlite3 ontology.db < scripts/migrate_ontology_database.sql
+sqlite3 unified.db < scripts/migrate_ontology_database.sql
 ```
 
 ### Issue: Sync Takes Too Long

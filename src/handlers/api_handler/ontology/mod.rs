@@ -300,6 +300,34 @@ impl From<OntologyHealth> for OntologyHealthDto {
 ///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct ClassNode {
+    pub iri: String,
+    pub label: String,
+    pub parent_iri: Option<String>,
+    pub children_iris: Vec<String>,
+    pub node_count: usize,
+    pub depth: usize,
+}
+
+///
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ClassHierarchy {
+    pub root_classes: Vec<String>,
+    pub hierarchy: HashMap<String, ClassNode>,
+}
+
+///
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HierarchyParams {
+    pub ontology_id: Option<String>,
+    pub max_depth: Option<usize>,
+}
+
+///
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ErrorResponse {
     pub error: String,
     pub code: String,
@@ -905,6 +933,226 @@ pub async fn validate_graph(
     HttpResponse::Accepted().json(response)
 }
 
+/// Get Ontology Class Hierarchy
+///
+/// Returns the complete class hierarchy for the ontology with parent-child relationships,
+/// depth information, and descendant counts.
+///
+/// # OpenAPI Specification
+///
+/// **GET** `/api/ontology/hierarchy`
+///
+/// ## Query Parameters
+/// - `ontology_id` (optional): Specific ontology identifier. Defaults to "default"
+/// - `max_depth` (optional): Maximum depth to traverse. No limit if not specified
+///
+/// ## Response Schema (200 OK)
+/// ```json
+/// {
+///   "rootClasses": ["http://example.org/Class1", "http://example.org/Class2"],
+///   "hierarchy": {
+///     "http://example.org/Class1": {
+///       "iri": "http://example.org/Class1",
+///       "label": "Person",
+///       "parentIri": null,
+///       "childrenIris": ["http://example.org/Student", "http://example.org/Teacher"],
+///       "nodeCount": 5,
+///       "depth": 0
+///     },
+///     "http://example.org/Student": {
+///       "iri": "http://example.org/Student",
+///       "label": "Student",
+///       "parentIri": "http://example.org/Class1",
+///       "childrenIris": ["http://example.org/GraduateStudent"],
+///       "nodeCount": 2,
+///       "depth": 1
+///     }
+///   }
+/// }
+/// ```
+///
+/// ## Response Fields
+/// - `rootClasses`: Array of IRIs representing top-level classes (no parents)
+/// - `hierarchy`: Map of class IRI to ClassNode objects containing:
+///   - `iri`: The class IRI
+///   - `label`: Human-readable label (extracted from IRI if not available)
+///   - `parentIri`: IRI of the first parent class (null for root classes)
+///   - `childrenIris`: Array of child class IRIs
+///   - `nodeCount`: Total number of descendants (children + grandchildren + ...)
+///   - `depth`: Distance from nearest root class (0 for roots)
+///
+/// ## Error Responses
+/// - `503 Service Unavailable`: Ontology validation feature is disabled
+/// - `500 Internal Server Error`: Failed to build hierarchy
+///
+/// ## Example Request
+/// ```bash
+/// curl -X GET "http://localhost:8080/api/ontology/hierarchy?ontology_id=default&max_depth=5"
+/// ```
+///
+/// ## Caching
+/// Results are computed on-demand. For large ontologies, consider caching the response
+/// on the client side or implementing server-side caching.
+///
+/// ## Performance Notes
+/// - Time complexity: O(n) where n is the number of classes
+/// - Space complexity: O(n)
+/// - Memoization is used for depth and descendant count calculations
+pub async fn get_hierarchy(
+    state: web::Data<AppState>,
+    _query: web::Query<HierarchyParams>,
+) -> impl Responder {
+    info!("Retrieving ontology class hierarchy");
+
+
+    if let Err(error) = check_feature_enabled().await {
+        return HttpResponse::ServiceUnavailable().json(error);
+    }
+
+
+    use crate::application::ontology::{ListOwlClasses, ListOwlClassesHandler};
+    use hexser::QueryHandler;
+
+    let handler = ListOwlClassesHandler::new(state.ontology_repository.clone());
+    let list_query = ListOwlClasses;
+
+    match handler.handle(list_query) {
+        Ok(classes) => {
+            info!(
+                "Building class hierarchy from {} classes",
+                classes.len()
+            );
+
+
+            let mut hierarchy_map: HashMap<String, ClassNode> = HashMap::new();
+            let mut root_classes: Vec<String> = Vec::new();
+            let mut children_map: HashMap<String, Vec<String>> = HashMap::new();
+
+
+            for class in &classes {
+
+                if class.parent_classes.is_empty() {
+                    root_classes.push(class.iri.clone());
+                }
+
+
+                for parent_iri in &class.parent_classes {
+                    children_map
+                        .entry(parent_iri.clone())
+                        .or_insert_with(Vec::new)
+                        .push(class.iri.clone());
+                }
+            }
+
+
+            fn calculate_depth(
+                iri: &str,
+                classes: &[crate::ports::ontology_repository::OwlClass],
+                memo: &mut HashMap<String, usize>,
+            ) -> usize {
+                if let Some(&depth) = memo.get(iri) {
+                    return depth;
+                }
+
+                let class = classes.iter().find(|c| c.iri == iri);
+                let depth = if let Some(c) = class {
+                    if c.parent_classes.is_empty() {
+                        0
+                    } else {
+                        c.parent_classes
+                            .iter()
+                            .map(|p| calculate_depth(p, classes, memo) + 1)
+                            .max()
+                            .unwrap_or(0)
+                    }
+                } else {
+                    0
+                };
+
+                memo.insert(iri.to_string(), depth);
+                depth
+            }
+
+
+            fn count_descendants(
+                iri: &str,
+                children_map: &HashMap<String, Vec<String>>,
+                memo: &mut HashMap<String, usize>,
+            ) -> usize {
+                if let Some(&count) = memo.get(iri) {
+                    return count;
+                }
+
+                let count = if let Some(children) = children_map.get(iri) {
+                    children.len()
+                        + children
+                            .iter()
+                            .map(|child| count_descendants(child, children_map, memo))
+                            .sum::<usize>()
+                } else {
+                    0
+                };
+
+                memo.insert(iri.to_string(), count);
+                count
+            }
+
+            let mut depth_memo: HashMap<String, usize> = HashMap::new();
+            let mut count_memo: HashMap<String, usize> = HashMap::new();
+
+
+            for class in &classes {
+                let depth = calculate_depth(&class.iri, &classes, &mut depth_memo);
+                let node_count = count_descendants(&class.iri, &children_map, &mut count_memo);
+                let children_iris = children_map.get(&class.iri).cloned().unwrap_or_default();
+
+                let parent_iri = if class.parent_classes.is_empty() {
+                    None
+                } else {
+                    class.parent_classes.first().cloned()
+                };
+
+                let node = ClassNode {
+                    iri: class.iri.clone(),
+                    label: class.label.clone().unwrap_or_else(|| {
+                        class
+                            .iri
+                            .split('#')
+                            .last()
+                            .or_else(|| class.iri.split('/').last())
+                            .unwrap_or(&class.iri)
+                            .to_string()
+                    }),
+                    parent_iri,
+                    children_iris,
+                    node_count,
+                    depth,
+                };
+
+                hierarchy_map.insert(class.iri.clone(), node);
+            }
+
+            let response = ClassHierarchy {
+                root_classes,
+                hierarchy: hierarchy_map,
+            };
+
+            info!(
+                "Class hierarchy built successfully: {} root classes, {} total classes",
+                response.root_classes.len(),
+                response.hierarchy.len()
+            );
+
+            HttpResponse::Ok().json(response)
+        }
+        Err(e) => {
+            error!("Failed to retrieve classes for hierarchy: {}", e);
+            let error_response = ErrorResponse::new(&e.to_string(), "HIERARCHY_BUILD_FAILED");
+            HttpResponse::InternalServerError().json(error_response)
+        }
+    }
+}
+
 ///
 pub async fn get_report_by_id(
     state: web::Data<AppState>,
@@ -913,7 +1161,7 @@ pub async fn get_report_by_id(
     let report_id = path.into_inner();
     info!("Retrieving validation report by ID: {}", report_id);
 
-    
+
     if let Err(error) = check_feature_enabled().await {
         return HttpResponse::ServiceUnavailable().json(error);
     }
@@ -1068,21 +1316,23 @@ pub async fn websocket_handler(
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/ontology")
-            
+
             .route("/load", web::post().to(load_axioms))
-            .route("/load-axioms", web::post().to(load_axioms)) 
-            
+            .route("/load-axioms", web::post().to(load_axioms))
+
             .route("/validate", web::post().to(validate_graph))
-            
+
             .route("/reports/{id}", web::get().to(get_report_by_id))
-            .route("/report", web::get().to(get_validation_report)) 
-            
+            .route("/report", web::get().to(get_validation_report))
+
             .route("/axioms", web::get().to(list_axioms))
-            
+
             .route("/inferences", web::get().to(get_inferences))
-            
+
+            .route("/hierarchy", web::get().to(get_hierarchy))
+
             .route("/cache", web::delete().to(clear_caches))
-            
+
             .route("/mapping", web::post().to(update_mapping))
             .route("/apply", web::post().to(apply_inferences))
             .route("/health", web::get().to(get_health_status))

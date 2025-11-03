@@ -30,6 +30,73 @@ This document provides a complete architectural blueprint for migrating the Visi
 4. **[04-database-schemas.md](./04-database-schemas.md)** - Complete database designs
    - unified.db schema (single database with all domain tables)
 
+## Ontology Reasoning Pipeline
+
+### System Overview
+
+VisionFlow integrates a complete ontology reasoning pipeline that transforms static OWL definitions into intelligent, self-organizing knowledge structures:
+
+```mermaid
+graph LR
+    A[GitHub OWL Files<br/>900+ Classes] --> B[Horned-OWL Parser]
+    B --> C[(unified.db<br/>owl_* tables)]
+    C --> D[Whelk-rs Reasoner<br/>OWL 2 EL]
+    D --> E[Inferred Axioms<br/>is_inferred=1]
+    E --> C
+    C --> F[Constraint Builder<br/>8 types]
+    F --> G[CUDA Physics<br/>39 kernels]
+    G --> H[Binary WebSocket<br/>36 bytes/node]
+    H --> I[3D Client]
+
+    style D fill:#e1f5ff
+    style G fill:#ffe1e1
+    style C fill:#f0e1ff
+```
+
+### Semantic Physics Integration
+
+The system translates ontological relationships into physical forces for intelligent 3D visualization:
+
+| Ontological Axiom | Physics Force | Visual Effect |
+|-------------------|---------------|---------------|
+| `SubClassOf` | Attraction (spring) | Child classes cluster near parents |
+| `DisjointWith` | Repulsion (Coulomb) | Disjoint classes pushed apart |
+| `EquivalentClasses` | Strong attraction | Synonyms rendered together |
+| `ObjectProperty` | Directed alignment | Property domains/ranges aligned |
+| **Inferred axioms** | Weaker forces (0.3x) | Subtle influence vs. asserted |
+
+### Data Flow with Reasoning
+
+```mermaid
+sequenceDiagram
+    participant GH as GitHub
+    participant Parser as OWL Parser
+    participant DB as unified.db
+    participant Whelk as Whelk Reasoner
+    participant GPU as CUDA Physics
+    participant Client as 3D Client
+
+    GH->>Parser: Fetch OWL files
+    Parser->>DB: Store asserted axioms<br/>(is_inferred=0)
+    DB->>Whelk: Load ontology
+    Whelk->>Whelk: Compute inferences
+    Whelk->>DB: Store inferred axioms<br/>(is_inferred=1)
+    DB->>GPU: Generate semantic constraints
+    GPU->>GPU: Simulate physics forces
+    GPU->>Client: Stream positions (binary)
+    Client->>Client: Render self-organizing graph
+```
+
+**Key Benefits**:
+- **Automatic Inference**: Derive new relationships (10-100x faster with Whelk-rs)
+- **Consistency Checking**: Detect logical contradictions in real-time
+- **Semantic Visualization**: Graph layouts reflect ontological structure
+- **LRU Caching**: 90x speedup for repeated reasoning operations
+
+**[📖 Complete Reasoning Documentation](../ontology-reasoning.md)**
+
+---
+
 ## Key Architectural Decisions
 
 ### 1. Unified Database Design (ACTIVE: November 2, 2025)
@@ -639,3 +706,7 @@ This architecture provides a complete, production-ready blueprint for migrating 
 **Estimated Timeline**: 14 weeks with 1-2 developers
 
 **Risk Level**: Low (gradual, non-breaking migration)
+
+---
+
+**Navigation:** [📖 Documentation Index](../INDEX.md) | [🏗️ Architecture Hub](README.md) | [📡 API Reference](../api/) | [📚 Guides](../guides/)

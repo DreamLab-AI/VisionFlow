@@ -2,10 +2,16 @@
 //! Unified Graph Repository Adapter
 //!
 //! Implements KnowledgeGraphRepository trait using unified.db schema.
-//! This is the unified database implementation that combines graph and ontology data
-//! in a single database schema, replacing the legacy separate SQLite adapters.
+//! Stores all knowledge graph nodes and edges with OWL enrichment support.
 //!
-//! CRITICAL: This maintains identical interface to preserve CUDA kernel compatibility.
+//! Database schema:
+//! - graph_nodes: Nodes with owl_class_iri for ontology linkage, physics state (x,y,z,vx,vy,vz)
+//! - graph_edges: Edges with optional owl_property_iri for semantic typing
+//! - graph_statistics: Cached statistics (node/edge counts, average degree)
+//! - file_metadata: SHA1 hashing for incremental GitHub sync
+//!
+//! CRITICAL: Maintains identical node/edge format for CUDA kernel compatibility.
+//! Positions and velocities are persisted for continuous physics simulation.
 
 use async_trait::async_trait;
 use log::{debug, info, warn};
@@ -22,10 +28,14 @@ use crate::ports::knowledge_graph_repository::{
     Result as RepoResult,
 };
 
+/// Repository for knowledge graph data in unified.db
 ///
+/// Provides high-performance batch operations for GPU physics integration.
+/// All node positions and velocities are persisted to unified.db and loaded
+/// on startup, allowing physics simulation to continue across restarts.
 ///
-///
-///
+/// Enrichment: Nodes can be linked to OWL classes via owl_class_iri metadata,
+/// enabling semantic forces based on ontology relationships.
 pub struct UnifiedGraphRepository {
     conn: Arc<Mutex<Connection>>,
     #[allow(dead_code)]
@@ -42,18 +52,16 @@ pub struct RepositoryMetrics {
 }
 
 impl UnifiedGraphRepository {
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    /// Create a new UnifiedGraphRepository
+    ///
+    /// Opens or creates unified.db at the specified path with foreign keys enabled.
+    /// Creates all required graph tables if they don't exist.
+    ///
+    /// # Arguments
+    /// * `db_path` - Path to unified.db (or ":memory:" for testing)
+    ///
+    /// # Returns
+    /// Initialized repository ready for graph operations
     pub fn new(db_path: &str) -> Result<Self, KnowledgeGraphRepositoryError> {
         let conn = Connection::open(db_path).map_err(|e| {
             KnowledgeGraphRepositoryError::DatabaseError(format!(
@@ -81,10 +89,13 @@ impl UnifiedGraphRepository {
         })
     }
 
-    
-    
-    
-    
+    /// Create unified.db schema for graph storage
+    ///
+    /// Tables created:
+    /// - graph_nodes: Core node data with physics state and OWL enrichment
+    /// - graph_edges: Relationships between nodes with optional semantic typing
+    /// - graph_statistics: Cached graph metrics for performance
+    /// - file_metadata: GitHub sync tracking with SHA1 hashing
     fn create_schema(conn: &Connection) -> Result<(), KnowledgeGraphRepositoryError> {
         info!("Creating unified graph database schema...");
 

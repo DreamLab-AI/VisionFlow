@@ -1,7 +1,16 @@
 # VisionFlow Migration Pipeline - Completion Report
 
+> **⚠️ HISTORICAL DOCUMENTATION - DEPRECATED**
+>
+> This document describes the completed migration from three separate databases
+> (knowledge_graph.db, ontology.db, settings.db) to the unified.db architecture.
+>
+> **Current System**: VisionFlow now uses ONLY unified.db.
+>
+> **Purpose**: Historical reference for understanding the migration that was completed.
+
 **Date**: 2025-10-31
-**Status**: ✅ **COMPLETE**
+**Status**: ✅ **COMPLETE** (Migration Successful)
 **Engineer**: Backend API Developer Agent
 **Validation**: `cargo check` PASSED
 

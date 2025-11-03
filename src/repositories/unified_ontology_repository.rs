@@ -2,8 +2,14 @@
 //! Unified Ontology Repository Adapter
 //!
 //! Implements OntologyRepository trait using unified.db schema.
-//! This adapter provides 100% API compatibility with SqliteOntologyRepository
-//! while using the unified database that combines graph and ontology data.
+//! Stores all OWL ontology data (classes, properties, axioms, hierarchy) in unified.db.
+//! Provides 100% API compatibility with legacy SqliteOntologyRepository.
+//!
+//! Database schema:
+//! - owl_classes: OWL class definitions with IRIs and labels
+//! - owl_class_hierarchy: Parent-child relationships for class hierarchy
+//! - owl_properties: Object/Data/Annotation properties with domain/range
+//! - owl_axioms: OWL axioms (SubClassOf, DisjointWith, etc.)
 
 use async_trait::async_trait;
 use log::{debug, info};
@@ -21,13 +27,23 @@ use crate::ports::ontology_repository::{
     ValidationReport,
 };
 
+/// Repository for OWL ontology data in unified.db
 ///
+/// All ontology operations are async and use blocking tasks for SQLite I/O.
+/// Foreign key constraints are enabled for referential integrity.
+/// Data is persisted across restarts - no in-memory only mode in production.
 pub struct UnifiedOntologyRepository {
     conn: Arc<Mutex<Connection>>,
 }
 
 impl UnifiedOntologyRepository {
-    
+    /// Create a new UnifiedOntologyRepository
+    ///
+    /// Opens or creates unified.db at the specified path with foreign keys enabled.
+    /// Creates all required ontology tables if they don't exist.
+    ///
+    /// # Arguments
+    /// * `db_path` - Path to unified.db (or ":memory:" for testing)
     pub fn new(db_path: &str) -> Result<Self, String> {
         let conn =
             Connection::open(db_path).map_err(|e| format!("Failed to open unified database: {}", e))?;

@@ -625,3 +625,7 @@ npm run build
 - **Team Meetings**: Weekly on [day/time]
 - **Pair Programming**: Schedule via [calendar link]
 - **Documentation**: https://docs.visionflow.dev
+
+---
+
+**Navigation:** [📖 Documentation Index](../../INDEX.md) | [💻 Developer Guide](./) | [🏗️ Architecture](../../architecture/) | [🧪 Testing](05-testing.md)

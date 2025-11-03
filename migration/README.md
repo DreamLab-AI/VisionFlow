@@ -1,8 +1,17 @@
 # VisionFlow Unified Schema Migration
 
+> **⚠️ HISTORICAL DOCUMENTATION**
+>
+> This document describes the migration from the old three-database architecture
+> (knowledge_graph.db, ontology.db, settings.db) to the current unified.db system.
+>
+> **Current System**: VisionFlow now uses ONLY unified.db for all data storage.
+>
+> **Purpose**: Historical reference for understanding the migration process.
+
 **Week 1 Deliverables - Schema Architecture Design**
 **Date**: 2025-10-31
-**Status**: ✅ Complete
+**Status**: ✅ Complete (Migration Successful)
 
 ---
 

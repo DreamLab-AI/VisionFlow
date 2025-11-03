@@ -1,6 +1,8 @@
 #!/bin/bash
 # VisionFlow Database Quick Start Script
-# Initializes databases with mock credentials and builds knowledge graph
+# ⚠️  DEPRECATED: This script references the old three-database architecture
+# Current system uses unified.db ONLY
+# This script is kept for historical reference
 
 set -e  # Exit on error
 
@@ -23,6 +25,7 @@ echo ""
 
 # Step 1: Add mock credentials
 echo "Step 1/3: Adding mock credentials..."
+# DEPRECATED: Using old settings.db path - should use unified.db
 docker exec -i "$CONTAINER" sqlite3 /app/data/settings.db << 'SQL'
 INSERT OR IGNORE INTO api_keys (
     service_name,
@@ -76,6 +79,8 @@ echo ""
 # Step 3: Verify current state
 echo "Step 3/3: Verifying database state..."
 
+# DEPRECATED: These paths reference old database architecture
+# Current system: Use /app/data/unified.db with graph_nodes and graph_edges tables
 NODE_COUNT=$(docker exec "$CONTAINER" sqlite3 /app/data/knowledge_graph.db "SELECT COUNT(*) FROM nodes" 2>/dev/null || echo "0")
 EDGE_COUNT=$(docker exec "$CONTAINER" sqlite3 /app/data/knowledge_graph.db "SELECT COUNT(*) FROM edges" 2>/dev/null || echo "0")
 

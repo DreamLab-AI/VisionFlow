@@ -1,4 +1,13 @@
-# VisionFlow Database Analysis Tools
+# VisionFlow Database Analysis
+
+> **⚠️ DEPRECATED - HISTORICAL REFERENCE ONLY**
+>
+> This directory contains analysis tools for the OLD three-database architecture
+> (knowledge_graph.db, ontology.db, settings.db).
+>
+> **Current System**: VisionFlow now uses ONLY unified.db for all data.
+>
+> These scripts are kept for historical reference and migration context. Tools
 
 This directory contains tools and scripts for analyzing and managing VisionFlow databases.
 

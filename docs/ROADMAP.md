@@ -606,6 +606,10 @@ interface ClassGroupOptions {
 
 ---
 
+**Navigation:** [📖 Documentation Index](INDEX.md) | [🏗️ Architecture](architecture/) | [📊 Progress Chart](PROGRESS_CHART.md) | [📚 Main README](../README.md)
+
+---
+
 **Document Maintainer**: Development Team
 **Review Frequency**: Bi-weekly
 **Last Major Update**: Phase 1 (Classification) completed 2025-01-03

@@ -1,8 +1,13 @@
 // src/services/github_sync_service.rs
 //! GitHub Sync Service
 //!
-//! Handles synchronization of markdown files from GitHub repository to database.
-//! Uses batch processing to avoid memory issues with large repositories.
+//! Synchronizes markdown files from GitHub repository to unified.db.
+//! - Parses public:: true pages as knowledge graph nodes (UnifiedGraphRepository)
+//! - Extracts OntologyBlock sections as OWL data (UnifiedOntologyRepository)
+//! - Enriches graph nodes with owl_class_iri metadata via OntologyEnrichmentService
+//! - Triggers OntologyPipelineService for automatic reasoning and constraint generation
+//! - Uses SHA1 filtering to process only changed files (unless FORCE_FULL_SYNC=1)
+//! - Batch processing (50 files) to avoid memory issues with large repositories
 
 use crate::repositories::{UnifiedGraphRepository, UnifiedOntologyRepository};
 use crate::ports::knowledge_graph_repository::KnowledgeGraphRepository;
@@ -13,6 +18,7 @@ use crate::services::parsers::{KnowledgeGraphParser, OntologyParser};
 use crate::services::ontology_enrichment_service::OntologyEnrichmentService;
 use crate::services::ontology_reasoner::OntologyReasoner;
 use crate::services::edge_classifier::EdgeClassifier;
+use crate::services::ontology_pipeline_service::OntologyPipelineService;
 use crate::adapters::whelk_inference_engine::WhelkInferenceEngine;
 use log::{debug, error, info, warn};
 use std::sync::Arc;
@@ -46,6 +52,7 @@ pub struct GitHubSyncService {
     kg_repo: Arc<UnifiedGraphRepository>,
     onto_repo: Arc<UnifiedOntologyRepository>,
     enrichment_service: Arc<OntologyEnrichmentService>,
+    pipeline_service: Option<Arc<OntologyPipelineService>>,
 }
 
 impl GitHubSyncService {
@@ -73,7 +80,14 @@ impl GitHubSyncService {
             kg_repo,
             onto_repo,
             enrichment_service,
+            pipeline_service: None,
         }
+    }
+
+    /// Set the ontology pipeline service for automatic reasoning
+    pub fn set_pipeline_service(&mut self, pipeline: Arc<OntologyPipelineService>) {
+        info!("GitHubSyncService: Ontology pipeline service registered");
+        self.pipeline_service = Some(pipeline);
     }
 
     /// Synchronize graphs from GitHub - processes in batches with progress logging
@@ -574,17 +588,78 @@ impl GitHubSyncService {
         FileType::Skip
     }
 
-    /// Save ontology data to database
+    /// Save ontology data to unified.db and trigger reasoning pipeline
+    ///
+    /// This method:
+    /// 1. Saves OWL classes, properties, and axioms to UnifiedOntologyRepository
+    /// 2. Triggers OntologyPipelineService for automatic reasoning
+    /// 3. Pipeline generates semantic constraints and uploads to GPU
+    ///
+    /// The reasoning pipeline runs asynchronously to avoid blocking sync.
     async fn save_ontology_data(&self, onto_data: crate::services::parsers::ontology_parser::OntologyData) -> Result<(), String> {
         use crate::ports::ontology_repository::OntologyRepository;
 
-        // Save all ontology data in one call
+        // Save all ontology data to unified.db in one transaction
         self.onto_repo.save_ontology(&onto_data.classes, &onto_data.properties, &onto_data.axioms).await
             .map_err(|e| format!("Failed to save ontology data: {}", e))?;
 
         // Log class hierarchy
         for (subclass_iri, superclass_iri) in onto_data.class_hierarchy {
             debug!("Class hierarchy: {} -> {}", subclass_iri, superclass_iri);
+        }
+
+        // 🔥 TRIGGER REASONING PIPELINE if configured
+        // This spawns an async task to run CustomReasoner inference, generate
+        // semantic constraints, and upload to GPU without blocking GitHub sync
+        if let Some(pipeline) = &self.pipeline_service {
+            info!("🔄 Triggering ontology reasoning pipeline after ontology save");
+
+            // Convert parsed ontology data to Ontology struct for reasoning
+            let mut ontology = crate::reasoning::custom_reasoner::Ontology::default();
+
+            // Add classes
+            for class in &onto_data.classes {
+                use crate::reasoning::custom_reasoner::OWLClass;
+                ontology.classes.insert(
+                    class.iri.clone(),
+                    OWLClass {
+                        iri: class.iri.clone(),
+                        label: class.label.clone(),
+                        parent_class_iri: None, // Will be populated from axioms
+                    },
+                );
+            }
+
+            // Add subclass relationships
+            use crate::ports::ontology_repository::AxiomType;
+            for axiom in &onto_data.axioms {
+                if matches!(axiom.axiom_type, AxiomType::SubClassOf) {
+                    ontology.subclass_of
+                        .entry(axiom.subject.clone())
+                        .or_insert_with(std::collections::HashSet::new)
+                        .insert(axiom.object.clone());
+                }
+            }
+
+            // Trigger the pipeline asynchronously
+            let ontology_id = 1; // Using default ontology ID - multi-ontology support deferred
+            let pipeline_clone = Arc::clone(pipeline);
+
+            tokio::spawn(async move {
+                match pipeline_clone.on_ontology_modified(ontology_id, ontology).await {
+                    Ok(stats) => {
+                        info!(
+                            "✅ Ontology pipeline complete: {} axioms inferred, {} constraints generated, GPU upload: {}",
+                            stats.inferred_axioms_count,
+                            stats.constraints_generated,
+                            stats.gpu_upload_success
+                        );
+                    }
+                    Err(e) => {
+                        error!("❌ Ontology pipeline failed: {}", e);
+                    }
+                }
+            });
         }
 
         Ok(())

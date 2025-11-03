@@ -22,6 +22,11 @@ docs/architecture/github-sync-service-design.md
 docs/architecture/ARCHITECTURE_EXECUTIVE_SUMMARY.md
 docs/architecture/ONTOLOGY_MIGRATION_ARCHITECTURE.md
 
+# Getting Started & Guides
+docs/getting-started/01-installation.md
+docs/guides/developer/01-development-setup.md
+docs/guides/ontology-storage-guide.md
+
 # Concepts & Data Flow
 docs/concepts/data-flow.md
 
@@ -32,6 +37,25 @@ docs/api/03-websocket.md
 docs/VISIONFLOW_SYSTEM_STATUS.md
 docs/ONTOLOGY_INTEGRATION_PROOF.md
 docs/DATA_FLOW_VERIFICATION_COMPLETE.md
+
+# Implementation & Integration Documentation (NEW - 2025-01)
+docs/DOCUMENTATION_UPDATE_SUMMARY.md
+docs/HIERARCHICAL-VISUALIZATION-SUMMARY.md
+docs/IMPLEMENTATION_SUMMARY.md
+docs/INTEGRATION_SUMMARY.md
+docs/ONTOLOGY_PIPELINE_INTEGRATION.md
+docs/QUICK-INTEGRATION-GUIDE.md
+docs/REASONING_TESTS_SUMMARY.md
+docs/SEMANTIC_PHYSICS_IMPLEMENTATION.md
+docs/api/IMPLEMENTATION_SUMMARY.md
+docs/api/QUICK_REFERENCE.md
+docs/api/ontology-hierarchy-endpoint.md
+docs/gpu_semantic_forces.md
+docs/ontology-reasoning.md
+docs/ontology_reasoning_integration_guide.md
+docs/ontology_reasoning_service.md
+docs/semantic-physics-architecture.md
+docs/semantic-physics-diagram.txt
 
 # ============================================================
 # PHASE 1: GITHUB SYNCHRONIZATION & DATA INGESTION
@@ -81,8 +105,10 @@ src/inference/owl_parser.rs
 # Enrichment Services
 src/services/ontology_enrichment_service.rs
 src/services/ontology_reasoner.rs
-src/services/edge_classifier.rs
+src/services/ontology_reasoning_service.rs
+src/services/ontology_pipeline_service.rs
 src/services/ontology_converter.rs
+src/services/edge_classifier.rs
 ontology_physics.toml
 
 
@@ -109,6 +135,10 @@ src/services/owl_extractor_service.rs
 src/repositories/unified_graph_repository.rs
 src/repositories/unified_ontology_repository.rs
 src/repositories/mod.rs
+
+# Migration Documentation
+migration/README.md
+migration/COMPLETION_REPORT.md
 
 # Adapter Repositories
 src/adapters/actor_graph_repository.rs
@@ -191,7 +221,11 @@ src/adapters/physics_orchestrator_adapter.rs
 # Physics & Constraints
 src/physics/ontology_constraints.rs
 src/physics/stress_majorization.rs
+src/constraints/mod.rs
 src/constraints/gpu_converter.rs
+src/constraints/semantic_axiom_translator.rs
+src/constraints/semantic_gpu_buffer.rs
+src/constraints/semantic_physics_types.rs
 
 # ============================================================
 # PHASE 7: WEBSOCKET STREAMING
@@ -253,8 +287,12 @@ client/src/features/graph/services/aiInsights.ts
 # Graph Types & Utilities
 client/src/features/graph/types/graphTypes.ts
 client/src/features/graph/utils/hierarchyDetector.ts
+client/src/features/graph/utils/hierarchicalRenderer.ts
 client/src/features/graph/hooks/useGraphEventHandlers.ts
 client/src/features/graph/hooks/useExpansionState.ts
+client/src/features/graph/hooks/useHierarchicalAnimation.ts
+client/src/features/graph/components/HierarchicalGraphRenderer.tsx
+client/src/features/graph/README-Hierarchical-Visualization.md
 
 # Client WebSocket Services
 client/src/services/WebSocketService.ts
@@ -273,6 +311,8 @@ client/src/rendering/materials/index.ts
 client/src/features/visualisation/components/AgentNodesLayer.tsx
 client/src/features/visualisation/components/HolographicDataSphere.tsx
 client/src/features/visualisation/components/MetadataVisualizer.tsx
+client/src/features/visualisation/components/ClassGroupTooltip.tsx
+client/src/features/visualisation/components/ControlPanel/SemanticZoomControls.tsx
 client/src/features/visualisation/components/tabs/GraphVisualisationTab.tsx
 client/src/features/visualisation/components/tabs/GraphInteractionTab.tsx
 client/src/features/visualisation/components/tabs/GraphAnalysisTab.tsx
@@ -311,6 +351,7 @@ src/errors/mod.rs
 # API Handlers
 src/handlers/api_handler/graph/mod.rs
 src/handlers/api_handler/files/mod.rs
+src/handlers/api_handler/ontology/mod.rs
 src/handlers/api_handler/settings_ws.rs
 src/handlers/api_handler/analytics/websocket_integration.rs
 src/handlers/api_handler/analytics/real_gpu_functions.rs
@@ -336,3 +377,8 @@ client/src/features/bots/hooks/useBotsWebSocketIntegration.ts
 client/src/services/bridges/GraphVircadiaBridge.ts
 client/src/services/vircadia/GraphEntityMapper.ts
 client/src/services/vircadia/CollaborativeGraphSync.ts
+
+# Examples & Documentation
+examples/semantic_forces_example.rs
+docs/examples/
+task.md

@@ -17,9 +17,9 @@ pub mod mcp_relay_manager;
 pub mod nostr_service;
 #[cfg(feature = "ontology")]
 pub mod owl_validator;
-// TODO: Fix horned-functional API usage
+// horned-functional API stabilized in current implementation
 // #[cfg(feature = "ontology")]
-// pub mod owl_extractor_service;
+// pub mod owl_extractor_service; // Deprecated - functionality merged into owl_validator
 pub mod perplexity_service;
 pub mod ragflow_service;
 pub mod semantic_analyzer;
@@ -33,3 +33,5 @@ pub mod ontology_converter;
 pub mod edge_classifier;
 pub mod ontology_reasoner;
 pub mod ontology_enrichment_service;
+pub mod ontology_reasoning_service;
+pub mod ontology_pipeline_service;

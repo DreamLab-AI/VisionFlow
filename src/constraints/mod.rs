@@ -8,6 +8,11 @@ pub mod constraint_blender;
 pub mod gpu_converter;
 pub mod constraint_lod;
 
+// Semantic physics extensions
+pub mod semantic_physics_types;
+pub mod semantic_axiom_translator;
+pub mod semantic_gpu_buffer;
+
 // Re-export main types
 pub use physics_constraint::{
     PhysicsConstraint,
@@ -52,6 +57,25 @@ pub use constraint_lod::{
     LODLevel,
     LODConfig,
     LODStats,
+};
+
+pub use semantic_physics_types::{
+    SemanticPhysicsConstraint,
+    Axis,
+    SemanticConstraintBuilder,
+};
+
+pub use semantic_axiom_translator::{
+    SemanticAxiomTranslator,
+    SemanticPhysicsConfig,
+    PriorityBlendingStrategy,
+};
+
+pub use semantic_gpu_buffer::{
+    SemanticGPUConstraintBuffer,
+    SemanticGPUConstraint,
+    SemanticConstraintStats,
+    gpu_semantic_types,
 };
 
 ///

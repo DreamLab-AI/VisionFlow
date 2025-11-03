@@ -1,47 +1,60 @@
 # GitHubSyncService Architecture Design
 
-**Version**: 1.0
-**Date**: 2025-10-25
-**Status**: Implementation Ready
-**Architect**: Queen Coordinator (Hierarchical Swarm)
+**Version**: 2.0
+**Date**: November 3, 2025
+**Status**: Production Ready
+**Architect**: VisionFlow Documentation Team
 
 ## Executive Summary
 
-This document specifies the architecture for the GitHubSyncService, the missing component that will populate `ontology.db` and `knowledge_graph.db` from the jjohare/logseq GitHub repository.
+This document specifies the architecture for the GitHubSyncService, the component that populates **unified.db** from the jjohare/logseq GitHub repository and triggers ontology reasoning.
 
-## Problem Statement
+## Problem Statement (Resolved)
 
-**Current State**:
+**Previous State** (Pre-Nov 2, 2025):
 - Databases created with correct schema ✅
 - Databases completely empty ❌
 - No automated data ingestion pipeline ❌
 - Application crashes when querying empty databases ❌
 
-**Root Cause**: Missing GitHubSyncService to fetch and parse data from GitHub on startup.
+**Current State** (Post-Migration):
+- ✅ **Unified database** (unified.db) with all domain tables
+- ✅ **Automated GitHub sync** on startup with differential updates
+- ✅ **Ontology reasoning pipeline** integrated
+- ✅ **FORCE_FULL_SYNC** environment variable for complete reprocessing
+- ✅ **316 nodes** loaded successfully (vs. previous 4-node bug)
 
-## Architecture Overview
+**Root Cause (Historical)**: Missing GitHubSyncService to fetch and parse data from GitHub on startup. **Now Resolved**.
+
+## Architecture Overview (Updated: Unified Database)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  AppState::new() Initialization Sequence                    │
 ├─────────────────────────────────────────────────────────────┤
-│  1. Create Databases (EXISTING)                             │
-│  2. ▶️ GitHubSyncService::sync_graphs() (NEW)               │
-│  3. Start Actors (EXISTING)                                 │
-│  4. Start HTTP Server (EXISTING)                            │
+│  1. Create unified.db (ACTIVE)                              │
+│  2. ▶️ GitHubSyncService::sync_graphs() (ACTIVE)            │
+│  3. ▶️ OntologyReasoningPipeline::infer() (NEW)             │
+│  4. Start Actors (EXISTING)                                 │
+│  5. Start HTTP Server (EXISTING)                            │
 └─────────────────────────────────────────────────────────────┘
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────┐
 │  GitHubSyncService::sync_graphs()                           │
 ├─────────────────────────────────────────────────────────────┤
-│  1. Fetch all .md files from jjohare/logseq/                │
+│  1. Check FORCE_FULL_SYNC environment variable              │
+│  2. Query file_metadata for SHA1 hashes (differential sync) │
+│  3. Fetch changed .md files from jjohare/logseq/            │
 │     mainKnowledgeGraph/pages via GitHub API                 │
-│  2. For each file:                                          │
-│     a. Read first lines for detection                       │
-│     b. Route to appropriate parser                          │
-│     c. Store parsed data in database                        │
-│  3. Return sync statistics                                  │
+│  4. For each file:                                          │
+│     a. Compute SHA1 hash                                    │
+│     b. Compare with stored hash (skip if identical)         │
+│     c. Route to appropriate parser                          │
+│     d. Store parsed data in unified.db                      │
+│     e. Update file_metadata with new hash                   │
+│  5. Trigger ontology reasoning                              │
+│  6. Return sync statistics                                  │
 └─────────────────────────────────────────────────────────────┘
                            │
                     ┌──────┴──────┐
@@ -58,8 +71,25 @@ This document specifies the architecture for the GitHubSyncService, the missing 
 │  - Metadata          │  │  - Axioms            │
 │                      │  │  - Hierarchies       │
 │ Stores to:           │  │ Stores to:           │
-│  knowledge_graph.db  │  │  ontology.db         │
+│  unified.db          │  │  unified.db          │
+│  (graph_nodes,       │  │  (owl_classes,       │
+│   graph_edges)       │  │   owl_axioms,        │
+│                      │  │   owl_hierarchy)     │
 └──────────────────────┘  └──────────────────────┘
+                           │
+                           ▼
+               ┌────────────────────────┐
+               │ OntologyReasoning      │
+               │ Pipeline (Whelk-rs)    │
+               ├────────────────────────┤
+               │ 1. Load owl_* tables   │
+               │ 2. Compute inferences  │
+               │ 3. Store inferred      │
+               │    axioms (flag=1)     │
+               │ 4. Generate semantic   │
+               │    constraints         │
+               │ 5. Upload to GPU       │
+               └────────────────────────┘
 ```
 
 ## Component Specifications
@@ -304,8 +334,8 @@ match github_sync_service.sync_graphs().await {
 ### Manual Validation
 ```bash
 # 1. Check database population
-sqlite3 data/knowledge_graph.db "SELECT count(*) FROM kg_nodes;"
-sqlite3 data/ontology.db "SELECT count(*) FROM owl_classes;"
+sqlite3 data/unified.db "SELECT count(*) FROM graph_nodes;"
+sqlite3 data/unified.db "SELECT count(*) FROM owl_classes;"
 
 # 2. Verify API endpoints return data
 curl http://localhost:4000/api/graph/data

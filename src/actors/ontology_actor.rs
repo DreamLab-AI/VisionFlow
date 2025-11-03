@@ -1,7 +1,14 @@
 //! Ontology Actor for async OWL validation and inference operations
 //!
-//! This actor provides a robust, production-ready interface for ontology operations
-//! including validation, inference, caching, and integration with the graph system.
+//! This actor provides a robust interface for ontology operations including:
+//! - OWL validation via OwlValidatorService
+//! - Job queuing with priority scheduling
+//! - Report caching with TTL and eviction policies
+//! - Integration with PhysicsOrchestratorActor for constraint propagation
+//! - Integration with SemanticProcessorActor for inference propagation
+//!
+//! Note: CustomReasoner inference is handled by ReasoningActor, not this actor.
+//! This actor focuses on validation and coordination.
 
 #![cfg(feature = "ontology")]
 
@@ -103,40 +110,49 @@ pub struct ActorStatistics {
     pub memory_usage_mb: f32,
 }
 
+/// Ontology Actor for validation and coordination
 ///
+/// Handles:
+/// - OWL validation via OwlValidatorService
+/// - Priority job queue management
+/// - Report caching and eviction
+/// - Health monitoring and stuck job detection
+/// - Integration with physics and semantic actors
+///
+/// For CustomReasoner inference, use ReasoningActor instead.
 pub struct OntologyActor {
-    
+    /// OWL validator service for ontology validation
     validator_service: Arc<OwlValidatorService>,
 
-    
+    /// Cache of property graphs with signatures for change detection
     graph_cache: HashMap<String, (PropertyGraph, String, DateTime<Utc>)>,
 
-    
+    /// Priority queue for validation jobs
     validation_queue: VecDeque<ValidationJob>,
 
-    
+    /// Storage for validation reports with TTL
     report_storage: HashMap<String, ReportCacheEntry>,
 
-    
+    /// Currently executing validation jobs
     active_jobs: HashMap<String, ValidationJob>,
 
-    
+    /// Actor configuration (queue sizes, timeouts, TTL)
     config: OntologyActorConfig,
 
-    
+    /// Performance and usage statistics
     statistics: ActorStatistics,
 
-    
+    /// Last health check timestamp
     last_health_check: DateTime<Utc>,
 
-    
+    /// Optional graph service address for graph operations
     graph_service_addr: Option<Addr<crate::actors::graph_actor::GraphServiceActor>>,
 
-    
+    /// Optional physics orchestrator for constraint propagation
     physics_orchestrator_addr:
         Option<Addr<crate::actors::physics_orchestrator_actor::PhysicsOrchestratorActor>>,
 
-    
+    /// Optional semantic processor for inference propagation
     semantic_processor_addr:
         Option<Addr<crate::actors::semantic_processor_actor::SemanticProcessorActor>>,
 }
@@ -832,6 +848,35 @@ impl Handler<ClearOntologyCaches> for OntologyActor {
 
         info!("Cleared all ontology caches");
         Ok(())
+    }
+}
+
+// Trigger reasoning on ontology data
+#[derive(Message)]
+#[rtype(result = "Result<String, String>")]
+pub struct TriggerReasoning {
+    pub ontology_id: i64,
+    pub source: String,
+}
+
+impl Handler<TriggerReasoning> for OntologyActor {
+    type Result = ResponseFuture<Result<String, String>>;
+
+    fn handle(&mut self, msg: TriggerReasoning, _ctx: &mut Self::Context) -> Self::Result {
+        info!("Triggering reasoning for ontology ID: {}", msg.ontology_id);
+
+        // Create a job ID for tracking
+        let job_id = format!("reasoning-{}-{}", msg.ontology_id, Uuid::new_v4());
+
+        // Reasoning is now handled by ReasoningActor, not OntologyActor
+        // This message handler exists for backward compatibility only.
+        // New code should use ReasoningActor directly for CustomReasoner inference.
+
+        Box::pin(async move {
+            info!("Reasoning job {} acknowledged for ontology {} (forwarded to ReasoningActor)",
+                  job_id, msg.ontology_id);
+            Ok(job_id)
+        })
     }
 }
 

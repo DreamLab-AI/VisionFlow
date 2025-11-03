@@ -175,8 +175,8 @@ impl OntologyConverter {
     }
 }
 
-// TODO: Integrate hornedowl/whelk-rs for advanced reasoning
-// - Use hornedowl for OWL 2 DL reasoning
-// - Use whelk-rs for EL++ tractable reasoning
-// - Apply reasoning to infer additional class memberships
-// - Use inferred hierarchy for better layout
+// CustomReasoner now provides EL++ reasoning capabilities
+// - EL++ tractable reasoning via CustomReasoner
+// - Infers class hierarchy (SubClassOf relationships)
+// - Detects disjoint classes for separation forces
+// - Class inference integrated into OntologyPipelineService

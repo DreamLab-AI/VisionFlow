@@ -110,10 +110,10 @@ Deploy teams of specialist AI agents (Researcher, Analyst, Coder) that work 24/7
 ### 🤝 Real-Time Collaborative 3D Space
 Invite your team into a shared virtual environment. Watch agents work, explore the knowledge graph together, and maintain independent specialist views while staying perfectly in sync.
 
-- **Multi-user synchronization** via WebSocket binary protocol
+- **Multi-user synchronization** via WebSocket **36-byte binary protocol**
 - **60 FPS rendering** at 100,000+ nodes
 - **Independent camera controls** with shared state
-- **Real-time updates** with sub-10ms latency
+- **Real-time updates** with sub-10ms latency (80% bandwidth reduction vs JSON)
 
 ### 🎙️ Voice-First Interaction
 Converse naturally with your AI agents. Guide research, ask questions, and receive insights through seamless, real-time voice-to-voice communication with spatial audio.
@@ -156,14 +156,20 @@ Connect to your existing knowledge sources with our powerful Markdown-based data
 - **Local-first architecture** for data sovereignty
 - **Git synchronization** for team collaboration
 
-### 🦉 Ontology-Driven Validation
-Ensure logical consistency with **OWL/RDF semantic validation**. Automatically infer new relationships, detect contradictions, and visualize ontological constraints as physics forces for intuitive graph layouts.
+### 🦉 Ontology-Driven Visualization & Reasoning
+Transform static OWL definitions into intelligent, self-organizing 3D knowledge structures with **automatic inference** and **semantic physics**. The reasoning pipeline ensures logical consistency while creating visually meaningful spatial layouts.
 
-- **Whelk reasoner** for OWL 2 EL profile
-- **Horned-OWL** for ontology parsing
-- **Physics-based visualization** of semantic constraints
-- **Automatic inference** of new relationships
-- **Contradiction detection** and validation
+- **Whelk-rs reasoner** for OWL 2 EL profile (10-100x faster than Java reasoners)
+- **Horned-OWL** for OWL/RDF ontology parsing
+- **Semantic physics engine**: Translate ontological constraints into 3D forces
+  - `SubClassOf` → Attraction (child classes cluster near parents)
+  - `DisjointWith` → Repulsion (disjoint classes pushed apart)
+  - `EquivalentClasses` → Strong attraction (synonyms together)
+- **Automatic inference** with LRU caching (90x speedup)
+- **Contradiction detection** and real-time validation
+- **8 constraint types** for semantic force generation
+
+**[📖 Complete Reasoning Guide](docs/ontology-reasoning.md)**
 
 ### ⚡ GPU-Accelerated Performance
 **39 production CUDA kernels** deliver 100x CPU speedup for physics simulation, clustering, and pathfinding—enabling 60 FPS rendering at 100k+ nodes with sub-10ms latency.
@@ -173,6 +179,90 @@ Ensure logical consistency with **OWL/RDF semantic validation**. Automatically i
 - **Shortest path computation** with GPU acceleration
 - **Community detection** using Leiden algorithm
 - **80% bandwidth reduction** with binary WebSocket protocol
+
+---
+
+## 🌈 Ontology-Driven Visualization Examples
+
+### How Semantic Physics Creates Meaningful Layouts
+
+VisionFlow's ontology reasoning pipeline doesn't just validate data—it **transforms logical relationships into visual structure**:
+
+#### Example 1: Hierarchical Clustering (SubClassOf)
+
+```
+Ontology Definition:
+  :Dog subClassOf :Animal
+  :Cat subClassOf :Animal
+  :Puppy subClassOf :Dog
+  :Kitten subClassOf :Cat
+
+Visual Result:
+  ┌─────────────────────────────────┐
+  │         :Animal                 │  ← Parent class (center of cluster)
+  │    ╱              ╲             │
+  │  :Dog            :Cat           │  ← Subclasses (attracted to parent)
+  │   │               │             │
+  │ :Puppy         :Kitten          │  ← Leaf classes (nested clusters)
+  └─────────────────────────────────┘
+
+Physics Forces Applied:
+  - Spring attraction between parent/child (strength: 0.8)
+  - Inferred transitive relationships (strength: 0.3)
+  - Result: Natural hierarchical tree layout
+```
+
+#### Example 2: Semantic Separation (DisjointWith)
+
+```
+Ontology Definition:
+  :Person DisjointWith :Organization
+  :Company subClassOf :Organization
+  :Employee subClassOf :Person
+
+Visual Result:
+  ┌───────────────┐         ┌───────────────┐
+  │   :Person     │ ←──X──→ │ :Organization │  ← Repulsion force
+  │     │         │         │      │        │
+  │  :Employee    │         │  :Company     │
+  └───────────────┘         └───────────────┘
+       Left cluster              Right cluster
+
+Physics Forces Applied:
+  - Coulomb repulsion between disjoint classes (strength: 1.0)
+  - Subclasses inherit parent repulsion
+  - Result: Clear semantic boundaries in 3D space
+```
+
+#### Example 3: Property Alignment (ObjectProperty)
+
+```
+Ontology Definition:
+  :worksFor domain :Person, range :Organization
+  :employs domain :Organization, range :Person (inverse)
+
+Visual Result:
+       :Person ────────────→ :Organization
+                 :worksFor
+                    (force aligns nodes horizontally)
+
+Physics Forces Applied:
+  - Directed alignment force (strength: 0.6)
+  - Creates natural "flow" from domain to range
+  - Result: Property relationships visible as spatial orientation
+```
+
+### Real-World Impact
+
+| Scenario | Without Ontology | With Ontology Reasoning |
+|----------|------------------|-------------------------|
+| **Knowledge Discovery** | Only see explicit links | Automatically infer hidden connections (e.g., transitive properties) |
+| **Data Quality** | Manual validation | Automatic contradiction detection ("Dog DisjointWith Animal" conflicts) |
+| **3D Navigation** | Generic hairball layout | Semantically meaningful clusters (People vs. Places vs. Concepts) |
+| **Agent Intelligence** | Requires hand-holding | Context-aware agents understand domain rules |
+
+**[🎯 Try It: Interactive Ontology Demo](docs/getting-started/02-first-graph-and-agents.md)**
+**[📖 Deep Dive: Ontology Reasoning Pipeline](docs/ontology-reasoning.md)**
 
 ---
 
@@ -284,7 +374,7 @@ VisionFlow combines cutting-edge technologies for unmatched performance and scal
 | **GPU Acceleration** | CUDA 12.4 (39 Kernels) | Physics, clustering, pathfinding—100x speedup |
 | **AI Orchestration** | MCP Protocol + Claude | 50+ concurrent specialist agents |
 | **Semantic Layer** | OWL/RDF + Whelk Reasoner | Ontology validation, logical inference |
-| **Networking** | Binary WebSocket (36-byte protocol V2) | <10ms latency, 80% bandwidth reduction |
+| **Networking** | **Binary WebSocket Protocol V2** | **36 bytes/node**, <10ms latency, 80% bandwidth reduction |
 | **Data Layer** | Single Unified SQLite Database | unified.db (WAL mode) with integrated tables: graph_nodes, graph_edges, owl_classes, owl_class_hierarchy, owl_properties, owl_axioms, file_metadata |
 | **Development** | Hexser + TypeScript | Type-safe CQRS with auto-generated TypeScript types |
 
@@ -351,9 +441,9 @@ VisionFlow is built for enterprise-scale performance:
 
 | Metric | Value | Details |
 | :--- | :--- | :--- |
-| **WebSocket Latency** | <10ms | Binary protocol V2 |
-| **Bandwidth Reduction** | 80% | vs JSON protocol |
-| **Message Size** | 36 bytes | Compact binary format |
+| **WebSocket Latency** | <10ms | Binary protocol V2 (36-byte format) |
+| **Bandwidth Reduction** | 80% | vs deprecated JSON V1 protocol |
+| **Message Size** | 36 bytes/node | Fixed-width binary format |
 | **Update Rate** | 60 Hz | Real-time synchronization |
 
 ### GPU Acceleration
@@ -568,6 +658,8 @@ if results.is_consistent {
 
 ## 📚 Documentation
 
+**[📖 Complete Documentation Index](docs/INDEX.md)** - Master searchable index of all 311+ documentation files
+
 VisionFlow uses the **Diátaxis** framework for comprehensive, organized documentation:
 
 ### 🎓 Getting Started (Tutorials)
@@ -608,7 +700,7 @@ Production deployment guides:
 - **[Monitoring](docs/deployment/03-monitoring.md)** - Performance tracking
 - **[Backup & Restore](docs/deployment/04-backup-restore.md)** - Data management
 
-**[📑 Full Documentation Index](docs/README.md)**
+**[📑 Documentation Hub](docs/README.md)** | **[🔍 Complete Master Index](docs/INDEX.md)** - Search all documentation by topic, role, or feature
 
 ---
 
