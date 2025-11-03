@@ -414,6 +414,51 @@ docker exec turbo-flow-unified supervisorctl status
 tail -f /var/log/supervisord.log
 ```
 
+## Hook Integration Examples
+
+### Pre-task Hook
+```bash
+npx claude-flow@alpha hooks pre-task \
+  --description "Integration Engineer: Connect OntologyReasoningService to data pipeline"
+```
+
+### Post-edit Hook (for each file)
+```bash
+npx claude-flow@alpha hooks post-edit \
+  --file "src/services/ontology_pipeline_service.rs" \
+  --memory-key "swarm/integration-engineer/pipeline-service-created"
+```
+
+### Post-task Hook
+```bash
+npx claude-flow@alpha hooks post-task \
+  --task-id "integration-engineer-pipeline-integration"
+```
+
+### Notify Completion Hook
+```bash
+npx claude-flow@alpha hooks notify \
+  --message "Integration Engineer: Ontology pipeline integration complete"
+```
+
+### Session Management Hooks
+```bash
+# Session restore
+npx claude-flow@alpha hooks session-restore --session-id "swarm-[id]"
+
+# Session end with metrics export
+npx claude-flow@alpha hooks session-end --export-metrics true
+```
+
+### Memory Storage
+All integration activities are stored in `.swarm/memory.db`:
+- Task descriptions and IDs
+- File modifications
+- Completion status
+- Notifications
+
+This enables cross-session context restoration and swarm coordination.
+
 ## Best Practices
 
 ### File Organization

@@ -535,6 +535,38 @@ interface ClassGroupOptions {
 
 ---
 
+## Investment Analysis
+
+### Time Investment Required
+
+| Phase | Duration | FTE Required | Total Person-Hours |
+|-------|----------|--------------|-------------------|
+| Phase 1: Reasoning | 2-3 weeks | 1 FTE | 80-120 hours |
+| Phase 2: Physics | 3-4 weeks | 1 FTE | 120-160 hours |
+| Phase 3: Neo4j | 2-3 weeks | 1 FTE | 80-120 hours |
+| Phase 4: Stress | 2 weeks | 1 FTE | 80 hours |
+| Phase 5: Client | 2-3 weeks | 1 FTE | 80-120 hours |
+| Phase 6: Advanced | 3-4 weeks | 1 FTE | 120-160 hours |
+
+**Total**: 16-24 weeks @ 1 FTE = **560-840 person-hours**
+
+### Return on Investment
+
+**Current State Value**: 40% of vision
+- Basic ontology classification works
+- GPU physics functional
+- Real-time visualization working
+
+**After Critical Phases (1-2)**:
+- **Value**: 75% of vision
+- **Time**: 5-7 weeks
+- **ROI**: Very High (semantic intelligence activated)
+
+**After All Phases**:
+- **Value**: 100% of vision
+- **Time**: 16-24 weeks
+- **ROI**: Complete semantic graph platform
+
 ## Technical Debt & Risks
 
 ### Known Issues
