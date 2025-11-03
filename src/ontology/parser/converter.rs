@@ -90,7 +90,7 @@ fn kebab_to_camel(s: &str) -> String {
 
 ///
 fn extract_wikilink(s: &str) -> Option<String> {
-    let re = Regex::new(r"\[\[([^\]]+)\]\]").unwrap();
+    let re = Regex::new(r"\[\[([^\]]+)\]\]").expect("Invalid regex pattern");
     re.captures(s).map(|cap| cap[1].to_string())
 }
 

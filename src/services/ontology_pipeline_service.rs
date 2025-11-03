@@ -20,6 +20,7 @@ use crate::reasoning::reasoning_actor::{ReasoningActor, TriggerReasoning as Reas
 use crate::reasoning::custom_reasoner::Ontology;
 use crate::models::constraints::ConstraintSet;
 use crate::services::github_sync_service::SyncStatistics;
+use crate::ports::knowledge_graph_repository::KnowledgeGraphRepository;
 
 /// Configuration for semantic physics pipeline
 #[derive(Debug, Clone)]
@@ -81,6 +82,7 @@ pub struct OntologyPipelineService {
     ontology_actor: Option<Addr<OntologyActor>>,
     graph_actor: Option<Addr<GraphServiceActor>>,
     constraint_actor: Option<Addr<OntologyConstraintActor>>,
+    graph_repo: Option<Arc<dyn KnowledgeGraphRepository>>,
 }
 
 impl OntologyPipelineService {
@@ -94,6 +96,7 @@ impl OntologyPipelineService {
             ontology_actor: None,
             graph_actor: None,
             constraint_actor: None,
+            graph_repo: None,
         }
     }
 
@@ -119,6 +122,12 @@ impl OntologyPipelineService {
     pub fn set_constraint_actor(&mut self, addr: Addr<OntologyConstraintActor>) {
         info!("OntologyPipelineService: Constraint actor address registered");
         self.constraint_actor = Some(addr);
+    }
+
+    /// Set the graph repository for IRI to node ID resolution
+    pub fn set_graph_repository(&mut self, repo: Arc<dyn KnowledgeGraphRepository>) {
+        info!("OntologyPipelineService: Graph repository registered");
+        self.graph_repo = Some(repo);
     }
 
     /// Handle ontology modification event
@@ -230,12 +239,17 @@ impl OntologyPipelineService {
     /// Generate physics constraints from inferred axioms
     ///
     /// Converts CustomReasoner axiom types to semantic constraints:
-    /// - SubClassOf: Attraction forces (child → parent clustering)
-    /// - EquivalentTo: Strong attraction forces (equivalent classes align)
-    /// - DisjointWith: Repulsion forces (disjoint classes separate)
+    /// - SubClassOf: Hierarchical attraction forces (child → parent clustering)
+    /// - EquivalentTo: Strong colocation forces (equivalent classes align)
+    /// - DisjointWith: Separation/repulsion forces (disjoint classes separate)
     ///
     /// All constraints use ConstraintKind::Semantic (= 10) which is processed
     /// by ontology_constraints.cu in the CUDA kernel pipeline.
+    ///
+    /// Constraint params format:
+    /// - [0]: Semantic constraint sub-type (0=separation, 1=hierarchical, 2=alignment, etc.)
+    /// - [1]: Force magnitude
+    /// - [2-4]: Optional direction vector or additional parameters
     async fn generate_constraints_from_axioms(
         &self,
         axioms: &[crate::reasoning::custom_reasoner::InferredAxiom],
@@ -243,46 +257,148 @@ impl OntologyPipelineService {
         info!("🔧 Generating constraints from {} axioms", axioms.len());
 
         use crate::models::constraints::{Constraint, ConstraintKind};
-
-        let mut constraints = Vec::new();
-
         use crate::reasoning::custom_reasoner::AxiomType;
 
+        // Get graph repository for IRI → node ID resolution
+        let graph_repo = self.graph_repo
+            .as_ref()
+            .ok_or_else(|| "Graph repository not configured".to_string())?;
+
+        let mut constraints = Vec::new();
+        let mut skipped_count = 0;
+
         for axiom in axioms {
+            // Resolve subject IRI to node IDs
+            let subject_nodes = match graph_repo.get_nodes_by_owl_class_iri(&axiom.subject).await {
+                Ok(nodes) => nodes,
+                Err(e) => {
+                    debug!("No nodes found for subject IRI '{}': {}", axiom.subject, e);
+                    skipped_count += 1;
+                    continue;
+                }
+            };
+
+            if subject_nodes.is_empty() {
+                debug!("No nodes found with owl_class_iri: {}", axiom.subject);
+                skipped_count += 1;
+                continue;
+            }
+
             // Convert inferred axioms to physics constraints
-            // SubClassOf(A, B) → nodes of class A should cluster near class B nodes
             match axiom.axiom_type {
                 AxiomType::SubClassOf => {
-                    if let Some(_superclass) = &axiom.object {
+                    // HierarchicalAttraction: Child nodes are pulled toward parent class nodes
+                    if let Some(superclass) = &axiom.object {
+                        let object_nodes = match graph_repo.get_nodes_by_owl_class_iri(superclass).await {
+                            Ok(nodes) => nodes,
+                            Err(e) => {
+                                debug!("No nodes found for object IRI '{}': {}", superclass, e);
+                                skipped_count += 1;
+                                continue;
+                            }
+                        };
+
+                        if object_nodes.is_empty() {
+                            debug!("No nodes found with owl_class_iri: {}", superclass);
+                            skipped_count += 1;
+                            continue;
+                        }
+
+                        // Build constraint with all subject and object nodes
+                        let mut node_indices: Vec<u32> = Vec::new();
+                        node_indices.extend(subject_nodes.iter().map(|n| n.id));
+                        node_indices.extend(object_nodes.iter().map(|n| n.id));
+
+                        // Params: [constraint_subtype, force_magnitude]
+                        // SubType 1 = HierarchicalAttraction
+                        let force_magnitude = self.config.constraint_strength * 0.5; // Gentler pull
+
                         constraints.push(Constraint {
                             kind: ConstraintKind::Semantic,
-                            node_indices: vec![],
-                            params: vec![],
+                            node_indices,
+                            params: vec![1.0, force_magnitude], // subtype=1, magnitude
                             weight: self.config.constraint_strength,
                             active: true,
                         });
+
+                        debug!("Created SubClassOf constraint: {} → {} ({} nodes)",
+                               axiom.subject, superclass, subject_nodes.len() + object_nodes.len());
                     }
                 }
                 AxiomType::EquivalentTo => {
-                    if let Some(_class_b) = &axiom.object {
+                    // Colocation: Equivalent classes should cluster tightly together
+                    if let Some(class_b) = &axiom.object {
+                        let object_nodes = match graph_repo.get_nodes_by_owl_class_iri(class_b).await {
+                            Ok(nodes) => nodes,
+                            Err(e) => {
+                                debug!("No nodes found for object IRI '{}': {}", class_b, e);
+                                skipped_count += 1;
+                                continue;
+                            }
+                        };
+
+                        if object_nodes.is_empty() {
+                            debug!("No nodes found with owl_class_iri: {}", class_b);
+                            skipped_count += 1;
+                            continue;
+                        }
+
+                        let mut node_indices: Vec<u32> = Vec::new();
+                        node_indices.extend(subject_nodes.iter().map(|n| n.id));
+                        node_indices.extend(object_nodes.iter().map(|n| n.id));
+
+                        // Params: [constraint_subtype, force_magnitude]
+                        // SubType 4 = Colocation (equivalence)
+                        let force_magnitude = self.config.constraint_strength * 1.5; // Strong attraction
+
                         constraints.push(Constraint {
                             kind: ConstraintKind::Semantic,
-                            node_indices: vec![],
-                            params: vec![],
+                            node_indices,
+                            params: vec![4.0, force_magnitude], // subtype=4, magnitude
                             weight: self.config.constraint_strength * 1.5,
                             active: true,
                         });
+
+                        debug!("Created EquivalentTo constraint: {} ≡ {} ({} nodes)",
+                               axiom.subject, class_b, subject_nodes.len() + object_nodes.len());
                     }
                 }
                 AxiomType::DisjointWith => {
-                    if let Some(_class_b) = &axiom.object {
+                    // Separation: Disjoint classes should repel each other
+                    if let Some(class_b) = &axiom.object {
+                        let object_nodes = match graph_repo.get_nodes_by_owl_class_iri(class_b).await {
+                            Ok(nodes) => nodes,
+                            Err(e) => {
+                                debug!("No nodes found for object IRI '{}': {}", class_b, e);
+                                skipped_count += 1;
+                                continue;
+                            }
+                        };
+
+                        if object_nodes.is_empty() {
+                            debug!("No nodes found with owl_class_iri: {}", class_b);
+                            skipped_count += 1;
+                            continue;
+                        }
+
+                        let mut node_indices: Vec<u32> = Vec::new();
+                        node_indices.extend(subject_nodes.iter().map(|n| n.id));
+                        node_indices.extend(object_nodes.iter().map(|n| n.id));
+
+                        // Params: [constraint_subtype, force_magnitude]
+                        // SubType 0 = Separation (repulsion)
+                        let force_magnitude = self.config.constraint_strength * 2.0; // Strong repulsion
+
                         constraints.push(Constraint {
                             kind: ConstraintKind::Semantic,
-                            node_indices: vec![],
-                            params: vec![],
+                            node_indices,
+                            params: vec![0.0, force_magnitude], // subtype=0, magnitude
                             weight: self.config.constraint_strength * 2.0,
                             active: true,
                         });
+
+                        debug!("Created DisjointWith constraint: {} ⊥ {} ({} nodes)",
+                               axiom.subject, class_b, subject_nodes.len() + object_nodes.len());
                     }
                 }
                 _ => {
@@ -291,7 +407,12 @@ impl OntologyPipelineService {
             }
         }
 
-        info!("✅ Generated {} constraints from axioms", constraints.len());
+        if skipped_count > 0 {
+            warn!("⚠️  Skipped {} axioms due to missing nodes in graph", skipped_count);
+        }
+
+        info!("✅ Generated {} constraints from {} axioms ({} skipped)",
+              constraints.len(), axioms.len(), skipped_count);
 
         Ok(ConstraintSet {
             constraints,

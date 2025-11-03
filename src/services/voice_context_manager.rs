@@ -12,6 +12,7 @@ use tokio::sync::RwLock;
 use uuid::Uuid;
 
 use crate::actors::voice_commands::{ConversationContext, SwarmIntent};
+use crate::utils::time;
 
 ///
 pub struct VoiceContextManager {
@@ -93,7 +94,7 @@ impl VoiceContextManager {
 
         
         if let Some(session) = sessions.get_mut(&session_id) {
-            session.last_activity = Utc::now();
+            session.last_activity = time::now();
             debug!("Retrieved existing voice session: {}", session_id);
             return session_id;
         }
@@ -102,8 +103,8 @@ impl VoiceContextManager {
         let session = VoiceSession {
             session_id: session_id.clone(),
             user_id,
-            created_at: Utc::now(),
-            last_activity: Utc::now(),
+            created_at: time::now(),
+            last_activity: time::now(),
             conversation_history: Vec::new(),
             context: ConversationContext {
                 session_id: session_id.clone(),
@@ -147,7 +148,7 @@ impl VoiceContextManager {
                 .history
                 .push((user_input, assistant_response));
             session.context.turn_count += 1;
-            session.last_activity = Utc::now();
+            session.last_activity = time::now();
 
             
             if let Some(intent) = intent {
@@ -185,13 +186,13 @@ impl VoiceContextManager {
                 operation_id: operation_id.clone(),
                 operation_type,
                 parameters,
-                created_at: Utc::now(),
+                created_at: time::now(),
                 expected_completion,
                 status: OperationStatus::Pending,
             };
 
             session.pending_operations.push(operation);
-            session.last_activity = Utc::now();
+            session.last_activity = time::now();
 
             debug!(
                 "Added pending operation {} to session {}",
@@ -219,7 +220,7 @@ impl VoiceContextManager {
                 .find(|op| op.operation_id == operation_id)
             {
                 operation.status = status;
-                session.last_activity = Utc::now();
+                session.last_activity = time::now();
                 debug!(
                     "Updated operation {} status in session {}",
                     operation_id, session_id
@@ -263,7 +264,7 @@ impl VoiceContextManager {
 
         if let Some(session) = sessions.get_mut(session_id) {
             session.metadata.insert(key, value);
-            session.last_activity = Utc::now();
+            session.last_activity = time::now();
             Ok(())
         } else {
             Err(format!("Session {} not found", session_id))
@@ -287,7 +288,7 @@ impl VoiceContextManager {
 
     
     async fn cleanup_old_sessions_internal(&self, sessions: &mut HashMap<String, VoiceSession>) {
-        let now = Utc::now();
+        let now = time::now();
         let mut expired_sessions = Vec::new();
 
         for (session_id, session) in sessions.iter() {

@@ -889,7 +889,7 @@ pub async fn refresh_mcp_discovery(_app_state: web::Data<AppState>) -> ActixResu
 
     
 
-    Ok(HttpResponse::Ok().json(json!({
+    Ok(ok_json!(json!({
         "success": true,
         "message": "Discovery refresh initiated",
         "timestamp": chrono::Utc::now().timestamp_millis()

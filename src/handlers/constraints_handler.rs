@@ -32,9 +32,7 @@ async fn define_constraints(
 
     
     if let Err(e) = validate_constraint_system(&constraints) {
-        return Ok(HttpResponse::BadRequest().json(json!({
-            "error": format!("Invalid constraint system: {}", e)
-        })));
+        return Ok(bad_request!("Invalid constraint system: {}", e));
     }
 
     
@@ -60,23 +58,17 @@ async fn define_constraints(
         Ok(Ok(s)) => s,
         Ok(Err(e)) => {
             error!("Failed to get current settings: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to get current settings"
-            })));
+            return error_json!("Failed to get current settings");
         }
         Err(e) => {
             error!("Settings actor error: {}", e);
-            return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "error": "Settings service unavailable"
-            })));
+            return service_unavailable!("Settings service unavailable");
         }
     };
 
     if let Err(e) = app_settings.merge_update(settings_update) {
         error!("Failed to merge constraint settings: {}", e);
-        return Ok(HttpResponse::InternalServerError().json(json!({
-            "error": format!("Failed to update constraint settings: {}", e)
-        })));
+        return Ok(error_json!("Failed to update constraint settings: {}", e));
     }
 
     
@@ -123,22 +115,18 @@ async fn define_constraints(
                 info!("GPU compute actor not available - constraints saved to settings only");
             }
 
-            Ok(HttpResponse::Ok().json(json!({
+            Ok(ok_json!(json!({
                 "status": "Constraints defined successfully",
                 "constraints": constraints
             })))
         }
         Ok(Err(e)) => {
             error!("Failed to save constraint settings: {}", e);
-            Ok(HttpResponse::InternalServerError().json(json!({
-                "error": format!("Failed to save constraint settings: {}", e)
-            })))
+            Ok(error_json!("Failed to save constraint settings: {}", e))
         }
         Err(e) => {
             error!("Settings actor error: {}", e);
-            Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "error": "Settings service unavailable"
-            })))
+            service_unavailable!("Settings service unavailable")
         }
     }
 }
@@ -169,9 +157,7 @@ async fn apply_constraints(
         .ok_or_else(|| actix_web::error::ErrorBadRequest("nodeIds array is required"))?;
 
     if !["separation", "boundary", "alignment", "cluster"].contains(&constraint_type) {
-        return Ok(HttpResponse::BadRequest().json(json!({
-            "error": "constraintType must be separation, boundary, alignment, or cluster"
-        })));
+        return bad_request!("constraintType must be separation, boundary, alignment, or cluster");
     }
 
     
@@ -203,7 +189,7 @@ async fn apply_constraints(
         strength
     );
 
-    Ok(HttpResponse::Ok().json(json!({
+    Ok(ok_json!(json!({
         "status": "Constraints recorded successfully",
         "constraintType": constraint_type,
         "nodeCount": nodes.len(),
@@ -241,7 +227,7 @@ async fn remove_constraints(
         constraint_type, removal_count
     );
 
-    Ok(HttpResponse::Ok().json(json!({
+    Ok(ok_json!(json!({
         "status": "Constraint removal recorded successfully",
         "removedCount": removal_count,
         "gpuAvailable": state.gpu_compute_addr.is_some(),
@@ -259,13 +245,20 @@ async fn list_constraints(
     
     if let Some(gpu_addr) = &state.gpu_compute_addr {
         use crate::actors::messages::GetConstraints;
+use crate::{
+    ok_json, created_json, error_json, bad_request, not_found,
+    unauthorized, forbidden, conflict, no_content, accepted,
+    too_many_requests, service_unavailable, payload_too_large
+};
+
+
         match gpu_addr.send(GetConstraints).await {
             Ok(Ok(gpu_constraints)) => {
                 info!(
                     "Retrieved {} constraints from GPU compute actor",
                     gpu_constraints.constraints.len()
                 );
-                return Ok(HttpResponse::Ok().json(json!({
+                return Ok(ok_json!(json!({
                     "constraints": gpu_constraints,
                     "count": gpu_constraints.constraints.len(),
                     "data_source": "gpu_compute_actor",
@@ -311,7 +304,7 @@ async fn list_constraints(
                 }));
             }
 
-            Ok(HttpResponse::Ok().json(json!({
+            Ok(ok_json!(json!({
                 "constraints": constraints_list,
                 "count": constraints_list.len(),
                 "data_source": "settings",
@@ -324,12 +317,7 @@ async fn list_constraints(
         }
         _ => {
             error!("Failed to get settings for constraint listing");
-            Ok(HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to retrieve constraint information",
-                "constraints": [],
-                "count": 0,
-                "gpu_available": state.gpu_compute_addr.is_some()
-            })))
+            Ok(error_json!("Failed to retrieve constraint information").expect("JSON serialization failed"))
         }
     }
 }
@@ -346,7 +334,7 @@ async fn validate_constraint_definition(
     debug!("Constraint to validate: {:?}", constraint);
 
     match validate_single_constraint(&constraint) {
-        Ok(()) => Ok(HttpResponse::Ok().json(json!({
+        Ok(()) => Ok(ok_json!(json!({
             "valid": true,
             "message": "Constraint definition is valid"
         }))),

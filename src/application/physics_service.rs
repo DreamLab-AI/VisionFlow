@@ -19,6 +19,7 @@ use crate::ports::gpu_physics_adapter::{
     GpuDeviceInfo, GpuPhysicsAdapter, PhysicsParameters, PhysicsStatistics,
     PhysicsStepResult, Result as PhysicsResult,
 };
+use crate::utils::time;
 
 ///
 #[derive(Debug, Clone)]
@@ -87,7 +88,7 @@ impl PhysicsService {
             simulation_id: sim_id.clone(),
             physics_profile: params.profile_name,
             node_count: graph.nodes.len(),
-            timestamp: Utc::now(),
+            timestamp: time::now(),
         };
 
         self.event_bus
@@ -113,7 +114,7 @@ impl PhysicsService {
                 simulation_id,
                 iterations: stats.total_steps as u32,
                 final_energy: stats.average_energy as f64,
-                timestamp: Utc::now(),
+                timestamp: time::now(),
             };
 
             self.event_bus
@@ -162,7 +163,7 @@ impl PhysicsService {
         let event = PositionsUpdatedEvent {
             graph_id: "main".to_string(),
             updated_nodes: nodes.iter().map(|n| n.id.to_string()).collect(),
-            timestamp: Utc::now(),
+            timestamp: time::now(),
         };
 
         self.event_bus
@@ -200,7 +201,7 @@ impl PhysicsService {
             algorithm: request.algorithm,
             node_count: nodes.len(),
             optimization_score: request.target_energy as f64,
-            timestamp: Utc::now(),
+            timestamp: time::now(),
         };
 
         self.event_bus

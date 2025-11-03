@@ -19,6 +19,7 @@ use crate::ports::ontology_repository::{
     AxiomType, OntologyRepository, OntologyRepositoryError, OwlAxiom, OwlClass,
 };
 use crate::repositories::unified_ontology_repository::UnifiedOntologyRepository;
+use crate::utils::time;
 
 /// Inferred axiom with metadata about the inference process
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -198,7 +199,7 @@ impl OntologyReasoningService {
             ontology_id: ontology_id.to_string(),
             ontology_checksum: checksum,
             inferred_axioms: inferred_axioms.clone(),
-            timestamp: chrono::Utc::now(),
+            timestamp: time::now(),
             inference_time_ms: start.elapsed().as_millis() as u64,
         };
         self.cache_inference_results(cache_entry).await;

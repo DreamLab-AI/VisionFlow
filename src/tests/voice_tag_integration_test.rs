@@ -13,6 +13,7 @@ use uuid::Uuid;
 use crate::services::voice_tag_manager::{VoiceTagManager, TaggedVoiceResponse};
 use crate::actors::voice_commands::{VoiceCommand, SwarmVoiceResponse, SwarmIntent};
 use crate::types::speech::SpeechOptions;
+use crate::utils::time;
 
 #[tokio::test]
 async fn test_voice_tag_pipeline() {
@@ -65,7 +66,7 @@ async fn test_voice_tag_pipeline() {
         },
         tag: tag.clone(),
         is_final: true,
-        responded_at: chrono::Utc::now(),
+        responded_at: time::now(),
     };
 
     
@@ -188,7 +189,7 @@ async fn test_concurrent_voice_commands() {
             },
             tag: tag.clone(),
             is_final: true,
-            responded_at: chrono::Utc::now(),
+            responded_at: time::now(),
         };
 
         tag_manager.process_tagged_response(response).await

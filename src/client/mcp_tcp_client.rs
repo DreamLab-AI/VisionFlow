@@ -67,7 +67,7 @@ impl McpTelemetryClient {
             "params": params
         });
 
-        let request_str = serde_json::to_string(&request)?;
+        let request_str = to_json(&request)?;
         debug!("Sending MCP request: {}", request_str);
 
         
@@ -84,7 +84,7 @@ impl McpTelemetryClient {
         debug!("Received MCP response: {}", response_line);
 
         
-        let response: Value = serde_json::from_str(&response_line)?;
+        let response: Value = from_json(&response_line)?;
 
         if let Some(error) = response.get("error") {
             return Err(format!("MCP error: {}", error).into());
@@ -352,6 +352,7 @@ pub struct PerformanceSummary {
 #[cfg(test)]
 mod tests {
     use super::*;
+use crate::utils::json::{from_json, to_json};
 
     #[tokio::test]
     async fn test_mcp_client_creation() {

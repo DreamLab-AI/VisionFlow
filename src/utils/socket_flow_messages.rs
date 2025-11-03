@@ -3,6 +3,7 @@ use bytemuck::{Pod, Zeroable};
 use cudarc::driver::{DeviceRepr, ValidAsZeroBits};
 use glam::Vec3;
 use serde::{Deserialize, Serialize};
+use crate::utils::time;
 
 // ===== CLIENT-SIDE BINARY DATA (28 bytes) =====
 // Optimized for network transmission - contains only what clients need
@@ -127,7 +128,7 @@ pub struct PongMessage {
 }
 
 fn default_timestamp() -> u64 {
-    chrono::Utc::now().timestamp_millis() as u64
+    time::timestamp_millis() as u64
 }
 
 // SocketNode has been consolidated into models::node::Node

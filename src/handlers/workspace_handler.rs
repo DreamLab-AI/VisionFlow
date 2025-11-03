@@ -87,7 +87,7 @@ async fn list_workspaces(
                 "Successfully retrieved {} workspaces",
                 response.workspaces.len()
             );
-            Ok(HttpResponse::Ok().json(response))
+            Ok(ok_json!(response))
         }
         Ok(Err(e)) => {
             error!("Workspace actor error: {}", e);
@@ -145,7 +145,7 @@ async fn get_workspace(
     {
         Ok(Ok(workspace)) => {
             info!("Successfully retrieved workspace: {}", workspace.name);
-            Ok(HttpResponse::Ok().json(WorkspaceResponse::success(
+            Ok(ok_json!(WorkspaceResponse::success(
                 workspace,
                 "Workspace retrieved successfully",
             )))
@@ -203,7 +203,7 @@ async fn create_workspace(
                 "Successfully created workspace: {} (ID: {})",
                 workspace.name, workspace.id
             );
-            Ok(HttpResponse::Created().json(WorkspaceResponse::success(
+            Ok(created_json!(WorkspaceResponse::success(
                 workspace,
                 "Workspace created successfully",
             )))
@@ -268,7 +268,7 @@ async fn update_workspace(
                 "Successfully updated workspace: {} (ID: {})",
                 workspace.name, workspace.id
             );
-            Ok(HttpResponse::Ok().json(WorkspaceResponse::success(
+            Ok(ok_json!(WorkspaceResponse::success(
                 workspace,
                 "Workspace updated successfully",
             )))
@@ -319,7 +319,7 @@ async fn delete_workspace(
                 "Successfully deleted (archived) workspace with ID: {}",
                 workspace_id
             );
-            Ok(HttpResponse::Ok().json(WorkspaceResponse::success_no_data(
+            Ok(ok_json!(WorkspaceResponse::success_no_data(
                 "Workspace deleted successfully",
             )))
         }
@@ -380,7 +380,7 @@ async fn toggle_favorite_workspace(
                 "Successfully toggled favorite for workspace {}: {}",
                 workspace_id, is_favorite
             );
-            Ok(HttpResponse::Ok().json(json!({
+            Ok(ok_json!(json!({
                 "success": true,
                 "message": message,
                 "is_favorite": is_favorite
@@ -450,7 +450,7 @@ async fn archive_workspace(
                 if archive { "archived" } else { "unarchived" },
                 workspace_id
             );
-            Ok(HttpResponse::Ok().json(WorkspaceResponse::success_no_data(message)))
+            Ok(ok_json!(WorkspaceResponse::success_no_data(message)))
         }
         Ok(Err(e)) => {
             if e.contains("not found") {
@@ -486,7 +486,7 @@ async fn get_workspace_count(
     match workspace_actor.send(GetWorkspaceCount { filter }).await {
         Ok(Ok(count)) => {
             info!("Successfully retrieved workspace count: {}", count);
-            Ok(HttpResponse::Ok().json(json!({
+            Ok(ok_json!(json!({
                 "success": true,
                 "message": "Workspace count retrieved successfully",
                 "count": count

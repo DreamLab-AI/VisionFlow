@@ -113,7 +113,7 @@ impl RateLimiter {
     pub fn is_allowed(&self, client_id: &str) -> bool {
         self.cleanup_if_needed();
 
-        let mut clients = self.clients.write().unwrap();
+        let mut clients = self.clients.write().expect("RwLock poisoned");
         let entry = clients
             .entry(client_id.to_string())
             .or_insert_with(|| RateLimitEntry::new(&self.config));
@@ -129,7 +129,7 @@ impl RateLimiter {
 
     
     pub fn remaining_tokens(&self, client_id: &str) -> u32 {
-        let mut clients = self.clients.write().unwrap();
+        let mut clients = self.clients.write().expect("RwLock poisoned");
         let entry = clients
             .entry(client_id.to_string())
             .or_insert_with(|| RateLimitEntry::new(&self.config));
@@ -140,7 +140,7 @@ impl RateLimiter {
 
     
     pub fn reset_time(&self, client_id: &str) -> Duration {
-        let clients = self.clients.read().unwrap();
+        let clients = self.clients.read().expect("RwLock poisoned");
         if let Some(entry) = clients.get(client_id) {
             let time_since_refill = Instant::now().duration_since(entry.last_refill);
             let time_to_next_token =
@@ -153,7 +153,7 @@ impl RateLimiter {
 
     
     pub fn is_banned(&self, client_id: &str) -> bool {
-        let clients = self.clients.read().unwrap();
+        let clients = self.clients.read().expect("RwLock poisoned");
         clients
             .get(client_id)
             .map(|entry| entry.is_banned())
@@ -162,7 +162,7 @@ impl RateLimiter {
 
     
     fn cleanup_if_needed(&self) {
-        let mut last_cleanup = self.last_cleanup.write().unwrap();
+        let mut last_cleanup = self.last_cleanup.write().expect("RwLock poisoned");
         let now = Instant::now();
 
         if now.duration_since(*last_cleanup) < self.config.cleanup_interval {
@@ -172,7 +172,7 @@ impl RateLimiter {
         *last_cleanup = now;
         drop(last_cleanup);
 
-        let mut clients = self.clients.write().unwrap();
+        let mut clients = self.clients.write().expect("RwLock poisoned");
         let before_count = clients.len();
 
         clients.retain(|_, entry| {
@@ -204,7 +204,7 @@ impl RateLimiter {
             loop {
                 interval.tick().await;
 
-                let mut clients_guard = clients.write().unwrap();
+                let mut clients_guard = clients.write().expect("RwLock poisoned");
                 let before_count = clients_guard.len();
                 let now = Instant::now();
 
@@ -234,7 +234,7 @@ impl RateLimiter {
 
     
     pub fn get_stats(&self) -> RateLimitStats {
-        let clients = self.clients.read().unwrap();
+        let clients = self.clients.read().expect("RwLock poisoned");
         let now = Instant::now();
 
         let total_clients = clients.len();

@@ -391,7 +391,7 @@ mod tests {
         let value = settings.get_json_by_path("maxVelocity").unwrap();
         assert_eq!(
             value,
-            Value::Number(serde_json::Number::from_f64(10.0).unwrap())
+            Value::Number(safe_json_number(10.0))
         );
     }
 
@@ -417,7 +417,7 @@ mod tests {
         settings
             .set_json_by_path(
                 "maxVelocity",
-                Value::Number(serde_json::Number::from_f64(25.5).unwrap()),
+                Value::Number(safe_json_number(25.5)),
             )
             .unwrap();
         assert_eq!(settings.max_velocity, 25.5);
@@ -464,14 +464,14 @@ mod tests {
             .unwrap();
         assert_eq!(
             value,
-            Value::Number(serde_json::Number::from_f64(100.0).unwrap())
+            Value::Number(safe_json_number(100.0))
         );
 
         
         settings
             .set_json_by_path(
                 "visualisation.physics.maxVelocity",
-                Value::Number(serde_json::Number::from_f64(200.0).unwrap()),
+                Value::Number(safe_json_number(200.0)),
             )
             .unwrap();
         assert_eq!(settings.visualisation.physics.max_velocity, 200.0);

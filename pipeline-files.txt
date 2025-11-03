@@ -8,54 +8,16 @@
 
 # Root Documentation
 README.md
-docs/README.md
-
-# Vision & Roadmap Analysis (NEW - Generated 2025-01-03)
-docs/ONTOLOGY_VISION_GAP_ANALYSIS.md
-docs/PROGRESS_CHART.md
-docs/ROADMAP.md
 
 # Architecture Documentation
-docs/architecture/00-ARCHITECTURE-OVERVIEW.md
-docs/architecture/hexagonal-cqrs-architecture.md
 docs/architecture/github-sync-service-design.md
 docs/architecture/ARCHITECTURE_EXECUTIVE_SUMMARY.md
 docs/architecture/ONTOLOGY_MIGRATION_ARCHITECTURE.md
+docs/architecture/PIPELINE_INTEGRATION.md
+docs/architecture/PIPELINE_INTEGRATION_COMPLETE.md
+docs/architecture/PIPELINE_SEQUENCE_DIAGRAMS.md
 
-# Getting Started & Guides
-docs/getting-started/01-installation.md
-docs/guides/developer/01-development-setup.md
-docs/guides/ontology-storage-guide.md
 
-# Concepts & Data Flow
-docs/concepts/data-flow.md
-
-# API Documentation
-docs/api/03-websocket.md
-
-# System Status
-docs/VISIONFLOW_SYSTEM_STATUS.md
-docs/ONTOLOGY_INTEGRATION_PROOF.md
-docs/DATA_FLOW_VERIFICATION_COMPLETE.md
-
-# Implementation & Integration Documentation (NEW - 2025-01)
-docs/DOCUMENTATION_UPDATE_SUMMARY.md
-docs/HIERARCHICAL-VISUALIZATION-SUMMARY.md
-docs/IMPLEMENTATION_SUMMARY.md
-docs/INTEGRATION_SUMMARY.md
-docs/ONTOLOGY_PIPELINE_INTEGRATION.md
-docs/QUICK-INTEGRATION-GUIDE.md
-docs/REASONING_TESTS_SUMMARY.md
-docs/SEMANTIC_PHYSICS_IMPLEMENTATION.md
-docs/api/IMPLEMENTATION_SUMMARY.md
-docs/api/QUICK_REFERENCE.md
-docs/api/ontology-hierarchy-endpoint.md
-docs/gpu_semantic_forces.md
-docs/ontology-reasoning.md
-docs/ontology_reasoning_integration_guide.md
-docs/ontology_reasoning_service.md
-docs/semantic-physics-architecture.md
-docs/semantic-physics-diagram.txt
 
 # ============================================================
 # PHASE 1: GITHUB SYNCHRONIZATION & DATA INGESTION
@@ -68,7 +30,10 @@ src/services/local_markdown_sync.rs
 src/services/edge_generation.rs
 src/services/graph_serialization.rs
 src/services/topology_visualization_engine.rs
+src/services/pipeline_events.rs
 src/handlers/admin_sync_handler.rs
+src/handlers/pipeline_admin_handler.rs
+scripts/sync_neo4j.rs
 
 # GitHub API Clients
 src/services/github/mod.rs
@@ -143,6 +108,9 @@ migration/COMPLETION_REPORT.md
 # Adapter Repositories
 src/adapters/actor_graph_repository.rs
 src/adapters/sqlite_settings_repository.rs
+src/adapters/dual_graph_repository.rs
+src/adapters/neo4j_adapter.rs
+src/adapters/NEO4J_INTEGRATION.md
 
 # Port Definitions (Interfaces)
 src/ports/graph_repository.rs
@@ -190,6 +158,7 @@ src/utils/gpu_aabb_reduction.cu
 src/utils/gpu_landmark_apsp.cu
 src/utils/gpu_clustering_kernels.cu
 src/utils/ontology_constraints.cu
+src/utils/stress_majorization.cu
 
 # GPU Actors
 src/actors/gpu/force_compute_actor.rs
@@ -207,6 +176,7 @@ src/utils/gpu_memory.rs
 src/utils/gpu_diagnostics.rs
 src/utils/cuda_error_handling.rs
 src/gpu/hybrid_sssp/gpu_kernels.rs
+src/gpu/SEMANTIC_PHYSICS_IMPLEMENTATION.md
 
 # GPU Ports & Adapters
 src/ports/gpu_semantic_analyzer.rs
@@ -294,6 +264,9 @@ client/src/features/graph/hooks/useHierarchicalAnimation.ts
 client/src/features/graph/components/HierarchicalGraphRenderer.tsx
 client/src/features/graph/README-Hierarchical-Visualization.md
 
+# Ontology Features
+client/src/features/ontology/hooks/useHierarchyData.ts
+
 # Client WebSocket Services
 client/src/services/WebSocketService.ts
 client/src/services/BinaryWebSocketProtocol.ts
@@ -311,6 +284,7 @@ client/src/rendering/materials/index.ts
 client/src/features/visualisation/components/AgentNodesLayer.tsx
 client/src/features/visualisation/components/HolographicDataSphere.tsx
 client/src/features/visualisation/components/MetadataVisualizer.tsx
+client/src/features/visualisation/components/HierarchyRenderer.tsx
 client/src/features/visualisation/components/ClassGroupTooltip.tsx
 client/src/features/visualisation/components/ControlPanel/SemanticZoomControls.tsx
 client/src/features/visualisation/components/tabs/GraphVisualisationTab.tsx
@@ -359,6 +333,7 @@ src/handlers/ontology_handler.rs
 src/handlers/settings_handler.rs
 src/handlers/clustering_handler.rs
 src/handlers/constraints_handler.rs
+src/handlers/cypher_query_handler.rs
 
 # CQRS
 src/cqrs/commands/ontology_commands.rs

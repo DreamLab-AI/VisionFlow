@@ -328,7 +328,7 @@ pub async fn initialize_swarm_visualization(
 
     
 
-    HttpResponse::Ok().json(json!({
+    ok_json!(json!({
         "success": true,
         "message": "Swarm initialization started",
         "swarm_id": "swarm-001",

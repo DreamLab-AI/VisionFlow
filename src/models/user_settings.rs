@@ -10,6 +10,7 @@ use tracing::{debug as trace_debug, info as trace_info};
 use uuid::Uuid;
 
 use crate::config::AppFullSettings;
+use crate::utils::time;
 
 // Global cache for user settings
 static USER_SETTINGS_CACHE: Lazy<Arc<RwLock<HashMap<String, CachedUserSettings>>>> =
@@ -36,7 +37,7 @@ impl UserSettings {
         Self {
             pubkey: pubkey.to_string(),
             settings,
-            last_modified: chrono::Utc::now().timestamp(),
+            last_modified: time::timestamp_seconds(),
         }
     }
 

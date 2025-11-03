@@ -28,6 +28,7 @@ use crate::services::management_api_client::{
     ManagementApiClient, ManagementApiError, TaskInfo, TaskResponse, TaskState as ApiTaskState,
     TaskStatus as ApiTaskStatus,
 };
+use crate::utils::time;
 
 ///
 #[derive(Debug, Clone)]
@@ -88,8 +89,8 @@ impl TaskOrchestratorActor {
                             task_description: task.clone(),
                             provider: provider.clone(),
                             status: ApiTaskState::Running,
-                            created_at: Utc::now(),
-                            last_updated: Utc::now(),
+                            created_at: time::now(),
+                            last_updated: time::now(),
                             retry_count: attempts,
                         },
                     );
@@ -120,7 +121,7 @@ impl TaskOrchestratorActor {
     fn update_task_status(&mut self, task_status: ApiTaskStatus) {
         if let Some(task) = self.active_tasks.get_mut(&task_status.task_id) {
             task.status = task_status.status.clone();
-            task.last_updated = Utc::now();
+            task.last_updated = time::now();
 
             
             if task_status.status == ApiTaskState::Completed
@@ -163,7 +164,7 @@ impl Handler<crate::actors::messages::InitializeActor> for TaskOrchestratorActor
 
         
         ctx.run_interval(Duration::from_secs(300), |act, _ctx| {
-            let now = Utc::now();
+            let now = time::now();
             let mut to_remove = Vec::new();
 
             for (task_id, task) in &act.active_tasks {

@@ -11,7 +11,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let header = format!(
         "// Auto-generated TypeScript type definitions\n// Generated: {}\n\n",
-        chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
+        time::now().format("%Y-%m-%d %H:%M:%S UTC")
     );
 
     
@@ -602,7 +602,7 @@ export default AppFullSettings;
 
 ///
 fn convert_to_camel_case(typescript_code: String) -> String {
-    let field_regex = Regex::new(r"(\s+)([a-z][a-z0-9_]*[a-z0-9])(\s*:\s*)").unwrap();
+    let field_regex = Regex::new(r"(\s+)([a-z][a-z0-9_]*[a-z0-9])(\s*:\s*)").expect("Invalid regex pattern");
 
     field_regex
         .replace_all(&typescript_code, |caps: &regex::Captures| {
@@ -640,6 +640,7 @@ fn snake_to_camel_case(snake_str: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+use crate::utils::time;
 
     #[test]
     fn test_snake_to_camel_case() {

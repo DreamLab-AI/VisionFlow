@@ -163,13 +163,11 @@ pub async fn start_simulation(
         .start_simulation(Arc::new(graph), sim_params)
         .await
     {
-        Ok(simulation_id) => Ok(HttpResponse::Ok().json(StartSimulationResponse {
+        Ok(simulation_id) => Ok(ok_json!(StartSimulationResponse {
             simulation_id,
             status: "started".to_string(),
         })),
-        Err(e) => Ok(HttpResponse::InternalServerError().json(serde_json::json!({
-            "error": format!("Failed to start simulation: {}", e)
-        }))),
+        Err(e) => Ok(error_json!("Failed to start simulation: {}", e)),
     }
 }
 
@@ -178,12 +176,10 @@ pub async fn stop_simulation(
     physics_service: web::Data<Arc<PhysicsService>>,
 ) -> ActixResult<HttpResponse> {
     match physics_service.stop_simulation().await {
-        Ok(_) => Ok(HttpResponse::Ok().json(serde_json::json!({
+        Ok(_) => Ok(ok_json!(serde_json::json!({
             "status": "stopped"
         }))),
-        Err(e) => Ok(HttpResponse::InternalServerError().json(serde_json::json!({
-            "error": format!("Failed to stop simulation: {}", e)
-        }))),
+        Err(e) => Ok(error_json!("Failed to stop simulation: {}", e)),
     }
 }
 
@@ -216,7 +212,7 @@ pub async fn get_status(
             gpu_memory_used_mb: s.gpu_memory_used_mb,
         });
 
-    Ok(HttpResponse::Ok().json(SimulationStatusResponse {
+    Ok(ok_json!(SimulationStatusResponse {
         simulation_id,
         running,
         gpu_status,
@@ -242,13 +238,11 @@ pub async fn optimize_layout(
         .optimize_layout(Arc::new(graph), optimization_req)
         .await
     {
-        Ok(nodes) => Ok(HttpResponse::Ok().json(OptimizeLayoutResponse {
+        Ok(nodes) => Ok(ok_json!(OptimizeLayoutResponse {
             nodes_updated: nodes.len(),
             optimization_score: 0.0, 
         })),
-        Err(e) => Ok(HttpResponse::InternalServerError().json(serde_json::json!({
-            "error": format!("Failed to optimize layout: {}", e)
-        }))),
+        Err(e) => Ok(error_json!("Failed to optimize layout: {}", e)),
     }
 }
 
@@ -257,16 +251,14 @@ pub async fn perform_step(
     physics_service: web::Data<Arc<PhysicsService>>,
 ) -> ActixResult<HttpResponse> {
     match physics_service.step().await {
-        Ok(result) => Ok(HttpResponse::Ok().json(serde_json::json!({
+        Ok(result) => Ok(ok_json!(serde_json::json!({
             "nodes_updated": result.nodes_updated,
             "total_energy": result.total_energy,
             "max_displacement": result.max_displacement,
             "converged": result.converged,
             "computation_time_ms": result.computation_time_ms,
         }))),
-        Err(e) => Ok(HttpResponse::InternalServerError().json(serde_json::json!({
-            "error": format!("Failed to perform step: {}", e)
-        }))),
+        Err(e) => Ok(error_json!("Failed to perform step: {}", e)),
     }
 }
 
@@ -282,12 +274,10 @@ pub async fn apply_forces(
         .collect();
 
     match physics_service.apply_external_forces(forces).await {
-        Ok(_) => Ok(HttpResponse::Ok().json(serde_json::json!({
+        Ok(_) => Ok(ok_json!(serde_json::json!({
             "status": "applied"
         }))),
-        Err(e) => Ok(HttpResponse::InternalServerError().json(serde_json::json!({
-            "error": format!("Failed to apply forces: {}", e)
-        }))),
+        Err(e) => Ok(error_json!("Failed to apply forces: {}", e)),
     }
 }
 
@@ -303,12 +293,10 @@ pub async fn pin_nodes(
         .collect();
 
     match physics_service.pin_nodes(nodes).await {
-        Ok(_) => Ok(HttpResponse::Ok().json(serde_json::json!({
+        Ok(_) => Ok(ok_json!(serde_json::json!({
             "status": "pinned"
         }))),
-        Err(e) => Ok(HttpResponse::InternalServerError().json(serde_json::json!({
-            "error": format!("Failed to pin nodes: {}", e)
-        }))),
+        Err(e) => Ok(error_json!("Failed to pin nodes: {}", e)),
     }
 }
 
@@ -318,12 +306,10 @@ pub async fn unpin_nodes(
     req: web::Json<Vec<u32>>,
 ) -> ActixResult<HttpResponse> {
     match physics_service.unpin_nodes(req.into_inner()).await {
-        Ok(_) => Ok(HttpResponse::Ok().json(serde_json::json!({
+        Ok(_) => Ok(ok_json!(serde_json::json!({
             "status": "unpinned"
         }))),
-        Err(e) => Ok(HttpResponse::InternalServerError().json(serde_json::json!({
-            "error": format!("Failed to unpin nodes: {}", e)
-        }))),
+        Err(e) => Ok(error_json!("Failed to unpin nodes: {}", e)),
     }
 }
 
@@ -354,12 +340,10 @@ pub async fn update_parameters(
     }
 
     match physics_service.update_parameters(params).await {
-        Ok(_) => Ok(HttpResponse::Ok().json(serde_json::json!({
+        Ok(_) => Ok(ok_json!(serde_json::json!({
             "status": "updated"
         }))),
-        Err(e) => Ok(HttpResponse::InternalServerError().json(serde_json::json!({
-            "error": format!("Failed to update parameters: {}", e)
-        }))),
+        Err(e) => Ok(error_json!("Failed to update parameters: {}", e)),
     }
 }
 
@@ -368,12 +352,10 @@ pub async fn reset_simulation(
     physics_service: web::Data<Arc<PhysicsService>>,
 ) -> ActixResult<HttpResponse> {
     match physics_service.reset().await {
-        Ok(_) => Ok(HttpResponse::Ok().json(serde_json::json!({
+        Ok(_) => Ok(ok_json!(serde_json::json!({
             "status": "reset"
         }))),
-        Err(e) => Ok(HttpResponse::InternalServerError().json(serde_json::json!({
-            "error": format!("Failed to reset simulation: {}", e)
-        }))),
+        Err(e) => Ok(error_json!("Failed to reset simulation: {}", e)),
     }
 }
 

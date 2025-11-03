@@ -440,7 +440,7 @@ pub async fn load_axioms(state: web::Data<AppState>, body: web::Bytes) -> impl R
             };
 
             info!("Successfully loaded ontology: {}", response.ontology_id);
-            HttpResponse::Ok().json(response)
+            ok_json!(response)
         }
         Ok(Err(error)) => {
             error!("Failed to load ontology: {}", error);
@@ -481,7 +481,7 @@ pub async fn update_mapping(
     match ontology_addr.send(update_msg).await {
         Ok(Ok(())) => {
             info!("Successfully updated ontology mapping");
-            HttpResponse::Ok().json(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "status": "success",
                 "message": "Mapping configuration updated",
                 "timestamp": Utc::now()
@@ -553,7 +553,7 @@ pub async fn validate_ontology(
                 req.ontology_id,
                 report.violations.len()
             );
-            HttpResponse::Ok().json(response)
+            ok_json!(response)
         }
         Ok(Err(error)) => {
             error!("Validation failed: {}", error);
@@ -593,7 +593,7 @@ pub async fn get_validation_report(
     match ontology_addr.send(report_msg).await {
         Ok(Ok(Some(report))) => {
             info!("Retrieved validation report: {}", report.id);
-            HttpResponse::Ok().json(report)
+            ok_json!(report)
         }
         Ok(Ok(None)) => {
             warn!("Validation report not found");
@@ -663,7 +663,7 @@ pub async fn apply_inferences(
                 "Generated {} inferred triples",
                 response.inferred_triples.len()
             );
-            HttpResponse::Ok().json(response)
+            ok_json!(response)
         }
         Ok(Err(error)) => {
             error!("Failed to apply inferences: {}", error);
@@ -704,7 +704,7 @@ pub async fn get_health_status(state: web::Data<AppState>) -> impl Responder {
                 timestamp: Utc::now(),
             };
 
-            HttpResponse::Ok().json(response)
+            ok_json!(response)
         }
         Ok(Err(error)) => {
             error!("Failed to retrieve health status: {}", error);
@@ -739,7 +739,7 @@ pub async fn clear_caches(state: web::Data<AppState>) -> impl Responder {
     match ontology_addr.send(clear_msg).await {
         Ok(Ok(())) => {
             info!("Successfully cleared ontology caches");
-            HttpResponse::Ok().json(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "status": "success",
                 "message": "All caches cleared",
                 "timestamp": Utc::now()
@@ -779,7 +779,7 @@ pub async fn list_axioms(state: web::Data<AppState>) -> impl Responder {
     match ontology_addr.send(list_msg).await {
         Ok(Ok(ontologies)) => {
             info!("Retrieved {} loaded ontologies", ontologies.len());
-            HttpResponse::Ok().json(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "axioms": ontologies,
                 "count": ontologies.len(),
                 "timestamp": Utc::now()
@@ -837,11 +837,11 @@ pub async fn get_inferences(
                 "timestamp": Utc::now()
             });
 
-            HttpResponse::Ok().json(inferences)
+            ok_json!(inferences)
         }
         Ok(Ok(None)) => {
             warn!("No validation report found for inference retrieval");
-            HttpResponse::Ok().json(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "inferred_count": 0,
                 "inferences": [],
                 "message": "No inferences available. Run validation first.",
@@ -930,7 +930,7 @@ pub async fn validate_graph(
     };
 
     info!("Validation job queued with ID: {}", response.job_id);
-    HttpResponse::Accepted().json(response)
+    accepted!(response)
 }
 
 /// Get Ontology Class Hierarchy
@@ -1143,7 +1143,7 @@ pub async fn get_hierarchy(
                 response.hierarchy.len()
             );
 
-            HttpResponse::Ok().json(response)
+            ok_json!(response)
         }
         Err(e) => {
             error!("Failed to retrieve classes for hierarchy: {}", e);
@@ -1179,7 +1179,7 @@ pub async fn get_report_by_id(
     match ontology_addr.send(report_msg).await {
         Ok(Ok(Some(report))) => {
             info!("Retrieved validation report: {}", report.id);
-            HttpResponse::Ok().json(report)
+            ok_json!(report)
         }
         Ok(Ok(None)) => {
             warn!("Validation report not found: {}", report_id);

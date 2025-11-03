@@ -101,7 +101,7 @@ pub async fn run_inference(
                 error: None,
             };
 
-            HttpResponse::Ok().json(response)
+            ok_json!(response)
         }
         Err(e) => {
             warn!("Inference failed: {:?}", e);
@@ -161,7 +161,7 @@ pub async fn batch_inference(
                 results: Some(responses),
             };
 
-            HttpResponse::Ok().json(response)
+            ok_json!(response)
         }
         Err(e) => {
             warn!("Batch inference failed: {:?}", e);
@@ -191,7 +191,7 @@ pub async fn validate_ontology(
     let service_lock = service.read().await;
 
     match service_lock.validate_ontology(&req.ontology_id).await {
-        Ok(validation_result) => HttpResponse::Ok().json(validation_result),
+        Ok(validation_result) => ok_json!(validation_result),
         Err(e) => {
             warn!("Validation failed: {:?}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
@@ -215,7 +215,7 @@ pub async fn get_inference_results(
 
     
     match service_lock.run_inference(&ontology_id).await {
-        Ok(results) => HttpResponse::Ok().json(results),
+        Ok(results) => ok_json!(results),
         Err(e) => {
             warn!("Failed to get results: {:?}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
@@ -238,7 +238,7 @@ pub async fn classify_ontology(
     let service_lock = service.read().await;
 
     match service_lock.classify_ontology(&ontology_id).await {
-        Ok(classification) => HttpResponse::Ok().json(classification),
+        Ok(classification) => ok_json!(classification),
         Err(e) => {
             warn!("Classification failed: {:?}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
@@ -261,7 +261,7 @@ pub async fn get_consistency_report(
     let service_lock = service.read().await;
 
     match service_lock.get_consistency_report(&ontology_id).await {
-        Ok(report) => HttpResponse::Ok().json(report),
+        Ok(report) => ok_json!(report),
         Err(e) => {
             warn!("Consistency check failed: {:?}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
@@ -284,7 +284,7 @@ pub async fn invalidate_cache(
     let service_lock = service.read().await;
     service_lock.invalidate_cache(&ontology_id).await;
 
-    HttpResponse::Ok().json(serde_json::json!({
+    ok_json!(serde_json::json!({
         "success": true,
         "message": "Cache invalidated"
     }))

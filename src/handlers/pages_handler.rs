@@ -140,7 +140,7 @@ pub async fn get_pages(app_state: web::Data<AppState>) -> Result<HttpResponse> {
         log::debug!("Returning {} processed pages", pages.len());
     }
 
-    Ok(HttpResponse::Ok().json(pages))
+    Ok(ok_json!(pages))
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {

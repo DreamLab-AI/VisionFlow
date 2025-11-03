@@ -113,7 +113,7 @@ pub async fn fetch_and_process_files(state: web::Data<AppState>) -> HttpResponse
                         }
                     }
 
-                    HttpResponse::Ok().json(json!({
+                    ok_json!(json!({
                         "status": "success",
                         "processed_files": file_names
                     }))
@@ -180,7 +180,7 @@ pub async fn refresh_graph(state: web::Data<AppState>) -> HttpResponse {
                 graph_data.edges.len()
             );
 
-            HttpResponse::Ok().json(json!({
+            ok_json!(json!({
                 "status": "success",
                 "message": "Graph data retrieved successfully",
                 "nodes_count": graph_data.nodes.len(),
@@ -244,7 +244,7 @@ pub async fn update_graph(state: web::Data<AppState>) -> Result<HttpResponse, Ac
                 }
             }
 
-            Ok(HttpResponse::Ok().json(json!({
+            Ok(ok_json!(json!({
                 "status": "success",
                 "message": "Graph updated successfully"
             })))

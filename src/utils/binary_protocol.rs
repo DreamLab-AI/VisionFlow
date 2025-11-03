@@ -1444,8 +1444,8 @@ mod control_frame_tests {
         };
 
         let frame = ControlFrame::constraints_update(vec![constraint], None);
-        let bytes = frame.to_bytes().unwrap();
-        let decoded = ControlFrame::from_bytes(&bytes).unwrap();
+        let bytes = frame.to_bytes().expect("Serialization failed");
+        let decoded = ControlFrame::from_bytes(&bytes).expect("Deserialization failed");
 
         match decoded {
             ControlFrame::ConstraintsUpdate {
@@ -1481,7 +1481,7 @@ mod control_frame_tests {
 
         assert_eq!(encoded[0], 0); 
 
-        let decoded = MultiplexedMessage::decode(&encoded).unwrap();
+        let decoded = MultiplexedMessage::decode(&encoded).expect("Decode failed");
         assert_eq!(decoded.msg_type, MessageType::BinaryPositions);
     }
 
@@ -1499,7 +1499,7 @@ mod control_frame_tests {
         assert_eq!(encoded.len(), 2 + nodes.len() * 28); 
 
         
-        let decoded = BinaryProtocol::decode_message(&encoded).unwrap();
+        let decoded = BinaryProtocol::decode_message(&encoded).expect("Message decode failed");
         match decoded {
             Message::GraphUpdate {
                 graph_type,
@@ -1518,7 +1518,7 @@ mod control_frame_tests {
         assert_eq!(encoded_ont[0], 0x01);
         assert_eq!(encoded_ont[1], 1); 
 
-        let decoded_ont = BinaryProtocol::decode_message(&encoded_ont).unwrap();
+        let decoded_ont = BinaryProtocol::decode_message(&encoded_ont).expect("Message decode failed");
         match decoded_ont {
             Message::GraphUpdate { graph_type, .. } => {
                 assert_eq!(graph_type, GraphType::Ontology);
@@ -1535,7 +1535,7 @@ mod control_frame_tests {
         assert_eq!(encoded[0], 0x02); 
         assert_eq!(encoded.len(), 1 + audio.len());
 
-        let decoded = BinaryProtocol::decode_message(&encoded).unwrap();
+        let decoded = BinaryProtocol::decode_message(&encoded).expect("Message decode failed");
         match decoded {
             Message::VoiceData {
                 audio: decoded_audio,

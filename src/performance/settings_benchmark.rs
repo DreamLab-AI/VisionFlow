@@ -13,6 +13,7 @@ use crate::config::AppFullSettings;
 use crate::actors::messages::{GetSettings, GetSettingByPath, GetSettingsByPaths, SetSettingsByPaths};
 use crate::actors::settings_actor::SettingsActor;
 use crate::actors::optimized_settings_actor::{OptimizedSettingsActor, PerformanceMetrics};
+use crate::utils::json::{from_json, to_json};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BenchmarkResult {
@@ -207,7 +208,7 @@ impl SettingsBenchmark {
             bandwidth_bytes: total_bytes,
             cache_hit_rate: 0.0,   
             error_rate: ((self.config.iterations - successful_ops) as f64 / self.config.iterations as f64) * 100.0,
-            timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
+            timestamp: SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or(Duration::ZERO).as_millis() as u64,
         })
     }
 
@@ -244,7 +245,7 @@ impl SettingsBenchmark {
             bandwidth_bytes: total_bytes,
             cache_hit_rate: metrics.cache_hit_rate(),
             error_rate: ((self.config.iterations - successful_ops) as f64 / self.config.iterations as f64) * 100.0,
-            timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
+            timestamp: SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or(Duration::ZERO).as_millis() as u64,
         })
     }
 
@@ -281,7 +282,7 @@ impl SettingsBenchmark {
             bandwidth_bytes: total_bytes,
             cache_hit_rate: 0.0,
             error_rate: 0.0,
-            timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
+            timestamp: SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or(Duration::ZERO).as_millis() as u64,
         })
     }
 
@@ -322,7 +323,7 @@ impl SettingsBenchmark {
             bandwidth_bytes: total_bytes,
             cache_hit_rate: metrics.cache_hit_rate(),
             error_rate: 0.0,
-            timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
+            timestamp: SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or(Duration::ZERO).as_millis() as u64,
         })
     }
 
@@ -353,7 +354,7 @@ impl SettingsBenchmark {
             bandwidth_bytes: total_bytes,
             cache_hit_rate: 0.0,
             error_rate: 0.0,
-            timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
+            timestamp: SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or(Duration::ZERO).as_millis() as u64,
         })
     }
 
@@ -387,7 +388,7 @@ impl SettingsBenchmark {
             bandwidth_bytes: total_bytes,
             cache_hit_rate: metrics.cache_hit_rate(),
             error_rate: 0.0,
-            timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
+            timestamp: SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or(Duration::ZERO).as_millis() as u64,
         })
     }
 
@@ -410,7 +411,7 @@ impl SettingsBenchmark {
         
         let results = join_all(handles).await;
         let successful_ops = results.into_iter()
-            .filter(|r| r.is_ok() && r.as_ref().unwrap().is_ok())
+            .filter(|r| r.is_ok() && r.as_ref().expect("Expected value to be present").is_ok())
             .count();
 
         let duration = start_time.elapsed();
@@ -424,7 +425,7 @@ impl SettingsBenchmark {
             bandwidth_bytes: successful_ops as u64 * 500, 
             cache_hit_rate: 0.0,
             error_rate: 0.0,
-            timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
+            timestamp: SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or(Duration::ZERO).as_millis() as u64,
         })
     }
 
@@ -445,7 +446,7 @@ impl SettingsBenchmark {
 
         let results = join_all(handles).await;
         let successful_ops = results.into_iter()
-            .filter(|r| r.is_ok() && r.as_ref().unwrap().is_ok())
+            .filter(|r| r.is_ok() && r.as_ref().expect("Expected value to be present").is_ok())
             .count();
 
         let duration = start_time.elapsed();
@@ -463,7 +464,7 @@ impl SettingsBenchmark {
             bandwidth_bytes: successful_ops as u64 * 500,
             cache_hit_rate: metrics.cache_hit_rate(),
             error_rate: 0.0,
-            timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
+            timestamp: SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or(Duration::ZERO).as_millis() as u64,
         })
     }
 
@@ -472,7 +473,7 @@ impl SettingsBenchmark {
         let mut successful_ops = 0;
 
         let updates: HashMap<String, Value> = self.config.test_paths.iter()
-            .map(|path| (path.clone(), serde_json::Value::Number(serde_json::Number::from_f64(0.5).unwrap())))
+            .map(|path| (path.clone(), serde_json::Value::Number(safe_json_number(0.5))))
             .collect();
 
         for _ in 0..10 { 
@@ -493,7 +494,7 @@ impl SettingsBenchmark {
             bandwidth_bytes: 0,
             cache_hit_rate: 0.0,
             error_rate: 0.0,
-            timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
+            timestamp: SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or(Duration::ZERO).as_millis() as u64,
         })
     }
 
@@ -502,7 +503,7 @@ impl SettingsBenchmark {
         let mut successful_ops = 0;
 
         let updates: HashMap<String, Value> = self.config.test_paths.iter()
-            .map(|path| (path.clone(), serde_json::Value::Number(serde_json::Number::from_f64(0.5).unwrap())))
+            .map(|path| (path.clone(), serde_json::Value::Number(safe_json_number(0.5))))
             .collect();
 
         for _ in 0..10 {
@@ -527,7 +528,7 @@ impl SettingsBenchmark {
             bandwidth_bytes: 0,
             cache_hit_rate: metrics.cache_hit_rate(),
             error_rate: 0.0,
-            timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
+            timestamp: SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or(Duration::ZERO).as_millis() as u64,
         })
     }
 
@@ -541,7 +542,7 @@ impl SettingsBenchmark {
             bandwidth_bytes: 0,
             cache_hit_rate: 0.0,
             error_rate: 0.0,
-            timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
+            timestamp: SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or(Duration::ZERO).as_millis() as u64,
         })
     }
 
@@ -579,7 +580,7 @@ impl SettingsBenchmark {
             bandwidth_bytes: metrics.bandwidth_saved_bytes,
             cache_hit_rate: metrics.cache_hit_rate(),
             error_rate: 0.0,
-            timestamp: std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64,
+            timestamp: SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or(Duration::ZERO).as_millis() as u64,
         })
     }
 
@@ -697,7 +698,7 @@ impl SettingsBenchmark {
     }
 
     fn estimate_payload_size(&self, value: &Value) -> u64 {
-        serde_json::to_string(value)
+        to_json(value)
             .map(|s| s.len() as u64)
             .unwrap_or(500) 
     }

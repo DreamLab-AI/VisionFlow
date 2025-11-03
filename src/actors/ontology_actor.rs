@@ -26,6 +26,7 @@ use crate::actors::messages::*;
 use crate::services::owl_validator::{
     OwlValidatorService, PropertyGraph, RdfTriple, ValidationConfig, ValidationReport,
 };
+use crate::utils::time;
 
 ///
 #[derive(Error, Debug)]
@@ -206,7 +207,7 @@ impl OntologyActor {
             active_jobs: HashMap::new(),
             config,
             statistics: ActorStatistics::default(),
-            last_health_check: Utc::now(),
+            last_health_check: time::now(),
             graph_service_addr: None,
             physics_orchestrator_addr: None,
             semantic_processor_addr: None,
@@ -240,6 +241,7 @@ impl OntologyActor {
     
     fn calculate_graph_signature(&self, graph: &PropertyGraph) -> String {
         use blake3::Hasher;
+use crate::utils::time;
         let mut hasher = Hasher::new();
 
         
@@ -337,7 +339,7 @@ impl OntologyActor {
         if let Some(mut job) = self.validation_queue.pop_front() {
             let job_id = job.id.clone();
             job.status = JobStatus::Running {
-                started_at: Utc::now(),
+                started_at: time::now(),
             };
 
             info!("Starting validation job: {}", job_id);
@@ -402,7 +404,7 @@ impl OntologyActor {
             match result {
                 Ok(report) => {
                     job.status = JobStatus::Completed {
-                        finished_at: Utc::now(),
+                        finished_at: time::now(),
                     };
 
                     
@@ -430,7 +432,7 @@ impl OntologyActor {
                 Err(e) => {
                     job.status = JobStatus::Failed {
                         error: e.to_string(),
-                        failed_at: Utc::now(),
+                        failed_at: time::now(),
                     };
 
                     self.statistics.failed_validations += 1;
@@ -452,7 +454,7 @@ impl OntologyActor {
         let report_id = report.id.clone();
         let entry = ReportCacheEntry {
             report,
-            accessed_at: Utc::now(),
+            accessed_at: time::now(),
             access_count: 1,
         };
 
@@ -516,7 +518,7 @@ impl OntologyActor {
 
     
     fn perform_health_check(&mut self) {
-        let now = Utc::now();
+        let now = time::now();
 
         
         self.cleanup_expired_reports();
@@ -534,7 +536,7 @@ impl OntologyActor {
     
     fn cleanup_expired_reports(&mut self) {
         let ttl = Duration::from_secs(self.config.report_ttl_seconds);
-        let now = Utc::now();
+        let now = time::now();
 
         let expired_reports: Vec<String> = self
             .report_storage
@@ -561,7 +563,7 @@ impl OntologyActor {
     
     fn check_stuck_jobs(&mut self) {
         let timeout = Duration::from_secs(self.config.job_timeout_seconds);
-        let now = Utc::now();
+        let now = time::now();
 
         let stuck_jobs: Vec<String> = self
             .active_jobs
@@ -722,7 +724,7 @@ impl Handler<ValidateOntology> for OntologyActor {
             graph_data: msg.graph_data,
             mode: msg.mode,
             status: JobStatus::Pending,
-            created_at: Utc::now(),
+            created_at: time::now(),
             priority,
         };
 
@@ -733,7 +735,7 @@ impl Handler<ValidateOntology> for OntologyActor {
                 
                 let report = ValidationReport {
                     id: job_id,
-                    timestamp: Utc::now(),
+                    timestamp: time::now(),
                     duration_ms: 0,
                     graph_signature: "pending".to_string(),
                     total_triples: 0,
@@ -777,7 +779,7 @@ impl Handler<GetOntologyReport> for OntologyActor {
         match msg.report_id {
             Some(id) => {
                 if let Some(entry) = self.report_storage.get_mut(&id) {
-                    entry.accessed_at = Utc::now();
+                    entry.accessed_at = time::now();
                     entry.access_count += 1;
                     self.statistics.cache_hits += 1;
                     Ok(Some(entry.report.clone()))

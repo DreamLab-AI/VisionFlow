@@ -245,7 +245,7 @@ impl AnomalyDetectionActor {
                 0.0
             },
             min_anomaly_score: if !anomalies.is_empty() {
-                anomalies.last().unwrap().anomaly_score
+                anomalies.last().expect("Expected non-empty collection").anomaly_score
             } else {
                 0.0
             },
@@ -348,7 +348,7 @@ impl AnomalyDetectionActor {
                 0.0
             },
             min_anomaly_score: if !anomalies.is_empty() {
-                anomalies.last().unwrap().anomaly_score
+                anomalies.last().expect("Expected non-empty collection").anomaly_score
             } else {
                 0.0
             },
@@ -441,7 +441,7 @@ impl AnomalyDetectionActor {
                 0.0
             },
             min_anomaly_score: if !anomalies.is_empty() {
-                anomalies.last().unwrap().anomaly_score
+                anomalies.last().expect("Expected non-empty collection").anomaly_score
             } else {
                 0.0
             },

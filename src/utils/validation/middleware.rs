@@ -248,7 +248,7 @@ where
 
             res.headers_mut().insert(
                 actix_web::http::header::HeaderName::from_static("x-ratelimit-remaining"),
-                actix_web::http::header::HeaderValue::from_str(&remaining.to_string()).unwrap(),
+                actix_web::http::header::HeaderValue::from_str(&remaining.to_string()).expect("Invalid header value"),
             );
 
             res.headers_mut().insert(

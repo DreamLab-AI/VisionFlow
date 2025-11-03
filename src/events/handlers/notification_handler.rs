@@ -4,6 +4,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 
 use crate::events::types::{EventHandler, EventResult, StoredEvent};
+use crate::utils::time;
 
 ///
 pub struct NotificationEventHandler {
@@ -106,7 +107,7 @@ impl EventHandler for NotificationEventHandler {
             event_type: event.metadata.event_type.clone(),
             aggregate_id: event.metadata.aggregate_id.clone(),
             message: Self::create_message(event),
-            timestamp: Utc::now(),
+            timestamp: time::now(),
             sent: false,
         };
 

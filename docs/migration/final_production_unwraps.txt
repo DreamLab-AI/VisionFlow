@@ -1,0 +1,104 @@
+======================================================================
+PRODUCTION UNWRAPS ANALYSIS (Excluding Tests)
+======================================================================
+
+UNWRAP PATTERNS:
+----------------------------------------------------------------------
+  Other                         :  77
+
+TOP 20 FILES WITH PRODUCTION UNWRAPS:
+----------------------------------------------------------------------
+
+src/handlers/api_handler/analytics/mod.rs (14 unwraps):
+  Line  862: Ok(error_json!("Failed to communicate with GPU actor").unwrap())
+  Line  866: Ok(service_unavailable!("GPU compute not available").unwrap())
+  Line  869: Ok(bad_request!("Missing 'mode' parameter").unwrap())
+  Line 2084: Ok(not_found!("Task not found or not cancellable").unwrap())
+  Line 2378: Ok(error_json!("Internal server error").unwrap())
+  ... and 9 more
+
+src/application/graph/tests/query_handler_tests.rs (12 unwraps):
+  Line  211: let graph_data = result.unwrap();
+  Line  224: let node_map = result.unwrap();
+  Line  238: let physics_state = result.unwrap();
+  Line  253: let physics_state = result.unwrap();
+  Line  270: let notifications = result.unwrap();
+  ... and 7 more
+
+src/utils/result_helpers.rs (5 unwraps):
+  Line    1: //! Safe error handling utilities to eliminate unsafe .unwrap() calls
+  Line    3: //! This module provides utilities to replace 432 unsafe .unwrap() calls and
+  Line   33: Number::from_f64(value).unwrap_or_else(|| Number::from_f64(0.0).unwrap())
+  Line   37: Number::from_f64(0.0).unwrap()
+  Line   43: /// Unlike `.unwrap()` which panics, this function logs a warning and returns
+
+src/handlers/tests/settings_tests.rs (5 unwraps):
+  Line   90: assert!(body["error"].as_str().unwrap().contains("Path not found"));
+  Line  310: .unwrap()
+  Line  350: let results = body["results"].as_array().unwrap();
+  Line  408: .unwrap()
+  Line  612: let results = body["results"].as_array().unwrap();
+
+src/handlers/api_handler/graph/mod.rs (5 unwraps):
+  Line  313: error_json!("Failed to retrieve current graph data").unwrap()
+  Line  317: error_json!("Internal server error").unwrap()
+  Line  341: return error_json!("Failed to retrieve application settings").unwrap();
+  Line  445: error_json!("Failed to retrieve notifications").unwrap()
+  Line  449: error_json!("Internal server error").unwrap()
+
+src/handlers/graph_export_handler.rs (3 unwraps):
+  Line  157: return Ok(too_many_requests!("Rate limit exceeded").unwrap());
+  Line  201: return Ok(too_many_requests!("Rate limit exceeded").unwrap());
+  Line  334: return Ok(too_many_requests!("Rate limit exceeded").unwrap());
+
+src/utils/binary_protocol.rs (2 unwraps):
+  Line 1576: assert_eq!(GraphType::from_u8(0).unwrap(), GraphType::KnowledgeGraph);
+  Line 1577: assert_eq!(GraphType::from_u8(1).unwrap(), GraphType::Ontology);
+
+src/constraints/constraint_blender.rs (2 unwraps):
+  Line  104: .unwrap()
+  Line  138: .unwrap()
+
+src/handlers/ontology_handler.rs (2 unwraps):
+  Line  183: not_found!("OWL class not found").unwrap()
+  Line  344: not_found!("OWL property not found").unwrap()
+
+src/services/topology_visualization_engine.rs (2 unwraps):
+  Line  626: let velocity = velocities.get_mut(&node_id).unwrap();
+  Line  644: let position = positions.get_mut(&node_id).unwrap();
+
+src/services/speech_service.rs (2 unwraps):
+  Line  637: .unwrap()
+  Line  829: .unwrap()
+
+src/events/bus.rs (1 unwraps):
+  Line  177: let error = last_error.unwrap();
+
+src/actors/graph_actor.rs (1 unwraps):
+  Line 4199: if current_neighbor_dist.is_none() || new_dist < current_neighbor_dist.unwrap()
+
+src/actors/optimized_settings_actor.rs (1 unwraps):
+  Line  418: .unwrap();
+
+src/application/events.rs (1 unwraps):
+  Line  180: .unwrap()
+
+src/application/semantic_service.rs (1 unwraps):
+  Line   87: sorted.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+
+src/utils/unified_gpu_compute.rs (1 unwraps):
+  Line 1191: .get_global(CStr::from_bytes_with_nul(b"c_params\0").unwrap())?;
+
+src/physics/semantic_constraints.rs (1 unwraps):
+  Line  478: .unwrap()
+
+src/inference/cache.rs (1 unwraps):
+  Line  119: let capacity = NonZeroUsize::new(config.max_entries).unwrap();
+
+src/constraints/priority_resolver.rs (1 unwraps):
+  Line  292: .unwrap()
+
+======================================================================
+TOTAL PRODUCTION UNWRAPS: 77
+FILES WITH UNWRAPS: 34
+======================================================================

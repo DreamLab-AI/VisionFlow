@@ -88,7 +88,7 @@ impl OntologyParser {
         let mut classes = Vec::new();
 
         
-        let class_pattern = regex::Regex::new(r"owl:?_?class::\s*([a-zA-Z0-9_:/-]+(\([^)]+\))?)").unwrap();
+        let class_pattern = regex::Regex::new(r"owl:?_?class::\s*([a-zA-Z0-9_:/-]+(\([^)]+\))?)").expect("Invalid regex pattern");
 
         for cap in class_pattern.captures_iter(section) {
             if let Some(class_match) = cap.get(1) {
@@ -127,8 +127,8 @@ impl OntologyParser {
         let mut properties = Vec::new();
 
         
-        let obj_prop_pattern = regex::Regex::new(r"objectProperty::\s*([a-zA-Z0-9_:/-]+)").unwrap();
-        let data_prop_pattern = regex::Regex::new(r"dataProperty::\s*([a-zA-Z0-9_:/-]+)").unwrap();
+        let obj_prop_pattern = regex::Regex::new(r"objectProperty::\s*([a-zA-Z0-9_:/-]+)").expect("Invalid regex pattern");
+        let data_prop_pattern = regex::Regex::new(r"dataProperty::\s*([a-zA-Z0-9_:/-]+)").expect("Invalid regex pattern");
 
         
         for cap in obj_prop_pattern.captures_iter(section) {
@@ -174,10 +174,10 @@ impl OntologyParser {
         let mut axioms = Vec::new();
 
         
-        let subclass_pattern = regex::Regex::new(r"subClassOf::\s*([a-zA-Z0-9_:/-]+)").unwrap();
+        let subclass_pattern = regex::Regex::new(r"subClassOf::\s*([a-zA-Z0-9_:/-]+)").expect("Invalid regex pattern");
 
         
-        let class_pattern = regex::Regex::new(r"owl_class::\s*([a-zA-Z0-9_:/-]+)").unwrap();
+        let class_pattern = regex::Regex::new(r"owl_class::\s*([a-zA-Z0-9_:/-]+)").expect("Invalid regex pattern");
 
         let lines: Vec<&str> = section.lines().collect();
         let mut current_class: Option<String> = None;
@@ -211,8 +211,8 @@ impl OntologyParser {
     fn extract_class_hierarchy(&self, section: &str) -> Vec<(String, String)> {
         let mut hierarchy = Vec::new();
 
-        let class_pattern = regex::Regex::new(r"owl_class::\s*([a-zA-Z0-9_:/-]+)").unwrap();
-        let subclass_pattern = regex::Regex::new(r"subClassOf::\s*([a-zA-Z0-9_:/-]+)").unwrap();
+        let class_pattern = regex::Regex::new(r"owl_class::\s*([a-zA-Z0-9_:/-]+)").expect("Invalid regex pattern");
+        let subclass_pattern = regex::Regex::new(r"subClassOf::\s*([a-zA-Z0-9_:/-]+)").expect("Invalid regex pattern");
 
         let lines: Vec<&str> = section.lines().collect();
         let mut current_class: Option<String> = None;

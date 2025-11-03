@@ -206,6 +206,7 @@ mod tests {
     use chrono::Utc;
     use crate::events::domain_events::NodeAddedEvent;
     use std::collections::HashMap;
+use crate::utils::time;
 
     #[tokio::test]
     async fn test_in_memory_repository() {
@@ -238,7 +239,7 @@ mod tests {
             label: "Test".to_string(),
             node_type: "Person".to_string(),
             properties: HashMap::new(),
-            timestamp: Utc::now(),
+            timestamp: time::now(),
         };
 
         store.append(&event).await.unwrap();
@@ -259,7 +260,7 @@ mod tests {
                 label: "Test".to_string(),
                 node_type: "Person".to_string(),
                 properties: HashMap::new(),
-                timestamp: Utc::now(),
+                timestamp: time::now(),
             };
             store.append(&event).await.unwrap();
         }
@@ -278,7 +279,7 @@ mod tests {
             label: "Test".to_string(),
             node_type: "Person".to_string(),
             properties: HashMap::new(),
-            timestamp: Utc::now(),
+            timestamp: time::now(),
         };
 
         store.append(&event).await.unwrap();

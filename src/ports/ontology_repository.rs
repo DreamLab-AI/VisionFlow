@@ -180,35 +180,67 @@ pub trait OntologyRepository: Send + Sync {
     
     async fn get_class_axioms(&self, class_iri: &str) -> Result<Vec<OwlAxiom>>;
 
-    
-    async fn store_inference_results(&self, results: &InferenceResults) -> Result<()>;
 
-    
-    async fn get_inference_results(&self) -> Result<Option<InferenceResults>>;
+    /// Default: No-op (not all implementations support inference)
+    async fn store_inference_results(&self, _results: &InferenceResults) -> Result<()> {
+        Ok(())
+    }
 
-    
-    async fn validate_ontology(&self) -> Result<ValidationReport>;
 
-    
-    async fn query_ontology(&self, query: &str) -> Result<Vec<HashMap<String, String>>>;
+    /// Default: None (not all implementations support inference)
+    async fn get_inference_results(&self) -> Result<Option<InferenceResults>> {
+        Ok(None)
+    }
 
-    
+
+    /// Default: Valid report (override for actual validation)
+    async fn validate_ontology(&self) -> Result<ValidationReport> {
+        Ok(ValidationReport {
+            is_valid: true,
+            errors: Vec::new(),
+            warnings: Vec::new(),
+            timestamp: chrono::Utc::now(),
+        })
+    }
+
+
+    /// Default: Empty results (override when query support added)
+    async fn query_ontology(&self, _query: &str) -> Result<Vec<HashMap<String, String>>> {
+        Ok(Vec::new())
+    }
+
+
     async fn get_metrics(&self) -> Result<OntologyMetrics>;
 
-    
 
-    
-    async fn cache_sssp_result(&self, entry: &PathfindingCacheEntry) -> Result<()>;
 
-    
-    async fn get_cached_sssp(&self, source_node_id: u32) -> Result<Option<PathfindingCacheEntry>>;
 
-    
-    async fn cache_apsp_result(&self, distance_matrix: &Vec<Vec<f32>>) -> Result<()>;
+    /// Default: No-op (not all implementations support caching)
+    async fn cache_sssp_result(&self, _entry: &PathfindingCacheEntry) -> Result<()> {
+        Ok(())
+    }
 
-    
-    async fn get_cached_apsp(&self) -> Result<Option<Vec<Vec<f32>>>>;
 
-    
-    async fn invalidate_pathfinding_caches(&self) -> Result<()>;
+    /// Default: None (not all implementations support caching)
+    async fn get_cached_sssp(&self, _source_node_id: u32) -> Result<Option<PathfindingCacheEntry>> {
+        Ok(None)
+    }
+
+
+    /// Default: No-op (not all implementations support caching)
+    async fn cache_apsp_result(&self, _distance_matrix: &Vec<Vec<f32>>) -> Result<()> {
+        Ok(())
+    }
+
+
+    /// Default: None (not all implementations support caching)
+    async fn get_cached_apsp(&self) -> Result<Option<Vec<Vec<f32>>>> {
+        Ok(None)
+    }
+
+
+    /// Default: No-op (not all implementations support caching)
+    async fn invalidate_pathfinding_caches(&self) -> Result<()> {
+        Ok(())
+    }
 }

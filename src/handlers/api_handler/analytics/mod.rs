@@ -383,7 +383,7 @@ pub async fn get_analytics_params(app_state: web::Data<AppState>) -> Result<Http
     
     let params = create_default_analytics_params(&settings);
 
-    Ok(HttpResponse::Ok().json(AnalyticsParamsResponse {
+    Ok(ok_json!(AnalyticsParamsResponse {
         success: true,
         params: Some(params),
         error: None,
@@ -408,7 +408,7 @@ pub async fn update_analytics_params(
         {
             Ok(Ok(())) => {
                 info!("Visual analytics parameters updated successfully");
-                Ok(HttpResponse::Ok().json(AnalyticsParamsResponse {
+                Ok(ok_json!(AnalyticsParamsResponse {
                     success: true,
                     params: None,
                     error: None,
@@ -453,7 +453,7 @@ pub async fn get_constraints(app_state: web::Data<AppState>) -> Result<HttpRespo
     if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
         match gpu_addr.send(GetConstraints).await {
             Ok(Ok(constraints)) => {
-                return Ok(HttpResponse::Ok().json(ConstraintsResponse {
+                return Ok(ok_json!(ConstraintsResponse {
                     success: true,
                     constraints: Some(constraints),
                     error: None,
@@ -469,7 +469,7 @@ pub async fn get_constraints(app_state: web::Data<AppState>) -> Result<HttpRespo
     }
 
     
-    Ok(HttpResponse::Ok().json(ConstraintsResponse {
+    Ok(ok_json!(ConstraintsResponse {
         success: true,
         constraints: Some(ConstraintSet::default()),
         error: None,
@@ -502,7 +502,7 @@ pub async fn update_constraints(
 
                 
                 if let Ok(Ok(updated_constraints)) = gpu_addr.send(GetConstraints).await {
-                    return Ok(HttpResponse::Ok().json(ConstraintsResponse {
+                    return Ok(ok_json!(ConstraintsResponse {
                         success: true,
                         constraints: Some(updated_constraints),
                         error: None,
@@ -687,7 +687,7 @@ pub async fn set_focus(
         focus_response.success = true; 
     }
 
-    Ok(HttpResponse::Ok().json(focus_response))
+    Ok(ok_json!(focus_response))
 }
 
 ///
@@ -790,7 +790,7 @@ pub async fn get_performance_stats(app_state: web::Data<AppState>) -> Result<Htt
         network_latency_ms,
     };
 
-    Ok(HttpResponse::Ok().json(StatsResponse {
+    Ok(ok_json!(StatsResponse {
         success: true,
         physics_stats: get_real_gpu_physics_stats(&app_state).await,
         visual_analytics_metrics: None, 
@@ -844,7 +844,7 @@ pub async fn set_kernel_mode(
                 Ok(result) => match result {
                     Ok(()) => {
                         info!("GPU kernel mode set to: {}", mode);
-                        Ok(HttpResponse::Ok().json(serde_json::json!({
+                        Ok(ok_json!(serde_json::json!({
                             "success": true,
                             "mode": mode
                         })))
@@ -859,23 +859,14 @@ pub async fn set_kernel_mode(
                 },
                 Err(e) => {
                     error!("Failed to send kernel mode message: {}", e);
-                    Ok(HttpResponse::InternalServerError().json(serde_json::json!({
-                        "success": false,
-                        "error": "Failed to communicate with GPU actor"
-                    })))
+                    Ok(error_json!("Failed to communicate with GPU actor").unwrap())
                 }
             }
         } else {
-            Ok(HttpResponse::ServiceUnavailable().json(serde_json::json!({
-                "success": false,
-                "error": "GPU compute not available"
-            })))
+            Ok(service_unavailable!("GPU compute not available").unwrap())
         }
     } else {
-        Ok(HttpResponse::BadRequest().json(serde_json::json!({
-            "success": false,
-            "error": "Missing 'mode' parameter"
-        })))
+        Ok(bad_request!("Missing 'mode' parameter").unwrap())
     }
 }
 
@@ -933,7 +924,7 @@ pub async fn run_clustering(
         }
     });
 
-    Ok(HttpResponse::Ok().json(ClusteringResponse {
+    Ok(ok_json!(ClusteringResponse {
         success: true,
         clusters: None,
         method: Some(method),
@@ -958,7 +949,7 @@ pub async fn get_clustering_status(
                 None
             };
 
-            return Ok(HttpResponse::Ok().json(ClusteringStatusResponse {
+            return Ok(ok_json!(ClusteringStatusResponse {
                 success: true,
                 task_id: Some(task.task_id.clone()),
                 status: task.status.clone(),
@@ -1020,7 +1011,7 @@ pub async fn focus_cluster(
         }
     }
 
-    Ok(HttpResponse::Ok().json(FocusResponse {
+    Ok(ok_json!(FocusResponse {
         success: true,
         focus_node: None,
         focus_region: None,
@@ -1050,7 +1041,7 @@ pub async fn toggle_anomaly_detection(
         state.stats = AnomalyStats::default();
     }
 
-    Ok(HttpResponse::Ok().json(AnomalyResponse {
+    Ok(ok_json!(AnomalyResponse {
         success: true,
         anomalies: None,
         stats: Some(state.stats.clone()),
@@ -1065,7 +1056,7 @@ pub async fn get_current_anomalies() -> Result<HttpResponse> {
     let state = ANOMALY_STATE.lock().await;
 
     if !state.enabled {
-        return Ok(HttpResponse::Ok().json(AnomalyResponse {
+        return Ok(ok_json!(AnomalyResponse {
             success: true,
             anomalies: Some(vec![]),
             stats: Some(AnomalyStats::default()),
@@ -1075,7 +1066,7 @@ pub async fn get_current_anomalies() -> Result<HttpResponse> {
         }));
     }
 
-    Ok(HttpResponse::Ok().json(AnomalyResponse {
+    Ok(ok_json!(AnomalyResponse {
         success: true,
         anomalies: Some(state.anomalies.clone()),
         stats: Some(state.stats.clone()),
@@ -1705,7 +1696,7 @@ pub async fn get_ai_insights(app_state: web::Data<AppState>) -> Result<HttpRespo
         }
     }
 
-    Ok(HttpResponse::Ok().json(InsightsResponse {
+    Ok(ok_json!(InsightsResponse {
         success: true,
         insights: Some(insights),
         patterns: Some(patterns),
@@ -1833,7 +1824,7 @@ pub async fn toggle_sssp(
 
                 info!("Successfully toggled SSSP: {}", message);
 
-                Ok(HttpResponse::Ok().json(SSSPToggleResponse {
+                Ok(ok_json!(SSSPToggleResponse {
                     success: true,
                     enabled: request.enabled,
                     alpha: request.alpha,
@@ -1866,7 +1857,7 @@ pub async fn toggle_sssp(
         }
     } else {
         warn!("GPU compute actor not available - SSSP toggle only updated feature flags");
-        Ok(HttpResponse::Ok().json(SSSPToggleResponse {
+        Ok(ok_json!(SSSPToggleResponse {
             success: true,
             enabled: request.enabled,
             alpha: request.alpha,
@@ -1892,7 +1883,7 @@ pub async fn toggle_sssp(
 pub async fn get_sssp_status() -> Result<HttpResponse> {
     let flags = FEATURE_FLAGS.lock().await;
 
-    Ok(HttpResponse::Ok().json(serde_json::json!({
+    Ok(ok_json!(serde_json::json!({
         "success": true,
         "enabled": flags.sssp_integration,
         "description": "Single-Source Shortest Path spring adjustment for improved edge length uniformity",
@@ -1982,7 +1973,7 @@ pub async fn get_gpu_status(app_state: web::Data<AppState>) -> Result<HttpRespon
         })
     };
 
-    Ok(HttpResponse::Ok().json(gpu_status))
+    Ok(ok_json!(gpu_status))
 }
 
 ///
@@ -2067,7 +2058,7 @@ pub async fn get_gpu_features(app_state: web::Data<AppState>) -> Result<HttpResp
         })
     };
 
-    Ok(HttpResponse::Ok().json(features))
+    Ok(ok_json!(features))
 }
 
 ///
@@ -2082,7 +2073,7 @@ pub async fn cancel_clustering(query: web::Query<HashMap<String, String>>) -> Re
             task.status = "cancelled".to_string();
             task.error = Some("Cancelled by user".to_string());
 
-            return Ok(HttpResponse::Ok().json(serde_json::json!({
+            return Ok(ok_json!(serde_json::json!({
                 "success": true,
                 "message": "Task cancelled successfully",
                 "task_id": task_id
@@ -2090,17 +2081,14 @@ pub async fn cancel_clustering(query: web::Query<HashMap<String, String>>) -> Re
         }
     }
 
-    Ok(HttpResponse::NotFound().json(serde_json::json!({
-        "success": false,
-        "error": "Task not found or not cancellable"
-    })))
+    Ok(not_found!("Task not found or not cancellable").unwrap())
 }
 
 ///
 pub async fn get_anomaly_config() -> Result<HttpResponse> {
     let state = ANOMALY_STATE.lock().await;
 
-    Ok(HttpResponse::Ok().json(serde_json::json!({
+    Ok(ok_json!(serde_json::json!({
         "success": true,
         "config": {
             "enabled": state.enabled,
@@ -2211,7 +2199,7 @@ pub async fn get_realtime_insights(app_state: web::Data<AppState>) -> Result<Htt
         }
     }
 
-    Ok(HttpResponse::Ok().json(serde_json::json!({
+    Ok(ok_json!(serde_json::json!({
         "success": true,
         "insights": insights,
         "urgency_level": urgency_level,
@@ -2257,7 +2245,7 @@ pub async fn get_dashboard_status(app_state: web::Data<AppState>) -> Result<Http
         health_status = "warning";
     }
 
-    Ok(HttpResponse::Ok().json(serde_json::json!({
+    Ok(ok_json!(serde_json::json!({
         "success": true,
         "system": {
             "status": health_status,
@@ -2294,7 +2282,7 @@ pub async fn get_health_check(app_state: web::Data<AppState>) -> Result<HttpResp
 
     let status = if gpu_available { "healthy" } else { "degraded" };
 
-    Ok(HttpResponse::Ok().json(serde_json::json!({
+    Ok(ok_json!(serde_json::json!({
         "status": status,
         "gpu_available": gpu_available,
         "timestamp": timestamp,
@@ -2339,7 +2327,7 @@ pub static FEATURE_FLAGS: Lazy<Arc<Mutex<FeatureFlags>>> =
 pub async fn get_feature_flags() -> Result<HttpResponse> {
     let flags = FEATURE_FLAGS.lock().await;
 
-    Ok(HttpResponse::Ok().json(serde_json::json!({
+    Ok(ok_json!(serde_json::json!({
         "success": true,
         "flags": *flags,
         "description": {
@@ -2363,7 +2351,7 @@ pub async fn update_feature_flags(request: web::Json<FeatureFlags>) -> Result<Ht
     let mut flags = FEATURE_FLAGS.lock().await;
     *flags = request.into_inner();
 
-    Ok(HttpResponse::Ok().json(serde_json::json!({
+    Ok(ok_json!(serde_json::json!({
         "success": true,
         "message": "Feature flags updated successfully",
         "flags": *flags
@@ -2374,7 +2362,7 @@ pub async fn update_feature_flags(request: web::Json<FeatureFlags>) -> Result<Ht
 async fn trigger_stress_majorization(data: web::Data<AppState>) -> Result<HttpResponse, Error> {
     if let Some(gpu_actor) = &data.gpu_compute_addr {
         match gpu_actor.send(TriggerStressMajorization).await {
-            Ok(Ok(())) => Ok(HttpResponse::Ok().json(serde_json::json!({
+            Ok(Ok(())) => Ok(ok_json!(serde_json::json!({
                 "success": true,
                 "message": "Stress majorization triggered successfully"
             }))),
@@ -2387,17 +2375,11 @@ async fn trigger_stress_majorization(data: web::Data<AppState>) -> Result<HttpRe
             }
             Err(e) => {
                 error!("Failed to communicate with GPU actor: {}", e);
-                Ok(HttpResponse::InternalServerError().json(serde_json::json!({
-                    "success": false,
-                    "error": "Internal server error"
-                })))
+                Ok(error_json!("Internal server error").unwrap())
             }
         }
     } else {
-        Ok(HttpResponse::ServiceUnavailable().json(serde_json::json!({
-            "success": false,
-            "error": "GPU compute actor not available"
-        })))
+        Ok(service_unavailable!("GPU compute actor not available").unwrap())
     }
 }
 
@@ -2405,7 +2387,7 @@ async fn trigger_stress_majorization(data: web::Data<AppState>) -> Result<HttpRe
 async fn get_stress_majorization_stats(data: web::Data<AppState>) -> Result<HttpResponse, Error> {
     if let Some(gpu_actor) = &data.gpu_compute_addr {
         match gpu_actor.send(GetStressMajorizationStats).await {
-            Ok(Ok(stats)) => Ok(HttpResponse::Ok().json(serde_json::json!({
+            Ok(Ok(stats)) => Ok(ok_json!(serde_json::json!({
                 "success": true,
                 "stats": stats
             }))),
@@ -2418,17 +2400,11 @@ async fn get_stress_majorization_stats(data: web::Data<AppState>) -> Result<Http
             }
             Err(e) => {
                 error!("Failed to get stress majorization stats: {}", e);
-                Ok(HttpResponse::InternalServerError().json(serde_json::json!({
-                    "success": false,
-                    "error": "Failed to retrieve statistics"
-                })))
+                Ok(error_json!("Failed to retrieve statistics").unwrap())
             }
         }
     } else {
-        Ok(HttpResponse::ServiceUnavailable().json(serde_json::json!({
-            "success": false,
-            "error": "GPU compute actor not available"
-        })))
+        Ok(service_unavailable!("GPU compute actor not available").unwrap())
     }
 }
 
@@ -2438,7 +2414,7 @@ async fn reset_stress_majorization_safety(
 ) -> Result<HttpResponse, Error> {
     if let Some(gpu_actor) = &data.gpu_compute_addr {
         match gpu_actor.send(ResetStressMajorizationSafety).await {
-            Ok(Ok(())) => Ok(HttpResponse::Ok().json(serde_json::json!({
+            Ok(Ok(())) => Ok(ok_json!(serde_json::json!({
                 "success": true,
                 "message": "Stress majorization safety state reset successfully"
             }))),
@@ -2451,17 +2427,11 @@ async fn reset_stress_majorization_safety(
             }
             Err(e) => {
                 error!("Failed to communicate with GPU actor: {}", e);
-                Ok(HttpResponse::InternalServerError().json(serde_json::json!({
-                    "success": false,
-                    "error": "Internal server error"
-                })))
+                Ok(error_json!("Internal server error").unwrap())
             }
         }
     } else {
-        Ok(HttpResponse::ServiceUnavailable().json(serde_json::json!({
-            "success": false,
-            "error": "GPU compute actor not available"
-        })))
+        Ok(service_unavailable!("GPU compute actor not available").unwrap())
     }
 }
 
@@ -2476,7 +2446,7 @@ async fn update_stress_majorization_params(
         };
 
         match gpu_actor.send(msg).await {
-            Ok(Ok(())) => Ok(HttpResponse::Ok().json(serde_json::json!({
+            Ok(Ok(())) => Ok(ok_json!(serde_json::json!({
                 "success": true,
                 "message": "Stress majorization parameters updated successfully"
             }))),
@@ -2489,17 +2459,11 @@ async fn update_stress_majorization_params(
             }
             Err(e) => {
                 error!("Failed to communicate with GPU actor: {}", e);
-                Ok(HttpResponse::InternalServerError().json(serde_json::json!({
-                    "success": false,
-                    "error": "Internal server error"
-                })))
+                Ok(error_json!("Internal server error").unwrap())
             }
         }
     } else {
-        Ok(HttpResponse::ServiceUnavailable().json(serde_json::json!({
-            "success": false,
-            "error": "GPU compute actor not available"
-        })))
+        Ok(service_unavailable!("GPU compute actor not available").unwrap())
     }
 }
 
@@ -2581,7 +2545,7 @@ pub async fn run_community_detection(
     debug!("Community detection request: {:?}", request);
 
     match community::run_gpu_community_detection(&app_state, &request).await {
-        Ok(response) => Ok(HttpResponse::Ok().json(response)),
+        Ok(response) => Ok(ok_json!(response)),
         Err(e) => {
             error!("Community detection failed: {}", e);
             Ok(HttpResponse::InternalServerError().json(serde_json::json!({
@@ -2601,7 +2565,7 @@ pub async fn get_community_statistics(
 ) -> Result<HttpResponse, Error> {
     
     
-    Ok(HttpResponse::Ok().json(serde_json::json!({
+    Ok(ok_json!(serde_json::json!({
         "success": true,
         "message": "Use /community/detect to run community detection first",
         "available_algorithms": ["label_propagation"],
@@ -2636,7 +2600,7 @@ pub async fn update_sssp_params(
         use_sssp, sssp_alpha
     );
 
-    Ok(HttpResponse::Ok().json(serde_json::json!({
+    Ok(ok_json!(serde_json::json!({
         "success": true,
         "params": {
             "useSsspDistances": use_sssp,
@@ -2652,7 +2616,7 @@ pub async fn get_sssp_params(_app_state: web::Data<AppState>) -> Result<HttpResp
 
     
     
-    Ok(HttpResponse::Ok().json(serde_json::json!({
+    Ok(ok_json!(serde_json::json!({
         "success": true,
         "params": {
             "useSsspDistances": false,  
@@ -2686,7 +2650,7 @@ pub async fn compute_sssp(
     {
         Ok(Ok(_)) => {
             info!("SSSP computation triggered for source node {}", source_node);
-            Ok(HttpResponse::Ok().json(serde_json::json!({
+            Ok(ok_json!(serde_json::json!({
                 "success": true,
                 "sourceNode": source_node,
                 "message": "SSSP computation started",
@@ -2701,10 +2665,7 @@ pub async fn compute_sssp(
         }
         Err(e) => {
             error!("Graph service communication error: {}", e);
-            Ok(HttpResponse::InternalServerError().json(serde_json::json!({
-                "success": false,
-                "error": "Failed to communicate with graph service",
-            })))
+            Ok(error_json!("Failed to communicate with graph service").unwrap())
         }
     }
 }
@@ -2720,7 +2681,7 @@ pub async fn get_gpu_metrics(app_state: web::Data<AppState>) -> Result<HttpRespo
         match gpu_addr.send(GetGPUMetrics).await {
             Ok(Ok(metrics)) => {
                 info!("GPU metrics retrieved successfully");
-                Ok(HttpResponse::Ok().json(metrics))
+                Ok(ok_json!(metrics))
             }
             Ok(Err(e)) => {
                 error!("Failed to get GPU metrics: {}", e);
@@ -2732,21 +2693,11 @@ pub async fn get_gpu_metrics(app_state: web::Data<AppState>) -> Result<HttpRespo
             }
             Err(e) => {
                 error!("GPU actor mailbox error: {}", e);
-                Ok(HttpResponse::ServiceUnavailable().json(serde_json::json!({
-                    "success": false,
-                    "error": "GPU compute actor unavailable",
-                    "details": e.to_string(),
-                    "gpu_initialized": false
-                })))
+                Ok(service_unavailable!("GPU compute actor unavailable").unwrap())
             }
         }
     } else {
         warn!("GPU compute actor not available");
-        Ok(HttpResponse::ServiceUnavailable().json(serde_json::json!({
-            "success": false,
-            "error": "GPU compute not available",
-            "gpu_initialized": false,
-            "message": "GPU acceleration is not enabled or not available"
-        })))
+        Ok(service_unavailable!("GPU compute not available", "GPU acceleration is not enabled or not available"))
     }
 }

@@ -86,7 +86,7 @@ impl FileService {
         let mut graph_data = GraphData::new();
 
         
-        let temp_filename = format!("temp_{}.md", Utc::now().timestamp());
+        let temp_filename = format!("temp_{}.md", time::timestamp_seconds());
         let temp_path = format!("{}/{}", MARKDOWN_DIR, temp_filename);
         if let Err(e) = fs::write(&temp_path, &content) {
             return Err(Error::new(std::io::ErrorKind::Other, e.to_string()));
@@ -111,9 +111,9 @@ impl FileService {
             node_id: "0".to_string(),
             hyperlink_count: Self::count_hyperlinks(&content),
             sha1: Self::calculate_sha1(&content),
-            last_modified: Utc::now(),
-            last_content_change: Some(Utc::now()), 
-            last_commit: Some(Utc::now()),
+            last_modified: time::now(),
+            last_content_change: Some(time::now()), 
+            last_commit: Some(time::now()),
             change_count: Some(1), 
             file_blob_sha: None,   
             perplexity_link: String::new(),
@@ -180,9 +180,9 @@ impl FileService {
             node_id: "0".to_string(),
             hyperlink_count: Self::count_hyperlinks(&content),
             sha1: Self::calculate_sha1(&content),
-            last_modified: Utc::now(),
-            last_content_change: Some(Utc::now()),
-            last_commit: Some(Utc::now()),
+            last_modified: time::now(),
+            last_content_change: Some(time::now()),
+            last_commit: Some(time::now()),
             change_count: None,
             file_blob_sha: None,
             perplexity_link: String::new(),
@@ -588,7 +588,7 @@ impl FileService {
 
     
     pub fn save_metadata(metadata: &MetadataStore) -> Result<(), Error> {
-        let json = serde_json::to_string_pretty(metadata)
+        let json = crate::utils::json::to_json_pretty(metadata)
             .map_err(|e| Error::new(std::io::ErrorKind::Other, e.to_string()))?;
         fs::write(METADATA_PATH, json)
             .map_err(|e| Error::new(std::io::ErrorKind::Other, e.to_string()))?;
@@ -598,6 +598,7 @@ impl FileService {
     
     fn calculate_sha1(content: &str) -> String {
         use sha1::{Digest, Sha1};
+use crate::utils::json::{from_json, to_json};
         let mut hasher = Sha1::new();
         hasher.update(content.as_bytes());
         format!("{:x}", hasher.finalize())
@@ -605,7 +606,7 @@ impl FileService {
 
     
     fn count_hyperlinks(content: &str) -> usize {
-        let re = Regex::new(r"\[([^\]]+)\]\(([^)]+)\)").unwrap();
+        let re = Regex::new(r"\[([^\]]+)\]\(([^)]+)\)").expect("Invalid regex pattern");
         re.find_iter(content).count()
     }
 

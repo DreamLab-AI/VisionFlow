@@ -12,6 +12,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use thiserror::Error;
 use uuid::Uuid;
+use crate::utils::time;
 
 ///
 #[derive(Error, Debug)]
@@ -270,7 +271,7 @@ impl OwlValidatorService {
         
         if self.config.enable_caching {
             if let Some(cached) = self.ontology_cache.get(&ontology_id) {
-                let age = Utc::now().signed_duration_since(cached.loaded_at);
+                let age = time::now().signed_duration_since(cached.loaded_at);
                 if age.num_seconds() < (self.config.cache_ttl_seconds as i64) {
                     debug!("Cache hit for ontology: {}", ontology_id);
                     return Ok(ontology_id);
@@ -295,7 +296,7 @@ impl OwlValidatorService {
                 content_hash: content_hash.clone(),
                 ontology,
                 axiom_count,
-                loaded_at: Utc::now(),
+                loaded_at: time::now(),
                 ttl_seconds: self.config.cache_ttl_seconds,
             };
             self.ontology_cache.insert(ontology_id.clone(), cached);
@@ -389,7 +390,7 @@ impl OwlValidatorService {
         let cache_key = format!("{}:{}", ontology_id, graph_signature);
         if self.config.enable_caching {
             if let Some(cached_report) = self.validation_cache.get(&cache_key) {
-                let age = Utc::now().signed_duration_since(cached_report.timestamp);
+                let age = time::now().signed_duration_since(cached_report.timestamp);
                 if age.num_seconds() < (self.config.cache_ttl_seconds as i64) {
                     debug!("Using cached validation report");
                     return Ok(cached_report.clone());
@@ -450,7 +451,7 @@ impl OwlValidatorService {
         let duration = start_time.elapsed();
         let report = ValidationReport {
             id: Uuid::new_v4().to_string(),
-            timestamp: Utc::now(),
+            timestamp: time::now(),
             duration_ms: duration.as_millis() as u64,
             graph_signature,
             total_triples: rdf_triples.len(),
@@ -738,7 +739,7 @@ impl OwlValidatorService {
                             "http://www.w3.org/1999/02/22-rdf-syntax-ns#type".to_string(),
                         ),
                         object: None,
-                        timestamp: Utc::now(),
+                        timestamp: time::now(),
                     });
                 }
             }
@@ -800,7 +801,7 @@ impl OwlValidatorService {
                                 subject: Some(triple.subject.clone()),
                                 predicate: Some(triple.predicate.clone()),
                                 object: Some(triple.object.clone()),
-                                timestamp: Utc::now(),
+                                timestamp: time::now(),
                             });
                         }
                     }
@@ -820,7 +821,7 @@ impl OwlValidatorService {
                                     subject: Some(triple.subject.clone()),
                                     predicate: Some(triple.predicate.clone()),
                                     object: Some(triple.object.clone()),
-                                    timestamp: Utc::now(),
+                                    timestamp: time::now(),
                                 });
                             }
                         }
@@ -839,7 +840,7 @@ impl OwlValidatorService {
                             subject: Some(triple.subject.clone()),
                             predicate: Some(triple.predicate.clone()),
                             object: Some(triple.object.clone()),
-                            timestamp: Utc::now(),
+                            timestamp: time::now(),
                         });
                     }
                 }
@@ -897,7 +898,7 @@ impl OwlValidatorService {
                         subject: Some(subject.clone()),
                         predicate: Some(property.to_string()),
                         object: None,
-                        timestamp: Utc::now(),
+                        timestamp: time::now(),
                     });
                 }
 
@@ -914,7 +915,7 @@ impl OwlValidatorService {
                             subject: Some(subject.clone()),
                             predicate: Some(property.to_string()),
                             object: None,
-                            timestamp: Utc::now(),
+                            timestamp: time::now(),
                         });
                     }
                 }

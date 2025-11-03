@@ -1,0 +1,18 @@
+src/actors/graph_actor.rs:4509:        let original_file2_pos = initial_positions.get("file2").unwrap().0;
+src/utils/memory_bounds.rs:584:        assert_eq!(*safe_array.get(0).unwrap(), 1);
+src/utils/memory_bounds.rs:585:        assert_eq!(*safe_array.get(4).unwrap(), 5);
+src/utils/memory_bounds.rs:589:        assert_eq!(*safe_array.get(0).unwrap(), 10);
+src/inference/types.rs:276:        assert_eq!(inf.metadata.get("source").unwrap(), "ml_classifier");
+src/models/constraints.rs:406:        assert_eq!(set.groups.get("fixed").unwrap().len(), 2);
+src/handlers/settings_handler.rs:1900:                        "value": update.get("value").unwrap(),
+src/handlers/settings_handler.rs:2058:                    "value": update.get("value").unwrap(),
+src/types/mcp_responses.rs:206:        let agents_data = content.text.get("agents").unwrap();
+src/services/owl_extractor_service.rs:241:        assert!(captures[0].get(1).unwrap().as_str().contains("Declaration"));
+src/ontology/parser/parser.rs:241:        assert_eq!(props.get("term-id").unwrap()[0], "20067");
+src/ontology/parser/parser.rs:242:        assert_eq!(props.get("maturity").unwrap()[0], "mature");
+src/ontology/parser/parser.rs:243:        assert_eq!(props.get("has-part").unwrap().len(), 2);
+src/ontology/parser/parser.rs:294:        assert_eq!(props.get("term-id").unwrap()[0], "20067");
+src/ontology/parser/parser.rs:295:        assert_eq!(props.get("preferred-term").unwrap()[0], "Avatar");
+src/ontology/parser/parser.rs:296:        assert_eq!(props.get("owl:class").unwrap()[0], "mv:Avatar");
+src/ontology/parser/parser.rs:297:        assert_eq!(props.get("owl:physicality").unwrap()[0], "VirtualEntity");
+src/ontology/parser/parser.rs:298:        assert_eq!(props.get("owl:role").unwrap()[0], "Agent");

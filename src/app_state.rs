@@ -7,6 +7,10 @@ use std::sync::{
 };
 use tokio::sync::RwLock;
 
+// Neo4j feature imports - now the primary graph repository
+#[cfg(feature = "neo4j")]
+use crate::adapters::neo4j_adapter::{Neo4jAdapter, Neo4jConfig};
+
 // CQRS Phase 1D: Graph domain imports
 use crate::adapters::actor_graph_repository::ActorGraphRepository;
 use crate::application::graph::*;
@@ -48,9 +52,9 @@ use tokio::sync::mpsc;
 use tokio::time::Duration;
 
 // Repository trait imports for hexagonal architecture
-use crate::adapters::sqlite_settings_repository::SqliteSettingsRepository;
+use crate::adapters::neo4j_settings_repository::Neo4jSettingsRepository;
 use crate::ports::settings_repository::SettingsRepository;
-use crate::repositories::{UnifiedGraphRepository, UnifiedOntologyRepository};
+use crate::repositories::UnifiedOntologyRepository;
 
 // CQRS Phase 1D: Graph query handlers struct
 #[derive(Clone)]
@@ -78,16 +82,21 @@ pub struct ApplicationServices {
 pub struct AppState {
     pub graph_service_addr: Addr<TransitionalGraphSupervisor>,
     #[cfg(feature = "gpu")]
-    pub gpu_manager_addr: Option<Addr<GPUManagerActor>>, 
+    pub gpu_manager_addr: Option<Addr<GPUManagerActor>>,
     #[cfg(feature = "gpu")]
-    pub gpu_compute_addr: Option<Addr<gpu::ForceComputeActor>>, 
+    pub gpu_compute_addr: Option<Addr<gpu::ForceComputeActor>>,
+    #[cfg(feature = "gpu")]
+    pub stress_majorization_addr: Option<Addr<gpu::StressMajorizationActor>>, 
     
-    
+
     pub settings_repository: Arc<dyn SettingsRepository>,
-    
-    pub knowledge_graph_repository: Arc<UnifiedGraphRepository>,
+
+    // Neo4j is now the primary knowledge graph repository
+    #[cfg(feature = "neo4j")]
+    pub neo4j_adapter: Arc<Neo4jAdapter>,
+
     pub ontology_repository: Arc<UnifiedOntologyRepository>,
-    
+
     pub graph_repository: Arc<ActorGraphRepository>,
     pub graph_query_handlers: GraphQueryHandlers,
     
@@ -118,6 +127,7 @@ pub struct AppState {
     pub debug_enabled: bool,
     pub client_message_tx: mpsc::UnboundedSender<ClientMessage>,
     pub client_message_rx: Arc<tokio::sync::Mutex<mpsc::UnboundedReceiver<ClientMessage>>>,
+    pub ontology_pipeline_service: Option<Arc<crate::services::ontology_pipeline_service::OntologyPipelineService>>,
 }
 
 impl AppState {
@@ -133,26 +143,17 @@ impl AppState {
         info!("[AppState::new] Initializing actor system");
         tokio::time::sleep(Duration::from_millis(50)).await;
 
-        
+
         info!("[AppState::new] Creating repository adapters for hexagonal architecture");
 
-        
+        // Phase 3: Using Neo4j settings repository
+        use crate::adapters::neo4j_settings_repository::Neo4jSettingsConfig;
+        let settings_config = Neo4jSettingsConfig::default();
         let settings_repository: Arc<dyn SettingsRepository> = Arc::new(
-            SqliteSettingsRepository::new("data/unified.db")
-                .map_err(|e| format!("Failed to create settings repository: {}", e))?,
+            Neo4jSettingsRepository::new(settings_config)
+                .await
+                .map_err(|e| format!("Failed to create Neo4j settings repository: {}", e))?,
         );
-
-        
-        
-        info!("[AppState::new] Creating unified graph repository in blocking context...");
-        let knowledge_graph_repository: Arc<UnifiedGraphRepository> =
-            tokio::task::spawn_blocking(|| {
-                UnifiedGraphRepository::new("data/unified.db")
-            })
-            .await
-            .map_err(|e| format!("Failed to spawn blocking task: {}", e))?
-            .map_err(|e| format!("Failed to create unified graph repository: {}", e))
-            .map(Arc::new)?;
 
         info!("[AppState::new] Creating unified ontology repository in blocking context...");
         let ontology_repository: Arc<UnifiedOntologyRepository> =
@@ -168,17 +169,55 @@ impl AppState {
             "[AppState::new] IMPORTANT: UI now connects directly to database via SettingsService"
         );
 
-        
-        
-        
+        // Neo4j is now the primary graph repository
+        #[cfg(feature = "neo4j")]
+        let neo4j_adapter = {
+            info!("[AppState::new] Initializing Neo4j as primary knowledge graph repository");
+            let config = Neo4jConfig::default();
+            let adapter = Neo4jAdapter::new(config).await
+                .map_err(|e| format!("Failed to initialize Neo4j adapter: {}", e))?;
+            info!("✅ Neo4j adapter initialized successfully");
+            Arc::new(adapter)
+        };
+
+        // Create ontology pipeline service with semantic physics
+        info!("[AppState::new] Creating ontology pipeline service");
+        let mut pipeline_service = crate::services::ontology_pipeline_service::OntologyPipelineService::new(
+            crate::services::ontology_pipeline_service::SemanticPhysicsConfig::default()
+        );
+
+        // CRITICAL: Set graph repository for IRI → node ID resolution
+        #[cfg(feature = "neo4j")]
+        pipeline_service.set_graph_repository(neo4j_adapter.clone());
+
+        let ontology_pipeline_service = Some(Arc::new(pipeline_service));
+
+
+
         info!("[AppState::new] Initializing GitHubSyncService for data ingestion");
 
         let enhanced_content_api = Arc::new(EnhancedContentAPI::new(github_client.clone()));
-        let github_sync_service = Arc::new(GitHubSyncService::new(
+        #[cfg(feature = "neo4j")]
+        let mut github_sync_service = GitHubSyncService::new(
             enhanced_content_api,
-            knowledge_graph_repository.clone(),
+            neo4j_adapter.clone(),
             ontology_repository.clone(),
-        ));
+        );
+
+        #[cfg(not(feature = "neo4j"))]
+        let mut github_sync_service = {
+            warn!("[AppState::new] Neo4j feature disabled - GitHub sync will be limited");
+            // Need a stub implementation or alternative
+            GitHubSyncService::new_stub(enhanced_content_api, ontology_repository.clone())
+        };
+
+        // Connect pipeline service to GitHub sync
+        if let Some(ref pipeline) = ontology_pipeline_service {
+            github_sync_service.set_pipeline_service(pipeline.clone());
+            info!("[AppState::new] Ontology pipeline connected to GitHub sync");
+        }
+
+        let github_sync_service = Arc::new(github_sync_service);
 
         info!("[AppState::new] Starting GitHub data sync in background (non-blocking)...");
 
@@ -292,12 +331,18 @@ impl AppState {
 
 
 
+        #[cfg(feature = "neo4j")]
         let graph_service_addr = TransitionalGraphSupervisor::new(
             Some(client_manager_addr.clone()),
             None,
-            knowledge_graph_repository.clone(),
+            neo4j_adapter.clone(),
         )
         .start();
+
+        #[cfg(not(feature = "neo4j"))]
+        let graph_service_addr = {
+            compile_error!("Neo4j feature is now required for graph operations");
+        };
 
         // Store graph service address in Arc for GitHub sync task to use
         let graph_service_addr_clone = graph_service_addr.clone();
@@ -396,9 +441,15 @@ impl AppState {
 
         
         #[cfg(feature = "gpu")]
-        let gpu_manager_addr = {
+        let (gpu_manager_addr, stress_majorization_addr) = {
             info!("[AppState::new] Starting GPUManagerActor (modular architecture)");
-            Some(GPUManagerActor::new().start())
+            let gpu_manager = GPUManagerActor::new().start();
+
+            // Extract StressMajorizationActor from GPUManagerActor's child actors
+            // Note: The actor is spawned by GPUManagerActor, so we'll retrieve it after initialization
+            info!("[AppState::new] StressMajorizationActor will be available after GPU initialization");
+
+            (Some(gpu_manager), None) // stress_majorization_addr will be set later
         };
 
         
@@ -421,10 +472,13 @@ impl AppState {
         }
 
         info!("[AppState::new] Starting OptimizedSettingsActor with repository injection (hexagonal architecture)");
-        
+
+        // Phase 3: Using Neo4j settings repository for actor (reusing config from above)
+        let actor_config = Neo4jSettingsConfig::default();
         let actor_settings_repository = Arc::new(
-            SqliteSettingsRepository::new("data/unified.db")
-                .map_err(|e| format!("Failed to create actor settings repository: {}", e))?,
+            Neo4jSettingsRepository::new(actor_config)
+                .await
+                .map_err(|e| format!("Failed to create Neo4j actor settings repository: {}", e))?,
         );
 
         let settings_actor = OptimizedSettingsActor::with_actors(
@@ -545,21 +599,26 @@ impl AppState {
             #[cfg(feature = "gpu")]
             gpu_manager_addr,
             #[cfg(feature = "gpu")]
-            gpu_compute_addr: None, 
-            
+            gpu_compute_addr: None,
+            #[cfg(feature = "gpu")]
+            stress_majorization_addr,
+
             settings_repository,
-            knowledge_graph_repository,
+
+            #[cfg(feature = "neo4j")]
+            neo4j_adapter,
+
             ontology_repository,
-            
+
             graph_repository,
             graph_query_handlers,
-            
+
             command_bus,
             query_bus,
             event_bus,
-            
+
             app_services,
-            
+
             settings_addr,
             protected_settings_addr,
             metadata_addr,
@@ -581,6 +640,7 @@ impl AppState {
             debug_enabled,
             client_message_tx,
             client_message_rx: Arc::new(tokio::sync::Mutex::new(client_message_rx)),
+            ontology_pipeline_service,
         })
     }
 

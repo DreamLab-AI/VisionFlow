@@ -39,6 +39,7 @@ use crate::adapters::gpu_semantic_analyzer::GpuSemanticAnalyzerAdapter;
 use crate::ports::gpu_semantic_analyzer::{
     GpuSemanticAnalyzer as GpuSemanticAnalyzerPort, PathfindingResult,
 };
+use crate::utils::time;
 
 ///
 #[derive(Debug, Clone)]
@@ -490,7 +491,7 @@ impl SemanticProcessorActor {
         score += (metadata.file_size as f32 / 10000.0).min(0.2);
 
         
-        if metadata.last_modified.timestamp() > chrono::Utc::now().timestamp() - 86400 {
+        if metadata.last_modified.timestamp() > time::timestamp_seconds() - 86400 {
             score += 0.1; 
         }
 
@@ -618,7 +619,7 @@ impl SemanticProcessorActor {
         
         let words: Vec<&str> = content.split_whitespace().collect();
         for word in words {
-            if word.len() > 2 && word.chars().next().unwrap().is_uppercase() {
+            if word.len() > 2 && word.chars().next().expect("Expected non-empty string").is_uppercase() {
                 let clean_word = word.trim_matches(|c: char| !c.is_alphabetic());
                 if clean_word.len() > 2 && !entities.contains(&clean_word.to_string()) {
                     entities.push(clean_word.to_string());
@@ -909,7 +910,7 @@ impl SemanticProcessorActor {
         score += (metadata.file_size as f32 / 10000.0).min(0.2);
 
         
-        if metadata.last_modified.timestamp() > chrono::Utc::now().timestamp() - 86400 {
+        if metadata.last_modified.timestamp() > time::timestamp_seconds() - 86400 {
             score += 0.1; 
         }
 
@@ -1042,7 +1043,7 @@ impl SemanticProcessorActor {
         
         let words: Vec<&str> = content.split_whitespace().collect();
         for word in words {
-            if word.len() > 2 && word.chars().next().unwrap().is_uppercase() {
+            if word.len() > 2 && word.chars().next().expect("Expected non-empty string").is_uppercase() {
                 let clean_word = word.trim_matches(|c: char| !c.is_alphabetic());
                 if clean_word.len() > 2 && !entities.contains(&clean_word.to_string()) {
                     entities.push(clean_word.to_string());

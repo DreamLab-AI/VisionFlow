@@ -1,5 +1,7 @@
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
+use crate::utils::json::{from_json, to_json};
+use crate::utils::time;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -182,12 +184,12 @@ impl ProtectedSettings {
     pub fn store_client_token(&mut self, pubkey: String, token: String) {
         if let Some(user) = self.users.get_mut(&pubkey) {
             user.session_token = Some(token);
-            user.last_seen = Utc::now().timestamp();
+            user.last_seen = time::timestamp_seconds();
         }
     }
 
     pub fn cleanup_expired_tokens(&mut self, max_age_hours: i64) {
-        let now = Utc::now().timestamp();
+        let now = time::timestamp_seconds();
         let max_age_secs = max_age_hours * 3600;
 
         self.users
@@ -202,7 +204,7 @@ impl ProtectedSettings {
         if let Some(user) = self.users.get_mut(pubkey) {
             if !user.is_power_user {
                 user.api_keys = api_keys;
-                user.last_seen = Utc::now().timestamp();
+                user.last_seen = time::timestamp_seconds();
                 Ok(user.clone())
             } else {
                 Err("Cannot update API keys for power users".to_string())
@@ -216,12 +218,12 @@ impl ProtectedSettings {
         let content = std::fs::read_to_string(path)
             .map_err(|e| format!("Failed to read protected settings: {}", e))?;
 
-        serde_json::from_str(&content)
+        from_json(&content)
             .map_err(|e| format!("Failed to parse protected settings: {}", e))
     }
 
     pub fn save(&self, path: &str) -> Result<(), String> {
-        let content = serde_json::to_string_pretty(self)
+        let content = crate::utils::json::to_json_pretty(self)
             .map_err(|e| format!("Failed to serialize protected settings: {}", e))?;
 
         std::fs::write(path, content)

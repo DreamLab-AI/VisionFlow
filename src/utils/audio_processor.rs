@@ -21,13 +21,13 @@ impl AudioProcessor {
         let _settings = self.settings.read().await;
 
         
-        let json_response: Value = serde_json::from_slice(response_data)
+        let json_response: Value = crate::utils::json::from_json_bytes(response_data)
             .map_err(|e| format!("Failed to parse JSON response: {}", e))?;
 
         
         info!(
             "Received JSON response: {}",
-            serde_json::to_string_pretty(&json_response)
+            crate::utils::json::to_json_pretty(&json_response)
                 .unwrap_or_else(|_| "Unable to prettify JSON".to_string())
         );
 
@@ -155,6 +155,7 @@ mod tests {
     use super::*;
     use serde_json::json;
     use tokio::runtime::Runtime;
+use crate::utils::json::{from_json, to_json};
 
     fn create_test_settings() -> Arc<RwLock<AppFullSettings>> {
         let settings = AppFullSettings::default();
@@ -191,7 +192,7 @@ mod tests {
         });
 
         let result = rt.block_on(
-            processor.process_json_response(serde_json::to_vec(&json_data).unwrap().as_slice()),
+            processor.process_json_response(crate::utils::json::to_json_bytes(&json_data).unwrap().as_slice()),
         );
 
         assert!(result.is_ok());
@@ -215,7 +216,7 @@ mod tests {
         });
 
         let result = rt.block_on(
-            processor.process_json_response(serde_json::to_vec(&json_data).unwrap().as_slice()),
+            processor.process_json_response(crate::utils::json::to_json_bytes(&json_data).unwrap().as_slice()),
         );
 
         assert!(result.is_err());

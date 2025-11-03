@@ -5,6 +5,8 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
+use crate::utils::time;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Vec3 {
     pub x: f32,
@@ -337,7 +339,7 @@ impl ClaudeFlowClient {
             memory_usage_raw
         };
 
-        let now = chrono::Utc::now();
+        let now = time::now();
         let created_at = now.to_rfc3339();
 
         Ok(AgentStatus {
@@ -466,7 +468,8 @@ impl ClaudeFlowClient {
     ) -> Result<serde_json::Value, Box<dyn std::error::Error + Send + Sync>> {
         use tokio::io::{AsyncReadExt, AsyncWriteExt};
         use tokio::net::TcpStream;
-        use tokio::time::{timeout, Duration};
+use crate::utils::json::{from_json, to_json};
+use crate::utils::time;
 
         let addr = format!("{}:{}", self.host, self.port);
         let mut stream = timeout(Duration::from_secs(5), TcpStream::connect(&addr)).await??;

@@ -4,6 +4,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 
 use crate::events::types::{EventError, EventMiddleware, EventResult, StoredEvent};
+use crate::utils::json::from_json;
 
 ///
 pub struct LoggingMiddleware {
@@ -191,8 +192,8 @@ impl EventMiddleware for ValidationMiddleware {
             ));
         }
 
-        
-        serde_json::from_str::<serde_json::Value>(&event.data)
+
+        from_json::<serde_json::Value>(&event.data)
             .map_err(|e| EventError::Validation(format!("Invalid JSON: {}", e)))?;
 
         Ok(())

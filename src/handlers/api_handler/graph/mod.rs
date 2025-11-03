@@ -167,7 +167,7 @@ pub async fn get_graph_data(state: web::Data<AppState>, _req: HttpRequest) -> im
                 response.nodes.len()
             );
 
-            HttpResponse::Ok().json(response)
+            ok_json!(response)
         }
         (Err(e), _, _) | (_, Err(e), _) | (_, _, Err(e)) => {
             error!("Thread execution error: {}", e);
@@ -196,9 +196,7 @@ pub async fn get_paginated_graph_data(
 
     if page_size == 0 {
         error!("Invalid page size: {}", page_size);
-        return HttpResponse::BadRequest().json(serde_json::json!({
-            "error": "Page size must be greater than 0"
-        }));
+        return bad_request!("Page size must be greater than 0");
     }
 
     
@@ -223,7 +221,7 @@ pub async fn get_paginated_graph_data(
 
     if total_items == 0 {
         debug!("Graph is empty");
-        return HttpResponse::Ok().json(PaginatedGraphResponse {
+        return ok_json!(PaginatedGraphResponse {
             nodes: Vec::new(),
             edges: Vec::new(),
             metadata: HashMap::new(),
@@ -242,9 +240,7 @@ pub async fn get_paginated_graph_data(
             page + 1,
             total_pages
         );
-        return HttpResponse::BadRequest().json(serde_json::json!({
-            "error": format!("Page {} exceeds total available pages {}", page + 1, total_pages)
-        }));
+        return bad_request!("Page {} exceeds total available pages {}", page + 1, total_pages);
     }
 
     let start = page * page_size;
@@ -282,7 +278,7 @@ pub async fn get_paginated_graph_data(
         page_size,
     };
 
-    HttpResponse::Ok().json(response)
+    ok_json!(response)
 }
 
 pub async fn refresh_graph(state: web::Data<AppState>) -> impl Responder {
@@ -306,7 +302,7 @@ pub async fn refresh_graph(state: web::Data<AppState>) -> impl Responder {
                 metadata: graph_data_owned.metadata.clone(),
             };
 
-            HttpResponse::Ok().json(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "success": true,
                 "message": "Graph data retrieved successfully",
                 "data": response
@@ -314,17 +310,11 @@ pub async fn refresh_graph(state: web::Data<AppState>) -> impl Responder {
         }
         Ok(Err(e)) => {
             error!("Failed to get current graph data (CQRS): {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "success": false,
-                "error": "Failed to retrieve current graph data"
-            }))
+            error_json!("Failed to retrieve current graph data").unwrap()
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "success": false,
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error").unwrap()
         }
     }
 }
@@ -348,10 +338,7 @@ pub async fn update_graph(state: web::Data<AppState>) -> impl Responder {
         Ok(Ok(s)) => Arc::new(tokio::sync::RwLock::new(s)),
         _ => {
             error!("Failed to retrieve settings for FileService in update_graph");
-            return HttpResponse::InternalServerError().json(serde_json::json!({
-                "success": false,
-                "error": "Failed to retrieve application settings"
-            }));
+            return error_json!("Failed to retrieve application settings").unwrap();
         }
     };
 
@@ -363,7 +350,7 @@ pub async fn update_graph(state: web::Data<AppState>) -> impl Responder {
         Ok(processed_files) => {
             if processed_files.is_empty() {
                 debug!("No new files to process");
-                return HttpResponse::Ok().json(serde_json::json!({
+                return ok_json!(serde_json::json!({
                     "success": true,
                     "message": "No updates needed"
                 }));
@@ -396,7 +383,7 @@ pub async fn update_graph(state: web::Data<AppState>) -> impl Responder {
                     debug!(
                         "Graph updated successfully via GraphServiceActor after file processing"
                     );
-                    HttpResponse::Ok().json(serde_json::json!({
+                    ok_json!(serde_json::json!({
                         "success": true,
                         "message": format!("Graph updated with {} new files", processed_files.len())
                     }))
@@ -449,23 +436,17 @@ pub async fn get_auto_balance_notifications(
     let result = execute_in_thread(move || handler.handle(query_obj)).await;
 
     match result {
-        Ok(Ok(notifications)) => HttpResponse::Ok().json(serde_json::json!({
+        Ok(Ok(notifications)) => ok_json!(serde_json::json!({
             "success": true,
             "notifications": notifications
         })),
         Ok(Err(e)) => {
             error!("Failed to get auto-balance notifications (CQRS): {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "success": false,
-                "error": "Failed to retrieve notifications"
-            }))
+            error_json!("Failed to retrieve notifications").unwrap()
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "success": false,
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error").unwrap()
         }
     }
 }

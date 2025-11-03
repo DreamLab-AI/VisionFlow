@@ -169,7 +169,7 @@ impl TelemetryEvent {
         message: &str,
         component: &str,
     ) -> Self {
-        let now = Utc::now();
+        let now = time::now();
         let timestamp_micros = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default()
@@ -320,7 +320,7 @@ impl AgentTelemetryLogger {
     
     pub fn log_event(&self, event: TelemetryEvent) {
         
-        let json_str = serde_json::to_string(&event)
+        let json_str = to_json(&event)
             .unwrap_or_else(|e| format!(r#"{{"error": "Failed to serialize event: {}"}}"#, e));
 
         match event.level {
@@ -573,7 +573,7 @@ impl AgentTelemetryLogger {
         let file_path = format!(
             "{}/agent_telemetry_{}.jsonl",
             self.log_dir,
-            Utc::now().format("%Y-%m-%d_%H")
+            time::now().format("%Y-%m-%d_%H")
         );
 
         let mut file = match OpenOptions::new()
@@ -590,7 +590,7 @@ impl AgentTelemetryLogger {
         };
 
         for event in buffer.iter() {
-            if let Ok(json_line) = serde_json::to_string(event) {
+            if let Ok(json_line) = to_json(event) {
                 if let Err(e) = writeln!(file, "{}", json_line) {
                     error!("Failed to write telemetry event to file: {}", e);
                     break;
@@ -696,6 +696,7 @@ macro_rules! telemetry_trace {
 #[cfg(test)]
 mod tests {
     use super::*;
+use crate::utils::json::{from_json, to_json};
 
     #[test]
     fn test_position_3d() {

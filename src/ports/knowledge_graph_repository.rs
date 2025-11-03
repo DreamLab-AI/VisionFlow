@@ -80,10 +80,14 @@ pub trait KnowledgeGraphRepository: Send + Sync {
     
     async fn get_nodes(&self, node_ids: Vec<u32>) -> Result<Vec<Node>>;
 
-    
+
     async fn get_nodes_by_metadata_id(&self, metadata_id: &str) -> Result<Vec<Node>>;
 
-    
+    /// Get all nodes with a specific OWL class IRI
+    /// Used by semantic physics to resolve ontology class IRIs to actual node IDs
+    async fn get_nodes_by_owl_class_iri(&self, owl_class_iri: &str) -> Result<Vec<Node>>;
+
+
     async fn search_nodes_by_label(&self, label: &str) -> Result<Vec<Node>>;
 
     
@@ -125,15 +129,24 @@ pub trait KnowledgeGraphRepository: Send + Sync {
     
     async fn clear_graph(&self) -> Result<()>;
 
-    
-    async fn begin_transaction(&self) -> Result<()>;
 
-    
-    async fn commit_transaction(&self) -> Result<()>;
+    /// Default: No-op (transactions managed by execute_transaction)
+    async fn begin_transaction(&self) -> Result<()> {
+        Ok(())
+    }
 
-    
-    async fn rollback_transaction(&self) -> Result<()>;
 
-    
+    /// Default: No-op (transactions managed by execute_transaction)
+    async fn commit_transaction(&self) -> Result<()> {
+        Ok(())
+    }
+
+
+    /// Default: No-op (transactions managed by execute_transaction)
+    async fn rollback_transaction(&self) -> Result<()> {
+        Ok(())
+    }
+
+
     async fn health_check(&self) -> Result<bool>;
 }

@@ -201,7 +201,7 @@ impl AgentVisualizationProcessor {
         Self {
             token_history: HashMap::new(),
             _performance_history: HashMap::new(),
-            _last_update: Utc::now(),
+            _last_update: time::now(),
             process_map: HashMap::new(),
         }
     }
@@ -351,7 +351,7 @@ impl AgentVisualizationProcessor {
 
     
     fn calculate_token_rate(&mut self, agent_id: &str, current_usage: u64) -> f32 {
-        let now = Utc::now();
+        let now = time::now();
         let history = self
             .token_history
             .entry(agent_id.to_string())
@@ -395,7 +395,7 @@ impl AgentVisualizationProcessor {
 
     
     fn get_real_system_metrics(&mut self, agent_id: &str) -> (f32, f32) {
-        let mut sys = SYSTEM.lock().unwrap();
+        let mut sys = SYSTEM.lock().expect("Mutex poisoned");
         sys.refresh_processes(sysinfo::ProcessesToUpdate::All, true);
 
         
@@ -490,7 +490,7 @@ impl AgentVisualizationProcessor {
         let clusters = self.create_clusters(&processed_agents);
 
         AgentVisualizationData {
-            timestamp: Utc::now(),
+            timestamp: time::now(),
             swarm: SwarmVisualization {
                 swarm_id,
                 topology,
@@ -622,7 +622,7 @@ impl AgentVisualizationProcessor {
     
     fn get_performance_history(&self) -> Vec<PerformanceSnapshot> {
         
-        let now = chrono::Utc::now();
+        let now = time::now();
         let mut history = Vec::new();
 
         

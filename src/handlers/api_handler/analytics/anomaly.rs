@@ -9,6 +9,7 @@ use chrono::Utc;
 use super::{Anomaly, AnomalyStats, ANOMALY_STATE};
 use crate::AppState;
 use crate::actors::messages::{RunAnomalyDetection, AnomalyParams, AnomalyMethod};
+use crate::utils::result_helpers::safe_json_number;
 
 ///
 pub async fn run_gpu_anomaly_detection(
@@ -112,7 +113,7 @@ async fn generate_anomaly(method: &str) -> Anomaly {
 
     let mut metadata = HashMap::new();
     metadata.insert("detection_method".to_string(), serde_json::Value::String(method.to_string()));
-    metadata.insert("confidence".to_string(), serde_json::Value::Number(serde_json::Number::from_f64(score as f64).unwrap()));
+    metadata.insert("confidence".to_string(), serde_json::Value::Number(safe_json_number(score as f64)));
 
     match method {
         "isolation_forest" => {
@@ -123,27 +124,27 @@ async fn generate_anomaly(method: &str) -> Anomaly {
         },
         "lof" => {
             metadata.insert("local_density".to_string(),
-                serde_json::Value::Number(serde_json::Number::from_f64(rng.gen::<f64>()).unwrap()));
+                serde_json::Value::Number(safe_json_number(rng.gen::<f64>())));
             metadata.insert("neighbors_count".to_string(),
                 serde_json::Value::Number(serde_json::Number::from(rng.gen_range(5..=30))));
         },
         "autoencoder" => {
             metadata.insert("reconstruction_error".to_string(),
-                serde_json::Value::Number(serde_json::Number::from_f64(score as f64).unwrap()));
+                serde_json::Value::Number(safe_json_number(score as f64)));
             metadata.insert("latent_dimension".to_string(),
                 serde_json::Value::Number(serde_json::Number::from(rng.gen_range(8..=128))));
         },
         "statistical" => {
             metadata.insert("z_score".to_string(),
-                serde_json::Value::Number(serde_json::Number::from_f64((score * 6.0 - 3.0) as f64).unwrap()));
+                serde_json::Value::Number(safe_json_number((score * 6.0 - 3.0) as f64)));
             metadata.insert("iqr_position".to_string(),
-                serde_json::Value::Number(serde_json::Number::from_f64(score as f64).unwrap()));
+                serde_json::Value::Number(safe_json_number(score as f64)));
         },
         "temporal" => {
             metadata.insert("time_window".to_string(),
                 serde_json::Value::String(format!("{}s", rng.gen_range(30..=300))));
             metadata.insert("trend_deviation".to_string(),
-                serde_json::Value::Number(serde_json::Number::from_f64(score as f64).unwrap()));
+                serde_json::Value::Number(safe_json_number(score as f64)));
         },
         _ => {}
     }
@@ -315,14 +316,14 @@ fn convert_gpu_anomaly_result_to_anomalies(
                         let severity = determine_severity_from_lof_score(score);
                         let mut metadata = HashMap::new();
                         metadata.insert("lof_score".to_string(), serde_json::Value::Number(
-                            serde_json::Number::from_f64(score as f64).unwrap()
+                            safe_json_number(score as f64)
                         ));
 
                         if let Some(ref densities) = result.local_densities {
                             if i < densities.len() {
                                 metadata.insert("local_density".to_string(),
                                     serde_json::Value::Number(
-                                        serde_json::Number::from_f64(densities[i] as f64).unwrap()
+                                        safe_json_number(densities[i] as f64)
                                     )
                                 );
                             }
@@ -351,10 +352,10 @@ fn convert_gpu_anomaly_result_to_anomalies(
                         let severity = determine_severity_from_zscore(abs_score);
                         let mut metadata = HashMap::new();
                         metadata.insert("zscore".to_string(), serde_json::Value::Number(
-                            serde_json::Number::from_f64(score as f64).unwrap()
+                            safe_json_number(score as f64)
                         ));
                         metadata.insert("abs_zscore".to_string(), serde_json::Value::Number(
-                            serde_json::Number::from_f64(abs_score as f64).unwrap()
+                            safe_json_number(abs_score as f64)
                         ));
 
                         anomalies.push(Anomaly {

@@ -23,6 +23,7 @@ use crate::services::agent_visualization_protocol::{
 use crate::services::multi_mcp_agent_discovery::McpServerConfig;
 use crate::types::AgentStatus;
 use crate::types::Vec3Data;
+use crate::utils::time;
 
 ///
 #[derive(Message, Debug, Clone)]
@@ -592,7 +593,7 @@ impl MultiMcpVisualizationActor {
         self.recalculate_layout()?;
 
         
-        self.broadcast_position_update(chrono::Utc::now().timestamp());
+        self.broadcast_position_update(time::timestamp_seconds());
 
         Ok(())
     }
@@ -849,7 +850,7 @@ impl MultiMcpVisualizationActor {
             self.apply_physics_simulation();
 
             
-            self.broadcast_position_update(chrono::Utc::now().timestamp());
+            self.broadcast_position_update(time::timestamp_seconds());
         }
     }
 
@@ -965,7 +966,7 @@ impl MultiMcpVisualizationActor {
     
     fn broadcast_initialization(&self) {
         let message = AgentVisualizationMessage::Initialize(InitializeMessage {
-            timestamp: chrono::Utc::now().timestamp(),
+            timestamp: time::timestamp_seconds(),
             swarm_id: "multi_mcp_swarm".to_string(),
             session_uuid: None, 
             topology: "multi_server".to_string(),
@@ -1004,7 +1005,7 @@ impl MultiMcpVisualizationActor {
     
     fn broadcast_state_update(&self) {
         let message = AgentVisualizationMessage::StateUpdate(StateUpdateMessage {
-            timestamp: chrono::Utc::now().timestamp(),
+            timestamp: time::timestamp_seconds(),
             updates: self
                 .agents
                 .values()
@@ -1027,7 +1028,7 @@ impl MultiMcpVisualizationActor {
     
     fn broadcast_connection_update(&self) {
         let message = AgentVisualizationMessage::ConnectionUpdate(ConnectionUpdateMessage {
-            timestamp: chrono::Utc::now().timestamp(),
+            timestamp: time::timestamp_seconds(),
             added: self.connections.values().cloned().collect(),
             removed: Vec::new(), 
             updated: Vec::new(), 
@@ -1039,7 +1040,7 @@ impl MultiMcpVisualizationActor {
     
     fn broadcast_metrics_update(&self) {
         let message = AgentVisualizationMessage::MetricsUpdate(MetricsUpdateMessage {
-            timestamp: chrono::Utc::now().timestamp(),
+            timestamp: time::timestamp_seconds(),
             overall: SwarmMetrics {
                 total_agents: self.agents.len() as u32,
                 active_agents: self

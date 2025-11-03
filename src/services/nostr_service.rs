@@ -9,6 +9,8 @@ use std::sync::Arc;
 use thiserror::Error;
 use tokio::sync::RwLock;
 use uuid::Uuid;
+use crate::utils::time;
+use crate::utils::json::{from_json, to_json};
 
 #[derive(Debug, Error)]
 pub enum NostrError {
@@ -79,7 +81,7 @@ impl NostrService {
             event.id, event.pubkey
         );
 
-        let json_str = match serde_json::to_string(&event) {
+        let json_str = match to_json(&event) {
             Ok(s) => s,
             Err(e) => {
                 error!("Failed to serialize auth event with id {}: {}", event.id, e);
@@ -124,7 +126,7 @@ impl NostrService {
             info!("Registered new user with basic access: {}", event.pubkey);
         }
 
-        let now = Utc::now();
+        let now = time::now();
         let is_power_user = self.power_user_pubkeys.contains(&event.pubkey);
 
         
@@ -172,7 +174,7 @@ impl NostrService {
                 return Err(NostrError::PowerUserOperation);
             }
             user.api_keys = api_keys;
-            user.last_seen = Utc::now().timestamp();
+            user.last_seen = time::timestamp_seconds();
             Ok(user.clone())
         } else {
             Err(NostrError::UserNotFound)
@@ -182,7 +184,7 @@ impl NostrService {
     pub async fn validate_session(&self, pubkey: &str, token: &str) -> bool {
         if let Some(user) = self.get_user(pubkey).await {
             if let Some(session_token) = user.session_token {
-                let now = Utc::now().timestamp();
+                let now = time::timestamp_seconds();
                 if now - user.last_seen <= self.token_expiry {
                     return session_token == token;
                 }
@@ -195,7 +197,7 @@ impl NostrService {
         let mut users = self.users.write().await;
 
         if let Some(user) = users.get_mut(pubkey) {
-            let now = Utc::now().timestamp();
+            let now = time::timestamp_seconds();
             let new_token = Uuid::new_v4().to_string();
             user.session_token = Some(new_token.clone());
             user.last_seen = now;
@@ -210,7 +212,7 @@ impl NostrService {
 
         if let Some(user) = users.get_mut(pubkey) {
             user.session_token = None;
-            user.last_seen = Utc::now().timestamp();
+            user.last_seen = time::timestamp_seconds();
             Ok(())
         } else {
             Err(NostrError::UserNotFound)
@@ -218,7 +220,7 @@ impl NostrService {
     }
 
     pub async fn cleanup_sessions(&self, max_age_hours: i64) {
-        let now = Utc::now();
+        let now = time::now();
         let mut users = self.users.write().await;
 
         users.retain(|_, user| {

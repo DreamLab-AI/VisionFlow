@@ -4,6 +4,8 @@ use chrono::Utc;
 use log::warn;
 use serde_json::json;
 use std::time::{Duration, Instant};
+use crate::utils::time;
+use crate::utils::json::{from_json, to_json};
 
 ///
 pub trait WebSocketHeartbeat: Actor<Context = ws::WebsocketContext<Self>>
@@ -56,11 +58,11 @@ where
     {
         let ping_message = json!({
             "type": "ping",
-            "timestamp": Utc::now(),
+            "timestamp": time::now(),
             "client_id": self.get_client_id()
         });
 
-        if let Ok(msg) = serde_json::to_string(&ping_message) {
+        if let Ok(msg) = to_json(&ping_message) {
             ctx.text(msg);
         }
     }
@@ -72,11 +74,11 @@ where
     {
         let pong_message = json!({
             "type": "pong",
-            "timestamp": Utc::now(),
+            "timestamp": time::now(),
             "client_id": self.get_client_id()
         });
 
-        if let Ok(msg) = serde_json::to_string(&pong_message) {
+        if let Ok(msg) = to_json(&pong_message) {
             ctx.text(msg);
         }
     }

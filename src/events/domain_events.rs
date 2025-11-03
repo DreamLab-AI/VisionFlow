@@ -19,7 +19,7 @@ macro_rules! impl_domain_event {
                 $aggregate_type
             }
             fn to_json_string(&self) -> Result<String, serde_json::Error> {
-                serde_json::to_string(self)
+                to_json(self)
             }
         }
     };
@@ -236,6 +236,8 @@ impl_domain_event!(SettingsImportedEvent, "SettingsImported", "Settings", settin
 #[cfg(test)]
 mod tests {
     use super::*;
+use crate::utils::time;
+use crate::utils::json::{from_json, to_json};
 
     #[test]
     fn test_node_added_event() {
@@ -244,7 +246,7 @@ mod tests {
             label: "Test Node".to_string(),
             node_type: "Person".to_string(),
             properties: std::collections::HashMap::new(),
-            timestamp: Utc::now(),
+            timestamp: time::now(),
         };
 
         assert_eq!(event.event_type(), "NodeAdded");
@@ -261,7 +263,7 @@ mod tests {
             class_count: 100,
             property_count: 50,
             individual_count: 200,
-            timestamp: Utc::now(),
+            timestamp: time::now(),
         };
 
         assert_eq!(event.event_type(), "OntologyImported");
@@ -274,14 +276,14 @@ mod tests {
             simulation_id: "sim-1".to_string(),
             physics_profile: "force-directed".to_string(),
             node_count: 100,
-            timestamp: Utc::now(),
+            timestamp: time::now(),
         };
 
         let stop = SimulationStoppedEvent {
             simulation_id: "sim-1".to_string(),
             iterations: 1000,
             final_energy: 0.05,
-            timestamp: Utc::now(),
+            timestamp: time::now(),
         };
 
         assert_eq!(start.aggregate_id(), stop.aggregate_id());

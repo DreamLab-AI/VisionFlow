@@ -234,7 +234,7 @@ More content
 
         
         
-        let pattern = Regex::new(r"```(?:clojure|owl-functional)\s*\n([\s\S]*?)```").unwrap();
+        let pattern = Regex::new(r"```(?:clojure|owl-functional)\s*\n([\s\S]*?)```").expect("Invalid regex pattern");
         let captures: Vec<_> = pattern.captures_iter(markdown).collect();
 
         assert_eq!(captures.len(), 1);

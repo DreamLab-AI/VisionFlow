@@ -78,7 +78,7 @@ pub async fn unified_health_check(app_state: web::Data<AppState>) -> Result<Http
         mcp: Some(mcp_metrics),
     };
 
-    Ok(HttpResponse::Ok().json(response))
+    Ok(ok_json!(response))
 }
 
 fn check_system_metrics(health_status: &mut String, issues: &mut Vec<String>) -> SystemMetrics {
@@ -266,7 +266,7 @@ pub async fn check_physics_simulation(app_state: web::Data<AppState>) -> Result<
         current_time, diagnostics
     );
 
-    Ok(HttpResponse::Ok().json(PhysicsSimulationStatus {
+    Ok(ok_json!(PhysicsSimulationStatus {
         status,
         details: diagnostics,
         timestamp: current_time.to_rfc3339(),
@@ -369,7 +369,7 @@ fn check_physics_parameters() -> String {
 pub async fn start_mcp_relay() -> Result<HttpResponse> {
     let manager = McpRelayManager::new();
     match manager.ensure_relay_running().await {
-        Ok(_) => Ok(HttpResponse::Ok().json(serde_json::json!({
+        Ok(_) => Ok(ok_json!(serde_json::json!({
             "success": true,
             "message": "MCP relay started successfully"
         }))),
@@ -386,7 +386,7 @@ pub async fn get_mcp_logs(query: web::Query<LogQuery>) -> Result<HttpResponse> {
     let lines = query.lines.unwrap_or(50);
 
     match McpRelayManager::get_relay_logs(lines) {
-        Ok(logs) => Ok(HttpResponse::Ok().json(serde_json::json!({
+        Ok(logs) => Ok(ok_json!(serde_json::json!({
             "success": true,
             "logs": logs
         }))),

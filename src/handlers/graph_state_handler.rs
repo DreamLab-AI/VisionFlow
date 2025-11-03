@@ -95,9 +95,7 @@ pub async fn get_graph_state(state: web::Data<AppState>) -> impl Responder {
                 crate::application::knowledge_graph::QueryResult::Graph(graph_arc) => graph_arc,
                 _ => {
                     error!("Unexpected query result type");
-                    return HttpResponse::InternalServerError().json(serde_json::json!({
-                        "error": "Unexpected query result type"
-                    }));
+                    return error_json!("Unexpected query result type");
                 }
             };
 
@@ -131,20 +129,15 @@ pub async fn get_graph_state(state: web::Data<AppState>) -> impl Responder {
                 response.nodes_count, response.edges_count, response.metadata_count
             );
 
-            HttpResponse::Ok().json(response)
+            ok_json!(response)
         }
         Ok(Err(e)) => {
             error!("CQRS query failed to get graph data: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to retrieve graph state",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to retrieve graph state", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }
@@ -166,27 +159,20 @@ pub async fn get_graph_statistics(state: web::Data<AppState>) -> impl Responder 
                 crate::application::knowledge_graph::QueryResult::Statistics(stats) => stats,
                 _ => {
                     error!("Unexpected query result type");
-                    return HttpResponse::InternalServerError().json(serde_json::json!({
-                        "error": "Unexpected query result type"
-                    }));
+                    return error_json!("Unexpected query result type");
                 }
             };
 
             info!("Graph statistics retrieved successfully via CQRS");
-            HttpResponse::Ok().json(statistics)
+            ok_json!(statistics)
         }
         Ok(Err(e)) => {
             error!("CQRS query failed to get statistics: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to retrieve statistics",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to retrieve statistics", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }
@@ -212,23 +198,18 @@ pub async fn add_node(
     match result {
         Ok(Ok(())) => {
             info!("Node added successfully via CQRS: id={}", node_id);
-            HttpResponse::Ok().json(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "success": true,
                 "node_id": node_id
             }))
         }
         Ok(Err(e)) => {
             error!("CQRS directive failed to add node: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to add node",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to add node", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }
@@ -250,22 +231,17 @@ pub async fn update_node(
     match result {
         Ok(Ok(())) => {
             info!("Node updated successfully via CQRS");
-            HttpResponse::Ok().json(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "success": true
             }))
         }
         Ok(Err(e)) => {
             error!("CQRS directive failed to update node: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to update node",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to update node", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }
@@ -284,22 +260,17 @@ pub async fn remove_node(state: web::Data<AppState>, node_id: web::Path<u32>) ->
     match result {
         Ok(Ok(())) => {
             info!("Node removed successfully via CQRS");
-            HttpResponse::Ok().json(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "success": true
             }))
         }
         Ok(Err(e)) => {
             error!("CQRS directive failed to remove node: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to remove node",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to remove node", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }
@@ -322,38 +293,28 @@ pub async fn get_node(state: web::Data<AppState>, node_id: web::Path<u32>) -> im
                 crate::application::knowledge_graph::QueryResult::Node(node) => node,
                 _ => {
                     error!("Unexpected query result type");
-                    return HttpResponse::InternalServerError().json(serde_json::json!({
-                        "error": "Unexpected query result type"
-                    }));
+                    return error_json!("Unexpected query result type");
                 }
             };
 
             match node_opt {
                 Some(node) => {
                     info!("Node found via CQRS: id={}", id);
-                    HttpResponse::Ok().json(node)
+                    ok_json!(node)
                 }
                 None => {
                     info!("Node not found: id={}", id);
-                    HttpResponse::NotFound().json(serde_json::json!({
-                        "error": "Node not found",
-                        "node_id": id
-                    }))
+                    not_found!("Node not found").unwrap()
                 }
             }
         }
         Ok(Err(e)) => {
             error!("CQRS query failed to get node: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to get node",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to get node", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }
@@ -381,23 +342,18 @@ pub async fn add_edge(
     match result {
         Ok(Ok(())) => {
             info!("Edge added successfully via CQRS: id={}", edge_id);
-            HttpResponse::Ok().json(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "success": true,
                 "edge_id": edge_id
             }))
         }
         Ok(Err(e)) => {
             error!("CQRS directive failed to add edge: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to add edge",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to add edge", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }
@@ -416,22 +372,17 @@ pub async fn update_edge(state: web::Data<AppState>, request: web::Json<Edge>) -
     match result {
         Ok(Ok(())) => {
             info!("Edge updated successfully via CQRS");
-            HttpResponse::Ok().json(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "success": true
             }))
         }
         Ok(Err(e)) => {
             error!("CQRS directive failed to update edge: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to update edge",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to update edge", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }
@@ -457,22 +408,17 @@ pub async fn batch_update_positions(
     match result {
         Ok(Ok(())) => {
             info!("Positions updated successfully via CQRS");
-            HttpResponse::Ok().json(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "success": true
             }))
         }
         Ok(Err(e)) => {
             error!("CQRS directive failed to batch update positions: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to update positions",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to update positions", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }

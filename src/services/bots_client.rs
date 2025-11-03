@@ -9,6 +9,7 @@ use log::{debug, error, info, warn};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::sync::RwLock;
+use crate::utils::time;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Agent {
@@ -69,7 +70,7 @@ impl From<MultiMcpAgentStatus> for Agent {
                     .map(|dt| dt.to_rfc3339())
                     .unwrap_or_default(),
             ),
-            age: Some((chrono::Utc::now().timestamp() - mcp_agent.created_at) as u64 * 1000),
+            age: Some((time::timestamp_seconds() - mcp_agent.created_at) as u64 * 1000),
         }
     }
 }

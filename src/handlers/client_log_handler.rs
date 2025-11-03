@@ -174,7 +174,7 @@ pub async fn handle_client_logs(
         correlation_id
     );
 
-    Ok(HttpResponse::Ok().json(serde_json::json!({
+    Ok(ok_json!(serde_json::json!({
         "status": "success",
         "received": payload.logs.len(),
         "correlation_id": correlation_id.to_string(),

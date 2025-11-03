@@ -89,11 +89,21 @@ pub struct SimParams {
     pub learning_rate_default: f32,    
 
     
-    pub norm_delta_cap: f32, 
-    pub position_constraint_attraction: f32, 
-    pub lof_score_min: f32,  
-    pub lof_score_max: f32,  
-    pub weight_precision_multiplier: f32, 
+    pub norm_delta_cap: f32,
+    pub position_constraint_attraction: f32,
+    pub lof_score_min: f32,
+    pub lof_score_max: f32,
+    pub weight_precision_multiplier: f32,
+
+    // Stress Majorization Parameters
+    pub stress_optimization_enabled: u32,        // Enable/disable stress majorization (0 or 1)
+    pub stress_optimization_frequency: u32,      // Run every N frames (e.g., 60 = once per second at 60fps)
+    pub stress_learning_rate: f32,               // Learning rate for gradient descent (0.01-0.1)
+    pub stress_momentum: f32,                    // Momentum factor (0.0-0.9)
+    pub stress_max_displacement: f32,            // Maximum displacement per iteration
+    pub stress_convergence_threshold: f32,       // Convergence threshold for early stopping
+    pub stress_max_iterations: u32,              // Maximum iterations per optimization call
+    pub stress_blend_factor: f32,                // Blend factor with local forces (0.1-0.3)
 }
 
 // SAFETY: SimParams is repr(C) with only POD types, safe for GPU transfer
@@ -280,6 +290,16 @@ impl SimulationParams {
             lof_score_max: crate::config::dev_config::physics().lof_score_max,
             weight_precision_multiplier: crate::config::dev_config::physics()
                 .weight_precision_multiplier,
+
+            // Stress Majorization defaults
+            stress_optimization_enabled: 0,
+            stress_optimization_frequency: 100,
+            stress_learning_rate: 0.05,
+            stress_momentum: 0.5,
+            stress_max_displacement: 10.0,
+            stress_convergence_threshold: 0.01,
+            stress_max_iterations: 50,
+            stress_blend_factor: 0.2,
         }
     }
 }
@@ -393,21 +413,21 @@ impl From<&PhysicsSettings> for SimParams {
             grid_cell_size: physics.grid_cell_size,
             feature_flags,
             seed: 1337,
-            iteration: 0, 
+            iteration: 0,
             separation_radius: physics.separation_radius,
             cluster_strength: physics.cluster_strength,
             alignment_strength: physics.alignment_strength,
             temperature: physics.temperature,
             viewport_bounds: physics.bounds_size,
-            sssp_alpha: 0.0, 
+            sssp_alpha: 0.0,
             boundary_damping: physics.boundary_damping,
             constraint_ramp_frames: physics.constraint_ramp_frames,
             constraint_max_force_per_node: physics.constraint_max_force_per_node,
-            
+
             stability_threshold: crate::config::dev_config::physics().stability_threshold,
             min_velocity_threshold: crate::config::dev_config::physics().min_velocity_threshold,
 
-            
+
             world_bounds_min: crate::config::dev_config::physics().world_bounds_min,
             world_bounds_max: crate::config::dev_config::physics().world_bounds_max,
             cell_size_lod: crate::config::dev_config::physics().cell_size_lod,
@@ -415,7 +435,7 @@ impl From<&PhysicsSettings> for SimParams {
             anomaly_detection_radius: crate::config::dev_config::physics().anomaly_detection_radius,
             learning_rate_default: crate::config::dev_config::physics().learning_rate_default,
 
-            
+
             norm_delta_cap: crate::config::dev_config::physics().norm_delta_cap,
             position_constraint_attraction: crate::config::dev_config::physics()
                 .position_constraint_attraction,
@@ -423,6 +443,16 @@ impl From<&PhysicsSettings> for SimParams {
             lof_score_max: crate::config::dev_config::physics().lof_score_max,
             weight_precision_multiplier: crate::config::dev_config::physics()
                 .weight_precision_multiplier,
+
+            // Stress Majorization defaults
+            stress_optimization_enabled: 0,      // Disabled by default
+            stress_optimization_frequency: 60,   // Once per second at 60fps
+            stress_learning_rate: 0.05,          // Conservative learning rate
+            stress_momentum: 0.7,                // Moderate momentum
+            stress_max_displacement: 50.0,       // Maximum node displacement per step
+            stress_convergence_threshold: 0.01,  // Convergence threshold
+            stress_max_iterations: 50,           // Maximum iterations per optimization
+            stress_blend_factor: 0.2,            // 20% blend with global optimization
         }
     }
 }

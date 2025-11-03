@@ -1492,86 +1492,9 @@ pub struct SafetyStatus {
     pub average_kernel_time_ms: f32,
 }
 
-///
-#[derive(Debug, Serialize)]
-pub struct RenderData {
-    pub positions: Vec<f32>,
-    pub colors: Vec<f32>,
-    pub importance: Vec<f32>,
-    pub frame: i32,
-}
-
-impl RenderData {
-    pub fn validate(&self) -> Result<(), GPUSafetyError> {
-        
-        if self.positions.len() % 4 != 0 {
-            return Err(GPUSafetyError::InvalidKernelParams {
-                reason: format!(
-                    "Position array length {} is not divisible by 4",
-                    self.positions.len()
-                ),
-            });
-        }
-
-        if self.colors.len() % 4 != 0 {
-            return Err(GPUSafetyError::InvalidKernelParams {
-                reason: format!(
-                    "Color array length {} is not divisible by 4",
-                    self.colors.len()
-                ),
-            });
-        }
-
-        let node_count = self.positions.len() / 4;
-
-        if self.colors.len() / 4 != node_count {
-            return Err(GPUSafetyError::InvalidKernelParams {
-                reason: format!(
-                    "Color array represents {} nodes but position array represents {} nodes",
-                    self.colors.len() / 4,
-                    node_count
-                ),
-            });
-        }
-
-        if self.importance.len() != node_count {
-            return Err(GPUSafetyError::InvalidKernelParams {
-                reason: format!(
-                    "Importance array length {} doesn't match node count {}",
-                    self.importance.len(),
-                    node_count
-                ),
-            });
-        }
-
-        
-        for (i, &val) in self.positions.iter().enumerate() {
-            if !val.is_finite() {
-                return Err(GPUSafetyError::InvalidKernelParams {
-                    reason: format!("Invalid position value at index {}: {}", i, val),
-                });
-            }
-        }
-
-        for (i, &val) in self.colors.iter().enumerate() {
-            if !val.is_finite() {
-                return Err(GPUSafetyError::InvalidKernelParams {
-                    reason: format!("Invalid color value at index {}: {}", i, val),
-                });
-            }
-        }
-
-        for (i, &val) in self.importance.iter().enumerate() {
-            if !val.is_finite() || val < 0.0 {
-                return Err(GPUSafetyError::InvalidKernelParams {
-                    reason: format!("Invalid importance value at index {}: {}", i, val),
-                });
-            }
-        }
-
-        Ok(())
-    }
-}
+// Import canonical RenderData from gpu::types
+// Note: frame field changed from i32 to u32 in canonical definition
+pub use crate::gpu::types::RenderData;
 
 ///
 pub struct VisualAnalyticsBuilder {
@@ -1739,7 +1662,7 @@ impl VisualAnalyticsEngine {
             positions,
             colors,
             importance,
-            frame: self.params.current_frame,
+            frame: self.params.current_frame as u32,
         })
     }
 }

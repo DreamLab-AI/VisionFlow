@@ -12,6 +12,7 @@ use std::path::PathBuf;
 use std::process;
 
 use webxr::migrations::{MigrationRunner, RollbackManager, VersionTracker};
+use crate::utils::time;
 
 fn main() {
     env_logger::init();
@@ -252,7 +253,7 @@ fn cmd_create(name: &str) -> Result<(), Box<dyn std::error::Error>> {
         next_version,
         name.replace(' ', "_"),
         name,
-        Utc::now().format("%Y-%m-%d")
+        time::now().format("%Y-%m-%d")
     );
 
     std::fs::write(&filepath, content)?;

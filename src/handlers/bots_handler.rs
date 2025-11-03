@@ -73,6 +73,12 @@ pub struct SpawnAgentResponse {
 
 // Static bots graph data storage
 use once_cell::sync::Lazy;
+use crate::{
+    ok_json, created_json, error_json, bad_request, not_found,
+    unauthorized, forbidden, conflict, no_content, accepted,
+    too_many_requests, service_unavailable, payload_too_large
+};
+
 static BOTS_GRAPH: Lazy<Arc<RwLock<GraphData>>> =
     Lazy::new(|| Arc::new(RwLock::new(GraphData::new())));
 static CURRENT_SWARM_ID: Lazy<Arc<RwLock<Option<String>>>> =
@@ -196,7 +202,7 @@ pub async fn update_bots_graph(
     graph.edges = edges;
     graph.metadata = MetadataStore::default();
 
-    Ok(HttpResponse::Ok().json(BotsResponse {
+    Ok(ok_json!(BotsResponse {
         success: true,
         message: "Graph updated successfully".to_string(),
         nodes: Some(graph.nodes.clone()),
@@ -215,7 +221,7 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> Result<impl Responder>
                     "Retrieved bots data from graph actor: {} nodes",
                     nodes.len()
                 );
-                return Ok(HttpResponse::Ok().json(json!({
+                return Ok(ok_json!(json!({
                     "success": true,
                     "nodes": nodes,
                     "edges": edges,
@@ -231,7 +237,7 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> Result<impl Responder>
         graph.nodes.len()
     );
 
-    Ok(HttpResponse::Ok().json(json!({
+    Ok(ok_json!(json!({
         "success": true,
         "nodes": graph.nodes.clone(),
         "edges": graph.edges.clone(),
@@ -320,7 +326,7 @@ pub async fn initialize_hive_mind_swarm(
             }
 
             
-            Ok(HttpResponse::Accepted().json(json!({
+            Ok(accepted!(json!({
                 "success": true,
                 "message": "Hive mind swarm task created. Agents will appear shortly.",
                 "task_id": task_response.task_id,
@@ -353,10 +359,8 @@ pub async fn initialize_hive_mind_swarm(
 
 pub async fn get_bots_connection_status(state: web::Data<AppState>) -> Result<impl Responder> {
     match state.bots_client.get_status().await {
-        Ok(status) => Ok(HttpResponse::Ok().json(status)),
-        Err(e) => Ok(HttpResponse::InternalServerError().json(json!({
-            "error": format!("Failed to get bots status: {}", e)
-        }))),
+        Ok(status) => Ok(ok_json!(status)),
+        Err(e) => Ok(error_json!("Failed to get bots status: {}", e)),
     }
 }
 
@@ -365,7 +369,7 @@ pub async fn get_bots_agents(
     _hybrid_manager: Option<()>, 
 ) -> Result<impl Responder> {
     match fetch_hive_mind_agents(&state, None).await {
-        Ok(agents) => Ok(HttpResponse::Ok().json(json!({
+        Ok(agents) => Ok(ok_json!(json!({
             "success": true,
             "agents": agents,
             "count": agents.len(),
@@ -420,7 +424,7 @@ pub async fn spawn_agent_hybrid(
                 "Successfully spawned {} agent via Management API - Task ID: {}",
                 req.agent_type, task_response.task_id
             );
-            Ok(HttpResponse::Accepted().json(SpawnAgentResponse {
+            Ok(accepted!(SpawnAgentResponse {
                 success: true,
                 swarm_id: Some(task_response.task_id),
                 error: None,
@@ -485,7 +489,7 @@ pub async fn remove_task(
     match state.get_task_orchestrator_addr().send(stop_task_msg).await {
         Ok(Ok(())) => {
             info!("Successfully stopped task: {}", task_id);
-            Ok(HttpResponse::Ok().json(TaskResponse {
+            Ok(ok_json!(TaskResponse {
                 success: true,
                 message: format!("Task {} stopped successfully", task_id),
                 task_id: Some(task_id),

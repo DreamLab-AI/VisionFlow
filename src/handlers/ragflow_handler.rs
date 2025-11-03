@@ -16,6 +16,12 @@ use log::{debug, error, info, warn};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::sync::Arc;
+use crate::{
+    ok_json, created_json, error_json, bad_request, not_found,
+    unauthorized, forbidden, conflict, no_content, accepted,
+    too_many_requests, service_unavailable, payload_too_large
+};
+
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -55,9 +61,7 @@ pub async fn send_message(
     let ragflow_service = match &state.ragflow_service {
         Some(service) => service,
         None => {
-            return HttpResponse::ServiceUnavailable().json(json!({
-                "error": "RAGFlow service is not available"
-            }))
+            return service_unavailable!("RAGFlow service is not available")
         }
     };
 
@@ -139,9 +143,7 @@ pub async fn send_message(
         }
         Err(e) => {
             error!("Error sending message: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": format!("Failed to send message: {}", e)
-            }))
+            error_json!("Failed to send message: {}", e)
         }
     }
 }
@@ -155,9 +157,7 @@ pub async fn create_session(
     let ragflow_service = match &state.ragflow_service {
         Some(service) => service,
         None => {
-            return HttpResponse::ServiceUnavailable().json(json!({
-                "error": "RAGFlow service is not available"
-            }))
+            return service_unavailable!("RAGFlow service is not available")
         }
     };
 
@@ -173,7 +173,7 @@ pub async fn create_session(
             );
             
 
-            HttpResponse::Ok().json(CreateSessionResponse {
+            ok_json!(CreateSessionResponse {
                 success: true,
                 session_id,
                 message: None,
@@ -181,9 +181,7 @@ pub async fn create_session(
         }
         Err(e) => {
             error!("Failed to initialize chat: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": format!("Failed to initialize chat: {}", e)
-            }))
+            error_json!("Failed to initialize chat: {}", e)
         }
     }
 }
@@ -196,9 +194,7 @@ pub async fn get_session_history(
     let ragflow_service = match &state.ragflow_service {
         Some(service) => service,
         None => {
-            return HttpResponse::ServiceUnavailable().json(json!({
-                "error": "RAGFlow service is not available"
-            }))
+            return service_unavailable!("RAGFlow service is not available")
         }
     };
 
@@ -206,12 +202,10 @@ pub async fn get_session_history(
         .get_session_history(session_id.to_string())
         .await
     {
-        Ok(history) => HttpResponse::Ok().json(history),
+        Ok(history) => ok_json!(history),
         Err(e) => {
             error!("Failed to get session history: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": format!("Failed to get chat history: {}", e)
-            }))
+            error_json!("Failed to get chat history: {}", e)
         }
     }
 }
@@ -319,7 +313,7 @@ async fn handle_ragflow_chat(
         .await
     {
         Ok((answer, final_session_id)) => {
-            HttpResponse::Ok().json(RagflowChatResponse {
+            ok_json!(RagflowChatResponse {
                 answer,
                 session_id: final_session_id, 
             })
@@ -449,10 +443,7 @@ impl EnhancedRagFlowHandler {
             }
         } else {
             error!("Nostr service not available for authentication");
-            return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "error": "authentication_service_unavailable",
-                "message": "Authentication service is not available"
-            })));
+            return Ok(service_unavailable!("Authentication service is not available"));
         }
 
         
@@ -501,10 +492,7 @@ impl EnhancedRagFlowHandler {
             Some(service) => service,
             None => {
                 error!("RAGFlow service not available");
-                return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                    "error": "ragflow_service_unavailable",
-                    "message": "RAGFlow service is currently not available"
-                })));
+                return Ok(service_unavailable!("RAGFlow service is currently not available"));
             }
         };
 
@@ -522,10 +510,7 @@ impl EnhancedRagFlowHandler {
                     }
                     Err(e) => {
                         error!("Failed to create RAGFlow session: {}", e);
-                        return Ok(HttpResponse::InternalServerError().json(json!({
-                            "error": "session_creation_failed",
-                            "message": "Failed to create new chat session"
-                        })));
+                        return Ok(error_json!("session_creation_failed"));
                     }
                 }
             }
@@ -552,7 +537,7 @@ impl EnhancedRagFlowHandler {
                     self.process_tts_request(&state, &answer).await;
                 }
 
-                Ok(HttpResponse::Ok().json(RagflowChatResponse {
+                Ok(ok_json!(RagflowChatResponse {
                     answer,
                     session_id: final_session_id,
                 }))
@@ -562,11 +547,7 @@ impl EnhancedRagFlowHandler {
                     "RAGFlow communication error for session {}: {}",
                     current_session_id, e
                 );
-                Ok(HttpResponse::InternalServerError().json(json!({
-                    "error": "ragflow_communication_failed",
-                    "message": "Failed to communicate with RAGFlow service",
-                    "session_id": current_session_id
-                })))
+                Ok(error_json!("ragflow_communication_failed"))
             }
         }
     }
@@ -582,10 +563,7 @@ impl EnhancedRagFlowHandler {
 
         
         if !self.rate_limiter.is_allowed(&client_id) {
-            return Ok(HttpResponse::TooManyRequests().json(json!({
-                "error": "rate_limit_exceeded",
-                "message": "Too many session creation requests"
-            })));
+            return too_many_requests!("Too many session creation requests");
         }
 
         info!(
@@ -608,10 +586,7 @@ impl EnhancedRagFlowHandler {
         let ragflow_service = match &state.ragflow_service {
             Some(service) => service,
             None => {
-                return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                    "error": "ragflow_service_unavailable",
-                    "message": "RAGFlow service is not available"
-                })));
+                return Ok(service_unavailable!("RAGFlow service is not available"));
             }
         };
 
@@ -624,7 +599,7 @@ impl EnhancedRagFlowHandler {
                     "RAGFlow session created: {} for user: {} (client: {})",
                     session_id, sanitized_user_id, client_id
                 );
-                Ok(HttpResponse::Ok().json(json!({
+                Ok(ok_json!(json!({
                     "success": true,
                     "session_id": session_id,
                     "user_id": sanitized_user_id,
@@ -636,10 +611,7 @@ impl EnhancedRagFlowHandler {
                     "Failed to create RAGFlow session for user {}: {}",
                     sanitized_user_id, e
                 );
-                Ok(HttpResponse::InternalServerError().json(json!({
-                    "error": "session_creation_failed",
-                    "message": "Failed to create new session"
-                })))
+                Ok(error_json!("session_creation_failed"))
             }
         }
     }
@@ -663,10 +635,7 @@ impl EnhancedRagFlowHandler {
         ));
 
         if !history_rate_limiter.is_allowed(&client_id) {
-            return Ok(HttpResponse::TooManyRequests().json(json!({
-                "error": "rate_limit_exceeded",
-                "message": "Too many history requests"
-            })));
+            return too_many_requests!("Too many history requests");
         }
 
         
@@ -683,10 +652,7 @@ impl EnhancedRagFlowHandler {
         let ragflow_service = match &state.ragflow_service {
             Some(service) => service,
             None => {
-                return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                    "error": "ragflow_service_unavailable",
-                    "message": "RAGFlow service is not available"
-                })));
+                return Ok(service_unavailable!("RAGFlow service is not available"));
             }
         };
 
@@ -699,7 +665,7 @@ impl EnhancedRagFlowHandler {
                     "Session history retrieved for session: {}",
                     sanitized_session_id
                 );
-                Ok(HttpResponse::Ok().json(json!({
+                Ok(ok_json!(json!({
                     "session_id": sanitized_session_id,
                     "history": history,
                     "timestamp": chrono::Utc::now().to_rfc3339()
@@ -710,10 +676,7 @@ impl EnhancedRagFlowHandler {
                     "Failed to get session history for {}: {}",
                     sanitized_session_id, e
                 );
-                Ok(HttpResponse::InternalServerError().json(json!({
-                    "error": "history_retrieval_failed",
-                    "message": "Failed to retrieve session history"
-                })))
+                Ok(error_json!("history_retrieval_failed"))
             }
         }
     }

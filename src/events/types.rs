@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
+use crate::utils::time;
 
 ///
 ///
@@ -65,7 +66,7 @@ impl EventMetadata {
             aggregate_id,
             aggregate_type,
             event_type,
-            timestamp: Utc::now(),
+            timestamp: time::now(),
             causation_id: None,
             correlation_id: None,
             user_id: None,

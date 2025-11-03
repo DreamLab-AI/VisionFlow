@@ -4,6 +4,7 @@ use std::time::Instant;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader, BufWriter};
 use tokio::net::TcpStream;
 use uuid::Uuid;
+use crate::utils::json::{from_json, to_json};
 
 ///
 ///
@@ -80,7 +81,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    let msg_str = format!("{}\n", serde_json::to_string(&init_msg)?);
+    let msg_str = format!("{}\n", to_json(&init_msg)?);
     writer.write_all(msg_str.as_bytes()).await?;
     writer.flush().await?;
 
@@ -107,7 +108,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "method": "tools/list"
     });
 
-    let msg_str = format!("{}\n", serde_json::to_string(&list_tools)?);
+    let msg_str = format!("{}\n", to_json(&list_tools)?);
     writer.write_all(msg_str.as_bytes()).await?;
     writer.flush().await?;
 
@@ -142,7 +143,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    let msg_str = format!("{}\n", serde_json::to_string(&swarm_init)?);
+    let msg_str = format!("{}\n", to_json(&swarm_init)?);
     let send_start = Instant::now();
     writer.write_all(msg_str.as_bytes()).await?;
     writer.flush().await?;

@@ -11,6 +11,7 @@ use std::fs;
 use std::path::Path;
 use std::sync::Arc;
 use tokio::sync::RwLock;
+use crate::utils::time;
 
 const MARKDOWN_DIR: &str = "/app/data/markdown";
 
@@ -203,13 +204,13 @@ impl PerplexityService {
             node_size: 10.0,          
             hyperlink_count: 0,
             sha1: String::new(),
-            last_modified: Utc::now(),
-            last_content_change: Some(Utc::now()), 
+            last_modified: time::now(),
+            last_content_change: Some(time::now()), 
             last_commit: None,                     
             change_count: Some(1),                 
             file_blob_sha: None,                   
             perplexity_link: perplexity_response.link,
-            last_perplexity_process: Some(Utc::now()),
+            last_perplexity_process: Some(time::now()),
             topic_counts: HashMap::new(),
         };
 

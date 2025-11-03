@@ -191,6 +191,7 @@ impl fmt::Display for DomainEvent {
 #[cfg(test)]
 mod tests {
     use super::*;
+use crate::utils::json::{from_json, to_json};
 
     #[test]
     fn test_event_timestamp() {
@@ -239,11 +240,11 @@ mod tests {
             timestamp: 123456789,
         };
 
-        let json = serde_json::to_string(&event).unwrap();
+        let json = to_json(&event).unwrap();
         assert!(json.contains("setting_updated"));
         assert!(json.contains("test_key"));
 
-        let deserialized: DomainEvent = serde_json::from_str(&json).unwrap();
+        let deserialized: DomainEvent = from_json(&json).unwrap();
         match deserialized {
             DomainEvent::SettingUpdated { key, .. } => {
                 assert_eq!(key, "test_key");

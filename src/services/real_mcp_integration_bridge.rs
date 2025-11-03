@@ -18,6 +18,8 @@ use crate::services::agent_visualization_protocol::{
     McpServerInfo, McpServerType, MultiMcpAgentStatus, SwarmTopologyData,
 };
 use crate::types::mcp_responses::{McpError, McpResponse};
+use crate::utils::time;
+use crate::utils::json::{from_json, to_json};
 
 ///
 // Debug removed due to non-Debug trait object
@@ -354,7 +356,7 @@ impl RealMcpIntegrationBridge {
                 ..Default::default()
             })),
             stats: Arc::new(RwLock::new(IntegrationStats {
-                last_reset: Utc::now(),
+                last_reset: time::now(),
                 ..Default::default()
             })),
         }
@@ -427,7 +429,7 @@ impl RealMcpIntegrationBridge {
             reader: None,
             writer: None,
             is_connected: false,
-            last_heartbeat: Utc::now(),
+            last_heartbeat: time::now(),
             connection_attempts: 0,
             request_id_counter: 0,
             pending_requests: HashMap::new(),
@@ -443,7 +445,7 @@ impl RealMcpIntegrationBridge {
                     Ok(session_info) => {
                         connection.session_info = Some(session_info.clone());
                         connection.is_connected = true;
-                        connection.last_heartbeat = Utc::now();
+                        connection.last_heartbeat = time::now();
 
                         connections.insert(server_id.clone(), connection);
 
@@ -543,7 +545,7 @@ impl RealMcpIntegrationBridge {
         let pending_request = PendingRequest {
             id: request_id,
             method: method.to_string(),
-            sent_at: Utc::now(),
+            sent_at: time::now(),
             timeout_ms: self.pool_config.connection_timeout_ms,
             response_handler: "default".to_string(),
         };
@@ -560,15 +562,15 @@ impl RealMcpIntegrationBridge {
                 id: request_id,
                 server_id: server_id.to_string(),
                 method: method.to_string(),
-                started_at: Utc::now(),
-                timeout_at: Utc::now()
+                started_at: time::now(),
+                timeout_at: time::now()
                     + chrono::Duration::milliseconds(self.pool_config.connection_timeout_ms as i64),
                 retry_count: 0,
             },
         );
 
         
-        let request_json = serde_json::to_string(&request)
+        let request_json = to_json(&request)
             .map_err(|e| format!("Failed to serialize request: {}", e))?;
 
         let message = format!("{}\n", request_json);
@@ -843,7 +845,7 @@ impl RealMcpIntegrationBridge {
             params: Some(init_params),
         };
 
-        let request_json = serde_json::to_string(&request)
+        let request_json = to_json(&request)
             .map_err(|e| format!("Failed to serialize initialize request: {}", e))?;
 
         let message = format!("{}\n", request_json);
@@ -867,7 +869,7 @@ impl RealMcpIntegrationBridge {
                     .await
                     .map_err(|e| format!("Failed to read initialize response: {}", e))?;
 
-                let response: McpResponse<Value> = serde_json::from_str(&response_line)
+                let response: McpResponse<Value> = from_json(&response_line)
                     .map_err(|e| format!("Failed to parse initialize response: {}", e))?;
 
                 match response {
@@ -909,7 +911,7 @@ impl RealMcpIntegrationBridge {
                                 version: "1.0.0".to_string(),
                             },
                             server_info,
-                            established_at: Utc::now(),
+                            established_at: time::now(),
                         };
 
                         
@@ -919,7 +921,7 @@ impl RealMcpIntegrationBridge {
                             params: None,
                         };
 
-                        let notification_json = serde_json::to_string(&initialized_notification)
+                        let notification_json = to_json(&initialized_notification)
                             .map_err(|e| {
                                 format!("Failed to serialize initialized notification: {}", e)
                             })?;
@@ -1023,7 +1025,7 @@ impl RealMcpIntegrationBridge {
                                                                         .active_requests
                                                                         .remove(&request_id)
                                                                 {
-                                                                    let duration = Utc::now()
+                                                                    let duration = time::now()
                                                                         .signed_duration_since(
                                                                             tracked_request
                                                                                 .started_at,
@@ -1033,7 +1035,7 @@ impl RealMcpIntegrationBridge {
                                                                         server_id: server_id_clone.clone(),
                                                                         method: tracked_request.method,
                                                                         started_at: tracked_request.started_at,
-                                                                        completed_at: Some(Utc::now()),
+                                                                        completed_at: Some(time::now()),
                                                                         duration_ms: Some(duration.num_milliseconds() as u64),
                                                                         success: true,
                                                                         error_message: None,
@@ -1086,7 +1088,7 @@ impl RealMcpIntegrationBridge {
                                                                         .active_requests
                                                                         .remove(&request_id)
                                                                 {
-                                                                    let duration = Utc::now()
+                                                                    let duration = time::now()
                                                                         .signed_duration_since(
                                                                             tracked_request
                                                                                 .started_at,
@@ -1096,7 +1098,7 @@ impl RealMcpIntegrationBridge {
                                                                         server_id: server_id_clone.clone(),
                                                                         method: tracked_request.method,
                                                                         started_at: tracked_request.started_at,
-                                                                        completed_at: Some(Utc::now()),
+                                                                        completed_at: Some(time::now()),
                                                                         duration_ms: Some(duration.num_milliseconds() as u64),
                                                                         success: false,
                                                                         error_message: Some(error_response.error.message.clone()),
@@ -1179,7 +1181,7 @@ impl RealMcpIntegrationBridge {
                         server_id: server_id_clone,
                         method: tracked_request.method,
                         started_at: tracked_request.started_at,
-                        completed_at: Some(Utc::now()),
+                        completed_at: Some(time::now()),
                         duration_ms: Some(timeout_duration.as_millis() as u64),
                         success: false,
                         error_message: Some("Request timeout".to_string()),
@@ -1234,7 +1236,7 @@ impl RealMcpIntegrationBridge {
                 interval.tick().await;
 
                 let mut tracker = request_tracker.write().await;
-                let now = Utc::now();
+                let now = time::now();
 
                 
                 tracker.active_requests.retain(|_, request| {

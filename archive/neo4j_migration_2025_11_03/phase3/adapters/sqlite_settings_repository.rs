@@ -16,6 +16,7 @@ use crate::ports::settings_repository::{
     AppFullSettings, Result as RepoResult, SettingValue, SettingsRepository,
     SettingsRepositoryError,
 };
+use crate::utils::json::{from_json, to_json};
 
 ///
 pub struct SqliteSettingsRepository {
@@ -140,7 +141,7 @@ impl SettingsRepository for SqliteSettingsRepository {
                         return Ok(Some(SettingValue::Boolean(bool_val != 0)));
                     }
                     if let Ok(Some(json_str)) = row.get::<_, Option<String>>(4) {
-                        let json_value = serde_json::from_str(&json_str)
+                        let json_value = from_json(&json_str)
                             .unwrap_or(serde_json::Value::Null);
                         return Ok(Some(SettingValue::Json(json_value)));
                     }
@@ -190,7 +191,7 @@ impl SettingsRepository for SqliteSettingsRepository {
                 SettingValue::Float(f) => ("float", None, None, Some(f), None, None),
                 SettingValue::Boolean(b) => ("boolean", None, None, None, Some(if b { 1 } else { 0 }), None),
                 SettingValue::Json(j) => {
-                    let json_str = serde_json::to_string(&j)
+                    let json_str = to_json(&j)
                         .map_err(|e| format!("Failed to serialize JSON: {}", e))?;
                     ("json", None, None, None, None, Some(json_str))
                 },

@@ -241,7 +241,7 @@ pub fn get_community_statistics(communities: &[Community]) -> HashMap<String, se
     );
     stats.insert(
         "avg_community_size".to_string(),
-        serde_json::Value::Number(serde_json::Number::from_f64(avg_size as f64).unwrap()),
+        serde_json::Value::Number(safe_json_number(avg_size as f64)),
     );
     stats.insert(
         "max_community_size".to_string(),

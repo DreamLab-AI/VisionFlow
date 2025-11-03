@@ -6,6 +6,7 @@ use specta::Type;
 use std::collections::HashMap;
 use uuid::Uuid;
 use validator::Validate;
+use crate::utils::time;
 
 ///
 #[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq)]
@@ -88,7 +89,7 @@ pub struct Workspace {
 
 impl Default for Workspace {
     fn default() -> Self {
-        let now = Utc::now();
+        let now = time::now();
         Self {
             id: Uuid::new_v4().to_string(),
             name: "New Workspace".to_string(),
@@ -108,7 +109,7 @@ impl Default for Workspace {
 impl Workspace {
     
     pub fn new(name: String, description: Option<String>, workspace_type: WorkspaceType) -> Self {
-        let now = Utc::now();
+        let now = time::now();
         Self {
             id: Uuid::new_v4().to_string(),
             name,
@@ -140,26 +141,26 @@ impl Workspace {
         if let Some(new_type) = workspace_type {
             self.workspace_type = new_type;
         }
-        self.updated_at = Utc::now();
+        self.updated_at = time::now();
     }
 
     
     pub fn toggle_favorite(&mut self) -> bool {
         self.is_favorite = !self.is_favorite;
-        self.updated_at = Utc::now();
+        self.updated_at = time::now();
         self.is_favorite
     }
 
     
     pub fn archive(&mut self) {
         self.status = WorkspaceStatus::Archived;
-        self.updated_at = Utc::now();
+        self.updated_at = time::now();
     }
 
     
     pub fn unarchive(&mut self) {
         self.status = WorkspaceStatus::Active;
-        self.updated_at = Utc::now();
+        self.updated_at = time::now();
     }
 
     
@@ -170,14 +171,14 @@ impl Workspace {
     
     pub fn set_metadata(&mut self, key: String, value: serde_json::Value) {
         self.metadata.insert(key, value);
-        self.updated_at = Utc::now();
+        self.updated_at = time::now();
     }
 
     
     pub fn remove_metadata(&mut self, key: &str) -> Option<serde_json::Value> {
         let result = self.metadata.remove(key);
         if result.is_some() {
-            self.updated_at = Utc::now();
+            self.updated_at = time::now();
         }
         result
     }
@@ -185,13 +186,13 @@ impl Workspace {
     
     pub fn set_member_count(&mut self, count: u32) {
         self.member_count = count;
-        self.updated_at = Utc::now();
+        self.updated_at = time::now();
     }
 
     
     pub fn set_owner(&mut self, owner_id: String) {
         self.owner_id = Some(owner_id);
-        self.updated_at = Utc::now();
+        self.updated_at = time::now();
     }
 }
 

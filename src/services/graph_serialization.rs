@@ -38,7 +38,7 @@ impl GraphSerializationService {
         let filename = format!(
             "{}_{}.{}",
             export_id,
-            Utc::now().timestamp(),
+            time::timestamp_seconds(),
             request.format
         );
         let file_path = self.storage_path.join("exports").join(&filename);
@@ -79,7 +79,7 @@ impl GraphSerializationService {
         fs::write(&file_path, &final_data)?;
 
         let download_url = format!("/api/graph/download/{}", export_id);
-        let expires_at = Utc::now() + chrono::Duration::hours(24);
+        let expires_at = time::now() + chrono::Duration::hours(24);
 
         Ok(ExportResponse {
             export_id,
@@ -196,12 +196,12 @@ impl GraphSerializationService {
             );
             metadata.insert(
                 "exported_at".to_string(),
-                serde_json::Value::String(Utc::now().to_rfc3339()),
+                serde_json::Value::String(time::format_iso8601(&time::now())),
             );
             export_data.insert("metadata".to_string(), serde_json::Value::Object(metadata));
         }
 
-        Ok(serde_json::to_string_pretty(&export_data)?)
+        Ok(crate::utils::json::to_json_pretty(&export_data)?)
     }
 
     
@@ -400,6 +400,7 @@ impl GraphSerializationService {
 mod tests {
     use super::*;
     use tempfile::tempdir;
+use crate::utils::json::{from_json, to_json};
 
     #[tokio::test]
     async fn test_json_serialization() {

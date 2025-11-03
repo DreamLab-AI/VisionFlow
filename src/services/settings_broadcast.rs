@@ -99,9 +99,9 @@ impl SettingsWebSocket {
 
             
             let msg = SettingsBroadcastMessage::Ping {
-                timestamp: chrono::Utc::now().timestamp(),
+                timestamp: time::timestamp_seconds(),
             };
-            if let Ok(json) = serde_json::to_string(&msg) {
+            if let Ok(json) = to_json(&msg) {
                 ctx.text(json);
             }
         });
@@ -182,7 +182,7 @@ impl Handler<BroadcastToClients> for SettingsWebSocket {
     type Result = ();
 
     fn handle(&mut self, msg: BroadcastToClients, ctx: &mut Self::Context) {
-        if let Ok(json) = serde_json::to_string(&msg.message) {
+        if let Ok(json) = to_json(&msg.message) {
             ctx.text(json);
         }
     }
@@ -230,7 +230,7 @@ impl SettingsBroadcastManager {
             let changes = std::mem::take(&mut self.message_buffer);
             self.broadcast(SettingsBroadcastMessage::SettingsBatchChanged {
                 changes,
-                timestamp: chrono::Utc::now().timestamp(),
+                timestamp: time::timestamp_seconds(),
             });
             self.last_batch_send = Instant::now();
         }
@@ -334,7 +334,7 @@ impl Handler<BroadcastSettingsReload> for SettingsBroadcastManager {
 
     fn handle(&mut self, msg: BroadcastSettingsReload, _ctx: &mut Self::Context) {
         self.broadcast(SettingsBroadcastMessage::SettingsReloaded {
-            timestamp: chrono::Utc::now().timestamp(),
+            timestamp: time::timestamp_seconds(),
             reason: msg.reason,
         });
     }
@@ -355,7 +355,7 @@ impl Handler<BroadcastPresetApplied> for SettingsBroadcastManager {
         self.broadcast(SettingsBroadcastMessage::PresetApplied {
             preset_id: msg.preset_id,
             settings_count: msg.settings_count,
-            timestamp: chrono::Utc::now().timestamp(),
+            timestamp: time::timestamp_seconds(),
         });
     }
 }
@@ -363,6 +363,8 @@ impl Handler<BroadcastPresetApplied> for SettingsBroadcastManager {
 #[cfg(test)]
 mod tests {
     use super::*;
+use crate::utils::json::{from_json, to_json};
+use crate::utils::time;
 
     #[test]
     fn test_message_serialization() {
@@ -372,7 +374,7 @@ mod tests {
             timestamp: 1234567890,
         };
 
-        let json = serde_json::to_string(&msg).unwrap();
+        let json = to_json(&msg).unwrap();
         assert!(json.contains("SettingChanged"));
         assert!(json.contains("physics.damping"));
     }
@@ -393,7 +395,7 @@ mod tests {
             timestamp: 1234567890,
         };
 
-        let json = serde_json::to_string(&msg).unwrap();
+        let json = to_json(&msg).unwrap();
         assert!(json.contains("SettingsBatchChanged"));
         assert!(json.contains("physics.damping"));
         assert!(json.contains("physics.springK"));

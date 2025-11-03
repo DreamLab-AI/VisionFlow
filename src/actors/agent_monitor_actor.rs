@@ -19,12 +19,12 @@ use crate::services::management_api_client::{ManagementApiClient, TaskInfo};
 use crate::types::claude_flow::{
     AgentProfile, AgentStatus, AgentType, ClaudeFlowClient, PerformanceMetrics, TokenUsage,
 };
+use crate::utils::time;
 
 ///
 fn task_to_agent_status(task: TaskInfo) -> AgentStatus {
     use chrono::TimeZone;
 
-    
     let agent_type_enum = match task.agent.as_str() {
         "coder" => AgentType::Coder,
         "planner" => AgentType::Coordinator,
@@ -38,10 +38,10 @@ fn task_to_agent_status(task: TaskInfo) -> AgentStatus {
     let timestamp = chrono::Utc
         .timestamp_millis_opt(task.start_time as i64)
         .single()
-        .unwrap_or_else(|| chrono::Utc::now());
+        .unwrap_or_else(|| time::now());
 
     
-    let age = (chrono::Utc::now().timestamp_millis() - task.start_time as i64) / 1000;
+    let age = (time::timestamp_millis() - task.start_time as i64) / 1000;
 
     AgentStatus {
         
@@ -139,7 +139,7 @@ impl AgentMonitorActor {
             management_api_client,
             is_connected: false,
             polling_interval: Duration::from_secs(3), 
-            last_poll: Utc::now(),
+            last_poll: time::now(),
             agent_cache: HashMap::new(),
             consecutive_poll_failures: 0,
             last_successful_poll: None,
@@ -253,7 +253,7 @@ impl Handler<ProcessAgentStatuses> for AgentMonitorActor {
                 workload: status.activity,
                 created_at: Some(status.timestamp.to_rfc3339()),
                 age: Some(
-                    (chrono::Utc::now().timestamp() - status.timestamp.timestamp()) as u64 * 1000,
+                    (time::timestamp_seconds() - status.timestamp.timestamp()) as u64 * 1000,
                 ),
             })
             .collect();
@@ -276,7 +276,7 @@ impl Handler<ProcessAgentStatuses> for AgentMonitorActor {
 
         
         self.consecutive_poll_failures = 0;
-        self.last_successful_poll = Some(Utc::now());
+        self.last_successful_poll = Some(time::now());
     }
 }
 

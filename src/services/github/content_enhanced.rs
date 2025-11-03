@@ -5,6 +5,7 @@ use chrono::{DateTime, Utc};
 use log::{debug, error, info, warn};
 use serde_json::Value;
 use std::sync::Arc;
+use crate::utils::time;
 
 ///
 #[derive(Clone)] 
@@ -300,7 +301,7 @@ impl EnhancedContentAPI {
                     "Could not get commit history for {}: {}. Using current time.",
                     file_path, e
                 );
-                Utc::now()
+                time::now()
             }
         };
 

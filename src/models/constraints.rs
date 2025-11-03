@@ -403,7 +403,7 @@ mod tests {
         set.add_to_group("separation", Constraint::separation(2, 3, 75.0));
 
         assert_eq!(set.constraints.len(), 3);
-        assert_eq!(set.groups.get("fixed").unwrap().len(), 2);
+        assert_eq!(set.groups.get("fixed").expect("Missing required key: fixed").len(), 2);
 
         set.set_group_active("fixed", false);
         assert_eq!(set.active_constraints().len(), 1);

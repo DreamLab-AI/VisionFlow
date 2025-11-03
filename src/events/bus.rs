@@ -228,6 +228,7 @@ mod tests {
     use chrono::Utc;
     use crate::events::domain_events::NodeAddedEvent;
     use std::sync::atomic::{AtomicUsize, Ordering};
+use crate::utils::time;
 
     struct TestHandler {
         id: String,
@@ -267,7 +268,7 @@ mod tests {
             label: "Test".to_string(),
             node_type: "Person".to_string(),
             properties: HashMap::new(),
-            timestamp: Utc::now(),
+            timestamp: time::now(),
         };
 
         bus.publish(event).await.unwrap();
@@ -298,7 +299,7 @@ mod tests {
             label: "Test".to_string(),
             node_type: "Person".to_string(),
             properties: HashMap::new(),
-            timestamp: Utc::now(),
+            timestamp: time::now(),
         };
 
         bus.publish(event).await.unwrap();
@@ -341,7 +342,7 @@ mod tests {
             label: "Test".to_string(),
             node_type: "Person".to_string(),
             properties: HashMap::new(),
-            timestamp: Utc::now(),
+            timestamp: time::now(),
         };
 
         bus.publish(event).await.unwrap();

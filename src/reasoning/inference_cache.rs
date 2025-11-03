@@ -13,6 +13,7 @@ use crate::reasoning::{
     custom_reasoner::{InferredAxiom, OntologyReasoner},
     ReasoningError, ReasoningResult,
 };
+use crate::utils::json::{from_json, to_json};
 
 ///
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -161,8 +162,8 @@ impl InferenceCache {
             let axioms_json: String = row.get(1)?;
             let cached_at: i64 = row.get(2)?;
 
-            let inferred_axioms: Vec<InferredAxiom> = serde_json::from_str(&axioms_json)
-                .map_err(|e| ReasoningError::Cache(format!("Failed to deserialize axioms: {}", e)))?;
+            let inferred_axioms: Vec<InferredAxiom> = from_json(&axioms_json)
+                .map_err(|e| ReasoningError::Cache(format!("Failed to parse axioms: {}", e)))?;
 
             Ok(Some(CachedInference {
                 ontology_id,
@@ -184,12 +185,12 @@ impl InferenceCache {
     ) -> ReasoningResult<()> {
         let conn = Connection::open(&self.db_path)?;
 
-        let axioms_json = serde_json::to_string(inferred)
+        let axioms_json = to_json(inferred)
             .map_err(|e| ReasoningError::Cache(format!("Failed to serialize axioms: {}", e)))?;
 
         let cached_at = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
+            .unwrap_or(std::time::Duration::ZERO)
             .as_secs() as i64;
 
         conn.execute(
@@ -216,7 +217,7 @@ impl InferenceCache {
         
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
+            .unwrap_or(std::time::Duration::ZERO)
             .as_secs() as i64;
 
         let ttl = 3600; 

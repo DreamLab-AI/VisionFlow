@@ -11,7 +11,7 @@ pub mod gpu;
 pub mod handlers;
 pub mod inference; 
 pub mod middleware;
-pub mod migrations; 
+// pub mod migrations; // Removed in Phase 3 - Neo4j migration complete 
 pub mod models;
 pub mod ontology;
 pub mod reasoning;

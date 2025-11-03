@@ -1174,6 +1174,7 @@ impl SpeechService {
         session_id: String,
     ) -> VisionFlowResult<String> {
         use crate::services::speech_voice_integration::VoiceSwarmIntegration;
+use crate::utils::json::{from_json, to_json};
 
         match VoiceSwarmIntegration::process_voice_command_with_tags(
             self,
@@ -1372,7 +1373,7 @@ impl SpeechService {
                             &session_id,
                             "execute_task".to_string(),
                             params,
-                            Some(chrono::Utc::now() + chrono::Duration::minutes(30)), 
+                            Some(time::now() + chrono::Duration::minutes(30)), 
                         ).await;
 
                         format!("Task '{}' has been assigned to the swarm with ID: {}.", description, task_id)

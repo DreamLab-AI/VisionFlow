@@ -12,6 +12,7 @@ use chrono::{DateTime, Utc, Duration};
 use serde::{Deserialize, Serialize};
 
 use crate::ports::ontology_repository::InferenceResults;
+use crate::utils::time;
 
 ///
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -62,7 +63,7 @@ pub struct CacheEntry {
 impl CacheEntry {
     
     pub fn is_expired(&self, ttl: Duration) -> bool {
-        Utc::now() - self.created_at > ttl
+        time::now() - self.created_at > ttl
     }
 
     
@@ -72,7 +73,7 @@ impl CacheEntry {
 
     
     pub fn touch(&mut self) {
-        self.accessed_at = Utc::now();
+        self.accessed_at = time::now();
         self.access_count += 1;
     }
 }
@@ -167,8 +168,8 @@ impl InferenceCache {
         let entry = CacheEntry {
             results,
             ontology_checksum: checksum,
-            created_at: Utc::now(),
-            accessed_at: Utc::now(),
+            created_at: time::now(),
+            accessed_at: time::now(),
             access_count: 0,
         };
 
@@ -247,7 +248,7 @@ mod tests {
 
     fn create_test_results() -> InferenceResults {
         InferenceResults {
-            timestamp: Utc::now(),
+            timestamp: time::now(),
             inferred_axioms: Vec::new(),
             inference_time_ms: 100,
             reasoner_version: "test-1.0".to_string(),

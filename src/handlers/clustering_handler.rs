@@ -33,9 +33,7 @@ async fn configure_clustering(
 
     
     if let Err(e) = validate_clustering_config(&config) {
-        return Ok(HttpResponse::BadRequest().json(json!({
-            "error": format!("Invalid clustering configuration: {}", e)
-        })));
+        return Ok(bad_request!("Invalid clustering configuration: {}", e));
     }
 
     
@@ -67,23 +65,17 @@ async fn configure_clustering(
         Ok(Ok(s)) => s,
         Ok(Err(e)) => {
             error!("Failed to get current settings: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to get current settings"
-            })));
+            return error_json!("Failed to get current settings");
         }
         Err(e) => {
             error!("Settings actor error: {}", e);
-            return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "error": "Settings service unavailable"
-            })));
+            return service_unavailable!("Settings service unavailable");
         }
     };
 
     if let Err(e) = app_settings.merge_update(settings_update) {
         error!("Failed to merge clustering configuration: {}", e);
-        return Ok(HttpResponse::InternalServerError().json(json!({
-            "error": format!("Failed to update clustering configuration: {}", e)
-        })));
+        return Ok(error_json!("Failed to update clustering configuration: {}", e));
     }
 
     
@@ -96,22 +88,18 @@ async fn configure_clustering(
     {
         Ok(Ok(())) => {
             info!("Clustering configuration saved successfully");
-            Ok(HttpResponse::Ok().json(json!({
+            Ok(ok_json!(json!({
                 "status": "Clustering configuration updated successfully",
                 "config": config
             })))
         }
         Ok(Err(e)) => {
             error!("Failed to save clustering configuration: {}", e);
-            Ok(HttpResponse::InternalServerError().json(json!({
-                "error": format!("Failed to save clustering configuration: {}", e)
-            })))
+            Ok(error_json!("Failed to save clustering configuration: {}", e))
         }
         Err(e) => {
             error!("Settings actor error: {}", e);
-            Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "error": "Settings service unavailable"
-            })))
+            service_unavailable!("Settings service unavailable")
         }
     }
 }
@@ -184,7 +172,7 @@ async fn start_clustering(
                     "GPU clustering completed successfully with {} clusters",
                     cluster_results.len()
                 );
-                Ok(HttpResponse::Ok().json(json!({
+                Ok(ok_json!(json!({
                     "status": "completed",
                     "taskId": task_id,
                     "algorithm": algorithm,
@@ -207,25 +195,12 @@ async fn start_clustering(
             }
             Err(e) => {
                 error!("GPU actor communication error: {}", e);
-                Ok(HttpResponse::ServiceUnavailable().json(json!({
-                    "status": "failed",
-                    "taskId": task_id,
-                    "algorithm": algorithm,
-                    "error": "GPU compute actor unavailable",
-                    "gpuAccelerated": false
-                })))
+                Ok(service_unavailable!("GPU compute actor unavailable").expect("JSON serialization failed"))
             }
         }
     } else {
         warn!("GPU compute not available, clustering request cannot be processed");
-        Ok(HttpResponse::ServiceUnavailable().json(json!({
-            "status": "failed",
-            "taskId": task_id,
-            "algorithm": algorithm,
-            "error": "GPU compute not available",
-            "gpuAccelerated": false,
-            "note": "GPU acceleration is required for clustering operations"
-        })))
+        Ok(service_unavailable!("GPU compute not available").expect("JSON serialization failed"))
     }
 }
 
@@ -262,7 +237,7 @@ async fn get_clustering_status(
                     .and_then(|v| v.as_u64())
                     .unwrap_or(0);
 
-                Ok(HttpResponse::Ok().json(json!({
+                Ok(ok_json!(json!({
                     "status": "completed",
                     "algorithm": algorithm,
                     "progress": 1.0,
@@ -275,7 +250,7 @@ async fn get_clustering_status(
             }
             Ok(Err(e)) => {
                 info!("No clustering results available: {}", e);
-                Ok(HttpResponse::Ok().json(json!({
+                Ok(ok_json!(json!({
                     "status": "idle",
                     "algorithm": "none",
                     "progress": 0.0,
@@ -287,19 +262,11 @@ async fn get_clustering_status(
             }
             Err(e) => {
                 error!("GPU actor communication error: {}", e);
-                Ok(HttpResponse::ServiceUnavailable().json(json!({
-                    "status": "error",
-                    "algorithm": "none",
-                    "progress": 0.0,
-                    "clustersFound": 0,
-                    "lastRun": null,
-                    "gpuAvailable": false,
-                    "error": "GPU compute actor unavailable"
-                })))
+                Ok(service_unavailable!("GPU compute actor unavailable").expect("JSON serialization failed"))
             }
         }
     } else {
-        Ok(HttpResponse::Ok().json(json!({
+        Ok(ok_json!(json!({
             "status": "unavailable",
             "algorithm": "none",
             "progress": 0.0,
@@ -321,21 +288,24 @@ async fn get_clustering_results(
     
     if let Some(gpu_addr) = &state.gpu_compute_addr {
         use crate::actors::messages::{GetClusteringResults, GetGraphData};
+use crate::{
+    ok_json, created_json, error_json, bad_request, not_found,
+    unauthorized, forbidden, conflict, no_content, accepted,
+    too_many_requests, service_unavailable, payload_too_large
+};
+
+
 
         
         let graph_data = match state.graph_service_addr.send(GetGraphData).await {
             Ok(Ok(data)) => data,
             Ok(Err(e)) => {
                 error!("Failed to get graph data: {}", e);
-                return Ok(HttpResponse::InternalServerError().json(json!({
-                    "error": "Failed to get graph data for clustering results"
-                })));
+                return error_json!("Failed to get graph data for clustering results");
             }
             Err(e) => {
                 error!("Graph service communication error: {}", e);
-                return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                    "error": "Graph service unavailable"
-                })));
+                return service_unavailable!("Graph service unavailable");
             }
         };
 
@@ -375,7 +345,7 @@ async fn get_clustering_results(
                     .and_then(|v| v.as_u64())
                     .unwrap_or(0);
 
-                Ok(HttpResponse::Ok().json(json!({
+                Ok(ok_json!(json!({
                     "clusters": clusters,
                     "totalNodes": graph_data.nodes.len(),
                     "algorithmUsed": algorithm,
@@ -388,7 +358,7 @@ async fn get_clustering_results(
             }
             Ok(Err(e)) => {
                 info!("No clustering results available: {}", e);
-                Ok(HttpResponse::Ok().json(json!({
+                Ok(ok_json!(json!({
                     "clusters": [],
                     "totalNodes": graph_data.nodes.len(),
                     "algorithmUsed": "none",
@@ -400,19 +370,11 @@ async fn get_clustering_results(
             }
             Err(e) => {
                 error!("GPU actor communication error: {}", e);
-                Ok(HttpResponse::ServiceUnavailable().json(json!({
-                    "error": "GPU compute actor unavailable",
-                    "clusters": [],
-                    "totalNodes": 0,
-                    "algorithmUsed": "error",
-                    "modularity": 0.0,
-                    "lastUpdated": chrono::Utc::now().to_rfc3339(),
-                    "gpuAvailable": false
-                })))
+                Ok(service_unavailable!("GPU compute actor unavailable").expect("JSON serialization failed"))
             }
         }
     } else {
-        Ok(HttpResponse::Ok().json(json!({
+        Ok(ok_json!(json!({
             "clusters": [],
             "totalNodes": 0,
             "algorithmUsed": "none",
@@ -444,9 +406,7 @@ async fn export_cluster_assignments(
         .unwrap_or("json");
 
     if !["json", "csv", "graphml"].contains(&format) {
-        return Ok(HttpResponse::BadRequest().json(json!({
-            "error": "format must be 'json', 'csv', or 'graphml'"
-        })));
+        return bad_request!("format must be 'json', 'csv', or 'graphml'");
     }
 
     

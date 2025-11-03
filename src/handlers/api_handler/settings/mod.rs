@@ -67,22 +67,17 @@ pub async fn get_physics_settings(state: web::Data<AppState>) -> impl Responder 
 
     match state.settings_addr.send(GetSettings).await {
         Ok(Ok(settings)) => {
-            HttpResponse::Ok().json(json!({
+            ok_json!(json!({
                 "physics": settings.physics
             }))
         }
         Ok(Err(e)) => {
             error!("Failed to fetch physics settings: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to fetch settings",
-                "details": e
-            }))
+            error_json!("Failed to fetch settings").expect("JSON serialization failed")
         }
         Err(e) => {
             error!("Actor mailbox error: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": "Actor communication failed"
-            }))
+            error_json!("Actor communication failed").expect("JSON serialization failed")
         }
     }
 }
@@ -126,38 +121,28 @@ pub async fn update_physics_settings(
             
             match state.settings_addr.send(UpdateSettings { settings: settings.clone() }).await {
                 Ok(Ok(())) => {
-                    HttpResponse::Ok().json(json!({
+                    ok_json!(json!({
                         "success": true,
                         "physics": settings.physics
                     }))
                 }
                 Ok(Err(e)) => {
                     error!("Failed to update physics settings: {}", e);
-                    HttpResponse::InternalServerError().json(json!({
-                        "error": "Failed to update settings",
-                        "details": e
-                    }))
+                    error_json!("Failed to update settings").expect("JSON serialization failed")
                 }
                 Err(e) => {
                     error!("Actor mailbox error: {}", e);
-                    HttpResponse::InternalServerError().json(json!({
-                        "error": "Actor communication failed"
-                    }))
+                    error_json!("Actor communication failed").expect("JSON serialization failed")
                 }
             }
         }
         Ok(Err(e)) => {
             error!("Failed to fetch current settings: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to fetch settings",
-                "details": e
-            }))
+            error_json!("Failed to fetch settings").expect("JSON serialization failed")
         }
         Err(e) => {
             error!("Actor mailbox error: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": "Actor communication failed"
-            }))
+            error_json!("Actor communication failed").expect("JSON serialization failed")
         }
     }
 }
@@ -168,22 +153,17 @@ pub async fn get_constraint_settings(state: web::Data<AppState>) -> impl Respond
 
     match state.settings_addr.send(GetSettings).await {
         Ok(Ok(settings)) => {
-            HttpResponse::Ok().json(json!({
+            ok_json!(json!({
                 "constraints": settings.constraints
             }))
         }
         Ok(Err(e)) => {
             error!("Failed to fetch constraint settings: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to fetch settings",
-                "details": e
-            }))
+            error_json!("Failed to fetch settings").expect("JSON serialization failed")
         }
         Err(e) => {
             error!("Actor mailbox error: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": "Actor communication failed"
-            }))
+            error_json!("Actor communication failed").expect("JSON serialization failed")
         }
     }
 }
@@ -218,38 +198,28 @@ pub async fn update_constraint_settings(
             
             match state.settings_addr.send(UpdateSettings { settings: settings.clone() }).await {
                 Ok(Ok(())) => {
-                    HttpResponse::Ok().json(json!({
+                    ok_json!(json!({
                         "success": true,
                         "constraints": settings.constraints
                     }))
                 }
                 Ok(Err(e)) => {
                     error!("Failed to update constraint settings: {}", e);
-                    HttpResponse::InternalServerError().json(json!({
-                        "error": "Failed to update settings",
-                        "details": e
-                    }))
+                    error_json!("Failed to update settings").expect("JSON serialization failed")
                 }
                 Err(e) => {
                     error!("Actor mailbox error: {}", e);
-                    HttpResponse::InternalServerError().json(json!({
-                        "error": "Actor communication failed"
-                    }))
+                    error_json!("Actor communication failed").expect("JSON serialization failed")
                 }
             }
         }
         Ok(Err(e)) => {
             error!("Failed to fetch current settings: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to fetch settings",
-                "details": e
-            }))
+            error_json!("Failed to fetch settings").expect("JSON serialization failed")
         }
         Err(e) => {
             error!("Actor mailbox error: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": "Actor communication failed"
-            }))
+            error_json!("Actor communication failed").expect("JSON serialization failed")
         }
     }
 }
@@ -260,22 +230,17 @@ pub async fn get_rendering_settings(state: web::Data<AppState>) -> impl Responde
 
     match state.settings_addr.send(GetSettings).await {
         Ok(Ok(settings)) => {
-            HttpResponse::Ok().json(json!({
+            ok_json!(json!({
                 "rendering": settings.rendering
             }))
         }
         Ok(Err(e)) => {
             error!("Failed to fetch rendering settings: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to fetch settings",
-                "details": e
-            }))
+            error_json!("Failed to fetch settings").expect("JSON serialization failed")
         }
         Err(e) => {
             error!("Actor mailbox error: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": "Actor communication failed"
-            }))
+            error_json!("Actor communication failed").expect("JSON serialization failed")
         }
     }
 }
@@ -310,38 +275,28 @@ pub async fn update_rendering_settings(
             
             match state.settings_addr.send(UpdateSettings { settings: settings.clone() }).await {
                 Ok(Ok(())) => {
-                    HttpResponse::Ok().json(json!({
+                    ok_json!(json!({
                         "success": true,
                         "rendering": settings.rendering
                     }))
                 }
                 Ok(Err(e)) => {
                     error!("Failed to update rendering settings: {}", e);
-                    HttpResponse::InternalServerError().json(json!({
-                        "error": "Failed to update settings",
-                        "details": e
-                    }))
+                    error_json!("Failed to update settings").expect("JSON serialization failed")
                 }
                 Err(e) => {
                     error!("Actor mailbox error: {}", e);
-                    HttpResponse::InternalServerError().json(json!({
-                        "error": "Actor communication failed"
-                    }))
+                    error_json!("Actor communication failed").expect("JSON serialization failed")
                 }
             }
         }
         Ok(Err(e)) => {
             error!("Failed to fetch current settings: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to fetch settings",
-                "details": e
-            }))
+            error_json!("Failed to fetch settings").expect("JSON serialization failed")
         }
         Err(e) => {
             error!("Actor mailbox error: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": "Actor communication failed"
-            }))
+            error_json!("Actor communication failed").expect("JSON serialization failed")
         }
     }
 }
@@ -370,23 +325,18 @@ pub async fn save_profile(
             };
 
             
-            HttpResponse::Created().json(json!({
+            created_json!(json!({
                 "success": true,
                 "profile": profile
             }))
         }
         Ok(Err(e)) => {
             error!("Failed to fetch settings for profile: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to create profile",
-                "details": e
-            }))
+            error_json!("Failed to create profile").expect("JSON serialization failed")
         }
         Err(e) => {
             error!("Actor mailbox error: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": "Actor communication failed"
-            }))
+            error_json!("Actor communication failed").expect("JSON serialization failed")
         }
     }
 }
@@ -397,7 +347,7 @@ pub async fn list_profiles(_state: web::Data<AppState>) -> impl Responder {
 
     
     
-    HttpResponse::Ok().json(json!({
+    ok_json!(json!({
         "profiles": []
     }))
 }
@@ -410,10 +360,7 @@ pub async fn load_profile(
     info!("GET /api/settings/profiles/{}", profile_id);
 
     
-    HttpResponse::NotFound().json(json!({
-        "error": "Profile not found",
-        "id": profile_id.to_string()
-    }))
+    not_found!("Profile not found").unwrap()
 }
 
 ///
@@ -435,6 +382,12 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
 #[cfg(test)]
 mod tests {
     use super::*;
+use crate::{
+    ok_json, created_json, error_json, bad_request, not_found,
+    unauthorized, forbidden, conflict, no_content, accepted,
+    too_many_requests, service_unavailable, payload_too_large
+};
+
 
     #[test]
     fn test_settings_profile_serialization() {

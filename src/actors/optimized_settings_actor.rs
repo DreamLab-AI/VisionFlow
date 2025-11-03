@@ -29,6 +29,7 @@ use crate::ports::settings_repository::SettingsRepository;
 
 #[cfg(feature = "redis")]
 use redis::{AsyncCommands, Client as RedisClient};
+use crate::utils::json::{from_json, to_json};
 
 // Cache configuration constants
 const CACHE_SIZE: usize = 1000;
@@ -167,7 +168,7 @@ impl OptimizedSettingsActor {
 
         
         let path_cache = Arc::new(RwLock::new(LruCache::new(
-            NonZeroUsize::new(CACHE_SIZE).unwrap(),
+            NonZeroUsize::new(CACHE_SIZE).expect("NonZeroUsize: value is zero"),
         )));
 
         
@@ -404,7 +405,7 @@ impl OptimizedSettingsActor {
 
             actix::spawn(async move {
                 if let Ok(mut conn) = redis_client.get_async_connection().await {
-                    if let Ok(json_str) = serde_json::to_string(&value) {
+                    if let Ok(json_str) = to_json(&value) {
                         
                         let mut compressor = Compress::new(Compression::default(), false);
                         let mut compressed = Vec::new();
@@ -442,7 +443,7 @@ impl OptimizedSettingsActor {
 
     async fn calculate_hash(&self, value: &Value) -> String {
         let mut hasher = Hasher::new();
-        if let Ok(json_str) = serde_json::to_string(value) {
+        if let Ok(json_str) = to_json(value) {
             hasher.update(json_str.as_bytes());
         }
         hasher.finalize().to_hex().to_string()
@@ -546,25 +547,25 @@ impl OptimizedSettingsActor {
 
             let value = match field.as_str() {
                 "damping" => serde_json::Value::Number(
-                    serde_json::Number::from_f64(physics.damping as f64).unwrap(),
+                    safe_json_number(physics.damping as f64),
                 ),
                 "spring_k" => serde_json::Value::Number(
-                    serde_json::Number::from_f64(physics.spring_k as f64).unwrap(),
+                    safe_json_number(physics.spring_k as f64),
                 ),
                 "repel_k" => serde_json::Value::Number(
-                    serde_json::Number::from_f64(physics.repel_k as f64).unwrap(),
+                    safe_json_number(physics.repel_k as f64),
                 ),
                 "max_velocity" => serde_json::Value::Number(
-                    serde_json::Number::from_f64(physics.max_velocity as f64).unwrap(),
+                    safe_json_number(physics.max_velocity as f64),
                 ),
                 "gravity" => serde_json::Value::Number(
-                    serde_json::Number::from_f64(physics.gravity as f64).unwrap(),
+                    safe_json_number(physics.gravity as f64),
                 ),
                 "temperature" => serde_json::Value::Number(
-                    serde_json::Number::from_f64(physics.temperature as f64).unwrap(),
+                    safe_json_number(physics.temperature as f64),
                 ),
                 "bounds_size" => serde_json::Value::Number(
-                    serde_json::Number::from_f64(physics.bounds_size as f64).unwrap(),
+                    safe_json_number(physics.bounds_size as f64),
                 ),
                 "iterations" => {
                     serde_json::Value::Number(serde_json::Number::from(physics.iterations))

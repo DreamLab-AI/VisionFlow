@@ -35,3 +35,4 @@ pub mod ontology_reasoner;
 pub mod ontology_enrichment_service;
 pub mod ontology_reasoning_service;
 pub mod ontology_pipeline_service;
+pub mod pipeline_events;

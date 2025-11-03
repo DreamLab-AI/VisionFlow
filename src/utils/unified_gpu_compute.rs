@@ -2840,19 +2840,19 @@ impl UnifiedGPUCompute {
                 kernel_stats.insert(
                     "avg_time_ms".to_string(),
                     serde_json::Value::Number(
-                        serde_json::Number::from_f64(avg_time as f64).unwrap(),
+                        safe_json_number(avg_time as f64),
                     ),
                 );
                 kernel_stats.insert(
                     "min_time_ms".to_string(),
                     serde_json::Value::Number(
-                        serde_json::Number::from_f64(min_time as f64).unwrap(),
+                        safe_json_number(min_time as f64),
                     ),
                 );
                 kernel_stats.insert(
                     "max_time_ms".to_string(),
                     serde_json::Value::Number(
-                        serde_json::Number::from_f64(max_time as f64).unwrap(),
+                        safe_json_number(max_time as f64),
                     ),
                 );
                 kernel_stats.insert(

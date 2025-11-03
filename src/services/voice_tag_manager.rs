@@ -19,6 +19,7 @@ use uuid::Uuid;
 
 use crate::actors::voice_commands::{SwarmVoiceResponse, VoiceCommand};
 use crate::types::speech::SpeechOptions;
+use crate::utils::time;
 
 ///
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -37,7 +38,7 @@ impl VoiceTag {
         Self {
             tag_id: format!("voice_tag_{}", Uuid::new_v4()),
             session_id,
-            created_at: Utc::now(),
+            created_at: time::now(),
         }
     }
 
@@ -147,8 +148,8 @@ impl VoiceTagManager {
         let timeout_time = timeout
             .unwrap_or(self.default_timeout)
             .to_std()
-            .map(|d| Utc::now() + ChronoDuration::from_std(d).unwrap_or(self.default_timeout))
-            .unwrap_or_else(|_| Utc::now() + self.default_timeout);
+            .map(|d| time::now() + ChronoDuration::from_std(d).unwrap_or(self.default_timeout))
+            .unwrap_or_else(|_| time::now() + self.default_timeout);
 
         
         command.session_id = tag.tag_id.clone(); 
@@ -176,7 +177,7 @@ impl VoiceTagManager {
                 command: tagged_command.clone(),
                 status: TaggedCommandStatus::Pending,
                 response_count: 0,
-                last_activity: Utc::now(),
+                last_activity: time::now(),
             },
         );
 
@@ -199,7 +200,7 @@ impl VoiceTagManager {
 
         if let Some(active_cmd) = active_commands.get_mut(&tag_id) {
             
-            active_cmd.last_activity = Utc::now();
+            active_cmd.last_activity = time::now();
             active_cmd.response_count += 1;
 
             
@@ -219,7 +220,7 @@ impl VoiceTagManager {
             
             if active_cmd.command.expect_voice_response {
                 
-                response.responded_at = Utc::now();
+                response.responded_at = time::now();
 
                 
                 if let Some(sender) = &self.tts_sender {
@@ -294,7 +295,7 @@ impl VoiceTagManager {
         &self,
         active_commands: &mut HashMap<String, ActiveVoiceCommand>,
     ) {
-        let now = Utc::now();
+        let now = time::now();
         let mut expired_tags = Vec::new();
 
         for (tag_id, active_cmd) in active_commands.iter_mut() {
@@ -381,7 +382,7 @@ impl VoiceTagManager {
             },
             tag,
             is_final,
-            responded_at: Utc::now(),
+            responded_at: time::now(),
         }
     }
 }

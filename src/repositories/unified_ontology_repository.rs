@@ -46,10 +46,10 @@ impl UnifiedOntologyRepository {
     /// * `db_path` - Path to unified.db (or ":memory:" for testing)
     pub fn new(db_path: &str) -> Result<Self, String> {
         let conn =
-            Connection::open(db_path).map_err(|e| format!("Failed to open unified database: {}", e))?;
+            Connection::open(db_path).map_err(|e| format!("failed to open unified database: {}", e))?;
 
         conn.execute("PRAGMA foreign_keys = ON", [])
-            .map_err(|e| format!("Failed to enable foreign keys: {}", e))?;
+            .map_err(|e| format!("failed to enable foreign keys: {}", e))?;
 
         Self::create_schema(&conn)?;
 
@@ -81,13 +81,13 @@ impl UnifiedOntologyRepository {
             )",
             [],
         )
-        .map_err(|e| format!("Failed to create owl_classes table: {}", e))?;
+        .map_err(|e| format!("create owl_classes table: {}", e))?;
 
         conn.execute("CREATE INDEX IF NOT EXISTS idx_owl_classes_iri ON owl_classes(iri)", [])
-            .map_err(|e| format!("Failed to create index: {}", e))?;
+            .map_err(|e| format!("create index: {}", e))?;
 
         conn.execute("CREATE INDEX IF NOT EXISTS idx_owl_classes_ontology_id ON owl_classes(ontology_id)", [])
-            .map_err(|e| format!("Failed to create index: {}", e))?;
+            .map_err(|e| format!("create index: {}", e))?;
 
         // Create owl_class_hierarchy table - MATCH INSERT STATEMENT COLUMNS
         conn.execute(
@@ -101,13 +101,13 @@ impl UnifiedOntologyRepository {
             )",
             [],
         )
-        .map_err(|e| format!("Failed to create owl_class_hierarchy table: {}", e))?;
+        .map_err(|e| format!("create owl_class_hierarchy table: {}", e))?;
 
         conn.execute("CREATE INDEX IF NOT EXISTS idx_owl_hierarchy_class ON owl_class_hierarchy(class_iri)", [])
-            .map_err(|e| format!("Failed to create index: {}", e))?;
+            .map_err(|e| format!("create index: {}", e))?;
 
         conn.execute("CREATE INDEX IF NOT EXISTS idx_owl_hierarchy_parent ON owl_class_hierarchy(parent_iri)", [])
-            .map_err(|e| format!("Failed to create index: {}", e))?;
+            .map_err(|e| format!("create index: {}", e))?;
 
         // Create owl_properties table - MATCH INSERT STATEMENT COLUMNS
         conn.execute(
@@ -123,10 +123,10 @@ impl UnifiedOntologyRepository {
             )",
             [],
         )
-        .map_err(|e| format!("Failed to create owl_properties table: {}", e))?;
+        .map_err(|e| format!("create owl_properties table: {}", e))?;
 
         conn.execute("CREATE INDEX IF NOT EXISTS idx_owl_properties_iri ON owl_properties(iri)", [])
-            .map_err(|e| format!("Failed to create index: {}", e))?;
+            .map_err(|e| format!("create index: {}", e))?;
 
         // Create owl_axioms table - MATCH INSERT STATEMENT COLUMNS
         conn.execute(
@@ -141,13 +141,13 @@ impl UnifiedOntologyRepository {
             )",
             [],
         )
-        .map_err(|e| format!("Failed to create owl_axioms table: {}", e))?;
+        .map_err(|e| format!("create owl_axioms table: {}", e))?;
 
         conn.execute("CREATE INDEX IF NOT EXISTS idx_owl_axioms_type ON owl_axioms(axiom_type)", [])
-            .map_err(|e| format!("Failed to create index: {}", e))?;
+            .map_err(|e| format!("create index: {}", e))?;
 
         conn.execute("CREATE INDEX IF NOT EXISTS idx_owl_axioms_subject ON owl_axioms(subject)", [])
-            .map_err(|e| format!("Failed to create index: {}", e))?;
+            .map_err(|e| format!("create index: {}", e))?;
 
         info!("Successfully created ontology schema tables with correct column names");
         Ok(())
@@ -366,8 +366,8 @@ impl OntologyRepository for UnifiedOntologyRepository {
                 })?;
 
             for property in &properties_vec {
-                let domain_json = serde_json::to_string(&property.domain).ok();
-                let range_json = serde_json::to_string(&property.range).ok();
+                let domain_json = to_json(&property.domain).ok();
+                let range_json = to_json(&property.range).ok();
 
                 prop_stmt
                     .execute(params![
@@ -400,7 +400,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
                 })?;
 
             for axiom in &axioms_vec {
-                let annotations_json = serde_json::to_string(&axiom.annotations).ok();
+                let annotations_json = to_json(&axiom.annotations).ok();
 
                 axiom_stmt
                     .execute(params![
@@ -441,7 +441,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
             Ok(())
         })
         .await
-        .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Task join error: {}", e)))?
+        .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?
     }
 
     async fn add_owl_class(&self, class: &OwlClass) -> RepoResult<String> {
@@ -483,7 +483,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
             Ok(class.iri.clone())
         })
         .await
-        .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Task join error: {}", e)))?
+        .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?
     }
 
     async fn get_owl_class(&self, iri: &str) -> RepoResult<Option<OwlClass>> {
@@ -563,7 +563,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
             }
         })
         .await
-        .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Task join error: {}", e)))?
+        .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?
     }
 
     async fn list_owl_classes(&self) -> RepoResult<Vec<OwlClass>> {
@@ -657,7 +657,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
             Ok(result_classes)
         })
         .await
-        .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Task join error: {}", e)))?
+        .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?
     }
 
     
@@ -709,7 +709,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
                         .map_err(|e| rusqlite::Error::InvalidQuery)?;
 
                     let annotations: HashMap<String, String> = annotations_json
-                        .and_then(|json| serde_json::from_str(&json).ok())
+                        .and_then(|json| from_json(&json).ok())
                         .unwrap_or_default();
 
                     Ok(OwlAxiom {
@@ -734,7 +734,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
             Ok(axioms)
         })
         .await
-        .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Task join error: {}", e)))?
+        .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?
     }
 
     async fn add_axiom(&self, _axiom: &OwlAxiom) -> RepoResult<u64> {
@@ -742,28 +742,7 @@ impl OntologyRepository for UnifiedOntologyRepository {
     }
 
     async fn get_class_axioms(&self, _class_iri: &str) -> RepoResult<Vec<OwlAxiom>> {
-        Ok(Vec::new()) 
-    }
-
-    async fn store_inference_results(&self, _results: &InferenceResults) -> RepoResult<()> {
-        Ok(()) 
-    }
-
-    async fn get_inference_results(&self) -> RepoResult<Option<InferenceResults>> {
-        Ok(None) 
-    }
-
-    async fn validate_ontology(&self) -> RepoResult<ValidationReport> {
-        Ok(ValidationReport {
-            is_valid: true,
-            errors: Vec::new(),
-            warnings: Vec::new(),
-            timestamp: chrono::Utc::now(),
-        })
-    }
-
-    async fn query_ontology(&self, _query: &str) -> RepoResult<Vec<HashMap<String, String>>> {
-        Ok(Vec::new()) 
+        Ok(Vec::new())
     }
 
     async fn get_metrics(&self) -> RepoResult<OntologyMetrics> {
@@ -776,37 +755,15 @@ impl OntologyRepository for UnifiedOntologyRepository {
             property_count: properties.len(),
             axiom_count: axioms.len(),
             max_depth: 10,    
-            average_branching_factor: 2.5, 
+            average_branching_factor: 2.5,
         })
-    }
-
-    async fn cache_sssp_result(&self, _entry: &PathfindingCacheEntry) -> RepoResult<()> {
-        Ok(()) 
-    }
-
-    async fn get_cached_sssp(
-        &self,
-        _source_node_id: u32,
-    ) -> RepoResult<Option<PathfindingCacheEntry>> {
-        Ok(None) 
-    }
-
-    async fn cache_apsp_result(&self, _distance_matrix: &Vec<Vec<f32>>) -> RepoResult<()> {
-        Ok(()) 
-    }
-
-    async fn get_cached_apsp(&self) -> RepoResult<Option<Vec<Vec<f32>>>> {
-        Ok(None) 
-    }
-
-    async fn invalidate_pathfinding_caches(&self) -> RepoResult<()> {
-        Ok(()) 
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+use crate::utils::json::{from_json, to_json};
 
     #[tokio::test]
     async fn test_unified_ontology_repository_creation() {

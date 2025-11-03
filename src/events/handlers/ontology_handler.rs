@@ -4,6 +4,7 @@ use tokio::sync::RwLock;
 
 use crate::events::domain_events::*;
 use crate::events::types::{EventError, EventHandler, EventResult, StoredEvent};
+use crate::utils::json::{from_json, to_json};
 
 ///
 ///
@@ -45,9 +46,8 @@ impl OntologyEventHandler {
     }
 
     async fn handle_class_added(&self, event: &StoredEvent) -> EventResult<()> {
-        let _data: ClassAddedEvent = serde_json::from_str(&event.data).map_err(|e| {
-            EventError::Handler(format!("Failed to deserialize ClassAddedEvent: {}", e))
-        })?;
+        let _data: ClassAddedEvent = from_json(&event.data)
+            .map_err(|e| EventError::Handler(format!("Failed to parse ClassAddedEvent: {}", e)))?;
 
         let mut state = self.state.write().await;
         state.class_count += 1;
@@ -58,9 +58,8 @@ impl OntologyEventHandler {
     }
 
     async fn handle_property_added(&self, event: &StoredEvent) -> EventResult<()> {
-        let _data: PropertyAddedEvent = serde_json::from_str(&event.data).map_err(|e| {
-            EventError::Handler(format!("Failed to deserialize PropertyAddedEvent: {}", e))
-        })?;
+        let _data: PropertyAddedEvent = from_json(&event.data)
+            .map_err(|e| EventError::Handler(format!("Failed to parse PropertyAddedEvent: {}", e)))?;
 
         let mut state = self.state.write().await;
         state.property_count += 1;
@@ -71,9 +70,8 @@ impl OntologyEventHandler {
     }
 
     async fn handle_axiom_added(&self, event: &StoredEvent) -> EventResult<()> {
-        let _data: AxiomAddedEvent = serde_json::from_str(&event.data).map_err(|e| {
-            EventError::Handler(format!("Failed to deserialize AxiomAddedEvent: {}", e))
-        })?;
+        let _data: AxiomAddedEvent = from_json(&event.data)
+            .map_err(|e| EventError::Handler(format!("Failed to parse AxiomAddedEvent: {}", e)))?;
 
         let mut state = self.state.write().await;
         state.inference_pending = true;
@@ -83,12 +81,8 @@ impl OntologyEventHandler {
     }
 
     async fn handle_ontology_imported(&self, event: &StoredEvent) -> EventResult<()> {
-        let data: OntologyImportedEvent = serde_json::from_str(&event.data).map_err(|e| {
-            EventError::Handler(format!(
-                "Failed to deserialize OntologyImportedEvent: {}",
-                e
-            ))
-        })?;
+        let data: OntologyImportedEvent = from_json(&event.data)
+            .map_err(|e| EventError::Handler(format!("Failed to parse OntologyImportedEvent: {}", e)))?;
 
         let mut state = self.state.write().await;
         state.class_count += data.class_count;
@@ -103,12 +97,8 @@ impl OntologyEventHandler {
     }
 
     async fn handle_inference_completed(&self, event: &StoredEvent) -> EventResult<()> {
-        let data: InferenceCompletedEvent = serde_json::from_str(&event.data).map_err(|e| {
-            EventError::Handler(format!(
-                "Failed to deserialize InferenceCompletedEvent: {}",
-                e
-            ))
-        })?;
+        let data: InferenceCompletedEvent = from_json(&event.data)
+            .map_err(|e| EventError::Handler(format!("Failed to parse InferenceCompletedEvent: {}", e)))?;
 
         let mut state = self.state.write().await;
         state.inference_pending = false;
@@ -153,6 +143,7 @@ mod tests {
     use super::*;
     use crate::events::types::EventMetadata;
     use chrono::Utc;
+use crate::utils::time;
 
     #[tokio::test]
     async fn test_class_added_triggers_inference() {
@@ -163,7 +154,7 @@ mod tests {
             class_iri: "http://example.org/Person".to_string(),
             label: Some("Person".to_string()),
             parent_classes: vec![],
-            timestamp: Utc::now(),
+            timestamp: time::now(),
         };
 
         let stored_event = StoredEvent {
@@ -172,7 +163,7 @@ mod tests {
                 "OntologyClass".to_string(),
                 "ClassAdded".to_string(),
             ),
-            data: serde_json::to_string(&event_data).unwrap(),
+            data: to_json(&event_data).unwrap(),
             sequence: 1,
         };
 
@@ -190,7 +181,7 @@ mod tests {
             reasoner_type: "HermiT".to_string(),
             inferred_axioms: 100,
             duration_ms: 250,
-            timestamp: Utc::now(),
+            timestamp: time::now(),
         };
 
         let stored_event = StoredEvent {
@@ -199,7 +190,7 @@ mod tests {
                 "Ontology".to_string(),
                 "InferenceCompleted".to_string(),
             ),
-            data: serde_json::to_string(&event_data).unwrap(),
+            data: to_json(&event_data).unwrap(),
             sequence: 1,
         };
 

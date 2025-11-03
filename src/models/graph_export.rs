@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
+use crate::utils::time;
 
 ///
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -169,7 +170,7 @@ impl SharedGraph {
         node_count: u32,
         edge_count: u32,
     ) -> Self {
-        let now = Utc::now();
+        let now = time::now();
         Self {
             id: Uuid::new_v4(),
             title,
@@ -195,7 +196,7 @@ impl SharedGraph {
     
     pub fn is_expired(&self) -> bool {
         if let Some(expires_at) = self.expires_at {
-            Utc::now() > expires_at
+            time::now() > expires_at
         } else {
             false
         }
@@ -213,12 +214,12 @@ impl SharedGraph {
     
     pub fn increment_access(&mut self) {
         self.access_count += 1;
-        self.updated_at = Utc::now();
+        self.updated_at = time::now();
     }
 
     
     pub fn set_expiration(&mut self, hours: u32) {
-        self.expires_at = Some(Utc::now() + chrono::Duration::hours(hours as i64));
+        self.expires_at = Some(time::now() + chrono::Duration::hours(hours as i64));
     }
 
     

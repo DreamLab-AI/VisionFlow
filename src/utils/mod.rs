@@ -15,11 +15,18 @@ pub mod gpu_diagnostics;
 pub mod gpu_memory;
 pub mod gpu_safety;
 pub mod handler_commons;
-// pub mod hybrid_fault_tolerance; 
-// pub mod hybrid_performance_optimizer; 
-pub mod logging;
-pub mod mcp_connection;
-pub mod mcp_tcp_client;
+pub mod response_macros;
+// pub mod hybrid_fault_tolerance;
+// pub mod hybrid_performance_optimizer;
+pub mod json;
+// REMOVED: pub mod logging; - Superseded by advanced_logging, archived to archive/legacy_code_2025_11_03/
+// Re-export advanced_logging as 'logging' for backwards compatibility
+pub mod logging {
+    pub use super::advanced_logging::is_debug_enabled;
+}
+pub mod mcp_client_utils; // Consolidated MCP client utilities (Phase 2, Task 2.6)
+pub mod mcp_connection; // Legacy wrapper - to be migrated to mcp_client_utils
+pub mod mcp_tcp_client; // Legacy wrapper - to be migrated to mcp_client_utils
 pub mod memory_bounds;
 pub mod network;
 #[cfg(feature = "gpu")]
@@ -34,5 +41,8 @@ pub mod socket_flow_messages;
 pub mod standard_websocket_messages;
 #[cfg(feature = "gpu")]
 pub mod unified_gpu_compute;
+pub mod time;
 pub mod validation;
 pub mod websocket_heartbeat;
+pub mod result_helpers;
+pub mod result_mappers;

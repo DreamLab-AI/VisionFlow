@@ -1,6 +1,7 @@
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
+use crate::utils::time;
 
 ///
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -40,7 +41,7 @@ pub fn extract_client_messages(
     agent_id: Option<String>,
 ) -> Vec<ClientMessage> {
     let regex = get_message_regex();
-    let timestamp = chrono::Utc::now();
+    let timestamp = time::now();
 
     regex
         .captures_iter(text)

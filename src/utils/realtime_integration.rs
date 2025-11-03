@@ -101,7 +101,7 @@ impl AnalyticsProgressReporter for RealtimeProgressReporter {
                 "results": results,
                 "success": success,
                 "processing_time": 0.0,
-                "timestamp": chrono::Utc::now().timestamp_millis()
+                "timestamp": time::timestamp_millis()
             }
         });
 
@@ -364,6 +364,7 @@ impl OperationTracker {
 
 // Global operation tracker instance
 use lazy_static::lazy_static;
+use crate::utils::time;
 
 lazy_static! {
     pub static ref OPERATION_TRACKER: OperationTracker = OperationTracker::new();

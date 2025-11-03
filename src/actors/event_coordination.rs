@@ -226,6 +226,7 @@ pub async fn initialize_event_coordinator(
 mod tests {
     use super::*;
     use chrono::Utc;
+use crate::utils::time;
 
     #[tokio::test]
     async fn test_event_coordinator_creation() {
@@ -240,7 +241,7 @@ mod tests {
             file_path: "/test.json".to_string(),
             node_count: 100,
             edge_count: 200,
-            timestamp: Utc::now(),
+            timestamp: time::now(),
         };
 
         assert_eq!(event.node_count, 100);

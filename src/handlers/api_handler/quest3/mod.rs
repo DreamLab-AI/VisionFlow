@@ -227,7 +227,7 @@ pub async fn get_quest3_defaults(_app_state: web::Data<AppState>) -> Result<Http
         "LOD and culling optimized for Quest 3 hardware".to_string(),
     ];
 
-    Ok(HttpResponse::Ok().json(Quest3DefaultsResponse {
+    Ok(ok_json!(Quest3DefaultsResponse {
         success: true,
         settings: Some(default_settings),
         profile_name: "quest3_optimized_default".to_string(),
@@ -309,7 +309,7 @@ pub async fn calibrate_quest3(
             .push("Restart the application to ensure all settings take effect".to_string());
     }
 
-    Ok(HttpResponse::Ok().json(Quest3CalibrationResponse {
+    Ok(ok_json!(Quest3CalibrationResponse {
         success: true,
         calibrated_settings: Some(calibrated_settings),
         calibration_id,

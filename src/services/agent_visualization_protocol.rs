@@ -689,7 +689,7 @@ impl AgentVisualizationProtocol {
 
     
     pub fn create_discovery_message(&mut self) -> String {
-        let timestamp = chrono::Utc::now();
+        let timestamp = time::now();
         self.last_discovery = Some(timestamp);
 
         let servers: Vec<McpServerInfo> = self.mcp_servers.values().cloned().collect();
@@ -786,7 +786,7 @@ impl AgentVisualizationProtocol {
         };
 
         let message = MultiMcpVisualizationMessage::Discovery(discovery);
-        serde_json::to_string(&message).unwrap_or_default()
+        to_json(&message).unwrap_or_default()
     }
 
     
@@ -820,14 +820,14 @@ impl AgentVisualizationProtocol {
             .collect();
 
         let update_msg = MultiAgentUpdateMessage {
-            timestamp: chrono::Utc::now().timestamp_millis(),
+            timestamp: time::timestamp_millis(),
             agents: updated_agents,
             differential_updates,
             removed_agents: self.get_removed_agents(),
         };
 
         let message = MultiMcpVisualizationMessage::MultiAgentUpdate(update_msg);
-        serde_json::to_string(&message).unwrap_or_default()
+        to_json(&message).unwrap_or_default()
     }
 
     
@@ -840,7 +840,7 @@ impl AgentVisualizationProtocol {
             .insert(swarm_id.clone(), topology_data.clone());
 
         let topology_update = TopologyUpdateMessage {
-            timestamp: chrono::Utc::now().timestamp_millis(),
+            timestamp: time::timestamp_millis(),
             swarm_id,
             topology_changes: self.detect_topology_changes(&topology_data),
             new_connections: self.get_new_connections(),
@@ -849,7 +849,7 @@ impl AgentVisualizationProtocol {
         };
 
         let message = MultiMcpVisualizationMessage::TopologyUpdate(topology_update);
-        serde_json::to_string(&message).unwrap_or_default()
+        to_json(&message).unwrap_or_default()
     }
 
     
@@ -916,7 +916,7 @@ impl AgentVisualizationProtocol {
         let trend_analysis = self.analyze_performance_trends(&agents);
 
         let performance_analysis = PerformanceAnalysisMessage {
-            timestamp: chrono::Utc::now().timestamp_millis(),
+            timestamp: time::timestamp_millis(),
             global_metrics,
             bottlenecks,
             optimization_suggestions,
@@ -924,7 +924,7 @@ impl AgentVisualizationProtocol {
         };
 
         let message = MultiMcpVisualizationMessage::PerformanceAnalysis(performance_analysis);
-        serde_json::to_string(&message).unwrap_or_default()
+        to_json(&message).unwrap_or_default()
     }
 
     
@@ -940,7 +940,7 @@ impl AgentVisualizationProtocol {
     
     pub fn needs_discovery(&self) -> bool {
         self.last_discovery.map_or(true, |last| {
-            chrono::Utc::now().signed_duration_since(last).num_seconds() > 30
+            time::now().signed_duration_since(last).num_seconds() > 30
         })
     }
 
@@ -951,6 +951,7 @@ impl AgentVisualizationProtocol {
         agents: Vec<crate::types::claude_flow::AgentStatus>,
     ) -> String {
         use crate::services::agent_visualization_processor::AgentVisualizationProcessor;
+use crate::utils::json::{from_json, to_json};
 
         let mut processor = AgentVisualizationProcessor::new();
         let viz_data = processor.create_visualization_packet(
@@ -1052,7 +1053,7 @@ impl AgentVisualizationProtocol {
         };
 
         let init_msg = InitializeMessage {
-            timestamp: chrono::Utc::now().timestamp(),
+            timestamp: time::timestamp_seconds(),
             swarm_id: swarm_id.to_string(),
             session_uuid: None, 
             topology: topology.to_string(),
@@ -1064,7 +1065,7 @@ impl AgentVisualizationProtocol {
         };
 
         let message = AgentVisualizationMessage::Initialize(init_msg);
-        serde_json::to_string(&message).unwrap_or_default()
+        to_json(&message).unwrap_or_default()
     }
 
     
@@ -1096,23 +1097,23 @@ impl AgentVisualizationProtocol {
         }
 
         let msg = PositionUpdateMessage {
-            timestamp: chrono::Utc::now().timestamp_millis(),
+            timestamp: time::timestamp_millis(),
             positions: std::mem::take(&mut self.position_buffer),
         };
 
         let message = AgentVisualizationMessage::PositionUpdate(msg);
-        Some(serde_json::to_string(&message).unwrap_or_default())
+        Some(to_json(&message).unwrap_or_default())
     }
 
     
     pub fn create_state_update(updates: Vec<AgentStateUpdate>) -> String {
         let msg = StateUpdateMessage {
-            timestamp: chrono::Utc::now().timestamp_millis(),
+            timestamp: time::timestamp_millis(),
             updates,
         };
 
         let message = AgentVisualizationMessage::StateUpdate(msg);
-        serde_json::to_string(&message).unwrap_or_default()
+        to_json(&message).unwrap_or_default()
     }
 
     

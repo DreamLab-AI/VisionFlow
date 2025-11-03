@@ -116,20 +116,15 @@ pub async fn get_ontology_graph(state: web::Data<AppState>) -> impl Responder {
     match result {
         Ok(Ok(graph)) => {
             info!("Ontology graph loaded successfully via CQRS");
-            HttpResponse::Ok().json(&*graph)
+            ok_json!(&*graph)
         }
         Ok(Err(e)) => {
             error!("CQRS query failed to load ontology graph: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to load ontology graph",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to load ontology graph", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error in get_ontology_graph: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }
@@ -151,22 +146,17 @@ pub async fn save_ontology_graph(
     match result {
         Ok(Ok(())) => {
             info!("Ontology graph saved successfully via CQRS");
-            HttpResponse::Ok().json(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "success": true
             }))
         }
         Ok(Err(e)) => {
             error!("CQRS directive failed to save ontology graph: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to save ontology graph",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to save ontology graph", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }
@@ -186,27 +176,19 @@ pub async fn get_owl_class(state: web::Data<AppState>, iri: web::Path<String>) -
     match result {
         Ok(Ok(Some(class))) => {
             info!("OWL class found via CQRS: iri={}", class_iri);
-            HttpResponse::Ok().json(class)
+            ok_json!(class)
         }
         Ok(Ok(None)) => {
             info!("OWL class not found: iri={}", class_iri);
-            HttpResponse::NotFound().json(serde_json::json!({
-                "error": "OWL class not found",
-                "iri": class_iri
-            }))
+            not_found!("OWL class not found").unwrap()
         }
         Ok(Err(e)) => {
             error!("CQRS query failed to get OWL class: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to get OWL class",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to get OWL class", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }
@@ -227,20 +209,15 @@ pub async fn list_owl_classes(state: web::Data<AppState>) -> impl Responder {
                 "OWL classes listed successfully via CQRS: {} classes",
                 classes.len()
             );
-            HttpResponse::Ok().json(classes)
+            ok_json!(classes)
         }
         Ok(Err(e)) => {
             error!("CQRS query failed to list OWL classes: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to list OWL classes",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to list OWL classes", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }
@@ -263,23 +240,18 @@ pub async fn add_owl_class(
     match result {
         Ok(Ok(())) => {
             info!("OWL class added successfully via CQRS: iri={}", class_iri);
-            HttpResponse::Ok().json(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "success": true,
                 "iri": class_iri
             }))
         }
         Ok(Err(e)) => {
             error!("CQRS directive failed to add OWL class: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to add OWL class",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to add OWL class", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }
@@ -301,22 +273,17 @@ pub async fn update_owl_class(
     match result {
         Ok(Ok(())) => {
             info!("OWL class updated successfully via CQRS");
-            HttpResponse::Ok().json(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "success": true
             }))
         }
         Ok(Err(e)) => {
             error!("CQRS directive failed to update OWL class: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to update OWL class",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to update OWL class", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }
@@ -338,22 +305,17 @@ pub async fn remove_owl_class(
     match result {
         Ok(Ok(())) => {
             info!("OWL class removed successfully via CQRS");
-            HttpResponse::Ok().json(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "success": true
             }))
         }
         Ok(Err(e)) => {
             error!("CQRS directive failed to remove OWL class: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to remove OWL class",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to remove OWL class", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }
@@ -375,21 +337,15 @@ pub async fn get_owl_property(
     }) {
         Ok(Some(property)) => {
             info!("OWL property found via CQRS: iri={}", property_iri);
-            HttpResponse::Ok().json(property)
+            ok_json!(property)
         }
         Ok(None) => {
             info!("OWL property not found: iri={}", property_iri);
-            HttpResponse::NotFound().json(serde_json::json!({
-                "error": "OWL property not found",
-                "iri": property_iri
-            }))
+            not_found!("OWL property not found").unwrap()
         }
         Err(e) => {
             error!("CQRS query failed to get OWL property: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to get OWL property",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to get OWL property", e.to_string())
         }
     }
 }
@@ -410,20 +366,15 @@ pub async fn list_owl_properties(state: web::Data<AppState>) -> impl Responder {
                 "OWL properties listed successfully via CQRS: {} properties",
                 properties.len()
             );
-            HttpResponse::Ok().json(properties)
+            ok_json!(properties)
         }
         Ok(Err(e)) => {
             error!("CQRS query failed to list OWL properties: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to list OWL properties",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to list OWL properties", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }
@@ -450,17 +401,14 @@ pub async fn add_owl_property(
                 "OWL property added successfully via CQRS: iri={}",
                 property_iri
             );
-            HttpResponse::Ok().json(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "success": true,
                 "iri": property_iri
             }))
         }
         Err(e) => {
             error!("CQRS directive failed to add OWL property: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to add OWL property",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to add OWL property", e.to_string())
         }
     }
 }
@@ -485,22 +433,17 @@ pub async fn update_owl_property(
     match result {
         Ok(Ok(())) => {
             info!("OWL property updated successfully via CQRS");
-            HttpResponse::Ok().json(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "success": true
             }))
         }
         Ok(Err(e)) => {
             error!("CQRS directive failed to update OWL property: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to update OWL property",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to update OWL property", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }
@@ -525,20 +468,15 @@ pub async fn get_class_axioms(
                 "Class axioms retrieved successfully via CQRS: {} axioms",
                 axioms.len()
             );
-            HttpResponse::Ok().json(axioms)
+            ok_json!(axioms)
         }
         Ok(Err(e)) => {
             error!("CQRS query failed to get class axioms: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to get class axioms",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to get class axioms", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }
@@ -562,17 +500,14 @@ pub async fn add_axiom(
     match handler.handle(AddAxiom { axiom }) {
         Ok(()) => {
             info!("Axiom added successfully via CQRS: type={}", axiom_type);
-            HttpResponse::Ok().json(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "success": true,
                 "message": format!("Axiom of type {} added", axiom_type)
             }))
         }
         Err(e) => {
             error!("CQRS directive failed to add axiom: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to add axiom",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to add axiom", e.to_string())
         }
     }
 }
@@ -591,22 +526,17 @@ pub async fn remove_axiom(state: web::Data<AppState>, axiom_id: web::Path<u64>) 
     match result {
         Ok(Ok(())) => {
             info!("Axiom removed successfully via CQRS");
-            HttpResponse::Ok().json(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "success": true
             }))
         }
         Ok(Err(e)) => {
             error!("CQRS directive failed to remove axiom: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to remove axiom",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to remove axiom", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }
@@ -624,26 +554,19 @@ pub async fn get_inference_results(state: web::Data<AppState>) -> impl Responder
     match result {
         Ok(Ok(Some(results))) => {
             info!("Inference results retrieved successfully via CQRS");
-            HttpResponse::Ok().json(results)
+            ok_json!(results)
         }
         Ok(Ok(None)) => {
             info!("No inference results found");
-            HttpResponse::NotFound().json(serde_json::json!({
-                "error": "No inference results available"
-            }))
+            not_found!("No inference results available")
         }
         Ok(Err(e)) => {
             error!("CQRS query failed to get inference results: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to get inference results",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to get inference results", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }
@@ -668,22 +591,17 @@ pub async fn store_inference_results(
     match result {
         Ok(Ok(())) => {
             info!("Inference results stored successfully via CQRS");
-            HttpResponse::Ok().json(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "success": true
             }))
         }
         Ok(Err(e)) => {
             error!("CQRS directive failed to store inference results: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to store inference results",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to store inference results", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }
@@ -704,20 +622,15 @@ pub async fn validate_ontology(state: web::Data<AppState>) -> impl Responder {
                 "Ontology validation completed via CQRS: is_valid={}",
                 report.is_valid
             );
-            HttpResponse::Ok().json(report)
+            ok_json!(report)
         }
         Ok(Err(e)) => {
             error!("CQRS query failed to validate ontology: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to validate ontology",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to validate ontology", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }
@@ -742,20 +655,15 @@ pub async fn query_ontology(
                 "Ontology query successful via CQRS: {} results",
                 results.len()
             );
-            HttpResponse::Ok().json(results)
+            ok_json!(results)
         }
         Ok(Err(e)) => {
             error!("CQRS query failed to query ontology: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to query ontology",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to query ontology", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }
@@ -773,20 +681,15 @@ pub async fn get_ontology_metrics(state: web::Data<AppState>) -> impl Responder 
     match result {
         Ok(Ok(metrics)) => {
             info!("Ontology metrics retrieved successfully via CQRS");
-            HttpResponse::Ok().json(metrics)
+            ok_json!(metrics)
         }
         Ok(Err(e)) => {
             error!("CQRS query failed to get ontology metrics: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Failed to get ontology metrics",
-                "message": e.to_string()
-            }))
+            error_json!("Failed to get ontology metrics", e.to_string())
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error")
         }
     }
 }

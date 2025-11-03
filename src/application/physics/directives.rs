@@ -266,7 +266,7 @@ mod tests {
             &self,
             params: SimulationParams,
         ) -> crate::ports::physics_simulator::Result<()> {
-            *self.params.lock().unwrap() = Some(params);
+            *self.params.lock().expect("Mutex poisoned") = Some(params);
             Ok(())
         }
 
@@ -274,7 +274,7 @@ mod tests {
             &self,
             constraints: Vec<Constraint>,
         ) -> crate::ports::physics_simulator::Result<()> {
-            *self.constraints.lock().unwrap() = constraints;
+            *self.constraints.lock().expect("Mutex poisoned") = constraints;
             Ok(())
         }
 
@@ -377,9 +377,9 @@ mod tests {
         
         tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
 
-        let stored_params = simulator.params.lock().unwrap();
+        let stored_params = simulator.params.lock().expect("Mutex poisoned");
         assert!(stored_params.is_some());
-        assert_eq!(stored_params.as_ref().unwrap().graph_name, "test");
+        assert_eq!(stored_params.as_ref().expect("Expected value to be present").graph_name, "test");
     }
 
     #[tokio::test]

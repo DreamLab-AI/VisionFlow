@@ -770,7 +770,7 @@ impl SemanticConstraintGenerator {
 
                 let constraint = Constraint::cluster(
                     node_indices,
-                    clusters.iter().position(|c| c.id == cluster.id).unwrap() as f32,
+                    clusters.iter().position(|c| c.id == cluster.id).expect("Expected item to be in collection") as f32,
                     cluster_strength,
                 );
 

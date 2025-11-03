@@ -1,0 +1,8 @@
+src/actors/client_coordinator_actor.rs:721:            let mut manager = self.client_manager.write().unwrap();
+src/actors/client_coordinator_actor.rs:774:            let mut manager = self.client_manager.write().unwrap();
+src/actors/client_coordinator_actor.rs:946:                let mut manager = self.client_manager.write().unwrap();
+src/utils/validation/rate_limit.rs:116:        let mut clients = self.clients.write().unwrap();
+src/utils/validation/rate_limit.rs:132:        let mut clients = self.clients.write().unwrap();
+src/utils/validation/rate_limit.rs:165:        let mut last_cleanup = self.last_cleanup.write().unwrap();
+src/utils/validation/rate_limit.rs:175:        let mut clients = self.clients.write().unwrap();
+src/utils/validation/rate_limit.rs:207:                let mut clients_guard = clients.write().unwrap();

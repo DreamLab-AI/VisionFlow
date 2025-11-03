@@ -2,6 +2,7 @@ use actix_web::{HttpResponse, ResponseError};
 use log::error;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use crate::utils::time;
 
 ///
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -24,7 +25,7 @@ impl DetailedValidationError {
             error_code: error_code.to_string(),
             context: None,
             suggestions: None,
-            timestamp: chrono::Utc::now().to_rfc3339(),
+            timestamp: time::format_iso8601(&time::now()),
         }
     }
 
@@ -285,7 +286,7 @@ impl From<crate::utils::validation::ValidationError> for DetailedValidationError
                     .collect()
             }),
             suggestions: None,
-            timestamp: chrono::Utc::now().to_rfc3339(),
+            timestamp: time::format_iso8601(&time::now()),
         }
     }
 }
@@ -331,7 +332,7 @@ impl ValidationErrorCollection {
         Self {
             errors: Vec::new(),
             error_count: 0,
-            timestamp: chrono::Utc::now().to_rfc3339(),
+            timestamp: time::format_iso8601(&time::now()),
         }
     }
 

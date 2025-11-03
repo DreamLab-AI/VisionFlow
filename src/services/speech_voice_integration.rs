@@ -9,6 +9,7 @@ use crate::services::voice_tag_manager::{TaggedVoiceResponse, VoiceTag, VoiceTag
 use crate::types::speech::SpeechOptions;
 use log::{debug, info, warn};
 use std::sync::Arc;
+use crate::utils::time;
 
 ///
 pub trait VoiceSwarmIntegration {
@@ -77,7 +78,7 @@ impl VoiceSwarmIntegration for SpeechService {
                     },
                     tag: tag.clone(),
                     is_final: true,
-                    responded_at: chrono::Utc::now(),
+                    responded_at: time::now(),
                 };
 
                 tag_manager.process_tagged_response(error_response).await?;

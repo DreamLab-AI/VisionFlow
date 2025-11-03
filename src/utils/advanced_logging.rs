@@ -11,6 +11,9 @@ use std::{
     sync::{Arc, Mutex, RwLock},
 };
 
+use crate::utils::time;
+use crate::utils::json::{from_json, to_json};
+
 // Structured log entry for JSON logging
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LogEntry {
@@ -162,7 +165,7 @@ impl AdvancedLogger {
         metadata: Option<HashMap<String, serde_json::Value>>,
     ) {
         let entry = LogEntry {
-            timestamp: Utc::now(),
+            timestamp: time::now(),
             level: level.to_string(),
             component: component.as_str().to_string(),
             message: message.to_string(),
@@ -239,7 +242,7 @@ impl AdvancedLogger {
         drop(recovery_attempts);
 
         let entry = LogEntry {
-            timestamp: Utc::now(),
+            timestamp: time::now(),
             level: "INFO".to_string(),
             component: "gpu".to_string(),
             message: format!(
@@ -293,7 +296,7 @@ impl AdvancedLogger {
         };
 
         let entry = LogEntry {
-            timestamp: Utc::now(),
+            timestamp: time::now(),
             level: "ERROR".to_string(),
             component: "gpu".to_string(),
             message: error_msg.to_string(),
@@ -321,7 +324,7 @@ impl AdvancedLogger {
         .collect();
 
         let entry = LogEntry {
-            timestamp: Utc::now(),
+            timestamp: time::now(),
             level: "INFO".to_string(),
             component: "memory".to_string(),
             message: format!(
@@ -346,7 +349,7 @@ impl AdvancedLogger {
         }
 
         let entry = LogEntry {
-            timestamp: Utc::now(),
+            timestamp: time::now(),
             level: "INFO".to_string(),
             component: "performance".to_string(),
             message: format!("Operation {} completed in {:.2}ms", operation, duration_ms),
@@ -361,7 +364,7 @@ impl AdvancedLogger {
 
     fn write_log_entry(&self, component: LogComponent, entry: &LogEntry) {
         let json_line =
-            serde_json::to_string(entry).unwrap_or_else(|_| "Invalid log entry".to_string());
+            to_json(entry).unwrap_or_else(|_| "Invalid log entry".to_string());
 
         
         if let Ok(mut writers) = self.log_writers.try_write() {
@@ -390,7 +393,7 @@ impl AdvancedLogger {
     fn rotate_log_file(&self, component: LogComponent) {
         let base_name = component.log_file_name();
         let current_path = self.log_dir.join(&base_name);
-        let timestamp = Utc::now().format("%Y%m%d_%H%M%S");
+        let timestamp = time::now().format("%Y%m%d_%H%M%S");
         let archived_name = format!("{}_{}.log", component.as_str(), timestamp);
         let archived_path = self.log_dir.join("archived").join(archived_name);
 
@@ -607,6 +610,25 @@ pub fn get_performance_summary() -> HashMap<String, serde_json::Value> {
     } else {
         HashMap::new()
     }
+}
+
+/// Check if debug logging is enabled
+///
+/// This function checks both the DEBUG_ENABLED environment variable
+/// and the application settings to determine if debug logging should be active.
+pub fn is_debug_enabled() -> bool {
+    // Check environment variable first
+    if let Ok(val) = std::env::var("DEBUG_ENABLED") {
+        return val.parse::<bool>().unwrap_or(false);
+    }
+
+    // Fall back to application settings
+    if let Ok(settings) = crate::config::AppFullSettings::new() {
+        return settings.system.debug.enabled;
+    }
+
+    // Default to false if neither is available
+    false
 }
 
 // Convenience macros for structured logging

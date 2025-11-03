@@ -5,6 +5,13 @@ use crate::services::nostr_service::{AuthEvent, NostrError, NostrService};
 use actix_web::{web, Error, HttpRequest, HttpResponse};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use crate::{
+    ok_json, created_json, error_json, bad_request, not_found,
+    unauthorized, forbidden, conflict, no_content, accepted,
+    too_many_requests, service_unavailable, payload_too_large
+};
+
+
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -73,12 +80,10 @@ async fn check_power_user_status(
         .unwrap_or("");
 
     if pubkey.is_empty() {
-        return Ok(HttpResponse::BadRequest().json(json!({
-            "error": "Missing Nostr pubkey"
-        })));
+        return bad_request!("Missing Nostr pubkey");
     }
 
-    Ok(HttpResponse::Ok().json(json!({
+    Ok(ok_json!(json!({
         "is_power_user": feature_access.is_power_user(pubkey)
     })))
 }
@@ -94,13 +99,11 @@ async fn get_available_features(
         .unwrap_or("");
 
     if pubkey.is_empty() {
-        return Ok(HttpResponse::BadRequest().json(json!({
-            "error": "Missing Nostr pubkey"
-        })));
+        return bad_request!("Missing Nostr pubkey");
     }
 
     let features = feature_access.get_available_features(pubkey);
-    Ok(HttpResponse::Ok().json(json!({
+    Ok(ok_json!(json!({
         "features": features
     })))
 }
@@ -117,12 +120,10 @@ async fn check_feature_access(
         .unwrap_or("");
 
     if pubkey.is_empty() {
-        return Ok(HttpResponse::BadRequest().json(json!({
-            "error": "Missing Nostr pubkey"
-        })));
+        return bad_request!("Missing Nostr pubkey");
     }
 
-    Ok(HttpResponse::Ok().json(json!({
+    Ok(ok_json!(json!({
         "has_access": feature_access.has_feature_access(pubkey, &feature)
     })))
 }
@@ -151,7 +152,7 @@ async fn login(
                 is_power_user: user.is_power_user,
             };
 
-            Ok(HttpResponse::Ok().json(AuthResponse {
+            Ok(ok_json!(AuthResponse {
                 user: user_dto,
                 token,
                 expires_at,
@@ -161,9 +162,7 @@ async fn login(
         Err(NostrError::InvalidSignature) => Ok(HttpResponse::Unauthorized().json(json!({
             "error": "Invalid signature"
         }))),
-        Err(e) => Ok(HttpResponse::InternalServerError().json(json!({
-            "error": format!("Authentication error: {}", e)
-        }))),
+        Err(e) => Ok(error_json!("Authentication error: {}", e)),
     }
 }
 
@@ -182,12 +181,10 @@ async fn logout(
     }
 
     match nostr_service.logout(&req.pubkey).await {
-        Ok(_) => Ok(HttpResponse::Ok().json(json!({
+        Ok(_) => Ok(ok_json!(json!({
             "message": "Logged out successfully"
         }))),
-        Err(e) => Ok(HttpResponse::InternalServerError().json(json!({
-            "error": format!("Logout error: {}", e)
-        }))),
+        Err(e) => Ok(error_json!("Logout error: {}", e)),
     }
 }
 
@@ -219,7 +216,7 @@ async fn verify(
         Vec::new()
     };
 
-    Ok(HttpResponse::Ok().json(VerifyResponse {
+    Ok(ok_json!(VerifyResponse {
         valid: is_valid,
         user,
         features,
@@ -252,7 +249,7 @@ async fn refresh(
                 
                 let features = feature_access.get_available_features(&req.pubkey);
 
-                Ok(HttpResponse::Ok().json(AuthResponse {
+                Ok(ok_json!(AuthResponse {
                     user: UserResponseDTO {
                         pubkey: user.pubkey.clone(),
                         npub: Some(user.npub.clone()),
@@ -263,14 +260,10 @@ async fn refresh(
                     features,
                 }))
             } else {
-                Ok(HttpResponse::InternalServerError().json(json!({
-                    "error": "User not found after refresh"
-                })))
+                error_json!("User not found after refresh")
             }
         }
-        Err(e) => Ok(HttpResponse::InternalServerError().json(json!({
-            "error": format!("Session refresh error: {}", e)
-        }))),
+        Err(e) => Ok(error_json!("Session refresh error: {}", e)),
     }
 }
 
@@ -292,17 +285,13 @@ async fn update_api_keys(
                 npub: Some(user.npub.clone()),
                 is_power_user: user.is_power_user,
             };
-            Ok(HttpResponse::Ok().json(user_dto))
+            Ok(ok_json!(user_dto))
         }
-        Err(NostrError::UserNotFound) => Ok(HttpResponse::NotFound().json(json!({
-            "error": "User not found"
-        }))),
+        Err(NostrError::UserNotFound) => not_found!("User not found"),
         Err(NostrError::PowerUserOperation) => Ok(HttpResponse::Forbidden().json(json!({
             "error": "Cannot update API keys for power users"
         }))),
-        Err(e) => Ok(HttpResponse::InternalServerError().json(json!({
-            "error": format!("Failed to update API keys: {}", e)
-        }))),
+        Err(e) => Ok(error_json!("Failed to update API keys: {}", e)),
     }
 }
 
@@ -312,7 +301,7 @@ async fn get_api_keys(
 ) -> Result<HttpResponse, Error> {
     let api_keys = state.get_api_keys(&pubkey).await;
 
-    Ok(HttpResponse::Ok().json(api_keys))
+    Ok(ok_json!(api_keys))
 }
 
 // Add the handler to app_state initialization

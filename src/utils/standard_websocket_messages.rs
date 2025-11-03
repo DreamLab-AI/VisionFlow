@@ -1,6 +1,8 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use crate::utils::time;
+use crate::utils::json::{from_json, to_json};
 
 ///
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -386,7 +388,7 @@ impl ToStandardMessage for StandardWebSocketMessage {
                 StandardWebSocketMessage::Response { .. } => "response".to_string(),
             },
             payload: serde_json::to_value(self).unwrap_or(serde_json::Value::Null),
-            timestamp: Utc::now(),
+            timestamp: time::now(),
             client_id,
             request_id: None,
             metadata: None,
@@ -396,13 +398,13 @@ impl ToStandardMessage for StandardWebSocketMessage {
 
 ///
 pub fn serialize_message<T: Serialize>(message: &T) -> Result<String, serde_json::Error> {
-    serde_json::to_string(message)
+    to_json(message)
 }
 
 pub fn deserialize_message<T: for<'de> Deserialize<'de>>(
     data: &str,
 ) -> Result<T, serde_json::Error> {
-    serde_json::from_str(data)
+    from_json(data)
 }
 
 ///
@@ -411,14 +413,14 @@ pub fn create_error_message(error_type: &str, message: &str) -> StandardWebSocke
         error_type: error_type.to_string(),
         message: message.to_string(),
         details: None,
-        timestamp: Utc::now(),
+        timestamp: time::now(),
     }
 }
 
 ///
 pub fn create_ping_message(client_id: Option<String>) -> StandardWebSocketMessage {
     StandardWebSocketMessage::Ping {
-        timestamp: Utc::now(),
+        timestamp: time::now(),
         client_id,
     }
 }
@@ -426,7 +428,7 @@ pub fn create_ping_message(client_id: Option<String>) -> StandardWebSocketMessag
 ///
 pub fn create_pong_message(client_id: Option<String>) -> StandardWebSocketMessage {
     StandardWebSocketMessage::Pong {
-        timestamp: Utc::now(),
+        timestamp: time::now(),
         client_id,
     }
 }

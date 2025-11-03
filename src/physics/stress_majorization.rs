@@ -869,7 +869,7 @@ mod tests {
         solver.compute_distance_matrix(&graph).unwrap();
         assert!(solver.cached_distance_matrix.is_some());
 
-        let distance_matrix = solver.cached_distance_matrix.as_ref().unwrap();
+        let distance_matrix = solver.cached_distance_matrix.as_ref().expect("Expected value to be present");
         assert_eq!(distance_matrix.nrows(), 3);
         assert_eq!(distance_matrix.ncols(), 3);
 

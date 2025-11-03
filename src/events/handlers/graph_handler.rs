@@ -5,6 +5,7 @@ use tokio::sync::RwLock;
 
 use crate::events::domain_events::*;
 use crate::events::types::{EventError, EventHandler, EventResult, StoredEvent};
+use crate::utils::json::{from_json, to_json};
 
 ///
 ///
@@ -63,9 +64,8 @@ impl GraphEventHandler {
     }
 
     async fn handle_node_added(&self, event: &StoredEvent) -> EventResult<()> {
-        let data: NodeAddedEvent = serde_json::from_str(&event.data).map_err(|e| {
-            EventError::Handler(format!("Failed to deserialize NodeAddedEvent: {}", e))
-        })?;
+        let data: NodeAddedEvent = from_json(&event.data)
+            .map_err(|e| EventError::Handler(format!("Failed to parse NodeAddedEvent: {}", e)))?;
 
         let mut cache = self.cache.write().await;
         cache.nodes.insert(
@@ -81,9 +81,8 @@ impl GraphEventHandler {
     }
 
     async fn handle_node_removed(&self, event: &StoredEvent) -> EventResult<()> {
-        let data: NodeRemovedEvent = serde_json::from_str(&event.data).map_err(|e| {
-            EventError::Handler(format!("Failed to deserialize NodeRemovedEvent: {}", e))
-        })?;
+        let data: NodeRemovedEvent = from_json(&event.data)
+            .map_err(|e| EventError::Handler(format!("Failed to parse NodeRemovedEvent: {}", e)))?;
 
         let mut cache = self.cache.write().await;
         if cache.nodes.remove(&data.node_id).is_some() {
@@ -94,9 +93,8 @@ impl GraphEventHandler {
     }
 
     async fn handle_edge_added(&self, event: &StoredEvent) -> EventResult<()> {
-        let data: EdgeAddedEvent = serde_json::from_str(&event.data).map_err(|e| {
-            EventError::Handler(format!("Failed to deserialize EdgeAddedEvent: {}", e))
-        })?;
+        let data: EdgeAddedEvent = from_json(&event.data)
+            .map_err(|e| EventError::Handler(format!("Failed to parse EdgeAddedEvent: {}", e)))?;
 
         let mut cache = self.cache.write().await;
         cache.edges.insert(
@@ -113,9 +111,8 @@ impl GraphEventHandler {
     }
 
     async fn handle_edge_removed(&self, event: &StoredEvent) -> EventResult<()> {
-        let data: EdgeRemovedEvent = serde_json::from_str(&event.data).map_err(|e| {
-            EventError::Handler(format!("Failed to deserialize EdgeRemovedEvent: {}", e))
-        })?;
+        let data: EdgeRemovedEvent = from_json(&event.data)
+            .map_err(|e| EventError::Handler(format!("Failed to parse EdgeRemovedEvent: {}", e)))?;
 
         let mut cache = self.cache.write().await;
         if cache.edges.remove(&data.edge_id).is_some() {
@@ -163,6 +160,7 @@ mod tests {
     use super::*;
     use crate::events::types::EventMetadata;
     use chrono::Utc;
+use crate::utils::time;
 
     #[tokio::test]
     async fn test_node_added_event() {
@@ -173,7 +171,7 @@ mod tests {
             label: "Test Node".to_string(),
             node_type: "Person".to_string(),
             properties: HashMap::new(),
-            timestamp: Utc::now(),
+            timestamp: time::now(),
         };
 
         let stored_event = StoredEvent {
@@ -182,7 +180,7 @@ mod tests {
                 "Node".to_string(),
                 "NodeAdded".to_string(),
             ),
-            data: serde_json::to_string(&event_data).unwrap(),
+            data: to_json(&event_data).unwrap(),
             sequence: 1,
         };
 
@@ -200,7 +198,7 @@ mod tests {
             target_id: "node-2".to_string(),
             edge_type: "knows".to_string(),
             weight: 1.0,
-            timestamp: Utc::now(),
+            timestamp: time::now(),
         };
 
         let stored_event = StoredEvent {
@@ -209,7 +207,7 @@ mod tests {
                 "Edge".to_string(),
                 "EdgeAdded".to_string(),
             ),
-            data: serde_json::to_string(&event_data).unwrap(),
+            data: to_json(&event_data).unwrap(),
             sequence: 1,
         };
 
@@ -227,7 +225,7 @@ mod tests {
             label: "Test".to_string(),
             node_type: "Person".to_string(),
             properties: HashMap::new(),
-            timestamp: Utc::now(),
+            timestamp: time::now(),
         };
 
         let stored_add = StoredEvent {
@@ -236,7 +234,7 @@ mod tests {
                 "Node".to_string(),
                 "NodeAdded".to_string(),
             ),
-            data: serde_json::to_string(&add_event).unwrap(),
+            data: to_json(&add_event).unwrap(),
             sequence: 1,
         };
 
@@ -246,7 +244,7 @@ mod tests {
         
         let clear_event = GraphClearedEvent {
             graph_id: "graph-1".to_string(),
-            timestamp: Utc::now(),
+            timestamp: time::now(),
         };
 
         let stored_clear = StoredEvent {
@@ -255,7 +253,7 @@ mod tests {
                 "Graph".to_string(),
                 "GraphCleared".to_string(),
             ),
-            data: serde_json::to_string(&clear_event).unwrap(),
+            data: to_json(&clear_event).unwrap(),
             sequence: 2,
         };
 

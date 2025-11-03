@@ -10,6 +10,7 @@ use log::{debug, warn};
 
 use crate::ports::inference_engine::{InferenceEngine, InferenceStatistics, Result as PortResult};
 use crate::ports::ontology_repository::{InferenceResults, OwlAxiom, OwlClass};
+use crate::utils::time;
 
 ///
 ///
@@ -82,7 +83,7 @@ impl InferenceEngine for WhelkInferenceEngineStub {
         self.total_inferences += 1;
 
         Ok(InferenceResults {
-            timestamp: chrono::Utc::now(),
+            timestamp: time::now(),
             inferred_axioms: Vec::new(),
             inference_time_ms: 0,
             reasoner_version: "whelk-stub".to_string(),

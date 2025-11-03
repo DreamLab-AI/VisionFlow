@@ -1,0 +1,118 @@
+======================================================================
+PRODUCTION UNWRAPS ANALYSIS (Excluding Tests)
+======================================================================
+
+UNWRAP PATTERNS:
+----------------------------------------------------------------------
+  Other                         :  87
+  Collection .get()             :   2
+
+TOP 20 FILES WITH PRODUCTION UNWRAPS:
+----------------------------------------------------------------------
+
+src/application/graph/tests/query_handler_tests.rs (12 unwraps):
+  Line  211: let graph_data = result.unwrap();
+  Line  224: let node_map = result.unwrap();
+  Line  238: let physics_state = result.unwrap();
+  Line  253: let physics_state = result.unwrap();
+  Line  270: let notifications = result.unwrap();
+  ... and 7 more
+
+src/utils/binary_protocol.rs (8 unwraps):
+  Line 1447: let bytes = frame.to_bytes().unwrap();
+  Line 1448: let decoded = ControlFrame::from_bytes(&bytes).unwrap();
+  Line 1484: let decoded = MultiplexedMessage::decode(&encoded).unwrap();
+  Line 1502: let decoded = BinaryProtocol::decode_message(&encoded).unwrap();
+  Line 1521: let decoded_ont = BinaryProtocol::decode_message(&encoded_ont).unwrap();
+  ... and 3 more
+
+src/handlers/settings_handler.rs (6 unwraps):
+  Line 1781: return Ok(service_unavailable!("Settings service unavailable").unwrap());
+  Line 1823: return Ok(service_unavailable!("Settings service unavailable").unwrap());
+  Line 1865: "value": update.get("value").unwrap(),
+  Line 1878: Ok(service_unavailable!("Settings service unavailable").unwrap())
+  Line 2009: "value": update.get("value").unwrap(),
+  ... and 1 more
+
+src/utils/result_helpers.rs (5 unwraps):
+  Line    1: //! Safe error handling utilities to eliminate unsafe .unwrap() calls
+  Line    3: //! This module provides utilities to replace 432 unsafe .unwrap() calls and
+  Line   33: Number::from_f64(value).unwrap_or_else(|| Number::from_f64(0.0).unwrap())
+  Line   37: Number::from_f64(0.0).unwrap()
+  Line   43: /// Unlike `.unwrap()` which panics, this function logs a warning and returns
+
+src/handlers/tests/settings_tests.rs (5 unwraps):
+  Line   90: assert!(body["error"].as_str().unwrap().contains("Path not found"));
+  Line  310: .unwrap()
+  Line  350: let results = body["results"].as_array().unwrap();
+  Line  408: .unwrap()
+  Line  612: let results = body["results"].as_array().unwrap();
+
+src/handlers/clustering_handler.rs (4 unwraps):
+  Line  198: Ok(service_unavailable!("GPU compute actor unavailable").unwrap())
+  Line  203: Ok(service_unavailable!("GPU compute not available").unwrap())
+  Line  265: Ok(service_unavailable!("GPU compute actor unavailable").unwrap())
+  Line  378: Ok(service_unavailable!("GPU compute actor unavailable").unwrap())
+
+src/gpu/memory_manager.rs (4 unwraps):
+  Line  253: self.host_buffer_a.as_mut().unwrap()
+  Line  255: self.host_buffer_b.as_mut().unwrap()
+  Line  284: self.host_buffer_a.as_ref().unwrap()
+  Line  286: self.host_buffer_b.as_ref().unwrap()
+
+src/actors/gpu/anomaly_detection_actor.rs (3 unwraps):
+  Line  248: anomalies.last().unwrap().anomaly_score
+  Line  351: anomalies.last().unwrap().anomaly_score
+  Line  444: anomalies.last().unwrap().anomaly_score
+
+src/actors/gpu/gpu_resource_actor.rs (3 unwraps):
+  Line  415: let device = actor.device.as_ref().unwrap().clone();
+  Line  416: let stream = actor.cuda_stream.take().unwrap();
+  Line  417: let compute = actor.unified_compute.take().unwrap();
+
+src/reasoning/inference_cache.rs (2 unwraps):
+  Line  193: .unwrap()
+  Line  220: .unwrap()
+
+src/actors/optimized_settings_actor.rs (2 unwraps):
+  Line  171: NonZeroUsize::new(CACHE_SIZE).unwrap(),
+  Line  418: .unwrap();
+
+src/actors/semantic_processor_actor.rs (2 unwraps):
+  Line  622: if word.len() > 2 && word.chars().next().unwrap().is_uppercase() {
+  Line 1046: if word.len() > 2 && word.chars().next().unwrap().is_uppercase() {
+
+src/utils/mcp_tcp_client.rs (2 unwraps):
+  Line  143: last_error.as_ref().unwrap()
+  Line  179: last_error.as_ref().unwrap()
+
+src/physics/semantic_constraints.rs (2 unwraps):
+  Line  478: .unwrap()
+  Line  773: clusters.iter().position(|c| c.id == cluster.id).unwrap() as f32,
+
+src/constraints/constraint_blender.rs (2 unwraps):
+  Line  104: .unwrap()
+  Line  138: .unwrap()
+
+src/services/topology_visualization_engine.rs (2 unwraps):
+  Line  626: let velocity = velocities.get_mut(&node_id).unwrap();
+  Line  644: let position = positions.get_mut(&node_id).unwrap();
+
+src/services/speech_service.rs (2 unwraps):
+  Line  637: .unwrap()
+  Line  829: .unwrap()
+
+src/performance/settings_benchmark.rs (2 unwraps):
+  Line  414: .filter(|r| r.is_ok() && r.as_ref().unwrap().is_ok())
+  Line  449: .filter(|r| r.is_ok() && r.as_ref().unwrap().is_ok())
+
+src/events/bus.rs (1 unwraps):
+  Line  177: let error = last_error.unwrap();
+
+src/actors/graph_actor.rs (1 unwraps):
+  Line 4199: if current_neighbor_dist.is_none() || new_dist < current_neighbor_dist.unwrap()
+
+======================================================================
+TOTAL PRODUCTION UNWRAPS: 89
+FILES WITH UNWRAPS: 39
+======================================================================

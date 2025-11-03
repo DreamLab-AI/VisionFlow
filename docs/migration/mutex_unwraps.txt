@@ -1,0 +1,6 @@
+src/application/physics/directives.rs:269:            *self.params.lock().unwrap() = Some(params);
+src/application/physics/directives.rs:277:            *self.constraints.lock().unwrap() = constraints;
+src/application/physics/directives.rs:380:        let stored_params = simulator.params.lock().unwrap();
+src/utils/gpu_memory.rs:98:        let allocations = self.allocations.lock().unwrap();
+src/utils/gpu_memory.rs:106:        let allocations = self.allocations.lock().unwrap();
+src/services/agent_visualization_processor.rs:398:        let mut sys = SYSTEM.lock().unwrap();

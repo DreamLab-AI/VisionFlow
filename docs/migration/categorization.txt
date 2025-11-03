@@ -1,0 +1,26 @@
+=== Unwrap Categorization Report ===
+Date: Mon Nov  3 21:39:11 UTC 2025
+
+1. Number::from_f64().unwrap() - JSON number conversions:
+29 /home/devuser/workspace/project/docs/migration/json_number_unwraps.txt
+
+2. .lock().unwrap() - Mutex locks:
+6 /home/devuser/workspace/project/docs/migration/mutex_unwraps.txt
+
+3. .read().unwrap() - RwLock reads:
+16 /home/devuser/workspace/project/docs/migration/rwlock_read_unwraps.txt
+
+4. .write().unwrap() - RwLock writes:
+8 /home/devuser/workspace/project/docs/migration/rwlock_write_unwraps.txt
+
+5. .parse().unwrap() - String parsing:
+0 /home/devuser/workspace/project/docs/migration/parse_unwraps.txt
+
+6. .get().unwrap() - Collection access:
+18 /home/devuser/workspace/project/docs/migration/collection_unwraps.txt
+
+7. Other unwrap() calls:
+411 /home/devuser/workspace/project/docs/migration/other_unwraps.txt
+
+=== TOTAL ===
+470

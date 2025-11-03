@@ -1,4 +1,22 @@
-//! Dynamic Buffer Manager for GPU Operations
+//! # DEPRECATED: Use `crate::gpu::memory_manager` instead
+//!
+//! This module is deprecated in favor of the unified `GpuMemoryManager`.
+//! The new manager provides:
+//! - All functionality from this module (dynamic resizing, configs)
+//! - Memory leak detection
+//! - Async transfers with double buffering
+//! - Better error handling and testing
+//!
+//! **Migration Guide**: See `/home/devuser/workspace/project/docs/gpu_memory_consolidation_analysis.md`
+//!
+//! This module will be removed in a future release.
+
+#![deprecated(
+    since = "2025.11.03",
+    note = "Use crate::gpu::memory_manager::GpuMemoryManager instead"
+)]
+
+//! Dynamic Buffer Manager for GPU Operations (LEGACY)
 //!
 //! Provides dynamic allocation and resizing of GPU buffers to handle
 //! variable graph sizes without hardcoded limits.

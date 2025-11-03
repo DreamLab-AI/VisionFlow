@@ -24,7 +24,7 @@ export interface ExpansionState {
   expandAll: () => void;
 
   /** Collapse all nodes */
-  collapseAll: () => void;
+  collapseAll: (allNodeIds?: string[]) => void;
 
   /** Expand a node and all its ancestors */
   expandWithAncestors: (nodeId: string, ancestorIds: string[]) => void;
@@ -69,11 +69,17 @@ export function useExpansionState(defaultExpanded: boolean = true): ExpansionSta
     setCollapsedNodes(new Set());
   }, []);
 
-  const collapseAll = useCallback(() => {
-    // Implementation would need list of all node IDs
-    // For now, just clear (which returns to default state)
-    setCollapsedNodes(new Set());
-  }, []);
+  const collapseAll = useCallback((allNodeIds?: string[]) => {
+    if (defaultExpanded) {
+      // If default is expanded, collapse all by adding all nodes to collapsed set
+      if (allNodeIds) {
+        setCollapsedNodes(new Set(allNodeIds));
+      }
+    } else {
+      // If default is collapsed, just clear the expanded set
+      setCollapsedNodes(new Set());
+    }
+  }, [defaultExpanded]);
 
   const expandWithAncestors = useCallback((nodeId: string, ancestorIds: string[]) => {
     setCollapsedNodes(prev => {

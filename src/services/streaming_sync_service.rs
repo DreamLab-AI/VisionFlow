@@ -37,7 +37,7 @@
 //! let stats = sync_handle.await??;
 //! ```
 
-use crate::repositories::{UnifiedGraphRepository, UnifiedOntologyRepository};
+use crate::repositories::UnifiedOntologyRepository;
 use crate::ports::knowledge_graph_repository::KnowledgeGraphRepository;
 use crate::ports::ontology_repository::OntologyRepository;
 use crate::services::github::content_enhanced::EnhancedContentAPI;
@@ -145,7 +145,7 @@ pub struct StreamingSyncService {
     content_api: Arc<EnhancedContentAPI>,
     kg_parser: Arc<KnowledgeGraphParser>,
     onto_parser: Arc<OntologyParser>,
-    kg_repo: Arc<UnifiedGraphRepository>,
+    kg_repo: Arc<dyn KnowledgeGraphRepository>,
     onto_repo: Arc<UnifiedOntologyRepository>,
     max_workers: usize,
     max_db_writes: usize,
@@ -153,10 +153,10 @@ pub struct StreamingSyncService {
 }
 
 impl StreamingSyncService {
-    
+
     pub fn new(
         content_api: Arc<EnhancedContentAPI>,
-        kg_repo: Arc<UnifiedGraphRepository>,
+        kg_repo: Arc<dyn KnowledgeGraphRepository>,
         onto_repo: Arc<UnifiedOntologyRepository>,
         max_workers: Option<usize>,
     ) -> Self {
@@ -409,7 +409,7 @@ impl StreamingSyncService {
         content_api: Arc<EnhancedContentAPI>,
         kg_parser: Arc<KnowledgeGraphParser>,
         onto_parser: Arc<OntologyParser>,
-        kg_repo: Arc<UnifiedGraphRepository>,
+        kg_repo: Arc<dyn KnowledgeGraphRepository>,
         onto_repo: Arc<UnifiedOntologyRepository>,
         db_semaphore: Arc<Semaphore>,
         result_tx: mpsc::UnboundedSender<FileProcessResult>,
@@ -457,7 +457,7 @@ impl StreamingSyncService {
         content_api: &Arc<EnhancedContentAPI>,
         kg_parser: &Arc<KnowledgeGraphParser>,
         onto_parser: &Arc<OntologyParser>,
-        kg_repo: &Arc<UnifiedGraphRepository>,
+        kg_repo: &Arc<dyn KnowledgeGraphRepository>,
         onto_repo: &Arc<UnifiedOntologyRepository>,
         db_semaphore: &Arc<Semaphore>,
     ) -> FileProcessResult {
@@ -523,7 +523,7 @@ impl StreamingSyncService {
         file: &GitHubFileBasicMetadata,
         content: &str,
         kg_parser: &Arc<KnowledgeGraphParser>,
-        kg_repo: &Arc<UnifiedGraphRepository>,
+        kg_repo: &Arc<dyn KnowledgeGraphRepository>,
         db_semaphore: &Arc<Semaphore>,
     ) -> FileProcessResult {
         debug!("[StreamingSync][Worker-{}] Parsing KG file: {}", worker_id, file.name);

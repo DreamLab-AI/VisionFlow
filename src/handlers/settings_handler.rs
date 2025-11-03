@@ -1201,23 +1201,17 @@ impl EnhancedSettingsHandler {
                 "Rate limit exceeded for settings update from client: {}",
                 client_id
             );
-            return Ok(HttpResponse::TooManyRequests().json(json!({
-                "error": "rate_limit_exceeded",
-                "message": "Too many settings update requests. Please wait before retrying.",
+            return Ok(too_many_requests!("rate_limit_exceeded", "Too many settings update requests. Please wait before retrying.",
                 "client_id": client_id,
-                "retry_after": self.rate_limiter.reset_time(&client_id).as_secs()
-            })));
+                "retry_after": self.rate_limiter.reset_time(&client_id).as_secs()));
         }
 
         
         let payload_size = serde_json::to_vec(&*payload).unwrap_or_default().len();
         if payload_size > MAX_REQUEST_SIZE {
             error!("Settings update payload too large: {} bytes", payload_size);
-            return Ok(HttpResponse::PayloadTooLarge().json(json!({
-                "error": "payload_too_large",
-                "message": format!("Payload size {} bytes exceeds limit of {} bytes", payload_size, MAX_REQUEST_SIZE),
-                "max_size": MAX_REQUEST_SIZE
-            })));
+            return Ok(payload_too_large!("payload_too_large", format!("Payload size {} bytes exceeds limit of {} bytes", payload_size, MAX_REQUEST_SIZE),
+                "max_size": MAX_REQUEST_SIZE));
         }
 
         
@@ -1246,15 +1240,11 @@ impl EnhancedSettingsHandler {
             Ok(Ok(s)) => s,
             Ok(Err(e)) => {
                 error!("Failed to get current settings: {}", e);
-                return Ok(HttpResponse::InternalServerError().json(json!({
-                    "error": "Failed to get current settings"
-                })));
+                return error_json!("Failed to get current settings");
             }
             Err(e) => {
                 error!("Settings actor error: {}", e);
-                return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                    "error": "Settings service unavailable"
-                })));
+                return service_unavailable!("Settings service unavailable");
             }
         };
 
@@ -1337,9 +1327,7 @@ impl EnhancedSettingsHandler {
                         .unwrap_or_else(|_| "Could not serialize".to_string())
                 );
             }
-            return Ok(HttpResponse::InternalServerError().json(json!({
-                "error": format!("Failed to merge settings: {}", e)
-            })));
+            return Ok(error_json!("Failed to merge settings: {}", e));
         }
 
         
@@ -1404,7 +1392,7 @@ impl EnhancedSettingsHandler {
 
                 let response_dto: SettingsResponseDTO = (&app_settings).into();
 
-                Ok(HttpResponse::Ok().json(json!({
+                Ok(ok_json!(json!({
                     "status": "success",
                     "message": "Settings updated successfully",
                     "settings": response_dto,
@@ -1414,15 +1402,11 @@ impl EnhancedSettingsHandler {
             }
             Ok(Err(e)) => {
                 error!("Failed to save settings: {}", e);
-                Ok(HttpResponse::InternalServerError().json(json!({
-                    "error": format!("Failed to save settings: {}", e)
-                })))
+                Ok(error_json!("Failed to save settings: {}", e))
             }
             Err(e) => {
                 error!("Settings actor error: {}", e);
-                Ok(HttpResponse::ServiceUnavailable().json(json!({
-                    "error": "Settings service unavailable"
-                })))
+                service_unavailable!("Settings service unavailable")
             }
         }
     }
@@ -1465,10 +1449,7 @@ impl EnhancedSettingsHandler {
         }));
 
         if !get_rate_limiter.is_allowed(&client_id) {
-            return Ok(HttpResponse::TooManyRequests().json(json!({
-                "error": "rate_limit_exceeded",
-                "message": "Too many get settings requests"
-            })));
+            return Ok(too_many_requests!("rate_limit_exceeded", "Too many get settings requests"));
         }
 
         
@@ -1477,21 +1458,17 @@ impl EnhancedSettingsHandler {
             Ok(Ok(settings)) => settings,
             Ok(Err(e)) => {
                 error!("Failed to get settings: {}", e);
-                return Ok(HttpResponse::InternalServerError().json(json!({
-                    "error": "Failed to retrieve settings"
-                })));
+                return error_json!("Failed to retrieve settings");
             }
             Err(e) => {
                 error!("Settings actor error: {}", e);
-                return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                    "error": "Settings service unavailable"
-                })));
+                return service_unavailable!("Settings service unavailable");
             }
         };
 
         let response_dto: SettingsResponseDTO = (&app_settings).into();
 
-        Ok(HttpResponse::Ok().json(json!({
+        Ok(ok_json!(json!({
             "status": "success",
             "settings": response_dto,
             "validation_info": {
@@ -1524,10 +1501,7 @@ impl EnhancedSettingsHandler {
                 "Rate limit exceeded for settings reset from client: {}",
                 client_id
             );
-            return Ok(HttpResponse::TooManyRequests().json(json!({
-                "error": "rate_limit_exceeded",
-                "message": "Too many reset requests. This is a destructive operation with strict limits."
-            })));
+            return Ok(too_many_requests!("rate_limit_exceeded", "Too many reset requests. This is a destructive operation with strict limits."));
         }
 
         
@@ -1537,9 +1511,7 @@ impl EnhancedSettingsHandler {
             Ok(settings) => settings,
             Err(e) => {
                 error!("Failed to load default settings: {}", e);
-                return Ok(HttpResponse::InternalServerError().json(json!({
-                    "error": "Failed to load default settings"
-                })));
+                return error_json!("Failed to load default settings");
             }
         };
 
@@ -1556,7 +1528,7 @@ impl EnhancedSettingsHandler {
 
                 let response_dto: SettingsResponseDTO = (&default_settings).into();
 
-                Ok(HttpResponse::Ok().json(json!({
+                Ok(ok_json!(json!({
                     "status": "success",
                     "message": "Settings reset to defaults successfully",
                     "settings": response_dto,
@@ -1566,15 +1538,11 @@ impl EnhancedSettingsHandler {
             }
             Ok(Err(e)) => {
                 error!("Failed to reset settings: {}", e);
-                Ok(HttpResponse::InternalServerError().json(json!({
-                    "error": format!("Failed to reset settings: {}", e)
-                })))
+                Ok(error_json!("Failed to reset settings: {}", e))
             }
             Err(e) => {
                 error!("Settings actor error during reset: {}", e);
-                Ok(HttpResponse::ServiceUnavailable().json(json!({
-                    "error": "Settings service unavailable during reset"
-                })))
+                service_unavailable!("Settings service unavailable during reset")
             }
         }
     }
@@ -1627,7 +1595,7 @@ impl EnhancedSettingsHandler {
             _ => false,
         };
 
-        Ok(HttpResponse::Ok().json(json!({
+        Ok(ok_json!(json!({
             "status": if settings_healthy { "healthy" } else { "degraded" },
             "request_id": request_id,
             "cache": {
@@ -1654,7 +1622,7 @@ impl EnhancedSettingsHandler {
 
         let stats = self.rate_limiter.get_stats();
 
-        Ok(HttpResponse::Ok().json(json!({
+        Ok(ok_json!(json!({
             "validation_service": "active",
             "rate_limiting": {
                 "total_clients": stats.total_clients,
@@ -1806,34 +1774,23 @@ async fn get_setting_by_path(
         Ok(Ok(settings)) => settings,
         Ok(Err(e)) => {
             error!("Failed to get settings: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to retrieve settings",
-                "path": path
-            })));
+            return Ok(error_json!("Failed to retrieve settings").expect("JSON serialization failed"));
         }
         Err(e) => {
             error!("Settings actor error: {}", e);
-            return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "error": "Settings service unavailable",
-                "path": path
-            })));
+            return Ok(service_unavailable!("Settings service unavailable").expect("JSON serialization failed"));
         }
     };
 
     match app_settings.get_json_by_path(&path) {
-        Ok(value_json) => Ok(HttpResponse::Ok().json(json!({
+        Ok(value_json) => Ok(ok_json!(json!({
             "success": true,
             "path": path,
             "value": value_json
         }))),
         Err(e) => {
             warn!("Path not found '{}': {}", path, e);
-            Ok(HttpResponse::NotFound().json(json!({
-                "success": false,
-                "error": "Path not found",
-                "path": path,
-                "message": e
-            })))
+            Ok(not_found!("Path not found", e))
         }
     }
 }
@@ -1859,17 +1816,11 @@ async fn update_setting_by_path(
         Ok(Ok(settings)) => settings,
         Ok(Err(e)) => {
             error!("Failed to get settings: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to retrieve settings",
-                "path": path
-            })));
+            return Ok(error_json!("Failed to retrieve settings").expect("JSON serialization failed"));
         }
         Err(e) => {
             error!("Settings actor error: {}", e);
-            return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "error": "Settings service unavailable",
-                "path": path
-            })));
+            return Ok(service_unavailable!("Settings service unavailable").expect("JSON serialization failed"));
         }
     };
 
@@ -1908,10 +1859,10 @@ async fn update_setting_by_path(
                         propagate_physics_to_gpu(&state, &app_settings, graph_name).await;
                     }
 
-                    Ok(HttpResponse::Ok().json(json!({
+                    Ok(ok_json!(json!({
                         "success": true,
                         "path": path,
-                        "value": update.get("value").unwrap(),
+                        "value": update.get("value").expect("Missing required key: value"),
                         "previousValue": previous_value
                     })))
                 }
@@ -1924,21 +1875,13 @@ async fn update_setting_by_path(
                 }
                 Err(e) => {
                     error!("Settings actor error: {}", e);
-                    Ok(HttpResponse::ServiceUnavailable().json(json!({
-                        "error": "Settings service unavailable",
-                        "path": path
-                    })))
+                    Ok(service_unavailable!("Settings service unavailable").expect("JSON serialization failed"))
                 }
             }
         }
         Err(e) => {
             warn!("Failed to update path '{}': {}", path, e);
-            Ok(HttpResponse::BadRequest().json(json!({
-                "success": false,
-                "error": "Invalid path or value",
-                "path": path,
-                "message": e
-            })))
+            Ok(bad_request!("Invalid path or value", e))
         }
     }
 }
@@ -1957,25 +1900,18 @@ async fn batch_get_settings(
         .collect::<Vec<String>>();
 
     if paths.is_empty() {
-        return Ok(HttpResponse::BadRequest().json(json!({
-            "success": false,
-            "error": "Paths array cannot be empty"
-        })));
+        return Ok(bad_request!("Paths array cannot be empty").expect("JSON serialization failed"));
     }
 
     let app_settings = match state.settings_addr.send(GetSettings).await {
         Ok(Ok(settings)) => settings,
         Ok(Err(e)) => {
             error!("Failed to get settings: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to retrieve settings"
-            })));
+            return error_json!("Failed to retrieve settings");
         }
         Err(e) => {
             error!("Settings actor error: {}", e);
-            return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "error": "Settings service unavailable"
-            })));
+            return service_unavailable!("Settings service unavailable");
         }
     };
 
@@ -2001,7 +1937,7 @@ async fn batch_get_settings(
         })
         .collect();
 
-    Ok(HttpResponse::Ok().json(json!({
+    Ok(ok_json!(json!({
         "success": true,
         "message": format!("Successfully processed {} paths", results.len()),
         "values": results
@@ -2029,10 +1965,7 @@ async fn batch_update_settings(
 
     if updates.is_empty() {
         error!("Batch update failed: Empty updates array");
-        return Ok(HttpResponse::BadRequest().json(json!({
-            "success": false,
-            "error": "Updates array cannot be empty"
-        })));
+        return Ok(bad_request!("Updates array cannot be empty").expect("JSON serialization failed"));
     }
 
     info!("Processing {} batch updates", updates.len());
@@ -2041,15 +1974,11 @@ async fn batch_update_settings(
         Ok(Ok(settings)) => settings,
         Ok(Err(e)) => {
             error!("Failed to get settings: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to retrieve settings"
-            })));
+            return error_json!("Failed to retrieve settings");
         }
         Err(e) => {
             error!("Settings actor error: {}", e);
-            return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "error": "Settings service unavailable"
-            })));
+            return service_unavailable!("Settings service unavailable");
         }
     };
 
@@ -2077,7 +2006,7 @@ async fn batch_update_settings(
                 results.push(json!({
                     "path": path,
                     "success": true,
-                    "value": update.get("value").unwrap(),
+                    "value": update.get("value").expect("Missing required key: value"),
                     "previousValue": previous_value
                 }));
             }
@@ -2154,16 +2083,12 @@ async fn batch_update_settings(
             }
             Err(e) => {
                 error!("Settings actor error: {}", e);
-                return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                    "success": false,
-                    "error": "Settings service unavailable",
-                    "results": results
-                })));
+                return Ok(service_unavailable!("Settings service unavailable").expect("JSON serialization failed"));
             }
         }
     }
 
-    Ok(HttpResponse::Ok().json(json!({
+    Ok(ok_json!(json!({
         "success": true,
         "message": format!("Successfully updated {} out of {} settings", success_count, updates.len()),
         "results": results
@@ -2199,7 +2124,7 @@ async fn get_settings_schema(
         "path": path
     });
 
-    Ok(HttpResponse::Ok().json(json!({
+    Ok(ok_json!(json!({
         "success": true,
         "path": path,
         "schema": schema
@@ -2215,22 +2140,18 @@ async fn get_settings(
         Ok(Ok(settings)) => settings,
         Ok(Err(e)) => {
             error!("Failed to get settings: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to retrieve settings"
-            })));
+            return error_json!("Failed to retrieve settings");
         }
         Err(e) => {
             error!("Settings actor error: {}", e);
-            return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "error": "Settings service unavailable"
-            })));
+            return service_unavailable!("Settings service unavailable");
         }
     };
 
     
     let response_dto: SettingsResponseDTO = (&app_settings).into();
 
-    Ok(HttpResponse::Ok().json(response_dto))
+    Ok(ok_json!(response_dto))
 }
 
 ///
@@ -2242,15 +2163,11 @@ async fn get_current_settings(
         Ok(Ok(settings)) => settings,
         Ok(Err(e)) => {
             error!("Failed to get settings: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to retrieve settings"
-            })));
+            return error_json!("Failed to retrieve settings");
         }
         Err(e) => {
             error!("Settings actor error: {}", e);
-            return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "error": "Settings service unavailable"
-            })));
+            return service_unavailable!("Settings service unavailable");
         }
     };
 
@@ -2258,7 +2175,7 @@ async fn get_current_settings(
     let response_dto: SettingsResponseDTO = (&app_settings).into();
 
     
-    Ok(HttpResponse::Ok().json(json!({
+    Ok(ok_json!(json!({
         "settings": response_dto,
         "version": app_settings.version,
         "timestamp": std::time::SystemTime::now()
@@ -2288,9 +2205,7 @@ async fn update_settings(
             "Failed update payload: {}",
             serde_json::to_string_pretty(&update).unwrap_or_default()
         );
-        return Ok(HttpResponse::BadRequest().json(json!({
-            "error": format!("Invalid settings: {}", e)
-        })));
+        return Ok(bad_request!("Invalid settings: {}", e));
     }
 
     
@@ -2298,15 +2213,11 @@ async fn update_settings(
         Ok(Ok(s)) => s,
         Ok(Err(e)) => {
             error!("Failed to get current settings: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to get current settings"
-            })));
+            return error_json!("Failed to get current settings");
         }
         Err(e) => {
             error!("Settings actor error: {}", e);
-            return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "error": "Settings service unavailable"
-            })));
+            return service_unavailable!("Settings service unavailable");
         }
     };
 
@@ -2407,9 +2318,7 @@ async fn update_settings(
                     .unwrap_or_else(|_| "Could not serialize".to_string())
             );
         }
-        return Ok(HttpResponse::InternalServerError().json(json!({
-            "error": format!("Failed to merge settings: {}", e)
-        })));
+        return Ok(error_json!("Failed to merge settings: {}", e));
     }
 
     
@@ -2484,19 +2393,15 @@ async fn update_settings(
             
             let response_dto: SettingsResponseDTO = (&app_settings).into();
 
-            Ok(HttpResponse::Ok().json(response_dto))
+            Ok(ok_json!(response_dto))
         }
         Ok(Err(e)) => {
             error!("Failed to save settings: {}", e);
-            Ok(HttpResponse::InternalServerError().json(json!({
-                "error": format!("Failed to save settings: {}", e)
-            })))
+            Ok(error_json!("Failed to save settings: {}", e))
         }
         Err(e) => {
             error!("Settings actor error: {}", e);
-            Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "error": "Settings service unavailable"
-            })))
+            service_unavailable!("Settings service unavailable")
         }
     }
 }
@@ -2511,9 +2416,7 @@ async fn reset_settings(
         Ok(settings) => settings,
         Err(e) => {
             error!("Failed to load default settings: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to load default settings"
-            })));
+            return error_json!("Failed to load default settings");
         }
     };
 
@@ -2531,19 +2434,15 @@ async fn reset_settings(
             
             let response_dto: SettingsResponseDTO = (&default_settings).into();
 
-            Ok(HttpResponse::Ok().json(response_dto))
+            Ok(ok_json!(response_dto))
         }
         Ok(Err(e)) => {
             error!("Failed to reset settings: {}", e);
-            Ok(HttpResponse::InternalServerError().json(json!({
-                "error": format!("Failed to reset settings: {}", e)
-            })))
+            Ok(error_json!("Failed to reset settings: {}", e))
         }
         Err(e) => {
             error!("Settings actor error: {}", e);
-            Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "error": "Settings service unavailable"
-            })))
+            service_unavailable!("Settings service unavailable")
         }
     }
 }
@@ -2559,15 +2458,11 @@ async fn save_settings(
         Ok(Ok(s)) => s,
         Ok(Err(e)) => {
             error!("Failed to get current settings: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to get current settings"
-            })));
+            return error_json!("Failed to get current settings");
         }
         Err(e) => {
             error!("Settings actor error: {}", e);
-            return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "error": "Settings service unavailable"
-            })));
+            return service_unavailable!("Settings service unavailable");
         }
     };
 
@@ -2578,25 +2473,19 @@ async fn save_settings(
         
         if let Err(e) = validate_settings_update(&update_value) {
             error!("Settings validation failed: {}", e);
-            return Ok(HttpResponse::BadRequest().json(json!({
-                "error": format!("Invalid settings: {}", e)
-            })));
+            return Ok(bad_request!("Invalid settings: {}", e));
         }
 
         
         if let Err(e) = app_settings.merge_update(update_value) {
             error!("Failed to merge settings update: {}", e);
-            return Ok(HttpResponse::BadRequest().json(json!({
-                "error": format!("Failed to merge settings: {}", e)
-            })));
+            return Ok(bad_request!("Failed to merge settings: {}", e));
         }
     }
 
     
     if !app_settings.system.persist_settings {
-        return Ok(HttpResponse::BadRequest().json(json!({
-            "error": "Settings persistence is disabled. Enable 'system.persist_settings' to save settings."
-        })));
+        return bad_request!("Settings persistence is disabled. Enable 'system.persist_settings' to save settings.");
     }
 
     
@@ -2614,32 +2503,24 @@ async fn save_settings(
             {
                 Ok(Ok(())) => {
                     let response_dto: SettingsResponseDTO = (&app_settings).into();
-                    Ok(HttpResponse::Ok().json(json!({
+                    Ok(ok_json!(json!({
                         "message": "Settings saved successfully",
                         "settings": response_dto
                     })))
                 }
                 Ok(Err(e)) => {
                     error!("Failed to update settings in actor after save: {}", e);
-                    Ok(HttpResponse::InternalServerError().json(json!({
-                        "error": "Settings saved to file but failed to update in memory",
-                        "details": e.to_string()
-                    })))
+                    Ok(error_json!("Settings saved to file but failed to update in memory").expect("JSON serialization failed"))
                 }
                 Err(e) => {
                     error!("Settings actor communication error: {}", e);
-                    Ok(HttpResponse::ServiceUnavailable().json(json!({
-                        "error": "Settings saved to file but service is unavailable"
-                    })))
+                    service_unavailable!("Settings saved to file but service is unavailable")
                 }
             }
         }
         Err(e) => {
             error!("Failed to save settings to file: {}", e);
-            Ok(HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to save settings to file",
-                "details": e
-            })))
+            Ok(error_json!("Failed to save settings to file").expect("JSON serialization failed"))
         }
     }
 }
@@ -3288,9 +3169,7 @@ async fn update_compute_mode(
         })?;
 
     if compute_mode > 3 {
-        return Ok(HttpResponse::BadRequest().json(json!({
-            "error": "computeMode must be between 0 and 3"
-        })));
+        return bad_request!("computeMode must be between 0 and 3");
     }
 
     
@@ -3305,23 +3184,17 @@ async fn update_compute_mode(
         Ok(Ok(s)) => s,
         Ok(Err(e)) => {
             error!("Failed to get current settings: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to get current settings"
-            })));
+            return error_json!("Failed to get current settings");
         }
         Err(e) => {
             error!("Settings actor error: {}", e);
-            return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "error": "Settings service unavailable"
-            })));
+            return service_unavailable!("Settings service unavailable");
         }
     };
 
     if let Err(e) = app_settings.merge_update(settings_update) {
         error!("Failed to merge compute mode settings: {}", e);
-        return Ok(HttpResponse::InternalServerError().json(json!({
-            "error": format!("Failed to update compute mode: {}", e)
-        })));
+        return Ok(error_json!("Failed to update compute mode: {}", e));
     }
 
     
@@ -3339,22 +3212,18 @@ async fn update_compute_mode(
             propagate_physics_to_gpu(&state, &app_settings, "logseq").await;
             propagate_physics_to_gpu(&state, &app_settings, "visionflow").await;
 
-            Ok(HttpResponse::Ok().json(json!({
+            Ok(ok_json!(json!({
                 "status": "Compute mode updated successfully",
                 "computeMode": compute_mode
             })))
         }
         Ok(Err(e)) => {
             error!("Failed to save compute mode settings: {}", e);
-            Ok(HttpResponse::InternalServerError().json(json!({
-                "error": format!("Failed to save compute mode settings: {}", e)
-            })))
+            Ok(error_json!("Failed to save compute mode settings: {}", e))
         }
         Err(e) => {
             error!("Settings actor error: {}", e);
-            Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "error": "Settings service unavailable"
-            })))
+            service_unavailable!("Settings service unavailable")
         }
     }
 }
@@ -3380,9 +3249,7 @@ async fn update_clustering_algorithm(
         .ok_or_else(|| actix_web::error::ErrorBadRequest("algorithm must be a string"))?;
 
     if !["none", "kmeans", "spectral", "louvain"].contains(&algorithm) {
-        return Ok(HttpResponse::BadRequest().json(json!({
-            "error": "algorithm must be 'none', 'kmeans', 'spectral', or 'louvain'"
-        })));
+        return bad_request!("algorithm must be 'none', 'kmeans', 'spectral', or 'louvain'");
     }
 
     
@@ -3414,23 +3281,17 @@ async fn update_clustering_algorithm(
         Ok(Ok(s)) => s,
         Ok(Err(e)) => {
             error!("Failed to get current settings: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to get current settings"
-            })));
+            return error_json!("Failed to get current settings");
         }
         Err(e) => {
             error!("Settings actor error: {}", e);
-            return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "error": "Settings service unavailable"
-            })));
+            return service_unavailable!("Settings service unavailable");
         }
     };
 
     if let Err(e) = app_settings.merge_update(settings_update) {
         error!("Failed to merge clustering settings: {}", e);
-        return Ok(HttpResponse::InternalServerError().json(json!({
-            "error": format!("Failed to update clustering algorithm: {}", e)
-        })));
+        return Ok(error_json!("Failed to update clustering algorithm: {}", e));
     }
 
     
@@ -3451,7 +3312,7 @@ async fn update_clustering_algorithm(
             propagate_physics_to_gpu(&state, &app_settings, "logseq").await;
             propagate_physics_to_gpu(&state, &app_settings, "visionflow").await;
 
-            Ok(HttpResponse::Ok().json(json!({
+            Ok(ok_json!(json!({
                 "status": "Clustering algorithm updated successfully",
                 "algorithm": algorithm,
                 "clusterCount": cluster_count,
@@ -3461,15 +3322,11 @@ async fn update_clustering_algorithm(
         }
         Ok(Err(e)) => {
             error!("Failed to save clustering settings: {}", e);
-            Ok(HttpResponse::InternalServerError().json(json!({
-                "error": format!("Failed to save clustering settings: {}", e)
-            })))
+            Ok(error_json!("Failed to save clustering settings: {}", e))
         }
         Err(e) => {
             error!("Settings actor error: {}", e);
-            Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "error": "Settings service unavailable"
-            })))
+            service_unavailable!("Settings service unavailable")
         }
     }
 }
@@ -3490,9 +3347,7 @@ async fn update_constraints(
 
     
     if let Err(e) = validate_constraints(&update) {
-        return Ok(HttpResponse::BadRequest().json(json!({
-            "error": format!("Invalid constraints: {}", e)
-        })));
+        return Ok(bad_request!("Invalid constraints: {}", e));
     }
 
     
@@ -3519,23 +3374,17 @@ async fn update_constraints(
         Ok(Ok(s)) => s,
         Ok(Err(e)) => {
             error!("Failed to get current settings: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to get current settings"
-            })));
+            return error_json!("Failed to get current settings");
         }
         Err(e) => {
             error!("Settings actor error: {}", e);
-            return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "error": "Settings service unavailable"
-            })));
+            return service_unavailable!("Settings service unavailable");
         }
     };
 
     if let Err(e) = app_settings.merge_update(settings_update) {
         error!("Failed to merge constraints settings: {}", e);
-        return Ok(HttpResponse::InternalServerError().json(json!({
-            "error": format!("Failed to update constraints: {}", e)
-        })));
+        return Ok(error_json!("Failed to update constraints: {}", e));
     }
 
     
@@ -3553,21 +3402,17 @@ async fn update_constraints(
             propagate_physics_to_gpu(&state, &app_settings, "logseq").await;
             propagate_physics_to_gpu(&state, &app_settings, "visionflow").await;
 
-            Ok(HttpResponse::Ok().json(json!({
+            Ok(ok_json!(json!({
                 "status": "Constraints updated successfully"
             })))
         }
         Ok(Err(e)) => {
             error!("Failed to save constraints settings: {}", e);
-            Ok(HttpResponse::InternalServerError().json(json!({
-                "error": format!("Failed to save constraints settings: {}", e)
-            })))
+            Ok(error_json!("Failed to save constraints settings: {}", e))
         }
         Err(e) => {
             error!("Settings actor error: {}", e);
-            Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "error": "Settings service unavailable"
-            })))
+            service_unavailable!("Settings service unavailable")
         }
     }
 }
@@ -3589,15 +3434,11 @@ async fn get_cluster_analytics(
             Ok(Ok(data)) => data,
             Ok(Err(e)) => {
                 error!("Failed to get graph data for clustering analytics: {}", e);
-                return Ok(HttpResponse::InternalServerError().json(json!({
-                    "error": "Failed to get graph data for analytics"
-                })));
+                return error_json!("Failed to get graph data for analytics");
             }
             Err(e) => {
                 error!("Graph service communication error: {}", e);
-                return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                    "error": "Graph service unavailable"
-                })));
+                return service_unavailable!("Graph service unavailable");
             }
         };
 
@@ -3611,15 +3452,11 @@ async fn get_cluster_analytics(
             Ok(Ok(graph_data)) => get_cpu_fallback_analytics(&graph_data).await,
             Ok(Err(e)) => {
                 error!("Failed to get graph data: {}", e);
-                Ok(HttpResponse::InternalServerError().json(json!({
-                    "error": "Failed to get graph data for analytics"
-                })))
+                error_json!("Failed to get graph data for analytics")
             }
             Err(e) => {
                 error!("Graph service unavailable: {}", e);
-                Ok(HttpResponse::ServiceUnavailable().json(json!({
-                    "error": "Graph service unavailable"
-                })))
+                service_unavailable!("Graph service unavailable")
             }
         }
     }
@@ -3630,6 +3467,13 @@ async fn get_cpu_fallback_analytics(
     graph_data: &crate::models::graph::GraphData,
 ) -> Result<HttpResponse, Error> {
     use std::collections::HashMap;
+use crate::{
+    ok_json, created_json, error_json, bad_request, not_found,
+    unauthorized, forbidden, conflict, no_content, accepted,
+    too_many_requests, service_unavailable, payload_too_large
+};
+
+
 
     
     let node_count = graph_data.nodes.len();
@@ -3688,7 +3532,7 @@ async fn get_cpu_fallback_analytics(
         "computation_time_ms": 0
     });
 
-    Ok(HttpResponse::Ok().json(fallback_analytics))
+    Ok(ok_json!(fallback_analytics))
 }
 
 ///
@@ -3717,9 +3561,7 @@ async fn update_stress_optimization(
         .unwrap_or(0.1) as f32;
 
     if !(0.0..=1.0).contains(&stress_weight) || !(0.0..=1.0).contains(&stress_alpha) {
-        return Ok(HttpResponse::BadRequest().json(json!({
-            "error": "stressWeight and stressAlpha must be between 0.0 and 1.0"
-        })));
+        return bad_request!("stressWeight and stressAlpha must be between 0.0 and 1.0");
     }
 
     
@@ -3735,23 +3577,17 @@ async fn update_stress_optimization(
         Ok(Ok(s)) => s,
         Ok(Err(e)) => {
             error!("Failed to get current settings: {}", e);
-            return Ok(HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to get current settings"
-            })));
+            return error_json!("Failed to get current settings");
         }
         Err(e) => {
             error!("Settings actor error: {}", e);
-            return Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "error": "Settings service unavailable"
-            })));
+            return service_unavailable!("Settings service unavailable");
         }
     };
 
     if let Err(e) = app_settings.merge_update(settings_update) {
         error!("Failed to merge stress optimization settings: {}", e);
-        return Ok(HttpResponse::InternalServerError().json(json!({
-            "error": format!("Failed to update stress optimization: {}", e)
-        })));
+        return Ok(error_json!("Failed to update stress optimization: {}", e));
     }
 
     
@@ -3769,7 +3605,7 @@ async fn update_stress_optimization(
             propagate_physics_to_gpu(&state, &app_settings, "logseq").await;
             propagate_physics_to_gpu(&state, &app_settings, "visionflow").await;
 
-            Ok(HttpResponse::Ok().json(json!({
+            Ok(ok_json!(json!({
                 "status": "Stress optimization updated successfully",
                 "stressWeight": stress_weight,
                 "stressAlpha": stress_alpha
@@ -3777,15 +3613,11 @@ async fn update_stress_optimization(
         }
         Ok(Err(e)) => {
             error!("Failed to save stress optimization settings: {}", e);
-            Ok(HttpResponse::InternalServerError().json(json!({
-                "error": format!("Failed to save stress optimization settings: {}", e)
-            })))
+            Ok(error_json!("Failed to save stress optimization settings: {}", e))
         }
         Err(e) => {
             error!("Settings actor error: {}", e);
-            Ok(HttpResponse::ServiceUnavailable().json(json!({
-                "error": "Settings service unavailable"
-            })))
+            service_unavailable!("Settings service unavailable")
         }
     }
 }

@@ -61,7 +61,7 @@ where
     D: Deserializer<'de>,
 {
     let s = String::deserialize(deserializer)?;
-    serde_json::from_str(&s).map_err(serde::de::Error::custom)
+    from_json(&s).map_err(serde::de::Error::custom)
 }
 
 ///
@@ -193,6 +193,7 @@ impl McpContentResult {
 mod tests {
     use super::*;
     use serde_json::json;
+use crate::utils::json::{from_json, to_json};
 
     #[test]
     fn test_mcp_text_content_parsing() {
@@ -202,7 +203,7 @@ mod tests {
         });
 
         let content: McpTextContent = serde_json::from_value(json).unwrap();
-        let agents_data = content.text.get("agents").unwrap();
+        let agents_data = content.text.get("agents").expect("Missing required key: agents");
         assert!(agents_data.is_array());
     }
 

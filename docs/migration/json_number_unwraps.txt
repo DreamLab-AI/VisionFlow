@@ -1,0 +1,29 @@
+src/actors/optimized_settings_actor.rs:550:                    serde_json::Number::from_f64(physics.damping as f64).unwrap(),
+src/actors/optimized_settings_actor.rs:553:                    serde_json::Number::from_f64(physics.spring_k as f64).unwrap(),
+src/actors/optimized_settings_actor.rs:556:                    serde_json::Number::from_f64(physics.repel_k as f64).unwrap(),
+src/actors/optimized_settings_actor.rs:559:                    serde_json::Number::from_f64(physics.max_velocity as f64).unwrap(),
+src/actors/optimized_settings_actor.rs:562:                    serde_json::Number::from_f64(physics.gravity as f64).unwrap(),
+src/actors/optimized_settings_actor.rs:565:                    serde_json::Number::from_f64(physics.temperature as f64).unwrap(),
+src/actors/optimized_settings_actor.rs:568:                    serde_json::Number::from_f64(physics.bounds_size as f64).unwrap(),
+src/utils/unified_gpu_compute.rs:2843:                        serde_json::Number::from_f64(avg_time as f64).unwrap(),
+src/utils/unified_gpu_compute.rs:2849:                        serde_json::Number::from_f64(min_time as f64).unwrap(),
+src/utils/unified_gpu_compute.rs:2855:                        serde_json::Number::from_f64(max_time as f64).unwrap(),
+src/utils/result_helpers.rs:33:        Number::from_f64(value).unwrap_or_else(|| Number::from_f64(0.0).unwrap())
+src/utils/result_helpers.rs:37:        Number::from_f64(0.0).unwrap()
+src/handlers/api_handler/analytics/anomaly.rs:115:    metadata.insert("confidence".to_string(), serde_json::Value::Number(serde_json::Number::from_f64(score as f64).unwrap()));
+src/handlers/api_handler/analytics/anomaly.rs:126:                serde_json::Value::Number(serde_json::Number::from_f64(rng.gen::<f64>()).unwrap()));
+src/handlers/api_handler/analytics/anomaly.rs:132:                serde_json::Value::Number(serde_json::Number::from_f64(score as f64).unwrap()));
+src/handlers/api_handler/analytics/anomaly.rs:138:                serde_json::Value::Number(serde_json::Number::from_f64((score * 6.0 - 3.0) as f64).unwrap()));
+src/handlers/api_handler/analytics/anomaly.rs:140:                serde_json::Value::Number(serde_json::Number::from_f64(score as f64).unwrap()));
+src/handlers/api_handler/analytics/anomaly.rs:146:                serde_json::Value::Number(serde_json::Number::from_f64(score as f64).unwrap()));
+src/handlers/api_handler/analytics/anomaly.rs:318:                            serde_json::Number::from_f64(score as f64).unwrap()
+src/handlers/api_handler/analytics/anomaly.rs:325:                                        serde_json::Number::from_f64(densities[i] as f64).unwrap()
+src/handlers/api_handler/analytics/anomaly.rs:354:                            serde_json::Number::from_f64(score as f64).unwrap()
+src/handlers/api_handler/analytics/anomaly.rs:357:                            serde_json::Number::from_f64(abs_score as f64).unwrap()
+src/handlers/api_handler/analytics/community.rs:244:        serde_json::Value::Number(serde_json::Number::from_f64(avg_size as f64).unwrap()),
+src/config/path_access.rs:394:            Value::Number(serde_json::Number::from_f64(10.0).unwrap())
+src/config/path_access.rs:420:                Value::Number(serde_json::Number::from_f64(25.5).unwrap()),
+src/config/path_access.rs:467:            Value::Number(serde_json::Number::from_f64(100.0).unwrap())
+src/config/path_access.rs:474:                Value::Number(serde_json::Number::from_f64(200.0).unwrap()),
+src/performance/settings_benchmark.rs:476:            .map(|path| (path.clone(), serde_json::Value::Number(serde_json::Number::from_f64(0.5).unwrap())))
+src/performance/settings_benchmark.rs:506:            .map(|path| (path.clone(), serde_json::Value::Number(serde_json::Number::from_f64(0.5).unwrap())))

@@ -6,8 +6,8 @@
 //! the unified.db schema. These adapters provide 100% API compatibility
 //! with the legacy SQLite adapters while using a single unified database.
 
-pub mod unified_graph_repository;
+pub mod query_builder;
 pub mod unified_ontology_repository;
 
-pub use unified_graph_repository::UnifiedGraphRepository;
+pub use query_builder::{BatchQueryBuilder, QueryBuilder, SqlValue};
 pub use unified_ontology_repository::UnifiedOntologyRepository;

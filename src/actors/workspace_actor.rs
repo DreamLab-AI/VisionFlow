@@ -24,6 +24,7 @@ use crate::actors::messages::{
 use crate::models::workspace::{
     SortDirection, Workspace, WorkspaceFilter, WorkspaceListResponse, WorkspaceSortBy,
 };
+use crate::utils::json::{from_json, to_json};
 
 ///
 pub trait WorkspaceWebSocketClient: Send + Sync {
@@ -109,7 +110,7 @@ impl WorkspaceActor {
             return Ok(());
         }
 
-        let workspaces: Vec<Workspace> = serde_json::from_str(&contents)
+        let workspaces: Vec<Workspace> = from_json(&contents)
             .map_err(|e| anyhow!("Failed to parse workspaces JSON: {}", e))?;
 
         self.workspaces.clear();
@@ -130,7 +131,7 @@ impl WorkspaceActor {
         }
 
         let workspaces: Vec<&Workspace> = self.workspaces.values().collect();
-        let json = serde_json::to_string_pretty(&workspaces)
+        let json = crate::utils::json::to_json_pretty(&workspaces)
             .map_err(|e| anyhow!("Failed to serialize workspaces: {}", e))?;
 
         fs::write(&self.storage_path, json)

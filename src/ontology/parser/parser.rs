@@ -30,7 +30,7 @@ pub fn parse_logseq_file(path: &Path) -> Result<LogseqPage> {
 ///
 fn extract_title(path: &Path, content: &str) -> String {
     
-    let heading_re = Regex::new(r"^#\s+(.+)$").unwrap();
+    let heading_re = Regex::new(r"^#\s+(.+)$").expect("Invalid regex pattern");
     for line in content.lines() {
         if let Some(cap) = heading_re.captures(line) {
             return cap[1].trim().to_string();
@@ -47,7 +47,7 @@ fn extract_title(path: &Path, content: &str) -> String {
 ///
 fn extract_properties(content: &str) -> HashMap<String, Vec<String>> {
     let mut properties = HashMap::new();
-    let property_re = Regex::new(r"^([a-zA-Z][a-zA-Z0-9-_]*)::\s*(.+)$").unwrap();
+    let property_re = Regex::new(r"^([a-zA-Z][a-zA-Z0-9-_]*)::\s*(.+)$").expect("Invalid regex pattern");
 
     for line in content.lines() {
         if let Some(cap) = property_re.captures(line.trim()) {
@@ -238,9 +238,9 @@ has-part:: [[Visual Mesh]], [[Animation Rig]]
 "#;
 
         let props = extract_properties(content);
-        assert_eq!(props.get("term-id").unwrap()[0], "20067");
-        assert_eq!(props.get("maturity").unwrap()[0], "mature");
-        assert_eq!(props.get("has-part").unwrap().len(), 2);
+        assert_eq!(props.get("term-id").expect("Missing required key: term-id")[0], "20067");
+        assert_eq!(props.get("maturity").expect("Missing required key: maturity")[0], "mature");
+        assert_eq!(props.get("has-part").expect("Missing required key: has-part").len(), 2);
     }
 
     #[test]
@@ -291,10 +291,10 @@ owl:functional-syntax:: |
 "#;
 
         let props = extract_properties(content);
-        assert_eq!(props.get("term-id").unwrap()[0], "20067");
-        assert_eq!(props.get("preferred-term").unwrap()[0], "Avatar");
-        assert_eq!(props.get("owl:class").unwrap()[0], "mv:Avatar");
-        assert_eq!(props.get("owl:physicality").unwrap()[0], "VirtualEntity");
-        assert_eq!(props.get("owl:role").unwrap()[0], "Agent");
+        assert_eq!(props.get("term-id").expect("Missing required key: term-id")[0], "20067");
+        assert_eq!(props.get("preferred-term").expect("Missing required key: preferred-term")[0], "Avatar");
+        assert_eq!(props.get("owl:class").expect("Missing required key: owl:class")[0], "mv:Avatar");
+        assert_eq!(props.get("owl:physicality").expect("Missing required key: owl:physicality")[0], "VirtualEntity");
+        assert_eq!(props.get("owl:role").expect("Missing required key: owl:role")[0], "Agent");
     }
 }

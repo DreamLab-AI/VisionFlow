@@ -3,7 +3,7 @@ use actix::Actor;
 use webxr::ports::ontology_repository::OntologyRepository;
 use webxr::services::nostr_service::NostrService;
 use webxr::settings::settings_actor::SettingsActor;
-use webxr::adapters::sqlite_settings_repository::SqliteSettingsRepository;
+use webxr::adapters::neo4j_settings_repository::{Neo4jSettingsRepository, Neo4jSettingsConfig};
 use webxr::{
     config::AppFullSettings,
     handlers::{
@@ -48,22 +48,24 @@ use tokio::time::Duration;
 use webxr::middleware::TimeoutMiddleware;
 use webxr::telemetry::agent_telemetry::init_telemetry_logger;
 use webxr::utils::advanced_logging::init_advanced_logging;
-use webxr::utils::logging::init_logging;
+// REMOVED: use webxr::utils::logging::init_logging; - legacy logging superseded by advanced_logging
 
 // DEPRECATED: ErrorRecoveryMiddleware removed - NetworkRecoveryManager deleted
 
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    
+
     dotenv().ok();
 
-    
-    init_logging()?;
 
-    
+    // REMOVED: init_logging()? call - using advanced_logging instead
     if let Err(e) = init_advanced_logging() {
         error!("Failed to initialize advanced logging: {}", e);
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            format!("Advanced logging initialization failed: {}", e),
+        ));
     } else {
         info!("Advanced logging system initialized successfully");
     }
@@ -100,7 +102,7 @@ async fn main() -> std::io::Result<()> {
             );
 
             
-            match serde_json::to_string(&s.visualisation.rendering) {
+            match to_json(&s.visualisation.rendering) {
                 Ok(json_output) => {
                     info!(
                         "✅ SERDE ALIAS FIX WORKS! JSON serialization (camelCase): {}",
@@ -154,18 +156,16 @@ async fn main() -> std::io::Result<()> {
     info!("Starting WebXR application...");
     debug!("main: Beginning application startup sequence.");
 
-    // Initialize settings repository and actor
-    let settings_db_path = std::env::var("SETTINGS_DB_PATH")
-        .unwrap_or_else(|_| "/app/data/settings.db".to_string());
-
-    info!("Initializing SettingsActor with database: {}", settings_db_path);
-    let settings_repository = match SqliteSettingsRepository::new(&settings_db_path) {
+    // Phase 3: Initialize Neo4j settings repository and actor
+    info!("Initializing SettingsActor with Neo4j");
+    let settings_config = Neo4jSettingsConfig::default();
+    let settings_repository = match Neo4jSettingsRepository::new(settings_config).await {
         Ok(repo) => Arc::new(repo),
         Err(e) => {
-            error!("Failed to create settings repository: {}", e);
+            error!("Failed to create Neo4j settings repository: {}", e);
             return Err(std::io::Error::new(
                 std::io::ErrorKind::Other,
-                format!("Failed to create settings repository: {}", e),
+                format!("Failed to create Neo4j settings repository: {}", e),
             ));
         }
     };
@@ -322,6 +322,7 @@ async fn main() -> std::io::Result<()> {
 
     if let Some(_graph_data) = graph_data_option {
         info!("⏭️  Ontology graph loaded but not sent to actor (will use KG nodes from ReloadGraphFromDatabase instead)");
+use crate::utils::json::{from_json, to_json};
         info!("ℹ️  Ontology classes are available via API endpoints but nodes come from KG sync");
     } else {
         info!("⏳ GraphServiceActor will be populated by ReloadGraphFromDatabase from existing KG nodes");
@@ -412,6 +413,31 @@ async fn main() -> std::io::Result<()> {
                     .configure(api_handler::config)
                     .configure(workspace_handler::config)
                     .configure(admin_sync_handler::configure_routes)
+
+                    // Pipeline admin routes
+                    .route(
+                        "/admin/pipeline/trigger",
+                        web::post().to(webxr::handlers::pipeline_admin_handler::trigger_pipeline),
+                    )
+                    .route(
+                        "/admin/pipeline/status",
+                        web::get().to(webxr::handlers::pipeline_admin_handler::get_pipeline_status),
+                    )
+                    .route(
+                        "/admin/pipeline/metrics",
+                        web::get().to(webxr::handlers::pipeline_admin_handler::get_pipeline_metrics),
+                    )
+                    .route(
+                        "/admin/pipeline/cache/clear",
+                        web::post().to(webxr::handlers::pipeline_admin_handler::clear_reasoning_cache),
+                    )
+
+                    // Cypher query endpoint (Neo4j)
+                    #[cfg(feature = "neo4j")]
+                    .route(
+                        "/query/cypher",
+                        web::post().to(webxr::handlers::cypher_query_handler::execute_cypher),
+                    )
 
                     .service(web::scope("/pages").configure(pages_handler::config))
                     .service(web::scope("/bots").configure(api_handler::bots::config))

@@ -1,15 +1,15 @@
 // src/services/github_sync_service.rs
 //! GitHub Sync Service
 //!
-//! Synchronizes markdown files from GitHub repository to unified.db.
-//! - Parses public:: true pages as knowledge graph nodes (UnifiedGraphRepository)
+//! Synchronizes markdown files from GitHub repository to Neo4j and unified.db.
+//! - Parses public:: true pages as knowledge graph nodes (KnowledgeGraphRepository - Neo4jAdapter)
 //! - Extracts OntologyBlock sections as OWL data (UnifiedOntologyRepository)
 //! - Enriches graph nodes with owl_class_iri metadata via OntologyEnrichmentService
 //! - Triggers OntologyPipelineService for automatic reasoning and constraint generation
 //! - Uses SHA1 filtering to process only changed files (unless FORCE_FULL_SYNC=1)
 //! - Batch processing (50 files) to avoid memory issues with large repositories
 
-use crate::repositories::{UnifiedGraphRepository, UnifiedOntologyRepository};
+use crate::repositories::UnifiedOntologyRepository;
 use crate::ports::knowledge_graph_repository::KnowledgeGraphRepository;
 use crate::ports::ontology_repository::OntologyRepository;
 use crate::services::github::content_enhanced::EnhancedContentAPI;
@@ -23,6 +23,7 @@ use crate::adapters::whelk_inference_engine::WhelkInferenceEngine;
 use log::{debug, error, info, warn};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
+use crate::utils::time;
 
 const BATCH_SIZE: usize = 50; // Save to database every 50 files
 
@@ -49,7 +50,7 @@ pub struct GitHubSyncService {
     content_api: Arc<EnhancedContentAPI>,
     kg_parser: Arc<KnowledgeGraphParser>,
     onto_parser: Arc<OntologyParser>,
-    kg_repo: Arc<UnifiedGraphRepository>,
+    kg_repo: Arc<dyn KnowledgeGraphRepository>,
     onto_repo: Arc<UnifiedOntologyRepository>,
     enrichment_service: Arc<OntologyEnrichmentService>,
     pipeline_service: Option<Arc<OntologyPipelineService>>,
@@ -58,7 +59,7 @@ pub struct GitHubSyncService {
 impl GitHubSyncService {
     pub fn new(
         content_api: Arc<EnhancedContentAPI>,
-        kg_repo: Arc<UnifiedGraphRepository>,
+        kg_repo: Arc<dyn KnowledgeGraphRepository>,
         onto_repo: Arc<UnifiedOntologyRepository>,
     ) -> Self {
         // Initialize ontology enrichment service
@@ -511,7 +512,7 @@ impl GitHubSyncService {
                 .map_err(|e| format!("Failed to begin transaction: {}", e))?;
 
             for file in &files {
-                let now = Utc::now().to_rfc3339();
+                let now = time::format_iso8601(&time::now());
 
                 // Extract file extension
                 let extension = file.name.rsplit('.').next().unwrap_or("");

@@ -119,7 +119,7 @@ impl KnowledgeGraphParser {
         let mut edges = Vec::new();
 
         
-        let link_pattern = regex::Regex::new(r"\[\[([^\]|]+)(?:\|[^\]]+)?\]\]").unwrap();
+        let link_pattern = regex::Regex::new(r"\[\[([^\]|]+)(?:\|[^\]]+)?\]\]").expect("Invalid regex pattern");
 
         for cap in link_pattern.captures_iter(content) {
             if let Some(link_match) = cap.get(1) {
@@ -186,7 +186,7 @@ impl KnowledgeGraphParser {
         let store = MetadataStore::new();
 
         
-        let prop_pattern = regex::Regex::new(r"([a-zA-Z_]+)::\s*(.+)").unwrap();
+        let prop_pattern = regex::Regex::new(r"([a-zA-Z_]+)::\s*(.+)").expect("Invalid regex pattern");
 
         
         let mut properties = HashMap::new();
@@ -211,7 +211,7 @@ impl KnowledgeGraphParser {
 
         
         let tag_pattern =
-            regex::Regex::new(r"#([a-zA-Z0-9_-]+)|tag::\s*#?([a-zA-Z0-9_-]+)").unwrap();
+            regex::Regex::new(r"#([a-zA-Z0-9_-]+)|tag::\s*#?([a-zA-Z0-9_-]+)").expect("Invalid regex pattern");
 
         for cap in tag_pattern.captures_iter(content) {
             if let Some(tag) = cap.get(1).or_else(|| cap.get(2)) {

@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 use crate::ports::ontology_repository::OwlAxiom;
+use crate::utils::time;
 
 ///
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -104,7 +105,7 @@ impl Inference {
             confidence: 1.0, 
             explanation: Vec::new(),
             metadata: HashMap::new(),
-            computed_at: Utc::now(),
+            computed_at: time::now(),
         }
     }
 
@@ -272,7 +273,7 @@ mod tests {
         .with_metadata("source".to_string(), "ml_classifier".to_string());
 
         assert_eq!(inf.confidence, 0.95);
-        assert_eq!(inf.metadata.get("source").unwrap(), "ml_classifier");
+        assert_eq!(inf.metadata.get("source").expect("Missing required key: source"), "ml_classifier");
     }
 
     #[test]

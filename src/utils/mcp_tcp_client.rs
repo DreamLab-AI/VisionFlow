@@ -18,6 +18,8 @@ use crate::services::agent_visualization_protocol::{
     AgentExtendedMetadata, AgentPerformanceData, McpServerInfo, McpServerType, MultiMcpAgentStatus,
     SwarmTopologyData, TopologyPosition,
 };
+use crate::utils::time;
+use crate::utils::json::{from_json, to_json};
 
 ///
 #[derive(Debug, Clone)]
@@ -138,7 +140,7 @@ impl McpTcpClient {
                     "Connection attempt {} failed, retrying in {:?}: {}",
                     attempt + 1,
                     self.retry_delay,
-                    last_error.as_ref().unwrap()
+                    last_error.as_ref().expect("Expected value to be present")
                 );
                 tokio::time::sleep(self.retry_delay).await;
             }
@@ -174,7 +176,7 @@ impl McpTcpClient {
                         warn!(
                             "Request attempt {} failed, retrying: {}",
                             attempt + 1,
-                            last_error.as_ref().unwrap()
+                            last_error.as_ref().expect("Expected value to be present")
                         );
                         tokio::time::sleep(self.retry_delay).await;
                     }
@@ -247,11 +249,11 @@ impl McpTcpClient {
             jsonrpc: "2.0".to_string(),
             method: method.to_string(),
             params,
-            id: chrono::Utc::now().timestamp_millis() as u64,
+            id: time::timestamp_millis() as u64,
         };
 
         
-        let request_json = serde_json::to_string(&request)
+        let request_json = to_json(&request)
             .map_err(|e| format!("Failed to serialize request: {}", e))?;
         debug!("Sending MCP request: {}", request_json);
 
@@ -271,7 +273,7 @@ impl McpTcpClient {
         debug!("Received MCP response: {}", response_str.trim());
 
         
-        let response: McpResponse = serde_json::from_str(response_str.trim())
+        let response: McpResponse = from_json(response_str.trim())
             .map_err(|e| format!("Failed to parse response: {}", e))?;
 
         if let Some(error) = response.error {
@@ -455,7 +457,7 @@ impl McpTcpClient {
             .map(|neural_data| self.parse_neural_data(neural_data))
             .transpose()?;
 
-        let now = Utc::now();
+        let now = time::now();
 
         Ok(MultiMcpAgentStatus {
             agent_id,
@@ -744,7 +746,7 @@ impl McpTcpClient {
             host: self.host.clone(),
             port: self.port,
             is_connected: true,
-            last_heartbeat: Utc::now().timestamp(),
+            last_heartbeat: time::timestamp_seconds(),
             supported_tools,
             agent_count,
         })

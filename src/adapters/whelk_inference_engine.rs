@@ -51,6 +51,7 @@ pub struct WhelkInferenceEngine {
 #[cfg(feature = "ontology")]
 ///
 use whelk;
+use crate::utils::time;
 
 impl WhelkInferenceEngine {
     
@@ -269,7 +270,7 @@ impl InferenceEngine for WhelkInferenceEngine {
                 self.last_inference_time_ms = inference_time_ms;
 
                 return Ok(InferenceResults {
-                    timestamp: chrono::Utc::now(),
+                    timestamp: time::now(),
                     inferred_axioms: cached.clone(),
                     inference_time_ms,
                     reasoner_version: format!("whelk-rs-{}", env!("CARGO_PKG_VERSION")),
@@ -308,7 +309,7 @@ impl InferenceEngine for WhelkInferenceEngine {
             );
 
             Ok(InferenceResults {
-                timestamp: chrono::Utc::now(),
+                timestamp: time::now(),
                 inferred_axioms,
                 inference_time_ms,
                 reasoner_version: format!("whelk-rs-{}", env!("CARGO_PKG_VERSION")),
@@ -324,7 +325,7 @@ impl InferenceEngine for WhelkInferenceEngine {
             warn!("Ontology feature not enabled, returning empty inference results");
 
             Ok(InferenceResults {
-                timestamp: chrono::Utc::now(),
+                timestamp: time::now(),
                 inferred_axioms: Vec::new(),
                 inference_time_ms,
                 reasoner_version: "stub-0.1.0".to_string(),

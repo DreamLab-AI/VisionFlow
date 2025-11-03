@@ -8,12 +8,14 @@
 pub mod actor_graph_repository;
 
 // Legacy adapters
-// pub mod gpu_physics_adapter;  
+// pub mod gpu_physics_adapter;
 pub mod gpu_semantic_analyzer;
 
 // New hexser-based adapters (legacy removed, using unified repositories)
-pub mod sqlite_settings_repository;
 pub mod whelk_inference_engine;
+
+// Neo4j integration adapters
+pub mod neo4j_adapter;
 
 // Phase 2.2: Actor system adapter wrappers
 pub mod actix_physics_adapter;
@@ -31,12 +33,19 @@ pub use actor_graph_repository::ActorGraphRepository;
 // pub use gpu_physics_adapter::GpuPhysicsAdapter as GpuPhysicsAdapterImpl;  
 pub use gpu_semantic_analyzer::GpuSemanticAnalyzerAdapter;
 
-// New hexser-based adapter exports
+// Settings repository adapters
+pub mod sqlite_settings_repository;
+pub mod neo4j_settings_repository;
+
 pub use sqlite_settings_repository::SqliteSettingsRepository;
+pub use neo4j_settings_repository::{Neo4jSettingsRepository, Neo4jSettingsConfig};
 
 // Unified repository exports (from repositories module)
-pub use crate::repositories::{UnifiedGraphRepository, UnifiedOntologyRepository};
+pub use crate::repositories::UnifiedOntologyRepository;
 pub use whelk_inference_engine::WhelkInferenceEngine;
+
+// Neo4j integration exports
+pub use neo4j_adapter::{Neo4jAdapter, Neo4jConfig};
 
 // Phase 2.2: Actor wrapper adapter exports
 pub use actix_physics_adapter::ActixPhysicsAdapter;

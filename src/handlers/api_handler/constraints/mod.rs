@@ -91,24 +91,18 @@ pub async fn get_constraints(state: web::Data<AppState>) -> impl Responder {
                 })
                 .collect();
 
-            HttpResponse::Ok().json(json!({
+            ok_json!(json!({
                 "constraints": response,
                 "count": response.len()
             }))
         }
         Ok(Err(e)) => {
             error!("Failed to fetch constraints: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to fetch constraints",
-                "details": e
-            }))
+            error_json!("Failed to fetch constraints").expect("JSON serialization failed")
         }
         Err(e) => {
             error!("Actor mailbox error: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": "Actor communication failed",
-                "details": e.to_string()
-            }))
+            error_json!("Actor communication failed").expect("JSON serialization failed")
         }
     }
 }
@@ -140,27 +134,18 @@ pub async fn get_constraint(
                     created_at: chrono::Utc::now().to_rfc3339(),
                 };
 
-                HttpResponse::Ok().json(response)
+                ok_json!(response)
             } else {
-                HttpResponse::NotFound().json(json!({
-                    "error": "Constraint not found",
-                    "id": *constraint_id
-                }))
+                not_found!("Constraint not found").unwrap()
             }
         }
         Ok(Err(e)) => {
             error!("Failed to fetch constraint: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to fetch constraint",
-                "details": e
-            }))
+            error_json!("Failed to fetch constraint").expect("JSON serialization failed")
         }
         Err(e) => {
             error!("Actor mailbox error: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": "Actor communication failed",
-                "details": e.to_string()
-            }))
+            error_json!("Actor communication failed").expect("JSON serialization failed")
         }
     }
 }
@@ -188,7 +173,7 @@ pub async fn update_constraint(
         .await
     {
         Ok(Ok(())) => {
-            HttpResponse::Ok().json(json!({
+            ok_json!(json!({
                 "success": true,
                 "id": *constraint_id,
                 "message": "Constraint updated successfully"
@@ -196,17 +181,11 @@ pub async fn update_constraint(
         }
         Ok(Err(e)) => {
             error!("Failed to update constraint: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to update constraint",
-                "details": e
-            }))
+            error_json!("Failed to update constraint").expect("JSON serialization failed")
         }
         Err(e) => {
             error!("Actor mailbox error: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": "Actor communication failed",
-                "details": e.to_string()
-            }))
+            error_json!("Actor communication failed").expect("JSON serialization failed")
         }
     }
 }
@@ -226,10 +205,7 @@ pub async fn create_user_constraint(
         "Containment" => ConstraintType::Containment,
         "Alignment" => ConstraintType::Alignment,
         _ => {
-            return HttpResponse::BadRequest().json(json!({
-                "error": "Invalid constraint type",
-                "valid_types": ["Distance", "Angle", "Hierarchy", "Containment", "Alignment"]
-            }));
+            return bad_request!("Invalid constraint type").expect("JSON serialization failed");
         }
     };
 
@@ -247,7 +223,7 @@ pub async fn create_user_constraint(
 
     
     
-    HttpResponse::Created().json(json!({
+    created_json!(json!({
         "success": true,
         "constraint": ConstraintResponse {
             id: constraint.id.clone(),
@@ -280,7 +256,7 @@ pub async fn get_constraint_stats(state: web::Data<AppState>) -> impl Responder 
         cache_hit_rate: 0.85,
     };
 
-    HttpResponse::Ok().json(stats)
+    ok_json!(stats)
 }
 
 ///

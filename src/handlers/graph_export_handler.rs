@@ -154,15 +154,10 @@ pub async fn export_graph(
     
     match handler.check_rate_limit(&client_ip).await {
         Ok(rate_info) if rate_info.remaining_exports == 0 => {
-            return Ok(HttpResponse::TooManyRequests().json(serde_json::json!({
-                "error": "Rate limit exceeded",
-                "rate_limit": rate_info
-            })));
+            return Ok(too_many_requests!("Rate limit exceeded").unwrap());
         }
         Err(e) => {
-            return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": format!("Rate limit check failed: {}", e)
-            })));
+            return Ok(error_json!("Rate limit check failed: {}", e));
         }
         _ => {}
     }
@@ -171,9 +166,7 @@ pub async fn export_graph(
     let graph = match handler.get_current_graph(&app_state).await {
         Ok(graph) => graph,
         Err(e) => {
-            return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": format!("Failed to get graph: {}", e)
-            })));
+            return Ok(error_json!("Failed to get graph: {}", e));
         }
     };
 
@@ -183,10 +176,8 @@ pub async fn export_graph(
         .export_graph(&graph, &request)
         .await
     {
-        Ok(export_response) => Ok(HttpResponse::Ok().json(export_response)),
-        Err(e) => Ok(HttpResponse::InternalServerError().json(serde_json::json!({
-            "error": format!("Export failed: {}", e)
-        }))),
+        Ok(export_response) => Ok(ok_json!(export_response)),
+        Err(e) => Ok(error_json!("Export failed: {}", e)),
     }
 }
 
@@ -207,15 +198,10 @@ pub async fn share_graph(
     
     match handler.check_rate_limit(&client_ip).await {
         Ok(rate_info) if rate_info.remaining_exports == 0 => {
-            return Ok(HttpResponse::TooManyRequests().json(serde_json::json!({
-                "error": "Rate limit exceeded",
-                "rate_limit": rate_info
-            })));
+            return Ok(too_many_requests!("Rate limit exceeded").unwrap());
         }
         Err(e) => {
-            return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": format!("Rate limit check failed: {}", e)
-            })));
+            return Ok(error_json!("Rate limit check failed: {}", e));
         }
         _ => {}
     }
@@ -224,9 +210,7 @@ pub async fn share_graph(
     let graph = match handler.get_current_graph(&app_state).await {
         Ok(graph) => graph,
         Err(e) => {
-            return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": format!("Failed to get graph: {}", e)
-            })));
+            return Ok(error_json!("Failed to get graph: {}", e));
         }
     };
 
@@ -243,11 +227,9 @@ pub async fn share_graph(
                 shared_graphs.insert(shared_graph.id, shared_graph);
             }
 
-            Ok(HttpResponse::Ok().json(share_response))
+            Ok(ok_json!(share_response))
         }
-        Err(e) => Ok(HttpResponse::InternalServerError().json(serde_json::json!({
-            "error": format!("Failed to create shared graph: {}", e)
-        }))),
+        Err(e) => Ok(error_json!("Failed to create shared graph: {}", e)),
     }
 }
 
@@ -259,9 +241,7 @@ pub async fn get_shared_graph(
     let share_id = match Uuid::parse_str(&path.into_inner()) {
         Ok(id) => id,
         Err(_) => {
-            return Ok(HttpResponse::BadRequest().json(serde_json::json!({
-                "error": "Invalid share ID format"
-            })));
+            return Ok(bad_request!("Invalid share ID format"));
         }
     };
 
@@ -273,9 +253,7 @@ pub async fn get_shared_graph(
         match shared_graphs.get(&share_id) {
             Some(graph) => graph.clone(),
             None => {
-                return Ok(HttpResponse::NotFound().json(serde_json::json!({
-                    "error": "Shared graph not found"
-                })));
+                return Ok(not_found!("Shared graph not found"));
             }
         }
     };
@@ -289,22 +267,16 @@ pub async fn get_shared_graph(
 
     
     if shared_graph.access_limit_reached() {
-        return Ok(HttpResponse::Forbidden().json(serde_json::json!({
-            "error": "Access limit reached for this shared graph"
-        })));
+        return Ok(forbidden!("Access limit reached for this shared graph"));
     }
 
     
     if let Some(password) = query.get("password") {
         if !shared_graph.validate_password(password) {
-            return Ok(HttpResponse::Unauthorized().json(serde_json::json!({
-                "error": "Invalid password"
-            })));
+            return Ok(unauthorized!("Invalid password"));
         }
     } else if shared_graph.password_hash.is_some() {
-        return Ok(HttpResponse::Unauthorized().json(serde_json::json!({
-            "error": "Password required"
-        })));
+        return Ok(unauthorized!("Password required"));
     }
 
     
@@ -338,9 +310,7 @@ pub async fn get_shared_graph(
 
             Ok(response)
         }
-        Err(e) => Ok(HttpResponse::InternalServerError().json(serde_json::json!({
-            "error": format!("Failed to read shared graph file: {}", e)
-        }))),
+        Err(e) => Ok(error_json!("Failed to read shared graph file: {}", e)),
     }
 }
 
@@ -361,15 +331,10 @@ pub async fn publish_graph(
     
     match handler.check_rate_limit(&client_ip).await {
         Ok(rate_info) if rate_info.remaining_exports == 0 => {
-            return Ok(HttpResponse::TooManyRequests().json(serde_json::json!({
-                "error": "Rate limit exceeded",
-                "rate_limit": rate_info
-            })));
+            return Ok(too_many_requests!("Rate limit exceeded").unwrap());
         }
         Err(e) => {
-            return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": format!("Rate limit check failed: {}", e)
-            })));
+            return Ok(error_json!("Rate limit check failed: {}", e));
         }
         _ => {}
     }
@@ -378,9 +343,7 @@ pub async fn publish_graph(
     let _graph = match handler.get_current_graph(&app_state).await {
         Ok(graph) => graph,
         Err(e) => {
-            return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
-                "error": format!("Failed to get graph: {}", e)
-            })));
+            return Ok(error_json!("Failed to get graph: {}", e));
         }
     };
 
@@ -403,7 +366,7 @@ pub async fn publish_graph(
         status: PublicationStatus::Pending,
     };
 
-    Ok(HttpResponse::Ok().json(publish_response))
+    Ok(ok_json!(publish_response))
 }
 
 ///
@@ -411,9 +374,7 @@ pub async fn delete_shared_graph(path: web::Path<String>) -> ActixResult<HttpRes
     let share_id = match Uuid::parse_str(&path.into_inner()) {
         Ok(id) => id,
         Err(_) => {
-            return Ok(HttpResponse::BadRequest().json(serde_json::json!({
-                "error": "Invalid share ID format"
-            })));
+            return Ok(bad_request!("Invalid share ID format"));
         }
     };
 
@@ -432,14 +393,12 @@ pub async fn delete_shared_graph(path: web::Path<String>) -> ActixResult<HttpRes
                 log::warn!("Failed to delete shared graph file: {}", e);
             }
 
-            Ok(HttpResponse::Ok().json(serde_json::json!({
+            Ok(ok_json!(serde_json::json!({
                 "message": "Shared graph deleted successfully",
                 "deleted_id": share_id
             })))
         }
-        None => Ok(HttpResponse::NotFound().json(serde_json::json!({
-            "error": "Shared graph not found"
-        }))),
+        None => Ok(not_found!("Shared graph not found")),
     }
 }
 
@@ -462,7 +421,7 @@ pub async fn get_export_stats() -> ActixResult<HttpResponse> {
         last_export: Some(Utc::now() - chrono::Duration::minutes(15)),
     };
 
-    Ok(HttpResponse::Ok().json(stats))
+    Ok(ok_json!(stats))
 }
 
 ///

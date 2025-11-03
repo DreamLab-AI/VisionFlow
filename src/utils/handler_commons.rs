@@ -2,6 +2,7 @@ use actix_web::{HttpResponse, Result};
 use chrono::{DateTime, Utc};
 use log::{error, warn};
 use serde::{Deserialize, Serialize};
+use crate::utils::time;
 
 ///
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -38,7 +39,7 @@ pub trait HandlerResponse<T: Serialize> {
             success: true,
             data: Some(data),
             error: None,
-            timestamp: Utc::now(),
+            timestamp: time::now(),
             request_id: None,
         }))
     }
@@ -48,7 +49,7 @@ pub trait HandlerResponse<T: Serialize> {
         Ok(HttpResponse::Ok().json(SuccessResponse {
             data,
             message: Some(message),
-            timestamp: Utc::now(),
+            timestamp: time::now(),
         }))
     }
 
@@ -60,7 +61,7 @@ pub trait HandlerResponse<T: Serialize> {
                 success: false,
                 data: None,
                 error: Some(message),
-                timestamp: Utc::now(),
+                timestamp: time::now(),
                 request_id: None,
             }),
         )
@@ -73,7 +74,7 @@ pub trait HandlerResponse<T: Serialize> {
             success: false,
             data: None,
             error: Some(message),
-            timestamp: Utc::now(),
+            timestamp: time::now(),
             request_id: None,
         }))
     }
@@ -85,7 +86,7 @@ pub trait HandlerResponse<T: Serialize> {
             success: false,
             data: None,
             error: Some(message),
-            timestamp: Utc::now(),
+            timestamp: time::now(),
             request_id: None,
         }))
     }

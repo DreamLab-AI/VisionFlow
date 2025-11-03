@@ -1,0 +1,50 @@
+src/reasoning/inference_cache.rs:193:            .unwrap()
+src/reasoning/inference_cache.rs:220:            .unwrap()
+src/reasoning/inference_cache.rs:312:        let temp_dir = TempDir::new().unwrap();
+src/reasoning/inference_cache.rs:315:        let cache = InferenceCache::new(&cache_path).unwrap();
+src/reasoning/inference_cache.rs:321:        let result1 = cache.get_or_compute(1, &reasoner, &ontology).unwrap();
+src/reasoning/inference_cache.rs:326:        let result2 = cache.get_or_compute(1, &reasoner, &ontology).unwrap();
+src/reasoning/inference_cache.rs:337:        let temp_dir = TempDir::new().unwrap();
+src/reasoning/inference_cache.rs:340:        let cache = InferenceCache::new(&cache_path).unwrap();
+src/reasoning/inference_cache.rs:345:        let result1 = cache.get_or_compute(1, &reasoner, &ontology).unwrap();
+src/reasoning/inference_cache.rs:355:        let result2 = cache.get_or_compute(1, &reasoner, &ontology).unwrap();
+src/reasoning/inference_cache.rs:363:        let temp_dir = TempDir::new().unwrap();
+src/reasoning/inference_cache.rs:366:        let cache = InferenceCache::new(&cache_path).unwrap();
+src/reasoning/inference_cache.rs:371:        cache.get_or_compute(1, &reasoner, &ontology).unwrap();
+src/reasoning/inference_cache.rs:372:        cache.get_or_compute(2, &reasoner, &ontology).unwrap();
+src/reasoning/inference_cache.rs:374:        let stats = cache.get_stats().unwrap();
+src/reasoning/inference_cache.rs:381:        let temp_dir = TempDir::new().unwrap();
+src/reasoning/inference_cache.rs:384:        let cache = InferenceCache::new(&cache_path).unwrap();
+src/reasoning/inference_cache.rs:389:        cache.get_or_compute(1, &reasoner, &ontology).unwrap();
+src/reasoning/inference_cache.rs:392:        cache.invalidate(1).unwrap();
+src/reasoning/inference_cache.rs:394:        let stats = cache.get_stats().unwrap();
+src/reasoning/reasoning_actor.rs:204:        let temp_dir = TempDir::new().unwrap();
+src/reasoning/reasoning_actor.rs:207:        let actor = ReasoningActor::new(cache_path.to_str().unwrap())
+src/reasoning/reasoning_actor.rs:208:            .unwrap()
+src/reasoning/reasoning_actor.rs:220:        let axioms = result.unwrap().unwrap();
+src/reasoning/reasoning_actor.rs:226:        let temp_dir = TempDir::new().unwrap();
+src/reasoning/reasoning_actor.rs:229:        let actor = ReasoningActor::new(cache_path.to_str().unwrap())
+src/reasoning/reasoning_actor.rs:230:            .unwrap()
+src/reasoning/reasoning_actor.rs:239:        }).await.unwrap().unwrap();
+src/reasoning/reasoning_actor.rs:251:        let temp_dir = TempDir::new().unwrap();
+src/reasoning/reasoning_actor.rs:254:        let actor = ReasoningActor::new(cache_path.to_str().unwrap())
+src/reasoning/reasoning_actor.rs:255:            .unwrap()
+src/reasoning/reasoning_actor.rs:264:        }).await.unwrap().unwrap();
+src/reasoning/reasoning_actor.rs:270:        let stats = result.unwrap().unwrap();
+src/reasoning/horned_integration.rs:206:        let temp_dir = TempDir::new().unwrap();
+src/reasoning/horned_integration.rs:210:        let conn = Connection::open(&db_path).unwrap();
+src/reasoning/horned_integration.rs:220:        ).unwrap();
+src/reasoning/horned_integration.rs:228:        ).unwrap();
+src/reasoning/horned_integration.rs:238:        ).unwrap();
+src/reasoning/horned_integration.rs:243:        ).unwrap();
+src/reasoning/horned_integration.rs:248:        ).unwrap();
+src/reasoning/horned_integration.rs:254:        let result = reasoner.parse_from_database(db_path.to_str().unwrap());
+src/reasoning/horned_integration.rs:258:        let ontology = reasoner.ontology.unwrap();
+src/reasoning/horned_integration.rs:271:        assert!(result.unwrap());
+src/events/middleware.rs:367:        middleware.after_publish(&event).await.unwrap();
+src/events/middleware.rs:418:        middleware.before_publish(&mut event).await.unwrap();
+src/events/store.rs:225:        repo.append(event.clone()).await.unwrap();
+src/events/store.rs:227:        let events = repo.get_events("node-1").await.unwrap();
+src/events/store.rs:245:        store.append(&event).await.unwrap();
+src/events/store.rs:247:        let events = store.get_events("node-1").await.unwrap();
+src/events/store.rs:265:            store.append(&event).await.unwrap();

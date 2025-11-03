@@ -12,6 +12,8 @@ use log::{debug, error, info, warn};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
+use crate::utils::time;
+
 ///
 #[derive(Debug, Clone)]
 pub enum SupervisionStrategy {
@@ -206,7 +208,7 @@ impl Handler<RegisterActor> for SupervisorActor {
             actor_type: "generic".to_string(),
             is_running: false,
             session_id: None,
-            last_heartbeat: Utc::now(),
+            last_heartbeat: time::now(),
         };
 
         let initial_delay = match &msg.strategy {
@@ -423,6 +425,7 @@ pub trait SupervisedActorTrait: Actor {
 mod tests {
     use super::*;
     use tokio::time::sleep;
+use crate::utils::time;
 
     #[actix::test]
     async fn test_actor_registration() {

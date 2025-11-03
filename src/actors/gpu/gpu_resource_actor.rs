@@ -412,9 +412,9 @@ impl Handler<InitializeGPU> for GPUResourceActor {
                             
                             if actor.device.is_some() && actor.cuda_stream.is_some() && actor.unified_compute.is_some() {
                                 
-                                let device = actor.device.as_ref().unwrap().clone();
-                                let stream = actor.cuda_stream.take().unwrap();
-                                let compute = actor.unified_compute.take().unwrap();
+                                let device = actor.device.as_ref().expect("Expected value to be present").clone();
+                                let stream = actor.cuda_stream.take().expect("Expected value to be present");
+                                let compute = actor.unified_compute.take().expect("Expected value to be present");
 
                                 
                                 let safe_stream = super::cuda_stream_wrapper::SafeCudaStream::new(stream);

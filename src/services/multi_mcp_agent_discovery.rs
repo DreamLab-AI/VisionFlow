@@ -18,6 +18,7 @@ use crate::services::agent_visualization_protocol::{
     GlobalPerformanceMetrics, McpServerInfo, McpServerType, MultiMcpAgentStatus, SwarmTopologyData,
 };
 use crate::utils::mcp_tcp_client::create_mcp_client;
+use crate::utils::time;
 
 ///
 #[derive(Debug, Clone)]
@@ -227,7 +228,7 @@ impl MultiMcpAgentDiscovery {
                             let discovery_time = start_time.elapsed().as_millis() as f64;
                             let mut stats_guard = stats.write().await;
                             stats_guard.successful_discoveries += 1;
-                            stats_guard.last_discovery_time = Some(Utc::now());
+                            stats_guard.last_discovery_time = Some(time::now());
                             stats_guard.average_discovery_time_ms =
                                 (stats_guard.average_discovery_time_ms + discovery_time) / 2.0;
                             drop(stats_guard);
@@ -247,7 +248,7 @@ impl MultiMcpAgentDiscovery {
                             let mut server_statuses_guard = server_statuses.write().await;
                             if let Some(server_info) = server_statuses_guard.get_mut(&server_id) {
                                 server_info.is_connected = false;
-                                server_info.last_heartbeat = Utc::now().timestamp();
+                                server_info.last_heartbeat = time::timestamp_seconds();
                             }
                             drop(server_statuses_guard);
                         }
@@ -286,7 +287,7 @@ impl MultiMcpAgentDiscovery {
         ),
         Box<dyn std::error::Error + Send + Sync>,
     > {
-        let start_time = Utc::now();
+        let start_time = time::now();
         
         let _discovery_duration = start_time;
 
@@ -350,7 +351,7 @@ impl MultiMcpAgentDiscovery {
                     host: config.host.clone(),
                     port: config.port,
                     is_connected,
-                    last_heartbeat: Utc::now().timestamp(),
+                    last_heartbeat: time::timestamp_seconds(),
                     supported_tools: vec![
                         "agent_list".to_string(),
                         "swarm_status".to_string(),
@@ -448,7 +449,7 @@ impl MultiMcpAgentDiscovery {
                     host: config.host.clone(),
                     port: config.port,
                     is_connected,
-                    last_heartbeat: Utc::now().timestamp(),
+                    last_heartbeat: time::timestamp_seconds(),
                     supported_tools: vec![
                         "swarm_init".to_string(),
                         "agent_spawn".to_string(),
@@ -548,7 +549,7 @@ impl MultiMcpAgentDiscovery {
                     host: config.host.clone(),
                     port: config.port,
                     is_connected,
-                    last_heartbeat: Utc::now().timestamp(),
+                    last_heartbeat: time::timestamp_seconds(),
                     supported_tools: vec![
                         "daa_agent_create".to_string(),
                         "daa_workflow_create".to_string(),

@@ -387,15 +387,12 @@ pub async fn validate_payload(
         "bots" => validation_service.validate_bots_data(&payload),
         "swarm" => validation_service.validate_swarm_init(&payload),
         _ => {
-            return Ok(HttpResponse::BadRequest().json(serde_json::json!({
-                "error": "invalid_validation_type",
-                "message": "Supported types: settings, physics, ragflow, bots, swarm"
-            })));
+            return Ok(bad_request!("invalid_validation_type", "Supported types: settings, physics, ragflow, bots, swarm"));
         }
     };
 
     match result {
-        Ok(sanitized_payload) => Ok(HttpResponse::Ok().json(serde_json::json!({
+        Ok(sanitized_payload) => Ok(ok_json!(serde_json::json!({
             "status": "valid",
             "message": "Payload validation successful",
             "sanitized_payload": sanitized_payload,
@@ -433,7 +430,7 @@ pub async fn get_validation_stats(req: HttpRequest) -> Result<HttpResponse> {
         "timestamp": chrono::Utc::now().to_rfc3339()
     });
 
-    Ok(HttpResponse::Ok().json(stats))
+    Ok(ok_json!(stats))
 }
 
 ///

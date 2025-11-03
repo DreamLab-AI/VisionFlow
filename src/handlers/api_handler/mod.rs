@@ -24,7 +24,7 @@ use serde_json::json;
 ///
 async fn health_check() -> impl Responder {
     info!("Health check requested");
-    HttpResponse::Ok().json(json!({
+    ok_json!(json!({
         "status": "ok",
         "version": env!("CARGO_PKG_VERSION"),
         "timestamp": chrono::Utc::now().to_rfc3339()
@@ -45,7 +45,7 @@ async fn get_app_config(state: web::Data<crate::AppState>) -> impl Responder {
     let result = execute_in_thread(move || handler.handle(LoadAllSettings)).await;
 
     match result {
-        Ok(Ok(Some(settings))) => HttpResponse::Ok().json(json!({
+        Ok(Ok(Some(settings))) => ok_json!(json!({
             "version": env!("CARGO_PKG_VERSION"),
             "features": {
                 "ragflow": settings.ragflow.is_some(),
@@ -74,8 +74,14 @@ async fn get_app_config(state: web::Data<crate::AppState>) -> impl Responder {
         Ok(Ok(None)) => {
             log::warn!("No settings found, using defaults");
             use crate::config::AppFullSettings;
+use crate::{
+    ok_json, created_json, error_json, bad_request, not_found,
+    unauthorized, forbidden, conflict, no_content, accepted,
+    too_many_requests, service_unavailable, payload_too_large
+};
+
             let settings = AppFullSettings::default();
-            HttpResponse::Ok().json(json!({
+            ok_json!(json!({
                 "version": env!("CARGO_PKG_VERSION"),
                 "features": {
                     "ragflow": settings.ragflow.is_some(),
@@ -104,15 +110,11 @@ async fn get_app_config(state: web::Data<crate::AppState>) -> impl Responder {
         }
         Ok(Err(e)) => {
             error!("Failed to load settings via CQRS: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": "Failed to retrieve configuration"
-            }))
+            error_json!("Failed to retrieve configuration").expect("JSON serialization failed")
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError().json(json!({
-                "error": "Internal server error"
-            }))
+            error_json!("Internal server error").expect("JSON serialization failed")
         }
     }
 }
@@ -126,7 +128,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .route("/config", web::get().to(get_app_config))
             .route(
                 "/settings-test",
-                web::get().to(|| async { HttpResponse::Ok().json(json!({"test": "works"})) }),
+                web::get().to(|| async { ok_json!(json!({"test": "works"})) }),
             )
             
             .configure(files::config)

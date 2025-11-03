@@ -61,7 +61,7 @@ pub async fn trigger_sync(
             app_state.graph_service_addr.do_send(crate::actors::messages::ReloadGraphFromDatabase);
             info!("✅ Reload notification sent to GraphServiceActor");
 
-            HttpResponse::Ok().json(SyncResponse {
+            ok_json!(SyncResponse {
                 success: true,
                 message: format!(
                     "Sync completed: {} nodes, {} edges",

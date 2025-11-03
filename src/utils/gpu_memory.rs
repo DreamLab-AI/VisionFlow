@@ -1,5 +1,21 @@
-///
-///
+//! # DEPRECATED: Use `crate::gpu::memory_manager` instead
+//!
+//! This module is deprecated in favor of the unified `GpuMemoryManager`.
+//! The new manager provides:
+//! - All functionality from this module (leak detection, tracking)
+//! - Dynamic buffer resizing
+//! - Async transfers with double buffering
+//! - Better performance and safety
+//!
+//! **Migration Guide**: See `/home/devuser/workspace/project/docs/gpu_memory_consolidation_analysis.md`
+//!
+//! This module will be removed in a future release.
+
+#![deprecated(
+    since = "2025.11.03",
+    note = "Use crate::gpu::memory_manager::GpuMemoryManager instead"
+)]
+
 use cust::memory::DeviceBuffer;
 use log::{debug, error, warn};
 use once_cell::sync::Lazy;
@@ -95,7 +111,7 @@ impl GPUMemoryTracker {
     }
 
     pub fn get_memory_usage(&self) -> (usize, HashMap<String, usize>) {
-        let allocations = self.allocations.lock().unwrap();
+        let allocations = self.allocations.lock().expect("Mutex poisoned");
         let total = self
             .total_allocated
             .load(std::sync::atomic::Ordering::Relaxed);
@@ -103,7 +119,7 @@ impl GPUMemoryTracker {
     }
 
     pub fn check_leaks(&self) -> Vec<String> {
-        let allocations = self.allocations.lock().unwrap();
+        let allocations = self.allocations.lock().expect("Mutex poisoned");
         if !allocations.is_empty() {
             let leaks: Vec<String> = allocations.keys().cloned().collect();
             error!(

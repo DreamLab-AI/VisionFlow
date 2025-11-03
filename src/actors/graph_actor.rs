@@ -86,6 +86,7 @@ use crate::utils::unified_gpu_compute::UnifiedGPUCompute;
 use crate::physics::stress_majorization::StressMajorizationSolver;
 use crate::ports::knowledge_graph_repository::KnowledgeGraphRepository;
 use std::sync::Mutex;
+use crate::utils::time;
 
 pub struct GraphServiceActor {
     graph_data: Arc<GraphData>,        
@@ -587,7 +588,7 @@ impl GraphServiceActor {
         
         let notification = AutoBalanceNotification {
             message: message.to_string(),
-            timestamp: chrono::Utc::now().timestamp_millis(),
+            timestamp: time::timestamp_millis(),
             severity,
         };
 
@@ -4399,7 +4400,7 @@ mod tests {
                 hyperlink_count: 5,
                 sha1: "abc123".to_string(),
                 node_id: "1".to_string(),
-                last_modified: Utc::now(),
+                last_modified: time::now(),
                 last_content_change: None,
                 last_commit: None,
                 change_count: Some(0),
@@ -4418,7 +4419,7 @@ mod tests {
                 hyperlink_count: 10,
                 sha1: "def456".to_string(),
                 node_id: "2".to_string(),
-                last_modified: Utc::now(),
+                last_modified: time::now(),
                 last_content_change: None,
                 last_commit: None,
                 change_count: Some(0),
@@ -4505,7 +4506,7 @@ mod tests {
             .find(|node| node.metadata_id == "file2")
             .expect("file2 node should exist after rebuild");
 
-        let original_file2_pos = initial_positions.get("file2").unwrap().0;
+        let original_file2_pos = initial_positions.get("file2").expect("Missing required key: file2").0;
         assert_eq!(
             file2_node.data.position(),
             original_file2_pos,
@@ -4530,7 +4531,7 @@ mod tests {
                 hyperlink_count: 5,
                 sha1: "abc123".to_string(),
                 node_id: "1".to_string(),
-                last_modified: Utc::now(),
+                last_modified: time::now(),
                 last_content_change: None,
                 last_commit: None,
                 change_count: Some(0),
@@ -4559,7 +4560,7 @@ mod tests {
                 hyperlink_count: 5,
                 sha1: "abc123".to_string(),
                 node_id: "1".to_string(),
-                last_modified: Utc::now(),
+                last_modified: time::now(),
                 last_content_change: None,
                 last_commit: None,
                 change_count: Some(0),
@@ -4578,7 +4579,7 @@ mod tests {
                 hyperlink_count: 10,
                 sha1: "def456".to_string(),
                 node_id: "2".to_string(),
-                last_modified: Utc::now(),
+                last_modified: time::now(),
                 last_content_change: None,
                 last_commit: None,
                 change_count: Some(0),

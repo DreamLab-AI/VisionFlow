@@ -24,9 +24,10 @@ pub mod settings_handler;
 pub mod settings_validation_fix;
 pub mod socket_flow_handler;
 pub mod speech_socket_handler;
-pub mod utils; 
+pub mod utils;
 pub mod validation_handler;
 pub mod websocket_settings_handler;
+pub mod websocket_utils; // WebSocket common utilities
 pub mod workspace_handler;
 
 // Phase 5: Hexagonal architecture handlers

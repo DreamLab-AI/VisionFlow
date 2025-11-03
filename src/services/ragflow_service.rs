@@ -7,6 +7,7 @@ use std::fmt;
 use std::pin::Pin;
 use std::sync::Arc;
 use tokio::sync::RwLock;
+use crate::utils::json::{from_json, to_json};
 
 #[derive(Debug)]
 pub enum RAGFlowError {
@@ -251,7 +252,7 @@ impl RAGFlowService {
 
         info!(
             "Request body: {:?}",
-            serde_json::to_string(&request_body).unwrap_or_default()
+            to_json(&request_body).unwrap_or_default()
         );
 
         let response = self

@@ -9,6 +9,7 @@ use log::{error, info};
 
 ///
 use std::sync::Arc;
+use crate::utils::time;
 
 pub struct PullRequestAPI {
     client: Arc<GitHubClient>,
@@ -27,7 +28,7 @@ impl PullRequestAPI {
         content: &str,
         original_sha: &str,
     ) -> VisionFlowResult<String> {
-        let timestamp = Utc::now().timestamp();
+        let timestamp = time::timestamp_seconds();
         let branch_name = format!("update-{}-{}", file_name.replace(".md", ""), timestamp);
 
         let main_sha = self.get_main_branch_sha().await?;

@@ -675,7 +675,7 @@ mod tests {
             .await;
 
         let registry = monitor.connection_registry.read().await;
-        let connections = registry.get("test-service").unwrap();
+        let connections = registry.get("test-service").expect("Missing required key: test-service");
         assert_eq!(connections.len(), 2);
 
         drop(registry);
@@ -685,7 +685,7 @@ mod tests {
             .await;
 
         let registry = monitor.connection_registry.read().await;
-        let connections = registry.get("test-service").unwrap();
+        let connections = registry.get("test-service").expect("Missing required key: test-service");
         assert_eq!(connections.len(), 1);
     }
 

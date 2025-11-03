@@ -11,6 +11,7 @@ use std::f32::consts::PI;
 
 use crate::services::agent_visualization_protocol::{Position, SwarmTopologyData};
 use crate::types::Vec3Data;
+use crate::utils::time;
 
 ///
 #[derive(Debug, Clone)]
@@ -418,7 +419,7 @@ impl TopologyVisualizationEngine {
     pub fn update_node_position(&mut self, node_id: &str, position: Position) {
         if let Some(node) = self.nodes.get_mut(node_id) {
             node.position = position;
-            node.last_updated = chrono::Utc::now().timestamp();
+            node.last_updated = time::timestamp_seconds();
         }
     }
 
@@ -480,7 +481,7 @@ impl TopologyVisualizationEngine {
             positions: positions.clone(),
             computation_time: self.metrics.computation_time_ms,
             quality_score: self.metrics.layout_quality_score,
-            created_at: chrono::Utc::now().timestamp(),
+            created_at: time::timestamp_seconds(),
             access_count: 1,
         };
         self.layout_cache.insert(layout_hash, cached_layout);

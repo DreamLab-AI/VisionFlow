@@ -19,16 +19,16 @@ use path_access::{parse_path, PathAccessible};
 // Centralized validation patterns
 lazy_static! {
     
-    static ref HEX_COLOR_REGEX: Regex = Regex::new(r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$").unwrap();
+    static ref HEX_COLOR_REGEX: Regex = Regex::new(r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$").expect("Invalid regex pattern");
 
     
-    static ref URL_REGEX: Regex = Regex::new(r"^https?://[^\s/$.?#].[^\s]*$").unwrap();
+    static ref URL_REGEX: Regex = Regex::new(r"^https?://[^\s/$.?#].[^\s]*$").expect("Invalid regex pattern");
 
     
-    static ref FILE_PATH_REGEX: Regex = Regex::new(r"^[a-zA-Z0-9._/\\-]+$").unwrap();
+    static ref FILE_PATH_REGEX: Regex = Regex::new(r"^[a-zA-Z0-9._/\\-]+$").expect("Invalid regex pattern");
 
     
-    static ref DOMAIN_REGEX: Regex = Regex::new(r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$").unwrap();
+    static ref DOMAIN_REGEX: Regex = Regex::new(r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$").expect("Invalid regex pattern");
 }
 
 ///
@@ -252,6 +252,7 @@ fn convert_empty_strings_to_null(value: Value) -> Value {
 // Helper function to merge two JSON values
 fn merge_json_values(base: Value, update: Value) -> Value {
     use serde_json::map::Entry;
+use crate::utils::json::{from_json, to_json};
 
     match (base, update) {
         (Value::Object(mut base_map), Value::Object(update_map)) => {
@@ -1911,7 +1912,7 @@ impl AppFullSettings {
         if crate::utils::logging::is_debug_enabled() {
             debug!(
                 "merge_update: Incoming update (camelCase): {}",
-                serde_json::to_string_pretty(&update)
+                crate::utils::json::to_json_pretty(&update)
                     .unwrap_or_else(|_| "Could not serialize".to_string())
             );
         }
@@ -1921,7 +1922,7 @@ impl AppFullSettings {
         if crate::utils::logging::is_debug_enabled() {
             debug!(
                 "merge_update: After null conversion: {}",
-                serde_json::to_string_pretty(&processed_update)
+                crate::utils::json::to_json_pretty(&processed_update)
                     .unwrap_or_else(|_| "Could not serialize".to_string())
             );
         }
@@ -1938,12 +1939,12 @@ impl AppFullSettings {
         if crate::utils::logging::is_debug_enabled() {
             debug!(
                 "merge_update: After field normalization (current): {}",
-                serde_json::to_string_pretty(&normalized_current)
+                crate::utils::json::to_json_pretty(&normalized_current)
                     .unwrap_or_else(|_| "Could not serialize".to_string())
             );
             debug!(
                 "merge_update: After field normalization (update): {}",
-                serde_json::to_string_pretty(&normalized_update)
+                crate::utils::json::to_json_pretty(&normalized_update)
                     .unwrap_or_else(|_| "Could not serialize".to_string())
             );
         }
@@ -1952,7 +1953,7 @@ impl AppFullSettings {
         if crate::utils::logging::is_debug_enabled() {
             debug!(
                 "merge_update: After merge: {}",
-                serde_json::to_string_pretty(&merged)
+                crate::utils::json::to_json_pretty(&merged)
                     .unwrap_or_else(|_| "Could not serialize".to_string())
             );
         }
@@ -1962,12 +1963,12 @@ impl AppFullSettings {
             if crate::utils::logging::is_debug_enabled() {
                 error!(
                     "merge_update: Failed to deserialize merged JSON: {}",
-                    serde_json::to_string_pretty(&merged)
+                    crate::utils::json::to_json_pretty(&merged)
                         .unwrap_or_else(|_| "Could not serialize".to_string())
                 );
                 error!(
                     "merge_update: Original update was: {}",
-                    serde_json::to_string_pretty(&update)
+                    crate::utils::json::to_json_pretty(&update)
                         .unwrap_or_else(|_| "Could not serialize".to_string())
                 );
             }

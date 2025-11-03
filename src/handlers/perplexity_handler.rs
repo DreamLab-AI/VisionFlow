@@ -3,6 +3,12 @@ use actix_web::{post, web, HttpResponse, Responder};
 use log::{error, info};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use crate::{
+    ok_json, created_json, error_json, bad_request, not_found,
+    unauthorized, forbidden, conflict, no_content, accepted,
+    too_many_requests, service_unavailable, payload_too_large
+};
+
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -28,9 +34,7 @@ pub async fn handle_perplexity(
     let perplexity_service = match &state.perplexity_service {
         Some(service) => service,
         None => {
-            return HttpResponse::ServiceUnavailable().json(json!({
-                "error": "Perplexity service is not available"
-            }))
+            return service_unavailable!("Perplexity service is not available")
         }
     };
 
@@ -44,7 +48,7 @@ pub async fn handle_perplexity(
                 answer,
                 conversation_id,
             };
-            HttpResponse::Ok().json(response)
+            ok_json!(response)
         }
         Err(e) => {
             error!("Error processing perplexity request: {}", e);
