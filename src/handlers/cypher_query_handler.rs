@@ -15,6 +15,7 @@ use log::{debug, warn};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
+use crate::utils::response_macros::*;
 
 use crate::adapters::neo4j_adapter::Neo4jAdapter;
 

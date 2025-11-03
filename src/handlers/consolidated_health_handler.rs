@@ -1,5 +1,6 @@
 use crate::actors::messages::{GetGPUStatus, GetGraphData, GetMetadata};
 use crate::services::mcp_relay_manager::McpRelayManager;
+use crate::utils::response_macros::*;
 use crate::AppState;
 use actix_web::{web, Error, HttpResponse, Result};
 use chrono::Utc;

@@ -12,6 +12,7 @@ use actix_web::{web, Error, HttpRequest, HttpResponse};
 use log::{debug, error, info, warn};
 use tracing::info as trace_info;
 use uuid::Uuid;
+use crate::utils::response_macros::*;
 
 // Import comprehensive validation for GPU parameters
 use crate::handlers::settings_validation_fix::{

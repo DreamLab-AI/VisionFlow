@@ -4,6 +4,7 @@
 use actix_web::{web, HttpResponse};
 use log::{error, info};
 use serde::Serialize;
+use crate::utils::response_macros::*;
 
 use crate::services::github_sync_service::{GitHubSyncService, SyncStatistics};
 use crate::AppState;

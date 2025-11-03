@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
+use crate::utils::response_macros::*;
 
 use crate::application::semantic_service::{
     CentralityRequest, CommunityDetectionRequest, SemanticService, ShortestPathRequest,

@@ -7,6 +7,7 @@ use std::io::Write;
 use uuid::Uuid;
 
 use crate::telemetry::agent_telemetry::{get_telemetry_logger, CorrelationId};
+use crate::utils::response_macros::*;
 use crate::AppState;
 
 #[derive(Debug, Deserialize, Serialize)]

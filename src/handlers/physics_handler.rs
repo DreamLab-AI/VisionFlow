@@ -7,6 +7,7 @@ use actix_web::{web, HttpResponse, Result as ActixResult};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::sync::RwLock;
+use crate::utils::response_macros::*;
 
 use crate::application::physics_service::{
     LayoutOptimizationRequest, PhysicsService, SimulationParams,

@@ -2,6 +2,7 @@
 // Uses Knowledge Graph application layer for all graph operations
 
 use crate::handlers::utils::execute_in_thread;
+use crate::utils::response_macros::*;
 use crate::AppState;
 use actix_web::{web, HttpResponse, Responder};
 use log::{debug, error, info};
