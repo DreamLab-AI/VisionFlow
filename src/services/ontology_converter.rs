@@ -93,7 +93,7 @@ impl OntologyConverter {
             .unwrap_or(&class.iri)
             .to_string();
 
-        // Create metadata JSON with ontology properties
+        // Create metadata HashMap with ontology properties
         let mut metadata = HashMap::new();
         metadata.insert("owl_class_iri".to_string(), class.iri.clone());
 
@@ -110,34 +110,49 @@ impl OntologyConverter {
 
         let label = class.label.clone().unwrap_or_else(|| metadata_id.clone());
 
-        Ok(Node {
-            id: 0, // Auto-assigned by database
-            metadata_id,
-            label,
-
-            // CRITICAL: Populate owl_class_iri - THIS IS THE KEY FIELD
-            owl_class_iri: Some(class.iri.clone()),
-
-            // Initial physics state
+        // Create BinaryNodeData for GPU physics
+        use crate::utils::socket_flow_messages::BinaryNodeData;
+        let data = BinaryNodeData {
+            node_id: 0,
             x: 0.0,
             y: 0.0,
             z: 0.0,
             vx: 0.0,
             vy: 0.0,
             vz: 0.0,
+        };
 
-            // Physical properties
-            mass: 1.0,
-            charge: 1.0,
+        Ok(Node {
+            id: 0, // Auto-assigned by database
+            metadata_id,
+            label,
+            data,
+
+            // CRITICAL: Populate owl_class_iri - THIS IS THE KEY FIELD
+            owl_class_iri: Some(class.iri.clone()),
+
+            // Initial physics state (Option<f32>)
+            x: Some(0.0),
+            y: Some(0.0),
+            z: Some(0.0),
+            vx: Some(0.0),
+            vy: Some(0.0),
+            vz: Some(0.0),
+
+            // Physical properties (Option<f32>)
+            mass: Some(1.0),
 
             // Visual properties
             color: Some(color),
-            size: Some(size),
-            node_type: "ontology_class".to_string(),
-            weight: 1.0,
+            size: Some(size as f32), // Convert f64 to f32
+            node_type: Some("ontology_class".to_string()),
+            weight: Some(1.0),
             group: None,
 
-            metadata: serde_json::to_string(&metadata)?,
+            // Metadata as HashMap (not JSON string)
+            metadata,
+            file_size: 0,
+            user_data: None,
         })
     }
 

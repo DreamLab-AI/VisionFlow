@@ -1505,9 +1505,13 @@ impl UnifiedGPUCompute {
                     d_sssp,
                     self.constraint_data.as_device_ptr(),
                     self.num_constraints as i32,
-                    DevicePointer::<f32>::null(), 
-                    DevicePointer::<f32>::null(), 
-                    DevicePointer::<f32>::null()  
+                    DevicePointer::<f32>::null(),
+                    DevicePointer::<f32>::null(),
+                    DevicePointer::<f32>::null(),
+                    // Ontology class metadata
+                    self.class_id.as_device_ptr(),
+                    self.class_charge.as_device_ptr(),
+                    self.class_mass.as_device_ptr()
                 ))?;
             }
         }
@@ -1534,7 +1538,11 @@ impl UnifiedGPUCompute {
                 self.vel_out_x.as_device_ptr(),
                 self.vel_out_y.as_device_ptr(),
                 self.vel_out_z.as_device_ptr(),
-                self.num_nodes as i32
+                self.num_nodes as i32,
+                // Ontology class metadata
+                self.class_id.as_device_ptr(),
+                self.class_charge.as_device_ptr(),
+                self.class_mass.as_device_ptr()
             ))?;
         }
 

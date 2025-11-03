@@ -246,7 +246,11 @@ __global__ void force_pass_kernel(
     // Constraint telemetry buffers (optional, can be nullptr)
     float* __restrict__ constraint_violations,   // [num_constraints] violation magnitudes
     float* __restrict__ constraint_energy,       // [num_constraints] energy values
-    float* __restrict__ node_constraint_force)   // [num_nodes] total constraint force per node
+    float* __restrict__ node_constraint_force,   // [num_nodes] total constraint force per node
+    // Ontology class metadata for class-based physics
+    const int* __restrict__ class_id,            // [num_nodes] OWL class IDs
+    const float* __restrict__ class_charge,      // [num_nodes] class-specific charge modifiers
+    const float* __restrict__ class_mass)        // [num_nodes] class-specific mass modifiers
 {
     const int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= num_nodes) return;
@@ -286,12 +290,17 @@ __global__ void force_pass_kernel(
                             if (dist_sq < c_params.repulsion_cutoff * c_params.repulsion_cutoff && dist_sq > 1e-6f) {
                                 float dist = sqrtf(dist_sq);
                                 float repulsion = c_params.repel_k / (dist_sq + c_params.repulsion_softening_epsilon);
-                                
+
+                                // Apply class-based charge modifiers (default 1.0 if nullptr)
+                                float my_charge = (class_charge != nullptr) ? class_charge[idx] : 1.0f;
+                                float neighbor_charge = (class_charge != nullptr) ? class_charge[neighbor_idx] : 1.0f;
+                                repulsion *= my_charge * neighbor_charge;
+
                                 // Prevent repulsion force overflow when nodes are too close
                                 // Use full max_force instead of arbitrary 0.5 multiplier
                                 float max_repulsion = c_params.max_force;
                                 repulsion = fminf(repulsion, max_repulsion);
-                                
+
                                 // Safety check for NaN/Inf
                                 if (isfinite(repulsion) && isfinite(dist) && dist > 0.0f) {
                                     total_force = vec3_add(total_force, vec3_scale(diff, repulsion / dist));
@@ -529,7 +538,11 @@ __global__ void integrate_pass_kernel(
     float* __restrict__ vel_out_x,
     float* __restrict__ vel_out_y,
     float* __restrict__ vel_out_z,
-    const int num_nodes)
+    const int num_nodes,
+    // Ontology class metadata
+    const int* __restrict__ class_id,       // [num_nodes] OWL class IDs
+    const float* __restrict__ class_charge, // [num_nodes] class-specific charge modifiers
+    const float* __restrict__ class_mass)   // [num_nodes] class-specific mass modifiers
 {
     const int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx >= num_nodes) return;
@@ -537,7 +550,11 @@ __global__ void integrate_pass_kernel(
     float3 pos = make_vec3(pos_in_x[idx], pos_in_y[idx], pos_in_z[idx]);
     float3 vel = make_vec3(vel_in_x[idx], vel_in_y[idx], vel_in_z[idx]);
     float3 force = make_vec3(force_x[idx], force_y[idx], force_z[idx]);
-    float node_mass = (mass != nullptr && mass[idx] > 0.0f) ? mass[idx] : 1.0f;
+
+    // Apply class-based mass modifier (default 1.0 if nullptr)
+    float class_mass_modifier = (class_mass != nullptr) ? class_mass[idx] : 1.0f;
+    float base_mass = (mass != nullptr && mass[idx] > 0.0f) ? mass[idx] : 1.0f;
+    float node_mass = base_mass * class_mass_modifier;
 
     // Force capping using settings values only
     float force_mag = vec3_length(force);

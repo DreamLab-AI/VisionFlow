@@ -10,6 +10,10 @@ use crate::ports::ontology_repository::OntologyRepository;
 use crate::services::github::content_enhanced::EnhancedContentAPI;
 use crate::services::github::types::GitHubFileBasicMetadata;
 use crate::services::parsers::{KnowledgeGraphParser, OntologyParser};
+use crate::services::ontology_enrichment_service::OntologyEnrichmentService;
+use crate::services::ontology_reasoner::OntologyReasoner;
+use crate::services::edge_classifier::EdgeClassifier;
+use crate::adapters::whelk_inference_engine::WhelkInferenceEngine;
 use log::{debug, error, info, warn};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -41,6 +45,7 @@ pub struct GitHubSyncService {
     onto_parser: Arc<OntologyParser>,
     kg_repo: Arc<UnifiedGraphRepository>,
     onto_repo: Arc<UnifiedOntologyRepository>,
+    enrichment_service: Arc<OntologyEnrichmentService>,
 }
 
 impl GitHubSyncService {
@@ -49,12 +54,25 @@ impl GitHubSyncService {
         kg_repo: Arc<UnifiedGraphRepository>,
         onto_repo: Arc<UnifiedOntologyRepository>,
     ) -> Self {
+        // Initialize ontology enrichment service
+        let inference_engine = Arc::new(WhelkInferenceEngine::new());
+        let reasoner = Arc::new(OntologyReasoner::new(
+            inference_engine,
+            onto_repo.clone() as Arc<dyn OntologyRepository>,
+        ));
+        let classifier = Arc::new(EdgeClassifier::new());
+        let enrichment_service = Arc::new(OntologyEnrichmentService::new(
+            reasoner,
+            classifier,
+        ));
+
         Self {
             content_api,
             kg_parser: Arc::new(KnowledgeGraphParser::new()),
             onto_parser: Arc::new(OntologyParser::new()),
             kg_repo,
             onto_repo,
+            enrichment_service,
         }
     }
 
@@ -257,11 +275,23 @@ impl GitHubSyncService {
             FileType::KnowledgeGraph => {
                 // Process public:: true files as knowledge graph nodes
                 debug!("🔍 Parsing knowledge graph from {}", file.name);
-                let parsed = self.kg_parser.parse(&content, &file.name)
+                let mut parsed = self.kg_parser.parse(&content, &file.name)
                     .map_err(|e| format!("Parse error: {}", e))?;
 
                 info!("📊 Parsed {}: {} nodes, {} edges",
                     file.name, parsed.nodes.len(), parsed.edges.len());
+
+                // ✅ ENRICH WITH ONTOLOGY DATA
+                debug!("🦉 Enriching graph with ontology data for {}", file.name);
+                match self.enrichment_service.enrich_graph(&mut parsed, &file.path, &content).await {
+                    Ok((nodes_enriched, edges_enriched)) => {
+                        info!("✅ Enriched {}: {} nodes with owl_class_iri, {} edges with owl_property_iri",
+                            file.name, nodes_enriched, edges_enriched);
+                    }
+                    Err(e) => {
+                        warn!("⚠️  Failed to enrich {}: {} (continuing with unenriched data)", file.name, e);
+                    }
+                }
 
                 // Add to public pages
                 public_pages.insert(page_name.to_string());

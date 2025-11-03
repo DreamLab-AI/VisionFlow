@@ -30,3 +30,6 @@ pub mod voice_context_manager;
 pub mod voice_tag_manager;
 pub mod streaming_sync_service;
 pub mod ontology_converter;
+pub mod edge_classifier;
+pub mod ontology_reasoner;
+pub mod ontology_enrichment_service;
