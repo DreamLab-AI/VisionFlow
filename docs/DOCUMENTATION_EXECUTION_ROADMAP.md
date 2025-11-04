@@ -122,7 +122,7 @@ find docs/concepts/architecture -type f -name "*.md"
 **Files to Consolidate**:
 1. `guides/developer/development-setup.md` → merge into `01-development-setup.md`
 2. `guides/developer/adding-a-feature.md` → merge into `04-adding-features.md`
-3. `guides/developer/testing-guide.md` → merge into `05-testing-guide.md`
+3. `guides/developer/05-05-testing-guide.md` → merge into `05-05-05-testing-guide.md`
 4. `guides/xr-setup.md` vs `guides/user/xr-setup.md` → resolve conflict
 
 **Process**:

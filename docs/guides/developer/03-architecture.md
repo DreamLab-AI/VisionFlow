@@ -654,5 +654,5 @@ graph LR
 ## Next Steps
 
 - Learn about [Adding Features](./04-adding-features.md)
-- Review [Testing Strategy](./testing-guide.md)
+- Review [Testing Strategy](./05-testing-guide.md)
 - Understand [Contributing Guidelines](./06-contributing.md)

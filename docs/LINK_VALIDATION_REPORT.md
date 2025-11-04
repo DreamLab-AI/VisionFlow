@@ -341,7 +341,7 @@ These require creating new documentation or reorganizing existing content.
 ./guides/developer/01-development-setup.md
   → ../../INDEX.md
 
-./guides/developer/testing-guide.md
+./guides/developer/05-05-testing-guide.md
   → ../../reference/README.md
 
 ./guides/developer/adding-a-feature.md
@@ -400,7 +400,7 @@ These require creating new documentation or reorganizing existing content.
 ./guides/stress-majorization-guide.md
   → ../STRESS_MAJORIZATION_CHECKLIST.md
 
-./guides/testing-guide.md
+./guides/05-05-testing-guide.md
   → ../archive/legacy-docs-2025-10/troubleshooting/SECURITY_ALERT.md
   → ../decisions/003-code-pruning-2025-10.md
 

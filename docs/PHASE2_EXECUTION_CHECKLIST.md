@@ -76,7 +76,7 @@
   - [ ] Commit changes
 - [ ] **4.1** Complete duplicate analysis (1.5 hours)
   - [ ] Compare `adding-a-feature.md` vs `04-adding-features.md`
-  - [ ] Compare `testing-guide.md` vs `05-testing-guide.md`
+  - [ ] Compare `05-05-testing-guide.md` vs `05-05-05-testing-guide.md`
   - [ ] Compare `xr-setup.md` (guides/) vs `xr-setup.md` (guides/user/)
   - [ ] Document all merge plans
 
@@ -108,7 +108,7 @@
 
 #### Afternoon (1:00 PM - 5:00 PM)
 - [ ] **5.3** Consolidate duplicate 3: testing-guide (1 hour)
-  - [ ] Merge `testing-guide.md` into `05-testing-guide.md`
+  - [ ] Merge `05-05-testing-guide.md` into `05-05-05-testing-guide.md`
   - [ ] Update incoming links
   - [ ] Archive old file
   - [ ] Validate and commit

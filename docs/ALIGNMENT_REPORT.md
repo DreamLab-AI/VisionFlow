@@ -199,7 +199,7 @@
 26. **Test Infrastructure** (`/src/handlers/tests/`, `/src/tests/`)
     - **Files**: `settings_tests.rs`, various test modules
     - **Status**: ❌ Testing guide exists but test infrastructure undocumented
-    - **Gap**: `/docs/guides/testing-guide.md` covers high-level testing but not actual test structure
+    - **Gap**: `/docs/guides/05-05-testing-guide.md` covers high-level testing but not actual test structure
 
 27. **Client Utilities** (`/client/src/utils/`)
     - **Files**: 20+ utility modules (BatchQueue, dualGraphOptimizations, settingsSearch, validation, console, etc.)
@@ -341,7 +341,7 @@
    - **Task**: Document test structure, patterns, and running tests
    - **Effort**: 6-8 hours
    - **Impact**: Medium - helps contributors write tests
-   - **Deliverables**: Enhance `/docs/guides/testing-guide.md` with infrastructure details
+   - **Deliverables**: Enhance `/docs/guides/05-05-testing-guide.md` with infrastructure details
 
 10. **Performance Benchmarking Guide**
     - **Task**: Document performance benchmarking infrastructure and usage

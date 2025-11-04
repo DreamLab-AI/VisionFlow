@@ -36,7 +36,7 @@ Standardize 30+ documentation files to eliminate duplicates, fix numbering confl
 **Files:**
 - `development-setup.md` ↔ `01-development-setup.md` (507 vs 631 lines)
 - `adding-a-feature.md` ↔ `04-adding-features.md`
-- `testing-guide.md` (3 versions across different directories)
+- `05-05-testing-guide.md` (3 versions across different directories)
 - `xr-setup.md` ↔ `user/xr-setup.md` (1054 vs 651 lines)
 
 **Solution:** Merge duplicates, differentiate by audience where appropriate.
@@ -50,7 +50,7 @@ Standardize 30+ documentation files to eliminate duplicates, fix numbering confl
 **Impact:** Breaks logical reading order, unclear documentation structure.
 
 **Files:**
-- `guides/developer/testing-guide.md` conflicts with `04-adding-features.md`
+- `guides/developer/05-05-testing-guide.md` conflicts with `04-adding-features.md`
 - `reference/api/02-[missing].md` creates gap in sequence (01, 03)
 
 **Solution:** Resolve conflicts, complete sequences with proper numbering.

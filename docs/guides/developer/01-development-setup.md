@@ -631,7 +631,7 @@ npm run build
 - Review [Project Structure](./02-project-structure.md)
 - Understand [Architecture](./03-architecture.md)
 - Learn about [Adding Features](./04-adding-features.md)
-- Set up [Testing](./testing-guide.md)
+- Set up [Testing](./05-testing-guide.md)
 - Read [Contributing Guidelines](./06-contributing.md)
 
 ## Development Resources
@@ -650,4 +650,4 @@ npm run build
 
 ---
 
-**Navigation:** [📖 Documentation Index](../../README.md) | [💻 Developer Guide](./) | [🏗️ Architecture](../../concepts/architecture/) | [🧪 Testing](testing-guide.md)
+**Navigation:** [📖 Documentation Index](../../README.md) | [💻 Developer Guide](./) | [🏗️ Architecture](../../concepts/architecture/) | [🧪 Testing](05-testing-guide.md)

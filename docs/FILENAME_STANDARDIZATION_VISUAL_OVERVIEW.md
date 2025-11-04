@@ -43,12 +43,12 @@ docs/
 │   │   ├── 06-contributing.md                   ✓
 │   │   ├── development-setup.md                 ← DUPLICATE
 │   │   ├── adding-a-feature.md                  ← DUPLICATE
-│   │   └── testing-guide.md                     ← DUPLICATE
+│   │   └── 05-05-testing-guide.md                     ← DUPLICATE
 │   ├── operations/
 │   │   └── PIPELINE_OPERATOR_RUNBOOK.md         ← SCREAMING_SNAKE_CASE
 │   ├── user/
 │   │   └── xr-setup.md                          ← DUPLICATE (different audience)
-│   ├── testing-guide.md                         ← DUPLICATE
+│   ├── 05-05-testing-guide.md                         ← DUPLICATE
 │   ├── xr-setup.md                              ← DUPLICATE (different audience)
 │   └── neo4j-integration.md                     ← DUPLICATE
 │
@@ -113,7 +113,7 @@ docs/
 │   │   ├── 02-project-structure.md              ✓
 │   │   ├── 03-architecture.md                   ✓
 │   │   ├── 04-adding-features.md                ✓ Merged duplicate into this
-│   │   ├── 05-testing-guide.md                  ✓ Renamed & merged 3 files
+│   │   ├── 05-05-05-testing-guide.md                  ✓ Renamed & merged 3 files
 │   │   └── 06-contributing.md                   ✓
 │   ├── migration/
 │   │   └── neo4j-settings-migration.md          ← Moved from root
@@ -167,9 +167,9 @@ guides/developer/
 └── 04-adding-features.md (19K)     ┘
 
 guides/developer/
-├── testing-guide.md (669 lines)     ┐
-├── 05-testing.md (3.5K)             ├─→ 05-testing-guide.md (consolidated)
-└── guides/testing-guide.md (358)    ┘
+├── 05-05-testing-guide.md (669 lines)     ┐
+├── 05-testing.md (3.5K)             ├─→ 05-05-05-testing-guide.md (consolidated)
+└── guides/05-05-testing-guide.md (358)    ┘
 
 guides/
 ├── xr-setup.md (1054 lines)         → KEEP (developer focus)
@@ -293,13 +293,13 @@ AFTER:
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  1. FILE RENAME/MOVE                                         │
-│     guides/developer/testing-guide.md                        │
-│     → guides/developer/05-testing-guide.md                   │
+│     guides/developer/05-05-testing-guide.md                        │
+│     → guides/developer/05-05-05-testing-guide.md                   │
 └──────────────────────────────────────────────────────────────┘
                             ↓
 ┌──────────────────────────────────────────────────────────────┐
 │  2. SCRIPT FINDS ALL REFERENCES                              │
-│     grep -r "testing-guide.md" docs/ --include="*.md"        │
+│     grep -r "05-05-testing-guide.md" docs/ --include="*.md"        │
 │                                                              │
 │     Found in:                                                │
 │     - development-setup.md (3 references)                    │
@@ -309,10 +309,10 @@ AFTER:
                             ↓
 ┌──────────────────────────────────────────────────────────────┐
 │  3. SCRIPT UPDATES REFERENCES                                │
-│     sed -i "s|testing-guide.md|05-testing-guide.md|g"        │
+│     sed -i "s|05-05-testing-guide.md|05-05-05-testing-guide.md|g"        │
 │                                                              │
-│     Before: [Testing Guide](testing-guide.md)                │
-│     After:  [Testing Guide](05-testing-guide.md)             │
+│     Before: [Testing Guide](05-05-testing-guide.md)                │
+│     After:  [Testing Guide](05-05-05-testing-guide.md)             │
 └──────────────────────────────────────────────────────────────┘
                             ↓
 ┌──────────────────────────────────────────────────────────────┐

@@ -65,7 +65,7 @@ Executed comprehensive audit of 124 markdown documentation files (1.9 MB, 56,710
 **Phase 1 - Critical Duplicates** (IMMEDIATE):
 - `guides/developer/development-setup.md` → merge into `01-development-setup.md`
 - `guides/developer/adding-a-feature.md` → merge into `04-adding-features.md`
-- `guides/developer/testing-guide.md` → merge into `05-testing-guide.md`
+- `guides/developer/05-05-testing-guide.md` → merge into `05-05-05-testing-guide.md`
 - Resolve `guides/xr-setup.md` duplicate with `guides/user/xr-setup.md`
 
 **Phase 2 - Numbering Conflicts** (HIGH PRIORITY):

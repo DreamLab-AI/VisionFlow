@@ -7,7 +7,7 @@ difficulty: intermediate
 last_updated: 2025-11-04
 related:
   - /docs/guides/developer/01-development-setup.md
-  - /docs/guides/developer/testing-guide.md
+  - /docs/guides/developer/05-testing-guide.md
   - /docs/guides/developer/05-testing-guide.md
   - /docs/reference/README.md
 ---
@@ -844,5 +844,5 @@ Before submitting a pull request, ensure:
 
 ## Next Steps
 
-- Review [Testing Guide](./testing-guide.md)
+- Review [Testing Guide](./05-testing-guide.md)
 - Read [Contributing Guidelines](./06-contributing.md)

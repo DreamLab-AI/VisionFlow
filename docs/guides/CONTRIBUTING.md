@@ -69,7 +69,7 @@ docs/
 │   └── developer/
 │       ├── development-setup.md
 │       ├── adding-a-feature.md
-│       └── testing-guide.md
+│       └── 05-testing-guide.md
 ├── concepts/
 │   ├── README.md                      # (optional) Concepts overview
 │   ├── architecture.md

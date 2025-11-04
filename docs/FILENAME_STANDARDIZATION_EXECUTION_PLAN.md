@@ -43,7 +43,7 @@ This plan standardizes 30 documentation files across 4 phases to eliminate dupli
 5. Delete `development-setup.md`
 
 **References to Update:**
-- `/docs/guides/developer/testing-guide.md` (2 references)
+- `/docs/guides/developer/05-05-testing-guide.md` (2 references)
 - `/docs/guides/developer/development-setup.md` itself (internal links)
 - `/docs/DOCUMENTATION_AUDIT_COMPLETION_REPORT.md` (1 reference)
 
@@ -69,7 +69,7 @@ grep -r "development-setup.md" /home/devuser/workspace/project/docs --include="*
 5. Delete `adding-a-feature.md`
 
 **References to Update:**
-- `/docs/guides/developer/testing-guide.md` (2 references)
+- `/docs/guides/developer/05-05-testing-guide.md` (2 references)
 - `/docs/guides/developer/development-setup.md` (3 references)
 - `/docs/DOCUMENTATION_AUDIT_COMPLETION_REPORT.md` (1 reference)
 
@@ -82,28 +82,28 @@ grep -r "adding-a-feature.md" /home/devuser/workspace/project/docs --include="*.
 
 #### Action 1.1.3: Testing Guide Consolidation
 **Current State:**
-- `/docs/guides/developer/testing-guide.md` (669 lines) - Comprehensive
-- `/docs/guides/developer/testing-guide.md` (3.5K bytes) - Shorter version
-- `/docs/guides/testing-guide.md` (358 lines) - Root guides version
+- `/docs/guides/developer/05-05-testing-guide.md` (669 lines) - Comprehensive
+- `/docs/guides/developer/05-05-testing-guide.md` (3.5K bytes) - Shorter version
+- `/docs/guides/05-05-testing-guide.md` (358 lines) - Root guides version
 
-**Target:** `/docs/guides/developer/05-testing-guide.md` (NEW - RENAME & MERGE)
+**Target:** `/docs/guides/developer/05-05-05-testing-guide.md` (NEW - RENAME & MERGE)
 
 **Steps:**
-1. Rename `05-testing.md` to `05-testing-guide.md` for consistency
+1. Rename `05-testing.md` to `05-05-05-testing-guide.md` for consistency
 2. Compare all three testing files
-3. Merge comprehensive content from `testing-guide.md` into `05-testing-guide.md`
-4. Extract any unique content from `/docs/guides/testing-guide.md`
-5. Delete both old `testing-guide.md` files
-6. Create redirect note in `/docs/guides/testing-guide.md` location (optional)
+3. Merge comprehensive content from `05-05-testing-guide.md` into `05-05-05-testing-guide.md`
+4. Extract any unique content from `/docs/guides/05-05-testing-guide.md`
+5. Delete both old `05-05-testing-guide.md` files
+6. Create redirect note in `/docs/guides/05-05-testing-guide.md` location (optional)
 
 **References to Update:**
-- `/docs/guides/developer/testing-guide.md` references itself (remove after merge)
+- `/docs/guides/developer/05-05-testing-guide.md` references itself (remove after merge)
 - `/docs/guides/developer/development-setup.md` (3 references)
 - `/docs/getting-started/02-first-graph-and-agents.md` (potential references)
 
 **Validation:**
 ```bash
-grep -r "testing-guide.md\|05-testing.md" /home/devuser/workspace/project/docs --include="*.md"
+grep -r "05-05-testing-guide.md\|05-testing.md" /home/devuser/workspace/project/docs --include="*.md"
 ```
 
 ---
@@ -211,9 +211,9 @@ grep -r "neo4j-integration.md" /home/devuser/workspace/project/docs --include="*
 |----------------|--------|-------------|--------|
 | 1.1.1 | `guides/developer/development-setup.md` | `guides/developer/01-development-setup.md` | MERGE & DELETE |
 | 1.1.2 | `guides/developer/adding-a-feature.md` | `guides/developer/04-adding-features.md` | MERGE & DELETE |
-| 1.1.3a | `guides/developer/testing-guide.md` | `guides/developer/05-testing-guide.md` | MERGE & DELETE |
-| 1.1.3b | `guides/testing-guide.md` | `guides/developer/05-testing-guide.md` | MERGE & DELETE |
-| 1.1.3c | `guides/developer/testing-guide.md` | `guides/developer/05-testing-guide.md` | RENAME & MERGE |
+| 1.1.3a | `guides/developer/05-05-testing-guide.md` | `guides/developer/05-05-05-testing-guide.md` | MERGE & DELETE |
+| 1.1.3b | `guides/05-05-testing-guide.md` | `guides/developer/05-05-05-testing-guide.md` | MERGE & DELETE |
+| 1.1.3c | `guides/developer/05-05-testing-guide.md` | `guides/developer/05-05-05-testing-guide.md` | RENAME & MERGE |
 | 1.1.4 | `guides/xr-setup.md` | (KEEP) | DIFFERENTIATE |
 | 1.1.4 | `guides/user/xr-setup.md` | (KEEP) | DIFFERENTIATE |
 | 1.2.1 | `concepts/hierarchical-visualization.md` | TBD after analysis | ANALYZE |
@@ -244,7 +244,7 @@ grep -r "neo4j-integration.md" /home/devuser/workspace/project/docs --include="*
 03-architecture.md             ✓
 04-adding-features.md          ✓
 04-testing-status.md           ✗ CONFLICT (duplicate 04)
-05-testing-guide.md (to be created) ✓
+05-05-05-testing-guide.md (to be created) ✓
 06-contributing.md             ✓
 ```
 
@@ -257,14 +257,14 @@ grep -r "neo4j-integration.md" /home/devuser/workspace/project/docs --include="*
 1. Read `04-testing-status.md` to determine purpose
 2. Options:
    - **Option A:** If it's a status report → Move to `/docs/reports/testing-status-[date].md`
-   - **Option B:** If it's part of testing guide → Merge into `05-testing-guide.md`
+   - **Option B:** If it's part of testing guide → Merge into `05-05-05-testing-guide.md`
    - **Option C:** If it's ongoing status → Rename to `05-testing-status.md`
 
 **Recommended Action:** Read file first, then decide
 
 **Validation:**
 ```bash
-cat /home/devuser/workspace/project/docs/guides/developer/testing-guide.md | head -50
+cat /home/devuser/workspace/project/docs/guides/developer/05-05-testing-guide.md | head -50
 ```
 
 ---
@@ -313,7 +313,7 @@ rest-api-reference.md         → merge into 02-rest-api.md or keep as appendix
 ### Phase 2 Summary
 | File Operation | Source | Destination | Action |
 |----------------|--------|-------------|--------|
-| 2.1.1 | `guides/developer/testing-guide.md` | TBD after analysis | ANALYZE & MOVE/MERGE |
+| 2.1.1 | `guides/developer/05-05-testing-guide.md` | TBD after analysis | ANALYZE & MOVE/MERGE |
 | 2.2.1 | `reference/api/rest-api-*.md` (2 files) | `reference/api/02-rest-api.md` | CREATE & CONSOLIDATE |
 
 **Phase 2 Deliverables:**
@@ -822,9 +822,9 @@ DOCS_ROOT="/home/devuser/workspace/project/docs"
 declare -A phase1_renames=(
   ["guides/developer/development-setup.md"]="guides/developer/01-development-setup.md"
   ["guides/developer/adding-a-feature.md"]="guides/developer/04-adding-features.md"
-  ["guides/developer/testing-guide.md"]="guides/developer/05-testing-guide.md"
-  ["guides/testing-guide.md"]="guides/developer/05-testing-guide.md"
-  ["guides/developer/testing-guide.md"]="guides/developer/05-testing-guide.md"
+  ["guides/developer/05-05-testing-guide.md"]="guides/developer/05-05-05-testing-guide.md"
+  ["guides/05-05-testing-guide.md"]="guides/developer/05-05-05-testing-guide.md"
+  ["guides/developer/05-05-testing-guide.md"]="guides/developer/05-05-05-testing-guide.md"
 )
 
 # Phase 3 reference updates (SCREAMING_SNAKE_CASE)
@@ -1010,14 +1010,14 @@ chmod +x /home/devuser/workspace/project/docs/scripts/update-all-references.sh
 #### Phase 1: Duplicates (7 files)
 1. `/docs/guides/developer/development-setup.md` → DELETE
 2. `/docs/guides/developer/adding-a-feature.md` → DELETE
-3. `/docs/guides/developer/testing-guide.md` → DELETE
-4. `/docs/guides/testing-guide.md` → DELETE
-5. `/docs/guides/developer/testing-guide.md` → RENAME to 05-testing-guide.md
+3. `/docs/guides/developer/05-05-testing-guide.md` → DELETE
+4. `/docs/guides/05-05-testing-guide.md` → DELETE
+5. `/docs/guides/developer/05-05-testing-guide.md` → RENAME to 05-05-05-testing-guide.md
 6. `/docs/guides/xr-setup.md` → DIFFERENTIATE
 7. `/docs/guides/user/xr-setup.md` → DIFFERENTIATE
 
 #### Phase 2: Numbering (2 files)
-8. `/docs/guides/developer/testing-guide.md` → ANALYZE & RESOLVE
+8. `/docs/guides/developer/05-05-testing-guide.md` → ANALYZE & RESOLVE
 9. `/docs/reference/api/02-[missing].md` → CREATE
 
 #### Phase 3: Case Normalization (26 files)
