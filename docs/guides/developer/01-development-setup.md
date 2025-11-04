@@ -35,6 +35,28 @@ Recommended IDE/Editor:
   - Docker
   - GitLens
   - REST Client
+
+### Agent-Driven Development
+
+**SPARC workflow:**
+```bash
+# Full TDD workflow
+npx claude-flow sparc tdd "feature description"
+
+# Individual phases
+npx claude-flow sparc run spec-pseudocode "task"
+npx claude-flow sparc run architect "task"
+npx claude-flow sparc run integration "task"
+```
+
+**Parallel agent execution (Claude Code Task tool):**
+```javascript
+// Spawn multiple agents concurrently
+Task("Researcher", "Analyze requirements", "researcher")
+Task("Architect", "Design system", "system-architect")
+Task("Coder", "Implement features", "coder")
+Task("Tester", "Create tests", "tester")
+```
 - **IntelliJ IDEA** or **WebStorm**
 - **Vim/Neovim** with appropriate plugins
 

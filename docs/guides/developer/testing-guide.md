@@ -6,7 +6,7 @@ tags: [testing, tdd, quality, automation]
 difficulty: intermediate
 last_updated: 2025-10-27
 related:
-  - /docs/guides/developer/development-setup.md
+  - /docs/guides/developer/01-development-setup.md
   - /docs/guides/developer/adding-a-feature.md
   - /docs/reference/sparc-methodology.md
 ---
@@ -657,7 +657,7 @@ afterEach(() => {
 
 ## Related Resources
 
-- [Development Setup](/docs/guides/developer/development-setup.md)
+- [Development Setup](/docs/guides/developer/01-development-setup.md)
 - [Adding a Feature](/docs/guides/developer/adding-a-feature.md)
 - [SPARC Methodology](/docs/reference/sparc-methodology.md)
 - [Code Quality Standards](/docs/reference/code-standards.md)
