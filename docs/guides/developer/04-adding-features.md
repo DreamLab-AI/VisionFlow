@@ -1,3 +1,17 @@
+---
+title: Adding Features
+description: Comprehensive guide for adding new features to VisionFlow with examples and best practices
+category: developer-guide
+tags: [development, features, workflow, tdd, implementation]
+difficulty: intermediate
+last_updated: 2025-11-04
+related:
+  - /docs/guides/developer/01-development-setup.md
+  - /docs/guides/developer/testing-guide.md
+  - /docs/guides/developer/05-testing-guide.md
+  - /docs/reference/README.md
+---
+
 # Adding Features
 
 ## Feature Development Process
@@ -748,6 +762,47 @@ class ProjectService {
 ```
 
 ### Step 12: Code Review & Pull Request
+
+## Agent-Driven Development
+
+### Parallel Agent Execution
+
+**Spawn agents concurrently for feature development:**
+
+```javascript
+// Example: Adding authentication feature
+Task("Researcher", "Analyze authentication patterns and security requirements", "researcher")
+Task("Architect", "Design authentication system architecture", "system-architect")
+Task("Backend Dev", "Implement authentication endpoints", "backend-dev")
+Task("Frontend Dev", "Build authentication UI components", "coder")
+Task("Tester", "Create comprehensive authentication tests", "tester")
+Task("Security Reviewer", "Audit authentication implementation", "reviewer")
+```
+
+### Agent Coordination Hooks
+
+**Ensure hooks run during development:**
+
+```bash
+# Before starting
+npx claude-flow@alpha hooks pre-task --description "Add feature X"
+
+# After file edits
+npx claude-flow@alpha hooks post-edit --file "path/to/file"
+
+# After completion
+npx claude-flow@alpha hooks post-task --task-id "feature-x"
+```
+
+### Memory Coordination
+
+**Store feature decisions:**
+```bash
+npx claude-flow@alpha memory store \
+  --key "features/your-feature/decisions" \
+  --value "{\"architecture\": \"...\", \"rationale\": \"...\"}"
+```
+
 
 ```bash
 # Push feature branch
