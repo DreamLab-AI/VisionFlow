@@ -40,9 +40,9 @@ def quick_parse_input(text):
             if len(parts) >= 3:
                 try:
                     components.append({
-                        'name': parts[0].strip(),
-                        'visibility': float(parts[1]),
-                        'evolution': float(parts[2])
+                        'name': parts.strip(),
+                        'visibility': float(parts),
+                        'evolution': float(parts)
                     })
                 except:
                     pass
@@ -161,8 +161,8 @@ def advanced_nlp_parse(text):
             if line and not line.startswith('#'):
                 # Simple format: "Component Name - description"
                 if ' - ' in line:
-                    name = line.split(' - ')[0].strip()
-                    desc = line.split(' - ')[1].strip().lower()
+                    name = line.split(' - ').strip()
+                    desc = line.split(' - ').strip().lower()
                     
                     evolution = 0.5
                     for keyword, score in evolution_map.items():

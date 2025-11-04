@@ -139,8 +139,7 @@ def journey_to_value_chain(journey_data):
             'evolution': evolution
         })
     
-    return components
-```
+    return components```
 
 ## Key Data Patterns
 

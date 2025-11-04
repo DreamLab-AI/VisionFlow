@@ -17,8 +17,7 @@ Market Solution (0.7, 0.7) - Product/Commodity
 ```
 
 ### 2. Innovation Play
-**Pattern**: Create new value at genesis while competitors fight in commodity
-```
+**Pattern**: Create new value at genesis while competitors fight in commodity```
 Current Market:
 Price War Zone (0.5, 0.9) - Commodity
 

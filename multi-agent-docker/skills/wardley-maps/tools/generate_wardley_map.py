@@ -51,10 +51,10 @@ class WardleyMapGenerator:
         
         # Add dependencies (draw these first so components appear on top)
         for dep in dependencies:
-            if dep[0] in comp_positions and dep[1] in comp_positions:
+            if dep in comp_positions and dep in comp_positions:
                 svg_elements.append(self._create_dependency_line(
-                    comp_positions[dep[0]], 
-                    comp_positions[dep[1]]
+                    comp_positions[dep], 
+                    comp_positions[dep]
                 ))
         
         # Add components
@@ -155,8 +155,8 @@ class WardleyMapGenerator:
     def _create_dependency_line(self, from_pos: Tuple, to_pos: Tuple) -> str:
         """Create a dependency line between components"""
         return f'''
-        <line x1="{from_pos[0]}" y1="{from_pos[1]}" 
-              x2="{to_pos[0]}" y2="{to_pos[1]}" 
+        <line x1="{from_pos}" y1="{from_pos}" 
+              x2="{to_pos}" y2="{to_pos}" 
               stroke="#666" stroke-width="1" stroke-dasharray="2,2" 
               marker-end="url(#arrowhead)"/>'''
     
@@ -303,8 +303,8 @@ def parse_text_to_components(text: str) -> List[Dict]:
             # Try to extract component name and characteristics
             parts = line.replace('-', ':').split(':')
             if len(parts) >= 2:
-                name = parts[0].strip()
-                description = parts[1].strip().lower()
+                name = parts.strip()
+                description = parts.strip().lower()
                 
                 # Determine evolution
                 evolution = 0.5  # default
