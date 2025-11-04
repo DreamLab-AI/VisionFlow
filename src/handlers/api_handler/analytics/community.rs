@@ -9,6 +9,7 @@ use crate::actors::messages::{
     CommunityDetectionAlgorithm, CommunityDetectionParams, RunCommunityDetection,
 };
 use crate::AppState;
+use crate::utils::result_helpers::safe_json_number;
 
 ///
 #[derive(Debug, Deserialize)]

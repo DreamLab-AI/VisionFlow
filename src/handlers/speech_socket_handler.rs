@@ -542,7 +542,7 @@ pub async fn speech_socket_handler(
     stream: web::Payload,
     app_state: web::Data<AppState>,
     _hybrid_manager: Option<()>, 
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     let socket_id = format!("speech_{}", uuid::Uuid::new_v4());
     let socket = SpeechSocket::new(socket_id, app_state.into_inner(), None);
 

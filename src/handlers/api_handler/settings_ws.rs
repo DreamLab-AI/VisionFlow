@@ -29,7 +29,7 @@ use crate::services::settings_broadcast::{SettingsBroadcastManager, SettingsWebS
 pub async fn settings_websocket(
     req: HttpRequest,
     stream: web::Payload,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     
     let client_id = Uuid::new_v4().to_string();
 

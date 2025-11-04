@@ -13,7 +13,7 @@ use std::time::{Duration, Instant};
 use uuid::Uuid;
 
 use crate::services::agent_visualization_protocol::McpServerType;
-use crate::utils::response_macros::*;
+use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
 use crate::AppState;
 // DEPRECATED: HybridHealthManager removed
 use crate::utils::network::{
@@ -890,11 +890,11 @@ pub async fn refresh_mcp_discovery(_app_state: web::Data<AppState>) -> ActixResu
 
     
 
-    Ok(ok_json!(json!({
+    ok_json!(json!({
         "success": true,
         "message": "Discovery refresh initiated",
         "timestamp": chrono::Utc::now().timestamp_millis()
-    })))
+    }))
 }
 
 ///

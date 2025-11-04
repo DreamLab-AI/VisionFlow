@@ -21,6 +21,7 @@ use tracing::instrument;
 use crate::models::edge::Edge;
 use crate::models::graph::GraphData;
 use crate::models::node::Node;
+use crate::utils::json::{to_json, from_json};
 use crate::ports::ontology_repository::{
     AxiomType, InferenceResults, OntologyMetrics, OntologyRepository, OntologyRepositoryError,
     OwlAxiom, OwlClass, OwlProperty, PathfindingCacheEntry, PropertyType, Result as RepoResult,

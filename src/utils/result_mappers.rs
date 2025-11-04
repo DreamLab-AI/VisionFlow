@@ -29,53 +29,23 @@
 //! ```
 
 use rusqlite;
-use crate::repositories::generic_repository::RepositoryError;
 use crate::ports::graph_repository::GraphRepositoryError;
 use crate::ports::ontology_repository::OntologyRepositoryError;
 use crate::errors::VisionFlowError;
 
-/// Maps rusqlite::Error to generic RepositoryError with context.
-///
-/// This function consolidates hundreds of duplicate error conversions across
-/// repository implementations. It provides intelligent error classification:
-/// - QueryReturnedNoRows -> NotFound
-/// - Constraint violations -> Conflict
-/// - Connection issues -> ConnectionError
-/// - Everything else -> DatabaseError
-///
-/// # Arguments
-/// * `result` - A rusqlite::Result to convert
-/// * `context` - Context message describing the operation
-///
-/// # Examples
-/// ```rust
-/// use crate::utils::result_mappers::map_db_error;
-///
-/// let result = conn.execute(
-///     "INSERT INTO users (name) VALUES (?1)",
-///     ["Alice"]
-/// );
-/// let mapped = map_db_error(result, "insert user")?;
-/// ```
+// RepositoryError is now defined in the port traits themselves
+// Use GraphRepositoryError or OntologyRepositoryError directly
+
+// DEPRECATED: Generic RepositoryError was removed in favor of specific error types
+// Use map_graph_db_error or map_ontology_db_error instead
+/*
 pub fn map_db_error<T>(
     result: rusqlite::Result<T>,
     context: &str
 ) -> Result<T, RepositoryError> {
-    result.map_err(|e| match e {
-        rusqlite::Error::QueryReturnedNoRows => {
-            RepositoryError::DatabaseError(format!("{}: not found", context))
-        }
-        rusqlite::Error::SqliteFailure(err, _)
-            if err.code == rusqlite::ErrorCode::ConstraintViolation => {
-            RepositoryError::DatabaseError(format!("{}: constraint violation", context))
-        }
-        rusqlite::Error::SqliteFailure(err, _)
-            if err.code == rusqlite::ErrorCode::DatabaseBusy => {
-            RepositoryError::LockError(format!("{}: database busy", context))
-        }
-        _ => RepositoryError::DatabaseError(format!("{}: {}", context, e))
-    })
+    // This function is deprecated - use specific error mappers
 }
+*/
 
 /// Maps rusqlite::Error to GraphRepositoryError with context.
 ///
@@ -146,31 +116,15 @@ pub fn map_ontology_db_error<T>(
     })
 }
 
-/// Maps RepositoryError to VisionFlowError for service layer.
-///
-/// Converts repository-level errors to application-level errors for use in
-/// services and handlers. Provides consistent error propagation up the stack.
-///
-/// # Arguments
-/// * `result` - A Result with RepositoryError to convert
-/// * `context` - Context message describing the operation
-///
-/// # Examples
-/// ```rust
-/// use crate::utils::result_mappers::map_service_error;
-///
-/// let repo_result = repository.get_node(id);
-/// let service_result = map_service_error(repo_result, "fetch node for analysis")?;
-/// ```
+// DEPRECATED: Use map_graph_service_error or map_ontology_service_error instead
+/*
 pub fn map_service_error<T>(
     result: Result<T, RepositoryError>,
     context: &str
 ) -> Result<T, VisionFlowError> {
-    result.map_err(|e| VisionFlowError::Generic {
-        message: format!("{}: {}", context, e),
-        source: None,
-    })
+    // This function is deprecated - use specific service error mappers
 }
+*/
 
 /// Maps GraphRepositoryError to VisionFlowError for service layer.
 ///
@@ -229,23 +183,7 @@ pub fn map_ontology_service_error<T>(
 /// Extension trait for rusqlite::Result to add convenient error mapping.
 ///
 /// Provides ergonomic methods for error conversion directly on Results.
-///
-/// # Examples
-/// ```rust
-/// use crate::utils::result_mappers::RusqliteResultExt;
-///
-/// // Convert to RepositoryError
-/// let result = conn.execute(sql, params)
-///     .to_repo_error("insert failed")?;
-///
-/// // Convert to GraphRepositoryError
-/// let result = conn.query_row(sql, params, mapper)
-///     .to_graph_error("fetch node")?;
-/// ```
 pub trait RusqliteResultExt<T> {
-    /// Convert to RepositoryError with context
-    fn to_repo_error(self, context: &str) -> Result<T, RepositoryError>;
-
     /// Convert to GraphRepositoryError with context
     fn to_graph_error(self, context: &str) -> Result<T, GraphRepositoryError>;
 
@@ -254,10 +192,6 @@ pub trait RusqliteResultExt<T> {
 }
 
 impl<T> RusqliteResultExt<T> for rusqlite::Result<T> {
-    fn to_repo_error(self, context: &str) -> Result<T, RepositoryError> {
-        map_db_error(self, context)
-    }
-
     fn to_graph_error(self, context: &str) -> Result<T, GraphRepositoryError> {
         map_graph_db_error(self, context)
     }
@@ -267,17 +201,8 @@ impl<T> RusqliteResultExt<T> for rusqlite::Result<T> {
     }
 }
 
-/// Extension trait for repository Results to add service-level error mapping.
-pub trait RepositoryResultExt<T> {
-    /// Convert RepositoryError to VisionFlowError
-    fn to_service_error(self, context: &str) -> Result<T, VisionFlowError>;
-}
-
-impl<T> RepositoryResultExt<T> for Result<T, RepositoryError> {
-    fn to_service_error(self, context: &str) -> Result<T, VisionFlowError> {
-        map_service_error(self, context)
-    }
-}
+// DEPRECATED: Generic RepositoryResultExt removed
+// Use GraphRepositoryResultExt or OntologyRepositoryResultExt instead
 
 /// Extension trait for graph repository Results.
 pub trait GraphRepositoryResultExt<T> {
@@ -308,19 +233,8 @@ mod tests {
     use super::*;
     use rusqlite::{Connection, params};
 
-    #[test]
-    fn test_map_db_error_not_found() {
-        let conn = Connection::open_in_memory().unwrap();
-        let result: rusqlite::Result<String> = conn.query_row(
-            "SELECT name FROM users WHERE id = ?1",
-            [999],
-            |row| row.get(0)
-        );
-
-        let mapped = map_db_error(result, "fetch user");
-        assert!(mapped.is_err());
-        assert!(mapped.unwrap_err().to_string().contains("not found"));
-    }
+    // DEPRECATED: Generic map_db_error test removed
+    // Use test_map_graph_db_error_not_found instead
 
     #[test]
     fn test_map_graph_db_error_not_found() {
@@ -343,14 +257,6 @@ mod tests {
     fn test_rusqlite_result_ext() {
         let conn = Connection::open_in_memory().unwrap();
 
-        // Test to_repo_error
-        let result: rusqlite::Result<i32> = conn.query_row(
-            "SELECT 1",
-            [],
-            |row| row.get(0)
-        );
-        assert!(result.to_repo_error("test query").is_ok());
-
         // Test to_graph_error
         let result: rusqlite::Result<i32> = conn.query_row(
             "SELECT 1",
@@ -358,15 +264,23 @@ mod tests {
             |row| row.get(0)
         );
         assert!(result.to_graph_error("test query").is_ok());
+
+        // Test to_ontology_error
+        let result2: rusqlite::Result<i32> = conn.query_row(
+            "SELECT 1",
+            [],
+            |row| row.get(0)
+        );
+        assert!(result2.to_ontology_error("test query").is_ok());
     }
 
     #[test]
-    fn test_service_error_mapping() {
-        let repo_error: Result<i32, RepositoryError> = Err(
-            RepositoryError::DatabaseError("test error".to_string())
+    fn test_graph_service_error_mapping() {
+        let graph_error: Result<i32, GraphRepositoryError> = Err(
+            GraphRepositoryError::AccessError("test error".to_string())
         );
 
-        let service_result = map_service_error(repo_error, "test operation");
+        let service_result = map_graph_service_error(graph_error, "test operation");
         assert!(service_result.is_err());
 
         if let Err(VisionFlowError::Generic { message, .. }) = service_result {
@@ -395,13 +309,13 @@ mod tests {
     }
 
     #[test]
-    fn test_repository_result_ext() {
-        let repo_result: Result<i32, RepositoryError> = Ok(42);
-        assert!(repo_result.to_service_error("test").is_ok());
+    fn test_graph_repository_result_ext() {
+        let graph_result: Result<i32, GraphRepositoryError> = Ok(42);
+        assert!(graph_result.to_service_error("test").is_ok());
 
-        let repo_error: Result<i32, RepositoryError> = Err(
-            RepositoryError::LockError("mutex poisoned".to_string())
+        let graph_error: Result<i32, GraphRepositoryError> = Err(
+            GraphRepositoryError::NotFound
         );
-        assert!(repo_error.to_service_error("test").is_err());
+        assert!(graph_error.to_service_error("test").is_err());
     }
 }

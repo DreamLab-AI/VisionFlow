@@ -17,6 +17,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::time::Duration as StdDuration;
 use uuid::Uuid;
+use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable, accepted};
 
 use crate::actors::messages::{
     ApplyInferences, ClearOntologyCaches, GetOntologyHealth, GetOntologyReport, LoadOntologyAxioms,
@@ -410,33 +411,33 @@ pub async fn load_axioms(state: web::Data<AppState>, body: web::Bytes) -> impl R
         (req.source, req.format)
     } else {
         let error_response = ErrorResponse::new("Invalid request format", "INVALID_REQUEST");
-        return HttpResponse::BadRequest().json(error_response);
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::BadRequest().json(error_response));
     };
 
-    
+
     if let Err(error) = check_feature_enabled().await {
-        return HttpResponse::ServiceUnavailable().json(error);
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::ServiceUnavailable().json(error));
     }
 
     let start_time = std::time::Instant::now();
 
-    
+
     let load_msg = LoadOntologyAxioms { source, format };
 
     let Some(ref ontology_addr) = state.ontology_actor_addr else {
         let error_response =
             ErrorResponse::new("Ontology actor not available", "ACTOR_UNAVAILABLE");
-        return HttpResponse::ServiceUnavailable().json(error_response);
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::ServiceUnavailable().json(error_response));
     };
 
     match ontology_addr.send(load_msg).await {
         Ok(Ok(ontology_id)) => {
             let loading_time_ms = start_time.elapsed().as_millis() as u64;
 
-            
+
             let response = LoadOntologyResponse {
                 ontology_id: ontology_id.clone(),
-                axiom_count: 0, 
+                axiom_count: 0,
             };
 
             info!("Successfully loaded ontology: {}", response.ontology_id);
@@ -445,12 +446,12 @@ pub async fn load_axioms(state: web::Data<AppState>, body: web::Bytes) -> impl R
         Ok(Err(error)) => {
             error!("Failed to load ontology: {}", error);
             let error_response = ErrorResponse::new(&error, "LOAD_FAILED");
-            HttpResponse::BadRequest().json(error_response)
+            Ok(HttpResponse::BadRequest().json(error_response))
         }
         Err(mailbox_error) => {
             error!("Actor communication error: {}", mailbox_error);
             let error_response = ErrorResponse::new("Internal server error", "ACTOR_ERROR");
-            HttpResponse::InternalServerError().json(error_response)
+            Ok(HttpResponse::InternalServerError().json(error_response))
         }
     }
 }
@@ -462,12 +463,12 @@ pub async fn update_mapping(
 ) -> impl Responder {
     info!("Updating ontology mapping configuration");
 
-    
+
     if let Err(error) = check_feature_enabled().await {
-        return HttpResponse::ServiceUnavailable().json(error);
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::ServiceUnavailable().json(error));
     }
 
-    
+
     let config = ValidationConfig::from(req.config.clone());
 
     let update_msg = UpdateOntologyMapping { config };
@@ -475,7 +476,7 @@ pub async fn update_mapping(
     let Some(ref ontology_addr) = state.ontology_actor_addr else {
         let error_response =
             ErrorResponse::new("Ontology actor not available", "ACTOR_UNAVAILABLE");
-        return HttpResponse::ServiceUnavailable().json(error_response);
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::ServiceUnavailable().json(error_response));
     };
 
     match ontology_addr.send(update_msg).await {
@@ -490,12 +491,12 @@ pub async fn update_mapping(
         Ok(Err(error)) => {
             error!("Failed to update mapping: {}", error);
             let error_response = ErrorResponse::new(&error, "MAPPING_UPDATE_FAILED");
-            HttpResponse::BadRequest().json(error_response)
+            Ok(HttpResponse::BadRequest().json(error_response))
         }
         Err(mailbox_error) => {
             error!("Actor communication error: {}", mailbox_error);
             let error_response = ErrorResponse::new("Internal server error", "ACTOR_ERROR");
-            HttpResponse::InternalServerError().json(error_response)
+            Ok(HttpResponse::InternalServerError().json(error_response))
         }
     }
 }
@@ -510,15 +511,15 @@ pub async fn validate_ontology(
         req.ontology_id, req.mode
     );
 
-    
+
     if let Err(error) = check_feature_enabled().await {
-        return HttpResponse::ServiceUnavailable().json(error);
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::ServiceUnavailable().json(error));
     }
 
-    
+
     let property_graph = match extract_property_graph(&state) {
         Ok(graph) => graph,
-        Err(error) => return HttpResponse::InternalServerError().json(error),
+        Err(error) => return Ok::<HttpResponse, actix_web::Error>(HttpResponse::InternalServerError().json(error)),
     };
 
     let validation_msg = ValidateOntology {
@@ -530,13 +531,13 @@ pub async fn validate_ontology(
     let Some(ref ontology_addr) = state.ontology_actor_addr else {
         let error_response =
             ErrorResponse::new("Ontology actor not available", "ACTOR_UNAVAILABLE");
-        return HttpResponse::ServiceUnavailable().json(error_response);
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::ServiceUnavailable().json(error_response));
     };
 
     match ontology_addr.send(validation_msg).await {
         Ok(Ok(report)) => {
-            
-            
+
+
             let response = ValidationResponse {
                 job_id: report.id.clone(),
                 status: "completed".to_string(),
@@ -558,12 +559,12 @@ pub async fn validate_ontology(
         Ok(Err(error)) => {
             error!("Validation failed: {}", error);
             let error_response = ErrorResponse::new(&error, "VALIDATION_FAILED");
-            HttpResponse::BadRequest().json(error_response)
+            Ok(HttpResponse::BadRequest().json(error_response))
         }
         Err(mailbox_error) => {
             error!("Actor communication error: {}", mailbox_error);
             let error_response = ErrorResponse::new("Internal server error", "ACTOR_ERROR");
-            HttpResponse::InternalServerError().json(error_response)
+            Ok(HttpResponse::InternalServerError().json(error_response))
         }
     }
 }
@@ -577,9 +578,9 @@ pub async fn get_validation_report(
 
     info!("Retrieving validation report: {:?}", report_id);
 
-    
+
     if let Err(error) = check_feature_enabled().await {
-        return HttpResponse::ServiceUnavailable().json(error);
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::ServiceUnavailable().json(error));
     }
 
     let report_msg = GetOntologyReport { report_id };
@@ -587,7 +588,7 @@ pub async fn get_validation_report(
     let Some(ref ontology_addr) = state.ontology_actor_addr else {
         let error_response =
             ErrorResponse::new("Ontology actor not available", "ACTOR_UNAVAILABLE");
-        return HttpResponse::ServiceUnavailable().json(error_response);
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::ServiceUnavailable().json(error_response));
     };
 
     match ontology_addr.send(report_msg).await {
@@ -598,17 +599,17 @@ pub async fn get_validation_report(
         Ok(Ok(None)) => {
             warn!("Validation report not found");
             let error_response = ErrorResponse::new("Report not found", "REPORT_NOT_FOUND");
-            HttpResponse::NotFound().json(error_response)
+            Ok(HttpResponse::NotFound().json(error_response))
         }
         Ok(Err(error)) => {
             error!("Failed to retrieve report: {}", error);
             let error_response = ErrorResponse::new(&error, "REPORT_RETRIEVAL_FAILED");
-            HttpResponse::InternalServerError().json(error_response)
+            Ok(HttpResponse::InternalServerError().json(error_response))
         }
         Err(mailbox_error) => {
             error!("Actor communication error: {}", mailbox_error);
             let error_response = ErrorResponse::new("Internal server error", "ACTOR_ERROR");
-            HttpResponse::InternalServerError().json(error_response)
+            Ok(HttpResponse::InternalServerError().json(error_response))
         }
     }
 }
@@ -620,14 +621,14 @@ pub async fn apply_inferences(
 ) -> impl Responder {
     info!("Applying inferences to {} triples", req.rdf_triples.len());
 
-    
+
     if let Err(error) = check_feature_enabled().await {
-        return HttpResponse::ServiceUnavailable().json(error);
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::ServiceUnavailable().json(error));
     }
 
     let start_time = std::time::Instant::now();
 
-    
+
     let triples: Vec<RdfTriple> = req
         .rdf_triples
         .iter()
@@ -642,7 +643,7 @@ pub async fn apply_inferences(
     let Some(ref ontology_addr) = state.ontology_actor_addr else {
         let error_response =
             ErrorResponse::new("Ontology actor not available", "ACTOR_UNAVAILABLE");
-        return HttpResponse::ServiceUnavailable().json(error_response);
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::ServiceUnavailable().json(error_response));
     };
 
     match ontology_addr.send(apply_msg).await {
@@ -668,12 +669,12 @@ pub async fn apply_inferences(
         Ok(Err(error)) => {
             error!("Failed to apply inferences: {}", error);
             let error_response = ErrorResponse::new(&error, "INFERENCE_FAILED");
-            HttpResponse::BadRequest().json(error_response)
+            Ok(HttpResponse::BadRequest().json(error_response))
         }
         Err(mailbox_error) => {
             error!("Actor communication error: {}", mailbox_error);
             let error_response = ErrorResponse::new("Internal server error", "ACTOR_ERROR");
-            HttpResponse::InternalServerError().json(error_response)
+            Ok(HttpResponse::InternalServerError().json(error_response))
         }
     }
 }
@@ -687,7 +688,7 @@ pub async fn get_health_status(state: web::Data<AppState>) -> impl Responder {
     let Some(ref ontology_addr) = state.ontology_actor_addr else {
         let error_response =
             ErrorResponse::new("Ontology actor not available", "ACTOR_UNAVAILABLE");
-        return HttpResponse::ServiceUnavailable().json(error_response);
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::ServiceUnavailable().json(error_response));
     };
 
     match ontology_addr.send(health_msg).await {
@@ -700,7 +701,7 @@ pub async fn get_health_status(state: web::Data<AppState>) -> impl Responder {
                 }
                 .to_string(),
                 health: OntologyHealthDto::from(health),
-                ontology_validation_enabled: true, 
+                ontology_validation_enabled: true,
                 timestamp: Utc::now(),
             };
 
@@ -709,12 +710,12 @@ pub async fn get_health_status(state: web::Data<AppState>) -> impl Responder {
         Ok(Err(error)) => {
             error!("Failed to retrieve health status: {}", error);
             let error_response = ErrorResponse::new(&error, "HEALTH_CHECK_FAILED");
-            HttpResponse::InternalServerError().json(error_response)
+            Ok(HttpResponse::InternalServerError().json(error_response))
         }
         Err(mailbox_error) => {
             error!("Actor communication error: {}", mailbox_error);
             let error_response = ErrorResponse::new("Internal server error", "ACTOR_ERROR");
-            HttpResponse::InternalServerError().json(error_response)
+            Ok(HttpResponse::InternalServerError().json(error_response))
         }
     }
 }
@@ -723,9 +724,9 @@ pub async fn get_health_status(state: web::Data<AppState>) -> impl Responder {
 pub async fn clear_caches(state: web::Data<AppState>) -> impl Responder {
     info!("Clearing ontology caches");
 
-    
+
     if let Err(error) = check_feature_enabled().await {
-        return HttpResponse::ServiceUnavailable().json(error);
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::ServiceUnavailable().json(error));
     }
 
     let clear_msg = ClearOntologyCaches;
@@ -733,7 +734,7 @@ pub async fn clear_caches(state: web::Data<AppState>) -> impl Responder {
     let Some(ref ontology_addr) = state.ontology_actor_addr else {
         let error_response =
             ErrorResponse::new("Ontology actor not available", "ACTOR_UNAVAILABLE");
-        return HttpResponse::ServiceUnavailable().json(error_response);
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::ServiceUnavailable().json(error_response));
     };
 
     match ontology_addr.send(clear_msg).await {
@@ -748,12 +749,12 @@ pub async fn clear_caches(state: web::Data<AppState>) -> impl Responder {
         Ok(Err(error)) => {
             error!("Failed to clear caches: {}", error);
             let error_response = ErrorResponse::new(&error, "CACHE_CLEAR_FAILED");
-            HttpResponse::InternalServerError().json(error_response)
+            Ok(HttpResponse::InternalServerError().json(error_response))
         }
         Err(mailbox_error) => {
             error!("Actor communication error: {}", mailbox_error);
             let error_response = ErrorResponse::new("Internal server error", "ACTOR_ERROR");
-            HttpResponse::InternalServerError().json(error_response)
+            Ok(HttpResponse::InternalServerError().json(error_response))
         }
     }
 }
@@ -762,9 +763,9 @@ pub async fn clear_caches(state: web::Data<AppState>) -> impl Responder {
 pub async fn list_axioms(state: web::Data<AppState>) -> impl Responder {
     info!("Listing all loaded axioms");
 
-    
+
     if let Err(error) = check_feature_enabled().await {
-        return HttpResponse::ServiceUnavailable().json(error);
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::ServiceUnavailable().json(error));
     }
 
     use crate::actors::messages::GetCachedOntologies;
@@ -773,7 +774,7 @@ pub async fn list_axioms(state: web::Data<AppState>) -> impl Responder {
     let Some(ref ontology_addr) = state.ontology_actor_addr else {
         let error_response =
             ErrorResponse::new("Ontology actor not available", "ACTOR_UNAVAILABLE");
-        return HttpResponse::ServiceUnavailable().json(error_response);
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::ServiceUnavailable().json(error_response));
     };
 
     match ontology_addr.send(list_msg).await {
@@ -788,12 +789,12 @@ pub async fn list_axioms(state: web::Data<AppState>) -> impl Responder {
         Ok(Err(error)) => {
             error!("Failed to list axioms: {}", error);
             let error_response = ErrorResponse::new(&error, "AXIOM_LIST_FAILED");
-            HttpResponse::InternalServerError().json(error_response)
+            Ok(HttpResponse::InternalServerError().json(error_response))
         }
         Err(mailbox_error) => {
             error!("Actor communication error: {}", mailbox_error);
             let error_response = ErrorResponse::new("Internal server error", "ACTOR_ERROR");
-            HttpResponse::InternalServerError().json(error_response)
+            Ok(HttpResponse::InternalServerError().json(error_response))
         }
     }
 }
@@ -805,9 +806,9 @@ pub async fn get_inferences(
 ) -> impl Responder {
     info!("Retrieving inferred relationships");
 
-    
+
     if let Err(error) = check_feature_enabled().await {
-        return HttpResponse::ServiceUnavailable().json(error);
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::ServiceUnavailable().json(error));
     }
 
     let ontology_id = query.get("ontology_id").cloned();
@@ -815,10 +816,10 @@ pub async fn get_inferences(
     let Some(ref ontology_addr) = state.ontology_actor_addr else {
         let error_response =
             ErrorResponse::new("Ontology actor not available", "ACTOR_UNAVAILABLE");
-        return HttpResponse::ServiceUnavailable().json(error_response);
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::ServiceUnavailable().json(error_response));
     };
 
-    
+
     let report_msg = GetOntologyReport {
         report_id: ontology_id,
     };
@@ -827,7 +828,7 @@ pub async fn get_inferences(
         Ok(Ok(Some(report))) => {
             info!("Retrieved inferences from report: {}", report.id);
 
-            
+
             let inferences = serde_json::json!({
                 "report_id": report.id,
                 "inferred_count": report.inferred_triples.len(),
@@ -851,12 +852,12 @@ pub async fn get_inferences(
         Ok(Err(error)) => {
             error!("Failed to retrieve inferences: {}", error);
             let error_response = ErrorResponse::new(&error, "INFERENCE_RETRIEVAL_FAILED");
-            HttpResponse::InternalServerError().json(error_response)
+            Ok(HttpResponse::InternalServerError().json(error_response))
         }
         Err(mailbox_error) => {
             error!("Actor communication error: {}", mailbox_error);
             let error_response = ErrorResponse::new("Internal server error", "ACTOR_ERROR");
-            HttpResponse::InternalServerError().json(error_response)
+            Ok(HttpResponse::InternalServerError().json(error_response))
         }
     }
 }
@@ -871,15 +872,15 @@ pub async fn validate_graph(
         req.ontology_id, req.mode
     );
 
-    
+
     if let Err(error) = check_feature_enabled().await {
-        return HttpResponse::ServiceUnavailable().json(error);
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::ServiceUnavailable().json(error));
     }
 
-    
+
     let property_graph = match extract_property_graph(&state) {
         Ok(graph) => graph,
-        Err(error) => return HttpResponse::InternalServerError().json(error),
+        Err(error) => return Ok::<HttpResponse, actix_web::Error>(HttpResponse::InternalServerError().json(error)),
     };
 
     let validation_msg = ValidateOntology {
@@ -891,14 +892,14 @@ pub async fn validate_graph(
     let Some(ref ontology_addr) = state.ontology_actor_addr else {
         let error_response =
             ErrorResponse::new("Ontology actor not available", "ACTOR_UNAVAILABLE");
-        return HttpResponse::ServiceUnavailable().json(error_response);
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::ServiceUnavailable().json(error_response));
     };
 
-    
+
     let job_id = Uuid::new_v4().to_string();
     let job_id_clone = job_id.clone();
 
-    
+
     let ontology_addr_clone = ontology_addr.clone();
     actix::spawn(async move {
         match ontology_addr_clone.send(validation_msg).await {
@@ -1006,7 +1007,7 @@ pub async fn get_hierarchy(
 
 
     if let Err(error) = check_feature_enabled().await {
-        return HttpResponse::ServiceUnavailable().json(error);
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::ServiceUnavailable().json(error));
     }
 
 
@@ -1148,7 +1149,7 @@ pub async fn get_hierarchy(
         Err(e) => {
             error!("Failed to retrieve classes for hierarchy: {}", e);
             let error_response = ErrorResponse::new(&e.to_string(), "HIERARCHY_BUILD_FAILED");
-            HttpResponse::InternalServerError().json(error_response)
+            Ok(HttpResponse::InternalServerError().json(error_response))
         }
     }
 }
@@ -1163,7 +1164,7 @@ pub async fn get_report_by_id(
 
 
     if let Err(error) = check_feature_enabled().await {
-        return HttpResponse::ServiceUnavailable().json(error);
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::ServiceUnavailable().json(error));
     }
 
     let report_msg = GetOntologyReport {
@@ -1173,7 +1174,7 @@ pub async fn get_report_by_id(
     let Some(ref ontology_addr) = state.ontology_actor_addr else {
         let error_response =
             ErrorResponse::new("Ontology actor not available", "ACTOR_UNAVAILABLE");
-        return HttpResponse::ServiceUnavailable().json(error_response);
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::ServiceUnavailable().json(error_response));
     };
 
     match ontology_addr.send(report_msg).await {
@@ -1184,17 +1185,17 @@ pub async fn get_report_by_id(
         Ok(Ok(None)) => {
             warn!("Validation report not found: {}", report_id);
             let error_response = ErrorResponse::new("Report not found", "REPORT_NOT_FOUND");
-            HttpResponse::NotFound().json(error_response)
+            Ok(HttpResponse::NotFound().json(error_response))
         }
         Ok(Err(error)) => {
             error!("Failed to retrieve report: {}", error);
             let error_response = ErrorResponse::new(&error, "REPORT_RETRIEVAL_FAILED");
-            HttpResponse::InternalServerError().json(error_response)
+            Ok(HttpResponse::InternalServerError().json(error_response))
         }
         Err(mailbox_error) => {
             error!("Actor communication error: {}", mailbox_error);
             let error_response = ErrorResponse::new("Internal server error", "ACTOR_ERROR");
-            HttpResponse::InternalServerError().json(error_response)
+            Ok(HttpResponse::InternalServerError().json(error_response))
         }
     }
 }
@@ -1289,7 +1290,7 @@ pub async fn websocket_handler(
 
     
     if let Err(error) = check_feature_enabled().await {
-        return Ok(HttpResponse::ServiceUnavailable().json(error));
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::ServiceUnavailable().json(error));
     }
 
     let client_id = query
@@ -1300,7 +1301,7 @@ pub async fn websocket_handler(
     let Some(ref ontology_addr) = state.ontology_actor_addr else {
         let error_response =
             ErrorResponse::new("Ontology actor not available", "ACTOR_UNAVAILABLE");
-        return Ok(HttpResponse::ServiceUnavailable().json(error_response));
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::ServiceUnavailable().json(error_response));
     };
 
     let websocket = OntologyWebSocket::new(client_id, ontology_addr.clone());

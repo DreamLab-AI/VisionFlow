@@ -41,9 +41,10 @@
 
 use cust::error::CudaError;
 use cust::event::{Event, EventFlags};
-use cust::memory::DeviceBuffer;
+use cust::memory::{AsyncCopyDestination, CopyDestination, DeviceBuffer};
 use cust::stream::{Stream, StreamFlags};
 use log::{debug, error, info, warn};
+use std::cell::Cell;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -139,8 +140,8 @@ pub struct GpuBuffer<T: cust_core::DeviceCopy> {
     /// Allocation timestamp
     allocated_at: Instant,
 
-    /// Last access timestamp
-    last_accessed: Instant,
+    /// Last access timestamp (using Cell for interior mutability)
+    last_accessed: Cell<Instant>,
 
     // Async transfer state (double buffering)
     host_buffer_a: Option<Vec<T>>,
@@ -168,7 +169,7 @@ impl<T: cust_core::DeviceCopy + Clone + Default> GpuBuffer<T> {
             capacity_elements: capacity,
             config,
             allocated_at: Instant::now(),
-            last_accessed: Instant::now(),
+            last_accessed: Cell::new(Instant::now()),
             host_buffer_a,
             host_buffer_b,
             current_host_buffer: true,
@@ -189,13 +190,13 @@ impl<T: cust_core::DeviceCopy + Clone + Default> GpuBuffer<T> {
 
     /// Get device buffer reference
     pub fn device_buffer(&self) -> &DeviceBuffer<T> {
-        self.last_accessed = Instant::now();
+        self.last_accessed.set(Instant::now());
         &self.device_buffer
     }
 
     /// Get mutable device buffer reference
     pub fn device_buffer_mut(&mut self) -> &mut DeviceBuffer<T> {
-        self.last_accessed = Instant::now();
+        self.last_accessed.set(Instant::now());
         &mut self.device_buffer
     }
 
@@ -211,18 +212,21 @@ impl<T: cust_core::DeviceCopy + Clone + Default> GpuBuffer<T> {
         );
 
         // Create new buffer
-        let new_buffer = DeviceBuffer::from_slice(&vec![T::default(); new_capacity])?;
+        let mut new_buffer = DeviceBuffer::from_slice(&vec![T::default(); new_capacity])?;
 
         // Copy old data
         let copy_count = self.capacity_elements.min(new_capacity);
         if copy_count > 0 {
+            // Copy old data to host buffer first, then to new device buffer
+            let mut temp_host = vec![T::default(); copy_count];
+            self.device_buffer.copy_to(&mut temp_host)?;
+
+            // Create stream for async copy from host to device
+            let stream = Stream::new(StreamFlags::NON_BLOCKING, None)?;
             unsafe {
-                cust::memory::cuda_copy_device_to_device(
-                    new_buffer.as_device_ptr(),
-                    self.device_buffer.as_device_ptr(),
-                    copy_count,
-                )?;
+                new_buffer.async_copy_from(&temp_host, &stream)?;
             }
+            stream.synchronize()?;
         }
 
         // Update state
@@ -255,9 +259,11 @@ impl<T: cust_core::DeviceCopy + Clone + Default> GpuBuffer<T> {
             self.host_buffer_b.as_mut().expect("Expected value to be present")
         };
 
-        // Start async copy
+        // Start async copy from device to host
         stream.synchronize()?; // Ensure previous operations complete
-        self.device_buffer.async_copy_to(target_buffer, stream)?;
+        unsafe {
+            self.device_buffer.async_copy_to(target_buffer, stream)?;
+        }
 
         // Record event for synchronization
         let event = Event::new(EventFlags::DEFAULT)?;
@@ -301,7 +307,7 @@ impl<T: cust_core::DeviceCopy + Clone + Default> GpuBuffer<T> {
             allocated_bytes: self.size_bytes(),
             utilization: 1.0, // Assume fully utilized
             age_seconds: self.allocated_at.elapsed().as_secs_f32(),
-            last_access_seconds: self.last_accessed.elapsed().as_secs_f32(),
+            last_access_seconds: self.last_accessed.get().elapsed().as_secs_f32(),
         }
     }
 }
@@ -393,7 +399,7 @@ impl GpuMemoryManager {
         // Check memory limit
         let current = self.total_allocated.load(Ordering::Relaxed);
         if current + size_bytes > self.max_total_memory {
-            return Err(CudaError::MemoryAllocation);
+            return Err(CudaError::InvalidMemoryAllocation);
         }
 
         // Create buffer
@@ -448,7 +454,7 @@ impl GpuMemoryManager {
         new_capacity = new_capacity.min(max_elements);
 
         if required_elements > new_capacity {
-            return Err(CudaError::MemoryAllocation);
+            return Err(CudaError::InvalidMemoryAllocation);
         }
 
         // Track old size for memory accounting

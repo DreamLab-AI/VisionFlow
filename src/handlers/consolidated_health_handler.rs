@@ -1,6 +1,6 @@
 use crate::actors::messages::{GetGPUStatus, GetGraphData, GetMetadata};
 use crate::services::mcp_relay_manager::McpRelayManager;
-use crate::utils::response_macros::*;
+use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
 use crate::AppState;
 use actix_web::{web, Error, HttpResponse, Result};
 use chrono::Utc;
@@ -79,7 +79,7 @@ pub async fn unified_health_check(app_state: web::Data<AppState>) -> Result<Http
         mcp: Some(mcp_metrics),
     };
 
-    Ok(ok_json!(response))
+    ok_json!(response)
 }
 
 fn check_system_metrics(health_status: &mut String, issues: &mut Vec<String>) -> SystemMetrics {
@@ -267,11 +267,11 @@ pub async fn check_physics_simulation(app_state: web::Data<AppState>) -> Result<
         current_time, diagnostics
     );
 
-    Ok(ok_json!(PhysicsSimulationStatus {
+    ok_json!(PhysicsSimulationStatus {
         status,
         details: diagnostics,
         timestamp: current_time.to_rfc3339(),
-    }))
+    })
 }
 
 async fn get_physics_diagnostics(
@@ -370,10 +370,10 @@ fn check_physics_parameters() -> String {
 pub async fn start_mcp_relay() -> Result<HttpResponse> {
     let manager = McpRelayManager::new();
     match manager.ensure_relay_running().await {
-        Ok(_) => Ok(ok_json!(serde_json::json!({
+        Ok(_) => ok_json!(serde_json::json!({
             "success": true,
             "message": "MCP relay started successfully"
-        }))),
+        })),
         Err(e) => Err(Error::from(actix_web::error::ErrorInternalServerError(e))),
     }
 }
@@ -387,10 +387,10 @@ pub async fn get_mcp_logs(query: web::Query<LogQuery>) -> Result<HttpResponse> {
     let lines = query.lines.unwrap_or(50);
 
     match McpRelayManager::get_relay_logs(lines) {
-        Ok(logs) => Ok(ok_json!(serde_json::json!({
+        Ok(logs) => ok_json!(serde_json::json!({
             "success": true,
             "logs": logs
-        }))),
+        })),
         Err(e) => Err(Error::from(actix_web::error::ErrorInternalServerError(e))),
     }
 }

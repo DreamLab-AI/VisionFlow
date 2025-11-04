@@ -2,7 +2,7 @@
 // Uses Knowledge Graph application layer for all graph operations
 
 use crate::handlers::utils::execute_in_thread;
-use crate::utils::response_macros::*;
+use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
 use crate::AppState;
 use actix_web::{web, HttpResponse, Responder};
 use log::{debug, error, info};
@@ -84,7 +84,7 @@ pub async fn get_graph_state(state: web::Data<AppState>) -> impl Responder {
     info!("Received request for complete graph state via CQRS");
 
     
-    let load_handler = LoadGraphHandler::new(state.knowledge_graph_repository.clone());
+    let load_handler = LoadGraphHandler::new(state.neo4j_adapter.clone());
 
     
     let result = execute_in_thread(move || load_handler.handle(LoadGraph)).await;
@@ -148,7 +148,7 @@ pub async fn get_graph_statistics(state: web::Data<AppState>) -> impl Responder 
     info!("Received request for graph statistics via CQRS");
 
     
-    let handler = GetGraphStatisticsHandler::new(state.knowledge_graph_repository.clone());
+    let handler = GetGraphStatisticsHandler::new(state.neo4j_adapter.clone());
 
     
     let result = execute_in_thread(move || handler.handle(GetGraphStatistics)).await;
@@ -191,7 +191,7 @@ pub async fn add_node(
     );
 
     
-    let handler = AddNodeHandler::new(state.knowledge_graph_repository.clone());
+    let handler = AddNodeHandler::new(state.neo4j_adapter.clone());
 
     
     let result = execute_in_thread(move || handler.handle(AddNode { node })).await;
@@ -224,7 +224,7 @@ pub async fn update_node(
     info!("Updating node via CQRS directive: id={}", node.id);
 
     
-    let handler = UpdateNodeHandler::new(state.knowledge_graph_repository.clone());
+    let handler = UpdateNodeHandler::new(state.neo4j_adapter.clone());
 
     
     let result = execute_in_thread(move || handler.handle(UpdateNode { node })).await;
@@ -253,7 +253,7 @@ pub async fn remove_node(state: web::Data<AppState>, node_id: web::Path<u32>) ->
     info!("Removing node via CQRS directive: id={}", id);
 
     
-    let handler = RemoveNodeHandler::new(state.knowledge_graph_repository.clone());
+    let handler = RemoveNodeHandler::new(state.neo4j_adapter.clone());
 
     
     let result = execute_in_thread(move || handler.handle(RemoveNode { node_id: id })).await;
@@ -282,7 +282,7 @@ pub async fn get_node(state: web::Data<AppState>, node_id: web::Path<u32>) -> im
     info!("Getting node via CQRS query: id={}", id);
 
     
-    let handler = GetNodeHandler::new(state.knowledge_graph_repository.clone());
+    let handler = GetNodeHandler::new(state.neo4j_adapter.clone());
 
     
     let result = execute_in_thread(move || handler.handle(GetNode { node_id: id })).await;
@@ -305,7 +305,7 @@ pub async fn get_node(state: web::Data<AppState>, node_id: web::Path<u32>) -> im
                 }
                 None => {
                     info!("Node not found: id={}", id);
-                    not_found!("Node not found").unwrap()
+                    not_found!("Node not found")
                 }
             }
         }
@@ -335,7 +335,7 @@ pub async fn add_edge(
     );
 
     
-    let handler = AddEdgeHandler::new(state.knowledge_graph_repository.clone());
+    let handler = AddEdgeHandler::new(state.neo4j_adapter.clone());
 
     
     let result = execute_in_thread(move || handler.handle(AddEdge { edge })).await;
@@ -365,7 +365,7 @@ pub async fn update_edge(state: web::Data<AppState>, request: web::Json<Edge>) -
     info!("Updating edge via CQRS directive: id={}", edge.id);
 
     
-    let handler = UpdateEdgeHandler::new(state.knowledge_graph_repository.clone());
+    let handler = UpdateEdgeHandler::new(state.neo4j_adapter.clone());
 
     
     let result = execute_in_thread(move || handler.handle(UpdateEdge { edge })).await;
@@ -400,7 +400,7 @@ pub async fn batch_update_positions(
     );
 
     
-    let handler = BatchUpdatePositionsHandler::new(state.knowledge_graph_repository.clone());
+    let handler = BatchUpdatePositionsHandler::new(state.neo4j_adapter.clone());
 
     
     let result =

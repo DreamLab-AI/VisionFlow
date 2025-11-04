@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use crate::utils::response_macros::*;
+use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
 
 use crate::application::semantic_service::{
     CentralityRequest, CommunityDetectionRequest, SemanticService, ShortestPathRequest,
@@ -87,10 +87,10 @@ pub async fn detect_communities(
     
     let graph = graph_data.read().await.clone();
     if let Err(e) = semantic_service.initialize(Arc::new(graph)).await {
-        return Ok(error_json!("Failed to initialize: {}", e));
+        return error_json!("Failed to initialize: {}", e);
     }
 
-    
+
     let algorithm = match req.algorithm.as_str() {
         "louvain" => ClusteringAlgorithm::Louvain,
         "label_propagation" => ClusteringAlgorithm::LabelPropagation,
@@ -107,13 +107,13 @@ pub async fn detect_communities(
     };
 
     match semantic_service.detect_communities(request).await {
-        Ok(result) => Ok(ok_json!(CommunitiesResponse {
+        Ok(result) => ok_json!(CommunitiesResponse {
             clusters: result.clusters,
             cluster_sizes: result.cluster_sizes,
             modularity: result.modularity,
             computation_time_ms: result.computation_time_ms,
-        })),
-        Err(e) => Ok(error_json!("Failed to detect communities: {}", e)),
+        }),
+        Err(e) => error_json!("Failed to detect communities: {}", e),
     }
 }
 
@@ -126,10 +126,10 @@ pub async fn compute_centrality(
     
     let graph = graph_data.read().await.clone();
     if let Err(e) = semantic_service.initialize(Arc::new(graph)).await {
-        return Ok(error_json!("Failed to initialize: {}", e));
+        return error_json!("Failed to initialize: {}", e);
     }
 
-    
+
     let algorithm = match req.algorithm.as_str() {
         "pagerank" => ImportanceAlgorithm::PageRank {
             damping: req.damping.unwrap_or(0.85),
@@ -152,7 +152,7 @@ pub async fn compute_centrality(
 
     match semantic_service.compute_centrality(request).await {
         Ok(scores) => {
-            
+
             let mut top_nodes: Vec<_> = scores.iter().map(|(&id, &score)| (id, score)).collect();
             top_nodes.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
             if let Some(k) = req.top_k {
@@ -161,13 +161,13 @@ pub async fn compute_centrality(
                 top_nodes.truncate(10);
             }
 
-            Ok(ok_json!(CentralityResponse {
+            ok_json!(CentralityResponse {
                 scores,
                 algorithm: req.algorithm.clone(),
                 top_nodes,
-            }))
+            })
         }
-        Err(e) => Ok(error_json!("Failed to compute centrality: {}", e)),
+        Err(e) => error_json!("Failed to compute centrality: {}", e),
     }
 }
 
@@ -180,7 +180,7 @@ pub async fn compute_shortest_path(
     
     let graph = graph_data.read().await.clone();
     if let Err(e) = semantic_service.initialize(Arc::new(graph)).await {
-        return Ok(error_json!("Failed to initialize: {}", e));
+        return error_json!("Failed to initialize: {}", e);
     }
 
     let request = ShortestPathRequest {
@@ -190,13 +190,13 @@ pub async fn compute_shortest_path(
     };
 
     match semantic_service.compute_shortest_paths(request).await {
-        Ok(result) => Ok(ok_json!(ShortestPathResponse {
+        Ok(result) => ok_json!(ShortestPathResponse {
             source_node: result.source_node,
             distances: result.distances,
             paths: result.paths,
             computation_time_ms: result.computation_time_ms,
-        })),
-        Err(e) => Ok(error_json!("Failed to compute shortest paths: {}", e)),
+        }),
+        Err(e) => error_json!("Failed to compute shortest paths: {}", e),
     }
 }
 
@@ -209,7 +209,7 @@ pub async fn generate_constraints(
     
     let graph = graph_data.read().await.clone();
     if let Err(e) = semantic_service.initialize(Arc::new(graph)).await {
-        return Ok(error_json!("Failed to initialize: {}", e));
+        return error_json!("Failed to initialize: {}", e);
     }
 
     let config = SemanticConstraintConfig {
@@ -221,11 +221,11 @@ pub async fn generate_constraints(
     };
 
     match semantic_service.generate_semantic_constraints(config).await {
-        Ok(constraints) => Ok(ok_json!(serde_json::json!({
+        Ok(constraints) => ok_json!(serde_json::json!({
             "constraint_count": constraints.constraints.len(),
             "status": "generated"
-        }))),
-        Err(e) => Ok(error_json!("Failed to generate constraints: {}", e)),
+        })),
+        Err(e) => error_json!("Failed to generate constraints: {}", e),
     }
 }
 
@@ -234,14 +234,14 @@ pub async fn get_statistics(
     semantic_service: web::Data<Arc<SemanticService>>,
 ) -> ActixResult<HttpResponse> {
     match semantic_service.get_statistics().await {
-        Ok(stats) => Ok(ok_json!(serde_json::json!({
+        Ok(stats) => ok_json!(serde_json::json!({
             "total_analyses": stats.total_analyses,
             "average_clustering_time_ms": stats.average_clustering_time_ms,
             "average_pathfinding_time_ms": stats.average_pathfinding_time_ms,
             "cache_hit_rate": stats.cache_hit_rate,
             "gpu_memory_used_mb": stats.gpu_memory_used_mb,
-        }))),
-        Err(e) => Ok(error_json!("Failed to get statistics: {}", e)),
+        })),
+        Err(e) => error_json!("Failed to get statistics: {}", e),
     }
 }
 
@@ -250,10 +250,10 @@ pub async fn invalidate_cache(
     semantic_service: web::Data<Arc<SemanticService>>,
 ) -> ActixResult<HttpResponse> {
     match semantic_service.invalidate_cache().await {
-        Ok(_) => Ok(ok_json!(serde_json::json!({
+        Ok(_) => ok_json!(serde_json::json!({
             "status": "invalidated"
-        }))),
-        Err(e) => Ok(error_json!("Failed to invalidate cache: {}", e)),
+        })),
+        Err(e) => error_json!("Failed to invalidate cache: {}", e),
     }
 }
 

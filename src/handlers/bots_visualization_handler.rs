@@ -9,7 +9,7 @@ use std::time::{Duration, Instant};
 use crate::services::agent_visualization_protocol::{
     AgentStateUpdate, AgentVisualizationProtocol, PositionUpdate,
 };
-use crate::utils::response_macros::*;
+use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
 use crate::AppState;
 
 ///
@@ -321,7 +321,7 @@ pub struct InitializeSwarmRequest {
 pub async fn initialize_swarm_visualization(
     req: web::Json<InitializeSwarmRequest>,
     _app_state: web::Data<AppState>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     info!(
         "Initializing swarm visualization with topology: {}",
         req.topology

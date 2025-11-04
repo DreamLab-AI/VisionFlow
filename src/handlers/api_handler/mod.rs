@@ -17,12 +17,13 @@ pub use graph::{get_graph_data, get_paginated_graph_data, refresh_graph, update_
 pub use visualisation::get_visualisation_settings;
 
 use crate::handlers::utils::execute_in_thread;
+use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
 use actix_web::{web, HttpResponse, Responder};
 use log::{error, info};
 use serde_json::json;
 
 ///
-async fn health_check() -> impl Responder {
+async fn health_check() -> Result<HttpResponse, actix_web::Error> {
     info!("Health check requested");
     ok_json!(json!({
         "status": "ok",
@@ -110,11 +111,11 @@ use crate::{
         }
         Ok(Err(e)) => {
             error!("Failed to load settings via CQRS: {}", e);
-            error_json!("Failed to retrieve configuration").expect("JSON serialization failed")
+            error_json!("Failed to retrieve configuration")
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            error_json!("Internal server error").expect("JSON serialization failed")
+            error_json!("Internal server error")
         }
     }
 }
@@ -128,7 +129,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .route("/config", web::get().to(get_app_config))
             .route(
                 "/settings-test",
-                web::get().to(|| async { ok_json!(json!({"test": "works"})) }),
+                web::get().to(|| async { Ok::<HttpResponse, actix_web::Error>(HttpResponse::Ok().json(json!({"test": "works"}))) }),
             )
             
             .configure(files::config)

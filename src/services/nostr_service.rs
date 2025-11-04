@@ -32,6 +32,51 @@ pub enum NostrError {
     JsonError(#[from] serde_json::Error),
 }
 
+impl Serialize for NostrError {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut state = serializer.serialize_struct("NostrError", 2)?;
+        match self {
+            NostrError::InvalidEvent(msg) => {
+                state.serialize_field("type", "InvalidEvent")?;
+                state.serialize_field("message", msg)?;
+            }
+            NostrError::InvalidSignature => {
+                state.serialize_field("type", "InvalidSignature")?;
+                state.serialize_field("message", "Invalid signature")?;
+            }
+            NostrError::UserNotFound => {
+                state.serialize_field("type", "UserNotFound")?;
+                state.serialize_field("message", "User not found")?;
+            }
+            NostrError::InvalidToken => {
+                state.serialize_field("type", "InvalidToken")?;
+                state.serialize_field("message", "Invalid token")?;
+            }
+            NostrError::SessionExpired => {
+                state.serialize_field("type", "SessionExpired")?;
+                state.serialize_field("message", "Session expired")?;
+            }
+            NostrError::PowerUserOperation => {
+                state.serialize_field("type", "PowerUserOperation")?;
+                state.serialize_field("message", "Power user operation not allowed")?;
+            }
+            NostrError::NostrError(e) => {
+                state.serialize_field("type", "NostrError")?;
+                state.serialize_field("message", &e.to_string())?;
+            }
+            NostrError::JsonError(e) => {
+                state.serialize_field("type", "JsonError")?;
+                state.serialize_field("message", &e.to_string())?;
+            }
+        }
+        state.end()
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuthEvent {
     pub id: String,
@@ -85,7 +130,7 @@ impl NostrService {
             Ok(s) => s,
             Err(e) => {
                 error!("Failed to serialize auth event with id {}: {}", event.id, e);
-                return Err(NostrError::JsonError(e));
+                return Err(NostrError::JsonError(serde_json::Error::io(std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))));
             }
         };
 

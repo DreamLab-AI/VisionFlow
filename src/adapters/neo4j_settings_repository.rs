@@ -25,6 +25,7 @@ use crate::ports::settings_repository::{
     SettingsRepositoryError,
 };
 use crate::utils::json::{from_json, to_json};
+use crate::utils::neo4j_helpers::{json_to_bolt, string_ref_to_bolt};
 
 /// Neo4j configuration for settings repository
 #[derive(Debug, Clone)]
@@ -122,7 +123,7 @@ impl Neo4jSettingsRepository {
             .max_connections(config.max_connections);
 
         if let Some(ref db) = config.database {
-            builder = builder.db(db);
+            builder = builder.db(neo4rs::Database::from(db.as_str()));
         }
 
         let neo4j_config = builder.build()
@@ -132,7 +133,6 @@ impl Neo4jSettingsRepository {
 
         // Connect to Neo4j
         let graph = Graph::connect(neo4j_config)
-            .await
             .map_err(|e| SettingsRepositoryError::DatabaseError(
                 format!("Failed to connect to Neo4j: {}", e)
             ))?;
@@ -326,7 +326,7 @@ impl SettingsRepository for Neo4jSettingsRepository {
             query(query_str)
                 .param("key", key)
                 .param("value_type", value_type)
-                .param("value", value_data.clone())
+                .param("value", json_to_bolt(value_data.clone()))
                 .param("description", description.unwrap_or(""))
         ).await.map_err(|e| SettingsRepositoryError::DatabaseError(
             format!("Failed to set setting: {}", e)
@@ -388,7 +388,7 @@ impl SettingsRepository for Neo4jSettingsRepository {
 
     async fn set_settings_batch(&self, updates: HashMap<String, SettingValue>) -> RepoResult<()> {
         // Use transaction for batch updates
-        let txn = self.graph.start_txn().await.map_err(|e|
+        let mut txn = self.graph.start_txn().await.map_err(|e|
             SettingsRepositoryError::DatabaseError(format!("Failed to start transaction: {}", e))
         )?;
 
@@ -412,7 +412,7 @@ impl SettingsRepository for Neo4jSettingsRepository {
                 query(query_str)
                     .param("key", key.as_str())
                     .param("value_type", value_type)
-                    .param("value", value_data.clone())
+                    .param("value", json_to_bolt(value_data.clone()))
             ]).await.map_err(|e| SettingsRepositoryError::DatabaseError(
                 format!("Failed to execute batch update: {}", e)
             ))?;
@@ -471,7 +471,7 @@ impl SettingsRepository for Neo4jSettingsRepository {
         self.graph.run(
             query(query_str)
                 .param("settings", to_json(&settings_json).unwrap_or_default())
-                .param("version", &settings.version)
+                .param("version", settings.version.as_str())
         ).await.map_err(|e| SettingsRepositoryError::DatabaseError(
             format!("Failed to save all settings: {}", e)
         ))?;

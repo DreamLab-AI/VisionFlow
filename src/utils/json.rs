@@ -37,7 +37,7 @@ pub fn from_json<T: DeserializeOwned>(s: &str) -> VisionFlowResult<T> {
 /// let json = to_json(&user)?;
 /// # Ok::<(), visionflow::errors::VisionFlowError>(())
 /// ```
-pub fn to_json<T: Serialize>(value: &T) -> VisionFlowResult<String> {
+pub fn to_json<T: Serialize + ?Sized>(value: &T) -> VisionFlowResult<String> {
     serde_json::to_string(value).map_err(|e| {
         VisionFlowError::Serialization(format!("JSON serialization failed: {}", e))
     })

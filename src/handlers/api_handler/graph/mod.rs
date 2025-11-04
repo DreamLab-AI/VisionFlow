@@ -1,7 +1,8 @@
 use crate::models::metadata::Metadata;
-use crate::models::node::Node; 
+use crate::models::node::Node;
 use crate::services::file_service::FileService;
 use crate::types::vec3::Vec3Data;
+use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
 use crate::AppState;
 use actix_web::{web, HttpRequest, HttpResponse, Responder};
 use log::{debug, error, info, warn};
@@ -171,13 +172,13 @@ pub async fn get_graph_data(state: web::Data<AppState>, _req: HttpRequest) -> im
         }
         (Err(e), _, _) | (_, Err(e), _) | (_, _, Err(e)) => {
             error!("Thread execution error: {}", e);
-            HttpResponse::InternalServerError()
-                .json(serde_json::json!({"error": "Internal server error"}))
+            Ok::<HttpResponse, actix_web::Error>(HttpResponse::InternalServerError()
+                .json(serde_json::json!({"error": "Internal server error"})))
         }
         (Ok(Err(e)), _, _) | (_, Ok(Err(e)), _) | (_, _, Ok(Err(e))) => {
             error!("Failed to fetch graph data (CQRS): {}", e);
-            HttpResponse::InternalServerError()
-                .json(serde_json::json!({"error": "Failed to retrieve graph data"}))
+            Ok(HttpResponse::InternalServerError()
+                .json(serde_json::json!({"error": "Failed to retrieve graph data"})))
         }
     }
 }
@@ -207,13 +208,13 @@ pub async fn get_paginated_graph_data(
         Ok(Ok(g_owned)) => g_owned,
         Ok(Err(e)) => {
             error!("Failed to get graph data for pagination (CQRS): {}", e);
-            return HttpResponse::InternalServerError()
-                .json(serde_json::json!({"error": "Failed to retrieve graph data"}));
+            return Ok(HttpResponse::InternalServerError()
+                .json(serde_json::json!({"error": "Failed to retrieve graph data"})));
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            return HttpResponse::InternalServerError()
-                .json(serde_json::json!({"error": "Internal server error"}));
+            return Ok(HttpResponse::InternalServerError()
+                .json(serde_json::json!({"error": "Internal server error"})));
         }
     };
 
@@ -310,11 +311,11 @@ pub async fn refresh_graph(state: web::Data<AppState>) -> impl Responder {
         }
         Ok(Err(e)) => {
             error!("Failed to get current graph data (CQRS): {}", e);
-            error_json!("Failed to retrieve current graph data").unwrap()
+            error_json!("Failed to retrieve current graph data")
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            error_json!("Internal server error").unwrap()
+            error_json!("Internal server error")
         }
     }
 }
@@ -326,10 +327,10 @@ pub async fn update_graph(state: web::Data<AppState>) -> impl Responder {
         Ok(m) => m,
         Err(e) => {
             error!("Failed to load metadata: {}", e);
-            return HttpResponse::InternalServerError().json(serde_json::json!({
+            return Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "success": false,
                 "error": format!("Failed to load metadata: {}", e)
-            }));
+            })));
         }
     };
 
@@ -338,7 +339,7 @@ pub async fn update_graph(state: web::Data<AppState>) -> impl Responder {
         Ok(Ok(s)) => Arc::new(tokio::sync::RwLock::new(s)),
         _ => {
             error!("Failed to retrieve settings for FileService in update_graph");
-            return error_json!("Failed to retrieve application settings").unwrap();
+            return error_json!("Failed to retrieve application settings");
         }
     };
 
@@ -393,26 +394,26 @@ pub async fn update_graph(state: web::Data<AppState>) -> impl Responder {
                         "GraphServiceActor failed to build graph from metadata: {}",
                         e
                     );
-                    HttpResponse::InternalServerError().json(serde_json::json!({
+                    Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                         "success": false,
                         "error": format!("Failed to build graph: {}", e)
-                    }))
+                    })))
                 }
                 Err(e) => {
                     error!("Failed to build new graph: {}", e);
-                    HttpResponse::InternalServerError().json(serde_json::json!({
+                    Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                         "success": false,
                         "error": format!("Failed to build new graph: {}", e)
-                    }))
+                    })))
                 }
             }
         }
         Err(e) => {
             error!("Failed to fetch and process files: {}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
+            Ok(HttpResponse::InternalServerError().json(serde_json::json!({
                 "success": false,
                 "error": format!("Failed to fetch and process files: {}", e)
-            }))
+            })))
         }
     }
 }
@@ -442,11 +443,11 @@ pub async fn get_auto_balance_notifications(
         })),
         Ok(Err(e)) => {
             error!("Failed to get auto-balance notifications (CQRS): {}", e);
-            error_json!("Failed to retrieve notifications").unwrap()
+            error_json!("Failed to retrieve notifications")
         }
         Err(e) => {
             error!("Thread execution error: {}", e);
-            error_json!("Internal server error").unwrap()
+            error_json!("Internal server error")
         }
     }
 }

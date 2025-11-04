@@ -48,6 +48,7 @@ use tokio::time::Duration;
 use webxr::middleware::TimeoutMiddleware;
 use webxr::telemetry::agent_telemetry::init_telemetry_logger;
 use webxr::utils::advanced_logging::init_advanced_logging;
+use webxr::utils::json::{to_json, from_json};
 // REMOVED: use webxr::utils::logging::init_logging; - legacy logging superseded by advanced_logging
 
 // DEPRECATED: ErrorRecoveryMiddleware removed - NetworkRecoveryManager deleted
@@ -269,7 +270,7 @@ async fn main() -> std::io::Result<()> {
     let enhanced_content_api = Arc::new(EnhancedContentAPI::new(github_client.clone()));
     let github_sync_service = Arc::new(GitHubSyncService::new(
         enhanced_content_api,
-        app_state.knowledge_graph_repository.clone(),
+        app_state.neo4j_adapter.clone(),
         app_state.ontology_repository.clone(),
     ));
     info!("[main] GitHub Sync Service initialized");
@@ -322,7 +323,6 @@ async fn main() -> std::io::Result<()> {
 
     if let Some(_graph_data) = graph_data_option {
         info!("⏭️  Ontology graph loaded but not sent to actor (will use KG nodes from ReloadGraphFromDatabase instead)");
-use crate::utils::json::{from_json, to_json};
         info!("ℹ️  Ontology classes are available via API endpoints but nodes come from KG sync");
     } else {
         info!("⏳ GraphServiceActor will be populated by ReloadGraphFromDatabase from existing KG nodes");
@@ -414,30 +414,8 @@ use crate::utils::json::{from_json, to_json};
                     .configure(workspace_handler::config)
                     .configure(admin_sync_handler::configure_routes)
 
-                    // Pipeline admin routes
-                    .route(
-                        "/admin/pipeline/trigger",
-                        web::post().to(webxr::handlers::pipeline_admin_handler::trigger_pipeline),
-                    )
-                    .route(
-                        "/admin/pipeline/status",
-                        web::get().to(webxr::handlers::pipeline_admin_handler::get_pipeline_status),
-                    )
-                    .route(
-                        "/admin/pipeline/metrics",
-                        web::get().to(webxr::handlers::pipeline_admin_handler::get_pipeline_metrics),
-                    )
-                    .route(
-                        "/admin/pipeline/cache/clear",
-                        web::post().to(webxr::handlers::pipeline_admin_handler::clear_reasoning_cache),
-                    )
-
-                    // Cypher query endpoint (Neo4j)
-                    #[cfg(feature = "neo4j")]
-                    .route(
-                        "/query/cypher",
-                        web::post().to(webxr::handlers::cypher_query_handler::execute_cypher),
-                    )
+                    // Pipeline admin routes removed (SQLite-specific handlers deleted in Neo4j migration)
+                    // Cypher query endpoint removed (handler deleted in Neo4j migration)
 
                     .service(web::scope("/pages").configure(pages_handler::config))
                     .service(web::scope("/bots").configure(api_handler::bots::config))

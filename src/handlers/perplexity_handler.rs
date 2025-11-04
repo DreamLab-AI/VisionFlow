@@ -52,7 +52,7 @@ pub async fn handle_perplexity(
         }
         Err(e) => {
             error!("Error processing perplexity request: {}", e);
-            HttpResponse::InternalServerError().json(format!("Error: {}", e))
+            Ok::<HttpResponse, actix_web::Error>(HttpResponse::InternalServerError().json(format!("Error: {}", e)))
         }
     }
 }

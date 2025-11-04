@@ -1,10 +1,10 @@
 // src/handlers/admin_sync_handler.rs
 //! Admin endpoint for triggering GitHub synchronization
 
-use actix_web::{web, HttpResponse};
+use actix_web::{web, HttpResponse, Responder, Result};
 use log::{error, info};
 use serde::Serialize;
-use crate::utils::response_macros::*;
+use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
 
 use crate::services::github_sync_service::{GitHubSyncService, SyncStatistics};
 use crate::AppState;
@@ -14,6 +14,16 @@ pub struct SyncResponse {
     pub success: bool,
     pub message: String,
     pub statistics: Option<SyncStatisticsDto>,
+}
+
+impl std::fmt::Display for SyncResponse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "SyncResponse {{ success: {}, message: {} }}",
+            self.success, self.message
+        )
+    }
 }
 
 #[derive(Serialize)]
@@ -47,7 +57,7 @@ impl From<SyncStatistics> for SyncStatisticsDto {
 pub async fn trigger_sync(
     sync_service: web::Data<GitHubSyncService>,
     app_state: web::Data<AppState>,
-) -> HttpResponse {
+) -> Result<impl Responder> {
     info!("Admin sync endpoint triggered");
 
     match sync_service.sync_graphs().await {
@@ -73,7 +83,7 @@ pub async fn trigger_sync(
         }
         Err(e) => {
             error!("Sync failed: {}", e);
-            HttpResponse::InternalServerError().json(SyncResponse {
+            error_json!(SyncResponse {
                 success: false,
                 message: format!("Sync failed: {}", e),
                 statistics: None,

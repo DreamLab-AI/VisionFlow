@@ -3,6 +3,8 @@
 //! This module provides comprehensive telemetry and structured logging for the WebXR
 //! graph visualization system, including agent lifecycle, GPU operations, and MCP bridge.
 
+use crate::time;
+use crate::{to_json, from_json};
 use chrono::{DateTime, Utc};
 use log::{debug, error, info, trace, warn};
 use serde::{Deserialize, Serialize};

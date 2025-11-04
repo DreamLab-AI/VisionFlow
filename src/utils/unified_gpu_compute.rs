@@ -105,6 +105,7 @@
 use crate::models::constraints::ConstraintData;
 pub use crate::models::simulation_params::SimParams;
 use crate::utils::advanced_logging::{log_gpu_error, log_gpu_kernel, log_memory_event};
+use crate::utils::result_helpers::safe_json_number;
 use anyhow::{anyhow, Result};
 use cust::context::Context;
 use cust::device::Device;
@@ -2885,20 +2886,20 @@ impl UnifiedGPUCompute {
             dt: params.dt,
             damping: params.damping,
             warmup_iterations: 0,
-            cooling_rate: 0.95, 
+            cooling_rate: 0.95,
             spring_k: params.spring_k,
-            rest_length: 1.0, 
+            rest_length: 1.0,
             repel_k: params.repel_k,
-            repulsion_cutoff: 100.0, 
+            repulsion_cutoff: 100.0,
             repulsion_softening_epsilon: 0.1,
             center_gravity_k: params.center_gravity_k,
             max_force: params.max_force,
             max_velocity: params.max_velocity,
-            grid_cell_size: 100.0, 
+            grid_cell_size: 100.0,
             feature_flags: 0,
             seed: 42,
             iteration: 0,
-            
+
             separation_radius: 10.0,
             cluster_strength: 0.0,
             alignment_strength: 0.0,
@@ -2908,22 +2909,32 @@ impl UnifiedGPUCompute {
             boundary_damping: 0.9,
             constraint_ramp_frames: 60,
             constraint_max_force_per_node: 100.0,
-            
+
             stability_threshold: 1e-6,
             min_velocity_threshold: 1e-4,
-            
+
             world_bounds_min: -1000.0,
             world_bounds_max: 1000.0,
             cell_size_lod: 50.0,
             k_neighbors_max: 20,
             anomaly_detection_radius: 50.0,
             learning_rate_default: 0.01,
-            
+
             norm_delta_cap: 10.0,
             position_constraint_attraction: 0.1,
             lof_score_min: 0.0,
             lof_score_max: 10.0,
             weight_precision_multiplier: 1000.0,
+
+            // Stress Majorization Parameters (added to fix E0063)
+            stress_optimization_enabled: 0,        // Disabled by default
+            stress_optimization_frequency: 100,    // Run every 100 frames
+            stress_learning_rate: 0.05,            // Conservative learning rate
+            stress_momentum: 0.5,                  // Moderate momentum
+            stress_max_displacement: 10.0,         // Maximum displacement per step
+            stress_convergence_threshold: 0.01,    // Convergence threshold
+            stress_max_iterations: 50,             // Maximum iterations per optimization
+            stress_blend_factor: 0.2,              // 20% blend with local forces
         };
         self.execute(sim_params)
     }

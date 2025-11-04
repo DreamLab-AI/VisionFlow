@@ -12,7 +12,7 @@ use crate::models::graph::GraphData;
 
 pub type Result<T> = std::result::Result<T, GpuPhysicsAdapterError>;
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, Serialize)]
 pub enum GpuPhysicsAdapterError {
     #[error("GPU not available")]
     GpuNotAvailable,

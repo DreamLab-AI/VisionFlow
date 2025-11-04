@@ -1,7 +1,7 @@
 use crate::actors::messages::{GetMetadata, GetSettings};
 use crate::models::metadata::Metadata;
 use crate::services::github::content_enhanced::ExtendedFileMetadata;
-use crate::utils::response_macros::*;
+use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
 use crate::AppState;
 use actix_web::{web, HttpResponse, Result};
 use futures::future::join_all;
@@ -141,7 +141,7 @@ pub async fn get_pages(app_state: web::Data<AppState>) -> Result<HttpResponse> {
         log::debug!("Returning {} processed pages", pages.len());
     }
 
-    Ok(ok_json!(pages))
+    ok_json!(pages)
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {

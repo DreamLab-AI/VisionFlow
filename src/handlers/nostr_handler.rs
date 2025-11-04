@@ -72,7 +72,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 async fn check_power_user_status(
     req: HttpRequest,
     feature_access: web::Data<FeatureAccess>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     let pubkey = req
         .headers()
         .get("X-Nostr-Pubkey")
@@ -83,15 +83,15 @@ async fn check_power_user_status(
         return bad_request!("Missing Nostr pubkey");
     }
 
-    Ok(ok_json!(json!({
+    ok_json!(json!({
         "is_power_user": feature_access.is_power_user(pubkey)
-    })))
+    }))
 }
 
 async fn get_available_features(
     req: HttpRequest,
     feature_access: web::Data<FeatureAccess>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     let pubkey = req
         .headers()
         .get("X-Nostr-Pubkey")
@@ -103,16 +103,16 @@ async fn get_available_features(
     }
 
     let features = feature_access.get_available_features(pubkey);
-    Ok(ok_json!(json!({
+    ok_json!(json!({
         "features": features
-    })))
+    }))
 }
 
 async fn check_feature_access(
     req: HttpRequest,
     feature_access: web::Data<FeatureAccess>,
     feature: web::Path<String>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     let pubkey = req
         .headers()
         .get("X-Nostr-Pubkey")
@@ -123,16 +123,16 @@ async fn check_feature_access(
         return bad_request!("Missing Nostr pubkey");
     }
 
-    Ok(ok_json!(json!({
+    ok_json!(json!({
         "has_access": feature_access.has_feature_access(pubkey, &feature)
-    })))
+    }))
 }
 
 async fn login(
     event: web::Json<AuthEvent>,
     nostr_service: web::Data<NostrService>,
     feature_access: web::Data<FeatureAccess>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     match nostr_service.verify_auth_event(event.into_inner()).await {
         Ok(user) => {
             let token = user.session_token.clone().unwrap_or_default();
@@ -152,24 +152,24 @@ async fn login(
                 is_power_user: user.is_power_user,
             };
 
-            Ok(ok_json!(AuthResponse {
+            ok_json!(AuthResponse {
                 user: user_dto,
                 token,
                 expires_at,
                 features,
-            }))
+            })
         }
         Err(NostrError::InvalidSignature) => Ok(HttpResponse::Unauthorized().json(json!({
             "error": "Invalid signature"
         }))),
-        Err(e) => Ok(error_json!("Authentication error: {}", e)),
+        Err(e) => error_json!("Authentication error: {}", e),
     }
 }
 
 async fn logout(
     req: web::Json<ValidateRequest>,
     nostr_service: web::Data<NostrService>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     
     if !nostr_service
         .validate_session(&req.pubkey, &req.token)
@@ -181,10 +181,10 @@ async fn logout(
     }
 
     match nostr_service.logout(&req.pubkey).await {
-        Ok(_) => Ok(ok_json!(json!({
+        Ok(_) => ok_json!(json!({
             "message": "Logged out successfully"
-        }))),
-        Err(e) => Ok(error_json!("Logout error: {}", e)),
+        })),
+        Err(e) => error_json!("Logout error: {}", e),
     }
 }
 
@@ -192,7 +192,7 @@ async fn verify(
     req: web::Json<ValidateRequest>,
     nostr_service: web::Data<NostrService>,
     feature_access: web::Data<FeatureAccess>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     let is_valid = nostr_service
         .validate_session(&req.pubkey, &req.token)
         .await;
@@ -216,18 +216,18 @@ async fn verify(
         Vec::new()
     };
 
-    Ok(ok_json!(VerifyResponse {
+    ok_json!(VerifyResponse {
         valid: is_valid,
         user,
         features,
-    }))
+    })
 }
 
 async fn refresh(
     req: web::Json<ValidateRequest>,
     nostr_service: web::Data<NostrService>,
     feature_access: web::Data<FeatureAccess>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     
     if !nostr_service
         .validate_session(&req.pubkey, &req.token)
@@ -249,7 +249,7 @@ async fn refresh(
                 
                 let features = feature_access.get_available_features(&req.pubkey);
 
-                Ok(ok_json!(AuthResponse {
+                ok_json!(AuthResponse {
                     user: UserResponseDTO {
                         pubkey: user.pubkey.clone(),
                         npub: Some(user.npub.clone()),
@@ -258,12 +258,12 @@ async fn refresh(
                     token: new_token,
                     expires_at,
                     features,
-                }))
+                })
             } else {
                 error_json!("User not found after refresh")
             }
         }
-        Err(e) => Ok(error_json!("Session refresh error: {}", e)),
+        Err(e) => error_json!("Session refresh error: {}", e),
     }
 }
 
@@ -271,7 +271,7 @@ async fn update_api_keys(
     req: web::Json<ApiKeysRequest>,
     nostr_service: web::Data<NostrService>,
     pubkey: web::Path<String>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     let api_keys = ApiKeys {
         perplexity: req.perplexity.clone(),
         openai: req.openai.clone(),
@@ -285,23 +285,23 @@ async fn update_api_keys(
                 npub: Some(user.npub.clone()),
                 is_power_user: user.is_power_user,
             };
-            Ok(ok_json!(user_dto))
+            ok_json!(user_dto)
         }
         Err(NostrError::UserNotFound) => not_found!("User not found"),
         Err(NostrError::PowerUserOperation) => Ok(HttpResponse::Forbidden().json(json!({
             "error": "Cannot update API keys for power users"
         }))),
-        Err(e) => Ok(error_json!("Failed to update API keys: {}", e)),
+        Err(e) => error_json!("Failed to update API keys: {}", e),
     }
 }
 
 async fn get_api_keys(
     state: web::Data<AppState>,
     pubkey: web::Path<String>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     let api_keys = state.get_api_keys(&pubkey).await;
 
-    Ok(ok_json!(api_keys))
+    ok_json!(api_keys)
 }
 
 // Add the handler to app_state initialization

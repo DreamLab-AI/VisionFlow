@@ -1,4 +1,5 @@
 use crate::events::types::DomainEvent;
+use crate::utils::json::to_json;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -19,7 +20,10 @@ macro_rules! impl_domain_event {
                 $aggregate_type
             }
             fn to_json_string(&self) -> Result<String, serde_json::Error> {
-                to_json(self)
+                to_json(self).map_err(|e| {
+                    let msg = format!("JSON serialization error: {}", e);
+                    serde_json::Error::io(std::io::Error::new(std::io::ErrorKind::Other, msg))
+                })
             }
         }
     };
@@ -236,8 +240,7 @@ impl_domain_event!(SettingsImportedEvent, "SettingsImported", "Settings", settin
 #[cfg(test)]
 mod tests {
     use super::*;
-use crate::utils::time;
-use crate::utils::json::{from_json, to_json};
+    use crate::utils::time;
 
     #[test]
     fn test_node_added_event() {

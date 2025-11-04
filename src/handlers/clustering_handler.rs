@@ -1,7 +1,7 @@
 use crate::actors::messages::{GetSettings, UpdateSettings};
 use crate::app_state::AppState;
 use crate::config::ClusteringConfiguration;
-use crate::utils::response_macros::*;
+use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
 use actix_web::{web, Error, HttpRequest, HttpResponse};
 use log::{debug, error, info, warn};
 use serde_json::{json, Value};
@@ -24,7 +24,7 @@ async fn configure_clustering(
     _req: HttpRequest,
     state: web::Data<AppState>,
     payload: web::Json<ClusteringConfiguration>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     let config = payload.into_inner();
 
     info!(
@@ -34,7 +34,7 @@ async fn configure_clustering(
 
     
     if let Err(e) = validate_clustering_config(&config) {
-        return Ok(bad_request!("Invalid clustering configuration: {}", e));
+        return bad_request!("Invalid clustering configuration: {}", e);
     }
 
     
@@ -76,7 +76,7 @@ async fn configure_clustering(
 
     if let Err(e) = app_settings.merge_update(settings_update) {
         error!("Failed to merge clustering configuration: {}", e);
-        return Ok(error_json!("Failed to update clustering configuration: {}", e));
+        return error_json!("Failed to update clustering configuration: {}", e);
     }
 
     
@@ -89,14 +89,14 @@ async fn configure_clustering(
     {
         Ok(Ok(())) => {
             info!("Clustering configuration saved successfully");
-            Ok(ok_json!(json!({
+            ok_json!(json!({
                 "status": "Clustering configuration updated successfully",
                 "config": config
-            })))
+            }))
         }
         Ok(Err(e)) => {
             error!("Failed to save clustering configuration: {}", e);
-            Ok(error_json!("Failed to save clustering configuration: {}", e))
+            error_json!("Failed to save clustering configuration: {}", e)
         }
         Err(e) => {
             error!("Settings actor error: {}", e);
@@ -110,7 +110,7 @@ async fn start_clustering(
     _req: HttpRequest,
     state: web::Data<AppState>,
     payload: web::Json<Value>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     let request = payload.into_inner();
 
     info!("Starting real GPU clustering analysis");
@@ -173,16 +173,16 @@ async fn start_clustering(
                     "GPU clustering completed successfully with {} clusters",
                     cluster_results.len()
                 );
-                Ok(ok_json!(json!({
+                ok_json!(json!({
                     "status": "completed",
                     "taskId": task_id,
                     "algorithm": algorithm,
                     "clusterCount": cluster_results.len(),
                     "clustersFound": cluster_results.len(),
-                    "modularity": 0.8, 
-                    "computationTimeMs": 150, 
+                    "modularity": 0.8,
+                    "computationTimeMs": 150,
                     "gpuAccelerated": true
-                })))
+                }))
             }
             Ok(Err(e)) => {
                 error!("GPU clustering failed: {}", e);
@@ -196,7 +196,7 @@ async fn start_clustering(
             }
             Err(e) => {
                 error!("GPU actor communication error: {}", e);
-                Ok(service_unavailable!("GPU compute actor unavailable").expect("JSON serialization failed"))
+                service_unavailable!("GPU compute actor unavailable")
             }
         }
     } else {
@@ -209,7 +209,7 @@ async fn start_clustering(
 async fn get_clustering_status(
     _req: HttpRequest,
     state: web::Data<AppState>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     info!("Clustering status request");
 
     
@@ -238,7 +238,7 @@ async fn get_clustering_status(
                     .and_then(|v| v.as_u64())
                     .unwrap_or(0);
 
-                Ok(ok_json!(json!({
+                ok_json!(json!({
                     "status": "completed",
                     "algorithm": algorithm,
                     "progress": 1.0,
@@ -247,11 +247,11 @@ async fn get_clustering_status(
                     "gpuAvailable": true,
                     "modularity": modularity,
                     "computationTimeMs": computation_time
-                })))
+                }))
             }
             Ok(Err(e)) => {
                 info!("No clustering results available: {}", e);
-                Ok(ok_json!(json!({
+                ok_json!(json!({
                     "status": "idle",
                     "algorithm": "none",
                     "progress": 0.0,
@@ -259,15 +259,15 @@ async fn get_clustering_status(
                     "lastRun": null,
                     "gpuAvailable": true,
                     "note": "No clustering has been performed yet"
-                })))
+                }))
             }
             Err(e) => {
                 error!("GPU actor communication error: {}", e);
-                Ok(service_unavailable!("GPU compute actor unavailable").expect("JSON serialization failed"))
+                service_unavailable!("GPU compute actor unavailable")
             }
         }
     } else {
-        Ok(ok_json!(json!({
+        ok_json!(json!({
             "status": "unavailable",
             "algorithm": "none",
             "progress": 0.0,
@@ -275,7 +275,7 @@ async fn get_clustering_status(
             "lastRun": null,
             "gpuAvailable": false,
             "note": "GPU compute not available"
-        })))
+        }))
     }
 }
 
@@ -283,7 +283,7 @@ async fn get_clustering_status(
 async fn get_clustering_results(
     _req: HttpRequest,
     state: web::Data<AppState>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     info!("Clustering results request");
 
     
@@ -346,7 +346,7 @@ use crate::{
                     .and_then(|v| v.as_u64())
                     .unwrap_or(0);
 
-                Ok(ok_json!(json!({
+                ok_json!(json!({
                     "clusters": clusters,
                     "totalNodes": graph_data.nodes.len(),
                     "algorithmUsed": algorithm,
@@ -355,11 +355,11 @@ use crate::{
                     "gpuAvailable": true,
                     "computationTimeMs": computation_time,
                     "gpuAccelerated": true
-                })))
+                }))
             }
             Ok(Err(e)) => {
                 info!("No clustering results available: {}", e);
-                Ok(ok_json!(json!({
+                ok_json!(json!({
                     "clusters": [],
                     "totalNodes": graph_data.nodes.len(),
                     "algorithmUsed": "none",
@@ -367,15 +367,15 @@ use crate::{
                     "lastUpdated": chrono::Utc::now().to_rfc3339(),
                     "gpuAvailable": true,
                     "note": "No clustering results available - run clustering first"
-                })))
+                }))
             }
             Err(e) => {
                 error!("GPU actor communication error: {}", e);
-                Ok(service_unavailable!("GPU compute actor unavailable").expect("JSON serialization failed"))
+                service_unavailable!("GPU compute actor unavailable")
             }
         }
     } else {
-        Ok(ok_json!(json!({
+        ok_json!(json!({
             "clusters": [],
             "totalNodes": 0,
             "algorithmUsed": "none",
@@ -383,7 +383,7 @@ use crate::{
             "lastUpdated": chrono::Utc::now().to_rfc3339(),
             "gpuAvailable": false,
             "note": "GPU compute not available"
-        })))
+        }))
     }
 }
 
@@ -392,7 +392,7 @@ async fn export_cluster_assignments(
     _req: HttpRequest,
     state: web::Data<AppState>,
     payload: web::Json<Value>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     let export_request = payload.into_inner();
 
     info!("Cluster assignment export request");

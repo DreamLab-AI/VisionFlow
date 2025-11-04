@@ -1,7 +1,7 @@
 use crate::models::graph::GraphData;
 use crate::models::graph_export::*;
 use crate::services::graph_serialization::GraphSerializationService;
-use crate::utils::response_macros::*;
+use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable, unauthorized, forbidden, too_many_requests};
 use crate::AppState;
 use actix_web::{http::header::HeaderValue, web, HttpRequest, HttpResponse, Result as ActixResult};
 use anyhow::Result;
@@ -149,36 +149,36 @@ pub async fn export_graph(
         .unwrap_or("unknown")
         .to_string();
 
-    
+
     let handler = GraphExportHandler::new(std::path::PathBuf::from("data"));
 
-    
+
     match handler.check_rate_limit(&client_ip).await {
         Ok(rate_info) if rate_info.remaining_exports == 0 => {
-            return Ok(too_many_requests!("Rate limit exceeded").unwrap());
+            return too_many_requests!("Rate limit exceeded");
         }
         Err(e) => {
-            return Ok(error_json!("Rate limit check failed: {}", e));
+            return error_json!("Rate limit check failed: {}", e);
         }
         _ => {}
     }
 
-    
+
     let graph = match handler.get_current_graph(&app_state).await {
         Ok(graph) => graph,
         Err(e) => {
-            return Ok(error_json!("Failed to get graph: {}", e));
+            return error_json!("Failed to get graph: {}", e);
         }
     };
 
-    
+
     match handler
         .serialization_service
         .export_graph(&graph, &request)
         .await
     {
-        Ok(export_response) => Ok(ok_json!(export_response)),
-        Err(e) => Ok(error_json!("Export failed: {}", e)),
+        Ok(export_response) => ok_json!(export_response),
+        Err(e) => error_json!("Export failed: {}", e),
     }
 }
 
@@ -196,41 +196,41 @@ pub async fn share_graph(
 
     let handler = GraphExportHandler::new(std::path::PathBuf::from("data"));
 
-    
+
     match handler.check_rate_limit(&client_ip).await {
         Ok(rate_info) if rate_info.remaining_exports == 0 => {
-            return Ok(too_many_requests!("Rate limit exceeded").unwrap());
+            return too_many_requests!("Rate limit exceeded");
         }
         Err(e) => {
-            return Ok(error_json!("Rate limit check failed: {}", e));
+            return error_json!("Rate limit check failed: {}", e);
         }
         _ => {}
     }
 
-    
+
     let graph = match handler.get_current_graph(&app_state).await {
         Ok(graph) => graph,
         Err(e) => {
-            return Ok(error_json!("Failed to get graph: {}", e));
+            return error_json!("Failed to get graph: {}", e);
         }
     };
 
-    
+
     match handler
         .serialization_service
         .create_shared_graph(&graph, &request)
         .await
     {
         Ok((shared_graph, share_response)) => {
-            
+
             {
                 let mut shared_graphs = handler.shared_graphs.write().await;
                 shared_graphs.insert(shared_graph.id, shared_graph);
             }
 
-            Ok(ok_json!(share_response))
+            ok_json!(share_response)
         }
-        Err(e) => Ok(error_json!("Failed to create shared graph: {}", e)),
+        Err(e) => error_json!("Failed to create shared graph: {}", e),
     }
 }
 
@@ -242,7 +242,7 @@ pub async fn get_shared_graph(
     let share_id = match Uuid::parse_str(&path.into_inner()) {
         Ok(id) => id,
         Err(_) => {
-            return Ok(bad_request!("Invalid share ID format"));
+            return bad_request!("Invalid share ID format");
         }
     };
 
@@ -254,7 +254,7 @@ pub async fn get_shared_graph(
         match shared_graphs.get(&share_id) {
             Some(graph) => graph.clone(),
             None => {
-                return Ok(not_found!("Shared graph not found"));
+                return not_found!("Shared graph not found");
             }
         }
     };
@@ -266,18 +266,19 @@ pub async fn get_shared_graph(
         })));
     }
 
-    
+
+
     if shared_graph.access_limit_reached() {
-        return Ok(forbidden!("Access limit reached for this shared graph"));
+        return forbidden!("Access limit reached for this shared graph");
     }
 
-    
+
     if let Some(password) = query.get("password") {
         if !shared_graph.validate_password(password) {
-            return Ok(unauthorized!("Invalid password"));
+            return unauthorized!("Invalid password");
         }
     } else if shared_graph.password_hash.is_some() {
-        return Ok(unauthorized!("Password required"));
+        return unauthorized!("Password required");
     }
 
     
@@ -311,7 +312,7 @@ pub async fn get_shared_graph(
 
             Ok(response)
         }
-        Err(e) => Ok(error_json!("Failed to read shared graph file: {}", e)),
+        Err(e) => error_json!("Failed to read shared graph file: {}", e),
     }
 }
 
@@ -329,35 +330,30 @@ pub async fn publish_graph(
 
     let handler = GraphExportHandler::new(std::path::PathBuf::from("data"));
 
-    
+
     match handler.check_rate_limit(&client_ip).await {
         Ok(rate_info) if rate_info.remaining_exports == 0 => {
-            return Ok(too_many_requests!("Rate limit exceeded").unwrap());
+            return too_many_requests!("Rate limit exceeded");
         }
         Err(e) => {
-            return Ok(error_json!("Rate limit check failed: {}", e));
+            return error_json!("Rate limit check failed: {}", e);
         }
         _ => {}
     }
 
-    
+
     let _graph = match handler.get_current_graph(&app_state).await {
         Ok(graph) => graph,
         Err(e) => {
-            return Ok(error_json!("Failed to get graph: {}", e));
+            return error_json!("Failed to get graph: {}", e);
         }
     };
 
-    
+
     let publication_id = Uuid::new_v4();
     let repository_url = format!("https://graphdb.example.com/graphs/{}", publication_id);
 
-    
-    
-    
-    
-    
-    
+
 
     let publish_response = PublishResponse {
         publication_id,
@@ -367,7 +363,7 @@ pub async fn publish_graph(
         status: PublicationStatus::Pending,
     };
 
-    Ok(ok_json!(publish_response))
+    ok_json!(publish_response)
 }
 
 ///
@@ -375,7 +371,7 @@ pub async fn delete_shared_graph(path: web::Path<String>) -> ActixResult<HttpRes
     let share_id = match Uuid::parse_str(&path.into_inner()) {
         Ok(id) => id,
         Err(_) => {
-            return Ok(bad_request!("Invalid share ID format"));
+            return bad_request!("Invalid share ID format");
         }
     };
 
@@ -394,12 +390,12 @@ pub async fn delete_shared_graph(path: web::Path<String>) -> ActixResult<HttpRes
                 log::warn!("Failed to delete shared graph file: {}", e);
             }
 
-            Ok(ok_json!(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "message": "Shared graph deleted successfully",
                 "deleted_id": share_id
-            })))
+            }))
         }
-        None => Ok(not_found!("Shared graph not found")),
+        None => not_found!("Shared graph not found"),
     }
 }
 
@@ -422,7 +418,7 @@ pub async fn get_export_stats() -> ActixResult<HttpResponse> {
         last_export: Some(Utc::now() - chrono::Duration::minutes(15)),
     };
 
-    Ok(ok_json!(stats))
+    ok_json!(stats)
 }
 
 ///

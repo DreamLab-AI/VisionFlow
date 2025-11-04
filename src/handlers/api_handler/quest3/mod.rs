@@ -3,6 +3,7 @@
 use actix_web::{web, HttpResponse, Result};
 use log::{info, warn};
 use serde::{Deserialize, Serialize};
+use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
 
 use crate::actors::messages::{GetSettings, UpdateSettings};
 use crate::AppState;
@@ -227,13 +228,13 @@ pub async fn get_quest3_defaults(_app_state: web::Data<AppState>) -> Result<Http
         "LOD and culling optimized for Quest 3 hardware".to_string(),
     ];
 
-    Ok(ok_json!(Quest3DefaultsResponse {
+    ok_json!(Quest3DefaultsResponse {
         success: true,
         settings: Some(default_settings),
         profile_name: "quest3_optimized_default".to_string(),
         optimizations_applied: optimizations,
         error: None,
-    }))
+    })
 }
 
 ///
@@ -309,7 +310,7 @@ pub async fn calibrate_quest3(
             .push("Restart the application to ensure all settings take effect".to_string());
     }
 
-    Ok(ok_json!(Quest3CalibrationResponse {
+    ok_json!(Quest3CalibrationResponse {
         success: true,
         calibrated_settings: Some(calibrated_settings),
         calibration_id,
@@ -317,7 +318,7 @@ pub async fn calibrate_quest3(
         recommendations,
         estimated_performance: performance_estimate,
         error: None,
-    }))
+    })
 }
 
 ///

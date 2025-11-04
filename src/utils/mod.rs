@@ -14,6 +14,8 @@ pub mod gpu_diagnostics;
 #[cfg(feature = "gpu")]
 pub mod gpu_memory;
 pub mod gpu_safety;
+#[cfg(feature = "gpu")]
+pub mod cuda_error_handling;
 pub mod handler_commons;
 pub mod response_macros;
 // pub mod hybrid_fault_tolerance;
@@ -46,3 +48,4 @@ pub mod validation;
 pub mod websocket_heartbeat;
 pub mod result_helpers;
 pub mod result_mappers;
+pub mod neo4j_helpers;

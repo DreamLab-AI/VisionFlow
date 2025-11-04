@@ -457,116 +457,20 @@ impl GitHubSyncService {
     async fn get_existing_file_metadata(
         &self,
     ) -> Result<std::collections::HashMap<String, String>, String> {
-        let kg_repo = self.kg_repo.clone();
-
-        tokio::task::spawn_blocking(move || {
-            let conn = kg_repo.get_connection()
-                .map_err(|e| format!("Failed to get database connection: {}", e))?;
-
-            let conn_guard = conn.lock()
-                .map_err(|e| format!("Failed to lock connection: {}", e))?;
-
-            let mut stmt = conn_guard.prepare(
-                "SELECT file_name, file_blob_sha FROM file_metadata WHERE file_blob_sha IS NOT NULL"
-            )
-            .map_err(|e| format!("Failed to prepare statement: {}", e))?;
-
-            let mut metadata_map = std::collections::HashMap::new();
-
-            let rows = stmt.query_map([], |row| {
-                Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
-            })
-            .map_err(|e| format!("Failed to query file_metadata: {}", e))?;
-
-            for row in rows {
-                let (file_name, sha) = row.map_err(|e| format!("Failed to read row: {}", e))?;
-                metadata_map.insert(file_name, sha);
-            }
-
-            info!("[GitHubSync][SHA1] Loaded {} existing file metadata entries", metadata_map.len());
-            Ok(metadata_map)
-        })
-        .await
-        .map_err(|e| format!("Task join error: {}", e))?
+        // TODO: File metadata tracking removed after Neo4j migration
+        // Return empty map to process all files
+        info!("[GitHubSync][SHA1] File metadata tracking disabled (Neo4j migration)");
+        Ok(std::collections::HashMap::new())
     }
 
     async fn update_file_metadata(
         &self,
         files: &[GitHubFileBasicMetadata],
     ) -> Result<(), String> {
-        use chrono::Utc;
-
-        let kg_repo = self.kg_repo.clone();
-        let files = files.to_vec();
-
-        tokio::task::spawn_blocking(move || {
-            use rusqlite::params;
-
-            let conn = kg_repo.get_connection()
-                .map_err(|e| format!("Failed to get database connection: {}", e))?;
-
-            let mut conn_guard = conn.lock()
-                .map_err(|e| format!("Failed to lock connection: {}", e))?;
-
-            let tx = conn_guard.transaction()
-                .map_err(|e| format!("Failed to begin transaction: {}", e))?;
-
-            for file in &files {
-                let now = time::format_iso8601(&time::now());
-
-                // Extract file extension
-                let extension = file.name.rsplit('.').next().unwrap_or("");
-
-                // Upsert file metadata
-                tx.execute(
-                    r#"
-                    INSERT INTO file_metadata
-                        (file_name, file_path, file_extension,
-                         file_blob_sha, github_node_id, sha1, content_hash,
-                         last_modified, last_content_change, updated_at, processing_status)
-                    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, 'complete')
-                    ON CONFLICT(file_name) DO UPDATE SET
-                        file_path = ?2,
-                        file_extension = ?3,
-                        file_blob_sha = ?4,
-                        sha1 = ?6,
-                        content_hash = ?7,
-                        last_modified = ?8,
-                        last_content_change = CASE
-                            WHEN file_blob_sha != ?4 THEN ?9
-                            ELSE last_content_change
-                        END,
-                        updated_at = ?10,
-                        processing_status = 'complete',
-                        change_count = CASE
-                            WHEN file_blob_sha != ?4 THEN COALESCE(change_count, 0) + 1
-                            ELSE change_count
-                        END
-                    "#,
-                    params![
-                        file.name,
-                        file.download_url,
-                        extension,
-                        file.sha,
-                        "", // github_node_id
-                        file.sha, // sha1
-                        file.sha, // content_hash
-                        now.clone(),
-                        now.clone(), // last_content_change
-                        now,
-                    ],
-                )
-                .map_err(|e| format!("Failed to upsert file_metadata for {}: {}", file.name, e))?;
-            }
-
-            tx.commit()
-                .map_err(|e| format!("Failed to commit file_metadata transaction: {}", e))?;
-
-            info!("✅ Updated file_metadata for {} files", files.len());
-            Ok(())
-        })
-        .await
-        .map_err(|e| format!("Task join error: {}", e))?
+        // TODO: File metadata tracking removed after Neo4j migration
+        // This function is now a no-op
+        info!("[GitHubSync] File metadata update skipped (Neo4j migration) - {} files", files.len());
+        Ok(())
     }
 
     fn detect_file_type(&self, content: &str) -> FileType {

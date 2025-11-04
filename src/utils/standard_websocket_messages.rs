@@ -398,13 +398,13 @@ impl ToStandardMessage for StandardWebSocketMessage {
 
 ///
 pub fn serialize_message<T: Serialize>(message: &T) -> Result<String, serde_json::Error> {
-    to_json(message)
+    to_json(message).map_err(|e| serde_json::Error::io(std::io::Error::new(std::io::ErrorKind::Other, e.to_string())))
 }
 
 pub fn deserialize_message<T: for<'de> Deserialize<'de>>(
     data: &str,
 ) -> Result<T, serde_json::Error> {
-    from_json(data)
+    from_json(data).map_err(|e| serde_json::Error::io(std::io::Error::new(std::io::ErrorKind::Other, e.to_string())))
 }
 
 ///

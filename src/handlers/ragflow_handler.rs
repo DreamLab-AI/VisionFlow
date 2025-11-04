@@ -57,7 +57,7 @@ impl ResponseError for RAGFlowError {
 pub async fn send_message(
     state: web::Data<AppState>,
     request: web::Json<SendMessageRequest>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     let ragflow_service = match &state.ragflow_service {
         Some(service) => service,
         None => {
@@ -139,7 +139,7 @@ pub async fn send_message(
                     })
                     .map_err(|e| actix_web::error::ErrorInternalServerError(e))
             });
-            HttpResponse::Ok().streaming(mapped_stream)
+            Ok::<HttpResponse, actix_web::Error>(HttpResponse::Ok().streaming(mapped_stream))
         }
         Err(e) => {
             error!("Error sending message: {}", e);
@@ -152,7 +152,7 @@ pub async fn send_message(
 pub async fn create_session(
     state: web::Data<AppState>,
     request: web::Json<CreateSessionRequest>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     let user_id = request.user_id.clone();
     let ragflow_service = match &state.ragflow_service {
         Some(service) => service,
@@ -163,15 +163,15 @@ pub async fn create_session(
 
     match ragflow_service.create_session(user_id.clone()).await {
         Ok(session_id) => {
-            
-            
-            
-            
+
+
+
+
             info!(
                 "Created new RAGFlow session: {}. Note: session ID cannot be stored in shared AppState.",
                 session_id
             );
-            
+
 
             ok_json!(CreateSessionResponse {
                 success: true,
@@ -190,7 +190,7 @@ pub async fn create_session(
 pub async fn get_session_history(
     state: web::Data<AppState>,
     session_id: web::Path<String>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     let ragflow_service = match &state.ragflow_service {
         Some(service) => service,
         None => {
@@ -213,9 +213,9 @@ pub async fn get_session_history(
 ///
 async fn handle_ragflow_chat(
     state: web::Data<AppState>,
-    req: HttpRequest, 
+    req: HttpRequest,
     payload: web::Json<RagflowChatRequest>,
-) -> HttpResponse {
+) -> Result<impl Responder, actix_web::Error> {
     
     let pubkey = match req
         .headers()
@@ -224,8 +224,8 @@ async fn handle_ragflow_chat(
     {
         Some(pk) => pk.to_string(),
         None => {
-            return HttpResponse::Unauthorized()
-                .json(json!({"error": "Missing X-Nostr-Pubkey header"}))
+            return Ok(HttpResponse::Unauthorized()
+                .json(json!({"error": "Missing X-Nostr-Pubkey header"})))
         }
     };
     let token = match req
@@ -235,21 +235,21 @@ async fn handle_ragflow_chat(
     {
         Some(t) => t.to_string(),
         None => {
-            return HttpResponse::Unauthorized()
-                .json(json!({"error": "Missing Authorization token"}))
+            return Ok(HttpResponse::Unauthorized()
+                .json(json!({"error": "Missing Authorization token"})))
         }
     };
 
     if let Some(nostr_service) = &state.nostr_service {
         if !nostr_service.validate_session(&pubkey, &token).await {
-            return HttpResponse::Unauthorized().json(json!({"error": "Invalid session token"}));
+            return Ok(HttpResponse::Unauthorized().json(json!({"error": "Invalid session token"})));
         }
         
         let has_ragflow_specific_access = state.has_feature_access(&pubkey, "ragflow");
         let is_power_user = state.is_power_user(&pubkey);
 
         if !is_power_user && !has_ragflow_specific_access {
-            return HttpResponse::Forbidden().json(json!({"error": "This feature requires power user access or specific RAGFlow permission"}));
+            return Ok(HttpResponse::Forbidden().json(json!({"error": "This feature requires power user access or specific RAGFlow permission"})));
         }
     } else {
         
@@ -258,8 +258,8 @@ async fn handle_ragflow_chat(
             "Nostr service not available during chat handling for pubkey: {}",
             pubkey
         );
-        return HttpResponse::InternalServerError()
-            .json(json!({"error": "Nostr service not available"}));
+        return Ok(HttpResponse::InternalServerError()
+            .json(json!({"error": "Nostr service not available"})));
     }
 
     info!(
@@ -270,9 +270,9 @@ async fn handle_ragflow_chat(
     let ragflow_service = match &state.ragflow_service {
         Some(service) => service,
         None => {
-            error!("[handle_ragflow_chat] RAGFlow service is None, returning 503."); 
-            return HttpResponse::ServiceUnavailable()
-                .json(json!({"error": "RAGFlow service not available"}));
+            error!("[handle_ragflow_chat] RAGFlow service is None, returning 503.");
+            return Ok(HttpResponse::ServiceUnavailable()
+                .json(json!({"error": "RAGFlow service not available"})));
         }
     };
 
@@ -294,8 +294,8 @@ async fn handle_ragflow_chat(
                     "Failed to create RAGFlow session for pubkey {}: {}",
                     pubkey, e
                 );
-                return HttpResponse::InternalServerError()
-                    .json(json!({"error": format!("Failed to create RAGFlow session: {}", e)}));
+                return Ok(HttpResponse::InternalServerError()
+                    .json(json!({"error": format!("Failed to create RAGFlow session: {}", e)})));
             }
         }
     }
@@ -323,8 +323,7 @@ async fn handle_ragflow_chat(
                 "Error communicating with RAGFlow for session {}: {}",
                 current_session_id, e
             );
-            HttpResponse::InternalServerError()
-                .json(json!({"error": format!("RAGFlow communication error: {}", e)}))
+            error_json!(json!({"error": format!("RAGFlow communication error: {}", e)}))
         }
     }
 }
@@ -443,7 +442,7 @@ impl EnhancedRagFlowHandler {
             }
         } else {
             error!("Nostr service not available for authentication");
-            return Ok(service_unavailable!("Authentication service is not available"));
+            return service_unavailable!("Authentication service is not available");
         }
 
         
@@ -492,7 +491,7 @@ impl EnhancedRagFlowHandler {
             Some(service) => service,
             None => {
                 error!("RAGFlow service not available");
-                return Ok(service_unavailable!("RAGFlow service is currently not available"));
+                return service_unavailable!("RAGFlow service is currently not available");
             }
         };
 
@@ -510,7 +509,7 @@ impl EnhancedRagFlowHandler {
                     }
                     Err(e) => {
                         error!("Failed to create RAGFlow session: {}", e);
-                        return Ok(error_json!("session_creation_failed"));
+                        return error_json!("session_creation_failed");
                     }
                 }
             }
@@ -537,17 +536,17 @@ impl EnhancedRagFlowHandler {
                     self.process_tts_request(&state, &answer).await;
                 }
 
-                Ok(ok_json!(RagflowChatResponse {
+                ok_json!(RagflowChatResponse {
                     answer,
                     session_id: final_session_id,
-                }))
+                })
             }
             Err(e) => {
                 error!(
                     "RAGFlow communication error for session {}: {}",
                     current_session_id, e
                 );
-                Ok(error_json!("ragflow_communication_failed"))
+                error_json!("ragflow_communication_failed")
             }
         }
     }
@@ -586,7 +585,7 @@ impl EnhancedRagFlowHandler {
         let ragflow_service = match &state.ragflow_service {
             Some(service) => service,
             None => {
-                return Ok(service_unavailable!("RAGFlow service is not available"));
+                return service_unavailable!("RAGFlow service is not available");
             }
         };
 
@@ -599,19 +598,19 @@ impl EnhancedRagFlowHandler {
                     "RAGFlow session created: {} for user: {} (client: {})",
                     session_id, sanitized_user_id, client_id
                 );
-                Ok(ok_json!(json!({
+                ok_json!(json!({
                     "success": true,
                     "session_id": session_id,
                     "user_id": sanitized_user_id,
                     "timestamp": chrono::Utc::now().to_rfc3339()
-                })))
+                }))
             }
             Err(e) => {
                 error!(
                     "Failed to create RAGFlow session for user {}: {}",
                     sanitized_user_id, e
                 );
-                Ok(error_json!("session_creation_failed"))
+                error_json!("session_creation_failed")
             }
         }
     }
@@ -652,7 +651,7 @@ impl EnhancedRagFlowHandler {
         let ragflow_service = match &state.ragflow_service {
             Some(service) => service,
             None => {
-                return Ok(service_unavailable!("RAGFlow service is not available"));
+                return service_unavailable!("RAGFlow service is not available");
             }
         };
 
@@ -665,18 +664,18 @@ impl EnhancedRagFlowHandler {
                     "Session history retrieved for session: {}",
                     sanitized_session_id
                 );
-                Ok(ok_json!(json!({
+                ok_json!(json!({
                     "session_id": sanitized_session_id,
                     "history": history,
                     "timestamp": chrono::Utc::now().to_rfc3339()
-                })))
+                }))
             }
             Err(e) => {
                 error!(
                     "Failed to get session history for {}: {}",
                     sanitized_session_id, e
                 );
-                Ok(error_json!("history_retrieval_failed"))
+                error_json!("history_retrieval_failed")
             }
         }
     }
@@ -780,22 +779,8 @@ pub fn config(cfg: &mut ServiceConfig) {
                 .route("/session", web::post().to(create_session)) 
                 .route("/message", web::post().to(send_message))   
                 .route("/chat", web::post().to(|req: HttpRequest, state: web::Data<AppState>, payload: web::Json<serde_json::Value>, handler: web::Data<EnhancedRagFlowHandler>| async move {
-                    
-                    match handler.chat_enhanced(req.clone(), state.clone(), payload).await {
-                        Ok(response) => response,
-                        Err(e) => {
-                            warn!("Enhanced chat handler failed, falling back to legacy: {:?}", e);
-                            
-                            let fallback_payload = web::Json(RagflowChatRequest {
-                                question: "fallback".to_string(),
-                                session_id: None,
-                                stream: Some(false)
-                            });
-                            
-                            let legacy_response = handle_ragflow_chat(state, req, fallback_payload).await;
-                            legacy_response
-                        }
-                    }
+
+                    handler.chat_enhanced(req, state, payload).await
                 })) 
                 .route("/session/enhanced", web::post().to(|req, state, payload, handler: web::Data<EnhancedRagFlowHandler>| async move {
                     handler.create_session_enhanced(req, state, payload).await

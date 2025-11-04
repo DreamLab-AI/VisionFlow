@@ -7,7 +7,7 @@ use std::io::Write;
 use uuid::Uuid;
 
 use crate::telemetry::agent_telemetry::{get_telemetry_logger, CorrelationId};
-use crate::utils::response_macros::*;
+use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
 use crate::AppState;
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -36,7 +36,7 @@ pub async fn handle_client_logs(
     req: HttpRequest,
     payload: web::Json<ClientLogsPayload>,
     _app_state: web::Data<AppState>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     let log_file_path = "/app/logs/client.log";
 
     
@@ -175,10 +175,10 @@ pub async fn handle_client_logs(
         correlation_id
     );
 
-    Ok(ok_json!(serde_json::json!({
+    ok_json!(serde_json::json!({
         "status": "success",
         "received": payload.logs.len(),
         "correlation_id": correlation_id.to_string(),
         "session_id": client_session_id
-    })))
+    }))
 }

@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{info, warn};
-use crate::utils::response_macros::*;
+use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
 
 use crate::application::inference_service::InferenceService;
 
@@ -81,12 +81,12 @@ pub struct GetExplanationRequest {
 pub async fn run_inference(
     service: web::Data<Arc<RwLock<InferenceService>>>,
     req: web::Json<RunInferenceRequest>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     info!("Inference request for ontology: {}", req.ontology_id);
 
     let service_lock = service.read().await;
 
-    
+
     if req.force {
         service_lock.invalidate_cache(&req.ontology_id).await;
     }
@@ -116,7 +116,7 @@ pub async fn run_inference(
                 error: Some(format!("{:?}", e)),
             };
 
-            HttpResponse::InternalServerError().json(response)
+            ok_json!(response)
         }
     }
 }
@@ -126,7 +126,7 @@ pub async fn run_inference(
 pub async fn batch_inference(
     service: web::Data<Arc<RwLock<InferenceService>>>,
     req: web::Json<BatchInferenceRequest>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     info!("Batch inference request for {} ontologies", req.ontology_ids.len());
     let start = std::time::Instant::now();
 
@@ -176,7 +176,7 @@ pub async fn batch_inference(
                 results: None,
             };
 
-            HttpResponse::InternalServerError().json(response)
+            ok_json!(response)
         }
     }
 }
@@ -186,7 +186,7 @@ pub async fn batch_inference(
 pub async fn validate_ontology(
     service: web::Data<Arc<RwLock<InferenceService>>>,
     req: web::Json<ValidateOntologyRequest>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     info!("Validation request for ontology: {}", req.ontology_id);
 
     let service_lock = service.read().await;
@@ -195,7 +195,7 @@ pub async fn validate_ontology(
         Ok(validation_result) => ok_json!(validation_result),
         Err(e) => {
             warn!("Validation failed: {:?}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "success": false,
                 "error": format!("{:?}", e)
             }))
@@ -208,18 +208,18 @@ pub async fn validate_ontology(
 pub async fn get_inference_results(
     service: web::Data<Arc<RwLock<InferenceService>>>,
     path: web::Path<String>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     let ontology_id = path.into_inner();
     info!("Get inference results for: {}", ontology_id);
 
     let service_lock = service.read().await;
 
-    
+
     match service_lock.run_inference(&ontology_id).await {
         Ok(results) => ok_json!(results),
         Err(e) => {
             warn!("Failed to get results: {:?}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "success": false,
                 "error": format!("{:?}", e)
             }))
@@ -232,7 +232,7 @@ pub async fn get_inference_results(
 pub async fn classify_ontology(
     service: web::Data<Arc<RwLock<InferenceService>>>,
     path: web::Path<String>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     let ontology_id = path.into_inner();
     info!("Classification request for: {}", ontology_id);
 
@@ -242,7 +242,7 @@ pub async fn classify_ontology(
         Ok(classification) => ok_json!(classification),
         Err(e) => {
             warn!("Classification failed: {:?}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "success": false,
                 "error": format!("{:?}", e)
             }))
@@ -255,7 +255,7 @@ pub async fn classify_ontology(
 pub async fn get_consistency_report(
     service: web::Data<Arc<RwLock<InferenceService>>>,
     path: web::Path<String>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     let ontology_id = path.into_inner();
     info!("Consistency report request for: {}", ontology_id);
 
@@ -265,7 +265,7 @@ pub async fn get_consistency_report(
         Ok(report) => ok_json!(report),
         Err(e) => {
             warn!("Consistency check failed: {:?}", e);
-            HttpResponse::InternalServerError().json(serde_json::json!({
+            ok_json!(serde_json::json!({
                 "success": false,
                 "error": format!("{:?}", e)
             }))
@@ -278,7 +278,7 @@ pub async fn get_consistency_report(
 pub async fn invalidate_cache(
     service: web::Data<Arc<RwLock<InferenceService>>>,
     path: web::Path<String>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     let ontology_id = path.into_inner();
     info!("Cache invalidation request for: {}", ontology_id);
 

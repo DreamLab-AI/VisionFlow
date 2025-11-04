@@ -2,7 +2,7 @@
 // Uses Ontology application layer for all OWL operations
 
 use crate::handlers::utils::execute_in_thread;
-use crate::utils::response_macros::*;
+use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
 use crate::AppState;
 use actix_web::{web, HttpResponse, Responder};
 use log::{error, info};
@@ -104,7 +104,7 @@ pub struct SaveGraphRequest {
 }
 
 ///
-pub async fn get_ontology_graph(state: web::Data<AppState>) -> impl Responder {
+pub async fn get_ontology_graph(state: web::Data<AppState>) -> Result<HttpResponse, actix_web::Error> {
     info!("Getting ontology graph via CQRS query");
 
     
@@ -134,7 +134,7 @@ pub async fn get_ontology_graph(state: web::Data<AppState>) -> impl Responder {
 pub async fn save_ontology_graph(
     state: web::Data<AppState>,
     request: web::Json<SaveGraphRequest>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     let graph = request.into_inner().graph;
     info!("Saving ontology graph via CQRS directive");
 
@@ -163,7 +163,7 @@ pub async fn save_ontology_graph(
 }
 
 ///
-pub async fn get_owl_class(state: web::Data<AppState>, iri: web::Path<String>) -> impl Responder {
+pub async fn get_owl_class(state: web::Data<AppState>, iri: web::Path<String>) -> Result<HttpResponse, actix_web::Error> {
     let class_iri = iri.into_inner();
     info!("Getting OWL class via CQRS query: iri={}", class_iri);
 
@@ -181,7 +181,7 @@ pub async fn get_owl_class(state: web::Data<AppState>, iri: web::Path<String>) -
         }
         Ok(Ok(None)) => {
             info!("OWL class not found: iri={}", class_iri);
-            not_found!("OWL class not found").unwrap()
+            not_found!("OWL class not found")
         }
         Ok(Err(e)) => {
             error!("CQRS query failed to get OWL class: {}", e);
@@ -195,7 +195,7 @@ pub async fn get_owl_class(state: web::Data<AppState>, iri: web::Path<String>) -
 }
 
 ///
-pub async fn list_owl_classes(state: web::Data<AppState>) -> impl Responder {
+pub async fn list_owl_classes(state: web::Data<AppState>) -> Result<HttpResponse, actix_web::Error> {
     info!("Listing all OWL classes via CQRS query");
 
     
@@ -227,7 +227,7 @@ pub async fn list_owl_classes(state: web::Data<AppState>) -> impl Responder {
 pub async fn add_owl_class(
     state: web::Data<AppState>,
     request: web::Json<AddClassRequest>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     let class = request.into_inner().class;
     info!("Adding OWL class via CQRS directive: iri={}", class.iri);
 
@@ -261,7 +261,7 @@ pub async fn add_owl_class(
 pub async fn update_owl_class(
     state: web::Data<AppState>,
     request: web::Json<UpdateClassRequest>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     let class = request.into_inner().class;
     info!("Updating OWL class via CQRS directive: iri={}", class.iri);
 
@@ -293,7 +293,7 @@ pub async fn update_owl_class(
 pub async fn remove_owl_class(
     state: web::Data<AppState>,
     iri: web::Path<String>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     let class_iri = iri.into_inner();
     info!("Removing OWL class via CQRS directive: iri={}", class_iri);
 
@@ -325,7 +325,7 @@ pub async fn remove_owl_class(
 pub async fn get_owl_property(
     state: web::Data<AppState>,
     iri: web::Path<String>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     let property_iri = iri.into_inner();
     info!("Getting OWL property via CQRS query: iri={}", property_iri);
 
@@ -342,7 +342,7 @@ pub async fn get_owl_property(
         }
         Ok(None) => {
             info!("OWL property not found: iri={}", property_iri);
-            not_found!("OWL property not found").unwrap()
+            not_found!("OWL property not found")
         }
         Err(e) => {
             error!("CQRS query failed to get OWL property: {}", e);
@@ -352,7 +352,7 @@ pub async fn get_owl_property(
 }
 
 ///
-pub async fn list_owl_properties(state: web::Data<AppState>) -> impl Responder {
+pub async fn list_owl_properties(state: web::Data<AppState>) -> Result<HttpResponse, actix_web::Error> {
     info!("Listing all OWL properties via CQRS query");
 
     
@@ -384,7 +384,7 @@ pub async fn list_owl_properties(state: web::Data<AppState>) -> impl Responder {
 pub async fn add_owl_property(
     state: web::Data<AppState>,
     request: web::Json<AddPropertyRequest>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     let property = request.into_inner().property;
     info!(
         "Adding OWL property via CQRS directive: iri={}",
@@ -418,7 +418,7 @@ pub async fn add_owl_property(
 pub async fn update_owl_property(
     state: web::Data<AppState>,
     request: web::Json<UpdatePropertyRequest>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     let property = request.into_inner().property;
     info!(
         "Updating OWL property via CQRS directive: iri={}",
@@ -453,7 +453,7 @@ pub async fn update_owl_property(
 pub async fn get_class_axioms(
     state: web::Data<AppState>,
     iri: web::Path<String>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     let class_iri = iri.into_inner();
     info!("Getting class axioms via CQRS query: iri={}", class_iri);
 
@@ -486,7 +486,7 @@ pub async fn get_class_axioms(
 pub async fn add_axiom(
     state: web::Data<AppState>,
     request: web::Json<AddAxiomRequest>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     let axiom = request.into_inner().axiom;
     info!(
         "Adding axiom via CQRS directive: type={:?}",
@@ -514,7 +514,7 @@ pub async fn add_axiom(
 }
 
 ///
-pub async fn remove_axiom(state: web::Data<AppState>, axiom_id: web::Path<u64>) -> impl Responder {
+pub async fn remove_axiom(state: web::Data<AppState>, axiom_id: web::Path<u64>) -> Result<HttpResponse, actix_web::Error> {
     let id = axiom_id.into_inner();
     info!("Removing axiom via CQRS directive: id={}", id);
 
@@ -543,7 +543,7 @@ pub async fn remove_axiom(state: web::Data<AppState>, axiom_id: web::Path<u64>) 
 }
 
 ///
-pub async fn get_inference_results(state: web::Data<AppState>) -> impl Responder {
+pub async fn get_inference_results(state: web::Data<AppState>) -> Result<HttpResponse, actix_web::Error> {
     info!("Getting inference results via CQRS query");
 
     
@@ -576,7 +576,7 @@ pub async fn get_inference_results(state: web::Data<AppState>) -> impl Responder
 pub async fn store_inference_results(
     state: web::Data<AppState>,
     request: web::Json<StoreInferenceRequest>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     let results = request.into_inner().results;
     info!(
         "Storing inference results via CQRS directive: {} axioms",
@@ -608,7 +608,7 @@ pub async fn store_inference_results(
 }
 
 ///
-pub async fn validate_ontology(state: web::Data<AppState>) -> impl Responder {
+pub async fn validate_ontology(state: web::Data<AppState>) -> Result<HttpResponse, actix_web::Error> {
     info!("Validating ontology via CQRS query");
 
     
@@ -640,7 +640,7 @@ pub async fn validate_ontology(state: web::Data<AppState>) -> impl Responder {
 pub async fn query_ontology(
     state: web::Data<AppState>,
     request: web::Json<QueryRequest>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     let query = request.into_inner().query;
     info!("Querying ontology via CQRS query");
 
@@ -670,7 +670,7 @@ pub async fn query_ontology(
 }
 
 ///
-pub async fn get_ontology_metrics(state: web::Data<AppState>) -> impl Responder {
+pub async fn get_ontology_metrics(state: web::Data<AppState>) -> Result<HttpResponse, actix_web::Error> {
     info!("Getting ontology metrics via CQRS query");
 
     

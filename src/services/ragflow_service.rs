@@ -17,6 +17,35 @@ pub enum RAGFlowError {
     IoError(std::io::Error),
 }
 
+impl Serialize for RAGFlowError {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut state = serializer.serialize_struct("RAGFlowError", 2)?;
+        match self {
+            RAGFlowError::ReqwestError(e) => {
+                state.serialize_field("type", "ReqwestError")?;
+                state.serialize_field("message", &e.to_string())?;
+            }
+            RAGFlowError::StatusError(status, msg) => {
+                state.serialize_field("type", "StatusError")?;
+                state.serialize_field("message", &format!("Status {}: {}", status, msg))?;
+            }
+            RAGFlowError::ParseError(msg) => {
+                state.serialize_field("type", "ParseError")?;
+                state.serialize_field("message", msg)?;
+            }
+            RAGFlowError::IoError(e) => {
+                state.serialize_field("type", "IoError")?;
+                state.serialize_field("message", &e.to_string())?;
+            }
+        }
+        state.end()
+    }
+}
+
 impl fmt::Display for RAGFlowError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {

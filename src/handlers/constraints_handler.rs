@@ -1,7 +1,7 @@
 use crate::actors::messages::{GetSettings, UpdateSettings};
 use crate::app_state::AppState;
 use crate::config::{ConstraintSystem, LegacyConstraintData};
-use crate::utils::response_macros::*;
+use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
 use actix_web::{web, Error, HttpRequest, HttpResponse};
 use log::{debug, error, info, warn};
 use serde_json::{json, Value};
@@ -25,7 +25,7 @@ async fn define_constraints(
     _req: HttpRequest,
     state: web::Data<AppState>,
     payload: web::Json<ConstraintSystem>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     let constraints = payload.into_inner();
 
     info!("Constraint definition request received");
@@ -33,7 +33,7 @@ async fn define_constraints(
 
     
     if let Err(e) = validate_constraint_system(&constraints) {
-        return Ok(bad_request!("Invalid constraint system: {}", e));
+        return bad_request!("Invalid constraint system: {}", e);
     }
 
     
@@ -69,7 +69,7 @@ async fn define_constraints(
 
     if let Err(e) = app_settings.merge_update(settings_update) {
         error!("Failed to merge constraint settings: {}", e);
-        return Ok(error_json!("Failed to update constraint settings: {}", e));
+        return error_json!("Failed to update constraint settings: {}", e);
     }
 
     
@@ -116,14 +116,14 @@ async fn define_constraints(
                 info!("GPU compute actor not available - constraints saved to settings only");
             }
 
-            Ok(ok_json!(json!({
+            ok_json!(json!({
                 "status": "Constraints defined successfully",
                 "constraints": constraints
-            })))
+            }))
         }
         Ok(Err(e)) => {
             error!("Failed to save constraint settings: {}", e);
-            Ok(error_json!("Failed to save constraint settings: {}", e))
+            error_json!("Failed to save constraint settings: {}", e)
         }
         Err(e) => {
             error!("Settings actor error: {}", e);
@@ -137,7 +137,7 @@ async fn apply_constraints(
     _req: HttpRequest,
     state: web::Data<AppState>,
     payload: web::Json<Value>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     let apply_request = payload.into_inner();
 
     info!("Constraint application request received");
@@ -190,14 +190,14 @@ async fn apply_constraints(
         strength
     );
 
-    Ok(ok_json!(json!({
+    ok_json!(json!({
         "status": "Constraints recorded successfully",
         "constraintType": constraint_type,
         "nodeCount": nodes.len(),
         "strength": strength,
         "gpuAvailable": state.gpu_compute_addr.is_some(),
         "note": "Ready for GPU constraint processing integration"
-    })))
+    }))
 }
 
 ///
@@ -205,7 +205,7 @@ async fn remove_constraints(
     _req: HttpRequest,
     state: web::Data<AppState>,
     payload: web::Json<Value>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     let remove_request = payload.into_inner();
 
     info!("Constraint removal request received");
@@ -228,19 +228,19 @@ async fn remove_constraints(
         constraint_type, removal_count
     );
 
-    Ok(ok_json!(json!({
+    ok_json!(json!({
         "status": "Constraint removal recorded successfully",
         "removedCount": removal_count,
         "gpuAvailable": state.gpu_compute_addr.is_some(),
         "note": "Ready for GPU constraint removal integration"
-    })))
+    }))
 }
 
 ///
 async fn list_constraints(
     _req: HttpRequest,
     state: web::Data<AppState>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     info!("Constraint list request received");
 
     
@@ -259,12 +259,12 @@ use crate::{
                     "Retrieved {} constraints from GPU compute actor",
                     gpu_constraints.constraints.len()
                 );
-                return Ok(ok_json!(json!({
+                return ok_json!(json!({
                     "constraints": gpu_constraints,
                     "count": gpu_constraints.constraints.len(),
                     "data_source": "gpu_compute_actor",
                     "gpu_available": true
-                })));
+                }));
             }
             Ok(Err(e)) => {
                 warn!("Failed to get constraints from GPU: {}", e);
@@ -305,7 +305,7 @@ use crate::{
                 }));
             }
 
-            Ok(ok_json!(json!({
+            ok_json!(json!({
                 "constraints": constraints_list,
                 "count": constraints_list.len(),
                 "data_source": "settings",
@@ -314,7 +314,7 @@ use crate::{
                     "logseq_compute_mode": logseq_mode,
                     "visionflow_compute_mode": visionflow_mode
                 }
-            })))
+            }))
         }
         _ => {
             error!("Failed to get settings for constraint listing");
@@ -328,17 +328,17 @@ async fn validate_constraint_definition(
     _req: HttpRequest,
     _state: web::Data<AppState>,
     payload: web::Json<LegacyConstraintData>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     let constraint = payload.into_inner();
 
     info!("Constraint validation request received");
     debug!("Constraint to validate: {:?}", constraint);
 
     match validate_single_constraint(&constraint) {
-        Ok(()) => Ok(ok_json!(json!({
+        Ok(()) => ok_json!(json!({
             "valid": true,
             "message": "Constraint definition is valid"
-        }))),
+        })),
         Err(e) => Ok(HttpResponse::BadRequest().json(json!({
             "valid": false,
             "error": e

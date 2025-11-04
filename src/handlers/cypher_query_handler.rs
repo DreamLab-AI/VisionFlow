@@ -15,9 +15,9 @@ use log::{debug, warn};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
-use crate::utils::response_macros::*;
 
 use crate::adapters::neo4j_adapter::Neo4jAdapter;
+use crate::utils::json::{to_json, from_json};
 
 // Response macros - Task 1.4 HTTP Standardization
 use crate::{ok_json, error_json, bad_request, not_found, created_json};

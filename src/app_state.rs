@@ -8,7 +8,6 @@ use std::sync::{
 use tokio::sync::RwLock;
 
 // Neo4j feature imports - now the primary graph repository
-#[cfg(feature = "neo4j")]
 use crate::adapters::neo4j_adapter::{Neo4jAdapter, Neo4jConfig};
 
 // CQRS Phase 1D: Graph domain imports
@@ -92,7 +91,6 @@ pub struct AppState {
     pub settings_repository: Arc<dyn SettingsRepository>,
 
     // Neo4j is now the primary knowledge graph repository
-    #[cfg(feature = "neo4j")]
     pub neo4j_adapter: Arc<Neo4jAdapter>,
 
     pub ontology_repository: Arc<UnifiedOntologyRepository>,
@@ -170,7 +168,6 @@ impl AppState {
         );
 
         // Neo4j is now the primary graph repository
-        #[cfg(feature = "neo4j")]
         let neo4j_adapter = {
             info!("[AppState::new] Initializing Neo4j as primary knowledge graph repository");
             let config = Neo4jConfig::default();
@@ -187,7 +184,6 @@ impl AppState {
         );
 
         // CRITICAL: Set graph repository for IRI → node ID resolution
-        #[cfg(feature = "neo4j")]
         pipeline_service.set_graph_repository(neo4j_adapter.clone());
 
         let ontology_pipeline_service = Some(Arc::new(pipeline_service));
@@ -197,19 +193,11 @@ impl AppState {
         info!("[AppState::new] Initializing GitHubSyncService for data ingestion");
 
         let enhanced_content_api = Arc::new(EnhancedContentAPI::new(github_client.clone()));
-        #[cfg(feature = "neo4j")]
         let mut github_sync_service = GitHubSyncService::new(
             enhanced_content_api,
             neo4j_adapter.clone(),
             ontology_repository.clone(),
         );
-
-        #[cfg(not(feature = "neo4j"))]
-        let mut github_sync_service = {
-            warn!("[AppState::new] Neo4j feature disabled - GitHub sync will be limited");
-            // Need a stub implementation or alternative
-            GitHubSyncService::new_stub(enhanced_content_api, ontology_repository.clone())
-        };
 
         // Connect pipeline service to GitHub sync
         if let Some(ref pipeline) = ontology_pipeline_service {
@@ -331,7 +319,6 @@ impl AppState {
 
 
 
-        #[cfg(feature = "neo4j")]
         let graph_service_addr = TransitionalGraphSupervisor::new(
             Some(client_manager_addr.clone()),
             None,
@@ -339,10 +326,7 @@ impl AppState {
         )
         .start();
 
-        #[cfg(not(feature = "neo4j"))]
-        let graph_service_addr = {
-            compile_error!("Neo4j feature is now required for graph operations");
-        };
+        // Neo4j feature is now required - removed legacy SQLite path
 
         // Store graph service address in Arc for GitHub sync task to use
         let graph_service_addr_clone = graph_service_addr.clone();
@@ -605,7 +589,6 @@ impl AppState {
 
             settings_repository,
 
-            #[cfg(feature = "neo4j")]
             neo4j_adapter,
 
             ontology_repository,

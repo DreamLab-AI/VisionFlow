@@ -1,17 +1,18 @@
 use regex::Regex;
 use std::fs;
 use std::path::Path;
+use chrono::Utc;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("🔧 Generating TypeScript types from Rust structs...");
 
-    
+
     let typescript_interfaces = generate_typescript_interfaces();
 
 
     let header = format!(
         "// Auto-generated TypeScript type definitions\n// Generated: {}\n\n",
-        time::now().format("%Y-%m-%d %H:%M:%S UTC")
+        Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
     );
 
     

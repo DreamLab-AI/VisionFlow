@@ -34,10 +34,9 @@ pub use actor_graph_repository::ActorGraphRepository;
 pub use gpu_semantic_analyzer::GpuSemanticAnalyzerAdapter;
 
 // Settings repository adapters
-pub mod sqlite_settings_repository;
+// REMOVED: sqlite_settings_repository - migrated to Neo4j
 pub mod neo4j_settings_repository;
 
-pub use sqlite_settings_repository::SqliteSettingsRepository;
 pub use neo4j_settings_repository::{Neo4jSettingsRepository, Neo4jSettingsConfig};
 
 // Unified repository exports (from repositories module)

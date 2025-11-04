@@ -1,7 +1,8 @@
 use crate::actors::messages::{
     AddNodesFromMetadata, GetNodeData as GetGpuNodeData, GetSettings, UpdateMetadata,
 };
-use actix_web::{web, Error as ActixError, HttpResponse};
+use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
+use actix_web::{web, Error as ActixError, HttpResponse, Responder, Result};
 use log::{debug, error, info};
 use serde_json::json;
 use std::sync::Arc;
@@ -9,17 +10,17 @@ use std::sync::Arc;
 use crate::services::file_service::{FileService, MARKDOWN_DIR};
 use crate::AppState;
 
-pub async fn fetch_and_process_files(state: web::Data<AppState>) -> HttpResponse {
+pub async fn fetch_and_process_files(state: web::Data<AppState>) -> Result<impl Responder> {
     info!("Initiating optimized file fetch and processing");
 
     let mut metadata_store = match FileService::load_or_create_metadata() {
         Ok(store) => store,
         Err(e) => {
             error!("Failed to load or create metadata: {}", e);
-            return HttpResponse::InternalServerError().json(json!({
+            return Ok(HttpResponse::InternalServerError().json(json!({
                 "status": "error",
                 "message": format!("Failed to initialize metadata: {}", e)
-            }));
+            })));
         }
     };
 
@@ -27,10 +28,10 @@ pub async fn fetch_and_process_files(state: web::Data<AppState>) -> HttpResponse
         Ok(Ok(s)) => Arc::new(tokio::sync::RwLock::new(s)),
         _ => {
             error!("Failed to retrieve settings from SettingsActor");
-            return HttpResponse::InternalServerError().json(json!({
+            return Ok(HttpResponse::InternalServerError().json(json!({
                 "status": "error",
                 "message": "Failed to retrieve application settings"
-            }));
+            })));
         }
     };
 
@@ -77,10 +78,10 @@ pub async fn fetch_and_process_files(state: web::Data<AppState>) -> HttpResponse
             
             if let Err(e) = FileService::save_metadata(&metadata_store) {
                 error!("Failed to save metadata: {}", e);
-                return HttpResponse::InternalServerError().json(json!({
+                return Ok(HttpResponse::InternalServerError().json(json!({
                     "status": "error",
                     "message": format!("Failed to save metadata: {}", e)
-                }));
+                })));
             }
 
             
@@ -123,14 +124,14 @@ pub async fn fetch_and_process_files(state: web::Data<AppState>) -> HttpResponse
                         "GraphServiceActor failed to build graph from metadata: {}",
                         e
                     );
-                    HttpResponse::InternalServerError().json(json!({
+                    error_json!(json!({
                         "status": "error",
                         "message": format!("Failed to build graph: {}", e)
                     }))
                 }
                 Err(e) => {
                     error!("Failed to build graph data: {}", e);
-                    HttpResponse::InternalServerError().json(json!({
+                    error_json!(json!({
                         "status": "error",
                         "message": format!("Failed to build graph data: {}", e)
                     }))
@@ -139,10 +140,10 @@ pub async fn fetch_and_process_files(state: web::Data<AppState>) -> HttpResponse
         }
         Err(e) => {
             error!("Error processing files: {}", e);
-            HttpResponse::InternalServerError().json(json!({
+            Ok(HttpResponse::InternalServerError().json(json!({
                 "status": "error",
                 "message": format!("Error processing files: {}", e)
-            }))
+            })))
         }
     }
 }
@@ -164,10 +165,10 @@ pub async fn get_file_content(
     }
 }
 
-pub async fn refresh_graph(state: web::Data<AppState>) -> HttpResponse {
+pub async fn refresh_graph(state: web::Data<AppState>) -> Result<impl Responder> {
     info!("Manually triggering graph refresh - returning current state");
 
-    
+
     match state
         .graph_service_addr
         .send(crate::actors::messages::GetGraphData)
@@ -189,14 +190,14 @@ pub async fn refresh_graph(state: web::Data<AppState>) -> HttpResponse {
         }
         Ok(Err(e)) => {
             error!("Failed to get current graph data: {}", e);
-            HttpResponse::InternalServerError().json(json!({
+            error_json!(json!({
                 "status": "error",
                 "message": format!("Failed to retrieve current graph data: {}", e)
             }))
         }
         Err(e) => {
             error!("Mailbox error getting graph data: {}", e);
-            HttpResponse::InternalServerError().json(json!({
+            error_json!(json!({
                 "status": "error",
                 "message": "Graph service unavailable"
             }))
@@ -244,7 +245,7 @@ pub async fn update_graph(state: web::Data<AppState>) -> Result<HttpResponse, Ac
                 }
             }
 
-            Ok(ok_json!(json!({
+            Ok(HttpResponse::Ok().json(json!({
                 "status": "success",
                 "message": "Graph updated successfully"
             })))

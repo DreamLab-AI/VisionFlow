@@ -3,7 +3,7 @@ use crate::utils::validation::rate_limit::extract_client_id;
 use crate::utils::validation::sanitization::Sanitizer;
 use crate::utils::validation::schemas::{ApiSchemas, ValidationSchema};
 use crate::utils::validation::{ValidationContext, ValidationResult};
-use crate::utils::response_macros::*;
+use crate::{ok_json, error_json, bad_request, not_found, created_json, service_unavailable};
 use actix_web::{web, HttpRequest, HttpResponse, Result};
 use log::{debug, info, warn};
 use serde_json::Value;
@@ -388,17 +388,17 @@ pub async fn validate_payload(
         "bots" => validation_service.validate_bots_data(&payload),
         "swarm" => validation_service.validate_swarm_init(&payload),
         _ => {
-            return Ok(bad_request!("invalid_validation_type", "Supported types: settings, physics, ragflow, bots, swarm"));
+            return bad_request!("invalid_validation_type", "Supported types: settings, physics, ragflow, bots, swarm");
         }
     };
 
     match result {
-        Ok(sanitized_payload) => Ok(ok_json!(serde_json::json!({
+        Ok(sanitized_payload) => ok_json!(serde_json::json!({
             "status": "valid",
             "message": "Payload validation successful",
             "sanitized_payload": sanitized_payload,
             "validation_type": validation_type
-        }))),
+        })),
         Err(error) => {
             warn!("Validation failed for {}: {}", validation_type, error);
             Ok(error.to_http_response())
@@ -431,7 +431,7 @@ pub async fn get_validation_stats(req: HttpRequest) -> Result<HttpResponse> {
         "timestamp": chrono::Utc::now().to_rfc3339()
     });
 
-    Ok(ok_json!(stats))
+    ok_json!(stats)
 }
 
 ///

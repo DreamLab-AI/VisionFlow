@@ -148,7 +148,7 @@ pub async fn trigger_pipeline(
 
     info!("[{}] Pipeline triggered successfully", correlation_id);
 
-    Ok(ok_json!(response))
+    ok_json!(response))
 }
 
 /// GET /api/admin/pipeline/status
@@ -187,7 +187,7 @@ pub async fn get_pipeline_status(
         },
     };
 
-    Ok(ok_json!(response))
+    ok_json!(response))
 }
 
 /// POST /api/admin/pipeline/pause
@@ -202,7 +202,7 @@ pub async fn pause_pipeline(
     *data.paused.write().await = true;
     *data.pause_reason.write().await = Some(req.reason.clone());
 
-    Ok(ok_json!(serde_json::json!({
+    ok_json!(serde_json::json!({
         "status": "paused",
         "reason": req.reason
     })))
@@ -219,7 +219,7 @@ pub async fn resume_pipeline(
     *data.paused.write().await = false;
     *data.pause_reason.write().await = None;
 
-    Ok(ok_json!(serde_json::json!({
+    ok_json!(serde_json::json!({
         "status": "resumed"
     })))
 }
@@ -256,7 +256,7 @@ pub async fn get_pipeline_metrics(
         },
     };
 
-    Ok(ok_json!(response))
+    ok_json!(response))
 }
 
 /// GET /api/admin/pipeline/events/:correlation_id
@@ -269,7 +269,7 @@ pub async fn get_pipeline_events(
     let event_bus = data.event_bus.read().await;
     let events = event_bus.get_events_by_correlation(&correlation_id);
 
-    Ok(ok_json!(serde_json::json!({
+    ok_json!(serde_json::json!({
         "correlation_id": correlation_id.as_str(),
         "events": events
     })))

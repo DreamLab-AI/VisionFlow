@@ -203,12 +203,12 @@ pub async fn update_bots_graph(
     graph.edges = edges;
     graph.metadata = MetadataStore::default();
 
-    Ok(ok_json!(BotsResponse {
+    ok_json!(BotsResponse {
         success: true,
         message: "Graph updated successfully".to_string(),
         nodes: Some(graph.nodes.clone()),
         edges: Some(graph.edges.clone()),
-    }))
+    })
 }
 
 pub async fn get_bots_data(state: web::Data<AppState>) -> Result<impl Responder> {
@@ -222,11 +222,11 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> Result<impl Responder>
                     "Retrieved bots data from graph actor: {} nodes",
                     nodes.len()
                 );
-                return Ok(ok_json!(json!({
+                return ok_json!(json!({
                     "success": true,
                     "nodes": nodes,
                     "edges": edges,
-                })));
+                }));
             }
         }
     }
@@ -238,12 +238,12 @@ pub async fn get_bots_data(state: web::Data<AppState>) -> Result<impl Responder>
         graph.nodes.len()
     );
 
-    Ok(ok_json!(json!({
+    ok_json!(json!({
         "success": true,
         "nodes": graph.nodes.clone(),
         "edges": graph.edges.clone(),
         "metadata": graph.metadata,
-    })))
+    }))
 }
 
 pub async fn initialize_hive_mind_swarm(
@@ -326,8 +326,8 @@ pub async fn initialize_hive_mind_swarm(
                 *current_id = Some(task_response.task_id.clone());
             }
 
-            
-            Ok(accepted!(json!({
+
+            accepted!(json!({
                 "success": true,
                 "message": "Hive mind swarm task created. Agents will appear shortly.",
                 "task_id": task_response.task_id,
@@ -337,7 +337,7 @@ pub async fn initialize_hive_mind_swarm(
                 "max_agents": request.max_agents,
                 "enable_neural": request.enable_neural,
                 "provider": provider,
-            })))
+            }))
         }
         Ok(Err(e)) => {
             error!("✗ Failed to create swarm task: {}", e);
@@ -360,8 +360,8 @@ pub async fn initialize_hive_mind_swarm(
 
 pub async fn get_bots_connection_status(state: web::Data<AppState>) -> Result<impl Responder> {
     match state.bots_client.get_status().await {
-        Ok(status) => Ok(ok_json!(status)),
-        Err(e) => Ok(error_json!("Failed to get bots status: {}", e)),
+        Ok(status) => ok_json!(status),
+        Err(e) => error_json!("Failed to get bots status: {}", e),
     }
 }
 
@@ -370,11 +370,11 @@ pub async fn get_bots_agents(
     _hybrid_manager: Option<()>, 
 ) -> Result<impl Responder> {
     match fetch_hive_mind_agents(&state, None).await {
-        Ok(agents) => Ok(ok_json!(json!({
+        Ok(agents) => ok_json!(json!({
             "success": true,
             "agents": agents,
             "count": agents.len(),
-        }))),
+        })),
         Err(e) => Ok(HttpResponse::InternalServerError().json(json!({
             "success": false,
             "error": format!("Failed to fetch agents: {}", e)
@@ -425,7 +425,7 @@ pub async fn spawn_agent_hybrid(
                 "Successfully spawned {} agent via Management API - Task ID: {}",
                 req.agent_type, task_response.task_id
             );
-            Ok(accepted!(SpawnAgentResponse {
+            accepted!(SpawnAgentResponse {
                 success: true,
                 swarm_id: Some(task_response.task_id),
                 error: None,
@@ -434,7 +434,7 @@ pub async fn spawn_agent_hybrid(
                     "Successfully spawned {} agent via Management API",
                     req.agent_type
                 )),
-            }))
+            })
         }
         Ok(Err(e)) => {
             error!("Failed to spawn {} agent: {}", req.agent_type, e);
@@ -445,7 +445,7 @@ pub async fn spawn_agent_hybrid(
                     error: Some(format!("Failed to create task: {}", e)),
                     method_used: None,
                     message: None,
-                }),
+                })
             )
         }
         Err(e) => {
@@ -457,7 +457,7 @@ pub async fn spawn_agent_hybrid(
                     error: Some(format!("Actor communication error: {}", e)),
                     method_used: None,
                     message: None,
-                }),
+                })
             )
         }
     }
@@ -490,12 +490,12 @@ pub async fn remove_task(
     match state.get_task_orchestrator_addr().send(stop_task_msg).await {
         Ok(Ok(())) => {
             info!("Successfully stopped task: {}", task_id);
-            Ok(ok_json!(TaskResponse {
+            ok_json!(TaskResponse {
                 success: true,
                 message: format!("Task {} stopped successfully", task_id),
                 task_id: Some(task_id),
                 error: None,
-            }))
+            })
         }
         Ok(Err(e)) => {
             error!("Failed to stop task {}: {}", task_id, e);

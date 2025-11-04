@@ -458,7 +458,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MCPRelayActor {
 pub async fn mcp_relay_handler(
     req: HttpRequest,
     stream: web::Payload,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     info!("[MCP Relay] New WebSocket connection request");
     ws::start(MCPRelayActor::new(), &req, stream)
 }

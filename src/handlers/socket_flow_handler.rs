@@ -1460,7 +1460,7 @@ pub async fn socket_flow_handler(
     stream: web::Payload,
     app_state_data: web::Data<AppState>, 
     pre_read_ws_settings: web::Data<PreReadSocketSettings>, 
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     
     let client_ip = extract_client_id(&req);
 

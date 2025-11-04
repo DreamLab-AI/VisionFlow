@@ -30,6 +30,7 @@ use crate::ports::settings_repository::SettingsRepository;
 #[cfg(feature = "redis")]
 use redis::{AsyncCommands, Client as RedisClient};
 use crate::utils::json::{from_json, to_json};
+use crate::utils::result_helpers::safe_json_number;
 
 // Cache configuration constants
 const CACHE_SIZE: usize = 1000;

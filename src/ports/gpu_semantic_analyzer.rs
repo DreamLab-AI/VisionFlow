@@ -14,7 +14,7 @@ use crate::models::graph::GraphData;
 
 pub type Result<T> = std::result::Result<T, GpuSemanticAnalyzerError>;
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, thiserror::Error, Serialize)]
 pub enum GpuSemanticAnalyzerError {
     #[error("GPU not available")]
     GpuNotAvailable,
