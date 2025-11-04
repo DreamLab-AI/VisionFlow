@@ -5,7 +5,7 @@
 [![Performance](https://img.shields.io/badge/Performance-60FPS%20@%20100k%20nodes-red.svg)](#performance)
 [![Agents](https://img.shields.io/badge/AI%20Agents-50%2B%20Concurrent-orange.svg)](#ai-architecture)
 [![CUDA](https://img.shields.io/badge/CUDA-39%20Kernels-green.svg)](#gpu-acceleration)
-[![Architecture](https://img.shields.io/badge/Architecture-Hexagonal%20CQRS-purple.svg)](docs/architecture/)
+[![Architecture](https://img.shields.io/badge/Architecture-Hexagonal%20CQRS-purple.svg)](docs/concepts/architecture/)
 
 ### **Enterprise-Grade Multi-User Multi-Agent Knowledge Graphing with Immersive 3D Visualization**
 
@@ -28,6 +28,7 @@ Transform how your team discovers knowledge with continuous AI analysis, GPU-acc
 
 - [Why VisionFlow?](#-why-visionflow)
 - [Key Features](#-key-features)
+- [Project Structure](#-project-structure)
 - [Quick Start](#-quick-start)
 - [Architecture Overview](#-architecture-overview)
 - [Technology Stack](#-technology-stack)
@@ -135,7 +136,7 @@ Step into your knowledge graph with Quest 3 AR/VR and collaborative multi-user e
 
 **📚 Complete XR Documentation:**
 - **[Vircadia XR Complete Guide](docs/guides/vircadia-xr-complete-guide.md)** - Full implementation guide
-- **[XR Immersive System](docs/architecture/xr-immersive-system.md)** - Quest 3 architecture
+- **[XR Immersive System](docs/concepts/architecture/xr-immersive-system.md)** - Quest 3 architecture
 - **[XR API Reference](docs/reference/xr-api.md)** - Force-directed graph API
 - **[Vircadia Official Docs](https://docs.vircadia.com)** - Platform documentation
 
@@ -182,87 +183,70 @@ Transform static OWL definitions into intelligent, self-organizing 3D knowledge 
 
 ---
 
-## 🌈 Ontology-Driven Visualization Examples
+## 📁 Project Structure
 
-### How Semantic Physics Creates Meaningful Layouts
-
-VisionFlow's ontology reasoning pipeline doesn't just validate data—it **transforms logical relationships into visual structure**:
-
-#### Example 1: Hierarchical Clustering (SubClassOf)
+VisionFlow is organized into clear domains with separation of concerns:
 
 ```
-Ontology Definition:
-  :Dog subClassOf :Animal
-  :Cat subClassOf :Animal
-  :Puppy subClassOf :Dog
-  :Kitten subClassOf :Cat
-
-Visual Result:
-  ┌─────────────────────────────────┐
-  │         :Animal                 │  ← Parent class (center of cluster)
-  │    ╱              ╲             │
-  │  :Dog            :Cat           │  ← Subclasses (attracted to parent)
-  │   │               │             │
-  │ :Puppy         :Kitten          │  ← Leaf classes (nested clusters)
-  └─────────────────────────────────┘
-
-Physics Forces Applied:
-  - Spring attraction between parent/child (strength: 0.8)
-  - Inferred transitive relationships (strength: 0.3)
-  - Result: Natural hierarchical tree layout
+VisionFlow/
+├── src/                          # Server code (Rust + Actix)
+│   ├── handlers/                 # HTTP/WebSocket request handlers
+│   ├── services/                 # Business logic layer
+│   ├── repositories/             # Data access layer
+│   ├── cqrs/                     # CQRS directives and queries
+│   ├── ontology/                 # OWL reasoning and validation
+│   ├── gpu/                      # CUDA kernel integration
+│   ├── actors/                   # Actix actor system
+│   └── protocols/                # Binary WebSocket protocol
+│
+├── client/src/                   # Client code (Vue.js + Three.js)
+│   ├── components/               # Vue UI components
+│   ├── features/                 # Feature-specific modules
+│   ├── rendering/                # 3D rendering engine
+│   ├── services/                 # API client services
+│   ├── immersive/                # XR/VR integration
+│   └── xr/                       # WebXR implementation
+│
+├── multi-agent-docker/           # Multi-agent orchestration container
+│   ├── agents/                   # 54+ AI agent templates
+│   ├── coordination/             # Agent coordination logic
+│   ├── hooks/                    # Pre/post task automation
+│   └── entrypoint.sh             # Container initialization
+│
+└── docs/                         # Complete documentation (311+ files)
+    ├── getting-started/          # Installation & tutorials
+    ├── guides/                   # How-to guides (user, developer, operations)
+    ├── concepts/                 # Architecture & design concepts
+    ├── reference/                # API references & technical specs
+    └── multi-agent-docker/       # Agent system documentation
 ```
 
-#### Example 2: Semantic Separation (DisjointWith)
+### Key Directories Explained
 
-```
-Ontology Definition:
-  :Person DisjointWith :Organization
-  :Company subClassOf :Organization
-  :Employee subClassOf :Person
+**Server (`/src/`)**: Rust-based backend with hexagonal architecture
+- **Core Business Logic**: `services/`, `cqrs/`, `ontology/`
+- **Data Layer**: `repositories/` (SQLite unified.db)
+- **API Layer**: `handlers/`, `protocols/`
+- **GPU Compute**: `gpu/` (CUDA kernels)
+- **Concurrency**: `actors/` (Actix-based message passing)
 
-Visual Result:
-  ┌───────────────┐         ┌───────────────┐
-  │   :Person     │ ←──X──→ │ :Organization │  ← Repulsion force
-  │     │         │         │      │        │
-  │  :Employee    │         │  :Company     │
-  └───────────────┘         └───────────────┘
-       Left cluster              Right cluster
+**Client (`/client/src/`)**: Vue.js frontend with 3D visualization
+- **UI Components**: `components/`, `features/`
+- **3D Engine**: `rendering/` (Three.js/React Three Fiber)
+- **XR Support**: `immersive/`, `xr/` (WebXR for Quest 3)
+- **Services**: `services/` (WebSocket, REST API clients)
 
-Physics Forces Applied:
-  - Coulomb repulsion between disjoint classes (strength: 1.0)
-  - Subclasses inherit parent repulsion
-  - Result: Clear semantic boundaries in 3D space
-```
+**Multi-Agent System (`/multi-agent-docker/`)**: Orchestration container
+- **54+ Specialized Agents**: Research, coding, testing, analysis
+- **Coordination**: Memory sharing, task orchestration
+- **Automation**: Pre/post task hooks for workflow automation
 
-#### Example 3: Property Alignment (ObjectProperty)
-
-```
-Ontology Definition:
-  :worksFor domain :Person, range :Organization
-  :employs domain :Organization, range :Person (inverse)
-
-Visual Result:
-       :Person ────────────→ :Organization
-                 :worksFor
-                    (force aligns nodes horizontally)
-
-Physics Forces Applied:
-  - Directed alignment force (strength: 0.6)
-  - Creates natural "flow" from domain to range
-  - Result: Property relationships visible as spatial orientation
-```
-
-### Real-World Impact
-
-| Scenario | Without Ontology | With Ontology Reasoning |
-|----------|------------------|-------------------------|
-| **Knowledge Discovery** | Only see explicit links | Automatically infer hidden connections (e.g., transitive properties) |
-| **Data Quality** | Manual validation | Automatic contradiction detection ("Dog DisjointWith Animal" conflicts) |
-| **3D Navigation** | Generic hairball layout | Semantically meaningful clusters (People vs. Places vs. Concepts) |
-| **Agent Intelligence** | Requires hand-holding | Context-aware agents understand domain rules |
-
-**[🎯 Try It: Interactive Ontology Demo](docs/getting-started/02-first-graph-and-agents.md)**
-**[📖 Deep Dive: Ontology Reasoning Pipeline](docs/ontology-reasoning.md)**
+**Documentation (`/docs/`)**: 311+ comprehensive guides
+- **Getting Started**: Installation, first graph tutorials
+- **User Guides**: Working with agents, XR setup
+- **Developer Guides**: Contributing, testing, adding features
+- **Architecture**: Complete system design documentation
+- **Reference**: API specs, error codes, performance benchmarks
 
 ---
 
@@ -305,7 +289,7 @@ VisionFlow implements a **Hexagonal Architecture** with **CQRS pattern** for cle
 
 ```mermaid
 graph TB
-    subgraph Client["Client Layer (React)"]
+    subgraph Client["Client Layer (Vue.js + Three.js)"]
         ThreeJS["Three.js<br/>WebGL"]
         WS["WebSocket<br/>Binary"]
         Voice["Voice UI<br/>WebRTC"]
@@ -359,39 +343,28 @@ graph TB
 - **Binary Protocol**: Custom 36-byte WebSocket protocol (80% bandwidth reduction)
 - **GPU Offloading**: 100x speedup for physics and clustering
 
-**[📖 Full Architecture Documentation](docs/architecture/)**
+### Architecture Documentation
 
----
+**Core Architecture:**
+- **[Architecture Overview](docs/concepts/architecture/00-architecture-overview.md)** - Complete system design
+- **[Hexagonal CQRS Architecture](docs/concepts/architecture/hexagonal-cqrs-architecture.md)** - Ports & adapters pattern
+- **[Database Schemas](docs/concepts/architecture/04-database-schemas.md)** - SQLite unified.db structure
 
-## 🛠️ Technology Stack
+**Specialized Systems:**
+- **[XR Immersive System](docs/concepts/architecture/xr-immersive-system.md)** - Quest 3 WebXR architecture
+- **[Ontology Storage Architecture](docs/concepts/architecture/ontology-storage-architecture.md)** - OWL reasoning pipeline
+- **[Semantic Physics System](docs/concepts/architecture/semantic-physics-system.md)** - Force-directed layout engine
+- **[GPU Semantic Forces](docs/concepts/architecture/gpu-semantic-forces.md)** - CUDA acceleration details
 
-VisionFlow combines cutting-edge technologies for unmatched performance and scalability:
+**Communication Protocols:**
+- **[WebSocket Protocol](docs/reference/websocket-protocol.md)** - Binary protocol specification
+- **[REST API Reference](docs/reference/api/rest-api-reference.md)** - HTTP endpoints
+- **[Error Codes](docs/reference/error-codes.md)** - Complete error reference
 
-| Layer | Technology | Highlights |
-| :--- | :--- | :--- |
-| **Frontend** | React + Three.js (React Three Fiber) | 60 FPS @ 100k+ nodes, WebGL 3D rendering |
-| **Backend** | Rust + Actix + Hexagonal Architecture | Database-first, CQRS pattern, ports & adapters |
-| **GPU Acceleration** | CUDA 12.4 (39 Kernels) | Physics, clustering, pathfinding—100x speedup |
-| **AI Orchestration** | MCP Protocol + Claude | 50+ concurrent specialist agents |
-| **Semantic Layer** | OWL/RDF + Whelk Reasoner | Ontology validation, logical inference |
-| **Networking** | **Binary WebSocket Protocol V2** | **36 bytes/node**, <10ms latency, 80% bandwidth reduction |
-| **Data Layer** | Single Unified SQLite Database | unified.db (WAL mode) with integrated tables: graph_nodes, graph_edges, owl_classes, owl_class_hierarchy, owl_properties, owl_axioms, file_metadata |
-| **Development** | Hexser + TypeScript | Type-safe CQRS with auto-generated TypeScript types |
-
-### Advanced AI Architecture
-
-- **Microsoft GraphRAG** for hierarchical knowledge structures
-- **Leiden Clustering** for community detection
-- **Shortest Path Analysis** enabling multi-hop reasoning
-- **OWL 2 EL Reasoning** for semantic validation and inference
-
-### Hexagonal Architecture Benefits
-
-- **Database-First Design**: All state persists in unified.db
-- **CQRS Pattern**: Directives (write) and Queries (read) with hexser
-- **Ports & Adapters**: Clean separation between business logic and infrastructure
-- **Server-Authoritative**: No client-side caching, simplified state management
-- **Type Safety**: Specta generates TypeScript types from Rust
+**Data Flow:**
+- **[Data Flow Complete](docs/concepts/architecture/data-flow-complete.md)** - End-to-end data pipeline
+- **[Pipeline Integration](docs/concepts/architecture/pipeline-integration.md)** - GitHub sync to GPU rendering
+- **[Reasoning Data Flow](docs/concepts/architecture/reasoning-data-flow.md)** - OWL inference pipeline
 
 ---
 
@@ -421,6 +394,38 @@ graph TD
 - Batch processing (50 files per batch)
 - Ontology-integrated graph structure
 - Real-time GPU physics simulation
+
+---
+
+## 🛠️ Technology Stack
+
+VisionFlow combines cutting-edge technologies for unmatched performance and scalability:
+
+| Layer | Technology | Highlights |
+| :--- | :--- | :--- |
+| **Frontend** | Vue.js + Three.js (React Three Fiber) | 60 FPS @ 100k+ nodes, WebGL 3D rendering |
+| **Backend** | Rust + Actix + Hexagonal Architecture | Database-first, CQRS pattern, ports & adapters |
+| **GPU Acceleration** | CUDA 12.4 (39 Kernels) | Physics, clustering, pathfinding—100x speedup |
+| **AI Orchestration** | MCP Protocol + Claude | 50+ concurrent specialist agents |
+| **Semantic Layer** | OWL/RDF + Whelk Reasoner | Ontology validation, logical inference |
+| **Networking** | **Binary WebSocket Protocol V2** | **36 bytes/node**, <10ms latency, 80% bandwidth reduction |
+| **Data Layer** | Single Unified SQLite Database | unified.db (WAL mode) with integrated tables: graph_nodes, graph_edges, owl_classes, owl_class_hierarchy, owl_properties, owl_axioms, file_metadata |
+| **Development** | Hexser + TypeScript | Type-safe CQRS with auto-generated TypeScript types |
+
+### Advanced AI Architecture
+
+- **Microsoft GraphRAG** for hierarchical knowledge structures
+- **Leiden Clustering** for community detection
+- **Shortest Path Analysis** enabling multi-hop reasoning
+- **OWL 2 EL Reasoning** for semantic validation and inference
+
+### Hexagonal Architecture Benefits
+
+- **Database-First Design**: All state persists in unified.db
+- **CQRS Pattern**: Directives (write) and Queries (read) with hexser
+- **Ports & Adapters**: Clean separation between business logic and infrastructure
+- **Server-Authoritative**: No client-side caching, simplified state management
+- **Type Safety**: Specta generates TypeScript types from Rust
 
 ---
 
@@ -676,21 +681,26 @@ Accomplish specific goals:
 ### 📕 Developer Guides
 Build and extend VisionFlow:
 - **[Development Setup](docs/guides/developer/01-development-setup.md)** - Environment configuration
+- **[Project Structure](docs/guides/developer/02-project-structure.md)** - Codebase organization
+- **[Architecture Overview](docs/guides/developer/03-architecture.md)** - System design
 - **[Adding Features](docs/guides/developer/04-adding-features.md)** - Extend with hexser
-- **[Testing Guide](docs/guides/developer/testing-guide.md)** - Comprehensive testing strategies
+- **[Testing Guide](docs/guides/developer/05-testing-guide.md)** - Comprehensive testing strategies
+- **[Contributing](docs/guides/developer/06-contributing.md)** - Contribution guidelines
 
 ### 📙 Concepts (Understanding)
 Learn the underlying architecture:
-- **[Architecture Overview](docs/concepts/architecture.md)** - System design principles
-- **[Agentic Workers](docs/concepts/agentic-workers.md)** - AI agent architecture
-- **[GPU Compute](docs/concepts/gpu-compute.md)** - CUDA acceleration details
+- **[Architecture Overview](docs/concepts/architecture/00-architecture-overview.md)** - Complete system design
+- **[Hexagonal CQRS](docs/concepts/architecture/hexagonal-cqrs-architecture.md)** - Ports & adapters pattern
+- **[Ontology Storage](docs/concepts/architecture/ontology-storage-architecture.md)** - OWL reasoning pipeline
+- **[XR Immersive System](docs/concepts/architecture/xr-immersive-system.md)** - Quest 3 WebXR
+- **[Semantic Physics](docs/concepts/architecture/semantic-physics-system.md)** - Force-directed layout
 
 ### 📗 Reference (Technical Details)
 Complete technical specifications:
-- **[REST API](docs/reference/api/rest-api.md)** - HTTP endpoints
-- **[WebSocket API](docs/reference/api/websocket-api.md)** - Real-time protocol
-- **[Binary Protocol](docs/reference/api/binary-protocol.md)** - 36-byte message format
-- **[Database Schema](docs/reference/architecture/database-schema.md)** - SQLite structure
+- **[REST API](docs/reference/api/rest-api-reference.md)** - HTTP endpoints
+- **[WebSocket Protocol](docs/reference/websocket-protocol.md)** - Binary protocol specification
+- **[Error Codes](docs/reference/error-codes.md)** - Complete error reference
+- **[Database Schema](docs/concepts/architecture/04-database-schemas.md)** - SQLite structure
 - **[Configuration Reference](docs/reference/configuration.md)** - All settings
 
 ### 🚀 Deployment
@@ -699,6 +709,13 @@ Production deployment guides:
 - **[Configuration](docs/deployment/02-configuration.md)** - Environment setup
 - **[Monitoring](docs/deployment/03-monitoring.md)** - Performance tracking
 - **[Backup & Restore](docs/deployment/04-backup-restore.md)** - Data management
+
+### 🤖 Multi-Agent System
+AI agent orchestration documentation:
+- **[Architecture](docs/multi-agent-docker/architecture.md)** - Agent system design
+- **[Tools](docs/multi-agent-docker/tools.md)** - Available agent tools
+- **[Docker Environment](docs/multi-agent-docker/docker-environment.md)** - Container setup
+- **[Troubleshooting](docs/multi-agent-docker/troubleshooting.md)** - Common issues
 
 **[📑 Documentation Hub](docs/README.md)** | **[🔍 Complete Master Index](docs/INDEX.md)** - Search all documentation by topic, role, or feature
 
@@ -842,7 +859,7 @@ We welcome contributions from the community! Whether you're fixing bugs, improvi
    ```
 
 3. **Make Your Changes**
-   - Follow the [coding guidelines](docs/developer-guide/06-contributing.md)
+   - Follow the [coding guidelines](docs/guides/developer/06-contributing.md)
    - Write tests for new features
    - Update documentation as needed
 
@@ -868,7 +885,7 @@ We welcome contributions from the community! Whether you're fixing bugs, improvi
 - **Commits**: Use conventional commit messages
 - **Architecture**: Respect hexagonal architecture boundaries
 
-**[📖 Full Contributing Guide](docs/developer-guide/06-contributing.md)**
+**[📖 Full Contributing Guide](docs/guides/developer/06-contributing.md)**
 
 ---
 

@@ -306,3 +306,4 @@ This bridge connects to the PBR Generator's dedicated TCP server to create high-
     "args": ["input.jpg", "-resize", "50%", "output.jpg"]
   }
 }'
+```
