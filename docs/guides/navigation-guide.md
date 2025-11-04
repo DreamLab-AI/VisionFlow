@@ -31,7 +31,7 @@
 1. [Development Setup](developer/01-development-setup.md)
 2. [Architecture Overview](../concepts/architecture/00-ARCHITECTURE-OVERVIEW.md)
 3. [Adding Features](developer/04-adding-features.md)
-4. [Testing Guide](developer/05-testing.md)
+4. [Testing Guide](developer/testing-guide.md)
 
 #### **Work with Ontologies**
 1. [Ontology Fundamentals](specialized/ontology/ontology-fundamentals.md)
@@ -99,7 +99,7 @@
 2. [Project Structure](guides/developer/02-project-structure.md)
 3. [Architecture](guides/developer/03-architecture.md)
 4. [Adding Features](guides/developer/04-adding-features.md)
-5. [Testing](guides/developer/05-testing.md)
+5. [Testing](guides/developer/testing-guide.md)
 
 ### DevOps Engineer
 1. [Docker Deployment](deployment/01-docker-deployment.md)

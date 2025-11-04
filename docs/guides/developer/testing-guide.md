@@ -7,7 +7,7 @@ difficulty: intermediate
 last_updated: 2025-10-27
 related:
   - /docs/guides/developer/01-development-setup.md
-  - /docs/guides/developer/adding-a-feature.md
+  - /docs/guides/developer/04-adding-features.md
   - /docs/reference/sparc-methodology.md
 ---
 
@@ -657,8 +657,118 @@ afterEach(() => {
 
 ## Related Resources
 
+## Turbo Flow Specific Testing Status
+
+This section documents the testing status and procedures specific to Turbo Flow Claude's architecture.
+
+### Rust Unit Tests
+
+✅ **ENABLED AND FUNCTIONAL**
+
+**Test count**: 70+ test cases across the codebase
+
+**Test locations**:
+- `src/utils/binary_protocol.rs` - Protocol encoding/decoding tests
+- `src/utils/ptx.rs` - PTX GPU code validation tests
+- `src/middleware/timeout.rs` - Request timeout middleware tests
+- `src/application/graph/tests/` - CQRS query handler tests
+- Multiple actor system tests throughout `src/actors/`
+
+**Running Rust Tests**:
+
+```bash
+# Run all tests
+cargo test
+
+# Run specific test file
+cargo test binary_protocol
+
+# Run with output (print statements visible)
+cargo test -- --nocapture
+
+# Run with backtrace
+RUST_BACKTRACE=full cargo test
+
+# Run tests with release optimization
+cargo test --release
+```
+
+### CQRS Integration Tests
+
+✅ **COMPLETE AND READY**
+
+**Location**: `tests/cqrs_api_integration_tests.rs`
+
+**Coverage**: 4 API endpoints with 15+ structural tests
+
+**Test categories**:
+1. Response structure validation
+2. Pagination error handling
+3. CQRS pattern compliance
+4. Zero-copy performance validation
+
+**Running CQRS tests**:
+
+```bash
+cargo test --test cqrs_api_integration_tests
+
+# Run specific test
+cargo test test_graph_response_with_positions_structure
+
+# Run with output
+cargo test --test cqrs_api_integration_tests -- --nocapture
+```
+
+### Manual Testing Procedures
+
+**API Testing**:
+
+```bash
+# Health check
+curl -i http://localhost:3030/health
+
+# Get full graph data
+curl -s http://localhost:3030/api/graph/data | jq .
+
+# Test pagination
+curl -s "http://localhost:3030/api/graph/data/paginated?page=1&page_size=100" | jq .
+
+# Refresh graph
+curl -X POST http://localhost:3030/api/graph/refresh
+
+# Get auto-balance notifications
+curl -s "http://localhost:3030/api/graph/auto-balance-notifications?since=0" | jq .
+```
+
+**Binary Protocol Testing**:
+
+```bash
+# Run protocol tests with output
+cargo test binary_protocol -- --nocapture --test-threads=1
+
+# Expected output:
+# - test_wire_format_size ... ok
+# - test_encode_decode_roundtrip ... ok
+# - test_decode_invalid_data ... ok
+# - test_calculate_message_size ... ok
+```
+
+### Debugging Tests
+
+```bash
+# Run single test with backtrace
+RUST_BACKTRACE=full cargo test test_name -- --nocapture
+
+# Filter tests by name
+cargo test test_name -- --nocapture
+
+# Run tests sequentially (no parallelization)
+cargo test -- --test-threads=1
+```
+
+
 - [Development Setup](/docs/guides/developer/01-development-setup.md)
-- [Adding a Feature](/docs/guides/developer/adding-a-feature.md)
+- [Adding a Feature](/docs/guides/developer/04-adding-features.md)
 - [SPARC Methodology](/docs/reference/sparc-methodology.md)
 - [Code Quality Standards](/docs/reference/code-standards.md)
 
