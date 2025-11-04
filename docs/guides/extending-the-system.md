@@ -106,10 +106,10 @@ hooks:
   pre: |
     echo "🔄 Data Processor initialising..."
     echo "📊 Loading transformation rules"
-    memory_retrieve "transformation_config" || echo "Using default configuration"
+    memory-retrieve "transformation-config" || echo "Using default configuration"
   post: |
     echo "✅ Processing complete"
-    memory_store "last_processing_$(date +%s)" "Data processing task completed"
+    memory-store "last-processing-$(date +%s)" "Data processing task completed"
     echo "📈 Metrics stored for analysis"
 ---
 ```
@@ -119,7 +119,7 @@ hooks:
 Based on the [automation-smart-agent](../reference/agents/templates/automation-smart-agent.md) template:
 
 ```python
-# agents/base_agent.py
+# agents/base-agent.py
 from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Optional
 import asyncio
@@ -128,19 +128,19 @@ import logging
 class BaseCustomAgent(ABC):
     """Base class for custom agents."""
 
-    def __init__(self, agent_id: str, config: Dict[str, Any]):
-        self.agent_id = agent_id
+    def --init--(self, agent-id: str, config: Dict[str, Any]):
+        self.agent-id = agent-id
         self.config = config
-        self.logger = logging.getLogger(f"agent.{agent_id}")
+        self.logger = logging.getLogger(f"agent.{agent-id}")
 
         # Agent state
         self.status = "initialising"
         self.capabilities = []
-        self.active_tasks = []
+        self.active-tasks = []
         self.metrics = {
-            "tasks_completed": 0,
-            "tasks_failed": 0,
-            "avg_task_duration": 0
+            "tasks-completed": 0,
+            "tasks-failed": 0,
+            "avg-task-duration": 0
         }
 
     @abstractmethod
@@ -149,7 +149,7 @@ class BaseCustomAgent(ABC):
         pass
 
     @abstractmethod
-    async def process_task(self, task: Dict[str, Any]) -> Any:
+    async def process-task(self, task: Dict[str, Any]) -> Any:
         """Process a single task."""
         pass
 
@@ -165,66 +165,66 @@ class BaseCustomAgent(ABC):
             self.status = "ready"
 
             while self.status == "ready":
-                task = await self.get_next_task()
+                task = await self.get-next-task()
 
                 if task:
-                    await self.execute_task(task)
+                    await self.execute-task(task)
                 else:
                     await asyncio.sleep(1)
 
         except Exception as e:
-            self.logger.error(f"Agent error: {e}", exc_info=True)
+            self.logger.error(f"Agent error: {e}", exc-info=True)
             self.status = "error"
         finally:
             await self.cleanup()
 
-    async def execute_task(self, task: Dict[str, Any]):
+    async def execute-task(self, task: Dict[str, Any]):
         """Execute task with metrics tracking."""
-        start_time = asyncio.get_event_loop().time()
+        start-time = asyncio.get-event-loop().time()
 
         try:
-            self.active_tasks.append(task['id'])
-            result = await self.process_task(task)
+            self.active-tasks.append(task['id'])
+            result = await self.process-task(task)
 
             # Update metrics
-            duration = asyncio.get_event_loop().time() - start_time
-            self.update_metrics('success', duration)
+            duration = asyncio.get-event-loop().time() - start-time
+            self.update-metrics('success', duration)
 
             # Report result
-            await self.report_result(task['id'], result)
+            await self.report-result(task['id'], result)
 
         except Exception as e:
             self.logger.error(f"Task {task['id']} failed: {e}")
-            self.update_metrics('failure', 0)
-            await self.report_error(task['id'], str(e))
+            self.update-metrics('failure', 0)
+            await self.report-error(task['id'], str(e))
 
         finally:
-            self.active_tasks.remove(task['id'])
+            self.active-tasks.remove(task['id'])
 
-    def update_metrics(self, status: str, duration: float):
+    def update-metrics(self, status: str, duration: float):
         """Update agent metrics."""
         if status == 'success':
-            self.metrics['tasks_completed'] += 1
+            self.metrics['tasks-completed'] += 1
             # Update average duration
-            total_tasks = self.metrics['tasks_completed']
-            current_avg = self.metrics['avg_task_duration']
-            self.metrics['avg_task_duration'] = (
-                (current_avg * (total_tasks - 1) + duration) / total_tasks
+            total-tasks = self.metrics['tasks-completed']
+            current-avg = self.metrics['avg-task-duration']
+            self.metrics['avg-task-duration'] = (
+                (current-avg * (total-tasks - 1) + duration) / total-tasks
             )
         else:
-            self.metrics['tasks_failed'] += 1
+            self.metrics['tasks-failed'] += 1
 
-    async def get_next_task(self) -> Optional[Dict[str, Any]]:
+    async def get-next-task(self) -> Optional[Dict[str, Any]]:
         """Retrieve next task from queue."""
         # Implementation depends on your task queue system
         pass
 
-    async def report_result(self, task_id: str, result: Any):
+    async def report-result(self, task-id: str, result: Any):
         """Report task result to orchestrator."""
         # Implementation depends on your communication protocol
         pass
 
-    async def report_error(self, task_id: str, error: str):
+    async def report-error(self, task-id: str, error: str):
         """Report task error to orchestrator."""
         # Implementation depends on your communication protocol
         pass
@@ -235,7 +235,7 @@ class BaseCustomAgent(ABC):
 Following the [implementer-sparc-coder](../reference/agents/templates/implementer-sparc-coder.md) pattern:
 
 ```python
-# agents/data_processor_agent.py
+# agents/data-processor-agent.py
 import pandas as pd
 from typing import Dict, Any
 import aiofiles
@@ -244,22 +244,22 @@ import json
 class DataProcessorAgent(BaseCustomAgent):
     """Agent specialised in data processing operations."""
 
-    def __init__(self, agent_id: str, config: Dict[str, Any]):
-        super().__init__(agent_id, config)
+    def --init--(self, agent-id: str, config: Dict[str, Any]):
+        super().--init--(agent-id, config)
         self.capabilities = [
-            'data_extraction',
-            'data_transformation',
-            'data_validation',
-            'format_conversion',
-            'schema_inference'
+            'data-extraction',
+            'data-transformation',
+            'data-validation',
+            'format-conversion',
+            'schema-inference'
         ]
-        self.transformation_rules = config.get('transformation_rules', {})
+        self.transformation-rules = config.get('transformation-rules', {})
         self.validators = {}
 
     async def initialise(self):
         """Initialise data processing resources."""
         # Load transformation rules
-        self.transformation_rules = await self.load_transformation_rules()
+        self.transformation-rules = await self.load-transformation-rules()
 
         # Initialise validators
         self.validators = {
@@ -273,64 +273,64 @@ class DataProcessorAgent(BaseCustomAgent):
 
         self.logger.info("Data processor agent initialised")
 
-    async def process_task(self, task: Dict[str, Any]) -> Any:
+    async def process-task(self, task: Dict[str, Any]) -> Any:
         """Process data processing tasks."""
-        task_type = task.get('type')
+        task-type = task.get('type')
 
         handlers = {
-            'extract': self.extract_data,
-            'transform': self.transform_data,
-            'validate': self.validate_data,
-            'convert': self.convert_format,
-            'infer_schema': self.infer_schema
+            'extract': self.extract-data,
+            'transform': self.transform-data,
+            'validate': self.validate-data,
+            'convert': self.convert-format,
+            'infer-schema': self.infer-schema
         }
 
-        handler = handlers.get(task_type)
+        handler = handlers.get(task-type)
         if not handler:
-            raise ValueError(f"Unknown task type: {task_type}")
+            raise ValueError(f"Unknown task type: {task-type}")
 
         return await handler(task.get('params', {}))
 
-    async def extract_data(self, params: Dict) -> pd.DataFrame:
+    async def extract-data(self, params: Dict) -> pd.DataFrame:
         """Extract data from various sources."""
-        source_type = params.get('source_type')
+        source-type = params.get('source-type')
 
-        if source_type == 'file':
-            file_path = params.get('file_path')
-            file_format = params.get('format', 'csv')
+        if source-type == 'file':
+            file-path = params.get('file-path')
+            file-format = params.get('format', 'csv')
 
-            if file_format == 'csv':
-                return pd.read_csv(file_path)
-            elif file_format == 'json':
-                async with aiofiles.open(file_path, 'r') as f:
+            if file-format == 'csv':
+                return pd.read-csv(file-path)
+            elif file-format == 'json':
+                async with aiofiles.open(file-path, 'r') as f:
                     content = await f.read()
                     data = json.loads(content)
                     return pd.DataFrame(data)
-            elif file_format == 'parquet':
-                return pd.read_parquet(file_path)
+            elif file-format == 'parquet':
+                return pd.read-parquet(file-path)
             else:
-                raise ValueError(f"Unsupported format: {file_format}")
+                raise ValueError(f"Unsupported format: {file-format}")
 
-        elif source_type == 'database':
+        elif source-type == 'database':
             # Database extraction logic
             query = params.get('query')
-            connection = await self.get_db_connection(params.get('connection_string'))
-            return pd.read_sql(query, connection)
+            connection = await self.get-db-connection(params.get('connection-string'))
+            return pd.read-sql(query, connection)
 
         else:
-            raise ValueError(f"Unsupported source type: {source_type}")
+            raise ValueError(f"Unsupported source type: {source-type}")
 
-    async def transform_data(self, params: Dict) -> pd.DataFrame:
+    async def transform-data(self, params: Dict) -> pd.DataFrame:
         """Apply transformations to data."""
         data = params.get('data')
-        rules = params.get('transformation_rules', [])
+        rules = params.get('transformation-rules', [])
 
         df = pd.DataFrame(data)
 
         for rule in rules:
-            rule_type = rule.get('type')
+            rule-type = rule.get('type')
 
-            if rule_type == 'filter':
+            if rule-type == 'filter':
                 column = rule['column']
                 operator = rule['operator']
                 value = rule['value']
@@ -342,28 +342,28 @@ class DataProcessorAgent(BaseCustomAgent):
                 elif operator == 'eq':
                     df = df[df[column] == value]
 
-            elif rule_type == 'aggregate':
-                group_by = rule['group_by']
+            elif rule-type == 'aggregate':
+                group-by = rule['group-by']
                 aggregations = rule['aggregations']
-                df = df.groupby(group_by).agg(aggregations)
+                df = df.groupby(group-by).agg(aggregations)
 
-            elif rule_type == 'join':
-                other_data = await self.get_cached_data(rule['dataset'])
-                join_key = rule['join_key']
-                join_type = rule.get('join_type', 'inner')
-                df = df.merge(other_data, on=join_key, how=join_type)
+            elif rule-type == 'join':
+                other-data = await self.get-cached-data(rule['dataset'])
+                join-key = rule['join-key']
+                join-type = rule.get('join-type', 'inner')
+                df = df.merge(other-data, on=join-key, how=join-type)
 
-            elif rule_type == 'compute':
-                column_name = rule['column']
+            elif rule-type == 'compute':
+                column-name = rule['column']
                 expression = rule['expression']
-                df[column_name] = df.eval(expression)
+                df[column-name] = df.eval(expression)
 
         return df
 
-    async def validate_data(self, params: Dict) -> Dict[str, Any]:
+    async def validate-data(self, params: Dict) -> Dict[str, Any]:
         """Validate data against rules."""
         data = params.get('data')
-        validation_rules = params.get('rules', [])
+        validation-rules = params.get('rules', [])
 
         df = pd.DataFrame(data)
         results = {
@@ -372,67 +372,67 @@ class DataProcessorAgent(BaseCustomAgent):
             'warnings': []
         }
 
-        for rule in validation_rules:
-            validator_type = rule.get('type')
-            validator = self.validators.get(validator_type)
+        for rule in validation-rules:
+            validator-type = rule.get('type')
+            validator = self.validators.get(validator-type)
 
             if validator:
-                validation_result = await validator.validate(df, rule)
+                validation-result = await validator.validate(df, rule)
 
-                if not validation_result['valid']:
+                if not validation-result['valid']:
                     results['valid'] = False
-                    results['errors'].extend(validation_result['errors'])
+                    results['errors'].extend(validation-result['errors'])
 
-                results['warnings'].extend(validation_result.get('warnings', []))
+                results['warnings'].extend(validation-result.get('warnings', []))
 
         return results
 
-    async def convert_format(self, params: Dict) -> str:
+    async def convert-format(self, params: Dict) -> str:
         """Convert data between formats."""
         data = params.get('data')
-        source_format = params.get('source_format')
-        target_format = params.get('target_format')
-        output_path = params.get('output_path')
+        source-format = params.get('source-format')
+        target-format = params.get('target-format')
+        output-path = params.get('output-path')
 
         df = pd.DataFrame(data)
 
-        if target_format == 'csv':
-            df.to_csv(output_path, index=False)
-        elif target_format == 'json':
-            df.to_json(output_path, orient='records', indent=2)
-        elif target_format == 'parquet':
-            df.to_parquet(output_path, index=False)
-        elif target_format == 'excel':
-            df.to_excel(output_path, index=False)
+        if target-format == 'csv':
+            df.to-csv(output-path, index=False)
+        elif target-format == 'json':
+            df.to-json(output-path, orient='records', indent=2)
+        elif target-format == 'parquet':
+            df.to-parquet(output-path, index=False)
+        elif target-format == 'excel':
+            df.to-excel(output-path, index=False)
         else:
-            raise ValueError(f"Unsupported target format: {target_format}")
+            raise ValueError(f"Unsupported target format: {target-format}")
 
-        return output_path
+        return output-path
 
-    async def infer_schema(self, params: Dict) -> Dict[str, Any]:
+    async def infer-schema(self, params: Dict) -> Dict[str, Any]:
         """Infer schema from data."""
         data = params.get('data')
         df = pd.DataFrame(data)
 
         schema = {
             'columns': [],
-            'row_count': len(df),
-            'nullable_columns': []
+            'row-count': len(df),
+            'nullable-columns': []
         }
 
         for column in df.columns:
-            column_info = {
+            column-info = {
                 'name': column,
                 'type': str(df[column].dtype),
                 'nullable': df[column].isnull().any(),
-                'unique_count': df[column].nunique(),
-                'sample_values': df[column].head(5).tolist()
+                'unique-count': df[column].nunique(),
+                'sample-values': df[column].head(5).tolist()
             }
 
-            schema['columns'].append(column_info)
+            schema['columns'].append(column-info)
 
-            if column_info['nullable']:
-                schema['nullable_columns'].append(column)
+            if column-info['nullable']:
+                schema['nullable-columns'].append(column)
 
         return schema
 
@@ -442,23 +442,23 @@ class DataProcessorAgent(BaseCustomAgent):
         self.validators.clear()
         self.logger.info("Data processor agent cleaned up")
 
-    async def load_transformation_rules(self) -> Dict:
+    async def load-transformation-rules(self) -> Dict:
         """Load transformation rules from configuration."""
-        rules_path = self.config.get('rules_path')
-        if rules_path:
-            async with aiofiles.open(rules_path, 'r') as f:
+        rules-path = self.config.get('rules-path')
+        if rules-path:
+            async with aiofiles.open(rules-path, 'r') as f:
                 content = await f.read()
                 return json.loads(content)
         return {}
 
-    async def get_cached_data(self, dataset_id: str) -> pd.DataFrame:
+    async def get-cached-data(self, dataset-id: str) -> pd.DataFrame:
         """Retrieve cached dataset."""
-        if dataset_id in self.cache:
-            return self.cache[dataset_id]
+        if dataset-id in self.cache:
+            return self.cache[dataset-id]
         else:
-            raise ValueError(f"Dataset {dataset_id} not found in cache")
+            raise ValueError(f"Dataset {dataset-id} not found in cache")
 
-    async def get_db_connection(self, connection_string: str):
+    async def get-db-connection(self, connection-string: str):
         """Get database connection."""
         # Implementation depends on your database system
         pass
@@ -475,18 +475,18 @@ class SchemaValidator:
         warnings = []
 
         # Check required columns
-        required_columns = schema.get('required_columns', [])
-        missing_columns = set(required_columns) - set(df.columns)
-        if missing_columns:
-            errors.append(f"Missing required columns: {missing_columns}")
+        required-columns = schema.get('required-columns', [])
+        missing-columns = set(required-columns) - set(df.columns)
+        if missing-columns:
+            errors.append(f"Missing required columns: {missing-columns}")
 
         # Check data types
-        for column, expected_type in schema.get('column_types', {}).items():
+        for column, expected-type in schema.get('column-types', {}).items():
             if column in df.columns:
-                actual_type = str(df[column].dtype)
-                if actual_type != expected_type:
+                actual-type = str(df[column].dtype)
+                if actual-type != expected-type:
                     warnings.append(
-                        f"Column '{column}' has type {actual_type}, expected {expected_type}"
+                        f"Column '{column}' has type {actual-type}, expected {expected-type}"
                     )
 
         return {
@@ -505,19 +505,19 @@ class DataQualityValidator:
         warnings = []
 
         # Check for null values
-        max_null_percentage = rule.get('max_null_percentage', 0.1)
+        max-null-percentage = rule.get('max-null-percentage', 0.1)
         for column in df.columns:
-            null_percentage = df[column].isnull().sum() / len(df)
-            if null_percentage > max_null_percentage:
+            null-percentage = df[column].isnull().sum() / len(df)
+            if null-percentage > max-null-percentage:
                 warnings.append(
-                    f"Column '{column}' has {null_percentage:.2%} null values"
+                    f"Column '{column}' has {null-percentage:.2%} null values"
                 )
 
         # Check for duplicates
-        if rule.get('check_duplicates', False):
-            duplicate_count = df.duplicated().sum()
-            if duplicate_count > 0:
-                warnings.append(f"Found {duplicate_count} duplicate rows")
+        if rule.get('check-duplicates', False):
+            duplicate-count = df.duplicated().sum()
+            if duplicate-count > 0:
+                warnings.append(f"Found {duplicate-count} duplicate rows")
 
         return {
             'valid': len(errors) == 0,
@@ -535,28 +535,28 @@ class BusinessRuleValidator:
         warnings = []
 
         # Custom business rule validation logic
-        business_rules = rule.get('rules', [])
+        business-rules = rule.get('rules', [])
 
-        for br in business_rules:
-            rule_type = br.get('type')
+        for br in business-rules:
+            rule-type = br.get('type')
 
-            if rule_type == 'range':
+            if rule-type == 'range':
                 column = br['column']
-                min_val = br.get('min')
-                max_val = br.get('max')
+                min-val = br.get('min')
+                max-val = br.get('max')
 
-                if min_val is not None:
-                    violations = df[df[column] < min_val]
+                if min-val is not None:
+                    violations = df[df[column] < min-val]
                     if not violations.empty:
                         errors.append(
-                            f"Column '{column}' has {len(violations)} values below minimum {min_val}"
+                            f"Column '{column}' has {len(violations)} values below minimum {min-val}"
                         )
 
-                if max_val is not None:
-                    violations = df[df[column] > max_val]
+                if max-val is not None:
+                    violations = df[df[column] > max-val]
                     if not violations.empty:
                         errors.append(
-                            f"Column '{column}' has {len(violations)} values above maximum {max_val}"
+                            f"Column '{column}' has {len(violations)} values above maximum {max-val}"
                         )
 
         return {
@@ -570,31 +570,31 @@ class BusinessRuleValidator:
 
 ```yaml
 # config/agents.yaml
-custom_agents:
-  data_processor:
-    class: agents.data_processor_agent.DataProcessorAgent
+custom-agents:
+  data-processor:
+    class: agents.data-processor-agent.DataProcessorAgent
     config:
-      max_concurrent_tasks: 10
-      rules_path: /workspace/config/transformation_rules.json
-      cache_size: 1000
-      transformation_rules:
+      max-concurrent-tasks: 10
+      rules-path: /workspace/config/transformation-rules.json
+      cache-size: 1000
+      transformation-rules:
         default:
           - type: filter
             column: status
             operator: eq
             value: active
           - type: compute
-            column: full_name
-            expression: "first_name + ' ' + last_name"
+            column: full-name
+            expression: "first-name + ' ' + last-name"
     resources:
       memory: "4Gi"
       cpu: "2.0"
     capabilities:
-      - data_extraction
-      - data_transformation
-      - data_validation
-      - format_conversion
-      - schema_inference
+      - data-extraction
+      - data-transformation
+      - data-validation
+      - format-conversion
+      - schema-inference
 ```
 
 #### 6. Test Your Agent
@@ -602,17 +602,17 @@ custom_agents:
 Create comprehensive tests following TDD principles from [implementer-sparc-coder](../reference/agents/templates/implementer-sparc-coder.md):
 
 ```python
-# tests/test_data_processor_agent.py
+# tests/test-data-processor-agent.py
 import pytest
 import pandas as pd
-from agents.data_processor_agent import DataProcessorAgent
+from agents.data-processor-agent import DataProcessorAgent
 
 @pytest.fixture
 async def agent():
     """Create test agent instance."""
     config = {
-        'transformation_rules': {},
-        'cache_size': 100
+        'transformation-rules': {},
+        'cache-size': 100
     }
     agent = DataProcessorAgent('test-agent', config)
     await agent.initialise()
@@ -620,21 +620,21 @@ async def agent():
     await agent.cleanup()
 
 @pytest.mark.asyncio
-async def test_extract_csv_data(agent, tmp_path):
+async def test-extract-csv-data(agent, tmp-path):
     """Test CSV data extraction."""
     # Arrange
-    test_file = tmp_path / "test.csv"
-    test_data = pd.DataFrame({'col1': [1, 2, 3], 'col2': ['a', 'b', 'c']})
-    test_data.to_csv(test_file, index=False)
+    test-file = tmp-path / "test.csv"
+    test-data = pd.DataFrame({'col1': [1, 2, 3], 'col2': ['a', 'b', 'c']})
+    test-data.to-csv(test-file, index=False)
 
     params = {
-        'source_type': 'file',
-        'file_path': str(test_file),
+        'source-type': 'file',
+        'file-path': str(test-file),
         'format': 'csv'
     }
 
     # Act
-    result = await agent.extract_data(params)
+    result = await agent.extract-data(params)
 
     # Assert
     assert isinstance(result, pd.DataFrame)
@@ -642,17 +642,17 @@ async def test_extract_csv_data(agent, tmp_path):
     assert list(result.columns) == ['col1', 'col2']
 
 @pytest.mark.asyncio
-async def test_transform_filter(agent):
+async def test-transform-filter(agent):
     """Test data filtering transformation."""
     # Arrange
-    test_data = pd.DataFrame({
+    test-data = pd.DataFrame({
         'value': [1, 2, 3, 4, 5],
         'category': ['A', 'B', 'A', 'B', 'A']
     })
 
     params = {
-        'data': test_data.to_dict('records'),
-        'transformation_rules': [
+        'data': test-data.to-dict('records'),
+        'transformation-rules': [
             {
                 'type': 'filter',
                 'column': 'value',
@@ -663,29 +663,29 @@ async def test_transform_filter(agent):
     }
 
     # Act
-    result = await agent.transform_data(params)
+    result = await agent.transform-data(params)
 
     # Assert
     assert len(result) == 3
     assert all(result['value'] > 2)
 
 @pytest.mark.asyncio
-async def test_validate_schema(agent):
+async def test-validate-schema(agent):
     """Test schema validation."""
     # Arrange
-    test_data = pd.DataFrame({
+    test-data = pd.DataFrame({
         'id': [1, 2, 3],
         'name': ['Alice', 'Bob', 'Charlie']
     })
 
     params = {
-        'data': test_data.to_dict('records'),
+        'data': test-data.to-dict('records'),
         'rules': [
             {
                 'type': 'schema',
                 'schema': {
-                    'required_columns': ['id', 'name', 'email'],
-                    'column_types': {
+                    'required-columns': ['id', 'name', 'email'],
+                    'column-types': {
                         'id': 'int64',
                         'name': 'object'
                     }
@@ -695,33 +695,33 @@ async def test_validate_schema(agent):
     }
 
     # Act
-    result = await agent.validate_data(params)
+    result = await agent.validate-data(params)
 
     # Assert
     assert not result['valid']
     assert any('email' in error for error in result['errors'])
 
 @pytest.mark.asyncio
-async def test_infer_schema(agent):
+async def test-infer-schema(agent):
     """Test schema inference."""
     # Arrange
-    test_data = pd.DataFrame({
+    test-data = pd.DataFrame({
         'id': [1, 2, 3],
         'name': ['Alice', 'Bob', None],
         'score': [95.5, 87.3, 91.2]
     })
 
     params = {
-        'data': test_data.to_dict('records')
+        'data': test-data.to-dict('records')
     }
 
     # Act
-    result = await agent.infer_schema(params)
+    result = await agent.infer-schema(params)
 
     # Assert
-    assert result['row_count'] == 3
+    assert result['row-count'] == 3
     assert len(result['columns']) == 3
-    assert 'name' in result['nullable_columns']
+    assert 'name' in result['nullable-columns']
 ```
 
 ### Agent Template Resources
@@ -737,7 +737,7 @@ For more examples and patterns, explore:
 
 ### Contributing New Templates
 
-Help expand the template library! See [Contributing Guide](./CONTRIBUTING.md) for:
+Help expand the template library! See [Contributing Guide](./contributing.md) for:
 
 - Template submission guidelines
 - Documentation standards
@@ -763,28 +763,28 @@ import logging
 from typing import Dict, Any, Optional
 
 class CustomMCPTool:
-    def __init__(self):
+    def --init--(self):
         # Configure logging
         logging.basicConfig(
             level=logging.INFO,
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            handlers=[logging.FileHandler('/app/logs/custom_tool.log')]
+            handlers=[logging.FileHandler('/app/logs/custom-tool.log')]
         )
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger(--name--)
 
         # Initialise tool state
-        self.config = self.load_config()
+        self.config = self.load-config()
         self.capabilities = ['process', 'analyse', 'transform']
 
-    def load_config(self) -> Dict:
+    def load-config(self) -> Dict:
         """Load tool configuration."""
         try:
-            with open('/app/config/custom_tool.json', 'r') as f:
+            with open('/app/config/custom-tool.json', 'r') as f:
                 return json.load(f)
         except Exception:
             return {}
 
-    def process_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
+    def process-request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Process incoming MCP request."""
         try:
             method = request.get('method', 'default')
@@ -792,76 +792,76 @@ class CustomMCPTool:
 
             # Route to appropriate handler
             handlers = {
-                'process': self.handle_process,
-                'analyse': self.handle_analyse,
-                'transform': self.handle_transform,
-                'capabilities': self.get_capabilities
+                'process': self.handle-process,
+                'analyse': self.handle-analyse,
+                'transform': self.handle-transform,
+                'capabilities': self.get-capabilities
             }
 
-            handler = handlers.get(method, self.handle_unknown)
+            handler = handlers.get(method, self.handle-unknown)
             result = handler(params)
 
             return {'result': result}
 
         except Exception as e:
-            self.logger.error(f"Error processing request: {e}", exc_info=True)
+            self.logger.error(f"Error processing request: {e}", exc-info=True)
             return {'error': str(e)}
 
-    def handle_process(self, params: Dict) -> Any:
+    def handle-process(self, params: Dict) -> Any:
         """Handle process requests."""
         data = params.get('data')
         options = params.get('options', {})
 
         # Your processing logic here
-        processed = self.process_data(data, options)
+        processed = self.process-data(data, options)
 
         return {
             'status': 'success',
             'processed': processed,
             'metadata': {
-                'items_processed': len(processed) if hasattr(processed, '__len__') else 1,
-                'options_used': options
+                'items-processed': len(processed) if hasattr(processed, '--len--') else 1,
+                'options-used': options
             }
         }
 
-    def handle_analyse(self, params: Dict) -> Any:
+    def handle-analyse(self, params: Dict) -> Any:
         """Handle analysis requests."""
-        input_data = params.get('input')
+        input-data = params.get('input')
         depth = params.get('depth', 1)
 
         # Analysis implementation
-        analysis_result = {
-            'summary': f"Analysed {len(input_data)} items at depth {depth}",
+        analysis-result = {
+            'summary': f"Analysed {len(input-data)} items at depth {depth}",
             'insights': [],
             'recommendations': []
         }
 
-        return analysis_result
+        return analysis-result
 
-    def handle_transform(self, params: Dict) -> Any:
+    def handle-transform(self, params: Dict) -> Any:
         """Handle transformation requests."""
         data = params.get('data')
         transformation = params.get('transformation')
 
         # Transformation implementation
-        transformed_data = self.apply_transformation(data, transformation)
+        transformed-data = self.apply-transformation(data, transformation)
 
-        return transformed_data
+        return transformed-data
 
-    def handle_unknown(self, params: Dict) -> Any:
+    def handle-unknown(self, params: Dict) -> Any:
         """Handle unknown methods."""
         return {'error': 'Unknown method'}
 
-    def get_capabilities(self, params: Dict) -> list:
+    def get-capabilities(self, params: Dict) -> list:
         """Return tool capabilities."""
         return self.capabilities
 
-    def process_data(self, data: Any, options: Dict) -> Any:
+    def process-data(self, data: Any, options: Dict) -> Any:
         """Process data with options."""
         # Implementation
         return data
 
-    def apply_transformation(self, data: Any, transformation: str) -> Any:
+    def apply-transformation(self, data: Any, transformation: str) -> Any:
         """Apply transformation to data."""
         # Implementation
         return data
@@ -874,16 +874,16 @@ class CustomMCPTool:
         for line in sys.stdin:
             try:
                 request = json.loads(line.strip())
-                response = self.process_request(request)
+                response = self.process-request(request)
                 print(json.dumps(response), flush=True)
             except json.JSONDecodeError as e:
-                error_response = {'error': f'Invalid JSON: {e}'}
-                print(json.dumps(error_response), flush=True)
+                error-response = {'error': f'Invalid JSON: {e}'}
+                print(json.dumps(error-response), flush=True)
             except Exception as e:
-                error_response = {'error': str(e)}
-                print(json.dumps(error_response), flush=True)
+                error-response = {'error': str(e)}
+                print(json.dumps(error-response), flush=True)
 
-if __name__ == '__main__':
+if --name-- == '--main--':
     tool = CustomMCPTool()
     tool.run()
 ```
@@ -897,7 +897,7 @@ if __name__ == '__main__':
   "tools": {
     "custom-tool": {
       "command": "python3",
-      "args": ["-u", "./mcp-tools/custom_tool.py"],
+      "args": ["-u", "./mcp-tools/custom-tool.py"],
       "description": "Custom tool for specialised processing",
       "schema": {
         "methods": {
@@ -923,14 +923,14 @@ if __name__ == '__main__':
 2. **Create Tool Wrapper Script**
 ```bash
 #!/bin/bash
-# mcp-tools/custom_tool_wrapper.sh
+# mcp-tools/custom-tool-wrapper.sh
 
 # Set environment
 export PYTHONUNBUFFERED=1
-export TOOL_CONFIG_PATH=/workspace/config/custom_tool.json
+export TOOL-CONFIG-PATH=/workspace/config/custom-tool.json
 
 # Run tool with proper error handling
-exec python3 -u /workspace/mcp-tools/custom_tool.py 2>>/app/logs/custom_tool.error.log
+exec python3 -u /workspace/mcp-tools/custom-tool.py 2>>/app/logs/custom-tool.error.log
 ```
 
 ### Advanced MCP Tool Features
@@ -942,7 +942,7 @@ import asyncio
 import aiohttp
 
 class AsyncMCPTool(CustomMCPTool):
-    async def handle_fetch(self, params: Dict) -> Any:
+    async def handle-fetch(self, params: Dict) -> Any:
         """Handle async fetch operations."""
         url = params.get('url')
         timeout = params.get('timeout', 30)
@@ -957,21 +957,21 @@ class AsyncMCPTool(CustomMCPTool):
             'headers': dict(response.headers)
         }
 
-    def process_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
+    def process-request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Process request with async support."""
         method = request.get('method')
 
         if method == 'fetch':
             # Run async method in event loop
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            result = loop.run_until_complete(
-                self.handle_fetch(request.get('params', {}))
+            loop = asyncio.new-event-loop()
+            asyncio.set-event-loop(loop)
+            result = loop.run-until-complete(
+                self.handle-fetch(request.get('params', {}))
             )
             loop.close()
             return {'result': result}
 
-        return super().process_request(request)
+        return super().process-request(request)
 ```
 
 #### State Management
@@ -981,55 +981,55 @@ from datetime import datetime
 import uuid
 
 class StatefulMCPTool(CustomMCPTool):
-    def __init__(self):
-        super().__init__()
+    def --init--(self):
+        super().--init--()
         self.sessions = {}
 
-    def handle_create_session(self, params: Dict) -> str:
+    def handle-create-session(self, params: Dict) -> str:
         """Create new session."""
-        session_id = str(uuid.uuid4())
+        session-id = str(uuid.uuid4())
 
-        self.sessions[session_id] = {
+        self.sessions[session-id] = {
             'created': datetime.utcnow().isoformat(),
             'data': {},
             'history': []
         }
 
-        return session_id
+        return session-id
 
-    def handle_session_operation(self, params: Dict) -> Any:
+    def handle-session-operation(self, params: Dict) -> Any:
         """Handle session-based operations."""
-        session_id = params.get('session_id')
+        session-id = params.get('session-id')
         operation = params.get('operation')
 
-        if session_id not in self.sessions:
+        if session-id not in self.sessions:
             raise ValueError("Invalid session ID")
 
-        session = self.sessions[session_id]
+        session = self.sessions[session-id]
         session['history'].append({
             'timestamp': datetime.utcnow().isoformat(),
             'operation': operation
         })
 
         # Process operation
-        result = self.process_session_operation(session, operation)
+        result = self.process-session-operation(session, operation)
 
         return result
 
-    def handle_destroy_session(self, params: Dict) -> Dict:
+    def handle-destroy-session(self, params: Dict) -> Dict:
         """Destroy session and clean up."""
-        session_id = params.get('session_id')
+        session-id = params.get('session-id')
 
-        if session_id in self.sessions:
-            session = self.sessions.pop(session_id)
+        if session-id in self.sessions:
+            session = self.sessions.pop(session-id)
             return {
                 'status': 'destroyed',
-                'operations_count': len(session['history'])
+                'operations-count': len(session['history'])
             }
 
-        return {'status': 'not_found'}
+        return {'status': 'not-found'}
 
-    def process_session_operation(self, session: Dict, operation: Dict) -> Any:
+    def process-session-operation(self, session: Dict, operation: Dict) -> Any:
         """Process operation within session context."""
         # Implementation
         return {'status': 'completed'}
@@ -1040,12 +1040,12 @@ class StatefulMCPTool(CustomMCPTool):
 ### Plugin Architecture
 
 ```rust
-// src/plugins/plugin_interface.rs
-use async_trait::async_trait;
+// src/plugins/plugin-interface.rs
+use async-trait::async-trait;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[async_trait]
+#[async-trait]
 pub trait Plugin: Send + Sync {
     /// Plugin metadata
     fn metadata(&self) -> PluginMetadata;
@@ -1054,7 +1054,7 @@ pub trait Plugin: Send + Sync {
     async fn initialise(&mut self, config: PluginConfig) -> Result<(), PluginError>;
 
     /// Handle plugin events
-    async fn handle_event(&self, event: PluginEvent) -> Result<PluginResponse, PluginError>;
+    async fn handle-event(&self, event: PluginEvent) -> Result<PluginResponse, PluginError>;
 
     /// Cleanup plugin
     async fn cleanup(&mut self) -> Result<(), PluginError>;
@@ -1071,19 +1071,19 @@ pub struct PluginMetadata {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PluginConfig {
-    pub settings: HashMap<String, serde_json::Value>,
+    pub settings: HashMap<String, serde-json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PluginEvent {
-    pub event_type: String,
-    pub payload: serde_json::Value,
+    pub event-type: String,
+    pub payload: serde-json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PluginResponse {
     pub success: bool,
-    pub data: Option<serde_json::Value>,
+    pub data: Option<serde-json::Value>,
     pub error: Option<String>,
 }
 
@@ -1112,9 +1112,9 @@ impl std::error::Error for PluginError {}
 ### Example Plugin Implementation
 
 ```rust
-// src/plugins/custom_analytics.rs
+// src/plugins/custom-analytics.rs
 use super::{Plugin, PluginMetadata, PluginConfig, PluginEvent, PluginResponse, PluginError};
-use async_trait::async_trait;
+use async-trait::async-trait;
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
@@ -1128,7 +1128,7 @@ struct Graph {
 struct Node {
     id: String,
     label: String,
-    properties: HashMap<String, serde_json::Value>,
+    properties: HashMap<String, serde-json::Value>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -1140,11 +1140,11 @@ struct Edge {
 
 #[derive(Debug, Serialize, Deserialize)]
 struct GraphMetrics {
-    node_count: usize,
-    edge_count: usize,
-    average_degree: f64,
-    clustering_coefficient: f64,
-    connected_components: usize,
+    node-count: usize,
+    edge-count: usize,
+    average-degree: f64,
+    clustering-coefficient: f64,
+    connected-components: usize,
 }
 
 pub struct CustomAnalyticsPlugin {
@@ -1160,110 +1160,110 @@ impl CustomAnalyticsPlugin {
         }
     }
 
-    fn setup_analytics_engine(&mut self) -> Result<(), PluginError> {
+    fn setup-analytics-engine(&mut self) -> Result<(), PluginError> {
         // Initialise analytics engine
-        self.metrics.insert("total_analyses".to_string(), 0.0);
+        self.metrics.insert("total-analyses".to-string(), 0.0);
         Ok(())
     }
 
-    async fn analyse_graph(&self, data: serde_json::Value) -> Result<PluginResponse, PluginError> {
+    async fn analyse-graph(&self, data: serde-json::Value) -> Result<PluginResponse, PluginError> {
         // Parse graph data
-        let graph: Graph = serde_json::from_value(data)
-            .map_err(|e| PluginError::InvalidData(e.to_string()))?;
+        let graph: Graph = serde-json::from-value(data)
+            .map-err(|e| PluginError::InvalidData(e.to-string()))?;
 
         // Perform analysis
-        let metrics = self.calculate_graph_metrics(&graph)?;
+        let metrics = self.calculate-graph-metrics(&graph)?;
 
         Ok(PluginResponse {
             success: true,
-            data: Some(serde_json::to_value(metrics)
-                .map_err(|e| PluginError::ProcessingError(e.to_string()))?),
+            data: Some(serde-json::to-value(metrics)
+                .map-err(|e| PluginError::ProcessingError(e.to-string()))?),
             error: None,
         })
     }
 
-    async fn detect_patterns(&self, data: serde_json::Value) -> Result<PluginResponse, PluginError> {
-        let graph: Graph = serde_json::from_value(data)
-            .map_err(|e| PluginError::InvalidData(e.to_string()))?;
+    async fn detect-patterns(&self, data: serde-json::Value) -> Result<PluginResponse, PluginError> {
+        let graph: Graph = serde-json::from-value(data)
+            .map-err(|e| PluginError::InvalidData(e.to-string()))?;
 
         // Pattern detection logic
-        let patterns = self.find_patterns(&graph)?;
+        let patterns = self.find-patterns(&graph)?;
 
         Ok(PluginResponse {
             success: true,
-            data: Some(serde_json::to_value(patterns)
-                .map_err(|e| PluginError::ProcessingError(e.to_string()))?),
+            data: Some(serde-json::to-value(patterns)
+                .map-err(|e| PluginError::ProcessingError(e.to-string()))?),
             error: None,
         })
     }
 
-    async fn find_anomalies(&self, data: serde_json::Value) -> Result<PluginResponse, PluginError> {
-        let graph: Graph = serde_json::from_value(data)
-            .map_err(|e| PluginError::InvalidData(e.to_string()))?;
+    async fn find-anomalies(&self, data: serde-json::Value) -> Result<PluginResponse, PluginError> {
+        let graph: Graph = serde-json::from-value(data)
+            .map-err(|e| PluginError::InvalidData(e.to-string()))?;
 
         // Anomaly detection logic
-        let anomalies = self.detect_anomalies_in_graph(&graph)?;
+        let anomalies = self.detect-anomalies-in-graph(&graph)?;
 
         Ok(PluginResponse {
             success: true,
-            data: Some(serde_json::to_value(anomalies)
-                .map_err(|e| PluginError::ProcessingError(e.to_string()))?),
+            data: Some(serde-json::to-value(anomalies)
+                .map-err(|e| PluginError::ProcessingError(e.to-string()))?),
             error: None,
         })
     }
 
-    fn calculate_graph_metrics(&self, graph: &Graph) -> Result<GraphMetrics, PluginError> {
+    fn calculate-graph-metrics(&self, graph: &Graph) -> Result<GraphMetrics, PluginError> {
         let metrics = GraphMetrics {
-            node_count: graph.nodes.len(),
-            edge_count: graph.edges.len(),
-            average_degree: self.calculate_average_degree(graph),
-            clustering_coefficient: self.calculate_clustering_coefficient(graph),
-            connected_components: self.find_connected_components(graph),
+            node-count: graph.nodes.len(),
+            edge-count: graph.edges.len(),
+            average-degree: self.calculate-average-degree(graph),
+            clustering-coefficient: self.calculate-clustering-coefficient(graph),
+            connected-components: self.find-connected-components(graph),
         };
 
         Ok(metrics)
     }
 
-    fn calculate_average_degree(&self, graph: &Graph) -> f64 {
-        if graph.nodes.is_empty() {
+    fn calculate-average-degree(&self, graph: &Graph) -> f64 {
+        if graph.nodes.is-empty() {
             return 0.0;
         }
         (2.0 * graph.edges.len() as f64) / graph.nodes.len() as f64
     }
 
-    fn calculate_clustering_coefficient(&self, graph: &Graph) -> f64 {
+    fn calculate-clustering-coefficient(&self, graph: &Graph) -> f64 {
         // Clustering coefficient calculation
         0.0 // Placeholder
     }
 
-    fn find_connected_components(&self, graph: &Graph) -> usize {
+    fn find-connected-components(&self, graph: &Graph) -> usize {
         // Connected components algorithm
         1 // Placeholder
     }
 
-    fn find_patterns(&self, graph: &Graph) -> Result<Vec<String>, PluginError> {
+    fn find-patterns(&self, graph: &Graph) -> Result<Vec<String>, PluginError> {
         // Pattern detection
-        Ok(vec!["pattern1".to_string(), "pattern2".to_string()])
+        Ok(vec!["pattern1".to-string(), "pattern2".to-string()])
     }
 
-    fn detect_anomalies_in_graph(&self, graph: &Graph) -> Result<Vec<String>, PluginError> {
+    fn detect-anomalies-in-graph(&self, graph: &Graph) -> Result<Vec<String>, PluginError> {
         // Anomaly detection
         Ok(vec![])
     }
 }
 
-#[async_trait]
+#[async-trait]
 impl Plugin for CustomAnalyticsPlugin {
     fn metadata(&self) -> PluginMetadata {
         PluginMetadata {
-            name: "Custom Analytics".to_string(),
-            version: "1.0.0".to_string(),
-            author: "Your Name".to_string(),
-            description: "Advanced analytics for graph data".to_string(),
+            name: "Custom Analytics".to-string(),
+            version: "1.0.0".to-string(),
+            author: "Your Name".to-string(),
+            description: "Advanced analytics for graph data".to-string(),
             capabilities: vec![
-                "graph_analysis".to_string(),
-                "pattern_detection".to_string(),
-                "anomaly_detection".to_string(),
+                "graph-analysis".to-string(),
+                "pattern-detection".to-string(),
+                "anomaly-detection".to-string(),
             ],
         }
     }
@@ -1272,17 +1272,17 @@ impl Plugin for CustomAnalyticsPlugin {
         self.config = Some(config);
 
         // Initialise analytics engine
-        self.setup_analytics_engine()?;
+        self.setup-analytics-engine()?;
 
         Ok(())
     }
 
-    async fn handle_event(&self, event: PluginEvent) -> Result<PluginResponse, PluginError> {
-        match event.event_type.as_str() {
-            "analyse_graph" => self.analyse_graph(event.payload).await,
-            "detect_patterns" => self.detect_patterns(event.payload).await,
-            "find_anomalies" => self.find_anomalies(event.payload).await,
-            _ => Err(PluginError::UnknownEvent(event.event_type)),
+    async fn handle-event(&self, event: PluginEvent) -> Result<PluginResponse, PluginError> {
+        match event.event-type.as-str() {
+            "analyse-graph" => self.analyse-graph(event.payload).await,
+            "detect-patterns" => self.detect-patterns(event.payload).await,
+            "find-anomalies" => self.find-anomalies(event.payload).await,
+            - => Err(PluginError::UnknownEvent(event.event-type)),
         }
     }
 
@@ -1299,15 +1299,15 @@ impl Plugin for CustomAnalyticsPlugin {
 # plugins.toml
 [[plugins]]
 name = "custom-analytics"
-path = "./plugins/custom_analytics.so"
+path = "./plugins/custom-analytics.so"
 enabled = true
-config = { buffer_size = 1000, cache_ttl = 300 }
+config = { buffer-size = 1000, cache-ttl = 300 }
 
 [[plugins]]
 name = "external-integration"
-path = "./plugins/external_integration.wasm"
+path = "./plugins/external-integration.wasm"
 enabled = true
-config = { api_endpoint = "https://api.example.com" }
+config = { api-endpoint = "https://api.example.com" }
 ```
 
 ## API Extensions
@@ -1315,170 +1315,170 @@ config = { api_endpoint = "https://api.example.com" }
 ### Creating Custom Endpoints
 
 ```rust
-// src/api/extensions/custom_endpoints.rs
-use actix_web::{web, HttpResponse, Result};
+// src/api/extensions/custom-endpoints.rs
+use actix-web::{web, HttpResponse, Result};
 use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
 
 #[derive(Serialize, Deserialize)]
 struct CustomAnalysisRequest {
-    graph_id: String,
-    analysis_type: String,
-    parameters: serde_json::Value,
+    graph-id: String,
+    analysis-type: String,
+    parameters: serde-json::Value,
 }
 
 #[derive(Serialize)]
 struct CustomAnalysisResponse {
-    result: serde_json::Value,
+    result: serde-json::Value,
     metadata: AnalysisMetadata,
 }
 
 #[derive(Serialize)]
 struct AnalysisMetadata {
     timestamp: DateTime<Utc>,
-    duration_ms: u64,
+    duration-ms: u64,
 }
 
-pub fn configure_custom_routes(cfg: &mut web::ServiceConfig) {
+pub fn configure-custom-routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/custom")
-            .route("/analyse", web::post().to(analyse_graph))
-            .route("/visualise/{id}", web::get().to(get_visualisation))
-            .route("/export", web::post().to(export_data))
+            .route("/analyse", web::post().to(analyse-graph))
+            .route("/visualise/{id}", web::get().to(get-visualisation))
+            .route("/export", web::post().to(export-data))
     );
 }
 
-async fn analyse_graph(
+async fn analyse-graph(
     req: web::Json<CustomAnalysisRequest>,
-    app_state: web::Data<AppState>,
+    app-state: web::Data<AppState>,
 ) -> Result<HttpResponse> {
-    let start_time = std::time::Instant::now();
+    let start-time = std::time::Instant::now();
 
-    let analysis_result = app_state
+    let analysis-result = app-state
         .analyser
-        .perform_analysis(&req.graph_id, &req.analysis_type, &req.parameters)
+        .perform-analysis(&req.graph-id, &req.analysis-type, &req.parameters)
         .await?;
 
-    let duration_ms = start_time.elapsed().as_millis() as u64;
+    let duration-ms = start-time.elapsed().as-millis() as u64;
 
     Ok(HttpResponse::Ok().json(CustomAnalysisResponse {
-        result: analysis_result,
+        result: analysis-result,
         metadata: AnalysisMetadata {
             timestamp: Utc::now(),
-            duration_ms,
+            duration-ms,
         },
     }))
 }
 
-async fn get_visualisation(
+async fn get-visualisation(
     path: web::Path<String>,
-    app_state: web::Data<AppState>,
+    app-state: web::Data<AppState>,
 ) -> Result<HttpResponse> {
-    let graph_id = path.into_inner();
+    let graph-id = path.into-inner();
 
-    let visualisation = app_state
-        .visualisation_engine
-        .generate(&graph_id)
+    let visualisation = app-state
+        .visualisation-engine
+        .generate(&graph-id)
         .await?;
 
     Ok(HttpResponse::Ok().json(visualisation))
 }
 
-async fn export_data(
+async fn export-data(
     req: web::Json<ExportRequest>,
-    app_state: web::Data<AppState>,
+    app-state: web::Data<AppState>,
 ) -> Result<HttpResponse> {
-    let export_result = app_state
+    let export-result = app-state
         .exporter
-        .export(&req.graph_id, &req.format)
+        .export(&req.graph-id, &req.format)
         .await?;
 
-    Ok(HttpResponse::Ok().json(export_result))
+    Ok(HttpResponse::Ok().json(export-result))
 }
 
 #[derive(Deserialize)]
 struct ExportRequest {
-    graph_id: String,
+    graph-id: String,
     format: String,
 }
 
 // Application state
 pub struct AppState {
     pub analyser: Box<dyn GraphAnalyser>,
-    pub visualisation_engine: Box<dyn VisualisationEngine>,
+    pub visualisation-engine: Box<dyn VisualisationEngine>,
     pub exporter: Box<dyn DataExporter>,
 }
 
 // Traits for dependency injection
-#[async_trait::async_trait]
+#[async-trait::async-trait]
 pub trait GraphAnalyser: Send + Sync {
-    async fn perform_analysis(
+    async fn perform-analysis(
         &self,
-        graph_id: &str,
-        analysis_type: &str,
-        parameters: &serde_json::Value,
-    ) -> Result<serde_json::Value, Box<dyn std::error::Error>>;
+        graph-id: &str,
+        analysis-type: &str,
+        parameters: &serde-json::Value,
+    ) -> Result<serde-json::Value, Box<dyn std::error::Error>>;
 }
 
-#[async_trait::async_trait]
+#[async-trait::async-trait]
 pub trait VisualisationEngine: Send + Sync {
     async fn generate(
         &self,
-        graph_id: &str,
-    ) -> Result<serde_json::Value, Box<dyn std::error::Error>>;
+        graph-id: &str,
+    ) -> Result<serde-json::Value, Box<dyn std::error::Error>>;
 }
 
-#[async_trait::async_trait]
+#[async-trait::async-trait]
 pub trait DataExporter: Send + Sync {
     async fn export(
         &self,
-        graph_id: &str,
+        graph-id: &str,
         format: &str,
-    ) -> Result<serde_json::Value, Box<dyn std::error::Error>>;
+    ) -> Result<serde-json::Value, Box<dyn std::error::Error>>;
 }
 ```
 
 ### GraphQL Extensions
 
 ```rust
-// src/graphql/custom_schema.rs
-use juniper::{FieldResult, RootNode, graphql_object};
+// src/graphql/custom-schema.rs
+use juniper::{FieldResult, RootNode, graphql-object};
 use serde::{Deserialize, Serialize};
 
 pub struct Context {
-    pub search_engine: Box<dyn SearchEngine>,
-    pub pattern_detector: Box<dyn PatternDetector>,
-    pub visualisation_engine: Box<dyn VisualisationEngine>,
+    pub search-engine: Box<dyn SearchEngine>,
+    pub pattern-detector: Box<dyn PatternDetector>,
+    pub visualisation-engine: Box<dyn VisualisationEngine>,
 }
 
 impl juniper::Context for Context {}
 
 pub struct CustomQuery;
 
-#[graphql_object(context = Context)]
+#[graphql-object(context = Context)]
 impl CustomQuery {
-    async fn advanced_search(
+    async fn advanced-search(
         ctx: &Context,
         query: String,
         filters: SearchFilters,
         limit: Option<i32>,
     ) -> FieldResult<SearchResults> {
         let results = ctx
-            .search_engine
-            .search(&query, filters, limit.unwrap_or(10))
+            .search-engine
+            .search(&query, filters, limit.unwrap-or(10))
             .await?;
 
         Ok(results)
     }
 
-    async fn pattern_analysis(
+    async fn pattern-analysis(
         ctx: &Context,
-        graph_id: String,
-        pattern_type: PatternType,
+        graph-id: String,
+        pattern-type: PatternType,
     ) -> FieldResult<Vec<Pattern>> {
         let patterns = ctx
-            .pattern_detector
-            .find_patterns(&graph_id, pattern_type)
+            .pattern-detector
+            .find-patterns(&graph-id, pattern-type)
             .await?;
 
         Ok(patterns)
@@ -1487,15 +1487,15 @@ impl CustomQuery {
 
 pub struct CustomMutation;
 
-#[graphql_object(context = Context)]
+#[graphql-object(context = Context)]
 impl CustomMutation {
-    async fn create_custom_visualisation(
+    async fn create-custom-visualisation(
         ctx: &Context,
         input: VisualisationInput,
     ) -> FieldResult<Visualisation> {
         let viz = ctx
-            .visualisation_engine
-            .create_custom(input)
+            .visualisation-engine
+            .create-custom(input)
             .await?;
 
         Ok(viz)
@@ -1506,7 +1506,7 @@ impl CustomMutation {
 struct SearchFilters {
     category: Option<String>,
     tags: Option<Vec<String>>,
-    date_range: Option<DateRange>,
+    date-range: Option<DateRange>,
 }
 
 #[derive(juniper::GraphQLInputObject)]
@@ -1539,28 +1539,28 @@ enum PatternType {
 #[derive(juniper::GraphQLObject)]
 struct Pattern {
     id: String,
-    pattern_type: String,
+    pattern-type: String,
     nodes: Vec<String>,
     confidence: f64,
 }
 
 #[derive(juniper::GraphQLInputObject)]
 struct VisualisationInput {
-    graph_id: String,
+    graph-id: String,
     layout: String,
-    colour_scheme: String,
+    colour-scheme: String,
 }
 
 #[derive(juniper::GraphQLObject)]
 struct Visualisation {
     id: String,
-    graph_id: String,
+    graph-id: String,
     layout: String,
-    created_at: String,
+    created-at: String,
 }
 
 // Trait definitions
-#[async_trait::async_trait]
+#[async-trait::async-trait]
 pub trait SearchEngine: Send + Sync {
     async fn search(
         &self,
@@ -1570,18 +1570,18 @@ pub trait SearchEngine: Send + Sync {
     ) -> Result<SearchResults, Box<dyn std::error::Error>>;
 }
 
-#[async_trait::async_trait]
+#[async-trait::async-trait]
 pub trait PatternDetector: Send + Sync {
-    async fn find_patterns(
+    async fn find-patterns(
         &self,
-        graph_id: &str,
-        pattern_type: PatternType,
+        graph-id: &str,
+        pattern-type: PatternType,
     ) -> Result<Vec<Pattern>, Box<dyn std::error::Error>>;
 }
 
-#[async_trait::async_trait]
+#[async-trait::async-trait]
 pub trait VisualisationEngine: Send + Sync {
-    async fn create_custom(
+    async fn create-custom(
         &self,
         input: VisualisationInput,
     ) -> Result<Visualisation, Box<dyn std::error::Error>>;
@@ -1593,7 +1593,7 @@ pub trait VisualisationEngine: Send + Sync {
 ### Webhook Integration
 
 ```python
-# integrations/webhook_handler.py
+# integrations/webhook-handler.py
 from aiohttp import web
 import aiohttp
 import hmac
@@ -1601,26 +1601,26 @@ import hashlib
 import logging
 from typing import Callable, Dict, Any
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(--name--)
 
 class WebhookIntegration:
-    def __init__(self, config: Dict[str, Any]):
+    def --init--(self, config: Dict[str, Any]):
         self.config = config
-        self.secret = config.get('webhook_secret', '').encode()
+        self.secret = config.get('webhook-secret', '').encode()
         self.handlers: Dict[str, Callable] = {}
 
-    def register_handler(self, event_type: str, handler: Callable):
+    def register-handler(self, event-type: str, handler: Callable):
         """Register webhook handler for event type."""
-        self.handlers[event_type] = handler
-        logger.info(f"Registered handler for event type: {event_type}")
+        self.handlers[event-type] = handler
+        logger.info(f"Registered handler for event type: {event-type}")
 
-    async def handle_webhook(self, request: web.Request) -> web.Response:
+    async def handle-webhook(self, request: web.Request) -> web.Response:
         """Handle incoming webhook."""
         # Verify webhook signature
         signature = request.headers.get('X-Webhook-Signature', '')
         body = await request.read()
 
-        if not self.verify_signature(body, signature):
+        if not self.verify-signature(body, signature):
             logger.warning("Invalid webhook signature")
             return web.Response(status=401, text="Invalid signature")
 
@@ -1629,34 +1629,34 @@ class WebhookIntegration:
             data = await request.json()
         except Exception as e:
             logger.error(f"Failed to parse webhook data: {e}")
-            return web.json_response(
+            return web.json-response(
                 {'status': 'error', 'error': 'Invalid JSON'},
                 status=400
             )
 
-        event_type = data.get('event_type')
+        event-type = data.get('event-type')
 
         # Route to handler
-        handler = self.handlers.get(event_type)
+        handler = self.handlers.get(event-type)
         if handler:
             try:
                 result = await handler(data)
-                logger.info(f"Successfully handled webhook: {event_type}")
-                return web.json_response({'status': 'success', 'result': result})
+                logger.info(f"Successfully handled webhook: {event-type}")
+                return web.json-response({'status': 'success', 'result': result})
             except Exception as e:
-                logger.error(f"Handler error for {event_type}: {e}", exc_info=True)
-                return web.json_response(
+                logger.error(f"Handler error for {event-type}: {e}", exc-info=True)
+                return web.json-response(
                     {'status': 'error', 'error': str(e)},
                     status=500
                 )
 
-        logger.warning(f"No handler registered for event type: {event_type}")
-        return web.json_response(
+        logger.warning(f"No handler registered for event type: {event-type}")
+        return web.json-response(
             {'status': 'error', 'error': 'Unknown event type'},
             status=400
         )
 
-    def verify_signature(self, body: bytes, signature: str) -> bool:
+    def verify-signature(self, body: bytes, signature: str) -> bool:
         """Verify webhook signature."""
         if not self.secret:
             logger.warning("No webhook secret configured")
@@ -1668,7 +1668,7 @@ class WebhookIntegration:
             hashlib.sha256
         ).hexdigest()
 
-        return hmac.compare_digest(expected, signature)
+        return hmac.compare-digest(expected, signature)
 ```
 
 ### External Service Client
@@ -1912,8 +1912,8 @@ export const CustomVisualisation: React.FC<CustomVisualisationProps> = ({
           vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
           vDistance = length(cameraPosition - position);
 
-          gl_PointSize = size * (300.0 / -mvPosition.z);
-          gl_Position = projectionMatrix * mvPosition;
+          gl-PointSize = size * (300.0 / -mvPosition.z);
+          gl-Position = projectionMatrix * mvPosition;
         }
       `,
       fragmentShader: `
@@ -1923,7 +1923,7 @@ export const CustomVisualisation: React.FC<CustomVisualisationProps> = ({
         uniform float time;
 
         void main() {
-          vec2 uv = gl_PointCoord - vec2(0.5);
+          vec2 uv = gl-PointCoord - vec2(0.5);
           float dist = length(uv);
 
           if (dist > 0.5) discard;
@@ -1934,7 +1934,7 @@ export const CustomVisualisation: React.FC<CustomVisualisationProps> = ({
           // Pulsing effect
           alpha *= 0.8 + 0.2 * sin(time * 2.0);
 
-          gl_FragColor = vec4(vColor, alpha);
+          gl-FragColor = vec4(vColor, alpha);
         }
       `,
       transparent: true,
@@ -1971,14 +1971,14 @@ export const CustomVisualisation: React.FC<CustomVisualisationProps> = ({
 ```
 my-visionflow-extension/
 ├── package.json
-├── README.md
+├── readme.md
 ├── LICENSE
 ├── src/
 │   ├── index.ts
 │   ├── agent/
 │   │   └── MyCustomAgent.ts
 │   ├── tools/
-│   │   └── my_tool.py
+│   │   └── my-tool.py
 │   ├── components/
 │   │   └── MyVisualisation.tsx
 │   └── api/
@@ -2019,7 +2019,7 @@ my-visionflow-extension/
     "tools": [
       {
         "name": "my-tool",
-        "command": "python3 -u ./src/tools/my_tool.py",
+        "command": "python3 -u ./src/tools/my-tool.py",
         "config": "./config/tool.json"
       }
     ],
@@ -2096,7 +2096,7 @@ visionflow-cli remove-extension my-visionflow-extension
 # Validate inputs
 import jsonschema
 
-def validate_input(data: Dict) -> bool:
+def validate-input(data: Dict) -> bool:
     """Validate and sanitise input data."""
     schema = {
         "type": "object",
@@ -2114,10 +2114,10 @@ def validate_input(data: Dict) -> bool:
         return False
 
 # Sandbox execution
-def execute_in_sandbox(code: str) -> Any:
+def execute-in-sandbox(code: str) -> Any:
     """Execute code in sandboxed environment."""
-    restricted_globals = {
-        "__builtins__": {
+    restricted-globals = {
+        "--builtins--": {
             "len": len,
             "range": range,
             "str": str,
@@ -2127,7 +2127,7 @@ def execute_in_sandbox(code: str) -> Any:
         }
     }
 
-    return exec(code, restricted_globals, {})
+    return exec(code, restricted-globals, {})
 ```
 
 ### Version Compatibility
@@ -2188,7 +2188,7 @@ export class CompatibilityAdapter {
 visionflow-cli status my-extension
 
 # View extension logs
-docker logs visionflow_container | grep my-extension
+docker logs visionflow-container | grep my-extension
 
 # Validate configuration
 visionflow-cli validate-config ./extension.json
@@ -2204,12 +2204,12 @@ profiler = cProfile.Profile()
 profiler.enable()
 
 # Your extension code
-result = process_data(large_dataset)
+result = process-data(large-dataset)
 
 profiler.disable()
 stats = pstats.Stats(profiler)
-stats.sort_stats('cumulative')
-stats.print_stats(10)
+stats.sort-stats('cumulative')
+stats.print-stats(10)
 ```
 
 3. **Debugging Tips**
@@ -2221,11 +2221,11 @@ stats.print_stats(10)
 ## Related Documentation
 
 - [Agent Templates](../reference/agents/templates/index.md) - Complete template catalogue
-- [Contributing Guide](./CONTRIBUTING.md) - Contribution guidelines
+- [Contributing Guide](./contributing.md) - Contribution guidelines
 - [Troubleshooting Guide](06-troubleshooting.md) - Common issues
-- [Reference Documentation](../reference/README.md) - API details
+- [Reference Documentation](../reference/readme.md) - API details
 - [Development Workflow](02-development-workflow.md) - Development practices
 
 ---
 
-*[← Orchestrating Agents](04-orchestrating-agents.md) | [Back to Guides](README.md) | [Troubleshooting →](06-troubleshooting.md)*
+*[← Orchestrating Agents](04-orchestrating-agents.md) | [Back to Guides](readme.md) | [Troubleshooting →](06-troubleshooting.md)*

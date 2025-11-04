@@ -106,36 +106,36 @@ graph TB
 A coordinator manages high-level workflows and delegates to specialised agents:
 
 ```yaml
-agent_type: coordinator
+agent-type: coordinator
 name: "project-coordinator"
 capabilities:
-  - task_decomposition
-  - agent_supervision
-  - workflow_management
-  - performance_monitoring
-  - conflict_resolution
+  - task-decomposition
+  - agent-supervision
+  - workflow-management
+  - performance-monitoring
+  - conflict-resolution
 config:
-  max_workers: 10
+  max-workers: 10
   strategy: adaptive
-  supervision_interval: 5000ms
+  supervision-interval: 5000ms
 ```
 
 **Example Workflow:**
 ```bash
 # Initialize hierarchical swarm
-mcp__claude-flow__swarm_init hierarchical \
+mcp--claude-flow--swarm-init hierarchical \
   --maxAgents=10 \
   --strategy=adaptive
 
 # Spawn specialised workers
-mcp__claude-flow__agent_spawn researcher \
+mcp--claude-flow--agent-spawn researcher \
   --capabilities="research,analysis"
 
-mcp__claude-flow__agent_spawn coder \
+mcp--claude-flow--agent-spawn coder \
   --capabilities="implementation,testing"
 
 # Coordinate task execution
-mcp__claude-flow__task_orchestrate \
+mcp--claude-flow--task-orchestrate \
   "Build authentication service" \
   --strategy=sequential \
   --priority=high
@@ -148,39 +148,39 @@ See: Reference documentation for hierarchical coordination patterns
 Gathers information and analyses requirements:
 
 ```yaml
-agent_type: researcher
+agent-type: researcher
 name: "requirements-researcher"
 capabilities:
-  - information_gathering
-  - market_research
-  - competitive_analysis
-  - documentation_analysis
+  - information-gathering
+  - market-research
+  - competitive-analysis
+  - documentation-analysis
 config:
-  search_depth: 5
-  max_concurrent_tasks: 3
+  search-depth: 5
+  max-concurrent-tasks: 3
   timeout: 600
 ```
 
 **Example Usage:**
 ```python
 # Spawn researcher agent
-researcher = await orchestrator.spawn_agent(
-    agent_type="researcher",
+researcher = await orchestrator.spawn-agent(
+    agent-type="researcher",
     config={
-        "search_depth": 5,
-        "sources": ["web", "documentation", "code_repositories"],
+        "search-depth": 5,
+        "sources": ["web", "documentation", "code-repositories"],
         "timeout": 600
     }
 )
 
 # Assign research task
 task = Task(
-    type="requirements_analysis",
+    type="requirements-analysis",
     description="Research authentication best practices",
-    required_capabilities=["research", "security"]
+    required-capabilities=["research", "security"]
 )
 
-result = await researcher.process_task(task)
+result = await researcher.process-task(task)
 ```
 
 See: Reference documentation for agent types and capabilities
@@ -190,19 +190,19 @@ See: Reference documentation for agent types and capabilities
 Implements solutions following best practices:
 
 ```yaml
-agent_type: coder
+agent-type: coder
 name: "backend-coder"
 capabilities:
-  - code_generation
+  - code-generation
   - refactoring
   - optimisation
-  - api_design
-  - error_handling
+  - api-design
+  - error-handling
 config:
   languages: ["python", "typescript", "rust"]
   linting: true
   formatting: true
-  test_generation: true
+  test-generation: true
 ```
 
 **Example Implementation:**
@@ -234,28 +234,28 @@ See: Reference documentation for coder agent capabilities
 Designs system architecture and technical strategy:
 
 ```yaml
-agent_type: architect
+agent-type: architect
 name: "system-architect"
 capabilities:
-  - system_design
-  - architecture_patterns
-  - scalability_planning
-  - technical_strategy
+  - system-design
+  - architecture-patterns
+  - scalability-planning
+  - technical-strategy
 config:
-  design_methodology: "domain_driven_design"
-  architecture_style: "microservices"
+  design-methodology: "domain-driven-design"
+  architecture-style: "microservices"
 ```
 
 **Example Design Process:**
 ```bash
 # Create architecture design
-mcp__claude-flow__agent_spawn architect \
-  --capabilities="system_design,patterns,scalability"
+mcp--claude-flow--agent-spawn architect \
+  --capabilities="system-design,patterns,scalability"
 
 # Design authentication system
-mcp__claude-flow__task_orchestrate \
+mcp--claude-flow--task-orchestrate \
   "Design scalable authentication architecture" \
-  --requiredCapabilities="system_design,security" \
+  --requiredCapabilities="system-design,security" \
   --strategy=sequential
 ```
 
@@ -266,43 +266,43 @@ See: Reference documentation for architecture agent capabilities
 Creates comprehensive test suites and validates functionality:
 
 ```yaml
-agent_type: tester
+agent-type: tester
 name: "qa-tester"
 capabilities:
-  - test_creation
+  - test-creation
   - validation
-  - quality_assurance
-  - automated_testing
+  - quality-assurance
+  - automated-testing
 config:
-  test_types: ["unit", "integration", "e2e"]
-  coverage_threshold: 0.8
-  test_framework: "pytest"
+  test-types: ["unit", "integration", "e2e"]
+  coverage-threshold: 0.8
+  test-framework: "pytest"
 ```
 
 **Example Test Generation:**
 ```python
 class TesterAgent:
-    async def generate_test_suite(self, implementation):
+    async def generate-test-suite(self, implementation):
         # Generate unit tests
-        unit_tests = await self.generate_unit_tests(implementation)
+        unit-tests = await self.generate-unit-tests(implementation)
 
         # Generate integration tests
-        integration_tests = await self.generate_integration_tests(implementation)
+        integration-tests = await self.generate-integration-tests(implementation)
 
         # Generate end-to-end tests
-        e2e_tests = await self.generate_e2e_tests(implementation)
+        e2e-tests = await self.generate-e2e-tests(implementation)
 
         # Run validation
-        coverage = await self.run_tests_with_coverage([
-            *unit_tests,
-            *integration_tests,
-            *e2e_tests
+        coverage = await self.run-tests-with-coverage([
+            *unit-tests,
+            *integration-tests,
+            *e2e-tests
         ])
 
         return TestSuite(
-            unit=unit_tests,
-            integration=integration_tests,
-            e2e=e2e_tests,
+            unit=unit-tests,
+            integration=integration-tests,
+            e2e=e2e-tests,
             coverage=coverage
         )
 ```
@@ -314,44 +314,44 @@ See: Reference documentation for tester agent capabilities
 Performs code review and quality assessment:
 
 ```yaml
-agent_type: reviewer
+agent-type: reviewer
 name: "code-reviewer"
 capabilities:
-  - code_review
-  - quality_assessment
-  - security_review
-  - best_practices
+  - code-review
+  - quality-assessment
+  - security-review
+  - best-practices
 config:
-  review_depth: "thorough"
-  focus_areas: ["security", "performance", "maintainability"]
+  review-depth: "thorough"
+  focus-areas: ["security", "performance", "maintainability"]
 ```
 
 **Example Review Process:**
 ```python
 class ReviewerAgent:
-    async def review_code(self, code_submission):
+    async def review-code(self, code-submission):
         # Analyse code quality
-        quality_issues = await self.analyse_quality(code_submission)
+        quality-issues = await self.analyse-quality(code-submission)
 
         # Check security vulnerabilities
-        security_issues = await self.check_security(code_submission)
+        security-issues = await self.check-security(code-submission)
 
         # Review best practices
-        practice_issues = await self.check_best_practices(code_submission)
+        practice-issues = await self.check-best-practices(code-submission)
 
         # Performance analysis
-        performance_issues = await self.analyse_performance(code_submission)
+        performance-issues = await self.analyse-performance(code-submission)
 
         return ReviewReport(
-            quality=quality_issues,
-            security=security_issues,
-            practices=practice_issues,
-            performance=performance_issues,
-            recommendation=self.make_recommendation([
-                quality_issues,
-                security_issues,
-                practice_issues,
-                performance_issues
+            quality=quality-issues,
+            security=security-issues,
+            practices=practice-issues,
+            performance=performance-issues,
+            recommendation=self.make-recommendation([
+                quality-issues,
+                security-issues,
+                practice-issues,
+                performance-issues
             ])
         )
 ```
@@ -393,7 +393,7 @@ curl -X POST http://localhost:9500 \
     "id": 1,
     "method": "tools/call",
     "params": {
-      "name": "swarm_init",
+      "name": "swarm-init",
       "arguments": {
         "topology": "hierarchical",
         "maxAgents": 10
@@ -409,10 +409,10 @@ curl -X POST http://localhost:9500 \
     "id": 2,
     "method": "tools/call",
     "params": {
-      "name": "agent_spawn",
+      "name": "agent-spawn",
       "arguments": {
         "agentType": "coder",
-        "swarmId": "swarm_1757880683494_yl81sece5",
+        "swarmId": "swarm-1757880683494-yl81sece5",
         "config": {
           "model": "claude-3-opus",
           "capabilities": ["python", "rust", "typescript"],
@@ -428,15 +428,15 @@ curl -X POST http://localhost:9500 \
 
 ```bash
 # Spawn agent inside multi-agent-container
-docker exec multi-agent-container mcp__claude-flow__agent_spawn \
+docker exec multi-agent-container mcp--claude-flow--agent-spawn \
   researcher \
-  --swarmId="swarm_1757880683494_yl81sece5" \
-  --capabilities="research,analysis,information_gathering"
+  --swarmId="swarm-1757880683494-yl81sece5" \
+  --capabilities="research,analysis,information-gathering"
 
 # Spawn coder agent with specific configuration
-docker exec multi-agent-container mcp__claude-flow__agent_spawn \
+docker exec multi-agent-container mcp--claude-flow--agent-spawn \
   coder \
-  --swarmId="swarm_1757880683494_yl81sece5" \
+  --swarmId="swarm-1757880683494-yl81sece5" \
   --config='{"language":"python","frameworks":["fastapi","sqlalchemy"]}'
 ```
 
@@ -446,39 +446,39 @@ docker exec multi-agent-container mcp__claude-flow__agent_spawn \
 from visionflow import AgentOrchestrator
 import asyncio
 
-async def spawn_development_team():
+async def spawn-development-team():
     orchestrator = AgentOrchestrator(
-        mcp_host="multi-agent-container",
-        mcp_port=9500
+        mcp-host="multi-agent-container",
+        mcp-port=9500
     )
 
     # Initialize swarm
-    swarm = await orchestrator.initialize_swarm(
+    swarm = await orchestrator.initialize-swarm(
         topology="hierarchical",
-        max_agents=10
+        max-agents=10
     )
 
     # Spawn coordinator
-    coordinator = await orchestrator.spawn_agent(
-        agent_type="coordinator",
-        swarm_id=swarm.id,
+    coordinator = await orchestrator.spawn-agent(
+        agent-type="coordinator",
+        swarm-id=swarm.id,
         config={
-            "max_workers": 5,
+            "max-workers": 5,
             "strategy": "adaptive"
         }
     )
 
     # Spawn development team
-    team = await orchestrator.spawn_agents([
+    team = await orchestrator.spawn-agents([
         {
             "type": "researcher",
             "count": 1,
-            "config": {"search_depth": 5}
+            "config": {"search-depth": 5}
         },
         {
             "type": "architect",
             "count": 1,
-            "config": {"design_methodology": "ddd"}
+            "config": {"design-methodology": "ddd"}
         },
         {
             "type": "coder",
@@ -488,43 +488,43 @@ async def spawn_development_team():
         {
             "type": "tester",
             "count": 1,
-            "config": {"coverage_threshold": 0.8}
+            "config": {"coverage-threshold": 0.8}
         },
         {
             "type": "reviewer",
             "count": 1,
-            "config": {"review_depth": "thorough"}
+            "config": {"review-depth": "thorough"}
         }
     ])
 
     return swarm, coordinator, team
 
 # Run
-swarm, coordinator, team = asyncio.run(spawn_development_team())
+swarm, coordinator, team = asyncio.run(spawn-development-team())
 ```
 
 ### Agent Configuration
 
 ```yaml
 # config/agents.yaml
-agent_templates:
+agent-templates:
   coordinator:
     class: visionflow.agents.CoordinatorAgent
-    default_config:
-      max_workers: 10
-      supervision_interval: 5000
+    default-config:
+      max-workers: 10
+      supervision-interval: 5000
       strategy: adaptive
-      escalation_threshold: 0.7
+      escalation-threshold: 0.7
     resources:
       memory: "4Gi"
       cpu: "2.0"
 
   researcher:
     class: visionflow.agents.ResearcherAgent
-    default_config:
-      max_concurrent_tasks: 3
-      search_depth: 5
-      sources: ["web", "documentation", "code_repositories"]
+    default-config:
+      max-concurrent-tasks: 3
+      search-depth: 5
+      sources: ["web", "documentation", "code-repositories"]
       timeout: 600
     resources:
       memory: "2Gi"
@@ -532,43 +532,43 @@ agent_templates:
 
   coder:
     class: visionflow.agents.CoderAgent
-    default_config:
+    default-config:
       languages: ["python", "typescript", "rust"]
       linting: true
       formatting: true
-      test_generation: true
-      coverage_threshold: 0.8
+      test-generation: true
+      coverage-threshold: 0.8
     resources:
       memory: "4Gi"
       cpu: "2.0"
 
   architect:
     class: visionflow.agents.ArchitectAgent
-    default_config:
-      design_methodology: "domain_driven_design"
-      architecture_style: "microservices"
-      documentation_level: "comprehensive"
+    default-config:
+      design-methodology: "domain-driven-design"
+      architecture-style: "microservices"
+      documentation-level: "comprehensive"
     resources:
       memory: "3Gi"
       cpu: "1.5"
 
   tester:
     class: visionflow.agents.TesterAgent
-    default_config:
-      test_types: ["unit", "integration", "e2e"]
-      coverage_threshold: 0.8
-      test_framework: "pytest"
-      parallel_execution: true
+    default-config:
+      test-types: ["unit", "integration", "e2e"]
+      coverage-threshold: 0.8
+      test-framework: "pytest"
+      parallel-execution: true
     resources:
       memory: "3Gi"
       cpu: "1.5"
 
   reviewer:
     class: visionflow.agents.ReviewerAgent
-    default_config:
-      review_depth: "thorough"
-      focus_areas: ["security", "performance", "maintainability"]
-      automated_fixes: false
+    default-config:
+      review-depth: "thorough"
+      focus-areas: ["security", "performance", "maintainability"]
+      automated-fixes: false
     resources:
       memory: "2Gi"
       cpu: "1.0"
@@ -597,78 +597,78 @@ Workers Workers Workers Workers
 **Example Implementation:**
 ```python
 class HierarchicalCoordinator:
-    def __init__(self):
+    def --init--(self):
         self.hierarchy = {
             "manager": None,
-            "team_leads": [],
+            "team-leads": [],
             "workers": {}
         }
 
-    async def build_hierarchy(self, project_config):
+    async def build-hierarchy(self, project-config):
         # Create manager (coordinator)
-        self.hierarchy["manager"] = await self.spawn_agent(
+        self.hierarchy["manager"] = await self.spawn-agent(
             type="coordinator",
             config={
-                "max_workers": 10,
+                "max-workers": 10,
                 "strategy": "centralized"
             }
         )
 
         # Create team leads for each domain
-        for team in project_config["teams"]:
-            team_lead = await self.spawn_agent(
-                type=team["lead_type"],
+        for team in project-config["teams"]:
+            team-lead = await self.spawn-agent(
+                type=team["lead-type"],
                 config=team["config"]
             )
-            self.hierarchy["team_leads"].append(team_lead)
+            self.hierarchy["team-leads"].append(team-lead)
 
             # Spawn workers for this team
             workers = []
-            for worker_spec in team["workers"]:
-                worker = await self.spawn_agent(
-                    type=worker_spec["type"],
-                    config=worker_spec["config"]
+            for worker-spec in team["workers"]:
+                worker = await self.spawn-agent(
+                    type=worker-spec["type"],
+                    config=worker-spec["config"]
                 )
                 workers.append(worker)
 
-            self.hierarchy["workers"][team_lead.id] = workers
+            self.hierarchy["workers"][team-lead.id] = workers
 
-    async def delegate_task(self, task):
+    async def delegate-task(self, task):
         # Manager assigns to appropriate team
         manager = self.hierarchy["manager"]
-        team_assignment = await manager.assign_to_team(task)
+        team-assignment = await manager.assign-to-team(task)
 
         # Team lead distributes to workers
-        team_lead = self.get_team_lead(team_assignment)
-        worker_tasks = await team_lead.distribute_work(task)
+        team-lead = self.get-team-lead(team-assignment)
+        worker-tasks = await team-lead.distribute-work(task)
 
         # Workers execute in parallel
         results = await asyncio.gather(*[
-            worker.process_task(subtask)
-            for worker, subtask in worker_tasks
+            worker.process-task(subtask)
+            for worker, subtask in worker-tasks
         ])
 
         # Team lead aggregates results
-        team_result = await team_lead.aggregate_results(results)
+        team-result = await team-lead.aggregate-results(results)
 
         # Manager reviews final output
-        final_result = await manager.review_result(team_result)
+        final-result = await manager.review-result(team-result)
 
-        return final_result
+        return final-result
 ```
 
 **MCP Commands:**
 ```bash
 # Initialize hierarchical swarm
-mcp__claude-flow__swarm_init hierarchical \
+mcp--claude-flow--swarm-init hierarchical \
   --maxAgents=10 \
   --strategy=centralized
 
 # Monitor hierarchy health
-mcp__claude-flow__swarm_monitor --interval=5000
+mcp--claude-flow--swarm-monitor --interval=5000
 
 # Generate performance report
-mcp__claude-flow__performance_report \
+mcp--claude-flow--performance-report \
   --format=detailed \
   --timeframe=24h
 ```
@@ -697,45 +697,45 @@ See: [Hierarchical Coordinator Reference](../reference/agents/swarm/hierarchical
 **Example Implementation:**
 ```python
 class MeshCoordinator:
-    def __init__(self):
+    def --init--(self):
         self.peers = []
         self.connections = {}
-        self.consensus_protocol = "gossip"
+        self.consensus-protocol = "gossip"
 
-    async def initialize_mesh(self, agent_count):
+    async def initialize-mesh(self, agent-count):
         # Spawn peer agents
-        for i in range(agent_count):
-            peer = await self.spawn_agent(
-                type="peer_agent",
+        for i in range(agent-count):
+            peer = await self.spawn-agent(
+                type="peer-agent",
                 config={
-                    "peer_discovery": True,
-                    "consensus_protocol": self.consensus_protocol
+                    "peer-discovery": True,
+                    "consensus-protocol": self.consensus-protocol
                 }
             )
             self.peers.append(peer)
 
         # Establish full mesh connectivity
-        for peer_a in self.peers:
-            for peer_b in self.peers:
-                if peer_a != peer_b:
-                    await self.establish_connection(peer_a, peer_b)
+        for peer-a in self.peers:
+            for peer-b in self.peers:
+                if peer-a != peer-b:
+                    await self.establish-connection(peer-a, peer-b)
 
-    async def distribute_task(self, task):
+    async def distribute-task(self, task):
         # Broadcast task to all peers
-        bids = await self.broadcast_task_auction(task)
+        bids = await self.broadcast-task-auction(task)
 
         # Peers vote on best candidate
-        winner = await self.conduct_consensus_vote(bids)
+        winner = await self.conduct-consensus-vote(bids)
 
         # Winning peer executes task
-        result = await winner.execute_task(task)
+        result = await winner.execute-task(task)
 
         # Replicate result across mesh for fault tolerance
-        await self.replicate_result(result, replication_factor=3)
+        await self.replicate-result(result, replication-factor=3)
 
         return result
 
-    async def gossip_protocol(self):
+    async def gossip-protocol(self):
         """Gossip algorithm for information dissemination"""
         while True:
             for peer in self.peers:
@@ -744,7 +744,7 @@ class MeshCoordinator:
 
                 # Exchange state information
                 for target in targets:
-                    await peer.exchange_state(target)
+                    await peer.exchange-state(target)
 
             await asyncio.sleep(2)  # Gossip interval
 ```
@@ -752,23 +752,23 @@ class MeshCoordinator:
 **MCP Commands:**
 ```bash
 # Initialize mesh network
-mcp__claude-flow__swarm_init mesh \
+mcp--claude-flow--swarm-init mesh \
   --maxAgents=12 \
   --strategy=distributed
 
 # Establish peer connections
-mcp__claude-flow__daa_communication \
+mcp--claude-flow--daa-communication \
   --from="mesh-coordinator" \
   --to="all" \
-  --message='{"type":"network_init","topology":"mesh"}'
+  --message='{"type":"network-init","topology":"mesh"}'
 
 # Conduct consensus vote
-mcp__claude-flow__daa_consensus \
+mcp--claude-flow--daa-consensus \
   --agents="all" \
-  --proposal='{"task_assignment":"auth-service","voting_mechanism":"weighted"}'
+  --proposal='{"task-assignment":"auth-service","voting-mechanism":"weighted"}'
 
 # Monitor network health
-mcp__claude-flow__swarm_monitor \
+mcp--claude-flow--swarm-monitor \
   --interval=3000 \
   --metrics="connectivity,latency,throughput"
 ```
@@ -786,26 +786,26 @@ Research → Plan → Code → Review → Test → Deploy
 **Example Implementation:**
 ```python
 class PipelineCoordinator:
-    def __init__(self, stages):
+    def --init--(self, stages):
         self.stages = stages
-        self.pipeline = self.build_pipeline(stages)
+        self.pipeline = self.build-pipeline(stages)
 
-    async def execute_pipeline(self, initial_input):
-        result = initial_input
+    async def execute-pipeline(self, initial-input):
+        result = initial-input
 
         for stage in self.pipeline:
             # Get appropriate agent for stage
-            agent = await self.get_agent_for_stage(stage)
+            agent = await self.get-agent-for-stage(stage)
 
             # Create task
             task = Task(
-                type=stage['task_type'],
+                type=stage['task-type'],
                 input=result,
                 config=stage.get('config', {})
             )
 
             # Execute stage
-            result = await agent.process_task(task)
+            result = await agent.process-task(task)
 
             # Transform output if needed
             if stage.get('transform'):
@@ -813,7 +813,7 @@ class PipelineCoordinator:
 
             # Validate stage output
             if stage.get('validation'):
-                await self.validate_stage_output(result, stage['validation'])
+                await self.validate-stage-output(result, stage['validation'])
 
         return result
 
@@ -821,43 +821,43 @@ class PipelineCoordinator:
 pipeline = PipelineCoordinator([
     {
         "stage": "research",
-        "agent_type": "researcher",
-        "task_type": "gather_requirements",
+        "agent-type": "researcher",
+        "task-type": "gather-requirements",
         "validation": {"completeness": 0.9}
     },
     {
         "stage": "architecture",
-        "agent_type": "architect",
-        "task_type": "design_system",
-        "validation": {"scalability_score": 0.8}
+        "agent-type": "architect",
+        "task-type": "design-system",
+        "validation": {"scalability-score": 0.8}
     },
     {
         "stage": "implementation",
-        "agent_type": "coder",
-        "task_type": "implement_solution",
-        "validation": {"code_quality": 0.85}
+        "agent-type": "coder",
+        "task-type": "implement-solution",
+        "validation": {"code-quality": 0.85}
     },
     {
         "stage": "review",
-        "agent_type": "reviewer",
-        "task_type": "review_code",
-        "validation": {"approval_required": True}
+        "agent-type": "reviewer",
+        "task-type": "review-code",
+        "validation": {"approval-required": True}
     },
     {
         "stage": "testing",
-        "agent_type": "tester",
-        "task_type": "run_tests",
-        "validation": {"coverage": 0.8, "pass_rate": 1.0}
+        "agent-type": "tester",
+        "task-type": "run-tests",
+        "validation": {"coverage": 0.8, "pass-rate": 1.0}
     }
 ])
 
-result = await pipeline.execute_pipeline(project_requirements)
+result = await pipeline.execute-pipeline(project-requirements)
 ```
 
 **MCP Commands:**
 ```bash
 # Execute sequential pipeline
-mcp__claude-flow__task_orchestrate \
+mcp--claude-flow--task-orchestrate \
   "Build authentication service" \
   --strategy=sequential \
   --priority=high \
@@ -882,13 +882,13 @@ The MCP server runs in `multi-agent-container` and provides agent orchestration 
 
 ```rust
 use tokio::net::TcpStream;
-use tokio_util::codec::{Framed, LinesCodec};
+use tokio-util::codec::{Framed, LinesCodec};
 use futures::{SinkExt, StreamExt};
-use serde_json::{json, Value};
+use serde-json::{json, Value};
 
 pub struct MCPClient {
     connection: Framed<TcpStream, LinesCodec>,
-    request_id: u64,
+    request-id: u64,
 }
 
 impl MCPClient {
@@ -898,7 +898,7 @@ impl MCPClient {
         let mut connection = Framed::new(stream, LinesCodec::new());
 
         // Initialize connection
-        let init_request = json!({
+        let init-request = json!({
             "jsonrpc": "2.0",
             "id": 1,
             "method": "initialize",
@@ -911,15 +911,15 @@ impl MCPClient {
             }
         });
 
-        connection.send(init_request.to_string()).await?;
+        connection.send(init-request.to-string()).await?;
 
         // Wait for initialization response
         if let Some(Ok(response)) = connection.next().await {
-            let parsed: Value = serde_json::from_str(&response)?;
-            if parsed.get("result").is_some() {
+            let parsed: Value = serde-json::from-str(&response)?;
+            if parsed.get("result").is-some() {
                 return Ok(Self {
                     connection,
-                    request_id: 2,
+                    request-id: 2,
                 });
             }
         }
@@ -927,64 +927,64 @@ impl MCPClient {
         Err("MCP initialization failed".into())
     }
 
-    pub async fn spawn_agent(
+    pub async fn spawn-agent(
         &mut self,
-        agent_type: &str,
-        swarm_id: &str,
+        agent-type: &str,
+        swarm-id: &str,
         config: Value
     ) -> Result<String> {
         let request = json!({
             "jsonrpc": "2.0",
-            "id": self.request_id,
+            "id": self.request-id,
             "method": "tools/call",
             "params": {
-                "name": "agent_spawn",
+                "name": "agent-spawn",
                 "arguments": {
-                    "agentType": agent_type,
-                    "swarmId": swarm_id,
+                    "agentType": agent-type,
+                    "swarmId": swarm-id,
                     "config": config
                 }
             }
         });
 
-        self.request_id += 1;
-        self.connection.send(request.to_string()).await?;
+        self.request-id += 1;
+        self.connection.send(request.to-string()).await?;
 
         // Wait for response
         if let Some(Ok(response)) = self.connection.next().await {
-            let parsed: Value = serde_json::from_str(&response)?;
+            let parsed: Value = serde-json::from-str(&response)?;
             if let Some(result) = parsed.get("result") {
-                return Ok(result["agentId"].as_str().unwrap().to_string());
+                return Ok(result["agentId"].as-str().unwrap().to-string());
             }
         }
 
         Err("Failed to spawn agent".into())
     }
 
-    pub async fn orchestrate_task(
+    pub async fn orchestrate-task(
         &mut self,
-        swarm_id: &str,
+        swarm-id: &str,
         task: Value
     ) -> Result<Value> {
         let request = json!({
             "jsonrpc": "2.0",
-            "id": self.request_id,
+            "id": self.request-id,
             "method": "tools/call",
             "params": {
-                "name": "task_orchestrate",
+                "name": "task-orchestrate",
                 "arguments": {
-                    "swarmId": swarm_id,
+                    "swarmId": swarm-id,
                     "task": task
                 }
             }
         });
 
-        self.request_id += 1;
-        self.connection.send(request.to_string()).await?;
+        self.request-id += 1;
+        self.connection.send(request.to-string()).await?;
 
         // Wait for response
         if let Some(Ok(response)) = self.connection.next().await {
-            let parsed: Value = serde_json::from_str(&response)?;
+            let parsed: Value = serde-json::from-str(&response)?;
             if let Some(result) = parsed.get("result") {
                 return Ok(result.clone());
             }
@@ -1003,19 +1003,19 @@ import json
 from typing import Dict, Any
 
 class MCPClient:
-    def __init__(self):
+    def --init--(self):
         self.reader = None
         self.writer = None
-        self.request_id = 1
+        self.request-id = 1
 
     async def connect(self, host="multi-agent-container", port=9500):
         """Connect to MCP TCP server"""
-        self.reader, self.writer = await asyncio.open_connection(host, port)
+        self.reader, self.writer = await asyncio.open-connection(host, port)
 
         # Initialize connection
-        init_request = {
+        init-request = {
             "jsonrpc": "2.0",
-            "id": self.request_id,
+            "id": self.request-id,
             "method": "initialize",
             "params": {
                 "protocolVersion": "2024-11-05",
@@ -1026,77 +1026,77 @@ class MCPClient:
             }
         }
 
-        await self._send_request(init_request)
-        response = await self._read_response()
+        await self.-send-request(init-request)
+        response = await self.-read-response()
 
         if "result" not in response:
             raise Exception("MCP initialization failed")
 
-        self.request_id += 1
+        self.request-id += 1
 
-    async def _send_request(self, request: Dict[str, Any]):
+    async def -send-request(self, request: Dict[str, Any]):
         """Send JSON-RPC request"""
         message = json.dumps(request) + "\n"
         self.writer.write(message.encode())
         await self.writer.drain()
 
-    async def _read_response(self) -> Dict[str, Any]:
+    async def -read-response(self) -> Dict[str, Any]:
         """Read JSON-RPC response"""
         data = await self.reader.readline()
         return json.loads(data.decode())
 
-    async def spawn_agent(
+    async def spawn-agent(
         self,
-        agent_type: str,
-        swarm_id: str,
+        agent-type: str,
+        swarm-id: str,
         config: Dict[str, Any]
     ) -> str:
         """Spawn new agent"""
         request = {
             "jsonrpc": "2.0",
-            "id": self.request_id,
+            "id": self.request-id,
             "method": "tools/call",
             "params": {
-                "name": "agent_spawn",
+                "name": "agent-spawn",
                 "arguments": {
-                    "agentType": agent_type,
-                    "swarmId": swarm_id,
+                    "agentType": agent-type,
+                    "swarmId": swarm-id,
                     "config": config
                 }
             }
         }
 
-        self.request_id += 1
-        await self._send_request(request)
-        response = await self._read_response()
+        self.request-id += 1
+        await self.-send-request(request)
+        response = await self.-read-response()
 
         if "result" in response:
             return response["result"]["agentId"]
         else:
             raise Exception(f"Agent spawn failed: {response.get('error')}")
 
-    async def orchestrate_task(
+    async def orchestrate-task(
         self,
-        swarm_id: str,
+        swarm-id: str,
         task: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Orchestrate task execution"""
         request = {
             "jsonrpc": "2.0",
-            "id": self.request_id,
+            "id": self.request-id,
             "method": "tools/call",
             "params": {
-                "name": "task_orchestrate",
+                "name": "task-orchestrate",
                 "arguments": {
-                    "swarmId": swarm_id,
+                    "swarmId": swarm-id,
                     "task": task
                 }
             }
         }
 
-        self.request_id += 1
-        await self._send_request(request)
-        response = await self._read_response()
+        self.request-id += 1
+        await self.-send-request(request)
+        response = await self.-read-response()
 
         if "result" in response:
             return response["result"]
@@ -1107,7 +1107,7 @@ class MCPClient:
         """Close connection"""
         if self.writer:
             self.writer.close()
-            await self.writer.wait_closed()
+            await self.writer.wait-closed()
 
 # Usage example
 async def main():
@@ -1118,12 +1118,12 @@ async def main():
         await client.connect()
 
         # Initialize swarm
-        swarm_request = {
+        swarm-request = {
             "jsonrpc": "2.0",
             "id": 1,
             "method": "tools/call",
             "params": {
-                "name": "swarm_init",
+                "name": "swarm-init",
                 "arguments": {
                     "topology": "hierarchical",
                     "maxAgents": 10
@@ -1132,9 +1132,9 @@ async def main():
         }
 
         # Spawn agents
-        agent_id = await client.spawn_agent(
-            agent_type="coder",
-            swarm_id="swarm_1757880683494_yl81sece5",
+        agent-id = await client.spawn-agent(
+            agent-type="coder",
+            swarm-id="swarm-1757880683494-yl81sece5",
             config={
                 "model": "claude-3-opus",
                 "capabilities": ["python", "rust"],
@@ -1143,8 +1143,8 @@ async def main():
         )
 
         # Orchestrate task
-        result = await client.orchestrate_task(
-            swarm_id="swarm_1757880683494_yl81sece5",
+        result = await client.orchestrate-task(
+            swarm-id="swarm-1757880683494-yl81sece5",
             task={
                 "description": "Implement authentication service",
                 "priority": "high",
@@ -1171,10 +1171,10 @@ asyncio.run(main())
     "id": 3,
     "method": "tools/call",
     "params": {
-        "name": "agent_spawn",
+        "name": "agent-spawn",
         "arguments": {
             "agentType": "coder",
-            "swarmId": "swarm_1757880683494_yl81sece5",
+            "swarmId": "swarm-1757880683494-yl81sece5",
             "config": {
                 "model": "claude-3-opus",
                 "temperature": 0.7,
@@ -1199,8 +1199,8 @@ asyncio.run(main())
     "jsonrpc": "2.0",
     "id": 3,
     "result": {
-        "agentId": "agent_1757967065850_dv2zg7",
-        "swarmId": "swarm_1757880683494_yl81sece5",
+        "agentId": "agent-1757967065850-dv2zg7",
+        "swarmId": "swarm-1757880683494-yl81sece5",
         "status": "spawning",
         "estimatedReadyTime": "2025-01-22T10:00:30Z",
         "tcpEndpoint": "multi-agent-container:9500",
@@ -1212,7 +1212,7 @@ asyncio.run(main())
             "gpuDevice": 0
         },
         "connectionPool": {
-            "poolId": "pool_123",
+            "poolId": "pool-123",
             "connections": 3,
             "healthCheck": "passing"
         },
@@ -1234,9 +1234,9 @@ asyncio.run(main())
     "id": 4,
     "method": "tools/call",
     "params": {
-        "name": "task_orchestrate",
+        "name": "task-orchestrate",
         "arguments": {
-            "swarmId": "swarm_1757880683494_yl81sece5",
+            "swarmId": "swarm-1757880683494-yl81sece5",
             "task": {
                 "description": "Analyse security vulnerabilities in auth module",
                 "priority": "high",
@@ -1248,8 +1248,8 @@ asyncio.run(main())
             },
             "execution": {
                 "mode": "distributed",
-                "retryPolicy": "exponential_backoff",
-                "resultAggregation": "majority_vote",
+                "retryPolicy": "exponential-backoff",
+                "resultAggregation": "majority-vote",
                 "failureThreshold": 0.2
             }
         }
@@ -1263,22 +1263,22 @@ asyncio.run(main())
     "jsonrpc": "2.0",
     "id": 4,
     "result": {
-        "taskId": "task_1757967065850_abc123",
-        "swarmId": "swarm_1757880683494_yl81sece5",
+        "taskId": "task-1757967065850-abc123",
+        "swarmId": "swarm-1757880683494-yl81sece5",
         "status": "orchestrating",
         "assignedAgents": [
             {
-                "agentId": "agent_1757967065850_dv2zg7",
+                "agentId": "agent-1757967065850-dv2zg7",
                 "role": "coordinator",
                 "capabilities": ["security", "code"]
             },
             {
-                "agentId": "agent_1757967065851_def456",
+                "agentId": "agent-1757967065851-def456",
                 "role": "worker",
                 "capabilities": ["code", "review"]
             },
             {
-                "agentId": "agent_1757967065852_ghi789",
+                "agentId": "agent-1757967065852-ghi789",
                 "role": "validator",
                 "capabilities": ["security", "review"]
             }
@@ -1287,27 +1287,27 @@ asyncio.run(main())
             "phases": [
                 {
                     "name": "analysis",
-                    "agents": ["agent_1757967065851_def456"],
+                    "agents": ["agent-1757967065851-def456"],
                     "estimatedDuration": 120
                 },
                 {
-                    "name": "security_scan",
-                    "agents": ["agent_1757967065850_dv2zg7"],
+                    "name": "security-scan",
+                    "agents": ["agent-1757967065850-dv2zg7"],
                     "estimatedDuration": 180,
                     "dependencies": ["analysis"]
                 },
                 {
                     "name": "validation",
-                    "agents": ["agent_1757967065852_ghi789"],
+                    "agents": ["agent-1757967065852-ghi789"],
                     "estimatedDuration": 60,
-                    "dependencies": ["security_scan"]
+                    "dependencies": ["security-scan"]
                 }
             ]
         },
         "coordination": {
             "consensusThreshold": 0.7,
             "votingMechanism": "weighted",
-            "conflictResolution": "expert_priority"
+            "conflictResolution": "expert-priority"
         },
         "estimatedCompletion": "2025-01-22T10:05:00Z",
         "mcpConnections": {
@@ -1329,27 +1329,27 @@ The multi-agent environment runs in a dedicated Docker container with full MCP s
 ```yaml
 services:
   multi-agent:
-    container_name: multi-agent-container
+    container-name: multi-agent-container
     ports:
       - "3000:3000"    # Claude Flow UI
       - "3002:3002"    # WebSocket Bridge
       - "9500:9500"    # MCP TCP Server (PRIMARY)
     environment:
       # MCP Configuration
-      - MCP_TCP_PORT=9500
-      - MCP_ENABLE_TCP=true
-      - MCP_LOG_LEVEL=info
+      - MCP-TCP-PORT=9500
+      - MCP-ENABLE-TCP=true
+      - MCP-LOG-LEVEL=info
 
       # Agent Configuration
-      - MAX_AGENTS=20
-      - AGENT_TIMEOUT=300
+      - MAX-AGENTS=20
+      - AGENT-TIMEOUT=300
 
       # Connection Pooling
-      - MCP_POOL_SIZE=10
-      - MCP_RETRY_ATTEMPTS=3
+      - MCP-POOL-SIZE=10
+      - MCP-RETRY-ATTEMPTS=3
 
     networks:
-      - docker_ragflow
+      - docker-ragflow
 ```
 
 ### Accessing Multi-Agent Container
@@ -1359,7 +1359,7 @@ services:
 docker exec -it multi-agent-container /bin/bash
 
 # Run agent commands
-mcp__claude-flow__swarm_init hierarchical --maxAgents=10
+mcp--claude-flow--swarm-init hierarchical --maxAgents=10
 
 # Check MCP server status
 mcp-tcp-status
@@ -1374,14 +1374,14 @@ Agents in the multi-agent-container can communicate with GUI tools in gui-tools-
 
 ```python
 # Connect to Blender in GUI container
-blender_client = MCPClient(
+blender-client = MCPClient(
     host="gui-tools-service",
     port=9876
 )
 
 # Execute Blender command
-await blender_client.execute_code(
-    "import bpy; bpy.ops.mesh.primitive_cube_add()"
+await blender-client.execute-code(
+    "import bpy; bpy.ops.mesh.primitive-cube-add()"
 )
 ```
 
@@ -1395,74 +1395,74 @@ See: Multi-agent Docker documentation for container setup
 
 ```python
 class Agent:
-    async def send_message(self, target_agent_id: str, message: dict):
+    async def send-message(self, target-agent-id: str, message: dict):
         """Send direct message to another agent"""
-        await self.message_bus.publish(
-            channel=f"agent.{target_agent_id}",
+        await self.message-bus.publish(
+            channel=f"agent.{target-agent-id}",
             message={
-                "from": self.agent_id,
-                "to": target_agent_id,
+                "from": self.agent-id,
+                "to": target-agent-id,
                 "type": "direct",
                 "content": message,
                 "timestamp": datetime.utcnow().isoformat()
             }
         )
 
-    async def handle_message(self, message: dict):
+    async def handle-message(self, message: dict):
         """Process incoming messages"""
-        if message["type"] == "task_request":
-            await self.handle_task_request(message["content"])
-        elif message["type"] == "status_update":
-            await self.handle_status_update(message["content"])
-        elif message["type"] == "data_share":
-            await self.handle_data_share(message["content"])
+        if message["type"] == "task-request":
+            await self.handle-task-request(message["content"])
+        elif message["type"] == "status-update":
+            await self.handle-status-update(message["content"])
+        elif message["type"] == "data-share":
+            await self.handle-data-share(message["content"])
 ```
 
 #### 2. Broadcast Communication
 
 ```python
-async def broadcast_task(task: Task, agent_filter=None):
+async def broadcast-task(task: Task, agent-filter=None):
     """Broadcast task to multiple agents"""
     message = {
-        "type": "task_broadcast",
-        "task": task.to_dict(),
+        "type": "task-broadcast",
+        "task": task.to-dict(),
         "requirements": task.requirements,
         "timestamp": datetime.utcnow().isoformat()
     }
 
-    if agent_filter:
-        channel = f"broadcast.{agent_filter}"
+    if agent-filter:
+        channel = f"broadcast.{agent-filter}"
     else:
         channel = "broadcast.all"
 
-    await message_bus.publish(channel, message)
+    await message-bus.publish(channel, message)
 ```
 
 #### 3. Event-Based Communication
 
 ```python
 class EventDrivenAgent(BaseAgent):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.event_handlers = {
-            "task.completed": self.on_task_completed,
-            "task.failed": self.on_task_failed,
-            "agent.joined": self.on_agent_joined,
-            "agent.left": self.on_agent_left,
-            "error.occurred": self.on_error_occurred
+    def --init--(self, *args, **kwargs):
+        super().--init--(*args, **kwargs)
+        self.event-handlers = {
+            "task.completed": self.on-task-completed,
+            "task.failed": self.on-task-failed,
+            "agent.joined": self.on-agent-joined,
+            "agent.left": self.on-agent-left,
+            "error.occurred": self.on-error-occurred
         }
 
-    async def subscribe_to_events(self):
+    async def subscribe-to-events(self):
         """Subscribe to relevant events"""
-        for event_type in self.event_handlers:
-            await self.event_bus.subscribe(
-                event_type,
-                self.handle_event
+        for event-type in self.event-handlers:
+            await self.event-bus.subscribe(
+                event-type,
+                self.handle-event
             )
 
-    async def handle_event(self, event):
+    async def handle-event(self, event):
         """Route events to appropriate handlers"""
-        handler = self.event_handlers.get(event.type)
+        handler = self.event-handlers.get(event.type)
         if handler:
             await handler(event)
 ```
@@ -1476,19 +1476,19 @@ from datetime import datetime
 
 class AgentMessage(BaseModel):
     """Standard agent message format"""
-    message_id: str
-    from_agent: str
-    to_agent: Optional[str]
-    message_type: str
+    message-id: str
+    from-agent: str
+    to-agent: Optional[str]
+    message-type: str
     content: Dict[str, Any]
     timestamp: datetime
-    correlation_id: Optional[str]
+    correlation-id: Optional[str]
     priority: int = 0
 
 class TaskMessage(AgentMessage):
     """Task-specific message"""
-    task_id: str
-    task_type: str
+    task-id: str
+    task-type: str
     deadline: Optional[datetime]
 
 class StatusMessage(AgentMessage):
@@ -1511,38 +1511,38 @@ from typing import Optional
 class PrioritisedTask:
     priority: int
     task: Task = field(compare=False)
-    created_at: datetime = field(default_factory=datetime.utcnow, compare=False)
+    created-at: datetime = field(default-factory=datetime.utcnow, compare=False)
 
 class TaskQueue:
-    def __init__(self):
+    def --init--(self):
         self.queue = []
-        self.task_map = {}
+        self.task-map = {}
         self.processing = set()
 
-    async def add_task(self, task: Task, priority: int = 0):
+    async def add-task(self, task: Task, priority: int = 0):
         """Add task to queue with priority"""
         prioritised = PrioritisedTask(priority, task)
         heappush(self.queue, prioritised)
-        self.task_map[task.id] = task
+        self.task-map[task.id] = task
 
         # Notify available agents
-        await self.notify_agents(task)
+        await self.notify-agents(task)
 
-    async def get_task(self, agent_capabilities: list[str]) -> Optional[Task]:
+    async def get-task(self, agent-capabilities: list[str]) -> Optional[Task]:
         """Get next suitable task for agent"""
         # Find first matching task
         for i, prioritised in enumerate(self.queue):
             task = prioritised.task
             if (task.id not in self.processing and
-                self.can_handle(task, agent_capabilities)):
+                self.can-handle(task, agent-capabilities)):
                 self.queue.pop(i)
                 self.processing.add(task.id)
                 return task
         return None
 
-    def can_handle(self, task: Task, capabilities: list[str]) -> bool:
+    def can-handle(self, task: Task, capabilities: list[str]) -> bool:
         """Check if agent can handle task"""
-        required = set(task.required_capabilities)
+        required = set(task.required-capabilities)
         available = set(capabilities)
         return required.issubset(available)
 ```
@@ -1551,46 +1551,46 @@ class TaskQueue:
 
 ```python
 class CapabilityMatcher:
-    def match_agent_to_task(
+    def match-agent-to-task(
         self,
         task: Task,
         agents: list[Agent]
     ) -> Optional[Agent]:
         """Match task to most capable agent"""
-        suitable_agents = []
+        suitable-agents = []
 
         for agent in agents:
-            if agent.is_available and self.has_capabilities(agent, task):
-                score = self.calculate_match_score(agent, task)
-                suitable_agents.append((agent, score))
+            if agent.is-available and self.has-capabilities(agent, task):
+                score = self.calculate-match-score(agent, task)
+                suitable-agents.append((agent, score))
 
-        if suitable_agents:
+        if suitable-agents:
             # Return agent with highest match score
-            suitable_agents.sort(key=lambda x: x[1], reverse=True)
-            return suitable_agents[0][0]
+            suitable-agents.sort(key=lambda x: x[1], reverse=True)
+            return suitable-agents[0][0]
 
         return None
 
-    def calculate_match_score(self, agent: Agent, task: Task) -> float:
+    def calculate-match-score(self, agent: Agent, task: Task) -> float:
         """Calculate how well agent matches task"""
         score = 0.0
 
         # Exact capability matches (40% weight)
-        matching_caps = set(agent.capabilities) & set(task.required_capabilities)
-        score += (len(matching_caps) / len(task.required_capabilities)) * 40
+        matching-caps = set(agent.capabilities) & set(task.required-capabilities)
+        score += (len(matching-caps) / len(task.required-capabilities)) * 40
 
         # Past performance (30% weight)
-        if agent.metrics.get('task_success_rate'):
-            score += agent.metrics['task_success_rate'] * 30
+        if agent.metrics.get('task-success-rate'):
+            score += agent.metrics['task-success-rate'] * 30
 
         # Current workload (20% weight)
-        workload = agent.current_tasks / agent.max_tasks
+        workload = agent.current-tasks / agent.max-tasks
         score += (1 - workload) * 20
 
         # Response time (10% weight)
-        if agent.metrics.get('avg_response_time'):
-            response_score = max(0, 1 - (agent.metrics['avg_response_time'] / 300))
-            score += response_score * 10
+        if agent.metrics.get('avg-response-time'):
+            response-score = max(0, 1 - (agent.metrics['avg-response-time'] / 300))
+            score += response-score * 10
 
         return score
 ```
@@ -1599,40 +1599,40 @@ class CapabilityMatcher:
 
 ```python
 class LoadBalancer:
-    def __init__(self):
-        self.agent_loads = {}
+    def --init--(self):
+        self.agent-loads = {}
 
-    async def assign_task(self, task: Task) -> Agent:
+    async def assign-task(self, task: Task) -> Agent:
         """Assign task using load balancing"""
-        available_agents = await self.get_available_agents(task)
+        available-agents = await self.get-available-agents(task)
 
-        if not available_agents:
+        if not available-agents:
             raise NoAvailableAgentError()
 
         # Find least loaded agent
-        min_load = float('inf')
-        selected_agent = None
+        min-load = float('inf')
+        selected-agent = None
 
-        for agent in available_agents:
-            load = self.calculate_load(agent)
-            if load < min_load:
-                min_load = load
-                selected_agent = agent
+        for agent in available-agents:
+            load = self.calculate-load(agent)
+            if load < min-load:
+                min-load = load
+                selected-agent = agent
 
         # Update load tracking
-        self.agent_loads[selected_agent.id] = min_load + task.estimated_duration
+        self.agent-loads[selected-agent.id] = min-load + task.estimated-duration
 
-        return selected_agent
+        return selected-agent
 
-    def calculate_load(self, agent: Agent) -> float:
+    def calculate-load(self, agent: Agent) -> float:
         """Calculate agent's current load"""
-        base_load = self.agent_loads.get(agent.id, 0)
+        base-load = self.agent-loads.get(agent.id, 0)
 
         # Add current task processing time
-        for task in agent.active_tasks:
-            base_load += task.remaining_time
+        for task in agent.active-tasks:
+            base-load += task.remaining-time
 
-        return base_load
+        return base-load
 ```
 
 ## Monitoring and Telemetry
@@ -1643,41 +1643,41 @@ class LoadBalancer:
 class AgentTelemetry:
     """Collect and process agent telemetry data"""
 
-    def __init__(self):
+    def --init--(self):
         self.metrics = {}
         self.events = []
-        self.prometheus_client = PrometheusClient()
+        self.prometheus-client = PrometheusClient()
 
-    async def collect_metrics(self, agent_id: str):
+    async def collect-metrics(self, agent-id: str):
         """Collect metrics from agent"""
-        agent = await self.get_agent(agent_id)
+        agent = await self.get-agent(agent-id)
 
         metrics = {
-            "cpu_usage": psutil.cpu_percent(),
-            "memory_usage": psutil.virtual_memory().percent,
-            "active_tasks": len(agent.active_tasks),
-            "completed_tasks": agent.metrics["completed_tasks"],
-            "error_rate": agent.metrics["error_rate"],
-            "avg_task_duration": agent.metrics["avg_duration"],
-            "success_rate": agent.metrics["success_rate"],
+            "cpu-usage": psutil.cpu-percent(),
+            "memory-usage": psutil.virtual-memory().percent,
+            "active-tasks": len(agent.active-tasks),
+            "completed-tasks": agent.metrics["completed-tasks"],
+            "error-rate": agent.metrics["error-rate"],
+            "avg-task-duration": agent.metrics["avg-duration"],
+            "success-rate": agent.metrics["success-rate"],
             "timestamp": datetime.utcnow()
         }
 
-        self.metrics[agent_id] = metrics
+        self.metrics[agent-id] = metrics
 
         # Export to Prometheus
-        await self.export_to_prometheus(agent_id, metrics)
+        await self.export-to-prometheus(agent-id, metrics)
 
         return metrics
 
-    async def export_to_prometheus(self, agent_id: str, metrics: dict):
+    async def export-to-prometheus(self, agent-id: str, metrics: dict):
         """Export metrics to Prometheus"""
-        for metric_name, value in metrics.items():
+        for metric-name, value in metrics.items():
             if isinstance(value, (int, float)):
-                self.prometheus_client.gauge(
-                    f"agent_{metric_name}",
+                self.prometheus-client.gauge(
+                    f"agent-{metric-name}",
                     value,
-                    labels={"agent_id": agent_id}
+                    labels={"agent-id": agent-id}
                 )
 ```
 
@@ -1687,19 +1687,19 @@ class AgentTelemetry:
 class RealtimeMonitor:
     """Real-time agent monitoring via WebSocket"""
 
-    def __init__(self, websocket_url: str):
-        self.ws_url = websocket_url
+    def --init--(self, websocket-url: str):
+        self.ws-url = websocket-url
         self.connections = {}
-        self.alert_thresholds = {
-            "error_rate": 0.1,
-            "cpu_usage": 90,
-            "memory_usage": 90,
-            "response_time": 10
+        self.alert-thresholds = {
+            "error-rate": 0.1,
+            "cpu-usage": 90,
+            "memory-usage": 90,
+            "response-time": 10
         }
 
-    async def monitor_agent(self, agent_id: str, callback):
+    async def monitor-agent(self, agent-id: str, callback):
         """Monitor specific agent in real-time"""
-        ws = await websockets.connect(f"{self.ws_url}/agent/{agent_id}")
+        ws = await websockets.connect(f"{self.ws-url}/agent/{agent-id}")
 
         try:
             async for message in ws:
@@ -1707,31 +1707,31 @@ class RealtimeMonitor:
                 await callback(data)
 
                 # Check for alerts
-                if self.should_alert(data):
-                    await self.send_alert(agent_id, data)
+                if self.should-alert(data):
+                    await self.send-alert(agent-id, data)
         finally:
             await ws.close()
 
-    def should_alert(self, data: dict) -> bool:
+    def should-alert(self, data: dict) -> bool:
         """Check if metrics warrant an alert"""
         return any([
-            data.get("error_rate", 0) > self.alert_thresholds["error_rate"],
-            data.get("cpu_usage", 0) > self.alert_thresholds["cpu_usage"],
-            data.get("memory_usage", 0) > self.alert_thresholds["memory_usage"],
-            data.get("response_time", 0) > self.alert_thresholds["response_time"]
+            data.get("error-rate", 0) > self.alert-thresholds["error-rate"],
+            data.get("cpu-usage", 0) > self.alert-thresholds["cpu-usage"],
+            data.get("memory-usage", 0) > self.alert-thresholds["memory-usage"],
+            data.get("response-time", 0) > self.alert-thresholds["response-time"]
         ])
 
-    async def send_alert(self, agent_id: str, data: dict):
+    async def send-alert(self, agent-id: str, data: dict):
         """Send alert notification"""
         alert = {
-            "agent_id": agent_id,
+            "agent-id": agent-id,
             "timestamp": datetime.utcnow().isoformat(),
             "metrics": data,
-            "severity": self.calculate_severity(data)
+            "severity": self.calculate-severity(data)
         }
 
         # Send to alerting system
-        await self.alerting_system.send_alert(alert)
+        await self.alerting-system.send-alert(alert)
 ```
 
 ### Monitoring Dashboard
@@ -1744,7 +1744,7 @@ docker exec -it multi-agent-container grafana-server
 curl http://localhost:3000/api/agents/metrics
 
 # Generate performance report
-docker exec multi-agent-container mcp__claude-flow__performance_report \
+docker exec multi-agent-container mcp--claude-flow--performance-report \
   --format=json \
   --timeframe=24h
 ```
@@ -1757,61 +1757,61 @@ docker exec multi-agent-container mcp__claude-flow__performance_report \
 class FailureDetector:
     """Detect and handle agent failures"""
 
-    def __init__(self, heartbeat_interval: int = 30):
-        self.heartbeat_interval = heartbeat_interval
-        self.last_heartbeat = {}
-        self.failure_handlers = {}
-        self.failure_history = defaultdict(list)
+    def --init--(self, heartbeat-interval: int = 30):
+        self.heartbeat-interval = heartbeat-interval
+        self.last-heartbeat = {}
+        self.failure-handlers = {}
+        self.failure-history = defaultdict(list)
 
-    async def monitor_heartbeats(self):
+    async def monitor-heartbeats(self):
         """Monitor agent heartbeats"""
         while True:
-            current_time = time.time()
+            current-time = time.time()
 
-            for agent_id, last_beat in self.last_heartbeat.items():
-                time_since_heartbeat = current_time - last_beat
+            for agent-id, last-beat in self.last-heartbeat.items():
+                time-since-heartbeat = current-time - last-beat
 
-                if time_since_heartbeat > self.heartbeat_interval * 2:
+                if time-since-heartbeat > self.heartbeat-interval * 2:
                     # Agent may have failed
-                    await self.handle_potential_failure(agent_id)
+                    await self.handle-potential-failure(agent-id)
 
-            await asyncio.sleep(self.heartbeat_interval / 2)
+            await asyncio.sleep(self.heartbeat-interval / 2)
 
-    async def handle_potential_failure(self, agent_id: str):
+    async def handle-potential-failure(self, agent-id: str):
         """Handle potential agent failure"""
         # Verify failure with multiple checks
-        if await self.verify_failure(agent_id):
-            logger.warning(f"Agent {agent_id} failed")
+        if await self.verify-failure(agent-id):
+            logger.warning(f"Agent {agent-id} failed")
 
             # Record failure
-            self.failure_history[agent_id].append({
+            self.failure-history[agent-id].append({
                 "timestamp": time.time(),
-                "type": "heartbeat_timeout"
+                "type": "heartbeat-timeout"
             })
 
             # Get agent's active tasks
-            agent = await self.get_agent(agent_id)
-            active_tasks = agent.active_tasks if agent else []
+            agent = await self.get-agent(agent-id)
+            active-tasks = agent.active-tasks if agent else []
 
             # Mark agent as failed
-            await self.mark_agent_failed(agent_id)
+            await self.mark-agent-failed(agent-id)
 
             # Reassign tasks
-            for task in active_tasks:
-                await self.reassign_task(task)
+            for task in active-tasks:
+                await self.reassign-task(task)
 
             # Attempt recovery
-            await self.attempt_recovery(agent_id)
+            await self.attempt-recovery(agent-id)
 
-    async def verify_failure(self, agent_id: str) -> bool:
+    async def verify-failure(self, agent-id: str) -> bool:
         """Verify agent failure with multiple checks"""
         checks = [
-            self.check_heartbeat(agent_id),
-            self.check_tcp_connection(agent_id),
-            self.check_process_status(agent_id)
+            self.check-heartbeat(agent-id),
+            self.check-tcp-connection(agent-id),
+            self.check-process-status(agent-id)
         ]
 
-        results = await asyncio.gather(*checks, return_exceptions=True)
+        results = await asyncio.gather(*checks, return-exceptions=True)
 
         # Fail if majority of checks indicate failure
         failures = sum(1 for r in results if isinstance(r, Exception) or not r)
@@ -1824,77 +1824,77 @@ class FailureDetector:
 class RecoveryManager:
     """Manage agent recovery strategies"""
 
-    async def recover_agent(self, agent_id: str, failure_type: str):
+    async def recover-agent(self, agent-id: str, failure-type: str):
         """Recover failed agent based on failure type"""
 
         strategies = {
-            "timeout": self.recover_from_timeout,
-            "crash": self.recover_from_crash,
-            "resource_exhaustion": self.recover_from_resource_exhaustion,
-            "network_failure": self.recover_from_network_failure,
-            "deadlock": self.recover_from_deadlock
+            "timeout": self.recover-from-timeout,
+            "crash": self.recover-from-crash,
+            "resource-exhaustion": self.recover-from-resource-exhaustion,
+            "network-failure": self.recover-from-network-failure,
+            "deadlock": self.recover-from-deadlock
         }
 
-        recovery_fn = strategies.get(failure_type, self.default_recovery)
-        return await recovery_fn(agent_id)
+        recovery-fn = strategies.get(failure-type, self.default-recovery)
+        return await recovery-fn(agent-id)
 
-    async def recover_from_timeout(self, agent_id: str):
+    async def recover-from-timeout(self, agent-id: str):
         """Recover from timeout failure"""
         # Kill stuck processes
-        await self.kill_agent_processes(agent_id)
+        await self.kill-agent-processes(agent-id)
 
         # Restart agent with increased timeout
-        agent_config = await self.get_agent_config(agent_id)
-        agent_config["timeout"] *= 1.5  # Increase timeout by 50%
+        agent-config = await self.get-agent-config(agent-id)
+        agent-config["timeout"] *= 1.5  # Increase timeout by 50%
 
-        agent = await self.restart_agent(agent_id, agent_config)
+        agent = await self.restart-agent(agent-id, agent-config)
 
         # Restore state
-        await self.restore_agent_state(agent)
+        await self.restore-agent-state(agent)
 
         return agent
 
-    async def recover_from_crash(self, agent_id: str):
+    async def recover-from-crash(self, agent-id: str):
         """Recover from agent crash"""
         # Analyse crash logs
-        crash_info = await self.analyse_crash_logs(agent_id)
+        crash-info = await self.analyse-crash-logs(agent-id)
 
         # Fix configuration if needed
-        if crash_info.get("config_error"):
-            await self.fix_agent_config(agent_id, crash_info)
+        if crash-info.get("config-error"):
+            await self.fix-agent-config(agent-id, crash-info)
 
         # Restart with backoff
-        return await self.restart_with_backoff(agent_id)
+        return await self.restart-with-backoff(agent-id)
 
-    async def recover_from_resource_exhaustion(self, agent_id: str):
+    async def recover-from-resource-exhaustion(self, agent-id: str):
         """Recover from resource exhaustion"""
         # Increase resource limits
-        agent_config = await self.get_agent_config(agent_id)
-        agent_config["resources"]["memory"] = str(
-            int(agent_config["resources"]["memory"].rstrip("Gi")) * 1.5
+        agent-config = await self.get-agent-config(agent-id)
+        agent-config["resources"]["memory"] = str(
+            int(agent-config["resources"]["memory"].rstrip("Gi")) * 1.5
         ) + "Gi"
 
         # Restart with increased resources
-        return await self.restart_agent(agent_id, agent_config)
+        return await self.restart-agent(agent-id, agent-config)
 
-    async def restart_with_backoff(
+    async def restart-with-backoff(
         self,
-        agent_id: str,
-        max_attempts: int = 3
+        agent-id: str,
+        max-attempts: int = 3
     ):
         """Restart agent with exponential backoff"""
         delay = 1
 
-        for attempt in range(max_attempts):
+        for attempt in range(max-attempts):
             try:
-                agent = await self.restart_agent(agent_id)
+                agent = await self.restart-agent(agent-id)
                 return agent
             except Exception as e:
-                if attempt == max_attempts - 1:
+                if attempt == max-attempts - 1:
                     raise
 
                 logger.warning(
-                    f"Restart attempt {attempt + 1} failed for {agent_id}: {e}"
+                    f"Restart attempt {attempt + 1} failed for {agent-id}: {e}"
                 )
                 await asyncio.sleep(delay)
                 delay *= 2  # Exponential backoff
@@ -1906,22 +1906,22 @@ class RecoveryManager:
 class CircuitBreaker:
     """Circuit breaker for agent operations"""
 
-    def __init__(self, failure_threshold: int = 5, timeout: int = 60):
-        self.failure_threshold = failure_threshold
+    def --init--(self, failure-threshold: int = 5, timeout: int = 60):
+        self.failure-threshold = failure-threshold
         self.timeout = timeout
         self.failures = defaultdict(int)
-        self.last_failure_time = {}
-        self.state = defaultdict(lambda: "closed")  # closed, open, half_open
+        self.last-failure-time = {}
+        self.state = defaultdict(lambda: "closed")  # closed, open, half-open
 
-    async def call(self, agent_id: str, operation: Callable):
+    async def call(self, agent-id: str, operation: Callable):
         """Execute operation with circuit breaker protection"""
-        if self.state[agent_id] == "open":
+        if self.state[agent-id] == "open":
             # Check if timeout has elapsed
-            if time.time() - self.last_failure_time[agent_id] > self.timeout:
-                self.state[agent_id] = "half_open"
+            if time.time() - self.last-failure-time[agent-id] > self.timeout:
+                self.state[agent-id] = "half-open"
             else:
                 raise CircuitOpenError(
-                    f"Circuit open for agent {agent_id}. "
+                    f"Circuit open for agent {agent-id}. "
                     f"Retry after {self.timeout}s"
                 )
 
@@ -1929,22 +1929,22 @@ class CircuitBreaker:
             result = await operation()
 
             # Success - reset failures
-            if self.state[agent_id] == "half_open":
-                self.state[agent_id] = "closed"
-            self.failures[agent_id] = 0
+            if self.state[agent-id] == "half-open":
+                self.state[agent-id] = "closed"
+            self.failures[agent-id] = 0
 
             return result
 
         except Exception as e:
-            self.failures[agent_id] += 1
-            self.last_failure_time[agent_id] = time.time()
+            self.failures[agent-id] += 1
+            self.last-failure-time[agent-id] = time.time()
 
             # Open circuit if threshold exceeded
-            if self.failures[agent_id] >= self.failure_threshold:
-                self.state[agent_id] = "open"
+            if self.failures[agent-id] >= self.failure-threshold:
+                self.state[agent-id] = "open"
                 logger.error(
-                    f"Circuit opened for agent {agent_id} "
-                    f"after {self.failures[agent_id]} failures"
+                    f"Circuit opened for agent {agent-id} "
+                    f"after {self.failures[agent-id]} failures"
                 )
 
             raise e
@@ -1964,10 +1964,10 @@ class CircuitBreaker:
 **Diagnosis:**
 ```bash
 # Check agent status
-docker exec multi-agent-container mcp__claude-flow__swarm_status
+docker exec multi-agent-container mcp--claude-flow--swarm-status
 
 # View agent logs
-docker logs multi-agent-container | grep "agent_[agent_id]"
+docker logs multi-agent-container | grep "agent-[agent-id]"
 
 # Check TCP connection
 docker exec multi-agent-container nc -zv multi-agent-container 9500
@@ -1979,13 +1979,13 @@ docker exec multi-agent-container mcp-tcp-status
 **Resolution:**
 ```bash
 # Restart specific agent
-docker exec multi-agent-container mcp__claude-flow__agent_restart \
-  --agentId="agent_1757967065850_dv2zg7"
+docker exec multi-agent-container mcp--claude-flow--agent-restart \
+  --agentId="agent-1757967065850-dv2zg7"
 
 # If restart fails, respawn agent
-docker exec multi-agent-container mcp__claude-flow__agent_spawn \
+docker exec multi-agent-container mcp--claude-flow--agent-spawn \
   coder \
-  --swarmId="swarm_1757880683494_yl81sece5" \
+  --swarmId="swarm-1757880683494-yl81sece5" \
   --config='{"capabilities":["python","rust"]}'
 ```
 
@@ -1999,28 +1999,28 @@ docker exec multi-agent-container mcp__claude-flow__agent_spawn \
 **Diagnosis:**
 ```bash
 # Check queue status
-docker exec multi-agent-container mcp__claude-flow__swarm_status | \
+docker exec multi-agent-container mcp--claude-flow--swarm-status | \
   jq '.taskQueue'
 
 # Check agent workload distribution
-docker exec multi-agent-container mcp__claude-flow__performance_report \
-  --format=json | jq '.agents[] | {id, active_tasks, utilization}'
+docker exec multi-agent-container mcp--claude-flow--performance-report \
+  --format=json | jq '.agents[] | {id, active-tasks, utilization}'
 ```
 
 **Resolution:**
 ```bash
 # Clear stuck tasks
-docker exec multi-agent-container mcp__claude-flow__task_queue_clear \
+docker exec multi-agent-container mcp--claude-flow--task-queue-clear \
   --filter="status:stuck,age:>3600"
 
 # Scale up agent pool
-docker exec multi-agent-container mcp__claude-flow__agent_scale \
+docker exec multi-agent-container mcp--claude-flow--agent-scale \
   --count=5 \
   --agentType="coder"
 
 # Rebalance workload
-docker exec multi-agent-container mcp__claude-flow__load_balance \
-  --strategy="even_distribution"
+docker exec multi-agent-container mcp--claude-flow--load-balance \
+  --strategy="even-distribution"
 ```
 
 #### 3. High Error Rate
@@ -2033,7 +2033,7 @@ docker exec multi-agent-container mcp__claude-flow__load_balance \
 **Diagnosis:**
 ```bash
 # View error statistics
-docker exec multi-agent-container mcp__claude-flow__performance_report \
+docker exec multi-agent-container mcp--claude-flow--performance-report \
   --format=json | jq '.errorMetrics'
 
 # Analyse error patterns
@@ -2049,23 +2049,23 @@ docker stats multi-agent-container --no-stream
 **Resolution:**
 ```python
 # Implement error recovery
-async def handle_high_error_rate(agent_id: str):
+async def handle-high-error-rate(agent-id: str):
     # Get error history
-    errors = await get_agent_errors(agent_id)
+    errors = await get-agent-errors(agent-id)
 
     # Analyse error patterns
-    error_types = Counter(e["type"] for e in errors)
+    error-types = Counter(e["type"] for e in errors)
 
     # Apply appropriate recovery strategy
-    if error_types.most_common(1)[0][0] == "timeout":
+    if error-types.most-common(1)[0][0] == "timeout":
         # Increase timeouts
-        await update_agent_config(agent_id, {"timeout": 600})
-    elif error_types.most_common(1)[0][0] == "resource_exhaustion":
+        await update-agent-config(agent-id, {"timeout": 600})
+    elif error-types.most-common(1)[0][0] == "resource-exhaustion":
         # Increase resources
-        await scale_agent_resources(agent_id, {"memory": "8Gi"})
+        await scale-agent-resources(agent-id, {"memory": "8Gi"})
     else:
         # General recovery: restart agent
-        await restart_agent(agent_id)
+        await restart-agent(agent-id)
 ```
 
 #### 4. Memory Leaks
@@ -2085,28 +2085,28 @@ docker stats multi-agent-container --format \
 docker exec multi-agent-container ps aux --sort=-rss | head -10
 
 # Profile agent memory usage
-docker exec multi-agent-container python -m memory_profiler agent.py
+docker exec multi-agent-container python -m memory-profiler agent.py
 ```
 
 **Resolution:**
 ```python
 # Implement periodic agent recycling
 class AgentRecycler:
-    async def recycle_agents(self):
+    async def recycle-agents(self):
         """Periodically recycle agents to prevent memory leaks"""
         while True:
-            agents = await self.get_all_agents()
+            agents = await self.get-all-agents()
 
             for agent in agents:
                 # Check memory usage
-                if agent.memory_usage > 0.9 * agent.memory_limit:
+                if agent.memory-usage > 0.9 * agent.memory-limit:
                     # Gracefully drain tasks
-                    await agent.stop_accepting_tasks()
-                    await agent.wait_for_tasks_complete()
+                    await agent.stop-accepting-tasks()
+                    await agent.wait-for-tasks-complete()
 
                     # Respawn fresh agent
-                    new_agent = await self.spawn_agent(
-                        agent_type=agent.type,
+                    new-agent = await self.spawn-agent(
+                        agent-type=agent.type,
                         config=agent.config
                     )
 
@@ -2133,18 +2133,18 @@ docker exec multi-agent-container ping -c 3 gui-tools-service
 docker exec multi-agent-container nc -zv gui-tools-service 9876
 
 # Check Docker network status
-docker network inspect docker_ragflow
+docker network inspect docker-ragflow
 ```
 
 **Resolution:**
 ```bash
 # Restart Docker network
-docker network disconnect docker_ragflow multi-agent-container
-docker network connect docker_ragflow multi-agent-container
+docker network disconnect docker-ragflow multi-agent-container
+docker network connect docker-ragflow multi-agent-container
 
 # Reconnect agents to MCP server
-docker exec multi-agent-container mcp__claude-flow__swarm_reconnect \
-  --swarmId="swarm_1757880683494_yl81sece5"
+docker exec multi-agent-container mcp--claude-flow--swarm-reconnect \
+  --swarmId="swarm-1757880683494-yl81sece5"
 
 # Verify connectivity restored
 docker exec multi-agent-container mcp-tcp-test
@@ -2154,14 +2154,14 @@ docker exec multi-agent-container mcp-tcp-test
 
 ```bash
 # Agent Status
-mcp__claude-flow__swarm_status              # View swarm and agent status
-mcp__claude-flow__agent_health --agentId=X  # Check specific agent health
-mcp__claude-flow__performance_report        # Generate performance report
+mcp--claude-flow--swarm-status              # View swarm and agent status
+mcp--claude-flow--agent-health --agentId=X  # Check specific agent health
+mcp--claude-flow--performance-report        # Generate performance report
 
 # Network Diagnostics
 nc -zv multi-agent-container 9500           # Test TCP connectivity
 mcp-tcp-status                              # Check MCP server status
-docker network inspect docker_ragflow      # Inspect Docker network
+docker network inspect docker-ragflow      # Inspect Docker network
 
 # Resource Monitoring
 docker stats multi-agent-container          # Real-time resource usage
@@ -2169,9 +2169,9 @@ docker logs -f multi-agent-container        # Follow logs in real-time
 htop                                        # Interactive process viewer
 
 # Troubleshooting
-mcp__claude-flow__debug_enable              # Enable debug logging
-mcp__claude-flow__agent_restart --agentId=X # Restart specific agent
-mcp__claude-flow__swarm_reset               # Reset swarm state
+mcp--claude-flow--debug-enable              # Enable debug logging
+mcp--claude-flow--agent-restart --agentId=X # Restart specific agent
+mcp--claude-flow--swarm-reset               # Reset swarm state
 ```
 
 ## Production Best Practices
@@ -2188,7 +2188,7 @@ mcp__claude-flow__swarm_reset               # Reset swarm state
 
 ```yaml
 # Horizontal Scaling
-min_agents_per_type:
+min-agents-per-type:
   coordinator: 1
   researcher: 2
   architect: 1
@@ -2196,7 +2196,7 @@ min_agents_per_type:
   tester: 2
   reviewer: 1
 
-max_agents_per_type:
+max-agents-per-type:
   coordinator: 2
   researcher: 5
   architect: 2
@@ -2205,7 +2205,7 @@ max_agents_per_type:
   reviewer: 3
 
 # Vertical Scaling
-resource_limits:
+resource-limits:
   coordinator:
     memory: "4Gi"
     cpu: "2.0"
@@ -2230,26 +2230,26 @@ resource_limits:
 
 ```python
 # Efficient task batching
-async def batch_process_tasks(agent, tasks: list[Task]):
+async def batch-process-tasks(agent, tasks: list[Task]):
     """Process multiple tasks efficiently"""
     # Group similar tasks
-    task_groups = defaultdict(list)
+    task-groups = defaultdict(list)
     for task in tasks:
-        task_groups[task.type].append(task)
+        task-groups[task.type].append(task)
 
     results = []
-    for task_type, group in task_groups.items():
+    for task-type, group in task-groups.items():
         # Process group in parallel if supported
-        if agent.supports_batch(task_type):
-            result = await agent.batch_process(group)
+        if agent.supports-batch(task-type):
+            result = await agent.batch-process(group)
             results.extend(result)
         else:
             # Sequential processing with concurrency limit
             for batch in chunks(group, size=5):
-                batch_results = await asyncio.gather(*[
-                    agent.process_task(task) for task in batch
+                batch-results = await asyncio.gather(*[
+                    agent.process-task(task) for task in batch
                 ])
-                results.extend(batch_results)
+                results.extend(batch-results)
 
     return results
 ```
@@ -2274,8 +2274,8 @@ async def batch_process_tasks(agent, tasks: list[Task]):
 - [Development Workflow](./development-workflow.md)
 - [Configuration Guide](./configuration.md)
 - [Agent Control Panel](./agent-orchestration.md)
-- [Reference Documentation](../reference/README.md)
+- [Reference Documentation](../reference/readme.md)
 
 ---
 
-*[Back to Guides](README.md) | [Development Workflow →](development-workflow.md)*
+*[Back to Guides](readme.md) | [Development Workflow →](development-workflow.md)*

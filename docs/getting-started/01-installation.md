@@ -1,6 +1,6 @@
 # Installation Guide
 
-*[Getting-Started](../README.md)*
+*[Getting-Started](../readme.md)*
 
 This comprehensive guide covers everything you need to install and configure VisionFlow, from basic setup to advanced GPU-accelerated deployments.
 
@@ -84,7 +84,7 @@ For GPU acceleration, install NVIDIA Container Toolkit:
 **Linux:**
 ```bash
 # Add NVIDIA package repositories
-distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+distribution=$(. /etc/os-release;echo $ID$VERSION-ID)
 curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
 curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
 
@@ -159,39 +159,39 @@ Edit `.env` file with your preferred settings:
 
 ```bash
 # Core Configuration
-CLAUDE_FLOW_HOST=multi-agent-container
-MCP_TCP_PORT=9500
-MCP_TRANSPORT=tcp
+CLAUDE-FLOW-HOST=multi-agent-container
+MCP-TCP-PORT=9500
+MCP-TRANSPORT=tcp
 
 # Performance Settings
-ENABLE_GPU=true                    # Enable GPU acceleration
-MAX_AGENTS=20                     # Maximum concurrent agents
-MEMORY_LIMIT=16g                  # Container memory limit
-CPU_LIMIT=8                       # CPU core limit
+ENABLE-GPU=true                    # Enable GPU acceleration
+MAX-AGENTS=20                     # Maximum concurrent agents
+MEMORY-LIMIT=16g                  # Container memory limit
+CPU-LIMIT=8                       # CPU core limit
 
 # API Keys (Optional)
-OPENAI_API_KEY=your_openai_key
-PERPLEXITY_API_KEY=your_perplexity_key
-GITHUB_TOKEN=your_github_token
+OPENAI-API-KEY=your-openai-key
+PERPLEXITY-API-KEY=your-perplexity-key
+GITHUB-TOKEN=your-github-token
 
 # Features
-ENABLE_XR=false                   # Meta Quest integration
-ENABLE_VOICE=false               # Voice interaction
-DEBUG_MODE=false                 # Debug logging
+ENABLE-XR=false                   # Meta Quest integration
+ENABLE-VOICE=false               # Voice interaction
+DEBUG-MODE=false                 # Debug logging
 
 # Security
-JWT_SECRET=your_random_secret
-CORS_ORIGINS=http://localhost:3030
+JWT-SECRET=your-random-secret
+CORS-ORIGINS=http://localhost:3030
 
 # Database
-POSTGRES_USER=visionflow
-POSTGRES_PASSWORD=secure_password
-POSTGRES_DB=visionflow
+POSTGRES-USER=visionflow
+POSTGRES-PASSWORD=secure-password
+POSTGRES-DB=visionflow
 
 # Networking
-HOST_PORT=3001                   # External access port
-INTERNAL_API_PORT=4000          # Internal API port
-WEBSOCKET_PORT=4001             # WebSocket port
+HOST-PORT=3001                   # External access port
+INTERNAL-API-PORT=4000          # Internal API port
+WEBSOCKET-PORT=4001             # WebSocket port
 ```
 
 #### Step 3: Choose Deployment Profile
@@ -216,10 +216,10 @@ docker-compose ps
 
 # Expected output:
 # NAME                    COMMAND                  SERVICE             STATUS
-# visionflow_container    "/app/scripts/start.sh"  webxr              Up
+# visionflow-container    "/app/scripts/start.sh"  webxr              Up
 # multi-agent-container   "python3 -m claude..."   claude-flow        Up
-# postgres_container      "docker-entrypoint.s..."  postgres           Up
-# redis_container         "redis-server --appen..."  redis              Up
+# postgres-container      "docker-entrypoint.s..."  postgres           Up
+# redis-container         "redis-server --appen..."  redis              Up
 
 # Check logs for any errors
 docker-compose logs --tail=50
@@ -254,16 +254,16 @@ Edit `.env` for GPU optimisation:
 
 ```bash
 # GPU Configuration
-NVIDIA_VISIBLE_DEVICES=0          # Use first GPU
-NVIDIA_DRIVER_CAPABILITIES=compute,utility
-CUDA_ARCH=86                      # RTX 30xx series
-ENABLE_GPU_PHYSICS=true           # GPU physics simulation
-GPU_MEMORY_LIMIT=8g              # GPU memory limit
+NVIDIA-VISIBLE-DEVICES=0          # Use first GPU
+NVIDIA-DRIVER-CAPABILITIES=compute,utility
+CUDA-ARCH=86                      # RTX 30xx series
+ENABLE-GPU-PHYSICS=true           # GPU physics simulation
+GPU-MEMORY-LIMIT=8g              # GPU memory limit
 
 # Performance Tuning
-PHYSICS_THREADS=8                # Physics computation threads
-RENDER_THREADS=4                 # Rendering threads
-BATCH_SIZE=1000                  # Physics batch size
+PHYSICS-THREADS=8                # Physics computation threads
+RENDER-THREADS=4                 # Rendering threads
+BATCH-SIZE=1000                  # Physics batch size
 ```
 
 #### Step 3: Start GPU-Enabled Services
@@ -272,7 +272,7 @@ BATCH_SIZE=1000                  # Physics batch size
 docker-compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
 
 # Verify GPU usage
-docker exec visionflow_container nvidia-smi
+docker exec visionflow-container nvidia-smi
 ```
 
 ### Multi-Node Deployment
@@ -282,11 +282,11 @@ For large-scale deployments across multiple servers:
 #### Step 1: Configure Network
 ```bash
 # Create external network
-docker network create visionflow_cluster
+docker network create visionflow-cluster
 
 # Configure each node in docker-compose.yml
 networks:
-  visionflow_cluster:
+  visionflow-cluster:
     external: true
 ```
 
@@ -328,7 +328,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source ~/.cargo/env
 
 # Node.js and npm
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+curl -fsSL https://deb.nodesource.com/setup-18.x | sudo -E bash -
 sudo apt-get install -y nodejs
 
 # Verify installations
@@ -382,18 +382,18 @@ cd client && npm test            # Frontend tests
 }
 
 # Configure container limits in .env
-MEMORY_LIMIT=16g
-SWAP_LIMIT=4g
+MEMORY-LIMIT=16g
+SWAP-LIMIT=4g
 ```
 
 ### CPU Optimisation
 ```bash
 # Set CPU affinity for containers
-docker-compose exec visionflow_container taskset -cp 0-7 1
+docker-compose exec visionflow-container taskset -cp 0-7 1
 
 # Configure CPU limits
-CPU_LIMIT=8.0
-CPU_RESERVATION=4.0
+CPU-LIMIT=8.0
+CPU-RESERVATION=4.0
 ```
 
 ### Storage Optimisation
@@ -404,25 +404,25 @@ docker volume create --driver local \
   --opt type=none \
   --opt o=bind \
   --opt device=/mnt/ssd/visionflow \
-  visionflow_data
+  visionflow-data
 
 # Configure in docker-compose.yml
 volumes:
-  - visionflow_data:/app/data
+  - visionflow-data:/app/data
 ```
 
 ### Network Optimisation
 ```bash
 # Increase network buffer sizes
-echo 'net.core.rmem_max = 134217728' >> /etc/sysctl.conf
-echo 'net.core.wmem_max = 134217728' >> /etc/sysctl.conf
+echo 'net.core.rmem-max = 134217728' >> /etc/sysctl.conf
+echo 'net.core.wmem-max = 134217728' >> /etc/sysctl.conf
 sysctl -p
 
 # Configure Docker network
 docker network create \
   --driver bridge \
   --opt com.docker.network.driver.mtu=9000 \
-  visionflow_network
+  visionflow-network
 ```
 
 ## Troubleshooting
@@ -447,7 +447,7 @@ sudo docker-compose up
 sudo lsof -i :3030
 
 # Kill the process or change port in .env
-HOST_PORT=3002
+HOST-PORT=3002
 ```
 
 #### Out of Disk Space
@@ -481,18 +481,18 @@ docker run --rm --gpus all nvidia/cuda:11.8-base-ubuntu20.04 nvidia-smi
 #### VisionFlow Backend Won't Start
 ```bash
 # Check logs for specific errors
-docker-compose logs visionflow_container
+docker-compose logs visionflow-container
 
 # Common fixes:
-# 1. Port conflict - change HOST_PORT in .env
-# 2. Memory insufficient - increase MEMORY_LIMIT
-# 3. CUDA error - disable GPU with ENABLE_GPU=false
+# 1. Port conflict - change HOST-PORT in .env
+# 2. Memory insufficient - increase MEMORY-LIMIT
+# 3. CUDA error - disable GPU with ENABLE-GPU=false
 ```
 
 #### Database Connection Failed
 ```bash
 # Check PostgreSQL status
-docker-compose logs postgres_container
+docker-compose logs postgres-container
 
 # Reset database
 docker-compose down -v  # WARNING: This deletes all data
@@ -517,20 +517,20 @@ wscat -c ws://localhost:3030/ws
 docker stats
 
 # Reduce memory usage:
-# 1. Decrease MAX_AGENTS in .env
-# 2. Increase MEMORY_LIMIT for containers
+# 1. Decrease MAX-AGENTS in .env
+# 2. Increase MEMORY-LIMIT for containers
 # 3. Enable swap if available
 ```
 
 #### Slow 3D Rendering
 ```bash
 # Enable GPU acceleration
-ENABLE_GPU=true
-ENABLE_GPU_PHYSICS=true
+ENABLE-GPU=true
+ENABLE-GPU-PHYSICS=true
 
 # Reduce visual quality
-RENDER_QUALITY=medium
-PHYSICS_QUALITY=medium
+RENDER-QUALITY=medium
+PHYSICS-QUALITY=medium
 
 # Check GPU utilization
 nvidia-smi -l 1
@@ -542,11 +542,11 @@ nvidia-smi -l 1
 ping localhost
 
 # Optimise network settings
-NET_CORE_RMEM_MAX=134217728
-NET_CORE_WMEM_MAX=134217728
+NET-CORE-RMEM-MAX=134217728
+NET-CORE-WMEM-MAX=134217728
 
 # Use local network instead of localhost
-VISIONFLOW_HOST=127.0.0.1
+VISIONFLOW-HOST=127.0.0.1
 ```
 
 ## Verification Checklist
@@ -593,7 +593,7 @@ If you encounter issues during installation:
 - **[Troubleshooting Guide](../guides/troubleshooting.md)** - Common problems and solutions
 - **[GitHub Issues](https://github.com/visionflow/visionflow/issues)** - Report bugs or request help
 - **[Discord Community](https://discord.gg/visionflow)** - Get real-time support
-- **[Documentation Hub](../README.md)** - Comprehensive documentation
+- **[Documentation Hub](../readme.md)** - Comprehensive documentation
 
 ---
 
@@ -602,9 +602,9 @@ If you encounter issues during installation:
 ## Related Topics
 
 - [Configuration Guide](../guides/configuration.md)
-- [Getting Started with VisionFlow](README.md)
+- [Getting Started with VisionFlow](readme.md)
 - [Quick Start Guide](02-first-graph-and-agents.md)
 
 ---
 
-**Navigation:** [📖 Documentation Index](../README.md) | [🚀 Getting Started](./) | [📚 Guides](../guides/) | [🏗️ Architecture](../concepts/architecture/)
+**Navigation:** [📖 Documentation Index](../readme.md) | [🚀 Getting Started](./) | [📚 Guides](../guides/) | [🏗️ Architecture](../concepts/architecture/)

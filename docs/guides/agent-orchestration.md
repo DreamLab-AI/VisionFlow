@@ -226,8 +226,8 @@ The Agent Control Panel integrates with the following endpoints:
 ```bash
 POST /api/bots/spawn-agent-hybrid
 {
-  "agent_type": "researcher",
-  "swarm_id": "main-swarm",
+  "agent-type": "researcher",
+  "swarm-id": "main-swarm",
   "method": "mcp-fallback",
   "priority": "medium",
   "strategy": "adaptive",
@@ -243,7 +243,7 @@ GET /api/bots/agents
 ### Agent Telemetry
 ```bash
 GET /api/bots/agents
-# Polls every N seconds based on telemetry_poll_interval
+# Polls every N seconds based on telemetry-poll-interval
 ```
 
 ## Troubleshooting
@@ -292,11 +292,11 @@ GET /api/bots/agents
 Settings can be customized per agent type through the API:
 ```typescript
 {
-  agent_type: "custom-agent",
+  agent-type: "custom-agent",
   config: {
-    memory_limit: "4GB",
+    memory-limit: "4GB",
     timeout: 300,
-    custom_params: { ... }
+    custom-params: { ... }
   }
 }
 ```

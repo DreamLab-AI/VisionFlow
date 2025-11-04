@@ -60,7 +60,7 @@ At 100,000 nodes @ 60 FPS:
 
 ```json
 {
-  "type": "node_update",
+  "type": "node-update",
   "data": {
     "nodes": [
       {
@@ -106,7 +106,7 @@ Byte Layout (Little-Endian, 36 bytes):
 
 **Before (JSON):**
 ```typescript
-const ws = new WebSocket('ws://localhost:9090/ws?token=JWT_TOKEN&protocol=json');
+const ws = new WebSocket('ws://localhost:9090/ws?token=JWT-TOKEN&protocol=json');
 
 ws.onmessage = (event) => {
     const message = JSON.parse(event.data);
@@ -116,7 +116,7 @@ ws.onmessage = (event) => {
 
 **After (Binary V2):**
 ```typescript
-const ws = new WebSocket('ws://localhost:9090/ws?token=JWT_TOKEN');
+const ws = new WebSocket('ws://localhost:9090/ws?token=JWT-TOKEN');
 ws.binaryType = 'arraybuffer';  // CRITICAL: Must set to arraybuffer
 
 ws.onmessage = (event) => {
@@ -180,7 +180,7 @@ class BinaryProtocolParser {
 **Before (JSON):**
 ```typescript
 function handleMessage(message: any) {
-    if (message.type === 'node_update') {
+    if (message.type === 'node-update') {
         message.data.nodes.forEach(node => {
             updateNodePosition(node.id, node.position);
             updateNodeVelocity(node.id, node.velocity);
@@ -250,7 +250,7 @@ class OldWebSocketService {
         this.ws.onmessage = (event) => {
             const message = JSON.parse(event.data);
 
-            if (message.type === 'node_update') {
+            if (message.type === 'node-update') {
                 this.handleNodeUpdate(message.data);
             }
         };
@@ -481,7 +481,7 @@ this.view.getFloat32(offset);
 - **[WebSocket API Reference](../../reference/api/03-websocket.md)** - Complete protocol specification
 - **[Binary Protocol Specification](../../reference/api/binary-protocol.md)** - Technical details
 - **[Performance Benchmarks](../../reference/performance-benchmarks.md)** - Before/after metrics
-- **[Architecture Overview](../../concepts/architecture/00-ARCHITECTURE-OVERVIEW.md)** - System design
+- **[Architecture Overview](../../concepts/architecture/00-ARCHITECTURE-overview.md)** - System design
 
 ---
 
@@ -489,7 +489,7 @@ this.view.getFloat32(offset);
 
 **Need help migrating?**
 
-- **Documentation**: [VisionFlow Docs](../../README.md)
+- **Documentation**: [VisionFlow Docs](../../readme.md)
 - **GitHub Issues**: [Report migration issues](https://github.com/yourusername/VisionFlow/issues)
 - **Email**: support@visionflow.io (Enterprise customers)
 

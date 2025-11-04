@@ -227,7 +227,7 @@ updatePhysics(graphData.nodes); // ALL nodes
 
 ## Implementation Steps (Priority Order)
 
-1. ✅ **Revert Database Changes** (expanded, parent_id columns not needed)
+1. ✅ **Revert Database Changes** (expanded, parent-id columns not needed)
 2. ⏭️ **Create Hierarchy Detector** (`utils/hierarchyDetector.ts`)
 3. ⏭️ **Create Expansion Hook** (`hooks/useExpansionState.ts`)
 4. ⏭️ **Modify GraphManager** to use LOD filtering
@@ -253,7 +253,7 @@ updatePhysics(graphData.nodes); // ALL nodes
 
 ## Next Actions
 
-1. **FIRST:** Revert `src/models/node.rs` and `src/repositories/unified_graph_repository.rs`
+1. **FIRST:** Revert `src/models/node.rs` and `src/repositories/unified-graph-repository.rs`
 2. **THEN:** Implement client-side hierarchy detection
 3. **THEN:** Implement LOD rendering filter in GraphManager
 4. **FINALLY:** Test with multiple clients (verify independent expansion state)

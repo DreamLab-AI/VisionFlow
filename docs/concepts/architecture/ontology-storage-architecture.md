@@ -55,107 +55,107 @@ graph TB
 
 ### Core Tables
 
-#### `owl_classes`
+#### `owl-classes`
 ```sql
-CREATE TABLE owl_classes (
+CREATE TABLE owl-classes (
   id UUID PRIMARY KEY,
   uri VARCHAR(512) NOT NULL UNIQUE,
-  local_name VARCHAR(128) NOT NULL,
+  local-name VARCHAR(128) NOT NULL,
   namespace VARCHAR(256),
-  is_inferred BOOLEAN DEFAULT false,
-  source_file VARCHAR(256),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  modified_at TIMESTAMP,
+  is-inferred BOOLEAN DEFAULT false,
+  source-file VARCHAR(256),
+  created-at TIMESTAMP DEFAULT CURRENT-TIMESTAMP,
+  modified-at TIMESTAMP,
 
-  INDEX idx_uri(uri),
-  INDEX idx_namespace(namespace),
-  INDEX idx_inferred(is_inferred)
+  INDEX idx-uri(uri),
+  INDEX idx-namespace(namespace),
+  INDEX idx-inferred(is-inferred)
 );
 ```
 
-#### `owl_axioms`
+#### `owl-axioms`
 ```sql
-CREATE TABLE owl_axioms (
+CREATE TABLE owl-axioms (
   id UUID PRIMARY KEY,
-  axiom_type VARCHAR(32) NOT NULL,
+  axiom-type VARCHAR(32) NOT NULL,
     -- SubClassOf, DisjointWith, EquivalentClasses, ObjectPropertyDomain, etc.
-  source_class_id UUID NOT NULL REFERENCES owl_classes(id),
-  target_class_id UUID REFERENCES owl_classes(id),
-  source_property_id UUID REFERENCES owl_properties(id),
-  target_property_id UUID REFERENCES owl_properties(id),
-  is_inferred BOOLEAN DEFAULT false,
-  confidence_score DECIMAL(3,2),
+  source-class-id UUID NOT NULL REFERENCES owl-classes(id),
+  target-class-id UUID REFERENCES owl-classes(id),
+  source-property-id UUID REFERENCES owl-properties(id),
+  target-property-id UUID REFERENCES owl-properties(id),
+  is-inferred BOOLEAN DEFAULT false,
+  confidence-score DECIMAL(3,2),
     -- 1.0 for asserted, 0.3-0.9 for inferred via reasoning
-  reasoning_rule VARCHAR(128),
+  reasoning-rule VARCHAR(128),
     -- Which rule produced this inference
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created-at TIMESTAMP DEFAULT CURRENT-TIMESTAMP,
 
-  INDEX idx_type(axiom_type),
-  INDEX idx_source(source_class_id),
-  INDEX idx_target(target_class_id),
-  INDEX idx_inferred(is_inferred),
-  FOREIGN KEY (source_class_id) REFERENCES owl_classes(id),
-  FOREIGN KEY (target_class_id) REFERENCES owl_classes(id)
+  INDEX idx-type(axiom-type),
+  INDEX idx-source(source-class-id),
+  INDEX idx-target(target-class-id),
+  INDEX idx-inferred(is-inferred),
+  FOREIGN KEY (source-class-id) REFERENCES owl-classes(id),
+  FOREIGN KEY (target-class-id) REFERENCES owl-classes(id)
 );
 ```
 
-#### `owl_properties`
+#### `owl-properties`
 ```sql
-CREATE TABLE owl_properties (
+CREATE TABLE owl-properties (
   id UUID PRIMARY KEY,
   uri VARCHAR(512) NOT NULL UNIQUE,
-  local_name VARCHAR(128) NOT NULL,
-  property_type VARCHAR(32),
+  local-name VARCHAR(128) NOT NULL,
+  property-type VARCHAR(32),
     -- ObjectProperty, DataProperty, AnnotationProperty
-  domain_class_id UUID REFERENCES owl_classes(id),
-  range_class_id UUID REFERENCES owl_classes(id),
-  is_functional BOOLEAN DEFAULT false,
-  is_transitive BOOLEAN DEFAULT false,
-  is_symmetric BOOLEAN DEFAULT false,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  domain-class-id UUID REFERENCES owl-classes(id),
+  range-class-id UUID REFERENCES owl-classes(id),
+  is-functional BOOLEAN DEFAULT false,
+  is-transitive BOOLEAN DEFAULT false,
+  is-symmetric BOOLEAN DEFAULT false,
+  created-at TIMESTAMP DEFAULT CURRENT-TIMESTAMP,
 
-  INDEX idx_uri(uri),
-  INDEX idx_type(property_type),
-  FOREIGN KEY (domain_class_id) REFERENCES owl_classes(id),
-  FOREIGN KEY (range_class_id) REFERENCES owl_classes(id)
+  INDEX idx-uri(uri),
+  INDEX idx-type(property-type),
+  FOREIGN KEY (domain-class-id) REFERENCES owl-classes(id),
+  FOREIGN KEY (range-class-id) REFERENCES owl-classes(id)
 );
 ```
 
-#### `semantic_constraints`
+#### `semantic-constraints`
 ```sql
-CREATE TABLE semantic_constraints (
+CREATE TABLE semantic-constraints (
   id UUID PRIMARY KEY,
-  constraint_type VARCHAR(32) NOT NULL,
+  constraint-type VARCHAR(32) NOT NULL,
     -- attraction, repulsion, alignment, spring, etc.
-  axiom_id UUID NOT NULL REFERENCES owl_axioms(id),
+  axiom-id UUID NOT NULL REFERENCES owl-axioms(id),
   magnitude DECIMAL(6,3),
   direction VECTOR(3),  -- normalized direction (if applicable)
   radius DECIMAL(6,3),   -- effective interaction radius
-  decay_exponent DECIMAL(3,1),  -- falloff rate
+  decay-exponent DECIMAL(3,1),  -- falloff rate
   active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created-at TIMESTAMP DEFAULT CURRENT-TIMESTAMP,
 
-  INDEX idx_type(constraint_type),
-  INDEX idx_axiom(axiom_id),
-  FOREIGN KEY (axiom_id) REFERENCES owl_axioms(id)
+  INDEX idx-type(constraint-type),
+  INDEX idx-axiom(axiom-id),
+  FOREIGN KEY (axiom-id) REFERENCES owl-axioms(id)
 );
 ```
 
-#### `ontology_versions`
+#### `ontology-versions`
 ```sql
-CREATE TABLE ontology_versions (
+CREATE TABLE ontology-versions (
   id UUID PRIMARY KEY,
-  version_hash VARCHAR(64) NOT NULL UNIQUE,
-  commit_sha VARCHAR(40),  -- GitHub commit if applicable
-  num_classes INT,
-  num_axioms INT,
-  num_properties INT,
-  snapshot_at TIMESTAMP NOT NULL,
+  version-hash VARCHAR(64) NOT NULL UNIQUE,
+  commit-sha VARCHAR(40),  -- GitHub commit if applicable
+  num-classes INT,
+  num-axioms INT,
+  num-properties INT,
+  snapshot-at TIMESTAMP NOT NULL,
   changelog TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created-at TIMESTAMP DEFAULT CURRENT-TIMESTAMP,
 
-  INDEX idx_hash(version_hash),
-  INDEX idx_commit(commit_sha)
+  INDEX idx-hash(version-hash),
+  INDEX idx-commit(commit-sha)
 );
 ```
 
@@ -174,11 +174,11 @@ sequenceDiagram
 
     GitHub->>Fetcher: Webhook (new OWL)
     Fetcher->>Parser: Raw OWL content
-    Parser->>DB: Insert asserted axioms<br/>(is_inferred=false)
+    Parser->>DB: Insert asserted axioms<br/>(is-inferred=false)
     DB->>Reasoner: Load ontology
 
     Reasoner->>Reasoner: Compute inferences<br/>(OWL 2 EL rules)
-    Reasoner->>DB: Insert inferred axioms<br/>(is_inferred=true, confidence)
+    Reasoner->>DB: Insert inferred axioms<br/>(is-inferred=true, confidence)
 
     DB->>DB: Generate constraints<br/>from new axioms
     DB->>Cache: Populate hot axioms<br/>(LRU policy)
@@ -270,14 +270,14 @@ class InferenceCache {
 
 ```sql
 -- Original (inefficient)
-SELECT axiom_id, direction_x, direction_y, direction_z, magnitude
-FROM semantic_constraints
-WHERE active = true AND axiom_id IN (...);
+SELECT axiom-id, direction-x, direction-y, direction-z, magnitude
+FROM semantic-constraints
+WHERE active = true AND axiom-id IN (...);
 
 -- Compressed (efficient)
-SELECT oa.axiom_type, oa.source_class_id, oa.target_class_id, sc.constraint_type
-FROM owl_axioms oa
-JOIN semantic_constraints sc ON oa.id = sc.axiom_id
+SELECT oa.axiom-type, oa.source-class-id, oa.target-class-id, sc.constraint-type
+FROM owl-axioms oa
+JOIN semantic-constraints sc ON oa.id = sc.axiom-id
 WHERE sc.active = true;
 -- Physics engine computes direction from class positions
 ```
@@ -292,7 +292,7 @@ WHERE sc.active = true;
 
 ```rust
 use whelk::Reasoner;
-use horned_owl::ontology::set::SetOntology;
+use horned-owl::ontology::set::SetOntology;
 
 pub struct VisionFlowReasoner {
     reasoner: Reasoner,
@@ -300,24 +300,24 @@ pub struct VisionFlowReasoner {
 }
 
 impl VisionFlowReasoner {
-    pub async fn reason_ontology(&mut self) -> Result<ReasoningResults> {
+    pub async fn reason-ontology(&mut self) -> Result<ReasoningResults> {
         // Load ontology
         self.reasoner.insert(&self.ontology)?;
 
         // Perform reasoning
-        let class_hierarchy = self.reasoner.get_class_hierarchy()?;
-        let inferences = self.reasoner.get_inferred_axioms()?;
+        let class-hierarchy = self.reasoner.get-class-hierarchy()?;
+        let inferences = self.reasoner.get-inferred-axioms()?;
 
         Ok(ReasoningResults {
-            class_hierarchy,
+            class-hierarchy,
             inferences,
             timestamp: chrono::Utc::now(),
         })
     }
 
-    pub fn get_inferred_for(&self, class_uri: &str) -> Result<Vec<Axiom>> {
+    pub fn get-inferred-for(&self, class-uri: &str) -> Result<Vec<Axiom>> {
         // Retrieve inferred axioms for specific class
-        self.reasoner.get_related_classes(class_uri, &QueryType::AllRelations)
+        self.reasoner.get-related-classes(class-uri, &QueryType::AllRelations)
     }
 }
 ```
@@ -450,19 +450,19 @@ class OntologyValidator {
 
 ```sql
 -- Create new version on change
-INSERT INTO ontology_versions (version_hash, commit_sha, num_classes, num_axioms)
+INSERT INTO ontology-versions (version-hash, commit-sha, num-classes, num-axioms)
 SELECT
-  MD5(CONCAT_WS(',', uri, axiom_type, is_inferred))::varchar(64),
+  MD5(CONCAT-WS(',', uri, axiom-type, is-inferred))::varchar(64),
   NULL,
-  (SELECT COUNT(*) FROM owl_classes),
-  (SELECT COUNT(*) FROM owl_axioms),
+  (SELECT COUNT(*) FROM owl-classes),
+  (SELECT COUNT(*) FROM owl-axioms),
   NOW()
-FROM owl_classes;
+FROM owl-classes;
 
 -- Archive previous version
-UPDATE ontology_versions
-SET archived_at = NOW()
-WHERE version_hash != current_version_hash;
+UPDATE ontology-versions
+SET archived-at = NOW()
+WHERE version-hash != current-version-hash;
 ```
 
 ### Rollback Capability
@@ -474,12 +474,12 @@ class OntologyVersionManager {
     const archived = await this.getArchivedVersion(versionHash);
 
     // Clear current state
-    await this.db.truncate('owl_classes');
-    await this.db.truncate('owl_axioms');
+    await this.db.truncate('owl-classes');
+    await this.db.truncate('owl-axioms');
 
     // Restore archived state
-    await this.db.bulkInsert('owl_classes', archived.classes);
-    await this.db.bulkInsert('owl_axioms', archived.axioms);
+    await this.db.bulkInsert('owl-classes', archived.classes);
+    await this.db.bulkInsert('owl-axioms', archived.axioms);
 
     // Invalidate cache
     this.cache.clear();
@@ -522,7 +522,7 @@ class OntologyAccessControl {
 
 - [Complete Ontology Reasoning](../ontology-reasoning.md) - Semantic reasoning pipeline
 - [Semantic Physics Architecture](../semantic-physics-architecture.md) - Physics force application
-- [Architecture Overview](./00-ARCHITECTURE-OVERVIEW.md) - Complete system design
+- [Architecture Overview](./00-ARCHITECTURE-overview.md) - Complete system design
 - [Database Schemas](./04-database-schemas.md) - Complete schema reference
 - [Ontology User Guide](../../specialized/ontology/ontology-user-guide.md) - Practical guide
 

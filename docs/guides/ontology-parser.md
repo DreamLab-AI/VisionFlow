@@ -35,7 +35,7 @@ All ontology definitions must be placed within a block marked as follows:
 ### 3.2. OWL Class Definition
 
 ```markdown
-- owl_class:: ClassName
+- owl-class:: ClassName
   - label:: Human Readable Name
   - description:: A brief description of the class.
   - subClassOf:: ParentClassName
@@ -44,7 +44,7 @@ All ontology definitions must be placed within a block marked as follows:
 **Multiple Parents:**
 
 ```markdown
-- owl_class:: ChildClass
+- owl-class:: ChildClass
   - subClassOf:: Parent1
   - subClassOf:: Parent2
 ```
@@ -82,9 +82,9 @@ All ontology definitions must be placed within a block marked as follows:
 The parser supports multiple IRI formats for flexibility:
 
 ```markdown
-- owl_class:: SimpleName
-- owl_class:: prefix:Name
-- owl_class:: http://example.org/ontology#Name
+- owl-class:: SimpleName
+- owl-class:: prefix:Name
+- owl-class:: http://example.org/ontology#Name
 ```
 
 ## 4. Usage Example
@@ -93,32 +93,32 @@ The following Rust code demonstrates how to use the `OntologyParser`.
 
 ```rust
 use webxr::services::parsers::OntologyParser;
-use webxr::ports::ontology_repository::OntologyRepository;
+use webxr::ports::ontology-repository::OntologyRepository;
 
-async fn parse_and_store_ontology(
+async fn parse-and-store-ontology(
     repo: &impl OntologyRepository,
-    markdown_content: &str,
-    source_filename: &str
+    markdown-content: &str,
+    source-filename: &str
 ) -> Result<(), String> {
     // 1. Create a new parser instance
     let parser = OntologyParser::new();
 
     // 2. Parse the markdown content
-    let ontology_data = parser.parse(markdown_content, source_filename)?;
+    let ontology-data = parser.parse(markdown-content, source-filename)?;
 
     // 3. (Optional) Print the parsed data
     println!("Parsed {} classes, {} properties, and {} axioms.",
-        ontology_data.classes.len(),
-        ontology_data.properties.len(),
-        ontology_data.axioms.len()
+        ontology-data.classes.len(),
+        ontology-data.properties.len(),
+        ontology-data.axioms.len()
     );
 
     // 4. Store the parsed data in a repository
-    repo.save_ontology(
-        &ontology_data.classes,
-        &ontology_data.properties,
-        &ontology_data.axioms
-    ).await.map_err(|e| e.to_string())?;
+    repo.save-ontology(
+        &ontology-data.classes,
+        &ontology-data.properties,
+        &ontology-data.axioms
+    ).await.map-err(|e| e.to-string())?;
 
     Ok(())
 }
@@ -133,28 +133,28 @@ pub struct OntologyData {
     pub classes: Vec<OwlClass>,
     pub properties: Vec<OwlProperty>,
     pub axioms: Vec<OwlAxiom>,
-    pub class_hierarchy: Vec<(String, String)>, // (child_iri, parent_iri)
+    pub class-hierarchy: Vec<(String, String)>, // (child-iri, parent-iri)
 }
 
 pub struct OwlClass {
     pub iri: String,
     pub label: Option<String>,
     pub description: Option<String>,
-    pub parent_classes: Vec<String>,
-    pub source_file: Option<String>,
+    pub parent-classes: Vec<String>,
+    pub source-file: Option<String>,
     // ... other fields
 }
 
 pub struct OwlProperty {
     pub iri: String,
     pub label: Option<String>,
-    pub property_type: PropertyType, // ObjectProperty, DataProperty
+    pub property-type: PropertyType, // ObjectProperty, DataProperty
     pub domain: Vec<String>,
     pub range: Vec<String>,
 }
 
 pub struct OwlAxiom {
-    pub axiom_type: AxiomType, // e.g., SubClassOf
+    pub axiom-type: AxiomType, // e.g., SubClassOf
     pub subject: String,
     pub object: String,
     // ... other fields
@@ -170,7 +170,7 @@ The `parse` method returns a `Result<OntologyData, String>`. If parsing fails, i
 The `OntologyParser` module includes a comprehensive suite of unit tests to ensure its correctness. You can run these tests with:
 
 ```bash
-cargo test --lib parsers::ontology_parser::tests
+cargo test --lib parsers::ontology-parser::tests
 ```
 
 The test suite covers:
@@ -179,4 +179,4 @@ The test suite covers:
 -   Handling of multiple IRI formats
 -   Error handling for missing `OntologyBlock`
 
-This guide provides a solid foundation for working with the `OntologyParser`. For more advanced use cases or to extend its functionality, refer to the source code at `src/services/parsers/ontology_parser.rs`.
+This guide provides a solid foundation for working with the `OntologyParser`. For more advanced use cases or to extend its functionality, refer to the source code at `src/services/parsers/ontology-parser.rs`.

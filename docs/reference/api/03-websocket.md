@@ -176,39 +176,39 @@ pub struct NodeUpdateBinary {
 
 impl NodeUpdateBinary {
     pub fn serialize(nodes: &[Node]) -> Vec<u8> {
-        let mut buffer = Vec::with_capacity(nodes.len() * 36);
+        let mut buffer = Vec::with-capacity(nodes.len() * 36);
 
         for node in nodes {
-            buffer.extend_from_slice(&node.id.to_le_bytes());
-            buffer.extend_from_slice(&node.x.to_le_bytes());
-            buffer.extend_from_slice(&node.y.to_le_bytes());
-            buffer.extend_from_slice(&node.z.to_le_bytes());
-            buffer.extend_from_slice(&node.vx.to_le_bytes());
-            buffer.extend_from_slice(&node.vy.to_le_bytes());
-            buffer.extend_from_slice(&node.vz.to_le_bytes());
-            buffer.extend_from_slice(&node.mass.to_le_bytes());
-            buffer.extend_from_slice(&node.charge.to_le_bytes());
+            buffer.extend-from-slice(&node.id.to-le-bytes());
+            buffer.extend-from-slice(&node.x.to-le-bytes());
+            buffer.extend-from-slice(&node.y.to-le-bytes());
+            buffer.extend-from-slice(&node.z.to-le-bytes());
+            buffer.extend-from-slice(&node.vx.to-le-bytes());
+            buffer.extend-from-slice(&node.vy.to-le-bytes());
+            buffer.extend-from-slice(&node.vz.to-le-bytes());
+            buffer.extend-from-slice(&node.mass.to-le-bytes());
+            buffer.extend-from-slice(&node.charge.to-le-bytes());
         }
 
         buffer
     }
 
     pub fn deserialize(data: &[u8]) -> Result<Vec<NodeUpdateBinary>, std::io::Error> {
-        let node_count = data.len() / 36;
-        let mut nodes = Vec::with_capacity(node_count);
+        let node-count = data.len() / 36;
+        let mut nodes = Vec::with-capacity(node-count);
         let mut cursor = Cursor::new(data);
 
-        for _ in 0..node_count {
+        for - in 0..node-count {
             nodes.push(NodeUpdateBinary {
-                id: cursor.read_u32::<LittleEndian>()?,
-                x: cursor.read_f32::<LittleEndian>()?,
-                y: cursor.read_f32::<LittleEndian>()?,
-                z: cursor.read_f32::<LittleEndian>()?,
-                vx: cursor.read_f32::<LittleEndian>()?,
-                vy: cursor.read_f32::<LittleEndian>()?,
-                vz: cursor.read_f32::<LittleEndian>()?,
-                mass: cursor.read_f32::<LittleEndian>()?,
-                charge: cursor.read_f32::<LittleEndian>()?,
+                id: cursor.read-u32::<LittleEndian>()?,
+                x: cursor.read-f32::<LittleEndian>()?,
+                y: cursor.read-f32::<LittleEndian>()?,
+                z: cursor.read-f32::<LittleEndian>()?,
+                vx: cursor.read-f32::<LittleEndian>()?,
+                vy: cursor.read-f32::<LittleEndian>()?,
+                vz: cursor.read-f32::<LittleEndian>()?,
+                mass: cursor.read-f32::<LittleEndian>()?,
+                charge: cursor.read-f32::<LittleEndian>()?,
             });
         }
 
@@ -231,7 +231,7 @@ impl NodeUpdateBinary {
 
 ```javascript
 // DEPRECATED: This protocol is obsolete - use Binary V2 instead
-const ws = new WebSocket('ws://localhost:9090/ws?token=YOUR_JWT_TOKEN&protocol=json');
+const ws = new WebSocket('ws://localhost:9090/ws?token=YOUR-JWT-TOKEN&protocol=json');
 ```
 
 ### Message Format
@@ -240,7 +240,7 @@ All messages use JSON:
 
 ```json
 {
-  "type": "message_type",
+  "type": "message-type",
   "data": {}
 }
 ```
@@ -290,7 +290,7 @@ All messages use JSON:
 
 ```javascript
 // DEPRECATED: This is the old JSON protocol - DO NOT USE
-const ws = new WebSocket('ws://localhost:9090/ws?token=YOUR_TOKEN&protocol=json');
+const ws = new WebSocket('ws://localhost:9090/ws?token=YOUR-TOKEN&protocol=json');
 
 ws.onopen = () => {
   ws.send(JSON.stringify({
@@ -398,7 +398,7 @@ export function usePhysicsStream() {
     useEffect(() => {
         wsRef.current = new VisionFlowWebSocket(
             'ws://localhost:9090/ws',
-            localStorage.getItem('jwt_token')!,
+            localStorage.getItem('jwt-token')!,
             'binary'
         );
 
@@ -505,7 +505,7 @@ ws.onmessage = (event) => {
 - **Binary Protocol Specification** (TODO: Document to be created)
 - **[REST API Documentation](./rest-api-complete.md)**
 - **Performance Benchmarks** (TODO: Document to be created)
-- **[Architecture Overview](../../concepts/architecture/00-ARCHITECTURE-OVERVIEW.md)**
+- **[Architecture Overview](../../concepts/architecture/00-ARCHITECTURE-overview.md)**
 
 ---
 

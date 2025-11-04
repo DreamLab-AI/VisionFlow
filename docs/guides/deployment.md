@@ -50,7 +50,7 @@ sudo apt-get update
 sudo apt-get install docker-compose-plugin
 
 # Install NVIDIA Container Toolkit (for GPU support)
-distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+distribution=$(. /etc/os-release;echo $ID$VERSION-ID)
 curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
 curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
 sudo apt-get update
@@ -60,14 +60,14 @@ sudo systemctl restart docker
 
 ### Network Configuration
 
-VisionFlow requires the `docker_ragflow` external network for inter-service communication:
+VisionFlow requires the `docker-ragflow` external network for inter-service communication:
 
 ```bash
 # Create external network
-docker network create docker_ragflow
+docker network create docker-ragflow
 
 # Verify network creation
-docker network ls | grep docker_ragflow
+docker network ls | grep docker-ragflow
 ```
 
 ## Local Development
@@ -101,30 +101,30 @@ Create a `.env` file with development-specific settings:
 ```bash
 # Core Settings
 ENVIRONMENT=development
-DEBUG_MODE=true
-RUST_LOG=debug
-NODE_ENV=development
+DEBUG-MODE=true
+RUST-LOG=debug
+NODE-ENV=development
 
 # Networking
-HOST_PORT=3001
-MCP_TCP_PORT=9500
-CLAUDE_FLOW_HOST=multi-agent-container
-BOTS_ORCHESTRATOR_URL=ws://multi-agent-container:3002
+HOST-PORT=3001
+MCP-TCP-PORT=9500
+CLAUDE-FLOW-HOST=multi-agent-container
+BOTS-ORCHESTRATOR-URL=ws://multi-agent-container:3002
 
 # Security (development only - change in production)
-JWT_SECRET=dev_secret_change_in_production
-POSTGRES_PASSWORD=dev_password
-AUTH_REQUIRED=false
+JWT-SECRET=dev-secret-change-in-production
+POSTGRES-PASSWORD=dev-password
+AUTH-REQUIRED=false
 
 # Development Features
-HOT_RELOAD=true
-ENABLE_PROFILING=true
-VITE_DEV_SERVER_PORT=5173
-VITE_HMR_PORT=24678
+HOT-RELOAD=true
+ENABLE-PROFILING=true
+VITE-DEV-SERVER-PORT=5173
+VITE-HMR-PORT=24678
 
 # GPU Configuration (optional)
-NVIDIA_VISIBLE_DEVICES=0
-CUDA_ARCH=86  # 86 for RTX 30-series, 89 for RTX 40-series
+NVIDIA-VISIBLE-DEVICES=0
+CUDA-ARCH=86  # 86 for RTX 30-series, 89 for RTX 40-series
 ```
 
 ### Docker Compose Commands
@@ -202,27 +202,27 @@ Staging replicates production with isolated data and reduced resources:
 cat > .env.staging << 'EOF'
 # Staging Configuration
 ENVIRONMENT=staging
-DEBUG_MODE=false
-RUST_LOG=info
+DEBUG-MODE=false
+RUST-LOG=info
 
 # Security (generate secure secrets)
-JWT_SECRET=$(openssl rand -hex 32)
-POSTGRES_PASSWORD=$(openssl rand -hex 24)
+JWT-SECRET=$(openssl rand -hex 32)
+POSTGRES-PASSWORD=$(openssl rand -hex 24)
 
 # Network
 DOMAIN=staging.yourdomain.com
-HOST_PORT=3001
+HOST-PORT=3001
 
 # Performance
-MEMORY_LIMIT=8g
-CPU_LIMIT=4.0
-ENABLE_GPU=true
-MAX_AGENTS=10
+MEMORY-LIMIT=8g
+CPU-LIMIT=4.0
+ENABLE-GPU=true
+MAX-AGENTS=10
 
 # External Services
-RAGFLOW_API_BASE_URL=http://ragflow-server:9380
-RAGFLOW_API_KEY=your_staging_api_key
-PERPLEXITY_API_KEY=your_staging_perplexity_key
+RAGFLOW-API-BASE-URL=http://ragflow-server:9380
+RAGFLOW-API-KEY=your-staging-api-key
+PERPLEXITY-API-KEY=your-staging-perplexity-key
 EOF
 
 # Start staging deployment
@@ -250,60 +250,60 @@ curl https://staging.yourdomain.com
 Create `nginx.staging.conf`:
 
 ```nginx
-worker_processes auto;
-worker_rlimit_nofile 65535;
+worker-processes auto;
+worker-rlimit-nofile 65535;
 
 events {
-    worker_connections 4096;
+    worker-connections 4096;
     use epoll;
-    multi_accept on;
+    multi-accept on;
 }
 
 http {
     upstream backend {
-        least_conn;
+        least-conn;
         server localhost:4000;
         keepalive 32;
     }
 
     server {
         listen 80;
-        server_name staging.yourdomain.com;
-        return 301 https://$server_name$request_uri;
+        server-name staging.yourdomain.com;
+        return 301 https://$server-name$request-uri;
     }
 
     server {
         listen 443 ssl http2;
-        server_name staging.yourdomain.com;
+        server-name staging.yourdomain.com;
 
-        ssl_certificate /etc/nginx/ssl/staging-cert.pem;
-        ssl_certificate_key /etc/nginx/ssl/staging-key.pem;
-        ssl_protocols TLSv1.2 TLSv1.3;
-        ssl_ciphers HIGH:!aNULL:!MD5;
-        ssl_prefer_server_ciphers on;
+        ssl-certificate /etc/nginx/ssl/staging-cert.pem;
+        ssl-certificate-key /etc/nginx/ssl/staging-key.pem;
+        ssl-protocols TLSv1.2 TLSv1.3;
+        ssl-ciphers HIGH:!aNULL:!MD5;
+        ssl-prefer-server-ciphers on;
 
         # Security headers
-        add_header Strict-Transport-Security "max-age=31536000" always;
-        add_header X-Content-Type-Options "nosniff" always;
-        add_header X-Frame-Options "SAMEORIGIN" always;
+        add-header Strict-Transport-Security "max-age=31536000" always;
+        add-header X-Content-Type-Options "nosniff" always;
+        add-header X-Frame-Options "SAMEORIGIN" always;
 
         location / {
-            proxy_pass http://backend;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection "upgrade";
+            proxy-pass http://backend;
+            proxy-set-header Host $host;
+            proxy-set-header X-Real-IP $remote-addr;
+            proxy-set-header X-Forwarded-For $proxy-add-x-forwarded-for;
+            proxy-set-header X-Forwarded-Proto $scheme;
+            proxy-http-version 1.1;
+            proxy-set-header Upgrade $http-upgrade;
+            proxy-set-header Connection "upgrade";
         }
 
         # Rate limiting
-        limit_req zone=api burst=20 nodelay;
+        limit-req zone=api burst=20 nodelay;
     }
 
     # Rate limiting zones
-    limit_req_zone $binary_remote_addr zone=api:10m rate=100r/m;
+    limit-req-zone $binary-remote-addr zone=api:10m rate=100r/m;
 }
 ```
 
@@ -315,59 +315,59 @@ Generate secure secrets and configure production environment:
 
 ```bash
 # Generate secure credentials
-JWT_SECRET=$(openssl rand -hex 32)
-POSTGRES_PASSWORD=$(openssl rand -hex 24)
-WS_AUTH_TOKEN=$(openssl rand -hex 32)
-API_KEY=$(openssl rand -hex 32)
+JWT-SECRET=$(openssl rand -hex 32)
+POSTGRES-PASSWORD=$(openssl rand -hex 24)
+WS-AUTH-TOKEN=$(openssl rand -hex 32)
+API-KEY=$(openssl rand -hex 32)
 
 # Create production .env
 cat > .env.production << EOF
 # Production Configuration
 ENVIRONMENT=production
-DEBUG_MODE=false
-RUST_LOG=warn
-NODE_ENV=production
+DEBUG-MODE=false
+RUST-LOG=warn
+NODE-ENV=production
 
 # Security
-JWT_SECRET=$JWT_SECRET
-POSTGRES_PASSWORD=$POSTGRES_PASSWORD
-WS_AUTH_TOKEN=$WS_AUTH_TOKEN
-API_KEY=$API_KEY
+JWT-SECRET=$JWT-SECRET
+POSTGRES-PASSWORD=$POSTGRES-PASSWORD
+WS-AUTH-TOKEN=$WS-AUTH-TOKEN
+API-KEY=$API-KEY
 
 # Authentication
-WS_AUTH_ENABLED=true
-RATE_LIMIT_ENABLED=true
-CORS_ENABLED=true
-CORS_ALLOWED_ORIGINS=https://yourdomain.com
+WS-AUTH-ENABLED=true
+RATE-LIMIT-ENABLED=true
+CORS-ENABLED=true
+CORS-ALLOWED-ORIGINS=https://yourdomain.com
 
 # Network
 DOMAIN=yourdomain.com
-HOST_PORT=4000
-CLOUDFLARE_TUNNEL_TOKEN=your_cloudflare_tunnel_token
+HOST-PORT=4000
+CLOUDFLARE-TUNNEL-TOKEN=your-cloudflare-tunnel-token
 
 # Performance
-ENABLE_GPU=true
-MEMORY_LIMIT=32g
-CPU_LIMIT=16.0
-MAX_AGENTS=50
+ENABLE-GPU=true
+MEMORY-LIMIT=32g
+CPU-LIMIT=16.0
+MAX-AGENTS=50
 
 # External Services (see External Services section)
-RAGFLOW_API_BASE_URL=http://ragflow-server:9380
-RAGFLOW_API_KEY=your_production_api_key
-PERPLEXITY_API_KEY=your_production_perplexity_key
-OPENAI_API_KEY=your_production_openai_key
+RAGFLOW-API-BASE-URL=http://ragflow-server:9380
+RAGFLOW-API-KEY=your-production-api-key
+PERPLEXITY-API-KEY=your-production-perplexity-key
+OPENAI-API-KEY=your-production-openai-key
 
 # Resource Limits
-MAX_REQUEST_SIZE=10485760
-MAX_MESSAGE_SIZE=1048576
-WS_MAX_CONNECTIONS=100
-TCP_MAX_CONNECTIONS=50
+MAX-REQUEST-SIZE=10485760
+MAX-MESSAGE-SIZE=1048576
+WS-MAX-CONNECTIONS=100
+TCP-MAX-CONNECTIONS=50
 
 # Monitoring
-ENABLE_METRICS=true
-HEALTH_CHECK_ENABLED=true
-SECURITY_AUDIT_LOG=true
-PERFORMANCE_MONITORING=true
+ENABLE-METRICS=true
+HEALTH-CHECK-ENABLED=true
+SECURITY-AUDIT-LOG=true
+PERFORMANCE-MONITORING=true
 EOF
 
 # Secure the file
@@ -388,7 +388,7 @@ docker compose exec webxr-prod curl -f http://localhost:4000/health
 docker compose logs -f webxr-prod
 
 # Monitor resource usage
-docker stats webxr_prod_container
+docker stats webxr-prod-container
 ```
 
 ### Production with Cloudflare Tunnel
@@ -409,7 +409,7 @@ ingress:
     service: http://webxr-prod:4000
   - hostname: api.yourdomain.com
     service: http://webxr-prod:4000
-  - service: http_status:404
+  - service: http-status:404
 EOF
 
 # 3. Start with tunnel
@@ -424,89 +424,89 @@ docker compose logs -f cloudflared
 For non-Cloudflare deployments, use Nginx as reverse proxy:
 
 ```nginx
-worker_processes auto;
-worker_rlimit_nofile 65535;
+worker-processes auto;
+worker-rlimit-nofile 65535;
 
 events {
-    worker_connections 8192;
+    worker-connections 8192;
     use epoll;
-    multi_accept on;
+    multi-accept on;
 }
 
 http {
     # Rate limiting
-    limit_req_zone $binary_remote_addr zone=api:10m rate=100r/m;
-    limit_req_zone $binary_remote_addr zone=websocket:10m rate=50r/m;
-    limit_conn_zone $binary_remote_addr zone=addr:10m;
+    limit-req-zone $binary-remote-addr zone=api:10m rate=100r/m;
+    limit-req-zone $binary-remote-addr zone=websocket:10m rate=50r/m;
+    limit-conn-zone $binary-remote-addr zone=addr:10m;
 
     # Upstream
     upstream visionflow {
-        least_conn;
-        server webxr-prod:4000 max_fails=3 fail_timeout=30s;
+        least-conn;
+        server webxr-prod:4000 max-fails=3 fail-timeout=30s;
         keepalive 64;
     }
 
     # HTTP to HTTPS redirect
     server {
         listen 80;
-        server_name yourdomain.com;
-        return 301 https://$server_name$request_uri;
+        server-name yourdomain.com;
+        return 301 https://$server-name$request-uri;
     }
 
     # HTTPS server
     server {
         listen 443 ssl http2;
-        server_name yourdomain.com;
+        server-name yourdomain.com;
 
         # SSL configuration
-        ssl_certificate /etc/nginx/ssl/cert.pem;
-        ssl_certificate_key /etc/nginx/ssl/key.pem;
-        ssl_protocols TLSv1.2 TLSv1.3;
-        ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384;
-        ssl_prefer_server_ciphers on;
-        ssl_session_cache shared:SSL:10m;
-        ssl_session_timeout 10m;
+        ssl-certificate /etc/nginx/ssl/cert.pem;
+        ssl-certificate-key /etc/nginx/ssl/key.pem;
+        ssl-protocols TLSv1.2 TLSv1.3;
+        ssl-ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384;
+        ssl-prefer-server-ciphers on;
+        ssl-session-cache shared:SSL:10m;
+        ssl-session-timeout 10m;
 
         # Security headers
-        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-        add_header X-Content-Type-Options "nosniff" always;
-        add_header X-Frame-Options "SAMEORIGIN" always;
-        add_header X-XSS-Protection "1; mode=block" always;
-        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        add-header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add-header X-Content-Type-Options "nosniff" always;
+        add-header X-Frame-Options "SAMEORIGIN" always;
+        add-header X-XSS-Protection "1; mode=block" always;
+        add-header Referrer-Policy "strict-origin-when-cross-origin" always;
 
         # Main application
         location / {
-            proxy_pass http://visionflow;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-            proxy_http_version 1.1;
-            proxy_set_header Connection "";
+            proxy-pass http://visionflow;
+            proxy-set-header Host $host;
+            proxy-set-header X-Real-IP $remote-addr;
+            proxy-set-header X-Forwarded-For $proxy-add-x-forwarded-for;
+            proxy-set-header X-Forwarded-Proto $scheme;
+            proxy-http-version 1.1;
+            proxy-set-header Connection "";
 
             # Rate limiting
-            limit_req zone=api burst=20 nodelay;
-            limit_conn addr 10;
+            limit-req zone=api burst=20 nodelay;
+            limit-conn addr 10;
         }
 
         # WebSocket endpoints
         location /ws {
-            proxy_pass http://visionflow;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection "upgrade";
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_read_timeout 86400;
+            proxy-pass http://visionflow;
+            proxy-http-version 1.1;
+            proxy-set-header Upgrade $http-upgrade;
+            proxy-set-header Connection "upgrade";
+            proxy-set-header Host $host;
+            proxy-set-header X-Real-IP $remote-addr;
+            proxy-set-header X-Forwarded-For $proxy-add-x-forwarded-for;
+            proxy-read-timeout 86400;
 
-            limit_req zone=websocket burst=10 nodelay;
+            limit-req zone=websocket burst=10 nodelay;
         }
 
         # Health check (internal only)
         location /health {
-            proxy_pass http://visionflow;
-            access_log off;
+            proxy-pass http://visionflow;
+            access-log off;
             allow 127.0.0.1;
             deny all;
         }
@@ -521,15 +521,15 @@ http {
 cat >> docker-compose.prod.yml << 'EOF'
 services:
   webxr-prod:
-    security_opt:
+    security-opt:
       - no-new-privileges:true
-    read_only: true
+    read-only: true
     tmpfs:
       - /tmp
-    cap_drop:
+    cap-drop:
       - ALL
-    cap_add:
-      - NET_BIND_SERVICE
+    cap-add:
+      - NET-BIND-SERVICE
 EOF
 
 # 2. Firewall configuration
@@ -574,18 +574,18 @@ curl http://localhost:9380/api/health
 **VisionFlow Configuration**:
 ```bash
 # In VisionFlow .env
-RAGFLOW_API_BASE_URL=http://ragflow-server:9380
-RAGFLOW_API_KEY=your_ragflow_api_key
-RAGFLOW_AGENT_ID=your_agent_id
+RAGFLOW-API-BASE-URL=http://ragflow-server:9380
+RAGFLOW-API-KEY=your-ragflow-api-key
+RAGFLOW-AGENT-ID=your-agent-id
 ```
 
 **Network Integration**:
 ```bash
 # Connect RAGFlow to VisionFlow network
-docker network connect docker_ragflow ragflow-server
+docker network connect docker-ragflow ragflow-server
 
 # Verify connectivity
-docker exec visionflow_container curl http://ragflow-server:9380/api/health
+docker exec visionflow-container curl http://ragflow-server:9380/api/health
 ```
 
 ### Whisper Speech-to-Text
@@ -597,9 +597,9 @@ Whisper provides speech recognition for voice commands.
 # Using OpenAI Whisper container
 docker run -d \
   --name whisper-stt \
-  --network docker_ragflow \
+  --network docker-ragflow \
   -p 8080:8080 \
-  -e MODEL_SIZE=base \
+  -e MODEL-SIZE=base \
   --gpus all \
   onerahmet/openai-whisper-asr-webservice:latest
 
@@ -609,7 +609,7 @@ curl http://localhost:8080/health
 
 **VisionFlow Configuration**:
 ```bash
-# Whisper is accessed via fixed IP in docker_ragflow network
+# Whisper is accessed via fixed IP in docker-ragflow network
 # Default: 172.18.0.5:8080
 # No additional configuration needed if using default network
 ```
@@ -618,7 +618,7 @@ curl http://localhost:8080/health
 ```bash
 # For custom Whisper endpoint, update src/config/mod.rs
 # Or set environment variable
-WHISPER_STT_ENDPOINT=http://172.18.0.5:8080
+WHISPER-STT-ENDPOINT=http://172.18.0.5:8080
 ```
 
 ### Kokoro Text-to-Speech
@@ -630,7 +630,7 @@ Kokoro provides neural text-to-speech for voice responses.
 # Using Kokoro TTS container
 docker run -d \
   --name kokoro-tts \
-  --network docker_ragflow \
+  --network docker-ragflow \
   -p 5000:5000 \
   -e PORT=5000 \
   --gpus all \
@@ -642,18 +642,18 @@ curl http://localhost:5000/health
 
 **Network Configuration**:
 ```bash
-# Kokoro should be accessible at 172.18.0.9:5000 on docker_ragflow network
+# Kokoro should be accessible at 172.18.0.9:5000 on docker-ragflow network
 # Verify connectivity
-docker exec visionflow_container curl http://172.18.0.9:5000/health
+docker exec visionflow-container curl http://172.18.0.9:5000/health
 
 # Fix network if needed
-docker network connect docker_ragflow kokoro-tts
+docker network connect docker-ragflow kokoro-tts
 ```
 
 **VisionFlow Configuration**:
 ```bash
 # Kokoro endpoint is hardcoded to 172.18.0.9:5000
-# Ensure Kokoro container has this IP on docker_ragflow network
+# Ensure Kokoro container has this IP on docker-ragflow network
 
 # Verify in settings.yaml
 cat data/settings.yaml | grep -A 5 voice
@@ -669,25 +669,25 @@ Vircadia provides multi-user XR/VR capabilities.
 cd vircadia/server/vircadia-world/server/service
 
 # Create network
-docker network create vircadia_network
+docker network create vircadia-network
 
 # Start PostgreSQL
 docker run -d \
-  --name vircadia_world_postgres \
-  --network vircadia_network \
-  -e POSTGRES_DB=vircadia_world \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=vircadia_password \
+  --name vircadia-world-postgres \
+  --network vircadia-network \
+  -e POSTGRES-DB=vircadia-world \
+  -e POSTGRES-USER=postgres \
+  -e POSTGRES-PASSWORD=vircadia-password \
   -p 127.0.0.1:5432:5432 \
-  -v vircadia_world_server_postgres_data:/var/lib/postgresql/data \
+  -v vircadia-world-server-postgres-data:/var/lib/postgresql/data \
   postgres:17.5-alpine3.21
 
 # Start PGWeb UI
 docker run -d \
-  --name vircadia_world_pgweb \
-  --network vircadia_network \
+  --name vircadia-world-pgweb \
+  --network vircadia-network \
   -p 127.0.0.1:5437:8081 \
-  -e "PGWEB_DATABASE_URL=postgres://postgres:vircadia_password@vircadia_world_postgres:5432/vircadia_world?sslmode=disable" \
+  -e "PGWEB-DATABASE-URL=postgres://postgres:vircadia-password@vircadia-world-postgres:5432/vircadia-world?sslmode=disable" \
   sosedoff/pgweb:0.16.2
 
 # Verify services
@@ -697,13 +697,13 @@ docker ps | grep vircadia
 **Production Configuration**:
 ```bash
 # Environment configuration (.env)
-VRCA_SERVER_SERVICE_POSTGRES_HOST_CONTAINER_BIND_EXTERNAL=127.0.0.1
-VRCA_SERVER_SERVICE_POSTGRES_PORT_CONTAINER_BIND_EXTERNAL=5432
-VRCA_SERVER_SERVICE_POSTGRES_DATABASE=vircadia_world
-VRCA_SERVER_SERVICE_POSTGRES_SUPER_USER_PASSWORD=secure_password_here
+VRCA-SERVER-SERVICE-POSTGRES-HOST-CONTAINER-BIND-EXTERNAL=127.0.0.1
+VRCA-SERVER-SERVICE-POSTGRES-PORT-CONTAINER-BIND-EXTERNAL=5432
+VRCA-SERVER-SERVICE-POSTGRES-DATABASE=vircadia-world
+VRCA-SERVER-SERVICE-POSTGRES-SUPER-USER-PASSWORD=secure-password-here
 
-VRCA_SERVER_SERVICE_WORLD_API_MANAGER_PORT_CONTAINER_BIND_EXTERNAL=3020
-VRCA_SERVER_SERVICE_WORLD_STATE_MANAGER_PORT_CONTAINER_BIND_EXTERNAL=3021
+VRCA-SERVER-SERVICE-WORLD-API-MANAGER-PORT-CONTAINER-BIND-EXTERNAL=3020
+VRCA-SERVER-SERVICE-WORLD-STATE-MANAGER-PORT-CONTAINER-BIND-EXTERNAL=3021
 ```
 
 **Service Endpoints**:
@@ -719,8 +719,8 @@ VRCA_SERVER_SERVICE_WORLD_STATE_MANAGER_PORT_CONTAINER_BIND_EXTERNAL=3021
 cat >> data/settings.yaml << 'EOF'
 xr:
   enabled: true
-  vircadia_api_url: http://localhost:3020
-  vircadia_state_url: http://localhost:3021
+  vircadia-api-url: http://localhost:3020
+  vircadia-state-url: http://localhost:3021
 EOF
 ```
 
@@ -743,14 +743,14 @@ docker exec multi-agent-container ./mcp-helper.sh list-tools
 **Configuration**:
 ```bash
 # Environment variables
-MCP_TCP_PORT=9500
-MCP_BRIDGE_PORT=3002
-BLENDER_HOST=gui-tools-service
-BLENDER_PORT=9876
-QGIS_HOST=gui-tools-service
-QGIS_PORT=9877
-PBR_HOST=gui-tools-service
-PBR_PORT=9878
+MCP-TCP-PORT=9500
+MCP-BRIDGE-PORT=3002
+BLENDER-HOST=gui-tools-service
+BLENDER-PORT=9876
+QGIS-HOST=gui-tools-service
+QGIS-PORT=9877
+PBR-HOST=gui-tools-service
+PBR-PORT=9878
 ```
 
 **Service Endpoints**:
@@ -771,8 +771,8 @@ PBR_PORT=9878
 sudo netstat -tulpn | grep -E '3001|4000|9500'
 
 # Change ports in .env
-HOST_PORT=3003
-MCP_TCP_PORT=9501
+HOST-PORT=3003
+MCP-TCP-PORT=9501
 
 # Restart services
 docker compose down
@@ -810,13 +810,13 @@ docker compose --profile dev up -d --force-recreate
 **Service Communication Failures**:
 ```bash
 # Check network connectivity
-docker network inspect docker_ragflow
+docker network inspect docker-ragflow
 
 # Verify services are on same network
 docker inspect webxr-prod | grep NetworkMode
 
 # Reconnect to network
-docker network connect docker_ragflow webxr-prod
+docker network connect docker-ragflow webxr-prod
 ```
 
 **SSL Certificate Issues**:
@@ -839,7 +839,7 @@ docker stats
 
 # Increase memory limits
 # Edit .env.production
-MEMORY_LIMIT=64g
+MEMORY-LIMIT=64g
 
 # Apply changes
 docker compose --profile production up -d --force-recreate
@@ -863,8 +863,8 @@ docker compose restart postgres
 curl -I https://yourdomain.com/api/health
 
 # Adjust rate limits in .env
-RATE_LIMIT_MAX_REQUESTS=200
-RATE_LIMIT_WINDOW_MS=60000
+RATE-LIMIT-MAX-REQUESTS=200
+RATE-LIMIT-WINDOW-MS=60000
 
 # Restart service
 docker compose --profile production up -d --force-recreate
@@ -878,13 +878,13 @@ docker compose --profile production up -d --force-recreate
 docker ps | grep ragflow
 
 # Check connectivity
-docker exec visionflow_container curl http://ragflow-server:9380/api/health
+docker exec visionflow-container curl http://ragflow-server:9380/api/health
 
 # Verify network
-docker network inspect docker_ragflow | grep ragflow-server
+docker network inspect docker-ragflow | grep ragflow-server
 
 # Reconnect if needed
-docker network connect docker_ragflow ragflow-server
+docker network connect docker-ragflow ragflow-server
 ```
 
 **Whisper STT Not Responding**:
@@ -894,7 +894,7 @@ docker ps | grep whisper
 
 # Test endpoint
 curl -X POST http://172.18.0.5:8080/asr \
-  -F "audio_file=@test.wav"
+  -F "audio-file=@test.wav"
 
 # Check logs
 docker logs whisper-stt
@@ -908,27 +908,27 @@ docker restart whisper-stt
 # Verify Kokoro IP address
 docker inspect kokoro-tts | grep IPAddress
 
-# Should be 172.18.0.9 on docker_ragflow network
+# Should be 172.18.0.9 on docker-ragflow network
 # If not, reconnect
-docker network disconnect docker_ragflow kokoro-tts
-docker network connect docker_ragflow kokoro-tts --ip 172.18.0.9
+docker network disconnect docker-ragflow kokoro-tts
+docker network connect docker-ragflow kokoro-tts --ip 172.18.0.9
 
 # Verify connectivity
-docker exec visionflow_container curl http://172.18.0.9:5000/health
+docker exec visionflow-container curl http://172.18.0.9:5000/health
 ```
 
 **Vircadia PostgreSQL Won't Start**:
 ```bash
 # Check logs
-docker logs vircadia_world_postgres
+docker logs vircadia-world-postgres
 
 # Check volume permissions
-docker volume inspect vircadia_world_server_postgres_data
+docker volume inspect vircadia-world-server-postgres-data
 
 # Reset volume (⚠️ destroys data)
-docker stop vircadia_world_postgres
-docker rm vircadia_world_postgres
-docker volume rm vircadia_world_server_postgres_data
+docker stop vircadia-world-postgres
+docker rm vircadia-world-postgres
+docker volume rm vircadia-world-server-postgres-data
 # Re-run start script
 ```
 
@@ -961,23 +961,23 @@ curl http://localhost:3020/health
 ```bash
 #!/bin/bash
 # backup.sh
-BACKUP_DIR="/backups/$(date +%Y%m%d_%H%M%S)"
-mkdir -p $BACKUP_DIR
+BACKUP-DIR="/backups/$(date +%Y%m%d-%H%M%S)"
+mkdir -p $BACKUP-DIR
 
 # Backup VisionFlow data
-docker exec visionflow_container tar czf - /app/data | cat > $BACKUP_DIR/visionflow_data.tar.gz
+docker exec visionflow-container tar czf - /app/data | cat > $BACKUP-DIR/visionflow-data.tar.gz
 
 # Backup Vircadia database
-docker exec vircadia_world_postgres pg_dump -U postgres vircadia_world | gzip > $BACKUP_DIR/vircadia_db.sql.gz
+docker exec vircadia-world-postgres pg-dump -U postgres vircadia-world | gzip > $BACKUP-DIR/vircadia-db.sql.gz
 
 # Backup configurations
-cp .env* $BACKUP_DIR/
-cp docker-compose*.yml $BACKUP_DIR/
+cp .env* $BACKUP-DIR/
+cp docker-compose*.yml $BACKUP-DIR/
 
 # Clean old backups (keep last 7 days)
 find /backups -type d -mtime +7 -exec rm -rf {} \;
 
-echo "Backup complete: $BACKUP_DIR"
+echo "Backup complete: $BACKUP-DIR"
 ```
 
 **Schedule Backups**:

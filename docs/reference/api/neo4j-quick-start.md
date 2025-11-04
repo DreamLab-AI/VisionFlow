@@ -35,7 +35,7 @@ services:
       - "7474:7474"  # Browser
       - "7687:7687"  # Bolt
     environment:
-      NEO4J_AUTH: neo4j/your-password
+      NEO4J-AUTH: neo4j/your-password
 
 # Start it
 docker-compose up -d neo4j
@@ -45,17 +45,17 @@ docker-compose up -d neo4j
 
 ```bash
 # Add to .env
-NEO4J_URI=bolt://localhost:7687
-NEO4J_USER=neo4j
-NEO4J_PASSWORD=your-password
-NEO4J_ENABLED=true
+NEO4J-URI=bolt://localhost:7687
+NEO4J-USER=neo4j
+NEO4J-PASSWORD=your-password
+NEO4J-ENABLED=true
 ```
 
 ### 3. Sync Existing Data
 
 ```bash
 # Full sync from unified.db to Neo4j
-cargo run --bin sync_neo4j -- --full
+cargo run --bin sync-neo4j -- --full
 
 # Expected output:
 # 🚀 Starting Neo4j sync
@@ -85,7 +85,7 @@ curl -X POST http://localhost:8080/api/query/cypher \
 Find all nodes of a specific ontology class:
 
 ```cypher
-MATCH (n:GraphNode {owl_class_iri: "http://example.org/Class"})
+MATCH (n:GraphNode {owl-class-iri: "http://example.org/Class"})
 RETURN n.id, n.label
 ```
 
@@ -122,10 +122,10 @@ let repo = DualGraphRepository::new(sqlite, Some(neo4j), true);
 
 ```bash
 # Sync only new/modified data
-cargo run --bin sync_neo4j
+cargo run --bin sync-neo4j
 
 # Dry run (preview without changes)
-cargo run --bin sync_neo4j -- --dry-run
+cargo run --bin sync-neo4j -- --dry-run
 ```
 
 ## 📊 Performance
@@ -145,10 +145,10 @@ cargo run --bin sync_neo4j -- --dry-run
 Add Cypher query endpoints to your Actix server:
 
 ```rust
-use webxr::handlers::cypher_query_handler;
+use webxr::handlers::cypher-query-handler;
 
 // In main.rs or server setup
-.configure(cypher_query_handler::configure_routes)
+.configure(cypher-query-handler::configure-routes)
 ```
 
 ### 2. Repository
@@ -160,14 +160,14 @@ use webxr::adapters::{DualGraphRepository, Neo4jAdapter, Neo4jConfig};
 
 // Initialize
 let neo4j = Arc::new(Neo4jAdapter::new(Neo4jConfig::default()).await?);
-let dual_repo = Arc::new(DualGraphRepository::new(
-    sqlite_repo,
+let dual-repo = Arc::new(DualGraphRepository::new(
+    sqlite-repo,
     Some(neo4j),
     false, // Non-strict mode
 ));
 
 // Use as normal
-dual_repo.add_node(&node).await?;
+dual-repo.add-node(&node).await?;
 ```
 
 ### 3. Cypher Queries
@@ -185,7 +185,7 @@ const response = await fetch('/api/query/cypher', {
   })
 });
 
-const { results, count, truncated, execution_time_ms } = await response.json();
+const { results, count, truncated, execution-time-ms } = await response.json();
 ```
 
 ## 🧪 Testing
@@ -199,7 +199,7 @@ cargo test
 docker-compose up -d neo4j
 
 # Sync data
-cargo run --bin sync_neo4j -- --full
+cargo run --bin sync-neo4j -- --full
 
 # Test Cypher endpoint
 curl -X GET http://localhost:8080/api/query/cypher/examples
@@ -212,19 +212,19 @@ open http://localhost:7474
 
 ```
 src/adapters/
-  ├── neo4j_adapter.rs           (950 lines)
-  ├── dual_graph_repository.rs   (350 lines)
-  └── NEO4J_INTEGRATION.md       (600 lines)
+  ├── neo4j-adapter.rs           (950 lines)
+  ├── dual-graph-repository.rs   (350 lines)
+  └── NEO4j-integration.md       (600 lines)
 
 src/handlers/
-  └── cypher_query_handler.rs    (280 lines)
+  └── cypher-query-handler.rs    (280 lines)
 
 scripts/
-  └── sync_neo4j.rs              (200 lines)
+  └── sync-neo4j.rs              (200 lines)
 
 docs/
-  ├── NEO4J_INTEGRATION_REPORT.md
-  └── NEO4J_QUICK_START.md (this file)
+  ├── NEO4j-integration-report.md
+  └── NEO4j-quick-start.md (this file)
 ```
 
 ## 🐛 Troubleshooting
@@ -246,7 +246,7 @@ curl http://localhost:7474
 
 ```bash
 # Clear Neo4j and resync
-cargo run --bin sync_neo4j -- --full
+cargo run --bin sync-neo4j -- --full
 ```
 
 ### "Query timeout"
@@ -258,8 +258,8 @@ Increase timeout in request:
 
 ## 📚 Documentation
 
-- **Full Guide**: `src/adapters/NEO4J_INTEGRATION.md`
-- **Implementation Report**: `docs/NEO4J_INTEGRATION_REPORT.md`
+- **Full Guide**: `src/adapters/NEO4j-integration.md`
+- **Implementation Report**: `docs/NEO4j-integration-report.md`
 - **Neo4j Docs**: https://neo4j.com/docs/
 - **Cypher Reference**: https://neo4j.com/docs/cypher-manual/
 

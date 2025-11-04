@@ -110,13 +110,13 @@ async function setupMetaQuest(engine: Engine, scene: Scene) {
 
   // Hand tracking
   const handTracking = xr.baseExperience.featuresManager.enableFeature(
-    WebXRFeatureName.HAND_TRACKING,
+    WebXRFeatureName.HAND-TRACKING,
     "latest"
   );
 
   // Near interaction for UI
   const nearInteraction = xr.baseExperience.featuresManager.enableFeature(
-    WebXRFeatureName.NEAR_INTERACTION,
+    WebXRFeatureName.NEAR-INTERACTION,
     "latest"
   );
 
@@ -159,16 +159,16 @@ final class ImmersiveEntity {
 
 ```cpp
 // OpenVR Initialization
-IVRSystem *vrSystem = VR_Init(nullptr, VRApplication_Scene);
+IVRSystem *vrSystem = VR-Init(nullptr, VRApplication-Scene);
 IVRCompositor *vrCompositor = VRCompositor();
 
 // Tracking
-TrackedDevicePose_t poses[k_unMaxTrackedDeviceCount];
-vrCompositor->WaitGetPoses(poses, k_unMaxTrackedDeviceCount, nullptr, 0);
+TrackedDevicePose-t poses[k-unMaxTrackedDeviceCount];
+vrCompositor->WaitGetPoses(poses, k-unMaxTrackedDeviceCount, nullptr, 0);
 
-for (uint32_t device = 0; device < k_unMaxTrackedDeviceCount; device++) {
+for (uint32-t device = 0; device < k-unMaxTrackedDeviceCount; device++) {
     if (poses[device].bPoseIsValid) {
-        HmdMatrix34_t &matrix = poses[device].mDeviceToAbsoluteTracking;
+        HmdMatrix34-t &matrix = poses[device].mDeviceToAbsoluteTracking;
         // Update scene object position/rotation
     }
 }
@@ -436,22 +436,22 @@ Agents can be visualized in XR with:
 
 **Connection Establishment**:
 ```
-Client → Server: HELLO (protocol_version, platform, capabilities)
-Server → Client: WELCOME (session_id, world_state_snapshot)
+Client → Server: HELLO (protocol-version, platform, capabilities)
+Server → Client: WELCOME (session-id, world-state-snapshot)
 ```
 
 **Frame Format**:
 ```
-| type (1) | user_id (4) | timestamp (4) | sequence (2) | data_len (2) | data (up to 512) |
+| type (1) | user-id (4) | timestamp (4) | sequence (2) | data-len (2) | data (up to 512) |
 | 1 byte   | 4 bytes     | 4 bytes       | 2 bytes      | 2 bytes      | variable         |
 ```
 
 **Message Types**:
-- `POSE_UPDATE` (0x01): Transform changes
-- `GESTURE_EVENT` (0x02): Interaction event
-- `VOICE_DATA` (0x03): Audio stream
-- `ENTITY_MODIFY` (0x04): Ontology update
-- `AGENT_ACTION` (0x05): Agent-initiated change
+- `POSE-UPDATE` (0x01): Transform changes
+- `GESTURE-EVENT` (0x02): Interaction event
+- `VOICE-DATA` (0x03): Audio stream
+- `ENTITY-MODIFY` (0x04): Ontology update
+- `AGENT-ACTION` (0x05): Agent-initiated change
 
 ### Bandwidth Optimization
 
@@ -550,9 +550,9 @@ class XRSecurityValidator {
 
 - [Vircadia XR Complete Guide](../../guides/vircadia-xr-complete-guide.md) - Multi-user metaverse integration
 - [Semantic Physics Architecture](../semantic-physics-architecture.md) - Physics force modeling
-- [GPU Compute Architecture](./gpu/README.md) - CUDA acceleration for physics
+- [GPU Compute Architecture](./gpu/readme.md) - CUDA acceleration for physics
 - [Agent Workers](../agentic-workers.md) - Agent-driven spatial operations
-- [Architecture Overview](./00-ARCHITECTURE-OVERVIEW.md) - Complete system architecture
+- [Architecture Overview](./00-ARCHITECTURE-overview.md) - Complete system architecture
 
 ---
 

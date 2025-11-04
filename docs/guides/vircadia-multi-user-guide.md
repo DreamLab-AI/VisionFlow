@@ -53,7 +53,7 @@ docker logs vircadia-world-server
 ```
 Vircadia World Server v1.0.0
 Listening on ws://0.0.0.0:3020/world/ws
-Connected to PostgreSQL: vircadia_world
+Connected to PostgreSQL: vircadia-world
 Default world initialized: VisionFlow World
 ```
 
@@ -202,7 +202,7 @@ docker-compose -f docker-compose.yml -f docker-compose.vircadia.yml up -d vircad
 **Check 2: Network connectivity**
 ```bash
 # From VisionFlow container
-docker exec -it visionflow_container curl -v ws://vircadia-world-server:3020/world/ws
+docker exec -it visionflow-container curl -v ws://vircadia-world-server:3020/world/ws
 ```
 
 **Check 3: Server logs**
@@ -213,7 +213,7 @@ docker logs vircadia-world-server --tail 50
 Common issues:
 - PostgreSQL not running → Start postgres service
 - Port 3020 not exposed → Check docker-compose.vircadia.yml
-- Network misconfiguration → Verify `docker_ragflow` network
+- Network misconfiguration → Verify `docker-ragflow` network
 
 ### "Bridge Initialization Failed"
 
@@ -235,7 +235,7 @@ Common issues:
 **Force Resync:**
 ```javascript
 // In browser console
-window.__vircadiaBridges?.syncAgentsToVircadia(agents, edges);
+window.--vircadiaBridges?.syncAgentsToVircadia(agents, edges);
 ```
 
 ### No Spatial Audio
@@ -344,8 +344,8 @@ const bridge = new BotsVircadiaBridge(client, entitySync, avatars, {
 ```yaml
 # docker-compose.vircadia.yml
 environment:
-  - MAX_USERS_PER_WORLD=100  # Increase from 50
-  - ENTITY_SYNC_INTERVAL=100  # Lower for smoother sync
+  - MAX-USERS-PER-WORLD=100  # Increase from 50
+  - ENTITY-SYNC-INTERVAL=100  # Lower for smoother sync
 ```
 
 **Add More Servers:**
@@ -369,7 +369,7 @@ const { client } = useVircadia();
 **Manual Token:**
 ```bash
 # Set custom auth token
-export VIRCADIA_AUTH_TOKEN=your_secure_token_here
+export VIRCADIA-AUTH-TOKEN=your-secure-token-here
 ```
 
 ### Data Privacy
@@ -423,7 +423,7 @@ A: Not yet. Currently uses anonymous sessions with auto-generated IDs.
 
 - **[Vircadia Integration Analysis](../concepts/architecture/vircadia-integration-analysis.md)** - Technical architecture
 - **[WebRTC Migration Plan](../concepts/architecture/voice-webrtc-migration-plan.md)** - Voice system upgrade path
-- **[Multi-Agent Docker Environment](../reference/architecture/README.md)** - Overall system architecture
+- **[Multi-Agent Docker Environment](../reference/architecture/readme.md)** - Overall system architecture
 
 ---
 

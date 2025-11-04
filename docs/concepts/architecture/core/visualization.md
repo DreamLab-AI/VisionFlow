@@ -147,9 +147,9 @@ interface BinaryNodeData {
 ```
 
 **Node Type Flags**:
-- `AGENT_NODE_FLAG = 0x8000`: Bit 15 for agent nodes
-- `KNOWLEDGE_NODE_FLAG = 0x4000`: Bit 14 for knowledge nodes
-- `NODE_ID_MASK = 0x3FFF`: Actual ID in bits 0-13
+- `AGENT-NODE-FLAG = 0x8000`: Bit 15 for agent nodes
+- `KNOWLEDGE-NODE-FLAG = 0x4000`: Bit 14 for knowledge nodes
+- `NODE-ID-MASK = 0x3FFF`: Actual ID in bits 0-13
 
 ## 5. Graph Coexistence Strategy
 

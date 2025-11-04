@@ -99,8 +99,8 @@ struct WireNodeDataItemV2 {
     id: u32,                // 4 bytes - With type flags in high bits (31/30)
     position: Vec3Data,     // 12 bytes (3 × f32)
     velocity: Vec3Data,     // 12 bytes (3 × f32)
-    sssp_distance: f32,     // 4 bytes - SSSP distance
-    sssp_parent: i32,       // 4 bytes - Parent for path reconstruction
+    sssp-distance: f32,     // 4 bytes - SSSP distance
+    sssp-parent: i32,       // 4 bytes - Parent for path reconstruction
 }
 ```
 
@@ -194,40 +194,40 @@ sequenceDiagram
     PhysicsLoop->>GraphActor: Update node positions
     GraphActor->>GraphActor: Collect knowledge nodes
     GraphActor->>GraphActor: Collect agent nodes
-    GraphActor->>Encoder: encode_node_data_with_types()
-    Note over Encoder: Sets KNOWLEDGE_NODE_FLAG on knowledge IDs<br/>Sets AGENT_NODE_FLAG on agent IDs
+    GraphActor->>Encoder: encode-node-data-with-types()
+    Note over Encoder: Sets KNOWLEDGE-NODE-FLAG on knowledge IDs<br/>Sets AGENT-NODE-FLAG on agent IDs
     Encoder->>GraphActor: Binary buffer (N × 36 bytes)
     GraphActor->>Clients: Single broadcast (188 nodes)
     Clients->>Clients: Decode and separate by flags
 ```
 
-### Implementation (`src/actors/graph_actor.rs`)
+### Implementation (`src/actors/graph-actor.rs`)
 
 **Unified Physics Broadcast** (lines 2087-2150):
 
 ```rust
 // Collect BOTH graphs in single broadcast
-let mut position_data: Vec<(u32, BinaryNodeData)> = Vec::new();
-let mut knowledge_ids: Vec<u32> = Vec::new();
-let mut agent_ids: Vec<u32> = Vec::new();
+let mut position-data: Vec<(u32, BinaryNodeData)> = Vec::new();
+let mut knowledge-ids: Vec<u32> = Vec::new();
+let mut agent-ids: Vec<u32> = Vec::new();
 
 // Knowledge graph nodes
-for (node_id, node) in self.node_map.iter() {
-    position_data.push((*node_id, BinaryNodeDataClient::new(...)));
-    knowledge_ids.push(*node_id);
+for (node-id, node) in self.node-map.iter() {
+    position-data.push((*node-id, BinaryNodeDataClient::new(...)));
+    knowledge-ids.push(*node-id);
 }
 
 // Agent graph nodes
-for node in &self.bots_graph_data.nodes {
-    position_data.push((node.id, BinaryNodeDataClient::new(...)));
-    agent_ids.push(node.id);
+for node in &self.bots-graph-data.nodes {
+    position-data.push((node.id, BinaryNodeDataClient::new(...)));
+    agent-ids.push(node.id);
 }
 
 // Single unified broadcast with type flags
-let binary_data = encode_node_data_with_types(
-    &position_data,
-    &agent_ids,
-    &knowledge_ids
+let binary-data = encode-node-data-with-types(
+    &position-data,
+    &agent-ids,
+    &knowledge-ids
 );
 ```
 
@@ -264,14 +264,14 @@ if (isAgent) {
 Compression is applied selectively based on message size and type:
 
 ```rust
-fn should_compress(payload: &[u8], msg_type: u8) -> bool {
+fn should-compress(payload: &[u8], msg-type: u8) -> bool {
     // Settings messages over 256 bytes
-    if msg_type == 0x03 && payload.len() > 256 {
+    if msg-type == 0x03 && payload.len() > 256 {
         return true;
     }
 
     // Batch updates over 1KB
-    if msg_type == 0x08 && payload.len() > 1024 {
+    if msg-type == 0x08 && payload.len() > 1024 {
         return true;
     }
 
@@ -291,13 +291,13 @@ Settings use delta encoding to transmit only changed values:
 
 ```rust
 struct DeltaUpdate {
-    changed_count: u16,        // Number of changed settings
+    changed-count: u16,        // Number of changed settings
     changes: Vec<SettingChange>
 }
 
 struct SettingChange {
-    path_id: u16,
-    value_type: u8,
+    path-id: u16,
+    value-type: u8,
     value: BinaryValue
 }
 ```
@@ -321,13 +321,13 @@ const batchConfig: BatchQueueConfig = {
 ### Server-Side Rate Limits
 
 ```rust
-pub fn socket_flow_updates() -> RateLimitConfig {
+pub fn socket-flow-updates() -> RateLimitConfig {
     RateLimitConfig {
-        requests_per_minute: 300,  // 5Hz × 60s
-        burst_size: 50,
-        cleanup_interval: Duration::from_secs(600),
-        ban_duration: Duration::from_secs(600),
-        max_violations: 10,
+        requests-per-minute: 300,  // 5Hz × 60s
+        burst-size: 50,
+        cleanup-interval: Duration::from-secs(600),
+        ban-duration: Duration::from-secs(600),
+        max-violations: 10,
     }
 }
 ```
@@ -358,12 +358,12 @@ sequenceDiagram
 ### Reconnection Flow
 
 ```rust
-fn calculate_backoff(attempt: u32) -> Duration {
-    let base_delay = 1000; // 1 second
-    let exponential_delay = base_delay * 2u64.pow(attempt - 1);
-    let max_delay = 30000; // 30 seconds
+fn calculate-backoff(attempt: u32) -> Duration {
+    let base-delay = 1000; // 1 second
+    let exponential-delay = base-delay * 2u64.pow(attempt - 1);
+    let max-delay = 30000; // 30 seconds
 
-    Duration::from_millis(exponential_delay.min(max_delay))
+    Duration::from-millis(exponential-delay.min(max-delay))
 }
 ```
 
@@ -383,7 +383,7 @@ class WebSocketService {
 
     private queueMessage(message: BinaryMessage): void {
         // Queue messages during disconnection
-        if (this.messageQueue.length < MAX_QUEUE_SIZE) {
+        if (this.messageQueue.length < MAX-QUEUE-SIZE) {
             this.messageQueue.push(message);
         }
     }
@@ -459,7 +459,7 @@ class WebSocketService {
 ### Rust Server Implementation
 
 ```rust
-use actix_web_actors::ws;
+use actix-web-actors::ws;
 
 impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocketActor {
     fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
@@ -467,45 +467,45 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WebSocketActor {
             Ok(ws::Message::Binary(bin)) => {
                 // Parse binary frame
                 if let Ok(frame) = BinaryFrame::parse(&bin) {
-                    self.handle_binary_frame(frame, ctx);
+                    self.handle-binary-frame(frame, ctx);
                 }
             }
             Ok(ws::Message::Ping(msg)) => {
                 ctx.pong(&msg);
             }
-            _ => {}
+            - => {}
         }
     }
 }
 
-fn serialize_node_update(
+fn serialize-node-update(
     nodes: &[(u32, BinaryNodeData)],
-    agent_ids: &[u32],
-    knowledge_ids: &[u32]
+    agent-ids: &[u32],
+    knowledge-ids: &[u32]
 ) -> Vec<u8> {
-    let mut buffer = Vec::with_capacity(nodes.len() * 36);
+    let mut buffer = Vec::with-capacity(nodes.len() * 36);
 
     // Encode nodes with dual-graph type flags
-    for (node_id, data) in nodes {
+    for (node-id, data) in nodes {
         // Determine type flag
-        let wire_id = if agent_ids.contains(node_id) {
-            node_id | 0x80000000  // AGENT_NODE_FLAG
-        } else if knowledge_ids.contains(node_id) {
-            node_id | 0x40000000  // KNOWLEDGE_NODE_FLAG
+        let wire-id = if agent-ids.contains(node-id) {
+            node-id | 0x80000000  // AGENT-NODE-FLAG
+        } else if knowledge-ids.contains(node-id) {
+            node-id | 0x40000000  // KNOWLEDGE-NODE-FLAG
         } else {
-            *node_id
+            *node-id
         };
 
         // Write node data (36 bytes)
-        buffer.extend_from_slice(&wire_id.to_le_bytes());         // 4 bytes
-        buffer.extend_from_slice(&data.position.x.to_le_bytes()); // 4 bytes
-        buffer.extend_from_slice(&data.position.y.to_le_bytes()); // 4 bytes
-        buffer.extend_from_slice(&data.position.z.to_le_bytes()); // 4 bytes
-        buffer.extend_from_slice(&data.velocity.x.to_le_bytes()); // 4 bytes
-        buffer.extend_from_slice(&data.velocity.y.to_le_bytes()); // 4 bytes
-        buffer.extend_from_slice(&data.velocity.z.to_le_bytes()); // 4 bytes
-        buffer.extend_from_slice(&data.sssp_distance.to_le_bytes()); // 4 bytes
-        buffer.extend_from_slice(&data.sssp_parent.to_le_bytes());   // 4 bytes
+        buffer.extend-from-slice(&wire-id.to-le-bytes());         // 4 bytes
+        buffer.extend-from-slice(&data.position.x.to-le-bytes()); // 4 bytes
+        buffer.extend-from-slice(&data.position.y.to-le-bytes()); // 4 bytes
+        buffer.extend-from-slice(&data.position.z.to-le-bytes()); // 4 bytes
+        buffer.extend-from-slice(&data.velocity.x.to-le-bytes()); // 4 bytes
+        buffer.extend-from-slice(&data.velocity.y.to-le-bytes()); // 4 bytes
+        buffer.extend-from-slice(&data.velocity.z.to-le-bytes()); // 4 bytes
+        buffer.extend-from-slice(&data.sssp-distance.to-le-bytes()); // 4 bytes
+        buffer.extend-from-slice(&data.sssp-parent.to-le-bytes());   // 4 bytes
     }
 
     buffer
@@ -533,7 +533,7 @@ class BinaryProtocolClient {
     private parseNodeUpdate(payload: Uint8Array): NodeData[] {
         const view = new DataView(payload.buffer, payload.byteOffset);
         const nodes: NodeData[] = [];
-        const BINARY_NODE_SIZE = 36;
+        const BINARY-NODE-SIZE = 36;
         let offset = 0;
 
         while (offset < payload.length) {
@@ -554,16 +554,16 @@ class BinaryProtocolClient {
             const vz = view.getFloat32(offset, true); offset += 4;
 
             // Parse SSSP data (8 bytes)
-            const sssp_distance = view.getFloat32(offset, true); offset += 4;
-            const sssp_parent = view.getInt32(offset, true); offset += 4;
+            const sssp-distance = view.getFloat32(offset, true); offset += 4;
+            const sssp-parent = view.getInt32(offset, true); offset += 4;
 
             nodes.push({
                 id,
                 nodeType: isAgent ? 'agent' : isKnowledge ? 'knowledge' : 'normal',
                 position: {x, y, z},
                 velocity: {vx, vy, vz},
-                sssp_distance,
-                sssp_parent
+                sssp-distance,
+                sssp-parent
             });
         }
 
@@ -582,42 +582,42 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_node_serialization_roundtrip() {
+    fn test-node-serialization-roundtrip() {
         let original = NodeData {
             id: 42,
             position: Vec3::new(1.0, 2.0, 3.0),
             velocity: Vec3::new(0.1, 0.2, 0.3),
-            sssp_distance: 5.5,
-            sssp_parent: 10,
+            sssp-distance: 5.5,
+            sssp-parent: 10,
         };
 
-        let serialized = serialize_node(&original);
-        let deserialized = deserialize_node(&serialized).unwrap();
+        let serialized = serialize-node(&original);
+        let deserialized = deserialize-node(&serialized).unwrap();
 
-        assert_eq!(original, deserialized);
-        assert_eq!(serialized.len(), 36); // V2: 36 bytes
+        assert-eq!(original, deserialized);
+        assert-eq!(serialized.len(), 36); // V2: 36 bytes
     }
 
     #[test]
-    fn test_dual_graph_type_flags() {
+    fn test-dual-graph-type-flags() {
         let nodes = vec![
-            (10, create_test_node()),  // Regular
-            (20, create_test_node()),  // Knowledge
-            (30, create_test_node()),  // Agent
+            (10, create-test-node()),  // Regular
+            (20, create-test-node()),  // Knowledge
+            (30, create-test-node()),  // Agent
         ];
-        let agent_ids = vec![30];
-        let knowledge_ids = vec![20];
+        let agent-ids = vec![30];
+        let knowledge-ids = vec![20];
 
-        let binary = encode_node_data_with_types(&nodes, &agent_ids, &knowledge_ids);
+        let binary = encode-node-data-with-types(&nodes, &agent-ids, &knowledge-ids);
 
         // Verify flags in binary data
-        let id1 = u32::from_le_bytes([binary[0], binary[1], binary[2], binary[3]]);
-        let id2 = u32::from_le_bytes([binary[36], binary[37], binary[38], binary[39]]);
-        let id3 = u32::from_le_bytes([binary[72], binary[73], binary[74], binary[75]]);
+        let id1 = u32::from-le-bytes([binary[0], binary[1], binary[2], binary[3]]);
+        let id2 = u32::from-le-bytes([binary[36], binary[37], binary[38], binary[39]]);
+        let id3 = u32::from-le-bytes([binary[72], binary[73], binary[74], binary[75]]);
 
-        assert_eq!(id1, 10); // No flags
-        assert_eq!(id2 & 0x40000000, 0x40000000); // KNOWLEDGE_NODE_FLAG
-        assert_eq!(id3 & 0x80000000, 0x80000000); // AGENT_NODE_FLAG
+        assert-eq!(id1, 10); // No flags
+        assert-eq!(id2 & 0x40000000, 0x40000000); // KNOWLEDGE-NODE-FLAG
+        assert-eq!(id3 & 0x80000000, 0x80000000); // AGENT-NODE-FLAG
     }
 }
 ```
@@ -661,13 +661,13 @@ describe('BinaryProtocol', () => {
 
 ```rust
 struct WebSocketMetrics {
-    messages_sent: AtomicU64,
-    messages_received: AtomicU64,
-    bytes_sent: AtomicU64,
-    bytes_received: AtomicU64,
-    compression_ratio: AtomicF64,
-    delta_messages: AtomicU64,
-    full_sync_messages: AtomicU64,
+    messages-sent: AtomicU64,
+    messages-received: AtomicU64,
+    bytes-sent: AtomicU64,
+    bytes-received: AtomicU64,
+    compression-ratio: AtomicF64,
+    delta-messages: AtomicU64,
+    full-sync-messages: AtomicU64,
 }
 ```
 
@@ -676,7 +676,7 @@ struct WebSocketMetrics {
 Enable debug logging for protocol inspection:
 
 ```rust
-RUST_LOG=visionflow::websocket=debug cargo run
+RUST-LOG=visionflow::websocket=debug cargo run
 ```
 
 ### Browser DevTools
@@ -705,7 +705,7 @@ impl WebSocketActor {
 All binary input is validated before processing:
 
 ```rust
-fn validate_frame(frame: &BinaryFrame) -> Result<(), ValidationError> {
+fn validate-frame(frame: &BinaryFrame) -> Result<(), ValidationError> {
     // Check version compatibility
     // Validate message type
     // Verify length bounds
@@ -719,8 +719,8 @@ Per-connection and per-IP rate limits prevent abuse:
 
 ```rust
 pub struct RateLimiter {
-    requests_per_minute: u32,
-    burst_size: u32,
+    requests-per-minute: u32,
+    burst-size: u32,
     violations: HashMap<IpAddr, u32>,
 }
 ```
@@ -771,7 +771,7 @@ pub struct RateLimiter {
 
 **Issue: "Corrupted node data" errors on client**
 - **Cause**: Client using V1 parser (34 bytes) with V2 server (36 bytes)
-- **Fix**: Update client `BINARY_NODE_SIZE` constant from 34 to 36
+- **Fix**: Update client `BINARY-NODE-SIZE` constant from 34 to 36
 - **Fix**: Update parse offsets (position at offset 4, not 2)
 
 **Issue: Nodes with wrong type (agent vs knowledge)**
@@ -782,7 +782,7 @@ pub struct RateLimiter {
 **Issue: Agent nodes not moving**
 - **Cause**: Agent graph not included in unified broadcast
 - **Fix**: Verify server logs show "188 nodes: 185 knowledge + 3 agents"
-- **Fix**: Check `encode_node_data_with_types()` receives both ID lists
+- **Fix**: Check `encode-node-data-with-types()` receives both ID lists
 
 ## References
 

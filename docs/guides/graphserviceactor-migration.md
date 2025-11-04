@@ -42,11 +42,11 @@ After GitHub sync writes 316 nodes to SQLite database:
 
 ```rust
 pub struct GraphServiceActor {
-    graph_data: Arc<RwLock<GraphData>>,           // ← In-memory cache (STALE!)
-    bots_graph_data: Arc<RwLock<GraphData>>,      // ← Separate cache
-    simulation_params: Arc<RwLock<SimulationParams>>,
-    ws_server: Option<Addr<WebSocketServer>>,    // ← Tight coupling
-    physics_engine: Option<Addr<PhysicsEngine>>, // ← Mixed concerns
+    graph-data: Arc<RwLock<GraphData>>,           // ← In-memory cache (STALE!)
+    bots-graph-data: Arc<RwLock<GraphData>>,      // ← Separate cache
+    simulation-params: Arc<RwLock<SimulationParams>>,
+    ws-server: Option<Addr<WebSocketServer>>,    // ← Tight coupling
+    physics-engine: Option<Addr<PhysicsEngine>>, // ← Mixed concerns
     // ... 50+ more fields mixing concerns
 }
 ```
@@ -120,7 +120,7 @@ graph TB
 
 ```rust
 // Old pattern: actor message
-let graph_data = state.graph_service_addr
+let graph-data = state.graph-service-addr
     .send(GetGraphData)
     .await??;
 ```
@@ -134,8 +134,8 @@ let graph_data = state.graph_service_addr
 
 ```rust
 // New pattern: repository query
-let graph = state.graph_repo
-    .get_graph()
+let graph = state.graph-repo
+    .get-graph()
     .await?;
 ```
 
@@ -152,7 +152,7 @@ let graph = state.graph_repo
 
 ```rust
 // Old pattern: send update to actor
-state.graph_service_addr
+state.graph-service-addr
     .send(UpdateGraphData {
         nodes: vec![...],
         edges: vec![...],
@@ -171,8 +171,8 @@ state.graph_service_addr
 
 ```rust
 // New pattern: command handler with event emission
-let result = state.graph_cmd_handler
-    .handle_update_graph(UpdateGraphCommand {
+let result = state.graph-cmd-handler
+    .handle-update-graph(UpdateGraphCommand {
         nodes: vec![...],
         edges: vec![...],
     })
@@ -200,12 +200,12 @@ let result = state.graph_cmd_handler
 ```rust
 // Coupling to WebSocket server
 pub struct GraphServiceActor {
-    ws_server: Option<Addr<WebSocketServer>>,
+    ws-server: Option<Addr<WebSocketServer>>,
 }
 
 // In message handler:
-self.ws_server.do_send(Broadcast {
-    data: serialized_graph,
+self.ws-server.do-send(Broadcast {
+    data: serialized-graph,
 }).ok();
 ```
 
@@ -218,13 +218,13 @@ self.ws_server.do_send(Broadcast {
 
 ```rust
 // Event-driven broadcasting
-pub async fn handle_update_graph(
+pub async fn handle-update-graph(
     cmd: UpdateGraphCommand,
 ) -> Result<UpdateGraphResponse> {
     let graph = repo.update(cmd.into()).await?;
 
     // Emit event - subscribers handle broadcasting
-    event_bus.emit(GraphUpdated {
+    event-bus.emit(GraphUpdated {
         graph: graph.clone(),
         timestamp: Utc::now(),
     }).await?;
@@ -233,8 +233,8 @@ pub async fn handle_update_graph(
 }
 
 // In WebSocket broadcaster (subscribes to events):
-event_bus.subscribe(|event: GraphUpdated| {
-    ws_server.broadcast(ClientMessage::GraphUpdated {
+event-bus.subscribe(|event: GraphUpdated| {
+    ws-server.broadcast(ClientMessage::GraphUpdated {
         graph: event.graph,
     });
 });
@@ -252,7 +252,7 @@ event_bus.subscribe(|event: GraphUpdated| {
 
 ### Phase 1: ✅ Query Handlers (COMPLETE)
 
-**8 Query Handlers** now available in `src/handlers/graph_query_handlers/`:
+**8 Query Handlers** now available in `src/handlers/graph-query-handlers/`:
 
 1. `GetGraphData` - Fetch complete graph
 2. `GetNodeById` - Fetch specific node
@@ -266,8 +266,8 @@ event_bus.subscribe(|event: GraphUpdated| {
 **Usage**:
 ```rust
 // In handler:
-let nodes = state.graph_query_handlers
-    .get_graph_data
+let nodes = state.graph-query-handlers
+    .get-graph-data
     .handle(GetGraphData::default())
     .await?;
 ```
@@ -313,7 +313,7 @@ let nodes = state.graph_query_handlers
 
 ### When Working with Graph Data
 
-- [ ] **Queries**: Use `state.graph_query_handlers.get_X.handle()`
+- [ ] **Queries**: Use `state.graph-query-handlers.get-X.handle()`
 - [ ] **Updates**: Wait for command handlers (Phase 2), use TransitionalGraphSupervisor until then
 - [ ] **Broadcasting**: Let event bus handle it, don't call WebSocket server directly
 - [ ] **Testing**: Use repository mocks instead of actor mocks
@@ -412,18 +412,18 @@ When reviewing PRs that touch graph operations:
 
 ### Documentation
 - [Hexagonal CQRS Architecture](/docs/concepts/architecture/hexagonal-cqrs-architecture.md) - Detailed architecture design
-- [Architecture Overview](/docs/concepts/architecture/00-ARCHITECTURE-OVERVIEW.md) - Current implementation
+- [Architecture Overview](/docs/concepts/architecture/00-ARCHITECTURE-overview.md) - Current implementation
 - [GPU Communication Flow](/docs/gpu/communication-flow.md) - Physics integration patterns
 
 ### Code References
-- Query handlers: `src/handlers/graph_query_handlers/`
-- Repository: `src/repositories/unified_graph_repository.rs`
+- Query handlers: `src/handlers/graph-query-handlers/`
+- Repository: `src/repositories/unified-graph-repository.rs`
 - Event bus: `src/events/` (Phase 3)
-- TransitionalGraphSupervisor: `src/actors/transitional_supervisor.rs` (bridge pattern)
+- TransitionalGraphSupervisor: `src/actors/transitional-supervisor.rs` (bridge pattern)
 
 ### Related Deprecations
 - [Neo4j Settings Migration](/docs/guides/neo4j-migration.md) - Similar deprecation pattern
-- [Deprecation Strategy Index](/docs/DEPRECATION_STRATEGY_INDEX.md) - General deprecation guidelines
+- [Deprecation Strategy Index](/docs/deprecation-strategy-index.md) - General deprecation guidelines
 
 ---
 

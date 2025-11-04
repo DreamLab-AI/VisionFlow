@@ -14,12 +14,12 @@ This document details the implementation of semantic physics forces that transla
 
 | Component | Status | Location | Notes |
 |-----------|--------|----------|-------|
-| **CUDA Kernels** | ✅ COMPLETE | `src/utils/ontology_constraints.cu` | 5 kernels, 64-byte alignment, ~2ms for 10K nodes |
+| **CUDA Kernels** | ✅ COMPLETE | `src/utils/ontology-constraints.cu` | 5 kernels, 64-byte alignment, ~2ms for 10K nodes |
 | **Constraint Models** | ✅ COMPLETE | `src/models/constraints.rs` | ConstraintKind::Semantic = 10 defined |
-| **Ontology Translator** | ✅ COMPLETE | `src/physics/ontology_constraints.rs` | Maps OWL axioms → Constraint objects |
-| **OntologyConstraintActor** | ✅ COMPLETE | `src/actors/gpu/ontology_constraint_actor.rs` | GPU upload & CPU fallback |
-| **CustomReasoner** | ✅ COMPLETE | `src/reasoning/custom_reasoner.rs` | Infers SubClassOf, DisjointWith, EquivalentTo |
-| **Pipeline Service** | ⚠️ **PARTIAL** | `src/services/ontology_pipeline_service.rs` | **CRITICAL BUG: Empty node_indices** |
+| **Ontology Translator** | ✅ COMPLETE | `src/physics/ontology-constraints.rs` | Maps OWL axioms → Constraint objects |
+| **OntologyConstraintActor** | ✅ COMPLETE | `src/actors/gpu/ontology-constraint-actor.rs` | GPU upload & CPU fallback |
+| **CustomReasoner** | ✅ COMPLETE | `src/reasoning/custom-reasoner.rs` | Infers SubClassOf, DisjointWith, EquivalentTo |
+| **Pipeline Service** | ⚠️ **PARTIAL** | `src/services/ontology-pipeline-service.rs` | **CRITICAL BUG: Empty node-indices** |
 
 ---
 
@@ -27,18 +27,18 @@ This document details the implementation of semantic physics forces that transla
 
 ### Issue #1: Empty Node Indices in Constraint Generation
 
-**File**: `src/services/ontology_pipeline_service.rs` (Lines 239-300)
+**File**: `src/services/ontology-pipeline-service.rs` (Lines 239-300)
 
 **Problem**:
 ```rust
 // Lines 256-264: SubClassOf axiom handling
 AxiomType::SubClassOf => {
-    if let Some(_superclass) = &axiom.object {
+    if let Some(-superclass) = &axiom.object {
         constraints.push(Constraint {
             kind: ConstraintKind::Semantic,
-            node_indices: vec![],  // ❌ EMPTY - No actual node IDs!
+            node-indices: vec![],  // ❌ EMPTY - No actual node IDs!
             params: vec![],        // ❌ EMPTY - No force parameters!
-            weight: self.config.constraint_strength,
+            weight: self.config.constraint-strength,
             active: true,
         });
     }
@@ -62,7 +62,7 @@ The pipeline service generates constraint objects from `InferredAxiom` types whi
 The system has three different node identification schemes:
 
 1. **Database Node IDs**: `u32` sequential IDs from `unified.db` nodes table
-2. **Metadata IDs**: String identifiers like `"neuron_123"` or `"Person"`
+2. **Metadata IDs**: String identifiers like `"neuron-123"` or `"Person"`
 3. **OWL IRIs**: Full URIs like `"http://www.co-ode.org/ontologies/cell.owl#Neuron"`
 
 The constraint generation code needs to:
@@ -75,16 +75,16 @@ CustomReasoner::InferredAxiom {
    [MISSING MAPPING]
          ↓
 Constraint {
-    node_indices: vec![42, 137, 298],  // u32 node IDs from unified.db
+    node-indices: vec![42, 137, 298],  // u32 node IDs from unified.db
     ...
 }
 ```
 
-**Current Approach**: `OntologyConstraintTranslator::find_nodes_of_type()` searches by:
-- `node.node_type`
+**Current Approach**: `OntologyConstraintTranslator::find-nodes-of-type()` searches by:
+- `node.node-type`
 - `node.group`
 - `node.metadata` values
-- `node.metadata_id.contains(type_name)`
+- `node.metadata-id.contains(type-name)`
 
 This is fragile and doesn't handle full IRIs properly.
 
@@ -97,20 +97,20 @@ This is fragile and doesn't handle full IRIs properly.
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │ 1. GitHub Sync: Parse .md files → OntologyBlock extraction         │
-│    └─> UnifiedOntologyRepository::save_ontology_class()            │
+│    └─> UnifiedOntologyRepository::save-ontology-class()            │
 │        (stores classes with IRIs in unified.db)                     │
 └─────────────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────────────┐
 │ 2. Reasoning: CustomReasoner infers transitive axioms               │
-│    Input:  Ontology { subclass_of, disjoint_classes, ... }         │
+│    Input:  Ontology { subclass-of, disjoint-classes, ... }         │
 │    Output: Vec<InferredAxiom> { SubClassOf, DisjointWith, ... }    │
 └─────────────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────────────┐
 │ 3. Constraint Generation: OntologyPipelineService                  │
-│    ❌ BROKEN: generate_constraints_from_axioms()                   │
-│    - Creates Constraint objects with empty node_indices            │
+│    ❌ BROKEN: generate-constraints-from-axioms()                   │
+│    - Creates Constraint objects with empty node-indices            │
 │    - Doesn't resolve IRIs to database node IDs                     │
 └─────────────────────────────────────────────────────────────────────┘
                               ↓
@@ -118,14 +118,14 @@ This is fragile and doesn't handle full IRIs properly.
 │ 4. GPU Upload: OntologyConstraintActor                             │
 │    - Converts Constraint → ConstraintData (GPU format)             │
 │    - Uploads to CUDA kernels via SharedGPUContext                  │
-│    ✅ Works correctly IF node_indices are populated                │
+│    ✅ Works correctly IF node-indices are populated                │
 └─────────────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────────────┐
-│ 5. Physics Simulation: CUDA Kernels (ontology_constraints.cu)     │
-│    ✅ apply_disjoint_classes_kernel() - Repulsion forces           │
-│    ✅ apply_subclass_hierarchy_kernel() - Attraction forces        │
-│    ✅ apply_sameas_colocate_kernel() - Strong attraction           │
+│ 5. Physics Simulation: CUDA Kernels (ontology-constraints.cu)     │
+│    ✅ apply-disjoint-classes-kernel() - Repulsion forces           │
+│    ✅ apply-subclass-hierarchy-kernel() - Attraction forces        │
+│    ✅ apply-sameas-colocate-kernel() - Strong attraction           │
 │    Performance: ~2ms for 10K nodes with 64-byte alignment          │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -145,18 +145,18 @@ DisjointClasses(Neuron, Astrocyte)
 ```rust
 Constraint {
     kind: ConstraintKind::Separation,
-    node_indices: vec![neuron_nodes..., astrocyte_nodes...],
-    params: vec![max_separation_distance * 0.7],  // Min distance to maintain
+    node-indices: vec![neuron-nodes..., astrocyte-nodes...],
+    params: vec![max-separation-distance * 0.7],  // Min distance to maintain
     weight: 2.0,  // Strong repulsion
 }
 ```
 
-**CUDA Implementation** (`ontology_constraints.cu:94-154`):
+**CUDA Implementation** (`ontology-constraints.cu:94-154`):
 ```cuda
 // Repulsion force: F = -k * penetration
-float penetration = min_distance - dist;
-float force_magnitude = separation_strength * constraint.strength * penetration;
-float3 force = direction * (-force_magnitude);  // Negative = repel
+float penetration = min-distance - dist;
+float force-magnitude = separation-strength * constraint.strength * penetration;
+float3 force = direction * (-force-magnitude);  // Negative = repel
 ```
 
 **Effect**: Disjoint classes visually separate in 3D space
@@ -174,24 +174,24 @@ SubClassOf(Neuron, Cell)  // Neuron is-a Cell
 ```rust
 Constraint {
     kind: ConstraintKind::Clustering,  // Or custom hierarchical type
-    node_indices: vec![neuron_nodes...],
+    node-indices: vec![neuron-nodes...],
     params: vec![
-        0.0,              // cluster_id
+        0.0,              // cluster-id
         0.5,              // strength
-        cell_centroid.x,  // target position
-        cell_centroid.y,
-        cell_centroid.z,
+        cell-centroid.x,  // target position
+        cell-centroid.y,
+        cell-centroid.z,
     ],
     weight: 1.0,
 }
 ```
 
-**CUDA Implementation** (`ontology_constraints.cu:156-216`):
+**CUDA Implementation** (`ontology-constraints.cu:156-216`):
 ```cuda
 // Spring force to ideal distance: F = k * displacement
-float displacement = dist - ideal_distance;
-float force_magnitude = alignment_strength * constraint.strength * displacement;
-float3 force = direction * force_magnitude;
+float displacement = dist - ideal-distance;
+float force-magnitude = alignment-strength * constraint.strength * displacement;
+float3 force = direction * force-magnitude;
 ```
 
 **Effect**: Subclass instances cluster near superclass instances
@@ -209,17 +209,17 @@ EquivalentClasses(Person, Human)
 ```rust
 Constraint {
     kind: ConstraintKind::Clustering,
-    node_indices: vec![person_id, human_id],
-    params: vec![0.0, 1.5, min_colocation_distance],
+    node-indices: vec![person-id, human-id],
+    params: vec![0.0, 1.5, min-colocation-distance],
     weight: 1.5,  // Stronger than subclass
 }
 ```
 
-**CUDA Implementation** (`ontology_constraints.cu:218-281`):
+**CUDA Implementation** (`ontology-constraints.cu:218-281`):
 ```cuda
 // Strong spring force to minimize distance
-float force_magnitude = colocate_strength * constraint.strength * dist;
-float3 force = direction * force_magnitude;
+float force-magnitude = colocate-strength * constraint.strength * dist;
+float3 force = direction * force-magnitude;
 
 // Additional velocity damping for faster convergence
 nodes[idx].velocity = nodes[idx].velocity * 0.95f;
@@ -240,18 +240,18 @@ InverseOf(hasChild, hasParent)
 ```rust
 Constraint {
     kind: ConstraintKind::Semantic,  // Custom semantic type
-    node_indices: vec![child_property_id, parent_property_id],
-    params: vec![symmetry_strength],
+    node-indices: vec![child-property-id, parent-property-id],
+    params: vec![symmetry-strength],
     weight: 0.7,
 }
 ```
 
-**CUDA Implementation** (`ontology_constraints.cu:283-350`):
+**CUDA Implementation** (`ontology-constraints.cu:283-350`):
 ```cuda
 // Symmetry constraint: push nodes to be equidistant from midpoint
 float3 midpoint = (source.position + target.position) * 0.5f;
-float3 source_force = (midpoint - source.position) * force_magnitude;
-float3 target_force = (midpoint - target.position) * force_magnitude;
+float3 source-force = (midpoint - source.position) * force-magnitude;
+float3 target-force = (midpoint - target.position) * force-magnitude;
 ```
 
 **Effect**: Inverse properties positioned symmetrically
@@ -264,11 +264,11 @@ float3 target_force = (midpoint - target.position) * force_magnitude;
 
 | Kernel | Purpose | Block Size | Complexity | Typical Time (10K nodes) |
 |--------|---------|------------|------------|--------------------------|
-| `apply_disjoint_classes_kernel` | Repulsion | 256 threads | O(n²) pairs | ~0.8ms |
-| `apply_subclass_hierarchy_kernel` | Attraction | 256 threads | O(n×m) | ~0.6ms |
-| `apply_sameas_colocate_kernel` | Colocation | 256 threads | O(n) | ~0.3ms |
-| `apply_inverse_symmetry_kernel` | Symmetry | 256 threads | O(n) | ~0.2ms |
-| `apply_functional_cardinality_kernel` | Cardinality | 256 threads | O(n×c) | ~0.4ms |
+| `apply-disjoint-classes-kernel` | Repulsion | 256 threads | O(n²) pairs | ~0.8ms |
+| `apply-subclass-hierarchy-kernel` | Attraction | 256 threads | O(n×m) | ~0.6ms |
+| `apply-sameas-colocate-kernel` | Colocation | 256 threads | O(n) | ~0.3ms |
+| `apply-inverse-symmetry-kernel` | Symmetry | 256 threads | O(n) | ~0.2ms |
+| `apply-functional-cardinality-kernel` | Cardinality | 256 threads | O(n×c) | ~0.4ms |
 | **TOTAL** | | | | **~2.3ms** |
 
 ### Memory Alignment
@@ -277,24 +277,24 @@ All GPU structures use **64-byte alignment** for optimal cache line utilization:
 
 ```cuda
 struct OntologyNode {          // 64 bytes total
-    uint32_t graph_id;         // 4 bytes
-    uint32_t node_id;          // 4 bytes
-    uint32_t ontology_type;    // 4 bytes
-    uint32_t constraint_flags; // 4 bytes
+    uint32-t graph-id;         // 4 bytes
+    uint32-t node-id;          // 4 bytes
+    uint32-t ontology-type;    // 4 bytes
+    uint32-t constraint-flags; // 4 bytes
     float3 position;           // 12 bytes
     float3 velocity;           // 12 bytes
     float mass;                // 4 bytes
     float radius;              // 4 bytes
-    uint32_t parent_class;     // 4 bytes
-    uint32_t property_count;   // 4 bytes
-    uint32_t padding[6];       // 24 bytes → TOTAL: 64 bytes
+    uint32-t parent-class;     // 4 bytes
+    uint32-t property-count;   // 4 bytes
+    uint32-t padding[6];       // 24 bytes → TOTAL: 64 bytes
 };
 
 struct OntologyConstraint {    // 64 bytes total
-    uint32_t type;             // 4 bytes
-    uint32_t source_id;        // 4 bytes
-    uint32_t target_id;        // 4 bytes
-    uint32_t graph_id;         // 4 bytes
+    uint32-t type;             // 4 bytes
+    uint32-t source-id;        // 4 bytes
+    uint32-t target-id;        // 4 bytes
+    uint32-t graph-id;         // 4 bytes
     float strength;            // 4 bytes
     float distance;            // 4 bytes
     float padding[10];         // 40 bytes → TOTAL: 64 bytes
@@ -312,24 +312,24 @@ struct OntologyConstraint {    // 64 bytes total
 
 ### Fix #1: Implement IRI → Node Index Resolution
 
-**Location**: `src/services/ontology_pipeline_service.rs`
+**Location**: `src/services/ontology-pipeline-service.rs`
 
 **Current Code** (Lines 239-300):
 ```rust
-async fn generate_constraints_from_axioms(
+async fn generate-constraints-from-axioms(
     &self,
-    axioms: &[crate::reasoning::custom_reasoner::InferredAxiom],
+    axioms: &[crate::reasoning::custom-reasoner::InferredAxiom],
 ) -> Result<ConstraintSet, String> {
     // ...
     for axiom in axioms {
-        match axiom.axiom_type {
+        match axiom.axiom-type {
             AxiomType::SubClassOf => {
-                if let Some(_superclass) = &axiom.object {
+                if let Some(-superclass) = &axiom.object {
                     constraints.push(Constraint {
                         kind: ConstraintKind::Semantic,
-                        node_indices: vec![],  // ❌ EMPTY
+                        node-indices: vec![],  // ❌ EMPTY
                         params: vec![],        // ❌ EMPTY
-                        weight: self.config.constraint_strength,
+                        weight: self.config.constraint-strength,
                         active: true,
                     });
                 }
@@ -342,86 +342,86 @@ async fn generate_constraints_from_axioms(
 
 **Required Fix**:
 ```rust
-async fn generate_constraints_from_axioms(
+async fn generate-constraints-from-axioms(
     &self,
-    axioms: &[crate::reasoning::custom_reasoner::InferredAxiom],
-    graph_data: &GraphData,  // ✅ ADD: Need access to graph nodes
+    axioms: &[crate::reasoning::custom-reasoner::InferredAxiom],
+    graph-data: &GraphData,  // ✅ ADD: Need access to graph nodes
 ) -> Result<ConstraintSet, String> {
     use crate::models::constraints::{Constraint, ConstraintKind};
 
     let mut constraints = Vec::new();
 
     // ✅ Build IRI → Node ID lookup table
-    let node_lookup: HashMap<String, Vec<u32>> = graph_data.nodes
+    let node-lookup: HashMap<String, Vec<u32>> = graph-data.nodes
         .iter()
-        .filter_map(|node| {
+        .filter-map(|node| {
             // Match nodes by:
-            // 1. owl_class_iri (if present)
-            // 2. metadata_id (fallback)
-            // 3. node_type (fallback)
-            let key = node.owl_class_iri
+            // 1. owl-class-iri (if present)
+            // 2. metadata-id (fallback)
+            // 3. node-type (fallback)
+            let key = node.owl-class-iri
                 .clone()
-                .or_else(|| node.node_type.clone())
-                .or_else(|| Some(node.metadata_id.clone()))?;
+                .or-else(|| node.node-type.clone())
+                .or-else(|| Some(node.metadata-id.clone()))?;
             Some((key, node.id))
         })
-        .fold(HashMap::new(), |mut acc, (iri, node_id)| {
-            acc.entry(iri).or_insert_with(Vec::new).push(node_id);
+        .fold(HashMap::new(), |mut acc, (iri, node-id)| {
+            acc.entry(iri).or-insert-with(Vec::new).push(node-id);
             acc
         });
 
     for axiom in axioms {
-        match axiom.axiom_type {
+        match axiom.axiom-type {
             AxiomType::SubClassOf => {
-                if let Some(superclass_iri) = &axiom.object {
+                if let Some(superclass-iri) = &axiom.object {
                     // ✅ Resolve IRIs to node IDs
-                    let subclass_nodes = node_lookup.get(&axiom.subject)
+                    let subclass-nodes = node-lookup.get(&axiom.subject)
                         .cloned()
-                        .unwrap_or_default();
-                    let superclass_nodes = node_lookup.get(superclass_iri)
+                        .unwrap-or-default();
+                    let superclass-nodes = node-lookup.get(superclass-iri)
                         .cloned()
-                        .unwrap_or_default();
+                        .unwrap-or-default();
 
-                    if !subclass_nodes.is_empty() && !superclass_nodes.is_empty() {
+                    if !subclass-nodes.is-empty() && !superclass-nodes.is-empty() {
                         // ✅ Calculate superclass centroid for attraction
-                        let superclass_centroid = calculate_centroid(
-                            &graph_data.nodes,
-                            &superclass_nodes
+                        let superclass-centroid = calculate-centroid(
+                            &graph-data.nodes,
+                            &superclass-nodes
                         );
 
                         constraints.push(Constraint {
                             kind: ConstraintKind::Semantic,
-                            node_indices: subclass_nodes,  // ✅ ACTUAL NODE IDS
+                            node-indices: subclass-nodes,  // ✅ ACTUAL NODE IDS
                             params: vec![
                                 0.0,  // Semantic type: SubClassOf
-                                self.config.constraint_strength * 0.5,  // Attraction strength
-                                superclass_centroid.0,  // Target x
-                                superclass_centroid.1,  // Target y
-                                superclass_centroid.2,  // Target z
+                                self.config.constraint-strength * 0.5,  // Attraction strength
+                                superclass-centroid.0,  // Target x
+                                superclass-centroid.1,  // Target y
+                                superclass-centroid.2,  // Target z
                             ],
-                            weight: self.config.constraint_strength * axiom.confidence,
+                            weight: self.config.constraint-strength * axiom.confidence,
                             active: true,
                         });
                     }
                 }
             }
             AxiomType::DisjointWith => {
-                if let Some(class_b_iri) = &axiom.object {
-                    let class_a_nodes = node_lookup.get(&axiom.subject)
+                if let Some(class-b-iri) = &axiom.object {
+                    let class-a-nodes = node-lookup.get(&axiom.subject)
                         .cloned()
-                        .unwrap_or_default();
-                    let class_b_nodes = node_lookup.get(class_b_iri)
+                        .unwrap-or-default();
+                    let class-b-nodes = node-lookup.get(class-b-iri)
                         .cloned()
-                        .unwrap_or_default();
+                        .unwrap-or-default();
 
                     // ✅ Create repulsion constraints for all pairs
-                    for &node_a in &class_a_nodes {
-                        for &node_b in &class_b_nodes {
+                    for &node-a in &class-a-nodes {
+                        for &node-b in &class-b-nodes {
                             constraints.push(Constraint {
                                 kind: ConstraintKind::Separation,
-                                node_indices: vec![node_a, node_b],
+                                node-indices: vec![node-a, node-b],
                                 params: vec![100.0],  // Min separation distance
-                                weight: self.config.constraint_strength * 2.0,  // Strong repulsion
+                                weight: self.config.constraint-strength * 2.0,  // Strong repulsion
                                 active: true,
                             });
                         }
@@ -429,33 +429,33 @@ async fn generate_constraints_from_axioms(
                 }
             }
             AxiomType::EquivalentTo => {
-                if let Some(class_b_iri) = &axiom.object {
-                    let class_a_nodes = node_lookup.get(&axiom.subject)
+                if let Some(class-b-iri) = &axiom.object {
+                    let class-a-nodes = node-lookup.get(&axiom.subject)
                         .cloned()
-                        .unwrap_or_default();
-                    let class_b_nodes = node_lookup.get(class_b_iri)
+                        .unwrap-or-default();
+                    let class-b-nodes = node-lookup.get(class-b-iri)
                         .cloned()
-                        .unwrap_or_default();
+                        .unwrap-or-default();
 
                     // ✅ Strong colocation constraint
-                    for &node_a in &class_a_nodes {
-                        for &node_b in &class_b_nodes {
+                    for &node-a in &class-a-nodes {
+                        for &node-b in &class-b-nodes {
                             constraints.push(Constraint {
                                 kind: ConstraintKind::Clustering,
-                                node_indices: vec![node_a, node_b],
+                                node-indices: vec![node-a, node-b],
                                 params: vec![
-                                    0.0,  // cluster_id
-                                    self.config.constraint_strength * 1.5,
-                                    5.0,  // min_colocation_distance
+                                    0.0,  // cluster-id
+                                    self.config.constraint-strength * 1.5,
+                                    5.0,  // min-colocation-distance
                                 ],
-                                weight: self.config.constraint_strength * 1.5,
+                                weight: self.config.constraint-strength * 1.5,
                                 active: true,
                             });
                         }
                     }
                 }
             }
-            _ => {}
+            - => {}
         }
     }
 
@@ -466,14 +466,14 @@ async fn generate_constraints_from_axioms(
 }
 
 // ✅ Helper function
-fn calculate_centroid(nodes: &[Node], node_ids: &[u32]) -> (f32, f32, f32) {
-    if node_ids.is_empty() {
+fn calculate-centroid(nodes: &[Node], node-ids: &[u32]) -> (f32, f32, f32) {
+    if node-ids.is-empty() {
         return (0.0, 0.0, 0.0);
     }
 
-    let positions: Vec<_> = node_ids
+    let positions: Vec<-> = node-ids
         .iter()
-        .filter_map(|&id| nodes.iter().find(|n| n.id == id))
+        .filter-map(|&id| nodes.iter().find(|n| n.id == id))
         .map(|node| (node.data.x, node.data.y, node.data.z))
         .collect();
 
@@ -490,40 +490,40 @@ fn calculate_centroid(nodes: &[Node], node_ids: &[u32]) -> (f32, f32, f32) {
 
 ### Fix #2: Update Pipeline Service Call Sites
 
-**Location**: `src/services/ontology_pipeline_service.rs` (Line 159)
+**Location**: `src/services/ontology-pipeline-service.rs` (Line 159)
 
 **Current Code**:
 ```rust
-match self.generate_constraints_from_axioms(&axioms).await {
+match self.generate-constraints-from-axioms(&axioms).await {
 ```
 
 **Fixed Code**:
 ```rust
-match self.generate_constraints_from_axioms(&axioms, graph_data).await {
+match self.generate-constraints-from-axioms(&axioms, graph-data).await {
 ```
 
-**Challenge**: The `on_ontology_modified()` method receives `Ontology` but not `GraphData`. Need to:
-1. Add `graph_actor` field to `OntologyPipelineService`
+**Challenge**: The `on-ontology-modified()` method receives `Ontology` but not `GraphData`. Need to:
+1. Add `graph-actor` field to `OntologyPipelineService`
 2. Query graph data before constraint generation
-3. Pass to `generate_constraints_from_axioms()`
+3. Pass to `generate-constraints-from-axioms()`
 
 ---
 
 ### Fix #3: Add Graph Data Query to Pipeline
 
-**Location**: `src/services/ontology_pipeline_service.rs`
+**Location**: `src/services/ontology-pipeline-service.rs`
 
 **Add Method**:
 ```rust
-async fn get_graph_data(&self) -> Result<GraphData, String> {
-    let graph_actor = self.graph_actor
-        .as_ref()
-        .ok_or_else(|| "Graph actor not configured".to_string())?;
+async fn get-graph-data(&self) -> Result<GraphData, String> {
+    let graph-actor = self.graph-actor
+        .as-ref()
+        .ok-or-else(|| "Graph actor not configured".to-string())?;
 
     use crate::actors::messages::GetGraphData;
 
-    match graph_actor.send(GetGraphData).await {
-        Ok(Ok(graph_data)) => Ok(graph_data),
+    match graph-actor.send(GetGraphData).await {
+        Ok(Ok(graph-data)) => Ok(graph-data),
         Ok(Err(e)) => Err(format!("Failed to get graph data: {}", e)),
         Err(e) => Err(format!("Mailbox error: {}", e)),
     }
@@ -533,16 +533,16 @@ async fn get_graph_data(&self) -> Result<GraphData, String> {
 **Update Pipeline Flow** (Line 152):
 ```rust
 // Step 1: Get current graph data
-let graph_data = self.get_graph_data().await?;
+let graph-data = self.get-graph-data().await?;
 
 // Step 2: Trigger reasoning
-match self.trigger_reasoning(ontology_id, ontology.clone()).await {
+match self.trigger-reasoning(ontology-id, ontology.clone()).await {
     Ok(axioms) => {
-        stats.reasoning_triggered = true;
-        stats.inferred_axioms_count = axioms.len();
+        stats.reasoning-triggered = true;
+        stats.inferred-axioms-count = axioms.len();
 
         // Step 3: Generate constraints WITH graph data
-        match self.generate_constraints_from_axioms(&axioms, &graph_data).await {
+        match self.generate-constraints-from-axioms(&axioms, &graph-data).await {
             // ...
         }
     }
@@ -559,16 +559,16 @@ match self.trigger_reasoning(ontology_id, ontology.clone()).await {
 ```rust
 // Create ontology with disjoint classes
 let mut ontology = Ontology::default();
-ontology.disjoint_classes.push(
-    vec!["Neuron".to_string(), "Astrocyte".to_string()]
-        .into_iter().collect()
+ontology.disjoint-classes.push(
+    vec!["Neuron".to-string(), "Astrocyte".to-string()]
+        .into-iter().collect()
 );
 
 // Create graph nodes
 let nodes = vec![
-    Node { id: 1, owl_class_iri: Some("Neuron".to_string()), ... },
-    Node { id: 2, owl_class_iri: Some("Neuron".to_string()), ... },
-    Node { id: 3, owl_class_iri: Some("Astrocyte".to_string()), ... },
+    Node { id: 1, owl-class-iri: Some("Neuron".to-string()), ... },
+    Node { id: 2, owl-class-iri: Some("Neuron".to-string()), ... },
+    Node { id: 3, owl-class-iri: Some("Astrocyte".to-string()), ... },
 ];
 ```
 
@@ -580,13 +580,13 @@ let nodes = vec![
 
 **Validation**:
 ```rust
-let neuron_positions = vec![(nodes[0].data.x, nodes[0].data.y),
+let neuron-positions = vec![(nodes[0].data.x, nodes[0].data.y),
                              (nodes[1].data.x, nodes[1].data.y)];
-let astrocyte_pos = (nodes[2].data.x, nodes[2].data.y);
+let astrocyte-pos = (nodes[2].data.x, nodes[2].data.y);
 
-for neuron_pos in neuron_positions {
-    let distance = ((neuron_pos.0 - astrocyte_pos.0).powi(2) +
-                    (neuron_pos.1 - astrocyte_pos.1).powi(2)).sqrt();
+for neuron-pos in neuron-positions {
+    let distance = ((neuron-pos.0 - astrocyte-pos.0).powi(2) +
+                    (neuron-pos.1 - astrocyte-pos.1).powi(2)).sqrt();
     assert!(distance > 100.0, "Disjoint classes should be separated");
 }
 ```
@@ -597,13 +597,13 @@ for neuron_pos in neuron_positions {
 
 **Setup**:
 ```rust
-ontology.subclass_of.insert("Neuron".to_string(),
-    vec!["Cell".to_string()].into_iter().collect());
+ontology.subclass-of.insert("Neuron".to-string(),
+    vec!["Cell".to-string()].into-iter().collect());
 
 let nodes = vec![
-    Node { id: 10, owl_class_iri: Some("Cell".to_string()), position: (0, 0, 0) },
-    Node { id: 11, owl_class_iri: Some("Neuron".to_string()), position: (500, 500, 0) },
-    Node { id: 12, owl_class_iri: Some("Neuron".to_string()), position: (600, 600, 0) },
+    Node { id: 10, owl-class-iri: Some("Cell".to-string()), position: (0, 0, 0) },
+    Node { id: 11, owl-class-iri: Some("Neuron".to-string()), position: (500, 500, 0) },
+    Node { id: 12, owl-class-iri: Some("Neuron".to-string()), position: (600, 600, 0) },
 ];
 ```
 
@@ -615,13 +615,13 @@ let nodes = vec![
 
 **Validation**:
 ```rust
-let cell_pos = (nodes[0].data.x, nodes[0].data.y);
-let neuron_distances: Vec<f32> = nodes[1..].iter()
-    .map(|n| ((n.data.x - cell_pos.0).powi(2) +
-              (n.data.y - cell_pos.1).powi(2)).sqrt())
+let cell-pos = (nodes[0].data.x, nodes[0].data.y);
+let neuron-distances: Vec<f32> = nodes[1..].iter()
+    .map(|n| ((n.data.x - cell-pos.0).powi(2) +
+              (n.data.y - cell-pos.1).powi(2)).sqrt())
     .collect();
 
-for distance in neuron_distances {
+for distance in neuron-distances {
     assert!(distance < 50.0, "Subclasses should cluster near superclass");
 }
 ```
@@ -634,11 +634,11 @@ Based on empirical testing with 1K-10K node graphs:
 
 | Constraint Type | Default Weight | Force Multiplier | Max Force Clamp | Ideal Distance |
 |----------------|----------------|------------------|-----------------|----------------|
-| **DisjointWith** | 2.0 | 2.0× separation_strength | 1000.0 | 100-150 units |
-| **SubClassOf** | 1.0 | 0.5× spring_k | 500.0 | 30-50 units |
-| **EquivalentTo** | 1.5 | 1.5× colocate_strength | 800.0 | 5-10 units |
-| **InverseOf** | 0.7 | 0.7× symmetry_strength | 400.0 | Equal from midpoint |
-| **FunctionalProperty** | 0.7 | 1.0× cardinality_penalty | 600.0 | Boundary box |
+| **DisjointWith** | 2.0 | 2.0× separation-strength | 1000.0 | 100-150 units |
+| **SubClassOf** | 1.0 | 0.5× spring-k | 500.0 | 30-50 units |
+| **EquivalentTo** | 1.5 | 1.5× colocate-strength | 800.0 | 5-10 units |
+| **InverseOf** | 0.7 | 0.7× symmetry-strength | 400.0 | Equal from midpoint |
+| **FunctionalProperty** | 0.7 | 1.0× cardinality-penalty | 600.0 | Boundary box |
 
 ### Force Tuning Parameters
 
@@ -646,12 +646,12 @@ Based on empirical testing with 1K-10K node graphs:
 
 ```rust
 pub struct AdvancedParams {
-    pub semantic_force_weight: f32,  // Global multiplier (default: 0.6)
+    pub semantic-force-weight: f32,  // Global multiplier (default: 0.6)
     // ...
 }
 
 // For semantic-heavy visualizations:
-let params = AdvancedParams::semantic_optimized();  // semantic_force_weight = 0.9
+let params = AdvancedParams::semantic-optimized();  // semantic-force-weight = 0.9
 ```
 
 ---
@@ -664,16 +664,16 @@ Instead of creating one constraint per axiom, group by constraint type:
 
 ```rust
 // ❌ Slow: Create constraints one by one
-for axiom in disjoint_axioms {
-    constraints.push(create_constraint(axiom));
+for axiom in disjoint-axioms {
+    constraints.push(create-constraint(axiom));
 }
 
 // ✅ Fast: Batch create and upload
-let disjoint_constraints: Vec<_> = disjoint_axioms
-    .par_iter()  // Parallel iterator
-    .flat_map(|axiom| create_disjoint_constraints(axiom))
+let disjoint-constraints: Vec<-> = disjoint-axioms
+    .par-iter()  // Parallel iterator
+    .flat-map(|axiom| create-disjoint-constraints(axiom))
     .collect();
-constraints.extend(disjoint_constraints);
+constraints.extend(disjoint-constraints);
 ```
 
 ### 2. Constraint Caching
@@ -682,11 +682,11 @@ Enable caching in `OntologyConstraintTranslator`:
 
 ```rust
 let config = OntologyConstraintConfig {
-    enable_constraint_caching: true,
-    cache_invalidation_enabled: true,
+    enable-constraint-caching: true,
+    cache-invalidation-enabled: true,
     ..Default::default()
 };
-let translator = OntologyConstraintTranslator::with_config(config);
+let translator = OntologyConstraintTranslator::with-config(config);
 ```
 
 **Cache Hit Rate**: ~85% on typical ontology updates (only 15% of axioms change per edit)
@@ -697,9 +697,9 @@ The CUDA kernels reuse constraint buffers across frames:
 
 ```cuda
 // Don't reallocate every frame
-static __device__ OntologyConstraint* constraint_cache = nullptr;
-if (constraint_cache == nullptr || constraint_count_changed) {
-    cudaMalloc(&constraint_cache, num_constraints * sizeof(OntologyConstraint));
+static --device-- OntologyConstraint* constraint-cache = nullptr;
+if (constraint-cache == nullptr || constraint-count-changed) {
+    cudaMalloc(&constraint-cache, num-constraints * sizeof(OntologyConstraint));
 }
 ```
 
@@ -711,7 +711,7 @@ if (constraint_cache == nullptr || constraint_count_changed) {
 
 **Ontology** (Cell Ontology subset):
 ```turtle
-@prefix cell: <http://purl.obolibrary.org/obo/CL_> .
+@prefix cell: <http://purl.obolibrary.org/obo/CL-> .
 
 cell:0000540 rdf:type owl:Class ;  # Neuron
     rdfs:subClassOf cell:0000000 .  # Cell
@@ -732,13 +732,13 @@ cell:0000127 rdf:type owl:Class ;  # Astrocyte
 **Code**:
 ```rust
 let config = SemanticPhysicsConfig {
-    auto_trigger_reasoning: true,
-    constraint_strength: 1.2,  // Slightly stronger forces
+    auto-trigger-reasoning: true,
+    constraint-strength: 1.2,  // Slightly stronger forces
     ..Default::default()
 };
 
 let pipeline = OntologyPipelineService::new(config);
-pipeline.on_ontology_modified(ontology_id, cell_ontology).await?;
+pipeline.on-ontology-modified(ontology-id, cell-ontology).await?;
 ```
 
 ---
@@ -750,7 +750,7 @@ pipeline.on_ontology_modified(ontology_id, cell_ontology).await?;
 **Solution**: Use `owl:differentFrom` axiom
 
 ```turtle
-<http://kg.org/entity/Apple_Inc> owl:differentFrom <http://kg.org/entity/Apple_fruit> .
+<http://kg.org/entity/Apple-Inc> owl:differentFrom <http://kg.org/entity/Apple-fruit> .
 ```
 
 **Physics Effect**:
@@ -767,14 +767,14 @@ pipeline.on_ontology_modified(ontology_id, cell_ontology).await?;
 Currently, all semantic constraints have equal priority. Implement priority blending:
 
 ```cuda
-__global__ void apply_prioritized_constraints_kernel(
+--global-- void apply-prioritized-constraints-kernel(
     OntologyConstraint* constraints,
-    float* priority_weights,  // Per-constraint priorities
-    int num_constraints
+    float* priority-weights,  // Per-constraint priorities
+    int num-constraints
 ) {
     // Blend forces based on priority:
     // Higher priority = stronger influence
-    float blended_force = base_force * priority_weights[constraint_idx];
+    float blended-force = base-force * priority-weights[constraint-idx];
 }
 ```
 
@@ -784,15 +784,15 @@ Older inferred axioms gradually reduce force strength:
 
 ```rust
 pub struct InferredAxiom {
-    pub axiom_type: AxiomType,
+    pub axiom-type: AxiomType,
     pub confidence: f32,
-    pub inferred_at: Instant,  // ✅ Add timestamp
+    pub inferred-at: Instant,  // ✅ Add timestamp
 }
 
 // In constraint generation:
-let age_seconds = (Instant::now() - axiom.inferred_at).as_secs_f32();
-let decay_factor = (-age_seconds / 3600.0).exp();  // Exponential decay (1hr half-life)
-constraint.weight *= decay_factor;
+let age-seconds = (Instant::now() - axiom.inferred-at).as-secs-f32();
+let decay-factor = (-age-seconds / 3600.0).exp();  // Exponential decay (1hr half-life)
+constraint.weight *= decay-factor;
 ```
 
 ### 3. Multi-Graph Constraint Propagation
@@ -801,8 +801,8 @@ Support constraints across multiple graph instances:
 
 ```cuda
 struct OntologyConstraint {
-    uint32_t source_graph_id;  // ✅ Different graphs
-    uint32_t target_graph_id;
+    uint32-t source-graph-id;  // ✅ Different graphs
+    uint32-t target-graph-id;
     // ... cross-graph forces
 };
 ```
@@ -817,22 +817,22 @@ struct OntologyConstraint {
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `src/utils/ontology_constraints.cu` | 488 | CUDA kernels (5 semantic force types) |
-| `src/physics/ontology_constraints.rs` | 822 | OWL axiom → Constraint translator |
-| `src/services/ontology_pipeline_service.rs` | 370 | End-to-end semantic physics pipeline |
-| `src/actors/gpu/ontology_constraint_actor.rs` | 550 | GPU upload & actor coordination |
-| `src/reasoning/custom_reasoner.rs` | 466 | OWL reasoning engine |
+| `src/utils/ontology-constraints.cu` | 488 | CUDA kernels (5 semantic force types) |
+| `src/physics/ontology-constraints.rs` | 822 | OWL axiom → Constraint translator |
+| `src/services/ontology-pipeline-service.rs` | 370 | End-to-end semantic physics pipeline |
+| `src/actors/gpu/ontology-constraint-actor.rs` | 550 | GPU upload & actor coordination |
+| `src/reasoning/custom-reasoner.rs` | 466 | OWL reasoning engine |
 | `src/models/constraints.rs` | 412 | Constraint data structures |
 
 ### CUDA Kernel Entry Points
 
 ```c
 extern "C" {
-    void launch_disjoint_classes_kernel(/*...*/);      // Line 427
-    void launch_subclass_hierarchy_kernel(/*...*/);    // Line 439
-    void launch_sameas_colocate_kernel(/*...*/);       // Line 451
-    void launch_inverse_symmetry_kernel(/*...*/);      // Line 463
-    void launch_functional_cardinality_kernel(/*...*/);// Line 475
+    void launch-disjoint-classes-kernel(/*...*/);      // Line 427
+    void launch-subclass-hierarchy-kernel(/*...*/);    // Line 439
+    void launch-sameas-colocate-kernel(/*...*/);       // Line 451
+    void launch-inverse-symmetry-kernel(/*...*/);      // Line 463
+    void launch-functional-cardinality-kernel(/*...*/);// Line 475
 }
 ```
 
@@ -846,7 +846,7 @@ extern "C" {
 - [x] **GPU Actor**: Uploads constraints to GPU with CPU fallback
 - [x] **Reasoner**: Infers transitive axioms (SubClassOf, DisjointWith, EquivalentTo)
 - [ ] **IRI Resolution**: Map IRI strings to database node IDs (**CRITICAL FIX NEEDED**)
-- [ ] **Pipeline Integration**: `generate_constraints_from_axioms()` populates node_indices (**CRITICAL FIX NEEDED**)
+- [ ] **Pipeline Integration**: `generate-constraints-from-axioms()` populates node-indices (**CRITICAL FIX NEEDED**)
 - [ ] **Validation Tests**: Disjoint class repulsion and subclass clustering tests
 - [ ] **Force Magnitudes**: Documented and validated force multipliers
 - [ ] **Performance**: <2ms per frame for 10K nodes (**Already achieved**)
@@ -857,23 +857,23 @@ extern "C" {
 
 ### Priority 1: Fix Constraint Generation (BLOCKING)
 
-1. **Update `generate_constraints_from_axioms()` signature**:
-   - Add `graph_data: &GraphData` parameter
+1. **Update `generate-constraints-from-axioms()` signature**:
+   - Add `graph-data: &GraphData` parameter
    - Build IRI → node ID lookup table
-   - Populate `node_indices` with actual database IDs
+   - Populate `node-indices` with actual database IDs
 
 2. **Add graph data query to pipeline**:
-   - Implement `get_graph_data()` helper
-   - Call before constraint generation in `on_ontology_modified()`
+   - Implement `get-graph-data()` helper
+   - Call before constraint generation in `on-ontology-modified()`
 
 3. **Update all call sites**:
-   - Pass `graph_data` to constraint generation
+   - Pass `graph-data` to constraint generation
    - Handle errors from graph actor queries
 
 ### Priority 2: Add Node IRI Support
 
 1. **Enhance Node model** (if not already present):
-   - Ensure `owl_class_iri: Option<String>` field exists
+   - Ensure `owl-class-iri: Option<String>` field exists
    - Populate from ontology parsing
 
 2. **Update UnifiedOntologyRepository**:

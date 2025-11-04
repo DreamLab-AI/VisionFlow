@@ -51,7 +51,7 @@ curl http://localhost:4000/api/admin/pipeline/metrics
 ```json
 {
   "status": "triggered",
-  "correlation_id": "abc123",
+  "correlation-id": "abc123",
   "timestamp": "2025-11-03T18:00:00Z"
 }
 ```
@@ -65,13 +65,13 @@ curl http://localhost:4000/api/admin/pipeline/metrics
 ```json
 {
   "status": "running",
-  "current_stage": "reasoning",
-  "progress_percent": 45,
-  "started_at": "2025-11-03T17:59:00Z",
-  "queue_sizes": {
+  "current-stage": "reasoning",
+  "progress-percent": 45,
+  "started-at": "2025-11-03T17:59:00Z",
+  "queue-sizes": {
     "reasoning": 3,
     "constraints": 0,
-    "gpu_upload": 0
+    "gpu-upload": 0
   }
 }
 ```
@@ -119,36 +119,36 @@ curl http://localhost:4000/api/admin/pipeline/metrics
 ```json
 {
   "metrics": {
-    "reasoning_latency_ms": 45.2,
-    "constraint_gen_latency_ms": 12.3,
-    "gpu_upload_latency_ms": 8.7,
-    "total_pipeline_latency_ms": 66.2,
-    "error_rate": 0.01,
-    "cache_hit_rate": 0.85
+    "reasoning-latency-ms": 45.2,
+    "constraint-gen-latency-ms": 12.3,
+    "gpu-upload-latency-ms": 8.7,
+    "total-pipeline-latency-ms": 66.2,
+    "error-rate": 0.01,
+    "cache-hit-rate": 0.85
   },
-  "window": "last_1000_executions"
+  "window": "last-1000-executions"
 }
 ```
 
 ---
 
-### GET /api/admin/pipeline/events/:correlation_id
+### GET /api/admin/pipeline/events/:correlation-id
 **Description**: Query event log for specific execution
 
 **Response**:
 ```json
 {
-  "correlation_id": "abc123",
+  "correlation-id": "abc123",
   "events": [
     {
       "type": "OntologyModified",
       "timestamp": "2025-11-03T17:59:00Z",
-      "data": {"file_count": 5}
+      "data": {"file-count": 5}
     },
     {
       "type": "ReasoningComplete",
       "timestamp": "2025-11-03T17:59:45Z",
-      "data": {"inference_count": 42}
+      "data": {"inference-count": 42}
     }
   ]
 }
@@ -163,7 +163,7 @@ curl http://localhost:4000/api/admin/pipeline/metrics
 ```json
 {
   "status": "cleared",
-  "cache_entries_removed": 156
+  "cache-entries-removed": 156
 }
 ```
 
@@ -177,8 +177,8 @@ curl http://localhost:4000/api/admin/pipeline/metrics
 
 Add after line 42:
 ```rust
-pub mod pipeline_admin_handler;
-pub use pipeline_admin_handler::configure_routes as configure_pipeline_admin_routes;
+pub mod pipeline-admin-handler;
+pub use pipeline-admin-handler::configure-routes as configure-pipeline-admin-routes;
 ```
 
 ### Step 2: Add Module to services/mod.rs
@@ -187,25 +187,25 @@ pub use pipeline_admin_handler::configure_routes as configure_pipeline_admin_rou
 
 Add line:
 ```rust
-pub mod pipeline_events;
+pub mod pipeline-events;
 ```
 
 ### Step 3: Add AppState Fields
 
-**File**: `src/app_state.rs`
+**File**: `src/app-state.rs`
 
 Add imports:
 ```rust
-use crate::services::pipeline_events::PipelineEventBus;
-use crate::services::ontology_pipeline_service::{OntologyPipelineService, SemanticPhysicsConfig};
+use crate::services::pipeline-events::PipelineEventBus;
+use crate::services::ontology-pipeline-service::{OntologyPipelineService, SemanticPhysicsConfig};
 ```
 
 Add fields to AppState struct:
 ```rust
-pub pipeline_event_bus: Arc<RwLock<PipelineEventBus>>,
-pub pipeline_service: Arc<OntologyPipelineService>,
-pub pipeline_paused: Arc<RwLock<bool>>,
-pub pipeline_pause_reason: Arc<RwLock<Option<String>>>,
+pub pipeline-event-bus: Arc<RwLock<PipelineEventBus>>,
+pub pipeline-service: Arc<OntologyPipelineService>,
+pub pipeline-paused: Arc<RwLock<bool>>,
+pub pipeline-pause-reason: Arc<RwLock<Option<String>>>,
 ```
 
 ### Step 4: Initialize in AppState::new()
@@ -214,21 +214,21 @@ Add after actor initialization:
 ```rust
 // Initialize pipeline infrastructure
 info!("[AppState::new] Initializing pipeline event bus and orchestration service");
-let pipeline_event_bus = Arc::new(RwLock::new(PipelineEventBus::new(10000)));
+let pipeline-event-bus = Arc::new(RwLock::new(PipelineEventBus::new(10000)));
 
-let pipeline_config = SemanticPhysicsConfig::default();
-let mut pipeline_service = OntologyPipelineService::new(pipeline_config);
+let pipeline-config = SemanticPhysicsConfig::default();
+let mut pipeline-service = OntologyPipelineService::new(pipeline-config);
 
 // Wire existing actors
-if let Some(ref ontology_addr) = ontology_actor_addr {
-    pipeline_service.set_ontology_actor(ontology_addr.clone());
+if let Some(ref ontology-addr) = ontology-actor-addr {
+    pipeline-service.set-ontology-actor(ontology-addr.clone());
 }
-pipeline_service.set_graph_actor(graph_service_addr.clone());
-pipeline_service.set_graph_repository(knowledge_graph_repository.clone());
+pipeline-service.set-graph-actor(graph-service-addr.clone());
+pipeline-service.set-graph-repository(knowledge-graph-repository.clone());
 
-let pipeline_service = Arc::new(pipeline_service);
-let pipeline_paused = Arc::new(RwLock::new(false));
-let pipeline_pause_reason = Arc::new(RwLock::new(None));
+let pipeline-service = Arc::new(pipeline-service);
+let pipeline-paused = Arc::new(RwLock::new(false));
+let pipeline-pause-reason = Arc::new(RwLock::new(None));
 ```
 
 ### Step 5: Register Routes in main.rs
@@ -237,29 +237,29 @@ let pipeline_pause_reason = Arc::new(RwLock::new(None));
 
 Add import:
 ```rust
-use webxr::handlers::configure_pipeline_admin_routes;
+use webxr::handlers::configure-pipeline-admin-routes;
 ```
 
 Create pipeline admin state:
 ```rust
-let pipeline_admin_state = web::Data::new(
-    webxr::handlers::pipeline_admin_handler::PipelineAdminState {
-        pipeline_service: app_state_data.pipeline_service.clone(),
-        event_bus: app_state_data.pipeline_event_bus.clone(),
-        paused: app_state_data.pipeline_paused.clone(),
-        pause_reason: app_state_data.pipeline_pause_reason.clone(),
+let pipeline-admin-state = web::Data::new(
+    webxr::handlers::pipeline-admin-handler::PipelineAdminState {
+        pipeline-service: app-state-data.pipeline-service.clone(),
+        event-bus: app-state-data.pipeline-event-bus.clone(),
+        paused: app-state-data.pipeline-paused.clone(),
+        pause-reason: app-state-data.pipeline-pause-reason.clone(),
     }
 );
 ```
 
 Add to app configuration:
 ```rust
-.app_data(pipeline_admin_state.clone())
+.app-data(pipeline-admin-state.clone())
 ```
 
 Register routes:
 ```rust
-.configure(configure_pipeline_admin_routes)
+.configure(configure-pipeline-admin-routes)
 ```
 
 ---
@@ -299,12 +299,12 @@ All pipeline stages emit events:
 Default values:
 ```rust
 SemanticPhysicsConfig {
-    auto_trigger_reasoning: true,       // Auto-run on ontology change
-    auto_generate_constraints: true,     // Auto-generate constraints
-    constraint_strength: 1.0,            // Force multiplier
-    use_gpu_constraints: true,           // Upload to GPU
-    max_reasoning_depth: 10,             // Inference depth limit
-    cache_inferences: true,              // Enable caching
+    auto-trigger-reasoning: true,       // Auto-run on ontology change
+    auto-generate-constraints: true,     // Auto-generate constraints
+    constraint-strength: 1.0,            // Force multiplier
+    use-gpu-constraints: true,           // Upload to GPU
+    max-reasoning-depth: 10,             // Inference depth limit
+    cache-inferences: true,              // Enable caching
 }
 ```
 
@@ -316,16 +316,16 @@ SemanticPhysicsConfig {
 
 The pipeline service needs:
 1. **OntologyActor** - OWL parsing and storage
-2. **GraphServiceActor** - Graph data access ❌ DEPRECATED (Nov 2025) - Use unified_gpu_compute.rs
+2. **GraphServiceActor** - Graph data access ❌ DEPRECATED (Nov 2025) - Use unified-gpu-compute.rs
 3. **ReasoningActor** - Inference execution (to be added)
 4. **OntologyConstraintActor** - GPU constraint upload (to be added)
 
 ### Wiring Example
 
 ```rust
-pipeline_service.set_ontology_actor(ontology_addr.clone());
-pipeline_service.set_graph_actor(graph_addr.clone());
-pipeline_service.set_graph_repository(repo.clone());
+pipeline-service.set-ontology-actor(ontology-addr.clone());
+pipeline-service.set-graph-actor(graph-addr.clone());
+pipeline-service.set-graph-repository(repo.clone());
 ```
 
 ---
@@ -378,7 +378,7 @@ Metrics are tracked for:
 
 ## References
 
-- [Pipeline Events Service](../../src/services/pipeline_events.rs)
-- [Pipeline Admin Handler](../../src/handlers/pipeline_admin_handler.rs)
-- [Ontology Pipeline Service](../../src/services/ontology_pipeline_service.rs)
-- [Integration Checklist (Historical)](../PIPELINE_INTEGRATION_CHECKLIST.md)
+- [Pipeline Events Service](../../src/services/pipeline-events.rs)
+- [Pipeline Admin Handler](../../src/handlers/pipeline-admin-handler.rs)
+- [Ontology Pipeline Service](../../src/services/ontology-pipeline-service.rs)
+- [Integration Checklist (Historical)](../pipeline-integration-checklist.md)

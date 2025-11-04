@@ -86,7 +86,7 @@ Before starting with these guides, ensure you have:
 ## Getting Help
 
 If you encounter issues not covered in these guides:
-1. Review the [Reference Documentation](../reference/README.md)
+1. Review the [Reference Documentation](../reference/readme.md)
 2. Search existing GitHub issues
 3. Join our community Discord
 4. Submit a new issue with detailed information
@@ -99,7 +99,7 @@ We welcome contributions to improve these guides:
 - Share your deployment experiences
 - Suggest new guide topics
 
-See our [Contributing Guide](./CONTRIBUTING.md) for details.
+See our [Contributing Guide](./contributing.md) for details.
 
 ---
 

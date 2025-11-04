@@ -36,14 +36,14 @@ graph TB
     end
 
     subgraph Database["💾 Unified Database (unified.db)"]
-        GRAPH_TABLES["graph_nodes<br/>graph_edges"]
-        OWL_TABLES["owl_classes<br/>owl_properties<br/>owl_axioms<br/>owl_hierarchy"]
-        META["file_metadata"]
+        GRAPH-TABLES["graph-nodes<br/>graph-edges"]
+        OWL-TABLES["owl-classes<br/>owl-properties<br/>owl-axioms<br/>owl-hierarchy"]
+        META["file-metadata"]
     end
 
     subgraph Reasoning["🧠 Ontology Reasoning"]
         WHELK["Whelk-rs Reasoner<br/>(OWL 2 EL)"]
-        INFER["Inferred Axioms<br/>(is_inferred=1)"]
+        INFER["Inferred Axioms<br/>(is-inferred=1)"]
         CACHE["LRU Cache<br/>(90x speedup)"]
     end
 
@@ -63,18 +63,18 @@ graph TB
     MD2 --> DIFF
     DIFF --> KGP
     DIFF --> ONTOP
-    KGP --> GRAPH_TABLES
-    ONTOP --> OWL_TABLES
+    KGP --> GRAPH-TABLES
+    ONTOP --> OWL-TABLES
     DIFF --> META
 
-    OWL_TABLES --> WHELK
+    OWL-TABLES --> WHELK
     WHELK --> INFER
-    INFER --> OWL_TABLES
+    INFER --> OWL-TABLES
     WHELK --> CACHE
 
-    OWL_TABLES --> CONSTRAINTS
+    OWL-TABLES --> CONSTRAINTS
     CONSTRAINTS --> CUDA
-    GRAPH_TABLES --> CUDA
+    GRAPH-TABLES --> CUDA
     CUDA --> FORCES
 
     FORCES --> WS
@@ -105,10 +105,10 @@ sequenceDiagram
     participant DB as unified.db
 
     App->>Sync: Initialize sync service
-    App->>Sync: sync_graphs()
+    App->>Sync: sync-graphs()
 
     activate Sync
-    Sync->>DB: Query file_metadata for SHA1 hashes
+    Sync->>DB: Query file-metadata for SHA1 hashes
     DB-->>Sync: Previous file states
 
     Sync->>GH: Fetch file list (jjohare/logseq)
@@ -116,14 +116,14 @@ sequenceDiagram
 
     loop For each file
         Sync->>Sync: Compute SHA1 hash
-        alt File changed or FORCE_FULL_SYNC
+        alt File changed or FORCE-FULL-SYNC
             Sync->>GH: Fetch file content
             GH-->>Sync: Raw markdown
             Sync->>Parser: Route to appropriate parser
             Parser-->>Sync: Parsed data
             Sync->>Repo: Store nodes/edges/classes
             Repo->>DB: INSERT/UPDATE
-            Sync->>DB: Update file_metadata
+            Sync->>DB: Update file-metadata
         else File unchanged
             Sync->>Sync: Skip (no processing)
         end
@@ -137,8 +137,8 @@ sequenceDiagram
 
 ```rust
 // File routing based on content markers
-fn detect_file_type(content: &str) -> FileType {
-    if content.starts_with("public:: true") {
+fn detect-file-type(content: &str) -> FileType {
+    if content.starts-with("public:: true") {
         FileType::KnowledgeGraph
     } else if content.contains("- ### OntologyBlock") {
         FileType::Ontology
@@ -162,13 +162,13 @@ public:: true
 
 **Output** (to unified.db):
 ```sql
--- graph_nodes table
-INSERT INTO graph_nodes (metadata_id, label, metadata)
+-- graph-nodes table
+INSERT INTO graph-nodes (metadata-id, label, metadata)
 VALUES ('artificial-intelligence', 'Artificial Intelligence',
         '{"tags": ["ai", "technology"], "property": "active"}');
 
--- graph_edges table
-INSERT INTO graph_edges (source, target, weight)
+-- graph-edges table
+INSERT INTO graph-edges (source, target, weight)
 VALUES (1, 2, 1.0); -- AI → Machine Learning
 ```
 
@@ -177,7 +177,7 @@ VALUES (1, 2, 1.0); -- AI → Machine Learning
 **Input Format**:
 ```markdown
 - ### OntologyBlock
-  - owl_class:: Agent
+  - owl-class:: Agent
     - label:: Intelligent Agent
     - subClassOf:: Entity
   - objectProperty:: hasCapability
@@ -187,20 +187,20 @@ VALUES (1, 2, 1.0); -- AI → Machine Learning
 
 **Output** (to unified.db):
 ```sql
--- owl_classes table
-INSERT INTO owl_classes (iri, label, description)
+-- owl-classes table
+INSERT INTO owl-classes (iri, label, description)
 VALUES ('Agent', 'Intelligent Agent', NULL);
 
--- owl_class_hierarchy table
-INSERT INTO owl_class_hierarchy (class_iri, parent_iri)
+-- owl-class-hierarchy table
+INSERT INTO owl-class-hierarchy (class-iri, parent-iri)
 VALUES ('Agent', 'Entity');
 
--- owl_properties table
-INSERT INTO owl_properties (iri, label, property_type, domain, range)
+-- owl-properties table
+INSERT INTO owl-properties (iri, label, property-type, domain, range)
 VALUES ('hasCapability', 'hasCapability', 'ObjectProperty', 'Agent', 'Capability');
 
--- owl_axioms table (asserted)
-INSERT INTO owl_axioms (axiom_type, subject, predicate, object, is_inferred)
+-- owl-axioms table (asserted)
+INSERT INTO owl-axioms (axiom-type, subject, predicate, object, is-inferred)
 VALUES ('SubClassOf', 'Agent', 'rdfs:subClassOf', 'Entity', 0);
 ```
 
@@ -215,9 +215,9 @@ graph TB
     START["🔄 Sync Complete"]
 
     subgraph Load["1️⃣ Load Ontology"]
-        LOAD_CLASSES["Load owl_classes"]
-        LOAD_AXIOMS["Load owl_axioms<br/>(is_inferred=0)"]
-        LOAD_PROPS["Load owl_properties"]
+        LOAD-CLASSES["Load owl-classes"]
+        LOAD-AXIOMS["Load owl-axioms<br/>(is-inferred=0)"]
+        LOAD-PROPS["Load owl-properties"]
     end
 
     subgraph Reason["2️⃣ Whelk-rs Reasoning"]
@@ -227,9 +227,9 @@ graph TB
     end
 
     subgraph Store["3️⃣ Store Results"]
-        INFER_AX["Insert inferred axioms<br/>(is_inferred=1)"]
-        UPDATE_META["Update reasoning_metadata"]
-        CACHE_WARM["Warm LRU cache"]
+        INFER-AX["Insert inferred axioms<br/>(is-inferred=1)"]
+        UPDATE-META["Update reasoning-metadata"]
+        CACHE-WARM["Warm LRU cache"]
     end
 
     subgraph Generate["4️⃣ Generate Constraints"]
@@ -240,19 +240,19 @@ graph TB
         WEAKEN["Inferred axioms → 0.3x force"]
     end
 
-    START --> LOAD_CLASSES
-    LOAD_CLASSES --> LOAD_AXIOMS
-    LOAD_AXIOMS --> LOAD_PROPS
+    START --> LOAD-CLASSES
+    LOAD-CLASSES --> LOAD-AXIOMS
+    LOAD-AXIOMS --> LOAD-PROPS
 
-    LOAD_PROPS --> BUILD
+    LOAD-PROPS --> BUILD
     BUILD --> COMPUTE
     COMPUTE --> CHECK
 
-    CHECK --> INFER_AX
-    INFER_AX --> UPDATE_META
-    UPDATE_META --> CACHE_WARM
+    CHECK --> INFER-AX
+    INFER-AX --> UPDATE-META
+    UPDATE-META --> CACHE-WARM
 
-    CACHE_WARM --> SUBCLASS
+    CACHE-WARM --> SUBCLASS
     SUBCLASS --> DISJOINT
     DISJOINT --> EQUIV
     EQUIV --> PROP
@@ -269,14 +269,14 @@ graph TB
 **Asserted Axiom**:
 ```sql
 -- User defines: "Cat SubClassOf Animal"
-INSERT INTO owl_axioms (axiom_type, subject, predicate, object, is_inferred)
+INSERT INTO owl-axioms (axiom-type, subject, predicate, object, is-inferred)
 VALUES ('SubClassOf', 'Cat', 'rdfs:subClassOf', 'Animal', 0);
 ```
 
 **Inferred Axiom** (by Whelk-rs):
 ```sql
 -- System infers: "Cat SubClassOf LivingThing" (via Animal → LivingThing)
-INSERT INTO owl_axioms (axiom_type, subject, predicate, object, is_inferred)
+INSERT INTO owl-axioms (axiom-type, subject, predicate, object, is-inferred)
 VALUES ('SubClassOf', 'Cat', 'rdfs:subClassOf', 'LivingThing', 1);
 ```
 
@@ -309,11 +309,11 @@ VALUES ('SubClassOf', 'Cat', 'rdfs:subClassOf', 'LivingThing', 1);
 **Constraint Structure**:
 ```rust
 pub struct SemanticConstraint {
-    pub constraint_type: ConstraintType, // Spring, Repulsion, Alignment, etc.
-    pub node_a: u32,
-    pub node_b: u32,
+    pub constraint-type: ConstraintType, // Spring, Repulsion, Alignment, etc.
+    pub node-a: u32,
+    pub node-b: u32,
     pub strength: f32,      // Force multiplier
-    pub is_inferred: bool,  // Apply 0.3x reduction if true
+    pub is-inferred: bool,  // Apply 0.3x reduction if true
 }
 ```
 
@@ -330,7 +330,7 @@ graph LR
         K1["Kernel 1:<br/>Spring Forces"]
         K2["Kernel 2:<br/>Repulsion Forces"]
         K3["Kernel 3:<br/>Alignment Forces"]
-        K_INFER["Apply 0.3x<br/>to inferred"]
+        K-INFER["Apply 0.3x<br/>to inferred"]
         INTEGRATE["Integrate<br/>Velocities"]
         UPDATE["Update<br/>Positions"]
     end
@@ -344,8 +344,8 @@ graph LR
     UPLOAD --> K1
     K1 --> K2
     K2 --> K3
-    K3 --> K_INFER
-    K_INFER --> INTEGRATE
+    K3 --> K-INFER
+    K-INFER --> INTEGRATE
     INTEGRATE --> UPDATE
     UPDATE --> POSITIONS
     POSITIONS --> DOWNLOAD
@@ -359,16 +359,16 @@ graph LR
 
 **Asserted SubClassOf** (full strength):
 ```rust
-// Cat SubClassOf Animal (is_inferred=0)
-let force = spring_force(cat_pos, animal_pos, k=0.5);
-// Result: cat_pos moves toward animal_pos with full force
+// Cat SubClassOf Animal (is-inferred=0)
+let force = spring-force(cat-pos, animal-pos, k=0.5);
+// Result: cat-pos moves toward animal-pos with full force
 ```
 
 **Inferred SubClassOf** (reduced strength):
 ```rust
-// Cat SubClassOf LivingThing (is_inferred=1)
-let force = spring_force(cat_pos, living_pos, k=0.5 * 0.3); // 70% weaker
-// Result: cat_pos gently influenced by living_pos
+// Cat SubClassOf LivingThing (is-inferred=1)
+let force = spring-force(cat-pos, living-pos, k=0.5 * 0.3); // 70% weaker
+// Result: cat-pos gently influenced by living-pos
 ```
 
 ### 4. GPU Performance
@@ -510,19 +510,19 @@ gantt
 graph TB
     GH["📁 GitHub File:<br/>artificial-intelligence.md"]
 
-    META["📋 file_metadata:<br/>SHA1: abc123...<br/>last_modified: 2025-11-03"]
+    META["📋 file-metadata:<br/>SHA1: abc123...<br/>last-modified: 2025-11-03"]
 
-    NODE["🔵 graph_nodes:<br/>id: 1<br/>metadata_id: 'artificial-intelligence'<br/>label: 'Artificial Intelligence'"]
+    NODE["🔵 graph-nodes:<br/>id: 1<br/>metadata-id: 'artificial-intelligence'<br/>label: 'Artificial Intelligence'"]
 
-    CLASS["🧬 owl_classes:<br/>iri: 'AI'<br/>label: 'AI System'"]
+    CLASS["🧬 owl-classes:<br/>iri: 'AI'<br/>label: 'AI System'"]
 
-    AXIOM_A["📐 owl_axioms:<br/>subject: 'AI'<br/>predicate: 'subClassOf'<br/>object: 'ComputationalSystem'<br/>is_inferred: 0"]
+    AXIOM-A["📐 owl-axioms:<br/>subject: 'AI'<br/>predicate: 'subClassOf'<br/>object: 'ComputationalSystem'<br/>is-inferred: 0"]
 
-    AXIOM_I["📐 owl_axioms:<br/>subject: 'AI'<br/>predicate: 'subClassOf'<br/>object: 'InformationProcessor'<br/>is_inferred: 1<br/>(inferred by Whelk-rs)"]
+    AXIOM-I["📐 owl-axioms:<br/>subject: 'AI'<br/>predicate: 'subClassOf'<br/>object: 'InformationProcessor'<br/>is-inferred: 1<br/>(inferred by Whelk-rs)"]
 
-    CONS1["⚙️ Semantic Constraint:<br/>type: Spring<br/>node_a: 1<br/>node_b: 2<br/>strength: 0.5<br/>is_inferred: false"]
+    CONS1["⚙️ Semantic Constraint:<br/>type: Spring<br/>node-a: 1<br/>node-b: 2<br/>strength: 0.5<br/>is-inferred: false"]
 
-    CONS2["⚙️ Semantic Constraint:<br/>type: Spring<br/>node_a: 1<br/>node_b: 3<br/>strength: 0.15<br/>is_inferred: true (0.3x)"]
+    CONS2["⚙️ Semantic Constraint:<br/>type: Spring<br/>node-a: 1<br/>node-b: 3<br/>strength: 0.15<br/>is-inferred: true (0.3x)"]
 
     FORCE["⚡ GPU Force:<br/>node 1 attracted to 2 (strong)<br/>node 1 attracted to 3 (weak)"]
 
@@ -533,10 +533,10 @@ graph TB
     GH --> META
     GH --> NODE
     GH --> CLASS
-    CLASS --> AXIOM_A
-    AXIOM_A --> AXIOM_I
-    AXIOM_A --> CONS1
-    AXIOM_I --> CONS2
+    CLASS --> AXIOM-A
+    AXIOM-A --> AXIOM-I
+    AXIOM-A --> CONS1
+    AXIOM-I --> CONS2
     CONS1 --> FORCE
     CONS2 --> FORCE
     FORCE --> POS
@@ -546,8 +546,8 @@ graph TB
     style META fill:#fff3e0
     style NODE fill:#f0e1ff
     style CLASS fill:#e8f5e9
-    style AXIOM_A fill:#fff9c4
-    style AXIOM_I fill:#ffecb3
+    style AXIOM-A fill:#fff9c4
+    style AXIOM-I fill:#ffecb3
     style CONS1 fill:#ffe1e1
     style CONS2 fill:#ffcdd2
     style FORCE fill:#ff8a80

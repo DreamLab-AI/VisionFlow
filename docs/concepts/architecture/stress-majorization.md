@@ -11,13 +11,13 @@ Stress majorization is a global layout optimization algorithm that complements l
 The stress function measures how well the current layout matches ideal graph-theoretic distances:
 
 ```
-Stress = Σ(i,j) w_ij * (d_ij - ||p_i - p_j||)²
+Stress = Σ(i,j) w-ij * (d-ij - ||p-i - p-j||)²
 ```
 
 Where:
-- `w_ij` = weight for node pair (i,j), typically `1/d_ij²`
-- `d_ij` = ideal graph distance (shortest path length)
-- `||p_i - p_j||` = Euclidean distance between nodes in current layout
+- `w-ij` = weight for node pair (i,j), typically `1/d-ij²`
+- `d-ij` = ideal graph distance (shortest path length)
+- `||p-i - p-j||` = Euclidean distance between nodes in current layout
 
 ### Why Use Stress Majorization?
 
@@ -39,21 +39,21 @@ Where:
 ```
 src/
 ├── utils/
-│   ├── stress_majorization.cu          # CUDA kernels
-│   └── unified_gpu_compute.rs          # Integration layer
+│   ├── stress-majorization.cu          # CUDA kernels
+│   └── unified-gpu-compute.rs          # Integration layer
 ├── actors/gpu/
-│   └── stress_majorization_actor.rs    # Actix actor coordination
+│   └── stress-majorization-actor.rs    # Actix actor coordination
 ├── physics/
-│   └── stress_majorization.rs          # CPU fallback implementation
+│   └── stress-majorization.rs          # CPU fallback implementation
 ├── models/
-│   └── simulation_params.rs            # Configuration
+│   └── simulation-params.rs            # Configuration
 └── handlers/
-    └── physics_handler.rs              # API endpoints
+    └── physics-handler.rs              # API endpoints
 ```
 
 ### CUDA Kernels
 
-#### 1. `compute_stress_kernel`
+#### 1. `compute-stress-kernel`
 Calculates total layout stress value.
 
 **Purpose:** Measure layout quality
@@ -61,33 +61,33 @@ Calculates total layout stress value.
 **Memory:** N stress values (temporary)
 
 ```cuda
-__global__ void compute_stress_kernel(
-    const float* pos_x, pos_y, pos_z,
-    const float* ideal_distances,
+--global-- void compute-stress-kernel(
+    const float* pos-x, pos-y, pos-z,
+    const float* ideal-distances,
     const float* weights,
-    float* stress_values,
-    const int num_nodes
+    float* stress-values,
+    const int num-nodes
 )
 ```
 
-#### 2. `compute_stress_gradient_kernel`
+#### 2. `compute-stress-gradient-kernel`
 Computes gradient of stress function for each node.
 
 **Purpose:** Determine optimization direction
-**Formula:** `∇stress_i = Σ(j) w_ij * (1 - d_ij/||p_i - p_j||) * (p_i - p_j)`
+**Formula:** `∇stress-i = Σ(j) w-ij * (1 - d-ij/||p-i - p-j||) * (p-i - p-j)`
 **Performance:** O(N²) parallelized per node
 
 ```cuda
-__global__ void compute_stress_gradient_kernel(
-    const float* pos_x, pos_y, pos_z,
-    const float* ideal_distances,
+--global-- void compute-stress-gradient-kernel(
+    const float* pos-x, pos-y, pos-z,
+    const float* ideal-distances,
     const float* weights,
-    float* grad_x, grad_y, grad_z,
-    const int num_nodes
+    float* grad-x, grad-y, grad-z,
+    const int num-nodes
 )
 ```
 
-#### 3. `update_positions_kernel`
+#### 3. `update-positions-kernel`
 Updates positions using gradient descent with momentum.
 
 **Purpose:** Apply optimization step
@@ -97,18 +97,18 @@ Updates positions using gradient descent with momentum.
 - Blending with existing layout
 
 ```cuda
-__global__ void update_positions_kernel(
-    float* pos_x, pos_y, pos_z,
-    const float* grad_x, grad_y, grad_z,
-    float* vel_x, vel_y, vel_z,
-    const float learning_rate,
+--global-- void update-positions-kernel(
+    float* pos-x, pos-y, pos-z,
+    const float* grad-x, grad-y, grad-z,
+    float* vel-x, vel-y, vel-z,
+    const float learning-rate,
     const float momentum,
-    const float max_displacement,
-    const int num_nodes
+    const float max-displacement,
+    const int num-nodes
 )
 ```
 
-#### 4. `majorization_step_kernel`
+#### 4. `majorization-step-kernel`
 Alternative majorization-based position update.
 
 **Purpose:** Direct stress minimization via weighted averaging
@@ -116,17 +116,17 @@ Alternative majorization-based position update.
 **Advantage:** More stable than pure gradient descent
 
 ```cuda
-__global__ void majorization_step_kernel(
-    float* pos_x, pos_y, pos_z,
-    const float* ideal_distances,
+--global-- void majorization-step-kernel(
+    float* pos-x, pos-y, pos-z,
+    const float* ideal-distances,
     const float* weights,
-    float* temp_x, temp_y, temp_z,
-    const int num_nodes,
-    const float blend_factor
+    float* temp-x, temp-y, temp-z,
+    const int num-nodes,
+    const float blend-factor
 )
 ```
 
-#### 5. `reduce_max_kernel` / `reduce_sum_kernel`
+#### 5. `reduce-max-kernel` / `reduce-sum-kernel`
 Parallel reduction operations for convergence checking.
 
 **Purpose:** Compute max displacement and total stress
@@ -142,14 +142,14 @@ pub struct SimParams {
     // ... existing physics parameters ...
 
     // Stress Majorization Parameters
-    pub stress_optimization_enabled: u32,     // 0 = disabled, 1 = enabled
-    pub stress_optimization_frequency: u32,   // Run every N frames
-    pub stress_learning_rate: f32,            // Learning rate (0.01-0.1)
-    pub stress_momentum: f32,                 // Momentum factor (0.0-0.9)
-    pub stress_max_displacement: f32,         // Max displacement per iteration
-    pub stress_convergence_threshold: f32,    // Convergence threshold
-    pub stress_max_iterations: u32,           // Max iterations per call
-    pub stress_blend_factor: f32,             // Blend with local forces (0.1-0.3)
+    pub stress-optimization-enabled: u32,     // 0 = disabled, 1 = enabled
+    pub stress-optimization-frequency: u32,   // Run every N frames
+    pub stress-learning-rate: f32,            // Learning rate (0.01-0.1)
+    pub stress-momentum: f32,                 // Momentum factor (0.0-0.9)
+    pub stress-max-displacement: f32,         // Max displacement per iteration
+    pub stress-convergence-threshold: f32,    // Convergence threshold
+    pub stress-max-iterations: u32,           // Max iterations per call
+    pub stress-blend-factor: f32,             // Blend with local forces (0.1-0.3)
 }
 ```
 
@@ -157,14 +157,14 @@ pub struct SimParams {
 
 ```rust
 SimParams {
-    stress_optimization_enabled: 0,      // Disabled by default
-    stress_optimization_frequency: 60,   // Once per second at 60fps
-    stress_learning_rate: 0.05,          // Conservative learning rate
-    stress_momentum: 0.7,                // Moderate momentum
-    stress_max_displacement: 50.0,       // Clamp large movements
-    stress_convergence_threshold: 0.01,  // Early stopping
-    stress_max_iterations: 50,           // Limit computation time
-    stress_blend_factor: 0.2,            // Favor local dynamics (80/20)
+    stress-optimization-enabled: 0,      // Disabled by default
+    stress-optimization-frequency: 60,   // Once per second at 60fps
+    stress-learning-rate: 0.05,          // Conservative learning rate
+    stress-momentum: 0.7,                // Moderate momentum
+    stress-max-displacement: 50.0,       // Clamp large movements
+    stress-convergence-threshold: 0.01,  // Early stopping
+    stress-max-iterations: 50,           // Limit computation time
+    stress-blend-factor: 0.2,            // Favor local dynamics (80/20)
 }
 ```
 
@@ -175,9 +175,9 @@ SimParams {
 ```rust
 // Update simulation parameters
 let mut params = SimParams::default();
-params.stress_optimization_enabled = 1;
-params.stress_optimization_frequency = 120; // Every 2 seconds
-params.stress_learning_rate = 0.08;
+params.stress-optimization-enabled = 1;
+params.stress-optimization-frequency = 120; // Every 2 seconds
+params.stress-learning-rate = 0.08;
 ```
 
 ### 2. API Endpoints
@@ -188,21 +188,21 @@ Trigger manual stress majorization.
 **Request:**
 ```json
 {
-  "max_iterations": 100,
-  "convergence_threshold": 0.01
+  "max-iterations": 100,
+  "convergence-threshold": 0.01
 }
 ```
 
 **Response:**
 ```json
 {
-  "final_stress": 123.45,
+  "final-stress": 123.45,
   "iterations": 42,
   "converged": true,
-  "computation_time_ms": 87,
-  "layout_quality": {
-    "edge_crossings": 23,
-    "stress_improvement": 0.67
+  "computation-time-ms": 87,
+  "layout-quality": {
+    "edge-crossings": 23,
+    "stress-improvement": 0.67
   }
 }
 ```
@@ -213,10 +213,10 @@ Get current layout quality metrics.
 **Response:**
 ```json
 {
-  "stress_value": 145.23,
-  "edge_crossings": 45,
-  "avg_edge_length": 120.5,
-  "layout_score": 0.82
+  "stress-value": 145.23,
+  "edge-crossings": 45,
+  "avg-edge-length": 120.5,
+  "layout-score": 0.82
 }
 ```
 
@@ -228,8 +228,8 @@ Update optimization configuration.
 {
   "enabled": true,
   "frequency": 90,
-  "learning_rate": 0.06,
-  "max_iterations": 75
+  "learning-rate": 0.06,
+  "max-iterations": 75
 }
 ```
 
@@ -239,17 +239,17 @@ The stress majorization actor checks periodically and runs optimization:
 
 ```rust
 impl StressMajorizationActor {
-    fn should_run_stress_majorization(&self) -> bool {
-        if !self.safety.is_safe_to_run() {
+    fn should-run-stress-majorization(&self) -> bool {
+        if !self.safety.is-safe-to-run() {
             return false;
         }
 
-        let iterations_since_last = self
-            .gpu_state
-            .iteration_count
-            .saturating_sub(self.last_stress_majorization);
+        let iterations-since-last = self
+            .gpu-state
+            .iteration-count
+            .saturating-sub(self.last-stress-majorization);
 
-        iterations_since_last >= self.stress_majorization_interval
+        iterations-since-last >= self.stress-majorization-interval
     }
 }
 ```
@@ -283,11 +283,11 @@ Run optimization every N frames to balance quality and performance.
 Only run when layout quality degrades.
 
 ```rust
-fn should_optimize(&self) -> bool {
-    let stress = self.compute_current_stress();
-    let drift = self.max_displacement_since_last();
+fn should-optimize(&self) -> bool {
+    let stress = self.compute-current-stress();
+    let drift = self.max-displacement-since-last();
 
-    stress > self.stress_threshold || drift > self.drift_threshold
+    stress > self.stress-threshold || drift > self.drift-threshold
 }
 ```
 
@@ -295,8 +295,8 @@ fn should_optimize(&self) -> bool {
 Run fewer iterations more frequently.
 
 ```rust
-params.stress_max_iterations = 10;  // Quick passes
-params.stress_optimization_frequency = 30; // More frequent
+params.stress-max-iterations = 10;  // Quick passes
+params.stress-optimization-frequency = 30; // More frequent
 ```
 
 ## Algorithm Details
@@ -307,18 +307,18 @@ Uses landmark-based All-Pairs Shortest Paths (APSP) for efficiency:
 
 1. **Select Landmarks:** √N nodes distributed across graph
 2. **BFS from Landmarks:** Compute distances to all nodes
-3. **Estimate Distances:** `d_ij ≈ min_k(d_ki + d_kj)`
+3. **Estimate Distances:** `d-ij ≈ min-k(d-ki + d-kj)`
 
 **Complexity:** O(N√N) vs O(N³) for Floyd-Warshall
 
-**Implementation in:** `src/physics/stress_majorization.rs:compute_distance_matrix`
+**Implementation in:** `src/physics/stress-majorization.rs:compute-distance-matrix`
 
 ### Weight Matrix
 
 Weights follow inverse square distance law:
 
 ```rust
-w_ij = 1 / (d_ij²)
+w-ij = 1 / (d-ij²)
 ```
 
 This emphasizes:
@@ -331,12 +331,12 @@ Optimization stops when:
 
 1. **Stress Improvement < Threshold:**
    ```
-   (stress_old - stress_new) / stress_old < threshold
+   (stress-old - stress-new) / stress-old < threshold
    ```
 
 2. **Maximum Displacement < Threshold:**
    ```
-   max_i(||p_i_new - p_i_old||) < threshold
+   max-i(||p-i-new - p-i-old||) < threshold
    ```
 
 3. **Maximum Iterations Reached**
@@ -347,7 +347,7 @@ Optimization stops when:
 Lower is better. Normalized by node count:
 
 ```
-normalized_stress = total_stress / (N * (N-1) / 2)
+normalized-stress = total-stress / (N * (N-1) / 2)
 ```
 
 ### Edge Crossing Reduction
@@ -370,26 +370,26 @@ Improvements in:
 ### Problem: Optimization Too Slow
 
 **Solutions:**
-1. Reduce `stress_max_iterations`
-2. Increase `stress_optimization_frequency`
+1. Reduce `stress-max-iterations`
+2. Increase `stress-optimization-frequency`
 3. Use incremental optimization
 4. Consider graph size limits (100k+ nodes)
 
 ### Problem: Layout Becomes Unstable
 
 **Solutions:**
-1. Reduce `stress_learning_rate` (try 0.01-0.03)
-2. Increase `stress_momentum` (try 0.8-0.9)
-3. Reduce `stress_blend_factor` (try 0.1)
-4. Check `stress_max_displacement` clamping
+1. Reduce `stress-learning-rate` (try 0.01-0.03)
+2. Increase `stress-momentum` (try 0.8-0.9)
+3. Reduce `stress-blend-factor` (try 0.1)
+4. Check `stress-max-displacement` clamping
 
 ### Problem: No Visible Improvement
 
 **Solutions:**
-1. Verify `stress_optimization_enabled = 1`
+1. Verify `stress-optimization-enabled = 1`
 2. Check optimization frequency isn't too high
 3. Ensure distance matrix is computed correctly
-4. Increase `stress_learning_rate`
+4. Increase `stress-learning-rate`
 5. Verify GPU kernel compilation
 
 ### Problem: Out of Memory
@@ -447,7 +447,7 @@ Split large graphs across multiple GPUs.
 ### Resources
 
 - CUDA Programming Guide: https://docs.nvidia.com/cuda/
-- Graph Drawing Algorithms: https://en.wikipedia.org/wiki/Force-directed_graph_drawing
+- Graph Drawing Algorithms: https://en.wikipedia.org/wiki/Force-directed-graph-drawing
 - Stress Majorization Tutorial: https://graphviz.org/theory/stress/
 
 ## Performance Profiling
@@ -456,25 +456,25 @@ Split large graphs across multiple GPUs.
 
 ```rust
 // In application configuration
-params.enable_performance_metrics = true;
+params.enable-performance-metrics = true;
 
 // Access metrics
-let metrics = gpu_compute.get_performance_metrics();
-println!("Stress computation: {:.2}ms", metrics.stress_avg_time);
-println!("Gradient computation: {:.2}ms", metrics.gradient_avg_time);
+let metrics = gpu-compute.get-performance-metrics();
+println!("Stress computation: {:.2}ms", metrics.stress-avg-time);
+println!("Gradient computation: {:.2}ms", metrics.gradient-avg-time);
 ```
 
 ### Monitoring
 
 Key metrics to track:
-- `stress_computation_time_ms` - Time per optimization cycle
-- `iterations_to_convergence` - Efficiency indicator
-- `final_stress_value` - Layout quality
-- `gpu_memory_usage` - Resource utilization
+- `stress-computation-time-ms` - Time per optimization cycle
+- `iterations-to-convergence` - Efficiency indicator
+- `final-stress-value` - Layout quality
+- `gpu-memory-usage` - Resource utilization
 
 ## Integration Checklist
 
-- [x] CUDA kernel implementation (`stress_majorization.cu`)
+- [x] CUDA kernel implementation (`stress-majorization.cu`)
 - [x] SimParams configuration added
 - [x] Default parameters configured
 - [ ] Unified GPU compute integration
@@ -488,7 +488,7 @@ Key metrics to track:
 For issues or questions:
 - GitHub Issues: [Project Issues](https://github.com/your-repo/issues)
 - Documentation: This file
-- Code examples: `tests/stress_majorization_test.rs`
+- Code examples: `tests/stress-majorization-test.rs`
 
 ---
 

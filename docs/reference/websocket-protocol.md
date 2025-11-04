@@ -10,15 +10,15 @@ VisionFlow uses a custom binary WebSocket protocol optimized for real-time XR co
 
 **Client → Server**:
 ```
-MESSAGE_TYPE: 0x00 (HELLO)
-PROTOCOL_VERSION: u32 (current: 1)
-CLIENT_ID: UUID (128 bits)
+MESSAGE-TYPE: 0x00 (HELLO)
+PROTOCOL-VERSION: u32 (current: 1)
+CLIENT-ID: UUID (128 bits)
 CAPABILITIES: u32 (bitmask)
-  bit 0: hand_tracking
-  bit 1: eye_tracking
-  bit 2: voice_enabled
-  bit 3: ar_supported
-  bit 4: vr_supported
+  bit 0: hand-tracking
+  bit 1: eye-tracking
+  bit 2: voice-enabled
+  bit 3: ar-supported
+  bit 4: vr-supported
 PLATFORM: u8
   0: WebXR
   1: Meta Quest
@@ -31,14 +31,14 @@ Total: 1 + 4 + 16 + 4 + 1 = 26 bytes
 
 **Server → Client**:
 ```
-MESSAGE_TYPE: 0x01 (WELCOME)
-SESSION_ID: UUID (128 bits)
-WORLD_ID: UUID (128 bits)
-PROTOCOL_VERSION: u32
-CAPABILITY_FLAGS: u32 (server capabilities)
+MESSAGE-TYPE: 0x01 (WELCOME)
+SESSION-ID: UUID (128 bits)
+WORLD-ID: UUID (128 bits)
+PROTOCOL-VERSION: u32
+CAPABILITY-FLAGS: u32 (server capabilities)
 TIMESTAMP: u64 (server time in milliseconds)
-STATE_SNAPSHOT_SIZE: u32
-[STATE_SNAPSHOT] (variable, gzip compressed)
+STATE-SNAPSHOT-SIZE: u32
+[STATE-SNAPSHOT] (variable, gzip compressed)
 
 Total: 1 + 16 + 16 + 4 + 4 + 8 + 4 + variable
 ```
@@ -47,12 +47,12 @@ Total: 1 + 16 + 16 + 4 + 4 + 8 + 4 + variable
 
 **Heartbeat (bidirectional, 30-second interval)**:
 ```
-MESSAGE_TYPE: 0x02 (PING)
+MESSAGE-TYPE: 0x02 (PING)
 TIMESTAMP: u64
 SEQUENCE: u32
 
 Response:
-MESSAGE_TYPE: 0x03 (PONG)
+MESSAGE-TYPE: 0x03 (PONG)
 TIMESTAMP: u64
 SEQUENCE: u32
 
@@ -78,11 +78,11 @@ Total: 13 bytes
 
 ```python
 class WebSocketFrame:
-    def __init__(self):
-        self.message_type: u8
-        self.user_id: u32        # Hash of UUID for compactness
+    def --init--(self):
+        self.message-type: u8
+        self.user-id: u32        # Hash of UUID for compactness
         self.timestamp: u32      # Delta from last frame (4-byte window)
-        self.data_length: u16    # 0-512 bytes
+        self.data-length: u16    # 0-512 bytes
         self.payload: bytes
 ```
 
@@ -95,47 +95,47 @@ class WebSocketFrame:
 | 0x01 | WELCOME | Server greeting + snapshot | None |
 | 0x02 | PING | Connection check | PONG (0x03) |
 | 0x03 | PONG | Ping response | None |
-| 0x04 | SYNC_REQUEST | Request full sync | SYNC_RESPONSE |
-| 0x05 | SYNC_RESPONSE | Full world state | None |
+| 0x04 | SYNC-REQUEST | Request full sync | SYNC-RESPONSE |
+| 0x05 | SYNC-RESPONSE | Full world state | None |
 
 ### 0x10-0x1F: Presence & Avatar
 
 | Type | Name | Purpose | Frequency |
 |------|------|---------|-----------|
-| 0x10 | POSE_UPDATE | User head/hand transforms | 90 Hz |
-| 0x11 | AVATAR_STATE | Avatar appearance/status | On change |
-| 0x12 | USER_JOIN | New user entered space | On event |
-| 0x13 | USER_LEAVE | User left space | On event |
-| 0x14 | VOICE_DATA | Audio stream | ~50 Hz (16kHz mono) |
+| 0x10 | POSE-UPDATE | User head/hand transforms | 90 Hz |
+| 0x11 | AVATAR-STATE | Avatar appearance/status | On change |
+| 0x12 | USER-JOIN | New user entered space | On event |
+| 0x13 | USER-LEAVE | User left space | On event |
+| 0x14 | VOICE-DATA | Audio stream | ~50 Hz (16kHz mono) |
 
 ### 0x20-0x2F: Interaction
 
 | Type | Name | Purpose | Frequency |
 |------|------|---------|-----------|
-| 0x20 | GESTURE_EVENT | Hand gesture recognized | On gesture |
-| 0x21 | VOICE_COMMAND | Voice command | On speech |
-| 0x22 | OBJECT_SELECT | Object interaction | On action |
-| 0x23 | OBJECT_GRAB | Object grabbed | On action |
-| 0x24 | OBJECT_RELEASE | Object released | On action |
+| 0x20 | GESTURE-EVENT | Hand gesture recognized | On gesture |
+| 0x21 | VOICE-COMMAND | Voice command | On speech |
+| 0x22 | OBJECT-SELECT | Object interaction | On action |
+| 0x23 | OBJECT-GRAB | Object grabbed | On action |
+| 0x24 | OBJECT-RELEASE | Object released | On action |
 
 ### 0x30-0x3F: Graph Updates
 
 | Type | Name | Purpose | Frequency |
 |------|------|---------|-----------|
-| 0x30 | NODE_CREATE | New ontology node | On creation |
-| 0x31 | NODE_UPDATE | Update node properties | On change |
-| 0x32 | NODE_DELETE | Remove node | On deletion |
-| 0x33 | EDGE_CREATE | New relationship | On creation |
-| 0x34 | EDGE_DELETE | Remove relationship | On deletion |
-| 0x35 | CONSTRAINT_APPLY | Physics constraint | On change |
+| 0x30 | NODE-CREATE | New ontology node | On creation |
+| 0x31 | NODE-UPDATE | Update node properties | On change |
+| 0x32 | NODE-DELETE | Remove node | On deletion |
+| 0x33 | EDGE-CREATE | New relationship | On creation |
+| 0x34 | EDGE-DELETE | Remove relationship | On deletion |
+| 0x35 | CONSTRAINT-APPLY | Physics constraint | On change |
 
 ### 0x40-0x4F: Agent Actions
 
 | Type | Name | Purpose | Frequency |
 |------|------|---------|-----------|
-| 0x40 | AGENT_ACTION | Agent-initiated action | On action |
-| 0x41 | AGENT_RESPONSE | Agent response data | On response |
-| 0x42 | AGENT_STATUS | Agent status update | 1 Hz |
+| 0x40 | AGENT-ACTION | Agent-initiated action | On action |
+| 0x41 | AGENT-RESPONSE | Agent response data | On response |
+| 0x42 | AGENT-STATUS | Agent status update | 1 Hz |
 
 ### 0x50-0x5F: Errors & Acknowledgments
 
@@ -147,7 +147,7 @@ class WebSocketFrame:
 
 ## Payload Specifications
 
-### POSE_UPDATE (0x10) - 36 bytes
+### POSE-UPDATE (0x10) - 36 bytes
 
 Optimized transform update for user pose (head + hands):
 
@@ -192,7 +192,7 @@ class PoseUpdate {
 }
 ```
 
-### NODE_UPDATE (0x31) - Variable
+### NODE-UPDATE (0x31) - Variable
 
 Update ontology node in shared graph:
 
@@ -214,7 +214,7 @@ Update ontology node in shared graph:
 Minimum: 16 + 2 + 1 = 19 bytes
 ```
 
-### VOICE_DATA (0x14) - 160 bytes per frame
+### VOICE-DATA (0x14) - 160 bytes per frame
 
 Opus-encoded audio at 16kHz mono:
 
@@ -225,7 +225,7 @@ Opus-encoded audio at 16kHz mono:
 ├──────────────┼──────────────┼──────────────────────────────┤
 │ Frame Types: │              │                              │
 │ 0: speech    │ 1: noise     │ 2: silence                   │
-│ 3: end_frame │              │                              │
+│ 3: end-frame │              │                              │
 └──────────────┴──────────────┴──────────────────────────────┘
 
 Total: ~160 bytes at 50 fps (20 ms frames) = 8 KB/s per user
@@ -294,10 +294,10 @@ if (compressed.length > fullState.length * 0.8) {
 
 | Content | Message Type | Frequency | Bandwidth |
 |---------|--------------|-----------|-----------|
-| **Pose** | POSE_UPDATE | 90 Hz | 36 bytes × 90 = 3.24 MB/s |
-| **Voice** | VOICE_DATA | 50 Hz (20ms frames) | ~160 bytes × 50 = 8 KB/s |
-| **Gestures** | GESTURE_EVENT | ~5-10 per sec | ~50 bytes × 10 = 500 B/s |
-| **Graph** | NODE_UPDATE | Variable | ~1-10 KB/s |
+| **Pose** | POSE-UPDATE | 90 Hz | 36 bytes × 90 = 3.24 MB/s |
+| **Voice** | VOICE-DATA | 50 Hz (20ms frames) | ~160 bytes × 50 = 8 KB/s |
+| **Gestures** | GESTURE-EVENT | ~5-10 per sec | ~50 bytes × 10 = 500 B/s |
+| **Graph** | NODE-UPDATE | Variable | ~1-10 KB/s |
 | **Overhead** | Headers + keepalive | Constant | ~1 KB/s |
 | **TOTAL** | - | - | **~13-15 KB/s per user** |
 
@@ -360,14 +360,14 @@ For concurrent edits:
 
 ```typescript
 // Both users edit node simultaneously
-User1: NODE_UPDATE { id: 'node-1', value: 100, timestamp: 1000 }
-User2: NODE_UPDATE { id: 'node-1', value: 200, timestamp: 1001 }
+User1: NODE-UPDATE { id: 'node-1', value: 100, timestamp: 1000 }
+User2: NODE-UPDATE { id: 'node-1', value: 200, timestamp: 1001 }
 
 // Server resolves with later timestamp
 Result: value = 200 (User2 wins)
 
 // User1 receives NACK + corrected value
-Server: NACK { reason: "concurrent_edit", correctValue: 200 }
+Server: NACK { reason: "concurrent-edit", correctValue: 200 }
 ```
 
 ### CRDT-Based Conflict Resolution (Optional)
@@ -377,8 +377,8 @@ For concurrent graph modifications:
 ```typescript
 // Conflict-free replicated data type strategy
 // Each user has unique ID prefix
-User1_ID: "user-a"
-User2_ID: "user-b"
+User1-ID: "user-a"
+User2-ID: "user-b"
 
 // Create operations get unique identifiers
 Operation: { id: "user-a-1000", timestamp: 1000, ... }
@@ -407,10 +407,10 @@ Operation: { id: "user-b-1000", timestamp: 1000, ... }
 ```typescript
 // Per-user rate limiting
 const LIMITS = {
-  POSE_UPDATE: 100,    // max per second
-  NODE_UPDATE: 10,
-  GESTURE_EVENT: 20,
-  VOICE_DATA: 60
+  POSE-UPDATE: 100,    // max per second
+  NODE-UPDATE: 10,
+  GESTURE-EVENT: 20,
+  VOICE-DATA: 60
 };
 
 function checkRateLimit(userId: string, msgType: u8): boolean {

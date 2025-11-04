@@ -10,7 +10,7 @@
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                    GitHubSyncService::sync_graphs()                     │
+│                    GitHubSyncService::sync-graphs()                     │
 │  • Fetches all .md files from repository                              │
 │  • SHA1 filtering (only process changed files)                        │
 │  • Batch processing (50 files per batch)                              │
@@ -18,7 +18,7 @@
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│              GitHubSyncService::process_single_file()                   │
+│              GitHubSyncService::process-single-file()                   │
 │  • Detects file type (KnowledgeGraph, Ontology, Skip)                 │
 │  • If contains "### OntologyBlock" → FileType::Ontology                │
 └────────────────────────┬────────────────────────────────────────────────┘
@@ -34,35 +34,35 @@
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│         GitHubSyncService::save_ontology_data() [Lines 599-666]        │
+│         GitHubSyncService::save-ontology-data() [Lines 599-666]        │
 │  STEP 1: Save to unified.db                                           │
-│    └─→ UnifiedOntologyRepository::save_ontology()                     │
-│         ├─→ INSERT INTO owl_classes                                   │
-│         ├─→ INSERT INTO owl_class_hierarchy                           │
-│         ├─→ INSERT INTO owl_properties                                │
-│         └─→ INSERT INTO owl_axioms                                    │
+│    └─→ UnifiedOntologyRepository::save-ontology()                     │
+│         ├─→ INSERT INTO owl-classes                                   │
+│         ├─→ INSERT INTO owl-class-hierarchy                           │
+│         ├─→ INSERT INTO owl-properties                                │
+│         └─→ INSERT INTO owl-axioms                                    │
 │                                                                         │
 │  STEP 2: Trigger Reasoning Pipeline ✅ WIRED                          │
-│    └─→ if let Some(pipeline) = &self.pipeline_service {               │
+│    └─→ if let Some(pipeline) = &self.pipeline-service {               │
 │          tokio::spawn(async move {                                    │
-│            pipeline.on_ontology_modified(ontology_id, ontology).await │
+│            pipeline.on-ontology-modified(ontology-id, ontology).await │
 │          })                                                            │
 │        }                                                               │
 └────────────────────────┬────────────────────────────────────────────────┘
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│      OntologyPipelineService::on_ontology_modified() [Lines 133-195]   │
-│  • auto_trigger_reasoning: true (default)                             │
-│  • auto_generate_constraints: true (default)                          │
-│  • use_gpu_constraints: true (default)                                │
+│      OntologyPipelineService::on-ontology-modified() [Lines 133-195]   │
+│  • auto-trigger-reasoning: true (default)                             │
+│  • auto-generate-constraints: true (default)                          │
+│  • use-gpu-constraints: true (default)                                │
 └────────────────────────┬────────────────────────────────────────────────┘
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│    OntologyPipelineService::trigger_reasoning() [Lines 198-228]        │
+│    OntologyPipelineService::trigger-reasoning() [Lines 198-228]        │
 │  • Sends TriggerReasoning message to ReasoningActor                   │
-│  • Passes Ontology struct (classes, subclass_of, disjoint_classes)   │
+│  • Passes Ontology struct (classes, subclass-of, disjoint-classes)   │
 └────────────────────────┬────────────────────────────────────────────────┘
                          │
                          ▼
@@ -73,71 +73,71 @@
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│    OntologyReasoningService::infer_axioms() [Lines 112-213] ✅ ACTIVE │
+│    OntologyReasoningService::infer-axioms() [Lines 112-213] ✅ ACTIVE │
 │                                                                         │
 │  STEP 1: Check Blake3 Checksum Cache [Lines 120-124]                  │
 │    • Computes hash over all classes + axioms                          │
 │    • In-memory HashMap cache: 90x speedup on hit                      │
-│    • If cache hit → return cached inferred_axioms                     │
+│    • If cache hit → return cached inferred-axioms                     │
 │                                                                         │
 │  STEP 2: Load Ontology from unified.db [Lines 127-134]                │
-│    • get_classes() → Vec<OwlClass>                                    │
-│    • get_axioms() → Vec<OwlAxiom>                                     │
+│    • get-classes() → Vec<OwlClass>                                    │
+│    • get-axioms() → Vec<OwlAxiom>                                     │
 │    • Debug log: "Loaded {n} classes and {m} axioms for inference"    │
 │                                                                         │
 │  STEP 3: Build Ontology Struct [Lines 140-160]                        │
-│    • Ontology { classes, subclass_of, disjoint_classes, ... }        │
+│    • Ontology { classes, subclass-of, disjoint-classes, ... }        │
 │    • Populate classes HashMap                                         │
-│    • Build subclass_of relationships from SubClassOf axioms           │
+│    • Build subclass-of relationships from SubClassOf axioms           │
 │                                                                         │
 │  STEP 4: Run CustomReasoner ✅ ACTIVE [Lines 163-166]                 │
 │    └─→ CustomReasoner::new()                                          │
-│         └─→ reasoner.infer_axioms(&ontology)                          │
+│         └─→ reasoner.infer-axioms(&ontology)                          │
 │              Returns: Vec<InferredAxiom>                               │
 │                                                                         │
 │  STEP 5: Convert to InferredAxiom Format [Lines 169-191]              │
 │    • Map CustomAxiomType → String ("SubClassOf", "DisjointWith", ...) │
 │    • Set confidence: 1.0 (deductive reasoning)                        │
-│    • inference_path: [] (placeholder for future explainability)      │
+│    • inference-path: [] (placeholder for future explainability)      │
 │                                                                         │
 │  STEP 6: Store in Database [Line 194]                                 │
-│    └─→ store_inferred_axioms(&inferred_axioms)                        │
-│         └─→ INSERT INTO owl_axioms (with annotations = {             │
+│    └─→ store-inferred-axioms(&inferred-axioms)                        │
+│         └─→ INSERT INTO owl-axioms (with annotations = {             │
 │               "inferred": "true",                                      │
 │               "confidence": "1.0"                                      │
 │             })                                                         │
 │                                                                         │
 │  STEP 7: Cache Results [Lines 197-204]                                │
-│    • Build InferenceCacheEntry { ontology_id, checksum, axioms, ... } │
+│    • Build InferenceCacheEntry { ontology-id, checksum, axioms, ... } │
 │    • Store in RwLock<HashMap<String, InferenceCacheEntry>>           │
 │    • Info log: "Inference complete: {n} axioms inferred in {ms}ms"   │
 └────────────────────────┬────────────────────────────────────────────────┘
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│        CustomReasoner::infer_axioms() [Lines 256-269] ✅ ACTIVE        │
+│        CustomReasoner::infer-axioms() [Lines 256-269] ✅ ACTIVE        │
 │  Returns: Result<Vec<InferredAxiom>>                                  │
 │                                                                         │
-│  Algorithm 1: infer_transitive_subclass() [Lines 114-138]             │
+│  Algorithm 1: infer-transitive-subclass() [Lines 114-138]             │
 │    • Compute transitive closure of SubClassOf relationships           │
 │    • Example: Neuron ⊑ Cell ⊑ MaterialEntity ⊑ Entity                │
 │    • Infers: Neuron ⊑ MaterialEntity, Neuron ⊑ Entity                │
-│    • Uses transitive_cache: HashMap<String, HashSet<String>>          │
+│    • Uses transitive-cache: HashMap<String, HashSet<String>>          │
 │    • Complexity: O(n³) worst case, O(n²) average                      │
 │    • Confidence: 1.0 (deductive)                                      │
 │                                                                         │
-│  Algorithm 2: infer_disjoint() [Lines 141-185]                        │
+│  Algorithm 2: infer-disjoint() [Lines 141-185]                        │
 │    • Propagate disjointness to subclasses                             │
 │    • Example: Neuron ⊥ Astrocyte → PyramidalNeuron ⊥ Astrocyte       │
-│    • Iterates disjoint_classes: Vec<HashSet<String>>                  │
+│    • Iterates disjoint-classes: Vec<HashSet<String>>                  │
 │    • Finds all subclasses of disjoint pairs                           │
 │    • Emits DisjointWith axioms                                        │
 │    • Confidence: 1.0 (deductive)                                      │
 │                                                                         │
-│  Algorithm 3: infer_equivalent() [Lines 209-246]                      │
+│  Algorithm 3: infer-equivalent() [Lines 209-246]                      │
 │    • Symmetric: A ≡ B → B ≡ A                                         │
 │    • Transitive: A ≡ B ≡ C → A ≡ C                                    │
-│    • Uses equivalent_classes: HashMap<String, HashSet<String>>        │
+│    • Uses equivalent-classes: HashMap<String, HashSet<String>>        │
 │    • Confidence: 1.0 (deductive)                                      │
 └────────────────────────┬────────────────────────────────────────────────┘
                          │
@@ -146,7 +146,7 @@
 │                      INFERRED AXIOMS RETURNED                           │
 │  Example: [                                                            │
 │    InferredAxiom {                                                     │
-│      axiom_type: SubClassOf,                                          │
+│      axiom-type: SubClassOf,                                          │
 │      subject: "Neuron",                                               │
 │      object: Some("MaterialEntity"),                                  │
 │      confidence: 1.0                                                   │
@@ -157,7 +157,7 @@
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│  OntologyPipelineService::generate_constraints_from_axioms() [239-300] │
+│  OntologyPipelineService::generate-constraints-from-axioms() [239-300] │
 │  • Converts axioms to physics constraints                             │
 │  • ConstraintKind::Semantic (= 10 in CUDA kernel)                     │
 │  • Weight calculation:                                                 │
@@ -169,23 +169,23 @@
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│     OntologyPipelineService::upload_constraints_to_gpu() [303-336]     │
+│     OntologyPipelineService::upload-constraints-to-gpu() [303-336]     │
 │  • Sends ApplyOntologyConstraints to OntologyConstraintActor          │
-│  • merge_mode: ConstraintMergeMode::Merge                             │
-│  • graph_id: 0 (main knowledge graph)                                 │
+│  • merge-mode: ConstraintMergeMode::Merge                             │
+│  • graph-id: 0 (main knowledge graph)                                 │
 └────────────────────────┬────────────────────────────────────────────────┘
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
 │               OntologyConstraintActor (GPU Actor)                       │
 │  • Uploads ConstraintSet to GPU memory                                │
-│  • Triggers ontology_constraints.cu CUDA kernel                       │
+│  • Triggers ontology-constraints.cu CUDA kernel                       │
 │  • Applies semantic forces to node positions                          │
 └────────────────────────┬────────────────────────────────────────────────┘
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                   ontology_constraints.cu (CUDA)                        │
+│                   ontology-constraints.cu (CUDA)                        │
 │  • Processes ConstraintKind::Semantic = 10                            │
 │  • Applies physics forces:                                             │
 │    - SubClassOf: Attraction (child → parent clustering)               │
@@ -216,45 +216,45 @@
 
 ## Database Tables Involved
 
-### owl_classes
+### owl-classes
 ```sql
-CREATE TABLE owl_classes (
+CREATE TABLE owl-classes (
     id INTEGER PRIMARY KEY,
-    ontology_id TEXT DEFAULT 'default',
+    ontology-id TEXT DEFAULT 'default',
     iri TEXT UNIQUE NOT NULL,
     label TEXT,
     description TEXT,
-    file_sha1 TEXT,
-    last_synced INTEGER,
-    markdown_content TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    file-sha1 TEXT,
+    last-synced INTEGER,
+    markdown-content TEXT,
+    created-at TIMESTAMP DEFAULT CURRENT-TIMESTAMP,
+    updated-at TIMESTAMP DEFAULT CURRENT-TIMESTAMP
 );
 ```
 
-### owl_axioms (stores inferred axioms)
+### owl-axioms (stores inferred axioms)
 ```sql
-CREATE TABLE owl_axioms (
+CREATE TABLE owl-axioms (
     id INTEGER PRIMARY KEY,
-    ontology_id TEXT DEFAULT 'default',
-    axiom_type TEXT NOT NULL,  -- "SubClassOf", "DisjointWith", etc.
+    ontology-id TEXT DEFAULT 'default',
+    axiom-type TEXT NOT NULL,  -- "SubClassOf", "DisjointWith", etc.
     subject TEXT NOT NULL,
     object TEXT NOT NULL,
     annotations TEXT,  -- JSON: {"inferred": "true", "confidence": "1.0"}
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created-at TIMESTAMP DEFAULT CURRENT-TIMESTAMP
 );
 ```
 
-### inference_cache (exists but unused)
+### inference-cache (exists but unused)
 ```sql
-CREATE TABLE inference_cache (
+CREATE TABLE inference-cache (
     id INTEGER PRIMARY KEY,
-    ontology_id INTEGER NOT NULL,
-    ontology_checksum TEXT NOT NULL,  -- Blake3 hash
-    inferred_axioms_json TEXT NOT NULL,
-    inference_time_ms INTEGER NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(ontology_id, ontology_checksum)
+    ontology-id INTEGER NOT NULL,
+    ontology-checksum TEXT NOT NULL,  -- Blake3 hash
+    inferred-axioms-json TEXT NOT NULL,
+    inference-time-ms INTEGER NOT NULL,
+    created-at TIMESTAMP DEFAULT CURRENT-TIMESTAMP,
+    UNIQUE(ontology-id, ontology-checksum)
 );
 ```
 
@@ -264,12 +264,12 @@ CREATE TABLE inference_cache (
 
 | Component | File | Status | Role |
 |-----------|------|--------|------|
-| **CustomReasoner** | `src/reasoning/custom_reasoner.rs` | ✅ ACTIVE | EL++ inference algorithms |
-| **OntologyReasoningService** | `src/services/ontology_reasoning_service.rs` | ✅ ACTIVE | Orchestrates reasoning, caching |
-| **GitHubSyncService** | `src/services/github_sync_service.rs` | ✅ ACTIVE | Triggers pipeline on sync |
-| **OntologyPipelineService** | `src/services/ontology_pipeline_service.rs` | ✅ ACTIVE | End-to-end orchestration |
-| **UnifiedOntologyRepository** | `src/repositories/unified_ontology_repository.rs` | ✅ ACTIVE | Database persistence |
-| **WhelkInferenceEngine** | `src/adapters/whelk_inference_engine.rs` | 🟡 LEGACY | Maintained for compatibility |
+| **CustomReasoner** | `src/reasoning/custom-reasoner.rs` | ✅ ACTIVE | EL++ inference algorithms |
+| **OntologyReasoningService** | `src/services/ontology-reasoning-service.rs` | ✅ ACTIVE | Orchestrates reasoning, caching |
+| **GitHubSyncService** | `src/services/github-sync-service.rs` | ✅ ACTIVE | Triggers pipeline on sync |
+| **OntologyPipelineService** | `src/services/ontology-pipeline-service.rs` | ✅ ACTIVE | End-to-end orchestration |
+| **UnifiedOntologyRepository** | `src/repositories/unified-ontology-repository.rs` | ✅ ACTIVE | Database persistence |
+| **WhelkInferenceEngine** | `src/adapters/whelk-inference-engine.rs` | 🟡 LEGACY | Maintained for compatibility |
 
 ## Logging Examples
 
@@ -287,16 +287,16 @@ CREATE TABLE inference_cache (
 ## Test Coverage
 
 ### CustomReasoner Tests (Lines 328-465)
-- ✅ `test_transitive_subclass()` - Verifies transitive closure
-- ✅ `test_is_subclass_of()` - Validates ancestry checking
-- ✅ `test_disjoint_inference()` - Confirms disjoint propagation
-- ✅ `test_are_disjoint()` - Tests disjointness detection
-- ✅ `test_equivalent_class_inference()` - Verifies equivalence reasoning
+- ✅ `test-transitive-subclass()` - Verifies transitive closure
+- ✅ `test-is-subclass-of()` - Validates ancestry checking
+- ✅ `test-disjoint-inference()` - Confirms disjoint propagation
+- ✅ `test-are-disjoint()` - Tests disjointness detection
+- ✅ `test-equivalent-class-inference()` - Verifies equivalence reasoning
 
 ### OntologyReasoningService Tests (Lines 460-517)
-- ✅ `test_create_service()` - Service initialization
-- ✅ `test_hierarchy_depth_calculation()` - Depth tracking
-- ✅ `test_descendant_counting()` - Hierarchy traversal
+- ✅ `test-create-service()` - Service initialization
+- ✅ `test-hierarchy-depth-calculation()` - Depth tracking
+- ✅ `test-descendant-counting()` - Hierarchy traversal
 
 ## Verification Commands
 
@@ -306,8 +306,8 @@ tail -f logs/application.log | grep -E "(🔄 Triggering|✅ Reasoning|Inference
 
 # 2. Query inferred axioms in database
 sqlite3 unified.db <<SQL
-SELECT axiom_type, subject, object, annotations
-FROM owl_axioms
+SELECT axiom-type, subject, object, annotations
+FROM owl-axioms
 WHERE annotations LIKE '%inferred%'
 LIMIT 10;
 SQL
@@ -331,7 +331,7 @@ Every GitHub sync that contains `### OntologyBlock` automatically:
 1. Parses OWL classes, properties, and axioms
 2. Saves to unified.db
 3. Triggers CustomReasoner for EL++ inference
-4. Stores inferred axioms with is_inferred=true
+4. Stores inferred axioms with is-inferred=true
 5. Generates physics constraints
 6. Uploads to GPU for real-time visualization
 

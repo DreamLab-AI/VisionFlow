@@ -10,43 +10,43 @@ The **SettingsRepository** port provides a unified interface for managing all ap
 
 ## Location
 
-- **Trait Definition**: `src/ports/settings_repository.rs`
-- **Current Adapter**: `src/adapters/neo4j_settings_repository.rs` ✅ **ACTIVE**
-- **Legacy Adapter**: `src/adapters/sqlite_settings_repository.rs` ❌ **DEPRECATED**
+- **Trait Definition**: `src/ports/settings-repository.rs`
+- **Current Adapter**: `src/adapters/neo4j-settings-repository.rs` ✅ **ACTIVE**
+- **Legacy Adapter**: `src/adapters/sqlite-settings-repository.rs` ❌ **DEPRECATED**
 
 ## Interface
 
 ```rust
-#[async_trait]
+#[async-trait]
 pub trait SettingsRepository: Send + Sync {
     // Single setting operations
-    async fn get_setting(&self, key: &str) -> Result<Option<SettingValue>>;
-    async fn set_setting(&self, key: &str, value: SettingValue, description: Option<&str>) -> Result<()>;
-    async fn delete_setting(&self, key: &str) -> Result<()>;
-    async fn has_setting(&self, key: &str) -> Result<bool>;
+    async fn get-setting(&self, key: &str) -> Result<Option<SettingValue>>;
+    async fn set-setting(&self, key: &str, value: SettingValue, description: Option<&str>) -> Result<()>;
+    async fn delete-setting(&self, key: &str) -> Result<()>;
+    async fn has-setting(&self, key: &str) -> Result<bool>;
 
     // Batch operations
-    async fn get_settings_batch(&self, keys: &[String]) -> Result<HashMap<String, SettingValue>>;
-    async fn set_settings_batch(&self, updates: HashMap<String, SettingValue>) -> Result<()>;
-    async fn list_settings(&self, prefix: Option<&str>) -> Result<Vec<String>>;
+    async fn get-settings-batch(&self, keys: &[String]) -> Result<HashMap<String, SettingValue>>;
+    async fn set-settings-batch(&self, updates: HashMap<String, SettingValue>) -> Result<()>;
+    async fn list-settings(&self, prefix: Option<&str>) -> Result<Vec<String>>;
 
     // Application settings
-    async fn load_all_settings(&self) -> Result<Option<AppFullSettings>>;
-    async fn save_all_settings(&self, settings: &AppFullSettings) -> Result<()>;
+    async fn load-all-settings(&self) -> Result<Option<AppFullSettings>>;
+    async fn save-all-settings(&self, settings: &AppFullSettings) -> Result<()>;
 
     // Physics profiles
-    async fn get_physics_settings(&self, profile_name: &str) -> Result<PhysicsSettings>;
-    async fn save_physics_settings(&self, profile_name: &str, settings: &PhysicsSettings) -> Result<()>;
-    async fn list_physics_profiles(&self) -> Result<Vec<String>>;
-    async fn delete_physics_profile(&self, profile_name: &str) -> Result<()>;
+    async fn get-physics-settings(&self, profile-name: &str) -> Result<PhysicsSettings>;
+    async fn save-physics-settings(&self, profile-name: &str, settings: &PhysicsSettings) -> Result<()>;
+    async fn list-physics-profiles(&self) -> Result<Vec<String>>;
+    async fn delete-physics-profile(&self, profile-name: &str) -> Result<()>;
 
     // Import/Export
-    async fn export_settings(&self) -> Result<serde_json::Value>;
-    async fn import_settings(&self, settings_json: &serde_json::Value) -> Result<()>;
+    async fn export-settings(&self) -> Result<serde-json::Value>;
+    async fn import-settings(&self, settings-json: &serde-json::Value) -> Result<()>;
 
     // Maintenance
-    async fn clear_cache(&self) -> Result<()>;
-    async fn health_check(&self) -> Result<bool>;
+    async fn clear-cache(&self) -> Result<()>;
+    async fn health-check(&self) -> Result<bool>;
 }
 ```
 
@@ -64,16 +64,16 @@ pub enum SettingValue {
     Integer(i64),
     Float(f64),
     Boolean(bool),
-    Json(serde_json::Value),
+    Json(serde-json::Value),
 }
 ```
 
 **Helper Methods**:
-- `as_string() -> Option<&str>`
-- `as_i64() -> Option<i64>`
-- `as_f64() -> Option<f64>`
-- `as_bool() -> Option<bool>`
-- `as_json() -> Option<&serde_json::Value>`
+- `as-string() -> Option<&str>`
+- `as-i64() -> Option<i64>`
+- `as-f64() -> Option<f64>`
+- `as-bool() -> Option<bool>`
+- `as-json() -> Option<&serde-json::Value>`
 
 ### AppFullSettings
 
@@ -81,10 +81,10 @@ Complete application settings structure:
 
 ```rust
 pub struct AppFullSettings {
-    pub log_level: String,
-    pub graph_directory: String,
-    pub ontology_directory: String,
-    pub physics_settings: PhysicsSettings,
+    pub log-level: String,
+    pub graph-directory: String,
+    pub ontology-directory: String,
+    pub physics-settings: PhysicsSettings,
     // ... additional fields
 }
 ```
@@ -95,11 +95,11 @@ Physics simulation configuration:
 
 ```rust
 pub struct PhysicsSettings {
-    pub time_step: f32,
+    pub time-step: f32,
     pub damping: f32,
-    pub spring_strength: f32,
-    pub repulsion_strength: f32,
-    pub max_velocity: f32,
+    pub spring-strength: f32,
+    pub repulsion-strength: f32,
+    pub max-velocity: f32,
     // ... additional physics parameters
 }
 ```
@@ -132,33 +132,33 @@ pub enum SettingsRepositoryError {
 
 ```rust
 // Initialize Neo4j settings repository
-let settings_config = Neo4jSettingsConfig {
-    uri: std::env::var("NEO4J_URI").unwrap_or_else(|_| "bolt://localhost:7687".to_string()),
-    user: std::env::var("NEO4J_USER").unwrap_or_else(|_| "neo4j".to_string()),
-    password: std::env::var("NEO4J_PASSWORD").unwrap_or_else(|_| "password".to_string()),
-    database: std::env::var("NEO4J_DATABASE").ok(),
-    fetch_size: 500,
-    max_connections: 10,
+let settings-config = Neo4jSettingsConfig {
+    uri: std::env::var("NEO4J-URI").unwrap-or-else(|-| "bolt://localhost:7687".to-string()),
+    user: std::env::var("NEO4J-USER").unwrap-or-else(|-| "neo4j".to-string()),
+    password: std::env::var("NEO4J-PASSWORD").unwrap-or-else(|-| "password".to-string()),
+    database: std::env::var("NEO4J-DATABASE").ok(),
+    fetch-size: 500,
+    max-connections: 10,
 };
 
 let repo: Arc<dyn SettingsRepository> = Arc::new(
-    Neo4jSettingsRepository::new(settings_config).await?
+    Neo4jSettingsRepository::new(settings-config).await?
 );
 
 // Set a setting
-repo.set_setting(
-    "log_level",
+repo.set-setting(
+    "log-level",
     SettingValue::String("debug".into()),
     Some("Application log level")
 ).await?;
 
 // Get a setting
-if let Some(SettingValue::String(level)) = repo.get_setting("log_level").await? {
+if let Some(SettingValue::String(level)) = repo.get-setting("log-level").await? {
     println!("Log level: {}", level);
 }
 
 // Check existence
-if repo.has_setting("log_level").await? {
+if repo.has-setting("log-level").await? {
     println!("Setting exists!");
 }
 ```
@@ -167,74 +167,74 @@ if repo.has_setting("log_level").await? {
 
 ```rust
 // Get multiple settings at once
-let keys = vec!["log_level".to_string(), "graph_directory".to_string()];
-let settings = repo.get_settings_batch(&keys).await?;
+let keys = vec!["log-level".to-string(), "graph-directory".to-string()];
+let settings = repo.get-settings-batch(&keys).await?;
 
 // Set multiple settings atomically
 let mut updates = HashMap::new();
-updates.insert("log_level".to_string(), SettingValue::String("info".into()));
-updates.insert("max_nodes".to_string(), SettingValue::Integer(1000));
-repo.set_settings_batch(updates).await?;
+updates.insert("log-level".to-string(), SettingValue::String("info".into()));
+updates.insert("max-nodes".to-string(), SettingValue::Integer(1000));
+repo.set-settings-batch(updates).await?;
 ```
 
 ### Physics Profiles
 
 ```rust
 // Save a physics profile
-let physics_settings = PhysicsSettings {
-    time_step: 0.016,
+let physics-settings = PhysicsSettings {
+    time-step: 0.016,
     damping: 0.8,
-    spring_strength: 0.01,
-    repulsion_strength: 100.0,
-    max_velocity: 10.0,
+    spring-strength: 0.01,
+    repulsion-strength: 100.0,
+    max-velocity: 10.0,
 };
 
-repo.save_physics_settings("logseq_layout", &physics_settings).await?;
+repo.save-physics-settings("logseq-layout", &physics-settings).await?;
 
 // Load a physics profile
-let settings = repo.get_physics_settings("logseq_layout").await?;
+let settings = repo.get-physics-settings("logseq-layout").await?;
 
 // List all profiles
-let profiles = repo.list_physics_profiles().await?;
+let profiles = repo.list-physics-profiles().await?;
 for profile in profiles {
     println!("Profile: {}", profile);
 }
 
 // Delete a profile
-repo.delete_physics_profile("old_profile").await?;
+repo.delete-physics-profile("old-profile").await?;
 ```
 
 ### Application Settings
 
 ```rust
 // Load complete application settings
-if let Some(app_settings) = repo.load_all_settings().await? {
-    println!("Log level: {}", app_settings.log_level);
-    println!("Graph dir: {}", app_settings.graph_directory);
+if let Some(app-settings) = repo.load-all-settings().await? {
+    println!("Log level: {}", app-settings.log-level);
+    println!("Graph dir: {}", app-settings.graph-directory);
 }
 
 // Save complete application settings
-let app_settings = AppFullSettings {
-    log_level: "info".to_string(),
-    graph_directory: "./data/graphs".to_string(),
-    ontology_directory: "./data/ontology".to_string(),
-    physics_settings: PhysicsSettings::default(),
+let app-settings = AppFullSettings {
+    log-level: "info".to-string(),
+    graph-directory: "./data/graphs".to-string(),
+    ontology-directory: "./data/ontology".to-string(),
+    physics-settings: PhysicsSettings::default(),
 };
 
-repo.save_all_settings(&app_settings).await?;
+repo.save-all-settings(&app-settings).await?;
 ```
 
 ### Import/Export
 
 ```rust
 // Export all settings to JSON
-let settings_json = repo.export_settings().await?;
-std::fs::write("settings_backup.json", serde_json::to_string_pretty(&settings_json)?)?;
+let settings-json = repo.export-settings().await?;
+std::fs::write("settings-backup.json", serde-json::to-string-pretty(&settings-json)?)?;
 
 // Import settings from JSON
-let json_str = std::fs::read_to_string("settings_backup.json")?;
-let settings_json: serde_json::Value = serde_json::from_str(&json_str)?;
-repo.import_settings(&settings_json).await?;
+let json-str = std::fs::read-to-string("settings-backup.json")?;
+let settings-json: serde-json::Value = serde-json::from-str(&json-str)?;
+repo.import-settings(&settings-json).await?;
 ```
 
 ## Implementation Notes
@@ -245,21 +245,21 @@ Settings are stored as `:Setting` nodes in Neo4j with the following structure:
 
 ```cypher
 // Settings Root Node (singleton)
-CREATE (r:SettingsRoot {id: 'default', version: '1.0.0', created_at: datetime()})
+CREATE (r:SettingsRoot {id: 'default', version: '1.0.0', created-at: datetime()})
 
 // Individual Setting Nodes
 CREATE (s:Setting {
   key: 'visualisation.theme',
-  value_type: 'string',
+  value-type: 'string',
   value: 'dark',
   description: 'UI theme setting',
-  created_at: datetime(),
-  updated_at: datetime()
+  created-at: datetime(),
+  updated-at: datetime()
 })
 
 // Indices for performance
-CREATE INDEX settings_key_idx IF NOT EXISTS FOR (s:Setting) ON (s.key)
-CREATE CONSTRAINT settings_root_id IF NOT EXISTS FOR (s:SettingsRoot) REQUIRE s.id IS UNIQUE
+CREATE INDEX settings-key-idx IF NOT EXISTS FOR (s:Setting) ON (s.key)
+CREATE CONSTRAINT settings-root-id IF NOT EXISTS FOR (s:SettingsRoot) REQUIRE s.id IS UNIQUE
 ```
 
 ### Caching Strategy
@@ -275,8 +275,8 @@ pub struct Neo4jSettingsRepository {
 
 struct SettingsCache {
     settings: HashMap<String, CachedSetting>,
-    last_updated: Instant,
-    ttl_seconds: u64,  // Default: 300 seconds (5 minutes)
+    last-updated: Instant,
+    ttl-seconds: u64,  // Default: 300 seconds (5 minutes)
 }
 
 struct CachedSetting {
@@ -286,9 +286,9 @@ struct CachedSetting {
 ```
 
 **Cache Invalidation**:
-- Call `clear_cache()` after batch updates
+- Call `clear-cache()` after batch updates
 - TTL-based expiration (default: 5 minutes)
-- Write-through caching for `set_setting`
+- Write-through caching for `set-setting`
 - Cache hit provides ~90x speedup for repeated reads
 
 ### Transaction Support
@@ -296,42 +296,42 @@ struct CachedSetting {
 Batch operations use Neo4j transactions for atomicity:
 
 ```rust
-async fn set_settings_batch(&self, updates: HashMap<String, SettingValue>) -> Result<()> {
+async fn set-settings-batch(&self, updates: HashMap<String, SettingValue>) -> Result<()> {
     // Start Neo4j transaction
-    let mut txn = self.graph.start_txn().await
-        .map_err(|e| SettingsRepositoryError::DatabaseError(format!("Failed to start transaction: {}", e)))?;
+    let mut txn = self.graph.start-txn().await
+        .map-err(|e| SettingsRepositoryError::DatabaseError(format!("Failed to start transaction: {}", e)))?;
 
     for (key, value) in &updates {
-        let value_param = self.setting_value_to_param(value);
-        let query_str = "MERGE (s:Setting {key: $key})
-                         ON CREATE SET s.created_at = datetime(), s.value = $value, s.value_type = $value_type
-                         ON MATCH SET s.updated_at = datetime(), s.value = $value, s.value_type = $value_type";
+        let value-param = self.setting-value-to-param(value);
+        let query-str = "MERGE (s:Setting {key: $key})
+                         ON CREATE SET s.created-at = datetime(), s.value = $value, s.value-type = $value-type
+                         ON MATCH SET s.updated-at = datetime(), s.value = $value, s.value-type = $value-type";
 
-        txn.run_queries(vec![
-            query(query_str)
-                .param("key", key.as_str())
-                .param("value", json_to_bolt(value_param["value"].clone()))
-                .param("value_type", value_param["type"].as_str().unwrap())
-        ]).await.map_err(|e| SettingsRepositoryError::DatabaseError(format!("Failed to execute batch update: {}", e)))?;
+        txn.run-queries(vec![
+            query(query-str)
+                .param("key", key.as-str())
+                .param("value", json-to-bolt(value-param["value"].clone()))
+                .param("value-type", value-param["type"].as-str().unwrap())
+        ]).await.map-err(|e| SettingsRepositoryError::DatabaseError(format!("Failed to execute batch update: {}", e)))?;
     }
 
     txn.commit().await
-        .map_err(|e| SettingsRepositoryError::DatabaseError(format!("Failed to commit transaction: {}", e)))?;
+        .map-err(|e| SettingsRepositoryError::DatabaseError(format!("Failed to commit transaction: {}", e)))?;
 
     // Clear cache after batch update
-    self.clear_cache_internal().await?;
+    self.clear-cache-internal().await?;
     Ok(())
 }
 ```
 
 ### Key Normalization
 
-Support both camelCase and snake_case keys:
+Support both camelCase and snake-case keys:
 
 ```rust
-fn normalize_key(key: &str) -> String {
-    // Convert camelCase to snake_case
-    // "logLevel" -> "log_level"
+fn normalize-key(key: &str) -> String {
+    // Convert camelCase to snake-case
+    // "logLevel" -> "log-level"
 }
 ```
 
@@ -342,38 +342,38 @@ Settings are stored as nodes in Neo4j with the following structure:
 ```cypher
 // Schema initialization (automatic on repository creation)
 // Constraints
-CREATE CONSTRAINT settings_root_id IF NOT EXISTS
+CREATE CONSTRAINT settings-root-id IF NOT EXISTS
   FOR (s:SettingsRoot) REQUIRE s.id IS UNIQUE;
 
 // Indices for performance
-CREATE INDEX settings_key_idx IF NOT EXISTS
+CREATE INDEX settings-key-idx IF NOT EXISTS
   FOR (s:Setting) ON (s.key);
 
-CREATE INDEX physics_profile_idx IF NOT EXISTS
+CREATE INDEX physics-profile-idx IF NOT EXISTS
   FOR (p:PhysicsProfile) ON (p.name);
 
 // Node structure examples
 (:SettingsRoot {
   id: 'default',
   version: '1.0.0',
-  created_at: datetime(),
-  updated_at: datetime()
+  created-at: datetime(),
+  updated-at: datetime()
 })
 
 (:Setting {
   key: 'visualisation.theme',
-  value_type: 'string',  // 'string', 'integer', 'float', 'boolean', 'json'
+  value-type: 'string',  // 'string', 'integer', 'float', 'boolean', 'json'
   value: 'dark',
   description: 'UI theme setting',
-  created_at: datetime(),
-  updated_at: datetime()
+  created-at: datetime(),
+  updated-at: datetime()
 })
 
 (:PhysicsProfile {
-  name: 'logseq_layout',
-  settings: '{"time_step": 0.016, "damping": 0.8, ...}',
-  created_at: datetime(),
-  updated_at: datetime()
+  name: 'logseq-layout',
+  settings: '{"time-step": 0.016, "damping": 0.8, ...}',
+  created-at: datetime(),
+  updated-at: datetime()
 })
 ```
 
@@ -386,10 +386,10 @@ The previous SQLite implementation used this schema (no longer active):
 CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL,
-    value_type TEXT NOT NULL,
+    value-type TEXT NOT NULL,
     description TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created-at DATETIME DEFAULT CURRENT-TIMESTAMP,
+    updated-at DATETIME DEFAULT CURRENT-TIMESTAMP
 );
 ```
 
@@ -402,14 +402,14 @@ pub struct MockSettingsRepository {
     data: Arc<RwLock<HashMap<String, SettingValue>>>,
 }
 
-#[async_trait]
+#[async-trait]
 impl SettingsRepository for MockSettingsRepository {
-    async fn get_setting(&self, key: &str) -> Result<Option<SettingValue>> {
+    async fn get-setting(&self, key: &str) -> Result<Option<SettingValue>> {
         Ok(self.data.read().await.get(key).cloned())
     }
 
-    async fn set_setting(&self, key: &str, value: SettingValue, _: Option<&str>) -> Result<()> {
-        self.data.write().await.insert(key.to_string(), value);
+    async fn set-setting(&self, key: &str, value: SettingValue, -: Option<&str>) -> Result<()> {
+        self.data.write().await.insert(key.to-string(), value);
         Ok(())
     }
 
@@ -421,25 +421,25 @@ impl SettingsRepository for MockSettingsRepository {
 
 ```rust
 #[tokio::test]
-async fn test_settings_repository_contract() {
+async fn test-settings-repository-contract() {
     let repo = MockSettingsRepository::new();
 
     // Test set/get
-    repo.set_setting("key", SettingValue::String("value".into()), None).await.unwrap();
-    assert_eq!(
-        repo.get_setting("key").await.unwrap(),
+    repo.set-setting("key", SettingValue::String("value".into()), None).await.unwrap();
+    assert-eq!(
+        repo.get-setting("key").await.unwrap(),
         Some(SettingValue::String("value".into()))
     );
 
     // Test batch operations
     let mut updates = HashMap::new();
-    updates.insert("k1".to_string(), SettingValue::Integer(42));
-    updates.insert("k2".to_string(), SettingValue::Boolean(true));
-    repo.set_settings_batch(updates).await.unwrap();
+    updates.insert("k1".to-string(), SettingValue::Integer(42));
+    updates.insert("k2".to-string(), SettingValue::Boolean(true));
+    repo.set-settings-batch(updates).await.unwrap();
 
-    let keys = vec!["k1".to_string(), "k2".to_string()];
-    let batch = repo.get_settings_batch(&keys).await.unwrap();
-    assert_eq!(batch.len(), 2);
+    let keys = vec!["k1".to-string(), "k2".to-string()];
+    let batch = repo.get-settings-batch(&keys).await.unwrap();
+    assert-eq!(batch.len(), 2);
 }
 ```
 
@@ -447,7 +447,7 @@ async fn test_settings_repository_contract() {
 
 ### Optimization Strategies
 
-1. **Batch Operations**: Use `get_settings_batch` and `set_settings_batch` for multiple settings
+1. **Batch Operations**: Use `get-settings-batch` and `set-settings-batch` for multiple settings
 2. **Caching**: Implement LRU cache with TTL for frequently accessed settings
 3. **Connection Pooling**: Use r2d2 connection pool for SQLite
 4. **Prepared Statements**: Reuse compiled SQL statements
@@ -481,7 +481,7 @@ Target performance (Neo4j adapter):
 **Before (SQLite - DEPRECATED)**:
 ```rust
 let conn = pool.get()?;
-let value: String = conn.query_row(
+let value: String = conn.query-row(
     "SELECT value FROM settings WHERE key = ?",
     params![key],
     |row| row.get(0)
@@ -491,14 +491,14 @@ let value: String = conn.query_row(
 **After (Neo4j - CURRENT)**:
 ```rust
 // Configure Neo4j connection
-let settings_config = Neo4jSettingsConfig::default();
+let settings-config = Neo4jSettingsConfig::default();
 let repo: Arc<dyn SettingsRepository> = Arc::new(
-    Neo4jSettingsRepository::new(settings_config).await?
+    Neo4jSettingsRepository::new(settings-config).await?
 );
 
 // Query settings using port interface
-let value = repo.get_setting(key).await?
-    .and_then(|v| v.as_string().map(|s| s.to_string()));
+let value = repo.get-setting(key).await?
+    .and-then(|v| v.as-string().map(|s| s.to-string()));
 ```
 
 ### Migration Path
@@ -508,13 +508,13 @@ For projects migrating from SQLite to Neo4j:
 1. **Install Neo4j**: Docker or native installation
 2. **Configure environment variables**:
    ```bash
-   NEO4J_URI=bolt://localhost:7687
-   NEO4J_USER=neo4j
-   NEO4J_PASSWORD=your-secure-password
+   NEO4J-URI=bolt://localhost:7687
+   NEO4J-USER=neo4j
+   NEO4J-PASSWORD=your-secure-password
    ```
 3. **Run migration tool**:
    ```bash
-   cargo run --features neo4j --bin migrate_settings_to_neo4j
+   cargo run --features neo4j --bin migrate-settings-to-neo4j
    ```
 4. **Update application code**: Replace `SqliteSettingsRepository` with `Neo4jSettingsRepository`
 5. **Verify migration**: Check Neo4j Browser for migrated settings

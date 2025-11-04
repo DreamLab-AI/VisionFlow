@@ -11,22 +11,22 @@ The Neo4j integration provides dual persistence to both SQLite (`unified.db`) an
 
 ### Components
 
-1. **Neo4jAdapter** (`src/adapters/neo4j_adapter.rs`)
+1. **Neo4jAdapter** (`src/adapters/neo4j-adapter.rs`)
    - Implements `KnowledgeGraphRepository` port
    - Handles Neo4j connection and schema management
    - Provides Cypher query execution
 
-2. **DualGraphRepository** (`src/adapters/dual_graph_repository.rs`)
+2. **DualGraphRepository** (`src/adapters/dual-graph-repository.rs`)
    - Wraps both `UnifiedGraphRepository` (SQLite) and `Neo4jAdapter`
    - Implements dual-write pattern
    - Configurable strict/non-strict mode for error handling
 
-3. **CypherQueryHandler** (`src/handlers/cypher_query_handler.rs`)
+3. **CypherQueryHandler** (`src/handlers/cypher-query-handler.rs`)
    - REST API endpoints for Cypher queries
    - Safety features: timeouts, result limits, read-only enforcement
    - Example queries and documentation
 
-4. **Sync Script** (`scripts/sync_neo4j.rs`)
+4. **Sync Script** (`scripts/sync-neo4j.rs`)
    - Migrates data from unified.db to Neo4j
    - Supports full and incremental sync
    - Dry-run mode for testing
@@ -39,17 +39,17 @@ The Neo4j integration provides dual persistence to both SQLite (`unified.db`) an
 ```cypher
 (:GraphNode {
   id: Integer,              // Unique numeric ID
-  metadata_id: String,      // File path or identifier
+  metadata-id: String,      // File path or identifier
   label: String,            // Display label
   x, y, z: Float,          // Position
   vx, vy, vz: Float,       // Velocity
   mass: Float,             // Physics mass
-  owl_class_iri: String,   // OWL ontology class (optional)
+  owl-class-iri: String,   // OWL ontology class (optional)
   color: String,           // Visualization color (optional)
   size: Float,             // Node size (optional)
-  node_type: String,       // Type classification (optional)
+  node-type: String,       // Type classification (optional)
   weight: Float,           // Graph weight (optional)
-  group_name: String,      // Group/cluster (optional)
+  group-name: String,      // Group/cluster (optional)
   metadata: String         // JSON metadata (optional)
 })
 ```
@@ -58,22 +58,22 @@ The Neo4j integration provides dual persistence to both SQLite (`unified.db`) an
 ```cypher
 [:EDGE {
   weight: Float,           // Edge weight
-  relation_type: String,   // Edge type (optional)
-  owl_property_iri: String, // OWL property IRI (optional)
+  relation-type: String,   // Edge type (optional)
+  owl-property-iri: String, // OWL property IRI (optional)
   metadata: String         // JSON metadata (optional)
 }]
 ```
 
 **Indexes and Constraints**:
 ```cypher
-CREATE CONSTRAINT graph_node_id IF NOT EXISTS
+CREATE CONSTRAINT graph-node-id IF NOT EXISTS
 FOR (n:GraphNode) REQUIRE n.id IS UNIQUE
 
-CREATE INDEX graph_node_metadata_id IF NOT EXISTS
-FOR (n:GraphNode) ON (n.metadata_id)
+CREATE INDEX graph-node-metadata-id IF NOT EXISTS
+FOR (n:GraphNode) ON (n.metadata-id)
 
-CREATE INDEX graph_node_owl_class IF NOT EXISTS
-FOR (n:GraphNode) ON (n.owl_class_iri)
+CREATE INDEX graph-node-owl-class IF NOT EXISTS
+FOR (n:GraphNode) ON (n.owl-class-iri)
 ```
 
 ## Configuration
@@ -84,11 +84,11 @@ Add to `.env`:
 
 ```bash
 # Neo4j Configuration
-NEO4J_URI=bolt://localhost:7687
-NEO4J_USER=neo4j
-NEO4J_PASSWORD=your-secure-password
-NEO4J_DATABASE=neo4j
-NEO4J_ENABLED=true
+NEO4J-URI=bolt://localhost:7687
+NEO4J-USER=neo4j
+NEO4J-PASSWORD=your-secure-password
+NEO4J-DATABASE=neo4j
+NEO4J-ENABLED=true
 ```
 
 ### Docker Compose
@@ -103,17 +103,17 @@ services:
       - "7474:7474"  # HTTP
       - "7687:7687"  # Bolt
     environment:
-      NEO4J_AUTH: neo4j/your-secure-password
-      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J-AUTH: neo4j/your-secure-password
+      NEO4J-PLUGINS: '["apoc"]'
     volumes:
-      - neo4j_data:/data
-      - neo4j_logs:/logs
+      - neo4j-data:/data
+      - neo4j-logs:/logs
     networks:
       - webxr-network
 
 volumes:
-  neo4j_data:
-  neo4j_logs:
+  neo4j-data:
+  neo4j-logs:
 ```
 
 ### Application Integration
@@ -121,24 +121,24 @@ volumes:
 **Option 1: Dual-Write Mode** (Recommended for new deployments)
 
 ```rust
-use webxr::adapters::neo4j_adapter::{Neo4jAdapter, Neo4jConfig};
-use webxr::adapters::dual_graph_repository::DualGraphRepository;
-use webxr::repositories::unified_graph_repository::UnifiedGraphRepository;
+use webxr::adapters::neo4j-adapter::{Neo4jAdapter, Neo4jConfig};
+use webxr::adapters::dual-graph-repository::DualGraphRepository;
+use webxr::repositories::unified-graph-repository::UnifiedGraphRepository;
 
 // Initialize repositories
-let sqlite_repo = Arc::new(UnifiedGraphRepository::new("/app/data/unified.db")?);
+let sqlite-repo = Arc::new(UnifiedGraphRepository::new("/app/data/unified.db")?);
 
-let neo4j_config = Neo4jConfig::default();
-let neo4j = Arc::new(Neo4jAdapter::new(neo4j_config).await?);
+let neo4j-config = Neo4jConfig::default();
+let neo4j = Arc::new(Neo4jAdapter::new(neo4j-config).await?);
 
 // Create dual repository
-let dual_repo = Arc::new(DualGraphRepository::new(
-    sqlite_repo,
+let dual-repo = Arc::new(DualGraphRepository::new(
+    sqlite-repo,
     Some(neo4j),
     false, // Non-strict mode: log Neo4j errors but don't fail
 ));
 
-// Use dual_repo as KnowledgeGraphRepository
+// Use dual-repo as KnowledgeGraphRepository
 ```
 
 **Option 2: SQLite-Only Mode** (Existing deployments)
@@ -165,7 +165,7 @@ let repo = Arc::new(UnifiedGraphRepository::new("/app/data/unified.db")?);
 
 3. **Run full sync**:
    ```bash
-   cargo run --bin sync_neo4j -- --full
+   cargo run --bin sync-neo4j -- --full
    ```
 
 4. **Verify sync**:
@@ -181,23 +181,23 @@ For existing deployments, sync only new/modified data:
 
 ```bash
 # Dry run first
-cargo run --bin sync_neo4j -- --dry-run
+cargo run --bin sync-neo4j -- --dry-run
 
 # Actual sync
-cargo run --bin sync_neo4j
+cargo run --bin sync-neo4j
 ```
 
 ### Sync Options
 
 ```bash
 # Full sync (clears Neo4j first)
-cargo run --bin sync_neo4j -- --full
+cargo run --bin sync-neo4j -- --full
 
 # Dry run (preview without changes)
-cargo run --bin sync_neo4j -- --dry-run
+cargo run --bin sync-neo4j -- --dry-run
 
 # Custom database path
-cargo run --bin sync_neo4j -- --db=/custom/path/unified.db
+cargo run --bin sync-neo4j -- --db=/custom/path/unified.db
 ```
 
 ## API Endpoints
@@ -211,9 +211,9 @@ Execute a Cypher query with safety limits.
 **Request**:
 ```json
 {
-  "query": "MATCH (n:GraphNode {id: $node_id})-[:EDGE*1..3]-(m:GraphNode) RETURN m.label, m.owl_class_iri LIMIT 10",
+  "query": "MATCH (n:GraphNode {id: $node-id})-[:EDGE*1..3]-(m:GraphNode) RETURN m.label, m.owl-class-iri LIMIT 10",
   "parameters": {
-    "node_id": 42
+    "node-id": 42
   },
   "limit": 100,
   "timeout": 30
@@ -226,12 +226,12 @@ Execute a Cypher query with safety limits.
   "results": [
     {
       "m.label": "Example Node",
-      "m.owl_class_iri": "http://example.org/ontology#Class"
+      "m.owl-class-iri": "http://example.org/ontology#Class"
     }
   ],
   "count": 1,
   "truncated": false,
-  "execution_time_ms": 45
+  "execution-time-ms": 45
 }
 ```
 
@@ -252,28 +252,28 @@ Returns common Cypher query patterns.
 ### 1. Find Neighbors
 
 ```cypher
-MATCH (n:GraphNode {id: $node_id})-[:EDGE]-(m:GraphNode)
+MATCH (n:GraphNode {id: $node-id})-[:EDGE]-(m:GraphNode)
 RETURN m
 ```
 
 ### 2. Multi-Hop Path Analysis
 
 ```cypher
-MATCH (n:GraphNode {id: $node_id})-[:EDGE*1..3]-(m:GraphNode)
+MATCH (n:GraphNode {id: $node-id})-[:EDGE*1..3]-(m:GraphNode)
 RETURN DISTINCT m.id, m.label
 ```
 
 ### 3. Shortest Path
 
 ```cypher
-MATCH p=shortestPath((n:GraphNode {id: $start_id})-[:EDGE*]-(m:GraphNode {id: $end_id}))
+MATCH p=shortestPath((n:GraphNode {id: $start-id})-[:EDGE*]-(m:GraphNode {id: $end-id}))
 RETURN p, length(p) AS hops
 ```
 
 ### 4. Nodes by OWL Class
 
 ```cypher
-MATCH (n:GraphNode {owl_class_iri: $iri})
+MATCH (n:GraphNode {owl-class-iri: $iri})
 RETURN n.id, n.label, n.metadata
 ```
 
@@ -290,8 +290,8 @@ RETURN n.id, n.label, degree
 ### 6. Semantic Path by OWL Properties
 
 ```cypher
-MATCH (n:GraphNode {id: $start_id})-[r:EDGE*1..5]->(m:GraphNode)
-WHERE ALL(rel IN r WHERE rel.owl_property_iri = $property_iri)
+MATCH (n:GraphNode {id: $start-id})-[r:EDGE*1..5]->(m:GraphNode)
+WHERE ALL(rel IN r WHERE rel.owl-property-iri = $property-iri)
 RETURN m.id, m.label
 ```
 
@@ -299,7 +299,7 @@ RETURN m.id, m.label
 
 ```cypher
 MATCH (n:GraphNode)-[:EDGE]-(m:GraphNode)
-WHERE n.group_name = $group
+WHERE n.group-name = $group
 RETURN n, m
 ```
 
@@ -310,14 +310,14 @@ RETURN n, m
 - **Primary (SQLite)**: All operations execute here first
 - **Secondary (Neo4j)**: Operations execute asynchronously
 - **Failure Handling**:
-  - **Strict mode** (`strict_mode: true`): Fail entire operation if Neo4j fails
-  - **Non-strict mode** (`strict_mode: false`): Log Neo4j errors, continue with SQLite
+  - **Strict mode** (`strict-mode: true`): Fail entire operation if Neo4j fails
+  - **Non-strict mode** (`strict-mode: false`): Log Neo4j errors, continue with SQLite
 
 ### Query Performance
 
 - **Read queries**: Always from SQLite (faster for simple queries)
 - **Complex graph queries**: Use Cypher endpoint for Neo4j
-- **Indexes**: Automatically created on `id`, `metadata_id`, `owl_class_iri`
+- **Indexes**: Automatically created on `id`, `metadata-id`, `owl-class-iri`
 
 ### Scaling
 
@@ -338,7 +338,7 @@ Failed to connect to Neo4j: Connection refused
 **Solutions**:
 1. Verify Neo4j is running: `docker-compose ps`
 2. Check Neo4j logs: `docker-compose logs neo4j`
-3. Verify URI in `.env`: `NEO4J_URI=bolt://localhost:7687`
+3. Verify URI in `.env`: `NEO4J-URI=bolt://localhost:7687`
 4. Test connection: `curl http://localhost:7474`
 
 ### Sync Failures
@@ -400,14 +400,14 @@ Query exceeded timeout of 30 seconds
 docker-compose up neo4j
 
 # Connect to localhost
-NEO4J_URI=bolt://localhost:7687
+NEO4J-URI=bolt://localhost:7687
 ```
 
 ### Production
 
 ```bash
 # Use managed Neo4j (AuraDB, EC2, etc.)
-NEO4J_URI=neo4j+s://xxxxx.databases.neo4j.io
+NEO4J-URI=neo4j+s://xxxxx.databases.neo4j.io
 
 # Enable TLS
 # Use strong passwords
@@ -421,10 +421,10 @@ NEO4J_URI=neo4j+s://xxxxx.databases.neo4j.io
 
 ```rust
 // Check both databases
-let sqlite_ok = dual_repo.health_check().await?;
+let sqlite-ok = dual-repo.health-check().await?;
 
 // Check Neo4j specifically
-let neo4j_ok = neo4j.health_check().await?;
+let neo4j-ok = neo4j.health-check().await?;
 ```
 
 ### Statistics
@@ -437,7 +437,7 @@ MATCH ()-[r:EDGE]->() RETURN count(r) AS edges
 // Average degree
 MATCH (n:GraphNode)-[r:EDGE]-()
 WITH n, count(r) AS degree
-RETURN avg(degree) AS avg_degree
+RETURN avg(degree) AS avg-degree
 
 // Storage size
 CALL dbms.queryJmx('org.neo4j:instance=kernel#0,name=Store file sizes')

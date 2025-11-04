@@ -172,11 +172,11 @@ The server is in **Phase 2 of 3** of a major architectural refactoring:
 ### Transitional Architecture Details
 
 ```rust
-// Current architecture in app_state.rs (LEGACY PATTERN)
+// Current architecture in app-state.rs (LEGACY PATTERN)
 pub struct AppState {
-    pub graph_service_addr: Addr<TransitionalGraphSupervisor>, // ⚠️ DEPRECATED: Wrapper around GraphServiceActor
-    pub gpu_manager_addr: Addr<GPUManagerActor>,
-    pub client_coordinator_addr: Addr<ClientCoordinatorActor>,
+    pub graph-service-addr: Addr<TransitionalGraphSupervisor>, // ⚠️ DEPRECATED: Wrapper around GraphServiceActor
+    pub gpu-manager-addr: Addr<GPUManagerActor>,
+    pub client-coordinator-addr: Addr<ClientCoordinatorActor>,
     // ... other actors
 }
 ```
@@ -227,15 +227,15 @@ Manual serialisation creates 34-byte packets:
 ```mermaid
 graph LR
     subgraph "34-byte Wire Packet Structure"
-        A["node_id<br/>u16<br/>2 bytes"]
+        A["node-id<br/>u16<br/>2 bytes"]
         B["position[0]<br/>f32<br/>4 bytes"]
         C["position[1]<br/>f32<br/>4 bytes"]
         D["position[2]<br/>f32<br/>4 bytes"]
         E["velocity[0]<br/>f32<br/>4 bytes"]
         F["velocity[1]<br/>f32<br/>4 bytes"]
         G["velocity[2]<br/>f32<br/>4 bytes"]
-        H["sssp_distance<br/>f32<br/>4 bytes"]
-        I["sssp_parent<br/>i32<br/>4 bytes"]
+        H["sssp-distance<br/>f32<br/>4 bytes"]
+        I["sssp-parent<br/>i32<br/>4 bytes"]
     end
 
     A --> B --> C --> D --> E --> F --> G --> H --> I
@@ -248,11 +248,11 @@ graph LR
 ```rust
 // Wire format (manually serialised)
 Wire Packet {
-    node_id: u16,           // 2 bytes (truncated for bandwidth)
+    node-id: u16,           // 2 bytes (truncated for bandwidth)
     position: [f32; 3],     // 12 bytes
     velocity: [f32; 3],     // 12 bytes
-    sssp_distance: f32,     // 4 bytes (default: f32::INFINITY)
-    sssp_parent: i32,       // 4 bytes (default: -1)
+    sssp-distance: f32,     // 4 bytes (default: f32::INFINITY)
+    sssp-parent: i32,       // 4 bytes (default: -1)
 }
 // Total: 34 bytes transmitted
 ```
@@ -264,12 +264,12 @@ Server-side GPU computation format:
 ```mermaid
 graph LR
     subgraph "48-byte GPU Internal Structure"
-        A["node_id<br/>u32<br/>4 bytes"]
+        A["node-id<br/>u32<br/>4 bytes"]
         B["x, y, z<br/>f32 × 3<br/>12 bytes<br/>Position"]
         C["vx, vy, vz<br/>f32 × 3<br/>12 bytes<br/>Velocity"]
-        D["sssp_distance<br/>f32<br/>4 bytes"]
-        E["sssp_parent<br/>i32<br/>4 bytes"]
-        F["cluster_id<br/>i32<br/>4 bytes"]
+        D["sssp-distance<br/>f32<br/>4 bytes"]
+        E["sssp-parent<br/>i32<br/>4 bytes"]
+        F["cluster-id<br/>i32<br/>4 bytes"]
         G["centrality<br/>f32<br/>4 bytes"]
         H["mass<br/>f32<br/>4 bytes"]
     end
@@ -285,12 +285,12 @@ graph LR
 
 ```rust
 pub struct BinaryNodeDataGPU {
-    pub node_id: u32,         // 4 bytes
+    pub node-id: u32,         // 4 bytes
     pub x: f32, y: f32, z: f32,     // 12 bytes - position
     pub vx: f32, vy: f32, vz: f32,  // 12 bytes - velocity
-    pub sssp_distance: f32,   // 4 bytes
-    pub sssp_parent: i32,     // 4 bytes
-    pub cluster_id: i32,      // 4 bytes
+    pub sssp-distance: f32,   // 4 bytes
+    pub sssp-parent: i32,     // 4 bytes
+    pub cluster-id: i32,      // 4 bytes
     pub centrality: f32,      // 4 bytes
     pub mass: f32,            // 4 bytes
 }
@@ -306,7 +306,7 @@ pub struct BinaryNodeDataGPU {
 ```mermaid
 graph TB
     subgraph "CUDA Kernel Distribution - 40 Total Kernels"
-        subgraph "visionflow_unified.cu - 28 Kernels"
+        subgraph "visionflow-unified.cu - 28 Kernels"
             VF1["Force Computation<br/>8 kernels"]
             VF2["Physics Integration<br/>6 kernels"]
             VF3["Clustering Algorithms<br/>7 kernels"]
@@ -314,23 +314,23 @@ graph TB
             VF5["Utility & Grid<br/>2 kernels"]
         end
 
-        subgraph "gpu_clustering_kernels.cu - 8 Kernels"
+        subgraph "gpu-clustering-kernels.cu - 8 Kernels"
             CL1["K-means Variants<br/>3 kernels"]
             CL2["Louvain Modularity<br/>3 kernels"]
             CL3["Community Detection<br/>2 kernels"]
         end
 
-        subgraph "visionflow_unified_stability.cu - 2 Kernels"
+        subgraph "visionflow-unified-stability.cu - 2 Kernels"
             ST1["Stability Gates<br/>1 kernel"]
             ST2["Kinetic Energy<br/>1 kernel"]
         end
 
-        subgraph "sssp_compact.cu - 2 Kernels"
+        subgraph "sssp-compact.cu - 2 Kernels"
             SS1["Frontier Compaction<br/>1 kernel"]
             SS2["Distance Update<br/>1 kernel"]
         end
 
-        DG["dynamic_grid.cu<br/>Host-side Only<br/>CPU Optimization"]
+        DG["dynamic-grid.cu<br/>Host-side Only<br/>CPU Optimization"]
     end
 
     style VF1 fill:#c8e6c9,stroke:#2E7D32
@@ -346,11 +346,11 @@ graph TB
 ```
 
 #### Kernel Distribution:
-- **visionflow_unified.cu**: 28 kernels (core physics, clustering, anomaly detection)
-- **gpu_clustering_kernels.cu**: 8 kernels (specialised clustering algorithms)
-- **visionflow_unified_stability.cu**: 2 kernels (stability optimisation)
-- **sssp_compact.cu**: 2 kernels (SSSP frontier compaction)
-- **dynamic_grid.cu**: Host-side optimisation only
+- **visionflow-unified.cu**: 28 kernels (core physics, clustering, anomaly detection)
+- **gpu-clustering-kernels.cu**: 8 kernels (specialised clustering algorithms)
+- **visionflow-unified-stability.cu**: 2 kernels (stability optimisation)
+- **sssp-compact.cu**: 2 kernels (SSSP frontier compaction)
+- **dynamic-grid.cu**: Host-side optimisation only
 
 ### GPU Actor Hierarchy
 
@@ -558,7 +558,7 @@ flowchart TB
 - Rate limiting and security built-in
 
 #### Agent Monitor Actor (formerly ClaudeFlowActor)
-- **Location**: `/src/actors/claude_flow_actor.rs`
+- **Location**: `/src/actors/claude-flow-actor.rs`
 - **Renamed to**: AgentMonitorActor (conceptually)
 - **Purpose**: Poll MCP TCP for agent status updates only
 - **Pattern**: Read-only monitoring via MCP protocol
@@ -584,9 +584,9 @@ sequenceDiagram
     participant Task as Isolated Task<br/>agentic-flow
 
     Client->>Handler: POST /api/bots/spawn
-    Handler->>ApiClient: create_task(config)
+    Handler->>ApiClient: create-task(config)
     ApiClient->>API: POST /v1/tasks
-    API->>PM: spawn_process()
+    API->>PM: spawn-process()
     PM->>Task: Execute in isolation
     Task-->>PM: Process started
     PM-->>API: Task created
@@ -608,13 +608,13 @@ sequenceDiagram
     participant Graph as GraphService<br/>Visualization
 
     loop Every 2 seconds
-        Monitor->>TCP: poll_agents()
-        TCP->>RPC: agent_list request
-        RPC->>MCP: JSON-RPC 2.0<br/>{"method": "agent_list"}
+        Monitor->>TCP: poll-agents()
+        TCP->>RPC: agent-list request
+        RPC->>MCP: JSON-RPC 2.0<br/>{"method": "agent-list"}
         MCP-->>RPC: Agent metrics
         RPC-->>TCP: Parsed response
         TCP-->>Monitor: AgentStatus[]
-        Monitor->>Graph: update_visualization()
+        Monitor->>Graph: update-visualization()
         Graph-->>Monitor: Updated
     end
 
@@ -623,12 +623,12 @@ sequenceDiagram
 
 ### Network Architecture
 
-**Container Network**: `docker_ragflow` (shared network)
+**Container Network**: `docker-ragflow` (shared network)
 
 ```mermaid
 graph TB
-    subgraph "Docker Network: docker_ragflow"
-        subgraph "visionflow_container"
+    subgraph "Docker Network: docker-ragflow"
+        subgraph "visionflow-container"
             Nginx["Nginx Reverse Proxy<br/>:3030<br/>SSL/TLS Termination"]
             RustAPI["Rust Backend<br/>:4000<br/>REST API"]
             Vite["Vite Dev Server<br/>:5173<br/>Frontend HMR"]
@@ -683,7 +683,7 @@ graph TB
 
 | Container | Hostname | Services |
 |-----------|----------|----------|
-| VisionFlow | visionflow_container | Rust server :4000, Frontend :5173 |
+| VisionFlow | visionflow-container | Rust server :4000, Frontend :5173 |
 | Agentic Flow | agentic-workstation | Management API :9090, MCP TCP :9500 |
 
 ### Removed Components
@@ -703,11 +703,11 @@ All data models use consistent camelCase conversion:
 
 ```rust
 #[derive(Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename-all = "camelCase")]
 pub struct GraphNode {
-    pub node_id: u32,      // → "nodeId" in JSON
-    pub display_name: String, // → "displayName" in JSON
-    pub force_x: f32,      // → "forceX" in JSON
+    pub node-id: u32,      // → "nodeId" in JSON
+    pub display-name: String, // → "displayName" in JSON
+    pub force-x: f32,      // → "forceX" in JSON
 }
 ```
 

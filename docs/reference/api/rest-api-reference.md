@@ -26,14 +26,14 @@ Retrieve complete ontology class hierarchy with parent-child relationships.
 
 **Request**:
 ```http
-GET /api/ontology/hierarchy?ontology_id=default&max_depth=10
+GET /api/ontology/hierarchy?ontology-id=default&max-depth=10
 ```
 
 **Query Parameters**:
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `ontology_id` | string | No | "default" | Ontology identifier |
-| `max_depth` | integer | No | unlimited | Maximum hierarchy depth to return |
+| `ontology-id` | string | No | "default" | Ontology identifier |
+| `max-depth` | integer | No | unlimited | Maximum hierarchy depth to return |
 
 **Response** (200 OK):
 ```json
@@ -90,7 +90,7 @@ interface ClassNode {
 
 **Example Usage** (JavaScript):
 ```javascript
-const response = await fetch('/api/ontology/hierarchy?ontology_id=default');
+const response = await fetch('/api/ontology/hierarchy?ontology-id=default');
 const data = await response.json();
 
 console.log('Root classes:', data.rootClasses);
@@ -106,11 +106,11 @@ import requests
 response = requests.get('http://localhost:8080/api/ontology/hierarchy')
 data = response.json()
 
-for class_iri, node in data['hierarchy'].items():
+for class-iri, node in data['hierarchy'].items():
     print(f"{node['label']} - Depth: {node['depth']}")
 ```
 
-**Implementation**: See [ontology_handler.rs:936-1090](../../src/handlers/api_handler/ontology/mod.rs)
+**Implementation**: See [ontology-handler.rs:936-1090](../../src/handlers/api-handler/ontology/mod.rs)
 
 ---
 
@@ -124,21 +124,21 @@ POST /api/ontology/reasoning/infer
 Content-Type: application/json
 
 {
-  "ontology_id": "default"
+  "ontology-id": "default"
 }
 ```
 
 **Request Body**:
 ```typescript
 interface ReasoningRequest {
-  ontology_id: string;
+  ontology-id: string;
 }
 ```
 
 **Response** (200 OK):
 ```json
 {
-  "inferred_axioms": [
+  "inferred-axioms": [
     {
       "axiomType": "SubClassOf",
       "subjectIri": "http://example.org/GraduateStudent",
@@ -147,8 +147,8 @@ interface ReasoningRequest {
       "reasoningMethod": "whelk-el++"
     }
   ],
-  "cache_hit": false,
-  "reasoning_time_ms": 245
+  "cache-hit": false,
+  "reasoning-time-ms": 245
 }
 ```
 
@@ -164,7 +164,7 @@ interface InferredAxiom {
 ```
 
 **Error Responses**:
-- `400 Bad Request`: Invalid ontology_id
+- `400 Bad Request`: Invalid ontology-id
 - `500 Internal Server Error`: Reasoning failed
 - `503 Service Unavailable`: Reasoning feature disabled
 
@@ -176,13 +176,13 @@ Get all disjoint class pairs from ontology.
 
 **Request**:
 ```http
-GET /api/ontology/disjoint-classes?ontology_id=default
+GET /api/ontology/disjoint-classes?ontology-id=default
 ```
 
 **Response** (200 OK):
 ```json
 {
-  "disjoint_pairs": [
+  "disjoint-pairs": [
     {
       "classA": "http://example.org/Animal",
       "classB": "http://example.org/Plant"
@@ -213,7 +213,7 @@ Retrieve graph nodes with optional filtering.
 
 **Request**:
 ```http
-GET /api/graph/nodes?limit=1000&offset=0&class_iri=http://example.org/Person
+GET /api/graph/nodes?limit=1000&offset=0&class-iri=http://example.org/Person
 ```
 
 **Query Parameters**:
@@ -221,7 +221,7 @@ GET /api/graph/nodes?limit=1000&offset=0&class_iri=http://example.org/Person
 |-----------|------|----------|---------|-------------|
 | `limit` | integer | No | 1000 | Maximum nodes to return |
 | `offset` | integer | No | 0 | Pagination offset |
-| `class_iri` | string | No | - | Filter by class IRI |
+| `class-iri` | string | No | - | Filter by class IRI |
 
 **Response** (200 OK):
 ```json
@@ -239,8 +239,8 @@ GET /api/graph/nodes?limit=1000&offset=0&class_iri=http://example.org/Person
       }
     }
   ],
-  "total_count": 1523,
-  "has_more": true
+  "total-count": 1523,
+  "has-more": true
 }
 ```
 
@@ -264,14 +264,14 @@ Retrieve graph edges with optional filtering.
 
 **Request**:
 ```http
-GET /api/graph/edges?source_id=node-123&relationship=knows
+GET /api/graph/edges?source-id=node-123&relationship=knows
 ```
 
 **Query Parameters**:
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `source_id` | string | No | - | Filter by source node |
-| `target_id` | string | No | - | Filter by target node |
+| `source-id` | string | No | - | Filter by source node |
+| `target-id` | string | No | - | Filter by target node |
 | `relationship` | string | No | - | Filter by relationship type |
 | `limit` | integer | No | 1000 | Maximum edges to return |
 
@@ -289,7 +289,7 @@ GET /api/graph/edges?source_id=node-123&relationship=knows
       }
     }
   ],
-  "total_count": 342
+  "total-count": 342
 }
 ```
 
@@ -318,11 +318,11 @@ POST /api/constraints/generate
 Content-Type: application/json
 
 {
-  "ontology_id": "default",
-  "constraint_types": ["Separation", "HierarchicalAttraction"],
+  "ontology-id": "default",
+  "constraint-types": ["Separation", "HierarchicalAttraction"],
   "config": {
-    "disjoint_repel_multiplier": 2.0,
-    "subclass_spring_multiplier": 0.5
+    "disjoint-repel-multiplier": 2.0,
+    "subclass-spring-multiplier": 0.5
   }
 }
 ```
@@ -330,16 +330,16 @@ Content-Type: application/json
 **Request Body**:
 ```typescript
 interface ConstraintGenerationRequest {
-  ontology_id: string;
-  constraint_types?: string[];  // Optional filter
+  ontology-id: string;
+  constraint-types?: string[];  // Optional filter
   config?: SemanticPhysicsConfig;
 }
 
 interface SemanticPhysicsConfig {
-  disjoint_repel_multiplier?: number;
-  subclass_spring_multiplier?: number;
-  equivalent_colocation_dist?: number;
-  partof_containment_radius?: number;
+  disjoint-repel-multiplier?: number;
+  subclass-spring-multiplier?: number;
+  equivalent-colocation-dist?: number;
+  partof-containment-radius?: number;
 }
 ```
 
@@ -364,8 +364,8 @@ interface SemanticPhysicsConfig {
       "priority": 5
     }
   ],
-  "total_count": 245,
-  "generation_time_ms": 123
+  "total-count": 245,
+  "generation-time-ms": 123
 }
 ```
 
@@ -402,17 +402,17 @@ const ws = new WebSocket('ws://localhost:8080/api/graph/updates');
 **Client → Server (Subscribe)**:
 ```
 MessageType: 0x01 (Subscribe)
-Payload: JSON { "node_ids": ["node-123", "node-456"] }
+Payload: JSON { "node-ids": ["node-123", "node-456"] }
 ```
 
 **Server → Client (Update)**:
 ```
 MessageType: 0x02 (NodeUpdate)
 Payload:
-  - node_id: String (length-prefixed)
-  - position_x: f32
-  - position_y: f32
-  - position_z: f32
+  - node-id: String (length-prefixed)
+  - position-x: f32
+  - position-y: f32
+  - position-z: f32
 ```
 
 **Client → Server (Unsubscribe)**:
@@ -428,7 +428,7 @@ ws.onopen = () => {
   // Subscribe to updates
   const subscribe = new Uint8Array([
     0x01,  // MessageType: Subscribe
-    ...encodeJSON({ node_ids: ['node-123'] })
+    ...encodeJSON({ node-ids: ['node-123'] })
   ]);
   ws.send(subscribe);
 };
@@ -455,23 +455,23 @@ All endpoints return consistent error format:
 ```json
 {
   "error": "Failed to retrieve hierarchy",
-  "code": "INTERNAL_ERROR",
+  "code": "INTERNAL-ERROR",
   "details": {
-    "ontology_id": "default",
+    "ontology-id": "default",
     "cause": "Database connection failed"
   },
   "timestamp": "2025-11-03T12:34:56.789Z",
-  "trace_id": "abc123def456"
+  "trace-id": "abc123def456"
 }
 ```
 
 **Error Codes**:
 | Code | HTTP Status | Description |
 |------|-------------|-------------|
-| `INVALID_REQUEST` | 400 | Malformed request or invalid parameters |
-| `NOT_FOUND` | 404 | Resource not found |
-| `INTERNAL_ERROR` | 500 | Internal server error |
-| `SERVICE_UNAVAILABLE` | 503 | Feature disabled or service down |
+| `INVALID-REQUEST` | 400 | Malformed request or invalid parameters |
+| `NOT-FOUND` | 404 | Resource not found |
+| `INTERNAL-ERROR` | 500 | Internal server error |
+| `SERVICE-UNAVAILABLE` | 503 | Feature disabled or service down |
 | `TIMEOUT` | 504 | Request timeout |
 
 ---
@@ -545,38 +545,38 @@ const nodes = await client.graph.getNodes({
 ```python
 from visionflow import VisionFlowClient
 
-client = VisionFlowClient(base_url='http://localhost:8080/api')
+client = VisionFlowClient(base-url='http://localhost:8080/api')
 
 # Get hierarchy
-hierarchy = client.ontology.get_hierarchy('default')
+hierarchy = client.ontology.get-hierarchy('default')
 
 # Trigger reasoning
 inferred = client.ontology.infer('default')
 
 # Get graph nodes
-nodes = client.graph.get_nodes(
+nodes = client.graph.get-nodes(
     limit=100,
-    class_iri='http://example.org/Person'
+    class-iri='http://example.org/Person'
 )
 ```
 
 ### Rust
 
 ```rust
-use visionflow_client::VisionFlowClient;
+use visionflow-client::VisionFlowClient;
 
 let client = VisionFlowClient::new("http://localhost:8080/api");
 
 // Get hierarchy
-let hierarchy = client.ontology().get_hierarchy("default").await?;
+let hierarchy = client.ontology().get-hierarchy("default").await?;
 
 // Trigger reasoning
 let inferred = client.ontology().infer("default").await?;
 
 // Get graph nodes
-let nodes = client.graph().get_nodes()
+let nodes = client.graph().get-nodes()
     .limit(100)
-    .class_iri("http://example.org/Person")
+    .class-iri("http://example.org/Person")
     .execute()
     .await?;
 ```

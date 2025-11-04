@@ -105,8 +105,8 @@ We've extended Vircadia to support:
 │  ┌──────────────────▼──────────────────────────────────┐  │
 │  │         PostgreSQL 17.5 (Port 5432)                  │  │
 │  │  • entity.entities (Graph node/edge storage)         │  │
-│  │  • entity.sync_groups (Multi-user coordination)      │  │
-│  │  • auth.agent_sessions (JWT session management)      │  │
+│  │  • entity.sync-groups (Multi-user coordination)      │  │
+│  │  • auth.agent-sessions (JWT session management)      │  │
 │  │  • Row-Level Security (RLS) Policies                 │  │
 │  └───────────────────────────────────────────────────────┘  │
 │                                                             │
@@ -120,7 +120,7 @@ User Grabs Node (VR Controller)
   ↓
 Client: Local Prediction (Instant Visual Feedback)
   ↓
-WebSocket: QUERY_REQUEST (UPDATE entity.entities SET meta__data->position)
+WebSocket: QUERY-REQUEST (UPDATE entity.entities SET meta--data->position)
   ↓
 Server: PostgreSQL Transaction Commit
   ↓
@@ -130,7 +130,7 @@ Server: Mark Entity for Next Tick Broadcast
   ↓
 Server: SELECT Changed Entities
   ↓
-Server: Binary SYNC_GROUP_UPDATES Message
+Server: Binary SYNC-GROUP-UPDATES Message
   ↓
 Broadcast to ALL Connected Clients (Including Original)
   ↓
@@ -153,19 +153,19 @@ Everything in Vircadia is an **Entity** - a persistent object with:
 
 ```typescript
 interface VircadiaEntity {
-  general__entity_name: string;          // Unique identifier
-  group__sync: string;                   // Sync group (e.g., "public.NORMAL")
-  general__entity_type: string;          // "MODEL", "SHAPE", "LIGHT", etc.
-  spatial__transform: {                  // Position, rotation, scale
+  general--entity-name: string;          // Unique identifier
+  group--sync: string;                   // Sync group (e.g., "public.NORMAL")
+  general--entity-type: string;          // "MODEL", "SHAPE", "LIGHT", etc.
+  spatial--transform: {                  // Position, rotation, scale
     translation: {x: number, y: number, z: number};
     rotation: {x: number, y: number, z: number, w: number};  // Quaternion
     scaling: {x: number, y: number, z: number};
   };
-  meta__data: Record<string, any>;       // Custom metadata (JSON)
-  spatial__velocity: {x, y, z};          // Physics velocity
-  spatial__angular_velocity: {x, y, z};  // Rotation velocity
-  general__created_at: Date;
-  general__updated_at: Date;
+  meta--data: Record<string, any>;       // Custom metadata (JSON)
+  spatial--velocity: {x, y, z};          // Physics velocity
+  spatial--angular-velocity: {x, y, z};  // Rotation velocity
+  general--created-at: Date;
+  general--updated-at: Date;
 }
 ```
 
@@ -177,16 +177,16 @@ Sync Groups define **who can see and modify** which entities:
 
 ```sql
 -- Sync group configuration
-CREATE TYPE entity.sync_group_visibility AS ENUM (
+CREATE TYPE entity.sync-group-visibility AS ENUM (
   'EVERYONE',          -- All users can see
-  'FRIENDS_ONLY',      -- Only friends
+  'FRIENDS-ONLY',      -- Only friends
   'PRIVATE'            -- Only creator
 );
 
-CREATE TYPE entity.sync_group_synchronization_mode AS ENUM (
+CREATE TYPE entity.sync-group-synchronization-mode AS ENUM (
   'NORMAL',            -- Standard sync (our default)
-  'LOCAL_ONLY',        -- No network sync
-  'SERVER_AUTHORITATIVE'  -- Server validates all changes
+  'LOCAL-ONLY',        -- No network sync
+  'SERVER-AUTHORITATIVE'  -- Server validates all changes
 );
 ```
 
@@ -209,27 +209,27 @@ const ws = new WebSocket('ws://localhost:3000/world/ws?token=<JWT>&provider=syst
 
 // Execute SQL query via WebSocket
 ws.send(JSON.stringify({
-  type: 'QUERY_REQUEST',
+  type: 'QUERY-REQUEST',
   requestId: crypto.randomUUID(),
   timestamp: Date.now(),
   payload: {
     query: `
       INSERT INTO entity.entities (
-        general__entity_name,
-        group__sync,
-        spatial__transform,
-        meta__data
+        general--entity-name,
+        group--sync,
+        spatial--transform,
+        meta--data
       ) VALUES ($1, $2, $3, $4)
       RETURNING *
     `,
-    parameters: ['graph_node_123', 'public.NORMAL', transform, metadata]
+    parameters: ['graph-node-123', 'public.NORMAL', transform, metadata]
   }
 }));
 
 // Receive response
 ws.onmessage = (event) => {
   const response = JSON.parse(event.data);
-  if (response.type === 'QUERY_RESPONSE') {
+  if (response.type === 'QUERY-RESPONSE') {
     console.log('Entity created:', response.payload.result);
   }
 };
@@ -249,8 +249,8 @@ setInterval(async () => {
   // 1. Fetch changed entities from last tick
   const changedEntities = await db.query(`
     SELECT * FROM entity.entities
-    WHERE general__updated_at > $1
-      AND group__sync = 'public.NORMAL'
+    WHERE general--updated-at > $1
+      AND group--sync = 'public.NORMAL'
   `, [lastTickTime]);
 
   // 2. Build binary update message
@@ -305,13 +305,13 @@ class ForceDirectedEngine {
   private edges: GraphEdge[];
 
   // Physics constants
-  private readonly REPULSION_STRENGTH = 1000;
-  private readonly SPRING_STRENGTH = 0.1;
-  private readonly SPRING_LENGTH = 5.0;      // Ideal edge length (meters)
+  private readonly REPULSION-STRENGTH = 1000;
+  private readonly SPRING-STRENGTH = 0.1;
+  private readonly SPRING-LENGTH = 5.0;      // Ideal edge length (meters)
   private readonly DAMPING = 0.9;
-  private readonly CENTERING_STRENGTH = 0.01;
-  private readonly MAX_VELOCITY = 2.0;
-  private readonly TIME_STEP = 0.016;        // 16ms (matches tick rate)
+  private readonly CENTERING-STRENGTH = 0.01;
+  private readonly MAX-VELOCITY = 2.0;
+  private readonly TIME-STEP = 0.016;        // 16ms (matches tick rate)
 
   /**
    * Apply repulsion force between all node pairs
@@ -332,7 +332,7 @@ class ForceDirectedEngine {
 
         if (distance < 0.1) continue;  // Avoid division by zero
 
-        const force = this.REPULSION_STRENGTH / (distance * distance);
+        const force = this.REPULSION-STRENGTH / (distance * distance);
         const fx = (dx / distance) * force;
         const fy = (dy / distance) * force;
         const fz = (dz / distance) * force;
@@ -364,8 +364,8 @@ class ForceDirectedEngine {
       const dz = target.position.z - source.position.z;
       const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-      const displacement = distance - this.SPRING_LENGTH;
-      const force = this.SPRING_STRENGTH * edge.weight * displacement;
+      const displacement = distance - this.SPRING-LENGTH;
+      const force = this.SPRING-STRENGTH * edge.weight * displacement;
 
       const fx = (dx / distance) * force;
       const fy = (dy / distance) * force;
@@ -386,9 +386,9 @@ class ForceDirectedEngine {
    */
   private applyCentering(): void {
     for (const node of this.nodes.values()) {
-      node.velocity.x -= node.position.x * this.CENTERING_STRENGTH;
-      node.velocity.y -= node.position.y * this.CENTERING_STRENGTH;
-      node.velocity.z -= node.position.z * this.CENTERING_STRENGTH;
+      node.velocity.x -= node.position.x * this.CENTERING-STRENGTH;
+      node.velocity.y -= node.position.y * this.CENTERING-STRENGTH;
+      node.velocity.z -= node.position.z * this.CENTERING-STRENGTH;
     }
   }
 
@@ -408,17 +408,17 @@ class ForceDirectedEngine {
         node.velocity.y ** 2 +
         node.velocity.z ** 2
       );
-      if (speed > this.MAX_VELOCITY) {
-        const scale = this.MAX_VELOCITY / speed;
+      if (speed > this.MAX-VELOCITY) {
+        const scale = this.MAX-VELOCITY / speed;
         node.velocity.x *= scale;
         node.velocity.y *= scale;
         node.velocity.z *= scale;
       }
 
       // Update positions
-      node.position.x += node.velocity.x * this.TIME_STEP;
-      node.position.y += node.velocity.y * this.TIME_STEP;
-      node.position.z += node.velocity.z * this.TIME_STEP;
+      node.position.x += node.velocity.x * this.TIME-STEP;
+      node.position.y += node.velocity.y * this.TIME-STEP;
+      node.position.z += node.velocity.z * this.TIME-STEP;
     }
   }
 
@@ -464,27 +464,27 @@ class VircadiaGraphMapper {
     // Create or update Vircadia entity
     await this.client.query(`
       INSERT INTO entity.entities (
-        general__entity_name,
-        group__sync,
-        general__entity_type,
-        spatial__transform,
-        meta__data
+        general--entity-name,
+        group--sync,
+        general--entity-type,
+        spatial--transform,
+        meta--data
       ) VALUES ($1, $2, $3, $4, $5)
-      ON CONFLICT (general__entity_name)
+      ON CONFLICT (general--entity-name)
       DO UPDATE SET
-        spatial__transform = EXCLUDED.spatial__transform,
-        general__updated_at = NOW()
+        spatial--transform = EXCLUDED.spatial--transform,
+        general--updated-at = NOW()
     `, [
       node.id,                       // Entity name
       'public.NORMAL',               // Sync group
-      'SHAPE_SPHERE',                // Entity type
+      'SHAPE-SPHERE',                // Entity type
       {
         translation: node.position,
         rotation: {x: 0, y: 0, z: 0, w: 1},  // Identity quaternion
         scaling: {x: 0.15, y: 0.15, z: 0.15}  // 15cm radius
       },
       {
-        entityType: 'graph_node',
+        entityType: 'graph-node',
         graphId: node.id,
         label: node.label,
         color: node.color || '#4CAF50',
@@ -504,21 +504,21 @@ class VircadiaGraphMapper {
 
     await this.client.query(`
       INSERT INTO entity.entities (
-        general__entity_name,
-        group__sync,
-        general__entity_type,
-        meta__data
+        general--entity-name,
+        group--sync,
+        general--entity-type,
+        meta--data
       ) VALUES ($1, $2, $3, $4)
-      ON CONFLICT (general__entity_name)
+      ON CONFLICT (general--entity-name)
       DO UPDATE SET
-        meta__data = EXCLUDED.meta__data,
-        general__updated_at = NOW()
+        meta--data = EXCLUDED.meta--data,
+        general--updated-at = NOW()
     `, [
-      `edge_${edge.source}_${edge.target}`,
+      `edge-${edge.source}-${edge.target}`,
       'public.NORMAL',
       'LINE',
       {
-        entityType: 'graph_edge',
+        entityType: 'graph-edge',
         source: edge.source,
         target: edge.target,
         weight: edge.weight,
@@ -566,7 +566,7 @@ physicsWorker.postMessage({
 
 // Receive position updates every frame
 physicsWorker.onmessage = (event) => {
-  if (event.data.type === 'POSITIONS_UPDATE') {
+  if (event.data.type === 'POSITIONS-UPDATE') {
     // Float32Array of positions [x1, y1, z1, x2, y2, z2, ...]
     const positions = event.data.positions;
 
@@ -672,7 +672,7 @@ class Quest3Optimizer {
     if (this.scene.activeCamera instanceof BABYLON.WebXRCamera) {
       const xrHelper = this.scene.activeCamera.rigCameras[0].getScene().metadata.xrHelper;
       xrHelper.baseExperience.featuresManager.enableFeature(
-        BABYLON.WebXRFeatureName.FOVEATED_RENDERING,
+        BABYLON.WebXRFeatureName.FOVEATED-RENDERING,
         'latest',
         { foveationLevel: 2 }  // High (most aggressive)
       );
@@ -742,7 +742,7 @@ class Quest3Optimizer {
 ```typescript
 // Bandwidth throttling (Quest 3 Wi-Fi 6E: ~5-10 Mbps)
 class NetworkOptimizer {
-  private readonly TARGET_BANDWIDTH = 5 * 1024 * 1024 / 8;  // 5 Mbps in bytes/sec
+  private readonly TARGET-BANDWIDTH = 5 * 1024 * 1024 / 8;  // 5 Mbps in bytes/sec
   private currentBandwidth = 0;
 
   shouldSendUpdate(entityId: string): boolean {
@@ -755,7 +755,7 @@ class NetworkOptimizer {
 
     // Bandwidth check
     const updateSize = this.estimateUpdateSize(entity);
-    if (this.currentBandwidth + updateSize > this.TARGET_BANDWIDTH) {
+    if (this.currentBandwidth + updateSize > this.TARGET-BANDWIDTH) {
       return false;  // Skip update this frame
     }
 
@@ -782,113 +782,113 @@ setInterval(() => optimizer.resetBandwidth(), 1000);
 name: vircadia-world-server
 
 networks:
-  vircadia_internal_network:
+  vircadia-internal-network:
     driver: bridge
     internal: true
-  vircadia_public_network:
+  vircadia-public-network:
     driver: bridge
 
 volumes:
-  postgres_data:
-    name: "vircadia_world_server_postgres_data"
+  postgres-data:
+    name: "vircadia-world-server-postgres-data"
 
 services:
   # PostgreSQL 17.5
-  vircadia_world_postgres:
+  vircadia-world-postgres:
     image: postgres:17.5-alpine3.21
-    container_name: vircadia_world_postgres
+    container-name: vircadia-world-postgres
     user: "70:70"
     restart: always
     environment:
-      POSTGRES_DB: vircadia_world
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${VRCA_SERVER_SERVICE_POSTGRES_SUPER_USER_PASSWORD}
+      POSTGRES-DB: vircadia-world
+      POSTGRES-USER: postgres
+      POSTGRES-PASSWORD: ${VRCA-SERVER-SERVICE-POSTGRES-SUPER-USER-PASSWORD}
     command: [
       "postgres",
-      "-c", "wal_level=logical",
-      "-c", "max_wal_size=4GB",
-      "-c", "checkpoint_timeout=5min"
+      "-c", "wal-level=logical",
+      "-c", "max-wal-size=4GB",
+      "-c", "checkpoint-timeout=5min"
     ]
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d vircadia_world"]
+      test: ["CMD-SHELL", "pg-isready -U postgres -d vircadia-world"]
       interval: 5s
       timeout: 5s
       retries: 5
     networks:
-      - vircadia_internal_network
-      - vircadia_public_network
+      - vircadia-internal-network
+      - vircadia-public-network
 
   # World API Manager (WebSocket Server)
-  vircadia_world_api_manager:
+  vircadia-world-api-manager:
     image: oven/bun:1.2.17-alpine
-    container_name: vircadia_world_api_manager
+    container-name: vircadia-world-api-manager
     user: "1000:1000"
     restart: always
     ports:
       - "0.0.0.0:3000:3000"
     volumes:
       - ./api/volume/app:/app
-    working_dir: /app
+    working-dir: /app
     command: ["bun", "run", "dist/world.api.manager.js"]
     environment:
-      VRCA_SERVER_SERVICE_POSTGRES_HOST_CONTAINER_BIND_EXTERNAL: vircadia_world_postgres
-      VRCA_SERVER_SERVICE_POSTGRES_PORT_CONTAINER_BIND_EXTERNAL: 5432
-      VRCA_SERVER_SERVICE_POSTGRES_DATABASE: vircadia_world
-      VRCA_SERVER_SERVICE_POSTGRES_SUPER_USER_PASSWORD: ${VRCA_SERVER_SERVICE_POSTGRES_SUPER_USER_PASSWORD}
-    depends_on:
-      vircadia_world_postgres:
-        condition: service_healthy
+      VRCA-SERVER-SERVICE-POSTGRES-HOST-CONTAINER-BIND-EXTERNAL: vircadia-world-postgres
+      VRCA-SERVER-SERVICE-POSTGRES-PORT-CONTAINER-BIND-EXTERNAL: 5432
+      VRCA-SERVER-SERVICE-POSTGRES-DATABASE: vircadia-world
+      VRCA-SERVER-SERVICE-POSTGRES-SUPER-USER-PASSWORD: ${VRCA-SERVER-SERVICE-POSTGRES-SUPER-USER-PASSWORD}
+    depends-on:
+      vircadia-world-postgres:
+        condition: service-healthy
     healthcheck:
       test: ["CMD-SHELL", "wget --spider http://127.0.0.1:3000/stats"]
       interval: 10s
     networks:
-      - vircadia_internal_network
-      - vircadia_public_network
+      - vircadia-internal-network
+      - vircadia-public-network
 
   # World State Manager (Tick Processor)
-  vircadia_world_state_manager:
+  vircadia-world-state-manager:
     image: oven/bun:1.2.17-alpine
-    container_name: vircadia_world_state_manager
+    container-name: vircadia-world-state-manager
     user: "1000:1000"
     restart: always
     ports:
       - "0.0.0.0:3001:3001"
     volumes:
       - ./state/volume/app:/app
-    working_dir: /app
+    working-dir: /app
     command: ["bun", "run", "dist/world.state.manager.js"]
     environment:
-      VRCA_SERVER_SERVICE_POSTGRES_HOST_CONTAINER_BIND_EXTERNAL: vircadia_world_postgres
-      VRCA_SERVER_SERVICE_POSTGRES_PORT_CONTAINER_BIND_EXTERNAL: 5432
-      VRCA_SERVER_SERVICE_POSTGRES_DATABASE: vircadia_world
-      VRCA_SERVER_SERVICE_POSTGRES_SUPER_USER_PASSWORD: ${VRCA_SERVER_SERVICE_POSTGRES_SUPER_USER_PASSWORD}
-    depends_on:
-      vircadia_world_postgres:
-        condition: service_healthy
+      VRCA-SERVER-SERVICE-POSTGRES-HOST-CONTAINER-BIND-EXTERNAL: vircadia-world-postgres
+      VRCA-SERVER-SERVICE-POSTGRES-PORT-CONTAINER-BIND-EXTERNAL: 5432
+      VRCA-SERVER-SERVICE-POSTGRES-DATABASE: vircadia-world
+      VRCA-SERVER-SERVICE-POSTGRES-SUPER-USER-PASSWORD: ${VRCA-SERVER-SERVICE-POSTGRES-SUPER-USER-PASSWORD}
+    depends-on:
+      vircadia-world-postgres:
+        condition: service-healthy
     networks:
-      - vircadia_internal_network
-      - vircadia_public_network
+      - vircadia-internal-network
+      - vircadia-public-network
 ```
 
 ### Environment Configuration
 
 ```.env
 # Container naming
-VRCA_SERVER_CONTAINER_NAME=vircadia-world-server
+VRCA-SERVER-CONTAINER-NAME=vircadia-world-server
 
 # PostgreSQL
-VRCA_SERVER_SERVICE_POSTGRES_SUPER_USER_PASSWORD=vircadia_dev_password_2025
-VRCA_SERVER_SERVICE_POSTGRES_AGENT_PROXY_USER_PASSWORD=agent_proxy_password_2025
+VRCA-SERVER-SERVICE-POSTGRES-SUPER-USER-PASSWORD=vircadia-dev-password-2025
+VRCA-SERVER-SERVICE-POSTGRES-AGENT-PROXY-USER-PASSWORD=agent-proxy-password-2025
 
 # Network ports
 # API Manager (WebSocket)
-PORT_API_MANAGER=3000
+PORT-API-MANAGER=3000
 # State Manager (Tick System)
-PORT_STATE_MANAGER=3001
+PORT-STATE-MANAGER=3001
 ```
 
 ### Startup Commands
@@ -904,8 +904,8 @@ docker-compose -f server.docker.compose.yml up -d
 docker-compose -f server.docker.compose.yml ps
 
 # View logs
-docker logs -f vircadia_world_api_manager
-docker logs -f vircadia_world_state_manager
+docker logs -f vircadia-world-api-manager
+docker logs -f vircadia-world-state-manager
 
 # Stop services
 docker-compose -f server.docker.compose.yml down
@@ -928,17 +928,17 @@ ws.onmessage = (event) => {
   const message = JSON.parse(event.data);
 
   switch (message.type) {
-    case 'SESSION_INFO_RESPONSE':
+    case 'SESSION-INFO-RESPONSE':
       const { agentId, sessionId } = message.payload;
       console.log(`Session started: ${sessionId}, Agent: ${agentId}`);
       break;
 
-    case 'SYNC_GROUP_UPDATES':
+    case 'SYNC-GROUP-UPDATES':
       // Binary entity updates (60 TPS)
       handleEntityUpdates(message.payload);
       break;
 
-    case 'QUERY_RESPONSE':
+    case 'QUERY-RESPONSE':
       handleQueryResult(message.payload);
       break;
   }
@@ -951,31 +951,31 @@ ws.onmessage = (event) => {
 // Create graph node entity
 function createGraphNode(id: string, position: {x, y, z}, metadata: any) {
   ws.send(JSON.stringify({
-    type: 'QUERY_REQUEST',
+    type: 'QUERY-REQUEST',
     requestId: crypto.randomUUID(),
     timestamp: Date.now(),
     payload: {
       query: `
         INSERT INTO entity.entities (
-          general__entity_name,
-          group__sync,
-          general__entity_type,
-          spatial__transform,
-          meta__data
+          general--entity-name,
+          group--sync,
+          general--entity-type,
+          spatial--transform,
+          meta--data
         ) VALUES ($1, $2, $3, $4, $5)
         RETURNING *
       `,
       parameters: [
         id,
         'public.NORMAL',
-        'SHAPE_SPHERE',
+        'SHAPE-SPHERE',
         {
           translation: position,
           rotation: {x: 0, y: 0, z: 0, w: 1},
           scaling: {x: 0.15, y: 0.15, z: 0.15}
         },
         {
-          entityType: 'graph_node',
+          entityType: 'graph-node',
           ...metadata
         }
       ]
@@ -986,20 +986,20 @@ function createGraphNode(id: string, position: {x, y, z}, metadata: any) {
 // Update node position
 function updateNodePosition(nodeId: string, newPosition: {x, y, z}) {
   ws.send(JSON.stringify({
-    type: 'QUERY_REQUEST',
+    type: 'QUERY-REQUEST',
     requestId: crypto.randomUUID(),
     timestamp: Date.now(),
     payload: {
       query: `
         UPDATE entity.entities
         SET
-          spatial__transform = jsonb_set(
-            spatial__transform,
+          spatial--transform = jsonb-set(
+            spatial--transform,
             '{translation}',
             $2::jsonb
           ),
-          general__updated_at = NOW()
-        WHERE general__entity_name = $1
+          general--updated-at = NOW()
+        WHERE general--entity-name = $1
       `,
       parameters: [nodeId, newPosition]
     }
@@ -1009,11 +1009,11 @@ function updateNodePosition(nodeId: string, newPosition: {x, y, z}) {
 // Delete entity
 function deleteEntity(entityId: string) {
   ws.send(JSON.stringify({
-    type: 'QUERY_REQUEST',
+    type: 'QUERY-REQUEST',
     requestId: crypto.randomUUID(),
     timestamp: Date.now(),
     payload: {
-      query: 'DELETE FROM entity.entities WHERE general__entity_name = $1',
+      query: 'DELETE FROM entity.entities WHERE general--entity-name = $1',
       parameters: [entityId]
     }
   }));

@@ -59,7 +59,7 @@ VisionFlow uses JWT (JSON Web Tokens) for authentication.
 Include JWT in Authorization header:
 
 ```bash
-curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+curl -H "Authorization: Bearer YOUR-JWT-TOKEN" \
   http://localhost:9090/api/graph/data
 ```
 
@@ -69,12 +69,12 @@ Generate API keys for programmatic access:
 
 ```bash
 curl -X POST http://localhost:9090/api/auth/api-keys \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+  -H "Authorization: Bearer YOUR-JWT-TOKEN"
 ```
 
 Use API keys:
 ```bash
-curl -H "X-API-Key: YOUR_API_KEY" \
+curl -H "X-API-Key: YOUR-API-KEY" \
   http://localhost:9090/api/graph/data
 ```
 
@@ -170,8 +170,8 @@ Returns complete graph data with nodes, edges, physics positions, and metadata.
       "position": {"x": 0.0, "y": 0.0, "z": 0.0},
       "velocity": {"x": 0.0, "y": 0.0, "z": 0.0},
       "metadata": {
-        "owl_class_iri": "http://example.org/Class",
-        "file_source": "example.md"
+        "owl-class-iri": "http://example.org/Class",
+        "file-source": "example.md"
       },
       "type": "concept",
       "size": 1.0,
@@ -184,7 +184,7 @@ Returns complete graph data with nodes, edges, physics positions, and metadata.
     {
       "source": 1,
       "target": 2,
-      "relationshipType": "related_to"
+      "relationshipType": "related-to"
     }
   ],
   "metadata": {
@@ -231,7 +231,7 @@ Returns paginated graph data for large graphs.
 
 **Query Parameters**:
 - `page` (number): Page number (1-indexed)
-- `page_size` (number): Items per page (default: 100)
+- `page-size` (number): Items per page (default: 100)
 
 **Response**:
 ```json
@@ -248,7 +248,7 @@ Returns paginated graph data for large graphs.
 
 **cURL Example**:
 ```bash
-curl "http://localhost:9090/api/graph/data/paginated?page=1&page_size=50"
+curl "http://localhost:9090/api/graph/data/paginated?page=1&page-size=50"
 ```
 
 ### Update Graph
@@ -305,7 +305,7 @@ Returns physics auto-balance events and notifications.
   "notifications": [
     {
       "timestamp": 1699012345,
-      "type": "auto_balance_triggered",
+      "type": "auto-balance-triggered",
       "message": "Physics simulation auto-balanced",
       "details": {
         "previousEnergy": 156.7,
@@ -327,8 +327,8 @@ Returns physics auto-balance events and notifications.
 Returns complete class hierarchy with parent-child relationships, depth information, and descendant counts.
 
 **Query Parameters**:
-- `ontology_id` (string, optional): Specific ontology identifier (default: "default")
-- `max_depth` (number, optional): Maximum depth to traverse
+- `ontology-id` (string, optional): Specific ontology identifier (default: "default")
+- `max-depth` (number, optional): Maximum depth to traverse
 
 **Response**:
 ```json
@@ -365,7 +365,7 @@ Returns complete class hierarchy with parent-child relationships, depth informat
 
 **cURL Example**:
 ```bash
-curl "http://localhost:9090/api/ontology/hierarchy?ontology_id=default&max_depth=5"
+curl "http://localhost:9090/api/ontology/hierarchy?ontology-id=default&max-depth=5"
 ```
 
 **TypeScript Example**:
@@ -386,7 +386,7 @@ interface ClassNode {
 
 async function fetchHierarchy(ontologyId?: string): Promise<ClassHierarchy> {
   const params = new URLSearchParams();
-  if (ontologyId) params.set('ontology_id', ontologyId);
+  if (ontologyId) params.set('ontology-id', ontologyId);
 
   const response = await fetch(`/api/ontology/hierarchy?${params}`);
   return response.json();
@@ -455,7 +455,7 @@ Triggers ontology validation with specified mode.
   "status": "queued",
   "estimatedCompletion": "2025-11-03T12:00:30Z",
   "queuePosition": 1,
-  "websocketUrl": "/api/ontology/ws?client_id=client-abc"
+  "websocketUrl": "/api/ontology/ws?client-id=client-abc"
 }
 ```
 
@@ -617,7 +617,7 @@ Clears all ontology-related caches.
 WebSocket endpoint for real-time ontology validation updates.
 
 **Query Parameters**:
-- `client_id` (string, optional): Client identifier
+- `client-id` (string, optional): Client identifier
 
 ---
 
@@ -747,7 +747,7 @@ Fetches and processes markdown files from GitHub repository.
 
 ### Get File Content
 
-**Endpoint**: `GET /api/files/get_content/{filename}`
+**Endpoint**: `GET /api/files/get-content/{filename}`
 
 Retrieves content of a specific markdown file.
 
@@ -755,13 +755,13 @@ Retrieves content of a specific markdown file.
 
 ### Refresh Graph from Files
 
-**Endpoint**: `POST /api/files/refresh_graph`
+**Endpoint**: `POST /api/files/refresh-graph`
 
 Refreshes graph data from current file state.
 
 ### Update Graph from Files
 
-**Endpoint**: `POST /api/files/update_graph`
+**Endpoint**: `POST /api/files/update-graph`
 
 Updates graph structure from processed files.
 
@@ -1068,7 +1068,7 @@ Returns total workspace count.
 - `POST /api/ragflow/chat`
 
 **Session History**:
-- `GET /api/ragflow/history/{session_id}`
+- `GET /api/ragflow/history/{session-id}`
 
 ### Constraints Management
 
@@ -1114,7 +1114,7 @@ Returns total workspace count.
 Triggers GitHub repository synchronization to import ontology files.
 
 **Environment Variables**:
-- `FORCE_FULL_SYNC=1` - Bypass SHA1 filtering, process all files
+- `FORCE-FULL-SYNC=1` - Bypass SHA1 filtering, process all files
 
 **Response**:
 ```json
@@ -1147,7 +1147,7 @@ VisionFlow uses a **36-byte binary WebSocket protocol** for real-time graph upda
 ### Connection
 
 ```typescript
-const ws = new WebSocket('ws://localhost:9090/ws?token=YOUR_JWT_TOKEN');
+const ws = new WebSocket('ws://localhost:9090/ws?token=YOUR-JWT-TOKEN');
 ws.binaryType = 'arraybuffer';
 ```
 
@@ -1232,7 +1232,7 @@ class BinaryProtocolParser {
 {
   "success": false,
   "error": {
-    "code": "VALIDATION_ERROR",
+    "code": "VALIDATION-ERROR",
     "message": "Invalid input",
     "details": [
       {
@@ -1249,9 +1249,9 @@ class BinaryProtocolParser {
 ```json
 {
   "error": "Ontology validation feature is disabled",
-  "code": "FEATURE_DISABLED",
+  "code": "FEATURE-DISABLED",
   "details": {
-    "message": "Enable the ontology_validation feature flag to use this endpoint"
+    "message": "Enable the ontology-validation feature flag to use this endpoint"
   },
   "timestamp": "2025-11-03T12:00:00Z",
   "traceId": "uuid-here"
@@ -1282,11 +1282,11 @@ The API uses a **unified database architecture** with `unified.db` containing al
 
 - `nodes` - Knowledge graph nodes
 - `edges` - Relationships between nodes
-- `owl_classes` - OWL ontology classes
-- `owl_properties` - OWL ontology properties
-- `github_sync_state` - Synchronization tracking
+- `owl-classes` - OWL ontology classes
+- `owl-properties` - OWL ontology properties
+- `github-sync-state` - Synchronization tracking
 - `workspaces` - User workspaces
-- `validation_reports` - Ontology validation results
+- `validation-reports` - Ontology validation results
 
 ---
 
@@ -1311,7 +1311,7 @@ Paginated endpoints follow this structure:
 
 **Request**:
 ```
-GET /api/resource?page=1&page_size=50
+GET /api/resource?page=1&page-size=50
 ```
 
 **Response**:
@@ -1347,7 +1347,7 @@ GET /api/resource?page=1&page_size=50
 ## Support & Resources
 
 - **WebSocket Protocol**: [03-websocket.md](./03-websocket.md)
-- **Architecture Overview**: [../../concepts/architecture/00-ARCHITECTURE-OVERVIEW.md](../../concepts/architecture/00-ARCHITECTURE-OVERVIEW.md)
+- **Architecture Overview**: [../../concepts/architecture/00-ARCHITECTURE-overview.md](../../concepts/architecture/00-ARCHITECTURE-overview.md)
 - **GitHub Repository**: Contact administrator for access
 - **Issue Tracker**: Internal JIRA
 

@@ -100,7 +100,7 @@ const SemanticZoomControls: React.FC<SemanticZoomControlsProps> = ({
         min={0}
         max={5}
         step={1}
-        labels={ZOOM_LABELS}
+        labels={ZOOM-LABELS}
       />
 
       {/* Expand/Collapse buttons */}

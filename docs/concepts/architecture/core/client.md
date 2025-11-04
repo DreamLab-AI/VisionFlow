@@ -1031,7 +1031,7 @@ graph TB
         end
 
         subgraph "Field Conversion System"
-            SerdeConversion["Serde Conversion<br/>camelCase ↔ snake_case"]
+            SerdeConversion["Serde Conversion<br/>camelCase ↔ snake-case"]
             FieldNormalisation["Field Normalisation<br/>config/mod.rs Fixes"]
             AutoMapping["Automatic Mapping<br/>130+ Structs"]
         end

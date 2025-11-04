@@ -4,12 +4,12 @@ description: Comprehensive guide for adding new features to VisionFlow with exam
 category: developer-guide
 tags: [development, features, workflow, tdd, implementation]
 difficulty: intermediate
-last_updated: 2025-11-04
+last-updated: 2025-11-04
 related:
   - /docs/guides/developer/01-development-setup.md
   - /docs/guides/developer/05-testing-guide.md
   - /docs/guides/developer/05-testing-guide.md
-  - /docs/reference/README.md
+  - /docs/reference/readme.md
 ---
 
 # Adding Features
@@ -54,9 +54,9 @@ flowchart TD
 ```yaml
 database:
   - notifications table
-  - notification_preferences table
+  - notification-preferences table
 
-api_endpoints:
+api-endpoints:
   - GET /api/notifications
   - POST /api/notifications/:id/read
   - GET /api/notifications/preferences
@@ -76,32 +76,32 @@ git checkout -b feature/user-notifications
 
 ### Step 3: Database Migration
 
-**File**: `migrations/005_create_notifications.sql`
+**File**: `migrations/005-create-notifications.sql`
 
 ```sql
 -- Create notifications table
 CREATE TABLE notifications (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  id UUID PRIMARY KEY DEFAULT gen-random-uuid(),
+  user-id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   type VARCHAR(50) NOT NULL,
   title VARCHAR(255) NOT NULL,
   message TEXT,
   data JSONB,
   read BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  INDEX idx_notifications_user_id (user_id),
-  INDEX idx_notifications_created_at (created_at)
+  created-at TIMESTAMP DEFAULT CURRENT-TIMESTAMP,
+  INDEX idx-notifications-user-id (user-id),
+  INDEX idx-notifications-created-at (created-at)
 );
 
 -- Create notification preferences table
-CREATE TABLE notification_preferences (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-  email_enabled BOOLEAN DEFAULT TRUE,
-  in_app_enabled BOOLEAN DEFAULT TRUE,
+CREATE TABLE notification-preferences (
+  id UUID PRIMARY KEY DEFAULT gen-random-uuid(),
+  user-id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  email-enabled BOOLEAN DEFAULT TRUE,
+  in-app-enabled BOOLEAN DEFAULT TRUE,
   preferences JSONB DEFAULT '{}',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created-at TIMESTAMP DEFAULT CURRENT-TIMESTAMP,
+  updated-at TIMESTAMP DEFAULT CURRENT-TIMESTAMP
 );
 ```
 
@@ -129,7 +129,7 @@ describe('NotificationService', () => {
     it('should create a notification', async () => {
       const data = {
         userId: 'user-123',
-        type: 'project_created',
+        type: 'project-created',
         title: 'Project Created',
         message: 'Your project was created successfully'
       };
@@ -147,7 +147,7 @@ describe('NotificationService', () => {
 
       await service.create({
         userId: 'user-123',
-        type: 'project_created',
+        type: 'project-created',
         title: 'Test',
         message: 'Test message'
       });
@@ -274,7 +274,7 @@ const { Model } = require('objection');
 
 class NotificationPreference extends Model {
   static get tableName() {
-    return 'notification_preferences';
+    return 'notification-preferences';
   }
 
   static get jsonSchema() {
@@ -701,7 +701,7 @@ Get user notifications
   "data": [
     {
       "id": "uuid",
-      "type": "project_created",
+      "type": "project-created",
       "title": "Project Created",
       "message": "Your project was created",
       "read": false,
@@ -750,7 +750,7 @@ class ProjectService {
     // Send notification
     await this.notificationService.create({
       userId: data.userId,
-      type: 'project_created',
+      type: 'project-created',
       title: 'Project Created',
       message: `Your project "${project.name}" was created successfully`,
       metadata: { projectId: project.id }

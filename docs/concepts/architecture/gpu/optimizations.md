@@ -5,37 +5,37 @@
 
 ## Overview
 
-Optimized the GraphServiceActor in `/workspace/ext/src/actors/graph_actor.rs` to significantly improve data ingestion performance through batch operations and minimized `Arc::make_mut` calls.
+Optimized the GraphServiceActor in `/workspace/ext/src/actors/graph-actor.rs` to significantly improve data ingestion performance through batch operations and minimized `Arc::make-mut` calls.
 
-**Note**: ❌ DEPRECATED (Nov 2025) - This actor is being phased out. For new implementations, use the unified GPU compute pipeline (unified_gpu_compute.rs) with direct GPU buffer operations instead of actor-based graph management.
+**Note**: ❌ DEPRECATED (Nov 2025) - This actor is being phased out. For new implementations, use the unified GPU compute pipeline (unified-gpu-compute.rs) with direct GPU buffer operations instead of actor-based graph management.
 
 ## Key Optimizations Implemented
 
 ### 1. Enhanced Batch Operations
 
-#### Optimized `batch_add_nodes()` Method
+#### Optimized `batch-add-nodes()` Method
 - **O(1) existence checks**: Uses HashSet instead of O(n) vector iterations
 - **Bulk operations**: Uses `Vec::extend()` for new nodes instead of individual pushes
 - **Pre-allocation**: Reserves capacity to prevent reallocations
-- **Single Arc::make_mut calls**: Only two Arc mutations instead of per-node mutations
+- **Single Arc::make-mut calls**: Only two Arc mutations instead of per-node mutations
 
 **Before:**
 ```rust
 for node in nodes {
-    if !graph_data_mut.nodes.iter().any(|n| n.id == node.id) { // O(n) check
-        graph_data_mut.nodes.push(node); // Individual push
+    if !graph-data-mut.nodes.iter().any(|n| n.id == node.id) { // O(n) check
+        graph-data-mut.nodes.push(node); // Individual push
     }
 }
 ```
 
 **After:**
 ```rust
-let existing_node_ids: HashSet<u32> = graph_data_mut.nodes.iter().map(|n| n.id).collect(); // O(1) lookups
+let existing-node-ids: HashSet<u32> = graph-data-mut.nodes.iter().map(|n| n.id).collect(); // O(1) lookups
 // Separate new from updates for bulk operations
-graph_data_mut.nodes.extend(new_nodes); // Bulk extend
+graph-data-mut.nodes.extend(new-nodes); // Bulk extend
 ```
 
-#### Optimized `batch_add_edges()` Method
+#### Optimized `batch-add-edges()` Method
 - Same optimizations as nodes but for edges
 - HashSet-based existence checking
 - Bulk extend operations
@@ -43,46 +43,46 @@ graph_data_mut.nodes.extend(new_nodes); // Bulk extend
 
 ### 2. Improved Queue Flush Mechanism
 
-#### Enhanced `flush_update_queue_internal()`
+#### Enhanced `flush-update-queue-internal()`
 - **Smart routing**: Uses specialized batch methods for pure additions
-- **Mixed operation handling**: Falls back to `batch_graph_update` only when needed
+- **Mixed operation handling**: Falls back to `batch-graph-update` only when needed
 - **Efficient extraction**: Uses `std::mem::take()` for zero-copy queue extraction
 
 ### 3. New High-Performance Methods
 
-#### `batch_update_optimized()`
+#### `batch-update-optimized()`
 - Handles both nodes and edges in single transaction
-- Minimizes Arc::make_mut calls to exactly 2 (node_map + graph_data)
+- Minimizes Arc::make-mut calls to exactly 2 (node-map + graph-data)
 - Pre-allocates all vectors with proper capacity
 - Uses HashSet for O(1) existence checks
 
-#### `queue_batch_operations()`
+#### `queue-batch-operations()`
 - High-throughput queue-based ingestion
 - Automatic flush triggering based on configurable thresholds
 - Optimal for streaming data scenarios
 
-#### `force_flush_with_metrics()`
+#### `force-flush-with-metrics()`
 - Returns detailed performance metrics
 - Useful for monitoring and tuning
 - Provides operation counts and timing data
 
 ### 4. Configuration Presets
 
-#### `configure_for_high_throughput()`
+#### `configure-for-high-throughput()`
 - 5000 operation threshold (vs default 1000)
 - 50ms flush interval (vs default 100ms)
 - Optimized for maximum ingestion rate
 
-#### `configure_for_memory_conservation()`
+#### `configure-for-memory-conservation()`
 - 500 operation threshold (vs default 1000)
 - 200ms flush interval (vs default 100ms)
 - Minimizes memory usage
 
 ## Performance Improvements
 
-### Arc::make_mut Call Reduction
-- **Before**: O(n) Arc::make_mut calls per batch (one per node/edge)
-- **After**: O(1) Arc::make_mut calls per batch (exactly 2: node_map + graph_data)
+### Arc::make-mut Call Reduction
+- **Before**: O(n) Arc::make-mut calls per batch (one per node/edge)
+- **After**: O(1) Arc::make-mut calls per batch (exactly 2: node-map + graph-data)
 
 ### Memory Access Patterns
 - **Before**: Scattered memory access with individual operations
@@ -102,37 +102,37 @@ graph_data_mut.nodes.extend(new_nodes); // Bulk extend
 ```rust
 // Optimized node batch
 let nodes = vec![node1, node2, node3];
-graph_actor.batch_add_nodes(nodes)?;
+graph-actor.batch-add-nodes(nodes)?;
 
 // Optimized edge batch
 let edges = vec![edge1, edge2, edge3];
-graph_actor.batch_add_edges(edges)?;
+graph-actor.batch-add-edges(edges)?;
 
 // Combined optimised batch
-graph_actor.batch_update_optimized(nodes, edges)?;
+graph-actor.batch-update-optimized(nodes, edges)?;
 ```
 
 ### High-Throughput Ingestion
 ```rust
 // Configure for maximum throughput
-graph_actor.configure_for_high_throughput();
+graph-actor.configure-for-high-throughput();
 
 // Queue large batches
-graph_actor.queue_batch_operations(large_node_batch, large_edge_batch)?;
+graph-actor.queue-batch-operations(large-node-batch, large-edge-batch)?;
 
 // Monitor performance
-let (node_count, edge_count, duration) = graph_actor.force_flush_with_metrics()?;
-println!("Processed {} nodes, {} edges in {:?}", node_count, edge_count, duration);
+let (node-count, edge-count, duration) = graph-actor.force-flush-with-metrics()?;
+println!("Processed {} nodes, {} edges in {:?}", node-count, edge-count, duration);
 ```
 
 ### Memory-Conscious Ingestion
 ```rust
 // Configure for memory conservation
-graph_actor.configure_for_memory_conservation();
+graph-actor.configure-for-memory-conservation();
 
 // Process in smaller batches
 for chunk in nodes.chunks(100) {
-    graph_actor.queue_batch_operations(chunk.to_vec(), vec![])?;
+    graph-actor.queue-batch-operations(chunk.to-vec(), vec![])?;
 }
 ```
 
@@ -147,23 +147,23 @@ The `BatchMetrics` system tracks:
 
 Access via:
 ```rust
-let metrics = graph_actor.get_batch_metrics();
-println!("Average batch size: {:.2}", metrics.average_batch_size);
-println!("Total flushes: {}", metrics.total_flush_count);
+let metrics = graph-actor.get-batch-metrics();
+println!("Average batch size: {:.2}", metrics.average-batch-size);
+println!("Total flushes: {}", metrics.total-flush-count);
 ```
 
 ## Thread Safety
 
 All optimizations maintain the existing thread safety guarantees:
 - Arc-based shared ownership preserved
-- Mutation safety through Arc::make_mut
+- Mutation safety through Arc::make-mut
 - No new unsafe code introduced
 - Actor model compatibility maintained
 
 ## Backward Compatibility
 
 All existing APIs remain unchanged:
-- `add_node()` and `add_edge()` work as before
+- `add-node()` and `add-edge()` work as before
 - Existing queue configuration methods preserved
 - Message handlers unchanged
 - No breaking changes to public interface

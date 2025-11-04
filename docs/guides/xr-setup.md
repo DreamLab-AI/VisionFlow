@@ -493,17 +493,17 @@ Enable Vircadia in environment variables:
 
 ```bash
 # .env
-VITE_VIRCADIA_ENABLED=false           # Feature flag
-VITE_VIRCADIA_SERVER_URL=wss://vircadia.example.com
-VITE_VIRCADIA_DOMAIN_ID=visionflow-graph
+VITE-VIRCADIA-ENABLED=false           # Feature flag
+VITE-VIRCADIA-SERVER-URL=wss://vircadia.example.com
+VITE-VIRCADIA-DOMAIN-ID=visionflow-graph
 
 # Avatar settings
-VITE_VIRCADIA_AVATAR_MODEL=/assets/avatars/default.glb
-VITE_VIRCADIA_SHOW_NAMEPLATES=true
+VITE-VIRCADIA-AVATAR-MODEL=/assets/avatars/default.glb
+VITE-VIRCADIA-SHOW-NAMEPLATES=true
 
 # Communication
-VITE_VIRCADIA_SPATIAL_AUDIO=true
-VITE_VIRCADIA_AUDIO_RANGE=20.0
+VITE-VIRCADIA-SPATIAL-AUDIO=true
+VITE-VIRCADIA-AUDIO-RANGE=20.0
 ```
 
 ### Features
@@ -673,7 +673,7 @@ settingsStore.setPhysicsEnabled(false);
 ```javascript
 // Reduce texture size
 const nodeTexture = new BABYLON.Texture(url, scene);
-nodeTexture.updateSamplingMode(BABYLON.Texture.BILINEAR_SAMPLINGMODE);
+nodeTexture.updateSamplingMode(BABYLON.Texture.BILINEAR-SAMPLINGMODE);
 ```
 
 4. Close other Quest apps running in background

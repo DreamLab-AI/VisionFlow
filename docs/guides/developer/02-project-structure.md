@@ -10,8 +10,8 @@ This document provides a comprehensive overview of VisionFlow's codebase structu
 visionflow/
 ├── .github/                 # GitHub-specific files
 │   ├── workflows/          # CI/CD workflows
-│   ├── ISSUE_TEMPLATE/     # Issue templates
-│   └── PULL_REQUEST_TEMPLATE.md
+│   ├── ISSUE-TEMPLATE/     # Issue templates
+│   └── pull-request-template.md
 ├── docs/                    # Documentation
 │   ├── api/                # API documentation
 │   ├── user-guide/         # User documentation
@@ -35,7 +35,7 @@ visionflow/
 ├── public/                  # Static assets
 ├── docker/                  # Docker configurations
 ├── .vscode/                 # VS Code settings
-├── node_modules/            # Dependencies (gitignored)
+├── node-modules/            # Dependencies (gitignored)
 ├── dist/                    # Build output (gitignored)
 ├── coverage/                # Test coverage (gitignored)
 ├── package.json             # Project metadata
@@ -44,9 +44,9 @@ visionflow/
 ├── .prettierrc             # Prettier config
 ├── docker-compose.yml      # Docker Compose config
 ├── Dockerfile              # Docker build file
-├── README.md               # Project readme
+├── readme.md               # Project readme
 ├── LICENSE                 # License file
-└── CHANGELOG.md            # Change log
+└── changelog.md            # Change log
 ```
 
 ## Core Directories
@@ -299,13 +299,13 @@ Uses [node-config](https://github.com/node-config/node-config) for hierarchical 
 
 ```
 migrations/
-├── 001_create_users_table.sql
-├── 002_create_projects_table.sql
-├── 003_create_assets_table.sql
-└── 004_add_user_roles.sql
+├── 001-create-users-table.sql
+├── 002-create-projects-table.sql
+├── 003-create-assets-table.sql
+└── 004-add-user-roles.sql
 ```
 
-**Migration Naming**: `<number>_<description>.sql`
+**Migration Naming**: `<number>-<description>.sql`
 
 ### `/docker` - Docker Configurations
 
@@ -362,7 +362,7 @@ docker/
     "sourceMap": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "tests"]
+  "exclude": ["node-modules", "dist", "tests"]
 }
 ```
 
@@ -387,8 +387,8 @@ module.exports = {
     sourceType: 'module'
   },
   rules: {
-    'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off'
+    'no-console': process.env.NODE-ENV === 'production' ? 'warn' : 'off',
+    'no-debugger': process.env.NODE-ENV === 'production' ? 'warn' : 'off'
   }
 };
 ```
@@ -465,7 +465,7 @@ import { queryDatabase } from '@/api/services/ProjectService/internal';
 | Components | PascalCase | `UserProfile.vue` |
 | Services | PascalCase | `AuthService.js` |
 | Utilities | camelCase | `formatDate.js` |
-| Constants | UPPER_SNAKE_CASE | `API_ENDPOINTS.js` |
+| Constants | UPPER-SNAKE-CASE | `API-ENDPOINTS.js` |
 | Types | PascalCase | `User.ts` |
 | Tests | Match source + `.test` | `AuthService.test.js` |
 

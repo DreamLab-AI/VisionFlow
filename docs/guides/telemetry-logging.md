@@ -1,6 +1,6 @@
 # Telemetry and Logging Guide
 
-*[Guides](../guides/README.md) > Telemetry and Logging*
+*[Guides](../guides/readme.md) > Telemetry and Logging*
 
 **Version**: 1.0.0
 **Last Updated**: 2025-09-17
@@ -109,13 +109,13 @@ graph TB
 #### Basic Structured Logging
 
 ```rust
-use crate::utils::advanced_logging::{log_structured, LogComponent};
+use crate::utils::advanced-logging::{log-structured, LogComponent};
 use log::Level;
-use serde_json::json;
+use serde-json::json;
 use std::collections::HashMap;
 
 // Simple log with message only
-log_structured(
+log-structured(
     LogComponent::Server,
     Level::Info,
     "Application started successfully",
@@ -124,12 +124,12 @@ log_structured(
 
 // Log with metadata
 let metadata = HashMap::from([
-    ("version".to_string(), json!("2.0.0")),
-    ("port".to_string(), json!(3000)),
-    ("debug_mode".to_string(), json!(false))
+    ("version".to-string(), json!("2.0.0")),
+    ("port".to-string(), json!(3000)),
+    ("debug-mode".to-string(), json!(false))
 ]);
 
-log_structured(
+log-structured(
     LogComponent::Server,
     Level::Info,
     "Server configuration loaded",
@@ -140,11 +140,11 @@ log_structured(
 #### GPU Kernel Logging
 
 ```rust
-use crate::utils::advanced_logging::log_gpu_kernel;
+use crate::utils::advanced-logging::log-gpu-kernel;
 
 // Log GPU kernel execution
-log_gpu_kernel(
-    "vector_addition",     // kernel name
+log-gpu-kernel(
+    "vector-addition",     // kernel name
     1250.5,               // execution time in microseconds
     256.0,                // allocated memory in MB
     512.0                 // peak memory in MB
@@ -154,57 +154,57 @@ log_gpu_kernel(
 #### Error Logging with Recovery
 
 ```rust
-use crate::utils::advanced_logging::log_gpu_error;
+use crate::utils::advanced-logging::log-gpu-error;
 
 // Log GPU error with recovery attempt
-log_gpu_error("CUDA out of memory during clustering", true);
+log-gpu-error("CUDA out of memory during clustering", true);
 
 // Log application error with context
-let error_metadata = HashMap::from([
-    ("agent_id".to_string(), json!("agent-123")),
-    ("operation".to_string(), json!("position_update")),
-    ("retry_count".to_string(), json!(3)),
-    ("recovery_action".to_string(), json!("agent_restart"))
+let error-metadata = HashMap::from([
+    ("agent-id".to-string(), json!("agent-123")),
+    ("operation".to-string(), json!("position-update")),
+    ("retry-count".to-string(), json!(3)),
+    ("recovery-action".to-string(), json!("agent-restart"))
 ]);
 
-log_structured(
+log-structured(
     LogComponent::Error,
     Level::Error,
     "Agent coordination timeout",
-    Some(error_metadata)
+    Some(error-metadata)
 );
 ```
 
 #### Performance Logging
 
 ```rust
-use crate::utils::advanced_logging::log_performance;
+use crate::utils::advanced-logging::log-performance;
 use std::time::Instant;
 
-let start_time = Instant::now();
+let start-time = Instant::now();
 
 // ... perform operation ...
 
-let duration_ms = start_time.elapsed().as_millis() as f64;
-let throughput_ops_per_sec = Some(120.5);
+let duration-ms = start-time.elapsed().as-millis() as f64;
+let throughput-ops-per-sec = Some(120.5);
 
-log_performance(
-    "graph_update_operation",
-    duration_ms,
-    throughput_ops_per_sec
+log-performance(
+    "graph-update-operation",
+    duration-ms,
+    throughput-ops-per-sec
 );
 ```
 
 #### Memory Event Logging
 
 ```rust
-use crate::utils::advanced_logging::log_memory_event;
+use crate::utils::advanced-logging::log-memory-event;
 
 // Log memory allocation
-log_memory_event("agent_spawn_allocation", 128.5, 256.0);
+log-memory-event("agent-spawn-allocation", 128.5, 256.0);
 
 // Log memory deallocation
-log_memory_event("agent_cleanup_deallocation", 64.2, 192.0);
+log-memory-event("agent-cleanup-deallocation", 64.2, 192.0);
 ```
 
 ### TypeScript Client Integration
@@ -263,10 +263,10 @@ volumes:
 
 ```yaml
 environment:
-  - LOG_DIR=/app/logs
-  - LOG_LEVEL=info
-  - RUST_LOG=info
-  - DEBUG_ENABLED=false
+  - LOG-DIR=/app/logs
+  - LOG-LEVEL=info
+  - RUST-LOG=info
+  - DEBUG-ENABLED=false
 ```
 
 ---
@@ -284,14 +284,14 @@ All log entries follow this JSON structure:
   "component": "server",
   "message": "Agent spawned successfully",
   "metadata": {
-    "agent_id": "agent-456",
-    "agent_type": "coordinator",
-    "spawn_time_ms": 1250,
-    "memory_allocated_mb": 64.5
+    "agent-id": "agent-456",
+    "agent-type": "coordinator",
+    "spawn-time-ms": 1250,
+    "memory-allocated-mb": 64.5
   },
-  "execution_time_ms": 1250.0,
-  "memory_usage_mb": 64.5,
-  "gpu_metrics": null
+  "execution-time-ms": 1250.0,
+  "memory-usage-mb": 64.5,
+  "gpu-metrics": null
 }
 ```
 
@@ -304,19 +304,19 @@ GPU operations include additional telemetry:
   "timestamp": "2025-09-17T10:30:45.123Z",
   "level": "INFO",
   "component": "gpu",
-  "message": "Kernel clustering_kernel executed in 1250.50μs",
+  "message": "Kernel clustering-kernel executed in 1250.50μs",
   "metadata": null,
-  "execution_time_ms": 1.2505,
-  "memory_usage_mb": 256.0,
-  "gpu_metrics": {
-    "kernel_name": "clustering_kernel",
-    "execution_time_us": 1250.5,
-    "memory_allocated_mb": 256.0,
-    "memory_peak_mb": 384.0,
-    "gpu_utilization_percent": null,
-    "error_count": 0,
-    "recovery_attempts": 0,
-    "performance_anomaly": false
+  "execution-time-ms": 1.2505,
+  "memory-usage-mb": 256.0,
+  "gpu-metrics": {
+    "kernel-name": "clustering-kernel",
+    "execution-time-us": 1250.5,
+    "memory-allocated-mb": 256.0,
+    "memory-peak-mb": 384.0,
+    "gpu-utilization-percent": null,
+    "error-count": 0,
+    "recovery-attempts": 0,
+    "performance-anomaly": false
   }
 }
 ```
@@ -332,12 +332,12 @@ Agent position corrections are logged with detailed before/after data:
   "component": "analytics",
   "message": "Origin clustering detected, applying position fix",
   "metadata": {
-    "agent_id": "agent-789",
-    "position_x": 0.05,
-    "position_y": 0.02,
-    "position_z": 0.01,
-    "origin_cluster_detected": true,
-    "clustering_fix_applied": true
+    "agent-id": "agent-789",
+    "position-x": 0.05,
+    "position-y": 0.02,
+    "position-z": 0.01,
+    "origin-cluster-detected": true,
+    "clustering-fix-applied": true
   }
 }
 ```
@@ -353,22 +353,22 @@ Errors include comprehensive context and recovery information:
   "component": "gpu",
   "message": "CUDA kernel execution failed",
   "metadata": {
-    "kernel_name": "force_computation",
-    "error_code": "CUDA_OUT_OF_MEMORY",
-    "recovery_attempted": true,
-    "recovery_successful": false,
-    "memory_requested_mb": 2048.0,
-    "memory_available_mb": 1024.0
+    "kernel-name": "force-computation",
+    "error-code": "CUDA-OUT-OF-MEMORY",
+    "recovery-attempted": true,
+    "recovery-successful": false,
+    "memory-requested-mb": 2048.0,
+    "memory-available-mb": 1024.0
   },
-  "gpu_metrics": {
-    "kernel_name": "force_computation",
-    "execution_time_us": null,
-    "memory_allocated_mb": null,
-    "memory_peak_mb": null,
-    "gpu_utilization_percent": null,
-    "error_count": 1,
-    "recovery_attempts": 1,
-    "performance_anomaly": null
+  "gpu-metrics": {
+    "kernel-name": "force-computation",
+    "execution-time-us": null,
+    "memory-allocated-mb": null,
+    "memory-peak-mb": null,
+    "gpu-utilization-percent": null,
+    "error-count": 1,
+    "recovery-attempts": 1,
+    "performance-anomaly": null
   }
 }
 ```
@@ -386,7 +386,7 @@ Errors include comprehensive context and recovery information:
 tail -f /app/logs/analytics.log | jq 'select(.message | contains("Agent health"))'
 
 # Watch for position clustering issues
-tail -f /app/logs/analytics.log | jq 'select(.metadata.origin_cluster_detected == true)'
+tail -f /app/logs/analytics.log | jq 'select(.metadata.origin-cluster-detected == true)'
 
 # Monitor agent lifecycle events
 grep -E "(Agent spawned|Agent terminated|Agent error)" /app/logs/server.log | tail -20
@@ -402,7 +402,7 @@ grep "Agent spawned" /app/logs/server.log | wc -l
 jq 'select(.metadata.health? and (.metadata.health | tonumber) < 50)' /app/logs/analytics.log
 
 # Monitor agent performance degradation
-jq 'select(.metadata.performance_anomaly == true)' /app/logs/gpu.log
+jq 'select(.metadata.performance-anomaly == true)' /app/logs/gpu.log
 ```
 
 ### Debugging Agent Position Issues
@@ -411,24 +411,24 @@ jq 'select(.metadata.performance_anomaly == true)' /app/logs/gpu.log
 
 ```bash
 # Find agents with origin clustering issues
-jq 'select(.metadata.origin_cluster_detected == true)' /app/logs/analytics.log
+jq 'select(.metadata.origin-cluster-detected == true)' /app/logs/analytics.log
 
 # Track position corrections over time
 jq 'select(.message | contains("Position fix applied"))' /app/logs/analytics.log | \
-jq '.timestamp, .metadata.agent_id, .metadata.corrected_position'
+jq '.timestamp, .metadata.agent-id, .metadata.corrected-position'
 
 # Monitor position dispersion effectiveness
-jq 'select(.metadata.clustering_fix_applied == true)' /app/logs/analytics.log | \
-jq '.metadata | {agent_id, original_position, corrected_position}'
+jq 'select(.metadata.clustering-fix-applied == true)' /app/logs/analytics.log | \
+jq '.metadata | {agent-id, original-position, corrected-position}'
 ```
 
 #### Position Validation Queries
 
 ```bash
 # Check for agents still at origin after fix attempts
-jq 'select(.metadata.position_x? and (.metadata.position_x | tonumber) < 1.0 and
-          .metadata.position_y? and (.metadata.position_y | tonumber) < 1.0 and
-          .metadata.position_z? and (.metadata.position_z | tonumber) < 1.0)' /app/logs/analytics.log
+jq 'select(.metadata.position-x? and (.metadata.position-x | tonumber) < 1.0 and
+          .metadata.position-y? and (.metadata.position-y | tonumber) < 1.0 and
+          .metadata.position-z? and (.metadata.position-z | tonumber) < 1.0)' /app/logs/analytics.log
 
 # Validate position fix success rate
 grep -c "Position fix applied successfully" /app/logs/analytics.log
@@ -441,28 +441,28 @@ grep -c "Origin clustering detected" /app/logs/analytics.log
 
 ```bash
 # Find slow GPU kernels (>5 seconds)
-jq 'select(.gpu_metrics.execution_time_us? and (.gpu_metrics.execution_time_us | tonumber) > 5000000)' /app/logs/gpu.log
+jq 'select(.gpu-metrics.execution-time-us? and (.gpu-metrics.execution-time-us | tonumber) > 5000000)' /app/logs/gpu.log
 
 # Identify performance anomalies
-jq 'select(.gpu_metrics.performance_anomaly == true)' /app/logs/gpu.log
+jq 'select(.gpu-metrics.performance-anomaly == true)' /app/logs/gpu.log
 
 # Memory usage patterns
-jq '.gpu_metrics | select(.memory_peak_mb?) | {kernel: .kernel_name, peak_mb: .memory_peak_mb}' /app/logs/gpu.log
+jq '.gpu-metrics | select(.memory-peak-mb?) | {kernel: .kernel-name, peak-mb: .memory-peak-mb}' /app/logs/gpu.log
 
 # GPU error frequency
-jq 'select(.gpu_metrics.error_count? and (.gpu_metrics.error_count | tonumber) > 0)' /app/logs/gpu.log | wc -l
+jq 'select(.gpu-metrics.error-count? and (.gpu-metrics.error-count | tonumber) > 0)' /app/logs/gpu.log | wc -l
 ```
 
 #### System Performance Metrics
 
 ```bash
 # Slowest operations
-jq 'select(.execution_time_ms? and (.execution_time_ms | tonumber) > 1000) |
-    {operation: .message, time_ms: .execution_time_ms}' /app/logs/performance.log | \
-    sort -k.time_ms -nr
+jq 'select(.execution-time-ms? and (.execution-time-ms | tonumber) > 1000) |
+    {operation: .message, time-ms: .execution-time-ms}' /app/logs/performance.log | \
+    sort -k.time-ms -nr
 
 # Memory allocation trends
-jq 'select(.metadata.allocated_mb?) | {time: .timestamp, allocated: .metadata.allocated_mb}' /app/logs/memory.log
+jq 'select(.metadata.allocated-mb?) | {time: .timestamp, allocated: .metadata.allocated-mb}' /app/logs/memory.log
 
 # Network latency issues
 jq 'select(.component == "network" and .level == "WARN")' /app/logs/network.log
@@ -503,10 +503,10 @@ df -h /app/logs/
 grep "Logging overhead" /app/logs/performance.log
 
 # Monitor I/O wait times
-jq 'select(.metadata.io_wait_ms?)' /app/logs/performance.log
+jq 'select(.metadata.io-wait-ms?)' /app/logs/performance.log
 
 # Verify concurrent logging safety
-grep -c "concurrent_test" /app/logs/*.log
+grep -c "concurrent-test" /app/logs/*.log
 ```
 
 ---
@@ -543,15 +543,15 @@ curl http://localhost:3000/api/performance/summary
 
 # Example response:
 {
-  "vector_addition": {
-    "avg_time_us": 1250.5,
-    "min_time_us": 980.2,
-    "max_time_us": 2100.8,
-    "sample_count": 1500,
-    "total_time_us": 1875750.0
+  "vector-addition": {
+    "avg-time-us": 1250.5,
+    "min-time-us": 980.2,
+    "max-time-us": 2100.8,
+    "sample-count": 1500,
+    "total-time-us": 1875750.0
   },
-  "gpu_errors": 3,
-  "recovery_attempts": 2
+  "gpu-errors": 3,
+  "recovery-attempts": 2
 }
 ```
 
@@ -564,11 +564,11 @@ curl http://localhost:3000/api/performance/summary
 let logger = AdvancedLogger::new("/app/logs").expect("Logger init");
 
 // Configure rotation for high-throughput scenarios
-let rotation_config = LogRotationConfig {
-    max_file_size_mb: 100,  // Larger files for fewer rotations
-    max_files: 5,           // Fewer archived files
-    compress_rotated: true, // Enable compression
-    rotation_interval_hours: 12 // More frequent rotation
+let rotation-config = LogRotationConfig {
+    max-file-size-mb: 100,  // Larger files for fewer rotations
+    max-files: 5,           // Fewer archived files
+    compress-rotated: true, // Enable compression
+    rotation-interval-hours: 12 // More frequent rotation
 };
 ```
 
@@ -603,7 +603,7 @@ done
 tail -f /app/logs/gpu.log | jq 'select(.message | contains("out of memory"))'
 
 # Agent clustering issues
-tail -f /app/logs/analytics.log | jq 'select(.metadata.origin_cluster_detected == true)'
+tail -f /app/logs/analytics.log | jq 'select(.metadata.origin-cluster-detected == true)'
 ```
 
 ---
@@ -630,7 +630,7 @@ grep "Advanced logging system initialized" /app/logs/server.log
 
 **Solutions:**
 1. Ensure log directory exists and is writable
-2. Verify `LOG_DIR` environment variable
+2. Verify `LOG-DIR` environment variable
 3. Check Docker volume mounting
 4. Restart application with proper permissions
 
@@ -643,7 +643,7 @@ grep "Advanced logging system initialized" /app/logs/server.log
 **Diagnosis:**
 ```bash
 # Check memory metrics in logs
-jq 'select(.memory_usage_mb?)' /app/logs/memory.log | tail -20
+jq 'select(.memory-usage-mb?)' /app/logs/memory.log | tail -20
 
 # Monitor performance summary growth
 curl http://localhost:3000/api/performance/summary | jq 'keys | length'
@@ -667,7 +667,7 @@ curl http://localhost:3000/api/performance/summary | jq 'keys | length'
 jq 'select(.message | contains("Position fix applied"))' /app/logs/analytics.log
 
 # Verify corrected positions are valid
-jq 'select(.metadata.corrected_position?)' /app/logs/analytics.log
+jq 'select(.metadata.corrected-position?)' /app/logs/analytics.log
 ```
 
 **Solutions:**
@@ -685,11 +685,11 @@ jq 'select(.metadata.corrected_position?)' /app/logs/analytics.log
 **Diagnosis:**
 ```bash
 # Analyze kernel performance trends
-jq 'select(.gpu_metrics.performance_anomaly == true)' /app/logs/gpu.log | \
-jq '{kernel: .gpu_metrics.kernel_name, time: .gpu_metrics.execution_time_us}'
+jq 'select(.gpu-metrics.performance-anomaly == true)' /app/logs/gpu.log | \
+jq '{kernel: .gpu-metrics.kernel-name, time: .gpu-metrics.execution-time-us}'
 
 # Check for resource contention
-jq 'select(.gpu_metrics.memory_peak_mb? and (.gpu_metrics.memory_peak_mb | tonumber) > 1000)' /app/logs/gpu.log
+jq 'select(.gpu-metrics.memory-peak-mb? and (.gpu-metrics.memory-peak-mb | tonumber) > 1000)' /app/logs/gpu.log
 ```
 
 **Solutions:**
@@ -728,15 +728,15 @@ ls -la /app/logs/archived/
 
 ```bash
 # Via environment variable
-export RUST_LOG=debug
-export DEBUG_ENABLED=true
+export RUST-LOG=debug
+export DEBUG-ENABLED=true
 
 # Via Docker Compose
 services:
   multi-agent:
     environment:
-      - RUST_LOG=debug
-      - DEBUG_ENABLED=true
+      - RUST-LOG=debug
+      - DEBUG-ENABLED=true
 ```
 
 #### Debug Output Analysis
@@ -760,28 +760,28 @@ jq '{time: .timestamp, op: .metadata.operation, result: .message}'
 
 ```bash
 # Complete agent lifecycle for specific agent
-AGENT_ID="agent-123"
-grep "$AGENT_ID" /app/logs/*.log | jq 'select(.metadata.agent_id == "'$AGENT_ID'")' | \
-sort_by(.timestamp)
+AGENT-ID="agent-123"
+grep "$AGENT-ID" /app/logs/*.log | jq 'select(.metadata.agent-id == "'$AGENT-ID'")' | \
+sort-by(.timestamp)
 
 # Agent spawn success rate
-total_spawns=$(grep -c "Agent spawn requested" /app/logs/server.log)
-successful_spawns=$(grep -c "Agent spawned successfully" /app/logs/server.log)
-echo "Success rate: $(( successful_spawns * 100 / total_spawns ))%"
+total-spawns=$(grep -c "Agent spawn requested" /app/logs/server.log)
+successful-spawns=$(grep -c "Agent spawned successfully" /app/logs/server.log)
+echo "Success rate: $(( successful-spawns * 100 / total-spawns ))%"
 ```
 
 #### Performance Trend Analysis
 
 ```bash
 # GPU kernel performance over time
-jq 'select(.gpu_metrics.execution_time_us?) |
-    {time: .timestamp, kernel: .gpu_metrics.kernel_name, us: .gpu_metrics.execution_time_us}' \
+jq 'select(.gpu-metrics.execution-time-us?) |
+    {time: .timestamp, kernel: .gpu-metrics.kernel-name, us: .gpu-metrics.execution-time-us}' \
     /app/logs/gpu.log | head -100
 
 # Memory allocation trends
-jq 'select(.metadata.allocated_mb?) |
-    {time: .timestamp, allocated: .metadata.allocated_mb}' \
-    /app/logs/memory.log > memory_trend.json
+jq 'select(.metadata.allocated-mb?) |
+    {time: .timestamp, allocated: .metadata.allocated-mb}' \
+    /app/logs/memory.log > memory-trend.json
 ```
 
 #### Error Pattern Analysis
@@ -792,9 +792,9 @@ jq 'select(.level == "ERROR") | .message' /app/logs/error.log | \
 sort | uniq -c | sort -rn
 
 # Error recovery success rate
-total_errors=$(jq 'select(.level == "ERROR")' /app/logs/error.log | wc -l)
-recovered_errors=$(jq 'select(.metadata.recovery_successful == true)' /app/logs/error.log | wc -l)
-echo "Recovery rate: $(( recovered_errors * 100 / total_errors ))%"
+total-errors=$(jq 'select(.level == "ERROR")' /app/logs/error.log | wc -l)
+recovered-errors=$(jq 'select(.metadata.recovery-successful == true)' /app/logs/error.log | wc -l)
+echo "Recovery rate: $(( recovered-errors * 100 / total-errors ))%"
 ```
 
 ### Advanced Query Examples
@@ -803,22 +803,22 @@ echo "Recovery rate: $(( recovered_errors * 100 / total_errors ))%"
 
 ```bash
 # Find correlated events across components
-CORRELATION_ID="req-123-456"
-grep "$CORRELATION_ID" /app/logs/*.log | jq 'select(.metadata.correlation_id == "'$CORRELATION_ID'")' | \
+CORRELATION-ID="req-123-456"
+grep "$CORRELATION-ID" /app/logs/*.log | jq 'select(.metadata.correlation-id == "'$CORRELATION-ID'")' | \
 jq '{component: .component, time: .timestamp, message: .message}' | \
-sort_by(.time)
+sort-by(.time)
 ```
 
 #### Performance Bottleneck Identification
 
 ```bash
 # Operations taking longer than 1 second
-jq 'select(.execution_time_ms? and (.execution_time_ms | tonumber) > 1000) |
-    {op: .message, time_ms: .execution_time_ms, component: .component}' \
-    /app/logs/performance.log | sort_by(.time_ms) | reverse
+jq 'select(.execution-time-ms? and (.execution-time-ms | tonumber) > 1000) |
+    {op: .message, time-ms: .execution-time-ms, component: .component}' \
+    /app/logs/performance.log | sort-by(.time-ms) | reverse
 
 # Memory usage spikes
-jq 'select(.memory_usage_mb? and (.memory_usage_mb | tonumber) > 500)' \
+jq 'select(.memory-usage-mb? and (.memory-usage-mb | tonumber) > 500)' \
     /app/logs/memory.log
 ```
 
@@ -826,10 +826,10 @@ jq 'select(.memory_usage_mb? and (.memory_usage_mb | tonumber) > 500)' \
 
 ```bash
 # GPU performance anomalies with context
-jq 'select(.gpu_metrics.performance_anomaly == true) |
-    {time: .timestamp, kernel: .gpu_metrics.kernel_name,
-     time_us: .gpu_metrics.execution_time_us,
-     memory_mb: .gpu_metrics.memory_peak_mb}' \
+jq 'select(.gpu-metrics.performance-anomaly == true) |
+    {time: .timestamp, kernel: .gpu-metrics.kernel-name,
+     time-us: .gpu-metrics.execution-time-us,
+     memory-mb: .gpu-metrics.memory-peak-mb}' \
     /app/logs/gpu.log
 
 # Network connectivity issues
@@ -855,14 +855,14 @@ jq 'select(.component == "network" and .level == "ERROR")' \
 
 ```rust
 // Good: Structured with context
-log_structured(
+log-structured(
     LogComponent::Server,
     Level::Info,
     "Agent coordination completed",
     Some(HashMap::from([
-        ("agent_count".to_string(), json!(agents.len())),
-        ("coordination_time_ms".to_string(), json!(duration)),
-        ("success_rate".to_string(), json!(success_rate))
+        ("agent-count".to-string(), json!(agents.len())),
+        ("coordination-time-ms".to-string(), json!(duration)),
+        ("success-rate".to-string(), json!(success-rate))
     ]))
 );
 
@@ -875,25 +875,25 @@ println!("Done coordinating agents");
 ```rust
 // Good: Comprehensive error context
 match result {
-    Ok(value) => log_structured(
+    Ok(value) => log-structured(
         LogComponent::Server,
         Level::Info,
         "Operation completed successfully",
-        Some(HashMap::from([("result_size".to_string(), json!(value.len()))]))
+        Some(HashMap::from([("result-size".to-string(), json!(value.len()))]))
     ),
     Err(e) => {
-        let error_metadata = HashMap::from([
-            ("error_type".to_string(), json!(e.to_string())),
-            ("retry_count".to_string(), json!(retry_count)),
-            ("operation".to_string(), json!("agent_spawn")),
-            ("recovery_attempted".to_string(), json!(true))
+        let error-metadata = HashMap::from([
+            ("error-type".to-string(), json!(e.to-string())),
+            ("retry-count".to-string(), json!(retry-count)),
+            ("operation".to-string(), json!("agent-spawn")),
+            ("recovery-attempted".to-string(), json!(true))
         ]);
 
-        log_structured(
+        log-structured(
             LogComponent::Error,
             Level::Error,
             "Agent spawn failed with recovery attempted",
-            Some(error_metadata)
+            Some(error-metadata)
         );
     }
 }
@@ -932,36 +932,36 @@ match result {
 
 ```rust
 // Structured logging with metadata
-pub fn log_structured(
+pub fn log-structured(
     component: LogComponent,
     level: Level,
     message: &str,
-    metadata: Option<HashMap<String, serde_json::Value>>
+    metadata: Option<HashMap<String, serde-json::Value>>
 )
 
 // GPU kernel performance logging
-pub fn log_gpu_kernel(
-    kernel_name: &str,
-    execution_time_us: f64,
-    memory_allocated_mb: f64,
-    memory_peak_mb: f64
+pub fn log-gpu-kernel(
+    kernel-name: &str,
+    execution-time-us: f64,
+    memory-allocated-mb: f64,
+    memory-peak-mb: f64
 )
 
 // GPU error logging with recovery tracking
-pub fn log_gpu_error(error_msg: &str, recovery_attempted: bool)
+pub fn log-gpu-error(error-msg: &str, recovery-attempted: bool)
 
 // Memory event logging
-pub fn log_memory_event(event_type: &str, allocated_mb: f64, peak_mb: f64)
+pub fn log-memory-event(event-type: &str, allocated-mb: f64, peak-mb: f64)
 
 // Performance metric logging
-pub fn log_performance(
+pub fn log-performance(
     operation: &str,
-    duration_ms: f64,
+    duration-ms: f64,
     throughput: Option<f64>
 )
 
 // Performance summary retrieval
-pub fn get_performance_summary() -> HashMap<String, serde_json::Value>
+pub fn get-performance-summary() -> HashMap<String, serde-json::Value>
 ```
 
 #### Component Types

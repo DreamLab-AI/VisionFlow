@@ -244,43 +244,43 @@ erDiagram
     PROJECTS ||--o{ ASSETS : contains
     PROJECTS ||--o{ JOBS : has
     ASSETS ||--o{ VERSIONS : has
-    JOBS ||--o{ JOB_LOGS : generates
+    JOBS ||--o{ JOB-LOGS : generates
 
     USERS {
         uuid id PK
         string email
-        string password_hash
+        string password-hash
         string role
-        timestamp created_at
+        timestamp created-at
     }
 
     PROJECTS {
         uuid id PK
-        uuid user_id FK
+        uuid user-id FK
         string name
         jsonb config
         string status
-        timestamp created_at
+        timestamp created-at
     }
 
     ASSETS {
         uuid id PK
-        uuid project_id FK
+        uuid project-id FK
         string name
         string type
         bigint size
-        string storage_path
-        timestamp created_at
+        string storage-path
+        timestamp created-at
     }
 
     JOBS {
         uuid id PK
-        uuid project_id FK
+        uuid project-id FK
         string type
         string status
         jsonb params
         jsonb result
-        timestamp created_at
+        timestamp created-at
     }
 ```
 
@@ -608,14 +608,14 @@ graph LR
 **Indexing Strategy**:
 ```sql
 -- Frequently queried columns
-CREATE INDEX idx_projects_user_id ON projects(user_id);
-CREATE INDEX idx_assets_project_id ON assets(project_id);
+CREATE INDEX idx-projects-user-id ON projects(user-id);
+CREATE INDEX idx-assets-project-id ON assets(project-id);
 
 -- Composite indexes for common queries
-CREATE INDEX idx_projects_user_status ON projects(user_id, status);
+CREATE INDEX idx-projects-user-status ON projects(user-id, status);
 
 -- Partial indexes for specific queries
-CREATE INDEX idx_active_jobs ON jobs(created_at)
+CREATE INDEX idx-active-jobs ON jobs(created-at)
 WHERE status = 'processing';
 ```
 

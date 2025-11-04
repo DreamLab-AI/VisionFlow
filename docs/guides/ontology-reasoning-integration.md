@@ -8,7 +8,7 @@ This guide documents the complete implementation of the OntologyReasoningService
 
 ### 1. Core Service Implementation
 
-**File**: `/home/devuser/workspace/project/src/services/ontology_reasoning_service.rs`
+**File**: `/home/devuser/workspace/project/src/services/ontology-reasoning-service.rs`
 
 Complete OWL EL++ reasoning service with:
 - Full whelk-rs integration
@@ -20,27 +20,27 @@ Complete OWL EL++ reasoning service with:
 
 **Key Methods**:
 ```rust
-pub async fn infer_axioms(&self, ontology_id: &str) -> Result<Vec<InferredAxiom>>
-pub async fn get_class_hierarchy(&self, ontology_id: &str) -> Result<ClassHierarchy>
-pub async fn get_disjoint_classes(&self, ontology_id: &str) -> Result<Vec<DisjointPair>>
-pub async fn clear_cache(&self)
+pub async fn infer-axioms(&self, ontology-id: &str) -> Result<Vec<InferredAxiom>>
+pub async fn get-class-hierarchy(&self, ontology-id: &str) -> Result<ClassHierarchy>
+pub async fn get-disjoint-classes(&self, ontology-id: &str) -> Result<Vec<DisjointPair>>
+pub async fn clear-cache(&self)
 ```
 
 ### 2. Database Migration
 
-**File**: `/home/devuser/workspace/project/migration/003_add_inference_cache.sql`
+**File**: `/home/devuser/workspace/project/migration/003-add-inference-cache.sql`
 
 Creates:
-- `inference_cache` table for storing reasoning results
-- `user_defined` column in `owl_axioms` to distinguish inferred vs explicit axioms
+- `inference-cache` table for storing reasoning results
+- `user-defined` column in `owl-axioms` to distinguish inferred vs explicit axioms
 - Indexes for efficient querying
 - View for monitoring expired cache entries
 
 ### 3. Documentation
 
 **Files**:
-- `/home/devuser/workspace/project/docs/ontology_reasoning_service.md`
-- `/home/devuser/workspace/project/docs/ontology_reasoning_integration_guide.md`
+- `/home/devuser/workspace/project/docs/ontology-reasoning-service.md`
+- `/home/devuser/workspace/project/docs/ontology-reasoning-integration-guide.md`
 
 ## Integration Points
 
@@ -49,23 +49,23 @@ Creates:
 **File**: `src/services/mod.rs`
 
 ```rust
-pub mod ontology_reasoning_service;
+pub mod ontology-reasoning-service;
 ```
 
 The service is now exported and available for use throughout the application.
 
 ### 2. OntologyActor Integration
 
-**File**: `src/actors/ontology_actor.rs`
+**File**: `src/actors/ontology-actor.rs`
 
 The `TriggerReasoning` message handler has been updated with TODO comments for complete integration:
 
 ```rust
 impl Handler<TriggerReasoning> for OntologyActor {
     // TODO: Add OntologyReasoningService to OntologyActor state
-    // TODO: Call reasoning_service.infer_axioms(&ontology_id).await
+    // TODO: Call reasoning-service.infer-axioms(&ontology-id).await
     // TODO: Broadcast OntologyUpdated event to EventBus
-    // TODO: Store inferred axioms with user_defined=false
+    // TODO: Store inferred axioms with user-defined=false
 }
 ```
 
@@ -75,19 +75,19 @@ impl Handler<TriggerReasoning> for OntologyActor {
 ```rust
 pub struct OntologyActor {
     // ... existing fields
-    reasoning_service: Option<Arc<OntologyReasoningService>>,
+    reasoning-service: Option<Arc<OntologyReasoningService>>,
 }
 ```
 
 2. Update constructor:
 ```rust
-pub fn with_reasoning_service(
+pub fn with-reasoning-service(
     config: OntologyActorConfig,
-    reasoning_service: Arc<OntologyReasoningService>,
+    reasoning-service: Arc<OntologyReasoningService>,
 ) -> Self {
     Self {
         // ... existing fields
-        reasoning_service: Some(reasoning_service),
+        reasoning-service: Some(reasoning-service),
     }
 }
 ```
@@ -95,15 +95,15 @@ pub fn with_reasoning_service(
 3. Implement handler:
 ```rust
 impl Handler<TriggerReasoning> for OntologyActor {
-    fn handle(&mut self, msg: TriggerReasoning, _ctx: &mut Self::Context) -> Self::Result {
-        let reasoning_service = self.reasoning_service.clone();
-        let ontology_id = msg.ontology_id.to_string();
+    fn handle(&mut self, msg: TriggerReasoning, -ctx: &mut Self::Context) -> Self::Result {
+        let reasoning-service = self.reasoning-service.clone();
+        let ontology-id = msg.ontology-id.to-string();
 
         Box::pin(async move {
-            if let Some(service) = reasoning_service {
+            if let Some(service) = reasoning-service {
                 // Run inference
-                let inferred = service.infer_axioms(&ontology_id).await
-                    .map_err(|e| format!("Inference failed: {}", e))?;
+                let inferred = service.infer-axioms(&ontology-id).await
+                    .map-err(|e| format!("Inference failed: {}", e))?;
 
                 info!("Inferred {} new axioms", inferred.len());
 
@@ -111,7 +111,7 @@ impl Handler<TriggerReasoning> for OntologyActor {
 
                 Ok(format!("Inferred {} axioms", inferred.len()))
             } else {
-                Ok("Reasoning service not configured".to_string())
+                Ok("Reasoning service not configured".to-string())
             }
         })
     }
@@ -120,19 +120,19 @@ impl Handler<TriggerReasoning> for OntologyActor {
 
 ### 3. GitHub Sync Service Integration
 
-**File**: `src/services/github_sync_service.rs`
+**File**: `src/services/github-sync-service.rs`
 
-The `save_ontology_data()` method already triggers a reasoning pipeline (line 599-640):
+The `save-ontology-data()` method already triggers a reasoning pipeline (line 599-640):
 
 ```rust
 // 🔥 TRIGGER REASONING PIPELINE if configured
-if let Some(pipeline) = &self.pipeline_service {
+if let Some(pipeline) = &self.pipeline-service {
     info!("🔄 Triggering ontology reasoning pipeline after ontology save");
     // ... existing pipeline trigger
 }
 ```
 
-**Note**: The existing `pipeline_service` appears to be a custom reasoner. The new `OntologyReasoningService` using whelk-rs can:
+**Note**: The existing `pipeline-service` appears to be a custom reasoner. The new `OntologyReasoningService` using whelk-rs can:
 - Replace the existing pipeline (recommended for EL++ compliance)
 - Work alongside it (for comparison/validation)
 - Be used as a fallback if pipeline is not configured
@@ -141,30 +141,30 @@ if let Some(pipeline) = &self.pipeline_service {
 
 ```rust
 // Option 1: Replace existing pipeline
-async fn save_ontology_data(&self, onto_data: OntologyData) -> Result<(), String> {
-    self.onto_repo.save_ontology(...).await?;
+async fn save-ontology-data(&self, onto-data: OntologyData) -> Result<(), String> {
+    self.onto-repo.save-ontology(...).await?;
 
     // Use new OntologyReasoningService
-    if let Some(reasoning_service) = &self.reasoning_service {
-        reasoning_service.infer_axioms("default").await
-            .map_err(|e| format!("Reasoning failed: {}", e))?;
+    if let Some(reasoning-service) = &self.reasoning-service {
+        reasoning-service.infer-axioms("default").await
+            .map-err(|e| format!("Reasoning failed: {}", e))?;
     }
 
     Ok(())
 }
 
 // Option 2: Use both (comparison mode)
-async fn save_ontology_data(&self, onto_data: OntologyData) -> Result<(), String> {
-    self.onto_repo.save_ontology(...).await?;
+async fn save-ontology-data(&self, onto-data: OntologyData) -> Result<(), String> {
+    self.onto-repo.save-ontology(...).await?;
 
     // Existing pipeline
-    if let Some(pipeline) = &self.pipeline_service {
+    if let Some(pipeline) = &self.pipeline-service {
         pipeline.trigger().await?;
     }
 
     // New whelk-rs reasoning
-    if let Some(reasoning_service) = &self.reasoning_service {
-        reasoning_service.infer_axioms("default").await?;
+    if let Some(reasoning-service) = &self.reasoning-service {
+        reasoning-service.infer-axioms("default").await?;
     }
 
     Ok(())
@@ -176,21 +176,21 @@ async fn save_ontology_data(&self, onto_data: OntologyData) -> Result<(), String
 ```
 GitHub Markdown Files
         ↓
-GitHubSyncService::process_files()
+GitHubSyncService::process-files()
         ↓
 OntologyParser::parse()
         ↓
-save_ontology_data()
+save-ontology-data()
         ↓
-UnifiedOntologyRepository::save_ontology()
+UnifiedOntologyRepository::save-ontology()
         ↓
-OntologyReasoningService::infer_axioms()
+OntologyReasoningService::infer-axioms()
         ↓
 WhelkInferenceEngine::infer()
         ↓
-Store inferred axioms (user_defined=false)
+Store inferred axioms (user-defined=false)
         ↓
-Cache results in inference_cache table
+Cache results in inference-cache table
         ↓
 Broadcast OntologyUpdated event
 ```
@@ -201,9 +201,9 @@ Broadcast OntologyUpdated event
 
 ```rust
 use std::sync::Arc;
-use crate::adapters::whelk_inference_engine::WhelkInferenceEngine;
-use crate::repositories::unified_ontology_repository::UnifiedOntologyRepository;
-use crate::services::ontology_reasoning_service::OntologyReasoningService;
+use crate::adapters::whelk-inference-engine::WhelkInferenceEngine;
+use crate::repositories::unified-ontology-repository::UnifiedOntologyRepository;
+use crate::services::ontology-reasoning-service::OntologyReasoningService;
 
 // Initialize
 let engine = Arc::new(WhelkInferenceEngine::new());
@@ -211,15 +211,15 @@ let repo = Arc::new(UnifiedOntologyRepository::new("data/unified.db")?);
 let service = OntologyReasoningService::new(engine, repo);
 
 // Infer axioms
-let axioms = service.infer_axioms("default").await?;
+let axioms = service.infer-axioms("default").await?;
 println!("Inferred {} axioms", axioms.len());
 
 // Get hierarchy
-let hierarchy = service.get_class_hierarchy("default").await?;
-println!("Root classes: {:?}", hierarchy.root_classes);
+let hierarchy = service.get-class-hierarchy("default").await?;
+println!("Root classes: {:?}", hierarchy.root-classes);
 
 // Find disjoint classes
-let disjoint = service.get_disjoint_classes("default").await?;
+let disjoint = service.get-disjoint-classes("default").await?;
 println!("Found {} disjoint pairs", disjoint.len());
 ```
 
@@ -227,16 +227,16 @@ println!("Found {} disjoint pairs", disjoint.len());
 
 ```rust
 // In app initialization
-let reasoning_service = Arc::new(OntologyReasoningService::new(engine, repo));
-let ontology_actor = OntologyActor::with_reasoning_service(
+let reasoning-service = Arc::new(OntologyReasoningService::new(engine, repo));
+let ontology-actor = OntologyActor::with-reasoning-service(
     OntologyActorConfig::default(),
-    reasoning_service.clone(),
+    reasoning-service.clone(),
 ).start();
 
 // Trigger reasoning via message
-ontology_actor.do_send(TriggerReasoning {
-    ontology_id: 1,
-    source: "github_sync".to_string(),
+ontology-actor.do-send(TriggerReasoning {
+    ontology-id: 1,
+    source: "github-sync".to-string(),
 });
 ```
 
@@ -244,16 +244,16 @@ ontology_actor.do_send(TriggerReasoning {
 
 ```rust
 // Get all axioms
-let all_axioms = repo.get_axioms().await?;
+let all-axioms = repo.get-axioms().await?;
 
 // Filter inferred axioms
-let inferred: Vec<_> = all_axioms.iter()
-    .filter(|a| a.annotations.get("inferred") == Some(&"true".to_string()))
+let inferred: Vec<-> = all-axioms.iter()
+    .filter(|a| a.annotations.get("inferred") == Some(&"true".to-string()))
     .collect();
 
 // Filter explicit axioms
-let explicit: Vec<_> = all_axioms.iter()
-    .filter(|a| a.annotations.get("inferred") != Some(&"true".to_string()))
+let explicit: Vec<-> = all-axioms.iter()
+    .filter(|a| a.annotations.get("inferred") != Some(&"true".to-string()))
     .collect();
 
 println!("Explicit: {}, Inferred: {}", explicit.len(), inferred.len());
@@ -265,17 +265,17 @@ println!("Explicit: {}, Inferred: {}", explicit.len(), inferred.len());
 
 ```bash
 # Run all reasoning service tests
-cargo test --package webxr --lib services::ontology_reasoning_service
+cargo test --package webxr --lib services::ontology-reasoning-service
 
 # Run specific test
-cargo test --package webxr --lib services::ontology_reasoning_service::tests::test_infer_axioms
+cargo test --package webxr --lib services::ontology-reasoning-service::tests::test-infer-axioms
 ```
 
 ### Integration Tests
 
 ```bash
 # Test full pipeline
-cargo test --package webxr --test ontology_integration_test
+cargo test --package webxr --test ontology-integration-test
 ```
 
 ### Manual Testing
@@ -284,31 +284,31 @@ cargo test --package webxr --test ontology_integration_test
 // Create test ontology
 let classes = vec![
     OwlClass {
-        iri: "http://example.org/Person".to_string(),
-        label: Some("Person".to_string()),
-        parent_classes: vec![],
+        iri: "http://example.org/Person".to-string(),
+        label: Some("Person".to-string()),
+        parent-classes: vec![],
         // ...
     },
     OwlClass {
-        iri: "http://example.org/Employee".to_string(),
-        label: Some("Employee".to_string()),
-        parent_classes: vec!["http://example.org/Person".to_string()],
+        iri: "http://example.org/Employee".to-string(),
+        label: Some("Employee".to-string()),
+        parent-classes: vec!["http://example.org/Person".to-string()],
         // ...
     },
 ];
 
 let axioms = vec![
     OwlAxiom {
-        axiom_type: AxiomType::SubClassOf,
-        subject: "http://example.org/Employee".to_string(),
-        object: "http://example.org/Person".to_string(),
+        axiom-type: AxiomType::SubClassOf,
+        subject: "http://example.org/Employee".to-string(),
+        object: "http://example.org/Person".to-string(),
         // ...
     },
 ];
 
 // Save and infer
-repo.save_ontology(&classes, &[], &axioms).await?;
-let inferred = service.infer_axioms("test").await?;
+repo.save-ontology(&classes, &[], &axioms).await?;
+let inferred = service.infer-axioms("test").await?;
 
 // Verify inferred axioms
 assert!(inferred.len() > 0);
@@ -323,11 +323,11 @@ The service uses in-memory LRU cache with database persistence:
 ```rust
 // Cache entry structure
 struct InferenceCacheEntry {
-    ontology_id: String,
-    ontology_checksum: String,  // Blake3 hash
-    inferred_axioms: Vec<InferredAxiom>,
+    ontology-id: String,
+    ontology-checksum: String,  // Blake3 hash
+    inferred-axioms: Vec<InferredAxiom>,
     timestamp: DateTime<Utc>,
-    inference_time_ms: u64,
+    inference-time-ms: u64,
 }
 ```
 
@@ -340,11 +340,11 @@ struct InferenceCacheEntry {
 
 ```sql
 -- Add index for faster inference cache lookups
-CREATE INDEX idx_inference_cache_ontology_checksum
-    ON inference_cache(ontology_id, ontology_checksum);
+CREATE INDEX idx-inference-cache-ontology-checksum
+    ON inference-cache(ontology-id, ontology-checksum);
 
 -- Clean up old cache entries
-DELETE FROM inference_cache
+DELETE FROM inference-cache
 WHERE timestamp < (strftime('%s', 'now') - 604800);  -- 7 days
 
 -- Vacuum after cleanup
@@ -364,7 +364,7 @@ VACUUM;
 **Solution**:
 ```bash
 # Enable debug logging
-RUST_LOG=webxr::services::ontology_reasoning_service=debug cargo run
+RUST-LOG=webxr::services::ontology-reasoning-service=debug cargo run
 
 # Check for errors
 grep "Reasoning" logs/visionflow.log
@@ -380,13 +380,13 @@ grep "Reasoning" logs/visionflow.log
 **Solution**:
 ```rust
 // Force cache clear
-service.clear_cache().await;
+service.clear-cache().await;
 
 // Verify checksum calculation
-let checksum1 = service.calculate_ontology_checksum("default").await?;
+let checksum1 = service.calculate-ontology-checksum("default").await?;
 // Modify ontology
-let checksum2 = service.calculate_ontology_checksum("default").await?;
-assert_ne!(checksum1, checksum2);
+let checksum2 = service.calculate-ontology-checksum("default").await?;
+assert-ne!(checksum1, checksum2);
 ```
 
 ### Issue: Slow Inference
@@ -400,16 +400,16 @@ assert_ne!(checksum1, checksum2);
 ```sql
 -- Check cache performance
 SELECT
-    ontology_id,
+    ontology-id,
     COUNT(*) as entries,
-    AVG(inference_time_ms) as avg_time,
-    MAX(inference_time_ms) as max_time
-FROM inference_cache
-GROUP BY ontology_id;
+    AVG(inference-time-ms) as avg-time,
+    MAX(inference-time-ms) as max-time
+FROM inference-cache
+GROUP BY ontology-id;
 
 -- Verify indexes exist
-.indexes owl_axioms
-.indexes inference_cache
+.indexes owl-axioms
+.indexes inference-cache
 ```
 
 ## Future Enhancements
@@ -442,22 +442,22 @@ GROUP BY ontology_id;
 // Planned methods
 impl OntologyReasoningService {
     /// Explain why an axiom was inferred
-    pub async fn explain_inference(
+    pub async fn explain-inference(
         &self,
-        axiom_id: &str,
+        axiom-id: &str,
     ) -> Result<InferenceExplanation>;
 
     /// Incremental update (only changed portions)
-    pub async fn infer_axioms_incremental(
+    pub async fn infer-axioms-incremental(
         &self,
-        ontology_id: &str,
-        changed_iris: &[String],
+        ontology-id: &str,
+        changed-iris: &[String],
     ) -> Result<Vec<InferredAxiom>>;
 
     /// Batch inference for multiple ontologies
-    pub async fn infer_axioms_batch(
+    pub async fn infer-axioms-batch(
         &self,
-        ontology_ids: &[String],
+        ontology-ids: &[String],
     ) -> Result<HashMap<String, Vec<InferredAxiom>>>;
 }
 ```
@@ -465,13 +465,13 @@ impl OntologyReasoningService {
 ## References
 
 - [VisionFlow Architecture](./architecture.md)
-- [OWL 2 EL Profile](https://www.w3.org/TR/owl2-profiles/#OWL_2_EL)
+- [OWL 2 EL Profile](https://www.w3.org/TR/owl2-profiles/#OWL-2-EL)
 - [whelk-rs Documentation](https://github.com/balhoff/whelk-rs)
-- [Unified Database Schema](../schema/README.md)
+- [Unified Database Schema](../schema/readme.md)
 
 ## Contact
 
 For questions or issues:
 - Check logs: `tail -f logs/visionflow.log`
 - GitHub Issues: Create issue with `reasoning` label
-- Documentation: See `docs/ontology_reasoning_service.md`
+- Documentation: See `docs/ontology-reasoning-service.md`

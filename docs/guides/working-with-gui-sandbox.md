@@ -58,7 +58,7 @@ graph TB
 - MCP bridge tools in `multi-agent-container` communicate with TCP servers in `gui-tools-container`
 - TCP servers translate MCP requests into GUI application API calls
 - All GUI applications render to a virtual display (Xvfb) accessible via VNC
-- For detailed MCP tool architecture, see [multi-agent-docker/TOOLS.md](/mnt/mldata/githubs/AR-AI-Knowledge-Graph/docs/multi-agent-docker/TOOLS.md)
+- For detailed MCP tool architecture, see [multi-agent-docker/tools.md](/mnt/mldata/githubs/AR-AI-Knowledge-Graph/docs/multi-agent-docker/tools.md)
 
 ## Purpose and Architecture
 
@@ -82,10 +82,10 @@ graph TD
     end
 
     subgraph "MCP Server Layer"
-        B_TCP[Blender TCP :9876]
-        Q_TCP[QGIS TCP :9877]
-        P_TCP[Playwright TCP :9879]
-        PBR_TCP[PBR TCP :9878]
+        B-TCP[Blender TCP :9876]
+        Q-TCP[QGIS TCP :9877]
+        P-TCP[Playwright TCP :9879]
+        PBR-TCP[PBR TCP :9878]
     end
 
     XVFB --> DESKTOP
@@ -95,17 +95,17 @@ graph TD
     DESKTOP --> PBR
     VNC --> XVFB
 
-    BLENDER --> B_TCP
-    QGIS --> Q_TCP
-    PLAYWRIGHT --> P_TCP
-    PBR --> PBR_TCP
+    BLENDER --> B-TCP
+    QGIS --> Q-TCP
+    PLAYWRIGHT --> P-TCP
+    PBR --> PBR-TCP
 ```
 
 ### System Integration
 
 For complete multi-agent architecture documentation, see:
 - [Multi-Agent Docker Architecture](../reference/architecture/database-schema.md)
-- [MCP Tool Reference](/mnt/mldata/githubs/AR-AI-Knowledge-Graph/docs/multi-agent-docker/TOOLS.md)
+- [MCP Tool Reference](/mnt/mldata/githubs/AR-AI-Knowledge-Graph/docs/multi-agent-docker/tools.md)
 
 ## Available GUI Tools
 
@@ -307,9 +307,9 @@ node /workspace/scripts/mcp-blender-client.js
 
 ```json
 {
-  "tool": "execute_code",
+  "tool": "execute-code",
   "params": {
-    "code": "import bpy\nbpy.ops.mesh.primitive_cube_add(size=2, location=(0, 0, 1))"
+    "code": "import bpy\nbpy.ops.mesh.primitive-cube-add(size=2, location=(0, 0, 1))"
   }
 }
 ```
@@ -319,7 +319,7 @@ node /workspace/scripts/mcp-blender-client.js
 ```python
 # Executed in Blender's Python environment
 import bpy
-bpy.ops.mesh.primitive_cube_add(size=2, location=(0, 0, 1))
+bpy.ops.mesh.primitive-cube-add(size=2, location=(0, 0, 1))
 ```
 
 **Step 5: Response flows back to agent**
@@ -328,9 +328,9 @@ bpy.ops.mesh.primitive_cube_add(size=2, location=(0, 0, 1))
 {
   "success": true,
   "result": "Cube created successfully",
-  "scene_info": {
+  "scene-info": {
     "objects": ["Camera", "Light", "Cube"],
-    "active_object": "Cube"
+    "active-object": "Cube"
   }
 }
 ```
@@ -349,7 +349,7 @@ All GUI tools are defined in `/workspace/.mcp.json`:
     },
     "qgis-mcp": {
       "command": "python3",
-      "args": ["-u", "./mcp-tools/qgis_mcp.py"],
+      "args": ["-u", "./mcp-tools/qgis-mcp.py"],
       "description": "Geospatial analysis via QGIS"
     },
     "playwright-mcp": {
@@ -359,14 +359,14 @@ All GUI tools are defined in `/workspace/.mcp.json`:
     },
     "pbr-generator-mcp": {
       "command": "python3",
-      "args": ["-u", "./mcp-tools/pbr_mcp_client.py"],
+      "args": ["-u", "./mcp-tools/pbr-mcp-client.py"],
       "description": "PBR texture generation"
     }
   }
 }
 ```
 
-For complete tool configuration details, see [multi-agent-docker/TOOLS.md](/mnt/mldata/githubs/AR-AI-Knowledge-Graph/docs/multi-agent-docker/TOOLS.md).
+For complete tool configuration details, see [multi-agent-docker/tools.md](/mnt/mldata/githubs/AR-AI-Knowledge-Graph/docs/multi-agent-docker/tools.md).
 
 ## Tool Reference
 
@@ -376,61 +376,61 @@ For complete tool configuration details, see [multi-agent-docker/TOOLS.md](/mnt/
 
 | Method | Purpose | Key Parameters |
 |--------|---------|----------------|
-| `get_scene_info` | Retrieve current scene state | None |
-| `get_object_info` | Get object properties | `object_name` |
-| `execute_code` | Run arbitrary Python code | `code` |
-| `get_viewport_screenshot` | Capture viewport image | `filepath` |
-| `download_polyhaven_asset` | Import PolyHaven assets | `asset_name`, `asset_type`, `resolution` |
+| `get-scene-info` | Retrieve current scene state | None |
+| `get-object-info` | Get object properties | `object-name` |
+| `execute-code` | Run arbitrary Python code | `code` |
+| `get-viewport-screenshot` | Capture viewport image | `filepath` |
+| `download-polyhaven-asset` | Import PolyHaven assets | `asset-name`, `asset-type`, `resolution` |
 
 **Example Usage**:
 
 ```bash
 # Create a procedural scene
 ./mcp-helper.sh run-tool blender-mcp '{
-  "tool": "execute_code",
+  "tool": "execute-code",
   "params": {
     "code": "
 import bpy
 
 # Clear scene
-bpy.ops.object.select_all(action=\"SELECT\")
+bpy.ops.object.select-all(action=\"SELECT\")
 bpy.ops.object.delete()
 
 # Create ground plane
-bpy.ops.mesh.primitive_plane_add(size=10, location=(0, 0, 0))
+bpy.ops.mesh.primitive-plane-add(size=10, location=(0, 0, 0))
 
 # Create sphere with subdivision
-bpy.ops.mesh.primitive_uv_sphere_add(location=(0, 0, 1))
+bpy.ops.mesh.primitive-uv-sphere-add(location=(0, 0, 1))
 sphere = bpy.context.object
 mod = sphere.modifiers.new(\"Subsurf\", \"SUBSURF\")
 mod.levels = 2
 
 # Add material
 mat = bpy.data.materials.new(\"Gold\")
-mat.use_nodes = True
-bsdf = mat.node_tree.nodes[\"Principled BSDF\"]
-bsdf.inputs[0].default_value = (1.0, 0.766, 0.336, 1.0)
-bsdf.inputs[4].default_value = 1.0
-bsdf.inputs[7].default_value = 0.1
+mat.use-nodes = True
+bsdf = mat.node-tree.nodes[\"Principled BSDF\"]
+bsdf.inputs[0].default-value = (1.0, 0.766, 0.336, 1.0)
+bsdf.inputs[4].default-value = 1.0
+bsdf.inputs[7].default-value = 0.1
 sphere.data.materials.append(mat)
 
 # Setup camera
-bpy.ops.object.camera_add(location=(7, -7, 5))
+bpy.ops.object.camera-add(location=(7, -7, 5))
 camera = bpy.context.object
-camera.rotation_euler = (1.1, 0, 0.785)
+camera.rotation-euler = (1.1, 0, 0.785)
 bpy.context.scene.camera = camera
 
 # Add sun light
-bpy.ops.object.light_add(type=\"SUN\", location=(5, 5, 10))
+bpy.ops.object.light-add(type=\"SUN\", location=(5, 5, 10))
     "
   }
 }'
 
 # Capture the result
 ./mcp-helper.sh run-tool blender-mcp '{
-  "tool": "get_viewport_screenshot",
+  "tool": "get-viewport-screenshot",
   "params": {
-    "filepath": "/workspace/renders/golden_sphere.png"
+    "filepath": "/workspace/renders/golden-sphere.png"
   }
 }'
 ```
@@ -441,17 +441,17 @@ bpy.ops.object.light_add(type=\"SUN\", location=(5, 5, 10))
 
 | Method | Purpose | Key Parameters |
 |--------|---------|----------------|
-| `load_layer` | Load spatial data | `path`, `name` |
-| `execute_algorithm` | Run processing algorithm | `algorithm`, `parameters` |
-| `style_layer` | Apply visual styling | `layer_name`, `style` |
-| `export_map` | Export map as image | `output_path`, `width`, `height`, `dpi` |
+| `load-layer` | Load spatial data | `path`, `name` |
+| `execute-algorithm` | Run processing algorithm | `algorithm`, `parameters` |
+| `style-layer` | Apply visual styling | `layer-name`, `style` |
+| `export-map` | Export map as image | `output-path`, `width`, `height`, `dpi` |
 
 **Example Usage**:
 
 ```bash
 # Load and analyse spatial data
 ./mcp-helper.sh run-tool qgis-mcp '{
-  "tool": "load_layer",
+  "tool": "load-layer",
   "params": {
     "path": "/workspace/data/cities.geojson",
     "name": "Major Cities"
@@ -460,22 +460,22 @@ bpy.ops.object.light_add(type=\"SUN\", location=(5, 5, 10))
 
 # Create buffer zones
 ./mcp-helper.sh run-tool qgis-mcp '{
-  "tool": "execute_algorithm",
+  "tool": "execute-algorithm",
   "params": {
     "algorithm": "native:buffer",
     "parameters": {
       "INPUT": "Major Cities",
       "DISTANCE": 50000,
-      "OUTPUT": "/workspace/analysis/city_buffers.shp"
+      "OUTPUT": "/workspace/analysis/city-buffers.shp"
     }
   }
 }'
 
 # Export styled map
 ./mcp-helper.sh run-tool qgis-mcp '{
-  "tool": "export_map",
+  "tool": "export-map",
   "params": {
-    "output_path": "/workspace/maps/cities_with_buffers.png",
+    "output-path": "/workspace/maps/cities-with-buffers.png",
     "width": 1920,
     "height": 1080,
     "dpi": 300
@@ -489,55 +489,55 @@ bpy.ops.object.light_add(type=\"SUN\", location=(5, 5, 10))
 
 | Method | Purpose | Key Parameters |
 |--------|---------|----------------|
-| `generate_material` | Create PBR texture set | `material`, `resolution`, `types`, `output` |
+| `generate-material` | Create PBR texture set | `material`, `resolution`, `types`, `output` |
 
 **Available Materials**: wood, metal, stone, fabric, leather, concrete, brick, tiles
 
-**Texture Types**: diffuse, normal, roughness, metallic, ambient_occlusion (ao)
+**Texture Types**: diffuse, normal, roughness, metallic, ambient-occlusion (ao)
 
 **Example Usage**:
 
 ```bash
 # Generate wood textures
 ./mcp-helper.sh run-tool pbr-generator-mcp '{
-  "tool": "generate_material",
+  "tool": "generate-material",
   "params": {
     "material": "wood",
     "resolution": "2048x2048",
     "types": ["diffuse", "normal", "roughness", "ao"],
-    "output": "/workspace/textures/wood_oak"
+    "output": "/workspace/textures/wood-oak"
   }
 }'
 
 # Apply to Blender object
 ./mcp-helper.sh run-tool blender-mcp '{
-  "tool": "execute_code",
+  "tool": "execute-code",
   "params": {
     "code": "
 import bpy
 
-obj = bpy.context.active_object
-mat = bpy.data.materials.new(\"Wood_Oak\")
-mat.use_nodes = True
-nodes = mat.node_tree.nodes
-links = mat.node_tree.links
+obj = bpy.context.active-object
+mat = bpy.data.materials.new(\"Wood-Oak\")
+mat.use-nodes = True
+nodes = mat.node-tree.nodes
+links = mat.node-tree.links
 bsdf = nodes[\"Principled BSDF\"]
 
 # Load diffuse
 diffuse = nodes.new(\"ShaderNodeTexImage\")
-diffuse.image = bpy.data.images.load(\"/workspace/textures/wood_oak/diffuse.png\")
+diffuse.image = bpy.data.images.load(\"/workspace/textures/wood-oak/diffuse.png\")
 links.new(diffuse.outputs[0], bsdf.inputs[0])
 
 # Load normal
-normal_tex = nodes.new(\"ShaderNodeTexImage\")
-normal_tex.image = bpy.data.images.load(\"/workspace/textures/wood_oak/normal.png\")
-normal_map = nodes.new(\"ShaderNodeNormalMap\")
-links.new(normal_tex.outputs[0], normal_map.inputs[1])
-links.new(normal_map.outputs[0], bsdf.inputs[20])
+normal-tex = nodes.new(\"ShaderNodeTexImage\")
+normal-tex.image = bpy.data.images.load(\"/workspace/textures/wood-oak/normal.png\")
+normal-map = nodes.new(\"ShaderNodeNormalMap\")
+links.new(normal-tex.outputs[0], normal-map.inputs[1])
+links.new(normal-map.outputs[0], bsdf.inputs[20])
 
 # Load roughness
 rough = nodes.new(\"ShaderNodeTexImage\")
-rough.image = bpy.data.images.load(\"/workspace/textures/wood_oak/roughness.png\")
+rough.image = bpy.data.images.load(\"/workspace/textures/wood-oak/roughness.png\")
 links.new(rough.outputs[0], bsdf.inputs[7])
 
 obj.data.materials.append(mat)
@@ -553,7 +553,7 @@ obj.data.materials.append(mat)
 | Action | Purpose | Key Parameters |
 |--------|---------|----------------|
 | Navigate | Load web page | `url` |
-| Screenshot | Capture page image | `path`, `full_page` |
+| Screenshot | Capture page image | `path`, `full-page` |
 | Click | Interact with elements | `selector` |
 | Fill | Enter text in forms | `selector`, `value` |
 | Evaluate | Execute JavaScript | `expression` |
@@ -572,8 +572,8 @@ obj.data.materials.append(mat)
 ./mcp-helper.sh run-tool playwright-mcp '{
   "method": "screenshot",
   "params": {
-    "path": "/workspace/screenshots/example_page.png",
-    "full_page": true
+    "path": "/workspace/screenshots/example-page.png",
+    "full-page": true
   }
 }'
 
@@ -690,9 +690,9 @@ docker exec gui-tools-container nvidia-smi
 docker exec gui-tools-container bash -c "
 DISPLAY=:1 /opt/blender-4.5/blender --background --python-expr '
 import bpy
-bpy.ops.mesh.primitive_cube_add()
+bpy.ops.mesh.primitive-cube-add()
 bpy.context.scene.render.filepath = \"/tmp/test.png\"
-bpy.ops.render.render(write_still=True)
+bpy.ops.render.render(write-still=True)
 '
 "
 
@@ -731,7 +731,7 @@ docker stats gui-tools-container
 
 # Increase container resources in docker-compose.yml
 # Edit these values:
-# mem_limit: 16g
+# mem-limit: 16g
 # cpus: "4"
 
 # Reduce display resolution (in gui-tools-container/startup.sh)
@@ -760,11 +760,11 @@ docker exec multi-agent-container env | grep -E "BLENDER|QGIS|PBR|PLAYWRIGHT"
 
 # Test direct TCP connection
 docker exec multi-agent-container bash -c "
-echo '{\"tool\":\"get_scene_info\"}' | nc gui-tools-service 9876
+echo '{\"tool\":\"get-scene-info\"}' | nc gui-tools-service 9876
 "
 
 # Check Docker network
-docker network inspect docker_ragflow
+docker network inspect docker-ragflow
 ```
 
 ### Debug Mode
@@ -774,7 +774,7 @@ Enable detailed logging for troubleshooting:
 ```bash
 # Enable debug mode in environment
 export DEBUG=1
-export MCP_LOG_LEVEL=debug
+export MCP-LOG-LEVEL=debug
 
 # Restart containers with debug logging
 docker-compose down
@@ -785,7 +785,7 @@ docker logs -f gui-tools-container
 docker logs -f multi-agent-container
 
 # Enable MCP tool debug output
-DEBUG=1 ./mcp-helper.sh run-tool blender-mcp '{"tool":"get_scene_info"}'
+DEBUG=1 ./mcp-helper.sh run-tool blender-mcp '{"tool":"get-scene-info"}'
 ```
 
 ### Common Error Messages
@@ -797,12 +797,12 @@ DEBUG=1 ./mcp-helper.sh run-tool blender-mcp '{"tool":"get_scene_info"}'
 | `TCP connection refused` | MCP server not listening | Verify port mapping and service status |
 | `Blender addon not found` | Addon installation failed | Check addon directory and permissions |
 | `QGIS plugin error` | Missing dependencies | Verify QGIS installation and plugins |
-| `Playwright browser not found` | Browser binaries missing | Check PLAYWRIGHT_BROWSERS_PATH |
+| `Playwright browser not found` | Browser binaries missing | Check PLAYWRIGHT-BROWSERS-PATH |
 
 ## Related Documentation
 
-- [Multi-Agent Docker Architecture](../reference/architecture/README.md) - Complete system architecture
-- [MCP Tools Reference](/mnt/mldata/githubs/AR-AI-Knowledge-Graph/docs/multi-agent-docker/TOOLS.md) - Detailed tool specifications
+- [Multi-Agent Docker Architecture](../reference/architecture/readme.md) - Complete system architecture
+- [MCP Tools Reference](/mnt/mldata/githubs/AR-AI-Knowledge-Graph/docs/multi-agent-docker/tools.md) - Detailed tool specifications
 - [Development Workflow](./02-development-workflow.md) - Development best practices
 - [Orchestrating Agents](./04-orchestrating-agents.md) - Agent coordination patterns
 - [Extending the System](./05-extending-the-system.md) - Adding custom tools

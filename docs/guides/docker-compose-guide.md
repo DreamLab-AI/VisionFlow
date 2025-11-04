@@ -44,8 +44,8 @@ docker compose -f docker-compose.unified.yml --profile prod up --build -d
   - Build cache volumes (npm, cargo)
   - Docker socket (read-only)
 - **Environment**:
-  - `NODE_ENV=development`
-  - `RUST_LOG=debug`
+  - `NODE-ENV=development`
+  - `RUST-LOG=debug`
   - HMR enabled on port 24678
   - Vite dev server on port 5173
 - **Use Case**: Local development with hot reload
@@ -58,8 +58,8 @@ docker compose -f docker-compose.unified.yml --profile prod up --build -d
   - Data volumes only (NO source mounts)
   - Build cache volumes
 - **Environment**:
-  - `NODE_ENV=production`
-  - `RUST_LOG=warn`
+  - `NODE-ENV=production`
+  - `RUST-LOG=warn`
   - Debug disabled
 - **Use Case**: Production deployment
 
@@ -69,47 +69,47 @@ Create a `.env` file in the project root:
 
 ```bash
 # GPU Configuration
-CUDA_ARCH=86                    # RTX A6000 = 86, RTX 4090 = 89
-NVIDIA_VISIBLE_DEVICES=0        # GPU device ID
+CUDA-ARCH=86                    # RTX A6000 = 86, RTX 4090 = 89
+NVIDIA-VISIBLE-DEVICES=0        # GPU device ID
 
 # Container Names
-CONTAINER_NAME=visionflow_container
+CONTAINER-NAME=visionflow-container
 HOSTNAME=webxr
 
 # Network
-EXTERNAL_NETWORK=docker_ragflow
-NETWORK_ALIAS=webxr
+EXTERNAL-NETWORK=docker-ragflow
+NETWORK-ALIAS=webxr
 
 # Ports
-DEV_NGINX_PORT=3001
-API_PORT=4000
-PROD_API_PORT=4000
-VITE_DEV_SERVER_PORT=5173
-VITE_HMR_PORT=24678
+DEV-NGINX-PORT=3001
+API-PORT=4000
+PROD-API-PORT=4000
+VITE-DEV-SERVER-PORT=5173
+VITE-HMR-PORT=24678
 
 # Build Configuration
 DOCKERFILE=Dockerfile.dev       # or Dockerfile.production
-BUILD_TARGET=development        # or production
-REBUILD_PTX=false               # Set to true to rebuild PTX kernels
+BUILD-TARGET=development        # or production
+REBUILD-PTX=false               # Set to true to rebuild PTX kernels
 
 # Logging
-RUST_LOG=debug                  # development: debug, production: warn
-DEBUG_ENABLED=true
+RUST-LOG=debug                  # development: debug, production: warn
+DEBUG-ENABLED=true
 
 # MCP & Claude Flow
-CLAUDE_FLOW_HOST=agentic-workstation
-MCP_HOST=agentic-workstation
-MCP_TCP_PORT=9500
-ORCHESTRATOR_WS_URL=ws://mcp-orchestrator:9001/ws
+CLAUDE-FLOW-HOST=agentic-workstation
+MCP-HOST=agentic-workstation
+MCP-TCP-PORT=9500
+ORCHESTRATOR-WS-URL=ws://mcp-orchestrator:9001/ws
 
 # Cloudflare Tunnel
-CLOUDFLARE_TUNNEL_TOKEN=your_token_here
+CLOUDFLARE-TUNNEL-TOKEN=your-token-here
 
 # Volume Names (optional customization)
-DATA_VOLUME_NAME=visionflow-data
-LOGS_VOLUME_NAME=visionflow-logs
-NPM_CACHE_VOLUME=visionflow-npm-cache
-CARGO_CACHE_VOLUME=visionflow-cargo-cache
+DATA-VOLUME-NAME=visionflow-data
+LOGS-VOLUME-NAME=visionflow-logs
+NPM-CACHE-VOLUME=visionflow-npm-cache
+CARGO-CACHE-VOLUME=visionflow-cargo-cache
 ```
 
 ## Common Operations
@@ -184,7 +184,7 @@ docker compose -f docker-compose.unified.yml --profile prod exec visionflow-prod
 - **cloudflared**: Cloudflare tunnel (works with both profiles)
 
 ### Network Configuration
-- External network: `docker_ragflow`
+- External network: `docker-ragflow`
 - Service aliases for DNS resolution
 - Inter-service communication
 
@@ -225,14 +225,14 @@ docker compose -f docker-compose.unified.yml --profile prod up
 
 ### Container Won't Start
 1. Check GPU availability: `nvidia-smi`
-2. Verify network exists: `docker network ls | grep docker_ragflow`
+2. Verify network exists: `docker network ls | grep docker-ragflow`
 3. Check logs: `docker compose -f docker-compose.unified.yml --profile dev logs`
 
 ### Port Already in Use
 Change port in `.env`:
 ```bash
-DEV_NGINX_PORT=3002  # Instead of 3001
-API_PORT=4001         # Instead of 4000
+DEV-NGINX-PORT=3002  # Instead of 3001
+API-PORT=4001         # Instead of 4000
 ```
 
 ### Volume Permissions
@@ -249,7 +249,7 @@ docker compose -f docker-compose.unified.yml --profile dev up
 docker run --rm --runtime=nvidia --gpus all nvidia/cuda:12.4.1-base-ubuntu22.04 nvidia-smi
 
 # Check CUDA architecture
-nvidia-smi --query-gpu=compute_cap --format=csv
+nvidia-smi --query-gpu=compute-cap --format=csv
 ```
 
 ## Advanced Usage

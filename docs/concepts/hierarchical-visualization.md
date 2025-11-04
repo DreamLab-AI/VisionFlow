@@ -53,11 +53,11 @@ Successfully implemented a complete client-side hierarchical visualization syste
 
 **Endpoint:** `GET /api/ontology/hierarchy`
 
-**Location:** `/home/devuser/workspace/project/src/handlers/api_handler/ontology/mod.rs` (lines 1001-1154)
+**Location:** `/home/devuser/workspace/project/src/handlers/api-handler/ontology/mod.rs` (lines 1001-1154)
 
 **Query Parameters:**
-- `ontology_id` (optional): Specific ontology identifier, defaults to "default"
-- `max_depth` (optional): Maximum depth to traverse
+- `ontology-id` (optional): Specific ontology identifier, defaults to "default"
+- `max-depth` (optional): Maximum depth to traverse
 
 **Response Schema:**
 ```json
@@ -444,7 +444,7 @@ const { filteredHierarchy } = useHierarchySearch({
 ```typescript
 // LocalStorage or backend sync
 useEffect(() => {
-  localStorage.setItem('expansion_state', JSON.stringify(collapsedNodes));
+  localStorage.setItem('expansion-state', JSON.stringify(collapsedNodes));
 }, [collapsedNodes]);
 ```
 
@@ -464,7 +464,7 @@ useEffect(() => {
    - THREE.js hierarchical renderer
    - Interactive 3D visualization
 
-3. **`/home/devuser/workspace/project/client/HIERARCHICAL_VISUALIZATION.md`**
+3. **`/home/devuser/workspace/project/client/hierarchical-visualization.md`**
    - This documentation file
 
 ### Modified Files
@@ -477,7 +477,7 @@ useEffect(() => {
 
 1. `/home/devuser/workspace/project/client/src/features/graph/utils/hierarchyDetector.ts`
 2. `/home/devuser/workspace/project/client/src/features/visualisation/components/ControlPanel/SemanticZoomControls.tsx`
-3. `/home/devuser/workspace/project/src/handlers/api_handler/ontology/mod.rs`
+3. `/home/devuser/workspace/project/src/handlers/api-handler/ontology/mod.rs`
 
 ---
 
@@ -590,7 +590,7 @@ The hierarchical visualization system is **fully functional** and ready for inte
 ### Questions?
 
 Contact: Agent 6 - Hierarchical Visualization Specialist
-Documentation: `/home/devuser/workspace/project/client/HIERARCHICAL_VISUALIZATION.md`
+Documentation: `/home/devuser/workspace/project/client/hierarchical-visualization.md`
 
 ---
 

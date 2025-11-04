@@ -16,7 +16,7 @@ Comprehensive troubleshooting guide for VisionFlow, covering installation, deplo
 | MCP tool timeout | GUI container not ready | Wait 60s, check: `docker ps` |
 | Agent spawn failure | Resource exhaustion | Check: `docker stats` |
 | WebXR not working | HTTPS required | Enable SSL in configuration |
-| Kokoro/Whisper unavailable | Network configuration | Run: `./scripts/fix_kokoro_network.sh` |
+| Kokoro/Whisper unavailable | Network configuration | Run: `./scripts/fix-kokoro-network.sh` |
 
 ## Table of Contents
 
@@ -198,29 +198,29 @@ pip3 list
 **Solution**:
 ```bash
 # Check container logs
-docker logs visionflow_container
+docker logs visionflow-container
 docker logs multi-agent-container
 
 # Check exit code
 docker ps -a --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
 # Debug with interactive shell
-docker run -it --entrypoint /bin/bash visionflow_container
+docker run -it --entrypoint /bin/bash visionflow-container
 
 # Check container configuration
-docker inspect visionflow_container
+docker inspect visionflow-container
 ```
 
 **Diagnostic Commands**:
 ```bash
 # View last 100 log lines
-docker logs --tail 100 visionflow_container
+docker logs --tail 100 visionflow-container
 
 # Follow logs in real-time
-docker logs -f visionflow_container
+docker logs -f visionflow-container
 
 # Check container events
-docker events --filter container=visionflow_container
+docker events --filter container=visionflow-container
 ```
 
 **Common Causes**:
@@ -241,13 +241,13 @@ docker events --filter container=visionflow_container
 **Solution**:
 ```bash
 # Stop the container
-docker stop visionflow_container
+docker stop visionflow-container
 
 # Remove container (keeps volumes)
-docker rm visionflow_container
+docker rm visionflow-container
 
 # Check restart policy
-docker inspect visionflow_container | grep -A 5 RestartPolicy
+docker inspect visionflow-container | grep -A 5 RestartPolicy
 
 # Rebuild and start fresh
 docker-compose down
@@ -261,7 +261,7 @@ docker-compose up -d
 docker events --filter event=restart
 
 # Check restart count
-docker inspect --format='{{.RestartCount}}' visionflow_container
+docker inspect --format='{{.RestartCount}}' visionflow-container
 ```
 
 **Prevention**: Set appropriate restart policies and fix underlying issues
@@ -365,7 +365,7 @@ docker stats
 dmesg | grep -i "out of memory"
 
 # Check container memory limit
-docker inspect visionflow_container | grep -i memory
+docker inspect visionflow-container | grep -i memory
 ```
 
 **Prevention**:
@@ -386,18 +386,18 @@ docker stats --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"
 services:
   webxr:
     cpus: "4.0"
-    cpu_shares: 1024
+    cpu-shares: 1024
 
 # Find process consuming CPU inside container
-docker exec visionflow_container top
-docker exec visionflow_container ps aux --sort=-%cpu
+docker exec visionflow-container top
+docker exec visionflow-container ps aux --sort=-%cpu
 ```
 
 **Diagnostic**:
 ```bash
 # Profile Rust backend
-docker exec visionflow_container perf record -F 99 -p <PID>
-docker exec visionflow_container perf report
+docker exec visionflow-container perf record -F 99 -p <PID>
+docker exec visionflow-container perf report
 
 # Check Node.js event loop
 docker exec multi-agent-container node --prof app.js
@@ -533,7 +533,7 @@ docker logs multi-agent-container | grep -i "task.*fail\|task.*error"
 docker stats --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}"
 
 # Check disk I/O
-docker exec visionflow_container iostat -x 1
+docker exec visionflow-container iostat -x 1
 
 # Optimise database
 docker exec postgres psql -U visionflow -c "VACUUM ANALYZE;"
@@ -543,21 +543,21 @@ docker exec postgres psql -U visionflow -c "REINDEX DATABASE visionflow;"
 docker exec redis redis-cli FLUSHDB
 
 # Check network latency
-docker exec visionflow_container ping -c 10 multi-agent-container
+docker exec visionflow-container ping -c 10 multi-agent-container
 ```
 
 **Diagnostic Commands**:
 ```bash
 # System bottleneck analysis
 htop  # On host
-docker exec visionflow_container htop  # Inside container
+docker exec visionflow-container htop  # Inside container
 
 # I/O monitoring
 iotop -o  # On host
 
 # Network monitoring
 iftop  # On host
-docker exec visionflow_container nethogs
+docker exec visionflow-container nethogs
 ```
 
 **Prevention**:
@@ -626,8 +626,8 @@ sudo ss -tulpn | grep 3001
 sudo kill -9 $(sudo lsof -t -i:3030)
 
 # Or change port in .env
-echo "VITE_API_PORT=3002" >> .env
-echo "HOST_PORT=3002" >> .env
+echo "VITE-API-PORT=3002" >> .env
+echo "HOST-PORT=3002" >> .env
 
 # Restart services
 docker-compose down
@@ -637,7 +637,7 @@ docker-compose up -d
 **Diagnostic**:
 ```bash
 # List all listening ports
-docker exec visionflow_container netstat -tlnp
+docker exec visionflow-container netstat -tlnp
 
 # Check port mapping
 docker ps --format "table {{.Names}}\t{{.Ports}}"
@@ -655,16 +655,16 @@ docker ps --format "table {{.Names}}\t{{.Ports}}"
 ```bash
 # Check Docker network
 docker network ls
-docker network inspect docker_ragflow
+docker network inspect docker-ragflow
 
 # Test connectivity between containers
-docker exec multi-agent-container ping -c 3 visionflow_container
-docker exec visionflow_container curl http://multi-agent-container:3000
+docker exec multi-agent-container ping -c 3 visionflow-container
+docker exec visionflow-container curl http://multi-agent-container:3000
 
 # Recreate network
 docker-compose down
-docker network rm docker_ragflow
-docker network create docker_ragflow
+docker network rm docker-ragflow
+docker network create docker-ragflow
 docker-compose up -d
 
 # Check service names resolve
@@ -703,12 +703,12 @@ docker exec multi-agent-container ip addr show
 docker exec -it multi-agent-container bash
 ping gui-tools-service
 
-# Inspect docker_ragflow network
-docker network inspect docker_ragflow
+# Inspect docker-ragflow network
+docker network inspect docker-ragflow
 
 # Check if both containers are attached
-docker inspect multi-agent-container | grep -A 5 "docker_ragflow"
-docker inspect gui-tools-container | grep -A 5 "docker_ragflow"
+docker inspect multi-agent-container | grep -A 5 "docker-ragflow"
+docker inspect gui-tools-container | grep -A 5 "docker-ragflow"
 
 # Verify MCP ports are listening
 docker exec gui-tools-container netstat -tlnp | grep -E "9876|9877|9878|9879"
@@ -752,7 +752,7 @@ curl http://localhost:3030/
 curl http://localhost:5901
 
 # Check if service is listening on correct interface
-docker exec visionflow_container netstat -tlnp | grep 3001
+docker exec visionflow-container netstat -tlnp | grep 3001
 
 # For remote access, check host firewall
 sudo iptables -L -n | grep 3001
@@ -765,14 +765,14 @@ sudo iptables -L -n | grep 3001
 curl http://localhost:3030
 
 # From container
-docker exec visionflow_container curl http://localhost:3030
+docker exec visionflow-container curl http://localhost:3030
 
 # From another machine on network
 curl http://<host-ip>:3030
 
 # Check nginx configuration
-docker exec visionflow_container cat /etc/nginx/nginx.conf
-docker exec visionflow_container nginx -t
+docker exec visionflow-container cat /etc/nginx/nginx.conf
+docker exec visionflow-container nginx -t
 ```
 
 **Prevention**:
@@ -797,7 +797,7 @@ nvidia-smi
 docker run --rm --gpus all nvidia/cuda:11.8.0-base-ubuntu20.04 nvidia-smi
 
 # Install NVIDIA Container Toolkit (Ubuntu/Debian)
-distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+distribution=$(. /etc/os-release;echo $ID$VERSION-ID)
 curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
 curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | \
   sudo tee /etc/apt/sources.list.d/nvidia-docker.list
@@ -821,23 +821,23 @@ services:
               capabilities: [gpu, compute, utility]
     runtime: nvidia
     environment:
-      - NVIDIA_VISIBLE_DEVICES=0
-      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - NVIDIA-VISIBLE-DEVICES=0
+      - NVIDIA-DRIVER-CAPABILITIES=compute,utility
 ```
 
 **Diagnostic**:
 ```bash
 # Check NVIDIA driver version
-nvidia-smi --query-gpu=driver_version --format=csv,noheader
+nvidia-smi --query-gpu=driver-version --format=csv,noheader
 
 # Check CUDA version
 nvcc --version
 
 # Test in container
-docker exec visionflow_container nvidia-smi
+docker exec visionflow-container nvidia-smi
 
 # Check GPU allocation
-docker exec visionflow_container echo $NVIDIA_VISIBLE_DEVICES
+docker exec visionflow-container echo $NVIDIA-VISIBLE-DEVICES
 ```
 
 **Prevention**:
@@ -855,18 +855,18 @@ docker exec visionflow_container echo $NVIDIA_VISIBLE_DEVICES
 nvidia-smi --query-gpu=memory.used,memory.total --format=csv
 
 # Inside container
-docker exec visionflow_container nvidia-smi
+docker exec visionflow-container nvidia-smi
 
 # Reduce batch size or grid dimensions in GPU kernels
 # Edit .env file
-echo "HASH_GRID_SIZE=64" >> .env  # Reduce from default 128
-echo "GPU_MEMORY_LIMIT=2048" >> .env  # Limit to 2GB
+echo "HASH-GRID-SIZE=64" >> .env  # Reduce from default 128
+echo "GPU-MEMORY-LIMIT=2048" >> .env  # Limit to 2GB
 
 # Clear GPU memory
-docker restart visionflow_container
+docker restart visionflow-container
 
 # Use CPU fallback
-echo "ENABLE_GPU=false" >> .env
+echo "ENABLE-GPU=false" >> .env
 ```
 
 **Diagnostic**:
@@ -875,10 +875,10 @@ echo "ENABLE_GPU=false" >> .env
 watch -n 1 nvidia-smi
 
 # Profile GPU kernels
-docker exec visionflow_container nvprof ./target/release/visionflow
+docker exec visionflow-container nvprof ./target/release/visionflow
 
 # Check kernel launch configuration
-docker logs visionflow_container | grep -i "gpu\|cuda\|kernel"
+docker logs visionflow-container | grep -i "gpu\|cuda\|kernel"
 ```
 
 **Prevention**:
@@ -893,23 +893,23 @@ docker logs visionflow_container | grep -i "gpu\|cuda\|kernel"
 **Solution**:
 ```bash
 # Verify PTX kernels
-./scripts/verify_ptx_compilation.sh
+./scripts/verify-ptx-compilation.sh
 
 # Rebuild PTX kernels
-./scripts/build_ptx.sh
+./scripts/build-ptx.sh
 
 # Check CUDA architecture compatibility
 # For RTX 4080 (compute capability 8.9)
-export CUDA_ARCH=89
+export CUDA-ARCH=89
 
 # For RTX 3080 (compute capability 8.6)
-export CUDA_ARCH=86
+export CUDA-ARCH=86
 
 # Rebuild with correct architecture
-CUDA_ARCH=86 docker-compose build --no-cache webxr
+CUDA-ARCH=86 docker-compose build --no-cache webxr
 
 # Test compilation
-./scripts/test_compile.sh
+./scripts/test-compile.sh
 ```
 
 **Diagnostic**:
@@ -918,14 +918,14 @@ CUDA_ARCH=86 docker-compose build --no-cache webxr
 find . -name "*.ptx" -exec ls -lh {} \;
 
 # Verify GPU compute capability
-nvidia-smi --query-gpu=compute_cap --format=csv,noheader
+nvidia-smi --query-gpu=compute-cap --format=csv,noheader
 
 # Check build logs
 docker-compose build webxr 2>&1 | grep -i "ptx\|cuda\|nvcc"
 ```
 
 **Prevention**:
-- Set CUDA_ARCH in .env file
+- Set CUDA-ARCH in .env file
 - Use multi-architecture PTX builds for compatibility
 - Test on target hardware before deployment
 
@@ -946,9 +946,9 @@ docker-compose build webxr 2>&1 | grep -i "ptx\|cuda\|nvcc"
 openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes
 
 # Update .env
-echo "VITE_HTTPS=true" >> .env
-echo "VITE_SSL_KEY=./key.pem" >> .env
-echo "VITE_SSL_CERT=./cert.pem" >> .env
+echo "VITE-HTTPS=true" >> .env
+echo "VITE-SSL-KEY=./key.pem" >> .env
+echo "VITE-SSL-CERT=./cert.pem" >> .env
 
 # Restart services
 docker-compose restart webxr
@@ -965,7 +965,7 @@ navigator.xr.isSessionSupported('immersive-vr').then(supported => {
 curl -I https://localhost:3030
 
 # Verify certificate
-openssl s_client -connect localhost:3030 -showcerts
+openssl s-client -connect localhost:3030 -showcerts
 
 # Check browser console for WebXR errors
 # Press F12, look for WebXR or immersive-related messages
@@ -1063,17 +1063,17 @@ nc -zv localhost 5901
 # Check if RAGFlow container is running
 docker ps | grep ragflow
 
-# Verify RAGFlow is on docker_ragflow network
-docker network inspect docker_ragflow | grep ragflow
+# Verify RAGFlow is on docker-ragflow network
+docker network inspect docker-ragflow | grep ragflow
 
 # Test connectivity
-docker exec visionflow_container curl http://ragflow:9380/health
+docker exec visionflow-container curl http://ragflow:9380/health
 
 # Check RAGFlow configuration in .env
 grep RAGFLOW .env
 
 # Update RAGFlow URL if needed
-echo "RAGFLOW_URL=http://ragflow:9380" >> .env
+echo "RAGFLOW-URL=http://ragflow:9380" >> .env
 docker-compose restart webxr
 ```
 
@@ -1086,7 +1086,7 @@ docker logs ragflow-server
 curl http://localhost:9380/api/v1/status
 
 # Verify API key
-docker exec visionflow_container env | grep RAGFLOW
+docker exec visionflow-container env | grep RAGFLOW
 ```
 
 **Prevention**: Document RAGFlow setup and maintain version compatibility
@@ -1103,10 +1103,10 @@ docker exec visionflow_container env | grep RAGFLOW
 docker ps | grep whisper
 
 # Test Whisper endpoint
-./scripts/test_whisper_stt.sh
+./scripts/test-whisper-stt.sh
 
 # Verify Whisper is accessible
-docker exec visionflow_container curl http://whisper-service:8000/health
+docker exec visionflow-container curl http://whisper-service:8000/health
 
 # Check audio input format
 # Whisper expects: 16kHz, mono, WAV or MP3
@@ -1141,13 +1141,13 @@ nvidia-smi | grep whisper
 docker ps | grep kokoro
 
 # Fix network configuration (if Kokoro is external)
-./scripts/fix_kokoro_network.sh
+./scripts/fix-kokoro-network.sh
 
-# Add Kokoro to docker_ragflow network manually
-docker network connect docker_ragflow <kokoro-container-name>
+# Add Kokoro to docker-ragflow network manually
+docker network connect docker-ragflow <kokoro-container-name>
 
 # Test Kokoro endpoint
-./scripts/test_kokoro_tts.sh
+./scripts/test-kokoro-tts.sh
 
 # Verify Kokoro configuration
 grep KOKORO data/settings.yaml
@@ -1166,7 +1166,7 @@ docker logs <kokoro-container-name>
 curl http://localhost:8880/health
 
 # Check network connectivity
-docker exec visionflow_container ping <kokoro-container-name>
+docker exec visionflow-container ping <kokoro-container-name>
 
 # Verify audio output format
 curl -X POST -d '{"text":"test"}' http://localhost:8880/synthesize \
@@ -1234,7 +1234,7 @@ vncviewer localhost:5901
 ```
 
 **Prevention**:
-- Use health checks with appropriate `start_period`
+- Use health checks with appropriate `start-period`
 - Implement retry logic in MCP clients
 - Document expected startup time
 
@@ -1274,7 +1274,7 @@ echo
 
 # Network connectivity
 echo "4. Network Test:"
-docker exec visionflow_container curl -sf http://localhost:4000/ > /dev/null && \
+docker exec visionflow-container curl -sf http://localhost:4000/ > /dev/null && \
   echo "✓ Main API: OK" || echo "✗ Main API: FAIL"
 
 docker exec multi-agent-container curl -sf http://localhost:3000/ > /dev/null && \
@@ -1388,7 +1388,7 @@ docker-compose logs | grep -E "agent.*fail|spawn.*error|mcp.*timeout"
 ./scripts/run-gpu-test-suite.sh
 
 # Profile GPU kernels
-docker exec visionflow_container nvprof ./target/release/visionflow
+docker exec visionflow-container nvprof ./target/release/visionflow
 
 # Monitor GPU utilisation
 watch -n 1 nvidia-smi
@@ -1411,8 +1411,8 @@ docker exec multi-agent-container node --prof-process isolate-*.log
 docker stats --format "table {{.Name}}\t{{.NetIO}}"
 
 # Capture traffic
-docker exec visionflow_container tcpdump -i any -w /tmp/capture.pcap
-docker cp visionflow_container:/tmp/capture.pcap ./
+docker exec visionflow-container tcpdump -i any -w /tmp/capture.pcap
+docker cp visionflow-container:/tmp/capture.pcap ./
 wireshark capture.pcap
 ```
 
@@ -1474,7 +1474,7 @@ echo "Creating backup..."
 mkdir -p backups/reset-$(date +%Y%m%d-%H%M%S)
 
 # Backup volumes
-docker run --rm -v visionflow_data:/data -v $(pwd)/backups:/backup \
+docker run --rm -v visionflow-data:/data -v $(pwd)/backups:/backup \
   alpine tar czf /backup/reset-$(date +%Y%m%d-%H%M%S)/data.tar.gz -C /data .
 
 # Stop all containers
@@ -1506,7 +1506,7 @@ echo "✓ Reset complete. System rebuilding..."
 ls -lh backups/
 
 # Restore volume from backup
-docker run --rm -v visionflow_data:/data -v $(pwd)/backups:/backup \
+docker run --rm -v visionflow-data:/data -v $(pwd)/backups:/backup \
   alpine tar xzf /backup/reset-20251003-120000/data.tar.gz -C /data
 
 # Restart services
@@ -1520,15 +1520,15 @@ docker-compose up -d
 **PostgreSQL recovery**:
 ```bash
 # Backup current database
-docker exec postgres pg_dump -U visionflow visionflow > backup-$(date +%Y%m%d).sql
+docker exec postgres pg-dump -U visionflow visionflow > backup-$(date +%Y%m%d).sql
 
 # Check database integrity
 docker exec postgres psql -U visionflow -d visionflow -c "
   SELECT schemaname, tablename,
-         pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS size
-  FROM pg_tables
-  WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
-  ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC
+         pg-size-pretty(pg-total-relation-size(schemaname||'.'||tablename)) AS size
+  FROM pg-tables
+  WHERE schemaname NOT IN ('pg-catalog', 'information-schema')
+  ORDER BY pg-total-relation-size(schemaname||'.'||tablename) DESC
   LIMIT 10;"
 
 # Repair corrupted tables
@@ -1595,7 +1595,7 @@ if [ "$UPDATES" -gt 0 ]; then
 fi
 
 # 6. Security audit (Rust)
-docker exec visionflow_container cargo audit
+docker exec visionflow-container cargo audit
 echo "✓ Security audit complete"
 
 # 7. Generate health report
@@ -1630,18 +1630,18 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus-data:/prometheus
     networks:
-      - docker_ragflow
+      - docker-ragflow
 
   grafana:
     image: grafana/grafana:latest
     ports:
       - "3100:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF-SECURITY-ADMIN-PASSWORD=${GRAFANA-PASSWORD:-admin}
     volumes:
       - grafana-data:/var/lib/grafana
     networks:
-      - docker_ragflow
+      - docker-ragflow
 
 volumes:
   prometheus-data:
@@ -1651,19 +1651,19 @@ volumes:
 **prometheus.yml**:
 ```yaml
 global:
-  scrape_interval: 15s
+  scrape-interval: 15s
 
-scrape_configs:
-  - job_name: 'visionflow'
-    static_configs:
+scrape-configs:
+  - job-name: 'visionflow'
+    static-configs:
       - targets: ['webxr:9090']
 
-  - job_name: 'node-exporter'
-    static_configs:
+  - job-name: 'node-exporter'
+    static-configs:
       - targets: ['node-exporter:9100']
 
-  - job_name: 'gpu-exporter'
-    static_configs:
+  - job-name: 'gpu-exporter'
+    static-configs:
       - targets: ['gpu-exporter:9400']
 ```
 
@@ -1676,7 +1676,7 @@ scrape_configs:
 - [Installation Guide](../getting-started/01-installation.md)
 - [Deployment Guide](./01-deployment.md)
 - [Configuration Reference](../reference/configuration.md)
-- [Multi-Agent Docker Architecture](../reference/architecture/README.md)
+- [Multi-Agent Docker Architecture](../reference/architecture/readme.md)
 - [API Reference](../reference/api/)
 
 ### Community & Support
@@ -1781,4 +1781,4 @@ What you've already tried
 
 ---
 
-[← Extending the System](05-extending-the-system.md) | [Back to Guides](README.md)
+[← Extending the System](05-extending-the-system.md) | [Back to Guides](readme.md)

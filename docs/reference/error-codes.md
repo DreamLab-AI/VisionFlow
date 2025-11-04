@@ -67,7 +67,7 @@ This document provides a comprehensive reference of all error codes used through
 
 | Code | Name | Message | Resolution |
 |------|------|---------|-----------|
-| `AP-E-301` | Invalid State Transition | Cannot transition from {state} to {new_state} | Check valid state transitions |
+| `AP-E-301` | Invalid State Transition | Cannot transition from {state} to {new-state} | Check valid state transitions |
 | `AP-E-302` | Duplicate Resource | {resource} with this identifier already exists | Use unique identifier |
 | `AP-E-303` | Resource In Use | Cannot delete {resource}, it is still in use | Remove all dependencies first |
 | `AP-E-304` | Quota Exceeded | Storage quota exceeded ({used}/{limit}) | Delete unused resources or upgrade |
@@ -260,7 +260,7 @@ logger.error({
 - [API Documentation](../api/rest-api-complete.md) - Complete REST API reference
 - [WebSocket API](./03-websocket.md) - Binary protocol specification
 - [Troubleshooting Guide](../../guides/troubleshooting.md) - Common issues and solutions
-- [Architecture Overview](../concepts/architecture/00-ARCHITECTURE-OVERVIEW.md) - System design
+- [Architecture Overview](../concepts/architecture/00-ARCHITECTURE-overview.md) - System design
 
 ---
 

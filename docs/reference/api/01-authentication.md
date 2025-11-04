@@ -50,7 +50,7 @@ sequenceDiagram
 Include JWT in Authorization header:
 
 ```bash
-curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+curl -H "Authorization: Bearer YOUR-JWT-TOKEN" \
   http://localhost:9090/api/projects
 ```
 
@@ -60,12 +60,12 @@ Generate API keys for programmatic access:
 
 ```bash
 curl -X POST http://localhost:9090/api/auth/api-keys \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+  -H "Authorization: Bearer YOUR-JWT-TOKEN"
 ```
 
 Use API keys:
 ```bash
-curl -H "X-API-Key: YOUR_API_KEY" \
+curl -H "X-API-Key: YOUR-API-KEY" \
   http://localhost:9090/api/projects
 ```
 

@@ -18,7 +18,7 @@ Apply Semantic Forces → Stream to Client → Render Hierarchy
 ## Component Overview
 
 ### 1. GitHubSyncService
-**Location**: `src/services/github_sync_service.rs`
+**Location**: `src/services/github-sync-service.rs`
 
 **Responsibilities**:
 - Fetch markdown files from GitHub repository
@@ -28,12 +28,12 @@ Apply Semantic Forces → Stream to Client → Render Hierarchy
 - **NEW**: Trigger ontology reasoning pipeline after ontology save
 
 **Key Methods**:
-- `sync_graphs()` - Main synchronization entry point
-- `process_single_file()` - Parse individual markdown file
-- `save_ontology_data()` - **Triggers pipeline on ontology modifications**
+- `sync-graphs()` - Main synchronization entry point
+- `process-single-file()` - Parse individual markdown file
+- `save-ontology-data()` - **Triggers pipeline on ontology modifications**
 
 ### 2. OntologyPipelineService
-**Location**: `src/services/ontology_pipeline_service.rs`
+**Location**: `src/services/ontology-pipeline-service.rs`
 
 **Responsibilities**:
 - Orchestrate the complete ontology → physics pipeline
@@ -43,32 +43,32 @@ Apply Semantic Forces → Stream to Client → Render Hierarchy
 **Configuration** (`SemanticPhysicsConfig`):
 ```rust
 pub struct SemanticPhysicsConfig {
-    pub auto_trigger_reasoning: bool,      // Enable auto-reasoning
-    pub auto_generate_constraints: bool,    // Auto-generate constraints
-    pub constraint_strength: f32,           // Strength multiplier (0-10)
-    pub use_gpu_constraints: bool,          // Use GPU acceleration
-    pub max_reasoning_depth: usize,         // Max inference depth
-    pub cache_inferences: bool,             // Cache reasoning results
+    pub auto-trigger-reasoning: bool,      // Enable auto-reasoning
+    pub auto-generate-constraints: bool,    // Auto-generate constraints
+    pub constraint-strength: f32,           // Strength multiplier (0-10)
+    pub use-gpu-constraints: bool,          // Use GPU acceleration
+    pub max-reasoning-depth: usize,         // Max inference depth
+    pub cache-inferences: bool,             // Cache reasoning results
 }
 ```
 
 **Pipeline Flow**:
 ```rust
-on_ontology_modified(ontology_id, ontology) {
-    1. trigger_reasoning()
+on-ontology-modified(ontology-id, ontology) {
+    1. trigger-reasoning()
        ↓
-    2. generate_constraints_from_axioms()
+    2. generate-constraints-from-axioms()
        ↓
-    3. upload_constraints_to_gpu()
+    3. upload-constraints-to-gpu()
 }
 ```
 
 ### 3. ReasoningActor
-**Location**: `src/reasoning/reasoning_actor.rs`
+**Location**: `src/reasoning/reasoning-actor.rs`
 
 **Responsibilities**:
 - Execute ontology reasoning (RDFS, OWL inference)
-- Cache inferred axioms in SQLite (`inference_cache.db`)
+- Cache inferred axioms in SQLite (`inference-cache.db`)
 - Return inferred relationships (SubClassOf, EquivalentClass, etc.)
 
 **Message Handling**:
@@ -77,7 +77,7 @@ on_ontology_modified(ontology_id, ontology) {
 - `InvalidateCache` - Clear cache for specific ontology
 
 ### 4. OntologyConstraintActor
-**Location**: `src/actors/gpu/ontology_constraint_actor.rs`
+**Location**: `src/actors/gpu/ontology-constraint-actor.rs`
 
 **Responsibilities**:
 - Convert OWL axioms to physics constraints
@@ -93,7 +93,7 @@ on_ontology_modified(ontology_id, ontology) {
 | `DisjointWith(A, B)` | Separation | A and B nodes repel (2x strength) |
 
 ### 5. GPU Compute Pipeline
-**Location**: `src/gpu/unified_gpu_compute.rs` (referenced, not in this repo)
+**Location**: `src/gpu/unified-gpu-compute.rs` (referenced, not in this repo)
 
 **Responsibilities**:
 - Execute force computations on GPU
@@ -106,44 +106,44 @@ on_ontology_modified(ontology_id, ontology) {
 ┌────────────────────────────────────────────────────────────────┐
 │ 1. GitHub Sync                                                 │
 ├────────────────────────────────────────────────────────────────┤
-│ GitHubSyncService.sync_graphs()                                │
+│ GitHubSyncService.sync-graphs()                                │
 │   ↓                                                             │
-│ process_single_file("page.md")                                 │
+│ process-single-file("page.md")                                 │
 │   ↓                                                             │
 │ OntologyParser.parse(content) → OntologyData                   │
 │   ↓                                                             │
-│ save_ontology_data(onto_data)                                  │
-│   → UnifiedOntologyRepository.save_ontology()                  │
+│ save-ontology-data(onto-data)                                  │
+│   → UnifiedOntologyRepository.save-ontology()                  │
 │   → Saves classes, properties, axioms to unified.db            │
 └────────────────────────────────────────────────────────────────┘
                               ↓
 ┌────────────────────────────────────────────────────────────────┐
 │ 2. Trigger Reasoning Pipeline                                  │
 ├────────────────────────────────────────────────────────────────┤
-│ if pipeline_service configured:                                │
+│ if pipeline-service configured:                                │
 │   Convert OntologyData → Ontology struct                       │
-│   pipeline.on_ontology_modified(ontology_id, ontology)         │
+│   pipeline.on-ontology-modified(ontology-id, ontology)         │
 │     → Spawns async task to avoid blocking sync                 │
 └────────────────────────────────────────────────────────────────┘
                               ↓
 ┌────────────────────────────────────────────────────────────────┐
 │ 3. Reasoning Execution                                         │
 ├────────────────────────────────────────────────────────────────┤
-│ OntologyPipelineService.trigger_reasoning()                    │
+│ OntologyPipelineService.trigger-reasoning()                    │
 │   ↓                                                             │
 │ ReasoningActor.send(TriggerReasoning {                         │
-│   ontology_id, ontology                                        │
+│   ontology-id, ontology                                        │
 │ })                                                              │
 │   ↓                                                             │
-│ InferenceCache.get_or_compute()                                │
-│   → Check cache for ontology_id                                │
+│ InferenceCache.get-or-compute()                                │
+│   → Check cache for ontology-id                                │
 │   → If miss: CustomReasoner.infer()                            │
-│   → Store results in inference_cache.db                        │
+│   → Store results in inference-cache.db                        │
 │   ↓                                                             │
 │ Returns: Vec<InferredAxiom>                                    │
 │   Example: [                                                   │
 │     InferredAxiom {                                            │
-│       axiom_type: "SubClassOf",                                │
+│       axiom-type: "SubClassOf",                                │
 │       subject: "Engineer",                                     │
 │       object: "Person"                                         │
 │     }                                                           │
@@ -153,31 +153,31 @@ on_ontology_modified(ontology_id, ontology) {
 ┌────────────────────────────────────────────────────────────────┐
 │ 4. Constraint Generation                                       │
 ├────────────────────────────────────────────────────────────────┤
-│ OntologyPipelineService.generate_constraints_from_axioms()     │
+│ OntologyPipelineService.generate-constraints-from-axioms()     │
 │   For each InferredAxiom:                                      │
-│     match axiom_type:                                          │
+│     match axiom-type:                                          │
 │       "SubClassOf" → ConstraintType::Clustering                │
 │       "EquivalentClass" → ConstraintType::Alignment            │
 │       "DisjointWith" → ConstraintType::Separation              │
 │   ↓                                                             │
 │ Returns: ConstraintSet {                                       │
 │   constraints: Vec<Constraint>,                                │
-│   metadata: { source, axiom_count, timestamp }                 │
+│   metadata: { source, axiom-count, timestamp }                 │
 │ }                                                               │
 └────────────────────────────────────────────────────────────────┘
                               ↓
 ┌────────────────────────────────────────────────────────────────┐
 │ 5. GPU Upload                                                  │
 ├────────────────────────────────────────────────────────────────┤
-│ OntologyPipelineService.upload_constraints_to_gpu()            │
+│ OntologyPipelineService.upload-constraints-to-gpu()            │
 │   ↓                                                             │
 │ OntologyConstraintActor.send(ApplyOntologyConstraints {        │
-│   constraint_set,                                              │
-│   merge_mode: ConstraintMergeMode::Merge,                      │
-│   graph_id: 0                                                  │
+│   constraint-set,                                              │
+│   merge-mode: ConstraintMergeMode::Merge,                      │
+│   graph-id: 0                                                  │
 │ })                                                              │
 │   ↓                                                             │
-│ OntologyConstraintTranslator.translate_axioms_to_constraints() │
+│ OntologyConstraintTranslator.translate-axioms-to-constraints() │
 │   → Convert ConstraintSet to GPU buffer format                 │
 │   → Upload to CUDA constraint buffer                           │
 │   ↓                                                             │
@@ -188,11 +188,11 @@ on_ontology_modified(ontology_id, ontology) {
 │ 6. Physics Simulation                                          │
 ├────────────────────────────────────────────────────────────────┤
 │ ForceComputeActor runs GPU kernels:                            │
-│   1. compute_forces_kernel()                                   │
+│   1. compute-forces-kernel()                                   │
 │      → Apply repulsion, attraction, damping                    │
-│   2. apply_ontology_constraints_kernel()                       │
+│   2. apply-ontology-constraints-kernel()                       │
 │      → Apply semantic clustering/alignment/separation          │
-│   3. integrate_forces_kernel()                                 │
+│   3. integrate-forces-kernel()                                 │
 │      → Update node positions and velocities                    │
 │   ↓                                                             │
 │ Results: Updated node positions                                │
@@ -202,7 +202,7 @@ on_ontology_modified(ontology_id, ontology) {
 │ 7. Client Streaming                                            │
 ├────────────────────────────────────────────────────────────────┤
 │ GraphServiceActor broadcasts to ClientManager                  │
-│ ❌ DEPRECATED (Nov 2025): Use unified_gpu_compute.rs          │
+│ ❌ DEPRECATED (Nov 2025): Use unified-gpu-compute.rs          │
 │   ↓                                                             │
 │ WebSocket clients receive position updates                     │
 │   → Real-time graph visualization with semantic physics        │
@@ -216,38 +216,38 @@ on_ontology_modified(ontology_id, ontology) {
 **In your application initialization**:
 
 ```rust
-use crate::services::ontology_pipeline_service::{
+use crate::services::ontology-pipeline-service::{
     OntologyPipelineService, SemanticPhysicsConfig
 };
 
 // Create configuration
 let config = SemanticPhysicsConfig {
-    auto_trigger_reasoning: true,
-    auto_generate_constraints: true,
-    constraint_strength: 1.5,  // Adjust strength
-    use_gpu_constraints: true,
-    max_reasoning_depth: 10,
-    cache_inferences: true,
+    auto-trigger-reasoning: true,
+    auto-generate-constraints: true,
+    constraint-strength: 1.5,  // Adjust strength
+    use-gpu-constraints: true,
+    max-reasoning-depth: 10,
+    cache-inferences: true,
 };
 
 // Create pipeline service
 let pipeline = Arc::new(OntologyPipelineService::new(config));
 
 // Register actor addresses
-pipeline.set_reasoning_actor(reasoning_actor_addr);
-pipeline.set_ontology_actor(ontology_actor_addr);
-pipeline.set_graph_actor(graph_service_addr);
-pipeline.set_constraint_actor(constraint_actor_addr);
+pipeline.set-reasoning-actor(reasoning-actor-addr);
+pipeline.set-ontology-actor(ontology-actor-addr);
+pipeline.set-graph-actor(graph-service-addr);
+pipeline.set-constraint-actor(constraint-actor-addr);
 
 // Attach to GitHub sync service
-github_sync.set_pipeline_service(Arc::clone(&pipeline));
+github-sync.set-pipeline-service(Arc::clone(&pipeline));
 ```
 
 ### Disable Automatic Reasoning
 
 ```rust
 let config = SemanticPhysicsConfig {
-    auto_trigger_reasoning: false,  // Disable
+    auto-trigger-reasoning: false,  // Disable
     ..Default::default()
 };
 ```
@@ -256,22 +256,22 @@ let config = SemanticPhysicsConfig {
 
 ```rust
 // Manually trigger reasoning for specific ontology
-let stats = pipeline.on_ontology_modified(ontology_id, ontology).await?;
+let stats = pipeline.on-ontology-modified(ontology-id, ontology).await?;
 
-println!("Inferred {} axioms", stats.inferred_axioms_count);
-println!("Generated {} constraints", stats.constraints_generated);
-println!("GPU upload: {}", stats.gpu_upload_success);
+println!("Inferred {} axioms", stats.inferred-axioms-count);
+println!("Generated {} constraints", stats.constraints-generated);
+println!("GPU upload: {}", stats.gpu-upload-success);
 ```
 
 ## Constraint Strength Tuning
 
-The `constraint_strength` parameter acts as a multiplier for all semantic constraints:
+The `constraint-strength` parameter acts as a multiplier for all semantic constraints:
 
 ```rust
-config.constraint_strength = 0.5;  // Subtle semantic clustering
-config.constraint_strength = 1.0;  // Default balanced forces
-config.constraint_strength = 2.0;  // Strong semantic grouping
-config.constraint_strength = 5.0;  // Very strong (may dominate layout)
+config.constraint-strength = 0.5;  // Subtle semantic clustering
+config.constraint-strength = 1.0;  // Default balanced forces
+config.constraint-strength = 2.0;  // Strong semantic grouping
+config.constraint-strength = 5.0;  // Very strong (may dominate layout)
 ```
 
 **Per-axiom strength modifiers** (applied after multiplier):
@@ -299,23 +299,23 @@ The pipeline includes comprehensive error handling at each stage:
 
 ### Inference Cache
 
-**Location**: `.swarm/inference_cache.db` (SQLite)
+**Location**: `.swarm/inference-cache.db` (SQLite)
 
 **Schema**:
 ```sql
-CREATE TABLE inference_cache (
-    ontology_id INTEGER PRIMARY KEY,
-    inferred_axioms BLOB,  -- Serialized Vec<InferredAxiom>
-    computed_at INTEGER,   -- Unix timestamp
-    cache_key TEXT
+CREATE TABLE inference-cache (
+    ontology-id INTEGER PRIMARY KEY,
+    inferred-axioms BLOB,  -- Serialized Vec<InferredAxiom>
+    computed-at INTEGER,   -- Unix timestamp
+    cache-key TEXT
 );
 ```
 
 **Cache Invalidation**:
 ```rust
 // Invalidate cache when ontology changes
-reasoning_actor.send(InvalidateCache {
-    ontology_id: 1
+reasoning-actor.send(InvalidateCache {
+    ontology-id: 1
 }).await?;
 ```
 
@@ -324,21 +324,21 @@ reasoning_actor.send(InvalidateCache {
 ### Check Pipeline Statistics
 
 ```rust
-let stats = pipeline.on_ontology_modified(ontology_id, ontology).await?;
+let stats = pipeline.on-ontology-modified(ontology-id, ontology).await?;
 
 info!("Pipeline Stats:");
-info!("  Reasoning triggered: {}", stats.reasoning_triggered);
-info!("  Axioms inferred: {}", stats.inferred_axioms_count);
-info!("  Constraints generated: {}", stats.constraints_generated);
-info!("  GPU upload success: {}", stats.gpu_upload_success);
-info!("  Total time: {}ms", stats.total_time_ms);
+info!("  Reasoning triggered: {}", stats.reasoning-triggered);
+info!("  Axioms inferred: {}", stats.inferred-axioms-count);
+info!("  Constraints generated: {}", stats.constraints-generated);
+info!("  GPU upload success: {}", stats.gpu-upload-success);
+info!("  Total time: {}ms", stats.total-time-ms);
 ```
 
 ### Enable Debug Logging
 
 ```rust
-env_logger::Builder::from_default_env()
-    .filter_level(log::LevelFilter::Debug)
+env-logger::Builder::from-default-env()
+    .filter-level(log::LevelFilter::Debug)
     .init();
 ```
 
@@ -371,10 +371,10 @@ env_logger::Builder::from_default_env()
 ### Reasoning Not Triggered
 
 **Check**:
-1. Is `auto_trigger_reasoning` enabled in config?
+1. Is `auto-trigger-reasoning` enabled in config?
 2. Is pipeline service registered with GitHub sync?
    ```rust
-   github_sync.set_pipeline_service(pipeline);
+   github-sync.set-pipeline-service(pipeline);
    ```
 3. Are ontology blocks being detected? Look for log:
    ```
@@ -384,7 +384,7 @@ env_logger::Builder::from_default_env()
 ### Constraints Not Applied
 
 **Check**:
-1. Is `auto_generate_constraints` enabled?
+1. Is `auto-generate-constraints` enabled?
 2. Are axioms being inferred? Check log:
    ```
    ✅ Reasoning complete: X axioms
@@ -404,9 +404,9 @@ env_logger::Builder::from_default_env()
 ### Performance Issues
 
 **Solutions**:
-1. Reduce `max_reasoning_depth` (default: 10)
-2. Enable `cache_inferences` to avoid re-computation
-3. Reduce `constraint_strength` if too many constraints
+1. Reduce `max-reasoning-depth` (default: 10)
+2. Enable `cache-inferences` to avoid re-computation
+3. Reduce `constraint-strength` if too many constraints
 4. Use incremental sync (SHA1 filtering) to skip unchanged files
 
 ## Validation Checklist
@@ -415,20 +415,20 @@ env_logger::Builder::from_default_env()
 - [x] Database schema supports ontology
 - [x] OntologyConverter compiles
 - [x] GPU buffers initialized correctly
-- [x] WebSocket sends owl_class_iri
+- [x] WebSocket sends owl-class-iri
 - [x] Client types accept ontology fields
 - [ ] End-to-end integration test (requires running system)
 - [ ] Client rendering with class-specific visuals
 - [ ] OntologyTreeView UI component
 
 ### Sprint Statistics
-- **New Files**: 3 (load_ontology.rs, ontology_converter.rs, README_ONTOLOGY_RENDERING.md)
-- **Modified Files**: 3 (mod.rs, unified_gpu_compute.rs, graphTypes.ts)
+- **New Files**: 3 (load-ontology.rs, ontology-converter.rs, readme-ontology-rendering.md)
+- **Modified Files**: 3 (mod.rs, unified-gpu-compute.rs, graphTypes.ts)
 - **Total Lines Added**: ~450 lines
 - **Documentation**: ~350 lines
 
 ### Architecture Impact
-- **Database**: ✅ Fully integrated, owl_class_iri populated
+- **Database**: ✅ Fully integrated, owl-class-iri populated
 - **Backend Services**: ✅ Converter service ready
 - **GPU Layer**: ✅ Metadata buffers ready for class-based physics
 - **Network Protocol**: ✅ Already supported, no changes needed
@@ -449,11 +449,11 @@ env_logger::Builder::from_default_env()
 
 ## Related Documentation
 
-- **Ontology Parsing**: See `src/services/parsers/ontology_parser.rs`
-- **Reasoning Engine**: See `src/reasoning/custom_reasoner.rs`
-- **Inference Cache**: See `src/reasoning/inference_cache.rs`
-- **GPU Constraints**: See `src/actors/gpu/ontology_constraint_actor.rs`
-- **GitHub Sync**: See `src/services/github_sync_service.rs`
+- **Ontology Parsing**: See `src/services/parsers/ontology-parser.rs`
+- **Reasoning Engine**: See `src/reasoning/custom-reasoner.rs`
+- **Inference Cache**: See `src/reasoning/inference-cache.rs`
+- **GPU Constraints**: See `src/actors/gpu/ontology-constraint-actor.rs`
+- **GitHub Sync**: See `src/services/github-sync-service.rs`
 
 ---
 
@@ -469,30 +469,30 @@ The `OntologyReasoningService` provides complete OWL reasoning capabilities usin
 ```rust
 pub struct InferredAxiom {
     pub id: String,
-    pub ontology_id: String,
-    pub axiom_type: String,  // "SubClassOf", "DisjointWith", "InverseOf"
-    pub subject_iri: String,
-    pub object_iri: Option<String>,
-    pub property_iri: Option<String>,
+    pub ontology-id: String,
+    pub axiom-type: String,  // "SubClassOf", "DisjointWith", "InverseOf"
+    pub subject-iri: String,
+    pub object-iri: Option<String>,
+    pub property-iri: Option<String>,
     pub confidence: f32,
-    pub inference_path: Vec<String>,
-    pub user_defined: bool,
+    pub inference-path: Vec<String>,
+    pub user-defined: bool,
 }
 ```
 
 **ClassHierarchy:**
 ```rust
 pub struct ClassHierarchy {
-    pub root_classes: Vec<String>,
+    pub root-classes: Vec<String>,
     pub hierarchy: HashMap<String, ClassNode>,
 }
 
 pub struct ClassNode {
     pub iri: String,
     pub label: String,
-    pub parent_iri: Option<String>,
-    pub children_iris: Vec<String>,
-    pub node_count: usize,
+    pub parent-iri: Option<String>,
+    pub children-iris: Vec<String>,
+    pub node-count: usize,
     pub depth: usize,
 }
 ```
@@ -500,8 +500,8 @@ pub struct ClassNode {
 **DisjointPair:**
 ```rust
 pub struct DisjointPair {
-    pub class_a: String,
-    pub class_b: String,
+    pub class-a: String,
+    pub class-b: String,
     pub reason: String,
 }
 ```
@@ -511,51 +511,51 @@ pub struct DisjointPair {
 **Initialize Service:**
 ```rust
 use std::sync::Arc;
-use crate::adapters::whelk_inference_engine::WhelkInferenceEngine;
-use crate::repositories::unified_ontology_repository::UnifiedOntologyRepository;
-use crate::services::ontology_reasoning_service::OntologyReasoningService;
+use crate::adapters::whelk-inference-engine::WhelkInferenceEngine;
+use crate::repositories::unified-ontology-repository::UnifiedOntologyRepository;
+use crate::services::ontology-reasoning-service::OntologyReasoningService;
 
 let engine = Arc::new(WhelkInferenceEngine::new());
 let repo = Arc::new(UnifiedOntologyRepository::new("data/unified.db")?);
-let reasoning_service = OntologyReasoningService::new(engine, repo);
+let reasoning-service = OntologyReasoningService::new(engine, repo);
 ```
 
 **Infer Axioms:**
 ```rust
-let inferred_axioms = reasoning_service.infer_axioms("default").await?;
+let inferred-axioms = reasoning-service.infer-axioms("default").await?;
 
-for axiom in inferred_axioms {
+for axiom in inferred-axioms {
     println!("Inferred: {} {} {}",
-        axiom.subject_iri,
-        axiom.axiom_type,
-        axiom.object_iri.unwrap_or_default()
+        axiom.subject-iri,
+        axiom.axiom-type,
+        axiom.object-iri.unwrap-or-default()
     );
 }
 ```
 
 **Get Class Hierarchy:**
 ```rust
-let hierarchy = reasoning_service.get_class_hierarchy("default").await?;
+let hierarchy = reasoning-service.get-class-hierarchy("default").await?;
 
-println!("Root classes: {:?}", hierarchy.root_classes);
+println!("Root classes: {:?}", hierarchy.root-classes);
 
 for (iri, node) in &hierarchy.hierarchy {
     println!("{} (depth: {}, children: {})",
         node.label,
         node.depth,
-        node.children_iris.len()
+        node.children-iris.len()
     );
 }
 ```
 
 **Get Disjoint Classes:**
 ```rust
-let disjoint_pairs = reasoning_service.get_disjoint_classes("default").await?;
+let disjoint-pairs = reasoning-service.get-disjoint-classes("default").await?;
 
-for pair in disjoint_pairs {
+for pair in disjoint-pairs {
     println!("{} disjoint with {} ({})",
-        pair.class_a,
-        pair.class_b,
+        pair.class-a,
+        pair.class-b,
         pair.reason
     );
 }
@@ -563,46 +563,46 @@ for pair in disjoint_pairs {
 
 **Clear Cache:**
 ```rust
-reasoning_service.clear_cache().await;
+reasoning-service.clear-cache().await;
 ```
 
 #### Database Schema Extensions
 
-**inference_cache Table:**
+**inference-cache Table:**
 ```sql
-CREATE TABLE inference_cache (
+CREATE TABLE inference-cache (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    ontology_id TEXT NOT NULL,
-    ontology_checksum TEXT NOT NULL,
-    inferred_axioms TEXT NOT NULL,  -- JSON array
+    ontology-id TEXT NOT NULL,
+    ontology-checksum TEXT NOT NULL,
+    inferred-axioms TEXT NOT NULL,  -- JSON array
     timestamp INTEGER NOT NULL,
-    inference_time_ms INTEGER NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(ontology_id, ontology_checksum)
+    inference-time-ms INTEGER NOT NULL,
+    created-at TIMESTAMP DEFAULT CURRENT-TIMESTAMP,
+    UNIQUE(ontology-id, ontology-checksum)
 );
 ```
 
-**owl_axioms Table Enhancement:**
+**owl-axioms Table Enhancement:**
 ```sql
-ALTER TABLE owl_axioms ADD COLUMN user_defined BOOLEAN DEFAULT 1;
+ALTER TABLE owl-axioms ADD COLUMN user-defined BOOLEAN DEFAULT 1;
 ```
 
-- `user_defined = true`: Explicitly defined axioms from ontology files
-- `user_defined = false`: Inferred axioms from reasoning engine
+- `user-defined = true`: Explicitly defined axioms from ontology files
+- `user-defined = false`: Inferred axioms from reasoning engine
 
 #### Integration with OntologyActor
 
 ```rust
 pub struct TriggerReasoning {
-    pub ontology_id: i64,
+    pub ontology-id: i64,
     pub source: String,
 }
 
 impl Handler<TriggerReasoning> for OntologyActor {
     type Result = ResponseFuture<Result<String, String>>;
 
-    fn handle(&mut self, msg: TriggerReasoning, _ctx: &mut Self::Context) -> Self::Result {
-        // Call reasoning_service.infer_axioms()
+    fn handle(&mut self, msg: TriggerReasoning, -ctx: &mut Self::Context) -> Self::Result {
+        // Call reasoning-service.infer-axioms()
         // Broadcast OntologyUpdated event
     }
 }
@@ -634,7 +634,7 @@ On a typical ontology with 1000 classes and 5000 axioms:
 
 ```rust
 use whelk::{Reasoner, OWLAxiom};
-use horned_owl::ontology::Ontology;
+use horned-owl::ontology::Ontology;
 
 pub struct OntologyReasoningPipeline {
     ontology: Ontology,
@@ -643,9 +643,9 @@ pub struct OntologyReasoningPipeline {
 }
 
 impl OntologyReasoningPipeline {
-    pub fn new(ontology_path: &str) -> Result<Self> {
-        let ontology = Ontology::from_file(ontology_path)?;
-        let reasoner = Reasoner::from_ontology(&ontology)?;
+    pub fn new(ontology-path: &str) -> Result<Self> {
+        let ontology = Ontology::from-file(ontology-path)?;
+        let reasoner = Reasoner::from-ontology(&ontology)?;
 
         Ok(Self {
             ontology,
@@ -655,20 +655,20 @@ impl OntologyReasoningPipeline {
     }
 
     pub fn infer(&mut self) -> Result<Vec<InferredAxiom>> {
-        let key = AxiomKey::from_ontology(&self.ontology);
+        let key = AxiomKey::from-ontology(&self.ontology);
 
         if let Some(cached) = self.cache.get(&key) {
             return Ok(cached.clone());
         }
 
-        let inferred = self.reasoner.infer_all()?;
+        let inferred = self.reasoner.infer-all()?;
         self.cache.put(key, inferred.clone());
 
         Ok(inferred)
     }
 
-    pub fn is_consistent(&self) -> bool {
-        self.reasoner.check_consistency()
+    pub fn is-consistent(&self) -> bool {
+        self.reasoner.check-consistency()
     }
 }
 ```
@@ -683,14 +683,14 @@ impl OntologyReasoningPipeline {
 // Whelk infers:
 // :Puppy subClassOf :Animal (transitivity)
 
-let inferred = reasoner.infer_all()?;
+let inferred = reasoner.infer-all()?;
 for axiom in inferred {
     if let OWLAxiom::SubClassOf { subclass, superclass } = axiom {
-        db.insert_axiom(
+        db.insert-axiom(
             "SubClassOf",
             &subclass,
             &superclass,
-            true  // is_inferred = true
+            true  // is-inferred = true
         )?;
     }
 }
@@ -699,20 +699,20 @@ for axiom in inferred {
 ### Database Integration for Inferred Axioms
 
 ```sql
--- owl_axioms table stores both asserted and inferred axioms
-CREATE TABLE owl_axioms (
+-- owl-axioms table stores both asserted and inferred axioms
+CREATE TABLE owl-axioms (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    axiom_type TEXT NOT NULL,
+    axiom-type TEXT NOT NULL,
     subject TEXT NOT NULL,
     predicate TEXT,
     object TEXT NOT NULL,
     annotations TEXT,
-    is_inferred INTEGER DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    is-inferred INTEGER DEFAULT 0,
+    created-at DATETIME DEFAULT CURRENT-TIMESTAMP
 );
 
-CREATE INDEX idx_owl_axioms_inferred ON owl_axioms(is_inferred);
-CREATE INDEX idx_owl_axioms_subject ON owl_axioms(subject);
+CREATE INDEX idx-owl-axioms-inferred ON owl-axioms(is-inferred);
+CREATE INDEX idx-owl-axioms-subject ON owl-axioms(subject);
 ```
 
 ### LRU Caching Strategy
@@ -732,12 +732,12 @@ impl InferenceCache {
     }
 
     pub fn get(&mut self, ontology: &Ontology) -> Option<&Vec<InferredAxiom>> {
-        let hash = ontology.compute_hash();
+        let hash = ontology.compute-hash();
         self.cache.get(&hash)
     }
 
     pub fn put(&mut self, ontology: &Ontology, inferences: Vec<InferredAxiom>) {
-        let hash = ontology.compute_hash();
+        let hash = ontology.compute-hash();
         self.cache.put(hash, inferences);
     }
 }
@@ -747,8 +747,8 @@ impl InferenceCache {
 
 ```rust
 // Only re-infer axioms affected by the change
-let affected_classes = reasoner.get_affected_classes(&new_axiom)?;
-let incremental_inferences = reasoner.infer_incremental(affected_classes)?;
+let affected-classes = reasoner.get-affected-classes(&new-axiom)?;
+let incremental-inferences = reasoner.infer-incremental(affected-classes)?;
 ```
 
 ### Performance Comparison
@@ -767,7 +767,7 @@ let incremental_inferences = reasoner.infer_incremental(affected_classes)?;
 ## References
 
 - [whelk-rs](https://github.com/balhoff/whelk-rs): The EL++ reasoner used for inference
-- [OWL 2 EL Profile](https://www.w3.org/TR/owl2-profiles/#OWL_2_EL): Specification
+- [OWL 2 EL Profile](https://www.w3.org/TR/owl2-profiles/#OWL-2-EL): Specification
 - [horned-owl](https://github.com/phillord/horned-owl): OWL ontology library for Rust
 
 ## Contact & Support

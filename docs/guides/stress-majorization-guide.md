@@ -17,14 +17,14 @@ Stress Majorization is an advanced graph layout algorithm that optimizes node po
 
 ```json
 {
-  "stress_optimization_enabled": 1,
-  "stress_optimization_frequency": 100,
-  "stress_learning_rate": 0.05,
-  "stress_momentum": 0.5,
-  "stress_max_displacement": 10.0,
-  "stress_convergence_threshold": 0.01,
-  "stress_max_iterations": 50,
-  "stress_blend_factor": 0.2
+  "stress-optimization-enabled": 1,
+  "stress-optimization-frequency": 100,
+  "stress-learning-rate": 0.05,
+  "stress-momentum": 0.5,
+  "stress-max-displacement": 10.0,
+  "stress-convergence-threshold": 0.01,
+  "stress-max-iterations": 50,
+  "stress-blend-factor": 0.2
 }
 ```
 
@@ -40,7 +40,7 @@ curl http://localhost:8080/api/analytics/stress-majorization/stats
 # Update parameters
 curl -X PUT http://localhost:8080/api/analytics/stress-majorization/params \
   -H "Content-Type: application/json" \
-  -d '{"interval_frames": 300}'
+  -d '{"interval-frames": 300}'
 ```
 
 ---
@@ -51,14 +51,14 @@ curl -X PUT http://localhost:8080/api/analytics/stress-majorization/params \
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `stress_optimization_enabled` | uint | 0 | Enable stress majorization (0=off, 1=on) |
-| `stress_optimization_frequency` | uint | 100 | Run every N frames |
-| `stress_learning_rate` | float | 0.05 | Gradient descent step size |
-| `stress_momentum` | float | 0.5 | Momentum for position updates |
-| `stress_max_displacement` | float | 10.0 | Maximum node movement per iteration |
-| `stress_convergence_threshold` | float | 0.01 | Convergence tolerance |
-| `stress_max_iterations` | uint | 50 | Maximum optimization iterations |
-| `stress_blend_factor` | float | 0.2 | Blend with physics forces (0=stress only, 1=physics only) |
+| `stress-optimization-enabled` | uint | 0 | Enable stress majorization (0=off, 1=on) |
+| `stress-optimization-frequency` | uint | 100 | Run every N frames |
+| `stress-learning-rate` | float | 0.05 | Gradient descent step size |
+| `stress-momentum` | float | 0.5 | Momentum for position updates |
+| `stress-max-displacement` | float | 10.0 | Maximum node movement per iteration |
+| `stress-convergence-threshold` | float | 0.01 | Convergence tolerance |
+| `stress-max-iterations` | uint | 50 | Maximum optimization iterations |
+| `stress-blend-factor` | float | 0.2 | Blend with physics forces (0=stress only, 1=physics only) |
 
 ---
 
@@ -66,70 +66,70 @@ curl -X PUT http://localhost:8080/api/analytics/stress-majorization/params \
 
 ### Step 1: Add SimParams Fields
 
-**File**: `src/models/simulation_params.rs`
+**File**: `src/models/simulation-params.rs`
 
 Ensure these 8 fields exist:
 ```rust
-pub stress_optimization_enabled: u32,
-pub stress_optimization_frequency: u32,
-pub stress_learning_rate: f32,
-pub stress_momentum: f32,
-pub stress_max_displacement: f32,
-pub stress_convergence_threshold: f32,
-pub stress_max_iterations: u32,
-pub stress_blend_factor: f32,
+pub stress-optimization-enabled: u32,
+pub stress-optimization-frequency: u32,
+pub stress-learning-rate: f32,
+pub stress-momentum: f32,
+pub stress-max-displacement: f32,
+pub stress-convergence-threshold: f32,
+pub stress-max-iterations: u32,
+pub stress-blend-factor: f32,
 ```
 
 ### Step 2: Add Actor to AppState
 
-**File**: `src/app_state.rs`
+**File**: `src/app-state.rs`
 
 Add field:
 ```rust
 #[cfg(feature = "gpu")]
-pub stress_majorization_addr: Option<Addr<gpu::StressMajorizationActor>>,
+pub stress-majorization-addr: Option<Addr<gpu::StressMajorizationActor>>,
 ```
 
 Initialize in AppState::new():
 ```rust
 #[cfg(feature = "gpu")]
-let stress_majorization_addr = {
+let stress-majorization-addr = {
     info!("[AppState::new] Starting StressMajorizationActor");
     Some(gpu::StressMajorizationActor::new().start())
 };
 
 #[cfg(not(feature = "gpu"))]
-let stress_majorization_addr = None;
+let stress-majorization-addr = None;
 ```
 
 ### Step 3: Share GPU Context
 
-**File**: `src/actors/gpu/gpu_manager_actor.rs`
+**File**: `src/actors/gpu/gpu-manager-actor.rs`
 
-In `handle_initialize_gpu` after creating SharedGPUContext:
+In `handle-initialize-gpu` after creating SharedGPUContext:
 ```rust
-child_actors.stress_majorization_actor.do_send(SetSharedGPUContext {
-    context: shared_context.clone(),
+child-actors.stress-majorization-actor.do-send(SetSharedGPUContext {
+    context: shared-context.clone(),
 });
 ```
 
 ### Step 4: Wire into Physics Loop (Optional)
 
-**File**: `src/actors/gpu/force_compute_actor.rs`
+**File**: `src/actors/gpu/force-compute-actor.rs`
 
 Option A: Check every frame
 ```rust
-if let Some(stress_actor) = &self.stress_majorization_addr {
-    stress_actor.do_send(CheckStressMajorization);
+if let Some(stress-actor) = &self.stress-majorization-addr {
+    stress-actor.do-send(CheckStressMajorization);
 }
 ```
 
 Option B: Periodic self-check (recommended)
 ```rust
 // In StressMajorizationActor::started()
-ctx.run_interval(Duration::from_secs(10), |act, ctx| {
-    if act.should_run_stress_majorization() {
-        ctx.address().do_send(CheckStressMajorization);
+ctx.run-interval(Duration::from-secs(10), |act, ctx| {
+    if act.should-run-stress-majorization() {
+        ctx.address().do-send(CheckStressMajorization);
     }
 });
 ```
@@ -141,11 +141,11 @@ ctx.run_interval(Duration::from_secs(10), |act, ctx| {
 ### GPU Implementation (CUDA)
 
 **Kernels**:
-1. `compute_stress_kernel` - Calculate stress function
-2. `compute_stress_gradient_kernel` - Compute gradients
-3. `update_positions_kernel` - Apply gradient descent with momentum
-4. `majorization_step_kernel` - Laplacian-based optimization
-5. `compute_max_displacement_kernel` - Check convergence
+1. `compute-stress-kernel` - Calculate stress function
+2. `compute-stress-gradient-kernel` - Compute gradients
+3. `update-positions-kernel` - Apply gradient descent with momentum
+4. `majorization-step-kernel` - Laplacian-based optimization
+5. `compute-max-displacement-kernel` - Check convergence
 
 **Performance**: Processes 100k nodes in <100ms per cycle
 
@@ -179,9 +179,9 @@ ctx.run_interval(Duration::from_secs(10), |act, ctx| {
 **Configuration**:
 ```rust
 StressMajorizationSafety {
-    max_displacement_threshold: 10.0,
-    convergence_threshold: 0.01,
-    max_iterations: 50,
+    max-displacement-threshold: 10.0,
+    convergence-threshold: 0.01,
+    max-iterations: 50,
 }
 ```
 
@@ -204,10 +204,10 @@ StressMajorizationSafety {
 
 ### Blending with Physics
 
-The `stress_blend_factor` controls mixing:
+The `stress-blend-factor` controls mixing:
 
 ```
-final_position = (1 - blend) * stress_position + blend * physics_position
+final-position = (1 - blend) * stress-position + blend * physics-position
 ```
 
 - `blend = 0.0`: Pure stress majorization
@@ -222,7 +222,7 @@ final_position = (1 - blend) * stress_position + blend * physics_position
 **Symptom**: HTTP trigger returns "GPU not initialized"
 
 **Solution**:
-1. Verify `stress_majorization_addr` is `Some(...)` in AppState
+1. Verify `stress-majorization-addr` is `Some(...)` in AppState
 2. Check `#[cfg(feature = "gpu")]` is enabled
 3. Verify actor started successfully in logs
 
@@ -240,15 +240,15 @@ final_position = (1 - blend) * stress_position + blend * physics_position
 **Solution**:
 1. Implement periodic timer in `StressMajorizationActor::started()`
 2. Or send `CheckStressMajorization` from physics loop
-3. Verify `stress_optimization_frequency` is reasonable
+3. Verify `stress-optimization-frequency` is reasonable
 
 ### Issue: Performance Degradation
 **Symptom**: Optimization runs but slows system
 
 **Solution**:
-1. Increase `stress_optimization_frequency` (run less often)
-2. Reduce `stress_max_iterations`
-3. Check `max_displacement_threshold` safety limit
+1. Increase `stress-optimization-frequency` (run less often)
+2. Reduce `stress-max-iterations`
+3. Check `max-displacement-threshold` safety limit
 4. Monitor GPU memory usage
 
 ---
@@ -305,10 +305,10 @@ POST /api/analytics/stress-majorization/reset-safety
 
 ```json
 {
-  "stress_optimization_enabled": 1,
-  "stress_optimization_frequency": 200,
-  "stress_blend_factor": 0.3,
-  "stress_max_iterations": 100
+  "stress-optimization-enabled": 1,
+  "stress-optimization-frequency": 200,
+  "stress-blend-factor": 0.3,
+  "stress-max-iterations": 100
 }
 ```
 
@@ -316,10 +316,10 @@ POST /api/analytics/stress-majorization/reset-safety
 
 ```json
 {
-  "stress_optimization_enabled": 1,
-  "stress_optimization_frequency": 300,
-  "stress_blend_factor": 0.5,
-  "stress_learning_rate": 0.1
+  "stress-optimization-enabled": 1,
+  "stress-optimization-frequency": 300,
+  "stress-blend-factor": 0.5,
+  "stress-learning-rate": 0.1
 }
 ```
 
@@ -327,10 +327,10 @@ POST /api/analytics/stress-majorization/reset-safety
 
 ```json
 {
-  "stress_optimization_enabled": 1,
-  "stress_optimization_frequency": 1000,
-  "stress_blend_factor": 0.8,
-  "stress_convergence_threshold": 0.001
+  "stress-optimization-enabled": 1,
+  "stress-optimization-frequency": 1000,
+  "stress-blend-factor": 0.8,
+  "stress-convergence-threshold": 0.001
 }
 ```
 
@@ -338,10 +338,10 @@ POST /api/analytics/stress-majorization/reset-safety
 
 ## References
 
-- [Actor Implementation](../../src/actors/gpu/stress_majorization_actor.rs)
-- [CUDA Kernels](../../src/utils/stress_majorization.cu)
-- [CPU Solver](../../src/physics/stress_majorization.rs)
-- [GPU Integration](../../src/utils/unified_gpu_compute.rs)
-- [Integration Tests](../../tests/stress_majorization_integration.rs)
-- [Benchmarks](../../tests/stress_majorization_benchmark.rs)
-- [Checklist (Historical)](../STRESS_MAJORIZATION_CHECKLIST.md)
+- [Actor Implementation](../../src/actors/gpu/stress-majorization-actor.rs)
+- [CUDA Kernels](../../src/utils/stress-majorization.cu)
+- [CPU Solver](../../src/physics/stress-majorization.rs)
+- [GPU Integration](../../src/utils/unified-gpu-compute.rs)
+- [Integration Tests](../../tests/stress-majorization-integration.rs)
+- [Benchmarks](../../tests/stress-majorization-benchmark.rs)
+- [Checklist (Historical)](../stress-majorization-checklist.md)

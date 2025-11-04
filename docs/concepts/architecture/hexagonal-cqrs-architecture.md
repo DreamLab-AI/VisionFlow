@@ -11,7 +11,7 @@
 > **Current State**: CQRS fully implemented (Query Handlers ✅, Command Handlers 🔄, Event Bus 🔄)
 >
 > **Migration Guide**: See `/docs/guides/graphserviceactor-migration.md` for detailed migration patterns.
-> **Current Architecture**: See `/docs/concepts/architecture/00-ARCHITECTURE-OVERVIEW.md` for unified.db implementation with UnifiedGraphRepository.
+> **Current Architecture**: See `/docs/concepts/architecture/00-ARCHITECTURE-overview.md` for unified.db implementation with UnifiedGraphRepository.
 
 # Hexagonal/CQRS Architecture Design
 **VisionFlow Graph Service - PRODUCTION IMPLEMENTATION**
@@ -47,52 +47,52 @@ VisionFlow now operates with a **production hexagonal architecture** using:
 ```mermaid
 graph TB
     subgraph Before["❌ BEFORE: Monolithic Actor (THE PROBLEM)"]
-        B_API["API Handlers"]
-        B_ACTOR["GraphServiceActor<br/>━━━━━━━━━━━<br/>48,000+ tokens!<br/>━━━━━━━━━━━<br/>• In-memory cache (STALE!)<br/>• Physics simulation<br/>• WebSocket broadcasting<br/>• Semantic analysis<br/>• Settings management<br/>• GitHub sync data"]
+        B-API["API Handlers"]
+        B-ACTOR["GraphServiceActor<br/>━━━━━━━━━━━<br/>48,000+ tokens!<br/>━━━━━━━━━━━<br/>• In-memory cache (STALE!)<br/>• Physics simulation<br/>• WebSocket broadcasting<br/>• Semantic analysis<br/>• Settings management<br/>• GitHub sync data"]
 
-        B_WS["WebSocket<br/>Server"]
-        B_PHYSICS["Physics<br/>Engine"]
-        B_DB["SQLite DB"]
+        B-WS["WebSocket<br/>Server"]
+        B-PHYSICS["Physics<br/>Engine"]
+        B-DB["SQLite DB"]
 
-        B_API --> B_ACTOR
-        B_ACTOR --> B_WS
-        B_ACTOR --> B_PHYSICS
-        B_ACTOR -.->|reads once| B_DB
+        B-API --> B-ACTOR
+        B-ACTOR --> B-WS
+        B-ACTOR --> B-PHYSICS
+        B-ACTOR -.->|reads once| B-DB
 
-        B_PROBLEM["🐛 PROBLEM:<br/>After GitHub sync writes<br/>316 nodes to SQLite,<br/>actor cache still shows<br/>63 nodes (STALE!)"]
+        B-PROBLEM["🐛 PROBLEM:<br/>After GitHub sync writes<br/>316 nodes to SQLite,<br/>actor cache still shows<br/>63 nodes (STALE!)"]
 
-        B_DB -.->|no invalidation| B_PROBLEM
+        B-DB -.->|no invalidation| B-PROBLEM
     end
 
     subgraph After["✅ AFTER: Hexagonal/CQRS/Event Sourcing (THE SOLUTION)"]
-        A_API["API Handlers<br/>(Thin)"]
+        A-API["API Handlers<br/>(Thin)"]
 
-        A_CMD["Command<br/>Handlers"]
-        A_QRY["Query<br/>Handlers"]
+        A-CMD["Command<br/>Handlers"]
+        A-QRY["Query<br/>Handlers"]
 
-        A_BUS["Event Bus"]
-        A_REPO["Graph<br/>Repository"]
+        A-BUS["Event Bus"]
+        A-REPO["Graph<br/>Repository"]
 
-        A_CACHE["Cache<br/>Invalidator"]
-        A_WS["WebSocket<br/>Broadcaster"]
+        A-CACHE["Cache<br/>Invalidator"]
+        A-WS["WebSocket<br/>Broadcaster"]
 
-        A_DB["SQLite DB<br/>(Source of Truth)"]
+        A-DB["SQLite DB<br/>(Source of Truth)"]
 
-        A_API --> A_CMD
-        A_API --> A_QRY
+        A-API --> A-CMD
+        A-API --> A-QRY
 
-        A_CMD --> A_REPO
-        A_CMD --> A_BUS
-        A_QRY --> A_REPO
+        A-CMD --> A-REPO
+        A-CMD --> A-BUS
+        A-QRY --> A-REPO
 
-        A_REPO --> A_DB
+        A-REPO --> A-DB
 
-        A_BUS --> A_CACHE
-        A_BUS --> A_WS
+        A-BUS --> A-CACHE
+        A-BUS --> A-WS
 
-        A_SOLUTION["✅ SOLUTION:<br/>GitHub sync emits event<br/>→ Cache invalidator clears all<br/>→ Next query reads fresh 316 nodes<br/>→ WebSocket notifies clients"]
+        A-SOLUTION["✅ SOLUTION:<br/>GitHub sync emits event<br/>→ Cache invalidator clears all<br/>→ Next query reads fresh 316 nodes<br/>→ WebSocket notifies clients"]
 
-        A_BUS --> A_SOLUTION
+        A-BUS --> A-SOLUTION
     end
 
     classDef problemStyle fill:#ffcdd2,stroke:#c62828,stroke-width:3px
@@ -100,10 +100,10 @@ graph TB
     classDef actorStyle fill:#fff3e0,stroke:#e65100,stroke-width:2px
     classDef cqrsStyle fill:#e1f5ff,stroke:#01579b,stroke-width:2px
 
-    class B_PROBLEM problemStyle
-    class A_SOLUTION solutionStyle
-    class B_ACTOR actorStyle
-    class A_CMD,A_QRY,A_BUS,A_CACHE,A_WS cqrsStyle
+    class B-PROBLEM problemStyle
+    class A-SOLUTION solutionStyle
+    class B-ACTOR actorStyle
+    class A-CMD,A-QRY,A-BUS,A-CACHE,A-WS cqrsStyle
 ```
 
 ### Key Architectural Improvements
@@ -132,12 +132,12 @@ graph LR
 
 ### Monolithic GraphServiceActor Responsibilities
 ```rust
-// src/actors/graph_actor.rs (48,000+ tokens!)
+// src/actors/graph-actor.rs (48,000+ tokens!)
 pub struct GraphServiceActor {
-    graph_data: Arc<RwLock<GraphData>>,           // In-memory cache - THE PROBLEM
-    bots_graph_data: Arc<RwLock<GraphData>>,      // Separate bot graph cache
-    simulation_params: Arc<RwLock<SimulationParams>>,
-    ws_server: Option<Addr<WebSocketServer>>,    // Direct WebSocket coupling
+    graph-data: Arc<RwLock<GraphData>>,           // In-memory cache - THE PROBLEM
+    bots-graph-data: Arc<RwLock<GraphData>>,      // Separate bot graph cache
+    simulation-params: Arc<RwLock<SimulationParams>>,
+    ws-server: Option<Addr<WebSocketServer>>,    // Direct WebSocket coupling
     // ... 50+ more fields
 }
 ```
@@ -272,7 +272,7 @@ graph TB
     end
 
     subgraph Domain["🎯 Domain Layer"]
-        REPO["GraphRepository Port<br/>━━━━━━━━━━━<br/>• get_graph<br/>• add_node<br/>• update_node_position<br/>• batch_update_positions"]
+        REPO["GraphRepository Port<br/>━━━━━━━━━━━<br/>• get-graph<br/>• add-node<br/>• update-node-position<br/>• batch-update-positions"]
 
         EVENTS["Event Bus<br/>━━━━━━━━━━━<br/>• publish<br/>• subscribe"]
     end
@@ -322,15 +322,15 @@ graph TB
 
 /// Command: Create new node
 pub struct CreateNodeCommand {
-    pub node_id: u32,
+    pub node-id: u32,
     pub label: String,
     pub position: (f32, f32, f32),
-    pub metadata_id: Option<String>,
+    pub metadata-id: Option<String>,
 }
 
 /// Command: Update node position
 pub struct UpdateNodePositionCommand {
-    pub node_id: u32,
+    pub node-id: u32,
     pub position: (f32, f32, f32),
     pub source: UpdateSource, // User, Physics, or GitHubSync
 }
@@ -343,8 +343,8 @@ pub struct TriggerPhysicsStepCommand {
 
 /// Command: Broadcast graph update to WebSocket clients
 pub struct BroadcastGraphUpdateCommand {
-    pub update_type: GraphUpdateType,
-    pub data: serde_json::Value,
+    pub update-type: GraphUpdateType,
+    pub data: serde-json::Value,
 }
 
 /// Source of update (for event context)
@@ -358,11 +358,11 @@ pub enum UpdateSource {
 
 #### Command Handlers
 ```rust
-// src/application/graph/command_handlers.rs
+// src/application/graph/command-handlers.rs
 
 pub struct CreateNodeCommandHandler {
-    graph_repo: Arc<dyn GraphRepository>,
-    event_bus: Arc<dyn EventBus>,
+    graph-repo: Arc<dyn GraphRepository>,
+    event-bus: Arc<dyn EventBus>,
 }
 
 impl CreateNodeCommandHandler {
@@ -371,18 +371,18 @@ impl CreateNodeCommandHandler {
         self.validate(&cmd)?;
 
         // 2. Execute domain logic
-        let node = Node::new(cmd.node_id, cmd.label, cmd.position);
+        let node = Node::new(cmd.node-id, cmd.label, cmd.position);
 
         // 3. Persist via repository
-        self.graph_repo.add_node(node.clone()).await?;
+        self.graph-repo.add-node(node.clone()).await?;
 
         // 4. Emit event (event sourcing)
         let event = GraphEvent::NodeCreated {
-            node_id: node.id,
+            node-id: node.id,
             timestamp: chrono::Utc::now(),
             source: UpdateSource::UserInteraction,
         };
-        self.event_bus.publish(event).await?;
+        self.event-bus.publish(event).await?;
 
         Ok(())
     }
@@ -397,41 +397,41 @@ impl CreateNodeCommandHandler {
 
 /// Query: Get complete graph data
 pub struct GetGraphDataQuery {
-    pub include_edges: bool,
+    pub include-edges: bool,
     pub filter: Option<GraphFilter>,
 }
 
 /// Query: Get node by ID
 pub struct GetNodeByIdQuery {
-    pub node_id: u32,
+    pub node-id: u32,
 }
 
 /// Query: Get semantic analysis results
 pub struct GetSemanticAnalysisQuery {
-    pub analysis_type: SemanticAnalysisType,
+    pub analysis-type: SemanticAnalysisType,
 }
 
 /// Query: Get current physics state
 pub struct GetPhysicsStateQuery {
-    pub include_velocity: bool,
+    pub include-velocity: bool,
 }
 ```
 
 #### Query Handlers
 ```rust
-// src/application/graph/query_handlers.rs
+// src/application/graph/query-handlers.rs
 
 pub struct GetGraphDataQueryHandler {
-    graph_repo: Arc<dyn GraphRepository>,
+    graph-repo: Arc<dyn GraphRepository>,
 }
 
 impl GetGraphDataQueryHandler {
     pub async fn handle(&self, query: GetGraphDataQuery) -> Result<GraphData, String> {
         // 1. Read from repository (always fresh data!)
-        let graph_data = self.graph_repo.get_graph().await?;
+        let graph-data = self.graph-repo.get-graph().await?;
 
         // 2. Apply filters
-        let filtered = self.apply_filters(graph_data, query.filter)?;
+        let filtered = self.apply-filters(graph-data, query.filter)?;
 
         // 3. Return DTO
         Ok(filtered)
@@ -462,14 +462,14 @@ sequenceDiagram
 
     activate CMD
     CMD->>CMD: 1. Validate command
-    CMD->>REPO: 2. add_node(node)
+    CMD->>REPO: 2. add-node(node)
     REPO-->>CMD: ✓ Persisted to SQLite
 
     CMD->>BUS: 3. publish(NodeCreatedEvent)
     deactivate CMD
 
     activate BUS
-    BUS->>STORE: append_event(event)
+    BUS->>STORE: append-event(event)
     STORE-->>BUS: ✓ Event stored
 
     par Parallel Event Handling
@@ -512,9 +512,9 @@ sequenceDiagram
 
     GH->>SYNC: Fetch markdown files
     SYNC->>SYNC: Parse 316 nodes + edges
-    SYNC->>REPO: save_graph(GraphData)
+    SYNC->>REPO: save-graph(GraphData)
     activate REPO
-    REPO->>REPO: Write to SQLite<br/>knowledge_graph.db
+    REPO->>REPO: Write to SQLite<br/>knowledge-graph.db
     REPO-->>SYNC: ✓ 316 nodes saved
     deactivate REPO
 
@@ -525,7 +525,7 @@ sequenceDiagram
     par Event Subscribers
         BUS->>CACHE: handle(GitHubSyncCompletedEvent)
         activate CACHE
-        CACHE->>CACHE: invalidate_all()
+        CACHE->>CACHE: invalidate-all()
         Note over CACHE: Clear ALL caches<br/>(old 63 nodes gone!)
         CACHE-->>BUS: ✓ Cache cleared
         deactivate CACHE
@@ -553,10 +553,10 @@ sequenceDiagram
 
 /// Base event trait
 pub trait DomainEvent: Send + Sync {
-    fn event_id(&self) -> String;
+    fn event-id(&self) -> String;
     fn timestamp(&self) -> chrono::DateTime<chrono::Utc>;
-    fn event_type(&self) -> &str;
-    fn aggregate_id(&self) -> String;
+    fn event-type(&self) -> &str;
+    fn aggregate-id(&self) -> String;
 }
 
 /// Graph domain events
@@ -564,16 +564,16 @@ pub trait DomainEvent: Send + Sync {
 pub enum GraphEvent {
     /// Node was created
     NodeCreated {
-        node_id: u32,
+        node-id: u32,
         timestamp: chrono::DateTime<chrono::Utc>,
         source: UpdateSource,
     },
 
     /// Node position changed (from physics or user)
     NodePositionChanged {
-        node_id: u32,
-        old_position: (f32, f32, f32),
-        new_position: (f32, f32, f32),
+        node-id: u32,
+        old-position: (f32, f32, f32),
+        new-position: (f32, f32, f32),
         timestamp: chrono::DateTime<chrono::Utc>,
         source: UpdateSource,
     },
@@ -581,35 +581,35 @@ pub enum GraphEvent {
     /// Physics simulation step completed
     PhysicsStepCompleted {
         iteration: usize,
-        nodes_updated: usize,
+        nodes-updated: usize,
         timestamp: chrono::DateTime<chrono::Utc>,
     },
 
     /// ⭐ CRITICAL FOR BUG FIX: GitHub sync completed
     GitHubSyncCompleted {
-        total_nodes: usize,
-        total_edges: usize,
-        kg_files: usize,
-        ontology_files: usize,
+        total-nodes: usize,
+        total-edges: usize,
+        kg-files: usize,
+        ontology-files: usize,
         timestamp: chrono::DateTime<chrono::Utc>,
     },
 
     /// WebSocket client connected
     WebSocketClientConnected {
-        client_id: String,
+        client-id: String,
         timestamp: chrono::DateTime<chrono::Utc>,
     },
 
     /// Semantic analysis completed
     SemanticAnalysisCompleted {
-        constraints_generated: usize,
+        constraints-generated: usize,
         timestamp: chrono::DateTime<chrono::Utc>,
     },
 }
 
 impl DomainEvent for GraphEvent {
-    fn event_id(&self) -> String {
-        format!("{}-{}", self.event_type(), uuid::Uuid::new_v4())
+    fn event-id(&self) -> String {
+        format!("{}-{}", self.event-type(), uuid::Uuid::new-v4())
     }
 
     fn timestamp(&self) -> chrono::DateTime<chrono::Utc> {
@@ -623,7 +623,7 @@ impl DomainEvent for GraphEvent {
         }
     }
 
-    fn event_type(&self) -> &str {
+    fn event-type(&self) -> &str {
         match self {
             GraphEvent::NodeCreated { .. } => "NodeCreated",
             GraphEvent::NodePositionChanged { .. } => "NodePositionChanged",
@@ -634,14 +634,14 @@ impl DomainEvent for GraphEvent {
         }
     }
 
-    fn aggregate_id(&self) -> String {
+    fn aggregate-id(&self) -> String {
         match self {
-            GraphEvent::NodeCreated { node_id, .. } => format!("node-{}", node_id),
-            GraphEvent::NodePositionChanged { node_id, .. } => format!("node-{}", node_id),
-            GraphEvent::PhysicsStepCompleted { .. } => "physics-engine".to_string(),
-            GraphEvent::GitHubSyncCompleted { .. } => "github-sync".to_string(),
-            GraphEvent::WebSocketClientConnected { client_id, .. } => client_id.clone(),
-            GraphEvent::SemanticAnalysisCompleted { .. } => "semantic-analyzer".to_string(),
+            GraphEvent::NodeCreated { node-id, .. } => format!("node-{}", node-id),
+            GraphEvent::NodePositionChanged { node-id, .. } => format!("node-{}", node-id),
+            GraphEvent::PhysicsStepCompleted { .. } => "physics-engine".to-string(),
+            GraphEvent::GitHubSyncCompleted { .. } => "github-sync".to-string(),
+            GraphEvent::WebSocketClientConnected { client-id, .. } => client-id.clone(),
+            GraphEvent::SemanticAnalysisCompleted { .. } => "semantic-analyzer".to-string(),
         }
     }
 }
@@ -649,18 +649,18 @@ impl DomainEvent for GraphEvent {
 
 ### Event Bus
 ```rust
-// src/infrastructure/event_bus.rs
+// src/infrastructure/event-bus.rs
 
-#[async_trait]
+#[async-trait]
 pub trait EventBus: Send + Sync {
     /// Publish event to all subscribers
     async fn publish(&self, event: GraphEvent) -> Result<(), String>;
 
     /// Subscribe to specific event types
-    async fn subscribe(&self, event_type: &str, handler: Arc<dyn EventHandler>) -> Result<(), String>;
+    async fn subscribe(&self, event-type: &str, handler: Arc<dyn EventHandler>) -> Result<(), String>;
 }
 
-#[async_trait]
+#[async-trait]
 pub trait EventHandler: Send + Sync {
     async fn handle(&self, event: &GraphEvent) -> Result<(), String>;
 }
@@ -678,13 +678,13 @@ impl InMemoryEventBus {
     }
 }
 
-#[async_trait]
+#[async-trait]
 impl EventBus for InMemoryEventBus {
     async fn publish(&self, event: GraphEvent) -> Result<(), String> {
-        let event_type = event.event_type().to_string();
+        let event-type = event.event-type().to-string();
         let subscribers = self.subscribers.read().unwrap();
 
-        if let Some(handlers) = subscribers.get(&event_type) {
+        if let Some(handlers) = subscribers.get(&event-type) {
             for handler in handlers {
                 if let Err(e) = handler.handle(&event).await {
                     log::error!("Event handler failed: {}", e);
@@ -695,10 +695,10 @@ impl EventBus for InMemoryEventBus {
         Ok(())
     }
 
-    async fn subscribe(&self, event_type: &str, handler: Arc<dyn EventHandler>) -> Result<(), String> {
+    async fn subscribe(&self, event-type: &str, handler: Arc<dyn EventHandler>) -> Result<(), String> {
         let mut subscribers = self.subscribers.write().unwrap();
-        subscribers.entry(event_type.to_string())
-            .or_insert_with(Vec::new)
+        subscribers.entry(event-type.to-string())
+            .or-insert-with(Vec::new)
             .push(handler);
         Ok(())
     }
@@ -709,32 +709,32 @@ impl EventBus for InMemoryEventBus {
 
 #### WebSocket Broadcaster (subscribes to all events)
 ```rust
-// src/infrastructure/websocket_event_subscriber.rs
+// src/infrastructure/websocket-event-subscriber.rs
 
 pub struct WebSocketEventSubscriber {
-    ws_gateway: Arc<dyn WebSocketGateway>,
+    ws-gateway: Arc<dyn WebSocketGateway>,
 }
 
-#[async_trait]
+#[async-trait]
 impl EventHandler for WebSocketEventSubscriber {
     async fn handle(&self, event: &GraphEvent) -> Result<(), String> {
         match event {
-            GraphEvent::NodePositionChanged { node_id, new_position, .. } => {
-                self.ws_gateway.broadcast(json!({
+            GraphEvent::NodePositionChanged { node-id, new-position, .. } => {
+                self.ws-gateway.broadcast(json!({
                     "type": "nodePositionUpdate",
-                    "nodeId": node_id,
-                    "position": new_position,
+                    "nodeId": node-id,
+                    "position": new-position,
                 })).await?;
             },
-            GraphEvent::GitHubSyncCompleted { total_nodes, total_edges, .. } => {
-                self.ws_gateway.broadcast(json!({
+            GraphEvent::GitHubSyncCompleted { total-nodes, total-edges, .. } => {
+                self.ws-gateway.broadcast(json!({
                     "type": "graphReloaded",
-                    "totalNodes": total_nodes,
-                    "totalEdges": total_edges,
+                    "totalNodes": total-nodes,
+                    "totalEdges": total-edges,
                     "message": "Graph data updated from GitHub sync",
                 })).await?;
             },
-            _ => {}
+            - => {}
         }
         Ok(())
     }
@@ -743,26 +743,26 @@ impl EventHandler for WebSocketEventSubscriber {
 
 #### Cache Invalidation Subscriber
 ```rust
-// src/infrastructure/cache_invalidation_subscriber.rs
+// src/infrastructure/cache-invalidation-subscriber.rs
 
 pub struct CacheInvalidationSubscriber {
-    cache_service: Arc<dyn CacheService>,
+    cache-service: Arc<dyn CacheService>,
 }
 
-#[async_trait]
+#[async-trait]
 impl EventHandler for CacheInvalidationSubscriber {
     async fn handle(&self, event: &GraphEvent) -> Result<(), String> {
         match event {
             GraphEvent::GitHubSyncCompleted { .. } => {
                 // ⭐ THIS FIXES THE BUG!
                 log::info!("🔄 Invalidating all graph caches after GitHub sync");
-                self.cache_service.invalidate_all().await?;
+                self.cache-service.invalidate-all().await?;
             },
             GraphEvent::NodeCreated { .. } |
             GraphEvent::NodePositionChanged { .. } => {
-                self.cache_service.invalidate_graph_data().await?;
+                self.cache-service.invalidate-graph-data().await?;
             },
-            _ => {}
+            - => {}
         }
         Ok(())
     }
@@ -775,85 +775,85 @@ impl EventHandler for CacheInvalidationSubscriber {
 
 ### Graph Repository Port
 ```rust
-// src/ports/graph_repository.rs
+// src/ports/graph-repository.rs
 
-#[async_trait]
+#[async-trait]
 pub trait GraphRepository: Send + Sync {
     /// Get complete graph data
-    async fn get_graph(&self) -> Result<GraphData, String>;
+    async fn get-graph(&self) -> Result<GraphData, String>;
 
     /// Save complete graph data
-    async fn save_graph(&self, data: GraphData) -> Result<(), String>;
+    async fn save-graph(&self, data: GraphData) -> Result<(), String>;
 
     /// Add single node
-    async fn add_node(&self, node: Node) -> Result<(), String>;
+    async fn add-node(&self, node: Node) -> Result<(), String>;
 
     /// Get node by ID
-    async fn get_node(&self, node_id: u32) -> Result<Option<Node>, String>;
+    async fn get-node(&self, node-id: u32) -> Result<Option<Node>, String>;
 
     /// Update node position
-    async fn update_node_position(&self, node_id: u32, position: (f32, f32, f32)) -> Result<(), String>;
+    async fn update-node-position(&self, node-id: u32, position: (f32, f32, f32)) -> Result<(), String>;
 
     /// Batch update node positions (for physics)
-    async fn batch_update_positions(&self, updates: Vec<(u32, (f32, f32, f32))>) -> Result<(), String>;
+    async fn batch-update-positions(&self, updates: Vec<(u32, (f32, f32, f32))>) -> Result<(), String>;
 
     /// Add edge
-    async fn add_edge(&self, edge: Edge) -> Result<(), String>;
+    async fn add-edge(&self, edge: Edge) -> Result<(), String>;
 
     /// Get all edges for a node
-    async fn get_node_edges(&self, node_id: u32) -> Result<Vec<Edge>, String>;
+    async fn get-node-edges(&self, node-id: u32) -> Result<Vec<Edge>, String>;
 }
 ```
 
 ### Event Store Port
 ```rust
-// src/ports/event_store.rs
+// src/ports/event-store.rs
 
-#[async_trait]
+#[async-trait]
 pub trait EventStore: Send + Sync {
     /// Append event to store
-    async fn append_event(&self, event: GraphEvent) -> Result<(), String>;
+    async fn append-event(&self, event: GraphEvent) -> Result<(), String>;
 
     /// Get events from version
-    async fn get_events(&self, from_version: u64) -> Result<Vec<GraphEvent>, String>;
+    async fn get-events(&self, from-version: u64) -> Result<Vec<GraphEvent>, String>;
 
     /// Get events for specific aggregate
-    async fn get_aggregate_events(&self, aggregate_id: &str) -> Result<Vec<GraphEvent>, String>;
+    async fn get-aggregate-events(&self, aggregate-id: &str) -> Result<Vec<GraphEvent>, String>;
 
     /// Get latest version
-    async fn get_latest_version(&self) -> Result<u64, String>;
+    async fn get-latest-version(&self) -> Result<u64, String>;
 }
 ```
 
 ### WebSocket Gateway Port
 ```rust
-// src/ports/websocket_gateway.rs
+// src/ports/websocket-gateway.rs
 
-#[async_trait]
+#[async-trait]
 pub trait WebSocketGateway: Send + Sync {
     /// Broadcast message to all connected clients
-    async fn broadcast(&self, message: serde_json::Value) -> Result<(), String>;
+    async fn broadcast(&self, message: serde-json::Value) -> Result<(), String>;
 
     /// Send message to specific client
-    async fn send_to_client(&self, client_id: &str, message: serde_json::Value) -> Result<(), String>;
+    async fn send-to-client(&self, client-id: &str, message: serde-json::Value) -> Result<(), String>;
 
     /// Get connected client count
-    async fn client_count(&self) -> usize;
+    async fn client-count(&self) -> usize;
 }
 ```
 
 ### Physics Simulator Port
 ```rust
-// src/ports/physics_simulator.rs
+// src/ports/physics-simulator.rs
 
-#[async_trait]
+#[async-trait]
 pub trait PhysicsSimulator: Send + Sync {
     /// Perform one simulation step
-    async fn simulate_step(&self, nodes: Vec<Node>, edges: Vec<Edge>, params: SimulationParams)
+    async fn simulate-step(&self, nodes: Vec<Node>, edges: Vec<Edge>, params: SimulationParams)
         -> Result<Vec<(u32, (f32, f32, f32))>, String>;
 
     /// Check if equilibrium reached
-    async fn is_equilibrium(&self, velocity_threshold: f32) -> Result<bool, String>;
+    async fn is-equilibrium(&self, velocity-threshold: f32) -> Result<bool, String>;
 }
 ```
 
@@ -863,21 +863,21 @@ pub trait PhysicsSimulator: Send + Sync {
 
 ### SQLite Graph Repository (Already Exists!)
 ```rust
-// src/adapters/sqlite_graph_repository.rs
+// src/adapters/sqlite-graph-repository.rs
 
 pub struct SqliteGraphRepository {
-    db_path: String,
+    db-path: String,
 }
 
-#[async_trait]
+#[async-trait]
 impl GraphRepository for SqliteGraphRepository {
-    async fn get_graph(&self) -> Result<GraphData, String> {
-        // Load from knowledge_graph.db
+    async fn get-graph(&self) -> Result<GraphData, String> {
+        // Load from knowledge-graph.db
         // This implementation already exists in SqliteKnowledgeGraphRepository!
         // Just needs to implement the new trait
     }
 
-    async fn add_node(&self, node: Node) -> Result<(), String> {
+    async fn add-node(&self, node: Node) -> Result<(), String> {
         // INSERT INTO nodes ...
     }
 
@@ -887,18 +887,18 @@ impl GraphRepository for SqliteGraphRepository {
 
 ### Actix WebSocket Adapter
 ```rust
-// src/adapters/actix_websocket_adapter.rs
+// src/adapters/actix-websocket-adapter.rs
 
 pub struct ActixWebSocketAdapter {
-    ws_server: Option<Addr<WebSocketServer>>, // Existing WebSocket server
+    ws-server: Option<Addr<WebSocketServer>>, // Existing WebSocket server
 }
 
-#[async_trait]
+#[async-trait]
 impl WebSocketGateway for ActixWebSocketAdapter {
-    async fn broadcast(&self, message: serde_json::Value) -> Result<(), String> {
-        if let Some(server) = &self.ws_server {
+    async fn broadcast(&self, message: serde-json::Value) -> Result<(), String> {
+        if let Some(server) = &self.ws-server {
             // Use existing WebSocket server infrastructure
-            server.do_send(BroadcastMessage { data: message });
+            server.do-send(BroadcastMessage { data: message });
         }
         Ok(())
     }
@@ -911,37 +911,37 @@ impl WebSocketGateway for ActixWebSocketAdapter {
 
 ### Before (Monolithic Actor)
 ```rust
-// src/handlers/api_handler/graph_data.rs (OLD)
+// src/handlers/api-handler/graph-data.rs (OLD)
 
-pub async fn get_graph_data(
+pub async fn get-graph-data(
     state: web::Data<AppState>,
 ) -> Result<HttpResponse, Error> {
     // Send message to GraphServiceActor
-    let graph_data = state.graph_service_actor
+    let graph-data = state.graph-service-actor
         .send(GetGraphData)
         .await??;  // ← Returns STALE in-memory cache!
 
-    Ok(HttpResponse::Ok().json(graph_data))
+    Ok(HttpResponse::Ok().json(graph-data))
 }
 ```
 
 ### After (CQRS)
 ```rust
-// src/handlers/api_handler/graph_data.rs (NEW)
+// src/handlers/api-handler/graph-data.rs (NEW)
 
-pub async fn get_graph_data(
-    query_handler: web::Data<Arc<GetGraphDataQueryHandler>>,
+pub async fn get-graph-data(
+    query-handler: web::Data<Arc<GetGraphDataQueryHandler>>,
 ) -> Result<HttpResponse, Error> {
     // Execute query handler (reads from SQLite)
     let query = GetGraphDataQuery {
-        include_edges: true,
+        include-edges: true,
         filter: None,
     };
 
-    let graph_data = query_handler.handle(query).await
-        .map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
+    let graph-data = query-handler.handle(query).await
+        .map-err(|e| actix-web::error::ErrorInternalServerError(e))?;
 
-    Ok(HttpResponse::Ok().json(graph_data))  // ← Always fresh from database!
+    Ok(HttpResponse::Ok().json(graph-data))  // ← Always fresh from database!
 }
 ```
 
@@ -951,15 +951,15 @@ pub async fn get_graph_data(
 
 ### Current Problem
 ```rust
-// src/services/github_sync_service.rs (CURRENT - BROKEN)
+// src/services/github-sync-service.rs (CURRENT - BROKEN)
 
-pub async fn sync_graphs(&self) -> Result<SyncStatistics, String> {
+pub async fn sync-graphs(&self) -> Result<SyncStatistics, String> {
     // 1. Fetch from GitHub
-    let files = self.content_api.fetch_all_files().await?;
+    let files = self.content-api.fetch-all-files().await?;
 
     // 2. Parse and write to SQLite
-    self.kg_repo.save_nodes(nodes).await?;
-    self.kg_repo.save_edges(edges).await?;
+    self.kg-repo.save-nodes(nodes).await?;
+    self.kg-repo.save-edges(edges).await?;
 
     // 3. Return stats
     Ok(stats)  // ❌ NO EVENT EMITTED - GraphServiceActor cache stays stale!
@@ -968,31 +968,31 @@ pub async fn sync_graphs(&self) -> Result<SyncStatistics, String> {
 
 ### Fixed with Events
 ```rust
-// src/services/github_sync_service.rs (NEW - FIXED)
+// src/services/github-sync-service.rs (NEW - FIXED)
 
 pub struct GitHubSyncService {
-    content_api: Arc<EnhancedContentAPI>,
-    kg_repo: Arc<dyn GraphRepository>,
-    event_bus: Arc<dyn EventBus>,  // ← ADD EVENT BUS
+    content-api: Arc<EnhancedContentAPI>,
+    kg-repo: Arc<dyn GraphRepository>,
+    event-bus: Arc<dyn EventBus>,  // ← ADD EVENT BUS
 }
 
-pub async fn sync_graphs(&self) -> Result<SyncStatistics, String> {
+pub async fn sync-graphs(&self) -> Result<SyncStatistics, String> {
     // 1. Fetch from GitHub
-    let files = self.content_api.fetch_all_files().await?;
+    let files = self.content-api.fetch-all-files().await?;
 
     // 2. Parse and write to SQLite
-    self.kg_repo.save_nodes(nodes).await?;
-    self.kg_repo.save_edges(edges).await?;
+    self.kg-repo.save-nodes(nodes).await?;
+    self.kg-repo.save-edges(edges).await?;
 
     // 3. ✅ EMIT EVENT - This fixes the cache bug!
     let event = GraphEvent::GitHubSyncCompleted {
-        total_nodes: stats.total_nodes,
-        total_edges: stats.total_edges,
-        kg_files: stats.kg_files_processed,
-        ontology_files: stats.ontology_files_processed,
+        total-nodes: stats.total-nodes,
+        total-edges: stats.total-edges,
+        kg-files: stats.kg-files-processed,
+        ontology-files: stats.ontology-files-processed,
         timestamp: chrono::Utc::now(),
     };
-    self.event_bus.publish(event).await?;
+    self.event-bus.publish(event).await?;
 
     // 4. Return stats
     Ok(stats)
@@ -1006,28 +1006,28 @@ graph TB
     START["🔄 GitHub Sync Completes"]
     EVENT["📡 Emit GitHubSyncCompletedEvent"]
 
-    CACHE_SUB["🗄️ Cache Invalidation<br/>Subscriber"]
-    WS_SUB["🌐 WebSocket Notify<br/>Subscriber"]
-    LOG_SUB["📝 Logging<br/>Subscriber"]
+    CACHE-SUB["🗄️ Cache Invalidation<br/>Subscriber"]
+    WS-SUB["🌐 WebSocket Notify<br/>Subscriber"]
+    LOG-SUB["📝 Logging<br/>Subscriber"]
 
-    CACHE_ACTION["Clear all caches"]
-    WS_ACTION["Broadcast to<br/>all clients"]
-    LOG_ACTION["Log sync stats"]
+    CACHE-ACTION["Clear all caches"]
+    WS-ACTION["Broadcast to<br/>all clients"]
+    LOG-ACTION["Log sync stats"]
 
-    API_RESULT["📊 Next API call<br/>reads fresh data"]
-    CLIENT_RESULT["✅ Clients reload<br/>and see 316 nodes!"]
+    API-RESULT["📊 Next API call<br/>reads fresh data"]
+    CLIENT-RESULT["✅ Clients reload<br/>and see 316 nodes!"]
 
     START --> EVENT
-    EVENT --> CACHE_SUB
-    EVENT --> WS_SUB
-    EVENT --> LOG_SUB
+    EVENT --> CACHE-SUB
+    EVENT --> WS-SUB
+    EVENT --> LOG-SUB
 
-    CACHE_SUB --> CACHE_ACTION
-    WS_SUB --> WS_ACTION
-    LOG_SUB --> LOG_ACTION
+    CACHE-SUB --> CACHE-ACTION
+    WS-SUB --> WS-ACTION
+    LOG-SUB --> LOG-ACTION
 
-    CACHE_ACTION --> API_RESULT
-    WS_ACTION --> CLIENT_RESULT
+    CACHE-ACTION --> API-RESULT
+    WS-ACTION --> CLIENT-RESULT
 
     classDef startNode fill:#c8e6c9,stroke:#2e7d32,stroke-width:3px
     classDef eventNode fill:#fff59d,stroke:#f57f17,stroke-width:3px
@@ -1037,9 +1037,9 @@ graph TB
 
     class START startNode
     class EVENT eventNode
-    class CACHE_SUB,WS_SUB,LOG_SUB subscriberNode
-    class CACHE_ACTION,WS_ACTION,LOG_ACTION actionNode
-    class API_RESULT,CLIENT_RESULT resultNode
+    class CACHE-SUB,WS-SUB,LOG-SUB subscriberNode
+    class CACHE-ACTION,WS-ACTION,LOG-ACTION actionNode
+    class API-RESULT,CLIENT-RESULT resultNode
 ```
 
 ---
@@ -1054,20 +1054,20 @@ graph TB
     CMD["📝 TriggerPhysicsStepCommand"]
     HANDLER["⚙️ PhysicsCommandHandler"]
 
-    SIM["🖥️ PhysicsSimulator.simulate_step"]
+    SIM["🖥️ PhysicsSimulator.simulate-step"]
     GPU["⚡ Compute new positions<br/>(GPU)"]
-    REPO["💾 GraphRepository.batch_update_positions"]
+    REPO["💾 GraphRepository.batch-update-positions"]
     DB["📊 Write to SQLite"]
 
     EVENT["📡 Emit PhysicsStepCompletedEvent"]
 
-    WS_SUB["🌐 WebSocket Subscriber"]
-    CACHE_SUB["🗄️ Cache Invalidation"]
-    METRICS_SUB["📈 Metrics"]
+    WS-SUB["🌐 WebSocket Subscriber"]
+    CACHE-SUB["🗄️ Cache Invalidation"]
+    METRICS-SUB["📈 Metrics"]
 
-    WS_ACTION["Broadcast positions<br/>to all clients"]
-    CACHE_ACTION["Clear cache"]
-    METRICS_ACTION["Track performance"]
+    WS-ACTION["Broadcast positions<br/>to all clients"]
+    CACHE-ACTION["Clear cache"]
+    METRICS-ACTION["Track performance"]
 
     RESULT["✅ Clients see smooth<br/>real-time animation"]
 
@@ -1078,15 +1078,15 @@ graph TB
     REPO --> DB
     HANDLER --> EVENT
 
-    EVENT --> WS_SUB
-    EVENT --> CACHE_SUB
-    EVENT --> METRICS_SUB
+    EVENT --> WS-SUB
+    EVENT --> CACHE-SUB
+    EVENT --> METRICS-SUB
 
-    WS_SUB --> WS_ACTION
-    CACHE_SUB --> CACHE_ACTION
-    METRICS_SUB --> METRICS_ACTION
+    WS-SUB --> WS-ACTION
+    CACHE-SUB --> CACHE-ACTION
+    METRICS-SUB --> METRICS-ACTION
 
-    WS_ACTION --> RESULT
+    WS-ACTION --> RESULT
 
     classDef userNode fill:#e1bee7,stroke:#6a1b9a,stroke-width:3px
     classDef commandNode fill:#fff59d,stroke:#f57f17,stroke-width:2px
@@ -1102,8 +1102,8 @@ graph TB
     class HANDLER handlerNode
     class SIM,GPU,REPO,DB processNode
     class EVENT eventNode
-    class WS_SUB,CACHE_SUB,METRICS_SUB subscriberNode
-    class WS_ACTION,CACHE_ACTION,METRICS_ACTION actionNode
+    class WS-SUB,CACHE-SUB,METRICS-SUB subscriberNode
+    class WS-ACTION,CACHE-ACTION,METRICS-ACTION actionNode
     class RESULT resultNode
 ```
 
@@ -1121,13 +1121,13 @@ graph TB
 
 **Phase 2: GitHub Sync Pipeline** - COMPLETE (Nov 3, 2025)
 - ✅ Differential file sync with SHA1 hashing
-- ✅ FORCE_FULL_SYNC environment variable
+- ✅ FORCE-FULL-SYNC environment variable
 - ✅ Knowledge graph parser (316 nodes loaded)
 - ✅ Ontology parser with OWL extraction
 
 **Phase 3: Ontology Reasoning** - COMPLETE (Nov 3, 2025)
 - ✅ CustomReasoner integration for OWL 2 EL reasoning
-- ✅ Inferred axioms stored with `is_inferred=1` flag
+- ✅ Inferred axioms stored with `is-inferred=1` flag
 - ✅ LRU caching for 90x speedup
 - ✅ Semantic constraint generation
 
@@ -1142,46 +1142,46 @@ graph TB
 ```mermaid
 graph TB
     subgraph Phase1["🟢 Phase 1: Read Operations (1 week, LOW RISK)"]
-        P1_1["Create query DTOs<br/>and handlers"]
-        P1_2["Implement<br/>GetGraphDataQueryHandler"]
-        P1_3["Update API handlers<br/>to use queries"]
-        P1_4["Keep actor running<br/>in parallel"]
-        P1_5["Monitor for<br/>differences"]
-        P1_6["✅ Success: All GET<br/>endpoints use CQRS"]
+        P1-1["Create query DTOs<br/>and handlers"]
+        P1-2["Implement<br/>GetGraphDataQueryHandler"]
+        P1-3["Update API handlers<br/>to use queries"]
+        P1-4["Keep actor running<br/>in parallel"]
+        P1-5["Monitor for<br/>differences"]
+        P1-6["✅ Success: All GET<br/>endpoints use CQRS"]
 
-        P1_1 --> P1_2 --> P1_3 --> P1_4 --> P1_5 --> P1_6
+        P1-1 --> P1-2 --> P1-3 --> P1-4 --> P1-5 --> P1-6
     end
 
     subgraph Phase2["🟡 Phase 2: Write Operations (2 weeks, MEDIUM RISK)"]
-        P2_1["Implement<br/>event bus"]
-        P2_2["Create command DTOs<br/>and handlers"]
-        P2_3["Emit events after<br/>command execution"]
-        P2_4["Subscribe WebSocket<br/>adapter to events"]
-        P2_5["Update API handlers<br/>to use commands"]
-        P2_6["✅ Success: All POST/PUT/DELETE<br/>use CQRS + Events"]
+        P2-1["Implement<br/>event bus"]
+        P2-2["Create command DTOs<br/>and handlers"]
+        P2-3["Emit events after<br/>command execution"]
+        P2-4["Subscribe WebSocket<br/>adapter to events"]
+        P2-5["Update API handlers<br/>to use commands"]
+        P2-6["✅ Success: All POST/PUT/DELETE<br/>use CQRS + Events"]
 
-        P2_1 --> P2_2 --> P2_3 --> P2_4 --> P2_5 --> P2_6
+        P2-1 --> P2-2 --> P2-3 --> P2-4 --> P2-5 --> P2-6
     end
 
     subgraph Phase3["🟠 Phase 3: Real-Time Features (2 weeks, HIGH RISK)"]
-        P3_1["Implement Physics<br/>domain service"]
-        P3_2["Update GitHub sync<br/>to emit events"]
-        P3_3["Implement cache<br/>invalidation subscriber"]
-        P3_4["Test cache<br/>invalidation"]
-        P3_5["🎯 Verify 316 nodes<br/>after sync (BUG FIXED!)"]
-        P3_6["✅ Success: Real-time<br/>updates work"]
+        P3-1["Implement Physics<br/>domain service"]
+        P3-2["Update GitHub sync<br/>to emit events"]
+        P3-3["Implement cache<br/>invalidation subscriber"]
+        P3-4["Test cache<br/>invalidation"]
+        P3-5["🎯 Verify 316 nodes<br/>after sync (BUG FIXED!)"]
+        P3-6["✅ Success: Real-time<br/>updates work"]
 
-        P3_1 --> P3_2 --> P3_3 --> P3_4 --> P3_5 --> P3_6
+        P3-1 --> P3-2 --> P3-3 --> P3-4 --> P3-5 --> P3-6
     end
 
     subgraph Phase4["🔵 Phase 4: Legacy Removal (1 week, LOW RISK)"]
-        P4_1["Delete<br/>GraphServiceActor"]
-        P4_2["Remove actor<br/>message types"]
-        P4_3["Update<br/>documentation"]
-        P4_4["Final testing"]
-        P4_5["🎉 Success: Clean<br/>architecture achieved"]
+        P4-1["Delete<br/>GraphServiceActor"]
+        P4-2["Remove actor<br/>message types"]
+        P4-3["Update<br/>documentation"]
+        P4-4["Final testing"]
+        P4-5["🎉 Success: Clean<br/>architecture achieved"]
 
-        P4_1 --> P4_2 --> P4_3 --> P4_4 --> P4_5
+        P4-1 --> P4-2 --> P4-3 --> P4-4 --> P4-5
     end
 
     Phase1 --> Phase2 --> Phase3 --> Phase4
@@ -1191,10 +1191,10 @@ graph TB
     classDef phase3 fill:#ffccbc,stroke:#d84315,stroke-width:2px
     classDef phase4 fill:#bbdefb,stroke:#1565c0,stroke-width:2px
 
-    class P1_1,P1_2,P1_3,P1_4,P1_5,P1_6 phase1
-    class P2_1,P2_2,P2_3,P2_4,P2_5,P2_6 phase2
-    class P3_1,P3_2,P3_3,P3_4,P3_5,P3_6 phase3
-    class P4_1,P4_2,P4_3,P4_4,P4_5 phase4
+    class P1-1,P1-2,P1-3,P1-4,P1-5,P1-6 phase1
+    class P2-1,P2-2,P2-3,P2-4,P2-5,P2-6 phase2
+    class P3-1,P3-2,P3-3,P3-4,P3-5,P3-6 phase3
+    class P4-1,P4-2,P4-3,P4-4,P4-5 phase4
 ```
 
 ### Phase 1: Read Operations (SAFEST - Start Here)
@@ -1213,9 +1213,9 @@ graph TB
 
 **Files to Create**:
 - `/src/application/graph/queries.rs` - Query definitions
-- `/src/application/graph/query_handlers.rs` - Query handlers
-- `/src/ports/graph_repository.rs` - Repository trait
-- `/src/adapters/sqlite_graph_repository.rs` - SQLite implementation
+- `/src/application/graph/query-handlers.rs` - Query handlers
+- `/src/ports/graph-repository.rs` - Repository trait
+- `/src/adapters/sqlite-graph-repository.rs` - SQLite implementation
 
 **Success Criteria**:
 ✅ All GET /api/graph/* endpoints use query handlers
@@ -1239,10 +1239,10 @@ graph TB
 
 **Files to Create**:
 - `/src/application/graph/commands.rs` - Command definitions
-- `/src/application/graph/command_handlers.rs` - Command handlers
+- `/src/application/graph/command-handlers.rs` - Command handlers
 - `/src/domain/events.rs` - Event definitions
-- `/src/infrastructure/event_bus.rs` - Event bus implementation
-- `/src/infrastructure/websocket_event_subscriber.rs` - WebSocket subscriber
+- `/src/infrastructure/event-bus.rs` - Event bus implementation
+- `/src/infrastructure/websocket-event-subscriber.rs` - WebSocket subscriber
 
 **Success Criteria**:
 ✅ All POST/PUT/DELETE /api/graph/* endpoints use command handlers
@@ -1265,9 +1265,9 @@ graph TB
 7. Verify 316 nodes appear after sync ✅
 
 **Files to Create**:
-- `/src/domain/services/physics_service.rs` - Physics domain service
-- `/src/infrastructure/cache_service.rs` - Cache management
-- `/src/infrastructure/cache_invalidation_subscriber.rs` - Cache invalidation
+- `/src/domain/services/physics-service.rs` - Physics domain service
+- `/src/infrastructure/cache-service.rs` - Cache management
+- `/src/infrastructure/cache-invalidation-subscriber.rs` - Cache invalidation
 
 **Success Criteria**:
 ✅ Physics simulation works via events
@@ -1288,9 +1288,9 @@ graph TB
 5. Celebrate! 🎉
 
 **Files to Delete**:
-- `/src/actors/graph_actor.rs` (48K tokens!)
-- `/src/actors/graph_messages.rs`
-- `/src/actors/graph_service_supervisor.rs`
+- `/src/actors/graph-actor.rs` (48K tokens!)
+- `/src/actors/graph-messages.rs`
+- `/src/actors/graph-service-supervisor.rs`
 
 **Success Criteria**:
 ✅ Zero actor references in codebase
@@ -1303,41 +1303,41 @@ graph TB
 
 ### Example 1: Query Handler
 ```rust
-// src/application/graph/query_handlers.rs
+// src/application/graph/query-handlers.rs
 
-use crate::ports::graph_repository::GraphRepository;
+use crate::ports::graph-repository::GraphRepository;
 use crate::application::graph::queries::GetGraphDataQuery;
 use crate::models::graph::GraphData;
 use std::sync::Arc;
 
 pub struct GetGraphDataQueryHandler {
-    graph_repo: Arc<dyn GraphRepository>,
+    graph-repo: Arc<dyn GraphRepository>,
 }
 
 impl GetGraphDataQueryHandler {
-    pub fn new(graph_repo: Arc<dyn GraphRepository>) -> Self {
-        Self { graph_repo }
+    pub fn new(graph-repo: Arc<dyn GraphRepository>) -> Self {
+        Self { graph-repo }
     }
 
     pub async fn handle(&self, query: GetGraphDataQuery) -> Result<GraphData, String> {
         // 1. Read from repository (ALWAYS fresh from SQLite!)
-        let mut graph_data = self.graph_repo.get_graph().await?;
+        let mut graph-data = self.graph-repo.get-graph().await?;
 
         // 2. Apply optional filters
         if let Some(filter) = query.filter {
-            graph_data = self.apply_filter(graph_data, filter)?;
+            graph-data = self.apply-filter(graph-data, filter)?;
         }
 
         // 3. Optionally exclude edges for performance
-        if !query.include_edges {
-            graph_data.edges.clear();
+        if !query.include-edges {
+            graph-data.edges.clear();
         }
 
         // 4. Return DTO
-        Ok(graph_data)
+        Ok(graph-data)
     }
 
-    fn apply_filter(&self, graph: GraphData, filter: GraphFilter) -> Result<GraphData, String> {
+    fn apply-filter(&self, graph: GraphData, filter: GraphFilter) -> Result<GraphData, String> {
         // Filter implementation
         Ok(graph)
     }
@@ -1346,26 +1346,26 @@ impl GetGraphDataQueryHandler {
 
 ### Example 2: Command Handler with Events
 ```rust
-// src/application/graph/command_handlers.rs
+// src/application/graph/command-handlers.rs
 
-use crate::ports::graph_repository::GraphRepository;
-use crate::infrastructure::event_bus::EventBus;
+use crate::ports::graph-repository::GraphRepository;
+use crate::infrastructure::event-bus::EventBus;
 use crate::domain::events::GraphEvent;
 use crate::application::graph::commands::CreateNodeCommand;
 use crate::models::node::Node;
 use std::sync::Arc;
 
 pub struct CreateNodeCommandHandler {
-    graph_repo: Arc<dyn GraphRepository>,
-    event_bus: Arc<dyn EventBus>,
+    graph-repo: Arc<dyn GraphRepository>,
+    event-bus: Arc<dyn EventBus>,
 }
 
 impl CreateNodeCommandHandler {
     pub fn new(
-        graph_repo: Arc<dyn GraphRepository>,
-        event_bus: Arc<dyn EventBus>,
+        graph-repo: Arc<dyn GraphRepository>,
+        event-bus: Arc<dyn EventBus>,
     ) -> Self {
-        Self { graph_repo, event_bus }
+        Self { graph-repo, event-bus }
     }
 
     pub async fn handle(&self, cmd: CreateNodeCommand) -> Result<(), String> {
@@ -1374,30 +1374,30 @@ impl CreateNodeCommandHandler {
 
         // 2. Create domain entity
         let node = Node {
-            id: cmd.node_id,
+            id: cmd.node-id,
             label: cmd.label,
             position: cmd.position,
-            metadata_id: cmd.metadata_id,
+            metadata-id: cmd.metadata-id,
             ..Default::default()
         };
 
         // 3. Persist via repository
-        self.graph_repo.add_node(node.clone()).await?;
+        self.graph-repo.add-node(node.clone()).await?;
 
         // 4. Emit domain event (event sourcing!)
         let event = GraphEvent::NodeCreated {
-            node_id: node.id,
+            node-id: node.id,
             timestamp: chrono::Utc::now(),
             source: UpdateSource::UserInteraction,
         };
-        self.event_bus.publish(event).await?;
+        self.event-bus.publish(event).await?;
 
         Ok(())
     }
 
     fn validate(&self, cmd: &CreateNodeCommand) -> Result<(), String> {
-        if cmd.label.is_empty() {
-            return Err("Node label cannot be empty".to_string());
+        if cmd.label.is-empty() {
+            return Err("Node label cannot be empty".to-string());
         }
         Ok(())
     }
@@ -1406,55 +1406,55 @@ impl CreateNodeCommandHandler {
 
 ### Example 3: Event Handler (WebSocket Broadcast)
 ```rust
-// src/infrastructure/websocket_event_subscriber.rs
+// src/infrastructure/websocket-event-subscriber.rs
 
 use crate::domain::events::GraphEvent;
-use crate::infrastructure::event_bus::EventHandler;
-use crate::ports::websocket_gateway::WebSocketGateway;
+use crate::infrastructure::event-bus::EventHandler;
+use crate::ports::websocket-gateway::WebSocketGateway;
 use std::sync::Arc;
-use async_trait::async_trait;
+use async-trait::async-trait;
 
 pub struct WebSocketEventSubscriber {
-    ws_gateway: Arc<dyn WebSocketGateway>,
+    ws-gateway: Arc<dyn WebSocketGateway>,
 }
 
 impl WebSocketEventSubscriber {
-    pub fn new(ws_gateway: Arc<dyn WebSocketGateway>) -> Self {
-        Self { ws_gateway }
+    pub fn new(ws-gateway: Arc<dyn WebSocketGateway>) -> Self {
+        Self { ws-gateway }
     }
 }
 
-#[async_trait]
+#[async-trait]
 impl EventHandler for WebSocketEventSubscriber {
     async fn handle(&self, event: &GraphEvent) -> Result<(), String> {
         match event {
-            GraphEvent::NodeCreated { node_id, .. } => {
-                self.ws_gateway.broadcast(serde_json::json!({
+            GraphEvent::NodeCreated { node-id, .. } => {
+                self.ws-gateway.broadcast(serde-json::json!({
                     "type": "nodeCreated",
-                    "nodeId": node_id,
+                    "nodeId": node-id,
                 })).await?;
             },
 
-            GraphEvent::NodePositionChanged { node_id, new_position, source, .. } => {
-                self.ws_gateway.broadcast(serde_json::json!({
+            GraphEvent::NodePositionChanged { node-id, new-position, source, .. } => {
+                self.ws-gateway.broadcast(serde-json::json!({
                     "type": "nodePositionUpdate",
-                    "nodeId": node_id,
-                    "position": new_position,
+                    "nodeId": node-id,
+                    "position": new-position,
                     "source": format!("{:?}", source),
                 })).await?;
             },
 
-            GraphEvent::GitHubSyncCompleted { total_nodes, total_edges, .. } => {
+            GraphEvent::GitHubSyncCompleted { total-nodes, total-edges, .. } => {
                 // ⭐ THIS NOTIFIES CLIENTS AFTER GITHUB SYNC!
-                self.ws_gateway.broadcast(serde_json::json!({
+                self.ws-gateway.broadcast(serde-json::json!({
                     "type": "graphReloaded",
-                    "totalNodes": total_nodes,
-                    "totalEdges": total_edges,
+                    "totalNodes": total-nodes,
+                    "totalEdges": total-edges,
                     "message": "Graph data synchronized from GitHub",
                 })).await?;
             },
 
-            _ => {}
+            - => {}
         }
         Ok(())
     }
@@ -1463,44 +1463,44 @@ impl EventHandler for WebSocketEventSubscriber {
 
 ### Example 4: GitHub Sync Integration
 ```rust
-// src/services/github_sync_service.rs (UPDATED)
+// src/services/github-sync-service.rs (UPDATED)
 
 pub struct GitHubSyncService {
-    content_api: Arc<EnhancedContentAPI>,
-    kg_repo: Arc<dyn GraphRepository>,
-    onto_repo: Arc<dyn OntologyRepository>,
-    event_bus: Arc<dyn EventBus>,  // ← NEW!
+    content-api: Arc<EnhancedContentAPI>,
+    kg-repo: Arc<dyn GraphRepository>,
+    onto-repo: Arc<dyn OntologyRepository>,
+    event-bus: Arc<dyn EventBus>,  // ← NEW!
 }
 
 impl GitHubSyncService {
-    pub async fn sync_graphs(&self) -> Result<SyncStatistics, String> {
+    pub async fn sync-graphs(&self) -> Result<SyncStatistics, String> {
         info!("Starting GitHub sync...");
         let start = Instant::now();
 
         // 1. Fetch files from GitHub
-        let files = self.content_api.fetch_all_markdown_files().await?;
+        let files = self.content-api.fetch-all-markdown-files().await?;
 
         // 2. Parse into nodes/edges
-        let (nodes, edges) = self.parse_knowledge_graph_files(&files).await?;
+        let (nodes, edges) = self.parse-knowledge-graph-files(&files).await?;
 
         // 3. Save to SQLite
-        self.kg_repo.save_graph(GraphData { nodes, edges }).await?;
+        self.kg-repo.save-graph(GraphData { nodes, edges }).await?;
 
         // 4. ✅ EMIT EVENT - This fixes the cache bug!
         let event = GraphEvent::GitHubSyncCompleted {
-            total_nodes: nodes.len(),
-            total_edges: edges.len(),
-            kg_files: stats.kg_files_processed,
-            ontology_files: stats.ontology_files_processed,
+            total-nodes: nodes.len(),
+            total-edges: edges.len(),
+            kg-files: stats.kg-files-processed,
+            ontology-files: stats.ontology-files-processed,
             timestamp: chrono::Utc::now(),
         };
-        self.event_bus.publish(event).await?;
+        self.event-bus.publish(event).await?;
 
         info!("✅ GitHub sync completed: {} nodes, {} edges", nodes.len(), edges.len());
 
         Ok(SyncStatistics {
-            total_nodes: nodes.len(),
-            total_edges: edges.len(),
+            total-nodes: nodes.len(),
+            total-edges: edges.len(),
             duration: start.elapsed(),
             ..Default::default()
         })
@@ -1517,11 +1517,11 @@ impl GitHubSyncService {
 ```mermaid
 graph TB
     subgraph Presentation["🌐 Presentation Layer (HTTP/WebSocket)"]
-        H1["handlers/api_handler/<br/>graph_data.rs<br/>nodes.rs<br/>physics.rs"]
+        H1["handlers/api-handler/<br/>graph-data.rs<br/>nodes.rs<br/>physics.rs"]
     end
 
     subgraph Application["⚡ Application Layer (CQRS)"]
-        APP1["application/graph/<br/>• commands.rs<br/>• command_handlers.rs<br/>• queries.rs<br/>• query_handlers.rs"]
+        APP1["application/graph/<br/>• commands.rs<br/>• command-handlers.rs<br/>• queries.rs<br/>• query-handlers.rs"]
 
         APP2["application/physics/<br/>• commands.rs<br/>• queries.rs"]
     end
@@ -1529,23 +1529,23 @@ graph TB
     subgraph Domain["🎯 Domain Layer (Business Logic)"]
         DOM1["domain/<br/>• events.rs<br/>• models.rs"]
 
-        DOM2["domain/services/<br/>• physics_service.rs<br/>• semantic_service.rs"]
+        DOM2["domain/services/<br/>• physics-service.rs<br/>• semantic-service.rs"]
     end
 
     subgraph Ports["🔌 Ports (Interfaces)"]
-        PORT1["ports/<br/>• graph_repository.rs<br/>• event_store.rs<br/>• websocket_gateway.rs<br/>• physics_simulator.rs"]
+        PORT1["ports/<br/>• graph-repository.rs<br/>• event-store.rs<br/>• websocket-gateway.rs<br/>• physics-simulator.rs"]
     end
 
     subgraph Adapters["🔧 Adapters (Implementations)"]
-        ADAPT1["adapters/<br/>• sqlite_graph_repository.rs<br/>• actix_websocket_adapter.rs<br/>• inmemory_event_store.rs<br/>• gpu_physics_adapter.rs"]
+        ADAPT1["adapters/<br/>• sqlite-graph-repository.rs<br/>• actix-websocket-adapter.rs<br/>• inmemory-event-store.rs<br/>• gpu-physics-adapter.rs"]
     end
 
     subgraph Infrastructure["🏗️ Infrastructure (Cross-Cutting)"]
-        INFRA1["infrastructure/<br/>• event_bus.rs<br/>• cache_service.rs<br/>• websocket_event_subscriber.rs<br/>• cache_invalidation_subscriber.rs"]
+        INFRA1["infrastructure/<br/>• event-bus.rs<br/>• cache-service.rs<br/>• websocket-event-subscriber.rs<br/>• cache-invalidation-subscriber.rs"]
     end
 
     subgraph Legacy["❌ Legacy (DELETE IN PHASE 4)"]
-        LEG1["actors/<br/>• graph_actor.rs (48K tokens!)<br/>• graph_messages.rs"]
+        LEG1["actors/<br/>• graph-actor.rs (48K tokens!)<br/>• graph-messages.rs"]
     end
 
     H1 --> APP1 & APP2
@@ -1579,9 +1579,9 @@ src/
 ├── application/              # Application layer (CQRS)
 │   ├── graph/
 │   │   ├── commands.rs      # Write operations
-│   │   ├── command_handlers.rs
+│   │   ├── command-handlers.rs
 │   │   ├── queries.rs       # Read operations
-│   │   ├── query_handlers.rs
+│   │   ├── query-handlers.rs
 │   │   └── mod.rs
 │   ├── physics/
 │   │   ├── commands.rs
@@ -1592,40 +1592,40 @@ src/
 ├── domain/                   # Domain layer (business logic)
 │   ├── events.rs            # Domain events
 │   ├── services/
-│   │   ├── physics_service.rs
-│   │   └── semantic_service.rs
+│   │   ├── physics-service.rs
+│   │   └── semantic-service.rs
 │   └── mod.rs
 │
 ├── ports/                    # Port interfaces (traits)
-│   ├── graph_repository.rs
-│   ├── event_store.rs
-│   ├── websocket_gateway.rs
-│   ├── physics_simulator.rs
+│   ├── graph-repository.rs
+│   ├── event-store.rs
+│   ├── websocket-gateway.rs
+│   ├── physics-simulator.rs
 │   └── mod.rs
 │
 ├── adapters/                 # Adapter implementations
-│   ├── sqlite_graph_repository.rs
-│   ├── actix_websocket_adapter.rs
-│   ├── inmemory_event_store.rs
-│   ├── gpu_physics_adapter.rs
+│   ├── sqlite-graph-repository.rs
+│   ├── actix-websocket-adapter.rs
+│   ├── inmemory-event-store.rs
+│   ├── gpu-physics-adapter.rs
 │   └── mod.rs
 │
 ├── infrastructure/           # Infrastructure concerns
-│   ├── event_bus.rs
-│   ├── cache_service.rs
-│   ├── websocket_event_subscriber.rs
-│   ├── cache_invalidation_subscriber.rs
+│   ├── event-bus.rs
+│   ├── cache-service.rs
+│   ├── websocket-event-subscriber.rs
+│   ├── cache-invalidation-subscriber.rs
 │   └── mod.rs
 │
 ├── handlers/                 # HTTP handlers (thin layer)
-│   ├── api_handler/
-│   │   ├── graph_data.rs   # GET /api/graph/data
+│   ├── api-handler/
+│   │   ├── graph-data.rs   # GET /api/graph/data
 │   │   ├── nodes.rs        # POST /api/graph/nodes
 │   │   └── mod.rs
 │   └── mod.rs
 │
 └── actors/                   # Legacy (to be removed)
-    ├── graph_actor.rs       # ❌ DELETE IN PHASE 4
+    ├── graph-actor.rs       # ❌ DELETE IN PHASE 4
     └── mod.rs
 ```
 
@@ -1635,31 +1635,31 @@ src/
 
 ### Unit Tests (Domain Logic)
 ```rust
-// tests/unit/command_handlers_test.rs
+// tests/unit/command-handlers-test.rs
 
 #[tokio::test]
-async fn test_create_node_command() {
+async fn test-create-node-command() {
     // Arrange
-    let mock_repo = Arc::new(MockGraphRepository::new());
-    let mock_bus = Arc::new(MockEventBus::new());
-    let handler = CreateNodeCommandHandler::new(mock_repo.clone(), mock_bus.clone());
+    let mock-repo = Arc::new(MockGraphRepository::new());
+    let mock-bus = Arc::new(MockEventBus::new());
+    let handler = CreateNodeCommandHandler::new(mock-repo.clone(), mock-bus.clone());
 
     let cmd = CreateNodeCommand {
-        node_id: 1,
-        label: "Test Node".to_string(),
+        node-id: 1,
+        label: "Test Node".to-string(),
         position: (0.0, 0.0, 0.0),
-        metadata_id: None,
+        metadata-id: None,
     };
 
     // Act
     let result = handler.handle(cmd).await;
 
     // Assert
-    assert!(result.is_ok());
-    assert_eq!(mock_repo.add_node_calls(), 1);
-    assert_eq!(mock_bus.published_events().len(), 1);
+    assert!(result.is-ok());
+    assert-eq!(mock-repo.add-node-calls(), 1);
+    assert-eq!(mock-bus.published-events().len(), 1);
     assert!(matches!(
-        mock_bus.published_events()[0],
+        mock-bus.published-events()[0],
         GraphEvent::NodeCreated { .. }
     ));
 }
@@ -1667,31 +1667,31 @@ async fn test_create_node_command() {
 
 ### Integration Tests (End-to-End)
 ```rust
-// tests/integration/github_sync_test.rs
+// tests/integration/github-sync-test.rs
 
 #[tokio::test]
-async fn test_github_sync_emits_event() {
+async fn test-github-sync-emits-event() {
     // Arrange
-    let db_path = create_test_database();
-    let repo = Arc::new(SqliteGraphRepository::new(&db_path));
-    let event_bus = Arc::new(InMemoryEventBus::new());
-    let sync_service = GitHubSyncService::new(
+    let db-path = create-test-database();
+    let repo = Arc::new(SqliteGraphRepository::new(&db-path));
+    let event-bus = Arc::new(InMemoryEventBus::new());
+    let sync-service = GitHubSyncService::new(
         Arc::new(MockGitHubAPI::new()),
         repo.clone(),
-        event_bus.clone(),
+        event-bus.clone(),
     );
 
     // Act
-    let stats = sync_service.sync_graphs().await.unwrap();
+    let stats = sync-service.sync-graphs().await.unwrap();
 
     // Assert
-    assert_eq!(stats.total_nodes, 316);  // ✅ Expect 316 nodes!
+    assert-eq!(stats.total-nodes, 316);  // ✅ Expect 316 nodes!
 
-    let events = event_bus.get_published_events();
-    assert_eq!(events.len(), 1);
+    let events = event-bus.get-published-events();
+    assert-eq!(events.len(), 1);
     assert!(matches!(
         events[0],
-        GraphEvent::GitHubSyncCompleted { total_nodes: 316, .. }
+        GraphEvent::GitHubSyncCompleted { total-nodes: 316, .. }
     ));
 }
 ```
@@ -1703,7 +1703,7 @@ async fn test_github_sync_emits_event() {
 ### Query Optimization
 - **Caching**: Implement Redis cache for frequently accessed queries
 - **Pagination**: Add pagination to `GetGraphDataQuery`
-- **Indexing**: Ensure SQLite indexes on `node_id`, `metadata_id`
+- **Indexing**: Ensure SQLite indexes on `node-id`, `metadata-id`
 
 ### Event Performance
 - **Async Dispatch**: Event handlers run in parallel

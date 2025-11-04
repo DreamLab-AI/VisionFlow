@@ -1,6 +1,6 @@
 # Your First Graph and AI Agents
 
-*[← Getting Started](../README.md) > [Installation](01-installation.md)*
+*[← Getting Started](../readme.md) > [Installation](01-installation.md)*
 
 This guide takes you from a fresh installation to creating your first 3D knowledge graph and deploying multi-agent workflows in under 10 minutes.
 
@@ -291,7 +291,7 @@ VisionFlow integrates with external AI and processing services:
 
 RAGFlow provides retrieval-augmented generation for knowledge-enhanced responses:
 
-**Connection**: External Docker network `docker_ragflow`
+**Connection**: External Docker network `docker-ragflow`
 
 **Setup:**
 1. Ensure RAGFlow is running in separate docker-compose
@@ -315,10 +315,10 @@ Enable voice interaction for accessibility and convenience:
 **Kokoro TTS** (Text-to-Speech):
 - Service: `kokoro-tts-container:8880`
 - Purpose: Converts agent responses to speech
-- Voices: Multiple voice profiles available (af_bella, etc.)
+- Voices: Multiple voice profiles available (af-bella, etc.)
 
 **Enable Voice:**
-1. Set `ENABLE_VOICE=true` in `.env`
+1. Set `ENABLE-VOICE=true` in `.env`
 2. Grant browser microphone permissions
 3. Click microphone icon in control panel
 4. Speak commands or queries
@@ -327,12 +327,12 @@ Enable voice interaction for accessibility and convenience:
 **Test Voice Pipeline:**
 ```bash
 # Run voice pipeline test
-bash scripts/voice_pipeline_test.sh
+bash scripts/voice-pipeline-test.sh
 
 # Test individual services
 curl -X POST http://localhost:8880/v1/audio/speech \
   -H "Content-Type: application/json" \
-  -d '{"model":"kokoro","input":"Hello World","voice":"af_bella"}'
+  -d '{"model":"kokoro","input":"Hello World","voice":"af-bella"}'
 ```
 
 ### Vircadia XR/AR (Meta Quest 3)
@@ -341,7 +341,7 @@ For immersive 3D exploration:
 
 **Requirements:**
 - Meta Quest 3 or compatible WebXR device
-- VisionFlow XR mode enabled (`ENABLE_XR=true`)
+- VisionFlow XR mode enabled (`ENABLE-XR=true`)
 - WebXR-compatible browser on Quest (Chrome/Firefox)
 
 **Launch XR Mode:**
@@ -374,7 +374,7 @@ See [XR Setup Guide](../guides/xr-setup.md) for detailed configuration.
 
 ### Intermediate Path
 1. 🔧 [Development Workflow](../guides/development-workflow.md) - Contribute to VisionFlow
-2. 🤖 [Agent Templates](../reference/agents/templates/README.md) - Create custom agents
+2. 🤖 [Agent Templates](../reference/agents/templates/readme.md) - Create custom agents
 3. 🥽 [XR Integration](../guides/xr-setup.md) - Immersive VR experiences
 
 ### Advanced Path
@@ -392,7 +392,7 @@ See [XR Setup Guide](../guides/xr-setup.md) for detailed configuration.
 curl http://localhost:3030/api/health
 
 # Check logs
-docker-compose logs visionflow_container
+docker-compose logs visionflow-container
 ```
 
 **Poor performance:**
@@ -426,7 +426,7 @@ docker stats multi-agent-container
 docker network ls | grep ragflow
 
 # Verify VisionFlow is on network
-docker network inspect docker_ragflow
+docker network inspect docker-ragflow
 ```
 
 **Voice services not working:**
@@ -438,12 +438,12 @@ curl http://localhost:8000/health
 curl http://localhost:8880/health
 
 # Run pipeline test
-bash scripts/voice_pipeline_test.sh
+bash scripts/voice-pipeline-test.sh
 ```
 
 ## Getting Help
 
-- **📚 [Full Documentation](../README.md)** - Comprehensive guides
+- **📚 [Full Documentation](../readme.md)** - Comprehensive guides
 - **🐛 [Troubleshooting Guide](../guides/troubleshooting.md)** - Common issues
 - **💬 GitHub Discussions** - Community support *(Repository URL to be configured)*
 - **🔍 [API Reference](../reference/api/)** - Technical details

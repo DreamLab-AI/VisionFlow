@@ -11,13 +11,13 @@ The ontology system uses a **lossless storage architecture** that preserves comp
 For existing databases, run the migration script:
 
 ```bash
-sqlite3 project/data/unified.db < project/scripts/migrate_ontology_database.sql
+sqlite3 project/data/unified.db < project/scripts/migrate-ontology-database.sql
 ```
 
-This adds three new columns to `owl_classes`:
-- `markdown_content TEXT` - Full markdown with OWL blocks
-- `file_sha1 TEXT` - SHA1 hash for change detection
-- `last_synced DATETIME` - Sync timestamp
+This adds three new columns to `owl-classes`:
+- `markdown-content TEXT` - Full markdown with OWL blocks
+- `file-sha1 TEXT` - SHA1 hash for change detection
+- `last-synced DATETIME` - Sync timestamp
 
 ### 2. GitHub Sync
 
@@ -25,7 +25,7 @@ Sync ontology files from GitHub:
 
 ```bash
 cd project
-cargo run --bin sync_github --features ontology
+cargo run --bin sync-github --features ontology
 ```
 
 This will:
@@ -39,8 +39,8 @@ This will:
 Use the OWL Extractor Service:
 
 ```rust
-use crate::services::owl_extractor_service::OwlExtractorService;
-use crate::adapters::sqlite_ontology_repository::SqliteOntologyRepository;
+use crate::services::owl-extractor-service::OwlExtractorService;
+use crate::adapters::sqlite-ontology-repository::SqliteOntologyRepository;
 use std::sync::Arc;
 
 // Initialize repository and extractor
@@ -49,15 +49,15 @@ let extractor = OwlExtractorService::new(repo.clone());
 
 // Extract from single class
 let extracted = extractor
-    .extract_owl_from_class("ai:MachineTranslation")
+    .extract-owl-from-class("ai:MachineTranslation")
     .await?;
 
 println!("Found {} OWL blocks with {} axioms",
-    extracted.owl_blocks.len(),
-    extracted.axiom_count);
+    extracted.owl-blocks.len(),
+    extracted.axiom-count);
 
 // Build complete ontology
-let ontology = extractor.build_complete_ontology().await?;
+let ontology = extractor.build-complete-ontology().await?;
 println!("Complete ontology: {} axioms", ontology.axiom().len());
 ```
 
@@ -104,15 +104,15 @@ println!("Complete ontology: {} axioms", ontology.axiom().len());
 ```rust
 // Calculate SHA1 hash
 let mut hasher = Sha1::new();
-hasher.update(content.as_bytes());
-let file_sha1 = format!("{:x}", hasher.finalize());
+hasher.update(content.as-bytes());
+let file-sha1 = format!("{:x}", hasher.finalize());
 
 // Store with class
-class.file_sha1 = Some(file_sha1);
+class.file-sha1 = Some(file-sha1);
 
 // Next sync: compare hashes
-if db_sha1 == github_sha1 {
-    skip_download();
+if db-sha1 == github-sha1 {
+    skip-download();
 }
 ```
 
@@ -145,13 +145,13 @@ Source markdown:
 
 Stored in database:
 ```sql
-SELECT markdown_content FROM owl_classes WHERE iri = 'ai:MachineTranslation';
+SELECT markdown-content FROM owl-classes WHERE iri = 'ai:MachineTranslation';
 -- Returns: Full markdown including OWL block above
 ```
 
 Parsed downstream:
 ```rust
-let ontology = extractor.build_complete_ontology().await?;
+let ontology = extractor.build-complete-ontology().await?;
 // Contains: ObjectSomeValuesFrom(:implements :Transformer)
 ```
 
@@ -172,36 +172,36 @@ GitHub → Store raw → Parse anytime → Upgrade parser → Re-parse
 **Example**:
 ```rust
 // Version 1: Basic parser
-let v1_ontology = basic_parser.parse(markdown)?;
+let v1-ontology = basic-parser.parse(markdown)?;
 
 // Version 2: Enhanced parser (without re-downloading)
-let v2_ontology = enhanced_parser.parse(markdown)?;
+let v2-ontology = enhanced-parser.parse(markdown)?;
 
 // Markdown still in database, no GitHub roundtrip needed!
 ```
 
 ## Database Schema
 
-### owl_classes Table
+### owl-classes Table
 
 ```sql
-CREATE TABLE owl_classes (
+CREATE TABLE owl-classes (
     iri TEXT PRIMARY KEY,
     label TEXT,
     description TEXT,
-    source_file TEXT,
+    source-file TEXT,
     properties TEXT,  -- JSON HashMap
 
     -- NEW: Raw markdown storage
-    markdown_content TEXT,      -- Full markdown with OWL blocks
-    file_sha1 TEXT,            -- SHA1 hash (40 chars)
-    last_synced DATETIME,      -- UTC timestamp
+    markdown-content TEXT,      -- Full markdown with OWL blocks
+    file-sha1 TEXT,            -- SHA1 hash (40 chars)
+    last-synced DATETIME,      -- UTC timestamp
 
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created-at DATETIME DEFAULT CURRENT-TIMESTAMP,
+    updated-at DATETIME DEFAULT CURRENT-TIMESTAMP
 );
 
-CREATE INDEX idx_owl_classes_sha1 ON owl_classes(file_sha1);
+CREATE INDEX idx-owl-classes-sha1 ON owl-classes(file-sha1);
 ```
 
 ### Storage Overhead
@@ -224,23 +224,23 @@ CREATE INDEX idx_owl_classes_sha1 ON owl_classes(file_sha1);
 ```rust
 // Extract OWL from one class
 let extracted = extractor
-    .extract_owl_from_class("ai:NeuralNetwork")
+    .extract-owl-from-class("ai:NeuralNetwork")
     .await?;
 
 // Access OWL blocks
-for block in &extracted.owl_blocks {
+for block in &extracted.owl-blocks {
     println!("OWL Block:\n{}\n", block);
 }
 
 // Parse with horned-owl
-let ontology = extractor.parse_with_horned_owl(&extracted.owl_blocks[0])?;
+let ontology = extractor.parse-with-horned-owl(&extracted.owl-blocks[0])?;
 ```
 
 ### Pattern 2: Full Ontology Building
 
 ```rust
 // Build complete ontology from all classes
-let ontology = extractor.build_complete_ontology().await?;
+let ontology = extractor.build-complete-ontology().await?;
 
 // Access all axioms
 for axiom in ontology.axiom() {
@@ -249,28 +249,28 @@ for axiom in ontology.axiom() {
 
 // Use with whelk-rs reasoner
 let reasoner = Reasoner::new();
-reasoner.load_ontology(ontology);
+reasoner.load-ontology(ontology);
 ```
 
 ### Pattern 3: Incremental Parsing
 
 ```rust
 // Get classes synced after specific time
-let recent_classes = repo
-    .list_owl_classes()
+let recent-classes = repo
+    .list-owl-classes()
     .await?
-    .into_iter()
+    .into-iter()
     .filter(|c| {
-        c.last_synced
-            .map(|t| t > cutoff_time)
-            .unwrap_or(false)
+        c.last-synced
+            .map(|t| t > cutoff-time)
+            .unwrap-or(false)
     })
-    .collect::<Vec<_>>();
+    .collect::<Vec<->>();
 
 // Parse only recent classes
-for class in recent_classes {
+for class in recent-classes {
     let extracted = extractor
-        .extract_owl_from_class(&class.iri)
+        .extract-owl-from-class(&class.iri)
         .await?;
     // Process...
 }
@@ -300,7 +300,7 @@ for class in recent_classes {
 | Data | Size | Description |
 |------|------|-------------|
 | **Structured Only** | 2.4MB | Old architecture |
-| **Raw Markdown** | 11.8MB | New markdown_content |
+| **Raw Markdown** | 11.8MB | New markdown-content |
 | **Total Database** | 14.2MB | Complete storage |
 | **SHA1 Index** | 39KB | Fast lookups |
 
@@ -308,11 +308,11 @@ for class in recent_classes {
 
 ### Issue: Migration Fails
 
-**Error**: "table owl_classes has no column named markdown_content"
+**Error**: "table owl-classes has no column named markdown-content"
 
 **Solution**: Run migration script:
 ```bash
-sqlite3 unified.db < scripts/migrate_ontology_database.sql
+sqlite3 unified.db < scripts/migrate-ontology-database.sql
 ```
 
 ### Issue: Sync Takes Too Long
@@ -322,14 +322,14 @@ sqlite3 unified.db < scripts/migrate_ontology_database.sql
 **Check**:
 ```sql
 -- Verify SHA1 hashes are stored
-SELECT COUNT(*) FROM owl_classes WHERE file_sha1 IS NOT NULL;
+SELECT COUNT(*) FROM owl-classes WHERE file-sha1 IS NOT NULL;
 ```
 
 **Solution**: Ensure GitHubSyncService is calculating and storing SHA1:
 ```rust
-// Should be in process_ontology_file()
+// Should be in process-ontology-file()
 use sha1::{Sha1, Digest};
-let file_sha1 = format!("{:x}", Sha1::digest(content));
+let file-sha1 = format!("{:x}", Sha1::digest(content));
 ```
 
 ### Issue: No OWL Blocks Found
@@ -339,7 +339,7 @@ let file_sha1 = format!("{:x}", Sha1::digest(content));
 **Check**:
 ```sql
 -- Verify markdown content stored
-SELECT markdown_content FROM owl_classes WHERE iri = 'ai:MachineTranslation' LIMIT 1;
+SELECT markdown-content FROM owl-classes WHERE iri = 'ai:MachineTranslation' LIMIT 1;
 ```
 
 **Solution**: Markdown might be missing. Re-run GitHub sync.
@@ -353,8 +353,8 @@ SELECT markdown_content FROM owl_classes WHERE iri = 'ai:MachineTranslation' LIM
 **Debug**:
 ```rust
 // Extract raw OWL block
-let extracted = extractor.extract_owl_from_class("ai:Problem").await?;
-println!("Raw OWL:\n{}", extracted.owl_blocks[0]);
+let extracted = extractor.extract-owl-from-class("ai:Problem").await?;
+println!("Raw OWL:\n{}", extracted.owl-blocks[0]);
 
 // Validate manually
 ```
@@ -367,7 +367,7 @@ Run GitHub sync periodically to keep database fresh:
 
 ```bash
 # Cron job: daily sync at 2 AM
-0 2 * * * cd /path/to/project && cargo run --bin sync_github --features ontology
+0 2 * * * cd /path/to/project && cargo run --bin sync-github --features ontology
 ```
 
 ### 2. Monitor Sync Times
@@ -376,10 +376,10 @@ Track sync performance to detect issues:
 
 ```rust
 let start = Instant::now();
-let stats = github_sync.sync_graphs().await?;
+let stats = github-sync.sync-graphs().await?;
 let duration = start.elapsed();
 
-if duration > Duration::from_secs(60) {
+if duration > Duration::from-secs(60) {
     warn!("Slow sync detected: {:?}", duration);
 }
 ```
@@ -397,16 +397,16 @@ struct OntologyCache {
 }
 
 impl OntologyCache {
-    fn get_or_parse(&self, class_iri: &str, extractor: &OwlExtractorService)
+    fn get-or-parse(&self, class-iri: &str, extractor: &OwlExtractorService)
         -> Result<AnnotatedOntology> {
         // Check cache first
-        if let Some(onto) = self.cache.read().unwrap().get(class_iri) {
+        if let Some(onto) = self.cache.read().unwrap().get(class-iri) {
             return Ok(onto.clone());
         }
 
         // Parse and cache
-        let onto = extractor.extract_and_parse(class_iri).await?;
-        self.cache.write().unwrap().insert(class_iri.to_string(), onto.clone());
+        let onto = extractor.extract-and-parse(class-iri).await?;
+        self.cache.write().unwrap().insert(class-iri.to-string(), onto.clone());
         Ok(onto)
     }
 }
@@ -417,20 +417,20 @@ impl OntologyCache {
 Always validate ontology after sync:
 
 ```rust
-let stats = github_sync.sync_graphs().await?;
+let stats = github-sync.sync-graphs().await?;
 
 // Verify storage
-assert!(stats.ontology_files_processed > 0);
+assert!(stats.ontology-files-processed > 0);
 
 // Verify SHA1 hashes
-let classes_with_sha1 = repo
-    .list_owl_classes()
+let classes-with-sha1 = repo
+    .list-owl-classes()
     .await?
-    .into_iter()
-    .filter(|c| c.file_sha1.is_some())
+    .into-iter()
+    .filter(|c| c.file-sha1.is-some())
     .count();
 
-assert_eq!(classes_with_sha1, stats.ontology_files_processed);
+assert-eq!(classes-with-sha1, stats.ontology-files-processed);
 ```
 
 ## Related Documentation
@@ -452,18 +452,18 @@ pub struct OwlExtractorService<R: OntologyRepository> {
 impl<R: OntologyRepository> OwlExtractorService<R> {
     pub fn new(repo: Arc<R>) -> Self;
 
-    pub async fn extract_owl_from_class(&self, class_iri: &str)
+    pub async fn extract-owl-from-class(&self, class-iri: &str)
         -> Result<ExtractedOwl, String>;
 
-    pub async fn extract_all_owl(&self)
+    pub async fn extract-all-owl(&self)
         -> Result<Vec<ExtractedOwl>, String>;
 
     #[cfg(feature = "ontology")]
-    pub fn parse_with_horned_owl(&self, owl_text: &str)
+    pub fn parse-with-horned-owl(&self, owl-text: &str)
         -> Result<AnnotatedOntology, String>;
 
     #[cfg(feature = "ontology")]
-    pub async fn build_complete_ontology(&self)
+    pub async fn build-complete-ontology(&self)
         -> Result<AnnotatedOntology, String>;
 }
 ```
@@ -472,9 +472,9 @@ impl<R: OntologyRepository> OwlExtractorService<R> {
 
 ```rust
 pub struct ExtractedOwl {
-    pub class_iri: String,
-    pub owl_blocks: Vec<String>,
-    pub axiom_count: usize,
+    pub class-iri: String,
+    pub owl-blocks: Vec<String>,
+    pub axiom-count: usize,
 }
 ```
 

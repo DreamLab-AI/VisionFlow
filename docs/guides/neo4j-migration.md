@@ -22,7 +22,7 @@ docker run -d \
   -p 7474:7474 -p 7687:7687 \
   -v $PWD/neo4j/data:/data \
   -v $PWD/neo4j/logs:/logs \
-  -e NEO4J_AUTH=neo4j/your-secure-password \
+  -e NEO4J-AUTH=neo4j/your-secure-password \
   neo4j:5.13.0
 
 # Verify Neo4j is running
@@ -50,24 +50,24 @@ Create or update your `.env` file:
 
 ```bash
 # Neo4j Connection
-NEO4J_URI=bolt://localhost:7687
-NEO4J_USER=neo4j
-NEO4J_PASSWORD=your-secure-password
-NEO4J_DATABASE=neo4j  # optional, defaults to 'neo4j'
+NEO4J-URI=bolt://localhost:7687
+NEO4J-USER=neo4j
+NEO4J-PASSWORD=your-secure-password
+NEO4J-DATABASE=neo4j  # optional, defaults to 'neo4j'
 
 # Optional: Connection pooling
-NEO4J_MAX_CONNECTIONS=10
-NEO4J_FETCH_SIZE=500
+NEO4J-MAX-CONNECTIONS=10
+NEO4J-FETCH-SIZE=500
 ```
 
 ### 3. Build with Neo4j Support
 
 ```bash
 # Check current features
-cargo build --features neo4j --bin migrate_settings_to_neo4j
+cargo build --features neo4j --bin migrate-settings-to-neo4j
 
 # Verify binary exists
-ls -la target/debug/migrate_settings_to_neo4j
+ls -la target/debug/migrate-settings-to-neo4j
 ```
 
 ---
@@ -80,12 +80,12 @@ ls -la target/debug/migrate_settings_to_neo4j
 
 ```bash
 # Create timestamped backup
-BACKUP_DATE=$(date +%Y%m%d_%H%M%S)
+BACKUP-DATE=$(date +%Y%m%d-%H%M%S)
 mkdir -p backups
-cp data/unified.db backups/unified.db.$BACKUP_DATE
+cp data/unified.db backups/unified.db.$BACKUP-DATE
 
 # Verify backup
-ls -lh backups/unified.db.$BACKUP_DATE
+ls -lh backups/unified.db.$BACKUP-DATE
 ```
 
 ### Step 2: Dry Run Migration
@@ -94,7 +94,7 @@ Test the migration without making any changes:
 
 ```bash
 # Run migration in dry-run mode with verbose logging
-cargo run --features neo4j --bin migrate_settings_to_neo4j -- \
+cargo run --features neo4j --bin migrate-settings-to-neo4j -- \
   --dry-run \
   --verbose
 
@@ -124,7 +124,7 @@ Once dry run looks good, run the actual migration:
 
 ```bash
 # Run full migration
-cargo run --features neo4j --bin migrate_settings_to_neo4j
+cargo run --features neo4j --bin migrate-settings-to-neo4j
 
 # Monitor progress
 # INFO  Migrating individual settings...
@@ -155,13 +155,13 @@ Physics profiles:         3
 
 ```cypher
 // Count migrated settings
-MATCH (s:Setting) RETURN count(s) as total_settings;
+MATCH (s:Setting) RETURN count(s) as total-settings;
 
 // Sample settings
-MATCH (s:Setting) RETURN s.key, s.value_type, s.value LIMIT 10;
+MATCH (s:Setting) RETURN s.key, s.value-type, s.value LIMIT 10;
 
 // Check physics profiles
-MATCH (p:PhysicsProfile) RETURN p.name, p.created_at;
+MATCH (p:PhysicsProfile) RETURN p.name, p.created-at;
 
 // Verify root node
 MATCH (r:SettingsRoot {id: 'default'}) RETURN r;
@@ -177,10 +177,10 @@ MATCH (r:SettingsRoot {id: 'default'}) RETURN r;
 **Current Production Configuration** ✅ **ACTIVE**
 
 ```rust
-// app_state.rs (main.rs lines 160-176)
+// app-state.rs (main.rs lines 160-176)
 info!("Initializing SettingsActor with Neo4j");
-let settings_config = Neo4jSettingsConfig::default();
-let settings_repository = match Neo4jSettingsRepository::new(settings_config).await {
+let settings-config = Neo4jSettingsConfig::default();
+let settings-repository = match Neo4jSettingsRepository::new(settings-config).await {
     Ok(repo) => Arc::new(repo),
     Err(e) => {
         error!("Failed to create Neo4j settings repository: {}", e);
@@ -191,8 +191,8 @@ let settings_repository = match Neo4jSettingsRepository::new(settings_config).aw
     }
 };
 
-let settings_actor = SettingsActor::new(settings_repository).start();
-let settings_actor_data = web::Data::new(settings_actor);
+let settings-actor = SettingsActor::new(settings-repository).start();
+let settings-actor-data = web::Data::new(settings-actor);
 info!("SettingsActor initialized successfully");
 ```
 
@@ -202,7 +202,7 @@ info!("SettingsActor initialized successfully");
 // DEPRECATED: SQLite fallback removed in November 2025
 // Legacy code for reference only
 #[cfg(feature = "sqlite")]
-let settings_repository: Arc<dyn SettingsRepository> = Arc::new(
+let settings-repository: Arc<dyn SettingsRepository> = Arc::new(
     SqliteSettingsRepository::new("data/unified.db")?
 );
 ```
@@ -229,7 +229,7 @@ systemctl restart webxr-app
 curl http://localhost:8080/api/settings/visualisation.theme
 curl -X POST http://localhost:8080/api/settings/test.key \
   -H "Content-Type: application/json" \
-  -d '{"value": "test_value"}'
+  -d '{"value": "test-value"}'
 
 # Verify setting was saved to Neo4j
 curl http://localhost:8080/api/settings/test.key
@@ -271,19 +271,19 @@ tail -f logs/app.log | grep -i "neo4j\|settings"
 
 ```rust
 Neo4jSettingsConfig {
-    uri: "bolt://localhost:7687".to_string(),
-    user: "neo4j".to_string(),
-    password: std::env::var("NEO4J_PASSWORD").unwrap(),
-    database: Some("settings".to_string()),  // Use dedicated database
-    fetch_size: 1000,      // Increase for large queries
-    max_connections: 20,   // Increase for high concurrency
+    uri: "bolt://localhost:7687".to-string(),
+    user: "neo4j".to-string(),
+    password: std::env::var("NEO4J-PASSWORD").unwrap(),
+    database: Some("settings".to-string()),  // Use dedicated database
+    fetch-size: 1000,      // Increase for large queries
+    max-connections: 20,   // Increase for high concurrency
 }
 ```
 
 ### Cache Tuning
 
 ```rust
-// Adjust cache TTL in neo4j_settings_repository.rs
+// Adjust cache TTL in neo4j-settings-repository.rs
 SettingsCache::new(600)  // 10 minutes instead of 5
 ```
 
@@ -293,15 +293,15 @@ SettingsCache::new(600)  // 10 minutes instead of 5
 
 ```bash
 # Example: Migrate from custom SQLite location
-cargo run --features neo4j --bin migrate_settings_to_neo4j -- \
+cargo run --features neo4j --bin migrate-settings-to-neo4j -- \
   --sqlite-path /custom/path/unified.db \
   --neo4j-uri bolt://neo4j-server:7687
 
 # Example: Migrate to remote Neo4j cluster
-cargo run --features neo4j --bin migrate_settings_to_neo4j -- \
+cargo run --features neo4j --bin migrate-settings-to-neo4j -- \
   --neo4j-uri bolt+s://production-neo4j.example.com:7687 \
   --neo4j-user admin \
-  --neo4j-pass $NEO4J_PROD_PASSWORD
+  --neo4j-pass $NEO4J-PROD-PASSWORD
 ```
 
 ---
@@ -318,7 +318,7 @@ systemctl stop webxr-app
 
 # 2. Restore SQLite backup
 mv data/unified.db data/unified.db.failed
-cp backups/unified.db.$BACKUP_DATE data/unified.db
+cp backups/unified.db.$BACKUP-DATE data/unified.db
 
 # 3. Rebuild without Neo4j
 cargo build --release
@@ -334,7 +334,7 @@ curl http://localhost:8080/health
 
 ```bash
 # 1. Update environment to disable Neo4j
-unset USE_NEO4J
+unset USE-NEO4J
 
 # 2. Restart application (falls back to SQLite)
 systemctl restart webxr-app
@@ -388,7 +388,7 @@ docker exec -it neo4j-settings cypher-shell
 ALTER USER neo4j SET PASSWORD 'new-password';
 
 # Update .env file
-NEO4J_PASSWORD=new-password
+NEO4J-PASSWORD=new-password
 
 # Restart application
 systemctl restart webxr-app
@@ -407,7 +407,7 @@ Failed migrations:        7
 **Solutions:**
 ```bash
 # Re-run migration (idempotent)
-cargo run --features neo4j --bin migrate_settings_to_neo4j
+cargo run --features neo4j --bin migrate-settings-to-neo4j
 
 # Check specific failures in logs
 grep "Failed to migrate" logs/migration.log
@@ -429,7 +429,7 @@ Settings queries are slower than SQLite
    ```
 3. **Increase connection pool**:
    ```rust
-   max_connections: 20  // instead of 10
+   max-connections: 20  // instead of 10
    ```
 4. **Optimize queries** - Check query plan:
    ```cypher
@@ -491,10 +491,10 @@ Set up alerts for:
 
 ```bash
 # Use strong passwords
-NEO4J_PASSWORD=$(openssl rand -base64 32)
+NEO4J-PASSWORD=$(openssl rand -base64 32)
 
 # Enable TLS for production
-NEO4J_URI=bolt+s://production:7687
+NEO4J-URI=bolt+s://production:7687
 
 # Restrict network access
 # Only allow application server IP
@@ -507,11 +507,11 @@ Before production migration:
 ```bash
 # Load testing
 # Generate high settings read/write load
-cargo test --features neo4j --test settings_load_test
+cargo test --features neo4j --test settings-load-test
 
 # Concurrent access testing
 # Simulate multiple users
-cargo test --features neo4j --test settings_concurrent_test
+cargo test --features neo4j --test settings-concurrent-test
 
 # Failure recovery testing
 # Kill Neo4j mid-operation, verify recovery
@@ -555,7 +555,7 @@ Use this checklist for your migration:
 For issues or questions:
 
 1. **Check logs**: `logs/app.log`, `logs/migration.log`
-2. **Review documentation**: `docs/neo4j_phase2_report.md`
+2. **Review documentation**: `docs/neo4j-phase2-report.md`
 3. **Neo4j documentation**: https://neo4j.com/docs/
 4. **GitHub issues**: [Your repo]/issues
 
@@ -594,7 +594,7 @@ After successful settings migration:
 - **Connection URI**: bolt://localhost:7687
 - **Connection pool size**: 10 connections
 - **Cache TTL**: 300 seconds (5 minutes)
-- **Repository**: `Neo4jSettingsRepository` (src/adapters/neo4j_settings_repository.rs)
+- **Repository**: `Neo4jSettingsRepository` (src/adapters/neo4j-settings-repository.rs)
 - **Initialization**: Automatic schema creation on startup
 
 ---

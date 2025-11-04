@@ -7,9 +7,9 @@
 ## 🎯 Most Important Links
 
 ### Start Here
-- **[📖 Master Documentation Index](INDEX.md)** - Complete catalog of all 311+ docs
-- **[📚 Documentation Hub](README.md)** - Organized by Diátaxis framework
-- **[🚀 Main Project README](../README.md)** - Project overview and quick start
+- **[📖 Master Documentation Index](index.md)** - Complete catalog of all 311+ docs
+- **[📚 Documentation Hub](readme.md)** - Organized by Diátaxis framework
+- **[🚀 Main Project README](../readme.md)** - Project overview and quick start
 
 ---
 
@@ -29,7 +29,7 @@
 
 #### **Develop a Feature**
 1. [Development Setup](developer/01-development-setup.md)
-2. [Architecture Overview](../concepts/architecture/00-ARCHITECTURE-OVERVIEW.md)
+2. [Architecture Overview](../concepts/architecture/00-ARCHITECTURE-overview.md)
 3. [Adding Features](developer/04-adding-features.md)
 4. [Testing Guide](developer/05-testing-guide.md)
 
@@ -45,13 +45,13 @@
 3. [XR Architecture](../concepts/architecture/xr-immersive-system.md)
 
 #### **Understand the Architecture**
-1. [Architecture Overview](../concepts/architecture/00-ARCHITECTURE-OVERVIEW.md)
+1. [Architecture Overview](../concepts/architecture/00-ARCHITECTURE-overview.md)
 2. [Hexagonal CQRS](../concepts/architecture/hexagonal-cqrs-architecture.md)
 3. [System Concepts](../concepts/system-architecture.md)
 4. [Database Schema](../concepts/architecture/04-database-schemas.md)
 
 #### **Use the API**
-1. [API Quick Reference](../api/QUICK_REFERENCE.md)
+1. [API Quick Reference](../api/quick-reference.md)
 2. [REST API](../reference/api/rest-api-complete.md)
 3. [WebSocket API](../reference/api/03-websocket.md)
 4. Binary Protocol (TODO: Document to be created)
@@ -69,8 +69,8 @@
 | System | Documentation |
 |--------|---------------|
 | **Ontology** | [Fundamentals](../specialized/ontology/ontology-fundamentals.md) • [Reasoning](../ontology-reasoning.md) • [API](../specialized/ontology/ontology-api-reference.md) |
-| **GPU Acceleration** | [Concepts](../concepts/gpu-compute.md) • [Architecture](../concepts/architecture/gpu/README.md) • [Optimizations](../concepts/architecture/gpu/optimizations.md) |
-| **AI Agents** | [Concepts](../concepts/agentic-workers.md) • [User Guide](user/working-with-agents.md) • [Reference](../reference/agents/README.md) |
+| **GPU Acceleration** | [Concepts](../concepts/gpu-compute.md) • [Architecture](../concepts/architecture/gpu/readme.md) • [Optimizations](../concepts/architecture/gpu/optimizations.md) |
+| **AI Agents** | [Concepts](../concepts/agentic-workers.md) • [User Guide](user/working-with-agents.md) • [Reference](../reference/agents/readme.md) |
 | **XR/VR** | [Setup](user/xr-setup.md) • Architecture (TODO) • [Vircadia](vircadia-xr-complete-guide.md) |
 | **Database** | [Schema](../concepts/architecture/04-database-schemas.md) • [Reference](../reference/architecture/database-schema.md) |
 | **Binary Protocol** | [WebSocket](../reference/api/03-websocket.md) • Binary Format (TODO) |
@@ -79,7 +79,7 @@
 | Feature | Quick Link | Complete Docs |
 |---------|------------|---------------|
 | **Ontology Reasoning** | [Overview](../ontology-reasoning.md) | [Complete Guide](../specialized/ontology/) |
-| **Semantic Physics** | [Architecture](../semantic-physics-architecture.md) | [GPU Forces](../gpu_semantic_forces.md) |
+| **Semantic Physics** | [Architecture](../semantic-physics-architecture.md) | [GPU Forces](../gpu-semantic-forces.md) |
 | **Multi-User XR** | [Quick Setup](user/xr-setup.md) | [Complete Guide](vircadia-xr-complete-guide.md) |
 | **CQRS Pattern** | [Architecture](../concepts/architecture/hexagonal-cqrs-architecture.md) | [Reference](../reference/architecture/hexagonal-cqrs.md) |
 | **GPU Compute** | [Concepts](../concepts/gpu-compute.md) | [Architecture](../concepts/architecture/gpu/) |
@@ -109,9 +109,9 @@
 
 ### Researcher
 1. [System Architecture](../concepts/system-architecture.md)
-2. [Architecture Overview](../concepts/architecture/00-ARCHITECTURE-OVERVIEW.md)
+2. [Architecture Overview](../concepts/architecture/00-ARCHITECTURE-overview.md)
 3. [Research Documents](../research/)
-4. [Academic Survey](../research/Academic_Research_Survey.md)
+4. [Academic Survey](../research/Academic-Research-Survey.md)
 
 ### Ontology Expert
 1. [Fundamentals](specialized/ontology/ontology-fundamentals.md)
@@ -164,16 +164,16 @@ ls docs/guides/developer/
 ## 🆘 Need Help?
 
 ### Common Questions
-- **Can't find something?** → Check [Master Index](INDEX.md)
+- **Can't find something?** → Check [Master Index](index.md)
 - **New to VisionFlow?** → Start with [Installation](getting-started/01-installation.md)
-- **Need API docs?** → See [API Quick Reference](api/QUICK_REFERENCE.md)
+- **Need API docs?** → See [API Quick Reference](api/quick-reference.md)
 - **Want to contribute?** → Read [Contributing Guide](guides/developer/06-contributing.md)
 
 ### Support Resources
 - [GitHub Issues](https://github.com/yourusername/VisionFlow/issues)
 - [GitHub Discussions](https://github.com/yourusername/VisionFlow/discussions)
-- [Documentation Hub](README.md)
-- [Master Index](INDEX.md)
+- [Documentation Hub](readme.md)
+- [Master Index](index.md)
 
 ---
 
@@ -189,11 +189,11 @@ ls docs/guides/developer/
 ## 🎯 Bookmark These
 
 **Essential Documentation:**
-- [Master Index](../INDEX.md) - Complete catalog
-- [Architecture Overview](../concepts/architecture/00-ARCHITECTURE-OVERVIEW.md) - System design
-- [API Quick Reference](../api/QUICK_REFERENCE.md) - API lookup
+- [Master Index](../index.md) - Complete catalog
+- [Architecture Overview](../concepts/architecture/00-ARCHITECTURE-overview.md) - System design
+- [API Quick Reference](../api/quick-reference.md) - API lookup
 - [Troubleshooting](troubleshooting.md) - Problem solving
-- [Roadmap](../ROADMAP.md) - Future plans
+- [Roadmap](../roadmap.md) - Future plans
 
 **Quick References:**
 - [Configuration](reference/configuration.md) - All settings
@@ -208,4 +208,4 @@ ls docs/guides/developer/
 
 ---
 
-**Navigation:** [📖 Master Index](INDEX.md) | [📚 Documentation Hub](README.md) | [🚀 Main README](../README.md)
+**Navigation:** [📖 Master Index](index.md) | [📚 Documentation Hub](readme.md) | [🚀 Main README](../readme.md)

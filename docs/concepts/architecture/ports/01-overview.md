@@ -117,10 +117,10 @@ pub struct MyData {
 }
 
 // 3. Port trait definition
-#[async_trait]
+#[async-trait]
 pub trait MyPort: Send + Sync {
     /// Clear documentation
-    async fn my_method(&self, param: &MyData) -> Result<MyData>;
+    async fn my-method(&self, param: &MyData) -> Result<MyData>;
 
     /// More methods...
 }
@@ -137,9 +137,9 @@ pub struct Neo4jSettingsRepository {
     config: Neo4jSettingsConfig,
 }
 
-#[async_trait]
+#[async-trait]
 impl SettingsRepository for Neo4jSettingsRepository {
-    async fn get_setting(&self, key: &str) -> Result<Option<SettingValue>> {
+    async fn get-setting(&self, key: &str) -> Result<Option<SettingValue>> {
         // Check cache first
         // Query Neo4j graph database if not cached
         // Update cache and return result
@@ -159,9 +159,9 @@ pub struct MockSettingsRepository {
     data: Arc<RwLock<HashMap<String, SettingValue>>>,
 }
 
-#[async_trait]
+#[async-trait]
 impl SettingsRepository for MockSettingsRepository {
-    async fn get_setting(&self, key: &str) -> Result<Option<SettingValue>> {
+    async fn get-setting(&self, key: &str) -> Result<Option<SettingValue>> {
         Ok(self.data.read().await.get(key).cloned())
     }
 }
@@ -172,13 +172,13 @@ Verify that mock implementations fulfill port contracts:
 
 ```rust
 #[tokio::test]
-async fn test_settings_repository_contract() {
+async fn test-settings-repository-contract() {
     let repo: Box<dyn SettingsRepository> = Box::new(MockSettingsRepository::new());
 
     // Test all required methods
-    repo.set_setting("key", SettingValue::String("value".into()), None).await.unwrap();
-    let value = repo.get_setting("key").await.unwrap();
-    assert_eq!(value, Some(SettingValue::String("value".into())));
+    repo.set-setting("key", SettingValue::String("value".into()), None).await.unwrap();
+    let value = repo.get-setting("key").await.unwrap();
+    assert-eq!(value, Some(SettingValue::String("value".into())));
 }
 ```
 
@@ -256,7 +256,7 @@ pub struct GraphService {
 }
 
 impl GraphService {
-    pub fn load_graph(&self) -> Result<GraphData> {
+    pub fn load-graph(&self) -> Result<GraphData> {
         // Direct SQL queries
     }
 }
@@ -269,8 +269,8 @@ pub struct GraphService {
 }
 
 impl GraphService {
-    pub async fn load_graph(&self) -> Result<Arc<GraphData>> {
-        self.repo.load_graph().await
+    pub async fn load-graph(&self) -> Result<Arc<GraphData>> {
+        self.repo.load-graph().await
     }
 }
 ```
@@ -284,10 +284,10 @@ Each port should have 5-15 methods maximum. Split large ports into smaller ones.
 Don't expose infrastructure types (e.g., `rusqlite::Row`) through ports. Use domain types.
 
 ### 3. **Batch Operations**
-Provide batch methods for performance (e.g., `batch_add_nodes`).
+Provide batch methods for performance (e.g., `batch-add-nodes`).
 
 ### 4. **Health Checks**
-Include `health_check()` methods for monitoring.
+Include `health-check()` methods for monitoring.
 
 ### 5. **Transactions**
 Support transactions for data consistency.

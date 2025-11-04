@@ -4,7 +4,7 @@ description: Comprehensive guide to testing strategies and practices in Turbo Fl
 category: developer-guide
 tags: [testing, tdd, quality, automation]
 difficulty: intermediate
-last_updated: 2025-10-27
+last-updated: 2025-10-27
 related:
   - /docs/guides/developer/01-development-setup.md
   - /docs/guides/developer/04-adding-features.md
@@ -39,13 +39,13 @@ This guide covers testing strategies, best practices, and tools for ensuring cod
 ```
         /\
        /  \  E2E (10%)
-      /____\
+      /----\
      /      \
     / Integ. \ (30%)
-   /__________\
+   /----------\
   /            \
  /     Unit     \ (60%)
-/________________\
+/----------------\
 ```
 
 **Distribution:**
@@ -568,7 +568,7 @@ Task("Performance Benchmarker",
 ```yaml
 name: Test Suite
 
-on: [push, pull_request]
+on: [push, pull-request]
 
 jobs:
   test:
@@ -591,7 +591,7 @@ jobs:
 ```bash
 # .husky/pre-commit
 #!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
+. "$(dirname "$0")/-/husky.sh"
 
 npm run lint
 npm run typecheck
@@ -668,7 +668,7 @@ This section documents the testing status and procedures specific to Turbo Flow 
 **Test count**: 70+ test cases across the codebase
 
 **Test locations**:
-- `src/utils/binary_protocol.rs` - Protocol encoding/decoding tests
+- `src/utils/binary-protocol.rs` - Protocol encoding/decoding tests
 - `src/utils/ptx.rs` - PTX GPU code validation tests
 - `src/middleware/timeout.rs` - Request timeout middleware tests
 - `src/application/graph/tests/` - CQRS query handler tests
@@ -681,13 +681,13 @@ This section documents the testing status and procedures specific to Turbo Flow 
 cargo test
 
 # Run specific test file
-cargo test binary_protocol
+cargo test binary-protocol
 
 # Run with output (print statements visible)
 cargo test -- --nocapture
 
 # Run with backtrace
-RUST_BACKTRACE=full cargo test
+RUST-BACKTRACE=full cargo test
 
 # Run tests with release optimization
 cargo test --release
@@ -697,7 +697,7 @@ cargo test --release
 
 ✅ **COMPLETE AND READY**
 
-**Location**: `tests/cqrs_api_integration_tests.rs`
+**Location**: `tests/cqrs-api-integration-tests.rs`
 
 **Coverage**: 4 API endpoints with 15+ structural tests
 
@@ -710,13 +710,13 @@ cargo test --release
 **Running CQRS tests**:
 
 ```bash
-cargo test --test cqrs_api_integration_tests
+cargo test --test cqrs-api-integration-tests
 
 # Run specific test
-cargo test test_graph_response_with_positions_structure
+cargo test test-graph-response-with-positions-structure
 
 # Run with output
-cargo test --test cqrs_api_integration_tests -- --nocapture
+cargo test --test cqrs-api-integration-tests -- --nocapture
 ```
 
 ### Manual Testing Procedures
@@ -731,7 +731,7 @@ curl -i http://localhost:3030/health
 curl -s http://localhost:3030/api/graph/data | jq .
 
 # Test pagination
-curl -s "http://localhost:3030/api/graph/data/paginated?page=1&page_size=100" | jq .
+curl -s "http://localhost:3030/api/graph/data/paginated?page=1&page-size=100" | jq .
 
 # Refresh graph
 curl -X POST http://localhost:3030/api/graph/refresh
@@ -744,23 +744,23 @@ curl -s "http://localhost:3030/api/graph/auto-balance-notifications?since=0" | j
 
 ```bash
 # Run protocol tests with output
-cargo test binary_protocol -- --nocapture --test-threads=1
+cargo test binary-protocol -- --nocapture --test-threads=1
 
 # Expected output:
-# - test_wire_format_size ... ok
-# - test_encode_decode_roundtrip ... ok
-# - test_decode_invalid_data ... ok
-# - test_calculate_message_size ... ok
+# - test-wire-format-size ... ok
+# - test-encode-decode-roundtrip ... ok
+# - test-decode-invalid-data ... ok
+# - test-calculate-message-size ... ok
 ```
 
 ### Debugging Tests
 
 ```bash
 # Run single test with backtrace
-RUST_BACKTRACE=full cargo test test_name -- --nocapture
+RUST-BACKTRACE=full cargo test test-name -- --nocapture
 
 # Filter tests by name
-cargo test test_name -- --nocapture
+cargo test test-name -- --nocapture
 
 # Run tests sequentially (no parallelization)
 cargo test -- --test-threads=1

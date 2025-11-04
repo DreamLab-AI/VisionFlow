@@ -1,6 +1,6 @@
 # Security Best Practices
 
-*[Guides](../guides/README.md) > Security*
+*[Guides](../guides/readme.md) > Security*
 
 This document outlines the security measures implemented in the VisionFlow multi-agent system and provides guidelines for secure deployment and usage.
 
@@ -26,19 +26,19 @@ This document outlines the security measures implemented in the VisionFlow multi
 ### Required Security Variables
 ```bash
 # Authentication
-JWT_SECRET=<strong-random-secret>
-SESSION_SECRET=<strong-random-secret>
-WS_AUTH_TOKEN=<secure-websocket-token>
+JWT-SECRET=<strong-random-secret>
+SESSION-SECRET=<strong-random-secret>
+WS-AUTH-TOKEN=<secure-websocket-token>
 
 # Rate Limiting
-RATE_LIMIT_WINDOW_MS=60000
-RATE_LIMIT_MAX_REQUESTS=100
+RATE-LIMIT-WINDOW-MS=60000
+RATE-LIMIT-MAX-REQUESTS=100
 
 # Connection Limits
-WS_MAX_CONNECTIONS=100
-TCP_MAX_CONNECTIONS=50
-WS_CONNECTION_TIMEOUT=300000
-TCP_CONNECTION_TIMEOUT=300000
+WS-MAX-CONNECTIONS=100
+TCP-MAX-CONNECTIONS=50
+WS-CONNECTION-TIMEOUT=300000
+TCP-CONNECTION-TIMEOUT=300000
 ```
 
 ## Authentication
@@ -46,8 +46,8 @@ TCP_CONNECTION_TIMEOUT=300000
 ### WebSocket Authentication
 The WebSocket server implements token-based authentication:
 
-1. **Enable Authentication**: Set `WS_AUTH_ENABLED=true`
-2. **Configure Token**: Set a secure `WS_AUTH_TOKEN`
+1. **Enable Authentication**: Set `WS-AUTH-ENABLED=true`
+2. **Configure Token**: Set a secure `WS-AUTH-TOKEN`
 3. **Client Connection**: Include token in Authorisation header
    ```javascript
    const ws = new WebSocket('ws://localhost:3002', {
@@ -121,7 +121,7 @@ const wss = new WebSocket.Server({
 // Input validation implementation
 validateInput(input) {
   // Size check
-  if (input.length > MAX_REQUEST_SIZE) {
+  if (input.length > MAX-REQUEST-SIZE) {
     return { valid: false, error: 'Input too large' };
   }
 
@@ -154,7 +154,7 @@ checkRateLimit(clientId) {
 ### Allowed Origins
 Configure allowed origins in environment:
 ```bash
-CORS_ALLOWED_ORIGINS=http://localhost:3000,https://yourdomain.com
+CORS-ALLOWED-ORIGINS=http://localhost:3000,https://yourdomain.com
 ```
 
 ### Headers Configuration
@@ -176,15 +176,15 @@ CORS_ALLOWED_ORIGINS=http://localhost:3000,https://yourdomain.com
 # docker-compose.yml security settings
 services:
   multi-agent:
-    security_opt:
+    security-opt:
       - no-new-privileges:true
-    read_only: true
+    read-only: true
     tmpfs:
       - /tmp
-    cap_drop:
+    cap-drop:
       - ALL
-    cap_add:
-      - DAC_OVERRIDE
+    cap-add:
+      - DAC-OVERRIDE
 ```
 
 ### Network Security
@@ -237,7 +237,7 @@ services:
 
 ## Related Documentation
 
-- [Multi-Agent Docker Architecture](../reference/architecture/README.md)
+- [Multi-Agent Docker Architecture](../reference/architecture/readme.md)
 - [Configuration Guide](./configuration.md)
 - [Deployment Guide](./deployment.md)
 

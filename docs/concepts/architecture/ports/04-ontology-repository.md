@@ -6,20 +6,20 @@ The **OntologyRepository** port manages the ontology graph structure parsed from
 
 ## Location
 
-- **Trait Definition**: `src/ports/ontology_repository.rs`
-- **Adapter Implementation**: `src/adapters/sqlite_ontology_repository.rs`
+- **Trait Definition**: `src/ports/ontology-repository.rs`
+- **Adapter Implementation**: `src/adapters/sqlite-ontology-repository.rs`
 
 ## Interface
 
 ```rust
-#[async_trait]
+#[async-trait]
 pub trait OntologyRepository: Send + Sync {
     // Graph operations
-    async fn load_ontology_graph(&self) -> Result<Arc<GraphData>>;
-    async fn save_ontology_graph(&self, graph: &GraphData) -> Result<()>;
+    async fn load-ontology-graph(&self) -> Result<Arc<GraphData>>;
+    async fn save-ontology-graph(&self, graph: &GraphData) -> Result<()>;
 
     // Batch ontology import
-    async fn save_ontology(
+    async fn save-ontology(
         &self,
         classes: &[OwlClass],
         properties: &[OwlProperty],
@@ -27,34 +27,34 @@ pub trait OntologyRepository: Send + Sync {
     ) -> Result<()>;
 
     // OWL Class operations
-    async fn add_owl_class(&self, class: &OwlClass) -> Result<String>;
-    async fn get_owl_class(&self, iri: &str) -> Result<Option<OwlClass>>;
-    async fn list_owl_classes(&self) -> Result<Vec<OwlClass>>;
+    async fn add-owl-class(&self, class: &OwlClass) -> Result<String>;
+    async fn get-owl-class(&self, iri: &str) -> Result<Option<OwlClass>>;
+    async fn list-owl-classes(&self) -> Result<Vec<OwlClass>>;
 
     // OWL Property operations
-    async fn add_owl_property(&self, property: &OwlProperty) -> Result<String>;
-    async fn get_owl_property(&self, iri: &str) -> Result<Option<OwlProperty>>;
-    async fn list_owl_properties(&self) -> Result<Vec<OwlProperty>>;
+    async fn add-owl-property(&self, property: &OwlProperty) -> Result<String>;
+    async fn get-owl-property(&self, iri: &str) -> Result<Option<OwlProperty>>;
+    async fn list-owl-properties(&self) -> Result<Vec<OwlProperty>>;
 
     // Axiom operations
-    async fn add_axiom(&self, axiom: &OwlAxiom) -> Result<u64>;
-    async fn get_class_axioms(&self, class_iri: &str) -> Result<Vec<OwlAxiom>>;
+    async fn add-axiom(&self, axiom: &OwlAxiom) -> Result<u64>;
+    async fn get-class-axioms(&self, class-iri: &str) -> Result<Vec<OwlAxiom>>;
 
     // Inference operations
-    async fn store_inference_results(&self, results: &InferenceResults) -> Result<()>;
-    async fn get_inference_results(&self) -> Result<Option<InferenceResults>>;
+    async fn store-inference-results(&self, results: &InferenceResults) -> Result<()>;
+    async fn get-inference-results(&self) -> Result<Option<InferenceResults>>;
 
     // Validation and queries
-    async fn validate_ontology(&self) -> Result<ValidationReport>;
-    async fn query_ontology(&self, query: &str) -> Result<Vec<HashMap<String, String>>>;
-    async fn get_metrics(&self) -> Result<OntologyMetrics>;
+    async fn validate-ontology(&self) -> Result<ValidationReport>;
+    async fn query-ontology(&self, query: &str) -> Result<Vec<HashMap<String, String>>>;
+    async fn get-metrics(&self) -> Result<OntologyMetrics>;
 
     // Pathfinding caches
-    async fn cache_sssp_result(&self, entry: &PathfindingCacheEntry) -> Result<()>;
-    async fn get_cached_sssp(&self, source_node_id: u32) -> Result<Option<PathfindingCacheEntry>>;
-    async fn cache_apsp_result(&self, distance_matrix: &Vec<Vec<f32>>) -> Result<()>;
-    async fn get_cached_apsp(&self) -> Result<Option<Vec<Vec<f32>>>>;
-    async fn invalidate_pathfinding_caches(&self) -> Result<()>;
+    async fn cache-sssp-result(&self, entry: &PathfindingCacheEntry) -> Result<()>;
+    async fn get-cached-sssp(&self, source-node-id: u32) -> Result<Option<PathfindingCacheEntry>>;
+    async fn cache-apsp-result(&self, distance-matrix: &Vec<Vec<f32>>) -> Result<()>;
+    async fn get-cached-apsp(&self) -> Result<Option<Vec<Vec<f32>>>>;
+    async fn invalidate-pathfinding-caches(&self) -> Result<()>;
 }
 ```
 
@@ -69,18 +69,18 @@ pub struct OwlClass {
     pub iri: String,                    // Class IRI (e.g., "http://example.org/MyClass")
     pub label: Option<String>,          // Human-readable label
     pub description: Option<String>,    // Class description
-    pub parent_classes: Vec<String>,    // IRIs of parent classes
+    pub parent-classes: Vec<String>,    // IRIs of parent classes
     pub properties: HashMap<String, String>, // Additional properties
-    pub source_file: Option<String>,    // Source markdown file
+    pub source-file: Option<String>,    // Source markdown file
 
     // NEW: Raw markdown storage for zero semantic loss
-    pub markdown_content: Option<String>,     // Full markdown with OWL blocks
-    pub file_sha1: Option<String>,           // SHA1 hash for change detection
-    pub last_synced: Option<DateTime<Utc>>,  // Last GitHub sync timestamp
+    pub markdown-content: Option<String>,     // Full markdown with OWL blocks
+    pub file-sha1: Option<String>,           // SHA1 hash for change detection
+    pub last-synced: Option<DateTime<Utc>>,  // Last GitHub sync timestamp
 }
 ```
 
-**Architecture Note**: The `markdown_content` field stores complete markdown files including embedded OWL Functional Syntax blocks. This enables downstream parsing with horned-owl without semantic loss. See [Ontology Storage Architecture](../ontology-storage-architecture.md) for details.
+**Architecture Note**: The `markdown-content` field stores complete markdown files including embedded OWL Functional Syntax blocks. This enables downstream parsing with horned-owl without semantic loss. See [Ontology Storage Architecture](../ontology-storage-architecture.md) for details.
 
 ### OwlProperty
 
@@ -90,7 +90,7 @@ OWL property with domain and range:
 pub struct OwlProperty {
     pub iri: String,
     pub label: Option<String>,
-    pub property_type: PropertyType,
+    pub property-type: PropertyType,
     pub domain: Vec<String>,  // Class IRIs
     pub range: Vec<String>,   // Class/Datatype IRIs
 }
@@ -109,7 +109,7 @@ OWL axiom (logical statement):
 ```rust
 pub struct OwlAxiom {
     pub id: Option<u64>,
-    pub axiom_type: AxiomType,
+    pub axiom-type: AxiomType,
     pub subject: String,      // Subject IRI
     pub object: String,       // Object IRI or value
     pub annotations: HashMap<String, String>,
@@ -131,9 +131,9 @@ Results from reasoning engine:
 ```rust
 pub struct InferenceResults {
     pub timestamp: DateTime<Utc>,
-    pub inferred_axioms: Vec<OwlAxiom>,
-    pub inference_time_ms: u64,
-    pub reasoner_version: String,
+    pub inferred-axioms: Vec<OwlAxiom>,
+    pub inference-time-ms: u64,
+    pub reasoner-version: String,
 }
 ```
 
@@ -143,7 +143,7 @@ Ontology consistency check:
 
 ```rust
 pub struct ValidationReport {
-    pub is_valid: bool,
+    pub is-valid: bool,
     pub errors: Vec<String>,
     pub warnings: Vec<String>,
     pub timestamp: DateTime<Utc>,
@@ -156,12 +156,12 @@ SSSP cache for GPU pathfinding:
 
 ```rust
 pub struct PathfindingCacheEntry {
-    pub source_node_id: u32,
-    pub target_node_id: Option<u32>,
+    pub source-node-id: u32,
+    pub target-node-id: Option<u32>,
     pub distances: Vec<f32>,
     pub paths: HashMap<u32, Vec<u32>>,
-    pub computed_at: DateTime<Utc>,
-    pub computation_time_ms: f32,
+    pub computed-at: DateTime<Utc>,
+    pub computation-time-ms: f32,
 }
 ```
 
@@ -175,38 +175,38 @@ let repo: Arc<dyn OntologyRepository> = Arc::new(SqliteOntologyRepository::new(p
 // Import complete ontology from GitHub sync
 let classes = vec![
     OwlClass {
-        iri: "http://example.org/Person".to_string(),
-        label: Some("Person".to_string()),
-        description: Some("A human being".to_string()),
-        parent_classes: vec!["http://example.org/Agent".to_string()],
+        iri: "http://example.org/Person".to-string(),
+        label: Some("Person".to-string()),
+        description: Some("A human being".to-string()),
+        parent-classes: vec!["http://example.org/Agent".to-string()],
         properties: HashMap::new(),
-        source_file: Some("ontology/person.md".to_string()),
+        source-file: Some("ontology/person.md".to-string()),
     },
     // ... more classes
 ];
 
 let properties = vec![
     OwlProperty {
-        iri: "http://example.org/hasName".to_string(),
-        label: Some("has name".to_string()),
-        property_type: PropertyType::DataProperty,
-        domain: vec!["http://example.org/Person".to_string()],
-        range: vec!["http://www.w3.org/2001/XMLSchema#string".to_string()],
+        iri: "http://example.org/hasName".to-string(),
+        label: Some("has name".to-string()),
+        property-type: PropertyType::DataProperty,
+        domain: vec!["http://example.org/Person".to-string()],
+        range: vec!["http://www.w3.org/2001/XMLSchema#string".to-string()],
     },
 ];
 
 let axioms = vec![
     OwlAxiom {
         id: None,
-        axiom_type: AxiomType::SubClassOf,
-        subject: "http://example.org/Student".to_string(),
-        object: "http://example.org/Person".to_string(),
+        axiom-type: AxiomType::SubClassOf,
+        subject: "http://example.org/Student".to-string(),
+        object: "http://example.org/Person".to-string(),
         annotations: HashMap::new(),
     },
 ];
 
 // Atomic import with transaction
-repo.save_ontology(&classes, &properties, &axioms).await?;
+repo.save-ontology(&classes, &properties, &axioms).await?;
 ```
 
 ### OWL Class Operations
@@ -214,25 +214,25 @@ repo.save_ontology(&classes, &properties, &axioms).await?;
 ```rust
 // Add a class
 let class = OwlClass {
-    iri: "http://example.org/Book".to_string(),
-    label: Some("Book".to_string()),
-    description: Some("A published work".to_string()),
-    parent_classes: vec!["http://example.org/Publication".to_string()],
+    iri: "http://example.org/Book".to-string(),
+    label: Some("Book".to-string()),
+    description: Some("A published work".to-string()),
+    parent-classes: vec!["http://example.org/Publication".to-string()],
     properties: HashMap::new(),
-    source_file: Some("ontology/book.md".to_string()),
+    source-file: Some("ontology/book.md".to-string()),
 };
 
-let class_iri = repo.add_owl_class(&class).await?;
+let class-iri = repo.add-owl-class(&class).await?;
 
 // Get a class
-if let Some(class) = repo.get_owl_class("http://example.org/Book").await? {
-    println!("Class: {}", class.label.unwrap_or_default());
-    println!("Parents: {:?}", class.parent_classes);
+if let Some(class) = repo.get-owl-class("http://example.org/Book").await? {
+    println!("Class: {}", class.label.unwrap-or-default());
+    println!("Parents: {:?}", class.parent-classes);
 }
 
 // List all classes
-let all_classes = repo.list_owl_classes().await?;
-println!("Total classes: {}", all_classes.len());
+let all-classes = repo.list-owl-classes().await?;
+println!("Total classes: {}", all-classes.len());
 ```
 
 ### Axiom Operations
@@ -241,18 +241,18 @@ println!("Total classes: {}", all_classes.len());
 // Add axiom
 let axiom = OwlAxiom {
     id: None,
-    axiom_type: AxiomType::SubClassOf,
-    subject: "http://example.org/Novel".to_string(),
-    object: "http://example.org/Book".to_string(),
+    axiom-type: AxiomType::SubClassOf,
+    subject: "http://example.org/Novel".to-string(),
+    object: "http://example.org/Book".to-string(),
     annotations: HashMap::new(),
 };
 
-let axiom_id = repo.add_axiom(&axiom).await?;
+let axiom-id = repo.add-axiom(&axiom).await?;
 
 // Get axioms for a class
-let axioms = repo.get_class_axioms("http://example.org/Novel").await?;
+let axioms = repo.get-class-axioms("http://example.org/Novel").await?;
 for axiom in axioms {
-    println!("Axiom: {:?} {} {}", axiom.axiom_type, axiom.subject, axiom.object);
+    println!("Axiom: {:?} {} {}", axiom.axiom-type, axiom.subject, axiom.object);
 }
 ```
 
@@ -262,18 +262,18 @@ for axiom in axioms {
 // Store inference results from reasoner
 let results = InferenceResults {
     timestamp: Utc::now(),
-    inferred_axioms: vec![/* ... */],
-    inference_time_ms: 1500,
-    reasoner_version: "whelk-0.1.0".to_string(),
+    inferred-axioms: vec![/* ... */],
+    inference-time-ms: 1500,
+    reasoner-version: "whelk-0.1.0".to-string(),
 };
 
-repo.store_inference_results(&results).await?;
+repo.store-inference-results(&results).await?;
 
 // Retrieve latest inference
-if let Some(results) = repo.get_inference_results().await? {
+if let Some(results) = repo.get-inference-results().await? {
     println!("Inferred {} axioms in {}ms",
-        results.inferred_axioms.len(),
-        results.inference_time_ms
+        results.inferred-axioms.len(),
+        results.inference-time-ms
     );
 }
 ```
@@ -282,9 +282,9 @@ if let Some(results) = repo.get_inference_results().await? {
 
 ```rust
 // Validate ontology consistency
-let report = repo.validate_ontology().await?;
+let report = repo.validate-ontology().await?;
 
-if report.is_valid {
+if report.is-valid {
     println!("✓ Ontology is consistent");
 } else {
     println!("✗ Ontology has errors:");
@@ -293,7 +293,7 @@ if report.is_valid {
     }
 }
 
-if !report.warnings.is_empty() {
+if !report.warnings.is-empty() {
     println!("Warnings:");
     for warning in &report.warnings {
         println!("  ! {}", warning);
@@ -305,43 +305,43 @@ if !report.warnings.is_empty() {
 
 ```rust
 // Cache SSSP result from GPU computation
-let cache_entry = PathfindingCacheEntry {
-    source_node_id: 42,
-    target_node_id: None, // All targets
+let cache-entry = PathfindingCacheEntry {
+    source-node-id: 42,
+    target-node-id: None, // All targets
     distances: vec![0.0, 1.5, 2.3, 3.1],
     paths: HashMap::from([
         (1, vec![42, 1]),
         (2, vec![42, 1, 2]),
     ]),
-    computed_at: Utc::now(),
-    computation_time_ms: 12.5,
+    computed-at: Utc::now(),
+    computation-time-ms: 12.5,
 };
 
-repo.cache_sssp_result(&cache_entry).await?;
+repo.cache-sssp-result(&cache-entry).await?;
 
 // Retrieve cached SSSP
-if let Some(cached) = repo.get_cached_sssp(42).await? {
+if let Some(cached) = repo.get-cached-sssp(42).await? {
     println!("Found cached SSSP for node 42");
     println!("Distance to node 2: {}", cached.distances[2]);
 }
 
 // Cache APSP distance matrix
-let distance_matrix = vec![
+let distance-matrix = vec![
     vec![0.0, 1.0, 2.0],
     vec![1.0, 0.0, 1.5],
     vec![2.0, 1.5, 0.0],
 ];
-repo.cache_apsp_result(&distance_matrix).await?;
+repo.cache-apsp-result(&distance-matrix).await?;
 
 // Invalidate caches after graph changes
-repo.invalidate_pathfinding_caches().await?;
+repo.invalidate-pathfinding-caches().await?;
 ```
 
 ### Ontology Queries
 
 ```rust
 // SPARQL-like query
-let results = repo.query_ontology(
+let results = repo.query-ontology(
     "SELECT ?class WHERE { ?class SubClassOf http://example.org/Person }"
 ).await?;
 
@@ -350,22 +350,22 @@ for result in results {
 }
 
 // Get ontology metrics
-let metrics = repo.get_metrics().await?;
-println!("Classes: {}", metrics.class_count);
-println!("Properties: {}", metrics.property_count);
-println!("Axioms: {}", metrics.axiom_count);
-println!("Max depth: {}", metrics.max_depth);
-println!("Avg branching: {}", metrics.average_branching_factor);
+let metrics = repo.get-metrics().await?;
+println!("Classes: {}", metrics.class-count);
+println!("Properties: {}", metrics.property-count);
+println!("Axioms: {}", metrics.axiom-count);
+println!("Max depth: {}", metrics.max-depth);
+println!("Avg branching: {}", metrics.average-branching-factor);
 ```
 
 ## Implementation Notes
 
 ### Atomic Ontology Import
 
-The `save_ontology` method should use a single transaction:
+The `save-ontology` method should use a single transaction:
 
 ```rust
-async fn save_ontology(
+async fn save-ontology(
     &self,
     classes: &[OwlClass],
     properties: &[OwlProperty],
@@ -375,9 +375,9 @@ async fn save_ontology(
     let tx = conn.transaction()?;
 
     // Clear existing data
-    tx.execute("DELETE FROM owl_classes", [])?;
-    tx.execute("DELETE FROM owl_properties", [])?;
-    tx.execute("DELETE FROM owl_axioms", [])?;
+    tx.execute("DELETE FROM owl-classes", [])?;
+    tx.execute("DELETE FROM owl-properties", [])?;
+    tx.execute("DELETE FROM owl-axioms", [])?;
 
     // Insert new data
     for class in classes {
@@ -400,8 +400,8 @@ async fn save_ontology(
 Validate IRIs before storage:
 
 ```rust
-fn validate_iri(iri: &str) -> Result<()> {
-    if !iri.starts_with("http://") && !iri.starts_with("https://") {
+fn validate-iri(iri: &str) -> Result<()> {
+    if !iri.starts-with("http://") && !iri.starts-with("https://") {
         return Err(OntologyRepositoryError::InvalidData(
             format!("Invalid IRI: {}", iri)
         ));
@@ -413,54 +413,54 @@ fn validate_iri(iri: &str) -> Result<()> {
 ## Database Schema
 
 ```sql
-CREATE TABLE IF NOT EXISTS owl_classes (
+CREATE TABLE IF NOT EXISTS owl-classes (
     iri TEXT PRIMARY KEY,
     label TEXT,
     description TEXT,
-    parent_classes TEXT, -- JSON array
+    parent-classes TEXT, -- JSON array
     properties TEXT,     -- JSON object
-    source_file TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    source-file TEXT,
+    created-at DATETIME DEFAULT CURRENT-TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS owl_properties (
+CREATE TABLE IF NOT EXISTS owl-properties (
     iri TEXT PRIMARY KEY,
     label TEXT,
-    property_type TEXT NOT NULL, -- 'object', 'data', 'annotation'
+    property-type TEXT NOT NULL, -- 'object', 'data', 'annotation'
     domain TEXT,   -- JSON array of IRIs
     range TEXT,    -- JSON array of IRIs
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created-at DATETIME DEFAULT CURRENT-TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS owl_axioms (
+CREATE TABLE IF NOT EXISTS owl-axioms (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    axiom_type TEXT NOT NULL,
+    axiom-type TEXT NOT NULL,
     subject TEXT NOT NULL,
     object TEXT NOT NULL,
     annotations TEXT, -- JSON object
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created-at DATETIME DEFAULT CURRENT-TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS inference_results (
+CREATE TABLE IF NOT EXISTS inference-results (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     timestamp DATETIME NOT NULL,
-    inferred_axioms TEXT NOT NULL, -- JSON
-    inference_time_ms INTEGER NOT NULL,
-    reasoner_version TEXT NOT NULL
+    inferred-axioms TEXT NOT NULL, -- JSON
+    inference-time-ms INTEGER NOT NULL,
+    reasoner-version TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS pathfinding_cache (
-    source_node_id INTEGER PRIMARY KEY,
-    target_node_id INTEGER,
+CREATE TABLE IF NOT EXISTS pathfinding-cache (
+    source-node-id INTEGER PRIMARY KEY,
+    target-node-id INTEGER,
     distances BLOB NOT NULL,
     paths TEXT NOT NULL, -- JSON
-    computed_at DATETIME NOT NULL,
-    computation_time_ms REAL NOT NULL
+    computed-at DATETIME NOT NULL,
+    computation-time-ms REAL NOT NULL
 );
 
-CREATE INDEX idx_owl_classes_label ON owl_classes(label);
-CREATE INDEX idx_owl_axioms_subject ON owl_axioms(subject);
-CREATE INDEX idx_owl_axioms_type ON owl_axioms(axiom_type);
+CREATE INDEX idx-owl-classes-label ON owl-classes(label);
+CREATE INDEX idx-owl-axioms-subject ON owl-axioms(subject);
+CREATE INDEX idx-owl-axioms-type ON owl-axioms(axiom-type);
 ```
 
 ## Performance Considerations

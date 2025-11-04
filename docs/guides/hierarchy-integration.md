@@ -192,7 +192,7 @@ const {
 
 ```bash
 # Fetch hierarchy
-GET /api/ontology/hierarchy?ontology_id=default&max_depth=10
+GET /api/ontology/hierarchy?ontology-id=default&max-depth=10
 
 # Response
 {
@@ -382,8 +382,8 @@ label.scale.set(4 * scale, 1 * scale, 1);
 
 ## 📚 Additional Resources
 
-- **Full Documentation:** `/home/devuser/workspace/project/client/HIERARCHICAL_VISUALIZATION.md`
-- **Backend API:** `/home/devuser/workspace/project/src/handlers/api_handler/ontology/mod.rs` (lines 1001-1154)
+- **Full Documentation:** `/home/devuser/workspace/project/client/hierarchical-visualization.md`
+- **Backend API:** `/home/devuser/workspace/project/src/handlers/api-handler/ontology/mod.rs` (lines 1001-1154)
 - **Hook Source:** `/home/devuser/workspace/project/client/src/features/ontology/hooks/useHierarchyData.ts`
 - **Renderer Source:** `/home/devuser/workspace/project/client/src/features/visualisation/components/HierarchyRenderer.tsx`
 
@@ -401,4 +401,4 @@ label.scale.set(4 * scale, 1 * scale, 1);
 
 **Ready to integrate?** Follow the 3-step Quick Start guide above!
 
-**Questions?** See full documentation in `HIERARCHICAL_VISUALIZATION.md`
+**Questions?** See full documentation in `hierarchical-visualization.md`

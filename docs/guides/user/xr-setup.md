@@ -4,11 +4,11 @@ description: Setting up extended reality (XR) environments for immersive develop
 category: user-guide
 tags: [xr, vr, ar, setup, immersive, spatial-computing]
 difficulty: intermediate
-last_updated: 2025-10-27
+last-updated: 2025-10-27
 related:
   - ./working-with-agents.md
   - ../index.md
-  - ../../reference/README.md
+  - ../../reference/readme.md
 ---
 
 # XR Setup Guide - Development Environment

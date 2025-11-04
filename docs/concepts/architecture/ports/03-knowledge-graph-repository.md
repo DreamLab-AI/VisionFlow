@@ -6,57 +6,57 @@ The **KnowledgeGraphRepository** port manages the main knowledge graph structure
 
 ## Location
 
-- **Trait Definition**: `src/ports/knowledge_graph_repository.rs`
-- **Adapter Implementation**: `src/adapters/sqlite_knowledge_graph_repository.rs`
+- **Trait Definition**: `src/ports/knowledge-graph-repository.rs`
+- **Adapter Implementation**: `src/adapters/sqlite-knowledge-graph-repository.rs`
 
 ## Interface
 
 ```rust
-#[async_trait]
+#[async-trait]
 pub trait KnowledgeGraphRepository: Send + Sync {
     // Graph-level operations
-    async fn load_graph(&self) -> Result<Arc<GraphData>>;
-    async fn save_graph(&self, graph: &GraphData) -> Result<()>;
-    async fn clear_graph(&self) -> Result<()>;
-    async fn get_statistics(&self) -> Result<GraphStatistics>;
+    async fn load-graph(&self) -> Result<Arc<GraphData>>;
+    async fn save-graph(&self, graph: &GraphData) -> Result<()>;
+    async fn clear-graph(&self) -> Result<()>;
+    async fn get-statistics(&self) -> Result<GraphStatistics>;
 
     // Node operations
-    async fn add_node(&self, node: &Node) -> Result<u32>;
-    async fn batch_add_nodes(&self, nodes: Vec<Node>) -> Result<Vec<u32>>;
-    async fn update_node(&self, node: &Node) -> Result<()>;
-    async fn batch_update_nodes(&self, nodes: Vec<Node>) -> Result<()>;
-    async fn remove_node(&self, node_id: u32) -> Result<()>;
-    async fn batch_remove_nodes(&self, node_ids: Vec<u32>) -> Result<()>;
+    async fn add-node(&self, node: &Node) -> Result<u32>;
+    async fn batch-add-nodes(&self, nodes: Vec<Node>) -> Result<Vec<u32>>;
+    async fn update-node(&self, node: &Node) -> Result<()>;
+    async fn batch-update-nodes(&self, nodes: Vec<Node>) -> Result<()>;
+    async fn remove-node(&self, node-id: u32) -> Result<()>;
+    async fn batch-remove-nodes(&self, node-ids: Vec<u32>) -> Result<()>;
 
     // Node queries
-    async fn get_node(&self, node_id: u32) -> Result<Option<Node>>;
-    async fn get_nodes(&self, node_ids: Vec<u32>) -> Result<Vec<Node>>;
-    async fn get_nodes_by_metadata_id(&self, metadata_id: &str) -> Result<Vec<Node>>;
-    async fn search_nodes_by_label(&self, label: &str) -> Result<Vec<Node>>;
-    async fn query_nodes(&self, query: &str) -> Result<Vec<Node>>;
+    async fn get-node(&self, node-id: u32) -> Result<Option<Node>>;
+    async fn get-nodes(&self, node-ids: Vec<u32>) -> Result<Vec<Node>>;
+    async fn get-nodes-by-metadata-id(&self, metadata-id: &str) -> Result<Vec<Node>>;
+    async fn search-nodes-by-label(&self, label: &str) -> Result<Vec<Node>>;
+    async fn query-nodes(&self, query: &str) -> Result<Vec<Node>>;
 
     // Edge operations
-    async fn add_edge(&self, edge: &Edge) -> Result<String>;
-    async fn batch_add_edges(&self, edges: Vec<Edge>) -> Result<Vec<String>>;
-    async fn update_edge(&self, edge: &Edge) -> Result<()>;
-    async fn remove_edge(&self, edge_id: &str) -> Result<()>;
-    async fn batch_remove_edges(&self, edge_ids: Vec<String>) -> Result<()>;
+    async fn add-edge(&self, edge: &Edge) -> Result<String>;
+    async fn batch-add-edges(&self, edges: Vec<Edge>) -> Result<Vec<String>>;
+    async fn update-edge(&self, edge: &Edge) -> Result<()>;
+    async fn remove-edge(&self, edge-id: &str) -> Result<()>;
+    async fn batch-remove-edges(&self, edge-ids: Vec<String>) -> Result<()>;
 
     // Edge queries
-    async fn get_node_edges(&self, node_id: u32) -> Result<Vec<Edge>>;
-    async fn get_edges_between(&self, source_id: u32, target_id: u32) -> Result<Vec<Edge>>;
+    async fn get-node-edges(&self, node-id: u32) -> Result<Vec<Edge>>;
+    async fn get-edges-between(&self, source-id: u32, target-id: u32) -> Result<Vec<Edge>>;
 
     // Graph algorithms
-    async fn get_neighbors(&self, node_id: u32) -> Result<Vec<Node>>;
-    async fn batch_update_positions(&self, positions: Vec<(u32, f32, f32, f32)>) -> Result<()>;
+    async fn get-neighbors(&self, node-id: u32) -> Result<Vec<Node>>;
+    async fn batch-update-positions(&self, positions: Vec<(u32, f32, f32, f32)>) -> Result<()>;
 
     // Transaction support
-    async fn begin_transaction(&self) -> Result<()>;
-    async fn commit_transaction(&self) -> Result<()>;
-    async fn rollback_transaction(&self) -> Result<()>;
+    async fn begin-transaction(&self) -> Result<()>;
+    async fn commit-transaction(&self) -> Result<()>;
+    async fn rollback-transaction(&self) -> Result<()>;
 
     // Health check
-    async fn health_check(&self) -> Result<bool>;
+    async fn health-check(&self) -> Result<bool>;
 }
 ```
 
@@ -76,8 +76,8 @@ pub struct GraphData {
 pub struct GraphMetadata {
     pub name: String,
     pub source: GraphSource,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub created-at: DateTime<Utc>,
+    pub updated-at: DateTime<Utc>,
 }
 
 pub enum GraphSource {
@@ -99,7 +99,7 @@ pub struct Node {
     pub velocity: Vec3,       // Physics simulation
     pub color: String,        // Hex color
     pub size: f32,
-    pub metadata_id: String,  // Markdown file ID
+    pub metadata-id: String,  // Markdown file ID
     pub properties: HashMap<String, String>,
 }
 ```
@@ -113,7 +113,7 @@ pub struct Edge {
     pub id: String,
     pub source: u32,
     pub target: u32,
-    pub edge_type: EdgeType,
+    pub edge-type: EdgeType,
     pub weight: f32,
     pub properties: HashMap<String, String>,
 }
@@ -133,11 +133,11 @@ Graph analytics:
 
 ```rust
 pub struct GraphStatistics {
-    pub node_count: usize,
-    pub edge_count: usize,
-    pub average_degree: f32,
-    pub connected_components: usize,
-    pub last_updated: DateTime<Utc>,
+    pub node-count: usize,
+    pub edge-count: usize,
+    pub average-degree: f32,
+    pub connected-components: usize,
+    pub last-updated: DateTime<Utc>,
 }
 ```
 
@@ -174,16 +174,16 @@ pub enum KnowledgeGraphRepositoryError {
 let repo: Arc<dyn KnowledgeGraphRepository> = Arc::new(SqliteGraphRepository::new(pool));
 
 // Load complete graph
-let graph = repo.load_graph().await?;
+let graph = repo.load-graph().await?;
 println!("Loaded {} nodes and {} edges", graph.nodes.len(), graph.edges.len());
 
 // Save modified graph
-repo.save_graph(&modified_graph).await?;
+repo.save-graph(&modified-graph).await?;
 
 // Get graph statistics
-let stats = repo.get_statistics().await?;
-println!("Average degree: {}", stats.average_degree);
-println!("Components: {}", stats.connected_components);
+let stats = repo.get-statistics().await?;
+println!("Average degree: {}", stats.average-degree);
+println!("Components: {}", stats.connected-components);
 ```
 
 ### Node Operations
@@ -192,55 +192,55 @@ println!("Components: {}", stats.connected_components);
 // Add a single node
 let node = Node {
     id: 0, // Will be assigned by repository
-    label: "My Note".to_string(),
+    label: "My Note".to-string(),
     position: Vec3::new(0.0, 0.0, 0.0),
     velocity: Vec3::ZERO,
-    color: "#3498db".to_string(),
+    color: "#3498db".to-string(),
     size: 1.0,
-    metadata_id: "note-123".to_string(),
+    metadata-id: "note-123".to-string(),
     properties: HashMap::new(),
 };
 
-let node_id = repo.add_node(&node).await?;
-println!("Created node with ID: {}", node_id);
+let node-id = repo.add-node(&node).await?;
+println!("Created node with ID: {}", node-id);
 
 // Batch add nodes (more efficient)
 let nodes = vec![node1, node2, node3];
-let node_ids = repo.batch_add_nodes(nodes).await?;
-println!("Created {} nodes", node_ids.len());
+let node-ids = repo.batch-add-nodes(nodes).await?;
+println!("Created {} nodes", node-ids.len());
 
 // Update a node
-let mut node = repo.get_node(node_id).await?.unwrap();
-node.label = "Updated Label".to_string();
-repo.update_node(&node).await?;
+let mut node = repo.get-node(node-id).await?.unwrap();
+node.label = "Updated Label".to-string();
+repo.update-node(&node).await?;
 
 // Remove nodes
-repo.remove_node(node_id).await?;
-repo.batch_remove_nodes(vec![1, 2, 3]).await?;
+repo.remove-node(node-id).await?;
+repo.batch-remove-nodes(vec![1, 2, 3]).await?;
 ```
 
 ### Node Queries
 
 ```rust
 // Get a single node
-if let Some(node) = repo.get_node(42).await? {
+if let Some(node) = repo.get-node(42).await? {
     println!("Node: {}", node.label);
 }
 
 // Get multiple nodes by IDs
-let nodes = repo.get_nodes(vec![1, 2, 3, 4]).await?;
+let nodes = repo.get-nodes(vec![1, 2, 3, 4]).await?;
 
 // Search by metadata ID (markdown file)
-let nodes = repo.get_nodes_by_metadata_id("daily/2025-10-27").await?;
+let nodes = repo.get-nodes-by-metadata-id("daily/2025-10-27").await?;
 
 // Search by label (partial matching)
-let nodes = repo.search_nodes_by_label("rust").await?;
+let nodes = repo.search-nodes-by-label("rust").await?;
 
 // Advanced query (SQL-like syntax)
-let nodes = repo.query_nodes("color = '#3498db' AND size > 1.0").await?;
+let nodes = repo.query-nodes("color = '#3498db' AND size > 1.0").await?;
 
 // Get neighbors
-let neighbors = repo.get_neighbors(node_id).await?;
+let neighbors = repo.get-neighbors(node-id).await?;
 println!("Node has {} neighbors", neighbors.len());
 ```
 
@@ -252,26 +252,26 @@ let edge = Edge {
     id: String::new(), // Will be assigned
     source: 1,
     target: 2,
-    edge_type: EdgeType::Link,
+    edge-type: EdgeType::Link,
     weight: 1.0,
     properties: HashMap::new(),
 };
 
-let edge_id = repo.add_edge(&edge).await?;
+let edge-id = repo.add-edge(&edge).await?;
 
 // Batch add edges
 let edges = vec![edge1, edge2, edge3];
-let edge_ids = repo.batch_add_edges(edges).await?;
+let edge-ids = repo.batch-add-edges(edges).await?;
 
 // Get all edges for a node
-let edges = repo.get_node_edges(node_id).await?;
+let edges = repo.get-node-edges(node-id).await?;
 
 // Get edges between two specific nodes
-let edges = repo.get_edges_between(source_id, target_id).await?;
+let edges = repo.get-edges-between(source-id, target-id).await?;
 
 // Remove edges
-repo.remove_edge(&edge_id).await?;
-repo.batch_remove_edges(vec!["edge1".to_string(), "edge2".to_string()]).await?;
+repo.remove-edge(&edge-id).await?;
+repo.batch-remove-edges(vec!["edge1".to-string(), "edge2".to-string()]).await?;
 ```
 
 ### Physics Simulation Updates
@@ -284,24 +284,24 @@ let positions = vec![
     (3, 12.1, 22.4, 0.0),
 ];
 
-repo.batch_update_positions(positions).await?;
+repo.batch-update-positions(positions).await?;
 ```
 
 ### Transaction Support
 
 ```rust
 // Begin transaction
-repo.begin_transaction().await?;
+repo.begin-transaction().await?;
 
 // Perform multiple operations
-let node_ids = repo.batch_add_nodes(nodes).await?;
-let edge_ids = repo.batch_add_edges(edges).await?;
+let node-ids = repo.batch-add-nodes(nodes).await?;
+let edge-ids = repo.batch-add-edges(edges).await?;
 
 // Commit or rollback
-if all_ok {
-    repo.commit_transaction().await?;
+if all-ok {
+    repo.commit-transaction().await?;
 } else {
-    repo.rollback_transaction().await?;
+    repo.rollback-transaction().await?;
 }
 ```
 
@@ -314,11 +314,11 @@ Always prefer batch operations for bulk updates:
 ```rust
 // ❌ Slow: Individual operations
 for node in nodes {
-    repo.add_node(&node).await?;
+    repo.add-node(&node).await?;
 }
 
 // ✅ Fast: Batch operation
-repo.batch_add_nodes(nodes).await?;
+repo.batch-add-nodes(nodes).await?;
 ```
 
 **Performance Gains**:
@@ -331,11 +331,11 @@ repo.batch_add_nodes(nodes).await?;
 Database indexes for optimal query performance:
 
 ```sql
-CREATE INDEX idx_nodes_metadata_id ON nodes(metadata_id);
-CREATE INDEX idx_nodes_label ON nodes(label);
-CREATE INDEX idx_edges_source ON edges(source);
-CREATE INDEX idx_edges_target ON edges(target);
-CREATE INDEX idx_edges_type ON edges(edge_type);
+CREATE INDEX idx-nodes-metadata-id ON nodes(metadata-id);
+CREATE INDEX idx-nodes-label ON nodes(label);
+CREATE INDEX idx-edges-source ON edges(source);
+CREATE INDEX idx-edges-target ON edges(target);
+CREATE INDEX idx-edges-type ON edges(edge-type);
 ```
 
 ### Caching Strategy
@@ -345,9 +345,9 @@ Implement multi-level caching:
 ```rust
 pub struct CachedGraphRepository {
     repo: Arc<dyn KnowledgeGraphRepository>,
-    node_cache: Arc<RwLock<LruCache<u32, Node>>>,
-    edge_cache: Arc<RwLock<LruCache<String, Edge>>>,
-    graph_cache: Arc<RwLock<Option<(Arc<GraphData>, Instant)>>>,
+    node-cache: Arc<RwLock<LruCache<u32, Node>>>,
+    edge-cache: Arc<RwLock<LruCache<String, Edge>>>,
+    graph-cache: Arc<RwLock<Option<(Arc<GraphData>, Instant)>>>,
 }
 ```
 
@@ -370,20 +370,20 @@ CREATE TABLE IF NOT EXISTS nodes (
     vz REAL DEFAULT 0.0,
     color TEXT NOT NULL,
     size REAL NOT NULL,
-    metadata_id TEXT NOT NULL,
+    metadata-id TEXT NOT NULL,
     properties TEXT, -- JSON
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created-at DATETIME DEFAULT CURRENT-TIMESTAMP,
+    updated-at DATETIME DEFAULT CURRENT-TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS edges (
     id TEXT PRIMARY KEY,
     source INTEGER NOT NULL,
     target INTEGER NOT NULL,
-    edge_type TEXT NOT NULL,
+    edge-type TEXT NOT NULL,
     weight REAL DEFAULT 1.0,
     properties TEXT, -- JSON
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created-at DATETIME DEFAULT CURRENT-TIMESTAMP,
     FOREIGN KEY (source) REFERENCES nodes(id) ON DELETE CASCADE,
     FOREIGN KEY (target) REFERENCES nodes(id) ON DELETE CASCADE
 );
@@ -396,17 +396,17 @@ CREATE TABLE IF NOT EXISTS edges (
 ```rust
 pub struct MockKnowledgeGraphRepository {
     graph: Arc<RwLock<GraphData>>,
-    next_node_id: Arc<AtomicU32>,
+    next-node-id: Arc<AtomicU32>,
 }
 
-#[async_trait]
+#[async-trait]
 impl KnowledgeGraphRepository for MockKnowledgeGraphRepository {
-    async fn load_graph(&self) -> Result<Arc<GraphData>> {
+    async fn load-graph(&self) -> Result<Arc<GraphData>> {
         Ok(Arc::new(self.graph.read().await.clone()))
     }
 
-    async fn add_node(&self, node: &Node) -> Result<u32> {
-        let id = self.next_node_id.fetch_add(1, Ordering::SeqCst);
+    async fn add-node(&self, node: &Node) -> Result<u32> {
+        let id = self.next-node-id.fetch-add(1, Ordering::SeqCst);
         let mut node = node.clone();
         node.id = id;
         self.graph.write().await.nodes.push(node);
@@ -421,24 +421,24 @@ impl KnowledgeGraphRepository for MockKnowledgeGraphRepository {
 
 ```rust
 #[tokio::test]
-async fn test_knowledge_graph_repository_contract() {
+async fn test-knowledge-graph-repository-contract() {
     let repo = MockKnowledgeGraphRepository::new();
 
     // Test node operations
-    let node = create_test_node();
-    let node_id = repo.add_node(&node).await.unwrap();
-    assert!(node_id > 0);
+    let node = create-test-node();
+    let node-id = repo.add-node(&node).await.unwrap();
+    assert!(node-id > 0);
 
-    let loaded_node = repo.get_node(node_id).await.unwrap().unwrap();
-    assert_eq!(loaded_node.label, node.label);
+    let loaded-node = repo.get-node(node-id).await.unwrap().unwrap();
+    assert-eq!(loaded-node.label, node.label);
 
     // Test batch operations
-    let nodes = vec![create_test_node(), create_test_node()];
-    let ids = repo.batch_add_nodes(nodes).await.unwrap();
-    assert_eq!(ids.len(), 2);
+    let nodes = vec![create-test-node(), create-test-node()];
+    let ids = repo.batch-add-nodes(nodes).await.unwrap();
+    assert-eq!(ids.len(), 2);
 
     // Test queries
-    let results = repo.search_nodes_by_label("test").await.unwrap();
+    let results = repo.search-nodes-by-label("test").await.unwrap();
     assert!(results.len() > 0);
 }
 ```

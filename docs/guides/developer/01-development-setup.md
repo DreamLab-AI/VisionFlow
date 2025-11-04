@@ -68,7 +68,7 @@ Task("Tester", "Create tests", "tester")
 # Fork the repository on GitHub first, then:
 
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/visionflow.git
+git clone https://github.com/YOUR-USERNAME/visionflow.git
 cd visionflow
 
 # Add upstream remote
@@ -107,31 +107,31 @@ nano .env
 **Example `.env` configuration**:
 ```bash
 # Application
-NODE_ENV=development
+NODE-ENV=development
 PORT=8080
-API_PORT=9090
+API-PORT=9090
 
 # Database
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=visionflow_dev
-DB_USER=visionflow
-DB_PASSWORD=dev_password
+DB-HOST=localhost
+DB-PORT=5432
+DB-NAME=visionflow-dev
+DB-USER=visionflow
+DB-PASSWORD=dev-password
 
 # Redis
-REDIS_HOST=localhost
-REDIS_PORT=6379
+REDIS-HOST=localhost
+REDIS-PORT=6379
 
 # Storage
-STORAGE_TYPE=local
-STORAGE_PATH=/tmp/visionflow-storage
+STORAGE-TYPE=local
+STORAGE-PATH=/tmp/visionflow-storage
 
 # Logging
-LOG_LEVEL=debug
-LOG_FORMAT=pretty
+LOG-LEVEL=debug
+LOG-FORMAT=pretty
 
 # Development
-HOT_RELOAD=true
+HOT-RELOAD=true
 DEBUG=true
 ```
 
@@ -170,9 +170,9 @@ sudo systemctl start redis
 
 # Or use Docker for individual services
 docker run -d --name visionflow-postgres \
-  -e POSTGRES_DB=visionflow_dev \
-  -e POSTGRES_USER=visionflow \
-  -e POSTGRES_PASSWORD=dev_password \
+  -e POSTGRES-DB=visionflow-dev \
+  -e POSTGRES-USER=visionflow \
+  -e POSTGRES-PASSWORD=dev-password \
   -p 5432:5432 \
   postgres:14
 
@@ -185,7 +185,7 @@ docker run -d --name visionflow-redis \
 
 ```bash
 # Create database
-createdb visionflow_dev
+createdb visionflow-dev
 
 # Run migrations
 npm run db:migrate
@@ -261,13 +261,13 @@ npm run dev:worker # Background worker only
 
 ```bash
 # Create test database
-createdb visionflow_test
+createdb visionflow-test
 
 # Configure test environment
 cp .env.test.example .env.test
 
 # Run migrations for test database
-NODE_ENV=test npm run db:migrate
+NODE-ENV=test npm run db:migrate
 ```
 
 ### Running Tests
@@ -463,7 +463,7 @@ chore(deps): upgrade dependencies
       "name": "Debug API Server",
       "program": "${workspaceFolder}/src/api/index.js",
       "env": {
-        "NODE_ENV": "development",
+        "NODE-ENV": "development",
         "DEBUG": "visionflow:*"
       }
     },
@@ -471,7 +471,7 @@ chore(deps): upgrade dependencies
       "type": "node",
       "request": "launch",
       "name": "Debug Tests",
-      "program": "${workspaceFolder}/node_modules/jest/bin/jest",
+      "program": "${workspaceFolder}/node-modules/jest/bin/jest",
       "args": ["--runInBand", "--no-cache"],
       "console": "integratedTerminal"
     }
@@ -554,7 +554,7 @@ node --inspect --expose-gc src/api/index.js
 
 ```bash
 # Start with metrics enabled
-ENABLE_METRICS=true npm run dev
+ENABLE-METRICS=true npm run dev
 
 # Access metrics
 curl http://localhost:9090/metrics
@@ -569,10 +569,10 @@ curl http://localhost:9090/metrics
 npm run dev
 
 # Staging
-NODE_ENV=staging npm start
+NODE-ENV=staging npm start
 
 # Production
-NODE_ENV=production npm start
+NODE-ENV=production npm start
 ```
 
 ### Environment Files
@@ -601,7 +601,7 @@ kill -9 <PID>
 
 ```bash
 # Check PostgreSQL status
-pg_isready -h localhost -p 5432
+pg-isready -h localhost -p 5432
 
 # Reset database
 npm run db:reset
@@ -611,7 +611,7 @@ npm run db:reset
 
 ```bash
 # Clear cache and reinstall
-rm -rf node_modules package-lock.json
+rm -rf node-modules package-lock.json
 npm cache clean --force
 npm install
 ```
@@ -650,4 +650,4 @@ npm run build
 
 ---
 
-**Navigation:** [📖 Documentation Index](../../README.md) | [💻 Developer Guide](./) | [🏗️ Architecture](../../concepts/architecture/) | [🧪 Testing](05-testing-guide.md)
+**Navigation:** [📖 Documentation Index](../../readme.md) | [💻 Developer Guide](./) | [🏗️ Architecture](../../concepts/architecture/) | [🧪 Testing](05-testing-guide.md)

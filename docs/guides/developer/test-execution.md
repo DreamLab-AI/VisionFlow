@@ -14,11 +14,11 @@ cd /home/devuser/workspace/project
 cargo test --features ontology --lib ontology
 
 # Integration tests
-cargo test --features ontology,gpu --test semantic_physics
-cargo test --features ontology,gpu --test pipeline_end_to_end
+cargo test --features ontology,gpu --test semantic-physics
+cargo test --features ontology,gpu --test pipeline-end-to-end
 
 # Performance benchmarks
-cargo test --features ontology --release reasoning_benchmark -- --nocapture
+cargo test --features ontology --release reasoning-benchmark -- --nocapture
 
 # All tests with output
 cargo test --features ontology,gpu -- --nocapture
@@ -32,19 +32,19 @@ cargo test --features ontology,gpu -- --nocapture
 tests/
 ├── fixtures/
 │   └── ontologies/
-│       └── test_reasoning.owl          # Comprehensive test ontology
+│       └── test-reasoning.owl          # Comprehensive test ontology
 │
 ├── unit/
-│   └── ontology_reasoning_test.rs      # 15 unit tests
+│   └── ontology-reasoning-test.rs      # 15 unit tests
 │
 ├── integration/
-│   ├── semantic_physics_integration_test.rs  # 8 physics tests
-│   └── pipeline_end_to_end_test.rs           # 8 E2E tests
+│   ├── semantic-physics-integration-test.rs  # 8 physics tests
+│   └── pipeline-end-to-end-test.rs           # 8 E2E tests
 │
 ├── performance/
-│   └── reasoning_benchmark.rs          # 7 performance benchmarks
+│   └── reasoning-benchmark.rs          # 7 performance benchmarks
 │
-└── SEMANTIC_INTELLIGENCE_VALIDATION_REPORT.md
+└── semantic-intelligence-validation-report.md
 ```
 
 ---
@@ -53,7 +53,7 @@ tests/
 
 ### 1. Unit Tests (15 tests)
 
-**File:** `tests/unit/ontology_reasoning_test.rs`
+**File:** `tests/unit/ontology-reasoning-test.rs`
 
 **What it tests:**
 - CustomReasoner initialization and basic operation
@@ -68,25 +68,25 @@ tests/
 
 **Run:**
 ```bash
-cargo test --features ontology --test ontology_reasoning_test
+cargo test --features ontology --test ontology-reasoning-test
 ```
 
 **Expected output:**
 ```
 running 15 tests
-test test_custom_reasoner_initialization ... ok
-test test_basic_reasoning_from_owl ... ok
-test test_subclass_transitive_inference ... ok
-test test_disjoint_classes_detection ... ok
-test test_equivalent_classes_detection ... ok
-test test_inverse_properties_detection ... ok
-test test_inference_cache_hit_miss ... ok
-test test_cache_invalidation_on_content_change ... ok
-test test_reasoning_performance_simple_ontology ... ok
-test test_empty_ontology_handling ... ok
-test test_malformed_owl_handling ... ok
-test test_cache_persistence_across_instances ... ok
-test test_subproperty_inference ... ok
+test test-custom-reasoner-initialization ... ok
+test test-basic-reasoning-from-owl ... ok
+test test-subclass-transitive-inference ... ok
+test test-disjoint-classes-detection ... ok
+test test-equivalent-classes-detection ... ok
+test test-inverse-properties-detection ... ok
+test test-inference-cache-hit-miss ... ok
+test test-cache-invalidation-on-content-change ... ok
+test test-reasoning-performance-simple-ontology ... ok
+test test-empty-ontology-handling ... ok
+test test-malformed-owl-handling ... ok
+test test-cache-persistence-across-instances ... ok
+test test-subproperty-inference ... ok
 
 test result: ok. 15 passed; 0 failed
 ```
@@ -95,7 +95,7 @@ test result: ok. 15 passed; 0 failed
 
 ### 2. Integration Tests - Semantic Physics (8 tests)
 
-**File:** `tests/integration/semantic_physics_integration_test.rs`
+**File:** `tests/integration/semantic-physics-integration-test.rs`
 
 **What it tests:**
 - Disjoint classes create repulsion forces
@@ -108,20 +108,20 @@ test result: ok. 15 passed; 0 failed
 
 **Run:**
 ```bash
-cargo test --features ontology,gpu --test semantic_physics_integration_test
+cargo test --features ontology,gpu --test semantic-physics-integration-test
 ```
 
 **Expected output:**
 ```
 running 8 tests
-test test_disjoint_creates_repulsion_forces ... ok
-test test_subclass_creates_attraction_forces ... ok
-test test_force_magnitude_correctness ... ok
-test test_correct_node_pair_application ... ok
-test test_equivalent_class_handling ... ok
-test test_transitive_hierarchy_forces ... ok
-test test_disjoint_transitive_application ... ok
-test test_constraint_serialization ... ok
+test test-disjoint-creates-repulsion-forces ... ok
+test test-subclass-creates-attraction-forces ... ok
+test test-force-magnitude-correctness ... ok
+test test-correct-node-pair-application ... ok
+test test-equivalent-class-handling ... ok
+test test-transitive-hierarchy-forces ... ok
+test test-disjoint-transitive-application ... ok
+test test-constraint-serialization ... ok
 
 test result: ok. 8 passed; 0 failed
 ```
@@ -130,7 +130,7 @@ test result: ok. 8 passed; 0 failed
 
 ### 3. Integration Tests - End-to-End Pipeline (8 tests)
 
-**File:** `tests/integration/pipeline_end_to_end_test.rs`
+**File:** `tests/integration/pipeline-end-to-end-test.rs`
 
 **What it tests:**
 - OWL upload triggers automatic reasoning
@@ -144,19 +144,19 @@ test result: ok. 8 passed; 0 failed
 
 **Run:**
 ```bash
-cargo test --features ontology,gpu --test pipeline_end_to_end_test
+cargo test --features ontology,gpu --test pipeline-end-to-end-test
 ```
 
 **Expected output:**
 ```
 running 8 tests
-test test_owl_upload_triggers_reasoning ... ok
-test test_constraints_generated_with_correct_indices ... ok
-test test_gpu_receives_constraints ... ok
-test test_client_receives_updated_positions ... ok
-test test_cache_improves_second_upload ... ok
-test test_concurrent_reasoning_requests ... ok
-test test_reasoning_error_handling ... ok
+test test-owl-upload-triggers-reasoning ... ok
+test test-constraints-generated-with-correct-indices ... ok
+test test-gpu-receives-constraints ... ok
+test test-client-receives-updated-positions ... ok
+test test-cache-improves-second-upload ... ok
+test test-concurrent-reasoning-requests ... ok
+test test-reasoning-error-handling ... ok
 
 test result: ok. 8 passed; 0 failed
 ```
@@ -165,7 +165,7 @@ test result: ok. 8 passed; 0 failed
 
 ### 4. Performance Benchmarks (7 tests)
 
-**File:** `tests/performance/reasoning_benchmark.rs`
+**File:** `tests/performance/reasoning-benchmark.rs`
 
 **What it tests:**
 - Small ontology (10 classes): <50ms
@@ -178,7 +178,7 @@ test result: ok. 8 passed; 0 failed
 
 **Run:**
 ```bash
-cargo test --features ontology --release --test reasoning_benchmark -- --nocapture
+cargo test --features ontology --release --test reasoning-benchmark -- --nocapture
 ```
 
 **Expected output:**
@@ -190,21 +190,21 @@ Size: 10 classes, ~20 axioms
 Duration: 38ms
 Inferred axioms: 45
 Throughput: 1.18 axioms/ms
-test benchmark_small_ontology_reasoning ... ok
+test benchmark-small-ontology-reasoning ... ok
 
 === MEDIUM ONTOLOGY BENCHMARK ===
 Size: 100 classes, ~200 axioms
 Duration: 245ms
 Inferred axioms: 523
 Throughput: 2.13 axioms/ms
-test benchmark_medium_ontology_reasoning ... ok
+test benchmark-medium-ontology-reasoning ... ok
 
 === LARGE ONTOLOGY BENCHMARK ===
 Size: 1000 classes, ~5000 axioms
 Duration: 4187ms
 Inferred axioms: 12847
 Throughput: 3.07 axioms/ms
-test benchmark_large_ontology_reasoning ... ok
+test benchmark-large-ontology-reasoning ... ok
 
 === CONSTRAINT GENERATION BENCHMARK ===
 Node count: 100
@@ -212,14 +212,14 @@ Inferred axioms: 523
 Generated constraints: 234
 Duration: 12ms
 Throughput: 19.50 constraints/ms
-test benchmark_constraint_generation ... ok
+test benchmark-constraint-generation ... ok
 
 === CACHE PERFORMANCE BENCHMARK ===
 Ontology size: 100 classes
 First run (cache miss): 245ms
 Second run (cache hit): 1.2ms
 Speedup: 204.17x
-test benchmark_cache_performance ... ok
+test benchmark-cache-performance ... ok
 
 test result: ok. 7 passed; 0 failed
 ```
@@ -232,15 +232,15 @@ test result: ok. 7 passed; 0 failed
 
 ```bash
 # Quick validation during development
-cargo test --features ontology --lib ontology_reasoning -- --nocapture
+cargo test --features ontology --lib ontology-reasoning -- --nocapture
 
 # Full validation before commit
 cargo test --features ontology,gpu --lib
-cargo test --features ontology,gpu --test semantic_physics_integration_test
-cargo test --features ontology,gpu --test pipeline_end_to_end_test
+cargo test --features ontology,gpu --test semantic-physics-integration-test
+cargo test --features ontology,gpu --test pipeline-end-to-end-test
 
 # Performance regression check
-cargo test --features ontology --release reasoning_benchmark -- --nocapture
+cargo test --features ontology --release reasoning-benchmark -- --nocapture
 ```
 
 ### CI/CD Pipeline
@@ -253,20 +253,20 @@ cargo test --features ontology,gpu --all
 cargo tarpaulin --features ontology,gpu --out Html --output-dir coverage/
 
 # Performance benchmarks
-cargo test --features ontology --release --test reasoning_benchmark -- --nocapture > benchmarks.txt
+cargo test --features ontology --release --test reasoning-benchmark -- --nocapture > benchmarks.txt
 ```
 
 ### Debugging Failed Tests
 
 ```bash
 # Run single test with full output
-cargo test --features ontology test_subclass_transitive_inference -- --nocapture --exact
+cargo test --features ontology test-subclass-transitive-inference -- --nocapture --exact
 
 # Run with backtrace
-RUST_BACKTRACE=1 cargo test --features ontology test_name
+RUST-BACKTRACE=1 cargo test --features ontology test-name
 
 # Run with logging
-RUST_LOG=debug cargo test --features ontology test_name -- --nocapture
+RUST-LOG=debug cargo test --features ontology test-name -- --nocapture
 ```
 
 ---
@@ -319,7 +319,7 @@ RUST_LOG=debug cargo test --features ontology test_name -- --nocapture
 
 ### Test Ontology Structure
 
-**File:** `tests/fixtures/ontologies/test_reasoning.owl`
+**File:** `tests/fixtures/ontologies/test-reasoning.owl`
 
 ```
 Classes (10):
@@ -372,7 +372,7 @@ cargo test --features ontology
 
 ```bash
 # File not found
-Error: No such file: test_reasoning.owl
+Error: No such file: test-reasoning.owl
 
 # Fix: Ensure working directory is project root
 cd /home/devuser/workspace/project
@@ -396,7 +396,7 @@ warning: test took >1s
 **Log Analysis:**
 ```bash
 # Enable debug logging
-RUST_LOG=debug cargo test --features ontology -- --nocapture 2>&1 | tee test.log
+RUST-LOG=debug cargo test --features ontology -- --nocapture 2>&1 | tee test.log
 
 # Search for errors
 grep ERROR test.log
@@ -405,7 +405,7 @@ grep ERROR test.log
 **Test Isolation:**
 ```bash
 # Run one test at a time
-cargo test --features ontology test_name -- --test-threads=1
+cargo test --features ontology test-name -- --test-threads=1
 ```
 
 ---
@@ -428,17 +428,17 @@ cargo test --features ontology test_name -- --test-threads=1
 ### Adding New Tests
 
 1. **Unit test:**
-   - Add to `tests/unit/ontology_reasoning_test.rs`
+   - Add to `tests/unit/ontology-reasoning-test.rs`
    - Follow existing naming convention
    - Include clear assertions
 
 2. **Integration test:**
    - Add to appropriate file in `tests/integration/`
-   - Use test helpers from `test_utils.rs`
+   - Use test helpers from `test-utils.rs`
    - Validate end-to-end behavior
 
 3. **Benchmark:**
-   - Add to `tests/performance/reasoning_benchmark.rs`
+   - Add to `tests/performance/reasoning-benchmark.rs`
    - Use `Instant::now()` for timing
    - Print results with `--nocapture`
 
@@ -446,7 +446,7 @@ cargo test --features ontology test_name -- --test-threads=1
 
 ```bash
 # Edit test ontology
-nano tests/fixtures/ontologies/test_reasoning.owl
+nano tests/fixtures/ontologies/test-reasoning.owl
 
 # Validate OWL syntax
 # (use online validator or Protégé)
@@ -464,7 +464,7 @@ cargo test --features ontology
 ```yaml
 name: Test Semantic Intelligence
 
-on: [push, pull_request]
+on: [push, pull-request]
 
 jobs:
   test:
@@ -482,7 +482,7 @@ jobs:
         run: cargo test --features ontology,gpu --tests
 
       - name: Run benchmarks
-        run: cargo test --features ontology --release reasoning_benchmark
+        run: cargo test --features ontology --release reasoning-benchmark
 ```
 
 ---
@@ -502,20 +502,20 @@ cargo test --features ontology,gpu
 cargo test --features ontology --lib
 
 # Performance
-cargo test --features ontology --release reasoning_benchmark -- --nocapture
+cargo test --features ontology --release reasoning-benchmark -- --nocapture
 ```
 
-For detailed results, see `tests/SEMANTIC_INTELLIGENCE_VALIDATION_REPORT.md`
+For detailed results, see `tests/semantic-intelligence-validation-report.md`
 
 ## Verification Commands
 
 ### Inspect Git Commit
 ```bash
 $ cd /home/devuser/workspace/project
-$ git show fa29aee8:src/services/ontology_converter.rs | grep -C 3 "owl_class_iri"
+$ git show fa29aee8:src/services/ontology-converter.rs | grep -C 3 "owl-class-iri"
 ```
 
-**Expected Output**: Line 120 shows `owl_class_iri: Some(class.iri.clone())`
+**Expected Output**: Line 120 shows `owl-class-iri: Some(class.iri.clone())`
 
 ### Verify TypeScript Types
 ```bash
@@ -526,17 +526,17 @@ $ cat client/src/features/graph/types/graphTypes.ts | grep owlClassIri
 
 ### Check GPU Buffers
 ```bash
-$ grep "class_id\|class_charge\|class_mass" src/utils/unified_gpu_compute.rs
+$ grep "class-id\|class-charge\|class-mass" src/utils/unified-gpu-compute.rs
 ```
 
 **Expected Output**: 3 DeviceBuffer declarations + initialization code
 
 ### Verify WebSocket Protocol
 ```bash
-$ grep -A 5 "owl_class_iri" src/handlers/socket_flow_handler.rs
+$ grep -A 5 "owl-class-iri" src/handlers/socket-flow-handler.rs
 ```
 
-**Expected Output**: Line showing `owl_class_iri: node.owl_class_iri.clone()`
+**Expected Output**: Line showing `owl-class-iri: node.owl-class-iri.clone()`
 
 ### Verify Files Modified/Created
 ```bash
@@ -546,10 +546,10 @@ $ git show --stat fa29aee8
 **Expected Output**:
 ```
 7 files changed, 835 insertions(+), 4 deletions(-)
-create mode 100644 client/src/features/ontology/README_ONTOLOGY_RENDERING.md
-create mode 100644 docs/ONTOLOGY_SPRINT_COMPLETION_REPORT.md
-create mode 100644 src/bin/load_ontology.rs
-create mode 100644 src/services/ontology_converter.rs
+create mode 100644 client/src/features/ontology/readme-ontology-rendering.md
+create mode 100644 docs/ontology-sprint-completion-report.md
+create mode 100644 src/bin/load-ontology.rs
+create mode 100644 src/services/ontology-converter.rs
 ```
 
 ---

@@ -4,11 +4,11 @@ description: User guide for effectively working with AI agents in Turbo Flow Cla
 category: user-guide
 tags: [agents, coordination, workflow, collaboration]
 difficulty: beginner
-last_updated: 2025-10-27
+last-updated: 2025-10-27
 related:
   - ./xr-setup.md
   - ../index.md
-  - ../../reference/README.md
+  - ../../reference/readme.md
 ---
 
 # Working with Agents
@@ -84,10 +84,10 @@ Task("Coder Agent", "Implement user authentication", "coder")
 **Using MCP for coordination setup (optional):**
 ```bash
 # Initialize swarm topology
-npx claude-flow mcp swarm_init --topology mesh
+npx claude-flow mcp swarm-init --topology mesh
 
 # Define agent types for coordination
-npx claude-flow mcp agent_spawn --type coder --name "Backend Coder"
+npx claude-flow mcp agent-spawn --type coder --name "Backend Coder"
 ```
 
 ### Single Agent Workflow
@@ -200,7 +200,7 @@ npx claude-flow@alpha hooks post-task \
 
 **Mesh (peer-to-peer):**
 ```bash
-npx claude-flow mcp swarm_init --topology mesh
+npx claude-flow mcp swarm-init --topology mesh
 ```
 - Best for: Collaborative development
 - All agents communicate directly
@@ -209,7 +209,7 @@ npx claude-flow mcp swarm_init --topology mesh
 
 **Hierarchical (tree structure):**
 ```bash
-npx claude-flow mcp swarm_init --topology hierarchical
+npx claude-flow mcp swarm-init --topology hierarchical
 ```
 - Best for: Complex projects
 - Clear delegation paths
@@ -218,7 +218,7 @@ npx claude-flow mcp swarm_init --topology hierarchical
 
 **Star (centralized):**
 ```bash
-npx claude-flow mcp swarm_init --topology star
+npx claude-flow mcp swarm-init --topology star
 ```
 - Best for: Simple coordination
 - Central coordinator distributes tasks
@@ -227,7 +227,7 @@ npx claude-flow mcp swarm_init --topology star
 
 **Ring (circular):**
 ```bash
-npx claude-flow mcp swarm_init --topology ring
+npx claude-flow mcp swarm-init --topology ring
 ```
 - Best for: Sequential workflows
 - Tasks pass from agent to agent
@@ -368,29 +368,29 @@ Task("Performance Tester",
 
 **View swarm status:**
 ```bash
-npx claude-flow mcp swarm_status
+npx claude-flow mcp swarm-status
 ```
 
 **View specific agent metrics:**
 ```bash
-npx claude-flow mcp agent_metrics --agentId "coder-1"
+npx claude-flow mcp agent-metrics --agentId "coder-1"
 ```
 
 **Monitor task progress:**
 ```bash
-npx claude-flow mcp task_status --taskId "task-123"
+npx claude-flow mcp task-status --taskId "task-123"
 ```
 
 ### Real-time Monitoring
 
 **Enable swarm monitoring:**
 ```bash
-npx claude-flow mcp swarm_monitor --interval 1
+npx claude-flow mcp swarm-monitor --interval 1
 ```
 
 **View performance metrics:**
 ```bash
-npx claude-flow mcp performance_report --format detailed
+npx claude-flow mcp performance-report --format detailed
 ```
 
 ## Best Practices
@@ -460,19 +460,19 @@ npx claude-flow@alpha hooks post-edit --file "[file]"
 **Task not completing:**
 ```bash
 # Check task status
-npx claude-flow mcp task_status --taskId "task-id"
+npx claude-flow mcp task-status --taskId "task-id"
 
 # View agent logs
-npx claude-flow mcp agent_metrics --agentId "agent-id"
+npx claude-flow mcp agent-metrics --agentId "agent-id"
 ```
 
 **Poor agent performance:**
 ```bash
 # Run performance analysis
-npx claude-flow mcp bottleneck_analyze --component "swarm"
+npx claude-flow mcp bottleneck-analyze --component "swarm"
 
 # Train neural patterns
-npx claude-flow mcp neural_train --iterations 10
+npx claude-flow mcp neural-train --iterations 10
 ```
 
 ## Advanced Features
@@ -482,10 +482,10 @@ npx claude-flow mcp neural_train --iterations 10
 **Improve agent performance:**
 ```bash
 # Train from successful tasks
-npx claude-flow mcp neural_train --pattern_type "coordination"
+npx claude-flow mcp neural-train --pattern-type "coordination"
 
 # View learned patterns
-npx claude-flow mcp neural_patterns --action analyze
+npx claude-flow mcp neural-patterns --action analyze
 ```
 
 ### Multi-Session Memory
@@ -517,7 +517,7 @@ Task("Code Review Swarm",
 After mastering basic agent coordination:
 1. Explore [XR Setup](./xr-setup.md) for immersive development
 2. Review [Development Workflow](../development-workflow.md)
-3. Check [Reference Documentation](../../reference/README.md)
+3. Check [Reference Documentation](../../reference/readme.md)
 4. Join the community and share experiences
 
 ## Related Resources
@@ -525,7 +525,7 @@ After mastering basic agent coordination:
 - [Getting Started](../index.md)
 - [XR Setup Guide](./xr-setup.md)
 - [Development Workflow](../development-workflow.md)
-- [Reference Documentation](../../reference/README.md)
+- [Reference Documentation](../../reference/readme.md)
 
 ## Support
 

@@ -18,7 +18,7 @@ This guide provides manual testing procedures for the VisionFlow visualization s
 - Visual verification of graph behavior
 - Performance monitoring via browser DevTools
 
-For details on why automated tests were removed, see [SECURITY_ALERT.md](../archive/legacy-docs-2025-10/troubleshooting/SECURITY_ALERT.md).
+For details on why automated tests were removed, see [security-alert.md](../archive/legacy-docs-2025-10/troubleshooting/security-alert.md).
 
 ## Control Panel Settings Structure
 

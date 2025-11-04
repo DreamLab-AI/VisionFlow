@@ -21,7 +21,7 @@ This document specifies the architecture for the GitHubSyncService, the componen
 - ✅ **Unified database** (unified.db) with all domain tables
 - ✅ **Automated GitHub sync** on startup with differential updates
 - ✅ **Ontology reasoning pipeline** integrated
-- ✅ **FORCE_FULL_SYNC** environment variable for complete reprocessing
+- ✅ **FORCE-FULL-SYNC** environment variable for complete reprocessing
 - ✅ **316 nodes** loaded successfully (vs. previous 4-node bug)
 
 **Root Cause (Historical)**: Missing GitHubSyncService to fetch and parse data from GitHub on startup. **Now Resolved**.
@@ -33,7 +33,7 @@ This document specifies the architecture for the GitHubSyncService, the componen
 │  AppState::new() Initialization Sequence                    │
 ├─────────────────────────────────────────────────────────────┤
 │  1. Create unified.db (ACTIVE)                              │
-│  2. ▶️ GitHubSyncService::sync_graphs() (ACTIVE)            │
+│  2. ▶️ GitHubSyncService::sync-graphs() (ACTIVE)            │
 │  3. ▶️ OntologyReasoningPipeline::infer() (NEW)             │
 │  4. Start Actors (EXISTING)                                 │
 │  5. Start HTTP Server (EXISTING)                            │
@@ -41,10 +41,10 @@ This document specifies the architecture for the GitHubSyncService, the componen
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  GitHubSyncService::sync_graphs()                           │
+│  GitHubSyncService::sync-graphs()                           │
 ├─────────────────────────────────────────────────────────────┤
-│  1. Check FORCE_FULL_SYNC environment variable              │
-│  2. Query file_metadata for SHA1 hashes (differential sync) │
+│  1. Check FORCE-FULL-SYNC environment variable              │
+│  2. Query file-metadata for SHA1 hashes (differential sync) │
 │  3. Fetch changed .md files from jjohare/logseq/            │
 │     mainKnowledgeGraph/pages via GitHub API                 │
 │  4. For each file:                                          │
@@ -52,7 +52,7 @@ This document specifies the architecture for the GitHubSyncService, the componen
 │     b. Compare with stored hash (skip if identical)         │
 │     c. Route to appropriate parser                          │
 │     d. Store parsed data in unified.db                      │
-│     e. Update file_metadata with new hash                   │
+│     e. Update file-metadata with new hash                   │
 │  5. Trigger ontology reasoning                              │
 │  6. Return sync statistics                                  │
 └─────────────────────────────────────────────────────────────┘
@@ -72,9 +72,9 @@ This document specifies the architecture for the GitHubSyncService, the componen
 │                      │  │  - Hierarchies       │
 │ Stores to:           │  │ Stores to:           │
 │  unified.db          │  │  unified.db          │
-│  (graph_nodes,       │  │  (owl_classes,       │
-│   graph_edges)       │  │   owl_axioms,        │
-│                      │  │   owl_hierarchy)     │
+│  (graph-nodes,       │  │  (owl-classes,       │
+│   graph-edges)       │  │   owl-axioms,        │
+│                      │  │   owl-hierarchy)     │
 └──────────────────────┘  └──────────────────────┘
                            │
                            ▼
@@ -82,7 +82,7 @@ This document specifies the architecture for the GitHubSyncService, the componen
                │ OntologyReasoning      │
                │ Pipeline (Whelk-rs)    │
                ├────────────────────────┤
-               │ 1. Load owl_* tables   │
+               │ 1. Load owl-* tables   │
                │ 2. Compute inferences  │
                │ 3. Store inferred      │
                │    axioms (flag=1)     │
@@ -96,7 +96,7 @@ This document specifies the architecture for the GitHubSyncService, the componen
 
 ### 1. GitHubSyncService
 
-**Location**: `src/services/github_sync_service.rs`
+**Location**: `src/services/github-sync-service.rs`
 
 **Responsibilities**:
 - Orchestrate data ingestion from GitHub
@@ -108,29 +108,29 @@ This document specifies the architecture for the GitHubSyncService, the componen
 **Key Methods**:
 ```rust
 pub struct GitHubSyncService {
-    content_api: Arc<ContentAPI>,
-    kg_parser: Arc<KnowledgeGraphParser>,
-    onto_parser: Arc<OntologyParser>,
-    kg_repo: Arc<SqliteKnowledgeGraphRepository>,
-    onto_repo: Arc<SqliteOntologyRepository>,
+    content-api: Arc<ContentAPI>,
+    kg-parser: Arc<KnowledgeGraphParser>,
+    onto-parser: Arc<OntologyParser>,
+    kg-repo: Arc<SqliteKnowledgeGraphRepository>,
+    onto-repo: Arc<SqliteOntologyRepository>,
 }
 
 impl GitHubSyncService {
     pub fn new(...) -> Self;
 
-    pub async fn sync_graphs(&self) -> Result<SyncStatistics, SyncError>;
+    pub async fn sync-graphs(&self) -> Result<SyncStatistics, SyncError>;
 
-    async fn fetch_all_markdown_files(&self) -> Result<Vec<GitHubFileBasicMetadata>>;
+    async fn fetch-all-markdown-files(&self) -> Result<Vec<GitHubFileBasicMetadata>>;
 
-    async fn process_file(&self, file: &GitHubFileBasicMetadata) -> Result<FileProcessResult>;
+    async fn process-file(&self, file: &GitHubFileBasicMetadata) -> Result<FileProcessResult>;
 
-    fn detect_file_type(&self, content: &str) -> FileType;
+    fn detect-file-type(&self, content: &str) -> FileType;
 }
 
 pub struct SyncStatistics {
-    pub total_files: usize,
-    pub kg_files_processed: usize,
-    pub ontology_files_processed: usize,
+    pub total-files: usize,
+    pub kg-files-processed: usize,
+    pub ontology-files-processed: usize,
     pub errors: Vec<String>,
     pub duration: Duration,
 }
@@ -152,7 +152,7 @@ pub enum FileType {
 
 ### 2. KnowledgeGraphParser
 
-**Location**: `src/services/parsers/knowledge_graph_parser.rs`
+**Location**: `src/services/parsers/knowledge-graph-parser.rs`
 
 **Trigger**: Files starting with `public:: true`
 
@@ -175,8 +175,8 @@ public:: true
 
 **Database Schema Alignment**:
 ```sql
-kg_nodes: (id, metadata_id, label, x, y, z, vx, vy, vz, color, size, metadata)
-kg_edges: (id, source, target, weight, metadata)
+kg-nodes: (id, metadata-id, label, x, y, z, vx, vy, vz, color, size, metadata)
+kg-edges: (id, source, target, weight, metadata)
 ```
 
 **Key Methods**:
@@ -186,17 +186,17 @@ pub struct KnowledgeGraphParser;
 impl KnowledgeGraphParser {
     pub fn parse(&self, content: &str, filename: &str) -> Result<GraphData>;
 
-    fn extract_nodes(&self, content: &str) -> Vec<Node>;
+    fn extract-nodes(&self, content: &str) -> Vec<Node>;
 
-    fn extract_edges(&self, content: &str, source_id: u32) -> Vec<Edge>;
+    fn extract-edges(&self, content: &str, source-id: u32) -> Vec<Edge>;
 
-    fn extract_metadata(&self, content: &str) -> HashMap<String, String>;
+    fn extract-metadata(&self, content: &str) -> HashMap<String, String>;
 }
 ```
 
 ### 3. OntologyParser
 
-**Location**: `src/services/parsers/ontology_parser.rs`
+**Location**: `src/services/parsers/ontology-parser.rs`
 
 **Trigger**: Files containing `- ### OntologyBlock`
 
@@ -209,7 +209,7 @@ impl KnowledgeGraphParser {
 **Parsing Strategy**:
 ```markdown
 - ### OntologyBlock
-  - owl_class:: ClassName
+  - owl-class:: ClassName
     - label:: Human Readable Name
     - subClassOf:: ParentClass
   - objectProperty:: propertyName
@@ -219,10 +219,10 @@ impl KnowledgeGraphParser {
 
 **Database Schema Alignment**:
 ```sql
-owl_classes: (iri, label, description, source_file, properties)
-owl_class_hierarchy: (class_iri, parent_iri)
-owl_properties: (iri, label, property_type, domain, range)
-owl_axioms: (id, axiom_type, subject, object, annotations, is_inferred)
+owl-classes: (iri, label, description, source-file, properties)
+owl-class-hierarchy: (class-iri, parent-iri)
+owl-properties: (iri, label, property-type, domain, range)
+owl-axioms: (id, axiom-type, subject, object, annotations, is-inferred)
 ```
 
 **Key Methods**:
@@ -232,21 +232,21 @@ pub struct OntologyParser;
 impl OntologyParser {
     pub fn parse(&self, content: &str, filename: &str) -> Result<OntologyData>;
 
-    fn extract_classes(&self, content: &str) -> Vec<OwlClass>;
+    fn extract-classes(&self, content: &str) -> Vec<OwlClass>;
 
-    fn extract_properties(&self, content: &str) -> Vec<OwlProperty>;
+    fn extract-properties(&self, content: &str) -> Vec<OwlProperty>;
 
-    fn extract_axioms(&self, content: &str) -> Vec<OwlAxiom>;
+    fn extract-axioms(&self, content: &str) -> Vec<OwlAxiom>;
 
-    fn extract_hierarchy(&self, content: &str) -> Vec<(String, String)>;
+    fn extract-hierarchy(&self, content: &str) -> Vec<(String, String)>;
 }
 ```
 
 ### 4. Existing Component Enhancements
 
-**ContentAPI** (`src/services/github/content_enhanced.rs`):
-- Already has `list_markdown_files()` ✅
-- Already has `fetch_file_content()` ✅
+**ContentAPI** (`src/services/github/content-enhanced.rs`):
+- Already has `list-markdown-files()` ✅
+- Already has `fetch-file-content()` ✅
 - No changes needed! ✅
 
 **Database Repositories**:
@@ -259,24 +259,24 @@ impl OntologyParser {
 ### AppState::new() Modification
 
 ```rust
-// Line ~155 in src/app_state.rs (after repository creation)
+// Line ~155 in src/app-state.rs (after repository creation)
 
 info!("[AppState::new] Initializing GitHubSyncService for data ingestion");
-let github_sync_service = Arc::new(GitHubSyncService::new(
-    content_api.clone(),
-    knowledge_graph_repository.clone(),
-    ontology_repository.clone(),
+let github-sync-service = Arc::new(GitHubSyncService::new(
+    content-api.clone(),
+    knowledge-graph-repository.clone(),
+    ontology-repository.clone(),
 ));
 
 info!("[AppState::new] Starting GitHub data sync (this may take 30-60 seconds)...");
-match github_sync_service.sync_graphs().await {
+match github-sync-service.sync-graphs().await {
     Ok(stats) => {
         info!("[AppState::new] GitHub sync complete!");
-        info!("  - Total files scanned: {}", stats.total_files);
-        info!("  - Knowledge graph files: {}", stats.kg_files_processed);
-        info!("  - Ontology files: {}", stats.ontology_files_processed);
+        info!("  - Total files scanned: {}", stats.total-files);
+        info!("  - Knowledge graph files: {}", stats.kg-files-processed);
+        info!("  - Ontology files: {}", stats.ontology-files-processed);
         info!("  - Duration: {:?}", stats.duration);
-        if !stats.errors.is_empty() {
+        if !stats.errors.is-empty() {
             warn!("  - Errors encountered: {}", stats.errors.len());
             for error in &stats.errors {
                 warn!("    - {}", error);
@@ -334,8 +334,8 @@ match github_sync_service.sync_graphs().await {
 ### Manual Validation
 ```bash
 # 1. Check database population
-sqlite3 data/unified.db "SELECT count(*) FROM graph_nodes;"
-sqlite3 data/unified.db "SELECT count(*) FROM owl_classes;"
+sqlite3 data/unified.db "SELECT count(*) FROM graph-nodes;"
+sqlite3 data/unified.db "SELECT count(*) FROM owl-classes;"
 
 # 2. Verify API endpoints return data
 curl http://localhost:4000/api/graph/data
@@ -357,14 +357,14 @@ curl http://localhost:4000/api/ontology/classes
 # None required! All dependencies already present:
 # - rusqlite (database)
 # - reqwest (HTTP)
-# - serde_json (JSON parsing)
+# - serde-json (JSON parsing)
 # - tokio (async)
 # - log/tracing (logging)
 ```
 
 ## Implementation Checklist
 
-- [ ] Create `src/services/github_sync_service.rs`
+- [ ] Create `src/services/github-sync-service.rs`
 - [ ] Create `src/services/parsers/` directory
 - [ ] Implement `KnowledgeGraphParser`
 - [ ] Implement `OntologyParser`
@@ -373,7 +373,7 @@ curl http://localhost:4000/api/ontology/classes
 - [ ] Add unit tests for parsers
 - [ ] Test with real GitHub data
 - [ ] Verify database population
-- [ ] Clean up unnecessary spawn_blocking changes
+- [ ] Clean up unnecessary spawn-blocking changes
 - [ ] Update documentation
 
 ## Security Considerations

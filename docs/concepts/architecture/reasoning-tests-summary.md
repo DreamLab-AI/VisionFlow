@@ -6,39 +6,39 @@ Complete test coverage for the ontology reasoning pipeline including inference, 
 
 ## Test Structure
 
-### 1. Test Fixtures (`tests/fixtures/ontology/test_ontologies.rs`)
+### 1. Test Fixtures (`tests/fixtures/ontology/test-ontologies.rs`)
 
 **Purpose**: Provide reusable sample ontologies with known properties for testing.
 
 **Fixtures Created**:
-- `create_simple_hierarchy()` - Basic 5-class hierarchy with disjoint classes
-- `create_deep_hierarchy()` - 5-level transitive hierarchy
-- `create_multiple_disjoint()` - Multiple disjoint sets (colors, shapes)
-- `create_equivalent_classes()` - Transitive equivalence relationships
-- `create_diamond_pattern()` - Multiple inheritance paths
-- `create_functional_properties()` - Functional property constraints
-- `create_empty_ontology()` - Edge case testing
-- `create_large_ontology(n)` - Performance testing with n classes
+- `create-simple-hierarchy()` - Basic 5-class hierarchy with disjoint classes
+- `create-deep-hierarchy()` - 5-level transitive hierarchy
+- `create-multiple-disjoint()` - Multiple disjoint sets (colors, shapes)
+- `create-equivalent-classes()` - Transitive equivalence relationships
+- `create-diamond-pattern()` - Multiple inheritance paths
+- `create-functional-properties()` - Functional property constraints
+- `create-empty-ontology()` - Edge case testing
+- `create-large-ontology(n)` - Performance testing with n classes
 
 **Test Coverage**: ✅ All fixtures tested with validation checks
 
 ---
 
-### 2. Unit Tests for CustomReasoner (`tests/reasoning_service_tests.rs`)
+### 2. Unit Tests for CustomReasoner (`tests/reasoning-service-tests.rs`)
 
 **Purpose**: Test inference engine correctness and algorithmic properties.
 
 #### Inference Tests:
-- ✅ `test_infer_transitive_subclass_simple` - Basic transitive closure
-- ✅ `test_infer_deep_hierarchy` - Multi-level inheritance
-- ✅ `test_is_subclass_of_direct` - Direct subclass queries
-- ✅ `test_is_subclass_of_transitive` - Transitive subclass queries
-- ✅ `test_are_disjoint` - Disjoint class detection
-- ✅ `test_infer_disjoint_subclasses` - Disjoint propagation
-- ✅ `test_infer_equivalent_classes` - Equivalence inference
-- ✅ `test_diamond_pattern` - Multiple inheritance handling
-- ✅ `test_empty_ontology` - Edge case: empty input
-- ✅ `test_confidence_scores` - Verify confidence = 1.0
+- ✅ `test-infer-transitive-subclass-simple` - Basic transitive closure
+- ✅ `test-infer-deep-hierarchy` - Multi-level inheritance
+- ✅ `test-is-subclass-of-direct` - Direct subclass queries
+- ✅ `test-is-subclass-of-transitive` - Transitive subclass queries
+- ✅ `test-are-disjoint` - Disjoint class detection
+- ✅ `test-infer-disjoint-subclasses` - Disjoint propagation
+- ✅ `test-infer-equivalent-classes` - Equivalence inference
+- ✅ `test-diamond-pattern` - Multiple inheritance handling
+- ✅ `test-empty-ontology` - Edge case: empty input
+- ✅ `test-confidence-scores` - Verify confidence = 1.0
 
 **Expected Results**:
 - Transitive inferences: Neuron → MaterialEntity → Entity
@@ -48,17 +48,17 @@ Complete test coverage for the ontology reasoning pipeline including inference, 
 
 ---
 
-### 3. Unit Tests for InferenceCache (`tests/reasoning_service_tests.rs`)
+### 3. Unit Tests for InferenceCache (`tests/reasoning-service-tests.rs`)
 
 **Purpose**: Verify caching behavior, invalidation, and performance.
 
 #### Cache Tests:
-- ✅ `test_cache_miss_and_hit` - Cache hit is faster than miss
-- ✅ `test_cache_invalidation_on_change` - Checksum-based invalidation
-- ✅ `test_cache_checksum_stability` - Deterministic checksums
-- ✅ `test_cache_invalidate_specific` - Selective invalidation
-- ✅ `test_cache_clear_all` - Bulk cache clearing
-- ✅ `test_cache_stats` - Cache size and entry tracking
+- ✅ `test-cache-miss-and-hit` - Cache hit is faster than miss
+- ✅ `test-cache-invalidation-on-change` - Checksum-based invalidation
+- ✅ `test-cache-checksum-stability` - Deterministic checksums
+- ✅ `test-cache-invalidate-specific` - Selective invalidation
+- ✅ `test-cache-clear-all` - Bulk cache clearing
+- ✅ `test-cache-stats` - Cache size and entry tracking
 
 **Performance Expectations**:
 - Cache hit: < 1ms
@@ -67,22 +67,22 @@ Complete test coverage for the ontology reasoning pipeline including inference, 
 
 ---
 
-### 4. Unit Tests for AxiomMapper (`tests/reasoning_service_tests.rs`)
+### 4. Unit Tests for AxiomMapper (`tests/reasoning-service-tests.rs`)
 
 **Purpose**: Test OWL axiom → physics constraint translation.
 
 #### Translation Tests:
-- ✅ `test_disjoint_classes_constraint_generation` - n*(n-1)/2 pairwise constraints
-- ✅ `test_subclass_of_constraint_generation` - Clustering constraints
-- ✅ `test_equivalent_classes_constraint` - Colocation constraints
-- ✅ `test_priority_blending_asserted` - Priority = 5
-- ✅ `test_priority_blending_inferred` - Priority = 3
-- ✅ `test_priority_blending_user_defined` - Priority = 1
-- ✅ `test_batch_translation` - Multiple axiom processing
-- ✅ `test_custom_config` - Custom translation parameters
-- ✅ `test_part_of_translation` - Containment constraints
-- ✅ `test_disjoint_union_translation` - Composite constraints
-- ✅ `test_axiom_id_propagation` - Axiom ID tracking
+- ✅ `test-disjoint-classes-constraint-generation` - n*(n-1)/2 pairwise constraints
+- ✅ `test-subclass-of-constraint-generation` - Clustering constraints
+- ✅ `test-equivalent-classes-constraint` - Colocation constraints
+- ✅ `test-priority-blending-asserted` - Priority = 5
+- ✅ `test-priority-blending-inferred` - Priority = 3
+- ✅ `test-priority-blending-user-defined` - Priority = 1
+- ✅ `test-batch-translation` - Multiple axiom processing
+- ✅ `test-custom-config` - Custom translation parameters
+- ✅ `test-part-of-translation` - Containment constraints
+- ✅ `test-disjoint-union-translation` - Composite constraints
+- ✅ `test-axiom-id-propagation` - Axiom ID tracking
 
 **Constraint Mapping**:
 - DisjointClasses → Separation (35.0 units, 0.8 strength)
@@ -92,52 +92,52 @@ Complete test coverage for the ontology reasoning pipeline including inference, 
 
 ---
 
-### 5. Integration Tests (`tests/reasoning_integration_tests.rs`)
+### 5. Integration Tests (`tests/reasoning-integration-tests.rs`)
 
 **Purpose**: Test end-to-end workflows and system integration.
 
 #### Pipeline Tests:
-- ✅ `test_full_pipeline_simple_ontology` - Inference → Constraints
-- ✅ `test_cache_invalidation_on_update` - GitHub sync simulation
-- ✅ `test_multi_ontology_workflow` - Multiple ontologies
-- ✅ `test_constraint_priority_ordering` - Priority preservation
-- ✅ `test_inference_determinism` - Reproducible results
-- ✅ `test_large_ontology_performance` - 1000 classes < 10s
-- ✅ `test_constraint_generation_completeness` - All axiom types
-- ✅ `test_cache_concurrent_access` - Thread safety
+- ✅ `test-full-pipeline-simple-ontology` - Inference → Constraints
+- ✅ `test-cache-invalidation-on-update` - GitHub sync simulation
+- ✅ `test-multi-ontology-workflow` - Multiple ontologies
+- ✅ `test-constraint-priority-ordering` - Priority preservation
+- ✅ `test-inference-determinism` - Reproducible results
+- ✅ `test-large-ontology-performance` - 1000 classes < 10s
+- ✅ `test-constraint-generation-completeness` - All axiom types
+- ✅ `test-cache-concurrent-access` - Thread safety
 
 #### Error Handling:
-- ✅ `test_empty_ontology_handling` - Graceful empty input
-- ✅ `test_cache_with_invalid_path` - Error propagation
-- ✅ `test_empty_axiom_list` - Edge case handling
+- ✅ `test-empty-ontology-handling` - Graceful empty input
+- ✅ `test-cache-with-invalid-path` - Error propagation
+- ✅ `test-empty-axiom-list` - Edge case handling
 
 #### Edge Cases:
-- ✅ `test_circular_reference_handling` - No infinite loops
-- ✅ `test_single_class_ontology` - Minimal input
-- ✅ `test_self_referential_class` - Self-reference handling
+- ✅ `test-circular-reference-handling` - No infinite loops
+- ✅ `test-single-class-ontology` - Minimal input
+- ✅ `test-self-referential-class` - Self-reference handling
 
 ---
 
-### 6. Performance Benchmarks (`tests/benchmarks/reasoning_benchmarks.rs`)
+### 6. Performance Benchmarks (`tests/benchmarks/reasoning-benchmarks.rs`)
 
 **Purpose**: Measure performance and identify bottlenecks.
 
 #### Benchmarks:
-- ✅ `bench_inference_simple_ontology` - 100 iterations, avg < 100ms
-- ✅ `bench_inference_deep_hierarchy` - Hierarchical performance
-- ✅ `bench_inference_large_ontology` - Scalability (100, 500, 1000 classes)
-- ✅ `bench_cache_hit_performance` - Cache lookup < 1ms
-- ✅ `bench_cache_miss_performance` - Compute + store time
-- ✅ `bench_cache_speedup_ratio` - >10x speedup
-- ✅ `bench_constraint_generation` - 10, 100, 1000 axioms
-- ✅ `bench_disjoint_constraint_generation` - O(n²) complexity
-- ✅ `bench_full_pipeline_end_to_end` - Complete workflow < 500ms
-- ✅ `bench_memory_usage` - Memory footprint < 100MB
-- ✅ `bench_concurrent_inference` - Parallel execution
+- ✅ `bench-inference-simple-ontology` - 100 iterations, avg < 100ms
+- ✅ `bench-inference-deep-hierarchy` - Hierarchical performance
+- ✅ `bench-inference-large-ontology` - Scalability (100, 500, 1000 classes)
+- ✅ `bench-cache-hit-performance` - Cache lookup < 1ms
+- ✅ `bench-cache-miss-performance` - Compute + store time
+- ✅ `bench-cache-speedup-ratio` - >10x speedup
+- ✅ `bench-constraint-generation` - 10, 100, 1000 axioms
+- ✅ `bench-disjoint-constraint-generation` - O(n²) complexity
+- ✅ `bench-full-pipeline-end-to-end` - Complete workflow < 500ms
+- ✅ `bench-memory-usage` - Memory footprint < 100MB
+- ✅ `bench-concurrent-inference` - Parallel execution
 
 #### Scalability Tests:
-- ✅ `test_scalability_linear_growth` - Growth ratio analysis
-- ✅ `test_cache_scalability` - 100 entries benchmark
+- ✅ `test-scalability-linear-growth` - Growth ratio analysis
+- ✅ `test-cache-scalability` - 100 entries benchmark
 
 **Performance Targets**:
 - Simple inference: < 100ms
@@ -148,20 +148,20 @@ Complete test coverage for the ontology reasoning pipeline including inference, 
 
 ---
 
-### 7. API Tests (`tests/api/reasoning_api_tests.rs`)
+### 7. API Tests (`tests/api/reasoning-api-tests.rs`)
 
 **Purpose**: Test HTTP and WebSocket endpoints (placeholders for implementation).
 
 #### HTTP Endpoints (TODO):
-- ⏳ `test_health_check_endpoint`
-- ⏳ `test_inference_request` - POST /api/ontology/{id}/infer
-- ⏳ `test_cache_invalidation_endpoint` - POST /api/cache/{id}/invalidate
-- ⏳ `test_constraint_generation_endpoint` - POST /api/constraints/generate
+- ⏳ `test-health-check-endpoint`
+- ⏳ `test-inference-request` - POST /api/ontology/{id}/infer
+- ⏳ `test-cache-invalidation-endpoint` - POST /api/cache/{id}/invalidate
+- ⏳ `test-constraint-generation-endpoint` - POST /api/constraints/generate
 
 #### WebSocket Protocol (TODO):
-- ⏳ `test_websocket_connection`
-- ⏳ `test_websocket_inference_stream`
-- ⏳ `test_websocket_error_handling`
+- ⏳ `test-websocket-connection`
+- ⏳ `test-websocket-inference-stream`
+- ⏳ `test-websocket-error-handling`
 
 **Note**: API tests are placeholders pending API implementation.
 
@@ -184,32 +184,32 @@ Complete test coverage for the ontology reasoning pipeline including inference, 
 
 ### All Tests
 ```bash
-cargo test --test reasoning_service_tests
-cargo test --test reasoning_integration_tests
-cargo test --test benchmarks/reasoning_benchmarks
+cargo test --test reasoning-service-tests
+cargo test --test reasoning-integration-tests
+cargo test --test benchmarks/reasoning-benchmarks
 ```
 
 ### Specific Test Modules
 ```bash
 # CustomReasoner tests only
-cargo test --test reasoning_service_tests custom_reasoner_tests
+cargo test --test reasoning-service-tests custom-reasoner-tests
 
 # Cache tests only
-cargo test --test reasoning_service_tests inference_cache_tests
+cargo test --test reasoning-service-tests inference-cache-tests
 
 # Axiom mapper tests only
-cargo test --test reasoning_service_tests axiom_mapper_tests
+cargo test --test reasoning-service-tests axiom-mapper-tests
 
 # Integration tests
-cargo test --test reasoning_integration_tests
+cargo test --test reasoning-integration-tests
 
 # Performance benchmarks
-cargo test --test benchmarks/reasoning_benchmarks --release
+cargo test --test benchmarks/reasoning-benchmarks --release
 ```
 
 ### With Coverage
 ```bash
-cargo tarpaulin --test reasoning_service_tests --test reasoning_integration_tests
+cargo tarpaulin --test reasoning-service-tests --test reasoning-integration-tests
 ```
 
 ---
@@ -271,15 +271,15 @@ Default:      priority = 8 (lowest)
 ## Test Maintenance
 
 ### Adding New Tests
-1. Add fixtures to `tests/fixtures/ontology/test_ontologies.rs`
-2. Add unit tests to appropriate module in `tests/reasoning_service_tests.rs`
-3. Add integration tests to `tests/reasoning_integration_tests.rs`
-4. Add benchmarks to `tests/benchmarks/reasoning_benchmarks.rs`
+1. Add fixtures to `tests/fixtures/ontology/test-ontologies.rs`
+2. Add unit tests to appropriate module in `tests/reasoning-service-tests.rs`
+3. Add integration tests to `tests/reasoning-integration-tests.rs`
+4. Add benchmarks to `tests/benchmarks/reasoning-benchmarks.rs`
 5. Update this summary document
 
 ### Debugging Failed Tests
 1. Run with `--nocapture` to see print statements
-2. Use `RUST_LOG=debug` for detailed logging
+2. Use `RUST-LOG=debug` for detailed logging
 3. Check test fixtures for expected values
 4. Verify cache is cleared between tests
 
@@ -287,10 +287,10 @@ Default:      priority = 8 (lowest)
 
 ## Related Documentation
 
-- [Ontology Reasoning Service](../src/reasoning/README.md)
-- [Axiom Mapper Specification](../src/constraints/README.md)
-- [Performance Tuning Guide](../docs/PERFORMANCE.md)
-- [API Documentation](../docs/API.md)
+- [Ontology Reasoning Service](../src/reasoning/readme.md)
+- [Axiom Mapper Specification](../src/constraints/readme.md)
+- [Performance Tuning Guide](../docs/performance.md)
+- [API Documentation](../docs/api.md)
 
 ---
 

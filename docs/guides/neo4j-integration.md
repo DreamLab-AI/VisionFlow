@@ -17,13 +17,13 @@ VisionFlow supports optional Neo4j graph database integration for advanced graph
 
 ```bash
 # Required
-export NEO4J_URI="bolt://localhost:7687"
-export NEO4J_USER="neo4j"
-export NEO4J_PASSWORD="your_password"
+export NEO4J-URI="bolt://localhost:7687"
+export NEO4J-USER="neo4j"
+export NEO4J-PASSWORD="your-password"
 
 # Optional
-export NEO4J_DATABASE="neo4j"  # Default database
-export NEO4J_STRICT_MODE="false"  # Log errors but don't fail
+export NEO4J-DATABASE="neo4j"  # Default database
+export NEO4J-STRICT-MODE="false"  # Log errors but don't fail
 ```
 
 ### 2. Start Neo4j
@@ -33,7 +33,7 @@ export NEO4J_STRICT_MODE="false"  # Log errors but don't fail
 docker run -d \
   --name neo4j \
   -p 7474:7474 -p 7687:7687 \
-  -e NEO4J_AUTH=neo4j/your_password \
+  -e NEO4J-AUTH=neo4j/your-password \
   neo4j:latest
 ```
 
@@ -58,7 +58,7 @@ Write Request
     ↓
 DualGraphRepository
     ├─→ SQLite (Primary) - MUST succeed
-    └─→ Neo4j (Secondary) - MAY fail (if strict_mode=false)
+    └─→ Neo4j (Secondary) - MAY fail (if strict-mode=false)
 ```
 
 ### Read Strategy
@@ -75,22 +75,22 @@ All reads come from **SQLite (unified.db)** for consistency.
 
 Add after line 10:
 ```rust
-pub mod cypher_query_handler;
+pub mod cypher-query-handler;
 ```
 
 ### Step 2: Add AppState Fields
 
-**File**: `src/app_state.rs`
+**File**: `src/app-state.rs`
 
-Add after existing neo4j_adapter field (if not present):
+Add after existing neo4j-adapter field (if not present):
 ```rust
 /// Neo4j adapter for graph analytics (optional)
-pub neo4j_adapter: Option<Arc<Neo4jAdapter>>,
+pub neo4j-adapter: Option<Arc<Neo4jAdapter>>,
 ```
 
 ### Step 3: Initialize Neo4j in AppState::new()
 
-**File**: `src/app_state.rs`
+**File**: `src/app-state.rs`
 
 Add after unified graph repository creation:
 ```rust
@@ -99,8 +99,8 @@ Add after unified graph repository creation:
 // ============================================================================
 info!("[AppState::new] Checking for Neo4j configuration...");
 
-let neo4j_adapter: Option<Arc<Neo4jAdapter>> = if std::env::var("NEO4J_URI").is_ok() {
-    info!("[AppState::new] NEO4J_URI detected, attempting to connect...");
+let neo4j-adapter: Option<Arc<Neo4jAdapter>> = if std::env::var("NEO4J-URI").is-ok() {
+    info!("[AppState::new] NEO4J-URI detected, attempting to connect...");
 
     match Neo4jAdapter::new(Neo4jConfig::default()).await {
         Ok(adapter) => {
@@ -114,27 +114,27 @@ let neo4j_adapter: Option<Arc<Neo4jAdapter>> = if std::env::var("NEO4J_URI").is_
         }
     }
 } else {
-    info!("ℹ️  NEO4J_URI not set - running SQLite-only mode");
+    info!("ℹ️  NEO4J-URI not set - running SQLite-only mode");
     None
 };
 
 // Wrap in DualGraphRepository if Neo4j is available
-let knowledge_graph_repository: Arc<dyn KnowledgeGraphRepository> = if neo4j_adapter.is_some() {
-    let strict_mode = std::env::var("NEO4J_STRICT_MODE")
+let knowledge-graph-repository: Arc<dyn KnowledgeGraphRepository> = if neo4j-adapter.is-some() {
+    let strict-mode = std::env::var("NEO4J-STRICT-MODE")
         .ok()
-        .and_then(|v| v.parse::<bool>().ok())
-        .unwrap_or(false);
+        .and-then(|v| v.parse::<bool>().ok())
+        .unwrap-or(false);
 
     info!("🔗 Creating DualGraphRepository (SQLite + Neo4j)");
-    info!("   Strict mode: {}", strict_mode);
+    info!("   Strict mode: {}", strict-mode);
 
     Arc::new(DualGraphRepository::new(
-        knowledge_graph_repository,
-        neo4j_adapter.clone(),
-        strict_mode,
+        knowledge-graph-repository,
+        neo4j-adapter.clone(),
+        strict-mode,
     ))
 } else {
-    knowledge_graph_repository
+    knowledge-graph-repository
 };
 ```
 
@@ -144,12 +144,12 @@ let knowledge_graph_repository: Arc<dyn KnowledgeGraphRepository> = if neo4j_ada
 
 Add to imports:
 ```rust
-cypher_query_handler,
+cypher-query-handler,
 ```
 
 Add to route configuration:
 ```rust
-.configure(cypher_query_handler::configure_routes)
+.configure(cypher-query-handler::configure-routes)
 ```
 
 ---
@@ -192,7 +192,7 @@ Content-Type: application/json
   ],
   "count": 2,
   "truncated": false,
-  "execution_time_ms": 42
+  "execution-time-ms": 42
 }
 ```
 
@@ -207,22 +207,22 @@ GET /api/query/cypher/examples
 
 ### Find Neighbors (1-3 hops)
 ```cypher
-MATCH (n:GraphNode {id: $node_id})-[:EDGE*1..3]-(m:GraphNode)
+MATCH (n:GraphNode {id: $node-id})-[:EDGE*1..3]-(m:GraphNode)
 RETURN DISTINCT m.id, m.label
 ```
 
 ### Find Semantic Paths (OWL)
 ```cypher
-MATCH (n:GraphNode {id: $start_id})-[r:EDGE*1..3]->(m:GraphNode)
-WHERE ALL(rel IN r WHERE rel.owl_property_iri = 'http://www.w3.org/2000/01/rdf-schema#subClassOf')
-RETURN m.id, m.label, m.owl_class_iri, length(r) AS depth
+MATCH (n:GraphNode {id: $start-id})-[r:EDGE*1..3]->(m:GraphNode)
+WHERE ALL(rel IN r WHERE rel.owl-property-iri = 'http://www.w3.org/2000/01/rdf-schema#subClassOf')
+RETURN m.id, m.label, m.owl-class-iri, length(r) AS depth
 ORDER BY depth
 LIMIT 50
 ```
 
 ### Find Disjoint Classes
 ```cypher
-MATCH (c1:GraphNode)-[:EDGE {owl_property_iri: 'http://www.w3.org/2002/07/owl#disjointWith'}]->(c2:GraphNode)
+MATCH (c1:GraphNode)-[:EDGE {owl-property-iri: 'http://www.w3.org/2002/07/owl#disjointWith'}]->(c2:GraphNode)
 RETURN c1.label, c2.label
 ```
 
@@ -250,16 +250,16 @@ The Cypher handler **blocks** destructive operations:
 ## Troubleshooting
 
 ### Issue: "Neo4j Not Configured"
-**Solution**: Set `NEO4J_URI` environment variable and restart.
+**Solution**: Set `NEO4J-URI` environment variable and restart.
 
 ### Issue: Connection Refused
 **Solution**: Verify Neo4j is running on port 7687.
 
 ### Issue: Authentication Failed
-**Solution**: Check `NEO4J_USER` and `NEO4J_PASSWORD` match Neo4j configuration.
+**Solution**: Check `NEO4J-USER` and `NEO4J-PASSWORD` match Neo4j configuration.
 
-### Issue: Dual-Write Failures (strict_mode=true)
-**Solution**: Set `NEO4J_STRICT_MODE=false` to continue on Neo4j errors.
+### Issue: Dual-Write Failures (strict-mode=true)
+**Solution**: Set `NEO4J-STRICT-MODE=false` to continue on Neo4j errors.
 
 ---
 
@@ -281,17 +281,17 @@ If upgrading from the old three-database architecture:
 ### Node Properties
 - `id`: Integer node ID
 - `label`: Human-readable label
-- `metadata_id`: JSON metadata reference
-- `owl_class_iri`: OWL class IRI (if applicable)
-- `owl_property_iri`: OWL property IRI (if applicable)
+- `metadata-id`: JSON metadata reference
+- `owl-class-iri`: OWL class IRI (if applicable)
+- `owl-property-iri`: OWL property IRI (if applicable)
 
 ### Relationship Type
 - `EDGE`: All edges from unified.db
 
 ### Indexes
 - Uniqueness constraint on `GraphNode.id`
-- Index on `metadata_id`
-- Index on `owl_class_iri`
+- Index on `metadata-id`
+- Index on `owl-class-iri`
 
 ---
 
@@ -314,7 +314,7 @@ Minimal (~5-10ms per write) in non-strict mode.
 
 ## References
 
-- [Neo4j Adapter Code](../../src/adapters/neo4j_adapter.rs)
-- [Dual Repository Code](../../src/adapters/dual_graph_repository.rs)
-- [Cypher Handler Code](../../src/handlers/cypher_query_handler.rs)
-- [Integration Checklist (Historical)](../NEO4J_INTEGRATION_CHECKLIST.md)
+- [Neo4j Adapter Code](../../src/adapters/neo4j-adapter.rs)
+- [Dual Repository Code](../../src/adapters/dual-graph-repository.rs)
+- [Cypher Handler Code](../../src/handlers/cypher-query-handler.rs)
+- [Integration Checklist (Historical)](../NEO4j-integration-checklist.md)

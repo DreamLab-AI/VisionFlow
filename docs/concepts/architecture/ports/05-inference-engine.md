@@ -6,32 +6,32 @@ The **InferenceEngine** port provides ontology reasoning and inference capabilit
 
 ## Location
 
-- **Trait Definition**: `src/ports/inference_engine.rs`
-- **Adapter Implementation**: `src/adapters/whelk_inference_engine.rs`
+- **Trait Definition**: `src/ports/inference-engine.rs`
+- **Adapter Implementation**: `src/adapters/whelk-inference-engine.rs`
 
 ## Interface
 
 ```rust
-#[async_trait]
+#[async-trait]
 pub trait InferenceEngine: Send + Sync {
     // Ontology loading
-    async fn load_ontology(&mut self, classes: Vec<OwlClass>, axioms: Vec<OwlAxiom>) -> Result<()>;
+    async fn load-ontology(&mut self, classes: Vec<OwlClass>, axioms: Vec<OwlAxiom>) -> Result<()>;
     async fn clear(&mut self) -> Result<()>;
 
     // Reasoning operations
     async fn infer(&mut self) -> Result<InferenceResults>;
-    async fn is_entailed(&self, axiom: &OwlAxiom) -> Result<bool>;
-    async fn check_consistency(&self) -> Result<bool>;
+    async fn is-entailed(&self, axiom: &OwlAxiom) -> Result<bool>;
+    async fn check-consistency(&self) -> Result<bool>;
 
     // Classification
-    async fn get_subclass_hierarchy(&self) -> Result<Vec<(String, String)>>;
-    async fn classify_instance(&self, instance_iri: &str) -> Result<Vec<String>>;
+    async fn get-subclass-hierarchy(&self) -> Result<Vec<(String, String)>>;
+    async fn classify-instance(&self, instance-iri: &str) -> Result<Vec<String>>;
 
     // Explanation
-    async fn explain_entailment(&self, axiom: &OwlAxiom) -> Result<Vec<OwlAxiom>>;
+    async fn explain-entailment(&self, axiom: &OwlAxiom) -> Result<Vec<OwlAxiom>>;
 
     // Statistics
-    async fn get_statistics(&self) -> Result<InferenceStatistics>;
+    async fn get-statistics(&self) -> Result<InferenceStatistics>;
 }
 ```
 
@@ -44,9 +44,9 @@ Inference computation results:
 ```rust
 pub struct InferenceResults {
     pub timestamp: DateTime<Utc>,
-    pub inferred_axioms: Vec<OwlAxiom>,
-    pub inference_time_ms: u64,
-    pub reasoner_version: String,
+    pub inferred-axioms: Vec<OwlAxiom>,
+    pub inference-time-ms: u64,
+    pub reasoner-version: String,
 }
 ```
 
@@ -56,11 +56,11 @@ Reasoner statistics:
 
 ```rust
 pub struct InferenceStatistics {
-    pub loaded_classes: usize,
-    pub loaded_axioms: usize,
-    pub inferred_axioms: usize,
-    pub last_inference_time_ms: u64,
-    pub total_inferences: u64,
+    pub loaded-classes: usize,
+    pub loaded-axioms: usize,
+    pub inferred-axioms: usize,
+    pub last-inference-time-ms: u64,
+    pub total-inferences: u64,
 }
 ```
 
@@ -74,45 +74,45 @@ let mut engine: Box<dyn InferenceEngine> = Box::new(WhelkInferenceEngine::new())
 // Load ontology
 let classes = vec![
     OwlClass {
-        iri: "http://example.org/Person".to_string(),
-        label: Some("Person".to_string()),
-        parent_classes: vec!["http://example.org/Agent".to_string()],
+        iri: "http://example.org/Person".to-string(),
+        label: Some("Person".to-string()),
+        parent-classes: vec!["http://example.org/Agent".to-string()],
         ..Default::default()
     },
     OwlClass {
-        iri: "http://example.org/Student".to_string(),
-        parent_classes: vec!["http://example.org/Person".to_string()],
+        iri: "http://example.org/Student".to-string(),
+        parent-classes: vec!["http://example.org/Person".to-string()],
         ..Default::default()
     },
 ];
 
 let axioms = vec![
     OwlAxiom {
-        axiom_type: AxiomType::SubClassOf,
-        subject: "http://example.org/GraduateStudent".to_string(),
-        object: "http://example.org/Student".to_string(),
+        axiom-type: AxiomType::SubClassOf,
+        subject: "http://example.org/GraduateStudent".to-string(),
+        object: "http://example.org/Student".to-string(),
         ..Default::default()
     },
 ];
 
-engine.load_ontology(classes, axioms).await?;
+engine.load-ontology(classes, axioms).await?;
 
 // Perform inference
 let results = engine.infer().await?;
 println!("Inferred {} new axioms in {}ms",
-    results.inferred_axioms.len(),
-    results.inference_time_ms
+    results.inferred-axioms.len(),
+    results.inference-time-ms
 );
 
 // Check entailment
-let test_axiom = OwlAxiom {
-    axiom_type: AxiomType::SubClassOf,
-    subject: "http://example.org/GraduateStudent".to_string(),
-    object: "http://example.org/Person".to_string(), // Transitively inferred
+let test-axiom = OwlAxiom {
+    axiom-type: AxiomType::SubClassOf,
+    subject: "http://example.org/GraduateStudent".to-string(),
+    object: "http://example.org/Person".to-string(), // Transitively inferred
     ..Default::default()
 };
 
-if engine.is_entailed(&test_axiom).await? {
+if engine.is-entailed(&test-axiom).await? {
     println!("✓ Axiom is entailed (follows from ontology)");
 }
 ```
@@ -121,52 +121,52 @@ if engine.is_entailed(&test_axiom).await? {
 
 ```rust
 // Check if ontology is consistent
-if engine.check_consistency().await? {
+if engine.check-consistency().await? {
     println!("✓ Ontology is consistent");
 } else {
     println!("✗ Ontology contains contradictions");
 }
 
 // Example of inconsistency
-let inconsistent_axioms = vec![
+let inconsistent-axioms = vec![
     OwlAxiom {
-        axiom_type: AxiomType::DisjointWith,
-        subject: "http://example.org/Cat".to_string(),
-        object: "http://example.org/Dog".to_string(),
+        axiom-type: AxiomType::DisjointWith,
+        subject: "http://example.org/Cat".to-string(),
+        object: "http://example.org/Dog".to-string(),
         ..Default::default()
     },
     OwlAxiom {
-        axiom_type: AxiomType::SubClassOf,
-        subject: "http://example.org/CatDog".to_string(),
-        object: "http://example.org/Cat".to_string(),
+        axiom-type: AxiomType::SubClassOf,
+        subject: "http://example.org/CatDog".to-string(),
+        object: "http://example.org/Cat".to-string(),
         ..Default::default()
     },
     OwlAxiom {
-        axiom_type: AxiomType::SubClassOf,
-        subject: "http://example.org/CatDog".to_string(),
-        object: "http://example.org/Dog".to_string(),
+        axiom-type: AxiomType::SubClassOf,
+        subject: "http://example.org/CatDog".to-string(),
+        object: "http://example.org/Dog".to-string(),
         ..Default::default()
     },
 ];
 
-engine.load_ontology(vec![], inconsistent_axioms).await?;
-assert!(!engine.check_consistency().await?); // Should be false
+engine.load-ontology(vec![], inconsistent-axioms).await?;
+assert!(!engine.check-consistency().await?); // Should be false
 ```
 
 ### Classification
 
 ```rust
 // Get complete subclass hierarchy
-let hierarchy = engine.get_subclass_hierarchy().await?;
+let hierarchy = engine.get-subclass-hierarchy().await?;
 for (child, parent) in hierarchy {
     println!("{} ⊆ {}", child, parent);
 }
 
 // Classify an instance
-let classes = engine.classify_instance("http://example.org/john").await?;
+let classes = engine.classify-instance("http://example.org/john").await?;
 println!("John is a member of:");
-for class_iri in classes {
-    println!("  - {}", class_iri);
+for class-iri in classes {
+    println!("  - {}", class-iri);
 }
 ```
 
@@ -175,16 +175,16 @@ for class_iri in classes {
 ```rust
 // Explain why an axiom is entailed
 let axiom = OwlAxiom {
-    axiom_type: AxiomType::SubClassOf,
-    subject: "http://example.org/GraduateStudent".to_string(),
-    object: "http://example.org/Agent".to_string(),
+    axiom-type: AxiomType::SubClassOf,
+    subject: "http://example.org/GraduateStudent".to-string(),
+    object: "http://example.org/Agent".to-string(),
     ..Default::default()
 };
 
-let explanation = engine.explain_entailment(&axiom).await?;
+let explanation = engine.explain-entailment(&axiom).await?;
 println!("Axiom is entailed because of:");
-for supporting_axiom in explanation {
-    println!("  {:?}: {} ⊆ {}", supporting_axiom.axiom_type, supporting_axiom.subject, supporting_axiom.object);
+for supporting-axiom in explanation {
+    println!("  {:?}: {} ⊆ {}", supporting-axiom.axiom-type, supporting-axiom.subject, supporting-axiom.object);
 }
 ```
 
@@ -213,32 +213,32 @@ impl WhelkInferenceEngine {
     }
 }
 
-#[async_trait]
+#[async-trait]
 impl InferenceEngine for WhelkInferenceEngine {
-    async fn load_ontology(&mut self, classes: Vec<OwlClass>, axioms: Vec<OwlAxiom>) -> Result<()> {
+    async fn load-ontology(&mut self, classes: Vec<OwlClass>, axioms: Vec<OwlAxiom>) -> Result<()> {
         // Convert to whelk format
         let mut ontology = Ontology::new();
 
         for class in classes {
-            ontology.add_class(&class.iri);
-            for parent in class.parent_classes {
-                ontology.add_subclass_of(&class.iri, &parent);
+            ontology.add-class(&class.iri);
+            for parent in class.parent-classes {
+                ontology.add-subclass-of(&class.iri, &parent);
             }
         }
 
         for axiom in axioms {
-            match axiom.axiom_type {
+            match axiom.axiom-type {
                 AxiomType::SubClassOf => {
-                    ontology.add_subclass_of(&axiom.subject, &axiom.object);
+                    ontology.add-subclass-of(&axiom.subject, &axiom.object);
                 }
                 // ... handle other axiom types
-                _ => {}
+                - => {}
             }
         }
 
         self.ontology = Some(ontology);
-        self.stats.loaded_classes = classes.len();
-        self.stats.loaded_axioms = axioms.len();
+        self.stats.loaded-classes = classes.len();
+        self.stats.loaded-axioms = axioms.len();
 
         Ok(())
     }
@@ -246,21 +246,21 @@ impl InferenceEngine for WhelkInferenceEngine {
     async fn infer(&mut self) -> Result<InferenceResults> {
         let start = Instant::now();
 
-        let reasoner = self.reasoner.as_mut()
-            .ok_or(InferenceEngineError::OntologyNotLoaded)?;
-        let ontology = self.ontology.as_ref()
-            .ok_or(InferenceEngineError::OntologyNotLoaded)?;
+        let reasoner = self.reasoner.as-mut()
+            .ok-or(InferenceEngineError::OntologyNotLoaded)?;
+        let ontology = self.ontology.as-ref()
+            .ok-or(InferenceEngineError::OntologyNotLoaded)?;
 
         // Perform reasoning
         let inferences = reasoner.classify(ontology);
 
-        let inference_time = start.elapsed().as_millis() as u64;
+        let inference-time = start.elapsed().as-millis() as u64;
 
         // Convert whelk inferences to OwlAxiom
-        let inferred_axioms = inferences.iter().map(|inf| {
+        let inferred-axioms = inferences.iter().map(|inf| {
             OwlAxiom {
                 id: None,
-                axiom_type: AxiomType::SubClassOf,
+                axiom-type: AxiomType::SubClassOf,
                 subject: inf.subclass.clone(),
                 object: inf.superclass.clone(),
                 annotations: HashMap::new(),
@@ -269,14 +269,14 @@ impl InferenceEngine for WhelkInferenceEngine {
 
         let results = InferenceResults {
             timestamp: Utc::now(),
-            inferred_axioms,
-            inference_time_ms: inference_time,
-            reasoner_version: "whelk-0.1.0".to_string(),
+            inferred-axioms,
+            inference-time-ms: inference-time,
+            reasoner-version: "whelk-0.1.0".to-string(),
         };
 
-        self.stats.inferred_axioms = results.inferred_axioms.len();
-        self.stats.last_inference_time_ms = inference_time;
-        self.stats.total_inferences += 1;
+        self.stats.inferred-axioms = results.inferred-axioms.len();
+        self.stats.last-inference-time-ms = inference-time;
+        self.stats.total-inferences += 1;
 
         Ok(results)
     }
@@ -323,9 +323,9 @@ pub struct MockInferenceEngine {
     inferred: Vec<OwlAxiom>,
 }
 
-#[async_trait]
+#[async-trait]
 impl InferenceEngine for MockInferenceEngine {
-    async fn load_ontology(&mut self, classes: Vec<OwlClass>, axioms: Vec<OwlAxiom>) -> Result<()> {
+    async fn load-ontology(&mut self, classes: Vec<OwlClass>, axioms: Vec<OwlAxiom>) -> Result<()> {
         self.classes = classes;
         self.axioms = axioms;
         Ok(())
@@ -339,13 +339,13 @@ impl InferenceEngine for MockInferenceEngine {
         // And each SubClassOf axiom B ⊆ C
         // Infer A ⊆ C
         for axiom1 in &self.axioms {
-            if axiom1.axiom_type == AxiomType::SubClassOf {
+            if axiom1.axiom-type == AxiomType::SubClassOf {
                 for axiom2 in &self.axioms {
-                    if axiom2.axiom_type == AxiomType::SubClassOf
+                    if axiom2.axiom-type == AxiomType::SubClassOf
                         && axiom1.object == axiom2.subject
                     {
                         inferred.push(OwlAxiom {
-                            axiom_type: AxiomType::SubClassOf,
+                            axiom-type: AxiomType::SubClassOf,
                             subject: axiom1.subject.clone(),
                             object: axiom2.object.clone(),
                             ..Default::default()
@@ -359,18 +359,18 @@ impl InferenceEngine for MockInferenceEngine {
 
         Ok(InferenceResults {
             timestamp: Utc::now(),
-            inferred_axioms: inferred,
-            inference_time_ms: 10,
-            reasoner_version: "mock-1.0.0".to_string(),
+            inferred-axioms: inferred,
+            inference-time-ms: 10,
+            reasoner-version: "mock-1.0.0".to-string(),
         })
     }
 
-    async fn is_entailed(&self, axiom: &OwlAxiom) -> Result<bool> {
+    async fn is-entailed(&self, axiom: &OwlAxiom) -> Result<bool> {
         Ok(self.axioms.iter().any(|a| a.subject == axiom.subject && a.object == axiom.object)
             || self.inferred.iter().any(|a| a.subject == axiom.subject && a.object == axiom.object))
     }
 
-    async fn check_consistency(&self) -> Result<bool> {
+    async fn check-consistency(&self) -> Result<bool> {
         // Mock always consistent
         Ok(true)
     }

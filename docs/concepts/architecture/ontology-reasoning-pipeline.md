@@ -12,7 +12,7 @@ The Ontology Reasoning Pipeline provides complete OWL 2 EL++ reasoning capabilit
 
 ### 1. OntologyReasoningService
 
-**Location**: `/src/services/ontology_reasoning_service.rs` (473 lines)
+**Location**: `/src/services/ontology-reasoning-service.rs` (473 lines)
 
 The central reasoning service that integrates whelk-rs EL++ reasoner with the VisionFlow ontology system.
 
@@ -20,24 +20,24 @@ The central reasoning service that integrates whelk-rs EL++ reasoner with the Vi
 
 - ✅ **Full whelk-rs Integration**: Native Rust OWL 2 EL++ reasoning
 - ✅ **Three Core Methods**:
-  - `infer_axioms()` - Infers missing axioms with confidence scores
-  - `get_class_hierarchy()` - Computes complete class hierarchy tree
-  - `get_disjoint_classes()` - Identifies disjoint class pairs
+  - `infer-axioms()` - Infers missing axioms with confidence scores
+  - `get-class-hierarchy()` - Computes complete class hierarchy tree
+  - `get-disjoint-classes()` - Identifies disjoint class pairs
 - ✅ **Blake3-based Inference Caching**: High-performance hashing
-- ✅ **Database Persistence**: `inference_cache` table for results
+- ✅ **Database Persistence**: `inference-cache` table for results
 - ✅ **Automatic Cache Invalidation**: On ontology changes
 - ✅ **Comprehensive Error Handling**: Production-ready
 
 #### API Methods
 
-##### infer_axioms()
+##### infer-axioms()
 
 Infers missing axioms from the ontology using whelk-rs reasoning.
 
 ```rust
-pub async fn infer_axioms(
+pub async fn infer-axioms(
     &self,
-    ontology_id: &str,
+    ontology-id: &str,
 ) -> Result<Vec<InferredAxiom>, ServiceError>
 ```
 
@@ -50,26 +50,26 @@ pub async fn infer_axioms(
 **Example**:
 ```rust
 let service = OntologyReasoningService::new(repo);
-let inferred = service.infer_axioms("default").await?;
+let inferred = service.infer-axioms("default").await?;
 
 for axiom in inferred {
     println!("{}: {} → {} (confidence: {})",
-        axiom.axiom_type,
-        axiom.subject_iri,
-        axiom.object_iri,
+        axiom.axiom-type,
+        axiom.subject-iri,
+        axiom.object-iri,
         axiom.confidence
     );
 }
 ```
 
-##### get_class_hierarchy()
+##### get-class-hierarchy()
 
 Computes the complete class hierarchy with depth and parent-child relationships.
 
 ```rust
-pub async fn get_class_hierarchy(
+pub async fn get-class-hierarchy(
     &self,
-    ontology_id: &str,
+    ontology-id: &str,
 ) -> Result<ClassHierarchy, ServiceError>
 ```
 
@@ -81,26 +81,26 @@ pub async fn get_class_hierarchy(
 
 **Example**:
 ```rust
-let hierarchy = service.get_class_hierarchy("default").await?;
+let hierarchy = service.get-class-hierarchy("default").await?;
 
-println!("Root classes: {:?}", hierarchy.root_classes);
+println!("Root classes: {:?}", hierarchy.root-classes);
 for (iri, node) in hierarchy.hierarchy {
     println!("{} (depth: {}, children: {})",
         node.label,
         node.depth,
-        node.children_iris.len()
+        node.children-iris.len()
     );
 }
 ```
 
-##### get_disjoint_classes()
+##### get-disjoint-classes()
 
 Identifies all disjoint class pairs from the ontology.
 
 ```rust
-pub async fn get_disjoint_classes(
+pub async fn get-disjoint-classes(
     &self,
-    ontology_id: &str,
+    ontology-id: &str,
 ) -> Result<Vec<DisjointClassPair>, ServiceError>
 ```
 
@@ -108,25 +108,25 @@ pub async fn get_disjoint_classes(
 
 **Example**:
 ```rust
-let disjoint = service.get_disjoint_classes("default").await?;
+let disjoint = service.get-disjoint-classes("default").await?;
 
 for pair in disjoint {
-    println!("{} disjoint with {}", pair.class_a, pair.class_b);
+    println!("{} disjoint with {}", pair.class-a, pair.class-b);
 }
 ```
 
 ### 2. Inference Caching System
 
-**Database Table**: `inference_cache`
+**Database Table**: `inference-cache`
 
 ```sql
-CREATE TABLE IF NOT EXISTS inference_cache (
-    cache_key TEXT PRIMARY KEY,
-    ontology_id TEXT NOT NULL,
-    cache_type TEXT NOT NULL,
-    result_data TEXT NOT NULL,
-    created_at TEXT NOT NULL,
-    ontology_hash TEXT NOT NULL
+CREATE TABLE IF NOT EXISTS inference-cache (
+    cache-key TEXT PRIMARY KEY,
+    ontology-id TEXT NOT NULL,
+    cache-type TEXT NOT NULL,
+    result-data TEXT NOT NULL,
+    created-at TEXT NOT NULL,
+    ontology-hash TEXT NOT NULL
 );
 ```
 
@@ -135,9 +135,9 @@ CREATE TABLE IF NOT EXISTS inference_cache (
 Uses Blake3 for fast, cryptographic-quality hashing:
 
 ```rust
-let cache_key = blake3::hash(
-    format!("{}:{}:{}", ontology_id, cache_type, ontology_hash).as_bytes()
-).to_hex();
+let cache-key = blake3::hash(
+    format!("{}:{}:{}", ontology-id, cache-type, ontology-hash).as-bytes()
+).to-hex();
 ```
 
 #### Cache Invalidation
@@ -149,7 +149,7 @@ Automatic invalidation on ontology changes:
 
 ### 3. Actor Integration
 
-**Location**: `/src/actors/ontology_actor.rs`
+**Location**: `/src/actors/ontology-actor.rs`
 
 The OntologyActor coordinates reasoning operations:
 
@@ -157,13 +157,13 @@ The OntologyActor coordinates reasoning operations:
 #[derive(Message)]
 #[rtype(result = "Result<(), Error>")]
 pub struct TriggerReasoning {
-    pub ontology_id: String,
+    pub ontology-id: String,
 }
 
 impl Handler<TriggerReasoning> for OntologyActor {
     type Result = ResponseActFuture<Self, Result<(), Error>>;
 
-    fn handle(&mut self, msg: TriggerReasoning, _ctx: &mut Self::Context) -> Self::Result {
+    fn handle(&mut self, msg: TriggerReasoning, -ctx: &mut Self::Context) -> Self::Result {
         // 1. Call reasoning service
         // 2. Update graph with inferred axioms
         // 3. Invalidate caches
@@ -224,13 +224,13 @@ Graph Update
 
 ```rust
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename-all = "camelCase")]
 pub struct InferredAxiom {
-    pub axiom_type: String,        // "SubClassOf", "EquivalentClasses", etc.
-    pub subject_iri: String,        // Subject class IRI
-    pub object_iri: String,         // Object class IRI
+    pub axiom-type: String,        // "SubClassOf", "EquivalentClasses", etc.
+    pub subject-iri: String,        // Subject class IRI
+    pub object-iri: String,         // Object class IRI
     pub confidence: f64,            // 0.0-1.0
-    pub reasoning_method: String,   // "whelk-el++"
+    pub reasoning-method: String,   // "whelk-el++"
 }
 ```
 
@@ -238,20 +238,20 @@ pub struct InferredAxiom {
 
 ```rust
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename-all = "camelCase")]
 pub struct ClassHierarchy {
-    pub root_classes: Vec<String>,
+    pub root-classes: Vec<String>,
     pub hierarchy: HashMap<String, ClassNode>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename-all = "camelCase")]
 pub struct ClassNode {
     pub iri: String,
     pub label: String,
-    pub parent_iri: Option<String>,
-    pub children_iris: Vec<String>,
-    pub node_count: usize,          // Descendant count
+    pub parent-iri: Option<String>,
+    pub children-iris: Vec<String>,
+    pub node-count: usize,          // Descendant count
     pub depth: usize,               // Hierarchy depth
 }
 ```
@@ -260,10 +260,10 @@ pub struct ClassNode {
 
 ```rust
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename-all = "camelCase")]
 pub struct DisjointClassPair {
-    pub class_a: String,
-    pub class_b: String,
+    pub class-a: String,
+    pub class-b: String,
 }
 ```
 
@@ -296,14 +296,14 @@ pub struct DisjointClassPair {
 ### REST API Integration
 
 ```rust
-use actix_web::{web, HttpResponse};
+use actix-web::{web, HttpResponse};
 use crate::services::OntologyReasoningService;
 
-async fn infer_endpoint(
+async fn infer-endpoint(
     service: web::Data<OntologyReasoningService>,
-    ontology_id: web::Path<String>,
+    ontology-id: web::Path<String>,
 ) -> HttpResponse {
-    match service.infer_axioms(&ontology_id).await {
+    match service.infer-axioms(&ontology-id).await {
         Ok(axioms) => HttpResponse::Ok().json(axioms),
         Err(e) => HttpResponse::InternalServerError().json(e),
     }
@@ -316,28 +316,28 @@ async fn infer_endpoint(
 use actix::prelude::*;
 
 // Trigger reasoning
-let reasoning_service = OntologyReasoningService::new(repo);
-let addr = ontology_actor.start();
+let reasoning-service = OntologyReasoningService::new(repo);
+let addr = ontology-actor.start();
 
 addr.send(TriggerReasoning {
-    ontology_id: "default".to_string(),
+    ontology-id: "default".to-string(),
 }).await?;
 ```
 
 ### GraphQL Integration
 
 ```rust
-use async_graphql::{Object, Context};
+use async-graphql::{Object, Context};
 
 #[Object]
 impl OntologyQuery {
-    async fn inferred_axioms(
+    async fn inferred-axioms(
         &self,
-        ctx: &Context<'_>,
-        ontology_id: String,
+        ctx: &Context<'->,
+        ontology-id: String,
     ) -> Vec<InferredAxiom> {
         let service = ctx.data::<OntologyReasoningService>().unwrap();
-        service.infer_axioms(&ontology_id).await.unwrap()
+        service.infer-axioms(&ontology-id).await.unwrap()
     }
 }
 ```
@@ -350,33 +350,33 @@ Enable ontology reasoning in configuration:
 
 ```toml
 [features]
-ontology_validation = true
-reasoning_cache = true
+ontology-validation = true
+reasoning-cache = true
 ```
 
 ### Environment Variables
 
 ```bash
 # Reasoning configuration
-REASONING_CACHE_TTL=3600          # Cache lifetime (seconds)
-REASONING_TIMEOUT=30000           # Max reasoning time (ms)
-REASONING_MAX_AXIOMS=100000       # Axiom limit
+REASONING-CACHE-TTL=3600          # Cache lifetime (seconds)
+REASONING-TIMEOUT=30000           # Max reasoning time (ms)
+REASONING-MAX-AXIOMS=100000       # Axiom limit
 ```
 
 ## Testing
 
 ### Unit Tests
 
-Located in `/tests/ontology_reasoning_integration_test.rs` (350+ lines)
+Located in `/tests/ontology-reasoning-integration-test.rs` (350+ lines)
 
 ```bash
 # Run reasoning tests
-cargo test --test ontology_reasoning_integration_test
+cargo test --test ontology-reasoning-integration-test
 
 # Test specific functionality
-cargo test test_infer_axioms
-cargo test test_class_hierarchy
-cargo test test_disjoint_classes
+cargo test test-infer-axioms
+cargo test test-class-hierarchy
+cargo test test-disjoint-classes
 ```
 
 ### Integration Tests
@@ -385,15 +385,15 @@ Test complete reasoning pipeline:
 
 ```rust
 #[tokio::test]
-async fn test_complete_reasoning_pipeline() {
-    let repo = setup_test_repository().await;
+async fn test-complete-reasoning-pipeline() {
+    let repo = setup-test-repository().await;
     let service = OntologyReasoningService::new(repo);
 
     // Load test ontology
-    load_ontology(&service, "test.owl").await;
+    load-ontology(&service, "test.owl").await;
 
     // Trigger reasoning
-    let inferred = service.infer_axioms("test").await.unwrap();
+    let inferred = service.infer-axioms("test").await.unwrap();
 
     // Verify results
     assert!(inferred.len() > 0);
@@ -407,7 +407,7 @@ async fn test_complete_reasoning_pipeline() {
 
 #### "Reasoning timeout"
 - **Cause**: Large ontology or complex axioms
-- **Fix**: Increase `REASONING_TIMEOUT` or simplify ontology
+- **Fix**: Increase `REASONING-TIMEOUT` or simplify ontology
 
 #### "Cache invalidation loop"
 - **Cause**: Ontology hash changing on every read
@@ -422,8 +422,8 @@ async fn test_complete_reasoning_pipeline() {
 Enable detailed logging:
 
 ```rust
-env_logger::Builder::from_default_env()
-    .filter_module("ontology_reasoning", log::LevelFilter::Debug)
+env-logger::Builder::from-default-env()
+    .filter-module("ontology-reasoning", log::LevelFilter::Debug)
     .init();
 ```
 
@@ -447,7 +447,7 @@ env_logger::Builder::from_default_env()
 ## References
 
 - **whelk-rs**: https://github.com/ontodev/whelk.rs
-- **OWL 2 EL Profile**: https://www.w3.org/TR/owl2-profiles/#OWL_2_EL
+- **OWL 2 EL Profile**: https://www.w3.org/TR/owl2-profiles/#OWL-2-EL
 - **hornedowl**: Rust OWL parser library
 - **Blake3**: https://github.com/BLAKE3-team/BLAKE3
 

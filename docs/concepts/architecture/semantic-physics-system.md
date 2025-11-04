@@ -14,7 +14,7 @@ The Semantic Physics Architecture translates OWL 2 axioms into GPU-accelerated p
 
 ### 1. Semantic Constraint Types
 
-**Location**: `/src/constraints/semantic_physics_types.rs` (269 lines)
+**Location**: `/src/constraints/semantic-physics-types.rs` (269 lines)
 
 Six specialized constraint types for semantic physics:
 
@@ -37,16 +37,16 @@ Ensures disjoint classes repel each other strongly.
 
 ```rust
 pub struct SeparationConstraint {
-    pub node_a: String,        // First class IRI
-    pub node_b: String,        // Second class IRI
-    pub min_distance: f32,     // Minimum separation (default: 70.0)
+    pub node-a: String,        // First class IRI
+    pub node-b: String,        // Second class IRI
+    pub min-distance: f32,     // Minimum separation (default: 70.0)
     pub strength: f32,         // Force strength (default: 0.8)
     pub priority: u8,          // 1-10 (1=highest)
     pub axis: Option<Axis>,    // Optional axis restriction
 }
 ```
 
-**Physics**: `repel_k * 2.0` multiplier for strong separation
+**Physics**: `repel-k * 2.0` multiplier for strong separation
 
 ##### 2. Hierarchical Attraction (Subclass Relationships)
 
@@ -56,14 +56,14 @@ Pulls subclasses toward their parents with moderate force.
 pub struct HierarchicalConstraint {
     pub child: String,         // Subclass IRI
     pub parent: String,        // Superclass IRI
-    pub ideal_distance: f32,   // Target distance (default: 20.0)
+    pub ideal-distance: f32,   // Target distance (default: 20.0)
     pub strength: f32,         // Spring strength (default: 0.3)
     pub priority: u8,          // 1-10
-    pub z_offset: f32,         // Vertical offset for hierarchy
+    pub z-offset: f32,         // Vertical offset for hierarchy
 }
 ```
 
-**Physics**: `spring_k * 0.5` for gentle attraction
+**Physics**: `spring-k * 0.5` for gentle attraction
 
 ##### 3. Alignment (Axis Positioning)
 
@@ -73,7 +73,7 @@ Forces nodes to align along specific axes (X/Y/Z).
 pub struct AlignmentConstraint {
     pub node: String,
     pub axis: Axis,            // X, Y, or Z
-    pub target_value: f32,     // Position on axis
+    pub target-value: f32,     // Position on axis
     pub strength: f32,         // Alignment force
     pub priority: u8,
 }
@@ -87,8 +87,8 @@ Creates symmetric relationship forces.
 
 ```rust
 pub struct BidirectionalConstraint {
-    pub node_a: String,
-    pub node_b: String,
+    pub node-a: String,
+    pub node-b: String,
     pub distance: f32,         // Ideal distance
     pub strength: f32,         // Symmetrical force
     pub priority: u8,
@@ -101,9 +101,9 @@ Forces equivalent classes to be very close together.
 
 ```rust
 pub struct ColocationConstraint {
-    pub node_a: String,
-    pub node_b: String,
-    pub max_distance: f32,     // Maximum separation (default: 2.0)
+    pub node-a: String,
+    pub node-b: String,
+    pub max-distance: f32,     // Maximum separation (default: 2.0)
     pub strength: f32,         // Strong force (default: 0.9)
     pub priority: u8,
 }
@@ -125,7 +125,7 @@ pub struct ContainmentConstraint {
 
 ### 2. Axiom Translator
 
-**Location**: `/src/constraints/semantic_axiom_translator.rs` (491 lines)
+**Location**: `/src/constraints/semantic-axiom-translator.rs` (491 lines)
 
 Translates OWL axioms into semantic physics constraints with configurable parameters.
 
@@ -133,8 +133,8 @@ Translates OWL axioms into semantic physics constraints with configurable parame
 
 | OWL Axiom | Constraint Type | Default Parameters |
 |-----------|----------------|-------------------|
-| `DisjointWith(A, B)` | Separation | min_dist: 70.0, strength: 0.8 |
-| `SubClassOf(C, P)` | HierarchicalAttraction | ideal_dist: 20.0, strength: 0.3 |
+| `DisjointWith(A, B)` | Separation | min-dist: 70.0, strength: 0.8 |
+| `SubClassOf(C, P)` | HierarchicalAttraction | ideal-dist: 20.0, strength: 0.3 |
 | `EquivalentClasses(A, B)` | Colocation + BidirectionalEdge | dist: 2.0, strength: 0.9 |
 | `SameAs(A, B)` | Colocation | dist: 0.0, strength: 1.0 |
 | `PartOf(P, W)` | Containment | radius: 30.0, strength: 0.8 |
@@ -147,26 +147,26 @@ Translates OWL axioms into semantic physics constraints with configurable parame
 ```rust
 pub struct SemanticAxiomTranslator {
     config: SemanticPhysicsConfig,
-    hierarchy_cache: HashMap<String, usize>,
-    iri_to_id: HashMap<String, usize>,
+    hierarchy-cache: HashMap<String, usize>,
+    iri-to-id: HashMap<String, usize>,
 }
 
 impl SemanticAxiomTranslator {
     pub fn new() -> Self;
 
-    pub fn with_config(config: SemanticPhysicsConfig) -> Self;
+    pub fn with-config(config: SemanticPhysicsConfig) -> Self;
 
-    pub fn translate_axiom(
+    pub fn translate-axiom(
         &mut self,
         axiom: &OWLAxiom,
     ) -> Vec<SemanticPhysicsConstraint>;
 
-    pub fn translate_axioms(
+    pub fn translate-axioms(
         &mut self,
         axioms: &[OWLAxiom],
     ) -> Vec<SemanticPhysicsConstraint>;
 
-    pub fn register_iri(&mut self, iri: String) -> usize;
+    pub fn register-iri(&mut self, iri: String) -> usize;
 }
 ```
 
@@ -175,19 +175,19 @@ impl SemanticAxiomTranslator {
 ```rust
 pub struct SemanticPhysicsConfig {
     // Multipliers for base physics constants
-    pub disjoint_repel_multiplier: f32,      // Default: 2.0
-    pub subclass_spring_multiplier: f32,     // Default: 0.5
-    pub equivalent_colocation_dist: f32,     // Default: 2.0
-    pub partof_containment_radius: f32,      // Default: 30.0
+    pub disjoint-repel-multiplier: f32,      // Default: 2.0
+    pub subclass-spring-multiplier: f32,     // Default: 0.5
+    pub equivalent-colocation-dist: f32,     // Default: 2.0
+    pub partof-containment-radius: f32,      // Default: 30.0
 
     // Feature flags
-    pub enable_hierarchy_alignment: bool,    // Default: true
-    pub enable_bidirectional_constraints: bool, // Default: true
+    pub enable-hierarchy-alignment: bool,    // Default: true
+    pub enable-bidirectional-constraints: bool, // Default: true
 
     // Priority settings
-    pub user_defined_priority: u8,           // Default: 1
-    pub asserted_priority: u8,               // Default: 5
-    pub inferred_priority: u8,               // Default: 10
+    pub user-defined-priority: u8,           // Default: 1
+    pub asserted-priority: u8,               // Default: 5
+    pub inferred-priority: u8,               // Default: 10
 }
 ```
 
@@ -211,14 +211,14 @@ let axioms = vec![
 ];
 
 // Translate to constraints
-let constraints = translator.translate_axioms(&axioms);
+let constraints = translator.translate-axioms(&axioms);
 
 // Result: [Separation(1, 2), HierarchicalAttraction(3, 1)]
 ```
 
 ### 3. GPU Buffer System
 
-**Location**: `/src/constraints/semantic_gpu_buffer.rs` (466 lines)
+**Location**: `/src/constraints/semantic-gpu-buffer.rs` (466 lines)
 
 CUDA-optimized constraint buffer with 16-byte alignment.
 
@@ -227,29 +227,29 @@ CUDA-optimized constraint buffer with 16-byte alignment.
 ```rust
 pub struct SemanticGPUConstraintBuffer {
     constraints: Vec<GPUSemanticConstraint>,
-    iri_registry: HashMap<String, u32>,
+    iri-registry: HashMap<String, u32>,
     capacity: usize,
-    next_index: u32,
+    next-index: u32,
 }
 
 impl SemanticGPUConstraintBuffer {
     pub fn new(capacity: usize) -> Self;
 
-    pub fn add_constraint(
+    pub fn add-constraint(
         &mut self,
         constraint: &SemanticPhysicsConstraint,
     ) -> Result<(), BufferError>;
 
-    pub fn add_constraints(
+    pub fn add-constraints(
         &mut self,
         constraints: &[SemanticPhysicsConstraint],
     ) -> Result<(), BufferError>;
 
-    pub fn as_ptr(&self) -> *const GPUSemanticConstraint;
+    pub fn as-ptr(&self) -> *const GPUSemanticConstraint;
 
-    pub fn size_bytes(&self) -> usize;
+    pub fn size-bytes(&self) -> usize;
 
-    pub fn get_stats(&self) -> BufferStatistics;
+    pub fn get-stats(&self) -> BufferStatistics;
 }
 ```
 
@@ -258,16 +258,16 @@ impl SemanticGPUConstraintBuffer {
 ```rust
 #[repr(C, align(16))]  // 16-byte alignment for CUDA
 pub struct GPUSemanticConstraint {
-    pub constraint_type: u32,    // 0=Separation, 1=Hierarchical, etc.
-    pub node_a_id: u32,
-    pub node_b_id: u32,
+    pub constraint-type: u32,    // 0=Separation, 1=Hierarchical, etc.
+    pub node-a-id: u32,
+    pub node-b-id: u32,
     pub param1: f32,             // Type-specific parameter
     pub param2: f32,             // Type-specific parameter
     pub param3: f32,             // Type-specific parameter
     pub strength: f32,
     pub priority: u8,
     pub axis: u8,                // 0=None, 1=X, 2=Y, 3=Z
-    pub _padding: [u8; 14],      // Align to 80 bytes (16-byte multiple)
+    pub -padding: [u8; 14],      // Align to 80 bytes (16-byte multiple)
 }
 ```
 
@@ -284,20 +284,20 @@ pub struct GPUSemanticConstraint {
 
 ```rust
 pub struct BufferStatistics {
-    pub total_constraints: usize,
-    pub used_capacity: f32,          // Percentage
-    pub constraint_type_counts: HashMap<String, usize>,
-    pub average_priority: f32,
-    pub iri_count: usize,
-    pub memory_bytes: usize,
+    pub total-constraints: usize,
+    pub used-capacity: f32,          // Percentage
+    pub constraint-type-counts: HashMap<String, usize>,
+    pub average-priority: f32,
+    pub iri-count: usize,
+    pub memory-bytes: usize,
 }
 
 impl BufferStatistics {
     pub fn print(&self) {
         println!("=== GPU Buffer Statistics ===");
-        println!("Total constraints: {}", self.total_constraints);
-        println!("Memory usage: {} KB", self.memory_bytes / 1024);
-        println!("Registered IRIs: {}", self.iri_count);
+        println!("Total constraints: {}", self.total-constraints);
+        println!("Memory usage: {} KB", self.memory-bytes / 1024);
+        println!("Registered IRIs: {}", self.iri-count);
         // ... more details
     }
 }
@@ -325,9 +325,9 @@ Priority 10: Lowest (suggestions)      → weight = 0.100 (10%)
 Exponential decay function provides smooth priority falloff:
 
 ```rust
-pub fn priority_weight(priority: u8) -> f32 {
+pub fn priority-weight(priority: u8) -> f32 {
     assert!(priority >= 1 && priority <= 10);
-    10.0_f32.powf(-(priority as f32 - 1.0) / 9.0)
+    10.0-f32.powf(-(priority as f32 - 1.0) / 9.0)
 }
 ```
 
@@ -346,10 +346,10 @@ pub enum PriorityBlendStrategy {
 
 ```rust
 // Example: User-defined (priority 1) + Inferred (priority 7)
-let w1 = priority_weight(1);  // 1.0
-let w2 = priority_weight(7);  // 0.215
+let w1 = priority-weight(1);  // 1.0
+let w2 = priority-weight(7);  // 0.215
 
-let blended_value = (w1 * value1 + w2 * value2) / (w1 + w2);
+let blended-value = (w1 * value1 + w2 * value2) / (w1 + w2);
 // Result heavily favors priority 1
 ```
 
@@ -388,7 +388,7 @@ let blended_value = (w1 * value1 + w2 * value2) / (w1 + w2);
 | 10,000 | 30,000 | ~2.4 MB |
 | 50,000 | 200,000 | ~16 MB |
 
-**Formula**: `memory = constraint_count × 80 bytes`
+**Formula**: `memory = constraint-count × 80 bytes`
 
 ### Translation Speed
 
@@ -400,7 +400,7 @@ Estimated performance (single-threaded):
 
 ### GPU Upload
 
-- **Zero-copy**: Direct memory mapping via `as_ptr()`
+- **Zero-copy**: Direct memory mapping via `as-ptr()`
 - **Contiguous**: Single DMA transfer
 - **Efficient**: No serialization overhead
 
@@ -429,7 +429,7 @@ fn main() {
         }),
     ];
 
-    let constraints = translator.translate_axioms(&axioms);
+    let constraints = translator.translate-axioms(&axioms);
 
     println!("Generated {} constraints", constraints.len());
     // Output: Generated 4 constraints (1 hierarchical + 3 separation)
@@ -440,14 +440,14 @@ fn main() {
 
 ```rust
 let config = SemanticPhysicsConfig {
-    disjoint_repel_multiplier: 3.0,  // Stronger repulsion
-    subclass_spring_multiplier: 0.3, // Tighter hierarchy
-    enable_hierarchy_alignment: true,
-    enable_bidirectional_constraints: true,
+    disjoint-repel-multiplier: 3.0,  // Stronger repulsion
+    subclass-spring-multiplier: 0.3, // Tighter hierarchy
+    enable-hierarchy-alignment: true,
+    enable-bidirectional-constraints: true,
     ..Default::default()
 };
 
-let translator = SemanticAxiomTranslator::with_config(config);
+let translator = SemanticAxiomTranslator::with-config(config);
 ```
 
 ### GPU Buffer Creation
@@ -455,20 +455,20 @@ let translator = SemanticAxiomTranslator::with_config(config);
 ```rust
 use constraints::SemanticGPUConstraintBuffer;
 
-fn upload_to_gpu(constraints: &[SemanticPhysicsConstraint]) {
+fn upload-to-gpu(constraints: &[SemanticPhysicsConstraint]) {
     let mut buffer = SemanticGPUConstraintBuffer::new(10000);
 
-    buffer.add_constraints(constraints)
+    buffer.add-constraints(constraints)
         .expect("Buffer overflow");
 
-    let stats = buffer.get_stats();
+    let stats = buffer.get-stats();
     stats.print();
 
     // Upload to CUDA
     unsafe {
-        cuda_upload_constraints(
-            buffer.as_ptr(),
-            buffer.size_bytes()
+        cuda-upload-constraints(
+            buffer.as-ptr(),
+            buffer.size-bytes()
         );
     }
 }
@@ -480,12 +480,12 @@ fn upload_to_gpu(constraints: &[SemanticPhysicsConstraint]) {
 use constraints::PriorityResolver;
 
 let mut resolver = PriorityResolver::new();
-resolver.set_strategy(PriorityBlendStrategy::Weighted);
+resolver.set-strategy(PriorityBlendStrategy::Weighted);
 
 // Add constraints from multiple sources
-resolver.add_constraints(user_constraints);      // Priority 1
-resolver.add_constraints(asserted_constraints);  // Priority 5
-resolver.add_constraints(inferred_constraints);  // Priority 10
+resolver.add-constraints(user-constraints);      // Priority 1
+resolver.add-constraints(asserted-constraints);  // Priority 5
+resolver.add-constraints(inferred-constraints);  // Priority 10
 
 let resolved = resolver.resolve();  // Blended results
 ```
@@ -496,25 +496,25 @@ let resolved = resolver.resolve();  // Blended results
 
 ```bash
 # Test semantic physics types
-cargo test --lib semantic_physics_types
+cargo test --lib semantic-physics-types
 
 # Test axiom translator
-cargo test --lib semantic_axiom_translator
+cargo test --lib semantic-axiom-translator
 
 # Test GPU buffer
-cargo test --lib semantic_gpu_buffer
+cargo test --lib semantic-gpu-buffer
 ```
 
 ### Integration Tests
 
-**Location**: `/tests/semantic_physics_integration_test.rs` (278 lines)
+**Location**: `/tests/semantic-physics-integration-test.rs` (278 lines)
 
 ```bash
 # Run full integration test suite
-cargo test --test semantic_physics_integration_test
+cargo test --test semantic-physics-integration-test
 
 # Test specific workflow
-cargo test test_complete_ontology_workflow
+cargo test test-complete-ontology-workflow
 ```
 
 ### Test Coverage
@@ -537,7 +537,7 @@ cargo test test_complete_ontology_workflow
 
 #### "Unregistered IRI"
 - **Cause**: IRI not added to buffer registry
-- **Fix**: Call `buffer.add_constraints()` which auto-registers
+- **Fix**: Call `buffer.add-constraints()` which auto-registers
 
 #### "Misaligned GPU memory"
 - **Cause**: Incorrect struct packing

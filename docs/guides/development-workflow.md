@@ -31,7 +31,7 @@ VisionFlow follows a structured development workflow designed to maintain code q
 
 ### Related Documentation
 
-- [Contributing Guide](./CONTRIBUTING.md) - Quick start for contributors
+- [Contributing Guide](./contributing.md) - Quick start for contributors
 - [Extending the System](./extending-the-system.md) - Creating custom extensions
 - [ADR-001: Unified API Client](../concepts/decisions/adr-001-unified-api-client.md) - API architecture
 - [ADR-003: Code Pruning](../concepts/decisions/adr-003-code-pruning-2025-10.md) - Codebase maintenance
@@ -132,7 +132,7 @@ Create `.vscode/settings.json`:
   "rust-analyzer.cargo.features": ["all"],
   "python.linting.enabled": true,
   "python.linting.pylintEnabled": true,
-  "typescript.tsdk": "client/node_modules/typescript/lib",
+  "typescript.tsdk": "client/node-modules/typescript/lib",
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
@@ -141,7 +141,7 @@ Create `.vscode/settings.json`:
   },
   "files.watcherExclude": {
     "**/target/**": true,
-    "**/node_modules/**": true,
+    "**/node-modules/**": true,
     "**/dist/**": true
   }
 }
@@ -646,21 +646,21 @@ pub type Result<T> = std::result::Result<T, AgentError>;
 
 pub struct AgentManager {
     agents: HashMap<String, Agent>,
-    max_agents: usize,
+    max-agents: usize,
 }
 
 impl AgentManager {
-    pub fn new(max_agents: usize) -> Self {
+    pub fn new(max-agents: usize) -> Self {
         Self {
             agents: HashMap::new(),
-            max_agents,
+            max-agents,
         }
     }
 
-    pub fn spawn_agent(&mut self, config: AgentConfig) -> Result<Agent> {
-        if self.agents.len() >= self.max_agents {
+    pub fn spawn-agent(&mut self, config: AgentConfig) -> Result<Agent> {
+        if self.agents.len() >= self.max-agents {
             return Err(AgentError::OperationFailed(
-                format!("Maximum agents ({}) reached", self.max_agents)
+                format!("Maximum agents ({}) reached", self.max-agents)
             ));
         }
 
@@ -670,17 +670,17 @@ impl AgentManager {
         Ok(agent)
     }
 
-    pub fn get_agent(&self, agent_id: &str) -> Result<&Agent> {
+    pub fn get-agent(&self, agent-id: &str) -> Result<&Agent> {
         self.agents
-            .get(agent_id)
-            .ok_or_else(|| AgentError::NotFound(agent_id.to_string()))
+            .get(agent-id)
+            .ok-or-else(|| AgentError::NotFound(agent-id.to-string()))
     }
 }
 
 // ❌ Bad: Using unwrap, no error handling
 impl AgentManager {
-    pub fn get_agent(&self, agent_id: &str) -> &Agent {
-        self.agents.get(agent_id).unwrap() // Panic on error!
+    pub fn get-agent(&self, agent-id: &str) -> &Agent {
+        self.agents.get(agent-id).unwrap() // Panic on error!
     }
 }
 ```
@@ -690,22 +690,22 @@ impl AgentManager {
 ```rust
 use tokio::task::JoinSet;
 
-pub async fn process_agents_concurrently(
+pub async fn process-agents-concurrently(
     agents: Vec<Agent>
 ) -> Vec<Result<ProcessedAgent>> {
     let mut set = JoinSet::new();
 
     for agent in agents {
         set.spawn(async move {
-            process_single_agent(agent).await
+            process-single-agent(agent).await
         });
     }
 
     let mut results = Vec::new();
-    while let Some(result) = set.join_next().await {
+    while let Some(result) = set.join-next().await {
         match result {
             Ok(processed) => results.push(processed),
-            Err(e) => results.push(Err(AgentError::OperationFailed(e.to_string()))),
+            Err(e) => results.push(Err(AgentError::OperationFailed(e.to-string()))),
         }
     }
 
@@ -730,35 +730,35 @@ import logging
 import sys
 from typing import Dict, Any, List, Optional
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(--name--)
 
 
 class DataProcessingTool:
     """MCP tool for data processing operations."""
 
-    def __init__(self, config_path: Optional[str] = None):
+    def --init--(self, config-path: Optional[str] = None):
         """
         Initialise data processing tool.
 
         Args:
-            config_path: Optional path to configuration file
+            config-path: Optional path to configuration file
         """
-        self.config = self._load_config(config_path)
-        self.logger = logging.getLogger(self.__class__.__name__)
+        self.config = self.-load-config(config-path)
+        self.logger = logging.getLogger(self.--class--.--name--)
 
-    def _load_config(self, config_path: Optional[str]) -> Dict[str, Any]:
+    def -load-config(self, config-path: Optional[str]) -> Dict[str, Any]:
         """Load configuration from file."""
-        if not config_path:
+        if not config-path:
             return {}
 
         try:
-            with open(config_path, 'r', encoding='utf-8') as f:
+            with open(config-path, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except FileNotFoundError:
-            self.logger.warning(f"Config file not found: {config_path}")
+            self.logger.warning(f"Config file not found: {config-path}")
             return {}
 
-    def process_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
+    def process-request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """
         Process MCP request.
 
@@ -772,52 +772,52 @@ class DataProcessingTool:
             method = request.get('method', 'default')
             params = request.get('params', {})
 
-            handler = self._get_handler(method)
+            handler = self.-get-handler(method)
             result = handler(params)
 
             return {'result': result}
 
         except Exception as e:
-            self.logger.error(f"Request processing failed: {e}", exc_info=True)
+            self.logger.error(f"Request processing failed: {e}", exc-info=True)
             return {'error': str(e)}
 
-    def _get_handler(self, method: str):
+    def -get-handler(self, method: str):
         """Get handler function for method."""
         handlers = {
-            'transform': self._handle_transform,
-            'analyse': self._handle_analyse,
-            'validate': self._handle_validate,
+            'transform': self.-handle-transform,
+            'analyse': self.-handle-analyse,
+            'validate': self.-handle-validate,
         }
-        return handlers.get(method, self._handle_unknown)
+        return handlers.get(method, self.-handle-unknown)
 
-    def _handle_transform(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    def -handle-transform(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Handle data transformation requests."""
         data = params.get('data', [])
         operations = params.get('operations', [])
 
         transformed = data
         for operation in operations:
-            transformed = self._apply_operation(transformed, operation)
+            transformed = self.-apply-operation(transformed, operation)
 
         return {
             'transformed': transformed,
-            'operations_applied': len(operations)
+            'operations-applied': len(operations)
         }
 
-    def _apply_operation(
+    def -apply-operation(
         self,
         data: List[Any],
         operation: Dict[str, Any]
     ) -> List[Any]:
         """Apply single transformation operation."""
-        op_type = operation.get('type')
+        op-type = operation.get('type')
 
-        if op_type == 'filter':
-            return [item for item in data if self._matches_filter(item, operation)]
-        elif op_type == 'map':
-            return [self._transform_item(item, operation) for item in data]
+        if op-type == 'filter':
+            return [item for item in data if self.-matches-filter(item, operation)]
+        elif op-type == 'map':
+            return [self.-transform-item(item, operation) for item in data]
         else:
-            raise ValueError(f"Unknown operation: {op_type}")
+            raise ValueError(f"Unknown operation: {op-type}")
 
 
 def main():
@@ -827,14 +827,14 @@ def main():
     for line in sys.stdin:
         try:
             request = json.loads(line.strip())
-            response = tool.process_request(request)
+            response = tool.process-request(request)
             print(json.dumps(response), flush=True)
         except json.JSONDecodeError as e:
             error = {'error': f'Invalid JSON: {e}'}
             print(json.dumps(error), flush=True)
 
 
-if __name__ == '__main__':
+if --name-- == '--main--':
     main()
 ```
 
@@ -1191,7 +1191,7 @@ git push origin feature/my-feature
 ### Before Contributing
 
 1. **Review Documentation**
-   - Read [Contributing Guide](./CONTRIBUTING.md)
+   - Read [Contributing Guide](./contributing.md)
    - Review [Architecture Documentation](../concepts/architecture/)
    - Check [ADRs](../concepts/decisions/) for relevant decisions
 
@@ -1299,7 +1299,7 @@ const processedNodes = useMemo(() => {
 
 // Use useCallback for stable function references
 const handleNodeClick = useCallback((nodeId: string) => {
-  dispatch({ type: 'SELECT_NODE', payload: nodeId });
+  dispatch({ type: 'SELECT-NODE', payload: nodeId });
 }, [dispatch]);
 ```
 
@@ -1330,7 +1330,7 @@ export default defineConfig({
 ```rust
 use tokio::task::JoinSet;
 
-pub async fn process_batch(items: Vec<Item>) -> Vec<Result<Processed>> {
+pub async fn process-batch(items: Vec<Item>) -> Vec<Result<Processed>> {
     let mut set = JoinSet::new();
 
     // Process in batches of 10
@@ -1338,13 +1338,13 @@ pub async fn process_batch(items: Vec<Item>) -> Vec<Result<Processed>> {
         for item in batch {
             let item = item.clone();
             set.spawn(async move {
-                process_item(item).await
+                process-item(item).await
             });
         }
     }
 
     let mut results = Vec::new();
-    while let Some(result) = set.join_next().await {
+    while let Some(result) = set.join-next().await {
         results.push(result.unwrap());
     }
 
@@ -1357,22 +1357,22 @@ pub async fn process_batch(items: Vec<Item>) -> Vec<Result<Processed>> {
 ```rust
 // Use connection pooling
 let pool = sqlx::postgres::PgPoolOptions::new()
-    .max_connections(5)
-    .connect(&database_url)
+    .max-connections(5)
+    .connect(&database-url)
     .await?;
 
 // Use prepared statements
-let agents = sqlx::query_as!(
+let agents = sqlx::query-as!(
     Agent,
     r#"
-    SELECT id, name, status, created_at
+    SELECT id, name, status, created-at
     FROM agents
-    WHERE status = $1 AND created_at > $2
+    WHERE status = $1 AND created-at > $2
     "#,
     status,
-    cutoff_date
+    cutoff-date
 )
-.fetch_all(&pool)
+.fetch-all(&pool)
 .await?;
 
 // Batch operations
@@ -1380,7 +1380,7 @@ let mut tx = pool.begin().await?;
 
 for agent in agents {
     sqlx::query!(
-        "UPDATE agents SET last_seen = $1 WHERE id = $2",
+        "UPDATE agents SET last-seen = $1 WHERE id = $2",
         Utc::now(),
         agent.id
     )
@@ -1413,7 +1413,7 @@ EXPLAIN ANALYZE SELECT * FROM agents WHERE status = 'active';
 
 ## Next Steps
 
-- **Start Contributing**: See [Contributing Guide](./CONTRIBUTING.md)
+- **Start Contributing**: See [Contributing Guide](./contributing.md)
 - **Extend the System**: Read [Extending the System](./extending-the-system.md)
 - **Understand Architecture**: Review [ADRs](../concepts/decisions/)
 - **Troubleshooting**: Consult [Troubleshooting Guide](./troubleshooting.md)
