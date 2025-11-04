@@ -11,7 +11,10 @@ related:
   - ../../reference/README.md
 ---
 
-# XR Setup Guide
+# XR Setup Guide - Development Environment
+
+> **📋 Role**: Step-by-step guide for setting up XR development environment with Turbo Flow Claude.
+> For technical WebXR implementation details in VisionFlow, see [WebXR Setup - VisionFlow Implementation](../xr-setup.md).
 
 > **⚠️ Work in Progress**: This guide is currently under development. Content will be expanded in future updates.
 
