@@ -514,4 +514,4 @@ When adding a new module:
 
 - Review [Architecture Overview](./03-architecture.md)
 - Learn about [Adding Features](./04-adding-features.md)
-- Understand [Testing Strategy](./05-testing.md)
+- Understand [Testing Strategy](./testing-guide.md)

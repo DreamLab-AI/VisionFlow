@@ -50,7 +50,7 @@ Standardize 30+ documentation files to eliminate duplicates, fix numbering confl
 **Impact:** Breaks logical reading order, unclear documentation structure.
 
 **Files:**
-- `guides/developer/04-testing-status.md` conflicts with `04-adding-features.md`
+- `guides/developer/testing-guide.md` conflicts with `04-adding-features.md`
 - `reference/api/02-[missing].md` creates gap in sequence (01, 03)
 
 **Solution:** Resolve conflicts, complete sequences with proper numbering.

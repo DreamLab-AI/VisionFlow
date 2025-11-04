@@ -341,7 +341,7 @@ These require creating new documentation or reorganizing existing content.
 ./guides/developer/01-development-setup.md
   → ../../INDEX.md
 
-./guides/developer/04-testing-status.md
+./guides/developer/testing-guide.md
   → ../../reference/README.md
 
 ./guides/developer/adding-a-feature.md

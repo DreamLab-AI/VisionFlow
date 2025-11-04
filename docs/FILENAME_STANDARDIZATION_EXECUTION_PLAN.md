@@ -83,7 +83,7 @@ grep -r "adding-a-feature.md" /home/devuser/workspace/project/docs --include="*.
 #### Action 1.1.3: Testing Guide Consolidation
 **Current State:**
 - `/docs/guides/developer/testing-guide.md` (669 lines) - Comprehensive
-- `/docs/guides/developer/05-testing.md` (3.5K bytes) - Shorter version
+- `/docs/guides/developer/testing-guide.md` (3.5K bytes) - Shorter version
 - `/docs/guides/testing-guide.md` (358 lines) - Root guides version
 
 **Target:** `/docs/guides/developer/05-testing-guide.md` (NEW - RENAME & MERGE)
@@ -213,7 +213,7 @@ grep -r "neo4j-integration.md" /home/devuser/workspace/project/docs --include="*
 | 1.1.2 | `guides/developer/adding-a-feature.md` | `guides/developer/04-adding-features.md` | MERGE & DELETE |
 | 1.1.3a | `guides/developer/testing-guide.md` | `guides/developer/05-testing-guide.md` | MERGE & DELETE |
 | 1.1.3b | `guides/testing-guide.md` | `guides/developer/05-testing-guide.md` | MERGE & DELETE |
-| 1.1.3c | `guides/developer/05-testing.md` | `guides/developer/05-testing-guide.md` | RENAME & MERGE |
+| 1.1.3c | `guides/developer/testing-guide.md` | `guides/developer/05-testing-guide.md` | RENAME & MERGE |
 | 1.1.4 | `guides/xr-setup.md` | (KEEP) | DIFFERENTIATE |
 | 1.1.4 | `guides/user/xr-setup.md` | (KEEP) | DIFFERENTIATE |
 | 1.2.1 | `concepts/hierarchical-visualization.md` | TBD after analysis | ANALYZE |
@@ -264,7 +264,7 @@ grep -r "neo4j-integration.md" /home/devuser/workspace/project/docs --include="*
 
 **Validation:**
 ```bash
-cat /home/devuser/workspace/project/docs/guides/developer/04-testing-status.md | head -50
+cat /home/devuser/workspace/project/docs/guides/developer/testing-guide.md | head -50
 ```
 
 ---
@@ -313,7 +313,7 @@ rest-api-reference.md         → merge into 02-rest-api.md or keep as appendix
 ### Phase 2 Summary
 | File Operation | Source | Destination | Action |
 |----------------|--------|-------------|--------|
-| 2.1.1 | `guides/developer/04-testing-status.md` | TBD after analysis | ANALYZE & MOVE/MERGE |
+| 2.1.1 | `guides/developer/testing-guide.md` | TBD after analysis | ANALYZE & MOVE/MERGE |
 | 2.2.1 | `reference/api/rest-api-*.md` (2 files) | `reference/api/02-rest-api.md` | CREATE & CONSOLIDATE |
 
 **Phase 2 Deliverables:**
@@ -824,7 +824,7 @@ declare -A phase1_renames=(
   ["guides/developer/adding-a-feature.md"]="guides/developer/04-adding-features.md"
   ["guides/developer/testing-guide.md"]="guides/developer/05-testing-guide.md"
   ["guides/testing-guide.md"]="guides/developer/05-testing-guide.md"
-  ["guides/developer/05-testing.md"]="guides/developer/05-testing-guide.md"
+  ["guides/developer/testing-guide.md"]="guides/developer/05-testing-guide.md"
 )
 
 # Phase 3 reference updates (SCREAMING_SNAKE_CASE)
@@ -1012,12 +1012,12 @@ chmod +x /home/devuser/workspace/project/docs/scripts/update-all-references.sh
 2. `/docs/guides/developer/adding-a-feature.md` → DELETE
 3. `/docs/guides/developer/testing-guide.md` → DELETE
 4. `/docs/guides/testing-guide.md` → DELETE
-5. `/docs/guides/developer/05-testing.md` → RENAME to 05-testing-guide.md
+5. `/docs/guides/developer/testing-guide.md` → RENAME to 05-testing-guide.md
 6. `/docs/guides/xr-setup.md` → DIFFERENTIATE
 7. `/docs/guides/user/xr-setup.md` → DIFFERENTIATE
 
 #### Phase 2: Numbering (2 files)
-8. `/docs/guides/developer/04-testing-status.md` → ANALYZE & RESOLVE
+8. `/docs/guides/developer/testing-guide.md` → ANALYZE & RESOLVE
 9. `/docs/reference/api/02-[missing].md` → CREATE
 
 #### Phase 3: Case Normalization (26 files)

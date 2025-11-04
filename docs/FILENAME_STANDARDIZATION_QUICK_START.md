@@ -57,7 +57,7 @@ git commit -m "docs: merge adding-a-feature into 04-adding-features (Phase 1.1.2
 **Action 1.1.3: Testing Guide**
 ```bash
 # Rename 05-testing to 05-testing-guide
-git mv docs/guides/developer/05-testing.md \
+git mv docs/guides/developer/testing-guide.md \
        docs/guides/developer/05-testing-guide.md
 
 # Merge both testing-guide.md files into it
@@ -94,15 +94,15 @@ git commit -m "docs: update references after Phase 1 merges"
 **Action 2.1.1: Testing Status**
 ```bash
 # Analyze content first
-cat docs/guides/developer/04-testing-status.md
+cat docs/guides/developer/testing-guide.md
 
 # Option A: Move to reports
-git mv docs/guides/developer/04-testing-status.md \
+git mv docs/guides/developer/testing-guide.md \
        docs/reports/testing-status-2025-10-27.md
 
 # Option B: Merge into 05-testing-guide.md
 # (Manually merge content)
-git rm docs/guides/developer/04-testing-status.md
+git rm docs/guides/developer/testing-guide.md
 
 git commit -m "docs: resolve testing-status numbering conflict (Phase 2.1.1)"
 ```

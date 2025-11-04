@@ -10,11 +10,11 @@ Welcome to the VisionFlow developer guides. These how-to guides help developers 
 
 ### Development Tasks
 - **[Adding Features](./04-adding-features.md)** - Step-by-step guide to implementing new features
-- **[Testing Guide](./05-testing.md)** - Writing and running tests
+- **[Testing Guide](./testing-guide.md)** - Writing and running tests
 
 ### Reference
 - **[Architecture Overview](./03-architecture.md)** - Detailed architecture and design patterns
-- **[Testing Status](./04-testing-status.md)** - Current testing capabilities and procedures
+- **[Testing Status](./testing-guide.md)** - Current testing capabilities and procedures
 - **[Contributing](./06-contributing.md)** - Guidelines for contributing to VisionFlow
 
 ## By Task
@@ -31,13 +31,13 @@ Welcome to the VisionFlow developer guides. These how-to guides help developers 
 → Follow [Adding Features](./04-adding-features.md)
 
 **Write tests for my code**
-→ See [Testing Guide](./05-testing.md)
+→ See [Testing Guide](./testing-guide.md)
 
 **Understand the architecture**
 → Review [Architecture Overview](./03-architecture.md)
 
 **Check testing capabilities**
-→ Reference [Testing Status](./04-testing-status.md)
+→ Reference [Testing Status](./testing-guide.md)
 
 **Contribute to the project**
 → Read [Contributing Guidelines](./06-contributing.md)
