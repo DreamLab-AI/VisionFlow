@@ -1,5 +1,8 @@
 # Ontology Pipeline Integration
 
+> ⚠️ **DEPRECATION NOTICE** ⚠️
+> **GraphServiceActor** is deprecated. See `/docs/guides/graphserviceactor-migration.md` for current patterns.
+
 ## Overview
 
 This document describes the end-to-end data pipeline that connects GitHub synchronization, ontology reasoning, constraint generation, and GPU-accelerated semantic physics.
@@ -199,6 +202,7 @@ on_ontology_modified(ontology_id, ontology) {
 │ 7. Client Streaming                                            │
 ├────────────────────────────────────────────────────────────────┤
 │ GraphServiceActor broadcasts to ClientManager                  │
+│ ❌ DEPRECATED (Nov 2025): Use unified_gpu_compute.rs          │
 │   ↓                                                             │
 │ WebSocket clients receive position updates                     │
 │   → Real-time graph visualization with semantic physics        │

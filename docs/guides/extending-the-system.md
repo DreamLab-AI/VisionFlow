@@ -737,7 +737,7 @@ For more examples and patterns, explore:
 
 ### Contributing New Templates
 
-Help expand the template library! See [Contributing Guide](../contributing.md) for:
+Help expand the template library! See [Contributing Guide](./CONTRIBUTING.md) for:
 
 - Template submission guidelines
 - Documentation standards
@@ -2221,7 +2221,7 @@ stats.print_stats(10)
 ## Related Documentation
 
 - [Agent Templates](../reference/agents/templates/index.md) - Complete template catalogue
-- [Contributing Guide](../contributing.md) - Contribution guidelines
+- [Contributing Guide](./CONTRIBUTING.md) - Contribution guidelines
 - [Troubleshooting Guide](06-troubleshooting.md) - Common issues
 - [Reference Documentation](../reference/README.md) - API details
 - [Development Workflow](02-development-workflow.md) - Development practices

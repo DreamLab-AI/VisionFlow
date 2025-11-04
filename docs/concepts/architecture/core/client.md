@@ -1,5 +1,8 @@
 # VisionFlow Client Architecture - Current State
 
+> ⚠️ **DEPRECATION NOTICE** ⚠️
+> **GraphServiceActor** is deprecated. See `/docs/guides/graphserviceactor-migration.md` for current patterns.
+
 This document provides a comprehensive architecture diagram reflecting the **CURRENT CLIENT IMPLEMENTATION** at `/workspace/ext/client/src`. This architecture analysis is based on direct code examination and represents the actual running system.
 
 **Last Updated**: 2025-10-03
@@ -1034,7 +1037,7 @@ graph TB
         end
 
         subgraph "Actor Communication"
-            MessageRouting["Message Routing<br/>GraphServiceActor"]
+            MessageRouting["Message Routing<br/>GraphServiceActor<br/>❌ DEPRECATED (Nov 2025)"]
             ActorMessages["Actor Messages<br/>Async Communication"]
             StateSync["State Synchronisation<br/>Real-time Updates"]
         end

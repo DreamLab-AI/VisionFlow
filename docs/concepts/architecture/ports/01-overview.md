@@ -41,11 +41,11 @@ Hexagonal Architecture (also known as Ports and Adapters pattern) is an architec
             │                               │
     ┌───────▼────────┐            ┌────────▼────────┐
     │   Adapters     │            │   Adapters      │
-    │  (SQLite DB)   │            │  (CUDA GPU)     │
+    │  (Neo4j/DB)    │            │  (CUDA GPU)     │
     │                │            │                 │
-    │ - SqliteSettings│            │ - CudaPhysics  │
-    │ - SqliteGraph  │            │ - CudaSemantic │
-    │ - SqliteOntology│            │                 │
+    │ - Neo4jSettings│            │ - CudaPhysics  │
+    │ - UnifiedGraph │            │ - CudaSemantic │
+    │ - UnifiedOntol.│            │                 │
     └────────────────┘            └─────────────────┘
 ```
 
@@ -131,17 +131,18 @@ pub trait MyPort: Send + Sync {
 Adapters implement port traits:
 
 ```rust
-pub struct SqliteSettingsAdapter {
-    pool: Arc<SqlitePool>,
-    cache: Arc<RwLock<HashMap<String, SettingValue>>>,
+pub struct Neo4jSettingsRepository {
+    graph: Arc<Graph>,
+    cache: Arc<RwLock<SettingsCache>>,
+    config: Neo4jSettingsConfig,
 }
 
 #[async_trait]
-impl SettingsRepository for SqliteSettingsAdapter {
+impl SettingsRepository for Neo4jSettingsRepository {
     async fn get_setting(&self, key: &str) -> Result<Option<SettingValue>> {
         // Check cache first
-        // Query database if not cached
-        // Return result
+        // Query Neo4j graph database if not cached
+        // Update cache and return result
     }
 
     // ... implement all trait methods

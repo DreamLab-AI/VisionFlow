@@ -31,7 +31,7 @@ VisionFlow follows a structured development workflow designed to maintain code q
 
 ### Related Documentation
 
-- [Contributing Guide](../contributing.md) - Quick start for contributors
+- [Contributing Guide](./CONTRIBUTING.md) - Quick start for contributors
 - [Extending the System](./extending-the-system.md) - Creating custom extensions
 - [ADR-001: Unified API Client](../concepts/decisions/adr-001-unified-api-client.md) - API architecture
 - [ADR-003: Code Pruning](../concepts/decisions/adr-003-code-pruning-2025-10.md) - Codebase maintenance
@@ -1191,7 +1191,7 @@ git push origin feature/my-feature
 ### Before Contributing
 
 1. **Review Documentation**
-   - Read [Contributing Guide](../contributing.md)
+   - Read [Contributing Guide](./CONTRIBUTING.md)
    - Review [Architecture Documentation](../concepts/architecture/)
    - Check [ADRs](../concepts/decisions/) for relevant decisions
 
@@ -1413,7 +1413,7 @@ EXPLAIN ANALYZE SELECT * FROM agents WHERE status = 'active';
 
 ## Next Steps
 
-- **Start Contributing**: See [Contributing Guide](../contributing.md)
+- **Start Contributing**: See [Contributing Guide](./CONTRIBUTING.md)
 - **Extend the System**: Read [Extending the System](./extending-the-system.md)
 - **Understand Architecture**: Review [ADRs](../concepts/decisions/)
 - **Troubleshooting**: Consult [Troubleshooting Guide](./troubleshooting.md)

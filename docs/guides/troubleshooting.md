@@ -1677,7 +1677,7 @@ scrape_configs:
 - [Deployment Guide](./01-deployment.md)
 - [Configuration Reference](../reference/configuration.md)
 - [Multi-Agent Docker Architecture](../reference/architecture/README.md)
-- [API Reference](../reference/api/index.md)
+- [API Reference](../reference/api/)
 
 ### Community & Support
 

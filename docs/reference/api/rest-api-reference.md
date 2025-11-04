@@ -622,8 +622,8 @@ Large result sets automatically paginated:
 
 ## Related Documentation
 
-- [Ontology Reasoning Pipeline](../architecture/ontology-reasoning-pipeline.md)
-- [Semantic Physics System](../architecture/semantic-physics-system.md)
+- [Ontology Reasoning Pipeline](../../concepts/architecture/ontology-reasoning-pipeline.md)
+- [Semantic Physics System](../../concepts/architecture/semantic-physics-system.md)
 - [WebSocket Binary Protocol](./websocket-binary-protocol.md)
 - [User Integration Guide](../guides/developer-integration-guide.md)
 

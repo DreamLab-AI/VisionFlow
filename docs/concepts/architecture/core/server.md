@@ -1,7 +1,11 @@
 # Rust Server Architecture
 
+> ⚠️ **DEPRECATION NOTICE** ⚠️
+> **GraphServiceActor** is being replaced by the **hexagonal CQRS architecture**.
+> This document describes legacy patterns and is being updated. See `/docs/guides/graphserviceactor-migration.md` for current recommendations.
+
 **Last Updated**: 2025-10-12
-**Status**: Simplified Multi-Agent Integration via Management API
+**Status**: Simplified Multi-Agent Integration via Management API | 🔄 IN TRANSITION (Nov 2025)
 **Analysis Base**: Direct source code inspection of Rust server implementation
 
 > **Note**: This document reflects the current simplified architecture where VisionFlow integrates with the agentic-workstation container via HTTP Management API (port 9090) for task orchestration and MCP TCP (port 9500) for agent monitoring.
@@ -30,7 +34,7 @@ graph TB
     subgraph "Actor System (Actix) - Transitional Architecture"
         subgraph "Graph Supervision (Hybrid)"
             TransitionalSupervisor[TransitionalGraphSupervisor<br/>Bridge Pattern Wrapper]
-            GraphActor[GraphServiceActor<br/>Monolithic (Being Refactored)]
+            GraphActor[GraphServiceActor<br/>⚠️ DEPRECATED - See CQRS migration<br/>Monolithic (Being Refactored)]
             GraphStateActor[GraphStateActor<br/>State Management (Partial)]
             PhysicsOrchestrator[PhysicsOrchestratorActor<br/>Physics (Extracted)]
             SemanticProcessor[SemanticProcessorActor<br/>Semantic Analysis]
@@ -151,32 +155,43 @@ The server is in **Phase 2 of 3** of a major architectural refactoring:
 
 #### Phase 2: 🔄 IN PROGRESS - Supervision Layer
 - Implemented `TransitionalGraphSupervisor` as bridge pattern
-- `GraphServiceActor` still handles core functionality (35,193 lines)
+- **LEGACY**: `GraphServiceActor` still handles core functionality (35,193 lines)
+  - **CURRENT**: Migrating to hexagonal CQRS architecture with domain-driven design
+  - See `/docs/guides/graphserviceactor-migration.md` for migration path
 - Partial extraction of physics and semantic processing
 - Message routing through supervisor wrapper
 
 #### Phase 3: ❌ NOT STARTED - Full Decomposition
-- Complete breakdown of monolithic `GraphServiceActor`
-- Full `GraphServiceSupervisor` implementation
-- Pure actor-based message routing
+- Complete breakdown of monolithic `GraphServiceActor` (DEPRECATED APPROACH)
+  - **NEW APPROACH**: Hexagonal CQRS architecture with bounded contexts
+  - Domain-driven design with aggregate roots and repositories
+  - See `/docs/guides/graphserviceactor-migration.md`
+- Full `GraphServiceSupervisor` implementation (or equivalent CQRS coordinator)
+- Pure message routing through commands/queries
 
 ### Transitional Architecture Details
 
 ```rust
-// Current architecture in app_state.rs
+// Current architecture in app_state.rs (LEGACY PATTERN)
 pub struct AppState {
-    pub graph_service_addr: Addr<TransitionalGraphSupervisor>, // Wrapper around GraphServiceActor
+    pub graph_service_addr: Addr<TransitionalGraphSupervisor>, // ⚠️ DEPRECATED: Wrapper around GraphServiceActor
     pub gpu_manager_addr: Addr<GPUManagerActor>,
     pub client_coordinator_addr: Addr<ClientCoordinatorActor>,
     // ... other actors
 }
 ```
 
-The `TransitionalGraphSupervisor`:
-- **Wraps** the existing monolithic `GraphServiceActor`
+**LEGACY**: The `TransitionalGraphSupervisor`:
+- **Wraps** the existing monolithic `GraphServiceActor` (DEPRECATED)
 - **Forwards** all messages to maintain compatibility
 - **Manages** actor lifecycle and restarts
 - **Bridges** between current and planned architecture
+
+**CURRENT**: Migrating to hexagonal CQRS architecture:
+- Command/Query separation with bounded contexts
+- Domain aggregates with repository pattern
+- Event-driven communication between domains
+- See `/docs/guides/graphserviceactor-migration.md` for implementation details
 
 ### Planned Final Architecture (Not Yet Implemented)
 
@@ -725,7 +740,9 @@ pub struct GraphNode {
 
 ## Known Architecture Issues
 
-⚠️ **Monolithic Graph Actor**: 35k+ lines need decomposition
+⚠️ **DEPRECATED: Monolithic Graph Actor**: 35k+ lines `GraphServiceActor` being replaced by hexagonal CQRS architecture
+  - **Migration Path**: See `/docs/guides/graphserviceactor-migration.md`
+  - **Status**: 🔄 IN TRANSITION (Nov 2025)
 ⚠️ **Documentation Drift**: Missing actors referenced in docs
 ⚠️ **Binary Protocol Confusion**: Multiple formats with unclear documentation
 ⚠️ **Pattern Fragmentation**: Task orchestration split between utilities and handlers

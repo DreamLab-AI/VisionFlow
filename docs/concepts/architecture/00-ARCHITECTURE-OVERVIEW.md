@@ -15,9 +15,9 @@ This document provides a complete architectural blueprint for migrating the Visi
    - InferenceEngine
 
 2. **[02-adapters-design.md](./02-adapters-design.md)** - Adapter implementations
-   - SqliteSettingsRepository
-   - SqliteKnowledgeGraphRepository
-   - SqliteOntologyRepository
+   - Neo4jSettingsRepository ✅ **ACTIVE** (migrated from SQLite November 2025)
+   - SqliteKnowledgeGraphRepository ⚠️ Being replaced by UnifiedGraphRepository
+   - SqliteOntologyRepository ⚠️ Being replaced by UnifiedOntologyRepository
    - PhysicsOrchestratorAdapter
    - SemanticProcessorAdapter
    - WhelkInferenceEngine
@@ -320,14 +320,14 @@ gantt
 **Goal**: Implement all adapter layers.
 
 **Tasks**:
-1. Create `src/adapters/` directory structure
-2. Implement SqliteSettingsRepository (from 02-adapters-design.md)
-3. Implement SqliteKnowledgeGraphRepository
-4. Implement SqliteOntologyRepository
-5. Implement PhysicsOrchestratorAdapter (wraps existing actor)
-6. Implement SemanticProcessorAdapter (wraps existing actor)
-7. Stub WhelkInferenceEngine (actual whelk-rs integration in later phase)
-8. Write integration tests for all adapters
+1. Create `src/adapters/` directory structure ✅ **COMPLETE**
+2. Implement Neo4jSettingsRepository (from 02-adapters-design.md) ✅ **COMPLETE** (November 2025)
+3. Implement UnifiedGraphRepository ✅ **COMPLETE** (replaced SQLite)
+4. Implement UnifiedOntologyRepository ✅ **COMPLETE** (replaced SQLite)
+5. Implement PhysicsOrchestratorAdapter (wraps existing actor) ✅ **COMPLETE**
+6. Implement SemanticProcessorAdapter (wraps existing actor) ✅ **COMPLETE**
+7. Implement WhelkInferenceEngine with whelk-rs integration ✅ **COMPLETE**
+8. Write integration tests for all adapters 🔄 **IN PROGRESS**
 
 **Completion Criteria**:
 - ✅ All adapters implement their respective ports
@@ -485,22 +485,30 @@ mod tests {
 **Coverage**: All adapter implementations
 
 ```rust
-// Example integration test
+// Example integration test (Neo4j adapter)
 #[tokio::test]
-async fn test_sqlite_settings_repository_integration() {
-    let temp_db = tempfile::NamedTempFile::new().unwrap();
-    let repo = SqliteSettingsRepository::new(temp_db.path().to_str().unwrap()).unwrap();
+#[ignore] // Requires Neo4j instance
+async fn test_neo4j_settings_repository_integration() {
+    let config = Neo4jSettingsConfig::default();
+    let repo = Neo4jSettingsRepository::new(config).await.unwrap();
 
-    // Initialize schema
-    repo.initialize_schema().await.unwrap();
+    // Schema initialized automatically
 
     // Test set and get
-    repo.set_setting("test_key", SettingValue::String("test_value".to_string()), None)
+    repo.set_setting("test_key", SettingValue::String("test_value".to_string()), Some("Test setting"))
         .await
         .unwrap();
 
     let value = repo.get_setting("test_key").await.unwrap();
     assert!(matches!(value, Some(SettingValue::String(s)) if s == "test_value"));
+
+    // Test delete
+    repo.delete_setting("test_key").await.unwrap();
+    let value = repo.get_setting("test_key").await.unwrap();
+    assert_eq!(value, None);
+
+    // Test health check
+    assert!(repo.health_check().await.unwrap());
 }
 ```
 
@@ -548,7 +556,8 @@ async fn test_settings_update_e2e() {
 fn bench_settings_repository_get(b: &mut Bencher) {
     let runtime = tokio::runtime::Runtime::new().unwrap();
     let repo = runtime.block_on(async {
-        SqliteSettingsRepository::new("bench.db").unwrap()
+        let config = Neo4jSettingsConfig::default();
+        Neo4jSettingsRepository::new(config).await.unwrap()
     });
 
     b.iter(|| {
@@ -709,4 +718,4 @@ This architecture provides a complete, production-ready blueprint for migrating 
 
 ---
 
-**Navigation:** [📖 Documentation Index](../INDEX.md) | [🏗️ Architecture Hub](README.md) | [📡 API Reference](../api/) | [📚 Guides](../guides/)
+**Navigation:** [📖 Documentation Index](../../README.md) | [🏗️ Architecture Hub](README.md) | [📡 API Reference](../api/) | [📚 Guides](../guides/)

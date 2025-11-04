@@ -435,8 +435,8 @@ assert_eq!(classes_with_sha1, stats.ontology_files_processed);
 
 ## Related Documentation
 
-- [Ontology Storage Architecture](../architecture/ontology-storage-architecture.md) - Complete technical details
-- [OntologyRepository Port](../architecture/ports/04-ontology-repository.md) - Database interface
+- Ontology Storage Architecture (TODO: Document to be created) - Complete technical details
+- OntologyRepository Port (TODO: Document to be created) - Database interface
 - [Ontology System Overview](../specialized/ontology/ontology-system-overview.md) - High-level architecture
 - [HornedOWL Integration](../specialized/ontology/hornedowl.md) - OWL parsing details
 
@@ -488,4 +488,4 @@ The new ontology storage architecture provides:
 ✅ **Production Ready**: Battle-tested with 988-class research ontology
 ✅ **Well Documented**: Comprehensive guides and API reference
 
-For more details, see the [Complete Architecture Documentation](../architecture/ontology-storage-architecture.md).
+For more details, see the [Complete Architecture Documentation](../concepts/architecture/ontology-storage-architecture.md).

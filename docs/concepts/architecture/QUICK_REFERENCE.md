@@ -1,10 +1,14 @@
 # CQRS Migration - Quick Reference Card
 
+> ⚠️ **PARTIAL DEPRECATION** ⚠️
+> Some examples in this quick reference reference the **deprecated GraphServiceActor**. For current patterns, see `/docs/guides/graphserviceactor-migration.md`.
+
 ## The Problem
 
 ```
 ┌─────────────────────────────────────────┐
 │  GraphServiceActor (156KB, 4614 lines)  │
+│  ❌ DEPRECATED (Nov 2025)               │
 │  ┌───────────────────────────────────┐  │
 │  │  In-Memory Cache (STALE!)         │  │
 │  │  • Shows 63 nodes                 │  │
@@ -18,6 +22,9 @@
 └─────────────────────────────────────────┘
                     ↓
          ❌ CACHE COHERENCY BUG
+
+CURRENT PATTERN: Use CQRS query/directive handlers
+See: /docs/guides/graphserviceactor-migration.md
 ```
 
 ## The Solution
@@ -189,11 +196,13 @@ Next API Call
 
 | Metric | Current | Target |
 |--------|---------|--------|
-| GraphServiceActor size | 156KB | 0 (deleted) |
+| GraphServiceActor size ❌ DEPRECATED (Nov 2025) | 156KB | 0 (deleted) |
 | Message handlers | 46 | 0 |
 | HTTP handlers using CQRS | ~30% | 100% |
 | Cache coherency bug | Exists | Fixed |
 | Test coverage | ~60% | >80% |
+
+**Current Pattern**: Use `UnifiedGraphRepository` + CQRS handlers instead of GraphServiceActor. See `/docs/guides/graphserviceactor-migration.md` for migration guide.
 
 ## Next Steps
 

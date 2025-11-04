@@ -1,5 +1,8 @@
 # Pipeline Admin API Guide
 
+> ⚠️ **DEPRECATION NOTICE** ⚠️
+> **GraphServiceActor** is deprecated. See `/docs/guides/graphserviceactor-migration.md` for current patterns.
+
 **Status**: ⚙️ Code exists, wiring needed
 **Last Updated**: November 3, 2025
 
@@ -313,7 +316,7 @@ SemanticPhysicsConfig {
 
 The pipeline service needs:
 1. **OntologyActor** - OWL parsing and storage
-2. **GraphServiceActor** - Graph data access
+2. **GraphServiceActor** - Graph data access ❌ DEPRECATED (Nov 2025) - Use unified_gpu_compute.rs
 3. **ReasoningActor** - Inference execution (to be added)
 4. **OntologyConstraintActor** - GPU constraint upload (to be added)
 

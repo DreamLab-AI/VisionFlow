@@ -296,7 +296,7 @@ The following endpoints have been consolidated:
 
 - **Full Documentation**: [rest-api-complete.md](./rest-api-complete.md)
 - **WebSocket Protocol**: [03-websocket.md](./03-websocket.md)
-- **Architecture**: [../architecture/00-ARCHITECTURE-OVERVIEW.md](../architecture/00-ARCHITECTURE-OVERVIEW.md)
+- **Architecture**: [../../concepts/architecture/00-ARCHITECTURE-OVERVIEW.md](../../concepts/architecture/00-ARCHITECTURE-OVERVIEW.md)
 
 ---
 

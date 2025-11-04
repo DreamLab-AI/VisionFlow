@@ -28,10 +28,10 @@
 3. [Monitoring Setup](deployment/03-monitoring.md)
 
 #### **Develop a Feature**
-1. [Development Setup](guides/developer/01-development-setup.md)
-2. [Architecture Overview](architecture/00-ARCHITECTURE-OVERVIEW.md)
-3. [Adding Features](guides/developer/04-adding-features.md)
-4. [Testing Guide](guides/developer/05-testing.md)
+1. [Development Setup](developer/01-development-setup.md)
+2. [Architecture Overview](../concepts/architecture/00-ARCHITECTURE-OVERVIEW.md)
+3. [Adding Features](developer/04-adding-features.md)
+4. [Testing Guide](developer/05-testing.md)
 
 #### **Work with Ontologies**
 1. [Ontology Fundamentals](specialized/ontology/ontology-fundamentals.md)
@@ -40,21 +40,21 @@
 4. [API Reference](specialized/ontology/ontology-api-reference.md)
 
 #### **Setup XR/VR**
-1. [XR Setup Guide](guides/user/xr-setup.md)
-2. [Vircadia Complete Guide](guides/vircadia-xr-complete-guide.md)
-3. [XR Architecture](architecture/xr-immersive-system.md)
+1. [XR Setup Guide](user/xr-setup.md)
+2. [Vircadia Complete Guide](vircadia-xr-complete-guide.md)
+3. [XR Architecture](../concepts/architecture/xr-immersive-system.md)
 
 #### **Understand the Architecture**
-1. [Architecture Overview](architecture/00-ARCHITECTURE-OVERVIEW.md)
-2. [Hexagonal CQRS](architecture/hexagonal-cqrs-architecture.md)
-3. [System Concepts](concepts/system-architecture.md)
-4. [Database Schema](architecture/04-database-schemas.md)
+1. [Architecture Overview](../concepts/architecture/00-ARCHITECTURE-OVERVIEW.md)
+2. [Hexagonal CQRS](../concepts/architecture/hexagonal-cqrs-architecture.md)
+3. [System Concepts](../concepts/system-architecture.md)
+4. [Database Schema](../concepts/architecture/04-database-schemas.md)
 
 #### **Use the API**
-1. [API Quick Reference](api/QUICK_REFERENCE.md)
-2. [REST API](reference/api/rest-api.md)
-3. [WebSocket API](reference/api/websocket-api.md)
-4. [Binary Protocol](reference/api/binary-protocol.md)
+1. [API Quick Reference](../api/QUICK_REFERENCE.md)
+2. [REST API](../reference/api/rest-api-complete.md)
+3. [WebSocket API](../reference/api/03-websocket.md)
+4. Binary Protocol (TODO: Document to be created)
 
 #### **Debug Issues**
 1. [Troubleshooting Guide](guides/troubleshooting.md)
@@ -68,21 +68,21 @@
 ### Core Systems
 | System | Documentation |
 |--------|---------------|
-| **Ontology** | [Fundamentals](specialized/ontology/ontology-fundamentals.md) • [Reasoning](ontology-reasoning.md) • [API](specialized/ontology/ontology-api-reference.md) |
-| **GPU Acceleration** | [Concepts](concepts/gpu-compute.md) • [Architecture](architecture/gpu/README.md) • [Optimizations](architecture/gpu/optimizations.md) |
-| **AI Agents** | [Concepts](concepts/agentic-workers.md) • [User Guide](guides/user/working-with-agents.md) • [Reference](reference/agents/README.md) |
-| **XR/VR** | [Setup](guides/user/xr-setup.md) • [Architecture](architecture/xr-immersive-system.md) • [Vircadia](guides/vircadia-xr-complete-guide.md) |
-| **Database** | [Schema](architecture/04-database-schemas.md) • [Reference](reference/architecture/database-schema.md) |
-| **Binary Protocol** | [WebSocket](api/03-websocket.md) • [Binary Format](reference/api/binary-protocol.md) |
+| **Ontology** | [Fundamentals](../specialized/ontology/ontology-fundamentals.md) • [Reasoning](../ontology-reasoning.md) • [API](../specialized/ontology/ontology-api-reference.md) |
+| **GPU Acceleration** | [Concepts](../concepts/gpu-compute.md) • [Architecture](../concepts/architecture/gpu/README.md) • [Optimizations](../concepts/architecture/gpu/optimizations.md) |
+| **AI Agents** | [Concepts](../concepts/agentic-workers.md) • [User Guide](user/working-with-agents.md) • [Reference](../reference/agents/README.md) |
+| **XR/VR** | [Setup](user/xr-setup.md) • Architecture (TODO) • [Vircadia](vircadia-xr-complete-guide.md) |
+| **Database** | [Schema](../concepts/architecture/04-database-schemas.md) • [Reference](../reference/architecture/database-schema.md) |
+| **Binary Protocol** | [WebSocket](../reference/api/03-websocket.md) • Binary Format (TODO) |
 
 ### Key Features
 | Feature | Quick Link | Complete Docs |
 |---------|------------|---------------|
-| **Ontology Reasoning** | [Overview](ontology-reasoning.md) | [Complete Guide](specialized/ontology/) |
-| **Semantic Physics** | [Architecture](semantic-physics-architecture.md) | [GPU Forces](gpu_semantic_forces.md) |
-| **Multi-User XR** | [Quick Setup](guides/user/xr-setup.md) | [Complete Guide](guides/vircadia-xr-complete-guide.md) |
-| **CQRS Pattern** | [Architecture](architecture/hexagonal-cqrs-architecture.md) | [Reference](reference/architecture/hexagonal-cqrs.md) |
-| **GPU Compute** | [Concepts](concepts/gpu-compute.md) | [Architecture](architecture/gpu/) |
+| **Ontology Reasoning** | [Overview](../ontology-reasoning.md) | [Complete Guide](../specialized/ontology/) |
+| **Semantic Physics** | [Architecture](../semantic-physics-architecture.md) | [GPU Forces](../gpu_semantic_forces.md) |
+| **Multi-User XR** | [Quick Setup](user/xr-setup.md) | [Complete Guide](vircadia-xr-complete-guide.md) |
+| **CQRS Pattern** | [Architecture](../concepts/architecture/hexagonal-cqrs-architecture.md) | [Reference](../reference/architecture/hexagonal-cqrs.md) |
+| **GPU Compute** | [Concepts](../concepts/gpu-compute.md) | [Architecture](../concepts/architecture/gpu/) |
 
 ---
 
@@ -108,10 +108,10 @@
 4. [Backup & Restore](deployment/04-backup-restore.md)
 
 ### Researcher
-1. [System Architecture](concepts/system-architecture.md)
-2. [Architecture Overview](architecture/00-ARCHITECTURE-OVERVIEW.md)
-3. [Research Documents](research/)
-4. [Academic Survey](research/Academic_Research_Survey.md)
+1. [System Architecture](../concepts/system-architecture.md)
+2. [Architecture Overview](../concepts/architecture/00-ARCHITECTURE-OVERVIEW.md)
+3. [Research Documents](../research/)
+4. [Academic Survey](../research/Academic_Research_Survey.md)
 
 ### Ontology Expert
 1. [Fundamentals](specialized/ontology/ontology-fundamentals.md)
@@ -189,11 +189,11 @@ ls docs/guides/developer/
 ## 🎯 Bookmark These
 
 **Essential Documentation:**
-- [Master Index](INDEX.md) - Complete catalog
-- [Architecture Overview](architecture/00-ARCHITECTURE-OVERVIEW.md) - System design
-- [API Quick Reference](api/QUICK_REFERENCE.md) - API lookup
-- [Troubleshooting](guides/troubleshooting.md) - Problem solving
-- [Roadmap](ROADMAP.md) - Future plans
+- [Master Index](../INDEX.md) - Complete catalog
+- [Architecture Overview](../concepts/architecture/00-ARCHITECTURE-OVERVIEW.md) - System design
+- [API Quick Reference](../api/QUICK_REFERENCE.md) - API lookup
+- [Troubleshooting](troubleshooting.md) - Problem solving
+- [Roadmap](../ROADMAP.md) - Future plans
 
 **Quick References:**
 - [Configuration](reference/configuration.md) - All settings

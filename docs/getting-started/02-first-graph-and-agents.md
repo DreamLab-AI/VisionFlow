@@ -379,7 +379,7 @@ See [XR Setup Guide](../guides/xr-setup.md) for detailed configuration.
 
 ### Advanced Path
 1. 🏗️ [System Architecture](../concepts/system-architecture.md) - Deep dive into design
-2. 💻 [API Reference](../reference/api/README.md) - Build integrations
+2. 💻 [API Reference](../reference/api/) - Build integrations
 3. 🚀 [Deployment Guide](../guides/deployment.md) - Production setup
 
 ## Troubleshooting Quick Reference
@@ -446,7 +446,7 @@ bash scripts/voice_pipeline_test.sh
 - **📚 [Full Documentation](../README.md)** - Comprehensive guides
 - **🐛 [Troubleshooting Guide](../guides/troubleshooting.md)** - Common issues
 - **💬 GitHub Discussions** - Community support *(Repository URL to be configured)*
-- **🔍 [API Reference](../reference/api/README.md)** - Technical details
+- **🔍 [API Reference](../reference/api/)** - Technical details
 
 ---
 

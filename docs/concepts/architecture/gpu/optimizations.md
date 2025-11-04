@@ -1,8 +1,13 @@
 # Graph Actor Data Ingestion Optimizations
 
+> ⚠️ **DEPRECATION NOTICE** ⚠️
+> **GraphServiceActor** is deprecated. See `/docs/guides/graphserviceactor-migration.md` for current patterns.
+
 ## Overview
 
 Optimized the GraphServiceActor in `/workspace/ext/src/actors/graph_actor.rs` to significantly improve data ingestion performance through batch operations and minimized `Arc::make_mut` calls.
+
+**Note**: ❌ DEPRECATED (Nov 2025) - This actor is being phased out. For new implementations, use the unified GPU compute pipeline (unified_gpu_compute.rs) with direct GPU buffer operations instead of actor-based graph management.
 
 ## Key Optimizations Implemented
 

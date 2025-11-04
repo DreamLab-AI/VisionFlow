@@ -1347,7 +1347,7 @@ GET /api/resource?page=1&page_size=50
 ## Support & Resources
 
 - **WebSocket Protocol**: [03-websocket.md](./03-websocket.md)
-- **Architecture Overview**: [../architecture/00-ARCHITECTURE-OVERVIEW.md](../architecture/00-ARCHITECTURE-OVERVIEW.md)
+- **Architecture Overview**: [../../concepts/architecture/00-ARCHITECTURE-OVERVIEW.md](../../concepts/architecture/00-ARCHITECTURE-OVERVIEW.md)
 - **GitHub Repository**: Contact administrator for access
 - **Issue Tracker**: Internal JIRA
 

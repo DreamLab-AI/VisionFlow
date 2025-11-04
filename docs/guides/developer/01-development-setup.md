@@ -628,4 +628,4 @@ npm run build
 
 ---
 
-**Navigation:** [📖 Documentation Index](../../INDEX.md) | [💻 Developer Guide](./) | [🏗️ Architecture](../../architecture/) | [🧪 Testing](05-testing.md)
+**Navigation:** [📖 Documentation Index](../../README.md) | [💻 Developer Guide](./) | [🏗️ Architecture](../../concepts/architecture/) | [🧪 Testing](05-testing.md)

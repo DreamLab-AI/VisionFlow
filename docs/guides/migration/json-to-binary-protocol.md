@@ -478,10 +478,10 @@ this.view.getFloat32(offset);
 
 ## Related Documentation
 
-- **[WebSocket API Reference](../../api/03-websocket.md)** - Complete protocol specification
+- **[WebSocket API Reference](../../reference/api/03-websocket.md)** - Complete protocol specification
 - **[Binary Protocol Specification](../../reference/api/binary-protocol.md)** - Technical details
 - **[Performance Benchmarks](../../reference/performance-benchmarks.md)** - Before/after metrics
-- **[Architecture Overview](../../architecture/00-ARCHITECTURE-OVERVIEW.md)** - System design
+- **[Architecture Overview](../../concepts/architecture/00-ARCHITECTURE-OVERVIEW.md)** - System design
 
 ---
 

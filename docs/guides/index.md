@@ -90,7 +90,7 @@ We welcome contributions to improve these guides:
 - Share your deployment experiences
 - Suggest new guide topics
 
-See our [Contributing Guide](../contributing.md) for details.
+See our [Contributing Guide](./CONTRIBUTING.md) for details.
 
 ---
 

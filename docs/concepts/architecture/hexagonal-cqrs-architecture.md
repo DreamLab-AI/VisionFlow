@@ -1,7 +1,17 @@
-⚠️ **PARTIALLY HISTORICAL** ⚠️
-> This document may contain references to the legacy three-database architecture.
-> **Current implementation** uses unified.db with UnifiedGraphRepository and UnifiedOntologyRepository.
-> See `/docs/architecture/00-ARCHITECTURE-OVERVIEW.md` for current CQRS implementation.
+⚠️ **ARCHITECTURAL MIGRATION IN PROGRESS** ⚠️
+> **GraphServiceActor Deprecation**: This document describes the replacement of the monolithic **GraphServiceActor** (48,000+ tokens) with a **hexagonal CQRS architecture**.
+>
+> **Status**: ✅ **CQRS Implementation COMPLETE** | 🔄 **GraphServiceActor Removal IN PROGRESS** (Target: Dec 2025)
+>
+> **What Changed**:
+> - ❌ GraphServiceActor (monolithic, 48K tokens, stale cache bug)
+> - ✅ Hexagonal CQRS architecture (separated concerns, event-driven, cache invalidation)
+> - ✅ TransitionalGraphSupervisor (bridge pattern during migration)
+>
+> **Current State**: CQRS fully implemented (Query Handlers ✅, Command Handlers 🔄, Event Bus 🔄)
+>
+> **Migration Guide**: See `/docs/guides/graphserviceactor-migration.md` for detailed migration patterns.
+> **Current Architecture**: See `/docs/concepts/architecture/00-ARCHITECTURE-OVERVIEW.md` for unified.db implementation with UnifiedGraphRepository.
 
 # Hexagonal/CQRS Architecture Design
 **VisionFlow Graph Service - PRODUCTION IMPLEMENTATION**

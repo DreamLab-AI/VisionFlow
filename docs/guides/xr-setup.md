@@ -533,7 +533,7 @@ VITE_VIRCADIA_AUDIO_RANGE=20.0
 
 ⚠️ **Planned Feature - Not Yet Enabled**
 
-Vircadia integration is fully implemented in code but disabled by default. The feature is currently in beta testing. See [architecture/xr-immersive-system.md](../architecture/xr-immersive-system.md#vircadia-multi-user-integration) for technical details.
+Vircadia integration is fully implemented in code but disabled by default. The feature is currently in beta testing.
 
 ## Performance Optimisation
 
@@ -1010,8 +1010,8 @@ xrHelper.featuresManager.getEnabledFeatures().forEach(feature => {
 ### VisionFlow XR Documentation
 
 **Architecture:**
-- [XR Immersive System Architecture](../architecture/xr-immersive-system.md) - Technical deep-dive
-- [Vircadia Integration Architecture](../architecture/vircadia-react-xr-integration.md) - Multi-user design
+- XR Immersive System Architecture (TODO: Document to be created) - Technical deep-dive
+- Vircadia Integration Architecture (TODO: Document to be created) - Multi-user design
 
 **Guides:**
 - [Quest 3 Setup Guide](./xr-quest3-setup.md) - Quest 3 specific instructions
