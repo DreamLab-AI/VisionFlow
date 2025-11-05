@@ -2,12 +2,12 @@
 //! Ontology Pipeline Service
 //!
 //! Orchestrates the end-to-end semantic physics pipeline:
-//! 1. GitHub Sync → Parse Ontology → Save to unified.db (UnifiedOntologyRepository)
+//! 1. GitHub Sync → Parse Ontology → Save to Neo4j (Neo4jOntologyRepository)
 //! 2. Trigger Reasoning via ReasoningActor → CustomReasoner inference → Cache results
 //! 3. Generate Constraints from axioms → ConstraintSet with Semantic kind
 //! 4. Upload to GPU via OntologyConstraintActor → Apply semantic forces → Stream to client
 //!
-//! All ontology data persists in unified.db. Constraints use ConstraintKind::Semantic = 10.
+//! All ontology data persists in Neo4j. Constraints use ConstraintKind::Semantic = 10.
 
 use actix::Addr;
 use log::{debug, error, info, warn};
