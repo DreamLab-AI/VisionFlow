@@ -453,19 +453,24 @@ pub async fn get_auto_balance_notifications(
 }
 
 // Configure routes using snake_case
+/// SECURITY: Graph mutation operations require authentication
 pub fn config(cfg: &mut web::ServiceConfig) {
+    use crate::middleware::RequireAuth;
+
     cfg.service(
         web::scope("/graph")
-            
+            // Read operations - require authentication
             .route("/data", web::get().to(get_graph_data))
             .route("/data/paginated", web::get().to(get_paginated_graph_data))
-            .route("/update", web::post().to(update_graph))
-            
-            .route("/refresh", web::post().to(refresh_graph))
-            
             .route(
                 "/auto-balance-notifications",
                 web::get().to(get_auto_balance_notifications),
-            ),
+            )
+    )
+    .service(
+        web::scope("/graph")
+            .wrap(RequireAuth::authenticated())  // Write operations require auth
+            .route("/update", web::post().to(update_graph))
+            .route("/refresh", web::post().to(refresh_graph))
     );
 }

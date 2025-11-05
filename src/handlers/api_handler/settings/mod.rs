@@ -365,18 +365,26 @@ pub async fn load_profile(
 }
 
 ///
+/// SECURITY: Settings endpoints require authentication (read-only public, write requires auth)
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
+    use crate::middleware::RequireAuth;
+
     cfg.service(
         web::scope("/settings")
+            // Read operations - public
             .route("/physics", web::get().to(get_physics_settings))
-            .route("/physics", web::put().to(update_physics_settings))
             .route("/constraints", web::get().to(get_constraint_settings))
-            .route("/constraints", web::put().to(update_constraint_settings))
             .route("/rendering", web::get().to(get_rendering_settings))
+            .route("/profiles", web::get().to(list_profiles))
+            .route("/profiles/{id}", web::get().to(load_profile))
+    )
+    .service(
+        web::scope("/settings")
+            .wrap(RequireAuth::authenticated())  // Write operations require auth
+            .route("/physics", web::put().to(update_physics_settings))
+            .route("/constraints", web::put().to(update_constraint_settings))
             .route("/rendering", web::put().to(update_rendering_settings))
             .route("/profiles", web::post().to(save_profile))
-            .route("/profiles", web::get().to(list_profiles))
-            .route("/profiles/{id}", web::get().to(load_profile)),
     );
 }
 
