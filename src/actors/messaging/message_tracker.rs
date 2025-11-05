@@ -123,6 +123,7 @@ pub struct RetryRequest {
 ///     3,
 /// ).await;
 /// ```
+#[derive(Clone)]
 pub struct MessageTracker {
     /// Pending messages awaiting acknowledgment
     pending: Arc<RwLock<HashMap<MessageId, PendingMessage>>>,

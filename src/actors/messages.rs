@@ -31,6 +31,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 
+// H4: Message acknowledgment protocol
+use crate::actors::messaging::MessageId;
+
 // K-means clustering results
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct KMeansResult {
@@ -160,6 +163,8 @@ pub struct GetPhysicsState;
 #[rtype(result = "Result<(), String>")]
 pub struct UpdateNodePositions {
     pub positions: Vec<(u32, BinaryNodeData)>,
+    /// Optional correlation ID for message tracking (H4)
+    pub correlation_id: Option<MessageId>,
 }
 
 #[derive(Message)]
@@ -965,6 +970,8 @@ pub struct InitializeGPU {
     pub graph_service_addr: Option<Addr<crate::actors::graph_state_actor::GraphStateActor>>,
     pub physics_orchestrator_addr: Option<Addr<crate::actors::physics_orchestrator_actor::PhysicsOrchestratorActor>>,
     pub gpu_manager_addr: Option<Addr<crate::actors::GPUManagerActor>>,
+    /// Optional correlation ID for message tracking (H4)
+    pub correlation_id: Option<MessageId>,
 }
 
 // Message to notify GraphStateActor that GPU is ready
@@ -978,6 +985,8 @@ pub struct GPUInitialized;
 pub struct SetSharedGPUContext {
     pub context: std::sync::Arc<crate::actors::gpu::shared::SharedGPUContext>,
     pub graph_service_addr: Option<Addr<crate::actors::graph_state_actor::GraphStateActor>>,
+    /// Optional correlation ID for message tracking (H4)
+    pub correlation_id: Option<MessageId>,
 }
 
 // Message to store GPU compute actor address in GraphStateActor
@@ -1004,6 +1013,8 @@ pub struct InitializeGPUConnection {
 #[rtype(result = "Result<(), String>")]
 pub struct UpdateGPUGraphData {
     pub graph: std::sync::Arc<ModelsGraphData>,
+    /// Optional correlation ID for message tracking (H4)
+    pub correlation_id: Option<MessageId>,
 }
 
 #[derive(Message)]
@@ -1020,7 +1031,10 @@ pub struct UpdateSimulationParams {
 
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
-pub struct ComputeForces;
+pub struct ComputeForces {
+    /// Optional correlation ID for message tracking (H4)
+    pub correlation_id: Option<MessageId>,
+}
 
 #[derive(Message)]
 #[rtype(result = "Result<Vec<BinaryNodeData>, String>")]
@@ -1180,6 +1194,8 @@ pub struct UploadPositions {
 #[rtype(result = "Result<(), String>")]
 pub struct UploadConstraintsToGPU {
     pub constraint_data: Vec<crate::models::constraints::ConstraintData>,
+    /// Optional correlation ID for message tracking (H4)
+    pub correlation_id: Option<MessageId>,
 }
 
 // Auto-balance messages
