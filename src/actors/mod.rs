@@ -14,6 +14,7 @@ pub mod voice_commands;
 pub mod graph_messages;
 pub mod graph_service_supervisor;
 pub mod messages;
+pub mod messaging;
 pub mod multi_mcp_visualization_actor;
 pub mod ontology_actor;
 pub mod semantic_processor_actor;
@@ -32,6 +33,7 @@ pub use graph_service_supervisor::{
     RestartPolicy, SupervisorMessage, SupervisorStatus,
 };
 pub use messages::*;
+pub use messaging::{AckStatus, MessageAck, MessageId, MessageKind, MessageMetrics, MessageTracker};
 pub use metadata_actor::MetadataActor;
 pub use multi_mcp_visualization_actor::MultiMcpVisualizationActor;
 pub use ontology_actor::{
