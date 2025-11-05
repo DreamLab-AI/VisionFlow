@@ -19,11 +19,11 @@ pub struct RateLimitConfig {
 impl Default for RateLimitConfig {
     fn default() -> Self {
         Self {
-            requests_per_minute: 60,                    
-            burst_size: 10,                             
-            cleanup_interval: Duration::from_secs(300), 
-            ban_duration: Duration::from_secs(3600),    
-            max_violations: 5,                          
+            requests_per_minute: 60,
+            burst_size: 10,
+            cleanup_interval: Duration::from_secs(300),
+            ban_duration: Duration::from_secs(3600),
+            max_violations: 5,
         }
     }
 }
@@ -104,96 +104,138 @@ impl RateLimiter {
             last_cleanup: Arc::new(RwLock::new(Instant::now())),
         };
 
-        
+
         limiter.start_cleanup_task();
         limiter
     }
 
-    
+    /// Check if the client is allowed to make a request
     pub fn is_allowed(&self, client_id: &str) -> bool {
         self.cleanup_if_needed();
 
-        let mut clients = self.clients.write().expect("RwLock poisoned");
-        let entry = clients
-            .entry(client_id.to_string())
-            .or_insert_with(|| RateLimitEntry::new(&self.config));
+        match self.clients.write() {
+            Ok(mut clients) => {
+                let entry = clients
+                    .entry(client_id.to_string())
+                    .or_insert_with(|| RateLimitEntry::new(&self.config));
 
-        let allowed = entry.try_consume_token(&self.config);
+                let allowed = entry.try_consume_token(&self.config);
 
-        if !allowed {
-            warn!("Rate limit exceeded for client: {}", client_id);
+                if !allowed {
+                    warn!("Rate limit exceeded for client: {}", client_id);
+                }
+
+                allowed
+            }
+            Err(e) => {
+                warn!("RwLock poisoned in rate limiter (is_allowed): {} - Allowing request", e);
+                // Fail open: allow the request to continue
+                true
+            }
         }
-
-        allowed
     }
 
-    
+    /// Get the number of remaining tokens for a client
     pub fn remaining_tokens(&self, client_id: &str) -> u32 {
-        let mut clients = self.clients.write().expect("RwLock poisoned");
-        let entry = clients
-            .entry(client_id.to_string())
-            .or_insert_with(|| RateLimitEntry::new(&self.config));
+        match self.clients.write() {
+            Ok(mut clients) => {
+                let entry = clients
+                    .entry(client_id.to_string())
+                    .or_insert_with(|| RateLimitEntry::new(&self.config));
 
-        entry.refill_tokens(&self.config);
-        entry.tokens
-    }
-
-    
-    pub fn reset_time(&self, client_id: &str) -> Duration {
-        let clients = self.clients.read().expect("RwLock poisoned");
-        if let Some(entry) = clients.get(client_id) {
-            let time_since_refill = Instant::now().duration_since(entry.last_refill);
-            let time_to_next_token =
-                Duration::from_secs(60 / self.config.requests_per_minute as u64);
-            time_to_next_token.saturating_sub(time_since_refill)
-        } else {
-            Duration::from_secs(0)
+                entry.refill_tokens(&self.config);
+                entry.tokens
+            }
+            Err(e) => {
+                warn!("RwLock poisoned in rate limiter (remaining_tokens): {} - Returning burst size", e);
+                self.config.burst_size
+            }
         }
     }
 
-    
-    pub fn is_banned(&self, client_id: &str) -> bool {
-        let clients = self.clients.read().expect("RwLock poisoned");
-        clients
-            .get(client_id)
-            .map(|entry| entry.is_banned())
-            .unwrap_or(false)
+    /// Get the time until the next token refill
+    pub fn reset_time(&self, client_id: &str) -> Duration {
+        match self.clients.read() {
+            Ok(clients) => {
+                if let Some(entry) = clients.get(client_id) {
+                    let time_since_refill = Instant::now().duration_since(entry.last_refill);
+                    let time_to_next_token =
+                        Duration::from_secs(60 / self.config.requests_per_minute as u64);
+                    time_to_next_token.saturating_sub(time_since_refill)
+                } else {
+                    Duration::from_secs(0)
+                }
+            }
+            Err(e) => {
+                warn!("RwLock poisoned in rate limiter (reset_time): {} - Returning 0", e);
+                Duration::from_secs(0)
+            }
+        }
     }
 
-    
+    /// Check if a client is currently banned
+    pub fn is_banned(&self, client_id: &str) -> bool {
+        match self.clients.read() {
+            Ok(clients) => {
+                clients
+                    .get(client_id)
+                    .map(|entry| entry.is_banned())
+                    .unwrap_or(false)
+            }
+            Err(e) => {
+                warn!("RwLock poisoned in rate limiter (is_banned): {} - Returning false", e);
+                false
+            }
+        }
+    }
+
+    /// Clean up expired entries if needed
     fn cleanup_if_needed(&self) {
-        let mut last_cleanup = self.last_cleanup.write().expect("RwLock poisoned");
         let now = Instant::now();
 
-        if now.duration_since(*last_cleanup) < self.config.cleanup_interval {
-            return;
+        // Check if cleanup is needed
+        match self.last_cleanup.write() {
+            Ok(mut last_cleanup) => {
+                if now.duration_since(*last_cleanup) < self.config.cleanup_interval {
+                    return;
+                }
+                *last_cleanup = now;
+            }
+            Err(e) => {
+                warn!("RwLock poisoned in rate limiter (cleanup_if_needed/last_cleanup): {} - Skipping cleanup", e);
+                return;
+            }
         }
 
-        *last_cleanup = now;
-        drop(last_cleanup);
+        // Perform cleanup
+        match self.clients.write() {
+            Ok(mut clients) => {
+                let before_count = clients.len();
 
-        let mut clients = self.clients.write().expect("RwLock poisoned");
-        let before_count = clients.len();
+                clients.retain(|_, entry| {
+                    // Keep entries that are either still banned or recently active
+                    !entry.is_banned()
+                        || entry
+                            .banned_until
+                            .map(|until| now < until + Duration::from_secs(3600))
+                            .unwrap_or(true)
+                });
 
-        clients.retain(|_, entry| {
-            
-            !entry.is_banned()
-                || entry
-                    .banned_until
-                    .map(|until| now < until + Duration::from_secs(3600))
-                    .unwrap_or(true)
-        });
-
-        let after_count = clients.len();
-        if before_count != after_count {
-            debug!(
-                "Rate limiter cleanup: removed {} expired entries",
-                before_count - after_count
-            );
+                let after_count = clients.len();
+                if before_count != after_count {
+                    debug!(
+                        "Rate limiter cleanup: removed {} expired entries",
+                        before_count - after_count
+                    );
+                }
+            }
+            Err(e) => {
+                warn!("RwLock poisoned in rate limiter (cleanup_if_needed/clients): {} - Skipping cleanup", e);
+            }
         }
     }
 
-    
+    /// Start a background task to periodically clean up expired entries
     fn start_cleanup_task(&self) {
         let clients = self.clients.clone();
         let config = self.config.clone();
@@ -204,51 +246,69 @@ impl RateLimiter {
             loop {
                 interval.tick().await;
 
-                let mut clients_guard = clients.write().expect("RwLock poisoned");
-                let before_count = clients_guard.len();
-                let now = Instant::now();
+                match clients.write() {
+                    Ok(mut clients_guard) => {
+                        let before_count = clients_guard.len();
+                        let now = Instant::now();
 
-                clients_guard.retain(|_, entry| {
-                    
-                    let keep_banned = entry
-                        .banned_until
-                        .map(|until| now < until + Duration::from_secs(3600))
-                        .unwrap_or(false);
+                        clients_guard.retain(|_, entry| {
+                            // Keep banned clients within extended grace period
+                            let keep_banned = entry
+                                .banned_until
+                                .map(|until| now < until + Duration::from_secs(3600))
+                                .unwrap_or(false);
 
-                    let keep_active =
-                        now.duration_since(entry.last_refill) < Duration::from_secs(1800); 
+                            let keep_active =
+                                now.duration_since(entry.last_refill) < Duration::from_secs(1800); // 30 min
 
-                    keep_banned || keep_active
-                });
+                            keep_banned || keep_active
+                        });
 
-                let after_count = clients_guard.len();
-                if before_count != after_count {
-                    info!(
-                        "Rate limiter background cleanup: removed {} expired entries",
-                        before_count - after_count
-                    );
+                        let after_count = clients_guard.len();
+                        if before_count != after_count {
+                            info!(
+                                "Rate limiter background cleanup: removed {} expired entries",
+                                before_count - after_count
+                            );
+                        }
+                    }
+                    Err(e) => {
+                        warn!("RwLock poisoned in rate limiter background task: {} - Skipping cleanup cycle", e);
+                    }
                 }
             }
         });
     }
 
-    
+    /// Get statistics about the rate limiter
     pub fn get_stats(&self) -> RateLimitStats {
-        let clients = self.clients.read().expect("RwLock poisoned");
-        let now = Instant::now();
+        match self.clients.read() {
+            Ok(clients) => {
+                let now = Instant::now();
 
-        let total_clients = clients.len();
-        let banned_clients = clients.values().filter(|entry| entry.is_banned()).count();
-        let active_clients = clients
-            .values()
-            .filter(|entry| now.duration_since(entry.last_refill) < Duration::from_secs(300))
-            .count();
+                let total_clients = clients.len();
+                let banned_clients = clients.values().filter(|entry| entry.is_banned()).count();
+                let active_clients = clients
+                    .values()
+                    .filter(|entry| now.duration_since(entry.last_refill) < Duration::from_secs(300))
+                    .count();
 
-        RateLimitStats {
-            total_clients,
-            banned_clients,
-            active_clients,
-            config: self.config.clone(),
+                RateLimitStats {
+                    total_clients,
+                    banned_clients,
+                    active_clients,
+                    config: self.config.clone(),
+                }
+            }
+            Err(e) => {
+                warn!("RwLock poisoned in rate limiter (get_stats): {} - Returning empty stats", e);
+                RateLimitStats {
+                    total_clients: 0,
+                    banned_clients: 0,
+                    active_clients: 0,
+                    config: self.config.clone(),
+                }
+            }
         }
     }
 }
@@ -264,7 +324,7 @@ pub struct RateLimitStats {
 
 ///
 pub fn extract_client_id(req: &HttpRequest) -> String {
-    
+
     let real_ip = req
         .headers()
         .get("X-Real-IP")
@@ -273,7 +333,7 @@ pub fn extract_client_id(req: &HttpRequest) -> String {
         .and_then(|s| s.split(',').next())
         .and_then(|s| s.trim().parse::<IpAddr>().ok());
 
-    
+
     let ip = real_ip.or_else(|| req.peer_addr().map(|addr| addr.ip()));
 
     match ip {
@@ -341,7 +401,7 @@ pub fn create_rate_limit_response(client_id: &str, limiter: &RateLimiter) -> Res
 pub struct EndpointRateLimits;
 
 impl EndpointRateLimits {
-    
+
     pub fn settings_update() -> RateLimitConfig {
         RateLimitConfig {
             requests_per_minute: 30,
@@ -350,7 +410,7 @@ impl EndpointRateLimits {
         }
     }
 
-    
+
     pub fn ragflow_chat() -> RateLimitConfig {
         RateLimitConfig {
             requests_per_minute: 20,
@@ -359,7 +419,7 @@ impl EndpointRateLimits {
         }
     }
 
-    
+
     pub fn bots_operations() -> RateLimitConfig {
         RateLimitConfig {
             requests_per_minute: 40,
@@ -368,7 +428,7 @@ impl EndpointRateLimits {
         }
     }
 
-    
+
     pub fn health_check() -> RateLimitConfig {
         RateLimitConfig {
             requests_per_minute: 120,
@@ -377,18 +437,18 @@ impl EndpointRateLimits {
         }
     }
 
-    
+
     pub fn socket_flow_updates() -> RateLimitConfig {
         RateLimitConfig {
-            requests_per_minute: 300,                   
-            burst_size: 50,                             
-            cleanup_interval: Duration::from_secs(600), 
-            ban_duration: Duration::from_secs(600),     
-            max_violations: 10,                         
+            requests_per_minute: 300,
+            burst_size: 50,
+            cleanup_interval: Duration::from_secs(600),
+            ban_duration: Duration::from_secs(600),
+            max_violations: 10,
         }
     }
 
-    
+
     pub fn default() -> RateLimitConfig {
         RateLimitConfig::default()
     }
@@ -409,12 +469,12 @@ mod tests {
         let limiter = RateLimiter::new(config);
         let client_id = "test_client";
 
-        
+
         for _ in 0..5 {
             assert!(limiter.is_allowed(client_id));
         }
 
-        
+
         assert!(!limiter.is_allowed(client_id));
     }
 
@@ -428,14 +488,14 @@ mod tests {
         let limiter = RateLimiter::new(config);
         let client_id = "test_client_refill";
 
-        
+
         assert!(limiter.is_allowed(client_id));
         assert!(!limiter.is_allowed(client_id));
 
-        
+
         thread::sleep(Duration::from_secs(2));
 
-        
+
         assert!(limiter.is_allowed(client_id));
     }
 
@@ -451,12 +511,12 @@ mod tests {
         let limiter = RateLimiter::new(config);
         let client_id = "test_client_ban";
 
-        
-        assert!(limiter.is_allowed(client_id)); 
-        assert!(!limiter.is_allowed(client_id)); 
-        assert!(!limiter.is_allowed(client_id)); 
 
-        
+        assert!(limiter.is_allowed(client_id));
+        assert!(!limiter.is_allowed(client_id));
+        assert!(!limiter.is_allowed(client_id));
+
+
         assert!(limiter.is_banned(client_id));
         assert!(!limiter.is_allowed(client_id));
     }
