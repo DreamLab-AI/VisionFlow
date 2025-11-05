@@ -14,6 +14,7 @@ pub mod graph_state_handler;
                              
 pub mod mcp_relay_handler;
 pub mod multi_mcp_websocket_handler;
+pub mod natural_language_query_handler;
 pub mod nostr_handler;
 pub mod ontology_handler; 
 pub mod pages_handler;
@@ -37,6 +38,7 @@ pub mod physics_handler;
 pub mod schema_handler;
 pub mod semantic_handler;
 
+pub use natural_language_query_handler::configure_nl_query_routes;
 pub use physics_handler::configure_routes as configure_physics_routes;
 pub use schema_handler::configure_schema_routes;
 pub use semantic_handler::configure_routes as configure_semantic_routes;
@@ -48,3 +50,5 @@ pub use inference_handler::configure_routes as configure_inference_routes;
 
 #[cfg(test)]
 pub mod tests;
+pub mod semantic_pathfinding_handler;
+pub use semantic_pathfinding_handler::configure_pathfinding_routes;
