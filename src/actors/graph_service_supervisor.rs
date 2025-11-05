@@ -360,10 +360,7 @@ impl GraphServiceSupervisor {
                 } else {
                     error!("Cannot start GraphStateActor without kg_repo");
                 }
-
-                
-                
-                
+            }
             ActorType::PhysicsOrchestrator => {
                 use crate::models::simulation_params::SimulationParams;
                 let params = SimulationParams::default();
