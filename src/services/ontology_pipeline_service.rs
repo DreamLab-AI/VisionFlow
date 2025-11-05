@@ -13,7 +13,7 @@ use actix::Addr;
 use log::{debug, error, info, warn};
 use std::sync::Arc;
 
-use crate::actors::graph_actor::GraphServiceActor;
+use crate::actors::graph_actor::GraphStateActor;
 use crate::actors::ontology_actor::OntologyActor;
 use crate::actors::gpu::ontology_constraint_actor::OntologyConstraintActor;
 use crate::reasoning::reasoning_actor::{ReasoningActor, TriggerReasoning as ReasoningTrigger};
@@ -73,14 +73,14 @@ pub struct OntologyPipelineStats {
 /// This service coordinates between:
 /// - ReasoningActor: Runs CustomReasoner for OWL inference
 /// - OntologyConstraintActor: Applies semantic constraints to GPU physics
-/// - GraphServiceActor: Manages unified.db graph data
+/// - GraphStateActor: Manages unified.db graph data
 ///
 /// The pipeline automatically triggers after ontology modifications from GitHub sync.
 pub struct OntologyPipelineService {
     config: SemanticPhysicsConfig,
     reasoning_actor: Option<Addr<ReasoningActor>>,
     ontology_actor: Option<Addr<OntologyActor>>,
-    graph_actor: Option<Addr<GraphServiceActor>>,
+    graph_actor: Option<Addr<GraphStateActor>>,
     constraint_actor: Option<Addr<OntologyConstraintActor>>,
     graph_repo: Option<Arc<dyn KnowledgeGraphRepository>>,
 }
@@ -113,7 +113,7 @@ impl OntologyPipelineService {
     }
 
     /// Set the graph service actor address
-    pub fn set_graph_actor(&mut self, addr: Addr<GraphServiceActor>) {
+    pub fn set_graph_actor(&mut self, addr: Addr<GraphStateActor>) {
         info!("OntologyPipelineService: Graph service actor address registered");
         self.graph_actor = Some(addr);
     }

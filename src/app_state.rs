@@ -24,7 +24,7 @@ use crate::events::EventBus;
 
 #[cfg(feature = "gpu")]
 use crate::actors::gpu;
-use crate::actors::graph_service_supervisor::TransitionalGraphSupervisor;
+use crate::actors::graph_service_supervisor::GraphServiceSupervisor;
 #[cfg(feature = "ontology")]
 use crate::actors::ontology_actor::OntologyActor;
 #[cfg(feature = "gpu")]
@@ -79,7 +79,7 @@ pub struct ApplicationServices {
 
 #[derive(Clone)]
 pub struct AppState {
-    pub graph_service_addr: Addr<TransitionalGraphSupervisor>,
+    pub graph_service_addr: Addr<GraphServiceSupervisor>,
     #[cfg(feature = "gpu")]
     pub gpu_manager_addr: Option<Addr<GPUManagerActor>>,
     #[cfg(feature = "gpu")]
@@ -212,7 +212,7 @@ impl AppState {
         let sync_service_clone = github_sync_service.clone();
 
         // Will be initialized before spawn
-        let graph_service_addr_ref: std::sync::Arc<tokio::sync::Mutex<Option<Addr<TransitionalGraphSupervisor>>>> =
+        let graph_service_addr_ref: std::sync::Arc<tokio::sync::Mutex<Option<Addr<GraphServiceSupervisor>>>> =
             std::sync::Arc::new(tokio::sync::Mutex::new(None));
         let graph_service_addr_clone_for_sync = graph_service_addr_ref.clone();
 
@@ -319,12 +319,7 @@ impl AppState {
 
 
 
-        let graph_service_addr = TransitionalGraphSupervisor::new(
-            Some(client_manager_addr.clone()),
-            None,
-            neo4j_adapter.clone(),
-        )
-        .start();
+        let graph_service_addr = GraphServiceSupervisor::new(neo4j_adapter.clone()).start();
 
         // Neo4j feature is now required - removed legacy SQLite path
 
@@ -336,13 +331,13 @@ impl AppState {
             info!("[AppState::new] GitHub sync task notified - graph service address available");
         });
 
-        
-        info!("[AppState::new] Retrieving GraphServiceActor from TransitionalGraphSupervisor for CQRS");
+
+        info!("[AppState::new] Retrieving GraphStateActor from GraphServiceSupervisor for CQRS");
         let graph_actor_addr = graph_service_addr
-            .send(crate::actors::messages::GetGraphServiceActor)
+            .send(crate::actors::messages::GetGraphStateActor)
             .await
-            .map_err(|e| format!("Failed to send GetGraphServiceActor message: {}", e))?
-            .ok_or_else(|| "GraphServiceActor not initialized in supervisor".to_string())?;
+            .map_err(|e| format!("Failed to send GetGraphStateActor message: {}", e))?
+            .ok_or_else(|| "GraphStateActor not initialized in supervisor".to_string())?;
 
         info!("[AppState::new] Creating graph repository adapter (CQRS Phase 1D)");
         let graph_repository = Arc::new(ActorGraphRepository::new(graph_actor_addr));
@@ -402,7 +397,7 @@ impl AppState {
         };
 
         
-        info!("[AppState::new] Linking ClientCoordinatorActor to TransitionalGraphSupervisor for settling fix");
+        info!("[AppState::new] Linking ClientCoordinatorActor to GraphServiceSupervisor for settling fix");
         
         let graph_supervisor_clone = graph_service_addr.clone();
         let client_manager_clone = client_manager_addr.clone();
@@ -412,7 +407,7 @@ impl AppState {
 
             
             if let Ok(Some(graph_actor)) = graph_supervisor_clone
-                .send(crate::actors::messages::GetGraphServiceActor)
+                .send(crate::actors::messages::GetGraphStateActor)
                 .await
             {
                 info!("Retrieved GraphServiceActor from supervisor, setting in ClientManagerActor");
@@ -700,7 +695,7 @@ impl AppState {
         &self.client_manager_addr
     }
 
-    pub fn get_graph_service_addr(&self) -> &Addr<TransitionalGraphSupervisor> {
+    pub fn get_graph_service_addr(&self) -> &Addr<GraphServiceSupervisor> {
         &self.graph_service_addr
     }
 

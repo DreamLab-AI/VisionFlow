@@ -622,13 +622,13 @@ pub struct InitialClientSync {
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct SetGraphServiceAddress {
-    pub addr: actix::Addr<crate::actors::graph_actor::GraphServiceActor>,
+    pub addr: actix::Addr<crate::actors::graph_state_actor::GraphStateActor>,
 }
 
-// Message to get the GraphServiceActor from TransitionalGraphSupervisor
+// Message to get the GraphStateActor from GraphServiceSupervisor
 #[derive(Message)]
-#[rtype(result = "Option<actix::Addr<crate::actors::graph_actor::GraphServiceActor>>")]
-pub struct GetGraphServiceActor;
+#[rtype(result = "Option<actix::Addr<crate::actors::graph_state_actor::GraphStateActor>>")]
+pub struct GetGraphStateActor;
 
 // Messages for ClientManagerActor to send to individual SocketFlowServer clients
 #[derive(Message)]
@@ -962,12 +962,12 @@ pub struct SystemMetrics {
 #[rtype(result = "Result<(), String>")]
 pub struct InitializeGPU {
     pub graph: std::sync::Arc<ModelsGraphData>,
-    pub graph_service_addr: Option<Addr<crate::actors::graph_actor::GraphServiceActor>>,
+    pub graph_service_addr: Option<Addr<crate::actors::graph_state_actor::GraphStateActor>>,
     pub physics_orchestrator_addr: Option<Addr<crate::actors::physics_orchestrator_actor::PhysicsOrchestratorActor>>,
     pub gpu_manager_addr: Option<Addr<crate::actors::GPUManagerActor>>,
 }
 
-// Message to notify GraphServiceActor that GPU is ready
+// Message to notify GraphStateActor that GPU is ready
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct GPUInitialized;
@@ -977,10 +977,10 @@ pub struct GPUInitialized;
 #[rtype(result = "Result<(), String>")]
 pub struct SetSharedGPUContext {
     pub context: std::sync::Arc<crate::actors::gpu::shared::SharedGPUContext>,
-    pub graph_service_addr: Option<Addr<crate::actors::graph_actor::GraphServiceActor>>,
+    pub graph_service_addr: Option<Addr<crate::actors::graph_state_actor::GraphStateActor>>,
 }
 
-// Message to store GPU compute actor address in GraphServiceActor
+// Message to store GPU compute actor address in GraphStateActor
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct StoreGPUComputeAddress {
