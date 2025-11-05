@@ -54,7 +54,8 @@
 1. [API Quick Reference](../api/quick-reference.md)
 2. [REST API](../reference/api/rest-api-complete.md)
 3. [WebSocket API](../reference/api/03-websocket.md)
-4. Binary Protocol (TODO: Document to be created)
+4. [Binary Protocol](../reference/binary-protocol-specification.md) - 36-byte binary format specification
+5. [Multi-Agent Skills](./multi-agent-skills.md) - Natural language AI assistant capabilities
 
 #### **Debug Issues**
 1. [Troubleshooting Guide](guides/troubleshooting.md)
@@ -71,9 +72,10 @@
 | **Ontology** | [Fundamentals](../specialized/ontology/ontology-fundamentals.md) • [Reasoning](../ontology-reasoning.md) • [API](../specialized/ontology/ontology-api-reference.md) |
 | **GPU Acceleration** | [Concepts](../concepts/gpu-compute.md) • [Architecture](../concepts/architecture/gpu/readme.md) • [Optimizations](../concepts/architecture/gpu/optimizations.md) |
 | **AI Agents** | [Concepts](../concepts/agentic-workers.md) • [User Guide](user/working-with-agents.md) • [Reference](../reference/agents/readme.md) |
+| **Multi-Agent System** | [Skills Guide](./multi-agent-skills.md) • [Architecture](../concepts/architecture/multi-agent-system.md) • [Setup](./docker-environment-setup.md) |
 | **XR/VR** | [Setup](user/xr-setup.md) • Architecture (TODO) • [Vircadia](vircadia-xr-complete-guide.md) |
 | **Database** | [Schema](../concepts/architecture/04-database-schemas.md) • [Reference](../reference/architecture/database-schema.md) |
-| **Binary Protocol** | [WebSocket](../reference/api/03-websocket.md) • Binary Format (TODO) |
+| **Binary Protocol** | [WebSocket](../reference/api/03-websocket.md) • [Specification](../reference/binary-protocol-specification.md) |
 
 ### Key Features
 | Feature | Quick Link | Complete Docs |

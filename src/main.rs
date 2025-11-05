@@ -275,14 +275,32 @@ async fn main() -> std::io::Result<()> {
     ));
     info!("[main] GitHub Sync Service initialized");
 
-    
-    
+    // Initialize SchemaService for natural language query support
+    info!("[main] Initializing Schema Service...");
+    let schema_service = Arc::new(webxr::services::schema_service::SchemaService::new());
+    info!("[main] Schema Service initialized");
+    // Initialize Natural Language Query Service
+    info!("[main] Initializing Natural Language Query Service...");
+    let perplexity_service = Arc::new(webxr::services::perplexity_service::PerplexityService::new());
+    let nl_query_service = Arc::new(webxr::services::natural_language_query_service::NaturalLanguageQueryService::new(
+        schema_service.clone(),
+        perplexity_service.clone(),
+    ));
+    info!("[main] Natural Language Query Service initialized");
 
-    
-    
+    // Initialize Semantic Pathfinding Service
+    info!("[main] Initializing Semantic Pathfinding Service...");
+    let pathfinding_service = Arc::new(webxr::services::semantic_pathfinding_service::SemanticPathfindingService::default());
+    info!("[main] Semantic Pathfinding Service initialized");
 
-    
-    
+
+
+
+
+
+
+
+
     info!("Skipping bots orchestrator connection during startup (will connect on-demand)");
 
     
@@ -396,6 +414,9 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(app_state_data.metadata_addr.clone()))
             .app_data(web::Data::new(app_state_data.client_manager_addr.clone()))
             .app_data(web::Data::new(app_state_data.workspace_addr.clone()))
+            .app_data(web::Data::new(schema_service.clone()))
+            .app_data(web::Data::new(nl_query_service.clone()))
+            .app_data(web::Data::new(pathfinding_service.clone()))
             .app_data(app_state_data.nostr_service.clone().unwrap_or_else(|| web::Data::new(NostrService::default())))
             .app_data(app_state_data.feature_access.clone())
             .app_data(web::Data::new(github_sync_service.clone()))
@@ -416,6 +437,14 @@ async fn main() -> std::io::Result<()> {
 
                     // Pipeline admin routes removed (SQLite-specific handlers deleted in Neo4j migration)
                     // Cypher query endpoint removed (handler deleted in Neo4j migration)
+
+                    // Phase 5: Hexagonal architecture handlers
+                    .configure(webxr::handlers::configure_physics_routes)
+                    .configure(webxr::handlers::configure_schema_routes)
+                    .configure(webxr::handlers::configure_nl_query_routes)
+                    .configure(webxr::handlers::configure_pathfinding_routes)
+                    .configure(webxr::handlers::configure_semantic_routes)
+                    .configure(webxr::handlers::configure_inference_routes)
 
                     .service(web::scope("/pages").configure(pages_handler::config))
                     .service(web::scope("/bots").configure(api_handler::bots::config))
