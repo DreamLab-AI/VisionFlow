@@ -116,7 +116,21 @@ impl Neo4jAdapter {
             warn!("Failed to create OWL index (may already exist): {}", e);
         }
 
-        info!("✅ Neo4j schema created successfully");
+        // Create index on node_type for semantic force filtering
+        let node_type_index_query = Query::new("CREATE INDEX graph_node_type IF NOT EXISTS FOR (n:GraphNode) ON (n.node_type)".to_string());
+
+        if let Err(e) = self.graph.run(node_type_index_query).await {
+            warn!("Failed to create node_type index (may already exist): {}", e);
+        }
+
+        // Create index on edge relation_type for semantic pathfinding
+        let edge_type_index_query = Query::new("CREATE INDEX edge_relation_type IF NOT EXISTS FOR ()-[r:EDGE]-() ON (r.relation_type)".to_string());
+
+        if let Err(e) = self.graph.run(edge_type_index_query).await {
+            warn!("Failed to create edge relation_type index (may already exist): {}", e);
+        }
+
+        info!("✅ Neo4j schema created successfully with semantic type indexes");
         Ok(())
     }
 
@@ -692,11 +706,31 @@ impl KnowledgeGraphRepository for Neo4jAdapter {
                 0.0
             };
 
+            // Calculate connected components using Cypher
+            let components_query = Query::new(
+                "MATCH (n:GraphNode)
+                 WITH COLLECT(DISTINCT n) AS nodes
+                 UNWIND nodes AS node
+                 OPTIONAL MATCH path = (node)-[*]-(connected)
+                 WITH node, COLLECT(DISTINCT connected) AS component
+                 RETURN COUNT(DISTINCT component) AS component_count"
+                    .to_string()
+            );
+
+            let mut component_count = 1; // Default to 1 if query fails
+            if let Ok(result) = self.graph.execute(components_query).await {
+                if let Some(row) = result.next().await.ok().flatten() {
+                    if let Ok(count) = row.get::<i64>("component_count") {
+                        component_count = count as usize;
+                    }
+                }
+            }
+
             return Ok(GraphStatistics {
                 node_count: node_count as usize,
                 edge_count: edge_count as usize,
                 average_degree,
-                connected_components: 1, // TODO: Calculate actual components
+                connected_components: component_count,
                 last_updated: time::now(),
             });
         }

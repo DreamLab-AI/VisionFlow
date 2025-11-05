@@ -23,7 +23,10 @@ import {
   Brain,
   Eye,
   BarChart3,
-  Smartphone
+  Smartphone,
+  Zap,
+  Network,
+  HeartPulse
 } from 'lucide-react';
 import { useSettingsStore, settingsSelectors } from '../../../../store/settingsStore';
 import { settingsUIDefinition } from '../../config/settingsUIDefinition';
@@ -32,6 +35,10 @@ import { SettingsSearch } from '../SettingsSearch';
 import { toast } from '../../../../utils/toast';
 import { createLogger } from '../../../../utils/loggerConfig';
 import { AgentControlPanel } from './AgentControlPanel';
+import { PhysicsControlPanel } from '../../../physics/components/PhysicsControlPanel';
+import { SemanticAnalysisPanel } from '../../../analytics/components/SemanticAnalysisPanel';
+import { InferencePanel } from '../../../ontology/components/InferencePanel';
+import { HealthDashboard } from '../../../monitoring/components/HealthDashboard';
 import {
   buildSearchIndex,
   searchSettings,
@@ -170,8 +177,10 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: Monitor, category: 'dashboard' },
     { id: 'visualization', label: 'Visualization', icon: Eye, category: 'visualization' },
-    { id: 'physics', label: 'Physics', icon: Activity, category: 'physics' },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3, category: 'analytics' },
+    { id: 'physics', label: 'Physics Control', icon: Zap, category: 'physics', isCustomPanel: true },
+    { id: 'analytics', label: 'Semantic Analysis', icon: Network, category: 'analytics', isCustomPanel: true },
+    { id: 'inference', label: 'Ontology Inference', icon: Brain, category: 'inference', isCustomPanel: true },
+    { id: 'health', label: 'System Health', icon: HeartPulse, category: 'health', isCustomPanel: true },
     { id: 'agents', label: 'Agents', icon: Brain, category: 'agents', isCustomPanel: true },
     { id: 'xr', label: 'XR/AR', icon: Smartphone, category: 'xr' },
     { id: 'performance', label: 'Performance', icon: Activity, category: 'performance' },
@@ -296,13 +305,45 @@ export const SettingsPanelRedesign: React.FC<SettingsPanelRedesignProps> = ({
 
           <ScrollArea className="flex-1 h-[calc(100%-3rem)]">
             {tabs.map(tab => {
-              
-              if (tab.isCustomPanel && tab.id === 'agents') {
-                return (
-                  <TabsContent key={tab.id} value={tab.id} className="p-4">
-                    <AgentControlPanel />
-                  </TabsContent>
-                );
+
+              if (tab.isCustomPanel) {
+                // Render custom panel components
+                if (tab.id === 'physics') {
+                  return (
+                    <TabsContent key={tab.id} value={tab.id} className="p-4">
+                      <PhysicsControlPanel />
+                    </TabsContent>
+                  );
+                }
+                if (tab.id === 'analytics') {
+                  return (
+                    <TabsContent key={tab.id} value={tab.id} className="p-4">
+                      <SemanticAnalysisPanel />
+                    </TabsContent>
+                  );
+                }
+                if (tab.id === 'inference') {
+                  return (
+                    <TabsContent key={tab.id} value={tab.id} className="p-4">
+                      <InferencePanel />
+                    </TabsContent>
+                  );
+                }
+                if (tab.id === 'health') {
+                  return (
+                    <TabsContent key={tab.id} value={tab.id} className="p-4">
+                      <HealthDashboard />
+                    </TabsContent>
+                  );
+                }
+                if (tab.id === 'agents') {
+                  return (
+                    <TabsContent key={tab.id} value={tab.id} className="p-4">
+                      <AgentControlPanel />
+                    </TabsContent>
+                  );
+                }
+                return null;
               }
 
               const categoryDef = filteredUIDefinition[tab.category];

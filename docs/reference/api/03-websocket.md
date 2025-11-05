@@ -502,9 +502,9 @@ ws.onmessage = (event) => {
 
 ## References
 
-- **Binary Protocol Specification** (TODO: Document to be created)
+- **[Binary Protocol Specification](../binary-protocol-specification.md)** - Complete technical specification of the 36-byte binary format
 - **[REST API Documentation](./rest-api-complete.md)**
-- **Performance Benchmarks** (TODO: Document to be created)
+- **[Performance Benchmarks](../performance-benchmarks.md)** - Comprehensive performance testing results
 - **[Architecture Overview](../../concepts/architecture/00-ARCHITECTURE-overview.md)**
 
 ---
