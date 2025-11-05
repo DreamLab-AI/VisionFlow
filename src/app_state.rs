@@ -15,10 +15,6 @@ use crate::adapters::actor_graph_repository::ActorGraphRepository;
 use crate::application::graph::*;
 
 // CQRS Phase 4: Command/Query/Event buses and Application Services
-use crate::application::{
-    GraphApplicationService, OntologyApplicationService, PhysicsApplicationService,
-    SettingsApplicationService,
-};
 use crate::cqrs::{CommandBus, QueryBus};
 use crate::events::EventBus;
 
@@ -68,15 +64,6 @@ pub struct GraphQueryHandlers {
     pub compute_shortest_paths: Arc<ComputeShortestPathsHandler>,
 }
 
-// CQRS Phase 4: Application Services
-#[derive(Clone)]
-pub struct ApplicationServices {
-    pub graph: GraphApplicationService,
-    pub settings: SettingsApplicationService,
-    pub ontology: OntologyApplicationService,
-    pub physics: PhysicsApplicationService,
-}
-
 #[derive(Clone)]
 pub struct AppState {
     pub graph_service_addr: Addr<GraphServiceSupervisor>,
@@ -102,7 +89,6 @@ pub struct AppState {
     pub query_bus: Arc<RwLock<QueryBus>>,
     pub event_bus: Arc<RwLock<EventBus>>,
     
-    pub app_services: ApplicationServices,
     
     pub settings_addr: Addr<OptimizedSettingsActor>,
     pub protected_settings_addr: Addr<ProtectedSettingsActor>,
@@ -372,31 +358,6 @@ impl AppState {
         let event_bus = Arc::new(RwLock::new(EventBus::new()));
 
         
-        info!("[AppState::new] Initializing application services (Phase 4)");
-        let app_services = ApplicationServices {
-            graph: GraphApplicationService::new(
-                command_bus.clone(),
-                query_bus.clone(),
-                event_bus.clone(),
-            ),
-            settings: SettingsApplicationService::new(
-                command_bus.clone(),
-                query_bus.clone(),
-                event_bus.clone(),
-            ),
-            ontology: OntologyApplicationService::new(
-                command_bus.clone(),
-                query_bus.clone(),
-                event_bus.clone(),
-            ),
-            physics: PhysicsApplicationService::new(
-                command_bus.clone(),
-                query_bus.clone(),
-                event_bus.clone(),
-            ),
-        };
-
-        
         info!("[AppState::new] Linking ClientCoordinatorActor to GraphServiceSupervisor for settling fix");
         
         let graph_supervisor_clone = graph_service_addr.clone();
@@ -595,7 +556,6 @@ impl AppState {
             query_bus,
             event_bus,
 
-            app_services,
 
             settings_addr,
             protected_settings_addr,
