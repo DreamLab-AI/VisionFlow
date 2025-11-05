@@ -254,9 +254,9 @@ impl<T: cust_core::DeviceCopy + Clone + Default> GpuBuffer<T> {
 
         // Select target host buffer (ping-pong)
         let target_buffer = if self.current_host_buffer {
-            self.host_buffer_a.as_mut().expect("Expected value to be present")
+            self.host_buffer_a.as_mut().unwrap_or_else(|e| { error!("Operation failed: {}", e); panic!("Expected value to be present") })
         } else {
-            self.host_buffer_b.as_mut().expect("Expected value to be present")
+            self.host_buffer_b.as_mut().unwrap_or_else(|e| { error!("Operation failed: {}", e); panic!("Expected value to be present") })
         };
 
         // Start async copy from device to host
@@ -287,9 +287,9 @@ impl<T: cust_core::DeviceCopy + Clone + Default> GpuBuffer<T> {
 
         // Get completed buffer
         let result_buffer = if self.current_host_buffer {
-            self.host_buffer_a.as_ref().expect("Expected value to be present")
+            self.host_buffer_a.as_ref().unwrap_or_else(|e| { error!("Operation failed: {}", e); panic!("Expected value to be present") })
         } else {
-            self.host_buffer_b.as_ref().expect("Expected value to be present")
+            self.host_buffer_b.as_ref().unwrap_or_else(|e| { error!("Operation failed: {}", e); panic!("Expected value to be present") })
         };
 
         // Flip buffers for next transfer
@@ -552,7 +552,7 @@ impl GpuMemoryManager {
 
     /// Get memory statistics
     pub fn stats(&self) -> MemoryStats {
-        let allocations = self.allocations.lock().expect("Mutex poisoned");
+        let allocations = self.allocations.lock().unwrap_or_else(|e| { error!("Lock poisoned: {}", e); panic!("Lock poisoned") });
         let buffer_stats: Vec<BufferStats> = vec![]; // Would need to iterate type-erased buffers
 
         MemoryStats {
@@ -568,7 +568,7 @@ impl GpuMemoryManager {
 
     /// Check for memory leaks
     pub fn check_leaks(&self) -> Vec<String> {
-        let allocations = self.allocations.lock().expect("Mutex poisoned");
+        let allocations = self.allocations.lock().unwrap_or_else(|e| { error!("Lock poisoned: {}", e); panic!("Lock poisoned") });
         if allocations.is_empty() {
             debug!("No GPU memory leaks detected");
             return Vec::new();
