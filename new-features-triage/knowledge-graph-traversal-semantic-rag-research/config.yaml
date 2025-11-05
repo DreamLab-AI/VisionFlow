@@ -1,0 +1,473 @@
+# === STATIC CONFIGS ===
+
+# System & Infrastructure
+system:
+  device: "auto"  # auto, cpu, cuda, mps
+  max_memory_gb: 8
+  min_disk_space_gb: 5
+  num_workers: 4
+
+# Directory Structure
+directories:
+  data: "data"
+  embeddings: "embeddings"
+  visualizations: "visualizations"
+  logs: "logs"
+  configs: "configs"
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  log_to_file: true
+  log_to_console: true
+  max_log_file_mb: 100
+  backup_count: 5
+
+# Text Processing Pipeline
+text_processing:
+  clean_html: true
+  remove_references: true
+  remove_navigation: true
+  remove_tables: true
+  fix_encoding: true
+  normalize_whitespace: true
+  min_sentence_length: 10
+  max_sentence_length: 500
+
+# Chunking Strategy
+chunking:
+  strategy: "sliding_window"
+  window_size: 3
+  overlap: 2
+  window_visualization_buffer_size: 3
+
+# Model Configuration
+models:
+  embedding_models:
+    - "mixedbread-ai/mxbai-embed-large-v1"  # 1024 dimensional embed model. Recommend keeping this as-is, changing could break some things. Make sure you know what you're doing first.
+  embedding_batch_size: 32
+  embedding_cache: true
+
+  granularity_types:
+    chunks:
+      enabled: true
+      description: "3-sentence sliding windows"
+    sentences:
+      enabled: true
+      description: "Individual sentences"
+    doc_summaries:
+      enabled: true
+      description: "Document-level summaries for theme extraction"
+      method: "extractive"
+      max_sentences: 5
+
+# Similarity Matrix Configuration
+similarities:
+  use_cached: true
+  similarity_metric: "cosine"
+  batch_size: 1000
+  max_memory_gb: 4
+
+  granularity_types:
+    chunk_to_chunk:
+      enabled: true
+      intra_document:
+        enabled: true
+        top_k: 15
+        min_threshold: 0.4
+      inter_document:
+        enabled: true
+        top_x: 5
+        min_threshold: 0.3
+
+    doc_to_doc:
+      enabled: true
+      top_k: 10
+      min_threshold: 0.2
+
+    sentence_to_sentence:
+      enabled: true
+      semantic:
+        enabled: true
+        top_k: 3
+        min_threshold: 0.4
+      sequential:
+        enabled: true
+        description: "Adjacent sentence connections for reading flow"
+
+    cross_granularity:
+      enabled: true
+      sentence_to_chunk:
+        enabled: true
+        top_k: 3
+        min_threshold: 0.3
+      chunk_to_doc:
+        enabled: true
+        description: "Chunk to parent document summary similarity"
+
+# Knowledge Graph Assembly
+knowledge_graph:
+  use_cached: true
+  architecture: "multi_granularity_three_tier"
+
+  quality_scoring:
+    enabled: false  # Currently disabled. VERY expensive to score every chunk in a graph and proves to be largely irrelevant for performance.
+    provider: "openrouter"
+    model_name: "meta-llama/llama-3.3-70b-instruct"
+    temperature: 0.1
+    max_tokens: 5000
+    quality_threshold: 0.7
+    enable_filtering: false
+
+    scoring_criteria:
+      clarity: "Assess how clear and comprehensible the information is"
+      depth: "Evaluate the extent of detailed analysis and original insights"
+      structure: "Review how well content is organized with logical progression"
+      relevance: "Analyze importance and focus without unnecessary diversions"
+
+    batch_size: 10
+    retry_attempts: 3
+    cache_scores: true
+
+
+  # DEPRECIATED. NOT USING NER ANYMORE. ONLY EXTRACTING THEMES USING A LOCAL MODEL FROM DOC SUMMARIES.
+  extractors:
+    ner:
+      enabled: false
+      entity_types: ["PERSON", "ORG", "GPE", "PRODUCT", "EVENT", "MISC"]
+    keyphrases:
+      enabled: false
+      max_features: 15
+    summary:
+      enabled: false
+      max_sentences: 2
+
+# === DYNAMIC CONFIGURATION ===
+
+# Experiment Configuration
+experiment:
+  name: "semantic_rag_pipeline_mxbai_bge"
+  description: "mxbai-embed-large + 4 metrics"
+  version: "2.0.0"
+  tags: ["multi_granularity", "graph_traversal", "rag", "ollama", "mxbai"]
+
+  tracking:
+    notes: "Testing mxbai-embed-large embeddings on four metrics with openai models."
+    run_type: "custom_model_comparison"
+    dataset_type: "sequential_multi_hop"
+    baseline_comparison: true
+    expected_improvements: ["precision", "recall", "faithfulness", "relevancy"]
+
+# Pipeline Execution Control
+execution:
+  mode: "full_pipeline"
+  skip_phases: []
+  force_recompute: []
+
+# Wikipedia Data Source
+
+# This section loads the utils.wiki.WikiLoader() and pulls articles for a knowledge graph. Absolutely crucial configuration for knowledge graph size.
+wikipedia:
+  use_cached_articles: true
+  topics: # Used as "seed" topics. From here, based on articles_per_topic, WikiLoader() will pull as many articles as you ask it, for each "topic" listed.
+    - "Machine Learning"
+    - "Artificial Intelligence"
+  articles_per_topic: 5
+  max_article_length: 5000000
+  min_article_length: 1000
+  language: "en"
+  rate_limit_delay: 1.0
+  retry_attempts: 3
+  timeout_seconds: 30
+
+# Retrieval Configuration
+retrieval:
+  algorithm: "semantic_traversal"
+  cache_graphs: true
+
+  semantic_traversal:
+    num_anchors: 1 # If you want to use more "anchor" or "seed" chunks for traversal, change this here.
+    max_hops: 3
+    similarity_threshold: 0.3
+    max_results: 10
+    min_sentence_threshold: 10
+    max_safety_hops: 20
+    enable_reranking: false
+    single_anchor_mode: true
+
+    causal_threshold: 0.6
+    path_coherence_threshold: 0.7
+    mst_max_edges: 5
+    cot_segment_length: 3
+
+    # LLM-guided traversal parameters
+
+    # Controls the LLM-guided traversal algorithm. This algorithm currently supports Ollama, so pick an Ollama model that works for your use case.
+
+    llm_top_k_candidates: 5
+    llm_model: "llama3.2:3b"
+    llm_temperature: 0.1
+
+  baseline_vector:
+    top_k: 10
+    similarity_threshold: 0.5
+
+# Reranking Configuration
+
+# NOTE: DEPRECIATED. RERANKING NOT USED FOR FINAL PUBLICATION.
+
+reranking:
+  strategy: "semantic"  
+  target_count: 10
+  model_name: "BAAI/bge-reranker-large"
+
+  max_features: 5000
+  ngram_range: [1, 2]
+
+  hybrid_weights:
+    tfidf: 0.6
+    length: 0.2
+    question_overlap: 0.2
+
+  enable_fallback: true
+  log_reranking_decisions: false
+
+# Visualization Configuration
+visualization:
+  enabled: true
+
+  # Traditional visualizations
+  similarity_matrices: true
+  traversal_paths: true
+  chunk_boundaries: true
+  question_distribution: true
+  knowledge_graph_structure: true
+
+  # Benchmark visualizations
+  context_grouping:
+    enabled: true
+    include_traversal_paths: true
+    visualization_types: ["windowed", "global", "sequential"]
+
+  retrieval_paths:
+    enabled: true
+    include_3d_plotly: true
+    include_heatmaps: true
+    max_nodes: 40
+    show_all_visited: true
+
+  output:
+    formats: ["plotly", "matplotlib"]
+    figure_size: [20, 8]
+    dpi: 300
+    save_html: true
+    save_png: true
+
+# DeepEval Configuration
+deepeval:
+  api_rate_limiting:
+    enabled: true
+    delay_between_calls: 10.0
+    delay_after_failure: 10.0
+    delay_for_large_requests: 15.0
+
+  # ============================ #
+  # MODEL CONFIGS FOR EVALUATION #
+  # ============================ #
+
+  # This section is extremely important. This is where you set the various models for DeepEval benchmarking.
+  # The available providers are: "openai", "openrouter", "anthropic", and "ollama".
+  # NOTE: "openrouter" works well for small runs but if you drop connection during a very long benchmark
+  # (50+ questions) it may time out and the entire evaluation will fail. STRONGLY recommend sticking with
+  # "openai" or "ollama" if possible during initial testing.
+
+  models:
+    question_generation: # Generates the question in each golden.
+      provider: "openai"
+      model_name: "gpt-4o"
+      temperature: 0.1
+      max_tokens: 20000
+
+    answer_generation:
+      provider: "openai"  # Generates the answer and expected_output in each golden, as well as the retrieved answer during retrieval.
+      model_name: "gpt-5-nano"
+      temperature: 0.1
+      max_tokens: 5000
+
+    evaluation_judge: # Critiques retrieval quality for each golden during retrieval and scores metrics appropriately.
+      provider: "openai"
+      model_name: "gpt-5-nano"
+      temperature: 0.0
+      max_tokens: 50000
+
+  project: # For deepeval dashboard
+    name: "semantic-rag-chunking-research"
+    id: "cmfpz4kpj03i62ad3v3a098kv"
+    description: "Benchmarking semantic RAG chunking strategies using knowledge graph traversal algorithms"
+    version: "1.0.0"
+    tags: ["rag", "knowledge-graph", "semantic-chunking", "retrieval"]
+
+  # ===================== #
+  # DATASET CONFIGURATION #
+  # ===================== #
+
+  # This section controls how datasets are generated. When you run "python benchmark.py --dataset-only" it creates a
+  # DeepEval dataset in JSON format. This allows you to configure the dataset complexity and size, as well as
+  # extra parameters.
+  #
+  # Currently, there are THREE DATASETS located in the "datasets" directory. It's strongly recommended you take a look
+  # at these first and upload the 1q dataset to DeepEval to run inferences on before generating your own dataset. If
+  # you use these pre-generated datasets, don't forget to build the knowledge graph first using the current knowledge
+  # graph Wiki config!
+
+  dataset:
+    generation:
+      num_goldens: 1 # Number of goldens. A "golden" is a full question/answer/context entry in the dataset. Recommend to start with 1 when doing this for the first time.
+      max_goldens_per_context: 1 # Default 1, recommend keeping this default
+      include_expected_output: true # IMPORTANT: Ensures that there is an "expected_output" answer saved in the golden, so that the critic model can compare the retrieved answer to the "expected_output."
+
+    filtration:
+      enabled: true  # Filtration sends each generated golden to a model to ensure it is high enough quality for benchmarking. Recommend doing this if possible.
+      critic_model: "gpt-4o-mini"  # Filtration ONLY supports OpenAI models. Only used if enabled=true
+      synthetic_input_quality_threshold: 0.8
+      max_quality_retries: 5
+
+    evolution: # DeepEval evolution parameters. Evolves each question according to a chosen evolution_type based on the weighted distribution probability. You can fine-tune parameters here if you want extremely complex questions but the default is to only do 1 evolution type on each question to keep things grounded.
+      enabled: true
+      num_evolutions: 1 # Default of 1, can increase but will result in extraordinarily complex questions. For every value above 1, it re-evolves the question based on probability so tracking how a question evolves can get very tricky. Only do this if you know what you're doing.
+      evolution_types: # DeepEval's default evolution_types. NOTE: If you just one or two types, comment out the ones you don't want.
+        - "REASONING"
+        - "COMPARATIVE"
+        - "MULTICONTEXT"
+      evolution_distribution: # Weighted distribution of evolution_types, up to 100%.
+        REASONING: 0.4
+        COMPARATIVE: 0.2
+        MULTICONTEXT: 0.4
+
+    output:
+      save_path: "data/synthetic_dataset.json" # Storage location for the dataset. Recommend keeping this as-is for compatibility.
+      cache_enabled: true
+      force_regenerate: true
+      push_to_dashboard: false # NOTE: This lets you push the dataset to DeepEval automatically, but you have to be on the starter plan for this to work.
+      dataset_alias: "1qa-intradoc-reasoning-multicontext" # Name of dataset. Pulls this (or pushes it with this name when complete) from DeepEval for benchmarking.
+      pull_from_dashboard: true # IMPORTANT: Once you have a dataset saved in DeepEval's dashboard, enable this to simply pull it every time.
+      generate_csv: true # VERY IMPORTANT: If you don't want to pay for DeepEval, you can enable this to output a .csv to upload as a dataset directly since you can't push without paying. You're welcome :D
+      csv_context_delimiter: " | "
+
+  # ======================== #
+  # EVALUATION CONFIGURATION #
+  # ======================== #
+
+  # This section controls the evaluation parameters when evaluating the algorithms.
+  # Some things here should stay as is, but you can customize at your own discretion.
+
+  evaluation:
+    async_config:
+      run_async: false # DO NOT DISABLE THIS. Running asynchronously breaks a lot of things, especially with openrouter. This will run synchronously which takes longer, but is more stable.
+      max_concurrent: 1
+      throttle_value: 3.0
+
+    metrics: # Metrics you see in the DeepEval dashboard.
+      rag_metrics:
+        - "contextual_precision"   # Precision
+        - "contextual_recall"      # Recall
+        - "faithfulness"           # Faithfulness
+        - "answer_relevancy"       # Answer Relevancy
+
+      custom_metrics: []  # Disabled all custom metrics, as they have been depreciated.
+
+    algorithms: # ALGORITHM CONFIG: You may COMMENT OUT algorithms you want to avoid running, as evaluations are very time-consuming.
+      test_algorithms:
+        - "basic_retrieval"
+        - "query_traversal"
+        - "kg_traversal"
+        - "triangulation_average"
+        - "triangulation_geometric_3d"
+        - "triangulation_geometric_fulldim"
+        - "llm_guided_traversal"
+
+      algorithm_hyperparameters: # May fine tune these if you wish. These were the defaults used during research.
+        basic_retrieval:
+          top_k: 10
+          similarity_threshold: 0.5
+        query_traversal:
+          max_hops: 5
+          similarity_threshold: 0.3
+          min_sentence_threshold: 10
+        kg_traversal:
+          max_hops: 5
+          similarity_threshold: 0.3
+          min_sentence_threshold: 10
+        triangulation_average:
+          max_hops: 5
+          similarity_threshold: 0.3
+          min_sentence_threshold: 10
+          max_results: 10
+        triangulation_geometric_3d:
+          max_hops: 5
+          similarity_threshold: 0.3
+          min_sentence_threshold: 10
+          max_results: 10
+        triangulation_geometric_fulldim:
+          max_hops: 5
+          similarity_threshold: 0.3
+          min_sentence_threshold: 10
+          max_results: 10
+        llm_guided_traversal:
+          max_hops: 5
+          similarity_threshold: 0.3
+          min_sentence_threshold: 10
+          max_results: 10
+          llm_top_k_candidates: 5
+          llm_model: "llama3.2:3b" # LLM model, uses Ollama.
+          llm_temperature: 0.1
+
+    output:
+      results_directory: "benchmark_results"
+      save_individual_results: true
+      save_comparison_report: true
+      include_visualizations: true
+
+  # ============================== #
+  # CONTEXT GROUPING CONFIGURATION #
+  # ============================== #
+
+  # To generate goldens, DeepEval only needs you to send it groups of contexts (chunks) and it generates
+  # question/answer pairs. This section determines, for the num_goldens set in the dataset config, the
+  # context_strategies and weight of each strategy. IT IS STRONGLY RECOMMENDED to only enable one at a time
+  # when starting out, especially if you choose multiple evolution_types in the evolution config. These algorithms
+  # are the primary source of dataset consistency: you should only use the context_strategies that are tailored to
+  # the type of retrieval that you're trying to achieve (for example, sequential multi-hop is great for generating
+  # questions that require "read-through" algorithms, but those same algorithms would perform very poorly if tested
+  # on intra_document questions, since those active discourage read-through in exchange for intra-doc exploration).
+
+context_strategies:
+  intra_document:
+    enabled: false
+    weight: 0.33
+    max_sentences: 10
+    description: "Within-document exploratory context grouping."
+
+  theme_based:
+    enabled: false
+    weight: 0.33
+    max_sentences: 10
+    fallback_to_inter_document: true
+    description: "Cross-document thematic context grouping."
+
+  sequential_multi_hop:
+    enabled: true # Was last used to generate the final research evaluation on 50qa dataset. You may change this if you are ready to generate your own.
+    weight: 0.33
+    num_reading_hops: 3
+    num_paragraph_sentences: 5
+    num_cross_doc_hops: 3
+    description: "Cross-document thematic reading simulation: 3 docs × 5 sentences = 15-sentence narratives"
+
+  deepeval_native:
+    enabled: false
+    weight: 0.2
+    max_sentences: 10
+    extraction_mode: "random"
+    chunks_per_group: 3
+    ensure_document_diversity: true
+    description: "Simple random/sequential extraction with DeepEval FiltrationConfig quality filtering - no semantic traversal"
