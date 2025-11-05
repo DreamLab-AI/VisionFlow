@@ -417,6 +417,11 @@ async fn main() -> std::io::Result<()> {
                     // Pipeline admin routes removed (SQLite-specific handlers deleted in Neo4j migration)
                     // Cypher query endpoint removed (handler deleted in Neo4j migration)
 
+                    // Phase 5: Hexagonal architecture handlers
+                    .configure(webxr::handlers::configure_physics_routes)
+                    .configure(webxr::handlers::configure_semantic_routes)
+                    .configure(webxr::handlers::configure_inference_routes)
+
                     .service(web::scope("/pages").configure(pages_handler::config))
                     .service(web::scope("/bots").configure(api_handler::bots::config))
                     .configure(bots_visualization_handler::configure_routes)

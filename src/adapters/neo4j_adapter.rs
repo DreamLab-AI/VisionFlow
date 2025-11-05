@@ -692,11 +692,31 @@ impl KnowledgeGraphRepository for Neo4jAdapter {
                 0.0
             };
 
+            // Calculate connected components using Cypher
+            let components_query = Query::new(
+                "MATCH (n:GraphNode)
+                 WITH COLLECT(DISTINCT n) AS nodes
+                 UNWIND nodes AS node
+                 OPTIONAL MATCH path = (node)-[*]-(connected)
+                 WITH node, COLLECT(DISTINCT connected) AS component
+                 RETURN COUNT(DISTINCT component) AS component_count"
+                    .to_string()
+            );
+
+            let mut component_count = 1; // Default to 1 if query fails
+            if let Ok(result) = self.graph.execute(components_query).await {
+                if let Some(row) = result.next().await.ok().flatten() {
+                    if let Ok(count) = row.get::<i64>("component_count") {
+                        component_count = count as usize;
+                    }
+                }
+            }
+
             return Ok(GraphStatistics {
                 node_count: node_count as usize,
                 edge_count: edge_count as usize,
                 average_degree,
-                connected_components: 1, // TODO: Calculate actual components
+                connected_components: component_count,
                 last_updated: time::now(),
             });
         }

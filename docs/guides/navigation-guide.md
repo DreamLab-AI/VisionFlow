@@ -54,7 +54,7 @@
 1. [API Quick Reference](../api/quick-reference.md)
 2. [REST API](../reference/api/rest-api-complete.md)
 3. [WebSocket API](../reference/api/03-websocket.md)
-4. Binary Protocol (TODO: Document to be created)
+4. [Binary Protocol](../reference/binary-protocol-specification.md) - 36-byte binary format specification
 
 #### **Debug Issues**
 1. [Troubleshooting Guide](guides/troubleshooting.md)
