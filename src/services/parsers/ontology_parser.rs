@@ -9,7 +9,30 @@
 
 use crate::ports::ontology_repository::{AxiomType, OwlAxiom, OwlClass, OwlProperty, PropertyType};
 use log::{debug, info};
+use once_cell::sync::Lazy;
+use regex::Regex;
 use std::collections::HashMap;
+
+// Compile regex patterns once at startup for performance and safety
+static CLASS_PATTERN: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"owl:?_?class::\s*([a-zA-Z0-9_:/-]+(\([^)]+\))?)").expect("Invalid CLASS_PATTERN regex")
+});
+
+static OBJ_PROP_PATTERN: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"objectProperty::\s*([a-zA-Z0-9_:/-]+)").expect("Invalid OBJ_PROP_PATTERN regex")
+});
+
+static DATA_PROP_PATTERN: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"dataProperty::\s*([a-zA-Z0-9_:/-]+)").expect("Invalid DATA_PROP_PATTERN regex")
+});
+
+static SUBCLASS_PATTERN: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"subClassOf::\s*([a-zA-Z0-9_:/-]+)").expect("Invalid SUBCLASS_PATTERN regex")
+});
+
+static OWL_CLASS_PATTERN: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"owl_class::\s*([a-zA-Z0-9_:/-]+)").expect("Invalid OWL_CLASS_PATTERN regex")
+});
 
 pub struct OntologyParser;
 
@@ -88,9 +111,9 @@ impl OntologyParser {
         let mut classes = Vec::new();
 
         
-        let class_pattern = regex::Regex::new(r"owl:?_?class::\s*([a-zA-Z0-9_:/-]+(\([^)]+\))?)").expect("Invalid regex pattern");
+        
 
-        for cap in class_pattern.captures_iter(section) {
+        for cap in CLASS_PATTERN.captures_iter(section) {
             if let Some(class_match) = cap.get(1) {
                 let class_name = class_match.as_str().trim();
 
@@ -127,11 +150,11 @@ impl OntologyParser {
         let mut properties = Vec::new();
 
         
-        let obj_prop_pattern = regex::Regex::new(r"objectProperty::\s*([a-zA-Z0-9_:/-]+)").expect("Invalid regex pattern");
-        let data_prop_pattern = regex::Regex::new(r"dataProperty::\s*([a-zA-Z0-9_:/-]+)").expect("Invalid regex pattern");
+        
+        
 
         
-        for cap in obj_prop_pattern.captures_iter(section) {
+        for cap in OBJ_PROP_PATTERN.captures_iter(section) {
             if let Some(prop_match) = cap.get(1) {
                 let prop_name = prop_match.as_str().trim();
                 let label = self.find_property_value(section, prop_name, "label");
@@ -149,7 +172,7 @@ impl OntologyParser {
         }
 
         
-        for cap in data_prop_pattern.captures_iter(section) {
+        for cap in DATA_PROP_PATTERN.captures_iter(section) {
             if let Some(prop_match) = cap.get(1) {
                 let prop_name = prop_match.as_str().trim();
                 let label = self.find_property_value(section, prop_name, "label");
@@ -174,24 +197,24 @@ impl OntologyParser {
         let mut axioms = Vec::new();
 
         
-        let subclass_pattern = regex::Regex::new(r"subClassOf::\s*([a-zA-Z0-9_:/-]+)").expect("Invalid regex pattern");
+        
 
         
-        let class_pattern = regex::Regex::new(r"owl_class::\s*([a-zA-Z0-9_:/-]+)").expect("Invalid regex pattern");
+        
 
         let lines: Vec<&str> = section.lines().collect();
         let mut current_class: Option<String> = None;
 
         for line in lines {
             
-            if let Some(cap) = class_pattern.captures(line) {
+            if let Some(cap) = CLASS_PATTERN.captures(line) {
                 if let Some(class_match) = cap.get(1) {
                     current_class = Some(class_match.as_str().to_string());
                 }
             }
 
             
-            if let Some(cap) = subclass_pattern.captures(line) {
+            if let Some(cap) = subCLASS_PATTERN.captures(line) {
                 if let (Some(class), Some(parent)) = (&current_class, cap.get(1)) {
                     axioms.push(OwlAxiom {
                         id: None,
@@ -211,20 +234,20 @@ impl OntologyParser {
     fn extract_class_hierarchy(&self, section: &str) -> Vec<(String, String)> {
         let mut hierarchy = Vec::new();
 
-        let class_pattern = regex::Regex::new(r"owl_class::\s*([a-zA-Z0-9_:/-]+)").expect("Invalid regex pattern");
-        let subclass_pattern = regex::Regex::new(r"subClassOf::\s*([a-zA-Z0-9_:/-]+)").expect("Invalid regex pattern");
+        
+        
 
         let lines: Vec<&str> = section.lines().collect();
         let mut current_class: Option<String> = None;
 
         for line in lines {
-            if let Some(cap) = class_pattern.captures(line) {
+            if let Some(cap) = CLASS_PATTERN.captures(line) {
                 if let Some(class_match) = cap.get(1) {
                     current_class = Some(class_match.as_str().to_string());
                 }
             }
 
-            if let Some(cap) = subclass_pattern.captures(line) {
+            if let Some(cap) = SUBCLASS_PATTERN.captures(line) {
                 if let (Some(child), Some(parent)) = (&current_class, cap.get(1)) {
                     hierarchy.push((child.clone(), parent.as_str().to_string()));
                 }
