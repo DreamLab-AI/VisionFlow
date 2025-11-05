@@ -12,8 +12,10 @@ use webxr::{
         bots_visualization_handler,
         client_log_handler,
         client_messages_handler,
+        consolidated_health_handler,
         graph_export_handler,
         mcp_relay_handler::mcp_relay_handler,
+        multi_mcp_websocket_handler,
         nostr_handler,
         pages_handler,
         socket_flow_handler::{socket_flow_handler, PreReadSocketSettings}, 
@@ -445,6 +447,12 @@ async fn main() -> std::io::Result<()> {
                     .configure(webxr::handlers::configure_pathfinding_routes)
                     .configure(webxr::handlers::configure_semantic_routes)
                     .configure(webxr::handlers::configure_inference_routes)
+
+                    // Health and monitoring
+                    .configure(consolidated_health_handler::configure_routes)
+
+                    // Multi-MCP WebSocket
+                    .configure(multi_mcp_websocket_handler::configure_multi_mcp_routes)
 
                     .service(web::scope("/pages").configure(pages_handler::config))
                     .service(web::scope("/bots").configure(api_handler::bots::config))
