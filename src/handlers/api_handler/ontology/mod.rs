@@ -1314,9 +1314,13 @@ pub async fn websocket_handler(
 // ============================================================================
 
 ///
+/// SECURITY: All ontology endpoints require authentication
 pub fn config(cfg: &mut web::ServiceConfig) {
+    use crate::middleware::RequireAuth;
+
     cfg.service(
         web::scope("/ontology")
+            .wrap(RequireAuth::authenticated())  // Require authentication for all ontology operations
 
             .route("/load", web::post().to(load_axioms))
             .route("/load-axioms", web::post().to(load_axioms))

@@ -4,9 +4,10 @@ use tracing::{debug, info};
 use uuid::Uuid;
 use crate::services::nostr_service::NostrService;
 
+#[derive(Clone, Debug)]
 pub enum AccessLevel {
-    Authenticated,  
-    PowerUser,      
+    Authenticated,
+    PowerUser,
 }
 
 pub async fn verify_access(

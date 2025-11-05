@@ -804,11 +804,11 @@ impl Handler<InitializeGPU> for ForceComputeActor {
     fn handle(&mut self, msg: InitializeGPU, _ctx: &mut Self::Context) -> Self::Result {
         info!("ForceComputeActor: InitializeGPU received");
 
-        
+
         self.gpu_state.num_nodes = msg.graph.nodes.len() as u32;
         self.gpu_state.num_edges = msg.graph.edges.len() as u32;
 
-        
+
         if msg.graph_service_addr.is_some() {
             self.graph_service_addr = msg.graph_service_addr;
             info!("ForceComputeActor: GraphServiceActor address stored for position updates");
@@ -818,6 +818,16 @@ impl Handler<InitializeGPU> for ForceComputeActor {
             "ForceComputeActor: GPU initialized with {} nodes, {} edges",
             self.gpu_state.num_nodes, self.gpu_state.num_edges
         );
+
+        // H4: Send acknowledgment
+        if let Some(correlation_id) = msg.correlation_id {
+            use crate::actors::messaging::MessageAck;
+            if let Some(ref orchestrator_addr) = msg.physics_orchestrator_addr {
+                orchestrator_addr.do_send(MessageAck::success(correlation_id)
+                    .with_metadata("nodes", self.gpu_state.num_nodes.to_string())
+                    .with_metadata("edges", self.gpu_state.num_edges.to_string()));
+            }
+        }
 
         Ok(())
     }
@@ -829,7 +839,7 @@ impl Handler<UpdateGPUGraphData> for ForceComputeActor {
     fn handle(&mut self, msg: UpdateGPUGraphData, _ctx: &mut Self::Context) -> Self::Result {
         info!("ForceComputeActor: UpdateGPUGraphData received");
 
-        
+
         self.gpu_state.num_nodes = msg.graph.nodes.len() as u32;
         self.gpu_state.num_edges = msg.graph.edges.len() as u32;
 
@@ -837,6 +847,15 @@ impl Handler<UpdateGPUGraphData> for ForceComputeActor {
             "ForceComputeActor: Graph data updated - {} nodes, {} edges",
             self.gpu_state.num_nodes, self.gpu_state.num_edges
         );
+
+        // H4: Send acknowledgment
+        if let Some(correlation_id) = msg.correlation_id {
+            use crate::actors::messaging::MessageAck;
+            // Note: We don't have a direct physics orchestrator reference here,
+            // but acknowledgments can still be sent if the reference is added in the future
+            // For now, this demonstrates the pattern
+            debug!("UpdateGPUGraphData completed with correlation_id: {}", correlation_id);
+        }
 
         Ok(())
     }
@@ -1022,10 +1041,10 @@ impl Handler<SetSharedGPUContext> for ForceComputeActor {
     fn handle(&mut self, msg: SetSharedGPUContext, _ctx: &mut Self::Context) -> Self::Result {
         info!("ForceComputeActor: Received SharedGPUContext from ResourceActor");
 
-        
+
         self.shared_context = Some(msg.context);
 
-        
+
         if let Some(addr) = msg.graph_service_addr {
             self.graph_service_addr = Some(addr);
             info!("ForceComputeActor: GraphServiceActor address stored - position updates will be sent to clients!");
@@ -1033,7 +1052,7 @@ impl Handler<SetSharedGPUContext> for ForceComputeActor {
             warn!("ForceComputeActor: No GraphServiceActor address provided - positions won't be sent to clients");
         }
 
-        
+
         self.gpu_state.is_initialized = true;
 
         info!("ForceComputeActor: SharedGPUContext stored successfully - GPU physics enabled!");
@@ -1041,6 +1060,13 @@ impl Handler<SetSharedGPUContext> for ForceComputeActor {
             "ForceComputeActor: Physics can now run with {} nodes and {} edges",
             self.gpu_state.num_nodes, self.gpu_state.num_edges
         );
+
+        // H4: Send acknowledgment
+        if let Some(correlation_id) = msg.correlation_id {
+            use crate::actors::messaging::MessageAck;
+            debug!("SetSharedGPUContext completed with correlation_id: {}", correlation_id);
+            // Note: Future enhancement - send ack to physics orchestrator if reference available
+        }
 
         Ok(())
     }

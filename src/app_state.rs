@@ -15,16 +15,12 @@ use crate::adapters::actor_graph_repository::ActorGraphRepository;
 use crate::application::graph::*;
 
 // CQRS Phase 4: Command/Query/Event buses and Application Services
-use crate::application::{
-    GraphApplicationService, OntologyApplicationService, PhysicsApplicationService,
-    SettingsApplicationService,
-};
 use crate::cqrs::{CommandBus, QueryBus};
 use crate::events::EventBus;
 
 #[cfg(feature = "gpu")]
 use crate::actors::gpu;
-use crate::actors::graph_service_supervisor::TransitionalGraphSupervisor;
+use crate::actors::graph_service_supervisor::GraphServiceSupervisor;
 #[cfg(feature = "ontology")]
 use crate::actors::ontology_actor::OntologyActor;
 #[cfg(feature = "gpu")]
@@ -68,18 +64,9 @@ pub struct GraphQueryHandlers {
     pub compute_shortest_paths: Arc<ComputeShortestPathsHandler>,
 }
 
-// CQRS Phase 4: Application Services
-#[derive(Clone)]
-pub struct ApplicationServices {
-    pub graph: GraphApplicationService,
-    pub settings: SettingsApplicationService,
-    pub ontology: OntologyApplicationService,
-    pub physics: PhysicsApplicationService,
-}
-
 #[derive(Clone)]
 pub struct AppState {
-    pub graph_service_addr: Addr<TransitionalGraphSupervisor>,
+    pub graph_service_addr: Addr<GraphServiceSupervisor>,
     #[cfg(feature = "gpu")]
     pub gpu_manager_addr: Option<Addr<GPUManagerActor>>,
     #[cfg(feature = "gpu")]
@@ -102,7 +89,6 @@ pub struct AppState {
     pub query_bus: Arc<RwLock<QueryBus>>,
     pub event_bus: Arc<RwLock<EventBus>>,
     
-    pub app_services: ApplicationServices,
     
     pub settings_addr: Addr<OptimizedSettingsActor>,
     pub protected_settings_addr: Addr<ProtectedSettingsActor>,
@@ -212,7 +198,7 @@ impl AppState {
         let sync_service_clone = github_sync_service.clone();
 
         // Will be initialized before spawn
-        let graph_service_addr_ref: std::sync::Arc<tokio::sync::Mutex<Option<Addr<TransitionalGraphSupervisor>>>> =
+        let graph_service_addr_ref: std::sync::Arc<tokio::sync::Mutex<Option<Addr<GraphServiceSupervisor>>>> =
             std::sync::Arc::new(tokio::sync::Mutex::new(None));
         let graph_service_addr_clone_for_sync = graph_service_addr_ref.clone();
 
@@ -319,12 +305,7 @@ impl AppState {
 
 
 
-        let graph_service_addr = TransitionalGraphSupervisor::new(
-            Some(client_manager_addr.clone()),
-            None,
-            neo4j_adapter.clone(),
-        )
-        .start();
+        let graph_service_addr = GraphServiceSupervisor::new(neo4j_adapter.clone()).start();
 
         // Neo4j feature is now required - removed legacy SQLite path
 
@@ -336,13 +317,13 @@ impl AppState {
             info!("[AppState::new] GitHub sync task notified - graph service address available");
         });
 
-        
-        info!("[AppState::new] Retrieving GraphServiceActor from TransitionalGraphSupervisor for CQRS");
+
+        info!("[AppState::new] Retrieving GraphStateActor from GraphServiceSupervisor for CQRS");
         let graph_actor_addr = graph_service_addr
-            .send(crate::actors::messages::GetGraphServiceActor)
+            .send(crate::actors::messages::GetGraphStateActor)
             .await
-            .map_err(|e| format!("Failed to send GetGraphServiceActor message: {}", e))?
-            .ok_or_else(|| "GraphServiceActor not initialized in supervisor".to_string())?;
+            .map_err(|e| format!("Failed to send GetGraphStateActor message: {}", e))?
+            .ok_or_else(|| "GraphStateActor not initialized in supervisor".to_string())?;
 
         info!("[AppState::new] Creating graph repository adapter (CQRS Phase 1D)");
         let graph_repository = Arc::new(ActorGraphRepository::new(graph_actor_addr));
@@ -377,32 +358,7 @@ impl AppState {
         let event_bus = Arc::new(RwLock::new(EventBus::new()));
 
         
-        info!("[AppState::new] Initializing application services (Phase 4)");
-        let app_services = ApplicationServices {
-            graph: GraphApplicationService::new(
-                command_bus.clone(),
-                query_bus.clone(),
-                event_bus.clone(),
-            ),
-            settings: SettingsApplicationService::new(
-                command_bus.clone(),
-                query_bus.clone(),
-                event_bus.clone(),
-            ),
-            ontology: OntologyApplicationService::new(
-                command_bus.clone(),
-                query_bus.clone(),
-                event_bus.clone(),
-            ),
-            physics: PhysicsApplicationService::new(
-                command_bus.clone(),
-                query_bus.clone(),
-                event_bus.clone(),
-            ),
-        };
-
-        
-        info!("[AppState::new] Linking ClientCoordinatorActor to TransitionalGraphSupervisor for settling fix");
+        info!("[AppState::new] Linking ClientCoordinatorActor to GraphServiceSupervisor for settling fix");
         
         let graph_supervisor_clone = graph_service_addr.clone();
         let client_manager_clone = client_manager_addr.clone();
@@ -412,7 +368,7 @@ impl AppState {
 
             
             if let Ok(Some(graph_actor)) = graph_supervisor_clone
-                .send(crate::actors::messages::GetGraphServiceActor)
+                .send(crate::actors::messages::GetGraphStateActor)
                 .await
             {
                 info!("Retrieved GraphServiceActor from supervisor, setting in ClientManagerActor");
@@ -600,7 +556,6 @@ impl AppState {
             query_bus,
             event_bus,
 
-            app_services,
 
             settings_addr,
             protected_settings_addr,
@@ -624,7 +579,140 @@ impl AppState {
             client_message_tx,
             client_message_rx: Arc::new(tokio::sync::Mutex::new(client_message_rx)),
             ontology_pipeline_service,
-        })
+        });
+
+        // Validate optional actor addresses
+        info!("[AppState::new] Validating actor initialization");
+        let validation_report = state.validate();
+        validation_report.log();
+
+        if !validation_report.is_valid() {
+            return Err(format!("AppState validation failed: {:?}", validation_report.errors).into());
+        }
+
+        info!("[AppState::new] ✅ All validation checks passed");
+
+        Ok(state)
+    }
+
+    /// Validate that all optional actors and services are properly initialized
+    /// based on feature flags and environment configuration.
+    pub fn validate(&self) -> crate::validation::ValidationReport {
+        use crate::validation::*;
+        let mut report = ValidationReport::new();
+
+        // GPU-related actors (feature-gated)
+        #[cfg(feature = "gpu")]
+        {
+            report.add(ValidationItem {
+                name: "GPUManagerActor".to_string(),
+                expected: true,
+                present: self.gpu_manager_addr.is_some(),
+                severity: Severity::Warning,
+                reason: "GPU feature is enabled".to_string(),
+            });
+
+            report.add(ValidationItem {
+                name: "gpu_compute_addr".to_string(),
+                expected: false,
+                present: self.gpu_compute_addr.is_some(),
+                severity: Severity::Info,
+                reason: "Initialized after GPU manager starts".to_string(),
+            });
+
+            report.add(ValidationItem {
+                name: "stress_majorization_addr".to_string(),
+                expected: false,
+                present: self.stress_majorization_addr.is_some(),
+                severity: Severity::Info,
+                reason: "Initialized after GPU manager starts".to_string(),
+            });
+        }
+
+        // Ontology actor (feature-gated)
+        #[cfg(feature = "ontology")]
+        {
+            report.add(ValidationItem {
+                name: "OntologyActor".to_string(),
+                expected: true,
+                present: self.ontology_actor_addr.is_some(),
+                severity: Severity::Warning,
+                reason: "Ontology feature is enabled".to_string(),
+            });
+        }
+
+        #[cfg(not(feature = "ontology"))]
+        {
+            report.add(ValidationItem {
+                name: "OntologyActor".to_string(),
+                expected: false,
+                present: self.ontology_actor_addr.is_some(),
+                severity: Severity::Info,
+                reason: "Ontology feature is disabled".to_string(),
+            });
+        }
+
+        // Perplexity service (environment-dependent)
+        let perplexity_expected = env_is_set("PERPLEXITY_API_KEY");
+        report.add(ValidationItem {
+            name: "PerplexityService".to_string(),
+            expected: perplexity_expected,
+            present: self.perplexity_service.is_some(),
+            severity: if perplexity_expected { Severity::Warning } else { Severity::Info },
+            reason: if perplexity_expected {
+                "PERPLEXITY_API_KEY is set".to_string()
+            } else {
+                "PERPLEXITY_API_KEY not set".to_string()
+            },
+        });
+
+        // RAGFlow service (environment-dependent)
+        let ragflow_expected = env_is_set("RAGFLOW_API_KEY");
+        report.add(ValidationItem {
+            name: "RAGFlowService".to_string(),
+            expected: ragflow_expected,
+            present: self.ragflow_service.is_some(),
+            severity: if ragflow_expected { Severity::Warning } else { Severity::Info },
+            reason: if ragflow_expected {
+                "RAGFLOW_API_KEY is set".to_string()
+            } else {
+                "RAGFLOW_API_KEY not set".to_string()
+            },
+        });
+
+        // Speech service (environment-dependent)
+        let speech_expected = env_is_set("SPEECH_SERVICE_ENABLED");
+        report.add(ValidationItem {
+            name: "SpeechService".to_string(),
+            expected: speech_expected,
+            present: self.speech_service.is_some(),
+            severity: if speech_expected { Severity::Warning } else { Severity::Info },
+            reason: if speech_expected {
+                "SPEECH_SERVICE_ENABLED is set".to_string()
+            } else {
+                "SPEECH_SERVICE_ENABLED not set".to_string()
+            },
+        });
+
+        // Nostr service (set later via set_nostr_service)
+        report.add(ValidationItem {
+            name: "NostrService".to_string(),
+            expected: false,
+            present: self.nostr_service.is_some(),
+            severity: Severity::Info,
+            reason: "Set later via set_nostr_service()".to_string(),
+        });
+
+        // Ontology pipeline service
+        report.add(ValidationItem {
+            name: "OntologyPipelineService".to_string(),
+            expected: true,
+            present: self.ontology_pipeline_service.is_some(),
+            severity: Severity::Warning,
+            reason: "Required for semantic physics".to_string(),
+        });
+
+        report
     }
 
     pub fn increment_connections(&self) -> usize {
@@ -700,7 +788,7 @@ impl AppState {
         &self.client_manager_addr
     }
 
-    pub fn get_graph_service_addr(&self) -> &Addr<TransitionalGraphSupervisor> {
+    pub fn get_graph_service_addr(&self) -> &Addr<GraphServiceSupervisor> {
         &self.graph_service_addr
     }
 

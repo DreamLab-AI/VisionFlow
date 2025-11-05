@@ -25,7 +25,6 @@ pub mod graph;
 pub mod knowledge_graph;
 pub mod ontology;
 pub mod physics;
-pub mod services;
 pub mod settings;
 
 // Re-export settings domain
@@ -156,11 +155,7 @@ pub use graph::{
     GetPhysicsStateHandler,
 };
 
-// Re-export application services
-pub use services::{
-    GraphApplicationService, OntologyApplicationService, PhysicsApplicationService,
-    SettingsApplicationService,
-};
+// Application services removed - handlers use actors directly via CQRS or direct messaging
 
 // Phase 5: New hexagonal architecture services
 pub mod physics_service;

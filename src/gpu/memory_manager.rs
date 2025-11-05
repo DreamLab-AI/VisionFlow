@@ -249,14 +249,27 @@ impl<T: cust_core::DeviceCopy + Clone + Default> GpuBuffer<T> {
     /// Start async download to host (non-blocking)
     fn start_async_download(&mut self, stream: &Stream) -> Result<(), CudaError> {
         if !self.config.enable_async {
+            error!("Async transfers not enabled for buffer '{}'", self.name);
             return Err(CudaError::InvalidValue);
         }
 
         // Select target host buffer (ping-pong)
         let target_buffer = if self.current_host_buffer {
-            self.host_buffer_a.as_mut().expect("Expected value to be present")
+            match self.host_buffer_a.as_mut() {
+                Some(buf) => buf,
+                None => {
+                    error!("Host buffer A not initialized for async buffer '{}'", self.name);
+                    return Err(CudaError::InvalidValue);
+                }
+            }
         } else {
-            self.host_buffer_b.as_mut().expect("Expected value to be present")
+            match self.host_buffer_b.as_mut() {
+                Some(buf) => buf,
+                None => {
+                    error!("Host buffer B not initialized for async buffer '{}'", self.name);
+                    return Err(CudaError::InvalidValue);
+                }
+            }
         };
 
         // Start async copy from device to host
@@ -277,6 +290,7 @@ impl<T: cust_core::DeviceCopy + Clone + Default> GpuBuffer<T> {
     /// Wait for async download to complete and return data
     fn wait_for_download(&mut self) -> Result<Vec<T>, CudaError> {
         if !self.transfer_pending {
+            error!("No async transfer pending for buffer '{}'", self.name);
             return Err(CudaError::InvalidValue);
         }
 
@@ -287,9 +301,21 @@ impl<T: cust_core::DeviceCopy + Clone + Default> GpuBuffer<T> {
 
         // Get completed buffer
         let result_buffer = if self.current_host_buffer {
-            self.host_buffer_a.as_ref().expect("Expected value to be present")
+            match self.host_buffer_a.as_ref() {
+                Some(buf) => buf,
+                None => {
+                    error!("Host buffer A not initialized for buffer '{}'", self.name);
+                    return Err(CudaError::InvalidValue);
+                }
+            }
         } else {
-            self.host_buffer_b.as_ref().expect("Expected value to be present")
+            match self.host_buffer_b.as_ref() {
+                Some(buf) => buf,
+                None => {
+                    error!("Host buffer B not initialized for buffer '{}'", self.name);
+                    return Err(CudaError::InvalidValue);
+                }
+            }
         };
 
         // Flip buffers for next transfer
@@ -552,7 +578,6 @@ impl GpuMemoryManager {
 
     /// Get memory statistics
     pub fn stats(&self) -> MemoryStats {
-        let allocations = self.allocations.lock().expect("Mutex poisoned");
         let buffer_stats: Vec<BufferStats> = vec![]; // Would need to iterate type-erased buffers
 
         MemoryStats {
@@ -568,26 +593,33 @@ impl GpuMemoryManager {
 
     /// Check for memory leaks
     pub fn check_leaks(&self) -> Vec<String> {
-        let allocations = self.allocations.lock().expect("Mutex poisoned");
-        if allocations.is_empty() {
-            debug!("No GPU memory leaks detected");
-            return Vec::new();
-        }
+        match self.allocations.lock() {
+            Ok(allocations) => {
+                if allocations.is_empty() {
+                    debug!("No GPU memory leaks detected");
+                    return Vec::new();
+                }
 
-        let leaks: Vec<String> = allocations.keys().cloned().collect();
-        error!(
-            "GPU memory leaks detected: {} buffers still allocated",
-            leaks.len()
-        );
-        for (name, entry) in allocations.iter() {
-            error!(
-                "  Leaked buffer '{}': {} bytes (age: {:.2}s)",
-                name,
-                entry.size_bytes,
-                entry.timestamp.elapsed().as_secs_f32()
-            );
+                let leaks: Vec<String> = allocations.keys().cloned().collect();
+                error!(
+                    "GPU memory leaks detected: {} buffers still allocated",
+                    leaks.len()
+                );
+                for (name, entry) in allocations.iter() {
+                    error!(
+                        "  Leaked buffer '{}': {} bytes (age: {:.2}s)",
+                        name,
+                        entry.size_bytes,
+                        entry.timestamp.elapsed().as_secs_f32()
+                    );
+                }
+                leaks
+            }
+            Err(e) => {
+                error!("Lock poisoned while checking for leaks: {} - Cannot determine leak status", e);
+                Vec::new() // Return empty, cannot verify
+            }
         }
-        leaks
     }
 
     // Internal tracking methods

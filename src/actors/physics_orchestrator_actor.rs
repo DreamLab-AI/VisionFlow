@@ -14,6 +14,7 @@ use std::sync::{
 use std::time::{Duration, Instant};
 
 use crate::actors::messages::PositionSnapshot;
+use crate::actors::messaging::{MessageId, MessageTracker, MessageKind, MessageAck};
 use crate::errors::VisionFlowError;
 
 #[cfg(feature = "gpu")]
@@ -88,11 +89,14 @@ pub struct PhysicsOrchestratorActor {
     
     performance_metrics: PhysicsPerformanceMetrics,
 
-    
+
     ontology_constraints: Option<ConstraintSet>,
 
-    
+
     user_constraints: Option<ConstraintSet>,
+
+
+    message_tracker: MessageTracker,
 }
 
 ///
@@ -115,6 +119,10 @@ impl PhysicsOrchestratorActor {
     ) -> Self {
         let target_params = simulation_params.clone();
 
+        // H4: Initialize message tracker with background timeout checker
+        let tracker = MessageTracker::new();
+        tracker.start_timeout_checker();
+
         Self {
             simulation_running: AtomicBool::new(false),
             simulation_params,
@@ -129,7 +137,7 @@ impl PhysicsOrchestratorActor {
             last_step_time: None,
             #[cfg(feature = "gpu")]
             physics_stats: None,
-            param_interpolation_rate: 0.1, 
+            param_interpolation_rate: 0.1,
             auto_balance_last_check: None,
             force_resume_timer: None,
             last_node_count: 0,
@@ -137,6 +145,7 @@ impl PhysicsOrchestratorActor {
             performance_metrics: PhysicsPerformanceMetrics::default(),
             ontology_constraints: None,
             user_constraints: None,
+            message_tracker: tracker,
         }
     }
 
@@ -279,18 +288,34 @@ impl PhysicsOrchestratorActor {
             self.gpu_init_in_progress = true;
             info!("Initializing GPU compute for physics");
 
-            
+
             if let Some(ref graph_data) = self.graph_data_ref {
+                // H4: Track InitializeGPU message
+                let msg_id = MessageId::new();
+                let tracker = self.message_tracker.clone();
+                actix::spawn(async move {
+                    tracker.track_default(msg_id, MessageKind::InitializeGPU).await;
+                });
+
                 gpu_addr.do_send(InitializeGPU {
                     graph: Arc::clone(graph_data),
                     graph_service_addr: None,
                     physics_orchestrator_addr: Some(ctx.address()),
                     gpu_manager_addr: None,
+                    correlation_id: Some(msg_id),
                 });
 
-                
+                // H4: Track UpdateGPUGraphData message
+                let msg_id2 = MessageId::new();
+                let tracker2 = self.message_tracker.clone();
+                actix::spawn(async move {
+                    tracker2.track_default(msg_id2, MessageKind::UpdateGPUGraphData).await;
+                });
+
+
                 gpu_addr.do_send(UpdateGPUGraphData {
                     graph: Arc::clone(graph_data),
+                    correlation_id: Some(msg_id2),
                 });
 
                 // NOTE: Do NOT set gpu_initialized here!
@@ -657,11 +682,21 @@ impl PhysicsOrchestratorActor {
             gpu_constraints.len()
         );
 
-        
+
+
         if let Some(ref gpu_addr) = self.gpu_compute_addr {
             use crate::actors::messages::UploadConstraintsToGPU;
+
+            // H4: Track UploadConstraintsToGPU message
+            let msg_id = MessageId::new();
+            let tracker = self.message_tracker.clone();
+            actix::spawn(async move {
+                tracker.track_default(msg_id, MessageKind::UploadConstraintsToGPU).await;
+            });
+
             gpu_addr.do_send(UploadConstraintsToGPU {
                 constraint_data: gpu_constraints,
+                correlation_id: Some(msg_id),
             });
         }
     }
@@ -806,12 +841,21 @@ impl Handler<UpdateNodePositions> for PhysicsOrchestratorActor {
     type Result = Result<(), String>;
 
     fn handle(&mut self, _msg: UpdateNodePositions, _ctx: &mut Self::Context) -> Self::Result {
-        
+
+
         #[cfg(feature = "gpu")]
         if let Some(ref gpu_addr) = self.gpu_compute_addr {
             if let Some(ref graph_data) = self.graph_data_ref {
+                // H4: Track UpdateGPUGraphData message
+                let msg_id = MessageId::new();
+                let tracker = self.message_tracker.clone();
+                actix::spawn(async move {
+                    tracker.track_default(msg_id, MessageKind::UpdateGPUGraphData).await;
+                });
+
                 gpu_addr.do_send(UpdateGPUGraphData {
                     graph: Arc::clone(graph_data),
+                    correlation_id: Some(msg_id),
                 });
             }
         }
@@ -949,13 +993,22 @@ impl Handler<UpdateSimulationParams> for PhysicsOrchestratorActor {
             self.auto_balance_last_check = None;
         }
 
-        
+
+
         #[cfg(feature = "gpu")]
         if let Some(ref gpu_addr) = self.gpu_compute_addr {
             if self.gpu_initialized {
                 if let Some(ref graph_data) = self.graph_data_ref {
+                    // H4: Track UpdateGPUGraphData message
+                    let msg_id = MessageId::new();
+                    let tracker = self.message_tracker.clone();
+                    actix::spawn(async move {
+                        tracker.track_default(msg_id, MessageKind::UpdateGPUGraphData).await;
+                    });
+
                     gpu_addr.do_send(UpdateGPUGraphData {
                         graph: Arc::clone(graph_data),
+                        correlation_id: Some(msg_id),
                     });
                 }
             }
@@ -1105,6 +1158,21 @@ impl Handler<SetOntologyActor> for PhysicsOrchestratorActor {
 
     fn handle(&mut self, msg: SetOntologyActor, _ctx: &mut Self::Context) -> Self::Result {
         self.set_ontology_actor(msg.addr);
+    }
+}
+
+/// H4: Handler for message acknowledgments
+impl Handler<MessageAck> for PhysicsOrchestratorActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: MessageAck, _ctx: &mut Self::Context) -> Self::Result {
+        // Process acknowledgment asynchronously to avoid blocking
+        let tracker = &self.message_tracker;
+        let tracker_clone = tracker.clone();
+
+        actix::spawn(async move {
+            tracker_clone.acknowledge(msg).await;
+        });
     }
 }
 
