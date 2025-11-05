@@ -26,6 +26,7 @@ pub mod types;
 // Import utils with macro_use to make response macros available everywhere
 #[macro_use]
 pub mod utils;
+pub mod validation;
 
 // #[cfg(test)]
 // pub mod test_settings_fix;

@@ -579,7 +579,140 @@ impl AppState {
             client_message_tx,
             client_message_rx: Arc::new(tokio::sync::Mutex::new(client_message_rx)),
             ontology_pipeline_service,
-        })
+        });
+
+        // Validate optional actor addresses
+        info!("[AppState::new] Validating actor initialization");
+        let validation_report = state.validate();
+        validation_report.log();
+
+        if !validation_report.is_valid() {
+            return Err(format!("AppState validation failed: {:?}", validation_report.errors).into());
+        }
+
+        info!("[AppState::new] ✅ All validation checks passed");
+
+        Ok(state)
+    }
+
+    /// Validate that all optional actors and services are properly initialized
+    /// based on feature flags and environment configuration.
+    pub fn validate(&self) -> crate::validation::ValidationReport {
+        use crate::validation::*;
+        let mut report = ValidationReport::new();
+
+        // GPU-related actors (feature-gated)
+        #[cfg(feature = "gpu")]
+        {
+            report.add(ValidationItem {
+                name: "GPUManagerActor".to_string(),
+                expected: true,
+                present: self.gpu_manager_addr.is_some(),
+                severity: Severity::Warning,
+                reason: "GPU feature is enabled".to_string(),
+            });
+
+            report.add(ValidationItem {
+                name: "gpu_compute_addr".to_string(),
+                expected: false,
+                present: self.gpu_compute_addr.is_some(),
+                severity: Severity::Info,
+                reason: "Initialized after GPU manager starts".to_string(),
+            });
+
+            report.add(ValidationItem {
+                name: "stress_majorization_addr".to_string(),
+                expected: false,
+                present: self.stress_majorization_addr.is_some(),
+                severity: Severity::Info,
+                reason: "Initialized after GPU manager starts".to_string(),
+            });
+        }
+
+        // Ontology actor (feature-gated)
+        #[cfg(feature = "ontology")]
+        {
+            report.add(ValidationItem {
+                name: "OntologyActor".to_string(),
+                expected: true,
+                present: self.ontology_actor_addr.is_some(),
+                severity: Severity::Warning,
+                reason: "Ontology feature is enabled".to_string(),
+            });
+        }
+
+        #[cfg(not(feature = "ontology"))]
+        {
+            report.add(ValidationItem {
+                name: "OntologyActor".to_string(),
+                expected: false,
+                present: self.ontology_actor_addr.is_some(),
+                severity: Severity::Info,
+                reason: "Ontology feature is disabled".to_string(),
+            });
+        }
+
+        // Perplexity service (environment-dependent)
+        let perplexity_expected = env_is_set("PERPLEXITY_API_KEY");
+        report.add(ValidationItem {
+            name: "PerplexityService".to_string(),
+            expected: perplexity_expected,
+            present: self.perplexity_service.is_some(),
+            severity: if perplexity_expected { Severity::Warning } else { Severity::Info },
+            reason: if perplexity_expected {
+                "PERPLEXITY_API_KEY is set".to_string()
+            } else {
+                "PERPLEXITY_API_KEY not set".to_string()
+            },
+        });
+
+        // RAGFlow service (environment-dependent)
+        let ragflow_expected = env_is_set("RAGFLOW_API_KEY");
+        report.add(ValidationItem {
+            name: "RAGFlowService".to_string(),
+            expected: ragflow_expected,
+            present: self.ragflow_service.is_some(),
+            severity: if ragflow_expected { Severity::Warning } else { Severity::Info },
+            reason: if ragflow_expected {
+                "RAGFLOW_API_KEY is set".to_string()
+            } else {
+                "RAGFLOW_API_KEY not set".to_string()
+            },
+        });
+
+        // Speech service (environment-dependent)
+        let speech_expected = env_is_set("SPEECH_SERVICE_ENABLED");
+        report.add(ValidationItem {
+            name: "SpeechService".to_string(),
+            expected: speech_expected,
+            present: self.speech_service.is_some(),
+            severity: if speech_expected { Severity::Warning } else { Severity::Info },
+            reason: if speech_expected {
+                "SPEECH_SERVICE_ENABLED is set".to_string()
+            } else {
+                "SPEECH_SERVICE_ENABLED not set".to_string()
+            },
+        });
+
+        // Nostr service (set later via set_nostr_service)
+        report.add(ValidationItem {
+            name: "NostrService".to_string(),
+            expected: false,
+            present: self.nostr_service.is_some(),
+            severity: Severity::Info,
+            reason: "Set later via set_nostr_service()".to_string(),
+        });
+
+        // Ontology pipeline service
+        report.add(ValidationItem {
+            name: "OntologyPipelineService".to_string(),
+            expected: true,
+            present: self.ontology_pipeline_service.is_some(),
+            severity: Severity::Warning,
+            reason: "Required for semantic physics".to_string(),
+        });
+
+        report
     }
 
     pub fn increment_connections(&self) -> usize {
