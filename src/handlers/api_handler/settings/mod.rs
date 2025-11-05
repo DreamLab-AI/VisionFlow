@@ -367,11 +367,12 @@ pub async fn load_profile(
 ///
 /// SECURITY: Settings endpoints require authentication (read-only public, write requires auth)
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
-    use crate::middleware::RequireAuth;
+    use crate::middleware::{RateLimit, RequireAuth};
 
     cfg.service(
         web::scope("/settings")
-            // Read operations - public
+            .wrap(RateLimit::per_minute(100))  // Rate limit: 100 requests/min for public reads
+            // Read operations - public with rate limiting
             .route("/physics", web::get().to(get_physics_settings))
             .route("/constraints", web::get().to(get_constraint_settings))
             .route("/rendering", web::get().to(get_rendering_settings))
@@ -381,6 +382,7 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     .service(
         web::scope("/settings")
             .wrap(RequireAuth::authenticated())  // Write operations require auth
+            .wrap(RateLimit::per_minute(30))     // Rate limit: 30 requests/min for writes
             .route("/physics", web::put().to(update_physics_settings))
             .route("/constraints", web::put().to(update_constraint_settings))
             .route("/rendering", web::put().to(update_rendering_settings))

@@ -455,11 +455,12 @@ pub async fn get_auto_balance_notifications(
 // Configure routes using snake_case
 /// SECURITY: Graph mutation operations require authentication
 pub fn config(cfg: &mut web::ServiceConfig) {
-    use crate::middleware::RequireAuth;
+    use crate::middleware::{RateLimit, RequireAuth};
 
     cfg.service(
         web::scope("/graph")
-            // Read operations - require authentication
+            .wrap(RateLimit::per_minute(100))  // Rate limit: 100 requests/min for public reads
+            // Read operations - public with rate limiting
             .route("/data", web::get().to(get_graph_data))
             .route("/data/paginated", web::get().to(get_paginated_graph_data))
             .route(
@@ -470,6 +471,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     .service(
         web::scope("/graph")
             .wrap(RequireAuth::authenticated())  // Write operations require auth
+            .wrap(RateLimit::per_minute(60))     // Rate limit: 60 requests/min for writes
             .route("/update", web::post().to(update_graph))
             .route("/refresh", web::post().to(refresh_graph))
     );
