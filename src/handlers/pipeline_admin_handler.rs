@@ -148,7 +148,7 @@ pub async fn trigger_pipeline(
 
     info!("[{}] Pipeline triggered successfully", correlation_id);
 
-    ok_json!(response))
+    ok_json!(response)
 }
 
 /// GET /api/admin/pipeline/status

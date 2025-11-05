@@ -303,8 +303,8 @@ async fn main() -> std::io::Result<()> {
 
     info!("Skipping bots orchestrator connection during startup (will connect on-demand)");
 
-    
-    info!("Loading ontology graph from unified.db...");
+
+    info!("Loading ontology graph from Neo4j...");
 
     let graph_data_option = match app_state.ontology_repository.load_ontology_graph().await {
         Ok(graph_arc) => {
