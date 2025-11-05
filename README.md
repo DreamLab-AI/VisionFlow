@@ -172,6 +172,43 @@ Transform static OWL definitions into intelligent, self-organizing 3D knowledge 
 
 **[📖 Complete Reasoning Guide](docs/ontology-reasoning.md)**
 
+### 🎨 GPU-Accelerated Semantic Forces
+Transform graph layouts from generic force-directed networks into **semantically meaningful visualizations** where forces convey information about relationships, hierarchies, and node types.
+
+- **DAG Hierarchical Layout**: Automatic parent-child positioning (top-down, radial, left-right)
+- **Type-Based Clustering**: Groups nodes by semantic type (person, organization, project)
+- **Collision Detection**: Prevents overlap with semantic-aware radii
+- **Attribute-Weighted Springs**: Edge forces based on relationship strength
+- **50x GPU speedup** over CPU implementations
+- **CUDA kernels** for real-time semantic physics
+
+**[📖 Semantic Forces Guide](docs/features/semantic-forces.md)**
+
+### 💬 Natural Language Graph Queries
+Query your knowledge graph using **plain English** instead of learning Cypher. LLM-powered translation with schema awareness generates accurate, safe queries automatically.
+
+- **Schema-aware query generation** using live graph metadata
+- **Multi-query suggestions** for ambiguous input
+- **Confidence scoring** with explanations
+- **Query validation** prevents dangerous operations
+- **Reverse translation**: Explain Cypher in plain English
+- **Example library** for common query patterns
+
+**[📖 Natural Language Queries Tutorial](docs/features/natural-language-queries.md)**
+
+### 🧭 Intelligent Semantic Pathfinding
+Find paths that are not just shortest, but **most semantically relevant** to your query and graph structure.
+
+- **Semantic Path (Enhanced A*)**: Shortest path with relevance weighting
+  - Edge weight factor, type compatibility, query relevance
+- **Query-Guided Traversal**: BFS prioritizing query-matching nodes
+  - Keyword matching in labels and metadata
+- **Chunk Traversal**: Local neighborhood exploration by similarity
+- **<100ms pathfinding** for 10K+ node graphs
+- **Configurable balance** between distance and relevance
+
+**[📖 Intelligent Pathfinding Guide](docs/features/intelligent-pathfinding.md)**
+
 ### ⚡ GPU-Accelerated Performance
 **39 production CUDA kernels** deliver 100x CPU speedup for physics simulation, clustering, and pathfinding—enabling 60 FPS rendering at 100k+ nodes with sub-10ms latency.
 
@@ -966,6 +1003,14 @@ VisionFlow is built on the shoulders of giants. We are grateful to:
 - **The Three.js Team** for world-class 3D rendering
 - **Logseq** for markdown-based knowledge management
 - **The Open Source Community** for countless libraries and tools
+
+### Research & Inspiration
+
+VisionFlow's semantic features build upon groundbreaking open-source research:
+
+- **[3d-force-graph](https://github.com/vasturiano/3d-force-graph)** by Vasco Asturiano - Pioneering force-directed graph visualization techniques including DAG layouts, collision detection, and attribute-driven physics that inspired our GPU-accelerated semantic forces
+- **[graph_RAG](https://github.com/nemegrod/graph_RAG)** by nemegrod - Natural language to SPARQL/Cypher translation patterns and schema-aware query generation that enabled our LLM-powered query system
+- **[Knowledge Graph Traversal for Semantic RAG](https://github.com/glacier-creative-git/knowledge-graph-traversal-semantic-rag-research)** by Glacier Creative - Query-guided and chunk-based traversal algorithms that power our intelligent pathfinding system
 
 Special thanks to all [contributors](CONTRIBUTORS.md) who have helped shape VisionFlow.
 
