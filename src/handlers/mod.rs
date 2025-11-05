@@ -6,8 +6,9 @@ pub mod bots_visualization_handler;
 pub mod client_log_handler;
 pub mod client_messages_handler;
 pub mod clustering_handler;
-pub mod consolidated_health_handler; 
+pub mod consolidated_health_handler;
 pub mod constraints_handler;
+pub mod cypher_query_handler;
 pub mod graph_export_handler;
 pub mod graph_state_handler; 
                              
@@ -17,6 +18,7 @@ pub mod nostr_handler;
 pub mod ontology_handler; 
 pub mod pages_handler;
 pub mod perplexity_handler;
+pub mod pipeline_admin_handler;
 pub mod ragflow_handler;
 pub mod realtime_websocket_handler;
 pub mod settings_handler; 
@@ -32,9 +34,11 @@ pub mod workspace_handler;
 
 // Phase 5: Hexagonal architecture handlers
 pub mod physics_handler;
+pub mod schema_handler;
 pub mod semantic_handler;
 
 pub use physics_handler::configure_routes as configure_physics_routes;
+pub use schema_handler::configure_schema_routes;
 pub use semantic_handler::configure_routes as configure_semantic_routes;
 
 // Phase 7: Inference handler

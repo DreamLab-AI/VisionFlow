@@ -22,6 +22,7 @@ pub mod owl_validator;
 // pub mod owl_extractor_service; // Deprecated - functionality merged into owl_validator
 pub mod perplexity_service;
 pub mod ragflow_service;
+pub mod schema_service;
 pub mod semantic_analyzer;
 pub mod settings_watcher;
 pub mod speech_service;

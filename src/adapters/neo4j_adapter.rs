@@ -116,7 +116,21 @@ impl Neo4jAdapter {
             warn!("Failed to create OWL index (may already exist): {}", e);
         }
 
-        info!("✅ Neo4j schema created successfully");
+        // Create index on node_type for semantic force filtering
+        let node_type_index_query = Query::new("CREATE INDEX graph_node_type IF NOT EXISTS FOR (n:GraphNode) ON (n.node_type)".to_string());
+
+        if let Err(e) = self.graph.run(node_type_index_query).await {
+            warn!("Failed to create node_type index (may already exist): {}", e);
+        }
+
+        // Create index on edge relation_type for semantic pathfinding
+        let edge_type_index_query = Query::new("CREATE INDEX edge_relation_type IF NOT EXISTS FOR ()-[r:EDGE]-() ON (r.relation_type)".to_string());
+
+        if let Err(e) = self.graph.run(edge_type_index_query).await {
+            warn!("Failed to create edge relation_type index (may already exist): {}", e);
+        }
+
+        info!("✅ Neo4j schema created successfully with semantic type indexes");
         Ok(())
     }
 

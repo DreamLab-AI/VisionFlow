@@ -275,14 +275,19 @@ async fn main() -> std::io::Result<()> {
     ));
     info!("[main] GitHub Sync Service initialized");
 
-    
-    
+    // Initialize SchemaService for natural language query support
+    info!("[main] Initializing Schema Service...");
+    let schema_service = Arc::new(webxr::services::schema_service::SchemaService::new());
+    info!("[main] Schema Service initialized");
 
-    
-    
 
-    
-    
+
+
+
+
+
+
+
     info!("Skipping bots orchestrator connection during startup (will connect on-demand)");
 
     
@@ -396,6 +401,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(app_state_data.metadata_addr.clone()))
             .app_data(web::Data::new(app_state_data.client_manager_addr.clone()))
             .app_data(web::Data::new(app_state_data.workspace_addr.clone()))
+            .app_data(web::Data::new(schema_service.clone()))
             .app_data(app_state_data.nostr_service.clone().unwrap_or_else(|| web::Data::new(NostrService::default())))
             .app_data(app_state_data.feature_access.clone())
             .app_data(web::Data::new(github_sync_service.clone()))
@@ -419,6 +425,7 @@ async fn main() -> std::io::Result<()> {
 
                     // Phase 5: Hexagonal architecture handlers
                     .configure(webxr::handlers::configure_physics_routes)
+                    .configure(webxr::handlers::configure_schema_routes)
                     .configure(webxr::handlers::configure_semantic_routes)
                     .configure(webxr::handlers::configure_inference_routes)
 
