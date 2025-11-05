@@ -180,3 +180,4 @@ agentdb.db-shm
 multi-agent-docker/gui-tools-assets/blender-*.tar.xz
 .claude/
 .swarm/memory.db-shm
+.swarm/memory.db-shm
