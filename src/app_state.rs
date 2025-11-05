@@ -48,8 +48,8 @@ use tokio::time::Duration;
 
 // Repository trait imports for hexagonal architecture
 use crate::adapters::neo4j_settings_repository::Neo4jSettingsRepository;
+use crate::adapters::neo4j_ontology_repository::{Neo4jOntologyRepository, Neo4jOntologyConfig};
 use crate::ports::settings_repository::SettingsRepository;
-use crate::repositories::UnifiedOntologyRepository;
 
 // CQRS Phase 1D: Graph query handlers struct
 #[derive(Clone)]
@@ -80,7 +80,8 @@ pub struct AppState {
     // Neo4j is now the primary knowledge graph repository
     pub neo4j_adapter: Arc<Neo4jAdapter>,
 
-    pub ontology_repository: Arc<UnifiedOntologyRepository>,
+    // Neo4j ontology repository (replaces UnifiedOntologyRepository)
+    pub ontology_repository: Arc<Neo4jOntologyRepository>,
 
     pub graph_repository: Arc<ActorGraphRepository>,
     pub graph_query_handlers: GraphQueryHandlers,
@@ -139,15 +140,15 @@ impl AppState {
                 .map_err(|e| format!("Failed to create Neo4j settings repository: {}", e))?,
         );
 
-        info!("[AppState::new] Creating unified ontology repository in blocking context...");
-        let ontology_repository: Arc<UnifiedOntologyRepository> =
-            tokio::task::spawn_blocking(|| UnifiedOntologyRepository::new("data/unified.db"))
+        info!("[AppState::new] Creating Neo4j ontology repository...");
+        let ontology_config = Neo4jOntologyConfig::default();
+        let ontology_repository: Arc<Neo4jOntologyRepository> = Arc::new(
+            Neo4jOntologyRepository::new(ontology_config)
                 .await
-                .map_err(|e| format!("Failed to spawn blocking task: {}", e))?
-                .map_err(|e| format!("Failed to create unified ontology repository: {}", e))
-                .map(Arc::new)?;
+                .map_err(|e| format!("Failed to create Neo4j ontology repository: {}", e))?,
+        );
 
-        info!("[AppState::new] Repository adapters initialized successfully (via spawn_blocking)");
+        info!("[AppState::new] Neo4j ontology repository initialized successfully");
         info!("[AppState::new] Database and settings service initialized successfully");
         info!(
             "[AppState::new] IMPORTANT: UI now connects directly to database via SettingsService"

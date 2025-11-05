@@ -184,7 +184,7 @@ use crate::utils::json::{from_json, to_json};
         Ok(Err(e)) => {
             warn!("❌ Cypher query failed: {}", e);
             HttpResponse::BadRequest().json(ErrorResponse {
-                error: "Internal server error".to_string(),
+                error: "Query Failed".to_string(),
                 message: format!("Failed to execute query: {}", e),
             })
         }
