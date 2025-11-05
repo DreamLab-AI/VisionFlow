@@ -367,17 +367,10 @@ impl AppState {
             
             tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
 
-            
-            if let Ok(Some(graph_actor)) = graph_supervisor_clone
-                .send(crate::actors::messages::GetGraphStateActor)
-                .await
-            {
-                info!("Retrieved GraphServiceActor from supervisor, setting in ClientManagerActor");
-                client_manager_clone
-                    .do_send(crate::actors::messages::SetGraphServiceAddress { addr: graph_actor });
-            } else {
-                warn!("Could not retrieve GraphServiceActor from supervisor");
-            }
+            // Set the GraphServiceSupervisor address in ClientManagerActor
+            info!("Setting GraphServiceSupervisor address in ClientManagerActor");
+            client_manager_clone
+                .do_send(crate::actors::messages::SetGraphServiceAddress { addr: graph_supervisor_clone.clone() });
         });
 
         
@@ -535,7 +528,7 @@ impl AppState {
         let (client_message_tx, client_message_rx) = mpsc::unbounded_channel::<ClientMessage>();
         info!("[AppState::new] Client message channel created");
 
-        Ok(Self {
+        let state = Self {
             graph_service_addr,
             #[cfg(feature = "gpu")]
             gpu_manager_addr,
@@ -580,7 +573,7 @@ impl AppState {
             client_message_tx,
             client_message_rx: Arc::new(tokio::sync::Mutex::new(client_message_rx)),
             ontology_pipeline_service,
-        });
+        };
 
         // Validate optional actor addresses
         info!("[AppState::new] Validating actor initialization");

@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 use crate::services::natural_language_query_service::{
-    NaturalLanguageQueryService, QueryTranslation, QueryPatterns
+    NaturalLanguageQueryService, QueryTranslation as CypherTranslation, QueryPatterns
 };
 
 // Response macros
@@ -31,7 +31,7 @@ pub struct NaturalLanguageQueryRequest {
 #[serde(rename_all = "camelCase")]
 pub struct QueryTranslationResponse {
     /// Translated query/queries
-    pub translations: Vec<QueryTranslation>,
+    pub translations: Vec<CypherTranslation>,
     /// Example queries for reference
     #[serde(skip_serializing_if = "Option::is_none")]
     pub examples: Option<Vec<ExampleQuery>>,
@@ -108,6 +108,7 @@ pub async fn translate_query(
             .map(|t| vec![t])
     };
 
+    let result: Result<Vec<CypherTranslation>, String> = result;
     match result {
         Ok(translations) => {
             let response = QueryTranslationResponse {
@@ -140,7 +141,7 @@ pub async fn translate_query(
 ///   ]
 /// }
 /// ```
-pub async fn get_examples() -> impl Responder {
+pub async fn get_examples() -> Result<HttpResponse, actix_web::Error> {
     debug!("Retrieving example queries");
 
     let examples: Vec<ExampleQuery> = QueryPatterns::examples()
@@ -178,7 +179,7 @@ pub async fn get_examples() -> impl Responder {
 pub async fn explain_cypher(
     nl_service: web::Data<Arc<NaturalLanguageQueryService>>,
     request: web::Json<ExplainCypherRequest>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     debug!("Explaining Cypher query");
 
     // Validate syntax first
@@ -223,10 +224,11 @@ pub async fn explain_cypher(
 pub async fn validate_cypher(
     nl_service: web::Data<Arc<NaturalLanguageQueryService>>,
     request: web::Json<ExplainCypherRequest>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     debug!("Validating Cypher query");
 
-    match nl_service.validate_cypher(&request.cypher) {
+    let validation_result: Result<(), String> = nl_service.validate_cypher(&request.cypher);
+    match validation_result {
         Ok(()) => {
             ok_json!(serde_json::json!({
                 "valid": true,

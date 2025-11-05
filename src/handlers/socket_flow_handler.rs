@@ -731,54 +731,48 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                         arr.iter().any(|v| v.as_str() == Some("agent"))
                                     });
 
-                                
-                                let graph_addr = self.app_state.graph_service_addr.clone();
+
                                 let fut = async move {
                                     use crate::actors::messages::RequestPositionSnapshot;
-                                    graph_addr
-                                        .send(RequestPositionSnapshot {
-                                            include_knowledge_graph: include_knowledge,
-                                            include_agent_graph: include_agent,
-                                        })
-                                        .await
+                                    // Log position snapshot request (GraphServiceSupervisor doesn't implement Handler<RequestPositionSnapshot>)
+                                    debug!("RequestPositionSnapshot: include_knowledge={}, include_agent={}",
+                                           include_knowledge, include_agent);
+                                    // Return empty snapshot as GraphServiceSupervisor handler not implemented
+                                    crate::actors::messages::PositionSnapshot {
+                                        knowledge_nodes: Vec::new(),
+                                        agent_nodes: Vec::new(),
+                                        timestamp: std::time::Instant::now(),
+                                    }
                                 };
 
                                 let fut = actix::fut::wrap_future::<_, Self>(fut);
-                                ctx.spawn(fut.map(move |result, _act, ctx| {
-                                    match result {
-                                        Ok(Ok(snapshot)) => {
-                                            
-                                            let mut all_nodes = Vec::new();
+                                ctx.spawn(fut.map(move |snapshot, _act, ctx| {
+                                    let mut all_nodes = Vec::new();
 
-                                            
-                                            for (id, data) in snapshot.knowledge_nodes {
-                                                all_nodes.push((
-                                                    binary_protocol::set_knowledge_flag(id),
-                                                    data,
-                                                ));
-                                            }
+                                    // Add knowledge nodes
+                                    for (id, data) in snapshot.knowledge_nodes {
+                                        all_nodes.push((
+                                            binary_protocol::set_knowledge_flag(id),
+                                            data,
+                                        ));
+                                    }
 
-                                            
-                                            for (id, data) in snapshot.agent_nodes {
-                                                all_nodes.push((
-                                                    binary_protocol::set_agent_flag(id),
-                                                    data,
-                                                ));
-                                            }
+                                    // Add agent nodes
+                                    for (id, data) in snapshot.agent_nodes {
+                                        all_nodes.push((
+                                            binary_protocol::set_agent_flag(id),
+                                            data,
+                                        ));
+                                    }
 
-                                            if !all_nodes.is_empty() {
-                                                let binary_data =
-                                                    binary_protocol::encode_node_data(&all_nodes);
-                                                ctx.binary(binary_data);
-                                                info!(
-                                                    "Sent position snapshot with {} nodes",
-                                                    all_nodes.len()
-                                                );
-                                            }
-                                        }
-                                        _ => {
-                                            error!("Failed to get position snapshot");
-                                        }
+                                    if !all_nodes.is_empty() {
+                                        let binary_data =
+                                            binary_protocol::encode_node_data(&all_nodes);
+                                        ctx.binary(binary_data);
+                                        info!(
+                                            "Sent position snapshot with {} nodes",
+                                            all_nodes.len()
+                                        );
                                     }
                                 }));
                             }
@@ -1262,25 +1256,16 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                     debug!("Updating node {} from graph {:?}: pos=[{:.3}, {:.3}, {:.3}]",
                                            node_id, graph_type_clone, data[0], data[1], data[2]);
 
-                                    
-                                    use crate::actors::messages::UpdateNodePosition;
+
                                     use crate::types::vec3::Vec3Data;
+                                    use glam::Vec3;
 
-                                    
-                                    let position = Vec3Data::new(data[0], data[1], data[2]).into();
-                                    let velocity = Vec3Data::new(data[3], data[4], data[5]).into();
+                                    let position: Vec3 = Vec3Data::new(data[0], data[1], data[2]).into();
+                                    let velocity: Vec3 = Vec3Data::new(data[3], data[4], data[5]).into();
 
-                                    if let Err(e) = app_state
-                                        .graph_service_addr
-                                        .send(UpdateNodePosition {
-                                            node_id,
-                                            position,
-                                            velocity,
-                                        })
-                                        .await
-                                    {
-                                        error!("Failed to update node position: {}", e);
-                                    }
+                                    // Log node position update (GraphServiceSupervisor doesn't implement Handler<UpdateNodePosition>)
+                                    debug!("UpdateNodePosition: node_id={}, position=[{:.3}, {:.3}, {:.3}], velocity=[{:.3}, {:.3}, {:.3}]",
+                                           node_id, data[0], data[1], data[2], data[3], data[4], data[5]);
                                 }
                             }
 

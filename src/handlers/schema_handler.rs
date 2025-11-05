@@ -79,13 +79,13 @@ pub async fn get_schema(
 
     // Get current graph from actor
     let graph_result = graph_state_actor
-        .send(crate::actors::graph_messages::GetGraphState)
+        .send(crate::actors::messages::GetGraphData)
         .await;
 
     match graph_result {
-        Ok(Ok(graph_state)) => {
-            // Update schema from current graph
-            schema_service.update_schema(&graph_state.graph).await;
+        Ok(Ok(graph_data)) => {
+            // Update schema from current graph - graph_data is Arc<GraphData>
+            schema_service.update_schema(&graph_data).await;
 
             // Get schema and LLM context
             let schema = schema_service.get_schema().await;
@@ -100,7 +100,7 @@ pub async fn get_schema(
             ok_json!(response)
         }
         Ok(Err(e)) => {
-            error_json!("Failed to get graph state", e.to_string())
+            error_json!("Failed to retrieve graph data", e.to_string())
         }
         Err(e) => {
             error_json!("Actor communication error", e.to_string())
@@ -160,7 +160,7 @@ pub async fn get_llm_context(
 /// ```
 pub async fn get_node_types(
     schema_service: web::Data<Arc<SchemaService>>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     debug!("Retrieving node types");
 
     let schema = schema_service.get_schema().await;
@@ -190,7 +190,7 @@ pub async fn get_node_types(
 /// ```
 pub async fn get_edge_types(
     schema_service: web::Data<Arc<SchemaService>>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     debug!("Retrieving edge types");
 
     let schema = schema_service.get_schema().await;
@@ -219,11 +219,12 @@ pub async fn get_edge_types(
 pub async fn get_node_type_info(
     schema_service: web::Data<Arc<SchemaService>>,
     path: web::Path<String>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     let node_type = path.into_inner();
     debug!("Retrieving info for node type: {}", node_type);
 
-    match schema_service.get_node_type_info(&node_type).await {
+    let type_info: Option<usize> = schema_service.get_node_type_info(&node_type).await;
+    match type_info {
         Some(count) => {
             let response = NodeTypeResponse {
                 node_type: node_type.clone(),
@@ -253,11 +254,12 @@ pub async fn get_node_type_info(
 pub async fn get_edge_type_info(
     schema_service: web::Data<Arc<SchemaService>>,
     path: web::Path<String>,
-) -> impl Responder {
+) -> Result<HttpResponse, actix_web::Error> {
     let edge_type = path.into_inner();
     debug!("Retrieving info for edge type: {}", edge_type);
 
-    match schema_service.get_edge_type_info(&edge_type).await {
+    let type_info: Option<usize> = schema_service.get_edge_type_info(&edge_type).await;
+    match type_info {
         Some(count) => {
             let response = EdgeTypeResponse {
                 edge_type: edge_type.clone(),

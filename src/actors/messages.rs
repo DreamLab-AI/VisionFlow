@@ -627,7 +627,7 @@ pub struct InitialClientSync {
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct SetGraphServiceAddress {
-    pub addr: actix::Addr<crate::actors::graph_state_actor::GraphStateActor>,
+    pub addr: actix::Addr<crate::actors::GraphServiceSupervisor>,
 }
 
 // Message to get the GraphStateActor from GraphServiceSupervisor
@@ -967,7 +967,7 @@ pub struct SystemMetrics {
 #[rtype(result = "Result<(), String>")]
 pub struct InitializeGPU {
     pub graph: std::sync::Arc<ModelsGraphData>,
-    pub graph_service_addr: Option<Addr<crate::actors::graph_state_actor::GraphStateActor>>,
+    pub graph_service_addr: Option<Addr<crate::actors::GraphServiceSupervisor>>,
     pub physics_orchestrator_addr: Option<Addr<crate::actors::physics_orchestrator_actor::PhysicsOrchestratorActor>>,
     pub gpu_manager_addr: Option<Addr<crate::actors::GPUManagerActor>>,
     /// Optional correlation ID for message tracking (H4)
@@ -984,7 +984,7 @@ pub struct GPUInitialized;
 #[rtype(result = "Result<(), String>")]
 pub struct SetSharedGPUContext {
     pub context: std::sync::Arc<crate::actors::gpu::shared::SharedGPUContext>,
-    pub graph_service_addr: Option<Addr<crate::actors::graph_state_actor::GraphStateActor>>,
+    pub graph_service_addr: Option<Addr<crate::actors::GraphServiceSupervisor>>,
     /// Optional correlation ID for message tracking (H4)
     pub correlation_id: Option<MessageId>,
 }

@@ -175,8 +175,8 @@ pub struct ClientCoordinatorActor {
     
     initial_positions_sent: bool,
 
-    
-    graph_service_addr: Option<Addr<crate::actors::graph_actor::GraphServiceActor>>,
+
+    graph_service_addr: Option<Addr<crate::actors::GraphServiceSupervisor>>,
 
     
     position_cache: HashMap<u32, BinaryNodeDataClient>,
@@ -299,7 +299,7 @@ impl ClientCoordinatorActor {
                 Ok(manager) => manager,
                 Err(e) => {
                     error!("RwLock error: {}", e);
-                    return;
+                    return Err(format!("Failed to acquire client manager lock: {}", e));
                 }
             };
                 manager.broadcast_to_all(encoded.clone())
@@ -327,18 +327,18 @@ impl ClientCoordinatorActor {
                 position_data.push(*node_data);
             }
 
-            
+
             let binary_data = self.serialize_positions(&position_data);
 
-            
+
             if self.check_bandwidth_available(binary_data.len()) {
-                
+
                 let client_count = {
                     let manager = match handle_rwlock_error(self.client_manager.read()) {
                 Ok(manager) => manager,
                 Err(e) => {
                     error!("RwLock error: {}", e);
-                    return;
+                    return Err(format!("Failed to acquire client manager lock: {}", e));
                 }
             };
                     manager.broadcast_to_all(binary_data.clone())
@@ -363,10 +363,10 @@ impl ClientCoordinatorActor {
         Ok(total_sent)
     }
 
-    
+
     pub fn set_graph_service_addr(
         &mut self,
-        addr: Addr<crate::actors::graph_actor::GraphServiceActor>,
+        addr: Addr<crate::actors::GraphServiceSupervisor>,
     ) {
         self.graph_service_addr = Some(addr);
         debug!("Graph service address set in client coordinator");
@@ -405,7 +405,7 @@ impl ClientCoordinatorActor {
                 Ok(manager) => manager,
                 Err(e) => {
                     error!("RwLock error: {}", e);
-                    return;
+                    return false;
                 }
             };
             manager.get_client_count()
@@ -433,19 +433,19 @@ impl ClientCoordinatorActor {
         
         let binary_data = self.serialize_positions(&position_data);
 
-        
+
         let broadcast_count = {
             let manager = match handle_rwlock_error(self.client_manager.read()) {
                 Ok(manager) => manager,
                 Err(e) => {
                     error!("RwLock error: {}", e);
-                    return;
+                    return false;
                 }
             };
             manager.broadcast_to_all(binary_data.clone())
         };
 
-        
+
         self.broadcast_count += 1;
         self.bytes_sent += binary_data.len() as u64;
         self.last_broadcast = Instant::now();
@@ -525,7 +525,7 @@ impl ClientCoordinatorActor {
                 Ok(manager) => manager,
                 Err(e) => {
                     error!("RwLock error: {}", e);
-                    return;
+                    return Err(format!("Failed to acquire client manager lock: {}", e));
                 }
             };
             manager.get_client_count()
@@ -555,19 +555,19 @@ impl ClientCoordinatorActor {
         
         let binary_data = self.serialize_positions(&position_data);
 
-        
+
         let broadcast_count = {
             let manager = match handle_rwlock_error(self.client_manager.read()) {
                 Ok(manager) => manager,
                 Err(e) => {
                     error!("RwLock error: {}", e);
-                    return;
+                    return Err(format!("Failed to acquire client manager lock: {}", e));
                 }
             };
             manager.broadcast_to_all(binary_data.clone())
         };
 
-        
+
         self.broadcast_count += 1;
         self.bytes_sent += binary_data.len() as u64;
         self.last_broadcast = Instant::now();
@@ -674,7 +674,16 @@ impl ClientCoordinatorActor {
                 Ok(manager) => manager,
                 Err(e) => {
                     error!("RwLock error: {}", e);
-                    return;
+                    return ClientCoordinatorStats {
+                        active_clients: 0,
+                        total_broadcasts: self.broadcast_count,
+                        bytes_sent: self.bytes_sent,
+                        force_broadcasts: self.force_broadcast_requests,
+                        position_cache_size: self.position_cache.len(),
+                        initial_positions_sent: self.initial_positions_sent,
+                        current_broadcast_interval: self.broadcast_interval,
+                        connection_stats: self.connection_stats.clone(),
+                    };
                 }
             };
         ClientCoordinatorStats {
@@ -779,7 +788,7 @@ impl Handler<RegisterClient> for ClientCoordinatorActor {
                 Ok(manager) => manager,
                 Err(e) => {
                     error!("RwLock error: {}", e);
-                    return;
+                    return Err(format!("Failed to acquire client manager lock: {}", e).into());
                 }
             };
             manager.register_client(msg.addr)
@@ -838,7 +847,7 @@ impl Handler<UnregisterClient> for ClientCoordinatorActor {
                 Ok(manager) => manager,
                 Err(e) => {
                     error!("RwLock error: {}", e);
-                    return;
+                    return Err(format!("Failed to acquire client manager lock: {}", e));
                 }
             };
             manager.unregister_client(msg.client_id)
@@ -893,7 +902,7 @@ impl Handler<BroadcastNodePositions> for ClientCoordinatorActor {
                 Ok(manager) => manager,
                 Err(e) => {
                     error!("RwLock error: {}", e);
-                    return;
+                    return Err(format!("Failed to acquire client manager lock: {}", e));
                 }
             };
             manager.broadcast_to_all(msg.positions.clone())
@@ -955,7 +964,7 @@ impl Handler<BroadcastMessage> for ClientCoordinatorActor {
                 Ok(manager) => manager,
                 Err(e) => {
                     error!("RwLock error: {}", e);
-                    return;
+                    return Err(format!("Failed to acquire client manager lock: {}", e));
                 }
             };
             manager.broadcast_message(msg.message.clone())
@@ -987,7 +996,7 @@ impl Handler<GetClientCount> for ClientCoordinatorActor {
                 Ok(manager) => manager,
                 Err(e) => {
                     error!("RwLock error: {}", e);
-                    return;
+                    return Err(format!("Failed to acquire client manager lock: {}", e));
                 }
             };
             manager.get_client_count()
@@ -1034,7 +1043,7 @@ impl Handler<InitialClientSync> for ClientCoordinatorActor {
                 Ok(manager) => manager,
                 Err(e) => {
                     error!("RwLock error: {}", e);
-                    return;
+                    return Err(format!("Failed to acquire client manager lock: {}", e));
                 }
             };
                 manager.mark_client_synced(client_id);
@@ -1085,20 +1094,20 @@ impl Handler<UpdateNodePositions> for ClientCoordinatorActor {
                 Ok(manager) => manager,
                 Err(e) => {
                     error!("RwLock error: {}", e);
-                    return;
+                    return Err(format!("Failed to acquire client manager lock: {}", e));
                 }
             };
             manager.get_client_count()
         };
 
         if client_count > 0 {
-            
+
             let unsynced_clients = {
                 let manager = match handle_rwlock_error(self.client_manager.read()) {
                 Ok(manager) => manager,
                 Err(e) => {
                     error!("RwLock error: {}", e);
-                    return;
+                    return Err(format!("Failed to acquire client manager lock: {}", e));
                 }
             };
                 manager.get_unsynced_clients()

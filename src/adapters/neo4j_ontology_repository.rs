@@ -135,15 +135,21 @@ impl Neo4jOntologyRepository {
 
         let label: Option<String> = node.get("label").ok();
         let description: Option<String> = node.get("description").ok();
-        let ontology_id: String = node.get("ontology_id")
-            .unwrap_or_else(|_| "default".to_string());
+        let source_file: Option<String> = node.get("source_file").ok();
+        let markdown_content: Option<String> = node.get("markdown_content").ok();
+        let file_sha1: Option<String> = node.get("file_sha1").ok();
+        let last_synced: Option<chrono::DateTime<chrono::Utc>> = node.get("last_synced").ok();
 
         Ok(OwlClass {
             iri,
             label,
             description,
-            ontology_id,
-            parent_iris: Vec::new(), // Fetched separately via relationships
+            parent_classes: Vec::new(), // Fetched separately via relationships
+            properties: std::collections::HashMap::new(),
+            source_file,
+            markdown_content,
+            file_sha1,
+            last_synced,
         })
     }
 }
@@ -155,14 +161,17 @@ impl OntologyRepository for Neo4jOntologyRepository {
     // ============================================================
 
     #[instrument(skip(self))]
-    async fn store_owl_class(&self, class: &OwlClass) -> RepoResult<()> {
+    async fn add_owl_class(&self, class: &OwlClass) -> RepoResult<String> {
         debug!("Storing OWL class: {}", class.iri);
 
         let query_str = "
             MERGE (c:OwlClass {iri: $iri})
             SET c.label = $label,
                 c.description = $description,
-                c.ontology_id = $ontology_id,
+                c.source_file = $source_file,
+                c.markdown_content = $markdown_content,
+                c.file_sha1 = $file_sha1,
+                c.last_synced = $last_synced,
                 c.updated_at = datetime()
             ON CREATE SET c.created_at = datetime()
         ";
@@ -172,7 +181,10 @@ impl OntologyRepository for Neo4jOntologyRepository {
                 .param("iri", class.iri.clone())
                 .param("label", class.label.clone().unwrap_or_default())
                 .param("description", class.description.clone().unwrap_or_default())
-                .param("ontology_id", class.ontology_id.clone()))
+                .param("source_file", class.source_file.clone().unwrap_or_default())
+                .param("markdown_content", class.markdown_content.clone().unwrap_or_default())
+                .param("file_sha1", class.file_sha1.clone().unwrap_or_default())
+                .param("last_synced", class.last_synced.map(|dt| dt.to_rfc3339()).unwrap_or_default()))
             .await
             .map_err(|e| {
                 OntologyRepositoryError::DatabaseError(format!(
@@ -182,7 +194,7 @@ impl OntologyRepository for Neo4jOntologyRepository {
             })?;
 
         // Store parent relationships
-        for parent_iri in &class.parent_iris {
+        for parent_iri in &class.parent_classes {
             let rel_query = "
                 MATCH (c:OwlClass {iri: $child_iri})
                 MERGE (p:OwlClass {iri: $parent_iri})
@@ -202,7 +214,7 @@ impl OntologyRepository for Neo4jOntologyRepository {
                 })?;
         }
 
-        Ok(())
+        Ok(class.iri.clone())
     }
 
     #[instrument(skip(self))]
@@ -238,7 +250,7 @@ impl OntologyRepository for Neo4jOntologyRepository {
             // Get parent IRIs
             let parent_iris: Vec<String> = row.get("parent_iris")
                 .unwrap_or_else(|_| Vec::new());
-            owl_class.parent_iris = parent_iris;
+            owl_class.parent_classes = parent_iris;
 
             Ok(Some(owl_class))
         } else {
@@ -247,28 +259,16 @@ impl OntologyRepository for Neo4jOntologyRepository {
     }
 
     #[instrument(skip(self))]
-    async fn list_owl_classes(&self, ontology_id: Option<&str>) -> RepoResult<Vec<OwlClass>> {
-        debug!("Listing OWL classes for ontology: {:?}", ontology_id);
+    async fn list_owl_classes(&self) -> RepoResult<Vec<OwlClass>> {
+        debug!("Listing OWL classes");
 
-        let query_str = if let Some(ont_id) = ontology_id {
-            "
-            MATCH (c:OwlClass {ontology_id: $ontology_id})
-            OPTIONAL MATCH (c)-[:SUBCLASS_OF]->(p:OwlClass)
-            RETURN c, collect(p.iri) as parent_iris
-            "
-        } else {
-            "
+        let query_str = "
             MATCH (c:OwlClass)
             OPTIONAL MATCH (c)-[:SUBCLASS_OF]->(p:OwlClass)
             RETURN c, collect(p.iri) as parent_iris
-            "
-        };
+            ";
 
-        let query_obj = if let Some(ont_id) = ontology_id {
-            query(query_str).param("ontology_id", ont_id.to_string())
-        } else {
-            query(query_str)
-        };
+        let query_obj = query(query_str);
 
         let mut result = self.graph
             .execute(query_obj)
@@ -284,12 +284,14 @@ impl OntologyRepository for Neo4jOntologyRepository {
         while let Some(row) = result.next().await.map_err(|e| {
             OntologyRepositoryError::DatabaseError(format!("Failed to fetch row: {}", e))
         })? {
-            let node: Neo4jNode = row.get("c")?;
+            let node: Neo4jNode = row.get("c").map_err(|e| {
+                OntologyRepositoryError::DatabaseError(format!("Failed to get node: {}", e))
+            })?;
             let mut owl_class = self.node_to_owl_class(node)?;
 
             let parent_iris: Vec<String> = row.get("parent_iris")
                 .unwrap_or_else(|_| Vec::new());
-            owl_class.parent_iris = parent_iris;
+            owl_class.parent_classes = parent_iris;
 
             classes.push(owl_class);
         }
@@ -298,53 +300,36 @@ impl OntologyRepository for Neo4jOntologyRepository {
         Ok(classes)
     }
 
-    #[instrument(skip(self))]
-    async fn delete_owl_class(&self, iri: &str) -> RepoResult<()> {
-        debug!("Deleting OWL class: {}", iri);
-
-        let query_str = "
-            MATCH (c:OwlClass {iri: $iri})
-            DETACH DELETE c
-        ";
-
-        self.graph
-            .run(query(query_str).param("iri", iri.to_string()))
-            .await
-            .map_err(|e| {
-                OntologyRepositoryError::DatabaseError(format!(
-                    "Failed to delete OWL class: {}",
-                    e
-                ))
-            })?;
-
-        Ok(())
-    }
-
     // ============================================================
     // OWL Property Methods
     // ============================================================
 
     #[instrument(skip(self))]
-    async fn store_owl_property(&self, property: &OwlProperty) -> RepoResult<()> {
+    async fn add_owl_property(&self, property: &OwlProperty) -> RepoResult<String> {
         debug!("Storing OWL property: {}", property.iri);
 
         let query_str = "
             MERGE (p:OwlProperty {iri: $iri})
             SET p.label = $label,
                 p.property_type = $property_type,
-                p.domain_iri = $domain_iri,
-                p.range_iri = $range_iri,
+                p.domain = $domain,
+                p.range = $range,
                 p.updated_at = datetime()
             ON CREATE SET p.created_at = datetime()
         ";
+
+        let domain_json = to_json(&property.domain)
+            .map_err(|e| OntologyRepositoryError::SerializationError(e.to_string()))?;
+        let range_json = to_json(&property.range)
+            .map_err(|e| OntologyRepositoryError::SerializationError(e.to_string()))?;
 
         self.graph
             .run(query(query_str)
                 .param("iri", property.iri.clone())
                 .param("label", property.label.clone().unwrap_or_default())
                 .param("property_type", format!("{:?}", property.property_type))
-                .param("domain_iri", property.domain_iri.clone().unwrap_or_default())
-                .param("range_iri", property.range_iri.clone().unwrap_or_default()))
+                .param("domain", domain_json)
+                .param("range", range_json))
             .await
             .map_err(|e| {
                 OntologyRepositoryError::DatabaseError(format!(
@@ -353,7 +338,7 @@ impl OntologyRepository for Neo4jOntologyRepository {
                 ))
             })?;
 
-        Ok(())
+        Ok(property.iri.clone())
     }
 
     #[instrument(skip(self))]
@@ -378,13 +363,19 @@ impl OntologyRepository for Neo4jOntologyRepository {
         if let Some(row) = result.next().await.map_err(|e| {
             OntologyRepositoryError::DatabaseError(format!("Failed to fetch row: {}", e))
         })? {
-            let node: Neo4jNode = row.get("p")?;
+            let node: Neo4jNode = row.get("p").map_err(|e| {
+                OntologyRepositoryError::DatabaseError(format!("Failed to get node: {}", e))
+            })?;
 
-            let iri: String = node.get("iri")?;
+            let iri: String = node.get("iri").map_err(|e| {
+                OntologyRepositoryError::DatabaseError(format!("Failed to get iri: {}", e))
+            })?;
             let label: Option<String> = node.get("label").ok();
-            let property_type_str: String = node.get("property_type")?;
-            let domain_iri: Option<String> = node.get("domain_iri").ok();
-            let range_iri: Option<String> = node.get("range_iri").ok();
+            let property_type_str: String = node.get("property_type").map_err(|e| {
+                OntologyRepositoryError::DatabaseError(format!("Failed to get property_type: {}", e))
+            })?;
+            let domain_json: String = node.get("domain").unwrap_or_else(|_| "[]".to_string());
+            let range_json: String = node.get("range").unwrap_or_else(|_| "[]".to_string());
 
             let property_type = match property_type_str.as_str() {
                 "ObjectProperty" => PropertyType::ObjectProperty,
@@ -393,12 +384,17 @@ impl OntologyRepository for Neo4jOntologyRepository {
                 _ => PropertyType::ObjectProperty,
             };
 
+            let domain: Vec<String> = from_json(&domain_json)
+                .map_err(|e| OntologyRepositoryError::DeserializationError(e.to_string()))?;
+            let range: Vec<String> = from_json(&range_json)
+                .map_err(|e| OntologyRepositoryError::DeserializationError(e.to_string()))?;
+
             Ok(Some(OwlProperty {
                 iri,
                 label,
                 property_type,
-                domain_iri,
-                range_iri,
+                domain,
+                range,
             }))
         } else {
             Ok(None)
@@ -425,13 +421,19 @@ impl OntologyRepository for Neo4jOntologyRepository {
         while let Some(row) = result.next().await.map_err(|e| {
             OntologyRepositoryError::DatabaseError(format!("Failed to fetch row: {}", e))
         })? {
-            let node: Neo4jNode = row.get("p")?;
+            let node: Neo4jNode = row.get("p").map_err(|e| {
+                OntologyRepositoryError::DatabaseError(format!("Failed to get node: {}", e))
+            })?;
 
-            let iri: String = node.get("iri")?;
+            let iri: String = node.get("iri").map_err(|e| {
+                OntologyRepositoryError::DatabaseError(format!("Failed to get iri: {}", e))
+            })?;
             let label: Option<String> = node.get("label").ok();
-            let property_type_str: String = node.get("property_type")?;
-            let domain_iri: Option<String> = node.get("domain_iri").ok();
-            let range_iri: Option<String> = node.get("range_iri").ok();
+            let property_type_str: String = node.get("property_type").map_err(|e| {
+                OntologyRepositoryError::DatabaseError(format!("Failed to get property_type: {}", e))
+            })?;
+            let domain_json: String = node.get("domain").unwrap_or_else(|_| "[]".to_string());
+            let range_json: String = node.get("range").unwrap_or_else(|_| "[]".to_string());
 
             let property_type = match property_type_str.as_str() {
                 "ObjectProperty" => PropertyType::ObjectProperty,
@@ -440,12 +442,17 @@ impl OntologyRepository for Neo4jOntologyRepository {
                 _ => PropertyType::ObjectProperty,
             };
 
+            let domain: Vec<String> = from_json(&domain_json)
+                .map_err(|e| OntologyRepositoryError::DeserializationError(e.to_string()))?;
+            let range: Vec<String> = from_json(&range_json)
+                .map_err(|e| OntologyRepositoryError::DeserializationError(e.to_string()))?;
+
             properties.push(OwlProperty {
                 iri,
                 label,
                 property_type,
-                domain_iri,
-                range_iri,
+                domain,
+                range,
             });
         }
 
@@ -458,27 +465,36 @@ impl OntologyRepository for Neo4jOntologyRepository {
     // ============================================================
 
     #[instrument(skip(self))]
-    async fn store_owl_axiom(&self, axiom: &OwlAxiom) -> RepoResult<()> {
-        debug!("Storing OWL axiom: {}", axiom.id);
+    async fn add_axiom(&self, axiom: &OwlAxiom) -> RepoResult<u64> {
+        debug!("Storing OWL axiom: {:?}", axiom.id);
 
-        let axiom_data_json = to_json(&axiom.axiom_data)
+        let annotations_json = to_json(&axiom.annotations)
             .map_err(|e| OntologyRepositoryError::SerializationError(e.to_string()))?;
+
+        let axiom_id = axiom.id.unwrap_or_else(|| {
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_millis() as u64)
+                .unwrap_or(0)
+        });
 
         let query_str = "
             MERGE (a:OwlAxiom {id: $id})
             SET a.axiom_type = $axiom_type,
-                a.axiom_data = $axiom_data,
-                a.is_inferred = $is_inferred,
+                a.subject = $subject,
+                a.object = $object,
+                a.annotations = $annotations,
                 a.updated_at = datetime()
             ON CREATE SET a.created_at = datetime()
         ";
 
         self.graph
             .run(query(query_str)
-                .param("id", axiom.id.clone())
+                .param("id", axiom_id as i64)
                 .param("axiom_type", format!("{:?}", axiom.axiom_type))
-                .param("axiom_data", axiom_data_json)
-                .param("is_inferred", axiom.is_inferred))
+                .param("subject", axiom.subject.clone())
+                .param("object", axiom.object.clone())
+                .param("annotations", annotations_json))
             .await
             .map_err(|e| {
                 OntologyRepositoryError::DatabaseError(format!(
@@ -487,29 +503,15 @@ impl OntologyRepository for Neo4jOntologyRepository {
                 ))
             })?;
 
-        Ok(())
+        Ok(axiom_id)
     }
 
     #[instrument(skip(self))]
-    async fn get_owl_axioms(
-        &self,
-        axiom_type: Option<AxiomType>,
-        include_inferred: bool,
-    ) -> RepoResult<Vec<OwlAxiom>> {
-        debug!("Fetching OWL axioms - type: {:?}, include_inferred: {}", axiom_type, include_inferred);
+    async fn get_axioms(&self) -> RepoResult<Vec<OwlAxiom>> {
+        debug!("Fetching all OWL axioms");
 
-        let query_str = match (axiom_type, include_inferred) {
-            (Some(_), true) => "MATCH (a:OwlAxiom {axiom_type: $axiom_type}) RETURN a",
-            (Some(_), false) => "MATCH (a:OwlAxiom {axiom_type: $axiom_type, is_inferred: false}) RETURN a",
-            (None, true) => "MATCH (a:OwlAxiom) RETURN a",
-            (None, false) => "MATCH (a:OwlAxiom {is_inferred: false}) RETURN a",
-        };
-
-        let query_obj = if let Some(at) = axiom_type {
-            query(query_str).param("axiom_type", format!("{:?}", at))
-        } else {
-            query(query_str)
-        };
+        let query_str = "MATCH (a:OwlAxiom) RETURN a";
+        let query_obj = query(query_str);
 
         let mut result = self.graph
             .execute(query_obj)
@@ -525,28 +527,42 @@ impl OntologyRepository for Neo4jOntologyRepository {
         while let Some(row) = result.next().await.map_err(|e| {
             OntologyRepositoryError::DatabaseError(format!("Failed to fetch row: {}", e))
         })? {
-            let node: Neo4jNode = row.get("a")?;
+            let node: Neo4jNode = row.get("a").map_err(|e| {
+                OntologyRepositoryError::DatabaseError(format!("Failed to get node: {}", e))
+            })?;
 
-            let id: String = node.get("id")?;
-            let axiom_type_str: String = node.get("axiom_type")?;
-            let axiom_data_json: String = node.get("axiom_data")?;
-            let is_inferred: bool = node.get("is_inferred").unwrap_or(false);
+            let id: i64 = node.get("id").map_err(|e| {
+                OntologyRepositoryError::DatabaseError(format!("Failed to get id: {}", e))
+            })?;
+            let axiom_type_str: String = node.get("axiom_type").map_err(|e| {
+                OntologyRepositoryError::DatabaseError(format!("Failed to get axiom_type: {}", e))
+            })?;
+            let subject: String = node.get("subject").map_err(|e| {
+                OntologyRepositoryError::DatabaseError(format!("Failed to get subject: {}", e))
+            })?;
+            let object: String = node.get("object").map_err(|e| {
+                OntologyRepositoryError::DatabaseError(format!("Failed to get object: {}", e))
+            })?;
+            let annotations_json: String = node.get("annotations").unwrap_or_else(|_| "{}".to_string());
 
             let axiom_type = match axiom_type_str.as_str() {
                 "SubClassOf" => AxiomType::SubClassOf,
+                "EquivalentClass" => AxiomType::EquivalentClass,
                 "DisjointWith" => AxiomType::DisjointWith,
-                "EquivalentTo" => AxiomType::EquivalentTo,
+                "ObjectPropertyAssertion" => AxiomType::ObjectPropertyAssertion,
+                "DataPropertyAssertion" => AxiomType::DataPropertyAssertion,
                 _ => AxiomType::SubClassOf,
             };
 
-            let axiom_data: HashMap<String, String> = from_json(&axiom_data_json)
+            let annotations: HashMap<String, String> = from_json(&annotations_json)
                 .map_err(|e| OntologyRepositoryError::DeserializationError(e.to_string()))?;
 
             axioms.push(OwlAxiom {
-                id,
+                id: Some(id as u64),
                 axiom_type,
-                axiom_data,
-                is_inferred,
+                subject,
+                object,
+                annotations,
             });
         }
 
@@ -559,24 +575,12 @@ impl OntologyRepository for Neo4jOntologyRepository {
     // ============================================================
 
     #[instrument(skip(self, results))]
-    async fn store_inferred_axioms(&self, results: &InferenceResults) -> RepoResult<()> {
+    async fn store_inference_results(&self, results: &InferenceResults) -> RepoResult<()> {
         info!("Storing {} inferred axioms", results.inferred_axioms.len());
 
         for axiom in &results.inferred_axioms {
-            self.store_owl_axiom(axiom).await?;
+            self.add_axiom(axiom).await?;
         }
-
-        Ok(())
-    }
-
-    #[instrument(skip(self))]
-    async fn clear_inferred_axioms(&self) -> RepoResult<()> {
-        info!("Clearing all inferred axioms");
-
-        let query_str = "MATCH (a:OwlAxiom {is_inferred: true}) DELETE a";
-
-        self.graph.run(query(query_str)).await
-            .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?;
 
         Ok(())
     }
@@ -586,16 +590,11 @@ impl OntologyRepository for Neo4jOntologyRepository {
     // ============================================================
 
     #[instrument(skip(self))]
-    async fn get_ontology_metrics(&self, ontology_id: Option<&str>) -> RepoResult<OntologyMetrics> {
-        debug!("Computing ontology metrics for: {:?}", ontology_id);
+    async fn get_metrics(&self) -> RepoResult<OntologyMetrics> {
+        debug!("Computing ontology metrics");
 
         // Count classes
-        let class_count_query = if let Some(ont_id) = ontology_id {
-            query("MATCH (c:OwlClass {ontology_id: $ontology_id}) RETURN count(c) as count")
-                .param("ontology_id", ont_id.to_string())
-        } else {
-            query("MATCH (c:OwlClass) RETURN count(c) as count")
-        };
+        let class_count_query = query("MATCH (c:OwlClass) RETURN count(c) as count");
 
         let mut result = self.graph.execute(class_count_query).await
             .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?;
@@ -632,35 +631,27 @@ impl OntologyRepository for Neo4jOntologyRepository {
         };
 
         Ok(OntologyMetrics {
-            total_classes: class_count as usize,
-            total_properties: property_count as usize,
-            total_axioms: axiom_count as usize,
+            class_count: class_count as usize,
+            property_count: property_count as usize,
+            axiom_count: axiom_count as usize,
             max_depth: 0, // TODO: Calculate from hierarchy traversal
-            total_individuals: 0,
+            average_branching_factor: 0.0, // TODO: Calculate branching factor
         })
     }
 
     #[instrument(skip(self))]
-    async fn validate_ontology(&self, ontology_id: Option<&str>) -> RepoResult<ValidationReport> {
-        debug!("Validating ontology: {:?}", ontology_id);
+    async fn validate_ontology(&self) -> RepoResult<ValidationReport> {
+        debug!("Validating ontology");
 
         let mut errors = Vec::new();
         let mut warnings = Vec::new();
 
         // Check for orphaned classes (no relationships)
-        let orphan_query = if let Some(ont_id) = ontology_id {
-            query("
-                MATCH (c:OwlClass {ontology_id: $ontology_id})
-                WHERE NOT (c)-[:SUBCLASS_OF]->() AND NOT ()-[:SUBCLASS_OF]->(c)
-                RETURN count(c) as count
-            ").param("ontology_id", ont_id.to_string())
-        } else {
-            query("
-                MATCH (c:OwlClass)
-                WHERE NOT (c)-[:SUBCLASS_OF]->() AND NOT ()-[:SUBCLASS_OF]->(c)
-                RETURN count(c) as count
-            ")
-        };
+        let orphan_query = query("
+            MATCH (c:OwlClass)
+            WHERE NOT (c)-[:SUBCLASS_OF]->() AND NOT ()-[:SUBCLASS_OF]->(c)
+            RETURN count(c) as count
+        ");
 
         let mut result = self.graph.execute(orphan_query).await
             .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?;
@@ -679,31 +670,201 @@ impl OntologyRepository for Neo4jOntologyRepository {
             is_valid,
             errors,
             warnings,
+            timestamp: chrono::Utc::now(),
         })
     }
 
-    // ============================================================
-    // Pathfinding Cache Methods
-    // ============================================================
+    #[instrument(skip(self))]
+    async fn cache_sssp_result(&self, _entry: &PathfindingCacheEntry) -> RepoResult<()> {
+        // TODO: Implement pathfinding cache if needed
+        Ok(())
+    }
 
     #[instrument(skip(self))]
-    async fn get_pathfinding_cache(&self, query: &str) -> RepoResult<Option<PathfindingCacheEntry>> {
-        debug!("Fetching pathfinding cache for query: {}", query);
+    async fn get_cached_sssp(&self, _source_node_id: u32) -> RepoResult<Option<PathfindingCacheEntry>> {
         // TODO: Implement pathfinding cache if needed
         Ok(None)
     }
 
     #[instrument(skip(self))]
-    async fn store_pathfinding_cache(&self, entry: &PathfindingCacheEntry) -> RepoResult<()> {
-        debug!("Storing pathfinding cache entry");
+    async fn cache_apsp_result(&self, _distance_matrix: &Vec<Vec<f32>>) -> RepoResult<()> {
         // TODO: Implement pathfinding cache if needed
         Ok(())
     }
 
     #[instrument(skip(self))]
-    async fn clear_pathfinding_cache(&self) -> RepoResult<()> {
+    async fn get_cached_apsp(&self) -> RepoResult<Option<Vec<Vec<f32>>>> {
+        // TODO: Implement pathfinding cache if needed
+        Ok(None)
+    }
+
+    #[instrument(skip(self))]
+    async fn invalidate_pathfinding_caches(&self) -> RepoResult<()> {
         info!("Clearing pathfinding cache");
         // TODO: Implement pathfinding cache if needed
         Ok(())
+    }
+
+    #[instrument(skip(self))]
+    async fn load_ontology_graph(&self) -> RepoResult<Arc<GraphData>> {
+        debug!("Loading ontology graph from Neo4j");
+
+        // Query all nodes
+        let nodes_query = query("MATCH (n) RETURN n, id(n) as neo4j_id");
+        let mut result = self.graph.execute(nodes_query).await
+            .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?;
+
+        let mut nodes = Vec::new();
+        while let Ok(Some(row)) = result.next().await {
+            if let Ok(neo4j_node) = row.get::<Neo4jNode>("n") {
+                if let Ok(neo4j_id) = row.get::<i64>("neo4j_id") {
+                    // Convert Neo4j node to our Node type
+                    let label = neo4j_node.get::<String>("label").unwrap_or_default();
+                    let node = Node::new_with_id(label, Some(neo4j_id as u32));
+                    nodes.push(node);
+                }
+            }
+        }
+
+        // Query all edges
+        let edges_query = query("MATCH (n)-[r]->(m) RETURN id(n) as source, id(m) as target, type(r) as rel_type");
+        let mut result = self.graph.execute(edges_query).await
+            .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?;
+
+        let mut edges = Vec::new();
+        while let Ok(Some(row)) = result.next().await {
+            if let (Ok(source), Ok(target), Ok(rel_type)) = (
+                row.get::<i64>("source"),
+                row.get::<i64>("target"),
+                row.get::<String>("rel_type"),
+            ) {
+                let edge = Edge::new(source as u32, target as u32, 1.0)
+                    .with_edge_type(rel_type);
+                edges.push(edge);
+            }
+        }
+
+        Ok(Arc::new(GraphData {
+            nodes,
+            edges,
+            metadata: Default::default(),
+            id_to_metadata: HashMap::new(),
+        }))
+    }
+
+    #[instrument(skip(self, graph))]
+    async fn save_ontology_graph(&self, graph: &GraphData) -> RepoResult<()> {
+        debug!("Saving ontology graph to Neo4j");
+
+        // Clear existing graph
+        let clear_query = query("MATCH (n) DETACH DELETE n");
+        self.graph.execute(clear_query).await
+            .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?;
+
+        // Insert nodes
+        for node in &graph.nodes {
+            let node_query = query("CREATE (n {id: $id, label: $label})")
+                .param("id", node.id as i64)
+                .param("label", node.label.clone());
+            self.graph.execute(node_query).await
+                .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?;
+        }
+
+        // Insert edges
+        for edge in &graph.edges {
+            let rel_type = edge.edge_type.clone().unwrap_or_else(|| "RELATES".to_string());
+            let edge_query = query(
+                "MATCH (n {id: $source}), (m {id: $target}) \
+                 CREATE (n)-[r:RELATES {relationship: $rel_type}]->(m)"
+            )
+            .param("source", edge.source as i64)
+            .param("target", edge.target as i64)
+            .param("rel_type", rel_type);
+
+            self.graph.execute(edge_query).await
+                .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?;
+        }
+
+        Ok(())
+    }
+
+    #[instrument(skip(self, classes, properties, axioms))]
+    async fn save_ontology(
+        &self,
+        classes: &[OwlClass],
+        properties: &[OwlProperty],
+        axioms: &[OwlAxiom],
+    ) -> RepoResult<()> {
+        debug!("Saving ontology: {} classes, {} properties, {} axioms",
+               classes.len(), properties.len(), axioms.len());
+
+        // Save classes
+        for class in classes {
+            self.add_owl_class(class).await?;
+        }
+
+        // Save properties
+        for property in properties {
+            self.add_owl_property(property).await?;
+        }
+
+        // Save axioms
+        for axiom in axioms {
+            self.add_axiom(axiom).await?;
+        }
+
+        Ok(())
+    }
+
+    #[instrument(skip(self))]
+    async fn get_classes(&self) -> RepoResult<Vec<OwlClass>> {
+        self.list_owl_classes().await
+    }
+
+    #[instrument(skip(self))]
+    async fn get_class_axioms(&self, class_iri: &str) -> RepoResult<Vec<OwlAxiom>> {
+        debug!("Getting axioms for class: {}", class_iri);
+
+        let query_str = query(
+            "MATCH (c:OwlClass {iri: $iri})-[:HAS_AXIOM]->(a:Axiom) \
+             RETURN a.axiom_type as axiom_type, \
+                    a.subject as subject, \
+                    a.predicate as predicate, \
+                    a.object as object, \
+                    a.axiom_json as axiom_json"
+        ).param("iri", class_iri);
+
+        let mut result = self.graph.execute(query_str).await
+            .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?;
+
+        let mut axioms = Vec::new();
+        while let Ok(Some(row)) = result.next().await {
+            if let (Ok(axiom_type_str), Ok(subject), Ok(predicate), Ok(object)) = (
+                row.get::<String>("axiom_type"),
+                row.get::<String>("subject"),
+                row.get::<String>("predicate"),
+                row.get::<String>("object"),
+            ) {
+                let axiom_type = match axiom_type_str.as_str() {
+                    "SubClassOf" => AxiomType::SubClassOf,
+                    "EquivalentClass" | "EquivalentClasses" => AxiomType::EquivalentClass,
+                    "DisjointWith" | "DisjointClasses" => AxiomType::DisjointWith,
+                    "ObjectPropertyAssertion" | "SubObjectProperty" => AxiomType::ObjectPropertyAssertion,
+                    "DataPropertyAssertion" | "Domain" | "Range" => AxiomType::DataPropertyAssertion,
+                    _ => AxiomType::SubClassOf,
+                };
+
+                let axiom = OwlAxiom {
+                    id: None,
+                    axiom_type,
+                    subject,
+                    object,
+                    annotations: HashMap::new(),
+                };
+                axioms.push(axiom);
+            }
+        }
+
+        Ok(axioms)
     }
 }

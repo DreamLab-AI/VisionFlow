@@ -37,13 +37,13 @@ pub async fn find_semantic_path(
     info!("Finding semantic path from {} to {}", request.start_id, request.end_id);
 
     let graph_result = graph_state_actor
-        .send(crate::actors::graph_messages::GetGraphState)
+        .send(crate::actors::messages::GetGraphData)
         .await;
 
     match graph_result {
-        Ok(Ok(graph_state)) => {
+        Ok(Ok(graph_data)) => {
             match pathfinding_service.find_semantic_path(
-                &graph_state.graph,
+                &graph_data,
                 request.start_id,
                 request.end_id,
                 request.query.as_deref(),
@@ -52,7 +52,7 @@ pub async fn find_semantic_path(
                 None => error_json!("No path found", "Could not find path between nodes"),
             }
         }
-        Ok(Err(e)) => error_json!("Graph error", e.to_string()),
+        Ok(Err(e)) => error_json!("Graph error", e),
         Err(e) => error_json!("Actor error", e.to_string()),
     }
 }
@@ -65,14 +65,14 @@ pub async fn query_traversal(
     info!("Query traversal from {}", request.start_id);
 
     let graph_result = graph_state_actor
-        .send(crate::actors::graph_messages::GetGraphState)
+        .send(crate::actors::messages::GetGraphData)
         .await;
 
     match graph_result {
-        Ok(Ok(graph_state)) => {
+        Ok(Ok(graph_data)) => {
             if let Some(ref query) = request.query {
                 let results = pathfinding_service.query_traversal(
-                    &graph_state.graph,
+                    &graph_data,
                     request.start_id,
                     query,
                     request.max_nodes.unwrap_or(50),
@@ -82,7 +82,7 @@ pub async fn query_traversal(
                 error_json!("Missing query", "Query parameter required")
             }
         }
-        Ok(Err(e)) => error_json!("Graph error", e.to_string()),
+        Ok(Err(e)) => error_json!("Graph error", e),
         Err(e) => error_json!("Actor error", e.to_string()),
     }
 }
@@ -95,19 +95,19 @@ pub async fn chunk_traversal(
     debug!("Chunk traversal from {}", request.start_id);
 
     let graph_result = graph_state_actor
-        .send(crate::actors::graph_messages::GetGraphState)
+        .send(crate::actors::messages::GetGraphData)
         .await;
 
     match graph_result {
-        Ok(Ok(graph_state)) => {
+        Ok(Ok(graph_data)) => {
             let results = pathfinding_service.chunk_traversal(
-                &graph_state.graph,
+                &graph_data,
                 request.start_id,
                 request.max_nodes.unwrap_or(50),
             );
             ok_json!(serde_json::json!({ "results": results }))
         }
-        Ok(Err(e)) => error_json!("Graph error", e.to_string()),
+        Ok(Err(e)) => error_json!("Graph error", e),
         Err(e) => error_json!("Actor error", e.to_string()),
     }
 }

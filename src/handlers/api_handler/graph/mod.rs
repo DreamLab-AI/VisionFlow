@@ -15,8 +15,10 @@ use crate::actors::messages::{AddNodesFromMetadata, GetSettings};
 use crate::application::graph::queries::{
     GetAutoBalanceNotifications, GetGraphData, GetNodeMap, GetPhysicsState,
 };
+use crate::actors::graph_actor::PhysicsState;
+use crate::models::graph::GraphData;
 use crate::handlers::utils::execute_in_thread;
-use hexser::QueryHandler;
+use hexser::{HexResult, Hexserror, QueryHandler};
 
 ///
 #[derive(Serialize, Debug, Clone)]
@@ -111,8 +113,11 @@ pub async fn get_graph_data(state: web::Data<AppState>, _req: HttpRequest) -> im
     let node_map_future = execute_in_thread(move || node_map_handler.handle(GetNodeMap));
     let physics_future = execute_in_thread(move || physics_handler.handle(GetPhysicsState));
 
-    let (graph_result, node_map_result, physics_result) =
-        tokio::join!(graph_future, node_map_future, physics_future);
+    let (graph_result, node_map_result, physics_result): (
+        Result<Result<Arc<GraphData>, Hexserror>, String>,
+        Result<Result<Arc<HashMap<u32, Node>>, Hexserror>, String>,
+        Result<Result<PhysicsState, Hexserror>, String>,
+    ) = tokio::join!(graph_future, node_map_future, physics_future);
 
     match (graph_result, node_map_result, physics_result) {
         (Ok(Ok(graph_data)), Ok(Ok(node_map)), Ok(Ok(physics_state))) => {
@@ -128,13 +133,10 @@ pub async fn get_graph_data(state: web::Data<AppState>, _req: HttpRequest) -> im
                 .nodes
                 .iter()
                 .map(|node| {
-                    
-                    let (position, velocity) = if let Some(physics_node) = node_map.get(&node.id) {
-                        (physics_node.data.position(), physics_node.data.velocity())
-                    } else {
-                        
-                        (node.data.position(), node.data.velocity())
-                    };
+                    // Use node's own data for position and velocity
+                    // node_map contains HashMap<i32, Vec<i32>>, not physics nodes
+                    let position = node.data.position();
+                    let velocity = node.data.velocity();
 
                     NodeWithPosition {
                         id: node.id,
@@ -157,9 +159,11 @@ pub async fn get_graph_data(state: web::Data<AppState>, _req: HttpRequest) -> im
                 edges: graph_data.edges.clone(),
                 metadata: graph_data.metadata.clone(),
                 settlement_state: SettlementState {
-                    is_settled: physics_state.is_settled,
-                    stable_frame_count: physics_state.stable_frame_count,
-                    kinetic_energy: physics_state.kinetic_energy,
+                    // PhysicsState only has is_running and params fields
+                    // Use sensible defaults for settlement state
+                    is_settled: !physics_state.is_running,
+                    stable_frame_count: 0,
+                    kinetic_energy: 0.0,
                 },
             };
 

@@ -27,7 +27,7 @@
 macro_rules! ok_json {
     ($data:expr) => {
         {
-            use actix_web::{HttpResponse, Error};
+            use actix_web::HttpResponse;
             use crate::utils::handler_commons::StandardResponse;
 
             Ok(HttpResponse::Ok().json(StandardResponse {
@@ -54,10 +54,10 @@ macro_rules! ok_json {
 macro_rules! created_json {
     ($data:expr) => {
         {
-            use actix_web::HttpResponse;
+            use actix_web::{HttpResponse, Error};
             use crate::utils::handler_commons::StandardResponse;
 
-            Ok(HttpResponse::Created().json(StandardResponse {
+            Ok::<HttpResponse, Error>(HttpResponse::Created().json(StandardResponse {
                 success: true,
                 data: Some($data),
                 error: None,
@@ -87,12 +87,12 @@ macro_rules! error_json {
     };
     ($msg:expr, $details:expr) => {
         {
-            use actix_web::HttpResponse;
+            use actix_web::{HttpResponse, Error};
             use log::error;
 
             let details_str = format!("{}", $details);
             error!("Internal server error: {} - {}", $msg, details_str);
-            Ok(HttpResponse::InternalServerError().json(serde_json::json!({
+            Ok::<HttpResponse, Error>(HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": $msg,
                 "message": details_str
             })))
@@ -125,11 +125,11 @@ macro_rules! bad_request {
     };
     ($msg:expr, $details:expr) => {
         {
-            use actix_web::HttpResponse;
+            use actix_web::{HttpResponse, Error};
             use log::warn;
 
             warn!("Bad request: {} - {}", $msg, $details);
-            Ok(HttpResponse::BadRequest().json(serde_json::json!({
+            Ok::<HttpResponse, Error>(HttpResponse::BadRequest().json(serde_json::json!({
                 "error": $msg,
                 "message": $details
             })))
@@ -162,11 +162,11 @@ macro_rules! not_found {
     };
     ($msg:expr, $details:expr) => {
         {
-            use actix_web::HttpResponse;
+            use actix_web::{HttpResponse, Error};
             use log::warn;
 
             warn!("Not found: {} - {}", $msg, $details);
-            Ok(HttpResponse::NotFound().json(serde_json::json!({
+            Ok::<HttpResponse, Error>(HttpResponse::NotFound().json(serde_json::json!({
                 "error": $msg,
                 "message": $details
             })))
@@ -193,10 +193,10 @@ macro_rules! not_found {
 macro_rules! success_msg {
     ($data:expr, $msg:expr) => {
         {
-            use actix_web::HttpResponse;
+            use actix_web::{HttpResponse, Error};
             use crate::utils::handler_commons::StandardResponse;
 
-            Ok(HttpResponse::Ok().json(StandardResponse {
+            Ok::<HttpResponse, Error>(HttpResponse::Ok().json(StandardResponse {
                 success: true,
                 data: Some($data),
                 error: None,
@@ -219,12 +219,12 @@ macro_rules! success_msg {
 macro_rules! unauthorized {
     ($msg:expr) => {
         {
-            use actix_web::HttpResponse;
+            use actix_web::{HttpResponse, Error};
             use log::warn;
             use crate::utils::handler_commons::StandardResponse;
 
             warn!("Unauthorized access: {}", $msg);
-            Ok(HttpResponse::Unauthorized().json(StandardResponse::<()> {
+            Ok::<HttpResponse, Error>(HttpResponse::Unauthorized().json(StandardResponse::<()> {
                 success: false,
                 data: None,
                 error: Some($msg.to_string()),
@@ -235,13 +235,13 @@ macro_rules! unauthorized {
     };
     ($fmt:expr, $($arg:tt)*) => {
         {
-            use actix_web::HttpResponse;
+            use actix_web::{HttpResponse, Error};
             use log::warn;
             use crate::utils::handler_commons::StandardResponse;
 
             let msg = format!($fmt, $($arg)*);
             warn!("Unauthorized access: {}", msg);
-            Ok(HttpResponse::Unauthorized().json(StandardResponse::<()> {
+            Ok::<HttpResponse, Error>(HttpResponse::Unauthorized().json(StandardResponse::<()> {
                 success: false,
                 data: None,
                 error: Some(msg),
@@ -264,12 +264,12 @@ macro_rules! unauthorized {
 macro_rules! forbidden {
     ($msg:expr) => {
         {
-            use actix_web::HttpResponse;
+            use actix_web::{HttpResponse, Error};
             use log::warn;
             use crate::utils::handler_commons::StandardResponse;
 
             warn!("Forbidden access: {}", $msg);
-            Ok(HttpResponse::Forbidden().json(StandardResponse::<()> {
+            Ok::<HttpResponse, Error>(HttpResponse::Forbidden().json(StandardResponse::<()> {
                 success: false,
                 data: None,
                 error: Some($msg.to_string()),
@@ -292,12 +292,12 @@ macro_rules! forbidden {
 macro_rules! conflict {
     ($msg:expr) => {
         {
-            use actix_web::HttpResponse;
+            use actix_web::{HttpResponse, Error};
             use log::warn;
             use crate::utils::handler_commons::StandardResponse;
 
             warn!("Conflict: {}", $msg);
-            Ok(HttpResponse::Conflict().json(StandardResponse::<()> {
+            Ok::<HttpResponse, Error>(HttpResponse::Conflict().json(StandardResponse::<()> {
                 success: false,
                 data: None,
                 error: Some($msg.to_string()),
@@ -320,8 +320,8 @@ macro_rules! conflict {
 macro_rules! no_content {
     () => {
         {
-            use actix_web::HttpResponse;
-            Ok(HttpResponse::NoContent().finish())
+            use actix_web::{HttpResponse, Error};
+            Ok::<HttpResponse, Error>(HttpResponse::NoContent().finish())
         }
     };
 }
@@ -394,12 +394,12 @@ macro_rules! service_unavailable {
 macro_rules! payload_too_large {
     ($msg:expr) => {
         {
-            use actix_web::HttpResponse;
+            use actix_web::{HttpResponse, Error};
             use log::warn;
             use crate::utils::handler_commons::StandardResponse;
 
             warn!("Payload too large: {}", $msg);
-            Ok(HttpResponse::PayloadTooLarge().json(StandardResponse::<()> {
+            Ok::<HttpResponse, Error>(HttpResponse::PayloadTooLarge().json(StandardResponse::<()> {
                 success: false,
                 data: None,
                 error: Some($msg.to_string()),
@@ -422,10 +422,10 @@ macro_rules! payload_too_large {
 macro_rules! accepted {
     ($data:expr) => {
         {
-            use actix_web::HttpResponse;
+            use actix_web::{HttpResponse, Error};
             use crate::utils::handler_commons::StandardResponse;
 
-            Ok(HttpResponse::Accepted().json(StandardResponse {
+            Ok::<HttpResponse, Error>(HttpResponse::Accepted().json(StandardResponse {
                 success: true,
                 data: Some($data),
                 error: None,

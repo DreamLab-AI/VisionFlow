@@ -147,7 +147,7 @@ pub struct OntologyActor {
     last_health_check: DateTime<Utc>,
 
     /// Optional graph service address for graph operations
-    graph_service_addr: Option<Addr<crate::actors::graph_actor::GraphServiceActor>>,
+    graph_service_addr: Option<Addr<crate::actors::GraphStateActor>>,
 
     /// Optional physics orchestrator for constraint propagation
     physics_orchestrator_addr:
@@ -214,10 +214,10 @@ impl OntologyActor {
         }
     }
 
-    
+
     pub fn set_graph_service_addr(
         &mut self,
-        addr: Addr<crate::actors::graph_actor::GraphServiceActor>,
+        addr: Addr<crate::actors::GraphStateActor>,
     ) {
         self.graph_service_addr = Some(addr);
     }

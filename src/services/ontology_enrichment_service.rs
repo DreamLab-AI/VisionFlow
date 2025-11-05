@@ -266,9 +266,9 @@ impl OntologyEnrichmentService {
 }
 
 // TODO: Update tests to use Neo4j test containers
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
+#[cfg(test)]
+mod tests {
+    use super::*;
 
     #[test]
     fn test_extract_frontmatter() {

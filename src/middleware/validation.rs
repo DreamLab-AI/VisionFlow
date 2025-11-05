@@ -90,9 +90,9 @@ impl<S, B> Transform<S, ServiceRequest> for ValidateInput
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
-    B: 'static,
+    B: actix_web::body::MessageBody + 'static,
 {
-    type Response = ServiceResponse<B>;
+    type Response = ServiceResponse<actix_web::body::BoxBody>;
     type Error = Error;
     type InitError = ();
     type Transform = ValidationMiddleware<S>;
@@ -115,9 +115,9 @@ impl<S, B> Service<ServiceRequest> for ValidationMiddleware<S>
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
-    B: 'static,
+    B: actix_web::body::MessageBody + 'static,
 {
-    type Response = ServiceResponse<B>;
+    type Response = ServiceResponse<actix_web::body::BoxBody>;
     type Error = Error;
     type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
 
@@ -137,14 +137,12 @@ where
                                 "Request rejected: payload too large ({} bytes, max {})",
                                 length, config.max_content_length
                             );
-                            return Ok(req.into_response(
-                                HttpResponse::PayloadTooLarge()
-                                    .body(format!(
-                                        "Payload too large. Max size: {} bytes",
-                                        config.max_content_length
-                                    ))
-                                    .into_body(),
-                            ));
+                            let resp = HttpResponse::PayloadTooLarge()
+                                .body(format!(
+                                    "Payload too large. Max size: {} bytes",
+                                    config.max_content_length
+                                ));
+                            return Ok(req.into_response(resp).map_into_boxed_body());
                         }
                     }
                 }
@@ -162,7 +160,8 @@ where
             }
 
             // Continue to the actual handler
-            svc.call(req).await
+            let resp = svc.call(req).await?;
+            Ok(resp.map_into_boxed_body())
         })
     }
 }

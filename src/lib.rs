@@ -32,7 +32,7 @@ pub mod validation;
 // pub mod test_settings_fix;
 
 pub use actors::{
-    ClientCoordinatorActor, GraphServiceActor, MetadataActor, OptimizedSettingsActor,
+    ClientCoordinatorActor, MetadataActor, OptimizedSettingsActor,
 };
 pub use app_state::AppState;
 pub use models::metadata::MetadataStore;

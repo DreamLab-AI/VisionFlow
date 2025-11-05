@@ -239,41 +239,35 @@ impl GraphStateActor {
 
     
     fn configure_node_from_metadata(&self, node: &mut Node, metadata: &FileMetadata) {
-        
-        if let Some(filename) = metadata.path.file_name() {
-            node.label = filename.to_string_lossy().to_string();
-        }
 
-        
-        node.color = Some(self.get_color_for_extension(&metadata.path));
+        node.label = metadata.file_name.clone();
 
-        
-        if let Some(size) = metadata.size {
-            node.size = Some(10.0 + (size as f32 / 1000.0).min(50.0));
-        }
 
-        
-        node.metadata.insert("path".to_string(), metadata.path.to_string_lossy().to_string());
-        if let Some(size) = metadata.size {
-            node.metadata.insert("size".to_string(), size.to_string());
-        }
-        if let Some(modified) = metadata.modified {
-            node.metadata.insert("modified".to_string(), modified.to_string());
-        }
+        let path = std::path::Path::new(&metadata.file_name);
+        node.color = Some(Self::color_for_extension(path));
+
+
+        let size = metadata.file_size;
+        node.size = Some(10.0 + (size as f32 / 1000.0).min(50.0));
+
+
+        node.metadata.insert("file_name".to_string(), metadata.file_name.clone());
+        node.metadata.insert("file_size".to_string(), size.to_string());
+        node.metadata.insert("last_modified".to_string(), metadata.last_modified.to_string());
     }
 
     
-    fn get_color_for_extension(&self, path: &std::path::Path) -> String {
+    fn color_for_extension(path: &std::path::Path) -> String {
         match path.extension().and_then(|s| s.to_str()) {
-            Some("rs") => "#CE422B".to_string(), 
-            Some("js") | Some("ts") => "#F7DF1E".to_string(), 
-            Some("py") => "#3776AB".to_string(), 
-            Some("html") => "#E34F26".to_string(), 
-            Some("css") => "#1572B6".to_string(), 
-            Some("json") => "#000000".to_string(), 
-            Some("md") => "#083FA1".to_string(), 
-            Some("txt") => "#808080".to_string(), 
-            _ => "#95A5A6".to_string(), 
+            Some("rs") => "#CE422B".to_string(),
+            Some("js") | Some("ts") => "#F7DF1E".to_string(),
+            Some("py") => "#3776AB".to_string(),
+            Some("html") => "#E34F26".to_string(),
+            Some("css") => "#1572B6".to_string(),
+            Some("json") => "#000000".to_string(),
+            Some("md") => "#083FA1".to_string(),
+            Some("txt") => "#808080".to_string(),
+            _ => "#95A5A6".to_string(),
         }
     }
 
@@ -345,25 +339,47 @@ impl GraphStateActor {
     fn update_node_from_metadata(&mut self, metadata_id: String, metadata: FileMetadata) -> Result<(), String> {
         
         let mut node_found = false;
-        let node_map_mut = Arc::make_mut(&mut self.node_map);
 
-        for (_, node) in node_map_mut.iter_mut() {
-            if node.metadata_id == metadata_id {
-                self.configure_node_from_metadata(node, &metadata);
-                node_found = true;
-                break;
-            }
-        }
-
-        
-        if node_found {
-            let graph_data_mut = Arc::make_mut(&mut self.graph_data);
-            for node in &mut graph_data_mut.nodes {
+        // Scope the mutable borrow of node_map
+        {
+            let node_map_mut = Arc::make_mut(&mut self.node_map);
+            for (_, node) in node_map_mut.iter_mut() {
                 if node.metadata_id == metadata_id {
-                    self.configure_node_from_metadata(node, &metadata);
+                    // Inline configuration to avoid borrowing self
+                    node.label = metadata.file_name.clone();
+                    let path = std::path::Path::new(&metadata.file_name);
+                    node.color = Some(Self::color_for_extension(path));
+                    let size = metadata.file_size;
+                    node.size = Some(10.0 + (size as f32 / 1000.0).min(50.0));
+                    node.metadata.insert("file_name".to_string(), metadata.file_name.clone());
+                    node.metadata.insert("file_size".to_string(), size.to_string());
+                    node.metadata.insert("last_modified".to_string(), metadata.last_modified.to_string());
+                    node_found = true;
                     break;
                 }
             }
+        } // Release mutable borrow
+
+
+        if node_found {
+            // Scope the mutable borrow of graph_data
+            {
+                let graph_data_mut = Arc::make_mut(&mut self.graph_data);
+                for node in &mut graph_data_mut.nodes {
+                    if node.metadata_id == metadata_id {
+                        // Inline configuration to avoid borrowing self
+                        node.label = metadata.file_name.clone();
+                        let path = std::path::Path::new(&metadata.file_name);
+                        node.color = Some(Self::color_for_extension(path));
+                        let size = metadata.file_size;
+                        node.size = Some(10.0 + (size as f32 / 1000.0).min(50.0));
+                        node.metadata.insert("file_name".to_string(), metadata.file_name.clone());
+                        node.metadata.insert("file_size".to_string(), size.to_string());
+                        node.metadata.insert("last_modified".to_string(), metadata.last_modified.to_string());
+                        break;
+                    }
+                }
+            } // Release mutable borrow
             info!("Updated node with metadata_id: {}", metadata_id);
             Ok(())
         } else {
@@ -695,14 +711,33 @@ impl Handler<UpdateBotsGraph> for GraphStateActor {
 }
 
 impl Handler<ComputeShortestPaths> for GraphStateActor {
-    type Result = Result<u32, String>;
+    type Result = Result<crate::ports::gpu_semantic_analyzer::PathfindingResult, String>;
 
     fn handle(&mut self, msg: ComputeShortestPaths, _ctx: &mut Self::Context) -> Self::Result {
+        use std::collections::HashMap;
+        let start_time = std::time::Instant::now();
+
         match self.compute_shortest_paths(msg.source_node_id) {
             Ok(paths) => {
                 info!("Computed shortest paths from node {}: {} reachable nodes",
                       msg.source_node_id, paths.len());
-                Ok(paths.len() as u32)
+
+                // Convert HashMap<u32, Option<f32>> to HashMap<u32, f32> and Vec<u32>
+                let mut distances = HashMap::new();
+                let mut path_map = HashMap::new();
+
+                for (node_id, (distance, path)) in paths {
+                    distances.insert(node_id, distance);
+                    // Use the actual path from the algorithm
+                    path_map.insert(node_id, path);
+                }
+
+                Ok(crate::ports::gpu_semantic_analyzer::PathfindingResult {
+                    source_node: msg.source_node_id,
+                    distances,
+                    paths: path_map,
+                    computation_time_ms: start_time.elapsed().as_secs_f32() * 1000.0,
+                })
             }
             Err(e) => {
                 error!("Failed to compute shortest paths: {}", e);

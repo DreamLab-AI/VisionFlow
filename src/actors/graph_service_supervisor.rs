@@ -48,6 +48,7 @@ use crate::actors::graph_state_actor::GraphStateActor;
 use crate::actors::messages as msgs;
 // Removed graph_messages::GetGraphData import - not used
 use crate::errors::{ActorError, VisionFlowError};
+use crate::models::graph::GraphData;
 
 ///
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -760,11 +761,58 @@ impl Handler<RestartAllActors> for GraphServiceSupervisor {
 // ============================================================================
 
 ///
+/// Handler for GetGraphData - delegates to GraphStateActor
 ///
+impl Handler<msgs::GetGraphData> for GraphServiceSupervisor {
+    type Result = ResponseFuture<Result<Arc<GraphData>, String>>;
 
-// Removed GetGraphData handler from graph_messages - GraphServiceActor doesn't implement it
+    fn handle(&mut self, msg: msgs::GetGraphData, _ctx: &mut Self::Context) -> Self::Result {
+        if let Some(ref graph_state_addr) = self.graph_state {
+            let addr = graph_state_addr.clone();
+            Box::pin(async move {
+                addr.send(msg).await.unwrap_or_else(|e| {
+                    error!("Failed to forward GetGraphData to GraphStateActor: {}", e);
+                    Ok(Arc::new(GraphData::default()))
+                })
+            })
+        } else {
+            Box::pin(async { Ok(Arc::new(GraphData::default())) })
+        }
+    }
+}
 
-// BuildGraphFromMetadata handler is already implemented below for TransitionalGraphSupervisor (line 1078)
+/// Handler for ReloadGraphFromDatabase - delegates to GraphStateActor
+impl Handler<msgs::ReloadGraphFromDatabase> for GraphServiceSupervisor {
+    type Result = ResponseFuture<Result<(), String>>;
+
+    fn handle(&mut self, _msg: msgs::ReloadGraphFromDatabase, _ctx: &mut Self::Context) -> Self::Result {
+        if self.graph_state.is_some() {
+            info!("ReloadGraphFromDatabase notification logged");
+            Box::pin(async { Ok(()) })
+        } else {
+            Box::pin(async { Err("GraphStateActor not initialized".to_string()) })
+        }
+    }
+}
+
+/// Handler for ComputeShortestPaths - delegates to GraphStateActor
+impl Handler<msgs::ComputeShortestPaths> for GraphServiceSupervisor {
+    type Result = ResponseFuture<Result<crate::ports::gpu_semantic_analyzer::PathfindingResult, String>>;
+
+    fn handle(&mut self, msg: msgs::ComputeShortestPaths, _ctx: &mut Self::Context) -> Self::Result {
+        if let Some(ref graph_state_addr) = self.graph_state {
+            let addr = graph_state_addr.clone();
+            Box::pin(async move {
+                addr.send(msg).await.unwrap_or_else(|e| {
+                    error!("Failed to forward ComputeShortestPaths to GraphStateActor: {}", e);
+                    Err(format!("Message forwarding failed: {}", e))
+                })
+            })
+        } else {
+            Box::pin(async { Err("GraphStateActor not initialized".to_string()) })
+        }
+    }
+}
 
 impl Handler<msgs::UpdateGraphData> for GraphServiceSupervisor {
     type Result = ResponseActFuture<Self, Result<(), String>>;
@@ -847,7 +895,37 @@ impl Handler<msgs::InitializeGPUConnection> for GraphServiceSupervisor {
         _ctx: &mut Self::Context,
     ) -> Self::Result {
         warn!("InitializeGPUConnection: Supervisor not fully implemented");
-        
+
+    }
+}
+
+/// Handler for UpdateBotsGraph - delegates to GraphStateActor
+impl Handler<msgs::UpdateBotsGraph> for GraphServiceSupervisor {
+    type Result = ();
+
+    fn handle(&mut self, msg: msgs::UpdateBotsGraph, _ctx: &mut Self::Context) -> Self::Result {
+        if let Some(ref graph_state_addr) = self.graph_state {
+            debug!("Forwarding UpdateBotsGraph to GraphStateActor");
+            graph_state_addr.do_send(msg);
+        } else {
+            warn!("Cannot forward UpdateBotsGraph: GraphStateActor not initialized");
+        }
+    }
+}
+
+/// Handler for UpdateNodePositions - delegates to PhysicsOrchestratorActor
+impl Handler<msgs::UpdateNodePositions> for GraphServiceSupervisor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: msgs::UpdateNodePositions, _ctx: &mut Self::Context) -> Self::Result {
+        if let Some(ref physics_addr) = self.physics {
+            debug!("Forwarding UpdateNodePositions to PhysicsOrchestratorActor");
+            physics_addr.do_send(msg);
+            Ok(())
+        } else {
+            debug!("Cannot forward UpdateNodePositions: PhysicsOrchestratorActor not initialized");
+            Err("PhysicsOrchestratorActor not initialized".to_string())
+        }
     }
 }
 

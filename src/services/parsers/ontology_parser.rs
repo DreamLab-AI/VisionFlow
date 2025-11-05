@@ -214,7 +214,7 @@ impl OntologyParser {
             }
 
             
-            if let Some(cap) = subCLASS_PATTERN.captures(line) {
+            if let Some(cap) = SUBCLASS_PATTERN.captures(line) {
                 if let (Some(class), Some(parent)) = (&current_class, cap.get(1)) {
                     axioms.push(OwlAxiom {
                         id: None,

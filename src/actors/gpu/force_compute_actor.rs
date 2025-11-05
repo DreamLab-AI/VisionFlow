@@ -1,13 +1,13 @@
 //! Force Compute Actor - Handles physics force computation and simulation
 
 use actix::prelude::*;
-use log::{error, info, trace, warn};
+use log::{debug, error, info, trace, warn};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::Instant;
 
 use super::shared::{GPUOperation, GPUState, SharedGPUContext};
-use crate::actors::graph_actor::GraphServiceActor;
+use crate::actors::graph_service_supervisor::GraphServiceSupervisor;
 use crate::actors::messages::*;
 use crate::models::simulation_params::SimulationParams;
 use crate::telemetry::agent_telemetry::{
@@ -73,11 +73,11 @@ pub struct ForceComputeActor {
     
     reheat_factor: f32,
 
-    
+
     stability_iterations: u32,
 
-    
-    graph_service_addr: Option<Addr<GraphServiceActor>>,
+
+    graph_service_addr: Option<Addr<crate::actors::GraphServiceSupervisor>>,
 }
 
 impl ForceComputeActor {
@@ -366,10 +366,11 @@ impl ForceComputeActor {
                             )));
                         }
 
-                        
+
                         if let Some(ref graph_addr) = self.graph_service_addr {
                             graph_addr.do_send(crate::actors::messages::UpdateNodePositions {
-                                positions: node_updates
+                                positions: node_updates,
+                                correlation_id: None,
                             });
 
                             if iteration % 60 == 0 {

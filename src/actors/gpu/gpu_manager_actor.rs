@@ -193,18 +193,19 @@ impl Handler<UpdateGPUGraphData> for GPUManagerActor {
         
         let graph = msg.graph.clone();
 
-        
+
         if let Err(e) = child_actors.resource_actor.try_send(UpdateGPUGraphData {
             graph: graph.clone(),
+            correlation_id: None,
         }) {
             error!("Failed to send UpdateGPUGraphData to ResourceActor: {}", e);
             return Err("Failed to delegate graph update to ResourceActor".to_string());
         }
 
-        
+
         if let Err(e) = child_actors
             .force_compute_actor
-            .try_send(UpdateGPUGraphData { graph: graph })
+            .try_send(UpdateGPUGraphData { graph: graph, correlation_id: None })
         {
             error!(
                 "Failed to send UpdateGPUGraphData to ForceComputeActor: {}",
@@ -547,12 +548,13 @@ impl Handler<SetSharedGPUContext> for GPUManagerActor {
         let graph_service_addr = msg.graph_service_addr;
         let mut errors = Vec::new();
 
-        
+
         if let Err(e) = child_actors
             .force_compute_actor
             .try_send(SetSharedGPUContext {
                 context: context.clone(),
                 graph_service_addr: graph_service_addr.clone(),
+                correlation_id: None,
             })
         {
             errors.push(format!("ForceComputeActor: {}", e));
@@ -560,32 +562,35 @@ impl Handler<SetSharedGPUContext> for GPUManagerActor {
             info!("SharedGPUContext sent to ForceComputeActor with GraphServiceActor address");
         }
 
-        
+
         if let Err(e) = child_actors.clustering_actor.try_send(SetSharedGPUContext {
             context: context.clone(),
             graph_service_addr: graph_service_addr.clone(),
+            correlation_id: None,
         }) {
             errors.push(format!("ClusteringActor: {}", e));
         } else {
             info!("SharedGPUContext sent to ClusteringActor");
         }
 
-        
+
         if let Err(e) = child_actors.constraint_actor.try_send(SetSharedGPUContext {
             context: context.clone(),
             graph_service_addr: graph_service_addr.clone(),
+            correlation_id: None,
         }) {
             errors.push(format!("ConstraintActor: {}", e));
         } else {
             info!("SharedGPUContext sent to ConstraintActor");
         }
 
-        
+
         if let Err(e) = child_actors
             .stress_majorization_actor
             .try_send(SetSharedGPUContext {
                 context: context.clone(),
                 graph_service_addr: graph_service_addr.clone(),
+                correlation_id: None,
             })
         {
             errors.push(format!("StressMajorizationActor: {}", e));
@@ -593,12 +598,13 @@ impl Handler<SetSharedGPUContext> for GPUManagerActor {
             info!("SharedGPUContext sent to StressMajorizationActor");
         }
 
-        
+
         if let Err(e) = child_actors
             .anomaly_detection_actor
             .try_send(SetSharedGPUContext {
                 context: context.clone(),
                 graph_service_addr: graph_service_addr.clone(),
+                correlation_id: None,
             })
         {
             errors.push(format!("AnomalyDetectionActor: {}", e));
@@ -606,12 +612,13 @@ impl Handler<SetSharedGPUContext> for GPUManagerActor {
             info!("SharedGPUContext sent to AnomalyDetectionActor");
         }
 
-        
+
         if let Err(e) = child_actors
             .ontology_constraint_actor
             .try_send(SetSharedGPUContext {
                 context: context.clone(),
                 graph_service_addr: graph_service_addr.clone(),
+                correlation_id: None,
             })
         {
             errors.push(format!("OntologyConstraintActor: {}", e));

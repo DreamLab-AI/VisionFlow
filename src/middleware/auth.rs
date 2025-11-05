@@ -50,9 +50,9 @@ impl<S, B> Transform<S, ServiceRequest> for RequireAuth
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
-    B: 'static,
+    B: actix_web::body::MessageBody + 'static,
 {
-    type Response = ServiceResponse<B>;
+    type Response = ServiceResponse<actix_web::body::BoxBody>;
     type Error = Error;
     type InitError = ();
     type Transform = AuthMiddleware<S>;
@@ -75,9 +75,9 @@ impl<S, B> Service<ServiceRequest> for AuthMiddleware<S>
 where
     S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
     S::Future: 'static,
-    B: 'static,
+    B: actix_web::body::MessageBody + 'static,
 {
-    type Response = ServiceResponse<B>;
+    type Response = ServiceResponse<actix_web::body::BoxBody>;
     type Error = Error;
     type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
 
@@ -93,11 +93,9 @@ where
                 Some(service) => service.clone(),
                 None => {
                     warn!("NostrService not found in app data - authentication cannot proceed");
-                    return Ok(req.into_response(
-                        HttpResponse::InternalServerError()
-                            .body("Authentication service not configured")
-                            .into_body(),
-                    ));
+                    let resp = HttpResponse::InternalServerError()
+                        .body("Authentication service not configured");
+                    return Ok(req.into_response(resp).map_into_boxed_body());
                 }
             };
 
@@ -119,11 +117,12 @@ where
                     debug!("Authentication successful, proceeding with request");
 
                     // Continue to the actual handler
-                    svc.call(req).await
+                    let resp = svc.call(req).await?;
+                    Ok(resp.map_into_boxed_body())
                 }
                 Err(response) => {
                     // Authentication failed - return error response
-                    Ok(req.into_response(response.into_body()))
+                    Ok(req.into_response(response).map_into_boxed_body())
                 }
             }
         })

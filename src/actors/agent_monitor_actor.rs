@@ -94,7 +94,7 @@ fn task_to_agent_status(task: TaskInfo) -> AgentStatus {
 ///
 pub struct AgentMonitorActor {
     _client: ClaudeFlowClient,
-    graph_service_addr: Addr<crate::actors::graph_service_supervisor::TransitionalGraphSupervisor>,
+    graph_service_addr: Addr<crate::actors::GraphServiceSupervisor>,
     management_api_client: ManagementApiClient,
 
     
@@ -115,9 +115,7 @@ pub struct AgentMonitorActor {
 impl AgentMonitorActor {
     pub fn new(
         client: ClaudeFlowClient,
-        graph_service_addr: Addr<
-            crate::actors::graph_service_supervisor::TransitionalGraphSupervisor,
-        >,
+        graph_service_addr: Addr<crate::actors::GraphServiceSupervisor>,
     ) -> Self {
         info!("[AgentMonitorActor] Initializing with Management API monitoring");
 
