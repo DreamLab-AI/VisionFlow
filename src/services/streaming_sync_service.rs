@@ -726,7 +726,7 @@ impl StreamingSyncService {
             .map_err(|e| format!("GitHub API error: {}", e))
     }
 
-    
+
     async fn fetch_with_retry(
         url: &str,
         content_api: &Arc<EnhancedContentAPI>,
@@ -736,26 +736,13 @@ impl StreamingSyncService {
         loop {
             debug!("[StreamingSync][Fetch] Attempt {}/{} for URL: {}", retries + 1, max_retries, url);
 
-            match reqwest::get(url).await {
-                Ok(response) => {
-                    debug!("[StreamingSync][Fetch] Received response, reading text...");
-                    match response.text().await {
-                        Ok(text) => {
-                            debug!("[StreamingSync][Fetch] Successfully fetched {} bytes", text.len());
-                            return Ok(text);
-                        }
-                        Err(e) => {
-                            retries += 1;
-                            if retries >= max_retries {
-                                error!("[StreamingSync][Fetch] Failed to read response text after {} retries: {}", max_retries, e);
-                                return Err(format!("Failed to read response text: {}", e));
-                            }
-                            let delay = Duration::from_millis(500 * retries as u64);
-                            warn!("[StreamingSync][Fetch] Retry {}/{} for {} - text read error, waiting {:?}", retries, max_retries, url, delay);
-                            tokio::time::sleep(delay).await;
-                        }
-                    }
-                },
+            // FIX: Use authenticated request via content_api's fetch_file_content
+            // This ensures proper Authorization headers for private repos
+            match content_api.fetch_file_content(url).await {
+                Ok(content) => {
+                    debug!("[StreamingSync][Fetch] Successfully fetched {} bytes", content.len());
+                    return Ok(content);
+                }
                 Err(e) => {
                     retries += 1;
                     if retries >= max_retries {
@@ -770,10 +757,12 @@ impl StreamingSyncService {
         }
     }
 
-    
+
     fn detect_file_type(content: &str) -> FileType {
         let has_public = content.contains("public:: true");
-        let has_ontology = content.contains("- ### OntologyBlock");
+        // FIX: Changed from "- ### OntologyBlock" to "### OntologyBlock" to match OntologyParser
+        // The parser looks for "### OntologyBlock" without the leading "- "
+        let has_ontology = content.contains("### OntologyBlock");
 
         if has_ontology {
             FileType::Ontology
@@ -800,7 +789,8 @@ mod tests {
 
     #[test]
     fn test_detect_file_type_ontology() {
-        let content = "Some content\n- ### OntologyBlock\nMore content";
+        // FIX: Updated test to use "### OntologyBlock" without leading "- "
+        let content = "Some content\n### OntologyBlock\nMore content";
         assert_eq!(
             StreamingSyncService::detect_file_type(content),
             FileType::Ontology
@@ -818,8 +808,8 @@ mod tests {
 
     #[test]
     fn test_detect_file_type_ontology_priority() {
-        
-        let content = "public:: true\n- ### OntologyBlock\nContent";
+        // FIX: Updated test to use "### OntologyBlock" without leading "- "
+        let content = "public:: true\n### OntologyBlock\nContent";
         assert_eq!(
             StreamingSyncService::detect_file_type(content),
             FileType::Ontology

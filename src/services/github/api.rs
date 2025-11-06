@@ -155,14 +155,14 @@ impl GitHubClient {
             }
         };
 
-        
-        let encoded = urlencoding::encode(&full_path).into_owned();
-
+        // FIX: Do not URL-encode the entire path as it converts '/' to '%2F'
+        // GitHub API expects literal slashes in the path segment
+        // Only encode individual path components if they contain special characters
         if debug_enabled {
-            log::debug!("Final encoded full path: '{}'", encoded);
+            log::debug!("Final full path (no encoding): '{}'", full_path);
         }
 
-        encoded
+        full_path
     }
 
 
