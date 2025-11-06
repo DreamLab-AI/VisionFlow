@@ -142,6 +142,7 @@ impl EnhancedContentAPI {
             .header("Accept", "application/vnd.github+json")
             .query(&[
                 ("path", encoded_path.as_str()),
+                ("ref", self.client.branch()),
                 ("per_page", if check_actual_changes { "10" } else { "1" }),
             ])
             .send()
@@ -269,10 +270,11 @@ impl EnhancedContentAPI {
 
         
         let contents_url = format!(
-            "https://api.github.com/repos/{}/{}/contents/{}",
+            "https://api.github.com/repos/{}/{}/contents/{}?ref={}",
             self.client.owner(),
             self.client.repo(),
-            encoded_path
+            encoded_path,
+            self.client.branch()
         );
 
         let response = self

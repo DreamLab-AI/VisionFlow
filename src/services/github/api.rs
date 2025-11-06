@@ -18,7 +18,8 @@ pub struct GitHubClient {
     owner: String,
     repo: String,
     base_path: String,
-    settings: Arc<RwLock<AppFullSettings>>, 
+    branch: String,
+    settings: Arc<RwLock<AppFullSettings>>,
 }
 
 impl GitHubClient {
@@ -79,6 +80,7 @@ impl GitHubClient {
             owner: config.owner,
             repo: config.repo,
             base_path,
+            branch: config.branch,
             settings: Arc::clone(&settings),
         })
     }
@@ -163,14 +165,14 @@ impl GitHubClient {
         encoded
     }
 
-    
+
     pub async fn get_contents_url(&self, path: &str) -> String {
         let settings = self.settings.read().await;
         let _debug_enabled = crate::utils::logging::is_debug_enabled();
         drop(settings);
 
-        info!("get_contents_url: Building GitHub API URL - Owner: '{}', Repo: '{}', Base path: '{}', Input path: '{}'",
-            self.owner, self.repo, self.base_path, path);
+        info!("get_contents_url: Building GitHub API URL - Owner: '{}', Repo: '{}', Base path: '{}', Input path: '{}', Branch: '{}'",
+            self.owner, self.repo, self.base_path, path, self.branch);
 
         let full_path = self.get_full_path(path).await;
 
@@ -180,8 +182,8 @@ impl GitHubClient {
         );
 
         let url = format!(
-            "https://api.github.com/repos/{}/{}/contents/{}",
-            self.owner, self.repo, full_path
+            "https://api.github.com/repos/{}/{}/contents/{}?ref={}",
+            self.owner, self.repo, full_path, self.branch
         );
 
         info!("get_contents_url: Final GitHub API URL: '{}'", url);
@@ -209,17 +211,19 @@ impl GitHubClient {
         &self.repo
     }
 
-    
+
     pub(crate) fn base_path(&self) -> &str {
         &self.base_path
     }
 
-    
+    pub(crate) fn branch(&self) -> &str {
+        &self.branch
+    }
+
     #[allow(dead_code)]
     pub(crate) fn settings(&self) -> &Arc<RwLock<AppFullSettings>> {
-        
+
         &self.settings
     }
 
-    
 }

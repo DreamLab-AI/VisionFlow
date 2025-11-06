@@ -51,6 +51,7 @@ services:
       - BOTS_ORCHESTRATOR_URL=ws://agentic-workstation:3002
       - MANAGEMENT_API_HOST=agentic-workstation
       - MANAGEMENT_API_PORT=9090
+      - FORCE_FULL_SYNC=1
     ports:
       - "3001:3001"  # Nginx entry point for dev
       - "4000:4000"  # API port for direct access
@@ -60,73 +61,73 @@ services:
           - webxr
     restart: unless-stopped
 
-  # Production configuration - using dev image with production settings
-  webxr-prod:
-    profiles: ["production", "prod"]
-    container_name: visionflow_prod_container
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-      args:
-        CUDA_ARCH: ${CUDA_ARCH:-86}
-    entrypoint: ["/app/prod-entrypoint.sh"]
-    env_file:
-      - .env
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=0
-      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
-      - NODE_ENV=production
-      - RUST_LOG=warn
-      - SYSTEM_NETWORK_PORT=4001
-      - CLAUDE_FLOW_HOST=agentic-workstation
-      - MCP_HOST=agentic-workstation
-      - MCP_TCP_PORT=9500
-      - MCP_TRANSPORT=tcp
-      - MCP_RECONNECT_ATTEMPTS=3
-      - MCP_RECONNECT_DELAY=1000
-      - MCP_CONNECTION_TIMEOUT=30000
-      - ORCHESTRATOR_WS_URL=ws://mcp-orchestrator:9001/ws
-      - MCP_RELAY_FALLBACK_TO_MOCK=true
-      - BOTS_ORCHESTRATOR_URL=ws://agentic-workstation:3002
-      - MANAGEMENT_API_HOST=agentic-workstation
-      - MANAGEMENT_API_PORT=9090
-    volumes:
-      - ./client:/app/client
-      - ./src:/app/src
-      - ./Cargo.toml:/app/Cargo.toml
-      - ./Cargo.lock:/app/Cargo.lock
-      - ./data/markdown:/app/data/markdown
-      - ./data/metadata:/app/data/metadata
-      - ./data/user_settings:/app/user_settings
-      - ./data/settings.yaml:/app/settings.yaml
-      - ./nginx.production.conf:/etc/nginx/nginx.conf:ro
-      - ./logs/nginx:/var/log/nginx
-      - ./logs:/app/logs
-      - ./scripts/prod-entrypoint.sh:/app/prod-entrypoint.sh:ro
-      - ./supervisord.production.conf:/app/supervisord.production.conf:ro
-      - cargo-target-cache:/app/target
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              capabilities: [compute,utility]
-              device_ids: ['0']
-    ports:
-      - "4000:4000"  # API port for production
-    networks:
-      - docker_ragflow
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4000/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+  # DISABLED: Production configuration - use dev container only for now
+  # webxr-prod:
+  #   profiles: ["production", "prod"]
+  #   container_name: visionflow_prod_container
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.dev
+  #     args:
+  #       CUDA_ARCH: ${CUDA_ARCH:-86}
+  #   entrypoint: ["/app/prod-entrypoint.sh"]
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     - NVIDIA_VISIBLE_DEVICES=0
+  #     - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+  #     - NODE_ENV=production
+  #     - RUST_LOG=warn
+  #     - SYSTEM_NETWORK_PORT=4001
+  #     - CLAUDE_FLOW_HOST=agentic-workstation
+  #     - MCP_HOST=agentic-workstation
+  #     - MCP_TCP_PORT=9500
+  #     - MCP_TRANSPORT=tcp
+  #     - MCP_RECONNECT_ATTEMPTS=3
+  #     - MCP_RECONNECT_DELAY=1000
+  #     - MCP_CONNECTION_TIMEOUT=30000
+  #     - ORCHESTRATOR_WS_URL=ws://mcp-orchestrator:9001/ws
+  #     - MCP_RELAY_FALLBACK_TO_MOCK=true
+  #     - BOTS_ORCHESTRATOR_URL=ws://agentic-workstation:3002
+  #     - MANAGEMENT_API_HOST=agentic-workstation
+  #     - MANAGEMENT_API_PORT=9090
+  #   volumes:
+  #     - ./client:/app/client
+  #     - ./src:/app/src
+  #     - ./Cargo.toml:/app/Cargo.toml
+  #     - ./Cargo.lock:/app/Cargo.lock
+  #     - ./data/markdown:/app/data/markdown
+  #     - ./data/metadata:/app/data/metadata
+  #     - ./data/user_settings:/app/user_settings
+  #     - ./data/settings.yaml:/app/settings.yaml
+  #     - ./nginx.production.conf:/etc/nginx/nginx.conf:ro
+  #     - ./logs/nginx:/var/log/nginx
+  #     - ./logs:/app/logs
+  #     - ./scripts/prod-entrypoint.sh:/app/prod-entrypoint.sh:ro
+  #     - ./supervisord.production.conf:/app/supervisord.production.conf:ro
+  #     - cargo-target-cache:/app/target
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             capabilities: [compute,utility]
+  #             device_ids: ['0']
+  #   ports:
+  #     - "4000:4000"  # API port for production
+  #   networks:
+  #     - docker_ragflow
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:4000/"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 40s
 
   # Cloudflare tunnel - now works with dev profile
   cloudflared:
-    profiles: ["dev", "production", "prod"]
+    profiles: ["dev"]
     container_name: cloudflared-tunnel
     image: cloudflare/cloudflared:latest
     command: tunnel --no-autoupdate run
@@ -136,9 +137,6 @@ services:
       - ./config.yml:/etc/cloudflared/config.yml:ro
     depends_on:
       webxr:
-        condition: service_started
-        required: false
-      webxr-prod:
         condition: service_started
         required: false
     networks:

@@ -25,6 +25,7 @@ pub struct GitHubConfig {
     pub owner: String,
     pub repo: String,
     pub base_path: String,
+    pub branch: String,
     pub rate_limit: bool,
     pub version: String,
 }
@@ -43,7 +44,8 @@ impl GitHubConfig {
         let base_path = env::var("GITHUB_BASE_PATH")
             .map_err(|_| GitHubConfigError::MissingEnvVar("GITHUB_BASE_PATH".to_string()))?;
 
-        
+        let branch = env::var("GITHUB_BRANCH").unwrap_or_else(|_| "main".to_string());
+
         let rate_limit = env::var("GITHUB_RATE_LIMIT")
             .map(|v| v.parse::<bool>().unwrap_or(true))
             .unwrap_or(true);
@@ -55,6 +57,7 @@ impl GitHubConfig {
             owner,
             repo,
             base_path,
+            branch,
             rate_limit,
             version,
         };
@@ -144,8 +147,9 @@ mod tests {
         assert_eq!(config.owner, "owner");
         assert_eq!(config.repo, "repo");
         assert_eq!(config.base_path, "path");
-        assert!(config.rate_limit); 
-        assert_eq!(config.version, "v3"); 
+        assert_eq!(config.branch, "main");
+        assert!(config.rate_limit);
+        assert_eq!(config.version, "v3");
     }
 
     #[test]
@@ -156,9 +160,11 @@ mod tests {
         env::set_var("GITHUB_BASE_PATH", "path");
         env::set_var("GITHUB_RATE_LIMIT", "false");
         env::set_var("GITHUB_API_VERSION", "v4");
+        env::set_var("GITHUB_BRANCH", "multi-ontology");
 
         let config = GitHubConfig::from_env().unwrap();
         assert!(!config.rate_limit);
         assert_eq!(config.version, "v4");
+        assert_eq!(config.branch, "multi-ontology");
     }
 }
