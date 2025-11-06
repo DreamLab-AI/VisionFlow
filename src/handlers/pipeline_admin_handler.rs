@@ -187,7 +187,7 @@ pub async fn get_pipeline_status(
         },
     };
 
-    ok_json!(response))
+    ok_json!(response)
 }
 
 /// POST /api/admin/pipeline/pause
@@ -205,7 +205,7 @@ pub async fn pause_pipeline(
     ok_json!(serde_json::json!({
         "status": "paused",
         "reason": req.reason
-    })))
+    }))
 }
 
 /// POST /api/admin/pipeline/resume
@@ -221,7 +221,7 @@ pub async fn resume_pipeline(
 
     ok_json!(serde_json::json!({
         "status": "resumed"
-    })))
+    }))
 }
 
 /// GET /api/admin/pipeline/metrics
@@ -256,7 +256,7 @@ pub async fn get_pipeline_metrics(
         },
     };
 
-    ok_json!(response))
+    ok_json!(response)
 }
 
 /// GET /api/admin/pipeline/events/:correlation_id
@@ -272,7 +272,7 @@ pub async fn get_pipeline_events(
     ok_json!(serde_json::json!({
         "correlation_id": correlation_id.as_str(),
         "events": events
-    })))
+    }))
 }
 
 /// Configure pipeline admin routes

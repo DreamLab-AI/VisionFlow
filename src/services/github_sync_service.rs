@@ -493,10 +493,10 @@ impl GitHubSyncService {
         FileType::Skip
     }
 
-    /// Save ontology data to unified.db and trigger reasoning pipeline
+    /// Save ontology data to Neo4j and trigger reasoning pipeline
     ///
     /// This method:
-    /// 1. Saves OWL classes, properties, and axioms to UnifiedOntologyRepository
+    /// 1. Saves OWL classes, properties, and axioms to Neo4jOntologyRepository
     /// 2. Triggers OntologyPipelineService for automatic reasoning
     /// 3. Pipeline generates semantic constraints and uploads to GPU
     ///
@@ -504,7 +504,7 @@ impl GitHubSyncService {
     async fn save_ontology_data(&self, onto_data: crate::services::parsers::ontology_parser::OntologyData) -> Result<(), String> {
         use crate::ports::ontology_repository::OntologyRepository;
 
-        // Save all ontology data to unified.db in one transaction
+        // Save all ontology data to Neo4j graph database
         self.onto_repo.save_ontology(&onto_data.classes, &onto_data.properties, &onto_data.axioms).await
             .map_err(|e| format!("Failed to save ontology data: {}", e))?;
 

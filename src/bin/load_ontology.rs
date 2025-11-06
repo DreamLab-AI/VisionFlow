@@ -2,14 +2,14 @@
 //! Ontology Loader Binary
 //!
 //! Loads OWL ontology data from GitHub repository markdown files
-//! and populates the unified.db database.
+//! and populates the Neo4j graph database.
 
 use std::env;
 use std::sync::Arc;
 use std::collections::HashMap;
 use log::info;
 
-use webxr::repositories::unified_ontology_repository::UnifiedOntologyRepository;
+use webxr::adapters::neo4j_ontology_repository::{Neo4jOntologyRepository, Neo4jOntologyConfig};
 use webxr::services::parsers::ontology_parser::OntologyParser;
 use webxr::ports::ontology_repository::{OntologyRepository, OwlClass, OwlProperty, PropertyType, OwlAxiom, AxiomType};
 
@@ -21,11 +21,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     info!("Starting ontology loader...");
 
     // 1. Initialize repository
-    let db_path = env::var("DATABASE_PATH").unwrap_or_else(|_| "data/unified.db".to_string());
-    info!("Using database: {}", db_path);
+    let neo4j_uri = env::var("NEO4J_URI").unwrap_or_else(|_| "bolt://localhost:7687".to_string());
+    let neo4j_user = env::var("NEO4J_USER").unwrap_or_else(|_| "neo4j".to_string());
+    let neo4j_password = env::var("NEO4J_PASSWORD").expect("NEO4J_PASSWORD must be set");
+    let neo4j_database = env::var("NEO4J_DATABASE").unwrap_or_else(|_| "neo4j".to_string());
+
+    info!("Connecting to Neo4j at: {}", neo4j_uri);
+
+    let config = Neo4jOntologyConfig {
+        uri: neo4j_uri,
+        user: neo4j_user,
+        password: neo4j_password,
+        database: neo4j_database,
+    };
 
     let ontology_repo = Arc::new(
-        UnifiedOntologyRepository::new(&db_path)?
+        Neo4jOntologyRepository::new(config).await?
     );
 
     // 2. Initialize parser
@@ -89,7 +100,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let all_classes = ontology_repo.get_classes().await?;
     info!("\nOntology loaded successfully!");
     info!("Classes: {}", all_classes.len());
-    info!("Database: {}", db_path);
+    info!("Stored in Neo4j graph database");
 
     Ok(())
 }

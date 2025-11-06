@@ -22,7 +22,6 @@
 //!     .build();
 //! ```
 
-use rusqlite::params_from_iter;
 use std::fmt;
 
 /// SQL query builder with fluent API
