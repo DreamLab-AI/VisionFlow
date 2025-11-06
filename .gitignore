@@ -183,3 +183,4 @@ multi-agent-docker/gui-tools-assets/blender-*.tar.xz
 .swarm/memory.db-shm
 .swarm/memory.db-shm
 .swarm/memory.db-shm
+.swarm/memory.db-shm
