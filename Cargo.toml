@@ -171,10 +171,6 @@ name = "generate_types"
 path = "src/bin/generate_types.rs"
 
 [[bin]]
-name = "sync_neo4j"
-path = "scripts/sync_neo4j.rs"
-
-[[bin]]
 name = "migrate_settings_to_neo4j"
 path = "src/bin/migrate_settings_to_neo4j.rs"
 
