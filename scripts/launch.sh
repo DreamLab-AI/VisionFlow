@@ -265,34 +265,117 @@ build_containers() {
     success "Build complete for $ENVIRONMENT environment"
 }
 
+# Cleanup handler for dev environment
+cleanup_dev() {
+    echo ""
+    warning "Caught interrupt signal - cleaning up dev environment..."
+    log "Stopping and removing dev containers..."
+    docker_compose down --remove-orphans
+    success "Dev environment cleaned up"
+    exit 0
+}
+
+# Check if rebuild is needed (source code changes)
+needs_rebuild() {
+    local image_name="ar-ai-knowledge-graph-visionflow"
+
+    # Check if image exists
+    if ! docker images --format "{{.Repository}}" | grep -q "^${image_name}$"; then
+        echo "true"
+        return 0
+    fi
+
+    # Get image creation time
+    local image_created=$(docker images --format "{{.CreatedAt}}" "$image_name" 2>/dev/null | head -1)
+    if [[ -z "$image_created" ]]; then
+        echo "true"
+        return 0
+    fi
+
+    # Convert image timestamp to epoch
+    local image_epoch=$(date -d "$image_created" +%s 2>/dev/null || echo 0)
+
+    # Check critical source files modification time
+    local latest_source=0
+    local critical_files=(
+        "$PROJECT_ROOT/src/main.rs"
+        "$PROJECT_ROOT/src/handlers/mod.rs"
+        "$PROJECT_ROOT/src/handlers/admin_sync_handler.rs"
+        "$PROJECT_ROOT/Cargo.toml"
+        "$PROJECT_ROOT/Dockerfile.dev"
+    )
+
+    for file in "${critical_files[@]}"; do
+        if [[ -f "$file" ]]; then
+            local file_epoch=$(stat -c %Y "$file" 2>/dev/null || echo 0)
+            if [[ $file_epoch -gt $latest_source ]]; then
+                latest_source=$file_epoch
+            fi
+        fi
+    done
+
+    # If source is newer than image, rebuild needed
+    if [[ $latest_source -gt $image_epoch ]]; then
+        echo "true"
+        return 0
+    fi
+
+    echo "false"
+    return 1
+}
+
 # Start environment
 start_environment() {
     log "Starting $ENVIRONMENT environment..."
 
-    # Build if containers don't exist
-    if ! docker images | grep -q "visionflow"; then
+    # Check if rebuild is needed
+    local rebuild_needed=$(needs_rebuild)
+
+    if [[ "$rebuild_needed" == "true" ]]; then
+        warning "Source code changes detected - rebuilding without cache..."
+        COMMAND="rebuild"
+        build_containers
+    elif ! docker images | grep -q "visionflow"; then
         info "Container images not found. Building first..."
         build_containers
+    else
+        success "Using existing container image (no source changes detected)"
     fi
 
     # Conditionally start cloudflared based on environment
     if [[ "$ENVIRONMENT" == "dev" ]]; then
         info "Development mode: Skipping cloudflared tunnel (local access only)"
         docker_compose up -d --scale cloudflared=0
+
+        # Wait for containers to be ready
+        sleep 3
+
+        success "Environment started in background"
+        echo ""
+        show_service_urls
+        echo ""
+        info "Following logs... (Press Ctrl+C to stop and cleanup)"
+        echo ""
+
+        # Set up cleanup trap for dev environment
+        trap cleanup_dev INT TERM
+
+        # Show logs and keep running
+        docker_compose logs -f
     else
         info "Production mode: Starting cloudflared tunnel"
         docker_compose up -d
+
+        # Wait for containers to be ready
+        sleep 3
+
+        success "Environment started in background"
+        echo ""
+        show_service_urls
+        echo ""
+        info "View logs with: ${GREEN}./launch.unified.sh logs $ENVIRONMENT${NC}"
+        info "Stop with: ${GREEN}./launch.unified.sh down $ENVIRONMENT${NC}"
     fi
-
-    # Wait for containers to be ready
-    sleep 3
-
-    success "Environment started in background"
-    echo ""
-    show_service_urls
-    echo ""
-    info "View logs with: ${GREEN}./launch.unified.sh logs $ENVIRONMENT${NC}"
-    info "Stop with: ${GREEN}./launch.unified.sh down $ENVIRONMENT${NC}"
 }
 
 # Stop environment
