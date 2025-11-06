@@ -1,4 +1,4 @@
-use crate::actors::graph_service_supervisor::TransitionalGraphSupervisor;
+use crate::actors::graph_service_supervisor::GraphServiceSupervisor;
 use crate::actors::messages::UpdateBotsGraph;
 use crate::services::agent_visualization_protocol::{McpServerType, MultiMcpAgentStatus};
 use crate::utils::mcp_connection::call_agent_spawn;
@@ -78,7 +78,7 @@ impl From<MultiMcpAgentStatus> for Agent {
 #[derive(Clone)]
 pub struct BotsClient {
     mcp_client: McpTcpClient,
-    graph_service_addr: Option<Addr<TransitionalGraphSupervisor>>,
+    graph_service_addr: Option<Addr<GraphServiceSupervisor>>,
     agents: Arc<RwLock<Vec<Agent>>>,
 }
 
@@ -102,7 +102,7 @@ impl BotsClient {
         }
     }
 
-    pub fn with_graph_service(graph_addr: Addr<TransitionalGraphSupervisor>) -> Self {
+    pub fn with_graph_service(graph_addr: Addr<GraphServiceSupervisor>) -> Self {
         let mut client = Self::new();
         client.graph_service_addr = Some(graph_addr);
         client

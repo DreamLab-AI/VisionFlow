@@ -112,10 +112,10 @@ pub async fn execute_cypher_query(
        query_upper.contains("SET") || query_upper.contains("CREATE") ||
        query_upper.contains("MERGE") {
         warn!("🚨 Attempted to execute write operation via Cypher query endpoint");
-        return HttpResponse::Forbidden().json(ErrorResponse {
+        return Ok::<HttpResponse, actix_web::Error>(HttpResponse::Forbidden().json(ErrorResponse {
             error: "Forbidden".to_string(),
             message: "Write operations are not allowed via this endpoint. Use dedicated mutation endpoints.".to_string(),
-        });
+        }));
     }
 
     // Add LIMIT clause if not present
@@ -183,16 +183,17 @@ use crate::utils::json::{from_json, to_json};
         }
         Ok(Err(e)) => {
             warn!("❌ Cypher query failed: {}", e);
-            bad_request!("Internal server error"),
+            Ok(HttpResponse::BadRequest().json(ErrorResponse {
+                error: "Query Failed".to_string(),
                 message: format!("Failed to execute query: {}", e),
-            })
+            }))
         }
         Err(_) => {
             warn!("⏱️  Cypher query timeout after {}s", timeout);
-            HttpResponse::RequestTimeout().json(ErrorResponse {
+            Ok(HttpResponse::RequestTimeout().json(ErrorResponse {
                 error: "Timeout".to_string(),
                 message: format!("Query exceeded timeout of {} seconds", timeout),
-            })
+            }))
         }
     }
 }
@@ -202,7 +203,7 @@ use crate::utils::json::{from_json, to_json};
 /// GET /api/query/cypher/examples
 ///
 /// Returns a list of common Cypher query patterns for reference
-pub async fn get_cypher_examples() -> impl Responder {
+pub async fn get_cypher_examples() -> Result<HttpResponse, actix_web::Error> {
     let examples = vec![
         CypherExample {
             title: "Find all neighbors of a node".to_string(),

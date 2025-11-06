@@ -21,7 +21,6 @@ pub mod neo4j_adapter;
 pub mod actix_physics_adapter;
 pub mod actix_semantic_adapter;
 pub mod messages;
-pub mod whelk_inference_stub;
 
 // Compatibility alias for physics orchestrator adapter
 pub mod physics_orchestrator_adapter;
@@ -36,11 +35,12 @@ pub use gpu_semantic_analyzer::GpuSemanticAnalyzerAdapter;
 // Settings repository adapters
 // REMOVED: sqlite_settings_repository - migrated to Neo4j
 pub mod neo4j_settings_repository;
+pub mod neo4j_ontology_repository;
 
 pub use neo4j_settings_repository::{Neo4jSettingsRepository, Neo4jSettingsConfig};
+pub use neo4j_ontology_repository::{Neo4jOntologyRepository, Neo4jOntologyConfig};
 
-// Unified repository exports (from repositories module)
-pub use crate::repositories::UnifiedOntologyRepository;
+// Inference engine exports
 pub use whelk_inference_engine::WhelkInferenceEngine;
 
 // Neo4j integration exports
@@ -49,4 +49,3 @@ pub use neo4j_adapter::{Neo4jAdapter, Neo4jConfig};
 // Phase 2.2: Actor wrapper adapter exports
 pub use actix_physics_adapter::ActixPhysicsAdapter;
 pub use actix_semantic_adapter::ActixSemanticAdapter;
-pub use whelk_inference_stub::WhelkInferenceEngineStub;

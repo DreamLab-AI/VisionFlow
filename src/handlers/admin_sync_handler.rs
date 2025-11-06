@@ -92,6 +92,13 @@ pub async fn trigger_sync(
     }
 }
 
+/// SECURITY: Admin sync endpoints require power user authentication
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
-    cfg.route("/admin/sync", web::post().to(trigger_sync));
+    use crate::middleware::RequireAuth;
+
+    cfg.service(
+        web::scope("/admin")
+            .wrap(RequireAuth::power_user())  // Admin operations require power user
+            .route("/sync", web::post().to(trigger_sync))
+    );
 }

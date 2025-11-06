@@ -7,6 +7,7 @@
 pub mod types;
 
 // Primary safe implementations (formerly safe_*)
+pub mod semantic_forces;
 pub mod streaming_pipeline;
 pub mod visual_analytics;
 
@@ -47,4 +48,10 @@ pub use conversion_utils::{
 // Unified memory management exports (NEW - recommended)
 pub use memory_manager::{
     BufferConfig, BufferStats, GpuBuffer, GpuMemoryManager, MemoryStats,
+};
+
+// Semantic forces exports
+pub use semantic_forces::{
+    AttributeSpringConfig, CollisionConfig, DAGConfig, SemanticConfig,
+    SemanticForcesEngine, TypeClusterConfig,
 };

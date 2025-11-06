@@ -74,11 +74,11 @@ pub async fn get_physics_settings(state: web::Data<AppState>) -> impl Responder 
         }
         Ok(Err(e)) => {
             error!("Failed to fetch physics settings: {}", e);
-            error_json!("Failed to fetch settings").expect("JSON serialization failed")
+            error_json!("Failed to fetch settings")
         }
         Err(e) => {
             error!("Actor mailbox error: {}", e);
-            error_json!("Actor communication failed").expect("JSON serialization failed")
+            error_json!("Actor communication failed")
         }
     }
 }
@@ -129,21 +129,21 @@ pub async fn update_physics_settings(
                 }
                 Ok(Err(e)) => {
                     error!("Failed to update physics settings: {}", e);
-                    error_json!("Failed to update settings").expect("JSON serialization failed")
+                    error_json!("Failed to update settings")
                 }
                 Err(e) => {
                     error!("Actor mailbox error: {}", e);
-                    error_json!("Actor communication failed").expect("JSON serialization failed")
+                    error_json!("Actor communication failed")
                 }
             }
         }
         Ok(Err(e)) => {
             error!("Failed to fetch current settings: {}", e);
-            error_json!("Failed to fetch settings").expect("JSON serialization failed")
+            error_json!("Failed to fetch settings")
         }
         Err(e) => {
             error!("Actor mailbox error: {}", e);
-            error_json!("Actor communication failed").expect("JSON serialization failed")
+            error_json!("Actor communication failed")
         }
     }
 }
@@ -160,11 +160,11 @@ pub async fn get_constraint_settings(state: web::Data<AppState>) -> impl Respond
         }
         Ok(Err(e)) => {
             error!("Failed to fetch constraint settings: {}", e);
-            error_json!("Failed to fetch settings").expect("JSON serialization failed")
+            error_json!("Failed to fetch settings")
         }
         Err(e) => {
             error!("Actor mailbox error: {}", e);
-            error_json!("Actor communication failed").expect("JSON serialization failed")
+            error_json!("Actor communication failed")
         }
     }
 }
@@ -206,21 +206,21 @@ pub async fn update_constraint_settings(
                 }
                 Ok(Err(e)) => {
                     error!("Failed to update constraint settings: {}", e);
-                    error_json!("Failed to update settings").expect("JSON serialization failed")
+                    error_json!("Failed to update settings")
                 }
                 Err(e) => {
                     error!("Actor mailbox error: {}", e);
-                    error_json!("Actor communication failed").expect("JSON serialization failed")
+                    error_json!("Actor communication failed")
                 }
             }
         }
         Ok(Err(e)) => {
             error!("Failed to fetch current settings: {}", e);
-            error_json!("Failed to fetch settings").expect("JSON serialization failed")
+            error_json!("Failed to fetch settings")
         }
         Err(e) => {
             error!("Actor mailbox error: {}", e);
-            error_json!("Actor communication failed").expect("JSON serialization failed")
+            error_json!("Actor communication failed")
         }
     }
 }
@@ -237,11 +237,11 @@ pub async fn get_rendering_settings(state: web::Data<AppState>) -> impl Responde
         }
         Ok(Err(e)) => {
             error!("Failed to fetch rendering settings: {}", e);
-            error_json!("Failed to fetch settings").expect("JSON serialization failed")
+            error_json!("Failed to fetch settings")
         }
         Err(e) => {
             error!("Actor mailbox error: {}", e);
-            error_json!("Actor communication failed").expect("JSON serialization failed")
+            error_json!("Actor communication failed")
         }
     }
 }
@@ -283,21 +283,21 @@ pub async fn update_rendering_settings(
                 }
                 Ok(Err(e)) => {
                     error!("Failed to update rendering settings: {}", e);
-                    error_json!("Failed to update settings").expect("JSON serialization failed")
+                    error_json!("Failed to update settings")
                 }
                 Err(e) => {
                     error!("Actor mailbox error: {}", e);
-                    error_json!("Actor communication failed").expect("JSON serialization failed")
+                    error_json!("Actor communication failed")
                 }
             }
         }
         Ok(Err(e)) => {
             error!("Failed to fetch current settings: {}", e);
-            error_json!("Failed to fetch settings").expect("JSON serialization failed")
+            error_json!("Failed to fetch settings")
         }
         Err(e) => {
             error!("Actor mailbox error: {}", e);
-            error_json!("Actor communication failed").expect("JSON serialization failed")
+            error_json!("Actor communication failed")
         }
     }
 }
@@ -333,11 +333,11 @@ pub async fn save_profile(
         }
         Ok(Err(e)) => {
             error!("Failed to fetch settings for profile: {}", e);
-            error_json!("Failed to create profile").expect("JSON serialization failed")
+            error_json!("Failed to create profile")
         }
         Err(e) => {
             error!("Actor mailbox error: {}", e);
-            error_json!("Actor communication failed").expect("JSON serialization failed")
+            error_json!("Actor communication failed")
         }
     }
 }
@@ -361,22 +361,32 @@ pub async fn load_profile(
     info!("GET /api/settings/profiles/{}", profile_id);
 
     
-    not_found!("Profile not found").unwrap()
+    not_found!("Profile not found")
 }
 
 ///
+/// SECURITY: Settings endpoints require authentication (read-only public, write requires auth)
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
+    use crate::middleware::{RateLimit, RequireAuth};
+
     cfg.service(
         web::scope("/settings")
+            .wrap(RateLimit::per_minute(100))  // Rate limit: 100 requests/min for public reads
+            // Read operations - public with rate limiting
             .route("/physics", web::get().to(get_physics_settings))
-            .route("/physics", web::put().to(update_physics_settings))
             .route("/constraints", web::get().to(get_constraint_settings))
-            .route("/constraints", web::put().to(update_constraint_settings))
             .route("/rendering", web::get().to(get_rendering_settings))
+            .route("/profiles", web::get().to(list_profiles))
+            .route("/profiles/{id}", web::get().to(load_profile))
+    )
+    .service(
+        web::scope("/settings")
+            .wrap(RequireAuth::authenticated())  // Write operations require auth
+            .wrap(RateLimit::per_minute(30))     // Rate limit: 30 requests/min for writes
+            .route("/physics", web::put().to(update_physics_settings))
+            .route("/constraints", web::put().to(update_constraint_settings))
             .route("/rendering", web::put().to(update_rendering_settings))
             .route("/profiles", web::post().to(save_profile))
-            .route("/profiles", web::get().to(list_profiles))
-            .route("/profiles/{id}", web::get().to(load_profile)),
     );
 }
 

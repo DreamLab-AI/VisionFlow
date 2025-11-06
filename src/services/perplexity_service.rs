@@ -39,28 +39,56 @@ pub struct PerplexityService {
 }
 
 impl PerplexityService {
-    pub async fn new(
+    pub fn new() -> Self {
+        let client = Client::builder()
+            .timeout(std::time::Duration::from_secs(30))
+            .build()
+            .expect("Failed to build HTTP client");
+
+        Self {
+            client,
+            settings: Arc::new(RwLock::new(AppFullSettings::default())),
+        }
+    }
+
+    pub async fn new_with_settings(
         settings: Arc<RwLock<AppFullSettings>>,
     ) -> Result<Self, Box<dyn StdError + Send + Sync>> {
-        
+
         let timeout_duration = {
             let settings_read = settings.read().await;
-            
+
             settings_read
                 .perplexity
                 .as_ref()
                 .and_then(|p| p.timeout)
-                .unwrap_or(30) 
+                .unwrap_or(30)
         };
 
         let client = Client::builder()
-            .timeout(std::time::Duration::from_secs(timeout_duration)) 
+            .timeout(std::time::Duration::from_secs(timeout_duration))
             .build()?;
 
         Ok(Self {
             client,
             settings: Arc::clone(&settings),
         })
+    }
+
+    /// Chat completion method that takes a vector of (role, content) tuples
+    pub async fn chat_completion(
+        &self,
+        messages: Vec<(String, String)>,
+    ) -> Result<String, Box<dyn StdError + Send + Sync>> {
+        // Convert messages to a single query string
+        let query = messages
+            .iter()
+            .map(|(role, content)| format!("{}: {}", role, content))
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        // Use the existing query method
+        self.query(&query, "default-conversation").await
     }
 
     pub async fn query(

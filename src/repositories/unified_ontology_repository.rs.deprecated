@@ -661,13 +661,101 @@ impl OntologyRepository for UnifiedOntologyRepository {
         .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?
     }
 
-    
-    async fn add_owl_property(&self, _property: &OwlProperty) -> RepoResult<String> {
-        todo!("Implement add_owl_property")
+
+    async fn add_owl_property(&self, property: &OwlProperty) -> RepoResult<String> {
+        let conn_arc = self.conn.clone();
+        let property = property.clone();
+
+        tokio::task::spawn_blocking(move || {
+            let conn = conn_arc
+                .lock()
+                .expect("Failed to acquire unified ontology repository mutex");
+
+            let property_type_str = match property.property_type {
+                PropertyType::ObjectProperty => "ObjectProperty",
+                PropertyType::DataProperty => "DataProperty",
+                PropertyType::AnnotationProperty => "AnnotationProperty",
+            };
+
+            let domain_json = serde_json::to_string(&property.domain)
+                .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to serialize domain: {}", e)))?;
+
+            let range_json = serde_json::to_string(&property.range)
+                .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to serialize range: {}", e)))?;
+
+            conn.execute(
+                "INSERT OR REPLACE INTO owl_properties (ontology_id, iri, label, property_type, domain, range)
+                 VALUES ('default', ?1, ?2, ?3, ?4, ?5)",
+                params![
+                    &property.iri,
+                    &property.label,
+                    property_type_str,
+                    &domain_json,
+                    &range_json,
+                ],
+            )
+            .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to insert property: {}", e)))?;
+
+            debug!("Added OWL property: {}", property.iri);
+            Ok(property.iri.clone())
+        })
+        .await
+        .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?
     }
 
-    async fn get_owl_property(&self, _iri: &str) -> RepoResult<Option<OwlProperty>> {
-        todo!("Implement get_owl_property")
+    async fn get_owl_property(&self, iri: &str) -> RepoResult<Option<OwlProperty>> {
+        let conn_arc = self.conn.clone();
+        let iri = iri.to_string();
+
+        tokio::task::spawn_blocking(move || {
+            let conn = conn_arc
+                .lock()
+                .expect("Failed to acquire unified ontology repository mutex");
+
+            let property_opt = conn
+                .query_row(
+                    "SELECT iri, label, property_type, domain, range
+                     FROM owl_properties WHERE iri = ?1",
+                    params![&iri],
+                    |row| {
+                        let iri: String = row.get(0)?;
+                        let label: Option<String> = row.get(1)?;
+                        let property_type_str: String = row.get(2)?;
+                        let domain_json: String = row.get(3)?;
+                        let range_json: String = row.get(4)?;
+
+                        let property_type = match property_type_str.as_str() {
+                            "ObjectProperty" => PropertyType::ObjectProperty,
+                            "DataProperty" => PropertyType::DataProperty,
+                            "AnnotationProperty" => PropertyType::AnnotationProperty,
+                            _ => PropertyType::ObjectProperty, // Default fallback
+                        };
+
+                        let domain: Vec<String> = serde_json::from_str(&domain_json).unwrap_or_default();
+                        let range: Vec<String> = serde_json::from_str(&range_json).unwrap_or_default();
+
+                        Ok(OwlProperty {
+                            iri,
+                            label,
+                            property_type,
+                            domain,
+                            range,
+                        })
+                    },
+                )
+                .optional()
+                .map_err(|e| {
+                    OntologyRepositoryError::DatabaseError(format!("Failed to query property: {}", e))
+                })?;
+
+            if property_opt.is_some() {
+                debug!("Retrieved OWL property: {}", iri);
+            }
+
+            Ok(property_opt)
+        })
+        .await
+        .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?
     }
 
     async fn list_owl_properties(&self) -> RepoResult<Vec<OwlProperty>> {
@@ -738,8 +826,39 @@ impl OntologyRepository for UnifiedOntologyRepository {
         .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?
     }
 
-    async fn add_axiom(&self, _axiom: &OwlAxiom) -> RepoResult<u64> {
-        todo!("Implement add_axiom")
+    async fn add_axiom(&self, axiom: &OwlAxiom) -> RepoResult<u64> {
+        let conn_arc = self.conn.clone();
+        let axiom = axiom.clone();
+
+        tokio::task::spawn_blocking(move || {
+            let conn = conn_arc
+                .lock()
+                .expect("Failed to acquire unified ontology repository mutex");
+
+            let axiom_type_str = Self::axiom_type_to_str(&axiom.axiom_type);
+
+            let annotations_json = to_json(&axiom.annotations)
+                .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to serialize annotations: {}", e)))?;
+
+            conn.execute(
+                "INSERT INTO owl_axioms (axiom_type, subject, object, annotations)
+                 VALUES (?1, ?2, ?3, ?4)",
+                params![
+                    &axiom_type_str,
+                    &axiom.subject,
+                    &axiom.object,
+                    &annotations_json,
+                ],
+            )
+            .map_err(|e| OntologyRepositoryError::DatabaseError(format!("Failed to insert axiom: {}", e)))?;
+
+            let id = conn.last_insert_rowid() as u64;
+            debug!("Added axiom: {} ({} -> {})", axiom_type_str, axiom.subject, axiom.object);
+
+            Ok(id)
+        })
+        .await
+        .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?
     }
 
     async fn get_class_axioms(&self, _class_iri: &str) -> RepoResult<Vec<OwlAxiom>> {

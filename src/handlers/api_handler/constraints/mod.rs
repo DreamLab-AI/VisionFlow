@@ -99,11 +99,11 @@ pub async fn get_constraints(state: web::Data<AppState>) -> impl Responder {
         }
         Ok(Err(e)) => {
             error!("Failed to fetch constraints: {}", e);
-            error_json!("Failed to fetch constraints").expect("JSON serialization failed")
+            error_json!("Failed to fetch constraints")
         }
         Err(e) => {
             error!("Actor mailbox error: {}", e);
-            error_json!("Actor communication failed").expect("JSON serialization failed")
+            error_json!("Actor communication failed")
         }
     }
 }
@@ -137,16 +137,16 @@ pub async fn get_constraint(
 
                 ok_json!(response)
             } else {
-                not_found!("Constraint not found").unwrap()
+                not_found!("Constraint not found")
             }
         }
         Ok(Err(e)) => {
             error!("Failed to fetch constraint: {}", e);
-            error_json!("Failed to fetch constraint").expect("JSON serialization failed")
+            error_json!("Failed to fetch constraint")
         }
         Err(e) => {
             error!("Actor mailbox error: {}", e);
-            error_json!("Actor communication failed").expect("JSON serialization failed")
+            error_json!("Actor communication failed")
         }
     }
 }
@@ -182,11 +182,11 @@ pub async fn update_constraint(
         }
         Ok(Err(e)) => {
             error!("Failed to update constraint: {}", e);
-            error_json!("Failed to update constraint").expect("JSON serialization failed")
+            error_json!("Failed to update constraint")
         }
         Err(e) => {
             error!("Actor mailbox error: {}", e);
-            error_json!("Actor communication failed").expect("JSON serialization failed")
+            error_json!("Actor communication failed")
         }
     }
 }
@@ -206,7 +206,7 @@ pub async fn create_user_constraint(
         "Containment" => ConstraintType::Containment,
         "Alignment" => ConstraintType::Alignment,
         _ => {
-            return bad_request!("Invalid constraint type").expect("JSON serialization failed");
+            return bad_request!("Invalid constraint type");
         }
     };
 

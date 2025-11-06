@@ -37,7 +37,7 @@
 //! let stats = sync_handle.await??;
 //! ```
 
-use crate::repositories::UnifiedOntologyRepository;
+use crate::adapters::neo4j_ontology_repository::Neo4jOntologyRepository;
 use crate::ports::knowledge_graph_repository::KnowledgeGraphRepository;
 use crate::ports::ontology_repository::OntologyRepository;
 use crate::services::github::content_enhanced::EnhancedContentAPI;
@@ -146,7 +146,7 @@ pub struct StreamingSyncService {
     kg_parser: Arc<KnowledgeGraphParser>,
     onto_parser: Arc<OntologyParser>,
     kg_repo: Arc<dyn KnowledgeGraphRepository>,
-    onto_repo: Arc<UnifiedOntologyRepository>,
+    onto_repo: Arc<Neo4jOntologyRepository>,
     max_workers: usize,
     max_db_writes: usize,
     progress_tx: Option<mpsc::UnboundedSender<SyncProgress>>,
@@ -157,7 +157,7 @@ impl StreamingSyncService {
     pub fn new(
         content_api: Arc<EnhancedContentAPI>,
         kg_repo: Arc<dyn KnowledgeGraphRepository>,
-        onto_repo: Arc<UnifiedOntologyRepository>,
+        onto_repo: Arc<Neo4jOntologyRepository>,
         max_workers: Option<usize>,
     ) -> Self {
         let max_workers = max_workers.unwrap_or(DEFAULT_MAX_WORKERS);
@@ -410,7 +410,7 @@ impl StreamingSyncService {
         kg_parser: Arc<KnowledgeGraphParser>,
         onto_parser: Arc<OntologyParser>,
         kg_repo: Arc<dyn KnowledgeGraphRepository>,
-        onto_repo: Arc<UnifiedOntologyRepository>,
+        onto_repo: Arc<Neo4jOntologyRepository>,
         db_semaphore: Arc<Semaphore>,
         result_tx: mpsc::UnboundedSender<FileProcessResult>,
     ) -> Result<(), String> {
@@ -458,7 +458,7 @@ impl StreamingSyncService {
         kg_parser: &Arc<KnowledgeGraphParser>,
         onto_parser: &Arc<OntologyParser>,
         kg_repo: &Arc<dyn KnowledgeGraphRepository>,
-        onto_repo: &Arc<UnifiedOntologyRepository>,
+        onto_repo: &Arc<Neo4jOntologyRepository>,
         db_semaphore: &Arc<Semaphore>,
     ) -> FileProcessResult {
         debug!("[StreamingSync][Worker-{}] Fetching content from: {}", worker_id, file.download_url);
@@ -621,7 +621,7 @@ impl StreamingSyncService {
         file: &GitHubFileBasicMetadata,
         content: &str,
         onto_parser: &Arc<OntologyParser>,
-        onto_repo: &Arc<UnifiedOntologyRepository>,
+        onto_repo: &Arc<Neo4jOntologyRepository>,
         db_semaphore: &Arc<Semaphore>,
     ) -> FileProcessResult {
         debug!("[StreamingSync][Worker-{}] Parsing ontology file: {}", worker_id, file.name);

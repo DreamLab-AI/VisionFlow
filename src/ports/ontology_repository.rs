@@ -32,6 +32,12 @@ pub enum OntologyRepositoryError {
 
     #[error("Validation failed: {0}")]
     ValidationFailed(String),
+
+    #[error("Serialization error: {0}")]
+    SerializationError(String),
+
+    #[error("Deserialization error: {0}")]
+    DeserializationError(String),
 }
 
 ///

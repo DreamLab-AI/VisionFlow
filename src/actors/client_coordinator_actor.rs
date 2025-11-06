@@ -53,6 +53,15 @@ pub struct ClientManager {
     pub active_connections: usize,
 }
 
+
+/// Helper to convert RwLock poison errors to ActorError
+fn handle_rwlock_error<T>(result: Result<T, std::sync::PoisonError<T>>) -> Result<T, crate::errors::ActorError> {
+    result.map_err(|_| crate::errors::ActorError::RuntimeFailure {
+        actor_name: "ClientCoordinatorActor".to_string(),
+        reason: "RwLock poisoned - a thread panicked while holding the lock".to_string(),
+    })
+}
+
 impl ClientManager {
     pub fn new() -> Self {
         Self {
@@ -166,8 +175,8 @@ pub struct ClientCoordinatorActor {
     
     initial_positions_sent: bool,
 
-    
-    graph_service_addr: Option<Addr<crate::actors::graph_actor::GraphServiceActor>>,
+
+    graph_service_addr: Option<Addr<crate::actors::GraphServiceSupervisor>>,
 
     
     position_cache: HashMap<u32, BinaryNodeDataClient>,
@@ -286,7 +295,13 @@ impl ClientCoordinatorActor {
 
             
             let client_count = {
-                let manager = self.client_manager.read().expect("RwLock poisoned");
+                let manager = match handle_rwlock_error(self.client_manager.read()) {
+                Ok(manager) => manager,
+                Err(e) => {
+                    error!("RwLock error: {}", e);
+                    return Err(format!("Failed to acquire client manager lock: {}", e));
+                }
+            };
                 manager.broadcast_to_all(encoded.clone())
             };
 
@@ -312,14 +327,20 @@ impl ClientCoordinatorActor {
                 position_data.push(*node_data);
             }
 
-            
+
             let binary_data = self.serialize_positions(&position_data);
 
-            
+
             if self.check_bandwidth_available(binary_data.len()) {
-                
+
                 let client_count = {
-                    let manager = self.client_manager.read().expect("RwLock poisoned");
+                    let manager = match handle_rwlock_error(self.client_manager.read()) {
+                Ok(manager) => manager,
+                Err(e) => {
+                    error!("RwLock error: {}", e);
+                    return Err(format!("Failed to acquire client manager lock: {}", e));
+                }
+            };
                     manager.broadcast_to_all(binary_data.clone())
                 };
 
@@ -342,10 +363,10 @@ impl ClientCoordinatorActor {
         Ok(total_sent)
     }
 
-    
+
     pub fn set_graph_service_addr(
         &mut self,
-        addr: Addr<crate::actors::graph_actor::GraphServiceActor>,
+        addr: Addr<crate::actors::GraphServiceSupervisor>,
     ) {
         self.graph_service_addr = Some(addr);
         debug!("Graph service address set in client coordinator");
@@ -380,7 +401,13 @@ impl ClientCoordinatorActor {
         self.force_broadcast_requests += 1;
 
         let client_count = {
-            let manager = self.client_manager.read().expect("RwLock poisoned");
+            let manager = match handle_rwlock_error(self.client_manager.read()) {
+                Ok(manager) => manager,
+                Err(e) => {
+                    error!("RwLock error: {}", e);
+                    return false;
+                }
+            };
             manager.get_client_count()
         };
 
@@ -406,13 +433,19 @@ impl ClientCoordinatorActor {
         
         let binary_data = self.serialize_positions(&position_data);
 
-        
+
         let broadcast_count = {
-            let manager = self.client_manager.read().expect("RwLock poisoned");
+            let manager = match handle_rwlock_error(self.client_manager.read()) {
+                Ok(manager) => manager,
+                Err(e) => {
+                    error!("RwLock error: {}", e);
+                    return false;
+                }
+            };
             manager.broadcast_to_all(binary_data.clone())
         };
 
-        
+
         self.broadcast_count += 1;
         self.bytes_sent += binary_data.len() as u64;
         self.last_broadcast = Instant::now();
@@ -488,7 +521,13 @@ impl ClientCoordinatorActor {
         self.update_broadcast_interval(is_stable);
 
         let client_count = {
-            let manager = self.client_manager.read().expect("RwLock poisoned");
+            let manager = match handle_rwlock_error(self.client_manager.read()) {
+                Ok(manager) => manager,
+                Err(e) => {
+                    error!("RwLock error: {}", e);
+                    return Err(format!("Failed to acquire client manager lock: {}", e));
+                }
+            };
             manager.get_client_count()
         };
 
@@ -516,13 +555,19 @@ impl ClientCoordinatorActor {
         
         let binary_data = self.serialize_positions(&position_data);
 
-        
+
         let broadcast_count = {
-            let manager = self.client_manager.read().expect("RwLock poisoned");
+            let manager = match handle_rwlock_error(self.client_manager.read()) {
+                Ok(manager) => manager,
+                Err(e) => {
+                    error!("RwLock error: {}", e);
+                    return Err(format!("Failed to acquire client manager lock: {}", e));
+                }
+            };
             manager.broadcast_to_all(binary_data.clone())
         };
 
-        
+
         self.broadcast_count += 1;
         self.bytes_sent += binary_data.len() as u64;
         self.last_broadcast = Instant::now();
@@ -609,7 +654,13 @@ impl ClientCoordinatorActor {
 
     
     fn update_connection_stats(&mut self) {
-        let manager = self.client_manager.read().expect("RwLock poisoned");
+        let manager = match handle_rwlock_error(self.client_manager.read()) {
+                Ok(manager) => manager,
+                Err(e) => {
+                    error!("RwLock error: {}", e);
+                    return;
+                }
+            };
         self.connection_stats.current_clients = manager.get_client_count();
 
         if self.connection_stats.current_clients > self.connection_stats.peak_clients {
@@ -619,7 +670,22 @@ impl ClientCoordinatorActor {
 
     
     pub fn get_stats(&self) -> ClientCoordinatorStats {
-        let manager = self.client_manager.read().expect("RwLock poisoned");
+        let manager = match handle_rwlock_error(self.client_manager.read()) {
+                Ok(manager) => manager,
+                Err(e) => {
+                    error!("RwLock error: {}", e);
+                    return ClientCoordinatorStats {
+                        active_clients: 0,
+                        total_broadcasts: self.broadcast_count,
+                        bytes_sent: self.bytes_sent,
+                        force_broadcasts: self.force_broadcast_requests,
+                        position_cache_size: self.position_cache.len(),
+                        initial_positions_sent: self.initial_positions_sent,
+                        current_broadcast_interval: self.broadcast_interval,
+                        connection_stats: self.connection_stats.clone(),
+                    };
+                }
+            };
         ClientCoordinatorStats {
             active_clients: manager.get_client_count(),
             total_broadcasts: self.broadcast_count,
@@ -718,7 +784,13 @@ impl Handler<RegisterClient> for ClientCoordinatorActor {
 
     fn handle(&mut self, msg: RegisterClient, _ctx: &mut Self::Context) -> Self::Result {
         let client_id = {
-            let mut manager = self.client_manager.write().expect("RwLock poisoned");
+            let mut manager = match handle_rwlock_error(self.client_manager.write()) {
+                Ok(manager) => manager,
+                Err(e) => {
+                    error!("RwLock error: {}", e);
+                    return Err(format!("Failed to acquire client manager lock: {}", e).into());
+                }
+            };
             manager.register_client(msg.addr)
         };
 
@@ -771,7 +843,13 @@ impl Handler<UnregisterClient> for ClientCoordinatorActor {
 
     fn handle(&mut self, msg: UnregisterClient, _ctx: &mut Self::Context) -> Self::Result {
         let success = {
-            let mut manager = self.client_manager.write().expect("RwLock poisoned");
+            let mut manager = match handle_rwlock_error(self.client_manager.write()) {
+                Ok(manager) => manager,
+                Err(e) => {
+                    error!("RwLock error: {}", e);
+                    return Err(format!("Failed to acquire client manager lock: {}", e));
+                }
+            };
             manager.unregister_client(msg.client_id)
         };
 
@@ -820,7 +898,13 @@ impl Handler<BroadcastNodePositions> for ClientCoordinatorActor {
 
     fn handle(&mut self, msg: BroadcastNodePositions, _ctx: &mut Self::Context) -> Self::Result {
         let client_count = {
-            let manager = self.client_manager.read().expect("RwLock poisoned");
+            let manager = match handle_rwlock_error(self.client_manager.read()) {
+                Ok(manager) => manager,
+                Err(e) => {
+                    error!("RwLock error: {}", e);
+                    return Err(format!("Failed to acquire client manager lock: {}", e));
+                }
+            };
             manager.broadcast_to_all(msg.positions.clone())
         };
 
@@ -876,7 +960,13 @@ impl Handler<BroadcastMessage> for ClientCoordinatorActor {
 
     fn handle(&mut self, msg: BroadcastMessage, _ctx: &mut Self::Context) -> Self::Result {
         let client_count = {
-            let manager = self.client_manager.read().expect("RwLock poisoned");
+            let manager = match handle_rwlock_error(self.client_manager.read()) {
+                Ok(manager) => manager,
+                Err(e) => {
+                    error!("RwLock error: {}", e);
+                    return Err(format!("Failed to acquire client manager lock: {}", e));
+                }
+            };
             manager.broadcast_message(msg.message.clone())
         };
 
@@ -902,7 +992,13 @@ impl Handler<GetClientCount> for ClientCoordinatorActor {
 
     fn handle(&mut self, _msg: GetClientCount, _ctx: &mut Self::Context) -> Self::Result {
         let count = {
-            let manager = self.client_manager.read().expect("RwLock poisoned");
+            let manager = match handle_rwlock_error(self.client_manager.read()) {
+                Ok(manager) => manager,
+                Err(e) => {
+                    error!("RwLock error: {}", e);
+                    return Err(format!("Failed to acquire client manager lock: {}", e));
+                }
+            };
             manager.get_client_count()
         };
         Ok(count)
@@ -943,7 +1039,13 @@ impl Handler<InitialClientSync> for ClientCoordinatorActor {
         if self.force_broadcast(&broadcast_reason) {
             
             if let Ok(client_id) = msg.client_identifier.parse::<usize>() {
-                let mut manager = self.client_manager.write().expect("RwLock poisoned");
+                let mut manager = match handle_rwlock_error(self.client_manager.write()) {
+                Ok(manager) => manager,
+                Err(e) => {
+                    error!("RwLock error: {}", e);
+                    return Err(format!("Failed to acquire client manager lock: {}", e));
+                }
+            };
                 manager.mark_client_synced(client_id);
             }
 
@@ -988,14 +1090,26 @@ impl Handler<UpdateNodePositions> for ClientCoordinatorActor {
 
         
         let client_count = {
-            let manager = self.client_manager.read().expect("RwLock poisoned");
+            let manager = match handle_rwlock_error(self.client_manager.read()) {
+                Ok(manager) => manager,
+                Err(e) => {
+                    error!("RwLock error: {}", e);
+                    return Err(format!("Failed to acquire client manager lock: {}", e));
+                }
+            };
             manager.get_client_count()
         };
 
         if client_count > 0 {
-            
+
             let unsynced_clients = {
-                let manager = self.client_manager.read().expect("RwLock poisoned");
+                let manager = match handle_rwlock_error(self.client_manager.read()) {
+                Ok(manager) => manager,
+                Err(e) => {
+                    error!("RwLock error: {}", e);
+                    return Err(format!("Failed to acquire client manager lock: {}", e));
+                }
+            };
                 manager.get_unsynced_clients()
             };
 

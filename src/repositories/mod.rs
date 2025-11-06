@@ -1,13 +1,12 @@
 // src/repositories/mod.rs
-//! Unified Repository Adapters
+//! Repository Utilities
 //!
-//! This module contains repository adapters that implement the
-//! KnowledgeGraphRepository and OntologyRepository ports using
-//! the unified.db schema. These adapters provide 100% API compatibility
-//! with the legacy SQLite adapters while using a single unified database.
+//! This module contains utility modules for repository implementations.
+//!
+//! NOTE: UnifiedOntologyRepository has been deprecated and replaced with
+//! Neo4jOntologyRepository as part of the SQL deprecation effort.
+//! See ADR-001 for details.
 
 pub mod query_builder;
-pub mod unified_ontology_repository;
 
 pub use query_builder::{BatchQueryBuilder, QueryBuilder, SqlValue};
-pub use unified_ontology_repository::UnifiedOntologyRepository;

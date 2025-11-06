@@ -26,12 +26,13 @@ pub mod types;
 // Import utils with macro_use to make response macros available everywhere
 #[macro_use]
 pub mod utils;
+pub mod validation;
 
 // #[cfg(test)]
 // pub mod test_settings_fix;
 
 pub use actors::{
-    ClientCoordinatorActor, GraphServiceActor, MetadataActor, OptimizedSettingsActor,
+    ClientCoordinatorActor, MetadataActor, OptimizedSettingsActor,
 };
 pub use app_state::AppState;
 pub use models::metadata::MetadataStore;

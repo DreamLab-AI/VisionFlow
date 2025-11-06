@@ -2,6 +2,7 @@
 // REMOVED: gpu_compute module - legacy implementation replaced by unified_gpu_compute
 pub mod actor_timeout;
 pub mod advanced_logging;
+pub mod auth;
 pub mod async_improvements;
 pub mod audio_processor;
 pub mod binary_protocol;

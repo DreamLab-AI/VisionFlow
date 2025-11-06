@@ -45,7 +45,13 @@ pub enum VisionFlowError {
     Performance(PerformanceError),
     
     Protocol(ProtocolError),
-    
+
+    Database(DatabaseError),
+
+    Validation(ValidationError),
+
+    Parse(ParseError),
+
     Generic {
         message: String,
         #[serde(skip)]
@@ -234,14 +240,71 @@ pub enum PerformanceError {
 ///
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum ProtocolError {
-    
+
     EncodingFailed { data_type: String, reason: String },
-    
+
     DecodingFailed { data_type: String, reason: String },
-    
+
     ValidationFailed(String),
-    
+
     BinaryFormatError(String),
+}
+
+///
+#[derive(Debug, Clone, serde::Serialize)]
+pub enum DatabaseError {
+
+    ConnectionFailed { database: String, reason: String },
+
+    QueryFailed { query: String, reason: String },
+
+    TransactionFailed { reason: String },
+
+    NotFound { entity: String, id: String },
+
+    ConstraintViolation { constraint: String, reason: String },
+
+    MigrationFailed { version: String, reason: String },
+}
+
+///
+#[derive(Debug, Clone, serde::Serialize)]
+pub enum ValidationError {
+
+    FieldValidation { field: String, reason: String },
+
+    RequiredField { field: String },
+
+    InvalidFormat { field: String, expected: String, actual: String },
+
+    OutOfRange { field: String, min: String, max: String, actual: String },
+
+    InvalidLength { field: String, min: Option<usize>, max: Option<usize>, actual: usize },
+
+    Custom(String),
+}
+
+///
+#[derive(Debug, Clone, serde::Serialize)]
+pub enum ParseError {
+
+    JSON { input: String, reason: String },
+
+    TOML { input: String, reason: String },
+
+    YAML { input: String, reason: String },
+
+    Integer { input: String, reason: String },
+
+    Float { input: String, reason: String },
+
+    Boolean { input: String },
+
+    URL { input: String, reason: String },
+
+    DateTime { input: String, reason: String },
+
+    Custom { format: String, input: String, reason: String },
 }
 
 impl fmt::Display for VisionFlowError {
@@ -259,6 +322,9 @@ impl fmt::Display for VisionFlowError {
             VisionFlowError::Resource(e) => write!(f, "Resource Error: {}", e),
             VisionFlowError::Performance(e) => write!(f, "Performance Error: {}", e),
             VisionFlowError::Protocol(e) => write!(f, "Protocol Error: {}", e),
+            VisionFlowError::Database(e) => write!(f, "Database Error: {}", e),
+            VisionFlowError::Validation(e) => write!(f, "Validation Error: {}", e),
+            VisionFlowError::Parse(e) => write!(f, "Parse Error: {}", e),
             VisionFlowError::Generic { message, .. } => write!(f, "Error: {}", message),
         }
     }
@@ -532,6 +598,100 @@ impl fmt::Display for ProtocolError {
     }
 }
 
+impl fmt::Display for DatabaseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            DatabaseError::ConnectionFailed { database, reason } => {
+                write!(f, "Database connection to '{}' failed: {}", database, reason)
+            }
+            DatabaseError::QueryFailed { query, reason } => {
+                write!(f, "Database query failed: {} (query: {})", reason, query)
+            }
+            DatabaseError::TransactionFailed { reason } => {
+                write!(f, "Database transaction failed: {}", reason)
+            }
+            DatabaseError::NotFound { entity, id } => {
+                write!(f, "{} with id '{}' not found", entity, id)
+            }
+            DatabaseError::ConstraintViolation { constraint, reason } => {
+                write!(f, "Constraint '{}' violated: {}", constraint, reason)
+            }
+            DatabaseError::MigrationFailed { version, reason } => {
+                write!(f, "Database migration '{}' failed: {}", version, reason)
+            }
+        }
+    }
+}
+
+impl fmt::Display for ValidationError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            ValidationError::FieldValidation { field, reason } => {
+                write!(f, "Field '{}' validation failed: {}", field, reason)
+            }
+            ValidationError::RequiredField { field } => {
+                write!(f, "Required field '{}' is missing", field)
+            }
+            ValidationError::InvalidFormat { field, expected, actual } => write!(
+                f,
+                "Field '{}' has invalid format: expected {}, got {}",
+                field, expected, actual
+            ),
+            ValidationError::OutOfRange { field, min, max, actual } => write!(
+                f,
+                "Field '{}' out of range: expected {}-{}, got {}",
+                field, min, max, actual
+            ),
+            ValidationError::InvalidLength { field, min, max, actual } => {
+                let range = match (min, max) {
+                    (Some(min), Some(max)) => format!("{}-{}", min, max),
+                    (Some(min), None) => format!(">= {}", min),
+                    (None, Some(max)) => format!("<= {}", max),
+                    (None, None) => "unknown".to_string(),
+                };
+                write!(f, "Field '{}' invalid length: expected {}, got {}", field, range, actual)
+            }
+            ValidationError::Custom(msg) => write!(f, "Validation failed: {}", msg),
+        }
+    }
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            ParseError::JSON { input, reason } => {
+                write!(f, "JSON parse error: {} (input: {})", reason, input)
+            }
+            ParseError::TOML { input, reason } => {
+                write!(f, "TOML parse error: {} (input: {})", reason, input)
+            }
+            ParseError::YAML { input, reason } => {
+                write!(f, "YAML parse error: {} (input: {})", reason, input)
+            }
+            ParseError::Integer { input, reason } => {
+                write!(f, "Integer parse error: {} (input: {})", reason, input)
+            }
+            ParseError::Float { input, reason } => {
+                write!(f, "Float parse error: {} (input: {})", reason, input)
+            }
+            ParseError::Boolean { input } => {
+                write!(f, "Boolean parse error: invalid input '{}'", input)
+            }
+            ParseError::URL { input, reason } => {
+                write!(f, "URL parse error: {} (input: {})", reason, input)
+            }
+            ParseError::DateTime { input, reason } => {
+                write!(f, "DateTime parse error: {} (input: {})", reason, input)
+            }
+            ParseError::Custom { format, input, reason } => write!(
+                f,
+                "{} parse error: {} (input: {})",
+                format, reason, input
+            ),
+        }
+    }
+}
+
 impl std::error::Error for VisionFlowError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
@@ -555,6 +715,9 @@ impl std::error::Error for AudioError {}
 impl std::error::Error for ResourceError {}
 impl std::error::Error for PerformanceError {}
 impl std::error::Error for ProtocolError {}
+impl std::error::Error for DatabaseError {}
+impl std::error::Error for ValidationError {}
+impl std::error::Error for ParseError {}
 
 impl From<std::io::Error> for VisionFlowError {
     fn from(e: std::io::Error) -> Self {
@@ -619,6 +782,33 @@ impl From<PerformanceError> for VisionFlowError {
 impl From<ProtocolError> for VisionFlowError {
     fn from(e: ProtocolError) -> Self {
         VisionFlowError::Protocol(e)
+    }
+}
+
+impl From<DatabaseError> for VisionFlowError {
+    fn from(e: DatabaseError) -> Self {
+        VisionFlowError::Database(e)
+    }
+}
+
+impl From<ValidationError> for VisionFlowError {
+    fn from(e: ValidationError) -> Self {
+        VisionFlowError::Validation(e)
+    }
+}
+
+impl From<ParseError> for VisionFlowError {
+    fn from(e: ParseError) -> Self {
+        VisionFlowError::Parse(e)
+    }
+}
+
+impl From<serde_json::Error> for VisionFlowError {
+    fn from(e: serde_json::Error) -> Self {
+        VisionFlowError::Parse(ParseError::JSON {
+            input: "".to_string(),
+            reason: e.to_string(),
+        })
     }
 }
 
@@ -691,6 +881,91 @@ where
             VisionFlowError::GPU(GPUError::KernelExecutionFailed {
                 kernel_name: operation.to_string(),
                 reason: e.to_string(),
+            })
+        })
+    }
+}
+
+/// Helper macros for common error patterns
+
+/// Create a validation error
+#[macro_export]
+macro_rules! validation_error {
+    ($field:expr, $reason:expr) => {
+        $crate::errors::VisionFlowError::Validation($crate::errors::ValidationError::FieldValidation {
+            field: $field.to_string(),
+            reason: $reason.to_string(),
+        })
+    };
+}
+
+/// Create a parse error
+#[macro_export]
+macro_rules! parse_error {
+    (json, $input:expr, $reason:expr) => {
+        $crate::errors::VisionFlowError::Parse($crate::errors::ParseError::JSON {
+            input: $input.to_string(),
+            reason: $reason.to_string(),
+        })
+    };
+    (integer, $input:expr) => {
+        $crate::errors::VisionFlowError::Parse($crate::errors::ParseError::Integer {
+            input: $input.to_string(),
+            reason: "invalid integer format".to_string(),
+        })
+    };
+}
+
+/// Create a database error
+#[macro_export]
+macro_rules! db_error {
+    (not_found, $entity:expr, $id:expr) => {
+        $crate::errors::VisionFlowError::Database($crate::errors::DatabaseError::NotFound {
+            entity: $entity.to_string(),
+            id: $id.to_string(),
+        })
+    };
+    (query_failed, $query:expr, $reason:expr) => {
+        $crate::errors::VisionFlowError::Database($crate::errors::DatabaseError::QueryFailed {
+            query: $query.to_string(),
+            reason: $reason.to_string(),
+        })
+    };
+}
+
+/// Helper function to convert Option to Result with better error messages
+pub trait OptionExt<T> {
+    /// Convert Option to Result with a custom error message
+    fn ok_or_error(self, message: impl Into<String>) -> VisionFlowResult<T>;
+
+    /// Convert Option to Result with a validation error
+    fn ok_or_validation(self, field: impl Into<String>) -> VisionFlowResult<T>;
+
+    /// Convert Option to Result with a not found error
+    fn ok_or_not_found(self, entity: impl Into<String>, id: impl Into<String>) -> VisionFlowResult<T>;
+}
+
+impl<T> OptionExt<T> for Option<T> {
+    fn ok_or_error(self, message: impl Into<String>) -> VisionFlowResult<T> {
+        self.ok_or_else(|| VisionFlowError::Generic {
+            message: message.into(),
+            source: None,
+        })
+    }
+
+    fn ok_or_validation(self, field: impl Into<String>) -> VisionFlowResult<T> {
+        self.ok_or_else(|| {
+            VisionFlowError::Validation(ValidationError::RequiredField {
+                field: field.into(),
+            })
+        })
+    }
+
+    fn ok_or_not_found(self, entity: impl Into<String>, id: impl Into<String>) -> VisionFlowResult<T> {
+        self.ok_or_else(|| {
+            VisionFlowError::Database(DatabaseError::NotFound {
+                entity: entity.into(),
+                id: id.into(),
             })
         })
     }

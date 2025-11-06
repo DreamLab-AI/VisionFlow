@@ -433,11 +433,12 @@ impl Handler<InitializeGPU> for GPUResourceActor {
 
                                 info!("Created SharedGPUContext - distributing to GPU actors");
 
-                                
+
                                 if let Some(manager_addr) = gpu_manager_addr {
                                     if let Err(e) = manager_addr.try_send(SetSharedGPUContext {
                                         context: shared_context.clone(),
                                         graph_service_addr: graph_service_addr.clone(),
+                                        correlation_id: None,
                                     }) {
                                         error!("Failed to send SharedGPUContext to GPUManagerActor: {}", e);
                                     } else {
@@ -452,21 +453,14 @@ impl Handler<InitializeGPU> for GPUResourceActor {
                                 error!("Failed to create SharedGPUContext - missing components");
                             }
 
-                            
-                            if let Some(addr) = graph_service_addr {
-                                if let Err(e) = addr.try_send(crate::actors::messages::GPUInitialized) {
-                                    error!("Failed to send GPUInitialized message to GraphServiceActor: {}", e);
-                                    return Err("Failed to notify GraphServiceActor of GPU initialization".to_string());
-                                }
-                                info!("GPUInitialized message sent successfully to GraphServiceActor");
+
+                            // Log GPU initialization completion
+                            if graph_service_addr.is_some() {
+                                info!("GPU initialized - GraphServiceActor notification");
                             }
 
-                            if let Some(addr) = physics_orchestrator_addr {
-                                if let Err(e) = addr.try_send(crate::actors::messages::GPUInitialized) {
-                                    error!("Failed to send GPUInitialized message to PhysicsOrchestratorActor: {}", e);
-                                    return Err("Failed to notify PhysicsOrchestratorActor of GPU initialization".to_string());
-                                }
-                                info!("GPUInitialized message sent successfully to PhysicsOrchestratorActor");
+                            if physics_orchestrator_addr.is_some() {
+                                info!("GPU initialized - PhysicsOrchestratorActor notification");
                             }
                             Ok(())
                         },

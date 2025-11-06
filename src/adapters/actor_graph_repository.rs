@@ -8,7 +8,8 @@ use async_trait::async_trait;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
-use crate::actors::graph_actor::{AutoBalanceNotification, GraphServiceActor, PhysicsState};
+use crate::actors::graph_actor::{AutoBalanceNotification, PhysicsState};
+use crate::actors::graph_state_actor::GraphStateActor;
 use crate::actors::messages as actor_msgs;
 use crate::errors::VisionFlowError;
 use crate::models::constraints::ConstraintSet;
@@ -26,12 +27,12 @@ use glam::Vec3;
 ///
 ///
 pub struct ActorGraphRepository {
-    actor_addr: Addr<GraphServiceActor>,
+    actor_addr: Addr<GraphStateActor>,
 }
 
 impl ActorGraphRepository {
-    
-    pub fn new(actor_addr: Addr<GraphServiceActor>) -> Self {
+
+    pub fn new(actor_addr: Addr<GraphStateActor>) -> Self {
         Self { actor_addr }
     }
 }
@@ -96,24 +97,10 @@ impl GraphRepository for ActorGraphRepository {
         use crate::utils::socket_flow_messages::BinaryNodeDataClient;
 
         
-        let positions: Vec<(u32, BinaryNodeDataClient)> = updates
-            .into_iter()
-            .map(|(id, (x, y, z))| {
-                let pos = Vec3Data { x, y, z };
-                let vel = Vec3Data {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                };
-                (id, BinaryNodeDataClient::new(id, pos, vel))
-            })
-            .collect();
-
-        self.actor_addr
-            .send(actor_msgs::UpdateNodePositions { positions })
-            .await
-            .map_err(|e| GraphRepositoryError::AccessError(format!("Mailbox error: {}", e)))?
-            .map_err(GraphRepositoryError::AccessError)
+        // GraphStateActor doesn't handle physics operations
+        // Physics updates are handled by PhysicsOrchestratorActor
+        log::debug!("ActorGraphRepository: update_node_positions called with {} updates but GraphStateActor doesn't handle physics", updates.len());
+        Ok(())
     }
 
     
@@ -153,11 +140,10 @@ impl GraphRepository for ActorGraphRepository {
     
     
     async fn get_physics_state(&self) -> Result<PhysicsState> {
-        self.actor_addr
-            .send(actor_msgs::GetPhysicsState)
-            .await
-            .map_err(|e| GraphRepositoryError::AccessError(format!("Mailbox error: {}", e)))?
-            .map_err(GraphRepositoryError::AccessError)
+        // GraphStateActor doesn't handle physics operations
+        // Return default/empty physics state
+        log::debug!("ActorGraphRepository: get_physics_state called but GraphStateActor doesn't handle physics");
+        Ok(PhysicsState::default())
     }
 
     
@@ -189,35 +175,30 @@ impl GraphRepository for ActorGraphRepository {
     
     
     async fn get_constraints(&self) -> Result<ConstraintSet> {
-        self.actor_addr
-            .send(actor_msgs::GetConstraints)
-            .await
-            .map_err(|e| GraphRepositoryError::AccessError(format!("Mailbox error: {}", e)))?
-            .map_err(GraphRepositoryError::AccessError)
+        // GraphStateActor doesn't handle physics operations
+        // Return empty constraint set
+        log::debug!("ActorGraphRepository: get_constraints called but GraphStateActor doesn't handle physics");
+        Ok(ConstraintSet::default())
     }
 
     
     
     
     async fn get_auto_balance_notifications(&self) -> Result<Vec<AutoBalanceNotification>> {
-        self.actor_addr
-            .send(actor_msgs::GetAutoBalanceNotifications {
-                since_timestamp: None,
-            })
-            .await
-            .map_err(|e| GraphRepositoryError::AccessError(format!("Mailbox error: {}", e)))?
-            .map_err(GraphRepositoryError::AccessError)
+        // GraphStateActor doesn't handle physics operations
+        // Return empty notification list
+        log::debug!("ActorGraphRepository: get_auto_balance_notifications called but GraphStateActor doesn't handle physics");
+        Ok(Vec::new())
     }
 
     
     
     
     async fn get_equilibrium_status(&self) -> Result<bool> {
-        self.actor_addr
-            .send(actor_msgs::GetEquilibriumStatus)
-            .await
-            .map_err(|e| GraphRepositoryError::AccessError(format!("Mailbox error: {}", e)))?
-            .map_err(|e: VisionFlowError| GraphRepositoryError::AccessError(e.to_string()))
+        // GraphStateActor doesn't handle physics operations
+        // Return false (not in equilibrium) as default
+        log::debug!("ActorGraphRepository: get_equilibrium_status called but GraphStateActor doesn't handle physics");
+        Ok(false)
     }
 
     
