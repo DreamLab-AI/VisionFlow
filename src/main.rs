@@ -391,12 +391,13 @@ async fn main() -> std::io::Result<()> {
     info!("main: All services and actors initialized. Configuring HTTP server.");
     let server =
         HttpServer::new(move || {
+            // CORS configuration for local development
+            // Allows any origin for local network access (no credentials requirement)
             let cors = Cors::default()
                 .allow_any_origin()
                 .allow_any_method()
                 .allow_any_header()
-                .max_age(3600)
-                .supports_credentials();
+                .max_age(3600);
 
             let app = App::new()
             .wrap(middleware::Logger::default())
