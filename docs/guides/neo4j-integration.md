@@ -1,320 +1,568 @@
 # Neo4j Integration Guide
 
-**Status**: ⚙️ Code exists, wiring needed
-**Last Updated**: November 3, 2025
+**Status**: ✅ Production (Primary Database)
+**Last Updated**: November 6, 2025
 
 ---
 
 ## Overview
 
-VisionFlow supports optional Neo4j graph database integration for advanced graph analytics alongside the primary SQLite unified.db storage. This enables Cypher queries, multi-hop path analysis, and OWL semantic relationship exploration.
+**Neo4j 5.13 is the primary and sole persistence layer for VisionFlow.** All graph data, ontology information, and application settings are stored in Neo4j. The system requires a running Neo4j instance to function.
+
+This guide covers:
+- Neo4j setup and configuration
+- Database schema and architecture
+- Query patterns and best practices
+- Performance tuning
+- Troubleshooting
 
 ---
 
 ## Quick Start
 
-### 1. Environment Configuration
+### 1. Start Neo4j with Docker (Recommended)
 
 ```bash
-# Required
-export NEO4J-URI="bolt://localhost:7687"
-export NEO4J-USER="neo4j"
-export NEO4J-PASSWORD="your-password"
+# Using docker-compose.unified.yml (easiest)
+docker-compose --profile dev up -d
 
-# Optional
-export NEO4J-DATABASE="neo4j"  # Default database
-export NEO4J-STRICT-MODE="false"  # Log errors but don't fail
+# Or manually:
+docker run -d \
+  --name visionflow-neo4j \
+  -p 7474:7474 -p 7687:7687 \
+  -e NEO4J_AUTH=neo4j/your_secure_password \
+  neo4j:5.13.0
 ```
 
-### 2. Start Neo4j
+### 2. Configure Environment Variables
 
 ```bash
-# Docker
-docker run -d \
-  --name neo4j \
-  -p 7474:7474 -p 7687:7687 \
-  -e NEO4J-AUTH=neo4j/your-password \
-  neo4j:latest
+# Required - VisionFlow will not start without these
+NEO4J_URI=bolt://neo4j:7687  # Use 'neo4j' for Docker networks
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=your_secure_password
+NEO4J_DATABASE=neo4j
 ```
 
 ### 3. Verify Connection
 
 ```bash
-# Health check
-curl http://localhost:4000/api/neo4j/health
+# Access Neo4j Browser
+open http://localhost:7474
 
-# Get query examples
-curl http://localhost:4000/api/query/cypher/examples
+# Check VisionFlow backend health
+curl http://localhost:4000/api/health
+
+# Query the graph
+curl http://localhost:4000/api/graph/data
 ```
 
 ---
 
 ## Architecture
 
-### Dual-Write Strategy
+### Neo4j as Primary Database
 
+VisionFlow uses **Neo4j as the single source of truth** for all data:
+
+```mermaid
+graph TD
+    A[GitHub Markdown] --> B[StreamingSyncService]
+    B --> C[OntologyParser]
+    B --> D[KnowledgeGraphParser]
+    C --> E[Neo4jOntologyRepository]
+    D --> F[Neo4jGraphRepository]
+    E --> G[(Neo4j Database)]
+    F --> G
+    G --> H[GraphStateActor]
+    H --> I[GPU Physics]
+    I --> J[WebSocket API]
+    J --> K[3D Client]
 ```
-Write Request
-    ↓
-DualGraphRepository
-    ├─→ SQLite (Primary) - MUST succeed
-    └─→ Neo4j (Secondary) - MAY fail (if strict-mode=false)
-```
 
-### Read Strategy
+### What's Stored in Neo4j
 
-All reads come from **SQLite (unified.db)** for consistency.
+| Data Type | Node Labels | Purpose |
+|-----------|-------------|---------|
+| **Knowledge Graph** | `:Node`, `:Edge` | User's knowledge graph nodes and relationships |
+| **Ontology Classes** | `:OwlClass` | OWL class definitions with IRIs |
+| **Ontology Properties** | `:OwlProperty` | Object and data properties |
+| **Class Hierarchy** | `:SubClassOf` relationships | Taxonomic structure |
+| **Ontology Axioms** | `:Axiom` | Logical constraints and rules |
+| **Settings** | `:Setting` | Application configuration |
 
 ---
 
-## Integration Checklist
+## Database Schema
 
-### Step 1: Add Module Export
+### Knowledge Graph Schema
 
-**File**: `src/handlers/mod.rs`
-
-Add after line 10:
-```rust
-pub mod cypher-query-handler;
+**Nodes (:Node)**
+```cypher
+CREATE (n:Node {
+  metadata_id: "unique-id",
+  label: "Node Label",
+  public: "true",
+  content: "Node content..."
+})
 ```
 
-### Step 2: Add AppState Fields
-
-**File**: `src/app-state.rs`
-
-Add after existing neo4j-adapter field (if not present):
-```rust
-/// Neo4j adapter for graph analytics (optional)
-pub neo4j-adapter: Option<Arc<Neo4jAdapter>>,
+**Edges (:EDGE relationships)**
+```cypher
+CREATE (a:Node)-[:EDGE {
+  source_id: 1,
+  target_id: 2,
+  label: "connects to"
+}]->(b:Node)
 ```
 
-### Step 3: Initialize Neo4j in AppState::new()
+### Ontology Schema
 
-**File**: `src/app-state.rs`
-
-Add after unified graph repository creation:
-```rust
-// ============================================================================
-// Neo4j Integration (Optional Dual-Write Repository)
-// ============================================================================
-info!("[AppState::new] Checking for Neo4j configuration...");
-
-let neo4j-adapter: Option<Arc<Neo4jAdapter>> = if std::env::var("NEO4J-URI").is-ok() {
-    info!("[AppState::new] NEO4J-URI detected, attempting to connect...");
-
-    match Neo4jAdapter::new(Neo4jConfig::default()).await {
-        Ok(adapter) => {
-            info!("✅ Neo4j adapter connected successfully");
-            Some(Arc::new(adapter))
-        }
-        Err(e) => {
-            warn!("⚠️  Failed to initialize Neo4j adapter: {}", e);
-            warn!("⚠️  Continuing with SQLite-only mode");
-            None
-        }
-    }
-} else {
-    info!("ℹ️  NEO4J-URI not set - running SQLite-only mode");
-    None
-};
-
-// Wrap in DualGraphRepository if Neo4j is available
-let knowledge-graph-repository: Arc<dyn KnowledgeGraphRepository> = if neo4j-adapter.is-some() {
-    let strict-mode = std::env::var("NEO4J-STRICT-MODE")
-        .ok()
-        .and-then(|v| v.parse::<bool>().ok())
-        .unwrap-or(false);
-
-    info!("🔗 Creating DualGraphRepository (SQLite + Neo4j)");
-    info!("   Strict mode: {}", strict-mode);
-
-    Arc::new(DualGraphRepository::new(
-        knowledge-graph-repository,
-        neo4j-adapter.clone(),
-        strict-mode,
-    ))
-} else {
-    knowledge-graph-repository
-};
+**OWL Classes (:OwlClass)**
+```cypher
+CREATE (c:OwlClass {
+  iri: "http://example.org/ontology#Person",
+  label: "Person",
+  user_defined: true
+})
 ```
 
-### Step 4: Register Routes in main.rs
-
-**File**: `src/main.rs`
-
-Add to imports:
-```rust
-cypher-query-handler,
+**Class Hierarchy (:SubClassOf)**
+```cypher
+CREATE (child:OwlClass)-[:SubClassOf]->(parent:OwlClass)
 ```
 
-Add to route configuration:
-```rust
-.configure(cypher-query-handler::configure-routes)
+**Properties (:OwlProperty)**
+```cypher
+CREATE (p:OwlProperty {
+  iri: "http://example.org/ontology#hasName",
+  label: "has name",
+  property_type: "ObjectProperty"
+})
+```
+
+---
+
+## Essential Cypher Queries
+
+### View Knowledge Graph
+
+```cypher
+// Get all knowledge graph nodes
+MATCH (n:Node)
+RETURN n
+LIMIT 25;
+
+// Get nodes with their connections
+MATCH (n:Node)-[r:EDGE]->(m:Node)
+RETURN n, r, m
+LIMIT 50;
+
+// Find public nodes
+MATCH (n:Node)
+WHERE n.public = "true"
+RETURN n.metadata_id, n.label
+LIMIT 100;
+```
+
+### Explore Ontology
+
+```cypher
+// View ontology classes
+MATCH (c:OwlClass)
+RETURN c.iri, c.label
+ORDER BY c.label
+LIMIT 50;
+
+// View class hierarchy
+MATCH path = (child:OwlClass)-[:SubClassOf*1..3]->(parent:OwlClass)
+RETURN path
+LIMIT 25;
+
+// Find all subclasses of a class
+MATCH (c:OwlClass {label: "Entity"})<-[:SubClassOf*1..]-(sub:OwlClass)
+RETURN sub.label, sub.iri;
+
+// View properties
+MATCH (p:OwlProperty)
+RETURN p.iri, p.label, p.property_type
+LIMIT 25;
+```
+
+### Pathfinding
+
+```cypher
+// Shortest path between two nodes
+MATCH path = shortestPath(
+  (a:Node {metadata_id: "start-id"})-[:EDGE*1..10]-(b:Node {metadata_id: "end-id"})
+)
+RETURN path;
+
+// All paths up to 3 hops
+MATCH path = (a:Node {metadata_id: "node-id"})-[:EDGE*1..3]-(b:Node)
+RETURN DISTINCT b.metadata_id, b.label, length(path) as hops
+ORDER BY hops
+LIMIT 50;
+```
+
+### Analytics
+
+```cypher
+// Node degree distribution
+MATCH (n:Node)
+RETURN n.label,
+       size((n)-[:EDGE]-()) as degree
+ORDER BY degree DESC
+LIMIT 20;
+
+// Connected components count
+MATCH (n:Node)
+WITH COLLECT(DISTINCT id(n)) as nodes
+RETURN size(nodes) as total_nodes;
+
+// Ontology statistics
+MATCH (c:OwlClass)
+WITH count(c) as class_count
+MATCH (p:OwlProperty)
+WITH class_count, count(p) as property_count
+MATCH ()-[r:SubClassOf]->()
+RETURN class_count, property_count, count(r) as hierarchy_edges;
 ```
 
 ---
 
 ## REST API Endpoints
 
-### Health Check
+VisionFlow provides REST endpoints that query Neo4j:
+
+### Graph Data
+
 ```bash
-GET /api/neo4j/health
+# Get all graph data
+GET /api/graph/data
+
+# Get specific node
+GET /api/graph/nodes/{id}
+
+# Get node neighbors
+GET /api/graph/nodes/{id}/neighbors
 ```
 
-**Response**:
-```json
-{
-  "status": "connected",
-  "uri": "bolt://localhost:7687",
-  "database": "neo4j"
-}
-```
+### Ontology Data
 
-### Execute Cypher Query
 ```bash
-POST /api/query/cypher
-Content-Type: application/json
+# Get all ontology classes
+GET /api/ontology/classes
 
-{
-  "query": "MATCH (n:GraphNode) RETURN n.id, n.label LIMIT 10",
-  "parameters": {},
-  "limit": 10,
-  "timeout": 30
-}
+# Get class hierarchy
+GET /api/ontology/hierarchy
+
+# Get properties
+GET /api/ontology/properties
 ```
 
-**Response**:
-```json
-{
-  "results": [
-    {"n.id": 1, "n.label": "Person"},
-    {"n.id": 2, "n.label": "Organization"}
-  ],
-  "count": 2,
-  "truncated": false,
-  "execution-time-ms": 42
-}
-```
+### Settings
 
-### Get Query Examples
 ```bash
-GET /api/query/cypher/examples
+# Get settings
+GET /api/settings
+
+# Update settings (authenticated)
+POST /api/settings
 ```
 
 ---
 
-## Example Queries
+## Performance Tuning
 
-### Find Neighbors (1-3 hops)
+### Recommended Indexes
+
+Run these after initial data load for optimal performance:
+
 ```cypher
-MATCH (n:GraphNode {id: $node-id})-[:EDGE*1..3]-(m:GraphNode)
-RETURN DISTINCT m.id, m.label
+// Knowledge graph indexes
+CREATE INDEX node_metadata_id IF NOT EXISTS FOR (n:Node) ON (n.metadata_id);
+CREATE INDEX node_public IF NOT EXISTS FOR (n:Node) ON (n.public);
+CREATE INDEX node_label IF NOT EXISTS FOR (n:Node) ON (n.label);
+
+// Ontology indexes
+CREATE CONSTRAINT owl_class_iri_unique IF NOT EXISTS
+  FOR (c:OwlClass) REQUIRE c.iri IS UNIQUE;
+CREATE INDEX owl_class_label IF NOT EXISTS FOR (c:OwlClass) ON (c.label);
+
+CREATE CONSTRAINT owl_property_iri_unique IF NOT EXISTS
+  FOR (p:OwlProperty) REQUIRE p.iri IS UNIQUE;
+CREATE INDEX owl_property_label IF NOT EXISTS FOR (p:OwlProperty) ON (p.label);
+
+// Show all indexes
+SHOW INDEXES;
 ```
 
-### Find Semantic Paths (OWL)
-```cypher
-MATCH (n:GraphNode {id: $start-id})-[r:EDGE*1..3]->(m:GraphNode)
-WHERE ALL(rel IN r WHERE rel.owl-property-iri = 'http://www.w3.org/2000/01/rdf-schema#subClassOf')
-RETURN m.id, m.label, m.owl-class-iri, length(r) AS depth
-ORDER BY depth
-LIMIT 50
+### Memory Configuration
+
+Adjust in `.env` based on your hardware:
+
+```bash
+# For 8GB RAM systems
+NEO4J_PAGECACHE_SIZE=512M
+NEO4J_HEAP_INIT=512M
+NEO4J_HEAP_MAX=1G
+
+# For 16GB+ RAM systems
+NEO4J_PAGECACHE_SIZE=2G
+NEO4J_HEAP_INIT=1G
+NEO4J_HEAP_MAX=4G
 ```
 
-### Find Disjoint Classes
-```cypher
-MATCH (c1:GraphNode)-[:EDGE {owl-property-iri: 'http://www.w3.org/2002/07/owl#disjointWith'}]->(c2:GraphNode)
-RETURN c1.label, c2.label
+Or in `docker-compose.unified.yml`:
+
+```yaml
+neo4j:
+  environment:
+    - NEO4J_server_memory_pagecache_size=2G
+    - NEO4J_server_memory_heap_max__size=4G
+```
+
+### Query Performance Tips
+
+1. **Use LIMIT**: Always limit result sets
+   ```cypher
+   MATCH (n:Node) RETURN n LIMIT 100;  // Good
+   MATCH (n:Node) RETURN n;             // Bad - may return millions
+   ```
+
+2. **Use Indexes**: Query indexed properties
+   ```cypher
+   MATCH (n:Node {metadata_id: "id"}) RETURN n;  // Uses index
+   ```
+
+3. **Profile Queries**: Use PROFILE to identify bottlenecks
+   ```cypher
+   PROFILE MATCH (n:Node)-[:EDGE*1..3]-(m) RETURN count(m);
+   ```
+
+4. **Limit Path Depth**: Keep path queries under 5 hops
+   ```cypher
+   MATCH path = (a)-[:EDGE*1..3]-(b) RETURN path;  // Good
+   MATCH path = (a)-[:EDGE*1..10]-(b) RETURN path; // Slow
+   ```
+
+---
+
+## Backup and Restore
+
+### Backup Neo4j Data
+
+```bash
+# Stop VisionFlow but keep Neo4j running
+docker stop visionflow_container
+
+# Create backup
+docker exec visionflow-neo4j neo4j-admin database dump neo4j \
+  --to-path=/var/lib/neo4j/data/dumps
+
+# Copy to host
+docker cp visionflow-neo4j:/var/lib/neo4j/data/dumps/neo4j.dump \
+  ./neo4j-backup-$(date +%Y%m%d).dump
+```
+
+### Restore from Backup
+
+```bash
+# Stop both containers
+docker-compose --profile dev down
+
+# Start only Neo4j
+docker-compose up -d neo4j
+
+# Load backup
+docker cp ./neo4j-backup-20251106.dump visionflow-neo4j:/tmp/restore.dump
+docker exec visionflow-neo4j neo4j-admin database load neo4j \
+  --from-path=/tmp
+
+# Restart everything
+docker-compose --profile dev up -d
 ```
 
 ---
 
-## Safety Features
+## Migration from SQLite
 
-### Query Restrictions
-The Cypher handler **blocks** destructive operations:
-- `DELETE`
-- `SET`
-- `CREATE`
-- `MERGE`
+If you're upgrading from an older VisionFlow version that used SQLite:
 
-### Timeout Protection
-- Default timeout: 30 seconds
-- Maximum timeout: 300 seconds
+### Step 1: Export from SQLite
 
-### Result Limits
-- Default limit: 100 results
-- Maximum limit: 10,000 results
+The old `unified.db` format is **no longer supported**. Historical data must be migrated.
+
+### Step 2: Sync from GitHub
+
+The recommended approach is to **re-sync from your GitHub repository**:
+
+```bash
+# Trigger full sync
+curl -X POST http://localhost:4000/api/admin/sync/streaming
+```
+
+This will:
+1. Parse all Markdown files from GitHub
+2. Extract ontology and knowledge graph data
+3. Populate Neo4j with clean, current data
+
+### Step 3: Verify
+
+```cypher
+// Check node count
+MATCH (n:Node) RETURN count(n);
+
+// Check ontology classes
+MATCH (c:OwlClass) RETURN count(c);
+
+// Verify relationships
+MATCH ()-[r]->() RETURN count(r);
+```
 
 ---
 
 ## Troubleshooting
 
-### Issue: "Neo4j Not Configured"
-**Solution**: Set `NEO4J-URI` environment variable and restart.
+### Issue: "Failed to create Neo4j settings repository"
+
+**Symptom**: Backend fails to start with Neo4j connection error
+
+**Solution**:
+1. Verify Neo4j is running: `docker ps | grep neo4j`
+2. Check connection: `docker logs visionflow-neo4j`
+3. Verify environment variables in `.env`
+4. Test connectivity: `nc -zv localhost 7687`
+
+**See**: [502 Error Diagnosis Guide](../../502_ERROR_DIAGNOSIS.md)
+
+### Issue: Slow Query Performance
+
+**Solution**:
+1. Check indexes exist: `SHOW INDEXES;`
+2. Add missing indexes (see Performance Tuning section)
+3. Use `PROFILE` to identify slow operations
+4. Limit result sets with `LIMIT`
+5. Reduce path traversal depth
+
+### Issue: Out of Memory
+
+**Solution**:
+1. Increase heap size in docker-compose.yml
+2. Add indexes to reduce memory usage
+3. Use pagination for large result sets
+4. Restart Neo4j: `docker restart visionflow-neo4j`
 
 ### Issue: Connection Refused
-**Solution**: Verify Neo4j is running on port 7687.
+
+**Solution**:
+1. Check Neo4j is listening: `docker logs visionflow-neo4j`
+2. Verify port forwarding: `netstat -tuln | grep 7687`
+3. Check firewall rules
+4. Use correct URI format: `bolt://neo4j:7687` (Docker) or `bolt://localhost:7687` (host)
 
 ### Issue: Authentication Failed
-**Solution**: Check `NEO4J-USER` and `NEO4J-PASSWORD` match Neo4j configuration.
 
-### Issue: Dual-Write Failures (strict-mode=true)
-**Solution**: Set `NEO4J-STRICT-MODE=false` to continue on Neo4j errors.
-
----
-
-## Migration from Legacy
-
-If upgrading from the old three-database architecture:
-
-1. **Export from SQLite**: Existing unified.db data is preserved
-2. **Import to Neo4j**: Use dual-write mode to populate Neo4j
-3. **Verify**: Query both databases to ensure consistency
+**Solution**:
+1. Verify password matches: `.env` must match Neo4j container
+2. Reset password:
+   ```bash
+   docker exec -it visionflow-neo4j cypher-shell -u neo4j -p <old_password>
+   CALL dbms.security.changePassword('<new_password>');
+   ```
+3. Update `.env` with new password
+4. Restart VisionFlow: `docker-compose --profile dev restart visionflow`
 
 ---
 
-## Schema
+## Advanced Topics
 
-### Node Labels
-- `GraphNode`: All nodes from unified.db
+### Custom Cypher Queries
 
-### Node Properties
-- `id`: Integer node ID
-- `label`: Human-readable label
-- `metadata-id`: JSON metadata reference
-- `owl-class-iri`: OWL class IRI (if applicable)
-- `owl-property-iri`: OWL property IRI (if applicable)
+While VisionFlow provides a REST API, you can execute custom queries via Neo4j Browser or cypher-shell:
 
-### Relationship Type
-- `EDGE`: All edges from unified.db
+```bash
+# Interactive shell
+docker exec -it visionflow-neo4j cypher-shell -u neo4j -p your_password
 
-### Indexes
-- Uniqueness constraint on `GraphNode.id`
-- Index on `metadata-id`
-- Index on `owl-class-iri`
+# Execute script
+docker exec -it visionflow-neo4j cypher-shell -u neo4j -p your_password \
+  < your_script.cypher
+```
+
+### Monitoring
+
+```cypher
+// Show running queries
+CALL dbms.listQueries();
+
+// Show database info
+CALL dbms.queryJmx('org.neo4j:instance=kernel#0,name=Kernel');
+
+// Show indexes
+SHOW INDEXES;
+
+// Show constraints
+SHOW CONSTRAINTS;
+```
+
+### APOC Procedures
+
+APOC (Awesome Procedures on Cypher) is included:
+
+```cypher
+// Path finding with APOC
+CALL apoc.path.expand(
+  node,
+  "EDGE>",
+  null,
+  1,
+  3
+) YIELD path RETURN path;
+
+// Export to JSON
+CALL apoc.export.json.all("export.json", {});
+```
 
 ---
 
-## Performance Considerations
+## Related Documentation
 
-### When to Use Neo4j
-- Multi-hop path queries (3+ hops)
-- Graph analytics (centrality, communities)
-- OWL semantic reasoning queries
-
-### When to Use SQLite
-- Simple CRUD operations
-- Single-node lookups
-- Bulk imports/exports
-
-### Dual-Write Overhead
-Minimal (~5-10ms per write) in non-strict mode.
+- **[Neo4j Migration Guide](neo4j-migration.md)** - Historical migration information
+- **[Implementation Status](../reference/implementation-status.md)** - Current system completeness
+- **[502 Error Diagnosis](../../502_ERROR_DIAGNOSIS.md)** - Troubleshooting backend startup
+- **[Graph Sync Fixes](../../GRAPH_SYNC_FIXES.md)** - GitHub synchronization
+- **[Unified Docker Setup](../../UNIFIED_DOCKER_SETUP.md)** - Complete deployment guide
+- **[Neo4j Official Documentation](https://neo4j.com/docs/)** - Upstream docs
 
 ---
 
-## References
+## Production Considerations
 
-- [Neo4j Adapter Code](../../src/adapters/neo4j-adapter.rs)
-- [Dual Repository Code](../../src/adapters/dual-graph-repository.rs)
-- [Cypher Handler Code](../../src/handlers/cypher-query-handler.rs)
-- [Integration Checklist (Historical)](../NEO4j-integration-checklist.md)
+### Security
+
+1. **Change default password**: Never use default Neo4j password in production
+2. **Network isolation**: Use Docker networks, don't expose 7687 to internet
+3. **Authentication**: Enable authentication (enabled by default)
+4. **Backups**: Automated daily backups to separate storage
+
+### Scalability
+
+1. **Neo4j Enterprise**: Consider for clustering and advanced features
+2. **Read replicas**: Distribute read load across multiple instances
+3. **Sharding**: Partition large graphs by domain
+4. **Caching**: Use Redis for frequently accessed data
+
+### Monitoring
+
+1. **Neo4j Metrics**: Enable Prometheus metrics exporter
+2. **Query Logging**: Monitor slow queries
+3. **Resource Usage**: Track memory, CPU, disk I/O
+4. **Health Checks**: Automated monitoring via `/api/health`
+
+---
+
+**Document Version**: 2.0 (Neo4j Primary Architecture)
+**Last Updated**: November 6, 2025
+**Migration Status**: ✅ Complete - Neo4j is now the sole database
