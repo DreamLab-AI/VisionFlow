@@ -307,7 +307,7 @@ From the documentation consolidation work:
 1. **November 2025**: Neo4j migration completed
    - Settings repository → Neo4j ✅
    - Graph & ontology → Neo4j ✅
-   - SQLite deprecated (rusqlite still in Cargo.toml as fallback)
+   - SQLite fully removed (rusqlite dependency deleted)
 
 2. **November 5, 2025**: GraphServiceActor removed
    - Modular actor architecture implemented
