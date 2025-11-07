@@ -142,14 +142,15 @@ class GraphDataManager {
         const response = await unifiedApiClient.get('/graph/data');
         console.log(`[GraphDataManager] API response status: ${response.status}`);
 
-        const data = response.data;
+        // Handle response structure: { success: true, data: { nodes: [], edges: [] } }
+        const responseData = response.data.data || response.data;
 
-        if (!data || typeof data !== 'object') {
+        if (!responseData || typeof responseData !== 'object') {
           throw new Error('Invalid graph data format: data is not an object');
         }
 
-        const nodes = Array.isArray(data.nodes) ? data.nodes : [];
-        const edges = Array.isArray(data.edges) ? data.edges : [];
+        const nodes = Array.isArray(responseData.nodes) ? responseData.nodes : [];
+        const edges = Array.isArray(responseData.edges) ? responseData.edges : [];
         const metadata = data.metadata || {};
         const settlementState = data.settlementState || { isSettled: false, stableFrameCount: 0, kineticEnergy: 0 };
 
