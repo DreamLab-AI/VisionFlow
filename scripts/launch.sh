@@ -238,6 +238,33 @@ docker_compose() {
     docker compose -f "$COMPOSE_FILE" --profile "$COMPOSE_PROFILES" "$@"
 }
 
+# Clean up conflicting containers and resources
+cleanup_conflicts() {
+    log "Checking for conflicting containers and resources..."
+
+    # Stop and remove any containers with conflicting names
+    local conflicting_containers=(
+        "visionflow-neo4j"
+        "visionflow_container"
+        "visionflow-backend"
+        "visionflow-frontend"
+        "visionflow-cloudflared"
+    )
+
+    for container in "${conflicting_containers[@]}"; do
+        if docker ps -a --format '{{.Names}}' | grep -q "^${container}$"; then
+            warning "Removing conflicting container: $container"
+            docker rm -f "$container" 2>/dev/null || true
+        fi
+    done
+
+    # Remove orphan containers from previous runs
+    cd "$PROJECT_ROOT"
+    docker compose -f "$COMPOSE_FILE" down --remove-orphans 2>/dev/null || true
+
+    success "Conflict cleanup complete"
+}
+
 # Build containers
 build_containers() {
     log "Building containers for $ENVIRONMENT environment..."
@@ -328,6 +355,9 @@ needs_rebuild() {
 start_environment() {
     log "Starting $ENVIRONMENT environment..."
 
+    # Clean up any conflicting containers first
+    cleanup_conflicts
+
     # Check if rebuild is needed
     local rebuild_needed=$(needs_rebuild)
 
@@ -345,7 +375,7 @@ start_environment() {
     # Conditionally start cloudflared based on environment
     if [[ "$ENVIRONMENT" == "dev" ]]; then
         info "Development mode: Skipping cloudflared tunnel (local access only)"
-        docker_compose up -d --scale cloudflared=0
+        docker_compose up -d --remove-orphans --scale cloudflared=0
 
         # Wait for containers to be ready
         sleep 3
@@ -364,7 +394,7 @@ start_environment() {
         docker_compose logs -f
     else
         info "Production mode: Starting cloudflared tunnel"
-        docker_compose up -d
+        docker_compose up -d --remove-orphans
 
         # Wait for containers to be ready
         sleep 3
@@ -381,7 +411,7 @@ start_environment() {
 # Stop environment
 stop_environment() {
     log "Stopping $ENVIRONMENT environment..."
-    docker_compose down
+    docker_compose down --remove-orphans
     success "Environment stopped"
 }
 
@@ -466,22 +496,29 @@ clean_all() {
     if [[ "$REPLY" == "yes" ]]; then
         log "Cleaning all VisionFlow resources..."
 
+        # Stop and remove conflicting containers
+        cleanup_conflicts
+
         # Stop all containers for both environments
         for env in dev prod; do
             export COMPOSE_PROFILES="$env"
             log "Stopping $env environment..."
-            docker_compose down -v 2>/dev/null || true
+            docker_compose down -v --remove-orphans 2>/dev/null || true
         done
+
+        # Remove VisionFlow volumes (including those from different project names)
+        log "Removing VisionFlow volumes..."
+        docker volume ls --format '{{.Name}}' | grep -E '(visionflow|ar-ai-knowledge-graph)' | xargs -r docker volume rm -f 2>/dev/null || true
 
         # Remove images
         log "Removing VisionFlow images..."
-        docker images | grep visionflow | awk '{print $3}' | xargs -r docker rmi -f || true
+        docker images | grep -E '(visionflow|ar-ai-knowledge-graph)' | awk '{print $3}' | xargs -r docker rmi -f || true
 
         # Clean build cache
         log "Cleaning build cache..."
         docker builder prune -f
 
-        success "Cleanup complete"
+        success "Cleanup complete - all VisionFlow resources removed"
     else
         info "Cleanup cancelled"
     fi
