@@ -1870,17 +1870,17 @@ impl AppFullSettings {
     pub fn new() -> Result<Self, ConfigError> {
         debug!("Initializing AppFullSettings with defaults (database-first architecture)");
         info!("IMPORTANT: Settings should be loaded from database via DatabaseService");
-        info!("Legacy YAML file loading has been removed - all settings are now in SQLite");
+        info!("Legacy YAML file loading has been removed - all settings are now in Neo4j");
 
-        
+
         Ok(Self::default())
     }
 
-    
-    
+
+
     pub fn save(&self) -> Result<(), String> {
         debug!("save() called but ignored - settings are now automatically persisted to database");
-        info!("Legacy YAML file saving has been removed - all settings are now in SQLite");
+        info!("Legacy YAML file saving has been removed - all settings are now in Neo4j");
         Ok(())
     }
 

@@ -1,7 +1,7 @@
 // src/services/local_markdown_sync.rs
 //! Local Markdown Sync Service
 //!
-//! Reads markdown files from local directory and populates unified.db (graph_nodes, graph_edges)
+//! Reads markdown files from local directory and populates Neo4j (graph nodes and edges)
 
 use crate::models::edge::Edge;
 use crate::models::node::Node;

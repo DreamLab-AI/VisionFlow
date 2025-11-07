@@ -1,31 +1,19 @@
+/// Reasoning module for VisionFlow ontology inference
 ///
-///
-///
-///
-///
-///
-///
+/// This module provides custom OWL reasoning capabilities using the Whelk reasoner.
+/// The reasoning system validates ontologies, infers new axioms, and detects contradictions.
 
 pub mod custom_reasoner;
-pub mod horned_integration;
-pub mod inference_cache;
-pub mod reasoning_actor;
 
 // Re-export main types
 pub use custom_reasoner::{CustomReasoner, InferredAxiom, OntologyReasoner};
-pub use horned_integration::HornedOwlReasoner;
-pub use inference_cache::{InferenceCache, CachedInference};
-pub use reasoning_actor::{ReasoningActor, ReasoningMessage, TriggerReasoning, GetInferredAxioms};
 
-///
+/// Type alias for reasoning operations
 pub type ReasoningResult<T> = Result<T, ReasoningError>;
 
-///
+/// Error types for reasoning operations
 #[derive(Debug, thiserror::Error)]
 pub enum ReasoningError {
-    #[error("Database error: {0}")]
-    Database(#[from] rusqlite::Error),
-
     #[error("Ontology parsing error: {0}")]
     Parsing(String),
 

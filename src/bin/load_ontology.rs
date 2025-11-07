@@ -2,7 +2,7 @@
 //! Ontology Loader Binary
 //!
 //! Loads OWL ontology data from GitHub repository markdown files
-//! and populates the unified.db database.
+//! and populates the Neo4j database.
 
 use std::sync::Arc;
 use std::collections::HashMap;

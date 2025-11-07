@@ -98,10 +98,10 @@ impl OntologyReasoningService {
     /// Infer axioms from the ontology using CustomReasoner
     ///
     /// This method:
-    /// 1. Loads ontology data from unified.db
+    /// 1. Loads ontology data from Neo4j
     /// 2. Runs CustomReasoner for EL++ inference
     /// 3. Caches results with checksum validation
-    /// 4. Stores inferred axioms back to unified.db
+    /// 4. Stores inferred axioms back to Neo4j
     ///
     /// # Arguments
     /// * `ontology_id` - Ontology identifier

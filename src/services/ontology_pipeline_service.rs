@@ -73,7 +73,7 @@ pub struct OntologyPipelineStats {
 /// This service coordinates between:
 /// - ReasoningActor: Runs CustomReasoner for OWL inference
 /// - OntologyConstraintActor: Applies semantic constraints to GPU physics
-/// - GraphStateActor: Manages unified.db graph data
+/// - GraphStateActor: Manages Neo4j graph data
 ///
 /// The pipeline automatically triggers after ontology modifications from GitHub sync.
 pub struct OntologyPipelineService {

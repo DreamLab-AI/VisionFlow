@@ -96,9 +96,9 @@ graph TB
 - Full `KnowledgeGraphRepository` trait implementation
 
 **SQLite Status:**
-- rusqlite dependency: Present in Cargo.toml
-- Usage: Legacy fallback only (Phase 3)
-- Primary storage: Neo4j
+- rusqlite dependency: ✅ Fully removed from Cargo.toml
+- All SQL code deleted (November 2025)
+- Neo4j is the sole database
 
 ---
 
@@ -350,8 +350,8 @@ The following implementation plans are ready for execution:
 
 1. **SQL Deprecation Implementation Plan**
    - File: `SQL_DEPRECATION_IMPLEMENTATION_PLAN.md`
-   - Status: Mostly complete (Neo4j is primary)
-   - Remaining: Remove rusqlite dependency completely
+   - Status: ✅ Complete (November 2025)
+   - Action: All SQL code and rusqlite dependency removed
 
 2. **Client Interface Upgrade Plan**
    - File: `CLIENT_INTERFACE_UPGRADE_PLAN.md`
@@ -361,7 +361,7 @@ The following implementation plans are ready for execution:
 3. **Markdown-as-Database Readiness Assessment**
    - File: `MARKDOWN_AS_DATABASE_READINESS_ASSESSMENT.md`
    - Status: 75% ready, architectural decision needed
-   - Issue: Contradiction between unified.db vs filesystem-as-database vision
+   - Note: Neo4j is the primary database with GitHub sync
 
 ---
 

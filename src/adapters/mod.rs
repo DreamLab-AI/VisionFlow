@@ -2,7 +2,7 @@
 //! Hexagonal Architecture Adapters
 //!
 //! This module contains adapters that implement the port interfaces
-//! using concrete technologies (actors, GPU compute, SQLite, etc.)
+//! using concrete technologies (actors, GPU compute, Neo4j, etc.)
 
 // CQRS Phase 1: Actor-based adapter for gradual migration
 pub mod actor_graph_repository;
