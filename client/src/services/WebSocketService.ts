@@ -207,14 +207,14 @@ class WebSocketService {
     const isDev = import.meta.env.DEV;
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.hostname;
-  
-    
-    
+
+
+
     const port = isDev ? '3001' : window.location.port;
 
 
     const baseUrl = `${protocol}//${host}:${port}`;
-    const wsUrl = `${baseUrl}/ws`;
+    const wsUrl = `${baseUrl}/wss`;
   
     if (debugState.isEnabled()) {
       logger.info(`Determined WebSocket URL (${isDev ? 'dev' : 'prod'}): ${wsUrl}`);

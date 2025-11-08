@@ -20,9 +20,11 @@ class RemoteLogger {
   private serverEndpoint: string;
 
   constructor() {
-    
-    
-    const apiUrl = (import.meta?.env?.VITE_API_URL) || 'http://visionflow_container:4000';
+
+
+    // Use relative path for API calls - nginx will proxy to backend
+    // In development, nginx runs on port 3001 and proxies /api/ to backend on port 4000
+    const apiUrl = (import.meta?.env?.VITE_API_URL) || '';
 
     this.serverEndpoint = `${apiUrl}/api/client-logs`;
     console.log('[RemoteLogger] Configured endpoint:', this.serverEndpoint);

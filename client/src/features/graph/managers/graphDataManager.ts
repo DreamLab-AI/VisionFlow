@@ -151,8 +151,8 @@ class GraphDataManager {
 
         const nodes = Array.isArray(responseData.nodes) ? responseData.nodes : [];
         const edges = Array.isArray(responseData.edges) ? responseData.edges : [];
-        const metadata = data.metadata || {};
-        const settlementState = data.settlementState || { isSettled: false, stableFrameCount: 0, kineticEnergy: 0 };
+        const metadata = responseData.metadata || {};
+        const settlementState = responseData.settlementState || { isSettled: false, stableFrameCount: 0, kineticEnergy: 0 };
 
         console.log(`[GraphDataManager] Received settlement state: settled=${settlementState.isSettled}, frames=${settlementState.stableFrameCount}, KE=${settlementState.kineticEnergy}`);
 

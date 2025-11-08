@@ -9,7 +9,7 @@
         "chrome-devtools-mcp@latest"
       ],
       "env": {
-        "CHROME_PATH": "/usr/bin/chromium",
+        "CHROME_PATH": "/usr/sbin/chromium",
         "DISPLAY": ":1",
         "CHROME_USER_DATA_DIR": "/tmp/chrome-devtools-mcp",
         "CHROME_FLAGS": "--headless,--disable-gpu,--no-sandbox,--disable-dev-shm-usage,--remote-debugging-port=9222"
@@ -25,7 +25,7 @@
     }
   },
   "chrome": {
-    "binary_path": "/usr/bin/chromium",
+    "binary_path": "/usr/sbin/chromium",
     "user_data_dir": "/tmp/chrome-devtools-mcp",
     "remote_debugging_port": 9222,
     "headless": true,
