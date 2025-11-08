@@ -169,6 +169,10 @@ min = "1.75.0"
 name = "generate_types"
 path = "src/bin/generate_types.rs"
 
+[[bin]]
+name = "sync_local"
+path = "src/bin/sync_local.rs"
+
 # REMOVED: migrate_settings_to_neo4j binary - migration complete
 # [[bin]]
 # name = "migrate_settings_to_neo4j"

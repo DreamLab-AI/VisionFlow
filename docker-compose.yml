@@ -13,6 +13,7 @@ services:
       # Fully baked image - ALL code and config inside container
       # Only internal Docker volumes for data persistence and caching
       - visionflow-data:/app/data  # Internal volume for databases and markdown
+      - ./data/pages:/app/data/pages:rw  # Mount local pages directory for persistent baseline
       - visionflow-logs:/app/logs  # Internal volume for application logs
       - /var/run/docker.sock:/var/run/docker.sock:ro  # Docker socket for controlled access
       - npm-cache:/root/.npm

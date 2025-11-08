@@ -23,79 +23,102 @@ impl EnhancedContentAPI {
         &self,
         path: &str,
     ) -> VisionFlowResult<Vec<GitHubFileBasicMetadata>> {
-        let contents_url = GitHubClient::get_contents_url(&self.client, path).await;
-        info!(
-            "list_markdown_files: Fetching from GitHub API: {}",
-            contents_url
-        );
+        let mut all_markdown_files = Vec::new();
+        let mut page = 1;
+        const PER_PAGE: usize = 100;
 
-        let response = self
-            .client
-            .client()
-            .get(&contents_url)
-            .header("Authorization", format!("Bearer {}", self.client.token()))
-            .header("Accept", "application/vnd.github+json")
-            .send()
-            .await?;
+        info!("list_markdown_files: Starting paginated fetch from GitHub API");
 
-        let status = response.status();
-        info!(
-            "list_markdown_files: GitHub API response status: {}",
-            status
-        );
-
-        if !status.is_success() {
-            let error_text = response.text().await?;
-            error!(
-                "list_markdown_files: GitHub API error ({}): {}",
-                status, error_text
-            );
-            return Err(format!(
-                "GitHub API error listing files ({}): {}",
-                status, error_text
-            )
-            .into());
-        }
-
-        let files: Vec<Value> = response.json().await?;
-        info!(
-            "list_markdown_files: Received {} items from GitHub",
-            files.len()
-        );
-
-        let mut markdown_files = Vec::new();
-
-        for file in files {
-            let file_type = file["type"].as_str().unwrap_or("unknown");
-            let file_name = file["name"].as_str().unwrap_or("unnamed");
-            debug!(
-                "list_markdown_files: Processing item: {} (type: {})",
-                file_name, file_type
+        loop {
+            let contents_url = format!(
+                "{}?per_page={}&page={}",
+                GitHubClient::get_contents_url(&self.client, path).await,
+                PER_PAGE,
+                page
             );
 
-            if file_type == "file" {
-                if file_name.ends_with(".md") {
-                    info!("list_markdown_files: Found markdown file: {}", file_name);
-                    markdown_files.push(GitHubFileBasicMetadata {
+            debug!("list_markdown_files: Fetching page {} from: {}", page, contents_url);
+
+            let response = self
+                .client
+                .client()
+                .get(&contents_url)
+                .header("Authorization", format!("Bearer {}", self.client.token()))
+                .header("Accept", "application/vnd.github+json")
+                .send()
+                .await?;
+
+            let status = response.status();
+            debug!("list_markdown_files: Page {} response status: {}", page, status);
+
+            if !status.is_success() {
+                let error_text = response.text().await?;
+                error!(
+                    "list_markdown_files: GitHub API error on page {} ({}): {}",
+                    page, status, error_text
+                );
+                return Err(format!(
+                    "GitHub API error listing files page {} ({}): {}",
+                    page, status, error_text
+                )
+                .into());
+            }
+
+            let files: Vec<Value> = response.json().await?;
+            let files_count = files.len();
+            info!(
+                "list_markdown_files: Page {} received {} items from GitHub",
+                page, files_count
+            );
+
+            // Break if no more files
+            if files_count == 0 {
+                info!("list_markdown_files: No more files, stopping pagination at page {}", page);
+                break;
+            }
+
+            // Process files on this page
+            for file in files {
+                let file_type = file["type"].as_str().unwrap_or("unknown");
+                let file_name = file["name"].as_str().unwrap_or("unnamed");
+
+                if file_type == "file" && file_name.ends_with(".md") {
+                    debug!("list_markdown_files: Found markdown file: {}", file_name);
+                    all_markdown_files.push(GitHubFileBasicMetadata {
                         name: file_name.to_string(),
                         path: file["path"].as_str().unwrap_or("").to_string(),
                         sha: file["sha"].as_str().unwrap_or("").to_string(),
                         size: file["size"].as_u64().unwrap_or(0),
                         download_url: file["download_url"].as_str().unwrap_or("").to_string(),
                     });
+                } else if file_type == "dir" {
+                    debug!("list_markdown_files: Skipping directory: {}", file_name);
+
+
                 }
-            } else if file_type == "dir" {
-                debug!("list_markdown_files: Skipping directory: {}", file_name);
-                
-                
+            }
+
+            // GitHub API returns < PER_PAGE items on last page
+            if files_count < PER_PAGE {
+                info!("list_markdown_files: Last page detected (received {} < {} items)", files_count, PER_PAGE);
+                break;
+            }
+
+            page += 1;
+
+            // Safety limit to prevent infinite loops
+            if page > 100 {
+                warn!("list_markdown_files: Reached safety limit of 100 pages (10,000 files)");
+                break;
             }
         }
 
         info!(
-            "list_markdown_files: Found {} markdown files total",
-            markdown_files.len()
+            "list_markdown_files: Pagination complete. Found {} markdown files total across {} pages",
+            all_markdown_files.len(),
+            page
         );
-        Ok(markdown_files)
+        Ok(all_markdown_files)
     }
 
     
