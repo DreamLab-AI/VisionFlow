@@ -169,9 +169,10 @@ min = "1.75.0"
 name = "generate_types"
 path = "src/bin/generate_types.rs"
 
-[[bin]]
-name = "migrate_settings_to_neo4j"
-path = "src/bin/migrate_settings_to_neo4j.rs"
+# REMOVED: migrate_settings_to_neo4j binary - migration complete
+# [[bin]]
+# name = "migrate_settings_to_neo4j"
+# path = "src/bin/migrate_settings_to_neo4j.rs"
 
 [[example]]
 name = "constraint_integration_debug"

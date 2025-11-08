@@ -48,5 +48,5 @@ pub mod time;
 pub mod validation;
 pub mod websocket_heartbeat;
 pub mod result_helpers;
-pub mod result_mappers;
+// REMOVED: result_mappers module - no longer exists
 pub mod neo4j_helpers;

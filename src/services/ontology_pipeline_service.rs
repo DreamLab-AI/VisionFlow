@@ -16,7 +16,7 @@ use std::sync::Arc;
 use crate::actors::graph_actor::GraphStateActor;
 use crate::actors::ontology_actor::OntologyActor;
 use crate::actors::gpu::ontology_constraint_actor::OntologyConstraintActor;
-use crate::reasoning::reasoning_actor::{ReasoningActor, TriggerReasoning as ReasoningTrigger};
+// REMOVED: reasoning_actor no longer exists - reasoning functionality moved to custom_reasoner
 use crate::reasoning::custom_reasoner::Ontology;
 use crate::models::constraints::ConstraintSet;
 use crate::services::github_sync_service::SyncStatistics;
@@ -78,7 +78,8 @@ pub struct OntologyPipelineStats {
 /// The pipeline automatically triggers after ontology modifications from GitHub sync.
 pub struct OntologyPipelineService {
     config: SemanticPhysicsConfig,
-    reasoning_actor: Option<Addr<ReasoningActor>>,
+    // REMOVED: reasoning_actor - ReasoningActor no longer exists
+    // reasoning_actor: Option<Addr<ReasoningActor>>,
     ontology_actor: Option<Addr<OntologyActor>>,
     graph_actor: Option<Addr<GraphStateActor>>,
     constraint_actor: Option<Addr<OntologyConstraintActor>>,
@@ -92,7 +93,7 @@ impl OntologyPipelineService {
 
         Self {
             config,
-            reasoning_actor: None,
+            // reasoning_actor: None,
             ontology_actor: None,
             graph_actor: None,
             constraint_actor: None,
@@ -100,11 +101,12 @@ impl OntologyPipelineService {
         }
     }
 
-    /// Set the reasoning actor address
-    pub fn set_reasoning_actor(&mut self, addr: Addr<ReasoningActor>) {
-        info!("OntologyPipelineService: Reasoning actor address registered");
-        self.reasoning_actor = Some(addr);
-    }
+    // REMOVED: ReasoningActor no longer exists
+    // /// Set the reasoning actor address
+    // pub fn set_reasoning_actor(&mut self, addr: Addr<ReasoningActor>) {
+    //     info!("OntologyPipelineService: Reasoning actor address registered");
+    //     self.reasoning_actor = Some(addr);
+    // }
 
     /// Set the ontology actor address
     pub fn set_ontology_actor(&mut self, addr: Addr<OntologyActor>) {
@@ -204,11 +206,17 @@ impl OntologyPipelineService {
     }
 
     /// Trigger reasoning process
+    /// DISABLED: ReasoningActor removed - needs refactoring to use CustomReasoner directly
     async fn trigger_reasoning(
         &self,
-        ontology_id: i64,
-        ontology: Ontology,
+        _ontology_id: i64,
+        _ontology: Ontology,
     ) -> Result<Vec<crate::reasoning::custom_reasoner::InferredAxiom>, String> {
+        // DISABLED - ReasoningActor no longer exists
+        warn!("Reasoning functionality disabled - ReasoningActor removed, needs refactoring");
+        return Ok(Vec::new());
+
+        /* ORIGINAL CODE - DISABLED
         info!("🧠 Triggering reasoning for ontology {}", ontology_id);
 
         let reasoning_actor = self.reasoning_actor
@@ -234,6 +242,7 @@ impl OntologyPipelineService {
                 Err(format!("Mailbox error: {}", e))
             }
         }
+        */
     }
 
     /// Generate physics constraints from inferred axioms
