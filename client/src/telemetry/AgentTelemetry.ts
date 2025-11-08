@@ -186,8 +186,8 @@ export class AgentTelemetryService {
     try {
       
       const [statusResponse, dataResponse] = await Promise.all([
-        unifiedApiClient.get('/api/bots/status'),
-        unifiedApiClient.get('/api/bots/data')
+        unifiedApiClient.get('/bots/status'),
+        unifiedApiClient.get('/bots/data')
       ]);
 
       

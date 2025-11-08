@@ -74,7 +74,7 @@ export const AgentTelemetryStream: React.FC = () => {
   useEffect(() => {
     const pollTelemetry = async () => {
       try {
-        const response = await unifiedApiClient.get('/api/bots/agents');
+        const response = await unifiedApiClient.get('/bots/agents');
 
         if (response.data && response.data.agents) {
           const newMessages: TelemetryMessage[] = response.data.agents.map((agent: any) => ({

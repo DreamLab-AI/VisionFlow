@@ -166,9 +166,17 @@ impl OntologyRepository for Neo4jOntologyRepository {
 
         let query_str = "
             MERGE (c:OwlClass {iri: $iri})
-            ON CREATE SET c.created_at = datetime()
-            ON MATCH SET c.updated_at = datetime()
-            SET c.label = $label,
+            ON CREATE SET
+                c.created_at = datetime(),
+                c.label = $label,
+                c.description = $description,
+                c.source_file = $source_file,
+                c.markdown_content = $markdown_content,
+                c.file_sha1 = $file_sha1,
+                c.last_synced = $last_synced
+            ON MATCH SET
+                c.updated_at = datetime(),
+                c.label = $label,
                 c.description = $description,
                 c.source_file = $source_file,
                 c.markdown_content = $markdown_content,
@@ -310,9 +318,15 @@ impl OntologyRepository for Neo4jOntologyRepository {
 
         let query_str = "
             MERGE (p:OwlProperty {iri: $iri})
-            ON CREATE SET p.created_at = datetime()
-            ON MATCH SET p.updated_at = datetime()
-            SET p.label = $label,
+            ON CREATE SET
+                p.created_at = datetime(),
+                p.label = $label,
+                p.property_type = $property_type,
+                p.domain = $domain,
+                p.range = $range
+            ON MATCH SET
+                p.updated_at = datetime(),
+                p.label = $label,
                 p.property_type = $property_type,
                 p.domain = $domain,
                 p.range = $range
@@ -480,9 +494,15 @@ impl OntologyRepository for Neo4jOntologyRepository {
 
         let query_str = "
             MERGE (a:OwlAxiom {id: $id})
-            ON CREATE SET a.created_at = datetime()
-            ON MATCH SET a.updated_at = datetime()
-            SET a.axiom_type = $axiom_type,
+            ON CREATE SET
+                a.created_at = datetime(),
+                a.axiom_type = $axiom_type,
+                a.subject = $subject,
+                a.object = $object,
+                a.annotations = $annotations
+            ON MATCH SET
+                a.updated_at = datetime(),
+                a.axiom_type = $axiom_type,
                 a.subject = $subject,
                 a.object = $object,
                 a.annotations = $annotations

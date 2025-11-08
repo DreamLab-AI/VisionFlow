@@ -84,7 +84,7 @@ export const AgentControlPanel: React.FC<AgentControlPanelProps> = ({ className 
   const fetchAgents = async () => {
     setRefreshing(true);
     try {
-      const response = await unifiedApiClient.get('/api/bots/agents');
+      const response = await unifiedApiClient.get('/bots/agents');
       if (response.data && response.data.agents) {
         setAgents(response.data.agents);
       }
@@ -107,7 +107,7 @@ export const AgentControlPanel: React.FC<AgentControlPanelProps> = ({ className 
   const spawnAgent = async (agentType: string) => {
     setSpawning(true);
     try {
-      await unifiedApiClient.post('/api/bots/spawn-agent-hybrid', {
+      await unifiedApiClient.post('/bots/spawn-agent-hybrid', {
         agent_type: agentType,
         swarm_id: 'main-swarm',
         method: 'mcp-fallback',

@@ -22,7 +22,7 @@ export async function sendBotsUpdate(data: BotsUpdatePayload): Promise<void> {
     };
 
     
-    const response = await unifiedApiClient.post('/api/bots/update', payload);
+    const response = await unifiedApiClient.post('/bots/update', payload);
 
     logger.debug('Sent bots update:', {
       nodeCount: data.nodes.length,
