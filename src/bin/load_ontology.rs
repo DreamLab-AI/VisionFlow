@@ -2,13 +2,13 @@
 //! Ontology Loader Binary
 //!
 //! Loads OWL ontology data from GitHub repository markdown files
-//! and populates the Neo4j database.
+//! and populates the Neo4j graph database.
 
 use std::sync::Arc;
 use std::collections::HashMap;
 use log::info;
 
-use webxr::adapters::neo4j_ontology_repository::Neo4jOntologyRepository;
+use webxr::adapters::neo4j_ontology_repository::{Neo4jOntologyRepository, Neo4jOntologyConfig};
 use webxr::services::parsers::ontology_parser::OntologyParser;
 use webxr::ports::ontology_repository::{OntologyRepository, OwlClass, OwlProperty, PropertyType, OwlAxiom, AxiomType};
 
@@ -20,13 +20,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     info!("Starting ontology loader...");
 
     // 1. Initialize repository
-    use webxr::adapters::neo4j_ontology_repository::Neo4jOntologyConfig;
+    use std::env;
 
-    let config = Neo4jOntologyConfig::default();
-    let neo4j_uri = config.uri.clone();
-    info!("Connecting to Neo4j at {}", neo4j_uri);
+    let neo4j_uri = env::var("NEO4J_URI").unwrap_or_else(|_| "bolt://localhost:7687".to_string());
+    let neo4j_user = env::var("NEO4J_USER").unwrap_or_else(|_| "neo4j".to_string());
+    let neo4j_password = env::var("NEO4J_PASSWORD").expect("NEO4J_PASSWORD must be set");
+    let neo4j_database = env::var("NEO4J_DATABASE").unwrap_or_else(|_| "neo4j".to_string());
 
-    let ontology_repo: Arc<dyn OntologyRepository> = Arc::new(
+    info!("Connecting to Neo4j at: {}", neo4j_uri);
+
+    let config = Neo4jOntologyConfig {
+        uri: neo4j_uri.clone(),
+        user: neo4j_user,
+        password: neo4j_password,
+        database: neo4j_database,
+    };
+
+    let ontology_repo = Arc::new(
         Neo4jOntologyRepository::new(config).await?
     );
 
@@ -91,7 +101,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let all_classes = ontology_repo.get_classes().await?;
     info!("\nOntology loaded successfully!");
     info!("Classes: {}", all_classes.len());
-    info!("Neo4j Database: {}", neo4j_uri);
+    info!("Stored in Neo4j graph database at: {}", neo4j_uri);
 
     Ok(())
 }

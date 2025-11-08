@@ -504,7 +504,7 @@ impl GitHubSyncService {
     async fn save_ontology_data(&self, onto_data: crate::services::parsers::ontology_parser::OntologyData) -> Result<(), String> {
         use crate::ports::ontology_repository::OntologyRepository;
 
-        // Save all ontology data to Neo4j in one transaction
+        // Save all ontology data to Neo4j graph database
         self.onto_repo.save_ontology(&onto_data.classes, &onto_data.properties, &onto_data.axioms).await
             .map_err(|e| format!("Failed to save ontology data: {}", e))?;
 

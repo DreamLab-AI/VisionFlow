@@ -489,24 +489,27 @@ mod tests {
     //     assert_eq!(depth, 2);
     // }
 
-    #[test]
-    fn test_descendant_counting() {
-        // Test is disabled until Neo4j test containers are available
-        // Keeping the test logic for when we re-enable it
-        let mut parent_map = HashMap::new();
-        parent_map.insert(
-            "parent".to_string(),
-            vec!["child1".to_string(), "child2".to_string()],
-        );
-        parent_map.insert("child1".to_string(), vec!["grandchild".to_string()]);
-
-        // This would require OntologyReasoningService instance
-        // let count = service.count_descendants(
-        //     &vec!["child1".to_string(), "child2".to_string()],
-        //     &parent_map,
-        // );
-        //
-        // // 2 children + 1 grandchild = 3 total descendants
-        // assert_eq!(count, 3);
-    }
+    // #[tokio::test]
+    // async fn test_descendant_counting() {
+    //     // Test disabled until Neo4j test containers are available
+    //     let engine = Arc::new(WhelkInferenceEngine::new());
+    //     let repo = Arc::new(/* TODO: Use Neo4j test container */);
+    //
+    //     let service = OntologyReasoningService::new(engine, repo);
+    //
+    //     let mut parent_map = HashMap::new();
+    //     parent_map.insert(
+    //         "parent".to_string(),
+    //         vec!["child1".to_string(), "child2".to_string()],
+    //     );
+    //     parent_map.insert("child1".to_string(), vec!["grandchild".to_string()]);
+    //
+    //     let count = service.count_descendants(
+    //         &vec!["child1".to_string(), "child2".to_string()],
+    //         &parent_map,
+    //     );
+    //
+    //     // 2 children + 1 grandchild = 3 total descendants
+    //     assert_eq!(count, 3);
+    // }
 }
