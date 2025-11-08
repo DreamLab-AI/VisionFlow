@@ -400,6 +400,7 @@ pub async fn update_analytics_params(
     info!("Updating visual analytics parameters");
     debug!("Visual analytics params: {:?}", params);
 
+    #[cfg(feature = "gpu")]
     if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
         match gpu_addr
             .send(UpdateVisualAnalyticsParams {
@@ -451,6 +452,7 @@ pub async fn update_analytics_params(
 pub async fn get_constraints(app_state: web::Data<AppState>) -> Result<HttpResponse> {
     info!("Getting current constraint set");
 
+    #[cfg(feature = "gpu")]
     if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
         match gpu_addr.send(GetConstraints).await {
             Ok(Ok(constraints)) => {
@@ -496,6 +498,7 @@ pub async fn update_constraints(
         }));
     };
 
+    #[cfg(feature = "gpu")]
     if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
         match gpu_addr.send(UpdateConstraints { constraint_data }).await {
             Ok(Ok(())) => {
@@ -614,6 +617,7 @@ pub async fn set_focus(
     };
 
     
+    #[cfg(feature = "gpu")]
     if let Some(gpu_addr) = &app_state.gpu_compute_addr {
         info!("Setting focus on GPU compute actor");
 
@@ -751,7 +755,8 @@ async fn calculate_network_metrics(
 pub async fn get_performance_stats(app_state: web::Data<AppState>) -> Result<HttpResponse> {
     info!("Getting performance statistics");
 
-    let physics_stats = if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
+    let physics_stats = #[cfg(feature = "gpu")]
+    if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
         match gpu_addr.send(GetPhysicsStats).await {
             Ok(Ok(stats)) => Some(stats),
             Ok(Err(e)) => {
@@ -840,6 +845,7 @@ pub async fn set_kernel_mode(
             }
         };
 
+        #[cfg(feature = "gpu")]
         if let Some(gpu_actor) = &app_state.gpu_compute_addr {
             match gpu_actor.send(SetComputeMode { mode: compute_mode }).await {
                 Ok(result) => match result {
@@ -1802,6 +1808,7 @@ pub async fn toggle_sssp(
     drop(flags); 
 
     
+    #[cfg(feature = "gpu")]
     if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
         let message = crate::actors::messages::UpdateSimulationParams {
             params: {
@@ -2182,6 +2189,7 @@ pub async fn get_realtime_insights(app_state: web::Data<AppState>) -> Result<Htt
     }
 
     
+    #[cfg(feature = "gpu")]
     if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
         if let Ok(Ok(stats)) = gpu_addr
             .send(crate::actors::messages::GetPhysicsStats)
@@ -2214,7 +2222,7 @@ pub async fn get_realtime_insights(app_state: web::Data<AppState>) -> Result<Htt
 pub async fn get_dashboard_status(app_state: web::Data<AppState>) -> Result<HttpResponse> {
     info!("Control center requesting dashboard status");
 
-    let gpu_available = app_state.gpu_compute_addr.is_some();
+    let gpu_available = cfg!(feature = "gpu") && { #[cfg(feature = "gpu")] { app_cfg!(feature = "gpu") && { #[cfg(feature = "gpu")] { state.gpu_compute_addr.is_some() } #[cfg(not(feature = "gpu"))] { false } } } #[cfg(not(feature = "gpu"))] { false } };
     let clustering_tasks = CLUSTERING_TASKS.lock().await;
     let anomaly_state = ANOMALY_STATE.lock().await;
 
@@ -2278,7 +2286,7 @@ pub async fn get_dashboard_status(app_state: web::Data<AppState>) -> Result<Http
 
 ///
 pub async fn get_health_check(app_state: web::Data<AppState>) -> Result<HttpResponse> {
-    let gpu_available = app_state.gpu_compute_addr.is_some();
+    let gpu_available = cfg!(feature = "gpu") && { #[cfg(feature = "gpu")] { app_cfg!(feature = "gpu") && { #[cfg(feature = "gpu")] { state.gpu_compute_addr.is_some() } #[cfg(not(feature = "gpu"))] { false } } } #[cfg(not(feature = "gpu"))] { false } };
     let timestamp = chrono::Utc::now().timestamp_millis();
 
     let status = if gpu_available { "healthy" } else { "degraded" };
@@ -2676,6 +2684,7 @@ pub async fn get_gpu_metrics(app_state: web::Data<AppState>) -> Result<HttpRespo
     debug!("Retrieving GPU performance metrics");
 
     
+    #[cfg(feature = "gpu")]
     if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
         use crate::actors::messages::GetGPUMetrics;
 

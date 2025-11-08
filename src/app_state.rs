@@ -334,10 +334,15 @@ impl AppState {
         info!("[AppState::new] Loading graph data from Neo4j into repository cache...");
         graph_repository.load_graph().await
             .map_err(|e| format!("Failed to load graph from Neo4j: {:?}", e))?;
-        info!("[AppState::new] ✅ Graph data loaded from Neo4j ({} nodes)",
-              graph_repository.get_graph().await
-                  .map(|g| g.nodes.len())
-                  .unwrap_or(0));
+
+        // Get node count by calling the trait method through the GraphRepository trait
+        let node_count = {
+            use crate::ports::graph_repository::GraphRepository;
+            graph_repository.get_graph().await
+                .map(|g| g.nodes.len())
+                .unwrap_or(0)
+        };
+        info!("[AppState::new] ✅ Graph data loaded from Neo4j ({} nodes)", node_count);
 
         info!("[AppState::new] Initializing CQRS query handlers for graph domain");
         let graph_query_handlers = GraphQueryHandlers {

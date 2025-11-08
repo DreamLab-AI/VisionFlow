@@ -42,6 +42,7 @@ pub struct KMeansResult {
     pub inertia: f32,
     pub iterations: u32,
     pub clusters: Vec<crate::handlers::api_handler::analytics::Cluster>,
+    #[cfg(feature = "gpu")]
     pub stats: crate::actors::gpu::clustering_actor::ClusteringStats,
     pub converged: bool,
     pub final_iteration: u32,
@@ -55,7 +56,10 @@ pub struct AnomalyResult {
     pub zscore_values: Option<Vec<f32>>,
     pub anomaly_threshold: f32,
     pub num_anomalies: usize,
+    #[cfg(feature = "gpu")]
     pub anomalies: Vec<crate::actors::gpu::anomaly_detection_actor::AnomalyNode>,
+    #[cfg(not(feature = "gpu"))]
+    pub anomalies: Vec<u32>,  // Just node IDs when GPU is disabled
     pub stats: AnomalyDetectionStats,
     pub method: AnomalyDetectionMethod,
     pub threshold: f32,
@@ -77,13 +81,17 @@ pub struct AnomalyDetectionStats {
 // Community detection results
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommunityDetectionResult {
-    pub node_labels: Vec<i32>,     
-    pub num_communities: usize,    
-    pub modularity: f32,           
-    pub iterations: u32,           
-    pub community_sizes: Vec<i32>, 
-    pub converged: bool,           
+    pub node_labels: Vec<i32>,
+    pub num_communities: usize,
+    pub modularity: f32,
+    pub iterations: u32,
+    pub community_sizes: Vec<i32>,
+    pub converged: bool,
+    #[cfg(feature = "gpu")]
     pub communities: Vec<crate::actors::gpu::clustering_actor::Community>,
+    #[cfg(not(feature = "gpu"))]
+    pub communities: Vec<Vec<u32>>,  // Simplified community structure when GPU is disabled
+    #[cfg(feature = "gpu")]
     pub stats: crate::actors::gpu::clustering_actor::CommunityDetectionStats,
     pub algorithm: CommunityDetectionAlgorithm,
 }
@@ -295,6 +303,7 @@ pub struct SpawnAgentCommand {
     pub session_id: String,
 }
 
+#[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(
     result = "Result<crate::actors::gpu::stress_majorization_actor::StressMajorizationStats, String>"
@@ -322,6 +331,7 @@ pub struct SetAdvancedGPUContext {
 #[rtype(result = "()")]
 pub struct ResetGPUInitFlag;
 
+#[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct StoreAdvancedGPUContext {
@@ -336,12 +346,14 @@ pub struct InitializeVisualAnalytics {
     pub max_edges: usize,
 }
 
+#[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct UpdateVisualAnalyticsParams {
     pub params: VisualAnalyticsParams,
 }
 
+#[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct AddIsolationLayer {
