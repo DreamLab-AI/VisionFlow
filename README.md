@@ -6,6 +6,7 @@
 [![Agents](https://img.shields.io/badge/AI%20Agents-50%2B%20Concurrent-orange.svg)](#ai-architecture)
 [![CUDA](https://img.shields.io/badge/CUDA-39%20Kernels-green.svg)](#gpu-acceleration)
 [![Architecture](https://img.shields.io/badge/Architecture-Hexagonal%20CQRS-purple.svg)](docs/concepts/architecture/)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/DreamLab-AI/VisionFlow)
 
 ### **Enterprise-Grade Multi-User Multi-Agent Knowledge Graphing with Immersive 3D Visualization**
 
