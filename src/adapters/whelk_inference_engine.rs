@@ -50,6 +50,7 @@ pub struct WhelkInferenceEngine {
 
 #[cfg(feature = "ontology")]
 ///
+#[cfg(feature = "ontology")]
 use whelk;
 use crate::utils::time;
 

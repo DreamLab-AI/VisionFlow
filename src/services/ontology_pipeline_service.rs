@@ -15,6 +15,7 @@ use std::sync::Arc;
 
 use crate::actors::graph_actor::GraphStateActor;
 use crate::actors::ontology_actor::OntologyActor;
+#[cfg(feature = "gpu")]
 use crate::actors::gpu::ontology_constraint_actor::OntologyConstraintActor;
 // REMOVED: reasoning_actor no longer exists - reasoning functionality moved to custom_reasoner
 use crate::reasoning::custom_reasoner::Ontology;
