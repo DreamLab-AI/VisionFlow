@@ -13,7 +13,7 @@ use std::collections::HashMap;
 use std::num::NonZeroUsize;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use tracing::{debug, info, warn, error, instrument};
+use tracing::{info, instrument};
 
 use crate::actors::graph_actor::{AutoBalanceNotification, PhysicsState};
 use crate::models::constraints::ConstraintSet;
@@ -21,9 +21,11 @@ use crate::models::edge::Edge;
 use crate::models::graph::GraphData;
 use crate::models::metadata::Metadata;
 use crate::models::node::Node;
+use crate::utils::socket_flow_messages::BinaryNodeDataClient;
 use crate::ports::graph_repository::{
     GraphRepository, GraphRepositoryError, PathfindingParams, PathfindingResult, Result,
 };
+use std::collections::HashSet;
 use crate::types::vec3::Vec3Data;
 use glam::Vec3;
 
@@ -95,6 +97,7 @@ impl Neo4jGraphRepository {
             nodes,
             edges,
             metadata,
+            id_to_metadata: HashMap::new(),
         });
 
         *self.graph_snapshot.write().await = Some(graph_data);
@@ -137,26 +140,26 @@ impl Neo4jGraphRepository {
             .map_err(|e| GraphRepositoryError::AccessError(format!("Failed to fetch row: {}", e)))?
         {
             let id: BoltInteger = row.get("id")
-                .map_err(|e| GraphRepositoryError::DeserializationError(format!("Missing id: {}", e)))?;
+                .map_err(|e| GraphRepositoryError::InvalidData(format!("Missing id: {}", e)))?;
 
             let metadata_id: String = row.get("metadata_id").unwrap_or_default();
             let label: String = row.get("label").unwrap_or_default();
 
             // Position
-            let x: BoltFloat = row.get("x").unwrap_or(0.0.into());
-            let y: BoltFloat = row.get("y").unwrap_or(0.0.into());
-            let z: BoltFloat = row.get("z").unwrap_or(0.0.into());
+            let x: BoltFloat = row.get("x").unwrap_or(BoltFloat::new(0.0));
+            let y: BoltFloat = row.get("y").unwrap_or(BoltFloat::new(0.0));
+            let z: BoltFloat = row.get("z").unwrap_or(BoltFloat::new(0.0));
 
             // Velocity
-            let vx: BoltFloat = row.get("vx").unwrap_or(0.0.into());
-            let vy: BoltFloat = row.get("vy").unwrap_or(0.0.into());
-            let vz: BoltFloat = row.get("vz").unwrap_or(0.0.into());
+            let vx: BoltFloat = row.get("vx").unwrap_or(BoltFloat::new(0.0));
+            let vy: BoltFloat = row.get("vy").unwrap_or(BoltFloat::new(0.0));
+            let vz: BoltFloat = row.get("vz").unwrap_or(BoltFloat::new(0.0));
 
             // Properties
-            let mass: BoltFloat = row.get("mass").unwrap_or(1.0.into());
-            let size: BoltFloat = row.get("size").unwrap_or(1.0.into());
+            let mass: BoltFloat = row.get("mass").unwrap_or(BoltFloat::new(1.0));
+            let size: BoltFloat = row.get("size").unwrap_or(BoltFloat::new(1.0));
             let color: String = row.get("color").unwrap_or_else(|_| "#888888".to_string());
-            let weight: BoltFloat = row.get("weight").unwrap_or(1.0.into());
+            let weight: BoltFloat = row.get("weight").unwrap_or(BoltFloat::new(1.0));
             let node_type: String = row.get("node_type").unwrap_or_else(|_| "default".to_string());
             let cluster: Option<i64> = row.get("cluster").ok();
 
@@ -167,19 +170,29 @@ impl Neo4jGraphRepository {
 
             let node = Node {
                 id: id.value as u32,
-                metadata_id,
+                metadata_id: metadata_id.clone(),
                 label,
-                data: crate::models::node::NodeData::new(
+                data: BinaryNodeDataClient::new(
+                    id.value as u32,
                     Vec3Data { x: x.value as f32, y: y.value as f32, z: z.value as f32 },
                     Vec3Data { x: vx.value as f32, y: vy.value as f32, z: vz.value as f32 },
-                    mass.value as f32,
                 ),
+                x: Some(x.value as f32),
+                y: Some(y.value as f32),
+                z: Some(z.value as f32),
+                vx: Some(vx.value as f32),
+                vy: Some(vy.value as f32),
+                vz: Some(vz.value as f32),
+                mass: Some(mass.value as f32),
+                owl_class_iri: None,
+                metadata,
+                file_size: 0,
+                node_type: Some(node_type),
                 size: Some(size.value as f32),
                 color: Some(color),
                 weight: Some(weight.value as f32),
-                node_type: Some(node_type),
                 group: cluster.map(|c| c.to_string()),
-                metadata,
+                user_data: None,
             };
 
             nodes.push(node);
@@ -209,11 +222,11 @@ impl Neo4jGraphRepository {
             .map_err(|e| GraphRepositoryError::AccessError(format!("Failed to fetch row: {}", e)))?
         {
             let source_id: BoltInteger = row.get("source_id")
-                .map_err(|e| GraphRepositoryError::DeserializationError(format!("Missing source_id: {}", e)))?;
+                .map_err(|e| GraphRepositoryError::InvalidData(format!("Missing source_id: {}", e)))?;
             let target_id: BoltInteger = row.get("target_id")
-                .map_err(|e| GraphRepositoryError::DeserializationError(format!("Missing target_id: {}", e)))?;
+                .map_err(|e| GraphRepositoryError::InvalidData(format!("Missing target_id: {}", e)))?;
 
-            let weight: BoltFloat = row.get("weight").unwrap_or(1.0.into());
+            let weight: BoltFloat = row.get("weight").unwrap_or(BoltFloat::new(1.0));
             let edge_type: String = row.get("edge_type").unwrap_or_else(|_| "default".to_string());
 
             let edge = Edge {
@@ -222,6 +235,8 @@ impl Neo4jGraphRepository {
                 target: target_id.value as u32,
                 weight: weight.value as f32,
                 edge_type: Some(edge_type),
+                owl_property_iri: None,
+                metadata: None,
             };
 
             edges.push(edge);
@@ -274,7 +289,7 @@ impl GraphRepository for Neo4jGraphRepository {
             ";
 
             let metadata_json = serde_json::to_string(&node.metadata)
-                .map_err(|e| GraphRepositoryError::SerializationError(format!("Failed to serialize metadata: {}", e)))?;
+                .map_err(|e| GraphRepositoryError::InvalidData(format!("Failed to serialize metadata: {}", e)))?;
 
             self.graph
                 .run(query(query_str)
@@ -378,21 +393,15 @@ impl GraphRepository for Neo4jGraphRepository {
                 MATCH (n:GraphNode {id: $id})
                 SET n.x = $x,
                     n.y = $y,
-                    n.z = $z,
-                    n.vx = $vx,
-                    n.vy = $vy,
-                    n.vz = $vz
+                    n.z = $z
             ";
 
             self.graph
                 .run(query(query_str)
                     .param("id", node_id as i64)
-                    .param("x", data.x as f64)
-                    .param("y", data.y as f64)
-                    .param("z", data.z as f64)
-                    .param("vx", data.vx as f64)
-                    .param("vy", data.vy as f64)
-                    .param("vz", data.vz as f64))
+                    .param("x", data.0 as f64)
+                    .param("y", data.1 as f64)
+                    .param("z", data.2 as f64))
                 .await
                 .map_err(|e| GraphRepositoryError::AccessError(format!("Failed to update position: {}", e)))?;
         }
@@ -414,16 +423,37 @@ impl GraphRepository for Neo4jGraphRepository {
         Ok(ConstraintSet::default())
     }
 
-    async fn find_shortest_paths(&self, _params: PathfindingParams) -> Result<PathfindingResult> {
-        Err(GraphRepositoryError::NotImplemented("Pathfinding not yet implemented for Neo4j".to_string()))
+    async fn get_node_positions(&self) -> Result<Vec<(u32, Vec3)>> {
+        let graph = self.get_graph().await?;
+        let positions = graph.nodes.iter()
+            .map(|node| {
+                let pos = Vec3::new(
+                    node.data.x,
+                    node.data.y,
+                    node.data.z,
+                );
+                (node.id, pos)
+            })
+            .collect();
+        Ok(positions)
     }
 
-    async fn get_neighbors(&self, _node_id: u32) -> Result<Vec<u32>> {
-        // Implement with Cypher query
-        Err(GraphRepositoryError::NotImplemented("get_neighbors not yet implemented".to_string()))
+    async fn get_bots_graph(&self) -> Result<Arc<GraphData>> {
+        // For now, return the same graph
+        // In a real implementation, this might filter for bot-related nodes
+        self.get_graph().await
     }
 
-    async fn get_dirty_nodes(&self) -> Result<Vec<u32>> {
-        Ok(Vec::new())
+    async fn get_equilibrium_status(&self) -> Result<bool> {
+        // Not implemented for Neo4j adapter
+        Ok(false)
+    }
+
+    async fn compute_shortest_paths(&self, _params: PathfindingParams) -> Result<PathfindingResult> {
+        Err(GraphRepositoryError::AccessError("Pathfinding not yet implemented for Neo4j".to_string()))
+    }
+
+    async fn get_dirty_nodes(&self) -> Result<HashSet<u32>> {
+        Ok(HashSet::new())
     }
 }

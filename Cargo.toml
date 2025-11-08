@@ -117,7 +117,8 @@ rayon = "1.11.0"
 hexser = { version = "0.4.7", features = ["full"] }
 
 # Ontology Reasoning - using local path dependency
-whelk = { path = "./whelk-rs", optional = true }
+# TEMPORARILY DISABLED: whelk-rs submodule not initialized
+# whelk = { path = "./whelk-rs", optional = true }
 
 # Ontology dependencies (optional)
 # Note: Using 1.2.0 for ArcStr support (thread-safe string type)
@@ -149,7 +150,7 @@ default = ["gpu", "ontology"]
 gpu = ["cudarc", "cust", "cust_core"]  # Enable GPU support with CUDA dependencies
 gpu-safe = []  # Feature for GPU-safe types
 cpu = []  # CPU-only mode
-ontology = ["horned-owl", "horned-functional", "whelk", "walkdir", "clap"]  # Enable ontology validation with local whelk-rs
+ontology = ["horned-owl", "horned-functional", "walkdir", "clap"]  # Enable ontology validation (whelk temporarily disabled)
 redis = ["dep:redis"]  # Enable Redis distributed caching
 
 [profile.release]
