@@ -5,6 +5,7 @@ use log::{error, info, warn};
 
 ///
 pub async fn get_real_gpu_physics_stats(app_state: &AppState) -> Option<GPUPhysicsStats> {
+    #[cfg(feature = "gpu")]
     if let Some(gpu_addr) = &app_state.gpu_compute_addr {
         use crate::actors::messages::{GetGPUStatus, GetStressMajorizationStats};
 
@@ -116,6 +117,7 @@ pub async fn perform_gpu_spectral_clustering(
     );
 
     
+    #[cfg(feature = "gpu")]
     if let Some(gpu_manager) = &app_state.gpu_manager_addr {
         info!("GPU manager available, executing spectral clustering on GPU");
 
@@ -171,6 +173,7 @@ pub async fn perform_gpu_kmeans_clustering(
     );
 
     
+    #[cfg(feature = "gpu")]
     if let Some(gpu_manager) = &app_state.gpu_manager_addr {
         info!("GPU manager available, executing K-means clustering on GPU");
 
@@ -226,6 +229,7 @@ pub async fn perform_gpu_louvain_clustering(
     );
 
     
+    #[cfg(feature = "gpu")]
     if let Some(gpu_manager) = &app_state.gpu_manager_addr {
         info!("GPU manager available, executing Louvain clustering on GPU");
 

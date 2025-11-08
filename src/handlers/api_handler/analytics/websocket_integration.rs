@@ -137,7 +137,8 @@ impl GpuAnalyticsWebSocket {
 
         let fut = async move {
             
-            if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
+            #[cfg(feature = "gpu")]
+    if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
                 match gpu_addr
                     .send(crate::actors::messages::GetPhysicsStats)
                     .await
@@ -289,7 +290,8 @@ impl GpuAnalyticsWebSocket {
             let mut urgency_level = "low";
 
             
-            if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
+            #[cfg(feature = "gpu")]
+    if let Some(gpu_addr) = app_state.gpu_compute_addr.as_ref() {
                 if let Ok(Ok(stats)) = gpu_addr
                     .send(crate::actors::messages::GetPhysicsStats)
                     .await

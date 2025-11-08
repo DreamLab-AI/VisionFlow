@@ -313,6 +313,7 @@ async fn get_physics_diagnostics(
     }
 
     
+    #[cfg(feature = "gpu")]
     if let Some(gpu_compute_addr) = &app_state.gpu_compute_addr {
         match tokio::time::timeout(Duration::from_secs(2), gpu_compute_addr.send(GetGPUStatus))
             .await

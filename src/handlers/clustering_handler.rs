@@ -136,7 +136,7 @@ async fn start_clustering(
         algorithm, cluster_count
     );
 
-    
+    #[cfg(feature = "gpu")]
     if let Some(gpu_addr) = &state.gpu_compute_addr {
         
         use crate::actors::messages::PerformGPUClustering;
@@ -212,7 +212,7 @@ async fn get_clustering_status(
 ) -> Result<HttpResponse, actix_web::Error> {
     info!("Clustering status request");
 
-    
+    #[cfg(feature = "gpu")]
     if let Some(gpu_addr) = &state.gpu_compute_addr {
         use crate::actors::messages::GetClusteringResults;
 
@@ -286,7 +286,7 @@ async fn get_clustering_results(
 ) -> Result<HttpResponse, actix_web::Error> {
     info!("Clustering results request");
 
-    
+    #[cfg(feature = "gpu")]
     if let Some(gpu_addr) = &state.gpu_compute_addr {
         use crate::actors::messages::{GetClusteringResults, GetGraphData};
 use crate::{
@@ -410,7 +410,7 @@ async fn export_cluster_assignments(
         return bad_request!("format must be 'json', 'csv', or 'graphml'");
     }
 
-    
+    #[cfg(feature = "gpu")]
     if let Some(gpu_addr) = &state.gpu_compute_addr {
         info!("Attempting to get clustering data from GPU compute actor");
 
@@ -631,7 +631,12 @@ async fn export_cluster_assignments(
                 "Ensure graph data is loaded",
                 "Check GPU compute actor status"
             ],
-            "gpu_available": state.gpu_compute_addr.is_some(),
+            "gpu_available": cfg!(feature = "gpu") && {
+                #[cfg(feature = "gpu")]
+                { state.gpu_compute_addr.is_some() }
+                #[cfg(not(feature = "gpu"))]
+                { false }
+            },
             "timestamp": chrono::Utc::now().to_rfc3339()
         }).to_string(),
     };

@@ -52,6 +52,7 @@ pub struct CommunityDetectionResponse {
 }
 
 ///
+#[cfg(feature = "gpu")]
 pub async fn run_gpu_community_detection(
     app_state: &actix_web::web::Data<AppState>,
     request: &CommunityDetectionRequest,
@@ -62,7 +63,6 @@ pub async fn run_gpu_community_detection(
         request.algorithm
     );
 
-    
     let gpu_addr = app_state
         .gpu_compute_addr
         .as_ref()
@@ -270,3 +270,12 @@ pub fn get_community_statistics(communities: &[Community]) -> HashMap<String, se
 
     stats
 }
+
+#[cfg(not(feature = "gpu"))]
+pub async fn run_gpu_community_detection(
+    _app_state: &actix_web::web::Data<crate::AppState>,
+    _request: &CommunityDetectionRequest,
+) -> Result<CommunityDetectionResponse, String> {
+    Err("GPU features not enabled in this build".to_string())
+}
+
