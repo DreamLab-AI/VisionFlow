@@ -7,6 +7,9 @@
 // CQRS Phase 1: Actor-based adapter for gradual migration
 pub mod actor_graph_repository;
 
+// CQRS Phase 2: Neo4j direct query adapter (professional, scalable)
+pub mod neo4j_graph_repository;
+
 // Legacy adapters
 // pub mod gpu_physics_adapter;
 pub mod gpu_semantic_analyzer;
@@ -27,6 +30,9 @@ pub mod physics_orchestrator_adapter;
 
 // CQRS Phase 1: Actor-based adapter exports
 pub use actor_graph_repository::ActorGraphRepository;
+
+// CQRS Phase 2: Neo4j direct query adapter exports
+pub use neo4j_graph_repository::Neo4jGraphRepository;
 
 // GPU adapter implementation exports (these implement the traits from crate::ports)
 // pub use gpu_physics_adapter::GpuPhysicsAdapter as GpuPhysicsAdapterImpl;  

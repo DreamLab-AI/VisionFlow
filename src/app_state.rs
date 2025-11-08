@@ -326,13 +326,18 @@ impl AppState {
             .map_err(|e| format!("Failed to send GetGraphStateActor message: {}", e))?
             .ok_or_else(|| "GraphStateActor not initialized in supervisor".to_string())?;
 
-        info!("[AppState::new] Creating graph repository adapter (CQRS Phase 1D)");
-        let graph_repository = Arc::new(ActorGraphRepository::new(graph_actor_addr));
+        info!("[AppState::new] Creating Neo4j graph repository adapter (CQRS Phase 2: Direct Query)");
+        // Professional, scalable approach: Query Neo4j directly with intelligent caching
+        let graph_repository = Arc::new(crate::adapters::Neo4jGraphRepository::new(neo4j_adapter.graph().clone()));
 
-        // Load existing data from database into graph actor on startup
-        info!("[AppState::new] Loading graph data from database into GraphServiceActor...");
-        graph_service_addr.do_send(crate::actors::messages::ReloadGraphFromDatabase);
-        info!("[AppState::new] ✅ Initial graph reload request sent");
+        // Load existing data from Neo4j into repository cache on startup
+        info!("[AppState::new] Loading graph data from Neo4j into repository cache...");
+        graph_repository.load_graph().await
+            .map_err(|e| format!("Failed to load graph from Neo4j: {:?}", e))?;
+        info!("[AppState::new] ✅ Graph data loaded from Neo4j ({} nodes)",
+              graph_repository.get_graph().await
+                  .map(|g| g.nodes.len())
+                  .unwrap_or(0));
 
         info!("[AppState::new] Initializing CQRS query handlers for graph domain");
         let graph_query_handlers = GraphQueryHandlers {

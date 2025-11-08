@@ -135,6 +135,11 @@ impl Neo4jAdapter {
         Ok(adapter)
     }
 
+    /// Get access to underlying Graph for direct queries
+    pub fn graph(&self) -> &Arc<Graph> {
+        &self.graph
+    }
+
     /// Create Neo4j schema (indexes and constraints)
     async fn create_schema(&self) -> RepoResult<()> {
         info!("Creating Neo4j schema...");
