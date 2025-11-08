@@ -166,14 +166,14 @@ impl OntologyRepository for Neo4jOntologyRepository {
 
         let query_str = "
             MERGE (c:OwlClass {iri: $iri})
+            ON CREATE SET c.created_at = datetime()
+            ON MATCH SET c.updated_at = datetime()
             SET c.label = $label,
                 c.description = $description,
                 c.source_file = $source_file,
                 c.markdown_content = $markdown_content,
                 c.file_sha1 = $file_sha1,
-                c.last_synced = $last_synced,
-                c.updated_at = datetime()
-            ON CREATE SET c.created_at = datetime()
+                c.last_synced = $last_synced
         ";
 
         self.graph
@@ -310,12 +310,12 @@ impl OntologyRepository for Neo4jOntologyRepository {
 
         let query_str = "
             MERGE (p:OwlProperty {iri: $iri})
+            ON CREATE SET p.created_at = datetime()
+            ON MATCH SET p.updated_at = datetime()
             SET p.label = $label,
                 p.property_type = $property_type,
                 p.domain = $domain,
-                p.range = $range,
-                p.updated_at = datetime()
-            ON CREATE SET p.created_at = datetime()
+                p.range = $range
         ";
 
         let domain_json = to_json(&property.domain)
@@ -480,12 +480,12 @@ impl OntologyRepository for Neo4jOntologyRepository {
 
         let query_str = "
             MERGE (a:OwlAxiom {id: $id})
+            ON CREATE SET a.created_at = datetime()
+            ON MATCH SET a.updated_at = datetime()
             SET a.axiom_type = $axiom_type,
                 a.subject = $subject,
                 a.object = $object,
-                a.annotations = $annotations,
-                a.updated_at = datetime()
-            ON CREATE SET a.created_at = datetime()
+                a.annotations = $annotations
         ";
 
         self.graph

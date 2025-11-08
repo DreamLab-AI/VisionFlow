@@ -33,7 +33,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         uri: neo4j_uri.clone(),
         user: neo4j_user,
         password: neo4j_password,
-        database: neo4j_database,
+        database: Some(neo4j_database),
     };
 
     let ontology_repo = Arc::new(
