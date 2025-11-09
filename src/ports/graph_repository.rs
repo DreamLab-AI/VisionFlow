@@ -30,6 +30,15 @@ pub enum GraphRepositoryError {
 
     #[error("Invalid data: {0}")]
     InvalidData(String),
+
+    #[error("Deserialization error: {0}")]
+    DeserializationError(String),
+
+    #[error("Serialization error: {0}")]
+    SerializationError(String),
+
+    #[error("Operation not implemented")]
+    NotImplemented,
 }
 
 ///

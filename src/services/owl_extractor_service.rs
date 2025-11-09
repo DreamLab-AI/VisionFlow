@@ -7,11 +7,8 @@
 //! This service reads raw markdown from the database and builds complete
 //! OWL ontologies with all restrictions, axioms, and complex semantics.
 
-#[cfg(feature = "ontology")]
 use horned_owl::io::owx::reader::read as read_owx;
-#[cfg(feature = "ontology")]
 use horned_owl::model::*;
-#[cfg(feature = "ontology")]
 use horned_functional::io::reader::read as read_functional;
 
 use crate::ports::ontology_repository::{OntologyRepository, OwlClass};
@@ -152,7 +149,6 @@ impl<R: OntologyRepository> OwlExtractorService<R> {
     }
 
     
-    #[cfg(feature = "ontology")]
     pub fn parse_with_horned_owl(&self, owl_text: &str) -> Result<AnnotatedOntology, String> {
         use std::io::Cursor;
 
@@ -163,7 +159,6 @@ impl<R: OntologyRepository> OwlExtractorService<R> {
     }
 
     
-    #[cfg(feature = "ontology")]
     pub async fn build_complete_ontology(&self) -> Result<AnnotatedOntology, String> {
         info!("Building complete ontology from database with horned-owl...");
 

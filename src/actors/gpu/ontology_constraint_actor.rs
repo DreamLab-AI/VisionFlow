@@ -426,7 +426,7 @@ impl Handler<GetConstraintStats> for OntologyConstraintActor {
     type Result = Result<ConstraintStats, String>;
 
     fn handle(&mut self, _msg: GetConstraintStats, _ctx: &mut Self::Context) -> Self::Result {
-        
+
         let mut stats = ConstraintStats {
             total_constraints: self.ontology_constraints.len(),
             active_constraints: self.stats.active_ontology_constraints as usize,
@@ -435,13 +435,30 @@ impl Handler<GetConstraintStats> for OntologyConstraintActor {
             user_constraints: 0,
         };
 
-        
+
         stats.constraint_groups.insert(
             "ontology_derived".to_string(),
             self.ontology_constraints.len(),
         );
 
         Ok(stats)
+    }
+}
+
+/// Handler for GetConstraintBuffer - provides GPU-ready constraint data
+///
+/// This is the key integration point for P0-2: it returns the constraint_buffer
+/// that ForceComputeActor needs to upload to GPU via UnifiedGPUCompute::upload_constraints()
+impl Handler<crate::actors::messages::GetConstraintBuffer> for OntologyConstraintActor {
+    type Result = Result<Vec<ConstraintData>, String>;
+
+    fn handle(&mut self, _msg: crate::actors::messages::GetConstraintBuffer, _ctx: &mut Self::Context) -> Self::Result {
+        debug!("OntologyConstraintActor: Providing constraint buffer for GPU upload ({} constraints)",
+               self.constraint_buffer.len());
+
+        // Return a clone of the constraint buffer for GPU upload
+        // This buffer contains ConstraintData structs ready for GPU processing
+        Ok(self.constraint_buffer.clone())
     }
 }
 

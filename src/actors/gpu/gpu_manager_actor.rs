@@ -662,3 +662,42 @@ impl Handler<ApplyOntologyConstraints> for GPUManagerActor {
         }
     }
 }
+
+/// Handler for GetOntologyConstraintStats message
+impl Handler<GetOntologyConstraintStats> for GPUManagerActor {
+    type Result = ResponseActFuture<Self, Result<OntologyConstraintStats, String>>;
+
+    fn handle(&mut self, _msg: GetOntologyConstraintStats, ctx: &mut Self::Context) -> Self::Result {
+        info!("GPUManagerActor: GetOntologyConstraintStats received - delegating to OntologyConstraintActor");
+
+        let child_actors = match self.get_child_actors(ctx) {
+            Ok(actors) => actors.clone(),
+            Err(e) => {
+                error!("Failed to get child actors: {}", e);
+                return Box::pin(async move {
+                    Err(format!("Failed to get child actors: {}", e))
+                }.into_actor(self));
+            }
+        };
+
+        let fut = async move {
+            // Send message to OntologyConstraintActor to get stats
+            match child_actors.ontology_constraint_actor
+                .send(GetOntologyConstraintStats)
+                .await
+            {
+                Ok(result) => {
+                    info!("Successfully retrieved ontology constraint stats from child actor");
+                    result
+                }
+                Err(e) => {
+                    error!("Failed to retrieve ontology constraint stats: {}", e);
+                    Err(format!("Failed to retrieve ontology constraint stats: {}", e))
+                }
+            }
+        }
+        .into_actor(self);
+
+        Box::pin(fut)
+    }
+}

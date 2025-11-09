@@ -284,8 +284,7 @@ impl Default for ConstraintData {
     }
 }
 
-// Manual implementation of DeviceCopy for ConstraintData (only when gpu feature is enabled)
-#[cfg(feature = "gpu")]
+// Manual implementation of DeviceCopy for ConstraintData (GPU is always enabled)
 unsafe impl cust::memory::DeviceCopy for ConstraintData {}
 
 impl ConstraintData {
@@ -322,7 +321,14 @@ pub struct ConstraintSet {
 }
 
 impl ConstraintSet {
-    
+
+    pub fn new() -> Self {
+        Self {
+            constraints: Vec::new(),
+            groups: std::collections::HashMap::new(),
+        }
+    }
+
     pub fn add(&mut self, constraint: Constraint) -> usize {
         let idx = self.constraints.len();
         self.constraints.push(constraint);

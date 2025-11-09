@@ -9,7 +9,7 @@
 use async_trait::async_trait;
 use lru::LruCache;
 use neo4rs::{Graph, query, BoltInteger, BoltFloat};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::num::NonZeroUsize;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -95,6 +95,7 @@ impl Neo4jGraphRepository {
             nodes,
             edges,
             metadata,
+            id_to_metadata: HashMap::new(),
         });
 
         *self.graph_snapshot.write().await = Some(graph_data);
@@ -122,6 +123,10 @@ impl Neo4jGraphRepository {
                    n.weight as weight,
                    n.node_type as node_type,
                    n.cluster as cluster,
+                   n.cluster_id as cluster_id,
+                   n.anomaly_score as anomaly_score,
+                   n.community_id as community_id,
+                   n.hierarchy_level as hierarchy_level,
                    n.metadata as metadata_json
             ORDER BY id
         ";
@@ -143,43 +148,77 @@ impl Neo4jGraphRepository {
             let label: String = row.get("label").unwrap_or_default();
 
             // Position
-            let x: BoltFloat = row.get("x").unwrap_or(0.0.into());
-            let y: BoltFloat = row.get("y").unwrap_or(0.0.into());
-            let z: BoltFloat = row.get("z").unwrap_or(0.0.into());
+            let x: BoltFloat = row.get("x").unwrap_or(BoltFloat { value: 0.0 });
+            let y: BoltFloat = row.get("y").unwrap_or(BoltFloat { value: 0.0 });
+            let z: BoltFloat = row.get("z").unwrap_or(BoltFloat { value: 0.0 });
 
             // Velocity
-            let vx: BoltFloat = row.get("vx").unwrap_or(0.0.into());
-            let vy: BoltFloat = row.get("vy").unwrap_or(0.0.into());
-            let vz: BoltFloat = row.get("vz").unwrap_or(0.0.into());
+            let vx: BoltFloat = row.get("vx").unwrap_or(BoltFloat { value: 0.0 });
+            let vy: BoltFloat = row.get("vy").unwrap_or(BoltFloat { value: 0.0 });
+            let vz: BoltFloat = row.get("vz").unwrap_or(BoltFloat { value: 0.0 });
 
             // Properties
-            let mass: BoltFloat = row.get("mass").unwrap_or(1.0.into());
-            let size: BoltFloat = row.get("size").unwrap_or(1.0.into());
+            let mass: BoltFloat = row.get("mass").unwrap_or(BoltFloat { value: 1.0 });
+            let size: BoltFloat = row.get("size").unwrap_or(BoltFloat { value: 1.0 });
             let color: String = row.get("color").unwrap_or_else(|_| "#888888".to_string());
-            let weight: BoltFloat = row.get("weight").unwrap_or(1.0.into());
+            let weight: BoltFloat = row.get("weight").unwrap_or(BoltFloat { value: 1.0 });
             let node_type: String = row.get("node_type").unwrap_or_else(|_| "default".to_string());
             let cluster: Option<i64> = row.get("cluster").ok();
 
+            // Analytics fields (P0-4)
+            let cluster_id: Option<BoltInteger> = row.get("cluster_id").ok();
+            let anomaly_score: Option<BoltFloat> = row.get("anomaly_score").ok();
+            let community_id: Option<BoltInteger> = row.get("community_id").ok();
+            let hierarchy_level: Option<BoltInteger> = row.get("hierarchy_level").ok();
+
             // Metadata JSON
             let metadata_json: String = row.get("metadata_json").unwrap_or_else(|_| "{}".to_string());
-            let metadata: HashMap<String, String> = serde_json::from_str(&metadata_json)
+            let mut metadata: HashMap<String, String> = serde_json::from_str(&metadata_json)
                 .unwrap_or_default();
+
+            // Store analytics in metadata for now (Node struct doesn't have dedicated fields yet)
+            if let Some(cid) = cluster_id {
+                metadata.insert("cluster_id".to_string(), cid.value.to_string());
+            }
+            if let Some(score) = anomaly_score {
+                metadata.insert("anomaly_score".to_string(), score.value.to_string());
+            }
+            if let Some(cid) = community_id {
+                metadata.insert("community_id".to_string(), cid.value.to_string());
+            }
+            if let Some(level) = hierarchy_level {
+                metadata.insert("hierarchy_level".to_string(), level.value.to_string());
+            }
 
             let node = Node {
                 id: id.value as u32,
                 metadata_id,
                 label,
-                data: crate::models::node::NodeData::new(
-                    Vec3Data { x: x.value as f32, y: y.value as f32, z: z.value as f32 },
-                    Vec3Data { x: vx.value as f32, y: vy.value as f32, z: vz.value as f32 },
-                    mass.value as f32,
-                ),
+                data: crate::utils::socket_flow_messages::BinaryNodeData {
+                    node_id: id.value as u32,
+                    x: x.value as f32,
+                    y: y.value as f32,
+                    z: z.value as f32,
+                    vx: vx.value as f32,
+                    vy: vy.value as f32,
+                    vz: vz.value as f32,
+                },
+                x: Some(x.value as f32),
+                y: Some(y.value as f32),
+                z: Some(z.value as f32),
+                vx: Some(vx.value as f32),
+                vy: Some(vy.value as f32),
+                vz: Some(vz.value as f32),
+                mass: Some(mass.value as f32),
                 size: Some(size.value as f32),
                 color: Some(color),
                 weight: Some(weight.value as f32),
                 node_type: Some(node_type),
                 group: cluster.map(|c| c.to_string()),
                 metadata,
+                owl_class_iri: None,
+                file_size: 0,
+                user_data: None,
             };
 
             nodes.push(node);
@@ -213,7 +252,7 @@ impl Neo4jGraphRepository {
             let target_id: BoltInteger = row.get("target_id")
                 .map_err(|e| GraphRepositoryError::DeserializationError(format!("Missing target_id: {}", e)))?;
 
-            let weight: BoltFloat = row.get("weight").unwrap_or(1.0.into());
+            let weight: BoltFloat = row.get("weight").unwrap_or(BoltFloat { value: 1.0 });
             let edge_type: String = row.get("edge_type").unwrap_or_else(|_| "default".to_string());
 
             let edge = Edge {
@@ -222,6 +261,8 @@ impl Neo4jGraphRepository {
                 target: target_id.value as u32,
                 weight: weight.value as f32,
                 edge_type: Some(edge_type),
+                owl_property_iri: None,
+                metadata: None,
             };
 
             edges.push(edge);
@@ -378,21 +419,15 @@ impl GraphRepository for Neo4jGraphRepository {
                 MATCH (n:GraphNode {id: $id})
                 SET n.x = $x,
                     n.y = $y,
-                    n.z = $z,
-                    n.vx = $vx,
-                    n.vy = $vy,
-                    n.vz = $vz
+                    n.z = $z
             ";
 
             self.graph
                 .run(query(query_str)
                     .param("id", node_id as i64)
-                    .param("x", data.x as f64)
-                    .param("y", data.y as f64)
-                    .param("z", data.z as f64)
-                    .param("vx", data.vx as f64)
-                    .param("vy", data.vy as f64)
-                    .param("vz", data.vz as f64))
+                    .param("x", data.0 as f64)
+                    .param("y", data.1 as f64)
+                    .param("z", data.2 as f64))
                 .await
                 .map_err(|e| GraphRepositoryError::AccessError(format!("Failed to update position: {}", e)))?;
         }
@@ -414,16 +449,35 @@ impl GraphRepository for Neo4jGraphRepository {
         Ok(ConstraintSet::default())
     }
 
-    async fn find_shortest_paths(&self, _params: PathfindingParams) -> Result<PathfindingResult> {
-        Err(GraphRepositoryError::NotImplemented("Pathfinding not yet implemented for Neo4j".to_string()))
+    async fn compute_shortest_paths(&self, _params: PathfindingParams) -> Result<PathfindingResult> {
+        Err(GraphRepositoryError::NotImplemented)
     }
 
-    async fn get_neighbors(&self, _node_id: u32) -> Result<Vec<u32>> {
-        // Implement with Cypher query
-        Err(GraphRepositoryError::NotImplemented("get_neighbors not yet implemented".to_string()))
+    async fn get_dirty_nodes(&self) -> Result<HashSet<u32>> {
+        Ok(HashSet::new())
     }
 
-    async fn get_dirty_nodes(&self) -> Result<Vec<u32>> {
-        Ok(Vec::new())
+    async fn get_node_positions(&self) -> Result<Vec<(u32, Vec3)>> {
+        let graph = self.get_graph().await?;
+        let positions = graph.nodes.iter()
+            .map(|n| (n.id, Vec3::new(
+                n.x.unwrap_or(0.0),
+                n.y.unwrap_or(0.0),
+                n.z.unwrap_or(0.0)
+            )))
+            .collect();
+        Ok(positions)
+    }
+
+    async fn get_bots_graph(&self) -> Result<Arc<GraphData>> {
+        // For now, return the same graph
+        // In the future, this could filter for bot nodes
+        self.get_graph().await
+    }
+
+    async fn get_equilibrium_status(&self) -> Result<bool> {
+        // This would check physics equilibrium state
+        // For now, always return false (not in equilibrium)
+        Ok(false)
     }
 }

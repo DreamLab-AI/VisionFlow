@@ -5,11 +5,9 @@
 #[rtype(result = "()")]
 pub struct InitializeActor;
 
-#[cfg(feature = "gpu")]
 use crate::actors::gpu::force_compute_actor::PhysicsStats;
 use crate::config::AppFullSettings;
 use crate::errors::VisionFlowError;
-#[cfg(feature = "gpu")]
 use crate::gpu::visual_analytics::{IsolationLayer, VisualAnalyticsParams};
 use crate::models::constraints::{AdvancedParams, ConstraintSet};
 use crate::models::edge::Edge;
@@ -22,7 +20,6 @@ use crate::models::workspace::{
     CreateWorkspaceRequest, UpdateWorkspaceRequest, Workspace, WorkspaceFilter, WorkspaceQuery,
 };
 use crate::utils::socket_flow_messages::BinaryNodeData;
-#[cfg(feature = "gpu")]
 use crate::utils::unified_gpu_compute::ComputeMode;
 use actix::prelude::*;
 use chrono::{DateTime, Utc};
@@ -42,7 +39,6 @@ pub struct KMeansResult {
     pub inertia: f32,
     pub iterations: u32,
     pub clusters: Vec<crate::handlers::api_handler::analytics::Cluster>,
-    #[cfg(feature = "gpu")]
     pub stats: crate::actors::gpu::clustering_actor::ClusteringStats,
     pub converged: bool,
     pub final_iteration: u32,
@@ -56,10 +52,7 @@ pub struct AnomalyResult {
     pub zscore_values: Option<Vec<f32>>,
     pub anomaly_threshold: f32,
     pub num_anomalies: usize,
-    #[cfg(feature = "gpu")]
     pub anomalies: Vec<crate::actors::gpu::anomaly_detection_actor::AnomalyNode>,
-    #[cfg(not(feature = "gpu"))]
-    pub anomalies: Vec<u32>,  // Just node IDs when GPU is disabled
     pub stats: AnomalyDetectionStats,
     pub method: AnomalyDetectionMethod,
     pub threshold: f32,
@@ -87,11 +80,7 @@ pub struct CommunityDetectionResult {
     pub iterations: u32,
     pub community_sizes: Vec<i32>,
     pub converged: bool,
-    #[cfg(feature = "gpu")]
     pub communities: Vec<crate::actors::gpu::clustering_actor::Community>,
-    #[cfg(not(feature = "gpu"))]
-    pub communities: Vec<Vec<u32>>,  // Simplified community structure when GPU is disabled
-    #[cfg(feature = "gpu")]
     pub stats: crate::actors::gpu::clustering_actor::CommunityDetectionStats,
     pub algorithm: CommunityDetectionAlgorithm,
 }
@@ -279,6 +268,19 @@ pub struct UpdateConstraintData {
 #[rtype(result = "Result<ConstraintSet, String>")]
 pub struct GetConstraints;
 
+/// Get constraint buffer from OntologyConstraintActor for GPU upload
+#[derive(Message)]
+#[rtype(result = "Result<Vec<crate::models::constraints::ConstraintData>, String>")]
+pub struct GetConstraintBuffer;
+
+/// Update cached ontology constraint buffer in ForceComputeActor
+/// Sent by OntologyConstraintActor when constraints are updated
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct UpdateOntologyConstraintBuffer {
+    pub constraint_buffer: Vec<crate::models::constraints::ConstraintData>,
+}
+
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct TriggerStressMajorization;
@@ -303,7 +305,6 @@ pub struct SpawnAgentCommand {
     pub session_id: String,
 }
 
-#[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(
     result = "Result<crate::actors::gpu::stress_majorization_actor::StressMajorizationStats, String>"
@@ -331,7 +332,6 @@ pub struct SetAdvancedGPUContext {
 #[rtype(result = "()")]
 pub struct ResetGPUInitFlag;
 
-#[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct StoreAdvancedGPUContext {
@@ -346,14 +346,12 @@ pub struct InitializeVisualAnalytics {
     pub max_edges: usize,
 }
 
-#[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct UpdateVisualAnalyticsParams {
     pub params: VisualAnalyticsParams,
 }
 
-#[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct AddIsolationLayer {
@@ -1540,3 +1538,89 @@ pub struct ComputeAllPairsShortestPaths {
 
 // Re-export PathfindingResult from the port for convenience
 pub use crate::ports::gpu_semantic_analyzer::PathfindingResult;
+
+// PageRank Centrality Messages (P1-2)
+// ============================================================================
+#[derive(Message)]
+#[rtype(result = "Result<crate::actors::gpu::pagerank_actor::PageRankResult, String>")]
+pub struct ComputePageRank {
+    pub params: Option<crate::actors::gpu::pagerank_actor::PageRankParams>,
+}
+
+#[derive(Message)]
+#[rtype(result = "Option<crate::actors::gpu::pagerank_actor::PageRankResult>")]
+pub struct GetPageRankResult;
+
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct ClearPageRankCache;
+
+// Stress Majorization Configuration Messages (P1-1)
+// ============================================================================
+#[derive(Message, Debug, Clone, Serialize, Deserialize)]
+#[rtype(result = "Result<(), String>")]
+pub struct ConfigureStressMajorization {
+    pub learning_rate: Option<f32>,       // 0.01-0.5
+    pub momentum: Option<f32>,             // 0.0-0.99
+    pub max_iterations: Option<usize>,    // 10-1000
+    pub auto_run_interval: Option<usize>, // 30-600 frames
+}
+
+#[derive(Message, Debug, Clone, Serialize, Deserialize)]
+#[rtype(result = "Result<StressMajorizationConfig, String>")]
+pub struct GetStressMajorizationConfig;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StressMajorizationConfig {
+    pub learning_rate: f32,
+    pub momentum: f32,
+    pub max_iterations: usize,
+    pub auto_run_interval: usize,
+    pub current_stress: f32,
+    pub converged: bool,
+    pub iterations_completed: usize,
+}
+
+// =============================================================================
+// Semantic Forces Actor Messages
+// =============================================================================
+
+#[derive(Message, Debug, Clone, Serialize, Deserialize)]
+#[rtype(result = "Result<(), String>")]
+pub struct ConfigureDAG {
+    pub vertical_spacing: Option<f32>,
+    pub horizontal_spacing: Option<f32>,
+    pub level_attraction: Option<f32>,
+    pub sibling_repulsion: Option<f32>,
+    pub enabled: Option<bool>,
+}
+
+#[derive(Message, Debug, Clone, Serialize, Deserialize)]
+#[rtype(result = "Result<(), String>")]
+pub struct ConfigureTypeClustering {
+    pub cluster_attraction: Option<f32>,
+    pub cluster_radius: Option<f32>,
+    pub inter_cluster_repulsion: Option<f32>,
+    pub enabled: Option<bool>,
+}
+
+#[derive(Message, Debug, Clone, Serialize, Deserialize)]
+#[rtype(result = "Result<(), String>")]
+pub struct ConfigureCollision {
+    pub min_distance: Option<f32>,
+    pub collision_strength: Option<f32>,
+    pub node_radius: Option<f32>,
+    pub enabled: Option<bool>,
+}
+
+#[derive(Message, Debug, Clone, Serialize, Deserialize)]
+#[rtype(result = "Result<crate::actors::gpu::semantic_forces_actor::SemanticConfig, String>")]
+pub struct GetSemanticConfig;
+
+#[derive(Message, Debug, Clone, Serialize, Deserialize)]
+#[rtype(result = "Result<crate::actors::gpu::semantic_forces_actor::HierarchyLevels, String>")]
+pub struct GetHierarchyLevels;
+
+#[derive(Message, Debug, Clone, Serialize, Deserialize)]
+#[rtype(result = "Result<(), String>")]
+pub struct RecalculateHierarchy;

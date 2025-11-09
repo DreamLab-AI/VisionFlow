@@ -68,6 +68,24 @@ pub struct Violation {
     pub timestamp: DateTime<Utc>,
 }
 
+/// Constraint summary for validation reports
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConstraintSummary {
+    pub total_constraints: usize,
+    pub semantic_constraints: usize,
+    pub structural_constraints: usize,
+}
+
+impl Default for ConstraintSummary {
+    fn default() -> Self {
+        Self {
+            total_constraints: 0,
+            semantic_constraints: 0,
+            structural_constraints: 0,
+        }
+    }
+}
+
 ///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ValidationReport {
@@ -79,6 +97,7 @@ pub struct ValidationReport {
     pub violations: Vec<Violation>,
     pub inferred_triples: Vec<RdfTriple>,
     pub statistics: ValidationStatistics,
+    pub constraint_summary: ConstraintSummary,
 }
 
 ///
@@ -449,6 +468,14 @@ impl OwlValidatorService {
         };
 
         let duration = start_time.elapsed();
+
+        // Calculate constraint summary from statistics
+        let constraint_summary = ConstraintSummary {
+            total_constraints: statistics.constraints_evaluated,
+            semantic_constraints: statistics.inference_rules_applied,
+            structural_constraints: statistics.constraints_evaluated.saturating_sub(statistics.inference_rules_applied),
+        };
+
         let report = ValidationReport {
             id: Uuid::new_v4().to_string(),
             timestamp: time::now(),
@@ -458,6 +485,7 @@ impl OwlValidatorService {
             violations,
             inferred_triples,
             statistics,
+            constraint_summary,
         };
 
         

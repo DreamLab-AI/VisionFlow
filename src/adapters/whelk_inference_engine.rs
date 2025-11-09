@@ -12,16 +12,12 @@ use crate::ports::inference_engine::{
 };
 use crate::ports::ontology_repository::{AxiomType, InferenceResults, OwlAxiom, OwlClass};
 
-#[cfg(feature = "ontology")]
 use horned_owl::model::{
     AnnotatedComponent, ArcStr, Build, Class, ClassExpression, Component, DeclareClass,
     MutableOntology, SubClassOf,
 };
-#[cfg(feature = "ontology")]
 use horned_owl::ontology::set::SetOntology;
-#[cfg(feature = "ontology")]
 use std::collections::hash_map::DefaultHasher;
-#[cfg(feature = "ontology")]
 use std::hash::{Hash, Hasher};
 
 ///
@@ -29,16 +25,12 @@ use std::hash::{Hash, Hasher};
 ///
 ///
 pub struct WhelkInferenceEngine {
-    #[cfg(feature = "ontology")]
     ontology: Option<SetOntology<ArcStr>>,
 
-    #[cfg(feature = "ontology")]
     cached_subsumptions: Option<Vec<OwlAxiom>>,
 
-    #[cfg(feature = "ontology")]
     last_checksum: Option<u64>,
 
-    #[cfg(not(feature = "ontology"))]
     _phantom: std::marker::PhantomData<()>,
 
     loaded_classes: usize,
@@ -48,9 +40,7 @@ pub struct WhelkInferenceEngine {
     total_inferences: usize,
 }
 
-#[cfg(feature = "ontology")]
 ///
-#[cfg(feature = "ontology")]
 use whelk;
 use crate::utils::time;
 
@@ -59,16 +49,12 @@ impl WhelkInferenceEngine {
     pub fn new() -> Self {
         info!("Initializing WhelkInferenceEngine");
         Self {
-            #[cfg(feature = "ontology")]
             ontology: None,
 
-            #[cfg(feature = "ontology")]
             cached_subsumptions: None,
 
-            #[cfg(feature = "ontology")]
             last_checksum: None,
 
-            #[cfg(not(feature = "ontology"))]
             _phantom: std::marker::PhantomData,
 
             loaded_classes: 0,
@@ -79,7 +65,6 @@ impl WhelkInferenceEngine {
         }
     }
 
-    #[cfg(feature = "ontology")]
     
     fn convert_class_to_horned(class: &OwlClass) -> Option<AnnotatedComponent<ArcStr>> {
         let iri = Build::new().iri(class.iri.clone());
@@ -90,7 +75,6 @@ impl WhelkInferenceEngine {
         })
     }
 
-    #[cfg(feature = "ontology")]
     
     fn convert_axiom_to_horned(axiom: &OwlAxiom) -> Option<AnnotatedComponent<ArcStr>> {
         let component = match axiom.axiom_type {
@@ -136,7 +120,6 @@ impl WhelkInferenceEngine {
         })
     }
 
-    #[cfg(feature = "ontology")]
     
     fn compute_ontology_checksum(ontology: &SetOntology<ArcStr>) -> u64 {
         let mut hasher = DefaultHasher::new();
@@ -155,7 +138,6 @@ impl WhelkInferenceEngine {
         hasher.finish()
     }
 
-    #[cfg(feature = "ontology")]
     
     
     
@@ -196,7 +178,6 @@ impl InferenceEngine for WhelkInferenceEngine {
         classes: Vec<OwlClass>,
         axioms: Vec<OwlAxiom>,
     ) -> EngineResult<()> {
-        #[cfg(feature = "ontology")]
         {
             let mut ontology = SetOntology::new();
 
@@ -242,21 +223,12 @@ impl InferenceEngine for WhelkInferenceEngine {
             );
             Ok(())
         }
-
-        #[cfg(not(feature = "ontology"))]
-        {
-            self.loaded_classes = classes.len();
-            self.loaded_axioms = axioms.len();
-            warn!("Ontology feature not enabled, loading metadata only");
-            Ok(())
-        }
     }
 
     #[instrument(skip(self), level = "debug")]
     async fn infer(&mut self) -> EngineResult<InferenceResults> {
         let start = std::time::Instant::now();
 
-        #[cfg(feature = "ontology")]
         {
             let ontology = self
                 .ontology
@@ -316,26 +288,9 @@ impl InferenceEngine for WhelkInferenceEngine {
                 reasoner_version: format!("whelk-rs-{}", env!("CARGO_PKG_VERSION")),
             })
         }
-
-        #[cfg(not(feature = "ontology"))]
-        {
-            let inference_time_ms = start.elapsed().as_millis() as u64;
-            self.last_inference_time_ms = inference_time_ms;
-            self.total_inferences += 1;
-
-            warn!("Ontology feature not enabled, returning empty inference results");
-
-            Ok(InferenceResults {
-                timestamp: time::now(),
-                inferred_axioms: Vec::new(),
-                inference_time_ms,
-                reasoner_version: "stub-0.1.0".to_string(),
-            })
-        }
     }
 
     async fn is_entailed(&self, axiom: &OwlAxiom) -> EngineResult<bool> {
-        #[cfg(feature = "ontology")]
         {
             let cached = self
                 .cached_subsumptions
@@ -355,15 +310,9 @@ impl InferenceEngine for WhelkInferenceEngine {
 
             Ok(false)
         }
-
-        #[cfg(not(feature = "ontology"))]
-        {
-            Ok(false)
-        }
     }
 
     async fn get_subclass_hierarchy(&self) -> EngineResult<Vec<(String, String)>> {
-        #[cfg(feature = "ontology")]
         {
             let cached = self
                 .cached_subsumptions
@@ -380,15 +329,9 @@ impl InferenceEngine for WhelkInferenceEngine {
             debug!("Extracted {} subsumption relationships", hierarchy.len());
             Ok(hierarchy)
         }
-
-        #[cfg(not(feature = "ontology"))]
-        {
-            Ok(Vec::new())
-        }
     }
 
     async fn classify_instance(&self, instance_iri: &str) -> EngineResult<Vec<String>> {
-        #[cfg(feature = "ontology")]
         {
             let cached = self
                 .cached_subsumptions
@@ -409,15 +352,9 @@ impl InferenceEngine for WhelkInferenceEngine {
             );
             Ok(class_iris)
         }
-
-        #[cfg(not(feature = "ontology"))]
-        {
-            Ok(Vec::new())
-        }
     }
 
     async fn check_consistency(&self) -> EngineResult<bool> {
-        #[cfg(feature = "ontology")]
         {
             let cached = self
                 .cached_subsumptions
@@ -448,15 +385,9 @@ impl InferenceEngine for WhelkInferenceEngine {
             info!("Ontology is consistent");
             Ok(true)
         }
-
-        #[cfg(not(feature = "ontology"))]
-        {
-            Ok(true)
-        }
     }
 
     async fn explain_entailment(&self, axiom: &OwlAxiom) -> EngineResult<Vec<OwlAxiom>> {
-        #[cfg(feature = "ontology")]
         {
             
             
@@ -483,15 +414,9 @@ impl InferenceEngine for WhelkInferenceEngine {
             debug!("Found {} axioms in explanation", explanation.len());
             Ok(explanation)
         }
-
-        #[cfg(not(feature = "ontology"))]
-        {
-            Ok(Vec::new())
-        }
     }
 
     async fn clear(&mut self) -> EngineResult<()> {
-        #[cfg(feature = "ontology")]
         {
             self.ontology = None;
             self.cached_subsumptions = None;

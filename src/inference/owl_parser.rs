@@ -8,11 +8,8 @@ use std::collections::HashMap;
 use thiserror::Error;
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "ontology")]
 use horned_owl::io::owx::reader::read as read_owx;
-#[cfg(feature = "ontology")]
 use horned_owl::model::ArcStr;
-#[cfg(feature = "ontology")]
 use horned_owl::ontology::set::SetOntology;
 
 use crate::ports::ontology_repository::{OwlClass, OwlAxiom, AxiomType};
@@ -117,7 +114,6 @@ impl OWLParser {
     pub fn parse_with_format(content: &str, format: OWLFormat) -> Result<ParseResult, ParseError> {
         let start = std::time::Instant::now();
 
-        #[cfg(feature = "ontology")]
         {
             let ontology = match format {
                 OWLFormat::OwlXml => Self::parse_owl_xml(content)?,
@@ -140,11 +136,6 @@ impl OWLParser {
                 },
                 ..result
             })
-        }
-
-        #[cfg(not(feature = "ontology"))]
-        {
-            Err(ParseError::FeatureNotEnabled)
         }
     }
 
@@ -179,7 +170,6 @@ impl OWLParser {
         OWLFormat::OwlXml
     }
 
-    #[cfg(feature = "ontology")]
     
     fn parse_owl_xml(content: &str) -> Result<SetOntology<ArcStr>, ParseError> {
         let cursor = std::io::Cursor::new(content.as_bytes());
@@ -190,7 +180,6 @@ impl OWLParser {
             .map_err(|e| ParseError::ParseError(format!("OWL/XML parse error: {:?}", e)))
     }
 
-    #[cfg(feature = "ontology")]
     
     fn parse_rdf_xml(content: &str) -> Result<SetOntology<ArcStr>, ParseError> {
         
@@ -198,7 +187,6 @@ impl OWLParser {
         Ok(SetOntology::new())
     }
 
-    #[cfg(feature = "ontology")]
     
     fn parse_turtle(content: &str) -> Result<SetOntology<ArcStr>, ParseError> {
         
@@ -206,7 +194,6 @@ impl OWLParser {
         Ok(SetOntology::new())
     }
 
-    #[cfg(feature = "ontology")]
     
     fn extract_ontology_components(ontology: &SetOntology<ArcStr>) -> ParseResult {
         use horned_owl::model::{Component, Class};
@@ -333,7 +320,6 @@ mod tests {
         assert_eq!(OWLParser::detect_format(content), OWLFormat::Manchester);
     }
 
-    #[cfg(feature = "ontology")]
     #[test]
     fn test_parse_simple_owl_xml() {
         let content = r#"<?xml version="1.0"?>

@@ -17,11 +17,8 @@ use crate::actors::messages::PositionSnapshot;
 use crate::actors::messaging::{MessageId, MessageTracker, MessageKind, MessageAck};
 use crate::errors::VisionFlowError;
 
-#[cfg(feature = "gpu")]
 use crate::actors::gpu::force_compute_actor::ForceComputeActor;
-#[cfg(feature = "gpu")]
 use crate::actors::gpu::force_compute_actor::PhysicsStats;
-#[cfg(feature = "gpu")]
 use crate::actors::messages::{InitializeGPU, UpdateGPUGraphData};
 // GraphStateActor will be implemented separately - using direct graph data access
 use crate::actors::messages::{
@@ -48,11 +45,9 @@ pub struct PhysicsOrchestratorActor {
     target_params: SimulationParams,
 
     
-    #[cfg(feature = "gpu")]
     gpu_compute_addr: Option<Addr<ForceComputeActor>>,
 
     
-    #[cfg(feature = "ontology")]
     ontology_actor_addr: Option<Addr<crate::actors::ontology_actor::OntologyActor>>,
 
     
@@ -68,7 +63,6 @@ pub struct PhysicsOrchestratorActor {
     last_step_time: Option<Instant>,
 
     
-    #[cfg(feature = "gpu")]
     physics_stats: Option<PhysicsStats>,
 
     
@@ -114,7 +108,7 @@ impl PhysicsOrchestratorActor {
     
     pub fn new(
         simulation_params: SimulationParams,
-        #[cfg(feature = "gpu")] gpu_compute_addr: Option<Addr<ForceComputeActor>>,
+        gpu_compute_addr: Option<Addr<ForceComputeActor>>,
         graph_data: Option<Arc<GraphData>>,
     ) -> Self {
         let target_params = simulation_params.clone();
@@ -127,15 +121,12 @@ impl PhysicsOrchestratorActor {
             simulation_running: AtomicBool::new(false),
             simulation_params,
             target_params,
-            #[cfg(feature = "gpu")]
             gpu_compute_addr,
-            #[cfg(feature = "ontology")]
             ontology_actor_addr: None,
             graph_data_ref: graph_data,
             gpu_initialized: false,
             gpu_init_in_progress: false,
             last_step_time: None,
-            #[cfg(feature = "gpu")]
             physics_stats: None,
             param_interpolation_rate: 0.1,
             auto_balance_last_check: None,
@@ -150,7 +141,6 @@ impl PhysicsOrchestratorActor {
     }
 
     
-    #[cfg(feature = "ontology")]
     pub fn set_ontology_actor(&mut self, addr: Addr<crate::actors::ontology_actor::OntologyActor>) {
         info!("PhysicsOrchestratorActor: Ontology actor address set");
         self.ontology_actor_addr = Some(addr);
@@ -197,7 +187,6 @@ impl PhysicsOrchestratorActor {
         self.interpolate_parameters();
 
         
-        #[cfg(feature = "gpu")]
         if !self.gpu_initialized && self.gpu_compute_addr.is_some() {
             self.initialize_gpu_if_needed(ctx);
             return;
@@ -209,12 +198,10 @@ impl PhysicsOrchestratorActor {
         }
 
         
-        #[cfg(feature = "gpu")]
         if let Some(gpu_addr) = self.gpu_compute_addr.clone() {
             
             self.execute_gpu_physics_step(&gpu_addr, ctx);
         }
-        #[cfg(not(feature = "gpu"))]
         {
             
             self.execute_cpu_physics_step(ctx);
@@ -278,7 +265,6 @@ impl PhysicsOrchestratorActor {
     }
 
     
-    #[cfg(feature = "gpu")]
     fn initialize_gpu_if_needed(&mut self, ctx: &mut Context<Self>) {
         if self.gpu_init_in_progress || self.gpu_initialized {
             return;
@@ -334,7 +320,6 @@ impl PhysicsOrchestratorActor {
     }
 
     
-    #[cfg(feature = "gpu")]
     fn execute_gpu_physics_step(
         &mut self,
         gpu_addr: &Addr<ForceComputeActor>,
@@ -400,7 +385,6 @@ impl PhysicsOrchestratorActor {
         let config = &self.simulation_params.auto_balance_config;
 
         
-        #[cfg(feature = "gpu")]
         if let Some(ref stats) = self.physics_stats {
             let mut new_target = self.target_params.clone();
 
@@ -454,14 +438,12 @@ impl PhysicsOrchestratorActor {
         let config = &self.simulation_params.auto_pause_config;
 
         
-        #[cfg(feature = "gpu")]
         let is_equilibrium = if let Some(ref stats) = self.physics_stats {
             stats.kinetic_energy < config.equilibrium_energy_threshold
         } else {
             false
         };
 
-        #[cfg(not(feature = "gpu"))]
         let is_equilibrium = false; 
 
         if is_equilibrium {
@@ -533,7 +515,6 @@ impl PhysicsOrchestratorActor {
         };
 
         
-        #[cfg(feature = "gpu")]
         if let Some(ref stats) = self.physics_stats {
             
             self.performance_metrics.gpu_utilization = 0.0; 
@@ -654,7 +635,12 @@ impl PhysicsOrchestratorActor {
 
     
     fn upload_constraints_to_gpu(&self) {
-        if !self.gpu_initialized || self.gpu_compute_addr.is_none() {
+        {
+            if !self.gpu_initialized || self.gpu_compute_addr.is_none() {
+                return;
+            }
+        }
+        {
             return;
         }
 
@@ -793,7 +779,6 @@ impl Actor for PhysicsOrchestratorActor {
         info!("Physics Orchestrator Actor started");
 
         
-        #[cfg(feature = "gpu")]
         if self.gpu_compute_addr.is_some() {
             self.initialize_gpu_if_needed(ctx);
         }
@@ -843,7 +828,6 @@ impl Handler<UpdateNodePositions> for PhysicsOrchestratorActor {
     fn handle(&mut self, _msg: UpdateNodePositions, _ctx: &mut Self::Context) -> Self::Result {
 
 
-        #[cfg(feature = "gpu")]
         if let Some(ref gpu_addr) = self.gpu_compute_addr {
             if let Some(ref graph_data) = self.graph_data_ref {
                 // H4: Track UpdateGPUGraphData message
@@ -995,7 +979,6 @@ impl Handler<UpdateSimulationParams> for PhysicsOrchestratorActor {
 
 
 
-        #[cfg(feature = "gpu")]
         if let Some(ref gpu_addr) = self.gpu_compute_addr {
             if self.gpu_initialized {
                 if let Some(ref graph_data) = self.graph_data_ref {
@@ -1037,14 +1020,12 @@ impl Handler<GetPhysicsStatus> for PhysicsOrchestratorActor {
 }
 
 ///
-#[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct UpdatePhysicsStats {
     pub stats: PhysicsStats,
 }
 
-#[cfg(feature = "gpu")]
 impl Handler<UpdatePhysicsStats> for PhysicsOrchestratorActor {
     type Result = ();
 
@@ -1144,7 +1125,6 @@ impl Handler<GetConstraintStats> for PhysicsOrchestratorActor {
 }
 
 ///
-#[cfg(feature = "ontology")]
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct SetOntologyActor {
@@ -1152,7 +1132,6 @@ pub struct SetOntologyActor {
 }
 
 ///
-#[cfg(feature = "ontology")]
 impl Handler<SetOntologyActor> for PhysicsOrchestratorActor {
     type Result = ();
 
@@ -1178,7 +1157,6 @@ impl Handler<MessageAck> for PhysicsOrchestratorActor {
 
 /// Handler for GPU initialization confirmation
 /// This is called by the GPU actor when initialization is complete
-#[cfg(feature = "gpu")]
 impl Handler<crate::actors::messages::GPUInitialized> for PhysicsOrchestratorActor {
     type Result = ();
 

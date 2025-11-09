@@ -59,16 +59,10 @@ impl ActorLifecycleManager {
         info!("Starting PhysicsOrchestratorActor");
 
         let simulation_params = SimulationParams::default();
-        #[cfg(feature = "gpu")]
         let actor = PhysicsOrchestratorActor::new(
             simulation_params,
-            None, 
-            None, 
-        );
-        #[cfg(not(feature = "gpu"))]
-        let actor = PhysicsOrchestratorActor::new(
-            simulation_params,
-            None, 
+            None,
+            None,
         );
         let addr = actor.start();
 

@@ -10,8 +10,6 @@
 //! Note: CustomReasoner inference is handled by ReasoningActor, not this actor.
 //! This actor focuses on validation and coordination.
 
-#![cfg(feature = "ontology")]
-
 use actix::prelude::*;
 use chrono::{DateTime, Utc};
 use log::{debug, error, info, warn};
@@ -742,6 +740,11 @@ impl Handler<ValidateOntology> for OntologyActor {
                     violations: vec![],
                     inferred_triples: vec![],
                     statistics: crate::services::owl_validator::ValidationStatistics::default(),
+                    constraint_summary: crate::services::owl_validator::ConstraintSummary {
+                        total_constraints: 0,
+                        semantic_constraints: 0,
+                        structural_constraints: 0,
+                    },
                 };
                 Ok(report)
             }

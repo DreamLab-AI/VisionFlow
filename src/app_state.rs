@@ -18,12 +18,9 @@ use crate::application::graph::*;
 use crate::cqrs::{CommandBus, QueryBus};
 use crate::events::EventBus;
 
-#[cfg(feature = "gpu")]
 use crate::actors::gpu;
 use crate::actors::graph_service_supervisor::GraphServiceSupervisor;
-#[cfg(feature = "ontology")]
 use crate::actors::ontology_actor::OntologyActor;
-#[cfg(feature = "gpu")]
 use crate::actors::GPUManagerActor;
 use crate::actors::{
     AgentMonitorActor, ClientCoordinatorActor, MetadataActor, OptimizedSettingsActor,
@@ -67,13 +64,11 @@ pub struct GraphQueryHandlers {
 #[derive(Clone)]
 pub struct AppState {
     pub graph_service_addr: Addr<GraphServiceSupervisor>,
-    #[cfg(feature = "gpu")]
     pub gpu_manager_addr: Option<Addr<GPUManagerActor>>,
-    #[cfg(feature = "gpu")]
     pub gpu_compute_addr: Option<Addr<gpu::ForceComputeActor>>,
-    #[cfg(feature = "gpu")]
-    pub stress_majorization_addr: Option<Addr<gpu::StressMajorizationActor>>, 
-    
+    pub stress_majorization_addr: Option<Addr<gpu::StressMajorizationActor>>,
+    pub shortest_path_actor: Option<Addr<gpu::ShortestPathActor>>,
+    pub connected_components_actor: Option<Addr<gpu::ConnectedComponentsActor>>,
 
     pub settings_repository: Arc<dyn SettingsRepository>,
 
@@ -328,11 +323,14 @@ impl AppState {
 
         info!("[AppState::new] Creating Neo4j graph repository adapter (CQRS Phase 2: Direct Query)");
         // Professional, scalable approach: Query Neo4j directly with intelligent caching
-        let graph_repository = Arc::new(crate::adapters::Neo4jGraphRepository::new(neo4j_adapter.graph().clone()));
+        let neo4j_graph_repository = Arc::new(crate::adapters::Neo4jGraphRepository::new(neo4j_adapter.graph().clone()));
+
+        // Create ActorGraphRepository using the graph actor
+        let graph_repository = Arc::new(crate::adapters::ActorGraphRepository::new(graph_actor_addr.clone()));
 
         // Load existing data from Neo4j into repository cache on startup
         info!("[AppState::new] Loading graph data from Neo4j into repository cache...");
-        graph_repository.load_graph().await
+        neo4j_graph_repository.load_graph().await
             .map_err(|e| format!("Failed to load graph from Neo4j: {:?}", e))?;
 
         // Get node count by calling the trait method through the GraphRepository trait
@@ -383,21 +381,24 @@ impl AppState {
                 .do_send(crate::actors::messages::SetGraphServiceAddress { addr: graph_supervisor_clone.clone() });
         });
 
-        
-        #[cfg(feature = "gpu")]
-        let (gpu_manager_addr, stress_majorization_addr) = {
+
+        let (gpu_manager_addr, stress_majorization_addr, shortest_path_actor, connected_components_actor) = {
             info!("[AppState::new] Starting GPUManagerActor (modular architecture)");
             let gpu_manager = GPUManagerActor::new().start();
+
+            // P2 Feature: Initialize ShortestPathActor and ConnectedComponentsActor
+            info!("[AppState::new] Starting ShortestPathActor and ConnectedComponentsActor for P2 features");
+            let shortest_path = gpu::ShortestPathActor::new().start();
+            let connected_components = gpu::ConnectedComponentsActor::new().start();
 
             // Extract StressMajorizationActor from GPUManagerActor's child actors
             // Note: The actor is spawned by GPUManagerActor, so we'll retrieve it after initialization
             info!("[AppState::new] StressMajorizationActor will be available after GPU initialization");
 
-            (Some(gpu_manager), None) // stress_majorization_addr will be set later
+            (Some(gpu_manager), None, Some(shortest_path), Some(connected_components))
         };
 
-        
-        #[cfg(feature = "gpu")]
+
         {
             use crate::actors::messages::InitializeGPUConnection;
             
@@ -409,10 +410,6 @@ impl AppState {
             } else {
                 warn!("[AppState] GPUManagerActor not available - GPU physics will be disabled");
             }
-        }
-        #[cfg(not(feature = "gpu"))]
-        {
-            info!("[AppState] GPU feature disabled - running in CPU-only mode");
         }
 
         info!("[AppState::new] Starting OptimizedSettingsActor with repository injection (hexagonal architecture)");
@@ -428,7 +425,7 @@ impl AppState {
         let settings_actor = OptimizedSettingsActor::with_actors(
             actor_settings_repository,
             Some(graph_service_addr.clone()),
-            None, 
+            None,
         )
         .map_err(|e| {
             log::error!("Failed to create OptimizedSettingsActor: {}", e);
@@ -477,14 +474,13 @@ impl AppState {
 
         let update_msg = crate::actors::messages::UpdateSimulationParams { params: sim_params };
 
-        
+
         graph_service_addr.do_send(update_msg.clone());
 
-        
-        #[cfg(feature = "gpu")]
+
         if let Some(ref _gpu_addr) = gpu_manager_addr {
-            
-            
+
+
         }
 
         info!("[AppState::new] Starting ProtectedSettingsActor");
@@ -495,14 +491,10 @@ impl AppState {
         let workspace_addr = WorkspaceActor::new().start();
 
         info!("[AppState::new] Starting OntologyActor");
-        #[cfg(feature = "ontology")]
         let ontology_actor_addr = {
             info!("[AppState] OntologyActor initialized successfully");
             Some(OntologyActor::new().start())
         };
-
-        #[cfg(not(feature = "ontology"))]
-        let ontology_actor_addr = None;
 
         info!("[AppState::new] Initializing BotsClient with graph service");
         let bots_client = Arc::new(BotsClient::with_graph_service(graph_service_addr.clone()));
@@ -540,12 +532,11 @@ impl AppState {
 
         let state = Self {
             graph_service_addr,
-            #[cfg(feature = "gpu")]
             gpu_manager_addr,
-            #[cfg(feature = "gpu")]
             gpu_compute_addr: None,
-            #[cfg(feature = "gpu")]
             stress_majorization_addr,
+            shortest_path_actor,
+            connected_components_actor,
 
             settings_repository,
 
@@ -605,8 +596,7 @@ impl AppState {
         use crate::validation::*;
         let mut report = ValidationReport::new();
 
-        // GPU-related actors (feature-gated)
-        #[cfg(feature = "gpu")]
+        // GPU-related actors
         {
             report.add(ValidationItem {
                 name: "GPUManagerActor".to_string(),
@@ -633,26 +623,15 @@ impl AppState {
             });
         }
 
-        // Ontology actor (feature-gated)
-        #[cfg(feature = "ontology")]
+        // Ontology actor
         {
+            let present = self.ontology_actor_addr.is_some();
             report.add(ValidationItem {
                 name: "OntologyActor".to_string(),
                 expected: true,
-                present: self.ontology_actor_addr.is_some(),
+                present,
                 severity: Severity::Warning,
                 reason: "Ontology feature is enabled".to_string(),
-            });
-        }
-
-        #[cfg(not(feature = "ontology"))]
-        {
-            report.add(ValidationItem {
-                name: "OntologyActor".to_string(),
-                expected: false,
-                present: self.ontology_actor_addr.is_some(),
-                severity: Severity::Info,
-                reason: "Ontology feature is disabled".to_string(),
             });
         }
 

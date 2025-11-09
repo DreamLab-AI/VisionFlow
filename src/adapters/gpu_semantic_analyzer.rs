@@ -17,7 +17,6 @@ use crate::ports::gpu_semantic_analyzer::{
     ImportanceAlgorithm, OptimizationResult, PathfindingResult, Result, SemanticConstraintConfig,
     SemanticStatistics,
 };
-#[cfg(feature = "gpu")]
 use crate::utils::unified_gpu_compute::UnifiedGPUCompute;
 
 ///

@@ -136,7 +136,6 @@ async fn start_clustering(
         algorithm, cluster_count
     );
 
-    #[cfg(feature = "gpu")]
     if let Some(gpu_addr) = &state.gpu_compute_addr {
         
         use crate::actors::messages::PerformGPUClustering;
@@ -212,7 +211,6 @@ async fn get_clustering_status(
 ) -> Result<HttpResponse, actix_web::Error> {
     info!("Clustering status request");
 
-    #[cfg(feature = "gpu")]
     if let Some(gpu_addr) = &state.gpu_compute_addr {
         use crate::actors::messages::GetClusteringResults;
 
@@ -286,7 +284,6 @@ async fn get_clustering_results(
 ) -> Result<HttpResponse, actix_web::Error> {
     info!("Clustering results request");
 
-    #[cfg(feature = "gpu")]
     if let Some(gpu_addr) = &state.gpu_compute_addr {
         use crate::actors::messages::{GetClusteringResults, GetGraphData};
 use crate::{

@@ -149,15 +149,11 @@ impl GpuPhysicsAdapter for ActixPhysicsAdapter {
             
             let simulation_params = crate::models::simulation_params::SimulationParams::default();
 
-            #[cfg(feature = "gpu")]
             let actor = PhysicsOrchestratorActor::new(
                 simulation_params,
-                None, 
+                None,
                 Some(graph.clone()),
             );
-
-            #[cfg(not(feature = "gpu"))]
-            let actor = PhysicsOrchestratorActor::new(simulation_params, Some(graph.clone()));
 
             let addr = actor.start();
             self.actor_addr = Some(addr);

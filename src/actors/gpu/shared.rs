@@ -11,7 +11,9 @@ use tokio::sync::RwLock;
 
 use crate::models::constraints::Constraint;
 use crate::models::simulation_params::SimulationParams;
-use crate::utils::unified_gpu_compute::{SimParams, UnifiedGPUCompute};
+
+// Public re-exports for GPU compute types
+pub use crate::utils::unified_gpu_compute::{SimParams, UnifiedGPUCompute};
 
 // Import the child actors for address storage
 // use super::{GPUResourceActor, ForceComputeActor, ClusteringActor,
@@ -105,8 +107,11 @@ pub struct SharedGPUContext {
     pub gpu_access_lock: Arc<RwLock<()>>,
     pub resource_metrics: Arc<Mutex<GPUResourceMetrics>>,
     pub operation_batch: Arc<Mutex<Vec<GPUOperation>>>,
-    pub batch_timeout: Duration, 
+    pub batch_timeout: Duration,
 }
+
+/// Type alias for SharedGPUContext for backwards compatibility
+pub type GPUContext = SharedGPUContext;
 
 ///
 #[derive(Debug, Clone)]

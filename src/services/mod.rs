@@ -17,8 +17,8 @@ pub mod topology_visualization_engine;
 pub mod graph_serialization;
 pub mod mcp_relay_manager;
 pub mod nostr_service;
-#[cfg(feature = "ontology")]
 pub mod owl_validator;
+
 // horned-functional API stabilized in current implementation
 // #[cfg(feature = "ontology")]
 // pub mod owl_extractor_service; // Deprecated - functionality merged into owl_validator

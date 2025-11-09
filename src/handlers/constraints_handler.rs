@@ -83,10 +83,8 @@ async fn define_constraints(
         Ok(Ok(())) => {
             info!("Constraints defined successfully");
 
-            
-            #[cfg(feature = "gpu")]
-            #[cfg(feature = "gpu")]
-    if let Some(gpu_addr) = &state.gpu_compute_addr {
+
+            if let Some(gpu_addr) = &state.gpu_compute_addr {
                 info!("Sending constraints to GPU compute actor");
 
                 
@@ -197,12 +195,7 @@ async fn apply_constraints(
         "constraintType": constraint_type,
         "nodeCount": nodes.len(),
         "strength": strength,
-        "gpuAvailable": cfg!(feature = "gpu") && {
-            #[cfg(feature = "gpu")]
-            { state.gpu_compute_addr.is_some() }
-            #[cfg(not(feature = "gpu"))]
-            { false }
-        },
+        "gpuAvailable": state.gpu_compute_addr.is_some(),
         "note": "Ready for GPU constraint processing integration"
     }))
 }
@@ -238,12 +231,7 @@ async fn remove_constraints(
     ok_json!(json!({
         "status": "Constraint removal recorded successfully",
         "removedCount": removal_count,
-        "gpuAvailable": cfg!(feature = "gpu") && {
-            #[cfg(feature = "gpu")]
-            { state.gpu_compute_addr.is_some() }
-            #[cfg(not(feature = "gpu"))]
-            { false }
-        },
+        "gpuAvailable": state.gpu_compute_addr.is_some(),
         "note": "Ready for GPU constraint removal integration"
     }))
 }
@@ -255,8 +243,7 @@ async fn list_constraints(
 ) -> Result<HttpResponse, actix_web::Error> {
     info!("Constraint list request received");
 
-    
-    #[cfg(feature = "gpu")]
+
     if let Some(gpu_addr) = &state.gpu_compute_addr {
         use crate::actors::messages::GetConstraints;
 use crate::{
@@ -318,11 +305,13 @@ use crate::{
                 }));
             }
 
+            let gpu_available = state.gpu_compute_addr.is_some();
+
             ok_json!(json!({
                 "constraints": constraints_list,
                 "count": constraints_list.len(),
                 "data_source": "settings",
-                "gpu_available": state.gpu_compute_addr.is_some(),
+                "gpu_available": gpu_available,
                 "modes": {
                     "logseq_compute_mode": logseq_mode,
                     "visionflow_compute_mode": visionflow_mode

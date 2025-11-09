@@ -2,11 +2,12 @@ pub mod analytics;
 pub mod bots;
 pub mod files;
 pub mod graph;
-#[cfg(feature = "ontology")]
 pub mod ontology;
+pub mod ontology_physics;
 pub mod quest3;
-// pub mod sessions; 
+// pub mod sessions;
 pub mod visualisation;
+pub mod semantic_forces;
 
 // Re-export specific types and functions
 // Re-export specific types and functions
@@ -151,7 +152,12 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .configure(crate::handlers::constraints_handler::config),
     );
 
-    
-    #[cfg(feature = "ontology")]
+
     cfg.service(web::scope("").configure(ontology::config));
+
+    // Configure ontology-physics integration routes (P0-2)
+    cfg.service(web::scope("").configure(ontology_physics::configure_routes));
+
+    // Configure semantic forces routes (GPU feature only)
+    cfg.service(web::scope("").configure(semantic_forces::config));
 }

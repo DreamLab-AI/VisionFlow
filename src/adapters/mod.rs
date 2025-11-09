@@ -35,7 +35,7 @@ pub use actor_graph_repository::ActorGraphRepository;
 pub use neo4j_graph_repository::Neo4jGraphRepository;
 
 // GPU adapter implementation exports (these implement the traits from crate::ports)
-// pub use gpu_physics_adapter::GpuPhysicsAdapter as GpuPhysicsAdapterImpl;  
+// pub use gpu_physics_adapter::GpuPhysicsAdapter as GpuPhysicsAdapterImpl;
 pub use gpu_semantic_analyzer::GpuSemanticAnalyzerAdapter;
 
 // Settings repository adapters

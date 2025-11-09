@@ -2,7 +2,6 @@
 // Now uses SettingsRepository port for database operations
 // Maintains caching and performance optimizations as adapter concerns
 
-#[cfg(feature = "gpu")]
 use crate::actors::gpu::ForceComputeActor;
 use crate::actors::messages::{
     GetSettingByPath, GetSettings, GetSettingsByPaths, ReloadSettings, SetSettingsByPaths,
@@ -48,7 +47,6 @@ pub struct OptimizedSettingsActor {
     compressor: Arc<RwLock<Compress>>,
     decompressor: Arc<RwLock<Decompress>>,
     graph_service_addr: Option<Addr<crate::actors::GraphServiceSupervisor>>,
-    #[cfg(feature = "gpu")]
     gpu_compute_addr: Option<Addr<ForceComputeActor>>,
 }
 
@@ -194,7 +192,6 @@ impl OptimizedSettingsActor {
             compressor: Arc::new(RwLock::new(Compress::new(Compression::default(), false))),
             decompressor: Arc::new(RwLock::new(Decompress::new(false))),
             graph_service_addr: None,
-            #[cfg(feature = "gpu")]
             gpu_compute_addr: None,
         })
     }
@@ -202,14 +199,11 @@ impl OptimizedSettingsActor {
     pub fn with_actors(
         repository: Arc<dyn SettingsRepository>,
         graph_service_addr: Option<Addr<crate::actors::GraphServiceSupervisor>>,
-        #[cfg(feature = "gpu")] gpu_compute_addr: Option<Addr<ForceComputeActor>>,
+        gpu_compute_addr: Option<Addr<ForceComputeActor>>,
     ) -> VisionFlowResult<Self> {
         let mut actor = Self::new(repository)?;
         actor.graph_service_addr = graph_service_addr;
-        #[cfg(feature = "gpu")]
-        {
-            actor.gpu_compute_addr = gpu_compute_addr;
-        }
+        actor.gpu_compute_addr = gpu_compute_addr;
         info!("OptimizedSettingsActor initialized with repository injection, GPU and Graph actor addresses for physics forwarding and concurrent update batching");
         Ok(actor)
     }
@@ -835,7 +829,6 @@ impl Clone for OptimizedSettingsActor {
             compressor: Arc::new(RwLock::new(Compress::new(Compression::default(), false))),
             decompressor: Arc::new(RwLock::new(Decompress::new(false))),
             graph_service_addr: self.graph_service_addr.clone(),
-            #[cfg(feature = "gpu")]
             gpu_compute_addr: self.gpu_compute_addr.clone(),
         }
     }

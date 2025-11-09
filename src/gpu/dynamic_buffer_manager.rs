@@ -25,7 +25,6 @@ use std::collections::HashMap;
 use std::ffi::c_void;
 use std::sync::{Arc, Mutex};
 use log::{info, warn, error, debug};
-#[cfg(feature = "gpu")]
 use crate::utils::cuda_error_handling::{CudaErrorHandler, CudaMemoryGuard};
 
 ///

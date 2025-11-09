@@ -21,6 +21,15 @@ pub struct StressMajorizationParams {
     pub convergence_threshold: Option<f32>,
 }
 
+/// Runtime configuration for stress majorization
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StressMajorizationRuntimeConfig {
+    pub learning_rate: f32,
+    pub momentum: f32,
+    pub max_iterations: usize,
+    pub auto_run_interval: usize,
+}
+
 ///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StressMajorizationStats {
@@ -32,20 +41,23 @@ pub struct StressMajorizationStats {
 
 ///
 pub struct StressMajorizationActor {
-    
+
     gpu_state: GPUState,
 
-    
+
     shared_context: Option<Arc<SharedGPUContext>>,
 
-    
+
     safety: StressMajorizationSafety,
 
-    
+
     stress_majorization_interval: u32,
 
-    
+
     last_stress_majorization: u32,
+
+
+    config: StressMajorizationRuntimeConfig,
 }
 
 impl StressMajorizationActor {
@@ -54,8 +66,14 @@ impl StressMajorizationActor {
             gpu_state: GPUState::default(),
             shared_context: None,
             safety: StressMajorizationSafety::new(),
-            stress_majorization_interval: 600, 
+            stress_majorization_interval: 600,
             last_stress_majorization: 0,
+            config: StressMajorizationRuntimeConfig {
+                learning_rate: 0.1,
+                momentum: 0.5,
+                max_iterations: 100,
+                auto_run_interval: 600,
+            },
         }
     }
 
@@ -437,8 +455,76 @@ impl Handler<SetSharedGPUContext> for StressMajorizationActor {
     fn handle(&mut self, msg: SetSharedGPUContext, _ctx: &mut Self::Context) -> Self::Result {
         info!("StressMajorizationActor: Received SharedGPUContext from ResourceActor");
         self.shared_context = Some(msg.context);
-        
+
         info!("StressMajorizationActor: SharedGPUContext stored successfully");
         Ok(())
+    }
+}
+
+/// Handler for ConfigureStressMajorization message (P1-1)
+impl Handler<ConfigureStressMajorization> for StressMajorizationActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: ConfigureStressMajorization, _ctx: &mut Self::Context) -> Self::Result {
+        info!("StressMajorizationActor: Received configuration update");
+
+        // Validate and apply learning_rate
+        if let Some(lr) = msg.learning_rate {
+            if lr < 0.01 || lr > 0.5 {
+                return Err(format!("Invalid learning_rate: {}. Must be between 0.01 and 0.5", lr));
+            }
+            self.config.learning_rate = lr;
+            info!("  Updated learning_rate to {:.3}", lr);
+        }
+
+        // Validate and apply momentum
+        if let Some(m) = msg.momentum {
+            if m < 0.0 || m > 0.99 {
+                return Err(format!("Invalid momentum: {}. Must be between 0.0 and 0.99", m));
+            }
+            self.config.momentum = m;
+            info!("  Updated momentum to {:.3}", m);
+        }
+
+        // Validate and apply max_iterations
+        if let Some(mi) = msg.max_iterations {
+            if mi < 10 || mi > 1000 {
+                return Err(format!("Invalid max_iterations: {}. Must be between 10 and 1000", mi));
+            }
+            self.config.max_iterations = mi;
+            info!("  Updated max_iterations to {}", mi);
+        }
+
+        // Validate and apply auto_run_interval
+        if let Some(interval) = msg.auto_run_interval {
+            if interval < 30 || interval > 600 {
+                return Err(format!("Invalid auto_run_interval: {}. Must be between 30 and 600 frames", interval));
+            }
+            self.config.auto_run_interval = interval;
+            self.stress_majorization_interval = interval as u32;
+            info!("  Updated auto_run_interval to {} frames", interval);
+        }
+
+        info!("StressMajorizationActor: Configuration updated successfully");
+        Ok(())
+    }
+}
+
+/// Handler for GetStressMajorizationConfig message (P1-1)
+impl Handler<GetStressMajorizationConfig> for StressMajorizationActor {
+    type Result = Result<StressMajorizationConfig, String>;
+
+    fn handle(&mut self, _msg: GetStressMajorizationConfig, _ctx: &mut Self::Context) -> Self::Result {
+        let stats = self.safety.get_stats();
+
+        Ok(StressMajorizationConfig {
+            learning_rate: self.config.learning_rate,
+            momentum: self.config.momentum,
+            max_iterations: self.config.max_iterations,
+            auto_run_interval: self.config.auto_run_interval,
+            current_stress: stats.stress_value,
+            converged: stats.converged,
+            iterations_completed: stats.iterations_performed as usize,
+        })
     }
 }

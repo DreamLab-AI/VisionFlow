@@ -1,5 +1,6 @@
 use crate::types::vec3::Vec3Data;
 use bytemuck::{Pod, Zeroable};
+#[cfg(feature = "gpu")]
 use cudarc::driver::{DeviceRepr, ValidAsZeroBits};
 use glam::Vec3;
 use serde::{Deserialize, Serialize};
@@ -55,7 +56,9 @@ pub struct BinaryNodeDataGPU {
 static_assertions::const_assert_eq!(std::mem::size_of::<BinaryNodeDataGPU>(), 48);
 
 // Implement DeviceRepr for GPU data
+#[cfg(feature = "gpu")]
 unsafe impl DeviceRepr for BinaryNodeDataGPU {}
+#[cfg(feature = "gpu")]
 unsafe impl ValidAsZeroBits for BinaryNodeDataGPU {}
 
 // Helper conversion functions
@@ -78,6 +81,10 @@ impl BinaryNodeDataClient {
 
     pub fn velocity(&self) -> Vec3Data {
         Vec3Data::new(self.vx, self.vy, self.vz)
+    }
+
+    pub fn mass(&self) -> f32 {
+        1.0 // Default mass for client nodes
     }
 }
 

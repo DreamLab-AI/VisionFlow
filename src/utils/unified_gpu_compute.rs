@@ -875,7 +875,6 @@ impl UnifiedGPUCompute {
         node_memory + edge_memory + grid_memory + force_memory + other_memory
     }
 
-    
     pub fn get_memory_metrics(&self) -> (usize, f32, usize) {
         let current_usage =
             Self::calculate_memory_usage(self.num_nodes, self.num_edges, self.max_grid_cells);
@@ -3525,8 +3524,132 @@ impl UnifiedGPUCompute {
             modularity += e_ii - (a_i * a_i);
         }
 
-        
+
         modularity.max(-1.0).min(1.0)
+    }
+
+    /// Get the number of nodes in the GPU compute context
+    ///
+    /// Returns the actual node count from the position buffer size
+    pub fn get_num_nodes(&self) -> usize {
+        self.pos_in_x.len()
+    }
+
+    /// Run PageRank centrality computation on the graph
+    ///
+    /// # Parameters
+    /// - `damping`: Damping factor (typically 0.85)
+    /// - `max_iterations`: Maximum number of iterations
+    /// - `epsilon`: Convergence threshold
+    /// - `normalize`: Whether to normalize the results
+    /// - `use_optimized`: Use optimized algorithm variant
+    ///
+    /// # Returns
+    /// Tuple of (PageRank scores, iterations performed, converged, convergence value)
+    pub fn run_pagerank_centrality(
+        &mut self,
+        damping: f32,
+        max_iterations: usize,
+        epsilon: f32,
+        normalize: bool,
+        use_optimized: bool,
+    ) -> Result<(Vec<f32>, usize, bool, f32)> {
+        let num_nodes = self.get_num_nodes();
+
+        // Initialize PageRank scores to 1/N
+        let initial_score = 1.0 / num_nodes as f32;
+        let mut scores = vec![initial_score; num_nodes];
+        let mut new_scores = vec![0.0; num_nodes];
+
+        // Get CSR graph structure from device buffers
+        let row_offsets = self.edge_row_offsets.as_host_vec()?;
+        let col_indices = self.edge_col_indices.as_host_vec()?;
+        let edge_weights = self.edge_weights.as_host_vec()?;
+
+        // Compute out-degrees for normalization
+        let mut out_degrees = vec![0.0f32; num_nodes];
+        for node in 0..num_nodes {
+            let start = row_offsets[node] as usize;
+            let end = row_offsets[node + 1] as usize;
+
+            for idx in start..end {
+                let weight = edge_weights[idx];
+                out_degrees[node] += weight;
+            }
+        }
+
+        // PageRank iteration
+        let mut final_iterations = max_iterations;
+        let mut converged = false;
+        let mut final_delta = 0.0f32;
+
+        for iteration in 0..max_iterations {
+            let teleport_contrib = (1.0 - damping) / num_nodes as f32;
+
+            // Reset new scores
+            new_scores.fill(0.0);
+
+            // Distribute scores along edges
+            for node in 0..num_nodes {
+                let start = row_offsets[node] as usize;
+                let end = row_offsets[node + 1] as usize;
+
+                let contrib = if out_degrees[node] > 0.0 {
+                    damping * scores[node] / out_degrees[node]
+                } else {
+                    damping * scores[node] / num_nodes as f32
+                };
+
+                for idx in start..end {
+                    let target = col_indices[idx] as usize;
+                    let weight = if use_optimized {
+                        edge_weights[idx]
+                    } else {
+                        1.0
+                    };
+                    new_scores[target] += contrib * weight;
+                }
+            }
+
+            // Add teleportation component
+            for score in new_scores.iter_mut() {
+                *score += teleport_contrib;
+            }
+
+            // Check convergence
+            let delta: f32 = scores
+                .iter()
+                .zip(new_scores.iter())
+                .map(|(a, b)| (a - b).abs())
+                .sum();
+
+            std::mem::swap(&mut scores, &mut new_scores);
+
+            if delta < epsilon {
+                info!(
+                    "PageRank converged after {} iterations (delta: {})",
+                    iteration + 1,
+                    delta
+                );
+                final_iterations = iteration + 1;
+                converged = true;
+                final_delta = delta;
+                break;
+            }
+            final_delta = delta;
+        }
+
+        // Normalize if requested
+        if normalize {
+            let sum: f32 = scores.iter().sum();
+            if sum > 0.0 {
+                for score in scores.iter_mut() {
+                    *score /= sum;
+                }
+            }
+        }
+
+        Ok((scores, final_iterations, converged, final_delta))
     }
 }
 
