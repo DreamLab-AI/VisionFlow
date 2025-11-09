@@ -145,9 +145,11 @@ js-sys = "0.3"
 tempfile = "3.14"
 
 [features]
-# GPU and ontology are always enabled (no optional features)
-# System requires both GPU acceleration and ontology validation
-default = []
+# GPU and ontology features for conditional compilation
+# Enable by default for full system capabilities
+default = ["gpu", "ontology"]
+gpu = []  # GPU acceleration with CUDA kernels
+ontology = []  # Ontology validation and reasoning
 gpu-safe = []  # Feature for GPU-safe types
 redis = ["dep:redis"]  # Enable Redis distributed caching
 

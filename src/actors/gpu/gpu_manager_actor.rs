@@ -6,7 +6,8 @@ use std::sync::Arc;
 
 use super::shared::{ChildActorAddresses, GPUState, SharedGPUContext};
 use super::{
-    AnomalyDetectionActor, ClusteringActor, ConstraintActor, ForceComputeActor, GPUResourceActor,
+    AnomalyDetectionActor, ClusteringActor, ConnectedComponentsActor, ConstraintActor,
+    ForceComputeActor, GPUResourceActor, PageRankActor, ShortestPathActor,
     StressMajorizationActor,
 };
 use crate::actors::messages::*;
@@ -72,6 +73,14 @@ impl GPUManagerActor {
         debug!("Creating OntologyConstraintActor...");
         let ontology_constraint_actor = super::OntologyConstraintActor::new().start();
 
+        // P2 GPU Analytics Actors
+        debug!("Creating PageRankActor...");
+        let pagerank_actor = PageRankActor::new().start();
+        debug!("Creating ShortestPathActor...");
+        let shortest_path_actor = ShortestPathActor::new().start();
+        debug!("Creating ConnectedComponentsActor...");
+        let connected_components_actor = ConnectedComponentsActor::new().start();
+
         self.child_actors = Some(ChildActorAddresses {
             resource_actor,
             force_compute_actor,
@@ -80,6 +89,9 @@ impl GPUManagerActor {
             stress_majorization_actor,
             constraint_actor,
             ontology_constraint_actor,
+            pagerank_actor,
+            shortest_path_actor,
+            connected_components_actor,
         });
 
         self.children_spawned = true;
@@ -624,6 +636,40 @@ impl Handler<SetSharedGPUContext> for GPUManagerActor {
             errors.push(format!("OntologyConstraintActor: {}", e));
         } else {
             info!("SharedGPUContext sent to OntologyConstraintActor");
+        }
+
+        // P2 GPU Analytics Actors
+        if let Err(e) = child_actors.pagerank_actor.try_send(SetSharedGPUContext {
+            context: context.clone(),
+            graph_service_addr: graph_service_addr.clone(),
+            correlation_id: None,
+        }) {
+            errors.push(format!("PageRankActor: {}", e));
+        } else {
+            info!("SharedGPUContext sent to PageRankActor");
+        }
+
+        if let Err(e) = child_actors.shortest_path_actor.try_send(SetSharedGPUContext {
+            context: context.clone(),
+            graph_service_addr: graph_service_addr.clone(),
+            correlation_id: None,
+        }) {
+            errors.push(format!("ShortestPathActor: {}", e));
+        } else {
+            info!("SharedGPUContext sent to ShortestPathActor");
+        }
+
+        if let Err(e) = child_actors
+            .connected_components_actor
+            .try_send(SetSharedGPUContext {
+                context: context.clone(),
+                graph_service_addr: graph_service_addr.clone(),
+                correlation_id: None,
+            })
+        {
+            errors.push(format!("ConnectedComponentsActor: {}", e));
+        } else {
+            info!("SharedGPUContext sent to ConnectedComponentsActor");
         }
 
         if errors.is_empty() {

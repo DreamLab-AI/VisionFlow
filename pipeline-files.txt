@@ -1,1 +1,143 @@
-dummy Data
+# ================================================================================
+# VisionFlow Data Pipeline - File List
+# ================================================================================
+# This file lists all the source code, documentation, and configuration files
+# that constitute the complete data pipeline, from data ingestion to client-side
+# visualization.
+
+# ================================================================================
+# PHASE 1: GitHub Synchronization & Data Ingestion
+# ================================================================================
+# Description: Modules responsible for pulling data from GitHub repositories
+# and ingesting local markdown files.
+
+src/services/github/api.rs
+src/services/github/config.rs
+src/services/github/content_enhanced.rs
+src/services/github/mod.rs
+src/services/github/pr.rs
+src/services/github/types.rs
+src/services/file_service.rs
+data/pages/
+src/bin/sync_local.rs
+
+
+# ================================================================================
+# PHASE 2: Parsing & Extraction
+# ================================================================================
+# Description: Components for parsing raw data (like markdown, OWL/RDF) into
+# structured formats for the knowledge graph.
+
+src/services/parsers/knowledge_graph_parser.rs
+src/services/parsers/mod.rs
+src/services/parsers/ontology_parser.rs
+src/ontology/parser/assembler.rs
+src/ontology/parser/converter.rs
+src/ontology/parser/mod.rs
+src/ontology/parser/parser.rs
+src/services/owl_extractor_service.rs
+
+# ================================================================================
+# PHASE 3: Ontology Enrichment & Classification
+# ================================================================================
+# Description: Services for applying ontological reasoning, inference, and
+# validation to enrich the graph data.
+
+src/services/ontology_pipeline_service.rs
+src/services/ontology_reasoner.rs
+src/adapters/whelk_inference_engine.rs
+src/ontology/services/owl_validator.rs
+src/handlers/inference_handler.rs
+src/handlers/validation_handler.rs
+
+# ================================================================================
+# PHASE 4: Database Persistence
+# ================================================================================
+# Description: Adapters and repositories for storing and retrieving graph data
+# from the Neo4j database.
+
+src/adapters/neo4j_adapter.rs
+src/adapters/neo4j_graph_repository.rs
+src/adapters/neo4j_ontology_repository.rs
+src/adapters/neo4j_settings_repository.rs
+src/repositories/mod.rs
+data/schema/knowledge_graph_db.sql
+data/schema/ontology_db.sql
+
+# ================================================================================
+# PHASE 5: Graph Loading & Actor Orchestration
+# ================================================================================
+# Description: Core logic for managing the in-memory graph, actor system, and
+# orchestrating data flows between components.
+
+src/handlers/graph_state_handler.rs
+src/handlers/graph_state_handler_refactored.rs
+src/adapters/actor_graph_repository.rs
+src/adapters/physics_orchestrator_adapter.rs
+src/ontology/actors/mod.rs
+
+# ================================================================================
+# PHASE 6: GPU Physics Computation
+# ================================================================================
+# Description: Modules for offloading graph physics calculations (like force
+# direction) and semantic analysis to the GPU.
+
+src/gpu/conversion_utils.rs
+src/gpu/dynamic_buffer_manager.rs
+src/gpu/memory_manager.rs
+src/gpu/mod.rs
+src/gpu/semantic_forces.rs
+src/gpu/streaming_pipeline.rs
+src/gpu/types.rs
+src/gpu/visual_analytics.rs
+src/adapters/gpu_semantic_analyzer.rs
+src/constraints/mod.rs
+src/constraints/gpu_converter.rs
+src/constraints/semantic_gpu_buffer.rs
+src/handlers/physics_handler.rs
+src/handlers/clustering_handler.rs
+
+# ================================================================================
+# PHASE 7: WebSocket Streaming
+# ================================================================================
+# Description: Handlers for streaming processed graph data and updates to
+# connected clients via WebSockets.
+
+src/handlers/multi_mcp_websocket_handler.rs
+src/handlers/websocket_utils.rs
+src/services/agent_visualization_protocol.rs
+
+# ================================================================================
+# PHASE 8: Client-Side Visualization
+# ================================================================================
+# Description: Components that format data for client consumption and handle
+# client-specific requests.
+
+src/handlers/bots_visualization_handler.rs
+src/services/bots_client.rs
+
+# ================================================================================
+# SUPPORTING: Infrastructure & Utilities
+# ================================================================================
+# Description: Core application entry points, configuration, error handling,
+# and shared utilities.
+
+src/main.rs
+src/lib.rs
+src/config/mod.rs
+src/errors/mod.rs
+src/middleware/mod.rs
+src/adapters/messages.rs
+
+# ================================================================================
+# DOCUMENTATION
+# ================================================================================
+# Description: Key architectural and design documents explaining the pipeline.
+
+docs/concepts/architecture/data-flow-complete.md
+docs/concepts/architecture/ontology-reasoning-pipeline.md
+docs/concepts/architecture/gpu-semantic-forces.md
+docs/concepts/architecture/semantic-physics-system.md
+docs/guides/neo4j-integration.md
+docs/reference/websocket-protocol.md
+docs/concepts/architecture/hexagonal-cqrs-architecture.md

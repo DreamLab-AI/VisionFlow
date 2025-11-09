@@ -4,6 +4,7 @@ use webxr::ports::ontology_repository::OntologyRepository;
 use webxr::services::nostr_service::NostrService;
 use webxr::settings::settings_actor::SettingsActor;
 use webxr::adapters::neo4j_settings_repository::{Neo4jSettingsRepository, Neo4jSettingsConfig};
+use webxr::actors::messages::ReloadGraphFromDatabase;
 use webxr::{
     config::AppFullSettings,
     handlers::{
@@ -61,6 +62,10 @@ async fn main() -> std::io::Result<()> {
 
     dotenv().ok();
 
+    info!("--- Configuration Verification ---");
+    info!("MARKDOWN_DIR: {}", webxr::services::file_service::MARKDOWN_DIR);
+    info!("METADATA_PATH: {}", "/workspace/ext/data/metadata/metadata.json");
+    info!("---------------------------------");
 
     // REMOVED: init_logging()? call - using advanced_logging instead
     if let Err(e) = init_advanced_logging() {
@@ -294,6 +299,33 @@ async fn main() -> std::io::Result<()> {
     info!("[main] Initializing Semantic Pathfinding Service...");
     let pathfinding_service = Arc::new(webxr::services::semantic_pathfinding_service::SemanticPathfindingService::default());
     info!("[main] Semantic Pathfinding Service initialized");
+
+    info!("--- Starting Data Orchestration Sequence ---");
+
+    // Step 1: Sync Files from GitHub.
+    info!("[Startup] Step 1: Syncing files from GitHub to local storage...");
+    if let Err(e) = webxr::services::file_service::FileService::initialize_local_storage(settings.clone()).await {
+        error!("[Startup] FAILED to sync from GitHub: {}. The graph may be stale or empty.", e);
+    } else {
+        info!("[Startup] SUCCESS: Local file storage is synchronized with GitHub.");
+    }
+
+    // Step 2: Load Files into Neo4j.
+    info!("[Startup] Step 2: Populating Neo4j from local files...");
+    if let Err(e) = webxr::services::file_service::FileService::load_graph_from_files_into_neo4j(&app_state.neo4j_adapter).await {
+        error!("[Startup] FATAL: Failed to populate Neo4j: {}. The application may not function correctly.", e);
+        // Optional: Exit if this step is critical
+        // return Err(std::io::Error::new(std::io::ErrorKind::Other, e));
+    } else {
+        info!("[Startup] SUCCESS: Neo4j database is populated and ready.");
+    }
+
+    // Step 3: Notify Actors.
+    info!("[Startup] Step 3: Notifying actors to reload graph state from database...");
+    app_state.graph_service_addr.do_send(ReloadGraphFromDatabase);
+    info!("[Startup] SUCCESS: Actors notified.");
+    info!("--- Data Orchestration Sequence Complete ---");
+
 
 
 

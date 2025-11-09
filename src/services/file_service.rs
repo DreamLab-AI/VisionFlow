@@ -1,7 +1,10 @@
 use super::github::{ContentAPI, GitHubClient, GitHubConfig};
 use crate::config::AppFullSettings;
 use crate::models::graph::GraphData;
+use crate::models::node::Node as AppNode; // Use an alias to avoid confusion
+use crate::models::edge::Edge as AppEdge;
 use crate::models::metadata::{Metadata, MetadataOps, MetadataStore};
+use crate::ports::knowledge_graph_repository::KnowledgeGraphRepository;
 use crate::time;
 use actix_web::web;
 use chrono::Utc;
@@ -507,8 +510,13 @@ impl FileService {
 
     
     fn ensure_directories() -> Result<(), Error> {
-        
         let markdown_dir = Path::new(MARKDOWN_DIR);
+        let metadata_path = Path::new(METADATA_PATH);
+
+        info!("Ensuring directories exist...");
+        info!("MARKDOWN_DIR (absolute): {:?}", fs::canonicalize(markdown_dir.parent().unwrap_or(Path::new("/"))).unwrap_or_else(|_| markdown_dir.to_path_buf()));
+        info!("METADATA_PATH (absolute): {:?}", fs::canonicalize(metadata_path.parent().unwrap_or(Path::new("/"))).unwrap_or_else(|_| metadata_path.to_path_buf()));
+
         if !markdown_dir.exists() {
             info!("Creating markdown directory at {:?}", markdown_dir);
             fs::create_dir_all(markdown_dir).map_err(|e| {
@@ -876,5 +884,90 @@ use crate::utils::json::{from_json, to_json};
         Self::update_topic_counts(metadata_store)?;
 
         Ok(processed_files)
+    }
+
+    /// Load complete graph from local markdown files into Neo4j database
+    pub async fn load_graph_from_files_into_neo4j(
+        neo4j_adapter: &Arc<crate::adapters::neo4j_adapter::Neo4jAdapter>,
+    ) -> Result<(), String> {
+        info!("Starting to load graph from local files into Neo4j...");
+    
+        let metadata = Self::load_or_create_metadata()?;
+        if metadata.is_empty() {
+            warn!("metadata.json is empty. No data to load into Neo4j.");
+            return Ok(());
+        }
+    
+        let mut graph_data = GraphData::new();
+        let valid_nodes: Vec<String> = metadata
+            .keys()
+            .map(|name| name.trim_end_matches(".md").to_string())
+            .collect();
+    
+        for (filename, meta) in metadata.iter() {
+            let file_path = Path::new(MARKDOWN_DIR).join(filename);
+            let content = match fs::read_to_string(&file_path) {
+                Ok(c) => c,
+                Err(e) => {
+                    error!("Failed to read file {}: {}. Skipping.", file_path.display(), e);
+                    continue;
+                }
+            };
+    
+            // CORRECT: Parse the string ID to a u32.
+            let node_id = match meta.node_id.parse::<u32>() {
+                Ok(id) => id,
+                Err(_) => {
+                    error!("Invalid node_id '{}' for file {}. Skipping.", meta.node_id, filename);
+                    continue;
+                }
+            };
+    
+            // CORRECT: Use the main Node struct from `models::node`.
+            let mut node = AppNode::new_with_id(
+                filename.clone(), // metadata_id is the full filename
+                Some(node_id)
+            );
+            node.label = meta.file_name.trim_end_matches(".md").to_string();
+            node.size = Some(meta.node_size as f32);
+            node.color = Some("#888888".to_string()); // Default color
+            // Initialize position and other fields as needed
+            node.data.x = 0.0;
+            node.data.y = 0.0;
+            node.data.z = 0.0;
+    
+            graph_data.nodes.push(node);
+    
+            let references = Self::extract_references(&content, &valid_nodes);
+            for reference in references {
+                // Find the metadata for the referenced file
+                if let Some(target_meta) = metadata.get(&format!("{}.md", reference)) {
+                    if let Ok(target_id) = target_meta.node_id.parse::<u32>() {
+                        // CORRECT: Use the main Edge struct from `models::edge`.
+                        let edge = AppEdge::new(node_id, target_id, 1.0);
+                        graph_data.edges.push(edge);
+                    }
+                }
+            }
+        }
+    
+        info!(
+            "Parsed {} nodes and {} edges from local files.",
+            graph_data.nodes.len(),
+            graph_data.edges.len()
+        );
+    
+        info!("Clearing existing graph data from Neo4j...");
+        if let Err(e) = neo4j_adapter.clear_graph().await {
+            return Err(format!("Failed to clear Neo4j graph: {}", e));
+        }
+    
+        info!("Saving new graph data to Neo4j...");
+        if let Err(e) = neo4j_adapter.save_graph(&graph_data).await {
+            return Err(format!("Failed to save graph to Neo4j: {}", e));
+        }
+    
+        info!("✅ Successfully populated Neo4j from local files.");
+        Ok(())
     }
 }

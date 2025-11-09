@@ -32,17 +32,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         uri: uri.clone(),
         user: user.clone(),
         password: password.clone(),
-        database: database.clone(),
+        database: Some(database.clone()),
         max_connections: 100,
-        connection_timeout: 30,
-        connection_acquisition_timeout: 60,
+        query_timeout_secs: 30,
+        connection_timeout_secs: 30,
     };
 
     let ontology_config = Neo4jOntologyConfig {
         uri,
         user,
         password,
-        database,
+        database: Some(database),
     };
 
     log::info!("✅ Configured Neo4j connections");
@@ -50,9 +50,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize repositories
     let kg_repo = Arc::new(Neo4jAdapter::new(neo4j_config).await?);
     let onto_repo = Arc::new(Neo4jOntologyRepository::new(ontology_config).await?);
-
-    // Get graph instance for enrichment service
-    let graph = onto_repo.graph().clone();
 
     // Initialize GitHub client
     let github_config = GitHubConfig::from_env()?;

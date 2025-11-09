@@ -528,7 +528,7 @@ impl GPUState {
     }
 }
 
-///
+/// Child actor addresses for all GPU actors managed by PhysicsOrchestratorActor
 #[derive(Clone)]
 pub struct ChildActorAddresses {
     pub resource_actor: Addr<super::GPUResourceActor>,
@@ -538,4 +538,9 @@ pub struct ChildActorAddresses {
     pub stress_majorization_actor: Addr<super::StressMajorizationActor>,
     pub constraint_actor: Addr<super::ConstraintActor>,
     pub ontology_constraint_actor: Addr<super::OntologyConstraintActor>,
+
+    // P2 GPU Analytics Actors
+    pub pagerank_actor: Addr<super::PageRankActor>,
+    pub shortest_path_actor: Addr<super::ShortestPathActor>,
+    pub connected_components_actor: Addr<super::ConnectedComponentsActor>,
 }
