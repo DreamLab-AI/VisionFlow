@@ -16,8 +16,8 @@ if [ "${SKIP_RUST_REBUILD:-false}" != "true" ]; then
     log "Rebuilding Rust backend with GPU support to apply code changes..."
     cd /app
     
-    # Build with GPU features (debug build for development)
-    if cargo build --features gpu; then
+    # Build only the main server binary (skip broken bin targets)
+    if cargo build --bin webxr; then
         log "✓ Rust backend rebuilt successfully (debug build)"
     else
         log "ERROR: Failed to rebuild Rust backend"

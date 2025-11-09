@@ -2,13 +2,15 @@
 //! Local file sync binary - syncs local baseline with GitHub delta updates
 
 use std::sync::Arc;
-use webxr::adapters::neo4j_knowledge_graph_repository::Neo4jKnowledgeGraphRepository;
-use webxr::adapters::neo4j_ontology_repository::Neo4jOntologyRepository;
+use tokio::sync::RwLock;
+use webxr::adapters::neo4j_adapter::{Neo4jAdapter, Neo4jConfig};
+use webxr::adapters::neo4j_ontology_repository::{Neo4jOntologyRepository, Neo4jOntologyConfig};
+use webxr::config::AppFullSettings;
 use webxr::services::github::api::GitHubClient;
+use webxr::services::github::config::GitHubConfig;
 use webxr::services::github::content_enhanced::EnhancedContentAPI;
 use webxr::services::local_file_sync_service::LocalFileSyncService;
 use webxr::services::ontology_enrichment_service::OntologyEnrichmentService;
-use webxr::utils::database::neo4j_connection::establish_neo4j_connection;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -20,38 +22,58 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Load environment variables
     dotenvy::dotenv().ok();
 
-    // Establish Neo4j connection
-    let neo4j_pool = establish_neo4j_connection().await?;
-    log::info!("✅ Connected to Neo4j");
+    // Establish Neo4j connection using configuration
+    let uri = std::env::var("NEO4J_URI").unwrap_or_else(|_| "bolt://localhost:7687".to_string());
+    let user = std::env::var("NEO4J_USER").unwrap_or_else(|_| "neo4j".to_string());
+    let password = std::env::var("NEO4J_PASSWORD").unwrap_or_else(|_| "password".to_string());
+    let database = std::env::var("NEO4J_DATABASE").unwrap_or_else(|_| "neo4j".to_string());
+
+    let neo4j_config = Neo4jConfig {
+        uri: uri.clone(),
+        user: user.clone(),
+        password: password.clone(),
+        database: database.clone(),
+        max_connections: 100,
+        connection_timeout: 30,
+        connection_acquisition_timeout: 60,
+    };
+
+    let ontology_config = Neo4jOntologyConfig {
+        uri,
+        user,
+        password,
+        database,
+    };
+
+    log::info!("✅ Configured Neo4j connections");
 
     // Initialize repositories
-    let kg_repo = Arc::new(Neo4jKnowledgeGraphRepository::new(neo4j_pool.clone()));
-    let onto_repo = Arc::new(Neo4jOntologyRepository::new(neo4j_pool.clone()));
+    let kg_repo = Arc::new(Neo4jAdapter::new(neo4j_config).await?);
+    let onto_repo = Arc::new(Neo4jOntologyRepository::new(ontology_config).await?);
+
+    // Get graph instance for enrichment service
+    let graph = onto_repo.graph().clone();
 
     // Initialize GitHub client
-    let github_owner = std::env::var("GITHUB_OWNER").unwrap_or_else(|_| "jjohare".to_string());
-    let github_repo = std::env::var("GITHUB_REPO").unwrap_or_else(|_| "logseq".to_string());
-    let github_branch =
-        std::env::var("GITHUB_BRANCH").unwrap_or_else(|_| "main".to_string());
-    let github_token = std::env::var("GITHUB_TOKEN")
-        .expect("GITHUB_TOKEN environment variable is required");
-    let github_base_path = std::env::var("GITHUB_BASE_PATH")
-        .unwrap_or_else(|_| "mainKnowledgeGraph/pages".to_string());
-
-    let github_client = Arc::new(GitHubClient::new(
-        github_owner,
-        github_repo,
-        github_branch,
-        github_token,
-        github_base_path,
-    ));
+    let github_config = GitHubConfig::from_env()?;
+    let settings = Arc::new(RwLock::new(AppFullSettings::default()));
+    let github_client = Arc::new(GitHubClient::new(github_config, settings).await?);
 
     let content_api = Arc::new(EnhancedContentAPI::new(github_client));
 
-    // Initialize ontology enrichment service
+    // Initialize whelk inference engine for ontology reasoning
+    let whelk_engine = Arc::new(webxr::adapters::whelk_inference_engine::WhelkInferenceEngine::new());
+    let reasoner = Arc::new(webxr::services::ontology_reasoner::OntologyReasoner::new(
+        whelk_engine,
+        onto_repo.clone() as Arc<dyn webxr::ports::ontology_repository::OntologyRepository>,
+    ));
+
+    // Initialize edge classifier (no arguments needed)
+    let edge_classifier = Arc::new(webxr::services::edge_classifier::EdgeClassifier::new());
+
     let enrichment_service = Arc::new(OntologyEnrichmentService::new(
-        onto_repo.clone(),
-        neo4j_pool.clone(),
+        reasoner,
+        edge_classifier,
     ));
 
     // Create sync service
