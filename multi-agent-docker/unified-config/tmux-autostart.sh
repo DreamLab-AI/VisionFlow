@@ -157,12 +157,60 @@ tmux send-keys -t workspace:7 "echo '  openai-user (1002:1002) - OpenAI Codex'" 
 tmux send-keys -t workspace:7 "echo '  zai-user (1003:1003) - Z.AI service'" C-m
 
 # ============================================================================
+# Window 8: Gemini-Shell - Google Gemini user shell
+# ============================================================================
+
+tmux new-window -t workspace:8 -n "Gemini-Shell" -c "/home/gemini-user/workspace"
+tmux send-keys -t workspace:8 "sudo -u gemini-user -i" C-m
+tmux send-keys -t workspace:8 "clear" C-m
+tmux send-keys -t workspace:8 "echo '=== Gemini User Shell ==='" C-m
+tmux send-keys -t workspace:8 "echo 'Switched to: gemini-user (UID 1001)'" C-m
+tmux send-keys -t workspace:8 "echo ''" C-m
+tmux send-keys -t workspace:8 "echo 'Available commands:'" C-m
+tmux send-keys -t workspace:8 "echo '  gemini-flow mcp start    - Start Gemini MCP'" C-m
+tmux send-keys -t workspace:8 "echo '  gf-swarm                 - 66 agents swarm'" C-m
+tmux send-keys -t workspace:8 "echo '  gf-health                - Health check'" C-m
+tmux send-keys -t workspace:8 "echo ''" C-m
+
+# ============================================================================
+# Window 9: OpenAI-Shell - OpenAI Codex user shell
+# ============================================================================
+
+tmux new-window -t workspace:9 -n "OpenAI-Shell" -c "/home/openai-user/workspace"
+tmux send-keys -t workspace:9 "sudo -u openai-user -i" C-m
+tmux send-keys -t workspace:9 "clear" C-m
+tmux send-keys -t workspace:9 "echo '=== OpenAI User Shell ==='" C-m
+tmux send-keys -t workspace:9 "echo 'Switched to: openai-user (UID 1002)'" C-m
+tmux send-keys -t workspace:9 "echo ''" C-m
+tmux send-keys -t workspace:9 "echo 'Available commands:'" C-m
+tmux send-keys -t workspace:9 "echo '  openai api chat.completions.create -m gpt-4'" C-m
+tmux send-keys -t workspace:9 "echo '  # OpenAI CLI and Codex tools available'" C-m
+tmux send-keys -t workspace:9 "echo ''" C-m
+
+# ============================================================================
+# Window 10: ZAI-Shell - Z.AI service user shell
+# ============================================================================
+
+tmux new-window -t workspace:10 -n "ZAI-Shell" -c "/home/zai-user/workspace"
+tmux send-keys -t workspace:10 "sudo -u zai-user -i" C-m
+tmux send-keys -t workspace:10 "clear" C-m
+tmux send-keys -t workspace:10 "echo '=== Z.AI User Shell ==='" C-m
+tmux send-keys -t workspace:10 "echo 'Switched to: zai-user (UID 1003)'" C-m
+tmux send-keys -t workspace:10 "echo ''" C-m
+tmux send-keys -t workspace:10 "echo 'Z.AI Service (port 9600):'" C-m
+tmux send-keys -t workspace:10 "echo '  curl http://localhost:9600/health'" C-m
+tmux send-keys -t workspace:10 "echo '  curl -X POST http://localhost:9600/chat -d {\"prompt\":\"test\"}'" C-m
+tmux send-keys -t workspace:10 "echo ''" C-m
+tmux send-keys -t workspace:10 "echo 'Service config: ~/.config/zai/config.json'" C-m
+tmux send-keys -t workspace:10 "echo ''" C-m
+
+# ============================================================================
 # Select the first window (Claude-Main)
 # ============================================================================
 
 tmux select-window -t workspace:0
 
-echo "✅ TMux workspace 'workspace' created successfully with 8 windows!"
+echo "✅ TMux workspace 'workspace' created successfully with 11 windows!"
 echo "📝 Windows:"
 echo "   0: Claude-Main   - Primary Claude Code workspace"
 echo "   1: Claude-Agent  - Agent execution and testing"
@@ -170,8 +218,11 @@ echo "   2: Services      - Supervisord monitoring"
 echo "   3: Development   - Python/Rust/CUDA development"
 echo "   4: Logs          - Service logs (split view)"
 echo "   5: System        - htop resource monitoring"
-echo "   6: VNC-Status    - VNC server information"
+echo "   6: VNC-Status    - VNC/Wayvnc server information"
 echo "   7: SSH-Shell     - General purpose shell"
+echo "   8: Gemini-Shell  - Gemini user (UID 1001)"
+echo "   9: OpenAI-Shell  - OpenAI user (UID 1002)"
+echo "  10: ZAI-Shell     - Z.AI user (UID 1003)"
 echo ""
 echo "To attach: tmux attach-session -t workspace"
-echo "To navigate: Ctrl+B then window number (0-7)"
+echo "To navigate: Ctrl+B then window number (0-9, then :10)"

@@ -47,7 +47,9 @@ services:
       # Primary workspaces
       - workspace:/home/devuser/workspace:rw
       - agents:/home/devuser/agents:rw
-      - claude-config:/home/devuser/.claude:rw
+
+      # Host Claude config (read-write mount - single source of truth)
+      - ${HOST_CLAUDE_DIR:-${HOME}/.claude}:/home/devuser/.claude:rw
 
       # User-specific workspaces
       - gemini-workspace:/home/gemini-user/workspace:rw
@@ -57,13 +59,10 @@ services:
       - model-cache:/home/devuser/models:rw
       - logs:/var/log:rw
 
-      # Host Claude config (read-only mount from host)
-      - ${HOST_CLAUDE_DIR:-${HOME}/.claude}:/mnt/host-claude:ro
-
       # External project directory (if PROJECT_DIR is set)
       - ${PROJECT_DIR:-/tmp/empty}:/home/devuser/workspace/project:rw
 
-      # X11 socket for GUI apps (if needed)
+      # X11 socket for GUI apps (Xwayland compatibility)
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
 
       # Docker socket for Docker Manager skill (inter-container control)
@@ -83,6 +82,7 @@ services:
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
       CONTEXT7_API_KEY: ${CONTEXT7_API_KEY:-}
       BRAVE_API_KEY: ${BRAVE_API_KEY:-}
+      PERPLEXITY_API_KEY: ${PERPLEXITY_API_KEY:-}
 
       # Z.AI Configuration (separate from Claude CLI)
       ZAI_ANTHROPIC_API_KEY: ${ZAI_ANTHROPIC_API_KEY:-}
@@ -168,8 +168,6 @@ volumes:
   workspace:
     driver: local
   agents:
-    driver: local
-  claude-config:
     driver: local
   gemini-workspace:
     driver: local

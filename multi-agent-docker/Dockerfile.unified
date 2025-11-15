@@ -19,11 +19,23 @@ RUN pacman -Syu --noconfirm && \
         python make gcc \
         # Development languages (skip nodejs from pacman, will install v23.11.1 directly)
         python python-pip rustup \
-        # Desktop environment
-        xfce4 xfce4-goodies tigervnc \
-        xorg-server xorg-xinit xorg-xauth \
+        # Wayland desktop environment (Hyprland)
+        hyprland wayvnc kitty \
+        xdg-desktop-portal-hyprland \
+        qt5-wayland qt6-wayland \
+        wl-clipboard grim slurp \
+        polkit \
+        dunst \
+        # Fonts for high contrast 4K display
+        ttf-firacode-nerd ttf-liberation ttf-dejavu \
+        ttf-font-awesome ttf-hack noto-fonts noto-fonts-emoji \
+        # Xorg support for legacy apps (Blender, QGIS)
+        xorg-server xorg-xinit xorg-xauth xorg-xwayland xorg-server-xvfb \
+        # VNC server and utilities
+        x11vnc virtualgl \
+        # Window manager and desktop components
+        openbox tint2 xfce4-terminal \
         dbus nss freetype2 harfbuzz \
-        ttf-liberation ttf-dejavu ttf-font-awesome \
         # Audio/Video
         alsa-lib pipewire pipewire-pulse gtk4 \
         # Graphics
@@ -116,6 +128,10 @@ RUN npm install -g \
     @anthropic-ai/claude-code \
     claude-usage-cli \
     claude-flow \
+    agentic-qe \
+    agentic-flow \
+    agentic-jujutsu \
+    @playwright/mcp \
     pm2 \
     typescript \
     ts-node \
@@ -224,44 +240,23 @@ RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master
 USER root
 
 # ============================================================================
-# PHASE 11: VNC & Desktop Configuration
+# PHASE 11: Hyprland & Wayland Desktop Configuration
 # ============================================================================
 
-# Configure VNC for devuser
-RUN mkdir -p /home/devuser/.vnc && \
-    echo "turboflow" | vncpasswd -f > /home/devuser/.vnc/passwd && \
-    chmod 600 /home/devuser/.vnc/passwd && \
-    chown -R devuser:devuser /home/devuser/.vnc
-
-# Create VNC startup script
-RUN mkdir -p /home/devuser/.config/autostart && \
-    echo '#!/bin/sh' > /home/devuser/.vnc/xstartup && \
-    echo 'unset SESSION_MANAGER' >> /home/devuser/.vnc/xstartup && \
-    echo 'unset DBUS_SESSION_BUS_ADDRESS' >> /home/devuser/.vnc/xstartup && \
-    echo 'exec startxfce4' >> /home/devuser/.vnc/xstartup && \
-    chmod +x /home/devuser/.vnc/xstartup
-
-# Disable screensaver and screen lock
-RUN mkdir -p /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml && \
-    echo '<?xml version="1.0" encoding="UTF-8"?>' > /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-screensaver.xml && \
-    echo '<channel name="xfce4-screensaver" version="1.0">' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-screensaver.xml && \
-    echo '  <property name="saver" type="empty">' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-screensaver.xml && \
-    echo '    <property name="enabled" type="bool" value="false"/>' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-screensaver.xml && \
-    echo '    <property name="mode" type="int" value="0"/>' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-screensaver.xml && \
-    echo '  </property>' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-screensaver.xml && \
-    echo '  <property name="lock" type="empty">' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-screensaver.xml && \
-    echo '    <property name="enabled" type="bool" value="false"/>' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-screensaver.xml && \
-    echo '  </property>' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-screensaver.xml && \
-    echo '</channel>' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-screensaver.xml && \
-    echo '<?xml version="1.0" encoding="UTF-8"?>' > /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml && \
-    echo '<channel name="xfce4-power-manager" version="1.0">' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml && \
-    echo '  <property name="xfce4-power-manager" type="empty">' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml && \
-    echo '    <property name="blank-on-ac" type="int" value="0"/>' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml && \
-    echo '    <property name="dpms-enabled" type="bool" value="false"/>' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml && \
-    echo '    <property name="lock-screen-suspend-hibernate" type="bool" value="false"/>' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml && \
-    echo '  </property>' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml && \
-    echo '</channel>' >> /home/devuser/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml && \
+# Create Hyprland config directory
+RUN mkdir -p /home/devuser/.config/hypr && \
     chown -R devuser:devuser /home/devuser/.config
+
+# Wayvnc password file (same as old VNC)
+RUN mkdir -p /home/devuser/.config/wayvnc && \
+    echo "turboflow" > /home/devuser/.config/wayvnc/password && \
+    chmod 600 /home/devuser/.config/wayvnc/password && \
+    chown -R devuser:devuser /home/devuser/.config/wayvnc
+
+# Create XDG runtime directory
+RUN mkdir -p /run/user/1000 && \
+    chown devuser:devuser /run/user/1000 && \
+    chmod 700 /run/user/1000
 
 # ============================================================================
 # PHASE 12: SSH Server Configuration
@@ -291,12 +286,20 @@ RUN cd /home/devuser/.claude/skills/web-summary/mcp-server && \
     chmod +x server.js && \
     chown -R devuser:devuser /home/devuser/.claude/skills/web-summary/mcp-server
 
+# Install jupyter-notebooks MCP server
+RUN cd /home/devuser/.claude/skills/jupyter-notebooks && \
+    npm install --production && \
+    chmod +x server.js && \
+    chown -R devuser:devuser /home/devuser/.claude/skills/jupyter-notebooks
+
 # Install Python dependencies for MCP tools (break-system-packages for Arch)
 # Includes docker>=7.0.0 for docker-manager skill compatibility
+# ipykernel for Jupyter notebook MCP server
 RUN pip3 install --no-cache-dir --break-system-packages \
     youtube-transcript-api beautifulsoup4 requests \
     mcp \
-    docker>=7.0.0
+    docker>=7.0.0 \
+    ipykernel nbformat
 
 # Make all MCP tools executable
 RUN find /home/devuser/.claude/skills -name "*.py" -path "*/tools/*" -exec chmod +x {} \; && \
@@ -329,6 +332,36 @@ RUN chmod +x /usr/local/bin/*.sh
 # Copy tmux configuration
 COPY --chown=devuser:devuser unified-config/tmux-autostart.sh /home/devuser/.config/tmux-autostart.sh
 RUN chmod +x /home/devuser/.config/tmux-autostart.sh
+
+# Copy screensaver disable script
+COPY --chown=devuser:devuser unified-config/disable-screensaver.sh /home/devuser/.config/disable-screensaver.sh
+RUN chmod +x /home/devuser/.config/disable-screensaver.sh
+
+# Copy terminal autostart script
+COPY --chown=devuser:devuser unified-config/autostart-terminals.sh /home/devuser/.config/autostart-terminals.sh
+RUN chmod +x /home/devuser/.config/autostart-terminals.sh
+
+# Copy terminal init scripts
+COPY --chown=devuser:devuser unified-config/terminal-init/ /home/devuser/.config/terminal-init/
+RUN chmod +x /home/devuser/.config/terminal-init/*.sh && \
+    ln -sf /home/devuser/.config/terminal-init/init-claude-main.sh /home/devuser/.config/init-claude-main.sh && \
+    ln -sf /home/devuser/.config/terminal-init/init-claude-agent.sh /home/devuser/.config/init-claude-agent.sh && \
+    ln -sf /home/devuser/.config/terminal-init/init-services.sh /home/devuser/.config/init-services.sh && \
+    ln -sf /home/devuser/.config/terminal-init/init-development.sh /home/devuser/.config/init-development.sh && \
+    ln -sf /home/devuser/.config/terminal-init/init-docker.sh /home/devuser/.config/init-docker.sh && \
+    ln -sf /home/devuser/.config/terminal-init/init-git.sh /home/devuser/.config/init-git.sh && \
+    ln -sf /home/devuser/.config/terminal-init/init-gemini.sh /home/devuser/.config/init-gemini.sh && \
+    ln -sf /home/devuser/.config/terminal-init/init-openai.sh /home/devuser/.config/init-openai.sh && \
+    ln -sf /home/devuser/.config/terminal-init/init-zai.sh /home/devuser/.config/init-zai.sh
+
+# Copy Xorg headless configuration
+COPY --chown=root:root unified-config/10-headless.conf /etc/X11/xorg.conf.d/10-headless.conf
+
+# Copy Hyprland configuration
+COPY --chown=devuser:devuser unified-config/hyprland.conf /home/devuser/.config/hypr/hyprland.conf
+
+# Copy Kitty terminal configuration
+COPY --chown=devuser:devuser unified-config/kitty.conf /home/devuser/.config/kitty/kitty.conf
 
 # Copy CLAUDE.md for reference
 COPY --chown=devuser:devuser CLAUDE.md /home/devuser/CLAUDE.md

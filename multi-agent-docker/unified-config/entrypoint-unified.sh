@@ -120,17 +120,21 @@ EOF
 fi
 
 # ============================================================================
-# Phase 3: Copy Host Claude Configuration (if available)
+# Phase 3: Verify Host Claude Configuration Mount
 # ============================================================================
 
-echo "[3/10] Checking for host Claude configuration..."
+echo "[3/10] Verifying host Claude configuration..."
 
-if [ -d "/mnt/host-claude" ] && [ -f "/mnt/host-claude/config.json" ]; then
-    cp -r /mnt/host-claude/* /home/devuser/.claude/ 2>/dev/null || true
-    chown -R devuser:devuser /home/devuser/.claude
-    echo "✓ Host Claude configuration copied"
+if [ -d "/home/devuser/.claude" ]; then
+    # Ensure proper ownership (host mount may have different UID)
+    chown -R devuser:devuser /home/devuser/.claude 2>/dev/null || true
+    chmod -R u+rw /home/devuser/.claude 2>/dev/null || true
+    echo "✓ Host Claude configuration mounted at /home/devuser/.claude (read-write)"
 else
-    echo "ℹ️  No host Claude configuration found (this is normal)"
+    # Create directory if mount failed
+    mkdir -p /home/devuser/.claude/skills
+    chown -R devuser:devuser /home/devuser/.claude
+    echo "⚠️  Claude config directory created (host mount not detected)"
 fi
 
 # ============================================================================
@@ -279,11 +283,21 @@ sudo -u devuser bash -c 'mkdir -p ~/.config/claude && cat > ~/.config/claude/mcp
       "command": "npx",
       "args": [
         "chrome-devtools-mcp",
-        "--executablePath",
-        "/usr/lib/chromium/chromium",
-        "--isolated"
+        "--remote-debugging-port",
+        "9222",
+        "--user-data-dir",
+        "/home/devuser/.config/chromium-mcp"
       ],
-      "env": {}
+      "env": {
+        "CHROME_PATH": "/usr/bin/chromium"
+      }
+    },
+    "perplexity": {
+      "command": "node",
+      "args": ["/home/devuser/.claude/skills/perplexity/mcp-server/server.js"],
+      "env": {
+        "PERPLEXITY_API_KEY": "$PERPLEXITY_API_KEY"
+      }
     }
   }
 }
