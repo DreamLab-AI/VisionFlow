@@ -326,6 +326,48 @@ else
 fi
 
 # ============================================================================
+# Phase 7.3: Configure SSH Credentials (Host Mount)
+# ============================================================================
+
+echo "[7.3/10] Configuring SSH credentials..."
+
+# Check if SSH mount exists (host's ~/.ssh mounted read-only)
+if [ -d "/home/devuser/.ssh" ] && [ "$(ls -A /home/devuser/.ssh 2>/dev/null)" ]; then
+    echo "✓ SSH credentials detected from host mount"
+
+    # Since mount is read-only, SSH will work directly
+    # Just ensure the mount point has correct ownership
+    chown -R devuser:devuser /home/devuser/.ssh 2>/dev/null || true
+
+    # Verify key files
+    KEY_COUNT=$(find /home/devuser/.ssh -type f -name "id_*" ! -name "*.pub" 2>/dev/null | wc -l)
+    PUB_COUNT=$(find /home/devuser/.ssh -type f -name "*.pub" 2>/dev/null | wc -l)
+
+    echo "  - Private keys: $KEY_COUNT"
+    echo "  - Public keys: $PUB_COUNT"
+    echo "  - Mount: read-only (secure)"
+
+    # Add SSH environment setup to devuser's zshrc if not already present
+    if ! grep -q "SSH_AUTH_SOCK" /home/devuser/.zshrc 2>/dev/null; then
+        sudo -u devuser bash -c 'cat >> ~/.zshrc' <<'SSH_ENV'
+
+# SSH Agent Configuration (auto-configured)
+# Start ssh-agent if not running
+if [ -z "$SSH_AUTH_SOCK" ]; then
+    eval "$(ssh-agent -s)" > /dev/null 2>&1
+    # Auto-add keys on first shell
+    find ~/.ssh -type f -name "id_*" ! -name "*.pub" -exec ssh-add {} \; 2>/dev/null
+fi
+SSH_ENV
+        echo "  - SSH agent auto-start configured in .zshrc"
+    fi
+
+    echo "✓ SSH credentials configured successfully"
+else
+    echo "ℹ️  SSH credentials not mounted (mount ~/.ssh to container for SSH key access)"
+fi
+
+# ============================================================================
 # Phase 7.5: Install Management API Health Check Script
 # ============================================================================
 

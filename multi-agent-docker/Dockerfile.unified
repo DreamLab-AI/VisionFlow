@@ -329,6 +329,11 @@ RUN npm install -g gemini-flow
 COPY --chown=root:root unified-config/scripts/ /usr/local/bin/
 RUN chmod +x /usr/local/bin/*.sh
 
+# Create SSH directory structure (will be mounted at runtime)
+RUN mkdir -p /home/devuser/.ssh && \
+    chown devuser:devuser /home/devuser/.ssh && \
+    chmod 700 /home/devuser/.ssh
+
 # Copy tmux configuration
 COPY --chown=devuser:devuser unified-config/tmux-autostart.sh /home/devuser/.config/tmux-autostart.sh
 RUN chmod +x /home/devuser/.config/tmux-autostart.sh
