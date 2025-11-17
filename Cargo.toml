@@ -69,12 +69,12 @@ xml = "0.8"
 blake3 = "1.5"
 bcrypt = "0.15"
 
-# GPU/Compute (always enabled)
+# GPU/Compute (optional - requires CUDA installation)
 bytemuck = { version = "1.21", features = ["derive"] }
 pollster = "0.4"
-cudarc = { version = "0.12.1", features = ["driver", "cuda-12040"] }
-cust = { version = "0.3.2" }
-cust_core = { version = "0.1.1" }
+cudarc = { version = "0.12.1", features = ["driver", "cuda-12040"], optional = true }
+cust = { version = "0.3.2", optional = true }
+cust_core = { version = "0.1.1", optional = true }
 
 # HTTP client and API
 reqwest = { version = "0.12.23", features = ["json", "stream", "multipart"] }
@@ -116,8 +116,8 @@ rayon = "1.11.0"
 # Hexagonal Architecture
 hexser = { version = "0.4.7", features = ["full"] }
 
-# Ontology Reasoning - using local path dependency (always enabled)
-whelk = { path = "./whelk-rs" }
+# Ontology Reasoning - using local path dependency (optional)
+whelk = { path = "./whelk-rs", optional = true }
 
 # Ontology dependencies (always enabled)
 # Note: Using 1.2.0 for ArcStr support (thread-safe string type)
@@ -145,10 +145,11 @@ js-sys = "0.3"
 tempfile = "3.14"
 
 [features]
-# GPU and ontology are always enabled (no optional features)
-# System requires both GPU acceleration and ontology validation
+# GPU and ontology are optional to support builds without CUDA
 default = []
+gpu = ["dep:cust", "dep:cust_core", "dep:cudarc"]  # Enable GPU acceleration with CUDA
 gpu-safe = []  # Feature for GPU-safe types
+ontology = ["dep:whelk"]  # Enable ontology reasoning
 redis = ["dep:redis"]  # Enable Redis distributed caching
 
 [profile.release]
