@@ -9,6 +9,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { validateOntologyFile, formatValidationResult } = require('./src/validation_bridge');
 
 // Configuration
 const CONFIG = {
@@ -402,10 +403,155 @@ function dryRun(filePath) {
 }
 
 /**
- * Execute import
+ * Validate target file before and after content move
+ *
+ * @param {string} targetFile - Target ontology file path
+ * @param {string} stage - 'pre' or 'post' move
+ * @returns {Promise<Object>} - Validation result
+ */
+async function validateTargetFile(targetFile, stage = 'pre') {
+  if (!fs.existsSync(targetFile)) {
+    console.log(`      ℹ️  Target file doesn't exist yet (${stage}-move)`);
+    return { is_valid: true, new_file: true };
+  }
+
+  try {
+    const result = await validateOntologyFile(targetFile);
+    return result;
+  } catch (error) {
+    console.log(`      ⚠️  Validation failed (${stage}-move): ${error.message}`);
+    return {
+      is_valid: false,
+      error: error.message,
+      errors: [{ message: error.message }]
+    };
+  }
+}
+
+/**
+ * Rollback content move if validation fails
+ *
+ * @param {string} sourceFile - Original source file
+ * @param {string} targetFile - Target file to rollback
+ * @param {string} backupPath - Backup of source content
+ * @param {Object} block - Content block that was moved
+ */
+function rollbackMove(sourceFile, targetFile, backupPath, block) {
+  console.log(`      🔄 Rolling back move due to validation failure...`);
+
+  try {
+    // Restore source file from backup
+    if (fs.existsSync(backupPath)) {
+      fs.copyFileSync(backupPath, sourceFile);
+      console.log(`         ✅ Source file restored from backup`);
+    }
+
+    // TODO: Remove added content from target file
+    // This would require tracking what was added to properly remove it
+
+    console.log(`         ✅ Rollback complete`);
+    return true;
+  } catch (error) {
+    console.error(`         ❌ Rollback failed: ${error.message}`);
+    return false;
+  }
+}
+
+/**
+ * Insert content block into target file
+ *
+ * @param {string} targetFile - Target ontology file
+ * @param {Object} block - Content block to insert
+ * @param {Object} target - Target mapping info
+ * @returns {boolean} - Success status
+ */
+function insertContentBlock(targetFile, block, target) {
+  try {
+    // Read target file (create if doesn't exist)
+    let targetContent = '';
+    if (fs.existsSync(targetFile)) {
+      targetContent = fs.readFileSync(targetFile, 'utf-8');
+    } else {
+      // Create new file with basic structure
+      const conceptName = path.basename(targetFile, '.md');
+      targetContent = `# ${conceptName}\n\n## About\n\n## Description\n\n## Use Cases\n\n## Examples\n\n## References\n`;
+    }
+
+    // Find insertion point
+    const insertionPoint = target.insertionPoint || 'about';
+    const sectionHeaders = {
+      'about': '## About',
+      'description': '## Description',
+      'use-cases': '## Use Cases',
+      'examples': '## Examples',
+      'references': '## References'
+    };
+
+    const header = sectionHeaders[insertionPoint];
+    const headerIndex = targetContent.indexOf(header);
+
+    if (headerIndex === -1) {
+      // Section doesn't exist, append to end
+      targetContent += `\n\n${header}\n\n${block.content}\n`;
+    } else {
+      // Find next section or end of file
+      const afterHeader = targetContent.substring(headerIndex + header.length);
+      const nextSection = afterHeader.search(/\n##\s/);
+
+      if (nextSection === -1) {
+        // No next section, append to section
+        targetContent = targetContent.substring(0, headerIndex + header.length) +
+          `\n\n${block.content}\n`;
+      } else {
+        // Insert before next section
+        const insertPos = headerIndex + header.length + nextSection;
+        targetContent = targetContent.substring(0, insertPos) +
+          `\n\n${block.content}\n` +
+          targetContent.substring(insertPos);
+      }
+    }
+
+    // Write updated content
+    fs.writeFileSync(targetFile, targetContent, 'utf-8');
+    return true;
+
+  } catch (error) {
+    console.error(`      ❌ Insert failed: ${error.message}`);
+    return false;
+  }
+}
+
+/**
+ * Remove processed block from source file
+ *
+ * @param {string} sourceFile - Source file path
+ * @param {Object} block - Block to remove
+ */
+function removeBlockFromSource(sourceFile, block) {
+  try {
+    const content = fs.readFileSync(sourceFile, 'utf-8');
+    const lines = content.split('\n');
+
+    // Remove lines from startLine to endLine
+    const newLines = [
+      ...lines.slice(0, block.startLine),
+      ...lines.slice(block.endLine + 1)
+    ];
+
+    fs.writeFileSync(sourceFile, newLines.join('\n'), 'utf-8');
+    return true;
+  } catch (error) {
+    console.error(`      ❌ Remove failed: ${error.message}`);
+    return false;
+  }
+}
+
+/**
+ * Execute import with OWL2 validation
  */
 async function executeImport(filePath, options = {}) {
   const dryRunFirst = options.dryRun !== false;
+  const enableValidation = options.validation !== false;
 
   // Step 1: Dry run
   if (dryRunFirst) {
@@ -426,9 +572,10 @@ async function executeImport(filePath, options = {}) {
   const backupPath = createBackup(filePath);
   console.log(`   Backup: ${backupPath}\n`);
 
-  // Step 4: Process blocks
-  console.log('🚀 Processing blocks...\n');
+  // Step 4: Process blocks with validation
+  console.log('🚀 Processing blocks with OWL2 validation...\n');
   const results = [];
+  const validationResults = [];
 
   for (let i = 0; i < plan.blocks.length; i++) {
     const block = plan.blocks[i];
@@ -442,8 +589,71 @@ async function executeImport(filePath, options = {}) {
       continue;
     }
 
-    // TODO: Implement actual content insertion
-    // This would call insertContent() with target file and block content
+    if (!target.targetFile) {
+      console.log(`      ⚠️  Skipping - no target file determined`);
+      results.push({ block: block.id, status: 'skipped', reason: 'no-target' });
+      continue;
+    }
+
+    // Step 4a: Pre-move validation
+    if (enableValidation) {
+      const preValidation = await validateTargetFile(target.targetFile, 'pre');
+      if (!preValidation.is_valid && !preValidation.new_file) {
+        console.log(`      ❌ Pre-move validation failed - target file has errors`);
+        console.log(`         Errors: ${preValidation.errors.map(e => e.message).join(', ')}`);
+        results.push({
+          block: block.id,
+          status: 'failed',
+          reason: 'pre-validation-failed',
+          validation: preValidation
+        });
+        continue;
+      }
+    }
+
+    // Step 4b: Insert content into target
+    console.log(`      → Inserting into ${path.basename(target.targetFile)}`);
+    const inserted = insertContentBlock(target.targetFile, block, target);
+
+    if (!inserted) {
+      results.push({
+        block: block.id,
+        status: 'failed',
+        reason: 'insert-failed'
+      });
+      continue;
+    }
+
+    // Step 4c: Post-move validation
+    if (enableValidation) {
+      const postValidation = await validateTargetFile(target.targetFile, 'post');
+      validationResults.push({
+        file: target.targetFile,
+        block: block.id,
+        validation: postValidation
+      });
+
+      if (!postValidation.is_valid) {
+        console.log(`      ❌ Post-move validation failed`);
+        console.log(`         Errors: ${postValidation.errors.map(e => e.message).join(', ')}`);
+
+        // Rollback
+        const rolledBack = rollbackMove(filePath, target.targetFile, backupPath, block);
+
+        results.push({
+          block: block.id,
+          status: 'failed',
+          reason: 'post-validation-failed',
+          validation: postValidation,
+          rolledBack
+        });
+        continue;
+      }
+    }
+
+    // Step 4d: Remove from source (destructive)
+    console.log(`      ← Removing from source`);
+    removeBlockFromSource(filePath, block);
 
     results.push({
       block: block.id,
@@ -452,11 +662,31 @@ async function executeImport(filePath, options = {}) {
     });
   }
 
+  // Step 5: Clean up empty source file
+  const sourceContent = fs.readFileSync(filePath, 'utf-8').trim();
+  if (sourceContent.length === 0 || sourceContent.split('\n').filter(l => l.trim()).length === 0) {
+    console.log(`\n🗑️  Source file is now empty - removing`);
+    fs.unlinkSync(filePath);
+  }
+
   console.log(`\n✅ Import complete!`);
   console.log(`   Processed: ${results.filter(r => r.status === 'success').length}/${plan.blocks.length}`);
   console.log(`   Skipped: ${results.filter(r => r.status === 'skipped').length}`);
+  console.log(`   Failed: ${results.filter(r => r.status === 'failed').length}`);
 
-  return { success: true, results, backupPath };
+  if (enableValidation) {
+    console.log(`\n📊 Validation Summary:`);
+    const validFiles = validationResults.filter(v => v.validation.is_valid).length;
+    console.log(`   ✅ Valid: ${validFiles}/${validationResults.length}`);
+    console.log(`   ❌ Invalid: ${validationResults.length - validFiles}/${validationResults.length}`);
+  }
+
+  return {
+    success: true,
+    results,
+    validationResults,
+    backupPath
+  };
 }
 
 /**

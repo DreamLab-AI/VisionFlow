@@ -12,12 +12,14 @@ Intelligently processes ~200 source markdown files and moves content blocks to t
 This skill:
 1. **Parses** large source markdown files into content blocks (batch mode)
 2. **Targets** optimal ontology file locations using semantic index
-3. **Handles** image asset references (preserves paths to shared assets/ folder)
-4. **Validates** and updates assertions/claims in content
-5. **Enriches** WikiLink stubs and isolated URLs with web summaries
-6. **Moves** content **destructively** (removes from source)
-7. **Cleans up** empty source files automatically
-8. **Tracks** progress across batches with resume capability
+3. **Validates** OWL2 compliance before and after content moves (ontology-core integration)
+4. **Handles** image asset references (preserves paths to shared assets/ folder)
+5. **Updates** assertions/claims in content
+6. **Enriches** WikiLink stubs and isolated URLs with web summaries
+7. **Moves** content **destructively** (removes from source)
+8. **Rolls back** on validation failures
+9. **Cleans up** empty source files automatically
+10. **Tracks** progress across batches with resume capability
 
 ⚠️ **DESTRUCTIVE OPERATION**: Content is moved from source files, not copied. Source files are deleted when empty. **NO BACKUPS ARE CREATED** - ensure external backups exist before running.
 
@@ -46,6 +48,52 @@ claude-code "Use import-to-ontology skill to process all files in /path/to/sourc
 ```
 
 ⚠️ **WARNING**: This is a DESTRUCTIVE operation. Content is MOVED from source files and source files are DELETED when empty. **NO BACKUPS ARE CREATED**.
+
+## Ontology-Core Integration
+
+This skill integrates with the ontology-core library for OWL2 validation:
+
+### Validation Bridge (Node.js ↔ Python)
+
+```javascript
+// src/validation_bridge.js
+const { validateOntologyFile } = require('./src/validation_bridge');
+
+// Validates OWL2 compliance for target files
+const result = await validateOntologyFile(targetFile);
+
+if (!result.is_valid) {
+  console.error(`Validation failed: ${result.errors.length} errors`);
+  // Rollback content move
+}
+```
+
+### Validation Workflow
+
+1. **Pre-Move Validation**: Check target file OWL2 compliance before modification
+2. **Content Migration**: Insert content block into target file
+3. **Post-Move Validation**: Re-validate target file with new content
+4. **Rollback on Failure**: Restore source file if validation fails
+
+### OWL2 Checks (via ontology-core)
+
+- Class declarations and SubClassOf axioms
+- Property declarations (ObjectProperty, DataProperty)
+- Restrictions (ObjectSomeValuesFrom, etc.)
+- Namespace consistency (ai:, bc:, mv:, rb:, dt:)
+- Parentheses balance
+- Annotation format
+- Naming conventions
+
+### Rollback Strategy
+
+```javascript
+// If post-move validation fails:
+// 1. Restore source file from backup
+// 2. Remove added content from target (if possible)
+// 3. Log failure reason
+// 4. Continue with next block
+```
 
 ## Skill Architecture
 
@@ -160,9 +208,9 @@ function validateAssertions(block: ContentBlock): ValidationResult {
 }
 ```
 
-### Phase 5: Content Migration
+### Phase 5: Content Migration with Validation
 
-**Safe Move Strategy**:
+**Safe Move Strategy with OWL2 Compliance**:
 
 ```typescript
 interface MigrationResult {
@@ -180,24 +228,50 @@ async function migrateContent(plan: ImportPlan): Promise<MigrationResult> {
   // 1. Create backups
   const backup = await createBackup(plan.sourceFile);
 
-  // 2. Process each block
+  // 2. Process each block with validation
   for (const block of plan.blocks) {
     const target = plan.targets.find(t => t.blockId === block.id);
 
-    // 3. Enrich content (async web summaries)
+    // 3. Pre-move OWL2 validation
+    const preValidation = await validateOntologyFile(target.targetFile);
+    if (!preValidation.is_valid && !preValidation.new_file) {
+      console.error(`Pre-move validation failed: ${target.targetFile}`);
+      continue; // Skip this block
+    }
+
+    // 4. Enrich content (async web summaries)
     const enriched = await enrichBlock(block, plan.enrichments);
 
-    // 4. Validate and update assertions
+    // 5. Validate and update assertions
     const validated = await validateBlock(enriched);
 
-    // 5. Insert into target file
+    // 6. Insert into target file
     await insertContent(target.targetFile, target.insertionPoint, validated);
 
-    // 6. Log progress
+    // 7. Post-move OWL2 validation
+    const postValidation = await validateOntologyFile(target.targetFile);
+    if (!postValidation.is_valid) {
+      console.error(`Post-move validation failed: ${target.targetFile}`);
+
+      // Rollback: restore source file
+      await restoreFromBackup(backup, plan.sourceFile);
+
+      // Log validation errors
+      postValidation.errors.forEach(err => {
+        console.error(`  Line ${err.line_number}: ${err.message}`);
+      });
+
+      continue; // Skip this block
+    }
+
+    // 8. Remove from source (only if validation passed)
+    await removeBlockFromSource(plan.sourceFile, block);
+
+    // 9. Log progress
     logProgress(block, target);
   }
 
-  // 7. Remove source file (or mark as processed)
+  // 10. Remove source file if empty
   await archiveSourceFile(plan.sourceFile);
 
   return {
@@ -793,9 +867,66 @@ class ImportTracker {
 }
 ```
 
+## Validation Bridge Usage
+
+### Standalone Validation
+
+```bash
+# Validate single file
+node src/validation_bridge.js /path/to/ontology-file.md
+
+# Batch validate multiple files
+node src/validation_bridge.js file1.md file2.md file3.md
+
+# From import-engine
+const { validateOntologyFile } = require('./src/validation_bridge');
+
+async function checkFile(filePath) {
+  try {
+    const result = await validateOntologyFile(filePath);
+
+    if (result.is_valid) {
+      console.log(`✅ Valid: ${result.total_axioms} axioms`);
+    } else {
+      console.log(`❌ Invalid: ${result.errors.length} errors`);
+      result.errors.forEach(err => {
+        console.log(`  Line ${err.line_number}: ${err.message}`);
+        if (err.fix_suggestion) {
+          console.log(`    Fix: ${err.fix_suggestion}`);
+        }
+      });
+    }
+  } catch (error) {
+    console.error(`Validation failed: ${error.message}`);
+  }
+}
+```
+
+### Integration Pattern
+
+```javascript
+// Before destructive move
+const preValidation = await validateOntologyFile(targetFile);
+if (!preValidation.is_valid) {
+  console.error(`Target has errors - aborting move`);
+  return { success: false, reason: 'pre-validation-failed' };
+}
+
+// Perform move
+moveContentBlock(source, target);
+
+// After move - re-validate
+const postValidation = await validateOntologyFile(targetFile);
+if (!postValidation.is_valid) {
+  // Rollback
+  restoreFromBackup(source, target);
+  return { success: false, reason: 'post-validation-failed' };
+}
+```
+
 ## Usage Examples
 
-### Example 1: Import Single File with Dry Run
+### Example 1: Import Single File with Dry Run and Validation
 
 ```bash
 # Analyze before importing
@@ -838,7 +969,9 @@ Create `.import-ontology.config.json` in project root:
   "validation": {
     "enabled": true,
     "autoFix": false,
-    "requireManualReview": true
+    "requireManualReview": true,
+    "owl2Compliance": true,
+    "rollbackOnFailure": true
   },
 
   "targeting": {

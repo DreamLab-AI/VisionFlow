@@ -322,6 +322,12 @@ RUN mkdir -p /usr/local/lib/code-server && \
     tar -xz -C /usr/local/lib/code-server --strip-components=1 && \
     ln -s /usr/local/lib/code-server/bin/code-server /usr/bin/code-server
 
+# Install Google Antigravity IDE
+RUN mkdir -p /opt/antigravity && \
+    curl -fsSL https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.11.3-6583016683339776/linux-x64/Antigravity.tar.gz | \
+    tar -xz -C /opt/antigravity --strip-components=1 && \
+    ln -s /opt/antigravity/bin/antigravity /usr/bin/antigravity
+
 # Install gemini-flow globally
 RUN npm install -g gemini-flow
 

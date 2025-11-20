@@ -44,6 +44,7 @@ Managed by supervisord:
 
 ### Development Tools
 - **Languages**: Python, Rust, Node.js v22, Go
+- **IDE**: code-server (VS Code Web), Google Antigravity IDE
 - **GPU**: CUDA toolkit, Mesa software rendering
 - **Version Control**: git, GitHub CLI
 - **Containers**: Docker, docker-compose
@@ -80,6 +81,7 @@ Managed by supervisord:
 ## Documentation
 
 - **[QUICKSTART.md](./QUICKSTART.md)** - Connection info, VNC clients, quick commands
+- **[docs/ANTIGRAVITY.md](./docs/ANTIGRAVITY.md)** - Google Antigravity IDE usage
 - **[docs/TERMINAL_GRID.md](./docs/TERMINAL_GRID.md)** - Terminal window configuration and customization
 - **[docs/development-notes/](./docs/development-notes/)** - Session notes and migration history
 
