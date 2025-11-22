@@ -209,14 +209,30 @@ impl OWLParser {
                 Component::DeclareClass(decl) => {
                     classes.push(OwlClass {
                         iri: decl.0 .0.to_string(),
+                        term_id: None,
+                        preferred_term: None,
                         label: None,
                         description: None,
                         parent_classes: Vec::new(),
-                        properties: HashMap::new(),
+                        source_domain: None,
+                        version: None,
+                        class_type: None,
+                        status: None,
+                        maturity: None,
+                        quality_score: None,
+                        authority_score: None,
+                        public_access: None,
+                        content_status: None,
+                        owl_physicality: None,
+                        owl_role: None,
+                        belongs_to_domain: None,
+                        bridges_to_domain: None,
                         source_file: None,
-                        markdown_content: None,
                         file_sha1: None,
+                        markdown_content: None,
                         last_synced: None,
+                        properties: HashMap::new(),
+                        additional_metadata: None,
                     });
                 }
 
