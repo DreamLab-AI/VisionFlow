@@ -116,6 +116,144 @@ impl Default for AttributeSpringConfig {
     }
 }
 
+/// Ontology relationship forces configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OntologyRelationshipConfig {
+    /// "requires" relationship - directional spring strength (dependency → prerequisite)
+    pub requires_strength: f32,
+    /// "requires" relationship - rest length
+    pub requires_rest_length: f32,
+    /// "enables" relationship - capability attraction strength (weaker than requires)
+    pub enables_strength: f32,
+    /// "enables" relationship - rest length
+    pub enables_rest_length: f32,
+    /// "has-part" relationship - strong clustering strength (parts orbit whole)
+    pub has_part_strength: f32,
+    /// "has-part" relationship - orbit radius
+    pub has_part_orbit_radius: f32,
+    /// "bridges-to" relationship - long-range cross-domain spring strength
+    pub bridges_to_strength: f32,
+    /// "bridges-to" relationship - rest length (longer for cross-domain)
+    pub bridges_to_rest_length: f32,
+    /// Enable ontology relationship forces
+    pub enabled: bool,
+}
+
+impl Default for OntologyRelationshipConfig {
+    fn default() -> Self {
+        Self {
+            requires_strength: 0.7,
+            requires_rest_length: 80.0,
+            enables_strength: 0.4,
+            enables_rest_length: 120.0,
+            has_part_strength: 0.9,
+            has_part_orbit_radius: 60.0,
+            bridges_to_strength: 0.3,
+            bridges_to_rest_length: 250.0,
+            enabled: true,
+        }
+    }
+}
+
+/// Physicality-based clustering configuration (VirtualEntity, PhysicalEntity, ConceptualEntity)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PhysicalityClusterConfig {
+    /// Attraction between nodes of same physicality
+    pub cluster_attraction: f32,
+    /// Target radius for physicality clusters
+    pub cluster_radius: f32,
+    /// Repulsion between different physicality types
+    pub inter_physicality_repulsion: f32,
+    /// Enable physicality clustering
+    pub enabled: bool,
+}
+
+impl Default for PhysicalityClusterConfig {
+    fn default() -> Self {
+        Self {
+            cluster_attraction: 0.5,
+            cluster_radius: 180.0,
+            inter_physicality_repulsion: 0.25,
+            enabled: true,
+        }
+    }
+}
+
+/// Role-based clustering configuration (Process, Agent, Resource, Concept)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RoleClusterConfig {
+    /// Attraction between nodes of same role
+    pub cluster_attraction: f32,
+    /// Target radius for role clusters
+    pub cluster_radius: f32,
+    /// Repulsion between different roles
+    pub inter_role_repulsion: f32,
+    /// Enable role clustering
+    pub enabled: bool,
+}
+
+impl Default for RoleClusterConfig {
+    fn default() -> Self {
+        Self {
+            cluster_attraction: 0.45,
+            cluster_radius: 160.0,
+            inter_role_repulsion: 0.2,
+            enabled: true,
+        }
+    }
+}
+
+/// Maturity-based layout configuration (emerging → mature → declining)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MaturityLayoutConfig {
+    /// Vertical spacing between maturity stages
+    pub vertical_spacing: f32,
+    /// Attraction to target maturity level
+    pub level_attraction: f32,
+    /// Maturity stage ordering: emerging=0, mature=1, declining=2
+    pub stage_separation: f32,
+    /// Enable maturity-based layout
+    pub enabled: bool,
+}
+
+impl Default for MaturityLayoutConfig {
+    fn default() -> Self {
+        Self {
+            vertical_spacing: 150.0,
+            level_attraction: 0.4,
+            stage_separation: 100.0,
+            enabled: true,
+        }
+    }
+}
+
+/// Cross-domain link strength configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CrossDomainConfig {
+    /// Base strength for cross-domain links
+    pub base_strength: f32,
+    /// Multiplier based on link count (more links = stronger forces)
+    pub link_count_multiplier: f32,
+    /// Maximum strength boost from link count
+    pub max_strength_boost: f32,
+    /// Rest length for cross-domain connections
+    pub rest_length: f32,
+    /// Enable cross-domain forces
+    pub enabled: bool,
+}
+
+impl Default for CrossDomainConfig {
+    fn default() -> Self {
+        Self {
+            base_strength: 0.3,
+            link_count_multiplier: 0.1,
+            max_strength_boost: 2.0,
+            rest_length: 200.0,
+            enabled: true,
+        }
+    }
+}
+
 /// Unified semantic configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SemanticConfig {
@@ -123,6 +261,11 @@ pub struct SemanticConfig {
     pub type_cluster: TypeClusterConfig,
     pub collision: CollisionConfig,
     pub attribute_spring: AttributeSpringConfig,
+    pub ontology_relationship: OntologyRelationshipConfig,
+    pub physicality_cluster: PhysicalityClusterConfig,
+    pub role_cluster: RoleClusterConfig,
+    pub maturity_layout: MaturityLayoutConfig,
+    pub cross_domain: CrossDomainConfig,
 }
 
 impl Default for SemanticConfig {
@@ -132,6 +275,11 @@ impl Default for SemanticConfig {
             type_cluster: TypeClusterConfig::default(),
             collision: CollisionConfig::default(),
             attribute_spring: AttributeSpringConfig::default(),
+            ontology_relationship: OntologyRelationshipConfig::default(),
+            physicality_cluster: PhysicalityClusterConfig::default(),
+            role_cluster: RoleClusterConfig::default(),
+            maturity_layout: MaturityLayoutConfig::default(),
+            cross_domain: CrossDomainConfig::default(),
         }
     }
 }
@@ -147,6 +295,13 @@ pub struct SemanticForcesEngine {
     node_types: Vec<i32>,
     type_centroids: HashMap<i32, (f32, f32, f32)>,
     edge_types: Vec<i32>,
+    // New ontology-based node properties
+    node_physicality: Vec<i32>, // 0=None, 1=VirtualEntity, 2=PhysicalEntity, 3=ConceptualEntity
+    physicality_centroids: HashMap<i32, (f32, f32, f32)>,
+    node_role: Vec<i32>, // 0=None, 1=Process, 2=Agent, 3=Resource, 4=Concept
+    role_centroids: HashMap<i32, (f32, f32, f32)>,
+    node_maturity: Vec<i32>, // 0=None, 1=emerging, 2=mature, 3=declining
+    node_cross_domain_count: Vec<i32>, // Count of cross-domain links per node
     initialized: bool,
 }
 
@@ -159,6 +314,12 @@ impl SemanticForcesEngine {
             node_types: Vec::new(),
             type_centroids: HashMap::new(),
             edge_types: Vec::new(),
+            node_physicality: Vec::new(),
+            physicality_centroids: HashMap::new(),
+            node_role: Vec::new(),
+            role_centroids: HashMap::new(),
+            node_maturity: Vec::new(),
+            node_cross_domain_count: Vec::new(),
             initialized: false,
         }
     }
@@ -173,6 +334,22 @@ impl SemanticForcesEngine {
             .map(|node| self.node_type_to_int(&node.node_type))
             .collect();
 
+        // Extract ontology-based properties
+        self.node_physicality = graph.nodes.iter()
+            .map(|node| self.extract_physicality(node))
+            .collect();
+
+        self.node_role = graph.nodes.iter()
+            .map(|node| self.extract_role(node))
+            .collect();
+
+        self.node_maturity = graph.nodes.iter()
+            .map(|node| self.extract_maturity(node))
+            .collect();
+
+        // Count cross-domain links per node
+        self.node_cross_domain_count = self.calculate_cross_domain_counts(graph);
+
         // Extract edge types
         self.edge_types = graph.edges.iter()
             .map(|edge| self.edge_type_to_int(&edge.edge_type))
@@ -186,6 +363,16 @@ impl SemanticForcesEngine {
         // Calculate type centroids if type clustering is enabled
         if self.config.type_cluster.enabled {
             self.calculate_type_centroids(graph)?;
+        }
+
+        // Calculate physicality centroids if physicality clustering is enabled
+        if self.config.physicality_cluster.enabled {
+            self.calculate_physicality_centroids(graph)?;
+        }
+
+        // Calculate role centroids if role clustering is enabled
+        if self.config.role_cluster.enabled {
+            self.calculate_role_centroids(graph)?;
         }
 
         self.initialized = true;
@@ -249,8 +436,92 @@ impl SemanticForcesEngine {
             Some("sequence") => 4,
             Some("subClassOf") => 5,
             Some("instanceOf") => 6,
-            Some(_) => 7, // Custom types
+            Some("requires") => 7,      // Directional dependency spring
+            Some("enables") => 8,        // Capability attraction (weaker)
+            Some("has-part") => 9,       // Strong clustering (parts orbit whole)
+            Some("bridges-to") => 10,    // Cross-domain long-range spring
+            Some(_) => 11,               // Custom types
         }
+    }
+
+    /// Extract physicality classification from node metadata
+    fn extract_physicality(&self, node: &crate::models::node::Node) -> i32 {
+        // Check owl:physicality metadata
+        if let Some(physicality) = node.metadata.get("owl:physicality")
+            .or_else(|| node.metadata.get("physicality"))
+        {
+            return match physicality.as_str() {
+                "VirtualEntity" => 1,
+                "PhysicalEntity" => 2,
+                "ConceptualEntity" => 3,
+                _ => 0,
+            };
+        }
+        0 // None
+    }
+
+    /// Extract role classification from node metadata
+    fn extract_role(&self, node: &crate::models::node::Node) -> i32 {
+        // Check owl:role metadata
+        if let Some(role) = node.metadata.get("owl:role")
+            .or_else(|| node.metadata.get("role"))
+        {
+            return match role.as_str() {
+                "Process" => 1,
+                "Agent" => 2,
+                "Resource" => 3,
+                "Concept" => 4,
+                _ => 0,
+            };
+        }
+        0 // None
+    }
+
+    /// Extract maturity stage from node metadata
+    fn extract_maturity(&self, node: &crate::models::node::Node) -> i32 {
+        // Check maturity metadata
+        if let Some(maturity) = node.metadata.get("maturity") {
+            return match maturity.as_str() {
+                "emerging" => 1,
+                "mature" => 2,
+                "declining" => 3,
+                _ => 0,
+            };
+        }
+        0 // None
+    }
+
+    /// Calculate cross-domain link counts for each node
+    fn calculate_cross_domain_counts(&self, graph: &GraphData) -> Vec<i32> {
+        let mut counts = vec![0; graph.nodes.len()];
+
+        // Build node ID to index map
+        let node_id_to_idx: HashMap<u32, usize> = graph.nodes.iter()
+            .enumerate()
+            .map(|(idx, node)| (node.id, idx))
+            .collect();
+
+        // Count cross-domain links in metadata
+        for (idx, node) in graph.nodes.iter().enumerate() {
+            if let Some(links) = node.metadata.get("cross-domain-links") {
+                // Count comma-separated links
+                counts[idx] = links.split(',').filter(|s| !s.trim().is_empty()).count() as i32;
+            }
+        }
+
+        // Also count edges with type "bridges-to"
+        for edge in &graph.edges {
+            if edge.edge_type.as_deref() == Some("bridges-to") {
+                if let Some(&src_idx) = node_id_to_idx.get(&edge.source) {
+                    counts[src_idx] += 1;
+                }
+                if let Some(&tgt_idx) = node_id_to_idx.get(&edge.target) {
+                    counts[tgt_idx] += 1;
+                }
+            }
+        }
+
+        counts
     }
 
     fn calculate_hierarchy_levels(&mut self, graph: &GraphData) -> Result<(), String> {
@@ -353,6 +624,70 @@ impl SemanticForcesEngine {
         Ok(())
     }
 
+    fn calculate_physicality_centroids(&mut self, graph: &GraphData) -> Result<(), String> {
+        debug!("Calculating physicality centroids");
+
+        // Group nodes by physicality
+        let mut physicality_positions: HashMap<i32, Vec<(f32, f32, f32)>> = HashMap::new();
+
+        for (i, node) in graph.nodes.iter().enumerate() {
+            let physicality = self.node_physicality[i];
+            if physicality > 0 {
+                let pos = (node.data.x, node.data.y, node.data.z);
+                physicality_positions.entry(physicality).or_insert_with(Vec::new).push(pos);
+            }
+        }
+
+        // Calculate centroids
+        self.physicality_centroids.clear();
+        for (physicality, positions) in physicality_positions {
+            if !positions.is_empty() {
+                let sum: (f32, f32, f32) = positions.iter()
+                    .fold((0.0, 0.0, 0.0), |acc, &pos| {
+                        (acc.0 + pos.0, acc.1 + pos.1, acc.2 + pos.2)
+                    });
+                let count = positions.len() as f32;
+                let centroid = (sum.0 / count, sum.1 / count, sum.2 / count);
+                self.physicality_centroids.insert(physicality, centroid);
+            }
+        }
+
+        info!("Calculated centroids for {} physicality types", self.physicality_centroids.len());
+        Ok(())
+    }
+
+    fn calculate_role_centroids(&mut self, graph: &GraphData) -> Result<(), String> {
+        debug!("Calculating role centroids");
+
+        // Group nodes by role
+        let mut role_positions: HashMap<i32, Vec<(f32, f32, f32)>> = HashMap::new();
+
+        for (i, node) in graph.nodes.iter().enumerate() {
+            let role = self.node_role[i];
+            if role > 0 {
+                let pos = (node.data.x, node.data.y, node.data.z);
+                role_positions.entry(role).or_insert_with(Vec::new).push(pos);
+            }
+        }
+
+        // Calculate centroids
+        self.role_centroids.clear();
+        for (role, positions) in role_positions {
+            if !positions.is_empty() {
+                let sum: (f32, f32, f32) = positions.iter()
+                    .fold((0.0, 0.0, 0.0), |acc, &pos| {
+                        (acc.0 + pos.0, acc.1 + pos.1, acc.2 + pos.2)
+                    });
+                let count = positions.len() as f32;
+                let centroid = (sum.0 / count, sum.1 / count, sum.2 / count);
+                self.role_centroids.insert(role, centroid);
+            }
+        }
+
+        info!("Calculated centroids for {} role types", self.role_centroids.len());
+        Ok(())
+    }
+
     /// Apply semantic forces to graph (CPU fallback implementation)
     /// In production, this would call CUDA kernels
     pub fn apply_semantic_forces(
@@ -384,6 +719,31 @@ impl SemanticForcesEngine {
         // Apply attribute-weighted spring forces
         if self.config.attribute_spring.enabled {
             self.apply_attribute_spring_forces_cpu(graph);
+        }
+
+        // Apply ontology relationship forces
+        if self.config.ontology_relationship.enabled {
+            self.apply_ontology_relationship_forces_cpu(graph);
+        }
+
+        // Apply physicality clustering forces
+        if self.config.physicality_cluster.enabled {
+            self.apply_physicality_cluster_forces_cpu(graph);
+        }
+
+        // Apply role clustering forces
+        if self.config.role_cluster.enabled {
+            self.apply_role_cluster_forces_cpu(graph);
+        }
+
+        // Apply maturity layout forces
+        if self.config.maturity_layout.enabled {
+            self.apply_maturity_layout_forces_cpu(graph);
+        }
+
+        // Apply cross-domain forces
+        if self.config.cross_domain.enabled {
+            self.apply_cross_domain_forces_cpu(graph);
         }
 
         Ok(())
@@ -477,6 +837,265 @@ impl SemanticForcesEngine {
                     // Real implementation uses CUDA with atomic operations
                 }
             }
+        }
+    }
+
+    fn apply_ontology_relationship_forces_cpu(&self, graph: &mut GraphData) {
+        // Build node ID to index map
+        let node_id_to_idx: HashMap<u32, usize> = graph.nodes.iter()
+            .enumerate()
+            .map(|(idx, node)| (node.id, idx))
+            .collect();
+
+        for (edge_idx, edge) in graph.edges.iter().enumerate() {
+            let edge_type = self.edge_types[edge_idx];
+
+            let (src_idx, tgt_idx) = match (
+                node_id_to_idx.get(&edge.source),
+                node_id_to_idx.get(&edge.target)
+            ) {
+                (Some(&src), Some(&tgt)) => (src, tgt),
+                _ => continue,
+            };
+
+            let dx = graph.nodes[tgt_idx].data.x - graph.nodes[src_idx].data.x;
+            let dy = graph.nodes[tgt_idx].data.y - graph.nodes[src_idx].data.y;
+            let dz = graph.nodes[tgt_idx].data.z - graph.nodes[src_idx].data.z;
+            let dist = (dx * dx + dy * dy + dz * dz).sqrt();
+
+            if dist < 0.001 {
+                continue;
+            }
+
+            let (strength, rest_length, is_directional) = match edge_type {
+                7 => (self.config.ontology_relationship.requires_strength,
+                      self.config.ontology_relationship.requires_rest_length,
+                      true),  // requires - directional
+                8 => (self.config.ontology_relationship.enables_strength,
+                      self.config.ontology_relationship.enables_rest_length,
+                      false), // enables - bidirectional
+                9 => (self.config.ontology_relationship.has_part_strength,
+                      self.config.ontology_relationship.has_part_orbit_radius,
+                      false), // has-part - orbit clustering
+                10 => (self.config.ontology_relationship.bridges_to_strength,
+                       self.config.ontology_relationship.bridges_to_rest_length,
+                       false), // bridges-to - long-range spring
+                _ => continue,
+            };
+
+            // Hooke's law: F = -k * (x - x0)
+            let displacement = dist - rest_length;
+            let force_mag = strength * displacement / dist * 0.01;
+
+            if is_directional {
+                // For "requires": target attracts source (dependency pulls toward prerequisite)
+                graph.nodes[src_idx].data.vx += dx * force_mag;
+                graph.nodes[src_idx].data.vy += dy * force_mag;
+                graph.nodes[src_idx].data.vz += dz * force_mag;
+            } else {
+                // Bidirectional spring force
+                graph.nodes[src_idx].data.vx += dx * force_mag;
+                graph.nodes[src_idx].data.vy += dy * force_mag;
+                graph.nodes[src_idx].data.vz += dz * force_mag;
+                graph.nodes[tgt_idx].data.vx -= dx * force_mag;
+                graph.nodes[tgt_idx].data.vy -= dy * force_mag;
+                graph.nodes[tgt_idx].data.vz -= dz * force_mag;
+            }
+        }
+    }
+
+    fn apply_physicality_cluster_forces_cpu(&self, graph: &mut GraphData) {
+        let node_count = graph.nodes.len();
+        let mut forces: Vec<(f32, f32, f32)> = vec![(0.0, 0.0, 0.0); node_count];
+
+        for i in 0..node_count {
+            let physicality = self.node_physicality[i];
+            if physicality == 0 {
+                continue;
+            }
+
+            let node_x = graph.nodes[i].data.x;
+            let node_y = graph.nodes[i].data.y;
+            let node_z = graph.nodes[i].data.z;
+
+            if let Some(&centroid) = self.physicality_centroids.get(&physicality) {
+                let dx = centroid.0 - node_x;
+                let dy = centroid.1 - node_y;
+                let dz = centroid.2 - node_z;
+                let dist = (dx * dx + dy * dy + dz * dz).sqrt();
+
+                if dist > self.config.physicality_cluster.cluster_radius {
+                    let force = self.config.physicality_cluster.cluster_attraction * 0.01;
+                    forces[i].0 += dx * force;
+                    forces[i].1 += dy * force;
+                    forces[i].2 += dz * force;
+                }
+            }
+
+            // Repulsion from nodes of different physicality
+            for j in 0..node_count {
+                if i == j {
+                    continue;
+                }
+                let other_physicality = self.node_physicality[j];
+                if other_physicality == 0 || other_physicality == physicality {
+                    continue;
+                }
+
+                let dx = node_x - graph.nodes[j].data.x;
+                let dy = node_y - graph.nodes[j].data.y;
+                let dz = node_z - graph.nodes[j].data.z;
+                let dist = (dx * dx + dy * dy + dz * dz).sqrt();
+
+                if dist < self.config.physicality_cluster.cluster_radius * 2.0 && dist > 0.001 {
+                    let force = self.config.physicality_cluster.inter_physicality_repulsion / (dist * dist) * 0.01;
+                    forces[i].0 += dx * force / dist;
+                    forces[i].1 += dy * force / dist;
+                    forces[i].2 += dz * force / dist;
+                }
+            }
+        }
+
+        for (i, node) in graph.nodes.iter_mut().enumerate() {
+            node.data.vx += forces[i].0;
+            node.data.vy += forces[i].1;
+            node.data.vz += forces[i].2;
+        }
+    }
+
+    fn apply_role_cluster_forces_cpu(&self, graph: &mut GraphData) {
+        let node_count = graph.nodes.len();
+        let mut forces: Vec<(f32, f32, f32)> = vec![(0.0, 0.0, 0.0); node_count];
+
+        for i in 0..node_count {
+            let role = self.node_role[i];
+            if role == 0 {
+                continue;
+            }
+
+            let node_x = graph.nodes[i].data.x;
+            let node_y = graph.nodes[i].data.y;
+            let node_z = graph.nodes[i].data.z;
+
+            if let Some(&centroid) = self.role_centroids.get(&role) {
+                let dx = centroid.0 - node_x;
+                let dy = centroid.1 - node_y;
+                let dz = centroid.2 - node_z;
+                let dist = (dx * dx + dy * dy + dz * dz).sqrt();
+
+                if dist > self.config.role_cluster.cluster_radius {
+                    let force = self.config.role_cluster.cluster_attraction * 0.01;
+                    forces[i].0 += dx * force;
+                    forces[i].1 += dy * force;
+                    forces[i].2 += dz * force;
+                }
+            }
+
+            // Repulsion from nodes of different roles
+            for j in 0..node_count {
+                if i == j {
+                    continue;
+                }
+                let other_role = self.node_role[j];
+                if other_role == 0 || other_role == role {
+                    continue;
+                }
+
+                let dx = node_x - graph.nodes[j].data.x;
+                let dy = node_y - graph.nodes[j].data.y;
+                let dz = node_z - graph.nodes[j].data.z;
+                let dist = (dx * dx + dy * dy + dz * dz).sqrt();
+
+                if dist < self.config.role_cluster.cluster_radius * 2.0 && dist > 0.001 {
+                    let force = self.config.role_cluster.inter_role_repulsion / (dist * dist) * 0.01;
+                    forces[i].0 += dx * force / dist;
+                    forces[i].1 += dy * force / dist;
+                    forces[i].2 += dz * force / dist;
+                }
+            }
+        }
+
+        for (i, node) in graph.nodes.iter_mut().enumerate() {
+            node.data.vx += forces[i].0;
+            node.data.vy += forces[i].1;
+            node.data.vz += forces[i].2;
+        }
+    }
+
+    fn apply_maturity_layout_forces_cpu(&self, graph: &mut GraphData) {
+        for (i, node) in graph.nodes.iter_mut().enumerate() {
+            let maturity = self.node_maturity[i];
+            if maturity == 0 {
+                continue;
+            }
+
+            // Calculate target Z position based on maturity stage
+            // emerging=1 → z=-stage_separation
+            // mature=2   → z=0
+            // declining=3 → z=+stage_separation
+            let target_z = match maturity {
+                1 => -self.config.maturity_layout.stage_separation,
+                2 => 0.0,
+                3 => self.config.maturity_layout.stage_separation,
+                _ => 0.0,
+            };
+
+            let dz = target_z - node.data.z;
+            node.data.vz += dz * self.config.maturity_layout.level_attraction * 0.01;
+        }
+    }
+
+    fn apply_cross_domain_forces_cpu(&self, graph: &mut GraphData) {
+        // Build node ID to index map
+        let node_id_to_idx: HashMap<u32, usize> = graph.nodes.iter()
+            .enumerate()
+            .map(|(idx, node)| (node.id, idx))
+            .collect();
+
+        for (edge_idx, edge) in graph.edges.iter().enumerate() {
+            let edge_type = self.edge_types[edge_idx];
+
+            // Only process bridges-to edges
+            if edge_type != 10 {
+                continue;
+            }
+
+            let (src_idx, tgt_idx) = match (
+                node_id_to_idx.get(&edge.source),
+                node_id_to_idx.get(&edge.target)
+            ) {
+                (Some(&src), Some(&tgt)) => (src, tgt),
+                _ => continue,
+            };
+
+            // Calculate strength based on cross-domain link count
+            let src_count = self.node_cross_domain_count[src_idx] as f32;
+            let tgt_count = self.node_cross_domain_count[tgt_idx] as f32;
+            let avg_count = (src_count + tgt_count) / 2.0;
+
+            let strength_boost = (1.0 + avg_count * self.config.cross_domain.link_count_multiplier)
+                .min(self.config.cross_domain.max_strength_boost);
+            let strength = self.config.cross_domain.base_strength * strength_boost;
+
+            let dx = graph.nodes[tgt_idx].data.x - graph.nodes[src_idx].data.x;
+            let dy = graph.nodes[tgt_idx].data.y - graph.nodes[src_idx].data.y;
+            let dz = graph.nodes[tgt_idx].data.z - graph.nodes[src_idx].data.z;
+            let dist = (dx * dx + dy * dy + dz * dz).sqrt();
+
+            if dist < 0.001 {
+                continue;
+            }
+
+            // Long-range spring force
+            let displacement = dist - self.config.cross_domain.rest_length;
+            let force_mag = strength * displacement / dist * 0.01;
+
+            graph.nodes[src_idx].data.vx += dx * force_mag;
+            graph.nodes[src_idx].data.vy += dy * force_mag;
+            graph.nodes[src_idx].data.vz += dz * force_mag;
+            graph.nodes[tgt_idx].data.vx -= dx * force_mag;
+            graph.nodes[tgt_idx].data.vy -= dy * force_mag;
+            graph.nodes[tgt_idx].data.vz -= dz * force_mag;
         }
     }
 }

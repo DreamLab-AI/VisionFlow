@@ -223,14 +223,30 @@ impl OntologyReasoner {
 
         let class = OwlClass {
             iri: class_iri.to_string(),
+            term_id: None,
+            preferred_term: None,
             label: Some(self.extract_label_from_iri(class_iri)),
             description: Some(format!("Auto-generated class for {}", class_iri)),
             parent_classes: vec![],
-            properties: std::collections::HashMap::new(),
+            source_domain: None,
+            version: None,
+            class_type: None,
+            status: None,
+            maturity: None,
+            quality_score: None,
+            authority_score: None,
+            public_access: None,
+            content_status: None,
+            owl_physicality: None,
+            owl_role: None,
+            belongs_to_domain: None,
+            bridges_to_domain: None,
             source_file: None,
-            markdown_content: None,
             file_sha1: None,
+            markdown_content: None,
             last_synced: None,
+            properties: std::collections::HashMap::new(),
+            additional_metadata: None,
         };
 
         self.ontology_repo.add_owl_class(&class).await?;

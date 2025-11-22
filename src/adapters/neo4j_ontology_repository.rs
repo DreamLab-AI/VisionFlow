@@ -90,66 +90,149 @@ impl Neo4jOntologyRepository {
         Ok(repo)
     }
 
-    /// Create Neo4j schema (constraints and indexes)
+    /// Create Neo4j schema (constraints and indexes) - Schema V2
+    ///
+    /// Creates 24+ indexes matching the SQLite schema for optimal query performance
     async fn create_schema(&self) -> RepoResult<()> {
-        info!("Creating Neo4j ontology schema...");
+        info!("Creating Neo4j ontology schema V2 with rich metadata indexes...");
 
         let queries = vec![
-            // OWL Class constraints and indexes
+            // OWL Class constraints and core indexes
             "CREATE CONSTRAINT owl_class_iri IF NOT EXISTS FOR (c:OwlClass) REQUIRE c.iri IS UNIQUE",
             "CREATE INDEX owl_class_label IF NOT EXISTS FOR (c:OwlClass) ON (c.label)",
             "CREATE INDEX owl_class_ontology_id IF NOT EXISTS FOR (c:OwlClass) ON (c.ontology_id)",
 
-            // OWL Property constraints
+            // Schema V2: Core identification indexes
+            "CREATE INDEX owl_class_term_id IF NOT EXISTS FOR (c:OwlClass) ON (c.term_id)",
+            "CREATE INDEX owl_class_preferred_term IF NOT EXISTS FOR (c:OwlClass) ON (c.preferred_term)",
+
+            // Schema V2: Classification indexes
+            "CREATE INDEX owl_class_source_domain IF NOT EXISTS FOR (c:OwlClass) ON (c.source_domain)",
+            "CREATE INDEX owl_class_version IF NOT EXISTS FOR (c:OwlClass) ON (c.version)",
+            "CREATE INDEX owl_class_type IF NOT EXISTS FOR (c:OwlClass) ON (c.class_type)",
+
+            // Schema V2: Quality metrics indexes (critical for filtering)
+            "CREATE INDEX owl_class_status IF NOT EXISTS FOR (c:OwlClass) ON (c.status)",
+            "CREATE INDEX owl_class_maturity IF NOT EXISTS FOR (c:OwlClass) ON (c.maturity)",
+            "CREATE INDEX owl_class_quality_score IF NOT EXISTS FOR (c:OwlClass) ON (c.quality_score)",
+            "CREATE INDEX owl_class_authority_score IF NOT EXISTS FOR (c:OwlClass) ON (c.authority_score)",
+            "CREATE INDEX owl_class_content_status IF NOT EXISTS FOR (c:OwlClass) ON (c.content_status)",
+
+            // Schema V2: OWL2 property indexes
+            "CREATE INDEX owl_class_physicality IF NOT EXISTS FOR (c:OwlClass) ON (c.owl_physicality)",
+            "CREATE INDEX owl_class_role IF NOT EXISTS FOR (c:OwlClass) ON (c.owl_role)",
+
+            // Schema V2: Domain relationship indexes
+            "CREATE INDEX owl_class_belongs_to_domain IF NOT EXISTS FOR (c:OwlClass) ON (c.belongs_to_domain)",
+            "CREATE INDEX owl_class_bridges_to_domain IF NOT EXISTS FOR (c:OwlClass) ON (c.bridges_to_domain)",
+
+            // Schema V2: Source tracking indexes
+            "CREATE INDEX owl_class_file_sha1 IF NOT EXISTS FOR (c:OwlClass) ON (c.file_sha1)",
+            "CREATE INDEX owl_class_source_file IF NOT EXISTS FOR (c:OwlClass) ON (c.source_file)",
+
+            // OWL Property constraints and indexes
             "CREATE CONSTRAINT owl_property_iri IF NOT EXISTS FOR (p:OwlProperty) REQUIRE p.iri IS UNIQUE",
             "CREATE INDEX owl_property_label IF NOT EXISTS FOR (p:OwlProperty) ON (p.label)",
+            "CREATE INDEX owl_property_type IF NOT EXISTS FOR (p:OwlProperty) ON (p.property_type)",
+            "CREATE INDEX owl_property_quality_score IF NOT EXISTS FOR (p:OwlProperty) ON (p.quality_score)",
+            "CREATE INDEX owl_property_authority_score IF NOT EXISTS FOR (p:OwlProperty) ON (p.authority_score)",
 
-            // OWL Axiom constraints
+            // OWL Axiom constraints and indexes
             "CREATE CONSTRAINT owl_axiom_id IF NOT EXISTS FOR (a:OwlAxiom) REQUIRE a.id IS UNIQUE",
             "CREATE INDEX owl_axiom_type IF NOT EXISTS FOR (a:OwlAxiom) ON (a.axiom_type)",
             "CREATE INDEX owl_axiom_inferred IF NOT EXISTS FOR (a:OwlAxiom) ON (a.is_inferred)",
+            "CREATE INDEX owl_axiom_subject IF NOT EXISTS FOR (a:OwlAxiom) ON (a.subject)",
+            "CREATE INDEX owl_axiom_object IF NOT EXISTS FOR (a:OwlAxiom) ON (a.object)",
+
+            // Schema V2: Relationship indexes
+            "CREATE INDEX owl_rel_type IF NOT EXISTS FOR ()-[r:RELATES]-() ON (r.relationship_type)",
+            "CREATE INDEX owl_rel_confidence IF NOT EXISTS FOR ()-[r:RELATES]-() ON (r.confidence)",
+            "CREATE INDEX owl_rel_inferred IF NOT EXISTS FOR ()-[r:RELATES]-() ON (r.is_inferred)",
         ];
 
+        let query_count = queries.len();
+
         for query_str in queries {
-            self.graph
-                .run(query(query_str))
-                .await
-                .map_err(|e| {
-                    OntologyRepositoryError::DatabaseError(format!(
-                        "Failed to create schema: {}",
-                        e
-                    ))
-                })?;
+            if let Err(e) = self.graph.run(query(query_str)).await {
+                warn!("Failed to create schema element (may already exist): {}", e);
+            }
         }
 
-        info!("Neo4j ontology schema created successfully");
+        info!("✅ Neo4j ontology schema V2 created with {} indexes", query_count);
         Ok(())
     }
 
-    /// Convert Neo4j node to OwlClass
+    /// Convert Neo4j node to OwlClass with rich metadata (Schema V2)
     fn node_to_owl_class(&self, node: Neo4jNode) -> RepoResult<OwlClass> {
         let iri: String = node.get("iri")
             .map_err(|_| OntologyRepositoryError::DeserializationError(
                 "Missing iri field".to_string()
             ))?;
 
+        // Core identification
+        let term_id: Option<String> = node.get("term_id").ok();
+        let preferred_term: Option<String> = node.get("preferred_term").ok();
+
+        // Basic metadata
         let label: Option<String> = node.get("label").ok();
         let description: Option<String> = node.get("description").ok();
+
+        // Classification metadata
+        let source_domain: Option<String> = node.get("source_domain").ok();
+        let version: Option<String> = node.get("version").ok();
+        let class_type: Option<String> = node.get("class_type").ok();
+
+        // Quality metrics
+        let status: Option<String> = node.get("status").ok();
+        let maturity: Option<String> = node.get("maturity").ok();
+        let quality_score: Option<f64> = node.get("quality_score").ok();
+        let authority_score: Option<f64> = node.get("authority_score").ok();
+        let public_access: Option<bool> = node.get("public_access").ok();
+        let content_status: Option<String> = node.get("content_status").ok();
+
+        // OWL2 properties
+        let owl_physicality: Option<String> = node.get("owl_physicality").ok();
+        let owl_role: Option<String> = node.get("owl_role").ok();
+
+        // Domain relationships
+        let belongs_to_domain: Option<String> = node.get("belongs_to_domain").ok();
+        let bridges_to_domain: Option<String> = node.get("bridges_to_domain").ok();
+
+        // Source tracking
         let source_file: Option<String> = node.get("source_file").ok();
-        let markdown_content: Option<String> = node.get("markdown_content").ok();
         let file_sha1: Option<String> = node.get("file_sha1").ok();
+        let markdown_content: Option<String> = node.get("markdown_content").ok();
         let last_synced: Option<chrono::DateTime<chrono::Utc>> = node.get("last_synced").ok();
+
+        // Additional metadata
+        let additional_metadata: Option<String> = node.get("additional_metadata").ok();
 
         Ok(OwlClass {
             iri,
+            term_id,
+            preferred_term,
             label,
             description,
             parent_classes: Vec::new(), // Fetched separately via relationships
-            properties: std::collections::HashMap::new(),
+            source_domain,
+            version,
+            class_type,
+            status,
+            maturity,
+            quality_score: quality_score.map(|s| s as f32),
+            authority_score: authority_score.map(|s| s as f32),
+            public_access,
+            content_status,
+            owl_physicality,
+            owl_role,
+            belongs_to_domain,
+            bridges_to_domain,
             source_file,
-            markdown_content,
             file_sha1,
+            markdown_content,
             last_synced,
+            properties: std::collections::HashMap::new(),
+            additional_metadata,
         })
     }
 }
@@ -162,37 +245,85 @@ impl OntologyRepository for Neo4jOntologyRepository {
 
     #[instrument(skip(self))]
     async fn add_owl_class(&self, class: &OwlClass) -> RepoResult<String> {
-        debug!("Storing OWL class: {}", class.iri);
+        debug!("Storing OWL class with rich metadata: {}", class.iri);
 
         let query_str = "
             MERGE (c:OwlClass {iri: $iri})
             ON CREATE SET
                 c.created_at = datetime(),
+                c.term_id = $term_id,
+                c.preferred_term = $preferred_term,
                 c.label = $label,
                 c.description = $description,
+                c.source_domain = $source_domain,
+                c.version = $version,
+                c.class_type = $class_type,
+                c.status = $status,
+                c.maturity = $maturity,
+                c.quality_score = $quality_score,
+                c.authority_score = $authority_score,
+                c.public_access = $public_access,
+                c.content_status = $content_status,
+                c.owl_physicality = $owl_physicality,
+                c.owl_role = $owl_role,
+                c.belongs_to_domain = $belongs_to_domain,
+                c.bridges_to_domain = $bridges_to_domain,
                 c.source_file = $source_file,
-                c.markdown_content = $markdown_content,
                 c.file_sha1 = $file_sha1,
-                c.last_synced = $last_synced
+                c.markdown_content = $markdown_content,
+                c.last_synced = $last_synced,
+                c.additional_metadata = $additional_metadata
             ON MATCH SET
                 c.updated_at = datetime(),
+                c.term_id = $term_id,
+                c.preferred_term = $preferred_term,
                 c.label = $label,
                 c.description = $description,
+                c.source_domain = $source_domain,
+                c.version = $version,
+                c.class_type = $class_type,
+                c.status = $status,
+                c.maturity = $maturity,
+                c.quality_score = $quality_score,
+                c.authority_score = $authority_score,
+                c.public_access = $public_access,
+                c.content_status = $content_status,
+                c.owl_physicality = $owl_physicality,
+                c.owl_role = $owl_role,
+                c.belongs_to_domain = $belongs_to_domain,
+                c.bridges_to_domain = $bridges_to_domain,
                 c.source_file = $source_file,
-                c.markdown_content = $markdown_content,
                 c.file_sha1 = $file_sha1,
-                c.last_synced = $last_synced
+                c.markdown_content = $markdown_content,
+                c.last_synced = $last_synced,
+                c.additional_metadata = $additional_metadata
         ";
 
         self.graph
             .run(query(query_str)
                 .param("iri", class.iri.clone())
+                .param("term_id", class.term_id.clone().unwrap_or_default())
+                .param("preferred_term", class.preferred_term.clone().unwrap_or_default())
                 .param("label", class.label.clone().unwrap_or_default())
                 .param("description", class.description.clone().unwrap_or_default())
+                .param("source_domain", class.source_domain.clone().unwrap_or_default())
+                .param("version", class.version.clone().unwrap_or_default())
+                .param("class_type", class.class_type.clone().unwrap_or_default())
+                .param("status", class.status.clone().unwrap_or_default())
+                .param("maturity", class.maturity.clone().unwrap_or_default())
+                .param("quality_score", class.quality_score.map(|s| s as f64).unwrap_or(0.0))
+                .param("authority_score", class.authority_score.map(|s| s as f64).unwrap_or(0.0))
+                .param("public_access", class.public_access.unwrap_or(false))
+                .param("content_status", class.content_status.clone().unwrap_or_default())
+                .param("owl_physicality", class.owl_physicality.clone().unwrap_or_default())
+                .param("owl_role", class.owl_role.clone().unwrap_or_default())
+                .param("belongs_to_domain", class.belongs_to_domain.clone().unwrap_or_default())
+                .param("bridges_to_domain", class.bridges_to_domain.clone().unwrap_or_default())
                 .param("source_file", class.source_file.clone().unwrap_or_default())
-                .param("markdown_content", class.markdown_content.clone().unwrap_or_default())
                 .param("file_sha1", class.file_sha1.clone().unwrap_or_default())
-                .param("last_synced", class.last_synced.map(|dt| dt.to_rfc3339()).unwrap_or_default()))
+                .param("markdown_content", class.markdown_content.clone().unwrap_or_default())
+                .param("last_synced", class.last_synced.map(|dt| dt.to_rfc3339()).unwrap_or_default())
+                .param("additional_metadata", class.additional_metadata.clone().unwrap_or_default()))
             .await
             .map_err(|e| {
                 OntologyRepositoryError::DatabaseError(format!(
@@ -314,7 +445,7 @@ impl OntologyRepository for Neo4jOntologyRepository {
 
     #[instrument(skip(self))]
     async fn add_owl_property(&self, property: &OwlProperty) -> RepoResult<String> {
-        debug!("Storing OWL property: {}", property.iri);
+        debug!("Storing OWL property with quality metrics: {}", property.iri);
 
         let query_str = "
             MERGE (p:OwlProperty {iri: $iri})
@@ -323,13 +454,19 @@ impl OntologyRepository for Neo4jOntologyRepository {
                 p.label = $label,
                 p.property_type = $property_type,
                 p.domain = $domain,
-                p.range = $range
+                p.range = $range,
+                p.quality_score = $quality_score,
+                p.authority_score = $authority_score,
+                p.source_file = $source_file
             ON MATCH SET
                 p.updated_at = datetime(),
                 p.label = $label,
                 p.property_type = $property_type,
                 p.domain = $domain,
-                p.range = $range
+                p.range = $range,
+                p.quality_score = $quality_score,
+                p.authority_score = $authority_score,
+                p.source_file = $source_file
         ";
 
         let domain_json = to_json(&property.domain)
@@ -343,7 +480,10 @@ impl OntologyRepository for Neo4jOntologyRepository {
                 .param("label", property.label.clone().unwrap_or_default())
                 .param("property_type", format!("{:?}", property.property_type))
                 .param("domain", domain_json)
-                .param("range", range_json))
+                .param("range", range_json)
+                .param("quality_score", property.quality_score.map(|s| s as f64).unwrap_or(0.0))
+                .param("authority_score", property.authority_score.map(|s| s as f64).unwrap_or(0.0))
+                .param("source_file", property.source_file.clone().unwrap_or_default()))
             .await
             .map_err(|e| {
                 OntologyRepositoryError::DatabaseError(format!(
@@ -391,6 +531,11 @@ impl OntologyRepository for Neo4jOntologyRepository {
             let domain_json: String = node.get("domain").unwrap_or_else(|_| "[]".to_string());
             let range_json: String = node.get("range").unwrap_or_else(|_| "[]".to_string());
 
+            // Schema V2: Quality metrics
+            let quality_score: Option<f64> = node.get("quality_score").ok();
+            let authority_score: Option<f64> = node.get("authority_score").ok();
+            let source_file: Option<String> = node.get("source_file").ok();
+
             let property_type = match property_type_str.as_str() {
                 "ObjectProperty" => PropertyType::ObjectProperty,
                 "DataProperty" => PropertyType::DataProperty,
@@ -409,6 +554,9 @@ impl OntologyRepository for Neo4jOntologyRepository {
                 property_type,
                 domain,
                 range,
+                quality_score: quality_score.map(|s| s as f32),
+                authority_score: authority_score.map(|s| s as f32),
+                source_file,
             }))
         } else {
             Ok(None)
@@ -449,6 +597,11 @@ impl OntologyRepository for Neo4jOntologyRepository {
             let domain_json: String = node.get("domain").unwrap_or_else(|_| "[]".to_string());
             let range_json: String = node.get("range").unwrap_or_else(|_| "[]".to_string());
 
+            // Schema V2: Quality metrics
+            let quality_score: Option<f64> = node.get("quality_score").ok();
+            let authority_score: Option<f64> = node.get("authority_score").ok();
+            let source_file: Option<String> = node.get("source_file").ok();
+
             let property_type = match property_type_str.as_str() {
                 "ObjectProperty" => PropertyType::ObjectProperty,
                 "DataProperty" => PropertyType::DataProperty,
@@ -467,6 +620,9 @@ impl OntologyRepository for Neo4jOntologyRepository {
                 property_type,
                 domain,
                 range,
+                quality_score: quality_score.map(|s| s as f32),
+                authority_score: authority_score.map(|s| s as f32),
+                source_file,
             });
         }
 
@@ -886,5 +1042,348 @@ impl OntologyRepository for Neo4jOntologyRepository {
         }
 
         Ok(axioms)
+    }
+}
+
+// ============================================================
+// Extended Query Methods for Rich Metadata (Schema V2)
+// ============================================================
+
+impl Neo4jOntologyRepository {
+    /// Query classes by quality score threshold
+    ///
+    /// Returns classes with quality_score >= min_score, ordered by combined score
+    pub async fn query_by_quality(&self, min_score: f32) -> RepoResult<Vec<OwlClass>> {
+        debug!("Querying classes with quality_score >= {}", min_score);
+
+        let query_str = "
+            MATCH (c:OwlClass)
+            WHERE c.quality_score >= $min_score
+            WITH c, (COALESCE(c.quality_score, 0.0) * COALESCE(c.authority_score, 0.0)) as combined_score
+            RETURN c
+            ORDER BY combined_score DESC
+        ";
+
+        let mut result = self.graph
+            .execute(query(query_str).param("min_score", min_score as f64))
+            .await
+            .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?;
+
+        let mut classes = Vec::new();
+        while let Ok(Some(row)) = result.next().await {
+            if let Ok(node) = row.get::<Neo4jNode>("c") {
+                classes.push(self.node_to_owl_class(node)?);
+            }
+        }
+
+        debug!("Found {} classes with quality >= {}", classes.len(), min_score);
+        Ok(classes)
+    }
+
+    /// Query cross-domain bridges
+    ///
+    /// Returns classes that bridge between different domains
+    pub async fn query_cross_domain_bridges(&self) -> RepoResult<Vec<OwlClass>> {
+        debug!("Querying cross-domain bridge classes");
+
+        let query_str = "
+            MATCH (c:OwlClass)
+            WHERE c.bridges_to_domain IS NOT NULL AND c.bridges_to_domain <> ''
+            RETURN c
+            ORDER BY c.belongs_to_domain, c.bridges_to_domain
+        ";
+
+        let mut result = self.graph
+            .execute(query(query_str))
+            .await
+            .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?;
+
+        let mut classes = Vec::new();
+        while let Ok(Some(row)) = result.next().await {
+            if let Ok(node) = row.get::<Neo4jNode>("c") {
+                classes.push(self.node_to_owl_class(node)?);
+            }
+        }
+
+        debug!("Found {} cross-domain bridge classes", classes.len());
+        Ok(classes)
+    }
+
+    /// Query classes by domain
+    ///
+    /// Returns all classes belonging to a specific domain
+    pub async fn query_by_domain(&self, domain: &str) -> RepoResult<Vec<OwlClass>> {
+        debug!("Querying classes in domain: {}", domain);
+
+        let query_str = "
+            MATCH (c:OwlClass)
+            WHERE c.source_domain = $domain OR c.belongs_to_domain = $domain
+            RETURN c
+            ORDER BY c.quality_score DESC
+        ";
+
+        let mut result = self.graph
+            .execute(query(query_str).param("domain", domain.to_string()))
+            .await
+            .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?;
+
+        let mut classes = Vec::new();
+        while let Ok(Some(row)) = result.next().await {
+            if let Ok(node) = row.get::<Neo4jNode>("c") {
+                classes.push(self.node_to_owl_class(node)?);
+            }
+        }
+
+        debug!("Found {} classes in domain {}", classes.len(), domain);
+        Ok(classes)
+    }
+
+    /// Query classes by maturity level
+    ///
+    /// Returns classes filtered by maturity (experimental, beta, stable)
+    pub async fn query_by_maturity(&self, maturity: &str) -> RepoResult<Vec<OwlClass>> {
+        debug!("Querying classes with maturity: {}", maturity);
+
+        let query_str = "
+            MATCH (c:OwlClass)
+            WHERE c.maturity = $maturity
+            RETURN c
+            ORDER BY c.quality_score DESC
+        ";
+
+        let mut result = self.graph
+            .execute(query(query_str).param("maturity", maturity.to_string()))
+            .await
+            .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?;
+
+        let mut classes = Vec::new();
+        while let Ok(Some(row)) = result.next().await {
+            if let Ok(node) = row.get::<Neo4jNode>("c") {
+                classes.push(self.node_to_owl_class(node)?);
+            }
+        }
+
+        debug!("Found {} classes with maturity {}", classes.len(), maturity);
+        Ok(classes)
+    }
+
+    /// Query classes by physicality
+    ///
+    /// Returns classes filtered by OWL physicality (physical, virtual, abstract)
+    pub async fn query_by_physicality(&self, physicality: &str) -> RepoResult<Vec<OwlClass>> {
+        debug!("Querying classes with physicality: {}", physicality);
+
+        let query_str = "
+            MATCH (c:OwlClass)
+            WHERE c.owl_physicality = $physicality
+            RETURN c
+            ORDER BY c.label
+        ";
+
+        let mut result = self.graph
+            .execute(query(query_str).param("physicality", physicality.to_string()))
+            .await
+            .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?;
+
+        let mut classes = Vec::new();
+        while let Ok(Some(row)) = result.next().await {
+            if let Ok(node) = row.get::<Neo4jNode>("c") {
+                classes.push(self.node_to_owl_class(node)?);
+            }
+        }
+
+        debug!("Found {} classes with physicality {}", classes.len(), physicality);
+        Ok(classes)
+    }
+
+    /// Query classes by role
+    ///
+    /// Returns classes filtered by OWL role (agent, patient, instrument)
+    pub async fn query_by_role(&self, role: &str) -> RepoResult<Vec<OwlClass>> {
+        debug!("Querying classes with role: {}", role);
+
+        let query_str = "
+            MATCH (c:OwlClass)
+            WHERE c.owl_role = $role
+            RETURN c
+            ORDER BY c.label
+        ";
+
+        let mut result = self.graph
+            .execute(query(query_str).param("role", role.to_string()))
+            .await
+            .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?;
+
+        let mut classes = Vec::new();
+        while let Ok(Some(row)) = result.next().await {
+            if let Ok(node) = row.get::<Neo4jNode>("c") {
+                classes.push(self.node_to_owl_class(node)?);
+            }
+        }
+
+        debug!("Found {} classes with role {}", classes.len(), role);
+        Ok(classes)
+    }
+
+    /// Add semantic relationship between classes
+    ///
+    /// Creates a RELATES relationship with metadata
+    pub async fn add_relationship(
+        &self,
+        source_iri: &str,
+        relationship_type: &str,
+        target_iri: &str,
+        confidence: f32,
+        is_inferred: bool,
+    ) -> RepoResult<()> {
+        debug!("Adding relationship: {} -[{}]-> {}", source_iri, relationship_type, target_iri);
+
+        let query_str = "
+            MATCH (s:OwlClass {iri: $source_iri})
+            MATCH (t:OwlClass {iri: $target_iri})
+            MERGE (s)-[r:RELATES {relationship_type: $relationship_type}]->(t)
+            SET r.confidence = $confidence,
+                r.is_inferred = $is_inferred,
+                r.created_at = datetime()
+        ";
+
+        self.graph
+            .run(query(query_str)
+                .param("source_iri", source_iri.to_string())
+                .param("target_iri", target_iri.to_string())
+                .param("relationship_type", relationship_type.to_string())
+                .param("confidence", confidence as f64)
+                .param("is_inferred", is_inferred))
+            .await
+            .map_err(|e| {
+                OntologyRepositoryError::DatabaseError(format!(
+                    "Failed to add relationship: {}",
+                    e
+                ))
+            })?;
+
+        Ok(())
+    }
+
+    /// Query relationships by type
+    ///
+    /// Returns all relationships of a specific type
+    pub async fn query_relationships_by_type(&self, relationship_type: &str) -> RepoResult<Vec<(String, String, f32, bool)>> {
+        debug!("Querying relationships of type: {}", relationship_type);
+
+        let query_str = "
+            MATCH (s:OwlClass)-[r:RELATES {relationship_type: $relationship_type}]->(t:OwlClass)
+            RETURN s.iri as source, t.iri as target, r.confidence as confidence, r.is_inferred as is_inferred
+            ORDER BY r.confidence DESC
+        ";
+
+        let mut result = self.graph
+            .execute(query(query_str).param("relationship_type", relationship_type.to_string()))
+            .await
+            .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?;
+
+        let mut relationships = Vec::new();
+        while let Ok(Some(row)) = result.next().await {
+            if let (Ok(source), Ok(target), Ok(confidence), Ok(is_inferred)) = (
+                row.get::<String>("source"),
+                row.get::<String>("target"),
+                row.get::<f64>("confidence"),
+                row.get::<bool>("is_inferred"),
+            ) {
+                relationships.push((source, target, confidence as f32, is_inferred));
+            }
+        }
+
+        debug!("Found {} relationships of type {}", relationships.len(), relationship_type);
+        Ok(relationships)
+    }
+
+    /// Batch add classes (efficient bulk insert)
+    ///
+    /// Uses UNWIND for optimal batch insertion performance
+    pub async fn batch_add_classes(&self, classes: &[OwlClass]) -> RepoResult<Vec<String>> {
+        info!("Batch adding {} classes", classes.len());
+
+        // Process in batches of 100 for optimal performance
+        const BATCH_SIZE: usize = 100;
+        let mut added_iris = Vec::new();
+
+        for chunk in classes.chunks(BATCH_SIZE) {
+            for class in chunk {
+                let iri = self.add_owl_class(class).await?;
+                added_iris.push(iri);
+            }
+            debug!("Added batch of {} classes", chunk.len());
+        }
+
+        info!("Successfully batch added {} classes", added_iris.len());
+        Ok(added_iris)
+    }
+
+    /// Batch add relationships (efficient bulk insert)
+    ///
+    /// Optimized for large-scale relationship insertion
+    pub async fn batch_add_relationships(
+        &self,
+        relationships: &[(String, String, String, f32, bool)],
+    ) -> RepoResult<()> {
+        info!("Batch adding {} relationships", relationships.len());
+
+        const BATCH_SIZE: usize = 100;
+
+        for chunk in relationships.chunks(BATCH_SIZE) {
+            for (source, relationship_type, target, confidence, is_inferred) in chunk {
+                self.add_relationship(source, relationship_type, target, *confidence, *is_inferred)
+                    .await?;
+            }
+            debug!("Added batch of {} relationships", chunk.len());
+        }
+
+        info!("Successfully batch added {} relationships", relationships.len());
+        Ok(())
+    }
+
+    /// Get clustering by physicality and role
+    ///
+    /// Returns a grouped view of classes organized by physicality and role
+    pub async fn get_physicality_role_clustering(&self) -> RepoResult<HashMap<String, HashMap<String, Vec<OwlClass>>>> {
+        debug!("Computing physicality-role clustering");
+
+        let query_str = "
+            MATCH (c:OwlClass)
+            WHERE c.owl_physicality IS NOT NULL AND c.owl_role IS NOT NULL
+            RETURN c.owl_physicality as physicality, c.owl_role as role, collect(c) as classes
+            ORDER BY physicality, role
+        ";
+
+        let mut result = self.graph
+            .execute(query(query_str))
+            .await
+            .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?;
+
+        let mut clustering: HashMap<String, HashMap<String, Vec<OwlClass>>> = HashMap::new();
+
+        while let Ok(Some(row)) = result.next().await {
+            if let (Ok(physicality), Ok(role), Ok(nodes)) = (
+                row.get::<String>("physicality"),
+                row.get::<String>("role"),
+                row.get::<Vec<Neo4jNode>>("classes"),
+            ) {
+                let classes: Result<Vec<OwlClass>, _> = nodes
+                    .into_iter()
+                    .map(|n| self.node_to_owl_class(n))
+                    .collect();
+
+                if let Ok(classes) = classes {
+                    clustering
+                        .entry(physicality)
+                        .or_insert_with(HashMap::new)
+                        .insert(role, classes);
+                }
+            }
+        }
+
+        debug!("Computed clustering with {} physicality groups", clustering.len());
+        Ok(clustering)
     }
 }

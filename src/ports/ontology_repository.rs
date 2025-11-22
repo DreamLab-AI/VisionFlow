@@ -40,21 +40,77 @@ pub enum OntologyRepositoryError {
     DeserializationError(String),
 }
 
+/// OWL Class with rich metadata support (Schema V2)
 ///
+/// Supports comprehensive ontology metadata including:
+/// - Core identification (term_id, preferred_term)
+/// - Classification (source_domain, version, type)
+/// - Quality metrics (quality_score, authority_score, status, maturity)
+/// - OWL2 properties (owl_physicality, owl_role)
+/// - Domain relationships (belongs_to_domain, bridges_to_domain)
+/// - Source tracking (file_sha1, markdown_content, last_synced)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OwlClass {
+    // Core identification
     pub iri: String,
+    pub term_id: Option<String>,
+    pub preferred_term: Option<String>,
+
+    // Basic metadata
     pub label: Option<String>,
     pub description: Option<String>,
     pub parent_classes: Vec<String>,
-    pub properties: HashMap<String, String>,
+
+    // Classification metadata
+    pub source_domain: Option<String>,
+    pub version: Option<String>,
+    pub class_type: Option<String>,
+
+    // Quality metrics
+    pub status: Option<String>,
+    pub maturity: Option<String>,
+    pub quality_score: Option<f32>,
+    pub authority_score: Option<f32>,
+    pub public_access: Option<bool>,
+    pub content_status: Option<String>,
+
+    // OWL2 properties
+    pub owl_physicality: Option<String>,
+    pub owl_role: Option<String>,
+
+    // Domain relationships
+    pub belongs_to_domain: Option<String>,
+    pub bridges_to_domain: Option<String>,
+
+    // Source tracking
     pub source_file: Option<String>,
-    
-    pub markdown_content: Option<String>,
-    
     pub file_sha1: Option<String>,
-    
+    pub markdown_content: Option<String>,
     pub last_synced: Option<chrono::DateTime<chrono::Utc>>,
+
+    // Additional metadata (JSON for extensibility)
+    pub properties: HashMap<String, String>,
+    pub additional_metadata: Option<String>,
+}
+
+/// Semantic relationship between OWL classes
+///
+/// Supports relationship types: has-part, uses, enables, requires, subclass-of, etc.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OwlRelationship {
+    pub source_class_iri: String,
+    pub relationship_type: String,
+    pub target_class_iri: String,
+    pub confidence: f32,
+    pub is_inferred: bool,
+}
+
+/// Cross-reference (e.g., WikiLink) from an OWL class to external resources
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OwlCrossReference {
+    pub source_class_iri: String,
+    pub target_reference: String,
+    pub reference_type: String, // wiki, external, doi, etc.
 }
 
 ///
@@ -65,7 +121,7 @@ pub enum PropertyType {
     AnnotationProperty,
 }
 
-///
+/// OWL Property with quality metrics (Schema V2)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OwlProperty {
     pub iri: String,
@@ -73,6 +129,13 @@ pub struct OwlProperty {
     pub property_type: PropertyType,
     pub domain: Vec<String>,
     pub range: Vec<String>,
+
+    // Quality metrics (Schema V2)
+    pub quality_score: Option<f32>,
+    pub authority_score: Option<f32>,
+
+    // Source tracking
+    pub source_file: Option<String>,
 }
 
 ///
