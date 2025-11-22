@@ -35,7 +35,9 @@ use crate::actors::messages::{
 };
 
 // GPU semantic analyzer
+#[cfg(feature = "gpu")]
 use crate::adapters::gpu_semantic_analyzer::GpuSemanticAnalyzerAdapter;
+#[cfg(feature = "gpu")]
 use crate::ports::gpu_semantic_analyzer::{
     GpuSemanticAnalyzer as GpuSemanticAnalyzerPort, PathfindingResult,
 };
@@ -181,8 +183,12 @@ pub struct SemanticProcessorActor {
     
     performance_metrics: HashMap<String, f32>,
 
-    
+
+
+    #[cfg(feature = "gpu")]
     gpu_analyzer: Option<GpuSemanticAnalyzerAdapter>,
+    #[cfg(not(feature = "gpu"))]
+    gpu_analyzer: Option<()>,
 }
 
 ///
@@ -702,7 +708,10 @@ impl SemanticProcessorActor {
             enable_ai_processing: true,
             clustering_params: SemanticClusteringParams::default(),
             performance_metrics: HashMap::new(),
+            #[cfg(feature = "gpu")]
             gpu_analyzer: Some(GpuSemanticAnalyzerAdapter::new()),
+            #[cfg(not(feature = "gpu"))]
+            gpu_analyzer: None,
         }
     }
 
@@ -1711,6 +1720,7 @@ impl Handler<UpdateSemanticConfig> for SemanticProcessorActor {
 }
 
 ///
+#[cfg(feature = "gpu")]
 impl Handler<ComputeShortestPaths> for SemanticProcessorActor {
     type Result = actix::ResponseFuture<Result<PathfindingResult, String>>;
 

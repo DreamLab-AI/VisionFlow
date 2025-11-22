@@ -5,9 +5,11 @@
 #[rtype(result = "()")]
 pub struct InitializeActor;
 
+#[cfg(feature = "gpu")]
 use crate::actors::gpu::force_compute_actor::PhysicsStats;
 use crate::config::AppFullSettings;
 use crate::errors::VisionFlowError;
+#[cfg(feature = "gpu")]
 use crate::gpu::visual_analytics::{IsolationLayer, VisualAnalyticsParams};
 use crate::models::constraints::{AdvancedParams, ConstraintSet};
 use crate::models::edge::Edge;
@@ -20,6 +22,7 @@ use crate::models::workspace::{
     CreateWorkspaceRequest, UpdateWorkspaceRequest, Workspace, WorkspaceFilter, WorkspaceQuery,
 };
 use crate::utils::socket_flow_messages::BinaryNodeData;
+#[cfg(feature = "gpu")]
 use crate::utils::unified_gpu_compute::ComputeMode;
 use actix::prelude::*;
 use chrono::{DateTime, Utc};
@@ -39,7 +42,10 @@ pub struct KMeansResult {
     pub inertia: f32,
     pub iterations: u32,
     pub clusters: Vec<crate::handlers::api_handler::analytics::Cluster>,
+    #[cfg(feature = "gpu")]
     pub stats: crate::actors::gpu::clustering_actor::ClusteringStats,
+    #[cfg(not(feature = "gpu"))]
+    pub stats: (),
     pub converged: bool,
     pub final_iteration: u32,
 }
@@ -52,7 +58,10 @@ pub struct AnomalyResult {
     pub zscore_values: Option<Vec<f32>>,
     pub anomaly_threshold: f32,
     pub num_anomalies: usize,
+    #[cfg(feature = "gpu")]
     pub anomalies: Vec<crate::actors::gpu::anomaly_detection_actor::AnomalyNode>,
+    #[cfg(not(feature = "gpu"))]
+    pub anomalies: Vec<()>,
     pub stats: AnomalyDetectionStats,
     pub method: AnomalyDetectionMethod,
     pub threshold: f32,
@@ -80,8 +89,14 @@ pub struct CommunityDetectionResult {
     pub iterations: u32,
     pub community_sizes: Vec<i32>,
     pub converged: bool,
+    #[cfg(feature = "gpu")]
     pub communities: Vec<crate::actors::gpu::clustering_actor::Community>,
+    #[cfg(not(feature = "gpu"))]
+    pub communities: Vec<()>,
+    #[cfg(feature = "gpu")]
     pub stats: crate::actors::gpu::clustering_actor::CommunityDetectionStats,
+    #[cfg(not(feature = "gpu"))]
+    pub stats: (),
     pub algorithm: CommunityDetectionAlgorithm,
 }
 
@@ -305,6 +320,7 @@ pub struct SpawnAgentCommand {
     pub session_id: String,
 }
 
+#[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(
     result = "Result<crate::actors::gpu::stress_majorization_actor::StressMajorizationStats, String>"
@@ -332,6 +348,7 @@ pub struct SetAdvancedGPUContext {
 #[rtype(result = "()")]
 pub struct ResetGPUInitFlag;
 
+#[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct StoreAdvancedGPUContext {
@@ -346,12 +363,14 @@ pub struct InitializeVisualAnalytics {
     pub max_edges: usize,
 }
 
+#[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct UpdateVisualAnalyticsParams {
     pub params: VisualAnalyticsParams,
 }
 
+#[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct AddIsolationLayer {
@@ -979,7 +998,10 @@ pub struct InitializeGPU {
     pub graph: std::sync::Arc<ModelsGraphData>,
     pub graph_service_addr: Option<Addr<crate::actors::GraphServiceSupervisor>>,
     pub physics_orchestrator_addr: Option<Addr<crate::actors::physics_orchestrator_actor::PhysicsOrchestratorActor>>,
+    #[cfg(feature = "gpu")]
     pub gpu_manager_addr: Option<Addr<crate::actors::GPUManagerActor>>,
+    #[cfg(not(feature = "gpu"))]
+    pub gpu_manager_addr: Option<()>,
     /// Optional correlation ID for message tracking (H4)
     pub correlation_id: Option<MessageId>,
 }
@@ -990,6 +1012,7 @@ pub struct InitializeGPU {
 pub struct GPUInitialized;
 
 // Message to share GPU context with ForceComputeActor and other GPU actors
+#[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct SetSharedGPUContext {
@@ -1000,14 +1023,16 @@ pub struct SetSharedGPUContext {
 }
 
 // Message to store GPU compute actor address in GraphStateActor
+#[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct StoreGPUComputeAddress {
-    
+
     pub addr: Option<Addr<crate::actors::gpu::GPUManagerActor>>,
 }
 
 // Message to get the ForceComputeActor address from GPUManagerActor
+#[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(result = "Result<Addr<crate::actors::gpu::ForceComputeActor>, String>")]
 pub struct GetForceComputeActor;
@@ -1016,7 +1041,10 @@ pub struct GetForceComputeActor;
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct InitializeGPUConnection {
+    #[cfg(feature = "gpu")]
     pub gpu_manager: Option<Addr<crate::actors::GPUManagerActor>>,
+    #[cfg(not(feature = "gpu"))]
+    pub gpu_manager: Option<()>,
 }
 
 #[derive(Message)]
@@ -1098,12 +1126,14 @@ pub struct RetryMCPConnection;
 pub struct GetCachedAgentStatuses;
 
 // GPU Compute Mode Control Messages
+#[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(result = "Result<(), String>")]
 pub struct SetComputeMode {
     pub mode: ComputeMode,
 }
 
+#[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(result = "Result<PhysicsStats, String>")]
 pub struct GetPhysicsStats;
@@ -1174,6 +1204,7 @@ pub struct ApplyConstraintsToNodes {
 
 // SSSP (Single-Source Shortest Path) Message
 ///
+#[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(result = "Result<PathfindingResult, String>")]
 pub struct ComputeShortestPaths {
@@ -1537,20 +1568,24 @@ pub struct ComputeAllPairsShortestPaths {
 }
 
 // Re-export PathfindingResult from the port for convenience
+#[cfg(feature = "gpu")]
 pub use crate::ports::gpu_semantic_analyzer::PathfindingResult;
 
 // PageRank Centrality Messages (P1-2)
 // ============================================================================
+#[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(result = "Result<crate::actors::gpu::pagerank_actor::PageRankResult, String>")]
 pub struct ComputePageRank {
     pub params: Option<crate::actors::gpu::pagerank_actor::PageRankParams>,
 }
 
+#[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(result = "Option<crate::actors::gpu::pagerank_actor::PageRankResult>")]
 pub struct GetPageRankResult;
 
+#[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct ClearPageRankCache;
@@ -1613,14 +1648,17 @@ pub struct ConfigureCollision {
     pub enabled: Option<bool>,
 }
 
+#[cfg(feature = "gpu")]
 #[derive(Message, Debug, Clone, Serialize, Deserialize)]
 #[rtype(result = "Result<crate::actors::gpu::semantic_forces_actor::SemanticConfig, String>")]
 pub struct GetSemanticConfig;
 
+#[cfg(feature = "gpu")]
 #[derive(Message, Debug, Clone, Serialize, Deserialize)]
 #[rtype(result = "Result<crate::actors::gpu::semantic_forces_actor::HierarchyLevels, String>")]
 pub struct GetHierarchyLevels;
 
+#[cfg(feature = "gpu")]
 #[derive(Message, Debug, Clone, Serialize, Deserialize)]
 #[rtype(result = "Result<(), String>")]
 pub struct RecalculateHierarchy;

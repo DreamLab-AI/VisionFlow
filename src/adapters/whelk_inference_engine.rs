@@ -41,7 +41,8 @@ pub struct WhelkInferenceEngine {
 }
 
 ///
-use whelk;
+// TEMPORARILY DISABLED: whelk-rs dependency not available
+// use whelk;
 use crate::utils::time;
 
 impl WhelkInferenceEngine {
@@ -138,30 +139,28 @@ impl WhelkInferenceEngine {
         hasher.finish()
     }
 
-    
-    
-    
-    fn convert_subsumptions_to_axioms<V>(subsumptions: &V) -> Vec<OwlAxiom>
-    where
-        V: IntoIterator<
-                Item = (
-                    std::rc::Rc<whelk::whelk::model::AtomicConcept>,
-                    std::rc::Rc<whelk::whelk::model::AtomicConcept>,
-                ),
-            > + Clone,
-    {
-        subsumptions
-            .clone()
-            .into_iter()
-            .map(|(sub, sup)| OwlAxiom {
-                id: None,
-                axiom_type: AxiomType::SubClassOf,
-                subject: sub.id.clone(),
-                object: sup.id.clone(),
-                annotations: std::collections::HashMap::new(),
-            })
-            .collect()
-    }
+    // TEMPORARILY DISABLED: whelk-rs dependency not available
+    // fn convert_subsumptions_to_axioms<V>(subsumptions: &V) -> Vec<OwlAxiom>
+    // where
+    //     V: IntoIterator<
+    //             Item = (
+    //                 std::rc::Rc<whelk::whelk::model::AtomicConcept>,
+    //                 std::rc::Rc<whelk::whelk::model::AtomicConcept>,
+    //             ),
+    //         > + Clone,
+    // {
+    //     subsumptions
+    //         .clone()
+    //         .into_iter()
+    //         .map(|(sub, sup)| OwlAxiom {
+    //             id: None,
+    //             axiom_type: AxiomType::SubClassOf,
+    //             subject: sub.id.clone(),
+    //             object: sup.id.clone(),
+    //             annotations: std::collections::HashMap::new(),
+    //         })
+    //         .collect()
+    // }
 }
 
 impl Default for WhelkInferenceEngine {
@@ -250,22 +249,12 @@ impl InferenceEngine for WhelkInferenceEngine {
                 });
             }
 
-            
-            info!("Performing EL reasoning with whelk-rs");
+            // TEMPORARILY DISABLED: whelk-rs dependency not available
+            // Using stub implementation until whelk-rs is available
+            warn!("Whelk reasoning disabled - using stub implementation");
 
-            
-            let whelk_axioms = whelk::whelk::owl::translate_ontology(ontology);
-            debug!("Translated {} axioms to whelk format", whelk_axioms.len());
-
-            
-            let reasoner_state = whelk::whelk::reasoner::assert(&whelk_axioms);
-
-            
-            let subsumptions = reasoner_state.named_subsumptions();
-            info!("Inferred {} subsumption relationships", subsumptions.len());
-
-            
-            let inferred_axioms = Self::convert_subsumptions_to_axioms(&subsumptions);
+            // Return empty inferred axioms as a stub
+            let inferred_axioms: Vec<OwlAxiom> = Vec::new();
             self.inferred_axioms = inferred_axioms.len();
 
             

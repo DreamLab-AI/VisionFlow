@@ -7,6 +7,7 @@ pub mod config;
 pub mod cqrs;
 pub mod errors;
 pub mod events;
+#[cfg(feature = "gpu")]
 pub mod gpu;
 pub mod handlers;
 pub mod inference;

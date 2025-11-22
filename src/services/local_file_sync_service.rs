@@ -11,8 +11,11 @@
 use crate::adapters::neo4j_ontology_repository::Neo4jOntologyRepository;
 use crate::ports::knowledge_graph_repository::KnowledgeGraphRepository;
 use crate::services::github::content_enhanced::EnhancedContentAPI;
+use crate::services::github::types::{OntologyFileMetadata, OntologyPriority};
 use crate::services::parsers::{KnowledgeGraphParser, OntologyParser};
 use crate::services::ontology_enrichment_service::OntologyEnrichmentService;
+use crate::services::ontology_content_analyzer::OntologyContentAnalyzer;
+use crate::services::ontology_file_cache::{OntologyFileCache, OntologyCacheConfig, CachedOntologyFile};
 use log::{debug, error, info, warn};
 use std::collections::HashMap;
 use std::fs;
@@ -32,6 +35,8 @@ pub struct LocalFileSyncService {
     kg_repo: Arc<dyn KnowledgeGraphRepository>,
     onto_repo: Arc<Neo4jOntologyRepository>,
     enrichment_service: Arc<OntologyEnrichmentService>,
+    content_analyzer: Arc<OntologyContentAnalyzer>,
+    ontology_cache: Arc<OntologyFileCache>,
 }
 
 #[derive(Debug, Clone)]
@@ -44,6 +49,17 @@ pub struct SyncStatistics {
     pub skipped_files: usize,
     pub errors: Vec<String>,
     pub duration: Duration,
+
+    // Ontology-specific statistics
+    pub priority1_files: usize,  // public:: true AND OntologyBlock
+    pub priority2_files: usize,  // OntologyBlock only
+    pub priority3_files: usize,  // public:: true only
+    pub total_classes: usize,
+    pub total_properties: usize,
+    pub total_relationships: usize,
+    pub cache_hits: u64,
+    pub cache_misses: u64,
+    pub files_with_commit_dates: usize,
 }
 
 impl LocalFileSyncService {
@@ -60,6 +76,8 @@ impl LocalFileSyncService {
             kg_repo,
             onto_repo,
             enrichment_service,
+            content_analyzer: Arc::new(OntologyContentAnalyzer::new()),
+            ontology_cache: Arc::new(OntologyFileCache::new(OntologyCacheConfig::default())),
         }
     }
 
@@ -77,6 +95,15 @@ impl LocalFileSyncService {
             skipped_files: 0,
             errors: Vec::new(),
             duration: Duration::from_secs(0),
+            priority1_files: 0,
+            priority2_files: 0,
+            priority3_files: 0,
+            total_classes: 0,
+            total_properties: 0,
+            total_relationships: 0,
+            cache_hits: 0,
+            cache_misses: 0,
+            files_with_commit_dates: 0,
         };
 
         // Step 1: Read all local markdown files
@@ -159,10 +186,11 @@ impl LocalFileSyncService {
                 }
             };
 
-            // Process file content (same as github_sync_service.rs)
+            // Process file content with ontology-aware filtering
             if let Err(e) = self.process_file_content(
                 file_name,
                 &content,
+                &local_sha,
                 &mut nodes,
                 &mut edges,
                 &mut public_pages,
@@ -193,10 +221,39 @@ impl LocalFileSyncService {
         }
 
         stats.duration = start_time.elapsed();
+
+        // Get cache statistics
+        let cache_stats = self.ontology_cache.get_stats().await;
+        stats.cache_hits = cache_stats.hits;
+        stats.cache_misses = cache_stats.misses;
+
         info!("✅ Sync complete! {} files from local, {} updated from GitHub in {:?}",
             stats.files_synced_from_local, stats.files_updated_from_github, stats.duration);
 
+        self.log_ontology_statistics(&stats);
+
         Ok(stats)
+    }
+
+    /// Log detailed ontology statistics
+    fn log_ontology_statistics(&self, stats: &SyncStatistics) {
+        info!("📊 Ontology Sync Statistics:");
+        info!("   Priority 1 files (public + ontology): {}", stats.priority1_files);
+        info!("   Priority 2 files (ontology only): {}", stats.priority2_files);
+        info!("   Priority 3 files (public only): {}", stats.priority3_files);
+        info!("   Total classes extracted: {}", stats.total_classes);
+        info!("   Total properties extracted: {}", stats.total_properties);
+        info!("   Total relationships: {}", stats.total_relationships);
+        info!("   Cache performance: {} hits, {} misses ({:.2}% hit rate)",
+            stats.cache_hits,
+            stats.cache_misses,
+            if stats.cache_hits + stats.cache_misses > 0 {
+                (stats.cache_hits as f64 / (stats.cache_hits + stats.cache_misses) as f64) * 100.0
+            } else {
+                0.0
+            }
+        );
+        info!("   Files with commit dates: {}", stats.files_with_commit_dates);
     }
 
     /// Scan local pages directory for markdown files
@@ -280,18 +337,94 @@ impl LocalFileSyncService {
         Ok(content)
     }
 
-    /// Process file content (knowledge graph or ontology)
+    /// Process file content with ontology-aware filtering and caching
     async fn process_file_content(
         &self,
         file_name: &str,
         content: &str,
+        content_sha: &str,
         nodes: &mut HashMap<u32, crate::models::node::Node>,
         edges: &mut HashMap<String, crate::models::edge::Edge>,
         public_pages: &mut std::collections::HashSet<String>,
         stats: &mut SyncStatistics,
     ) -> Result<(), String> {
-        // Check for knowledge graph file (public:: true)
-        if content.lines().take(20).any(|line| line.trim() == "public:: true") {
+        // Check cache first
+        if let Some(cached) = self.ontology_cache.get(file_name, content_sha).await {
+            stats.cache_hits += 1;
+
+            // Use cached analysis
+            let analysis = &cached.analysis;
+            let metadata = &cached.metadata;
+
+            // Update statistics from cache
+            match metadata.priority {
+                OntologyPriority::Priority1 => stats.priority1_files += 1,
+                OntologyPriority::Priority2 => stats.priority2_files += 1,
+                OntologyPriority::Priority3 => stats.priority3_files += 1,
+                OntologyPriority::None => {},
+            }
+
+            stats.total_classes += metadata.class_count;
+            stats.total_properties += metadata.property_count;
+            stats.total_relationships += metadata.relationship_count;
+
+            debug!("Cache hit for {}: priority={:?}", file_name, metadata.priority);
+        } else {
+            stats.cache_misses += 1;
+
+            // Analyze content
+            let analysis = self.content_analyzer.analyze_content(content, file_name);
+
+            // Create ontology metadata
+            let mut metadata = OntologyFileMetadata {
+                name: file_name.to_string(),
+                path: format!("pages/{}", file_name),
+                sha: content_sha.to_string(),
+                size: content.len() as u64,
+                download_url: String::new(),
+                git_commit_date: None,
+                has_public_flag: analysis.has_public_flag,
+                has_ontology_block: analysis.has_ontology_block,
+                priority: OntologyPriority::None,
+                source_domain: analysis.source_domain.clone(),
+                topics: analysis.topics.clone(),
+                relationship_count: analysis.relationship_count,
+                class_count: analysis.class_count,
+                property_count: analysis.property_count,
+            };
+
+            metadata.calculate_priority();
+
+            // Update statistics
+            match metadata.priority {
+                OntologyPriority::Priority1 => stats.priority1_files += 1,
+                OntologyPriority::Priority2 => stats.priority2_files += 1,
+                OntologyPriority::Priority3 => stats.priority3_files += 1,
+                OntologyPriority::None => {},
+            }
+
+            stats.total_classes += metadata.class_count;
+            stats.total_properties += metadata.property_count;
+            stats.total_relationships += metadata.relationship_count;
+
+            // Cache the analysis
+            let cached_entry = CachedOntologyFile::new(
+                metadata.clone(),
+                analysis.clone(),
+                content_sha.to_string(),
+            );
+            self.ontology_cache.put(file_name.to_string(), cached_entry).await;
+
+            debug!("Analyzed {}: priority={:?}, domain={:?}",
+                file_name, metadata.priority, metadata.source_domain);
+        }
+
+        // Process based on content type (Priority 1, 2, or 3)
+        // Priority 1 & 3: Knowledge graph files (public:: true)
+        if content.lines().take(20).any(|line| {
+            let trimmed = line.trim().to_lowercase();
+            trimmed == "public:: true" || trimmed == "public::true"
+        }) {
             let mut parsed = self.kg_parser.parse(content, file_name)
                 .map_err(|e| format!("Parse error: {}", e))?;
 
@@ -319,8 +452,9 @@ impl LocalFileSyncService {
 
             stats.kg_files_processed += 1;
         }
-        // Check for ontology file
-        else if content.contains("### OntologyBlock") {
+
+        // Priority 1 & 2: Ontology files (OntologyBlock)
+        if content.contains("### OntologyBlock") {
             match self.onto_parser.parse(content, file_name) {
                 Ok(onto_data) => {
                     info!("🦉 Extracted ontology from {}: {} classes, {} properties",
@@ -335,11 +469,91 @@ impl LocalFileSyncService {
                 }
             }
         }
-        else {
+
+        // Skip files with no special markers
+        if !content.contains("public::") && !content.contains("### OntologyBlock") {
             stats.skipped_files += 1;
         }
 
         Ok(())
+    }
+
+    /// Fetch GitHub commit dates for ontology files (Priority 1 and 2)
+    /// This can be called separately to enrich metadata with git history
+    pub async fn enrich_with_commit_dates(&self) -> Result<usize, String> {
+        info!("🕐 Enriching ontology files with GitHub commit dates...");
+
+        let cached_files = self.ontology_cache.get_by_priority().await;
+        let mut enriched_count = 0;
+
+        for (file_path, mut cached_entry) in cached_files {
+            // Only enrich Priority 1 and Priority 2 files
+            if cached_entry.metadata.priority == OntologyPriority::Priority1
+                || cached_entry.metadata.priority == OntologyPriority::Priority2
+            {
+                // Skip if already has commit date
+                if cached_entry.metadata.git_commit_date.is_some() {
+                    continue;
+                }
+
+                // Extract just the filename from the full path
+                let file_name = file_path
+                    .split('/')
+                    .last()
+                    .unwrap_or(&file_path);
+
+                // Fetch commit date from GitHub API
+                match self.content_api
+                    .get_file_content_last_modified(file_name, true)
+                    .await
+                {
+                    Ok(commit_date) => {
+                        cached_entry.metadata.git_commit_date = Some(commit_date);
+                        enriched_count += 1;
+
+                        // Update cache with enriched metadata
+                        self.ontology_cache
+                            .put(file_path.clone(), cached_entry.clone())
+                            .await;
+
+                        debug!("Enriched {} with commit date: {}", file_name, commit_date);
+                    }
+                    Err(e) => {
+                        warn!("Failed to get commit date for {}: {}", file_name, e);
+                    }
+                }
+
+                // Rate limiting: sleep briefly between requests
+                tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+            }
+        }
+
+        info!("✅ Enriched {} ontology files with commit dates", enriched_count);
+        Ok(enriched_count)
+    }
+
+    /// Get ontology files by priority for selective processing
+    pub async fn get_ontology_files_by_priority(
+        &self,
+        priority: OntologyPriority,
+    ) -> Vec<(String, CachedOntologyFile)> {
+        let all_files = self.ontology_cache.get_by_priority().await;
+
+        all_files
+            .into_iter()
+            .filter(|(_, entry)| entry.metadata.priority == priority)
+            .collect()
+    }
+
+    /// Get cache statistics for monitoring
+    pub async fn get_cache_statistics(&self) -> crate::services::ontology_file_cache::OntologyCacheStats {
+        self.ontology_cache.get_stats().await
+    }
+
+    /// Clear ontology cache (useful for testing or forcing re-analysis)
+    pub async fn clear_cache(&self) {
+        self.ontology_cache.clear().await;
+        info!("🗑️  Ontology cache cleared");
     }
 
     /// Save batch to Neo4j

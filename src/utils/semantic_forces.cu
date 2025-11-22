@@ -46,12 +46,63 @@ struct AttributeSpringConfig {
     bool enabled;
 };
 
+// Ontology relationship forces configuration
+struct OntologyRelationshipConfig {
+    float requires_strength;
+    float requires_rest_length;
+    float enables_strength;
+    float enables_rest_length;
+    float has_part_strength;
+    float has_part_orbit_radius;
+    float bridges_to_strength;
+    float bridges_to_rest_length;
+    bool enabled;
+};
+
+// Physicality clustering configuration
+struct PhysicalityClusterConfig {
+    float cluster_attraction;
+    float cluster_radius;
+    float inter_physicality_repulsion;
+    bool enabled;
+};
+
+// Role clustering configuration
+struct RoleClusterConfig {
+    float cluster_attraction;
+    float cluster_radius;
+    float inter_role_repulsion;
+    bool enabled;
+};
+
+// Maturity layout configuration
+struct MaturityLayoutConfig {
+    float vertical_spacing;
+    float level_attraction;
+    float stage_separation;
+    bool enabled;
+};
+
+// Cross-domain configuration
+struct CrossDomainConfig {
+    float base_strength;
+    float link_count_multiplier;
+    float max_strength_boost;
+    float rest_length;
+    bool enabled;
+};
+
 // Unified semantic configuration
 struct SemanticConfig {
     DAGConfig dag;
     TypeClusterConfig type_cluster;
     CollisionConfig collision;
     AttributeSpringConfig attribute_spring;
+    OntologyRelationshipConfig ontology_relationship;
+    PhysicalityClusterConfig physicality_cluster;
+    RoleClusterConfig role_cluster;
+    MaturityLayoutConfig maturity_layout;
+    CrossDomainConfig cross_domain;
 };
 
 // Global constant memory for semantic configuration
@@ -368,6 +419,332 @@ __global__ void finalize_type_centroids(
         type_centroids[idx].x /= count;
         type_centroids[idx].y /= count;
         type_centroids[idx].z /= count;
+    }
+}
+
+// =============================================================================
+// Ontology Relationship Forces Kernel
+// =============================================================================
+
+// Apply ontology relationship forces (requires, enables, has-part, bridges-to)
+__global__ void apply_ontology_relationship_force(
+    const int* edge_sources,           // Source node index for each edge
+    const int* edge_targets,           // Target node index for each edge
+    const int* edge_types,             // Type for each edge (7=requires, 8=enables, 9=has-part, 10=bridges-to)
+    const int* node_cross_domain_count, // Cross-domain link count per node (for bridges-to strength)
+    float3* positions,                 // Current positions
+    float3* forces,                    // Force accumulator
+    const int num_edges
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= num_edges) return;
+
+    if (!c_semantic_config.ontology_relationship.enabled) return;
+
+    int src = edge_sources[idx];
+    int tgt = edge_targets[idx];
+    int edge_type = edge_types[idx];
+
+    // Only process ontology relationship edges (7-10)
+    if (edge_type < 7 || edge_type > 10) return;
+
+    float3 delta = positions[tgt] - positions[src];
+    float dist = length(delta);
+    if (dist < 1e-6f) return;
+
+    float strength, rest_length;
+    bool is_directional = false;
+
+    // Determine force parameters based on edge type
+    switch (edge_type) {
+        case 7: // requires - directional dependency spring
+            strength = c_semantic_config.ontology_relationship.requires_strength;
+            rest_length = c_semantic_config.ontology_relationship.requires_rest_length;
+            is_directional = true;
+            break;
+        case 8: // enables - capability attraction (weaker)
+            strength = c_semantic_config.ontology_relationship.enables_strength;
+            rest_length = c_semantic_config.ontology_relationship.enables_rest_length;
+            break;
+        case 9: // has-part - strong clustering (parts orbit whole)
+            strength = c_semantic_config.ontology_relationship.has_part_strength;
+            rest_length = c_semantic_config.ontology_relationship.has_part_orbit_radius;
+            break;
+        case 10: // bridges-to - cross-domain long-range spring
+            {
+                // Strength increases with cross-domain link count
+                float src_count = (float)node_cross_domain_count[src];
+                float tgt_count = (float)node_cross_domain_count[tgt];
+                float avg_count = (src_count + tgt_count) * 0.5f;
+                float boost = min(1.0f + avg_count * c_semantic_config.cross_domain.link_count_multiplier,
+                                c_semantic_config.cross_domain.max_strength_boost);
+                strength = c_semantic_config.ontology_relationship.bridges_to_strength * boost;
+                rest_length = c_semantic_config.ontology_relationship.bridges_to_rest_length;
+            }
+            break;
+        default:
+            return;
+    }
+
+    // Hooke's law: F = -k * (x - x0)
+    float displacement = dist - rest_length;
+    float force_mag = strength * displacement / dist;
+    float3 spring_force = normalize(delta) * force_mag;
+
+    if (is_directional) {
+        // For "requires": only source is pulled toward target (dependency → prerequisite)
+        atomicAdd(&forces[src].x, spring_force.x);
+        atomicAdd(&forces[src].y, spring_force.y);
+        atomicAdd(&forces[src].z, spring_force.z);
+    } else {
+        // Bidirectional spring force
+        atomicAdd(&forces[src].x, spring_force.x);
+        atomicAdd(&forces[src].y, spring_force.y);
+        atomicAdd(&forces[src].z, spring_force.z);
+        atomicAdd(&forces[tgt].x, -spring_force.x);
+        atomicAdd(&forces[tgt].y, -spring_force.y);
+        atomicAdd(&forces[tgt].z, -spring_force.z);
+    }
+}
+
+// =============================================================================
+// Physicality Clustering Kernel
+// =============================================================================
+
+// Apply physicality-based clustering forces (VirtualEntity, PhysicalEntity, ConceptualEntity)
+__global__ void apply_physicality_cluster_force(
+    const int* node_physicality,       // Physicality type for each node (0=None, 1=Virtual, 2=Physical, 3=Conceptual)
+    const float3* physicality_centroids, // Centroid position for each physicality type
+    float3* positions,                 // Current positions
+    float3* forces,                    // Force accumulator
+    const int num_nodes
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= num_nodes) return;
+
+    if (!c_semantic_config.physicality_cluster.enabled) return;
+
+    int physicality = node_physicality[idx];
+    if (physicality <= 0 || physicality > 3) return;
+
+    // Attraction to physicality centroid
+    float3 to_centroid = physicality_centroids[physicality] - positions[idx];
+    float dist_to_centroid = length(to_centroid);
+
+    float3 cluster_force = make_float3(0.0f, 0.0f, 0.0f);
+    if (dist_to_centroid > c_semantic_config.physicality_cluster.cluster_radius) {
+        // Outside cluster radius - attract inward
+        float force_mag = c_semantic_config.physicality_cluster.cluster_attraction *
+                        (dist_to_centroid - c_semantic_config.physicality_cluster.cluster_radius);
+        cluster_force = normalize(to_centroid) * force_mag;
+    }
+
+    // Repulsion from nodes of different physicality
+    float3 inter_physicality_repulsion = make_float3(0.0f, 0.0f, 0.0f);
+    for (int i = 0; i < num_nodes; i++) {
+        if (i == idx) continue;
+        int other_physicality = node_physicality[i];
+        if (other_physicality == physicality || other_physicality == 0) continue;
+
+        float3 delta = positions[idx] - positions[i];
+        float dist = length(delta);
+
+        if (dist < c_semantic_config.physicality_cluster.cluster_radius * 2.0f && dist > 1e-6f) {
+            float force_mag = c_semantic_config.physicality_cluster.inter_physicality_repulsion / (dist * dist);
+            inter_physicality_repulsion = inter_physicality_repulsion + (normalize(delta) * force_mag);
+        }
+    }
+
+    // Accumulate forces
+    atomicAdd(&forces[idx].x, cluster_force.x + inter_physicality_repulsion.x);
+    atomicAdd(&forces[idx].y, cluster_force.y + inter_physicality_repulsion.y);
+    atomicAdd(&forces[idx].z, cluster_force.z + inter_physicality_repulsion.z);
+}
+
+// =============================================================================
+// Role Clustering Kernel
+// =============================================================================
+
+// Apply role-based clustering forces (Process, Agent, Resource, Concept)
+__global__ void apply_role_cluster_force(
+    const int* node_role,              // Role type for each node (0=None, 1=Process, 2=Agent, 3=Resource, 4=Concept)
+    const float3* role_centroids,      // Centroid position for each role type
+    float3* positions,                 // Current positions
+    float3* forces,                    // Force accumulator
+    const int num_nodes
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= num_nodes) return;
+
+    if (!c_semantic_config.role_cluster.enabled) return;
+
+    int role = node_role[idx];
+    if (role <= 0 || role > 4) return;
+
+    // Attraction to role centroid
+    float3 to_centroid = role_centroids[role] - positions[idx];
+    float dist_to_centroid = length(to_centroid);
+
+    float3 cluster_force = make_float3(0.0f, 0.0f, 0.0f);
+    if (dist_to_centroid > c_semantic_config.role_cluster.cluster_radius) {
+        // Outside cluster radius - attract inward
+        float force_mag = c_semantic_config.role_cluster.cluster_attraction *
+                        (dist_to_centroid - c_semantic_config.role_cluster.cluster_radius);
+        cluster_force = normalize(to_centroid) * force_mag;
+    }
+
+    // Repulsion from nodes of different roles
+    float3 inter_role_repulsion = make_float3(0.0f, 0.0f, 0.0f);
+    for (int i = 0; i < num_nodes; i++) {
+        if (i == idx) continue;
+        int other_role = node_role[i];
+        if (other_role == role || other_role == 0) continue;
+
+        float3 delta = positions[idx] - positions[i];
+        float dist = length(delta);
+
+        if (dist < c_semantic_config.role_cluster.cluster_radius * 2.0f && dist > 1e-6f) {
+            float force_mag = c_semantic_config.role_cluster.inter_role_repulsion / (dist * dist);
+            inter_role_repulsion = inter_role_repulsion + (normalize(delta) * force_mag);
+        }
+    }
+
+    // Accumulate forces
+    atomicAdd(&forces[idx].x, cluster_force.x + inter_role_repulsion.x);
+    atomicAdd(&forces[idx].y, cluster_force.y + inter_role_repulsion.y);
+    atomicAdd(&forces[idx].z, cluster_force.z + inter_role_repulsion.z);
+}
+
+// =============================================================================
+// Maturity Layout Kernel
+// =============================================================================
+
+// Apply maturity-based layout forces (emerging → mature → declining)
+__global__ void apply_maturity_layout_force(
+    const int* node_maturity,          // Maturity stage for each node (0=None, 1=emerging, 2=mature, 3=declining)
+    float3* positions,                 // Current positions
+    float3* forces,                    // Force accumulator
+    const int num_nodes
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= num_nodes) return;
+
+    if (!c_semantic_config.maturity_layout.enabled) return;
+
+    int maturity = node_maturity[idx];
+    if (maturity <= 0 || maturity > 3) return;
+
+    // Calculate target Z position based on maturity stage
+    // emerging=1 → z=-stage_separation
+    // mature=2   → z=0
+    // declining=3 → z=+stage_separation
+    float target_z;
+    switch (maturity) {
+        case 1: // emerging
+            target_z = -c_semantic_config.maturity_layout.stage_separation;
+            break;
+        case 2: // mature
+            target_z = 0.0f;
+            break;
+        case 3: // declining
+            target_z = c_semantic_config.maturity_layout.stage_separation;
+            break;
+        default:
+            return;
+    }
+
+    float dz = target_z - positions[idx].z;
+    float3 maturity_force = make_float3(
+        0.0f,
+        0.0f,
+        dz * c_semantic_config.maturity_layout.level_attraction
+    );
+
+    // Accumulate forces
+    atomicAdd(&forces[idx].x, maturity_force.x);
+    atomicAdd(&forces[idx].y, maturity_force.y);
+    atomicAdd(&forces[idx].z, maturity_force.z);
+}
+
+// =============================================================================
+// Calculate Physicality Centroids (Utility)
+// =============================================================================
+
+// Calculate centroid positions for each physicality type
+__global__ void calculate_physicality_centroids(
+    const int* node_physicality,       // Physicality type for each node
+    const float3* positions,           // Current positions
+    float3* physicality_centroids,     // Output: centroid for each physicality type
+    int* physicality_counts,           // Output: count for each physicality type
+    const int num_nodes
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= num_nodes) return;
+
+    int physicality = node_physicality[idx];
+    if (physicality <= 0 || physicality > 3) return;
+
+    // Atomic add to accumulate positions
+    atomicAdd(&physicality_centroids[physicality].x, positions[idx].x);
+    atomicAdd(&physicality_centroids[physicality].y, positions[idx].y);
+    atomicAdd(&physicality_centroids[physicality].z, positions[idx].z);
+    atomicAdd(&physicality_counts[physicality], 1);
+}
+
+// Finalize physicality centroids by dividing by count
+__global__ void finalize_physicality_centroids(
+    float3* physicality_centroids,     // Centroids to finalize
+    const int* physicality_counts      // Count for each physicality type
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx > 3) return; // Only 3 physicality types
+
+    int count = physicality_counts[idx];
+    if (count > 0) {
+        physicality_centroids[idx].x /= count;
+        physicality_centroids[idx].y /= count;
+        physicality_centroids[idx].z /= count;
+    }
+}
+
+// =============================================================================
+// Calculate Role Centroids (Utility)
+// =============================================================================
+
+// Calculate centroid positions for each role type
+__global__ void calculate_role_centroids(
+    const int* node_role,              // Role type for each node
+    const float3* positions,           // Current positions
+    float3* role_centroids,            // Output: centroid for each role type
+    int* role_counts,                  // Output: count for each role type
+    const int num_nodes
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= num_nodes) return;
+
+    int role = node_role[idx];
+    if (role <= 0 || role > 4) return;
+
+    // Atomic add to accumulate positions
+    atomicAdd(&role_centroids[role].x, positions[idx].x);
+    atomicAdd(&role_centroids[role].y, positions[idx].y);
+    atomicAdd(&role_centroids[role].z, positions[idx].z);
+    atomicAdd(&role_counts[role], 1);
+}
+
+// Finalize role centroids by dividing by count
+__global__ void finalize_role_centroids(
+    float3* role_centroids,            // Centroids to finalize
+    const int* role_counts             // Count for each role type
+) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx > 4) return; // Only 4 role types
+
+    int count = role_counts[idx];
+    if (count > 0) {
+        role_centroids[idx].x /= count;
+        role_centroids[idx].y /= count;
+        role_centroids[idx].z /= count;
     }
 }
 

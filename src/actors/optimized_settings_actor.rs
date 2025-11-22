@@ -2,6 +2,7 @@
 // Now uses SettingsRepository port for database operations
 // Maintains caching and performance optimizations as adapter concerns
 
+#[cfg(feature = "gpu")]
 use crate::actors::gpu::ForceComputeActor;
 use crate::actors::messages::{
     GetSettingByPath, GetSettings, GetSettingsByPaths, ReloadSettings, SetSettingsByPaths,
@@ -47,7 +48,10 @@ pub struct OptimizedSettingsActor {
     compressor: Arc<RwLock<Compress>>,
     decompressor: Arc<RwLock<Decompress>>,
     graph_service_addr: Option<Addr<crate::actors::GraphServiceSupervisor>>,
+    #[cfg(feature = "gpu")]
     gpu_compute_addr: Option<Addr<ForceComputeActor>>,
+    #[cfg(not(feature = "gpu"))]
+    gpu_compute_addr: Option<()>,
 }
 
 #[derive(Clone, Debug)]
@@ -199,7 +203,10 @@ impl OptimizedSettingsActor {
     pub fn with_actors(
         repository: Arc<dyn SettingsRepository>,
         graph_service_addr: Option<Addr<crate::actors::GraphServiceSupervisor>>,
+        #[cfg(feature = "gpu")]
         gpu_compute_addr: Option<Addr<ForceComputeActor>>,
+        #[cfg(not(feature = "gpu"))]
+        gpu_compute_addr: Option<()>,
     ) -> VisionFlowResult<Self> {
         let mut actor = Self::new(repository)?;
         actor.graph_service_addr = graph_service_addr;

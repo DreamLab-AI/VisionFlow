@@ -69,12 +69,12 @@ xml = "0.8"
 blake3 = "1.5"
 bcrypt = "0.15"
 
-# GPU/Compute (always enabled)
+# GPU/Compute (optional, requires CUDA)
 bytemuck = { version = "1.21", features = ["derive"] }
 pollster = "0.4"
-cudarc = { version = "0.12.1", features = ["driver", "cuda-12040"] }
-cust = { version = "0.3.2" }
-cust_core = { version = "0.1.1" }
+cudarc = { version = "0.12.1", features = ["driver", "cuda-12040"], optional = true }
+cust = { version = "0.3.2", optional = true }
+cust_core = { version = "0.1.1", optional = true }
 
 # HTTP client and API
 reqwest = { version = "0.12.23", features = ["json", "stream", "multipart"] }
@@ -117,7 +117,8 @@ rayon = "1.11.0"
 hexser = { version = "0.4.7", features = ["full"] }
 
 # Ontology Reasoning - using local path dependency (always enabled)
-whelk = { path = "./whelk-rs" }
+# TEMPORARILY DISABLED: whelk-rs directory is empty
+# whelk = { path = "./whelk-rs" }
 
 # Ontology dependencies (always enabled)
 # Note: Using 1.2.0 for ArcStr support (thread-safe string type)
@@ -125,6 +126,7 @@ horned-owl = { version = "1.2.0", features = ["remote"] }
 horned-functional = { version = "0.4.0" }
 walkdir = { version = "2.4" }
 clap = { version = "4.5", features = ["derive"] }
+rusqlite = { version = "0.32", features = ["bundled"] }
 
 
 [dev-dependencies]
@@ -146,9 +148,9 @@ tempfile = "3.14"
 
 [features]
 # GPU and ontology features for conditional compilation
-# Enable by default for full system capabilities
-default = ["gpu", "ontology"]
-gpu = []  # GPU acceleration with CUDA kernels
+# Default: ontology only (CUDA requires special setup)
+default = ["ontology"]
+gpu = ["dep:cudarc", "dep:cust", "dep:cust_core"]  # GPU acceleration with CUDA kernels (requires CUDA installation)
 ontology = []  # Ontology validation and reasoning
 gpu-safe = []  # Feature for GPU-safe types
 redis = ["dep:redis"]  # Enable Redis distributed caching

@@ -18,9 +18,11 @@ use crate::application::graph::*;
 use crate::cqrs::{CommandBus, QueryBus};
 use crate::events::EventBus;
 
+#[cfg(feature = "gpu")]
 use crate::actors::gpu;
 use crate::actors::graph_service_supervisor::GraphServiceSupervisor;
 use crate::actors::ontology_actor::OntologyActor;
+#[cfg(feature = "gpu")]
 use crate::actors::GPUManagerActor;
 use crate::actors::{
     AgentMonitorActor, ClientCoordinatorActor, MetadataActor, OptimizedSettingsActor,
@@ -64,11 +66,26 @@ pub struct GraphQueryHandlers {
 #[derive(Clone)]
 pub struct AppState {
     pub graph_service_addr: Addr<GraphServiceSupervisor>,
+    #[cfg(feature = "gpu")]
     pub gpu_manager_addr: Option<Addr<GPUManagerActor>>,
+    #[cfg(not(feature = "gpu"))]
+    pub gpu_manager_addr: Option<()>,
+    #[cfg(feature = "gpu")]
     pub gpu_compute_addr: Option<Addr<gpu::ForceComputeActor>>,
+    #[cfg(not(feature = "gpu"))]
+    pub gpu_compute_addr: Option<()>,
+    #[cfg(feature = "gpu")]
     pub stress_majorization_addr: Option<Addr<gpu::StressMajorizationActor>>,
+    #[cfg(not(feature = "gpu"))]
+    pub stress_majorization_addr: Option<()>,
+    #[cfg(feature = "gpu")]
     pub shortest_path_actor: Option<Addr<gpu::ShortestPathActor>>,
+    #[cfg(not(feature = "gpu"))]
+    pub shortest_path_actor: Option<()>,
+    #[cfg(feature = "gpu")]
     pub connected_components_actor: Option<Addr<gpu::ConnectedComponentsActor>>,
+    #[cfg(not(feature = "gpu"))]
+    pub connected_components_actor: Option<()>,
 
     pub settings_repository: Arc<dyn SettingsRepository>,
 
@@ -382,6 +399,7 @@ impl AppState {
         });
 
 
+        #[cfg(feature = "gpu")]
         let (gpu_manager_addr, stress_majorization_addr, shortest_path_actor, connected_components_actor) = {
             info!("[AppState::new] Starting GPUManagerActor (modular architecture)");
             let gpu_manager = GPUManagerActor::new().start();
@@ -398,14 +416,22 @@ impl AppState {
             (Some(gpu_manager), None, Some(shortest_path), Some(connected_components))
         };
 
+        #[cfg(not(feature = "gpu"))]
+        let (gpu_manager_addr, stress_majorization_addr, shortest_path_actor, connected_components_actor) = {
+            info!("[AppState::new] GPU features disabled - skipping GPU actor initialization");
+            (None, None, None, None)
+        };
 
         {
             use crate::actors::messages::InitializeGPUConnection;
-            
+
             info!("[AppState] Initializing GPU connection with GPUManagerActor for proper message delegation");
             if let Some(ref gpu_manager) = gpu_manager_addr {
                 graph_service_addr.do_send(InitializeGPUConnection {
+                    #[cfg(feature = "gpu")]
                     gpu_manager: Some(gpu_manager.clone()),
+                    #[cfg(not(feature = "gpu"))]
+                    gpu_manager: None,
                 });
             } else {
                 warn!("[AppState] GPUManagerActor not available - GPU physics will be disabled");

@@ -6,6 +6,7 @@ use log::{error, info, warn};
 ///
 pub async fn get_real_gpu_physics_stats(app_state: &AppState) -> Option<GPUPhysicsStats> {
     if let Some(gpu_addr) = &app_state.gpu_compute_addr {
+        #[cfg(feature = "gpu")]
         use crate::actors::messages::{GetGPUStatus, GetStressMajorizationStats};
 
         

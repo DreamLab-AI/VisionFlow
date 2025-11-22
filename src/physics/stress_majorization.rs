@@ -21,6 +21,7 @@
 //! - Multi-threaded CPU fallback for smaller graphs
 //! - Memory-efficient algorithms for very large datasets
 
+#[cfg(feature = "gpu")]
 use cudarc::driver::CudaDevice;
 use log::{debug, info, trace, warn};
 use nalgebra::DMatrix;

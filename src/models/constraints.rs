@@ -285,6 +285,7 @@ impl Default for ConstraintData {
 }
 
 // Manual implementation of DeviceCopy for ConstraintData (GPU is always enabled)
+#[cfg(feature = "gpu")]
 unsafe impl cust::memory::DeviceCopy for ConstraintData {}
 
 impl ConstraintData {

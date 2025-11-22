@@ -6,6 +6,7 @@ use log::{error, info};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
+#[cfg(feature = "gpu")]
 use crate::actors::gpu::semantic_forces_actor::{
     ConfigureCollision, ConfigureDAG, ConfigureTypeClustering, DAGConfig, DAGLayoutMode,
     GetHierarchyLevels, GetSemanticConfig, RecalculateHierarchy, TypeClusterConfig, CollisionConfig,

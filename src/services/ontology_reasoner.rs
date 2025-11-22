@@ -222,15 +222,46 @@ impl OntologyReasoner {
         warn!("Class {} not found in ontology, creating it", class_iri);
 
         let class = OwlClass {
+            // Core identification
             iri: class_iri.to_string(),
+            term_id: None,
+            preferred_term: None,
+
+            // Basic metadata
             label: Some(self.extract_label_from_iri(class_iri)),
             description: Some(format!("Auto-generated class for {}", class_iri)),
             parent_classes: vec![],
-            properties: std::collections::HashMap::new(),
+
+            // Classification metadata
+            source_domain: None,
+            version: None,
+            class_type: None,
+
+            // Quality metrics
+            status: None,
+            maturity: None,
+            quality_score: None,
+            authority_score: None,
+            public_access: None,
+            content_status: None,
+
+            // OWL2 properties
+            owl_physicality: None,
+            owl_role: None,
+
+            // Domain relationships
+            belongs_to_domain: None,
+            bridges_to_domain: None,
+
+            // Source tracking
             source_file: None,
-            markdown_content: None,
             file_sha1: None,
+            markdown_content: None,
             last_synced: None,
+
+            // Additional metadata
+            properties: std::collections::HashMap::new(),
+            additional_metadata: None,
         };
 
         self.ontology_repo.add_owl_class(&class).await?;

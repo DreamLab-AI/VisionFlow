@@ -2,6 +2,7 @@
 
 pub mod agent_monitor_actor;
 pub mod client_coordinator_actor;
+#[cfg(feature = "gpu")]
 pub mod gpu;
 pub mod graph_state_actor;
 pub mod graph_actor {
@@ -47,6 +48,7 @@ pub use agent_monitor_actor::AgentMonitorActor;
 pub use client_coordinator_actor::{
     ClientCoordinatorActor, ClientCoordinatorStats, ClientManager, ClientState,
 };
+#[cfg(feature = "gpu")]
 pub use gpu::GPUManagerActor;
 pub use graph_state_actor::GraphStateActor;
 pub use graph_service_supervisor::{

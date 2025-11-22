@@ -9,11 +9,15 @@ pub mod binary_protocol;
 pub mod delta_encoding;
 pub mod client_message_extractor;
 pub mod edge_data;
-#[cfg(test)]
+#[cfg(all(test, feature = "gpu"))]
 mod gpu_compute_tests;
+#[cfg(feature = "gpu")]
 pub mod gpu_diagnostics;
+#[cfg(feature = "gpu")]
 pub mod gpu_memory;
+#[cfg(feature = "gpu")]
 pub mod gpu_safety;
+#[cfg(feature = "gpu")]
 pub mod cuda_error_handling;
 pub mod handler_commons;
 pub mod response_macros;
@@ -30,8 +34,9 @@ pub mod mcp_connection; // Legacy wrapper - to be migrated to mcp_client_utils
 pub mod mcp_tcp_client; // Legacy wrapper - to be migrated to mcp_client_utils
 pub mod memory_bounds;
 pub mod network;
+#[cfg(feature = "gpu")]
 pub mod ptx;
-#[cfg(test)]
+#[cfg(all(test, feature = "gpu"))]
 mod ptx_tests;
 pub mod realtime_integration;
 pub mod resource_monitor;
@@ -39,6 +44,7 @@ pub mod session_log_monitor;
 pub mod socket_flow_constants;
 pub mod socket_flow_messages;
 pub mod standard_websocket_messages;
+#[cfg(feature = "gpu")]
 pub mod unified_gpu_compute;
 pub mod time;
 pub mod validation;

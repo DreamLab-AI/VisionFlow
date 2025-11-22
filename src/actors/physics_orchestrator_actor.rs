@@ -17,7 +17,9 @@ use crate::actors::messages::PositionSnapshot;
 use crate::actors::messaging::{MessageId, MessageTracker, MessageKind, MessageAck};
 use crate::errors::VisionFlowError;
 
+#[cfg(feature = "gpu")]
 use crate::actors::gpu::force_compute_actor::ForceComputeActor;
+#[cfg(feature = "gpu")]
 use crate::actors::gpu::force_compute_actor::PhysicsStats;
 use crate::actors::messages::{InitializeGPU, UpdateGPUGraphData};
 // GraphStateActor will be implemented separately - using direct graph data access
@@ -25,8 +27,10 @@ use crate::actors::messages::{
     ApplyOntologyConstraints, ConstraintMergeMode, ConstraintStats, ForceResumePhysics,
     GetConstraintStats, NodeInteractionMessage, PhysicsPauseMessage, RequestPositionSnapshot,
     SetConstraintGroupActive, SimulationStep, StartSimulation, StopSimulation,
-    StoreGPUComputeAddress, UpdateNodePosition, UpdateNodePositions, UpdateSimulationParams,
+    UpdateNodePosition, UpdateNodePositions, UpdateSimulationParams,
 };
+#[cfg(feature = "gpu")]
+use crate::actors::messages::StoreGPUComputeAddress;
 use crate::models::constraints::ConstraintSet;
 use crate::models::graph::GraphData;
 use crate::models::simulation_params::SimulationParams;
@@ -44,26 +48,32 @@ pub struct PhysicsOrchestratorActor {
     
     target_params: SimulationParams,
 
-    
-    gpu_compute_addr: Option<Addr<ForceComputeActor>>,
 
-    
+    #[cfg(feature = "gpu")]
+    gpu_compute_addr: Option<Addr<ForceComputeActor>>,
+    #[cfg(not(feature = "gpu"))]
+    gpu_compute_addr: Option<()>,
+
+
     ontology_actor_addr: Option<Addr<crate::actors::ontology_actor::OntologyActor>>,
 
-    
+
     graph_data_ref: Option<Arc<GraphData>>,
 
-    
+
     gpu_initialized: bool,
 
-    
+
     gpu_init_in_progress: bool,
 
-    
+
     last_step_time: Option<Instant>,
 
-    
+
+    #[cfg(feature = "gpu")]
     physics_stats: Option<PhysicsStats>,
+    #[cfg(not(feature = "gpu"))]
+    physics_stats: Option<()>,
 
     
     param_interpolation_rate: f32,
@@ -105,10 +115,13 @@ pub struct PhysicsPerformanceMetrics {
 }
 
 impl PhysicsOrchestratorActor {
-    
+
     pub fn new(
         simulation_params: SimulationParams,
+        #[cfg(feature = "gpu")]
         gpu_compute_addr: Option<Addr<ForceComputeActor>>,
+        #[cfg(not(feature = "gpu"))]
+        gpu_compute_addr: Option<()>,
         graph_data: Option<Arc<GraphData>>,
     ) -> Self {
         let target_params = simulation_params.clone();
@@ -319,7 +332,9 @@ impl PhysicsOrchestratorActor {
         self.last_node_count = graph_data.nodes.len();
     }
 
-    
+
+
+    #[cfg(feature = "gpu")]
     fn execute_gpu_physics_step(
         &mut self,
         gpu_addr: &Addr<ForceComputeActor>,
@@ -938,6 +953,7 @@ impl Handler<ForceResumePhysics> for PhysicsOrchestratorActor {
     }
 }
 
+#[cfg(feature = "gpu")]
 impl Handler<StoreGPUComputeAddress> for PhysicsOrchestratorActor {
     type Result = ();
 
@@ -1020,12 +1036,14 @@ impl Handler<GetPhysicsStatus> for PhysicsOrchestratorActor {
 }
 
 ///
+#[cfg(feature = "gpu")]
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct UpdatePhysicsStats {
     pub stats: PhysicsStats,
 }
 
+#[cfg(feature = "gpu")]
 impl Handler<UpdatePhysicsStats> for PhysicsOrchestratorActor {
     type Result = ();
 

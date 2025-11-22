@@ -9,13 +9,23 @@ use actix_web::{web, HttpResponse, Result};
 use log::{error, info};
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "gpu")]
 use crate::actors::gpu::shortest_path_actor::{
     ComputeSSP, ComputeAPSP, GetShortestPathStats, SSSPResult, APSPResult, ShortestPathStats
 };
+#[cfg(feature = "gpu")]
 use crate::actors::gpu::connected_components_actor::{
     ComputeConnectedComponents, GetConnectedComponentsStats,
     ConnectedComponentsResult, ConnectedComponentsStats
 };
+
+// Stub types when GPU is disabled
+#[cfg(not(feature = "gpu"))]
+type SSSPResult = ();
+#[cfg(not(feature = "gpu"))]
+type APSPResult = ();
+#[cfg(not(feature = "gpu"))]
+type ConnectedComponentsResult = ();
 use crate::{ok_json, error_json, AppState};
 
 /// SSSP request payload
@@ -128,6 +138,7 @@ pub async fn compute_sssp(
 ) -> Result<HttpResponse> {
     info!("API: Computing SSSP from node {}", payload.source_idx);
 
+    #[cfg(feature = "gpu")]
     if let Some(ref shortest_path_actor) = data.shortest_path_actor {
             let msg = ComputeSSP {
                 source_idx: payload.source_idx,
@@ -167,6 +178,15 @@ pub async fn compute_sssp(
                 error: Some("Shortest path actor not available".to_string()),
             })
         }
+
+    #[cfg(not(feature = "gpu"))]
+    {
+        error_json!(SSSPResponse {
+            success: false,
+            result: None,
+            error: Some("GPU features are disabled".to_string()),
+        })
+    }
 }
 
 /// Compute approximate all-pairs shortest paths using landmark-based method
@@ -191,6 +211,7 @@ pub async fn compute_apsp(
 ) -> Result<HttpResponse> {
     info!("API: Computing APSP");
 
+    #[cfg(feature = "gpu")]
     if let Some(ref shortest_path_actor) = data.shortest_path_actor {
             // Default to sqrt(n) landmarks if not specified
             let num_landmarks = payload.num_landmarks.unwrap_or(0);
@@ -233,6 +254,15 @@ pub async fn compute_apsp(
                 error: Some("Shortest path actor not available".to_string()),
             })
         }
+
+    #[cfg(not(feature = "gpu"))]
+    {
+        error_json!(APSPResponse {
+            success: false,
+            result: None,
+            error: Some("GPU features are disabled".to_string()),
+        })
+    }
 }
 
 /// Compute connected components of the graph
@@ -256,6 +286,7 @@ pub async fn compute_connected_components(
 ) -> Result<HttpResponse> {
     info!("API: Computing connected components");
 
+    #[cfg(feature = "gpu")]
     if let Some(ref connected_components_actor) = data.connected_components_actor {
             let msg = ComputeConnectedComponents {
                 max_iterations: payload.max_iterations,
@@ -295,12 +326,22 @@ pub async fn compute_connected_components(
                 error: Some("Connected components actor not available".to_string()),
             })
         }
+
+    #[cfg(not(feature = "gpu"))]
+    {
+        error_json!(ConnectedComponentsResponse {
+            success: false,
+            result: None,
+            error: Some("GPU features are disabled".to_string()),
+        })
+    }
 }
 
 /// Get shortest path statistics
 pub async fn get_shortest_path_stats(
     data: web::Data<AppState>,
 ) -> Result<HttpResponse> {
+    #[cfg(feature = "gpu")]
     if let Some(ref shortest_path_actor) = data.shortest_path_actor {
             match shortest_path_actor.send(GetShortestPathStats).await {
                 Ok(stats) => ok_json!(stats),
@@ -312,12 +353,18 @@ pub async fn get_shortest_path_stats(
         } else {
             error_json!("Shortest path actor not available")
         }
+
+    #[cfg(not(feature = "gpu"))]
+    {
+        error_json!("GPU features are disabled")
+    }
 }
 
 /// Get connected components statistics
 pub async fn get_connected_components_stats(
     data: web::Data<AppState>,
 ) -> Result<HttpResponse> {
+    #[cfg(feature = "gpu")]
     if let Some(ref connected_components_actor) = data.connected_components_actor {
             match connected_components_actor.send(GetConnectedComponentsStats).await {
                 Ok(stats) => ok_json!(stats),
@@ -329,6 +376,11 @@ pub async fn get_connected_components_stats(
         } else {
             error_json!("Connected components actor not available")
         }
+
+    #[cfg(not(feature = "gpu"))]
+    {
+        error_json!("GPU features are disabled")
+    }
 }
 
 /// Configure pathfinding API routes

@@ -15,8 +15,10 @@ use crate::actors::messages::{
     GetConstraints, GetGraphData, GetSettings,
     UpdateConstraints,
 };
+#[cfg(feature = "gpu")]
 use crate::actors::messages::GetPhysicsStats;
 
+#[cfg(feature = "gpu")]
 use crate::actors::messages::{
     GetStressMajorizationStats,
     ResetStressMajorizationSafety,
@@ -28,7 +30,14 @@ use crate::actors::messages::{
     GetStressMajorizationConfig,
 };
 
+#[cfg(feature = "gpu")]
 use crate::gpu::visual_analytics::{PerformanceMetrics, VisualAnalyticsParams};
+
+// Stub types when GPU is disabled
+#[cfg(not(feature = "gpu"))]
+type PerformanceMetrics = ();
+#[cfg(not(feature = "gpu"))]
+type VisualAnalyticsParams = ();
 use crate::models::constraints::{AdvancedParams, ConstraintSet};
 use crate::services::agent_visualization_protocol::McpServerType;
 use crate::utils::mcp_tcp_client::create_mcp_client;
@@ -94,7 +103,10 @@ pub mod pathfinding;
 #[serde(rename_all = "camelCase")]
 pub struct AnalyticsParamsResponse {
     pub success: bool,
+    #[cfg(feature = "gpu")]
     pub params: Option<VisualAnalyticsParams>,
+    #[cfg(not(feature = "gpu"))]
+    pub params: Option<()>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
 }
@@ -653,6 +665,7 @@ pub async fn set_focus(
         }
 
         
+        #[cfg(feature = "gpu")]
         use crate::actors::messages::UpdateVisualAnalyticsParams;
         match gpu_addr
             .send(UpdateVisualAnalyticsParams {
@@ -823,6 +836,7 @@ pub async fn get_performance_stats(app_state: web::Data<AppState>) -> Result<Htt
 }
 
 ///
+#[cfg(feature = "gpu")]
 fn create_default_analytics_params(
     _settings: &crate::config::AppFullSettings,
 ) -> VisualAnalyticsParams {
@@ -843,6 +857,7 @@ pub async fn set_kernel_mode(
 ) -> Result<HttpResponse> {
     info!("Setting GPU kernel mode");
 
+    #[cfg(feature = "gpu")]
     if let Some(mode) = request.get("mode").and_then(|m| m.as_str()) {
 
         let compute_mode = match mode {
@@ -890,6 +905,11 @@ pub async fn set_kernel_mode(
         }
     } else {
         Ok(bad_request!("Missing 'mode' parameter").unwrap())
+    }
+
+    #[cfg(not(feature = "gpu"))]
+    {
+        service_unavailable!("GPU features are disabled")
     }
 }
 
