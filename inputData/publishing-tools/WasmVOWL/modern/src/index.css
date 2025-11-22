@@ -1,0 +1,128 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+
+    color-scheme: dark;
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    /* VOWL v2 Specification Colors (from vowl.css) */
+    --vowl-class: #acf;
+    /* owl:Class, owl:Thing */
+    --vowl-datatype: #fc3;
+    /* xsd:string, xsd:integer, etc. */
+    --vowl-datatype-label: #9c6;
+    /* Datatype property labels */
+    --vowl-rdf: #c9c;
+    /* RDF/RDFS constructs */
+    --vowl-external: #36c;
+    /* External/imported classes */
+    --vowl-deprecated: #ccc;
+    /* Deprecated elements */
+    --vowl-symbol: #69c;
+    /* Symbolic elements */
+    --vowl-focused: #f00;
+    /* Hover/focus state */
+    --vowl-indirect: #f90;
+    /* Indirect highlighting */
+    --vowl-disjoint: #acf;
+    /* Disjoint classes */
+    --vowl-text: #696969;
+    /* Result/annotation text */
+    --vowl-white: #fff;
+    /* Subclass, backgrounds */
+    --vowl-stroke: #000;
+    /* Default strokes */
+
+    /* VOWL v2 Layout Constants */
+    --vowl-class-radius: 50px;
+    --vowl-thing-radius: 30px;
+    --vowl-literal-width: 60px;
+    --vowl-literal-height: 20px;
+    --vowl-link-distance: 160px;
+    --vowl-charge: -1000;
+
+    /* Dark Theme CSS Variables - Default */
+    --background: 217.5 36.7% 10%;
+    --foreground: 220 26.4% 78.4%;
+    --card: 217.5 36.7% 10%;
+    --card-foreground: 220 26.4% 78.4%;
+    --popover: 217.5 36.7% 10%;
+    --popover-foreground: 220 26.4% 78.4%;
+    --primary: 213.1 42% 47.8%;
+    --primary-foreground: 218.5 67.3% 90%;
+    --secondary: 218.2 36.8% 10%;
+    --secondary-foreground: 220 26.4% 48.4%;
+    --muted: 218.8 37.9% 12%;
+    --muted-foreground: 220 26.4% 48.4%;
+    --accent: 218.8 37.9% 12%;
+    --accent-foreground: 220 26.4% 58.4%;
+    --destructive: 354.3 52.3% 43.5%;
+    --destructive-foreground: 220 26.4% 78.4%;
+    --border: 220 26.4% 48.4%;
+    --input: 220 26.4% 48.4%;
+    --ring: 213.1 42% 47.8%;
+    --radius: 0.5rem;
+    --chart-1: 213.1 42% 22.200000000000003%;
+    --chart-2: 218.2 36.8% 60%;
+    --chart-3: 218.8 37.9% 58%;
+    --chart-4: 218.8 37.9% 60%;
+    --chart-5: 213.1 42% 32.2%;
+
+    --sidebar-background: 218 37% 2%;
+    --sidebar-foreground: 220 26% 63%;
+    --sidebar-primary: 213 42% 40%;
+    --sidebar-primary-foreground: 218.5 67.3% 90%;
+    --sidebar-accent: 219 38% 25%;
+    --sidebar-accent-foreground: 220 26% 100%;
+    --sidebar-border: 220 26% 40%;
+    --sidebar-ring: 213 42% 40%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  html {
+    height: 100%;
+    background-color: #020817;
+    /* Fallback */
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+
+  body {
+    height: 100%;
+    min-height: 100vh;
+    background-color: #020817;
+    /* Fallback */
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
+
+body {
+  margin: 0;
+  display: flex;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #020817;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}

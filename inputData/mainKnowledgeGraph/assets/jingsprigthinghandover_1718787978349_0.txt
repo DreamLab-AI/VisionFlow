@@ -1,0 +1,1039 @@
+### USER
+
+The code provided is a good starting point for building an immersive spatial knowledge graph using Blender and Python. I would like you to re-engineer this using a suitable "best practice" software engineering methodology and framework. I need to gabd this over to a very junior software developer so they can start to understand the project. Working code is less important than design decisions, incredibly detailed and informative inline code documentation, and well updated diagrams using mermaid.,  Let's go through the main components and discuss their roles. The diagrams and the code provided are most up to date.
+
+1. `Vector3` class: This class represents a simple 3D vector and provides methods for calculating the distance between vectors and converting to Blender's built-in `Vector` type. It serves as a basic building block for positioning nodes in 3D space.
+
+2. `Node` class: This class represents a node in your Logseq graph. It contains properties such as `id`, `name`, `position`, `weight`, `velocity`, and `pined`. It also includes methods for calculating distances between nodes, updating motion based on forces, and updating the corresponding Blender object. You can add additional properties specific to Logseq, such as `block_content` and `link_types`, to store relevant data from Logseq.
+
+3. `Edge` class: This class represents a connection between nodes in your Logseq graph. It contains properties such as `start` and `end` nodes, `weight`, and `is_active`. It also includes methods for calculating forces based on Logseq data, calculating potential energy, activating/deactivating the edge, and updating the corresponding Blender object. You can add Logseq-specific properties like `link_type` to store the type of Logseq link.
+
+4. `World` class: This class holds the entire graph data, including nodes, edges, and clusters. It provides methods for normalizing edge weights and calculating total potential and kinetic energy. You can expand this class to include additional global calculations or data management.
+
+5. `Cluster` class: This class represents a cluster of interconnected nodes. It contains a list of nodes and can be expanded to include properties or methods for visualizing clusters in Blender.
+
+6. `ClusterController` class: This class handles cluster detection. It takes a `World` instance and provides methods for checking if a node belongs to a cluster and finding the region of connected nodes.
+
+The code also includes an example of how to use these classes in Blender. It demonstrates creating Blender objects for nodes and edges, performing cluster detection, and running a physics simulation loop to update node positions based on forces.
+
+To further develop this project, you can consider the following steps:
+
+1. Integrate with Logseq: Implement methods to load nodes and edges from Logseq data into your `World` instance. This may involve parsing Logseq's data format and mapping it to your `Node` and `Edge` classes.
+
+2. Enhance physics simulation: Implement more sophisticated physics calculations for forces, motion, and energy. You can consider using libraries like Bullet Physics or writing your own physics engine tailored to your specific requirements.
+
+3. Improve visualization: Customize the appearance of nodes and edges in Blender based on Logseq data. You can assign different colors, sizes, or shapes to nodes and edges based on their properties or link types.
+
+4. Implement user interaction: Add mechanisms for users to interact with the spatial knowledge graph in Blender, such as selecting nodes, filtering edges, or manipulating the graph layout.
+
+5. Optimize performance: As your graph grows in size, you may need to optimize the performance of your code. This can involve using efficient data structures, parallelizing computations, or employing spatial partitioning techniques like octrees or BSP trees.
+
+Remember to iteratively test and refine your code as you add new features and integrate with Logseq. This project has the potential to provide a visually immersive and interactive way to explore and navigate knowledge graphs.
+
+
+### Diagrams
+
+#### Updated Class Diagram:
+
+```mermaid
+classDiagram
+    class Vector3 {
+        +x: float
+        +y: float
+        +z: float
+        +distance_to(other: Vector3): float
+        +to_blender_vector(): bpy.types.Vector
+        +__add__(other: Vector3): Vector3
+        +__sub__(other: Vector3): Vector3
+        +__mul__(scalar: float): Vector3
+    }
+
+    class Node {
+        +id: int
+        +name: str
+        +position: Vector3
+        +weight: float
+        +velocity: Vector3
+        +pined: bool
+        +cluster_visited: bool
+        +clustered: bool
+        +blender_object: bpy.types.Object
+        +page_content: str
+        +is_public: bool
+        +distance_to(other: Node): float
+        +apply_force(force: Vector3)
+        +zero_force()
+        +calculate_motion(delta_time: float)
+        +update_blender_object()
+        +load_data_from_logseq(file_path: str)
+    }
+
+    class Edge {
+        +start: Node
+        +end: Node
+        +weight: float
+        +is_active: bool
+        +blender_object: bpy.types.Object
+        +calculate_force()
+        +get_potential_energy(): float
+        +deactivate()
+        +activate()
+        +update_blender_object()
+    }
+
+    class World {
+        +nodes: Dict[int, Node]
+        +edges: List[Edge]
+        +clusters: List[Cluster]
+        +total_potential_energy: float
+        +total_kinetic_energy: float
+        +normalize_edge_weights()
+        +load_logseq_data(graph_dir: str)
+        +run_simulation(steps: int, delta_time: float)
+    }
+
+    class Cluster {
+        +nodes: List[Node]
+        +visualize_cluster()
+        +calculate_centroid(): Vector3
+    }
+
+    class ClusterController {
+        -_world: World
+        +check_if_cluster(node: Node)
+        -_region(node: Node): List[Node]
+        +find_clusters()
+    }
+
+    Node -- Vector3
+    Edge -- Node
+    World -- Node
+    World -- Edge
+    World -- Cluster
+    ClusterController -- World
+    Cluster -- Node
+```
+
+#### Sequence Diagram:
+
+Below is the sequence diagram showing the process flow, including fetching Logseq data from GitHub, parsing nodes, and running the simulation.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant GitHub
+    participant World
+    participant Node
+    participant Edge
+    participant ClusterController
+    participant Cluster
+    participant Blender
+
+    User->>GitHub: Fetch Logseq graph data
+    GitHub->>User: Send graph zip file
+    User->>World: Load Logseq data directory
+    World->>Node: Create Node from data
+    Node->>Node: Load data from markdown
+    Node->>World: Check if page is public
+    World->>Edge: Create edges from node links
+
+    loop Simulation Steps
+        World->>Edge: calculate_force()
+        Edge->>Node: apply_force()
+        World->>Node: calculate_motion(delta_time)
+
+        ClusterController->>Node: check_if_cluster(node)
+        Node->>ClusterController: return cluster status
+
+        Node->>Blender: update_blender_object()
+    end
+
+    ClusterController->>World: find_clusters()
+    ClusterController->>Cluster: group Nodes into Clusters
+    Cluster->>Blender: visualize_cluster()
+    Blender->>User: Render Scene
+```
+
+
+```python
+import math
+import os
+import requests
+from zipfile import ZipFile
+from typing import Dict, List, Tuple, Union
+import bpy
+
+def fetch_logseq_data_from_github(github_repo_url: str, local_extract_path: str):
+    """Fetch Logseq data from a GitHub repository and extract it to a local path."""
+    response = requests.get(github_repo_url, stream=True)
+    with open('logseq_graph.zip', 'wb') as out_file:
+        for chunk in response.iter_content(chunk_size=128):
+            out_file.write(chunk)
+            
+    with ZipFile('logseq_graph.zip', 'r') as zip_ref:
+        zip_ref.extractall(local_extract_path)
+
+def is_page_public(page_content: str) -> bool:
+    """Detects if a Logseq page is public based on its Markdown content."""
+    for line in page_content.splitlines():
+        if line.strip().startswith("public::"):
+            value = line.split("::")[1].strip()
+            if value.lower() == "true":
+                return True
+    return False
+
+class Vector3:
+    def __init__(self, x: float = 0, y: float = 0, z: float = 0):
+        self.x = x
+        self.y = y
+        self.z = z
+
+    def distance_to(self, other: "Vector3") -> float:
+        return math.sqrt((self.x - other.x)**2 + (self.y - other.y)**2 + (self.z - other.z)**2)
+
+    def to_blender_vector(self) -> bpy.types.Vector:
+        return bpy.types.Vector((self.x, self.y, self.z))
+
+    def __add__(self, other: "Vector3") -> "Vector3":
+        return Vector3(self.x + other.x, self.y + other.y, self.z + other.z)
+
+    def __sub__(self, other: "Vector3") -> "Vector3":
+        return Vector3(self.x - other.x, self.y - other.y, self.z - other.z)
+
+    def __mul__(self, scalar: float) -> "Vector3":
+        return Vector3(self.x * scalar, self.y * scalar, self.z * scalar)
+
+    def __str__(self) -> str:
+        return f"({self.x}, {self.y}, {self.z})"
+
+class Node:
+    def __init__(self, node_id: int, name: str, position: Vector3, weight: float = 1.0):
+        self.id = node_id
+        self.name = name
+        self.position = position
+        self.weight = weight
+        self.velocity = Vector3(0, 0, 0)
+        self.pined = False
+        self.cluster_visited = False
+        self.clustered = False
+        self.blender_object: bpy.types.Object = None
+        self.page_content: str = ""
+        self.is_public: bool = False
+
+    def load_data_from_logseq(self, file_path: str):
+        """Loads node data from a Logseq markdown file."""
+        with open(file_path, 'r', encoding='utf-8') as f:
+            self.page_content = f.read()
+        self.is_public = is_page_public(self.page_content)
+
+    def distance_to(self, other: "Node") -> float:
+        return self.position.distance_to(other.position)
+
+    def zero_force(self):
+        pass
+
+    def calculate_motion(self, delta_time: float):
+        if not self.pined:
+            pass
+
+    def update_blender_object(self):
+        if self.blender_object:
+            self.blender_object.location = self.position.to_blender_vector()
+
+class Edge:
+    def __init__(self, start: Node, end: Node, weight: float = 1.0):
+        self.start = start
+        self.end = end
+        self.weight = weight
+        self.is_active = True
+        self.blender_object: bpy.types.Object = None
+
+    def calculate_force(self):
+        pass
+
+    def get_potential_energy(self) -> float:
+        return 0.0
+
+    def deactivate(self):
+        self.is_active = False
+
+    def activate(self):
+        self.is_active = True
+
+    def update_blender_object(self):
+        if self.blender_object:
+            pass
+
+class World:
+    def __init__(self):
+        self.nodes: Dict[int, Node] = {}
+        self.edges: List[Edge] = []
+        self.clusters: List[Cluster] = []
+        self.total_potential_energy: float = 0.0
+        self.total_kinetic_energy: float = 0.0
+
+    def load_logseq_data(self, graph_dir: str):
+        """Loads Logseq graph data from a directory."""
+        pages_dir = os.path.join(graph_dir, "pages")
+
+        node_id_counter = 1
+        for file_name in os.listdir(pages_dir):
+            if file_name.endswith(".md"):
+                file_path = os.path.join(pages_dir, file_name)
+                node_name = file_name[:-3]  # Remove '.md' extension
+
+                # Create a Node and load its data
+                node = Node(node_id_counter, node_name, Vector3(0, 0, 0))
+                node.load_data_from_logseq(file_path)
+                
+                # Only add public nodes to the World
+                if node.is_public:
+                    self.nodes[node_id_counter] = node
+                    node_id_counter += 1
+
+        # Placeholder for Edge Creation
+        # (Implement based on how you extract link information from Logseq data)
+
+    def run_simulation(self, steps: int, delta_time: float):
+        """Runs the physics simulation for the specified number of steps."""
+        for _ in range(steps):
+            for edge in self.edges:
+                edge.calculate_force()
+            for node in self.nodes.values():
+                node.calculate_motion(delta_time)
+                node.update_blender_object()
+
+class Cluster:
+    def __init__(self):
+        self.nodes: List[Node] = []
+
+class ClusterController:
+    def __init__(self, world: World):
+        self._world = world
+
+    def check_if_cluster(self, node: Node):
+        node.cluster_visited = True
+        if not node.phantom:  # Assuming you might use 'phantom' later
+            cluster = self._region(node)
+            if len(cluster) >= 3:
+                temp_cluster = Cluster()
+                temp_cluster.nodes.append(node)
+
+                for item in cluster:
+                    if not item.cluster_visited:
+                        item.cluster_visited = True
+                        temp = self._region(item)
+                        if len(temp) >= 3:
+                            cluster.extend(temp)
+
+                    if not item.clustered:
+                        item.clustered = True
+                        temp_cluster.nodes.append(item)
+
+                if len(temp_cluster.nodes) >= 3:
+                    self._world.clusters.append(temp_cluster)
+
+    def _region(self, node: Node) -> List[Node]:
+        cluster = []
+        for n in self._world.nodes.values():
+            if not n.phantom:  # Assuming you might use 'phantom' later
+                if n != node and node.distance_to(n) < 0.15:
+                    cluster.append(n)
+        return cluster
+
+    def find_clusters(self):
+        for node in self._world.nodes.values():
+            if not node.cluster_visited:
+                self.check_if_cluster(node)
+
+# Example usage
+github_repo_url = "https://github.com/yourusername/yourrepo/archive/refs/heads/main.zip"
+local_extract_path = "/path/to/local/logseq_directory"
+fetch_logseq_data_from_github(github_repo_url, local_extract_path)
+
+world = World()
+world.load_logseq_data(local_extract_path)
+
+for node in world.nodes.values():
+    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=0.05, location=node.position.to_blender_vector())
+    node.blender_object = bpy.context.object
+    node.blender_object.name = node.name
+
+world.run_simulation(steps=100, delta_time=0.01)
+```
+
+### Description
+- **Fetching Logseq Graph Data**: The function `fetch_logseq_data_from_github` downloads and extracts Logseq graph data from a GitHub repository.
+- **Public Page Detection**: The function `is_page_public` determines if a page is public by examining the content of the markdown file.
+- **Vector3 Class**: Represents a 3D vector with basic mathematical operations.
+- **Node Class**: Represents a node in the graph, including loading data from a Logseq markdown file and determining if it is public.
+- **Edge Class**: Represents an edge in the graph with placeholders for force calculations and potential energy.
+- **World Class**: Manages the entire graph data, loads Logseq data, and runs the physics simulation.
+- **Cluster and ClusterController Classes**: Manage the detection and representation of clusters within the graph.
+- **Blender Integration**: Creates Blender objects for each node and runs a simulation to update their positions.
+
+### Next Steps
+1. **Implement Edge Creation Logic**: Extract link information from node markdown content and create `Edge` objects.
+2. **Test and Validate**: Continuously test the complete workflow from GitHub data fetching to visualization in Blender.
+3. **Explore Omniverse API**: Once basic functionality is working in Blender, integrate Omniverse for advanced features like materials, physics, and collaboration.
+
+
+
+### ASSISTANT
+## Software Engineering Methodology
+
+To ensure the project is understandable to a junior developer while following best practices, we'll use the Model-View-Controller (MVC) framework. This methodology divides the project into three interconnected components:
+
+1. **Model**: Represents the data and the business logic. Here, it includes classes such as `Vector3`, `Node`, `Edge`, `World`, and `Cluster`.
+2. **View**: Handles the display of information to the user. In this project, Blender serves as the View.
+3. **Controller**: Manages the communication between the Model and the View. It includes handling user inputs, fetching data from GitHub, and executing the simulation loop.
+
+### Project Structure
+
+To keep the project organized, we can structure the files as follows:
+
+```
+spatial-knowledge-graph/
+├── models/
+│   ├── vector3.py
+│   ├── node.py
+│   ├── edge.py
+│   ├── world.py
+│   ├── cluster.py
+├── controllers/
+│   ├── data_fetcher.py
+│   ├── simulation_controller.py
+│   ├── cluster_controller.py
+├── views/
+│   ├── blender_view.py
+├── main.py
+├── requirements.txt
+├── README.md
+```
+
+### Detailed Code with Inline Documentation
+
+#### models/vector3.py
+
+```python
+"""
+Vector3 Class
+This module contains the Vector3 class that represents a 3D vector, which is fundamental for positioning nodes in 3D space.
+"""
+
+import math
+from typing import Union
+
+class Vector3:
+    """
+    Represents a 3D vector with basic operations.
+
+    Attributes:
+        x (float): x-coordinate.
+        y (float): y-coordinate.
+        z (float): z-coordinate.
+    """
+
+    def __init__(self, x: float = 0, y: float = 0, z: float = 0):
+        """
+        Initializes a Vector3 object.
+
+        Args:
+            x (float): x-coordinate.
+            y (float): y-coordinate.
+            z (float): z-coordinate.
+        """
+        self.x = x
+        self.y = y
+        self.z = z
+
+    def distance_to(self, other: "Vector3") -> float:
+        """
+        Calculates the distance to another Vector3 object.
+
+        Args:
+            other (Vector3): The other vector.
+
+        Returns:
+            float: The distance to the other vector.
+        """
+        return math.sqrt((self.x - other.x)**2 + (self.y - other.y)**2 + (self.z - other.z)**2)
+
+    def to_blender_vector(self) -> Union['Vector', 'Vector3']:
+        """
+        Converts the Vector3 to Blender's Vector type.
+
+        Returns:
+            bpy.types.Vector or Vector3: The Blender vector.
+        """
+        try:
+            from bpy.types import Vector
+            return Vector((self.x, self.y, self.z))
+        except ImportError:
+            return self
+
+    def __add__(self, other: "Vector3") -> "Vector3":
+        """
+        Adds two Vector3 objects.
+
+        Args:
+            other (Vector3): The other vector.
+
+        Returns:
+            Vector3: The sum of the vectors.
+        """
+        return Vector3(self.x + other.x, self.y + other.y, self.z + other.z)
+
+    def __sub__(self, other: "Vector3") -> "Vector3":
+        """
+        Subtracts another Vector3 object from this one.
+
+        Args:
+            other (Vector3): The other vector.
+
+        Returns:
+            Vector3: The difference between the vectors.
+        """
+        return Vector3(self.x - other.x, self.y - other.y, self.z - other.z)
+
+    def __mul__(self, scalar: float) -> "Vector3":
+        """
+        Multiplies the vector by a scalar.
+
+        Args:
+            scalar (float): The scalar value.
+
+        Returns:
+            Vector3: The resultant vector.
+        """
+        return Vector3(self.x * scalar, self.y * scalar, self.z * scalar)
+
+    def __str__(self) -> str:
+        """
+        Converts the vector to a string.
+
+        Returns:
+            str: The string representation of the vector.
+        """
+        return f"({self.x}, {self.y}, {self.z})"
+```
+
+#### models/node.py
+
+```python
+"""
+Node Class
+This module contains the Node class that represents a node in the Logseq graph.
+"""
+
+from typing import Optional
+from .vector3 import Vector3
+import bpy
+
+class Node:
+    """
+    Represents a node in the graph.
+
+    Attributes:
+        id (int): Node identifier.
+        name (str): Node name.
+        position (Vector3): Node position in 3D space.
+        weight (float): Node weight.
+        velocity (Vector3): Node velocity in 3D space.
+        pined (bool): Whether the node is pinned in the graph.
+        cluster_visited (bool): Whether the node has been visited by the cluster algorithm.
+        clustered (bool): Whether the node is part of a cluster.
+        blender_object (bpy.types.Object): Corresponding Blender object.
+        page_content (str): Content of the corresponding Logseq markdown file.
+        is_public (bool): Whether the node is public based on its content.
+    """
+
+    def __init__(self, node_id: int, name: str, position: Vector3, weight: float = 1.0):
+        """
+        Initializes a Node object.
+
+        Args:
+            node_id (int): Node identifier.
+            name (str): Node name.
+            position (Vector3): Node position.
+            weight (float): Node weight.
+        """
+        self.id = node_id
+        self.name = name
+        self.position = position
+        self.weight = weight
+        self.velocity = Vector3(0, 0, 0)
+        self.pined = False
+        self.cluster_visited = False
+        self.clustered = False
+        self.blender_object: bpy.types.Object = None
+        self.page_content: str = ""
+        self.is_public: bool = False
+
+    def load_data_from_logseq(self, file_path: str):
+        """
+        Loads node data from a Logseq markdown file.
+
+        Args:
+            file_path (str): Path to the markdown file.
+        """
+        def is_page_public(page_content: str) -> bool:
+            """
+            Detects if a Logseq page is public based on its Markdown content.
+
+            Args:
+                page_content (str): Content of the markdown file.
+
+            Returns:
+                bool: True if the page is public, False otherwise.
+            """
+            for line in page_content.splitlines():
+                if line.strip().startswith("public::"):
+                    value = line.split("::")[1].strip()
+                    return value.lower() == "true"
+            return False
+
+        with open(file_path, 'r', encoding='utf-8') as f:
+            self.page_content = f.read()
+        self.is_public = is_page_public(self.page_content)
+
+    def distance_to(self, other: "Node") -> float:
+        """
+        Calculates the distance to another Node object.
+
+        Args:
+            other (Node): The other node.
+
+        Returns:
+            float: The distance to the other node.
+        """
+        return self.position.distance_to(other.position)
+
+    def zero_force(self):
+        """Placeholder method to reset any accumulated forces on the node."""
+        pass
+
+    def calculate_motion(self, delta_time: float):
+        """
+        Calculates the motion of the node based on forces acting on it.
+
+        Args:
+            delta_time (float): The time step for the simulation.
+        """
+        if not self.pined:
+            pass  # Implement motion calculation logic
+
+    def update_blender_object(self):
+        """Updates the corresponding Blender object to reflect any changes in position."""
+        if self.blender_object:
+            self.blender_object.location = self.position.to_blender_vector()
+```
+
+#### models/edge.py
+
+```python
+"""
+Edge Class
+This module contains the Edge class that represents a connection between nodes in the Logseq graph.
+"""
+
+from .node import Node
+import bpy
+
+class Edge:
+    """
+    Represents an edge between two nodes.
+
+    Attributes:
+        start (Node): The starting node.
+        end (Node): The ending node.
+        weight (float): The weight of the edge.
+        is_active (bool): Whether the edge is active.
+        blender_object (bpy.types.Object): Corresponding Blender object.
+    """
+
+    def __init__(self, start: Node, end: Node, weight: float = 1.0):
+        """
+        Initializes an Edge object.
+
+        Args:
+            start (Node): The starting node.
+            end (Node): The ending node.
+            weight (float): The weight of the edge.
+        """
+        self.start = start
+        self.end = end
+        self.weight = weight
+        self.is_active = True
+        self.blender_object: bpy.types.Object = None
+
+    def calculate_force(self):
+        """Placeholder method to calculate forces for the edge."""
+        pass
+        
+    def get_potential_energy(self) -> float:
+        """
+        Calculates the potential energy of the edge.
+
+        Returns:
+            float: The potential energy of the edge.
+        """
+        return 0.0  # Placeholder implementation
+
+    def deactivate(self):
+        """Deactivates the edge."""
+        self.is_active = False
+
+    def activate(self):
+        """Activates the edge."""
+        self.is_active = True
+
+    def update_blender_object(self):
+        """Updates the corresponding Blender object to reflect any changes."""
+        if self.blender_object:
+            pass  # Implement Blender object update logic
+```
+
+#### models/world.py
+
+```python
+"""
+World Class
+This module contains the World class that holds all nodes, edges, and clusters in the spatial knowledge graph.
+"""
+
+import os
+from typing import Dict, List
+from .node import Node
+from .edge import Edge
+from .cluster import Cluster
+from .vector3 import Vector3
+
+class World:
+    """
+    Represents the entire world or graph containing nodes and edges.
+
+    Attributes:
+        nodes (Dict[int, Node]): Dictionary of nodes in the graph.
+        edges (List[Edge]): List of edges in the graph.
+        clusters (List[Cluster]): List of clusters in the graph.
+        total_potential_energy (float): Total potential energy of the system.
+        total_kinetic_energy (float): Total kinetic energy of the system.
+    """
+
+    def __init__(self):
+        """Initializes a World object."""
+        self.nodes: Dict[int, Node] = {}
+        self.edges: List[Edge] = []
+        self.clusters: List[Cluster] = []
+        self.total_potential_energy: float = 0.0
+        self.total_kinetic_energy: float = 0.0
+
+    def load_logseq_data(self, graph_dir: str):
+        """
+        Loads Logseq graph data from a directory.
+
+        Args:
+            graph_dir (str): Path to the directory containing Logseq data.
+        """
+        pages_dir = os.path.join(graph_dir, "pages")
+
+        node_id_counter = 1
+        for file_name in os.listdir(pages_dir):
+            if file_name.endswith(".md"):
+                file_path = os.path.join(pages_dir, file_name)
+                node_name = file_name[:-3]  # Remove '.md' extension
+
+                # Create a Node and load its data
+                node = Node(node_id_counter, node_name, Vector3(0, 0, 0))
+                node.load_data_from_logseq(file_path)
+                
+                # Only add public nodes to the World
+                if node.is_public:
+                    self.nodes[node_id_counter] = node
+                    node_id_counter += 1
+
+        # Placeholder for Edge Creation
+        # Implement based on how you extract link information from Logseq data
+
+    def run_simulation(self, steps: int, delta_time: float):
+        """
+        Runs the physics simulation for the specified number of steps.
+
+        Args:
+            steps (int): Number of simulation steps.
+            delta_time (float): Time step for the simulation.
+        """
+        for _ in range(steps):
+            for edge in self.edges:
+                edge.calculate_force()
+            for node in self.nodes.values():
+                node.calculate_motion(delta_time)
+                node.update_blender_object()
+```
+
+#### models/cluster.py
+
+```python
+"""
+Cluster Class
+This module contains the Cluster class representing a cluster of interconnected nodes.
+"""
+
+from typing import List
+from .node import Node
+from .vector3 import Vector3
+
+class Cluster:
+    """
+    Represents a cluster of nodes in the graph.
+
+    Attributes:
+        nodes (List[Node]): List of nodes in the cluster.
+    """
+
+    def __init__(self):
+        """Initializes a Cluster object."""
+        self.nodes: List[Node] = []
+
+    def visualize_cluster(self):
+        """Placeholder method to visualize the cluster in Blender."""
+        pass
+        
+    def calculate_centroid(self) -> Vector3:
+        """
+        Calculates the centroid of the cluster.
+
+        Returns:
+            Vector3: The centroid of the cluster.
+        """
+        x = sum(node.position.x for node in self.nodes) / len(self.nodes)
+        y = sum(node.position.y for node in self.nodes) / len(self.nodes)
+        z = sum(node.position.z for node in self.nodes) / len(self.nodes)
+        return Vector3(x, y, z)
+```
+
+#### controllers/data_fetcher.py
+
+```python
+"""
+Data Fetcher
+This module contains functions to fetch Logseq data from GitHub and process it.
+"""
+
+import os
+import requests
+from zipfile import ZipFile
+
+def fetch_logseq_data_from_github(github_repo_url: str, local_extract_path: str):
+    """
+    Fetch Logseq data from a GitHub repository and extract it to a local path.
+
+    Args:
+        github_repo_url (str): URL to the GitHub repository.
+        local_extract_path (str): Local path to extract the data.
+    """
+    response = requests.get(github_repo_url, stream=True)
+    with open('logseq_graph.zip', 'wb') as out_file:
+        for chunk in response.iter_content(chunk_size=128):
+            out_file.write(chunk)
+            
+    with ZipFile('logseq_graph.zip', 'r') as zip_ref:
+        zip_ref.extractall(local_extract_path)
+```
+
+#### controllers/simulation_controller.py
+
+```python
+"""
+Simulation Controller
+This module contains the SimulationController class to manage the simulation execution.
+"""
+
+from ..models.world import World
+
+class SimulationController:
+    """
+    Manages the execution of the simulation.
+
+    Attributes:
+        world (World): The world to simulate.
+    """
+
+    def __init__(self, world: World):
+        """
+        Initializes a SimulationController object.
+
+        Args:
+            world (World): The world to simulate.
+        """
+        self.world = world
+
+    def run(self, steps: int, delta_time: float):
+        """
+        Runs the simulation.
+
+        Args:
+            steps (int): Number of simulation steps.
+            delta_time (float): Time step for the simulation.
+        """
+        self.world.run_simulation(steps, delta_time)
+```
+
+#### controllers/cluster_controller.py
+
+```python
+"""
+Cluster Controller
+This module contains the ClusterController class to manage cluster detection and visualization.
+"""
+
+from ..models.world import World
+from ..models.node import Node
+from ..models.cluster import Cluster
+
+class ClusterController:
+    """
+    Handles cluster detection and management.
+
+    Attributes:
+        _world (World): The world to manage clusters within.
+    """
+
+    def __init__(self, world: World):
+        """
+        Initializes a ClusterController object.
+
+        Args:
+            world (World): The world to manage clusters within.
+        """
+        self._world = world
+
+    def check_if_cluster(self, node: Node):
+        """
+        Checks if the given node belongs to a cluster and handles cluster creation.
+
+        Args:
+            node (Node): The node to check for cluster membership.
+        """
+        node.cluster_visited = True
+        if not node.phantom:  # Assuming you might use 'phantom' later
+            cluster = self._region(node)
+            if len(cluster) >= 3:
+                temp_cluster = Cluster()
+                temp_cluster.nodes.append(node)
+
+                for item in cluster:
+                    if not item.cluster_visited:
+                        item.cluster_visited = True
+                        temp = self._region(item)
+                        if len(temp) >= 3:
+                            cluster.extend(temp)
+
+                    if not item.clustered:
+                        item.clustered = True
+                        temp_cluster.nodes.append(item)
+
+                if len(temp_cluster.nodes) >= 3:
+                    self._world.clusters.append(temp_cluster)
+
+    def _region(self, node: Node) -> list:
+        """
+        Finds the region of nodes connected to the given node.
+
+        Args:
+            node (Node): The starting node.
+
+        Returns:
+            list: List of connected nodes.
+        """
+        cluster = []
+        for n in self._world.nodes.values():
+            if not n.phantom:  # Assuming you might use 'phantom' later
+                if n != node and node.distance_to(n) < 0.15:
+                    cluster.append(n)
+        return cluster
+
+    def find_clusters(self):
+        """Finds and groups nodes into clusters."""
+        for node in self._world.nodes.values():
+            if not node.cluster_visited:
+                self.check_if_cluster(node)
+```
+
+#### views/blender_view.py
+
+```python
+"""
+Blender View
+This module contains functions to visualize the spatial knowledge graph in Blender.
+"""
+
+import bpy
+from ..models.vector3 import Vector3
+from ..models.world import World
+
+def create_blender_objects(world: World):
+    """
+    Creates Blender objects for each node in the world.
+
+    Args:
+        world (World): The world containing nodes and edges.
+    """
+    for node in world.nodes.values():
+        bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=0.05, location=node.position.to_blender_vector())
+        node.blender_object = bpy.context.object
+        node.blender_object.name = node.name
+
+def update_blender_objects(world: World):
+    """
+    Updates Blender objects to reflect changes in the simulation.
+
+    Args:
+        world (World): The world containing nodes and edges.
+    """
+    for node in world.nodes.values():
+        node.update_blender_object()
+```
+
+#### main.py
+
+```python
+"""
+Main Module
+This module integrates all components and runs the simulation.
+"""
+
+import os
+from models.world import World
+from controllers.data_fetcher import fetch_logseq_data_from_github
+from controllers.simulation_controller import SimulationController
+from controllers.cluster_controller import ClusterController
+from views.blender_view import create_blender_objects, update_blender_objects
+
+# Constants
+GITHUB_REPO_URL = "https://github.com/yourusername/yourrepo/archive/refs/heads/main.zip"
+LOCAL_EXTRACT_PATH = "/path/to/local/logseq_directory"
+SIMULATION_STEPS = 100
+DELTA_TIME = 0.01
+
+def main():
+    # Fetch Logseq data from GitHub
+    fetch_logseq_data_from_github(GITHUB_REPO_URL, LOCAL_EXTRACT_PATH)
+
+    # Load data into the world
+    world = World()
+    world.load_logseq_data(LOCAL_EXTRACT_PATH)
+
+    # Create Blender objects
+    create_blender_objects(world)
+
+    # Run the simulation
+    simulation_controller = SimulationController(world)
+    simulation_controller.run(SIMULATION_STEPS, DELTA_TIME)
+
+    # Update Blender objects
+    update_blender_objects(world)
+
+   
+

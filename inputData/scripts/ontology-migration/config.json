@@ -1,0 +1,63 @@
+{
+  "sourceDirectory": "/home/user/logseq/mainKnowledgeGraph/pages",
+  "reportsDirectory": "/home/user/logseq/docs/ontology-migration/reports",
+  "schemaDirectory": "/home/user/logseq/docs/ontology-migration/schemas",
+  "iriRegistryPath": "/home/user/logseq/docs/ontology-migration/iri-registry.json",
+  "baseIriUrl": "http://ontology.logseq.io",
+  "batchSize": 100,
+  "dryRun": true,
+  "verboseLogging": true,
+  "validateAfterUpdate": true,
+  "preserveOriginalContent": true,
+  "enforceSingleBlock": true,
+  "blockPositionTop": true,
+  "namespaceMapping": {
+    "ai": "ai:",
+    "bc": "bc:",
+    "rb": "rb:",
+    "mv": "mv:",
+    "dt": "dt:"
+  },
+  "patterns": {
+    "pattern1": "Comprehensive Structured Format (AI/Blockchain)",
+    "pattern2": "Blockchain Pattern with OWL Axioms",
+    "pattern3": "Robotics Simplified Pattern",
+    "pattern4": "Logseq Native Minimal Pattern",
+    "pattern5": "Metaverse Flat Pattern",
+    "pattern6": "Extended Metadata Pattern"
+  },
+  "criticalFixes": {
+    "roboticsNamespace": true,
+    "classNaming": true,
+    "statusMaturity": true,
+    "duplicateSections": true
+  },
+  "canonicalFormat": {
+    "indentation": 2,
+    "useSpaces": true,
+    "collapsedByDefault": true,
+    "includeEmptySections": false
+  },
+  "requiredFields": [
+    "ontology",
+    "term-id",
+    "preferred-term",
+    "definition",
+    "source-domain",
+    "owl:class",
+    "owl:physicality",
+    "owl:role",
+    "status",
+    "public-access",
+    "last-updated"
+  ],
+  "recommendedFields": [
+    "maturity",
+    "authority-score",
+    "quality-score",
+    "source",
+    "version",
+    "belongsToDomain",
+    "is-subclass-of"
+  ]
+}

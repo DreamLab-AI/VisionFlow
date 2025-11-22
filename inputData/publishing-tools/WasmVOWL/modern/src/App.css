@@ -1,0 +1,10 @@
+/* Minimal App.css - Core animations and canvas only */
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+canvas {
+  display: block;
+  outline: none;
+}

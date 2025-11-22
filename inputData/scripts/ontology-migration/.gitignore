@@ -1,0 +1,24 @@
+# Node modules (if any are installed later)
+node_modules/
+
+# Generated reports (can be regenerated)
+../../docs/ontology-migration/reports/*.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+.temp/

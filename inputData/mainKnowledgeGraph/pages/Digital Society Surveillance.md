@@ -1,0 +1,158 @@
+- ## US Politics and Big Tech
+	- 1.  Secret lobbying campaign: Shortly after an assassination attempt on Trump, Elon Musk, David Sacks, and Tucker Carlson engaged in a "secret lobbying campaign" to secure Vance's position as Trump's VP pick. They called Trump directly to advocate for Vance [5](https://newrepublic.com/post/183888/tucker-carlson-elon-musk-secretly-lobbied-trump-jd-vance).
+	  2.  Silicon Valley connections: Vance has extensive ties to Silicon Valley elites, developed during his time as a venture capitalist. His connections include Peter Thiel, who introduced Vance to Trump in 2021, and David Sacks, who held a pro-Trump fundraiser that Vance helped organise [3](https://www.theguardian.com/technology/article/2024/jul/19/jd-vance-trump-vp-pick-silicon-valley).
+	  3.  Financial support: Tech billionaires are throwing significant financial support behind the Trump-Vance ticket. Elon Musk reportedly plans to donate $45 million per month to a pro-Trump PAC, while other tech figures like Marc Andreessen and Ben Horowitz have pledged donations [4](https://www.cbsnews.com/news/trump-jd-vance-silicon-valley-support/) [5](https://newrepublic.com/post/183888/tucker-carlson-elon-musk-secretly-lobbied-trump-jd-vance).
+	  4.  Endorsements: Prominent tech investors, including Marc Andreessen and Ben Horowitz, have publicly endorsed Trump and Vance. They released a podcast explaining their rationale for backing the ticket [1](https://www.gpb.org/news/2024/07/17/five-things-know-about-jd-vances-ties-tech-billionaires).
+	  5.  New super PAC: A new tech-aligned super PAC called America PAC was unveiled shortly after Vance's nomination, with backing from crypto billionaires and venture capitalists. It has already raised over $8 million [1](https://www.gpb.org/news/2024/07/17/five-things-know-about-jd-vances-ties-tech-billionaires).
+	  6.  Convention support: David Sacks, a venture capitalist and Vance supporter, spoke at the Republican National Convention and has been actively encouraging other tech figures to support Trump and Vance [3](https://www.theguardian.com/technology/article/2024/jul/19/jd-vance-trump-vp-pick-silicon-valley) [4](https://www.cbsnews.com/news/trump-jd-vance-silicon-valley-support/).
+	- **Big Tech Leaders Influencing Trump's VP Choice**
+		- **Silicon Valley Support**
+			- Prominent tech figures, including [Elon Musk](https://www.euronews.com/next/2024/07/16/us-election-elon-musk-and-other-us-tech-giants-are-supporting-trump-vance), have publicly endorsed the Trump-Vance ticket. Musk described the partnership as one that "resounds with victory."
+			- [Wired article](https://www.wired.com/story/silicon-valley-elon-musk-rally-behind-vance-vp/) on Silicon Valley and Musk's support for Vance.
+		- **Fundraising Dinner**
+			- A critical fundraising event in San Francisco attended by Trump and around 24 technology and cryptocurrency leaders significantly influenced Vance's selection. The $300,000-per-person dinner, hosted by tech entrepreneur David Sacks, saw attendees overwhelmingly recommending Vance as Trump's running mate.
+			- [New York Times article](https://www.nytimes.com/2024/07/17/technology/jd-vance-tech-silicon-valley.html) on the fundraising dinner's impact.
+		- **Peter Thiel's Influence**
+			- Vance's connections to Silicon Valley, particularly his association with influential tech investor [Peter Thiel](https://www.wired.com/story/silicon-valley-elon-musk-rally-behind-vance-vp/), have been instrumental in his rise within the Republican Party. Thiel contributed $15 million to Vance's 2022 Senate campaign.
+			- [New York Times](https://www.nytimes.com/2024/07/17/technology/jd-vance-tech-silicon-valley.html) on Thiel's financial backing.
+		- **Financial Backing**
+			- Tech leaders are not only vocally supporting Vance but also providing substantial financial support. [Elon Musk](https://www.euronews.com/next/2024/07/16/us-election-elon-musk-and-other-us-tech-giants-are-supporting-trump-vance) is reportedly planning to pledge $45 million a month to a pro-Trump political committee called America PAC.
+			- The Winklevoss twins, known for their involvement in cryptocurrency, each donated $250,000 to America PAC.
+		- **Mixed Reactions**
+			- While many Silicon Valley conservatives are enthusiastic about Vance's selection, not all GOP donors are pleased. Billionaire hedge fund manager Ken Griffin expressed a more reserved stance.
+			- [Business Insider](https://www.businessinsider.com/business-ceo-reactions-jd-vance-trump-vp-musk-griffin-murdoch-2024-7) on the mixed reactions from GOP donors.
+		- **Tech Industry Appeal**
+			- Vance's background as a former venture capitalist and his connections to Silicon Valley are seen as potentially beneficial for the tech industry. Some investors believe a Trump-Vance administration could be favorable for startups and capitalism.
+			- [Wired article](https://www.wired.com/story/silicon-valley-elon-musk-rally-behind-vance-vp/) on the potential benefits for the tech industry.
+			
+			  This influence from tech leaders on Trump's VP choice highlights the growing intersection between Silicon Valley and national politics, with potential implications for future tech policies and regulations.
+- ## Intelligence Agencies and Tech Companies
+	- **Origins of the Internet**
+		- The internet originated from ARPANET, a Pentagon project for counterinsurgency. (Score: 10/10)
+			- [ARPANET](https://www.darpa.mil/about-us/timeline/arpanet) was a project of the U.S. Department of Defence's Advanced Research Projects Agency.
+			- [Internet Society](https://www.internetsociety.org/internet/history-internet/brief-history-internet/) on ARPANET's primary goal.
+			- [Living Internet](https://www.livinginternet.com/i/ii_arpanet.htm) on ARPANET's purpose.
+			- [Computer.org](https://www.computer.org/csdl/magazine/an/2009/01/man2009010006/13rRUxBJhpW) on ARPANET's timeline.
+			- [Science and Technology Research News](https://www.scienceandtechnologyresearchnews.com/birth-of-the-internet/) on the evolution of the internet.
+			- [RAND](https://www.rand.org/pubs/research_memoranda/RM3420.html) on ARPANET's military applications.
+	- **Intelligence Agencies and Tech Companies**
+		- Intelligence agencies have had a long-standing relationship with Wall Street and tech companies. (Score: 9/10)
+			- Evidence: [In-Q-Tel](https://en.wikipedia.org/wiki/In-Q-Tel)'s connections with CIA and tech companies.
+		- The CIA launched [In-Q-Tel](https://www.iqt.org/about-iqt/) in the late 90s to become big players in Silicon Valley. (Score: 10/10)
+			- In-Q-Tel was founded to support the CIA and other intelligence agencies' technical needs.
+			- [Business Insider on CIA-funded companies](https://www.businessinsider.com/companies-funded-by-cia-in-q-tel-2016-9)
+		- Many major tech companies have intelligence agency connections from their inception. (Score: 9/10)
+			- [Google Earth originated from Keyhole](https://www.iqt.org/keyhole-inc/), funded by In-Q-Tel.
+			- [Palantir Technologies](https://www.bloomberg.com/features/2018-palantir-peter-thiel/) received early funding from In-Q-Tel.
+			- [Amazon Web Services](https://www.theatlantic.com/technology/archive/2014/07/the-details-about-the-cias-deal-with-amazon/374632/) has significant contracts with intelligence agencies.
+		- Moving operations to the private sector allows intelligence agencies more freedom. (Score: 9/10)
+			- In-Q-Tel's structure as a separate non-profit entity provides operational flexibility. [Brief on CIA's venture capital arm](https://brief.bismarckanalysis.com/p/the-cias-venture-capital-arm)
+		- Big tech companies have been collaborating with intelligence agencies for warrantless surveillance. (Score: 9/10)
+			- [PRISM program](https://www.theguardian.com/world/2013/jun/06/us-tech-giants-nsa-data) involving data from major tech companies.
+			- [Section 702 of the FISA Amendments Act](https://www.eff.org/702-spying).
+			- [National Security Letters](https://www.eff.org/issues/national-security-letters).
+		- There's a "revolving door" between public and private sectors in intelligence and tech. (Score: 9/10)
+			- [Guardian article on tech giants and intelligence](https://www.theguardian.com/world/2019/jul/22/tech-giants-employees-intelligence-agencies-cyber-warfare).
+			- [CNBC on tech and government](https://www.cnbc.com/2019/07/23/big-tech-and-the-government-are-building-an-army-of-ai-experts.html).
+	- **Historical Composition of the CIA**
+		- The CIA began as largely comprised of Wall Street lawyers and bankers. (Score: 8/10)
+			- [Office of Strategic Services (OSS)](https://www.cia.gov/stories/story/the-office-of-strategic-services-the-predecessors-of-todays-cia/) was heavily populated by individuals from elite backgrounds.
+			- William J. Donovan, founder of the OSS, was a Wall Street lawyer. [CIA Museum on William J. Donovan](https://www.cia.gov/legacy/museum/exhibit/oss-founder-william-j-donovan/)
+			- [JSTOR article](https://www.jstor.org/stable/26414048) on early CIA officers' backgrounds.
+			- "The Devil's Chessboard" by David Talbot provides details on how Wall Street lawyers and bankers shaped the early CIA. [Harper Collins](https://www.harpercollins.com/products/the-devils-chessboard-david-talbot)
+			- [CIA's early focus on economic intelligence](https://www.cia.gov/readingroom/docs/CIA-RDP90-00965R000100120027-6.pdf).
+	- **CIA Involvement in Coups**
+		- Many early CIA coups were done on behalf of US corporate interests. (Score: 8/10)
+			- [1953 Iranian coup](https://nsarchive2.gwu.edu/NSAEBB/NSAEBB435/): Overthrow of Prime Minister Mohammad Mosaddegh.
+			- [1954 Guatemalan coup](https://history.state.gov/milestones/1953-1960/guatemala): Overthrow of Jacobo Árbenz.
+			- [1961 Bay of Pigs Invasion](https://www.jfklibrary.org/learn/about-jfk/jfk-in-history/the-bay-of-pigs): Failed invasion of Cuba.
+			- [1973 Chilean coup](https://nsarchive2.gwu.edu/NSAEBB/NSAEBB8/nsaebb8i.htm): Overthrow of Salvador Allende.
+			- "The Brothers: John Foster Dulles, Allen Dulles, and Their Secret World War" by Stephen Kinzer. [Macmillan](https://us.macmillan.com/books/9781250053121/thebrothers).
+	- **Tech Oligarchs and Political Donations**
+		- Tech oligarchs are major donors to US political parties. (Score: 9/10)
+			- [OpenSecrets](https://www.opensecrets.org/industries/indus.php?ind=C5120) on political donations from tech leaders.
+			- [CNBC](https://www.cnbc.com/2020/10/28/tech-billionaires-are-pouring-money-into-the-2020-election.html) on top tech donors.
+			- [Vox](https://www.vox.com/recode/2020/10/31/21540027/silicon-valley-tech-2020-election-donations-biden-trump) on bipartisan donations.
+			- [Politico](https://www.politico.com/news/2020/01/31/tech-billionaires-donate-super-pacs-110251) on Super PAC contributions.
+			- [OpenSecrets on lobbying efforts](https://www.opensecrets.org/industries/lobbying.php?ind=C5120).
+			- [New York Times](https://www.nytimes.com/2020/10/20/technology/silicon-valley-election-donations.html) on the increasing trend of tech leaders in political funding.
+	- **Tether and Law Enforcement Cooperation**
+		- Tether has been open about sharing data and freezing accounts in cooperation with law enforcement. (Score: 8/10)
+			- [Tether's cooperation with law enforcement](https://tether.to/en/tether-supports-law-enforcement-globally/).
+			- [CoinDesk on account freezing](https://www.coindesk.com/markets/2022/01/13/tether-freezes-160m-of-usdt-stablecoin-on-ethereum-blockchain/).
+			- [Tether transparency reports](https://tether.to/en/transparency/#reports).
+			- [Tether's commitment to regulatory compliance](https://tether.to/en/tether-combating-global-financial-crime/).
+			- [Financial Times](https://www.ft.com/content/4da3060c-8e1a-439f-a1d7-a6a4688ad6ca) on criticism and controversy.
+			- [CFTC press release](https://www.cftc.gov/PressRoom/PressReleases/8450-21) on Tether's legal issues.
+		- Tether has integrated Chainalysis, which is funded by In-Q-Tel. (Score: 9/10)
+			- [Tether's integration with Chainalysis](https://tether.to/en/tether-to-use-chainalysis-know-your-transaction/).
+			- [Chainalysis](https://www.chainalysis.com/) provides tools for compliance and investigation.
+			- [In-Q-Tel's investment in Chainalysis](https://www.coindesk.com/markets/2020/04/16/cia-fund-invests-in-chainalysis-blockchain-analysis-firm/).
+- ### Overview of Government Data Acquisition Practices
+	- **Surveillance Capitalism**: This concept pertains to the commodification of personal data by private entities. The US government, among others, acquires this data for intelligence and enforcement purposes, circumventing traditional surveillance and legal protocols.
+	- **Data Brokers' Role**: Data brokers are pivotal, operating businesses that amass and trade personal data without interacting directly with consumers. Their databases encompass a wide array, from social media behaviour to precise geolocation details.
+	- #### THe TrUTh iS OuT ThERe
+		- This was [[Anthropic Claude]] responding to a research formatted query about 'conspiracy theories' found online.
+		- ![image.png](../assets/image_1719001668969_0.png){:width 600}
+		- "Open source response"
+			- CIA/MI5 Hacking Smart Devices
+				- **Verdict:** Partly True. The CIA and MI5 have been known to engage in surveillance activities involving internet-connected devices through programmes like Weeping Angel. This program was designed to hack into Samsung smart TVs, but it's important to note that the extent of this capability and its current status are classified.
+			- CIA Infecting Car Control Systems
+				- **Verdict:** Partly True. Vault 7 revealed a range of hacking tools developed by the CIA, including those capable of exploiting vulnerabilities in modern car systems. However, there's no concrete evidence to suggest that the CIA has used these tools to remotely take control of cars.
+			- Tech Companies Providing NSA with Zero-Day Vulnerabilities
+				- **Verdict:** True. Documents leaked by Edward Snowden revealed that tech companies like Microsoft did provide advance warnings about zero-day vulnerabilities to the NSA before disclosing them to the public. This was part of a broader program aimed at improving national cybersecurity and giving government agencies an early warning system.
+			- NSA Breaking Tor Networks
+				- **Verdict:** Partly True. While the NSA has been involved in efforts to compromise Tor, there's no conclusive evidence that they have successfully broken the network or can identify users with certainty. However, it is known that various intelligence agencies have attempted to exploit vulnerabilities in Tor.
+			- NSA Intercepts Devices and Installs Malware Chips
+				- **Verdict:** Partly True. The ANT/TAO Catalogue, leaked by Edward Snowden in 2013, reveals the NSA's capabilities for intercepting and altering electronic devices, including installing malware or backdoors before they are delivered to customers. However, this catalogue primarily focuses on exploiting vulnerabilities in targeted surveillance operations rather than mass production of compromised devices.
+			- American-Made Electronics Allow Access via Radio Frequencies
+				- **Verdict:** Partly True. The Cottonmouth-I and SURLYSPAWN projects, as mentioned in the Snowden leaks, involve the use of radio frequency (RF) signals to remotely access devices. However, these were designed for specific targeted surveillance operations rather than mass surveillance. It's true that many modern electronic devices emit RF signals or can be accessed through their wireless capabilities, but this does not inherently mean that all American-made electronics are compromised for remote access by the NSA or FBI without further context.
+			- Backdoored Random Number Generators
+				- **Verdict:** Partly True. The Dual Elliptic Curve Deterministic Random Bit Generator (Dual EC DRBG) algorithm, developed by NIST and NSA, has been criticized for its potential to contain a backdoor that could allow the NSA to break RSA encryption.
+			- NSA Backdoors in CPUs
+				- **Verdict:** Partly True. The claim refers to Intel ME (Management Engine) and AMD PSP (Platform Security Processor), which are both hardware-based security features integrated into modern CPUs. While these technologies can operate independently of the main system, there's no conclusive evidence that they were implemented at the NSA's request or are being used by the NSA specifically for mass surveillance. Their primary purpose is enterprise-level management and security rather than clandestine operations.
+			- FBI Distributes Undetectable Malware
+				- **Verdict:** Partly True. The claim likely refers to the FBI's use of malware for law enforcement purposes, such as tracking suspects or gaining access to encrypted data. While the FBI has been known to use such tools, it's not accurate to say that anti-virus software is legally not allowed to detect them. However, some of these tools may be designed to evade detection by common anti-virus programmes.
+			- Backdoored Random Number Generators
+				- **Verdict:** Partly True. The Dual Elliptic Curve Deterministic Random Bit Generator (Dual EC DRBG) algorithm, developed by NIST and NSA, has been criticized for its potential to contain a backdoor that could allow the NSA to break RSA encryption. However, it's important to note that while the algorithm's vulnerabilities have been identified and it has been subsequently withdrawn from use, there's no conclusive evidence that the NSA actively exploited this backdoor to break RSA encryption on a widespread scale.
+- ### Legal Framework, International Agreements, and Concerns
+	- **Minimal Legal Barriers**: The acquisition of commercial data by governments faces scant legal opposition, attributed to the classification of such data as "publicly available." This status exempts it from the stringent privacy protections applicable to more confidential data.
+	- **Privacy and Civil Liberties Issues**: The extensive gathering and utilisation of personal data by governmental entities elicit significant privacy alarms. Despite assurances of anonymisation, methods often exist to re-identify individuals, raising consent and privacy violation concerns.
+	- **Data Sharing Agreements
+		- Five Eyes Alliance**: International agreements like the Five Eyes (comprising Australia, Canada, New Zealand, the United Kingdom, and the United States) facilitate extensive data sharing for intelligence purposes. This raises the stakes for data privacy, with personal data potentially shared across borders without explicit consent from individuals.
+- ### The Influence of GDPR and the UK's Data Protection Framework
+	- **General Data Protection Regulation (GDPR)**: The GDPR represents a robust data protection initiative, offering EU citizens significant control over their personal data. It mandates explicit consent for data processing and grants individuals the right to access and request the deletion of their data. However, its effectiveness is occasionally undermined by complex consent forms and the global nature of data flows which transcend its jurisdiction.
+	- **The UK Data Protection Act**: Post-Brexit, the UK continues to uphold strong data protection standards, mirroring GDPR principles. However, future divergences may impact international data sharing, especially concerning agreements with entities in jurisdictions with differing privacy standards.
+- ### Technological Advancements and Their Dual-Edged Impact
+	- **Rise of AI in Data Analysis**: AI's evolution has transformed data analysis, enabling the extraction of nuanced insights from vast datasets. This capability enhances government surveillance potential, making it more efficient but also raising ethical concerns.
+	- **AI and Surveillance**: The misuse of AI for surveillance by state actors is a growing concern. AI can automate the monitoring of individuals on an unprecedented scale, necessitating stringent oversight.
+	- **Data Encoded in AI Models**: Information about individuals becoming encoded in the latent spaces of foundational AI models poses unique challenges. This data embedding can inadvertently leak personal information, complicating efforts to protect individual privacy.
+- ### Prospects for Reform and the Future Landscape
+	- **Judicial and Legislative Responses**: Legal frameworks globally are under pressure to evolve in response to technological advancements. Judicial interventions may set new precedents, while legislative reforms, informed by GDPR and other standards, could offer more comprehensive protections.
+	- **Impact of AI Regulation**: The regulation of AI technologies, to prevent their misuse for surveillance, becomes increasingly critical. Ensuring transparency and accountability in AI operations is paramount to safeguarding civil liberties.
+	- **International Cooperation**: Addressing the global nature of data privacy requires international cooperation. Agreements on data protection standards and ethical AI use are essential to navigating the complex web of data surveillance, sharing, and protection.
+- # Misc links
+- [Signal Foundation Warns Against EU's Plan to Scan Private Messages for CSAM (thehackernews.com)](https://thehackernews.com/2024/06/signal-foundation-warns-against-eus.html?m=1)
+- [Sealed Court Files Obscure Rise in Electronic Surveillance WSJ](https://www.wsj.com/articles/sealed-court-files-obscure-rise-in-electronic-surveillance-1401761770)
+- [Portfolio – Jennifer Valentino DeVries (jennifervalentinodevries.com)](https://jennifervalentinodevries.com/portfolio/)
+- # Government and Agency Involvement in AI
+	- Former NSA Director Michael Hayden said:
+	- ```text
+	  "we kill people based on metadata"
+	  ```
+	- during a debate in 2014 at John Hopkins University. Hayden admitted that the U.S. government uses metadata, which refers to data about communications like phone records (numbers called, time, duration) rather than the actual content, as a basis for killing people in drone strikes against terrorist suspects abroad. Reports based on Snowden leaks alleged the NSA used metadata analysis to track potential targets for lethal drone operations.
+	- OpenAI [has appointed](https://openai.com/index/openai-announces-leadership-transition/) Retired U.S. Army General Paul M. Nakasone to its Board of Directors and the Board's Safety and Security Committee. General Nakasone is a leading expert in cybersecurity, having previously served as the Director of the National Security Agency (NSA) and Commander of U.S. Cyber Command (USCYBERCOM).
+		-
+		- [(1) Edward Snowden on X: "They've gone full mask-off: 𝐝𝐨 𝐧𝐨𝐭 𝐞𝐯𝐞𝐫 trust @OpenAI or its products (ChatGPT etc). There is only one reason for appointing an @NSAGov Director to your board. This is a willful, calculated betrayal of the rights of every person on Earth. You have been warned." / X (twitter.com)](https://twitter.com/Snowden/status/1801610725229498403)
+		- {{twitter https://twitter.com/Snowden/status/1801610725229498403}}
+	- <iframe src="https://www.eff.org/deeplinks/2024/04/us-senate-and-biden-administration-shamefully-renew-and-expand-fisa-section-702-0" style="width: 100%; height: 600px"></iframe>
+- [Chat Control: The EU’s CSEM scanner proposal – Patrick Breyer (patrick-breyer.de)](https://www.patrick-breyer.de/en/posts/chat-control/)
+-
+
+
+## Metadata
+
+- **Last Updated**: 2025-11-16
+- **Review Status**: Automated remediation with 2025 context
+- **Verification**: Academic sources verified
+- **Regional Context**: UK/North England where applicable

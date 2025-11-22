@@ -1,0 +1,5 @@
+- [(1) New Photomaker Nodes : comfyui (reddit.com)](https://www.reddit.com/r/comfyui/comments/19fbrb9/new_photomaker_nodes/)
+- [iperov/DeepFaceLive: Real-time face swap for PC streaming or video calls (github.com)](https://github.com/iperov/DeepFaceLive)
+- [FaceFusion: The Definitive Deep Dive & Walkthrough
+	 - Everything You Always Wanted to Know About... (youtube.com)](https://www.youtube.com/watch?v=nvPbdHVF12c&t=204s)
+-

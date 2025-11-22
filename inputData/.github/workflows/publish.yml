@@ -1,0 +1,188 @@
+name: Clean Publish to knowledgeGraph
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      # ========================================
+      # SETUP
+      # ========================================
+      - name: Checkout source repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          cache: true
+
+      - name: Install Python dependencies
+        run: pip install rdflib==7.0.0
+
+      - name: Install wasm-pack
+        uses: jetli/wasm-pack-action@v0.4.0
+        with:
+          version: 'latest'
+
+      # ========================================
+      # ONTOLOGY & CONTENT PREP
+      # ========================================
+      - name: Generate ontology files
+        run: |
+          # Generate TTL from ontology headers
+          python3 Ontology-Tools/tools/converters/webvowl_header_only_converter.py \
+            --pages-dir mainKnowledgeGraph/pages \
+            --output /tmp/narrativegoldmine-ontology.ttl
+
+          # Convert to WebVOWL JSON
+          python3 Ontology-Tools/tools/converters/ttl_to_webvowl_json.py \
+            --input /tmp/narrativegoldmine-ontology.ttl \
+            --output /tmp/narrativegoldmine-ontology.json
+
+          echo "✅ Ontology generated"
+
+      - name: Prepare public content
+        run: |
+          # Create clean copy for publishing
+          cp -r mainKnowledgeGraph mainKnowledgeGraph-public
+
+          # Keep only pages with public markers
+          # Either: public:: true at top OR public-access:: true in OntologyBlock
+          removed=0
+
+          for file in mainKnowledgeGraph-public/pages/*.md; do
+            [ -f "$file" ] || continue
+
+            # Check if page has public markers
+            has_public=0
+            if head -1 "$file" | grep -q "^public:: true" 2>/dev/null; then
+              has_public=1
+            elif grep -q "public-access:: true" "$file" 2>/dev/null; then
+              has_public=1
+            fi
+
+            # Remove if no public markers
+            if [ $has_public -eq 0 ]; then
+              # echo "Removing non-public: $(basename "$file")"
+              rm "$file"
+              removed=$((removed + 1))
+            fi
+          done
+
+          echo "✅ Removed $removed non-public files"
+
+      # ========================================
+      # API GENERATION
+      # ========================================
+      - name: Generate Search Index & Page API
+        run: |
+          mkdir -p www/api/pages
+
+          # Generate search index from markdown pages
+          python3 Ontology-Tools/tools/converters/generate_search_index.py \
+            mainKnowledgeGraph-public/pages \
+            www/api/search-index.json
+
+          # Generate individual page JSON files
+          python3 Ontology-Tools/tools/converters/generate_page_api.py \
+            mainKnowledgeGraph-public/pages \
+            www/api/pages
+
+          # Verify outputs
+          if [ -f "www/api/search-index.json" ]; then
+            doc_count=$(jq 'length' www/api/search-index.json)
+            echo "✅ Search index created with $doc_count documents"
+          else
+            echo "⚠️ Warning: Search index not created"
+          fi
+
+      # ========================================
+      # WASM & REACT BUILD
+      # ========================================
+      - name: Install wasm-js
+        run: cargo install wasm-js
+
+      - name: Build WASM ontology parser with wasm-js
+        run: |
+          cd publishing-tools/WasmVOWL/rust-wasm
+          npm run build
+          echo "✅ WASM built with wasm-js"
+
+      - name: Build React SPA
+        run: |
+          cd publishing-tools/WasmVOWL/modern
+
+          # Copy ontology for auto-load
+          mkdir -p public/data
+          cp /tmp/narrativegoldmine-ontology.json public/data/ontology.json
+
+          # Install all dependencies
+          npm ci --prefer-offline --no-audit
+
+          # Install locally-built WASM as npm package
+          npm install ../rust-wasm/pkg
+          echo "✅ Local WASM installed"
+
+          # Increase Node memory for build (4GB max)
+          export NODE_OPTIONS="--max-old-space-size=4096"
+
+          # Build production bundle
+          npm run build
+
+          # Copy to deployment directory
+          mkdir -p ../../../www
+          cp -r dist/* ../../../www/
+
+          echo "✅ React SPA built and copied"
+
+      # ========================================
+      # DEPLOY
+      # ========================================
+      - name: Finalize website
+        run: |
+          # GitHub Pages config
+          touch www/.nojekyll
+
+          # Custom domain
+          echo 'narrativegoldmine.com' > www/CNAME
+
+          # Count final output
+          total_files=$(find www -type f | wc -l)
+          echo "✅ Website ready with $total_files files"
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          personal_token: ${{ secrets.ACCESS_TOKEN }}
+          external_repository: DreamLab-AI/knowledgeGraph
+          publish_branch: gh-pages
+          publish_dir: www
+          commit_message: "Deploy from jjohare/logseq @ ${{ github.sha }}"
+
+      - name: Deployment summary
+        run: |
+          echo "================================"
+          echo "✅ Deployment Complete"
+          echo "================================"
+          echo "🌐 Live at: https://narrativegoldmine.com"

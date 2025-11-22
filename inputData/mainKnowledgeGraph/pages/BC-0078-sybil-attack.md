@@ -1,0 +1,40 @@
+- ### OntologyBlock
+  id:: sybil-attack-ontology
+  collapsed:: true
+
+  - **Identification**
+    - public-access:: true
+    - ontology:: true
+    - term-id:: BC-0078
+    - preferred-term:: Sybil Attack
+    - source-domain:: blockchain
+    - status:: complete
+    - version:: 1.0.0
+    - last-updated:: 2025-10-28
+
+  - **Definition**
+    - definition:: Multiple identity attack within blockchain systems, providing essential functionality for distributed ledger technology operations and properties.
+    - maturity:: mature
+    - source:: [[ISO/IEC 23257:2021]], [[IEEE 2418.1]], [[NIST NISTIR]]
+    - authority-score:: 0.95
+
+  - **Semantic Classification**
+    - owl:class:: bc:SybilAttack
+    - owl:physicality:: VirtualEntity
+    - owl:role:: Object
+    - owl:inferred-class:: bc:VirtualObject
+    - belongsToDomain:: [[CryptographicDomain]]
+
+  - #### OWL Restrictions
+    
+    
+
+  - #### Relationships
+    id:: relationships
+    - is-subclass-of:: [[Blockchain Network]]
+
+  - #### CrossDomainBridges
+    - bridges-to:: [[BlockchainEntity]] via is-subclass-of
+    - bridges-to:: [[Networkcomponent]] via is-subclass-of
+
+  - 

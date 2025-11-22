@@ -1,0 +1,17 @@
+- black[YHA Black Sail Hostel | Cheap Cleator, Lake District Accommodation](https://www.yha.org.uk/hostel/yha-black-sail)
+- # DJ list
+	- Gezzi - john
+	- DONE George, Kev
+	- DONE Claire Reddread
+	- Bowser - john
+	- DONE Me
+	- Tom Keegan - john
+	- Kostas - john
+	- Black & Decker & Stu - nick
+	- Bev - nick
+	- DONE Fiona
+	- DONE Nick Slut & Fash
+	- Rusty - nick
+	-
+	-
+	-

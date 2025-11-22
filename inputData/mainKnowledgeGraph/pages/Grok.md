@@ -1,0 +1,1 @@
+- [Open Release of Grok-1 (x.ai)](https://x.ai/blog/grok-os)

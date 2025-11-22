@@ -1,0 +1,6 @@
+- This is an idea I am working on for multiple pitches
+	- [matteobrusa/Password-protection-for-static-pages: Password protection for static pages (github.com)](https://github.com/matteobrusa/Password-protection-for-static-pages) useful for github pages
+	- Everyone gets a different password to one of my sites
+	- The passwords lead to different combinations of pages which support one idea or another
+	- <iframe src="https://www.visionflow.info" style="width: 100%; height: 600px"></iframe>
+-

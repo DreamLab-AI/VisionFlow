@@ -1,0 +1,30 @@
+{
+  "name": "ontology-migration-pipeline",
+  "version": "1.0.0",
+  "description": "Automated pipeline for batch processing and standardizing ontology blocks in Logseq markdown files",
+  "main": "cli.js",
+  "scripts": {
+    "scan": "node cli.js scan",
+    "preview": "node cli.js preview 10",
+    "process": "node cli.js process",
+    "validate": "node cli.js validate",
+    "stats": "node cli.js stats",
+    "test": "node cli.js test"
+  },
+  "keywords": [
+    "ontology",
+    "logseq",
+    "markdown",
+    "migration",
+    "owl",
+    "semantic-web"
+  ],
+  "author": "Claude Code Agent",
+  "license": "MIT",
+  "bin": {
+    "ontology-migrate": "./cli.js"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

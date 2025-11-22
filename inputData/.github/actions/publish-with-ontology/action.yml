@@ -1,0 +1,142 @@
+# LEGACY COMPOSITE ACTION
+# This action is retained for historical reference.
+# The canonical deployment pipeline is defined in .github/workflows/publish.yml.
+# Prefer updating that workflow rather than this composite action.
+name: 'Publish Logseq with Ontology'
+description: 'Publishes Logseq graph with custom ontology visualization'
+
+inputs:
+  graph-directory:
+    description: "Graph's root directory"
+    required: true
+    default: 'mainKnowledgeGraph'
+  output-directory:
+    description: "Directory for published graph"
+    required: true
+    default: 'www'
+  logseq-version:
+    description: "Logseq version to use"
+    required: true
+    default: 'nightly'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Prepare graph for publishing
+      shell: bash
+      run: |
+        # Create temporary copy with public tags
+        cp -r ${{ inputs.graph-directory }} ${{ inputs.graph-directory }}-publish
+
+        # Add public:: true to ontology pages
+        find ${{ inputs.graph-directory }}-publish/pages -name "*.md" -type f | while read -r file; do
+          if grep -q "^- ### OntologyBlock" "$file" && grep -q "public-access:: true" "$file"; then
+            if ! grep -q "^public:: true" "$file"; then
+              echo "Adding public:: true to: $(basename "$file")"
+              sed -i '1ipublic:: true\n' "$file"
+            fi
+          fi
+        done
+
+    - name: Setup Python for ontology
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install Python dependencies
+      shell: bash
+      run: pip install rdflib==7.0.0
+
+    - name: Generate ontology files
+      shell: bash
+      run: |
+        # Generate TTL
+        python3 Ontology-Tools/tools/converters/webvowl_header_only_converter.py \
+          --pages-dir ${{ inputs.graph-directory }}/pages \
+          --output /tmp/narrativegoldmine-ontology.ttl
+
+        # Convert to WebVOWL JSON
+        python3 Ontology-Tools/tools/converters/ttl_to_webvowl_json.py \
+          --input /tmp/narrativegoldmine-ontology.ttl \
+          --output /tmp/narrativegoldmine-ontology.json
+
+        echo "✅ Ontology files generated"
+
+    - name: Setup WebVOWL
+      shell: bash
+      run: |
+        # Clone WebVOWL v1.1.6
+        git clone --depth 1 --branch 1.1.6 \
+          https://github.com/VisualDataWeb/WebVOWL.git webvowl-src
+
+        # Check if deploy folder exists, if not build it
+        if [ -d "webvowl-src/deploy" ]; then
+          echo "Using pre-built deploy folder"
+          mkdir -p webvowl-deploy
+          cp -r webvowl-src/deploy/* webvowl-deploy/
+        else
+          echo "Building WebVOWL from source"
+          cd webvowl-src
+          npm install
+          npm run release
+          cd ..
+          mkdir -p webvowl-deploy
+          cp -r webvowl-src/deploy/* webvowl-deploy/
+        fi
+
+        # Fix mixed content security issue
+        sed -i 's|http://fonts.googleapis.com|https://fonts.googleapis.com|g' \
+          webvowl-deploy/css/webvowl.app.css
+
+        # Configure with our ontology (replace FOAF)
+        mkdir -p webvowl-deploy/data
+        cp /tmp/narrativegoldmine-ontology.json webvowl-deploy/data/foaf.json
+        cp /tmp/narrativegoldmine-ontology.ttl webvowl-deploy/data/foaf.ttl
+        cp /tmp/narrativegoldmine-ontology.json webvowl-deploy/data/narrativegoldmine-ontology.json
+        cp /tmp/narrativegoldmine-ontology.ttl webvowl-deploy/data/narrativegoldmine-ontology.ttl
+
+        echo "✅ WebVOWL configured"
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install Rust/WASM publisher from local repo
+      shell: bash
+      run: |
+        cd logseq-publisher/logseq-publisher-npm
+        npm install
+        npm run build
+        npm install -g .
+        echo "✅ @thedreamlab/logseq-publisher installed from local build"
+
+    - name: Publish Logseq graph with Rust/WASM
+      shell: bash
+      run: |
+        logseq-publish build \
+          --input '${{ inputs.graph-directory }}-publish' \
+          --output '${{ inputs.output-directory }}'
+
+    - name: Post-process deployment
+      shell: bash
+      run: |
+        # Add .nojekyll
+        touch ${{ inputs.output-directory }}/.nojekyll
+
+        # Change default page to introduction
+        sed -i 's/#\/all-pages/#\/page\/introduction/g' \
+          ${{ inputs.output-directory }}/index.html
+
+        # Integrate WebVOWL
+        cp -r webvowl-deploy ${{ inputs.output-directory }}/ontology
+
+        # Add CNAME
+        echo 'narrativegoldmine.com' > ${{ inputs.output-directory }}/CNAME
+
+        # Copy documentation
+        cp -r Ontology-Tools ${{ inputs.output-directory }}/Ontology-Tools
+        cp README.md ${{ inputs.output-directory }}/README.md
+        cp CLAUDE.md ${{ inputs.output-directory }}/CLAUDE.md
+
+        echo "✅ Deployment finalized"

@@ -1,0 +1,1 @@
+- I am a page in the namespace *namespace1*

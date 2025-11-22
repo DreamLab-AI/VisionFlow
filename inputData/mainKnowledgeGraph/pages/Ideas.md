@@ -1,0 +1,8 @@
+- Get Todays Information as a template
+	- weather
+	- stock prices
+	- random quote
+	- etc
+- Chatgpt example
+- simple accounting
+-

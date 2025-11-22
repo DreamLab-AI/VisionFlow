@@ -1,0 +1,180 @@
+{
+  "testSuite": "JavaScript Pipeline Integration Tests",
+  "timestamp": "2025-11-21T20:48:06.394Z",
+  "summary": {
+    "totalTests": 39,
+    "passed": 23,
+    "failed": 16,
+    "warnings": 0,
+    "successRate": 59
+  },
+  "testDetails": [
+    {
+      "name": "Scanner: Can scan directory",
+      "status": "passed"
+    },
+    {
+      "name": "Scanner: Classifies files by domain",
+      "status": "passed"
+    },
+    {
+      "name": "Scanner: Generates inventory",
+      "status": "passed"
+    },
+    {
+      "name": "Parser: Parse valid ai file",
+      "status": "failed"
+    },
+    {
+      "name": "Parser: Parse valid mv file",
+      "status": "failed"
+    },
+    {
+      "name": "Parser: Parse valid tc file",
+      "status": "failed"
+    },
+    {
+      "name": "Parser: Parse valid rb file",
+      "status": "failed"
+    },
+    {
+      "name": "Parser: Parse valid dt file",
+      "status": "failed"
+    },
+    {
+      "name": "Parser: Parse valid bc file",
+      "status": "failed"
+    },
+    {
+      "name": "Parser: Handle invalid files gracefully",
+      "status": "passed"
+    },
+    {
+      "name": "Parser: Extract all properties",
+      "status": "failed"
+    },
+    {
+      "name": "Generator: Generate canonical ai format",
+      "status": "failed"
+    },
+    {
+      "name": "Generator: Generate canonical mv format",
+      "status": "failed"
+    },
+    {
+      "name": "Generator: Generate canonical tc format",
+      "status": "failed"
+    },
+    {
+      "name": "Generator: Generate canonical rb format",
+      "status": "failed"
+    },
+    {
+      "name": "Generator: Generate canonical dt format",
+      "status": "failed"
+    },
+    {
+      "name": "Generator: Generate canonical bc format",
+      "status": "failed"
+    },
+    {
+      "name": "Generator: Fix namespace errors",
+      "status": "failed"
+    },
+    {
+      "name": "Generator: Normalize status/maturity values",
+      "status": "failed"
+    },
+    {
+      "name": "Validator: Validate ai file",
+      "status": "passed"
+    },
+    {
+      "name": "Validator: Validate mv file",
+      "status": "passed"
+    },
+    {
+      "name": "Validator: Validate tc file",
+      "status": "passed"
+    },
+    {
+      "name": "Validator: Validate rb file",
+      "status": "passed"
+    },
+    {
+      "name": "Validator: Validate dt file",
+      "status": "passed"
+    },
+    {
+      "name": "Validator: Validate bc file",
+      "status": "passed"
+    },
+    {
+      "name": "Validator: Detect missing required properties",
+      "status": "passed"
+    },
+    {
+      "name": "Validator: Validate OWL properties",
+      "status": "failed"
+    },
+    {
+      "name": "IRI Registry: Resolve domain IRIs",
+      "status": "passed"
+    },
+    {
+      "name": "IRI Registry: Convert Logseq links to IRIs",
+      "status": "passed"
+    },
+    {
+      "name": "IRI Registry: Handle cross-domain links",
+      "status": "passed"
+    },
+    {
+      "name": "Domain Detector: Detect ai domain",
+      "status": "passed"
+    },
+    {
+      "name": "Domain Detector: Detect mv domain",
+      "status": "passed"
+    },
+    {
+      "name": "Domain Detector: Detect tc domain",
+      "status": "passed"
+    },
+    {
+      "name": "Domain Detector: Detect rb domain",
+      "status": "passed"
+    },
+    {
+      "name": "Domain Detector: Detect dt domain",
+      "status": "passed"
+    },
+    {
+      "name": "Domain Detector: Detect bc domain",
+      "status": "passed"
+    },
+    {
+      "name": "Single Block: Files have only one ontology block",
+      "status": "passed"
+    },
+    {
+      "name": "E2E: Scan -> Parse -> Generate -> Validate",
+      "status": "passed"
+    },
+    {
+      "name": "E2E: Process all domains",
+      "status": "passed"
+    }
+  ],
+  "errors": [],
+  "warnings": [],
+  "domainstest": [
+    "ai",
+    "mv",
+    "tc",
+    "rb",
+    "dt",
+    "bc"
+  ],
+  "filesPerDomain": 3
+}

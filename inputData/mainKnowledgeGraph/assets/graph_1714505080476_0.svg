@@ -1,0 +1,901 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1524pt" height="1442pt" viewBox="0.00 0.00 1524.39 1442.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 1438)">
+<title>G</title>
+<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-1438 1520.3926,-1438 1520.3926,4 -4,4"/>
+<!-- Decentralization -->
+<g id="node1" class="node">
+<title>Decentralization</title>
+<polygon fill="#add8e6" stroke="#000000" points="104.8567,-1254 12.1433,-1254 12.1433,-1218 104.8567,-1218 104.8567,-1254"/>
+<text text-anchor="middle" x="58.5" y="-1239" font-family="Times,serif" font-size="10.00" fill="#000000">Decentralization &amp;</text>
+<text text-anchor="middle" x="58.5" y="-1227" font-family="Times,serif" font-size="10.00" fill="#000000">Openness</text>
+</g>
+<!-- Bitcoin -->
+<g id="node9" class="node">
+<title>Bitcoin</title>
+<polygon fill="#000000" stroke="#000000" points="682.6894,-1225 608.5894,-1225 608.5894,-1189 682.6894,-1189 682.6894,-1225"/>
+<text text-anchor="middle" x="645.6394" y="-1204" font-family="Times,serif" font-size="10.00" fill="#000000">Bitcoin (BTC)</text>
+</g>
+<!-- Decentralization&#45;&gt;Bitcoin -->
+<g id="edge1" class="edge">
+<title>Decentralization-&gt;Bitcoin</title>
+<path fill="none" stroke="#000000" d="M104.863,-1236.6884C192.4104,-1237.5441 387.9755,-1237.3383 551.7374,-1222 566.9623,-1220.574 583.4628,-1218.2162 598.3227,-1215.7876"/>
+<polygon fill="#000000" stroke="#000000" points="599.0324,-1219.2175 608.3124,-1214.1056 597.87,-1212.3147 599.0324,-1219.2175"/>
+</g>
+<!-- Nostr -->
+<g id="node10" class="node">
+<title>Nostr</title>
+<polygon fill="#000000" stroke="#000000" points="369.2162,-1112 295.012,-1112 295.012,-1076 369.2162,-1076 369.2162,-1112"/>
+<text text-anchor="middle" x="332.1141" y="-1091" font-family="Times,serif" font-size="10.00" fill="#000000">Nostr Protocol</text>
+</g>
+<!-- Decentralization&#45;&gt;Nostr -->
+<g id="edge2" class="edge">
+<title>Decentralization-&gt;Nostr</title>
+<path fill="none" stroke="#000000" d="M93.4313,-1217.8714C143.1405,-1192.0733 234.2483,-1144.7903 288.382,-1116.696"/>
+<polygon fill="#000000" stroke="#000000" points="290.1271,-1119.7337 297.3907,-1112.0207 286.9026,-1113.5206 290.1271,-1119.7337"/>
+</g>
+<!-- Solid -->
+<g id="node11" class="node">
+<title>Solid</title>
+<polygon fill="#000000" stroke="#000000" points="513.3705,-1371 445.4885,-1371 445.4885,-1335 513.3705,-1335 513.3705,-1371"/>
+<text text-anchor="middle" x="479.4295" y="-1350" font-family="Times,serif" font-size="10.00" fill="#000000">Solid Project</text>
+</g>
+<!-- Decentralization&#45;&gt;Solid -->
+<g id="edge3" class="edge">
+<title>Decentralization-&gt;Solid</title>
+<path fill="none" stroke="#000000" d="M104.7292,-1252.8327C109.2473,-1255.744 113.4596,-1259.1135 117,-1263 133.1873,-1280.7694 116.1911,-1299.0333 135,-1314 222.4088,-1383.5532 364.1424,-1372.7468 435.4661,-1361.5483"/>
+<polygon fill="#000000" stroke="#000000" points="436.1648,-1364.9805 445.4636,-1359.9027 435.0278,-1358.0734 436.1648,-1364.9805"/>
+</g>
+<!-- IPFS -->
+<g id="node12" class="node">
+<title>IPFS</title>
+<polygon fill="#000000" stroke="#000000" points="721.4435,-1332 569.8353,-1332 569.8353,-1296 721.4435,-1296 721.4435,-1332"/>
+<text text-anchor="middle" x="645.6394" y="-1311" font-family="Times,serif" font-size="10.00" fill="#000000">InterPlanetary File System (IPFS)</text>
+</g>
+<!-- Decentralization&#45;&gt;IPFS -->
+<g id="edge4" class="edge">
+<title>Decentralization-&gt;IPFS</title>
+<path fill="none" stroke="#000000" d="M104.9292,-1245.6505C114.8306,-1247.5552 125.2434,-1249.4436 135,-1251 283.6016,-1274.7051 457.756,-1294.4933 559.4807,-1305.2543"/>
+<polygon fill="#000000" stroke="#000000" points="559.3895,-1308.7639 569.7012,-1306.3308 560.1229,-1301.8025 559.3895,-1308.7639"/>
+</g>
+<!-- Fedimint -->
+<g id="node13" class="node">
+<title>Fedimint</title>
+<polygon fill="#000000" stroke="#000000" points="506.4295,-1433 452.4295,-1433 452.4295,-1397 506.4295,-1397 506.4295,-1433"/>
+<text text-anchor="middle" x="479.4295" y="-1412" font-family="Times,serif" font-size="10.00" fill="#000000">Fedimint</text>
+</g>
+<!-- Decentralization&#45;&gt;Fedimint -->
+<g id="edge5" class="edge">
+<title>Decentralization-&gt;Fedimint</title>
+<path fill="none" stroke="#000000" d="M104.7324,-1251.9703C109.3671,-1255.0515 113.6054,-1258.6967 117,-1263 142.2639,-1295.0271 106.3516,-1323.9609 135,-1353 217.3914,-1436.5148 371.4388,-1429.3189 442.1773,-1420.7384"/>
+<polygon fill="#000000" stroke="#000000" points="442.9229,-1424.1712 452.3917,-1419.4181 442.0256,-1417.229 442.9229,-1424.1712"/>
+</g>
+<!-- Lightning -->
+<g id="node14" class="node">
+<title>Lightning</title>
+<polygon fill="#000000" stroke="#000000" points="378.5451,-1208 285.6831,-1208 285.6831,-1172 378.5451,-1172 378.5451,-1208"/>
+<text text-anchor="middle" x="332.1141" y="-1187" font-family="Times,serif" font-size="10.00" fill="#000000">Lightning Network</text>
+</g>
+<!-- Decentralization&#45;&gt;Lightning -->
+<g id="edge6" class="edge">
+<title>Decentralization-&gt;Lightning</title>
+<path fill="none" stroke="#000000" d="M104.9966,-1227.3367C114.8935,-1225.5359 125.2874,-1223.6769 135,-1222 182.2991,-1213.8335 236.09,-1205.1408 275.517,-1198.8795"/>
+<polygon fill="#000000" stroke="#000000" points="276.1441,-1202.3239 285.4729,-1197.3017 275.0483,-1195.4102 276.1441,-1202.3239"/>
+</g>
+<!-- RGB -->
+<g id="node15" class="node">
+<title>RGB</title>
+<polygon fill="#000000" stroke="#000000" points="368.5561,-1001 295.6721,-1001 295.6721,-965 368.5561,-965 368.5561,-1001"/>
+<text text-anchor="middle" x="332.1141" y="-980" font-family="Times,serif" font-size="10.00" fill="#000000">RGB Protocol</text>
+</g>
+<!-- Decentralization&#45;&gt;RGB -->
+<g id="edge7" class="edge">
+<title>Decentralization-&gt;RGB</title>
+<path fill="none" stroke="#000000" d="M69.5372,-1217.8567C83.281,-1196.0824 108.2329,-1159.1191 135,-1132 184.9371,-1081.4061 252.8184,-1033.879 294.4882,-1006.6481"/>
+<polygon fill="#000000" stroke="#000000" points="296.4795,-1009.5284 302.9664,-1001.1516 292.6715,-1003.6547 296.4795,-1009.5284"/>
+</g>
+<!-- AI -->
+<g id="node2" class="node">
+<title>AI</title>
+<polygon fill="#add8e6" stroke="#000000" points="90.2013,-274 26.7987,-274 26.7987,-238 90.2013,-238 90.2013,-274"/>
+<text text-anchor="middle" x="58.5" y="-259" font-family="Times,serif" font-size="10.00" fill="#000000">Artificial</text>
+<text text-anchor="middle" x="58.5" y="-247" font-family="Times,serif" font-size="10.00" fill="#000000">Intelligence</text>
+</g>
+<!-- LLMs -->
+<g id="node17" class="node">
+<title>LLMs</title>
+<polygon fill="#ffffe0" stroke="#000000" points="686.3818,-274 604.897,-274 604.897,-238 686.3818,-238 686.3818,-274"/>
+<text text-anchor="middle" x="645.6394" y="-259" font-family="Times,serif" font-size="10.00" fill="#000000">Large Language</text>
+<text text-anchor="middle" x="645.6394" y="-247" font-family="Times,serif" font-size="10.00" fill="#000000">Models (LLMs)</text>
+</g>
+<!-- AI&#45;&gt;LLMs -->
+<g id="edge21" class="edge">
+<title>AI-&gt;LLMs</title>
+<path fill="none" stroke="#000000" d="M90.4841,-256C187.1174,-256 476.6519,-256 594.6967,-256"/>
+<polygon fill="#000000" stroke="#000000" points="594.9062,-259.5001 604.9062,-256 594.9062,-252.5001 594.9062,-259.5001"/>
+</g>
+<!-- StableDiffusion -->
+<g id="node18" class="node">
+<title>StableDiffusion</title>
+<polygon fill="#ffffe0" stroke="#000000" points="372.9333,-528 291.2949,-528 291.2949,-492 372.9333,-492 372.9333,-528"/>
+<text text-anchor="middle" x="332.1141" y="-507" font-family="Times,serif" font-size="10.00" fill="#000000">Stable Diffusion</text>
+</g>
+<!-- AI&#45;&gt;StableDiffusion -->
+<g id="edge22" class="edge">
+<title>AI-&gt;StableDiffusion</title>
+<path fill="none" stroke="#000000" d="M62.2881,-274.299C72.6282,-322.4465 102.7277,-450.8206 135,-478 175.3842,-512.0111 237.4771,-516.8812 281.1587,-515.2453"/>
+<polygon fill="#000000" stroke="#000000" points="281.4763,-518.7338 291.2887,-514.738 281.1262,-511.7426 281.4763,-518.7338"/>
+</g>
+<!-- Transformers -->
+<g id="node19" class="node">
+<title>Transformers</title>
+<polygon fill="#ffffe0" stroke="#000000" points="366.9742,-228 297.254,-228 297.254,-192 366.9742,-192 366.9742,-228"/>
+<text text-anchor="middle" x="332.1141" y="-207" font-family="Times,serif" font-size="10.00" fill="#000000">Transformers</text>
+</g>
+<!-- AI&#45;&gt;Transformers -->
+<g id="edge23" class="edge">
+<title>AI-&gt;Transformers</title>
+<path fill="none" stroke="#000000" d="M90.1114,-250.0678C103.8878,-247.5206 120.2315,-244.5499 135,-242 187.1704,-232.9924 247.2387,-223.3447 287.2189,-217.0256"/>
+<polygon fill="#000000" stroke="#000000" points="287.8519,-220.4691 297.1845,-215.4537 286.7612,-213.5546 287.8519,-220.4691"/>
+</g>
+<!-- GANs -->
+<g id="node20" class="node">
+<title>GANs</title>
+<polygon fill="#ffffe0" stroke="#000000" points="386.6171,-582 277.6111,-582 277.6111,-546 386.6171,-546 386.6171,-582"/>
+<text text-anchor="middle" x="332.1141" y="-567" font-family="Times,serif" font-size="10.00" fill="#000000">Generative Adversarial</text>
+<text text-anchor="middle" x="332.1141" y="-555" font-family="Times,serif" font-size="10.00" fill="#000000">Networks (GANs)</text>
+</g>
+<!-- AI&#45;&gt;GANs -->
+<g id="edge24" class="edge">
+<title>AI-&gt;GANs</title>
+<path fill="none" stroke="#000000" d="M61.5843,-274.0899C70.8745,-326.5389 100.11,-477.1003 135,-511 170.0586,-545.0635 224.5661,-557.806 267.3842,-562.3144"/>
+<polygon fill="#000000" stroke="#000000" points="267.1603,-565.8086 277.4407,-563.2467 267.8065,-558.8385 267.1603,-565.8086"/>
+</g>
+<!-- Mamba -->
+<g id="node21" class="node">
+<title>Mamba</title>
+<polygon fill="#ffffe0" stroke="#000000" points="381.6301,-66 282.5981,-66 282.5981,-30 381.6301,-30 381.6301,-66"/>
+<text text-anchor="middle" x="332.1141" y="-45" font-family="Times,serif" font-size="10.00" fill="#000000">Mamba Architecture</text>
+</g>
+<!-- AI&#45;&gt;Mamba -->
+<g id="edge25" class="edge">
+<title>AI-&gt;Mamba</title>
+<path fill="none" stroke="#000000" d="M63.3391,-237.6724C72.3218,-207.1808 94.45,-146.0306 135,-112 174.0379,-79.2385 230.221,-63.1378 272.6254,-55.2908"/>
+<polygon fill="#000000" stroke="#000000" points="273.2938,-58.7271 282.5423,-53.5583 272.0892,-51.8315 273.2938,-58.7271"/>
+</g>
+<!-- PromptEngineering -->
+<g id="node22" class="node">
+<title>PromptEngineering</title>
+<polygon fill="#ffffe0" stroke="#000000" points="380.4343,-374 283.7939,-374 283.7939,-338 380.4343,-338 380.4343,-374"/>
+<text text-anchor="middle" x="332.1141" y="-353" font-family="Times,serif" font-size="10.00" fill="#000000">Prompt Engineering</text>
+</g>
+<!-- AI&#45;&gt;PromptEngineering -->
+<g id="edge26" class="edge">
+<title>AI-&gt;PromptEngineering</title>
+<path fill="none" stroke="#000000" d="M90.312,-273.7616C103.8417,-280.9077 119.945,-288.8856 135,-295 180.5889,-313.5155 234.0039,-329.7234 273.7218,-340.7694"/>
+<polygon fill="#000000" stroke="#000000" points="272.941,-344.1846 283.5114,-343.4647 274.7993,-337.4357 272.941,-344.1846"/>
+</g>
+<!-- RLHF -->
+<g id="node23" class="node">
+<title>RLHF</title>
+<polygon fill="#ffffe0" stroke="#000000" points="389.1291,-120 275.0991,-120 275.0991,-84 389.1291,-84 389.1291,-120"/>
+<text text-anchor="middle" x="332.1141" y="-105" font-family="Times,serif" font-size="10.00" fill="#000000">Reinforcement Learning</text>
+<text text-anchor="middle" x="332.1141" y="-93" font-family="Times,serif" font-size="10.00" fill="#000000">from Human Feedback</text>
+</g>
+<!-- AI&#45;&gt;RLHF -->
+<g id="edge27" class="edge">
+<title>AI-&gt;RLHF</title>
+<path fill="none" stroke="#000000" d="M68.8371,-237.9016C81.7232,-216.9163 105.6664,-182.6948 135,-163 173.9326,-136.8604 224.5903,-121.5035 264.8016,-112.7368"/>
+<polygon fill="#000000" stroke="#000000" points="265.7152,-116.1216 274.7863,-110.6475 264.2814,-109.27 265.7152,-116.1216"/>
+</g>
+<!-- DPO -->
+<g id="node24" class="node">
+<title>DPO</title>
+<polygon fill="#ffffe0" stroke="#000000" points="375.3394,-320 288.8888,-320 288.8888,-284 375.3394,-284 375.3394,-320"/>
+<text text-anchor="middle" x="332.1141" y="-305" font-family="Times,serif" font-size="10.00" fill="#000000">Direct Preference</text>
+<text text-anchor="middle" x="332.1141" y="-293" font-family="Times,serif" font-size="10.00" fill="#000000">Optimization</text>
+</g>
+<!-- AI&#45;&gt;DPO -->
+<g id="edge28" class="edge">
+<title>AI-&gt;DPO</title>
+<path fill="none" stroke="#000000" d="M90.1114,-261.9322C103.8878,-264.4794 120.2315,-267.4501 135,-270 183.5562,-278.3836 238.9539,-287.3217 278.6298,-293.6145"/>
+<polygon fill="#000000" stroke="#000000" points="278.1945,-297.0891 288.6188,-295.1956 279.289,-290.1752 278.1945,-297.0891"/>
+</g>
+<!-- Agents -->
+<g id="node38" class="node">
+<title>Agents</title>
+<polygon fill="#f08080" stroke="#000000" points="1516.2448,-502 1455.8374,-502 1455.8374,-466 1516.2448,-466 1516.2448,-502"/>
+<text text-anchor="middle" x="1486.0411" y="-487" font-family="Times,serif" font-size="10.00" fill="#000000">Agentic AI</text>
+<text text-anchor="middle" x="1486.0411" y="-475" font-family="Times,serif" font-size="10.00" fill="#000000">Actors</text>
+</g>
+<!-- AI&#45;&gt;Agents -->
+<g id="edge67" class="edge">
+<title>AI-&gt;Agents</title>
+<path fill="none" stroke="#000000" d="M71.9795,-274.1685C102.7338,-313.9495 182.614,-408.1402 275.1066,-445 458.0621,-517.9108 963.0787,-495.773 1160.0192,-494 1283.4433,-492.8888 1314.4865,-496.4659 1437.6896,-489 1440.2325,-488.8459 1442.848,-488.6586 1445.4837,-488.4481"/>
+<polygon fill="#000000" stroke="#000000" points="1445.9886,-491.9171 1455.638,-487.5423 1445.3665,-484.9448 1445.9886,-491.9171"/>
+</g>
+<!-- Politics -->
+<g id="node39" class="node">
+<title>Politics</title>
+<polygon fill="#d3d3d3" stroke="#000000" points="359.1141,-174 305.1141,-174 305.1141,-138 359.1141,-138 359.1141,-174"/>
+<text text-anchor="middle" x="332.1141" y="-153" font-family="Times,serif" font-size="10.00" fill="#000000">Politics</text>
+</g>
+<!-- AI&#45;&gt;Politics -->
+<g id="edge77" class="edge">
+<title>AI-&gt;Politics</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M78.8586,-237.9714C93.5233,-225.8863 114.2975,-210.5325 135,-201.2 187.7056,-177.4409 254.162,-165.5457 294.873,-160.0822"/>
+<polygon fill="#000000" stroke="#000000" points="295.4193,-163.5409 304.8932,-158.798 294.5294,-156.5976 295.4193,-163.5409"/>
+<text text-anchor="middle" x="196.0533" y="-206.2" font-family="Times,serif" font-size="14.00" fill="#000000">Control &amp; Regulation</text>
+</g>
+<!-- Ethics -->
+<g id="node40" class="node">
+<title>Ethics</title>
+<polygon fill="#d3d3d3" stroke="#000000" points="1513.0411,-36 1459.0411,-36 1459.0411,0 1513.0411,0 1513.0411,-36"/>
+<text text-anchor="middle" x="1486.0411" y="-15" font-family="Times,serif" font-size="10.00" fill="#000000">Ethics</text>
+</g>
+<!-- AI&#45;&gt;Ethics -->
+<g id="edge78" class="edge">
+<title>AI-&gt;Ethics</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M59.9902,-237.9529C64.2261,-198.6426 79.8752,-104.8205 135,-55 202.3035,5.8273 241.3963,-2 332.1141,-2 332.1141,-2 332.1141,-2 1235.8712,-2 1311.4894,-2 1399.7029,-9.3705 1448.5807,-14.1065"/>
+<polygon fill="#000000" stroke="#000000" points="1448.3889,-17.6045 1458.6841,-15.1025 1449.0757,-10.6382 1448.3889,-17.6045"/>
+<text text-anchor="middle" x="801.5362" y="-6.2" font-family="Times,serif" font-size="14.00" fill="#000000">Bias &amp; Safety</text>
+</g>
+<!-- XR -->
+<g id="node3" class="node">
+<title>XR</title>
+<polygon fill="#add8e6" stroke="#000000" points="92.43,-809 24.57,-809 24.57,-773 92.43,-773 92.43,-809"/>
+<text text-anchor="middle" x="58.5" y="-794" font-family="Times,serif" font-size="10.00" fill="#000000">Extended</text>
+<text text-anchor="middle" x="58.5" y="-782" font-family="Times,serif" font-size="10.00" fill="#000000">Reality (XR)</text>
+</g>
+<!-- AR -->
+<g id="node25" class="node">
+<title>AR</title>
+<polygon fill="#ffb6c1" stroke="#000000" points="513.3595,-1031 445.4995,-1031 445.4995,-995 513.3595,-995 513.3595,-1031"/>
+<text text-anchor="middle" x="479.4295" y="-1016" font-family="Times,serif" font-size="10.00" fill="#000000">Augmented</text>
+<text text-anchor="middle" x="479.4295" y="-1004" font-family="Times,serif" font-size="10.00" fill="#000000">Reality (AR)</text>
+</g>
+<!-- XR&#45;&gt;AR -->
+<g id="edge37" class="edge">
+<title>XR-&gt;AR</title>
+<path fill="none" stroke="#000000" d="M92.4419,-807.2348C174.4461,-846.5528 377.4846,-944.5031 389.1216,-956 401.5651,-968.2937 393.6931,-979.7906 407.1216,-991 415.2897,-997.8182 425.5377,-1002.5244 435.7286,-1005.7724"/>
+<polygon fill="#000000" stroke="#000000" points="434.8402,-1009.158 445.4121,-1008.461 436.7129,-1002.4132 434.8402,-1009.158"/>
+</g>
+<!-- VR -->
+<g id="node26" class="node">
+<title>VR</title>
+<polygon fill="#ffb6c1" stroke="#000000" points="513.3595,-853 445.4995,-853 445.4995,-817 513.3595,-817 513.3595,-853"/>
+<text text-anchor="middle" x="479.4295" y="-838" font-family="Times,serif" font-size="10.00" fill="#000000">Virtual</text>
+<text text-anchor="middle" x="479.4295" y="-826" font-family="Times,serif" font-size="10.00" fill="#000000">Reality (VR)</text>
+</g>
+<!-- XR&#45;&gt;VR -->
+<g id="edge38" class="edge">
+<title>XR-&gt;VR</title>
+<path fill="none" stroke="#000000" d="M92.6384,-798.5249C105.8206,-801.2117 121.0599,-804.0524 135,-806 242.185,-820.9747 369.2932,-829.2433 435.0551,-832.8225"/>
+<polygon fill="#000000" stroke="#000000" points="434.8979,-836.319 445.0703,-833.357 435.271,-829.3289 434.8979,-836.319"/>
+</g>
+<!-- Omniverse -->
+<g id="node27" class="node">
+<title>Omniverse</title>
+<polygon fill="#ffb6c1" stroke="#000000" points="694.5464,-995 596.7324,-995 596.7324,-959 694.5464,-959 694.5464,-995"/>
+<text text-anchor="middle" x="645.6394" y="-974" font-family="Times,serif" font-size="10.00" fill="#000000">NVIDIA Omniverse</text>
+</g>
+<!-- XR&#45;&gt;Omniverse -->
+<g id="edge39" class="edge">
+<title>XR-&gt;Omniverse</title>
+<path fill="none" stroke="#000000" d="M70.2859,-809.2519C99.2509,-852.4124 178.6312,-960.8144 275.1066,-1010 330.0462,-1038.0096 496.2998,-1059.0105 551.7374,-1032 563.4065,-1026.3145 559.4264,-1016.8852 569.7374,-1009 575.1563,-1004.8559 581.1912,-1001.1452 587.4244,-997.8501"/>
+<polygon fill="#000000" stroke="#000000" points="589.2179,-1000.8686 596.65,-993.3178 586.1313,-994.5859 589.2179,-1000.8686"/>
+</g>
+<!-- Vircadia -->
+<g id="node28" class="node">
+<title>Vircadia</title>
+<polygon fill="#ffb6c1" stroke="#000000" points="506.4295,-812 452.4295,-812 452.4295,-776 506.4295,-776 506.4295,-812"/>
+<text text-anchor="middle" x="479.4295" y="-791" font-family="Times,serif" font-size="10.00" fill="#000000">Vircadia</text>
+</g>
+<!-- XR&#45;&gt;Vircadia -->
+<g id="edge40" class="edge">
+<title>XR-&gt;Vircadia</title>
+<path fill="none" stroke="#000000" d="M92.5899,-791.243C170.511,-791.7983 361.1509,-793.157 442.0976,-793.7339"/>
+<polygon fill="#000000" stroke="#000000" points="442.2925,-797.2353 452.3172,-793.8068 442.3424,-790.2355 442.2925,-797.2353"/>
+</g>
+<!-- USD -->
+<g id="node29" class="node">
+<title>USD</title>
+<polygon fill="#ffb6c1" stroke="#000000" points="377.9213,-744 286.3069,-744 286.3069,-708 377.9213,-708 377.9213,-744"/>
+<text text-anchor="middle" x="332.1141" y="-729" font-family="Times,serif" font-size="10.00" fill="#000000">Universal Scene</text>
+<text text-anchor="middle" x="332.1141" y="-717" font-family="Times,serif" font-size="10.00" fill="#000000">Description (USD)</text>
+</g>
+<!-- XR&#45;&gt;USD -->
+<g id="edge41" class="edge">
+<title>XR-&gt;USD</title>
+<path fill="none" stroke="#000000" d="M92.4889,-774.2022C105.522,-768.3335 120.699,-762.1758 135,-758 181.5341,-744.4122 236.0407,-736.121 275.9277,-731.3941"/>
+<polygon fill="#000000" stroke="#000000" points="276.4606,-734.856 285.9968,-730.2396 275.6632,-727.9016 276.4606,-734.856"/>
+</g>
+<!-- NeRFs -->
+<g id="node30" class="node">
+<title>NeRFs</title>
+<polygon fill="#ffb6c1" stroke="#000000" points="373.5231,-636 290.7051,-636 290.7051,-600 373.5231,-600 373.5231,-636"/>
+<text text-anchor="middle" x="332.1141" y="-621" font-family="Times,serif" font-size="10.00" fill="#000000">Neural Radiance</text>
+<text text-anchor="middle" x="332.1141" y="-609" font-family="Times,serif" font-size="10.00" fill="#000000">Fields (NeRFs)</text>
+</g>
+<!-- XR&#45;&gt;NeRFs -->
+<g id="edge42" class="edge">
+<title>XR-&gt;NeRFs</title>
+<path fill="none" stroke="#000000" d="M66.9781,-772.7775C78.9162,-749.0345 102.8652,-707.7564 135,-684 178.3882,-651.9242 238.3313,-634.8027 280.6923,-626.1089"/>
+<polygon fill="#000000" stroke="#000000" points="281.3862,-629.5396 290.5238,-624.1771 280.0366,-622.6709 281.3862,-629.5396"/>
+</g>
+<!-- SpatialComputing -->
+<g id="node31" class="node">
+<title>SpatialComputing</title>
+<polygon fill="#ffb6c1" stroke="#000000" points="525.2099,-771 433.6491,-771 433.6491,-735 525.2099,-735 525.2099,-771"/>
+<text text-anchor="middle" x="479.4295" y="-750" font-family="Times,serif" font-size="10.00" fill="#000000">Spatial Computing</text>
+</g>
+<!-- XR&#45;&gt;SpatialComputing -->
+<g id="edge43" class="edge">
+<title>XR-&gt;SpatialComputing</title>
+<path fill="none" stroke="#000000" d="M92.5899,-787.9225C165.0723,-781.379 335.0877,-766.0307 423.6205,-758.0382"/>
+<polygon fill="#000000" stroke="#000000" points="424.0975,-761.5095 433.7422,-757.1245 423.468,-754.5379 424.0975,-761.5095"/>
+</g>
+<!-- AvatarGeneration -->
+<g id="node32" class="node">
+<title>AvatarGeneration</title>
+<polygon fill="#ffb6c1" stroke="#000000" points="377.2422,-690 286.986,-690 286.986,-654 377.2422,-654 377.2422,-690"/>
+<text text-anchor="middle" x="332.1141" y="-669" font-family="Times,serif" font-size="10.00" fill="#000000">Avatar Generation</text>
+</g>
+<!-- XR&#45;&gt;AvatarGeneration -->
+<g id="edge44" class="edge">
+<title>XR-&gt;AvatarGeneration</title>
+<path fill="none" stroke="#000000" d="M76.8504,-772.9512C91.5085,-759.4266 113.1489,-741.3664 135,-730 180.0739,-706.5537 236.008,-691.2433 276.7654,-682.2734"/>
+<polygon fill="#000000" stroke="#000000" points="277.7389,-685.6444 286.7846,-680.1285 276.2735,-678.7995 277.7389,-685.6444"/>
+</g>
+<!-- DigitalSociety -->
+<g id="node4" class="node">
+<title>DigitalSociety</title>
+<polygon fill="#add8e6" stroke="#000000" points="968.7996,-1312 914.7996,-1312 914.7996,-1276 968.7996,-1276 968.7996,-1312"/>
+<text text-anchor="middle" x="941.7996" y="-1297" font-family="Times,serif" font-size="10.00" fill="#000000">Digital</text>
+<text text-anchor="middle" x="941.7996" y="-1285" font-family="Times,serif" font-size="10.00" fill="#000000">Society</text>
+</g>
+<!-- Privacy -->
+<g id="node41" class="node">
+<title>Privacy</title>
+<polygon fill="#d3d3d3" stroke="#000000" points="1262.8712,-1312 1208.8712,-1312 1208.8712,-1276 1262.8712,-1276 1262.8712,-1312"/>
+<text text-anchor="middle" x="1235.8712" y="-1291" font-family="Times,serif" font-size="10.00" fill="#000000">Privacy</text>
+</g>
+<!-- DigitalSociety&#45;&gt;Privacy -->
+<g id="edge79" class="edge">
+<title>DigitalSociety-&gt;Privacy</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M968.938,-1294C1021.7868,-1294 1138.5776,-1294 1198.6226,-1294"/>
+<polygon fill="#000000" stroke="#000000" points="1198.7984,-1297.5001 1208.7983,-1294 1198.7983,-1290.5001 1198.7984,-1297.5001"/>
+<text text-anchor="middle" x="1090.0437" y="-1315" font-family="Times,serif" font-size="14.00" fill="#000000">Surveillance &amp;</text>
+<text text-anchor="middle" x="1090.0437" y="-1298.2" font-family="Times,serif" font-size="14.00" fill="#000000">Data Exploitation</text>
+</g>
+<!-- GenAI -->
+<g id="node5" class="node">
+<title>GenAI</title>
+<polygon fill="#add8e6" stroke="#000000" points="971.6618,-313 911.9374,-313 911.9374,-277 971.6618,-277 971.6618,-313"/>
+<text text-anchor="middle" x="941.7996" y="-298" font-family="Times,serif" font-size="10.00" fill="#000000">Generative</text>
+<text text-anchor="middle" x="941.7996" y="-286" font-family="Times,serif" font-size="10.00" fill="#000000">AI</text>
+</g>
+<!-- VP -->
+<g id="node33" class="node">
+<title>VP</title>
+<polygon fill="#d3d3d3" stroke="#000000" points="1281.0807,-732 1190.6617,-732 1190.6617,-696 1281.0807,-696 1281.0807,-732"/>
+<text text-anchor="middle" x="1235.8712" y="-711" font-family="Times,serif" font-size="10.00" fill="#000000">Virtual Production</text>
+</g>
+<!-- GenAI&#45;&gt;VP -->
+<g id="edge58" class="edge">
+<title>GenAI-&gt;VP</title>
+<path fill="none" stroke="#000000" d="M971.6882,-306.295C983.1243,-312.1801 995.0867,-320.5826 1002.0682,-332 1029.0445,-376.1164 991.8103,-520.6934 1020.0682,-564 1058.6317,-623.1004 1103.2417,-597.0915 1160.0192,-639 1179.559,-653.4226 1198.9845,-672.7502 1213.2853,-688.1726"/>
+<polygon fill="#000000" stroke="#000000" points="1210.9466,-690.8024 1220.2699,-695.8349 1216.1198,-686.0867 1210.9466,-690.8024"/>
+</g>
+<!-- BioMed -->
+<g id="node34" class="node">
+<title>BioMed</title>
+<polygon fill="#d3d3d3" stroke="#000000" points="1293.5756,-198 1178.1668,-198 1178.1668,-162 1293.5756,-162 1293.5756,-198"/>
+<text text-anchor="middle" x="1235.8712" y="-177" font-family="Times,serif" font-size="10.00" fill="#000000">Biomedical Applications</text>
+</g>
+<!-- GenAI&#45;&gt;BioMed -->
+<g id="edge59" class="edge">
+<title>GenAI-&gt;BioMed</title>
+<path fill="none" stroke="#000000" d="M971.8884,-283.2334C1020.7992,-264.1063 1118.2954,-225.9793 1180.1349,-201.7963"/>
+<polygon fill="#000000" stroke="#000000" points="1181.7022,-204.9416 1189.7406,-198.0399 1179.1527,-198.4223 1181.7022,-204.9416"/>
+</g>
+<!-- Edu -->
+<g id="node35" class="node">
+<title>Edu</title>
+<polygon fill="#d3d3d3" stroke="#000000" points="1275.7433,-295 1195.9991,-295 1195.9991,-259 1275.7433,-259 1275.7433,-295"/>
+<text text-anchor="middle" x="1235.8712" y="-274" font-family="Times,serif" font-size="10.00" fill="#000000">AI in Education</text>
+</g>
+<!-- GenAI&#45;&gt;Edu -->
+<g id="edge60" class="edge">
+<title>GenAI-&gt;Edu</title>
+<path fill="none" stroke="#000000" d="M971.8884,-293.1583C1022.2585,-290.0751 1124.1563,-283.838 1185.5724,-280.0788"/>
+<polygon fill="#000000" stroke="#000000" points="1186.0397,-283.5568 1195.8071,-279.4523 1185.6119,-276.5699 1186.0397,-283.5568"/>
+</g>
+<!-- Creative -->
+<g id="node36" class="node">
+<title>Creative</title>
+<polygon fill="#d3d3d3" stroke="#000000" points="1281.6774,-621 1190.065,-621 1190.065,-585 1281.6774,-585 1281.6774,-621"/>
+<text text-anchor="middle" x="1235.8712" y="-600" font-family="Times,serif" font-size="10.00" fill="#000000">Creative Industries</text>
+</g>
+<!-- GenAI&#45;&gt;Creative -->
+<g id="edge57" class="edge">
+<title>GenAI-&gt;Creative</title>
+<path fill="none" stroke="#000000" d="M971.8579,-311.6986C1024.8814,-341.6085 1132.0747,-404.2482 1160.0192,-437 1195.6778,-478.7929 1217.8288,-540.121 1228.412,-575.3515"/>
+<polygon fill="#000000" stroke="#000000" points="1225.0579,-576.352 1231.2098,-584.9778 1231.7797,-574.3983 1225.0579,-576.352"/>
+</g>
+<!-- GenAI&#45;&gt;Agents -->
+<g id="edge68" class="edge">
+<title>GenAI-&gt;Agents</title>
+<path fill="none" stroke="#000000" d="M971.8966,-297.3944C1076.5528,-305.8345 1419.2645,-334.4724 1437.6896,-349 1454.8155,-362.5032 1471.1473,-420.7569 1479.7503,-456.1822"/>
+<polygon fill="#000000" stroke="#000000" points="1476.3515,-457.0186 1482.0653,-465.9406 1483.1624,-455.4027 1476.3515,-457.0186"/>
+</g>
+<!-- DigitalObjects -->
+<g id="node6" class="node">
+<title>DigitalObjects</title>
+<polygon fill="#add8e6" stroke="#000000" points="686.7385,-619 604.5403,-619 604.5403,-583 686.7385,-583 686.7385,-619"/>
+<text text-anchor="middle" x="645.6394" y="-604" font-family="Times,serif" font-size="10.00" fill="#000000">Digital</text>
+<text text-anchor="middle" x="645.6394" y="-592" font-family="Times,serif" font-size="10.00" fill="#000000">Objects &amp; NFTs</text>
+</g>
+<!-- DigitalObjects&#45;&gt;VP -->
+<g id="edge62" class="edge">
+<title>DigitalObjects-&gt;VP</title>
+<path fill="none" stroke="#000000" d="M687.1434,-608.9459C791.171,-628.8621 1063.0906,-680.9211 1180.5324,-703.4054"/>
+<polygon fill="#000000" stroke="#000000" points="1179.9197,-706.8516 1190.3995,-705.2944 1181.236,-699.9764 1179.9197,-706.8516"/>
+</g>
+<!-- DigitalObjects&#45;&gt;Creative -->
+<g id="edge61" class="edge">
+<title>DigitalObjects-&gt;Creative</title>
+<path fill="none" stroke="#000000" d="M687.1434,-601.1406C790.9391,-601.4923 1061.8791,-602.4104 1179.7446,-602.8098"/>
+<polygon fill="#000000" stroke="#000000" points="1179.9776,-606.3105 1189.9894,-602.8445 1180.0014,-599.3106 1179.9776,-606.3105"/>
+</g>
+<!-- DigitalObjects&#45;&gt;Agents -->
+<g id="edge69" class="edge">
+<title>DigitalObjects-&gt;Agents</title>
+<path fill="none" stroke="#000000" d="M686.8769,-598.2438C839.5711,-587.8532 1367.6249,-550.2085 1437.6896,-522 1445.489,-518.8599 1453.0654,-514.0558 1459.8179,-508.9087"/>
+<polygon fill="#000000" stroke="#000000" points="1462.3641,-511.3474 1467.8852,-502.3048 1457.9301,-505.9308 1462.3641,-511.3474"/>
+<text text-anchor="middle" x="1090.0437" y="-577.2" font-family="Times,serif" font-size="14.00" fill="#000000">Ownership &amp; Interaction</text>
+</g>
+<!-- Metaverse -->
+<g id="node7" class="node">
+<title>Metaverse</title>
+<polygon fill="#add8e6" stroke="#000000" points="980.06,-894 903.5392,-894 903.5392,-858 980.06,-858 980.06,-894"/>
+<text text-anchor="middle" x="941.7996" y="-879" font-family="Times,serif" font-size="10.00" fill="#000000">Metaverse &amp;</text>
+<text text-anchor="middle" x="941.7996" y="-867" font-family="Times,serif" font-size="10.00" fill="#000000">Virtual Worlds</text>
+</g>
+<!-- Metaverse&#45;&gt;VP -->
+<g id="edge64" class="edge">
+<title>Metaverse-&gt;VP</title>
+<path fill="none" stroke="#000000" d="M960.9897,-857.9122C976.21,-844.1786 998.4485,-825.43 1020.0682,-812 1071.8446,-779.8369 1135.9567,-752.083 1180.793,-734.4044"/>
+<polygon fill="#000000" stroke="#000000" points="1182.2963,-737.5748 1190.3388,-730.6778 1179.7506,-731.0541 1182.2963,-737.5748"/>
+</g>
+<!-- Metaverse&#45;&gt;Creative -->
+<g id="edge63" class="edge">
+<title>Metaverse-&gt;Creative</title>
+<path fill="none" stroke="#000000" d="M949.091,-857.6086C960.7957,-829.8237 985.97,-776.6157 1020.0682,-741 1068.7942,-690.1055 1139.8672,-649.3493 1186.9625,-625.6766"/>
+<polygon fill="#000000" stroke="#000000" points="1188.6436,-628.7497 1196.0481,-621.1719 1185.5341,-622.4782 1188.6436,-628.7497"/>
+</g>
+<!-- Metaverse&#45;&gt;Agents -->
+<g id="edge70" class="edge">
+<title>Metaverse-&gt;Agents</title>
+<path fill="none" stroke="#000000" d="M980.1644,-870.8405C1085.3344,-855.9127 1374.5935,-809.3455 1437.6896,-741 1468.2038,-707.9471 1480.4494,-572.069 1484.425,-512.3624"/>
+<polygon fill="#000000" stroke="#000000" points="1487.9331,-512.3439 1485.0736,-502.1423 1480.9472,-511.9005 1487.9331,-512.3439"/>
+<text text-anchor="middle" x="1235.8712" y="-857" font-family="Times,serif" font-size="14.00" fill="#000000">Inhabitants &amp;</text>
+<text text-anchor="middle" x="1235.8712" y="-840.2" font-family="Times,serif" font-size="14.00" fill="#000000">Mediators</text>
+</g>
+<!-- Accessibility -->
+<g id="node42" class="node">
+<title>Accessibility</title>
+<polygon fill="#d3d3d3" stroke="#000000" points="1270.0805,-920 1201.6619,-920 1201.6619,-884 1270.0805,-884 1270.0805,-920"/>
+<text text-anchor="middle" x="1235.8712" y="-899" font-family="Times,serif" font-size="10.00" fill="#000000">Accessibility</text>
+</g>
+<!-- Metaverse&#45;&gt;Accessibility -->
+<g id="edge80" class="edge">
+<title>Metaverse-&gt;Accessibility</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M979.9428,-879.3724C1034.2207,-884.1713 1133.5385,-892.9524 1191.1909,-898.0496"/>
+<polygon fill="#000000" stroke="#000000" points="1191.1813,-901.5624 1201.4508,-898.9568 1191.7979,-894.5896 1191.1813,-901.5624"/>
+<text text-anchor="middle" x="1090.0437" y="-900.2" font-family="Times,serif" font-size="14.00" fill="#000000">Hardware &amp; Cost</text>
+</g>
+<!-- Blockchain -->
+<g id="node8" class="node">
+<title>Blockchain</title>
+<polygon fill="#add8e6" stroke="#000000" points="378.4758,-436 285.7524,-436 285.7524,-392 378.4758,-392 378.4758,-436"/>
+<text text-anchor="middle" x="332.1141" y="-423" font-family="Times,serif" font-size="10.00" fill="#000000">Blockchain &amp;</text>
+<text text-anchor="middle" x="332.1141" y="-411" font-family="Times,serif" font-size="10.00" fill="#000000">Distributed Ledger</text>
+<text text-anchor="middle" x="332.1141" y="-399" font-family="Times,serif" font-size="10.00" fill="#000000">Technology (DLT)</text>
+</g>
+<!-- DigitalEconomy -->
+<g id="node37" class="node">
+<title>DigitalEconomy</title>
+<polygon fill="#d3d3d3" stroke="#000000" points="687.7413,-457 603.5375,-457 603.5375,-421 687.7413,-421 687.7413,-457"/>
+<text text-anchor="middle" x="645.6394" y="-436" font-family="Times,serif" font-size="10.00" fill="#000000">Digital Economy</text>
+</g>
+<!-- Blockchain&#45;&gt;DigitalEconomy -->
+<g id="edge65" class="edge">
+<title>Blockchain-&gt;DigitalEconomy</title>
+<path fill="none" stroke="#000000" d="M378.3758,-417.6888C435.6994,-422.2597 533.1319,-430.0288 593.1818,-434.8171"/>
+<polygon fill="#000000" stroke="#000000" points="592.9668,-438.311 603.2133,-435.617 593.5232,-431.3331 592.9668,-438.311"/>
+</g>
+<!-- Blockchain&#45;&gt;Agents -->
+<g id="edge71" class="edge">
+<title>Blockchain-&gt;Agents</title>
+<path fill="none" stroke="#000000" d="M378.5339,-404.4087C487.599,-383.2006 768.6032,-336.2776 1002.0682,-363.4 1199.6464,-386.3533 1247.3082,-408.3898 1437.6896,-466 1440.4625,-466.8391 1443.3066,-467.7535 1446.1595,-468.7108"/>
+<polygon fill="#000000" stroke="#000000" points="1445.2084,-472.0859 1455.8032,-472.0835 1447.5193,-465.4784 1445.2084,-472.0859"/>
+<text text-anchor="middle" x="941.7996" y="-385" font-family="Times,serif" font-size="14.00" fill="#000000">Economic Activity &amp;</text>
+<text text-anchor="middle" x="941.7996" y="-368.2" font-family="Times,serif" font-size="14.00" fill="#000000">Trust</text>
+</g>
+<!-- Bitcoin&#45;&gt;DigitalSociety -->
+<g id="edge8" class="edge">
+<title>Bitcoin-&gt;DigitalSociety</title>
+<path fill="none" stroke="#000000" d="M682.7668,-1213.13C742.7478,-1223.0873 855.1469,-1241.9911 863.531,-1245.2 879.602,-1251.3509 895.9722,-1260.9368 909.5586,-1269.99"/>
+<polygon fill="#000000" stroke="#000000" points="907.8282,-1273.0474 918.0537,-1275.8208 911.7896,-1267.2761 907.8282,-1273.0474"/>
+<text text-anchor="middle" x="801.5362" y="-1250.2" font-family="Times,serif" font-size="14.00" fill="#000000">Value &amp; Payments</text>
+</g>
+<!-- Bitcoin&#45;&gt;Metaverse -->
+<g id="edge9" class="edge">
+<title>Bitcoin-&gt;Metaverse</title>
+<path fill="none" stroke="#000000" d="M682.7555,-1196.2407C695.9281,-1191.2163 710.2677,-1184.2561 721.5414,-1175 732.5739,-1165.9419 727.6107,-1156.2373 739.5414,-1148.4 786.4124,-1117.6106 825.2925,-1166.0207 863.531,-1125 887.0248,-1099.7968 870.0132,-1003.4731 881.531,-971 890.3965,-946.0048 906.8123,-920.7989 920.275,-902.6375"/>
+<polygon fill="#000000" stroke="#000000" points="923.3333,-904.398 926.6008,-894.3196 917.7615,-900.1607 923.3333,-904.398"/>
+<text text-anchor="middle" x="801.5362" y="-1170" font-family="Times,serif" font-size="14.00" fill="#000000">Economic</text>
+<text text-anchor="middle" x="801.5362" y="-1153.2" font-family="Times,serif" font-size="14.00" fill="#000000">Transactions</text>
+</g>
+<!-- Nostr&#45;&gt;DigitalSociety -->
+<g id="edge10" class="edge">
+<title>Nostr-&gt;DigitalSociety</title>
+<path fill="none" stroke="#000000" d="M369.25,-1092.6143C438.6157,-1090.4266 592.5248,-1087.4629 721.5414,-1098.4 785.2139,-1103.7977 812.7336,-1082.2321 863.531,-1121 910.3403,-1156.7242 929.9326,-1226.8206 937.5,-1265.9307"/>
+<polygon fill="#000000" stroke="#000000" points="934.0706,-1266.6362 939.2898,-1275.8563 940.9595,-1265.3938 934.0706,-1266.6362"/>
+<text text-anchor="middle" x="645.6394" y="-1120" font-family="Times,serif" font-size="14.00" fill="#000000">Identity &amp;</text>
+<text text-anchor="middle" x="645.6394" y="-1103.2" font-family="Times,serif" font-size="14.00" fill="#000000">Communication</text>
+</g>
+<!-- Nostr&#45;&gt;DigitalObjects -->
+<g id="edge12" class="edge">
+<title>Nostr-&gt;DigitalObjects</title>
+<path fill="none" stroke="#000000" d="M345.7887,-1075.9284C358.0112,-1059.3174 375.9693,-1033.7424 389.1216,-1010 398.7257,-992.6628 391.2273,-981.0401 407.1216,-969.2 459.0723,-930.5004 507.5295,-998.3519 551.7374,-951 600.0392,-899.263 528.9479,-690.8446 569.7374,-633 575.9203,-624.2319 584.9981,-617.8546 594.7429,-613.22"/>
+<polygon fill="#000000" stroke="#000000" points="596.3222,-616.3541 604.2177,-609.2892 593.6398,-609.8884 596.3222,-616.3541"/>
+<text text-anchor="middle" x="479.4295" y="-974.2" font-family="Times,serif" font-size="14.00" fill="#000000">Provenance &amp; Ownership</text>
+</g>
+<!-- Nostr&#45;&gt;Metaverse -->
+<g id="edge11" class="edge">
+<title>Nostr-&gt;Metaverse</title>
+<path fill="none" stroke="#000000" d="M369.3486,-1089.1045C483.3134,-1073.8789 822.1721,-1026.7217 863.531,-999 863.8248,-998.8031 901.9074,-938.8507 924.8362,-902.7303"/>
+<polygon fill="#000000" stroke="#000000" points="927.9029,-904.43 930.3069,-894.1115 921.9929,-900.6787 927.9029,-904.43"/>
+<text text-anchor="middle" x="645.6394" y="-1065.2" font-family="Times,serif" font-size="14.00" fill="#000000">Social Interaction</text>
+</g>
+<!-- Solid&#45;&gt;DigitalSociety -->
+<g id="edge13" class="edge">
+<title>Solid-&gt;DigitalSociety</title>
+<path fill="none" stroke="#000000" d="M513.4942,-1355.1293C581.3505,-1358.4471 737.6949,-1361.4543 863.531,-1329 877.7969,-1325.3207 892.7312,-1319.2546 905.6847,-1313.1973"/>
+<polygon fill="#000000" stroke="#000000" points="907.2508,-1316.3278 914.7289,-1308.8225 904.2026,-1310.0263 907.2508,-1316.3278"/>
+<text text-anchor="middle" x="645.6394" y="-1362.2" font-family="Times,serif" font-size="14.00" fill="#000000">Data Ownership</text>
+</g>
+<!-- IPFS&#45;&gt;DigitalSociety -->
+<g id="edge14" class="edge">
+<title>IPFS-&gt;DigitalSociety</title>
+<path fill="none" stroke="#000000" d="M721.5234,-1308.8755C780.1936,-1304.9134 858.8829,-1299.5994 904.5922,-1296.5127"/>
+<polygon fill="#000000" stroke="#000000" points="904.9069,-1299.9995 914.6484,-1295.8336 904.4352,-1293.0154 904.9069,-1299.9995"/>
+<text text-anchor="middle" x="801.5362" y="-1312.2" font-family="Times,serif" font-size="14.00" fill="#000000">Decentralized Storage</text>
+</g>
+<!-- IPFS&#45;&gt;Metaverse -->
+<g id="edge15" class="edge">
+<title>IPFS-&gt;Metaverse</title>
+<path fill="none" stroke="#000000" d="M705.0572,-1295.8251C711.2485,-1292.0356 716.9449,-1287.4772 721.5414,-1282 744.6348,-1254.4818 713.4474,-1227.8913 739.5414,-1203.2 780.1495,-1164.7749 825.699,-1223.1612 863.531,-1182 895.3762,-1147.3524 866.4948,-1015.5924 881.531,-971 890.0048,-945.8693 906.4444,-920.6717 920.0159,-902.5479"/>
+<polygon fill="#000000" stroke="#000000" points="923.0762,-904.3101 926.4004,-894.2503 917.5283,-900.0414 923.0762,-904.3101"/>
+<text text-anchor="middle" x="801.5362" y="-1208.2" font-family="Times,serif" font-size="14.00" fill="#000000">World Data</text>
+</g>
+<!-- Fedimint&#45;&gt;DigitalSociety -->
+<g id="edge16" class="edge">
+<title>Fedimint-&gt;DigitalSociety</title>
+<path fill="none" stroke="#000000" d="M506.8241,-1415.329C571.7069,-1415.1349 738.6717,-1408.8862 863.531,-1354 882.8395,-1345.5123 901.6889,-1331.2999 916.0501,-1318.8376"/>
+<polygon fill="#000000" stroke="#000000" points="918.418,-1321.4155 923.5411,-1312.1417 913.7529,-1316.1965 918.418,-1321.4155"/>
+<text text-anchor="middle" x="645.6394" y="-1418.2" font-family="Times,serif" font-size="14.00" fill="#000000">Community Banking</text>
+</g>
+<!-- Lightning&#45;&gt;DigitalSociety -->
+<g id="edge18" class="edge">
+<title>Lightning-&gt;DigitalSociety</title>
+<path fill="none" stroke="#000000" d="M367.5981,-1208.0673C379.8467,-1213.6363 393.8337,-1219.276 407.1216,-1223 454.9935,-1236.4163 791.3979,-1276.4344 904.6738,-1289.6852"/>
+<polygon fill="#000000" stroke="#000000" points="904.2762,-1293.1625 914.6147,-1290.8463 905.0883,-1286.2097 904.2762,-1293.1625"/>
+<text text-anchor="middle" x="645.6394" y="-1272.2" font-family="Times,serif" font-size="14.00" fill="#000000">Micropayments</text>
+</g>
+<!-- Lightning&#45;&gt;Metaverse -->
+<g id="edge19" class="edge">
+<title>Lightning-&gt;Metaverse</title>
+<path fill="none" stroke="#000000" d="M378.5616,-1184.331C474.9214,-1172.3895 690.2273,-1144.7036 721.5414,-1132 793.5435,-1102.7899 823.4352,-1096.5573 863.531,-1030 893.8573,-979.6597 844.9721,-945.0139 881.531,-899 885.0144,-894.6157 889.4362,-891.0666 894.2969,-888.1938"/>
+<polygon fill="#000000" stroke="#000000" points="895.9782,-891.2675 903.4123,-883.7186 892.8933,-884.9839 895.9782,-891.2675"/>
+<text text-anchor="middle" x="645.6394" y="-1163.2" font-family="Times,serif" font-size="14.00" fill="#000000">Microtransactions</text>
+</g>
+<!-- Lightning&#45;&gt;Bitcoin -->
+<g id="edge17" class="edge">
+<title>Lightning-&gt;Bitcoin</title>
+<path fill="none" stroke="#000000" d="M378.7135,-1192.5267C437.7715,-1195.729 539.0096,-1201.2183 598.3799,-1204.4375"/>
+<polygon fill="#000000" stroke="#000000" points="598.4281,-1207.9452 608.603,-1204.9918 598.8072,-1200.9554 598.4281,-1207.9452"/>
+<text text-anchor="middle" x="479.4295" y="-1206.2" font-family="Times,serif" font-size="14.00" fill="#000000">Scalability &amp; Speed</text>
+</g>
+<!-- RGB&#45;&gt;DigitalObjects -->
+<g id="edge20" class="edge">
+<title>RGB-&gt;DigitalObjects</title>
+<path fill="none" stroke="#000000" d="M347.4114,-964.8566C361.3438,-949.6173 383.325,-928.5886 407.1216,-917.4 466.0434,-889.6964 507.8531,-942.0982 551.7374,-894 590.9226,-851.0521 535.9415,-680.3058 569.7374,-633 575.9742,-624.2701 585.0742,-617.9087 594.8237,-613.2773"/>
+<polygon fill="#000000" stroke="#000000" points="596.4028,-616.4115 604.2979,-609.3461 593.72,-609.946 596.4028,-616.4115"/>
+<text text-anchor="middle" x="479.4295" y="-939" font-family="Times,serif" font-size="14.00" fill="#000000">Smart Contracts</text>
+<text text-anchor="middle" x="479.4295" y="-922.2" font-family="Times,serif" font-size="14.00" fill="#000000">for Ownership</text>
+</g>
+<!-- Web3 -->
+<g id="node16" class="node">
+<title>Web3</title>
+<polygon fill="#000000" stroke="#000000" points="85.5,-1308 31.5,-1308 31.5,-1272 85.5,-1272 85.5,-1308"/>
+<text text-anchor="middle" x="58.5" y="-1287" font-family="Times,serif" font-size="10.00" fill="#000000">Web3</text>
+</g>
+<!-- LLMs&#45;&gt;GenAI -->
+<g id="edge29" class="edge">
+<title>LLMs-&gt;GenAI</title>
+<path fill="none" stroke="#000000" d="M686.5083,-261.3818C743.2738,-268.857 845.3437,-282.2982 901.6978,-289.7192"/>
+<polygon fill="#000000" stroke="#000000" points="901.2957,-293.1964 911.6671,-291.032 902.2097,-286.2563 901.2957,-293.1964"/>
+</g>
+<!-- StableDiffusion&#45;&gt;DigitalObjects -->
+<g id="edge30" class="edge">
+<title>StableDiffusion-&gt;DigitalObjects</title>
+<path fill="none" stroke="#000000" d="M373.3187,-506.8965C418.642,-504.9883 492.8582,-506.363 551.7374,-529.2 578.1188,-539.4323 603.3224,-559.4711 620.9639,-575.7844"/>
+<polygon fill="#000000" stroke="#000000" points="618.8572,-578.6111 628.5143,-582.969 623.6825,-573.54 618.8572,-578.6111"/>
+<text text-anchor="middle" x="479.4295" y="-534.2" font-family="Times,serif" font-size="14.00" fill="#000000">Image Generation</text>
+</g>
+<!-- Transformers&#45;&gt;LLMs -->
+<g id="edge31" class="edge">
+<title>Transformers-&gt;LLMs</title>
+<path fill="none" stroke="#000000" d="M367.0759,-209.7652C410.7033,-210.0777 487.4069,-212.6263 551.7374,-225.2 565.9645,-227.9808 581.0292,-232.281 594.8289,-236.7949"/>
+<polygon fill="#000000" stroke="#000000" points="594.0294,-240.219 604.6236,-240.1008 596.268,-233.5866 594.0294,-240.219"/>
+<text text-anchor="middle" x="479.4295" y="-230.2" font-family="Times,serif" font-size="14.00" fill="#000000">Architecture</text>
+</g>
+<!-- GANs&#45;&gt;DigitalObjects -->
+<g id="edge32" class="edge">
+<title>GANs-&gt;DigitalObjects</title>
+<path fill="none" stroke="#000000" d="M386.9681,-554.8642C431.8263,-549.1597 496.6183,-544.9772 551.7374,-557.2 570.5288,-561.3671 590.0162,-569.7025 606.3351,-577.9938"/>
+<polygon fill="#000000" stroke="#000000" points="605.0681,-581.282 615.548,-582.8387 608.3263,-575.0864 605.0681,-581.282"/>
+<text text-anchor="middle" x="479.4295" y="-562.2" font-family="Times,serif" font-size="14.00" fill="#000000">3D Creation</text>
+</g>
+<!-- Mamba&#45;&gt;LLMs -->
+<g id="edge33" class="edge">
+<title>Mamba-&gt;LLMs</title>
+<path fill="none" stroke="#000000" d="M381.6792,-43.5149C429.4932,-41.7642 501.7782,-46.1738 551.7374,-81.4 602.2185,-116.9942 628.0695,-188.4886 639.0147,-228.0568"/>
+<polygon fill="#000000" stroke="#000000" points="635.6635,-229.075 641.5988,-237.8513 642.4319,-227.2892 635.6635,-229.075"/>
+<text text-anchor="middle" x="479.4295" y="-103" font-family="Times,serif" font-size="14.00" fill="#000000">Efficient</text>
+<text text-anchor="middle" x="479.4295" y="-86.2" font-family="Times,serif" font-size="14.00" fill="#000000">Sequence Modeling</text>
+</g>
+<!-- PromptEngineering&#45;&gt;LLMs -->
+<g id="edge34" class="edge">
+<title>PromptEngineering-&gt;LLMs</title>
+<path fill="none" stroke="#000000" d="M380.5693,-337.9736C389.3287,-335.1054 398.4382,-332.3727 407.1216,-330.2 470.2704,-314.3993 490.1187,-327.9895 551.7374,-307 571.5921,-300.2368 592.2252,-289.4997 609.0764,-279.6181"/>
+<polygon fill="#000000" stroke="#000000" points="611.2492,-282.3959 618.0201,-274.247 607.6453,-276.3949 611.2492,-282.3959"/>
+<text text-anchor="middle" x="479.4295" y="-335.2" font-family="Times,serif" font-size="14.00" fill="#000000">Control &amp; Fine-tuning</text>
+</g>
+<!-- RLHF&#45;&gt;LLMs -->
+<g id="edge35" class="edge">
+<title>RLHF-&gt;LLMs</title>
+<path fill="none" stroke="#000000" d="M389.3365,-113.8286C435.2732,-124.8811 500.3546,-144.1241 551.7374,-173.4 578.4783,-188.636 604.3957,-212.3241 622.2029,-230.433"/>
+<polygon fill="#000000" stroke="#000000" points="619.8563,-233.0418 629.3168,-237.8115 624.8956,-228.1832 619.8563,-233.0418"/>
+<text text-anchor="middle" x="479.4295" y="-195" font-family="Times,serif" font-size="14.00" fill="#000000">Alignment</text>
+<text text-anchor="middle" x="479.4295" y="-178.2" font-family="Times,serif" font-size="14.00" fill="#000000">with Human Values</text>
+</g>
+<!-- DPO&#45;&gt;LLMs -->
+<g id="edge36" class="edge">
+<title>DPO-&gt;LLMs</title>
+<path fill="none" stroke="#000000" d="M375.3322,-295.098C385.738,-293.4647 396.8233,-291.7483 407.1216,-290.2 471.6762,-280.4946 546.157,-269.9135 594.4757,-263.1307"/>
+<polygon fill="#000000" stroke="#000000" points="595.2579,-266.5554 604.6751,-261.7008 594.286,-259.6231 595.2579,-266.5554"/>
+<text text-anchor="middle" x="479.4295" y="-295.2" font-family="Times,serif" font-size="14.00" fill="#000000">Preference Learning</text>
+</g>
+<!-- AR&#45;&gt;Metaverse -->
+<g id="edge45" class="edge">
+<title>AR-&gt;Metaverse</title>
+<path fill="none" stroke="#000000" d="M513.3639,-1008.8787C526.6169,-1005.7965 541.1417,-1000.4106 551.7374,-991 566.617,-977.7846 553.9495,-962.1157 569.7374,-950 674.5337,-869.5789 735.6521,-938.118 863.531,-905 873.4209,-902.4387 883.7995,-899.0888 893.6476,-895.5788"/>
+<polygon fill="#000000" stroke="#000000" points="895.1021,-898.7733 903.2812,-892.0388 892.6876,-892.2028 895.1021,-898.7733"/>
+</g>
+<!-- VR&#45;&gt;Metaverse -->
+<g id="edge46" class="edge">
+<title>VR-&gt;Metaverse</title>
+<path fill="none" stroke="#000000" d="M513.6766,-843.1986C525.974,-846.7156 539.7564,-851.335 551.7374,-857 560.4295,-861.1099 560.5618,-866.1274 569.7374,-869 681.2432,-903.9095 820.8932,-892.9879 893.2695,-883.5683"/>
+<polygon fill="#000000" stroke="#000000" points="894.0062,-887.0007 903.4485,-882.195 893.0703,-880.0635 894.0062,-887.0007"/>
+</g>
+<!-- Omniverse&#45;&gt;Metaverse -->
+<g id="edge47" class="edge">
+<title>Omniverse-&gt;Metaverse</title>
+<path fill="none" stroke="#000000" d="M694.7502,-970.5263C754.257,-962.4622 848.4684,-948.9065 863.531,-942 884.4443,-932.4108 904.2186,-915.6458 918.6592,-901.4129"/>
+<polygon fill="#000000" stroke="#000000" points="921.1853,-903.8359 925.7023,-894.2522 916.1947,-898.9272 921.1853,-903.8359"/>
+<text text-anchor="middle" x="801.5362" y="-986" font-family="Times,serif" font-size="14.00" fill="#000000">Collaboration</text>
+<text text-anchor="middle" x="801.5362" y="-969.2" font-family="Times,serif" font-size="14.00" fill="#000000">&amp; Simulation</text>
+</g>
+<!-- Omniverse&#45;&gt;VP -->
+<g id="edge48" class="edge">
+<title>Omniverse-&gt;VP</title>
+<path fill="none" stroke="#000000" d="M694.823,-994.5575C739.7565,-1007.8843 807.5242,-1021.102 863.531,-1003 935.7876,-979.6459 947.8842,-956.2027 1002.0682,-903 1011.582,-893.6585 1010.2144,-887.9822 1020.0682,-879 1074.0222,-829.8187 1103.1772,-838.8128 1160.0192,-793 1179.8659,-777.0042 1199.7278,-756.0966 1214.1461,-739.8085"/>
+<polygon fill="#000000" stroke="#000000" points="1216.8254,-742.0613 1220.7629,-732.2253 1211.551,-737.459 1216.8254,-742.0613"/>
+<text text-anchor="middle" x="941.7996" y="-1017" font-family="Times,serif" font-size="14.00" fill="#000000">Virtual Production</text>
+<text text-anchor="middle" x="941.7996" y="-1000.2" font-family="Times,serif" font-size="14.00" fill="#000000">Workflows</text>
+</g>
+<!-- Vircadia&#45;&gt;Metaverse -->
+<g id="edge49" class="edge">
+<title>Vircadia-&gt;Metaverse</title>
+<path fill="none" stroke="#000000" d="M506.7299,-797.7947C551.639,-804.1317 643.8709,-817.545 721.5414,-831.4 780.871,-841.9833 848.7943,-856.0329 893.3399,-865.5125"/>
+<polygon fill="#000000" stroke="#000000" points="892.7985,-868.9757 903.3088,-867.6407 894.26,-862.1299 892.7985,-868.9757"/>
+<text text-anchor="middle" x="645.6394" y="-853" font-family="Times,serif" font-size="14.00" fill="#000000">Open-Source</text>
+<text text-anchor="middle" x="645.6394" y="-836.2" font-family="Times,serif" font-size="14.00" fill="#000000">Platform</text>
+</g>
+<!-- USD&#45;&gt;DigitalObjects -->
+<g id="edge51" class="edge">
+<title>USD-&gt;DigitalObjects</title>
+<path fill="none" stroke="#000000" d="M377.9234,-715.5795C440.2713,-701.2449 544.9371,-676.5772 551.7374,-671 566.1871,-659.1492 556.2396,-645.9245 569.7374,-633 577.0194,-626.0273 586.047,-620.4682 595.3065,-616.0728"/>
+<polygon fill="#000000" stroke="#000000" points="596.8001,-619.2402 604.5873,-612.0562 594.0197,-612.816 596.8001,-619.2402"/>
+<text text-anchor="middle" x="479.4295" y="-712.2" font-family="Times,serif" font-size="14.00" fill="#000000">3D Interoperability</text>
+</g>
+<!-- USD&#45;&gt;Omniverse -->
+<g id="edge50" class="edge">
+<title>USD-&gt;Omniverse</title>
+<path fill="none" stroke="#000000" d="M337.2936,-744.3304C346.3693,-772.8248 368.0046,-827.2441 407.1216,-854 460.8508,-890.7505 497.7647,-840.808 551.7374,-877.2 564.5666,-885.8503 559.9528,-895.0135 569.7374,-907 583.1276,-923.4036 600.3212,-939.573 614.9573,-952.2319"/>
+<polygon fill="#000000" stroke="#000000" points="612.898,-955.0749 622.785,-958.8826 617.4304,-949.7404 612.898,-955.0749"/>
+<text text-anchor="middle" x="479.4295" y="-882.2" font-family="Times,serif" font-size="14.00" fill="#000000">Scene Description</text>
+</g>
+<!-- NeRFs&#45;&gt;DigitalObjects -->
+<g id="edge52" class="edge">
+<title>NeRFs-&gt;DigitalObjects</title>
+<path fill="none" stroke="#000000" d="M370.4126,-599.8953C386.7439,-592.3357 403.0021,-585.0853 407.1216,-584.2 470.5877,-570.5608 545.5168,-579.8532 594.2233,-589.1511"/>
+<polygon fill="#000000" stroke="#000000" points="593.7158,-592.6184 604.2051,-591.1269 595.0751,-585.7517 593.7158,-592.6184"/>
+<text text-anchor="middle" x="479.4295" y="-589.2" font-family="Times,serif" font-size="14.00" fill="#000000">3D Reconstruction</text>
+</g>
+<!-- NeRFs&#45;&gt;Metaverse -->
+<g id="edge53" class="edge">
+<title>NeRFs-&gt;Metaverse</title>
+<path fill="none" stroke="#000000" d="M373.8077,-632.2887C384.5595,-635.5568 396.1855,-638.7317 407.1216,-641 608.1319,-682.6917 704.7142,-581.921 863.531,-712 906.293,-747.0242 927.1835,-810.9246 936.1105,-847.7706"/>
+<polygon fill="#000000" stroke="#000000" points="932.7715,-848.87 938.4139,-857.8374 939.5952,-847.3086 932.7715,-848.87"/>
+<text text-anchor="middle" x="645.6394" y="-654.2" font-family="Times,serif" font-size="14.00" fill="#000000">Realistic Environments</text>
+</g>
+<!-- SpatialComputing&#45;&gt;Metaverse -->
+<g id="edge54" class="edge">
+<title>SpatialComputing-&gt;Metaverse</title>
+<path fill="none" stroke="#000000" d="M525.2055,-751.7445C574.4248,-751.4408 654.6233,-753.9859 721.5414,-770.4 788.3503,-786.7873 801.9146,-801.4159 863.531,-832 876.4521,-838.4135 890.2589,-845.9397 902.6228,-852.9361"/>
+<polygon fill="#000000" stroke="#000000" points="900.918,-855.993 911.3373,-857.9135 904.3898,-849.9146 900.918,-855.993"/>
+<text text-anchor="middle" x="645.6394" y="-792" font-family="Times,serif" font-size="14.00" fill="#000000">Immersive</text>
+<text text-anchor="middle" x="645.6394" y="-775.2" font-family="Times,serif" font-size="14.00" fill="#000000">Experiences</text>
+</g>
+<!-- AvatarGeneration&#45;&gt;DigitalObjects -->
+<g id="edge56" class="edge">
+<title>AvatarGeneration-&gt;DigitalObjects</title>
+<path fill="none" stroke="#000000" d="M377.5343,-657.4322C387.2496,-654.5304 397.4881,-651.6316 407.1216,-649.2 471.1762,-633.032 545.9749,-618.6313 594.4907,-609.8716"/>
+<polygon fill="#000000" stroke="#000000" points="595.2058,-613.2993 604.4311,-608.0894 593.9704,-606.4091 595.2058,-613.2993"/>
+<text text-anchor="middle" x="479.4295" y="-654.2" font-family="Times,serif" font-size="14.00" fill="#000000">Unique Avatars</text>
+</g>
+<!-- AvatarGeneration&#45;&gt;Metaverse -->
+<g id="edge55" class="edge">
+<title>AvatarGeneration-&gt;Metaverse</title>
+<path fill="none" stroke="#000000" d="M377.329,-674.9173C421.8786,-678.1703 491.7816,-684.2899 551.7374,-694 692.7454,-716.8368 745.5927,-691.4063 863.531,-772 892.1903,-791.5845 914.6365,-825.1107 928.0071,-848.7963"/>
+<polygon fill="#000000" stroke="#000000" points="924.9795,-850.5548 932.8453,-857.6528 931.1227,-847.1989 924.9795,-850.5548"/>
+<text text-anchor="middle" x="645.6394" y="-716.2" font-family="Times,serif" font-size="14.00" fill="#000000">Digital Identity</text>
+</g>
+<!-- VP&#45;&gt;Agents -->
+<g id="edge72" class="edge">
+<title>VP-&gt;Agents</title>
+<path fill="none" stroke="#000000" d="M1281.0926,-708.7952C1326.7078,-701.1936 1396.1589,-682.811 1437.6896,-639 1455.1356,-620.5961 1471.9423,-551.4983 1480.3908,-512.0547"/>
+<polygon fill="#000000" stroke="#000000" points="1483.8202,-512.754 1482.45,-502.2482 1476.9696,-511.3155 1483.8202,-512.754"/>
+<text text-anchor="middle" x="1374.7064" y="-724" font-family="Times,serif" font-size="14.00" fill="#000000">Automated Tasks &amp;</text>
+<text text-anchor="middle" x="1374.7064" y="-707.2" font-family="Times,serif" font-size="14.00" fill="#000000">Creative Assistance</text>
+</g>
+<!-- Economics -->
+<g id="node43" class="node">
+<title>Economics</title>
+<polygon fill="#d3d3d3" stroke="#000000" points="1516.4767,-940 1455.6055,-940 1455.6055,-904 1516.4767,-904 1516.4767,-940"/>
+<text text-anchor="middle" x="1486.0411" y="-919" font-family="Times,serif" font-size="10.00" fill="#000000">Economics</text>
+</g>
+<!-- VP&#45;&gt;Economics -->
+<g id="edge81" class="edge">
+<title>VP-&gt;Economics</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M1249.4277,-732.1284C1262.6835,-750.7283 1282.4682,-780.971 1293.7232,-810 1308.4694,-848.0335 1281.8613,-872.2103 1311.7232,-900 1347.3903,-933.1922 1406.4101,-933.5295 1445.7568,-929.0888"/>
+<polygon fill="#000000" stroke="#000000" points="1446.3279,-932.5444 1455.803,-927.8039 1445.4397,-925.601 1446.3279,-932.5444"/>
+<text text-anchor="middle" x="1374.7064" y="-936.2" font-family="Times,serif" font-size="14.00" fill="#000000">Cost &amp; Adoption</text>
+</g>
+<!-- BioMed&#45;&gt;Agents -->
+<g id="edge73" class="edge">
+<title>BioMed-&gt;Agents</title>
+<path fill="none" stroke="#000000" d="M1294.0177,-165.2089C1338.8063,-157.5687 1399.3594,-155.9603 1437.6896,-190.2 1447.6132,-199.0646 1472.8585,-383.778 1482.3544,-455.6954"/>
+<polygon fill="#000000" stroke="#000000" points="1478.9144,-456.3817 1483.6881,-465.8402 1485.8547,-455.4693 1478.9144,-456.3817"/>
+<text text-anchor="middle" x="1374.7064" y="-195.2" font-family="Times,serif" font-size="14.00" fill="#000000">Research &amp; Analysis</text>
+</g>
+<!-- BioMed&#45;&gt;Ethics -->
+<g id="edge82" class="edge">
+<title>BioMed-&gt;Ethics</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M1259.4171,-161.9461C1274.2105,-150.8034 1293.8177,-136.3959 1311.7232,-124.4 1358.502,-93.0603 1414.3254,-59.6577 1449.9699,-38.812"/>
+<polygon fill="#000000" stroke="#000000" points="1452.1452,-41.5952 1459.0214,-33.5349 1448.6195,-35.5479 1452.1452,-41.5952"/>
+<text text-anchor="middle" x="1374.7064" y="-146" font-family="Times,serif" font-size="14.00" fill="#000000">Data Privacy</text>
+<text text-anchor="middle" x="1374.7064" y="-129.2" font-family="Times,serif" font-size="14.00" fill="#000000">&amp; Bias</text>
+</g>
+<!-- Edu&#45;&gt;Agents -->
+<g id="edge74" class="edge">
+<title>Edu-&gt;Agents</title>
+<path fill="none" stroke="#000000" d="M1276.0588,-271.6403C1327.7242,-265.6831 1413.6545,-259.2255 1437.6896,-278.4 1465.1863,-300.336 1478.6256,-404.8667 1483.6343,-455.8744"/>
+<polygon fill="#000000" stroke="#000000" points="1480.1559,-456.2693 1484.5771,-465.8975 1487.1251,-455.6136 1480.1559,-456.2693"/>
+<text text-anchor="middle" x="1374.7064" y="-300" font-family="Times,serif" font-size="14.00" fill="#000000">Personalized Tutors &amp;</text>
+<text text-anchor="middle" x="1374.7064" y="-283.2" font-family="Times,serif" font-size="14.00" fill="#000000">Learning Companions</text>
+</g>
+<!-- Adoption -->
+<g id="node44" class="node">
+<title>Adoption</title>
+<polygon fill="#d3d3d3" stroke="#000000" points="1513.0411,-238 1459.0411,-238 1459.0411,-202 1513.0411,-202 1513.0411,-238"/>
+<text text-anchor="middle" x="1486.0411" y="-217" font-family="Times,serif" font-size="10.00" fill="#000000">Adoption</text>
+</g>
+<!-- Edu&#45;&gt;Adoption -->
+<g id="edge83" class="edge">
+<title>Edu-&gt;Adoption</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M1253.6121,-258.9097C1267.902,-245.7012 1289.2521,-228.8538 1311.7232,-221.4 1357.0841,-206.3536 1412.8112,-209.3371 1448.8561,-213.8323"/>
+<polygon fill="#000000" stroke="#000000" points="1448.5477,-217.3223 1458.9261,-215.1918 1449.4843,-210.3852 1448.5477,-217.3223"/>
+<text text-anchor="middle" x="1374.7064" y="-243" font-family="Times,serif" font-size="14.00" fill="#000000">Institutional</text>
+<text text-anchor="middle" x="1374.7064" y="-226.2" font-family="Times,serif" font-size="14.00" fill="#000000">Challenges</text>
+</g>
+<!-- Creative&#45;&gt;Agents -->
+<g id="edge75" class="edge">
+<title>Creative-&gt;Agents</title>
+<path fill="none" stroke="#000000" d="M1281.9312,-603.0962C1325.6367,-601.0447 1391.3472,-592.1867 1437.6896,-560 1454.8689,-548.0683 1467.2954,-527.8589 1475.2461,-511.2783"/>
+<polygon fill="#000000" stroke="#000000" points="1478.4982,-512.5806 1479.4123,-502.0253 1472.1153,-509.7067 1478.4982,-512.5806"/>
+<text text-anchor="middle" x="1374.7064" y="-622" font-family="Times,serif" font-size="14.00" fill="#000000">Content Creation &amp;</text>
+<text text-anchor="middle" x="1374.7064" y="-605.2" font-family="Times,serif" font-size="14.00" fill="#000000">Collaboration</text>
+</g>
+<!-- IP -->
+<g id="node45" class="node">
+<title>IP</title>
+<polygon fill="#d3d3d3" stroke="#000000" points="1513.0411,-883 1459.0411,-883 1459.0411,-847 1513.0411,-847 1513.0411,-883"/>
+<text text-anchor="middle" x="1486.0411" y="-862" font-family="Times,serif" font-size="10.00" fill="#000000">IP</text>
+</g>
+<!-- Creative&#45;&gt;IP -->
+<g id="edge84" class="edge">
+<title>Creative-&gt;IP</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M1250.5608,-621.0765C1263.333,-637.4847 1281.6367,-662.7532 1293.7232,-687 1305.0094,-709.6412 1296.6736,-720.665 1311.7232,-741 1348.3356,-790.4707 1410.5919,-827.8538 1449.9507,-848.0688"/>
+<polygon fill="#000000" stroke="#000000" points="1448.4441,-851.2288 1458.9503,-852.597 1451.5905,-844.9757 1448.4441,-851.2288"/>
+<text text-anchor="middle" x="1374.7064" y="-863" font-family="Times,serif" font-size="14.00" fill="#000000">Copyright &amp;</text>
+<text text-anchor="middle" x="1374.7064" y="-846.2" font-family="Times,serif" font-size="14.00" fill="#000000">Ownership</text>
+</g>
+<!-- DigitalEconomy&#45;&gt;Metaverse -->
+<g id="edge66" class="edge">
+<title>DigitalEconomy-&gt;Metaverse</title>
+<path fill="none" stroke="#000000" d="M671.2849,-457.0362C716.3574,-489.9894 810.0585,-564.2905 863.531,-648 905.1413,-713.1397 927.4504,-802.9627 936.65,-847.9478"/>
+<polygon fill="#000000" stroke="#000000" points="933.2381,-848.7364 938.613,-857.8666 940.105,-847.3773 933.2381,-848.7364"/>
+</g>
+<!-- DigitalEconomy&#45;&gt;Agents -->
+<g id="edge76" class="edge">
+<title>DigitalEconomy-&gt;Agents</title>
+<path fill="none" stroke="#000000" d="M687.9668,-448.228C704.0347,-451.3176 722.5535,-454.385 739.5414,-456 925.5918,-473.6872 973.2898,-452.6719 1160.0192,-460.4 1262.9308,-464.6591 1383.7947,-474.7417 1445.4258,-480.2494"/>
+<polygon fill="#000000" stroke="#000000" points="1445.2388,-483.7466 1455.5124,-481.1573 1445.8665,-476.7748 1445.2388,-483.7466"/>
+<text text-anchor="middle" x="1090.0437" y="-482" font-family="Times,serif" font-size="14.00" fill="#000000">Transactions &amp; Value</text>
+<text text-anchor="middle" x="1090.0437" y="-465.2" font-family="Times,serif" font-size="14.00" fill="#000000">Creation</text>
+</g>
+<!-- Regulation -->
+<g id="node46" class="node">
+<title>Regulation</title>
+<polygon fill="#d3d3d3" stroke="#000000" points="971.6837,-442 911.9155,-442 911.9155,-406 971.6837,-406 971.6837,-442"/>
+<text text-anchor="middle" x="941.7996" y="-421" font-family="Times,serif" font-size="10.00" fill="#000000">Regulation</text>
+</g>
+<!-- DigitalEconomy&#45;&gt;Regulation -->
+<g id="edge85" class="edge">
+<title>DigitalEconomy-&gt;Regulation</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M687.9681,-429.8958C704.0361,-426.8681 722.5548,-423.8899 739.5414,-422.4 794.4371,-417.5851 808.4274,-421.8368 863.531,-422.4 875.8293,-422.5257 889.2128,-422.7624 901.3777,-423.016"/>
+<polygon fill="#000000" stroke="#000000" points="901.6225,-426.5221 911.6964,-423.2409 901.7751,-419.5238 901.6225,-426.5221"/>
+<text text-anchor="middle" x="801.5362" y="-444" font-family="Times,serif" font-size="14.00" fill="#000000">Global</text>
+<text text-anchor="middle" x="801.5362" y="-427.2" font-family="Times,serif" font-size="14.00" fill="#000000">Coordination</text>
+</g>
+<!-- Legend -->
+<g id="node47" class="node">
+<title>Legend</title>
+<polygon fill="#d3d3d3" stroke="transparent" points="117,-1434 0,-1434 0,-1326 117,-1326 117,-1434"/>
+<polygon fill="#add8e6" stroke="transparent" points=".5,-1416 .5,-1434 117.5,-1434 117.5,-1416 .5,-1416"/>
+<polygon fill="none" stroke="#000000" points=".5,-1416 .5,-1434 117.5,-1434 117.5,-1416 .5,-1416"/>
+<text text-anchor="start" x="31.369" y="-1422" font-family="Times,serif" font-size="10.00" fill="#000000">Main Themes</text>
+<polygon fill="#000000" stroke="transparent" points=".5,-1398 .5,-1416 117.5,-1416 117.5,-1398 .5,-1398"/>
+<polygon fill="none" stroke="#000000" points=".5,-1398 .5,-1416 117.5,-1416 117.5,-1398 .5,-1398"/>
+<text text-anchor="start" x="3.054" y="-1404" font-family="Times,serif" font-size="10.00" fill="#000000">Decentralized Technologies</text>
+<polygon fill="#ffffe0" stroke="transparent" points=".5,-1380 .5,-1398 117.5,-1398 117.5,-1380 .5,-1380"/>
+<polygon fill="none" stroke="#000000" points=".5,-1380 .5,-1398 117.5,-1398 117.5,-1380 .5,-1380"/>
+<text text-anchor="start" x="25.5395" y="-1386" font-family="Times,serif" font-size="10.00" fill="#000000">AI Technologies</text>
+<polygon fill="#ffb6c1" stroke="transparent" points=".5,-1362 .5,-1380 117.5,-1380 117.5,-1362 .5,-1362"/>
+<polygon fill="none" stroke="#000000" points=".5,-1362 .5,-1380 117.5,-1380 117.5,-1362 .5,-1362"/>
+<text text-anchor="start" x="23.8695" y="-1368" font-family="Times,serif" font-size="10.00" fill="#000000">XR Technologies</text>
+<polygon fill="#d3d3d3" stroke="transparent" points=".5,-1344 .5,-1362 117.5,-1362 117.5,-1344 .5,-1344"/>
+<polygon fill="none" stroke="#000000" points=".5,-1344 .5,-1362 117.5,-1362 117.5,-1344 .5,-1344"/>
+<text text-anchor="start" x="4.024" y="-1350" font-family="Times,serif" font-size="10.00" fill="#000000">Intellectual Work Packages</text>
+<polygon fill="#f08080" stroke="transparent" points=".5,-1326 .5,-1344 117.5,-1344 117.5,-1326 .5,-1326"/>
+<polygon fill="none" stroke="#000000" points=".5,-1326 .5,-1344 117.5,-1344 117.5,-1326 .5,-1326"/>
+<text text-anchor="start" x="22.071" y="-1332" font-family="Times,serif" font-size="10.00" fill="#000000">Agentic AI Actors</text>
+</g>
+</g>
+</svg>

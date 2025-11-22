@@ -1,0 +1,1625 @@
+{
+    "metadata": {
+        "version": "1.0",
+        "timestamp": "2025-01-18 19:26:54.420409",
+        "description": "Mortgage simulation settings with field metadata"
+    },
+    "settings": {
+        "total_savings": {
+            "value": 60000.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "furnishing_budget": {
+            "value": 15000,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "front_loaded_furnishing": {
+            "value": 30,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "mortgage_rate": {
+            "value": 0.040999999999999995,
+            "metadata": {
+                "description": "Current interest rate based on LTV band",
+                "category": "mortgage",
+                "impact": "Determines monthly payments and total cost"
+            }
+        },
+        "mortgage_term_years": {
+            "value": 20.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "running_costs_p1": {
+            "value": 7000,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "running_costs_p2": {
+            "value": 7000,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "tax_rate": {
+            "value": 0.4,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "income_1": {
+            "value": 125000,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "income_2": {
+            "value": 0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "granny_flat_amount": {
+            "value": 0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "interest_only_period": {
+            "value": 0.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "monthly_overpayment": {
+            "value": 0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "analysis_years": {
+            "value": 2,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "rental_income_p1": {
+            "value": 1800.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "rental_income_p2": {
+            "value": 2000.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "btc_scenario": {
+            "value": "Flat",
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "btc_amount": {
+            "value": 7.5,
+            "metadata": {
+                "description": "Optimization metric: 7.5",
+                "category": "optimization",
+                "impact": "Direct impact on mortgage optimization strategy"
+            }
+        },
+        "months_until_move": {
+            "value": 8.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "months_until_granny": {
+            "value": 1.3797634691195795,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "house_value": {
+            "value": 850000.0,
+            "metadata": {
+                "description": "Purchase price of the Fairfield property",
+                "category": "property",
+                "impact": "Affects LTV ratio and mortgage rates"
+            }
+        },
+        "mortgage_amount": {
+            "value": 635000.0,
+            "metadata": {
+                "description": "Amount borrowed for the Fairfield property",
+                "category": "mortgage",
+                "impact": "Key factor in monthly payments and LTV"
+            }
+        },
+        "mortgage_term_months": {
+            "value": 240.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "base_costs_prop1": {
+            "value": 1000,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "base_costs_prop2": {
+            "value": 1200,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "btc_deposit_percent": {
+            "value": 90.59336395794246,
+            "metadata": {
+                "description": "Optimization metric: 90.59336395794246",
+                "category": "optimization",
+                "impact": "Direct impact on mortgage optimization strategy"
+            }
+        },
+        "savings_deposit_percent": {
+            "value": 9.406636042057546,
+            "metadata": {
+                "description": "Optimization metric: 9.406636042057546",
+                "category": "optimization",
+                "impact": "Direct impact on mortgage optimization strategy"
+            }
+        },
+        "house_deposit_percent": {
+            "value": 0.0,
+            "metadata": {
+                "description": "Percentage of deposit from house equity",
+                "category": "optimization",
+                "impact": "Part of optimal deposit allocation"
+            }
+        },
+        "granny_deposit_percent": {
+            "value": 0.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "deposit_from_btc": {
+            "value": 313000.0,
+            "metadata": {
+                "description": "Optimization metric: 313000.0",
+                "category": "optimization",
+                "impact": "Direct impact on mortgage optimization strategy"
+            }
+        },
+        "deposit_from_savings": {
+            "value": 32499.919999999984,
+            "metadata": {
+                "description": "Optimization metric: 32499.919999999984",
+                "category": "optimization",
+                "impact": "Direct impact on mortgage optimization strategy"
+            }
+        },
+        "deposit_from_house": {
+            "value": 0.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "deposit_from_granny": {
+            "value": 0.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "total_deposit": {
+            "value": 345499.92,
+            "metadata": {
+                "description": "Optimization metric: 345499.92",
+                "category": "optimization",
+                "impact": "Direct impact on mortgage optimization strategy"
+            }
+        },
+        "deposit": {
+            "value": 215000.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "gbp_usd_rate": {
+            "value": 1.27,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "btc_cost_basis": {
+            "value": 30000.0,
+            "metadata": {
+                "description": "Average purchase price of Bitcoin holdings in GBP",
+                "category": "bitcoin",
+                "impact": "Determines CGT liability if selling"
+            }
+        },
+        "target_disposable": {
+            "value": 5000.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "btc_strategy": {
+            "value": "Sell with CGT",
+            "metadata": {
+                "description": "Chosen Bitcoin strategy (Hold/Sell with CGT/BTC-Backed Loan)",
+                "category": "bitcoin",
+                "impact": "Major impact on deposit source and risk profile"
+            }
+        },
+        "move_in_date": {
+            "value": "2025-05-31",
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "granny_flat_date": {
+            "value": "2025-03-01",
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "emergency_fund": {
+            "value": 2000,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "scarborough_amount_deposit": {
+            "value": 0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "scarborough_amount_costs": {
+            "value": 30000,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "scarborough_amount_emergency": {
+            "value": 0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "scarborough_amount_total": {
+            "value": 170000,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "scarborough_sale_month": {
+            "value": 16,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "monthly_rental_income": {
+            "value": 1800,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "monthly_rental_tax": {
+            "value": 300,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "tax_summary": {
+            "value": {
+                "salary_1": {
+                    "gross": 110000,
+                    "net_monthly": 5833.33,
+                    "tax_bands": {
+                        "personal_allowance": {
+                            "amount": 12570,
+                            "rate": 0.0,
+                            "tax": 0
+                        },
+                        "basic_rate": {
+                            "amount": 37700,
+                            "rate": 0.2,
+                            "tax": 7540
+                        },
+                        "higher_rate": {
+                            "amount": 59730,
+                            "rate": 0.4,
+                            "tax": 23892
+                        },
+                        "total_tax": 31432,
+                        "effective_rate": 0.286
+                    }
+                },
+                "salary_2": {
+                    "gross": 35000,
+                    "net_monthly": 2291.67,
+                    "tax_bands": {
+                        "personal_allowance": {
+                            "amount": 12570,
+                            "rate": 0.0,
+                            "tax": 0
+                        },
+                        "basic_rate": {
+                            "amount": 22430,
+                            "rate": 0.2,
+                            "tax": 4486
+                        },
+                        "total_tax": 4486,
+                        "effective_rate": 0.128
+                    }
+                },
+                "rental": {
+                    "rental_income": 21600,
+                    "expenses": 4800,
+                    "mortgage_interest": 3600,
+                    "profit_before_interest": 16800,
+                    "basic_rate_reduction": 720,
+                    "rental_tax_before_relief": 6720,
+                    "final_tax": 6000,
+                    "effective_rate": 0.357
+                }
+            },
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "sell_stretford": {
+            "value": false,
+            "metadata": {
+                "description": "Optimization metric: True",
+                "category": "optimization",
+                "impact": "Direct impact on mortgage optimization strategy"
+            }
+        },
+        "stretford_sale_price": {
+            "value": 0,
+            "metadata": {
+                "description": "Expected sale price of Stretford property",
+                "category": "property_sale",
+                "impact": "Determines available equity for deposit"
+            }
+        },
+        "stretford_sale_month": {
+            "value": null,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "us_tax_exposure": {
+            "value": false,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "us_tax_rate": {
+            "value": 0.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "stretford_capital_gains": {
+            "value": {
+                "uk_tax": 15000,
+                "us_tax": 20000,
+                "total_tax": 35000
+            },
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "previous_sensitivity": {
+            "value": [
+                {
+                    "variable": "monthly_takehome",
+                    "change": -20.0,
+                    "impact": 3873.77
+                },
+                {
+                    "variable": "monthly_takehome",
+                    "change": -10.0,
+                    "impact": 3873.77
+                },
+                {
+                    "variable": "monthly_takehome",
+                    "change": 0.0,
+                    "impact": 3873.77
+                },
+                {
+                    "variable": "monthly_takehome",
+                    "change": 10.0,
+                    "impact": 3873.77
+                },
+                {
+                    "variable": "monthly_takehome",
+                    "change": 20.0,
+                    "impact": 3873.77
+                },
+                {
+                    "variable": "monthly_rental_prop1",
+                    "change": -30.0,
+                    "impact": 3873.77
+                },
+                {
+                    "variable": "monthly_rental_prop1",
+                    "change": -15.0,
+                    "impact": 3873.77
+                },
+                {
+                    "variable": "monthly_rental_prop1",
+                    "change": 0.0,
+                    "impact": 3873.77
+                },
+                {
+                    "variable": "monthly_rental_prop1",
+                    "change": 15.0,
+                    "impact": 3873.77
+                },
+                {
+                    "variable": "monthly_rental_prop1",
+                    "change": 30.0,
+                    "impact": 3873.77
+                },
+                {
+                    "variable": "mortgage_rate_monthly",
+                    "change": -0.002,
+                    "impact": 3874.32
+                },
+                {
+                    "variable": "mortgage_rate_monthly",
+                    "change": -0.001,
+                    "impact": 3874.04
+                },
+                {
+                    "variable": "mortgage_rate_monthly",
+                    "change": 0.0,
+                    "impact": 3873.77
+                },
+                {
+                    "variable": "mortgage_rate_monthly",
+                    "change": 0.001,
+                    "impact": 3873.49
+                },
+                {
+                    "variable": "mortgage_rate_monthly",
+                    "change": 0.002,
+                    "impact": 3873.21
+                }
+            ],
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "btc_cached_price": {
+            "value": 99511,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "btc_cache_timestamp": {
+            "value": 1736968090.8012078,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "projected_btc_price": {
+            "value": 96334.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "scarborough_options": {
+            "value": "Use as Deposit",
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "scarborough_deposit_split": {
+            "value": 70,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "months_until_overpayment": {
+            "value": 1.3469119579500657,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "overpayment_months": {
+            "value": 22,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "freed_capital": {
+            "value": 0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "deposit_allocation": {
+            "value": 0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "contingency_allocation": {
+            "value": 94899.60000000002,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "freed_capital_deposit_split": {
+            "value": 70,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "allocation_option": {
+            "value": null,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "months_until_sale": {
+            "value": null,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "allocate_savings": {
+            "value": false,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "monthly_savings_allocation": {
+            "value": 0.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "allocate_granny": {
+            "value": false,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "monthly_granny_allocation": {
+            "value": 0.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "loan_type": {
+            "value": null,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "loan_metrics": {
+            "value": {
+                "loan_amount_usd": 352749.48,
+                "collateral_btc": 7.5,
+                "current_ltv": 0.4882311956318641,
+                "monthly_interest_usd": 4086.01481,
+                "total_interest_usd": 24516.08886,
+                "admin_fee_usd": 7054.9896,
+                "total_cost_usd": 31571.07846,
+                "monthly_cost_usd": 5261.84641,
+                "margin_call_price": 67190.37714285713,
+                "liquidation_price": 58791.579999999994,
+                "projected_btc_price": 96334.0,
+                "projected_btc_price_gbp": 75853.54330708661,
+                "base_price_usd": 96334,
+                "scenario_multiplier": 1.0,
+                "apr": 0.139,
+                "loan_type": "custodied",
+                "initial_ltv": 0.5,
+                "margin_call_ltv": 0.7,
+                "liquidation_ltv": 0.8,
+                "btc_scenario": "Flat (12m)",
+                "term_months": 6,
+                "cgt_cost_gbp": 23394.18896755039,
+                "risk_level": "safe",
+                "risk_message": "Adequate safety margin",
+                "price_floor": 33000,
+                "remaining_btc_loan": 6.844549619864223,
+                "btc_for_upfront_costs": 0.3277251900678888,
+                "btc_for_repayments": 0.3277251900678888,
+                "btc_for_costs_loan": 0.6554503801357776,
+                "btc_for_deposit_loan": 7.5,
+                "remaining_btc_sell": 4.66559054954637,
+                "btc_for_deposit_sell": 2.83440945045363,
+                "btc_for_costs_sell": 0,
+                "initial_btc": 7.5,
+                "remaining_btc": 6.844549619864223,
+                "remaining_btc_value": 519183.34100787406
+            },
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "loan_term_months": {
+            "value": null,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "remaining_btc": {
+            "value": 4.490789701386352,
+            "metadata": {
+                "description": "Optimization metric: 4.490789701386352",
+                "category": "optimization",
+                "impact": "Direct impact on mortgage optimization strategy"
+            }
+        },
+        "remaining_btc_value": {
+            "value": 467105.0,
+            "metadata": {
+                "description": "Optimization metric: 467105.0",
+                "category": "optimization",
+                "impact": "Direct impact on mortgage optimization strategy"
+            }
+        },
+        "rate_type": {
+            "value": "Fixed",
+            "metadata": {
+                "description": "Type of mortgage rate (Fixed or Variable)",
+                "category": "mortgage",
+                "impact": "Affects interest rate and risk profile"
+            }
+        },
+        "available_deposit": {
+            "value": 562454.1,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "total_btc_value": {
+            "value": 722505.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "net_btc_value": {
+            "value": 592454.1,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "btc_loan_ltv": {
+            "value": 0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "sale_price": {
+            "value": 450000.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "remaining_mortgage": {
+            "value": 133000.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "current_mortgage_rate": {
+            "value": 0.0163,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "available_equity": {
+            "value": 317000.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "current_btc_price": {
+            "value": 104014,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "current_ltv": {
+            "value": 65.88235294117646,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "current_rate": {
+            "value": 4.18,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "monthly_payment": {
+            "value": 3908.4697360671958,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "monthly_income": {
+            "value": 9139.95,
+            "metadata": {
+                "description": "Total monthly income from all sources",
+                "category": "financial",
+                "impact": "Key factor in mortgage affordability"
+            }
+        },
+        "monthly_expenses": {
+            "value": 5990.213747232546,
+            "metadata": {
+                "description": "Total monthly expenses including mortgage",
+                "category": "financial",
+                "impact": "Affects disposable income"
+            }
+        },
+        "monthly_takehome": {
+            "value": 9139.95,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "disposable_income": {
+            "value": 3149.736252767455,
+            "metadata": {
+                "description": "Monthly income remaining after all expenses",
+                "category": "financial",
+                "impact": "Key metric for financial sustainability"
+            }
+        },
+        "meets_target": {
+            "value": false,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "disposable_shortfall": {
+            "value": 1850.263747232545,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "tax_1": {
+            "value": {
+                "tax_bands": {
+                    "personal_allowance": {
+                        "amount": 70.0,
+                        "rate": 0.0,
+                        "tax": 0
+                    },
+                    "basic_rate": {
+                        "amount": 50200.0,
+                        "rate": 0.2,
+                        "tax": 10040.0
+                    },
+                    "higher_rate": {
+                        "amount": 74730.0,
+                        "rate": 0.4,
+                        "tax": 29892.0
+                    },
+                    "additional_rate": {
+                        "amount": 0,
+                        "rate": 0.45,
+                        "tax": 0
+                    }
+                },
+                "ni_bands": {
+                    "no_ni": {
+                        "amount": 12570,
+                        "rate": 0.0
+                    },
+                    "basic_rate": {
+                        "amount": 4524.0,
+                        "rate": 0.12
+                    },
+                    "higher_rate": {
+                        "amount": 1494.6000000000001,
+                        "rate": 0.02
+                    }
+                },
+                "total_tax": 39932.0,
+                "total_ni": 18588.6,
+                "total_deductions": 58520.6,
+                "net_annual": 66479.4,
+                "net_monthly": 5539.95,
+                "effective_rate": 0.4681648
+            },
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "tax_2": {
+            "value": {
+                "tax_bands": {
+                    "personal_allowance": {
+                        "amount": 0.0,
+                        "rate": 0.0,
+                        "tax": 0
+                    },
+                    "basic_rate": {
+                        "amount": 0,
+                        "rate": 0.2,
+                        "tax": 0
+                    },
+                    "higher_rate": {
+                        "amount": 0,
+                        "rate": 0.4,
+                        "tax": 0
+                    },
+                    "additional_rate": {
+                        "amount": 0,
+                        "rate": 0.45,
+                        "tax": 0
+                    }
+                },
+                "ni_bands": {
+                    "no_ni": {
+                        "amount": 0.0,
+                        "rate": 0.0
+                    },
+                    "basic_rate": {
+                        "amount": 0,
+                        "rate": 0.12
+                    },
+                    "higher_rate": {
+                        "amount": 0,
+                        "rate": 0.02
+                    }
+                },
+                "total_tax": 0,
+                "total_ni": 0.0,
+                "total_deductions": 0.0,
+                "net_annual": 0.0,
+                "net_monthly": 0.0,
+                "effective_rate": 0
+            },
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "btc_gain": {
+            "value": 155257.27305939584,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "btc_tax": {
+            "value": 27946.30915069125,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "stamp_duty": {
+            "value": 55499.92,
+            "metadata": {
+                "description": "Optimization metric: 55499.92",
+                "category": "optimization",
+                "impact": "Direct impact on mortgage optimization strategy"
+            }
+        },
+        "ltv": {
+            "value": 0.7470588235294118,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "btc_amount_used": {
+            "value": 3.3326457267423417,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "remaining_btc_value_gbp": {
+            "value": 341309.59636111965,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "projected_btc_price_usd": {
+            "value": 104014.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "projected_btc_price_gbp": {
+            "value": 81900.7874015748,
+            "metadata": {
+                "description": "Projected Bitcoin price in GBP based on selected scenario",
+                "category": "bitcoin",
+                "impact": "Affects potential deposit amount and loan risks"
+            }
+        },
+        "net_proceeds": {
+            "value": -30000.0,
+            "metadata": {
+                "description": "Net proceeds from property sale after costs",
+                "category": "property_sale",
+                "impact": "Available for deposit or other uses"
+            }
+        },
+        "has_us_tax": {
+            "value": false,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "granny_deposit_amount": {
+            "value": 0.0,
+            "metadata": {
+                "description": "Amount from granny flat allocated to deposit",
+                "category": "granny_flat",
+                "impact": "Contributes to total deposit"
+            }
+        },
+        "granny_emergency_amount": {
+            "value": 0.0,
+            "metadata": {
+                "description": "Amount from granny flat allocated to emergency fund",
+                "category": "granny_flat",
+                "impact": "Provides financial buffer"
+            }
+        },
+        "granny_total_amount": {
+            "value": 0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "granny_emergency_percent": {
+            "value": 100.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "months_to_granny": {
+            "value": 1.3797634691195795,
+            "metadata": {
+                "description": "Months until granny flat completion",
+                "category": "granny_flat",
+                "impact": "Timing impact on deposit availability"
+            }
+        },
+        "granny_completion_date": {
+            "value": "2025-03-01",
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "projected_price": {
+            "value": 104014.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "total_value": {
+            "value": 780105.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "remaining_value_sell": {
+            "value": 0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "cgt_impact": {
+            "value": 0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "btc_needed_for_deposit": {
+            "value": 0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "remaining_value_loan": {
+            "value": 0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "loan_costs_gbp": {
+            "value": 0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "collateral_required": {
+            "value": 0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "risk_level": {
+            "value": "unknown",
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "risk_message": {
+            "value": "",
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "margin_call_price": {
+            "value": 0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "liquidation_price": {
+            "value": 0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "strategy_difference": {
+            "value": 0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "btc_pay_stretford": {
+            "value": false,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "btc_for_stretford": {
+            "value": 0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "base_deposit": {
+            "value": 290000,
+            "metadata": {
+                "description": "Optimization metric: 290000",
+                "category": "optimization",
+                "impact": "Direct impact on mortgage optimization strategy"
+            }
+        },
+        "total_deposit_needed": {
+            "value": 345499.92,
+            "metadata": {
+                "description": "Optimization metric: 345499.92",
+                "category": "optimization",
+                "impact": "Direct impact on mortgage optimization strategy"
+            }
+        },
+        "unallocated_amount": {
+            "value": 0,
+            "metadata": {
+                "description": "Optimization metric: 13499.919999999984",
+                "category": "optimization",
+                "impact": "Direct impact on mortgage optimization strategy"
+            }
+        },
+        "available_btc_value": {
+            "value": 780105.0,
+            "metadata": {
+                "description": "Optimization metric: 780105.0",
+                "category": "optimization",
+                "impact": "Direct impact on mortgage optimization strategy"
+            }
+        },
+        "available_savings": {
+            "value": 60000.0,
+            "metadata": {
+                "description": "Optimization metric: 60000.0",
+                "category": "optimization",
+                "impact": "Direct impact on mortgage optimization strategy"
+            }
+        },
+        "available_house_equity": {
+            "value": 1000.0,
+            "metadata": {
+                "description": "Optimization metric: 1000.0",
+                "category": "optimization",
+                "impact": "Direct impact on mortgage optimization strategy"
+            }
+        },
+        "available_granny": {
+            "value": 1000.0,
+            "metadata": {
+                "description": "Optimization metric: 1000.0",
+                "category": "optimization",
+                "impact": "Direct impact on mortgage optimization strategy"
+            }
+        },
+        "best_scenario": {
+            "value": {
+                "name": "Flat",
+                "coverage": 100.0
+            },
+            "metadata": {
+                "description": "Optimization metric: {'name': 'Flat', 'coverage': 100.0}",
+                "category": "optimization",
+                "impact": "Direct impact on mortgage optimization strategy"
+            }
+        },
+        "worst_scenario": {
+            "value": {
+                "name": "0.3x Severe Depreciation",
+                "coverage": 67.73706344128821
+            },
+            "metadata": {
+                "description": "Optimization metric: {'name': '0.3x Severe Depreciation', 'coverage': 67.73706344128821}",
+                "category": "optimization",
+                "impact": "Direct impact on mortgage optimization strategy"
+            }
+        },
+        "rental_income": {
+            "value": 1600.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "monthly_mortgage_payment": {
+            "value": 540.0773444986836,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "monthly_interest_only": {
+            "value": 2211.9166666666665,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "term_months": {
+            "value": 240.0,
+            "metadata": {
+                "description": "Additional field",
+                "category": "other",
+                "impact": "Impact not specified"
+            }
+        },
+        "btc_price": {
+            "value": 104014.0,
+            "metadata": {
+                "description": "Optimization metric: 104014.0",
+                "category": "optimization",
+                "impact": "Direct impact on mortgage optimization strategy"
+            }
+        },
+        "btc_used": {
+            "value": 3.009210298613648,
+            "metadata": {
+                "description": "Optimization metric: 3.009210298613648",
+                "category": "optimization",
+                "impact": "Direct impact on mortgage optimization strategy"
+            }
+        }
+    },
+    "field_definitions": {
+        "house_value": {
+            "description": "Purchase price of the Fairfield property",
+            "category": "property",
+            "impact": "Affects LTV ratio and mortgage rates"
+        },
+        "mortgage_amount": {
+            "description": "Amount borrowed for the Fairfield property",
+            "category": "mortgage",
+            "impact": "Key factor in monthly payments and LTV"
+        },
+        "mortgage_rate": {
+            "description": "Current interest rate based on LTV band",
+            "category": "mortgage",
+            "impact": "Determines monthly payments and total cost"
+        },
+        "rate_type": {
+            "description": "Type of mortgage rate (Fixed or Variable)",
+            "category": "mortgage",
+            "impact": "Affects interest rate and risk profile"
+        },
+        "btc_amount": {
+            "description": "Optimization metric: 7.5",
+            "category": "optimization",
+            "impact": "Direct impact on mortgage optimization strategy"
+        },
+        "btc_strategy": {
+            "description": "Chosen Bitcoin strategy (Hold/Sell with CGT/BTC-Backed Loan)",
+            "category": "bitcoin",
+            "impact": "Major impact on deposit source and risk profile"
+        },
+        "btc_cost_basis": {
+            "description": "Average purchase price of Bitcoin holdings in GBP",
+            "category": "bitcoin",
+            "impact": "Determines CGT liability if selling"
+        },
+        "projected_btc_price_gbp": {
+            "description": "Projected Bitcoin price in GBP based on selected scenario",
+            "category": "bitcoin",
+            "impact": "Affects potential deposit amount and loan risks"
+        },
+        "granny_deposit_amount": {
+            "description": "Amount from granny flat allocated to deposit",
+            "category": "granny_flat",
+            "impact": "Contributes to total deposit"
+        },
+        "granny_emergency_amount": {
+            "description": "Amount from granny flat allocated to emergency fund",
+            "category": "granny_flat",
+            "impact": "Provides financial buffer"
+        },
+        "months_to_granny": {
+            "description": "Months until granny flat completion",
+            "category": "granny_flat",
+            "impact": "Timing impact on deposit availability"
+        },
+        "stretford_sale_price": {
+            "description": "Expected sale price of Stretford property",
+            "category": "property_sale",
+            "impact": "Determines available equity for deposit"
+        },
+        "stamp_duty": {
+            "description": "Optimization metric: 55499.92",
+            "category": "optimization",
+            "impact": "Direct impact on mortgage optimization strategy"
+        },
+        "net_proceeds": {
+            "description": "Net proceeds from property sale after costs",
+            "category": "property_sale",
+            "impact": "Available for deposit or other uses"
+        },
+        "monthly_income": {
+            "description": "Total monthly income from all sources",
+            "category": "financial",
+            "impact": "Key factor in mortgage affordability"
+        },
+        "monthly_expenses": {
+            "description": "Total monthly expenses including mortgage",
+            "category": "financial",
+            "impact": "Affects disposable income"
+        },
+        "disposable_income": {
+            "description": "Monthly income remaining after all expenses",
+            "category": "financial",
+            "impact": "Key metric for financial sustainability"
+        },
+        "btc_deposit_percent": {
+            "description": "Optimization metric: 90.59336395794246",
+            "category": "optimization",
+            "impact": "Direct impact on mortgage optimization strategy"
+        },
+        "savings_deposit_percent": {
+            "description": "Optimization metric: 9.406636042057546",
+            "category": "optimization",
+            "impact": "Direct impact on mortgage optimization strategy"
+        },
+        "house_deposit_percent": {
+            "description": "Percentage of deposit from house equity",
+            "category": "optimization",
+            "impact": "Part of optimal deposit allocation"
+        },
+        "best_scenario": {
+            "description": "Optimization metric: {'name': 'Flat', 'coverage': 100.0}",
+            "category": "optimization",
+            "impact": "Direct impact on mortgage optimization strategy"
+        },
+        "worst_scenario": {
+            "description": "Optimization metric: {'name': '0.3x Severe Depreciation', 'coverage': 67.73706344128821}",
+            "category": "optimization",
+            "impact": "Direct impact on mortgage optimization strategy"
+        },
+        "btc_price": {
+            "description": "Optimization metric: 104014.0",
+            "category": "optimization",
+            "impact": "Direct impact on mortgage optimization strategy"
+        },
+        "remaining_btc": {
+            "description": "Optimization metric: 4.490789701386352",
+            "category": "optimization",
+            "impact": "Direct impact on mortgage optimization strategy"
+        },
+        "remaining_btc_value": {
+            "description": "Optimization metric: 467105.0",
+            "category": "optimization",
+            "impact": "Direct impact on mortgage optimization strategy"
+        },
+        "base_deposit": {
+            "description": "Optimization metric: 290000",
+            "category": "optimization",
+            "impact": "Direct impact on mortgage optimization strategy"
+        },
+        "total_deposit_needed": {
+            "description": "Optimization metric: 345499.92",
+            "category": "optimization",
+            "impact": "Direct impact on mortgage optimization strategy"
+        },
+        "unallocated_amount": {
+            "description": "Optimization metric: 13499.919999999984",
+            "category": "optimization",
+            "impact": "Direct impact on mortgage optimization strategy"
+        },
+        "available_btc_value": {
+            "description": "Optimization metric: 780105.0",
+            "category": "optimization",
+            "impact": "Direct impact on mortgage optimization strategy"
+        },
+        "available_savings": {
+            "description": "Optimization metric: 60000.0",
+            "category": "optimization",
+            "impact": "Direct impact on mortgage optimization strategy"
+        },
+        "available_house_equity": {
+            "description": "Optimization metric: 1000.0",
+            "category": "optimization",
+            "impact": "Direct impact on mortgage optimization strategy"
+        },
+        "available_granny": {
+            "description": "Optimization metric: 1000.0",
+            "category": "optimization",
+            "impact": "Direct impact on mortgage optimization strategy"
+        },
+        "deposit_from_btc": {
+            "description": "Optimization metric: 313000.0",
+            "category": "optimization",
+            "impact": "Direct impact on mortgage optimization strategy"
+        },
+        "total_deposit": {
+            "description": "Optimization metric: 345499.92",
+            "category": "optimization",
+            "impact": "Direct impact on mortgage optimization strategy"
+        },
+        "btc_used": {
+            "description": "Optimization metric: 3.009210298613648",
+            "category": "optimization",
+            "impact": "Direct impact on mortgage optimization strategy"
+        },
+        "sell_stretford": {
+            "description": "Optimization metric: True",
+            "category": "optimization",
+            "impact": "Direct impact on mortgage optimization strategy"
+        },
+        "deposit_from_savings": {
+            "description": "Optimization metric: 32499.919999999984",
+            "category": "optimization",
+            "impact": "Direct impact on mortgage optimization strategy"
+        }
+    }
+}

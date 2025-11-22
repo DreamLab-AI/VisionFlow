@@ -1,0 +1,2 @@
+- [ObjectDrop](https://objectdrop.github.io/) [[Google]] object insertion and removal
+- [Deblur_GS_author_version.pdf (chaphlagical.icu)](https://chaphlagical.icu/Deblur-GS/static/paper/Deblur_GS_author_version.pdf)

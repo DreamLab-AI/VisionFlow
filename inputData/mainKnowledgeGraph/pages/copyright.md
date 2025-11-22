@@ -1,0 +1,4 @@
+- Side note, [Japan Goes All In: Copyright Doesn’t Apply To AI Training | BIIA.com | Business Information Industry Association](https://www.biia.com/japan-goes-all-in-copyright-doesnt-apply-to-ai-training/)
+-
+- https://www.theregister.com/2024/07/08/github_copilot_dmca/
+-

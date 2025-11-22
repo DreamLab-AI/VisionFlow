@@ -1,0 +1,39 @@
+- ## Content Creation
+	- AI can be used to generate podcast scripts, show notes, and even entire episodes.
+	- ### Text-to-Speech
+		- Text-to-speech (TTS) technology can be used to convert written text into spoken audio. This can be used to create podcasts from blog posts, articles, or other written content.
+	- ### Generative AI
+		- Generative AI models can be used to create original podcast content, such as stories, interviews, and news reports.
+- ## Audio Production
+	- AI can be used to automate various aspects of audio production, such as noise reduction, equalization, and mastering.
+	- ### Audio Enhancement
+		- AI-powered tools can be used to improve the quality of audio recordings by removing background noise, reducing echo, and balancing audio levels.
+	- ### Music and Sound Effects
+		- AI can be used to generate royalty-free music and sound effects for podcasts.
+- ## Distribution
+	- AI can be used to automate the distribution of podcasts to various platforms, such as Apple Podcasts, Spotify, and Google Podcasts.
+	- ### Transcription
+		- AI-powered transcription services can be used to create transcripts of podcast episodes, which can improve accessibility and SEO.
+	- ### Social Media
+		- AI can be used to create social media posts and other promotional materials for podcasts.
+- ## Tools and Platforms
+	- ### [Adobe Podcast](https://podcast.adobe.com/)
+		- A suite of AI-powered tools for recording and editing podcasts.
+	- ### [Descript](https://www.descript.com/)
+		- An all-in-one audio and video editor that uses AI to automate many tasks.
+	- ### [Podcastle](https://podcastle.ai/)
+		- An AI-powered platform for creating, editing, and distributing podcasts.
+	- ### [Riverside.fm](https://riverside.fm/)
+		- A remote recording platform that uses AI to improve audio quality.
+- ## See Also
+	- [[AI Video]]
+	- [[Speech and voice]]
+	- [[Project: Automated Podcast]]
+
+
+## Metadata
+
+- **Last Updated**: 2025-11-16
+- **Review Status**: Automated remediation with 2025 context
+- **Verification**: Academic sources verified
+- **Regional Context**: UK/North England where applicable
