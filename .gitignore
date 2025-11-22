@@ -146,12 +146,27 @@ scripts/local/
 client/visualisation/effects/custom/
 .qodo
 
+
+# Claude Flow metrics directories
+.claude-flow/
+**/.claude-flow/
+multi-agent-docker/gui-tools-assets/blender-*.tar.xz
+.claude/
+.swarm/memory.db-shm
+.swarm/memory.db-shm
+.swarm/memory.db-shm
+.swarm/memory.db-shm
+.swarm/memory.db-shm
+
 # Claude Flow generated files
 .claude/settings.local.json
 .mcp.json
 claude-flow.config.json
-.multi-agent/
+.swarm/
 .hive-mind/
+.claude-flow/
+memory/
+coordination/
 memory/claude-flow-data.json
 memory/sessions/*
 !memory/sessions/README.md
@@ -167,21 +182,5 @@ coordination/orchestration/*
 *.sqlite-journal
 *.sqlite-wal
 claude-flow
-claude-flow.bat
-claude-flow.ps1
+# Removed Windows wrapper files per user request
 hive-mind-prompt-*.txt
-agentdb.db
-agentdb.db-shm
-.mcp.json
-
-
-# Claude Flow metrics directories
-.claude-flow/
-**/.claude-flow/
-multi-agent-docker/gui-tools-assets/blender-*.tar.xz
-.claude/
-.swarm/memory.db-shm
-.swarm/memory.db-shm
-.swarm/memory.db-shm
-.swarm/memory.db-shm
-.swarm/memory.db-shm
