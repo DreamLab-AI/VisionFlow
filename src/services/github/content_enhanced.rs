@@ -92,9 +92,20 @@ impl EnhancedContentAPI {
                         download_url: file["download_url"].as_str().unwrap_or("").to_string(),
                     });
                 } else if file_type == "dir" {
-                    debug!("list_markdown_files: Skipping directory: {}", file_name);
+                    let dir_path = file["path"].as_str().unwrap_or("");
+                    debug!("list_markdown_files: Recursively processing directory: {}", dir_path);
 
-
+                    // Recursively fetch markdown files from subdirectory
+                    match self.list_markdown_files(dir_path).await {
+                        Ok(mut subdir_files) => {
+                            let count = subdir_files.len();
+                            debug!("list_markdown_files: Found {} files in subdirectory {}", count, dir_path);
+                            all_markdown_files.append(&mut subdir_files);
+                        }
+                        Err(e) => {
+                            warn!("list_markdown_files: Failed to process subdirectory {}: {}", dir_path, e);
+                        }
+                    }
                 }
             }
 

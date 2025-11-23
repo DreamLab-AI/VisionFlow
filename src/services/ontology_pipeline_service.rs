@@ -205,44 +205,28 @@ impl OntologyPipelineService {
         Ok(stats)
     }
 
-    /// Trigger reasoning process
-    /// DISABLED: ReasoningActor removed - needs refactoring to use CustomReasoner directly
+    /// Trigger reasoning process using CustomReasoner directly
     async fn trigger_reasoning(
         &self,
-        _ontology_id: i64,
-        _ontology: Ontology,
+        ontology_id: i64,
+        ontology: Ontology,
     ) -> Result<Vec<crate::reasoning::custom_reasoner::InferredAxiom>, String> {
-        // DISABLED - ReasoningActor no longer exists
-        warn!("Reasoning functionality disabled - ReasoningActor removed, needs refactoring");
-        return Ok(Vec::new());
+        info!("🧠 Triggering reasoning for ontology {} using CustomReasoner", ontology_id);
 
-        /* ORIGINAL CODE - DISABLED
-        info!("🧠 Triggering reasoning for ontology {}", ontology_id);
+        use crate::reasoning::custom_reasoner::{CustomReasoner, OntologyReasoner};
 
-        let reasoning_actor = self.reasoning_actor
-            .as_ref()
-            .ok_or_else(|| "Reasoning actor not configured".to_string())?;
+        let mut reasoner = CustomReasoner::new();
 
-        let msg = ReasoningTrigger {
-            ontology_id,
-            ontology,
-        };
-
-        match reasoning_actor.send(msg).await {
-            Ok(Ok(axioms)) => {
+        match reasoner.infer_axioms(&ontology) {
+            Ok(axioms) => {
                 info!("✅ Reasoning succeeded: {} axioms inferred", axioms.len());
                 Ok(axioms)
             }
-            Ok(Err(e)) => {
+            Err(e) => {
                 error!("❌ Reasoning failed: {}", e);
                 Err(format!("Reasoning error: {}", e))
             }
-            Err(e) => {
-                error!("❌ Failed to send reasoning message: {}", e);
-                Err(format!("Mailbox error: {}", e))
-            }
         }
-        */
     }
 
     /// Generate physics constraints from inferred axioms
