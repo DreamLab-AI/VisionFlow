@@ -1,2 +1,0 @@
-- [Video Editing via Factorized Diffusion Distillation (fdd-video-edit.github.io)](https://fdd-video-edit.github.io/)
--

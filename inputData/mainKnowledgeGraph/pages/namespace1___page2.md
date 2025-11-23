@@ -1,1 +1,0 @@
-- I am a second page in namespace *namespace1*

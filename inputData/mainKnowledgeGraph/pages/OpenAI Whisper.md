@@ -1,3 +1,0 @@
-- [How to use Open AI Text to Speech API in 3 mins | Text to Speech | OpenAI #ai #tts@aseemwangoo
-	- YouTube](https://www.youtube.com/watch?v=y8-En6J9o-Y)
-- Insanely fast local whisper transcription [Vaibhavs10/insanely-fast-whisper (github.com)](https://github.com/Vaibhavs10/insanely-fast-whisper)

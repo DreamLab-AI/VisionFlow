@@ -1,1 +1,0 @@
-- <iframe src="http://192.168.0.51:8188" style="width: 100%; height: 600px"></iframe>

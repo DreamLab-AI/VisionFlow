@@ -1,3 +1,0 @@
-- [Crossposting 101: What it is + How to Expand Your Reach While Saving Time](https://buffer.com/resources/how-to-crosspost/)
-- [Automation Tool | Integration Platform | Make](https://www.make.com/en/product)
--

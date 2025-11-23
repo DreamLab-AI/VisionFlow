@@ -1,2 +1,0 @@
-- [[back_hashcash-denial_2002]]
--

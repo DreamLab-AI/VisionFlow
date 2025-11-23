@@ -1,3 +1,0 @@
-- 2023-10-13 09:59:56 => This is some output that is directed to the page 'Execution Log'
-- 2023-10-13 09:59:56 => and this is more output
-- 2023-10-13 09:59:56 => 12

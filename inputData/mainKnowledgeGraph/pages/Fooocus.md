@@ -1,2 +1,0 @@
-- https://github.com/runew0lf/RuinedFooocus
-- [lllyasviel/Fooocus: Focus on prompting and generating (github.com)](https://github.com/lllyasviel/Fooocus)

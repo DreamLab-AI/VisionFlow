@@ -1,2 +1,0 @@
-- ![Ged263PWYAAhhN7.jpeg](../assets/Ged263PWYAAhhN7_1733904975429_0.jpeg)
--

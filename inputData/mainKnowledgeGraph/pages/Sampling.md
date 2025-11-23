@@ -1,2 +1,0 @@
-- [Paper page - Align Your Steps: Optimizing Sampling Schedules in Diffusion Models (huggingface.co)](https://huggingface.co/papers/2404.14507) [[Update Cycle]]
--

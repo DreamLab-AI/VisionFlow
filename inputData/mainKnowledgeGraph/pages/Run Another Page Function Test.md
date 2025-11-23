@@ -1,2 +1,0 @@
-- Note.
-- {{runpage PythonSample1}}
