@@ -18,8 +18,17 @@ impl EnhancedContentAPI {
         Self { client }
     }
 
-    
-    pub async fn list_markdown_files(
+
+    pub fn list_markdown_files<'a>(
+        &'a self,
+        path: &'a str,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = VisionFlowResult<Vec<GitHubFileBasicMetadata>>> + Send + 'a>> {
+        Box::pin(async move {
+            self.list_markdown_files_impl(path).await
+        })
+    }
+
+    async fn list_markdown_files_impl(
         &self,
         path: &str,
     ) -> VisionFlowResult<Vec<GitHubFileBasicMetadata>> {
@@ -93,17 +102,17 @@ impl EnhancedContentAPI {
                     });
                 } else if file_type == "dir" {
                     let dir_path = file["path"].as_str().unwrap_or("");
-                    debug!("list_markdown_files: Recursively processing directory: {}", dir_path);
+                    debug!("list_markdown_files_impl: Recursively processing directory: {}", dir_path);
 
                     // Recursively fetch markdown files from subdirectory
                     match self.list_markdown_files(dir_path).await {
                         Ok(mut subdir_files) => {
                             let count = subdir_files.len();
-                            debug!("list_markdown_files: Found {} files in subdirectory {}", count, dir_path);
+                            debug!("list_markdown_files_impl: Found {} files in subdirectory {}", count, dir_path);
                             all_markdown_files.append(&mut subdir_files);
                         }
                         Err(e) => {
-                            warn!("list_markdown_files: Failed to process subdirectory {}: {}", dir_path, e);
+                            warn!("list_markdown_files_impl: Failed to process subdirectory {}: {}", dir_path, e);
                         }
                     }
                 }
