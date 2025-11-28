@@ -36,6 +36,24 @@ pub struct ProcessedFile {
     pub metadata: Metadata,
 }
 
+/// Temporary struct for extracting ontology data from markdown
+#[derive(Default)]
+struct OntologyData {
+    term_id: Option<String>,
+    preferred_term: Option<String>,
+    source_domain: Option<String>,
+    ontology_status: Option<String>,
+    owl_class: Option<String>,
+    owl_physicality: Option<String>,
+    owl_role: Option<String>,
+    quality_score: Option<f64>,
+    authority_score: Option<f64>,
+    belongs_to_domain: Vec<String>,
+    maturity: Option<String>,
+    is_subclass_of: Vec<String>,
+    definition: Option<String>,
+}
+
 pub struct FileService {
     _settings: Arc<RwLock<AppFullSettings>>, 
     
@@ -105,29 +123,16 @@ impl FileService {
         let references = Self::extract_references(&content, &valid_nodes);
         let topic_counts = Self::convert_references_to_topic_counts(references);
 
-        
-        let file_size = content.len();
-        let node_size = Self::calculate_node_size(file_size);
-        let file_metadata = Metadata {
-            file_name: temp_filename.clone(),
-            file_size,
-            node_size,
-            node_id: "0".to_string(),
-            hyperlink_count: Self::count_hyperlinks(&content),
-            sha1: Self::calculate_sha1(&content),
-            last_modified: time::now(),
-            last_content_change: Some(time::now()), 
-            last_commit: Some(time::now()),
-            change_count: Some(1), 
-            file_blob_sha: None,   
-            perplexity_link: String::new(),
-            last_perplexity_process: None,
-            topic_counts,
-        };
-
-        
-        let mut file_metadata = file_metadata;
-        file_metadata.node_id = self.get_next_node_id().to_string();
+        // Create metadata with ontology fields extracted
+        let mut file_metadata = Self::create_metadata_with_ontology(
+            temp_filename.clone(),
+            &content,
+            self.get_next_node_id().to_string(),
+            time::now(),
+            None,
+        );
+        file_metadata.topic_counts = topic_counts;
+        file_metadata.change_count = Some(1);
 
         
         graph_data
@@ -174,29 +179,15 @@ impl FileService {
         let references = Self::extract_references(&content, &valid_nodes);
         let topic_counts = Self::convert_references_to_topic_counts(references);
 
-        
-        let file_size = content.len();
-        let node_size = Self::calculate_node_size(file_size);
-        let file_metadata = Metadata {
-            file_name: filename.to_string(),
-            file_size,
-            node_size,
-            node_id: "0".to_string(),
-            hyperlink_count: Self::count_hyperlinks(&content),
-            sha1: Self::calculate_sha1(&content),
-            last_modified: time::now(),
-            last_content_change: Some(time::now()),
-            last_commit: Some(time::now()),
-            change_count: None,
-            file_blob_sha: None,
-            perplexity_link: String::new(),
-            last_perplexity_process: None,
-            topic_counts,
-        };
-
-        
-        let mut file_metadata = file_metadata;
-        file_metadata.node_id = self.get_next_node_id().to_string();
+        // Create metadata with ontology fields extracted
+        let mut file_metadata = Self::create_metadata_with_ontology(
+            filename.to_string(),
+            &content,
+            self.get_next_node_id().to_string(),
+            time::now(),
+            None,
+        );
+        file_metadata.topic_counts = topic_counts;
 
         
         graph_data
@@ -208,11 +199,12 @@ impl FileService {
 
     
     pub fn load_or_create_metadata() -> Result<MetadataStore, String> {
-        
-        std::fs::create_dir_all("/app/data/metadata")
+        // Use the correct metadata path constant
+        let metadata_dir = Path::new(METADATA_PATH).parent().unwrap_or(Path::new("/workspace/ext/data/metadata"));
+        std::fs::create_dir_all(metadata_dir)
             .map_err(|e| format!("Failed to create metadata directory: {}", e))?;
 
-        let metadata_path = "/app/data/metadata/metadata.json";
+        let metadata_path = METADATA_PATH;
 
         match File::open(metadata_path) {
             Ok(file) => {
@@ -244,11 +236,13 @@ impl FileService {
 
     
     pub fn load_graph_data() -> Result<Option<GraphData>, String> {
-        let graph_path = "/app/data/metadata/graph.json";
+        // Use metadata directory path for graph.json
+        let metadata_dir = Path::new(METADATA_PATH).parent().unwrap_or(Path::new("/workspace/ext/data/metadata"));
+        let graph_path = metadata_dir.join("graph.json");
 
-        match File::open(graph_path) {
+        match File::open(&graph_path) {
             Ok(file) => {
-                info!("Loading existing graph data from {}", graph_path);
+                info!("Loading existing graph data from {:?}", graph_path);
                 match serde_json::from_reader(file) {
                     Ok(graph) => {
                         info!("Successfully loaded graph data with positions");
@@ -378,16 +372,12 @@ impl FileService {
                         .await
                     {
                         Ok(content) => {
-                            
-                            let is_public = if let Some(first_line) = content.lines().next() {
-                                first_line.trim() == "public:: true"
-                            } else {
-                                false
-                            };
+                            // Check for public-access:: true (new) or public:: true (legacy)
+                            let is_public = Self::is_public_file(&content);
 
                             if !is_public {
                                 debug!(
-                                    "Skipping file without 'public:: true': {}",
+                                    "Skipping file without public marker: {}",
                                     file_basic_meta.name
                                 );
                                 return Ok(None);
@@ -423,28 +413,14 @@ impl FileService {
             for result in results {
                 match result {
                     Ok(Some((file_extended_meta, content))) => {
-                        let _node_name =
-                            file_extended_meta.name.trim_end_matches(".md").to_string();
-                        let file_size = content.len();
-                        let node_size = Self::calculate_node_size(file_size);
-
-                        
-                        let metadata = Metadata {
-                            file_name: file_extended_meta.name.clone(),
-                            file_size,
-                            node_size,
-                            node_id: "0".to_string(), 
-                            hyperlink_count: Self::count_hyperlinks(&content),
-                            sha1: Self::calculate_sha1(&content),
-                            last_modified: file_extended_meta.last_content_modified, 
-                            last_content_change: Some(file_extended_meta.last_content_modified),
-                            last_commit: Some(file_extended_meta.last_content_modified), 
-                            change_count: None, 
-                            file_blob_sha: Some(file_extended_meta.sha.clone()), 
-                            perplexity_link: String::new(),
-                            last_perplexity_process: None,
-                            topic_counts: HashMap::new(), 
-                        };
+                        // Create metadata with ontology fields extracted
+                        let metadata = Self::create_metadata_with_ontology(
+                            file_extended_meta.name.clone(),
+                            &content,
+                            "0".to_string(), // Will be assigned later
+                            file_extended_meta.last_content_modified,
+                            Some(file_extended_meta.sha.clone()),
+                        );
 
                         metadata_store.insert(file_extended_meta.name, metadata);
                     }
@@ -613,10 +589,118 @@ use crate::utils::json::{from_json, to_json};
         format!("{:x}", hasher.finalize())
     }
 
-    
+
     fn count_hyperlinks(content: &str) -> usize {
         let re = Regex::new(r"\[([^\]]+)\]\(([^)]+)\)").expect("Invalid regex pattern");
         re.find_iter(content).count()
+    }
+
+    /// Check if file has public-access:: true in ontology header (new format)
+    /// or public:: true on first line (legacy format)
+    fn is_public_file(content: &str) -> bool {
+        // Check new format: public-access:: true anywhere in ontology block
+        if content.contains("public-access:: true") {
+            return true;
+        }
+        // Legacy format: public:: true on first line
+        if let Some(first_line) = content.lines().next() {
+            if first_line.trim() == "public:: true" {
+                return true;
+            }
+        }
+        false
+    }
+
+    /// Extract ontology data from markdown content with new header format
+    fn extract_ontology_data(content: &str) -> OntologyData {
+        let mut data = OntologyData::default();
+
+        // Parse key-value pairs from ontology block
+        for line in content.lines() {
+            let trimmed = line.trim().trim_start_matches('-').trim();
+
+            if let Some((key, value)) = trimmed.split_once("::") {
+                let key = key.trim();
+                let value = value.trim();
+
+                match key {
+                    "term-id" => data.term_id = Some(value.to_string()),
+                    "preferred-term" => data.preferred_term = Some(value.to_string()),
+                    "source-domain" => data.source_domain = Some(value.to_string()),
+                    "status" => data.ontology_status = Some(value.to_string()),
+                    "owl:class" => data.owl_class = Some(value.to_string()),
+                    "owl:physicality" => data.owl_physicality = Some(value.to_string()),
+                    "owl:role" => data.owl_role = Some(value.to_string()),
+                    "quality-score" => data.quality_score = value.parse().ok(),
+                    "authority-score" => data.authority_score = value.parse().ok(),
+                    "maturity" => data.maturity = Some(value.to_string()),
+                    "definition" => data.definition = Some(value.to_string()),
+                    "belongsToDomain" => {
+                        // Parse [[Domain1]], [[Domain2]] format
+                        let domains: Vec<String> = value
+                            .split(',')
+                            .map(|s| s.trim().trim_start_matches("[[").trim_end_matches("]]").to_string())
+                            .filter(|s| !s.is_empty())
+                            .collect();
+                        data.belongs_to_domain = domains;
+                    }
+                    "is-subclass-of" => {
+                        // Parse [[Class]] format, accumulate multiple
+                        let class = value.trim().trim_start_matches("[[").trim_end_matches("]]").to_string();
+                        if !class.is_empty() {
+                            data.is_subclass_of.push(class);
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+
+        data
+    }
+
+    /// Create Metadata with ontology fields populated
+    fn create_metadata_with_ontology(
+        file_name: String,
+        content: &str,
+        node_id: String,
+        last_modified: chrono::DateTime<Utc>,
+        file_blob_sha: Option<String>,
+    ) -> Metadata {
+        let file_size = content.len();
+        let node_size = Self::calculate_node_size(file_size);
+        let ontology = Self::extract_ontology_data(content);
+
+        Metadata {
+            file_name,
+            file_size,
+            node_size,
+            node_id,
+            hyperlink_count: Self::count_hyperlinks(content),
+            sha1: Self::calculate_sha1(content),
+            last_modified,
+            last_content_change: Some(last_modified),
+            last_commit: Some(last_modified),
+            change_count: None,
+            file_blob_sha,
+            perplexity_link: String::new(),
+            last_perplexity_process: None,
+            topic_counts: HashMap::new(),
+            // Ontology fields
+            term_id: ontology.term_id,
+            preferred_term: ontology.preferred_term,
+            source_domain: ontology.source_domain,
+            ontology_status: ontology.ontology_status,
+            owl_class: ontology.owl_class,
+            owl_physicality: ontology.owl_physicality,
+            owl_role: ontology.owl_role,
+            quality_score: ontology.quality_score,
+            authority_score: ontology.authority_score,
+            belongs_to_domain: ontology.belongs_to_domain,
+            maturity: ontology.maturity,
+            is_subclass_of: ontology.is_subclass_of,
+            definition: ontology.definition,
+        }
     }
 
     
@@ -664,23 +748,17 @@ use crate::utils::json::{from_json, to_json};
         );
         match content_api.fetch_file_content(download_url).await {
             Ok(content) => {
-                
-                if let Some(first_line) = content.lines().next() {
-                    let is_public = first_line.trim().to_lowercase() == "public:: true";
-                    if !is_public {
-                        info!("should_process_file: File {} does not have 'public:: true' on first line (found: '{}'), skipping", file_name, first_line.trim());
-                    } else {
-                        info!(
-                            "should_process_file: File {} has 'public:: true' tag, will process",
-                            file_name
-                        );
-                    }
-                    Ok(is_public)
+                // Check for public-access:: true (new) or public:: true (legacy)
+                let is_public = Self::is_public_file(&content);
+                if !is_public {
+                    info!("should_process_file: File {} does not have public marker, skipping", file_name);
                 } else {
-                    
-                    info!("should_process_file: File {} is empty, skipping", file_name);
-                    Ok(false)
+                    info!(
+                        "should_process_file: File {} has public marker, will process",
+                        file_name
+                    );
                 }
+                Ok(is_public)
             }
             Err(e) => {
                 error!("Failed to fetch content for {}: {}", file_name, e);
@@ -796,13 +874,12 @@ use crate::utils::json::{from_json, to_json};
                     
                     match content_api.fetch_file_content(&file_extended_meta.download_url).await {
                         Ok(content) => {
-                            
-                            let first_line = content.lines().next().unwrap_or("");
-                            let is_public = first_line.trim().to_lowercase() == "public:: true";
+                            // Check for public-access:: true (new) or public:: true (legacy)
+                            let is_public = Self::is_public_file(&content);
 
                             if !is_public {
-                                info!("fetch_and_process_files: File {} does not have 'public:: true' on first line (found: '{}')",
-                                     file_extended_meta.name, first_line.trim());
+                                info!("fetch_and_process_files: File {} does not have public marker",
+                                     file_extended_meta.name);
                                 return Ok(None);
                             }
 
@@ -816,25 +893,14 @@ use crate::utils::json::{from_json, to_json};
 
                             info!("fetch_and_process_files: Successfully wrote {} to {}", file_extended_meta.name, file_path);
 
-                            let file_size = content.len();
-                            let node_size = Self::calculate_node_size(file_size);
-
-                            let metadata = Metadata {
-                                file_name: file_extended_meta.name.clone(),
-                                file_size,
-                                node_size,
-                                node_id: "0".to_string(), 
-                                hyperlink_count: Self::count_hyperlinks(&content),
-                                sha1: Self::calculate_sha1(&content),
-                                last_modified: file_extended_meta.last_content_modified, 
-                                last_content_change: Some(file_extended_meta.last_content_modified),
-                                last_commit: Some(file_extended_meta.last_content_modified), 
-                                change_count: None, 
-                                file_blob_sha: Some(file_extended_meta.sha.clone()), 
-                                perplexity_link: String::new(),
-                                last_perplexity_process: None,
-                                topic_counts: HashMap::new(), 
-                            };
+                            // Create metadata with ontology fields extracted
+                            let metadata = Self::create_metadata_with_ontology(
+                                file_extended_meta.name.clone(),
+                                &content,
+                                "0".to_string(), // Will be assigned later
+                                file_extended_meta.last_content_modified,
+                                Some(file_extended_meta.sha.clone()),
+                            );
 
                             Ok(Some(ProcessedFile {
                                 file_name: file_extended_meta.name.clone(),

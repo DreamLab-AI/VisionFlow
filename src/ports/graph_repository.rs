@@ -15,8 +15,10 @@ use crate::models::graph::GraphData;
 use crate::models::node::Node;
 use glam::Vec3;
 
-// Placeholder for BinaryNodeData - will use actual type from GPU module
-pub type BinaryNodeData = (f32, f32, f32);
+/// Binary node data with position and velocity (6-DOF)
+/// Format: (x, y, z, vx, vy, vz)
+/// This preserves the full physics state including velocities
+pub type BinaryNodeData = (f32, f32, f32, f32, f32, f32);
 
 pub type Result<T> = std::result::Result<T, GraphRepositoryError>;
 

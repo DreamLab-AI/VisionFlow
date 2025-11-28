@@ -363,7 +363,7 @@ pub async fn reset_simulation(
 ///
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::scope("/api/physics")
+        web::scope("/physics")
             .route("/start", web::post().to(start_simulation))
             .route("/stop", web::post().to(stop_simulation))
             .route("/status", web::get().to(get_status))

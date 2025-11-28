@@ -900,7 +900,7 @@ pub async fn refresh_mcp_discovery(_app_state: web::Data<AppState>) -> ActixResu
 ///
 pub fn configure_multi_mcp_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::scope("/api/multi-mcp")
+        web::scope("/multi-mcp")
             .route("/ws", web::get().to(multi_mcp_visualization_ws))
             .route("/status", web::get().to(get_mcp_server_status))
             .route("/refresh", web::post().to(refresh_mcp_discovery)),

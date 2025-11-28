@@ -247,7 +247,7 @@ pub async fn validate_cypher(
 /// Configure natural language query routes
 pub fn configure_nl_query_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::scope("/api/nl-query")
+        web::scope("/nl-query")
             .route("/translate", web::post().to(translate_query))
             .route("/examples", web::get().to(get_examples))
             .route("/explain", web::post().to(explain_cypher))

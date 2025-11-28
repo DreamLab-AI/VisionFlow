@@ -825,16 +825,24 @@ impl Handler<msgs::UpdateGraphData> for GraphServiceSupervisor {
 }
 
 impl Handler<msgs::AddNodesFromMetadata> for GraphServiceSupervisor {
-    type Result = ResponseActFuture<Self, Result<(), String>>;
+    type Result = ResponseFuture<Result<(), String>>;
 
     fn handle(
         &mut self,
-        _msg: msgs::AddNodesFromMetadata,
+        msg: msgs::AddNodesFromMetadata,
         _ctx: &mut Self::Context,
     ) -> Self::Result {
-        warn!("AddNodesFromMetadata: Supervisor not fully implemented");
-        let result = Err("Supervisor not yet fully implemented".to_string());
-        Box::pin(actix::fut::ready(result))
+        if let Some(ref graph_state_addr) = self.graph_state {
+            let addr = graph_state_addr.clone();
+            Box::pin(async move {
+                addr.send(msg).await.unwrap_or_else(|e| {
+                    error!("Failed to forward AddNodesFromMetadata to GraphStateActor: {}", e);
+                    Err(format!("Message forwarding failed: {}", e))
+                })
+            })
+        } else {
+            Box::pin(async { Err("GraphStateActor not initialized".to_string()) })
+        }
     }
 }
 

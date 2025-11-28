@@ -260,7 +260,7 @@ pub async fn invalidate_cache(
 ///
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::scope("/api/semantic")
+        web::scope("/semantic")
             .route("/communities", web::post().to(detect_communities))
             .route("/centrality", web::post().to(compute_centrality))
             .route("/shortest-path", web::post().to(compute_shortest_path))

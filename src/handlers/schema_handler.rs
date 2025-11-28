@@ -276,7 +276,7 @@ pub async fn get_edge_type_info(
 /// Configure schema routes
 pub fn configure_schema_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::scope("/api/schema")
+        web::scope("/schema")
             .route("", web::get().to(get_schema))
             .route("/llm-context", web::get().to(get_llm_context))
             .route("/node-types", web::get().to(get_node_types))

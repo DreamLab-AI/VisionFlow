@@ -18,6 +18,36 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    // Enable minification and tree-shaking for production
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: process.env.NODE_ENV === 'production',
+        drop_debugger: true,
+      },
+    },
+    // Optimize chunking strategy
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Separate heavy 3D libraries
+          'babylon': ['@babylonjs/core', '@babylonjs/gui', '@babylonjs/loaders'],
+          'three': ['three', '@react-three/fiber', '@react-three/drei'],
+          // UI libraries
+          'ui': ['react', 'react-dom', 'framer-motion'],
+          // Icons - load separately
+          'icons': ['lucide-react'],
+          // State management
+          'state': ['zustand', 'immer'],
+        },
+      },
+    },
+    // Target modern browsers for smaller bundles
+    target: 'esnext',
+    // Report compressed sizes
+    reportCompressedSize: true,
+    // Chunk size warnings
+    chunkSizeWarningLimit: 1000,
   },
   server: {
     host: '0.0.0.0',

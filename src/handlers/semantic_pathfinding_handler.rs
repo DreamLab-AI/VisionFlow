@@ -114,7 +114,7 @@ pub async fn chunk_traversal(
 
 pub fn configure_pathfinding_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::scope("/api/pathfinding")
+        web::scope("/pathfinding")
             .route("/semantic-path", web::post().to(find_semantic_path))
             .route("/query-traversal", web::post().to(query_traversal))
             .route("/chunk-traversal", web::post().to(chunk_traversal))

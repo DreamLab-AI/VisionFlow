@@ -60,14 +60,30 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     for (iri, label, desc, parents) in sample_classes {
         let class = OwlClass {
             iri: iri.to_string(),
+            term_id: None,
+            preferred_term: None,
             label: Some(label.to_string()),
             description: Some(desc.to_string()),
             parent_classes: parents,
+            source_domain: None,
+            version: None,
+            class_type: None,
+            status: None,
+            maturity: None,
+            quality_score: None,
+            authority_score: None,
+            public_access: None,
+            content_status: None,
+            owl_physicality: None,
+            owl_role: None,
+            belongs_to_domain: None,
+            bridges_to_domain: None,
             properties: HashMap::new(),
             source_file: None,
             markdown_content: None,
             file_sha1: None,
             last_synced: None,
+            additional_metadata: None,
         };
 
         ontology_repo.add_owl_class(&class).await?;
@@ -83,6 +99,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         property_type: PropertyType::ObjectProperty,
         domain: vec!["mv:Person".to_string()],
         range: vec!["mv:Company".to_string()],
+        quality_score: None,
+        authority_score: None,
+        source_file: None,
     };
     ontology_repo.add_owl_property(&prop).await?;
 

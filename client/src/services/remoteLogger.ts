@@ -13,11 +13,13 @@ interface LogEntry {
 
 class RemoteLogger {
   private buffer: LogEntry[] = [];
-  private flushInterval: number = 1000; 
+  private flushInterval: number = 1000;
   private maxBufferSize: number = 50;
   private flushTimer: NodeJS.Timeout | null = null;
   private enabled: boolean = true;
   private serverEndpoint: string;
+  private consecutiveFailures: number = 0;
+  private maxConsecutiveFailures: number = 3; // Auto-disable after 3 failures
 
   constructor() {
 
@@ -183,7 +185,16 @@ class RemoteLogger {
         });
 
         if (!response.ok) {
-          console.error('[RemoteLogger] Failed to send logs:', response.status, response.statusText);
+          this.consecutiveFailures++;
+          if (response.status === 404 && this.consecutiveFailures >= this.maxConsecutiveFailures) {
+            // Auto-disable after repeated 404s - endpoint not available
+            console.info('[RemoteLogger] Endpoint not available, disabling remote logging');
+            this.setEnabled(false);
+          } else if (response.status !== 404) {
+            console.warn('[RemoteLogger] Failed to send logs:', response.status, response.statusText);
+          }
+        } else {
+          this.consecutiveFailures = 0; // Reset on success
         }
       }
     } catch (error) {

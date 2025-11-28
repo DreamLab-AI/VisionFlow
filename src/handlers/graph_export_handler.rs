@@ -423,9 +423,11 @@ pub async fn get_export_stats() -> ActixResult<HttpResponse> {
 
 ///
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
+    // Note: Using /graph-export to avoid conflict with /graph scope from api_handler/graph/mod.rs
+    // Routes become /api/graph-export/*
     cfg.service(
-        web::scope("/api/graph")
-            .route("/export", web::post().to(export_graph))
+        web::scope("/graph-export")
+            .route("", web::post().to(export_graph))
             .route("/share", web::post().to(share_graph))
             .route("/shared/{id}", web::get().to(get_shared_graph))
             .route("/shared/{id}", web::delete().to(delete_shared_graph))

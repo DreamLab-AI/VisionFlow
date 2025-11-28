@@ -276,12 +276,14 @@ build_containers() {
         build_args+=("--no-cache")
     fi
 
-    # Add GPU support if available
+    # Enable GPU and ontology features by default for both dev and prod
+    # These are the core VisionFlow features required for full functionality
     if [[ "${GPU_AVAILABLE:-false}" == "true" ]]; then
-        info "Building with GPU support"
-        build_args+=("--build-arg" "FEATURES=gpu")
+        info "Building with GPU + Ontology features (GPU detected)"
+        build_args+=("--build-arg" "FEATURES=gpu,ontology")
     else
-        info "Building without GPU support"
+        info "Building with Ontology features only (no GPU detected)"
+        build_args+=("--build-arg" "FEATURES=ontology")
     fi
 
     # Enable BuildKit for optimized multi-stage builds

@@ -294,7 +294,7 @@ pub async fn invalidate_cache(
 ///
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::scope("/api/inference")
+        web::scope("/inference")
             .route("/run", web::post().to(run_inference))
             .route("/batch", web::post().to(batch_inference))
             .route("/validate", web::post().to(validate_ontology))

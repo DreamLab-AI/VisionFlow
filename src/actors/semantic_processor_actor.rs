@@ -34,11 +34,43 @@ use crate::actors::messages::{
     UpdateConstraints,
 };
 
-// GPU semantic analyzer
+// GPU semantic analyzer (conditionally compiled)
+#[cfg(feature = "gpu")]
 use crate::adapters::gpu_semantic_analyzer::GpuSemanticAnalyzerAdapter;
+#[cfg(feature = "gpu")]
 use crate::ports::gpu_semantic_analyzer::{
     GpuSemanticAnalyzer as GpuSemanticAnalyzerPort, PathfindingResult,
 };
+
+// CPU-only stubs when GPU feature is disabled
+#[cfg(not(feature = "gpu"))]
+pub use crate::ports::gpu_semantic_analyzer::PathfindingResult;
+
+#[cfg(not(feature = "gpu"))]
+pub struct GpuSemanticAnalyzerAdapter;
+
+#[cfg(not(feature = "gpu"))]
+impl GpuSemanticAnalyzerAdapter {
+    pub fn new() -> Self {
+        Self
+    }
+
+    pub async fn initialize(&self, _graph: std::sync::Arc<crate::models::graph::GraphData>) -> Result<(), String> {
+        // CPU fallback: no-op initialization
+        Ok(())
+    }
+
+    pub async fn compute_shortest_paths(&self, source_node_id: u32) -> Result<PathfindingResult, String> {
+        // CPU fallback: return empty result
+        Err(format!("GPU not available for SSSP from node {}", source_node_id))
+    }
+
+    pub async fn compute_all_pairs_shortest_paths(&self) -> Result<std::collections::HashMap<(u32, u32), Vec<u32>>, String> {
+        // CPU fallback: return error
+        Err("GPU not available for APSP computation".to_string())
+    }
+}
+
 use crate::utils::time;
 
 ///

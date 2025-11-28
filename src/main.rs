@@ -465,6 +465,8 @@ async fn main() -> std::io::Result<()> {
             .route("/ws/client-messages", web::get().to(client_messages_handler::websocket_client_messages)) 
             .service(
                 web::scope("/api")
+                    // Client logs route - registered early to avoid scope conflicts
+                    .route("/client-logs", web::post().to(client_log_handler::handle_client_logs))
                     .service(web::scope("/settings").configure(webxr::settings::api::configure_routes))
                     .configure(api_handler::config)
                     .configure(workspace_handler::config)
@@ -491,7 +493,6 @@ async fn main() -> std::io::Result<()> {
                     .service(web::scope("/bots").configure(api_handler::bots::config))
                     .configure(bots_visualization_handler::configure_routes)
                     .configure(graph_export_handler::configure_routes)
-                    .route("/client-logs", web::post().to(client_log_handler::handle_client_logs))
 
             );
 

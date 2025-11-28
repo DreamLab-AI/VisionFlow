@@ -341,7 +341,7 @@ pub async fn initialize_swarm_visualization(
 ///
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::scope("/api/visualization")
+        web::scope("/visualization")
             .route("/agents/ws", web::get().to(agent_visualization_ws))
             .route(
                 "/agents/snapshot",

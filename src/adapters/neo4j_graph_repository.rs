@@ -413,13 +413,17 @@ impl GraphRepository for Neo4jGraphRepository {
         &self,
         updates: Vec<(u32, crate::ports::graph_repository::BinaryNodeData)>,
     ) -> Result<()> {
-        // Batch update positions in Neo4j
+        // Batch update positions AND velocities in Neo4j
+        // BinaryNodeData format: (x, y, z, vx, vy, vz)
         for (node_id, data) in updates {
             let query_str = "
                 MATCH (n:GraphNode {id: $id})
                 SET n.x = $x,
                     n.y = $y,
-                    n.z = $z
+                    n.z = $z,
+                    n.vx = $vx,
+                    n.vy = $vy,
+                    n.vz = $vz
             ";
 
             self.graph
@@ -427,9 +431,12 @@ impl GraphRepository for Neo4jGraphRepository {
                     .param("id", node_id as i64)
                     .param("x", data.0 as f64)
                     .param("y", data.1 as f64)
-                    .param("z", data.2 as f64))
+                    .param("z", data.2 as f64)
+                    .param("vx", data.3 as f64)
+                    .param("vy", data.4 as f64)
+                    .param("vz", data.5 as f64))
                 .await
-                .map_err(|e| GraphRepositoryError::AccessError(format!("Failed to update position: {}", e)))?;
+                .map_err(|e| GraphRepositoryError::AccessError(format!("Failed to update position/velocity: {}", e)))?;
         }
 
         Ok(())

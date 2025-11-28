@@ -54,29 +54,32 @@ impl Default for OntologyConstraintStats {
 
 ///
 pub struct OntologyConstraintActor {
-    
+
     shared_context: Option<Arc<SharedGPUContext>>,
 
-    
+
     translator: OntologyConstraintTranslator,
 
-    
+
     ontology_constraints: Vec<Constraint>,
 
-    
+
     constraint_buffer: Vec<ConstraintData>,
 
-    
+
     gpu_state: GPUState,
 
-    
+
     stats: OntologyConstraintStats,
 
-    
+
     last_update: Instant,
 
-    
+
     gpu_initialized: bool,
+
+    /// Address of ForceComputeActor for sending constraint buffer updates
+    force_compute_addr: Option<actix::Addr<super::force_compute_actor::ForceComputeActor>>,
 }
 
 impl OntologyConstraintActor {
@@ -93,6 +96,7 @@ impl OntologyConstraintActor {
             stats: OntologyConstraintStats::default(),
             last_update: Instant::now(),
             gpu_initialized: false,
+            force_compute_addr: None,
         }
     }
 
@@ -174,10 +178,28 @@ impl OntologyConstraintActor {
             self.stats.last_update_time_ms
         );
 
+        // Notify ForceComputeActor about the new constraint buffer
+        self.notify_force_compute_actor();
+
         Ok(())
     }
 
-    
+    /// Send the updated constraint buffer to ForceComputeActor
+    fn notify_force_compute_actor(&self) {
+        if let Some(ref addr) = self.force_compute_addr {
+            info!(
+                "OntologyConstraintActor: Sending {} constraints to ForceComputeActor",
+                self.constraint_buffer.len()
+            );
+            addr.do_send(UpdateOntologyConstraintBuffer {
+                constraint_buffer: self.constraint_buffer.clone(),
+            });
+        } else {
+            debug!("OntologyConstraintActor: ForceComputeActor address not set, skipping notification");
+        }
+    }
+
+
     fn update_constraints(&mut self, axioms: &[OWLAxiom]) -> Result<(), String> {
         info!(
             "OntologyConstraintActor: Updating constraints with {} new axioms",
@@ -395,6 +417,21 @@ impl Handler<GetOntologyConstraintStats> for OntologyConstraintActor {
         };
 
         Ok(stats)
+    }
+}
+
+/// Handler for setting the ForceComputeActor address for bidirectional communication
+impl Handler<SetForceComputeAddr> for OntologyConstraintActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: SetForceComputeAddr, _ctx: &mut Self::Context) -> Self::Result {
+        info!("OntologyConstraintActor: Received ForceComputeActor address for constraint synchronization");
+        self.force_compute_addr = Some(msg.addr);
+
+        // If we already have constraints buffered, send them immediately
+        if !self.constraint_buffer.is_empty() {
+            self.notify_force_compute_actor();
+        }
     }
 }
 

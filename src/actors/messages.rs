@@ -1208,11 +1208,18 @@ pub struct UploadConstraintsToGPU {
     pub correlation_id: Option<MessageId>,
 }
 
+/// Message to set the ForceComputeActor address in OntologyConstraintActor for bidirectional communication
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct SetForceComputeAddr {
+    pub addr: actix::Addr<crate::actors::gpu::force_compute_actor::ForceComputeActor>,
+}
+
 // Auto-balance messages
 #[derive(Message)]
 #[rtype(result = "Result<Vec<crate::actors::graph_actor::AutoBalanceNotification>, String>")]
 pub struct GetAutoBalanceNotifications {
-    pub since_timestamp: Option<i64>, 
+    pub since_timestamp: Option<i64>,
 }
 
 // TCP Connection Actor Messages

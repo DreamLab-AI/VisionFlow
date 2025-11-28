@@ -22,19 +22,46 @@ pub struct Metadata {
     #[serde(default = "Utc::now")]
     pub last_modified: DateTime<Utc>,
     #[serde(default)]
-    pub last_content_change: Option<DateTime<Utc>>, 
+    pub last_content_change: Option<DateTime<Utc>>,
     #[serde(default)]
-    pub last_commit: Option<DateTime<Utc>>, 
+    pub last_commit: Option<DateTime<Utc>>,
     #[serde(default)]
-    pub change_count: Option<u32>, 
+    pub change_count: Option<u32>,
     #[serde(default)]
-    pub file_blob_sha: Option<String>, 
+    pub file_blob_sha: Option<String>,
     #[serde(default)]
     pub perplexity_link: String,
     #[serde(default)]
     pub last_perplexity_process: Option<DateTime<Utc>>,
     #[serde(default)]
     pub topic_counts: HashMap<String, usize>,
+    // Ontology fields from new header format
+    #[serde(default)]
+    pub term_id: Option<String>,
+    #[serde(default)]
+    pub preferred_term: Option<String>,
+    #[serde(default)]
+    pub source_domain: Option<String>,
+    #[serde(default)]
+    pub ontology_status: Option<String>,
+    #[serde(default)]
+    pub owl_class: Option<String>,
+    #[serde(default)]
+    pub owl_physicality: Option<String>,
+    #[serde(default)]
+    pub owl_role: Option<String>,
+    #[serde(default)]
+    pub quality_score: Option<f64>,
+    #[serde(default)]
+    pub authority_score: Option<f64>,
+    #[serde(default)]
+    pub belongs_to_domain: Vec<String>,
+    #[serde(default)]
+    pub maturity: Option<String>,
+    #[serde(default)]
+    pub is_subclass_of: Vec<String>,
+    #[serde(default)]
+    pub definition: Option<String>,
 }
 
 // Default function for node_id to ensure backward compatibility

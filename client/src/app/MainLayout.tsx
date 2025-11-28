@@ -49,39 +49,55 @@ const MainLayoutContent: React.FC = () => {
   }, []);
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: '100vw',
-      height: '100vh',
-      backgroundColor: '#000022'
-    }}>
-      <GraphCanvasWrapper />
+    <main
+      role="main"
+      aria-label="VisionFlow Graph Visualization"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: '#000022'
+      }}
+    >
+      {/* Skip link for keyboard navigation */}
+      <a
+        href="#control-panel"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:bg-white focus:text-black focus:p-2 focus:rounded"
+      >
+        Skip to controls
+      </a>
 
-      {}
-      <IntegratedControlPanel
-        showStats={showStats}
-        enableBloom={enableBloom}
-        onOrbitControlsToggle={() => {}}
-        botsData={botsData}
-        graphData={graphData}
-        otherGraphData={otherGraphData}
-      />
+      <section aria-label="Graph visualization canvas">
+        <GraphCanvasWrapper />
+      </section>
 
-      {}
-      <SpaceMouseStatus />
+      <nav id="control-panel" aria-label="Visualization controls">
+        <IntegratedControlPanel
+          showStats={showStats}
+          enableBloom={enableBloom}
+          onOrbitControlsToggle={() => {}}
+          botsData={botsData}
+          graphData={graphData}
+          otherGraphData={otherGraphData}
+        />
+      </nav>
 
-      {}
+      <aside aria-label="Device status">
+        <SpaceMouseStatus />
+      </aside>
+
       {!hasVoiceSupport && (
-        <div className="fixed bottom-20 left-4 z-40 max-w-sm pointer-events-auto">
+        <aside
+          className="fixed bottom-20 left-4 z-40 max-w-sm pointer-events-auto"
+          role="alert"
+          aria-live="polite"
+        >
           <BrowserSupportWarning className="shadow-lg" />
-        </div>
+        </aside>
       )}
-
-      {}
-      {}
-    </div>
+    </main>
   );
 };
 
