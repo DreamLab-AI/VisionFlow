@@ -304,10 +304,26 @@ async fn main() -> std::io::Result<()> {
 
     // Step 1: Sync Files from GitHub.
     info!("[Startup] Step 1: Syncing files from GitHub to local storage...");
-    if let Err(e) = webxr::services::file_service::FileService::initialize_local_storage(settings.clone()).await {
-        error!("[Startup] FAILED to sync from GitHub: {}. The graph may be stale or empty.", e);
+    let github_sync_failed = if let Err(e) = webxr::services::file_service::FileService::initialize_local_storage(settings.clone()).await {
+        error!("[Startup] FAILED to sync from GitHub: {}. Will try local files.", e);
+        true
     } else {
         info!("[Startup] SUCCESS: Local file storage is synchronized with GitHub.");
+        false
+    };
+
+    // Step 1b: If GitHub sync failed or metadata is empty, scan local files
+    let metadata = webxr::services::file_service::FileService::load_or_create_metadata().unwrap_or_default();
+    if github_sync_failed || metadata.is_empty() {
+        info!("[Startup] Step 1b: Scanning local markdown files as fallback...");
+        match webxr::services::file_service::FileService::scan_local_files_to_metadata() {
+            Ok(local_metadata) => {
+                info!("[Startup] SUCCESS: Scanned {} public files from local storage.", local_metadata.len());
+            }
+            Err(e) => {
+                error!("[Startup] FAILED to scan local files: {}", e);
+            }
+        }
     }
 
     // Step 2: Load Files into Neo4j.

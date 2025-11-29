@@ -22,6 +22,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::RwLock;
 use tokio::time::sleep;
+use rand::Rng;
 
 // Constants
 const METADATA_PATH: &str = "/workspace/ext/data/metadata/metadata.json";
@@ -580,7 +581,95 @@ impl FileService {
         Ok(())
     }
 
-    
+    /// Scan local markdown files and create metadata from them
+    /// This is used as a fallback when GitHub sync fails or when local files exist
+    pub fn scan_local_files_to_metadata() -> Result<MetadataStore, String> {
+        info!("Scanning local markdown files from {}", MARKDOWN_DIR);
+
+        let markdown_dir = Path::new(MARKDOWN_DIR);
+        if !markdown_dir.exists() {
+            return Err(format!("Markdown directory does not exist: {}", MARKDOWN_DIR));
+        }
+
+        let mut metadata_store = MetadataStore::new();
+        let mut node_id_counter: u32 = 1;
+
+        // Read all .md files from the directory
+        let entries = fs::read_dir(markdown_dir)
+            .map_err(|e| format!("Failed to read markdown directory: {}", e))?;
+
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.extension().map_or(false, |ext| ext == "md") {
+                let file_name = match path.file_name().and_then(|n| n.to_str()) {
+                    Some(name) => name.to_string(),
+                    None => continue,
+                };
+
+                // Read file content
+                let content = match fs::read_to_string(&path) {
+                    Ok(c) => c,
+                    Err(e) => {
+                        error!("Failed to read file {}: {}", file_name, e);
+                        continue;
+                    }
+                };
+
+                // COMMENTED OUT: Include ALL files regardless of public status
+                // if !Self::is_public_file(&content) {
+                //     debug!("Skipping non-public file: {}", file_name);
+                //     continue;
+                // }
+
+                debug!("Processing file: {}", file_name);
+
+                // Create metadata with ontology fields
+                let metadata = Self::create_metadata_with_ontology(
+                    file_name.clone(),
+                    &content,
+                    node_id_counter.to_string(),
+                    Utc::now(),
+                    None, // No blob SHA for local files
+                );
+
+                metadata_store.insert(file_name, metadata);
+                node_id_counter += 1;
+            }
+        }
+
+        // Update topic counts (cross-references between files)
+        let valid_nodes: Vec<String> = metadata_store
+            .keys()
+            .map(|name| name.trim_end_matches(".md").to_string())
+            .collect();
+
+        for file_name in metadata_store.keys().cloned().collect::<Vec<_>>() {
+            let file_path = format!("{}/{}", MARKDOWN_DIR, file_name);
+            if let Ok(content) = fs::read_to_string(&file_path) {
+                let references = Self::extract_references(&content, &valid_nodes);
+                let topic_counts = Self::convert_references_to_topic_counts(references);
+
+                if let Some(metadata) = metadata_store.get_mut(&file_name) {
+                    metadata.topic_counts = topic_counts;
+                }
+            }
+        }
+
+        info!(
+            "Local scan complete: Found {} markdown files",
+            metadata_store.len()
+        );
+
+        // Save metadata to disk
+        if !metadata_store.is_empty() {
+            Self::save_metadata(&metadata_store)
+                .map_err(|e| format!("Failed to save metadata: {}", e))?;
+        }
+
+        Ok(metadata_store)
+    }
+
+
     fn calculate_sha1(content: &str) -> String {
         use sha1::{Digest, Sha1};
 use crate::utils::json::{from_json, to_json};
@@ -595,16 +684,18 @@ use crate::utils::json::{from_json, to_json};
         re.find_iter(content).count()
     }
 
-    /// Check if file has public-access:: true in ontology header (new format)
-    /// or public:: true on first line (legacy format)
+    /// Check if file has public-access:: true (new format)
+    /// or public:: true anywhere in the content (legacy format)
     fn is_public_file(content: &str) -> bool {
-        // Check new format: public-access:: true anywhere in ontology block
+        // Check new format: public-access:: true anywhere in content
         if content.contains("public-access:: true") {
             return true;
         }
-        // Legacy format: public:: true on first line
-        if let Some(first_line) = content.lines().next() {
-            if first_line.trim() == "public:: true" {
+        // Legacy format: public:: true anywhere in content (can be on any line)
+        // Look for the pattern as a standalone line or Logseq property
+        for line in content.lines() {
+            let trimmed = line.trim().trim_start_matches('-').trim();
+            if trimmed == "public:: true" {
                 return true;
             }
         }
@@ -997,10 +1088,11 @@ use crate::utils::json::{from_json, to_json};
             node.label = meta.file_name.trim_end_matches(".md").to_string();
             node.size = Some(meta.node_size as f32);
             node.color = Some("#888888".to_string()); // Default color
-            // Initialize position and other fields as needed
-            node.data.x = 0.0;
-            node.data.y = 0.0;
-            node.data.z = 0.0;
+            // Initialize position with random spread to prevent origin collapse
+            let mut rng = rand::thread_rng();
+            node.data.x = rng.gen_range(-100.0..100.0);
+            node.data.y = rng.gen_range(-100.0..100.0);
+            node.data.z = rng.gen_range(-100.0..100.0);
     
             graph_data.nodes.push(node);
     
