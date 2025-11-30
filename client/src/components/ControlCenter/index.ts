@@ -5,3 +5,4 @@ export { ControlCenter } from './ControlCenter';
 export { SettingsPanel } from './SettingsPanel';
 export { ConstraintPanel } from './ConstraintPanel';
 export { ProfileManager } from './ProfileManager';
+export { QualityGatePanel } from './QualityGatePanel';

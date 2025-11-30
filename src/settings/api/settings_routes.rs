@@ -11,9 +11,11 @@ use crate::settings::settings_actor::{
     SettingsActor, UpdatePhysicsSettings, GetPhysicsSettings,
     UpdateConstraintSettings, GetConstraintSettings,
     UpdateRenderingSettings, GetRenderingSettings,
+    UpdateNodeFilterSettings, GetNodeFilterSettings,
+    UpdateQualityGateSettings, GetQualityGateSettings,
     LoadProfile, SaveProfile, ListProfiles, DeleteProfile, GetAllSettings,
 };
-use crate::settings::models::ConstraintSettings;
+use crate::settings::models::{ConstraintSettings, NodeFilterSettings, QualityGateSettings};
 
 // ============================================================================
 // Request/Response Types
@@ -164,6 +166,100 @@ pub async fn update_rendering_settings(
             error!("Failed to update rendering settings: {}", e);
             HttpResponse::InternalServerError().json(ErrorResponse {
                 error: format!("Failed to update rendering settings: {}", e),
+            })
+        }
+        Err(e) => {
+            error!("Actor mailbox error: {}", e);
+            HttpResponse::InternalServerError().json(ErrorResponse {
+                error: format!("Actor communication error: {}", e),
+            })
+        }
+    }
+}
+
+// ============================================================================
+// Node Filter Settings Routes
+// ============================================================================
+
+/// GET /api/settings/node-filter
+pub async fn get_node_filter_settings(
+    settings_actor: web::Data<Addr<SettingsActor>>,
+) -> impl Responder {
+    match settings_actor.send(GetNodeFilterSettings).await {
+        Ok(settings) => HttpResponse::Ok().json(settings),
+        Err(e) => {
+            error!("Failed to get node filter settings: {}", e);
+            HttpResponse::InternalServerError().json(ErrorResponse {
+                error: format!("Failed to get node filter settings: {}", e),
+            })
+        }
+    }
+}
+
+/// PUT /api/settings/node-filter
+pub async fn update_node_filter_settings(
+    settings_actor: web::Data<Addr<SettingsActor>>,
+    body: web::Json<NodeFilterSettings>,
+) -> impl Responder {
+    info!("Updating node filter settings: enabled={}, threshold={}",
+          body.enabled, body.quality_threshold);
+
+    match settings_actor.send(UpdateNodeFilterSettings(body.into_inner())).await {
+        Ok(Ok(())) => {
+            info!("Node filter settings updated successfully");
+            HttpResponse::Ok().finish()
+        }
+        Ok(Err(e)) => {
+            error!("Failed to update node filter settings: {}", e);
+            HttpResponse::InternalServerError().json(ErrorResponse {
+                error: format!("Failed to update node filter settings: {}", e),
+            })
+        }
+        Err(e) => {
+            error!("Actor mailbox error: {}", e);
+            HttpResponse::InternalServerError().json(ErrorResponse {
+                error: format!("Actor communication error: {}", e),
+            })
+        }
+    }
+}
+
+// ============================================================================
+// Quality Gate Settings Routes
+// ============================================================================
+
+/// GET /api/settings/quality-gates
+pub async fn get_quality_gate_settings(
+    settings_actor: web::Data<Addr<SettingsActor>>,
+) -> impl Responder {
+    match settings_actor.send(GetQualityGateSettings).await {
+        Ok(settings) => HttpResponse::Ok().json(settings),
+        Err(e) => {
+            error!("Failed to get quality gate settings: {}", e);
+            HttpResponse::InternalServerError().json(ErrorResponse {
+                error: format!("Failed to get quality gate settings: {}", e),
+            })
+        }
+    }
+}
+
+/// PUT /api/settings/quality-gates
+pub async fn update_quality_gate_settings(
+    settings_actor: web::Data<Addr<SettingsActor>>,
+    body: web::Json<QualityGateSettings>,
+) -> impl Responder {
+    info!("Updating quality gate settings: gpu={}, ontology={}, semantic={}",
+          body.gpu_acceleration, body.ontology_physics, body.semantic_forces);
+
+    match settings_actor.send(UpdateQualityGateSettings(body.into_inner())).await {
+        Ok(Ok(())) => {
+            info!("Quality gate settings updated successfully");
+            HttpResponse::Ok().finish()
+        }
+        Ok(Err(e)) => {
+            error!("Failed to update quality gate settings: {}", e);
+            HttpResponse::InternalServerError().json(ErrorResponse {
+                error: format!("Failed to update quality gate settings: {}", e),
             })
         }
         Err(e) => {
@@ -327,6 +423,10 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
         .route("constraints", web::put().to(update_constraint_settings))
         .route("rendering", web::get().to(get_rendering_settings))
         .route("rendering", web::put().to(update_rendering_settings))
+        .route("node-filter", web::get().to(get_node_filter_settings))
+        .route("node-filter", web::put().to(update_node_filter_settings))
+        .route("quality-gates", web::get().to(get_quality_gate_settings))
+        .route("quality-gates", web::put().to(update_quality_gate_settings))
         .route("all", web::get().to(get_all_settings))
         .route("profiles", web::post().to(save_profile))
         .route("profiles", web::get().to(list_profiles))

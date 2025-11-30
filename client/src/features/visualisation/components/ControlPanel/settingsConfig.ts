@@ -201,6 +201,28 @@ analytics: {
     ]
   },
 
+  'quality-gates': {
+    title: 'Quality Gates',
+    fields: [
+      // Compute Mode
+      { key: 'gpuAcceleration', label: 'GPU Acceleration', type: 'toggle', path: 'qualityGates.gpuAcceleration' },
+      { key: 'autoAdjust', label: 'Auto-Adjust Quality', type: 'toggle', path: 'qualityGates.autoAdjust' },
+      { key: 'minFpsThreshold', label: 'Min FPS Threshold', type: 'slider', min: 15, max: 60, step: 5, path: 'qualityGates.minFpsThreshold' },
+      { key: 'maxNodeCount', label: 'Max Node Count', type: 'slider', min: 1000, max: 50000, step: 1000, path: 'qualityGates.maxNodeCount' },
+      // Physics Features
+      { key: 'ontologyPhysics', label: 'Ontology Physics', type: 'toggle', path: 'qualityGates.ontologyPhysics' },
+      { key: 'semanticForces', label: 'Semantic Forces', type: 'toggle', path: 'qualityGates.semanticForces' },
+      { key: 'layoutMode', label: 'Layout Mode', type: 'select', options: ['force-directed', 'dag-topdown', 'dag-radial', 'dag-leftright', 'type-clustering'], path: 'qualityGates.layoutMode' },
+      { key: 'gnnPhysics', label: 'GNN-Enhanced Physics', type: 'toggle', path: 'qualityGates.gnnPhysics' },
+      // Analytics Visualization
+      { key: 'showClusters', label: 'Show Clusters', type: 'toggle', path: 'qualityGates.showClusters' },
+      { key: 'showAnomalies', label: 'Show Anomalies', type: 'toggle', path: 'qualityGates.showAnomalies' },
+      { key: 'showCommunities', label: 'Show Communities', type: 'toggle', path: 'qualityGates.showCommunities' },
+      // Advanced Features
+      { key: 'ruvectorEnabled', label: 'RuVector Integration', type: 'toggle', path: 'qualityGates.ruvectorEnabled' }
+    ]
+  },
+
   xr: {
     title: 'XR/AR Settings',
     fields: [

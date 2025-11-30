@@ -476,6 +476,21 @@ export interface PerformanceSettings {
 }
 
 // Developer GPU debug settings
+export interface QualityGatesSettings {
+  gpuAcceleration: boolean;
+  ontologyPhysics: boolean;
+  semanticForces: boolean;
+  layoutMode: 'force-directed' | 'dag-topdown' | 'dag-radial' | 'dag-leftright' | 'type-clustering';
+  showClusters: boolean;
+  showAnomalies: boolean;
+  showCommunities: boolean;
+  ruvectorEnabled: boolean;
+  gnnPhysics: boolean;
+  minFpsThreshold: number;
+  maxNodeCount: number;
+  autoAdjust: boolean;
+}
+
 export interface DeveloperSettings {
   gpu: {
     showForceVectors: boolean;
@@ -520,6 +535,7 @@ export interface Settings {
   analytics?: AnalyticsSettings;
   performance?: PerformanceSettings;
   developer?: DeveloperSettings;
+  qualityGates?: QualityGatesSettings;
 }
 
 // Partial update types for settings mutations

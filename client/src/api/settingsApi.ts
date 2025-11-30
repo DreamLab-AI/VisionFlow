@@ -59,10 +59,36 @@ export interface RenderingSettings {
   context?: string;
 }
 
+export interface NodeFilterSettings {
+  enabled: boolean;
+  qualityThreshold: number;
+  authorityThreshold: number;
+  filterByQuality: boolean;
+  filterByAuthority: boolean;
+  filterMode: 'or' | 'and';
+}
+
+export interface QualityGateSettings {
+  gpuAcceleration: boolean;
+  ontologyPhysics: boolean;
+  semanticForces: boolean;
+  layoutMode: 'force-directed' | 'dag-topdown' | 'dag-radial' | 'dag-leftright' | 'type-clustering';
+  showClusters: boolean;
+  showAnomalies: boolean;
+  showCommunities: boolean;
+  ruvectorEnabled: boolean;
+  gnnPhysics: boolean;
+  minFpsThreshold: number;
+  maxNodeCount: number;
+  autoAdjust: boolean;
+}
+
 export interface AllSettings {
   physics: PhysicsSettings;
   constraints: ConstraintSettings;
   rendering: RenderingSettings;
+  nodeFilter: NodeFilterSettings;
+  qualityGates: QualityGateSettings;
 }
 
 export interface SettingsProfile {
@@ -140,6 +166,24 @@ export const settingsApi = {
 
   deleteProfile: (id: number): Promise<AxiosResponse<void>> =>
     axios.delete(`${API_BASE}/api/settings/profiles/${id}`),
+
+  // Node filter settings
+  getNodeFilter: (): Promise<AxiosResponse<NodeFilterSettings>> =>
+    axios.get(`${API_BASE}/api/settings/node-filter`),
+
+  updateNodeFilter: (
+    settings: Partial<NodeFilterSettings>
+  ): Promise<AxiosResponse<void>> =>
+    axios.put(`${API_BASE}/api/settings/node-filter`, settings),
+
+  // Quality gate settings
+  getQualityGates: (): Promise<AxiosResponse<QualityGateSettings>> =>
+    axios.get(`${API_BASE}/api/settings/quality-gates`),
+
+  updateQualityGates: (
+    settings: Partial<QualityGateSettings>
+  ): Promise<AxiosResponse<void>> =>
+    axios.put(`${API_BASE}/api/settings/quality-gates`, settings),
 };
 
 // ============================================================================

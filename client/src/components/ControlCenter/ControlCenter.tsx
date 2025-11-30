@@ -5,9 +5,10 @@ import React, { useState } from 'react';
 import { SettingsPanel } from './SettingsPanel';
 import { ConstraintPanel } from './ConstraintPanel';
 import { ProfileManager } from './ProfileManager';
+import { QualityGatePanel } from './QualityGatePanel';
 import './ControlCenter.css';
 
-type TabType = 'settings' | 'constraints' | 'profiles';
+type TabType = 'settings' | 'constraints' | 'profiles' | 'quality-gates';
 
 export const ControlCenter: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('settings');
@@ -61,6 +62,12 @@ export const ControlCenter: React.FC = () => {
         >
           Profiles
         </button>
+        <button
+          className={activeTab === 'quality-gates' ? 'active' : ''}
+          onClick={() => setActiveTab('quality-gates')}
+        >
+          Quality Gates
+        </button>
       </div>
 
       <div className="control-center-content">
@@ -72,6 +79,9 @@ export const ControlCenter: React.FC = () => {
         )}
         {activeTab === 'profiles' && (
           <ProfileManager onError={handleError} onSuccess={handleSuccess} />
+        )}
+        {activeTab === 'quality-gates' && (
+          <QualityGatePanel onError={handleError} onSuccess={handleSuccess} />
         )}
       </div>
     </div>

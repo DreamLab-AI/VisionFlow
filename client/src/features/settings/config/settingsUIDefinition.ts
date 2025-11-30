@@ -276,6 +276,56 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
     },
   },
   
+  qualityGates: {
+    label: 'Quality Gates',
+    icon: 'Shield',
+    subsections: {
+      computeMode: {
+        label: 'Compute Mode',
+        settings: {
+          gpuAcceleration: { label: 'GPU Acceleration', type: 'toggle', path: 'qualityGates.gpuAcceleration', description: 'Enable GPU-accelerated physics (20-50x faster). Falls back to CPU if unavailable.' },
+          autoAdjust: { label: 'Auto-Adjust Quality', type: 'toggle', path: 'qualityGates.autoAdjust', description: 'Automatically disable expensive features if FPS drops.' },
+          minFpsThreshold: { label: 'Min FPS Threshold', type: 'slider', min: 15, max: 60, step: 5, unit: 'fps', path: 'qualityGates.minFpsThreshold', description: 'Disable features if FPS falls below this threshold.' },
+          maxNodeCount: { label: 'Max Node Count', type: 'slider', min: 1000, max: 50000, step: 1000, unit: 'nodes', path: 'qualityGates.maxNodeCount', description: 'Maximum nodes before aggressive filtering kicks in.' },
+        },
+      },
+      physicsFeatures: {
+        label: 'Physics Features',
+        settings: {
+          ontologyPhysics: { label: 'Ontology Physics Forces', type: 'toggle', path: 'qualityGates.ontologyPhysics', description: 'Apply SubClassOf, DisjointWith, EquivalentClasses constraints to graph layout.' },
+          semanticForces: { label: 'Semantic Forces', type: 'toggle', path: 'qualityGates.semanticForces', description: 'Enable DAG layout and type clustering forces (experimental).' },
+          layoutMode: {
+            label: 'Layout Mode',
+            type: 'select',
+            options: [
+              {value: 'force-directed', label: 'Force-Directed (Classic)'},
+              {value: 'dag-topdown', label: 'DAG Top-Down'},
+              {value: 'dag-radial', label: 'DAG Radial'},
+              {value: 'dag-leftright', label: 'DAG Left-Right'},
+              {value: 'type-clustering', label: 'Type Clustering'}
+            ],
+            path: 'qualityGates.layoutMode',
+            description: 'Graph layout algorithm mode.'
+          },
+          gnnPhysics: { label: 'GNN-Enhanced Physics', type: 'toggle', path: 'qualityGates.gnnPhysics', description: 'Use Graph Neural Network learned weights for physics constraints (advanced).', isPowerUserOnly: true },
+        },
+      },
+      analyticsVisualization: {
+        label: 'Analytics Visualization',
+        settings: {
+          showClusters: { label: 'Show Clusters', type: 'toggle', path: 'qualityGates.showClusters', description: 'Color-code nodes by cluster assignment.' },
+          showAnomalies: { label: 'Show Anomalies', type: 'toggle', path: 'qualityGates.showAnomalies', description: 'Highlight anomalous nodes with red glow effect.' },
+          showCommunities: { label: 'Show Communities', type: 'toggle', path: 'qualityGates.showCommunities', description: 'Visualize Louvain community detection results.' },
+        },
+      },
+      advancedFeatures: {
+        label: 'Advanced Features',
+        settings: {
+          ruvectorEnabled: { label: 'RuVector Integration', type: 'toggle', path: 'qualityGates.ruvectorEnabled', description: 'Enable RuVector HNSW index for 150x faster similarity search.', isPowerUserOnly: true },
+        },
+      },
+    },
+  },
   analytics: {
     label: 'Analytics',
     icon: 'BarChart3',
@@ -288,6 +338,17 @@ export const settingsUIDefinition: Record<string, UICategoryDefinition> = {
           showDegreeDistribution: { label: 'Show Degree Distribution', type: 'toggle', path: 'analytics.showDegreeDistribution', description: 'Display node degree distribution chart.' },
           showClusteringCoefficient: { label: 'Show Clustering', type: 'toggle', path: 'analytics.showClusteringCoefficient', description: 'Display clustering coefficient.' },
           showCentrality: { label: 'Show Centrality Metrics', type: 'toggle', path: 'analytics.showCentrality', description: 'Display betweenness and closeness centrality.' },
+        },
+      },
+      nodeFilter: {
+        label: 'Node Confidence Filter',
+        settings: {
+          enabled: { label: 'Enable Node Filter', type: 'toggle', path: 'nodeFilter.enabled', description: 'Filter out low-confidence nodes to improve rendering performance. Nodes below the quality threshold are hidden.' },
+          qualityThreshold: { label: 'Quality Threshold', type: 'slider', min: 0.0, max: 1.0, step: 0.05, path: 'nodeFilter.qualityThreshold', description: 'Minimum quality score (0-1) for nodes to be displayed. Higher values = fewer nodes.' },
+          authorityThreshold: { label: 'Authority Threshold', type: 'slider', min: 0.0, max: 1.0, step: 0.05, path: 'nodeFilter.authorityThreshold', description: 'Minimum authority score (0-1) for nodes to be displayed.' },
+          filterByQuality: { label: 'Filter by Quality', type: 'toggle', path: 'nodeFilter.filterByQuality', description: 'Use quality score for filtering nodes.' },
+          filterByAuthority: { label: 'Filter by Authority', type: 'toggle', path: 'nodeFilter.filterByAuthority', description: 'Use authority score for filtering nodes.' },
+          filterMode: { label: 'Filter Mode', type: 'select', options: [{value: 'or', label: 'OR (Any threshold)'}, {value: 'and', label: 'AND (All thresholds)'}], path: 'nodeFilter.filterMode', description: 'How to combine filter criteria: OR shows nodes passing any threshold, AND requires all.' },
         },
       },
     },

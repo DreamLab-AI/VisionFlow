@@ -1,9 +1,8 @@
-
-
 import React, { useCallback, useState } from 'react';
 import { useSettingsStore } from '../../../../store/settingsStore';
 import { SETTINGS_CONFIG } from './settingsConfig';
 import type { SettingField } from './types';
+import { SemanticAnalysisPanel } from '../../../analytics/components/SemanticAnalysisPanel';
 
 interface SettingsTabContentProps {
   sectionId: string;
@@ -311,6 +310,11 @@ export const SettingsTabContent: React.FC<SettingsTabContentProps> = ({ sectionI
         return null;
     }
   };
+
+  // Custom panel for analytics - render SemanticAnalysisPanel
+  if (sectionId === 'analytics') {
+    return <SemanticAnalysisPanel />;
+  }
 
   const sectionConfig = SETTINGS_CONFIG[sectionId];
 

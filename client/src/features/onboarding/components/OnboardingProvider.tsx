@@ -49,8 +49,9 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
   return (
     <OnboardingContext.Provider value={contextValue}>
       {children}
-      <OnboardingEventHandler />
-      {isActive && currentStep && currentFlow && (
+      {/* Onboarding disabled - uncomment to re-enable */}
+      {/* <OnboardingEventHandler /> */}
+      {/* {isActive && currentStep && currentFlow && (
         <OnboardingOverlay
           step={currentStep}
           stepNumber={currentStepIndex + 1}
@@ -61,7 +62,7 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
           hasNext={hasNextStep}
           hasPrev={hasPrevStep}
         />
-      )}
+      )} */}
     </OnboardingContext.Provider>
   );
 }

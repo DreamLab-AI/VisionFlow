@@ -20,21 +20,25 @@ import { Input } from '@/features/design-system/components/Input';
 import { Slider } from '@/features/design-system/components/Slider';
 import { Switch } from '@/features/design-system/components/Switch';
 import { useToast } from '@/features/design-system/components/Toast';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/features/design-system/components/Tooltip';
-import Network from 'lucide-react/dist/esm/icons/network';
-import TrendingUp from 'lucide-react/dist/esm/icons/trending-up';
-import Route from 'lucide-react/dist/esm/icons/route';
-import Settings from 'lucide-react/dist/esm/icons/settings';
-import Activity from 'lucide-react/dist/esm/icons/activity';
-import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
-import Info from 'lucide-react/dist/esm/icons/info';
-import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
+import { Tooltip, TooltipProvider } from '@/features/design-system/components/Tooltip';
+import {
+  Network,
+  TrendingUp,
+  Route,
+  Settings,
+  Activity,
+  AlertCircle,
+  Info,
+  Trash2,
+  Filter
+} from 'lucide-react';
 import {
   useSemanticService,
   CommunitiesResponse,
   CentralityResponse,
   ShortestPathResponse,
 } from '../hooks/useSemanticService';
+import { settingsApi, NodeFilterSettings } from '@/api/settingsApi';
 
 interface SemanticAnalysisPanelProps {
   className?: string;
@@ -53,7 +57,24 @@ export function SemanticAnalysisPanel({ className }: SemanticAnalysisPanelProps)
     invalidateCache,
   } = useSemanticService();
 
-  const [activeTab, setActiveTab] = useState('communities');
+  const [activeTab, setActiveTab] = useState('filter');
+
+  // Node Filter state
+  const [nodeFilterSettings, setNodeFilterSettings] = useState<NodeFilterSettings | null>(null);
+  const [nodeFilterLoading, setNodeFilterLoading] = useState(false);
+
+  // Load node filter settings on mount
+  React.useEffect(() => {
+    const loadNodeFilter = async () => {
+      try {
+        const response = await settingsApi.getNodeFilter();
+        setNodeFilterSettings(response.data);
+      } catch (err) {
+        console.error('Failed to load node filter settings:', err);
+      }
+    };
+    loadNodeFilter();
+  }, []);
 
   // Community detection state
   const [communityAlgorithm, setCommunityAlgorithm] = useState<
@@ -198,6 +219,31 @@ export function SemanticAnalysisPanel({ className }: SemanticAnalysisPanelProps)
     }
   };
 
+  // Handle node filter settings update
+  const handleNodeFilterUpdate = async (updates: Partial<NodeFilterSettings>) => {
+    if (!nodeFilterSettings) return;
+
+    setNodeFilterLoading(true);
+    try {
+      const newSettings = { ...nodeFilterSettings, ...updates };
+      await settingsApi.updateNodeFilter(newSettings);
+      setNodeFilterSettings(newSettings);
+      toast({
+        title: 'Node Filter Updated',
+        description: 'Filter settings have been saved',
+        variant: 'default',
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Update Failed',
+        description: err.message || 'Failed to update node filter settings',
+        variant: 'destructive',
+      });
+    } finally {
+      setNodeFilterLoading(false);
+    }
+  };
+
   return (
     <Card className={className}>
       <CardHeader>
@@ -210,15 +256,10 @@ export function SemanticAnalysisPanel({ className }: SemanticAnalysisPanelProps)
             <CardDescription>Advanced graph analytics and community detection</CardDescription>
           </div>
           <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="sm" onClick={handleInvalidateCache} disabled={loading}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Clear analysis cache</p>
-              </TooltipContent>
+            <Tooltip content="Clear analysis cache">
+              <Button variant="outline" size="sm" onClick={handleInvalidateCache} disabled={loading}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </Tooltip>
           </TooltipProvider>
         </div>
@@ -226,7 +267,11 @@ export function SemanticAnalysisPanel({ className }: SemanticAnalysisPanelProps)
 
       <CardContent className="space-y-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="filter">
+              <Filter className="h-4 w-4 mr-1" />
+              Filter
+            </TabsTrigger>
             <TabsTrigger value="communities">
               <Network className="h-4 w-4 mr-1" />
               Communities
@@ -244,6 +289,116 @@ export function SemanticAnalysisPanel({ className }: SemanticAnalysisPanelProps)
               Constraints
             </TabsTrigger>
           </TabsList>
+
+          {/* Node Filter Tab */}
+          <TabsContent value="filter" className="space-y-4">
+            <div className="space-y-4">
+              <div className="rounded-lg border p-4 space-y-4 bg-muted/50">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium">Node Confidence Filter</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Filter out low-confidence nodes to improve rendering performance
+                    </p>
+                  </div>
+                  <Switch
+                    checked={nodeFilterSettings?.enabled ?? false}
+                    onCheckedChange={(checked) => handleNodeFilterUpdate({ enabled: checked })}
+                    disabled={nodeFilterLoading || !nodeFilterSettings}
+                  />
+                </div>
+              </div>
+
+              {nodeFilterSettings?.enabled && (
+                <>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Quality Threshold</Label>
+                      <span className="text-sm text-muted-foreground">
+                        {(nodeFilterSettings?.qualityThreshold ?? 0.7).toFixed(2)}
+                      </span>
+                    </div>
+                    <Slider
+                      min={0.0}
+                      max={1.0}
+                      step={0.05}
+                      value={[nodeFilterSettings?.qualityThreshold ?? 0.7]}
+                      onValueChange={([v]) => handleNodeFilterUpdate({ qualityThreshold: v })}
+                      disabled={nodeFilterLoading}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Minimum quality score (0-1) for nodes to be displayed. Higher values = fewer nodes.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Authority Threshold</Label>
+                      <span className="text-sm text-muted-foreground">
+                        {(nodeFilterSettings?.authorityThreshold ?? 0.5).toFixed(2)}
+                      </span>
+                    </div>
+                    <Slider
+                      min={0.0}
+                      max={1.0}
+                      step={0.05}
+                      value={[nodeFilterSettings?.authorityThreshold ?? 0.5]}
+                      onValueChange={([v]) => handleNodeFilterUpdate({ authorityThreshold: v })}
+                      disabled={nodeFilterLoading}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Minimum authority score (0-1) for nodes to be displayed.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3 pt-2 border-t">
+                    <div className="flex items-center justify-between">
+                      <Label>Filter by Quality</Label>
+                      <Switch
+                        checked={nodeFilterSettings?.filterByQuality ?? true}
+                        onCheckedChange={(checked) => handleNodeFilterUpdate({ filterByQuality: checked })}
+                        disabled={nodeFilterLoading}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label>Filter by Authority</Label>
+                      <Switch
+                        checked={nodeFilterSettings?.filterByAuthority ?? false}
+                        onCheckedChange={(checked) => handleNodeFilterUpdate({ filterByAuthority: checked })}
+                        disabled={nodeFilterLoading}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Filter Mode</Label>
+                    <Select
+                      value={nodeFilterSettings?.filterMode ?? 'or'}
+                      onValueChange={(v: 'or' | 'and') => handleNodeFilterUpdate({ filterMode: v })}
+                      disabled={nodeFilterLoading}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="or">OR (Any threshold)</SelectItem>
+                        <SelectItem value="and">AND (All thresholds)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      OR shows nodes passing any threshold, AND requires all.
+                    </p>
+                  </div>
+                </>
+              )}
+
+              {!nodeFilterSettings && (
+                <div className="text-sm text-muted-foreground text-center py-4">
+                  Loading node filter settings...
+                </div>
+              )}
+            </div>
+          </TabsContent>
 
           {/* Communities Tab */}
           <TabsContent value="communities" className="space-y-4">

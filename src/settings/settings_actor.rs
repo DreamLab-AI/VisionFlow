@@ -8,7 +8,7 @@ use anyhow::Result;
 use log::{info, error};
 use crate::config::{PhysicsSettings, RenderingSettings};
 use crate::ports::settings_repository::SettingsRepository;
-use super::models::{ConstraintSettings, AllSettings, SettingsProfile};
+use super::models::{ConstraintSettings, AllSettings, SettingsProfile, NodeFilterSettings, QualityGateSettings};
 
 ///
 pub struct SettingsActor {
@@ -16,6 +16,8 @@ pub struct SettingsActor {
     current_physics: PhysicsSettings,
     current_constraints: ConstraintSettings,
     current_rendering: RenderingSettings,
+    current_node_filter: NodeFilterSettings,
+    current_quality_gates: QualityGateSettings,
 }
 
 impl SettingsActor {
@@ -25,6 +27,8 @@ impl SettingsActor {
             current_physics: PhysicsSettings::default(),
             current_constraints: ConstraintSettings::default(),
             current_rendering: RenderingSettings::default(),
+            current_node_filter: NodeFilterSettings::default(),
+            current_quality_gates: QualityGateSettings::default(),
         }
     }
 
@@ -41,8 +45,44 @@ impl Actor for SettingsActor {
 
     fn started(&mut self, ctx: &mut Self::Context) {
         info!("SettingsActor started with default settings");
-        
-        
+
+        // Load node filter settings from repository on startup
+        let repository = self.repository.clone();
+        ctx.spawn(async move {
+            // Try to load node filter settings
+            match repository.get_setting("node_filter").await {
+                Ok(Some(crate::ports::settings_repository::SettingValue::Json(json))) => {
+                    match serde_json::from_value::<NodeFilterSettings>(json) {
+                        Ok(settings) => {
+                            info!("Loaded node filter settings from DB: enabled={}, threshold={}",
+                                  settings.enabled, settings.quality_threshold);
+                        }
+                        Err(e) => {
+                            info!("Failed to parse node filter settings, will initialize defaults: {}", e);
+                        }
+                    }
+                }
+                Ok(_) => {
+                    // No node filter settings exist, initialize with defaults
+                    info!("No node filter settings found, initializing defaults (enabled=true, quality_threshold=0.7)");
+                    let default_settings = NodeFilterSettings::default();
+                    let settings_json = serde_json::to_value(&default_settings).unwrap_or_default();
+
+                    if let Err(e) = repository.set_setting(
+                        "node_filter",
+                        crate::ports::settings_repository::SettingValue::Json(settings_json),
+                        Some("Node confidence filter settings - filters out low quality nodes"),
+                    ).await {
+                        error!("Failed to initialize node filter settings: {}", e);
+                    } else {
+                        info!("Initialized default node filter settings in database");
+                    }
+                }
+                Err(e) => {
+                    error!("Failed to check node filter settings: {}", e);
+                }
+            }
+        }.into_actor(self));
     }
 }
 
@@ -107,6 +147,26 @@ pub struct DeleteProfile(pub i64);
 #[rtype(result = "AllSettings")]
 pub struct GetAllSettings;
 
+/// Message to update node filter settings
+#[derive(Message)]
+#[rtype(result = "Result<()>")]
+pub struct UpdateNodeFilterSettings(pub NodeFilterSettings);
+
+/// Message to get node filter settings
+#[derive(Message)]
+#[rtype(result = "NodeFilterSettings")]
+pub struct GetNodeFilterSettings;
+
+/// Message to update quality gate settings
+#[derive(Message)]
+#[rtype(result = "Result<()>")]
+pub struct UpdateQualityGateSettings(pub QualityGateSettings);
+
+/// Message to get quality gate settings
+#[derive(Message)]
+#[rtype(result = "QualityGateSettings")]
+pub struct GetQualityGateSettings;
+
 // ============================================================================
 // MessageResponse Implementations
 // ============================================================================
@@ -151,6 +211,30 @@ impl<A, M> MessageResponse<A, M> for AllSettings
 where
     A: Actor,
     M: Message<Result = AllSettings>,
+{
+    fn handle(self, _ctx: &mut A::Context, tx: Option<OneshotSender<M::Result>>) {
+        if let Some(tx) = tx {
+            let _ = tx.send(self);
+        }
+    }
+}
+
+impl<A, M> MessageResponse<A, M> for NodeFilterSettings
+where
+    A: Actor,
+    M: Message<Result = NodeFilterSettings>,
+{
+    fn handle(self, _ctx: &mut A::Context, tx: Option<OneshotSender<M::Result>>) {
+        if let Some(tx) = tx {
+            let _ = tx.send(self);
+        }
+    }
+}
+
+impl<A, M> MessageResponse<A, M> for QualityGateSettings
+where
+    A: Actor,
+    M: Message<Result = QualityGateSettings>,
 {
     fn handle(self, _ctx: &mut A::Context, tx: Option<OneshotSender<M::Result>>) {
         if let Some(tx) = tx {
@@ -271,6 +355,76 @@ impl Handler<GetAllSettings> for SettingsActor {
             physics: self.current_physics.clone(),
             constraints: self.current_constraints.clone(),
             rendering: self.current_rendering.clone(),
+            node_filter: self.current_node_filter.clone(),
+            quality_gates: self.current_quality_gates.clone(),
         }
+    }
+}
+
+impl Handler<UpdateNodeFilterSettings> for SettingsActor {
+    type Result = ResponseFuture<Result<()>>;
+
+    fn handle(&mut self, msg: UpdateNodeFilterSettings, _ctx: &mut Self::Context) -> Self::Result {
+        self.current_node_filter = msg.0.clone();
+        let repository = self.repository.clone();
+        let settings = msg.0;
+
+        Box::pin(async move {
+            // Persist to Neo4j as JSON
+            let settings_json = serde_json::to_value(&settings)
+                .map_err(|e| anyhow::anyhow!("Failed to serialize node filter settings: {}", e))?;
+
+            repository.set_setting(
+                "node_filter",
+                crate::ports::settings_repository::SettingValue::Json(settings_json),
+                Some("Node confidence filter settings"),
+            ).await?;
+
+            info!("Node filter settings updated and persisted: enabled={}, quality_threshold={}",
+                  settings.enabled, settings.quality_threshold);
+            Ok(())
+        })
+    }
+}
+
+impl Handler<GetNodeFilterSettings> for SettingsActor {
+    type Result = NodeFilterSettings;
+
+    fn handle(&mut self, _msg: GetNodeFilterSettings, _ctx: &mut Self::Context) -> Self::Result {
+        self.current_node_filter.clone()
+    }
+}
+
+impl Handler<UpdateQualityGateSettings> for SettingsActor {
+    type Result = ResponseFuture<Result<()>>;
+
+    fn handle(&mut self, msg: UpdateQualityGateSettings, _ctx: &mut Self::Context) -> Self::Result {
+        self.current_quality_gates = msg.0.clone();
+        let repository = self.repository.clone();
+        let settings = msg.0;
+
+        Box::pin(async move {
+            // Persist to Neo4j as JSON
+            let settings_json = serde_json::to_value(&settings)
+                .map_err(|e| anyhow::anyhow!("Failed to serialize quality gate settings: {}", e))?;
+
+            repository.set_setting(
+                "quality_gates",
+                crate::ports::settings_repository::SettingValue::Json(settings_json),
+                Some("Quality gate settings for feature toggles and performance thresholds"),
+            ).await?;
+
+            info!("Quality gate settings updated and persisted: gpu={}, ontology={}, semantic={}, layout={}",
+                  settings.gpu_acceleration, settings.ontology_physics, settings.semantic_forces, settings.layout_mode);
+            Ok(())
+        })
+    }
+}
+
+impl Handler<GetQualityGateSettings> for SettingsActor {
+    type Result = QualityGateSettings;
+
+    fn handle(&mut self, _msg: GetQualityGateSettings, _ctx: &mut Self::Context) -> Self::Result {
+        self.current_quality_gates.clone()
     }
 }

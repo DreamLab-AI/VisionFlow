@@ -24,6 +24,8 @@ use crate::models::node::Node;
 use crate::ports::graph_repository::{
     GraphRepository, GraphRepositoryError, PathfindingParams, PathfindingResult, Result,
 };
+use crate::ports::settings_repository::{SettingsRepository, SettingValue};
+use crate::settings::models::NodeFilterSettings;
 use crate::types::vec3::Vec3Data;
 use glam::Vec3;
 
@@ -45,6 +47,12 @@ pub struct Neo4jGraphRepository {
 
     /// Track if full graph is loaded
     is_loaded: Arc<RwLock<bool>>,
+
+    /// Settings repository for reading node filter settings
+    settings_repository: Option<Arc<dyn SettingsRepository>>,
+
+    /// Cached node filter settings
+    node_filter_settings: Arc<RwLock<NodeFilterSettings>>,
 }
 
 impl Neo4jGraphRepository {
@@ -59,7 +67,67 @@ impl Neo4jGraphRepository {
             )),
             graph_snapshot: Arc::new(RwLock::new(None)),
             is_loaded: Arc::new(RwLock::new(false)),
+            settings_repository: None,
+            node_filter_settings: Arc::new(RwLock::new(NodeFilterSettings::default())),
         }
+    }
+
+    /// Create repository with settings support for node filtering
+    pub fn with_settings(graph: Arc<Graph>, settings_repository: Arc<dyn SettingsRepository>) -> Self {
+        Self {
+            graph,
+            node_cache: Arc::new(RwLock::new(
+                LruCache::new(NonZeroUsize::new(CACHE_SIZE).unwrap())
+            )),
+            edge_cache: Arc::new(RwLock::new(
+                LruCache::new(NonZeroUsize::new(CACHE_SIZE).unwrap())
+            )),
+            graph_snapshot: Arc::new(RwLock::new(None)),
+            is_loaded: Arc::new(RwLock::new(false)),
+            settings_repository: Some(settings_repository),
+            node_filter_settings: Arc::new(RwLock::new(NodeFilterSettings::default())),
+        }
+    }
+
+    /// Update node filter settings (called from settings actor when settings change)
+    pub async fn set_node_filter_settings(&self, settings: NodeFilterSettings) {
+        info!("Updating node filter settings: enabled={}, quality_threshold={}",
+              settings.enabled, settings.quality_threshold);
+        *self.node_filter_settings.write().await = settings;
+        // Invalidate graph cache to force reload with new filters
+        self.invalidate_cache().await;
+    }
+
+    /// Get current node filter settings
+    pub async fn get_node_filter_settings(&self) -> NodeFilterSettings {
+        self.node_filter_settings.read().await.clone()
+    }
+
+    /// Load node filter settings from repository
+    async fn load_node_filter_settings(&self) -> NodeFilterSettings {
+        if let Some(ref repo) = self.settings_repository {
+            match repo.get_setting("node_filter").await {
+                Ok(Some(SettingValue::Json(json))) => {
+                    match serde_json::from_value::<NodeFilterSettings>(json) {
+                        Ok(settings) => {
+                            info!("Loaded node filter settings: enabled={}, threshold={}",
+                                  settings.enabled, settings.quality_threshold);
+                            return settings;
+                        }
+                        Err(e) => {
+                            warn!("Failed to parse node filter settings: {}", e);
+                        }
+                    }
+                }
+                Ok(_) => {
+                    debug!("No node filter settings found, using defaults");
+                }
+                Err(e) => {
+                    warn!("Failed to load node filter settings: {}", e);
+                }
+            }
+        }
+        NodeFilterSettings::default()
     }
 
     /// Load full graph from Neo4j (called on startup or refresh)
@@ -67,12 +135,19 @@ impl Neo4jGraphRepository {
     pub async fn load_graph(&self) -> Result<()> {
         info!("Loading full graph from Neo4j...");
 
-        // Load nodes in batches
-        let nodes = self.load_all_nodes().await?;
+        // Load and cache node filter settings first
+        let filter_settings = self.load_node_filter_settings().await;
+        *self.node_filter_settings.write().await = filter_settings.clone();
+
+        info!("Node filter: enabled={}, quality_threshold={}, filter_by_quality={}",
+              filter_settings.enabled, filter_settings.quality_threshold, filter_settings.filter_by_quality);
+
+        // Load nodes with filter applied
+        let nodes = self.load_all_nodes_filtered(&filter_settings).await?;
         let edges = self.load_all_edges().await?;
         let metadata = self.load_all_metadata().await?;
 
-        info!("Loaded {} nodes, {} edges, {} metadata entries",
+        info!("Loaded {} nodes (filtered), {} edges, {} metadata entries",
               nodes.len(), edges.len(), metadata.len());
 
         // Update cache
@@ -104,10 +179,39 @@ impl Neo4jGraphRepository {
         Ok(())
     }
 
-    /// Load all nodes from Neo4j
-    async fn load_all_nodes(&self) -> Result<Vec<Node>> {
-        let query_str = "
+    /// Load all nodes from Neo4j with optional quality/authority filtering
+    async fn load_all_nodes_filtered(&self, filter: &NodeFilterSettings) -> Result<Vec<Node>> {
+        // Build WHERE clause based on filter settings
+        let where_clause = if filter.enabled {
+            let mut conditions = Vec::new();
+
+            if filter.filter_by_quality {
+                conditions.push(format!(
+                    "(n.quality_score IS NULL OR n.quality_score >= {})",
+                    filter.quality_threshold
+                ));
+            }
+
+            if filter.filter_by_authority {
+                conditions.push(format!(
+                    "(n.authority_score IS NULL OR n.authority_score >= {})",
+                    filter.authority_threshold
+                ));
+            }
+
+            if conditions.is_empty() {
+                String::new()
+            } else {
+                let join_op = if filter.filter_mode == "and" { " AND " } else { " OR " };
+                format!("WHERE {}", conditions.join(join_op))
+            }
+        } else {
+            String::new()
+        };
+
+        let query_str = format!("
             MATCH (n:GraphNode)
+            {}
             RETURN n.id as id,
                    n.metadata_id as metadata_id,
                    n.label as label,
@@ -127,12 +231,16 @@ impl Neo4jGraphRepository {
                    n.anomaly_score as anomaly_score,
                    n.community_id as community_id,
                    n.hierarchy_level as hierarchy_level,
+                   n.quality_score as quality_score,
+                   n.authority_score as authority_score,
                    n.metadata as metadata_json
             ORDER BY id
-        ";
+        ", where_clause);
+
+        info!("Executing node query with filter: {}", if filter.enabled { &where_clause } else { "disabled" });
 
         let mut result = self.graph
-            .execute(query(query_str))
+            .execute(query(&query_str))
             .await
             .map_err(|e| GraphRepositoryError::AccessError(format!("Failed to query nodes: {}", e)))?;
 
@@ -171,6 +279,10 @@ impl Neo4jGraphRepository {
             let community_id: Option<BoltInteger> = row.get("community_id").ok();
             let hierarchy_level: Option<BoltInteger> = row.get("hierarchy_level").ok();
 
+            // Quality/authority scores for filtering
+            let quality_score: Option<BoltFloat> = row.get("quality_score").ok();
+            let authority_score: Option<BoltFloat> = row.get("authority_score").ok();
+
             // Metadata JSON
             let metadata_json: String = row.get("metadata_json").unwrap_or_else(|_| "{}".to_string());
             let mut metadata: HashMap<String, String> = serde_json::from_str(&metadata_json)
@@ -188,6 +300,13 @@ impl Neo4jGraphRepository {
             }
             if let Some(level) = hierarchy_level {
                 metadata.insert("hierarchy_level".to_string(), level.value.to_string());
+            }
+            // Store quality/authority scores in metadata
+            if let Some(qs) = quality_score {
+                metadata.insert("quality_score".to_string(), qs.value.to_string());
+            }
+            if let Some(as_score) = authority_score {
+                metadata.insert("authority_score".to_string(), as_score.value.to_string());
             }
 
             let node = Node {
@@ -311,11 +430,24 @@ impl GraphRepository for Neo4jGraphRepository {
                     n.color = $color,
                     n.weight = $weight,
                     n.node_type = $node_type,
+                    n.quality_score = $quality_score,
+                    n.authority_score = $authority_score,
                     n.metadata = $metadata
             ";
 
             let metadata_json = serde_json::to_string(&node.metadata)
                 .map_err(|e| GraphRepositoryError::SerializationError(format!("Failed to serialize metadata: {}", e)))?;
+
+            // Extract quality/authority scores from metadata
+            let quality_score: f64 = node.metadata
+                .get("quality_score")
+                .and_then(|s| s.parse::<f64>().ok())
+                .unwrap_or(1.0);  // Default to 1.0 (high quality) if not specified
+
+            let authority_score: f64 = node.metadata
+                .get("authority_score")
+                .and_then(|s| s.parse::<f64>().ok())
+                .unwrap_or(1.0);
 
             self.graph
                 .run(query(query_str)
@@ -333,6 +465,8 @@ impl GraphRepository for Neo4jGraphRepository {
                     .param("color", node.color.clone().unwrap_or_else(|| "#888888".to_string()))
                     .param("weight", node.weight.unwrap_or(1.0) as f64)
                     .param("node_type", node.node_type.clone().unwrap_or_else(|| "default".to_string()))
+                    .param("quality_score", quality_score)
+                    .param("authority_score", authority_score)
                     .param("metadata", metadata_json))
                 .await
                 .map_err(|e| GraphRepositoryError::AccessError(format!("Failed to add node: {}", e)))?;

@@ -66,6 +66,7 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@playwright/test": "1.57.0",
     "@tailwindcss/postcss": "^4.1.7",
     "@types/node": "^22.14.1",
     "@types/react": "^18.2.0",
