@@ -43,6 +43,55 @@ pub struct ClientState {
     pub last_update: Instant,
     pub position_sent: bool,
     pub initial_sync_completed: bool,
+    pub pubkey: Option<String>,
+    pub is_power_user: bool,
+    pub filter: ClientFilter,
+}
+
+/// Per-client filter settings for graph visibility
+#[derive(Debug, Clone)]
+pub struct ClientFilter {
+    pub enabled: bool,
+    pub quality_threshold: f64,
+    pub authority_threshold: f64,
+    pub filter_by_quality: bool,
+    pub filter_by_authority: bool,
+    pub filter_mode: FilterMode,
+    pub max_nodes: Option<usize>,
+    pub filtered_node_ids: std::collections::HashSet<u32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum FilterMode {
+    And,
+    Or,
+}
+
+impl Default for ClientFilter {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            quality_threshold: 0.7,
+            authority_threshold: 0.5,
+            filter_by_quality: true,
+            filter_by_authority: false,
+            filter_mode: FilterMode::Or,
+            max_nodes: Some(10000),
+            filtered_node_ids: std::collections::HashSet::new(),
+        }
+    }
+}
+
+impl std::str::FromStr for FilterMode {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "and" => Ok(FilterMode::And),
+            "or" => Ok(FilterMode::Or),
+            _ => Err(format!("Invalid filter mode: {}", s)),
+        }
+    }
 }
 
 ///
@@ -84,6 +133,9 @@ impl ClientManager {
             last_update: now,
             position_sent: false,
             initial_sync_completed: false,
+            pubkey: None,
+            is_power_user: false,
+            filter: ClientFilter::default(),
         };
 
         self.clients.insert(client_id, client_state);
@@ -95,6 +147,14 @@ impl ClientManager {
             client_id, self.active_connections
         );
         client_id
+    }
+
+    pub fn get_client_mut(&mut self, client_id: usize) -> Option<&mut ClientState> {
+        self.clients.get_mut(&client_id)
+    }
+
+    pub fn get_client(&self, client_id: usize) -> Option<&ClientState> {
+        self.clients.get(&client_id)
     }
 
     pub fn unregister_client(&mut self, client_id: usize) -> bool {
@@ -131,6 +191,42 @@ impl ClientManager {
             broadcast_count += 1;
         }
         broadcast_count
+    }
+
+    /// Broadcast with per-client filtering
+    pub fn broadcast_with_filter(&self, positions: &[BinaryNodeDataClient]) -> usize {
+        let mut broadcast_count = 0;
+        for (_, client_state) in &self.clients {
+            let filtered_positions = if client_state.filter.enabled {
+                positions.iter()
+                    .filter(|pos| client_state.filter.filtered_node_ids.contains(&pos.node_id))
+                    .copied()
+                    .collect::<Vec<_>>()
+            } else {
+                positions.to_vec()
+            };
+
+            if !filtered_positions.is_empty() {
+                let binary_data = self.serialize_positions(&filtered_positions);
+                client_state.addr.do_send(SendToClientBinary(binary_data));
+                broadcast_count += 1;
+            }
+        }
+        broadcast_count
+    }
+
+    fn serialize_positions(&self, positions: &[BinaryNodeDataClient]) -> Vec<u8> {
+        use crate::utils::binary_protocol::{BinaryProtocol, GraphType};
+        let nodes: Vec<(String, [f32; 6])> = positions
+            .iter()
+            .map(|pos| {
+                (
+                    pos.node_id.to_string(),
+                    [pos.x, pos.y, pos.z, pos.vx, pos.vy, pos.vz],
+                )
+            })
+            .collect();
+        BinaryProtocol::encode_graph_update(GraphType::KnowledgeGraph, &nodes)
     }
 
     pub fn broadcast_message(&self, message: String) -> usize {
@@ -1201,6 +1297,180 @@ impl Handler<SetBandwidthLimit> for ClientCoordinatorActor {
 
     fn handle(&mut self, msg: SetBandwidthLimit, _ctx: &mut Self::Context) -> Self::Result {
         self.set_bandwidth_limit(msg.bytes_per_sec);
+    }
+}
+
+/// Handle client authentication
+impl Handler<AuthenticateClient> for ClientCoordinatorActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: AuthenticateClient, ctx: &mut Self::Context) -> Self::Result {
+        let mut manager = match handle_rwlock_error(self.client_manager.write()) {
+            Ok(manager) => manager,
+            Err(e) => {
+                error!("RwLock error: {}", e);
+                return Err(format!("Failed to acquire client manager lock: {}", e));
+            }
+        };
+
+        if let Some(client) = manager.get_client_mut(msg.client_id) {
+            client.pubkey = Some(msg.pubkey.clone());
+            client.is_power_user = msg.is_power_user;
+            info!(
+                "Client {} authenticated as pubkey {} (power_user: {})",
+                msg.client_id, msg.pubkey, msg.is_power_user
+            );
+
+            // TODO: Load saved filter from Neo4j using msg.pubkey
+            // For now, if filter is enabled, recompute with current graph data
+            if client.filter.enabled {
+                if let Some(graph_addr) = self.graph_service_addr.clone() {
+                    let client_id = msg.client_id;
+                    let manager_arc = self.client_manager.clone();
+
+                    ctx.spawn(actix::fut::wrap_future::<_, Self>(async move {
+                        use crate::actors::messages::GetGraphData;
+                        match graph_addr.send(GetGraphData).await {
+                            Ok(Ok(graph_data)) => {
+                                if let Ok(mut manager) = manager_arc.write() {
+                                    if let Some(client) = manager.get_client_mut(client_id) {
+                                        crate::actors::client_filter::recompute_filtered_nodes(
+                                            &mut client.filter,
+                                            &graph_data
+                                        );
+                                        info!("Recomputed filter for authenticated client {}: {} nodes visible",
+                                              client_id, client.filter.filtered_node_ids.len());
+                                    }
+                                }
+                            }
+                            Err(e) => warn!("Failed to fetch graph data for filter recomputation: {}", e),
+                            Ok(Err(e)) => warn!("Graph data fetch error: {}", e),
+                        }
+                    }).map(|_, _, _| ()));
+                }
+            }
+
+            Ok(())
+        } else {
+            Err(format!("Client {} not found", msg.client_id))
+        }
+    }
+}
+
+/// Handle filter updates from client
+impl Handler<UpdateClientFilter> for ClientCoordinatorActor {
+    type Result = Result<(), String>;
+
+    fn handle(&mut self, msg: UpdateClientFilter, ctx: &mut Self::Context) -> Self::Result {
+        let mut manager = match handle_rwlock_error(self.client_manager.write()) {
+            Ok(manager) => manager,
+            Err(e) => {
+                error!("RwLock error: {}", e);
+                return Err(format!("Failed to acquire client manager lock: {}", e));
+            }
+        };
+
+        if let Some(client) = manager.get_client_mut(msg.client_id) {
+            let filter_mode = msg.filter_mode.parse::<FilterMode>()
+                .map_err(|e| format!("Invalid filter mode: {}", e))?;
+
+            client.filter.enabled = msg.enabled;
+            client.filter.quality_threshold = msg.quality_threshold;
+            client.filter.authority_threshold = msg.authority_threshold;
+            client.filter.filter_by_quality = msg.filter_by_quality;
+            client.filter.filter_by_authority = msg.filter_by_authority;
+            client.filter.filter_mode = filter_mode;
+            client.filter.max_nodes = msg.max_nodes.map(|n| n as usize);
+
+            info!(
+                "Updated filter for client {}: enabled={}, quality_threshold={}, max_nodes={:?}",
+                msg.client_id, msg.enabled, msg.quality_threshold, msg.max_nodes
+            );
+
+            // Recompute filtered nodes with updated criteria and send filtered graph to client
+            if let Some(graph_addr) = self.graph_service_addr.clone() {
+                let client_id = msg.client_id;
+                let manager_arc = self.client_manager.clone();
+
+                ctx.spawn(actix::fut::wrap_future::<_, Self>(async move {
+                    use crate::actors::messages::GetGraphData;
+                    use crate::utils::socket_flow_messages::{InitialNodeData, InitialEdgeData};
+
+                    match graph_addr.send(GetGraphData).await {
+                        Ok(Ok(graph_data)) => {
+                            if let Ok(mut manager) = manager_arc.write() {
+                                if let Some(client) = manager.get_client_mut(client_id) {
+                                    // Recompute which nodes pass the filter
+                                    crate::actors::client_filter::recompute_filtered_nodes(
+                                        &mut client.filter,
+                                        &graph_data
+                                    );
+
+                                    let filtered_count = client.filter.filtered_node_ids.len();
+                                    info!("Recomputed filter for client {}: {} nodes visible",
+                                          client_id, filtered_count);
+
+                                    // Build filtered node data
+                                    let filtered_nodes: Vec<InitialNodeData> = graph_data
+                                        .nodes
+                                        .iter()
+                                        .filter(|n| client.filter.filtered_node_ids.contains(&n.id))
+                                        .map(|node| InitialNodeData {
+                                            id: node.id,
+                                            metadata_id: node.metadata_id.clone(),
+                                            label: node.label.clone(),
+                                            x: node.data.x,
+                                            y: node.data.y,
+                                            z: node.data.z,
+                                            vx: node.data.vx,
+                                            vy: node.data.vy,
+                                            vz: node.data.vz,
+                                            owl_class_iri: node.owl_class_iri.clone(),
+                                            node_type: node.node_type.clone(),
+                                        })
+                                        .collect();
+
+                                    // Build filtered edge data (only edges where both endpoints pass filter)
+                                    let filtered_edges: Vec<InitialEdgeData> = graph_data
+                                        .edges
+                                        .iter()
+                                        .filter(|e| {
+                                            client.filter.filtered_node_ids.contains(&e.source) &&
+                                            client.filter.filtered_node_ids.contains(&e.target)
+                                        })
+                                        .map(|edge| InitialEdgeData {
+                                            id: edge.id.clone(),
+                                            source_id: edge.source,
+                                            target_id: edge.target,
+                                            weight: Some(edge.weight),
+                                            edge_type: edge.edge_type.clone(),
+                                        })
+                                        .collect();
+
+                                    info!("Sending filtered graph to client {}: {} nodes, {} edges",
+                                          client_id, filtered_nodes.len(), filtered_edges.len());
+
+                                    // Send filtered graph data to this specific client
+                                    client.addr.do_send(SendInitialGraphLoad {
+                                        nodes: filtered_nodes,
+                                        edges: filtered_edges,
+                                    });
+                                }
+                            }
+                        }
+                        Err(e) => warn!("Failed to fetch graph data for filter recomputation: {}", e),
+                        Ok(Err(e)) => warn!("Graph data fetch error: {}", e),
+                    }
+                }).map(|_, _, _| ()));
+            } else {
+                // Clear filtered_node_ids if we can't fetch graph data
+                client.filter.filtered_node_ids.clear();
+            }
+
+            Ok(())
+        } else {
+            Err(format!("Client {} not found", msg.client_id))
+        }
     }
 }
 
