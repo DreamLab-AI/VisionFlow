@@ -22,6 +22,9 @@ import ErrorBoundary from '../components/ErrorBoundary';
 import { remoteLogger } from '../services/remoteLogger';
 import { VircadiaProvider } from '../contexts/VircadiaContext';
 import { VircadiaBridgesProvider } from '../contexts/VircadiaBridgesContext';
+import { useNostrAuth } from '../hooks/useNostrAuth';
+import { NostrLoginScreen } from '../components/NostrLoginScreen';
+import { LoadingScreen } from '../components/LoadingScreen';
 
 const logger = createLogger('App');
 
@@ -36,15 +39,34 @@ function App() {
   const [initializationError, setInitializationError] = useState<Error | null>(null);
   const initialized = useSettingsStore(state => state.initialized);
 
+  // Auth state
+  const { authenticated, isLoading: isAuthLoading, user } = useNostrAuth();
+
   const { shouldUseQuest3Layout, isQuest3Detected, autoStartSuccessful } = useQuest3Integration({
     enableAutoStart: false
   });
 
-  
+
   const botsConnectionStatus = useBotsWebSocketIntegration();
-  
-  
+
+
   useAutoBalanceNotifications();
+
+  // Update settings store with auth state
+  useEffect(() => {
+    if (authenticated && user) {
+      const settingsStore = useSettingsStore.getState();
+      settingsStore.setAuthenticated(true);
+      settingsStore.setUser({
+        isPowerUser: user.isPowerUser,
+        pubkey: user.pubkey
+      });
+    } else {
+      const settingsStore = useSettingsStore.getState();
+      settingsStore.setAuthenticated(false);
+      settingsStore.setUser(null);
+    }
+  }, [authenticated, user]);
 
   
   const shouldUseImmersiveClient = () => {
@@ -98,10 +120,20 @@ function App() {
     setInitializationState('error');
   }, []);
 
+  // Show loading screen while checking auth
+  if (isAuthLoading) {
+    return <LoadingScreen message="Checking authentication..." />;
+  }
+
+  // Show login screen if not authenticated
+  if (!authenticated) {
+    return <NostrLoginScreen />;
+  }
+
   const renderContent = () => {
     switch (initializationState) {
       case 'loading':
-        return <div>Connecting to server...</div>;
+        return <LoadingScreen message="Connecting to server..." />;
       case 'error':
         return (
           <div>

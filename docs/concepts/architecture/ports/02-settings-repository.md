@@ -69,6 +69,29 @@ pub enum SettingValue {
 ```
 
 **Helper Methods**:
+
+```mermaid
+flowchart TD
+    A[SettingValue] --> B[as_string]
+    A --> C[as_i64]
+    A --> D[as_f64]
+    A --> E[as_bool]
+    A --> F[as_json]
+
+    B --> B1[Option &str]
+    C --> C1[Option i64]
+    D --> D1[Option f64]
+    E --> E1[Option bool]
+    F --> F1[Option &serde_json::Value]
+
+    style A fill:#f96,stroke:#333,stroke-width:3px
+    style B fill:#9cf,stroke:#333
+    style C fill:#9cf,stroke:#333
+    style D fill:#9cf,stroke:#333
+    style E fill:#9cf,stroke:#333
+    style F fill:#9cf,stroke:#333
+```
+
 - `as-string() -> Option<&str>`
 - `as-i64() -> Option<i64>`
 - `as-f64() -> Option<f64>`

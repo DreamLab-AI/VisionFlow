@@ -57,6 +57,23 @@ let gpu_result = unified_compute
 **Root Cause**: The method `run_pagerank_centrality` does not exist in `UnifiedGPUCompute`.
 
 **Available Methods in UnifiedGPUCompute**:
+
+```mermaid
+flowchart LR
+    A[UnifiedGPUCompute] --> B[run_sssp]
+    A --> C[get_num_nodes]
+    A --> D[get_node_positions]
+
+    B --> B1[Input: source_idx usize<br>Output: Result Vec f32, String]
+    C --> C1[Output: usize]
+    D --> D1[Output: Result<br>Vec f32, Vec f32, Vec f32<br>String]
+
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style B fill:#bbf,stroke:#333
+    style C fill:#bbf,stroke:#333
+    style D fill:#bbf,stroke:#333
+```
+
 - `run_sssp(source_idx: usize) -> Result<Vec<f32>, String>`
 - `get_num_nodes() -> usize`
 - `get_node_positions() -> Result<(Vec<f32>, Vec<f32>, Vec<f32>), String>`

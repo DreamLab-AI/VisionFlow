@@ -1,6 +1,6 @@
 # Installation Guide
 
-*[Getting-Started](../readme.md)*
+**
 
 This comprehensive guide covers everything you need to install and configure VisionFlow, from basic setup to advanced GPU-accelerated deployments.
 
@@ -582,9 +582,9 @@ After installation, verify these components:
 Now that VisionFlow is installed, proceed to:
 
 1. **[Quick Start Guide](02-first-graph-and-agents.md)** - Create your first graph in 5 minutes
-2. **[Configuration Guide](../reference/configuration.md)** - Customise VisionFlow for your needs
+2. **** - Customise VisionFlow for your needs
 3. **[API Documentation](../reference/api/)** - Integrate with your applications
-4. **[Architecture Overview](../concepts/system-architecture.md)** - Understand the system design
+4. **** - Understand the system design
 
 ## Getting Help
 
@@ -593,7 +593,7 @@ If you encounter issues during installation:
 - **[Troubleshooting Guide](../guides/troubleshooting.md)** - Common problems and solutions
 - **[GitHub Issues](https://github.com/visionflow/visionflow/issues)** - Report bugs or request help
 - **[Discord Community](https://discord.gg/visionflow)** - Get real-time support
-- **[Documentation Hub](../readme.md)** - Comprehensive documentation
+- **** - Comprehensive documentation
 
 ---
 
@@ -602,9 +602,9 @@ If you encounter issues during installation:
 ## Related Topics
 
 - [Configuration Guide](../guides/configuration.md)
-- [Getting Started with VisionFlow](readme.md)
+- 
 - [Quick Start Guide](02-first-graph-and-agents.md)
 
 ---
 
-**Navigation:** [📖 Documentation Index](../readme.md) | [🚀 Getting Started](./) | [📚 Guides](../guides/) | [🏗️ Architecture](../concepts/architecture/)
+**Navigation:**  | [🚀 Getting Started](./) | [📚 Guides](../guides/) | [🏗️ Architecture](../concepts/architecture/)

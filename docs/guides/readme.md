@@ -1,6 +1,6 @@
 # Guides
 
-*[Documentation Hub](../readme.md) > Guides*
+* > Guides*
 
 User and developer guides, tutorials, and how-to documentation.
 

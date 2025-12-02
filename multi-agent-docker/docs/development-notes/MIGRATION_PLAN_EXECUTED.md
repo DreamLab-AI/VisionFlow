@@ -16,14 +16,14 @@ The plan is written so it can be executed iteratively and validated via docker-c
 
 2. Compare upstream with our unified CachyOS image:
    - Our main build and runtime files:
-     - [`Dockerfile.unified`](multi-agent-docker/Dockerfile.unified)
-     - [`docker-compose.unified.yml`](multi-agent-docker/docker-compose.unified.yml)
-     - [`unified-config/entrypoint-unified.sh`](multi-agent-docker/unified-config/entrypoint-unified.sh)
-     - [`unified-config/supervisord.unified.conf`](multi-agent-docker/unified-config/supervisord.unified.conf)
-     - [`unified-config/tmux-autostart.sh`](multi-agent-docker/unified-config/tmux-autostart.sh)
+     - 
+     - 
+     - 
+     - 
+     - 
    - Management API and Z.AI wrapper:
-     - [`multi-agent-docker/management-api`](multi-agent-docker/management-api)
-     - [`multi-agent-docker/claude-zai`](multi-agent-docker/claude-zai)
+     - 
+     - 
 
 3. Produce a short diff oriented summary:
    - List upstream features we do not have yet (desktop, MCP, healthchecks, skills, tmux layout, multi vendor, multi skills, and whetever else it's got).
@@ -49,28 +49,28 @@ We will continue to drive long running services via supervisord and will keep SS
 
 ### 3.1 Packages and system setup
 
-1. Extend [`Dockerfile.unified`](multi-agent-docker/Dockerfile.unified) to install a minimal Wayland stack:
+1. Extend  to install a minimal Wayland stack:
    - hyprland, xdg-desktop-portal-hyprland, wayvnc, kitty (or alacritty), wl-clipboard, grim, slurp, swaylock or equivalent.
    - Any additional fonts required for large, high contrast rendering (for example FiraCode Nerd Font, high legibility sans fonts).
 2. Keep Xorg libraries where needed for apps like Blender and QGIS but do not start Xvnc or XFCE.
 3. Ensure NVIDIA or other GPU drivers work for Wayland:
    - Reuse the existing CUDA and NVIDIA env vars if compatible.
-   - Verify that `/dev/dri` devices and `nvidia*` devices are present in [`docker-compose.unified.yml`](multi-agent-docker/docker-compose.unified.yml) for Wayland compositing.
+   - Verify that `/dev/dri` devices and `nvidia*` devices are present in  for Wayland compositing.
 
 ### 3.2 Wayland VNC
 
-1. Replace the `xvnc` + `startxfce4` program pair in [`supervisord.unified.conf`](multi-agent-docker/unified-config/supervisord.unified.conf) with:
+1. Replace the `xvnc` + `startxfce4` program pair in  with:
    - A `hyprland` supervisor program that starts a seat for `devuser` on for example `WAYLAND_DISPLAY=wayland-1` and `XDG_RUNTIME_DIR=/run/user/1000`.
    - A `wayvnc` supervisor program bound to that Wayland display, serving 3840x2160 with a strong password or token.
 2. Ensure dbus and dbus user sessions are initialized before Hyprland (reuse the existing `dbus` programs but confirm ordering via supervisor priorities).
-3. Keep the VNC port mapping in [`docker-compose.unified.yml`](multi-agent-docker/docker-compose.unified.yml) and adjust comments to describe that it is now wayvnc over Wayland.
+3. Keep the VNC port mapping in  and adjust comments to describe that it is now wayvnc over Wayland.
 
 ### 3.3 High contrast, large font defaults
 
 1. Choose a terminal (kitty or alacritty) and configure:
    - Font size suitable for 4K (for example 18 to 22).
    - High contrast theme (light or dark) with clear cursor.
-2. Configure Chromium system wide flags in [`Dockerfile.unified`](multi-agent-docker/Dockerfile.unified) or in a wrapper script to use:
+2. Configure Chromium system wide flags in  or in a wrapper script to use:
    - Large default zoom (for example 150 percent).
    - GPU acceleration enabled for Wayland where stable.
 3. Store Hyprland config (keybindings, tiling, workspace rules) under `/home/devuser/.config/hypr` and ensure ownership is `devuser`.
@@ -79,7 +79,7 @@ We will continue to drive long running services via supervisord and will keep SS
 
 ### 4.1 Tmux session layout
 
-1. Keep the `workspace` tmux session defined in [`tmux-autostart.sh`](multi-agent-docker/unified-config/tmux-autostart.sh) but extend it to:
+1. Keep the `workspace` tmux session defined in  but extend it to:
    - Optionally add windows dedicated to `gemini-user`, `openai-user`, and `zai-user` shells (using the existing `as-*` scripts).
    - Set tmux status bar and history limit as currently configured.
 
@@ -98,19 +98,19 @@ We will continue to drive long running services via supervisord and will keep SS
 
 ### 4.3 Per user shells
 
-1. Extend [`tmux-autostart.sh`](multi-agent-docker/unified-config/tmux-autostart.sh) to create extra windows that run:
+1. Extend  to create extra windows that run:
    - `as-gemini`
    - `as-openai`
    - `as-zai`
    each dropping into an interactive zsh session for the target user.
-2. Confirm sudoers configuration in [`Dockerfile.unified`](multi-agent-docker/Dockerfile.unified) still allows `devuser` to `sudo` into those users without a password.
+2. Confirm sudoers configuration in  still allows `devuser` to `sudo` into those users without a password.
 3. Optionally add shortcuts in Hyprland to switch focus directly to those tmux windows.
 
 ## 5. Browser and Chrome DevTools MCP
 
 1. Ensure Chromium remains installed via pacman and adjust `CHROME_PATH` where needed:
-   - Update Chrome DevTools MCP config under [`skills/chrome-devtools/config/mcp-config.json`](multi-agent-docker/skills/chrome-devtools/config/mcp-config.json) if binary paths or flags change.
-2. Confirm MCP registration in devuser `mcp_settings.json` generated by [`entrypoint-unified.sh`](multi-agent-docker/unified-config/entrypoint-unified.sh) or move this configuration fully into version controlled files.
+   - Update Chrome DevTools MCP config under  if binary paths or flags change.
+2. Confirm MCP registration in devuser `mcp_settings.json` generated by  or move this configuration fully into version controlled files.
 3. Decide how Chromium should be launched on Hyprland:
    - Autostart via Hyprland `exec-once` with a persistent profile directory.
    - Optionally pre open a DevTools target page if needed for Chrome DevTools MCP.
@@ -118,10 +118,10 @@ We will continue to drive long running services via supervisord and will keep SS
 
 ## 6. Blender and QGIS Integration
 
-1. Keep Blender and QGIS installed from pacman in [`Dockerfile.unified`](multi-agent-docker/Dockerfile.unified).
+1. Keep Blender and QGIS installed from pacman in .
 2. Ensure their MCP tools are executable and correctly configured:
-   - Blender MCP: [`skills/blender/tools/mcp-blender-client.js`](multi-agent-docker/skills/blender/tools/mcp-blender-client.js) and corresponding supervisor program `blender-mcp`.
-   - QGIS MCP: [`skills/qgis/tools/qgis_mcp.py`](multi-agent-docker/skills/qgis/tools/qgis_mcp.py) and supervisor program `qgis-mcp`.
+   - Blender MCP:  and corresponding supervisor program `blender-mcp`.
+   - QGIS MCP:  and supervisor program `qgis-mcp`.
 3. Update supervisord programs so that:
    - `qgis-mcp` and `blender-mcp` autostart by default.
    - Their working directories match the paths used in `mcp_settings.json`.
@@ -131,10 +131,10 @@ We will continue to drive long running services via supervisord and will keep SS
 
 ## 7. Claude Credentials and Host Mounts
 
-1. Change [`docker-compose.unified.yml`](multi-agent-docker/docker-compose.unified.yml) so that:
+1. Change  so that:
    - `${HOME}/.claude` is mounted read write directly at `/home/devuser/.claude`.
    - The older read only `/mnt/host-claude` mount is removed unless needed as a fallback.
-2. Simplify [`entrypoint-unified.sh`](multi-agent-docker/unified-config/entrypoint-unified.sh) credential logic:
+2. Simplify  credential logic:
    - Stop copying from `/mnt/host-claude` when the direct mount is present.
    - Retain a safe fallback where, if `/home/devuser/.claude` is empty and `/mnt/host-claude` exists, we perform a one time copy.
 3. Verify that Claude Code, Claude Flow hooks, and MCP settings all use the mounted directory as their source of truth.
@@ -146,12 +146,12 @@ We will continue to drive long running services via supervisord and will keep SS
    - Verify that `GOOGLE_GEMINI_API_KEY` and related environment variables are available when that program starts.
 2. Audit the `openai-user` setup:
    - Confirm OpenAI Python or CLI tooling is installed in the shared venv or via npm.
-   - Ensure `OPENAI_API_KEY` and `OPENAI_ORG_ID` are wired through from [`docker-compose.unified.yml`](multi-agent-docker/docker-compose.unified.yml) into the OpenAI config created in the entrypoint.
+   - Ensure `OPENAI_API_KEY` and `OPENAI_ORG_ID` are wired through from  into the OpenAI config created in the entrypoint.
 3. Add simple verification commands to the documentation to test each user environment (for example `gf-health` for Gemini, a simple OpenAI API curl for `openai-user`).
 
 ## 9. Skills and MCP Configuration Audit
 
-1. Recursively audit skills under [`skills`](multi-agent-docker/skills) and `/home/devuser/.claude/skills` to ensure:
+1. Recursively audit skills under  and `/home/devuser/.claude/skills` to ensure:
    - All tools are executable (`chmod +x`) and have correct shebang lines for Python or Node.
    - Paths in `mcp_settings.json` match the on disk layout.
    - Any environment variables required by skills (for example `QGIS_HOST`, `PBR_HOST`) are defined either in the entrypoint or in supervisord programs.
@@ -161,7 +161,7 @@ We will continue to drive long running services via supervisord and will keep SS
 
 ## 10. Logging, Monitoring, and Health Checks
 
-1. Extend [`supervisord.unified.conf`](multi-agent-docker/unified-config/supervisord.unified.conf) with explicit log files for new programs:
+1. Extend  with explicit log files for new programs:
    - Hyprland, wayvnc, plus any autostart wrapper scripts.
    - `blender-mcp` and `qgis-mcp` if logs are currently missing.
 2. Add or extend health checks:
@@ -185,8 +185,8 @@ We will continue to drive long running services via supervisord and will keep SS
 
 ## 12. Documentation and Onboarding
 
-1. Use this file [`task.md`](multi-agent-docker/task.md) as the living technical plan and update it as decisions solidify.
-2. Update or create user facing docs under [`docs`](multi-agent-docker/docs) to cover:
+1. Use this file  as the living technical plan and update it as decisions solidify.
+2. Update or create user facing docs under  to cover:
    - How to connect to the Hyprland desktop via VNC.
    - How to use the tmux windows and per user shells.
    - How to trigger and debug MCP servers and skills.

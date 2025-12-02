@@ -1,6 +1,6 @@
 # Development Workflow
 
-[← Knowledge Base](../index.md) > [Guides](./index.md) > Development Workflow
+ > [Guides](./index.md) > Development Workflow
 
 This guide provides comprehensive best practices for developing with VisionFlow, covering git workflow, branch strategies, code review processes, manual testing procedures, and contribution guidelines.
 
@@ -25,7 +25,7 @@ VisionFlow follows a structured development workflow designed to maintain code q
 
 - **Incremental Development**: Build features in small, testable increments
 - **Manual Validation**: Comprehensive manual testing replaces automated testing (see [Testing Procedures](#testing-procedures))
-- **Architecture Alignment**: All changes must align with documented architectural decisions (see [ADRs](../concepts/decisions/))
+- **Architecture Alignment**: All changes must align with documented architectural decisions (see )
 - **Documentation First**: Update documentation alongside code changes
 - **Review Culture**: All changes undergo peer review before merging
 
@@ -33,8 +33,8 @@ VisionFlow follows a structured development workflow designed to maintain code q
 
 - [Contributing Guide](./contributing.md) - Quick start for contributors
 - [Extending the System](./extending-the-system.md) - Creating custom extensions
-- [ADR-001: Unified API Client](../concepts/decisions/adr-001-unified-api-client.md) - API architecture
-- [ADR-003: Code Pruning](../concepts/decisions/adr-003-code-pruning-2025-10.md) - Codebase maintenance
+-  - API architecture
+-  - Codebase maintenance
 
 ## Development Environment Setup
 
@@ -840,7 +840,7 @@ if --name-- == '--main--':
 
 ### API Architecture
 
-VisionFlow uses a **two-layer API architecture** (see [ADR-001](../concepts/decisions/adr-001-unified-api-client.md)):
+VisionFlow uses a **two-layer API architecture** (see ):
 
 **Layer 1: UnifiedApiClient** (Transport Layer)
 ```typescript
@@ -874,7 +874,7 @@ const data = await unifiedApiClient.getData<CustomType>('/custom/endpoint');
 
 ## Testing Procedures
 
-**Important**: VisionFlow has disabled automated testing due to supply chain security concerns (see [ADR-003](../concepts/decisions/adr-003-code-pruning-2025-10.md)). All testing is performed manually.
+**Important**: VisionFlow has disabled automated testing due to supply chain security concerns (see ). All testing is performed manually.
 
 ### Manual Testing Checklist
 
@@ -1078,7 +1078,7 @@ Include in PR description:
 
 #### Architecture Alignment
 - ✅ Changes align with system architecture
-- ✅ Follows established patterns (see [ADRs](../concepts/decisions/))
+- ✅ Follows established patterns (see )
 - ✅ API layer usage correct (UnifiedApiClient + domain APIs)
 - ✅ No architectural anti-patterns
 
@@ -1193,7 +1193,7 @@ git push origin feature/my-feature
 1. **Review Documentation**
    - Read [Contributing Guide](./contributing.md)
    - Review [Architecture Documentation](../concepts/architecture/)
-   - Check [ADRs](../concepts/decisions/) for relevant decisions
+   - Check  for relevant decisions
 
 2. **Check Existing Work**
    ```bash
@@ -1415,7 +1415,7 @@ EXPLAIN ANALYZE SELECT * FROM agents WHERE status = 'active';
 
 - **Start Contributing**: See [Contributing Guide](./contributing.md)
 - **Extend the System**: Read [Extending the System](./extending-the-system.md)
-- **Understand Architecture**: Review [ADRs](../concepts/decisions/)
+- **Understand Architecture**: Review 
 - **Troubleshooting**: Consult [Troubleshooting Guide](./troubleshooting.md)
 
 ---

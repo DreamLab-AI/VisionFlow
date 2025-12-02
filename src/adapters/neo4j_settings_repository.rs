@@ -18,6 +18,8 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::{debug, info, warn, instrument, error};
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
 use crate::config::PhysicsSettings;
 use crate::ports::settings_repository::{
@@ -26,6 +28,54 @@ use crate::ports::settings_repository::{
 };
 use crate::utils::json::{from_json, to_json};
 use crate::utils::neo4j_helpers::{json_to_bolt, string_ref_to_bolt};
+
+/// User node - Nostr pubkey-based user identity
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct User {
+    pub pubkey: String,
+    pub is_power_user: bool,
+    pub created_at: DateTime<Utc>,
+    pub last_seen: DateTime<Utc>,
+    pub display_name: Option<String>,
+}
+
+/// UserSettings node - user's personal settings (full AppFullSettings)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserSettingsNode {
+    pub pubkey: String,
+    pub settings_json: String,
+    pub updated_at: DateTime<Utc>,
+}
+
+/// UserFilter node - user's graph filter preferences
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserFilter {
+    pub pubkey: String,
+    pub enabled: bool,
+    pub quality_threshold: f64,
+    pub authority_threshold: f64,
+    pub filter_by_quality: bool,
+    pub filter_by_authority: bool,
+    pub filter_mode: String,
+    pub max_nodes: Option<i32>,
+    pub updated_at: DateTime<Utc>,
+}
+
+impl Default for UserFilter {
+    fn default() -> Self {
+        Self {
+            pubkey: String::new(),
+            enabled: true,
+            quality_threshold: 0.7,
+            authority_threshold: 0.5,
+            filter_by_quality: true,
+            filter_by_authority: false,
+            filter_mode: "or".to_string(),
+            max_nodes: Some(10000),
+            updated_at: Utc::now(),
+        }
+    }
+}
 
 /// Neo4j configuration for settings repository
 #[derive(Debug, Clone)]
@@ -155,21 +205,25 @@ impl Neo4jSettingsRepository {
         info!("Initializing Neo4j settings schema");
 
         // Create constraints for unique settings root
-        let constraint_query = query(
-            "CREATE CONSTRAINT settings_root_id IF NOT EXISTS
-             FOR (s:SettingsRoot) REQUIRE s.id IS UNIQUE"
-        );
+        let constraints = vec![
+            "CREATE CONSTRAINT settings_root_id IF NOT EXISTS FOR (s:SettingsRoot) REQUIRE s.id IS UNIQUE",
+            "CREATE CONSTRAINT user_pubkey_unique IF NOT EXISTS FOR (u:User) REQUIRE u.pubkey IS UNIQUE",
+        ];
 
-        self.graph.run(constraint_query)
-            .await
-            .map_err(|e| SettingsRepositoryError::DatabaseError(
-                format!("Failed to create constraints: {}", e)
-            ))?;
+        for constraint_query in constraints {
+            self.graph.run(query(constraint_query))
+                .await
+                .map_err(|e| SettingsRepositoryError::DatabaseError(
+                    format!("Failed to create constraint: {}", e)
+                ))?;
+        }
 
         // Create indices for performance
         let indices = vec![
             "CREATE INDEX settings_key_idx IF NOT EXISTS FOR (s:Setting) ON (s.key)",
             "CREATE INDEX physics_profile_idx IF NOT EXISTS FOR (p:PhysicsProfile) ON (p.name)",
+            "CREATE INDEX user_settings_pubkey_idx IF NOT EXISTS FOR (us:UserSettings) ON (us.pubkey)",
+            "CREATE INDEX user_filter_pubkey_idx IF NOT EXISTS FOR (uf:UserFilter) ON (uf.pubkey)",
         ];
 
         for index_query in indices {
@@ -193,7 +247,7 @@ impl Neo4jSettingsRepository {
                 format!("Failed to initialize settings root: {}", e)
             ))?;
 
-        info!("✅ Neo4j settings schema initialized");
+        info!("✅ Neo4j settings schema initialized with user support");
         Ok(())
     }
 
@@ -253,6 +307,249 @@ impl Neo4jSettingsRepository {
             }
             _ => None,
         }
+    }
+
+    /// Get or create a user node
+    #[instrument(skip(self), level = "debug")]
+    pub async fn get_or_create_user(&self, pubkey: &str) -> RepoResult<User> {
+        let query_str =
+            "MERGE (u:User {pubkey: $pubkey})
+             ON CREATE SET
+                u.is_power_user = false,
+                u.created_at = datetime(),
+                u.last_seen = datetime()
+             ON MATCH SET
+                u.last_seen = datetime()
+             RETURN u.pubkey AS pubkey, u.is_power_user AS is_power_user,
+                    u.created_at AS created_at, u.last_seen AS last_seen,
+                    u.display_name AS display_name";
+
+        let mut result = self.graph.execute(
+            query(query_str).param("pubkey", pubkey)
+        ).await.map_err(|e| SettingsRepositoryError::DatabaseError(
+            format!("Failed to get or create user: {}", e)
+        ))?;
+
+        if let Some(row) = result.next().await.map_err(|e|
+            SettingsRepositoryError::DatabaseError(format!("Failed to fetch user row: {}", e))
+        )? {
+            let pubkey: String = row.get("pubkey").map_err(|e|
+                SettingsRepositoryError::DatabaseError(format!("Failed to get pubkey: {}", e))
+            )?;
+
+            let is_power_user: bool = row.get("is_power_user").unwrap_or(false);
+            let display_name: Option<String> = row.get("display_name").ok();
+
+            Ok(User {
+                pubkey,
+                is_power_user,
+                created_at: Utc::now(),
+                last_seen: Utc::now(),
+                display_name,
+            })
+        } else {
+            Err(SettingsRepositoryError::DatabaseError(
+                "Failed to create or retrieve user".to_string()
+            ))
+        }
+    }
+
+    /// Update user's last seen timestamp
+    #[instrument(skip(self), level = "debug")]
+    pub async fn update_user_last_seen(&self, pubkey: &str) -> RepoResult<()> {
+        let query_str =
+            "MATCH (u:User {pubkey: $pubkey})
+             SET u.last_seen = datetime()
+             RETURN u";
+
+        self.graph.run(
+            query(query_str).param("pubkey", pubkey)
+        ).await.map_err(|e| SettingsRepositoryError::DatabaseError(
+            format!("Failed to update user last seen: {}", e)
+        ))?;
+
+        Ok(())
+    }
+
+    /// Get user settings (full AppFullSettings)
+    #[instrument(skip(self), level = "debug")]
+    pub async fn get_user_settings(&self, pubkey: &str) -> RepoResult<Option<AppFullSettings>> {
+        let query_str =
+            "MATCH (u:User {pubkey: $pubkey})-[:HAS_SETTINGS]->(us:UserSettings)
+             RETURN us.settings_json AS settings_json";
+
+        let mut result = self.graph.execute(
+            query(query_str).param("pubkey", pubkey)
+        ).await.map_err(|e| SettingsRepositoryError::DatabaseError(
+            format!("Failed to query user settings: {}", e)
+        ))?;
+
+        if let Some(row) = result.next().await.map_err(|e|
+            SettingsRepositoryError::DatabaseError(format!("Failed to fetch settings row: {}", e))
+        )? {
+            let settings_json: String = row.get("settings_json").map_err(|e|
+                SettingsRepositoryError::DatabaseError(format!("Failed to get settings_json: {}", e))
+            )?;
+
+            let settings: AppFullSettings = from_json(&settings_json)
+                .map_err(|e| SettingsRepositoryError::SerializationError(e.to_string()))?;
+
+            return Ok(Some(settings));
+        }
+
+        Ok(None)
+    }
+
+    /// Save user settings (full AppFullSettings)
+    #[instrument(skip(self, settings), level = "debug")]
+    pub async fn save_user_settings(&self, pubkey: &str, settings: &AppFullSettings) -> RepoResult<()> {
+        let settings_json = to_json(settings)
+            .map_err(|e| SettingsRepositoryError::SerializationError(e.to_string()))?;
+
+        let query_str =
+            "MATCH (u:User {pubkey: $pubkey})
+             MERGE (u)-[:HAS_SETTINGS]->(us:UserSettings {pubkey: $pubkey})
+             ON CREATE SET
+                us.settings_json = $settings_json,
+                us.updated_at = datetime()
+             ON MATCH SET
+                us.settings_json = $settings_json,
+                us.updated_at = datetime()
+             RETURN us";
+
+        self.graph.run(
+            query(query_str)
+                .param("pubkey", pubkey)
+                .param("settings_json", settings_json)
+        ).await.map_err(|e| SettingsRepositoryError::DatabaseError(
+            format!("Failed to save user settings: {}", e)
+        ))?;
+
+        info!("Saved user settings for pubkey: {}", pubkey);
+        Ok(())
+    }
+
+    /// Get user's filter settings
+    #[instrument(skip(self), level = "debug")]
+    pub async fn get_user_filter(&self, pubkey: &str) -> RepoResult<Option<UserFilter>> {
+        let query_str =
+            "MATCH (u:User {pubkey: $pubkey})-[:HAS_FILTER]->(uf:UserFilter)
+             RETURN uf.enabled AS enabled, uf.quality_threshold AS quality_threshold,
+                    uf.authority_threshold AS authority_threshold, uf.filter_by_quality AS filter_by_quality,
+                    uf.filter_by_authority AS filter_by_authority, uf.filter_mode AS filter_mode,
+                    uf.max_nodes AS max_nodes";
+
+        let mut result = self.graph.execute(
+            query(query_str).param("pubkey", pubkey)
+        ).await.map_err(|e| SettingsRepositoryError::DatabaseError(
+            format!("Failed to query user filter: {}", e)
+        ))?;
+
+        if let Some(row) = result.next().await.map_err(|e|
+            SettingsRepositoryError::DatabaseError(format!("Failed to fetch filter row: {}", e))
+        )? {
+            let filter = UserFilter {
+                pubkey: pubkey.to_string(),
+                enabled: row.get("enabled").unwrap_or(true),
+                quality_threshold: row.get("quality_threshold").unwrap_or(0.7),
+                authority_threshold: row.get("authority_threshold").unwrap_or(0.5),
+                filter_by_quality: row.get("filter_by_quality").unwrap_or(true),
+                filter_by_authority: row.get("filter_by_authority").unwrap_or(false),
+                filter_mode: row.get("filter_mode").unwrap_or_else(|_| "or".to_string()),
+                max_nodes: row.get("max_nodes").ok(),
+                updated_at: Utc::now(),
+            };
+
+            return Ok(Some(filter));
+        }
+
+        Ok(None)
+    }
+
+    /// Save user's filter settings
+    #[instrument(skip(self, filter), level = "debug")]
+    pub async fn save_user_filter(&self, pubkey: &str, filter: &UserFilter) -> RepoResult<()> {
+        let query_str =
+            "MATCH (u:User {pubkey: $pubkey})
+             MERGE (u)-[:HAS_FILTER]->(uf:UserFilter {pubkey: $pubkey})
+             ON CREATE SET
+                uf.enabled = $enabled,
+                uf.quality_threshold = $quality_threshold,
+                uf.authority_threshold = $authority_threshold,
+                uf.filter_by_quality = $filter_by_quality,
+                uf.filter_by_authority = $filter_by_authority,
+                uf.filter_mode = $filter_mode,
+                uf.max_nodes = $max_nodes,
+                uf.updated_at = datetime()
+             ON MATCH SET
+                uf.enabled = $enabled,
+                uf.quality_threshold = $quality_threshold,
+                uf.authority_threshold = $authority_threshold,
+                uf.filter_by_quality = $filter_by_quality,
+                uf.filter_by_authority = $filter_by_authority,
+                uf.filter_mode = $filter_mode,
+                uf.max_nodes = $max_nodes,
+                uf.updated_at = datetime()
+             RETURN uf";
+
+        self.graph.run(
+            query(query_str)
+                .param("pubkey", pubkey)
+                .param("enabled", filter.enabled)
+                .param("quality_threshold", filter.quality_threshold)
+                .param("authority_threshold", filter.authority_threshold)
+                .param("filter_by_quality", filter.filter_by_quality)
+                .param("filter_by_authority", filter.filter_by_authority)
+                .param("filter_mode", filter.filter_mode.as_str())
+                .param("max_nodes", filter.max_nodes.unwrap_or(10000))
+        ).await.map_err(|e| SettingsRepositoryError::DatabaseError(
+            format!("Failed to save user filter: {}", e)
+        ))?;
+
+        info!("Saved user filter for pubkey: {}", pubkey);
+        Ok(())
+    }
+
+    /// Check if user is a power user
+    #[instrument(skip(self), level = "debug")]
+    pub async fn is_power_user(&self, pubkey: &str) -> RepoResult<bool> {
+        let query_str =
+            "MATCH (u:User {pubkey: $pubkey})
+             RETURN u.is_power_user AS is_power_user";
+
+        let mut result = self.graph.execute(
+            query(query_str).param("pubkey", pubkey)
+        ).await.map_err(|e| SettingsRepositoryError::DatabaseError(
+            format!("Failed to query power user status: {}", e)
+        ))?;
+
+        if let Some(row) = result.next().await.map_err(|e|
+            SettingsRepositoryError::DatabaseError(format!("Failed to fetch power user row: {}", e))
+        )? {
+            return Ok(row.get("is_power_user").unwrap_or(false));
+        }
+
+        Ok(false)
+    }
+
+    /// Set user as power user (or revoke)
+    #[instrument(skip(self), level = "debug")]
+    pub async fn set_power_user(&self, pubkey: &str, is_power: bool) -> RepoResult<()> {
+        let query_str =
+            "MATCH (u:User {pubkey: $pubkey})
+             SET u.is_power_user = $is_power
+             RETURN u";
+
+        self.graph.run(
+            query(query_str)
+                .param("pubkey", pubkey)
+                .param("is_power", is_power)
+        ).await.map_err(|e| SettingsRepositoryError::DatabaseError(
+            format!("Failed to set power user status: {}", e)
+        ))?;
+
+        info!("Set power user status for pubkey {}: {}", pubkey, is_power);
+        Ok(())
     }
 }
 
@@ -706,5 +1003,68 @@ mod tests {
 
         // Test health check
         assert!(repo.health_check().await.unwrap());
+    }
+
+    #[tokio::test]
+    #[ignore] // Requires Neo4j instance
+    async fn test_user_management() {
+        let config = Neo4jSettingsConfig::default();
+        let repo = Neo4jSettingsRepository::new(config).await.unwrap();
+        let test_pubkey = "test_pubkey_12345";
+
+        // Test get or create user
+        let user = repo.get_or_create_user(test_pubkey).await.unwrap();
+        assert_eq!(user.pubkey, test_pubkey);
+        assert!(!user.is_power_user);
+
+        // Test set power user
+        repo.set_power_user(test_pubkey, true).await.unwrap();
+        assert!(repo.is_power_user(test_pubkey).await.unwrap());
+
+        // Test update last seen
+        repo.update_user_last_seen(test_pubkey).await.unwrap();
+    }
+
+    #[tokio::test]
+    #[ignore] // Requires Neo4j instance
+    async fn test_user_settings() {
+        let config = Neo4jSettingsConfig::default();
+        let repo = Neo4jSettingsRepository::new(config).await.unwrap();
+        let test_pubkey = "test_pubkey_settings";
+
+        // Create user first
+        repo.get_or_create_user(test_pubkey).await.unwrap();
+
+        // Test save and get user settings
+        let settings = AppFullSettings::default();
+        repo.save_user_settings(test_pubkey, &settings).await.unwrap();
+
+        let loaded_settings = repo.get_user_settings(test_pubkey).await.unwrap();
+        assert!(loaded_settings.is_some());
+    }
+
+    #[tokio::test]
+    #[ignore] // Requires Neo4j instance
+    async fn test_user_filter() {
+        let config = Neo4jSettingsConfig::default();
+        let repo = Neo4jSettingsRepository::new(config).await.unwrap();
+        let test_pubkey = "test_pubkey_filter";
+
+        // Create user first
+        repo.get_or_create_user(test_pubkey).await.unwrap();
+
+        // Test save and get user filter
+        let mut filter = UserFilter::default();
+        filter.pubkey = test_pubkey.to_string();
+        filter.quality_threshold = 0.8;
+        filter.max_nodes = Some(5000);
+
+        repo.save_user_filter(test_pubkey, &filter).await.unwrap();
+
+        let loaded_filter = repo.get_user_filter(test_pubkey).await.unwrap();
+        assert!(loaded_filter.is_some());
+        let loaded = loaded_filter.unwrap();
+        assert_eq!(loaded.quality_threshold, 0.8);
+        assert_eq!(loaded.max_nodes, Some(5000));
     }
 }

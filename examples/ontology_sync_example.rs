@@ -9,12 +9,12 @@
 //! - Batch statistics
 
 use std::sync::Arc;
-use visionflow::adapters::neo4j_ontology_repository::Neo4jOntologyRepository;
-use visionflow::services::github::api::GitHubClient;
-use visionflow::services::github::content_enhanced::EnhancedContentAPI;
-use visionflow::services::github::types::OntologyPriority;
-use visionflow::services::local_file_sync_service::LocalFileSyncService;
-use visionflow::services::ontology_enrichment_service::OntologyEnrichmentService;
+use webxr::adapters::neo4j_ontology_repository::Neo4jOntologyRepository;
+use webxr::services::github::api::GitHubClient;
+use webxr::services::github::content_enhanced::EnhancedContentAPI;
+use webxr::services::github::types::OntologyPriority;
+use webxr::services::local_file_sync_service::LocalFileSyncService;
+use webxr::services::ontology_enrichment_service::OntologyEnrichmentService;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -36,12 +36,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let content_api = Arc::new(EnhancedContentAPI::new(github_client));
 
-    // Note: You'll need to provide your actual repository implementations
-    // This is just a placeholder
-    let kg_repo: Arc<dyn visionflow::ports::knowledge_graph_repository::KnowledgeGraphRepository> =
-        unimplemented!("Provide your KG repository");
-    let onto_repo = Arc::new(Neo4jOntologyRepository::new("neo4j://localhost:7687", "neo4j", "password"));
-    let enrichment_service = Arc::new(OntologyEnrichmentService::new(/* ... */));
+    // Initialize Neo4j knowledge graph repository
+    use webxr::adapters::neo4j_adapter::{Neo4jAdapter, Neo4jConfig};
+    let neo4j_config = Neo4jConfig::default(); // Uses env vars or defaults
+    let kg_repo: Arc<dyn webxr::ports::knowledge_graph_repository::KnowledgeGraphRepository> =
+        Arc::new(Neo4jAdapter::new(neo4j_config).await
+            .expect("Failed to initialize Neo4j adapter for KG repository"));
+
+    // Initialize Neo4j ontology repository
+    use webxr::adapters::neo4j_ontology_repository::Neo4jOntologyConfig;
+    let ontology_config = Neo4jOntologyConfig::default(); // Uses env vars or defaults
+    let onto_repo = Arc::new(Neo4jOntologyRepository::new(ontology_config).await
+        .expect("Failed to initialize Neo4j ontology repository"));
+
+    // Initialize ontology enrichment service with pipeline
+    use webxr::services::ontology_pipeline_service::{OntologyPipelineService, SemanticPhysicsConfig};
+    let mut pipeline_service = OntologyPipelineService::new(SemanticPhysicsConfig::default());
+    pipeline_service.set_graph_repository(kg_repo.clone());
+    let enrichment_service = Arc::new(pipeline_service);
 
     let sync_service = LocalFileSyncService::new(
         content_api.clone(),

@@ -52,7 +52,7 @@ Every piece of content lives in a bullet block:
 	-
 	- ## Subheading
 		- Nested content goes one tab deeper.
-		- ![image.jpg](../assets/image.jpg){:width 300}
+		- 
 ```
 
 ---
@@ -136,7 +136,7 @@ Use `[[Author YEAR]]` format for scholarly references:
 
 #### External Links
 
-Standard Markdown `[link text](URL)` format:
+Standard Markdown `` format:
 ```markdown
 - Bitcoin's whitepaper ["Bitcoin: A Peer-to-Peer Electronic Cash System"](https://bitcoin.org/bitcoin.pdf) introduced the concept in 2008.
 - The [Lightning Network](https://lightning.network/) provides a Layer 2 scaling solution.
@@ -173,8 +173,8 @@ This embeds content from other blocks or pages within Logseq.
 
 Standard Markdown with Logseq properties:
 ```markdown
-- ![bitcoin-chart.png](../assets/bitcoin-chart.png){:width 300}
-- ![network-diagram.jpg](../assets/network-diagram.jpg){:height 400}
+- 
+- 
 ```
 
 **Properties:** Append styling in curly braces:
@@ -258,7 +258,7 @@ Juxtapose complex blocks with simple, atomic ones:
 ```markdown
 - The technical implementation of Lightning Network payment channels relies on Hash Time-Locked Contracts (HTLCs), a mechanism that enables conditional payments routed across multiple intermediary nodes whilst maintaining security guarantees equivalent to on-chain transactions, albeit with different trust assumptions regarding channel partner liveness and the availability of the base layer for dispute resolution [[Poon and Dryja 2016]].
 -
-- ![lightning-network-diagram.png](../assets/lightning-network-diagram.png){:width 400}
+- 
 -
 - Simple, powerful, elegant.
 ```
@@ -353,7 +353,7 @@ Before writing:
 		-
 		- ### Subsection If Needed
 			- Deeper dive into specific point.
-			- ![relevant-image.png](../assets/relevant-image.png){:width 300}
+			- 
 		-
 	-
 	- ## Second Major Section
@@ -365,7 +365,7 @@ Before writing:
 Add visual elements:
 ```markdown
 		- The network topology evolution demonstrates this clearly:
-		- ![network-growth.png](../assets/network-growth.png){:width 400}
+		- 
 		- As evidenced by this data from [[Glassnode 2023]], the trend is unmistakable.
 ```
 
@@ -407,7 +407,7 @@ Use WikiLinks to create connections:
 	- ## Further Reading
 		- [[Related Concept 1]]
 		- [[Related Concept 2]]
-		- [External Resource Title](URL)
+		- 
 ```
 
 ---
@@ -428,7 +428,7 @@ Use WikiLinks to create connections:
 		- 2020-2024: 6.25 BTC per block
 		-
 		- The current issuance rate (as of 2024) stands at approximately 1.7% annually, lower than gold's estimated 2-3% annual supply growth [[World Gold Council 2023]].
-		- ![bitcoin-supply-curve.png](../assets/bitcoin-supply-curve.png){:width 400}
+		- 
 	-
 	- ## Comparison with Fiat Systems
 		- In contrast to Bitcoin's algorithmic certainty, fiat currencies operate under discretionary monetary policy where central banks adjust money supply based on economic conditions and policy objectives. The Federal Reserve, Bank of England, and European Central Bank have collectively expanded their balance sheets by over $10 trillion since 2008 [[BIS 2023]], demonstrating the stark difference in monetary philosophies.
@@ -478,7 +478,7 @@ Use WikiLinks to create connections:
 			-
 			- This cascading reveal mechanism ensures atomic settlement: either the entire route succeeds, or no funds are transferred [[Decker and Wattenhofer 2015]].
 		-
-		- ![lightning-htlc-diagram.png](../assets/lightning-htlc-diagram.png){:width 500}
+		- 
 	-
 	- ## Network Topology and Routing
 		- The Lightning Network's graph structure creates interesting economic and technical challenges. Nodes must maintain sufficient liquidity in payment channels to route transactions, creating a capital efficiency problem that the network is still actively solving through various mechanisms (dual-funded channels, channel factories, submarine swaps) [[Gudgeon 2020]].
@@ -652,8 +652,8 @@ No spaces inside brackets, space before year in citations.
 **Cause**: Incorrect path or malformed properties
 **Solution**:
 ```markdown
-✅ CORRECT: ![image.jpg](../assets/image.jpg){:width 300}
-❌ WRONG: ![image.jpg](assets/image.jpg){width: 300}
+✅ CORRECT: 
+❌ WRONG: 
 
 # Properties must use colons, be in curly braces
 # Path must include ../assets/ prefix
@@ -800,7 +800,7 @@ Before publishing, verify:
 - [ ] Content after headings is indented one level deeper
 - [ ] All citations use `[[Author YEAR]]` format
 - [ ] Key concepts have WikiLinks `[[Concept]]`
-- [ ] External links use `[text](URL)` format
+- [ ] External links use `` format
 - [ ] Images include `{:width XXX}` properties
 - [ ] Line termination uses `\r\n`
 - [ ] UK English spelling throughout (favour, whilst, organised)

@@ -65,17 +65,17 @@ pub struct GraphServiceActor {
 
 ```mermaid
 graph TB
-    API["API Handlers<br/>(Thin)"]
+    API["API Handlers<br>(Thin)"]
 
-    SUPERVISOR["GraphServiceSupervisor<br/>(Fault Tolerance)"]
+    SUPERVISOR["GraphServiceSupervisor<br>(Fault Tolerance)"]
 
-    GRAPH["GraphStateActor<br/>(Data Management)"]
-    PHYSICS["PhysicsOrchestratorActor<br/>(Simulation)"]
-    SEMANTIC["SemanticProcessorActor<br/>(Analysis)"]
-    CLIENT["ClientCoordinatorActor<br/>(WebSocket)"]
+    GRAPH["GraphStateActor<br>(Data Management)"]
+    PHYSICS["PhysicsOrchestratorActor<br>(Simulation)"]
+    SEMANTIC["SemanticProcessorActor<br>(Analysis)"]
+    CLIENT["ClientCoordinatorActor<br>(WebSocket)"]
 
-    REPO["Neo4j Repository<br/>(Graph & Ontology)"]
-    DB["Neo4j Database<br/>(Source of Truth)"]
+    REPO["Neo4j Repository<br>(Graph & Ontology)"]
+    DB["Neo4j Database<br>(Source of Truth)"]
 
     API -->|messages| SUPERVISOR
 
@@ -429,9 +429,9 @@ When reviewing PRs that touch graph operations:
 ## Resources
 
 ### Documentation
-- [Hexagonal CQRS Architecture](/docs/concepts/architecture/hexagonal-cqrs-architecture.md) - Detailed architecture design
-- [Architecture Overview](/docs/concepts/architecture/00-ARCHITECTURE-overview.md) - Current implementation
-- [GPU Communication Flow](/docs/gpu/communication-flow.md) - Physics integration patterns
+-  - Detailed architecture design
+-  - Current implementation
+-  - Physics integration patterns
 
 ### Code References
 - Query handlers: `src/handlers/graph-query-handlers/`
@@ -440,8 +440,8 @@ When reviewing PRs that touch graph operations:
 - TransitionalGraphSupervisor: `src/actors/transitional-supervisor.rs` (bridge pattern)
 
 ### Related Deprecations
-- [Neo4j Settings Migration](/docs/guides/neo4j-migration.md) - Similar deprecation pattern
-- [Deprecation Strategy Index](/docs/deprecation-strategy-index.md) - General deprecation guidelines
+-  - Similar deprecation pattern
+-  - General deprecation guidelines
 
 ---
 

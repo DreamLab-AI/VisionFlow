@@ -24,7 +24,7 @@
 ### 1. Main Reports
 | File | Description | Size |
 |------|-------------|------|
-| **[VisionFlow_Database_Integrity_Report.md](../docs/VisionFlow_Database_Integrity_Report.md)** | Complete 10-section analysis report | 25 KB |
+| **** | Complete 10-section analysis report | 25 KB |
 | **[SUMMARY.txt](SUMMARY.txt)** | Executive summary for quick reference | 8.4 KB |
 | **[README.md](README.md)** | Quick reference guide | 4.8 KB |
 
@@ -262,7 +262,7 @@ schema_version (1)         - Version control ✅
 ## 🔗 Quick Links
 
 - **VisionFlow UI**: http://localhost:8080
-- **Full Report**: [docs/VisionFlow_Database_Integrity_Report.md](../docs/VisionFlow_Database_Integrity_Report.md)
+- **Full Report**: 
 - **Quick Start**: [quickstart.sh](quickstart.sh)
 - **Verification**: [verify_graph.sql](verify_graph.sql)
 

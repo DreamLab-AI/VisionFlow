@@ -654,6 +654,29 @@ pub struct SendToClientBinary(pub Vec<u8>);
 #[rtype(result = "()")]
 pub struct SendToClientText(pub String);
 
+// Client authentication message
+#[derive(Message)]
+#[rtype(result = "Result<(), String>")]
+pub struct AuthenticateClient {
+    pub client_id: usize,
+    pub pubkey: String,
+    pub is_power_user: bool,
+}
+
+// Update client filter settings
+#[derive(Message, Clone, Serialize, Deserialize)]
+#[rtype(result = "Result<(), String>")]
+pub struct UpdateClientFilter {
+    pub client_id: usize,
+    pub enabled: bool,
+    pub quality_threshold: f64,
+    pub authority_threshold: f64,
+    pub filter_by_quality: bool,
+    pub filter_by_authority: bool,
+    pub filter_mode: String,
+    pub max_nodes: Option<i32>,
+}
+
 // WebSocket protocol: Initial graph load with all nodes and edges
 use crate::utils::socket_flow_messages::{InitialNodeData, InitialEdgeData};
 

@@ -844,5 +844,5 @@ Before submitting a pull request, ensure:
 
 ## Next Steps
 
-- Review [Testing Guide](./05-testing-guide.md)
+- Review [Testing Guide](../testing-guide.md)
 - Read [Contributing Guidelines](./06-contributing.md)

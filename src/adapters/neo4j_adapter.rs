@@ -259,11 +259,20 @@ impl Neo4jAdapter {
         let weight: Option<f64> = neo4j_node.get("weight").ok();
         let group_name: Option<String> = neo4j_node.get("group_name").ok();
 
-        let metadata: HashMap<String, String> = neo4j_node
+        let mut metadata: HashMap<String, String> = neo4j_node
             .get::<String>("metadata")
             .ok()
             .and_then(|json| from_json(&json).ok())
             .unwrap_or_default();
+
+        // Read quality_score and authority_score from Neo4j node properties
+        // These are stored as top-level properties, not inside metadata JSON
+        if let Ok(quality_score) = neo4j_node.get::<f64>("quality_score") {
+            metadata.insert("quality_score".to_string(), quality_score.to_string());
+        }
+        if let Ok(authority_score) = neo4j_node.get::<f64>("authority_score") {
+            metadata.insert("authority_score".to_string(), authority_score.to_string());
+        }
 
         let mut node = Node::new_with_id(metadata_id, Some(id as u32));
         node.label = label;
@@ -339,14 +348,33 @@ impl Neo4jAdapter {
             query_obj = query_obj.param(&key, value);
         }
 
-        // TODO: Apply query timeout from config
-        // Note: neo4rs doesn't currently support query timeouts directly
-        // Consider implementing timeout at the application level
+        // Apply query timeout at application level (neo4rs doesn't support query-level timeouts)
+        // Default timeout: 30 seconds for complex graph queries
+        let query_timeout = std::time::Duration::from_secs(
+            std::env::var("NEO4J_QUERY_TIMEOUT_SECS")
+                .ok()
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(30)
+        );
 
-        let mut result = self.graph.execute(query_obj).await.map_err(|e| {
-            log::error!("Cypher query failed: {}", e);
-            KnowledgeGraphRepositoryError::DatabaseError(format!("Cypher query failed: {}", e))
-        })?;
+        let result = tokio::time::timeout(
+            query_timeout,
+            self.graph.execute(query_obj)
+        ).await;
+
+        let mut result = match result {
+            Ok(Ok(r)) => r,
+            Ok(Err(e)) => {
+                log::error!("Cypher query failed: {}", e);
+                return Err(KnowledgeGraphRepositoryError::DatabaseError(format!("Cypher query failed: {}", e)));
+            }
+            Err(_) => {
+                log::error!("Cypher query timed out after {:?}", query_timeout);
+                return Err(KnowledgeGraphRepositoryError::DatabaseError(
+                    format!("Query timed out after {:?}", query_timeout)
+                ));
+            }
+        };
 
         let mut results = Vec::new();
         while let Ok(Some(_row)) = result.next().await {

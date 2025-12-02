@@ -2,7 +2,7 @@
 
 *[Guides](readme.md)*
 
-This practical guide covers common configuration scenarios and use cases for VisionFlow. For comprehensive technical reference, see the [Configuration Reference](../reference/configuration.md).
+This practical guide covers common configuration scenarios and use cases for VisionFlow. For comprehensive technical reference, see the .
 
 ## Quick Configuration Setup
 
@@ -709,10 +709,10 @@ docker-compose exec postgres psql -U visionflow -d visionflow -c "SELECT version
 
 ---
 
-This guide covers the most common configuration scenarios for VisionFlow. For advanced configuration options and complete technical reference, see the [Configuration Reference](../reference/configuration.md).
+This guide covers the most common configuration scenarios for VisionFlow. For advanced configuration options and complete technical reference, see the .
 
 ## Related Topics
 
-- [Configuration Reference](../reference/configuration.md) - Comprehensive technical reference
+-  - Comprehensive technical reference
 - [Deployment Guide](./deployment.md) - Production deployment strategies
 - [Development Workflow](./development-workflow.md) - Development best practices

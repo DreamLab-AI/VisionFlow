@@ -490,9 +490,9 @@ stage_separation: 150.0,  // from 100.0
 ## Related Documentation
 
 - [Ontology Parser Guide](./ontology-parser.md)
-- [Physics System Architecture](../concepts/architecture/physics-system.md)
-- [GPU Acceleration](../concepts/architecture/gpu-acceleration.md)
-- [Multi-Ontology System](../../inputData/docs/MULTI-ONTOLOGY.md)
+- 
+- 
+- 
 
 ---
 

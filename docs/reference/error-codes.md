@@ -257,10 +257,10 @@ logger.error({
 
 ## Related Documentation
 
-- [API Documentation](../api/rest-api-complete.md) - Complete REST API reference
-- [WebSocket API](./03-websocket.md) - Binary protocol specification
-- [Troubleshooting Guide](../../guides/troubleshooting.md) - Common issues and solutions
-- [Architecture Overview](../concepts/architecture/00-ARCHITECTURE-overview.md) - System design
+-  - Complete REST API reference
+-  - Binary protocol specification
+-  - Common issues and solutions
+-  - System design
 
 ---
 

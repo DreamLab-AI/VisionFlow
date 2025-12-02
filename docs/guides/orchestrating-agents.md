@@ -1,6 +1,6 @@
 # Orchestrating Agents
 
-[← Knowledge Base](../index.md) > [Guides](./index.md) > Orchestrating Agents
+ > [Guides](./index.md) > Orchestrating Agents
 
 This comprehensive guide covers agent orchestration within the VisionFlow system, including practical examples, topology patterns, MCP protocol integration, and troubleshooting strategies for production multi-agent workflows.
 
@@ -673,7 +673,7 @@ mcp--claude-flow--performance-report \
   --timeframe=24h
 ```
 
-See: [Hierarchical Coordinator Reference](../reference/agents/swarm/hierarchical-coordinator.md)
+See: 
 
 ### 2. Mesh Topology
 
@@ -809,7 +809,7 @@ class PipelineCoordinator:
 
             # Transform output if needed
             if stage.get('transform'):
-                result = stage['transform'](result)
+                result = stage
 
             # Validate stage output
             if stage.get('validation'):
@@ -2274,7 +2274,7 @@ async def batch-process-tasks(agent, tasks: list[Task]):
 - [Development Workflow](./development-workflow.md)
 - [Configuration Guide](./configuration.md)
 - [Agent Control Panel](./agent-orchestration.md)
-- [Reference Documentation](../reference/readme.md)
+- 
 
 ---
 

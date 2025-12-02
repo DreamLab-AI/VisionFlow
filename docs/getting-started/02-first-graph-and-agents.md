@@ -1,6 +1,6 @@
 # Your First Graph and AI Agents
 
-*[← Getting Started](../readme.md) > [Installation](01-installation.md)*
+* > [Installation](01-installation.md)*
 
 This guide takes you from a fresh installation to creating your first 3D knowledge graph and deploying multi-agent workflows in under 10 minutes.
 
@@ -370,15 +370,15 @@ See [XR Setup Guide](../guides/xr-setup.md) for detailed configuration.
 ### Beginner Path
 1. ✅ Complete this guide
 2. 📖 [Orchestrating Agents](../guides/orchestrating-agents.md) - Advanced agent patterns
-3. 🎯 [Configuration Guide](../reference/configuration.md) - Customize your setup
+3. 🎯  - Customize your setup
 
 ### Intermediate Path
 1. 🔧 [Development Workflow](../guides/development-workflow.md) - Contribute to VisionFlow
-2. 🤖 [Agent Templates](../reference/agents/templates/readme.md) - Create custom agents
+2. 🤖  - Create custom agents
 3. 🥽 [XR Integration](../guides/xr-setup.md) - Immersive VR experiences
 
 ### Advanced Path
-1. 🏗️ [System Architecture](../concepts/system-architecture.md) - Deep dive into design
+1. 🏗️  - Deep dive into design
 2. 💻 [API Reference](../reference/api/) - Build integrations
 3. 🚀 [Deployment Guide](../guides/deployment.md) - Production setup
 
@@ -443,7 +443,7 @@ bash scripts/voice-pipeline-test.sh
 
 ## Getting Help
 
-- **📚 [Full Documentation](../readme.md)** - Comprehensive guides
+- **📚 ** - Comprehensive guides
 - **🐛 [Troubleshooting Guide](../guides/troubleshooting.md)** - Common issues
 - **💬 GitHub Discussions** - Community support *(Repository URL to be configured)*
 - **🔍 [API Reference](../reference/api/)** - Technical details
@@ -454,7 +454,7 @@ bash scripts/voice-pipeline-test.sh
 
 ## Related Documentation
 
-- [Configuration Reference](../reference/configuration.md) - Complete settings guide
+-  - Complete settings guide
 - [Agent Orchestration](../guides/orchestrating-agents.md) - Advanced agent patterns
 - [XR/AR Setup](../guides/xr-setup.md) - Immersive experiences
-- [System Architecture](../concepts/system-architecture.md) - How it all works
+-  - How it all works

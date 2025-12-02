@@ -27,22 +27,22 @@ Transform how your team discovers knowledge with continuous AI analysis, GPU-acc
 
 ## 📑 Table of Contents
 
-- [Why VisionFlow?](#-why-visionflow)
-- [Key Features](#-key-features)
-- [Project Structure](#-project-structure)
-- [Quick Start](#-quick-start)
-- [Architecture Overview](#-architecture-overview)
-- [Build Status](#-build-status)
-- [Technology Stack](#-technology-stack)
-- [Performance Metrics](#-performance-metrics)
-- [Installation](#-installation)
-- [Usage Examples](#-usage-examples)
-- [Documentation](#-documentation)
-- [Roadmap](#-roadmap)
-- [Contributing](#-contributing)
-- [Platform Support](#-platform-support)
-- [Community & Support](#-community--support)
-- [License](#-license)
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
 
 ---
 
@@ -96,7 +96,7 @@ Agents understand the "rules of your world." When tasked to "audit all software 
 
 **In Plain English**: The ontology is the brain that makes VisionFlow intelligent. It validates your data, discovers new connections, organizes your 3D space meaningfully, and equips AI agents with the domain knowledge to work autonomously and accurately.
 
-**[📖 Deep Dive: Ontology Fundamentals](docs/specialized/ontology/ontology-fundamentals.md)**
+****
 
 ---
 
@@ -139,7 +139,7 @@ Step into your knowledge graph with Quest 3 AR/VR and collaborative multi-user e
 **📚 Complete XR Documentation:**
 - **[Vircadia XR Complete Guide](docs/guides/vircadia-xr-complete-guide.md)** - Full implementation guide
 - **[XR Immersive System](docs/concepts/architecture/xr-immersive-system.md)** - Quest 3 architecture
-- **[XR API Reference](docs/reference/xr-api.md)** - Force-directed graph API
+- **** - Force-directed graph API
 - **[Vircadia Official Docs](https://docs.vircadia.com)** - Platform documentation
 
 ### 🔐 Enterprise-Grade & Self-Sovereign
@@ -350,7 +350,7 @@ docker-compose --profile dev up -d
 
 - **[📚 Full Installation Guide](docs/getting-started/01-installation.md)** - Detailed setup instructions
 - **[🎯 First Graph Tutorial](docs/getting-started/02-first-graph-and-agents.md)** - Create your first knowledge graph
-- **[🐳 Docker Setup Guide](UNIFIED_DOCKER_SETUP.md)** - Complete unified Docker documentation
+- **** - Complete unified Docker documentation
 
 ---
 
@@ -474,7 +474,7 @@ graph TD
 - GPU-accelerated physics
 - Binary protocol for efficient client updates
 
-**[📖 Graph Sync Implementation](GRAPH_SYNC_FIXES.md)**
+****
 
 ---
 
@@ -608,7 +608,7 @@ docker-compose logs -f
 # Backend API: http://192.168.0.51:4000
 ```
 
-**[📚 Complete Docker Setup Guide](UNIFIED_DOCKER_SETUP.md)**
+****
 
 ### Native Installation
 
@@ -765,7 +765,7 @@ voiceControl.listen();
 
 ## 📚 Documentation
 
-**[📖 Complete Documentation Index](docs/README.md)** - Master documentation hub
+**** - Master documentation hub with 172+ organised guides
 
 VisionFlow uses the **Diátaxis** framework for comprehensive, organized documentation:
 
@@ -776,8 +776,8 @@ Learn by doing with step-by-step tutorials:
 
 ### 📘 User Guides (How-To)
 Accomplish specific goals:
-- **[Working with Agents](docs/guides/user/working-with-agents.md)** - Deploy and manage AI agents
-- **[XR Setup](docs/guides/user/xr-setup.md)** - Configure VR/AR devices
+- **[Working with Agents](docs/archive/docs/guides/user/working-with-agents.md)** - Deploy and manage AI agents
+- **[XR Setup](docs/archive/docs/guides/xr-setup.md)** - Configure VR/AR devices
 - **[Neo4j Integration](docs/guides/neo4j-integration.md)** - Graph database usage
 
 ### 📕 Developer Guides
@@ -786,7 +786,7 @@ Build and extend VisionFlow:
 - **[Project Structure](docs/guides/developer/02-project-structure.md)** - Codebase organization
 - **[Architecture Overview](docs/guides/developer/03-architecture.md)** - System design
 - **[Adding Features](docs/guides/developer/04-adding-features.md)** - Extend the system
-- **[Testing Guide](docs/guides/developer/05-testing-guide.md)** - Comprehensive testing strategies
+- **[Testing Guide](docs/guides/testing-guide.md)** - Comprehensive testing strategies
 - **[Contributing](docs/guides/developer/06-contributing.md)** - Contribution guidelines
 
 ### 📙 Concepts (Understanding)
@@ -804,12 +804,12 @@ Complete technical specifications:
 - **[WebSocket Protocol](docs/reference/websocket-protocol.md)** - Binary protocol specification
 - **[Error Codes](docs/reference/error-codes.md)** - Complete error reference
 - **[Implementation Status](docs/reference/implementation-status.md)** - Current system status
-- **[Configuration Reference](docs/reference/configuration.md)** - All settings
+- **** - All settings
 
 ### 🐳 Deployment Guides
-- **[Unified Docker Setup](UNIFIED_DOCKER_SETUP.md)** - Complete Docker deployment
-- **[502 Error Diagnosis](502_ERROR_DIAGNOSIS.md)** - Troubleshooting guide
-- **[Graph Sync Fixes](GRAPH_SYNC_FIXES.md)** - GitHub synchronization
+- **** - Complete Docker deployment
+- **** - Troubleshooting guide
+- **** - GitHub synchronization
 
 ### 🤖 Multi-Agent System
 AI agent orchestration documentation:
@@ -818,7 +818,7 @@ AI agent orchestration documentation:
 - **[Docker Environment](docs/multi-agent-docker/docker-environment.md)** - Container setup
 - **[Troubleshooting](docs/multi-agent-docker/troubleshooting.md)** - Common issues
 
-**[📑 Documentation Hub](docs/README.md)**
+****
 
 ---
 
@@ -954,7 +954,7 @@ We welcome contributions from the community! Whether you're fixing bugs, improvi
 ### Guidelines
 
 - **Code Style**: Follow Rust and TypeScript best practices
-- **Documentation**: Use the [Diátaxis framework](docs/CONTRIBUTING_DOCS.md)
+- **Documentation**: Use the 
 - **Testing**: Maintain >80% test coverage
 - **Commits**: Use conventional commit messages
 - **Architecture**: Respect hexagonal architecture boundaries
@@ -1023,7 +1023,7 @@ We welcome contributions from the community! Whether you're fixing bugs, improvi
 
 ### Community Guidelines
 
-We are committed to providing a welcoming and inclusive environment. Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before participating.
+We are committed to providing a welcoming and inclusive environment. Please read our  before participating.
 
 ---
 

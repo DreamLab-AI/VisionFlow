@@ -254,6 +254,14 @@ impl GraphStateActor {
         node.metadata.insert("file_name".to_string(), metadata.file_name.clone());
         node.metadata.insert("file_size".to_string(), size.to_string());
         node.metadata.insert("last_modified".to_string(), metadata.last_modified.to_string());
+
+        // Copy quality and authority scores to node.metadata for filtering
+        if let Some(quality) = metadata.quality_score {
+            node.metadata.insert("quality_score".to_string(), quality.to_string());
+        }
+        if let Some(authority) = metadata.authority_score {
+            node.metadata.insert("authority_score".to_string(), authority.to_string());
+        }
     }
 
     

@@ -135,7 +135,7 @@ Always include these in your file frontmatter or top section:
 ```markdown
 # [Page Title]
 
-*[Parent Category](../readme.md) > [Section](./readme.md) > [This Page]*
+* > [Section](./readme.md) > [This Page]*
 
 [description...]
 ```
@@ -144,7 +144,7 @@ Example:
 ```markdown
 # Adding a Feature
 
-*[Guides](../../readme.md) > [Developer Guides](./readme.md) > Adding a Feature*
+* > [Developer Guides](./readme.md) > Adding a Feature*
 
 This guide walks you through adding a new feature to VisionFlow.
 ```

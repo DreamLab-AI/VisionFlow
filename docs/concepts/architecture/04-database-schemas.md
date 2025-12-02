@@ -305,10 +305,10 @@ CREATE INDEX IF NOT EXISTS idx-file-metadata-modified ON file-metadata(last-modi
 
 ```mermaid
 erDiagram
-    graph-nodes ||--o{ graph-edges : "connects"
-    graph-nodes {
+    graph_nodes ||--o{ graph_edges : "connects"
+    graph_nodes {
         integer id PK
-        text metadata-id UK
+        text metadata_id UK
         text label
         real x
         real y
@@ -319,79 +319,79 @@ erDiagram
         text color
         real size
         text metadata
-        datetime created-at
-        datetime updated-at
+        datetime created_at
+        datetime updated_at
     }
 
-    graph-edges {
+    graph_edges {
         text id PK
         integer source FK
         integer target FK
         real weight
         text metadata
-        datetime created-at
+        datetime created_at
     }
 
-    owl-classes ||--o{ owl-class-hierarchy : "parent"
-    owl-classes ||--o{ owl-class-hierarchy : "child"
-    owl-classes ||--o{ owl-axioms : "references"
+    owl_classes ||--o{ owl_class_hierarchy : "parent"
+    owl_classes ||--o{ owl_class_hierarchy : "child"
+    owl_classes ||--o{ owl_axioms : "references"
 
-    owl-classes {
+    owl_classes {
         text iri PK
         text label
         text description
-        text source-file
+        text source_file
         text properties
-        datetime created-at
-        datetime updated-at
+        datetime created_at
+        datetime updated_at
     }
 
-    owl-class-hierarchy {
-        text class-iri FK
-        text parent-iri FK
+    owl_class_hierarchy {
+        text class_iri FK
+        text parent_iri FK
     }
 
-    owl-properties {
+    owl_properties {
         text iri PK
         text label
-        text property-type
+        text property_type
         text domain
         text range
-        datetime created-at
-        datetime updated-at
+        datetime created_at
+        datetime updated_at
     }
 
-    owl-axioms {
+    owl_axioms {
         integer id PK
-        text axiom-type
+        text axiom_type
         text subject
         text predicate
         text object
         text annotations
-        integer is-inferred
-        text inferred-from
-        text inference-rule
-        datetime created-at
+        integer is_inferred
+        text inferred_from
+        text inference_rule
+        datetime created_at
     }
 
-    graph-statistics {
+    graph_statistics {
         text key PK
         text value
-        datetime updated-at
+        datetime updated_at
     }
 
-    file-metadata {
+    file_metadata {
         integer id PK
-        text file-path UK
-        text file-hash
-        datetime last-modified
-        text sync-status
-        integer nodes-imported
-        integer edges-imported
-        integer classes-imported
-        text error-message
-        datetime created-at
-        datetime updated-at
+        text file_path UK
+        text file_hash
+        datetime last_modified
+        text sync_status
+        integer nodes_imported
+        integer edges_imported
+        integer classes_imported
+        text error_message
+        datetime created_at
+        datetime updated_at
     }
 ```
 

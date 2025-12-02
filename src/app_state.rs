@@ -72,6 +72,9 @@ pub struct AppState {
 
     pub settings_repository: Arc<dyn SettingsRepository>,
 
+    // Concrete Neo4j settings repository for user-specific operations (filters, etc.)
+    pub neo4j_settings_repository: Arc<Neo4jSettingsRepository>,
+
     // Neo4j is now the primary knowledge graph repository
     pub neo4j_adapter: Arc<Neo4jAdapter>,
 
@@ -129,11 +132,13 @@ impl AppState {
         // Phase 3: Using Neo4j settings repository
         use crate::adapters::neo4j_settings_repository::Neo4jSettingsConfig;
         let settings_config = Neo4jSettingsConfig::default();
-        let settings_repository: Arc<dyn SettingsRepository> = Arc::new(
+        let neo4j_settings_repository = Arc::new(
             Neo4jSettingsRepository::new(settings_config)
                 .await
                 .map_err(|e| format!("Failed to create Neo4j settings repository: {}", e))?,
         );
+        // Keep both trait object and concrete type for different use cases
+        let settings_repository: Arc<dyn SettingsRepository> = neo4j_settings_repository.clone();
 
         info!("[AppState::new] Creating Neo4j ontology repository...");
         let ontology_config = Neo4jOntologyConfig::default();
@@ -283,7 +288,9 @@ impl AppState {
 
 
         info!("[AppState::new] Starting ClientCoordinatorActor");
-        let client_manager_addr = ClientCoordinatorActor::new().start();
+        let mut client_coordinator = ClientCoordinatorActor::new();
+        client_coordinator.set_neo4j_repository(neo4j_settings_repository.clone());
+        let client_manager_addr = client_coordinator.start();
 
 
         let physics_settings = settings.visualisation.graphs.logseq.physics.clone();
@@ -539,6 +546,7 @@ impl AppState {
             connected_components_actor,
 
             settings_repository,
+            neo4j_settings_repository,
 
             neo4j_adapter,
 

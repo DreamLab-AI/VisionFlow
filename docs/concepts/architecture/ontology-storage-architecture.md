@@ -521,10 +521,10 @@ class OntologyAccessControl {
 ## Related Documentation
 
 - [Complete Ontology Reasoning](../ontology-reasoning.md) - Semantic reasoning pipeline
-- [Semantic Physics Architecture](../semantic-physics-architecture.md) - Physics force application
-- [Architecture Overview](./00-ARCHITECTURE-overview.md) - Complete system design
+-  - Physics force application
+-  - Complete system design
 - [Database Schemas](./04-database-schemas.md) - Complete schema reference
-- [Ontology User Guide](../../specialized/ontology/ontology-user-guide.md) - Practical guide
+-  - Practical guide
 
 ---
 

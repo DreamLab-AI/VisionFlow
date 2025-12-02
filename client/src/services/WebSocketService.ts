@@ -1,7 +1,7 @@
 import { createLogger } from '../utils/loggerConfig';
 import { createErrorMetadata } from '../utils/loggerConfig';
 import { debugState } from '../utils/clientDebugState';
-import { useSettingsStore } from '../store/settingsStore'; 
+import { useSettingsStore } from '../store/settingsStore';
 import { graphDataManager } from '../features/graph/managers/graphDataManager';
 import { parseBinaryNodeData, isAgentNode, createBinaryNodeData, BinaryNodeData } from '../types/binaryProtocol';
 import { NodePositionBatchQueue, createWebSocketBatchProcessor } from '../utils/BatchQueue';
@@ -18,6 +18,7 @@ import {
   MessageHandler
 } from '../types/websocketTypes';
 import { binaryProtocol, MessageType, GraphTypeFlag } from './BinaryWebSocketProtocol';
+import { nostrAuth } from './nostrAuthService';
 
 const logger = createLogger('WebSocketService');
 
@@ -258,7 +259,7 @@ class WebSocketService {
   }
 
   public async connect(): Promise<void> {
-    
+
     if (this.socket && (this.socket.readyState === WebSocket.CONNECTING || this.socket.readyState === WebSocket.OPEN)) {
       return;
     }
@@ -268,8 +269,11 @@ class WebSocketService {
         logger.info(`Connecting to WebSocket at ${this.url}`);
       }
 
-      
-      this.socket = new WebSocket(this.url);
+      // Get auth token if available
+      const token = nostrAuth.getSessionToken();
+      const wsUrl = token ? `${this.url}?token=${token}` : this.url;
+
+      this.socket = new WebSocket(wsUrl);
 
       
       this.socket.onopen = this.handleOpen.bind(this);
@@ -305,14 +309,42 @@ class WebSocketService {
     this.isConnected = true;
     this.reconnectAttempts = 0;
     this.updateConnectionState('connected', undefined, new Date().getTime());
-    
+
     if (debugState.isEnabled()) {
       logger.info('WebSocket connection established');
     }
-    
-    
+
+    // Send authentication message if token is available
+    const token = nostrAuth.getSessionToken();
+    const user = nostrAuth.getCurrentUser();
+    if (token && user) {
+      this.sendMessage('authenticate', {
+        token,
+        pubkey: user.pubkey
+      });
+    }
+
+    // Send initial filter settings
+    const currentFilter = useSettingsStore.getState().settings?.nodeFilter;
+    if (currentFilter) {
+      this.sendMessage('filter_update', {
+        enabled: currentFilter.enabled,
+        quality_threshold: currentFilter.qualityThreshold,
+        authority_threshold: currentFilter.authorityThreshold,
+        filter_by_quality: currentFilter.filterByQuality,
+        filter_by_authority: currentFilter.filterByAuthority,
+        filter_mode: currentFilter.filterMode,
+      });
+      if (debugState.isEnabled()) {
+        logger.info('Initial filter settings sent to server');
+      }
+    }
+
     this.initializeBatchQueue();
-    
+
+    // Set up filter subscription to sync UI changes to server
+    this.setupFilterSubscription();
+
     this.notifyConnectionStatusHandlers(true);
     this.startHeartbeat();
     this.processMessageQueue();
@@ -383,17 +415,67 @@ class WebSocketService {
         }
       }
       
-      
+
       if (message.type === 'error' && message.error) {
         this.handleErrorFrame(message.error);
         return;
       }
 
-      
-      
-      
+      // Handle filter confirmation from server
+      if (message.type === 'filter_confirmed') {
+        if (debugState.isEnabled()) {
+          logger.info(`Filter applied: ${message.data?.visible_nodes}/${message.data?.total_nodes} nodes visible`);
+        }
+        this.emit('filterApplied', {
+          visibleNodes: message.data?.visible_nodes,
+          totalNodes: message.data?.total_nodes
+        });
+      }
 
-      
+      // Handle initialGraphLoad - this is sent when server provides new graph data (e.g., after filtering)
+      if (message.type === 'initialGraphLoad') {
+        const nodes = message.nodes || [];
+        const edges = message.edges || [];
+        logger.info(`[WebSocket] Received initialGraphLoad with ${nodes.length} nodes, ${edges.length} edges - updating graph`);
+
+        // Transform server node format to client format
+        const transformedNodes = nodes.map((node: any) => ({
+          id: String(node.id),
+          label: node.label || node.name || String(node.id),
+          position: node.position || { x: node.x || 0, y: node.y || 0, z: node.z || 0 },
+          metadata: {
+            ...node.metadata,
+            quality_score: node.quality_score ?? node.metadata?.quality_score,
+            authority_score: node.authority_score ?? node.metadata?.authority_score,
+          },
+          color: node.color,
+          size: node.size,
+        }));
+
+        const transformedEdges = edges.map((edge: any) => ({
+          id: edge.id || `${edge.source}-${edge.target}`,
+          source: String(edge.source),
+          target: String(edge.target),
+          weight: edge.weight,
+          label: edge.label,
+        }));
+
+        // Update the graph data manager with the new filtered data
+        graphDataManager.setGraphData({
+          nodes: transformedNodes,
+          edges: transformedEdges,
+        }).then(() => {
+          logger.info(`[WebSocket] Graph updated with ${transformedNodes.length} nodes from server filter`);
+          this.emit('graphDataUpdated', {
+            nodeCount: transformedNodes.length,
+            edgeCount: transformedEdges.length,
+            source: 'websocket_filter'
+          });
+        }).catch(error => {
+          logger.error('[WebSocket] Failed to update graph data from initialGraphLoad:', createErrorMetadata(error));
+        });
+      }
+
       this.messageHandlers.forEach(handler => {
         try {
           handler(message);
@@ -685,7 +767,139 @@ class WebSocketService {
     }
   }
 
-  
+  /**
+   * Send filter settings update to server
+   * Called when user changes filter settings in the UI
+   */
+  public sendFilterUpdate(filter: {
+    enabled?: boolean;
+    qualityThreshold?: number;
+    authorityThreshold?: number;
+    filterByQuality?: boolean;
+    filterByAuthority?: boolean;
+    filterMode?: string;
+  }): void {
+    if (!this.isConnected) {
+      logger.warn('Cannot send filter update: WebSocket not connected');
+      return;
+    }
+
+    this.sendMessage('filter_update', {
+      enabled: filter.enabled,
+      quality_threshold: filter.qualityThreshold,
+      authority_threshold: filter.authorityThreshold,
+      filter_by_quality: filter.filterByQuality,
+      filter_by_authority: filter.filterByAuthority,
+      filter_mode: filter.filterMode,
+    });
+
+    logger.info('Filter update sent to server', filter);
+  }
+
+  /**
+   * Subscribe to settings store filter changes and sync to server
+   */
+  private filterSubscriptionSet = false;
+  private lastFilterState: any = null;
+
+  public setupFilterSubscription(): void {
+    if (this.filterSubscriptionSet) return;
+    this.filterSubscriptionSet = true;
+
+    // Use the store's custom subscribe method for specific nodeFilter paths
+    const filterPaths = [
+      'nodeFilter.enabled',
+      'nodeFilter.qualityThreshold',
+      'nodeFilter.authorityThreshold',
+      'nodeFilter.filterByQuality',
+      'nodeFilter.filterByAuthority',
+      'nodeFilter.filterMode',
+    ] as const;
+
+    // Subscribe to each filter path
+    filterPaths.forEach(path => {
+      useSettingsStore.getState().subscribe(path as any, () => {
+        this.handleFilterChange();
+      });
+    });
+
+    // Also use zustand's basic subscribe as a fallback
+    useSettingsStore.subscribe((state) => {
+      const nodeFilter = state.settings?.nodeFilter;
+      if (nodeFilter && this.isConnected) {
+        const current = JSON.stringify(nodeFilter);
+        if (current !== this.lastFilterState) {
+          this.lastFilterState = current;
+          this.sendFilterUpdate({
+            enabled: nodeFilter.enabled,
+            qualityThreshold: nodeFilter.qualityThreshold,
+            authorityThreshold: nodeFilter.authorityThreshold,
+            filterByQuality: nodeFilter.filterByQuality,
+            filterByAuthority: nodeFilter.filterByAuthority,
+            filterMode: nodeFilter.filterMode,
+          });
+        }
+      }
+    });
+
+    logger.info('Filter subscription set up - changes will sync to server');
+  }
+
+  private handleFilterChange(): void {
+    if (!this.isConnected) return;
+
+    const nodeFilter = useSettingsStore.getState().settings?.nodeFilter;
+    if (nodeFilter) {
+      this.sendFilterUpdate({
+        enabled: nodeFilter.enabled,
+        qualityThreshold: nodeFilter.qualityThreshold,
+        authorityThreshold: nodeFilter.authorityThreshold,
+        filterByQuality: nodeFilter.filterByQuality,
+        filterByAuthority: nodeFilter.filterByAuthority,
+        filterMode: nodeFilter.filterMode,
+      });
+    }
+  }
+
+  /**
+   * Force refresh filter - clears local graph, then requests fresh filtered data from server
+   * Called by the "Refresh Graph" button to force a complete graph reload with current filter
+   */
+  public async forceRefreshFilter(): Promise<void> {
+    if (!this.isConnected) {
+      logger.warn('Cannot force refresh filter: WebSocket not connected');
+      return;
+    }
+
+    const nodeFilter = useSettingsStore.getState().settings?.nodeFilter;
+    if (nodeFilter) {
+      // Reset last filter state to force sending even if values haven't changed
+      this.lastFilterState = null;
+
+      logger.info('[Refresh] Clearing local graph and requesting fresh filtered data', nodeFilter);
+
+      // Step 1: Clear the local graph completely - don't try to fill gaps
+      await graphDataManager.setGraphData({ nodes: [], edges: [] });
+      logger.info('[Refresh] Local graph cleared, awaiting server response...');
+
+      // Step 2: Send filter update to server - server will respond with filtered initialGraphLoad
+      this.sendFilterUpdate({
+        enabled: nodeFilter.enabled,
+        qualityThreshold: nodeFilter.qualityThreshold,
+        authorityThreshold: nodeFilter.authorityThreshold,
+        filterByQuality: nodeFilter.filterByQuality,
+        filterByAuthority: nodeFilter.filterByAuthority,
+        filterMode: nodeFilter.filterMode,
+      });
+
+      // The server will respond with initialGraphLoad containing the filtered, metadata-rich sparse dataset
+      // The initialGraphLoad handler will populate the graph - no gap filling
+    } else {
+      logger.warn('No nodeFilter settings found in store');
+    }
+  }
+
+
   private initializeBatchQueue(): void {
     if (this.positionBatchQueue) {
       this.positionBatchQueue.destroy();

@@ -10,7 +10,7 @@ This document provides a comprehensive reference for all shell aliases and utili
 
 - [Claude-Flow Aliases](#claude-flow-aliases)
   - [Core Commands](#core-commands)
-  - [Initialization & Setup](#initialization--setup)
+  - 
   - [Hive-Mind Operations](#hive-mind-operations)
   - [Swarm Operations](#swarm-operations)
   - [Memory Management](#memory-management)
@@ -20,15 +20,15 @@ This document provides a comprehensive reference for all shell aliases and utili
   - [Hooks System](#hooks-system)
   - [GitHub Integration](#github-integration)
   - [Flow Nexus Cloud](#flow-nexus-cloud)
-  - [Performance & Analytics](#performance--analytics)
+  - 
   - [Benchmarking System](#benchmarking-system)
   - [Hive-Mind Configuration](#hive-mind-configuration)
-  - [Verification & Testing](#verification--testing)
-  - [Pairing & Collaboration](#pairing--collaboration)
+  - 
+  - 
   - [SPARC Methodology](#sparc-methodology)
   - [Quick Commands](#quick-commands-shortcuts)
-  - [Monitoring & Debugging](#monitoring--debugging)
-  - [Help & Documentation](#help--documentation)
+  - 
+  - 
   - [Utility Functions](#claude-flow-utility-functions)
 - [Agentic-Flow Aliases](#agentic-flow-aliases)
   - [Core Commands](#agentic-flow-core-commands)
@@ -42,7 +42,7 @@ This document provides a comprehensive reference for all shell aliases and utili
   - [GitHub Integration Agents](#github-integration-agents)
   - [Swarm Coordinators](#swarm-coordinators)
   - [Docker Deployment](#docker-deployment)
-  - [Information & Help](#information--help)
+  - 
   - [Environment Setup](#environment-setup)
   - [Quick Commands](#agentic-flow-quick-commands)
   - [Utility Functions](#agentic-flow-utility-functions)

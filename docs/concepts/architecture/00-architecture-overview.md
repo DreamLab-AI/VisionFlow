@@ -6,7 +6,7 @@ This document provides a complete architectural blueprint for migrating the Visi
 
 ## Architecture Documents
 
-1. **[01-ports-design.md](./01-ports-design.md)** - Port layer (interfaces)
+1. **** - Port layer (interfaces)
    - SettingsRepository
    - KnowledgeGraphRepository
    - OntologyRepository
@@ -14,7 +14,7 @@ This document provides a complete architectural blueprint for migrating the Visi
    - GpuSemanticAnalyzer
    - InferenceEngine
 
-2. **[02-adapters-design.md](./02-adapters-design.md)** - Adapter implementations
+2. **** - Adapter implementations
    - Neo4jSettingsRepository ✅ **ACTIVE** (migrated from SQLite November 2025)
    - SqliteKnowledgeGraphRepository ⚠️ Being replaced by UnifiedGraphRepository
    - SqliteOntologyRepository ⚠️ Being replaced by UnifiedOntologyRepository
@@ -22,7 +22,7 @@ This document provides a complete architectural blueprint for migrating the Visi
    - SemanticProcessorAdapter
    - WhelkInferenceEngine
 
-3. **[03-cqrs-application-layer.md](./03-cqrs-application-layer.md)** - CQRS business logic
+3. **** - CQRS business logic
    - Directives (write operations)
    - Queries (read operations)
    - Handlers for all domains
@@ -125,10 +125,10 @@ sequenceDiagram
 
 ```mermaid
 erDiagram
-    graph-nodes ||--o{ graph-edges : "connects"
-    graph-nodes {
+    graph_nodes ||--o{ graph_edges : "connects"
+    graph_nodes {
         integer id PK
-        text metadata-id UK
+        text metadata_id UK
         text label
         real x
         real y
@@ -136,7 +136,7 @@ erDiagram
         text metadata
     }
 
-    graph-edges {
+    graph_edges {
         text id PK
         integer source FK
         integer target FK
@@ -144,51 +144,51 @@ erDiagram
         text metadata
     }
 
-    owl-classes ||--o{ owl-class-hierarchy : "parent"
-    owl-classes ||--o{ owl-class-hierarchy : "child"
-    owl-classes ||--o{ owl-axioms : "references"
+    owl_classes ||--o{ owl_class_hierarchy : "parent"
+    owl_classes ||--o{ owl_class_hierarchy : "child"
+    owl_classes ||--o{ owl_axioms : "references"
 
-    owl-classes {
+    owl_classes {
         text iri PK
         text label
         text description
         text properties
     }
 
-    owl-class-hierarchy {
-        text class-iri FK
-        text parent-iri FK
+    owl_class_hierarchy {
+        text class_iri FK
+        text parent_iri FK
     }
 
-    owl-properties {
+    owl_properties {
         text iri PK
         text label
-        text property-type
+        text property_type
         text domain
         text range
     }
 
-    owl-axioms {
+    owl_axioms {
         integer id PK
-        text axiom-type
+        text axiom_type
         text subject
         text predicate
         text object
-        integer is-inferred
+        integer is_inferred
     }
 
-    graph-statistics {
+    graph_statistics {
         text key PK
         text value
-        datetime updated-at
+        datetime updated_at
     }
 
-    file-metadata {
+    file_metadata {
         integer id PK
-        text file-path UK
-        text file-hash
-        datetime last-modified
-        text sync-status
+        text file_path UK
+        text file_hash
+        datetime last_modified
+        text sync_status
     }
 ```
 
@@ -718,4 +718,4 @@ This architecture provides a complete, production-ready blueprint for migrating 
 
 ---
 
-**Navigation:** [📖 Documentation Index](../../readme.md) | [🏗️ Architecture Hub](readme.md) | [📡 API Reference](../api/) | [📚 Guides](../guides/)
+**Navigation:**  |  |  | 

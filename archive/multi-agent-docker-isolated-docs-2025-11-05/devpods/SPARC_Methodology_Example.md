@@ -876,9 +876,9 @@ npm run deploy:production
 
 ### Documentation
 - [SPARC Methodology Guide](https://github.com/ruvnet/claude-flow)
-- [API Documentation](./API_DOCS.md)
-- [User Manual](./USER_MANUAL.md)
-- [Admin Guide](./ADMIN_GUIDE.md)
+- 
+- 
+- 
 
 ### Support
 - Technical Issues: support@company.com

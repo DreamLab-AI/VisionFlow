@@ -1,0 +1,1617 @@
+{
+  "total_diagrams": 159,
+  "valid_diagrams": 124,
+  "invalid_diagrams": 35,
+  "by_type": {
+    "flowchart": 98,
+    "pie": 2,
+    "sequenceDiagram": 48,
+    "gantt": 4,
+    "stateDiagram": 2,
+    "mindmap": 1,
+    "erDiagram": 3,
+    "unknown": 1
+  },
+  "mmdc_available": false,
+  "valid_diagram_list": [
+    {
+      "file": "reference/implementation-status.md",
+      "start_line": 36,
+      "end_line": 55,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    SUPERVISOR[\"GraphServiceSupervisor<br/>(913 lines)\"]\n\n    GRAPH[\"GraphStateActor<br/>(712 lines)<br/>Data Management\"]\n    PHYSICS[\"PhysicsOrchestratorActor<br/>Simulation\"]\n    SEMANTIC[\"SemanticProcessorActor<br/>Analysis\"]\n    CLIENT[\"ClientCoordinatorActor<br/>WebSocket\"]\n\n    SUPERVISOR -->|spawns & monitors| GRAPH\n    SUPERVISOR -->|spawns & monitors| PHYSICS\n    SUPERVISOR -->|spawns & monitors| SEMANTIC\n    SUPERVISOR -->|spawns & monitors| CLIENT\n\n    style SUPERVISOR fill:...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "reference/implementation-status.md",
+      "start_line": 300,
+      "end_line": 306,
+      "diagram_type": "pie",
+      "content": "pie title Production Readiness\n    \"Complete\" : 75\n    \"Auth & Validation\" : 15\n    \"Error Handling\" : 5\n    \"Testing & Docs\" : 5",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "reference/code-quality-status.md",
+      "start_line": 13,
+      "end_line": 19,
+      "diagram_type": "pie",
+      "content": "pie title Code Quality Distribution\n    \"Production Complete\" : 99.6\n    \"Test Stubs\" : 43\n    \"Handler Registration\" : 15\n    \"Minor TODOs\" : 11",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "reference/code-quality-status.md",
+      "start_line": 53,
+      "end_line": 67,
+      "diagram_type": "flowchart",
+      "content": "graph TD\n    A[43 Test Stubs] --> B[Neo4j Settings: 28]\n    A --> C[Ontology API: 7]\n    A --> D[Reasoning API: 7]\n    A --> E[Port Contracts: 3]\n    A --> F[Integration: 1]\n\n    B --> B1[CRUD Ops: 5]\n    B --> B2[Connection: 4]\n    B --> B3[Error Handling: 3]\n    B --> B4[Performance: 3]\n    B --> B5[Concurrency: 3]\n    B --> B6[Other: 10]",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "reference/code-quality-status.md",
+      "start_line": 143,
+      "end_line": 158,
+      "diagram_type": "flowchart",
+      "content": "graph TD\n    A[Handlers: 22 Total] --> B[Registered: 10]\n    A --> C[Disconnected: 12]\n\n    C --> C1[Phase 5: 3]\n    C --> C2[Legacy: 2]\n    C --> C3[Other: 7]\n\n    C1 --> C1A[physics_handler]\n    C1 --> C1B[semantic_handler]\n    C1 --> C1C[inference_handler]\n\n    C2 --> C2A[cypher_query_handler]\n    C2 --> C2B[pipeline_admin_handler]",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "reference/code-quality-status.md",
+      "start_line": 342,
+      "end_line": 351,
+      "diagram_type": "flowchart",
+      "content": "graph LR\n    A[Code Quality] --> B[Production: 99.6%]\n    A --> C[Test Coverage: 82%]\n    A --> D[Handler Registration: 68%]\n\n    B --> B1[\u2705 All Critical Stubs Resolved]\n    C --> C1[\u26a0\ufe0f 43 Test Stubs Remaining]\n    D --> D1[\u26a0\ufe0f 12 Handlers Disconnected]",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "multi-agent-docker/tools.md",
+      "start_line": 13,
+      "end_line": 25,
+      "diagram_type": "flowchart",
+      "content": "graph TD\n    subgraph \"Core Environment\"\n        A[\"AI & Machine Learning\"]\n        B[\"3D, Graphics & Media\"]\n        C[\"Document Processing & Publishing\"]\n        D[\"Electronic Design Automation (EDA)\"]\n        E[\"Web & Application Runtimes\"]\n        F[\"Development & Build Tools\"]\n        G[\"Networking & System Utilities\"]\n        H[\"Database Tools\"]\n    end",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "multi-agent-docker/architecture.md",
+      "start_line": 9,
+      "end_line": 67,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph \"Docker Container\"\n        subgraph \"Process Management\"\n            SUPERVISOR[Supervisord]\n            WS-BRIDGE[WebSocket Bridge<br/>Port 3002]\n        end\n\n        subgraph \"MCP Tool Management\"\n            CLAUDE-FLOW[Claude Flow<br/>Tool Orchestrator]\n\n            subgraph \"Stdio-based Tools\"\n                BLENDER-TOOL[Blender MCP Tool<br/>3D modeling & rendering]\n                QGIS-TOOL[QGIS MCP Tool<br/>Geospatial analysis]\n                IMAGEMAGICK-TOOL[Image...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "multi-agent-docker/architecture.md",
+      "start_line": 102,
+      "end_line": 134,
+      "diagram_type": "flowchart",
+      "content": "graph LR\n    subgraph \"Claude Flow Process\"\n        CF[Claude Flow<br/>Orchestrator]\n    end\n\n    subgraph \"Tool Processes\"\n        direction TB\n        IMG[ImageMagick MCP<br/>Image Processing]\n        BLEND[Blender MCP<br/>3D Bridge]\n        QGIS[QGIS MCP<br/>GIS Bridge]\n        KICAD[KiCad MCP<br/>PCB Design]\n        NGSPICE[NGSpice MCP<br/>Circuit Sim]\n        PBR[PBR Generator<br/>Textures]\n    end\n\n    CF -->|spawn| IMG\n    CF -->|spawn| BLEND\n    CF -->|spawn| QGIS\n    CF -->|spawn| KICAD...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "multi-agent-docker/architecture.md",
+      "start_line": 140,
+      "end_line": 153,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant CF as Claude Flow\n    participant Bridge as MCP Bridge Tool\n    participant ExtApp as External Application\n\n    CF->>Bridge: JSON request (stdin)\n    Bridge->>Bridge: Parse request\n    Bridge->>ExtApp: TCP connection\n    Bridge->>ExtApp: Send JSON command\n    ExtApp->>ExtApp: Process command\n    ExtApp->>Bridge: JSON response\n    Bridge->>CF: JSON response (stdout)",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "multi-agent-docker/architecture.md",
+      "start_line": 159,
+      "end_line": 192,
+      "diagram_type": "flowchart",
+      "content": "graph TD\n    subgraph \"Language Runtimes\"\n        PYTHON[Python 3.12<br/>with venv]\n        NODE[Node.js 22+<br/>with npm]\n        RUST[Rust<br/>with cargo]\n        DENO[Deno<br/>Runtime]\n    end\n\n    subgraph \"AI/ML Libraries\"\n        TF[TensorFlow]\n        TORCH[PyTorch]\n        KERAS[Keras]\n        XGB[XGBoost]\n    end\n\n    subgraph \"3D/Graphics Tools\"\n        O3D[Open3D]\n        MESH[PyMeshLab]\n        NERF[NerfStudio]\n        IMG[ImageMagick]\n    end\n\n    subgraph \"EDA/Circuit Tools\"\n      ...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "multi-agent-docker/readme.md",
+      "start_line": 386,
+      "end_line": 432,
+      "diagram_type": "flowchart",
+      "content": "graph TD\n    subgraph \"Host Machine\"\n        User-WS[User/External System] -- WebSocket --> WS-Bridge(mcp-ws-relay.js:3002)\n        User-TCP[User/External System] -- TCP --> TCP-Server(mcp-tcp-server.js:9500)\n        User-VNC[User/External System] -- VNC --> VNC-Access(localhost:5901)\n    end\n\n    subgraph \"Docker Network: docker-ragflow\"\n        subgraph \"multi-agent-container\"\n            MA-Container(Multi-Agent Container)\n            TCP-Server -- Stdio --> ClaudeFlow-TCP(claude-flow)\n      ...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/neo4j-integration.md",
+      "start_line": 68,
+      "end_line": 81,
+      "diagram_type": "flowchart",
+      "content": "graph TD\n    A[GitHub Markdown] --> B[StreamingSyncService]\n    B --> C[OntologyParser]\n    B --> D[KnowledgeGraphParser]\n    C --> E[Neo4jOntologyRepository]\n    D --> F[Neo4jGraphRepository]\n    E --> G[(Neo4j Database)]\n    F --> G\n    G --> H[GraphStateActor]\n    H --> I[GPU Physics]\n    I --> J[WebSocket API]\n    J --> K[3D Client]",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/working-with-gui-sandbox.md",
+      "start_line": 33,
+      "end_line": 55,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph \"multi-agent-container\"\n        AGENT[AI Agent]\n        BRIDGE[MCP Bridge Tool]\n    end\n\n    subgraph \"gui-tools-container\"\n        XVFB[Virtual Display :1]\n        VNC[VNC Server :5901]\n        GUI[GUI Application]\n        TCP[TCP MCP Server]\n    end\n\n    AGENT -->|stdio JSON| BRIDGE\n    BRIDGE -->|TCP| TCP\n    TCP -->|Python/JS API| GUI\n    GUI -->|Renders to| XVFB\n    VNC -->|Streams| XVFB\n\n    style BRIDGE fill:#f9f,stroke:#333,stroke-width:2px\n    style TCP fill:#9ff,s...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/working-with-gui-sandbox.md",
+      "start_line": 69,
+      "end_line": 102,
+      "diagram_type": "flowchart",
+      "content": "graph TD\n    subgraph \"Display Layer\"\n        XVFB[Xvfb Virtual Display<br/>:1 @ 1920x1080x24]\n        DESKTOP[XFCE4 Desktop Environment]\n        VNC[x11vnc Server<br/>Port 5901]\n    end\n\n    subgraph \"Application Layer\"\n        BLENDER[Blender 4.5<br/>with MCP addon]\n        QGIS[QGIS Desktop<br/>GIS analysis]\n        PLAYWRIGHT[Playwright<br/>Browser automation]\n        PBR[PBR Generator<br/>Texture creation]\n    end\n\n    subgraph \"MCP Server Layer\"\n        B-TCP[Blender TCP :9876]\n        Q-T...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/working-with-gui-sandbox.md",
+      "start_line": 256,
+      "end_line": 275,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant Agent as AI Agent\n    participant CF as Claude Flow\n    participant Bridge as MCP Bridge Tool\n    participant TCP as TCP MCP Server\n    participant GUI as GUI Application\n    participant Display as Virtual Display\n\n    Agent->>CF: Request 3D model\n    CF->>Bridge: spawn blender-mcp<br/>(stdin JSON)\n    Bridge->>TCP: TCP connect :9876\n    Bridge->>TCP: Send JSON request\n    TCP->>GUI: Execute Python code\n    GUI->>Display: Render to :1\n    GUI->>TCP: Return result\n...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/graphserviceactor-migration.md",
+      "start_line": 66,
+      "end_line": 103,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    API[\"API Handlers<br/>(Thin)\"]\n\n    SUPERVISOR[\"GraphServiceSupervisor<br/>(Fault Tolerance)\"]\n\n    GRAPH[\"GraphStateActor<br/>(Data Management)\"]\n    PHYSICS[\"PhysicsOrchestratorActor<br/>(Simulation)\"]\n    SEMANTIC[\"SemanticProcessorActor<br/>(Analysis)\"]\n    CLIENT[\"ClientCoordinatorActor<br/>(WebSocket)\"]\n\n    REPO[\"Neo4j Repository<br/>(Graph & Ontology)\"]\n    DB[\"Neo4j Database<br/>(Source of Truth)\"]\n\n    API -->|messages| SUPERVISOR\n\n    SUPERVISOR -->|spawns & monitors| GRA...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/semantic-features-implementation.md",
+      "start_line": 29,
+      "end_line": 43,
+      "diagram_type": "gantt",
+      "content": "gantt\n    title Semantic Features Implementation Timeline\n    dateFormat YYYY-MM-DD\n    section Phase 1\n    Type System & Schema       :p1, 2025-11-05, 5d\n    section Phase 2\n    Semantic Forces            :p2, after p1, 10d\n    section Phase 3\n    Natural Language Queries   :p3, after p1, 10d\n    section Phase 4\n    Semantic Pathfinding       :p4, after p2, 10d\n    section Phase 5\n    Integration & Testing      :p5, after p4, 5d",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/orchestrating-agents.md",
+      "start_line": 26,
+      "end_line": 78,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph \"Control Plane\"\n        OM[Orchestration Manager]\n        TQ[Task Queue]\n        SM[State Manager]\n        MCP[MCP Server :9500]\n    end\n\n    subgraph \"Agent Pool\"\n        A1[\"Coordinator Agent\"]\n        A2[\"Researcher Agent\"]\n        A3[\"Coder Agent\"]\n        A4[\"Reviewer Agent\"]\n        A5[\"Tester Agent\"]\n        A6[\"Architect Agent\"]\n    end\n\n    subgraph \"Communication Layer\"\n        TCP[TCP :9500]\n        WS[WebSocket :3002]\n        MB[Message Bus]\n    end\n\n    subgrap...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/orchestrating-agents.md",
+      "start_line": 365,
+      "end_line": 380,
+      "diagram_type": "stateDiagram",
+      "content": "stateDiagram-v2\n    [*] --> Created\n    Created --> Initialising\n    Initialising --> Ready\n    Ready --> Processing\n    Processing --> Ready\n    Processing --> Error\n    Error --> Recovering\n    Recovering --> Ready\n    Recovering --> Failed\n    Ready --> Terminating\n    Error --> Terminating\n    Failed --> Terminating\n    Terminating --> [*]",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/telemetry-logging.md",
+      "start_line": 55,
+      "end_line": 80,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    App[Application Layer] --> Logger[Advanced Logger]\n    Logger --> Filter{Component Filter}\n\n    Filter --> Server[server.log]\n    Filter --> Client[client.log]\n    Filter --> GPU[gpu.log]\n    Filter --> Analytics[analytics.log]\n    Filter --> Memory[memory.log]\n    Filter --> Network[network.log]\n    Filter --> Performance[performance.log]\n    Filter --> Error[error.log]\n\n    Server --> Volume[Docker Volume]\n    Client --> Volume\n    GPU --> Volume\n    Analytics --> Volume\n    Memor...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/neo4j-implementation-roadmap.md",
+      "start_line": 27,
+      "end_line": 43,
+      "diagram_type": "flowchart",
+      "content": "graph TD\n    A[Current: Dual Persistence] --> B[Phase 1: Graph Migration]\n    B --> C[Phase 2: Settings Migration]\n    C --> D[Phase 3: Cleanup]\n    D --> E[Phase 4: Verification]\n\n    B1[SQLite + Neo4j Dual] --> B\n    C1[Settings in SQLite] --> C\n    D1[Legacy Code Removal] --> D\n    E1[Testing & Validation] --> E\n\n    E --> F[Complete: Neo4j Only]\n\n    style A fill:#f9f,stroke:#333,stroke-width:2px\n    style F fill:#9f9,stroke:#333,stroke-width:2px",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/neo4j-implementation-roadmap.md",
+      "start_line": 55,
+      "end_line": 64,
+      "diagram_type": "flowchart",
+      "content": "graph LR\n    A[DualGraphRepository<br/>SQLite + Neo4j] --> B[Remove Dual Layer]\n    C[UnifiedGraphRepository<br/>Abstraction] --> B\n    B --> D[Neo4jAdapter Only<br/>Single Source]\n\n    style A fill:#faa,stroke:#333\n    style C fill:#faa,stroke:#333\n    style D fill:#afa,stroke:#333",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/neo4j-implementation-roadmap.md",
+      "start_line": 207,
+      "end_line": 219,
+      "diagram_type": "flowchart",
+      "content": "graph TD\n    A[Current: SQLite Settings] --> B[Create Neo4jSettingsRepository]\n    B --> C[Implement SettingsRepository Trait]\n    C --> D[Design Neo4j Schema]\n    D --> E[Create Migration Script]\n    E --> F[Execute Migration]\n    F --> G[Update AppState]\n    G --> H[Settings in Neo4j]\n\n    style A fill:#faa,stroke:#333\n    style H fill:#afa,stroke:#333",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/neo4j-implementation-roadmap.md",
+      "start_line": 256,
+      "end_line": 264,
+      "diagram_type": "flowchart",
+      "content": "graph TD\n    Root[SettingsRoot<br/>id: default<br/>version: 1.0]\n\n    Root -->|HAS_PHYSICS| Physics[PhysicsSettings<br/>damping: 0.8<br/>spring_constant: 0.01<br/>...]\n    Root -->|HAS_RENDERING| Rendering[RenderingSettings<br/>fps_limit: 60<br/>vsync: true<br/>...]\n    Root -->|HAS_INTERACTION| Interaction[InteractionSettings<br/>zoom_speed: 1.5<br/>...]\n    Root -->|HAS_NETWORK| Network[NetworkSettings<br/>ws_port: 8080<br/>...]",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/neo4j-implementation-roadmap.md",
+      "start_line": 569,
+      "end_line": 577,
+      "diagram_type": "flowchart",
+      "content": "graph LR\n    A[Legacy SQLite Code] --> B[Delete Files]\n    B --> C[Update Dependencies]\n    C --> D[Clean Codebase]\n\n    style A fill:#faa,stroke:#333\n    style D fill:#afa,stroke:#333",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/neo4j-implementation-roadmap.md",
+      "start_line": 731,
+      "end_line": 745,
+      "diagram_type": "flowchart",
+      "content": "graph TD\n    A[Verification Phase] --> B[Unit Tests]\n    A --> C[Integration Tests]\n    A --> D[Manual Testing]\n\n    B --> B1[Settings CRUD]\n    B --> B2[Graph Operations]\n\n    C --> C1[API Endpoints]\n    C --> C2[WebSocket Flows]\n\n    D --> D1[Full Application Test]\n    D --> D2[Performance Validation]",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/neo4j-implementation-roadmap.md",
+      "start_line": 925,
+      "end_line": 945,
+      "diagram_type": "gantt",
+      "content": "gantt\n    title Neo4j Migration Timeline\n    dateFormat  YYYY-MM-DD\n    section Phase 1\n    Update AppState           :p1-1, 2025-11-05, 2d\n    Remove DualGraphRepository :p1-2, after p1-1, 1d\n    Remove UnifiedGraphRepository :p1-3, after p1-1, 1d\n    section Phase 2\n    Create Neo4jSettingsRepository :p2-1, after p1-3, 3d\n    Create Migration Script    :p2-2, after p2-1, 2d\n    Execute Migration         :p2-3, after p2-2, 1d\n    Update AppState           :p2-4, after p2-3, 1d\n    section Phase...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/extending-the-system.md",
+      "start_line": 24,
+      "end_line": 48,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph \"Extension Points\"\n        MCP[MCP Tools]\n        AGT[Custom Agents]\n        PLG[Plugins]\n        API[API Extensions]\n        VIZ[Visualisations]\n        INT[Integrations]\n    end\n\n    subgraph \"Core System\"\n        CORE[VisionFlow Core]\n        ORCH[Agent Orchestrator]\n        GFX[Graph Engine]\n        WS[WebSocket Layer]\n    end\n\n    MCP --> CORE\n    AGT --> ORCH\n    PLG --> CORE\n    API --> CORE\n    VIZ --> GFX\n    INT --> WS",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/intelligent-pathfinding-system.md",
+      "start_line": 25,
+      "end_line": 66,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph User[\"User Input\"]\n        Query[Natural Language Query]\n        Nodes[Source/Target Nodes]\n    end\n\n    subgraph Algorithms[\"Pathfinding Algorithms\"]\n        SemanticSSP[Semantic SSSP]\n        QueryTraversal[Query-Guided Traversal]\n        ChunkTraversal[Chunk Traversal]\n        LLMGuided[LLM-Guided Traversal]\n    end\n\n    subgraph Support[\"Support Services\"]\n        Similarity[Similarity Calculator]\n        Embeddings[Embedding Service]\n        LLM[LLM Service]\n    end\n\n ...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/intelligent-pathfinding-system.md",
+      "start_line": 76,
+      "end_line": 87,
+      "diagram_type": "flowchart",
+      "content": "graph TD\n    A[Start: Source & Target] --> B[Calculate Base Shortest Path]\n    B --> C{Query Provided?}\n    C -->|No| D[Return Base Path]\n    C -->|Yes| E[Embed Query]\n    E --> F[Embed Nodes in Path]\n    F --> G[Calculate Similarities]\n    G --> H[Modify Edge Weights]\n    H --> I[Recalculate Path with New Weights]\n    I --> J[Return Semantic Path + Relevance Score]",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/intelligent-pathfinding-system.md",
+      "start_line": 106,
+      "end_line": 119,
+      "diagram_type": "flowchart",
+      "content": "graph TD\n    A[Start: Anchor Node + Query] --> B[Embed Query]\n    B --> C[Extract Anchor Content]\n    C --> D{Collected Enough Content?}\n    D -->|No| E[Get Neighbors]\n    E --> F[Calculate Neighbor Similarities]\n    F --> G[Sort by Similarity]\n    G --> H[Move to Best Neighbor]\n    H --> I[Mark Visited]\n    I --> J[Extract Content]\n    J --> D\n    D -->|Yes| K[Return Path + Content + Relevance]",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/intelligent-pathfinding-system.md",
+      "start_line": 156,
+      "end_line": 174,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant Algo as Traversal Algorithm\n    participant LLM as LLM Service\n    participant Graph as Neo4j\n\n    Algo->>Graph: Get current node + neighbors\n    Graph-->>Algo: Node data + edges\n    Algo->>LLM: Context + Query + Options\n    LLM-->>Algo: Reasoning + Next node selection\n    Algo->>Graph: Get selected node\n    Graph-->>Algo: Node data\n    Algo->>Algo: Check termination conditions\n    alt More exploration needed\n        Algo->>LLM: Continue with new context\n    else ...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/ontology-typed-system.md",
+      "start_line": 25,
+      "end_line": 65,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph User[\"User Layer\"]\n        NL[Natural Language Query]\n        UI[Query Interface]\n    end\n\n    subgraph Frontend[\"Client Layer\"]\n        QueryComp[NaturalLanguageQuery Component]\n        API[TypeScript API]\n    end\n\n    subgraph Backend[\"Rust Server\"]\n        Handler[nl_query_handler.rs]\n        SchemaService[SchemaService]\n        LLMService[LLM Service]\n    end\n\n    subgraph Data[\"Data Layer\"]\n        Neo4j[Neo4j Database]\n        Cache[Schema Cache]\n    end\n\n    subgraph...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/ontology-typed-system.md",
+      "start_line": 75,
+      "end_line": 85,
+      "diagram_type": "flowchart",
+      "content": "graph LR\n    A[SchemaService] --> B[Extract Node Types]\n    A --> C[Extract Edge Types]\n    A --> D[Extract Properties]\n    B --> E[Build GraphSchema]\n    C --> E\n    D --> E\n    E --> F[Cache Schema]\n    E --> G[Format for LLM Context]",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/ontology-typed-system.md",
+      "start_line": 99,
+      "end_line": 119,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant User\n    participant Frontend\n    participant Handler\n    participant SchemaService\n    participant LLMService\n    participant Neo4j\n\n    User->>Frontend: \"Show me all high-priority tasks\"\n    Frontend->>Handler: POST /nl-query\n    Handler->>SchemaService: get_llm_context()\n    SchemaService-->>Handler: Schema context\n    Handler->>LLMService: generate_cypher(query + schema)\n    LLMService-->>Handler: MATCH (t:Task) WHERE t.priority='high' RETURN t\n    Handler->>N...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/ontology-typed-system.md",
+      "start_line": 297,
+      "end_line": 309,
+      "diagram_type": "flowchart",
+      "content": "graph TD\n    A[Receive NL Query] --> B[Get Schema Context]\n    B --> C[Build LLM Prompt]\n    C --> D[Call LLM Service]\n    D --> E[Receive Cypher Query]\n    E --> F[Validate Cypher]\n    F --> G{Valid?}\n    G -->|Yes| H[Execute on Neo4j]\n    G -->|No| I[Return Error]\n    H --> J[Calculate Confidence]\n    J --> K[Return Results]",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/hexagonal-cqrs-architecture.md",
+      "start_line": 47,
+      "end_line": 107,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph Before[\"\u274c BEFORE: Monolithic Actor (THE PROBLEM)\"]\n        B-API[\"API Handlers\"]\n        B-ACTOR[\"GraphServiceActor<br/>\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501<br/>48,000+ tokens!<br/>\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501<br/>\u2022 In-memory cache (STALE!)<br/>\u2022 Physics simulation<br/>\u2022 WebSocket broadcasting<br/>\u2022 Semantic analysis<br/>\u2022 Settings management<br/>\u2022 GitHub sync data\"]\n\n        B-WS[\"WebSocket<br/>Server\"]\n        B-PHYSICS[\"Physics<br/>Engine\"]\n        B-DB[\"SQLite DB\"]\n\n        B-API --> B-ACTOR\n        B-ACTOR -->...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/hexagonal-cqrs-architecture.md",
+      "start_line": 111,
+      "end_line": 131,
+      "diagram_type": "flowchart",
+      "content": "graph LR\n    subgraph Improvements[\"\ud83c\udfaf Architectural Benefits\"]\n        I1[\"1\ufe0f\u20e3 Separation of Concerns<br/>\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501<br/>Commands \u2260 Queries<br/>Write \u2260 Read\"]\n\n        I2[\"2\ufe0f\u20e3 Event-Driven<br/>\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501<br/>Loosely coupled<br/>subscribers\"]\n\n        I3[\"3\ufe0f\u20e3 Cache Coherency<br/>\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501<br/>Events trigger<br/>invalidation\"]\n\n        I4[\"4\ufe0f\u20e3 Testability<br/>\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501<br/>Pure functions<br/>No actors needed\"]\n\n        I5[\"5\ufe0f\u20e3 Scalability<br/>\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501<br/>Horizontal scaling<br/>Event repl...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/hexagonal-cqrs-architecture.md",
+      "start_line": 168,
+      "end_line": 240,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph HTTP[\"\ud83c\udf10 HTTP/WebSocket Layer (Actix-web - Thin Controllers)\"]\n        API1[\"GET /api/graph/data<br/>\u2192 GetGraphDataQuery\"]\n        API2[\"POST /api/graph/nodes<br/>\u2192 CreateNodeCommand\"]\n        API3[\"WS /ws/graph<br/>\u2192 GraphUpdateEvent subscription\"]\n    end\n\n    subgraph CQRS[\"\u26a1 CQRS Pattern\"]\n        subgraph Commands[\"\ud83d\udcdd Commands (Write Side)\"]\n            CMD1[\"CreateNodeCommand\"]\n            CMD2[\"UpdateNodeCommand\"]\n            CMD3[\"DeleteNodeCommand\"]\n            CMD4[...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/hexagonal-cqrs-architecture.md",
+      "start_line": 248,
+      "end_line": 315,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph Client[\"\ud83d\udc65 Client Layer\"]\n        USER[\"User Actions\"]\n        API[\"API Requests\"]\n        WS[\"WebSocket Connections\"]\n    end\n\n    subgraph WriteSide[\"\ud83d\udcdd WRITE SIDE (Commands)\"]\n        CMD1[\"CreateNodeCommand\"]\n        CMD2[\"UpdateNodePositionCommand\"]\n        CMD3[\"TriggerPhysicsStepCommand\"]\n        CMD4[\"BroadcastGraphUpdateCommand\"]\n\n        CMDH[\"Command Handlers<br/>\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501<br/>1. Validate<br/>2. Execute Domain Logic<br/>3. Persist via Repository<br/>4. Emit Event...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/hexagonal-cqrs-architecture.md",
+      "start_line": 1004,
+      "end_line": 1043,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    START[\"\ud83d\udd04 GitHub Sync Completes\"]\n    EVENT[\"\ud83d\udce1 Emit GitHubSyncCompletedEvent\"]\n\n    CACHE-SUB[\"\ud83d\uddc4\ufe0f Cache Invalidation<br/>Subscriber\"]\n    WS-SUB[\"\ud83c\udf10 WebSocket Notify<br/>Subscriber\"]\n    LOG-SUB[\"\ud83d\udcdd Logging<br/>Subscriber\"]\n\n    CACHE-ACTION[\"Clear all caches\"]\n    WS-ACTION[\"Broadcast to<br/>all clients\"]\n    LOG-ACTION[\"Log sync stats\"]\n\n    API-RESULT[\"\ud83d\udcca Next API call<br/>reads fresh data\"]\n    CLIENT-RESULT[\"\u2705 Clients reload<br/>and see 316 nodes!\"]\n\n    START --> EVENT\n    EVENT -...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/hexagonal-cqrs-architecture.md",
+      "start_line": 1051,
+      "end_line": 1108,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    USER[\"\ud83d\udc64 User starts physics simulation\"]\n    CMD[\"\ud83d\udcdd TriggerPhysicsStepCommand\"]\n    HANDLER[\"\u2699\ufe0f PhysicsCommandHandler\"]\n\n    SIM[\"\ud83d\udda5\ufe0f PhysicsSimulator.simulate-step\"]\n    GPU[\"\u26a1 Compute new positions<br/>(GPU)\"]\n    REPO[\"\ud83d\udcbe GraphRepository.batch-update-positions\"]\n    DB[\"\ud83d\udcca Write to SQLite\"]\n\n    EVENT[\"\ud83d\udce1 Emit PhysicsStepCompletedEvent\"]\n\n    WS-SUB[\"\ud83c\udf10 WebSocket Subscriber\"]\n    CACHE-SUB[\"\ud83d\uddc4\ufe0f Cache Invalidation\"]\n    METRICS-SUB[\"\ud83d\udcc8 Metrics\"]\n\n    WS-ACTION[\"Broadcast positions<br/>to...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/hexagonal-cqrs-architecture.md",
+      "start_line": 1142,
+      "end_line": 1198,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph Phase1[\"\ud83d\udfe2 Phase 1: Read Operations (1 week, LOW RISK)\"]\n        P1-1[\"Create query DTOs<br/>and handlers\"]\n        P1-2[\"Implement<br/>GetGraphDataQueryHandler\"]\n        P1-3[\"Update API handlers<br/>to use queries\"]\n        P1-4[\"Keep actor running<br/>in parallel\"]\n        P1-5[\"Monitor for<br/>differences\"]\n        P1-6[\"\u2705 Success: All GET<br/>endpoints use CQRS\"]\n\n        P1-1 --> P1-2 --> P1-3 --> P1-4 --> P1-5 --> P1-6\n    end\n\n    subgraph Phase2[\"\ud83d\udfe1 Phase 2: Write Op...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/hexagonal-cqrs-architecture.md",
+      "start_line": 1517,
+      "end_line": 1573,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph Presentation[\"\ud83c\udf10 Presentation Layer (HTTP/WebSocket)\"]\n        H1[\"handlers/api-handler/<br/>graph-data.rs<br/>nodes.rs<br/>physics.rs\"]\n    end\n\n    subgraph Application[\"\u26a1 Application Layer (CQRS)\"]\n        APP1[\"application/graph/<br/>\u2022 commands.rs<br/>\u2022 command-handlers.rs<br/>\u2022 queries.rs<br/>\u2022 query-handlers.rs\"]\n\n        APP2[\"application/physics/<br/>\u2022 commands.rs<br/>\u2022 queries.rs\"]\n    end\n\n    subgraph Domain[\"\ud83c\udfaf Domain Layer (Business Logic)\"]\n        DOM1[\"domain/...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/hexagonal-cqrs-architecture.md",
+      "start_line": 1791,
+      "end_line": 1824,
+      "diagram_type": "mindmap",
+      "content": "mindmap\n  root((Hexagonal/CQRS<br/>Architecture))\n    Separation of Concerns\n      Commands vs Queries\n      Write vs Read\n      Domain vs Infrastructure\n      Ports vs Adapters\n    Testability\n      Pure functions\n      No actors needed\n      Mock repositories\n      Isolated unit tests\n    Scalability\n      Event-driven\n      Horizontal scaling\n      Event replay\n      CQRS read replicas\n    Maintainability\n      Small focused modules\n      Clear boundaries\n      Self-documenting\n      48K \u2192 mo...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/hexagonal-cqrs-architecture.md",
+      "start_line": 1828,
+      "end_line": 1873,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph Phase1Check[\"\u2705 Phase 1: Read Operations\"]\n        P1C1[\"\u2610 All GET endpoints use query handlers\"]\n        P1C2[\"\u2610 Query latency <50ms (p95)\"]\n        P1C3[\"\u2610 Test coverage >80%\"]\n        P1C4[\"\u2610 Zero performance regression\"]\n        P1C5[\"\u2610 Documentation updated\"]\n    end\n\n    subgraph Phase2Check[\"\u2705 Phase 2: Write Operations\"]\n        P2C1[\"\u2610 All POST/PUT/DELETE use command handlers\"]\n        P2C2[\"\u2610 Events emitted for all state changes\"]\n        P2C3[\"\u2610 WebSocket clients r...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/pipeline-sequence-diagrams.md",
+      "start_line": 5,
+      "end_line": 70,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant GitHub\n    participant GitHubSync as GitHubSyncService\n    participant DB as unified.db\n    participant Pipeline as OntologyPipelineService\n    participant Reasoning as ReasoningActor\n    participant Constraint as ConstraintBuilder\n    participant GPU as OntologyConstraintActor\n    participant Physics as ForceComputeActor\n    participant WS as WebSocket\n    participant Client\n\n    GitHub->>GitHubSync: Webhook (OWL file changed)\n    GitHubSync->>GitHubSync: Parse O...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/pipeline-sequence-diagrams.md",
+      "start_line": 370,
+      "end_line": 402,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant Admin as Admin UI\n    participant API as PipelineAdminHandler\n    participant Pipeline as OntologyPipelineService\n    participant EventBus\n\n    Admin->>API: POST /api/admin/pipeline/trigger\n    API->>API: Generate correlation-id\n    API->>Pipeline: on-ontology-modified()\n    Pipeline-->>API: Stats\n    API-->>Admin: {\"status\": \"triggered\", \"correlation-id\": \"abc-123\"}\n\n    Admin->>API: GET /api/admin/pipeline/status\n    API->>Pipeline: get-status()\n    API->>EventB...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/semantic-forces-system.md",
+      "start_line": 23,
+      "end_line": 36,
+      "diagram_type": "flowchart",
+      "content": "graph TD\n    A[Semantic Forces] --> B[DAG Layout]\n    A --> C[Type Clustering]\n    A --> D[Collision Detection]\n    A --> E[Attribute Weighted]\n    A --> F[Edge Type Weighted]\n\n    B --> B1[Hierarchical Positioning]\n    C --> C1[Group by Node Type]\n    D --> D1[Prevent Overlap]\n    E --> E1[Custom Attribute-based]\n    F --> F1[Edge-specific Spring Strengths]",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/semantic-forces-system.md",
+      "start_line": 48,
+      "end_line": 76,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph Frontend[\"Client Layer\"]\n        UI[Semantic Force Controls]\n        API[TypeScript API Client]\n    end\n\n    subgraph Backend[\"Rust Server\"]\n        Handler[semantic_forces_handler.rs]\n        Engine[SemanticPhysicsEngine]\n        HierarchyCalc[HierarchyCalculator]\n    end\n\n    subgraph GPU[\"CUDA Layer\"]\n        DAG[DAG Layout Kernel]\n        TypeCluster[Type Clustering Kernel]\n        Collision[Collision Kernel]\n        AttrWeight[Attribute Weighted Kernel]\n    end\n\n    UI...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/semantic-forces-system.md",
+      "start_line": 144,
+      "end_line": 155,
+      "diagram_type": "flowchart",
+      "content": "graph LR\n    A[Calculate<br/>Hierarchy Levels] --> B[Determine<br/>Layout Direction]\n    B --> C{Direction Mode}\n    C -->|Top-Down| D[Lock Y to Level]\n    C -->|Radial| E[Concentric Circles]\n    C -->|Left-Right| F[Lock X to Level]\n    D --> G[Apply Spring Force]\n    E --> G\n    F --> G\n    G --> H[Update Velocities]",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/semantic-forces-system.md",
+      "start_line": 185,
+      "end_line": 193,
+      "diagram_type": "flowchart",
+      "content": "graph TD\n    A[For Each Node] --> B[Get Node Type]\n    B --> C[Find Type Cluster Center]\n    C --> D[Calculate Attraction Force]\n    D --> E[Find Same-Type Neighbors]\n    E --> F[Apply Reduced Repulsion]\n    F --> G[Update Velocity]",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/semantic-forces-system.md",
+      "start_line": 223,
+      "end_line": 231,
+      "diagram_type": "flowchart",
+      "content": "graph TD\n    A[For Each Node Pair] --> B[Calculate Distance]\n    B --> C{Distance < Sum of Radii?}\n    C -->|Yes| D[Calculate Overlap]\n    C -->|No| E[Skip]\n    D --> F[Apply Repulsion Force]\n    F --> G[Update Velocities]",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/semantic-forces-system.md",
+      "start_line": 255,
+      "end_line": 263,
+      "diagram_type": "flowchart",
+      "content": "graph TD\n    A[For Each Edge] --> B[Get Semantic Strength]\n    B --> C[Calculate Ideal Spring Length]\n    C --> D[Measure Actual Distance]\n    D --> E[Compute Spring Displacement]\n    E --> F[Apply Force to Both Nodes]\n    F --> G[Atomic Add to Velocities]",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/semantic-forces-system.md",
+      "start_line": 344,
+      "end_line": 353,
+      "diagram_type": "flowchart",
+      "content": "graph TD\n    A[Build Directed Graph] --> B{Is DAG?}\n    B -->|No| C[Return Error:<br/>Not A DAG]\n    B -->|Yes| D[Calculate In-Degrees]\n    D --> E[Find Root Nodes<br/>in-degree = 0]\n    E --> F[BFS Level Assignment]\n    F --> G[level = max parent levels + 1]\n    G --> H[Return Hierarchy Levels]",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/00-architecture-overview.md",
+      "start_line": 39,
+      "end_line": 54,
+      "diagram_type": "flowchart",
+      "content": "graph LR\n    A[GitHub OWL Files<br/>900+ Classes] --> B[Horned-OWL Parser]\n    B --> C[(unified.db<br/>owl-* tables)]\n    C --> D[Whelk-rs Reasoner<br/>OWL 2 EL]\n    D --> E[Inferred Axioms<br/>is-inferred=1]\n    E --> C\n    C --> F[Constraint Builder<br/>8 types]\n    F --> G[CUDA Physics<br/>39 kernels]\n    G --> H[Binary WebSocket<br/>36 bytes/node]\n    H --> I[3D Client]\n\n    style D fill:#e1f5ff\n    style G fill:#ffe1e1\n    style C fill:#f0e1ff",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/00-architecture-overview.md",
+      "start_line": 70,
+      "end_line": 88,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant GH as GitHub\n    participant Parser as OWL Parser\n    participant DB as unified.db\n    participant Whelk as Whelk Reasoner\n    participant GPU as CUDA Physics\n    participant Client as 3D Client\n\n    GH->>Parser: Fetch OWL files\n    Parser->>DB: Store asserted axioms<br/>(is-inferred=0)\n    DB->>Whelk: Load ontology\n    Whelk->>Whelk: Compute inferences\n    Whelk->>DB: Store inferred axioms<br/>(is-inferred=1)\n    DB->>GPU: Generate semantic constraints\n    GPU->>...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/00-architecture-overview.md",
+      "start_line": 272,
+      "end_line": 298,
+      "diagram_type": "gantt",
+      "content": "gantt\n    title Hexagonal Architecture Migration Timeline\n    dateFormat YYYY-MM-DD\n    section Foundation\n    Database Setup           :2025-11-01, 7d\n    Port Definitions         :2025-11-01, 7d\n    Migration Scripts        :2025-11-08, 7d\n    section Adapters\n    Repository Adapters      :2025-11-15, 7d\n    Actor Adapters          :2025-11-22, 7d\n    Integration Tests       :2025-11-29, 7d\n    section CQRS Layer\n    Settings Domain         :2025-12-06, 7d\n    Graph Domain           :2025-12-1...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/xr-immersive-system.md",
+      "start_line": 9,
+      "end_line": 57,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph \"Client Layer\"\n        WebXR[\"WebXR API\"]\n        MetaSDK[\"Meta SDK<br/>(Babylon.js)\"]\n        VisionOS[\"Vision OS SDK<br/>(RealityKit)\"]\n        SteamVR[\"SteamVR Runtime\"]\n    end\n\n    subgraph \"XR Service Layer\"\n        InputHandler[\"Input Handler<br/>(Gesture/Voice/Controller)\"]\n        SpatialMgr[\"Spatial Manager<br/>(Tracking/Physics)\"]\n        CollabMgr[\"Collaboration Manager<br/>(Multi-user)\"]\n    end\n\n    subgraph \"Integration Layer\"\n        AgentBridge[\"Agent Coord...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/xr-immersive-system.md",
+      "start_line": 181,
+      "end_line": 198,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant Platform as Platform<br/>(WebXR/SDK)\n    participant InputMgr as Input Manager\n    participant GestureRec as Gesture Recognizer\n    participant InteractMgr as Interaction Manager\n    participant Agent as Agent Service\n    participant Physics as Physics Engine\n\n    Platform->>InputMgr: Raw input (controller/hand)\n    InputMgr->>GestureRec: Parsed input frame\n    GestureRec->>GestureRec: Pattern matching\n    GestureRec->>InteractMgr: Recognized gesture\n    InteractM...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/xr-immersive-system.md",
+      "start_line": 277,
+      "end_line": 302,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    User1[\"User 1<br/>(WebXR)\"]\n    User2[\"User 2<br/>(Meta Quest)\"]\n    User3[\"User 3<br/>(Vision Pro)\"]\n\n    User1 --> WS[\"WebSocket Server<br/>(Binary Protocol)\"]\n    User2 --> WS\n    User3 --> WS\n\n    WS --> SpaceMgr[\"Space Manager<br/>(36 bytes/node)\"]\n    WS --> UserMgr[\"User Manager<br/>(Presence/Avatar)\"]\n    WS --> ConflictRes[\"Conflict Resolution<br/>(CRDT)\"]\n\n    SpaceMgr --> Cache[\"Redis Cache<br/>(spatial indices)\"]\n    UserMgr --> DB[\"User State DB\"]\n    ConflictRes --> DB...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/ontology-storage-architecture.md",
+      "start_line": 9,
+      "end_line": 52,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph \"External Sources\"\n        GitHub[\"GitHub Repositories<br/>(900+ OWL Classes)\"]\n        OWLFiles[\"OWL/RDF Files<br/>(.ttl, .owl, .xml)\"]\n    end\n\n    subgraph \"Parsing Layer\"\n        Parser[\"Horned-OWL Parser<br/>(Concurrent)\"]\n        Validator[\"Ontology Validator<br/>(OWL 2 Profile Check)\"]\n    end\n\n    subgraph \"Reasoning Layer\"\n        Whelk[\"Whelk-rs Reasoner<br/>(OWL 2 EL)\"]\n        InferenceCache[\"Inference Cache<br/>(LRU 90x speedup)\"]\n    end\n\n    subgraph \"Storage...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/ontology-storage-architecture.md",
+      "start_line": 191,
+      "end_line": 212,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant Client\n    participant OntologyRepo as OntologyRepository\n    participant QueryEngine as Query Engine\n    participant Cache\n    participant DB\n\n    Client->>OntologyRepo: getClassesByProperty(property)\n    OntologyRepo->>QueryEngine: Execute query\n    QueryEngine->>Cache: Check hot axioms\n    Cache-->>QueryEngine: Cache hit (90% typical)\n    QueryEngine-->>OntologyRepo: Results\n    OntologyRepo-->>Client: Typed results\n\n    alt Cache miss\n        QueryEngine->>DB:...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/data-flow-complete.md",
+      "start_line": 25,
+      "end_line": 90,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph GitHub[\"\ud83c\udf10 GitHub Repository (jjohare/logseq)\"]\n        MD1[\"\ud83d\udcc4 Knowledge Graph<br/>.md files (public:: true)\"]\n        MD2[\"\ud83d\udcc4 Ontology<br/>.md files (OntologyBlock)\"]\n    end\n\n    subgraph Sync[\"\u2b07\ufe0f GitHub Sync Service\"]\n        DIFF[\"\ud83d\udd0d Differential Sync<br/>(SHA1 comparison)\"]\n        KGP[\"\ud83d\udcdd KnowledgeGraphParser\"]\n        ONTOP[\"\ud83e\uddec OntologyParser\"]\n    end\n\n    subgraph Database[\"\ud83d\udcbe Unified Database (unified.db)\"]\n        GRAPH-TABLES[\"graph-nodes<br/>graph-edges\"]\n        OWL...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/data-flow-complete.md",
+      "start_line": 98,
+      "end_line": 134,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant App as AppState::new()\n    participant Sync as GitHubSyncService\n    participant GH as GitHub API\n    participant Parser as Content Parsers\n    participant Repo as UnifiedGraphRepository\n    participant DB as unified.db\n\n    App->>Sync: Initialize sync service\n    App->>Sync: sync-graphs()\n\n    activate Sync\n    Sync->>DB: Query file-metadata for SHA1 hashes\n    DB-->>Sync: Previous file states\n\n    Sync->>GH: Fetch file list (jjohare/logseq)\n    GH-->>Sync: Markd...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/data-flow-complete.md",
+      "start_line": 213,
+      "end_line": 265,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    START[\"\ud83d\udd04 Sync Complete\"]\n\n    subgraph Load[\"1\ufe0f\u20e3 Load Ontology\"]\n        LOAD-CLASSES[\"Load owl-classes\"]\n        LOAD-AXIOMS[\"Load owl-axioms<br/>(is-inferred=0)\"]\n        LOAD-PROPS[\"Load owl-properties\"]\n    end\n\n    subgraph Reason[\"2\ufe0f\u20e3 Whelk-rs Reasoning\"]\n        BUILD[\"Build OWL graph\"]\n        COMPUTE[\"Compute inferences<br/>(10-100x faster)\"]\n        CHECK[\"Consistency check\"]\n    end\n\n    subgraph Store[\"3\ufe0f\u20e3 Store Results\"]\n        INFER-AX[\"Insert inferred axioms<br/>(is-...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/data-flow-complete.md",
+      "start_line": 322,
+      "end_line": 356,
+      "diagram_type": "flowchart",
+      "content": "graph LR\n    subgraph CPU[\"CPU (Rust)\"]\n        CONS[\"Generate<br/>Constraints\"]\n        UPLOAD[\"Upload to GPU\"]\n    end\n\n    subgraph GPU[\"GPU (CUDA)\"]\n        K1[\"Kernel 1:<br/>Spring Forces\"]\n        K2[\"Kernel 2:<br/>Repulsion Forces\"]\n        K3[\"Kernel 3:<br/>Alignment Forces\"]\n        K-INFER[\"Apply 0.3x<br/>to inferred\"]\n        INTEGRATE[\"Integrate<br/>Velocities\"]\n        UPDATE[\"Update<br/>Positions\"]\n    end\n\n    subgraph Output[\"Output\"]\n        POSITIONS[\"New Node<br/>Positions\"]\n ...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/data-flow-complete.md",
+      "start_line": 412,
+      "end_line": 427,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant WS as WebSocket Client\n    participant Parser as Binary Parser\n    participant Scene as 3D Scene\n    participant Render as Renderer\n    participant GPU as Client GPU\n\n    WS->>Parser: Binary node updates (11.4 KB)\n    Parser->>Scene: Parse 316 NodeUpdate structs\n    Scene->>Scene: Update node positions\n    Scene->>Render: Request frame render\n    Render->>GPU: Upload geometry\n    GPU->>GPU: Render 3D scene (60 FPS)\n    GPU-->>WS: Display to user",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/data-flow-complete.md",
+      "start_line": 464,
+      "end_line": 489,
+      "diagram_type": "gantt",
+      "content": "gantt\n    title Complete Data Flow Timing (from GitHub to Client)\n    dateFormat X\n    axisFormat %L ms\n\n    section GitHub Sync\n    Fetch files          :0, 2000\n    Parse content        :2000, 1000\n    Store to DB          :3000, 500\n\n    section Reasoning\n    Load ontology        :3500, 200\n    Whelk-rs inference   :3700, 1500\n    Store inferred       :5200, 300\n\n    section GPU Physics\n    Generate constraints :5500, 100\n    Upload to GPU        :5600, 50\n    Compute forces       :5650, 16\n ...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/data-flow-complete.md",
+      "start_line": 509,
+      "end_line": 556,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    GH[\"\ud83d\udcc1 GitHub File:<br/>artificial-intelligence.md\"]\n\n    META[\"\ud83d\udccb file-metadata:<br/>SHA1: abc123...<br/>last-modified: 2025-11-03\"]\n\n    NODE[\"\ud83d\udd35 graph-nodes:<br/>id: 1<br/>metadata-id: 'artificial-intelligence'<br/>label: 'Artificial Intelligence'\"]\n\n    CLASS[\"\ud83e\uddec owl-classes:<br/>iri: 'AI'<br/>label: 'AI System'\"]\n\n    AXIOM-A[\"\ud83d\udcd0 owl-axioms:<br/>subject: 'AI'<br/>predicate: 'subClassOf'<br/>object: 'ComputationalSystem'<br/>is-inferred: 0\"]\n\n    AXIOM-I[\"\ud83d\udcd0 owl-axioms:<br/>subject: '...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/04-database-schemas.md",
+      "start_line": 402,
+      "end_line": 428,
+      "diagram_type": "flowchart",
+      "content": "flowchart TD\n    A[Local Markdown Files] --> F[file-metadata]\n    B[GitHub Ontology Markdown] --> F\n\n    F --> C{Sync Process}\n\n    C -->|Knowledge Graph| D[graph-nodes]\n    C -->|Relationships| E[graph-edges]\n    C -->|OWL Classes| G[owl-classes]\n    C -->|Properties| H[owl-properties]\n    C -->|Axioms| I[owl-axioms]\n    C -->|Hierarchy| J[owl-class-hierarchy]\n\n    D --> K[graph-statistics]\n    E --> K\n    G --> K\n    I --> K\n\n    K --> L[Runtime Metrics]\n\n    D -.->|Physics Simulation| M[GPU C...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/client.md",
+      "start_line": 23,
+      "end_line": 254,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph \"Browser Runtime Environment\"\n        subgraph \"React Application Layer\"\n            App[\"App.tsx<br/>Root Component\"]\n            AppInit[\"AppInitialiser<br/>WebSocket & Settings Init\"]\n            MainLayout[\"MainLayout.tsx<br/>Primary Layout Manager\"]\n            Quest3AR[\"Quest3AR.tsx<br/>XR/AR Layout\"]\n        end\n\n        subgraph \"Context Providers & State\"\n            ApplicationMode[\"ApplicationModeProvider<br/>Mode Management\"]\n            XRCore[\"XRCoreProvider<b...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/client.md",
+      "start_line": 262,
+      "end_line": 291,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph \"Application Initialisation Flow\"\n        Browser[\"Browser Load\"] --> App[\"App.tsx\"]\n        App --> AppInitialiser[\"AppInitialiser\"]\n\n        AppInitialiser --> SettingsInit[\"Settings Initialisation\"]\n        AppInitialiser --> WebSocketInit[\"WebSocket Connection\"]\n        AppInitialiser --> AuthInit[\"Authentication Check\"]\n\n        SettingsInit --> SettingsStore[\"Zustand Settings Store\"]\n        WebSocketInit --> WebSocketService[\"WebSocket Service\"]\n        AuthInit --> ...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/client.md",
+      "start_line": 297,
+      "end_line": 347,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph \"Graph Rendering Pipeline\"\n        GraphCanvas[\"GraphCanvas.tsx<br/>React Three Fiber Canvas\"]\n\n        subgraph \"Scene Management\"\n            GraphManager[\"GraphManager<br/>Scene Object Manager\"]\n            GraphDataManager[\"GraphDataManager<br/>Data Orchestration\"]\n            UnifiedImplementation[\"Unified Graph<br/>Type Flags: 0x4000, 0x8000\"]\n            SimpleThreeTest[\"SimpleThreeTest<br/>Debug Renderer\"]\n            GraphCanvasSimple[\"GraphCanvasSimple<br/>Lightwe...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/client.md",
+      "start_line": 353,
+      "end_line": 408,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph \"Binary Protocol Architecture\"\n        subgraph \"WebSocket Connection\"\n            WebSocketService[\"WebSocketService.ts<br/>Connection Manager\"]\n            ConnectionHandlers[\"Connection Handlers\"]\n            ReconnectLogic[\"Reconnect Logic\"]\n            HeartbeatSystem[\"Heartbeat System\"]\n        end\n\n        subgraph \"Binary Data Processing\"\n            BinaryWebSocketProtocol[\"BinaryWebSocketProtocol.ts<br/>Protocol Handler\"]\n            BinaryProtocol[\"binaryProtocol...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/client.md",
+      "start_line": 417,
+      "end_line": 489,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph \"Agent Management System\"\n        subgraph \"Data Sources\"\n            BotsWebSocketIntegration[\"BotsWebSocketIntegration<br/>WebSocket Handler\"]\n            AgentPollingService[\"AgentPollingService<br/>REST Polling\"]\n            ConfigurationMapper[\"Configuration Mapper<br/>Agent Config\"]\n        end\n\n        subgraph \"Data Context\"\n            BotsDataProvider[\"BotsDataProvider<br/>React Context\"]\n            BotsDataContext[\"Bots Data Context<br/>State Management\"]\n      ...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/client.md",
+      "start_line": 495,
+      "end_line": 555,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph \"Settings System Architecture\"\n        subgraph \"State Management\"\n            SettingsStore[\"settingsStore.ts<br/>Zustand Store\"]\n            PartialSettings[\"Partial Settings<br/>Lazy Loading\"]\n            LoadedPaths[\"Loaded Paths Tracking\"]\n            Subscribers[\"Path Subscribers\"]\n        end\n\n        subgraph \"Persistence Layer\"\n            AutoSaveManager[\"AutoSaveManager<br/>Batch Operations\"]\n            SettingsApi[\"settingsApi<br/>Backend Sync\"]\n            Loc...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/client.md",
+      "start_line": 559,
+      "end_line": 619,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph \"XR System Architecture\"\n        subgraph \"Core XR Infrastructure\"\n            XRCoreProvider[\"XRCoreProvider<br/>WebXR Foundation\"]\n            Quest3Integration[\"useQuest3Integration<br/>Quest 3 Detection\"]\n            XRManagers[\"XR Managers<br/>Device Management\"]\n            XRSystems[\"XR Systems<br/>Tracking Systems\"]\n        end\n\n        subgraph \"XR Components\"\n            XRComponents[\"XR Components<br/>UI Components\"]\n            XRUIComponents[\"XR UI Components<b...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/client.md",
+      "start_line": 689,
+      "end_line": 737,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph \"Voice System Current State\"\n        subgraph \"Active Implementation\"\n            LegacyHook[\"useVoiceInteraction.ts<br/>Legacy Hook (In Use)\"]\n            VoiceButton[\"VoiceButton.tsx<br/>Uses Legacy Hook\"]\n            VoiceIndicator[\"VoiceStatusIndicator.tsx<br/>Uses Legacy Hook\"]\n        end\n\n        subgraph \"Available but Inactive\"\n            VoiceProvider[\"VoiceProvider<br/>Context Provider (Unused)\"]\n            CentralisedHook[\"useVoiceInteractionCentralised<br/>Mo...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/client.md",
+      "start_line": 741,
+      "end_line": 764,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant User as User\n    participant LegacyHook as useVoiceInteraction\n    participant AudioService as Audio Input Service\n    participant WS as WebSocket Service\n    participant Backend as Rust Backend\n    participant Whisper as Whisper STT\n    participant Kokoro as Kokoro TTS\n\n    User->>LegacyHook: Press voice button\n    LegacyHook->>AudioService: Start recording\n    AudioService->>AudioService: Capture audio stream\n    AudioService->>WS: Send binary audio\n    WS->>Bac...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/client.md",
+      "start_line": 774,
+      "end_line": 818,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph \"Test Infrastructure - Mock Based\"\n        subgraph \"Mock Providers\"\n            MockApiClient[\"createMockApiClient<br/>Mock HTTP Client\"]\n            MockWebSocket[\"createMockWebSocket<br/>Mock WebSocket\"]\n            MockWebSocketServer[\"MockWebSocketServer<br/>Mock WS Server\"]\n        end\n\n        subgraph \"Integration Test Suites\"\n            AnalyticsTests[\"analytics.test.ts<br/>234 tests\"]\n            WorkspaceTests[\"workspace.test.ts<br/>198 tests\"]\n            Optim...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/client.md",
+      "start_line": 885,
+      "end_line": 902,
+      "diagram_type": "flowchart",
+      "content": "graph LR\n    subgraph \"Before: Mixed API Clients\"\n        A1[apiService<br/>Legacy Client]\n        A2[fetch() calls<br/>Direct API calls]\n        A3[UnifiedApiClient<br/>New Client]\n    end\n\n    subgraph \"After: Single Source\"\n        B1[UnifiedApiClient<br/>119 References]\n        B2[fetch() calls<br/>Internal & Debug Only]\n        B3[Consistent Patterns<br/>Error Handling]\n    end\n\n    A1 -.-> B1\n    A2 -.-> B2\n    A3 -.-> B1",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/client.md",
+      "start_line": 1017,
+      "end_line": 1064,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph \"Client Interface Layers - Operational\"\n        subgraph \"REST API Integration\"\n            UnifiedClient[\"UnifiedApiClient<br/>119 References\"]\n            SettingsAPI[\"Settings API<br/>9 Endpoints Active\"]\n            GraphAPI[\"Graph API<br/>2 Endpoints Active\"]\n            AgentAPI[\"Agent/Bot API<br/>8 Endpoints + Task Management\"]\n        end\n\n        subgraph \"WebSocket Binary Protocol\"\n            WSService[\"WebSocket Service<br/>80% Traffic Reduction\"]\n            Bi...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/server.md",
+      "start_line": 15,
+      "end_line": 142,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    %% Client Layer\n    Client[Web Clients<br/>Unity/Browser]\n\n    %% Entry Point\n    Main[main.rs<br/>HTTP Server Entry Point]\n\n    %% Core Server Infrastructure\n    subgraph \"HTTP Server Layer\"\n        HttpServer[Actix HTTP Server<br/>:8080]\n        Middleware[CORS + Logger + Compression<br/>Error Recovery Middleware]\n        Router[Route Configuration]\n    end\n\n    %% Application State\n    AppState[AppState<br/>Centralised State Management]\n\n    %% Actor System - CURRENT STATE\n    su...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/server.md",
+      "start_line": 198,
+      "end_line": 219,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    Supervisor[\"GraphServiceSupervisor<br/>\ud83c\udfaf Future Architecture<br/>Pure Supervised Pattern\"]\n\n    subgraph \"Planned Actor Decomposition\"\n        GraphState[\"GraphStateActor<br/>\ud83d\udcbe State Management<br/>Persistence Layer\"]\n        PhysicsOrch[\"PhysicsOrchestratorActor<br/>\u26a1 Physics Simulation<br/>GPU Compute Integration\"]\n        SemanticProc[\"SemanticProcessorActor<br/>\ud83e\udde0 Semantic Analysis<br/>AI Features\"]\n        ClientCoord[\"ClientCoordinatorActor<br/>\ud83d\udd0c WebSocket Management<br/>Client...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/server.md",
+      "start_line": 227,
+      "end_line": 246,
+      "diagram_type": "flowchart",
+      "content": "graph LR\n    subgraph \"34-byte Wire Packet Structure\"\n        A[\"node-id<br/>u16<br/>2 bytes\"]\n        B[\"position[0]<br/>f32<br/>4 bytes\"]\n        C[\"position[1]<br/>f32<br/>4 bytes\"]\n        D[\"position[2]<br/>f32<br/>4 bytes\"]\n        E[\"velocity[0]<br/>f32<br/>4 bytes\"]\n        F[\"velocity[1]<br/>f32<br/>4 bytes\"]\n        G[\"velocity[2]<br/>f32<br/>4 bytes\"]\n        H[\"sssp-distance<br/>f32<br/>4 bytes\"]\n        I[\"sssp-parent<br/>i32<br/>4 bytes\"]\n    end\n\n    A --> B --> C --> D --> E --> ...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/server.md",
+      "start_line": 264,
+      "end_line": 284,
+      "diagram_type": "flowchart",
+      "content": "graph LR\n    subgraph \"48-byte GPU Internal Structure\"\n        A[\"node-id<br/>u32<br/>4 bytes\"]\n        B[\"x, y, z<br/>f32 \u00d7 3<br/>12 bytes<br/>Position\"]\n        C[\"vx, vy, vz<br/>f32 \u00d7 3<br/>12 bytes<br/>Velocity\"]\n        D[\"sssp-distance<br/>f32<br/>4 bytes\"]\n        E[\"sssp-parent<br/>i32<br/>4 bytes\"]\n        F[\"cluster-id<br/>i32<br/>4 bytes\"]\n        G[\"centrality<br/>f32<br/>4 bytes\"]\n        H[\"mass<br/>f32<br/>4 bytes\"]\n    end\n\n    A --> B --> C --> D --> E --> F --> G --> H\n\n    sty...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/server.md",
+      "start_line": 306,
+      "end_line": 346,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph \"CUDA Kernel Distribution - 40 Total Kernels\"\n        subgraph \"visionflow-unified.cu - 28 Kernels\"\n            VF1[\"Force Computation<br/>8 kernels\"]\n            VF2[\"Physics Integration<br/>6 kernels\"]\n            VF3[\"Clustering Algorithms<br/>7 kernels\"]\n            VF4[\"Anomaly Detection<br/>5 kernels\"]\n            VF5[\"Utility & Grid<br/>2 kernels\"]\n        end\n\n        subgraph \"gpu-clustering-kernels.cu - 8 Kernels\"\n            CL1[\"K-means Variants<br/>3 kernels\"]\n...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/server.md",
+      "start_line": 359,
+      "end_line": 386,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    GPUManager[\"GPUManagerActor<br/>\ud83c\udfaf Supervisor<br/>Orchestrates GPU Compute\"]\n\n    subgraph \"Specialised GPU Actors\"\n        GPUResource[\"GPUResourceActor<br/>\ud83d\udcbe Memory Management<br/>Device Allocation\"]\n        ForceCompute[\"ForceComputeActor<br/>\u26a1 Physics Simulation<br/>Force-directed Layout\"]\n        Clustering[\"ClusteringActor<br/>\ud83d\udd35 Clustering<br/>K-means, Louvain, Community\"]\n        Anomaly[\"AnomalyDetectionActor<br/>\ud83d\udd0d Anomaly Detection<br/>LOF, Z-score Analysis\"]\n        StressM...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/server.md",
+      "start_line": 390,
+      "end_line": 429,
+      "diagram_type": "flowchart",
+      "content": "graph LR\n    subgraph \"GPU Capability Matrix\"\n        subgraph \"Physics Engine\"\n            P1[\"Force-Directed Layout<br/>Spring-Mass System\"]\n            P2[\"Spatial Grid<br/>O(n log n) Optimization\"]\n            P3[\"Verlet Integration<br/>Position Updates\"]\n        end\n\n        subgraph \"Clustering Algorithms\"\n            C1[\"K-means++<br/>Parallel Initialization\"]\n            C2[\"Louvain Modularity<br/>Community Detection\"]\n            C3[\"Label Propagation<br/>Fast Clustering\"]\n        end\n\n...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/server.md",
+      "start_line": 442,
+      "end_line": 525,
+      "diagram_type": "flowchart",
+      "content": "flowchart TB\n    subgraph \"Input Stage - CPU\"\n        GraphData[\"Graph Data<br/>Nodes & Edges<br/>CPU Memory\"]\n        SimConfig[\"Simulation Config<br/>Physics Parameters<br/>Constraints\"]\n        UserInput[\"User Interactions<br/>Drag, Pin, Zoom\"]\n    end\n\n    subgraph \"GPU Memory Transfer\"\n        HostToDevice[\"cudaMemcpy H\u2192D<br/>Async Transfer\"]\n        DeviceBuffers[\"Device Buffers<br/>Node: 48 bytes<br/>Edge: 16 bytes\"]\n    end\n\n    subgraph \"GPU Kernel Execution - CUDA Cores\"\n        subgra...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/server.md",
+      "start_line": 628,
+      "end_line": 680,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph \"Docker Network: docker-ragflow\"\n        subgraph \"visionflow-container\"\n            Nginx[\"Nginx Reverse Proxy<br/>:3030<br/>SSL/TLS Termination\"]\n            RustAPI[\"Rust Backend<br/>:4000<br/>REST API\"]\n            Vite[\"Vite Dev Server<br/>:5173<br/>Frontend HMR\"]\n            WSServer[\"WebSocket Server<br/>:3002<br/>Binary Protocol\"]\n        end\n\n        subgraph \"agentic-workstation\"\n            ManagementAPI[\"Management API<br/>:9090<br/>HTTP Task Control\"]\n         ...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/components/websocket-protocol.md",
+      "start_line": 16,
+      "end_line": 31,
+      "diagram_type": "stateDiagram",
+      "content": "stateDiagram-v2\n    [*] --> Connecting\n    Connecting --> Connected: Handshake Success\n    Connecting --> Failed: Handshake Failure\n    Connected --> Authenticating: Send Auth\n    Authenticating --> Authenticated: Auth Success\n    Authenticating --> Failed: Auth Failure\n    Authenticated --> Active: Ready\n    Active --> Active: Message Exchange\n    Active --> Reconnecting: Connection Lost\n    Reconnecting --> Connecting: Retry\n    Active --> Closed: Graceful Shutdown\n    Failed --> [*]\n    Close...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/components/websocket-protocol.md",
+      "start_line": 37,
+      "end_line": 61,
+      "diagram_type": "unknown",
+      "content": "%%{init: {'theme':'base', 'themeVariables': {'fontSize':'14px'}}}%%\ngraph TB\n    subgraph Frame[\"WebSocket Message Frame\"]\n        Header[\"Frame Header (8 bytes)\"]\n        V[\"Version (1 byte)\"]\n        T[\"Type (1 byte)\"]\n        F[\"Flags (2 bytes)\"]\n        L[\"Length (4 bytes)\"]\n        Payload[\"Payload (Variable)<br/>Binary Data\"]\n\n        Header --> V\n        Header --> T\n        Header --> F\n        Header --> L\n        Header --> Payload\n    end\n\n    style Header fill:#e1f5ff\n    style Paylo...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": [
+        "GitHub may not support all init directives"
+      ]
+    },
+    {
+      "file": "concepts/architecture/gpu/communication-flow.md",
+      "start_line": 201,
+      "end_line": 213,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant GraphService as GraphServiceActor (DEPRECATED)\n    participant GPUManager as GPUManagerActor\n    participant GPUResource as GPUResourceActor\n\n    GraphService->>GPUManager: InitializeGPU\n    GPUManager->>GPUResource: Initialize CUDA device\n    GPUResource-->>GPUManager: Error: CUDA not available\n    GPUManager->>GPUManager: Set fallback mode (CPU)\n    GPUManager-->>GraphService: GPU unavailable, using CPU fallback\n    GraphService->>GraphService: Update simulation...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/gpu/communication-flow.md",
+      "start_line": 219,
+      "end_line": 232,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant GraphService as GraphServiceActor (DEPRECATED)\n    participant GPUManager as GPUManagerActor\n    participant ForceCompute as ForceComputeActor\n\n    GraphService->>GPUManager: RequestPhysicsStep\n    GPUManager->>ForceCompute: Execute physics simulation\n    ForceCompute-->>GPUManager: Error: GPU kernel failure\n    GPUManager->>GPUManager: Reset GPU state\n    GPUManager->>ForceCompute: Retry physics step\n    ForceCompute-->>GPUManager: Physics step complete\n    GPUMa...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "assets/diagrams/sparc-turboflow-architecture.md",
+      "start_line": 11,
+      "end_line": 72,
+      "diagram_type": "flowchart",
+      "content": "flowchart TB\n    subgraph \"SPARC Phases<br/>Specification \u2192 Pseudocode \u2192 Architecture \u2192 Refinement \u2192 Completion\"\n\n        subgraph \"Phase 1: Specification\"\n            SPEC-REQ[Requirements Analysis<br/>doc-planner.md agent]\n            SPEC-BREAK[Microtask Breakdown<br/>10-minute atomic tasks]\n            SPEC-EPIC[GitHub EPIC Issue<br/>Feature tracking]\n        end\n\n        subgraph \"Phase 2: Pseudocode\"\n            PSEUDO-ALGO[Algorithm Design<br/>Language-agnostic logic]\n            PSEUDO-F...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "assets/diagrams/sparc-turboflow-architecture.md",
+      "start_line": 78,
+      "end_line": 159,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph \"Claude Code<br/>Primary Development Interface\"\n        CLAUDE-MAIN[Claude Code Session<br/>Human Developer]\n        CLAUDE-TASK[Task Tool<br/>Spawn Agents Concurrently]\n    end\n\n    subgraph \"MCP Coordination Layer<br/>Optional for Complex Tasks\"\n        MCP-SWARM[mcp--claude-flow--swarm-init<br/>Topology Setup]\n        MCP-AGENT[mcp--claude-flow--agent-spawn<br/>Agent Type Definitions]\n        MCP-TASK[mcp--claude-flow--task-orchestrate<br/>High-Level Planning]\n    end\n\n ...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "assets/diagrams/sparc-turboflow-architecture.md",
+      "start_line": 165,
+      "end_line": 264,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph \"Turbo Flow Unified Container<br/>CachyOS Base System\"\n\n        subgraph \"Multi-User Isolation\"\n            USER-DEV[devuser (1000:1000)<br/>Primary Claude Code<br/>Full sudo access]\n            USER-GEMINI[gemini-user (1001:1001)<br/>Google Gemini tools<br/>Isolated credentials]\n            USER-OPENAI[openai-user (1002:1002)<br/>OpenAI tools<br/>Isolated credentials]\n            USER-ZAI[zai-user (1003:1003)<br/>Z.AI service<br/>Port 9600 internal]\n        end\n\n        su...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "assets/diagrams/sparc-turboflow-architecture.md",
+      "start_line": 270,
+      "end_line": 316,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph \"VisionFlow Container<br/>visionflow-container\"\n        VF-ACTIX[Actix-Web Server<br/>Port 4000]\n        VF-HANDLERS[Handler Layer<br/>API + WebSocket]\n        VF-MCP[MCP Relay Handler<br/>/ws/mcp endpoint]\n    end\n\n    subgraph \"Turbo Flow Container<br/>turbo-flow-unified\"\n        TF-MGMT[Management API<br/>Port 9090]\n        TF-MCP-CLIENT[MCP Client<br/>TCP Transport]\n        TF-CLAUDE[Claude Code Session<br/>devuser]\n        TF-AGENTS[Agent Execution<br/>Task tool]\n    e...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "assets/diagrams/sparc-turboflow-architecture.md",
+      "start_line": 322,
+      "end_line": 391,
+      "diagram_type": "flowchart",
+      "content": "flowchart LR\n    subgraph \"Step 1: Load Mandatory Agents\"\n        LOAD-DOC[Load doc-planner.md<br/>SPARC + London School TDD]\n        LOAD-MICRO[Load microtask-breakdown.md<br/>Atomic 10-minute tasks]\n    end\n\n    subgraph \"Step 2: Create EPIC\"\n        EPIC[GitHub EPIC Issue<br/>Feature description<br/>Acceptance criteria]\n    end\n\n    subgraph \"Step 3: Feature Breakdown\"\n        FEAT-1[Feature 1<br/>1-3 days]\n        FEAT-2[Feature 2<br/>1-3 days]\n        FEAT-N[Feature N<br/>1-3 days]\n    end\n...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "assets/diagrams/sparc-turboflow-architecture.md",
+      "start_line": 452,
+      "end_line": 511,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph \"SPARC Architecture Phase\"\n        ARCH-PORTS[Define Ports<br/>Domain interfaces]\n        ARCH-ADAPT[Plan Adapters<br/>Infrastructure impl]\n        ARCH-DB[Design Database<br/>Schema & migrations]\n    end\n\n    subgraph \"TDD Red Phase<br/>Write Failing Tests\"\n        TEST-PORT[Port interface tests<br/>src/ports/tests/]\n        TEST-ADAPT[Adapter impl tests<br/>src/adapters/tests/]\n        TEST-INT[Integration tests<br/>tests/integration/]\n    end\n\n    subgraph \"TDD Green Pha...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "assets/diagrams/sparc-turboflow-architecture.md",
+      "start_line": 517,
+      "end_line": 565,
+      "diagram_type": "flowchart",
+      "content": "graph LR\n    subgraph \"Metrics Collection\"\n        METRIC-TOKEN[Token Usage<br/>claude-usage-cli]\n        METRIC-TIME[Execution Time<br/>Hook timestamps]\n        METRIC-MEMORY[Memory Usage<br/>Process monitoring]\n        METRIC-GPU[GPU Utilization<br/>nvidia-smi]\n    end\n\n    subgraph \"Performance Analysis\"\n        ANALYZE-BOTTLE[Bottleneck Detection<br/>mcp--claude-flow--bottleneck-analyze]\n        ANALYZE-PATTERN[Pattern Recognition<br/>Neural learning]\n        ANALYZE-TREND[Trend Analysis<br/...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "architecture/decisions/ADR-001-neo4j-persistent-with-filesystem-sync.md",
+      "start_line": 31,
+      "end_line": 45,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    A[GitHub Repository<br/>Markdown Files] -->|GitHubSyncService| B[Neo4j Persistent<br/>Single Source of Truth]\n    B --> C[Force-Directed<br/>Graph Visualization]\n    B --> D[Ontology<br/>Reasoning]\n    B --> E[Settings<br/>Management]\n\n    F[Client Changes] --> G[Markdown Files<br/>Local]\n    G -->|Git Push| A\n\n    B -.->|Read for Export| G\n\n    style B fill:#9f9,stroke:#333,stroke-width:3px\n    style A fill:#ff9,stroke:#333",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/developer/websocket-best-practices.md",
+      "start_line": 26,
+      "end_line": 39,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant Client\n    participant WebSocket\n    participant Server\n\n    Client->>WebSocket: new WebSocket(url)\n    WebSocket->>Server: HTTP Upgrade Request\n    Server-->>WebSocket: 101 Switching Protocols\n    WebSocket-->>Client: onopen event\n    Client->>Server: HANDSHAKE message\n    Server-->>Client: HANDSHAKE response\n    Client->>Client: Start heartbeat timer",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/developer/websocket-best-practices.md",
+      "start_line": 179,
+      "end_line": 188,
+      "diagram_type": "flowchart",
+      "content": "graph TD\n    A[Message Type] --> B{Frequency?}\n    B -->|Low <10/sec| C{Human Readable?}\n    B -->|High >100/sec| D[Binary Protocol]\n    C -->|Yes| E[JSON]\n    C -->|No| F{Size Matters?}\n    F -->|Yes| D\n    F -->|No| E",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/developer/02-project-structure.md",
+      "start_line": 398,
+      "end_line": 417,
+      "diagram_type": "flowchart",
+      "content": "graph TD\n    CLI[CLI Module] --> Shared[Shared Library]\n    API[API Module] --> Shared\n    Web[Web Module] --> API\n    Worker[Worker Module] --> Shared\n    Worker --> API\n\n    Shared --> Utils[Utilities]\n    Shared --> Types[Type Definitions]\n    Shared --> Constants[Constants]\n\n    API --> Models[Data Models]\n    API --> Services[Business Logic]\n    API --> Controllers[Request Handlers]\n\n    style Shared fill:#E3F2FD\n    style API fill:#C8E6C9\n    style Web fill:#FFF9C4",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/developer/02-project-structure.md",
+      "start_line": 432,
+      "end_line": 443,
+      "diagram_type": "flowchart",
+      "content": "graph LR\n    UI[User Interface] --> API[API Layer]\n    API --> Business[Business Logic]\n    Business --> Data[Data Layer]\n    Business --> External[External Services]\n\n    style UI fill:#E3F2FD\n    style API fill:#FFF9C4\n    style Business fill:#C8E6C9\n    style Data fill:#FFECB3",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/developer/04-adding-features.md",
+      "start_line": 23,
+      "end_line": 40,
+      "diagram_type": "flowchart",
+      "content": "flowchart TD\n    A[Feature Request] --> B[Design & Planning]\n    B --> C[Write Tests]\n    C --> D[Implement Feature]\n    D --> E{Tests Pass?}\n    E -->|No| D\n    E -->|Yes| F[Code Review]\n    F --> G{Approved?}\n    G -->|No| D\n    G -->|Yes| H[Integration]\n    H --> I[Documentation]\n    I --> J[Deployment]\n\n    style A fill:#E3F2FD\n    style E fill:#FFE4B5\n    style J fill:#90EE90",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/developer/01-development-setup.md",
+      "start_line": 387,
+      "end_line": 407,
+      "diagram_type": "flowchart",
+      "content": "flowchart TD\n    A[Create Branch] --> B[Write Code]\n    B --> C[Run Tests Locally]\n    C --> D{Tests Pass?}\n    D -->|No| B\n    D -->|Yes| E[Commit Changes]\n    E --> F[Push to Fork]\n    F --> G[Create PR]\n    G --> H[CI/CD Pipeline]\n    H --> I{CI Pass?}\n    I -->|No| B\n    I -->|Yes| J[Code Review]\n    J --> K{Approved?}\n    K -->|No| B\n    K -->|Yes| L[Merge to Main]\n\n    style D fill:#FFE4B5\n    style I fill:#FFE4B5\n    style L fill:#90EE90",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/developer/03-architecture.md",
+      "start_line": 9,
+      "end_line": 76,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph \"Client Layer\"\n        WebUI[Web UI]\n        CLI[CLI Tool]\n        SDK[SDK/API Clients]\n    end\n\n    subgraph \"API Gateway\"\n        NGINX[NGINX/Load Balancer]\n        API[API Server]\n    end\n\n    subgraph \"Application Layer\"\n        Auth[Authentication Service]\n        Project[Project Service]\n        Asset[Asset Service]\n        Processing[Processing Service]\n        Worker[Background Workers]\n    end\n\n    subgraph \"Data Layer\"\n        DB[(PostgreSQL)]\n        Cache[(Redis...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/developer/03-architecture.md",
+      "start_line": 91,
+      "end_line": 105,
+      "diagram_type": "flowchart",
+      "content": "graph LR\n    A[Routes] --> B[Controllers]\n    B --> C[Services]\n    C --> D[Models]\n    C --> E[External APIs]\n\n    F[Middleware] -.-> A\n    F -.-> B\n\n    style A fill:#E3F2FD\n    style B fill:#C8E6C9\n    style C fill:#FFF9C4\n    style D fill:#FFE4B5",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/developer/03-architecture.md",
+      "start_line": 145,
+      "end_line": 162,
+      "diagram_type": "flowchart",
+      "content": "graph TD\n    A[App.vue] --> B[Router]\n    B --> C[Views/Pages]\n    C --> D[Feature Components]\n    D --> E[Common Components]\n\n    F[Store/State] -.-> C\n    F -.-> D\n\n    G[Services/API] -.-> F\n    G -.-> D\n\n    style A fill:#E3F2FD\n    style C fill:#C8E6C9\n    style F fill:#FFF9C4\n    style G fill:#FFE4B5",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/developer/03-architecture.md",
+      "start_line": 196,
+      "end_line": 211,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant API\n    participant Queue\n    participant Worker\n    participant Storage\n    participant DB\n\n    API->>Queue: Enqueue Job\n    API->>DB: Update Status (Queued)\n    Queue->>Worker: Dequeue Job\n    Worker->>DB: Update Status (Processing)\n    Worker->>Storage: Process Data\n    Worker->>DB: Update Status (Complete)\n    Worker->>Queue: Send Result Event",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/developer/03-architecture.md",
+      "start_line": 289,
+      "end_line": 303,
+      "diagram_type": "flowchart",
+      "content": "flowchart LR\n    A[User Upload] --> B[Validation]\n    B --> C[Temporary Storage]\n    C --> D[Queue Job]\n    D --> E[Process Data]\n    E --> F[Permanent Storage]\n    F --> G[Update Database]\n    G --> H[Notify User]\n\n    style A fill:#E3F2FD\n    style E fill:#C8E6C9\n    style F fill:#FFE4B5\n    style H fill:#FFF9C4",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/developer/03-architecture.md",
+      "start_line": 337,
+      "end_line": 351,
+      "diagram_type": "flowchart",
+      "content": "graph TD\n    A[Request] --> B{Authenticated?}\n    B -->|No| C[401 Unauthorized]\n    B -->|Yes| D{Has Permission?}\n    D -->|No| E[403 Forbidden]\n    D -->|Yes| F[Process Request]\n\n    G[RBAC] -.-> D\n    H[Resource Ownership] -.-> D\n\n    style C fill:#FFB6C6\n    style E fill:#FFB6C6\n    style F fill:#90EE90",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/developer/03-architecture.md",
+      "start_line": 376,
+      "end_line": 402,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    LB[Load Balancer]\n\n    LB --> API1[API Instance 1]\n    LB --> API2[API Instance 2]\n    LB --> API3[API Instance 3]\n\n    API1 --> DB[(Database Cluster)]\n    API2 --> DB\n    API3 --> DB\n\n    API1 --> Cache[(Redis Cluster)]\n    API2 --> Cache\n    API3 --> Cache\n\n    W1[Worker 1] --> Queue[Message Queue]\n    W2[Worker 2] --> Queue\n    W3[Worker 3] --> Queue\n\n    Queue --> Storage[(Shared Storage)]\n\n    style LB fill:#4A90E2\n    style DB fill:#90EE90\n    style Cache fill:#FFE4B5\n    styl...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/developer/03-architecture.md",
+      "start_line": 442,
+      "end_line": 456,
+      "diagram_type": "flowchart",
+      "content": "graph LR\n    A[VisionFlow] --> B[Adapter Layer]\n    B --> C[Service A]\n    B --> D[Service B]\n    B --> E[Service C]\n\n    B --> F[Circuit Breaker]\n    B --> G[Retry Logic]\n    B --> H[Fallback]\n\n    style A fill:#E3F2FD\n    style B fill:#C8E6C9\n    style F fill:#FFE4B5",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/developer/03-architecture.md",
+      "start_line": 493,
+      "end_line": 505,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant Service A\n    participant Event Bus\n    participant Service B\n    participant Service C\n\n    Service A->>Event Bus: Emit Event\n    Event Bus->>Service B: Deliver Event\n    Event Bus->>Service C: Deliver Event\n    Service B->>Service B: Process Event\n    Service C->>Service C: Process Event",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/developer/03-architecture.md",
+      "start_line": 539,
+      "end_line": 585,
+      "diagram_type": "flowchart",
+      "content": "graph TB\n    subgraph \"Production Environment\"\n        subgraph \"DMZ\"\n            LB[Load Balancer]\n            CDN[CDN]\n        end\n\n        subgraph \"Application Tier\"\n            API1[API Server 1]\n            API2[API Server 2]\n            Worker1[Worker 1]\n            Worker2[Worker 2]\n        end\n\n        subgraph \"Data Tier\"\n            DBPrimary[(Primary DB)]\n            DBReplica[(Replica DB)]\n            Redis[(Redis)]\n            Queue[Message Queue]\n        end\n\n        subgraph \"Sto...",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/developer/03-architecture.md",
+      "start_line": 591,
+      "end_line": 604,
+      "diagram_type": "flowchart",
+      "content": "graph LR\n    A[Request] --> B[CDN Cache]\n    B -->|Miss| C[API Cache]\n    C -->|Miss| D[Database]\n\n    E[Response] --> F[Compress]\n    F --> G[Cache]\n    G --> H[Client]\n\n    style B fill:#90EE90\n    style C fill:#FFE4B5\n    style D fill:#FFB6C6",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "guides/developer/03-architecture.md",
+      "start_line": 626,
+      "end_line": 642,
+      "diagram_type": "flowchart",
+      "content": "graph LR\n    A[Application] --> B[Metrics Collector]\n    B --> C[Prometheus]\n    C --> D[Grafana]\n\n    A --> E[Log Aggregator]\n    E --> F[Elasticsearch]\n    F --> G[Kibana]\n\n    A --> H[Trace Collector]\n    H --> I[Jaeger]\n\n    style B fill:#E3F2FD\n    style C fill:#C8E6C9\n    style F fill:#FFF9C4",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    },
+    {
+      "file": "reference/api/01-authentication.md",
+      "start_line": 9,
+      "end_line": 19,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant Client\n    participant API\n\n    Client->>API: POST /auth/login\n    API->>Client: JWT Token\n\n    Client->>API: Request + JWT\n    API->>Client: Response",
+      "is_valid": true,
+      "error_message": null,
+      "warnings": null
+    }
+  ],
+  "invalid_diagram_list": [
+    {
+      "file": "multi-agent-docker/docker-environment.md",
+      "start_line": 305,
+      "end_line": 366,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant User\n    participant CLI as multi-agent.sh\n    participant Docker as Docker Engine\n    participant Compose as docker-compose\n    participant Image as Docker Image\n    participant Registry as Package Registries\n\n    User->>CLI: ./multi-agent.sh build\n    CLI->>CLI: preflight() - Check Docker daemon\n    CLI->>CLI: validate-config() - Check compose file\n    CLI->>Compose: docker-compose build\n\n    Compose->>Docker: Build multi-agent image\n    Docker->>Image: FROM nvi...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "multi-agent-docker/docker-environment.md",
+      "start_line": 488,
+      "end_line": 557,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant User\n    participant CLI as multi-agent.sh\n    participant Compose as docker-compose\n    participant Container\n    participant Entrypoint as entrypoint.sh\n    participant Supervisor as supervisord\n    participant Setup as setup-workspace.sh\n    participant Services as MCP Services\n\n    User->>CLI: ./multi-agent.sh start\n    CLI->>CLI: preflight() checks\n    Note over CLI: - Docker daemon<br/>- docker-compose installed<br/>- Create directories\n    CLI->>CLI: detect...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "multi-agent-docker/docker-environment.md",
+      "start_line": 657,
+      "end_line": 728,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant User\n    participant Shell as multi-agent.sh\n    participant Preflight as preflight()\n    participant Detect as detect-resources()\n    participant Compose as docker-compose\n    participant Container\n    participant DevUser as dev@container\n\n    User->>Shell: ./multi-agent.sh start\n\n    Shell->>Preflight: Check prerequisites\n    Preflight->>Preflight: docker info (daemon running?)\n    alt Docker daemon not accessible\n        Preflight-->>User: Error: Docker daemon ...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "multi-agent-docker/docker-environment.md",
+      "start_line": 845,
+      "end_line": 907,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    autonumber\n    participant U as User\n    participant CLI as multi-agent.sh\n    participant DC as docker-compose\n    participant D as Docker Daemon\n    participant DF as Dockerfile\n    participant Reg as Registries\n\n    U->>CLI: ./multi-agent.sh build\n    CLI->>CLI: preflight()\n    CLI->>DC: docker-compose build\n    DC->>D: Build request for multi-agent\n    D->>DF: Parse Dockerfile\n\n    rect rgb(240, 240, 255)\n        Note over DF,Reg: Stage 1: Base System\n        DF->>Reg: Pu...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "multi-agent-docker/docker-environment.md",
+      "start_line": 911,
+      "end_line": 972,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    autonumber\n    participant U as User\n    participant CLI as multi-agent.sh\n    participant DC as docker-compose\n    participant E as entrypoint.sh\n    participant SV as supervisord\n    participant Setup as setup-workspace.sh\n    participant MCP as MCP Services\n\n    U->>CLI: ./multi-agent.sh start\n    CLI->>CLI: preflight() + detect-resources()\n    CLI->>DC: docker-compose up -d\n    DC->>E: Start container with /entrypoint.sh\n\n    E->>E: Set /home/dev permissions\n    E->>E: Fi...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "multi-agent-docker/docker-environment.md",
+      "start_line": 976,
+      "end_line": 1036,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    autonumber\n    participant U as User Terminal\n    participant Shell as Bash (multi-agent.sh)\n    participant Container\n    participant SV as supervisorctl\n    participant MCP as MCP Services\n    participant Logs as Log Files\n\n    Note over U,Logs: Scenario: User starts, checks status, views logs\n\n    U->>Shell: ./multi-agent.sh start\n    Shell->>Shell: preflight() + detect-resources()\n    Shell->>Container: docker-compose up -d\n    Container-->>Shell: Started\n    Shell->>Cont...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "multi-agent-docker/docker-environment.md",
+      "start_line": 1040,
+      "end_line": 1092,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    autonumber\n    participant Client as External Client\n    participant TCP as mcp-tcp-server.js<br/>(port 9500)\n    participant Auth as auth-middleware.js\n    participant CF as claude-flow<br/>(MCP Process)\n    participant Tool as Tool Server<br/>(e.g., Blender Proxy)\n    participant GUI as gui-tools-service<br/>(Blender MCP)\n\n    Client->>TCP: TCP connection to 9500\n    TCP->>Auth: Authenticate client\n    Auth->>Auth: Check IP blocklist\n    Auth->>Auth: Validate auth token\n   ...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "multi-agent-docker/docker-environment.md",
+      "start_line": 1096,
+      "end_line": 1178,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    autonumber\n    participant HC as health-check.sh\n    participant TCP as TCP Server<br/>(9500, 9501)\n    participant WS as WebSocket Bridge<br/>(3002)\n    participant SV as supervisorctl\n    participant FS as Filesystem\n    participant Logs as Log Files\n\n    Note over HC: Runs every 30s via healthcheck<br/>or manually by user\n\n    HC->>TCP: curl http://localhost:9501/health\n    alt Health endpoint responds\n        TCP-->>HC: {\"status\":\"healthy\",\"uptime\":12345,...}\n        HC->...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "multi-agent-docker/architecture.md",
+      "start_line": 81,
+      "end_line": 91,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant E as entrypoint.sh\n    participant S as Supervisord\n    participant WS as WebSocket Bridge\n\n    E->>S: Start supervisord\n    S->>WS: Launch WebSocket Bridge\n    WS->>WS: Listen on port 3002\n    Note over WS: Ready for external connections",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "multi-agent-docker/architecture.md",
+      "start_line": 198,
+      "end_line": 205,
+      "diagram_type": "flowchart",
+      "content": "flowchart LR\n    USER[User Request] --> CF[Claude Flow]\n    CF --> |Read .mcp.json| CONFIG[Tool Configuration]\n    CF --> |Spawn Process| TOOL[MCP Tool]\n    TOOL --> |JSON Response| CF\n    CF --> |Result| USER",
+      "is_valid": false,
+      "error_message": "Label should follow arrow directly",
+      "warnings": null
+    },
+    {
+      "file": "multi-agent-docker/architecture.md",
+      "start_line": 209,
+      "end_line": 220,
+      "diagram_type": "flowchart",
+      "content": "flowchart TB\n    USER[User Request] --> CF[Claude Flow]\n    CF --> |stdin| BRIDGE[Bridge Tool]\n    BRIDGE --> |TCP| EXTERNAL[External App]\n    EXTERNAL --> |TCP Response| BRIDGE\n    BRIDGE --> |stdout| CF\n    CF --> |Result| USER\n\n    style BRIDGE fill:#f9f,stroke:#333,stroke-width:4px\n    style EXTERNAL fill:#9ff,stroke:#333,stroke-width:2px,stroke-dasharray: 5 5",
+      "is_valid": false,
+      "error_message": "Label should follow arrow directly",
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/hexagonal-cqrs-architecture.md",
+      "start_line": 448,
+      "end_line": 499,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant User\n    participant API as API Handler\n    participant CMD as Command Handler\n    participant REPO as Graph Repository\n    participant BUS as Event Bus\n    participant STORE as Event Store\n    participant SUB1 as WebSocket Subscriber\n    participant SUB2 as Cache Invalidator\n    participant SUB3 as Metrics Tracker\n\n    User->>API: POST /api/graph/nodes<br/>{id: 1, label: \"Node\"}\n    API->>CMD: CreateNodeCommand\n\n    activate CMD\n    CMD->>CMD: 1. Validate command...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/hexagonal-cqrs-architecture.md",
+      "start_line": 503,
+      "end_line": 548,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant GH as GitHub API\n    participant SYNC as GitHub Sync Service\n    participant REPO as Graph Repository\n    participant BUS as Event Bus\n    participant CACHE as Cache Invalidator\n    participant WS as WebSocket Subscriber\n    participant CLIENT as API Client\n\n    GH->>SYNC: Fetch markdown files\n    SYNC->>SYNC: Parse 316 nodes + edges\n    SYNC->>REPO: save-graph(GraphData)\n    activate REPO\n    REPO->>REPO: Write to SQLite<br/>knowledge-graph.db\n    REPO-->>SYNC: \u2713...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/pipeline-sequence-diagrams.md",
+      "start_line": 74,
+      "end_line": 104,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant GitHub\n    participant Pipeline as OntologyPipelineService\n    participant Reasoning as ReasoningActor\n    participant Cache as InferenceCache\n    participant GPU as OntologyConstraintActor\n    participant Client\n\n    GitHub->>Pipeline: OWL file (correlation-id: abc-123)\n    Note over Pipeline: [abc-123] Ontology modified\n\n    Pipeline->>Reasoning: TriggerReasoning\n    Reasoning->>Cache: get-or-compute(ontology-id)\n    Cache-->>Reasoning: Cached axioms (8ms)\n    N...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/pipeline-sequence-diagrams.md",
+      "start_line": 108,
+      "end_line": 163,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant Pipeline as OntologyPipelineService\n    participant Reasoning as ReasoningActor\n    participant GPU as OntologyConstraintActor\n    participant Circuit as CircuitBreaker\n    participant Metrics as MetricsCollector\n\n    Pipeline->>Reasoning: TriggerReasoning\n    Reasoning-->>Pipeline: Axioms OK\n\n    Pipeline->>GPU: ApplyOntologyConstraints\n    GPU->>GPU: CUDA upload\n    GPU->>Circuit: Check circuit state\n    Circuit-->>GPU: CLOSED (OK to proceed)\n\n    GPU->>GPU: cud...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/pipeline-sequence-diagrams.md",
+      "start_line": 167,
+      "end_line": 218,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant GitHub\n    participant Pipeline as OntologyPipelineService\n    participant ReasoningQ as Reasoning Queue\n    participant ConstraintQ as Constraint Queue\n    participant GPUQ as GPU Queue\n    participant RateLimiter\n\n    Note over GitHub: Rapid changes (20 files)\n\n    loop 20 files\n        GitHub->>Pipeline: OWL file change\n        Pipeline->>ReasoningQ: enqueue-reasoning()\n\n        alt Queue not full\n            ReasoningQ-->>Pipeline: Enqueued\n        else Queue ...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/pipeline-sequence-diagrams.md",
+      "start_line": 222,
+      "end_line": 258,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant Pipeline\n    participant Reasoning\n    participant Cache as InferenceCache\n    participant DB as unified.db\n\n    Note over Pipeline: Ontology modified\n    Pipeline->>Reasoning: TriggerReasoning(ontology-id=1)\n\n    Reasoning->>Cache: get-or-compute(1)\n    Cache->>Cache: calculate-checksum(ontology)\n    Cache->>DB: SELECT checksum WHERE ontology-id=1\n\n    alt Checksum matches\n        DB-->>Cache: Cached checksum matches\n        Cache->>DB: SELECT inferred-axioms\n   ...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/pipeline-sequence-diagrams.md",
+      "start_line": 262,
+      "end_line": 299,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant GitHub\n    participant GitHubSync\n    participant Pipeline\n    participant Reasoning\n    participant GPU\n    participant Logger\n    participant Metrics\n\n    GitHub->>GitHubSync: OWL file change\n    GitHubSync->>GitHubSync: Generate correlation-id = \"xyz-789\"\n\n    GitHubSync->>Logger: info(\"[xyz-789] Starting sync\")\n    GitHubSync->>Pipeline: on-ontology-modified(correlation-id=\"xyz-789\")\n\n    Pipeline->>Logger: info(\"[xyz-789] Pipeline triggered\")\n    Pipeline->>R...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/pipeline-sequence-diagrams.md",
+      "start_line": 303,
+      "end_line": 331,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant GitHubSync\n    participant EventBus\n    participant Handler1 as SemanticProcessor\n    participant Handler2 as MetricsCollector\n    participant Handler3 as AuditLogger\n\n    GitHubSync->>EventBus: publish(OntologyModifiedEvent)\n    Note over EventBus: Event: OntologyModified\n\n    par Parallel event handlers\n        EventBus->>Handler1: handle(event)\n        Handler1->>Handler1: Invalidate semantic cache\n        Handler1-->>EventBus: OK\n\n    and\n        EventBus->>Ha...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/pipeline-sequence-diagrams.md",
+      "start_line": 335,
+      "end_line": 366,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant Pipeline\n    participant Reasoning\n    participant Retry as RetryLogic\n\n    Pipeline->>Reasoning: TriggerReasoning\n    Reasoning->>Reasoning: infer-axioms()\n    Reasoning-->>Pipeline: ERROR (timeout)\n\n    Pipeline->>Retry: with-retry(f, max=3, backoff=100ms)\n\n    Note over Retry: Attempt 1/3\n    Retry->>Reasoning: infer-axioms()\n    Reasoning-->>Retry: ERROR\n\n    Note over Retry: Wait 100ms (exponential backoff)\n    Retry->>Retry: sleep(100ms)\n\n    Note over Retry...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/00-architecture-overview.md",
+      "start_line": 126,
+      "end_line": 193,
+      "diagram_type": "erDiagram",
+      "content": "erDiagram\n    graph-nodes ||--o{ graph-edges : \"connects\"\n    graph-nodes {\n        integer id PK\n        text metadata-id UK\n        text label\n        real x\n        real y\n        real z\n        text metadata\n    }\n\n    graph-edges {\n        text id PK\n        integer source FK\n        integer target FK\n        real weight\n        text metadata\n    }\n\n    owl-classes ||--o{ owl-class-hierarchy : \"parent\"\n    owl-classes ||--o{ owl-class-hierarchy : \"child\"\n    owl-classes ||--o{ owl-axioms : ...",
+      "is_valid": false,
+      "error_message": "Unclosed bracket(s): ['}', '}', '}', '}']",
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/ontology-storage-architecture.md",
+      "start_line": 166,
+      "end_line": 187,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant GitHub\n    participant Fetcher as File Fetcher\n    participant Parser as OWL Parser\n    participant Reasoner as Whelk Reasoner\n    participant DB as unified.db\n    participant Cache as Redis Cache\n\n    GitHub->>Fetcher: Webhook (new OWL)\n    Fetcher->>Parser: Raw OWL content\n    Parser->>DB: Insert asserted axioms<br/>(is-inferred=false)\n    DB->>Reasoner: Load ontology\n\n    Reasoner->>Reasoner: Compute inferences<br/>(OWL 2 EL rules)\n    Reasoner->>DB: Insert inf...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/04-database-schemas.md",
+      "start_line": 306,
+      "end_line": 396,
+      "diagram_type": "erDiagram",
+      "content": "erDiagram\n    graph-nodes ||--o{ graph-edges : \"connects\"\n    graph-nodes {\n        integer id PK\n        text metadata-id UK\n        text label\n        real x\n        real y\n        real z\n        real vx\n        real vy\n        real vz\n        text color\n        real size\n        text metadata\n        datetime created-at\n        datetime updated-at\n    }\n\n    graph-edges {\n        text id PK\n        integer source FK\n        integer target FK\n        real weight\n        text metadata\n        d...",
+      "is_valid": false,
+      "error_message": "Unclosed bracket(s): ['}', '}', '}', '}']",
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/client.md",
+      "start_line": 627,
+      "end_line": 659,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant Backend as Rust Backend\n    participant WS as WebSocket Service\n    participant Binary as Binary Protocol\n    participant GraphData as Graph Data Manager\n    participant Canvas as Graph Canvas\n    participant Agents as Agent Visualisation\n\n    Note over Backend,Agents: 2000ms Graph Data Polling Cycle\n\n    Backend->>WS: Binary frame (34 bytes/node)\n    WS->>Binary: Parse binary data\n    Binary->>Binary: Validate node format\n    Binary->>GraphData: Update positions\n...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/client.md",
+      "start_line": 663,
+      "end_line": 683,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant UI as Settings UI\n    participant Store as Settings Store\n    participant AutoSave as AutoSave Manager\n    participant API as Settings API\n    participant Backend as Rust Backend\n\n    UI->>Store: Setting change\n    Store->>Store: Update partial state\n    Store->>AutoSave: Queue for save\n\n    Note over AutoSave: Debounced batching (500ms)\n\n    AutoSave->>API: Batch settings update\n    API->>Backend: POST /api/settings/batch\n    Backend-->>API: Success response\n    ...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/server.md",
+      "start_line": 577,
+      "end_line": 598,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant Client as REST Client\n    participant Handler as REST Handler<br/>/api/bots/*\n    participant ApiClient as ManagementApiClient<br/>HTTP Client\n    participant API as Management API<br/>:9090\n    participant PM as Process Manager\n    participant Task as Isolated Task<br/>agentic-flow\n\n    Client->>Handler: POST /api/bots/spawn\n    Handler->>ApiClient: create-task(config)\n    ApiClient->>API: POST /v1/tasks\n    API->>PM: spawn-process()\n    PM->>Task: Execute in iso...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/core/server.md",
+      "start_line": 602,
+      "end_line": 622,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant Monitor as AgentMonitorActor<br/>Polling Timer\n    participant TCP as TcpConnectionActor<br/>TCP Stream\n    participant RPC as JsonRpcClient<br/>MCP Protocol\n    participant MCP as MCP Server<br/>:9500\n    participant Graph as GraphService<br/>Visualization\n\n    loop Every 2 seconds\n        Monitor->>TCP: poll-agents()\n        TCP->>RPC: agent-list request\n        RPC->>MCP: JSON-RPC 2.0<br/>{\"method\": \"agent-list\"}\n        MCP-->>RPC: Agent metrics\n        RPC-->...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/components/websocket-protocol.md",
+      "start_line": 187,
+      "end_line": 202,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant PhysicsLoop as Physics Loop (60 FPS)\n    participant GraphActor as Graph Actor\n    participant Encoder as Binary Encoder\n    participant Clients as WebSocket Clients\n\n    PhysicsLoop->>GraphActor: Update node positions\n    GraphActor->>GraphActor: Collect knowledge nodes\n    GraphActor->>GraphActor: Collect agent nodes\n    GraphActor->>Encoder: encode-node-data-with-types()\n    Note over Encoder: Sets KNOWLEDGE-NODE-FLAG on knowledge IDs<br/>Sets AGENT-NODE-FLAG o...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/components/websocket-protocol.md",
+      "start_line": 339,
+      "end_line": 352,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant Client\n    participant Server\n\n    loop Every 30 seconds\n        Client->>Server: Ping (0x06)\n        Server-->>Client: Pong (0x06)\n    end\n\n    Note over Client,Server: If no Pong within 45s\n    Client->>Client: Mark Connection Dead\n    Client->>Client: Attempt Reconnection",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "concepts/architecture/gpu/communication-flow.md",
+      "start_line": 104,
+      "end_line": 160,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant AppState as AppState\n    participant GraphService as GraphServiceActor (DEPRECATED)\n    participant GPUManager as GPUManagerActor\n    participant GPUResource as GPUResourceActor\n    participant ForceCompute as ForceComputeActor\n    participant GPU as GPU Hardware\n\n    Note over AppState: System Startup\n    AppState->>GPUManager: Create GPUManagerActor\n    AppState->>GraphService: Create GraphServiceActor (DEPRECATED)\n    AppState->>GraphService: InitializeGPUConne...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "assets/diagrams/sparc-turboflow-architecture.md",
+      "start_line": 397,
+      "end_line": 446,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant Dev as Developer<br/>Claude Code\n    participant Task as Task Tool<br/>Agent Spawn\n    participant Agent as Agent Instance<br/>(Coder/Tester)\n    participant Hook as Hook System<br/>claude-flow hooks\n    participant Memory as Memory Store<br/>swarm/{agent}/{step}\n    participant Output as File System<br/>Source Code\n\n    Dev->>Task: Spawn agent with task<br/>\"Implement feature X\"\n    activate Task\n    Task->>Agent: Create agent instance\n    activate Agent\n\n    Age...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "guides/developer/websocket-best-practices.md",
+      "start_line": 324,
+      "end_line": 343,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant User\n    participant Client\n    participant REST_API\n    participant WebSocket\n    participant Server\n\n    User->>Client: Update setting to 0.8\n    Client->>REST_API: POST /settings (0.8)\n    Note over Server: Processes update\n    Server->>WebSocket: Broadcast 0.8\n    REST_API-->>Client: 200 OK\n    User->>Client: Update setting to 0.9\n    Client->>REST_API: POST /settings (0.9)\n    WebSocket-->>Client: Receive broadcast (0.8)\n    Note over Client: \u274c Overwrites to ...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "guides/developer/json-serialization-patterns.md",
+      "start_line": 26,
+      "end_line": 41,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant TS as TypeScript\n    participant JSON as JSON\n    participant Rust as Rust\n\n    TS->>JSON: JSON.stringify(data)\n    Note over JSON: Serialization\n    JSON->>Rust: HTTP Request Body\n    Rust->>Rust: serde_json::from_str()\n    Note over Rust: Deserialization\n    Rust->>Rust: Type validation\n    Rust->>JSON: serde_json::to_string()\n    JSON->>TS: HTTP Response\n    TS->>TS: JSON.parse() + Type assertion",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    },
+    {
+      "file": "guides/developer/03-architecture.md",
+      "start_line": 240,
+      "end_line": 285,
+      "diagram_type": "erDiagram",
+      "content": "erDiagram\n    USERS ||--o{ PROJECTS : creates\n    USERS ||--o{ SESSIONS : has\n    PROJECTS ||--o{ ASSETS : contains\n    PROJECTS ||--o{ JOBS : has\n    ASSETS ||--o{ VERSIONS : has\n    JOBS ||--o{ JOB-LOGS : generates\n\n    USERS {\n        uuid id PK\n        string email\n        string password-hash\n        string role\n        timestamp created-at\n    }\n\n    PROJECTS {\n        uuid id PK\n        uuid user-id FK\n        string name\n        jsonb config\n        string status\n        timestamp create...",
+      "is_valid": false,
+      "error_message": "Unclosed bracket(s): ['}', '}', '}', '}', '}', '}']",
+      "warnings": null
+    },
+    {
+      "file": "guides/developer/03-architecture.md",
+      "start_line": 309,
+      "end_line": 333,
+      "diagram_type": "sequenceDiagram",
+      "content": "sequenceDiagram\n    participant Client\n    participant API\n    participant Auth\n    participant DB\n    participant Cache\n\n    Client->>API: Login Request\n    API->>Auth: Validate Credentials\n    Auth->>DB: Check User\n    DB-->>Auth: User Data\n    Auth->>Auth: Generate JWT\n    Auth->>Cache: Store Session\n    Auth-->>API: JWT Token\n    API-->>Client: Token + User Info\n\n    Note over Client,Cache: Subsequent Requests\n\n    Client->>API: Request + JWT\n    API->>Cache: Validate Token\n    Cache-->>API:...",
+      "is_valid": false,
+      "error_message": "Note syntax: \"Note over Actor: Text\"",
+      "warnings": null
+    }
+  ],
+  "suggestions": [
+    "Install mermaid-cli for full syntax validation: npm install -g @mermaid-js/mermaid-cli",
+    "1 diagram(s) have unknown types. Consider adding explicit type declarations (e.g., 'flowchart TB')",
+    "1 warning(s) about GitHub compatibility. Review diagrams for features that may not render on GitHub."
+  ]
+}

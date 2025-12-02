@@ -12,6 +12,19 @@
 
 ### 1. Messages Implementation ✅
 
+```mermaid
+flowchart LR
+    A[ConfigureStressMajorization] --> B[learning_rate: 0.01-0.5]
+    A --> C[momentum: 0.0-0.99]
+    A --> D[max_iterations: 10-1000]
+    A --> E[auto_run_interval: 30-600]
+    B --> F[Result: Ok/String]
+    C --> F
+    D --> F
+    E --> F
+    F --> G[Feature: cfg gpu]
+```
+
 - [x] **ConfigureStressMajorization** message added
   - [x] `learning_rate: Option<f32>` (0.01-0.5)
   - [x] `momentum: Option<f32>` (0.0-0.99)

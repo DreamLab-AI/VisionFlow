@@ -443,7 +443,7 @@ function checkRateLimit(userId: string, msgType: u8): boolean {
 ## Related Documentation
 
 - [Error Codes Reference](./error-codes.md) - Error code definitions
-- [REST API Complete](./rest-api-complete.md) - HTTP/REST interface
+-  - HTTP/REST interface
 - [XR Immersive System Architecture](../concepts/architecture/xr-immersive-system.md) - XR platform integration
 - [Network Architecture](../concepts/architecture/xr-immersive-system.md#network-architecture) - Low-level networking
 

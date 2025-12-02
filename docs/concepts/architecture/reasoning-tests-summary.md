@@ -287,10 +287,10 @@ Default:      priority = 8 (lowest)
 
 ## Related Documentation
 
-- [Ontology Reasoning Service](../src/reasoning/readme.md)
-- [Axiom Mapper Specification](../src/constraints/readme.md)
-- [Performance Tuning Guide](../docs/performance.md)
-- [API Documentation](../docs/api.md)
+- 
+- 
+- 
+- 
 
 ---
 

@@ -26,7 +26,7 @@ All VisionFlow clients **MUST** migrate to the **Binary V2 protocol** (36-byte f
 2. [Protocol Comparison](#protocol-comparison)
 3. [Migration Steps](#migration-steps)
 4. [Code Examples](#code-examples)
-5. [Testing & Validation](#testing--validation)
+5. 
 6. [Troubleshooting](#troubleshooting)
 7. [FAQ](#faq)
 
@@ -479,9 +479,9 @@ this.view.getFloat32(offset);
 ## Related Documentation
 
 - **[WebSocket API Reference](../../reference/api/03-websocket.md)** - Complete protocol specification
-- **[Binary Protocol Specification](../../reference/api/binary-protocol.md)** - Technical details
+- **** - Technical details
 - **[Performance Benchmarks](../../reference/performance-benchmarks.md)** - Before/after metrics
-- **[Architecture Overview](../../concepts/architecture/00-ARCHITECTURE-overview.md)** - System design
+- **** - System design
 
 ---
 
@@ -489,7 +489,7 @@ this.view.getFloat32(offset);
 
 **Need help migrating?**
 
-- **Documentation**: [VisionFlow Docs](../../readme.md)
+- **Documentation**: 
 - **GitHub Issues**: [Report migration issues](https://github.com/yourusername/VisionFlow/issues)
 - **Email**: support@visionflow.io (Enterprise customers)
 

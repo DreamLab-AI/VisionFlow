@@ -563,7 +563,7 @@ cargo test test-complete-ontology-workflow
 - [Ontology Reasoning Pipeline](./ontology-reasoning-pipeline.md) - OWL reasoning
 - [Hierarchical Visualization](./hierarchical-visualization.md) - Visual rendering
 - [GPU Optimizations](./gpu/optimizations.md) - CUDA details
-- [Physics Constraint Reference](../reference/constraint-types.md) - Constraint catalog
+-  - Constraint catalog
 
 ## References
 

@@ -1,6 +1,6 @@
 # Deployment Guide
 
-[← Knowledge Base](../index.md) > [Guides](./index.md) > Deployment
+ > [Guides](./index.md) > Deployment
 
 This comprehensive guide covers deploying VisionFlow in various environments, from local development to production-ready deployments. VisionFlow integrates multiple external services including RAGFlow, Whisper, Kokoro TTS, and Vircadia XR.
 
@@ -1045,7 +1045,7 @@ curl -f https://yourdomain.com/health
 
 ## Related Articles
 
-- [Configuration Reference](../reference/configuration.md) - Comprehensive environment variable and settings documentation
+-  - Comprehensive environment variable and settings documentation
 - [Configuration Guide](./configuration.md) - Practical configuration scenarios
 - [Development Workflow](./development-workflow.md) - Development best practices and workflows
 - [Orchestrating Agents](./orchestrating-agents.md) - Multi-agent coordination guide

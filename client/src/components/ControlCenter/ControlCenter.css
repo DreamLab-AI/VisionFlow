@@ -8,6 +8,62 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
+/* Unified Control Center - Dark theme for graph overlay */
+.unified-control-center {
+  width: 280px;
+  max-width: 280px;
+  padding: 10px;
+  background: rgba(15, 15, 20, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  color: white;
+}
+
+.unified-control-center .control-center-header {
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.unified-control-center .control-center-header h1 {
+  color: white;
+  font-size: 14px;
+  margin: 0;
+}
+
+.unified-control-center .control-center-header p {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 10px;
+  margin: 2px 0 0;
+}
+
+/* Scrollbar styling for unified panel */
+.unified-control-center ::-webkit-scrollbar {
+  width: 4px;
+}
+
+.unified-control-center ::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
+}
+
+.unified-control-center ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+.unified-control-center ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Tab trigger active state for unified panel */
+.unified-control-center [data-state="active"] {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: white !important;
+}
+
+/* Legacy control center header */
 .control-center-header {
   margin-bottom: 30px;
   text-align: center;
@@ -94,47 +150,14 @@
   padding: 30px;
 }
 
-/* Common button styles */
-button {
-  padding: 10px 20px;
-  border: 1px solid #d0d0d0;
-  border-radius: 6px;
-  background: #ffffff;
-  cursor: pointer;
-  font-size: 0.95em;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-button:hover:not(:disabled) {
-  background-color: #f0f0f0;
-  border-color: #b0b0b0;
-}
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-button.primary {
-  background-color: #0066cc;
-  color: white;
-  border-color: #0066cc;
-}
-
-button.primary:hover:not(:disabled) {
-  background-color: #0052a3;
-}
-
-button.danger {
-  background-color: #dc3545;
-  color: white;
-  border-color: #dc3545;
-}
-
-button.danger:hover:not(:disabled) {
-  background-color: #c82333;
-}
+/*
+ * REMOVED: Global button styles were causing conflicts with design-system components
+ * The SemanticAnalysisPanel and other modern components use Radix UI / shadcn styling
+ * which was being overridden by these global rules.
+ *
+ * If you need button styles for the legacy ControlCenter component,
+ * add them with a specific class selector like .control-center-legacy button
+ */
 
 /* Loading and error states */
 .loading,
@@ -149,51 +172,10 @@ button.danger:hover:not(:disabled) {
   color: #dc3545;
 }
 
-/* Form elements */
-input[type='text'],
-input[type='number'],
-select {
-  padding: 8px 12px;
-  border: 1px solid #d0d0d0;
-  border-radius: 4px;
-  font-size: 0.95em;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-input[type='text']:focus,
-input[type='number']:focus,
-select:focus {
-  outline: none;
-  border-color: #0066cc;
-  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
-}
-
-input[type='range'] {
-  width: 100%;
-  margin: 10px 0;
-}
-
-input[type='checkbox'] {
-  margin-right: 8px;
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-}
-
-label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: #333;
-}
-
-small {
-  display: block;
-  margin-top: 5px;
-  color: #666;
-  font-size: 0.85em;
-}
+/*
+ * REMOVED: Global form element styles were also causing conflicts
+ * with design-system components (Input, Select, etc.)
+ */
 
 /* Responsive design */
 @media (max-width: 768px) {

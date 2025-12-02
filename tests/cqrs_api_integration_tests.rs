@@ -231,10 +231,177 @@ fn test_backwards_compatibility() {
 mod test_helpers {
     use super::*;
 
-    // Helper function for creating minimal test AppState
-    // (Would require full initialization in real tests)
+    /// Helper function for creating minimal test AppState
+    /// Creates a lightweight AppState suitable for CQRS API integration testing
+    /// with minimal actor system initialization
     pub async fn create_minimal_app_state() -> web::Data<AppState> {
-        todo!("Implement when actor system test harness is available")
+        use actix::Actor;
+        use std::sync::Arc;
+        use tokio::sync::RwLock;
+        use webxr::actors::*;
+        use webxr::adapters::neo4j_adapter::{Neo4jAdapter, Neo4jConfig};
+        use webxr::adapters::actor_graph_repository::ActorGraphRepository;
+        use webxr::adapters::neo4j_settings_repository::{Neo4jSettingsRepository, Neo4jSettingsConfig};
+        use webxr::adapters::neo4j_ontology_repository::{Neo4jOntologyRepository, Neo4jOntologyConfig};
+        use webxr::application::graph::*;
+        use webxr::config::AppFullSettings;
+        use webxr::config::feature_access::FeatureAccess;
+        use webxr::cqrs::{CommandBus, QueryBus};
+        use webxr::events::EventBus;
+        use webxr::models::metadata::MetadataStore;
+        use webxr::services::github::{ContentAPI, GitHubClient};
+        use webxr::services::bots_client::BotsClient;
+        use webxr::services::management_api_client::ManagementApiClient;
+        use std::sync::atomic::AtomicUsize;
+
+        // Initialize minimal GitHub client (uses defaults or env vars)
+        use webxr::services::github::api::GitHubConfig;
+        let github_config = GitHubConfig::default();
+        let settings = Arc::new(RwLock::new(AppFullSettings::load_from_file().unwrap_or_default()));
+        let github_client = Arc::new(
+            webxr::services::github::api::GitHubClient::new(github_config, settings)
+                .await
+                .expect("Failed to create test GitHub client")
+        );
+        let content_api = Arc::new(ContentAPI::new(github_client.clone()));
+
+        // Initialize settings repository (test instance)
+        let settings_config = Neo4jSettingsConfig::default();
+        let settings_repository: Arc<dyn webxr::ports::settings_repository::SettingsRepository> = Arc::new(
+            Neo4jSettingsRepository::new(settings_config)
+                .await
+                .expect("Failed to create test settings repository")
+        );
+
+        // Initialize ontology repository (test instance)
+        let ontology_config = Neo4jOntologyConfig::default();
+        let ontology_repository = Arc::new(
+            Neo4jOntologyRepository::new(ontology_config)
+                .await
+                .expect("Failed to create test ontology repository")
+        );
+
+        // Initialize Neo4j adapter (test instance)
+        let neo4j_config = Neo4jConfig::default();
+        let neo4j_adapter = Arc::new(
+            Neo4jAdapter::new(neo4j_config)
+                .await
+                .expect("Failed to create test Neo4j adapter")
+        );
+
+        // Start minimal actor system
+        let client_manager_addr = ClientCoordinatorActor::new().start();
+        let metadata_addr = MetadataActor::new(MetadataStore::new()).start();
+
+        // Load default settings for physics configuration
+        let settings = AppFullSettings::load_from_file().unwrap_or_default();
+        let physics_settings = settings.visualisation.graphs.logseq.physics.clone();
+
+        // Start GraphServiceSupervisor (takes only kg_repo)
+        let graph_service_addr = webxr::actors::graph_service_supervisor::GraphServiceSupervisor::new(
+            neo4j_adapter.clone()
+        ).start();
+
+        // Get GraphStateActor from supervisor for repository wrapper
+        use webxr::actors::messages::GetGraphStateActor;
+        let graph_state_addr = graph_service_addr
+            .send(GetGraphStateActor)
+            .await
+            .expect("Failed to send GetGraphStateActor message")
+            .expect("GraphStateActor not initialized in supervisor");
+
+        // Create graph repository wrapper around GraphStateActor
+        let graph_repository = Arc::new(ActorGraphRepository::new(graph_state_addr));
+
+        // Initialize CQRS query handlers
+        let graph_query_handlers = webxr::app_state::GraphQueryHandlers {
+            get_graph_data: Arc::new(GetGraphDataHandler::new(graph_repository.clone())),
+            get_node_map: Arc::new(GetNodeMapHandler::new(graph_repository.clone())),
+            get_physics_state: Arc::new(GetPhysicsStateHandler::new(graph_repository.clone())),
+            get_auto_balance_notifications: Arc::new(GetAutoBalanceNotificationsHandler::new(graph_repository.clone())),
+            get_bots_graph_data: Arc::new(GetBotsGraphDataHandler::new(graph_repository.clone())),
+            get_constraints: Arc::new(GetConstraintsHandler::new(graph_repository.clone())),
+            get_equilibrium_status: Arc::new(GetEquilibriumStatusHandler::new(graph_repository.clone())),
+            compute_shortest_paths: Arc::new(ComputeShortestPathsHandler::new(graph_repository.clone())),
+        };
+
+        // Initialize CQRS buses
+        let command_bus = Arc::new(RwLock::new(CommandBus::new()));
+        let query_bus = Arc::new(RwLock::new(QueryBus::new()));
+        let event_bus = Arc::new(RwLock::new(EventBus::new()));
+
+        // Start settings and protected settings actors
+        use webxr::models::protected_settings::ProtectedSettings;
+        let settings_addr = OptimizedSettingsActor::new(settings_repository.clone())
+            .expect("Failed to create test settings actor")
+            .start();
+        let protected_settings = ProtectedSettings::default();
+        let protected_settings_addr = ProtectedSettingsActor::new(protected_settings).start();
+
+        // Initialize ClaudeFlow client for agent monitor
+        use webxr::types::claude_flow::ClaudeFlowClient;
+        let mcp_host = std::env::var("CLAUDE_FLOW_HOST").unwrap_or_else(|_| "localhost".to_string());
+        let mcp_port = std::env::var("CLAUDE_FLOW_PORT")
+            .unwrap_or_else(|_| "9191".to_string())
+            .parse::<u16>()
+            .unwrap_or(9191);
+        let claude_flow_client = ClaudeFlowClient::new(mcp_host, mcp_port);
+        let agent_monitor_addr = AgentMonitorActor::new(claude_flow_client, graph_service_addr.clone()).start();
+        let workspace_addr = WorkspaceActor::default().start();
+
+        let bots_client = Arc::new(BotsClient::with_graph_service(graph_service_addr.clone()));
+
+        // Initialize task orchestrator with test management API client
+        let mgmt_client = ManagementApiClient::new(
+            "localhost".to_string(),
+            9090,
+            "test_api_key".to_string()
+        );
+        let task_orchestrator_addr = TaskOrchestratorActor::new(mgmt_client).start();
+
+        // Create client message channel
+        let (client_message_tx, client_message_rx) = tokio::sync::mpsc::unbounded_channel();
+
+        let app_state = AppState {
+            graph_service_addr,
+            gpu_manager_addr: None,
+            gpu_compute_addr: None,
+            stress_majorization_addr: None,
+            shortest_path_actor: None,
+            connected_components_actor: None,
+            settings_repository,
+            neo4j_adapter,
+            ontology_repository,
+            graph_repository,
+            graph_query_handlers,
+            command_bus,
+            query_bus,
+            event_bus,
+            settings_addr,
+            protected_settings_addr,
+            metadata_addr,
+            client_manager_addr,
+            agent_monitor_addr,
+            workspace_addr,
+            ontology_actor_addr: None,
+            github_client,
+            content_api,
+            perplexity_service: None,
+            ragflow_service: None,
+            speech_service: None,
+            nostr_service: None,
+            feature_access: web::Data::new(FeatureAccess::from_env()),
+            ragflow_session_id: "test_session".to_string(),
+            active_connections: Arc::new(AtomicUsize::new(0)),
+            bots_client,
+            task_orchestrator_addr,
+            debug_enabled: true,
+            client_message_tx,
+            client_message_rx: Arc::new(tokio::sync::Mutex::new(client_message_rx)),
+            ontology_pipeline_service: None,
+        };
+
+        web::Data::new(app_state)
     }
 
     // Helper for making authenticated API requests

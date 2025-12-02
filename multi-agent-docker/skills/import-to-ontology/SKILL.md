@@ -510,7 +510,7 @@ function formatEnrichedContent(
 ): string {
   // Format as Logseq-compatible content
   return `
-- **Source**: [${summary.title}](${stub.value})
+- **Source**: 
   - ${summary.summary}
   - **Key Points**:
 ${summary.keyPoints.map(pt => `    - ${pt}`).join('\n')}
@@ -989,7 +989,7 @@ Create `.import-ontology.config.json` in project root:
 
 ## See Also
 
-- [In-Memory Index Design](../../docs/IN-MEMORY-INDEX-DESIGN.md)
-- [Index Integration Guide](../../docs/ontology-builder/INDEX-INTEGRATION-GUIDE.md)
-- [Canonical Format Guide](../../docs/CANONICAL-FORMAT-GUIDE.md)
+- 
+- 
+- 
 - [Web Summary Skill](../web-summary/SKILL.md)

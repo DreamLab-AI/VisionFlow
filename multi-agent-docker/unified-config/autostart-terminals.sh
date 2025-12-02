@@ -2,6 +2,9 @@
 # Wait for desktop to fully start
 sleep 5
 
+# Ensure DISPLAY is set (required for xfce4-terminal)
+export DISPLAY="${DISPLAY:-:1}"
+
 # Launch 9 xfce4 terminals with colorful init scripts (3x3 grid)
 
 # Row 1 (3 terminals) - Claude workspace
@@ -26,6 +29,10 @@ sleep 0.5
 xfce4-terminal --title="🧠 OpenAI-Shell" --geometry=80x24 -e "bash -c 'sudo -u openai-user /home/devuser/.config/init-openai.sh'" &
 sleep 0.5
 xfce4-terminal --title="⚡ Z.AI-Shell" --geometry=80x24 -e "bash -c 'sudo -u zai-user /home/devuser/.config/init-zai.sh'" &
+
+# Row 4 (1 terminal) - DeepSeek
+sleep 0.5
+xfce4-terminal --title="🧠 DeepSeek-Shell" --geometry=80x24 -e "bash -c 'sudo -u deepseek-user /home/devuser/.config/init-deepseek.sh'" &
 
 # Launch Chromium with DevTools
 sleep 2

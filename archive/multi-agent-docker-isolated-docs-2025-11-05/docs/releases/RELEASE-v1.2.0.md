@@ -55,29 +55,29 @@ npx agentic-flow mcp update weather --env "API_KEY=new-key"
 ## 📚 Documentation
 
 ### User Guides
-- **[ADDING-MCP-SERVERS-CLI.md](./guides/ADDING-MCP-SERVERS-CLI.md)** (516 lines)
+- **** (516 lines)
   - Complete end-user guide for CLI commands
   - Step-by-step examples
   - Popular MCP servers list
   - Troubleshooting section
 
-- **[ADDING-MCP-SERVERS.md](./guides/ADDING-MCP-SERVERS.md)** (570 lines)
+- **** (570 lines)
   - Developer integration guide
   - Code examples for in-SDK and external servers
   - Best practices
 
 ### Validation Reports
-- **[MCP-CLI-VALIDATION-REPORT.md](./mcp-validation/MCP-CLI-VALIDATION-REPORT.md)**
+- ****
   - Complete validation results
   - Live agent test with strange-loops MCP
   - 100% test pass rate (8/8 tests)
 
-- **[IMPLEMENTATION-SUMMARY.md](./mcp-validation/IMPLEMENTATION-SUMMARY.md)**
+- ****
   - Technical implementation details
   - Before/after comparison
   - Security considerations
 
-- **[strange-loops-test.md](./mcp-validation/strange-loops-test.md)**
+- ****
   - Live agent test output
   - Proof of integration working
 

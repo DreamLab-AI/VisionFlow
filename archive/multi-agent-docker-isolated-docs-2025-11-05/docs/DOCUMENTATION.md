@@ -6,9 +6,9 @@
 
 ## Quick Links
 
-- **New Users**: Start with [docs/user/getting-started.md](docs/user/getting-started.md)
-- **Developers**: See [docs/developer/README.md](docs/developer/README.md)
-- **API Integration**: [docs/user/management-api.md](docs/user/management-api.md)
+- **New Users**: Start with 
+- **Developers**: See 
+- **API Integration**: 
 
 ---
 
@@ -22,9 +22,9 @@ Essential files in project root:
 |------|---------|
 | **[README.md](README.md)** | Main project overview and quick start |
 | **[SETUP.md](SETUP.md)** | Installation and configuration guide |
-| **[CLAUDE.md](CLAUDE.md)** | Claude Code project configuration |
+| **** | Claude Code project configuration |
 | **[SECURITY.md](SECURITY.md)** | Security best practices |
-| **[.env.example](.env.example)** | Environment configuration template |
+| **** | Environment configuration template |
 
 ### User Documentation (`docs/user/`)
 
@@ -32,12 +32,12 @@ Complete user guides:
 
 | Document | Description |
 |----------|-------------|
-| **[README.md](docs/user/README.md)** | User guide index |
-| **[getting-started.md](docs/user/getting-started.md)** | Installation, first steps, quick start |
-| **[container-access.md](docs/user/container-access.md)** | VNC, SSH, docker exec methods |
-| **[using-claude-cli.md](docs/user/using-claude-cli.md)** | Claude Code skills and agents |
-| **[skills-and-agents.md](docs/user/skills-and-agents.md)** | Complete reference (6 skills, 610 agents) |
-| **[management-api.md](docs/user/management-api.md)** | HTTP API reference and automation |
+| **** | User guide index |
+| **** | Installation, first steps, quick start |
+| **** | VNC, SSH, docker exec methods |
+| **** | Claude Code skills and agents |
+| **** | Complete reference (6 skills, 610 agents) |
+| **** | HTTP API reference and automation |
 
 ### Developer Documentation (`docs/developer/`)
 
@@ -45,12 +45,12 @@ Technical documentation for contributors:
 
 | Document | Description |
 |----------|-------------|
-| **[README.md](docs/developer/README.md)** | Developer guide index |
-| **[architecture.md](docs/developer/architecture.md)** | System architecture and design |
-| **[building-skills.md](docs/developer/building-skills.md)** | Custom skill development |
-| **[devpod-setup.md](docs/developer/devpod-setup.md)** | DevPod and cloud configuration |
-| **[cloud-deployment.md](docs/developer/cloud-deployment.md)** | Production deployment guides |
-| **[command-reference.md](docs/developer/command-reference.md)** | CLI command reference |
+| **** | Developer guide index |
+| **** | System architecture and design |
+| **** | Custom skill development |
+| **** | DevPod and cloud configuration |
+| **** | Production deployment guides |
+| **** | CLI command reference |
 
 ---
 
@@ -60,37 +60,37 @@ Technical documentation for contributors:
 
 1. Read [README.md](README.md) for project overview
 2. Follow [SETUP.md](SETUP.md) for installation
-3. Review [docs/user/getting-started.md](docs/user/getting-started.md) for first steps
-4. Choose access method in [docs/user/container-access.md](docs/user/container-access.md)
+3. Review  for first steps
+4. Choose access method in 
 
 ### Using Claude Code
 
-1. [docs/user/using-claude-cli.md](docs/user/using-claude-cli.md) - Start here
-2. [docs/user/skills-and-agents.md](docs/user/skills-and-agents.md) - Complete reference
-3. [CLAUDE.md](CLAUDE.md) - Project configuration
+1.  - Start here
+2.  - Complete reference
+3.  - Project configuration
 
 ### Automation and API
 
-1. [docs/user/management-api.md](docs/user/management-api.md) - HTTP API
-2. [docs/developer/command-reference.md](docs/developer/command-reference.md) - CLI commands
+1.  - HTTP API
+2.  - CLI commands
 
 ### Development and Extension
 
-1. [docs/developer/architecture.md](docs/developer/architecture.md) - System design
-2. [docs/developer/building-skills.md](docs/developer/building-skills.md) - Create skills
-3. [docs/developer/README.md](docs/developer/README.md) - Development guide
+1.  - System design
+2.  - Create skills
+3.  - Development guide
 
 ### Deployment
 
 1. [SETUP.md](SETUP.md) - Local installation
-2. [docs/developer/devpod-setup.md](docs/developer/devpod-setup.md) - Cloud development
-3. [docs/developer/cloud-deployment.md](docs/developer/cloud-deployment.md) - Production
+2.  - Cloud development
+3.  - Production
 
 ### Security
 
 1. [SECURITY.md](SECURITY.md) - Security best practices
-2. [docs/user/container-access.md](docs/user/container-access.md#security) - Access security
-3. [docs/user/management-api.md](docs/user/management-api.md#authentication) - API security
+2.  - Access security
+3.  - API security
 
 ---
 
@@ -225,10 +225,10 @@ vim docs/developer/README.md
 
 ## Getting Help
 
-- **User Questions**: Start with [docs/user/README.md](docs/user/README.md)
-- **Development**: See [docs/developer/README.md](docs/developer/README.md)
+- **User Questions**: Start with 
+- **Development**: See 
 - **Issues**: [GitHub Issues](https://github.com/marcuspat/turbo-flow-claude/issues)
-- **API Reference**: [docs/user/management-api.md](docs/user/management-api.md)
+- **API Reference**: 
 
 ---
 

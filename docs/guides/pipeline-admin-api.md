@@ -378,7 +378,7 @@ Metrics are tracked for:
 
 ## References
 
-- [Pipeline Events Service](../../src/services/pipeline-events.rs)
-- [Pipeline Admin Handler](../../src/handlers/pipeline-admin-handler.rs)
-- [Ontology Pipeline Service](../../src/services/ontology-pipeline-service.rs)
-- [Integration Checklist (Historical)](../pipeline-integration-checklist.md)
+- 
+- 
+- 
+- 

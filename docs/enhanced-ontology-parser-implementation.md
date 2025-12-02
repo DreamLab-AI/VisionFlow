@@ -89,6 +89,18 @@ pub struct OntologyBlock {
 
 **Methods:**
 
+```mermaid
+flowchart TD
+    A[OntologyClass Methods] --> B[new: file_path → Self]
+    A --> C[get_domain → Option String]
+    A --> D[get_full_iri → Option String]
+    A --> E[validate → Vec String]
+
+    C --> C1[Extract from:<br>term-id/source-domain/namespace]
+    D --> D1[Resolve namespace:class<br>to full IRI]
+    E --> E1[Tier 1 validation<br>return error list]
+```
+
 - `new(file_path: String) -> Self` - Constructor
 - `get_domain() -> Option<String>` - Extract domain from term-id/source-domain/namespace
 - `get_full_iri() -> Option<String>` - Resolve namespace:class to full IRI

@@ -437,8 +437,8 @@ assert-eq!(classes-with-sha1, stats.ontology-files-processed);
 
 - Ontology Storage Architecture (TODO: Document to be created) - Complete technical details
 - OntologyRepository Port (TODO: Document to be created) - Database interface
-- [Ontology System Overview](../specialized/ontology/ontology-system-overview.md) - High-level architecture
-- [HornedOWL Integration](../specialized/ontology/hornedowl.md) - OWL parsing details
+-  - High-level architecture
+-  - OWL parsing details
 
 ## API Reference
 

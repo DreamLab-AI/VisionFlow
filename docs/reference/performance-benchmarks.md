@@ -324,8 +324,8 @@ VisionFlow delivers production-grade performance across all tiers:
 
 - [Binary Protocol Specification](./binary-protocol-specification.md)
 - [WebSocket API Documentation](./api/03-websocket.md)
-- [GPU Architecture](../concepts/architecture/gpu-architecture.md)
-- [Optimization Guide](../guides/performance-optimization.md)
+- 
+- 
 
 ---
 

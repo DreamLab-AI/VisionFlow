@@ -10,11 +10,11 @@ Welcome to the VisionFlow developer guides. These how-to guides help developers 
 
 ### Development Tasks
 - **[Adding Features](./04-adding-features.md)** - Step-by-step guide to implementing new features
-- **[Testing Guide](./05-testing-guide.md)** - Writing and running tests
+- **[Testing Guide](../testing-guide.md)** - Writing and running tests
 
 ### Reference
 - **[Architecture Overview](./03-architecture.md)** - Detailed architecture and design patterns
-- **[Testing Status](./05-testing-guide.md)** - Current testing capabilities and procedures
+- **[Testing Status](../testing-guide.md)** - Current testing capabilities and procedures
 - **[Contributing](./06-contributing.md)** - Guidelines for contributing to VisionFlow
 
 ## By Task
@@ -31,7 +31,7 @@ Welcome to the VisionFlow developer guides. These how-to guides help developers 
 → Follow [Adding Features](./04-adding-features.md)
 
 **Write tests for my code**
-→ See [Testing Guide](./05-testing-guide.md)
+→ See [Testing Guide](../testing-guide.md)
 
 **Understand the architecture**
 → Review [Architecture Overview](./03-architecture.md)
@@ -52,10 +52,10 @@ Welcome to the VisionFlow developer guides. These how-to guides help developers 
 
 ## Related Documentation
 
-- **[Concepts](../concepts/)** - Understanding VisionFlow's design patterns and architecture
-- **[Reference](../reference/)** - Technical API documentation and specifications
-- **[Getting Started](../getting-started/)** - Installation and first steps for new users
-- **[Main Docs](../../readme.md)** - Documentation home
+- **** - Understanding VisionFlow's design patterns and architecture
+- **** - Technical API documentation and specifications
+- **** - Installation and first steps for new users
+- **** - Documentation home
 
 ---
 

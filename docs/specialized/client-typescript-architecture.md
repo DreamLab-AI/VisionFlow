@@ -22,7 +22,7 @@
 11. [Type System](#type-system)
 12. [Service Layer](#service-layer)
 13. [Feature Modules](#feature-modules)
-14. [Build & Deployment](#build--deployment)
+14. 
 15. [Performance Optimization](#performance-optimization)
 16. [Testing Strategy](#testing-strategy)
 17. [Security](#security)

@@ -110,7 +110,7 @@ for class-iri, node in data['hierarchy'].items():
     print(f"{node['label']} - Depth: {node['depth']}")
 ```
 
-**Implementation**: See [ontology-handler.rs:936-1090](../../src/handlers/api-handler/ontology/mod.rs)
+**Implementation**: See 
 
 ---
 
@@ -444,7 +444,7 @@ ws.onmessage = (event) => {
 };
 ```
 
-**See**: [Binary Protocol Documentation](./websocket-binary-protocol.md)
+**See**: 
 
 ---
 
@@ -624,8 +624,8 @@ Large result sets automatically paginated:
 
 - [Ontology Reasoning Pipeline](../../concepts/architecture/ontology-reasoning-pipeline.md)
 - [Semantic Physics System](../../concepts/architecture/semantic-physics-system.md)
-- [WebSocket Binary Protocol](./websocket-binary-protocol.md)
-- [User Integration Guide](../guides/developer-integration-guide.md)
+- 
+- 
 
 ---
 

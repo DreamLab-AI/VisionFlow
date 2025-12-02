@@ -3572,10 +3572,10 @@ impl GitHubSyncService {
 ## Cross-References
 
 - **Database Schemas:** [04-database-schemas.md](04-database-schemas.md)
-- **Error Codes:** [../reference/error-codes.md](../reference/error-codes.md) (TODO)
-- **WebSocket Protocol:** [../reference/websocket-protocol.md](../reference/websocket-protocol.md) (TODO)
+- **Error Codes:**  (TODO)
+- **WebSocket Protocol:**  (TODO)
 - **CQRS Architecture:** [hexagonal-cqrs-architecture.md](hexagonal-cqrs-architecture.md)
-- **GPU Acceleration:** [gpu/gpu-semantic-forces.md](gpu/gpu-semantic-forces.md)
+- **GPU Acceleration:** 
 - **Ontology Pipeline:** [ontology-reasoning-pipeline.md](ontology-reasoning-pipeline.md)
 
 ---

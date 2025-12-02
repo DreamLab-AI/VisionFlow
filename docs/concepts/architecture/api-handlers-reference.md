@@ -20,7 +20,7 @@
 12. [WebSocket Handlers](#websocket-handlers)
 13. [Admin Handlers](#admin-handlers)
 14. [Utility Handlers](#utility-handlers)
-15. [Authentication & Authorization](#authentication--authorization)
+15. 
 16. [Error Handling](#error-handling)
 17. [Rate Limiting](#rate-limiting)
 
@@ -3645,9 +3645,9 @@ X-RateLimit-Reset: 1699030860
 
 - **Services Architecture:** [services-architecture.md](services-architecture.md)
 - **Database Schemas:** [04-database-schemas.md](04-database-schemas.md)
-- **WebSocket Protocol Details:** [../reference/websocket-protocol.md](../reference/websocket-protocol.md) (TODO)
+- **WebSocket Protocol Details:**  (TODO)
 - **CQRS Commands/Queries:** [hexagonal-cqrs-architecture.md](hexagonal-cqrs-architecture.md)
-- **Authentication Guide:** [../guides/authentication.md](../guides/authentication.md) (TODO)
+- **Authentication Guide:**  (TODO)
 
 ---
 

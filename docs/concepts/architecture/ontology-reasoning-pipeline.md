@@ -455,8 +455,8 @@ env-logger::Builder::from-default-env()
 
 - [Semantic Physics System](./semantic-physics-system.md) - Physics constraint generation
 - [Hierarchical Visualization](./hierarchical-visualization.md) - Visual hierarchy rendering
-- [API Reference](../api/rest-api-reference.md) - REST endpoints
-- [Integration Guide](../guides/ontology-reasoning-guide.md) - User-facing guide
+-  - REST endpoints
+-  - User-facing guide
 
 ---
 

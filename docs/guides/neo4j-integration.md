@@ -435,7 +435,7 @@ MATCH ()-[r]->() RETURN count(r);
 3. Verify environment variables in `.env`
 4. Test connectivity: `nc -zv localhost 7687`
 
-**See**: [502 Error Diagnosis Guide](../../502_ERROR_DIAGNOSIS.md)
+**See**: 
 
 ### Issue: Slow Query Performance
 
@@ -531,9 +531,9 @@ CALL apoc.export.json.all("export.json", {});
 
 - **[Neo4j Migration Guide](neo4j-migration.md)** - Historical migration information
 - **[Implementation Status](../reference/implementation-status.md)** - Current system completeness
-- **[502 Error Diagnosis](../../502_ERROR_DIAGNOSIS.md)** - Troubleshooting backend startup
-- **[Graph Sync Fixes](../../GRAPH_SYNC_FIXES.md)** - GitHub synchronization
-- **[Unified Docker Setup](../../UNIFIED_DOCKER_SETUP.md)** - Complete deployment guide
+- **** - Troubleshooting backend startup
+- **** - GitHub synchronization
+- **** - Complete deployment guide
 - **[Neo4j Official Documentation](https://neo4j.com/docs/)** - Upstream docs
 
 ---

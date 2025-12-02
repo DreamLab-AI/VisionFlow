@@ -862,12 +862,12 @@ async fn test-backpressure-throttling() {
 
 ## References
 
-- [CustomReasoner Implementation](../../src/reasoning/custom-reasoner.rs)
-- [OntologyPipelineService](../../src/services/ontology-pipeline-service.rs)
-- [ReasoningActor](../../src/reasoning/reasoning-actor.rs)
-- [OntologyConstraintActor](../../src/actors/gpu/ontology-constraint-actor.rs)
-- [GitHubSyncService](../../src/services/github-sync-service.rs)
-- [WebSocket Protocol](../protocols/websocket-protocol.md)
+- 
+- 
+- 
+- 
+- 
+- 
 
 ## Version History
 

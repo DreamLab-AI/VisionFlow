@@ -14,7 +14,7 @@
 4. [Ontology Endpoints](#ontology-endpoints)
 5. [Physics Endpoints](#physics-endpoints)
 6. [File Management](#file-management)
-7. [Bots & Swarm Endpoints](#bots--swarm-endpoints)
+7. 
 8. [Analytics Endpoints](#analytics-endpoints)
 9. [Workspace Management](#workspace-management)
 10. [Advanced Features](#advanced-features)
@@ -1347,7 +1347,7 @@ GET /api/resource?page=1&page-size=50
 ## Support & Resources
 
 - **WebSocket Protocol**: [03-websocket.md](./03-websocket.md)
-- **Architecture Overview**: [../../concepts/architecture/00-ARCHITECTURE-overview.md](../../concepts/architecture/00-ARCHITECTURE-overview.md)
+- **Architecture Overview**: 
 - **GitHub Repository**: Contact administrator for access
 - **Issue Tracker**: Internal JIRA
 

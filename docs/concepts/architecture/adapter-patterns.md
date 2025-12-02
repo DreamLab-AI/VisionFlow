@@ -9,10 +9,10 @@
 5. [XR Platform Adapters](#xr-platform-adapters)
 6. [AI Model Adapters](#ai-model-adapters)
 7. [Storage Adapters](#storage-adapters)
-8. [Authentication Adapters](#authentication-adapters)
-9. [Messaging Adapters](#messaging-adapters)
-10. [Implementation Patterns](#implementation-patterns)
-11. [Adding New Adapters](#adding-new-adapters)
+8. 
+9. 
+10. 
+11. 
 12. [Testing Adapters](#testing-adapters)
 
 ---

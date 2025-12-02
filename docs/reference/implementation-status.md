@@ -35,12 +35,12 @@ VisionFlow has completed major architectural migrations and is in active develop
 
 ```mermaid
 graph TB
-    SUPERVISOR["GraphServiceSupervisor<br/>(913 lines)"]
+    SUPERVISOR["GraphServiceSupervisor<br>(913 lines)"]
 
-    GRAPH["GraphStateActor<br/>(712 lines)<br/>Data Management"]
-    PHYSICS["PhysicsOrchestratorActor<br/>Simulation"]
-    SEMANTIC["SemanticProcessorActor<br/>Analysis"]
-    CLIENT["ClientCoordinatorActor<br/>WebSocket"]
+    GRAPH["GraphStateActor<br>(712 lines)<br>Data Management"]
+    PHYSICS["PhysicsOrchestratorActor<br>Simulation"]
+    SEMANTIC["SemanticProcessorActor<br>Analysis"]
+    CLIENT["ClientCoordinatorActor<br>WebSocket"]
 
     SUPERVISOR -->|spawns & monitors| GRAPH
     SUPERVISOR -->|spawns & monitors| PHYSICS

@@ -6,10 +6,10 @@
 
 ## Quick Navigation
 
-- **Integration Tests**: [`cuda_integration_tests.rs`](./cuda_integration_tests.rs)
-- **Performance Benchmarks**: [`cuda_performance_benchmarks.rs`](./cuda_performance_benchmarks.rs)
+- **Integration Tests**: 
+- **Performance Benchmarks**: 
 - **Documentation**: [`README_GPU_TESTS.md`](./README_GPU_TESTS.md)
-- **Full Deliverable**: [`../docs/GPU_VALIDATION_WEEK6_DELIVERABLE.md`](../docs/GPU_VALIDATION_WEEK6_DELIVERABLE.md)
+- **Full Deliverable**: 
 
 ---
 

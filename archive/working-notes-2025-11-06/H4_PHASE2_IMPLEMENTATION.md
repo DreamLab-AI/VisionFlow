@@ -657,7 +657,7 @@ pub fn register_message_metrics(registry: &Registry) {
 
 - [H4 Design Document](./H4_MESSAGE_ACKNOWLEDGMENT_DESIGN.md)
 - [H4 Phase 1 Implementation](./H4_PHASE1_IMPLEMENTATION.md)
-- [Integration Tests](./tests/h4_message_acknowledgment_test.rs)
+- 
 
 ---
 

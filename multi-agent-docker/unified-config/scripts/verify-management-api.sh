@@ -26,11 +26,11 @@ for i in $(seq 1 $MAX_RETRIES); do
         echo "⏳ Attempt $i/$MAX_RETRIES: Management API not ready yet..."
 
         # Check if process is running
-        if supervisorctl status management-api | grep -q "RUNNING"; then
+        if /opt/venv/bin/supervisorctl status management-api | grep -q "RUNNING"; then
             echo "   Process status: RUNNING (waiting for HTTP response)"
         else
             echo "   ⚠️  Process not running! Attempting restart..."
-            supervisorctl restart management-api
+            /opt/venv/bin/supervisorctl restart management-api
         fi
 
         sleep $RETRY_DELAY
@@ -41,10 +41,10 @@ done
 echo "❌ Management API health check FAILED after ${MAX_RETRIES} attempts"
 echo ""
 echo "Diagnostic information:"
-supervisorctl status management-api
+/opt/venv/bin/supervisorctl status management-api
 echo ""
 echo "Recent logs:"
-supervisorctl tail management-api stderr
+/opt/venv/bin/supervisorctl tail management-api stderr
 echo ""
 echo "=== Health Check Failed ==="
 exit 1

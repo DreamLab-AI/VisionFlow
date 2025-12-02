@@ -11,8 +11,8 @@ Version-specific release notes, publish guides, and hotfix documentation.
 
 ## Archived Releases
 
-Historical release notes for v1.1.x can be found in the [archived/](../archived/) directory.
+Historical release notes for v1.1.x can be found in the  directory.
 
 ## Release Process
 
-For information on how to publish new releases, see the [NPM Publishing Guide](../guides/NPM-PUBLISH.md).
+For information on how to publish new releases, see the .

@@ -301,10 +301,10 @@ const ws = new WebSocket('ws://localhost:9090/ws?token=JWT', {
 
 ## References
 
-- [WebSocket API Documentation](./03-websocket.md)
-- [Migration Guide: JSON to Binary](../../guides/migration/json-to-binary-protocol.md)
+- 
+- 
 - [Performance Benchmarks](./performance-benchmarks.md)
-- [Architecture Overview](../../concepts/architecture/00-ARCHITECTURE-overview.md)
+- 
 
 ---
 

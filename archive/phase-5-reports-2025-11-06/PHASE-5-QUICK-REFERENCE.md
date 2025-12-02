@@ -187,7 +187,7 @@ find docs -name '*.md' -exec markdown-link-check {} \;
 **Full Reports**:
 - [PHASE-5-VALIDATION-REPORT.md](./PHASE-5-VALIDATION-REPORT.md) (detailed)
 - [PHASE-5-QUALITY-SUMMARY.md](./PHASE-5-QUALITY-SUMMARY.md) (dashboard)
-- [Documentation-Coverage-Analysis.md](./Documentation-Coverage-Analysis.md) (gaps)
+-  (gaps)
 - [PHASE-5-EXECUTIVE-SUMMARY.md](./PHASE-5-EXECUTIVE-SUMMARY.md) (overview)
 
 **Scripts**:

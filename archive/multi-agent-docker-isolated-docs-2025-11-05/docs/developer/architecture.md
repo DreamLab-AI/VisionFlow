@@ -11,7 +11,7 @@ This document provides a comprehensive overview of the unified devpod architectu
 5. [Development Environments](#development-environments)
 6. [Claude Code Skills](#claude-code-skills)
 7. [Network Architecture](#network-architecture)
-8. [Storage & Persistence](#storage--persistence)
+8. 
 9. [Security Model](#security-model)
 10. [Process Management](#process-management)
 

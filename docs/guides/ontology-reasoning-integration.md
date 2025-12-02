@@ -464,10 +464,10 @@ impl OntologyReasoningService {
 
 ## References
 
-- [VisionFlow Architecture](./architecture.md)
+- 
 - [OWL 2 EL Profile](https://www.w3.org/TR/owl2-profiles/#OWL-2-EL)
 - [whelk-rs Documentation](https://github.com/balhoff/whelk-rs)
-- [Unified Database Schema](../schema/readme.md)
+- 
 
 ## Contact
 

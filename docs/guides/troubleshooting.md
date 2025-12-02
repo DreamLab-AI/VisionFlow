@@ -1,6 +1,6 @@
 # Troubleshooting Guide
 
-[← Knowledge Base](../index.md) > [Guides](./index.md) > Troubleshooting
+ > [Guides](./index.md) > Troubleshooting
 
 Comprehensive troubleshooting guide for VisionFlow, covering installation, deployment, runtime issues, and system recovery. This guide consolidates solutions for both the main VisionFlow system and the multi-agent Docker environment.
 
@@ -21,11 +21,11 @@ Comprehensive troubleshooting guide for VisionFlow, covering installation, deplo
 ## Table of Contents
 
 1. [Installation Issues](#installation-issues)
-2. [Docker & Container Issues](#docker--container-issues)
+2. 
 3. [Agent System Issues](#agent-system-issues)
 4. [Performance Problems](#performance-problems)
-5. [Network & Connectivity](#network--connectivity)
-6. [GPU & CUDA Issues](#gpu--cuda-issues)
+5. 
+6. 
 7. [XR/VR Issues](#xrvr-issues)
 8. [External Services](#external-services)
 9. [Diagnostic Tools](#diagnostic-tools)
@@ -1674,9 +1674,9 @@ scrape-configs:
 ### Documentation Resources
 
 - [Installation Guide](../getting-started/01-installation.md)
-- [Deployment Guide](./01-deployment.md)
-- [Configuration Reference](../reference/configuration.md)
-- [Multi-Agent Docker Architecture](../reference/architecture/readme.md)
+- 
+- 
+- 
 - [API Reference](../reference/api/)
 
 ### Community & Support
@@ -1781,4 +1781,4 @@ What you've already tried
 
 ---
 
-[← Extending the System](05-extending-the-system.md) | [Back to Guides](readme.md)
+ | [Back to Guides](readme.md)

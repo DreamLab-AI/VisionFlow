@@ -786,7 +786,7 @@ pub struct RateLimiter {
 
 ## References
 
-- **[Binary Protocol V2 Specification](../../reference/api/binary-protocol.md)** - Complete wire format details
+- **** - Complete wire format details
 - **[Dual-Graph Architecture](../core/visualization.md)** - Knowledge + agent graph visualization
-- **[WebSocket API Reference](../../reference/websocket-api.md)** - API endpoint documentation
-- **[Performance Benchmarks](../../reports/performance-benchmarks.md)** - Bandwidth and latency metrics
+- **** - API endpoint documentation
+- **** - Bandwidth and latency metrics

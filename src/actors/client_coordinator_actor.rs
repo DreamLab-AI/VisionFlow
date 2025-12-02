@@ -70,7 +70,8 @@ pub enum FilterMode {
 impl Default for ClientFilter {
     fn default() -> Self {
         Self {
-            enabled: false,
+            // DEFAULT FILTER ENABLED: Fresh clients get quality-filtered sparse dataset
+            enabled: true,
             quality_threshold: 0.7,
             authority_threshold: 0.5,
             filter_by_quality: true,
@@ -274,7 +275,10 @@ pub struct ClientCoordinatorActor {
 
     graph_service_addr: Option<Addr<crate::actors::GraphServiceSupervisor>>,
 
-    
+    // Neo4j settings repository for loading/saving user filters
+    neo4j_settings_repository: Option<Arc<crate::adapters::neo4j_settings_repository::Neo4jSettingsRepository>>,
+
+
     position_cache: HashMap<u32, BinaryNodeDataClient>,
 
     
@@ -316,6 +320,7 @@ impl ClientCoordinatorActor {
             stable_broadcast_interval: Duration::from_millis(1000), 
             initial_positions_sent: false,
             graph_service_addr: None,
+            neo4j_settings_repository: None,
             position_cache: HashMap::new(),
             broadcast_count: 0,
             bytes_sent: 0,
@@ -329,10 +334,16 @@ impl ClientCoordinatorActor {
         }
     }
 
-    
+
     pub fn set_bandwidth_limit(&mut self, bytes_per_sec: usize) {
         self.bandwidth_limit_bytes_per_sec = bytes_per_sec;
         info!("Bandwidth limit set to {} bytes/sec", bytes_per_sec);
+    }
+
+    /// Set the Neo4j settings repository for loading user filters
+    pub fn set_neo4j_repository(&mut self, repo: Arc<crate::adapters::neo4j_settings_repository::Neo4jSettingsRepository>) {
+        self.neo4j_settings_repository = Some(repo);
+        info!("Neo4j settings repository configured for ClientCoordinatorActor");
     }
 
     
@@ -1321,9 +1332,68 @@ impl Handler<AuthenticateClient> for ClientCoordinatorActor {
                 msg.client_id, msg.pubkey, msg.is_power_user
             );
 
-            // TODO: Load saved filter from Neo4j using msg.pubkey
-            // For now, if filter is enabled, recompute with current graph data
-            if client.filter.enabled {
+            // Load saved filter from Neo4j if repository is available
+            if let Some(neo4j_repo) = self.neo4j_settings_repository.clone() {
+                let pubkey_clone = msg.pubkey.clone();
+                let client_id = msg.client_id;
+                let manager_arc = self.client_manager.clone();
+                let graph_addr = self.graph_service_addr.clone();
+
+                ctx.spawn(actix::fut::wrap_future::<_, Self>(async move {
+                    match neo4j_repo.get_user_filter(&pubkey_clone).await {
+                        Ok(Some(user_filter)) => {
+                            info!("✅ Loaded filter from Neo4j for pubkey {}: enabled={}, quality_threshold={}",
+                                  pubkey_clone, user_filter.enabled, user_filter.quality_threshold);
+
+                            // Update client filter with loaded settings
+                            if let Ok(mut manager) = manager_arc.write() {
+                                if let Some(client) = manager.get_client_mut(client_id) {
+                                    client.filter.enabled = user_filter.enabled;
+                                    client.filter.quality_threshold = user_filter.quality_threshold;
+                                    client.filter.authority_threshold = user_filter.authority_threshold;
+                                    client.filter.filter_by_quality = user_filter.filter_by_quality;
+                                    client.filter.filter_by_authority = user_filter.filter_by_authority;
+                                    client.filter.filter_mode = match user_filter.filter_mode.as_str() {
+                                        "and" => FilterMode::And,
+                                        _ => FilterMode::Or,
+                                    };
+                                    client.filter.max_nodes = user_filter.max_nodes.map(|n| n as usize);
+
+                                    // Recompute filtered nodes with loaded settings
+                                    if client.filter.enabled {
+                                        if let Some(graph_addr) = graph_addr {
+                                            use crate::actors::messages::GetGraphData;
+                                            match graph_addr.send(GetGraphData).await {
+                                                Ok(Ok(graph_data)) => {
+                                                    crate::actors::client_filter::recompute_filtered_nodes(
+                                                        &mut client.filter,
+                                                        &graph_data
+                                                    );
+                                                    info!("Recomputed filter for authenticated client {}: {} nodes visible",
+                                                          client_id, client.filter.filtered_node_ids.len());
+                                                }
+                                                _ => warn!("Failed to fetch graph data for filter recomputation"),
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Ok(None) => {
+                            info!("No saved filter found for pubkey {}, using defaults", pubkey_clone);
+                        }
+                        Err(e) => {
+                            error!("Failed to load filter from Neo4j: {}", e);
+                        }
+                    }
+                }).map(|_, _, _| ()));
+            } else {
+                // Fallback: No Neo4j repo configured, use default filter behavior
+                warn!("Neo4j repository not configured, using default filter for client {}", msg.client_id);
+            }
+
+            // Original behavior: recompute if filter is enabled (kept for non-Neo4j fallback)
+            if client.filter.enabled && self.neo4j_settings_repository.is_none() {
                 if let Some(graph_addr) = self.graph_service_addr.clone() {
                     let client_id = msg.client_id;
                     let manager_arc = self.client_manager.clone();

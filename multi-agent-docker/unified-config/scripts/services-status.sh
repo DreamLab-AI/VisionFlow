@@ -6,7 +6,7 @@ echo ""
 
 # Supervisord status
 echo "📊 Supervisord Services:"
-sudo supervisorctl status
+sudo /opt/venv/bin/supervisorctl status
 echo ""
 
 # Port listeners

@@ -30,12 +30,12 @@ We adopt **Option B: GitHub-Synced with Persistent Neo4j** architecture.
 
 ```mermaid
 graph TB
-    A[GitHub Repository<br/>Markdown Files] -->|GitHubSyncService| B[Neo4j Persistent<br/>Single Source of Truth]
-    B --> C[Force-Directed<br/>Graph Visualization]
-    B --> D[Ontology<br/>Reasoning]
-    B --> E[Settings<br/>Management]
+    A[GitHub Repository<br>Markdown Files] -->|GitHubSyncService| B[Neo4j Persistent<br>Single Source of Truth]
+    B --> C[Force-Directed<br>Graph Visualization]
+    B --> D[Ontology<br>Reasoning]
+    B --> E[Settings<br>Management]
 
-    F[Client Changes] --> G[Markdown Files<br/>Local]
+    F[Client Changes] --> G[Markdown Files<br>Local]
     G -->|Git Push| A
 
     B -.->|Read for Export| G
@@ -517,9 +517,9 @@ If critical issues arise:
 
 ## References
 
-- [MARKDOWN_AS_DATABASE_READINESS_ASSESSMENT.md](../../MARKDOWN_AS_DATABASE_READINESS_ASSESSMENT.md)
-- [Neo4j Implementation Roadmap](../guides/neo4j-implementation-roadmap.md)
-- [GitHub Sync Service Design](../concepts/architecture/github-sync-service-design.md)
+- 
+- 
+- 
 
 ---
 

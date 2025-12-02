@@ -87,8 +87,25 @@ class NostrAuthService {
     if (this.initialized) return;
     logger.debug('Initializing NostrAuthService...');
 
+    // DEV MODE: Auto-login as power user when in development
+    const isDev = import.meta.env.DEV || window.location.hostname === '192.168.0.51' || window.location.port === '5173';
+    if (isDev) {
+      logger.info('[DEV MODE] Auto-authenticating as power user');
+      const devPowerUserPubkey = 'bfcf20d472f0fb143b23cb5be3fa0a040d42176b71f73ca272f6912b1d62a452';
+      this.sessionToken = 'dev-session-token';
+      this.currentUser = {
+        pubkey: devPowerUserPubkey,
+        npub: this.hexToNpub(devPowerUserPubkey),
+        isPowerUser: true,
+      };
+      this.initialized = true;
+      this.notifyListeners(this.getCurrentAuthState());
+      logger.info(`[DEV MODE] Authenticated as power user: ${devPowerUserPubkey}`);
+      return;
+    }
+
     const storedToken = localStorage.getItem('nostr_session_token');
-    const storedUserJson = localStorage.getItem('nostr_user'); 
+    const storedUserJson = localStorage.getItem('nostr_user');
 
     if (storedToken && storedUserJson) {
       let storedUser: SimpleNostrUser | null = null;

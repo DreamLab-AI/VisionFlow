@@ -588,10 +588,10 @@ docker exec agentic-workstation /home/devuser/.claude/skills/my-skill/test-skill
 ## 📚 Related Documentation
 
 - [Multi-Agent Architecture](../concepts/architecture/multi-agent-system.md)
-- [Agent Control Interface](../reference/api/agent-control.md)
-- [MCP Protocol Integration](../guides/mcp-integration.md)
+- 
+- 
 - [Docker Environment Setup](../guides/docker-environment-setup.md)
-- [Skill Development Guide](../guides/skill-development.md)
+- 
 
 ---
 

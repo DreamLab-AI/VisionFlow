@@ -1,6 +1,6 @@
 #!/bin/bash
 # tmux Workspace Auto-Start for Unified DevPod
-# Creates 8 windows for comprehensive development workflow
+# Creates 12 windows for comprehensive development workflow
 
 set -e
 
@@ -9,6 +9,12 @@ echo "=== Starting TMux Unified Workspace ==="
 # Environment variables
 WORKSPACE="${WORKSPACE:-/home/devuser/workspace}"
 AGENTS_DIR="${AGENTS_DIR:-/home/devuser/agents}"
+
+# Ensure DISPLAY is set for any GUI commands
+export DISPLAY="${DISPLAY:-:1}"
+
+# Alias supervisorctl for convenience (venv path)
+alias supervisorctl="/opt/venv/bin/supervisorctl"
 
 # Kill existing session if it exists
 tmux kill-session -t workspace 2>/dev/null || true
@@ -40,6 +46,7 @@ tmux send-keys -t workspace:0 "echo '  claude-monitor     - Monitor Claude API u
 tmux send-keys -t workspace:0 "echo '  as-gemini          - Switch to gemini-user'" C-m
 tmux send-keys -t workspace:0 "echo '  as-openai          - Switch to openai-user'" C-m
 tmux send-keys -t workspace:0 "echo '  as-zai             - Switch to zai-user'" C-m
+tmux send-keys -t workspace:0 "echo '  as-deepseek        - Switch to deepseek-user'" C-m
 tmux send-keys -t workspace:0 "echo ''" C-m
 tmux send-keys -t workspace:0 "cd $WORKSPACE" C-m
 
@@ -66,13 +73,13 @@ tmux new-window -t workspace:2 -n "Services" -c "$WORKSPACE"
 tmux send-keys -t workspace:2 "clear" C-m
 tmux send-keys -t workspace:2 "echo '=== Service Status Monitor ==='" C-m
 tmux send-keys -t workspace:2 "echo ''" C-m
-tmux send-keys -t workspace:2 "sudo supervisorctl status" C-m
+tmux send-keys -t workspace:2 "sudo /opt/venv/bin/supervisorctl status" C-m
 tmux send-keys -t workspace:2 "echo ''" C-m
 tmux send-keys -t workspace:2 "echo 'Commands:'" C-m
-tmux send-keys -t workspace:2 "echo '  sudo supervisorctl status       - View all services'" C-m
-tmux send-keys -t workspace:2 "echo '  sudo supervisorctl restart <service>'" C-m
-tmux send-keys -t workspace:2 "echo '  sudo supervisorctl stop <service>'" C-m
-tmux send-keys -t workspace:2 "echo '  sudo supervisorctl start <service>'" C-m
+tmux send-keys -t workspace:2 "echo '  sudo /opt/venv/bin/supervisorctl status       - View all services'" C-m
+tmux send-keys -t workspace:2 "echo '  sudo /opt/venv/bin/supervisorctl restart <service>'" C-m
+tmux send-keys -t workspace:2 "echo '  sudo /opt/venv/bin/supervisorctl stop <service>'" C-m
+tmux send-keys -t workspace:2 "echo '  sudo /opt/venv/bin/supervisorctl start <service>'" C-m
 
 # ============================================================================
 # Window 3: Development - Python/Rust/CUDA development environment
@@ -90,9 +97,10 @@ tmux send-keys -t workspace:3 "echo 'CUDA:    nvcc --version'" C-m
 tmux send-keys -t workspace:3 "nvcc --version 2>/dev/null || echo '  (CUDA available if NVIDIA GPU detected)'" C-m
 tmux send-keys -t workspace:3 "echo ''" C-m
 tmux send-keys -t workspace:3 "echo 'User switching:'" C-m
-tmux send-keys -t workspace:3 "echo '  as-gemini  - Google Gemini tools'" C-m
-tmux send-keys -t workspace:3 "echo '  as-openai  - OpenAI Codex'" C-m
-tmux send-keys -t workspace:3 "echo '  as-zai     - Z.AI service'" C-m
+tmux send-keys -t workspace:3 "echo '  as-gemini   - Google Gemini tools'" C-m
+tmux send-keys -t workspace:3 "echo '  as-openai   - OpenAI Codex'" C-m
+tmux send-keys -t workspace:3 "echo '  as-zai      - Z.AI service'" C-m
+tmux send-keys -t workspace:3 "echo '  as-deepseek - DeepSeek AI'" C-m
 
 # ============================================================================
 # Window 4: Logs - Tail management API and service logs
@@ -134,7 +142,7 @@ tmux send-keys -t workspace:6 "echo ''" C-m
 tmux send-keys -t workspace:6 "echo 'Active X11 Displays:'" C-m
 tmux send-keys -t workspace:6 "ls -la /tmp/.X11-unix/" C-m
 tmux send-keys -t workspace:6 "echo ''" C-m
-tmux send-keys -t workspace:6 "echo 'To restart VNC: sudo supervisorctl restart xvnc'" C-m
+tmux send-keys -t workspace:6 "echo 'To restart VNC: sudo /opt/venv/bin/supervisorctl restart x11vnc'" C-m
 
 # ============================================================================
 # Window 7: SSH-Shell - General purpose shell
@@ -155,6 +163,7 @@ tmux send-keys -t workspace:7 "echo '  devuser (1000:1000) - Primary development
 tmux send-keys -t workspace:7 "echo '  gemini-user (1001:1001) - Google Gemini tools'" C-m
 tmux send-keys -t workspace:7 "echo '  openai-user (1002:1002) - OpenAI Codex'" C-m
 tmux send-keys -t workspace:7 "echo '  zai-user (1003:1003) - Z.AI service'" C-m
+tmux send-keys -t workspace:7 "echo '  deepseek-user (1004:1004) - DeepSeek AI'" C-m
 
 # ============================================================================
 # Window 8: Gemini-Shell - Google Gemini user shell
@@ -205,24 +214,44 @@ tmux send-keys -t workspace:10 "echo 'Service config: ~/.config/zai/config.json'
 tmux send-keys -t workspace:10 "echo ''" C-m
 
 # ============================================================================
+# Window 11: DeepSeek-Shell - DeepSeek AI user shell
+# ============================================================================
+
+tmux new-window -t workspace:11 -n "DeepSeek-Shell" -c "/home/deepseek-user/workspace"
+tmux send-keys -t workspace:11 "sudo -u deepseek-user -i" C-m
+tmux send-keys -t workspace:11 "clear" C-m
+tmux send-keys -t workspace:11 "echo '=== DeepSeek User Shell ==='" C-m
+tmux send-keys -t workspace:11 "echo 'Switched to: deepseek-user (UID 1004)'" C-m
+tmux send-keys -t workspace:11 "echo ''" C-m
+tmux send-keys -t workspace:11 "echo 'DeepSeek API Configuration:'" C-m
+tmux send-keys -t workspace:11 "echo '  Config: ~/.config/deepseek/config.json'" C-m
+tmux send-keys -t workspace:11 "echo '  Agentic-Flow: ~/agentic-flow'" C-m
+tmux send-keys -t workspace:11 "echo ''" C-m
+tmux send-keys -t workspace:11 "echo 'Quick Start:'" C-m
+tmux send-keys -t workspace:11 "echo '  cd ~/agentic-flow'" C-m
+tmux send-keys -t workspace:11 "echo '  npx agentic-flow --help'" C-m
+tmux send-keys -t workspace:11 "echo ''" C-m
+
+# ============================================================================
 # Select the first window (Claude-Main)
 # ============================================================================
 
 tmux select-window -t workspace:0
 
-echo "✅ TMux workspace 'workspace' created successfully with 11 windows!"
+echo "✅ TMux workspace 'workspace' created successfully with 12 windows!"
 echo "📝 Windows:"
-echo "   0: Claude-Main   - Primary Claude Code workspace"
-echo "   1: Claude-Agent  - Agent execution and testing"
-echo "   2: Services      - Supervisord monitoring"
-echo "   3: Development   - Python/Rust/CUDA development"
-echo "   4: Logs          - Service logs (split view)"
-echo "   5: System        - htop resource monitoring"
-echo "   6: VNC-Status    - VNC/Wayvnc server information"
-echo "   7: SSH-Shell     - General purpose shell"
-echo "   8: Gemini-Shell  - Gemini user (UID 1001)"
-echo "   9: OpenAI-Shell  - OpenAI user (UID 1002)"
-echo "  10: ZAI-Shell     - Z.AI user (UID 1003)"
+echo "   0: Claude-Main     - Primary Claude Code workspace"
+echo "   1: Claude-Agent    - Agent execution and testing"
+echo "   2: Services        - Supervisord monitoring"
+echo "   3: Development     - Python/Rust/CUDA development"
+echo "   4: Logs            - Service logs (split view)"
+echo "   5: System          - htop resource monitoring"
+echo "   6: VNC-Status      - VNC/Wayvnc server information"
+echo "   7: SSH-Shell       - General purpose shell"
+echo "   8: Gemini-Shell    - Gemini user (UID 1001)"
+echo "   9: OpenAI-Shell    - OpenAI user (UID 1002)"
+echo "  10: ZAI-Shell       - Z.AI user (UID 1003)"
+echo "  11: DeepSeek-Shell  - DeepSeek user (UID 1004)"
 echo ""
 echo "To attach: tmux attach-session -t workspace"
-echo "To navigate: Ctrl+B then window number (0-9, then :10)"
+echo "To navigate: Ctrl+B then window number (0-9, then :10, :11)"

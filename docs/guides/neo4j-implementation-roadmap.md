@@ -54,9 +54,9 @@ graph TD
 
 ```mermaid
 graph LR
-    A[DualGraphRepository<br/>SQLite + Neo4j] --> B[Remove Dual Layer]
-    C[UnifiedGraphRepository<br/>Abstraction] --> B
-    B --> D[Neo4jAdapter Only<br/>Single Source]
+    A[DualGraphRepository<br>SQLite + Neo4j] --> B[Remove Dual Layer]
+    C[UnifiedGraphRepository<br>Abstraction] --> B
+    B --> D[Neo4jAdapter Only<br>Single Source]
 
     style A fill:#faa,stroke:#333
     style C fill:#faa,stroke:#333
@@ -255,12 +255,12 @@ graph TD
 
 ```mermaid
 graph TD
-    Root[SettingsRoot<br/>id: default<br/>version: 1.0]
+    Root[SettingsRoot<br>id: default<br>version: 1.0]
 
-    Root -->|HAS_PHYSICS| Physics[PhysicsSettings<br/>damping: 0.8<br/>spring_constant: 0.01<br/>...]
-    Root -->|HAS_RENDERING| Rendering[RenderingSettings<br/>fps_limit: 60<br/>vsync: true<br/>...]
-    Root -->|HAS_INTERACTION| Interaction[InteractionSettings<br/>zoom_speed: 1.5<br/>...]
-    Root -->|HAS_NETWORK| Network[NetworkSettings<br/>ws_port: 8080<br/>...]
+    Root -->|HAS_PHYSICS| Physics[PhysicsSettings<br>damping: 0.8<br>spring_constant: 0.01<br>...]
+    Root -->|HAS_RENDERING| Rendering[RenderingSettings<br>fps_limit: 60<br>vsync: true<br>...]
+    Root -->|HAS_INTERACTION| Interaction[InteractionSettings<br>zoom_speed: 1.5<br>...]
+    Root -->|HAS_NETWORK| Network[NetworkSettings<br>ws_port: 8080<br>...]
 ```
 
 ---

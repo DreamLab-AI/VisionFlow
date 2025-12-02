@@ -24,24 +24,53 @@ const LAYERS = {
   ENVIRONMENT_GLOW: 2,
 } as const;
 
+// Default bloom settings for when store hasn't loaded yet
+const FALLBACK_BLOOM = {
+  enabled: true,
+  intensity: 1.5,
+  threshold: 0.1,
+  radius: 0.5,
+  strength: 1.5
+};
+
+const FALLBACK_GLOW = {
+  enabled: true,
+  intensity: 1.0,
+  radius: 0.5,
+  threshold: 0.1,
+  strength: 1.0
+};
+
 export const SelectiveBloom: React.FC<SelectiveBloomProps> = ({ enabled = true }) => {
   const { scene, camera } = useThree();
   const settings = useSettingsStore(state => state.settings);
-  
-  
-  const bloomSettings = settings?.visualisation?.bloom;
-  const glowSettings = settings?.visualisation?.glow;
-  
-  
+  const initialized = useSettingsStore(state => state.initialized);
+
+  // Use fallback settings if store hasn't initialized yet
+  const bloomSettings = settings?.visualisation?.bloom ?? (initialized ? null : FALLBACK_BLOOM);
+  const glowSettings = settings?.visualisation?.glow ?? (initialized ? null : FALLBACK_GLOW);
+
+  // Log settings state for debugging
+  useEffect(() => {
+    console.log('[SelectiveBloom] Settings state:', {
+      initialized,
+      hasSettings: !!settings,
+      hasVisualisation: !!settings?.visualisation,
+      bloomEnabled: bloomSettings?.enabled,
+      glowEnabled: glowSettings?.enabled
+    });
+  }, [settings, initialized, bloomSettings, glowSettings]);
+
   const hasEffects = enabled && (bloomSettings?.enabled || glowSettings?.enabled);
-  
-  
+
   const bloomParams = useMemo(() => {
-    
     const activeSettings = !bloomSettings?.enabled && glowSettings?.enabled ? glowSettings : bloomSettings;
-    
+
     if (!activeSettings?.enabled) {
-      console.warn('SelectiveBloom: No active settings, bloom disabled');
+      // Only warn if settings are loaded but disabled
+      if (initialized) {
+        console.log('[SelectiveBloom] Bloom disabled by settings');
+      }
       return null;
     }
     

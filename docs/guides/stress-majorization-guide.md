@@ -338,10 +338,10 @@ POST /api/analytics/stress-majorization/reset-safety
 
 ## References
 
-- [Actor Implementation](../../src/actors/gpu/stress-majorization-actor.rs)
-- [CUDA Kernels](../../src/utils/stress-majorization.cu)
-- [CPU Solver](../../src/physics/stress-majorization.rs)
-- [GPU Integration](../../src/utils/unified-gpu-compute.rs)
-- [Integration Tests](../../tests/stress-majorization-integration.rs)
-- [Benchmarks](../../tests/stress-majorization-benchmark.rs)
-- [Checklist (Historical)](../stress-majorization-checklist.md)
+- 
+- 
+- 
+- 
+- 
+- 
+- 

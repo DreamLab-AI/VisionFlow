@@ -144,8 +144,8 @@ This section provides a reference for the specialised MCP tools designed for AI 
 
 - **Type**: Bridge
 - **Purpose**: Provides an interface to a running Blender instance for 3D modelling, rendering, and scene manipulation.
-- **Source File**: [`core-assets/scripts/mcp-blender-client.js`](core-assets/scripts/mcp-blender-client.js:1)
-- **Server Logic**: [`gui-based-tools-docker/addon.py`](gui-based-tools-docker/addon.py)
+- **Source File**: 
+- **Server Logic**: 
 
 #### Description
 This tool acts as a bridge, forwarding commands from Claude Flow's `stdio` to the Blender MCP TCP server running within the `gui-tools-container`. The actual tool methods are defined in the Blender Python addon (`addon.py`).
@@ -174,7 +174,7 @@ The `blender-mcp` bridge is generic and forwards any `tool` and `params` it rece
 
 - **Type**: Bridge
 - **Purpose**: Provides an interface to a running QGIS instance for geospatial analysis and map generation.
-- **Source File**: [`core-assets/mcp-tools/qgis-mcp.py`](core-assets/mcp-tools/qgis-mcp.py:1)
+- **Source File**: 
 - **Server Logic**: QGIS MCP Plugin (Python) running in the `gui-tools-container`.
 
 #### Description
@@ -197,8 +197,8 @@ Similar to the Blender tool, the available methods are defined by the QGIS plugi
 
 - **Type**: Bridge
 - **Purpose**: Generates Physically Based Rendering (PBR) texture maps using the Tessellating PBR Generator.
-- **Source File**: [`core-assets/mcp-tools/pbr-mcp-client.py`](core-assets/mcp-tools/pbr-mcp-client.py:1)
-- **Server Logic**: [`gui-based-tools-docker/tessellating-pbr-generator/pbr-mcp-server.py`](gui-based-tools-docker/tessellating-pbr-generator/pbr-mcp-server.py)
+- **Source File**: 
+- **Server Logic**: 
 
 #### Description
 This bridge connects to the PBR Generator's dedicated TCP server to create high-quality texture sets.
@@ -227,7 +227,7 @@ This bridge connects to the PBR Generator's dedicated TCP server to create high-
 
 - **Type**: Direct
 - **Purpose**: Interacts with the `kicad-cli` to perform Electronic Design Automation (EDA) tasks.
-- **Source File**: [`core-assets/mcp-tools/kicad-mcp.py`](core-assets/mcp-tools/kicad-mcp.py:1)
+- **Source File**: 
 
 #### Methods
 - `run-kicad-cli`: Executes a raw `kicad-cli` command.
@@ -255,7 +255,7 @@ This bridge connects to the PBR Generator's dedicated TCP server to create high-
 
 - **Type**: Direct
 - **Purpose**: Runs circuit simulations using NGSpice.
-- **Source File**: [`core-assets/mcp-tools/ngspice-mcp.py`](core-assets/mcp-tools/ngspice-mcp.py:1)
+- **Source File**: 
 
 #### Methods
 - `run-simulation`: Executes a simulation from a SPICE netlist.
@@ -275,7 +275,7 @@ This bridge connects to the PBR Generator's dedicated TCP server to create high-
 
 - **Type**: Direct
 - **Purpose**: Performs image manipulation tasks using the ImageMagick `convert` tool.
-- **Source File**: [`core-assets/mcp-tools/imagemagick-mcp.py`](core-assets/mcp-tools/imagemagick-mcp.py:1)
+- **Source File**: 
 
 #### Methods
 - `create`: Creates a new, simple image.

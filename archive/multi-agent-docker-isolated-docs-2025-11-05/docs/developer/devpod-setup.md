@@ -11,11 +11,11 @@ This guide provides comprehensive setup instructions for using DevPod with vario
 
 ## Table of Contents
 
-- [Local Docker Setup](#local-docker-setup-🐳)
-- [DigitalOcean Setup](#digitalocean-setup-💧)
-- [AWS Setup](#aws-setup-🌩️)
-- [GCP Setup](#gcp-setup-☁️)
-- [Azure Setup](#azure-setup-🚀)
+- 
+- 
+- 
+- 
+- 
 
 ## Local Docker Setup 🐳
 

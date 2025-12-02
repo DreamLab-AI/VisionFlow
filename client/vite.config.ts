@@ -10,7 +10,7 @@ export default defineConfig({
     'process.env.REACT_APP_API_URL': JSON.stringify(process.env.REACT_APP_API_URL || '/api'),
     'process.env.VISIONFLOW_TEST_MODE': JSON.stringify(process.env.VISIONFLOW_TEST_MODE || 'false'),
     'process.env.BYPASS_WEBGL': JSON.stringify(process.env.BYPASS_WEBGL || 'false'),
-    'process.env': '({})', // Fallback for any other process.env access
+    'process.env': JSON.stringify({}), // Fallback for any other process.env access
   },
   optimizeDeps: {
     include: ['@getalby/sdk']

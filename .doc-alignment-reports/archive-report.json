@@ -1,0 +1,184 @@
+{
+  "total_found": 13,
+  "total_size_bytes": 158337,
+  "by_reason": {
+    "Filename starts with 'TEST_'": 2,
+    "Implementation note outside docs directory": 5,
+    "Content contains working marker": 6
+  },
+  "working_docs": [
+    {
+      "file": "tests/test_README.md",
+      "reason": "Filename starts with 'TEST_'",
+      "last_modified": "2025-11-20T17:04:35.718893",
+      "size_bytes": 4203,
+      "suggested_archive_path": "docs/archive/tests/test_README.md",
+      "content_preview": "# VisionFlow Test Suite\n\nComprehensive test suite for the VisionFlow migration project covering integration, performance, and load testing.\n\n## Quick Start"
+    },
+    {
+      "file": "data/markdown/implementation-examples.md",
+      "reason": "Implementation note outside docs directory",
+      "last_modified": "2025-10-29T19:03:00.902842",
+      "size_bytes": 21033,
+      "suggested_archive_path": "docs/archive/data/markdown/implementation-examples.md",
+      "content_preview": "- ### OntologyBlock\n  id:: implementation-examples-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: mv-1761742247980"
+    },
+    {
+      "file": "data/markdown/IMPLEMENTATION-SUMMARY.md",
+      "reason": "Implementation note outside docs directory",
+      "last_modified": "2025-10-29T19:03:00.902882",
+      "size_bytes": 21013,
+      "suggested_archive_path": "docs/archive/data/markdown/IMPLEMENTATION-SUMMARY.md",
+      "content_preview": "- ### OntologyBlock\n  id:: implementation-summary-ontology\n  collapsed:: true\n\t- metaverseOntology:: true\n\t- term-id:: mv-1761742247935"
+    },
+    {
+      "file": "data/pages/implementation-examples.md",
+      "reason": "Implementation note outside docs directory",
+      "last_modified": "2025-11-12T18:48:09.661014",
+      "size_bytes": 6189,
+      "suggested_archive_path": "docs/archive/data/pages/implementation-examples.md",
+      "content_preview": "- ### OntologyBlock\n  id:: implementation-examples-ontology\n  collapsed:: true\n\t- ontology:: true\n\t- term-id:: mv-1761742247980"
+    },
+    {
+      "file": "data/pages/IMPLEMENTATION-SUMMARY.md",
+      "reason": "Implementation note outside docs directory",
+      "last_modified": "2025-11-12T18:48:09.677076",
+      "size_bytes": 6121,
+      "suggested_archive_path": "docs/archive/data/pages/IMPLEMENTATION-SUMMARY.md",
+      "content_preview": "- ### OntologyBlock\n  id:: implementation-summary-ontology\n  collapsed:: true\n\t- ontology:: true\n\t- term-id:: mv-1761742247935"
+    },
+    {
+      "file": "data/pages/ComfyWorkFlows.md",
+      "reason": "Content contains working marker",
+      "last_modified": "2025-11-12T18:48:09.648844",
+      "size_bytes": 2012,
+      "suggested_archive_path": "docs/archive/data/pages/ComfyWorkFlows.md",
+      "content_preview": "- Complex Universal text to video\n\t- [stephan_tual_universal_video_generator__modelscope_adlcm_w_sd15__now_with_supir_sdxl_lightning__comfyworkflows.json](../assets/stephan_tual_universal_video_genera..."
+    },
+    {
+      "file": "data/pages/OntologyDefinition.md",
+      "reason": "Content contains working marker",
+      "last_modified": "2025-11-12T18:48:09.666454",
+      "size_bytes": 5321,
+      "suggested_archive_path": "docs/archive/data/pages/OntologyDefinition.md",
+      "content_preview": "- ### OntologyBlock\n  id:: ontologydefinition-ontology\n  collapsed:: true\n\t- ontology:: true\n\t- term-id:: mv-1761742247950"
+    },
+    {
+      "file": "docs/guides/working-with-gui-sandbox.md",
+      "reason": "Content contains working marker",
+      "last_modified": "2025-11-20T17:04:35.657935",
+      "size_bytes": 22621,
+      "suggested_archive_path": "docs/archive/docs/guides/working-with-gui-sandbox.md",
+      "content_preview": "# Working with the GUI Sandbox\n\n[\u2190 Knowledge Base](../index.md) > [Guides](./index.md) > Working with GUI Sandbox\n\nThis guide explains how to use the GUI sandbox environment to enable AI agents to int..."
+    },
+    {
+      "file": "docs/guides/developer/05-testing-guide.md",
+      "reason": "Content contains working marker",
+      "last_modified": "2025-11-20T17:04:35.654423",
+      "size_bytes": 17959,
+      "suggested_archive_path": "docs/archive/docs/guides/developer/05-testing-guide.md",
+      "content_preview": "---\ntitle: Testing Guide\ndescription: Comprehensive guide to testing strategies and practices in Turbo Flow Claude\ncategory: developer-guide\ntags: [testing, tdd, quality, automation]"
+    },
+    {
+      "file": "docs/guides/user/xr-setup.md",
+      "reason": "Content contains working marker",
+      "last_modified": "2025-11-20T17:04:35.657935",
+      "size_bytes": 14239,
+      "suggested_archive_path": "docs/archive/docs/guides/user/xr-setup.md",
+      "content_preview": "---\ntitle: XR Setup Guide\ndescription: Setting up extended reality (XR) environments for immersive development with Turbo Flow Claude\ncategory: user-guide\ntags: [xr, vr, ar, setup, immersive, spatial-..."
+    },
+    {
+      "file": "docs/guides/user/working-with-agents.md",
+      "reason": "Content contains working marker",
+      "last_modified": "2025-11-20T17:04:35.656917",
+      "size_bytes": 13356,
+      "suggested_archive_path": "docs/archive/docs/guides/user/working-with-agents.md",
+      "content_preview": "---\ntitle: Working with Agents\ndescription: User guide for effectively working with AI agents in Turbo Flow Claude\ncategory: user-guide\ntags: [agents, coordination, workflow, collaboration]"
+    },
+    {
+      "file": "multi-agent-docker/skills/wardley-maps/IMPLEMENTATION_GUIDE.md",
+      "reason": "Implementation note outside docs directory",
+      "last_modified": "2025-11-20T17:04:35.675691",
+      "size_bytes": 14575,
+      "suggested_archive_path": "docs/archive/multi-agent-docker/skills/wardley-maps/IMPLEMENTATION_GUIDE.md",
+      "content_preview": "# Wardley Mapper Skill - Implementation Guide\n\n## Quick Integration Checklist\n\n### 1. Installation"
+    },
+    {
+      "file": "tests/TEST_SUITE_MANIFEST.txt",
+      "reason": "Filename starts with 'TEST_'",
+      "last_modified": "2025-11-20T17:04:35.714545",
+      "size_bytes": 9695,
+      "suggested_archive_path": "docs/archive/tests/TEST_SUITE_MANIFEST.txt",
+      "content_preview": "\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557\n\u2551                    VisionFlow Test Suite Manifest                         \u2551\n\u2551                       Week 6 + Week 11 Del..."
+    }
+  ],
+  "suggested_moves": [
+    {
+      "source": "tests/test_README.md",
+      "destination": "docs/archive/tests/test_README.md",
+      "command": "mkdir -p \"$(dirname docs/archive/tests/test_README.md)\" && mv \"tests/test_README.md\" \"docs/archive/tests/test_README.md\""
+    },
+    {
+      "source": "data/markdown/implementation-examples.md",
+      "destination": "docs/archive/data/markdown/implementation-examples.md",
+      "command": "mkdir -p \"$(dirname docs/archive/data/markdown/implementation-examples.md)\" && mv \"data/markdown/implementation-examples.md\" \"docs/archive/data/markdown/implementation-examples.md\""
+    },
+    {
+      "source": "data/markdown/IMPLEMENTATION-SUMMARY.md",
+      "destination": "docs/archive/data/markdown/IMPLEMENTATION-SUMMARY.md",
+      "command": "mkdir -p \"$(dirname docs/archive/data/markdown/IMPLEMENTATION-SUMMARY.md)\" && mv \"data/markdown/IMPLEMENTATION-SUMMARY.md\" \"docs/archive/data/markdown/IMPLEMENTATION-SUMMARY.md\""
+    },
+    {
+      "source": "data/pages/implementation-examples.md",
+      "destination": "docs/archive/data/pages/implementation-examples.md",
+      "command": "mkdir -p \"$(dirname docs/archive/data/pages/implementation-examples.md)\" && mv \"data/pages/implementation-examples.md\" \"docs/archive/data/pages/implementation-examples.md\""
+    },
+    {
+      "source": "data/pages/IMPLEMENTATION-SUMMARY.md",
+      "destination": "docs/archive/data/pages/IMPLEMENTATION-SUMMARY.md",
+      "command": "mkdir -p \"$(dirname docs/archive/data/pages/IMPLEMENTATION-SUMMARY.md)\" && mv \"data/pages/IMPLEMENTATION-SUMMARY.md\" \"docs/archive/data/pages/IMPLEMENTATION-SUMMARY.md\""
+    },
+    {
+      "source": "data/pages/ComfyWorkFlows.md",
+      "destination": "docs/archive/data/pages/ComfyWorkFlows.md",
+      "command": "mkdir -p \"$(dirname docs/archive/data/pages/ComfyWorkFlows.md)\" && mv \"data/pages/ComfyWorkFlows.md\" \"docs/archive/data/pages/ComfyWorkFlows.md\""
+    },
+    {
+      "source": "data/pages/OntologyDefinition.md",
+      "destination": "docs/archive/data/pages/OntologyDefinition.md",
+      "command": "mkdir -p \"$(dirname docs/archive/data/pages/OntologyDefinition.md)\" && mv \"data/pages/OntologyDefinition.md\" \"docs/archive/data/pages/OntologyDefinition.md\""
+    },
+    {
+      "source": "docs/guides/working-with-gui-sandbox.md",
+      "destination": "docs/archive/docs/guides/working-with-gui-sandbox.md",
+      "command": "mkdir -p \"$(dirname docs/archive/docs/guides/working-with-gui-sandbox.md)\" && mv \"docs/guides/working-with-gui-sandbox.md\" \"docs/archive/docs/guides/working-with-gui-sandbox.md\""
+    },
+    {
+      "source": "docs/guides/developer/05-testing-guide.md",
+      "destination": "docs/archive/docs/guides/developer/05-testing-guide.md",
+      "command": "mkdir -p \"$(dirname docs/archive/docs/guides/developer/05-testing-guide.md)\" && mv \"docs/guides/developer/05-testing-guide.md\" \"docs/archive/docs/guides/developer/05-testing-guide.md\""
+    },
+    {
+      "source": "docs/guides/user/xr-setup.md",
+      "destination": "docs/archive/docs/guides/user/xr-setup.md",
+      "command": "mkdir -p \"$(dirname docs/archive/docs/guides/user/xr-setup.md)\" && mv \"docs/guides/user/xr-setup.md\" \"docs/archive/docs/guides/user/xr-setup.md\""
+    },
+    {
+      "source": "docs/guides/user/working-with-agents.md",
+      "destination": "docs/archive/docs/guides/user/working-with-agents.md",
+      "command": "mkdir -p \"$(dirname docs/archive/docs/guides/user/working-with-agents.md)\" && mv \"docs/guides/user/working-with-agents.md\" \"docs/archive/docs/guides/user/working-with-agents.md\""
+    },
+    {
+      "source": "multi-agent-docker/skills/wardley-maps/IMPLEMENTATION_GUIDE.md",
+      "destination": "docs/archive/multi-agent-docker/skills/wardley-maps/IMPLEMENTATION_GUIDE.md",
+      "command": "mkdir -p \"$(dirname docs/archive/multi-agent-docker/skills/wardley-maps/IMPLEMENTATION_GUIDE.md)\" && mv \"multi-agent-docker/skills/wardley-maps/IMPLEMENTATION_GUIDE.md\" \"docs/archive/multi-agent-docker/skills/wardley-maps/IMPLEMENTATION_GUIDE.md\""
+    },
+    {
+      "source": "tests/TEST_SUITE_MANIFEST.txt",
+      "destination": "docs/archive/tests/TEST_SUITE_MANIFEST.txt",
+      "command": "mkdir -p \"$(dirname docs/archive/tests/TEST_SUITE_MANIFEST.txt)\" && mv \"tests/TEST_SUITE_MANIFEST.txt\" \"docs/archive/tests/TEST_SUITE_MANIFEST.txt\""
+    }
+  ],
+  "dry_run": true,
+  "archive_directory": "docs/archive"
+}

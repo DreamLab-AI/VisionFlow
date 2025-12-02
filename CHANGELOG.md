@@ -347,7 +347,7 @@ rm config.yml ontology_physics.toml
 # Use Hexser directives to update settings
 ```
 
-See [MIGRATION.md](docs/migration/v0-to-v1.md) for complete upgrade instructions.
+See  for complete upgrade instructions.
 
 ---
 
@@ -452,8 +452,8 @@ cp data/backup/*.db data/
 ### Documentation
 - **[Architecture Guide](docs/architecture/)** - Hexagonal architecture deep dive
 - **[API Reference](docs/api/)** - Complete API documentation
-- **[Migration Guide](docs/migration/)** - Upgrade instructions
-- **[Performance Guide](docs/performance/)** - Optimization techniques
+- **** - Upgrade instructions
+- **** - Optimization techniques
 
 ### Community
 - **GitHub Issues**: https://github.com/yourusername/VisionFlow/issues
@@ -463,7 +463,7 @@ cp data/backup/*.db data/
 ### Support
 - **Enterprise Support**: support@visionflow.io
 - **Documentation**: https://docs.visionflow.io
-- **Roadmap**: [ROADMAP.md](docs/ROADMAP.md)
+- **Roadmap**: 
 
 ---
 

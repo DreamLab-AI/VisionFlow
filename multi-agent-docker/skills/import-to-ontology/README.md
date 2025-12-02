@@ -215,7 +215,7 @@ const enriched = await webSummarySkill({
 
 // Insert enriched content
 const formatted = `
-- **Source**: [${enriched.title}](${urls[0]})
+- **Source**: 
   - ${enriched.summary}
   - **Key Points**: ${enriched.keyPoints.join(', ')}
   - **Related**: ${enriched.semanticLinks.join(', ')}
@@ -277,6 +277,6 @@ node scripts/generate-index.js
 
 ## See Also
 
-- [In-Memory Index Design](../../Metaverse-Ontology/docs/IN-MEMORY-INDEX-DESIGN.md)
-- [Canonical Format Guide](../../Metaverse-Ontology/docs/CANONICAL-FORMAT-GUIDE.md)
+- 
+- 
 - [Web Summary Skill](../web-summary/SKILL.md)

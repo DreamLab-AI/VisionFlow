@@ -5,10 +5,13 @@
 //! - Database persistence layer (settings_repository)
 //! - Runtime settings actor (settings_actor)
 //! - REST API endpoints (api/settings_routes)
+//! - Authentication extractors (auth_extractor)
 
 pub mod settings_actor;
 pub mod api;
 pub mod models;
+pub mod auth_extractor;
 
 pub use settings_actor::{SettingsActor, UpdatePhysicsSettings, GetPhysicsSettings, LoadProfile, SaveProfile};
 pub use models::{ConstraintSettings, PriorityWeighting, AllSettings, SettingsProfile};
+pub use auth_extractor::{AuthenticatedUser, OptionalAuth};

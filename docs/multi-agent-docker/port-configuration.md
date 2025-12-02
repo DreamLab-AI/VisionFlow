@@ -219,6 +219,6 @@ docker exec multi-agent-container supervisorctl status
 
 ## See Also
 
-- [architecture.md](../reference/architecture/readme.md) - System architecture overview
+-  - System architecture overview
 - [troubleshooting.md](./troubleshooting.md) - Common issues and solutions
-- [DOCKER-environment.md](./DOCKER-environment.md) - Complete environment guide
+-  - Complete environment guide

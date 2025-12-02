@@ -30,8 +30,8 @@
 
 ### Quick References
 
-- **[quick-reference.md](./quick-reference.md)** - Fast lookup guide
-- **[implementation-summary.md](./implementation-summary.md)** - Implementation notes
+- **** - Fast lookup guide
+- **** - Implementation notes
 
 ---
 
@@ -296,7 +296,7 @@ The following endpoints have been consolidated:
 
 - **Full Documentation**: [rest-api-complete.md](./rest-api-complete.md)
 - **WebSocket Protocol**: [03-websocket.md](./03-websocket.md)
-- **Architecture**: [../../concepts/architecture/00-ARCHITECTURE-overview.md](../../concepts/architecture/00-ARCHITECTURE-overview.md)
+- **Architecture**: 
 
 ---
 

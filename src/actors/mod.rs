@@ -2,6 +2,7 @@
 
 pub mod agent_monitor_actor;
 pub mod client_coordinator_actor;
+pub mod client_filter;
 pub mod gpu;
 pub mod graph_state_actor;
 pub mod graph_actor {

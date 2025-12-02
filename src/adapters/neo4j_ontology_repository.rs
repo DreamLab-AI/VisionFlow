@@ -806,12 +806,46 @@ impl OntologyRepository for Neo4jOntologyRepository {
             0
         };
 
+        // Calculate max depth by finding longest path in class hierarchy
+        let depth_query = query("
+            MATCH path = (root:OwlClass)-[:SUBCLASS_OF*]->(leaf:OwlClass)
+            WHERE NOT (root)-[:SUBCLASS_OF]->()
+            RETURN length(path) as depth
+            ORDER BY depth DESC
+            LIMIT 1
+        ");
+        let mut result = self.graph.execute(depth_query).await
+            .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?;
+
+        let max_depth: usize = if let Some(row) = result.next().await
+            .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))? {
+            row.get::<i64>("depth").unwrap_or(0) as usize
+        } else {
+            0
+        };
+
+        // Calculate average branching factor: avg number of direct subclasses
+        let branching_query = query("
+            MATCH (parent:OwlClass)<-[:SUBCLASS_OF]-(child:OwlClass)
+            WITH parent, count(child) as children
+            RETURN avg(children) as avg_branching
+        ");
+        let mut result = self.graph.execute(branching_query).await
+            .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))?;
+
+        let average_branching_factor: f64 = if let Some(row) = result.next().await
+            .map_err(|e| OntologyRepositoryError::DatabaseError(e.to_string()))? {
+            row.get::<f64>("avg_branching").unwrap_or(0.0)
+        } else {
+            0.0
+        };
+
         Ok(OntologyMetrics {
             class_count: class_count as usize,
             property_count: property_count as usize,
             axiom_count: axiom_count as usize,
-            max_depth: 0, // TODO: Calculate from hierarchy traversal
-            average_branching_factor: 0.0, // TODO: Calculate branching factor
+            max_depth,
+            average_branching_factor,
         })
     }
 
@@ -852,32 +886,45 @@ impl OntologyRepository for Neo4jOntologyRepository {
 
     #[instrument(skip(self))]
     async fn cache_sssp_result(&self, _entry: &PathfindingCacheEntry) -> RepoResult<()> {
-        // TODO: Implement pathfinding cache if needed
+        // Pathfinding cache not yet implemented
+        // When implementing, consider:
+        // - Storage: In-memory (DashMap) vs Neo4j nodes with :PathCache label
+        // - TTL: Time-to-live for cache entries (e.g., 1 hour)
+        // - Eviction: LRU or size-based eviction policy
+        // - Invalidation: Automatic on graph topology changes
+        // Current: No-op, pathfinding recomputed on each query
         Ok(())
     }
 
     #[instrument(skip(self))]
     async fn get_cached_sssp(&self, _source_node_id: u32) -> RepoResult<Option<PathfindingCacheEntry>> {
-        // TODO: Implement pathfinding cache if needed
+        // Pathfinding cache not yet implemented
+        // Returns None, forcing recomputation
         Ok(None)
     }
 
     #[instrument(skip(self))]
     async fn cache_apsp_result(&self, _distance_matrix: &Vec<Vec<f32>>) -> RepoResult<()> {
-        // TODO: Implement pathfinding cache if needed
+        // APSP (All-Pairs Shortest Path) cache not yet implemented
+        // Note: APSP results can be very large (O(n²) space)
+        // Consider sparse matrix representation or only cache frequently accessed pairs
         Ok(())
     }
 
     #[instrument(skip(self))]
     async fn get_cached_apsp(&self) -> RepoResult<Option<Vec<Vec<f32>>>> {
-        // TODO: Implement pathfinding cache if needed
+        // APSP cache not yet implemented
+        // Returns None, forcing recomputation
         Ok(None)
     }
 
     #[instrument(skip(self))]
     async fn invalidate_pathfinding_caches(&self) -> RepoResult<()> {
-        info!("Clearing pathfinding cache");
-        // TODO: Implement pathfinding cache if needed
+        info!("Clearing pathfinding cache (no-op, cache not implemented)");
+        // When cache is implemented, this should:
+        // 1. Clear all in-memory cache entries
+        // 2. Delete all Neo4j :PathCache nodes
+        // 3. Reset any cache statistics
         Ok(())
     }
 

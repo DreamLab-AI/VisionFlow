@@ -25,37 +25,37 @@
 ```mermaid
 graph TB
     subgraph GitHub["🌐 GitHub Repository (jjohare/logseq)"]
-        MD1["📄 Knowledge Graph<br/>.md files (public:: true)"]
-        MD2["📄 Ontology<br/>.md files (OntologyBlock)"]
+        MD1["📄 Knowledge Graph<br>.md files (public:: true)"]
+        MD2["📄 Ontology<br>.md files (OntologyBlock)"]
     end
 
     subgraph Sync["⬇️ GitHub Sync Service"]
-        DIFF["🔍 Differential Sync<br/>(SHA1 comparison)"]
+        DIFF["🔍 Differential Sync<br>(SHA1 comparison)"]
         KGP["📝 KnowledgeGraphParser"]
         ONTOP["🧬 OntologyParser"]
     end
 
     subgraph Database["💾 Unified Database (unified.db)"]
-        GRAPH-TABLES["graph-nodes<br/>graph-edges"]
-        OWL-TABLES["owl-classes<br/>owl-properties<br/>owl-axioms<br/>owl-hierarchy"]
+        GRAPH-TABLES["graph-nodes<br>graph-edges"]
+        OWL-TABLES["owl-classes<br>owl-properties<br>owl-axioms<br>owl-hierarchy"]
         META["file-metadata"]
     end
 
     subgraph Reasoning["🧠 Ontology Reasoning"]
-        WHELK["Whelk-rs Reasoner<br/>(OWL 2 EL)"]
-        INFER["Inferred Axioms<br/>(is-inferred=1)"]
-        CACHE["LRU Cache<br/>(90x speedup)"]
+        WHELK["Whelk-rs Reasoner<br>(OWL 2 EL)"]
+        INFER["Inferred Axioms<br>(is-inferred=1)"]
+        CACHE["LRU Cache<br>(90x speedup)"]
     end
 
     subgraph Physics["⚡ GPU Semantic Physics"]
-        CONSTRAINTS["Semantic Constraints<br/>(8 types)"]
-        CUDA["CUDA Physics Engine<br/>(39 kernels)"]
-        FORCES["Force Calculations<br/>(Ontology-driven)"]
+        CONSTRAINTS["Semantic Constraints<br>(8 types)"]
+        CUDA["CUDA Physics Engine<br>(39 kernels)"]
+        FORCES["Force Calculations<br>(Ontology-driven)"]
     end
 
     subgraph Client["🖥️ Client Visualization"]
-        WS["Binary WebSocket<br/>(36 bytes/node)"]
-        RENDER["3D Rendering<br/>(Three.js/Babylon.js)"]
+        WS["Binary WebSocket<br>(36 bytes/node)"]
+        RENDER["3D Rendering<br>(Three.js/Babylon.js)"]
         GRAPH["Self-Organizing Graph"]
     end
 
@@ -216,18 +216,18 @@ graph TB
 
     subgraph Load["1️⃣ Load Ontology"]
         LOAD-CLASSES["Load owl-classes"]
-        LOAD-AXIOMS["Load owl-axioms<br/>(is-inferred=0)"]
+        LOAD-AXIOMS["Load owl-axioms<br>(is-inferred=0)"]
         LOAD-PROPS["Load owl-properties"]
     end
 
     subgraph Reason["2️⃣ Whelk-rs Reasoning"]
         BUILD["Build OWL graph"]
-        COMPUTE["Compute inferences<br/>(10-100x faster)"]
+        COMPUTE["Compute inferences<br>(10-100x faster)"]
         CHECK["Consistency check"]
     end
 
     subgraph Store["3️⃣ Store Results"]
-        INFER-AX["Insert inferred axioms<br/>(is-inferred=1)"]
+        INFER-AX["Insert inferred axioms<br>(is-inferred=1)"]
         UPDATE-META["Update reasoning-metadata"]
         CACHE-WARM["Warm LRU cache"]
     end
@@ -322,21 +322,21 @@ pub struct SemanticConstraint {
 ```mermaid
 graph LR
     subgraph CPU["CPU (Rust)"]
-        CONS["Generate<br/>Constraints"]
+        CONS["Generate<br>Constraints"]
         UPLOAD["Upload to GPU"]
     end
 
     subgraph GPU["GPU (CUDA)"]
-        K1["Kernel 1:<br/>Spring Forces"]
-        K2["Kernel 2:<br/>Repulsion Forces"]
-        K3["Kernel 3:<br/>Alignment Forces"]
-        K-INFER["Apply 0.3x<br/>to inferred"]
-        INTEGRATE["Integrate<br/>Velocities"]
-        UPDATE["Update<br/>Positions"]
+        K1["Kernel 1:<br>Spring Forces"]
+        K2["Kernel 2:<br>Repulsion Forces"]
+        K3["Kernel 3:<br>Alignment Forces"]
+        K-INFER["Apply 0.3x<br>to inferred"]
+        INTEGRATE["Integrate<br>Velocities"]
+        UPDATE["Update<br>Positions"]
     end
 
     subgraph Output["Output"]
-        POSITIONS["New Node<br/>Positions"]
+        POSITIONS["New Node<br>Positions"]
         DOWNLOAD["Download to CPU"]
     end
 
@@ -508,27 +508,27 @@ gantt
 
 ```mermaid
 graph TB
-    GH["📁 GitHub File:<br/>artificial-intelligence.md"]
+    GH["📁 GitHub File:<br>artificial-intelligence.md"]
 
-    META["📋 file-metadata:<br/>SHA1: abc123...<br/>last-modified: 2025-11-03"]
+    META["📋 file-metadata:<br>SHA1: abc123...<br>last-modified: 2025-11-03"]
 
-    NODE["🔵 graph-nodes:<br/>id: 1<br/>metadata-id: 'artificial-intelligence'<br/>label: 'Artificial Intelligence'"]
+    NODE["🔵 graph-nodes:<br>id: 1<br>metadata-id: 'artificial-intelligence'<br>label: 'Artificial Intelligence'"]
 
-    CLASS["🧬 owl-classes:<br/>iri: 'AI'<br/>label: 'AI System'"]
+    CLASS["🧬 owl-classes:<br>iri: 'AI'<br>label: 'AI System'"]
 
-    AXIOM-A["📐 owl-axioms:<br/>subject: 'AI'<br/>predicate: 'subClassOf'<br/>object: 'ComputationalSystem'<br/>is-inferred: 0"]
+    AXIOM-A["📐 owl-axioms:<br>subject: 'AI'<br>predicate: 'subClassOf'<br>object: 'ComputationalSystem'<br>is-inferred: 0"]
 
-    AXIOM-I["📐 owl-axioms:<br/>subject: 'AI'<br/>predicate: 'subClassOf'<br/>object: 'InformationProcessor'<br/>is-inferred: 1<br/>(inferred by Whelk-rs)"]
+    AXIOM-I["📐 owl-axioms:<br>subject: 'AI'<br>predicate: 'subClassOf'<br>object: 'InformationProcessor'<br>is-inferred: 1<br>(inferred by Whelk-rs)"]
 
-    CONS1["⚙️ Semantic Constraint:<br/>type: Spring<br/>node-a: 1<br/>node-b: 2<br/>strength: 0.5<br/>is-inferred: false"]
+    CONS1["⚙️ Semantic Constraint:<br>type: Spring<br>node-a: 1<br>node-b: 2<br>strength: 0.5<br>is-inferred: false"]
 
-    CONS2["⚙️ Semantic Constraint:<br/>type: Spring<br/>node-a: 1<br/>node-b: 3<br/>strength: 0.15<br/>is-inferred: true (0.3x)"]
+    CONS2["⚙️ Semantic Constraint:<br>type: Spring<br>node-a: 1<br>node-b: 3<br>strength: 0.15<br>is-inferred: true (0.3x)"]
 
-    FORCE["⚡ GPU Force:<br/>node 1 attracted to 2 (strong)<br/>node 1 attracted to 3 (weak)"]
+    FORCE["⚡ GPU Force:<br>node 1 attracted to 2 (strong)<br>node 1 attracted to 3 (weak)"]
 
-    POS["📍 Node Position:<br/>x: 42.3, y: 15.7, z: -8.2"]
+    POS["📍 Node Position:<br>x: 42.3, y: 15.7, z: -8.2"]
 
-    CLIENT["🖥️ Client Display:<br/>3D rendered at (42.3, 15.7, -8.2)"]
+    CLIENT["🖥️ Client Display:<br>3D rendered at (42.3, 15.7, -8.2)"]
 
     GH --> META
     GH --> NODE

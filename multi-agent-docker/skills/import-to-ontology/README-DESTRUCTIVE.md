@@ -83,14 +83,14 @@ Images are automatically detected and updated:
 
 ```markdown
 # Before (in source file)
-![Diagram](./images/diagram.png)
+
 
 # After (in target ontology file)
-![Diagram](assets/diagram.png)
+
 ```
 
 **Supported formats**:
-- Markdown: `![alt](path)`
+- Markdown: ``
 - WikiLink: `![[image.png]]`
 - HTML: `<img src="path">`
 
@@ -353,5 +353,5 @@ ls -lh assets/ | wc -l
 ## See Also
 
 - [Main Skill Documentation](./SKILL.md)
-- [In-Memory Index Design](../../Metaverse-Ontology/docs/IN-MEMORY-INDEX-DESIGN.md)
-- [Canonical Format Guide](../../Metaverse-Ontology/docs/CANONICAL-FORMAT-GUIDE.md)
+- 
+- 

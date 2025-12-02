@@ -83,4 +83,4 @@ These documents are retained for:
 
 ---
 
-**For current project information, see the [main documentation](../../docs/README.md).**
+**For current project information, see the .**

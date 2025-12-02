@@ -198,10 +198,10 @@ graph TD
 ```mermaid
 flowchart LR
     USER[User Request] --> CF[Claude Flow]
-    CF --> |Read .mcp.json| CONFIG[Tool Configuration]
-    CF --> |Spawn Process| TOOL[MCP Tool]
-    TOOL --> |JSON Response| CF
-    CF --> |Result| USER
+    CF -->|Read .mcp.json| CONFIG[Tool Configuration]
+    CF -->|Spawn Process| TOOL[MCP Tool]
+    TOOL -->|JSON Response| CF
+    CF -->|Result| USER
 ```
 
 ### 2. External Application Bridge Flow
@@ -209,11 +209,11 @@ flowchart LR
 ```mermaid
 flowchart TB
     USER[User Request] --> CF[Claude Flow]
-    CF --> |stdin| BRIDGE[Bridge Tool]
-    BRIDGE --> |TCP| EXTERNAL[External App]
-    EXTERNAL --> |TCP Response| BRIDGE
-    BRIDGE --> |stdout| CF
-    CF --> |Result| USER
+    CF -->|stdin| BRIDGE[Bridge Tool]
+    BRIDGE -->|TCP| EXTERNAL[External App]
+    EXTERNAL -->|TCP Response| BRIDGE
+    BRIDGE -->|stdout| CF
+    CF -->|Result| USER
 
     style BRIDGE fill:#f9f,stroke:#333,stroke-width:4px
     style EXTERNAL fill:#9ff,stroke:#333,stroke-width:2px,stroke-dasharray: 5 5

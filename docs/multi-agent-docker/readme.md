@@ -26,11 +26,11 @@ Here is a demonstration of the Blender MCP tool in action, creating a complex 3D
 
 **Screenshot:**
 
-![Blender MCP Output](./Screenshot%202025-07-30%20230314.png)
+
 
 **Demonstration:**
 
-![Demonstration GIF](./output.gif)
+
 
 ## 🚀 Quick Start Guide
 
@@ -238,8 +238,8 @@ The setup automatically provides Claude with MCP tool knowledge. To use tools wi
 
 ### 📚 Next Steps
 
-- Read the [Architecture Documentation](../reference/architecture/readme.md)
-- Explore the [Agent Briefing](./AGENT-briefing.md) for Claude
+- Read the 
+- Explore the  for Claude
 - Check out available [MCP Tools](#available-mcp-tools)
 - Start building with the multi-agent environment!
 
@@ -260,7 +260,7 @@ The setup automatically provides Claude with MCP tool knowledge. To use tools wi
 
 ---
 
-**Need help?** Use `./mcp-helper.sh claude-instructions` or check the [Architecture Guide](../reference/architecture/readme.md)!
+**Need help?** Use `./mcp-helper.sh claude-instructions` or check the !
 
 ## ⚙️ Resource Configuration
 
@@ -373,13 +373,13 @@ Explore the following documents for a deeper understanding of the project:
 
 | Document | Description |
 |---|---|
-| 🚀 **[Quick Start Guide](./quickstart.md)** | Step-by-step instructions to get the environment running. |
+| 🚀 **** | Step-by-step instructions to get the environment running. |
 | 🛠️ **[Available Tooling Reference](./tools.md)** | A complete reference for all integrated tools, libraries, and runtimes. |
-| 🏗️ **[Architecture Overview](../reference/architecture/readme.md)** | Detailed explanation of the system's dual-container architecture and MCP tool layers. |
-| 🌐 **[Networking Deep Dive](./networking.md)** | Comprehensive guide to the Docker networking model and service communication. |
-| 🤖 **[Agent Technical Briefing](./AGENT-briefing.md)** | Documentation specifically for AI agents, detailing their capabilities and interaction patterns. |
+| 🏗️ **** | Detailed explanation of the system's dual-container architecture and MCP tool layers. |
+| 🌐 **** | Comprehensive guide to the Docker networking model and service communication. |
+| 🤖 **** | Documentation specifically for AI agents, detailing their capabilities and interaction patterns. |
 | 🔍 **[Troubleshooting Guide](./troubleshooting.md)** | Solutions for common issues related to networking, VNC, and tool connectivity. |
-| 📜 **[License](./LICENSE)** | The CC0 1.0 Universal license for this project. |
+| 📜 **** | The CC0 1.0 Universal license for this project. |
 
 ## 🖼️ Architecture Diagram
 
@@ -521,7 +521,7 @@ docker exec multi-agent-container node /app/core-assets/scripts/secure-client-ex
 
 For detailed security information, see:
 - [Security Guide](../guides/security.md) - Comprehensive security guide
-- [.env.example](.env.example) - Complete configuration reference
+-  - Complete configuration reference
 
 ### 🚨 Security Best Practices
 
@@ -536,4 +536,4 @@ For detailed security information, see:
 
 ## 📜 License
 
-This project is released into the public domain under the [CC0 1.0 Universal (CC0 1.0) Public Domain Dedication](LICENSE).
+This project is released into the public domain under the .

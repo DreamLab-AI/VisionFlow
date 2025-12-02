@@ -167,40 +167,44 @@ pub struct SocketFlowServer {
     client_manager_addr:
         actix::Addr<crate::actors::client_coordinator_actor::ClientCoordinatorActor>,
     last_ping: Option<u64>,
-    update_counter: usize,             
-    last_activity: std::time::Instant, 
-    heartbeat_timer_set: bool,         
-    
-    _node_position_cache: HashMap<String, BinaryNodeData>, 
+    update_counter: usize,
+    last_activity: std::time::Instant,
+    heartbeat_timer_set: bool,
+
+    _node_position_cache: HashMap<String, BinaryNodeData>,
     last_sent_positions: HashMap<String, Vec3Data>,
     last_sent_velocities: HashMap<String, Vec3Data>,
-    position_deadband: f32, 
-    velocity_deadband: f32, 
-    
+    position_deadband: f32,
+    velocity_deadband: f32,
+
     last_transfer_size: usize,
     last_transfer_time: Instant,
     total_bytes_sent: usize,
     update_count: usize,
     nodes_sent_count: usize,
 
-    
-    last_batch_time: Instant, 
-    current_update_rate: u32, 
-    
+
+    last_batch_time: Instant,
+    current_update_rate: u32,
+
     min_update_rate: u32,
     max_update_rate: u32,
     motion_threshold: f32,
     motion_damping: f32,
-    
-    
-    nodes_in_motion: usize,     
-    total_node_count: usize,    
-    last_motion_check: Instant, 
 
-    
-    client_ip: String,     
-    is_reconnection: bool, 
-    state_synced: bool,    
+
+    nodes_in_motion: usize,
+    total_node_count: usize,
+    last_motion_check: Instant,
+
+
+    client_ip: String,
+    is_reconnection: bool,
+    state_synced: bool,
+
+    // Authentication state
+    pubkey: Option<String>,
+    is_power_user: bool,
 }
 
 impl SocketFlowServer {
@@ -234,7 +238,7 @@ impl SocketFlowServer {
             update_counter: 0,
             last_activity: std::time::Instant::now(),
             heartbeat_timer_set: false,
-            _node_position_cache: HashMap::new(), 
+            _node_position_cache: HashMap::new(),
             last_sent_positions: HashMap::new(),
             last_sent_velocities: HashMap::new(),
             position_deadband,
@@ -250,14 +254,16 @@ impl SocketFlowServer {
             max_update_rate,
             motion_threshold,
             motion_damping,
-            
-            
+
+
             nodes_in_motion: 0,
             total_node_count: 0,
             last_motion_check: Instant::now(),
             client_ip,
             is_reconnection: false,
             state_synced: false,
+            pubkey: None,
+            is_power_user: false,
         }
     }
 
@@ -311,12 +317,43 @@ impl SocketFlowServer {
                     }
 
 
-                    // Send new InitialGraphLoad message with full node metadata and all edges
+                    // DEFAULT INITIAL LOAD SIZE - fresh clients receive sparse, metadata-rich dataset
+                    // Client can request more nodes later using filter settings
+                    const DEFAULT_INITIAL_NODE_LIMIT: usize = 200;
+
+                    // Send new InitialGraphLoad message with LIMITED node set for fast initial render
                     if !graph_data.nodes.is_empty() || !graph_data.edges.is_empty() {
                         use crate::utils::socket_flow_messages::{InitialNodeData, InitialEdgeData};
+                        use std::collections::HashSet;
 
-                        let nodes: Vec<InitialNodeData> = graph_data
+                        // Take first N nodes (sorted by quality if available, otherwise by ID)
+                        // This provides a sparse initial load that client can expand via filter controls
+                        let mut sorted_nodes: Vec<&crate::models::node::Node> = graph_data
                             .nodes
+                            .iter()
+                            .collect();
+
+                        // Sort by quality_score descending (nodes with quality first, then others)
+                        sorted_nodes.sort_by(|a, b| {
+                            let quality_a = graph_data.metadata.get(&a.metadata_id)
+                                .and_then(|m| m.quality_score)
+                                .unwrap_or(0.0);
+                            let quality_b = graph_data.metadata.get(&b.metadata_id)
+                                .and_then(|m| m.quality_score)
+                                .unwrap_or(0.0);
+                            quality_b.partial_cmp(&quality_a).unwrap_or(std::cmp::Ordering::Equal)
+                        });
+
+                        // Take limited set for initial sparse load
+                        let filtered_nodes: Vec<&crate::models::node::Node> = sorted_nodes
+                            .into_iter()
+                            .take(DEFAULT_INITIAL_NODE_LIMIT)
+                            .collect();
+
+                        // Collect filtered node IDs for edge filtering
+                        let filtered_node_ids: HashSet<u32> = filtered_nodes.iter().map(|n| n.id).collect();
+
+                        let nodes: Vec<InitialNodeData> = filtered_nodes
                             .iter()
                             .map(|node| InitialNodeData {
                                 id: node.id,
@@ -333,9 +370,13 @@ impl SocketFlowServer {
                             })
                             .collect();
 
+                        // Only include edges where BOTH source and target are in filtered nodes
                         let edges: Vec<InitialEdgeData> = graph_data
                             .edges
                             .iter()
+                            .filter(|edge| {
+                                filtered_node_ids.contains(&edge.source) && filtered_node_ids.contains(&edge.target)
+                            })
                             .map(|edge| InitialEdgeData {
                                 id: edge.id.clone(),
                                 source_id: edge.source,
@@ -345,16 +386,17 @@ impl SocketFlowServer {
                             })
                             .collect();
 
-                        addr.do_send(SendInitialGraphLoad { nodes, edges });
-                        info!("✅ Sent InitialGraphLoad: {} nodes, {} edges",
-                              graph_data.nodes.len(), graph_data.edges.len());
-                    }
+                        addr.do_send(SendInitialGraphLoad { nodes: nodes.clone(), edges: edges.clone() });
+                        info!("✅ Sent InitialGraphLoad: {} nodes (sparse from {} total), {} edges [limit: {}]",
+                              nodes.len(), graph_data.nodes.len(),
+                              edges.len(), DEFAULT_INITIAL_NODE_LIMIT);
 
-                    // Also send binary position data for backward compatibility and efficiency
-                    if !graph_data.nodes.is_empty() {
+                        // Also send binary position data for SAME limited nodes only
+                        // Use filtered_node_ids to maintain consistency with InitialGraphLoad
                         let node_data: Vec<(u32, BinaryNodeData)> = graph_data
                             .nodes
                             .iter()
+                            .filter(|node| filtered_node_ids.contains(&node.id))
                             .map(|node| {
                                 (
                                     node.id,
@@ -371,9 +413,8 @@ impl SocketFlowServer {
                             })
                             .collect();
 
-
-                        addr.do_send(BroadcastPositionUpdate(node_data));
-                        debug!("Sent initial node positions for state sync (binary)");
+                        addr.do_send(BroadcastPositionUpdate(node_data.clone()));
+                        debug!("Sent initial node positions for {} limited nodes (binary)", node_data.len());
                     }
                 }
             }
@@ -512,23 +553,16 @@ impl Actor for SocketFlowServer {
     type Context = ws::WebsocketContext<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        
         let client_ip = self.client_ip.clone();
         let cm_addr = self.client_manager_addr.clone();
         let addr = ctx.address();
-
-        
         let is_reconnection = self.is_reconnection;
-
-        
         let addr_clone = addr.clone();
 
-        
         actix::spawn(async move {
             use crate::actors::messages::RegisterClient;
             match cm_addr.send(RegisterClient { addr: addr_clone }).await {
                 Ok(Ok(id)) => {
-                    
                     addr.do_send(SetClientId(id));
                 }
                 Ok(Err(e)) => {
@@ -554,10 +588,9 @@ impl Actor for SocketFlowServer {
         );
         self.last_activity = std::time::Instant::now();
 
-        
-        self.client_id = None;
+        // Note: client_id is assigned asynchronously via SetClientId message after RegisterClient completes
+        // We don't reset it here to avoid race conditions - it will be set by the async handler
 
-        
         if !self.heartbeat_timer_set {
             ctx.run_interval(std::time::Duration::from_secs(5), |act, ctx| {
                 
@@ -1100,6 +1133,183 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketFlowServer 
                                     ctx,
                                 );
                             }
+                            Some("authenticate") => {
+                                info!("Client sent authenticate message");
+
+                                let token = msg.get("token").and_then(|t| t.as_str()).map(String::from);
+                                let pubkey = msg.get("pubkey").and_then(|p| p.as_str()).map(String::from);
+
+                                if let (Some(token), Some(pubkey)) = (token, pubkey) {
+                                    let nostr_service = self.app_state.nostr_service.clone();
+                                    let client_id = self.client_id;
+                                    let cm_addr = self.client_manager_addr.clone();
+
+                                    // Validate and load user
+                                    ctx.spawn(actix::fut::wrap_future::<_, Self>(async move {
+                                        if let Some(ref ns) = nostr_service {
+                                            if let Some(user) = ns.get_session(&token).await {
+                                                if user.pubkey == pubkey {
+                                                    return (Some(user), client_id, cm_addr);
+                                                }
+                                            }
+                                        }
+                                        (None, client_id, cm_addr)
+                                    }).map(|(user_opt, client_id, cm_addr), act, ctx| {
+                                        if let Some(user) = user_opt {
+                                            // Update local state
+                                            act.pubkey = Some(user.pubkey.clone());
+                                            act.is_power_user = user.is_power_user;
+
+                                            // Update ClientCoordinator state
+                                            if let Some(cid) = client_id {
+                                                use crate::actors::messages::AuthenticateClient;
+                                                cm_addr.do_send(AuthenticateClient {
+                                                    client_id: cid,
+                                                    pubkey: user.pubkey.clone(),
+                                                    is_power_user: user.is_power_user,
+                                                });
+                                            }
+
+                                            // Send confirmation
+                                            let response = serde_json::json!({
+                                                "type": "authenticate_success",
+                                                "pubkey": user.pubkey,
+                                                "is_power_user": user.is_power_user,
+                                                "timestamp": chrono::Utc::now().timestamp_millis()
+                                            });
+                                            if let Ok(msg_str) = serde_json::to_string(&response) {
+                                                ctx.text(msg_str);
+                                            }
+
+                                            info!("Client authenticated: pubkey={}, power_user={}", user.pubkey, user.is_power_user);
+                                        } else {
+                                            let error_msg = serde_json::json!({
+                                                "type": "error",
+                                                "message": "Authentication failed: invalid token or pubkey mismatch"
+                                            });
+                                            if let Ok(msg_str) = serde_json::to_string(&error_msg) {
+                                                ctx.text(msg_str);
+                                            }
+                                            warn!("Authentication failed for client");
+                                        }
+                                    }));
+                                } else {
+                                    let error_msg = serde_json::json!({
+                                        "type": "error",
+                                        "message": "Authentication requires both 'token' and 'pubkey'"
+                                    });
+                                    if let Ok(msg_str) = serde_json::to_string(&error_msg) {
+                                        ctx.text(msg_str);
+                                    }
+                                }
+                            }
+                            Some("filter_update") => {
+                                info!("Client sent filter_update message");
+
+                                if let Some(client_id) = self.client_id {
+                                    // Check both nested "filter" key and "data" key (client sends in data)
+                                    let filter_data = msg.get("filter")
+                                        .or_else(|| msg.get("data"))
+                                        .unwrap_or(&msg);
+
+                                    use crate::actors::messages::UpdateClientFilter;
+                                    let update = UpdateClientFilter {
+                                        client_id,
+                                        enabled: filter_data.get("enabled").and_then(|v| v.as_bool()).unwrap_or(false),
+                                        quality_threshold: filter_data.get("quality_threshold").and_then(|v| v.as_f64()).unwrap_or(0.7),
+                                        authority_threshold: filter_data.get("authority_threshold").and_then(|v| v.as_f64()).unwrap_or(0.5),
+                                        filter_by_quality: filter_data.get("filter_by_quality").and_then(|v| v.as_bool()).unwrap_or(true),
+                                        filter_by_authority: filter_data.get("filter_by_authority").and_then(|v| v.as_bool()).unwrap_or(false),
+                                        filter_mode: filter_data.get("filter_mode").and_then(|v| v.as_str()).unwrap_or("or").to_string(),
+                                        max_nodes: filter_data.get("max_nodes").and_then(|v| v.as_i64()).map(|n| n as i32),
+                                    };
+
+                                    info!("Processing filter update: enabled={}, quality_threshold={}, filter_by_quality={}",
+                                          update.enabled, update.quality_threshold, update.filter_by_quality);
+
+                                    let cm_addr = self.client_manager_addr.clone();
+                                    let pubkey = self.pubkey.clone();
+
+                                    // Send to ClientCoordinator
+                                    ctx.spawn(actix::fut::wrap_future::<_, Self>(async move {
+                                        match cm_addr.send(update.clone()).await {
+                                            Ok(Ok(())) => {
+                                                (true, pubkey, update)
+                                            }
+                                            Ok(Err(e)) => {
+                                                error!("Failed to update client filter: {}", e);
+                                                (false, pubkey, update)
+                                            }
+                                            Err(e) => {
+                                                error!("Failed to send filter update: {}", e);
+                                                (false, pubkey, update)
+                                            }
+                                        }
+                                    }).map(|(success, pubkey_opt, update), act, ctx| {
+                                        if success {
+                                            // Also persist to Neo4j if authenticated
+                                            if let Some(pubkey) = pubkey_opt {
+                                                info!("Filter updated for pubkey {}: enabled={}, max_nodes={:?}",
+                                                      pubkey, update.enabled, update.max_nodes);
+
+                                                // Save to Neo4j asynchronously
+                                                let neo4j_repo = act.app_state.neo4j_settings_repository.clone();
+                                                let pubkey_clone = pubkey.clone();
+                                                use crate::adapters::neo4j_settings_repository::UserFilter;
+                                                let filter = UserFilter {
+                                                    pubkey: pubkey_clone.clone(),
+                                                    enabled: update.enabled,
+                                                    quality_threshold: update.quality_threshold,
+                                                    authority_threshold: update.authority_threshold,
+                                                    filter_by_quality: update.filter_by_quality,
+                                                    filter_by_authority: update.filter_by_authority,
+                                                    filter_mode: update.filter_mode.clone(),
+                                                    max_nodes: update.max_nodes,
+                                                    updated_at: chrono::Utc::now(),
+                                                };
+
+                                                ctx.spawn(actix::fut::wrap_future::<_, Self>(async move {
+                                                    match neo4j_repo.save_user_filter(&pubkey_clone, &filter).await {
+                                                        Ok(()) => {
+                                                            info!("✅ Filter persisted to Neo4j for pubkey: {}", pubkey_clone);
+                                                        }
+                                                        Err(e) => {
+                                                            error!("❌ Failed to persist filter to Neo4j: {}", e);
+                                                        }
+                                                    }
+                                                }).map(|_result, _act, _ctx| ()));
+                                            }
+
+                                            let response = serde_json::json!({
+                                                "type": "filter_update_success",
+                                                "enabled": update.enabled,
+                                                "timestamp": chrono::Utc::now().timestamp_millis()
+                                            });
+                                            if let Ok(msg_str) = serde_json::to_string(&response) {
+                                                ctx.text(msg_str);
+                                            }
+                                        } else {
+                                            let error_msg = serde_json::json!({
+                                                "type": "error",
+                                                "message": "Failed to update filter"
+                                            });
+                                            if let Ok(msg_str) = serde_json::to_string(&error_msg) {
+                                                ctx.text(msg_str);
+                                            }
+                                        }
+                                    }));
+                                } else {
+                                    // Client ID not yet assigned - registration still in progress
+                                    warn!("filter_update received but client_id not yet assigned - registration may still be in progress");
+                                    let error_msg = serde_json::json!({
+                                        "type": "error",
+                                        "message": "Client registration in progress, please retry filter update in a moment"
+                                    });
+                                    if let Ok(msg_str) = serde_json::to_string(&error_msg) {
+                                        ctx.text(msg_str);
+                                    }
+                                }
+                            }
                             Some("requestSwarmTelemetry") => {
                                 info!("Client requested enhanced swarm telemetry");
 
@@ -1493,23 +1703,43 @@ pub async fn socket_flow_handler(
         return Ok(HttpResponse::BadRequest().body("WebSocket upgrade required"));
     }
 
-    
     let is_reconnection = req
         .headers()
         .get("X-Client-Session")
         .and_then(|h| h.to_str().ok())
         .is_some();
 
-    
+    // Extract token from query string for authentication
+    let token_from_qs = req.query_string()
+        .split('&')
+        .find_map(|param| {
+            let parts: Vec<&str> = param.split('=').collect();
+            if parts.len() == 2 && parts[0] == "token" {
+                Some(parts[1].to_string())
+            } else {
+                None
+            }
+        });
+
     let mut ws = SocketFlowServer::new(
-        app_state_arc,
+        app_state_arc.clone(),
         pre_read_ws_settings.get_ref().clone(),
         client_manager_addr,
         client_ip.clone(),
     );
 
-    
     ws.is_reconnection = is_reconnection;
+
+    // Try to authenticate from query string token
+    if let Some(token) = token_from_qs {
+        if let Some(ref nostr_service) = app_state_arc.nostr_service {
+            if let Some(user) = nostr_service.get_session(&token).await {
+                ws.pubkey = Some(user.pubkey.clone());
+                ws.is_power_user = user.is_power_user;
+                info!("Pre-authenticated WebSocket client via query string: pubkey={}", user.pubkey);
+            }
+        }
+    }
 
     
     

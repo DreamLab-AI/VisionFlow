@@ -281,6 +281,17 @@ impl NostrService {
             false
         }
     }
+
+    /// Get session by token (looks up user by token)
+    pub async fn get_session(&self, token: &str) -> Option<NostrUser> {
+        let users = self.users.read().await;
+        let token_string = token.to_string();
+        users.values()
+            .find(|user| {
+                user.session_token.as_ref() == Some(&token_string)
+            })
+            .cloned()
+    }
 }
 
 impl Default for NostrService {

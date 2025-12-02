@@ -244,43 +244,43 @@ erDiagram
     PROJECTS ||--o{ ASSETS : contains
     PROJECTS ||--o{ JOBS : has
     ASSETS ||--o{ VERSIONS : has
-    JOBS ||--o{ JOB-LOGS : generates
+    JOBS ||--o{ JOB_LOGS : generates
 
     USERS {
         uuid id PK
         string email
-        string password-hash
+        string password_hash
         string role
-        timestamp created-at
+        timestamp created_at
     }
 
     PROJECTS {
         uuid id PK
-        uuid user-id FK
+        uuid user_id FK
         string name
         jsonb config
         string status
-        timestamp created-at
+        timestamp created_at
     }
 
     ASSETS {
         uuid id PK
-        uuid project-id FK
+        uuid project_id FK
         string name
         string type
         bigint size
-        string storage-path
-        timestamp created-at
+        string storage_path
+        timestamp created_at
     }
 
     JOBS {
         uuid id PK
-        uuid project-id FK
+        uuid project_id FK
         string type
         string status
         jsonb params
         jsonb result
-        timestamp created-at
+        timestamp created_at
     }
 ```
 

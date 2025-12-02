@@ -194,28 +194,99 @@ const GraphManager: React.FC<GraphManagerProps> = ({ onDragStateChange }) => {
   // CLIENT-SIDE HIERARCHICAL LOD: Expansion state (per-client, no server persistence)
   const expansionState = useExpansionState(true); // Default: all expanded
 
-  // CLIENT-SIDE HIERARCHICAL LOD: Filter visible nodes for RENDERING ONLY
+  // Get nodeFilter settings from store - extract individual values for stable deps
+  const storeNodeFilter = settings?.nodeFilter;
+  const filterEnabled = storeNodeFilter?.enabled ?? false;
+  const qualityThreshold = storeNodeFilter?.qualityThreshold ?? 0.7;
+  const authorityThreshold = storeNodeFilter?.authorityThreshold ?? 0.5;
+  const filterByQuality = storeNodeFilter?.filterByQuality ?? true;
+  const filterByAuthority = storeNodeFilter?.filterByAuthority ?? false;
+  const filterMode = storeNodeFilter?.filterMode ?? 'or';
+
+  // Log filter settings changes for debugging
+  useEffect(() => {
+    logger.info('[NodeFilter] Settings updated:', {
+      enabled: filterEnabled,
+      qualityThreshold,
+      authorityThreshold,
+      filterByQuality,
+      filterByAuthority,
+      filterMode,
+      hasStoreFilter: !!storeNodeFilter
+    });
+  }, [filterEnabled, qualityThreshold, authorityThreshold, filterByQuality, filterByAuthority, filterMode, storeNodeFilter]);
+
+  // CLIENT-SIDE HIERARCHICAL LOD + QUALITY/AUTHORITY FILTERING
   // Physics still uses ALL graphData.nodes!
   const visibleNodes = useMemo(() => {
     if (graphData.nodes.length === 0) return [];
 
+    logger.debug(`[NodeFilter] Computing visible nodes: filterEnabled=${filterEnabled}, qualityThreshold=${qualityThreshold}, authorityThreshold=${authorityThreshold}`);
+
     const visible = graphData.nodes.filter(node => {
+      // First apply hierarchy/expansion filtering
       const hierarchyNode = hierarchyMap.get(node.id);
-      if (!hierarchyNode) return true; // Show nodes not in hierarchy
+      if (hierarchyNode) {
+        // Root nodes always pass hierarchy check
+        if (!hierarchyNode.isRoot) {
+          // Child nodes visible only if parent is expanded
+          if (!expansionState.isVisible(node.id, hierarchyNode.parentId)) {
+            return false;
+          }
+        }
+      }
 
-      // Root nodes always visible
-      if (hierarchyNode.isRoot) return true;
+      // Then apply quality/authority filtering if enabled
+      if (filterEnabled) {
+        // Get quality score - use metadata if available, otherwise compute from connections
+        let quality = node.metadata?.quality ?? node.metadata?.qualityScore;
+        if (quality === undefined || quality === null) {
+          // Compute quality from node connections (normalized 0-1)
+          const connectionCount = graphData.edges.filter(e =>
+            e.source === node.id || e.target === node.id
+          ).length;
+          // Map connections to 0-1 range: 0 connections = 0, 10+ connections = 1
+          quality = Math.min(1.0, connectionCount / 10);
+        }
 
-      // Child nodes visible only if parent is expanded
-      return expansionState.isVisible(node.id, hierarchyNode.parentId);
+        // Get authority score - use metadata if available, otherwise compute from hierarchy
+        let authority = node.metadata?.authority ?? node.metadata?.authorityScore;
+        if (authority === undefined || authority === null) {
+          // Compute authority from hierarchy depth and connections
+          const hierarchyNode = hierarchyMap.get(node.id);
+          const depth = hierarchyNode?.depth ?? 0;
+          // Root nodes (depth 0) have high authority, deeper nodes have less
+          authority = Math.max(0, 1.0 - (depth * 0.2));
+        }
+
+        const passesQuality = !filterByQuality || quality >= qualityThreshold;
+        const passesAuthority = !filterByAuthority || authority >= authorityThreshold;
+
+        // Apply filter mode (AND requires both, OR requires at least one)
+        if (filterMode === 'and') {
+          if (!passesQuality || !passesAuthority) {
+            return false;
+          }
+        } else {
+          // OR mode - but only if at least one filter is active
+          if (filterByQuality || filterByAuthority) {
+            if (!passesQuality && !passesAuthority) {
+              return false;
+            }
+          }
+        }
+      }
+
+      return true;
     });
 
-    if (visible.length !== graphData.nodes.length) {
-      logger.info(`LOD filtering: ${visible.length}/${graphData.nodes.length} nodes visible`);
+    // Always log when filtering is active
+    if (filterEnabled) {
+      logger.info(`[NodeFilter] Result: ${visible.length}/${graphData.nodes.length} nodes visible (quality>=${qualityThreshold}, authority>=${authorityThreshold}, mode=${filterMode})`);
     }
 
     return visible;
-  }, [graphData.nodes, hierarchyMap, expansionState])
+  }, [graphData.nodes, graphData.edges, hierarchyMap, expansionState, filterEnabled, qualityThreshold, authorityThreshold, filterByQuality, filterByAuthority, filterMode])
 
   
   const animationStateRef = useRef({

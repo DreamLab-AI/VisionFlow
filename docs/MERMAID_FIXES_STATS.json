@@ -1,0 +1,100 @@
+{
+  "summary": {
+    "files_processed": 15,
+    "diagrams_fixed": 33,
+    "br_tag_fixes": 799,
+    "bracket_fixes": 0
+  },
+  "by_file": [
+    {
+      "file": "assets/diagrams/sparc-turboflow-architecture.md",
+      "br_tag_fixes": 176,
+      "bracket_fixes": 0,
+      "diagrams_fixed": 1
+    },
+    {
+      "file": "concepts/architecture/00-architecture-overview.md",
+      "br_tag_fixes": 9,
+      "bracket_fixes": 0,
+      "diagrams_fixed": 1
+    },
+    {
+      "file": "concepts/architecture/04-database-schemas.md",
+      "br_tag_fixes": 0,
+      "bracket_fixes": 0,
+      "diagrams_fixed": 1
+    },
+    {
+      "file": "concepts/architecture/components/websocket-protocol.md",
+      "br_tag_fixes": 1,
+      "bracket_fixes": 0,
+      "diagrams_fixed": 2
+    },
+    {
+      "file": "concepts/architecture/core/client.md",
+      "br_tag_fixes": 205,
+      "bracket_fixes": 0,
+      "diagrams_fixed": 2
+    },
+    {
+      "file": "concepts/architecture/core/server.md",
+      "br_tag_fixes": 198,
+      "bracket_fixes": 0,
+      "diagrams_fixed": 2
+    },
+    {
+      "file": "concepts/architecture/gpu/communication-flow.md",
+      "br_tag_fixes": 0,
+      "bracket_fixes": 0,
+      "diagrams_fixed": 1
+    },
+    {
+      "file": "concepts/architecture/hexagonal-cqrs-architecture.md",
+      "br_tag_fixes": 152,
+      "bracket_fixes": 0,
+      "diagrams_fixed": 2
+    },
+    {
+      "file": "concepts/architecture/ontology-storage-architecture.md",
+      "br_tag_fixes": 16,
+      "bracket_fixes": 0,
+      "diagrams_fixed": 1
+    },
+    {
+      "file": "concepts/architecture/pipeline-sequence-diagrams.md",
+      "br_tag_fixes": 0,
+      "bracket_fixes": 0,
+      "diagrams_fixed": 7
+    },
+    {
+      "file": "guides/developer/03-architecture.md",
+      "br_tag_fixes": 0,
+      "bracket_fixes": 0,
+      "diagrams_fixed": 2
+    },
+    {
+      "file": "guides/developer/json-serialization-patterns.md",
+      "br_tag_fixes": 0,
+      "bracket_fixes": 0,
+      "diagrams_fixed": 1
+    },
+    {
+      "file": "guides/developer/websocket-best-practices.md",
+      "br_tag_fixes": 0,
+      "bracket_fixes": 0,
+      "diagrams_fixed": 1
+    },
+    {
+      "file": "multi-agent-docker/architecture.md",
+      "br_tag_fixes": 22,
+      "bracket_fixes": 0,
+      "diagrams_fixed": 1
+    },
+    {
+      "file": "multi-agent-docker/docker-environment.md",
+      "br_tag_fixes": 20,
+      "bracket_fixes": 0,
+      "diagrams_fixed": 8
+    }
+  ]
+}

@@ -1270,7 +1270,7 @@ Recommendation: APPROVE with conditions
 find docs -name "*.md" -exec grep -o '```' {} \; | wc -l
 
 # Link validation
-grep -r "\[.*\](.*\.md)" docs/**/*.md | wc -l
+grep -r "\" docs/**/*.md | wc -l
 
 # Frontmatter detection
 find docs -name "*.md" -exec head -5 {} \; | grep -c "^---$"

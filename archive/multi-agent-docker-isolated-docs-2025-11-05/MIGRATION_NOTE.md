@@ -26,8 +26,8 @@ This directory contains the original isolated documentation from `/multi-agent-d
 ### Navigation Updates
 
 - **[Navigation Guide](../../docs/guides/navigation-guide.md)** - Updated with multi-agent entries
-- **[Architecture Overview](../../docs/concepts/architecture/00-ARCHITECTURE-overview.md)** - Cross-references added
-- **[Main README](../../readme.md)** - Multi-agent section added (if applicable)
+- **** - Cross-references added
+- **** - Multi-agent section added (if applicable)
 
 ---
 
@@ -141,7 +141,7 @@ The following files **remain active** in the multi-agent-docker directory:
 
 **Start here:**
 - [Multi-Agent System Architecture](../../docs/concepts/architecture/multi-agent-system.md) - Technical architecture
-- [Skill Development Guide](../../docs/guides/skill-development.md) - Creating custom skills (if exists)
+-  - Creating custom skills (if exists)
 
 ### For Administrators
 

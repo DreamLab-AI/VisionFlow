@@ -234,6 +234,6 @@ tail -f /var/log/perplexity-mcp.log
 ## Resources
 
 - [Perplexity API Docs](https://docs.perplexity.ai/)
-- [Prompt Engineering Guide](./docs/prompt-engineering.md)
+- 
 - [Research Templates](./docs/templates.md)
-- [UK Context Guide](./docs/uk-context.md)
+- 

@@ -242,24 +242,24 @@ Claude Flow achieves:
 ### Quick Start
 
 - **[SETUP.md](SETUP.md)** - Installation and configuration
-- **[CLAUDE.md](CLAUDE.md)** - Project configuration for Claude Code
+- **** - Project configuration for Claude Code
 - **[SECURITY.md](SECURITY.md)** - Security best practices
 
 ### User Guides
 
-- **[Getting Started](docs/user/getting-started.md)** - First steps and basic usage
-- **[Container Access](docs/user/container-access.md)** - VNC, SSH, docker exec
-- **[Using Claude CLI](docs/user/using-claude-cli.md)** - Skills and agents
-- **[Skills and Agents](docs/user/skills-and-agents.md)** - Complete reference
-- **[Management API](docs/user/management-api.md)** - HTTP automation
+- **** - First steps and basic usage
+- **** - VNC, SSH, docker exec
+- **** - Skills and agents
+- **** - Complete reference
+- **** - HTTP automation
 
 ### Developer Guides
 
-- **[Architecture](docs/developer/architecture.md)** - System design
-- **[Building Skills](docs/developer/building-skills.md)** - Custom skill development
-- **[DevPod Setup](docs/developer/devpod-setup.md)** - Cloud environments
-- **[Cloud Deployment](docs/developer/cloud-deployment.md)** - Production deployment
-- **[Command Reference](docs/developer/command-reference.md)** - CLI commands
+- **** - System design
+- **** - Custom skill development
+- **** - Cloud environments
+- **** - Production deployment
+- **** - CLI commands
 
 ## Directory Structure
 

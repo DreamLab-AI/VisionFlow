@@ -731,8 +731,8 @@ describe('HierarchicalVisualization', () => {
 
 - [Ontology Reasoning Pipeline](./ontology-reasoning-pipeline.md) - Backend reasoning
 - [Semantic Physics System](./semantic-physics-system.md) - Constraint generation
-- [REST API Reference](../api/rest-api-reference.md) - Hierarchy endpoint
-- [User Guide](../guides/semantic-visualization-guide.md) - End-user instructions
+-  - Hierarchy endpoint
+-  - End-user instructions
 
 ---
 

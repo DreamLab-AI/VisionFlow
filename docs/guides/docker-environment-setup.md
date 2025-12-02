@@ -747,7 +747,7 @@ Use Blender to create a 3D network visualization
 - [System Architecture](../concepts/architecture/multi-agent-system.md)
 - [MCP Protocol](https://modelcontextprotocol.io/)
 - [Docker Documentation](https://docs.docker.com/)
-- [Skill Development Guide](./skill-development.md)
+- 
 
 ---
 

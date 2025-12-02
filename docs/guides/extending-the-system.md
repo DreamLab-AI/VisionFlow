@@ -1,6 +1,6 @@
 # Extending the System
 
-[← Knowledge Base](../index.md) > [Guides](./index.md) > Extending the System
+ > [Guides](./index.md) > Extending the System
 
 This guide covers how to extend VisionFlow with custom functionality, including creating new MCP tools, agent types, plugins, and API extensions. Learn how to tailor the system to your specific requirements and integrate with external services.
 
@@ -64,7 +64,7 @@ Custom agents extend VisionFlow's capabilities by adding specialised behaviours 
 
 ### Understanding Agent Templates
 
-Agent templates provide reusable patterns for common agent types. Browse the complete collection at [reference/agents/templates/](../reference/agents/templates/index.md).
+Agent templates provide reusable patterns for common agent types. Browse the complete collection at .
 
 Key template categories:
 - **Automation Templates**: Intelligent automation and workflow management
@@ -76,13 +76,13 @@ Key template categories:
 
 #### 1. Choose Your Template
 
-Review available templates in [reference/agents/templates/](../reference/agents/templates/index.md):
+Review available templates in :
 
-- [`automation-smart-agent.md`](../reference/agents/templates/automation-smart-agent.md) - Intelligent agent coordination
-- [`implementer-sparc-coder.md`](../reference/agents/templates/implementer-sparc-coder.md) - SPARC methodology implementation
-- [`orchestrator-task.md`](../reference/agents/templates/orchestrator-task.md) - Task orchestration patterns
-- [`memory-coordinator.md`](../reference/agents/templates/memory-coordinator.md) - Memory management
-- [`github-pr-manager.md`](../reference/agents/templates/github-pr-manager.md) - GitHub PR workflows
+-  - Intelligent agent coordination
+-  - SPARC methodology implementation
+-  - Task orchestration patterns
+-  - Memory management
+-  - GitHub PR workflows
 
 #### 2. Define Agent Structure
 
@@ -116,7 +116,7 @@ hooks:
 
 #### 3. Implement Agent Base Class
 
-Based on the [automation-smart-agent](../reference/agents/templates/automation-smart-agent.md) template:
+Based on the  template:
 
 ```python
 # agents/base-agent.py
@@ -232,7 +232,7 @@ class BaseCustomAgent(ABC):
 
 #### 4. Create Specialised Agent
 
-Following the [implementer-sparc-coder](../reference/agents/templates/implementer-sparc-coder.md) pattern:
+Following the  pattern:
 
 ```python
 # agents/data-processor-agent.py
@@ -599,7 +599,7 @@ custom-agents:
 
 #### 6. Test Your Agent
 
-Create comprehensive tests following TDD principles from [implementer-sparc-coder](../reference/agents/templates/implementer-sparc-coder.md):
+Create comprehensive tests following TDD principles from :
 
 ```python
 # tests/test-data-processor-agent.py
@@ -728,12 +728,12 @@ async def test-infer-schema(agent):
 
 For more examples and patterns, explore:
 
-- [Agent Templates Index](../reference/agents/templates/index.md) - Complete template catalogue
-- [Automation Smart Agent](../reference/agents/templates/automation-smart-agent.md) - Intelligent coordination patterns
-- [SPARC Coder](../reference/agents/templates/implementer-sparc-coder.md) - Implementation methodology
-- [Task Orchestrator](../reference/agents/templates/orchestrator-task.md) - Orchestration patterns
-- [Memory Coordinator](../reference/agents/templates/memory-coordinator.md) - Memory management
-- [GitHub PR Manager](../reference/agents/templates/github-pr-manager.md) - GitHub workflows
+-  - Complete template catalogue
+-  - Intelligent coordination patterns
+-  - Implementation methodology
+-  - Orchestration patterns
+-  - Memory management
+-  - GitHub workflows
 
 ### Contributing New Templates
 
@@ -2220,12 +2220,12 @@ stats.print-stats(10)
 
 ## Related Documentation
 
-- [Agent Templates](../reference/agents/templates/index.md) - Complete template catalogue
+-  - Complete template catalogue
 - [Contributing Guide](./contributing.md) - Contribution guidelines
-- [Troubleshooting Guide](06-troubleshooting.md) - Common issues
-- [Reference Documentation](../reference/readme.md) - API details
-- [Development Workflow](02-development-workflow.md) - Development practices
+-  - Common issues
+-  - API details
+-  - Development practices
 
 ---
 
-*[← Orchestrating Agents](04-orchestrating-agents.md) | [Back to Guides](readme.md) | [Troubleshooting →](06-troubleshooting.md)*
+* | [Back to Guides](readme.md) | *

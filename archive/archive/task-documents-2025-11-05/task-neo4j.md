@@ -8,7 +8,7 @@ The goal of this phase is to make `Neo4jAdapter` the sole implementation for the
 
 ### Task 1.1: Update Application State to use Neo4j Exclusively for Graph Data
 
-**File to modify:** [`src/app_state.rs`](src/app_state.rs)
+**File to modify:** 
 
 **Objective:** Remove the `DualGraphRepository` and `UnifiedGraphRepository`, and configure the application to use `Neo4jAdapter` directly as the implementation for `KnowledgeGraphRepository`.
 
@@ -21,7 +21,7 @@ The goal of this phase is to make `Neo4jAdapter` the sole implementation for the
 
 ### Task 1.2: Remove `DualGraphRepository`
 
-**File to delete:** [`src/adapters/dual_graph_repository.rs`](src/adapters/dual_graph_repository.rs)
+**File to delete:** 
 
 **Objective:** Delete the `DualGraphRepository` implementation file.
 
@@ -32,7 +32,7 @@ The goal of this phase is to make `Neo4jAdapter` the sole implementation for the
 
 ### Task 1.3: Remove `UnifiedGraphRepository`
 
-**File to delete:** [`src/repositories/unified_graph_repository.rs`](src/repositories/unified_graph_repository.rs)
+**File to delete:** 
 
 **Objective:** Delete the `UnifiedGraphRepository` implementation file.
 
@@ -47,7 +47,7 @@ This phase involves creating a new repository for settings that uses Neo4j and m
 
 ### Task 2.1: Create `Neo4jSettingsRepository`
 
-**File to create:** [`src/adapters/neo4j_settings_repository.rs`](src/adapters/neo4j_settings_repository.rs)
+**File to create:** 
 
 **Objective:** Implement the `SettingsRepository` trait using Neo4j as the backend.
 
@@ -70,7 +70,7 @@ MERGE (s)-[:HAS_PHYSICS_SETTINGS]->(p)
 
 ### Task 2.2: Create a Data Migration Script
 
-**File to create:** [`src/bin/migrate_settings_to_neo4j.rs`](src/bin/migrate_settings_to_neo4j.rs)
+**File to create:** 
 
 **Objective:** Write a one-time script to migrate settings from the SQLite database to Neo4j.
 
@@ -86,7 +86,7 @@ MERGE (s)-[:HAS_PHYSICS_SETTINGS]->(p)
 
 ### Task 2.3: Update Application State to use `Neo4jSettingsRepository`
 
-**File to modify:** [`src/app_state.rs`](src/app_state.rs)
+**File to modify:** 
 
 **Objective:** Replace the `SqliteSettingsRepository` with the new `Neo4jSettingsRepository`.
 
@@ -101,7 +101,7 @@ This phase involves removing all legacy SQLite code and dependencies.
 
 ### Task 3.1: Delete `SqliteSettingsRepository`
 
-**File to delete:** [`src/adapters/sqlite_settings_repository.rs`](src/adapters/sqlite_settings_repository.rs)
+**File to delete:** 
 
 **Objective:** Remove the SQLite implementation for settings.
 
@@ -114,7 +114,7 @@ This phase involves removing all legacy SQLite code and dependencies.
 
 **Files to delete:**
 
-*   [`src/migrations/006_settings_tables.sql`](src/migrations/006_settings_tables.sql)
+*   
 *   The entire `src/migrations` directory.
 
 **Objective:** Remove all SQL migration files and the migration runner binary.
@@ -127,7 +127,7 @@ This phase involves removing all legacy SQLite code and dependencies.
 
 ### Task 3.3: Update `Cargo.toml`
 
-**File to modify:** [`Cargo.toml`](Cargo.toml)
+**File to modify:** 
 
 **Objective:** Remove SQLite dependencies and make Neo4j a non-optional dependency.
 
@@ -139,7 +139,7 @@ This phase involves removing all legacy SQLite code and dependencies.
 
 ### Task 3.4: Remove `generic_repository.rs`
 
-**File to delete:** [`src/repositories/generic_repository.rs`](src/repositories/generic_repository.rs)
+**File to delete:** 
 
 **Objective:** Remove the generic SQLite repository base, as it will no longer be needed.
 

@@ -178,8 +178,9 @@ async fn main() -> std::io::Result<()> {
         }
     };
 
-    let settings_actor = SettingsActor::new(settings_repository).start();
+    let settings_actor = SettingsActor::new(settings_repository.clone()).start();
     let settings_actor_data = web::Data::new(settings_actor);
+    let neo4j_repo_data = web::Data::new(settings_repository.clone());
     info!("SettingsActor initialized successfully");
 
 
@@ -471,7 +472,8 @@ async fn main() -> std::io::Result<()> {
             .app_data(app_state_data.nostr_service.clone().unwrap_or_else(|| web::Data::new(NostrService::default())))
             .app_data(app_state_data.feature_access.clone())
             .app_data(web::Data::new(github_sync_service.clone()))
-            .app_data(settings_actor_data.clone()) 
+            .app_data(settings_actor_data.clone())
+            .app_data(neo4j_repo_data.clone()) 
             
             
             .route("/wss", web::get().to(socket_flow_handler)) 

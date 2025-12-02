@@ -10,7 +10,7 @@
 
 1. [Overview](#overview)
 2. [Binary Protocol V2 (Current)](#binary-protocol-v2-current)
-3. [Legacy JSON Protocol](#legacy-json-protocol-deprecated)
+3. 
 4. [Connection](#connection)
 5. [Client Implementation](#client-implementation)
 6. [Performance](#performance)
@@ -505,7 +505,7 @@ ws.onmessage = (event) => {
 - **[Binary Protocol Specification](../binary-protocol-specification.md)** - Complete technical specification of the 36-byte binary format
 - **[REST API Documentation](./rest-api-complete.md)**
 - **[Performance Benchmarks](../performance-benchmarks.md)** - Comprehensive performance testing results
-- **[Architecture Overview](../../concepts/architecture/00-ARCHITECTURE-overview.md)**
+- ****
 
 ---
 

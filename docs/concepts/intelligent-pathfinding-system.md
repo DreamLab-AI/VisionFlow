@@ -740,7 +740,7 @@ impl Default for PathfindingLimits {
 - [Semantic Forces System](./architecture/semantic-forces-system.md)
 - [Typed Ontology System](./ontology-typed-system.md)
 - [Semantic Features Implementation Guide](../guides/semantic-features-implementation.md)
-- [Graph Algorithms Reference](../../reference/algorithms.md)
+- 
 
 ---
 

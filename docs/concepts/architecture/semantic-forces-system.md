@@ -143,7 +143,7 @@ Applies strong forces to arrange nodes in hierarchical layers based on graph top
 
 ```mermaid
 graph LR
-    A[Calculate<br/>Hierarchy Levels] --> B[Determine<br/>Layout Direction]
+    A[Calculate<br>Hierarchy Levels] --> B[Determine<br>Layout Direction]
     B --> C{Direction Mode}
     C -->|Top-Down| D[Lock Y to Level]
     C -->|Radial| E[Concentric Circles]
@@ -344,9 +344,9 @@ Computes hierarchy levels for DAG layout using topological sorting:
 ```mermaid
 graph TD
     A[Build Directed Graph] --> B{Is DAG?}
-    B -->|No| C[Return Error:<br/>Not A DAG]
+    B -->|No| C[Return Error:<br>Not A DAG]
     B -->|Yes| D[Calculate In-Degrees]
-    D --> E[Find Root Nodes<br/>in-degree = 0]
+    D --> E[Find Root Nodes<br>in-degree = 0]
     E --> F[BFS Level Assignment]
     F --> G[level = max parent levels + 1]
     G --> H[Return Hierarchy Levels]
@@ -551,7 +551,7 @@ await semanticForcesApi.configure({
 - [GPU Physics Architecture](./gpu-semantic-forces.md)
 - [Hexagonal CQRS Architecture](./hexagonal-cqrs-architecture.md)
 - [Semantic Intelligence Implementation Guide](../../guides/semantic-features-implementation.md)
-- [Physics API Reference](../../reference/api/physics-endpoints.md)
+- 
 
 ---
 

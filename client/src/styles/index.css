@@ -1,18 +1,16 @@
 /**
  * Main CSS Entry Point
- * 
- * Import order matters:
- * 1. @import statements first (CSS requirement)
- * 2. Tailwind directives
- * 3. Other styles
+ *
+ * Tailwind v4 requires @import "tailwindcss" syntax
+ * or @tailwind directives BEFORE any @apply usage
  */
 
-/* @import statements must come first */
+/* Tailwind CSS v4 - must come first for @apply to work */
+@import "tailwindcss";
+
+/* External styles */
 @import '@radix-ui/themes/styles.css';
+
+/* Custom styles (after Tailwind so @apply works) */
 @import './base.css';
 @import './tailwind-utilities.css';
-
-/* Tailwind directives */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;

@@ -225,6 +225,10 @@ export GEMINI_MCP_SOCKET="/var/run/agentic-services/gemini-mcp.sock"
 export ZAI_API_URL="http://localhost:9600"
 export ZAI_CONTAINER_URL="http://localhost:9600"
 export OPENAI_CODEX_SOCKET="/var/run/agentic-services/openai-codex.sock"
+
+# Display and supervisorctl configuration
+export DISPLAY=:1
+alias supervisorctl="/opt/venv/bin/supervisorctl"
 ENV_EXPORTS
 
 # Configure MCP settings for Claude Code
@@ -401,17 +405,17 @@ for i in $(seq 1 $MAX_RETRIES); do
         exit 0
     else
         echo "⏳ Attempt $i/$MAX_RETRIES: Management API not ready..."
-        if supervisorctl status management-api | grep -q "RUNNING"; then
+        if /opt/venv/bin/supervisorctl status management-api | grep -q "RUNNING"; then
             echo "   Process status: RUNNING"
         else
             echo "   ⚠️  Process not running! Restarting..."
-            supervisorctl restart management-api
+            /opt/venv/bin/supervisorctl restart management-api
         fi
         sleep $RETRY_DELAY
     fi
 done
 echo "❌ Management API health check FAILED"
-supervisorctl status management-api
+/opt/venv/bin/supervisorctl status management-api
 exit 1
 HEALTHCHECK_SCRIPT
     chmod +x /opt/scripts/verify-management-api.sh

@@ -14,7 +14,7 @@
 4. [Visualization Components](#visualization-components)
 5. [Bots Components](#bots-components)
 6. [Settings Components](#settings-components)
-7. [XR/Immersive Components](#xr-immersive-components)
+7. 
 8. [UI Components](#ui-components)
 9. [Layout Components](#layout-components)
 10. [Feature Components](#feature-components)

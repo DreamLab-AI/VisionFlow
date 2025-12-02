@@ -6,10 +6,10 @@
 2. [Extension Architecture](#extension-architecture)
 3. [Custom Handlers](#custom-handlers)
 4. [Custom Workers](#custom-workers)
-5. [Custom Adapters](#custom-adapters)
+5. 
 6. [Custom Components](#custom-components)
-7. [Custom Services](#custom-services)
-8. [Custom Agents](#custom-agents)
+7. 
+8. 
 9. [Testing Extensions](#testing-extensions)
 10. [Publishing Extensions](#publishing-extensions)
 

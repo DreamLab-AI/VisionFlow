@@ -10,26 +10,26 @@ VisionFlow's XR immersive system provides comprehensive extended reality (XR) su
 graph TB
     subgraph "Client Layer"
         WebXR["WebXR API"]
-        MetaSDK["Meta SDK<br/>(Babylon.js)"]
-        VisionOS["Vision OS SDK<br/>(RealityKit)"]
+        MetaSDK["Meta SDK<br>(Babylon.js)"]
+        VisionOS["Vision OS SDK<br>(RealityKit)"]
         SteamVR["SteamVR Runtime"]
     end
 
     subgraph "XR Service Layer"
-        InputHandler["Input Handler<br/>(Gesture/Voice/Controller)"]
-        SpatialMgr["Spatial Manager<br/>(Tracking/Physics)"]
-        CollabMgr["Collaboration Manager<br/>(Multi-user)"]
+        InputHandler["Input Handler<br>(Gesture/Voice/Controller)"]
+        SpatialMgr["Spatial Manager<br>(Tracking/Physics)"]
+        CollabMgr["Collaboration Manager<br>(Multi-user)"]
     end
 
     subgraph "Integration Layer"
-        AgentBridge["Agent Coordinator<br/>(Service Interface)"]
-        SemanticBridge["Semantic Physics<br/>(Force Generation)"]
-        NetworkBridge["Network Layer<br/>(WebSocket/Binary)"]
+        AgentBridge["Agent Coordinator<br>(Service Interface)"]
+        SemanticBridge["Semantic Physics<br>(Force Generation)"]
+        NetworkBridge["Network Layer<br>(WebSocket/Binary)"]
     end
 
     subgraph "Backend Systems"
         OntologyRepo["Ontology Repository"]
-        GPUCompute["GPU Physics<br/>(CUDA)"]
+        GPUCompute["GPU Physics<br>(CUDA)"]
         AgentPool["Agent Workers"]
     end
 
@@ -180,7 +180,7 @@ for (uint32-t device = 0; device < k-unMaxTrackedDeviceCount; device++) {
 
 ```mermaid
 sequenceDiagram
-    participant Platform as Platform<br/>(WebXR/SDK)
+    participant Platform as Platform<br>(WebXR/SDK)
     participant InputMgr as Input Manager
     participant GestureRec as Gesture Recognizer
     participant InteractMgr as Interaction Manager
@@ -276,23 +276,23 @@ class VoiceCommandHandler {
 
 ```mermaid
 graph TB
-    User1["User 1<br/>(WebXR)"]
-    User2["User 2<br/>(Meta Quest)"]
-    User3["User 3<br/>(Vision Pro)"]
+    User1["User 1<br>(WebXR)"]
+    User2["User 2<br>(Meta Quest)"]
+    User3["User 3<br>(Vision Pro)"]
 
-    User1 --> WS["WebSocket Server<br/>(Binary Protocol)"]
+    User1 --> WS["WebSocket Server<br>(Binary Protocol)"]
     User2 --> WS
     User3 --> WS
 
-    WS --> SpaceMgr["Space Manager<br/>(36 bytes/node)"]
-    WS --> UserMgr["User Manager<br/>(Presence/Avatar)"]
-    WS --> ConflictRes["Conflict Resolution<br/>(CRDT)"]
+    WS --> SpaceMgr["Space Manager<br>(36 bytes/node)"]
+    WS --> UserMgr["User Manager<br>(Presence/Avatar)"]
+    WS --> ConflictRes["Conflict Resolution<br>(CRDT)"]
 
-    SpaceMgr --> Cache["Redis Cache<br/>(spatial indices)"]
+    SpaceMgr --> Cache["Redis Cache<br>(spatial indices)"]
     UserMgr --> DB["User State DB"]
     ConflictRes --> DB
 
-    Cache --> Physics["Physics Simulation<br/>(GPU-accelerated)"]
+    Cache --> Physics["Physics Simulation<br>(GPU-accelerated)"]
     Physics --> WS
 
     style User1 fill:#e1f5ff
@@ -549,10 +549,10 @@ class XRSecurityValidator {
 ## Related Documentation
 
 - [Vircadia XR Complete Guide](../../guides/vircadia-xr-complete-guide.md) - Multi-user metaverse integration
-- [Semantic Physics Architecture](../semantic-physics-architecture.md) - Physics force modeling
+-  - Physics force modeling
 - [GPU Compute Architecture](./gpu/readme.md) - CUDA acceleration for physics
-- [Agent Workers](../agentic-workers.md) - Agent-driven spatial operations
-- [Architecture Overview](./00-ARCHITECTURE-overview.md) - Complete system architecture
+-  - Agent-driven spatial operations
+-  - Complete system architecture
 
 ---
 

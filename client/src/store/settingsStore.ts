@@ -59,15 +59,23 @@ async function waitForAuthReady(maxWaitMs: number = 3000): Promise<void> {
 const ESSENTIAL_PATHS = [
   'system.debug.enabled',
   'system.websocket.updateRate',
-  'system.websocket.reconnectAttempts', 
+  'system.websocket.reconnectAttempts',
   'auth.enabled',
   'auth.required',
   'visualisation.rendering.context',
   'xr.enabled',
   'xr.mode',
-  
+
   'visualisation.graphs.logseq.physics',
-  'visualisation.graphs.visionflow.physics'
+  'visualisation.graphs.visionflow.physics',
+
+  // Node filtering settings - needed for visibility filtering
+  'nodeFilter.enabled',
+  'nodeFilter.qualityThreshold',
+  'nodeFilter.authorityThreshold',
+  'nodeFilter.filterByQuality',
+  'nodeFilter.filterByAuthority',
+  'nodeFilter.filterMode'
 ];
 
 

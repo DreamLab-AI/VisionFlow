@@ -142,9 +142,9 @@ agentic-flow mcp list
   - 6379fcb - chore: Bump version to 1.2.0 and add NPM publish guide
 
 ### Documentation
-- **User Guide:** [ADDING-MCP-SERVERS-CLI.md](./guides/ADDING-MCP-SERVERS-CLI.md)
-- **Developer Guide:** [ADDING-MCP-SERVERS.md](./guides/ADDING-MCP-SERVERS.md)
-- **Validation Report:** [MCP-CLI-VALIDATION-REPORT.md](./mcp-validation/MCP-CLI-VALIDATION-REPORT.md)
+- **User Guide:** 
+- **Developer Guide:** 
+- **Validation Report:** 
 - **Release Notes:** [RELEASE-v1.2.0.md](./RELEASE-v1.2.0.md)
 
 ---

@@ -10,7 +10,7 @@ This guide provides manual testing procedures for the VisionFlow visualization s
 
 ### Testing Strategy
 
-**⚠️ Important**: VisionFlow uses **manual testing only**. Automated testing infrastructure was removed in October 2025 due to supply chain security concerns (see [ADR 003](../decisions/003-code-pruning-2025-10.md)).
+**⚠️ Important**: VisionFlow uses **manual testing only**. Automated testing infrastructure was removed in October 2025 due to supply chain security concerns (see ).
 
 **Testing Approach**:
 - Manual functional testing via UI
@@ -18,7 +18,7 @@ This guide provides manual testing procedures for the VisionFlow visualization s
 - Visual verification of graph behavior
 - Performance monitoring via browser DevTools
 
-For details on why automated tests were removed, see [security-alert.md](../archive/legacy-docs-2025-10/troubleshooting/security-alert.md).
+For details on why automated tests were removed, see .
 
 ## Control Panel Settings Structure
 

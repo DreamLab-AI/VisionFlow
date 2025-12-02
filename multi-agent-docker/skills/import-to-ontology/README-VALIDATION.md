@@ -359,5 +359,5 @@ node -e "const { validateOntologyFile } = require('./src/validation_bridge'); co
 ## See Also
 
 - [SKILL.md](./SKILL.md) - Full skill documentation
-- [ontology-augmenter/owl2_validator.py](../../../logseq/skills/ontology-augmenter/src/owl2_validator.py) - Core validator
-- [Canonical Format Guide](../../docs/CANONICAL-FORMAT-GUIDE.md) - OWL2 syntax reference
+-  - Core validator
+-  - OWL2 syntax reference

@@ -499,7 +499,7 @@ cargo test --features ontology
 - [H2 Phase 2 Details](./ERROR_HANDLING_H2_PHASE2.md)
 - [H2 Phase 3 Details](./ERROR_HANDLING_H2_PHASE3.md)
 - [H5/H6 Status](./H5_H6_STATUS.md)
-- [Neo4j Security](./NEO4J_SECURITY_H8.md)
+- 
 
 ### External Resources
 - [Rust Error Handling Book](https://doc.rust-lang.org/book/ch09-00-error-handling.html)

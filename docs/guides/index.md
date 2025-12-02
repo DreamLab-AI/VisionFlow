@@ -14,8 +14,8 @@ Welcome to the VisionFlow guides section. These practical, task-oriented guides 
 - **[Agent Control Panel](agent-orchestration.md)** - Agent control panel user guide
 
 ### 🔧 XR and Immersive
-- **[XR Setup Guide](user/xr-setup.md)** - Extended reality development environment setup
-- **[WebXR Implementation](xr-setup.md)** - VisionFlow WebXR technical reference
+- **[XR Setup Guide](../archive/docs/guides/xr-setup.md)** - Extended reality development environment setup
+- **[WebXR Implementation](../archive/docs/guides/xr-setup.md)** - VisionFlow WebXR technical reference
 
 ## Guide Overview
 
@@ -59,7 +59,7 @@ Use the agent control panel:
 - Agent telemetry stream
 - GOAP mode
 
-### [XR Setup Guide](user/xr-setup.md)
+### [XR Setup Guide](../archive/docs/guides/xr-setup.md)
 Set up your XR development environment:
 - Hardware and software requirements
 - Supported XR platforms (Quest, Vision Pro, PCVR)
@@ -86,7 +86,7 @@ Before starting with these guides, ensure you have:
 ## Getting Help
 
 If you encounter issues not covered in these guides:
-1. Review the [Reference Documentation](../reference/readme.md)
+1. Review the 
 2. Search existing GitHub issues
 3. Join our community Discord
 4. Submit a new issue with detailed information

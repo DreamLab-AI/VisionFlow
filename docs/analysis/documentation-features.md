@@ -10,13 +10,13 @@
 ## Table of Contents
 
 1. [Executive Summary](#executive-summary)
-2. [Ontology Features](#ontology-features)
-3. [Force-Directed Graph Features](#force-directed-graph-features)
-4. [Graph Algorithms](#graph-algorithms)
-5. [GPU Architecture](#gpu-architecture)
-6. [Performance Targets](#performance-targets)
-7. [Integration Points](#integration-points)
-8. [Feature Matrix](#feature-matrix)
+2. 
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
 
 ---
 

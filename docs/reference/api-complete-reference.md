@@ -10,13 +10,13 @@
 
 ## Table of Contents
 
-1. [Authentication & Authorization](#authentication--authorization)
+1. 
 2. [REST API Reference](#rest-api-reference)
 3. [Request/Response Formats](#requestresponse-formats)
 4. [Error Responses](#error-responses)
 5. [Rate Limiting](#rate-limiting)
 6. [Pagination](#pagination)
-7. [Filtering & Search](#filtering--search)
+7. 
 8. [Bulk Operations](#bulk-operations)
 9. [Webhooks](#webhooks)
 10. [API Versioning](#api-versioning)
@@ -1303,7 +1303,7 @@ print(f"Created {result['data']['created']} nodes")
 
 - [Error Codes Reference](error-codes.md) - Complete error code catalog
 - [WebSocket Protocol](websocket-protocol.md) - Binary WebSocket specification
-- [Configuration Reference](configuration-complete.md) - All configuration options
+-  - All configuration options
 - [Architecture Overview](../concepts/architecture/00-architecture-overview.md) - System design
 - [Getting Started](../getting-started/01-installation.md) - Installation guide
 
