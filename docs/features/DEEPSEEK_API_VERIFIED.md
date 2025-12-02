@@ -29,7 +29,7 @@
 #### Test 1: Direct curl (deepseek-chat)
 ```bash
 curl -X POST https://api.deepseek.com/v1/chat/completions \
-  -H "Authorization: Bearer sk-d76e012d700a4cd3983f93c056aafee0" \
+  -H "Authorization: Bearer sk-[your deepseek api key]" \
   -d '{"model":"deepseek-chat","messages":[{"role":"user","content":"Say hello"}]}'
 ```
 **Result:** ✅ Success
@@ -45,7 +45,7 @@ curl -X POST https://api.deepseek.com/v1/chat/completions \
 const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
   method: 'POST',
   headers: {
-    'Authorization': 'Bearer sk-d76e012d700a4cd3983f93c056aafee0',
+    'Authorization': 'Bearer sk-[your deepseek api key]',
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({
@@ -68,7 +68,7 @@ deepseek-chat "Write a fibonacci function in Python"
 #### Test 4: Reasoning Model (deepseek-reasoner)
 ```bash
 curl -X POST https://api.deepseek.com/v1/chat/completions \
-  -H "Authorization: Bearer sk-d76e012d700a4cd3983f93c056aafee0" \
+  -H "Authorization: Bearer sk-[your deepseek api key]" \
   -d '{"model":"deepseek-reasoner","messages":[{"role":"user","content":"What is 2+2?"}]}'
 ```
 **Result:** ✅ Success
@@ -91,7 +91,7 @@ curl -X POST https://api.deepseek.com/v1/chat/completions \
 
 #### Current Setup
 - **User:** deepseek-user (UID 1004)
-- **API Key:** `sk-d76e012d700a4cd3983f93c056aafee0`
+- **API Key:** `sk-[your deepseek api key]`
 - **Base URL:** `https://api.deepseek.com`
 - **Default Model:** `deepseek-chat`
 
@@ -99,7 +99,7 @@ curl -X POST https://api.deepseek.com/v1/chat/completions \
 `/home/deepseek-user/.config/deepseek/config.json`
 ```json
 {
-  "apiKey": "sk-d76e012d700a4cd3983f93c056aafee0",
+  "apiKey": "sk-[your deepseek api key]",
   "baseUrl": "https://api.deepseek.com",
   "models": {
     "chat": "deepseek-chat",
@@ -204,12 +204,12 @@ fn main() {
 
 ```bash
 # For deepseek-chat CLI tool
-export DEEPSEEK_API_KEY="sk-d76e012d700a4cd3983f93c056aafee0"
+export DEEPSEEK_API_KEY="sk-[your deepseek api key]"
 export DEEPSEEK_MODEL="deepseek-chat"  # or "deepseek-reasoner"
 export DEEPSEEK_TEMPERATURE="0.7"
 
 # For agentic-flow .env
-DEEPSEEK_API_KEY=sk-d76e012d700a4cd3983f93c056aafee0
+DEEPSEEK_API_KEY=sk-[your deepseek api key]
 DEEPSEEK_BASE_URL=https://api.deepseek.com
 DEEPSEEK_MODEL=deepseek-chat
 ```
@@ -222,13 +222,13 @@ docker exec -u deepseek-user agentic-workstation deepseek-chat "Hello"
 
 # Test with curl
 docker exec agentic-workstation curl -X POST https://api.deepseek.com/v1/chat/completions \
-  -H "Authorization: Bearer sk-d76e012d700a4cd3983f93c056aafee0" \
+  -H "Authorization: Bearer sk-[your deepseek api key]" \
   -H "Content-Type: application/json" \
   -d '{"model":"deepseek-chat","messages":[{"role":"user","content":"Hi"}]}'
 
 # List available models
 docker exec agentic-workstation curl https://api.deepseek.com/v1/models \
-  -H "Authorization: Bearer sk-d76e012d700a4cd3983f93c056aafee0"
+  -H "Authorization: Bearer sk-[your deepseek api key]"
 
 # Interactive chat
 docker exec -u deepseek-user -it agentic-workstation deepseek-chat --interactive

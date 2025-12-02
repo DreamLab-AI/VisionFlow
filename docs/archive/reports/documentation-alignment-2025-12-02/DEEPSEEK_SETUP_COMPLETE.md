@@ -22,7 +22,7 @@ Successfully configured `deepseek-user` (UID 1004) in the unified docker contain
 **Location:** `/home/deepseek-user/.config/deepseek/config.json`
 ```json
 {
-  "apiKey": "sk-d76e012d700a4cd3983f93c056aafee0",
+  "apiKey": "sk-[your deepseek api key]",
   "baseUrl": "https://api.deepseek.com",
   "model": "deepseek-chat",
   "maxTokens": 4096,
@@ -33,14 +33,14 @@ Successfully configured `deepseek-user` (UID 1004) in the unified docker contain
 #### Agentic-Flow .env
 **Location:** `/home/deepseek-user/agentic-flow/.env`
 ```env
-DEEPSEEK_API_KEY=sk-d76e012d700a4cd3983f93c056aafee0
+DEEPSEEK_API_KEY=sk-[your deepseek api key]
 DEEPSEEK_BASE_URL=https://api.deepseek.com
 DEEPSEEK_MODEL=deepseek-chat
 DEEPSEEK_MAX_TOKENS=4096
 DEEPSEEK_TEMPERATURE=0.7
 
 AI_PROVIDER=deepseek
-API_KEY=sk-d76e012d700a4cd3983f93c056aafee0
+API_KEY=sk-[your deepseek api key]
 API_BASE_URL=https://api.deepseek.com
 MODEL=deepseek-chat
 ```
@@ -224,7 +224,7 @@ Then copy the configuration scripts during build phase.
 
 Credentials loaded from `.env`:
 ```env
-DEEPSEEK_API_KEY=sk-d76e012d700a4cd3983f93c056aafee0
+DEEPSEEK_API_KEY=sk-[your deepseek api key]
 DEEPSEEK_BASE_URL=https://api.deepseek.com/v3.2_speciale_expires_on_20251215
 ```
 

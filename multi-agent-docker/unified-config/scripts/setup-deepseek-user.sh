@@ -24,7 +24,7 @@ fi
 # Create DeepSeek API config
 cat > /home/deepseek-user/.config/deepseek/config.json <<'EOF'
 {
-  "apiKey": "sk-d76e012d700a4cd3983f93c056aafee0",
+  "apiKey": "sk-[your deepseek api key]",
   "baseUrl": "https://api.deepseek.com/v3.2_speciale_expires_on_20251215",
   "model": "deepseek-chat",
   "maxTokens": 4096,
@@ -50,7 +50,7 @@ sudo -u deepseek-user npm install
 # Create .env file for agentic-flow
 cat > /home/deepseek-user/agentic-flow/.env <<'EOF'
 # DeepSeek API Configuration
-DEEPSEEK_API_KEY=sk-d76e012d700a4cd3983f93c056aafee0
+DEEPSEEK_API_KEY=sk-[your deepseek api key]
 DEEPSEEK_BASE_URL=https://api.deepseek.com/v3.2_speciale_expires_on_20251215
 DEEPSEEK_MODEL=deepseek-chat
 DEEPSEEK_MAX_TOKENS=4096
@@ -58,7 +58,7 @@ DEEPSEEK_TEMPERATURE=0.7
 
 # Default AI Provider
 AI_PROVIDER=deepseek
-API_KEY=sk-d76e012d700a4cd3983f93c056aafee0
+API_KEY=sk-[your deepseek api key]
 API_BASE_URL=https://api.deepseek.com/v3.2_speciale_expires_on_20251215
 MODEL=deepseek-chat
 EOF

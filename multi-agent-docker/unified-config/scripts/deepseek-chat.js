@@ -11,7 +11,7 @@
 const https = require('https');
 const readline = require('readline');
 
-const API_KEY = process.env.DEEPSEEK_API_KEY || 'sk-d76e012d700a4cd3983f93c056aafee0';
+const API_KEY = process.env.DEEPSEEK_API_KEY || 'sk-[your deepseek api key]';
 const API_URL = 'api.deepseek.com';
 const MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-chat';
 

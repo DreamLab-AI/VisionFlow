@@ -71,7 +71,7 @@ deepseek_plan --goal "Implement distributed cache" \
 API credentials configured via deepseek-user environment:
 
 ```bash
-DEEPSEEK_API_KEY=sk-d76e012d700a4cd3983f93c056aafee0
+DEEPSEEK_API_KEY=sk-[your deepseek api key]
 DEEPSEEK_SPECIAL_ENDPOINT=https://api.deepseek.com/v3.2_speciale_expires_on_20251215
 DEEPSEEK_MODEL=deepseek-chat  # Special model
 ```
