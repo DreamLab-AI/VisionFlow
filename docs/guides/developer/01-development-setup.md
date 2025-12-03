@@ -1,3 +1,10 @@
+---
+title: Development Setup Guide
+description: This guide will help you set up a complete development environment for VisionFlow. Follow these steps to start contributing to the project.
+type: guide
+status: stable
+---
+
 # Development Setup Guide
 
 ## Introduction
@@ -650,4 +657,4 @@ npm run build
 
 ---
 
-**Navigation:**  | [💻 Developer Guide](./) | [🏗️ Architecture](../../concepts/architecture/) | [🧪 Testing](../testing-guide.md)
+**Navigation:**  | [💻 Developer Guide](./) | [🏗️ Architecture](../../../explanations/architecture/) | [🧪 Testing](../testing-guide.md)

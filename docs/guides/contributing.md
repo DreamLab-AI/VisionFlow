@@ -1,3 +1,10 @@
+---
+title: Documentation Contributing Guidelines
+description: This document explains how to contribute to VisionFlow documentation using the **Diátaxis** framework.
+type: guide
+status: stable
+---
+
 # Documentation Contributing Guidelines
 
 This document explains how to contribute to VisionFlow documentation using the **Diátaxis** framework.

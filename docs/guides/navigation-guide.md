@@ -1,3 +1,10 @@
+---
+title: VisionFlow Quick Navigation Guide
+description: **Fast access to essential VisionFlow documentation**
+type: guide
+status: stable
+---
+
 # VisionFlow Quick Navigation Guide
 
 **Fast access to essential VisionFlow documentation**
@@ -42,19 +49,19 @@
 #### **Setup XR/VR**
 1. [XR Setup Guide](../archive/docs/guides/xr-setup.md)
 2. [Vircadia Complete Guide](vircadia-xr-complete-guide.md)
-3. [XR Architecture](../concepts/architecture/xr-immersive-system.md)
+3. [XR Architecture](../../explanations/architecture/xr-immersive-system.md)
 
 #### **Understand the Architecture**
 1. 
-2. [Hexagonal CQRS](../concepts/architecture/hexagonal-cqrs-architecture.md)
+2. [Hexagonal CQRS](../../explanations/architecture/hexagonal-cqrs.md)
 3. 
-4. [Database Schema](../concepts/architecture/04-database-schemas.md)
+4. [Database Schema](../../explanations/architecture/schemas.md)
 
 #### **Use the API**
 1. 
 2. [REST API](../reference/api/rest-api-complete.md)
 3. [WebSocket API](../reference/api/03-websocket.md)
-4. [Binary Protocol](../reference/binary-protocol-specification.md) - 36-byte binary format specification
+4. [Binary Protocol](../reference/binary-websocket.md) - 36-byte binary format specification
 5. [Multi-Agent Skills](./multi-agent-skills.md) - Natural language AI assistant capabilities
 
 #### **Debug Issues**
@@ -70,12 +77,12 @@
 | System | Documentation |
 |--------|---------------|
 | **Ontology** |  •  •  |
-| **GPU Acceleration** |  • [Architecture](../concepts/architecture/gpu/readme.md) • [Optimizations](../concepts/architecture/gpu/optimizations.md) |
+| **GPU Acceleration** |  • [Architecture](../../explanations/architecture/gpu/readme.md) • [Optimizations](../../explanations/architecture/gpu/optimizations.md) |
 | **AI Agents** |  • [User Guide](../archive/docs/guides/user/working-with-agents.md) •  |
-| **Multi-Agent System** | [Skills Guide](./multi-agent-skills.md) • [Architecture](../concepts/architecture/multi-agent-system.md) • [Setup](./docker-environment-setup.md) |
+| **Multi-Agent System** | [Skills Guide](./multi-agent-skills.md) • [Architecture](../../explanations/architecture/multi-agent-system.md) • [Setup](./docker-environment-setup.md) |
 | **XR/VR** | [Setup](../archive/docs/guides/xr-setup.md) • Architecture (TODO) • [Vircadia](vircadia-xr-complete-guide.md) |
-| **Database** | [Schema](../concepts/architecture/04-database-schemas.md) •  |
-| **Binary Protocol** | [WebSocket](../reference/api/03-websocket.md) • [Specification](../reference/binary-protocol-specification.md) |
+| **Database** | [Schema](../../explanations/architecture/schemas.md) •  |
+| **Binary Protocol** | [WebSocket](../reference/api/03-websocket.md) • [Specification](../reference/binary-websocket.md) |
 
 ### Key Features
 | Feature | Quick Link | Complete Docs |
@@ -83,8 +90,8 @@
 | **Ontology Reasoning** |  |  |
 | **Semantic Physics** |  |  |
 | **Multi-User XR** | [Quick Setup](user/xr-setup.md) | [Complete Guide](vircadia-xr-complete-guide.md) |
-| **CQRS Pattern** | [Architecture](../concepts/architecture/hexagonal-cqrs-architecture.md) |  |
-| **GPU Compute** |  | [Architecture](../concepts/architecture/gpu/) |
+| **CQRS Pattern** | [Architecture](../../explanations/architecture/hexagonal-cqrs.md) |  |
+| **GPU Compute** |  | [Architecture](../../explanations/architecture/gpu/) |
 
 ---
 

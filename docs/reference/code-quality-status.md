@@ -1,3 +1,10 @@
+---
+title: VisionFlow Code Quality Status
+description: **Last Updated:** 2025-11-05 **Status:** Production Ready (99.6% Complete) **Quality Grade:** A-
+type: reference
+status: stable
+---
+
 # VisionFlow Code Quality Status
 
 **Last Updated:** 2025-11-05
@@ -396,7 +403,7 @@ graph LR
 
 - [Development Setup](../guides/developer/01-development-setup.md)
 - [Testing Guide](../guides/developer/05-testing-guide.md)
-- [Architecture Overview](../concepts/architecture/00-architecture-overview.md)
+- [Architecture Overview](../../explanations/architecture/system-overview.md)
 - [Contributing Guide](../guides/developer/06-contributing.md)
 
 ---

@@ -1,3 +1,10 @@
+---
+title: Working with the GUI Sandbox
+description: [← Documentation Home](../../../README.md) > Working with GUI Sandbox
+type: guide
+status: archived
+---
+
 # Working with the GUI Sandbox
 
 [← Documentation Home](../../../README.md) > Working with GUI Sandbox

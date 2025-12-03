@@ -1,3 +1,10 @@
+---
+title: API Complete Reference
+description: **Version**: 1.0.0 **Base URL**: `http://localhost:9090/api` **WebSocket**: `ws://localhost:9090/ws`
+type: reference
+status: stable
+---
+
 # API Complete Reference
 
 **Version**: 1.0.0
@@ -1304,8 +1311,8 @@ print(f"Created {result['data']['created']} nodes")
 - [Error Codes Reference](error-codes.md) - Complete error code catalog
 - [WebSocket Protocol](websocket-protocol.md) - Binary WebSocket specification
 -  - All configuration options
-- [Architecture Overview](../concepts/architecture/00-architecture-overview.md) - System design
-- [Getting Started](../getting-started/01-installation.md) - Installation guide
+- [Architecture Overview](../../explanations/architecture/system-overview.md) - System design
+- [Getting Started](../../tutorials/01-installation.md) - Installation guide
 
 ---
 

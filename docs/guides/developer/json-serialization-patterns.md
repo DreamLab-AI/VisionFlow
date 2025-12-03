@@ -1,3 +1,10 @@
+---
+title: JSON Serialization Patterns for VisionFlow
+description: **Version:** 1.0 **Last Updated:** 2025-11-05 **Audience:** Frontend & Backend Developers
+type: guide
+status: stable
+---
+
 # JSON Serialization Patterns for VisionFlow
 
 **Version:** 1.0
@@ -838,7 +845,7 @@ describe('Physics API integration', () => {
 ## Related Documentation
 
 - [WebSocket Best Practices](./websocket-best-practices.md)
-- [Binary Protocol Specification](../../reference/binary-protocol-specification.md)
+- [Binary Protocol Specification](../../reference/binary-websocket.md)
 - [API Reference](../../reference/api/readme.md)
 - [UnifiedApiClient](../../../client/src/services/api/README.md)
 

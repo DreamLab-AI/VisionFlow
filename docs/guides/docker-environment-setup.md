@@ -1,3 +1,10 @@
+---
+title: Docker Environment Setup - Multi-Agent System
+description: **Last Updated:** November 5, 2025 **Difficulty:** Intermediate **Time Required:** 15-30 minutes
+type: guide
+status: stable
+---
+
 # Docker Environment Setup - Multi-Agent System
 
 **Last Updated:** November 5, 2025
@@ -726,7 +733,7 @@ docker logs -f --tail 100 gui-tools-container
 ✅ **Setup complete!** Now you can:
 
 1. **Learn the skills:** See [Multi-Agent Skills Guide](./multi-agent-skills.md)
-2. **Understand architecture:** Read [Multi-Agent System Architecture](../concepts/architecture/multi-agent-system.md)
+2. **Understand architecture:** Read [Multi-Agent System Architecture](../../explanations/architecture/multi-agent-system.md)
 3. **Start developing:** Use Claude Code with natural language commands
 4. **Build custom skills:** Create your own specialized capabilities
 
@@ -744,7 +751,7 @@ Use Blender to create a 3D network visualization
 ## References
 
 - [Multi-Agent Skills Reference](./multi-agent-skills.md)
-- [System Architecture](../concepts/architecture/multi-agent-system.md)
+- [System Architecture](../../explanations/architecture/multi-agent-system.md)
 - [MCP Protocol](https://modelcontextprotocol.io/)
 - [Docker Documentation](https://docs.docker.com/)
 - 

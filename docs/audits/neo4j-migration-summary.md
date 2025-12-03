@@ -1,3 +1,10 @@
+---
+title: Neo4j Settings Migration - Executive Summary
+description: **Date**: 2025-11-06 **Status**: 🟢 Production Complete | 🔴 Tests Blocked **Impact**: Test compilation failures blocking CI/CD
+type: document
+status: stable
+---
+
 # Neo4j Settings Migration - Executive Summary
 
 **Date**: 2025-11-06

@@ -1,3 +1,10 @@
+---
+title: Telemetry and Logging Guide
+description: *[Guides](../guides/readme.md) > Telemetry and Logging*
+type: guide
+status: stable
+---
+
 # Telemetry and Logging Guide
 
 *[Guides](../guides/readme.md) > Telemetry and Logging*

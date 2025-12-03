@@ -1,3 +1,10 @@
+---
+title: Semantic Features Implementation Guide
+description: **Version:** 1.0 **Last Updated:** 2025-11-05 **Status:** Implementation Roadmap
+type: guide
+status: stable
+---
+
 # Semantic Features Implementation Guide
 
 **Version:** 1.0
@@ -782,10 +789,10 @@ fn bench_dag_force_10k_nodes(b: &mut Bencher) {
 
 ## Related Documentation
 
-- [Semantic Forces System](../concepts/architecture/semantic-forces-system.md)
-- [Typed Ontology System](../concepts/ontology-typed-system.md)
-- [Intelligent Pathfinding System](../concepts/intelligent-pathfinding-system.md)
-- [GPU Architecture](../concepts/architecture/gpu/readme.md)
+- [Semantic Forces System](../../explanations/architecture/semantic-forces-system.md)
+- [Typed Ontology System](../../explanations/ontology/ontology-typed-system.md)
+- [Intelligent Pathfinding System](../../explanations/ontology/intelligent-pathfinding-system.md)
+- [GPU Architecture](../../explanations/architecture/gpu/readme.md)
 - [Neo4j Integration Guide](./neo4j-integration.md)
 
 ---

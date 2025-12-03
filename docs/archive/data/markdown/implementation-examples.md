@@ -1,3 +1,10 @@
+---
+title: Smart Contract Implementation Examples
+description: - ### OntologyBlock id:: implementation-examples-ontology collapsed:: true
+type: archive
+status: archived
+---
+
 - ### OntologyBlock
   id:: implementation-examples-ontology
   collapsed:: true

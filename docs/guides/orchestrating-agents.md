@@ -1,3 +1,10 @@
+---
+title: Orchestrating Agents
+description: > [Guides](./index.md) > Orchestrating Agents
+type: guide
+status: stable
+---
+
 # Orchestrating Agents
 
  > [Guides](./index.md) > Orchestrating Agents

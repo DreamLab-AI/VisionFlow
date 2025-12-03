@@ -1,3 +1,10 @@
+---
+title: Documentation Reports Archive
+description: This directory contains archived documentation alignment reports and legacy status files.
+type: archive
+status: archived
+---
+
 # Documentation Reports Archive
 
 This directory contains archived documentation alignment reports and legacy status files.

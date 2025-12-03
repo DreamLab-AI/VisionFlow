@@ -1,3 +1,10 @@
+---
+title: Wardley Mapper Skill - Implementation Guide
+description: ```bash
+type: archive
+status: archived
+---
+
 # Wardley Mapper Skill - Implementation Guide
 
 ## Quick Integration Checklist

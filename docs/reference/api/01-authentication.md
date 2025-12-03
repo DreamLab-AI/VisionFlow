@@ -1,3 +1,25 @@
+---
+title: Authentication (DEPRECATED - JWT NOT USED)
+description: ⚠️ OUTDATED - VisionFlow uses Nostr protocol authentication, NOT JWT
+type: reference
+status: deprecated
+replaced_by: /docs/guides/features/nostr-auth.md
+---
+
+## ⚠️ DEPRECATION WARNING
+
+**This document describes JWT authentication which is NOT used by VisionFlow.**
+
+**Current Authentication**: VisionFlow uses the **Nostr protocol** (NIP-01, NIP-07) for decentralized authentication.
+
+**For Current Documentation**, see:
+- **Primary**: `/docs/guides/features/nostr-auth.md` - Nostr authentication implementation
+- **Architecture**: `/docs/ARCHITECTURE_OVERVIEW.md` - Authentication section
+
+---
+
+## Historical Content Below (JWT - NOT IMPLEMENTED)
+
 # Authentication
 
 ## Overview

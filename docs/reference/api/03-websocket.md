@@ -1,3 +1,10 @@
+---
+title: WebSocket Protocol
+description: **Version**: 2.0 (Binary Protocol) **Last Updated**: November 3, 2025 **Status**: Production
+type: reference
+status: stable
+---
+
 # WebSocket Protocol
 
 **Version**: 2.0 (Binary Protocol)
@@ -502,7 +509,7 @@ ws.onmessage = (event) => {
 
 ## References
 
-- **[Binary Protocol Specification](../binary-protocol-specification.md)** - Complete technical specification of the 36-byte binary format
+- **[Binary Protocol Specification](../binary-websocket.md)** - Complete technical specification of the 36-byte binary format
 - **[REST API Documentation](./rest-api-complete.md)**
 - **[Performance Benchmarks](../performance-benchmarks.md)** - Comprehensive performance testing results
 - ****

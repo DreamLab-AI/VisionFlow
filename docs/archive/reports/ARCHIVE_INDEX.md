@@ -1,3 +1,10 @@
+---
+title: Archive Index - Documentation Reports
+description: Complete listing of all archived documentation alignment reports and legacy files.
+type: archive
+status: archived
+---
+
 # Archive Index - Documentation Reports
 
 Complete listing of all archived documentation alignment reports and legacy files.

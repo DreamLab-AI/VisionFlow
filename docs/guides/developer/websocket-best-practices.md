@@ -1,3 +1,10 @@
+---
+title: WebSocket Best Practices for VisionFlow
+description: **Version:** 1.0 **Last Updated:** 2025-11-05 **Audience:** Frontend & Backend Developers
+type: guide
+status: stable
+---
+
 # WebSocket Best Practices for VisionFlow
 
 **Version:** 1.0
@@ -764,9 +771,9 @@ describe('WebSocketService', () => {
 
 ## Related Documentation
 
-- [Binary Protocol Specification](../../reference/binary-protocol-specification.md)
+- [Binary Protocol Specification](../../reference/binary-websocket.md)
 - [JSON Serialization Patterns](./json-serialization-patterns.md)
-- [WebSocket Protocol Architecture](../../concepts/architecture/components/websocket-protocol.md)
+- [WebSocket Protocol Architecture](../../../explanations/architecture/components/websocket-protocol.md)
 - [API Reference](../../reference/api/03-websocket.md)
 
 ---

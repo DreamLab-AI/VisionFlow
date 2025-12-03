@@ -1,3 +1,10 @@
+---
+title: Contributing Guidelines
+description: We appreciate your interest in contributing to VisionFlow. This guide will help you get started.
+type: guide
+status: stable
+---
+
 # Contributing Guidelines
 
 ## Welcome Contributors!

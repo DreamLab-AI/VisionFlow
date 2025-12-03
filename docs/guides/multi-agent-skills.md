@@ -1,4 +1,13 @@
+---
+title: Multi-Agent Skills - Natural Language Reference
+description: **Last Updated:** November 5, 2025 **Status:** Production **VisionFlow Integration:** Agent Control Interface
+type: guide
+status: stable
+---
+
 # Multi-Agent Skills - Natural Language Reference
+
+> **Note**: For AI model integrations (DeepSeek, Perplexity, RAGFlow, Z.AI), see the [AI Models & Services Guide](ai-models/README.md).
 
 **Last Updated:** November 5, 2025
 **Status:** Production
@@ -587,7 +596,7 @@ docker exec agentic-workstation /home/devuser/.claude/skills/my-skill/test-skill
 
 ## 📚 Related Documentation
 
-- [Multi-Agent Architecture](../concepts/architecture/multi-agent-system.md)
+- [Multi-Agent Architecture](../../explanations/architecture/multi-agent-system.md)
 - 
 - 
 - [Docker Environment Setup](../guides/docker-environment-setup.md)

@@ -1,3 +1,10 @@
+---
+title: Agent Control Panel User Guide
+description: The Agent Control Panel provides comprehensive orchestration and management of AI agents within the system. Access it through **Settings → Agents** tab in the Control Center.
+type: guide
+status: stable
+---
+
 # Agent Control Panel User Guide
 
 ## Overview

@@ -1,3 +1,10 @@
+---
+title: VisionFlow Guides
+description: Welcome to the VisionFlow guides section. These practical, task-oriented guides will help you deploy, develop, and extend the VisionFlow system effectively.
+type: guide
+status: stable
+---
+
 # VisionFlow Guides
 
 Welcome to the VisionFlow guides section. These practical, task-oriented guides will help you deploy, develop, and extend the VisionFlow system effectively.

@@ -1,3 +1,10 @@
+---
+title: WebSocket Binary Protocol Reference
+description: VisionFlow uses a custom binary WebSocket protocol optimized for real-time XR collaboration, semantic graph synchronization, and low-latency node updates. The protocol achieves 36 bytes per node up...
+type: reference
+status: stable
+---
+
 # WebSocket Binary Protocol Reference
 
 ## Overview
@@ -444,8 +451,8 @@ function checkRateLimit(userId: string, msgType: u8): boolean {
 
 - [Error Codes Reference](./error-codes.md) - Error code definitions
 -  - HTTP/REST interface
-- [XR Immersive System Architecture](../concepts/architecture/xr-immersive-system.md) - XR platform integration
-- [Network Architecture](../concepts/architecture/xr-immersive-system.md#network-architecture) - Low-level networking
+- [XR Immersive System Architecture](../../explanations/architecture/xr-immersive-system.md) - XR platform integration
+- [Network Architecture](../../explanations/architecture/xr-immersive-system.md#network-architecture) - Low-level networking
 
 ---
 

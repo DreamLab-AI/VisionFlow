@@ -1,3 +1,10 @@
+---
+title: Ontologydefinition
+description: - ### OntologyBlock id:: ontologydefinition-ontology collapsed:: true
+type: archive
+status: archived
+---
+
 - ### OntologyBlock
   id:: ontologydefinition-ontology
   collapsed:: true

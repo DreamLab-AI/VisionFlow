@@ -1,3 +1,10 @@
+---
+title: Guides
+description: * > Guides*
+type: guide
+status: stable
+---
+
 # Guides
 
 * > Guides*

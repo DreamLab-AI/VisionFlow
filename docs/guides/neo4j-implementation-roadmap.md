@@ -1,3 +1,10 @@
+---
+title: Neo4j Implementation Roadmap
+description: **Version:** 1.0 **Last Updated:** 2025-11-05 **Status:** Implementation Ready
+type: guide
+status: stable
+---
+
 # Neo4j Implementation Roadmap
 
 **Version:** 1.0
@@ -1031,8 +1038,8 @@ If critical issues arise:
 ## Related Documentation
 
 - [Neo4j Integration Guide](./neo4j-integration.md)
-- [Architecture Overview](../concepts/architecture/00-architecture-overview.md)
-- [Database Schemas](../concepts/architecture/04-database-schemas.md)
+- [Architecture Overview](../../explanations/architecture/system-overview.md)
+- [Database Schemas](../../explanations/architecture/schemas.md)
 - [Testing Guide](./developer/05-testing-guide.md)
 
 ---

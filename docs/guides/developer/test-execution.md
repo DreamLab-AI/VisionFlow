@@ -1,3 +1,10 @@
+---
+title: Test Execution Guide - Semantic Intelligence Validation
+description: **Quick reference for running the comprehensive test suite**
+type: guide
+status: stable
+---
+
 # Test Execution Guide - Semantic Intelligence Validation
 
 **Quick reference for running the comprehensive test suite**

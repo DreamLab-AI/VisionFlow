@@ -1,8 +1,27 @@
+---
+title: GraphServiceActor Migration Guide (HISTORICAL REFERENCE)
+description: ✅ MIGRATION COMPLETE - Historical reference for the completed GraphServiceActor replacement
+type: guide
+status: historical-reference
+migration_completed: 2025-11-05
+last_updated: 2025-12-02
+---
+
 # GraphServiceActor Migration Guide
 
-**Status**: ✅ COMPLETE (November 2025)
-**Completion Date**: November 5, 2025
-**Last Updated**: November 6, 2025
+## ✅ MIGRATION COMPLETE - Historical Reference Only
+
+**Migration Status**: ✅ **COMPLETE** (November 5, 2025)
+**Last Updated**: December 2, 2025
+
+> **Note**: This document is kept for **historical reference only**. The GraphServiceActor has been **completely removed** and replaced with a modular actor architecture. If you're looking for current architecture documentation, see:
+> - **Current Architecture**: `/docs/ARCHITECTURE_OVERVIEW.md`
+> - **Actor System**: `/docs/explanations/architecture/core/server.md`
+> - **Migration Complete**: All code has been updated - no action needed
+
+---
+
+## Historical Context
 
 ---
 

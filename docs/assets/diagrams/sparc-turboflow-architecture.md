@@ -1,3 +1,10 @@
+---
+title: SPARC Methodology & Turbo Flow Architecture
+description: **Version:** 1.0.0 **Last Updated:** 2025-10-27 **Focus:** SPARC development workflow and Turbo Flow multi-agent integration
+type: document
+status: stable
+---
+
 # SPARC Methodology & Turbo Flow Architecture
 
 **Version:** 1.0.0

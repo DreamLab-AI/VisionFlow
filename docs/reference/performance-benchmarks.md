@@ -1,3 +1,10 @@
+---
+title: VisionFlow Performance Benchmarks
+description: **Last Updated:** November 5, 2025 **Version:** v0.1.0 **Status:** Production
+type: reference
+status: stable
+---
+
 # VisionFlow Performance Benchmarks
 
 **Last Updated:** November 5, 2025
@@ -322,8 +329,8 @@ VisionFlow delivers production-grade performance across all tiers:
 
 ## References
 
-- [Binary Protocol Specification](./binary-protocol-specification.md)
-- [WebSocket API Documentation](./api/03-websocket.md)
+- [Binary Protocol Specification](./binary-websocket.md)
+- [WebSocket API Documentation](./reference/api/03-websocket.md)
 - 
 - 
 

@@ -1,3 +1,10 @@
+---
+title: RuVector Integration Analysis for VisionFlow
+description: **Date**: 2025-11-28 **Agent**: RuVector Integration Researcher **Working Directory**: `/home/devuser/workspace/project`
+type: document
+status: stable
+---
+
 # RuVector Integration Analysis for VisionFlow
 
 **Date**: 2025-11-28

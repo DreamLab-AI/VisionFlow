@@ -1,3 +1,10 @@
+---
+title: Ontology-Driven Semantic Forces
+description: **Status:** Implemented **Version:** 2.0.0 **Last Updated:** 2025-11-22
+type: guide
+status: stable
+---
+
 # Ontology-Driven Semantic Forces
 
 **Status:** Implemented

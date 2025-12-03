@@ -1,3 +1,10 @@
+---
+title: Pipeline Operator Runbook
+description: 1. [System Overview](#system-overview) 2. [Monitoring](#monitoring) 3. [Common Issues](#common-issues)
+type: guide
+status: stable
+---
+
 # Pipeline Operator Runbook
 
 ## Table of Contents

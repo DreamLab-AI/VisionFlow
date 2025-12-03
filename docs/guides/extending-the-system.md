@@ -1,3 +1,10 @@
+---
+title: Extending the System
+description: > [Guides](./index.md) > Extending the System
+type: guide
+status: stable
+---
+
 # Extending the System
 
  > [Guides](./index.md) > Extending the System

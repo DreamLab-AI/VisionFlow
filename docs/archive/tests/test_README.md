@@ -1,3 +1,10 @@
+---
+title: VisionFlow Test Suite
+description: Comprehensive test suite for the VisionFlow migration project covering integration, performance, and load testing.
+type: archive
+status: archived
+---
+
 # VisionFlow Test Suite
 
 Comprehensive test suite for the VisionFlow migration project covering integration, performance, and load testing.

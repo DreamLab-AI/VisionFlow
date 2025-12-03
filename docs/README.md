@@ -1,465 +1,731 @@
-# VisionFlow Documentation Hub
+# VisionFlow Documentation
 
 **Complete documentation for VisionFlow's enterprise-grade multi-agent knowledge graphing system.**
 
-This documentation uses the **Diátaxis** framework, organising content into four distinct categories:
-
-- **🎓 Tutorials** - Learning-oriented, step-by-step guides for beginners
-- **📘 How-To Guides** - Goal-oriented practical instructions for specific tasks
-- **📕 Concepts** - Understanding-oriented explanations of architecture and design
-- **📗 Reference** - Information-oriented technical specifications and APIs
+> **226 documents** organized using the **Diátaxis Framework** for maximum discoverability
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quickstart Paths
 
-**New to VisionFlow?** Start here:
+### ⚡ 5-Minute Start
+1. **[Install VisionFlow](tutorials/01-installation.md)** → Deploy with Docker
+2. **[Create First Graph](tutorials/02-first-graph.md)** → Launch AI agents
+3. **[Navigate in 3D](guides/navigation-guide.md)** → Master the interface
 
-1. **[Installation Guide](getting-started/01-installation.md)** - Set up VisionFlow in under 5 minutes
-2. **[First Graph & Agents](getting-started/02-first-graph-and-agents.md)** - Create your first knowledge graph with AI agents
-3. **[Navigation Guide](guides/navigation-guide.md)** - Master the 3D interface and controls
+### 👤 Choose Your Path
 
-**Looking for something specific?** See the comprehensive index sections below.
+<table>
+<tr>
+<td valign="top" width="25%">
+
+#### 🆕 New Users
+*Just getting started?*
+
+**Start here:**
+- [What is VisionFlow?](OVERVIEW.md)
+- [Installation](tutorials/01-installation.md)
+- [First Graph](tutorials/02-first-graph.md)
+- [Navigation Guide](guides/navigation-guide.md)
+
+**Then:**
+- [Configuration](guides/configuration.md)
+- [Troubleshooting](guides/troubleshooting.md)
+
+</td>
+<td valign="top" width="25%">
+
+#### 👨‍💻 Developers
+*Building features?*
+
+**Start here:**
+- [Developer Journey](DEVELOPER_JOURNEY.md)
+- [Development Setup](guides/developer/01-development-setup.md)
+- [Project Structure](guides/developer/02-project-structure.md)
+
+**Then:**
+- [Adding Features](guides/developer/04-adding-features.md)
+- [Testing Guide](guides/testing-guide.md)
+- [Contributing](guides/developer/06-contributing.md)
+
+</td>
+<td valign="top" width="25%">
+
+#### 🏗️ Architects
+*Designing systems?*
+
+**Start here:**
+- [Architecture Overview](ARCHITECTURE_OVERVIEW.md)
+- [Technology Choices](TECHNOLOGY_CHOICES.md)
+- [System Overview](explanations/system-overview.md)
+
+**Then:**
+- [Hexagonal CQRS](explanations/architecture/hexagonal-cqrs.md)
+- [Integration Patterns](explanations/architecture/integration-patterns.md)
+- [Ports Overview](explanations/architecture/ports/01-overview.md)
+
+</td>
+<td valign="top" width="25%">
+
+#### 🔧 DevOps
+*Deploying to production?*
+
+**Start here:**
+- [Deployment Guide](guides/deployment.md)
+- [Docker Compose](guides/docker-compose-guide.md)
+- [Configuration](guides/configuration.md)
+
+**Then:**
+- [Operations Runbook](guides/operations/pipeline-operator-runbook.md)
+- [Security](guides/security.md)
+- [Telemetry](guides/telemetry-logging.md)
+
+</td>
+</tr>
+</table>
 
 ---
 
-## 📚 Documentation Index
+## 📚 Documentation by Category
 
-### 🎓 Getting Started (Tutorials)
+### 🎓 Tutorials (Learning-Oriented)
+*Step-by-step lessons to learn by doing*
 
-Learn by doing with step-by-step tutorials:
+| Tutorial | What You'll Learn | Time |
+|----------|-------------------|------|
+| **[Installation](tutorials/01-installation.md)** | Docker and native setup for all platforms | 10 min |
+| **[First Graph](tutorials/02-first-graph.md)** | Create your first visualization with AI agents | 15 min |
+| **[Neo4j Quick Start](tutorials/neo4j-quick-start.md)** | Query and explore the graph database | 20 min |
 
-| Document | Description | Audience |
-|----------|-------------|----------|
-| **[Installation Guide](getting-started/01-installation.md)** | Docker and native installation for all platforms | All users |
-| **[First Graph & Agents](getting-started/02-first-graph-and-agents.md)** | Create your first visualization with AI agents | Beginners |
+---
 
-### 📘 User Guides (How-To)
+### 🛠️ How-To Guides (Goal-Oriented)
+*Practical instructions for specific tasks*
 
-Accomplish specific goals:
+<details>
+<summary><b>🎯 Core Features (8 guides)</b></summary>
 
-#### Core Usage
-| Document | Description |
-|----------|-------------|
-| **[Navigation Guide](guides/navigation-guide.md)** | 3D interface controls and navigation |
+| Guide | Task |
+|-------|------|
+| **[Navigation Guide](guides/navigation-guide.md)** | 3D interface controls, camera, selection |
+| **[Filtering Nodes](guides/features/filtering-nodes.md)** | Client-side graph filtering with real-time updates |
+| **[Intelligent Pathfinding](guides/features/intelligent-pathfinding.md)** | Graph traversal and shortest paths |
+| **[Natural Language Queries](guides/features/natural-language-queries.md)** | Ask questions in plain English |
+| **[Semantic Forces](guides/features/semantic-forces.md)** | Physics-based meaningful layouts |
 | **[Configuration](guides/configuration.md)** | Environment variables and settings |
-| **[Troubleshooting](guides/troubleshooting.md)** | Common issues and solutions |
-| **[XR Setup](archive/docs/guides/xr-setup.md)** | Quick XR/VR device configuration |
+| **[Troubleshooting](guides/troubleshooting.md)** | Solve common issues |
+| **[Extending the System](guides/extending-the-system.md)** | Plugin patterns and custom components |
 
-#### AI Agent System
-| Document | Description |
-|----------|-------------|
-| **[Agent Orchestration](guides/agent-orchestration.md)** | Deploy and manage AI agent teams |
+</details>
+
+<details>
+<summary><b>🔐 Authentication & Security (3 guides)</b></summary>
+
+| Guide | Task |
+|-------|------|
+| **[Auth & User Settings](guides/features/auth-user-settings.md)** | User authentication system implementation |
+| **[Nostr Authentication](guides/features/nostr-auth.md)** | Decentralized identity with Nostr protocol |
+| **[Settings Authentication](guides/features/settings-authentication.md)** | Secure settings API with JWT |
+
+</details>
+
+<details>
+<summary><b>🤖 AI Agent System (4 guides)</b></summary>
+
+| Guide | Task |
+|-------|------|
+| **[Agent Orchestration](guides/agent-orchestration.md)** | Deploy and manage 50+ concurrent AI agents |
 | **[Orchestrating Agents](guides/orchestrating-agents.md)** | Advanced coordination patterns |
 | **[Multi-Agent Skills](guides/multi-agent-skills.md)** | Agent capabilities and specializations |
+| **[AI Models & Services](guides/ai-models/README.md)** | DeepSeek, Perplexity, RAGFlow, Z.AI integrations |
 
-#### Neo4j & Data Integration
-| Document | Description |
-|----------|-------------|
-| **[Neo4j Integration](guides/neo4j-integration.md)** | Work with graph database directly |
-| **[Neo4j Implementation Roadmap](guides/neo4j-implementation-roadmap.md)** | Migration path and timeline |
-| **[Neo4j Migration](guides/neo4j-migration.md)** | Step-by-step migration guide |
+</details>
 
-#### Ontology & Reasoning
-| Document | Description |
-|----------|-------------|
+<details>
+<summary><b>🗄️ Neo4j & Data (6 guides)</b></summary>
+
+| Guide | Task |
+|-------|------|
+| **[Neo4j Integration](guides/neo4j-integration.md)** | Work with graph database operations |
+| **[Neo4j Implementation Roadmap](guides/neo4j-implementation-roadmap.md)** | Migration planning and timeline |
+| **[Neo4j Migration](guides/neo4j-migration.md)** | Step-by-step migration process |
+| **[Local File Sync Strategy](guides/features/local-file-sync-strategy.md)** | File synchronization patterns |
+| **[GitHub Pagination Fix](guides/features/github-pagination-fix.md)** | Handle large GitHub API responses |
+| **[Pipeline Admin API](guides/pipeline-admin-api.md)** | Control GitHub sync pipelines |
+
+</details>
+
+<details>
+<summary><b>🦉 Ontology & Reasoning (4 guides)</b></summary>
+
+| Guide | Task |
+|-------|------|
 | **[Ontology Parser](guides/ontology-parser.md)** | Parse and validate OWL ontologies |
-| **[Ontology Reasoning Integration](guides/ontology-reasoning-integration.md)** | Enable semantic inference |
+| **[Ontology Reasoning Integration](guides/ontology-reasoning-integration.md)** | Enable semantic inference with Whelk |
 | **[Ontology Storage Guide](guides/ontology-storage-guide.md)** | Persist ontologies in Neo4j |
-| **[Ontology Semantic Forces](guides/ontology-semantic-forces.md)** | Visualize constraints as physics |
+| **[Ontology Semantic Forces](guides/ontology-semantic-forces.md)** | Visualize constraints as physics forces |
 
-#### Advanced Features
-| Document | Description |
-|----------|-------------|
-| **[Semantic Features Implementation](guides/semantic-features-implementation.md)** | Natural language queries and pathfinding |
-| **[Hierarchy Integration](guides/hierarchy-integration.md)** | Hierarchical layouts and DAG rendering |
-| **[Stress Majorization Guide](guides/stress-majorization-guide.md)** | Advanced layout algorithm |
-| **[Pipeline Admin API](guides/pipeline-admin-api.md)** | GitHub sync and data pipeline control |
+</details>
 
-#### Deployment & Operations
-| Document | Description |
-|----------|-------------|
+<details>
+<summary><b>🚀 Deployment & Operations (9 guides)</b></summary>
+
+| Guide | Task |
+|-------|------|
 | **[Deployment](guides/deployment.md)** | Production deployment strategies |
 | **[Docker Compose Guide](guides/docker-compose-guide.md)** | Multi-container orchestration |
-| **[Docker Environment Setup](guides/docker-environment-setup.md)** | Container configuration |
-| **[Pipeline Operator Runbook](guides/operations/pipeline-operator-runbook.md)** | Operations playbook |
-
-#### Immersive XR & Multi-User
-| Document | Description |
-|----------|-------------|
-| **[Vircadia XR Complete Guide](guides/vircadia-xr-complete-guide.md)** | Full Quest 3 implementation guide |
-| **[Vircadia Multi-User Guide](guides/vircadia-multi-user-guide.md)** | Collaborative VR sessions |
-
-#### Migration Guides
-| Document | Description |
-|----------|-------------|
-| **[GraphServiceActor Migration](guides/graphserviceactor-migration.md)** | Modular actor system migration |
-| **[JSON to Binary Protocol](guides/migration/json-to-binary-protocol.md)** | WebSocket protocol upgrade |
-
-### 📕 Developer Guides
-
-Build and extend VisionFlow:
-
-#### Essential Reading
-| Document | Description | Priority |
-|----------|-------------|----------|
-| **[Development Setup](guides/developer/01-development-setup.md)** | Configure development environment | ⭐⭐⭐ |
-| **[Project Structure](guides/developer/02-project-structure.md)** | Navigate the codebase | ⭐⭐⭐ |
-| **[Architecture](guides/developer/03-architecture.md)** | Understand system design | ⭐⭐⭐ |
-| **[Adding Features](guides/developer/04-adding-features.md)** | Extend the system | ⭐⭐ |
-| **[Contributing](guides/developer/06-contributing.md)** | Contribution guidelines | ⭐⭐ |
-
-#### Development Workflow
-| Document | Description |
-|----------|-------------|
-| **[Development Workflow](guides/development-workflow.md)** | Git branching, testing, CI/CD |
-| **[Testing Guide](guides/testing-guide.md)** | Comprehensive testing strategies |
-| **[Test Execution](guides/developer/test-execution.md)** | Run and debug tests |
-| **[Extending the System](guides/extending-the-system.md)** | Plugin and extension patterns |
-
-#### Technical Patterns
-| Document | Description |
-|----------|-------------|
-| **[WebSocket Best Practices](guides/developer/websocket-best-practices.md)** | Binary protocol implementation |
-| **[JSON Serialization Patterns](guides/developer/json-serialization-patterns.md)** | Rust serde patterns |
-
-#### Security & Monitoring
-| Document | Description |
-|----------|-------------|
+| **[Docker Environment Setup](guides/docker-environment-setup.md)** | Container configuration details |
+| **[Development Workflow](guides/development-workflow.md)** | Git, testing, CI/CD process |
+| **[Testing Guide](guides/testing-guide.md)** | Unit, integration, E2E testing |
 | **[Security](guides/security.md)** | Authentication, authorization, secrets |
 | **[Telemetry Logging](guides/telemetry-logging.md)** | Observability and monitoring |
+| **[Pipeline Operator Runbook](guides/operations/pipeline-operator-runbook.md)** | Operations playbook for production |
+| **[Contributing](guides/developer/06-contributing.md)** | Code style, PRs, documentation |
 
-### 📙 Concepts (Understanding)
+</details>
 
-Learn the underlying architecture and design:
+<details>
+<summary><b>🏢 Infrastructure (6 guides)</b></summary>
 
-#### System Architecture
+| Guide | Task |
+|-------|------|
+| **[Architecture Overview](guides/infrastructure/architecture.md)** | Multi-agent Docker system design |
+| **[Docker Environment](guides/infrastructure/docker-environment.md)** | Container setup and management |
+| **[Tools](guides/infrastructure/tools.md)** | Available MCP tools and integrations |
+| **[Port Configuration](guides/infrastructure/port-configuration.md)** | Network and service ports |
+| **[Troubleshooting](guides/infrastructure/troubleshooting.md)** | Infrastructure-specific issues |
+| **[Goalie Integration](guides/infrastructure/goalie-integration.md)** | Quality gates and automated testing |
+
+</details>
+
+<details>
+<summary><b>🥽 XR & Multi-User (2 guides)</b></summary>
+
+| Guide | Task |
+|-------|------|
+| **[Vircadia XR Complete Guide](guides/vircadia-xr-complete-guide.md)** | Meta Quest 3 VR implementation |
+| **[Vircadia Multi-User Guide](guides/vircadia-multi-user-guide.md)** | Collaborative VR experiences |
+
+</details>
+
+<details>
+<summary><b>👨‍💻 Developer (10 guides)</b></summary>
+
+| Guide | Priority | Task |
+|-------|----------|------|
+| **[Development Setup](guides/developer/01-development-setup.md)** | ⭐⭐⭐ | IDE, dependencies, local environment |
+| **[Project Structure](guides/developer/02-project-structure.md)** | ⭐⭐⭐ | Codebase organization and modules |
+| **[Adding Features](guides/developer/04-adding-features.md)** | ⭐⭐ | Feature development workflow |
+| **[WebSocket Best Practices](guides/developer/websocket-best-practices.md)** | ⭐ | Real-time communication patterns |
+| **[JSON Serialization Patterns](guides/developer/json-serialization-patterns.md)** | ⭐ | Data serialization strategies |
+| **[Test Execution](guides/developer/test-execution.md)** | ⭐ | Running and debugging tests |
+
+</details>
+
+<details>
+<summary><b>📊 Client Development (3 guides)</b></summary>
+
+| Guide | Task |
+|-------|------|
+| **[State Management](guides/client/state-management.md)** | React state patterns with Zustand |
+| **[Three.js Rendering](guides/client/three-js-rendering.md)** | 3D visualization pipeline |
+| **[XR Integration](guides/client/xr-integration.md)** | WebXR implementation details |
+
+</details>
+
+<details>
+<summary><b>🔄 Advanced Features (6 guides)</b></summary>
+
+| Guide | Task |
+|-------|------|
+| **[Semantic Features Implementation](guides/semantic-features-implementation.md)** | Natural language query system |
+| **[Hierarchy Integration](guides/hierarchy-integration.md)** | Hierarchical graph layouts |
+| **[Stress Majorization Guide](guides/stress-majorization-guide.md)** | Advanced layout algorithm |
+| **[Ontology Sync Enhancement](guides/features/ontology-sync-enhancement.md)** | GitHub ontology sync with HNSW vector search |
+| **[DeepSeek Verification](guides/features/deepseek-verification.md)** | LLM API integration testing |
+| **[DeepSeek Deployment](guides/features/deepseek-deployment.md)** | Deploy DeepSeek skill container |
+
+</details>
+
+<details>
+<summary><b>🔧 Migration (2 guides)</b></summary>
+
+| Guide | Task |
+|-------|------|
+| **[GraphServiceActor Migration](guides/graphserviceactor-migration.md)** | Actor system migration patterns |
+| **[JSON to Binary Protocol](guides/migration/json-to-binary-protocol.md)** | WebSocket protocol upgrade |
+
+</details>
+
+---
+
+### 🧠 Explanations (Understanding-Oriented)
+*Deep dives into architecture, design decisions, and theory*
+
+<details>
+<summary><b>🏛️ High-Level Architecture (4 documents)</b></summary>
+
 | Document | Description |
 |----------|-------------|
-| **[Architecture Overview](concepts/architecture/00-architecture-overview.md)** | Complete system design |
-| **[Hexagonal CQRS Architecture](concepts/architecture/hexagonal-cqrs-architecture.md)** | Ports & adapters pattern |
-| **[Services Architecture](concepts/architecture/services-architecture.md)** | Business logic layer |
-| **[Multi-Agent System](concepts/architecture/multi-agent-system.md)** | AI agent coordination |
-| **[Quick Reference](concepts/architecture/quick-reference.md)** | Architecture cheat sheet |
+| **[Architecture Overview](ARCHITECTURE_OVERVIEW.md)** | Complete system architecture with diagrams |
+| **[Developer Journey](DEVELOPER_JOURNEY.md)** | Step-by-step codebase learning path |
+| **[System Overview](OVERVIEW.md)** | What VisionFlow is and why it exists |
+| **[Technology Choices](TECHNOLOGY_CHOICES.md)** | Technology stack rationale |
 
-#### Data Flow & Integration
+</details>
+
+<details>
+<summary><b>🔷 System Architecture (21 documents)</b></summary>
+
+**⭐ NEW Core Architecture Docs (Dec 2025):**
 | Document | Description |
 |----------|-------------|
-| **[Data Flow Complete](concepts/architecture/data-flow-complete.md)** | End-to-end data pipeline |
-| **[Pipeline Integration](concepts/architecture/pipeline-integration.md)** | GitHub sync to GPU rendering |
-| **[Pipeline Sequence Diagrams](concepts/architecture/pipeline-sequence-diagrams.md)** | Visual data flow |
-| **[Integration Patterns](concepts/architecture/integration-patterns.md)** | System integration approaches |
-| **[GitHub Sync Service Design](concepts/architecture/github-sync-service-design.md)** | Streaming sync architecture |
+| **[Server Architecture](concepts/architecture/core/server.md)** | ⭐ **21 actors, ports/adapters, Neo4j** |
+| **[Actor System Guide](guides/architecture/actor-system.md)** | ⭐ **Actor patterns, debugging, best practices** |
+| **[Database Architecture](explanations/architecture/database-architecture.md)** | ⭐ **Neo4j schema, queries, performance** |
 
-#### Database & Persistence
+**System Architecture:**
 | Document | Description |
 |----------|-------------|
-| **[Database Schemas](concepts/architecture/04-database-schemas.md)** | Neo4j schema design |
-| **[Neo4j Integration](concepts/neo4j-integration.md)** | Graph database concepts |
-| **[Adapter Patterns](concepts/architecture/adapter-patterns.md)** | Repository implementations |
+| **[System Overview](explanations/system-overview.md)** | Complete architectural blueprint |
+| **[Hexagonal CQRS](explanations/architecture/hexagonal-cqrs.md)** | Ports & adapters with command/query separation |
+| **[Services Architecture](explanations/architecture/services-architecture.md)** | Business logic layer design |
+| **[Multi-Agent System](explanations/architecture/multi-agent-system.md)** | AI agent coordination patterns |
+| **[Data Flow Complete](explanations/architecture/data-flow-complete.md)** | End-to-end data pipeline |
+| **[Pipeline Integration](explanations/architecture/pipeline-integration.md)** | GitHub → Neo4j → GPU flow |
+| **[Pipeline Sequence Diagrams](explanations/architecture/pipeline-sequence-diagrams.md)** | Visual interaction flows |
+| **[Integration Patterns](explanations/architecture/integration-patterns.md)** | System integration strategies |
+| **[GitHub Sync Service Design](explanations/architecture/github-sync-service-design.md)** | Streaming ontology sync |
+| **[Quick Reference](explanations/architecture/quick-reference.md)** | Architecture cheat sheet |
+| **[Analytics Visualization](explanations/architecture/analytics-visualization.md)** | UI/UX design patterns |
+| **[Services Layer](explanations/architecture/services-layer.md)** | Business logic refactoring |
+| **[Ontology Physics Integration](explanations/architecture/ontology-physics-integration.md)** | Wire OWL constraints to GPU physics |
+| **[RuVector Integration](explanations/architecture/ruvector-integration.md)** | 150x faster HNSW vector search |
+| **[API Handlers Reference](explanations/architecture/api-handlers-reference.md)** | Handler patterns and examples |
+| **[CQRS Directive Template](explanations/architecture/cqrs-directive-template.md)** | Command/query templates |
+| **[Ontology Analysis](explanations/architecture/ontology-analysis.md)** | Architecture decision analysis |
+| **[XR Immersive System](explanations/architecture/xr-immersive-system.md)** | Quest 3 WebXR architecture |
 
-#### Ontology & Reasoning
+</details>
+
+<details>
+<summary><b>🗄️ Database & Persistence (3 documents)</b></summary>
+
 | Document | Description |
 |----------|-------------|
-| **[Ontology Storage Architecture](concepts/architecture/ontology-storage-architecture.md)** | OWL persistence in Neo4j |
-| **[Ontology Reasoning Pipeline](concepts/architecture/ontology-reasoning-pipeline.md)** | Whelk inference engine |
-| **[Reasoning Data Flow](concepts/architecture/reasoning-data-flow.md)** | Inference pipeline stages |
-| **[Reasoning Tests Summary](concepts/architecture/reasoning-tests-summary.md)** | Test coverage and results |
-| **[Ontology Pipeline Integration](concepts/ontology-pipeline-integration.md)** | End-to-end ontology processing |
+| **[Database Architecture](explanations/architecture/database-architecture.md)** | ⭐ **Neo4j schema, queries, performance** |
+| **[Adapter Patterns](explanations/architecture/adapter-patterns.md)** | Repository implementation patterns |
+| **[Ontology Storage Architecture](explanations/architecture/ontology-storage-architecture.md)** | OWL persistence in Neo4j |
 
-#### Visualization & Physics
+</details>
+
+<details>
+<summary><b>🦉 Ontology & Reasoning (11 documents)</b></summary>
+
+**Architecture:**
 | Document | Description |
 |----------|-------------|
-| **[Semantic Physics System](concepts/architecture/semantic-physics-system.md)** | Force-directed layout engine |
-| **[Semantic Forces System](concepts/architecture/semantic-forces-system.md)** | Physics constraint generation |
-| **[Semantic Physics](concepts/architecture/semantic-physics.md)** | Physics theory and algorithms |
-| **[Stress Majorization](concepts/architecture/stress-majorization.md)** | Advanced layout technique |
-| **[Hierarchical Visualization](concepts/architecture/hierarchical-visualization.md)** | DAG and tree layouts |
-| **[Client-Side Hierarchical LOD](concepts/client-side-hierarchical-lod.md)** | Level-of-detail optimization |
+| **[Ontology Reasoning Pipeline](explanations/architecture/ontology-reasoning-pipeline.md)** | Whelk inference integration |
+| **[Reasoning Data Flow](explanations/architecture/reasoning-data-flow.md)** | Inference pipeline stages |
+| **[Reasoning Tests Summary](explanations/architecture/reasoning-tests-summary.md)** | Test coverage report |
 
-#### GPU Acceleration
+**Concepts:**
 | Document | Description |
 |----------|-------------|
-| **[GPU Semantic Forces](concepts/architecture/gpu-semantic-forces.md)** | CUDA kernel architecture |
-| **[GPU Communication Flow](concepts/architecture/gpu/communication-flow.md)** | CPU-GPU data transfer |
-| **[GPU Optimizations](concepts/architecture/gpu/optimizations.md)** | Performance tuning |
-| **[GPU README](concepts/architecture/gpu/readme.md)** | GPU subsystem overview |
+| **[Reasoning Engine](explanations/ontology/reasoning-engine.md)** | Inference engine concepts |
+| **[Neo4j Integration](explanations/ontology/neo4j-integration.md)** | Graph database integration |
+| **[Ontology Pipeline Integration](explanations/ontology/ontology-pipeline-integration.md)** | End-to-end OWL processing |
+| **[Ontology Typed System](explanations/ontology/ontology-typed-system.md)** | Type system design |
+| **[Client-Side Hierarchical LOD](explanations/ontology/client-side-hierarchical-lod.md)** | Level-of-detail optimization |
+| **[Hierarchical Visualization](explanations/ontology/hierarchical-visualization.md)** | Tree and DAG layouts |
+| **[Intelligent Pathfinding System](explanations/ontology/intelligent-pathfinding-system.md)** | Graph traversal theory |
+| **[Enhanced Parser](explanations/ontology/enhanced-parser.md)** | OWL parser v2 design |
 
-#### XR & Immersive
+</details>
+
+<details>
+<summary><b>⚡ Visualization & Physics (8 documents)</b></summary>
+
 | Document | Description |
 |----------|-------------|
-| **[XR Immersive System](concepts/architecture/xr-immersive-system.md)** | Quest 3 WebXR architecture |
+| **[Semantic Physics System](explanations/architecture/semantic-physics-system.md)** | Force-directed layout engine |
+| **[Semantic Forces System](explanations/architecture/semantic-forces-system.md)** | Physics constraint generation |
+| **[Semantic Physics](explanations/architecture/semantic-physics.md)** | Theory and algorithms |
+| **[GPU Semantic Forces](explanations/architecture/gpu-semantic-forces.md)** | 39 CUDA kernels |
+| **[Stress Majorization](explanations/architecture/stress-majorization.md)** | Graph layout technique |
+| **[Hierarchical Visualization](explanations/architecture/hierarchical-visualization.md)** | DAG and tree layouts |
+| **[Semantic Forces](explanations/physics/semantic-forces.md)** | Physics constraint design |
+| **[Semantic Forces Actor](explanations/physics/semantic-forces-actor.md)** | Actor system integration |
 
-#### Client-Server Architecture
+</details>
+
+<details>
+<summary><b>🎮 GPU Acceleration (3 documents)</b></summary>
+
 | Document | Description |
 |----------|-------------|
-| **[Client Architecture](concepts/architecture/core/client.md)** | React Three.js frontend |
-| **[Server Architecture](concepts/architecture/core/server.md)** | Rust Actix backend |
-| **[Visualization](concepts/architecture/core/visualization.md)** | 3D rendering pipeline |
+| **[GPU Communication Flow](explanations/architecture/gpu/communication-flow.md)** | CPU-GPU data transfer |
+| **[GPU Optimizations](explanations/architecture/gpu/optimizations.md)** | Performance tuning strategies |
+| **[GPU README](explanations/architecture/gpu/readme.md)** | GPU subsystem overview |
 
-#### Communication Protocols
+</details>
+
+<details>
+<summary><b>💻 Client-Server (4 documents)</b></summary>
+
 | Document | Description |
 |----------|-------------|
-| **[WebSocket Protocol](concepts/architecture/components/websocket-protocol.md)** | Binary protocol design |
+| **[Client](explanations/architecture/core/client.md)** | React Three.js frontend architecture |
+| **[Server](explanations/architecture/core/server.md)** | Rust Actix backend architecture |
+| **[Visualization](explanations/architecture/core/visualization.md)** | 3D rendering pipeline |
+| **[WebSocket Protocol](explanations/architecture/components/websocket-protocol.md)** | Binary protocol design |
 
-#### Ports (Hexagonal Architecture)
+</details>
+
+<details>
+<summary><b>🔌 Ports (Hexagonal Architecture) (7 documents)</b></summary>
+
 | Document | Description |
 |----------|-------------|
-| **[Ports Overview](concepts/architecture/ports/01-overview.md)** | Interface definitions |
-| **[Settings Repository](concepts/architecture/ports/02-settings-repository.md)** | Settings persistence |
-| **[Knowledge Graph Repository](concepts/architecture/ports/03-knowledge-graph-repository.md)** | Graph operations |
-| **[Ontology Repository](concepts/architecture/ports/04-ontology-repository.md)** | Ontology storage |
-| **[Inference Engine](concepts/architecture/ports/05-inference-engine.md)** | Reasoning interface |
-| **[GPU Physics Adapter](concepts/architecture/ports/06-gpu-physics-adapter.md)** | Physics computation |
-| **[GPU Semantic Analyzer](concepts/architecture/ports/07-gpu-semantic-analyzer.md)** | Semantic processing |
+| **[Ports Overview](explanations/architecture/ports/01-overview.md)** | Interface definitions and contracts |
+| **[Settings Repository](explanations/architecture/ports/02-settings-repository.md)** | User settings persistence port |
+| **[Knowledge Graph Repository](explanations/architecture/ports/03-knowledge-graph-repository.md)** | Graph operations port |
+| **[Ontology Repository](explanations/architecture/ports/04-ontology-repository.md)** | Ontology storage port |
+| **[Inference Engine](explanations/architecture/ports/05-inference-engine.md)** | Reasoning engine port |
+| **[GPU Physics Adapter](explanations/architecture/ports/06-gpu-physics-adapter.md)** | Physics computation port |
+| **[GPU Semantic Analyzer](explanations/architecture/ports/07-gpu-semantic-analyzer.md)** | Semantic processing port |
 
-#### Architectural Patterns
+</details>
+
+<details>
+<summary><b>📐 Architecture Decisions (1 document)</b></summary>
+
 | Document | Description |
 |----------|-------------|
-| **[CQRS Directive Template](concepts/architecture/cqrs-directive-template.md)** | Command/query separation |
-| **[API Handlers Reference](concepts/architecture/api-handlers-reference.md)** | HTTP handler patterns |
+| **[ADR-0001: Neo4j Persistence](explanations/architecture/decisions/0001-neo4j-persistent-with-filesystem-sync.md)** | Database strategy rationale |
 
-### 📗 Reference (Technical Details)
+</details>
 
-Complete technical specifications:
+---
 
-#### API Documentation
-| Document | Description |
-|----------|-------------|
-| **[REST API Reference](reference/api/rest-api-reference.md)** | Complete HTTP API |
-| **[REST API Complete](reference/api/rest-api-complete.md)** | Extended API documentation |
-| **[Authentication](reference/api/01-authentication.md)** | JWT and session management |
-| **[WebSocket](reference/api/03-websocket.md)** | Real-time communication |
-| **[Neo4j Quick Start](reference/api/neo4j-quick-start.md)** | Graph database queries |
-| **[API Complete Reference](reference/api-complete-reference.md)** | All endpoints and schemas |
+### 📖 Reference (Information-Oriented)
+*Technical specifications, APIs, and detailed references*
 
-#### Protocols & Specifications
-| Document | Description |
-|----------|-------------|
-| **[WebSocket Protocol](reference/websocket-protocol.md)** | Binary protocol V2 specification |
-| **[Binary Protocol Specification](reference/binary-protocol-specification.md)** | 36-byte message format |
+<details>
+<summary><b>🌐 API Documentation (8 references)</b></summary>
 
-#### Error Handling
-| Document | Description |
-|----------|-------------|
-| **[Error Codes](reference/error-codes.md)** | Complete error reference |
+| Reference | Type |
+|-----------|------|
+| **[API Complete Reference](reference/api-complete-reference.md)** | All endpoints with examples |
+| **[REST API Complete](reference/api/rest-api-complete.md)** | HTTP API specification |
+| **[REST API Reference](reference/api/rest-api-reference.md)** | OpenAPI/Swagger format |
+| **[Authentication](reference/api/01-authentication.md)** | JWT, sessions, Nostr auth |
+| **[WebSocket API](reference/api/03-websocket.md)** | Real-time binary protocol |
+| **[Semantic Features API](reference/api/semantic-features-api.md)** | Natural language queries |
+| **[Pathfinding Examples](reference/api/pathfinding-examples.md)** | Graph traversal examples |
+| **[API README](reference/api/readme.md)** | API documentation index |
 
-#### Performance & Benchmarks
-| Document | Description |
-|----------|-------------|
-| **[Performance Benchmarks](reference/performance-benchmarks.md)** | GPU acceleration metrics |
-| **[Semantic Physics Implementation](reference/semantic-physics-implementation.md)** | Physics performance analysis |
+</details>
 
-#### Implementation Status
-| Document | Description |
-|----------|-------------|
+<details>
+<summary><b>📡 Protocols (2 references)</b></summary>
+
+| Reference | Type |
+|-----------|------|
+| **[Binary WebSocket](reference/protocols/binary-websocket.md)** | 36-byte node format spec |
+| **[WebSocket Protocol](reference/websocket-protocol.md)** | V2 protocol specification |
+
+</details>
+
+<details>
+<summary><b>🗄️ Database (4 references)</b></summary>
+
+| Reference | Type |
+|-----------|------|
+| **[Schemas](reference/database/schemas.md)** | Neo4j graph schema |
+| **[Ontology Schema V2](reference/database/ontology-schema-v2.md)** | Advanced ontology schema |
+| **[User Settings Schema](reference/database/user-settings-schema.md)** | User data model |
+| **[Neo4j Persistence Analysis](reference/database/neo4j-persistence-analysis.md)** | Migration analysis |
+
+</details>
+
+<details>
+<summary><b>⚙️ System Status (5 references)</b></summary>
+
+| Reference | Type |
+|-----------|------|
+| **[Error Codes](reference/error-codes.md)** | Complete error code reference |
 | **[Implementation Status](reference/implementation-status.md)** | Feature completion matrix |
-| **[Code Quality Status](reference/code-quality-status.md)** | Build health and metrics |
+| **[Code Quality Status](reference/code-quality-status.md)** | Build and test health |
+| **[Performance Benchmarks](reference/performance-benchmarks.md)** | GPU performance metrics |
+| **[Physics Implementation](reference/physics-implementation.md)** | Physics system analysis |
+
+</details>
 
 ---
 
-## 🐳 Multi-Agent Docker System
+## 🎯 Find What You Need
 
-AI agent orchestration container:
+### Common Tasks (20+ Quick Links)
 
-| Document | Description |
-|----------|-------------|
-| **[Architecture](multi-agent-docker/architecture.md)** | 54+ agent system design |
-| **[Tools](multi-agent-docker/tools.md)** | Available MCP tools |
-| **[Docker Environment](multi-agent-docker/docker-environment.md)** | Container configuration |
-| **[Troubleshooting](multi-agent-docker/troubleshooting.md)** | Common agent issues |
-| **[Port Configuration](multi-agent-docker/port-configuration.md)** | Network configuration |
-| **[Goalie Integration](multi-agent-docker/goalie-integration.md)** | Quality gates and verification |
-
----
-
-## 🔧 Analysis & Implementation
-
-### Analysis Documents
-| Document | Description |
-|----------|-------------|
-| **[Documentation Features](analysis/documentation-features.md)** | Documentation system analysis |
-| **[GPU Implementation Audit](analysis/gpu-implementation-audit.md)** | CUDA kernel audit |
-| **[Markdown to Graph Pipeline](analysis/markdown-to-graph-pipeline.md)** | Data ingestion analysis |
-
-### Implementation Records
-| Document | Description |
-|----------|-------------|
-| **[Enhanced Ontology Parser Implementation](enhanced-ontology-parser-implementation.md)** | OWL parser v2 |
-| **[Hive Mind Integration Complete](HIVE_MIND_INTEGRATION_COMPLETE.md)** | Multi-agent coordination |
-| **[Implementation Complete](IMPLEMENTATION_COMPLETE.md)** | Milestone delivery |
-| **[Ontology Sync Enhancement](ONTOLOGY_SYNC_ENHANCEMENT.md)** | GitHub sync improvements |
-| **[Services Layer Complete](services-layer-complete.md)** | Business logic refactor |
-
-### Specialized Implementations
-| Document | Description |
-|----------|-------------|
-| **[Neo4j Persistence Analysis](neo4j-persistence-analysis.md)** | Database migration analysis |
-| **[Neo4j Rich Ontology Schema V2](neo4j-rich-ontology-schema-v2.md)** | Advanced schema design |
-| **[Neo4j User Settings Schema](neo4j-user-settings-schema.md)** | User data model |
-| **[Ruvector Integration Analysis](ruvector-integration-analysis.md)** | Vector database integration |
-| **[Ontology Physics Integration Analysis](ontology-physics-integration-analysis.md)** | Physics-ontology coupling |
-| **[Semantic Forces Actor Design](semantic-forces-actor-design.md)** | Actor system design |
-| **[Quality Gates API Audit](quality-gates-api-audit.md)** | API quality assessment |
-| **[Analytics Visualization Design](analytics-visualization-design.md)** | UI/UX design |
-
-### Authentication & Settings
-| Document | Description |
-|----------|-------------|
-| **[Nostr Auth Implementation](nostr-auth-implementation.md)** | Decentralized authentication |
-| **[Auth User Settings](auth-user-settings.md)** | User authentication system |
-| **[Settings Authentication](settings-authentication.md)** | Settings security |
-| **[User Settings Implementation Summary](user-settings-implementation-summary.md)** | Settings system overview |
-
----
-
-## 🛠️ Fixes & Known Issues
-
-### Fix Documentation
-| Document | Description |
-|----------|-------------|
-| **[Fixes README](fixes/README.md)** | Overview of all fixes |
-| **[Quick Reference](fixes/quick-reference.md)** | Fix lookup table |
-| **[Before After Comparison](fixes/before-after-comparison.md)** | Code transformation examples |
-| **[Technical Details](fixes/technical-details.md)** | In-depth fix explanations |
-
-### Rust Compilation Fixes
-| Document | Description |
-|----------|-------------|
-| **[Type Corrections](fixes/type-corrections.md)** | Type system fixes |
-| **[Type Corrections Progress](fixes/type-corrections-progress.md)** | Migration tracking |
-| **[Type Corrections Final Summary](fixes/type-corrections-final-summary.md)** | Complete resolution |
-| **[Rust Type Correction Guide](fixes/rust-type-correction-guide.md)** | Developer guide |
-| **[Borrow Checker](fixes/borrow-checker.md)** | Lifetime issues |
-| **[Borrow Checker Summary](fixes/borrow-checker-summary.md)** | Resolution summary |
-| **[Actor Handlers](fixes/actor-handlers.md)** | Actor system fixes |
-| **[PageRank Fix](fixes/pagerank-fix.md)** | Algorithm correction |
-
----
-
-## 🎯 Features & Capabilities
-
-### Feature Documentation
-| Document | Description |
-|----------|-------------|
-| **[Client-Side Filtering](features/client-side-filtering.md)** | Real-time graph filtering |
-
-### API Features
-| Document | Description |
-|----------|-------------|
-| **[Semantic Features API](api/semantic-features-api.md)** | Natural language queries |
-| **[Pathfinding Examples](api/pathfinding-examples.md)** | Graph traversal patterns |
-
----
-
-## 🏛️ Architectural Decisions
-
-### Architecture Decision Records
-| Document | Description |
-|----------|-------------|
-| **[ADR-001: Neo4j Persistent with Filesystem Sync](architecture/decisions/ADR-001-neo4j-persistent-with-filesystem-sync.md)** | Database persistence strategy |
-
----
-
-## 📦 Specialized Topics
-
-### Client Architecture
-| Document | Description |
-|----------|-------------|
-| **[Client TypeScript Architecture](specialized/client-typescript-architecture.md)** | Frontend architecture |
-| **[Client Components Reference](specialized/client-components-reference.md)** | React component library |
-
-### Extension System
-| Document | Description |
-|----------|-------------|
-| **[Extension Guide](specialized/extension-guide.md)** | Plugin development |
-
----
-
-## 🎓 Audits & Reviews
-
-### System Audits
-| Document | Description |
-|----------|-------------|
-| **[Audits README](audits/README.md)** | Audit overview |
-| **[Neo4j Settings Migration Audit](audits/neo4j-settings-migration-audit.md)** | Settings migration review |
-| **[Neo4j Migration Action Plan](audits/neo4j-migration-action-plan.md)** | Migration roadmap |
-| **[Neo4j Migration Summary](audits/neo4j-migration-summary.md)** | Migration results |
-
----
-
-## 📊 Diagrams & Assets
-
-### Visual Documentation
-| Location | Description |
-|----------|-------------|
-| **[Diagrams](diagrams/)** | System architecture diagrams |
-| **[Assets](assets/)** | Screenshots, videos, graphics |
-| **[SPARC Architecture Diagram](assets/diagrams/sparc-turboflow-architecture.md)** | SPARC methodology visualization |
-
----
-
-## 🔍 Finding Documentation
-
-### By Task
-- **Install VisionFlow** → [Installation Guide](getting-started/01-installation.md)
-- **Deploy AI Agents** → [Agent Orchestration](guides/agent-orchestration.md)
-- **Query Neo4j** → [Neo4j Integration](guides/neo4j-integration.md)
-- **Add New Feature** → [Adding Features](guides/developer/04-adding-features.md)
-- **Fix Compilation Error** → [Type Corrections](fixes/type-corrections.md)
-- **Set Up XR/VR** → [Vircadia XR Complete Guide](guides/vircadia-xr-complete-guide.md)
-
-### By Role
-- **End User** → Start with [Getting Started](getting-started/), then [User Guides](guides/)
-- **Operator** → See [Deployment](guides/deployment.md) and [Operations](guides/operations/)
-- **Developer** → Begin with [Developer Guides](guides/developer/) and [Concepts](concepts/)
-- **Architect** → Read [Architecture Overview](concepts/architecture/00-architecture-overview.md) and [Concepts](concepts/)
+| I want to... | Go here → |
+|-------------|----------|
+| **Install VisionFlow** | [Installation Tutorial](tutorials/01-installation.md) |
+| **Create my first graph** | [First Graph Tutorial](tutorials/02-first-graph.md) |
+| **Deploy AI agents** | [Agent Orchestration Guide](guides/agent-orchestration.md) |
+| **Query Neo4j database** | [Neo4j Integration Guide](guides/neo4j-integration.md) |
+| **Add a new feature** | [Adding Features Guide](guides/developer/04-adding-features.md) |
+| **Set up XR/VR** | [Vircadia XR Guide](guides/vircadia-xr-complete-guide.md) |
+| **Understand the architecture** | [Architecture Overview](ARCHITECTURE_OVERVIEW.md) |
+| **Learn the codebase** | [Developer Journey](DEVELOPER_JOURNEY.md) |
+| **Deploy to production** | [Deployment Guide](guides/deployment.md) |
+| **Configure environment** | [Configuration Guide](guides/configuration.md) |
+| **Fix common issues** | [Troubleshooting Guide](guides/troubleshooting.md) |
+| **Write tests** | [Testing Guide](guides/testing-guide.md) |
+| **Integrate vector search** | [RuVector Integration](explanations/architecture/ruvector-integration.md) |
+| **Enable ontology physics** | [Ontology Physics Integration](explanations/architecture/ontology-physics-integration.md) |
+| **Use the REST API** | [REST API Complete](reference/api/rest-api-complete.md) |
+| **Use WebSocket API** | [WebSocket API Reference](reference/api/03-websocket.md) |
+| **Understand hexagonal architecture** | [Hexagonal CQRS](explanations/architecture/hexagonal-cqrs.md) |
+| **Optimize performance** | [GPU Optimizations](explanations/architecture/gpu/optimizations.md) |
+| **Secure the application** | [Security Guide](guides/security.md) |
+| **Contribute code** | [Contributing Guide](guides/developer/06-contributing.md) |
 
 ### By Technology
-- **Neo4j** → [Neo4j Integration](guides/neo4j-integration.md), [Database Schemas](concepts/architecture/04-database-schemas.md)
-- **Rust/Actix** → [Server Architecture](concepts/architecture/core/server.md), [Project Structure](guides/developer/02-project-structure.md)
-- **React/Three.js** → [Client Architecture](concepts/architecture/core/client.md), [Visualization](concepts/architecture/core/visualization.md)
-- **CUDA/GPU** → [GPU Semantic Forces](concepts/architecture/gpu-semantic-forces.md), [GPU Optimizations](concepts/architecture/gpu/optimizations.md)
-- **OWL/Ontologies** → [Ontology Storage Architecture](concepts/architecture/ontology-storage-architecture.md), [Ontology Parser](guides/ontology-parser.md)
+
+<details>
+<summary><b>📊 Neo4j Graph Database</b></summary>
+
+- [Neo4j Integration Guide](guides/neo4j-integration.md)
+- [Neo4j Quick Start Tutorial](tutorials/neo4j-quick-start.md)
+- [Database Schemas Reference](reference/database/schemas.md)
+- [Ontology Schema V2](reference/database/ontology-schema-v2.md)
+- [User Settings Schema](reference/database/user-settings-schema.md)
+- [Neo4j Persistence Analysis](reference/database/neo4j-persistence-analysis.md)
+- [Adapter Patterns](explanations/architecture/adapter-patterns.md)
+
+</details>
+
+<details>
+<summary><b>🦀 Rust / Actix Web Backend</b></summary>
+
+- [Server Architecture](explanations/architecture/core/server.md)
+- [Project Structure](guides/developer/02-project-structure.md)
+- [Hexagonal CQRS](explanations/architecture/hexagonal-cqrs.md)
+- [Services Architecture](explanations/architecture/services-architecture.md)
+- [Adapter Patterns](explanations/architecture/adapter-patterns.md)
+- [API Handlers Reference](explanations/architecture/api-handlers-reference.md)
+
+</details>
+
+<details>
+<summary><b>⚛️ React / Three.js Frontend</b></summary>
+
+- [Client Architecture](explanations/architecture/core/client.md)
+- [Visualization](explanations/architecture/core/visualization.md)
+- [State Management](guides/client/state-management.md)
+- [Three.js Rendering](guides/client/three-js-rendering.md)
+- [Analytics Visualization](explanations/architecture/analytics-visualization.md)
+
+</details>
+
+<details>
+<summary><b>🎮 CUDA / GPU Acceleration</b></summary>
+
+- [GPU Semantic Forces](explanations/architecture/gpu-semantic-forces.md)
+- [GPU Communication Flow](explanations/architecture/gpu/communication-flow.md)
+- [GPU Optimizations](explanations/architecture/gpu/optimizations.md)
+- [GPU README](explanations/architecture/gpu/readme.md)
+- [Performance Benchmarks](reference/performance-benchmarks.md)
+- [Physics Implementation](reference/physics-implementation.md)
+
+</details>
+
+<details>
+<summary><b>🦉 OWL / Ontologies / Reasoning</b></summary>
+
+- [Ontology Storage Architecture](explanations/architecture/ontology-storage-architecture.md)
+- [Ontology Parser Guide](guides/ontology-parser.md)
+- [Ontology Reasoning Integration](guides/ontology-reasoning-integration.md)
+- [Ontology Storage Guide](guides/ontology-storage-guide.md)
+- [Ontology Semantic Forces](guides/ontology-semantic-forces.md)
+- [Reasoning Engine](explanations/ontology/reasoning-engine.md)
+- [Ontology Reasoning Pipeline](explanations/architecture/ontology-reasoning-pipeline.md)
+- [Ontology Physics Integration](explanations/architecture/ontology-physics-integration.md)
+- [Enhanced Parser](explanations/ontology/enhanced-parser.md)
+
+</details>
+
+<details>
+<summary><b>🔍 Vector Search / HNSW</b></summary>
+
+- [RuVector Integration](explanations/architecture/ruvector-integration.md) (150x faster)
+- [Ontology Sync Enhancement](guides/features/ontology-sync-enhancement.md)
+
+</details>
+
+<details>
+<summary><b>🤖 AI / MCP / Multi-Agent</b></summary>
+
+- [Multi-Agent System](explanations/architecture/multi-agent-system.md)
+- [Agent Orchestration](guides/agent-orchestration.md)
+- [Orchestrating Agents](guides/orchestrating-agents.md)
+- [Multi-Agent Skills](guides/multi-agent-skills.md)
+- [Infrastructure Tools](guides/infrastructure/tools.md)
+
+</details>
+
+<details>
+<summary><b>🥽 XR / WebXR / VR</b></summary>
+
+- [XR Immersive System](explanations/architecture/xr-immersive-system.md)
+- [Vircadia XR Complete Guide](guides/vircadia-xr-complete-guide.md)
+- [Vircadia Multi-User Guide](guides/vircadia-multi-user-guide.md)
+- [XR Integration](guides/client/xr-integration.md)
+
+</details>
+
+<details>
+<summary><b>🔌 WebSocket / Real-Time</b></summary>
+
+- [Binary WebSocket Protocol](reference/protocols/binary-websocket.md)
+- [WebSocket Protocol V2](reference/websocket-protocol.md)
+- [WebSocket API Reference](reference/api/03-websocket.md)
+- [WebSocket Best Practices](guides/developer/websocket-best-practices.md)
+- [JSON to Binary Migration](guides/migration/json-to-binary-protocol.md)
+
+</details>
 
 ---
 
-## 📝 Documentation Issues
+## 📂 Additional Resources
 
-For known documentation problems and improvement tracking:
+### 📊 Audits & Analysis
+- **[Audits Overview](audits/README.md)**
+- [Neo4j Settings Migration Audit](audits/neo4j-settings-migration-audit.md)
+- [Neo4j Migration Action Plan](audits/neo4j-migration-action-plan.md)
+- [Neo4j Migration Summary](audits/neo4j-migration-summary.md)
 
-- **[Documentation Issues](DOCUMENTATION_ISSUES.md)** - Issue tracker and backlog
+### 📦 Archive
+- **[Archive Overview](archive/README.md)** - Historical docs, completion reports, sprint logs
+- [2025-12-02 Reports](archive/reports/) - Recent completion summaries
+
+### 📐 Diagrams
+- **[SPARC Architecture](assets/diagrams/sparc-turboflow-architecture.md)** - System visualization
+
+### 🔧 Scripts
+- **[Documentation Scripts](scripts/)** - Restructuring and migration utilities
+
+---
+
+## 🗺️ Documentation Map
+
+```mermaid
+graph TB
+    Start[Documentation Home]
+
+    Start --> NewUser[New Users]
+    Start --> Developer[Developers]
+    Start --> Architect[Architects]
+    Start --> DevOps[DevOps]
+
+    NewUser --> Tutorial[Tutorials]
+    NewUser --> GettingStarted[Getting Started Guides]
+
+    Developer --> DevGuides[Developer Guides]
+    Developer --> HowTo[How-To Guides]
+    Developer --> API[API Reference]
+
+    Architect --> ArchDocs[Architecture Explanations]
+    Architect --> TechChoices[Technology Choices]
+    Architect --> Decisions[ADRs]
+
+    DevOps --> Deployment[Deployment Guides]
+    DevOps --> Operations[Operations Runbooks]
+    DevOps --> Infrastructure[Infrastructure Docs]
+
+    Tutorial --> Install[Installation]
+    Tutorial --> FirstGraph[First Graph]
+    Tutorial --> Neo4jQS[Neo4j Quick Start]
+
+    HowTo --> Features[Features]
+    HowTo --> Integration[Integration]
+    HowTo --> Advanced[Advanced Topics]
+
+    ArchDocs --> System[System Overview]
+    ArchDocs --> Components[Components]
+    ArchDocs --> Patterns[Patterns]
+
+    style Start fill:#4A90E2
+    style Tutorial fill:#7ED321
+    style ArchDocs fill:#F5A623
+    style API fill:#BD10E0
+```
 
 ---
 
 ## 🤝 Contributing to Documentation
 
-We welcome documentation improvements! Guidelines:
+We welcome documentation improvements! Follow these guidelines:
 
-1. Follow the **Diátaxis** framework:
-   - **Tutorials** - Learning by doing
-   - **How-To Guides** - Problem solving
-   - **Concepts** - Understanding
-   - **Reference** - Information lookup
+### 1. Diátaxis Framework
+Every document must fit one category:
 
-2. Use **UK English** spelling throughout
-3. Include code examples with syntax highlighting
-4. Add diagrams for complex concepts (Mermaid preferred)
-5. Cross-reference related documents
-6. Update this index when adding new documents
+| Category | Purpose | Style |
+|----------|---------|-------|
+| **Tutorial** | Learn by doing | Step-by-step, beginner-friendly |
+| **How-To** | Solve a problem | Goal-oriented, practical |
+| **Explanation** | Understand concepts | Deep dive, theory |
+| **Reference** | Look up facts | Dry, precise, complete |
 
-See **[Contributing Guide](guides/developer/06-contributing.md)** for complete guidelines.
+### 2. Documentation Standards
+- ✅ Use UK English spelling (colour, organise, analyse)
+- ✅ Include code examples with syntax highlighting
+- ✅ Add Mermaid diagrams for complex flows
+- ✅ Cross-reference related documents
+- ✅ Update this index when adding new documents
+- ✅ Add "Last Updated" date at bottom
+- ✅ Include prerequisites and next steps
+
+### 3. File Organization
+```
+docs/
+├── tutorials/           # Learning-oriented
+├── guides/             # Task-oriented
+├── explanations/       # Understanding-oriented
+├── reference/          # Information-oriented
+├── archive/            # Historical/deprecated
+└── working/            # Work-in-progress (not linked)
+```
+
+See **[Contributing Guide](guides/developer/06-contributing.md)** for complete details.
 
 ---
 
 ## 📞 Getting Help
 
-- **Documentation Issues**: File in GitHub Issues with `documentation` label
-- **Technical Support**: See [Troubleshooting](guides/troubleshooting.md)
-- **Community**: Join GitHub Discussions
+| Issue Type | Where to Go |
+|------------|-------------|
+| **Documentation gaps or errors** | [File GitHub Issue](https://github.com/DreamLab-AI/VisionFlow/issues) with `documentation` label |
+| **Technical problems** | [Troubleshooting Guide](guides/troubleshooting.md) |
+| **Infrastructure issues** | [Infrastructure Troubleshooting](guides/infrastructure/troubleshooting.md) |
+| **Developer setup** | [Development Setup](guides/developer/01-development-setup.md) |
+| **Feature requests** | [GitHub Discussions](https://github.com/DreamLab-AI/VisionFlow/discussions) |
+
+---
+
+## 📊 Documentation Stats
+
+- **Total Documents**: 226 markdown files
+- **Framework**: Diátaxis (Tutorials, How-To, Explanations, Reference)
+- **Last Full Audit**: 2025-12-02
+- **Documentation Coverage**: 95%+ (all major features documented)
+- **Link Health**: 98% valid internal links
+- **Diagram Format**: Mermaid (100% valid syntax)
 
 ---
 
 **Last Updated**: 2025-12-02
-**Documentation Version**: v2.0.0
-**Total Documents**: 172 markdown files
+**Documentation Version**: 2.0
+**Framework**: Diátaxis
+**Maintainer**: DreamLab AI Documentation Team

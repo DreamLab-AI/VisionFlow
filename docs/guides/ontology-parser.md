@@ -1,3 +1,10 @@
+---
+title: Guide: Ontology Parser
+description: **Version:** 1.0 **Date:** 2025-10-27
+type: guide
+status: stable
+---
+
 # Guide: Ontology Parser
 
 **Version:** 1.0

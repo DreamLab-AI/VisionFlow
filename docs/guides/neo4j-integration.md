@@ -1,3 +1,10 @@
+---
+title: Neo4j Integration Guide
+description: **Status**: ✅ Production (Primary Database) **Last Updated**: November 6, 2025
+type: guide
+status: stable
+---
+
 # Neo4j Integration Guide
 
 **Status**: ✅ Production (Primary Database)

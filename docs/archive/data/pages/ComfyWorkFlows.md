@@ -1,3 +1,10 @@
+---
+title: ComfyUI Workflows Archive
+description: > **Note**: This is an archived list of historical ComfyUI workflows. The referenced JSON files and assets are not included in the current repository.
+type: archive
+status: archived
+---
+
 # ComfyUI Workflows Archive
 
 > **Note**: This is an archived list of historical ComfyUI workflows. The referenced JSON files and assets are not included in the current repository.

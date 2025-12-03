@@ -1,620 +1,196 @@
-# 🌌 VisionFlow
+<div align="center">
 
-[![License](https://img.shields.io/badge/License-Mozilla%202.0-blue.svg)](LICENSE)
-[![Documentation](https://img.shields.io/badge/docs-comprehensive-brightgreen.svg)](docs/)
-[![Performance](https://img.shields.io/badge/Performance-60FPS%20@%20100k%20nodes-red.svg)](#performance)
-[![Agents](https://img.shields.io/badge/AI%20Agents-50%2B%20Concurrent-orange.svg)](#ai-architecture)
-[![CUDA](https://img.shields.io/badge/CUDA-39%20Kernels-green.svg)](#gpu-acceleration)
-[![Architecture](https://img.shields.io/badge/Architecture-Hexagonal%20CQRS-purple.svg)](docs/concepts/architecture/)
+# VisionFlow
+
+### **Self-Sovereign AI Knowledge Graphing with Immersive 3D Visualization**
+
+[![License](https://img.shields.io/badge/License-MPL%202.0-blue.svg)](LICENSE)
+[![Rust](https://img.shields.io/badge/Rust-1.75+-orange.svg)](https://www.rust-lang.org/)
+[![CUDA](https://img.shields.io/badge/CUDA-12.4-76B900.svg)](https://developer.nvidia.com/cuda-toolkit)
+[![Neo4j](https://img.shields.io/badge/Neo4j-5.13-008CC1.svg)](https://neo4j.com/)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/DreamLab-AI/VisionFlow)
 
-### **Enterprise-Grade Multi-User Multi-Agent Knowledge Graphing with Immersive 3D Visualization**
+**Deploy autonomous AI agent teams that continuously research, analyze, and surface insights from your entire data corpus—visualized in a stunning, real-time 3D interface.**
 
-**VisionFlow deploys self-sovereign AI agent teams that continuously research, analyze, and surface insights from your entire data corpus—visualized for collaborative teams in a stunning, real-time 3D interface.**
+<br/>
 
-Transform how your team discovers knowledge with continuous AI analysis, GPU-accelerated rendering, and voice-first spatial interaction.
+<table>
+  <tr>
+    <td><img src="./visionflow.gif" alt="VisionFlow 3D Knowledge Graph" width="400"/></td>
+    <td><img src="./jarvisSept.gif" alt="AI Agent Runtime" width="400"/></td>
+  </tr>
+</table>
 
-<div align="center">
-  <table>
-    <tr>
-      <td><img src="./visionflow.gif" alt="VisionFlow Visualization" style="width:100%; border-radius:10px;"></td>
-      <td><img src="./jarvisSept.gif" alt="Runtime Screenshot" style="width:100%; border-radius:10px;"></td>
-    </tr>
-  </table>
+<br/>
+
+[**Quick Start**](#-quick-start) · [**Documentation**](docs/) · [**Architecture**](#-architecture) · [**Roadmap**](#-roadmap) · [**Contributing**](#-contributing)
+
+---
+
+**Note:** This README contains expandable sections marked with **"Click to expand"**. Click on these to reveal detailed information.
+
 </div>
 
 ---
 
-## 📑 Table of Contents
+## The Vision
 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
+> *What if your knowledge base could think for itself?*
 
----
+VisionFlow transforms static documents into living, breathing knowledge ecosystems. Instead of searching through files, **AI agents continuously analyze your data**, discovering connections you didn't know existed—while you **explore the results in an immersive 3D space** with your team.
 
-## 🚀 Why VisionFlow?
+```mermaid
+graph LR
+    A[Your Data] --> B[AI Agent Teams]
+    B --> C[Knowledge Graph]
+    C --> D[3D Visualization]
+    D --> E[Team Collaboration]
 
-Unlike passive AI tools that wait for your prompts, VisionFlow's autonomous agent teams work continuously in the background, discovering patterns and connections in your private knowledge base that you didn't know existed.
+    style A fill:#1a1a2e,stroke:#16213e,color:#fff
+    style B fill:#0f3460,stroke:#16213e,color:#fff
+    style C fill:#533483,stroke:#16213e,color:#fff
+    style D fill:#e94560,stroke:#16213e,color:#fff
+    style E fill:#16213e,stroke:#1a1a2e,color:#fff
+```
 
-### VisionFlow vs Traditional AI Tools
+### Why VisionFlow?
 
-| VisionFlow | Traditional AI Chat |
-| :--- | :--- |
-| ✅ **Continuous**, real-time agent research | ❌ Reactive, query-based responses |
-| ✅ Discovers patterns in **your private knowledge corpus** | ❌ Limited to conversation context |
-| ✅ **Interactive 3D visualization** you explore with your team | ❌ Static text-based output |
-| ✅ **Human-in-the-loop** collaboration with Git version control | ❌ No audit trail or oversight |
-| ✅ **Self-sovereign** and enterprise-secure | ❌ Hosted on third-party infrastructure |
-| ✅ **Voice-first** spatial interaction | ❌ Text-only interface |
+| VisionFlow | Traditional AI Tools |
+|:---|:---|
+| **Continuous** agent research, 24/7 | Reactive, query-based responses |
+| **Private** data stays on your infrastructure | Sent to third-party APIs |
+| **Visual** 3D exploration with your team | Static text output |
+| **Auditable** Git version control for all changes | No transparency |
+| **Voice-first** spatial interaction | Text-only interface |
 
 ---
 
-## 🧬 What Makes VisionFlow Intelligent: The Ontology System
+## Key Capabilities
 
-Think of VisionFlow's ontology as the "intelligence layer" that transforms a simple network diagram into a living, self-organizing knowledge system. Here's what it does for you:
+<table>
+<tr>
+<td width="50%">
 
-### From Chaos to Structure: Four Practical Superpowers
+### Autonomous AI Analysis
+- **50+ concurrent AI agents** with specialized roles
+- **Microsoft GraphRAG** for hierarchical reasoning
+- **Leiden clustering** for community detection
+- **Multi-hop reasoning** across knowledge domains
+
+</td>
+<td width="50%">
+
+### GPU-Accelerated Performance
+- **39 CUDA kernels** for 100x speedup
+- **60 FPS** rendering at 100,000+ nodes
+- **36-byte binary protocol** (80% bandwidth reduction)
+- **Sub-10ms** WebSocket latency
+
+</td>
+</tr>
+<tr>
+<td>
+
+### Real-Time Collaboration
+- **Multi-user synchronization** via WebSocket
+- **Independent camera controls** with shared state
+- **Voice-to-voice AI interaction**
+- **Spatial audio** via WebRTC
+
+</td>
+<td>
+
+### Ontology Intelligence
+- **OWL 2 EL reasoning** with Whelk-rs (10-100x faster)
+- **Semantic physics** engine for meaningful layouts
+- **Automatic inference** and contradiction detection
+- **Type-based clustering** and hierarchy visualization
+
+</td>
+</tr>
+<tr>
+<td>
+
+### Immersive XR
+- **Meta Quest 3** native support (Beta)
+- **Force-directed 3D physics** engine
+- **Hand tracking** and controller input
+- **Vircadia multi-user** integration (planned)
+
+</td>
+<td>
+
+### Enterprise-Ready
+- **Hexagonal architecture** with CQRS pattern
+- **Neo4j** as single source of truth
+- **JWT authentication** with RBAC
+- **Git version control** for audit trails
+
+</td>
+</tr>
+</table>
+
+<details>
+<summary><strong>Click to expand: The Ontology Intelligence System</strong></summary>
+
+### From Chaos to Structure: Four Superpowers
 
 **1. Grammar Checker for Your Data**
-
-Just as spell-check prevents "runned," the ontology prevents logical errors in your knowledge graph. It enforces rules like "a Person cannot also be a Company" or "Software Projects must have source code." No more garbage data sneaking into your system.
+Just as spell-check prevents "runned," the ontology prevents logical errors in your knowledge graph. It enforces rules like "a Person cannot also be a Company" or "Software Projects must have source code."
 
 **2. Automatic Knowledge Discovery**
-
-Add one fact, get two for free. Define `Company X employs Person Y`, and the system automatically infers `Person Y works for Company X`. The ontology uses inverse relationships to multiply your knowledge without extra work.
+Add one fact, get two for free. Define `Company X employs Person Y`, and the system automatically infers `Person Y works for Company X`. The ontology uses inverse relationships to multiply your knowledge.
 
 **3. Self-Organizing 3D Visualization**
-
-The physics engine translates logical rules into spatial forces. Concepts that are fundamentally different (like "People" vs "Organizations") repel each other visually, creating intuitive clusters. Parent-child relationships pull related nodes together. Your graph arranges itself to match how you think.
+The physics engine translates logical rules into spatial forces:
+- `SubClassOf` → Attraction (child classes cluster near parents)
+- `DisjointWith` → Repulsion (disjoint classes pushed apart)
+- `EquivalentClasses` → Strong attraction (synonyms together)
 
 **4. Context-Aware AI Agents**
+Agents understand the "rules of your world." When tasked to "audit all software projects," they know exactly what qualifies as a project versus a library or documentation page.
 
-Agents understand the "rules of your world." When tasked to "audit all software projects," they know exactly what qualifies as a project versus a library or documentation page. They work smarter because the ontology gives them domain expertise.
-
-### What You See Without vs. With Ontologies
-
-| Without Ontology | With Ontology (VisionFlow) |
-| :--- | :--- |
+| Without Ontology | With Ontology |
+|:---|:---|
 | Inconsistent data—connect anything to anything | Validated data—system prevents logical errors |
-| Only know what you explicitly enter | Auto-discover hidden relationships and facts |
-| Generic hairball layout, hard to navigate | Meaningful spatial organization based on concept types |
-| AI agents require hand-holding for every task | Context-aware agents that understand your domain |
+| Only know what you explicitly enter | Auto-discover hidden relationships |
+| Generic hairball layout | Meaningful spatial organization |
+| AI agents require hand-holding | Context-aware autonomous agents |
 
-**In Plain English**: The ontology is the brain that makes VisionFlow intelligent. It validates your data, discovers new connections, organizes your 3D space meaningfully, and equips AI agents with the domain knowledge to work autonomously and accurately.
-
-****
+</details>
 
 ---
 
-## ✨ Key Features
+## Quick Start
 
-### 🧠 Continuous AI Analysis
-Deploy teams of specialist AI agents (Researcher, Analyst, Coder) that work 24/7 in the background, using advanced **GraphRAG** to uncover deep semantic connections within your private data.
-
-- **50+ concurrent AI agents** with specialized roles
-- **Microsoft GraphRAG** for hierarchical knowledge structures
-- **Leiden Clustering** for community detection
-- **Multi-hop reasoning** with shortest path analysis
-
-### 🤝 Real-Time Collaborative 3D Space
-Invite your team into a shared virtual environment. Watch agents work, explore the knowledge graph together, and maintain independent specialist views while staying perfectly in sync.
-
-- **Multi-user synchronization** via WebSocket **36-byte binary protocol**
-- **60 FPS rendering** at 100,000+ nodes
-- **Independent camera controls** with shared state
-- **Real-time updates** with sub-10ms latency (80% bandwidth reduction vs JSON)
-
-### 🎙️ Voice-First Interaction
-Converse naturally with your AI agents. Guide research, ask questions, and receive insights through seamless, real-time voice-to-voice communication with spatial audio.
-
-- **WebRTC voice integration** with low latency
-- **Spatial audio** for immersive collaboration
-- **Natural language commands** to control agents
-- **Voice-to-voice AI responses** with context awareness
-
-### 🥽 Immersive XR & Vircadia Multi-User
-Step into your knowledge graph with Quest 3 AR/VR and collaborative multi-user experiences powered by **[Vircadia](https://vircadia.com)**, an open-source metaverse platform for true spatial collaboration.
-
-- **Meta Quest 3 native support** with hand tracking and controller input
-- **Force-directed 3D graph physics** for intuitive spatial layouts
-- **Vircadia multi-user integration** for collaborative exploration
-- **Spatial avatars and presence** with real-time synchronization
-- **3D UI controls** with gesture-based interaction
-- **Babylon.js WebXR** for high-performance immersive rendering
-
-**📚 Complete XR Documentation:**
-- **[Vircadia XR Complete Guide](docs/guides/vircadia-xr-complete-guide.md)** - Full implementation guide
-- **[XR Immersive System](docs/concepts/architecture/xr-immersive-system.md)** - Quest 3 architecture
-- **** - Force-directed graph API
-- **[Vircadia Official Docs](https://docs.vircadia.com)** - Platform documentation
-
-### 🔐 Enterprise-Grade & Self-Sovereign
-Your data remains yours. Built on a modular actor architecture with Neo4j graph database and Git-based version control for all knowledge updates, ensuring a complete audit trail and human-in-the-loop oversight.
-
-- **Hexagonal architecture** with CQRS pattern
-- **Neo4j graph database** (primary persistence layer)
-- **JWT authentication** with role-based access
-- **Git version control** for all knowledge changes
-- **Complete audit trail** for compliance
-
-### 🔌 Seamless Data Integration
-Connect to your existing knowledge sources with our powerful Markdown-based data management system, built on [Logseq](https://logseq.com/). Enjoy block-based organization, bidirectional linking, and local-first privacy.
-
-- **Logseq integration** for markdown knowledge bases
-- **Block-based organization** with bidirectional links
-- **Local-first architecture** for data sovereignty
-- **Git synchronization** for team collaboration
-
-### 🦉 Ontology-Driven Visualization & Reasoning
-Transform static OWL definitions into intelligent, self-organizing 3D knowledge structures with **automatic inference** and **semantic physics**. The reasoning pipeline ensures logical consistency while creating visually meaningful spatial layouts.
-
-- **Whelk-rs reasoner** for OWL 2 EL profile (10-100x faster than Java reasoners)
-- **Horned-OWL** for OWL/RDF ontology parsing
-- **Semantic physics engine**: Translate ontological constraints into 3D forces
-  - `SubClassOf` → Attraction (child classes cluster near parents)
-  - `DisjointWith` → Repulsion (disjoint classes pushed apart)
-  - `EquivalentClasses` → Strong attraction (synonyms together)
-- **Automatic inference** with LRU caching (90x speedup)
-- **Contradiction detection** and real-time validation
-- **8 constraint types** for semantic force generation
-
-**[📖 Complete Reasoning Guide](docs/concepts/ontology-reasoning.md)**
-
-### 🎨 GPU-Accelerated Semantic Forces
-Transform graph layouts from generic force-directed networks into **semantically meaningful visualizations** where forces convey information about relationships, hierarchies, and node types.
-
-- **DAG Hierarchical Layout**: Automatic parent-child positioning (top-down, radial, left-right)
-- **Type-Based Clustering**: Groups nodes by semantic type (person, organization, project)
-- **Collision Detection**: Prevents overlap with semantic-aware radii
-- **Attribute-Weighted Springs**: Edge forces based on relationship strength
-- **50x GPU speedup** over CPU implementations
-- **CUDA kernels** for real-time semantic physics
-
-**[📖 Semantic Forces Guide](docs/features/semantic-forces.md)**
-
-### 💬 Natural Language Graph Queries
-Query your knowledge graph using **plain English** instead of learning Cypher. LLM-powered translation with schema awareness generates accurate, safe queries automatically.
-
-- **Schema-aware query generation** using live graph metadata
-- **Multi-query suggestions** for ambiguous input
-- **Confidence scoring** with explanations
-- **Query validation** prevents dangerous operations
-- **Reverse translation**: Explain Cypher in plain English
-- **Example library** for common query patterns
-
-**[📖 Natural Language Queries Tutorial](docs/features/natural-language-queries.md)**
-
-### 🧭 Intelligent Semantic Pathfinding
-Find paths that are not just shortest, but **most semantically relevant** to your query and graph structure.
-
-- **Semantic Path (Enhanced A*)**: Shortest path with relevance weighting
-  - Edge weight factor, type compatibility, query relevance
-- **Query-Guided Traversal**: BFS prioritizing query-matching nodes
-  - Keyword matching in labels and metadata
-- **Chunk Traversal**: Local neighborhood exploration by similarity
-- **<100ms pathfinding** for 10K+ node graphs
-- **Configurable balance** between distance and relevance
-
-**[📖 Intelligent Pathfinding Guide](docs/features/intelligent-pathfinding.md)**
-
-### ⚡ GPU-Accelerated Performance
-**39 production CUDA kernels** deliver 100x CPU speedup for physics simulation, clustering, and pathfinding—enabling 60 FPS rendering at 100k+ nodes with sub-10ms latency.
-
-- **CUDA 12.4** with cuDNN optimization
-- **Physics simulation** on GPU (force-directed layout)
-- **Shortest path computation** with GPU acceleration
-- **Community detection** using Leiden algorithm
-- **80% bandwidth reduction** with binary WebSocket protocol
-
----
-
-## 📈 Build Status
-
-**Current Status**: ✅ **CLEAN BUILD**
-- **Compilation Errors**: 0/0
-- **Build Time**: ~1m 42s (optimized)
-- **Warnings**: 244 (non-critical, from dependencies)
-- **Last Build**: Successful on latest commit
-
-### Compilation Error Resolution
-
-This project has undergone comprehensive compilation error resolution fixing **38 distinct Rust compiler errors** across **9 error categories** (E0277, E0412, E0271, E0502, E0283, E0599, E0609, E0308, E0063). All errors have been systematically eliminated through multi-phase error fixing and architectural refactoring.
-
-### Build Commands
+Get VisionFlow running in under 5 minutes:
 
 ```bash
-# Verify clean build
-cargo build 2>&1 | grep -E "error\[E|Finished"
-
-# Run tests
-cargo test --lib
-
-# Type check
-cargo check
-
-# Documentation build
-cargo doc --no-deps --open
-```
-
----
-
-## 📁 Project Structure
-
-VisionFlow is organized into clear domains with separation of concerns:
-
-```
-VisionFlow/
-├── src/                          # Server code (Rust + Actix)
-│   ├── handlers/                 # HTTP/WebSocket request handlers
-│   ├── services/                 # Business logic layer
-│   ├── adapters/                 # Neo4j & external integrations
-│   ├── ports/                    # Interface definitions
-│   ├── actors/                   # Modular actor system
-│   ├── ontology/                 # OWL reasoning and validation
-│   ├── gpu/                      # CUDA kernel integration
-│   └── protocols/                # Binary WebSocket protocol
-│
-├── client/src/                   # Client code (React + Three.js)
-│   ├── components/               # React UI components
-│   ├── features/                 # Feature-specific modules
-│   ├── rendering/                # 3D rendering engine
-│   ├── services/                 # API client services
-│   ├── immersive/                # XR/VR integration
-│   └── xr/                       # WebXR implementation
-│
-├── multi-agent-docker/           # Multi-agent orchestration container
-│   ├── agents/                   # 54+ AI agent templates
-│   ├── coordination/             # Agent coordination logic
-│   ├── hooks/                    # Pre/post task automation
-│   └── entrypoint.sh             # Container initialization
-│
-└── docs/                         # Complete documentation
-    ├── getting-started/          # Installation & tutorials
-    ├── guides/                   # How-to guides (user, developer, operations)
-    ├── concepts/                 # Architecture & design concepts
-    ├── reference/                # API references & technical specs
-    └── multi-agent-docker/       # Agent system documentation
-```
-
-### Key Directories Explained
-
-**Server (`/src/`)**: Rust-based backend with hexagonal architecture
-- **Core Business Logic**: `services/`, `actors/`, `ontology/`
-- **Data Layer**: `adapters/` (Neo4j graph database)
-- **API Layer**: `handlers/`, `protocols/`
-- **GPU Compute**: `gpu/` (CUDA kernels)
-- **Interfaces**: `ports/` (repository traits)
-
-**Client (`/client/src/`)**: React frontend with 3D visualization
-- **UI Components**: `components/`, `features/`
-- **3D Engine**: `rendering/` (Three.js/React Three Fiber)
-- **XR Support**: `immersive/`, `xr/` (WebXR for Quest 3)
-- **Services**: `services/` (WebSocket, REST API clients)
-
-**Multi-Agent System (`/multi-agent-docker/`)**: Orchestration container
-- **54+ Specialized Agents**: Research, coding, testing, analysis
-- **Coordination**: Memory sharing, task orchestration
-- **Automation**: Pre/post task hooks for workflow automation
-
-**Documentation (`/docs/`)**: Comprehensive guides
-- **Getting Started**: Installation, first graph tutorials
-- **User Guides**: Working with agents, XR setup
-- **Developer Guides**: Contributing, testing, adding features
-- **Architecture**: Complete system design documentation
-- **Reference**: API specs, error codes, performance benchmarks
-
----
-
-## 🚀 Quick Start
-
-Get VisionFlow running in under 5 minutes with Docker:
-
-```bash
-# 1. Clone the repository
+# Clone the repository
 git clone https://github.com/DreamLab-AI/VisionFlow.git
 cd VisionFlow
 
-# 2. Configure your environment
+# Configure environment
 cp .env.example .env
-# Edit .env to add:
-# - NEO4J_PASSWORD (REQUIRED)
-# - GitHub credentials
-# - API keys for AI services
+# Edit .env with your NEO4J_PASSWORD
 
-# 3. Deploy with unified Docker
+# Deploy with Docker
 docker-compose --profile dev up -d
 
-# 4. Access VisionFlow
-# Frontend: http://192.168.0.51:3001
-# Neo4j Browser: http://192.168.0.51:7474
-# Backend API: http://192.168.0.51:4000
+# Access VisionFlow
+# Frontend:    http://localhost:3001
+# Neo4j:       http://localhost:7474
+# Backend API: http://localhost:4000
 ```
 
-**That's it!** Your AI agent teams will begin analyzing your data immediately.
+**That's it.** Your AI agent teams will begin analyzing data immediately.
 
-### Next Steps
+**Next:** [Full Installation Guide](docs/getting-started/01-installation.md) · [First Graph Tutorial](docs/getting-started/02-first-graph-and-agents.md)
 
-- **[📚 Full Installation Guide](docs/getting-started/01-installation.md)** - Detailed setup instructions
-- **[🎯 First Graph Tutorial](docs/getting-started/02-first-graph-and-agents.md)** - Create your first knowledge graph
-- **** - Complete unified Docker documentation
+<details>
+<summary><strong>Click to expand: Native Installation (without Docker)</strong></summary>
 
----
-
-## 🏗️ Architecture Overview
-
-VisionFlow implements a **Hexagonal Architecture** with **CQRS pattern** and **Modular Actor System** for clean separation of concerns and maintainability.
-
-### System Architecture
-
-```mermaid
-graph TB
-    subgraph Client["Client Layer (React + Three.js)"]
-        ThreeJS["Three.js<br/>WebGL"]
-        WS["WebSocket<br/>Binary Protocol"]
-        Voice["Voice UI<br/>WebRTC"]
-    end
-
-    Client <-->|"36-byte Binary<br/>Protocol"| Server
-
-    subgraph Server["Server Layer (Rust + Actix-Web)"]
-        subgraph Hexagonal["Hexagonal Architecture"]
-            Ports["Ports<br/>(Interfaces)"]
-            Adapters["Adapters<br/>(Neo4j)"]
-        end
-
-        subgraph Actors["Modular Actor System"]
-            GraphState["GraphStateActor"]
-            Physics["PhysicsOrchestratorActor"]
-            Semantic["SemanticProcessorActor"]
-            Client["ClientCoordinatorActor"]
-            Supervisor["GraphServiceSupervisor"]
-        end
-
-        Hexagonal <--> Actors
-        Supervisor -->|manages| GraphState
-        Supervisor -->|manages| Physics
-        Supervisor -->|manages| Semantic
-        Supervisor -->|manages| Client
-    end
-
-    Server <--> Data
-
-    subgraph Data["Data Layer"]
-        Neo4j["Neo4j 5.13<br/>(Primary Database)<br/>Graph, Ontology, Settings"]
-    end
-
-    Data <--> GPU
-
-    subgraph GPU["GPU Compute Layer (CUDA)"]
-        GPUPhysics["Physics<br/>(39 Kernels)"]
-        Clustering["Clustering<br/>(Leiden)"]
-        Pathfinding["Pathfinding<br/>(SSSP)"]
-    end
-
-    style Client fill:#e1f5ff
-    style Server fill:#fff4e1
-    style Data fill:#f0e1ff
-    style GPU fill:#e1ffe1
-    style Hexagonal fill:#fff9e1
-    style Actors fill:#ffe1f5
-```
-
-**Key Architectural Principles:**
-
-- **Server-Authoritative State**: Single source of truth in Neo4j graph database
-- **Modular Actor System**: Specialized actors for graph state, physics, semantic processing, and client coordination
-- **Hexagonal Architecture**: Ports define interfaces, adapters implement persistence
-- **CQRS Pattern**: Separate read and write operations
-- **Binary Protocol**: Custom 36-byte WebSocket protocol (80% bandwidth reduction)
-- **GPU Offloading**: 100x speedup for physics and clustering
-
-### Architecture Documentation
-
-**Core Architecture:**
-- **[Architecture Overview](docs/concepts/architecture/00-architecture-overview.md)** - Complete system design
-- **[Hexagonal CQRS Architecture](docs/concepts/architecture/hexagonal-cqrs-architecture.md)** - Ports & adapters pattern
-- **[Modular Actor System](docs/guides/graphserviceactor-migration.md)** - Actor-based concurrency
-
-**Specialized Systems:**
-- **[XR Immersive System](docs/concepts/architecture/xr-immersive-system.md)** - Quest 3 WebXR architecture
-- **[Ontology Storage Architecture](docs/concepts/architecture/ontology-storage-architecture.md)** - OWL reasoning pipeline
-- **[Semantic Physics System](docs/concepts/architecture/semantic-physics-system.md)** - Force-directed layout engine
-- **[GPU Semantic Forces](docs/concepts/architecture/gpu-semantic-forces.md)** - CUDA acceleration details
-
-**Communication Protocols:**
-- **[WebSocket Protocol](docs/reference/websocket-protocol.md)** - Binary protocol specification
-- **[REST API Reference](docs/reference/api/rest-api-reference.md)** - HTTP endpoints
-- **[Error Codes](docs/reference/error-codes.md)** - Complete error reference
-
-**Data Flow:**
-- **[Data Flow Complete](docs/concepts/architecture/data-flow-complete.md)** - End-to-end data pipeline
-- **[Pipeline Integration](docs/concepts/architecture/pipeline-integration.md)** - GitHub sync to GPU rendering
-- **[Reasoning Data Flow](docs/concepts/architecture/reasoning-data-flow.md)** - OWL inference pipeline
-
----
-
-## 🔄 Data Pipeline Architecture
-
-**Complete Pipeline: GitHub → Database → GPU → API → Client**
-
-```mermaid
-graph TD
-    A[GitHub Repository<br/>Markdown + OWL] --> B[GitHub Sync Service<br/>StreamingSyncService]
-    B --> C{File Type Detection}
-    C -->|OntologyBlock| D[OntologyParser]
-    C -->|public:: true| E[KnowledgeGraphParser]
-    D --> F[Neo4jOntologyRepository]
-    E --> G[Neo4jGraphRepository]
-    F --> H[(Neo4j Database<br/>:OwlClass, :OwlProperty<br/>:Node, :Edge)]
-    G --> H
-    H --> I[GPU Memory Transfer]
-    I --> J[39 CUDA Kernels<br/>Physics Simulation]
-    J --> K[REST API<br/>/api/graph/data]
-    K --> L[3D Client<br/>Visualization]
-```
-
-**Key Features**:
-- Streaming processing (no batching bottlenecks)
-- Authenticated GitHub API calls
-- Real-time Neo4j persistence
-- GPU-accelerated physics
-- Binary protocol for efficient client updates
-
-****
-
----
-
-## 🛠️ Technology Stack
-
-VisionFlow combines cutting-edge technologies for unmatched performance and scalability:
-
-| Layer | Technology | Highlights |
-| :--- | :--- | :--- |
-| **Frontend** | React + Three.js (React Three Fiber) | 60 FPS @ 100k+ nodes, WebGL 3D rendering |
-| **Backend** | Rust + Actix + Hexagonal Architecture | Modular actors, CQRS pattern, ports & adapters |
-| **Database** | Neo4j 5.13 Graph Database | Graph, ontology, and settings storage |
-| **GPU Acceleration** | CUDA 12.4 (39 Kernels) | Physics, clustering, pathfinding—100x speedup |
-| **AI Orchestration** | MCP Protocol + Claude | 50+ concurrent specialist agents |
-| **Semantic Layer** | OWL/RDF + Whelk Reasoner | Ontology validation, logical inference |
-| **Networking** | **Binary WebSocket Protocol V2** | **36 bytes/node**, <10ms latency, 80% bandwidth reduction |
-
-### Advanced AI Architecture
-
-- **Microsoft GraphRAG** for hierarchical knowledge structures
-- **Leiden Clustering** for community detection
-- **Shortest Path Analysis** enabling multi-hop reasoning
-- **OWL 2 EL Reasoning** for semantic validation and inference
-
-### Hexagonal Architecture Benefits
-
-- **Graph-First Design**: All state persists in Neo4j
-- **CQRS Pattern**: Separate read and write operations
-- **Ports & Adapters**: Clean separation between business logic and infrastructure
-- **Server-Authoritative**: Neo4j as single source of truth
-- **Type Safety**: Specta generates TypeScript types from Rust
-
----
-
-## 📊 Performance Metrics
-
-VisionFlow is built for enterprise-scale performance:
-
-### Rendering Performance
-
-| Metric | Value | Configuration |
-| :--- | :--- | :--- |
-| **Frame Rate** | 60 FPS | @ 100,000 nodes |
-| **Render Latency** | <16ms | Per frame |
-| **Node Capacity** | 100,000+ | Without degradation |
-| **Concurrent Users** | 50+ | Simultaneous connections |
-
-### Network Performance
-
-| Metric | Value | Details |
-| :--- | :--- | :--- |
-| **WebSocket Latency** | <10ms | Binary protocol V2 (36-byte format) |
-| **Bandwidth Reduction** | 80% | vs deprecated JSON V1 protocol |
-| **Message Size** | 36 bytes/node | Fixed-width binary format |
-| **Update Rate** | 60 Hz | Real-time synchronization |
-
-### GPU Acceleration
-
-| Operation | CPU Time | GPU Time | Speedup |
-| :--- | :--- | :--- | :--- |
-| **Physics Simulation** | 1,600ms | 16ms | 100x |
-| **Leiden Clustering** | 800ms | 12ms | 67x |
-| **Shortest Path (SSSP)** | 500ms | 8ms | 62x |
-| **Force-Directed Layout** | 2,000ms | 20ms | 100x |
-
-### AI Agent Performance
-
-- **Agent Spawn Time**: <50ms per agent
-- **Concurrent Agents**: 50+ agents running simultaneously
-- **Memory Per Agent**: ~50MB average
-- **Agent Communication**: <5ms message latency
-
-**[📈 Detailed Benchmarks](docs/reference/performance-benchmarks.md)**
-
----
-
-## 💻 Installation
-
-### Prerequisites
-
-#### System Requirements
-
-**Minimum:**
-- **OS**: Linux (Ubuntu 20.04+), macOS (12.0+), Windows 10/11
-- **CPU**: 4-core processor, 2.5GHz
-- **Memory**: 8GB RAM
-- **Storage**: 10GB free disk space
-- **Browser**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
-
-**Recommended:**
-- **CPU**: 8-core processor, 3.0GHz+
-- **Memory**: 16GB RAM
-- **Storage**: 50GB SSD
-- **GPU**: NVIDIA GTX 1060 or AMD RX 580
-
-**Enterprise (with GPU Acceleration):**
-- **CPU**: 16+ cores, 3.5GHz
-- **Memory**: 32GB+ RAM
-- **Storage**: 200GB+ NVMe SSD
-- **GPU**: NVIDIA RTX 4080+ with 16GB+ VRAM (CUDA 12.4)
-
-### Docker Installation (Recommended)
-
-Docker provides the fastest way to get started:
-
-```bash
-# 1. Install Docker and Docker Compose
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-
-# 2. Clone VisionFlow
-git clone https://github.com/DreamLab-AI/VisionFlow.git
-cd VisionFlow
-
-# 3. Configure environment
-cp .env.example .env
-# Edit .env with your settings:
-# - NEO4J_PASSWORD=your_secure_password
-# - GitHub credentials
-# - API keys
-
-# 4. Start VisionFlow (development profile)
-docker-compose --profile dev up -d
-
-# 5. View logs
-docker-compose logs -f
-
-# 6. Access the application
-# Frontend: http://192.168.0.51:3001
-# Neo4j Browser: http://192.168.0.51:7474
-# Backend API: http://192.168.0.51:4000
-```
-
-****
-
-### Native Installation
-
-For development or custom deployments:
-
-#### 1. Install Rust
+### 1. Install Rust
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
@@ -622,7 +198,7 @@ source $HOME/.cargo/env
 rustup default stable
 ```
 
-#### 2. Install CUDA (Optional, for GPU acceleration)
+### 2. Install CUDA (Optional, for GPU acceleration)
 
 ```bash
 # Ubuntu/Debian
@@ -631,286 +207,550 @@ sudo dpkg -i cuda-keyring_1.0-1_all.deb
 sudo apt-get update
 sudo apt-get install cuda-toolkit-12-4
 
-# Verify installation
+# Verify
 nvcc --version
 ```
 
-#### 3. Install Node.js (for client development)
+### 3. Install Node.js
 
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
-#### 4. Install Neo4j
+### 4. Install Neo4j
 
 ```bash
-# Option 1: Docker (Recommended)
+# Docker (Recommended)
 docker run -d --name neo4j \
   -p 7474:7474 -p 7687:7687 \
   -e NEO4J_AUTH=neo4j/your_password \
   neo4j:5.13.0
-
-# Option 2: Native installation
-# Follow https://neo4j.com/docs/operations-manual/current/installation/
 ```
 
-#### 5. Clone and Build
+### 5. Build and Run
 
 ```bash
-# Clone repository
+# Clone and configure
 git clone https://github.com/DreamLab-AI/VisionFlow.git
 cd VisionFlow
-
-# Configure .env
 cp .env.example .env
-# Edit .env with Neo4j credentials
 
-# Build server (with GPU support)
+# Build server (with GPU)
 cargo build --release --features gpu
 
-# Or build without GPU
-cargo build --release
-
 # Build client
-cd client
-npm install
-npm run build
-cd ..
+cd client && npm install && npm run build && cd ..
 
-# Run server
+# Run
 ./target/release/webxr
-
-# Serve client (from another terminal)
-cd client
-python3 -m http.server 8080
 ```
 
-**[📚 Detailed Installation Guide](docs/getting-started/01-installation.md)**
+</details>
 
 ---
 
-## 🎮 Usage Examples
+## Architecture
 
-### Creating Your First Graph
+VisionFlow implements a **Hexagonal Architecture** with **Modular Actor System** for clean separation of concerns:
+
+```mermaid
+flowchart TB
+    subgraph Client["Client Layer"]
+        direction LR
+        React["React + Three.js"]
+        WebXR["WebXR/Quest 3"]
+        Voice["Voice UI"]
+    end
+
+    subgraph Server["Server Layer (Rust + Actix)"]
+        direction TB
+        subgraph Actors["Actor System"]
+            GraphState["GraphStateActor"]
+            Physics["PhysicsOrchestrator"]
+            Semantic["SemanticProcessor"]
+            Coordinator["ClientCoordinator"]
+        end
+        subgraph Hexagonal["Hexagonal Core"]
+            Ports["Ports"]
+            Adapters["Adapters"]
+        end
+    end
+
+    subgraph Data["Data Layer"]
+        Neo4j[(Neo4j 5.13)]
+    end
+
+    subgraph GPU["GPU Compute"]
+        CUDA["39 CUDA Kernels"]
+    end
+
+    Client <-->|"36-byte Binary Protocol"| Server
+    Server <--> Data
+    Server <--> GPU
+
+    style Client fill:#e1f5ff,stroke:#0288d1
+    style Server fill:#fff3e0,stroke:#ff9800
+    style Data fill:#f3e5f5,stroke:#9c27b0
+    style GPU fill:#e8f5e9,stroke:#4caf50
+```
+
+### Core Design Principles
+
+- **Server-Authoritative State** — Neo4j is the single source of truth
+- **Binary Protocol** — 36-byte WebSocket messages (80% bandwidth reduction vs JSON)
+- **GPU Offloading** — Physics, clustering, pathfinding accelerated 100x
+- **Actor Isolation** — Specialized actors for graph state, physics, semantics, and coordination
+
+**Deep Dive:** [Architecture Overview](docs/concepts/architecture/00-architecture-overview.md) · [Hexagonal CQRS](docs/concepts/architecture/hexagonal-cqrs-architecture.md) · [Actor System](docs/guides/graphserviceactor-migration.md)
+
+<details>
+<summary><strong>Click to expand: Data Pipeline Details</strong></summary>
+
+```mermaid
+flowchart LR
+    A[GitHub/Logseq] --> B[Sync Service]
+    B --> C{Parser}
+    C -->|OWL| D[Ontology]
+    C -->|Markdown| E[Knowledge]
+    D --> F[(Neo4j)]
+    E --> F
+    F --> G[GPU Memory]
+    G --> H[CUDA Physics]
+    H --> I[Binary Protocol]
+    I --> J[3D Client]
+
+    style A fill:#24292e,stroke:#fff,color:#fff
+    style F fill:#008cc1,stroke:#fff,color:#fff
+    style H fill:#76b900,stroke:#fff,color:#fff
+    style J fill:#e94560,stroke:#fff,color:#fff
+```
+
+**Pipeline Features:**
+- **Streaming processing** — No batching bottlenecks
+- **Real-time persistence** — Immediate Neo4j writes
+- **GPU-accelerated physics** — 100x faster than CPU
+- **Binary efficiency** — 36 bytes per node update
+
+**Complete documentation:** [Pipeline Integration](docs/concepts/architecture/pipeline-integration.md)
+
+</details>
+
+<details>
+<summary><strong>Click to expand: Architecture Documentation Index</strong></summary>
+
+**Core Architecture:**
+- [Architecture Overview](docs/concepts/architecture/00-architecture-overview.md)
+- [Hexagonal CQRS Architecture](docs/concepts/architecture/hexagonal-cqrs-architecture.md)
+- [Modular Actor System](docs/guides/graphserviceactor-migration.md)
+
+**Specialized Systems:**
+- [XR Immersive System](docs/concepts/architecture/xr-immersive-system.md)
+- [Ontology Storage Architecture](docs/concepts/architecture/ontology-storage-architecture.md)
+- [Semantic Physics System](docs/concepts/architecture/semantic-physics-system.md)
+- [GPU Semantic Forces](docs/concepts/architecture/gpu-semantic-forces.md)
+
+**Communication Protocols:**
+- [WebSocket Protocol](docs/reference/websocket-protocol.md)
+- [REST API Reference](docs/reference/api/rest-api-reference.md)
+- [Error Codes](docs/reference/error-codes.md)
+
+**Data Flow:**
+- [Data Flow Complete](docs/concepts/architecture/data-flow-complete.md)
+- [Reasoning Data Flow](docs/concepts/architecture/reasoning-data-flow.md)
+
+</details>
+
+---
+
+## Performance
+
+### Rendering
+
+| Metric | Value |
+|:---|---:|
+| Frame Rate | **60 FPS** @ 100K nodes |
+| Render Latency | **<16ms** per frame |
+| Max Nodes | **100,000+** without degradation |
+| Concurrent Users | **50+** simultaneous |
+
+### GPU Acceleration
+
+| Operation | CPU | GPU | Speedup |
+|:---|---:|---:|---:|
+| Physics Simulation | 1,600ms | 16ms | **100x** |
+| Leiden Clustering | 800ms | 12ms | **67x** |
+| Shortest Path | 500ms | 8ms | **62x** |
+
+### Network
+
+| Metric | Value |
+|:---|---:|
+| WebSocket Latency | **<10ms** |
+| Bandwidth Reduction | **80%** vs JSON |
+| Message Size | **36 bytes**/node |
+
+<details>
+<summary><strong>Click to expand: Detailed Performance Benchmarks</strong></summary>
+
+### AI Agent Performance
+- **Agent Spawn Time:** <50ms per agent
+- **Concurrent Agents:** 50+ simultaneous
+- **Memory Per Agent:** ~50MB average
+- **Agent Communication:** <5ms message latency
+
+### Binary Protocol V2 (36-byte format)
+```
+| Field        | Bytes | Description           |
+|--------------|-------|-----------------------|
+| Node ID      | 4     | Unique identifier     |
+| Position X   | 4     | Float32               |
+| Position Y   | 4     | Float32               |
+| Position Z   | 4     | Float32               |
+| Velocity X   | 4     | Float32               |
+| Velocity Y   | 4     | Float32               |
+| Velocity Z   | 4     | Float32               |
+| Flags        | 4     | State flags           |
+| Reserved     | 4     | Future use            |
+```
+
+**Full benchmarks:** [Performance Benchmarks](docs/reference/performance-benchmarks.md)
+
+</details>
+
+---
+
+## Technology Stack
+
+| Layer | Technology |
+|:---|:---|
+| **Frontend** | React, Three.js (React Three Fiber), TypeScript |
+| **Backend** | Rust, Actix-Web, Hexagonal Architecture |
+| **Database** | Neo4j 5.13 |
+| **GPU** | CUDA 12.4 (39 kernels) |
+| **AI** | MCP Protocol, Claude, Microsoft GraphRAG |
+| **Semantic** | OWL/RDF, Whelk-rs Reasoner |
+| **XR** | Babylon.js, WebXR, Quest 3 |
+
+---
+
+## Documentation
+
+VisionFlow uses the **Diátaxis** framework for organized documentation:
+
+<table>
+<tr>
+<td width="50%">
+
+### Tutorials (Learning)
+- [Installation Guide](docs/getting-started/01-installation.md)
+- [First Graph & Agents](docs/getting-started/02-first-graph-and-agents.md)
+- [Neo4j Quick Start](docs/tutorials/neo4j-quick-start.md)
+
+### How-To Guides
+- [Working with Agents](docs/archive/docs/guides/user/working-with-agents.md)
+- [XR Setup](docs/guides/vircadia-xr-complete-guide.md)
+- [Neo4j Integration](docs/guides/neo4j-integration.md)
+- [Docker Deployment](docs/guides/docker-compose-guide.md)
+
+</td>
+<td width="50%">
+
+### Concepts (Understanding)
+- [Architecture Overview](docs/concepts/architecture/00-architecture-overview.md)
+- [Hexagonal CQRS](docs/concepts/architecture/hexagonal-cqrs-architecture.md)
+- [Semantic Physics](docs/concepts/architecture/semantic-physics-system.md)
+- [Ontology Reasoning](docs/concepts/ontology-reasoning.md)
+
+### Reference
+- [REST API](docs/reference/api/rest-api-reference.md)
+- [WebSocket Protocol](docs/reference/websocket-protocol.md)
+- [Error Codes](docs/reference/error-codes.md)
+- [Performance Benchmarks](docs/reference/performance-benchmarks.md)
+
+</td>
+</tr>
+</table>
+
+**Full Documentation Hub:** [docs/](docs/)
+
+<details>
+<summary><strong>Click to expand: Complete Documentation Index</strong></summary>
+
+### Getting Started
+- [Installation Guide](docs/getting-started/01-installation.md)
+- [First Graph & Agents](docs/getting-started/02-first-graph-and-agents.md)
+
+### User Guides
+- [Working with Agents](docs/archive/docs/guides/user/working-with-agents.md)
+- [XR Setup](docs/guides/vircadia-xr-complete-guide.md)
+- [Neo4j Integration](docs/guides/neo4j-integration.md)
+- [Docker Deployment](docs/guides/docker-compose-guide.md)
+- [Configuration](docs/guides/configuration.md)
+- [Security](docs/guides/security.md)
+
+### Developer Guides
+- [Development Setup](docs/guides/developer/01-development-setup.md)
+- [Project Structure](docs/guides/developer/02-project-structure.md)
+- [Architecture Overview](docs/guides/developer/03-architecture.md)
+- [Adding Features](docs/guides/developer/04-adding-features.md)
+- [Testing Guide](docs/guides/testing-guide.md)
+- [Contributing](docs/guides/developer/06-contributing.md)
+
+### Architecture Concepts
+- [Architecture Overview](docs/concepts/architecture/00-architecture-overview.md)
+- [Hexagonal CQRS](docs/concepts/architecture/hexagonal-cqrs-architecture.md)
+- [Semantic Physics](docs/concepts/architecture/semantic-physics-system.md)
+- [XR Immersive System](docs/concepts/architecture/xr-immersive-system.md)
+- [Ontology Storage](docs/concepts/architecture/ontology-storage-architecture.md)
+- [GPU Semantic Forces](docs/concepts/architecture/gpu-semantic-forces.md)
+
+### Feature Guides
+- [Natural Language Queries](docs/guides/features/natural-language-queries.md)
+- [Intelligent Pathfinding](docs/guides/features/intelligent-pathfinding.md)
+- [Semantic Forces](docs/guides/features/semantic-forces.md)
+- [Filtering Nodes](docs/guides/features/filtering-nodes.md)
+
+### Reference
+- [REST API](docs/reference/api/rest-api-reference.md)
+- [WebSocket Protocol](docs/reference/websocket-protocol.md)
+- [Error Codes](docs/reference/error-codes.md)
+- [Performance Benchmarks](docs/reference/performance-benchmarks.md)
+
+### Multi-Agent System
+- [Architecture](docs/multi-agent-docker/architecture.md)
+- [Tools](docs/multi-agent-docker/tools.md)
+- [Docker Environment](docs/multi-agent-docker/docker-environment.md)
+- [Troubleshooting](docs/multi-agent-docker/troubleshooting.md)
+
+</details>
+
+---
+
+## Project Structure
+
+```
+VisionFlow/
+├── src/                    # Rust server
+│   ├── actors/             # Modular actor system
+│   ├── handlers/           # HTTP/WebSocket handlers
+│   ├── services/           # Business logic
+│   ├── adapters/           # Neo4j integration
+│   ├── ontology/           # OWL reasoning
+│   ├── gpu/                # CUDA kernels
+│   └── protocols/          # Binary protocol
+│
+├── client/src/             # React frontend
+│   ├── components/         # UI components
+│   ├── rendering/          # Three.js 3D engine
+│   ├── immersive/          # XR integration
+│   └── services/           # API clients
+│
+├── multi-agent-docker/     # AI orchestration
+│   ├── agents/             # 54+ agent templates
+│   └── coordination/       # Agent coordination
+│
+└── docs/                   # Documentation
+    ├── getting-started/    # Tutorials
+    ├── guides/             # How-to guides
+    ├── concepts/           # Architecture docs
+    └── reference/          # API reference
+```
+
+<details>
+<summary><strong>Click to expand: Detailed Directory Structure</strong></summary>
+
+```
+VisionFlow/
+├── src/                          # Server code (Rust + Actix)
+│   ├── handlers/                 # HTTP/WebSocket request handlers
+│   │   ├── socket_flow_handler.rs   # WebSocket connection management
+│   │   └── graph_handler.rs         # Graph API endpoints
+│   ├── services/                 # Business logic layer
+│   │   ├── graph_service.rs         # Graph operations
+│   │   └── sync_service.rs          # GitHub synchronization
+│   ├── adapters/                 # Neo4j & external integrations
+│   │   └── neo4j_adapter.rs         # Database operations
+│   ├── ports/                    # Interface definitions
+│   ├── actors/                   # Modular actor system
+│   │   ├── graph_state_actor.rs     # Graph state management
+│   │   ├── physics_orchestrator_actor.rs  # Physics coordination
+│   │   ├── semantic_processor_actor.rs    # Semantic processing
+│   │   └── client_coordinator_actor.rs    # Client synchronization
+│   ├── ontology/                 # OWL reasoning and validation
+│   │   ├── parser.rs                # OWL/RDF parsing
+│   │   └── reasoner.rs              # Whelk-rs integration
+│   ├── gpu/                      # CUDA kernel integration
+│   │   └── kernels/                 # 39 CUDA kernels
+│   └── protocols/                # Binary WebSocket protocol
+│       └── binary_protocol.rs       # 36-byte message format
+│
+├── client/src/                   # Client code (React + Three.js)
+│   ├── components/               # React UI components
+│   │   ├── ControlCenter/           # Main control panel
+│   │   └── Graph/                   # 3D graph components
+│   ├── features/                 # Feature-specific modules
+│   │   ├── visualisation/           # Visualization features
+│   │   └── design-system/           # UI design system
+│   ├── rendering/                # 3D rendering engine
+│   │   └── GraphRenderer.tsx        # Three.js graph rendering
+│   ├── services/                 # API client services
+│   │   └── websocket.ts             # WebSocket client
+│   ├── immersive/                # XR/VR integration
+│   └── xr/                       # WebXR implementation
+│
+├── multi-agent-docker/           # Multi-agent orchestration container
+│   ├── agents/                   # 54+ AI agent templates
+│   ├── coordination/             # Agent coordination logic
+│   ├── hooks/                    # Pre/post task automation
+│   └── unified-config/           # Container configuration
+│
+└── docs/                         # Complete documentation
+    ├── getting-started/          # Installation & tutorials
+    ├── guides/                   # How-to guides (user, developer, operations)
+    │   ├── developer/               # Development guides
+    │   ├── features/                # Feature-specific guides
+    │   └── infrastructure/          # Infrastructure guides
+    ├── concepts/                 # Architecture & design concepts
+    │   └── architecture/            # System architecture
+    ├── reference/                # API references & technical specs
+    │   └── api/                     # API documentation
+    └── explanations/             # Deep-dive explanations
+```
+
+</details>
+
+---
+
+## Roadmap
+
+### Completed (v2.0)
+
+- Modular actor architecture
+- Neo4j as primary database
+- Binary WebSocket protocol (36 bytes, 80% reduction)
+- 39 CUDA kernels (100x speedup)
+- 50+ concurrent AI agents
+- OWL 2 EL reasoning with Whelk-rs
+- Quest 3 WebXR (Beta)
+
+### In Progress (v2.1)
+
+- Vircadia multi-user integration
+- Spatial avatars and presence
+- SPARQL query interface
+- Distributed GPU compute
+
+### Future (v3.0+)
+
+- Apple Vision Pro native app
+- Federated ontologies
+- Kubernetes operator
+- Multi-region replication
+
+<details>
+<summary><strong>Click to expand: Detailed Roadmap</strong></summary>
+
+### v2.0.0 (Completed - November 2025)
+
+**Core Infrastructure**
+- [x] Modular actor architecture (GraphServiceActor → 4 specialized actors)
+- [x] Neo4j 5.13 as primary database
+- [x] Hexagonal architecture with ports & adapters
+- [x] Binary WebSocket protocol (36 bytes, 80% bandwidth reduction)
+- [x] Server-authoritative state management
+
+**GPU Acceleration**
+- [x] 39 production CUDA kernels
+- [x] Physics simulation (100x CPU speedup)
+- [x] Leiden clustering for community detection
+- [x] Shortest path computation (SSSP)
+
+**AI Agent System**
+- [x] 50+ concurrent AI agents
+- [x] Microsoft GraphRAG integration
+- [x] Multi-hop reasoning
+- [x] Whelk-rs OWL 2 DL reasoning (10-100x speedup)
+
+**Ontology Support**
+- [x] OWL 2 EL profile reasoning
+- [x] Physics-based semantic constraints
+- [x] Automatic inference and contradiction detection
+- [x] LRU caching for inference optimization
+
+### v2.1 (In Progress - Q1 2026)
+
+**Immersive XR & Multi-User**
+- [x] Meta Quest 3 single-user AR/VR (Beta)
+- [x] Force-directed graph physics with WebXR
+- [ ] Vircadia multi-user integration
+- [ ] Spatial avatars and real-time presence
+- [ ] Apple Vision Pro (Q3 2026)
+
+**Advanced Features**
+- [ ] SPARQL query interface
+- [ ] Email integration for knowledge ingestion
+- [ ] Multi-language voice support
+
+### v3.0+ (Future - 2026)
+
+**Enterprise Features**
+- [ ] Federated ontologies across organizations
+- [ ] Advanced audit and compliance tools
+- [ ] SSO integration (SAML, OAuth2)
+- [ ] Fine-grained permission system
+
+**Scalability**
+- [ ] Kubernetes operator for auto-scaling
+- [ ] Multi-region data replication
+- [ ] Millions of nodes support
+- [ ] Real-time collaborative VR for 100+ users
+
+</details>
+
+---
+
+## Gallery
+
+<div align="center">
+<table>
+<tr>
+<td><img src="./logseq1.png" alt="Logseq Integration" width="300"/></td>
+<td><img src="./logseq2.png" alt="Knowledge Graph View" width="300"/></td>
+</tr>
+<tr>
+<td><img src="./logseq3.png" alt="3D Visualization" width="300"/></td>
+<td><img src="./logseq4.png" alt="Agent Interface" width="300"/></td>
+</tr>
+</table>
+</div>
+
+---
+
+## Contributing
+
+We welcome contributions! See our [Contributing Guide](docs/guides/developer/06-contributing.md).
 
 ```bash
-# 1. Start the server
-./target/release/webxr
+# Fork and clone
+git clone https://github.com/YOUR_USERNAME/VisionFlow.git
+cd VisionFlow
 
-# 2. Open client in browser
-# Navigate to http://localhost:8080 (or your web server)
+# Setup development environment
+cargo build
+cd client && npm install
 
-# 3. Connect your data source
-# - Click "Settings" in the UI
-# - Add your Logseq graph directory
-# - Configure AI agent API keys
+# Run tests
+cargo test
+npm test
 
-# 4. Sync from GitHub
-curl -X POST http://localhost:4000/api/admin/sync/streaming
+# Submit a PR
 ```
 
-### Deploying AI Agents
+**Areas:** Bug fixes · Documentation · Features · Testing · Performance
 
-```javascript
-// Via REST API
-fetch('http://localhost:4000/api/agents/spawn', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    agent_type: 'researcher',
-    task: 'Analyze knowledge graph patterns',
-    parameters: {
-      depth: 3,
-      focus_areas: ['machine learning', 'distributed systems']
-    }
-  })
-});
-```
-
-### Query Neo4j Graph
-
-```cypher
-// Open Neo4j Browser at http://localhost:7474
-
-// View all ontology classes
-MATCH (c:OwlClass) RETURN c LIMIT 25;
-
-// View knowledge graph nodes
-MATCH (n:Node) WHERE n.public = "true" RETURN n LIMIT 25;
-
-// Find connections
-MATCH path = (a:Node)-[:EDGE*1..3]-(b:Node)
-WHERE a.metadata_id = "YourNodeId"
-RETURN path LIMIT 10;
-```
-
-### Voice Interaction
-
-```javascript
-// Enable voice control
-const voiceControl = new VisionFlowVoice({
-  enabled: true,
-  spatial_audio: true
-});
-
-// Issue voice command
-voiceControl.listen();
-// Say: "Show me connections between AI and robotics"
-```
-
-**[📖 More Examples](docs/guides/)**
-
----
-
-## 📚 Documentation
-
-**** - Master documentation hub with 172+ organised guides
-
-VisionFlow uses the **Diátaxis** framework for comprehensive, organized documentation:
-
-### 🎓 Getting Started (Tutorials)
-Learn by doing with step-by-step tutorials:
-- **[Installation Guide](docs/getting-started/01-installation.md)** - Setup for all platforms
-- **[First Graph & Agents](docs/getting-started/02-first-graph-and-agents.md)** - Create your first visualization
-
-### 📘 User Guides (How-To)
-Accomplish specific goals:
-- **[Working with Agents](docs/archive/docs/guides/user/working-with-agents.md)** - Deploy and manage AI agents
-- **[XR Setup](docs/archive/docs/guides/xr-setup.md)** - Configure VR/AR devices
-- **[Neo4j Integration](docs/guides/neo4j-integration.md)** - Graph database usage
-
-### 📕 Developer Guides
-Build and extend VisionFlow:
-- **[Development Setup](docs/guides/developer/01-development-setup.md)** - Environment configuration
-- **[Project Structure](docs/guides/developer/02-project-structure.md)** - Codebase organization
-- **[Architecture Overview](docs/guides/developer/03-architecture.md)** - System design
-- **[Adding Features](docs/guides/developer/04-adding-features.md)** - Extend the system
-- **[Testing Guide](docs/guides/testing-guide.md)** - Comprehensive testing strategies
-- **[Contributing](docs/guides/developer/06-contributing.md)** - Contribution guidelines
-
-### 📙 Concepts (Understanding)
-Learn the underlying architecture:
-- **[Architecture Overview](docs/concepts/architecture/00-architecture-overview.md)** - Complete system design
-- **[Hexagonal CQRS](docs/concepts/architecture/hexagonal-cqrs-architecture.md)** - Ports & adapters pattern
-- **[Modular Actor System](docs/guides/graphserviceactor-migration.md)** - Actor-based concurrency
-- **[Ontology Storage](docs/concepts/architecture/ontology-storage-architecture.md)** - OWL reasoning pipeline
-- **[XR Immersive System](docs/concepts/architecture/xr-immersive-system.md)** - Quest 3 WebXR
-- **[Semantic Physics](docs/concepts/architecture/semantic-physics-system.md)** - Force-directed layout
-
-### 📗 Reference (Technical Details)
-Complete technical specifications:
-- **[REST API](docs/reference/api/rest-api-reference.md)** - HTTP endpoints
-- **[WebSocket Protocol](docs/reference/websocket-protocol.md)** - Binary protocol specification
-- **[Error Codes](docs/reference/error-codes.md)** - Complete error reference
-- **[Implementation Status](docs/reference/implementation-status.md)** - Current system status
-- **** - All settings
-
-### 🐳 Deployment Guides
-- **** - Complete Docker deployment
-- **** - Troubleshooting guide
-- **** - GitHub synchronization
-
-### 🤖 Multi-Agent System
-AI agent orchestration documentation:
-- **[Architecture](docs/multi-agent-docker/architecture.md)** - Agent system design
-- **[Tools](docs/multi-agent-docker/tools.md)** - Available agent tools
-- **[Docker Environment](docs/multi-agent-docker/docker-environment.md)** - Container setup
-- **[Troubleshooting](docs/multi-agent-docker/troubleshooting.md)** - Common issues
-
-****
-
----
-
-## 🔮 Roadmap
-
-### ✅ Completed (v2.0.0 - November 2025)
-
-**🎉 NEO4J MIGRATION & MODULAR ARCHITECTURE: COMPLETE**
-
-- **Core Infrastructure**
-  - ✅ Modular actor architecture (GraphServiceActor → 4 specialized actors)
-  - ✅ Neo4j 5.13 as primary database (graph, ontology, settings)
-  - ✅ Hexagonal architecture with ports & adapters
-  - ✅ Binary WebSocket protocol (36 bytes, 80% bandwidth reduction)
-  - ✅ Server-authoritative state management
-  - ✅ GitHub sync bug fixes (URL encoding, authentication, markers)
-
-- **GPU Acceleration**
-  - ✅ 39 production CUDA kernels
-  - ✅ Physics simulation (100x CPU speedup)
-  - ✅ Leiden clustering for community detection
-  - ✅ Shortest path computation (SSSP)
-  - ✅ Real-time physics at 100k+ nodes
-
-- **AI Agent System**
-  - ✅ 50+ concurrent AI agents
-  - ✅ Microsoft GraphRAG integration
-  - ✅ Multi-hop reasoning
-  - ✅ Specialized agent roles (researcher, analyst, coder)
-  - ✅ Whelk-rs OWL 2 DL reasoning with 10-100x speedup
-
-- **Ontology Support**
-  - ✅ OWL 2 EL profile reasoning with Whelk
-  - ✅ Horned-OWL parser integration
-  - ✅ Physics-based semantic constraint visualization
-  - ✅ Automatic inference and contradiction detection
-  - ✅ LRU caching for inference optimization
-
-- **Visualization**
-  - ✅ 60 FPS at 100k+ nodes
-  - ✅ Real-time multi-user synchronization
-  - ✅ Voice-to-voice AI interaction
-  - ✅ WebRTC spatial audio
-  - ✅ Constraint builder UI with 8 constraint types
-
-**Migration Status:** ✅ COMPLETE (All deliverables shipped)
-
-### 🔄 In Progress (v2.1 - Q1 2026)
-
-- **Immersive XR & Multi-User**
-  - ✅ Meta Quest 3 single-user AR/VR implementation (Beta)
-  - ✅ Force-directed graph physics engine with WebXR
-  - ✅ Babylon.js rendering with 25-joint hand tracking
-  - 🔄 Vircadia multi-user integration (Architecture complete)
-  - 🔄 Spatial avatars and real-time user presence
-  - 🔄 Apple Vision Pro native app (Q3 2026)
-
-- **Advanced Features**
-  - 🔄 SPARQL query interface for ontologies
-  - 🔄 Email integration for knowledge ingestion
-  - 🔄 Multi-language voice support
-
-- **Performance**
-  - 🔄 Distributed GPU compute across nodes
-  - 🔄 Redis caching for multi-server deployments
-  - 🔄 WebGPU fallback for non-CUDA systems
-
-### 🎯 Future (v3.0+ - 2026)
-
-- **Enterprise Features**
-  - 🎯 Federated ontologies across organizations
-  - 🎯 Advanced audit and compliance tools
-  - 🎯 SSO integration (SAML, OAuth2)
-  - 🎯 Fine-grained permission system
-
-- **AI Enhancements**
-  - 🎯 Predictive intelligence and trend detection
-  - 🎯 Autonomous workflow orchestration
-  - 🎯 Custom agent training interface
-  - 🎯 Multi-modal agent communication
-
-- **Scalability**
-  - 🎯 Kubernetes operator for auto-scaling
-  - 🎯 Multi-region data replication
-  - 🎯 Millions of nodes support
-  - 🎯 Real-time collaborative VR for 100+ users
-
----
-
-## 🤝 Contributing
-
-We welcome contributions from the community! Whether you're fixing bugs, improving documentation, or proposing new features, your help makes VisionFlow better.
+<details>
+<summary><strong>Click to expand: Contribution Guidelines</strong></summary>
 
 ### How to Contribute
 
@@ -923,17 +763,14 @@ We welcome contributions from the community! Whether you're fixing bugs, improvi
 
 2. **Set Up Development Environment**
    ```bash
-   # Install dependencies
    cargo build
    cd client && npm install
-
-   # Run tests
    cargo test
    npm test
    ```
 
 3. **Make Your Changes**
-   - Follow the [coding guidelines](docs/guides/developer/06-contributing.md)
+   - Follow the coding guidelines
    - Write tests for new features
    - Update documentation as needed
 
@@ -942,54 +779,94 @@ We welcome contributions from the community! Whether you're fixing bugs, improvi
    - Reference any related issues
    - Ensure all tests pass
 
+### Code Style
+
+- **Rust:** Follow standard Rust conventions
+- **TypeScript:** Follow ESLint configuration
+- **Documentation:** Use Diátaxis framework
+- **Commits:** Use conventional commit messages
+- **Architecture:** Respect hexagonal architecture boundaries
+
 ### Contribution Areas
 
-- **🐛 Bug Fixes**: Report or fix issues
-- **📚 Documentation**: Improve guides and examples
-- **✨ Features**: Propose and implement new capabilities
-- **🧪 Testing**: Add test coverage
-- **🎨 UI/UX**: Enhance the visualization interface
-- **⚡ Performance**: Optimize bottlenecks
+| Area | Description |
+|:---|:---|
+| Bug Fixes | Report or fix issues |
+| Documentation | Improve guides and examples |
+| Features | Propose and implement new capabilities |
+| Testing | Add test coverage |
+| UI/UX | Enhance the visualization interface |
+| Performance | Optimize bottlenecks |
 
-### Guidelines
-
-- **Code Style**: Follow Rust and TypeScript best practices
-- **Documentation**: Use the 
-- **Testing**: Maintain >80% test coverage
-- **Commits**: Use conventional commit messages
-- **Architecture**: Respect hexagonal architecture boundaries
-
-**[📖 Full Contributing Guide](docs/guides/developer/06-contributing.md)**
+</details>
 
 ---
 
-## 🌐 Platform Support
+## Requirements
+
+<details>
+<summary><strong>Click to expand: System Requirements</strong></summary>
+
+### Minimum
+- **OS:** Linux (Ubuntu 20.04+), macOS (12.0+), Windows 10/11
+- **CPU:** 4-core processor, 2.5GHz
+- **RAM:** 8GB
+- **Storage:** 10GB free disk space
+- **Browser:** Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
+
+### Recommended
+- **CPU:** 8-core processor, 3.0GHz+
+- **RAM:** 16GB
+- **Storage:** 50GB SSD
+- **GPU:** NVIDIA GTX 1060 or AMD RX 580
+
+### Enterprise (with GPU Acceleration)
+- **CPU:** 16+ cores, 3.5GHz
+- **RAM:** 32GB+
+- **Storage:** 200GB+ NVMe SSD
+- **GPU:** NVIDIA RTX 4080+ with 16GB+ VRAM (CUDA 12.4)
+
+</details>
+
+---
+
+## Platform Support
+
+| Platform | Server | GPU | XR |
+|:---|:---:|:---:|:---:|
+| **Linux (Ubuntu 20.04+)** | ✅ | ✅ | ✅ |
+| **macOS (12.0+)** | ✅ | ❌ | ⚠️ |
+| **Windows (WSL2)** | ✅ | ✅ | ✅ |
+| **Meta Quest 3** | — | — | ✅ Beta |
+| **Apple Vision Pro** | — | — | 🔄 Planned |
+
+<details>
+<summary><strong>Click to expand: Detailed Platform Support</strong></summary>
 
 ### Server Platform Support
 
 | Platform | Status | Notes |
-| :--- | :---: | :--- |
-| **Linux (Ubuntu 20.04+)** | ✅ Full Support | Recommended for production |
-| **Linux (Debian 11+)** | ✅ Full Support | Docker deployment tested |
-| **Linux (Arch)** | ✅ Full Support | Including GPU acceleration |
+|:---|:---:|:---|
+| **Linux (Ubuntu 20.04+)** | ✅ Full | Recommended for production |
+| **Linux (Debian 11+)** | ✅ Full | Docker deployment tested |
+| **Linux (Arch)** | ✅ Full | Including GPU acceleration |
 | **macOS (12.0+)** | ⚠️ Partial | CPU-only (no CUDA) |
-| **Windows 10/11** | ⚠️ Partial | WSL2 recommended, native experimental |
+| **Windows 10/11** | ⚠️ Partial | WSL2 recommended |
 
 ### GPU Acceleration Support
 
-| GPU | CUDA Support | Status |
-| :--- | :---: | :--- |
+| GPU | CUDA | Status |
+|:---|:---:|:---|
 | **NVIDIA RTX 40-series** | 12.4 | ✅ Optimal |
 | **NVIDIA RTX 30-series** | 12.4 | ✅ Excellent |
 | **NVIDIA GTX 10-series** | 12.4 | ✅ Good |
-| **AMD (via ROCm)** | - | 🔄 Planned |
-| **Intel Arc** | - | 🔄 Planned |
-| **Apple Silicon (Metal)** | - | 🔄 Planned |
+| **AMD (via ROCm)** | — | 🔄 Planned |
+| **Apple Silicon (Metal)** | — | 🔄 Planned |
 
 ### Browser Support
 
 | Browser | Status | WebGL 2 | WebXR |
-| :--- | :---: | :---: | :---: |
+|:---|:---:|:---:|:---:|
 | **Chrome 90+** | ✅ Full | ✅ | ✅ |
 | **Edge 90+** | ✅ Full | ✅ | ✅ |
 | **Firefox 88+** | ✅ Full | ✅ | ⚠️ |
@@ -997,73 +874,46 @@ We welcome contributions from the community! Whether you're fixing bugs, improvi
 
 ### XR Device Support
 
-| Device | Status | Features | Documentation |
-| :--- | :---: | :--- | :--- |
-| **Meta Quest 3** | ✅ Beta | Force-directed graphs, hand tracking, AR passthrough | [XR Guide](docs/guides/vircadia-xr-complete-guide.md) |
-| **Meta Quest 2** | ⚠️ Limited | Browser-based WebXR, reduced performance | - |
-| **Vircadia Multi-User** | 🔄 Architecture | Spatial avatars, collaborative sessions | [Vircadia Docs](https://docs.vircadia.com) |
-| **Apple Vision Pro** | 🔄 Planned | Native app planned for Q3 2026 | - |
-| **Varjo XR-3** | ⚠️ Limited | WebXR experimental | - |
-| **HTC Vive** | ⚠️ Limited | WebXR via SteamVR | - |
+| Device | Status | Features |
+|:---|:---:|:---|
+| **Meta Quest 3** | ✅ Beta | Force-directed graphs, hand tracking, AR passthrough |
+| **Meta Quest 2** | ⚠️ Limited | Browser-based WebXR, reduced performance |
+| **Vircadia** | 🔄 Architecture | Multi-user spatial avatars |
+| **Apple Vision Pro** | 🔄 Planned | Native app Q3 2026 |
+
+</details>
 
 ---
 
-## 🌟 Community & Support
+## Acknowledgements
 
-### Get Help
+Built on the work of:
 
-- **📚 Documentation**: [Complete documentation hub](docs/)
-- **🐛 Bug Reports**: [GitHub Issues](https://github.com/DreamLab-AI/VisionFlow/issues)
-- **💬 Discussions**: [GitHub Discussions](https://github.com/DreamLab-AI/VisionFlow/discussions)
+- **[3d-force-graph](https://github.com/vasturiano/3d-force-graph)** — Force-directed visualization
+- **[graph_RAG](https://github.com/nemegrod/graph_RAG)** — Natural language queries
+- **[Semantic RAG Research](https://github.com/glacier-creative-git/knowledge-graph-traversal-semantic-rag-research)** — Intelligent pathfinding
 
-### Stay Updated
-
-- **⭐ Star this Repository**: Stay notified of releases
-- **📰 Release Notes**: [CHANGELOG.md](CHANGELOG.md)
-
-### Community Guidelines
-
-We are committed to providing a welcoming and inclusive environment. Please read our  before participating.
+Special thanks to **Prof. Rob Aspin** for research in immersive knowledge visualization.
 
 ---
 
-## 🙏 Acknowledgements
+## License
 
-VisionFlow is built on the shoulders of giants. We are grateful to:
+**Mozilla Public License 2.0** — Use commercially, modify freely, share changes.
 
-- **Prof. Rob Aspin** for pioneering research in immersive knowledge visualization
-- **Anthropic** for Claude AI and the MCP protocol
-- **The Rust Community** for exceptional tooling and support
-- **NVIDIA** for CUDA and GPU computing innovations
-- **The Three.js Team** for world-class 3D rendering
-- **Logseq** for markdown-based knowledge management
-- **Neo4j** for graph database innovation
-- **The Open Source Community** for countless libraries and tools
+[Read the Full License](LICENSE)
 
-### Research & Inspiration
+<details>
+<summary><strong>Click to expand: License Details</strong></summary>
 
-VisionFlow's semantic features build upon groundbreaking open-source research:
+### What MPL-2.0 Means
 
-- **[3d-force-graph](https://github.com/vasturiano/3d-force-graph)** by Vasco Asturiano - Pioneering force-directed graph visualization techniques including DAG layouts, collision detection, and attribute-driven physics that inspired our GPU-accelerated semantic forces
-- **[graph_RAG](https://github.com/nemegrod/graph_RAG)** by nemegrod - Natural language to SPARQL/Cypher translation patterns and schema-aware query generation that enabled our LLM-powered query system
-- **[Knowledge Graph Traversal for Semantic RAG](https://github.com/glacier-creative-git/knowledge-graph-traversal-semantic-rag-research)** by Glacier Creative - Query-guided and chunk-based traversal algorithms that power our intelligent pathfinding system
-
-Special thanks to all contributors who have helped shape VisionFlow.
-
----
-
-## 📄 License
-
-This project is licensed under the **Mozilla Public License 2.0** (MPL-2.0).
-
-### What This Means
-
-- ✅ **Commercial Use**: Use VisionFlow in commercial projects
-- ✅ **Modification**: Modify and customize the source code
-- ✅ **Distribution**: Distribute your modifications
-- ✅ **Patent Grant**: Explicit patent license from contributors
-- ⚠️ **Copyleft**: Modified source files must be MPL-2.0
-- ⚠️ **Disclosure**: Modified source must be made available
+- ✅ **Commercial Use:** Use VisionFlow in commercial projects
+- ✅ **Modification:** Modify and customize the source code
+- ✅ **Distribution:** Distribute your modifications
+- ✅ **Patent Grant:** Explicit patent license from contributors
+- ⚠️ **Copyleft:** Modified source files must be MPL-2.0
+- ⚠️ **Disclosure:** Modified source must be made available
 
 ### Key Points
 
@@ -1072,39 +922,27 @@ This project is licensed under the **Mozilla Public License 2.0** (MPL-2.0).
 - If you distribute modifications, changed files must be MPL-2.0
 - Your proprietary code can remain closed-source
 
-**[Read the Full License](LICENSE)**
-
----
-
-## 🚀 Ready to Transform Knowledge Discovery?
-
-VisionFlow represents the future of collaborative knowledge work—where AI agents continuously discover insights, teams collaborate in immersive 3D spaces, and your data remains completely under your control.
-
-### Get Started Today
-
-```bash
-git clone https://github.com/DreamLab-AI/VisionFlow.git
-cd VisionFlow
-cp .env.example .env
-# Edit .env with your NEO4J_PASSWORD
-docker-compose --profile dev up -d
-```
-
-### Learn More
-
-- **[📚 Read the Documentation](docs/)**
-- **[🎯 Follow the Tutorial](docs/getting-started/02-first-graph-and-agents.md)**
-- **[💬 Join the Discussion](https://github.com/DreamLab-AI/VisionFlow/discussions)**
-- **[⭐ Star on GitHub](https://github.com/DreamLab-AI/VisionFlow)**
+</details>
 
 ---
 
 <div align="center">
 
-**Built with ❤️ by the VisionFlow Team**
+**Ready to transform knowledge discovery?**
+
+```bash
+git clone https://github.com/DreamLab-AI/VisionFlow.git && cd VisionFlow && docker-compose --profile dev up -d
+```
+
+<br/>
+
+[**Documentation**](docs/) · [**Issues**](https://github.com/DreamLab-AI/VisionFlow/issues) · [**Discussions**](https://github.com/DreamLab-AI/VisionFlow/discussions)
+
+<br/>
 
 [![GitHub Stars](https://img.shields.io/github/stars/DreamLab-AI/VisionFlow?style=social)](https://github.com/DreamLab-AI/VisionFlow)
 [![GitHub Forks](https://img.shields.io/github/forks/DreamLab-AI/VisionFlow?style=social)](https://github.com/DreamLab-AI/VisionFlow/fork)
-[![GitHub Issues](https://img.shields.io/github/issues/DreamLab-AI/VisionFlow)](https://github.com/DreamLab-AI/VisionFlow/issues)
+
+**Built with care by the VisionFlow Team**
 
 </div>

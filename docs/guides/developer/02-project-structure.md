@@ -1,3 +1,10 @@
+---
+title: Project Structure
+description: This document provides a comprehensive overview of VisionFlow's codebase structure, explaining the purpose of each directory and key files.
+type: guide
+status: stable
+---
+
 # Project Structure
 
 ## Overview

@@ -1,3 +1,10 @@
+---
+title: Security Best Practices
+description: *[Guides](../guides/readme.md) > Security*
+type: guide
+status: stable
+---
+
 # Security Best Practices
 
 *[Guides](../guides/readme.md) > Security*

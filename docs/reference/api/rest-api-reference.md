@@ -1,3 +1,10 @@
+---
+title: REST API Complete Reference
+description: **VisionFlow Ontology and Graph API Documentation**
+type: reference
+status: stable
+---
+
 # REST API Complete Reference
 
 **VisionFlow Ontology and Graph API Documentation**
@@ -622,8 +629,8 @@ Large result sets automatically paginated:
 
 ## Related Documentation
 
-- [Ontology Reasoning Pipeline](../../concepts/architecture/ontology-reasoning-pipeline.md)
-- [Semantic Physics System](../../concepts/architecture/semantic-physics-system.md)
+- [Ontology Reasoning Pipeline](../../../explanations/architecture/ontology-reasoning-pipeline.md)
+- [Semantic Physics System](../../../explanations/architecture/semantic-physics-system.md)
 - 
 - 
 

@@ -1,3 +1,10 @@
+---
+title: Ontology Storage Guide
+description: The ontology system uses a **lossless storage architecture** that preserves complete OWL semantics by storing raw markdown content in the database and parsing downstream with horned-owl.
+type: guide
+status: stable
+---
+
 # Ontology Storage Guide
 
 ## Overview
@@ -488,4 +495,4 @@ The new ontology storage architecture provides:
 ✅ **Production Ready**: Battle-tested with 988-class research ontology
 ✅ **Well Documented**: Comprehensive guides and API reference
 
-For more details, see the [Complete Architecture Documentation](../concepts/architecture/ontology-storage-architecture.md).
+For more details, see the [Complete Architecture Documentation](../../explanations/architecture/ontology-storage-architecture.md).

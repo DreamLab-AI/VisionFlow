@@ -1,3 +1,10 @@
+---
+title: Troubleshooting Guide
+description: > [Guides](./index.md) > Troubleshooting
+type: guide
+status: stable
+---
+
 # Troubleshooting Guide
 
  > [Guides](./index.md) > Troubleshooting
@@ -1673,7 +1680,7 @@ scrape-configs:
 
 ### Documentation Resources
 
-- [Installation Guide](../getting-started/01-installation.md)
+- [Installation Guide](../../tutorials/01-installation.md)
 - 
 - 
 - 

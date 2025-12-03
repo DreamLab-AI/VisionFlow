@@ -1,3 +1,10 @@
+---
+title: Blockchain Consensus and Cryptography Ontology - Implementation Summary
+description: - ### OntologyBlock id:: implementation-summary-ontology collapsed:: true
+type: archive
+status: archived
+---
+
 - ### OntologyBlock
   id:: implementation-summary-ontology
   collapsed:: true

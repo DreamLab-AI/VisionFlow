@@ -1,3 +1,10 @@
+---
+title: Deployment Guide
+description: > [Guides](./index.md) > Deployment
+type: guide
+status: stable
+---
+
 # Deployment Guide
 
  > [Guides](./index.md) > Deployment

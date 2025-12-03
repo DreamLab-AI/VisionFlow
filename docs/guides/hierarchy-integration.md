@@ -1,3 +1,10 @@
+---
+title: Quick Integration Guide: Hierarchical Visualization
+description: ```typescript // In your main graph canvas component import { HierarchyRenderer } from '@/features/visualisation/components/HierarchyRenderer';
+type: guide
+status: stable
+---
+
 # Quick Integration Guide: Hierarchical Visualization
 
 ## 🚀 Quick Start (5 Minutes)

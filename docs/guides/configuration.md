@@ -1,3 +1,10 @@
+---
+title: Configuration Guide
+description: *[Guides](readme.md)*
+type: guide
+status: stable
+---
+
 # Configuration Guide
 
 *[Guides](readme.md)*

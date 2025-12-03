@@ -1,3 +1,10 @@
+---
+title: Settings API Authentication
+description: The settings API endpoints now support Nostr-based authentication using session tokens. This provides secure access control while maintaining backward compatibility with read-only anonymous access.
+type: document
+status: stable
+---
+
 # Settings API Authentication
 
 ## Overview

@@ -1,3 +1,10 @@
+---
+title: VisionFlow API Documentation
+description: **Complete REST API Reference for VisionFlow Knowledge Graph Platform**
+type: reference
+status: stable
+---
+
 # VisionFlow API Documentation
 
 **Complete REST API Reference for VisionFlow Knowledge Graph Platform**

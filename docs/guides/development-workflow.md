@@ -1,3 +1,10 @@
+---
+title: Development Workflow
+description: > [Guides](./index.md) > Development Workflow
+type: guide
+status: stable
+---
+
 # Development Workflow
 
  > [Guides](./index.md) > Development Workflow
@@ -1192,7 +1199,7 @@ git push origin feature/my-feature
 
 1. **Review Documentation**
    - Read [Contributing Guide](./contributing.md)
-   - Review [Architecture Documentation](../concepts/architecture/)
+   - Review [Architecture Documentation](../../explanations/architecture/)
    - Check  for relevant decisions
 
 2. **Check Existing Work**

@@ -1,3 +1,10 @@
+---
+title: Implementation Summary
+description: - ### OntologyBlock id:: implementation-summary-ontology collapsed:: true
+type: archive
+status: archived
+---
+
 - ### OntologyBlock
   id:: implementation-summary-ontology
   collapsed:: true

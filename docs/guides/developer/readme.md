@@ -1,3 +1,10 @@
+---
+title: Developer Guides
+description: Welcome to the VisionFlow developer guides. These how-to guides help developers accomplish specific tasks and solve problems.
+type: guide
+status: stable
+---
+
 # Developer Guides
 
 Welcome to the VisionFlow developer guides. These how-to guides help developers accomplish specific tasks and solve problems.

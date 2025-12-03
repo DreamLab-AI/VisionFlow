@@ -1,3 +1,10 @@
+---
+title: Neo4j Settings Migration - Action Plan
+description: **Date**: 2025-11-06 **Priority**: HIGH (Test compilation blocked) **Estimated Effort**: 4-6 hours
+type: document
+status: stable
+---
+
 # Neo4j Settings Migration - Action Plan
 
 **Date**: 2025-11-06

@@ -1,3 +1,10 @@
+---
+title: Complete Vircadia XR Integration Guide
+description: **Multi-User Extended Reality with Force-Directed Graph Visualization**
+type: guide
+status: stable
+---
+
 # Complete Vircadia XR Integration Guide
 
 **Multi-User Extended Reality with Force-Directed Graph Visualization**
@@ -831,7 +838,7 @@ services:
     ports:
       - "0.0.0.0:3000:3000"
     volumes:
-      - ./api/volume/app:/app
+      - ./reference/api/volume/app:/app
     working-dir: /app
     command: ["bun", "run", "dist/world.api.manager.js"]
     environment:

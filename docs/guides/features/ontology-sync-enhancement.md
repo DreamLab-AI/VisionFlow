@@ -1,3 +1,10 @@
+---
+title: Ontology Sync Service Enhancement
+description: Enhanced GitHub sync service with intelligent ontology file filtering, caching, and metadata extraction.
+type: document
+status: stable
+---
+
 # Ontology Sync Service Enhancement
 
 ## Overview

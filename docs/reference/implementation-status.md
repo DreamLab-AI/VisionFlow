@@ -1,3 +1,10 @@
+---
+title: VisionFlow Implementation Status
+description: **Last Updated:** 2025-11-06 **Version:** 1.0 **Status:** Production
+type: reference
+status: stable
+---
+
 # VisionFlow Implementation Status
 
 **Last Updated:** 2025-11-06
@@ -445,7 +452,7 @@ The following implementation plans are ready for execution:
 
 ## Related Documentation
 
-- [Architecture Overview](../concepts/architecture/00-architecture-overview.md)
+- [Architecture Overview](../../explanations/architecture/system-overview.md)
 - [GraphServiceActor Migration Guide](../guides/graphserviceactor-migration.md)
 - [Neo4j Migration Guide](../guides/neo4j-migration.md)
 - [Code Quality Status](./code-quality-status.md)

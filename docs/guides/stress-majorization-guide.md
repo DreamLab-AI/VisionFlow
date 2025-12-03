@@ -1,3 +1,10 @@
+---
+title: Stress Majorization Layout Optimization Guide
+description: **Status**: ✅ Code complete, wiring needed **Last Updated**: November 3, 2025
+type: guide
+status: stable
+---
+
 # Stress Majorization Layout Optimization Guide
 
 **Status**: ✅ Code complete, wiring needed

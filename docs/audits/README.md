@@ -1,3 +1,10 @@
+---
+title: VisionFlow Audit Reports
+description: This directory contains comprehensive audit reports for codebase migrations and architectural changes.
+type: document
+status: stable
+---
+
 # VisionFlow Audit Reports
 
 This directory contains comprehensive audit reports for codebase migrations and architectural changes.
@@ -314,7 +321,7 @@ VisionFlow successfully migrated settings storage from SQLite to Neo4j on Novemb
 - **Neo4j Migration Guide**: `docs/guides/neo4j-migration.md`
 - **Neo4j Implementation Roadmap**: `docs/guides/neo4j-implementation-roadmap.md`
 - **Settings Repository Port**: `docs/concepts/architecture/ports/02-settings-repository.md`
-- **Architecture Overview**: `docs/concepts/architecture/00-architecture-overview.md`
+- **Architecture Overview**: `docs/concepts/architecture/system-overview.md`
 - **ADR (if exists)**: `docs/architecture/decisions/ADR-001-neo4j-persistent-with-filesystem-sync.md`
 
 ---
