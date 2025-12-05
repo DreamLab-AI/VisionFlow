@@ -518,6 +518,60 @@ Performance benchmarks in `benchmark/` subdirectories:
 - `sd3.5-medium-comfyui/benchmark/` - RTX 3090/4090 comparisons
 - `ltx-video-2b-v0.9.1-comfyui/benchmark/` - Video generation benchmarks
 
+## MCP Server Tools
+
+The ComfyUI skill includes an MCP server at `mcp-server/` that provides autonomous workflow tools:
+
+### Available Tools
+
+| Tool | Description |
+|------|-------------|
+| `workflow_submit` | Submit ComfyUI workflow JSON for execution |
+| `workflow_status` | Check job status by ID |
+| `workflow_cancel` | Cancel a running job |
+| `model_list` | List available models (checkpoints, loras, vae) |
+| `image_generate` | Convenience text2img with FLUX |
+| `video_generate` | Video generation (AnimateDiff) |
+| `display_capture` | Screenshot display :1 for visual feedback |
+| `output_list` | List generated outputs |
+| `chat_workflow` | Natural language to workflow via LLM |
+
+### MCP Server Setup
+
+```bash
+cd /home/devuser/.claude/skills/comfyui/mcp-server
+npm install
+npm start
+```
+
+### MCP Configuration
+
+Add to your MCP configuration:
+```json
+{
+  "comfyui": {
+    "command": "node",
+    "args": ["/home/devuser/.claude/skills/comfyui/mcp-server/server.js"],
+    "env": {
+      "COMFYUI_URL": "http://localhost:8188"
+    }
+  }
+}
+```
+
+### Visual Display Monitoring
+
+The skill can capture ComfyUI's UI on display :1 using Playwright for visual feedback to Claude. Use `display_capture` tool to get screenshots.
+
+### LLM Workflow Generation
+
+Use `chat_workflow` to generate ComfyUI workflows from natural language:
+```
+chat_workflow: "Create an anime portrait with blue hair and golden eyes"
+```
+
+This uses the Z.AI service (port 9600) or Anthropic API to generate valid workflow JSON.
+
 ## References
 
 - ComfyUI: https://github.com/comfyanonymous/ComfyUI

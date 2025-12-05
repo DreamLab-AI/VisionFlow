@@ -1,8 +1,16 @@
 ---
 name: deepseek-reasoning
-description: DeepSeek special model reasoning bridge - Advanced multi-step reasoning via MCP, bridging devuser to deepseek-user for complex problem-solving with structured Chain-of-Thought outputs
-communication: stdio
+description: >
+  DeepSeek special model reasoning bridge - Advanced multi-step reasoning via MCP,
+  bridging devuser to deepseek-user for complex problem-solving with structured
+  Chain-of-Thought outputs.
+version: 1.0.0
+author: turbo-flow-claude
 mcp_server: true
+protocol: mcp-sdk
+entry_point: mcp-server/server.js
+dependencies:
+  - deepseek-api
 ---
 
 # DeepSeek Reasoning Skill

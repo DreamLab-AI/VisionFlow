@@ -243,6 +243,12 @@ RUN du -ah /root \
 
 COPY runner-scripts/.  /runner-scripts/
 
+# Copy SAM3D CUDA fix script
+COPY scripts/fix-sam3d-cuda.sh /runner-scripts/
+COPY scripts/patch-sam3d-bridge.py /runner-scripts/
+RUN chmod +x /runner-scripts/fix-sam3d-cuda.sh \
+    && chmod +x /runner-scripts/fix-sam3d-on-startup.sh
+
 USER root
 VOLUME /root
 WORKDIR /root

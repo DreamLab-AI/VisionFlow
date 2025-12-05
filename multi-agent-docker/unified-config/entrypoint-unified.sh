@@ -25,11 +25,20 @@ chmod 1777 /tmp/.X11-unix /tmp/.ICE-unix
 chmod 700 /run/user/1000
 chown devuser:devuser /run/user/1000
 
-# Set permissions
-chown -R devuser:devuser /home/devuser
-chown -R gemini-user:gemini-user /home/gemini-user
-chown -R openai-user:openai-user /home/openai-user
-chown -R zai-user:zai-user /home/zai-user
+# Set permissions (skip read-only mounts like .ssh and .claude)
+# Only chown known writable directories, skip .ssh and .claude which may be read-only mounts
+set +e
+chown -R devuser:devuser /home/devuser/workspace 2>/dev/null
+chown -R devuser:devuser /home/devuser/models 2>/dev/null
+chown -R devuser:devuser /home/devuser/agents 2>/dev/null
+chown -R devuser:devuser /home/devuser/logs 2>/dev/null
+chown -R devuser:devuser /home/devuser/.config 2>/dev/null
+chown -R devuser:devuser /home/devuser/.cache 2>/dev/null
+chown -R devuser:devuser /home/devuser/.local 2>/dev/null
+chown -R gemini-user:gemini-user /home/gemini-user 2>/dev/null
+chown -R openai-user:openai-user /home/openai-user 2>/dev/null
+chown -R zai-user:zai-user /home/zai-user 2>/dev/null
+set -e
 
 # Configure Docker socket permissions for docker-manager skill
 if [ -S /var/run/docker.sock ]; then
@@ -120,15 +129,62 @@ EOF
 fi
 
 # ============================================================================
-# Phase 3: Verify Host Claude Configuration Mount
+# Phase 3: GPU Verification
 # ============================================================================
 
-echo "[3/10] Verifying host Claude configuration..."
+echo "[3/10] Verifying GPU access..."
+
+# Check nvidia-smi
+if command -v nvidia-smi &> /dev/null; then
+    if nvidia-smi &> /dev/null; then
+        GPU_COUNT=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | wc -l)
+        echo "✓ NVIDIA driver accessible: $GPU_COUNT GPU(s) detected"
+        nvidia-smi --query-gpu=index,name,memory.total --format=csv,noheader | \
+            awk -F', ' '{printf "  GPU %s: %s (%s)\n", $1, $2, $3}'
+    else
+        echo "⚠️  nvidia-smi failed - GPU may not be accessible"
+    fi
+else
+    echo "⚠️  nvidia-smi not found"
+fi
+
+# Test PyTorch CUDA detection
+echo "Testing PyTorch CUDA support..."
+PYTORCH_TEST=$(/opt/venv/bin/python3 -c "
+import torch
+print(f'PyTorch: {torch.__version__}')
+print(f'CUDA available: {torch.cuda.is_available()}')
+if torch.cuda.is_available():
+    print(f'CUDA version: {torch.version.cuda}')
+    print(f'GPU count: {torch.cuda.device_count()}')
+    for i in range(torch.cuda.device_count()):
+        print(f'  GPU {i}: {torch.cuda.get_device_name(i)}')
+else:
+    print('WARNING: PyTorch cannot access CUDA')
+" 2>&1)
+
+echo "$PYTORCH_TEST"
+
+if echo "$PYTORCH_TEST" | grep -q "CUDA available: True"; then
+    echo "✓ PyTorch GPU acceleration ready"
+else
+    echo "⚠️  PyTorch GPU acceleration not available - will fallback to CPU"
+    echo "   This may significantly impact performance for AI workloads"
+fi
+
+# ============================================================================
+# Phase 4: Verify Host Claude Configuration Mount
+# ============================================================================
+
+echo "[4/10] Verifying host Claude configuration..."
 
 if [ -d "/home/devuser/.claude" ]; then
     # Ensure proper ownership (host mount may have different UID)
-    chown -R devuser:devuser /home/devuser/.claude 2>/dev/null || true
-    chmod -R u+rw /home/devuser/.claude 2>/dev/null || true
+    # Only change ownership on writable files to avoid errors on read-only mounts
+    set +e
+    find /home/devuser/.claude -writable -exec chown devuser:devuser {} \; 2>/dev/null
+    find /home/devuser/.claude -writable -exec chmod u+rw {} \; 2>/dev/null
+    set -e
     echo "✓ Host Claude configuration mounted at /home/devuser/.claude (read-write)"
 else
     # Create directory if mount failed
@@ -138,10 +194,10 @@ else
 fi
 
 # ============================================================================
-# Phase 4: Initialize DBus
+# Phase 5: Initialize DBus
 # ============================================================================
 
-echo "[4/10] Initializing DBus..."
+echo "[5/10] Initializing DBus..."
 
 # Clean up any stale PID files from previous runs
 rm -f /run/dbus/pid /var/run/dbus/pid
@@ -150,10 +206,10 @@ rm -f /run/dbus/pid /var/run/dbus/pid
 echo "✓ DBus configured (supervisord will start)"
 
 # ============================================================================
-# Phase 5: Setup Claude Skills
+# Phase 6: Setup Claude Skills
 # ============================================================================
 
-echo "[5/10] Setting up Claude Code skills..."
+echo "[6/10] Setting up Claude Code skills..."
 
 # Make skill tools executable
 find /home/devuser/.claude/skills -name "*.py" -exec chmod +x {} \;
@@ -168,7 +224,7 @@ echo "✓ $SKILL_COUNT Claude Code skills available"
 # Phase 6: Setup Agents
 # ============================================================================
 
-echo "[6/10] Setting up Claude agents..."
+echo "[7/10] Setting up Claude agents..."
 
 AGENT_COUNT=$(find /home/devuser/agents -name "*.md" 2>/dev/null | wc -l)
 if [ "$AGENT_COUNT" -gt 0 ]; then
@@ -203,7 +259,7 @@ fi
 echo "✓ Claude Flow initialized and NPX cache cleared"
 
 # ============================================================================
-# Phase 6.7: Configure Cross-User Service Access
+# Phase 6.7: Configure Cross-User Service Access & Dynamic MCP Discovery
 # ============================================================================
 
 echo "[6.7/10] Configuring cross-user service access..."
@@ -231,81 +287,114 @@ export DISPLAY=:1
 alias supervisorctl="/opt/venv/bin/supervisorctl"
 ENV_EXPORTS
 
-# Configure MCP settings for Claude Code
-sudo -u devuser bash -c 'mkdir -p ~/.config/claude && cat > ~/.config/claude/mcp_settings.json' <<'MCP_CONFIG'
-{
-  "mcpServers": {
-    "web-summary": {
-      "command": "node",
-      "args": ["/home/devuser/.claude/skills/web-summary/mcp-server/server.js"],
-      "env": {
-        "ZAI_CONTAINER_URL": "http://localhost:9600",
-        "WEB_SUMMARY_TOOL_PATH": "/home/devuser/.claude/skills/web-summary/tools/web_summary_tool.py"
-      }
-    },
-    "qgis": {
-      "command": "python3",
-      "args": ["-u", "/home/devuser/.claude/skills/qgis/tools/qgis_mcp.py"],
-      "env": {
-        "QGIS_HOST": "localhost",
-        "QGIS_PORT": "9877"
-      }
-    },
-    "blender": {
-      "command": "node",
-      "args": ["/home/devuser/.claude/skills/blender/tools/mcp-blender-client.js"],
-      "env": {
-        "BLENDER_HOST": "localhost",
-        "BLENDER_PORT": "9876"
-      }
-    },
-    "imagemagick": {
-      "command": "python3",
-      "args": ["-u", "/home/devuser/.claude/skills/imagemagick/tools/imagemagick_mcp.py"]
-    },
-    "kicad": {
-      "command": "python3",
-      "args": ["-u", "/home/devuser/.claude/skills/kicad/tools/kicad_mcp.py"]
-    },
-    "ngspice": {
-      "command": "python3",
-      "args": ["-u", "/home/devuser/.claude/skills/ngspice/tools/ngspice_mcp.py"]
-    },
-    "pbr-rendering": {
-      "command": "python3",
-      "args": ["-u", "/home/devuser/.claude/skills/pbr-rendering/tools/pbr_mcp_client.py"],
-      "env": {
-        "PBR_HOST": "localhost",
-        "PBR_PORT": "9878"
-      }
-    },
-    "playwright": {
-      "command": "node",
-      "args": ["/home/devuser/.claude/skills/playwright/tools/playwright-mcp-local.js"]
-    },
-    "chrome-devtools": {
-      "command": "npx",
-      "args": [
-        "chrome-devtools-mcp",
-        "--remote-debugging-port",
-        "9222",
-        "--user-data-dir",
-        "/home/devuser/.config/chromium-mcp"
-      ],
-      "env": {
-        "CHROME_PATH": "/usr/bin/chromium"
-      }
-    },
-    "perplexity": {
-      "command": "node",
-      "args": ["/home/devuser/.claude/skills/perplexity/mcp-server/server.js"],
-      "env": {
-        "PERPLEXITY_API_KEY": "$PERPLEXITY_API_KEY"
-      }
-    }
+# ============================================================================
+# Dynamic MCP Settings Generation
+# Discovers skills with mcp_server: true in SKILL.md frontmatter
+# ============================================================================
+
+echo "  Discovering MCP-enabled skills..."
+
+mkdir -p /home/devuser/.config/claude
+
+# Use generate-mcp-settings.sh if available, otherwise inline discovery
+if [ -x /usr/local/bin/generate-mcp-settings.sh ]; then
+    sudo -u devuser SKILLS_DIR=/home/devuser/.claude/skills \
+        OUTPUT_FILE=/home/devuser/.config/claude/mcp_settings.json \
+        /usr/local/bin/generate-mcp-settings.sh
+else
+    # Inline dynamic discovery (fallback)
+    sudo -u devuser bash -c '
+        SKILLS_DIR="/home/devuser/.claude/skills"
+        OUTPUT_FILE="/home/devuser/.config/claude/mcp_settings.json"
+
+        # Start JSON
+        echo "{" > "$OUTPUT_FILE"
+        echo "  \"mcpServers\": {" >> "$OUTPUT_FILE"
+
+        first=true
+        skill_count=0
+
+        for skill_md in "$SKILLS_DIR"/*/SKILL.md; do
+            [ -f "$skill_md" ] || continue
+            skill_dir=$(dirname "$skill_md")
+            skill_name=$(basename "$skill_dir")
+
+            # Parse frontmatter for mcp_server: true
+            mcp_server=$(awk "/^---$/,/^---$/" "$skill_md" | grep "^mcp_server:" | sed "s/mcp_server:[[:space:]]*//" | tr -d " ")
+            [ "$mcp_server" != "true" ] && continue
+
+            # Get entry_point and protocol
+            entry_point=$(awk "/^---$/,/^---$/" "$skill_md" | grep "^entry_point:" | sed "s/entry_point:[[:space:]]*//" | tr -d " ")
+            protocol=$(awk "/^---$/,/^---$/" "$skill_md" | grep "^protocol:" | sed "s/protocol:[[:space:]]*//" | tr -d " ")
+
+            [ -z "$entry_point" ] && continue
+
+            full_path="$skill_dir/$entry_point"
+            [ ! -f "$full_path" ] && continue
+
+            # Determine command
+            case "$entry_point" in
+                *.py) cmd="python3"; args="[\"-u\", \"$full_path\"]" ;;
+                *.js) cmd="node"; args="[\"$full_path\"]" ;;
+                *) continue ;;
+            esac
+
+            # Comma handling
+            [ "$first" = "true" ] && first=false || echo "," >> "$OUTPUT_FILE"
+
+            # Build skill entry with env vars based on skill name
+            echo -n "    \"$skill_name\": {\"command\": \"$cmd\", \"args\": $args" >> "$OUTPUT_FILE"
+
+            case "$skill_name" in
+                web-summary)
+                    echo -n ", \"env\": {\"ZAI_URL\": \"http://localhost:9600/chat\", \"ZAI_TIMEOUT\": \"60\"}" >> "$OUTPUT_FILE"
+                    ;;
+                qgis)
+                    echo -n ", \"env\": {\"QGIS_HOST\": \"localhost\", \"QGIS_PORT\": \"9877\"}" >> "$OUTPUT_FILE"
+                    ;;
+                blender)
+                    echo -n ", \"env\": {\"BLENDER_HOST\": \"localhost\", \"BLENDER_PORT\": \"9876\"}" >> "$OUTPUT_FILE"
+                    ;;
+                playwright)
+                    echo -n ", \"env\": {\"DISPLAY\": \":1\", \"CHROMIUM_PATH\": \"/usr/bin/chromium\"}" >> "$OUTPUT_FILE"
+                    ;;
+                comfyui)
+                    echo -n ", \"env\": {\"COMFYUI_URL\": \"http://localhost:8188\"}" >> "$OUTPUT_FILE"
+                    ;;
+                perplexity)
+                    echo -n ", \"env\": {\"PERPLEXITY_API_KEY\": \"\$PERPLEXITY_API_KEY\"}" >> "$OUTPUT_FILE"
+                    ;;
+                deepseek-reasoning)
+                    echo -n ", \"env\": {\"DEEPSEEK_API_KEY\": \"\$DEEPSEEK_API_KEY\"}" >> "$OUTPUT_FILE"
+                    ;;
+            esac
+
+            echo -n "}" >> "$OUTPUT_FILE"
+            skill_count=$((skill_count + 1))
+        done
+
+        # Close mcpServers and add VisionFlow config
+        echo "" >> "$OUTPUT_FILE"
+        cat >> "$OUTPUT_FILE" <<VISIONFLOW
+  },
+  "visionflow": {
+    "tcp_bridge": {"host": "localhost", "port": 9500},
+    "discovery": {"resource_pattern": "{skill}://capabilities", "refresh_interval": 300}
+  },
+  "metadata": {
+    "generated_at": "$(date -Iseconds)",
+    "skills_count": $skill_count,
+    "generator": "entrypoint-unified.sh v2.0.0"
   }
 }
-MCP_CONFIG
+VISIONFLOW
+
+        echo "  Found $skill_count MCP-enabled skills"
+    '
+fi
+
+# Count registered skills
+MCP_SKILL_COUNT=$(grep -c '"command":' /home/devuser/.config/claude/mcp_settings.json 2>/dev/null || echo "0")
 
 chown -R devuser:devuser /home/devuser/.local/share/agentic-sockets
 chown -R devuser:devuser /home/devuser/.config/claude
@@ -313,14 +402,15 @@ chown -R devuser:devuser /home/devuser/.config/claude
 echo "✓ Cross-user service access configured"
 echo "  - Gemini MCP socket: /var/run/agentic-services/gemini-mcp.sock"
 echo "  - Z.AI API: http://localhost:9600"
-echo "  - MCP Servers: 9 skills registered (web-summary, qgis, blender, imagemagick, kicad, ngspice, pbr, playwright, chrome-devtools)"
+echo "  - MCP Servers: $MCP_SKILL_COUNT skills auto-discovered from SKILL.md frontmatter"
+echo "  - VisionFlow TCP bridge: localhost:9500"
 echo "  - Environment variables added to devuser's .zshrc"
 
 # ============================================================================
 # Phase 7: Generate SSH Host Keys
 # ============================================================================
 
-echo "[7/10] Generating SSH host keys..."
+echo "[8/10] Generating SSH host keys..."
 
 if [ ! -f /etc/ssh/ssh_host_rsa_key ]; then
     ssh-keygen -A
@@ -339,9 +429,8 @@ echo "[7.3/10] Configuring SSH credentials..."
 if [ -d "/home/devuser/.ssh" ] && [ "$(ls -A /home/devuser/.ssh 2>/dev/null)" ]; then
     echo "✓ SSH credentials detected from host mount"
 
-    # Since mount is read-only, SSH will work directly
-    # Just ensure the mount point has correct ownership
-    chown -R devuser:devuser /home/devuser/.ssh 2>/dev/null || true
+    # Since mount is read-only, SSH will work directly - no ownership changes needed
+    # Skip any chown operations on SSH directory (mounted read-only from host)
 
     # Verify key files
     KEY_COUNT=$(find /home/devuser/.ssh -type f -name "id_*" ! -name "*.pub" 2>/dev/null | wc -l)
@@ -426,7 +515,7 @@ fi
 # Phase 8: Enhance CLAUDE.md with Project Context
 # ============================================================================
 
-echo "[8/10] Enhancing CLAUDE.md with project-specific context..."
+echo "[9/10] Enhancing CLAUDE.md with project-specific context..."
 
 # Append compact project documentation to system CLAUDE.md
 sudo -u devuser bash -c 'cat >> /home/devuser/CLAUDE.md' <<'CLAUDE_APPEND'
@@ -567,7 +656,7 @@ echo "✓ CLAUDE.md enhanced with project context"
 # Phase 9: Display Connection Information
 # ============================================================================
 
-echo "[9/10] Container ready! Connection information:"
+echo "[10/10] Container ready! Connection information:"
 echo ""
 echo "+-------------------------------------------------------------+"
 echo "│                   CONNECTION DETAILS                        │"
@@ -607,7 +696,7 @@ echo ""
 # Phase 10: Start Supervisord
 # ============================================================================
 
-echo "[10/10] Starting supervisord (all services)..."
+echo "[11/11] Starting supervisord (all services)..."
 echo ""
 
 # Display what will start
@@ -619,6 +708,8 @@ echo "  ✓ XFCE4 desktop"
 echo "  ✓ Management API (port 9090)"
 echo "  ✓ code-server (port 8080)"
 echo "  ✓ Claude Z.AI service (port 9600)"
+echo "  ✓ ComfyUI server (port 8188)"
+echo "  ✓ MCP servers (web-summary, qgis, blender, imagemagick, playwright)"
 echo "  ✓ Gemini-flow daemon"
 echo "  ✓ tmux workspace auto-start"
 echo ""

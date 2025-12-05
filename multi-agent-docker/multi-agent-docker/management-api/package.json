@@ -16,6 +16,7 @@
     "@fastify/rate-limit": "^9.1.0",
     "@fastify/swagger": "^8.14.0",
     "@fastify/swagger-ui": "^3.0.0",
+    "@fastify/websocket": "^10.0.1",
     "pino": "^8.19.0",
     "pino-pretty": "^11.0.0",
     "prom-client": "^15.1.0",

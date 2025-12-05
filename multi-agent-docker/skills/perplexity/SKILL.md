@@ -1,8 +1,16 @@
 ---
 name: perplexity
-description: Perplexity AI research assistant with real-time web search, source citations, and optimized UK-centric prompts. Access live web data, current events, market research, and comprehensive analysis backed by verified sources.
-communication: stdio
+description: >
+  Perplexity AI research assistant with real-time web search, source citations,
+  and optimized UK-centric prompts. Access live web data, current events, market
+  research, and comprehensive analysis backed by verified sources.
+version: 2.0.0
+author: turbo-flow-claude
 mcp_server: true
+protocol: mcp-sdk
+entry_point: mcp-server/server.js
+dependencies:
+  - perplexity-sdk
 ---
 
 # Perplexity AI Research Skill

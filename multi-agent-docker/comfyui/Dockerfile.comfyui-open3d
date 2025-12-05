@@ -1,0 +1,66 @@
+# Custom ComfyUI with open3d support
+FROM yanwk/comfyui-boot:cu130-slim
+
+# Metadata
+LABEL maintainer="Multi-Agent-Docker"
+LABEL description="ComfyUI with full open3d support for sam3dobjects extension"
+
+# Install build dependencies
+RUN zypper install -y \
+    gcc-c++ \
+    cmake \
+    git \
+    eigen3-devel \
+    libpng-devel \
+    libjpeg-devel \
+    python313-devel \
+    Mesa-libGL-devel \
+    Mesa-libEGL-devel \
+    libglvnd-devel \
+    libXrandr-devel \
+    libXinerama-devel \
+    libXcursor-devel \
+    libXi-devel \
+    jsoncpp-devel \
+    fmt-devel \
+    glew-devel \
+    && zypper clean -a
+
+# Build open3d from source (using workaround for Python 3.13)
+# Note: This can take 30-60 minutes
+RUN cd /tmp && \
+    git clone --depth 1 https://github.com/isl-org/Open3D.git && \
+    cd Open3D && \
+    mkdir build && cd build && \
+    # Try to build without GUI, assimp to avoid compatibility issues
+    cmake .. \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DBUILD_PYTHON_MODULE=ON \
+        -DBUILD_GUI=OFF \
+        -DBUILD_WEBRTC=OFF \
+        -DBUILD_UNIT_TESTS=OFF \
+        -DBUILD_BENCHMARKS=OFF \
+        -DBUILD_EXAMPLES=OFF \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DPython3_EXECUTABLE=/usr/bin/python3 \
+        -DCMAKE_INSTALL_PREFIX=/usr/local \
+        -DCMAKE_CXX_FLAGS="-Wno-error" && \
+    # If build fails due to assimp, patch it
+    (make -j$(nproc) || \
+        (find . -path '*/assimp/*' -name 'CMakeLists.txt' -o -name '*.cmake' | xargs sed -i 's/-Werror//g' && \
+         make -j$(nproc))) && \
+    make install && \
+    cd / && rm -rf /tmp/Open3D
+
+# Alternative: If full build fails, install pre-built wheels or use minimal stub
+# RUN pip3 install --no-cache-dir trimesh pyvista point-cloud-utils
+
+# Verify installation
+RUN python3 -c "import open3d; print(f'open3d {open3d.__version__} installed successfully')" || \
+    echo "Warning: open3d installation verification failed"
+
+# Return to original working directory
+WORKDIR /root/ComfyUI
+
+# Use the same entrypoint as base image
+CMD ["bash", "/runner-script"]

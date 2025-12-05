@@ -7,10 +7,12 @@
 const fastify = require('fastify');
 const cors = require('@fastify/cors');
 const rateLimit = require('@fastify/rate-limit');
+const websocket = require('@fastify/websocket');
 const { createAuthMiddleware } = require('./middleware/auth');
 const logger = require('./utils/logger');
 const ProcessManager = require('./utils/process-manager');
 const SystemMonitor = require('./utils/system-monitor');
+const ComfyUIManager = require('./utils/comfyui-manager');
 const metrics = require('./utils/metrics');
 
 // Configuration
@@ -29,12 +31,16 @@ const app = fastify({
 // Initialize managers
 const processManager = new ProcessManager(logger);
 const systemMonitor = new SystemMonitor(logger);
+const comfyuiManager = new ComfyUIManager(logger, metrics);
 
 // Middleware: CORS
 app.register(cors, {
   origin: true,
   credentials: true
 });
+
+// Middleware: WebSocket support
+app.register(websocket);
 
 // Middleware: Rate limiting
 app.register(rateLimit, {
@@ -106,7 +112,8 @@ app.register(require('@fastify/swagger'), {
     tags: [
       { name: 'tasks', description: 'Task management endpoints' },
       { name: 'monitoring', description: 'System monitoring and health' },
-      { name: 'metrics', description: 'Prometheus metrics' }
+      { name: 'metrics', description: 'Prometheus metrics' },
+      { name: 'comfyui', description: 'ComfyUI workflow management' }
     ]
   }
 });
@@ -133,6 +140,13 @@ app.register(require('./routes/status'), {
   prefix: '',
   systemMonitor,
   processManager,
+  logger,
+  metrics
+});
+
+app.register(require('./routes/comfyui'), {
+  prefix: '',
+  comfyuiManager,
   logger,
   metrics
 });
@@ -180,7 +194,16 @@ app.get('/', {
       tasks: {
         create: 'POST /v1/tasks',
         get: 'GET /v1/tasks/:taskId',
-        list: 'GET /v1/tasks'
+        list: 'GET /v1/tasks',
+        stop: 'DELETE /v1/tasks/:taskId'
+      },
+      comfyui: {
+        submit: 'POST /v1/comfyui/workflow',
+        status: 'GET /v1/comfyui/workflow/:workflowId',
+        cancel: 'DELETE /v1/comfyui/workflow/:workflowId',
+        models: 'GET /v1/comfyui/models',
+        outputs: 'GET /v1/comfyui/outputs',
+        stream: 'WS /v1/comfyui/stream'
       },
       monitoring: {
         status: 'GET /v1/status',

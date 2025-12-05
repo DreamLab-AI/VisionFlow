@@ -66,6 +66,43 @@ const apiErrors = new client.Counter({
   labelNames: ['error_type', 'route']
 });
 
+// ComfyUI-specific metrics
+const comfyuiWorkflowTotal = new client.Counter({
+  name: 'comfyui_workflow_total',
+  help: 'Total number of ComfyUI workflows',
+  labelNames: ['status']
+});
+
+const comfyuiWorkflowDuration = new client.Histogram({
+  name: 'comfyui_workflow_duration_seconds',
+  help: 'Duration of ComfyUI workflow execution',
+  labelNames: ['gpu_type'],
+  buckets: [1, 5, 10, 30, 60, 120, 300, 600]
+});
+
+const comfyuiWorkflowErrors = new client.Counter({
+  name: 'comfyui_workflow_errors_total',
+  help: 'Total number of ComfyUI workflow errors',
+  labelNames: ['error_type']
+});
+
+const comfyuiGpuUtilization = new client.Gauge({
+  name: 'comfyui_gpu_utilization',
+  help: 'GPU utilization percentage for ComfyUI',
+  labelNames: ['gpu_id']
+});
+
+const comfyuiVramUsage = new client.Gauge({
+  name: 'comfyui_vram_usage_bytes',
+  help: 'VRAM usage in bytes for ComfyUI',
+  labelNames: ['gpu_id']
+});
+
+const comfyuiQueueLength = new client.Gauge({
+  name: 'comfyui_queue_length',
+  help: 'Number of workflows in queue'
+});
+
 // Register custom metrics
 register.registerMetric(httpRequestDuration);
 register.registerMetric(httpRequestsTotal);
@@ -76,6 +113,12 @@ register.registerMetric(mcpToolInvocations);
 register.registerMetric(mcpToolDuration);
 register.registerMetric(workerSessions);
 register.registerMetric(apiErrors);
+register.registerMetric(comfyuiWorkflowTotal);
+register.registerMetric(comfyuiWorkflowDuration);
+register.registerMetric(comfyuiWorkflowErrors);
+register.registerMetric(comfyuiGpuUtilization);
+register.registerMetric(comfyuiVramUsage);
+register.registerMetric(comfyuiQueueLength);
 
 // Helper functions
 function recordHttpRequest(method, route, statusCode, duration) {
@@ -109,6 +152,31 @@ function setWorkerSessions(count) {
   workerSessions.set(count);
 }
 
+// ComfyUI helper functions
+function recordComfyUIWorkflow(status, duration, gpuType = 'local') {
+  comfyuiWorkflowTotal.inc({ status });
+  if (duration !== undefined && duration !== null) {
+    comfyuiWorkflowDuration.observe({ gpu_type: gpuType }, duration);
+  }
+}
+
+function recordComfyUIError(errorType) {
+  comfyuiWorkflowErrors.inc({ error_type: errorType });
+}
+
+function setComfyUIGpuMetrics(gpuId, utilization, vramUsage) {
+  if (utilization !== undefined && utilization !== null) {
+    comfyuiGpuUtilization.set({ gpu_id: gpuId }, utilization);
+  }
+  if (vramUsage !== undefined && vramUsage !== null) {
+    comfyuiVramUsage.set({ gpu_id: gpuId }, vramUsage);
+  }
+}
+
+function setComfyUIQueueLength(length) {
+  comfyuiQueueLength.set(length);
+}
+
 module.exports = {
   register,
   recordHttpRequest,
@@ -117,6 +185,10 @@ module.exports = {
   recordError,
   setActiveTasks,
   setWorkerSessions,
+  recordComfyUIWorkflow,
+  recordComfyUIError,
+  setComfyUIGpuMetrics,
+  setComfyUIQueueLength,
   metrics: {
     httpRequestDuration,
     httpRequestsTotal,
@@ -126,6 +198,12 @@ module.exports = {
     mcpToolInvocations,
     mcpToolDuration,
     workerSessions,
-    apiErrors
+    apiErrors,
+    comfyuiWorkflowTotal,
+    comfyuiWorkflowDuration,
+    comfyuiWorkflowErrors,
+    comfyuiGpuUtilization,
+    comfyuiVramUsage,
+    comfyuiQueueLength
   }
 };

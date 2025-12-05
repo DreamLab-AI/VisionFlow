@@ -69,12 +69,21 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:rw
 
       # SSH credentials (runtime mount - no rebuild needed)
-      - ${HOME}/.ssh:/home/devuser/.ssh:ro
+      # NOTE: Disabled due to read-only mount issues with ssh-agent sockets
+      # Use SSH keys by copying them into the container or use SSH agent forwarding
+      # - ${HOME}/.ssh:/home/devuser/.ssh:ro
 
     # Environment variables from .env
     environment:
       # Display
       DISPLAY: ":1"
+
+      # NVIDIA GPU Configuration (PyTorch bundles its own CUDA libraries)
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility,graphics,display
+      __GLX_VENDOR_LIBRARY_NAME: nvidia
+      __NV_PRIME_RENDER_OFFLOAD: 1
+      __VK_LAYER_NV_optimus: NVIDIA_only
 
       # API Keys
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}

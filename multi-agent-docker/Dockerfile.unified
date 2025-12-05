@@ -62,22 +62,15 @@ RUN curl -fsSL https://nodejs.org/dist/v23.11.1/node-v23.11.1-linux-x64.tar.xz |
     npm install -g npm@latest
 
 # ============================================================================
-# PHASE 2: CUDA Development Environment
+# PHASE 2: NVIDIA Driver Interface (NO system CUDA - PyTorch bundles its own)
 # ============================================================================
 
 RUN pacman -S --noconfirm \
-        cuda cuda-tools \
-        cudnn \
         nvidia-utils \
         libglvnd \
     && rm -rf /var/cache/pacman/pkg/*
 
-# Set CUDA environment variables
-ENV CUDA_HOME=/opt/cuda
-ENV PATH=/opt/cuda/bin:${PATH}
-ENV LD_LIBRARY_PATH=/opt/cuda/lib64:${LD_LIBRARY_PATH}
-
-# Configure NVIDIA OpenGL libraries
+# Configure NVIDIA OpenGL libraries (PyTorch bundles its own CUDA)
 ENV __GLX_VENDOR_LIBRARY_NAME=nvidia
 ENV __NV_PRIME_RENDER_OFFLOAD=1
 ENV __VK_LAYER_NV_optimus=NVIDIA_only
@@ -149,8 +142,13 @@ RUN rm -rf /root/.npm/_npx /home/devuser/.npm/_npx 2>/dev/null || true
 # PHASE 6: Python Virtual Environment & Tools
 # ============================================================================
 
+# Cache bust to force rebuild of Python packages with cu130
+ARG REBUILD_PYTHON=2025-12-03-cu130
+
 RUN python -m venv /opt/venv && \
     /opt/venv/bin/pip install --upgrade pip && \
+    /opt/venv/bin/pip install \
+        torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu130 && \
     /opt/venv/bin/pip install \
         supervisor \
         google-generativeai \
@@ -159,16 +157,16 @@ RUN python -m venv /opt/venv && \
         google-api-python-client \
         anthropic \
         openai \
-        # Data science stack
         numpy pandas scipy matplotlib seaborn \
         scikit-learn jupyter jupyterlab \
-        # Deep learning
-        torch torchvision torchaudio \
-        # Additional tools
         black flake8 mypy pylint \
         pytest pytest-cov \
         requests beautifulsoup4 \
-        pyyaml toml
+        pyyaml toml \
+        huggingface-hub
+
+# Add venv to PATH for supervisor and other Python tools
+ENV PATH="/opt/venv/bin:${PATH}"
 
 # ============================================================================
 # PHASE 7: devuser Setup (Primary Development User)
@@ -280,31 +278,96 @@ COPY --chown=devuser:devuser skills/ /home/devuser/.claude/skills/
 # Docker manager and chrome-devtools are already in skills/ directory
 # No separate copy needed - they're included in the skills/ copy above
 
-# Install web-summary MCP server dependencies
-RUN cd /home/devuser/.claude/skills/web-summary/mcp-server && \
-    npm install --production && \
-    chmod +x server.js && \
-    chown -R devuser:devuser /home/devuser/.claude/skills/web-summary/mcp-server
+# ============================================================================
+# Install MCP Server Dependencies (Node.js-based skills)
+# ============================================================================
 
-# Install jupyter-notebooks MCP server
+# Playwright MCP server (consolidated v2.0.0)
+RUN cd /home/devuser/.claude/skills/playwright/mcp-server && \
+    npm install --production 2>/dev/null || echo "Playwright deps optional" && \
+    chmod +x server.js 2>/dev/null || true
+
+# Web-summary MCP server (Python FastMCP v2.0.0 - no npm needed)
+# Dependencies installed via pip below
+
+# Jupyter notebooks MCP server
 RUN cd /home/devuser/.claude/skills/jupyter-notebooks && \
-    npm install --production && \
-    chmod +x server.js && \
-    chown -R devuser:devuser /home/devuser/.claude/skills/jupyter-notebooks
+    npm install --production 2>/dev/null || echo "Jupyter deps optional" && \
+    chmod +x server.js 2>/dev/null || true
 
-# Install Python dependencies for MCP tools (break-system-packages for Arch)
-# Includes docker>=7.0.0 for docker-manager skill compatibility
-# ipykernel for Jupyter notebook MCP server
+# ComfyUI MCP server
+RUN cd /home/devuser/.claude/skills/comfyui/mcp-server && \
+    npm install --production 2>/dev/null || echo "ComfyUI deps optional" && \
+    chmod +x server.js 2>/dev/null || true
+
+# Perplexity MCP server
+RUN cd /home/devuser/.claude/skills/perplexity/mcp-server && \
+    npm install --production 2>/dev/null || echo "Perplexity deps optional" && \
+    chmod +x server.js 2>/dev/null || true
+
+# ============================================================================
+# Install Python Dependencies for FastMCP Skills
+# ============================================================================
+
+# Core MCP and FastMCP dependencies
 RUN pip3 install --no-cache-dir --break-system-packages \
-    youtube-transcript-api beautifulsoup4 requests \
-    mcp \
-    docker>=7.0.0 \
+    mcp>=1.0.0 \
+    pydantic>=2.0.0 \
+    httpx>=0.25.0 \
+    youtube-transcript-api>=0.6.0
+
+# Docker manager skill
+RUN pip3 install --no-cache-dir --break-system-packages \
+    docker>=7.0.0
+
+# Jupyter notebook skill
+RUN pip3 install --no-cache-dir --break-system-packages \
     ipykernel nbformat
 
-# Make all MCP tools executable
-RUN find /home/devuser/.claude/skills -name "*.py" -path "*/tools/*" -exec chmod +x {} \; && \
+# Web scraping and general utilities
+RUN pip3 install --no-cache-dir --break-system-packages \
+    beautifulsoup4 requests
+
+# ============================================================================
+# Make All MCP Entry Points Executable
+# ============================================================================
+
+# Find and chmod all Python and JS files in mcp-server directories
+RUN find /home/devuser/.claude/skills -name "*.py" -path "*/mcp-server/*" -exec chmod +x {} \; && \
+    find /home/devuser/.claude/skills -name "*.js" -path "*/mcp-server/*" -exec chmod +x {} \; && \
+    find /home/devuser/.claude/skills -name "*.py" -path "*/tools/*" -exec chmod +x {} \; && \
     find /home/devuser/.claude/skills -name "*.js" -path "*/tools/*" -exec chmod +x {} \; && \
     chown -R devuser:devuser /home/devuser/.claude/skills
+
+# ============================================================================
+# PHASE 14: ComfyUI Installation (GPU-Accelerated Image Generation)
+# ============================================================================
+
+USER devuser
+WORKDIR /home/devuser
+
+# Clone ComfyUI
+RUN git clone https://github.com/comfyanonymous/ComfyUI.git /home/devuser/ComfyUI
+
+# Install ComfyUI with GPU-enabled PyTorch
+RUN cd /home/devuser/ComfyUI && \
+    python3 -m venv venv && \
+    . venv/bin/activate && \
+    pip install --upgrade pip && \
+    pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124 && \
+    pip install -r requirements.txt
+
+# Download FLUX.1-schnell model
+RUN cd /home/devuser/ComfyUI && \
+    . venv/bin/activate && \
+    mkdir -p models/checkpoints && \
+    hf download Comfy-Org/flux1-schnell flux1-schnell-fp8.safetensors --local-dir models/checkpoints/ || \
+    echo "FLUX model download will be attempted on first run"
+
+# Ensure proper ownership
+RUN chown -R devuser:devuser /home/devuser/ComfyUI
+
+USER root
 
 # Copy Full Management API from multi-agent-docker
 COPY --chown=devuser:devuser multi-agent-docker/management-api/ /opt/management-api/
@@ -331,9 +394,11 @@ RUN mkdir -p /opt/antigravity && \
 # Install gemini-flow globally
 RUN npm install -g gemini-flow
 
-# Copy helper scripts
+# Copy helper scripts (includes generate-mcp-settings.sh for dynamic skill discovery)
 COPY --chown=root:root unified-config/scripts/ /usr/local/bin/
-RUN chmod +x /usr/local/bin/*.sh
+RUN chmod +x /usr/local/bin/*.sh && \
+    ls -la /usr/local/bin/generate-mcp-settings.sh 2>/dev/null && \
+    echo "✓ MCP settings generator installed" || true
 
 # Create SSH directory structure (will be mounted at runtime)
 RUN mkdir -p /home/devuser/.ssh && \
