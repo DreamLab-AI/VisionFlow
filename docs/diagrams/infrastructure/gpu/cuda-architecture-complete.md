@@ -501,11 +501,11 @@ if (distance / cell_size > theta) {
 ```mermaid
 graph LR
     subgraph "Position Update"
-        POS[x(t)] --> NEWPOS[x(t+Δt) = x(t) + v(t)·Δt + 0.5·a(t)·Δt²]
+        POS[x(t)] --> NEWPOS["x(t+Δt) = x(t) + v(t)·Δt + 0.5·a(t)·Δt²"]
     end
 
     subgraph "Velocity Update"
-        VEL[v(t)] --> NEWVEL[v(t+Δt) = v(t) + 0.5·<br/>a(t)+a(t+Δt)·Δt]
+        VEL[v(t)] --> NEWVEL["v(t+Δt) = v(t) + 0.5·(a(t)+a(t+Δt))·Δt"]
     end
 
     subgraph "Adaptive Timestep"
@@ -572,9 +572,9 @@ __global__ void integrate_pass_kernel(
 ```mermaid
 graph TB
     subgraph "Initialization (K-means++)"
-        RANDOM[Select random centroid C₁] --> DIST[Calculate D(x) = min distance to centroids]
-        DIST --> PROB[P(x) ∝ D(x)²]
-        PROB --> SELECT[Select next centroid with probability P(x)]
+        RANDOM["Select random centroid C₁"] --> DIST["Calculate D(x) = min distance to centroids"]
+        DIST --> PROB["P(x) ∝ D(x)²"]
+        PROB --> SELECT["Select next centroid with probability P(x)"]
         SELECT --> CHECK{k < K}
         CHECK -->|Yes| DIST
         CHECK -->|No| ASSIGN
@@ -711,8 +711,8 @@ graph TB
 
     subgraph "Local Optimization"
         DEGREE --> LOCAL[louvain_local_pass_kernel<br/>Test neighbor communities]
-        LOCAL --> GAIN[Compute modularity gain<br/>ΔQ = Σ weight_in - k·Σ_total]
-        GAIN --> MOVE{ΔQ > 0}
+        LOCAL --> GAIN["Compute modularity gain<br/>See implementation below"]
+        GAIN --> MOVE{"ΔQ > 0"}
         MOVE -->|Yes| UPDATE[Move node to best community<br/>Atomic weight updates]
         MOVE -->|No| NEXT
         UPDATE --> NEXT[Next node]
@@ -798,10 +798,10 @@ graph TB
 
     subgraph "BFS Expansion"
         FRONTIER --> RELAX[Relax edges<br/>For each node in frontier]
-        RELAX --> UPDATE{distance[v] > distance[u] + w(u,v)}
-        UPDATE -->|Yes| MARK[Mark v for next frontier<br/>Update distance[v]]
+        RELAX --> UPDATE{"distance[v] > distance[u] + w(u,v)"}
+        UPDATE -->|Yes| MARK["Mark v for next frontier<br/>Update distance[v]"]
         UPDATE -->|No| SKIP[Skip]
-        MARK --> FLAGS[Set frontier_flags[v] = 1]
+        MARK --> FLAGS["Set frontier_flags[v] = 1"]
         SKIP --> FLAGS
     end
 
@@ -822,87 +822,25 @@ graph TB
     style DONE fill:#e1ffe1
 ```
 
-**Frontier Compaction Kernel**:
-```cpp
-// Parallel prefix sum (exclusive scan) for compaction
-__global__ void compact_frontier_kernel(
-    const int* flags,                // Input: per-node flags (1 if in frontier)
-    int* scan_output,                // Output: exclusive scan results
-    int* compacted_frontier,         // Output: compacted frontier
-    int* frontier_size,              // Output: new frontier size
-    const int num_nodes
-) {
-    extern __shared__ int shared_data[];
-
-    int tid = threadIdx.x;
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-
-    // Load flag into shared memory
-    int flag = (idx < num_nodes) ? flags[idx] : 0;
-    shared_data[tid] = flag;
-    __syncthreads();
-
-    // Up-sweep (parallel prefix sum)
-    for (int stride = 1; stride < blockDim.x; stride *= 2) {
-        int index = (tid + 1) * stride * 2 - 1;
-        if (index < blockDim.x) {
-            shared_data[index] += shared_data[index - stride];
-        }
-        __syncthreads();
-    }
-
-    // Store block sum
-    if (tid == blockDim.x - 1) {
-        scan_output[blockIdx.x] = shared_data[tid];
-        shared_data[tid] = 0;
-    }
-    __syncthreads();
-
-    // Down-sweep
-    for (int stride = blockDim.x / 2; stride > 0; stride /= 2) {
-        int index = (tid + 1) * stride * 2 - 1;
-        if (index < blockDim.x) {
-            int temp = shared_data[index - stride];
-            shared_data[index - stride] = shared_data[index];
-            shared_data[index] += temp;
-        }
-        __syncthreads();
-    }
-
-    // Write compacted result
-    if (idx < num_nodes) {
-        int scan_val = shared_data[tid];
-
-        // If flagged, write to compacted position
-        if (flag) {
-            compacted_frontier[scan_val] = idx;
-        }
-
-        // Last thread writes total size
-        if (idx == num_nodes - 1) {
-            *frontier_size = scan_val + flag;
-        }
-    }
-}
-```
+**Frontier Compaction**: Parallel prefix sum for compacting sparse frontiers (see sssp_compact.cu for implementation).
 
 ### 6.2 PageRank Power Iteration
 
 ```mermaid
 graph LR
     subgraph "Initialization"
-        INIT[PR₀i = 1/n<br/>∀ nodes] --> ITER[Iteration k]
+        INIT["PR₀(i) = 1/n for all nodes"] --> ITER[Iteration k]
     end
 
     subgraph "Power Method"
-        ITER --> SUM[PR_ki = Σ PR_k-1j / deg_outj<br/>For neighbors j]
-        SUM --> DAMP[PR_ki = 1-d/n + d·Σ]
+        ITER --> SUM["PR_k(i) = Σ PR_{k-1}(j) / deg_out(j)<br/>For neighbors j"]
+        SUM --> DAMP["PR_k(i) = (1-d)/n + d·Σ"]
         DAMP --> DANGLE[Handle dangling nodes<br/>Redistribute mass]
     end
 
     subgraph "Convergence"
-        DANGLE --> NORM[Normalize Σ PR = 1]
-        NORM --> CHECK{||PR_k - PR_k-1|| < ε}
+        DANGLE --> NORM["Normalize: Σ PR = 1"]
+        NORM --> CHECK{"||PR_k - PR_{k-1}|| < ε"}
         CHECK -->|No| ITER
         CHECK -->|Yes| DONE[PageRank complete]
     end
@@ -912,58 +850,7 @@ graph LR
     style DONE fill:#e1ffe1
 ```
 
-**Optimized PageRank Kernel**:
-```cpp
-__global__ void pagerank_iteration_optimized_kernel(
-    const float* pagerank_old,
-    float* pagerank_new,
-    const int* row_offsets,          // CSR format
-    const int* col_indices,
-    const int* out_degree,
-    const int num_nodes,
-    const float damping,
-    const float teleport
-) {
-    extern __shared__ float shared_pagerank[];
-
-    int tid = blockIdx.x * blockDim.x + threadIdx.x;
-    int local_tid = threadIdx.x;
-
-    // Load pagerank_old into shared memory
-    if (tid < num_nodes) {
-        shared_pagerank[local_tid] = pagerank_old[tid];
-    }
-    __syncthreads();
-
-    if (tid < num_nodes) {
-        float rank_sum = 0.0f;
-
-        // Sum contributions from incoming edges
-        for (int src = 0; src < num_nodes; src++) {
-            int edge_start = row_offsets[src];
-            int edge_end = row_offsets[src + 1];
-            int degree = out_degree[src];
-
-            if (degree == 0) continue; // Skip dangling nodes
-
-            // Check if src links to tid
-            for (int e = edge_start; e < edge_end; e++) {
-                if (col_indices[e] == tid) {
-                    // Use shared memory when possible
-                    float src_pr = (src / blockDim.x == blockIdx.x)
-                        ? shared_pagerank[src % blockDim.x]
-                        : pagerank_old[src];
-                    rank_sum += src_pr / (float)degree;
-                    break;
-                }
-            }
-        }
-
-        // Apply PageRank formula
-        pagerank_new[tid] = teleport + damping * rank_sum;
-    }
-}
-```
+**PageRank Implementation**: Power iteration with CSR sparse format and shared memory optimization (see pagerank.cu for implementation).
 
 ---
 
@@ -1146,7 +1033,7 @@ __global__ void compute_aabb_reduction_kernel(
 ```mermaid
 graph TB
     subgraph "Algorithm Level"
-        ALGO[Choose optimal algorithm<br/>O(n²) → O(n log n)]
+        ALGO["Choose optimal algorithm<br/>O(n²) → O(n log n)"]
         ALGO --> APPROX[Use approximations<br/>Barnes-Hut, landmark APSP]
     end
 
@@ -1424,7 +1311,7 @@ graph TB
     subgraph "Optimization Opportunities"
         BW --> CACHE[L2 Cache hit rate<br/>Target: >90%]
         CACHE --> BANDWIDTH_UTIL[Memory utilization<br/>~0.1% of peak]
-        BANDWIDTH_UTIL --> COMPUTE[Compute-bound<br/>Not memory-bound]
+        BANDWIDTH_UTIL --> COMPUTE["Compute-bound<br/>Not memory-bound"]
     end
 
     style GPU fill:#e1f5ff

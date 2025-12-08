@@ -73,23 +73,23 @@ graph TB
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Initializing: Actor.started()
+    [*] --> Initializing: "Actor.started()"
 
     Initializing --> SpawningChildren: Spawn child actors
-    SpawningChildren --> SettingAddresses: Store Addr<T>
+    SpawningChildren --> SettingAddresses: "Store Addr<T>"
     SettingAddresses --> Monitoring: Setup supervision
 
     Monitoring --> Monitoring: Normal operation
     Monitoring --> ChildFailed: Child actor crash
 
-    ChildFailed --> RestartChild: restart_count < 3
-    ChildFailed --> EscalateFailure: restart_count >= 3
+    ChildFailed --> RestartChild: "restart_count < 3"
+    ChildFailed --> EscalateFailure: "restart_count >= 3"
 
     RestartChild --> Monitoring: Child restarted
     EscalateFailure --> [*]: Supervisor stops
 
     Monitoring --> Stopping: Stop message
-    Stopping --> [*]: Actor.stopped()
+    Stopping --> [*]: "Actor.stopped()"
 
     note right of Monitoring
         Supervision Strategy:
@@ -138,7 +138,7 @@ stateDiagram-v2
     Updating --> Error: Update failed
 
     Ready --> Simulating: StartSimulation
-    Simulating --> Simulating: SimulationStep (loop)
+    Simulating --> Simulating: "SimulationStep (loop)"
     Simulating --> Ready: StopSimulation
 
     Error --> Recovering: ReloadGraphFromDatabase
@@ -734,10 +734,10 @@ sequenceDiagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Created: Addr::start()
+    [*] --> Created: "Addr::start()"
 
     Created --> Starting: Actix spawns actor
-    Starting --> Started: Actor::started() called
+    Starting --> Started: "Actor::started() called"
 
     Started --> Running: Begin processing messages
 
@@ -745,8 +745,8 @@ stateDiagram-v2
     MessageWaiting --> Processing: Message received
     Processing --> Running: Handler returns
 
-    Running --> Stopping: do_send(StopMessage)
-    Stopping --> Stopped: Actor::stopped() called
+    Running --> Stopping: "do_send(StopMessage)"
+    Stopping --> Stopped: "Actor::stopped() called"
     Stopped --> [*]: Cleanup complete
 
     Processing --> Error: Handler panics
@@ -764,7 +764,7 @@ stateDiagram-v2
     note right of Processing
         Message Handler:
         1. Deserialize message
-        2. Call Handler::handle()
+        2. Call "Handler::handle()"
         3. Await async operations
         4. Serialize result
         5. Send response (if sync)
@@ -1035,7 +1035,7 @@ stateDiagram-v2
 
     Ready --> ComputingForces: ComputeForces message
     ComputingForces --> LaunchingKernel: Launch CUDA kernel
-    LaunchingKernel --> Synchronizing: cudaDeviceSynchronize()
+    LaunchingKernel --> Synchronizing: "cudaDeviceSynchronize()"
     Synchronizing --> DownloadingResults: Copy results to host
     DownloadingResults --> Ready: Return ForceVectors
 
@@ -1047,7 +1047,7 @@ stateDiagram-v2
     UpdatingParams --> UploadingParams: Copy params to GPU
     UploadingParams --> Ready: Params updated
 
-    Ready --> [*]: Cleanup (Actor stopped)
+    Ready --> [*]: "Cleanup (Actor stopped)"
 
     note right of LaunchingKernel
         CUDA Kernel Configuration:
@@ -1671,7 +1671,7 @@ sequenceDiagram
     GSS->>GSA: Spawn new actor instance
 
     activate GSA
-    GSA->>GSA: Actor::started()
+    GSA->>GSA: "Actor::started()"
     GSA->>Checkpoint: Load latest checkpoint
 
     alt Checkpoint exists and valid

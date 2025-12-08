@@ -180,6 +180,12 @@ agentdb.db-shm
 **/.claude-flow/
 multi-agent-docker/gui-tools-assets/blender-*.tar.xz
 .claude/
+
+# ComfyUI storage (models, input, output - too large for git)
+multi-agent-docker/comfyui/storage-models/
+multi-agent-docker/comfyui/storage-input/
+multi-agent-docker/comfyui/storage-output/
+multi-agent-docker/ComfyUIDocker/storage-models/
 .swarm/memory.db-shm
 .swarm/memory.db-shm
 .swarm/memory.db-shm

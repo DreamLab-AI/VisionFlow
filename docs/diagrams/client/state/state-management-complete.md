@@ -59,21 +59,21 @@
 ```typescript
 interface SettingsState {
   // Partial state (lazily loaded)
-  partialSettings: DeepPartial<Settings>
-  loadedPaths: Set<string>          // Tracks which paths are loaded
-  loadingSections: Set<string>      // Tracks sections currently loading
+  partialSettings: "DeepPartial<Settings>"
+  loadedPaths: "Set<string>"          // Tracks which paths are loaded
+  loadingSections: "Set<string>"      // Tracks sections currently loading
 
   // Full settings mirror (deprecated, for backward compat)
-  settings: DeepPartial<Settings>
+  settings: "DeepPartial<Settings>"
 
   // Authentication state
   initialized: boolean
   authenticated: boolean
-  user: { isPowerUser: boolean; pubkey: string } | null
+  user: "{ isPowerUser: boolean; pubkey: string } | null"
   isPowerUser: boolean
 
   // Subscription management
-  subscribers: Map<string, Set<() => void>>
+  subscribers: "Map<string, Set<() => void>>"
 }
 ```
 
@@ -111,76 +111,76 @@ initialize: () => Promise<void>
   - Triggers AutoSaveManager initialization
 
 // Path-based access
-get: <T>(path: SettingsPath) => T
+"get: <T>(path: SettingsPath) => T"
   - Returns undefined if path not loaded
   - Validates path exists in loadedPaths
   - Traverses nested object by dot notation
 
-set: <T>(path: SettingsPath, value: T) => void
+"set: <T>(path: SettingsPath, value: T) => void"
   - Updates local state immediately
   - Triggers backend API update (async)
   - Marks path as loaded
 
 // Lazy loading
-ensureLoaded: (paths: string[]) => Promise<void>
+"ensureLoaded: (paths: string[]) => Promise<void>"
   - Checks loadedPaths
   - Fetches unloaded paths via API
   - Updates state and loadedPaths
 
-loadSection: (section: string) => Promise<void>
+"loadSection: (section: string) => Promise<void>"
   - Maps section to paths
   - Calls ensureLoaded
   - Prevents duplicate loads
 
 // Batch operations
-updateSettings: (updater: (draft: Settings) => void) => void
+"updateSettings: (updater: (draft: Settings) => void) => void"
   - Uses Immer produce()
   - Detects changed paths automatically
   - Sends batch update to backend
   - Notifies all subscribers
 
-batchUpdate: (updates: Array<{path, value}>) => void
+"batchUpdate: (updates: Array<{path, value}>) => void"
   - Updates multiple paths atomically
   - Single API call for all updates
 
 // Special handlers
-updatePhysics: (graphName: string, params: Partial<GPUPhysicsParams>) => void
+"updatePhysics: (graphName: string, params: Partial<GPUPhysicsParams>) => void"
   - Validates physics parameters
   - Clamps values to safe ranges
   - Sends WebSocket notification
   - Dispatches custom DOM event
 
-notifyPhysicsUpdate: (graphName: string, params: Partial<GPUPhysicsParams>) => void
+"notifyPhysicsUpdate: (graphName: string, params: Partial<GPUPhysicsParams>) => void"
   - Sends WebSocket message if connected
   - Dispatches 'physicsParametersUpdated' event
   - Used by GPU physics engine
 
 // Subscription system
-subscribe: (path: SettingsPath, callback: () => void, immediate?: boolean) => () => void
+"subscribe: (path: SettingsPath, callback: () => void, immediate?: boolean) => () => void"
   - Adds callback to subscribers map
   - Optionally calls immediately
   - Returns unsubscribe function
 
-unsubscribe: (path: SettingsPath, callback: () => void) => void
+"unsubscribe: (path: SettingsPath, callback: () => void) => void"
   - Removes callback from subscribers
   - Cleans up empty subscription sets
 
-notifyViewportUpdate: (path: SettingsPath) => void
+"notifyViewportUpdate: (path: SettingsPath) => void"
   - Special handler for viewport settings
   - Triggers 'viewport.update' subscribers
   - Used for camera/view changes
 
 // Import/Export
-exportSettings: () => Promise<string>
+"exportSettings: () => Promise<string>"
   - Fetches all settings if only essentials loaded
   - Returns JSON string
 
-importSettings: (jsonString: string) => Promise<void>
+"importSettings: (jsonString: string) => Promise<void>"
   - Parses JSON
   - Extracts all paths
   - Calls batchUpdate
 
-resetSettings: () => Promise<void>
+"resetSettings: () => Promise<void>"
   - Calls backend reset API
   - Clears local state
   - Re-initializes with essentials
@@ -223,7 +223,7 @@ persist(
 #### Section Path Mapping
 
 ```typescript
-function getSectionPaths(section: string): string[] {
+"function getSectionPaths(section: string): string[]" {
   const sectionPathMap = {
     'physics': [
       'visualisation.graphs.logseq.physics',
@@ -263,10 +263,10 @@ function getSectionPaths(section: string): string[] {
 
 ```typescript
 class AutoSaveManager {
-  private pendingChanges: Map<string, any>
-  private saveDebounceTimer: NodeJS.Timeout | null
+  private pendingChanges: "Map<string, any>"
+  private saveDebounceTimer: "NodeJS.Timeout | null"
   private isInitialized: boolean
-  private retryCount: Map<string, number>
+  private retryCount: "Map<string, number>"
 
   private readonly MAX_RETRIES = 3
   private readonly DEBOUNCE_DELAY = 500 // ms
@@ -283,37 +283,37 @@ class AutoSaveManager {
 
 ```typescript
 // Queue management
-queueChange(path: string, value: any): void
+"queueChange(path: string, value: any): void"
   - Skip if not initialized
   - Skip client-only paths
   - Add to pendingChanges map
   - Reset retry count
   - Schedule flush (debounced)
 
-queueChanges(changes: Map<string, any>): void
+"queueChanges(changes: Map<string, any>): void"
   - Batch version of queueChange
   - Filters client-only paths
   - Single debounced flush
 
 // Persistence
-scheduleFlush(): void
+"scheduleFlush(): void"
   - Clear existing timer
   - Set 500ms debounce timer
   - Calls flushPendingChanges
 
-forceFlush(): Promise<void>
+"forceFlush(): Promise<void>"
   - Cancel debounce timer
   - Immediate flush
   - Used on unmount/critical saves
 
-flushPendingChanges(): Promise<void>
+"flushPendingChanges(): Promise<void>"
   - Convert map to BatchOperation[]
   - Call settingsApi.updateSettingsByPaths
   - Clear successful updates
   - Retry failed updates
 
 // Retry logic
-retryFailedChanges(failedUpdates: BatchOperation[], error: any): Promise<void>
+"retryFailedChanges(failedUpdates: BatchOperation[], error: any): Promise<void>"
   - Track retry count per path
   - Exponential backoff: RETRY_DELAY * 2^retryCount
   - Max 3 retries per path
@@ -321,8 +321,8 @@ retryFailedChanges(failedUpdates: BatchOperation[], error: any): Promise<void>
   - Schedule individual retries
 
 // Status
-hasPendingChanges(): boolean
-getPendingCount(): number
+"hasPendingChanges(): boolean"
+"getPendingCount(): number"
 ```
 
 #### Flow Diagram
@@ -394,16 +394,16 @@ interface AnalyticsState {
 
 interface SSSPResult {
   sourceNodeId: string
-  distances: Record<string, number>
-  predecessors: Record<string, string | null>
+  distances: "Record<string, number>"
+  predecessors: "Record<string, string | null>"
   unreachableCount: number
   computationTime: number
   timestamp: number
-  algorithm: 'dijkstra' | 'bellman-ford' | 'floyd-warshall'
+  algorithm: "'dijkstra' | 'bellman-ford' | 'floyd-warshall'"
 }
 
 interface SSSPCache {
-  [sourceNodeId: string]: {
+  "[sourceNodeId: string]": {
     result: SSSPResult
     lastAccessed: number
     graphHash: string
@@ -423,12 +423,7 @@ interface AnalyticsMetrics {
 
 ```typescript
 // Computation
-computeSSSP: (
-  nodes: GraphNode[],
-  edges: GraphEdge[],
-  sourceNodeId: string,
-  algorithm?: 'dijkstra' | 'bellman-ford'
-) => Promise<SSSPResult>
+"computeSSSP: (nodes: GraphNode[], edges: GraphEdge[], sourceNodeId: string, algorithm?: 'dijkstra' | 'bellman-ford') => Promise<SSSPResult>"
   - Validates inputs
   - Computes graph hash
   - Checks cache (by sourceNodeId + graphHash)
@@ -441,51 +436,51 @@ computeSSSP: (
   - LRU eviction (max 50 entries)
 
 // Algorithms
-dijkstra(nodes, edges, sourceNodeId): SSSPResult
+"dijkstra(nodes, edges, sourceNodeId): SSSPResult"
   - Classic Dijkstra's algorithm
   - Handles disconnected graphs
   - Returns distances + predecessors
 
-bellmanFord(nodes, edges, sourceNodeId): SSSPResult
+"bellmanFord(nodes, edges, sourceNodeId): SSSPResult"
   - Bellman-Ford algorithm
   - Handles negative weights
   - Detects negative cycles
 
 // Cache management
-getCachedResult(sourceNodeId, graphHash): SSSPResult | null
+"getCachedResult(sourceNodeId, graphHash): SSSPResult | null"
   - Validates graph hash matches
   - Updates lastAccessed timestamp
   - Returns null on miss
 
-clearCache(): void
+"clearCache(): void"
   - Clears entire cache
   - Resets lastGraphHash
 
-invalidateCache(): void
+"invalidateCache(): void"
   - Clears cache + lastGraphHash
   - Used when graph structure changes
 
-cleanExpiredCache(maxAge = 24h): void
+"cleanExpiredCache(maxAge = 24h): void"
   - Removes entries older than maxAge
   - Based on lastAccessed timestamp
 
 // Utilities
-normalizeDistances(result): Record<string, number>
+"normalizeDistances(result): Record<string, number>"
   - Min-max normalization to [0, 1]
   - Handles Infinity values
   - Used for visualization
 
-getUnreachableNodes(result): string[]
+"getUnreachableNodes(result): string[]"
   - Returns node IDs with distance = Infinity
 
 // Metrics
-updateMetrics(computationTime, fromCache): void
+"updateMetrics(computationTime, fromCache): void"
   - Increments totalComputations
   - Tracks cache hits/misses
   - Updates averageComputationTime
   - Only averages non-cached computations
 
-resetMetrics(): void
+"resetMetrics(): void"
 ```
 
 #### Persistence
@@ -559,15 +554,15 @@ Invalidation Triggers:
 ```typescript
 interface MultiUserState {
   localUserId: string
-  users: Record<string, UserData>
-  connectionStatus: 'disconnected' | 'connecting' | 'connected'
+  users: "Record<string, UserData>"
+  connectionStatus: "'disconnected' | 'connecting' | 'connected'"
 }
 
 interface UserData {
   id: string
   name?: string
-  position: [number, number, number]
-  rotation: [number, number, number]
+  position: "[number, number, number]"
+  rotation: "[number, number, number]"
   isSelecting: boolean
   selectedNodeId?: string
   lastUpdate: number
@@ -579,24 +574,24 @@ interface UserData {
 
 ```typescript
 // User management
-setLocalUserId(userId: string): void
-updateUser(userId: string, data: Partial<UserData>): void
-removeUser(userId: string): void
+"setLocalUserId(userId: string): void"
+"updateUser(userId: string, data: Partial<UserData>): void"
+"removeUser(userId: string): void"
 
 // Local user actions
-updateLocalPosition(position: [x, y, z], rotation: [x, y, z]): void
+"updateLocalPosition(position: [x, y, z], rotation: [x, y, z]): void"
   - Updates localUserId's position/rotation
   - Triggers WebSocket sync
 
-updateLocalSelection(isSelecting: boolean, selectedNodeId?: string): void
+"updateLocalSelection(isSelecting: boolean, selectedNodeId?: string): void"
   - Updates localUserId's selection state
   - Broadcasts to other users
 
 // Connection
-setConnectionStatus(status): void
+"setConnectionStatus(status): void"
 
 // Maintenance
-clearStaleUsers(staleThreshold = 30s): void
+"clearStaleUsers(staleThreshold = 30s): void"
   - Removes users with lastUpdate > threshold
   - Keeps localUserId regardless
 ```
@@ -605,26 +600,26 @@ clearStaleUsers(staleThreshold = 30s): void
 
 ```typescript
 class MultiUserConnection {
-  private ws: WebSocket | null
-  private reconnectInterval: NodeJS.Timeout | null
-  private heartbeatInterval: NodeJS.Timeout | null
+  private ws: "WebSocket | null"
+  private reconnectInterval: "NodeJS.Timeout | null"
+  private heartbeatInterval: "NodeJS.Timeout | null"
 
-  connect(): void
+  "connect(): void"
     - Opens WebSocket connection
     - Sends 'join' message
     - Starts heartbeat (5s interval)
     - Schedules reconnect on close
 
-  handleMessage(message): void
+  "handleMessage(message): void"
     - 'userUpdate': Update remote user
     - 'userLeft': Remove user
     - 'sync': Batch user state sync
     - 'pong': Heartbeat response
 
-  send(data): void
+  "send(data): void"
     - Sends JSON message if connected
 
-  disconnect(): void
+  "disconnect(): void"
     - Stops heartbeat
     - Closes WebSocket
     - Clears intervals
@@ -689,8 +684,8 @@ interface OntologyState {
 interface Violation {
   axiomType: string
   description: string
-  severity: 'error' | 'warning'
-  affectedEntities: string[]
+  severity: "'error' | 'warning'"
+  affectedEntities: "string[]"
 }
 
 interface ConstraintGroup {
@@ -708,7 +703,7 @@ interface OntologyMetrics {
   classCount: number
   propertyCount: number
   individualCount: number
-  constraintsByType: Record<string, number>
+  constraintsByType: "Record<string, number>"
   cacheHitRate: number
   validationTimeMs: number
   lastValidated?: number
@@ -719,31 +714,31 @@ interface OntologyMetrics {
 
 ```typescript
 // Ontology operations
-loadOntology(fileUrl: string): Promise<void>
+"loadOntology(fileUrl: string): Promise<void>"
   - POST /api/ontology/load
   - Updates metrics and constraintGroups
   - Sets loaded = true
 
-validateOntology(): Promise<void>
+"validateOntology(): Promise<void>"
   - POST /api/ontology/validate
   - Sends enabled constraint groups
   - Updates violations and metrics
   - Records validation timestamp
 
 // Constraint management
-toggleConstraintGroup(id: string): void
+"toggleConstraintGroup(id: string): void"
   - Flips enabled state
   - Requires re-validation
 
-updateStrength(id: string, strength: number): void
+"updateStrength(id: string, strength: number): void"
   - Updates constraint strength (0-1)
   - Used for soft constraints
 
 // State setters
-setLoaded(loaded: boolean): void
-setValidating(validating: boolean): void
-setViolations(violations: Violation[]): void
-setMetrics(metrics: OntologyMetrics): void
+"setLoaded(loaded: boolean): void"
+"setValidating(validating: boolean): void"
+"setViolations(violations: Violation[]): void"
+"setMetrics(metrics: OntologyMetrics): void"
 ```
 
 #### Default Constraint Groups
@@ -1274,7 +1269,7 @@ merge: (persistedState, currentState) => {
 #### Shallow Equality Checks
 
 ```typescript
-function shallowEqual<T>(a: T, b: T): boolean {
+"function shallowEqual<T>(a: T, b: T): boolean" {
   if (a === b) return true;
   if (!a || !b) return false;
   if (typeof a !== 'object' || typeof b !== 'object') return a === b;
@@ -1303,14 +1298,7 @@ const physics = useSettingsStore(
 #### Selector Memoization
 
 ```typescript
-const useSettingsSelector = <T>(
-  selector: (settings: any) => T,
-  options: {
-    equalityFn?: (prev: T, next: T) => boolean;
-    enableCache?: boolean;
-    cacheTTL?: number;
-  } = {}
-): T => {
+"const useSettingsSelector = <T>(selector: (settings: any) => T, options: {...} = {}): T => {" {
   const {
     equalityFn = shallowEqual,
     enableCache = false,
@@ -1382,16 +1370,16 @@ async function getDedicatedSetting<T>(path: SettingsPath): Promise<T> {
 ### 3. Response Caching
 
 ```typescript
-interface CacheEntry<T> {
+"interface CacheEntry<T>" {
   value: T;
   timestamp: number;
   ttl: number;
 }
 
-const responseCache = new Map<string, CacheEntry<any>>();
+"const responseCache = new Map<string, CacheEntry<any>>();"
 const CACHE_TTL = 5000; // 5 seconds
 
-function getCachedResponse<T>(key: string): T | undefined {
+"function getCachedResponse<T>(key: string): T | undefined" {
   const entry = responseCache.get(key);
   if (!entry) return undefined;
 
@@ -1404,7 +1392,7 @@ function getCachedResponse<T>(key: string): T | undefined {
   return entry.value;
 }
 
-function setCachedResponse<T>(key: string, value: T, ttl: number = CACHE_TTL): void {
+"function setCachedResponse<T>(key: string, value: T, ttl: number = CACHE_TTL): void" {
   responseCache.set(key, {
     value,
     timestamp: Date.now(),
@@ -1472,10 +1460,7 @@ private scheduleFlush() {
 ### 5. Batch Loading
 
 ```typescript
-function debouncedBatchLoad(
-  paths: string[],
-  callback: (results: Record<string, any>) => void
-): void {
+"function debouncedBatchLoad(paths: string[], callback: (results: Record<string, any>) => void): void" {
   const key = paths.sort().join('|');
 
   if (debounceMap.has(key)) {
@@ -2003,54 +1988,54 @@ USER EXPERIENCE:
 ```typescript
 interface SettingsState {
   // State
-  partialSettings: DeepPartial<Settings>
-  settings: DeepPartial<Settings>
-  loadedPaths: Set<string>
-  loadingSections: Set<string>
+  partialSettings: "DeepPartial<Settings>"
+  settings: "DeepPartial<Settings>"
+  loadedPaths: "Set<string>"
+  loadingSections: "Set<string>"
   initialized: boolean
   authenticated: boolean
-  user: { isPowerUser: boolean; pubkey: string } | null
+  user: "{ isPowerUser: boolean; pubkey: string } | null"
   isPowerUser: boolean
-  subscribers: Map<string, Set<() => void>>
+  subscribers: "Map<string, Set<() => void>>"
 
   // Initialization
-  initialize: () => Promise<void>
-  setAuthenticated: (authenticated: boolean) => void
-  setUser: (user: { isPowerUser: boolean; pubkey: string } | null) => void
+  "initialize: () => Promise<void>"
+  "setAuthenticated: (authenticated: boolean) => void"
+  "setUser: (user: { isPowerUser: boolean; pubkey: string } | null) => void"
 
   // Access
-  get: <T>(path: SettingsPath) => T
-  set: <T>(path: SettingsPath, value: T) => void
+  "get: <T>(path: SettingsPath) => T"
+  "set: <T>(path: SettingsPath, value: T) => void"
 
   // Subscriptions
-  subscribe: (path: SettingsPath, callback: () => void, immediate?: boolean) => () => void
-  unsubscribe: (path: SettingsPath, callback: () => void) => void
-  notifyViewportUpdate: (path: SettingsPath) => void
+  "subscribe: (path: SettingsPath, callback: () => void, immediate?: boolean) => () => void"
+  "unsubscribe: (path: SettingsPath, callback: () => void) => void"
+  "notifyViewportUpdate: (path: SettingsPath) => void"
 
   // Lazy loading
-  ensureLoaded: (paths: string[]) => Promise<void>
-  loadSection: (section: string) => Promise<void>
-  isLoaded: (path: SettingsPath) => boolean
+  "ensureLoaded: (paths: string[]) => Promise<void>"
+  "loadSection: (section: string) => Promise<void>"
+  "isLoaded: (path: SettingsPath) => boolean"
 
   // Batch operations
-  updateSettings: (updater: (draft: Settings) => void) => void
-  getByPath: <T>(path: SettingsPath) => Promise<T>
-  setByPath: <T>(path: SettingsPath, value: T) => void
-  batchUpdate: (updates: Array<{path: SettingsPath, value: any}>) => void
-  flushPendingUpdates: () => Promise<void>
+  "updateSettings: (updater: (draft: Settings) => void) => void"
+  "getByPath: <T>(path: SettingsPath) => Promise<T>"
+  "setByPath: <T>(path: SettingsPath, value: T) => void"
+  "batchUpdate: (updates: Array<{path: SettingsPath, value: any}>) => void"
+  "flushPendingUpdates: () => Promise<void>"
 
   // Import/Export
-  resetSettings: () => Promise<void>
-  exportSettings: () => Promise<string>
-  importSettings: (jsonString: string) => Promise<void>
+  "resetSettings: () => Promise<void>"
+  "exportSettings: () => Promise<string>"
+  "importSettings: (jsonString: string) => Promise<void>"
 
   // Specialized updates
-  updateComputeMode: (mode: string) => void
-  updateClustering: (config: ClusteringConfig) => void
-  updateConstraints: (constraints: ConstraintConfig[]) => void
-  updatePhysics: (graphName: string, params: Partial<GPUPhysicsParams>) => void
-  updateWarmupSettings: (settings: WarmupSettings) => void
-  notifyPhysicsUpdate: (graphName: string, params: Partial<GPUPhysicsParams>) => void
+  "updateComputeMode: (mode: string) => void"
+  "updateClustering: (config: ClusteringConfig) => void"
+  "updateConstraints: (constraints: ConstraintConfig[]) => void"
+  "updatePhysics: (graphName: string, params: Partial<GPUPhysicsParams>) => void"
+  "updateWarmupSettings: (settings: WarmupSettings) => void"
+  "notifyPhysicsUpdate: (graphName: string, params: Partial<GPUPhysicsParams>) => void"
 }
 ```
 
@@ -2059,36 +2044,31 @@ interface SettingsState {
 ```typescript
 interface AnalyticsState {
   // State
-  currentResult: SSSPResult | null
+  currentResult: "SSSPResult | null"
   cache: SSSPCache
   loading: boolean
-  error: string | null
+  error: "string | null"
   metrics: AnalyticsMetrics
-  lastGraphHash: string | null
+  lastGraphHash: "string | null"
 
   // Computation
-  computeSSSP: (
-    nodes: GraphNode[],
-    edges: GraphEdge[],
-    sourceNodeId: string,
-    algorithm?: 'dijkstra' | 'bellman-ford' | 'floyd-warshall'
-  ) => Promise<SSSPResult>
+  "computeSSSP: (nodes: GraphNode[], edges: GraphEdge[], sourceNodeId: string, algorithm?: 'dijkstra' | 'bellman-ford' | 'floyd-warshall') => Promise<SSSPResult>"
 
   // Cache management
-  clearResults: () => void
-  clearCache: () => void
-  getCachedResult: (sourceNodeId: string, graphHash: string) => SSSPResult | null
-  invalidateCache: () => void
-  cleanExpiredCache: (maxAge?: number) => void
+  "clearResults: () => void"
+  "clearCache: () => void"
+  "getCachedResult: (sourceNodeId: string, graphHash: string) => SSSPResult | null"
+  "invalidateCache: () => void"
+  "cleanExpiredCache: (maxAge?: number) => void"
 
   // Utilities
-  normalizeDistances: (result: SSSPResult) => Record<string, number>
-  getUnreachableNodes: (result: SSSPResult) => string[]
+  "normalizeDistances: (result: SSSPResult) => Record<string, number>"
+  "getUnreachableNodes: (result: SSSPResult) => string[]"
 
   // Metrics
-  updateMetrics: (computationTime: number, fromCache: boolean) => void
-  resetMetrics: () => void
-  setError: (error: string | null) => void
+  "updateMetrics: (computationTime: number, fromCache: boolean) => void"
+  "resetMetrics: () => void"
+  "setError: (error: string | null) => void"
 }
 ```
 
@@ -2098,23 +2078,23 @@ interface AnalyticsState {
 interface MultiUserState {
   // State
   localUserId: string
-  users: Record<string, UserData>
-  connectionStatus: 'disconnected' | 'connecting' | 'connected'
+  users: "Record<string, UserData>"
+  connectionStatus: "'disconnected' | 'connecting' | 'connected'"
 
   // User management
-  setLocalUserId: (userId: string) => void
-  updateUser: (userId: string, data: Partial<UserData>) => void
-  removeUser: (userId: string) => void
+  "setLocalUserId: (userId: string) => void"
+  "updateUser: (userId: string, data: Partial<UserData>) => void"
+  "removeUser: (userId: string) => void"
 
   // Local user actions
-  updateLocalPosition: (position: [number, number, number], rotation: [number, number, number]) => void
-  updateLocalSelection: (isSelecting: boolean, selectedNodeId?: string) => void
+  "updateLocalPosition: (position: [number, number, number], rotation: [number, number, number]) => void"
+  "updateLocalSelection: (isSelecting: boolean, selectedNodeId?: string) => void"
 
   // Connection
-  setConnectionStatus: (status: 'disconnected' | 'connecting' | 'connected') => void
+  "setConnectionStatus: (status: 'disconnected' | 'connecting' | 'connected') => void"
 
   // Maintenance
-  clearStaleUsers: (staleThreshold?: number) => void
+  "clearStaleUsers: (staleThreshold?: number) => void"
 }
 ```
 
@@ -2125,23 +2105,23 @@ interface OntologyState {
   // State
   loaded: boolean
   validating: boolean
-  violations: Violation[]
-  constraintGroups: ConstraintGroup[]
+  violations: "Violation[]"
+  constraintGroups: "ConstraintGroup[]"
   metrics: OntologyMetrics
 
   // State setters
-  setLoaded: (loaded: boolean) => void
-  setValidating: (validating: boolean) => void
-  setViolations: (violations: Violation[]) => void
-  setMetrics: (metrics: OntologyMetrics) => void
+  "setLoaded: (loaded: boolean) => void"
+  "setValidating: (validating: boolean) => void"
+  "setViolations: (violations: Violation[]) => void"
+  "setMetrics: (metrics: OntologyMetrics) => void"
 
   // Constraint management
-  toggleConstraintGroup: (id: string) => void
-  updateStrength: (id: string, strength: number) => void
+  "toggleConstraintGroup: (id: string) => void"
+  "updateStrength: (id: string, strength: number) => void"
 
   // Ontology operations
-  loadOntology: (fileUrl: string) => Promise<void>
-  validateOntology: () => Promise<void>
+  "loadOntology: (fileUrl: string) => Promise<void>"
+  "validateOntology: () => Promise<void>"
 }
 ```
 

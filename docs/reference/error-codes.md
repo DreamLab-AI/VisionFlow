@@ -13,23 +13,25 @@ This document provides a comprehensive reference of all error codes used through
 
 ## Error Code Format
 
-```
-[SYSTEM][SEVERITY][NUMBER]
-├── SYSTEM: 2-char system identifier
-│   ├── AP: API/Application Layer
-│   ├── DB: Database Layer
-│   ├── GR: Graph/Ontology Reasoning
-│   ├── GP: GPU/Physics Computing
-│   ├── WS: WebSocket/Network
-│   ├── AU: Authentication/Authorization
-│   └── ST: Storage/File Management
-├── SEVERITY: 1-char severity level
-│   ├── E: Error (operation failed, can recover)
-│   ├── F: Fatal (unrecoverable, requires restart)
-│   ├── W: Warning (degraded performance, operation continues)
-│   └── I: Info (informational, no action required)
-└── NUMBER: 3-digit error code (000-999)
-```
+**Format Pattern:** `[SYSTEM][SEVERITY][NUMBER]`
+
+### System Identifiers (2-char)
+- **AP**: API/Application Layer
+- **DB**: Database Layer
+- **GR**: Graph/Ontology Reasoning
+- **GP**: GPU/Physics Computing
+- **WS**: WebSocket/Network
+- **AU**: Authentication/Authorization
+- **ST**: Storage/File Management
+
+### Severity Levels (1-char)
+- **E**: Error (operation failed, can recover)
+- **F**: Fatal (unrecoverable, requires restart)
+- **W**: Warning (degraded performance, operation continues)
+- **I**: Info (informational, no action required)
+
+### Error Number (3-digit)
+- Range: 000-999
 
 ## API Layer Errors (AP)
 

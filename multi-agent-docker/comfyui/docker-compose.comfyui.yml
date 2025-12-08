@@ -1,12 +1,9 @@
-version: '3.8'
-
 services:
   comfyui:
     build:
       context: .
-      dockerfile: Dockerfile.comfyui-open3d
-      args:
-        BUILDKIT_INLINE_CACHE: 1
+      dockerfile: Dockerfile
+    image: comfyui-sam3d:latest
 
     container_name: comfyui
     hostname: comfyui
@@ -15,15 +12,15 @@ services:
     runtime: nvidia
     shm_size: 16gb
 
-    # Resource allocation
+    # Resource allocation - generous for heavy model installations
     deploy:
       resources:
         limits:
-          memory: 32G
-          cpus: '16'
+          memory: 128G
+          cpus: '32'
         reservations:
-          memory: 8G
-          cpus: '4'
+          memory: 16G
+          cpus: '8'
           devices:
             - driver: nvidia
               count: all
@@ -41,22 +38,27 @@ services:
       - "8188:8188"    # ComfyUI Web Interface
 
     # Volume mounts for persistence
+    # Models stored locally in storage-models/ directory (gitignored)
     volumes:
-      - comfyui-models:/root/ComfyUI/models:rw
+      - ./storage-models:/root/ComfyUI/models:rw
+      - ./storage-models/.cache/huggingface:/root/.cache/huggingface:rw
       - comfyui-custom-nodes:/root/ComfyUI/custom_nodes:rw
-      - comfyui-output:/root/ComfyUI/output:rw
-      - comfyui-input:/root/ComfyUI/input:rw
+      - ./storage-output:/root/ComfyUI/output:rw
+      - ./storage-input:/root/ComfyUI/input:rw
       - comfyui-user:/root/ComfyUI/user:rw
 
     # Environment variables
     environment:
       NVIDIA_VISIBLE_DEVICES: all
       NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      CUDA_VISIBLE_DEVICES: "0,1,2"
       CLI_ARGS: ""
 
     # GPU device access
     devices:
       - /dev/nvidia0:/dev/nvidia0
+      - /dev/nvidia1:/dev/nvidia1
+      - /dev/nvidia2:/dev/nvidia2
       - /dev/nvidiactl:/dev/nvidiactl
       - /dev/nvidia-uvm:/dev/nvidia-uvm
       - /dev/nvidia-modeset:/dev/nvidia-modeset
@@ -78,15 +80,9 @@ networks:
     external: true
     name: docker_ragflow
 
-# Volumes
+# Volumes (models/input/output use host bind mounts)
 volumes:
-  comfyui-models:
-    driver: local
   comfyui-custom-nodes:
-    driver: local
-  comfyui-output:
-    driver: local
-  comfyui-input:
     driver: local
   comfyui-user:
     driver: local

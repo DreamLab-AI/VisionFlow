@@ -58,25 +58,17 @@ Server sends protocol version as first byte of binary messages:
 
 ### Wire Format: 36 Bytes Per Node
 
-```
-┌─────────┬────────────────────────────────────────────┐
-│ Offset  │ Field (Type, Bytes)                        │
-├─────────┼────────────────────────────────────────────┤
-│ [0]     │ Protocol Version (u8) = 2                  │ Header
-├─────────┼────────────────────────────────────────────┤
-│ [1-4]   │ Node ID (u32) with type flags             │ Per Node
-│ [5-8]   │ Position X (f32)                          │ (36 bytes)
-│ [9-12]  │ Position Y (f32)                          │
-│ [13-16] │ Position Z (f32)                          │
-│ [17-20] │ Velocity X (f32)                          │
-│ [21-24] │ Velocity Y (f32)                          │
-│ [25-28] │ Velocity Z (f32)                          │
-│ [29-32] │ SSSP Distance (f32, default: INFINITY)    │
-│ [33-36] │ SSSP Parent (i32, default: -1)            │
-└─────────┴────────────────────────────────────────────┘
+> **See detailed byte layout diagram:** [Binary Protocol Complete - Position Update V2](../diagrams/infrastructure/websocket/binary-protocol-complete.md#3-position-update-v2-21-bytes-per-node)
+
+**Summary:**
+- Protocol Version (u8) = 2 at offset [0]
+- Node ID (u32) with type flags at [1-4]
+- Position X/Y/Z (3×f32) at [5-16]
+- Velocity X/Y/Z (3×f32) at [17-28]
+- SSSP Distance (f32) at [29-32]
+- SSSP Parent (i32) at [33-36]
 
 Total Message Size = 1 + (36 * node_count) bytes
-```
 
 ### Field Specifications
 
@@ -120,25 +112,17 @@ const isKnowledge = (nodeIdRaw & 0x40000000) !== 0;
 
 **⚠️ BUG:** Only supports node IDs 0-16383 (14 bits). IDs > 16383 get truncated!
 
-```
-┌─────────┬────────────────────────────────────────────┐
-│ Offset  │ Field (Type, Bytes)                        │
-├─────────┼────────────────────────────────────────────┤
-│ [0]     │ Protocol Version (u8) = 1                  │ Header
-├─────────┼────────────────────────────────────────────┤
-│ [1-2]   │ Node ID (u16) with type flags             │ Per Node
-│ [3-6]   │ Position X (f32)                          │ (34 bytes)
-│ [7-10]  │ Position Y (f32)                          │
-│ [11-14] │ Position Z (f32)                          │
-│ [15-18] │ Velocity X (f32)                          │
-│ [19-22] │ Velocity Y (f32)                          │
-│ [23-26] │ Velocity Z (f32)                          │
-│ [27-30] │ SSSP Distance (f32)                       │
-│ [31-34] │ SSSP Parent (i32)                         │
-└─────────┴────────────────────────────────────────────┘
+> **See detailed byte layout diagram:** [Binary Protocol Complete - Protocol V1 Legacy](../diagrams/infrastructure/websocket/binary-protocol-complete.md#protocol-versions)
+
+**Summary:**
+- Protocol Version (u8) = 1 at offset [0]
+- Node ID (u16) with type flags at [1-2]
+- Position X/Y/Z (3×f32) at [3-14]
+- Velocity X/Y/Z (3×f32) at [15-26]
+- SSSP Distance (f32) at [27-30]
+- SSSP Parent (i32) at [31-34]
 
 Total Message Size = 1 + (34 * node_count) bytes
-```
 
 **Migration Note:** V1 is automatically used only when all node IDs ≤ 16383. Otherwise, server upgrades to V2.
 
@@ -150,20 +134,16 @@ Total Message Size = 1 + (34 * node_count) bytes
 
 Extends V2 with machine learning analytics fields:
 
-```
-┌─────────┬────────────────────────────────────────────┐
-│ Offset  │ Field (Type, Bytes)                        │
-├─────────┼────────────────────────────────────────────┤
-│ [0]     │ Protocol Version (u8) = 3                  │ Header
-├─────────┼────────────────────────────────────────────┤
-│ [1-36]  │ V2 Fields (Node ID, Pos, Vel, SSSP)       │ Per Node
-│ [37-40] │ Cluster ID (u32, K-means cluster)         │ (48 bytes)
-│ [41-44] │ Anomaly Score (f32, LOF 0.0-1.0)          │
-│ [45-48] │ Community ID (u32, Louvain modularity)    │
-└─────────┴────────────────────────────────────────────┘
+> **See detailed analytics extension diagram:** [Binary Protocol Complete - Agent State Messages](../diagrams/infrastructure/websocket/binary-protocol-complete.md#binary-message-formats)
+
+**Summary:**
+- Protocol Version (u8) = 3 at offset [0]
+- V2 Fields (Node ID, Pos, Vel, SSSP) at [1-36]
+- Cluster ID (u32, K-means) at [37-40]
+- Anomaly Score (f32, LOF 0.0-1.0) at [41-44]
+- Community ID (u32, Louvain) at [45-48]
 
 Total Message Size = 1 + (48 * node_count) bytes
-```
 
 **Additional Fields:**
 
@@ -223,15 +203,13 @@ The TypeScript client (`BinaryWebSocketProtocol.ts`) implements a **header-based
 
 ### Message Header (4-5 bytes)
 
-```
-┌─────────┬──────────────────────────┐
-│ Byte    │ Field                    │
-├─────────┼──────────────────────────┤
-│ [0]     │ Message Type (u8)        │
-│ [1]     │ Protocol Version (u8)    │
-│ [2-3]   │ Payload Length (u16 LE)  │
-│ [4]     │ Graph Type Flag (u8)*    │ *Only for GRAPH_UPDATE
-└─────────┴──────────────────────────┘
+> **See message header structure:** [Binary Protocol Complete - Message Header](../diagrams/infrastructure/websocket/binary-protocol-complete.md#1-message-header-all-messages)
+
+**Summary:**
+- Byte [0]: Message Type (u8)
+- Byte [1]: Protocol Version (u8)
+- Bytes [2-3]: Payload Length (u16 LE)
+- Byte [4]: Graph Type Flag (u8)* (*Only for GRAPH_UPDATE)
 ```
 
 ### Message Types

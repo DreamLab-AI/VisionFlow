@@ -12,50 +12,31 @@ status: stable
 
 ## The Problem
 
-```
-┌─────────────────────────────────────────┐
-│  GraphServiceActor (156KB, 4614 lines)  │
-│  ❌ DEPRECATED (Nov 2025)               │
-│  ┌───────────────────────────────────┐  │
-│  │  In-Memory Cache (STALE!)         │  │
-│  │  • Shows 63 nodes                 │  │
-│  │  • Should show 316 nodes          │  │
-│  │  • No invalidation after sync     │  │
-│  └───────────────────────────────────┘  │
-│                                          │
-│  46 Message Handlers                    │
-│  129 Message Types                      │
-│  Mixed Concerns (physics+WS+cache+DB)   │
-└─────────────────────────────────────────┘
-                    ↓
-         ❌ CACHE COHERENCY BUG
+**GraphServiceActor Monolith Issue** (156KB, 4,614 lines - DEPRECATED Nov 2025)
 
-CURRENT PATTERN: Use CQRS query/directive handlers
-See: /docs/guides/graphserviceactor-migration.md
-```
+The old monolithic architecture suffered from:
+- **Cache Coherency Bug**: In-memory cache showed 63 nodes, actual database had 316
+- **Mixed Concerns**: Single actor handling physics, WebSocket, caching, and database operations
+- **46 Message Handlers**: Difficult to extend and maintain
+- **No Invalidation**: Cache wasn't updated after GitHub sync operations
 
-## The Solution
+**See detailed analysis**: [Actor System Architecture](../../diagrams/server/actors/actor-system-complete.md#actor-lifecycle-and-supervision-strategies)
 
-```
-┌──────────────┐     ┌──────────────┐     ┌─────────────┐
-│ HTTP Handler │────▶│ CQRS Handler │────▶│ Repository  │
-└──────────────┘     └──────┬───────┘     └──────┬──────┘
-                            │                     │
-                            │ emit                │ read/write
-                            ▼                     ▼
-                     ┌──────────────┐     ┌─────────────┐
-                     │  Event Bus   │     │ unified.db  │
-                     └──────┬───────┘     └─────────────┘
-                            │
-              ┌─────────────┼─────────────┐
-              ▼             ▼             ▼
-       ┌──────────┐  ┌──────────┐  ┌──────────┐
-       │  Cache   │  │WebSocket │  │ Metrics  │
-       │Invalidate│  │Broadcast │  │ Tracker  │
-       └──────────┘  └──────────┘  └──────────┘
+## The Solution - CQRS Architecture
 
-         ✅ ALWAYS FRESH DATA FROM DB
-```
+The new architecture separates concerns:
+
+1. **HTTP Handler** → Receives request
+2. **CQRS Handler** → Processes command/query
+3. **Repository** → Reads/writes to unified.db (always fresh)
+4. **Event Bus** → Broadcasts changes
+5. **Subscribers** → Cache invalidation, WebSocket broadcast, metrics tracking
+
+**Result**: ✅ Always fresh data from database, no stale cache
+
+**See detailed architecture**:
+- [REST API Architecture](../../diagrams/server/api/rest-api-architecture.md)
+- [Actor System with CQRS](../../diagrams/server/actors/actor-system-complete.md#message-flow-patterns)
 
 ## Migration Status
 
@@ -82,28 +63,20 @@ src/application/graph/directives.rs          ❌ Create this!
 ```
 
 ### Priority 2: Event Infrastructure (Week 3-4)
-```
-src/application/events.rs                    ⚠️ Enhance
-  └─ Add GraphEvent variants
 
-src/application/graph/cache-invalidator.rs   ❌ Create
-  └─ CacheInvalidationSubscriber
+**Files to create/enhance:**
+- `src/application/events.rs` - Add GraphEvent variants for all domain events
+- `src/application/graph/cache-invalidator.rs` - Implement CacheInvalidationSubscriber
+- `src/application/graph/websocket-broadcaster.rs` - Implement WebSocketBroadcasterSubscriber
 
-src/application/graph/websocket-broadcaster.rs ❌ Create
-  └─ WebSocketBroadcasterSubscriber
-```
+These subscribers listen to domain events and handle cache invalidation and client notifications.
 
 ### Priority 3: Integration (Week 3-4)
-```
-src/services/github-sync-service.rs          ⚠️ Update
-  └─ Emit GraphSyncCompleted event
 
-src/handlers/api-handler/graph/mod.rs        ⚠️ Update
-  └─ Use directive handlers, not actor messages
-
-src/app-state.rs                             ⚠️ Update
-  └─ Wire directive handlers
-```
+**Files to update:**
+- `src/services/github-sync-service.rs` - Emit `GraphSyncCompleted` event after sync
+- `src/handlers/api-handler/graph/mod.rs` - Use directive handlers instead of actor messages
+- `src/app-state.rs` - Wire directive handlers into application state
 
 ## Code Patterns
 
@@ -130,24 +103,17 @@ handler.handle(directive)?;
 
 ## Event Flow (Critical for Cache Fix)
 
-```
-GitHub Sync
-    │
-    ├─▶ Write to unified.db
-    │
-    └─▶ Emit GraphSyncCompleted event
-            │
-            ├─▶ CacheInvalidationSubscriber
-            │   └─▶ Clear caches
-            │
-            └─▶ WebSocketBroadcasterSubscriber
-                └─▶ Notify clients
+**GitHub Sync Operation**:
+1. GitHub Sync reads markdown files
+2. Write to unified.db with new graph data
+3. Emit `GraphSyncCompleted` event
+4. Subscribers act automatically:
+   - **CacheInvalidationSubscriber** - Clears in-memory caches
+   - **WebSocketBroadcasterSubscriber** - Notifies all connected clients
+5. Next API call uses Query Handler
+6. Query Handler reads fresh data from database (all 316 nodes!) ✅
 
-Next API Call
-    │
-    └─▶ Query Handler
-        └─▶ Read from DB (fresh 316 nodes!) ✅
-```
+**See**: [Complete Data Flows - GitHub Sync](../../diagrams/data-flow/complete-data-flows.md)
 
 ## Message Mapping
 

@@ -1,6 +1,6 @@
 ---
 title: Ontology Reasoning Data Flow (ACTIVE)
-description: ``` ┌─────────────────────────────────────────────────────────────────────────┐ │                         GITHUB MARKDOWN FILES                           │
+description: Complete ontology reasoning pipeline from GitHub markdown to inferred axioms
 type: explanation
 status: stable
 ---
@@ -9,207 +9,142 @@ status: stable
 
 ## System Status: ✅ FULLY OPERATIONAL (90% Complete)
 
+> **See complete data flow sequence diagram:** [Complete Data Flows - GitHub Sync to Ontology Reasoning](../../diagrams/data-flow/complete-data-flows.md)
+
+## Data Flow Overview
+
+The ontology reasoning pipeline processes GitHub markdown files through these stages:
+
+1. **GitHubSyncService::sync-graphs()** - Fetches .md files, SHA1 filtering, batch processing (50 files/batch)
+2. **GitHubSyncService::process-single-file()** - Detects file type, identifies OntologyBlock sections
+3. **OntologyParser::parse()** - Extracts OWL classes, properties, axioms
+4. **GitHubSyncService::save-ontology-data()** [Lines 599-666]
+   - STEP 1: Save to unified.db via UnifiedOntologyRepository
+   - STEP 2: Trigger Reasoning Pipeline ✅ WIRED
+5. **OntologyPipelineService::on-ontology-modified()** [Lines 133-195]
+   - auto-trigger-reasoning: true (default)
+   - auto-generate-constraints: true (default)
+   - use-gpu-constraints: true (default)
+6. **OntologyPipelineService::trigger-reasoning()** [Lines 198-228]
+   - Sends TriggerReasoning message to ReasoningActor
+7. **ReasoningActor::handle(TriggerReasoning)** - Delegates to OntologyReasoningService
+
+## Detailed Processing Steps
+
+### OntologyReasoningService::infer-axioms() [Lines 112-213] ✅ ACTIVE
+
+**STEP 1: Check Blake3 Checksum Cache** [Lines 120-124]
+- Computes hash over all classes + axioms
+- In-memory HashMap cache: 90x speedup on hit
+- If cache hit → return cached inferred-axioms
+
+**STEP 2: Load Ontology from unified.db** [Lines 127-134]
+- get-classes() → Vec<OwlClass>
+- get-axioms() → Vec<OwlAxiom>
+- Debug log: "Loaded {n} classes and {m} axioms for inference"
+
+**STEP 3: Build Ontology Struct** [Lines 140-160]
+- Ontology { classes, subclass-of, disjoint-classes, ... }
+- Populate classes HashMap
+- Build subclass-of relationships from SubClassOf axioms
+
+**STEP 4: Run CustomReasoner ✅ ACTIVE** [Lines 163-166]
+- CustomReasoner::new()
+- reasoner.infer-axioms(&ontology)
+- Returns: Vec<InferredAxiom>
+
+**STEP 5: Convert to InferredAxiom Format** [Lines 169-191]
+- Map CustomAxiomType → String ("SubClassOf", "DisjointWith", ...)
+- Set confidence: 1.0 (deductive reasoning)
+- inference-path: [] (placeholder for future explainability)
+
+**STEP 6: Store in Database** [Line 194]
+- store-inferred-axioms(&inferred-axioms)
+- INSERT INTO owl-axioms (with annotations = { "inferred": "true", "confidence": "1.0" })
+
+**STEP 7: Cache Results** [Lines 197-204]
+- Build InferenceCacheEntry { ontology-id, checksum, axioms, ... }
+- Store in RwLock<HashMap<String, InferenceCacheEntry>>
+- Info log: "Inference complete: {n} axioms inferred in {ms}ms"
+
+### CustomReasoner::infer-axioms() [Lines 256-269] ✅ ACTIVE
+
+Returns: Result<Vec<InferredAxiom>>
+
+**Algorithm 1: infer-transitive-subclass()** [Lines 114-138]
+- Compute transitive closure of SubClassOf relationships
+- Example: Neuron ⊑ Cell ⊑ MaterialEntity ⊑ Entity
+- Infers: Neuron ⊑ MaterialEntity, Neuron ⊑ Entity
+- Uses transitive-cache: HashMap<String, HashSet<String>>
+- Complexity: O(n³) worst case, O(n²) average
+- Confidence: 1.0 (deductive)
+
+**Algorithm 2: infer-disjoint()** [Lines 141-185]
+- Propagate disjointness to subclasses
+- Example: Neuron ⊥ Astrocyte → PyramidalNeuron ⊥ Astrocyte
+- Iterates disjoint-classes: Vec<HashSet<String>>
+- Finds all subclasses of disjoint pairs
+- Emits DisjointWith axioms
+- Confidence: 1.0 (deductive)
+
+**Algorithm 3: infer-equivalent()** [Lines 209-246]
+- Symmetric: A ≡ B → B ≡ A
+- Transitive: A ≡ B ≡ C → A ≡ C
+- Uses equivalent-classes: HashMap<String, HashSet<String>>
+- Confidence: 1.0 (deductive)
+
+### Inferred Axioms Output
+
+Example inferred axioms returned:
+```rust
+[
+  InferredAxiom {
+    axiom-type: SubClassOf,
+    subject: "Neuron",
+    object: Some("MaterialEntity"),
+    confidence: 1.0
+  },
+  ...
+]
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         GITHUB MARKDOWN FILES                           │
-│  Example: neuroanatomy.md with ### OntologyBlock section               │
-└────────────────────────┬────────────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    GitHubSyncService::sync-graphs()                     │
-│  • Fetches all .md files from repository                              │
-│  • SHA1 filtering (only process changed files)                        │
-│  • Batch processing (50 files per batch)                              │
-└────────────────────────┬────────────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│              GitHubSyncService::process-single-file()                   │
-│  • Detects file type (KnowledgeGraph, Ontology, Skip)                 │
-│  • If contains "### OntologyBlock" → FileType::Ontology                │
-└────────────────────────┬────────────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                   OntologyParser::parse()                               │
-│  • Extracts OWL classes (iri, label, description)                     │
-│  • Extracts properties (ObjectProperty, DataProperty)                 │
-│  • Extracts axioms (SubClassOf, DisjointWith, etc.)                   │
-│  Returns: OntologyData { classes, properties, axioms }                │
-└────────────────────────┬────────────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│         GitHubSyncService::save-ontology-data() [Lines 599-666]        │
-│  STEP 1: Save to unified.db                                           │
-│    └─→ UnifiedOntologyRepository::save-ontology()                     │
-│         ├─→ INSERT INTO owl-classes                                   │
-│         ├─→ INSERT INTO owl-class-hierarchy                           │
-│         ├─→ INSERT INTO owl-properties                                │
-│         └─→ INSERT INTO owl-axioms                                    │
-│                                                                         │
-│  STEP 2: Trigger Reasoning Pipeline ✅ WIRED                          │
-│    └─→ if let Some(pipeline) = &self.pipeline-service {               │
-│          tokio::spawn(async move {                                    │
-│            pipeline.on-ontology-modified(ontology-id, ontology).await │
-│          })                                                            │
-│        }                                                               │
-└────────────────────────┬────────────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│      OntologyPipelineService::on-ontology-modified() [Lines 133-195]   │
-│  • auto-trigger-reasoning: true (default)                             │
-│  • auto-generate-constraints: true (default)                          │
-│  • use-gpu-constraints: true (default)                                │
-└────────────────────────┬────────────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│    OntologyPipelineService::trigger-reasoning() [Lines 198-228]        │
-│  • Sends TriggerReasoning message to ReasoningActor                   │
-│  • Passes Ontology struct (classes, subclass-of, disjoint-classes)   │
-└────────────────────────┬────────────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                   ReasoningActor::handle(TriggerReasoning)             │
-│  • Delegates to OntologyReasoningService                              │
-└────────────────────────┬────────────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│    OntologyReasoningService::infer-axioms() [Lines 112-213] ✅ ACTIVE │
-│                                                                         │
-│  STEP 1: Check Blake3 Checksum Cache [Lines 120-124]                  │
-│    • Computes hash over all classes + axioms                          │
-│    • In-memory HashMap cache: 90x speedup on hit                      │
-│    • If cache hit → return cached inferred-axioms                     │
-│                                                                         │
-│  STEP 2: Load Ontology from unified.db [Lines 127-134]                │
-│    • get-classes() → Vec<OwlClass>                                    │
-│    • get-axioms() → Vec<OwlAxiom>                                     │
-│    • Debug log: "Loaded {n} classes and {m} axioms for inference"    │
-│                                                                         │
-│  STEP 3: Build Ontology Struct [Lines 140-160]                        │
-│    • Ontology { classes, subclass-of, disjoint-classes, ... }        │
-│    • Populate classes HashMap                                         │
-│    • Build subclass-of relationships from SubClassOf axioms           │
-│                                                                         │
-│  STEP 4: Run CustomReasoner ✅ ACTIVE [Lines 163-166]                 │
-│    └─→ CustomReasoner::new()                                          │
-│         └─→ reasoner.infer-axioms(&ontology)                          │
-│              Returns: Vec<InferredAxiom>                               │
-│                                                                         │
-│  STEP 5: Convert to InferredAxiom Format [Lines 169-191]              │
-│    • Map CustomAxiomType → String ("SubClassOf", "DisjointWith", ...) │
-│    • Set confidence: 1.0 (deductive reasoning)                        │
-│    • inference-path: [] (placeholder for future explainability)      │
-│                                                                         │
-│  STEP 6: Store in Database [Line 194]                                 │
-│    └─→ store-inferred-axioms(&inferred-axioms)                        │
-│         └─→ INSERT INTO owl-axioms (with annotations = {             │
-│               "inferred": "true",                                      │
-│               "confidence": "1.0"                                      │
-│             })                                                         │
-│                                                                         │
-│  STEP 7: Cache Results [Lines 197-204]                                │
-│    • Build InferenceCacheEntry { ontology-id, checksum, axioms, ... } │
-│    • Store in RwLock<HashMap<String, InferenceCacheEntry>>           │
-│    • Info log: "Inference complete: {n} axioms inferred in {ms}ms"   │
-└────────────────────────┬────────────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│        CustomReasoner::infer-axioms() [Lines 256-269] ✅ ACTIVE        │
-│  Returns: Result<Vec<InferredAxiom>>                                  │
-│                                                                         │
-│  Algorithm 1: infer-transitive-subclass() [Lines 114-138]             │
-│    • Compute transitive closure of SubClassOf relationships           │
-│    • Example: Neuron ⊑ Cell ⊑ MaterialEntity ⊑ Entity                │
-│    • Infers: Neuron ⊑ MaterialEntity, Neuron ⊑ Entity                │
-│    • Uses transitive-cache: HashMap<String, HashSet<String>>          │
-│    • Complexity: O(n³) worst case, O(n²) average                      │
-│    • Confidence: 1.0 (deductive)                                      │
-│                                                                         │
-│  Algorithm 2: infer-disjoint() [Lines 141-185]                        │
-│    • Propagate disjointness to subclasses                             │
-│    • Example: Neuron ⊥ Astrocyte → PyramidalNeuron ⊥ Astrocyte       │
-│    • Iterates disjoint-classes: Vec<HashSet<String>>                  │
-│    • Finds all subclasses of disjoint pairs                           │
-│    • Emits DisjointWith axioms                                        │
-│    • Confidence: 1.0 (deductive)                                      │
-│                                                                         │
-│  Algorithm 3: infer-equivalent() [Lines 209-246]                      │
-│    • Symmetric: A ≡ B → B ≡ A                                         │
-│    • Transitive: A ≡ B ≡ C → A ≡ C                                    │
-│    • Uses equivalent-classes: HashMap<String, HashSet<String>>        │
-│    • Confidence: 1.0 (deductive)                                      │
-└────────────────────────┬────────────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                      INFERRED AXIOMS RETURNED                           │
-│  Example: [                                                            │
-│    InferredAxiom {                                                     │
-│      axiom-type: SubClassOf,                                          │
-│      subject: "Neuron",                                               │
-│      object: Some("MaterialEntity"),                                  │
-│      confidence: 1.0                                                   │
-│    },                                                                  │
-│    ...                                                                 │
-│  ]                                                                     │
-└────────────────────────┬────────────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│  OntologyPipelineService::generate-constraints-from-axioms() [239-300] │
-│  • Converts axioms to physics constraints                             │
-│  • ConstraintKind::Semantic (= 10 in CUDA kernel)                     │
-│  • Weight calculation:                                                 │
-│    - SubClassOf: 1.0 (base strength)                                  │
-│    - EquivalentTo: 1.5 (stronger attraction)                          │
-│    - DisjointWith: 2.0 (repulsion force)                              │
-│  Returns: ConstraintSet { constraints, groups }                       │
-└────────────────────────┬────────────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│     OntologyPipelineService::upload-constraints-to-gpu() [303-336]     │
-│  • Sends ApplyOntologyConstraints to OntologyConstraintActor          │
-│  • merge-mode: ConstraintMergeMode::Merge                             │
-│  • graph-id: 0 (main knowledge graph)                                 │
-└────────────────────────┬────────────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│               OntologyConstraintActor (GPU Actor)                       │
-│  • Uploads ConstraintSet to GPU memory                                │
-│  • Triggers ontology-constraints.cu CUDA kernel                       │
-│  • Applies semantic forces to node positions                          │
-└────────────────────────┬────────────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                   ontology-constraints.cu (CUDA)                        │
-│  • Processes ConstraintKind::Semantic = 10                            │
-│  • Applies physics forces:                                             │
-│    - SubClassOf: Attraction (child → parent clustering)               │
-│    - EquivalentTo: Strong attraction (align nodes)                    │
-│    - DisjointWith: Repulsion (separate disjoint classes)              │
-│  • Updates node positions in GPU buffer                               │
-└────────────────────────┬────────────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                     WEBSOCKET CLIENT STREAM                             │
-│  • Receives real-time position updates                                │
-│  • Visualizes semantic clustering in browser                          │
-│  • Neuron nodes cluster near Cell nodes (SubClassOf forces)           │
-│  • Neuron and Astrocyte nodes repel (DisjointWith forces)             │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+
+### OntologyPipelineService::generate-constraints-from-axioms() [239-300]
+
+Converts axioms to physics constraints:
+- ConstraintKind::Semantic (= 10 in CUDA kernel)
+- Weight calculation:
+  - SubClassOf: 1.0 (base strength)
+  - EquivalentTo: 1.5 (stronger attraction)
+  - DisjointWith: 2.0 (repulsion force)
+- Returns: ConstraintSet { constraints, groups }
+
+### OntologyPipelineService::upload-constraints-to-gpu() [303-336]
+
+- Sends ApplyOntologyConstraints to OntologyConstraintActor
+- merge-mode: ConstraintMergeMode::Merge
+- graph-id: 0 (main knowledge graph)
+
+### OntologyConstraintActor (GPU Actor)
+
+- Uploads ConstraintSet to GPU memory
+- Triggers ontology-constraints.cu CUDA kernel
+- Applies semantic forces to node positions
+
+### ontology-constraints.cu (CUDA)
+
+- Processes ConstraintKind::Semantic = 10
+- Applies physics forces:
+  - SubClassOf: Attraction (child → parent clustering)
+  - EquivalentTo: Strong attraction (align nodes)
+  - DisjointWith: Repulsion (separate disjoint classes)
+- Updates node positions in GPU buffer
+
+### WebSocket Client Stream
+
+- Receives real-time position updates
+- Visualizes semantic clustering in browser
+- Neuron nodes cluster near Cell nodes (SubClassOf forces)
+- Neuron and Astrocyte nodes repel (DisjointWith forces)
 
 ## Performance Characteristics
 

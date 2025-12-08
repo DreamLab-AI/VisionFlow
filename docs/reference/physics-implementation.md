@@ -101,41 +101,35 @@ This is fragile and doesn't handle full IRIs properly.
 
 ### Data Flow Pipeline
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│ 1. GitHub Sync: Parse .md files → OntologyBlock extraction         │
-│    └─> UnifiedOntologyRepository::save-ontology-class()            │
-│        (stores classes with IRIs in unified.db)                     │
-└─────────────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────────────┐
-│ 2. Reasoning: CustomReasoner infers transitive axioms               │
-│    Input:  Ontology { subclass-of, disjoint-classes, ... }         │
-│    Output: Vec<InferredAxiom> { SubClassOf, DisjointWith, ... }    │
-└─────────────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────────────┐
-│ 3. Constraint Generation: OntologyPipelineService                  │
-│    ❌ BROKEN: generate-constraints-from-axioms()                   │
-│    - Creates Constraint objects with empty node-indices            │
-│    - Doesn't resolve IRIs to database node IDs                     │
-└─────────────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────────────┐
-│ 4. GPU Upload: OntologyConstraintActor                             │
-│    - Converts Constraint → ConstraintData (GPU format)             │
-│    - Uploads to CUDA kernels via SharedGPUContext                  │
-│    ✅ Works correctly IF node-indices are populated                │
-└─────────────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────────────┐
-│ 5. Physics Simulation: CUDA Kernels (ontology-constraints.cu)     │
-│    ✅ apply-disjoint-classes-kernel() - Repulsion forces           │
-│    ✅ apply-subclass-hierarchy-kernel() - Attraction forces        │
-│    ✅ apply-sameas-colocate-kernel() - Strong attraction           │
-│    Performance: ~2ms for 10K nodes with 64-byte alignment          │
-└─────────────────────────────────────────────────────────────────────┘
-```
+> **See complete semantic physics pipeline diagram:** [Complete Data Flows - Ontology Physics Integration](../diagrams/data-flow/complete-data-flows.md)
+>
+> **See GPU architecture details:** [CUDA Architecture Complete - Ontology Constraints](../diagrams/infrastructure/gpu/cuda-architecture-complete.md)
+
+**Pipeline Stages:**
+
+1. **GitHub Sync: Parse .md files → OntologyBlock extraction**
+   - UnifiedOntologyRepository::save-ontology-class()
+   - Stores classes with IRIs in unified.db
+
+2. **Reasoning: CustomReasoner infers transitive axioms**
+   - Input: Ontology { subclass-of, disjoint-classes, ... }
+   - Output: Vec<InferredAxiom> { SubClassOf, DisjointWith, ... }
+
+3. **Constraint Generation: OntologyPipelineService**
+   - ❌ BROKEN: generate-constraints-from-axioms()
+   - Creates Constraint objects with empty node-indices
+   - Doesn't resolve IRIs to database node IDs
+
+4. **GPU Upload: OntologyConstraintActor**
+   - Converts Constraint → ConstraintData (GPU format)
+   - Uploads to CUDA kernels via SharedGPUContext
+   - ✅ Works correctly IF node-indices are populated
+
+5. **Physics Simulation: CUDA Kernels (ontology-constraints.cu)**
+   - ✅ apply-disjoint-classes-kernel() - Repulsion forces
+   - ✅ apply-subclass-hierarchy-kernel() - Attraction forces
+   - ✅ apply-sameas-colocate-kernel() - Strong attraction
+   - Performance: ~2ms for 10K nodes with 64-byte alignment
 
 ---
 

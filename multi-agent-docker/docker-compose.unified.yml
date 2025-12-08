@@ -114,7 +114,7 @@ services:
       AGENTS_DIR: /home/devuser/agents
       ENABLE_DESKTOP: "true"
       GPU_ACCELERATION: "true"
-      CUDA_VISIBLE_DEVICES: ${CUDA_VISIBLE_DEVICES:-all}
+      CUDA_VISIBLE_DEVICES: ${CUDA_VISIBLE_DEVICES:-0,1,2}
 
       # Service toggles (all true by default)
       ENABLE_VNC: "true"

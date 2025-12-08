@@ -444,49 +444,49 @@ sequenceDiagram
     WS->>S: Upgrade Request
     S->>S: Create Handler Instance
     S->>CM: Register Client
-    CM-->>S: Client ID: UUID
+    CM-->>S: "Client ID: UUID"
     S->>C: Connection Established
-    Note right of S: {<br/>  type: "connection_established",<br/>  client_id: "uuid",<br/>  features: [...]<br/>}
+    Note right of S: "{<br/>  type: \"connection_established\",<br/>  client_id: \"uuid\",<br/>  features: [...]<br/>}"
 
-    Note over C,BC: Authentication (Optional)
+    Note over C,BC: "Authentication (Optional)"
     C->>S: Authenticate Message
-    Note right of C: {<br/>  type: "authenticate",<br/>  token: "nostr_token",<br/>  pubkey: "..."<br/>}
+    Note right of C: "{<br/>  type: \"authenticate\",<br/>  token: \"nostr_token\",<br/>  pubkey: \"...\"<br/>}"
     S->>S: Verify Token
     S->>C: Auth Success
 
     Note over C,BC: Filter Configuration
     C->>S: Filter Update
-    Note right of C: {<br/>  type: "filter_update",<br/>  enabled: true,<br/>  quality_threshold: 0.5<br/>}
+    Note right of C: "{<br/>  type: \"filter_update\",<br/>  enabled: true,<br/>  quality_threshold: 0.5<br/>}"
     S->>S: Apply Filter
     S->>C: Filter Confirmed
     S->>C: Initial Graph Load
-    Note right of S: Filtered dataset with<br/>full metadata
+    Note right of S: "Filtered dataset with<br/>full metadata"
 
     Note over C,BC: Heartbeat Initialization
-    S->>S: Start Heartbeat Timer (30s)
-    S->>S: Start Timeout Monitor (120s)
+    S->>S: "Start Heartbeat Timer (30s)"
+    S->>S: "Start Timeout Monitor (120s)"
 
     loop Every 30 seconds
         S->>C: Heartbeat Message
-        Note right of S: {<br/>  type: "heartbeat",<br/>  server_time: timestamp,<br/>  message_count: N<br/>}
+        Note right of S: "{<br/>  type: \"heartbeat\",<br/>  server_time: timestamp,<br/>  message_count: N<br/>}"
         C->>S: Pong Response
         S->>S: Update Last Activity
     end
 
-    Note over C,BC: Real-Time Updates
-    S->>BC: Position Update (Binary)
+    Note over C,BC: "Real-Time Updates"
+    S->>BC: "Position Update (Binary)"
     BC->>CM: Check Subscriptions
     CM->>C: Broadcast Binary Data
 
     Note over C,BC: Client Interaction
-    C->>S: User Interacting (Control Bits)
+    C->>S: "User Interacting (Control Bits)"
     S->>S: Enable High-Freq Updates
-    loop High-frequency mode (60 Hz)
+    loop "High-frequency mode (60 Hz)"
         S->>C: Binary Position Updates
     end
 
     Note over C,BC: Graceful Shutdown
-    C->>S: Close Frame (Code 1000)
+    C->>S: "Close Frame (Code 1000)"
     S->>CM: Unregister Client
     S->>S: Cleanup Subscriptions
     S->>C: Close Ack
@@ -498,16 +498,16 @@ sequenceDiagram
 ```mermaid
 stateDiagram-v2
     [*] --> Disconnected
-    Disconnected --> Connecting: connect()
+    Disconnected --> Connecting: "connect()"
     Connecting --> Connected: WebSocket Open
     Connecting --> Failed: Connection Error
 
     Connected --> Authenticating: Token Available
     Authenticating --> Authenticated: Auth Success
-    Authenticating --> Connected: Auth Failed (continue)
+    Authenticating --> Connected: "Auth Failed (continue)"
 
     Authenticated --> Ready: Server Ready
-    Connected --> Ready: No Auth (continue)
+    Connected --> Ready: "No Auth (continue)"
 
     Ready --> Active: User Interaction
     Active --> Ready: Idle Timeout
@@ -520,9 +520,9 @@ stateDiagram-v2
     Reconnecting --> Failed: Max Retries
 
     Failed --> Disconnected: Manual Reset
-    Active --> Disconnected: close()
-    Ready --> Disconnected: close()
-    Connected --> Disconnected: close()
+    Active --> Disconnected: "close()"
+    Ready --> Disconnected: "close()"
+    Connected --> Disconnected: "close()"
 ```
 
 ---
@@ -535,44 +535,44 @@ sequenceDiagram
     participant S as Server
     participant T as Timers
 
-    Note over C,S,T: Heartbeat System (30s interval)
+    Note over C,S,T: "Heartbeat System (30s interval)"
 
     S->>T: Start Heartbeat Timer
-    T-->>S: Trigger (every 30s)
+    T-->>S: "Trigger (every 30s)"
 
     loop Every 30 seconds
-        S->>C: Binary Heartbeat (0x33)
-        Note right of S: MessageType::HEARTBEAT<br/>+ timestamp
+        S->>C: "Binary Heartbeat (0x33)"
+        Note right of S: "MessageType::HEARTBEAT<br/>+ timestamp"
 
-        alt Client Responds (Normal)
-            C->>S: Pong / Binary Ack
+        alt "Client Responds (Normal)"
+            C->>S: "Pong / Binary Ack"
             S->>S: Update last_heartbeat
             Note right of S: Reset timeout counter
-        else Client Silent (Warning)
+        else "Client Silent (Warning)"
             Note over S: Check elapsed time
-            S->>S: Time > 60s?
+            S->>S: "Time > 60s?"
             Note right of S: Yellow alert zone
-        else Client Dead (Timeout)
-            Note over S: Time > 120s
-            S->>S: Close Connection (Code 4000)
+        else "Client Dead (Timeout)"
+            Note over S: "Time > 120s"
+            S->>S: "Close Connection (Code 4000)"
             Note right of S: "Heartbeat timeout"
             S->>C: WebSocket Close Frame
         end
     end
 
-    Note over C,S,T: Client-Side Ping/Pong
+    Note over C,S,T: "Client-Side Ping/Pong"
 
     loop Client can also ping
-        C->>S: Ping (text "ping" or WS Ping)
-        S->>C: Pong (text "pong" or WS Pong)
+        C->>S: "Ping (text \"ping\" or WS Ping)"
+        S->>C: "Pong (text \"pong\" or WS Pong)"
     end
 
     Note over C,S,T: Heartbeat Configuration
 
     rect rgb(255, 240, 200)
-        Note right of S: HeartbeatConfig::default()<br/>- ping_interval: 30s<br/>- timeout: 120s
-        Note right of S: HeartbeatConfig::fast()<br/>- ping_interval: 2s<br/>- timeout: 10s
-        Note right of S: HeartbeatConfig::slow()<br/>- ping_interval: 15s<br/>- timeout: 60s
+        Note right of S: "HeartbeatConfig::default()<br/>- ping_interval: 30s<br/>- timeout: 120s"
+        Note right of S: "HeartbeatConfig::fast()<br/>- ping_interval: 2s<br/>- timeout: 10s"
+        Note right of S: "HeartbeatConfig::slow()<br/>- ping_interval: 15s<br/>- timeout: 60s"
     end
 ```
 
@@ -704,44 +704,44 @@ sequenceDiagram
 
     Note over GPU,C3: Position Update Broadcast
 
-    GPU->>BG: Compute Results (1000 nodes)
-    BG->>BG: Convert to BinaryNodeDataClient (28b each)
-    BG->>BG: Create Message Header (4b)
-    BG->>BG: Total: 28,004 bytes
+    GPU->>BG: "Compute Results (1000 nodes)"
+    BG->>BG: "Convert to BinaryNodeDataClient (28b each)"
+    BG->>BG: "Create Message Header (4b)"
+    BG->>BG: "Total: 28,004 bytes"
 
-    BG->>CM: broadcast("position_update", binary_data)
+    BG->>CM: "broadcast(\"position_update\", binary_data)"
 
-    CM->>CM: Lookup subscriptions["position_update"]
-    Note right of CM: Returns: [C1, C3]<br/>(C2 not subscribed,<br/>C4 voice-only)
+    CM->>CM: "Lookup subscriptions[\"position_update\"]"
+    Note right of CM: "Returns: [C1, C3]<br/>(C2 not subscribed,<br/>C4 voice-only)"
 
     par Parallel Broadcast
         CM->>F: Check C1 filters
-        F->>F: graph_type: "knowledge_graph" ✓
-        F->>C1: Binary Message (28,004 bytes)
+        F->>F: "graph_type: \"knowledge_graph\" ✓"
+        F->>C1: "Binary Message (28,004 bytes)"
 
         CM->>F: Check C3 filters
-        F->>F: No filters (all pass) ✓
-        F->>C3: Binary Message (28,004 bytes)
+        F->>F: "No filters (all pass) ✓"
+        F->>C3: "Binary Message (28,004 bytes)"
     end
 
-    Note over GPU,C3: Graph Update (Filtered by Type)
+    Note over GPU,C3: "Graph Update (Filtered by Type)"
 
-    BG->>BG: Create Graph Update (GraphTypeFlag: ONTOLOGY)
-    BG->>CM: broadcast("graph_update", binary_data, flag=0x02)
+    BG->>BG: "Create Graph Update (GraphTypeFlag: ONTOLOGY)"
+    BG->>CM: "broadcast(\"graph_update\", binary_data, flag=0x02)"
 
-    CM->>CM: Lookup subscriptions["graph_update"]
+    CM->>CM: "Lookup subscriptions[\"graph_update\"]"
 
     par Filter by Graph Type
         CM->>F: Check C1 filters
-        F->>F: mode: "knowledge_graph" ≠ ONTOLOGY ✗
+        F->>F: "mode: \"knowledge_graph\" ≠ ONTOLOGY ✗"
         Note right of F: Skip C1
 
         CM->>F: Check C2 filters
-        F->>F: mode: "ontology" == ONTOLOGY ✓
+        F->>F: "mode: \"ontology\" == ONTOLOGY ✓"
         F->>C2: Binary Graph Data
 
         CM->>F: Check C3 filters
-        F->>F: No filters (all pass) ✓
+        F->>F: "No filters (all pass) ✓"
         F->>C3: Binary Graph Data
     end
 ```
@@ -858,15 +858,15 @@ sequenceDiagram
     Note over UI,WS: Position Update Batching
 
     loop User Dragging Nodes
-        UI->>Q: enqueue(node, priority=10)
-        Note right of UI: Agent nodes: priority 10<br/>Regular nodes: priority 0
+        UI->>Q: "enqueue(node, priority=10)"
+        Note right of UI: "Agent nodes: priority 10<br/>Regular nodes: priority 0"
     end
 
-    Q->>Q: Throttle Check (16ms)
+    Q->>Q: "Throttle Check (16ms)"
 
     alt Throttle Window Open
         Q->>V: Validate Batch
-        V->>V: Check bounds, NaN, limits
+        V->>V: "Check bounds, NaN, limits"
         V-->>Q: Valid nodes
 
         Q->>P: Process Batch
@@ -874,18 +874,18 @@ sequenceDiagram
         P->>WS: Send Binary Frame
     else Throttle Active
         Q->>Q: Hold in pending queue
-        Note right of Q: Accumulate updates<br/>until next window
+        Note right of Q: "Accumulate updates<br/>until next window"
     end
 
     Note over UI,WS: Validation Middleware
 
-    V->>V: validateNodePositions()
+    V->>V: "validateNodePositions()"
 
     alt Valid
-        Note right of V: - Position within bounds<br/>- No NaN/Infinity<br/>- Max nodes not exceeded
+        Note right of V: "- Position within bounds<br/>- No NaN/Infinity<br/>- Max nodes not exceeded"
         V-->>P: Pass through
     else Invalid
-        Note right of V: - Out of bounds<br/>- Invalid values<br/>- Too many nodes
+        Note right of V: "- Out of bounds<br/>- Invalid values<br/>- Too many nodes"
         V-->>Q: Reject with error
         Q->>UI: Emit validation error
     end
@@ -907,39 +907,39 @@ sequenceDiagram
 
     Note over C,DB: Full Connection Sequence
 
-    C->>WS: connect()
+    C->>WS: "connect()"
     WS->>S: WebSocket Handshake
-    S->>S: Create Handler + UUID
+    S->>S: "Create Handler + UUID"
     S->>WS: Connection Established
-    WS->>C: onConnectionStatusChange(true)
+    WS->>C: "onConnectionStatusChange(true)"
 
     Note over C,DB: Optional Authentication
     C->>WS: Nostr Token Available?
     alt Has Token
-        WS->>S: {type: "authenticate", token, pubkey}
+        WS->>S: "{type: \"authenticate\", token, pubkey}"
         S->>S: Verify Nostr Signature
         S->>WS: Auth Success
     end
 
     Note over C,DB: Filter Configuration
-    C->>WS: getCurrentFilter()
-    WS->>S: {type: "filter_update", ...filterSettings}
+    C->>WS: "getCurrentFilter()"
+    WS->>S: "{type: \"filter_update\", ...filterSettings}"
     S->>S: Store Filter in Handler
 
     Note over C,DB: Initial Graph Load
     S->>DB: Query filtered nodes
-    DB-->>S: Sparse dataset (metadata-rich)
+    DB-->>S: "Sparse dataset (metadata-rich)"
     S->>S: Convert to InitialGraphLoad
-    S->>WS: {type: "initialGraphLoad", nodes, edges}
-    WS->>G: setGraphData({nodes, edges})
-    G->>G: Build index, compute layout
+    S->>WS: "{type: \"initialGraphLoad\", nodes, edges}"
+    WS->>G: "setGraphData({nodes, edges})"
+    G->>G: "Build index, compute layout"
     G->>C: Graph Ready Event
 
-    Note over C,DB: Start Real-Time Updates
+    Note over C,DB: "Start Real-Time Updates"
     S->>S: Start Binary Update Loop
     loop Every 100ms
-        S->>WS: Binary Position Update (0x10)
-        WS->>G: updateNodePositions(binary)
+        S->>WS: "Binary Position Update (0x10)"
+        WS->>G: "updateNodePositions(binary)"
         G->>C: Render update
     end
 ```
@@ -957,20 +957,20 @@ sequenceDiagram
 
     Note over U,GPU: Node Dragging Flow
 
-    U->>C: mousedown (start drag)
-    C->>WS: setUserInteracting(true)
-    WS->>S: Control Bits (USER_INTERACTING=1)
-    S->>S: Enable high-freq mode (60Hz)
+    U->>C: "mousedown (start drag)"
+    C->>WS: "setUserInteracting(true)"
+    WS->>S: "Control Bits (USER_INTERACTING=1)"
+    S->>S: "Enable high-freq mode (60Hz)"
 
     loop While Dragging
         U->>C: mousemove
         C->>C: Update local position
-        C->>Q: enqueue({nodeId, pos, vel}, priority)
+        C->>Q: "enqueue({nodeId, pos, vel}, priority)"
 
-        alt Throttle Window Open (16ms)
+        alt "Throttle Window Open (16ms)"
             Q->>Q: Batch all pending
-            Q->>WS: sendNodePositionUpdates(batch)
-            WS->>WS: Create Binary Message (0x10)
+            Q->>WS: "sendNodePositionUpdates(batch)"
+            WS->>WS: "Create Binary Message (0x10)"
             WS->>S: Binary Position Update
             S->>GPU: Update node in compute buffer
             GPU->>GPU: Recompute physics
@@ -979,10 +979,10 @@ sequenceDiagram
         end
     end
 
-    U->>C: mouseup (end drag)
-    C->>WS: setUserInteracting(false)
-    WS->>S: Control Bits (USER_INTERACTING=0)
-    S->>S: Return to normal freq (10Hz)
+    U->>C: "mouseup (end drag)"
+    C->>WS: "setUserInteracting(false)"
+    WS->>S: "Control Bits (USER_INTERACTING=0)"
+    S->>S: "Return to normal freq (10Hz)"
 ```
 
 ### 3. Filter Update & Graph Refresh
@@ -999,26 +999,26 @@ sequenceDiagram
     Note over U,G: Filter Change Flow
 
     U->>SS: Update filter settings
-    Note right of U: qualityThreshold: 0.5 → 0.7
+    Note right of U: "qualityThreshold: 0.5 → 0.7"
     SS->>SS: Update store state
     SS->>WS: Trigger subscription callback
 
-    WS->>S: {type: "filter_update", quality_threshold: 0.7}
+    WS->>S: "{type: \"filter_update\", quality_threshold: 0.7}"
     S->>F: Apply new filter
-    F->>F: Filter nodes by quality >= 0.7
-    S->>WS: {type: "filter_confirmed", visible: 450, total: 1000}
+    F->>F: "Filter nodes by quality >= 0.7"
+    S->>WS: "{type: \"filter_confirmed\", visible: 450, total: 1000}"
 
-    Note over U,G: Graph Refresh (Manual)
+    Note over U,G: "Graph Refresh (Manual)"
 
-    U->>WS: forceRefreshFilter()
-    WS->>G: setGraphData({nodes: [], edges: []})
+    U->>WS: "forceRefreshFilter()"
+    WS->>G: "setGraphData({nodes: [], edges: []})"
     Note right of G: Clear local graph
-    WS->>S: {type: "filter_update", ...currentSettings}
+    WS->>S: "{type: \"filter_update\", ...currentSettings}"
     S->>F: Re-apply filter
     F->>F: Query filtered dataset
-    S->>WS: {type: "initialGraphLoad", nodes, edges}
+    S->>WS: "{type: \"initialGraphLoad\", nodes, edges}"
     Note right of S: Fresh metadata-rich dataset
-    WS->>G: setGraphData({nodes, edges})
+    WS->>G: "setGraphData({nodes, edges})"
     G->>U: Graph updated event
 ```
 
@@ -1035,21 +1035,21 @@ sequenceDiagram
     Note over A,C2: Agent State Broadcasting
 
     A->>S: Update Agent Metrics
-    Note right of A: CPU: 45%, Memory: 60%,<br/>Health: 95%, Tokens: 1500
+    Note right of A: "CPU: 45%, Memory: 60%,<br/>Health: 95%, Tokens: 1500"
 
-    S->>S: Encode Agent State (0x20)
-    Note right of S: 49 bytes per agent:<br/>- ID: u32<br/>- Position: 3×f32<br/>- Velocity: 3×f32<br/>- Metrics: 5×f32<br/>- Flags: u8
+    S->>S: "Encode Agent State (0x20)"
+    Note right of S: "49 bytes per agent:<br/>- ID: u32<br/>- Position: 3×f32<br/>- Velocity: 3×f32<br/>- Metrics: 5×f32<br/>- Flags: u8"
 
-    S->>CM: broadcast("agent_state_full", binary)
+    S->>CM: "broadcast(\"agent_state_full\", binary)"
 
     CM->>CM: Lookup subscriptions
 
     par Broadcast to Subscribed Clients
-        CM->>C1: Binary Agent State (49 bytes)
+        CM->>C1: "Binary Agent State (49 bytes)"
         Note right of C1: Has bots feature enabled
-        C1->>C1: Decode & render agent
+        C1->>C1: "Decode & render agent"
 
-        CM->>C2: Binary Agent State (49 bytes)
+        CM->>C2: "Binary Agent State (49 bytes)"
         Note right of C2: Monitoring dashboard
         C2->>C2: Update agent metrics UI
     end
@@ -1068,23 +1068,23 @@ sequenceDiagram
 
     Note over M,L: Voice Streaming Flow
 
-    VC->>WS: {type: "voice_start", agentId: 42}
-    WS->>S: Voice Start (0x41)
+    VC->>WS: "{type: \"voice_start\", agentId: 42}"
+    WS->>S: "Voice Start (0x41)"
     S->>BC: Notify voice stream starting
 
-    loop Audio Chunks (every 20ms)
-        M->>VC: Audio samples (PCM/Opus)
+    loop "Audio Chunks (every 20ms)"
+        M->>VC: "Audio samples (PCM/Opus)"
         VC->>VC: Encode VoiceChunk
-        Note right of VC: Header (7 bytes):<br/>- agentId: u16<br/>- chunkId: u16<br/>- format: u8<br/>- dataLen: u16
-        VC->>WS: Binary Voice Chunk (0x40)
+        Note right of VC: "Header (7 bytes):<br/>- agentId: u16<br/>- chunkId: u16<br/>- format: u8<br/>- dataLen: u16"
+        VC->>WS: "Binary Voice Chunk (0x40)"
         WS->>S: Voice data
-        S->>BC: broadcast("voice_chunk", binary)
+        S->>BC: "broadcast(\"voice_chunk\", binary)"
         BC->>L: Relay to listeners
-        L->>L: Decode & play audio
+        L->>L: "Decode & play audio"
     end
 
-    VC->>WS: {type: "voice_end", agentId: 42}
-    WS->>S: Voice End (0x42)
+    VC->>WS: "{type: \"voice_end\", agentId: 42}"
+    WS->>S: "Voice End (0x42)"
     S->>BC: Notify stream ended
 ```
 
@@ -1164,67 +1164,67 @@ sequenceDiagram
     participant EM as Error Manager
     participant UI as User Interface
 
-    Note over C,UI: Error Detection & Handling
+    Note over C,UI: "Error Detection & Handling"
 
     C->>WS: Invalid Binary Message
-    WS->>WS: validateBinaryData()
+    WS->>WS: "validateBinaryData()"
     WS->>WS: Validation fails
 
-    alt Critical Error (Protocol)
+    alt "Critical Error (Protocol)"
         WS->>EM: Log critical error
         EM->>S: Send error frame
         S->>EM: Server logs error
-        EM->>C: Close connection (Code 1002)
+        EM->>C: "Close connection (Code 1002)"
         C->>UI: Show error dialog
-        C->>C: Clear state & queues
-    else Recoverable Error (Validation)
+        C->>C: "Clear state & queues"
+    else "Recoverable Error (Validation)"
         WS->>EM: Log warning
         EM->>C: Skip message
         C->>C: Continue processing
-        Note right of C: Drop bad message,<br/>continue operation
+        Note right of C: "Drop bad message,<br/>continue operation"
     end
 
     Note over C,UI: Connection Lost
 
     S-xC: Connection drops
-    C->>C: handleClose()
+    C->>C: "handleClose()"
     C->>EM: Check close code
 
-    alt Normal Closure (1000)
-        EM->>C: Update state: disconnected
-        C->>UI: Show "Disconnected"
-    else Abnormal Closure (≠1000)
+    alt "Normal Closure (1000)"
+        EM->>C: "Update state: disconnected"
+        C->>UI: "Show \"Disconnected\""
+    else "Abnormal Closure (≠1000)"
         EM->>C: Trigger reconnect
-        C->>C: attemptReconnect()
+        C->>C: "attemptReconnect()"
 
         loop Retry with backoff
-            C->>WS: connect()
+            C->>WS: "connect()"
             alt Success
                 WS->>C: Connection restored
                 C->>C: Process queued messages
-                C->>UI: Show "Reconnected"
+                C->>UI: "Show \"Reconnected\""
             else Failure
                 C->>C: Increment retry counter
                 C->>C: Wait exponential backoff
-                Note right of C: 1s, 2s, 4s, 8s,<br/>16s, 30s (max)
+                Note right of C: "1s, 2s, 4s, 8s,<br/>16s, 30s (max)"
             end
         end
 
         alt Max Retries Exceeded
-            C->>UI: Show "Connection Failed"
-            C->>C: State: failed
+            C->>UI: "Show \"Connection Failed\""
+            C->>C: "State: failed"
         end
     end
 
     Note over C,UI: Heartbeat Timeout
 
-    S->>C: Heartbeat (30s interval)
+    S->>C: "Heartbeat (30s interval)"
     C-xS: No response
     S->>S: Check elapsed time
 
-    alt Time > 120s
-        S->>C: Close (Code 4000: "Heartbeat timeout")
-        C->>C: handleClose()
+    alt "Time > 120s"
+        S->>C: "Close (Code 4000: \"Heartbeat timeout\")"
+        C->>C: "handleClose()"
         C->>EM: Trigger reconnect
     end
 ```
