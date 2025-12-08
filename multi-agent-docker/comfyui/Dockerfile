@@ -58,6 +58,18 @@ RUN uv pip install --python ./_env/bin/python \
 RUN uv pip install --python ./_env/bin/python \
     "git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4021b67b12c460c7057d642626897ec8"
 
+# Install gsplat from prebuilt wheels (for Gaussian splatting rendering)
+# Uses gsplat.studio wheel index for PyTorch 2.4 + CUDA 12.4
+RUN uv pip install --python ./_env/bin/python \
+    rich jaxtyping && \
+    uv pip install --python ./_env/bin/python \
+    "gsplat>=1.4.0" \
+    --index-url https://docs.gsplat.studio/whl/pt24cu124
+
+# Install nvdiffrast from HuggingFace (for mesh rendering)
+RUN uv pip install --python ./_env/bin/python \
+    "https://huggingface.co/spaces/microsoft/TRELLIS/resolve/main/wheels/nvdiffrast-0.3.3-cp310-cp310-linux_x86_64.whl"
+
 # Reinstall pinned torch version after dependencies may have upgraded it
 RUN uv pip install --python ./_env/bin/python \
     torch==2.4.1 \
