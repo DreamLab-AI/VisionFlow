@@ -38,17 +38,21 @@ RUN uv pip install --python ./_env/bin/python \
     --extra-index-url https://miropsota.github.io/torch_packages_builder
 ```
 
-### 2. segment-anything-2 package name
+### 2. Missing spconv for sparse convolutions
 
-**Problem**: Package is `sam2`, not `segment-anything-2`.
+**Problem**: SAM3D requires spconv for sparse 3D convolutions.
 
-**Fix**: `pip install sam2`
+**Fix**: Install spconv-cu124 before other dependencies:
+```dockerfile
+RUN uv pip install --python ./_env/bin/python \
+    "spconv-cu124>=2.3.8"
+```
 
-### 3. sam2 overwrites torch version
+### 3. sam2 package removed
 
-**Problem**: sam2 pulls torch 2.9.1, breaking pytorch3d compatibility.
+**Problem**: sam2 pulls torch 2.9.x, breaking pytorch3d compatibility.
 
-**Fix**: Reinstall pinned torch after sam2:
+**Fix**: Removed sam2 from dependencies. SAM3D works without it. If sam2 is needed, reinstall pinned torch after:
 ```dockerfile
 RUN uv pip install --python ./_env/bin/python \
     torch==2.4.1 torchvision==0.19.1 \
@@ -60,6 +64,12 @@ RUN uv pip install --python ./_env/bin/python \
 **Problem**: SAM3D worker subprocess can't find CUDA libs (`cublasLtCreate` error).
 
 **Fix**: Patch `subprocess_bridge.py` to set `LD_LIBRARY_PATH` with nvidia lib paths from the venv. Applied automatically at build time.
+
+### 5. Missing loguru dependency
+
+**Problem**: SAM3D inference worker imports `loguru` but it's not in requirements.
+
+**Fix**: Add `loguru` to the pip install list.
 
 ## Volume Mounts
 
@@ -112,3 +122,48 @@ docker logs comfyui --tail 100
 
 - Joins `docker_ragflow` network
 - Aliases: `comfyui.ragflow`, `comfyui.local`
+- External access: `192.168.0.51:8188`
+
+## MCP Skill Integration
+
+The ComfyUI MCP server enables Claude to interact with workflows programmatically.
+
+### Configuration
+
+Located at `skills/comfyui/mcp-server/` with config in `mcp-infrastructure/mcp.json`:
+
+```json
+{
+  "comfyui": {
+    "command": "node",
+    "args": ["/home/devuser/.claude/skills/comfyui/mcp-server/server.js"],
+    "env": {
+      "COMFYUI_URL": "http://192.168.0.51:8188",
+      "COMFYUI_WS_URL": "ws://192.168.0.51:8188/ws",
+      "ZAI_URL": "http://localhost:9600/chat"
+    }
+  }
+}
+```
+
+### MCP Tools Available
+
+| Tool | Description |
+|------|-------------|
+| `workflow_submit` | Submit ComfyUI workflow JSON |
+| `workflow_status` | Check job status by ID |
+| `workflow_cancel` | Cancel running job |
+| `model_list` | List available models |
+| `image_generate` | Text2img with FLUX |
+| `display_capture` | Screenshot X display |
+| `output_list` | List generated outputs |
+| `chat_workflow` | Natural language → workflow (via Z.AI) |
+
+### Dependencies
+
+```bash
+cd skills/comfyui/mcp-server
+npm install
+```
+
+Requires: `@modelcontextprotocol/sdk`, `ws`, `sharp`

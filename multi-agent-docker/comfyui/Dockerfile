@@ -32,17 +32,33 @@ RUN uv pip install --python ./_env/bin/python \
     pytorch3d==0.7.9+pt2.4.1cu124 \
     --extra-index-url https://miropsota.github.io/torch_packages_builder
 
-# Install remaining SAM3D dependencies - NOTE: sam2 tries to upgrade torch, so reinstall after
+# Install spconv for sparse convolutions (required by SAM3D)
+# Must be installed BEFORE other deps that might pull wrong CUDA version
 RUN uv pip install --python ./_env/bin/python \
-    open3d \
-    trimesh \
-    sam2 \
-    pillow \
-    numpy \
-    iopath \
-    loguru
+    "spconv-cu124>=2.3.8"
 
-# Reinstall pinned torch version after sam2 overwrites it
+# Install all SAM3D dependencies from requirements_env.txt
+# Skip packages that need special handling (pytorch3d already installed, utils3d from git)
+# NOTE: sam2 removed - it pulls torch 2.9.x and breaks pytorch3d compatibility
+RUN uv pip install --python ./_env/bin/python \
+    fvcore iopath torchsde \
+    "numpy>=1.24.0,<2.0" "scipy>=1.11.0" \
+    "timm>=0.9.16" transformers diffusers "lightning>=2.0.0" \
+    "scikit-image>=0.23.1" "imageio>=2.36.0" "Pillow>=10.0.0" \
+    trimesh "point-cloud-utils>=0.29.5" plyfile \
+    "matplotlib>=3.9.0" "seaborn>=0.13.0" "plotly>=5.24.0" \
+    "hydra-core>=1.3.2" "easydict>=1.13" "loguru>=0.7.2" \
+    huggingface-hub "python-igraph>=1.0.0" "tqdm>=4.67.0" \
+    "optree>=0.11.0" "astor>=0.8.0" \
+    "einops-exts>=0.0.4" "roma>=1.5.1" "xatlas>=0.0.9" "pymeshfix>=0.16.0" \
+    "gdown>=5.2.0" "zstandard>=0.22.0" "ninja>=1.10.0" jaxtyping \
+    open3d
+
+# Install utils3d from git (required by vendored sam3d_objects)
+RUN uv pip install --python ./_env/bin/python \
+    "git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4021b67b12c460c7057d642626897ec8"
+
+# Reinstall pinned torch version after dependencies may have upgraded it
 RUN uv pip install --python ./_env/bin/python \
     torch==2.4.1 \
     torchvision==0.19.1 \
