@@ -572,10 +572,247 @@ chat_workflow: "Create an anime portrait with blue hair and golden eyes"
 
 This uses the Z.AI service (port 9600) or Anthropic API to generate valid workflow JSON.
 
+## Text-to-3D Pipeline (FLUX2 → SAM3D)
+
+This skill supports text-to-3D generation using FLUX2 for image generation followed by SAM3D for 3D reconstruction.
+
+### GPU Memory Management (RTX A6000 48GB Reference)
+
+**Critical**: FLUX2 and SAM3D cannot run concurrently. Restart container between phases for best results.
+
+| Phase | VRAM Used | Time | Notes |
+|-------|-----------|------|-------|
+| FLUX2 1536x1024 | ~37GB | ~3min | High-res landscape |
+| FLUX2 1024x1536 | ~37GB | ~3min | High-res portrait |
+| FLUX2 1248x832 | ~33GB | ~2.5min | Standard landscape |
+| SAM3D Full Pipeline | ~25GB | ~2.5min | With 4K textures |
+| SAM3D Basic | ~20GB | ~1.5min | Without texture bake |
+
+```bash
+# After FLUX2, free GPU memory (may not fully clear)
+curl -X POST http://localhost:8188/free \
+  -H "Content-Type: application/json" \
+  -d '{"unload_models": true, "free_memory": true}'
+
+# For guaranteed clean slate, restart container
+docker restart comfyui
+```
+
+### FLUX2 Image Generation Workflow (High Quality)
+
+Optimized for maximum quality 3D object generation:
+
+```json
+{
+  "86": {
+    "inputs": {"unet_name": "flux2_dev_fp8mixed.safetensors", "weight_dtype": "default"},
+    "class_type": "UNETLoader"
+  },
+  "90": {
+    "inputs": {"clip_name": "mistral_3_small_flux2_bf16.safetensors", "type": "flux2", "device": "default"},
+    "class_type": "CLIPLoader"
+  },
+  "78": {
+    "inputs": {"vae_name": "flux2-vae.safetensors"},
+    "class_type": "VAELoader"
+  },
+  "79": {
+    "inputs": {"width": 1536, "height": 1024, "batch_size": 1},
+    "class_type": "EmptyFlux2LatentImage",
+    "_meta": {"title": "High-Res Landscape (or 1024x1536 for portrait)"}
+  },
+  "95": {
+    "inputs": {"value": "Highly detailed [object], full subject visible, intricate textures and fine details, centered on pure clean white studio background, isolated subject, no shadows, sharp focus throughout, 8K quality"},
+    "class_type": "PrimitiveString"
+  },
+  "94": {
+    "inputs": {"scheduler": "simple", "steps": 32, "denoise": 1, "model": ["86", 0]},
+    "class_type": "BasicScheduler",
+    "_meta": {"title": "32 steps for quality (28 minimum)"}
+  },
+  "73": {
+    "inputs": {"guidance": 4, "conditioning": ["85", 0]},
+    "class_type": "FluxGuidance"
+  },
+  "89": {
+    "inputs": {"filename_prefix": "HiRes_3D", "images": ["82", 0]},
+    "class_type": "SaveImage"
+  }
+}
+```
+
+### SAM3D Full Pipeline (High Quality with 4K Textures + Gaussian)
+
+After FLUX2 image generation (copy image to input folder first):
+
+```json
+{
+  "4": {
+    "inputs": {"image": "generated_image.png", "upload": "image"},
+    "class_type": "LoadImage"
+  },
+  "28": {
+    "inputs": {"mask": ["4", 1]},
+    "class_type": "InvertMask"
+  },
+  "44": {
+    "inputs": {"model_tag": "hf", "compile": false, "use_gpu_cache": true, "dtype": "bfloat16"},
+    "class_type": "LoadSAM3DModel"
+  },
+  "59": {
+    "inputs": {"depth_model": ["44", 0], "image": ["4", 0]},
+    "class_type": "SAM3D_DepthEstimate"
+  },
+  "52": {
+    "inputs": {
+      "ss_generator": ["44", 1], "image": ["4", 0], "mask": ["28", 0],
+      "intrinsics": ["59", 0], "pointmap_path": ["59", 1],
+      "seed": 42, "stage1_inference_steps": 30, "stage1_cfg_strength": 7.5
+    },
+    "class_type": "SAM3DSparseGen",
+    "_meta": {"title": "30 steps, cfg 7.5 for quality"}
+  },
+  "35": {
+    "inputs": {
+      "slat_generator": ["44", 2], "image": ["4", 0], "mask": ["28", 0],
+      "sparse_structure": ["52", 0], "seed": 42,
+      "stage2_inference_steps": 30, "stage2_cfg_strength": 5.5
+    },
+    "class_type": "SAM3DSLATGen",
+    "_meta": {"title": "30 steps, cfg 5.5 for quality"}
+  },
+  "45": {
+    "inputs": {
+      "slat_decoder_mesh": ["44", 4], "image": ["4", 0], "mask": ["28", 0],
+      "slat": ["35", 0], "seed": 42, "save_glb": true, "simplify": 0.97
+    },
+    "class_type": "SAM3DMeshDecode",
+    "_meta": {"title": "simplify 0.97 preserves detail"}
+  },
+  "46": {
+    "inputs": {
+      "slat_decoder_gs": ["44", 3], "image": ["4", 0], "mask": ["28", 0],
+      "slat": ["35", 0], "seed": 42, "save_ply": true
+    },
+    "class_type": "SAM3DGaussianDecode",
+    "_meta": {"title": "Gaussian splat output (PLY)"}
+  },
+  "47": {
+    "inputs": {
+      "embedders": ["44", 5], "image": ["4", 0], "mask": ["28", 0],
+      "glb_path": ["45", 0], "ply_path": ["46", 0], "seed": 42,
+      "with_mesh_postprocess": false, "with_texture_baking": true,
+      "texture_mode": "opt", "texture_size": 4096, "simplify": 0.97,
+      "rendering_engine": "pytorch3d"
+    },
+    "class_type": "SAM3DTextureBake",
+    "_meta": {"title": "4K texture with gradient descent optimization"}
+  },
+  "48": {
+    "inputs": {"model_file": ["47", 0]},
+    "class_type": "Preview3D"
+  }
+}
+```
+
+### SAM3D Output Files
+
+```
+sam3d_inference_X/
+├── gaussian.ply      # 3DGS splats (full Gaussian output, ~70MB)
+├── mesh.glb          # Textured mesh with 4K UV map (~35MB)
+├── pointcloud.ply    # Point cloud representation
+├── metadata.json     # Generation metadata
+├── pointmap.pt       # Depth estimation data
+├── slat.pt           # SLAT latent
+└── sparse_structure.pt
+```
+
+### SAM3D Node Reference
+
+| Node | Description | Time | Output Index |
+|------|-------------|------|--------------|
+| `LoadSAM3DModel` | Load all SAM3D sub-models | ~30s | 0=depth, 1=sparse, 2=slat, 3=gs, 4=mesh, 5=embedders |
+| `SAM3D_DepthEstimate` | MoGe depth estimation | ~5s | 0=intrinsics, 1=pointmap_path |
+| `SAM3DSparseGen` | Stage 1: Sparse voxel structure | ~5s | 0=sparse_structure_path |
+| `SAM3DSLATGen` | Stage 2: SLAT diffusion | ~60-90s | 0=slat_path |
+| `SAM3DMeshDecode` | Decode SLAT to vertex-colored mesh | ~15s | 0=glb_filepath |
+| `SAM3DGaussianDecode` | Decode SLAT to Gaussian splats | ~15s | 0=ply_filepath |
+| `SAM3DTextureBake` | Bake Gaussian to UV texture | ~60s | 0=glb_filepath, 1=ply_filepath |
+| `SAM3DExportMesh` | Export to OBJ/GLB/PLY | <1s | - |
+
+### SAM3DTextureBake Settings
+
+| Parameter | Recommended | Range | Effect |
+|-----------|-------------|-------|--------|
+| `texture_size` | **4096** | 512-4096 | Higher = more detail (16x more at 4096 vs 1024) |
+| `texture_mode` | **"opt"** | opt/fast | opt = gradient descent (~60s), fast = nearest (~5s) |
+| `simplify` | **0.97** | 0.90-0.98 | Higher = preserve more mesh detail |
+| `with_mesh_postprocess` | false | bool | false = preserve full detail |
+| `rendering_engine` | pytorch3d | pytorch3d/nvdiffrast | nvdiffrast faster but needs CUDA compile |
+
+### End-to-End Python Script
+
+```python
+import requests
+import json
+import time
+import socket
+
+COMFYUI_URL = "http://192.168.0.51:8188"
+
+def wait_for_completion(prompt_id):
+    while True:
+        history = requests.get(f"{COMFYUI_URL}/history/{prompt_id}").json()
+        status = history.get(prompt_id, {}).get("status", {})
+        if status.get("completed"):
+            return history[prompt_id].get("outputs", {})
+        if status.get("status_str") == "error":
+            raise Exception(f"Workflow failed: {status.get('messages')}")
+        time.sleep(5)
+
+# Phase 1: FLUX2 Image Generation
+print("Phase 1: Generating reference image...")
+flux2_workflow = json.load(open("flux2_workflow.json"))
+response = requests.post(f"{COMFYUI_URL}/prompt", json={"prompt": flux2_workflow})
+outputs = wait_for_completion(response.json()["prompt_id"])
+image_filename = outputs["89"]["images"][0]["filename"]
+print(f"Generated: {image_filename}")
+
+# Free GPU memory
+print("Freeing GPU memory...")
+requests.post(f"{COMFYUI_URL}/free", json={"unload_models": True, "free_memory": True})
+time.sleep(5)
+
+# Phase 2: SAM3D Reconstruction
+print("Phase 2: SAM3D 3D reconstruction...")
+sam3d_workflow = json.load(open("sam3d_workflow.json"))
+sam3d_workflow["4"]["inputs"]["image"] = image_filename
+response = requests.post(f"{COMFYUI_URL}/prompt", json={"prompt": sam3d_workflow})
+outputs = wait_for_completion(response.json()["prompt_id"])
+mesh_path = outputs["48"]["result"][0]
+print(f"Generated mesh: {mesh_path}")
+
+# Phase 3: Blender validation (if BlenderMCP running)
+try:
+    s = socket.socket()
+    s.settimeout(5)
+    s.connect(('localhost', 9876))
+    s.sendall(json.dumps({
+        "type": "import_model",
+        "params": {"filepath": mesh_path, "name": "GeneratedMesh"}
+    }).encode())
+    print(f"Blender import: {s.recv(4096).decode()}")
+    s.close()
+except:
+    print("BlenderMCP not available - skipping validation")
+```
+
 ## References
 
 - ComfyUI: https://github.com/comfyanonymous/ComfyUI
 - ComfyUI API: https://github.com/SaladTechnologies/comfyui-api
 - Salad Recipes: https://github.com/SaladTechnologies/salad-recipes
 - Salad Cloud SDK: https://portal.salad.com
+- SAM3D Objects: https://github.com/PozzettiAndrea/ComfyUI-SAM3DObjects
 - Local Recipes: /home/devuser/salad-recipes/src/

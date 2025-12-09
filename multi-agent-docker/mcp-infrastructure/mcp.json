@@ -84,16 +84,17 @@
       "version": "1.0.0"
     },
     "blender": {
-      "command": "node",
-      "args": ["/home/devuser/.claude/skills/blender/tools/mcp-blender-client.js"],
+      "command": "uvx",
+      "args": ["blender-mcp"],
       "type": "stdio",
       "env": {
         "BLENDER_HOST": "localhost",
         "BLENDER_PORT": "9876"
       },
-      "description": "3D modeling, scene creation, and rendering via Blender",
-      "protocol": "tcp-proxy",
-      "version": "1.0.0"
+      "description": "3D modeling, scene creation, rendering, PolyHaven assets, Sketchfab, Hyper3D Rodin via Blender MCP (ahujasid/blender-mcp)",
+      "protocol": "mcp-fastmcp",
+      "version": "1.4.0",
+      "features": ["viewport_screenshots", "polyhaven", "sketchfab", "hyper3d_rodin", "hunyuan3d", "code_execution"]
     }
   },
   "visionflow": {

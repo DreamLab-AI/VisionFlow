@@ -329,6 +329,40 @@ RUN pip3 install --no-cache-dir --break-system-packages \
     beautifulsoup4 requests
 
 # ============================================================================
+# Blender MCP Server (ahujasid/blender-mcp - 14k+ stars)
+# ============================================================================
+
+# Install blender-mcp package (MCP server that connects to Blender addon)
+RUN pip3 install --no-cache-dir --break-system-packages \
+    blender-mcp
+
+# Create Blender addon directory and install BlenderMCP addon
+RUN mkdir -p /home/devuser/.config/blender/4.0/scripts/addons && \
+    mkdir -p /home/devuser/.config/blender/4.1/scripts/addons && \
+    mkdir -p /home/devuser/.config/blender/4.2/scripts/addons && \
+    cp /home/devuser/.claude/skills/blender/addon/blender_mcp_addon.py \
+       /home/devuser/.config/blender/4.0/scripts/addons/ && \
+    cp /home/devuser/.claude/skills/blender/addon/blender_mcp_addon.py \
+       /home/devuser/.config/blender/4.1/scripts/addons/ && \
+    cp /home/devuser/.claude/skills/blender/addon/blender_mcp_addon.py \
+       /home/devuser/.config/blender/4.2/scripts/addons/ && \
+    chown -R devuser:devuser /home/devuser/.config/blender
+
+# Create Blender startup script to auto-enable the addon
+RUN mkdir -p /home/devuser/.config/blender/4.0/scripts/startup && \
+    echo 'import bpy\ntry:\n    bpy.ops.preferences.addon_enable(module="blender_mcp_addon")\n    print("BlenderMCP addon enabled")\nexcept:\n    pass' \
+    > /home/devuser/.config/blender/4.0/scripts/startup/enable_mcp.py && \
+    cp /home/devuser/.config/blender/4.0/scripts/startup/enable_mcp.py \
+       /home/devuser/.config/blender/4.1/scripts/startup/ 2>/dev/null || true && \
+    cp /home/devuser/.config/blender/4.0/scripts/startup/enable_mcp.py \
+       /home/devuser/.config/blender/4.2/scripts/startup/ 2>/dev/null || true && \
+    chown -R devuser:devuser /home/devuser/.config/blender
+
+# Blender MCP environment variables
+ENV BLENDER_HOST=localhost
+ENV BLENDER_PORT=9876
+
+# ============================================================================
 # Make All MCP Entry Points Executable
 # ============================================================================
 
