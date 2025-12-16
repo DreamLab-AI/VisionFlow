@@ -649,12 +649,207 @@ VisionFlow/
 - Multi-region replication
 
 <details>
-<summary><strong>Click to expand: Detailed Roadmap</strong></summary>
+<summary><strong>Click to expand: Roadmap for Q1 2026</strong></summary>
+
+### Q1 2026 — Foundation & Collaboration Infrastructure
+
+**Sprint 1: W3C Compliant DID Layer for Agents**
+- [ ] Implement W3C DID specification for agent identity management
+- [ ] Create DID:web resolver for human expert authentication
+- [ ] Build DID document generation and verification service
+- [ ] Integrate with existing Nostr authentication as fallback
+- [ ] Deliverable: Agents and humans share cryptographically verifiable identities
+
+**Sprint 2: Offline Message Passing Protocol**
+- [ ] Design CRDT-based message queue for offline-first operation
+- [ ] Implement local message store with conflict resolution
+- [ ] Build sync protocol for intermittent connectivity scenarios
+- [ ] Add message signing using DID keypairs
+- [ ] Deliverable: Communications protocol supporting disconnected operation
+
+**Sprint 3: Multi-User Shared Presence Protocol**
+- [ ] Extend Vircadia layer for 12+ person simultaneous collaboration
+- [ ] Implement cursor/avatar awareness in shared knowledge spaces
+- [ ] Build conflict resolution for concurrent node manipulation
+- [ ] Add presence indicators and activity status broadcasting
+- [ ] Deliverable: Real-time collaborative editing with visual awareness
+
+**Sprint 4: Semantic LOD (Level of Detail) System**
+- [ ] Progressive disclosure based on camera distance AND semantic relevance
+- [ ] Cluster collapse/expand driven by ontology hierarchy
+- [ ] GPU-accelerated frustum culling with semantic weighting
+- [ ] Performance optimisation for 4M+ token knowledge graphs
+- [ ] Deliverable: Adaptive detail rendering based on semantic importance
+
+</details>
+
+<details>
+<summary><strong>Click to expand: Roadmap for Q2 2026</strong></summary>
+
+### Q2 2026 — Performance & Embodied Intelligence
+
+**Sprint 5: Spring Solver R&D Programme**
+- [ ] Benchmark client vs server vs GPU physics computation
+- [ ] Research optimistic update strategies with rollback
+- [ ] Develop novel CUDA kernels for ontology-based shortest path discovery
+- [ ] Implement adaptive solver selection based on graph characteristics
+- [ ] Deliverable: Optimal spring solving strategy per deployment context
+
+**Sprint 6: Self-Sovereign Agentic Inferencing Stack**
+- [ ] Local inference engine for team/agent collaboration
+- [ ] Mixed workload distribution across CPU/GPU resources
+- [ ] Agent-to-agent communication without central orchestration
+- [ ] Privacy-preserving inference with local model hosting
+- [ ] Deliverable: Fully offline-capable AI inference infrastructure
+
+**Sprint 7: Embodied Agent Visualisation**
+- [ ] Visual representation of AI agents "inhabiting" the knowledge space
+- [ ] Attention beams showing agent focus and processing targets
+- [ ] Activity trails displaying agent traversal history
+- [ ] Agent state indicators (thinking, searching, communicating)
+- [ ] Deliverable: Transparent AI presence within immersive environments
+
+**Sprint 8: Gesture Vocabulary for Graph Operations**
+- [ ] Hand tracking integration (Quest, Vision Pro)
+- [ ] Pinch-drag, two-hand scaling, semantic gesture recognition
+- [ ] Configurable gesture bindings with user customisation
+- [ ] "Connect" motion for relationship creation
+- [ ] Deliverable: Natural hand-based graph manipulation system
+
+</details>
+
+<details>
+<summary><strong>Click to expand: Roadmap for Q3 2026</strong></summary>
+
+### Q3 2026 — Immersive Environments & Accessibility
+
+**Sprint 9: Gaussian Splat Integration**
+- [ ] Import pre-scanned Gaussian splats into knowledge environments
+- [ ] SAM3D image-to-splat pipeline integration
+- [ ] Hybrid rendering combining graphs with photorealistic backgrounds
+- [ ] LOD system for splat quality based on viewer distance
+- [ ] Deliverable: Photorealistic knowledge environment foundations
+
+**Sprint 10: Spatial Audio Sonification Layer**
+- [ ] Audio cues for graph topology (distance = volume, density = harmonic complexity)
+- [ ] Accessibility mode for visually impaired knowledge workers
+- [ ] Directional audio for off-screen node awareness
+- [ ] Integration with Bernie's spatial audio system (if available)
+- [ ] Deliverable: Auditory navigation and awareness system
+
+**Sprint 11: Temporal Knowledge Archaeology**
+- [ ] Time-slider to navigate knowledge graph evolution
+- [ ] Diff view showing changes between temporal states
+- [ ] Provenance trails tracking node origin and modifications
+- [ ] Visual git-blame for knowledge attribution
+- [ ] Deliverable: Versioned graph store with temporal query API + visualisation
+
+**Sprint 12: Biometric-Adaptive Interface**
+- [ ] Eye tracking for attention-based navigation (foveated detail loading)
+- [ ] Cognitive load detection with automatic complexity reduction
+- [ ] Dwell-to-select for hands-free operation
+- [ ] Gaze-based node highlighting and selection
+- [ ] Deliverable: Eye tracking integration + adaptive UI state machine
+
+</details>
+
+<details>
+<summary><strong>Click to expand: Roadmap for Q4 2026 & Beyond</strong></summary>
+
+### Q4 2026 — Enterprise Scale & Extended Reality
+
+**Sprint 13: AR Document Anchoring Mode**
+- [ ] Project knowledge subgraphs onto physical documents/whiteboards
+- [ ] QR/marker-based anchoring for persistent placement
+- [ ] Bridge between physical research materials and digital knowledge
+- [ ] Multi-surface projection with automatic alignment
+- [ ] Deliverable: WebXR AR module with image tracking
+
+**Sprint 14: Apple Vision Pro Native Application**
+- [ ] RealityKit-based immersive knowledge space
+- [ ] visionOS-native hand and eye tracking
+- [ ] SharePlay integration for collaborative sessions
+- [ ] Spatial Personas for multi-user presence
+- [ ] Deliverable: Native visionOS application
+
+**Sprint 15: Federated Ontologies & Enterprise Features**
+- [ ] Cross-organisation ontology federation
+- [ ] SSO integration (SAML, OAuth2, OpenID Connect)
+- [ ] Fine-grained RBAC permission system
+- [ ] Audit logging and compliance reporting
+- [ ] Deliverable: Enterprise-ready multi-tenant deployment
+
+**Sprint 16: Kubernetes Operator & Global Scale**
+- [ ] Custom Kubernetes operator for auto-scaling
+- [ ] Multi-region data replication with CRDT sync
+- [ ] Support for millions of nodes
+- [ ] Real-time collaborative VR for 100+ simultaneous users
+- [ ] Deliverable: Production-grade cloud-native deployment
+
+</details>
+
+<details>
+<summary><strong>Click to expand: Strategic Development Bundles</strong></summary>
+
+### Bundle A: Decentralised Immersive Collaboration
+*Secure, persistent, multi-stakeholder knowledge collaboration*
+
+| Component | Sprint | Priority |
+|:---|:---:|:---:|
+| W3C DID Layer | Q1 S1 | High |
+| Shared Presence Protocol | Q1 S3 | High |
+| Offline Message Passing | Q1 S2 | Medium |
+
+**Story:** Enable distributed teams with varying connectivity to collaborate on shared knowledge spaces with cryptographically verifiable identity and offline-first resilience.
+
+---
+
+### Bundle B: High-Performance Semantic Visualisation
+*Real-time ontology navigation at enterprise scale*
+
+| Component | Sprint | Priority |
+|:---|:---:|:---:|
+| Spring Solver R&D | Q2 S5 | Critical |
+| Semantic LOD System | Q1 S4 | High |
+| Novel CUDA Kernels | Q2 S5 | High |
+
+**Story:** Achieve sub-frame rendering and physics updates for knowledge graphs exceeding 4 million tokens through intelligent GPU utilisation and semantic-aware level of detail.
+
+---
+
+### Bundle C: Embodied AI Knowledge Agents
+*Human-AI teaming in immersive environments*
+
+| Component | Sprint | Priority |
+|:---|:---:|:---:|
+| Agent Visualisation | Q2 S7 | High |
+| Self-Sovereign Inference | Q2 S6 | High |
+| Gesture Vocabulary | Q2 S8 | Medium |
+
+**Story:** Transform abstract AI agents into visible collaborators that share the immersive space, enabling natural interaction through gesture and spatial awareness.
+
+---
+
+### Bundle D: Photorealistic Knowledge Environments
+*Digital twin knowledge spaces with full provenance*
+
+| Component | Sprint | Priority |
+|:---|:---:|:---:|
+| Gaussian Splats | Q3 S9 | Medium |
+| AR Anchoring | Q4 S13 | Medium |
+| Temporal Archaeology | Q3 S11 | High |
+
+**Story:** Blend scanned real-world environments with knowledge graph overlays, maintaining complete historical provenance for every piece of information.
+
+</details>
+
+<details>
+<summary><strong>Click to expand: Completed Milestones (v2.0)</strong></summary>
 
 ### v2.0.0 (Completed - November 2025)
 
 **Core Infrastructure**
-- [x] Modular actor architecture (GraphServiceActor → 4 specialized actors)
+- [x] Modular actor architecture (GraphServiceActor → 4 specialised actors)
 - [x] Neo4j 5.13 as primary database
 - [x] Hexagonal architecture with ports & adapters
 - [x] Binary WebSocket protocol (36 bytes, 80% bandwidth reduction)
@@ -676,35 +871,13 @@ VisionFlow/
 - [x] OWL 2 EL profile reasoning
 - [x] Physics-based semantic constraints
 - [x] Automatic inference and contradiction detection
-- [x] LRU caching for inference optimization
+- [x] LRU caching for inference optimisation
 
-### v2.1 (In Progress - Q1 2026)
-
-**Immersive XR & Multi-User**
+**Immersive XR**
 - [x] Meta Quest 3 single-user AR/VR (Beta)
 - [x] Force-directed graph physics with WebXR
-- [ ] Vircadia multi-user integration
-- [ ] Spatial avatars and real-time presence
-- [ ] Apple Vision Pro (Q3 2026)
-
-**Advanced Features**
-- [ ] SPARQL query interface
-- [ ] Email integration for knowledge ingestion
-- [ ] Multi-language voice support
-
-### v3.0+ (Future - 2026)
-
-**Enterprise Features**
-- [ ] Federated ontologies across organizations
-- [ ] Advanced audit and compliance tools
-- [ ] SSO integration (SAML, OAuth2)
-- [ ] Fine-grained permission system
-
-**Scalability**
-- [ ] Kubernetes operator for auto-scaling
-- [ ] Multi-region data replication
-- [ ] Millions of nodes support
-- [ ] Real-time collaborative VR for 100+ users
+- [x] Hand tracking and gesture recognition
+- [x] Voice command integration
 
 </details>
 
