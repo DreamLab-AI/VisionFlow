@@ -11,9 +11,13 @@ protocol: mcp-sdk
 entry_point: mcp-server/server.js
 dependencies:
   - deepseek-api
+status: DEPRECATED
+deprecation_date: 2025-12-15
 ---
 
 # DeepSeek Reasoning Skill
+
+> **DEPRECATED**: The special endpoint `v3.2_speciale_expires_on_20251215` has expired as of December 15, 2025. This skill requires updating to the current DeepSeek API endpoint. Until then, use the standard DeepSeek API directly or contact the maintainer for an updated endpoint URL.
 
 Access DeepSeek's special reasoning model endpoint directly from Claude Code with MCP bridge to isolated deepseek-user.
 

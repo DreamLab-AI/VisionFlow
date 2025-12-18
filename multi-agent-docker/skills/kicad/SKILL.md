@@ -1,30 +1,63 @@
 ---
-name: KiCAD PCB
-description: Control KiCAD for electronic circuit design, schematic creation, and PCB layout operations
+name: kicad
+description: Control KiCad for electronic circuit design, schematic creation, and PCB layout operations
+version: 2.0.0
+mcp_server: true
+protocol: fastmcp
+entry_point: mcp-server/server.py
 ---
 
-# KiCAD PCB Skill
+# KiCad PCB Skill
 
-Interact with KiCAD for electronic circuit design, schematic manipulation, and PCB layout.
+Interact with KiCad for electronic circuit design, schematic manipulation, and PCB layout via FastMCP.
 
 ## Capabilities
 
-- Create and manage KiCAD projects
-- Add components to schematics
-- Connect components with wires/traces
-- Search symbol libraries
-- Manage PCB layouts
-- Generate netlists and BOMs
+- Create and manage KiCad 8.x projects
+- Export Gerber fabrication files
+- Generate Bill of Materials (BOM)
+- Export schematics to PDF/SVG
+- Run arbitrary kicad-cli commands
+- List component libraries
 
-## Tool Functions
+## MCP Tools
 
-- `create_project`: Create new KiCAD project
-- `add_component`: Add component to schematic
-- `connect_pins`: Wire components together
-- `search_library`: Find components in libraries
-- `generate_netlist`: Create netlist from schematic
-- `export_bom`: Generate bill of materials
+| Tool | Description |
+|------|-------------|
+| `create_project` | Create new KiCad project with schematic and PCB files |
+| `export_gerbers` | Export Gerber fabrication files from PCB |
+| `export_bom` | Generate Bill of Materials from schematic |
+| `export_schematic` | Export schematic to PDF or SVG |
+| `run_kicad_cli` | Run validated kicad-cli commands |
+| `list_libraries` | List available symbol/footprint libraries |
 
 ## Prerequisites
 
-KiCAD installed with Python API access.
+- KiCad 8.x installed with `kicad-cli` in PATH
+- Python 3.11+ with FastMCP: `pip install mcp`
+
+## Usage
+
+```python
+# Create a new project
+create_project(project_name="my_board", project_dir="/workspace/electronics")
+
+# Export Gerbers for fabrication
+export_gerbers(pcb_file="/workspace/my_board/my_board.kicad_pcb", output_dir="/workspace/gerbers")
+
+# Generate BOM
+export_bom(schematic_file="/workspace/my_board/my_board.kicad_sch", output_file="/workspace/bom.csv")
+```
+
+## MCP Configuration
+
+```json
+{
+  "mcpServers": {
+    "kicad": {
+      "command": "python",
+      "args": ["/home/devuser/.claude/skills/kicad/mcp-server/server.py"]
+    }
+  }
+}
+```

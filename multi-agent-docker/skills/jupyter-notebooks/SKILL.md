@@ -1,9 +1,15 @@
 ---
 name: Jupyter Notebooks
 description: Comprehensive Jupyter notebook operations - create, execute, and analyze notebooks with full cell manipulation
+version: 1.0.0
+mcp_server: true
+protocol: mcp-sdk
+entry_point: server.js
 ---
 
 # Jupyter Notebooks Skill
+
+> **KNOWN LIMITATION**: The current implementation executes each cell in a **fresh Python process**. Variables and state do NOT persist between cells. This is suitable for independent code snippets but NOT for traditional notebook workflows where cells share state. For complex data science workflows requiring kernel persistence, consider using JupyterLab directly.
 
 This skill provides complete Jupyter notebook interaction capabilities through MCP server integration, enabling notebook-based data science and research workflows.
 
