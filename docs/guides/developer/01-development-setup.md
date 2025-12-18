@@ -1,17 +1,21 @@
 ---
 title: Development Setup Guide
 description: This guide will help you set up a complete development environment for VisionFlow. Follow these steps to start contributing to the project.
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rest
+  - docker
+updated-date: 2025-12-18
+difficulty-level: beginner
 ---
+
 
 # Development Setup Guide
 
 ## Introduction
 
 This guide will help you set up a complete development environment for VisionFlow. Follow these steps to start contributing to the project.
-
-## Prerequisites
 
 ### Required Software
 
@@ -647,6 +651,18 @@ npm run build
 - **Storybook** (UI components): http://localhost:6006
 - **GraphQL Playground**: http://localhost:9090/graphql
 - **Internal Wiki**: [Link to wiki]
+
+---
+
+---
+
+## Related Documentation
+
+- [Pipeline Operator Runbook](../operations/pipeline-operator-runbook.md)
+- [Project Structure](02-project-structure.md)
+- [Multi-Agent Docker Environment Architecture](../infrastructure/architecture.md)
+- [Multi-Agent Docker Environment - Complete Documentation](../infrastructure/docker-environment.md)
+- [Contributing Guidelines](06-contributing.md)
 
 ## Getting Help
 

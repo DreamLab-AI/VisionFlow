@@ -1,9 +1,17 @@
 ---
 title: Local File Sync Strategy with GitHub Delta Updates
 description: **GitHub Repository**: 250,000+ markdown files **Previous approach**: GitHub API pagination → would take hours, hit rate limits **New approach**: Local baseline + SHA1 delta updates → instant initi...
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rest
+  - docker
+  - neo4j
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Local File Sync Strategy with GitHub Delta Updates
 

@@ -1,9 +1,16 @@
 ---
 title: Settings API Authentication
 description: The settings API endpoints now support Nostr-based authentication using session tokens. This provides secure access control while maintaining backward compatibility with read-only anonymous access.
-type: document
-status: stable
+category: explanation
+tags:
+  - guide
+  - neo4j
+  - rust
+  - react
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Settings API Authentication
 
@@ -448,6 +455,18 @@ await fetch('/api/settings/physics', {
   body: JSON.stringify(settings)
 });
 ```
+
+---
+
+---
+
+## Related Documentation
+
+- [Ontology Sync Service Enhancement](ontology-sync-enhancement.md)
+- [Deprecated Patterns Archive](../../archive/deprecated-patterns/README.md)
+- [Architecture Overview (OBSOLETE - WRONG STACK)](../../archive/deprecated-patterns/03-architecture-WRONG-STACK.md)
+- [User Settings Implementation Summary](../../archive/reports/2025-12-02-user-settings-summary.md)
+- [Hexagonal Architecture Ports - Overview](../../explanations/architecture/ports/01-overview.md)
 
 ## Summary
 

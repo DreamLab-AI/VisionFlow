@@ -1,3 +1,26 @@
+---
+title: VisionFlow Documentation
+description: > **226 documents** organized using the **Diátaxis Framework** for maximum discoverability
+category: tutorial
+tags:
+  - architecture
+  - design
+  - patterns
+  - structure
+  - api
+related-docs:
+  - tutorials/01-installation.md
+  - tutorials/02-first-graph.md
+  - guides/navigation-guide.md
+  - OVERVIEW.md
+  - guides/configuration.md
+updated-date: 2025-12-18
+difficulty-level: beginner
+dependencies:
+  - Docker installation
+  - Neo4j database
+---
+
 # VisionFlow Documentation
 
 **Complete documentation for VisionFlow's enterprise-grade multi-agent knowledge graphing system.**

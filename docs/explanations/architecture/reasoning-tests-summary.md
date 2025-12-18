@@ -1,9 +1,15 @@
 ---
 title: Ontology Reasoning Pipeline - Comprehensive Test Suite
 description: Complete test coverage for the ontology reasoning pipeline including inference, caching, constraint generation, and integration workflows.
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - websocket
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Ontology Reasoning Pipeline - Comprehensive Test Suite
 
@@ -275,6 +281,18 @@ Default:      priority = 8 (lowest)
 
 ---
 
+---
+
+---
+
+## Related Documentation
+
+- [Ontology Reasoning Data Flow (ACTIVE)](reasoning-data-flow.md)
+- [Pipeline Integration Architecture](pipeline-integration.md)
+- [Hexagonal/CQRS Architecture Design](hexagonal-cqrs.md)
+- [VisionFlow Visualisation Architecture](core/visualization.md)
+- [Ontology Storage Architecture](ontology-storage-architecture.md)
+
 ## Test Maintenance
 
 ### Adding New Tests
@@ -291,16 +309,3 @@ Default:      priority = 8 (lowest)
 4. Verify cache is cleared between tests
 
 ---
-
-## Related Documentation
-
-- 
-- 
-- 
-- 
-
----
-
-**Generated**: 2025-11-03
-**Author**: Test Engineer (AI Agent)
-**Coverage**: 58 test cases across 7 test modules

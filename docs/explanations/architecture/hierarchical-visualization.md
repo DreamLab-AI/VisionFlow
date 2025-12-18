@@ -1,9 +1,15 @@
 ---
 title: Hierarchical Graph Visualization Architecture
 description: **Complete Guide to Semantic Zoom and Class Grouping**
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - rest
+  - react
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Hierarchical Graph Visualization Architecture
 

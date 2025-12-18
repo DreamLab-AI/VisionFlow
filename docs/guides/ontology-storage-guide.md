@@ -1,9 +1,15 @@
 ---
 title: Ontology Storage Guide
 description: The ontology system uses a **lossless storage architecture** that preserves complete OWL semantics by storing raw markdown content in the database and parsing downstream with horned-owl.
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rest
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Ontology Storage Guide
 
@@ -440,13 +446,6 @@ let classes-with-sha1 = repo
 assert-eq!(classes-with-sha1, stats.ontology-files-processed);
 ```
 
-## Related Documentation
-
-- Ontology Storage Architecture (TODO: Document to be created) - Complete technical details
-- OntologyRepository Port (TODO: Document to be created) - Database interface
--  - High-level architecture
--  - OWL parsing details
-
 ## API Reference
 
 ### OwlExtractorService
@@ -484,6 +483,18 @@ pub struct ExtractedOwl {
     pub axiom-count: usize,
 }
 ```
+
+---
+
+---
+
+## Related Documentation
+
+- [GraphServiceActor Migration Guide (HISTORICAL REFERENCE)](graphserviceactor-migration.md)
+- [Vircadia Multi-User XR Integration - User Guide](vircadia-multi-user-guide.md)
+- [Docker Compose Unified Configuration - Usage Guide](docker-compose-guide.md)
+- [Agent Control Panel User Guide](agent-orchestration.md)
+- [OntologyReasoningService Integration Guide](ontology-reasoning-integration.md)
 
 ## Summary
 

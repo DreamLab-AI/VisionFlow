@@ -1,9 +1,17 @@
 ---
 title: Integration Patterns in VisionFlow
 description: 1. [Overview](#overview) 2. [Multi-Agent Integration](#multi-agent-integration) 3. [Service Integration](#service-integration)
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - rest
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Integration Patterns in VisionFlow
 
@@ -1149,6 +1157,18 @@ class BulkheadRejectedError extends Error {
 ```
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [Unified Services Guide](services-layer.md)
+- [Architecture Documentation](README.md)
+- [Adapter Patterns in VisionFlow](adapter-patterns.md)
+- [Stress Majorization for GPU-Accelerated Graph Layout](stress-majorization.md)
+- [XR Immersive System Architecture](xr-immersive-system.md)
 
 ## Integration Testing
 

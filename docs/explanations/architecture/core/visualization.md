@@ -1,9 +1,16 @@
 ---
 title: VisionFlow Visualisation Architecture
 description: VisionFlow supports dual-graph visualisation where both **Knowledge Graphs** (Logseq) and **Agent Graphs** (VisionFlow bots) coexist in the same 3D scene. This document outlines the existing archit...
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - rest
+  - websocket
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # VisionFlow Visualisation Architecture
 
@@ -267,6 +274,18 @@ Based on the existing architecture, potential enhancements could include:
 4. **Agent Distribution Controls**: Apply semantic clustering to agent swarms
 5. **Performance Correlation**: Visual links between code nodes and executing agents
 6. **Unified Material System**: Shared holographic effects for both graph types
+
+---
+
+---
+
+## Related Documentation
+
+- [Pipeline Integration Architecture](../pipeline-integration.md)
+- [Hexagonal/CQRS Architecture Design](../hexagonal-cqrs.md)
+- [Ontology Reasoning Data Flow (ACTIVE)](../reasoning-data-flow.md)
+- [Ontology Reasoning Pipeline - Comprehensive Test Suite](../reasoning-tests-summary.md)
+- [Complete Hexagonal Architecture Migration - Overview](../../system-overview.md)
 
 ## Conclusion
 

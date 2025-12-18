@@ -1,9 +1,17 @@
 ---
 title: Hexagonal/CQRS Architecture Design
 description: Production hexagonal architecture with CQRS patterns, 21 actors, 9 ports, 12 adapters, and Neo4j persistence
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - rest
+  - websocket
+  - neo4j
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Hexagonal/CQRS Architecture Design
 **VisionFlow Graph Service - PRODUCTION ARCHITECTURE**
@@ -2053,6 +2061,18 @@ async fn test-github-sync-emits-event() {
 **Mitigation**: Implement reconnection logic, queue events for disconnected clients
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [Pipeline Integration Architecture](pipeline-integration.md)
+- [Ontology Storage Architecture](ontology-storage-architecture.md)
+- [VisionFlow Distributed Systems & Collaboration Assessment](../../architecture/visionflow-distributed-systems-assessment.md)
+- [Complete Hexagonal Architecture Migration - Overview](../system-overview.md)
+- [Ontology Reasoning Data Flow (ACTIVE)](reasoning-data-flow.md)
 
 ## Conclusion
 

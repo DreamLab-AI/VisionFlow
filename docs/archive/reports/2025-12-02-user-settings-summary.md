@@ -1,9 +1,15 @@
 ---
 title: User Settings Implementation Summary
 description: Extended Neo4j settings repository with per-user settings support for VisionFlow, enabling Nostr pubkey-based user authentication and personalized graph filtering.
-type: document
-status: stable
+category: explanation
+tags:
+  - websocket
+  - neo4j
+  - rust
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # User Settings Implementation Summary
 
@@ -244,6 +250,18 @@ cargo test --lib test_user_filter -- --ignored
 | Documentation | ✅ Complete |
 | Compilation | ✅ Successful |
 | Zero new dependencies | ✅ Confirmed |
+
+---
+
+---
+
+## Related Documentation
+
+- [Complete Hexagonal Architecture Migration - Overview](../../explanations/system-overview.md)
+- [QA Validation Final Report](../../QA_VALIDATION_FINAL.md)
+- [Documentation Restructuring Complete](2025-12-02-restructuring-complete.md)
+- [Mermaid Diagram Fix Examples](mermaid-fixes-examples.md)
+- [Hexagonal/CQRS Architecture Design](../../explanations/architecture/hexagonal-cqrs.md)
 
 ## Summary
 

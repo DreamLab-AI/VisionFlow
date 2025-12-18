@@ -1,9 +1,17 @@
 ---
 title: P0-3: Semantic Forces Integration
 description: **Status**: Implementation Complete (GPU Kernel Integration Pending) **Date**: 2025-11-08 **Effort**: 6 days equivalent
-type: archive
-status: archived
+category: explanation
+tags:
+  - rest
+  - rust
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # P0-3: Semantic Forces Integration
 

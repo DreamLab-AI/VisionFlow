@@ -1,3 +1,23 @@
+---
+title: ASCII Diagram Deprecation - Complete Report
+description: All ASCII box-drawing and tree diagrams have been **systematically audited and deprecated** from active documentation.
+category: explanation
+tags:
+  - architecture
+  - structure
+  - api
+  - rest
+  - websocket
+related-docs:
+  - diagrams/infrastructure/websocket/binary-protocol-complete.md
+  - diagrams/data-flow/complete-data-flows.md
+  - diagrams/server/actors/actor-system-complete.md
+  - diagrams/server/api/rest-api-architecture.md
+  - diagrams/infrastructure/gpu/cuda-architecture-complete.md
+updated-date: 2025-12-18
+difficulty-level: intermediate
+---
+
 # ASCII Diagram Deprecation - Complete Report
 
 **Status**: ✅ **COMPLETE**
@@ -151,6 +171,18 @@ All changes have been validated for:
 4. **Archive** - Consolidate archive files into single deprecation notice
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [Complete System Data Flow Documentation](diagrams/data-flow/complete-data-flows.md)
+- [System Architecture Overview - Complete Mermaid Diagrams](diagrams/mermaid-library/01-system-architecture-overview.md)
+- [Deployment & Infrastructure Diagrams](diagrams/mermaid-library/03-deployment-infrastructure.md)
+- [VisionFlow Documentation Modernization - Final Report](DOCUMENTATION_MODERNIZATION_COMPLETE.md)
+- [VisionFlow Complete Architecture Documentation](ARCHITECTURE_COMPLETE.md)
 
 ## References
 

@@ -1,9 +1,15 @@
 ---
 title: Documentation Issues Report
 description: **Generated:** 2025-12-02 09:29:22 **Project:** project
-type: archive
-status: archived
+category: explanation
+tags:
+  - websocket
+  - docker
+  - neo4j
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Documentation Issues Report
 

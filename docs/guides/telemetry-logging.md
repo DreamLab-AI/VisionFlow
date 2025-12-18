@@ -1,9 +1,17 @@
 ---
 title: Telemetry and Logging Guide
 description: *[Guides](../guides/readme.md) > Telemetry and Logging*
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rest
+  - websocket
+  - docker
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Telemetry and Logging Guide
 

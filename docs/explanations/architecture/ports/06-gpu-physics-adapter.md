@@ -1,9 +1,17 @@
 ---
 title: GpuPhysicsAdapter Port
 description: The **GpuPhysicsAdapter** port provides GPU-accelerated physics simulation for knowledge graph layout using force-directed algorithms. It abstracts CUDA implementations for physics computations.
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - rust
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # GpuPhysicsAdapter Port
 
@@ -403,6 +411,18 @@ Target performance (CUDA adapter, RTX 3090):
 - 1,000 nodes: 10-20x
 - 10,000 nodes: 50-100x
 - 100,000 nodes: 200-500x
+
+---
+
+---
+
+## Related Documentation
+
+- [GpuSemanticAnalyzer Port](07-gpu-semantic-analyzer.md)
+- [InferenceEngine Port](05-inference-engine.md)
+- [OntologyRepository Port](04-ontology-repository.md)
+- [Stress Majorization for GPU-Accelerated Graph Layout](../stress-majorization.md)
+- [Semantic Physics Architecture](../semantic-physics.md)
 
 ## References
 

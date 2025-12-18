@@ -1,5 +1,23 @@
 ---
 title: Working with Agents
+description: Documentation for working-with-agents
+category: howto
+tags:
+  - architecture
+  - design
+  - patterns
+  - structure
+  - api
+related-docs:
+  - archive/docs/guides/user/xr-setup.md
+  - README.md
+  - guides/navigation-guide.md
+updated-date: 2025-12-18
+difficulty-level: intermediate
+---
+
+---
+title: Working with Agents
 description: User guide for effectively working with AI agents in Turbo Flow Claude
 category: user-guide
 tags: [agents, coordination, workflow, collaboration]
@@ -526,6 +544,18 @@ After mastering basic agent coordination:
 - [XR Setup Guide](./xr-setup.md)
 - Development workflow documentation
 - Project reference documentation
+
+---
+
+---
+
+## Related Documentation
+
+- [Skills Documentation](../../../../multi-agent-docker/SKILLS.md)
+- [Testing Guide](../developer/05-testing-guide.md)
+- [Adding Features](../../../../guides/developer/04-adding-features.md)
+- [RAGFlow Knowledge Management Integration](../../../../guides/ai-models/ragflow-integration.md)
+- [Perplexity AI Integration](../../../../guides/ai-models/perplexity-integration.md)
 
 ## Support
 

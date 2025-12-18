@@ -1,3 +1,23 @@
+---
+title: Skill MCP Implementation Classification
+description: Based on file structure analysis and code inspection of 6 representative skills:
+category: explanation
+tags:
+  - architecture
+  - design
+  - patterns
+  - structure
+  - api
+related-docs:
+  - architecture/HEXAGONAL_ARCHITECTURE_STATUS.md
+  - architecture/blender-mcp-unified-architecture.md
+  - architecture/phase1-completion.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+dependencies:
+  - Node.js runtime
+---
+
 # Skill MCP Implementation Classification
 
 **Analysis Date**: 2025-12-18

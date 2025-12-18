@@ -1,9 +1,15 @@
 ---
 title: KnowledgeGraphRepository Port
 description: The **KnowledgeGraphRepository** port manages the main knowledge graph structure parsed from local markdown files (Logseq, Obsidian). It provides comprehensive graph data access, manipulation, and ...
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - neo4j
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # KnowledgeGraphRepository Port
 
@@ -469,6 +475,18 @@ Target performance (SQLite adapter):
 3. **Cache frequently accessed data**
 4. **Use prepared statements**
 5. **Optimize indexes** based on query patterns
+
+---
+
+---
+
+## Related Documentation
+
+- [Hexagonal Architecture Ports - Overview](01-overview.md)
+- [Ontology Storage Architecture](../ontology-storage-architecture.md)
+- [Architecture Overview (OBSOLETE - WRONG STACK)](../../../archive/deprecated-patterns/03-architecture-WRONG-STACK.md)
+- [OntologyRepository Port](04-ontology-repository.md)
+- [InferenceEngine Port](05-inference-engine.md)
 
 ## References
 

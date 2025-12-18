@@ -1,9 +1,17 @@
 ---
 title: Semantic Forces User Guide
 description: Semantic forces enable GPU-accelerated physics where forces convey semantic meaning about relationships, hierarchies, and node types.
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rest
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Semantic Forces User Guide
 
@@ -100,6 +108,18 @@ Content-Type: application/json
 2. **Type clustering for ontologies**: Groups OWL classes naturally
 3. **Combine forces**: DAG + Type clustering works well together
 4. **Tune strengths**: Start with defaults, adjust based on graph density
+
+---
+
+---
+
+## Related Documentation
+
+- [Natural Language Queries Tutorial](natural-language-queries.md)
+- [Intelligent Pathfinding Guide](intelligent-pathfinding.md)
+- [Contributing Guidelines](../developer/06-contributing.md)
+- [Goalie Integration - Goal-Oriented AI Research](../infrastructure/goalie-integration.md)
+- [VisionFlow Guides](../index.md)
 
 ## Examples
 

@@ -1,3 +1,24 @@
+---
+title: Terminal Grid Configuration
+description: The VNC desktop automatically launches 9 color-coded terminal windows in a 3x3 grid, each with a custom banner identifying its purpose and providing helpful commands.
+category: explanation
+tags:
+  - api
+  - rest
+  - http
+  - docker
+  - testing
+related-docs:
+  - multi-agent-docker/ANTIGRAVITY.md
+  - multi-agent-docker/SKILLS.md
+  - multi-agent-docker/comfyui-sam3d-setup.md
+updated-date: 2025-12-18
+difficulty-level: intermediate
+dependencies:
+  - Docker installation
+  - Node.js runtime
+---
+
 # Terminal Grid Configuration
 
 ## Overview
@@ -134,6 +155,18 @@ To modify a terminal's banner:
 1. Edit the corresponding init script in `/home/devuser/.config/terminal-init/`
 2. Restart the terminal-grid service: `sudo supervisorctl restart terminal-grid`
 3. Or manually close and relaunch terminals
+
+---
+
+---
+
+## Related Documentation
+
+- [Hyprland Migration Summary](hyprland-migration-summary.md)
+- [Upstream Turbo-Flow-Claude Analysis](upstream-analysis.md)
+- [Final Status - Turbo Flow Unified Container Upgrade](development-notes/SESSION_2025-11-15.md)
+- [GPU-Only Build Status Report](fixes/GPU_BUILD_STATUS.md)
+- [X-FluxAgent Integration Plan for ComfyUI MCP Skill](x-fluxagent-adaptation-plan.md)
 
 ## Note on tmux
 

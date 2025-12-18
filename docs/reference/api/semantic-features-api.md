@@ -1,9 +1,16 @@
 ---
 title: Semantic Features API Reference
 description: Get complete graph schema.
-type: reference
-status: stable
+category: reference
+tags:
+  - api
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Semantic Features API Reference
 
@@ -31,6 +38,18 @@ Explain Cypher query.
 
 ### POST /api/nl-query/validate
 Validate Cypher syntax.
+
+---
+
+---
+
+## Related Documentation
+
+- [Authentication (DEPRECATED - JWT NOT USED)](01-authentication.md)
+- [Pathfinding API Examples](pathfinding-examples.md)
+- [Database Schema Reference](../DATABASE_SCHEMA_REFERENCE.md)
+- [VisionFlow Binary WebSocket Protocol](../protocols/binary-websocket.md)
+- [WebSocket Binary Protocol Reference](../websocket-protocol.md)
 
 ## Pathfinding Endpoints
 

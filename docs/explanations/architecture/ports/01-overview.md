@@ -1,9 +1,15 @@
 ---
 title: Hexagonal Architecture Ports - Overview
 description: This document provides an overview of VisionFlow's **Hexagonal Architecture** implementation, specifically the **Ports Layer** that defines technology-agnostic interfaces between the domain logic a...
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - neo4j
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Hexagonal Architecture Ports - Overview
 
@@ -309,6 +315,18 @@ Define specific error variants, not generic `Error(String)`.
 3. Write tests using mock implementations
 4. Integrate ports into domain services
 5. Monitor and optimize adapter performance
+
+---
+
+---
+
+## Related Documentation
+
+- [KnowledgeGraphRepository Port](03-knowledge-graph-repository.md)
+- [Architecture Overview (OBSOLETE - WRONG STACK)](../../../archive/deprecated-patterns/03-architecture-WRONG-STACK.md)
+- [Ontology Storage Architecture](../ontology-storage-architecture.md)
+- [Hexagonal/CQRS Architecture Design](../hexagonal-cqrs.md)
+- [InferenceEngine Port](05-inference-engine.md)
 
 ## References
 

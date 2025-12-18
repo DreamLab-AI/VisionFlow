@@ -1,9 +1,16 @@
 ---
 title: JSON Serialization Patterns for VisionFlow
 description: **Version:** 1.0 **Last Updated:** 2025-11-05 **Audience:** Frontend & Backend Developers
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rest
+  - websocket
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # JSON Serialization Patterns for VisionFlow
 

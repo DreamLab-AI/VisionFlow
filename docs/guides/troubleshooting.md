@@ -1,9 +1,17 @@
 ---
 title: Troubleshooting Guide
 description: > [Guides](./index.md) > Troubleshooting
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rest
+  - websocket
+  - docker
+  - rust
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Troubleshooting Guide
 

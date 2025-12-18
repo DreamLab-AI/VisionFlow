@@ -1,3 +1,19 @@
+---
+title: Agent/Bot System Architecture
+description: 1.  [Overview](#overview) 2.
+category: explanation
+tags:
+  - architecture
+  - design
+  - patterns
+  - structure
+  - api
+related-docs:
+  - diagrams/README.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+---
+
 # Agent/Bot System Architecture
 
 **Version:** 2.0
@@ -1371,6 +1387,18 @@ impl MCPTcpClient {
 ```
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [Blender MCP Unified System Architecture](../../../architecture/blender-mcp-unified-architecture.md)
+- [Agent Orchestration & Multi-Agent Systems](../../mermaid-library/04-agent-orchestration.md)
+- [VisionFlow Client Architecture Analysis](../../../visionflow-architecture-analysis.md)
+- [VisionFlow Architecture Diagrams - Complete Corpus](../../README.md)
+- [VisionFlow Complete Architecture Documentation](../../../ARCHITECTURE_COMPLETE.md)
 
 ## Summary
 

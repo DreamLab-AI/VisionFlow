@@ -1,9 +1,16 @@
 ---
 title: Security Best Practices
 description: *[Guides](../guides/readme.md) > Security*
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rest
+  - websocket
+  - docker
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Security Best Practices
 

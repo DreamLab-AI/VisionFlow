@@ -1,9 +1,16 @@
 ---
 title: Complete Hexagonal Architecture Migration - Overview
 description: This document provides a complete architectural blueprint for migrating the VisionFlow application to a fully database-backed hexagonal architecture. All designs are **production-ready with NO stub...
-type: explanation
-status: stable
+category: explanation
+tags:
+  - rest
+  - websocket
+  - neo4j
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Complete Hexagonal Architecture Migration - Overview
 
@@ -706,6 +713,18 @@ sqlite3 data/unified.db ".backup data/backups/unified-$DATE.db"
 - Designs stored in `/home/devuser/workspace/project/docs/explanations/architecture/`
 - Progress tracked in project management system
 - Daily standups to address blockers
+
+---
+
+---
+
+## Related Documentation
+
+- [Hexagonal/CQRS Architecture Design](architecture/hexagonal-cqrs.md)
+- [User Settings Implementation Summary](../archive/reports/2025-12-02-user-settings-summary.md)
+- [Documentation Restructuring Complete](../archive/reports/2025-12-02-restructuring-complete.md)
+- [QA Validation Final Report](../QA_VALIDATION_FINAL.md)
+- [Pipeline Integration Architecture](architecture/pipeline-integration.md)
 
 ## Conclusion
 

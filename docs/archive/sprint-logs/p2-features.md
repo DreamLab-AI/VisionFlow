@@ -1,9 +1,17 @@
 ---
 title: P2 Features Implementation: SSSP, APSP, and Connected Components
 description: **Implementation Date**: 2025-11-08 **Status**: Complete **Priority**: P2 (Low Impact - Niche Use Cases)
-type: archive
-status: archived
+category: explanation
+tags:
+  - rest
+  - rust
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # P2 Features Implementation: SSSP, APSP, and Connected Components
 

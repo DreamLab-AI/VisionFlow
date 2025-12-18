@@ -1,3 +1,23 @@
+---
+title: Blender MCP Unified System Architecture
+description: This document defines the complete technical architecture for the Unified Blender MCP system, enabling Claude Code to control Blender 5. x remotely via WebSocket RPC with MCP tool integration.
+category: explanation
+tags:
+  - architecture
+  - design
+  - patterns
+  - structure
+  - api
+related-docs:
+  - architecture/HEXAGONAL_ARCHITECTURE_STATUS.md
+  - architecture/phase1-completion.md
+  - architecture/skill-mcp-classification.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+dependencies:
+  - Node.js runtime
+---
+
 # Blender MCP Unified System Architecture
 ## Technical Architecture for Blender 5.x on Linux
 
@@ -1857,6 +1877,18 @@ node --inspect blender-mcp/dist/server.js
 - **UX:** Visual programming interface for operations
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [Agent/Bot System Architecture](../diagrams/server/agents/agent-system-architecture.md)
+- [VisionFlow Client Architecture Analysis](../visionflow-architecture-analysis.md)
+- [Agent Orchestration & Multi-Agent Systems](../diagrams/mermaid-library/04-agent-orchestration.md)
+- [VisionFlow Complete Architecture Documentation](../ARCHITECTURE_COMPLETE.md)
+- [What is VisionFlow?](../OVERVIEW.md)
 
 ## 15. Appendix
 

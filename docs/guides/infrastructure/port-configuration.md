@@ -1,9 +1,15 @@
 ---
 title: Multi-Agent Docker Port Configuration
 description: This document explains the port allocation and purpose for the Multi-Agent Docker Environment.
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - websocket
+  - docker
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Multi-Agent Docker Port Configuration
 
@@ -207,6 +213,18 @@ docker exec multi-agent-container supervisorctl status
 
 ---
 
+---
+
+---
+
+## Related Documentation
+
+- [Multi-Agent Docker Environment Architecture](architecture.md)
+- [Multi-Agent Docker Environment - Complete Documentation](docker-environment.md)
+- [Pipeline Operator Runbook](../operations/pipeline-operator-runbook.md)
+- [Troubleshooting Guide](troubleshooting.md)
+- [Vircadia Multi-User XR Integration - User Guide](../vircadia-multi-user-guide.md)
+
 ## Quick Reference
 
 ### Essential Ports (Cannot Disable)
@@ -223,9 +241,3 @@ docker exec multi-agent-container supervisorctl status
 - **9876-9879** - GUI tool bridges (Blender, QGIS, PBR, Playwright)
 
 ---
-
-## See Also
-
--  - System architecture overview
-- [troubleshooting.md](./troubleshooting.md) - Common issues and solutions
--  - Complete environment guide

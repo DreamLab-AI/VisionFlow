@@ -1,9 +1,17 @@
 ---
 title: Borrow Checker Error Fixes - Documentation
 description: All Rust borrow checker errors (E0502 and E0382) have been successfully resolved through proper code restructuring **without unnecessary clones**.
-type: archive
-status: archived
+category: explanation
+tags:
+  - rest
+  - rust
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Borrow Checker Error Fixes - Documentation
 
@@ -244,6 +252,18 @@ When making future changes:
 2. **Apply same patterns** - Use the decision tree in quick-reference.md
 3. **Avoid anti-patterns** - No clone-everything, no unsafe bypasses
 4. **Document changes** - Update these docs if patterns evolve
+
+---
+
+---
+
+## Related Documentation
+
+- [Borrow Checker Error Fixes - Summary](borrow-checker-summary.md)
+- [Borrow Checker Error Fixes](borrow-checker.md)
+- [VisionFlow Test Suite](../tests/test_README.md)
+- [Semantic Forces](../../explanations/physics/semantic-forces.md)
+- [Rust Type Correction Guide](rust-type-correction-guide.md)
 
 ## 🤝 Contributing
 

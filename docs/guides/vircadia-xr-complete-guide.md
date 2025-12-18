@@ -1,9 +1,16 @@
 ---
 title: Complete Vircadia XR Integration Guide
 description: **Multi-User Extended Reality with Force-Directed Graph Visualization**
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rest
+  - websocket
+  - docker
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Complete Vircadia XR Integration Guide
 

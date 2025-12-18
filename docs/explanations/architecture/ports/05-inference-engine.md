@@ -1,9 +1,17 @@
 ---
 title: InferenceEngine Port
 description: The **InferenceEngine** port provides ontology reasoning and inference capabilities using whelk-rs or similar OWL reasoners. It performs classification, consistency checking, entailment, and explan...
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - rust
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # InferenceEngine Port
 
@@ -393,6 +401,18 @@ Target performance (Whelk adapter):
 - Inference (100 classes, 200 axioms): < 200ms
 - Entailment check: < 1ms
 - Consistency check: < 100ms
+
+---
+
+---
+
+## Related Documentation
+
+- [OntologyRepository Port](04-ontology-repository.md)
+- [GpuSemanticAnalyzer Port](07-gpu-semantic-analyzer.md)
+- [GpuPhysicsAdapter Port](06-gpu-physics-adapter.md)
+- [Semantic Physics Architecture](../semantic-physics.md)
+- [Stress Majorization for GPU-Accelerated Graph Layout](../stress-majorization.md)
 
 ## References
 

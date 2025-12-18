@@ -1,3 +1,23 @@
+---
+title: XR/AR Integration Guide
+description: VisionFlow supports **Quest 3 VR/AR** through Babylon. js and WebXR.
+category: howto
+tags:
+  - architecture
+  - design
+  - api
+  - websocket
+  - http
+related-docs:
+  - guides/client/three-js-rendering.md
+  - guides/client/state-management.md
+  - QUICK_NAVIGATION.md
+  - README.md
+  - concepts/architecture/core/client.md
+updated-date: 2025-12-18
+difficulty-level: beginner
+---
+
 # XR/AR Integration Guide
 
 **Target Audience**: Frontend developers implementing VR/AR features
@@ -739,6 +759,18 @@ remoteLog.error('XR initialization failed', error);
 
 ---
 
+---
+
+---
+
+## Related Documentation
+
+- [Client State Management with Zustand](state-management.md)
+- [Three.js Rendering Pipeline](three-js-rendering.md)
+- [Adding Features](../developer/04-adding-features.md)
+- [Testing Guide](../../archive/docs/guides/developer/05-testing-guide.md)
+- [Working with Agents](../../archive/docs/guides/user/working-with-agents.md)
+
 ## Future Improvements
 
 ### 1. Unified Rendering Engine
@@ -793,13 +825,3 @@ const session = await navigator.xr.requestSession('immersive-ar', {
 - Voice chat integration
 
 ---
-
-## Related Documentation
-
-- [Three.js Rendering](./three-js-rendering.md) - Desktop rendering pipeline
-- [State Management](./state-management.md) - Zustand store architecture
-- [Client Architecture](../concepts/architecture/core/client.md) - Overall client design
-
----
-
-**Candid Assessment**: XR support is **functional but fragile**. Quest 3 detection is unreliable and should be replaced with WebXR API checks. Maintaining two rendering engines (Three.js + Babylon.js) is expensive—both in bundle size and maintenance. The 1.2MB Babylon.js library is only used for <5% of users (those with Quest devices). **Recommendation**: Either commit fully to Babylon.js (drop Three.js for desktop) or migrate XR to Three.js with WebXR polyfill. The current dual-engine approach is technical debt. That said, the Babylon.js implementation itself is solid, with proper controller handling and foveated rendering. Performance is acceptable (72 FPS on Quest 3 with 2,000 nodes). Overall, this is a **working proof-of-concept** that needs architectural cleanup before production deployment.

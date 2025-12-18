@@ -1,9 +1,17 @@
 ---
 title: Neo4j Implementation Roadmap
 description: **Version:** 1.0 **Last Updated:** 2025-11-05 **Status:** Implementation Ready
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rest
+  - websocket
+  - docker
+  - neo4j
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Neo4j Implementation Roadmap
 

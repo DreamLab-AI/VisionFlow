@@ -1,9 +1,15 @@
 ---
 title: WebSocket Binary Protocol
 description: **Version**: 2.0 (Binary Protocol V2) **Status**: Production Ready **Last Updated**: October 2025
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - websocket
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # WebSocket Binary Protocol
 

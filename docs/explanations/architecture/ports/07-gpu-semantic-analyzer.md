@@ -1,9 +1,17 @@
 ---
 title: GpuSemanticAnalyzer Port
 description: The **GpuSemanticAnalyzer** port provides GPU-accelerated semantic analysis, clustering, and pathfinding algorithms for knowledge graphs. It includes community detection, shortest path computation,...
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - rust
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # GpuSemanticAnalyzer Port
 
@@ -426,6 +434,18 @@ impl GpuSemanticAnalyzer for MockGpuSemanticAnalyzer {
     }
 }
 ```
+
+---
+
+---
+
+## Related Documentation
+
+- [GpuPhysicsAdapter Port](06-gpu-physics-adapter.md)
+- [InferenceEngine Port](05-inference-engine.md)
+- [OntologyRepository Port](04-ontology-repository.md)
+- [Stress Majorization for GPU-Accelerated Graph Layout](../stress-majorization.md)
+- [Semantic Physics Architecture](../semantic-physics.md)
 
 ## References
 

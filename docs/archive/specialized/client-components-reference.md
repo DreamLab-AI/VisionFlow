@@ -1,9 +1,17 @@
 ---
 title: Client Components Reference
 description: **VisionFlow Client Component Library** **Version:** 0.1.0 **Last Updated:** 2025-11-04
-type: archive
-status: archived
+category: explanation
+tags:
+  - client
+  - rest
+  - websocket
+  - rust
+  - react
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Client Components Reference
 

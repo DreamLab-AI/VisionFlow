@@ -1,10 +1,16 @@
 ---
 title: Documentation Restructuring Complete
 description: Summary of Diátaxis framework migration
-type: archive
-status: complete
+category: explanation
+tags:
+  - rest
+  - websocket
+  - neo4j
+updated-date: 2025-12-18
+difficulty-level: intermediate
 date: 2025-12-02
 ---
+
 
 # Documentation Restructuring Complete
 
@@ -182,6 +188,18 @@ Structure validated on 2025-12-02:
 - ✅ Golden index complete with 370 lines
 - ✅ Internal links fixed in 34 files
 - ✅ All files have YAML frontmatter
+
+---
+
+---
+
+## Related Documentation
+
+- [Mermaid Diagram Fix Examples](mermaid-fixes-examples.md)
+- [User Settings Implementation Summary](2025-12-02-user-settings-summary.md)
+- [Complete Hexagonal Architecture Migration - Overview](../../explanations/system-overview.md)
+- [Hexagonal/CQRS Architecture Design](../../explanations/architecture/hexagonal-cqrs.md)
+- [VisionFlow Distributed Systems & Collaboration Assessment](../../architecture/visionflow-distributed-systems-assessment.md)
 
 ## References
 

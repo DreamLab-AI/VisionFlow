@@ -1,9 +1,15 @@
 ---
 title: Agent Control Panel User Guide
 description: The Agent Control Panel provides comprehensive orchestration and management of AI agents within the system. Access it through **Settings → Agents** tab in the Control Center.
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rest
+  - websocket
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Agent Control Panel User Guide
 
@@ -338,11 +344,17 @@ The agent panel integrates with:
 - **Phase 3:** Comprehensive agent orchestration UI
 - **Integration:** Settings Panel Redesign
 
+---
+
+---
+
 ## Related Documentation
 
-- [Orchestrating Agents Guide](./orchestrating-agents.md)
-- [Development Workflow](./development-workflow.md)
-- [GOAP Widget](https://goal.ruv.io/)
+- [Vircadia Multi-User XR Integration - User Guide](vircadia-multi-user-guide.md)
+- [GraphServiceActor Migration Guide (HISTORICAL REFERENCE)](graphserviceactor-migration.md)
+- [Documentation Contributing Guidelines](contributing.md)
+- [Pipeline Operator Runbook](operations/pipeline-operator-runbook.md)
+- [Ontology Storage Guide](ontology-storage-guide.md)
 
 ## Support
 

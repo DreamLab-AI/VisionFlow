@@ -1,9 +1,15 @@
 ---
 title: Ontology Reasoning Data Flow (ACTIVE)
 description: Complete ontology reasoning pipeline from GitHub markdown to inferred axioms
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - websocket
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Ontology Reasoning Data Flow (ACTIVE)
 
@@ -264,6 +270,18 @@ SQL
 # 4. Verify GPU constraint status
 curl http://localhost:8080/api/constraints/status | jq
 ```
+
+---
+
+---
+
+## Related Documentation
+
+- [Ontology Reasoning Pipeline - Comprehensive Test Suite](reasoning-tests-summary.md)
+- [Pipeline Integration Architecture](pipeline-integration.md)
+- [Hexagonal/CQRS Architecture Design](hexagonal-cqrs.md)
+- [VisionFlow Visualisation Architecture](core/visualization.md)
+- [Ontology Storage Architecture](ontology-storage-architecture.md)
 
 ## Conclusion
 

@@ -1,9 +1,17 @@
 ---
 title: Documentation Index - Quick Start Guide
 description: **Navigation shortcuts for the VisionFlow documentation hub**
-type: archive
-status: archived
+category: explanation
+tags:
+  - rest
+  - websocket
+  - docker
+  - neo4j
+  - rust
+updated-date: 2025-12-18
+difficulty-level: beginner
 ---
+
 
 # Documentation Index - Quick Start Guide
 

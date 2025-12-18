@@ -1,3 +1,25 @@
+---
+title: AI Models & Services Integration
+description: This system integrates multiple AI models and services for diverse use cases: real-time research, reasoning, knowledge management, and document processing.  Each service is isolated for security an...
+category: howto
+tags:
+  - architecture
+  - patterns
+  - structure
+  - api
+  - rest
+related-docs:
+  - guides/ai-models/deepseek-verification.md
+  - guides/ai-models/deepseek-deployment.md
+  - guides/ai-models/perplexity-integration.md
+  - guides/ai-models/ragflow-integration.md
+  - README.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+dependencies:
+  - Docker installation
+---
+
 # AI Models & Services Integration
 
 **Status**: Active

@@ -1,9 +1,15 @@
 ---
 title: Semantic Features Implementation Guide
 description: **Version:** 1.0 **Last Updated:** 2025-11-05 **Status:** Implementation Roadmap
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - neo4j
+  - rust
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Semantic Features Implementation Guide
 

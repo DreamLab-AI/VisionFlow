@@ -1,3 +1,23 @@
+---
+title: Three.js Rendering Pipeline
+description: VisionFlow uses **instanced rendering** to display 10,000+ nodes with a single draw call.  This guide explains how the Three.
+category: howto
+tags:
+  - architecture
+  - rest
+  - websocket
+  - http
+  - client
+related-docs:
+  - guides/client/state-management.md
+  - guides/client/xr-integration.md
+  - QUICK_NAVIGATION.md
+  - README.md
+  - concepts/architecture/core/client.md
+updated-date: 2025-12-18
+difficulty-level: beginner
+---
+
 # Three.js Rendering Pipeline
 
 **Target Audience**: Frontend developers working on 3D visualization
@@ -614,6 +634,18 @@ Install Chrome extension: [Spector.js](https://chrome.google.com/webstore/detail
 ```
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [XR/AR Integration Guide](xr-integration.md)
+- [Client State Management with Zustand](state-management.md)
+- [Actor System Guide](../architecture/actor-system.md)
+- [Multi-Agent Docker Environment Architecture](../infrastructure/architecture.md)
+- [ComfyUI SAM3D Docker Setup](../../multi-agent-docker/comfyui-sam3d-setup.md)
 
 ## Next Steps
 

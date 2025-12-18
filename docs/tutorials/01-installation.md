@@ -1,9 +1,17 @@
 ---
 title: Installation Guide
 description: **
-type: tutorial
-status: stable
+category: tutorial
+tags:
+  - rest
+  - websocket
+  - docker
+  - rust
+  - react
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Installation Guide
 

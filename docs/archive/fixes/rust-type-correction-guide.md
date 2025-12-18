@@ -1,9 +1,17 @@
 ---
 title: Rust Type Correction Guide
 description: The Rust compiler's type errors are **design feedback**, not obstacles to work around. When you see a type error, it's telling you that your mental model doesn't match the actual structure of the c...
-type: archive
-status: archived
+category: explanation
+tags:
+  - guide
+  - rust
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Rust Type Correction Guide
 
@@ -326,6 +334,18 @@ let iterations = iterations as u32;
 - [ ] Verify tests still pass
 - [ ] Check that the fix makes logical sense
 - [ ] Document any non-obvious type conversions
+
+---
+
+---
+
+## Related Documentation
+
+- [Borrow Checker Error Fixes](borrow-checker.md)
+- [Borrow Checker Error Fixes - Summary](borrow-checker-summary.md)
+- [Borrow Checker Error Fixes - Documentation](README.md)
+- [Reasoning Module - Week 2 Deliverable](../../explanations/ontology/reasoning-engine.md)
+- [OntologyRepository Port](../../explanations/architecture/ports/04-ontology-repository.md)
 
 ## Remember
 

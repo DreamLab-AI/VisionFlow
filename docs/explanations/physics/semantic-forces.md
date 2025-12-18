@@ -1,9 +1,17 @@
 ---
 title: Semantic Forces
 description: Based on the comprehensive CUDA and Rust codebase provided, combined with the current state-of-the-art in ontology visualization research (e.g., works involving VOWL, OntoTrix, or 3D hyperbolic lay...
-type: explanation
-status: stable
+category: explanation
+tags:
+  - rest
+  - rust
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 Based on the comprehensive CUDA and Rust codebase provided, combined with the current state-of-the-art in ontology visualization research (e.g., works involving VOWL, OntoTrix, or 3D hyperbolic layouts), here is an analysis of the synergies, crossovers, and opportunities for your system.
 
@@ -69,3 +77,15 @@ Your `ontology_constraints.cu` is the bridge between raw graph physics and seman
 | `unified_stress_majorization.cu` | **Distance Preservation** | "Untangling" complex hairballs that force-directed layouts fail to resolve. |
 | `louvain_local_pass_kernel` | **Hybrid Visualization** | Implementing "semantic zoom" where clusters dissolve into nodes based on camera distance. |
 | `unified_gpu_compute.rs` (Async) | **Fluid Interaction** | The double-buffered async transfer allows the UI thread (AR/VR render) to run at 90/120Hz while physics runs at a variable rate, decoupling simulation lag from visual latency. |
+
+---
+
+---
+
+## Related Documentation
+
+- [VisionFlow Test Suite](../../archive/tests/test_README.md)
+- [Borrow Checker Error Fixes](../../archive/fixes/borrow-checker.md)
+- [Borrow Checker Error Fixes - Documentation](../../archive/fixes/README.md)
+- [Borrow Checker Error Fixes - Summary](../../archive/fixes/borrow-checker-summary.md)
+- [Reasoning Module - Week 2 Deliverable](../ontology/reasoning-engine.md)

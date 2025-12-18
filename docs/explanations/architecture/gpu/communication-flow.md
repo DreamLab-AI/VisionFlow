@@ -1,9 +1,16 @@
 ---
 title: GPU Actor Communication Flow - Corrected Data Flow
 description: > ⚠️ **DEPRECATION NOTICE** ⚠️ > **GraphServiceActor** is being replaced by the **hexagonal CQRS architecture**. > This document describes legacy patterns and is being updated. See `/docs/guides/gr...
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # GPU Actor Communication Flow - Corrected Data Flow
 

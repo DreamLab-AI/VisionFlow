@@ -1,5 +1,23 @@
 ---
 title: Testing Guide
+description: Documentation for 05-testing-guide
+category: howto
+tags:
+  - architecture
+  - design
+  - structure
+  - api
+  - rest
+updated-date: 2025-12-18
+difficulty-level: intermediate
+dependencies:
+  - Test behavior, not implementation
+  - Rust toolchain
+  - Node.js runtime
+---
+
+---
+title: Testing Guide
 description: Comprehensive guide to testing strategies and practices in Turbo Flow Claude
 category: developer-guide
 tags: [testing, tdd, quality, automation]
@@ -771,6 +789,18 @@ cargo test -- --test-threads=1
 - [Adding a Feature](../../../guides/developer/04-adding-features.md)
 - SPARC Methodology (see project docs)
 - Code Quality Standards (see project docs)
+
+---
+
+---
+
+## Related Documentation
+
+- [Adding Features](../../../../guides/developer/04-adding-features.md)
+- [Working with Agents](../user/working-with-agents.md)
+- [Skills Documentation](../../../../multi-agent-docker/SKILLS.md)
+- [Client State Management with Zustand](../../../../guides/client/state-management.md)
+- [Actor System Guide](../../../../guides/architecture/actor-system.md)
 
 ## Support
 

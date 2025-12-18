@@ -1,3 +1,25 @@
+---
+title: VisionFlow Client Architecture - Deep Analysis
+description: The VisionFlow client is a sophisticated React-based 3D visualization platform leveraging Three. js, React Three Fiber, and WebSocket binary protocols.
+category: reference
+tags:
+  - architecture
+  - design
+  - structure
+  - api
+  - rest
+related-docs:
+  - QUICK_NAVIGATION.md
+  - working/ASSET_RESTORATION.md
+  - working/CLIENT_DOCS_SUMMARY.md
+  - working/DEPRECATION_PURGE.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+dependencies:
+  - Docker installation
+  - Neo4j database
+---
+
 # VisionFlow Client Architecture - Deep Analysis
 
 **Analysis Date**: 2025-12-02
@@ -1187,6 +1209,18 @@ const mockGraphData = {
 | `features/design-system/` | 24 | Reusable UI components |
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [XR/VR System Architecture - Complete Documentation](../../diagrams/client/xr/xr-architecture-complete.md)
+- [VisionFlow Client Architecture](../../concepts/architecture/core/client.md)
+- [REST API Architecture Documentation](../../diagrams/server/api/rest-api-architecture.md)
+- [ASCII Diagram Deprecation Audit](../../audits/ascii-diagram-deprecation-audit.md)
+- [VisionFlow Architecture Cross-Reference Matrix](../../diagrams/cross-reference-matrix.md)
 
 ## 13. Conclusion
 

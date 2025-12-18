@@ -1,9 +1,17 @@
 ---
 title: Borrow Checker Quick Reference Guide
 description: **When to use**: Operations are independent and can be reordered
-type: archive
-status: archived
+category: explanation
+tags:
+  - rest
+  - rust
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Borrow Checker Quick Reference Guide
 

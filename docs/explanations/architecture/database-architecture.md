@@ -1,3 +1,25 @@
+---
+title: Database Architecture
+description: VisionFlow uses **Neo4j** as the **single source of truth** for all graph data, user settings, ontology information, and application state.
+category: explanation
+tags:
+  - architecture
+  - design
+  - patterns
+  - structure
+  - rest
+related-docs:
+  - concepts/architecture/core/server.md
+  - explanations/architecture/hexagonal-cqrs.md
+  - guides/architecture/actor-system.md
+  - guides/graphserviceactor-migration.md
+  - README.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+dependencies:
+  - Neo4j database
+---
+
 # Database Architecture
 
 **Database**: Neo4j 5.x
@@ -607,8 +629,6 @@ if duration > Duration::from_millis(100) {
 
 ---
 
-## Related Documentation
-
 ### Architecture Docs
 - [Server Architecture](../../concepts/architecture/core/server.md) - Overall system design
 - [Hexagonal Architecture](hexagonal-cqrs.md) - Ports and adapters pattern
@@ -624,6 +644,18 @@ if duration > Duration::from_millis(100) {
 - [GraphServiceActor Migration](../../guides/graphserviceactor-migration.md) - Related actor migration
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [Blender MCP Unified System Architecture](../../architecture/blender-mcp-unified-architecture.md)
+- [Hexagonal Architecture Migration Status Report](../../architecture/HEXAGONAL_ARCHITECTURE_STATUS.md)
+- [Server Architecture](../../concepts/architecture/core/server.md)
+- [VisionFlow Documentation Modernization - Final Report](../../DOCUMENTATION_MODERNIZATION_COMPLETE.md)
+- [VisionFlow GPU CUDA Architecture - Complete Technical Documentation](../../diagrams/infrastructure/gpu/cuda-architecture-complete.md)
 
 ## Changelog
 

@@ -1,3 +1,23 @@
+---
+title: VisionFlow Client Architecture
+description: The VisionFlow client is a high-performance 3D visualization platform built on React Three Fiber, implementing instanced rendering for 10,000+ node graphs with real-time WebSocket synchronization. ...
+category: reference
+tags:
+  - architecture
+  - design
+  - api
+  - rest
+  - websocket
+related-docs:
+  - guides/client/three-js-rendering.md
+  - guides/client/state-management.md
+  - guides/client/xr-integration.md
+  - working/link-validation-report.md
+  - concepts/architecture/core/server.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+---
+
 # VisionFlow Client Architecture
 
 **Status**: Production-Ready
@@ -849,6 +869,18 @@ import { StatsGl } from '@react-three/drei';
 
 ---
 
+---
+
+---
+
+## Related Documentation
+
+- [VisionFlow Client Architecture - Deep Analysis](../../../archive/analysis/client-architecture-analysis-2025-12.md)
+- [XR/VR System Architecture - Complete Documentation](../../../diagrams/client/xr/xr-architecture-complete.md)
+- [ASCII Diagram Deprecation Audit](../../../audits/ascii-diagram-deprecation-audit.md)
+- [VisionFlow Architecture Cross-Reference Matrix](../../../diagrams/cross-reference-matrix.md)
+- [ComfyUI MCP Server Integration with Management API](../../../comfyui-integration-design.md)
+
 ## File Organization
 
 ```
@@ -898,13 +930,3 @@ client/src/
 ```
 
 ---
-
-## Related Documentation
-
-- [Three.js Rendering Pipeline](../../../guides/client/three-js-rendering.md) - Detailed rendering implementation
-- [State Management](../../../guides/client/state-management.md) - Zustand store architecture
-- [XR Integration](../../../guides/client/xr-integration.md) - Quest 3 AR/VR setup
-
----
-
-**Candid Assessment**: The client architecture is **production-ready** with excellent performance characteristics. The instanced rendering approach is well-designed and achieves 60 FPS with 10,000+ nodes. However, technical debt exists around dual rendering engines (Three.js + Babylon.js), fragile Quest 3 detection, and disabled test suite. The binary WebSocket protocol is a standout achievement, reducing bandwidth by 90%. State management with lazy loading shows impressive optimization results. Overall, this is a **sophisticated, high-performance 3D visualization client** that would benefit from consolidating XR support and re-enabling tests.

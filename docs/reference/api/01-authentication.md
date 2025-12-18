@@ -1,10 +1,16 @@
 ---
 title: Authentication (DEPRECATED - JWT NOT USED)
 description: ⚠️ OUTDATED - VisionFlow uses Nostr protocol authentication, NOT JWT
-type: reference
-status: deprecated
-replaced_by: /docs/guides/features/nostr-auth.md
+category: reference
+tags:
+  - api
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 ## ⚠️ DEPRECATION WARNING
 
@@ -96,6 +102,18 @@ curl -H "X-API-Key: YOUR-API-KEY" \
 - JWT tokens expire in 24 hours
 - Refresh tokens expire in 30 days
 - Use `/auth/refresh` to get new tokens
+
+---
+
+---
+
+## Related Documentation
+
+- [Semantic Features API Reference](semantic-features-api.md)
+- [Pathfinding API Examples](pathfinding-examples.md)
+- [Database Schema Reference](../DATABASE_SCHEMA_REFERENCE.md)
+- [VisionFlow Binary WebSocket Protocol](../protocols/binary-websocket.md)
+- [WebSocket Binary Protocol Reference](../websocket-protocol.md)
 
 ## Security Best Practices
 

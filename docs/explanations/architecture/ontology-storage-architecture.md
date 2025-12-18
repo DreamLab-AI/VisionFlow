@@ -1,9 +1,16 @@
 ---
 title: Ontology Storage Architecture
 description: VisionFlow's ontology storage architecture provides a production-ready system for managing OWL (Web Ontology Language) definitions, reasoning inferences, and semantic constraints at scale. The syst...
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - rest
+  - neo4j
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Ontology Storage Architecture
 
@@ -494,6 +501,18 @@ class OntologyVersionManager {
 }
 ```
 
+---
+
+---
+
+## Related Documentation
+
+- [Hexagonal/CQRS Architecture Design](hexagonal-cqrs.md)
+- [Pipeline Integration Architecture](pipeline-integration.md)
+- [KnowledgeGraphRepository Port](ports/03-knowledge-graph-repository.md)
+- [Hexagonal Architecture Ports - Overview](ports/01-overview.md)
+- [VisionFlow Distributed Systems & Collaboration Assessment](../../architecture/visionflow-distributed-systems-assessment.md)
+
 ## Security Considerations
 
 ### Input Validation
@@ -524,17 +543,3 @@ class OntologyAccessControl {
   }
 }
 ```
-
-## Related Documentation
-
-- [Complete Ontology Reasoning](../reasoning-engine.md) - Semantic reasoning pipeline
--  - Physics force application
--  - Complete system design
-- [Database Schemas](./schemas.md) - Complete schema reference
--  - Practical guide
-
----
-
-**Last Updated**: 2025-11-04
-**Category**: Architecture / Data Storage
-**Status**: Production Ready

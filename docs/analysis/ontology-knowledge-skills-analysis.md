@@ -1,3 +1,23 @@
+---
+title: Ontology/Knowledge Skills Analysis
+description: Analyzed 6 ontology/knowledge skills to determine implementation status, MCP integration, dependencies, and migration priorities.  Found mixed implementation states requiring strategic consolidatio...
+category: explanation
+tags:
+  - architecture
+  - design
+  - structure
+  - api
+  - http
+related-docs:
+  - analysis/ontology-skills-cluster-analysis.md
+updated-date: 2025-12-18
+difficulty-level: intermediate
+dependencies:
+  - Python 3.x
+  - No external dependencies in requirements.txt
+  - Node.js runtime
+---
+
 # Ontology/Knowledge Skills Analysis
 
 **Date**: 2025-12-18
@@ -445,6 +465,18 @@ perplexity (MCP stub) ← Duplicate of ontology-enrich/perplexity_client.py
 - [ ] Clear library vs skill separation
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [Ontology & Knowledge Skills Cluster Analysis](ontology-skills-cluster-analysis.md)
+- [Hexagonal Architecture Migration Status Report](../architecture/HEXAGONAL_ARCHITECTURE_STATUS.md)
+- [Upstream Turbo-Flow-Claude Analysis](../multi-agent-docker/upstream-analysis.md)
+- [VisionFlow Architecture Diagrams - Complete Corpus](../diagrams/README.md)
+- [Blender MCP Unified System Architecture](../architecture/blender-mcp-unified-architecture.md)
 
 ## Appendix: File Counts
 

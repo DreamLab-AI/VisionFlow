@@ -1,3 +1,23 @@
+---
+title: Hyprland Migration Summary
+description: Successfully migrated the Turbo Flow Unified Container from XFCE4 + Xvnc to **Hyprland + wayvnc** with 4K (3840x2160) support, high-contrast fonts, and comprehensive desktop automation.
+category: explanation
+tags:
+  - api
+  - rest
+  - docker
+  - testing
+  - playwright
+related-docs:
+  - multi-agent-docker/ANTIGRAVITY.md
+  - multi-agent-docker/SKILLS.md
+  - multi-agent-docker/TERMINAL_GRID.md
+updated-date: 2025-12-18
+difficulty-level: intermediate
+dependencies:
+  - Docker installation
+---
+
 # Hyprland Migration Summary
 
 **Date**: 2025-11-15
@@ -310,6 +330,18 @@ docker exec -u devuser agentic-workstation /home/devuser/.config/tmux-autostart.
 2. **Xwayland** required for Blender/QGIS (legacy X11 apps)
 3. **Remote debugging** only one Chromium instance
 4. **GPU passthrough** requires host NVIDIA drivers
+
+---
+
+---
+
+## Related Documentation
+
+- [Terminal Grid Configuration](TERMINAL_GRID.md)
+- [Upstream Turbo-Flow-Claude Analysis](upstream-analysis.md)
+- [Final Status - Turbo Flow Unified Container Upgrade](development-notes/SESSION_2025-11-15.md)
+- [X-FluxAgent Integration Plan for ComfyUI MCP Skill](x-fluxagent-adaptation-plan.md)
+- [GPU-Only Build Status Report](fixes/GPU_BUILD_STATUS.md)
 
 ## Future Enhancements
 

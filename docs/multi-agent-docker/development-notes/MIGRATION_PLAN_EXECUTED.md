@@ -1,3 +1,22 @@
+---
+title: Turbo Flow Unified CachyOS Workstation Upgrade Plan
+description: This document describes how to: - Sync our CachyOS based unified container with the latest turbo-flow-claude upstream features.  - Migrate from XFCE + Xvnc to a Hyprland + wayvnc Wayland desktop at...
+category: explanation
+tags:
+  - architecture
+  - design
+  - api
+  - docker
+  - playwright
+related-docs:
+  - multi-agent-docker/development-notes/SESSION_2025-11-15.md
+updated-date: 2025-12-18
+difficulty-level: intermediate
+dependencies:
+  - Docker installation
+  - Node.js runtime
+---
+
 # Turbo Flow Unified CachyOS Workstation Upgrade Plan
 
 This document describes how to:

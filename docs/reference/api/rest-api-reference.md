@@ -1,9 +1,16 @@
 ---
 title: REST API Complete Reference
 description: **VisionFlow Ontology and Graph API Documentation**
-type: reference
-status: stable
+category: reference
+tags:
+  - api
+  - rest
+  - websocket
+  - rust
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # REST API Complete Reference
 

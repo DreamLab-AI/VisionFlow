@@ -1,9 +1,17 @@
 ---
 title: API Handlers Reference - Complete Endpoint Documentation
 description: **Version:** 1.0.0 **Last Updated:** 2025-11-04 **Status:** Production
-type: explanation
-status: stable
+category: explanation
+tags:
+  - api
+  - architecture
+  - rest
+  - websocket
+  - neo4j
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # API Handlers Reference - Complete Endpoint Documentation
 

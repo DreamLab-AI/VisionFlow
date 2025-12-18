@@ -1,9 +1,17 @@
 ---
 title: VisionFlow GPU Feature Integration & Compilation Repair
 description: Check if the following have been accomplished using cargo check only, you're in a docker container
-type: archive
-status: archived
+category: explanation
+tags:
+  - rest
+  - websocket
+  - docker
+  - neo4j
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 
 Check if the following have been accomplished using cargo check only, you're in a docker container

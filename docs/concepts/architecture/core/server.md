@@ -1,3 +1,25 @@
+---
+title: Server Architecture
+description: VisionFlow server implements a **hexagonal (ports and adapters) architecture** with **CQRS patterns** and **actor-based concurrency** for handling real-time graph visualization and semantic analysis.
+category: explanation
+tags:
+  - architecture
+  - patterns
+  - structure
+  - api
+  - rest
+related-docs:
+  - explanations/architecture/hexagonal-cqrs.md
+  - guides/architecture/actor-system.md
+  - explanations/architecture/database-architecture.md
+  - guides/graphserviceactor-migration.md
+  - ARCHITECTURE_OVERVIEW.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+dependencies:
+  - Neo4j database
+---
+
 # Server Architecture
 
 **Status**: ✅ **STABLE - HEXAGONAL/CQRS PRODUCTION**
@@ -482,8 +504,6 @@ AddNodeCommand → CommandHandler → GraphStateActor → Neo4jGraphRepository �
 
 ---
 
-## Related Documentation
-
 ### Architecture Deep Dives
 - [Hexagonal/CQRS Architecture](../../../explanations/architecture/hexagonal-cqrs.md) - Deep dive into ports/adapters/CQRS
 - [Actor System Guide](../../../guides/architecture/actor-system.md) - Actor patterns, message ordering, debugging
@@ -499,6 +519,18 @@ AddNodeCommand → CommandHandler → GraphStateActor → Neo4jGraphRepository �
 - [Settings System](../../../guides/user-settings.md) - User settings with Nostr auth
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [VisionFlow Documentation Modernization - Final Report](../../../DOCUMENTATION_MODERNIZATION_COMPLETE.md)
+- [Server-Side Actor System - Complete Architecture Documentation](../../../diagrams/server/actors/actor-system-complete.md)
+- [VisionFlow GPU CUDA Architecture - Complete Technical Documentation](../../../diagrams/infrastructure/gpu/cuda-architecture-complete.md)
+- [Complete State Management Architecture](../../../diagrams/client/state/state-management-complete.md)
+- [X-FluxAgent Integration Plan for ComfyUI MCP Skill](../../../multi-agent-docker/x-fluxagent-adaptation-plan.md)
 
 ## Changelog
 

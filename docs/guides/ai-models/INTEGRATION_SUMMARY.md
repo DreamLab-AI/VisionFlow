@@ -1,3 +1,24 @@
+---
+title: AI Models Integration Summary
+description: ✅ **Perplexity AI** - Status: Production - MCP Skill: Active - Rust Service: Integrated - Recommendation: Implement response caching
+category: howto
+tags:
+  - architecture
+  - design
+  - patterns
+  - structure
+  - api
+related-docs:
+  - guides/features/MOVED.md
+  - guides/ai-models/README.md
+  - guides/ai-models/deepseek-deployment.md
+  - guides/ai-models/deepseek-verification.md
+updated-date: 2025-12-18
+difficulty-level: intermediate
+dependencies:
+  - Docker installation
+---
+
 # AI Models Integration Summary
 
 **Date**: December 2, 2025

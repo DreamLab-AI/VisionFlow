@@ -1,9 +1,16 @@
 ---
 title: Semantic Forces System
 description: **Status:** Implementation Ready **Version:** 1.0 **Last Updated:** 2025-11-05
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - rest
+  - rust
+  - react
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Semantic Forces System
 

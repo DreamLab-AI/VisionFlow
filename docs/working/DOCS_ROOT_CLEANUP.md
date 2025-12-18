@@ -1,9 +1,17 @@
 ---
 title: Docs Root Cleanup Report
 description: Summary of documentation root cleanup on 2025-12-02
-type: working
-status: complete
+category: explanation
+tags:
+  - rest
+  - neo4j
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Docs Root Cleanup Report
 

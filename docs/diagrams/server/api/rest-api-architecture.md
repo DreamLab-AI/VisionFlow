@@ -1,3 +1,24 @@
+---
+title: REST API Architecture Documentation
+description: 1.  [Overview](#overview) 2.
+category: reference
+tags:
+  - architecture
+  - design
+  - patterns
+  - structure
+  - api
+related-docs:
+  - ASCII_DEPRECATION_COMPLETE.md
+  - diagrams/README.md
+  - explanations/architecture/quick-reference.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+dependencies:
+  - Docker installation
+  - Node.js runtime
+---
+
 # REST API Architecture Documentation
 ## Agentic Flow Management API v2.1.0
 
@@ -2200,6 +2221,18 @@ spec:
 ```
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [ComfyUI MCP Server Integration with Management API](../../../comfyui-integration-design.md)
+- [ComfyUI Management API Integration - Summary](../../../comfyui-management-api-integration-summary.md)
+- [VisionFlow Testing Infrastructure Architecture](../../infrastructure/testing/test-architecture.md)
+- [VisionFlow Client Architecture - Deep Analysis](../../../archive/analysis/client-architecture-analysis-2025-12.md)
+- [XR/VR System Architecture - Complete Documentation](../../client/xr/xr-architecture-complete.md)
 
 ## Conclusion
 

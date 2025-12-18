@@ -1,9 +1,16 @@
 ---
 title: Pipeline Integration Architecture
 description: This document describes the end-to-end event-driven data pipeline that processes ontology data from GitHub through reasoning, constraint generation, GPU physics, and client delivery.
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - rest
+  - websocket
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Pipeline Integration Architecture
 
@@ -875,6 +882,18 @@ async fn test-backpressure-throttling() {
 - 
 - 
 - 
+
+---
+
+---
+
+## Related Documentation
+
+- [Hexagonal/CQRS Architecture Design](hexagonal-cqrs.md)
+- [Ontology Reasoning Data Flow (ACTIVE)](reasoning-data-flow.md)
+- [Ontology Reasoning Pipeline - Comprehensive Test Suite](reasoning-tests-summary.md)
+- [VisionFlow Visualisation Architecture](core/visualization.md)
+- [Ontology Storage Architecture](ontology-storage-architecture.md)
 
 ## Version History
 

@@ -1,9 +1,15 @@
 ---
 title: Neo4j Rich Ontology Schema V2
 description: The Neo4j ontology adapter has been updated to support rich metadata from the SQLite schema migration (002_rich_ontology_metadata.sql). This document describes the new capabilities and how to use t...
-type: reference
-status: stable
+category: reference
+tags:
+  - database
+  - neo4j
+  - rust
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Neo4j Rich Ontology Schema V2
 
@@ -433,6 +439,15 @@ let config = Neo4jOntologyConfig {
 3. Use encrypted connections (bolt+s://)
 4. Limit connection pool size
 5. Set query timeouts
+
+---
+
+---
+
+## Related Documentation
+
+- [Complete API Reference](../API_REFERENCE.md)
+- [Database Schema Reference](../DATABASE_SCHEMA_REFERENCE.md)
 
 ## Summary
 

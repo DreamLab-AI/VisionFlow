@@ -1,3 +1,27 @@
+---
+title: VisionFlow Architecture Overview
+description: VisionFlow is built on three core architectural principles:
+category: howto
+tags:
+  - architecture
+  - design
+  - patterns
+  - structure
+  - api
+related-docs:
+  - DEVELOPER_JOURNEY.md
+  - TECHNOLOGY_CHOICES.md
+  - guides/developer/01-development-setup.md
+  - explanations/architecture/hexagonal-cqrs.md
+  - explanations/architecture/data-flow-complete.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+dependencies:
+  - Docker installation
+  - Node.js runtime
+  - Neo4j database
+---
+
 # VisionFlow Architecture Overview
 
 **A comprehensive guide to VisionFlow's technical architecture for new developers and technical decision-makers.**

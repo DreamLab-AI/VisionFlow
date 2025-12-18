@@ -1,9 +1,17 @@
 ---
 title: Troubleshooting Guide
 description: This guide provides solutions to common issues you might encounter while using the Multi-Agent Docker Environment.
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - docker
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Troubleshooting Guide
 
@@ -86,6 +94,18 @@ If you can't connect to the GUI environment using a VNC client, follow these ste
     docker logs -t gui-tools-container
     ```
     Look for errors related to `Xvfb` or `xfce4-session`.
+
+---
+
+---
+
+## Related Documentation
+
+- [VisionFlow Guides](../index.md)
+- [Project Structure](../developer/02-project-structure.md)
+- [Goalie Integration - Goal-Oriented AI Research](goalie-integration.md)
+- [Natural Language Queries Tutorial](../features/natural-language-queries.md)
+- [Intelligent Pathfinding Guide](../features/intelligent-pathfinding.md)
 
 ## 3. MCP Tool Issues
 

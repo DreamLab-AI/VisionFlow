@@ -1,3 +1,26 @@
+---
+title: Actor System Guide
+description: VisionFlow uses **Actix actors** for concurrent, fault-tolerant processing of graph operations, physics simulation, and real-time client coordination.  This guide covers actor patterns, best practi...
+category: howto
+tags:
+  - architecture
+  - design
+  - patterns
+  - rest
+  - websocket
+related-docs:
+  - concepts/architecture/core/server.md
+  - explanations/architecture/hexagonal-cqrs.md
+  - explanations/architecture/database-architecture.md
+  - README.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+dependencies:
+  - ✅ Document message ordering requirements
+  - ✅ Add message acknowledgments for critical paths
+  - Neo4j database
+---
+
 # Actor System Guide
 
 **Status**: Production
@@ -696,8 +719,6 @@ Is the operation:
 
 ---
 
-## Related Documentation
-
 ### Architecture Docs
 - [Server Architecture](../../concepts/architecture/core/server.md) - Overall system design with 21-actor hierarchy
 - [Hexagonal Architecture](../../explanations/architecture/hexagonal-cqrs.md) - Ports/adapters/CQRS patterns
@@ -712,6 +733,18 @@ Is the operation:
 - [Actix Best Practices](https://actix.rs/docs/whatis/) - Actor patterns and anti-patterns
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [Client State Management with Zustand](../client/state-management.md)
+- [Adding Features](../developer/04-adding-features.md)
+- [Testing Guide](../../archive/docs/guides/developer/05-testing-guide.md)
+- [RAGFlow Knowledge Management Integration](../ai-models/ragflow-integration.md)
+- [Working with Agents](../../archive/docs/guides/user/working-with-agents.md)
 
 ## Changelog
 

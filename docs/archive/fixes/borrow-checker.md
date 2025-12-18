@@ -1,9 +1,17 @@
 ---
 title: Borrow Checker Error Fixes
 description: This document explains the borrow checker errors found in the codebase and the proper fixes applied - **without unnecessary clones**.
-type: archive
-status: archived
+category: explanation
+tags:
+  - rest
+  - rust
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Borrow Checker Error Fixes
 
@@ -177,6 +185,18 @@ All fixes follow these principles:
 1. `/home/devuser/workspace/project/src/actors/gpu/force_compute_actor.rs`
 2. `/home/devuser/workspace/project/src/actors/gpu/pagerank_actor.rs`
 3. `/home/devuser/workspace/project/src/actors/gpu/shortest_path_actor.rs`
+
+---
+
+---
+
+## Related Documentation
+
+- [Borrow Checker Error Fixes - Summary](borrow-checker-summary.md)
+- [Borrow Checker Error Fixes - Documentation](README.md)
+- [VisionFlow Test Suite](../tests/test_README.md)
+- [Semantic Forces](../../explanations/physics/semantic-forces.md)
+- [Rust Type Correction Guide](rust-type-correction-guide.md)
 
 ## Verification
 

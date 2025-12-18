@@ -1,9 +1,17 @@
 ---
 title: VisionFlow Audit Reports
 description: This directory contains comprehensive audit reports for codebase migrations and architectural changes.
-type: document
-status: stable
+category: explanation
+tags:
+  - docker
+  - neo4j
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # VisionFlow Audit Reports
 
@@ -316,16 +324,6 @@ VisionFlow successfully migrated settings storage from SQLite to Neo4j on Novemb
 
 ---
 
-## Related Documentation
-
-- **Neo4j Migration Guide**: `docs/guides/neo4j-migration.md`
-- **Neo4j Implementation Roadmap**: `docs/guides/neo4j-implementation-roadmap.md`
-- **Settings Repository Port**: `docs/concepts/architecture/ports/02-settings-repository.md`
-- **Architecture Overview**: `docs/concepts/architecture/system-overview.md`
-- **ADR (if exists)**: `docs/architecture/decisions/ADR-001-neo4j-persistent-with-filesystem-sync.md`
-
----
-
 ## Contact & Support
 
 ### For Questions
@@ -339,6 +337,18 @@ This audit is a **point-in-time snapshot** (Nov 6, 2025).
 Check file timestamps and git history for latest changes.
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [Archive Index - Documentation Reports](../archive/reports/ARCHIVE_INDEX.md)
+- [Documentation Reports Archive](../archive/reports/README.md)
+- [Documentation Alignment Skill - Completion Report](../archive/reports/documentation-alignment-2025-12-02/DOCUMENTATION_ALIGNMENT_COMPLETE.md)
+- [DeepSeek User Setup - Complete](../archive/reports/documentation-alignment-2025-12-02/DEEPSEEK_SETUP_COMPLETE.md)
+- [Adapter Patterns in VisionFlow](../explanations/architecture/adapter-patterns.md)
 
 ## Appendix: Quick Commands
 

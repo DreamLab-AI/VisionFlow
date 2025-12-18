@@ -1,3 +1,23 @@
+---
+title: ComfyUI Service Integration - Automatic Startup
+description: ComfyUI is now configured to start automatically as a supervised service on port 8188 when the container launches.
+category: howto
+tags:
+  - api
+  - rest
+  - endpoints
+  - http
+  - docker
+related-docs:
+  - ARCHITECTURE_COMPLETE.md
+  - ARCHITECTURE_OVERVIEW.md
+  - ASCII_DEPRECATION_COMPLETE.md
+updated-date: 2025-12-18
+difficulty-level: intermediate
+dependencies:
+  - Docker installation
+---
+
 # ComfyUI Service Integration - Automatic Startup
 
 ## Overview
@@ -348,6 +368,18 @@ Then rebuild and access at http://localhost:8188
    ```
 
 4. **Optional: Connect Management API** by updating `/opt/management-api/utils/comfyui-manager.js`
+
+---
+
+---
+
+## Related Documentation
+
+- [ComfyUI SAM3D Docker Setup](multi-agent-docker/comfyui-sam3d-setup.md)
+- [RAGFlow Knowledge Management Integration](guides/ai-models/ragflow-integration.md)
+- [Perplexity AI Integration](guides/ai-models/perplexity-integration.md)
+- [Development Setup Guide](guides/developer/01-development-setup.md)
+- [Pipeline Operator Runbook](guides/operations/pipeline-operator-runbook.md)
 
 ## Status
 

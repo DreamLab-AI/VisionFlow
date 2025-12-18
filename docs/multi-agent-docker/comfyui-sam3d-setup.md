@@ -1,3 +1,24 @@
+---
+title: ComfyUI SAM3D Docker Setup
+description: Documentation for comfyui-sam3d-setup
+category: howto
+tags:
+  - architecture
+  - structure
+  - rest
+  - http
+  - docker
+related-docs:
+  - multi-agent-docker/ANTIGRAVITY.md
+  - multi-agent-docker/SKILLS.md
+  - multi-agent-docker/TERMINAL_GRID.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+dependencies:
+  - Docker installation
+  - Node.js runtime
+---
+
 # ComfyUI SAM3D Docker Setup
 
 ## Overview
@@ -123,6 +144,18 @@ docker logs comfyui --tail 100
 - Joins `docker_ragflow` network
 - Aliases: `comfyui.ragflow`, `comfyui.local`
 - External access: `192.168.0.51:8188`
+
+---
+
+---
+
+## Related Documentation
+
+- [Skills Documentation](SKILLS.md)
+- [ComfyUI Service Integration - Automatic Startup](../comfyui-service-integration.md)
+- [Multi-Agent Docker Environment Architecture](../guides/infrastructure/architecture.md)
+- [Perplexity AI Integration](../guides/ai-models/perplexity-integration.md)
+- [Testing Guide](../archive/docs/guides/developer/05-testing-guide.md)
 
 ## MCP Skill Integration
 

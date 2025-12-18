@@ -1,9 +1,17 @@
 ---
 title: WebSocket Binary Protocol Reference
 description: VisionFlow uses a custom binary WebSocket protocol optimized for real-time XR collaboration, semantic graph synchronization, and low-latency node updates. The protocol achieves 36 bytes per node up...
-type: reference
-status: stable
+category: reference
+tags:
+  - rest
+  - websocket
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # WebSocket Binary Protocol Reference
 
@@ -433,6 +441,18 @@ function checkRateLimit(userId: string, msgType: u8): boolean {
 }
 ```
 
+---
+
+---
+
+## Related Documentation
+
+- [Database Schema Reference](DATABASE_SCHEMA_REFERENCE.md)
+- [VisionFlow Binary WebSocket Protocol](protocols/binary-websocket.md)
+- [Pathfinding API Examples](api/pathfinding-examples.md)
+- [Error Reference and Troubleshooting](ERROR_REFERENCE.md)
+- [Complete API Reference](API_REFERENCE.md)
+
 ## Performance Tuning
 
 ### Recommended Settings
@@ -446,17 +466,3 @@ function checkRateLimit(userId: string, msgType: u8): boolean {
 | **Compression** | gzip | For graph updates |
 | **Voice Codec** | Opus 16kHz | High quality, low latency |
 | **Buffer Size** | 64 KB | Per-connection |
-
-## Related Documentation
-
-- [Error Codes Reference](./error-codes.md) - Error code definitions
--  - HTTP/REST interface
-- [XR Immersive System Architecture](../../explanations/architecture/xr-immersive-system.md) - XR platform integration
-- [Network Architecture](../../explanations/architecture/xr-immersive-system.md#network-architecture) - Low-level networking
-
----
-
-**Last Updated**: 2025-11-04
-**Protocol Version**: 1.0
-**Status**: Production Ready
-**Changelog**: First release (November 2025)

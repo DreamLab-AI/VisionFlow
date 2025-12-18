@@ -1,4 +1,24 @@
 ---
+title: XR Setup Guide - Development Environment
+description: Documentation for xr-setup
+category: tutorial
+tags:
+  - architecture
+  - design
+  - api
+  - rest
+  - http
+related-docs:
+  - archive/docs/guides/xr-setup.md
+  - archive/docs/guides/user/working-with-agents.md
+  - README.md
+updated-date: 2025-12-18
+difficulty-level: intermediate
+dependencies:
+  - Node.js runtime
+---
+
+---
 title: XR Setup Guide
 description: Setting up extended reality (XR) environments for immersive development with Turbo Flow Claude
 category: user-guide
@@ -645,6 +665,15 @@ After setting up XR:
 - [XR Setup Guide](../xr-setup.md)
 - WebXR Spec: https://www.w3.org/TR/webxr/
 - Three.js XR: https://threejs.org/docs/#manual/en/introduction/How-to-create-VR-content
+
+---
+
+---
+
+## Related Documentation
+
+- [Link Analysis Summary](../../../reports/consolidation/link-analysis-summary-2025-12.md)
+- [Upstream Turbo-Flow-Claude Analysis](../../../../multi-agent-docker/upstream-analysis.md)
 
 ## Support
 

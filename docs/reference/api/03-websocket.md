@@ -1,9 +1,17 @@
 ---
 title: WebSocket Protocol
 description: **Version**: 2.0 (Binary Protocol) **Last Updated**: November 3, 2025 **Status**: Production
-type: reference
-status: stable
+category: reference
+tags:
+  - api
+  - rest
+  - websocket
+  - rust
+  - react
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # WebSocket Protocol
 

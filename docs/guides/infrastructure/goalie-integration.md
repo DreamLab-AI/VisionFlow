@@ -1,9 +1,17 @@
 ---
 title: Goalie Integration - Goal-Oriented AI Research
 description: Goalie is integrated as an MCP service providing goal-oriented AI research with anti-hallucination features using the Perplexity API.
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rest
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Goalie Integration - Goal-Oriented AI Research
 
@@ -225,6 +233,18 @@ Set `GOAP-CACHE-TTL` higher (default: 3600 seconds) to cache results longer.
 - [Goalie NPM Package](https://www.npmjs.com/package/goalie)
 - [Perplexity API](https://www.perplexity.ai/settings/api)
 - [GOAP Planning Theory](https://en.wikipedia.org/wiki/GOAP)
+
+---
+
+---
+
+## Related Documentation
+
+- [Contributing Guidelines](../developer/06-contributing.md)
+- [Semantic Forces User Guide](../features/semantic-forces.md)
+- [Troubleshooting Guide](troubleshooting.md)
+- [Natural Language Queries Tutorial](../features/natural-language-queries.md)
+- [Intelligent Pathfinding Guide](../features/intelligent-pathfinding.md)
 
 ## Support
 

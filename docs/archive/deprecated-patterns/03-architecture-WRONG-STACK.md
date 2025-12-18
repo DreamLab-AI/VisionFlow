@@ -1,10 +1,16 @@
 ---
 title: Architecture Overview (OBSOLETE - WRONG STACK)
 description: ❌ OBSOLETE - This described a PostgreSQL/Redis/Vue.js architecture that was NEVER IMPLEMENTED
-type: archive
-status: deprecated
-archived_date: 2025-12-02
+category: explanation
+tags:
+  - architecture
+  - neo4j
+  - rust
+  - react
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # ❌ OBSOLETE: Wrong Technology Stack
 
@@ -686,6 +692,18 @@ graph LR
 5. **DRY**: Don't Repeat Yourself
 6. **KISS**: Keep It Simple, Stupid
 7. **YAGNI**: You Aren't Gonna Need It
+
+---
+
+---
+
+## Related Documentation
+
+- [Deprecated Patterns Archive](README.md)
+- [Hexagonal Architecture Ports - Overview](../../explanations/architecture/ports/01-overview.md)
+- [KnowledgeGraphRepository Port](../../explanations/architecture/ports/03-knowledge-graph-repository.md)
+- [Settings API Authentication](../../guides/features/settings-authentication.md)
+- [Ontology Storage Architecture](../../explanations/architecture/ontology-storage-architecture.md)
 
 ## Next Steps (OBSOLETE LINKS - DO NOT FOLLOW)
 

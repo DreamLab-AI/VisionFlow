@@ -1,3 +1,23 @@
+---
+title: ASCII Diagram Deprecation Audit
+description: This audit systematically identified and replaced ASCII diagrams throughout the VisionFlow documentation corpus with references to comprehensive mermaid diagram files.
+category: reference
+tags:
+  - architecture
+  - structure
+  - api
+  - rest
+  - websocket
+related-docs:
+  - diagrams/infrastructure/websocket/binary-protocol-complete.md
+  - diagrams/data-flow/complete-data-flows.md
+  - diagrams/infrastructure/gpu/cuda-architecture-complete.md
+  - audits/README.md
+  - audits/neo4j-migration-action-plan.md
+updated-date: 2025-12-18
+difficulty-level: intermediate
+---
+
 # ASCII Diagram Deprecation Audit
 
 **Date**: 2025-12-06
@@ -326,6 +346,18 @@ The following files contain ASCII diagrams that were **NOT** replaced because:
 - ✅ No broken references introduced
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [VisionFlow Architecture Cross-Reference Matrix](../diagrams/cross-reference-matrix.md)
+- [ComfyUI Management API Integration - Summary](../comfyui-management-api-integration-summary.md)
+- [VisionFlow Client Architecture - Deep Analysis](../archive/analysis/client-architecture-analysis-2025-12.md)
+- [VisionFlow Client Architecture](../concepts/architecture/core/client.md)
+- [VisionFlow Testing Infrastructure Architecture](../diagrams/infrastructure/testing/test-architecture.md)
 
 ## Conclusion
 

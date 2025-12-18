@@ -1,9 +1,16 @@
 ---
 title: Natural Language Queries Tutorial
 description: VisionFlow translates natural language questions into Cypher queries using LLM-powered semantic understanding.
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Natural Language Queries Tutorial
 
@@ -141,6 +148,18 @@ Returns:
 3. **Mention relationships**: "connected by dependency" vs "connected"
 4. **Check confidence**: Low confidence? Try rephrasing
 5. **Review before execution**: Always validate generated queries
+
+---
+
+---
+
+## Related Documentation
+
+- [Intelligent Pathfinding Guide](intelligent-pathfinding.md)
+- [Semantic Forces User Guide](semantic-forces.md)
+- [Contributing Guidelines](../developer/06-contributing.md)
+- [Goalie Integration - Goal-Oriented AI Research](../infrastructure/goalie-integration.md)
+- [VisionFlow Guides](../index.md)
 
 ## Schema Context
 

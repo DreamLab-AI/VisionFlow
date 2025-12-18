@@ -1,10 +1,18 @@
 ---
 title: Asset Restoration Analysis & Recovery Strategy
 description: Investigation of 953 broken image links with categorization and restoration plan
-type: working-document
-status: in-progress
+category: explanation
+tags:
+  - rest
+  - websocket
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: advanced
 date: 2025-12-02
 ---
+
 
 # Asset Restoration Analysis & Recovery Strategy
 

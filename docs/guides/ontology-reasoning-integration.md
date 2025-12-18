@@ -1,9 +1,17 @@
 ---
 title: OntologyReasoningService Integration Guide
 description: This guide documents the complete implementation of the OntologyReasoningService in VisionFlow, including all integration points and usage patterns.
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rust
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # OntologyReasoningService Integration Guide
 
@@ -475,6 +483,18 @@ impl OntologyReasoningService {
 - [OWL 2 EL Profile](https://www.w3.org/TR/owl2-profiles/#OWL-2-EL)
 - [whelk-rs Documentation](https://github.com/balhoff/whelk-rs)
 - 
+
+---
+
+---
+
+## Related Documentation
+
+- [VisionFlow Guides](index.md)
+- [Natural Language Queries Tutorial](features/natural-language-queries.md)
+- [Intelligent Pathfinding Guide](features/intelligent-pathfinding.md)
+- [Goalie Integration - Goal-Oriented AI Research](infrastructure/goalie-integration.md)
+- [Troubleshooting Guide](infrastructure/troubleshooting.md)
 
 ## Contact
 

@@ -1,9 +1,17 @@
 ---
 title: Unified Database Schema (unified.db)
 description: **UPDATED: November 2, 2025** - Consolidated from three separate databases to a single unified architecture.
-type: reference
-status: stable
+category: reference
+tags:
+  - database
+  - rust
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Unified Database Schema (unified.db)
 

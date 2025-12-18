@@ -1,9 +1,16 @@
 ---
 title: ASCII Diagram Conversion Report
 description: **Agent**: ASCII Conversion Agent **Date**: 2025-12-02 **Source**: `.doc-alignment-reports/ascii-report-scoped.json`
-type: archive
-status: archived
+category: explanation
+tags:
+  - rest
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # ASCII Diagram Conversion Report
 

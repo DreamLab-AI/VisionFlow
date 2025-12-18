@@ -1,9 +1,17 @@
 ---
 title: VisionFlow Performance Benchmarks
 description: **Last Updated:** November 5, 2025 **Version:** v0.1.0 **Status:** Production
-type: reference
-status: stable
+category: reference
+tags:
+  - rest
+  - websocket
+  - neo4j
+  - rust
+  - react
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # VisionFlow Performance Benchmarks
 

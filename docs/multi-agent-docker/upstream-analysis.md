@@ -1,3 +1,24 @@
+---
+title: Upstream Turbo-Flow-Claude Analysis
+description: The upstream turbo-flow-claude is a **DevPod-focused** lightweight development environment, while our fork has evolved into a **full CachyOS workstation container** with multi-user isolation, GPU s...
+category: explanation
+tags:
+  - architecture
+  - design
+  - api
+  - rest
+  - http
+related-docs:
+  - multi-agent-docker/ANTIGRAVITY.md
+  - multi-agent-docker/SKILLS.md
+  - multi-agent-docker/TERMINAL_GRID.md
+updated-date: 2025-12-18
+difficulty-level: intermediate
+dependencies:
+  - Docker installation
+  - Node.js runtime
+---
+
 # Upstream Turbo-Flow-Claude Analysis
 
 **Date**: 2025-11-15
@@ -173,6 +194,18 @@ This is **our enhancement**, not from upstream:
 
 ### Implementation Steps
 See detailed plan in `/mnt/mldata/githubs/AR-AI-Knowledge-Graph/multi-agent-docker/task.md`
+
+---
+
+---
+
+## Related Documentation
+
+- [Final Status - Turbo Flow Unified Container Upgrade](development-notes/SESSION_2025-11-15.md)
+- [Terminal Grid Configuration](TERMINAL_GRID.md)
+- [Ontology/Knowledge Skills Analysis](../analysis/ontology-knowledge-skills-analysis.md)
+- [X-FluxAgent Integration Plan for ComfyUI MCP Skill](x-fluxagent-adaptation-plan.md)
+- [Hexagonal Architecture Migration Status Report](../architecture/HEXAGONAL_ARCHITECTURE_STATUS.md)
 
 ## Conclusion
 

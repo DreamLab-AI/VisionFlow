@@ -1,9 +1,16 @@
 ---
 title: Unified Services Guide
 description: This document provides a comprehensive overview of the service layer in the project, explaining how the various services work together to create a cohesive and functional backend.
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Unified Services Guide
 
@@ -47,6 +54,18 @@ The `SemanticAnalyzer` is responsible for performing advanced semantic analysis 
 - **Feature Extraction**: The service extracts a wide range of semantic features, including topics, domains, and temporal information.
 - **Importance Scoring**: It calculates an importance score for each entity in the knowledge graph, which can be used for ranking and prioritization.
 - **Similarity Analysis**: The service can compute the semantic similarity between different entities, enabling advanced querying and recommendation capabilities.
+
+---
+
+---
+
+## Related Documentation
+
+- [Architecture Documentation](README.md)
+- [Integration Patterns in VisionFlow](integration-patterns.md)
+- [Semantic Physics Architecture](semantic-physics.md)
+- [Stress Majorization for GPU-Accelerated Graph Layout](stress-majorization.md)
+- [XR Immersive System Architecture](xr-immersive-system.md)
 
 ## Service Communication Patterns
 

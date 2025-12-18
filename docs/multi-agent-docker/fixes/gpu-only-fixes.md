@@ -1,3 +1,22 @@
+---
+title: GPU-Only Build Fixes
+description: Documentation for gpu-only-fixes
+category: explanation
+tags:
+  - api
+  - rest
+  - neo4j
+  - docker
+  - actors
+related-docs:
+  - multi-agent-docker/fixes/GPU_BUILD_STATUS.md
+  - multi-agent-docker/fixes/SUMMARY.md
+updated-date: 2025-12-18
+difficulty-level: intermediate
+dependencies:
+  - Neo4j database
+---
+
 # GPU-Only Build Fixes
 
 **Status**: In Progress
@@ -147,6 +166,18 @@ Files affected:
    - Fixed `ConnectedComponentsActor` handler:
      - Changed `type Result = ResponseActFuture<Self, ()>` to `Result<(), String>`
      - Removed async wrapper, now returns `Ok(())`
+
+---
+
+---
+
+## Related Documentation
+
+- [GPU-Only Build Status Report](GPU_BUILD_STATUS.md)
+- [GPU-Only Build Fix Summary](SUMMARY.md)
+- [Terminal Grid Configuration](../TERMINAL_GRID.md)
+- [Final Status - Turbo Flow Unified Container Upgrade](../development-notes/SESSION_2025-11-15.md)
+- [Hyprland Migration Summary](../hyprland-migration-summary.md)
 
 ## Remaining Work (39 errors)
 

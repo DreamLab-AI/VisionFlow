@@ -1,9 +1,16 @@
 ---
 title: Before/After Code Comparison
 description: ```rust let shared_context = match &self.shared_context { Some(ctx) => ctx,
-type: archive
-status: archived
+category: explanation
+tags:
+  - rust
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Before/After Code Comparison
 

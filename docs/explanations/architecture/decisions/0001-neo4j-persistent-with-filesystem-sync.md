@@ -1,9 +1,17 @@
 ---
 title: ADR-001: Neo4j Persistent with Filesystem Sync Architecture
 description: **Date:** 2025-11-05 **Status:** Accepted **Decision Maker:** VisionFlow Architecture Team
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - rest
+  - docker
+  - neo4j
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # ADR-001: Neo4j Persistent with Filesystem Sync Architecture
 

@@ -1,9 +1,15 @@
 ---
 title: Semantic Physics Architecture
 description: **Complete Guide to OWL-to-GPU Constraint Translation**
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - rest
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Semantic Physics Architecture
 

@@ -1,3 +1,22 @@
+---
+title: Multi-Agent Docker - Complete Backend API Architecture
+description: subgraph "Supervisord Service Manager"         DBUS[dbus Service<br/>Priority: 10<br/>User: root]         SSHD[sshd Service<br/>Priority: 50<br/>User: root]         XVNC[xvnc Service<br/>Priority: ...
+category: reference
+tags:
+  - architecture
+  - patterns
+  - structure
+  - api
+  - rest
+related-docs:
+  - diagrams/README.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+dependencies:
+  - Docker installation
+  - Node.js runtime
+---
+
 # Multi-Agent Docker - Complete Backend API Architecture
 
 **Architecture Type**: Backend Services (No React Frontend)

@@ -1,9 +1,16 @@
 ---
 title: Implementation Examples
 description: - ### OntologyBlock id:: implementation-examples-ontology collapsed:: true
-type: archive
-status: archived
+category: explanation
+tags:
+  - rust
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 - ### OntologyBlock
   id:: implementation-examples-ontology

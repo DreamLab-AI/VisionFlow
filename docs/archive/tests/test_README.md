@@ -1,9 +1,17 @@
 ---
 title: VisionFlow Test Suite
 description: Comprehensive test suite for the VisionFlow migration project covering integration, performance, and load testing.
-type: archive
-status: archived
+category: explanation
+tags:
+  - rest
+  - rust
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # VisionFlow Test Suite
 
@@ -156,6 +164,18 @@ GitHub Actions workflow: `.github/workflows/tests.yml`
 - Verify server is running on correct port
 - Check firewall settings
 - Ensure API endpoints are accessible
+
+---
+
+---
+
+## Related Documentation
+
+- [Borrow Checker Error Fixes - Documentation](../fixes/README.md)
+- [Borrow Checker Error Fixes](../fixes/borrow-checker.md)
+- [Borrow Checker Error Fixes - Summary](../fixes/borrow-checker-summary.md)
+- [Semantic Forces](../../explanations/physics/semantic-forces.md)
+- [Reasoning Module - Week 2 Deliverable](../../explanations/ontology/reasoning-engine.md)
 
 ## References
 

@@ -1,9 +1,16 @@
 ---
 title: CQRS Migration - Quick Reference Card
 description: > ⚠️ **PARTIAL DEPRECATION** ⚠️ > Some examples in this quick reference reference the **deprecated GraphServiceActor**. For current patterns, see `/docs/guides/graphserviceactor-migration.md`.
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - rest
+  - websocket
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # CQRS Migration - Quick Reference Card
 

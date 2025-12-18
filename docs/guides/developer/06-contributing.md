@@ -1,9 +1,17 @@
 ---
 title: Contributing Guidelines
 description: We appreciate your interest in contributing to VisionFlow. This guide will help you get started.
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rest
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Contributing Guidelines
 
@@ -99,6 +107,18 @@ Brief description of changes
 - Write meaningful comments
 - Keep functions small
 - Avoid magic numbers
+
+---
+
+---
+
+## Related Documentation
+
+- [Semantic Forces User Guide](../features/semantic-forces.md)
+- [Goalie Integration - Goal-Oriented AI Research](../infrastructure/goalie-integration.md)
+- [Project Structure](02-project-structure.md)
+- [Natural Language Queries Tutorial](../features/natural-language-queries.md)
+- [Intelligent Pathfinding Guide](../features/intelligent-pathfinding.md)
 
 ## Questions?
 

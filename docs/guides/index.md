@@ -1,9 +1,17 @@
 ---
 title: VisionFlow Guides
 description: Welcome to the VisionFlow guides section. These practical, task-oriented guides will help you deploy, develop, and extend the VisionFlow system effectively.
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - docker
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # VisionFlow Guides
 
@@ -82,14 +90,6 @@ Technical reference for VisionFlow WebXR features:
 - Babylon.js implementation details
 - Performance optimization
 
-## Prerequisites
-
-Before starting with these guides, ensure you have:
-- Basic understanding of Docker and containerization
-- Familiarity with command-line interfaces
-- Access to a Unix-like system (Linux, macOS, or WSL2)
-- (Optional) NVIDIA GPU for enhanced performance
-
 ## Getting Help
 
 If you encounter issues not covered in these guides:
@@ -97,6 +97,18 @@ If you encounter issues not covered in these guides:
 2. Search existing GitHub issues
 3. Join our community Discord
 4. Submit a new issue with detailed information
+
+---
+
+---
+
+## Related Documentation
+
+- [Troubleshooting Guide](infrastructure/troubleshooting.md)
+- [Project Structure](developer/02-project-structure.md)
+- [OntologyReasoningService Integration Guide](ontology-reasoning-integration.md)
+- [Intelligent Pathfinding Guide](features/intelligent-pathfinding.md)
+- [Natural Language Queries Tutorial](features/natural-language-queries.md)
 
 ## Contributing to Guides
 

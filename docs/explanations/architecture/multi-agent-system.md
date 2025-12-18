@@ -1,9 +1,17 @@
 ---
 title: Multi-Agent System Architecture
 description: **Version:** 1.0 **Last Updated:** November 5, 2025 **Status:** Production
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - rest
+  - websocket
+  - docker
+  - neo4j
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Multi-Agent System Architecture
 

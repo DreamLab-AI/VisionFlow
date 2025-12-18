@@ -1,9 +1,17 @@
 ---
 title: Pipeline Sequence Diagrams
 description: ```mermaid sequenceDiagram participant GitHub
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - websocket
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Pipeline Sequence Diagrams
 

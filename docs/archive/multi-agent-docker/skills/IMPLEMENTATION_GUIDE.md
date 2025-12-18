@@ -1,9 +1,17 @@
 ---
 title: Wardley Mapper Skill - Implementation Guide
 description: ```bash
-type: archive
-status: archived
+category: explanation
+tags:
+  - docker
+  - react
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Wardley Mapper Skill - Implementation Guide
 

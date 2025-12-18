@@ -1,9 +1,17 @@
 ---
 title: VisionFlow Extension Guide
 description: 1. [Overview](#overview) 2. [Extension Architecture](#extension-architecture) 3. [Custom Handlers](#custom-handlers)
-type: archive
-status: archived
+category: explanation
+tags:
+  - guide
+  - rest
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # VisionFlow Extension Guide
 
@@ -1137,6 +1145,18 @@ describe('Payment Flow Integration', () => {
 ```
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [Integration Patterns in VisionFlow](../../explanations/architecture/integration-patterns.md)
+- [DeepSeek User Setup - Complete](../reports/documentation-alignment-2025-12-02/DEEPSEEK_SETUP_COMPLETE.md)
+- [Rust Type Correction Guide](../fixes/rust-type-correction-guide.md)
+- [Borrow Checker Error Fixes - Documentation](../fixes/README.md)
+- [VisionFlow Test Suite](../tests/test_README.md)
 
 ## Publishing Extensions
 

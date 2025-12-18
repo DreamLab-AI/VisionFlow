@@ -1,3 +1,22 @@
+---
+title: Perplexity AI Integration
+description: Perplexity AI provides real-time web search and research capabilities with source citations.  This integration allows Claude Code to access current information, perform market research, and generat...
+category: howto
+tags:
+  - architecture
+  - structure
+  - api
+  - endpoints
+  - http
+related-docs:
+  - guides/ai-models/README.md
+  - guides/features/MOVED.md
+  - guides/ai-models/INTEGRATION_SUMMARY.md
+  - guides/ai-models/deepseek-deployment.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+---
+
 # Perplexity AI Integration
 
 **Status**: Active
@@ -456,6 +475,18 @@ docker logs agentic-workstation | grep perplexity
 tail -f /var/log/turbo-flow.log | grep perplexity
 ```
 
+---
+
+---
+
+## Related Documentation
+
+- [RAGFlow Knowledge Management Integration](ragflow-integration.md)
+- [Working with Agents](../../archive/docs/guides/user/working-with-agents.md)
+- [ComfyUI Service Integration - Automatic Startup](../../comfyui-service-integration.md)
+- [Skills Documentation](../../multi-agent-docker/SKILLS.md)
+- [Testing Guide](../../archive/docs/guides/developer/05-testing-guide.md)
+
 ## Future Enhancements
 
 ### Planned
@@ -469,15 +500,3 @@ tail -f /var/log/turbo-flow.log | grep perplexity
 2. **Source Quality Scoring** - Automatic evaluation of source credibility
 3. **Multi-language Support** - Optimized prompts for non-English queries
 4. **Streaming Responses** - Real-time response generation
-
-## Related Documentation
-
-- [AI Models Overview](/docs/guides/ai-models/README.md)
-- [Perplexity MCP Skill](/multi-agent-docker/skills/perplexity/SKILL.md)
-- [Perplexity Templates](/multi-agent-docker/skills/perplexity/docs/templates.md)
-- [API Complete Reference](/docs/reference/api-complete-reference.md)
-
----
-
-**Last Updated**: December 2, 2025
-**Status**: Active Production Service

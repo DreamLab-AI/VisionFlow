@@ -1,9 +1,15 @@
 ---
 title: Per-User Settings Implementation
 description: Implemented server-side authentication middleware and per-user settings lookup for VisionFlow.
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - neo4j
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Per-User Settings Implementation
 
@@ -175,6 +181,18 @@ cargo test user_filter -- --ignored
 - `/src/main.rs` - Added Neo4jSettingsRepository to app data
 - `/src/adapters/neo4j_settings_repository.rs` - Already had user support (no changes needed)
 - `/src/settings/auth_extractor.rs` - Already existed (no changes needed)
+
+---
+
+---
+
+## Related Documentation
+
+- [Client-Side Filtering Implementation](filtering-nodes.md)
+- [GraphServiceActor Migration Guide (HISTORICAL REFERENCE)](../graphserviceactor-migration.md)
+- [Ontology Storage Guide](../ontology-storage-guide.md)
+- [Docker Compose Unified Configuration - Usage Guide](../docker-compose-guide.md)
+- [Developer Guides](../developer/readme.md)
 
 ## Future Enhancements
 - Add endpoint to copy global settings to user settings

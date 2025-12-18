@@ -1,9 +1,16 @@
 ---
 title: Your First Graph and AI Agents
 description: * > [Installation](01-installation.md)*
-type: tutorial
-status: stable
+category: tutorial
+tags:
+  - rest
+  - websocket
+  - docker
+  - react
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Your First Graph and AI Agents
 

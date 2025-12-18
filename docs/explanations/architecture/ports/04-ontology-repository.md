@@ -1,9 +1,17 @@
 ---
 title: OntologyRepository Port
 description: The **OntologyRepository** port manages the ontology graph structure parsed from GitHub markdown files. It handles OWL (Web Ontology Language) classes, properties, axioms, inference results, and pa...
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - rust
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # OntologyRepository Port
 
@@ -480,6 +488,18 @@ Target performance:
 - List all classes: < 50ms
 - Store inference results: < 20ms
 - Cache SSSP result: < 10ms
+
+---
+
+---
+
+## Related Documentation
+
+- [InferenceEngine Port](05-inference-engine.md)
+- [GpuSemanticAnalyzer Port](07-gpu-semantic-analyzer.md)
+- [GpuPhysicsAdapter Port](06-gpu-physics-adapter.md)
+- [Semantic Physics Architecture](../semantic-physics.md)
+- [Stress Majorization for GPU-Accelerated Graph Layout](../stress-majorization.md)
 
 ## References
 

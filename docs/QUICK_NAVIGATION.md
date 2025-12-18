@@ -1,3 +1,26 @@
+---
+title: VisionFlow Documentation - Quick Navigation
+description: > **Search tip**: Use Ctrl+F to find keywords across all docs
+category: reference
+tags:
+  - architecture
+  - design
+  - patterns
+  - structure
+  - api
+related-docs:
+  - README.md
+  - OVERVIEW.md
+  - ARCHITECTURE_OVERVIEW.md
+  - DEVELOPER_JOURNEY.md
+  - TECHNOLOGY_CHOICES.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+dependencies:
+  - Docker installation
+  - Neo4j database
+---
+
 # VisionFlow Documentation - Quick Navigation
 
 **Fast reference for all 226 documentation files** - Organized by directory with one-line descriptions.

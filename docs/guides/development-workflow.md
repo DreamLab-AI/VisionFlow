@@ -1,9 +1,17 @@
 ---
 title: Development Workflow
 description: > [Guides](./index.md) > Development Workflow
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rest
+  - websocket
+  - docker
+  - rust
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Development Workflow
 

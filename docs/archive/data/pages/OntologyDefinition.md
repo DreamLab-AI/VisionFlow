@@ -1,9 +1,15 @@
 ---
 title: Ontologydefinition
 description: - ### OntologyBlock id:: ontologydefinition-ontology collapsed:: true
-type: archive
-status: archived
+category: explanation
+tags:
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 - ### OntologyBlock
   id:: ontologydefinition-ontology

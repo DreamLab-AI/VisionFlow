@@ -1,9 +1,15 @@
 ---
 title: Type Corrections Progress
 description: - **File**: `src/utils/unified_gpu_compute.rs` - **Fix**: Removed duplicate function at line 879 - **Kept**: The better implementation at line 3534 that returns `self.pos_in_x.len()`
-type: archive
-status: archived
+category: explanation
+tags:
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Type Corrections Progress
 

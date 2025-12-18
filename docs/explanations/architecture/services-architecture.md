@@ -1,9 +1,17 @@
 ---
 title: Services Architecture - WebXR Knowledge Graph Platform
 description: **Version:** 1.0.0 **Last Updated:** 2025-11-04 **Status:** Production
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - rest
+  - websocket
+  - neo4j
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Services Architecture - WebXR Knowledge Graph Platform
 

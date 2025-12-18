@@ -1,9 +1,16 @@
 ---
 title: Documentation Link Fixes Report
 description: **Date:** 2025-12-02 **Agent:** Link Fix Agent **Task:** Fix 90 in-scope broken links in documentation
-type: archive
-status: archived
+category: explanation
+tags:
+  - docker
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Documentation Link Fixes Report
 

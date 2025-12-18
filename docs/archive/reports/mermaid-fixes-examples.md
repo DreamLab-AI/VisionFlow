@@ -1,9 +1,15 @@
 ---
 title: Mermaid Diagram Fix Examples
 description: This document shows the specific fixes applied to mermaid diagrams.
-type: archive
-status: archived
+category: explanation
+tags:
+  - websocket
+  - docker
+  - neo4j
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Mermaid Diagram Fix Examples
 
@@ -270,6 +276,18 @@ jobs:
 ```
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [Documentation Restructuring Complete](2025-12-02-restructuring-complete.md)
+- [QA Validation Final Report](../../QA_VALIDATION_FINAL.md)
+- [User Settings Implementation Summary](2025-12-02-user-settings-summary.md)
+- [VisionFlow Distributed Systems & Collaboration Assessment](../../architecture/visionflow-distributed-systems-assessment.md)
+- [Archive Index - Documentation Reports](ARCHIVE_INDEX.md)
 
 ## Summary
 

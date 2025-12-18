@@ -1,9 +1,17 @@
 ---
 title: Rust Server Architecture
 description: > ⚠️ **DEPRECATION NOTICE** ⚠️ > **GraphServiceActor** is being replaced by the **hexagonal CQRS architecture**. > This document describes legacy patterns and is being updated. See `/docs/guides/gr...
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - server
+  - rest
+  - websocket
+  - docker
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Rust Server Architecture
 

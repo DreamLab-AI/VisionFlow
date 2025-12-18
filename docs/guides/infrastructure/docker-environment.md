@@ -1,9 +1,17 @@
 ---
 title: Multi-Agent Docker Environment - Complete Documentation
 description: 1. [Architecture Overview](#architecture-overview) 2. [Directory Structure](#directory-structure) 3. [Container Services](#container-services)
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rest
+  - websocket
+  - docker
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Multi-Agent Docker Environment - Complete Documentation
 
@@ -3194,6 +3202,18 @@ grep -n "npm install.*claude" Dockerfile  # Line 172 ✓
 ls core-assets/patches/claude-flow/  # Not yet created (proposed)
 grep patch-mcp-server setup-workspace.sh  # Function exists ✓
 ```
+
+---
+
+---
+
+## Related Documentation
+
+- [Vircadia Multi-User XR Integration - User Guide](../vircadia-multi-user-guide.md)
+- [Multi-Agent Docker Environment Architecture](architecture.md)
+- [Multi-Agent Docker Port Configuration](port-configuration.md)
+- [Pipeline Operator Runbook](../operations/pipeline-operator-runbook.md)
+- [GraphServiceActor Migration Guide (HISTORICAL REFERENCE)](../graphserviceactor-migration.md)
 
 ## Conclusion
 

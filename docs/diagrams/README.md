@@ -1,3 +1,25 @@
+---
+title: VisionFlow Architecture Diagrams - Complete Corpus
+description: This directory contains the **complete architectural documentation** of the VisionFlow system, created through comprehensive codebase analysis.  Each diagram provides maximum complexity and coverag...
+category: explanation
+tags:
+  - architecture
+  - design
+  - patterns
+  - structure
+  - api
+related-docs:
+  - diagrams/architecture/backend-api-architecture-complete.md
+  - diagrams/client/rendering/threejs-pipeline-complete.md
+  - diagrams/client/state/state-management-complete.md
+  - diagrams/client/xr/xr-architecture-complete.md
+  - diagrams/server/actors/actor-system-complete.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+dependencies:
+  - Neo4j database
+---
+
 # VisionFlow Architecture Diagrams - Complete Corpus
 
 ## Overview
@@ -220,6 +242,18 @@ All diagrams have been validated for:
 3. **Accuracy**: All diagrams reflect actual code implementation, not idealized designs
 4. **Detail**: Technical specifications include exact byte sizes, timings, and algorithms
 5. **Navigation**: Use cross-references to understand component interactions
+
+---
+
+---
+
+## Related Documentation
+
+- [VisionFlow Complete Architecture Documentation](../ARCHITECTURE_COMPLETE.md)
+- [What is VisionFlow?](../OVERVIEW.md)
+- [Agent Orchestration & Multi-Agent Systems](mermaid-library/04-agent-orchestration.md)
+- [Agent/Bot System Architecture](server/agents/agent-system-architecture.md)
+- [VisionFlow Client Architecture Analysis](../visionflow-architecture-analysis.md)
 
 ## 🔄 Updates
 

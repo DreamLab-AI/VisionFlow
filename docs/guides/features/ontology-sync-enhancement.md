@@ -1,9 +1,16 @@
 ---
 title: Ontology Sync Service Enhancement
 description: Enhanced GitHub sync service with intelligent ontology file filtering, caching, and metadata extraction.
-type: document
-status: stable
+category: explanation
+tags:
+  - guide
+  - rest
+  - neo4j
+  - rust
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Ontology Sync Service Enhancement
 
@@ -329,6 +336,18 @@ let priority1 = sync_service
 // Check cache
 let stats = sync_service.get_cache_statistics().await;
 ```
+
+---
+
+---
+
+## Related Documentation
+
+- [Settings API Authentication](settings-authentication.md)
+- [Complete Hexagonal Architecture Migration - Overview](../../explanations/system-overview.md)
+- [Ontology Storage Architecture](../../explanations/architecture/ontology-storage-architecture.md)
+- [Hexagonal/CQRS Architecture Design](../../explanations/architecture/hexagonal-cqrs.md)
+- [Documentation Archive](../../archive/README.md)
 
 ## Support
 

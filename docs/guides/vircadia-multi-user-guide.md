@@ -1,9 +1,17 @@
 ---
 title: Vircadia Multi-User XR Integration - User Guide
 description: VisionFlow now supports **multi-user collaborative visualization** through Vircadia World Server integration. Multiple users can simultaneously view and interact with the same agent swarm and knowl...
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rest
+  - websocket
+  - docker
+  - rust
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Vircadia Multi-User XR Integration - User Guide
 
@@ -425,6 +433,18 @@ A: Yes, toggle OFF in Settings to work solo without disconnecting.
 A: Not yet. Currently uses anonymous sessions with auto-generated IDs.
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [Multi-Agent Docker Environment - Complete Documentation](infrastructure/docker-environment.md)
+- [GraphServiceActor Migration Guide (HISTORICAL REFERENCE)](graphserviceactor-migration.md)
+- [Documentation Contributing Guidelines](contributing.md)
+- [Agent Control Panel User Guide](agent-orchestration.md)
+- [Docker Compose Unified Configuration - Usage Guide](docker-compose-guide.md)
 
 ## Next Steps
 

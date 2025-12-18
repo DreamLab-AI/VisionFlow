@@ -1,0 +1,4187 @@
+{
+  "total_documents": 288,
+  "modified_documents": 133,
+  "validation": {
+    "stats": {
+      "total_docs": 288,
+      "total_links": 2623,
+      "broken_links": 690,
+      "orphaned_files": 40,
+      "avg_outbound": 9.10763888888889,
+      "avg_inbound": 5.079861111111111
+    },
+    "broken_links": [
+      {
+        "source": "README.md",
+        "link": "guides/features/deepseek-verification.md",
+        "text": "DeepSeek Verification"
+      },
+      {
+        "source": "README.md",
+        "link": "guides/features/deepseek-deployment.md",
+        "text": "DeepSeek Deployment"
+      },
+      {
+        "source": "README.md",
+        "link": "explanations/architecture/gpu/readme.md",
+        "text": "GPU README"
+      },
+      {
+        "source": "README.md",
+        "link": "reference/api/readme.md",
+        "text": "API README"
+      },
+      {
+        "source": "README.md",
+        "link": "explanations/architecture/gpu/readme.md",
+        "text": "GPU README"
+      },
+      {
+        "source": "ARCHITECTURE_OVERVIEW.md",
+        "link": "README.md#roadmap",
+        "text": "Roadmap"
+      },
+      {
+        "source": "ARCHITECTURE_OVERVIEW.md",
+        "link": "OVERVIEW.md#real-world-use-cases",
+        "text": "Use Cases"
+      },
+      {
+        "source": "OVERVIEW.md",
+        "link": "getting-started/01-installation.md",
+        "text": "Installation Guide"
+      },
+      {
+        "source": "OVERVIEW.md",
+        "link": "getting-started/02-first-graph-and-agents.md",
+        "text": "First Graph Tutorial"
+      },
+      {
+        "source": "OVERVIEW.md",
+        "link": "getting-started/01-installation.md",
+        "text": "Get Started \u2192"
+      },
+      {
+        "source": "ARCHITECTURE_COMPLETE.md",
+        "link": "docs/diagrams/architecture/backend-api-architecture-complete.md",
+        "text": "Backend API Architecture"
+      },
+      {
+        "source": "ARCHITECTURE_COMPLETE.md",
+        "link": "docs/diagrams/client/rendering/threejs-pipeline-complete.md",
+        "text": "Three.js Rendering"
+      },
+      {
+        "source": "ARCHITECTURE_COMPLETE.md",
+        "link": "docs/diagrams/client/state/state-management-complete.md",
+        "text": "State Management"
+      },
+      {
+        "source": "ARCHITECTURE_COMPLETE.md",
+        "link": "docs/diagrams/client/xr/xr-architecture-complete.md",
+        "text": "XR/VR Architecture"
+      },
+      {
+        "source": "ARCHITECTURE_COMPLETE.md",
+        "link": "docs/diagrams/server/actors/actor-system-complete.md",
+        "text": "Actor System"
+      },
+      {
+        "source": "ARCHITECTURE_COMPLETE.md",
+        "link": "docs/diagrams/server/agents/agent-system-architecture.md",
+        "text": "Agent System"
+      },
+      {
+        "source": "ARCHITECTURE_COMPLETE.md",
+        "link": "docs/diagrams/server/api/rest-api-architecture.md",
+        "text": "REST API"
+      },
+      {
+        "source": "ARCHITECTURE_COMPLETE.md",
+        "link": "docs/diagrams/infrastructure/websocket/binary-protocol-complete.md",
+        "text": "Binary Protocol"
+      },
+      {
+        "source": "ARCHITECTURE_COMPLETE.md",
+        "link": "docs/diagrams/infrastructure/gpu/cuda-architecture-complete.md",
+        "text": "GPU/CUDA"
+      },
+      {
+        "source": "ARCHITECTURE_COMPLETE.md",
+        "link": "docs/diagrams/infrastructure/database/neo4j-architecture-complete.md",
+        "text": "Neo4j Database"
+      },
+      {
+        "source": "ARCHITECTURE_COMPLETE.md",
+        "link": "docs/diagrams/infrastructure/testing/test-architecture.md",
+        "text": "Testing"
+      },
+      {
+        "source": "ARCHITECTURE_COMPLETE.md",
+        "link": "docs/diagrams/data-flow/complete-data-flows.md",
+        "text": "Data Flows"
+      },
+      {
+        "source": "ARCHITECTURE_COMPLETE.md",
+        "link": "docs/diagrams/cross-reference-matrix.md",
+        "text": "Complete Cross-Reference Matrix"
+      },
+      {
+        "source": "DEVELOPER_JOURNEY.md",
+        "link": "guides/troubleshooting.md#faq",
+        "text": "FAQ"
+      },
+      {
+        "source": "QUICK_NAVIGATION.md",
+        "link": "guides/readme.md",
+        "text": "readme.md"
+      },
+      {
+        "source": "QUICK_NAVIGATION.md",
+        "link": "guides/features/deepseek-deployment.md",
+        "text": "deepseek-deployment.md"
+      },
+      {
+        "source": "QUICK_NAVIGATION.md",
+        "link": "guides/features/deepseek-verification.md",
+        "text": "deepseek-verification.md"
+      },
+      {
+        "source": "QUICK_NAVIGATION.md",
+        "link": "explanations/architecture/gpu/readme.md",
+        "text": "readme.md"
+      },
+      {
+        "source": "QUICK_NAVIGATION.md",
+        "link": "reference/api/readme.md",
+        "text": "readme.md"
+      },
+      {
+        "source": "QUICK_NAVIGATION.md",
+        "link": "working/CLIENT_ARCHITECTURE_ANALYSIS.md",
+        "text": "CLIENT_ARCHITECTURE_ANALYSIS.md"
+      },
+      {
+        "source": "QUICK_NAVIGATION.md",
+        "link": "working/CLIENT_DOCS_SUMMARY.md",
+        "text": "CLIENT_DOCS_SUMMARY.md"
+      },
+      {
+        "source": "QUICK_NAVIGATION.md",
+        "link": "working/HISTORICAL_CONTEXT_RECOVERY.md",
+        "text": "HISTORICAL_CONTEXT_RECOVERY.md"
+      },
+      {
+        "source": "audits/README.md",
+        "link": "./neo4j-migration-action-plan.md#phase-1-fix-test-compilation-critical",
+        "text": "Action Plan Phase 1"
+      },
+      {
+        "source": "audits/ascii-diagram-deprecation-audit.md",
+        "link": "../diagrams/infrastructure/websocket/binary-protocol-complete.md#3-position-update-v2-21-bytes-per-node",
+        "text": "Binary Protocol Complete - Position Update V2"
+      },
+      {
+        "source": "audits/ascii-diagram-deprecation-audit.md",
+        "link": "../../diagrams/data-flow/complete-data-flows.md",
+        "text": "Complete Data Flows - GitHub Sync to Ontology Reasoning"
+      },
+      {
+        "source": "reference/README.md",
+        "link": "./ERROR_REFERENCE.md#diagnostic-procedures",
+        "text": "ERROR_REFERENCE.md"
+      },
+      {
+        "source": "reference/README.md",
+        "link": "./API_REFERENCE.md#authentication--authorization",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/README.md",
+        "link": "./CONFIGURATION_REFERENCE.md#gpu-configuration",
+        "text": "CONFIGURATION_REFERENCE.md"
+      },
+      {
+        "source": "reference/README.md",
+        "link": "./ERROR_REFERENCE.md#database-layer-errors",
+        "text": "ERROR_REFERENCE.md"
+      },
+      {
+        "source": "reference/README.md",
+        "link": "./PROTOCOL_REFERENCE.md#protocol-v2-specification",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/README.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#query-patterns",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/README.md",
+        "link": "./INDEX.md#endpoint-index",
+        "text": "INDEX.md"
+      },
+      {
+        "source": "reference/README.md",
+        "link": "./INDEX.md#port-configuration",
+        "text": "INDEX.md"
+      },
+      {
+        "source": "reference/README.md",
+        "link": "./ERROR_REFERENCE.md#error-code-system",
+        "text": "ERROR_REFERENCE.md"
+      },
+      {
+        "source": "reference/README.md",
+        "link": "./PROTOCOL_REFERENCE.md#protocol-versions",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/README.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#core-tables",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/README.md",
+        "link": "./CONFIGURATION_REFERENCE.md#environment-variables",
+        "text": "CONFIGURATION_REFERENCE.md"
+      },
+      {
+        "source": "reference/README.md",
+        "link": "./API_REFERENCE.md#section-name",
+        "text": "API Reference"
+      },
+      {
+        "source": "reference/implementation-status.md",
+        "link": "../../explanations/architecture/system-overview.md",
+        "text": "Architecture Overview"
+      },
+      {
+        "source": "reference/api-complete-reference.md",
+        "link": "../../explanations/architecture/system-overview.md",
+        "text": "Architecture Overview"
+      },
+      {
+        "source": "reference/api-complete-reference.md",
+        "link": "../../tutorials/01-installation.md",
+        "text": "Getting Started"
+      },
+      {
+        "source": "reference/code-quality-status.md",
+        "link": "../guides/developer/05-testing-guide.md",
+        "text": "Testing Guide"
+      },
+      {
+        "source": "reference/code-quality-status.md",
+        "link": "../../explanations/architecture/system-overview.md",
+        "text": "Architecture Overview"
+      },
+      {
+        "source": "reference/performance-benchmarks.md",
+        "link": "./binary-websocket.md",
+        "text": "Binary Protocol Specification"
+      },
+      {
+        "source": "reference/performance-benchmarks.md",
+        "link": "./reference/api/03-websocket.md",
+        "text": "WebSocket API Documentation"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./CONFIGURATION_REFERENCE.md#agent-management",
+        "text": "CONFIGURATION_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#analytics-endpoints",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#authentication--authorization",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./ERROR_REFERENCE.md#api-layer-errors",
+        "text": "ERROR_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#api-keys",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#authentication-protocols",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#6-owl_axioms---complete-owl-axiom-storage",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#protocol-v2-specification",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#protocol-v3-analytics-extension",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#binary-protocol-specification",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#compute-centrality",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#detect-communities",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./CONFIGURATION_REFERENCE.md#configuration-files",
+        "text": "CONFIGURATION_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./ERROR_REFERENCE.md#db-e-001-to-db-e-099-connection-errors",
+        "text": "ERROR_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./CONFIGURATION_REFERENCE.md#cpu-configuration",
+        "text": "CONFIGURATION_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#rest-api-endpoints",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#database-architecture",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./ERROR_REFERENCE.md#database-layer-errors",
+        "text": "ERROR_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#migrations",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#protocol-v4-delta-encoding---experimental",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./ERROR_REFERENCE.md#diagnostic-procedures",
+        "text": "ERROR_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#2-graph_edges---knowledge-graph-relationships",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./CONFIGURATION_REFERENCE.md#environment-variables",
+        "text": "CONFIGURATION_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./ERROR_REFERENCE.md#error-code-system",
+        "text": "ERROR_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#error-responses",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./CONFIGURATION_REFERENCE.md#feature-flags",
+        "text": "CONFIGURATION_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#7-file_metadata---source-file-tracking",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#relationships--foreign-keys",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./CONFIGURATION_REFERENCE.md#gpu-configuration",
+        "text": "CONFIGURATION_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./ERROR_REFERENCE.md#gpuphysics-errors",
+        "text": "ERROR_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./performance-benchmarks.md#2-gpu-physics-performance",
+        "text": "performance-benchmarks.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#graph-endpoints",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#1-graph_nodes---knowledge-graph-vertices",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#health-check",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#rest-http-protocol",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#http-status-codes",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#indexes--performance",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#connection-lifecycle",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#json-control-messages",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#jwt-authentication",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./ERROR_REFERENCE.md#gp-e-101-kernel-launch-failed",
+        "text": "ERROR_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./CONFIGURATION_REFERENCE.md#logging--monitoring",
+        "text": "CONFIGURATION_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#mcp-protocol",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./CONFIGURATION_REFERENCE.md#memory-configuration",
+        "text": "CONFIGURATION_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./ERROR_REFERENCE.md#issue-high-memory-usage",
+        "text": "ERROR_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#json-control-messages",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#migrations",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#neo4j-graph-schema",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./CONFIGURATION_REFERENCE.md#network-configuration",
+        "text": "CONFIGURATION_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#type-flags-encoding",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#nostr-authentication",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#ontology-endpoints",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./ERROR_REFERENCE.md#graphontology-errors",
+        "text": "ERROR_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#3-owl_classes---owl-ontology-class-definitions",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#5-owl_properties---owl-property-definitions",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#paginated-graph-data",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./CONFIGURATION_REFERENCE.md#performance-tuning",
+        "text": "CONFIGURATION_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#physics-endpoints",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#protocol-comparison",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#protocol-versions",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#query-patterns",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#rate-limiting",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#relationships--foreign-keys",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#rest-api-endpoints",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./CONFIGURATION_REFERENCE.md#runtime-settings",
+        "text": "CONFIGURATION_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#schema-version",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./CONFIGURATION_REFERENCE.md#security-configuration",
+        "text": "CONFIGURATION_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#sqlite-schema-unifieddb",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#http-status-codes",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#core-tables",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#token-expiration",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./ERROR_REFERENCE.md#common-issues--solutions",
+        "text": "ERROR_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#type-flags-encoding",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#validate-ontology",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#versioning",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#binary-websocket-protocol",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./ERROR_REFERENCE.md#websocket-errors",
+        "text": "ERROR_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#wire-format",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./CONFIGURATION_REFERENCE.md#xr-configuration",
+        "text": "CONFIGURATION_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./CONFIGURATION_REFERENCE.md#yaml-configuration",
+        "text": "CONFIGURATION_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./CONFIGURATION_REFERENCE.md#environment-variables",
+        "text": "CONFIGURATION_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./CONFIGURATION_REFERENCE.md#yaml-configuration",
+        "text": "CONFIGURATION_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./CONFIGURATION_REFERENCE.md#runtime-settings",
+        "text": "CONFIGURATION_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./CONFIGURATION_REFERENCE.md#feature-flags",
+        "text": "CONFIGURATION_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#1-graph_nodes---knowledge-graph-vertices",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#2-graph_edges---knowledge-graph-relationships",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#3-owl_classes---owl-ontology-class-definitions",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#5-owl_properties---owl-property-definitions",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#6-owl_axioms---complete-owl-axiom-storage",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#protocol-v2-specification",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#protocol-v3-analytics-extension",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#protocol-v4-delta-encoding---experimental",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#json-control-messages",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#request-format",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#response-format",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#message-format",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./ERROR_REFERENCE.md#api-layer-errors",
+        "text": "ERROR_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./ERROR_REFERENCE.md#database-layer-errors",
+        "text": "ERROR_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./ERROR_REFERENCE.md#graphontology-errors",
+        "text": "ERROR_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./ERROR_REFERENCE.md#gpuphysics-errors",
+        "text": "ERROR_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./ERROR_REFERENCE.md#websocket-errors",
+        "text": "ERROR_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#rest-api-endpoints",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#websocket-protocols",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#authentication--authorization",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./CONFIGURATION_REFERENCE.md#environment-variables",
+        "text": "CONFIGURATION_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./CONFIGURATION_REFERENCE.md#yaml-configuration",
+        "text": "CONFIGURATION_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#sqlite-schema-unifieddb",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#query-patterns",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#binary-websocket-protocol",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#rest-http-protocol",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./ERROR_REFERENCE.md#error-code-system",
+        "text": "ERROR_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./ERROR_REFERENCE.md#common-issues--solutions",
+        "text": "ERROR_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#health-check",
+        "text": "Link"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#application-configuration",
+        "text": "Link"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#login-endpoint",
+        "text": "Link"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#using-jwt-tokens",
+        "text": "Link"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#get-complete-graph",
+        "text": "Link"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#paginated-graph-data",
+        "text": "Link"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#update-graph",
+        "text": "Link"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#get-class-hierarchy",
+        "text": "Link"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#load-ontology",
+        "text": "Link"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#validate-ontology",
+        "text": "Link"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#startrstop-simulation",
+        "text": "Link"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#get-simulation-status",
+        "text": "Link"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#detect-communities",
+        "text": "Link"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#compute-centrality",
+        "text": "Link"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#binary-websocket-protocol",
+        "text": "Link"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#json-control-messages",
+        "text": "Link"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#swarm_init",
+        "text": "Link"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#agent_spawn",
+        "text": "Link"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#task_orchestrate",
+        "text": "Link"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#data-flow",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./DATABASE_SCHEMA_REFERENCE.md#entity-relationship-diagram",
+        "text": "DATABASE_SCHEMA_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#connection-lifecycle",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./API_REFERENCE.md#api-interaction-diagrams",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#wire-format",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/INDEX.md",
+        "link": "./PROTOCOL_REFERENCE.md#protocol-v4-delta-encoding---experimental",
+        "text": "PROTOCOL_REFERENCE.md"
+      },
+      {
+        "source": "reference/ERROR_REFERENCE.md",
+        "link": "./API_REFERENCE.md#rate-limiting",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "reference/ERROR_REFERENCE.md",
+        "link": "./API_REFERENCE.md#error-responses",
+        "text": "API_REFERENCE.md"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "getting-started/01-installation.md",
+        "text": "Installation Guide"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "getting-started/02-first-graph-and-agents.md",
+        "text": "First Graph & Agents"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/navigation-guide.md",
+        "text": "Navigation Guide"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/agent-orchestration.md",
+        "text": "Agent Orchestration"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/orchestrating-agents.md",
+        "text": "Orchestrating Agents"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/multi-agent-skills.md",
+        "text": "Multi-Agent Skills"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/neo4j-integration.md",
+        "text": "Neo4j Integration"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "reference/api/neo4j-quick-start.md",
+        "text": "Neo4j Quick Start"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/04-database-schemas.md",
+        "text": "Database Schemas"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/vircadia-xr-complete-guide.md",
+        "text": "Vircadia XR Complete Guide"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/xr-setup.md",
+        "text": "XR Setup"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/xr-immersive-system.md",
+        "text": "XR Immersive System"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/developer/01-development-setup.md",
+        "text": "Development Setup"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/developer/04-adding-features.md",
+        "text": "Adding Features"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/developer/03-architecture.md",
+        "text": "Architecture"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/deployment.md",
+        "text": "Deployment"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/docker-compose-guide.md",
+        "text": "Docker Compose Guide"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/operations/pipeline-operator-runbook.md",
+        "text": "Pipeline Operator Runbook"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/ontology-parser.md",
+        "text": "Ontology Parser"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/ontology-storage-guide.md",
+        "text": "Ontology Storage Guide"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/ontology-reasoning-integration.md",
+        "text": "Ontology Reasoning Integration"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "api/semantic-features-api.md",
+        "text": "Semantic Features API"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "api/pathfinding-examples.md",
+        "text": "Pathfinding Examples"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "reference/api/rest-api-reference.md",
+        "text": "REST API Reference"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/troubleshooting.md",
+        "text": "Troubleshooting"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "multi-agent-docker/troubleshooting.md",
+        "text": "Multi-Agent Troubleshooting"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "reference/error-codes.md",
+        "text": "Error Codes"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "getting-started/01-installation.md",
+        "text": "Installation Guide"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "getting-started/02-first-graph-and-agents.md",
+        "text": "First Graph & Agents"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/navigation-guide.md",
+        "text": "Navigation Guide"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/configuration.md",
+        "text": "Configuration"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/agent-orchestration.md",
+        "text": "Agent Orchestration"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/neo4j-integration.md",
+        "text": "Neo4j Integration"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/developer/01-development-setup.md",
+        "text": "Development Setup"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/developer/02-project-structure.md",
+        "text": "Project Structure"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/developer/03-architecture.md",
+        "text": "Architecture"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/developer/04-adding-features.md",
+        "text": "Adding Features"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/testing-guide.md",
+        "text": "Testing Guide"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/developer/06-contributing.md",
+        "text": "Contributing"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/deployment.md",
+        "text": "Deployment"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/docker-compose-guide.md",
+        "text": "Docker Compose Guide"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/operations/pipeline-operator-runbook.md",
+        "text": "Pipeline Operator Runbook"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/security.md",
+        "text": "Security"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/telemetry-logging.md",
+        "text": "Telemetry Logging"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/troubleshooting.md",
+        "text": "Troubleshooting"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/00-architecture-overview.md",
+        "text": "Architecture Overview"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/hexagonal-cqrs-architecture.md",
+        "text": "Hexagonal CQRS Architecture"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/data-flow-complete.md",
+        "text": "Data Flow Complete"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/services-architecture.md",
+        "text": "Services Architecture"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/pipeline-integration.md",
+        "text": "Pipeline Integration"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/multi-agent-system.md",
+        "text": "Multi-Agent System"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/core/server.md",
+        "text": "Server Architecture"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/developer/02-project-structure.md",
+        "text": "Project Structure"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/developer/websocket-best-practices.md",
+        "text": "WebSocket Best Practices"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/core/client.md",
+        "text": "Client Architecture"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/core/visualization.md",
+        "text": "Visualization"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/neo4j-integration.md",
+        "text": "Neo4j Integration"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/04-database-schemas.md",
+        "text": "Database Schemas"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "reference/api/neo4j-quick-start.md",
+        "text": "Neo4j Quick Start"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/adapter-patterns.md",
+        "text": "Adapter Patterns"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/gpu-semantic-forces.md",
+        "text": "GPU Semantic Forces"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/gpu/optimizations.md",
+        "text": "GPU Optimizations"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/gpu/communication-flow.md",
+        "text": "GPU Communication Flow"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "reference/performance-benchmarks.md",
+        "text": "Performance Benchmarks"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/ontology-storage-architecture.md",
+        "text": "Ontology Storage Architecture"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/ontology-reasoning-pipeline.md",
+        "text": "Ontology Reasoning Pipeline"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/ontology-parser.md",
+        "text": "Ontology Parser"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/reasoning-data-flow.md",
+        "text": "Reasoning Data Flow"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/xr-immersive-system.md",
+        "text": "XR Immersive System"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/vircadia-xr-complete-guide.md",
+        "text": "Vircadia XR Complete Guide"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/vircadia-multi-user-guide.md",
+        "text": "Vircadia Multi-User Guide"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/multi-agent-system.md",
+        "text": "Multi-Agent System"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/agent-orchestration.md",
+        "text": "Agent Orchestration"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "multi-agent-docker/architecture.md",
+        "text": "Multi-Agent Docker Architecture"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "multi-agent-docker/tools.md",
+        "text": "Multi-Agent Tools"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "getting-started/02-first-graph-and-agents.md",
+        "text": "First Graph & Agents"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/agent-orchestration.md",
+        "text": "Agent Orchestration"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/hexagonal-cqrs-architecture.md",
+        "text": "Hexagonal CQRS Architecture"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "reference/api/rest-api-reference.md",
+        "text": "REST API Reference"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/",
+        "text": "concepts/architecture/"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/00-architecture-overview.md",
+        "text": "00-architecture-overview.md"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/hexagonal-cqrs-architecture.md",
+        "text": "hexagonal-cqrs-architecture.md"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/data-flow-complete.md",
+        "text": "data-flow-complete.md"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "concepts/architecture/ports/01-overview.md",
+        "text": "ports/01-overview.md"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/developer/",
+        "text": "guides/developer/"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/developer/01-development-setup.md",
+        "text": "01-development-setup.md"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/developer/02-project-structure.md",
+        "text": "02-project-structure.md"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/developer/03-architecture.md",
+        "text": "03-architecture.md"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/developer/06-contributing.md",
+        "text": "06-contributing.md"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "reference/api/",
+        "text": "reference/api/"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "reference/api/rest-api-reference.md",
+        "text": "rest-api-reference.md"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "reference/api/03-websocket.md",
+        "text": "03-websocket.md"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "reference/api/01-authentication.md",
+        "text": "01-authentication.md"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "multi-agent-docker/architecture.md",
+        "text": "architecture.md"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "multi-agent-docker/tools.md",
+        "text": "tools.md"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "multi-agent-docker/troubleshooting.md",
+        "text": "troubleshooting.md"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/troubleshooting.md",
+        "text": "Troubleshooting"
+      },
+      {
+        "source": "archive/INDEX-QUICK-START-old.md",
+        "link": "guides/developer/06-contributing.md",
+        "text": "Contributing Guide"
+      },
+      {
+        "source": "explanations/system-overview.md",
+        "link": "./schemas.md",
+        "text": "schemas.md"
+      },
+      {
+        "source": "explanations/system-overview.md",
+        "link": "../reasoning-engine.md",
+        "text": "\ud83d\udcd6 Complete Reasoning Documentation"
+      },
+      {
+        "source": "diagrams/README.md",
+        "link": "infrastructure/database/neo4j-architecture-complete.md",
+        "text": "`infrastructure/database/neo4j-architecture-complete.md`"
+      },
+      {
+        "source": "diagrams/README.md",
+        "link": "infrastructure/database/neo4j-architecture-complete.md",
+        "text": "Database Architecture"
+      },
+      {
+        "source": "guides/configuration.md",
+        "link": "readme.md",
+        "text": "Guides"
+      },
+      {
+        "source": "guides/configuration.md",
+        "link": "readme.md",
+        "text": "Guides"
+      },
+      {
+        "source": "guides/semantic-features-implementation.md",
+        "link": "../../explanations/architecture/semantic-forces-system.md",
+        "text": "Semantic Forces System"
+      },
+      {
+        "source": "guides/semantic-features-implementation.md",
+        "link": "../../explanations/ontology/ontology-typed-system.md",
+        "text": "Typed Ontology System"
+      },
+      {
+        "source": "guides/semantic-features-implementation.md",
+        "link": "../../explanations/ontology/intelligent-pathfinding-system.md",
+        "text": "Intelligent Pathfinding System"
+      },
+      {
+        "source": "guides/semantic-features-implementation.md",
+        "link": "../../explanations/architecture/gpu/readme.md",
+        "text": "GPU Architecture"
+      },
+      {
+        "source": "guides/docker-environment-setup.md",
+        "link": "../../explanations/architecture/multi-agent-system.md",
+        "text": "Multi-Agent System Architecture"
+      },
+      {
+        "source": "guides/docker-environment-setup.md",
+        "link": "../../explanations/architecture/multi-agent-system.md",
+        "text": "System Architecture"
+      },
+      {
+        "source": "guides/contributing.md",
+        "link": "./readme.md",
+        "text": "Section"
+      },
+      {
+        "source": "guides/contributing.md",
+        "link": "./readme.md",
+        "text": "Developer Guides"
+      },
+      {
+        "source": "guides/orchestrating-agents.md",
+        "link": "readme.md",
+        "text": "Back to Guides"
+      },
+      {
+        "source": "guides/ontology-storage-guide.md",
+        "link": "../../explanations/architecture/ontology-storage-architecture.md",
+        "text": "Complete Architecture Documentation"
+      },
+      {
+        "source": "guides/telemetry-logging.md",
+        "link": "../guides/readme.md",
+        "text": "Guides"
+      },
+      {
+        "source": "guides/telemetry-logging.md",
+        "link": "../guides/readme.md",
+        "text": "Guides"
+      },
+      {
+        "source": "guides/neo4j-implementation-roadmap.md",
+        "link": "../../explanations/architecture/system-overview.md",
+        "text": "Architecture Overview"
+      },
+      {
+        "source": "guides/neo4j-implementation-roadmap.md",
+        "link": "../../explanations/architecture/schemas.md",
+        "text": "Database Schemas"
+      },
+      {
+        "source": "guides/neo4j-implementation-roadmap.md",
+        "link": "./developer/05-testing-guide.md",
+        "text": "Testing Guide"
+      },
+      {
+        "source": "guides/index.md",
+        "link": "xr-setup.md",
+        "text": "WebXR Implementation"
+      },
+      {
+        "source": "guides/security.md",
+        "link": "../guides/readme.md",
+        "text": "Guides"
+      },
+      {
+        "source": "guides/security.md",
+        "link": "../guides/readme.md",
+        "text": "Guides"
+      },
+      {
+        "source": "guides/navigation-guide.md",
+        "link": "readme.md",
+        "text": "\ud83d\udcda Documentation Hub"
+      },
+      {
+        "source": "guides/navigation-guide.md",
+        "link": "../../explanations/architecture/xr-immersive-system.md",
+        "text": "XR Architecture"
+      },
+      {
+        "source": "guides/navigation-guide.md",
+        "link": "../../explanations/architecture/hexagonal-cqrs.md",
+        "text": "Hexagonal CQRS"
+      },
+      {
+        "source": "guides/navigation-guide.md",
+        "link": "../../explanations/architecture/schemas.md",
+        "text": "Database Schema"
+      },
+      {
+        "source": "guides/navigation-guide.md",
+        "link": "../reference/binary-websocket.md",
+        "text": "Binary Protocol"
+      },
+      {
+        "source": "guides/navigation-guide.md",
+        "link": "../../explanations/architecture/gpu/readme.md",
+        "text": "Architecture"
+      },
+      {
+        "source": "guides/navigation-guide.md",
+        "link": "../../explanations/architecture/gpu/optimizations.md",
+        "text": "Optimizations"
+      },
+      {
+        "source": "guides/navigation-guide.md",
+        "link": "../../explanations/architecture/multi-agent-system.md",
+        "text": "Architecture"
+      },
+      {
+        "source": "guides/navigation-guide.md",
+        "link": "../../explanations/architecture/schemas.md",
+        "text": "Schema"
+      },
+      {
+        "source": "guides/navigation-guide.md",
+        "link": "../reference/binary-websocket.md",
+        "text": "Specification"
+      },
+      {
+        "source": "guides/navigation-guide.md",
+        "link": "user/xr-setup.md",
+        "text": "Quick Setup"
+      },
+      {
+        "source": "guides/navigation-guide.md",
+        "link": "../../explanations/architecture/hexagonal-cqrs.md",
+        "text": "Architecture"
+      },
+      {
+        "source": "guides/navigation-guide.md",
+        "link": "../../explanations/architecture/gpu/",
+        "text": "Architecture"
+      },
+      {
+        "source": "guides/navigation-guide.md",
+        "link": "readme.md",
+        "text": "Documentation Hub"
+      },
+      {
+        "source": "guides/navigation-guide.md",
+        "link": "readme.md",
+        "text": "\ud83d\udcda Documentation Hub"
+      },
+      {
+        "source": "guides/troubleshooting.md",
+        "link": "../../tutorials/01-installation.md",
+        "text": "Installation Guide"
+      },
+      {
+        "source": "guides/troubleshooting.md",
+        "link": "readme.md",
+        "text": "Back to Guides"
+      },
+      {
+        "source": "guides/development-workflow.md",
+        "link": "../../explanations/architecture/",
+        "text": "Architecture Documentation"
+      },
+      {
+        "source": "guides/extending-the-system.md",
+        "link": "readme.md",
+        "text": "Back to Guides"
+      },
+      {
+        "source": "guides/multi-agent-skills.md",
+        "link": "../../explanations/architecture/multi-agent-system.md",
+        "text": "Multi-Agent Architecture"
+      },
+      {
+        "source": "tutorials/01-installation.md",
+        "link": "../../explanations/architecture/",
+        "text": "\ud83c\udfd7\ufe0f Architecture"
+      },
+      {
+        "source": "tutorials/02-first-graph.md",
+        "link": "../guides/xr-setup.md",
+        "text": "XR Setup Guide"
+      },
+      {
+        "source": "tutorials/02-first-graph.md",
+        "link": "../guides/xr-setup.md",
+        "text": "XR Integration"
+      },
+      {
+        "source": "tutorials/02-first-graph.md",
+        "link": "../guides/xr-setup.md",
+        "text": "XR/AR Setup"
+      },
+      {
+        "source": "concepts/architecture/core/server.md",
+        "link": "../../../explanations/gpu-computing.md",
+        "text": "GPU Computing"
+      },
+      {
+        "source": "concepts/architecture/core/server.md",
+        "link": "../../../guides/user-settings.md",
+        "text": "Settings System"
+      },
+      {
+        "source": "guides/infrastructure/docker-environment.md",
+        "link": "../guides/security.md",
+        "text": "Security Configuration"
+      },
+      {
+        "source": "guides/infrastructure/readme.md",
+        "link": "../guides/security.md",
+        "text": "Security Guide"
+      },
+      {
+        "source": "guides/developer/websocket-best-practices.md",
+        "link": "../../reference/binary-websocket.md",
+        "text": "Binary Protocol Specification"
+      },
+      {
+        "source": "guides/developer/websocket-best-practices.md",
+        "link": "../../../explanations/architecture/components/websocket-protocol.md",
+        "text": "WebSocket Protocol Architecture"
+      },
+      {
+        "source": "guides/developer/02-project-structure.md",
+        "link": "./03-architecture.md",
+        "text": "Architecture Overview"
+      },
+      {
+        "source": "guides/developer/02-project-structure.md",
+        "link": "./05-testing-guide.md",
+        "text": "Testing Strategy"
+      },
+      {
+        "source": "guides/developer/json-serialization-patterns.md",
+        "link": "../../reference/binary-websocket.md",
+        "text": "Binary Protocol Specification"
+      },
+      {
+        "source": "guides/developer/json-serialization-patterns.md",
+        "link": "../../reference/api/readme.md",
+        "text": "API Reference"
+      },
+      {
+        "source": "guides/developer/01-development-setup.md",
+        "link": "./03-architecture.md",
+        "text": "Architecture"
+      },
+      {
+        "source": "guides/developer/01-development-setup.md",
+        "link": "../../../explanations/architecture/",
+        "text": "\ud83c\udfd7\ufe0f Architecture"
+      },
+      {
+        "source": "guides/developer/readme.md",
+        "link": "./03-architecture.md",
+        "text": "Architecture Overview"
+      },
+      {
+        "source": "guides/developer/readme.md",
+        "link": "./03-architecture.md",
+        "text": "Architecture Overview"
+      },
+      {
+        "source": "guides/developer/readme.md",
+        "link": "./05-testing-guide.md",
+        "text": "Testing Status"
+      },
+      {
+        "source": "guides/client/three-js-rendering.md",
+        "link": "./websocket-protocol.md",
+        "text": "WebSocket Binary Protocol"
+      },
+      {
+        "source": "guides/client/state-management.md",
+        "link": "./websocket-protocol.md",
+        "text": "WebSocket Guide"
+      },
+      {
+        "source": "guides/ai-models/README.md",
+        "link": "/multi-agent-docker/skills/deepseek-reasoning/SKILL.md",
+        "text": "Skill Guide"
+      },
+      {
+        "source": "guides/ai-models/README.md",
+        "link": "/multi-agent-docker/skills/perplexity/SKILL.md",
+        "text": "Skill Guide"
+      },
+      {
+        "source": "guides/ai-models/README.md",
+        "link": "/multi-agent-docker/skills/perplexity/docs/templates.md",
+        "text": "Templates"
+      },
+      {
+        "source": "guides/ai-models/README.md",
+        "link": "/docker-compose.unified-with-neo4j.yml",
+        "text": "Docker Configuration"
+      },
+      {
+        "source": "guides/ai-models/README.md",
+        "link": "/docs/reference/api-complete-reference.md",
+        "text": "API Reference"
+      },
+      {
+        "source": "guides/ai-models/README.md",
+        "link": "/docs/guides/multi-agent-skills.md",
+        "text": "Multi-Agent Skills Overview"
+      },
+      {
+        "source": "guides/ai-models/README.md",
+        "link": "/docs/guides/orchestrating-agents.md",
+        "text": "Agent Orchestration"
+      },
+      {
+        "source": "guides/ai-models/README.md",
+        "link": "/docs/guides/configuration.md",
+        "text": "Configuration Guide"
+      },
+      {
+        "source": "guides/ai-models/README.md",
+        "link": "/docs/guides/features/deepseek-verification.md",
+        "text": "DeepSeek Verification"
+      },
+      {
+        "source": "guides/ai-models/README.md",
+        "link": "/docs/guides/features/deepseek-deployment.md",
+        "text": "DeepSeek Deployment"
+      },
+      {
+        "source": "guides/ai-models/README.md",
+        "link": "/multi-agent-docker/skills/perplexity/SKILL.md",
+        "text": "Perplexity Skill"
+      },
+      {
+        "source": "guides/ai-models/README.md",
+        "link": "/multi-agent-docker/skills/deepseek-reasoning/SKILL.md",
+        "text": "DeepSeek Reasoning Skill"
+      },
+      {
+        "source": "guides/ai-models/README.md",
+        "link": "/docs/guides/docker-environment-setup.md",
+        "text": "Docker Environment Setup"
+      },
+      {
+        "source": "guides/ai-models/README.md",
+        "link": "/multi-agent-docker/README.md",
+        "text": "Multi-Agent Docker README"
+      },
+      {
+        "source": "guides/ai-models/README.md",
+        "link": "/multi-agent-docker/unified-config/supervisord.unified.conf",
+        "text": "Supervisord Configuration"
+      },
+      {
+        "source": "guides/architecture/actor-system.md",
+        "link": "../debugging/actor-message-tracing.md",
+        "text": "Message Flow Debugging"
+      },
+      {
+        "source": "guides/architecture/actor-system.md",
+        "link": "../performance/actor-optimization.md",
+        "text": "Performance Tuning"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "01-system-architecture-overview.md#1-full-system-architecture",
+        "text": "System Architecture Overview"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "01-system-architecture-overview.md#3-cqrs-pattern-implementation",
+        "text": "CQRS Pattern"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "01-system-architecture-overview.md#4-actor-system-supervision-tree",
+        "text": "Actor System"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "02-data-flow-diagrams.md#2-real-time-graph-update-flow",
+        "text": "Real-time Updates"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "01-system-architecture-overview.md#2-hexagonal-architecture-pattern",
+        "text": "Hexagonal Architecture"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "03-deployment-infrastructure.md#1-deployment-topology",
+        "text": "Deployment Topology"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "03-deployment-infrastructure.md#5-network-architecture",
+        "text": "Network Architecture"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "03-deployment-infrastructure.md#3-database-schema-er-diagram",
+        "text": "Database Schema"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "03-deployment-infrastructure.md#2-docker-container-architecture",
+        "text": "Docker Container Architecture"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "03-deployment-infrastructure.md#4-cicd-pipeline",
+        "text": "CI/CD Pipeline"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "03-deployment-infrastructure.md#6-backup--disaster-recovery",
+        "text": "Backup & DR"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "03-deployment-infrastructure.md#5-network-architecture",
+        "text": "Network Architecture"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "01-system-architecture-overview.md#1-full-system-architecture",
+        "text": "Full System Architecture"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "02-data-flow-diagrams.md#1-github-sync---complete-flow",
+        "text": "GitHub Sync Flow"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "02-data-flow-diagrams.md#5-voice-interaction-flow",
+        "text": "Voice Interaction"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "02-data-flow-diagrams.md#4-agent-coordination-flow",
+        "text": "Agent Coordination"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "/docs/ARCHITECTURE_OVERVIEW.md",
+        "text": "Architecture Overview"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "/docs/explanations/architecture/hexagonal-cqrs.md",
+        "text": "Hexagonal CQRS"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "/docs/diagrams/server/actors/actor-system-complete.md",
+        "text": "Actor System Complete"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "/docs/diagrams/infrastructure/websocket/binary-protocol-complete.md",
+        "text": "Binary WebSocket Protocol"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "/docs/diagrams/infrastructure/gpu/cuda-architecture-complete.md",
+        "text": "CUDA Architecture"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "/docs/diagrams/infrastructure/database/neo4j-architecture-complete.md",
+        "text": "Neo4j Architecture"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "/docs/DEVELOPER_JOURNEY.md",
+        "text": "Developer Journey"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "/docs/TECHNOLOGY_CHOICES.md",
+        "text": "Technology Choices"
+      },
+      {
+        "source": "diagrams/mermaid-library/README.md",
+        "link": "/docs/QUICK_NAVIGATION.md",
+        "text": "Quick Navigation"
+      },
+      {
+        "source": "diagrams/mermaid-library/00-mermaid-style-guide.md",
+        "link": "01-system-architecture-overview.md#section",
+        "text": "System Architecture"
+      },
+      {
+        "source": "diagrams/mermaid-library/00-mermaid-style-guide.md",
+        "link": "02-data-flow-diagrams.md#github-sync",
+        "text": "Data Flows"
+      },
+      {
+        "source": "explanations/ontology/intelligent-pathfinding-system.md",
+        "link": "./explanations/architecture/semantic-forces-system.md",
+        "text": "Semantic Forces System"
+      },
+      {
+        "source": "explanations/ontology/intelligent-pathfinding-system.md",
+        "link": "../guides/semantic-features-implementation.md",
+        "text": "Semantic Features Implementation Guide"
+      },
+      {
+        "source": "explanations/ontology/intelligent-pathfinding-system.md",
+        "link": "../guides/semantic-features-implementation.md",
+        "text": "Semantic Features Implementation Guide"
+      },
+      {
+        "source": "explanations/ontology/ontology-typed-system.md",
+        "link": "./explanations/architecture/semantic-forces-system.md",
+        "text": "Semantic Forces System"
+      },
+      {
+        "source": "explanations/ontology/ontology-typed-system.md",
+        "link": "../guides/neo4j-integration.md",
+        "text": "Neo4j Integration Guide"
+      },
+      {
+        "source": "explanations/ontology/ontology-typed-system.md",
+        "link": "../guides/semantic-features-implementation.md",
+        "text": "Semantic Features Implementation Guide"
+      },
+      {
+        "source": "explanations/ontology/ontology-typed-system.md",
+        "link": "../guides/semantic-features-implementation.md",
+        "text": "Semantic Features Implementation Guide"
+      },
+      {
+        "source": "explanations/architecture/README.md",
+        "link": "gpu/readme.md",
+        "text": "GPU Architecture Documentation"
+      },
+      {
+        "source": "explanations/architecture/quick-reference.md",
+        "link": "../../diagrams/server/actors/actor-system-complete.md#actor-lifecycle-and-supervision-strategies",
+        "text": "Actor System Architecture"
+      },
+      {
+        "source": "explanations/architecture/quick-reference.md",
+        "link": "../../diagrams/server/actors/actor-system-complete.md#message-flow-patterns",
+        "text": "Actor System with CQRS"
+      },
+      {
+        "source": "explanations/architecture/api-handlers-reference.md",
+        "link": "schemas.md",
+        "text": "schemas.md"
+      },
+      {
+        "source": "explanations/architecture/services-architecture.md",
+        "link": "schemas.md",
+        "text": "schemas.md"
+      },
+      {
+        "source": "explanations/architecture/database-architecture.md",
+        "link": "../../guides/user-settings.md",
+        "text": "Settings System"
+      },
+      {
+        "source": "explanations/architecture/database-architecture.md",
+        "link": "../../docs/user-settings-implementation-summary.md",
+        "text": "User Settings Implementation Summary"
+      },
+      {
+        "source": "explanations/architecture/database-architecture.md",
+        "link": "../../docs/neo4j-user-settings-schema.md",
+        "text": "Neo4j Settings Schema"
+      },
+      {
+        "source": "explanations/architecture/database-architecture.md",
+        "link": "../../guides/sqlite-to-neo4j-migration.md",
+        "text": "SQLite to Neo4j Migration"
+      },
+      {
+        "source": "archive/deprecated-patterns/03-architecture-WRONG-STACK.md",
+        "link": "/docs/ARCHITECTURE_OVERVIEW.md",
+        "text": "Current Architecture"
+      },
+      {
+        "source": "archive/deprecated-patterns/03-architecture-WRONG-STACK.md",
+        "link": "/docs/guides/developer/testing-guide.md",
+        "text": "Testing Strategy"
+      },
+      {
+        "source": "archive/deprecated-patterns/03-architecture-WRONG-STACK.md",
+        "link": "/docs/guides/contributing.md",
+        "text": "Contributing Guidelines"
+      },
+      {
+        "source": "archive/tests/test_README.md",
+        "link": "../../concepts/architecture/00-architecture-overview.md",
+        "text": "Project Architecture"
+      },
+      {
+        "source": "archive/reports/link-fixes-report.md",
+        "link": "./05-testing-guide.md",
+        "text": "Testing Guide"
+      },
+      {
+        "source": "archive/reports/link-fixes-report.md",
+        "link": "developer/05-testing-guide.md",
+        "text": "Testing Guide"
+      },
+      {
+        "source": "archive/reports/link-fixes-report.md",
+        "link": "../testing-guide.md",
+        "text": "Testing Guide"
+      },
+      {
+        "source": "archive/reports/link-fixes-report.md",
+        "link": "testing-guide.md",
+        "text": "Testing Guide"
+      },
+      {
+        "source": "archive/reports/link-fixes-report.md",
+        "link": "guides/xr-setup.md",
+        "text": "XR Setup"
+      },
+      {
+        "source": "archive/reports/link-fixes-report.md",
+        "link": "user/xr-setup.md",
+        "text": "XR Setup"
+      },
+      {
+        "source": "archive/reports/link-fixes-report.md",
+        "link": "archive/docs/guides/xr-setup.md",
+        "text": "XR Setup"
+      },
+      {
+        "source": "archive/reports/link-fixes-report.md",
+        "link": "../archive/docs/guides/xr-setup.md",
+        "text": "XR Setup"
+      },
+      {
+        "source": "archive/reports/link-fixes-report.md",
+        "link": "docs/guides/user/working-with-agents.md",
+        "text": "Working with Agents"
+      },
+      {
+        "source": "archive/reports/link-fixes-report.md",
+        "link": "docs/archive/docs/guides/user/working-with-agents.md",
+        "text": "Working with Agents"
+      },
+      {
+        "source": "archive/reports/documentation-alignment-2025-12-02/SWARM_EXECUTION_REPORT.md",
+        "link": "../other-doc.md",
+        "text": "link"
+      },
+      {
+        "source": "archive/reports/documentation-alignment-2025-12-02/SWARM_EXECUTION_REPORT.md",
+        "link": "doc.md#section",
+        "text": "link"
+      },
+      {
+        "source": "archive/reports/documentation-alignment-2025-12-02/SWARM_EXECUTION_REPORT.md",
+        "link": "../architecture/overview.md",
+        "text": "Architecture Guide"
+      },
+      {
+        "source": "archive/reports/documentation-alignment-2025-12-02/SWARM_EXECUTION_REPORT.md",
+        "link": "../concepts/architecture/hexagonal-cqrs-architecture.md",
+        "text": "Architecture Guide"
+      },
+      {
+        "source": "archive/reports/documentation-alignment-2025-12-02/SWARM_EXECUTION_REPORT.md",
+        "link": "../assets/missing_diagram.png",
+        "text": "Diagram"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "docs/diagrams/architecture/backend-api-architecture-complete.md",
+        "text": "Backend API Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "docs/diagrams/client/rendering/threejs-pipeline-complete.md",
+        "text": "Three.js Rendering"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "docs/diagrams/client/state/state-management-complete.md",
+        "text": "State Management"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "docs/diagrams/client/xr/xr-architecture-complete.md",
+        "text": "XR/VR Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "docs/diagrams/server/actors/actor-system-complete.md",
+        "text": "Actor System"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "docs/diagrams/server/agents/agent-system-architecture.md",
+        "text": "Agent System"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "docs/diagrams/server/api/rest-api-architecture.md",
+        "text": "REST API"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "docs/diagrams/infrastructure/websocket/binary-protocol-complete.md",
+        "text": "Binary Protocol"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "docs/diagrams/infrastructure/gpu/cuda-architecture-complete.md",
+        "text": "GPU/CUDA"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "docs/diagrams/infrastructure/database/neo4j-architecture-complete.md",
+        "text": "Neo4j Database"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "docs/diagrams/infrastructure/testing/test-architecture.md",
+        "text": "Testing"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "docs/diagrams/data-flow/complete-data-flows.md",
+        "text": "Data Flows"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "docs/diagrams/cross-reference-matrix.md",
+        "text": "Complete Cross-Reference Matrix"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "getting-started/01-installation.md",
+        "text": "Installation Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "getting-started/02-first-graph-and-agents.md",
+        "text": "First Graph Tutorial"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "getting-started/01-installation.md",
+        "text": "Get Started \u2192"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/features/deepseek-deployment.md",
+        "text": "deepseek-deployment.md"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/features/deepseek-verification.md",
+        "text": "deepseek-verification.md"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/features/deepseek-verification.md",
+        "text": "DeepSeek Verification"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/features/deepseek-deployment.md",
+        "text": "DeepSeek Deployment"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "getting-started/01-installation.md",
+        "text": "Installation Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "getting-started/02-first-graph-and-agents.md",
+        "text": "First Graph & Agents"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/navigation-guide.md",
+        "text": "Navigation Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/agent-orchestration.md",
+        "text": "Agent Orchestration"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/orchestrating-agents.md",
+        "text": "Orchestrating Agents"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/multi-agent-skills.md",
+        "text": "Multi-Agent Skills"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/neo4j-integration.md",
+        "text": "Neo4j Integration"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "reference/api/neo4j-quick-start.md",
+        "text": "Neo4j Quick Start"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/04-database-schemas.md",
+        "text": "Database Schemas"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/vircadia-xr-complete-guide.md",
+        "text": "Vircadia XR Complete Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/xr-setup.md",
+        "text": "XR Setup"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/xr-immersive-system.md",
+        "text": "XR Immersive System"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/developer/01-development-setup.md",
+        "text": "Development Setup"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/developer/04-adding-features.md",
+        "text": "Adding Features"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/developer/03-architecture.md",
+        "text": "Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/deployment.md",
+        "text": "Deployment"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/docker-compose-guide.md",
+        "text": "Docker Compose Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/operations/pipeline-operator-runbook.md",
+        "text": "Pipeline Operator Runbook"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/ontology-parser.md",
+        "text": "Ontology Parser"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/ontology-storage-guide.md",
+        "text": "Ontology Storage Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/ontology-reasoning-integration.md",
+        "text": "Ontology Reasoning Integration"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "api/semantic-features-api.md",
+        "text": "Semantic Features API"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "api/pathfinding-examples.md",
+        "text": "Pathfinding Examples"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "reference/api/rest-api-reference.md",
+        "text": "REST API Reference"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/troubleshooting.md",
+        "text": "Troubleshooting"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "multi-agent-docker/troubleshooting.md",
+        "text": "Multi-Agent Troubleshooting"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "reference/error-codes.md",
+        "text": "Error Codes"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "getting-started/01-installation.md",
+        "text": "Installation Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "getting-started/02-first-graph-and-agents.md",
+        "text": "First Graph & Agents"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/navigation-guide.md",
+        "text": "Navigation Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/configuration.md",
+        "text": "Configuration"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/agent-orchestration.md",
+        "text": "Agent Orchestration"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/neo4j-integration.md",
+        "text": "Neo4j Integration"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/developer/01-development-setup.md",
+        "text": "Development Setup"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/developer/02-project-structure.md",
+        "text": "Project Structure"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/developer/03-architecture.md",
+        "text": "Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/developer/04-adding-features.md",
+        "text": "Adding Features"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/testing-guide.md",
+        "text": "Testing Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/developer/06-contributing.md",
+        "text": "Contributing"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/deployment.md",
+        "text": "Deployment"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/docker-compose-guide.md",
+        "text": "Docker Compose Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/operations/pipeline-operator-runbook.md",
+        "text": "Pipeline Operator Runbook"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/security.md",
+        "text": "Security"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/telemetry-logging.md",
+        "text": "Telemetry Logging"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/troubleshooting.md",
+        "text": "Troubleshooting"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/00-architecture-overview.md",
+        "text": "Architecture Overview"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/hexagonal-cqrs-architecture.md",
+        "text": "Hexagonal CQRS Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/data-flow-complete.md",
+        "text": "Data Flow Complete"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/services-architecture.md",
+        "text": "Services Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/pipeline-integration.md",
+        "text": "Pipeline Integration"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/multi-agent-system.md",
+        "text": "Multi-Agent System"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/core/server.md",
+        "text": "Server Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/developer/02-project-structure.md",
+        "text": "Project Structure"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/developer/websocket-best-practices.md",
+        "text": "WebSocket Best Practices"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/core/client.md",
+        "text": "Client Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/core/visualization.md",
+        "text": "Visualization"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/neo4j-integration.md",
+        "text": "Neo4j Integration"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/04-database-schemas.md",
+        "text": "Database Schemas"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "reference/api/neo4j-quick-start.md",
+        "text": "Neo4j Quick Start"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/adapter-patterns.md",
+        "text": "Adapter Patterns"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/gpu-semantic-forces.md",
+        "text": "GPU Semantic Forces"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/gpu/optimizations.md",
+        "text": "GPU Optimizations"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/gpu/communication-flow.md",
+        "text": "GPU Communication Flow"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "reference/performance-benchmarks.md",
+        "text": "Performance Benchmarks"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/ontology-storage-architecture.md",
+        "text": "Ontology Storage Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/ontology-reasoning-pipeline.md",
+        "text": "Ontology Reasoning Pipeline"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/ontology-parser.md",
+        "text": "Ontology Parser"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/reasoning-data-flow.md",
+        "text": "Reasoning Data Flow"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/xr-immersive-system.md",
+        "text": "XR Immersive System"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/vircadia-xr-complete-guide.md",
+        "text": "Vircadia XR Complete Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/vircadia-multi-user-guide.md",
+        "text": "Vircadia Multi-User Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/multi-agent-system.md",
+        "text": "Multi-Agent System"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/agent-orchestration.md",
+        "text": "Agent Orchestration"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "multi-agent-docker/architecture.md",
+        "text": "Multi-Agent Docker Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "multi-agent-docker/tools.md",
+        "text": "Multi-Agent Tools"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "getting-started/02-first-graph-and-agents.md",
+        "text": "First Graph & Agents"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/agent-orchestration.md",
+        "text": "Agent Orchestration"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/hexagonal-cqrs-architecture.md",
+        "text": "Hexagonal CQRS Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "reference/api/rest-api-reference.md",
+        "text": "REST API Reference"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/",
+        "text": "concepts/architecture/"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/00-architecture-overview.md",
+        "text": "00-architecture-overview.md"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/hexagonal-cqrs-architecture.md",
+        "text": "hexagonal-cqrs-architecture.md"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/data-flow-complete.md",
+        "text": "data-flow-complete.md"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "concepts/architecture/ports/01-overview.md",
+        "text": "ports/01-overview.md"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/developer/",
+        "text": "guides/developer/"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/developer/01-development-setup.md",
+        "text": "01-development-setup.md"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/developer/02-project-structure.md",
+        "text": "02-project-structure.md"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/developer/03-architecture.md",
+        "text": "03-architecture.md"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/developer/06-contributing.md",
+        "text": "06-contributing.md"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "reference/api/",
+        "text": "reference/api/"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "reference/api/rest-api-reference.md",
+        "text": "rest-api-reference.md"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "reference/api/03-websocket.md",
+        "text": "03-websocket.md"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "reference/api/01-authentication.md",
+        "text": "01-authentication.md"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "multi-agent-docker/architecture.md",
+        "text": "architecture.md"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "multi-agent-docker/tools.md",
+        "text": "tools.md"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "multi-agent-docker/troubleshooting.md",
+        "text": "troubleshooting.md"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/troubleshooting.md",
+        "text": "Troubleshooting"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/developer/06-contributing.md",
+        "text": "Contributing Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/docs/ARCHITECTURE_OVERVIEW.md",
+        "text": "Current Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/docs/guides/developer/testing-guide.md",
+        "text": "Testing Strategy"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/docs/guides/contributing.md",
+        "text": "Contributing Guidelines"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../other-doc.md",
+        "text": "link"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../architecture/overview.md",
+        "text": "Architecture Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../concepts/architecture/hexagonal-cqrs-architecture.md",
+        "text": "Architecture Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../assets/missing_diagram.png",
+        "text": "Diagram"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "./05-testing-guide.md",
+        "text": "Testing Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "developer/05-testing-guide.md",
+        "text": "Testing Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../testing-guide.md",
+        "text": "Testing Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "testing-guide.md",
+        "text": "Testing Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "guides/xr-setup.md",
+        "text": "XR Setup"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "user/xr-setup.md",
+        "text": "XR Setup"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "archive/docs/guides/xr-setup.md",
+        "text": "XR Setup"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../archive/docs/guides/xr-setup.md",
+        "text": "XR Setup"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "docs/guides/user/working-with-agents.md",
+        "text": "Working with Agents"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "docs/archive/docs/guides/user/working-with-agents.md",
+        "text": "Working with Agents"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../concepts/architecture/00-architecture-overview.md",
+        "text": "Project Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../diagrams/data-flow/complete-data-flows.md",
+        "text": "Complete Data Flows - GitHub Sync to Ontology Reasoning"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../../explanations/gpu-computing.md",
+        "text": "GPU Computing"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../../guides/user-settings.md",
+        "text": "Settings System"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "infrastructure/database/neo4j-architecture-complete.md",
+        "text": "`infrastructure/database/neo4j-architecture-complete.md`"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "infrastructure/database/neo4j-architecture-complete.md",
+        "text": "Database Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../architecture/pipeline-integration.md",
+        "text": "Pipeline Integration Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../architecture/ontology-reasoning-pipeline.md",
+        "text": "Ontology Reasoning Pipeline"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../client/src/services/BinaryWebSocketProtocol.ts",
+        "text": "Binary WebSocket Protocol"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../src/actors/gpu/force_compute_actor.rs",
+        "text": "Force Compute Actor"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../src/actors/client_coordinator_actor.rs",
+        "text": "Client Coordinator"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "schemas.md",
+        "text": "schemas.md"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../guides/user-settings.md",
+        "text": "Settings System"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../docs/user-settings-implementation-summary.md",
+        "text": "User Settings Implementation Summary"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../docs/neo4j-user-settings-schema.md",
+        "text": "Neo4j Settings Schema"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../guides/sqlite-to-neo4j-migration.md",
+        "text": "SQLite to Neo4j Migration"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../reasoning-engine.md",
+        "text": "Complete Ontology Reasoning"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "./schemas.md",
+        "text": "Database Schemas"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "schemas.md",
+        "text": "schemas.md"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "./explanations/architecture/semantic-forces-system.md",
+        "text": "Semantic Forces System"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../guides/semantic-features-implementation.md",
+        "text": "Semantic Features Implementation Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../guides/semantic-features-implementation.md",
+        "text": "Semantic Features Implementation Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "./explanations/architecture/semantic-forces-system.md",
+        "text": "Semantic Forces System"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../guides/neo4j-integration.md",
+        "text": "Neo4j Integration Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../guides/semantic-features-implementation.md",
+        "text": "Semantic Features Implementation Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../guides/semantic-features-implementation.md",
+        "text": "Semantic Features Implementation Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "./schemas.md",
+        "text": "schemas.md"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../reasoning-engine.md",
+        "text": "\ud83d\udcd6 Complete Reasoning Documentation"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/multi-agent-docker/skills/deepseek-reasoning/SKILL.md",
+        "text": "Skill Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/multi-agent-docker/skills/perplexity/SKILL.md",
+        "text": "Skill Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/multi-agent-docker/skills/perplexity/docs/templates.md",
+        "text": "Templates"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/docker-compose.unified-with-neo4j.yml",
+        "text": "Docker Configuration"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/docs/reference/api-complete-reference.md",
+        "text": "API Reference"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/docs/guides/multi-agent-skills.md",
+        "text": "Multi-Agent Skills Overview"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/docs/guides/orchestrating-agents.md",
+        "text": "Agent Orchestration"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/docs/guides/configuration.md",
+        "text": "Configuration Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/docs/guides/features/deepseek-verification.md",
+        "text": "DeepSeek Verification"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/docs/guides/features/deepseek-deployment.md",
+        "text": "DeepSeek Deployment"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/multi-agent-docker/skills/perplexity/SKILL.md",
+        "text": "Perplexity Skill"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/multi-agent-docker/skills/deepseek-reasoning/SKILL.md",
+        "text": "DeepSeek Reasoning Skill"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/docs/guides/docker-environment-setup.md",
+        "text": "Docker Environment Setup"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/multi-agent-docker/README.md",
+        "text": "Multi-Agent Docker README"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/multi-agent-docker/unified-config/supervisord.unified.conf",
+        "text": "Supervisord Configuration"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/docs/guides/ai-models/README.md",
+        "text": "AI Models Overview"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/multi-agent-docker/skills/perplexity/SKILL.md",
+        "text": "Perplexity MCP Skill"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/multi-agent-docker/skills/perplexity/docs/templates.md",
+        "text": "Perplexity Templates"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/docs/reference/api-complete-reference.md",
+        "text": "API Complete Reference"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/docs/guides/ai-models/README.md",
+        "text": "AI Models Overview"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/docs/reference/api-complete-reference.md",
+        "text": "API Complete Reference"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/docs/guides/docker-environment-setup.md",
+        "text": "Docker Environment Setup"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "/docs/guides/configuration.md",
+        "text": "Configuration Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../debugging/actor-message-tracing.md",
+        "text": "Message Flow Debugging"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../performance/actor-optimization.md",
+        "text": "Performance Tuning"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "./websocket-protocol.md",
+        "text": "WebSocket Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "./websocket-protocol.md",
+        "text": "WebSocket Binary Protocol"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../concepts/architecture/core/client.md",
+        "text": "Client Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "./03-architecture.md",
+        "text": "Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "./03-architecture.md",
+        "text": "Architecture Overview"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "./05-testing-guide.md",
+        "text": "Testing Strategy"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../reference/binary-websocket.md",
+        "text": "Binary Protocol Specification"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "./03-architecture.md",
+        "text": "Architecture Overview"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "./03-architecture.md",
+        "text": "Architecture Overview"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "./05-testing-guide.md",
+        "text": "Testing Status"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../reference/binary-websocket.md",
+        "text": "Binary Protocol Specification"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/architecture/",
+        "text": "Architecture Documentation"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/architecture/multi-agent-system.md",
+        "text": "Multi-Agent System Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/architecture/multi-agent-system.md",
+        "text": "System Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "xr-setup.md",
+        "text": "WebXR Implementation"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../guides/security.md",
+        "text": "Security Configuration"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../guides/security.md",
+        "text": "Security Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/architecture/multi-agent-system.md",
+        "text": "Multi-Agent Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/architecture/xr-immersive-system.md",
+        "text": "XR Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/architecture/hexagonal-cqrs.md",
+        "text": "Hexagonal CQRS"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/architecture/schemas.md",
+        "text": "Database Schema"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../reference/binary-websocket.md",
+        "text": "Binary Protocol"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/architecture/gpu/readme.md",
+        "text": "Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/architecture/gpu/optimizations.md",
+        "text": "Optimizations"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/architecture/multi-agent-system.md",
+        "text": "Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/architecture/schemas.md",
+        "text": "Schema"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../reference/binary-websocket.md",
+        "text": "Specification"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "user/xr-setup.md",
+        "text": "Quick Setup"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/architecture/hexagonal-cqrs.md",
+        "text": "Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/architecture/gpu/",
+        "text": "Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/architecture/system-overview.md",
+        "text": "Architecture Overview"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/architecture/schemas.md",
+        "text": "Database Schemas"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "./developer/05-testing-guide.md",
+        "text": "Testing Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/architecture/ontology-storage-architecture.md",
+        "text": "Complete Architecture Documentation"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/architecture/semantic-forces-system.md",
+        "text": "Semantic Forces System"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/ontology/ontology-typed-system.md",
+        "text": "Typed Ontology System"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/ontology/intelligent-pathfinding-system.md",
+        "text": "Intelligent Pathfinding System"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/architecture/gpu/readme.md",
+        "text": "GPU Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../tutorials/01-installation.md",
+        "text": "Installation Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../binary-websocket.md",
+        "text": "Binary Protocol Specification"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/architecture/system-overview.md",
+        "text": "Architecture Overview"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../tutorials/01-installation.md",
+        "text": "Getting Started"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../guides/developer/05-testing-guide.md",
+        "text": "Testing Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/architecture/system-overview.md",
+        "text": "Architecture Overview"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/architecture/system-overview.md",
+        "text": "Architecture Overview"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "./binary-websocket.md",
+        "text": "Binary Protocol Specification"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "./reference/api/03-websocket.md",
+        "text": "WebSocket API Documentation"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/architecture/xr-immersive-system.md",
+        "text": "XR Immersive System Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../../explanations/architecture/",
+        "text": "\ud83c\udfd7\ufe0f Architecture"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../guides/xr-setup.md",
+        "text": "XR Setup Guide"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../guides/xr-setup.md",
+        "text": "XR Integration"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../guides/xr-setup.md",
+        "text": "XR/AR Setup"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../assets/screenshots/control-center-dashboard.png",
+        "text": "Control Center Dashboard"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../assets/screenshots/graph-3d-visualization.png",
+        "text": "3D Graph Visualization"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../assets/screenshots/settings-unified-panel.png",
+        "text": "Settings Panel"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "../assets/screenshots/websocket-inspector.png",
+        "text": "WebSocket Inspector"
+      },
+      {
+        "source": "archive/reports/consolidation/link-validation-report-2025-12.md",
+        "link": "path/to/image.png",
+        "text": "Control Center"
+      },
+      {
+        "source": "archive/docs/guides/developer/05-testing-guide.md",
+        "link": "../../../guides/developer/01-development-setup.md",
+        "text": "Development Setup"
+      },
+      {
+        "source": "archive/docs/guides/developer/05-testing-guide.md",
+        "link": "../../../guides/developer/04-adding-features.md",
+        "text": "Adding a Feature"
+      },
+      {
+        "source": "reference/protocols/binary-websocket.md",
+        "link": "../diagrams/infrastructure/websocket/binary-protocol-complete.md#3-position-update-v2-21-bytes-per-node",
+        "text": "Binary Protocol Complete - Position Update V2"
+      },
+      {
+        "source": "reference/protocols/binary-websocket.md",
+        "link": "../diagrams/infrastructure/websocket/binary-protocol-complete.md#protocol-versions",
+        "text": "Binary Protocol Complete - Protocol V1 Legacy"
+      },
+      {
+        "source": "reference/protocols/binary-websocket.md",
+        "link": "../diagrams/infrastructure/websocket/binary-protocol-complete.md#binary-message-formats",
+        "text": "Binary Protocol Complete - Agent State Messages"
+      },
+      {
+        "source": "reference/protocols/binary-websocket.md",
+        "link": "../diagrams/infrastructure/websocket/binary-protocol-complete.md#1-message-header-all-messages",
+        "text": "Binary Protocol Complete - Message Header"
+      },
+      {
+        "source": "reference/api/rest-api-reference.md",
+        "link": "../../../explanations/architecture/ontology-reasoning-pipeline.md",
+        "text": "Ontology Reasoning Pipeline"
+      },
+      {
+        "source": "reference/api/rest-api-reference.md",
+        "link": "../../../explanations/architecture/semantic-physics-system.md",
+        "text": "Semantic Physics System"
+      },
+      {
+        "source": "reference/api/03-websocket.md",
+        "link": "../binary-websocket.md",
+        "text": "Binary Protocol Specification"
+      }
+    ],
+    "orphaned_files": [
+      "archive/ARCHIVE_REPORT.md",
+      "architecture/skills-refactoring-plan.md",
+      "architecture/phase1-completion.md",
+      "architecture/skill-mcp-classification.md",
+      "archive/audits/quality-gates-api.md",
+      "archive/fixes/type-corrections-final-summary.md",
+      "archive/fixes/type-corrections-progress.md",
+      "archive/analysis/client-docs-summary-2025-12.md",
+      "archive/analysis/analysis-summary-2025-12.md",
+      "archive/analysis/historical-context-recovery-2025-12.md",
+      "archive/sprint-logs/p1-1-summary.md",
+      "archive/sprint-logs/p1-1-checklist.md",
+      "archive/sprint-logs/p1-1-configure-complete.md",
+      "archive/sprint-logs/p0-3-semantic-forces.md",
+      "archive/sprint-logs/p2-complete.md",
+      "archive/sprint-logs/p1-2-pagerank.md",
+      "archive/sprint-logs/p2-features.md",
+      "archive/reports/ascii-to-mermaid-conversion.md",
+      "archive/reports/mermaid-fixes-report.md",
+      "archive/reports/implementation-complete.md",
+      "archive/reports/documentation-index-report.md",
+      "archive/reports/implementation-report-stubs.md",
+      "archive/reports/CLEANUP_SUMMARY.md",
+      "archive/reports/hive-mind-integration.md",
+      "archive/reports/documentation-issues.md",
+      "archive/reports/link-audit-summary.md",
+      "archive/reports/documentation-audit-final.md",
+      "archive/reports/ascii-conversion-report.md",
+      "archive/implementation-logs/stress-majorization-implementation.md",
+      "archive/data/markdown/implementation-examples.md",
+      "archive/data/markdown/IMPLEMENTATION-SUMMARY.md",
+      "archive/data/markdown/OntologyDefinition.md",
+      "archive/data/pages/implementation-examples.md",
+      "archive/data/pages/IMPLEMENTATION-SUMMARY.md",
+      "archive/data/pages/ComfyWorkFlows.md",
+      "archive/data/pages/OntologyDefinition.md",
+      "archive/reports/documentation-alignment-2025-12-02/DOCUMENTATION_ALIGNMENT_SUMMARY.md",
+      "archive/reports/consolidation/link-fix-suggestions-2025-12.md",
+      "archive/multi-agent-docker/skills/IMPLEMENTATION_GUIDE.md",
+      "multi-agent-docker/development-notes/MIGRATION_PLAN_EXECUTED.md"
+    ],
+    "inbound_counts": {
+      "tutorials/01-installation.md": 9,
+      "tutorials/02-first-graph.md": 8,
+      "guides/navigation-guide.md": 4,
+      "OVERVIEW.md": 9,
+      "guides/configuration.md": 13,
+      "guides/troubleshooting.md": 13,
+      "DEVELOPER_JOURNEY.md": 6,
+      "guides/developer/01-development-setup.md": 14,
+      "guides/developer/02-project-structure.md": 14,
+      "guides/developer/04-adding-features.md": 19,
+      "guides/testing-guide.md": 12,
+      "guides/developer/06-contributing.md": 18,
+      "ARCHITECTURE_OVERVIEW.md": 8,
+      "TECHNOLOGY_CHOICES.md": 4,
+      "explanations/system-overview.md": 10,
+      "explanations/architecture/hexagonal-cqrs.md": 25,
+      "explanations/architecture/integration-patterns.md": 7,
+      "explanations/architecture/ports/01-overview.md": 8,
+      "guides/deployment.md": 12,
+      "guides/docker-compose-guide.md": 7,
+      "guides/operations/pipeline-operator-runbook.md": 10,
+      "guides/security.md": 6,
+      "guides/telemetry-logging.md": 3,
+      "tutorials/neo4j-quick-start.md": 3,
+      "guides/features/filtering-nodes.md": 5,
+      "guides/features/intelligent-pathfinding.md": 10,
+      "guides/features/natural-language-queries.md": 10,
+      "guides/features/semantic-forces.md": 7,
+      "guides/extending-the-system.md": 5,
+      "guides/features/auth-user-settings.md": 4,
+      "guides/features/nostr-auth.md": 4,
+      "guides/features/settings-authentication.md": 6,
+      "guides/agent-orchestration.md": 13,
+      "guides/orchestrating-agents.md": 8,
+      "guides/multi-agent-skills.md": 8,
+      "guides/ai-models/README.md": 4,
+      "guides/neo4j-integration.md": 6,
+      "guides/neo4j-implementation-roadmap.md": 2,
+      "guides/neo4j-migration.md": 5,
+      "guides/features/local-file-sync-strategy.md": 2,
+      "guides/features/github-pagination-fix.md": 2,
+      "guides/pipeline-admin-api.md": 2,
+      "guides/ontology-parser.md": 4,
+      "guides/ontology-reasoning-integration.md": 7,
+      "guides/ontology-storage-guide.md": 8,
+      "guides/ontology-semantic-forces.md": 3,
+      "guides/docker-environment-setup.md": 5,
+      "guides/development-workflow.md": 10,
+      "guides/infrastructure/architecture.md": 10,
+      "guides/infrastructure/docker-environment.md": 9,
+      "guides/infrastructure/tools.md": 5,
+      "guides/infrastructure/port-configuration.md": 4,
+      "guides/infrastructure/troubleshooting.md": 10,
+      "guides/infrastructure/goalie-integration.md": 8,
+      "guides/vircadia-xr-complete-guide.md": 7,
+      "guides/vircadia-multi-user-guide.md": 13,
+      "guides/developer/websocket-best-practices.md": 4,
+      "guides/developer/json-serialization-patterns.md": 3,
+      "guides/developer/test-execution.md": 2,
+      "guides/client/state-management.md": 9,
+      "guides/client/three-js-rendering.md": 6,
+      "guides/client/xr-integration.md": 7,
+      "guides/semantic-features-implementation.md": 4,
+      "guides/hierarchy-integration.md": 2,
+      "guides/stress-majorization-guide.md": 2,
+      "guides/features/ontology-sync-enhancement.md": 5,
+      "guides/graphserviceactor-migration.md": 14,
+      "guides/migration/json-to-binary-protocol.md": 4,
+      "concepts/architecture/core/server.md": 13,
+      "guides/architecture/actor-system.md": 6,
+      "explanations/architecture/database-architecture.md": 5,
+      "explanations/architecture/services-architecture.md": 4,
+      "explanations/architecture/multi-agent-system.md": 3,
+      "explanations/architecture/data-flow-complete.md": 4,
+      "explanations/architecture/pipeline-integration.md": 8,
+      "explanations/architecture/pipeline-sequence-diagrams.md": 2,
+      "explanations/architecture/github-sync-service-design.md": 2,
+      "explanations/architecture/quick-reference.md": 2,
+      "explanations/architecture/analytics-visualization.md": 3,
+      "explanations/architecture/services-layer.md": 9,
+      "explanations/architecture/ontology-physics-integration.md": 4,
+      "explanations/architecture/ruvector-integration.md": 4,
+      "explanations/architecture/api-handlers-reference.md": 3,
+      "explanations/architecture/cqrs-directive-template.md": 2,
+      "explanations/architecture/ontology-analysis.md": 2,
+      "explanations/architecture/xr-immersive-system.md": 7,
+      "explanations/architecture/adapter-patterns.md": 7,
+      "explanations/architecture/ontology-storage-architecture.md": 15,
+      "explanations/architecture/ontology-reasoning-pipeline.md": 7,
+      "explanations/architecture/reasoning-data-flow.md": 6,
+      "explanations/architecture/reasoning-tests-summary.md": 5,
+      "explanations/ontology/reasoning-engine.md": 8,
+      "explanations/ontology/neo4j-integration.md": 2,
+      "explanations/ontology/ontology-pipeline-integration.md": 2,
+      "explanations/ontology/ontology-typed-system.md": 3,
+      "explanations/ontology/client-side-hierarchical-lod.md": 2,
+      "explanations/ontology/hierarchical-visualization.md": 2,
+      "explanations/ontology/intelligent-pathfinding-system.md": 3,
+      "explanations/ontology/enhanced-parser.md": 3,
+      "explanations/architecture/semantic-physics-system.md": 5,
+      "explanations/architecture/semantic-forces-system.md": 2,
+      "explanations/architecture/semantic-physics.md": 11,
+      "explanations/architecture/gpu-semantic-forces.md": 5,
+      "explanations/architecture/stress-majorization.md": 12,
+      "explanations/architecture/hierarchical-visualization.md": 4,
+      "explanations/physics/semantic-forces.md": 6,
+      "explanations/physics/semantic-forces-actor.md": 2,
+      "explanations/architecture/gpu/communication-flow.md": 4,
+      "explanations/architecture/gpu/optimizations.md": 6,
+      "explanations/architecture/core/client.md": 3,
+      "explanations/architecture/core/server.md": 3,
+      "explanations/architecture/core/visualization.md": 7,
+      "explanations/architecture/components/websocket-protocol.md": 3,
+      "explanations/architecture/ports/02-settings-repository.md": 2,
+      "explanations/architecture/ports/03-knowledge-graph-repository.md": 6,
+      "explanations/architecture/ports/04-ontology-repository.md": 10,
+      "explanations/architecture/ports/05-inference-engine.md": 9,
+      "explanations/architecture/ports/06-gpu-physics-adapter.md": 8,
+      "explanations/architecture/ports/07-gpu-semantic-analyzer.md": 6,
+      "explanations/architecture/decisions/0001-neo4j-persistent-with-filesystem-sync.md": 2,
+      "reference/api-complete-reference.md": 2,
+      "reference/api/rest-api-complete.md": 8,
+      "reference/api/rest-api-reference.md": 2,
+      "reference/api/01-authentication.md": 8,
+      "reference/api/03-websocket.md": 15,
+      "reference/api/semantic-features-api.md": 7,
+      "reference/api/pathfinding-examples.md": 7,
+      "reference/protocols/binary-websocket.md": 13,
+      "reference/websocket-protocol.md": 14,
+      "reference/database/schemas.md": 6,
+      "reference/database/ontology-schema-v2.md": 5,
+      "reference/database/user-settings-schema.md": 5,
+      "reference/database/neo4j-persistence-analysis.md": 3,
+      "reference/error-codes.md": 6,
+      "reference/implementation-status.md": 3,
+      "reference/code-quality-status.md": 4,
+      "reference/performance-benchmarks.md": 16,
+      "reference/physics-implementation.md": 3,
+      "audits/README.md": 6,
+      "audits/neo4j-settings-migration-audit.md": 9,
+      "audits/neo4j-migration-action-plan.md": 7,
+      "audits/neo4j-migration-summary.md": 8,
+      "archive/README.md": 5,
+      "archive/reports": 1,
+      "assets/diagrams/sparc-turboflow-architecture.md": 2,
+      "scripts": 1,
+      "multi-agent-docker/x-fluxagent-adaptation-plan.md": 10,
+      "diagrams/infrastructure/gpu/cuda-architecture-complete.md": 12,
+      "diagrams/server/actors/actor-system-complete.md": 11,
+      "diagrams/client/state/state-management-complete.md": 8,
+      "README.md": 9,
+      "ARCHITECTURE_COMPLETE.md": 8,
+      "visionflow-architecture-analysis.md": 6,
+      "diagrams/README.md": 7,
+      "diagrams/server/agents/agent-system-architecture.md": 10,
+      "architecture/blender-mcp-unified-architecture.md": 8,
+      "multi-agent-docker/TERMINAL_GRID.md": 7,
+      "QA_VALIDATION_FINAL.md": 4,
+      "multi-agent-docker/ANTIGRAVITY.md": 2,
+      "multi-agent-docker/development-notes/SESSION_2025-11-15.md": 6,
+      "multi-agent-docker/hyprland-migration-summary.md": 5,
+      "archive/reports/2025-12-02-user-settings-summary.md": 7,
+      "archive/reports/mermaid-fixes-examples.md": 5,
+      "architecture/visionflow-distributed-systems-assessment.md": 5,
+      "diagrams/mermaid-library/04-agent-orchestration.md": 6,
+      "explanations/architecture/decisions": 1,
+      "explanations/architecture": 2,
+      "comfyui-management-api-integration-summary.md": 7,
+      "diagrams/server/api/rest-api-architecture.md": 9,
+      "archive/analysis/client-architecture-analysis-2025-12.md": 8,
+      "diagrams/infrastructure/testing/test-architecture.md": 7,
+      "concepts/architecture/core/client.md": 6,
+      "MERMAID_FIXES_STATS.json": 1,
+      "guides/contributing.md": 14,
+      "guides/index.md": 20,
+      "guides/developer/readme.md": 2,
+      "guides/infrastructure/readme.md": 1,
+      "explanations/architecture/README.md": 10,
+      "architecture/HEXAGONAL_ARCHITECTURE_STATUS.md": 5,
+      "working/DEPRECATION_PURGE.md": 1,
+      "working/DEPRECATION_PURGE_COMPLETE.md": 1,
+      "working/DOCS_ROOT_CLEANUP.md": 1,
+      "comfyui-integration-design.md": 5,
+      "audits/ascii-diagram-deprecation-audit.md": 7,
+      "multi-agent-docker/comfyui-sam3d-setup.md": 3,
+      "guides/ai-models/ragflow-integration.md": 8,
+      "guides/ai-models/perplexity-integration.md": 6,
+      "diagrams/infrastructure/websocket/binary-protocol-complete.md": 7,
+      "diagrams/data-flow/complete-data-flows.md": 11,
+      "diagrams/mermaid-library/01-system-architecture-overview.md": 4,
+      "diagrams/mermaid-library/03-deployment-infrastructure.md": 4,
+      "DOCUMENTATION_MODERNIZATION_COMPLETE.md": 10,
+      "archive/reports/ARCHIVE_INDEX.md": 5,
+      "archive/reports/README.md": 4,
+      "archive/reports/documentation-alignment-2025-12-02/DOCUMENTATION_ALIGNMENT_COMPLETE.md": 4,
+      "archive/reports/documentation-alignment-2025-12-02/DEEPSEEK_SETUP_COMPLETE.md": 5,
+      "diagrams/cross-reference-matrix.md": 5,
+      "reference/INDEX.md": 3,
+      "reference/API_REFERENCE.md": 11,
+      "reference/CONFIGURATION_REFERENCE.md": 10,
+      "reference/DATABASE_SCHEMA_REFERENCE.md": 12,
+      "reference/ERROR_REFERENCE.md": 10,
+      "reference/PROTOCOL_REFERENCE.md": 4,
+      "multi-agent-docker/upstream-analysis.md": 7,
+      "multi-agent-docker/fixes/GPU_BUILD_STATUS.md": 5,
+      "analysis/ontology-knowledge-skills-analysis.md": 4,
+      "archive/docs/guides/user/working-with-agents.md": 9,
+      "archive/docs/guides/developer/05-testing-guide.md": 8,
+      "multi-agent-docker/SKILLS.md": 6,
+      "comfyui-service-integration.md": 3,
+      "gpu-fix-summary.md": 1,
+      "multi-agent-docker/fixes/SUMMARY.md": 3,
+      "analysis/ontology-skills-cluster-analysis.md": 1,
+      "archive/reports/2025-12-02-restructuring-complete.md": 6,
+      "archive/reports/2025-12-02-stub-implementation.md": 1,
+      "archive/fixes/type-corrections.md": 4,
+      "archive/fixes/rust-type-correction-guide.md": 5,
+      "archive/fixes/borrow-checker.md": 8,
+      "archive/specialized/client-typescript-architecture.md": 1,
+      "archive/specialized/client-components-reference.md": 1,
+      "archive/multi-agent-docker": 1,
+      "archive/fixes": 1,
+      "archive/fixes/README.md": 9,
+      "diagrams/architecture/backend-api-architecture-complete.md": 1,
+      "diagrams/client/rendering/threejs-pipeline-complete.md": 3,
+      "diagrams/client/xr/xr-architecture-complete.md": 5,
+      "archive/docs/guides/xr-setup.md": 7,
+      "reference/api": 4,
+      "tutorials": 1,
+      "guides": 1,
+      "reference/api/README.md": 2,
+      "guides/ai-models/INTEGRATION_SUMMARY.md": 1,
+      "archive/deprecated-patterns/README.md": 2,
+      "archive/deprecated-patterns/03-architecture-WRONG-STACK.md": 4,
+      "guides/developer": 1,
+      "guides/ai-models/deepseek-verification.md": 1,
+      "guides/ai-models/deepseek-deployment.md": 1,
+      "diagrams/mermaid-library/00-mermaid-style-guide.md": 2,
+      "diagrams/mermaid-library/02-data-flow-diagrams.md": 1,
+      "ASCII_DEPRECATION_COMPLETE.md": 3,
+      "archive/fixes/borrow-checker-summary.md": 7,
+      "archive/tests/test_README.md": 6,
+      "archive/fixes/quick-reference.md": 3,
+      "archive/fixes/before-after-comparison.md": 2,
+      "archive/fixes/technical-details.md": 2,
+      "archive/fixes/actor-handlers.md": 1,
+      "archive/fixes/pagerank-fix.md": 1,
+      "archive/docs/guides/user/xr-setup.md": 4,
+      "archive/reports/consolidation/link-analysis-summary-2025-12.md": 1,
+      "multi-agent-docker/fixes/gpu-only-fixes.md": 2,
+      "QUICK_NAVIGATION.md": 0,
+      "reference/README.md": 0,
+      "archive/ARCHIVE_REPORT.md": 0,
+      "archive/INDEX-QUICK-START-old.md": 0,
+      "architecture/skills-refactoring-plan.md": 0,
+      "architecture/phase1-completion.md": 0,
+      "architecture/skill-mcp-classification.md": 0,
+      "guides/features/MOVED.md": 0,
+      "diagrams/mermaid-library/README.md": 0,
+      "explanations/architecture/gpu/README.md": 0,
+      "archive/audits/quality-gates-api.md": 0,
+      "archive/fixes/type-corrections-final-summary.md": 0,
+      "archive/fixes/type-corrections-progress.md": 0,
+      "archive/analysis/client-docs-summary-2025-12.md": 0,
+      "archive/analysis/analysis-summary-2025-12.md": 0,
+      "archive/analysis/historical-context-recovery-2025-12.md": 0,
+      "archive/sprint-logs/p1-1-summary.md": 0,
+      "archive/sprint-logs/p1-1-checklist.md": 0,
+      "archive/sprint-logs/p1-1-configure-complete.md": 0,
+      "archive/sprint-logs/p0-3-semantic-forces.md": 0,
+      "archive/sprint-logs/p2-complete.md": 0,
+      "archive/sprint-logs/p1-2-pagerank.md": 0,
+      "archive/sprint-logs/p2-features.md": 0,
+      "archive/reports/ascii-to-mermaid-conversion.md": 0,
+      "archive/reports/mermaid-fixes-report.md": 0,
+      "archive/reports/mermaid-validation-complete.md": 0,
+      "archive/reports/link-fixes-report.md": 0,
+      "archive/reports/implementation-complete.md": 0,
+      "archive/reports/documentation-index-report.md": 0,
+      "archive/reports/implementation-report-stubs.md": 0,
+      "archive/reports/CLEANUP_SUMMARY.md": 0,
+      "archive/reports/hive-mind-integration.md": 0,
+      "archive/reports/documentation-issues.md": 0,
+      "archive/reports/link-audit-summary.md": 0,
+      "archive/reports/documentation-audit-final.md": 0,
+      "archive/reports/ascii-conversion-report.md": 0,
+      "archive/specialized/extension-guide.md": 0,
+      "archive/implementation-logs/stress-majorization-implementation.md": 0,
+      "archive/data/markdown/implementation-examples.md": 0,
+      "archive/data/markdown/IMPLEMENTATION-SUMMARY.md": 0,
+      "archive/data/markdown/OntologyDefinition.md": 0,
+      "archive/data/pages/implementation-examples.md": 0,
+      "archive/data/pages/IMPLEMENTATION-SUMMARY.md": 0,
+      "archive/data/pages/ComfyWorkFlows.md": 0,
+      "archive/data/pages/OntologyDefinition.md": 0,
+      "archive/reports/documentation-alignment-2025-12-02/SWARM_EXECUTION_REPORT.md": 0,
+      "archive/reports/documentation-alignment-2025-12-02/DOCUMENTATION_ALIGNMENT_SUMMARY.md": 0,
+      "archive/reports/consolidation/link-validation-report-2025-12.md": 0,
+      "archive/reports/consolidation/link-fix-suggestions-2025-12.md": 0,
+      "archive/docs/guides/working-with-gui-sandbox.md": 0,
+      "archive/multi-agent-docker/skills/IMPLEMENTATION_GUIDE.md": 0,
+      "multi-agent-docker/development-notes/MIGRATION_PLAN_EXECUTED.md": 0
+    },
+    "outbound_counts": {
+      "README.md": 253,
+      "ARCHITECTURE_OVERVIEW.md": 9,
+      "DOCUMENTATION_MODERNIZATION_COMPLETE.md": 5,
+      "OVERVIEW.md": 15,
+      "gpu-fix-summary.md": 5,
+      "QA_VALIDATION_FINAL.md": 5,
+      "ARCHITECTURE_COMPLETE.md": 18,
+      "TECHNOLOGY_CHOICES.md": 2,
+      "visionflow-architecture-analysis.md": 5,
+      "DEVELOPER_JOURNEY.md": 25,
+      "comfyui-integration-design.md": 5,
+      "QUICK_NAVIGATION.md": 159,
+      "comfyui-management-api-integration-summary.md": 5,
+      "comfyui-service-integration.md": 5,
+      "ASCII_DEPRECATION_COMPLETE.md": 12,
+      "audits/README.md": 21,
+      "audits/ascii-diagram-deprecation-audit.md": 9,
+      "audits/neo4j-migration-action-plan.md": 1,
+      "audits/neo4j-migration-summary.md": 2,
+      "reference/README.md": 55,
+      "reference/physics-implementation.md": 2,
+      "reference/implementation-status.md": 7,
+      "reference/websocket-protocol.md": 6,
+      "reference/API_REFERENCE.md": 19,
+      "reference/PROTOCOL_REFERENCE.md": 9,
+      "reference/DATABASE_SCHEMA_REFERENCE.md": 17,
+      "reference/api-complete-reference.md": 13,
+      "reference/code-quality-status.md": 4,
+      "reference/performance-benchmarks.md": 2,
+      "reference/CONFIGURATION_REFERENCE.md": 16,
+      "reference/INDEX.md": 147,
+      "reference/ERROR_REFERENCE.md": 18,
+      "multi-agent-docker/x-fluxagent-adaptation-plan.md": 5,
+      "multi-agent-docker/TERMINAL_GRID.md": 5,
+      "multi-agent-docker/upstream-analysis.md": 5,
+      "multi-agent-docker/SKILLS.md": 5,
+      "multi-agent-docker/comfyui-sam3d-setup.md": 5,
+      "multi-agent-docker/ANTIGRAVITY.md": 5,
+      "multi-agent-docker/hyprland-migration-summary.md": 5,
+      "analysis/ontology-knowledge-skills-analysis.md": 5,
+      "analysis/ontology-skills-cluster-analysis.md": 5,
+      "archive/README.md": 8,
+      "archive/INDEX-QUICK-START-old.md": 111,
+      "explanations/system-overview.md": 7,
+      "diagrams/README.md": 30,
+      "diagrams/cross-reference-matrix.md": 5,
+      "guides/vircadia-xr-complete-guide.md": 23,
+      "guides/vircadia-multi-user-guide.md": 5,
+      "guides/neo4j-integration.md": 3,
+      "guides/configuration.md": 4,
+      "guides/ontology-semantic-forces.md": 1,
+      "guides/ontology-reasoning-integration.md": 7,
+      "guides/graphserviceactor-migration.md": 5,
+      "guides/semantic-features-implementation.md": 5,
+      "guides/agent-orchestration.md": 5,
+      "guides/docker-compose-guide.md": 5,
+      "guides/docker-environment-setup.md": 6,
+      "guides/contributing.md": 7,
+      "guides/orchestrating-agents.md": 19,
+      "guides/ontology-storage-guide.md": 6,
+      "guides/telemetry-logging.md": 12,
+      "guides/neo4j-implementation-roadmap.md": 4,
+      "guides/deployment.md": 12,
+      "guides/index.md": 21,
+      "guides/security.md": 16,
+      "guides/navigation-guide.md": 37,
+      "guides/troubleshooting.md": 13,
+      "guides/development-workflow.md": 25,
+      "guides/extending-the-system.md": 15,
+      "guides/multi-agent-skills.md": 3,
+      "architecture/visionflow-distributed-systems-assessment.md": 5,
+      "architecture/blender-mcp-unified-architecture.md": 5,
+      "architecture/HEXAGONAL_ARCHITECTURE_STATUS.md": 5,
+      "tutorials/01-installation.md": 10,
+      "tutorials/02-first-graph.md": 13,
+      "concepts/architecture/core/client.md": 5,
+      "concepts/architecture/core/server.md": 13,
+      "guides/infrastructure/goalie-integration.md": 8,
+      "guides/infrastructure/docker-environment.md": 23,
+      "guides/infrastructure/architecture.md": 5,
+      "guides/infrastructure/readme.md": 11,
+      "guides/infrastructure/troubleshooting.md": 5,
+      "guides/infrastructure/port-configuration.md": 5,
+      "guides/operations/pipeline-operator-runbook.md": 15,
+      "guides/features/MOVED.md": 5,
+      "guides/features/filtering-nodes.md": 5,
+      "guides/features/ontology-sync-enhancement.md": 5,
+      "guides/features/settings-authentication.md": 5,
+      "guides/features/natural-language-queries.md": 5,
+      "guides/features/intelligent-pathfinding.md": 5,
+      "guides/features/semantic-forces.md": 5,
+      "guides/features/auth-user-settings.md": 5,
+      "guides/features/nostr-auth.md": 5,
+      "guides/developer/websocket-best-practices.md": 4,
+      "guides/developer/06-contributing.md": 6,
+      "guides/developer/02-project-structure.md": 9,
+      "guides/developer/json-serialization-patterns.md": 4,
+      "guides/developer/04-adding-features.md": 7,
+      "guides/developer/01-development-setup.md": 14,
+      "guides/developer/readme.md": 19,
+      "guides/migration/json-to-binary-protocol.md": 9,
+      "guides/client/three-js-rendering.md": 14,
+      "guides/client/state-management.md": 14,
+      "guides/client/xr-integration.md": 12,
+      "guides/ai-models/README.md": 19,
+      "guides/ai-models/ragflow-integration.md": 5,
+      "guides/ai-models/perplexity-integration.md": 5,
+      "guides/architecture/actor-system.md": 12,
+      "diagrams/mermaid-library/README.md": 31,
+      "diagrams/mermaid-library/04-agent-orchestration.md": 5,
+      "diagrams/mermaid-library/03-deployment-infrastructure.md": 5,
+      "diagrams/mermaid-library/01-system-architecture-overview.md": 5,
+      "diagrams/mermaid-library/00-mermaid-style-guide.md": 2,
+      "diagrams/data-flow/complete-data-flows.md": 16,
+      "diagrams/client/xr/xr-architecture-complete.md": 5,
+      "diagrams/client/state/state-management-complete.md": 14,
+      "diagrams/client/rendering/threejs-pipeline-complete.md": 16,
+      "diagrams/server/actors/actor-system-complete.md": 5,
+      "diagrams/server/agents/agent-system-architecture.md": 17,
+      "diagrams/server/api/rest-api-architecture.md": 19,
+      "diagrams/infrastructure/websocket/binary-protocol-complete.md": 15,
+      "diagrams/infrastructure/gpu/cuda-architecture-complete.md": 5,
+      "diagrams/infrastructure/testing/test-architecture.md": 5,
+      "explanations/physics/semantic-forces.md": 5,
+      "explanations/ontology/intelligent-pathfinding-system.md": 4,
+      "explanations/ontology/ontology-pipeline-integration.md": 3,
+      "explanations/ontology/reasoning-engine.md": 5,
+      "explanations/ontology/ontology-typed-system.md": 5,
+      "explanations/architecture/README.md": 5,
+      "explanations/architecture/ontology-reasoning-pipeline.md": 2,
+      "explanations/architecture/pipeline-integration.md": 5,
+      "explanations/architecture/quick-reference.md": 4,
+      "explanations/architecture/gpu-semantic-forces.md": 3,
+      "explanations/architecture/reasoning-tests-summary.md": 5,
+      "explanations/architecture/reasoning-data-flow.md": 6,
+      "explanations/architecture/semantic-physics-system.md": 3,
+      "explanations/architecture/adapter-patterns.md": 16,
+      "explanations/architecture/api-handlers-reference.md": 19,
+      "explanations/architecture/semantic-forces-system.md": 4,
+      "explanations/architecture/hexagonal-cqrs.md": 5,
+      "explanations/architecture/services-architecture.md": 15,
+      "explanations/architecture/stress-majorization.md": 6,
+      "explanations/architecture/xr-immersive-system.md": 5,
+      "explanations/architecture/ontology-storage-architecture.md": 5,
+      "explanations/architecture/integration-patterns.md": 12,
+      "explanations/architecture/services-layer.md": 5,
+      "explanations/architecture/data-flow-complete.md": 6,
+      "explanations/architecture/multi-agent-system.md": 4,
+      "explanations/architecture/database-architecture.md": 13,
+      "explanations/architecture/semantic-physics.md": 5,
+      "explanations/architecture/hierarchical-visualization.md": 2,
+      "explanations/architecture/ports/07-gpu-semantic-analyzer.md": 5,
+      "explanations/architecture/ports/03-knowledge-graph-repository.md": 5,
+      "explanations/architecture/ports/06-gpu-physics-adapter.md": 5,
+      "explanations/architecture/ports/01-overview.md": 5,
+      "explanations/architecture/ports/05-inference-engine.md": 5,
+      "explanations/architecture/ports/04-ontology-repository.md": 6,
+      "explanations/architecture/core/visualization.md": 5,
+      "explanations/architecture/components/websocket-protocol.md": 1,
+      "explanations/architecture/gpu/README.md": 7,
+      "archive/fixes/README.md": 25,
+      "archive/fixes/quick-reference.md": 4,
+      "archive/fixes/borrow-checker-summary.md": 5,
+      "archive/fixes/rust-type-correction-guide.md": 5,
+      "archive/fixes/technical-details.md": 4,
+      "archive/fixes/borrow-checker.md": 5,
+      "archive/deprecated-patterns/README.md": 5,
+      "archive/deprecated-patterns/03-architecture-WRONG-STACK.md": 8,
+      "archive/analysis/client-architecture-analysis-2025-12.md": 5,
+      "archive/tests/test_README.md": 9,
+      "archive/reports/README.md": 5,
+      "archive/reports/mermaid-fixes-examples.md": 5,
+      "archive/reports/mermaid-validation-complete.md": 3,
+      "archive/reports/ARCHIVE_INDEX.md": 5,
+      "archive/reports/link-fixes-report.md": 10,
+      "archive/reports/2025-12-02-restructuring-complete.md": 5,
+      "archive/reports/2025-12-02-user-settings-summary.md": 5,
+      "archive/specialized/client-typescript-architecture.md": 17,
+      "archive/specialized/client-components-reference.md": 9,
+      "archive/specialized/extension-guide.md": 15,
+      "archive/reports/documentation-alignment-2025-12-02/SWARM_EXECUTION_REPORT.md": 7,
+      "archive/reports/documentation-alignment-2025-12-02/DEEPSEEK_SETUP_COMPLETE.md": 6,
+      "archive/reports/documentation-alignment-2025-12-02/DOCUMENTATION_ALIGNMENT_COMPLETE.md": 5,
+      "archive/reports/consolidation/link-validation-report-2025-12.md": 253,
+      "archive/reports/consolidation/link-analysis-summary-2025-12.md": 5,
+      "archive/docs/guides/working-with-gui-sandbox.md": 10,
+      "archive/docs/guides/xr-setup.md": 29,
+      "archive/docs/guides/developer/05-testing-guide.md": 7,
+      "archive/docs/guides/user/xr-setup.md": 7,
+      "archive/docs/guides/user/working-with-agents.md": 8,
+      "multi-agent-docker/fixes/GPU_BUILD_STATUS.md": 5,
+      "multi-agent-docker/fixes/gpu-only-fixes.md": 5,
+      "multi-agent-docker/fixes/SUMMARY.md": 5,
+      "multi-agent-docker/development-notes/SESSION_2025-11-15.md": 9,
+      "reference/protocols/binary-websocket.md": 9,
+      "reference/api/README.md": 5,
+      "reference/api/pathfinding-examples.md": 5,
+      "reference/api/rest-api-reference.md": 2,
+      "reference/api/03-websocket.md": 9,
+      "reference/api/01-authentication.md": 5,
+      "reference/api/semantic-features-api.md": 5,
+      "reference/api/rest-api-complete.md": 13,
+      "reference/database/ontology-schema-v2.md": 2,
+      "archive/ARCHIVE_REPORT.md": 0,
+      "architecture/skills-refactoring-plan.md": 0,
+      "architecture/phase1-completion.md": 0,
+      "architecture/skill-mcp-classification.md": 0,
+      "archive/audits/quality-gates-api.md": 0,
+      "archive/fixes/type-corrections-final-summary.md": 0,
+      "archive/fixes/type-corrections-progress.md": 0,
+      "archive/analysis/client-docs-summary-2025-12.md": 0,
+      "archive/analysis/analysis-summary-2025-12.md": 0,
+      "archive/analysis/historical-context-recovery-2025-12.md": 0,
+      "archive/sprint-logs/p1-1-summary.md": 0,
+      "archive/sprint-logs/p1-1-checklist.md": 0,
+      "archive/sprint-logs/p1-1-configure-complete.md": 0,
+      "archive/sprint-logs/p0-3-semantic-forces.md": 0,
+      "archive/sprint-logs/p2-complete.md": 0,
+      "archive/sprint-logs/p1-2-pagerank.md": 0,
+      "archive/sprint-logs/p2-features.md": 0,
+      "archive/reports/ascii-to-mermaid-conversion.md": 0,
+      "archive/reports/mermaid-fixes-report.md": 0,
+      "archive/reports/implementation-complete.md": 0,
+      "archive/reports/documentation-index-report.md": 0,
+      "archive/reports/implementation-report-stubs.md": 0,
+      "archive/reports/CLEANUP_SUMMARY.md": 0,
+      "archive/reports/hive-mind-integration.md": 0,
+      "archive/reports/documentation-issues.md": 0,
+      "archive/reports/link-audit-summary.md": 0,
+      "archive/reports/documentation-audit-final.md": 0,
+      "archive/reports/ascii-conversion-report.md": 0,
+      "archive/implementation-logs/stress-majorization-implementation.md": 0,
+      "archive/data/markdown/implementation-examples.md": 0,
+      "archive/data/markdown/IMPLEMENTATION-SUMMARY.md": 0,
+      "archive/data/markdown/OntologyDefinition.md": 0,
+      "archive/data/pages/implementation-examples.md": 0,
+      "archive/data/pages/IMPLEMENTATION-SUMMARY.md": 0,
+      "archive/data/pages/ComfyWorkFlows.md": 0,
+      "archive/data/pages/OntologyDefinition.md": 0,
+      "archive/reports/documentation-alignment-2025-12-02/DOCUMENTATION_ALIGNMENT_SUMMARY.md": 0,
+      "archive/reports/consolidation/link-fix-suggestions-2025-12.md": 0,
+      "archive/multi-agent-docker/skills/IMPLEMENTATION_GUIDE.md": 0,
+      "multi-agent-docker/development-notes/MIGRATION_PLAN_EXECUTED.md": 0
+    }
+  },
+  "sample_relationships": {
+    "README.md": {
+      "prerequisites": [],
+      "related": [],
+      "siblings": [
+        "ARCHITECTURE_OVERVIEW.md",
+        "DOCUMENTATION_MODERNIZATION_COMPLETE.md",
+        "OVERVIEW.md",
+        "gpu-fix-summary.md",
+        "QA_VALIDATION_FINAL.md",
+        "ARCHITECTURE_COMPLETE.md",
+        "TECHNOLOGY_CHOICES.md",
+        "visionflow-architecture-analysis.md",
+        "DEVELOPER_JOURNEY.md",
+        "comfyui-integration-design.md",
+        "QUICK_NAVIGATION.md",
+        "comfyui-management-api-integration-summary.md",
+        "comfyui-service-integration.md",
+        "ASCII_DEPRECATION_COMPLETE.md"
+      ],
+      "children": [],
+      "references": []
+    },
+    "ARCHITECTURE_OVERVIEW.md": {
+      "prerequisites": [],
+      "related": [],
+      "siblings": [
+        "README.md",
+        "DOCUMENTATION_MODERNIZATION_COMPLETE.md",
+        "OVERVIEW.md",
+        "gpu-fix-summary.md",
+        "QA_VALIDATION_FINAL.md",
+        "ARCHITECTURE_COMPLETE.md",
+        "TECHNOLOGY_CHOICES.md",
+        "visionflow-architecture-analysis.md",
+        "DEVELOPER_JOURNEY.md",
+        "comfyui-integration-design.md",
+        "QUICK_NAVIGATION.md",
+        "comfyui-management-api-integration-summary.md",
+        "comfyui-service-integration.md",
+        "ASCII_DEPRECATION_COMPLETE.md"
+      ],
+      "children": [],
+      "references": []
+    },
+    "DOCUMENTATION_MODERNIZATION_COMPLETE.md": {
+      "prerequisites": [],
+      "related": [
+        "concepts/architecture/core/server.md",
+        "multi-agent-docker/x-fluxagent-adaptation-plan.md",
+        "diagrams/infrastructure/gpu/cuda-architecture-complete.md",
+        "diagrams/server/actors/actor-system-complete.md",
+        "diagrams/client/state/state-management-complete.md"
+      ],
+      "siblings": [
+        "README.md",
+        "ARCHITECTURE_OVERVIEW.md",
+        "OVERVIEW.md",
+        "gpu-fix-summary.md",
+        "QA_VALIDATION_FINAL.md",
+        "ARCHITECTURE_COMPLETE.md",
+        "TECHNOLOGY_CHOICES.md",
+        "visionflow-architecture-analysis.md",
+        "DEVELOPER_JOURNEY.md",
+        "comfyui-integration-design.md",
+        "QUICK_NAVIGATION.md",
+        "comfyui-management-api-integration-summary.md",
+        "comfyui-service-integration.md",
+        "ASCII_DEPRECATION_COMPLETE.md"
+      ],
+      "children": [],
+      "references": []
+    },
+    "OVERVIEW.md": {
+      "prerequisites": [],
+      "related": [
+        "ARCHITECTURE_COMPLETE.md",
+        "visionflow-architecture-analysis.md",
+        "diagrams/README.md",
+        "diagrams/server/agents/agent-system-architecture.md",
+        "diagrams/mermaid-library/04-agent-orchestration.md"
+      ],
+      "siblings": [
+        "README.md",
+        "ARCHITECTURE_OVERVIEW.md",
+        "DOCUMENTATION_MODERNIZATION_COMPLETE.md",
+        "gpu-fix-summary.md",
+        "QA_VALIDATION_FINAL.md",
+        "ARCHITECTURE_COMPLETE.md",
+        "TECHNOLOGY_CHOICES.md",
+        "visionflow-architecture-analysis.md",
+        "DEVELOPER_JOURNEY.md",
+        "comfyui-integration-design.md",
+        "QUICK_NAVIGATION.md",
+        "comfyui-management-api-integration-summary.md",
+        "comfyui-service-integration.md",
+        "ASCII_DEPRECATION_COMPLETE.md"
+      ],
+      "children": [],
+      "references": []
+    },
+    "gpu-fix-summary.md": {
+      "prerequisites": [],
+      "related": [
+        "multi-agent-docker/TERMINAL_GRID.md",
+        "QA_VALIDATION_FINAL.md",
+        "multi-agent-docker/ANTIGRAVITY.md",
+        "multi-agent-docker/development-notes/SESSION_2025-11-15.md",
+        "multi-agent-docker/hyprland-migration-summary.md"
+      ],
+      "siblings": [
+        "README.md",
+        "ARCHITECTURE_OVERVIEW.md",
+        "DOCUMENTATION_MODERNIZATION_COMPLETE.md",
+        "OVERVIEW.md",
+        "QA_VALIDATION_FINAL.md",
+        "ARCHITECTURE_COMPLETE.md",
+        "TECHNOLOGY_CHOICES.md",
+        "visionflow-architecture-analysis.md",
+        "DEVELOPER_JOURNEY.md",
+        "comfyui-integration-design.md",
+        "QUICK_NAVIGATION.md",
+        "comfyui-management-api-integration-summary.md",
+        "comfyui-service-integration.md",
+        "ASCII_DEPRECATION_COMPLETE.md"
+      ],
+      "children": [],
+      "references": []
+    }
+  }
+}

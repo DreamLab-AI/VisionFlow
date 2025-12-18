@@ -1,3 +1,23 @@
+---
+title: ComfyUI Management API Integration - Summary
+description: ComfyUI workflow management has been fully integrated into the existing Management API on port 9090.  The integration provides a complete REST API with WebSocket streaming, Prometheus metrics, and ...
+category: reference
+tags:
+  - architecture
+  - patterns
+  - structure
+  - api
+  - rest
+related-docs:
+  - ARCHITECTURE_COMPLETE.md
+  - ARCHITECTURE_OVERVIEW.md
+  - ASCII_DEPRECATION_COMPLETE.md
+updated-date: 2025-12-18
+difficulty-level: intermediate
+dependencies:
+  - Node.js runtime
+---
+
 # ComfyUI Management API Integration - Summary
 
 ## Overview
@@ -392,6 +412,18 @@ The ComfyUI integration is complete and ready for use. The Management API now pr
 - **Production-ready** security and error handling
 
 The implementation is modular and follows the existing API patterns. To connect to an actual ComfyUI instance, update the `_processQueue` method in `comfyui-manager.js` to communicate with ComfyUI's API at http://localhost:8188.
+
+---
+
+---
+
+## Related Documentation
+
+- [ComfyUI MCP Server Integration with Management API](comfyui-integration-design.md)
+- [REST API Architecture Documentation](diagrams/server/api/rest-api-architecture.md)
+- [ASCII Diagram Deprecation Audit](audits/ascii-diagram-deprecation-audit.md)
+- [VisionFlow Testing Infrastructure Architecture](diagrams/infrastructure/testing/test-architecture.md)
+- [VisionFlow Architecture Cross-Reference Matrix](diagrams/cross-reference-matrix.md)
 
 ## Contact/Support
 

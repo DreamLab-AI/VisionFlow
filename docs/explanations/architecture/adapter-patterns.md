@@ -1,9 +1,17 @@
 ---
 title: Adapter Patterns in VisionFlow
 description: 1. [Overview](#overview) 2. [Core Adapter Pattern](#core-adapter-pattern) 3. [Database Adapters](#database-adapters)
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - neo4j
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Adapter Patterns in VisionFlow
 
@@ -2598,6 +2606,18 @@ class S3StorageAdapter extends BaseAdapter implements IStorageAdapter {
 ```
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [Unified Services Guide](services-layer.md)
+- [Architecture Documentation](README.md)
+- [Integration Patterns in VisionFlow](integration-patterns.md)
+- [XR Immersive System Architecture](xr-immersive-system.md)
+- [Stress Majorization for GPU-Accelerated Graph Layout](stress-majorization.md)
 
 ## Testing Adapters
 

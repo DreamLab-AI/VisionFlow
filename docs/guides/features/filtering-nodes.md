@@ -1,9 +1,16 @@
 ---
 title: Client-Side Filtering Implementation
 description: The client-side filtering feature allows authenticated clients to filter which graph nodes are visible based on quality and authority scores stored in node metadata.
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - websocket
+  - neo4j
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Client-Side Filtering Implementation
 
@@ -355,6 +362,18 @@ Result: Shows up to 10,000 nodes with quality ≥ 0.7
 - Triggered only on filter changes and authentication
 - Uses HashSet for O(1) lookup during broadcasts
 - Max_nodes sorting is O(n log n) but only on filtered candidates
+
+---
+
+---
+
+## Related Documentation
+
+- [Per-User Settings Implementation](auth-user-settings.md)
+- [GraphServiceActor Migration Guide (HISTORICAL REFERENCE)](../graphserviceactor-migration.md)
+- [Nostr Authentication Implementation](nostr-auth.md)
+- [Vircadia Multi-User XR Integration - User Guide](../vircadia-multi-user-guide.md)
+- [Multi-Agent Docker Environment - Complete Documentation](../infrastructure/docker-environment.md)
 
 ## Future Enhancements
 

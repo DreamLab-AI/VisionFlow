@@ -1,9 +1,15 @@
 ---
 title: DeepSeek API Verification - Complete
 description: **URL:** `https://api.deepseek.com` **Status:** ✅ Working
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - docker
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # DeepSeek API Verification - Complete
 

@@ -1,3 +1,23 @@
+---
+title: VisionFlow Complete Architecture Documentation
+description: This document represents the **complete architectural knowledge** of the VisionFlow system, compiled through exhaustive multi-agent analysis of the entire codebase.  It combines high-level system o...
+category: explanation
+tags:
+  - architecture
+  - design
+  - patterns
+  - structure
+  - api
+related-docs:
+  - ARCHITECTURE_OVERVIEW.md
+  - ASCII_DEPRECATION_COMPLETE.md
+  - DEVELOPER_JOURNEY.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+dependencies:
+  - Neo4j database
+---
+
 # VisionFlow Complete Architecture Documentation
 
 ## Executive Summary
@@ -336,6 +356,18 @@ Indexes:
 10. **[Neo4j Database](docs/diagrams/infrastructure/database/neo4j-architecture-complete.md)** - Schema, Cypher
 11. **[Testing](docs/diagrams/infrastructure/testing/test-architecture.md)** - 478 tests, mocks
 12. **[Data Flows](docs/diagrams/data-flow/complete-data-flows.md)** - 10 paths, timing
+
+---
+
+---
+
+## Related Documentation
+
+- [What is VisionFlow?](OVERVIEW.md)
+- [VisionFlow Client Architecture Analysis](visionflow-architecture-analysis.md)
+- [VisionFlow Architecture Diagrams - Complete Corpus](diagrams/README.md)
+- [Agent Orchestration & Multi-Agent Systems](diagrams/mermaid-library/04-agent-orchestration.md)
+- [Agent/Bot System Architecture](diagrams/server/agents/agent-system-architecture.md)
 
 ## Cross-Reference Matrix
 

@@ -1,9 +1,17 @@
 ---
 title: Project Structure
 description: This document provides a comprehensive overview of VisionFlow's codebase structure, explaining the purpose of each directory and key files.
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - docker
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Project Structure
 
@@ -516,6 +524,18 @@ When adding a new module:
 4. Add tests in `/tests`
 5. Update this documentation
 6. Add to build process
+
+---
+
+---
+
+## Related Documentation
+
+- [Troubleshooting Guide](../infrastructure/troubleshooting.md)
+- [VisionFlow Guides](../index.md)
+- [Contributing Guidelines](06-contributing.md)
+- [Natural Language Queries Tutorial](../features/natural-language-queries.md)
+- [Intelligent Pathfinding Guide](../features/intelligent-pathfinding.md)
 
 ## Next Steps
 

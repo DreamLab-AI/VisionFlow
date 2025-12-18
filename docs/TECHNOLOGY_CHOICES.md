@@ -1,3 +1,31 @@
+---
+title: VisionFlow Technology Choices: Design Rationale
+description: VisionFlow combines technologies from different ecosystems to achieve a unique balance of **performance**, **scalability**, **developer experience**, and **enterprise features**.  This document exp...
+category: explanation
+tags:
+  - architecture
+  - design
+  - patterns
+  - structure
+  - api
+related-docs:
+  - ARCHITECTURE_OVERVIEW.md
+  - QUICK_NAVIGATION.md
+  - README.md
+  - ARCHITECTURE_COMPLETE.md
+  - ASCII_DEPRECATION_COMPLETE.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+dependencies:
+  - ❌ Immature ecosystem (spec finalized 2023)
+  - ❌ Slower than CUDA (2-3x overhead)
+  - ❌ Limited browser support (Chrome 113+, Firefox 124+)
+  - **Decision:** Planned as fallback for non-CUDA systems (v2.1 roadmap)
+  - Docker installation
+  - Node.js runtime
+  - Neo4j database
+---
+
 # VisionFlow Technology Choices: Design Rationale
 
 **Why VisionFlow uses Rust, React, Neo4j, and CUDA—and the trade-offs we accepted.**

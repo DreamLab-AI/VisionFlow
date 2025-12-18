@@ -1,3 +1,24 @@
+---
+title: Skills Directory Refactoring Plan
+description: | Skill | Type | Status | Action | |-------|------|--------|--------| | ontology-core | Library (should be in libs/) | Misplaced | Move to /libs | | import-to-ontology | Node. js scripts | Outdated...
+category: explanation
+tags:
+  - architecture
+  - design
+  - rest
+  - websocket
+  - http
+related-docs:
+  - architecture/HEXAGONAL_ARCHITECTURE_STATUS.md
+  - architecture/blender-mcp-unified-architecture.md
+  - architecture/phase1-completion.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+dependencies:
+  - Docker installation
+  - Node.js runtime
+---
+
 # Skills Directory Refactoring Plan
 **Generated**: 2025-12-18
 **Status**: Research Complete, Implementation Pending

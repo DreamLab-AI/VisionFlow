@@ -1,3 +1,19 @@
+---
+title: XR/VR System Architecture - Complete Documentation
+description: This document provides comprehensive technical documentation for the VisionFlow XR/VR system, covering WebXR API integration, Quest 3 device support, hand tracking, spatial audio, stereoscopic rend...
+category: reference
+tags:
+  - architecture
+  - design
+  - structure
+  - api
+  - rest
+related-docs:
+  - diagrams/README.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+---
+
 # XR/VR System Architecture - Complete Documentation
 
 ## Executive Summary
@@ -1656,6 +1672,18 @@ adb reverse tcp:3001 tcp:3001  # Backend
 - `WebXR DOM Overlays`: HTML UI in XR
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [VisionFlow Client Architecture - Deep Analysis](../../../archive/analysis/client-architecture-analysis-2025-12.md)
+- [VisionFlow Client Architecture](../../../concepts/architecture/core/client.md)
+- [REST API Architecture Documentation](../../server/api/rest-api-architecture.md)
+- [ComfyUI MCP Server Integration with Management API](../../../comfyui-integration-design.md)
+- [ComfyUI Management API Integration - Summary](../../../comfyui-management-api-integration-summary.md)
 
 ## Conclusion
 

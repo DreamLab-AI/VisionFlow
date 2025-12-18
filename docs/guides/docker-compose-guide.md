@@ -1,9 +1,15 @@
 ---
 title: Docker Compose Unified Configuration - Usage Guide
 description: The unified `docker-compose.unified.yml` replaces three separate compose files with a single, profile-based configuration that supports both development and production environments.
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - docker
+  - rust
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Docker Compose Unified Configuration - Usage Guide
 
@@ -288,6 +294,18 @@ docker compose -f docker-compose.unified.yml --profile dev run --entrypoint bash
 4. **Health checks**: Monitor service health with `docker compose ps`
 5. **Resource limits**: Add memory/CPU limits in production
 6. **Security**: Production uses minimal volumes and no Docker socket
+
+---
+
+---
+
+## Related Documentation
+
+- [Vircadia Multi-User XR Integration - User Guide](vircadia-multi-user-guide.md)
+- [Ontology Storage Guide](ontology-storage-guide.md)
+- [Multi-Agent Docker Environment - Complete Documentation](infrastructure/docker-environment.md)
+- [VisionFlow Guides](index.md)
+- [Documentation Contributing Guidelines](contributing.md)
 
 ## Benefits Over Multiple Compose Files
 

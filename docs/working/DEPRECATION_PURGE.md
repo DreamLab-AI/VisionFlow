@@ -1,9 +1,18 @@
 ---
 title: Documentation Deprecation Purge Summary
+description: Comprehensive cleanup of deprecated component references and misleading architecture documentation.
+category: explanation
+tags:
+  - websocket
+  - docker
+  - neo4j
+  - rust
+  - react
+updated-date: 2025-12-18
+difficulty-level: advanced
 date: 2025-12-02
-type: working-document
-status: complete
 ---
+
 
 # Documentation Deprecation Purge Summary
 

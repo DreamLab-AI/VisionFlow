@@ -1,9 +1,17 @@
 ---
 title: Configuration Guide
 description: *[Guides](readme.md)*
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rest
+  - websocket
+  - docker
+  - rust
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Configuration Guide
 

@@ -1,11 +1,17 @@
 ---
 title: GraphServiceActor Migration Guide (HISTORICAL REFERENCE)
 description: ✅ MIGRATION COMPLETE - Historical reference for the completed GraphServiceActor replacement
-type: guide
-status: historical-reference
-migration_completed: 2025-11-05
-last_updated: 2025-12-02
+category: howto
+tags:
+  - guide
+  - rest
+  - websocket
+  - neo4j
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # GraphServiceActor Migration Guide
 
@@ -463,6 +469,18 @@ When reviewing PRs that touch graph operations:
 -  - General deprecation guidelines
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [Vircadia Multi-User XR Integration - User Guide](vircadia-multi-user-guide.md)
+- [Ontology Storage Guide](ontology-storage-guide.md)
+- [Agent Control Panel User Guide](agent-orchestration.md)
+- [Client-Side Filtering Implementation](features/filtering-nodes.md)
+- [Documentation Contributing Guidelines](contributing.md)
 
 ## FAQ
 

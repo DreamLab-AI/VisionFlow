@@ -1,9 +1,17 @@
 ---
 title: Multi-Agent Docker Environment Architecture
 description: This document describes the architecture of the Multi-Agent Docker Environment, a sophisticated containerized development platform that integrates Claude Flow, MCP (Model Context Protocol) tools, a...
-type: guide
-status: stable
+category: howto
+tags:
+  - architecture
+  - guide
+  - rest
+  - websocket
+  - docker
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Multi-Agent Docker Environment Architecture
 
@@ -409,6 +417,18 @@ To ensure the robustness and functionality of the integrated tools, especially t
         -   Get screenshot: `./mcp-helper.sh run-tool blender-mcp '{"type": "get-viewport-screenshot", "params": {"filepath": "/workspace/textured-cube.png"}}'`
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [Multi-Agent Docker Environment - Complete Documentation](docker-environment.md)
+- [Multi-Agent Docker Port Configuration](port-configuration.md)
+- [Pipeline Operator Runbook](../operations/pipeline-operator-runbook.md)
+- [Vircadia Multi-User XR Integration - User Guide](../vircadia-multi-user-guide.md)
+- [Documentation Contributing Guidelines](../contributing.md)
 
 ## Networking Deep Dive
 

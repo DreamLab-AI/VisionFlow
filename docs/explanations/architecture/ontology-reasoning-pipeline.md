@@ -1,9 +1,15 @@
 ---
 title: Ontology Reasoning Pipeline Architecture
 description: **Complete Guide to OWL Reasoning Integration with whelk-rs**
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - rest
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Ontology Reasoning Pipeline Architecture
 

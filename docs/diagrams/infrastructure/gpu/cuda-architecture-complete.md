@@ -1,3 +1,22 @@
+---
+title: VisionFlow GPU CUDA Architecture - Complete Technical Documentation
+description: subgraph "Force Calculations"         FORCE --> |Barnes-Hut| REPULSION[Repulsion Forces]         FORCE --> |Spring| ATTRACTION[Spring Forces]         FORCE --> |Gravity| CENTERING[Center Gravity]  ...
+category: explanation
+tags:
+  - architecture
+  - patterns
+  - structure
+  - api
+  - rest
+related-docs:
+  - ASCII_DEPRECATION_COMPLETE.md
+  - audits/ascii-diagram-deprecation-audit.md
+  - diagrams/README.md
+  - reference/physics-implementation.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+---
+
 # VisionFlow GPU CUDA Architecture - Complete Technical Documentation
 
 ## Executive Summary
@@ -1640,6 +1659,18 @@ Total working set: ~10-22 MB (fits in L2 cache!)
    - Avoid warp divergence
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [Server-Side Actor System - Complete Architecture Documentation](../../server/actors/actor-system-complete.md)
+- [Server Architecture](../../../concepts/architecture/core/server.md)
+- [VisionFlow Documentation Modernization - Final Report](../../../DOCUMENTATION_MODERNIZATION_COMPLETE.md)
+- [Complete State Management Architecture](../../client/state/state-management-complete.md)
+- [X-FluxAgent Integration Plan for ComfyUI MCP Skill](../../../multi-agent-docker/x-fluxagent-adaptation-plan.md)
 
 ## 14. GPU Architecture Diagram
 

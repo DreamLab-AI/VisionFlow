@@ -1,3 +1,23 @@
+---
+title: GPU-Only Build Status Report
+description: Documentation for GPU_BUILD_STATUS
+category: explanation
+tags:
+  - api
+  - rest
+  - http
+  - neo4j
+  - docker
+related-docs:
+  - multi-agent-docker/fixes/SUMMARY.md
+  - multi-agent-docker/fixes/gpu-only-fixes.md
+updated-date: 2025-12-18
+difficulty-level: intermediate
+dependencies:
+  - Rust toolchain
+  - Neo4j database
+---
+
 # GPU-Only Build Status Report
 
 **Date**: 2025-11-08
@@ -188,6 +208,18 @@ cargo check --features gpu 2>&1 | grep -E "^error\[E" | sort | uniq -c | sort -r
 - **Medium Priority**: 4-6 hours
 - **Low Priority**: 6-8 hours
 - **Testing & Validation**: 1-2 hours
+
+---
+
+---
+
+## Related Documentation
+
+- [GPU-Only Build Fixes](gpu-only-fixes.md)
+- [GPU-Only Build Fix Summary](SUMMARY.md)
+- [Final Status - Turbo Flow Unified Container Upgrade](../development-notes/SESSION_2025-11-15.md)
+- [Terminal Grid Configuration](../TERMINAL_GRID.md)
+- [Upstream Turbo-Flow-Claude Analysis](../upstream-analysis.md)
 
 ## Notes
 

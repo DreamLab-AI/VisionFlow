@@ -1,9 +1,17 @@
 ---
 title: DeepSeek User Setup - Complete
 description: Successfully configured `deepseek-user` (UID 1004) in the unified docker container with full agentic-flow integration and DeepSeek API credentials.
-type: archive
-status: archived
+category: explanation
+tags:
+  - rest
+  - docker
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # DeepSeek User Setup - Complete
 
@@ -236,6 +244,18 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com/v3.2_speciale_expires_on_20251215
 ```
 
 Note: The base URL in .env includes version/special path, but agentic-flow uses the base domain.
+
+---
+
+---
+
+## Related Documentation
+
+- [Documentation Alignment Skill - Completion Report](DOCUMENTATION_ALIGNMENT_COMPLETE.md)
+- [Archive Index - Documentation Reports](../ARCHIVE_INDEX.md)
+- [Documentation Reports Archive](../README.md)
+- [VisionFlow Audit Reports](../../../audits/README.md)
+- [VisionFlow Test Suite](../../tests/test_README.md)
 
 ## Support
 

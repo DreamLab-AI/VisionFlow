@@ -1,9 +1,16 @@
 ---
 title: VisionFlow Quality Gates API Audit Report
 description: **Date**: 2025-11-30 **Scope**: Backend API endpoints for feature toggles and quality gates **Status**: Complete
-type: archive
-status: archived
+category: explanation
+tags:
+  - api
+  - rest
+  - websocket
+  - rust
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # VisionFlow Quality Gates API Audit Report
 

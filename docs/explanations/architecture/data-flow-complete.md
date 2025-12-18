@@ -1,9 +1,15 @@
 ---
 title: Complete Data Flow Architecture
 description: **VisionFlow End-to-End Pipeline**
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - websocket
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Complete Data Flow Architecture
 **VisionFlow End-to-End Pipeline**

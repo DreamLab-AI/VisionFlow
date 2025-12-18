@@ -1,3 +1,24 @@
+---
+title: VisionFlow Testing Infrastructure Architecture
+description: The VisionFlow project implements a **comprehensive multi-layered testing infrastructure** spanning Rust integration tests, Python validation suites, TypeScript/Playwright E2E tests, and JavaScript...
+category: reference
+tags:
+  - architecture
+  - patterns
+  - structure
+  - api
+  - websocket
+related-docs:
+  - diagrams/README.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+dependencies:
+  - Docker installation
+  - Rust toolchain
+  - Node.js runtime
+  - Neo4j database
+---
+
 # VisionFlow Testing Infrastructure Architecture
 
 **Document Version**: 1.0.0
@@ -1399,6 +1420,18 @@ npx playwright test # Would run E2E tests
 - `integration/test_runner.py` - Python test orchestrator
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [REST API Architecture Documentation](../../server/api/rest-api-architecture.md)
+- [ComfyUI Management API Integration - Summary](../../../comfyui-management-api-integration-summary.md)
+- [ASCII Diagram Deprecation Audit](../../../audits/ascii-diagram-deprecation-audit.md)
+- [ComfyUI MCP Server Integration with Management API](../../../comfyui-integration-design.md)
+- [VisionFlow Architecture Cross-Reference Matrix](../../cross-reference-matrix.md)
 
 ## Appendix C: Glossary
 

@@ -1,3 +1,19 @@
+---
+title: Three.js Complete Rendering Pipeline - VisionFlow
+description: 1.  [System Architecture Overview](#1-system-architecture-overview) 2.
+category: explanation
+tags:
+  - architecture
+  - patterns
+  - structure
+  - testing
+  - client
+related-docs:
+  - diagrams/README.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+---
+
 # Three.js Complete Rendering Pipeline - VisionFlow
 
 **Comprehensive technical documentation covering the entire Three.js rendering architecture from CPU to GPU**
@@ -1401,6 +1417,18 @@ flowchart TB
 8. **Quality Thresholding** - Server/client dual filtering
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [VisionFlow Client Architecture Analysis](../../../visionflow-architecture-analysis.md)
+- [VisionFlow Complete Architecture Documentation](../../../ARCHITECTURE_COMPLETE.md)
+- [VisionFlow GPU CUDA Architecture - Complete Technical Documentation](../../infrastructure/gpu/cuda-architecture-complete.md)
+- [Server-Side Actor System - Complete Architecture Documentation](../../server/actors/actor-system-complete.md)
+- [Agent/Bot System Architecture](../../server/agents/agent-system-architecture.md)
 
 ## File References
 

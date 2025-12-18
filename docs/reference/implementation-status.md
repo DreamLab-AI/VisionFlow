@@ -1,9 +1,15 @@
 ---
 title: VisionFlow Implementation Status
 description: **Last Updated:** 2025-11-06 **Version:** 1.0 **Status:** Production
-type: reference
-status: stable
+category: reference
+tags:
+  - websocket
+  - neo4j
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # VisionFlow Implementation Status
 

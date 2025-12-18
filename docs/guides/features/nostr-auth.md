@@ -1,9 +1,16 @@
 ---
 title: Nostr Authentication Implementation
 description: VisionFlow client now enforces Nostr authentication before allowing access to the application. All API requests and WebSocket connections include the user's authentication token and pubkey.
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rest
+  - websocket
+  - react
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Nostr Authentication Implementation
 
@@ -165,6 +172,18 @@ The backend needs to implement:
 3. User-specific settings storage (keyed by pubkey)
 4. Per-user filter preferences
 5. Session management and token expiration
+
+---
+
+---
+
+## Related Documentation
+
+- [Documentation Contributing Guidelines](../contributing.md)
+- [Agent Control Panel User Guide](../agent-orchestration.md)
+- [Pipeline Operator Runbook](../operations/pipeline-operator-runbook.md)
+- [Client-Side Filtering Implementation](filtering-nodes.md)
+- [Semantic Forces User Guide](semantic-forces.md)
 
 ## Notes
 

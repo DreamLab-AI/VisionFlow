@@ -1,9 +1,16 @@
 ---
 title: Neo4j Persistence Analysis Report
 description: **Agent**: Neo4j Persistence Agent **Date**: 2025-11-28 **Working Directory**: /home/devuser/workspace/project
-type: reference
-status: stable
+category: reference
+tags:
+  - database
+  - rest
+  - neo4j
+  - rust
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Neo4j Persistence Analysis Report
 **Agent**: Neo4j Persistence Agent

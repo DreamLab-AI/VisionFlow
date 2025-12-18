@@ -1,3 +1,21 @@
+---
+title: VisionFlow Architecture Cross-Reference Matrix
+description: This matrix shows how different architectural components relate to each other across the documentation corpus.
+category: reference
+tags:
+  - architecture
+  - structure
+  - api
+  - rest
+  - websocket
+related-docs:
+  - diagrams/README.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+dependencies:
+  - Neo4j database
+---
+
 # VisionFlow Architecture Cross-Reference Matrix
 
 ## Component Interaction Map
@@ -98,6 +116,18 @@ This matrix shows how different architectural components relate to each other ac
 | **Level 3 (Coordination)** | ClientCoordinator, WebSocket | Level 0-2 |
 | **Level 4 (Presentation)** | React, Three.js | Level 0-3 |
 | **Level 5 (Features)** | XR, Voice, Analytics | Level 0-4 |
+
+---
+
+---
+
+## Related Documentation
+
+- [ASCII Diagram Deprecation Audit](../audits/ascii-diagram-deprecation-audit.md)
+- [ComfyUI Management API Integration - Summary](../comfyui-management-api-integration-summary.md)
+- [VisionFlow Client Architecture - Deep Analysis](../archive/analysis/client-architecture-analysis-2025-12.md)
+- [VisionFlow Client Architecture](../concepts/architecture/core/client.md)
+- [WebSocket Binary Protocol - Complete System Documentation](infrastructure/websocket/binary-protocol-complete.md)
 
 ## Critical Path Analysis
 

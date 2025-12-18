@@ -1,0 +1,741 @@
+{
+  "metadata": {
+    "analysis_date": "2025-12-18",
+    "total_files_analyzed": 288,
+    "duplicate_filename_groups": 14,
+    "similar_content_groups": 20,
+    "consolidation_opportunities": 47
+  },
+  "duplicate_filenames": {
+    "README_files": {
+      "count": 15,
+      "files": [
+        "README.md",
+        "audits/README.md",
+        "archive/README.md",
+        "diagrams/README.md",
+        "guides/readme.md",
+        "guides/infrastructure/readme.md",
+        "guides/developer/readme.md",
+        "guides/ai-models/README.md",
+        "explanations/architecture/README.md",
+        "explanations/architecture/gpu/readme.md",
+        "archive/fixes/README.md",
+        "archive/deprecated-patterns/README.md",
+        "archive/working/README.md",
+        "archive/reports/README.md",
+        "reference/api/readme.md"
+      ],
+      "action": "CONSOLIDATE",
+      "primary": "README.md",
+      "recommendations": [
+        "Keep main README.md as project entry point",
+        "Convert directory READMEs to _index.md pattern",
+        "Ensure each README serves as directory navigation",
+        "Merge redundant content into parent directories"
+      ]
+    },
+    "websocket_protocol": {
+      "count": 2,
+      "files": [
+        "reference/websocket-protocol.md",
+        "explanations/architecture/components/websocket-protocol.md"
+      ],
+      "action": "MERGE",
+      "primary": "reference/protocols/binary-websocket.md",
+      "recommendations": [
+        "Move technical reference to reference/protocols/",
+        "Keep architecture explanation in explanations/",
+        "Cross-link between reference and explanation",
+        "Archive duplicate after consolidation"
+      ]
+    },
+    "neo4j_integration": {
+      "count": 2,
+      "files": [
+        "guides/neo4j-integration.md",
+        "explanations/ontology/neo4j-integration.md"
+      ],
+      "action": "SPLIT_CONTENT",
+      "primary": "guides/neo4j-integration.md",
+      "secondary": "explanations/ontology/neo4j-integration.md",
+      "recommendations": [
+        "guides/ should have practical setup instructions",
+        "explanations/ should have architectural concepts",
+        "Ensure no duplicate content",
+        "Cross-reference between docs"
+      ]
+    },
+    "client_server_core": {
+      "count": 4,
+      "files": [
+        "concepts/architecture/core/client.md",
+        "explanations/architecture/core/client.md",
+        "concepts/architecture/core/server.md",
+        "explanations/architecture/core/server.md"
+      ],
+      "action": "DEPRECATE_CONCEPTS",
+      "primary_location": "explanations/architecture/core/",
+      "recommendations": [
+        "Remove concepts/ directory (duplicate of explanations/)",
+        "Keep all content in explanations/architecture/core/",
+        "Update all cross-references",
+        "Archive concepts/ directory"
+      ]
+    },
+    "troubleshooting": {
+      "count": 2,
+      "files": [
+        "guides/troubleshooting.md",
+        "guides/infrastructure/troubleshooting.md"
+      ],
+      "action": "MERGE",
+      "primary": "guides/troubleshooting.md",
+      "recommendations": [
+        "Merge infrastructure troubleshooting as a section",
+        "Organize by topic: General, Infrastructure, Development, Deployment",
+        "Add clear table of contents",
+        "Remove infrastructure-specific file"
+      ]
+    },
+    "semantic_forces": {
+      "count": 2,
+      "files": [
+        "guides/features/semantic-forces.md",
+        "explanations/physics/semantic-forces.md"
+      ],
+      "action": "DIFFERENTIATE",
+      "recommendations": [
+        "guides/features/ - User guide, how to use",
+        "explanations/physics/ - Technical explanation, implementation details",
+        "Ensure distinct scope",
+        "Cross-reference appropriately"
+      ]
+    },
+    "hierarchical_visualization": {
+      "count": 2,
+      "files": [
+        "explanations/ontology/hierarchical-visualization.md",
+        "explanations/architecture/hierarchical-visualization.md"
+      ],
+      "action": "MERGE",
+      "primary": "explanations/ontology/hierarchical-visualization.md",
+      "recommendations": [
+        "Ontology visualization belongs in ontology section",
+        "Merge architecture-specific content as subsection",
+        "Remove architecture duplicate",
+        "Update cross-references"
+      ]
+    },
+    "quick_reference": {
+      "count": 2,
+      "files": [
+        "explanations/architecture/quick-reference.md",
+        "archive/fixes/quick-reference.md"
+      ],
+      "action": "ARCHIVE_OLD",
+      "primary": "explanations/architecture/quick-reference.md",
+      "recommendations": [
+        "Archive/fixes version is outdated",
+        "Keep only active version",
+        "Verify active version is current",
+        "Remove archived duplicate"
+      ]
+    },
+    "xr_setup": {
+      "count": 2,
+      "files": [
+        "archive/docs/guides/xr-setup.md",
+        "archive/docs/guides/user/xr-setup.md"
+      ],
+      "action": "CONSOLIDATE_TO_CURRENT",
+      "current_location": "guides/vircadia-xr-complete-guide.md",
+      "recommendations": [
+        "Both are archived versions",
+        "Current guide is guides/vircadia-xr-complete-guide.md",
+        "Verify all content migrated to current guide",
+        "Remove archived duplicates"
+      ]
+    },
+    "archived_data_duplicates": {
+      "count": 6,
+      "files": [
+        "archive/data/markdown/implementation-examples.md",
+        "archive/data/pages/implementation-examples.md",
+        "archive/data/markdown/IMPLEMENTATION-SUMMARY.md",
+        "archive/data/pages/IMPLEMENTATION-SUMMARY.md",
+        "archive/data/markdown/OntologyDefinition.md",
+        "archive/data/pages/OntologyDefinition.md"
+      ],
+      "action": "REMOVE_DUPLICATES",
+      "recommendations": [
+        "archive/data/markdown and archive/data/pages are exact duplicates",
+        "Keep markdown/ versions",
+        "Remove pages/ directory entirely",
+        "Verify no unique content in pages/"
+      ]
+    }
+  },
+  "content_similarity_groups": {
+    "api_reference_docs": {
+      "topic": "API Reference Documentation",
+      "count": 6,
+      "files": [
+        {
+          "path": "reference/API_REFERENCE.md",
+          "size": 17516,
+          "role": "General API overview"
+        },
+        {
+          "path": "reference/api-complete-reference.md",
+          "size": 25772,
+          "role": "Complete API reference"
+        },
+        {
+          "path": "reference/api/rest-api-reference.md",
+          "size": 13002,
+          "role": "REST API specific"
+        },
+        {
+          "path": "reference/api/rest-api-complete.md",
+          "size": 26058,
+          "role": "Complete REST reference"
+        },
+        {
+          "path": "explanations/architecture/api-handlers-reference.md",
+          "size": 72583,
+          "role": "Handler implementation details"
+        },
+        {
+          "path": "diagrams/server/api/rest-api-architecture.md",
+          "size": 51835,
+          "role": "Architecture diagrams"
+        }
+      ],
+      "consolidation_plan": {
+        "primary": "reference/api/rest-api-complete.md",
+        "structure": {
+          "reference/api/rest-api-complete.md": "Complete API reference (consolidated)",
+          "explanations/architecture/api-handlers-reference.md": "Implementation details",
+          "diagrams/server/api/rest-api-architecture.md": "Visual architecture"
+        },
+        "actions": [
+          "Merge reference/API_REFERENCE.md into reference/api/rest-api-complete.md",
+          "Merge reference/api-complete-reference.md into reference/api/rest-api-complete.md",
+          "Merge reference/api/rest-api-reference.md into reference/api/rest-api-complete.md",
+          "Keep explanations/architecture/api-handlers-reference.md separate (implementation)",
+          "Keep diagrams/server/api/rest-api-architecture.md separate (visual)",
+          "Archive merged files"
+        ]
+      }
+    },
+    "architecture_overview_docs": {
+      "topic": "System Architecture Documentation",
+      "count": 12,
+      "files": [
+        {
+          "path": "ARCHITECTURE_OVERVIEW.md",
+          "size": 66997,
+          "role": "Main architecture overview"
+        },
+        {
+          "path": "ARCHITECTURE_COMPLETE.md",
+          "size": 12057,
+          "role": "Duplicate/supplement"
+        },
+        {
+          "path": "explanations/architecture/services-architecture.md",
+          "size": 106868,
+          "role": "Services layer detail"
+        },
+        {
+          "path": "explanations/architecture/hexagonal-cqrs.md",
+          "size": 69751,
+          "role": "Pattern explanation"
+        },
+        {
+          "path": "explanations/architecture/adapter-patterns.md",
+          "size": 67908,
+          "role": "Adapter details"
+        },
+        {
+          "path": "architecture/blender-mcp-unified-architecture.md",
+          "size": 57616,
+          "role": "Blender integration"
+        },
+        {
+          "path": "diagrams/architecture/backend-api-architecture-complete.md",
+          "size": 48916,
+          "role": "Backend diagrams"
+        },
+        {
+          "path": "diagrams/server/api/rest-api-architecture.md",
+          "size": 51835,
+          "role": "API diagrams"
+        },
+        {
+          "path": "diagrams/server/actors/actor-system-complete.md",
+          "size": 59916,
+          "role": "Actor system"
+        },
+        {
+          "path": "diagrams/server/agents/agent-system-architecture.md",
+          "size": 43577,
+          "role": "Agent system"
+        },
+        {
+          "path": "archive/specialized/client-typescript-architecture.md",
+          "size": 94833,
+          "role": "Client architecture (archived)"
+        },
+        {
+          "path": "working/CLIENT_ARCHITECTURE_ANALYSIS.md",
+          "size": 40192,
+          "role": "Working analysis"
+        }
+      ],
+      "consolidation_plan": {
+        "primary": "ARCHITECTURE_OVERVIEW.md",
+        "structure": {
+          "ARCHITECTURE_OVERVIEW.md": "Main entry point with links to details",
+          "explanations/architecture/": "Detailed explanations by topic",
+          "diagrams/": "Visual representations",
+          "architecture/": "Specific subsystem architectures"
+        },
+        "actions": [
+          "Merge ARCHITECTURE_COMPLETE.md into ARCHITECTURE_OVERVIEW.md",
+          "Update ARCHITECTURE_OVERVIEW.md to reference detailed docs",
+          "Organize explanations/architecture/ by layer (client, server, data, integration)",
+          "Ensure diagrams/ mirrors explanations/ structure",
+          "Archive working/CLIENT_ARCHITECTURE_ANALYSIS.md after incorporating findings",
+          "Move archive/specialized/client-typescript-architecture.md content to active docs"
+        ]
+      }
+    },
+    "websocket_protocol_docs": {
+      "topic": "WebSocket Protocol Documentation",
+      "count": 7,
+      "files": [
+        {
+          "path": "reference/websocket-protocol.md",
+          "size": 16743,
+          "role": "Basic reference"
+        },
+        {
+          "path": "reference/protocols/binary-websocket.md",
+          "size": 17953,
+          "role": "Binary protocol spec"
+        },
+        {
+          "path": "explanations/architecture/components/websocket-protocol.md",
+          "size": 23970,
+          "role": "Architecture explanation"
+        },
+        {
+          "path": "diagrams/infrastructure/websocket/binary-protocol-complete.md",
+          "size": 45241,
+          "role": "Complete diagrams"
+        },
+        {
+          "path": "guides/developer/websocket-best-practices.md",
+          "size": 19596,
+          "role": "Best practices"
+        },
+        {
+          "path": "guides/migration/json-to-binary-protocol.md",
+          "size": 14578,
+          "role": "Migration guide"
+        },
+        {
+          "path": "reference/api/03-websocket.md",
+          "size": 15937,
+          "role": "API section"
+        }
+      ],
+      "consolidation_plan": {
+        "structure": {
+          "reference/protocols/binary-websocket.md": "Protocol specification",
+          "explanations/architecture/components/websocket-protocol.md": "Architecture",
+          "diagrams/infrastructure/websocket/": "Diagrams",
+          "guides/developer/websocket-best-practices.md": "Developer guide",
+          "guides/migration/json-to-binary-protocol.md": "Migration guide"
+        },
+        "actions": [
+          "Merge reference/websocket-protocol.md into reference/protocols/binary-websocket.md",
+          "Merge reference/api/03-websocket.md into reference/protocols/binary-websocket.md",
+          "Keep distinct: spec (reference), architecture (explanations), guide (guides)",
+          "Archive duplicate reference files"
+        ]
+      }
+    },
+    "testing_documentation": {
+      "topic": "Testing Documentation",
+      "count": 6,
+      "files": [
+        {
+          "path": "guides/testing-guide.md",
+          "size": 11675,
+          "role": "Main testing guide"
+        },
+        {
+          "path": "guides/developer/test-execution.md",
+          "size": 13504,
+          "role": "Test execution specifics"
+        },
+        {
+          "path": "diagrams/infrastructure/testing/test-architecture.md",
+          "size": 39450,
+          "role": "Test architecture"
+        },
+        {
+          "path": "explanations/architecture/reasoning-tests-summary.md",
+          "size": 10203,
+          "role": "Reasoning tests"
+        },
+        {
+          "path": "archive/tests/test_README.md",
+          "size": 4456,
+          "role": "Archived"
+        },
+        {
+          "path": "archive/docs/guides/developer/05-testing-guide.md",
+          "size": 18342,
+          "role": "Archived old version"
+        }
+      ],
+      "consolidation_plan": {
+        "structure": {
+          "guides/testing-guide.md": "Main guide (consolidated)",
+          "diagrams/infrastructure/testing/test-architecture.md": "Architecture",
+          "explanations/architecture/reasoning-tests-summary.md": "Specialized topic"
+        },
+        "actions": [
+          "Merge guides/developer/test-execution.md into guides/testing-guide.md",
+          "Incorporate any missing content from archived versions",
+          "Archive old versions",
+          "Cross-reference architecture and specialized docs"
+        ]
+      }
+    },
+    "xr_immersive_docs": {
+      "topic": "XR and Immersive Features",
+      "count": 5,
+      "files": [
+        {
+          "path": "guides/vircadia-xr-complete-guide.md",
+          "size": 33464,
+          "role": "Current complete guide"
+        },
+        {
+          "path": "guides/vircadia-multi-user-guide.md",
+          "size": 11151,
+          "role": "Multi-user specific"
+        },
+        {
+          "path": "explanations/architecture/xr-immersive-system.md",
+          "size": 15557,
+          "role": "Architecture"
+        },
+        {
+          "path": "diagrams/client/xr/xr-architecture-complete.md",
+          "size": 45395,
+          "role": "Architecture diagrams"
+        },
+        {
+          "path": "archive/docs/guides/xr-setup.md",
+          "size": 31240,
+          "role": "Archived setup"
+        }
+      ],
+      "consolidation_plan": {
+        "structure": {
+          "guides/vircadia-xr-complete-guide.md": "Primary user guide",
+          "explanations/architecture/xr-immersive-system.md": "Architecture explanation",
+          "diagrams/client/xr/": "Visual architecture"
+        },
+        "actions": [
+          "Verify guides/vircadia-multi-user-guide.md is subset or complement",
+          "Either merge multi-user into complete guide or keep separate if substantial",
+          "Ensure archived xr-setup.md content is in current guide",
+          "Archive old versions after verification"
+        ]
+      }
+    },
+    "client_architecture_docs": {
+      "topic": "Client-Side Architecture",
+      "count": 8,
+      "files": [
+        {
+          "path": "explanations/architecture/core/client.md",
+          "size": 43151,
+          "role": "Core client architecture"
+        },
+        {
+          "path": "concepts/architecture/core/client.md",
+          "size": 29435,
+          "role": "Duplicate in concepts/"
+        },
+        {
+          "path": "archive/specialized/client-typescript-architecture.md",
+          "size": 94833,
+          "role": "Detailed TypeScript architecture"
+        },
+        {
+          "path": "working/CLIENT_ARCHITECTURE_ANALYSIS.md",
+          "size": 40192,
+          "role": "Working analysis"
+        },
+        {
+          "path": "diagrams/client/xr/xr-architecture-complete.md",
+          "size": 45395,
+          "role": "XR client"
+        },
+        {
+          "path": "diagrams/client/state/state-management-complete.md",
+          "size": 58808,
+          "role": "State management"
+        },
+        {
+          "path": "diagrams/client/rendering/threejs-pipeline-complete.md",
+          "size": 39615,
+          "role": "Rendering pipeline"
+        },
+        {
+          "path": "archive/specialized/client-components-reference.md",
+          "size": 35432,
+          "role": "Components reference"
+        }
+      ],
+      "consolidation_plan": {
+        "primary": "explanations/architecture/core/client.md",
+        "structure": {
+          "explanations/architecture/core/client.md": "Core architecture overview",
+          "explanations/architecture/client-typescript.md": "TypeScript specifics",
+          "diagrams/client/": "Visual documentation by subsystem",
+          "reference/client/": "Component API reference"
+        },
+        "actions": [
+          "Remove concepts/architecture/core/client.md (duplicate)",
+          "Incorporate archive/specialized/client-typescript-architecture.md into active docs",
+          "Incorporate working/CLIENT_ARCHITECTURE_ANALYSIS.md findings",
+          "Create reference/client/ for component reference",
+          "Move archive/specialized/client-components-reference.md to reference/client/",
+          "Organize diagrams/client/ by subsystem (state, rendering, xr, etc.)"
+        ]
+      }
+    },
+    "ontology_semantic_docs": {
+      "topic": "Ontology and Semantic Systems",
+      "count": 47,
+      "high_priority_files": [
+        {
+          "path": "guides/neo4j-integration.md",
+          "size": 12753,
+          "role": "Integration guide"
+        },
+        {
+          "path": "explanations/ontology/neo4j-integration.md",
+          "size": 10854,
+          "role": "Architecture explanation"
+        },
+        {
+          "path": "explanations/ontology/ontology-pipeline-integration.md",
+          "size": 29116,
+          "role": "Pipeline integration"
+        },
+        {
+          "path": "explanations/ontology/hierarchical-visualization.md",
+          "size": 12344,
+          "role": "Visualization"
+        },
+        {
+          "path": "guides/ontology-semantic-forces.md",
+          "size": 13518,
+          "role": "Semantic forces guide"
+        }
+      ],
+      "consolidation_plan": {
+        "structure": {
+          "explanations/ontology/": "Architecture and concepts",
+          "guides/ontology/": "User guides (create directory)",
+          "reference/ontology/": "API and data reference (create directory)",
+          "audits/": "Migration and audit reports"
+        },
+        "actions": [
+          "Create guides/ontology/ directory",
+          "Move guides/neo4j-integration.md to guides/ontology/neo4j-setup.md",
+          "Move guides/ontology-*.md to guides/ontology/",
+          "Keep explanations/ontology/ for concepts and architecture",
+          "Create reference/ontology/ for schema and API docs",
+          "Archive completed migration and audit documents"
+        ]
+      }
+    }
+  },
+  "directory_organization": {
+    "current_issues": [
+      "concepts/ duplicates explanations/",
+      "working/ has 18 active documents that should be archived or integrated",
+      "archive/ contains mix of truly archived and should-be-active content",
+      "Scattered multi-agent-docker docs (some in root, some in multi-agent-docker/)",
+      "No clear guides/ subdirectory structure",
+      "Reference docs split between reference/ and explanations/"
+    ],
+    "recommended_structure": {
+      "root": {
+        "purpose": "High-level overview and entry points only",
+        "keep": [
+          "README.md",
+          "ARCHITECTURE_OVERVIEW.md",
+          "DEVELOPER_JOURNEY.md"
+        ],
+        "move_to_subdirs": [
+          "visionflow-architecture-analysis.md -> architecture/",
+          "comfyui-*.md -> guides/ai-models/"
+        ]
+      },
+      "guides": {
+        "purpose": "Task-oriented how-to guides",
+        "structure": {
+          "guides/getting-started/": "Setup and first steps",
+          "guides/features/": "Feature-specific guides",
+          "guides/ontology/": "Ontology and semantic features",
+          "guides/infrastructure/": "Infrastructure and deployment",
+          "guides/developer/": "Developer workflows",
+          "guides/ai-models/": "AI model integration"
+        }
+      },
+      "explanations": {
+        "purpose": "Concept explanations and architecture",
+        "structure": {
+          "explanations/architecture/": "System architecture by layer",
+          "explanations/ontology/": "Ontology concepts",
+          "explanations/physics/": "Physics simulation concepts"
+        }
+      },
+      "reference": {
+        "purpose": "API references and specifications",
+        "structure": {
+          "reference/api/": "REST API complete reference",
+          "reference/protocols/": "Protocol specifications",
+          "reference/database/": "Database schemas",
+          "reference/client/": "Client component reference",
+          "reference/server/": "Server module reference"
+        }
+      },
+      "diagrams": {
+        "purpose": "Visual documentation",
+        "structure": {
+          "diagrams/architecture/": "High-level architecture",
+          "diagrams/client/": "Client subsystems",
+          "diagrams/server/": "Server subsystems",
+          "diagrams/infrastructure/": "Infrastructure components",
+          "diagrams/data-flow/": "Data flow diagrams"
+        }
+      },
+      "architecture": {
+        "purpose": "Architecture decision records and subsystem designs",
+        "keep": "ADRs and major subsystem architecture docs"
+      },
+      "working": {
+        "purpose": "Temporary working documents",
+        "action": "Review all 18 docs, integrate or archive",
+        "should_be_empty": "In steady state, should be minimal or empty"
+      },
+      "archive": {
+        "purpose": "Historical documents",
+        "action": "Ensure only truly outdated content here",
+        "structure": {
+          "archive/deprecated-patterns/": "Replaced patterns",
+          "archive/migration-reports/": "Completed migrations",
+          "archive/old-versions/": "Superseded documentation"
+        }
+      }
+    }
+  },
+  "consolidation_priorities": {
+    "phase_1_high_priority": [
+      {
+        "task": "Remove concepts/ directory",
+        "impact": "Eliminates 4 duplicate files",
+        "effort": "Low"
+      },
+      {
+        "task": "Consolidate API reference docs",
+        "impact": "Reduces 6 docs to 3 (reference, explanation, diagrams)",
+        "effort": "Medium"
+      },
+      {
+        "task": "Merge README.md duplicates",
+        "impact": "Reduces 15 files to 10 focused index files",
+        "effort": "Low"
+      },
+      {
+        "task": "Archive working/ completed analyses",
+        "impact": "Clears 10-12 temporary files",
+        "effort": "Low"
+      }
+    ],
+    "phase_2_medium_priority": [
+      {
+        "task": "Consolidate architecture overview docs",
+        "impact": "Reduces 12 architecture docs to organized hierarchy",
+        "effort": "High"
+      },
+      {
+        "task": "Organize guides/ into subdirectories",
+        "impact": "Improves navigation, groups 31 guides by topic",
+        "effort": "Medium"
+      },
+      {
+        "task": "Consolidate WebSocket protocol docs",
+        "impact": "Reduces 7 docs to 5 focused docs",
+        "effort": "Low"
+      },
+      {
+        "task": "Merge testing documentation",
+        "impact": "Consolidates 6 docs to 3",
+        "effort": "Low"
+      }
+    ],
+    "phase_3_low_priority": [
+      {
+        "task": "Organize client architecture docs",
+        "impact": "Creates clear structure for 8 client docs",
+        "effort": "Medium"
+      },
+      {
+        "task": "Consolidate ontology documentation",
+        "impact": "Organizes 47 ontology-related docs",
+        "effort": "High"
+      },
+      {
+        "task": "Clean up archive/ directory",
+        "impact": "Ensures only historical content archived",
+        "effort": "Medium"
+      }
+    ]
+  },
+  "cross_cutting_actions": {
+    "establish_patterns": [
+      "One README per directory as navigation index",
+      "Explanations vs Guides vs Reference distinction enforced",
+      "Diagrams mirror explanations structure",
+      "Archive only truly outdated content",
+      "Working directory for temporary analysis only"
+    ],
+    "create_missing_structure": [
+      "guides/getting-started/",
+      "guides/ontology/",
+      "reference/client/",
+      "reference/server/",
+      "reference/ontology/"
+    ],
+    "update_cross_references": [
+      "Update all internal links after moves",
+      "Add navigation breadcrumbs to key docs",
+      "Create topic-based navigation indices",
+      "Link reference <-> explanation <-> guide for each topic"
+    ]
+  }
+}

@@ -1,207 +1,95 @@
 #!/bin/bash
-# validate-links.sh
-# Comprehensive link validation for documentation
-# Checks all internal markdown links and reports broken references
+# Link Validator - Finds broken links and orphaned documents
+set -euo pipefail
 
-set -e
-
-DOCS_ROOT="/home/devuser/workspace/project/docs"
+DOCS_ROOT="${DOCS_ROOT:-$(dirname "$(dirname "$(realpath "$0")")")}"
 REPORT_FILE="${REPORT_FILE:-/tmp/link-validation-report.txt}"
+EXIT_CODE=0
 
-# Color output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+echo "=== Link Validation Report ===" > "$REPORT_FILE"
+echo "Generated: $(date)" >> "$REPORT_FILE"
+echo "" >> "$REPORT_FILE"
 
-FAILED=0
-CHECKED=0
-SKIPPED=0
+# Find all markdown files
+ALL_DOCS=$(find "$DOCS_ROOT" -name "*.md" -type f)
+TOTAL_DOCS=$(echo "$ALL_DOCS" | wc -l)
 
-log_success() {
-  echo -e "${GREEN}✓${NC} $1"
-}
+# Track all internal links
+declare -A ALL_LINKS
+declare -A REFERENCED_FILES
+declare -A BROKEN_LINKS
 
-log_error() {
-  echo -e "${RED}✗${NC} $1"
-}
+echo "Scanning $TOTAL_DOCS markdown files..." >&2
 
-log_warn() {
-  echo -e "${YELLOW}⚠${NC} $1"
-}
+# Extract all internal links
+while IFS= read -r file; do
+    # Find markdown links: [text](path)
+    grep -oP '\[([^\]]+)\]\((?!http|#)([^)]+)\)' "$file" | while IFS= read -r link; do
+        link_path=$(echo "$link" | sed -E 's/\[([^\]]+)\]\(([^)]+)\)/\2/')
 
-log_info() {
-  echo -e "${BLUE}ℹ${NC} $1"
-}
+        # Resolve relative paths
+        file_dir=$(dirname "$file")
+        resolved_path=$(realpath -m "$file_dir/$link_path")
 
-# Initialize report
-init_report() {
-  cat > "$REPORT_FILE" <<EOF
-# Link Validation Report
-Generated: $(date)
-Root: $DOCS_ROOT
+        # Track link
+        ALL_LINKS["$file|$link_path"]="$resolved_path"
+        REFERENCED_FILES["$resolved_path"]=1
 
-## Summary
-EOF
-}
+        # Check if target exists
+        if [[ ! -f "$resolved_path" && ! -d "$resolved_path" ]]; then
+            BROKEN_LINKS["$file"]="${BROKEN_LINKS[$file]:-}$link_path\n"
+            EXIT_CODE=1
+        fi
+    done || true
+done <<< "$ALL_DOCS"
 
-# Validate a single link
-validate_link() {
-  local source_file=$1
-  local link=$2
-  local line_num=$3
+# Find orphaned files (no incoming links)
+echo "" >> "$REPORT_FILE"
+echo "### Orphaned Documents (no incoming links)" >> "$REPORT_FILE"
+echo "" >> "$REPORT_FILE"
 
-  # Skip external links
-  if [[ "$link" =~ ^https?:// ]]; then
-    ((SKIPPED++))
-    return 0
-  fi
-
-  # Skip mailto links
-  if [[ "$link" =~ ^mailto: ]]; then
-    ((SKIPPED++))
-    return 0
-  fi
-
-  # Skip anchor-only links
-  if [[ "$link" =~ ^#.* ]]; then
-    # TODO: Could validate anchors exist in target file
-    ((SKIPPED++))
-    return 0
-  fi
-
-  ((CHECKED++))
-
-  # Split link into path and anchor
-  local link_path="${link%#*}"
-  local anchor="${link#*#}"
-  [[ "$anchor" == "$link" ]] && anchor=""
-
-  # Resolve relative path
-  local dir=$(dirname "$source_file")
-  local target
-
-  # Handle different path formats
-  if [[ "$link_path" =~ ^/ ]]; then
-    # Absolute path from project root
-    target="/home/devuser/workspace/project${link_path}"
-  elif [[ "$link_path" =~ ^\.\. ]]; then
-    # Relative path with ../
-    target=$(realpath -m "$dir/$link_path" 2>/dev/null)
-  elif [[ "$link_path" =~ ^\. ]]; then
-    # Relative path with ./
-    target=$(realpath -m "$dir/$link_path" 2>/dev/null)
-  else
-    # Relative path without prefix
-    target=$(realpath -m "$dir/$link_path" 2>/dev/null)
-  fi
-
-  # Check if target exists
-  if [ ! -f "$target" ] && [ ! -d "$target" ]; then
-    ((FAILED++))
-    log_error "$(basename "$source_file"):$line_num → $link"
-    echo "BROKEN: $source_file:$line_num" >> "$REPORT_FILE"
-    echo "  Link: $link" >> "$REPORT_FILE"
-    echo "  Resolved to: $target" >> "$REPORT_FILE"
-    echo "" >> "$REPORT_FILE"
-    return 1
-  fi
-
-  # If anchor specified, validate it exists (optional, more complex)
-  if [ -n "$anchor" ] && [ -f "$target" ]; then
-    # Convert anchor to heading format
-    local heading=$(echo "$anchor" | sed 's/-/ /g')
-    if ! grep -qi "^#.*$heading" "$target"; then
-      log_warn "$(basename "$source_file"):$line_num → anchor '$anchor' not found in $(basename "$target")"
-      echo "WARNING: Missing anchor in $target" >> "$REPORT_FILE"
-      echo "  Source: $source_file:$line_num" >> "$REPORT_FILE"
-      echo "  Anchor: #$anchor" >> "$REPORT_FILE"
-      echo "" >> "$REPORT_FILE"
+ORPHAN_COUNT=0
+while IFS= read -r file; do
+    # Skip INDEX.md and files in root
+    if [[ "$file" == */INDEX.md ]] || [[ "$file" == "$DOCS_ROOT"/*.md ]]; then
+        continue
     fi
-  fi
 
-  return 0
-}
+    if [[ ! -v REFERENCED_FILES["$file"] ]]; then
+        echo "- $file" >> "$REPORT_FILE"
+        ((ORPHAN_COUNT++)) || true
+        EXIT_CODE=1
+    fi
+done <<< "$ALL_DOCS"
 
-# Process a single markdown file
-process_file() {
-  local file=$1
-  local file_basename=$(basename "$file")
+if [[ $ORPHAN_COUNT -eq 0 ]]; then
+    echo "✓ No orphaned documents found" >> "$REPORT_FILE"
+fi
 
-  log_info "Checking: $file_basename"
+# Report broken links
+echo "" >> "$REPORT_FILE"
+echo "### Broken Links" >> "$REPORT_FILE"
+echo "" >> "$REPORT_FILE"
 
-  local line_num=0
-  while IFS= read -r line; do
-    ((line_num++))
-
-    # Extract all markdown links from line
-    while [[ "$line" =~ \]\(([^)]+)\) ]]; do
-      local link="${BASH_REMATCH[1]}"
-      line="${line#*](${link})}"
-
-      validate_link "$file" "$link" "$line_num"
+if [[ ${#BROKEN_LINKS[@]} -eq 0 ]]; then
+    echo "✓ No broken links found" >> "$REPORT_FILE"
+else
+    for file in "${!BROKEN_LINKS[@]}"; do
+        echo "**$file:**" >> "$REPORT_FILE"
+        echo -e "${BROKEN_LINKS[$file]}" | while read -r link; do
+            [[ -n "$link" ]] && echo "  - $link" >> "$REPORT_FILE"
+        done
+        echo "" >> "$REPORT_FILE"
     done
-  done < "$file"
-}
+fi
 
-# Main validation loop
-validate_all() {
-  log_info "Starting comprehensive link validation..."
-  log_info "Documentation root: $DOCS_ROOT"
-  echo ""
+# Summary
+echo "" >> "$REPORT_FILE"
+echo "### Summary" >> "$REPORT_FILE"
+echo "" >> "$REPORT_FILE"
+echo "- Total documents: $TOTAL_DOCS" >> "$REPORT_FILE"
+echo "- Orphaned documents: $ORPHAN_COUNT" >> "$REPORT_FILE"
+echo "- Files with broken links: ${#BROKEN_LINKS[@]}" >> "$REPORT_FILE"
 
-  init_report
-
-  local total_files=0
-
-  while IFS= read -r file; do
-    ((total_files++))
-    process_file "$file"
-  done < <(find "$DOCS_ROOT" -name "*.md" -type f | sort)
-
-  # Generate summary
-  echo "" >> "$REPORT_FILE"
-  cat >> "$REPORT_FILE" <<EOF
-## Statistics
-- Total files scanned: $total_files
-- Total links checked: $CHECKED
-- External/skipped links: $SKIPPED
-- Broken links found: $FAILED
-
-## Status
-EOF
-
-  if [ $FAILED -eq 0 ]; then
-    echo "✓ ALL LINKS VALID" >> "$REPORT_FILE"
-  else
-    echo "✗ VALIDATION FAILED - $FAILED broken links" >> "$REPORT_FILE"
-  fi
-
-  # Print summary
-  echo ""
-  log_info "=========================================="
-  log_info "Validation Summary"
-  log_info "=========================================="
-  log_info "Files scanned:     $total_files"
-  log_info "Links checked:     $CHECKED"
-  log_info "External/skipped:  $SKIPPED"
-
-  if [ $FAILED -eq 0 ]; then
-    log_success "Broken links:      0"
-    log_success ""
-    log_success "All links valid!"
-    log_info "Report saved to: $REPORT_FILE"
-    return 0
-  else
-    log_error "Broken links:      $FAILED"
-    log_error ""
-    log_error "Validation failed!"
-    log_info "Full report saved to: $REPORT_FILE"
-    return 1
-  fi
-}
-
-# Run validation
-validate_all
-exit $?
+cat "$REPORT_FILE"
+exit $EXIT_CODE

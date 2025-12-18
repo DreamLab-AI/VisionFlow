@@ -1,3 +1,24 @@
+---
+title: Hexagonal Architecture Migration Status Report
+description: The codebase has successfully migrated from a monolithic GraphServiceActor to a hexagonal/ports-and-adapters architecture with CQRS pattern.  The migration is **functionally complete** but retains ...
+category: explanation
+tags:
+  - architecture
+  - design
+  - structure
+  - api
+  - rest
+related-docs:
+  - QUICK_NAVIGATION.md
+  - architecture/blender-mcp-unified-architecture.md
+  - architecture/phase1-completion.md
+  - architecture/skill-mcp-classification.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+dependencies:
+  - Neo4j database
+---
+
 # Hexagonal Architecture Migration Status Report
 
 **Generated**: 2025-12-02
@@ -521,6 +542,18 @@ All code follows hexagonal principles without architecture violations.
    - Dashboard for CQRS bus health
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [Database Architecture](../explanations/architecture/database-architecture.md)
+- [Blender MCP Unified System Architecture](blender-mcp-unified-architecture.md)
+- [Server Architecture](../concepts/architecture/core/server.md)
+- [VisionFlow Documentation Modernization - Final Report](../DOCUMENTATION_MODERNIZATION_COMPLETE.md)
+- [Ontology/Knowledge Skills Analysis](../analysis/ontology-knowledge-skills-analysis.md)
 
 ## Conclusion
 

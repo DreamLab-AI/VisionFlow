@@ -1,9 +1,17 @@
 ---
 title: P1-1: Stress Majorization Configuration Endpoint - Implementation Complete
 description: Implementation of the `/configure` endpoint for Stress Majorization runtime configuration (P1-1 specification).
-type: archive
-status: archived
+category: explanation
+tags:
+  - rest
+  - rust
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # P1-1: Stress Majorization Configuration Endpoint - Implementation Complete
 

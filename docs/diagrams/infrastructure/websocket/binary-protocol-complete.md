@@ -1,3 +1,21 @@
+---
+title: WebSocket Binary Protocol - Complete System Documentation
+description: V1 -->|ID truncation fix| V2         V2 -->|Feature flags| V3         V3 -->|Real-time voice| V4     end
+category: reference
+tags:
+  - architecture
+  - structure
+  - rest
+  - websocket
+  - database
+related-docs:
+  - ASCII_DEPRECATION_COMPLETE.md
+  - audits/ascii-diagram-deprecation-audit.md
+  - diagrams/README.md
+updated-date: 2025-12-18
+difficulty-level: intermediate
+---
+
 # WebSocket Binary Protocol - Complete System Documentation
 
 ## Table of Contents
@@ -1383,6 +1401,18 @@ pub const METADATA_UPDATE_RATE: u32 = 1;     // 1 Hz metadata
 ```
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [VisionFlow Architecture Cross-Reference Matrix](../../cross-reference-matrix.md)
+- [ASCII Diagram Deprecation Audit](../../../audits/ascii-diagram-deprecation-audit.md)
+- [VisionFlow Client Architecture](../../../concepts/architecture/core/client.md)
+- [VisionFlow Client Architecture - Deep Analysis](../../../archive/analysis/client-architecture-analysis-2025-12.md)
+- [VisionFlow Testing Infrastructure Architecture](../testing/test-architecture.md)
 
 ## Conclusion
 

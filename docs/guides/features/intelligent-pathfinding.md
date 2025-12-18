@@ -1,9 +1,16 @@
 ---
 title: Intelligent Pathfinding Guide
 description: Semantic pathfinding finds paths that are not just shortest, but most relevant to your query and graph semantics.
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Intelligent Pathfinding Guide
 
@@ -142,6 +149,18 @@ Typical performance:
    - Chunk Traversal: When exploring local structure
 4. **Combine with filters**: Use schema to filter node types first
 5. **Cache results**: Common paths can be cached
+
+---
+
+---
+
+## Related Documentation
+
+- [Natural Language Queries Tutorial](natural-language-queries.md)
+- [Semantic Forces User Guide](semantic-forces.md)
+- [VisionFlow Guides](../index.md)
+- [Goalie Integration - Goal-Oriented AI Research](../infrastructure/goalie-integration.md)
+- [Troubleshooting Guide](../infrastructure/troubleshooting.md)
 
 ## Examples
 

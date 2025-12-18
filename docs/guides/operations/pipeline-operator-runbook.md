@@ -1,9 +1,16 @@
 ---
 title: Pipeline Operator Runbook
 description: 1. [System Overview](#system-overview) 2. [Monitoring](#monitoring) 3. [Common Issues](#common-issues)
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rest
+  - websocket
+  - docker
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Pipeline Operator Runbook
 
@@ -634,6 +641,18 @@ curl http://localhost:8080/api/admin/pipeline/status
 
 echo "RECOVERY COMPLETE - $(date)"
 ```
+
+---
+
+---
+
+## Related Documentation
+
+- [Vircadia Multi-User XR Integration - User Guide](../vircadia-multi-user-guide.md)
+- [Multi-Agent Docker Environment - Complete Documentation](../infrastructure/docker-environment.md)
+- [Multi-Agent Docker Environment Architecture](../infrastructure/architecture.md)
+- [Documentation Contributing Guidelines](../contributing.md)
+- [Agent Control Panel User Guide](../agent-orchestration.md)
 
 ## Appendix
 

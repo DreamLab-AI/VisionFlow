@@ -1,9 +1,17 @@
 ---
 title: Client TypeScript Architecture
 description: **VisionFlow Client Architecture Documentation** **Version:** 0.1.0 **Last Updated:** 2025-11-04
-type: archive
-status: archived
+category: explanation
+tags:
+  - architecture
+  - client
+  - rest
+  - websocket
+  - docker
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Client TypeScript Architecture
 

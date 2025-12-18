@@ -1,3 +1,23 @@
+---
+title: Server-Side Actor System - Complete Architecture Documentation
+description: The server-side actor system is a hierarchical, fault-tolerant distributed computing architecture built on Actix.  It consists of 21+ specialized actors organized under a supervisor hierarchy for m...
+category: explanation
+tags:
+  - architecture
+  - patterns
+  - structure
+  - api
+  - rest
+related-docs:
+  - ASCII_DEPRECATION_COMPLETE.md
+  - diagrams/README.md
+  - explanations/architecture/quick-reference.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+dependencies:
+  - Neo4j database
+---
+
 # Server-Side Actor System - Complete Architecture Documentation
 
 ## System Overview
@@ -1767,6 +1787,18 @@ impl GraphStateActor {
 ```
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [VisionFlow GPU CUDA Architecture - Complete Technical Documentation](../../infrastructure/gpu/cuda-architecture-complete.md)
+- [Server Architecture](../../../concepts/architecture/core/server.md)
+- [Complete State Management Architecture](../../client/state/state-management-complete.md)
+- [X-FluxAgent Integration Plan for ComfyUI MCP Skill](../../../multi-agent-docker/x-fluxagent-adaptation-plan.md)
+- [VisionFlow Documentation Modernization - Final Report](../../../DOCUMENTATION_MODERNIZATION_COMPLETE.md)
 
 ## 16. Summary: Actor System Capabilities
 

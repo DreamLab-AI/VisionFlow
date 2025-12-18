@@ -1,3 +1,25 @@
+---
+title: Documentation Archive
+description: Historical documentation, completion reports, and deprecated content.
+category: explanation
+tags:
+  - structure
+  - rest
+  - neo4j
+  - ai
+  - guide
+related-docs:
+  - archive/reports/2025-12-02-restructuring-complete.md
+  - archive/reports/2025-12-02-stub-implementation.md
+  - archive/reports/2025-12-02-user-settings-summary.md
+  - QUICK_NAVIGATION.md
+  - README.md
+updated-date: 2025-12-18
+difficulty-level: intermediate
+dependencies:
+  - Neo4j database
+---
+
 # Documentation Archive
 
 Historical documentation, completion reports, and deprecated content.
@@ -18,6 +40,18 @@ archive/
 - **[Restructuring Complete](reports/2025-12-02-restructuring-complete.md)** - Diátaxis migration summary
 - **[Stub Implementation](reports/2025-12-02-stub-implementation.md)** - Stub resolution report
 - **[User Settings Summary](reports/2025-12-02-user-settings-summary.md)** - Neo4j user settings implementation
+
+---
+
+---
+
+## Related Documentation
+
+- [Ontology Sync Service Enhancement](../guides/features/ontology-sync-enhancement.md)
+- [Documentation Restructuring Complete](reports/2025-12-02-restructuring-complete.md)
+- [Settings API Authentication](../guides/features/settings-authentication.md)
+- [Complete Hexagonal Architecture Migration - Overview](../explanations/system-overview.md)
+- [Ontology Storage Architecture](../explanations/architecture/ontology-storage-architecture.md)
 
 ## Archived Content Guidelines
 

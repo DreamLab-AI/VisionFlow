@@ -1,9 +1,15 @@
 ---
 title: GitHubSyncService Architecture Design
 description: **Version**: 2.0 **Date**: November 3, 2025 **Status**: Production Ready
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - websocket
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # GitHubSyncService Architecture Design
 

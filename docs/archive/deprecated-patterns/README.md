@@ -1,9 +1,15 @@
 ---
 title: Deprecated Patterns Archive
 description: Historical reference for deprecated architectural patterns and implementation approaches
-type: archive
-status: reference-only
+category: explanation
+tags:
+  - neo4j
+  - rust
+  - react
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Deprecated Patterns Archive
 
@@ -77,6 +83,18 @@ When deprecating documentation:
 3. **Move to this archive directory**
 4. **Update cross-references** - Fix all links pointing to the doc
 5. **Update this README** - Add entry explaining what was deprecated
+
+---
+
+---
+
+## Related Documentation
+
+- [Architecture Overview (OBSOLETE - WRONG STACK)](03-architecture-WRONG-STACK.md)
+- [Settings API Authentication](../../guides/features/settings-authentication.md)
+- [Hexagonal Architecture Ports - Overview](../../explanations/architecture/ports/01-overview.md)
+- [User Settings Implementation Summary](../reports/2025-12-02-user-settings-summary.md)
+- [KnowledgeGraphRepository Port](../../explanations/architecture/ports/03-knowledge-graph-repository.md)
 
 ## Questions?
 

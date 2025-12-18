@@ -1,9 +1,17 @@
 ---
 title: Pathfinding API Examples
 description: The Pathfinding API provides GPU-accelerated graph analytics for shortest paths and connected components analysis. This document provides practical examples for each endpoint.
-type: reference
-status: stable
+category: reference
+tags:
+  - api
+  - rest
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Pathfinding API Examples
 
@@ -383,6 +391,18 @@ curl -X POST http://localhost:8080/api/analytics/pathfinding/apsp \
 5. **Feature Detection:** Use `/api/analytics/feature-flags` to check GPU availability
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [Authentication (DEPRECATED - JWT NOT USED)](01-authentication.md)
+- [Semantic Features API Reference](semantic-features-api.md)
+- [WebSocket Binary Protocol Reference](../websocket-protocol.md)
+- [Database Schema Reference](../DATABASE_SCHEMA_REFERENCE.md)
+- [VisionFlow Binary WebSocket Protocol](../protocols/binary-websocket.md)
 
 ## Feature Requirements
 

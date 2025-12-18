@@ -1,9 +1,17 @@
 ---
 title: XR Immersive System Architecture
 description: VisionFlow's XR immersive system provides comprehensive extended reality (XR) support across WebXR, Meta Quest, Apple Vision Pro, and PC VR platforms. The architecture integrates spatial interactio...
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - websocket
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # XR Immersive System Architecture
 
@@ -517,6 +525,18 @@ async function initializeXR() {
 - CRDT-based conflict resolution on reconnect
 - User notification of desynchronization
 
+---
+
+---
+
+## Related Documentation
+
+- [Unified Services Guide](services-layer.md)
+- [Architecture Documentation](README.md)
+- [Adapter Patterns in VisionFlow](adapter-patterns.md)
+- [Integration Patterns in VisionFlow](integration-patterns.md)
+- [Semantic Physics Architecture](semantic-physics.md)
+
 ## Security Considerations
 
 ### XR-Specific Threats
@@ -552,17 +572,3 @@ class XRSecurityValidator {
   }
 }
 ```
-
-## Related Documentation
-
-- [Vircadia XR Complete Guide](../../guides/vircadia-xr-complete-guide.md) - Multi-user metaverse integration
--  - Physics force modeling
-- [GPU Compute Architecture](./gpu/readme.md) - CUDA acceleration for physics
--  - Agent-driven spatial operations
--  - Complete system architecture
-
----
-
-**Last Updated**: 2025-11-04
-**Category**: Architecture / XR Immersive Systems
-**Status**: Production Ready

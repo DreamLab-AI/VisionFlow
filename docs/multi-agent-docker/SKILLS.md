@@ -1,3 +1,24 @@
+---
+title: Skills Documentation
+description: The Turbo Flow Claude multi-agent environment includes **54 specialized skills** that extend Claude Code's capabilities across AI/ML, DevOps, graphics, system administration, and development workfl...
+category: howto
+tags:
+  - architecture
+  - design
+  - patterns
+  - structure
+  - api
+related-docs:
+  - multi-agent-docker/ANTIGRAVITY.md
+  - multi-agent-docker/TERMINAL_GRID.md
+  - multi-agent-docker/comfyui-sam3d-setup.md
+updated-date: 2025-12-18
+difficulty-level: intermediate
+dependencies:
+  - Docker installation
+  - Rust toolchain
+---
+
 # Skills Documentation
 
 ## Overview
@@ -411,6 +432,18 @@ claude "Use cuda skill (not pytorch-ml) to compile this kernel"
 - **SPARC Methodology**: `cat agents/doc-planner.md`
 - **Claude Flow**: https://github.com/ruvnet/claude-flow
 - **MCP Documentation**: https://github.com/anthropic/mcp
+
+---
+
+---
+
+## Related Documentation
+
+- [Working with Agents](../archive/docs/guides/user/working-with-agents.md)
+- [Testing Guide](../archive/docs/guides/developer/05-testing-guide.md)
+- [Adding Features](../guides/developer/04-adding-features.md)
+- [ComfyUI SAM3D Docker Setup](comfyui-sam3d-setup.md)
+- [RAGFlow Knowledge Management Integration](../guides/ai-models/ragflow-integration.md)
 
 ## Summary
 

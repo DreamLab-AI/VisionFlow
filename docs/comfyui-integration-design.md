@@ -1,3 +1,21 @@
+---
+title: ComfyUI MCP Server Integration with Management API
+description: The ComfyUI MCP server will integrate with the existing Management API (port 9090) to provide unified task management, metrics collection, and real-time status updates for image/video generation wo...
+category: reference
+tags:
+  - architecture
+  - design
+  - structure
+  - api
+  - websocket
+related-docs:
+  - ARCHITECTURE_COMPLETE.md
+  - ARCHITECTURE_OVERVIEW.md
+  - ASCII_DEPRECATION_COMPLETE.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+---
+
 # ComfyUI MCP Server Integration with Management API
 
 ## Architecture Overview
@@ -933,6 +951,18 @@ wscat -c ws://localhost:9090/v1/comfyui/stream \
 # Metrics
 curl http://localhost:9090/metrics
 ```
+
+---
+
+---
+
+## Related Documentation
+
+- [ComfyUI Management API Integration - Summary](comfyui-management-api-integration-summary.md)
+- [REST API Architecture Documentation](diagrams/server/api/rest-api-architecture.md)
+- [VisionFlow Client Architecture - Deep Analysis](archive/analysis/client-architecture-analysis-2025-12.md)
+- [VisionFlow Testing Infrastructure Architecture](diagrams/infrastructure/testing/test-architecture.md)
+- [VisionFlow Architecture Cross-Reference Matrix](diagrams/cross-reference-matrix.md)
 
 ## Future Enhancements
 

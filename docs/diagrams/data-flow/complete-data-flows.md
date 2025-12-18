@@ -1,3 +1,25 @@
+---
+title: Complete System Data Flow Documentation
+description: 1.  [User Interaction Flow](#1-user-interaction-flow) 2.
+category: explanation
+tags:
+  - architecture
+  - structure
+  - api
+  - rest
+  - websocket
+related-docs:
+  - ASCII_DEPRECATION_COMPLETE.md
+  - audits/ascii-diagram-deprecation-audit.md
+  - diagrams/README.md
+  - explanations/architecture/quick-reference.md
+  - explanations/architecture/reasoning-data-flow.md
+updated-date: 2025-12-18
+difficulty-level: intermediate
+dependencies:
+  - Neo4j database
+---
+
 # Complete System Data Flow Documentation
 
 **Comprehensive coverage of ALL data paths through VisionFlow with timing, message sizes, and transformation steps.**
@@ -1825,6 +1847,18 @@ Total time: 7000ms
 
 ---
 
+---
+
+---
+
+## Related Documentation
+
+- [System Architecture Overview - Complete Mermaid Diagrams](../mermaid-library/01-system-architecture-overview.md)
+- [ASCII Diagram Deprecation - Complete Report](../../ASCII_DEPRECATION_COMPLETE.md)
+- [Deployment & Infrastructure Diagrams](../mermaid-library/03-deployment-infrastructure.md)
+- [Server-Side Actor System - Complete Architecture Documentation](../server/actors/actor-system-complete.md)
+- [Complete State Management Architecture](../client/state/state-management-complete.md)
+
 ## Architecture Decision Records
 
 ### ADR-001: Binary WebSocket Protocol V2
@@ -1877,17 +1911,3 @@ Total time: 7000ms
 - ✗ Increased code complexity
 
 ---
-
-## Related Documentation
-
-- [Pipeline Integration Architecture](../architecture/pipeline-integration.md)
-- [Ontology Reasoning Pipeline](../architecture/ontology-reasoning-pipeline.md)
-- [Binary WebSocket Protocol](../../client/src/services/BinaryWebSocketProtocol.ts)
-- [Force Compute Actor](../../src/actors/gpu/force_compute_actor.rs)
-- [Client Coordinator](../../src/actors/client_coordinator_actor.rs)
-
----
-
-**Status**: ✅ Complete
-**Last Updated**: 2025-12-05
-**Coverage**: 10 major data flows, all transformation steps documented

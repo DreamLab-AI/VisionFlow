@@ -1,9 +1,17 @@
 ---
 title: SemanticForcesActor Design Document
 description: **Author**: Semantic Forces Agent **Date**: 2025-11-28 **Status**: Implementation Ready
-type: explanation
-status: stable
+category: explanation
+tags:
+  - rest
+  - rust
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # SemanticForcesActor Design Document
 

@@ -1,9 +1,17 @@
 ---
 title: Extending the System
 description: > [Guides](./index.md) > Extending the System
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rest
+  - websocket
+  - docker
+  - rust
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Extending the System
 

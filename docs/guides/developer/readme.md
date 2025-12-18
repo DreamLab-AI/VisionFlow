@@ -1,9 +1,15 @@
 ---
 title: Developer Guides
 description: Welcome to the VisionFlow developer guides. These how-to guides help developers accomplish specific tasks and solve problems.
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rust
+  - react
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Developer Guides
 
@@ -49,6 +55,18 @@ Welcome to the VisionFlow developer guides. These how-to guides help developers 
 **Contribute to the project**
 → Read [Contributing Guidelines](./06-contributing.md)
 
+---
+
+---
+
+## Related Documentation
+
+- [Per-User Settings Implementation](../features/auth-user-settings.md)
+- [Docker Compose Unified Configuration - Usage Guide](../docker-compose-guide.md)
+- [Ontology Storage Guide](../ontology-storage-guide.md)
+- [Development Setup Guide](01-development-setup.md)
+- [Contributing Guidelines](06-contributing.md)
+
 ## Key Technologies
 
 - **Rust** 1.70+ with Actix-web framework
@@ -56,15 +74,3 @@ Welcome to the VisionFlow developer guides. These how-to guides help developers 
 - **CUDA** 11.0+ for GPU acceleration (optional)
 - **React** + Vite for frontend development
 - **Hexagonal Architecture** with CQRS pattern for backend design
-
-## Related Documentation
-
-- **** - Understanding VisionFlow's design patterns and architecture
-- **** - Technical API documentation and specifications
-- **** - Installation and first steps for new users
-- **** - Documentation home
-
----
-
-**Last Updated:** 2025-10-27
-**Status:** Current and verified against codebase

@@ -1,9 +1,17 @@
 ---
 title: Borrow Checker Error Fixes - Summary
 description: All E0502 (conflicting borrows) and E0382 (use after move) errors have been resolved through proper code restructuring.
-type: archive
-status: archived
+category: explanation
+tags:
+  - rest
+  - rust
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Borrow Checker Error Fixes - Summary
 
@@ -172,6 +180,18 @@ The compilation still has errors, but they are NOT borrow checker issues:
 - E0592: Duplicate definitions
 
 These are separate issues unrelated to borrow checking and require different fixes.
+
+---
+
+---
+
+## Related Documentation
+
+- [Borrow Checker Error Fixes](borrow-checker.md)
+- [Borrow Checker Error Fixes - Documentation](README.md)
+- [VisionFlow Test Suite](../tests/test_README.md)
+- [Semantic Forces](../../explanations/physics/semantic-forces.md)
+- [Rust Type Correction Guide](rust-type-correction-guide.md)
 
 ## Lessons Learned
 

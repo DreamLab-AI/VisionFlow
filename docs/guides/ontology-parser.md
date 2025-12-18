@@ -1,9 +1,17 @@
 ---
 title: Guide: Ontology Parser
 description: **Version:** 1.0 **Date:** 2025-10-27
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rust
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Guide: Ontology Parser
 

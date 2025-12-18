@@ -1,5 +1,27 @@
 ---
 title: Adding Features
+description: Documentation for 04-adding-features
+category: howto
+tags:
+  - architecture
+  - design
+  - patterns
+  - api
+  - rest
+related-docs:
+  - guides/testing-guide.md
+  - guides/developer/06-contributing.md
+  - DEVELOPER_JOURNEY.md
+  - QUICK_NAVIGATION.md
+  - README.md
+updated-date: 2025-12-18
+difficulty-level: intermediate
+dependencies:
+  - Node.js runtime
+---
+
+---
+title: Adding Features
 description: Comprehensive guide for adding new features to VisionFlow with examples and best practices
 category: developer-guide
 tags: [development, features, workflow, tdd, implementation]
@@ -841,6 +863,18 @@ Before submitting a pull request, ensure:
 6. **Performance**: Profile and optimize
 7. **Security**: Validate input, sanitize output
 8. **Accessibility**: Follow WCAG guidelines
+
+---
+
+---
+
+## Related Documentation
+
+- [Testing Guide](../../archive/docs/guides/developer/05-testing-guide.md)
+- [Working with Agents](../../archive/docs/guides/user/working-with-agents.md)
+- [RAGFlow Knowledge Management Integration](../ai-models/ragflow-integration.md)
+- [Client State Management with Zustand](../client/state-management.md)
+- [Skills Documentation](../../multi-agent-docker/SKILLS.md)
 
 ## Next Steps
 

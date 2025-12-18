@@ -1,9 +1,15 @@
 ---
 title: P1-2: PageRank Centrality Implementation
 description: This document describes the GPU-accelerated PageRank centrality implementation for the WebXR graph visualization system. PageRank is a fundamental graph centrality metric that measures node importa...
-type: archive
-status: archived
+category: explanation
+tags:
+  - rest
+  - websocket
+  - rust
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # P1-2: PageRank Centrality Implementation
 

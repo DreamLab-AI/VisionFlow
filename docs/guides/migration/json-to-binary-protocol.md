@@ -1,9 +1,16 @@
 ---
 title: Migration Guide: JSON to Binary WebSocket Protocol
 description: **Version:** 2.0 **Last Updated:** November 3, 2025 **Status:** Required Migration
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rest
+  - websocket
+  - react
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Migration Guide: JSON to Binary WebSocket Protocol
 

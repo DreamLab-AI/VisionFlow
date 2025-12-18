@@ -1,9 +1,15 @@
 ---
 title: Available Tooling Reference
 description: This document provides a comprehensive reference for all tooling integrated into the environment. It is divided into two main sections: 1.  **Integrated Development Environment**: An overview of th...
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - docker
+  - rust
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Available Tooling Reference
 

@@ -1,9 +1,17 @@
 ---
 title: Orchestrating Agents
 description: > [Guides](./index.md) > Orchestrating Agents
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rest
+  - websocket
+  - docker
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Orchestrating Agents
 

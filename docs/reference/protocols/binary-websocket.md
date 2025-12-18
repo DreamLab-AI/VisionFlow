@@ -1,9 +1,17 @@
 ---
 title: VisionFlow Binary WebSocket Protocol
 description: Real-time graph position streaming protocol with multiple versions
-type: reference
-status: stable
+category: reference
+tags:
+  - websocket
+  - rust
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # VisionFlow Binary WebSocket Protocol
 
@@ -556,6 +564,18 @@ npm test -- BinaryWebSocketProtocol.test.ts
 ```
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [WebSocket Binary Protocol Reference](../websocket-protocol.md)
+- [Database Schema Reference](../DATABASE_SCHEMA_REFERENCE.md)
+- [Authentication (DEPRECATED - JWT NOT USED)](../api/01-authentication.md)
+- [Semantic Features API Reference](../api/semantic-features-api.md)
+- [Pathfinding API Examples](../api/pathfinding-examples.md)
 
 ## References
 

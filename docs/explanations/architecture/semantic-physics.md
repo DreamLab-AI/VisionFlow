@@ -1,9 +1,17 @@
 ---
 title: Semantic Physics Architecture
 description: The Semantic Physics Architecture implements a constraint generation and physics integration system that translates OWL (Web Ontology Language) axioms into GPU-accelerated physics constraints for v...
-type: explanation
-status: stable
+category: explanation
+tags:
+  - architecture
+  - rust
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # Semantic Physics Architecture
 
@@ -329,6 +337,18 @@ cargo test --package ontology-visualizer --lib constraints::semantic
 4. **Advanced Blending**
    - Machine learning-based priority prediction
    - Context-aware constraint strength adjustment
+
+---
+
+---
+
+## Related Documentation
+
+- [Stress Majorization for GPU-Accelerated Graph Layout](stress-majorization.md)
+- [Unified Services Guide](services-layer.md)
+- [Architecture Documentation](README.md)
+- [InferenceEngine Port](ports/05-inference-engine.md)
+- [GpuPhysicsAdapter Port](ports/06-gpu-physics-adapter.md)
 
 ## References
 

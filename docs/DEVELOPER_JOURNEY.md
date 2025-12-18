@@ -1,3 +1,28 @@
+---
+title: VisionFlow Developer Journey: Navigating the Codebase
+description: This guide maps your journey from first-time contributor to expert developer.  Whether you're fixing a bug, adding a feature, or exploring the architecture, this document shows you **where to start...
+category: howto
+tags:
+  - architecture
+  - design
+  - patterns
+  - structure
+  - api
+related-docs:
+  - guides/developer/01-development-setup.md
+  - guides/developer/06-contributing.md
+  - guides/developer/02-project-structure.md
+  - guides/developer/04-adding-features.md
+  - guides/testing-guide.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+dependencies:
+  - Docker installation
+  - Rust toolchain
+  - Node.js runtime
+  - Neo4j database
+---
+
 # VisionFlow Developer Journey: Navigating the Codebase
 
 **A practical guide for new developers to understand, navigate, and contribute to VisionFlow.**

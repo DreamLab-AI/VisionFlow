@@ -1,3 +1,25 @@
+---
+title: Historical Context Recovery Report
+description: 1.  **Client-Side Rendering Pipeline Documentation**: Deleted between Sept-Nov 2025 during Babylon.
+category: explanation
+tags:
+  - architecture
+  - design
+  - patterns
+  - structure
+  - api
+related-docs:
+  - QUICK_NAVIGATION.md
+  - working/ASSET_RESTORATION.md
+  - working/CLIENT_ARCHITECTURE_ANALYSIS.md
+  - working/CLIENT_DOCS_SUMMARY.md
+updated-date: 2025-12-18
+difficulty-level: intermediate
+dependencies:
+  - Docker installation
+  - Neo4j database
+---
+
 # Historical Context Recovery Report
 
 **Generated:** December 2, 2025

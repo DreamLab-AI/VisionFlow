@@ -1,9 +1,17 @@
 ---
 title: Docker Environment Setup - Multi-Agent System
 description: **Last Updated:** November 5, 2025 **Difficulty:** Intermediate **Time Required:** 15-30 minutes
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rest
+  - websocket
+  - docker
+  - neo4j
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Docker Environment Setup - Multi-Agent System
 

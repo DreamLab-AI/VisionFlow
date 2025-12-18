@@ -1,9 +1,16 @@
 ---
 title: Implementation Summary
 description: - ### OntologyBlock id:: implementation-summary-ontology collapsed:: true
-type: archive
-status: archived
+category: explanation
+tags:
+  - rest
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 - ### OntologyBlock
   id:: implementation-summary-ontology

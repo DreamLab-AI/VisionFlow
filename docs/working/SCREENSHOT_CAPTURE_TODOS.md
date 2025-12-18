@@ -1,11 +1,17 @@
 ---
 title: Screenshot Capture TODOs
 description: Required UI screenshots to complete documentation assets
-type: todo-list
-status: pending
+category: explanation
+tags:
+  - rest
+  - websocket
+  - neo4j
+updated-date: 2025-12-18
+difficulty-level: intermediate
 priority: medium
 date: 2025-12-02
 ---
+
 
 # Screenshot Capture TODOs
 

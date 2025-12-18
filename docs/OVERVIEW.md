@@ -1,3 +1,26 @@
+---
+title: What is VisionFlow?
+description: Traditional knowledge management tools force you to manually organize information and search for connections.  AI chatbots only respond when prompted.
+category: explanation
+tags:
+  - architecture
+  - design
+  - patterns
+  - structure
+  - api
+related-docs:
+  - ARCHITECTURE_OVERVIEW.md
+  - DEVELOPER_JOURNEY.md
+  - README.md
+  - QUICK_NAVIGATION.md
+  - ARCHITECTURE_COMPLETE.md
+updated-date: 2025-12-18
+difficulty-level: intermediate
+dependencies:
+  - Docker installation
+  - Neo4j database
+---
+
 # What is VisionFlow?
 
 **VisionFlow is an enterprise-grade platform that transforms how teams discover and interact with knowledge using AI agents and immersive 3D visualization.**
@@ -189,6 +212,18 @@ For custom deployments or development, VisionFlow supports:
 - **Issues:** [GitHub Issues](https://github.com/DreamLab-AI/VisionFlow/issues)
 - **Discussions:** [GitHub Discussions](https://github.com/DreamLab-AI/VisionFlow/discussions)
 - **License:** Mozilla Public License 2.0 (MPL-2.0) - Commercial-friendly with copyleft on modifications
+
+---
+
+---
+
+## Related Documentation
+
+- [VisionFlow Complete Architecture Documentation](ARCHITECTURE_COMPLETE.md)
+- [VisionFlow Client Architecture Analysis](visionflow-architecture-analysis.md)
+- [VisionFlow Architecture Diagrams - Complete Corpus](diagrams/README.md)
+- [Agent/Bot System Architecture](diagrams/server/agents/agent-system-architecture.md)
+- [Agent Orchestration & Multi-Agent Systems](diagrams/mermaid-library/04-agent-orchestration.md)
 
 ## Vision & Roadmap
 

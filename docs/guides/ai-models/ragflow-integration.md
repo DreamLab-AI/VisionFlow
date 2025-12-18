@@ -1,3 +1,24 @@
+---
+title: RAGFlow Knowledge Management Integration
+description: RAGFlow provides document ingestion, vector storage, and semantic search capabilities for building knowledge bases and RAG (Retrieval-Augmented Generation) applications.  It runs as a separate Dock...
+category: howto
+tags:
+  - architecture
+  - patterns
+  - api
+  - rest
+  - endpoints
+related-docs:
+  - guides/ai-models/README.md
+  - guides/features/MOVED.md
+  - guides/ai-models/INTEGRATION_SUMMARY.md
+  - guides/ai-models/deepseek-deployment.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+dependencies:
+  - Docker installation
+---
+
 # RAGFlow Knowledge Management Integration
 
 **Status**: Active
@@ -502,6 +523,18 @@ docker logs ragflow-service
 tail -f /var/log/turbo-flow.log | grep ragflow
 ```
 
+---
+
+---
+
+## Related Documentation
+
+- [Perplexity AI Integration](perplexity-integration.md)
+- [Adding Features](../developer/04-adding-features.md)
+- [Working with Agents](../../archive/docs/guides/user/working-with-agents.md)
+- [ComfyUI Service Integration - Automatic Startup](../../comfyui-service-integration.md)
+- [Skills Documentation](../../multi-agent-docker/SKILLS.md)
+
 ## Future Enhancements
 
 ### Planned
@@ -517,15 +550,3 @@ tail -f /var/log/turbo-flow.log | grep ragflow
 2. **Hybrid Search** - Combine vector + keyword search
 3. **Document Versioning** - Track document changes over time
 4. **Export/Import** - Knowledge base portability
-
-## Related Documentation
-
-- [AI Models Overview](/docs/guides/ai-models/README.md)
-- [API Complete Reference](/docs/reference/api-complete-reference.md)
-- [Docker Environment Setup](/docs/guides/docker-environment-setup.md)
-- [Configuration Guide](/docs/guides/configuration.md)
-
----
-
-**Last Updated**: December 2, 2025
-**Status**: Active Production Service

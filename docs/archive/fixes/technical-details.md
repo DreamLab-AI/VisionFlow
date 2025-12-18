@@ -1,9 +1,16 @@
 ---
 title: Borrow Checker Fixes - Technical Details
 description: ``` error[E0502]: cannot borrow `*self` as mutable because it is also borrowed as immutable --> src/actors/gpu/force_compute_actor.rs:287:29
-type: archive
-status: archived
+category: explanation
+tags:
+  - rust
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Borrow Checker Fixes - Technical Details
 

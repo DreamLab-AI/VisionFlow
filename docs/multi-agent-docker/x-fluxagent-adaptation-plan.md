@@ -1,3 +1,24 @@
+---
+title: X-FluxAgent Integration Plan for ComfyUI MCP Skill
+description: This document analyzes X-FluxAgent components and provides concrete adaptation strategies for integrating into the ComfyUI skill with MCP server architecture and Playwright browser automation.
+category: explanation
+tags:
+  - architecture
+  - patterns
+  - structure
+  - api
+  - rest
+related-docs:
+  - multi-agent-docker/ANTIGRAVITY.md
+  - multi-agent-docker/SKILLS.md
+  - multi-agent-docker/TERMINAL_GRID.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+dependencies:
+  - Docker installation
+  - Node.js runtime
+---
+
 # X-FluxAgent Integration Plan for ComfyUI MCP Skill
 
 **Analysis Date**: 2025-12-03
@@ -1744,6 +1765,18 @@ class WorkflowCache {
 - Adapted from HotReload architecture
 
 ---
+
+---
+
+---
+
+## Related Documentation
+
+- [Complete State Management Architecture](../diagrams/client/state/state-management-complete.md)
+- [VisionFlow Documentation Modernization - Final Report](../DOCUMENTATION_MODERNIZATION_COMPLETE.md)
+- [Server-Side Actor System - Complete Architecture Documentation](../diagrams/server/actors/actor-system-complete.md)
+- [VisionFlow GPU CUDA Architecture - Complete Technical Documentation](../diagrams/infrastructure/gpu/cuda-architecture-complete.md)
+- [Server Architecture](../concepts/architecture/core/server.md)
 
 ## Conclusion
 

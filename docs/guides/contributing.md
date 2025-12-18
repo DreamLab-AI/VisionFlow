@@ -1,9 +1,17 @@
 ---
 title: Documentation Contributing Guidelines
 description: This document explains how to contribute to VisionFlow documentation using the **Diátaxis** framework.
-type: guide
-status: stable
+category: howto
+tags:
+  - guide
+  - rest
+  - websocket
+  - docker
+  - react
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Documentation Contributing Guidelines
 
@@ -217,6 +225,18 @@ This structure is designed to grow:
 - **New Concept**: Add to `concepts/`
 - **New API Reference**: Add to `reference/api/`
 - **New Architecture Details**: Add to `reference/architecture/`
+
+---
+
+---
+
+## Related Documentation
+
+- [Vircadia Multi-User XR Integration - User Guide](vircadia-multi-user-guide.md)
+- [Agent Control Panel User Guide](agent-orchestration.md)
+- [Pipeline Operator Runbook](operations/pipeline-operator-runbook.md)
+- [Nostr Authentication Implementation](features/nostr-auth.md)
+- [GraphServiceActor Migration Guide (HISTORICAL REFERENCE)](graphserviceactor-migration.md)
 
 ## 📞 Questions?
 

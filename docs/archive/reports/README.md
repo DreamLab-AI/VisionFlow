@@ -1,9 +1,16 @@
 ---
 title: Documentation Reports Archive
 description: This directory contains archived documentation alignment reports and legacy status files.
-type: archive
-status: archived
+category: explanation
+tags:
+  - docker
+  - documentation
+  - reference
+  - visionflow
+updated-date: 2025-12-18
+difficulty-level: intermediate
 ---
+
 
 # Documentation Reports Archive
 
@@ -48,6 +55,18 @@ Reports are archived when:
 
 **Archive Retention:** Indefinite (historical reference)
 
+---
+
+---
+
+## Related Documentation
+
+- [Archive Index - Documentation Reports](ARCHIVE_INDEX.md)
+- [Documentation Alignment Skill - Completion Report](documentation-alignment-2025-12-02/DOCUMENTATION_ALIGNMENT_COMPLETE.md)
+- [DeepSeek User Setup - Complete](documentation-alignment-2025-12-02/DEEPSEEK_SETUP_COMPLETE.md)
+- [VisionFlow Audit Reports](../../audits/README.md)
+- [Architecture Documentation](../../explanations/architecture/README.md)
+
 ## Viewing Archived Reports
 
 All archived reports are standard markdown and JSON files:
@@ -59,14 +78,3 @@ cat docs/archive/reports/documentation-alignment-2025-12-02/DOCUMENTATION_ALIGNM
 # Parse JSON reports
 jq '.summary' docs/archive/reports/documentation-alignment-2025-12-02/json-reports/link-report.json
 ```
-
-## Related Documentation
-
-- `/multi-agent-docker/skills/docs-alignment/` - Documentation alignment skill
-- `/.doc-alignment-reports/` - Current validation reports
-- `/docs/DOCUMENTATION_ISSUES.md` - Active issues list
-
----
-
-**Last Updated:** 2025-12-02
-**Maintained By:** Archive Cleanup Agent

@@ -1,9 +1,17 @@
 ---
 title: SPARC Methodology & Turbo Flow Architecture
 description: **Version:** 1.0.0 **Last Updated:** 2025-10-27 **Focus:** SPARC development workflow and Turbo Flow multi-agent integration
-type: document
-status: stable
+category: explanation
+tags:
+  - architecture
+  - rest
+  - websocket
+  - docker
+  - rust
+updated-date: 2025-12-18
+difficulty-level: advanced
 ---
+
 
 # SPARC Methodology & Turbo Flow Architecture
 

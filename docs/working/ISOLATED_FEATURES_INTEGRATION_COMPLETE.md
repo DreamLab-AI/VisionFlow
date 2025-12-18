@@ -1,3 +1,21 @@
+---
+title: Isolated Features Integration - Complete
+description: Successfully audited all isolated documentation and integrated AI service documentation into a centralized, comprehensive structure at `/docs/guides/ai-models/`.  All six AI services now have clear...
+category: howto
+tags:
+  - architecture
+  - patterns
+  - structure
+  - api
+  - endpoints
+related-docs:
+  - working/ASSET_RESTORATION.md
+  - working/CLIENT_ARCHITECTURE_ANALYSIS.md
+  - working/CLIENT_DOCS_SUMMARY.md
+updated-date: 2025-12-18
+difficulty-level: advanced
+---
+
 # Isolated Features Integration - Complete
 
 **Date**: December 2, 2025
