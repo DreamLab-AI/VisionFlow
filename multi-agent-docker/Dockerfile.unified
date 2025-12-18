@@ -62,19 +62,37 @@ RUN curl -fsSL https://nodejs.org/dist/v23.11.1/node-v23.11.1-linux-x64.tar.xz |
     npm install -g npm@latest
 
 # ============================================================================
-# PHASE 2: NVIDIA Driver Interface (NO system CUDA - PyTorch bundles its own)
+# PHASE 2: NVIDIA Driver Interface + Full CUDA Development Toolkit
 # ============================================================================
 
 RUN pacman -S --noconfirm \
+        # NVIDIA driver utilities (nvidia-smi, etc.)
         nvidia-utils \
         libglvnd \
+        # Core CUDA toolkit (nvcc, ptxas, cuda-gdb, etc.)
+        cuda \
+        # Deep Neural Network library
+        cudnn \
+        # Tensor primitives for high-performance computing
+        cutensor \
+        # Python CUDA bindings
+        python-cuda \
+        # NVIDIA profiler
+        nsight-compute \
     && rm -rf /var/cache/pacman/pkg/*
 
-# Configure NVIDIA OpenGL libraries (PyTorch bundles its own CUDA)
+# Configure NVIDIA/CUDA environment
 ENV __GLX_VENDOR_LIBRARY_NAME=nvidia
+ENV CUDA_HOME=/opt/cuda
+ENV CUDA_PATH=/opt/cuda
+ENV NVCC_PREPEND_FLAGS='-ccbin /usr/bin/g++'
 ENV __NV_PRIME_RENDER_OFFLOAD=1
 ENV __VK_LAYER_NV_optimus=NVIDIA_only
 ENV LIBGL_ALWAYS_INDIRECT=0
+
+# Global PATH for CUDA (available to all users and processes)
+ENV PATH="/opt/cuda/bin:/usr/lib/rustup/bin:${PATH}"
+ENV LD_LIBRARY_PATH="/opt/cuda/lib64:/opt/cuda/extras/CUPTI/lib64:${LD_LIBRARY_PATH}"
 
 # Ensure GLX uses NVIDIA
 RUN mkdir -p /usr/share/glvnd/egl_vendor.d && \
@@ -447,7 +465,7 @@ RUN npm install -g gemini-flow
 
 # Copy helper scripts (includes generate-mcp-settings.sh for dynamic skill discovery)
 COPY --chown=root:root unified-config/scripts/ /usr/local/bin/
-RUN chmod +x /usr/local/bin/*.sh && \
+RUN chmod 755 /usr/local/bin/*.sh && \
     ls -la /usr/local/bin/generate-mcp-settings.sh 2>/dev/null && \
     echo "✓ MCP settings generator installed" || true
 
@@ -507,11 +525,25 @@ COPY --chown=root:root unified-config/supervisord.unified.conf /etc/supervisord.
 USER devuser
 
 # Set up environment variables in .zshrc
-RUN echo 'export WORKSPACE=/home/devuser/workspace' >> ~/.zshrc && \
+RUN echo '# ============================================' >> ~/.zshrc && \
+    echo '# Turbo Flow Environment Configuration' >> ~/.zshrc && \
+    echo '# ============================================' >> ~/.zshrc && \
+    echo '' >> ~/.zshrc && \
+    echo '# Workspace paths' >> ~/.zshrc && \
+    echo 'export WORKSPACE=/home/devuser/workspace' >> ~/.zshrc && \
     echo 'export AGENTS_DIR=/home/devuser/agents' >> ~/.zshrc && \
     echo 'export DEVPOD_WORKSPACE_FOLDER=/home/devuser/workspace' >> ~/.zshrc && \
-    echo 'export PATH=$HOME/.cargo/bin:$HOME/.local/bin:/opt/cuda/bin:$PATH' >> ~/.zshrc && \
-    echo 'export LD_LIBRARY_PATH=/opt/cuda/lib64:$LD_LIBRARY_PATH' >> ~/.zshrc && \
+    echo '' >> ~/.zshrc && \
+    echo '# CUDA Development Environment' >> ~/.zshrc && \
+    echo 'export CUDA_HOME=/opt/cuda' >> ~/.zshrc && \
+    echo 'export CUDA_PATH=/opt/cuda' >> ~/.zshrc && \
+    echo 'export NVCC_PREPEND_FLAGS="-ccbin /usr/bin/g++"' >> ~/.zshrc && \
+    echo '' >> ~/.zshrc && \
+    echo '# Comprehensive PATH (CUDA, Rust, local bins)' >> ~/.zshrc && \
+    echo 'export PATH="$HOME/.cargo/bin:$HOME/.local/bin:/opt/cuda/bin:/usr/lib/rustup/bin:$PATH"' >> ~/.zshrc && \
+    echo 'export LD_LIBRARY_PATH="/opt/cuda/lib64:/opt/cuda/extras/CUPTI/lib64:$LD_LIBRARY_PATH"' >> ~/.zshrc && \
+    echo '' >> ~/.zshrc && \
+    echo '# Direnv integration' >> ~/.zshrc && \
     echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc && \
     echo '' >> ~/.zshrc && \
     echo '# User switching aliases' >> ~/.zshrc && \
@@ -521,7 +553,12 @@ RUN echo 'export WORKSPACE=/home/devuser/workspace' >> ~/.zshrc && \
     echo '' >> ~/.zshrc && \
     echo '# Claude Code aliases' >> ~/.zshrc && \
     echo 'alias dsp="claude --dangerously-skip-permissions"' >> ~/.zshrc && \
-    echo 'alias claude-monitor="~/.cargo/bin/claude-monitor"' >> ~/.zshrc
+    echo 'alias claude-monitor="~/.cargo/bin/claude-monitor"' >> ~/.zshrc && \
+    echo '' >> ~/.zshrc && \
+    echo '# CUDA development aliases' >> ~/.zshrc && \
+    echo 'alias nvcc-version="nvcc --version"' >> ~/.zshrc && \
+    echo 'alias cuda-info="nvidia-smi && echo && nvcc --version"' >> ~/.zshrc && \
+    echo 'alias ptx-compile="nvcc -ptx"' >> ~/.zshrc
 
 USER root
 

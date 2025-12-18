@@ -134,6 +134,21 @@ fi
 
 echo "[3/10] Verifying GPU access..."
 
+# Fix NVML library version mismatch (container vs host driver)
+# The host kernel module version must match the NVML library
+if [ -f /proc/driver/nvidia/version ]; then
+    HOST_DRIVER_VERSION=$(grep -oP 'Module\s+\K[0-9.]+' /proc/driver/nvidia/version | head -1)
+    if [ -n "$HOST_DRIVER_VERSION" ]; then
+        NVML_LIB="/usr/lib/libnvidia-ml.so.${HOST_DRIVER_VERSION}"
+        if [ -f "$NVML_LIB" ]; then
+            ln -sf "$NVML_LIB" /usr/lib/libnvidia-ml.so.1
+            echo "✓ NVML library symlinked to match host driver: $HOST_DRIVER_VERSION"
+        else
+            echo "⚠️  NVML library for driver $HOST_DRIVER_VERSION not found"
+        fi
+    fi
+fi
+
 # Check nvidia-smi
 if command -v nvidia-smi &> /dev/null; then
     if nvidia-smi &> /dev/null; then
@@ -180,10 +195,11 @@ echo "[4/10] Verifying host Claude configuration..."
 
 if [ -d "/home/devuser/.claude" ]; then
     # Ensure proper ownership (host mount may have different UID)
-    # Only change ownership on writable files to avoid errors on read-only mounts
+    # Skip node_modules to avoid processing thousands of files
+    # Use -prune to skip entire directories, much faster than -exec on each file
     set +e
-    find /home/devuser/.claude -writable -exec chown devuser:devuser {} \; 2>/dev/null
-    find /home/devuser/.claude -writable -exec chmod u+rw {} \; 2>/dev/null
+    find /home/devuser/.claude -name node_modules -prune -o -type f -writable -exec chown devuser:devuser {} + 2>/dev/null
+    find /home/devuser/.claude -name node_modules -prune -o -type d -writable -exec chown devuser:devuser {} + 2>/dev/null
     set -e
     echo "✓ Host Claude configuration mounted at /home/devuser/.claude (read-write)"
 else
@@ -246,8 +262,10 @@ rm -rf /home/openai-user/.npm/_npx/* 2>/dev/null || true
 rm -rf /home/zai-user/.npm/_npx/* 2>/dev/null || true
 rm -rf /root/.npm/_npx/* 2>/dev/null || true
 
-# Run claude-flow init --force as devuser
-sudo -u devuser bash -c "cd /home/devuser && claude-flow init --force" 2>/dev/null || echo "ℹ️  Claude Flow init skipped (not critical)"
+# Run claude-flow init --force as devuser IN BACKGROUND (non-blocking)
+# This prevents blocking supervisord startup while npm packages compile
+(sudo -u devuser bash -c "cd /home/devuser && claude-flow init --force" > /var/log/claude-flow-init.log 2>&1 &) || true
+echo "ℹ️  Claude Flow init started in background (see /var/log/claude-flow-init.log)"
 
 # Fix hooks to use global claude-flow instead of npx (prevents cache corruption)
 if [ -f /home/devuser/.claude/settings.json ]; then
@@ -296,11 +314,20 @@ echo "  Discovering MCP-enabled skills..."
 
 mkdir -p /home/devuser/.config/claude
 
-# Use generate-mcp-settings.sh if available, otherwise inline discovery
-if [ -x /usr/local/bin/generate-mcp-settings.sh ]; then
-    sudo -u devuser SKILLS_DIR=/home/devuser/.claude/skills \
+# Use generate-mcp-settings.sh if available and readable, otherwise inline discovery
+# Note: Run as root since the script may not be readable by devuser, then fix ownership
+set +e  # Don't exit on error for this section
+if [ -x /usr/local/bin/generate-mcp-settings.sh ] && [ -r /usr/local/bin/generate-mcp-settings.sh ]; then
+    SKILLS_DIR=/home/devuser/.claude/skills \
         OUTPUT_FILE=/home/devuser/.config/claude/mcp_settings.json \
         /usr/local/bin/generate-mcp-settings.sh
+    chown devuser:devuser /home/devuser/.config/claude/mcp_settings.json 2>/dev/null
+elif [ -x /usr/local/bin/generate-mcp-settings.sh ]; then
+    # Script exists but not readable - run as root and fix ownership
+    SKILLS_DIR=/home/devuser/.claude/skills \
+        OUTPUT_FILE=/home/devuser/.config/claude/mcp_settings.json \
+        bash /usr/local/bin/generate-mcp-settings.sh 2>/dev/null || true
+    chown devuser:devuser /home/devuser/.config/claude/mcp_settings.json 2>/dev/null
 else
     # Inline dynamic discovery (fallback)
     sudo -u devuser bash -c '
@@ -392,6 +419,7 @@ VISIONFLOW
         echo "  Found $skill_count MCP-enabled skills"
     '
 fi
+set -e  # Re-enable exit on error
 
 # Count registered skills
 MCP_SKILL_COUNT=$(grep -c '"command":' /home/devuser/.config/claude/mcp_settings.json 2>/dev/null || echo "0")

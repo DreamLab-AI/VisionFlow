@@ -25,7 +25,7 @@ The upstream turbo-flow-claude is a **DevPod-focused** lightweight development e
 - CUDA/GPU support for workstation workloads
 - Supervisord orchestrating 15+ services
 - Management API + Z.AI service
-- 13 skills with MCP integration
+- 50+ skills with MCP integration (15+ with MCP servers)
 - 610+ Claude agent templates
 
 ## Feature Comparison Matrix
@@ -33,7 +33,7 @@ The upstream turbo-flow-claude is a **DevPod-focused** lightweight development e
 | Feature | Upstream DevPod | Our Unified Container | Status |
 |---------|-----------------|----------------------|--------|
 | **Desktop** | None | XFCE4 (→ Hyprland) | ⬆️ Upgrading |
-| **MCP Servers** | Playwright, Chrome DevTools | 9 skills (web-summary, blender, qgis, imagemagick, kicad, ngspice, pbr, playwright, chrome-devtools) | ✅ More complete |
+| **MCP Servers** | Playwright, Chrome DevTools | 50+ skills (15+ with MCP: cuda, web-summary, blender, qgis, comfyui, perplexity, deepseek-reasoning, playwright, imagemagick, etc.) | ✅ More complete |
 | **Multi-user** | No | 4 users with isolation | ✅ Our addition |
 | **GPU Support** | No | CUDA + NVIDIA | ✅ Our addition |
 | **Services** | None (manual) | 15 supervisord services | ✅ Our addition |

@@ -125,7 +125,7 @@ agentic-qe agentic-flow agentic-jujutsu
 6. **Priority 300**: management-api
 7. **Priority 400**: code-server
 8. **Priority 500**: claude-zai
-9. **Priority 510-517**: MCP servers (9 skills)
+9. **Priority 510-517**: MCP servers (50+ skills, 15+ with MCP servers)
 10. **Priority 600**: gemini-flow
 11. **Priority 900**: tmux-autostart
 

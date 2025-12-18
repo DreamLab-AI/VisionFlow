@@ -128,6 +128,12 @@ EOF
         "DEEPSEEK_BASE_URL": "https://api.deepseek.com/v1"
 EOF
             ;;
+        cuda)
+            cat <<EOF
+        "CUDA_HOME": "/opt/cuda",
+        "NVCC_PATH": "/opt/cuda/bin/nvcc"
+EOF
+            ;;
         *)
             echo ""
             ;;

@@ -143,13 +143,13 @@ services:
       - /dev/nvidia-uvm:/dev/nvidia-uvm             # NVIDIA unified memory
       - /dev/nvidia-modeset:/dev/nvidia-modeset     # NVIDIA modesetting
 
-    # Health check
+    # Health check (extended start_period for slow init)
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9090/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 60s
+      retries: 5
+      start_period: 120s
 
     # Restart policy
     restart: unless-stopped
