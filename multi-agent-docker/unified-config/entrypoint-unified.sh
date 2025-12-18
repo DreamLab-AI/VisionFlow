@@ -517,8 +517,10 @@ fi
 
 echo "[9/10] Enhancing CLAUDE.md with project-specific context..."
 
-# Append compact project documentation to system CLAUDE.md
-sudo -u devuser bash -c 'cat >> /home/devuser/CLAUDE.md' <<'CLAUDE_APPEND'
+# Append compact project documentation to BOTH home and workspace CLAUDE.md
+# (Claude Code reads from workspace when running in project directory)
+for claude_md in /home/devuser/CLAUDE.md /home/devuser/workspace/CLAUDE.md; do
+  sudo -u devuser bash -c "cat >> $claude_md" <<'CLAUDE_APPEND'
 
 ---
 
@@ -649,8 +651,9 @@ as-gemini whoami  # Should output: gemini-user
   - /tests - Test files
   - /config - Configuration
 CLAUDE_APPEND
+done
 
-echo "✓ CLAUDE.md enhanced with project context"
+echo "✓ CLAUDE.md enhanced with project context (both /home and /workspace)"
 
 # ============================================================================
 # Phase 9: Display Connection Information

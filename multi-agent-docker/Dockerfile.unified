@@ -132,21 +132,25 @@ RUN echo "devuser ALL=(gemini-user,openai-user,zai-user) NOPASSWD: ALL" >> /etc/
 
 # ============================================================================
 # PHASE 5: Node.js Global Packages (as root)
+# Latest versions for Claude, Claude-Flow, AgentDB, RuVector integration
 # ============================================================================
 
 RUN npm install -g \
-    @anthropic-ai/claude-code \
-    claude-usage-cli \
-    claude-flow \
-    agentic-qe \
-    agentic-flow \
-    agentic-jujutsu \
-    @playwright/mcp \
-    pm2 \
-    typescript \
-    ts-node \
-    @types/node \
-    playwright \
+    @anthropic-ai/claude-code@latest \
+    claude-usage-cli@latest \
+    claude-flow@latest \
+    agentdb@latest \
+    ruvector@latest \
+    @ruvector/gnn@latest \
+    agentic-qe@latest \
+    agentic-flow@latest \
+    agentic-jujutsu@latest \
+    @playwright/mcp@latest \
+    pm2@latest \
+    typescript@latest \
+    ts-node@latest \
+    @types/node@latest \
+    playwright@latest \
     chrome-devtools-mcp@latest
 
 # Install Playwright browsers (skip system deps - already installed via pacman)
@@ -486,8 +490,9 @@ COPY --chown=devuser:devuser unified-config/hyprland.conf /home/devuser/.config/
 # Copy Kitty terminal configuration
 COPY --chown=devuser:devuser unified-config/kitty.conf /home/devuser/.config/kitty/kitty.conf
 
-# Copy CLAUDE.md for reference
+# Copy CLAUDE.md to both home and workspace (Claude Code reads from workspace)
 COPY --chown=devuser:devuser CLAUDE.md /home/devuser/CLAUDE.md
+COPY --chown=devuser:devuser CLAUDE.md /home/devuser/workspace/CLAUDE.md
 
 # ============================================================================
 # PHASE 14: Supervisord Configuration

@@ -1,0 +1,17 @@
+{
+  "name": "agentic-qe",
+  "version": "2.5.9",
+  "description": "Agentic QE Fleet - AI-powered quality engineering",
+  "command": "python",
+  "args": ["server.py"],
+  "env": {
+    "AQE_COVERAGE_THRESHOLD": "95",
+    "AQE_ENABLE_LEARNING": "true",
+    "AQE_PARALLEL_WORKERS": "10",
+    "AGENTDB_PATH": "./agentdb.db"
+  },
+  "dependencies": {
+    "npm": ["agentic-qe@^2.5.9", "agentdb@^2.0.0"],
+    "python": ["mcp>=1.0.0"]
+  }
+}

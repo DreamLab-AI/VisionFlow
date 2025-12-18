@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "infrastructure-manager": {
+      "command": "python3",
+      "args": [
+        "/home/devuser/workspace/project/multi-agent-docker/skills/infrastructure-manager/server.py"
+      ],
+      "env": {},
+      "disabled": false,
+      "alwaysAllow": []
+    }
+  }
+}
